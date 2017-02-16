@@ -1,5 +1,6 @@
 import React from 'react'
 const Promise = require("bluebird")
+import _ from 'lodash'
 import AV from 'leancloud-storage'
 
 const common = require('../common')
@@ -74,7 +75,7 @@ export default React.createClass({
             {common.userLabel(customerService)}
           </td>
           <td>
-            {JSON.stringify(customerService.get('categories'))}
+            {_.join(customerService.get('categories'), ', ')}
           </td>
           <td>
             <input type='button' className='btn btn-default' value='移除' onClick={() => this.handleRemoveCustomerService(customerService.id)} />
