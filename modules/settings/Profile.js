@@ -6,14 +6,17 @@ export default React.createClass({
   getInitialState() {
     return {
       categories: [],
-      checkedCategories: AV.User.current().get('categories'),
+      checkedCategories: [],
     }
   },
   componentDidMount() {
     new AV.Query('Category')
     .find()
     .then((categories) => {
-      this.setState({categories})
+      this.setState({
+        categories,
+        checkedCategories: AV.User.current().get('categories'),
+      })
     })
   },
   handleCategoriesChange(e) {

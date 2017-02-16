@@ -6,23 +6,12 @@ import { renderToString } from 'react-dom/server'
 import { match, RouterContext } from 'react-router'
 import routes from './modules/routes'
 
-var AV = require('leanengine');
-AV.init({
-  appId: process.env.LEANCLOUD_APP_ID,
-  appKey: process.env.LEANCLOUD_APP_KEY,
-  masterKey: process.env.LEANCLOUD_APP_MASTER_KEY
-});
 
 var app = express()
-
-// 加载云函数定义
-require('./cloud');
-// 加载云引擎中间件
-app.use(AV.express());
-
 app.use(compression())
-
 app.use(express.static(path.join(__dirname, 'public')))
+
+app.use(require('./api'))
 
 app.get('*', function (req, res) {
   match({ routes: routes, location: req.url }, (err, redirect, props) => {

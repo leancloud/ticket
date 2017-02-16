@@ -1,88 +1,36 @@
-# Rendering a Route
+# LeanTicket
 
-At its heart, React Router is a component.
+## 开发帮助
 
-```js
-render(<Router/>, document.getElementById('app'))
+先使用 LeanCloud 命令行工具将本项目与 LeanCloud 应用关联：
+
+```
+lean checkout
 ```
 
-That's not going to display anything until we configure a route.
+### 安装依赖
 
-Open up `index.js` and
-
-1. import `Router`, `Route`, and `hashHistory`
-2. render a `Router` instead of `App`
-
-```js
-// ...
-import { Router, Route, hashHistory } from 'react-router'
-
-render((
-  <Router history={hashHistory}>
-    <Route path="/" component={App}/>
-  </Router>
-), document.getElementById('app'))
+```
+npm install
 ```
 
-Make sure your server is running with `npm start` and then visit
-[http://localhost:8080](http://localhost:8080)
+### 开发客户端
 
-You should get the same screen as before, but this time with some junk
-in the URL. We're using `hashHistory`--it manages the routing history
-with the hash portion of the url. It's got that extra junk to shim some
-behavior the browser has natively when using real urls.  We'll change
-this to use real urls later and lose the junk, but for now, this works
-great because it doesn't require any server-side configuration.
-
-## Adding More Screens
-
-Create two new components at:
-
-- `modules/About.js`
-- `modules/Repos.js`
-
-```js
-// modules/About.js
-import React from 'react'
-
-export default React.createClass({
-  render() {
-    return <div>About</div>
-  }
-})
 ```
-
-```js
-// modules/Repos.js
-import React from 'react'
-
-export default React.createClass({
-  render() {
-    return <div>Repos</div>
-  }
-})
+npm start
+# 或
+npm run start:client
 ```
+该命令依赖 LeanCloud 命令行工具，因为需要 `lean env` 导出 appId 和 appKey。
 
-Now we can couple them to the app at their respective paths.
+### 开发服务端 API
 
-```js
-// insert into index.js
-import About from './modules/About'
-import Repos from './modules/Repos'
-
-render((
-  <Router history={hashHistory}>
-    <Route path="/" component={App}/>
-    {/* add the routes here */}
-    <Route path="/repos" component={Repos}/>
-    <Route path="/about" component={About}/>
-  </Router>
-), document.getElementById('app'))
 ```
+lean up
+```
+因为该项目有 React 服务端渲染，构建所有代码耗时较长，所以单独把服务端 API 部分的代码独立到 `./api` 目录下，使用 `./server-api.js` 来启动。
 
-Now visit [http://localhost:8080/#/about](http://localhost:8080/#/about) and
-[http://localhost:8080/#/repos](http://localhost:8080/#/repos)
-
----
-
-[Next: Navigating With Link](../03-navigating-with-link/)
+### 构建全部并以生产环境方式启动
+```
+npm run build && npm run start:prod
+```

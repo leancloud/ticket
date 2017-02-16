@@ -15,8 +15,18 @@ AV.Cloud.beforeSave('Ticket', (req, res) => {
   res.success();
 })
 
-AV.Cloud.afterSave('Ticket', (req, res) => {
-  
+AV.Cloud.afterSave('Ticket', (req) => {
+  const category = req.object.get('category')
+  new AV.Query(AV.Role)
+  .equalTo('name', 'customerService')
+  .first()
+  .then((role) => {
+    return role.getUsers().query()
+    .equalTo('categories', category)
+    .find()
+  }).then((users) => {
+    console.log('>>', users);
+  })
 })
 
 AV.Cloud.afterUpdate('Ticket', (req) => {
