@@ -15,7 +15,7 @@ export default React.createClass({
           <ul className="dropdown-menu">
             <li><Link to="/profile">个人信息</Link></li>
             <li role="separator" className="divider"></li>
-            <li><a href="/settings">设置</a></li>
+            <li><Link to="/settings">设置</Link></li>
             <li><a href="#" onClick={this.handleLogout}>登出</a></li>
           </ul>
         </li>
