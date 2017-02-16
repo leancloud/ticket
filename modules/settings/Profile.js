@@ -42,7 +42,7 @@ export default React.createClass({
       )
     })
     return <div>
-      <div class="form-group">
+      <div className="form-group">
         <label>负责分类</label>
         <div>
           {categories}

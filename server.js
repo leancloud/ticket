@@ -1,6 +1,6 @@
-var express = require('express')
-var path = require('path')
-var compression = require('compression')
+const express = require('express')
+const path = require('path')
+const compression = require('compression')
 import React from 'react'
 import { renderToString } from 'react-dom/server'
 import { match, RouterContext } from 'react-router'

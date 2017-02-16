@@ -1,5 +1,8 @@
 import React from 'react'
 import { Route, IndexRoute } from 'react-router'
+import moment from 'moment'
+import AV from 'leancloud-storage'
+
 import App from './App'
 import About from './About'
 import Login from './Login'
@@ -11,6 +14,13 @@ import Home from './Home'
 import Settings from './Settings'
 import SettingsProfile from './settings/Profile'
 import Members from './settings/Members'
+
+moment.locale('zh-cn');
+
+AV.init({
+  appId: process.env.LEANCLOUD_APP_ID,
+  appKey: process.env.LEANCLOUD_APP_KEY,
+});
 
 module.exports = (
   <Route path="/" component={App}>

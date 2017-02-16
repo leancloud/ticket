@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "if-env NODE_ENV=production && npm run start:prod || npm run start:dev",
-    "start:dev": "webpack-dev-server --inline --content-base public --history-api-fallback",
+    "start": "if-env NODE_ENV=production && npm run start:prod || npm run dev:client",
+    "dev:client": "eval \"$(lean env)\" && webpack-dev-server --inline --content-base public --history-api-fallback",
+    "dev": "nodemon --exec 'npm run build && npm run start:prod' --ignore server.bundle.js --ignore public/bundle.js",
     "start:prod": "node server.bundle.js",
     "build": "npm run build:client && npm run build:server",
     "build:client": "webpack",
@@ -38,6 +39,7 @@
   },
   "devDependencies": {
     "http-server": "^0.8.5",
+    "nodemon": "^1.11.0",
     "webpack-dev-server": "^1.14.1"
   }
 }
