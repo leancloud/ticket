@@ -7,6 +7,7 @@
 ```
 lean checkout
 ```
+该项目默认 appId `qJnLgVRA9mnzVSw4Ho3HtIaI-gzGzoHsz` 。
 
 ### 安装依赖
 
