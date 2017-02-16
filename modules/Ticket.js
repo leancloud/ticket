@@ -70,14 +70,14 @@ export default React.createClass({
       this.setState({ticket})
     })
   },
-  ticketContent(user, content) {
+  ticketContent(user, ticketOrReply) {
     return (
       <div className="panel panel-default">
         <div className="panel-heading">
-          {common.userLabel(user)} 于 {moment(this.state.ticket.get('createdAt')).fromNow()}提交
+          {common.userLabel(user)} 于 {moment(ticketOrReply.get('createdAt')).fromNow()}提交
         </div>
         <div className="panel-body">
-          {content}
+          {ticketOrReply.get('content')}
         </div>
       </div>
     )
@@ -89,7 +89,7 @@ export default React.createClass({
       )
     }
     const replies = this.state.replies.map((reply) => {
-      return this.ticketContent(reply.get('user'), reply.get('content'))
+      return this.ticketContent(reply.get('user'), reply)
     })
     let optionButtons, statusLabel;
     if (this.state.ticket.get('status') == TICKET_STATUS_OPEN) {
@@ -106,7 +106,7 @@ export default React.createClass({
           {statusLabel} <span>{common.userLabel(this.state.ticket.get('user'))} 于 {moment(this.state.ticket.get('createdAt')).fromNow()}创建该工单</span>
         </div>
         <hr />
-        {this.ticketContent(this.state.ticket.get('user'), this.state.ticket.get('content'))}
+        {this.ticketContent(this.state.ticket.get('user'), this.state.ticket)}
         <div>{replies}</div>
         <hr />
         <div>
