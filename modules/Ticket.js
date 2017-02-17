@@ -23,14 +23,13 @@ export default React.createClass({
           .find(),
         new AV.Query('OpsLog')
           .equalTo('ticket', ticket)
-          .include('user')
           .ascending('createdAt')
           .find(),
       ]).spread((replies, opsLogs) => {
         this.setState({replies, opsLogs})
       })
     }).catch((err) => {
-      alert(err)
+      alert(err.stack)
     })
   },
   getInitialState() {
@@ -65,7 +64,7 @@ export default React.createClass({
       replies.push(reply)
       this.setState({replies})
     }).catch((err) => {
-      alert(err)
+      alert(err.stack)
     })
   },
   handleTicketClose() {
@@ -76,7 +75,6 @@ export default React.createClass({
     }).then(() => {
       return new AV.Query('OpsLog')
       .equalTo('ticket', this.state.ticket)
-      .include('user')
       .ascending('createdAt')
       .find()
     }).then((opsLogs) => {
@@ -91,7 +89,6 @@ export default React.createClass({
     }).then(() => {
       return new AV.Query('OpsLog')
       .equalTo('ticket', this.state.ticket)
-      .include('user')
       .ascending('createdAt')
       .find()
     }).then((opsLogs) => {
@@ -100,18 +97,20 @@ export default React.createClass({
   },
   ticketTimeline(data) {
     if (data.className === 'OpsLog') {
-      let action, result
       switch (data.get('action')) {
+      case 'selectAssignee':
+        return (
+          <p key={data.id}>
+            系统 于 {moment(data.get('createdAt')).fromNow()} 将工单分配给 {common.userLabel(data.get('data').assignee)} 处理
+          </p>
+        )
       case 'changeStatus':
-        action = '将状态修改为'
-        result = data.get('data').status === 0 ? '开启' : '关闭'
-        break
+        return (
+          <p key={data.id}>
+            {common.userLabel(data.get('data').user)} 于 {moment(data.get('createdAt')).fromNow()} 将工单状态修改为 {data.get('data').status === 0 ? '开启' : '关闭'}
+          </p>
+        )
       }
-      return (
-        <p key={data.id}>
-          {common.userLabel(data.get('user'))} 于 {moment(data.get('createdAt')).fromNow()} {action} {result}
-        </p>
-      )
     } else {
       return (
         <div key={data.id} className="panel panel-default">
