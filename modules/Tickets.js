@@ -13,7 +13,7 @@ export default React.createClass({
     .find().then((tickets) => {
       this.setState({tickets})
     }).catch((err) => {
-      alert(err)
+      //alert(err)
     })
   },
   contextTypes: {
@@ -35,7 +35,7 @@ export default React.createClass({
       this.setState({tickets})
       this.context.router.push('/tickets/' + ticket.get('nid'))
     }).catch((err) => {
-      alert(err)
+      //alert(err)
     })
   },
   render() {

@@ -15,7 +15,7 @@ AV.Cloud.beforeSave('Ticket', (req, res) => {
     return res.error('noLogin')
   }
   let assignee
-  req.object.set('user', req.currentUser)
+  req.object.set('author', req.currentUser)
   selectAssignee(req.object).then((_assignee) => {
     assignee = _assignee
     req.object.set('assignee', assignee)
@@ -72,7 +72,7 @@ AV.Cloud.afterUpdate('Ticket', (req) => {
       return new AV.Object('OpsLog').save({
         ticket: req.object,
         action: 'changeStatus',
-        data: {status: req.object.get('status'), user},
+        data: {status: req.object.get('status'), operator: user},
       })
     }).catch(errorHandler.captureException)
   }
@@ -82,7 +82,7 @@ AV.Cloud.beforeSave('Reply', (req, res) => {
   if (!req.currentUser._sessionToken) {
     return res.error('noLogin')
   }
-  req.object.set('user', req.currentUser)
+  req.object.set('author', req.currentUser)
   res.success()
 })
 

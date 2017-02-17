@@ -11,14 +11,16 @@ export default React.createClass({
   reloadTicketAndReplies(nid) {
     return new AV.Query('Ticket')
     .equalTo('nid', parseInt(nid))
-    .include('user')
+    .include('author')
     .first()
     .then((ticket) => {
-      this.setState({ticket})
+      if (!ticket) {
+        return
+      }
       return Promise.all([
         new AV.Query('Reply')
           .equalTo('ticket', ticket)
-          .include('user')
+          .include('author')
           .ascending('createdAt')
           .find(),
         new AV.Query('OpsLog')
@@ -26,7 +28,7 @@ export default React.createClass({
           .ascending('createdAt')
           .find(),
       ]).spread((replies, opsLogs) => {
-        this.setState({replies, opsLogs})
+        this.setState({ticket, replies, opsLogs})
       })
     }).catch((err) => {
       alert(err.stack)
@@ -56,7 +58,7 @@ export default React.createClass({
       content: this.state.reply,
     }).then((reply) => {
       return reply.fetch({
-        include: 'user'
+        include: 'author'
       })
     }).then((reply) => {
       this.setState({reply: ''})
@@ -107,7 +109,7 @@ export default React.createClass({
       case 'changeStatus':
         return (
           <p key={data.id}>
-            {common.userLabel(data.get('data').user)} 于 {moment(data.get('createdAt')).fromNow()} 将工单状态修改为 {data.get('data').status === 0 ? '开启' : '关闭'}
+            {common.userLabel(data.get('data').operator)} 于 {moment(data.get('createdAt')).fromNow()} 将工单状态修改为 {data.get('data').status === 0 ? '开启' : '关闭'}
           </p>
         )
       }
@@ -115,7 +117,7 @@ export default React.createClass({
       return (
         <div key={data.id} className="panel panel-default">
           <div className="panel-heading">
-            {common.userLabel(data.get('user'))} 于 {moment(data.get('createdAt')).fromNow()}提交
+            {common.userLabel(data.get('author'))} 于 {moment(data.get('createdAt')).fromNow()}提交
           </div>
           <div className="panel-body">
             {data.get('content')}
@@ -148,7 +150,7 @@ export default React.createClass({
       <div>
         <h2>{this.state.ticket.get('title')} <small>#{this.state.ticket.get('nid')}</small></h2>
         <div>
-          {statusLabel} <span>{common.userLabel(this.state.ticket.get('user'))} 于 {moment(this.state.ticket.get('createdAt')).fromNow()}创建该工单</span>
+          {statusLabel} <span>{common.userLabel(this.state.ticket.get('author'))} 于 {moment(this.state.ticket.get('createdAt')).fromNow()}创建该工单</span>
         </div>
         <hr />
         {this.ticketTimeline(this.state.ticket)}
