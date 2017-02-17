@@ -39,6 +39,8 @@
     "webpack": "^1.12.13"
   },
   "devDependencies": {
+    "eslint": "^3.15.0",
+    "eslint-plugin-react": "^6.10.0",
     "http-server": "^0.8.5",
     "nodemon": "^1.11.0",
     "webpack-dev-server": "^1.14.1"

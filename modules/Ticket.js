@@ -45,7 +45,7 @@ export default React.createClass({
     this.reloadTicketAndReplies(this.props.params.nid)
   },
   componentWillReceiveProps(nextProps) {
-    this.reloadTicketAndReplies(nextProps.params.nid);
+    this.reloadTicketAndReplies(nextProps.params.nid)
   },
   handleReplyOnChange(e) {
     this.setState({reply: e.target.value})
@@ -66,7 +66,7 @@ export default React.createClass({
       this.setState({replies})
     }).catch((err) => {
       alert(err)
-    });
+    })
   },
   handleTicketClose() {
     this.state.ticket.set('status', TICKET_STATUS_CLOSED).save()
@@ -102,10 +102,10 @@ export default React.createClass({
     if (data.className === 'OpsLog') {
       let action, result
       switch (data.get('action')) {
-        case 'changeStatus':
-          action = '将状态修改为'
-          result = data.get('data').status === 0 ? '开启' : '关闭'
-          break
+      case 'changeStatus':
+        action = '将状态修改为'
+        result = data.get('data').status === 0 ? '开启' : '关闭'
+        break
       }
       return (
         <p key={data.id}>
@@ -137,7 +137,7 @@ export default React.createClass({
       return data.get('createdAt')
     }).map(this.ticketTimeline)
     .value()
-    let optionButtons, statusLabel;
+    let optionButtons, statusLabel
     if (this.state.ticket.get('status') == TICKET_STATUS_OPEN) {
       statusLabel = <span className="label label-success">Open</span>
       optionButtons = <button type="button" className='btn btn-default' onClick={this.handleTicketClose}>关闭</button>
