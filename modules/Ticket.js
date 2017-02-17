@@ -1,6 +1,8 @@
 import React from 'react'
 import AV from 'leancloud-storage'
 import moment from 'moment'
+import Promise from 'bluebird'
+import _ from 'lodash'
 import {TICKET_STATUS_OPEN, TICKET_STATUS_CLOSED} from '../lib/constant'
 
 const common = require('./common')
@@ -13,13 +15,20 @@ export default React.createClass({
     .first()
     .then((ticket) => {
       this.setState({ticket})
-      return new AV.Query('Reply')
-      .equalTo('ticket', ticket)
-      .include('user')
-      .ascending('createdAt')
-      .find()
-    }).then((replies) => {
-      this.setState({replies})
+      return Promise.all([
+        new AV.Query('Reply')
+          .equalTo('ticket', ticket)
+          .include('user')
+          .ascending('createdAt')
+          .find(),
+        new AV.Query('OpsLog')
+          .equalTo('ticket', ticket)
+          .include('user')
+          .ascending('createdAt')
+          .find(),
+      ]).spread((replies, opsLogs) => {
+        this.setState({replies, opsLogs})
+      })
     }).catch((err) => {
       alert(err)
     })
@@ -28,6 +37,7 @@ export default React.createClass({
     return {
       ticket: null,
       replies: [],
+      opsLogs: [],
       reply: '',
     }
   },
@@ -62,25 +72,58 @@ export default React.createClass({
     this.state.ticket.set('status', TICKET_STATUS_CLOSED).save()
     .then((ticket) => {
       this.setState({ticket})
+      return Promise.delay(500)
+    }).then(() => {
+      return new AV.Query('OpsLog')
+      .equalTo('ticket', this.state.ticket)
+      .include('user')
+      .ascending('createdAt')
+      .find()
+    }).then((opsLogs) => {
+      this.setState({opsLogs})
     })
   },
   handleTicketReopen() {
     this.state.ticket.set('status', TICKET_STATUS_OPEN).save()
     .then((ticket) => {
       this.setState({ticket})
+      return Promise.delay(500)
+    }).then(() => {
+      return new AV.Query('OpsLog')
+      .equalTo('ticket', this.state.ticket)
+      .include('user')
+      .ascending('createdAt')
+      .find()
+    }).then((opsLogs) => {
+      this.setState({opsLogs})
     })
   },
-  ticketContent(user, ticketOrReply) {
-    return (
-      <div className="panel panel-default">
-        <div className="panel-heading">
-          {common.userLabel(user)} 于 {moment(ticketOrReply.get('createdAt')).fromNow()}提交
+  ticketTimeline(data) {
+    if (data.className === 'OpsLog') {
+      let action, result
+      switch (data.get('action')) {
+        case 'changeStatus':
+          action = '将状态修改为'
+          result = data.get('data').status === 0 ? '开启' : '关闭'
+          break
+      }
+      return (
+        <p key={data.id}>
+          {common.userLabel(data.get('user'))} 于 {moment(data.get('createdAt')).fromNow()} {action} {result}
+        </p>
+      )
+    } else {
+      return (
+        <div key={data.id} className="panel panel-default">
+          <div className="panel-heading">
+            {common.userLabel(data.get('user'))} 于 {moment(data.get('createdAt')).fromNow()}提交
+          </div>
+          <div className="panel-body">
+            {data.get('content')}
+          </div>
         </div>
-        <div className="panel-body">
-          {ticketOrReply.get('content')}
-        </div>
-      </div>
-    )
+      )
+    }
   },
   render() {
     if (this.state.ticket === null) {
@@ -88,9 +131,12 @@ export default React.createClass({
       <div>读取中……</div>
       )
     }
-    const replies = this.state.replies.map((reply) => {
-      return this.ticketContent(reply.get('user'), reply)
-    })
+    const timeline = _.chain(this.state.replies)
+    .concat(this.state.opsLogs)
+    .sortBy((data) => {
+      return data.get('createdAt')
+    }).map(this.ticketTimeline)
+    .value()
     let optionButtons, statusLabel;
     if (this.state.ticket.get('status') == TICKET_STATUS_OPEN) {
       statusLabel = <span className="label label-success">Open</span>
@@ -106,8 +152,8 @@ export default React.createClass({
           {statusLabel} <span>{common.userLabel(this.state.ticket.get('user'))} 于 {moment(this.state.ticket.get('createdAt')).fromNow()}创建该工单</span>
         </div>
         <hr />
-        {this.ticketContent(this.state.ticket.get('user'), this.state.ticket)}
-        <div>{replies}</div>
+        {this.ticketTimeline(this.state.ticket)}
+        <div>{timeline}</div>
         <hr />
         <div>
           <div className="form-group">
