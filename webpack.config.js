@@ -23,8 +23,8 @@ module.exports = {
   ] : []).concat([
     new webpack.DefinePlugin({
       'process.env': JSON.stringify({
-        LEANCLOUD_APP_ID: process.env.LEANCLOUD_APP_ID,
-        LEANCLOUD_APP_KEY: process.env.LEANCLOUD_APP_KEY,
+        LEANCLOUD_APP_ID: 'qJnLgVRA9mnzVSw4Ho3HtIaI-gzGzoHsz',
+        LEANCLOUD_APP_KEY: 'zWbsVPeSQtQOSy2bN3ixRVOq',
       })
     })
   ])
