@@ -15,12 +15,15 @@ lean checkout
 npm install
 ```
 
+### 以生产环境方式启动
+```
+npm run start
+```
+
 ### 开发客户端
 
 ```
-npm start
-# 或
-npm run start:client
+eval $(lean env) && npm run dev:client
 ```
 该命令依赖 LeanCloud 命令行工具，因为需要 `lean env` 导出 appId 和 appKey。
 
@@ -29,10 +32,5 @@ npm run start:client
 ```
 lean up
 # 或
-eval $(lean env) && node server.js
-```
-
-### 以生产环境方式启动
-```
-npm run start:prod
+eval $(lean env) && npm run dev
 ```

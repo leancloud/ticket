@@ -4,11 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "if-env NODE_ENV=production && npm run start:prod || npm run start:client",
-    "start:client": "eval \"$(lean env)\" && webpack-dev-server --inline --content-base public --history-api-fallback",
-    "start:prod": "npm run build && node server.js",
-    "build": "eval $(lean env) && webpack",
-    "dev": "node server.js"
+    "start": "webpack && node server.js",
+    "dev": "node server.js",
+    "dev:client": "webpack-dev-server --inline --content-base public --history-api-fallback"
   },
   "author": "",
   "engines": {
@@ -23,7 +21,6 @@
     "bootstrap": "^3.3.7",
     "compression": "^1.6.2",
     "express": "^4.14.0",
-    "if-env": "^1.0.0",
     "leancloud-storage": "^2.1.1",
     "leanengine": "^1.2.3",
     "lodash": "^4.17.4",
