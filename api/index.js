@@ -1,4 +1,4 @@
-const express = require('express')
+var router = require('express').Router()
 const AV = require('leanengine')
 
 AV.init({
@@ -7,13 +7,11 @@ AV.init({
   masterKey: process.env.LEANCLOUD_APP_MASTER_KEY
 })
 // TODO 后续移除全局 masterKey
-AV.Cloud.useMasterKey();
-
-var app = express()
+AV.Cloud.useMasterKey()
 
 // 加载云函数定义
 require('./cloud')
 // 加载云引擎中间件
-app.use(AV.express())
+router.use(AV.express())
 
-module.exports = app
+module.exports = router

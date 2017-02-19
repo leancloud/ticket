@@ -6,13 +6,9 @@
   "scripts": {
     "start": "if-env NODE_ENV=production && npm run start:prod || npm run start:client",
     "start:client": "eval \"$(lean env)\" && webpack-dev-server --inline --content-base public --history-api-fallback",
-    "start:api": "nodemon --watch api server-api.js",
-    "start:prod": "node server.bundle.js",
-    "build": "npm run build:client && npm run build:server",
-    "build:client": "webpack",
-    "build:server": "webpack --config webpack.server.config.js",
-    "postinstall": "npm run build",
-    "dev": "npm run start:api"
+    "start:prod": "npm run build && node server.js",
+    "build": "eval $(lean env) && webpack",
+    "dev": "node server.js"
   },
   "author": "",
   "engines": {
