@@ -57,7 +57,7 @@ const selectAssignee = (ticket) => {
     const category = ticket.get('category')
     const query = role.getUsers().query()
     if (!_.isEmpty(category)) {
-      query.equalTo('categories', AV.Object.createWithoutData('Category', category.objectId))
+      query.equalTo('categories.objectId', category.objectId)
     }
     return query.find()
   }).then((users) => {

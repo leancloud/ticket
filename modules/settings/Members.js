@@ -69,13 +69,16 @@ export default React.createClass({
   },
   render() {
     const customerServices = this.state.customerServices.map((customerService) => {
+      const categories = _.map(customerService.get('categories'), (category) => {
+        return <span>{category.name} </span>
+      })
       return (
         <tr key={customerService.id}>
           <td>
             {common.userLabel(customerService)}
           </td>
           <td>
-            {_.join(customerService.get('categories'), ', ')}
+            {categories}
           </td>
           <td>
             <input type='button' className='btn btn-default' value='移除' onClick={() => this.handleRemoveCustomerService(customerService.id)} />

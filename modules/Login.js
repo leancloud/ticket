@@ -6,6 +6,7 @@ export default React.createClass({
     return {
       username: '',
       password: '',
+      error: '',
     }
   },
   handleUsernameChange(e) {
@@ -18,13 +19,21 @@ export default React.createClass({
     new AV.User()
     .setUsername(this.state.username)
     .setPassword(this.state.password)
-    .logIn();
+    .logIn()
+    .then(() => {
+      const { location } = this.props
+      if (location.state && location.state.nextPathname) {
+        this.props.router.replace(location.state.nextPathname)
+      } else {
+        this.props.router.replace('/')
+      }
+    })
   },
   handleSignup() {
     new AV.User()
     .setUsername(this.state.username)
     .setPassword(this.state.password)
-    .signUp();
+    .signUp()
   },
   render() {
     return <div>
