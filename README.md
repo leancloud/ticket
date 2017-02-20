@@ -14,10 +14,15 @@ lean checkout
 ```
 npm install
 ```
+依赖安装完毕会自动编译应用，如果后需要手动编译请执行：
+
+```
+npm run build
+```
 
 ### 以生产环境方式启动
 ```
-npm run start
+npm start
 ```
 
 ### 开发客户端

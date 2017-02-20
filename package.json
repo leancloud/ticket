@@ -4,9 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "webpack && node server.js",
-    "dev": "node server.js",
-    "dev:client": "webpack-dev-server --inline --content-base public --history-api-fallback"
+    "start": "node server.js",
+    "build": "webpack",
+    "dev:client": "webpack-dev-server --inline --content-base public --history-api-fallback",
+    "dev": "nodemon --ignore modules server.js",
+    "postinstall": "npm run build"
   },
   "author": "",
   "engines": {
