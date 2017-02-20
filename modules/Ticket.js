@@ -3,7 +3,9 @@ import AV from 'leancloud-storage'
 import moment from 'moment'
 import Promise from 'bluebird'
 import _ from 'lodash'
+
 import {TICKET_STATUS_OPEN, TICKET_STATUS_CLOSED} from '../lib/constant'
+import UpdateTicket from './UpdateTicket'
 
 const common = require('./common')
 
@@ -34,12 +36,24 @@ export default React.createClass({
       alert(err.stack)
     })
   },
+  delayRefreshOpsLogs() {
+    return Promise.delay(500)
+    .then(() => {
+      return new AV.Query('OpsLog')
+      .equalTo('ticket', this.state.ticket)
+      .ascending('createdAt')
+      .find()
+    }).then((opsLogs) => {
+      this.setState({opsLogs})
+    })
+  },
   getInitialState() {
     return {
       ticket: null,
       replies: [],
       opsLogs: [],
       reply: '',
+      categories: [],
     }
   },
   componentDidMount() {
@@ -73,28 +87,21 @@ export default React.createClass({
     this.state.ticket.set('status', TICKET_STATUS_CLOSED).save()
     .then((ticket) => {
       this.setState({ticket})
-      return Promise.delay(500)
-    }).then(() => {
-      return new AV.Query('OpsLog')
-      .equalTo('ticket', this.state.ticket)
-      .ascending('createdAt')
-      .find()
-    }).then((opsLogs) => {
-      this.setState({opsLogs})
+      return this.delayRefreshOpsLogs()
+    })
+  },
+  updateTicketCategory(category) {
+    this.state.ticket.set('category', category.toJSON()).save()
+    .then((ticket) => {
+      this.setState({ticket})
+      return this.delayRefreshOpsLogs()
     })
   },
   handleTicketReopen() {
     this.state.ticket.set('status', TICKET_STATUS_OPEN).save()
     .then((ticket) => {
       this.setState({ticket})
-      return Promise.delay(500)
-    }).then(() => {
-      return new AV.Query('OpsLog')
-      .equalTo('ticket', this.state.ticket)
-      .ascending('createdAt')
-      .find()
-    }).then((opsLogs) => {
-      this.setState({opsLogs})
+      this.delayRefreshOpsLogs()
     })
   },
   ticketTimeline(data) {
@@ -110,6 +117,12 @@ export default React.createClass({
         return (
           <p key={data.id}>
             {common.userLabel(data.get('data').operator)} 于 {moment(data.get('createdAt')).fromNow()} 将工单状态修改为 {data.get('data').status === 0 ? '开启' : '关闭'}
+          </p>
+        )
+      case 'changeCategory':
+        return (
+          <p key={data.id}>
+            {common.userLabel(data.get('data').operator)} 于 {moment(data.get('createdAt')).fromNow()} 将工单类别改为 {data.get('data').category.name}
           </p>
         )
       }
@@ -156,6 +169,14 @@ export default React.createClass({
         {this.ticketTimeline(this.state.ticket)}
         <div>{timeline}</div>
         <hr />
+        <div className='form-horizontal'>
+          <div className='form-group'>
+            <label className="col-sm-2 control-label">修改类别</label>
+            <div className="col-sm-10">
+              <UpdateTicket ticket={this.state.ticket} updateTicketCategory={this.updateTicketCategory} />
+            </div>
+          </div>
+        </div>
         <div>
           <div className="form-group">
             <textarea className="form-control" rows="8" placeholder="回复内容……" value={this.state.reply} onChange={this.handleReplyOnChange}></textarea>

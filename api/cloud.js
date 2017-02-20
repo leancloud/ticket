@@ -57,7 +57,7 @@ const selectAssignee = (ticket) => {
     const category = ticket.get('category')
     const query = role.getUsers().query()
     if (!_.isEmpty(category)) {
-      query.equalTo('categories', category)
+      query.equalTo('categories', AV.Object.createWithoutData('Category', category.objectId))
     }
     return query.find()
   }).then((users) => {
@@ -73,6 +73,16 @@ AV.Cloud.afterUpdate('Ticket', (req) => {
         ticket: req.object,
         action: 'changeStatus',
         data: {status: req.object.get('status'), operator: user},
+      })
+    }).catch(errorHandler.captureException)
+  }
+  if (req.object.updatedKeys.indexOf('category') != -1) {
+    getTinyUserInfo(req.currentUser)
+    .then((user) => {
+      return new AV.Object('OpsLog').save({
+        ticket: req.object,
+        action: 'changeCategory',
+        data: {category: req.object.get('category'), operator: user},
       })
     }).catch(errorHandler.captureException)
   }

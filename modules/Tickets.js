@@ -5,16 +5,17 @@ import {TICKET_STATUS_OPEN} from '../lib/constant'
 
 export default React.createClass({
   getInitialState() {
-    return {tickets: []}
+    return {
+      tickets: [],
+    }
   },
   componentDidMount() {
     new AV.Query('Ticket')
     .descending('updatedAt')
-    .find().then((tickets) => {
+    .find()
+    .then((tickets) => {
       this.setState({tickets})
-    }).catch((err) => {
-      //alert(err)
-    })
+    }).catch(alert)
   },
   contextTypes: {
     router: React.PropTypes.object
@@ -35,7 +36,7 @@ export default React.createClass({
       this.setState({tickets})
       this.context.router.push('/tickets/' + ticket.get('nid'))
     }).catch((err) => {
-      //alert(err)
+      alert(err)
     })
   },
   render() {
@@ -47,7 +48,7 @@ export default React.createClass({
     return (
       <div>
         <div className="row">
-          <div className="col-md-4">
+          <div className="col-sm-4">
             <div className="form-group">
               <Link to='/tickets/new' className="btn btn-primary">新建工单</Link>
             </div>
@@ -55,7 +56,7 @@ export default React.createClass({
               {ticketLinks}
             </ul>
           </div> 
-          <div className="col-md-8">
+          <div className="col-sm-8">
             {this.props.children && React.cloneElement(this.props.children,
               {
                 addTicket: this.addTicket,

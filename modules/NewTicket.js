@@ -1,4 +1,5 @@
 import React from 'react'
+import _ from 'lodash'
 import AV from 'leancloud-storage'
 
 export default React.createClass({
@@ -6,20 +7,21 @@ export default React.createClass({
     return {
       categories: [],
       title: '',
-      category: '',
+      category: {},
       content: '',
     }
   },
   componentDidMount() {
     new AV.Query('Category').find().then((categories) => {
-      this.setState({categories})
+      this.setState({categories, category: categories[0]})
     })
   },
   handleTitleChange(e) {
     this.setState({title: e.target.value})
   },
   handleCategoryChange(e) {
-    this.setState({category: e.target.value})
+    const category = _.find(this.state.categories, {id: e.target.value})
+    this.setState({category})
   },
   handleContentChange(e) {
     this.setState({content: e.target.value})
@@ -28,7 +30,7 @@ export default React.createClass({
     e.preventDefault()
     this.props.addTicket({
       title: this.state.title,
-      category: this.state.category,
+      category: this.state.category.toJSON(),
       content: this.state.content,
     })
     this.setState({
@@ -40,7 +42,7 @@ export default React.createClass({
   render() {
     const options = this.state.categories.map((category) => {
       return (
-        <option>{category.get('name')}</option>
+        <option key={category.id} value={category.id}>{category.get('name')}</option>
       )
     })
     return (
@@ -49,8 +51,7 @@ export default React.createClass({
           <input type="text" className="form-control" placeholder="标题" value={this.state.title} onChange={this.handleTitleChange} />
         </div>
         <div className="form-group">
-          <select className="form-control" value={this.state.category} onChange={this.handleCategoryChange}>
-            <option>默认分类</option>
+          <select className="form-control" value={this.state.category.id} onChange={this.handleCategoryChange}>
             {options}
           </select>
         </div>
