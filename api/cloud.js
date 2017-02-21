@@ -11,9 +11,6 @@ AV.Cloud.define('hello', function(request, response) {
 })
 
 AV.Cloud.beforeSave('Ticket', (req, res) => {
-  if (!req.currentUser._sessionToken) {
-    return res.error('noLogin')
-  }
   getTicketAcl(req.object, req.currentUser).then((acl) => {
     req.object.setACL(acl)
     req.object.set('author', req.currentUser)
@@ -26,10 +23,11 @@ AV.Cloud.beforeSave('Ticket', (req, res) => {
 
 const getTicketAcl = (ticket, author) => {
   const acl = new AV.ACL()
-  acl.setRoleReadAccess(new AV.Role('customerService'), true)
   acl.setWriteAccess(author, true)
   acl.setReadAccess(author, true)
-  Promise.resolve(acl)
+  acl.setRoleWriteAccess(new AV.Role('customerService'), true)
+  acl.setRoleReadAccess(new AV.Role('customerService'), true)
+  return Promise.resolve(acl)
 }
 
 AV.Cloud.afterSave('Ticket', (req) => {
@@ -98,9 +96,6 @@ AV.Cloud.afterUpdate('Ticket', (req) => {
 })
 
 AV.Cloud.beforeSave('Reply', (req, res) => {
-  if (!req.currentUser._sessionToken) {
-    return res.error('noLogin')
-  }
   getReplyAcl(req.object, req.currentUser).then((acl) => {
     req.object.setACL(acl)
     req.object.set('author', req.currentUser)
@@ -115,6 +110,24 @@ const getReplyAcl = (reply, author) => {
     const acl = new AV.ACL()
     acl.setWriteAccess(author, true)
     acl.setReadAccess(author, true)
+    acl.setReadAccess(ticket.get('author'), true)
+    acl.setRoleReadAccess(new AV.Role('customerService'), true)
+    return acl
+  })
+}
+
+AV.Cloud.beforeSave('OpsLog', (req, res) => {
+  getOpsLogAcl(req.object).then((acl) => {
+    req.object.setACL(acl)
+    res.success()
+  }).catch(errorHandler.captureException)
+})
+
+const getOpsLogAcl = (opsLog) => {
+  return opsLog.get('ticket').fetch({
+    include: 'author'
+  }).then((ticket) => {
+    const acl = new AV.ACL()
     acl.setReadAccess(ticket.get('author'), true)
     acl.setRoleReadAccess(new AV.Role('customerService'), true)
     return acl
