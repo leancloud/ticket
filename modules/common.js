@@ -37,3 +37,14 @@ exports.requireCustomerServiceAuth = (nextState, replace, next) => {
       next()
     })
 }
+
+exports.getCustomerServices = () => {
+  return new AV.Query(AV.Role)
+    .equalTo('name', 'customerService')
+    .first()
+    .then((role) => {
+      return role.getUsers()
+        .query()
+        .find()
+    })
+}

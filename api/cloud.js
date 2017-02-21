@@ -73,26 +73,31 @@ const selectAssignee = (ticket) => {
 }
 
 AV.Cloud.afterUpdate('Ticket', (req) => {
-  if (req.object.updatedKeys.indexOf('status') != -1) {
-    getTinyUserInfo(req.currentUser)
-    .then((user) => {
-      return new AV.Object('OpsLog').save({
+  getTinyUserInfo(req.currentUser).then((user) => {
+    if (req.object.updatedKeys.indexOf('status') != -1) {
+      new AV.Object('OpsLog').save({
         ticket: req.object,
         action: 'changeStatus',
         data: {status: req.object.get('status'), operator: user},
       })
-    }).catch(errorHandler.captureException)
-  }
-  if (req.object.updatedKeys.indexOf('category') != -1) {
-    getTinyUserInfo(req.currentUser)
-    .then((user) => {
-      return new AV.Object('OpsLog').save({
+    }
+    if (req.object.updatedKeys.indexOf('category') != -1) {
+      new AV.Object('OpsLog').save({
         ticket: req.object,
         action: 'changeCategory',
         data: {category: req.object.get('category'), operator: user},
       })
-    }).catch(errorHandler.captureException)
-  }
+    }
+    if (req.object.updatedKeys.indexOf('assignee') != -1) {
+      getTinyUserInfo(req.object.get('assignee')).then((assignee) => {
+        new AV.Object('OpsLog').save({
+          ticket: req.object,
+          action: 'changeAssignee',
+          data: {assignee: assignee, operator: user},
+        })
+      })
+    }
+  })
 })
 
 AV.Cloud.beforeSave('Reply', (req, res) => {

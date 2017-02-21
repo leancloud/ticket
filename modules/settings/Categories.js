@@ -19,14 +19,9 @@ export default React.createClass({
       new AV.Query('Category')
         .descending('createdAt')
         .find(),
-      new AV.Query(AV.Role)
-        .equalTo('name', 'customerService')
-        .first()
-        .then((role) => {
-          return role.getUsers()
-            .query()
-            .notEqualTo('objectId', AV.User.current().id)
-            .find()
+      common.getCustomerServices()
+        .then((users) => {
+          return _.reject(users, {id: AV.User.current().id})
         })
     ]).spread((categories, customerServices) => {
       this.setState({
@@ -71,7 +66,7 @@ export default React.createClass({
       const selectCustomerServices = _.filter(this.state.customerServices, (user) => {
         return _.find(user.get('categories'), {objectId: category.id})
       }).map((user) => {
-        return <span key={user.id}>{common.userLabel(user)}</span>
+        return <span key={user.id}>{common.userLabel(user)} </span>
       })
       return (
         <tr key={category.id}>

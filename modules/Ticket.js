@@ -97,6 +97,13 @@ export default React.createClass({
       return this.delayRefreshOpsLogs()
     })
   },
+  updateTicketAssignee(assignee) {
+    this.state.ticket.set('assignee', assignee).save()
+    .then((ticket) => {
+      this.setState({ticket})
+      return this.delayRefreshOpsLogs()
+    })
+  },
   handleTicketReopen() {
     this.state.ticket.set('status', TICKET_STATUS_OPEN).save()
     .then((ticket) => {
@@ -123,6 +130,12 @@ export default React.createClass({
         return (
           <p key={data.id}>
             {common.userLabel(data.get('data').operator)} 于 {moment(data.get('createdAt')).fromNow()} 将工单类别改为 {data.get('data').category.name}
+          </p>
+        )
+      case 'changeAssignee':
+        return (
+          <p key={data.id}>
+            {common.userLabel(data.get('data').operator)} 于 {moment(data.get('createdAt')).fromNow()} 将工单负责人改为 {common.userLabel(data.get('data').assignee)}
           </p>
         )
       }
@@ -169,14 +182,9 @@ export default React.createClass({
         {this.ticketTimeline(this.state.ticket)}
         <div>{timeline}</div>
         <hr />
-        <div className='form-horizontal'>
-          <div className='form-group'>
-            <label className="col-sm-2 control-label">修改类别</label>
-            <div className="col-sm-10">
-              <UpdateTicket ticket={this.state.ticket} updateTicketCategory={this.updateTicketCategory} />
-            </div>
-          </div>
-        </div>
+        <UpdateTicket ticket={this.state.ticket}
+          updateTicketCategory={this.updateTicketCategory}
+          updateTicketAssignee={this.updateTicketAssignee} />
         <div>
           <div className="form-group">
             <textarea className="form-control" rows="8" placeholder="回复内容……" value={this.state.reply} onChange={this.handleReplyOnChange}></textarea>
