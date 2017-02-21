@@ -14,14 +14,23 @@ AV.Cloud.beforeSave('Ticket', (req, res) => {
   if (!req.currentUser._sessionToken) {
     return res.error('noLogin')
   }
-  let assignee
-  req.object.set('author', req.currentUser)
-  selectAssignee(req.object).then((_assignee) => {
-    assignee = _assignee
+  getTicketAcl(req.object, req.currentUser).then((acl) => {
+    req.object.setACL(acl)
+    req.object.set('author', req.currentUser)
+    return selectAssignee(req.object)
+  }).then((assignee) => {
     req.object.set('assignee', assignee)
     res.success()
   }).catch(errorHandler.captureException)
 })
+
+const getTicketAcl = (ticket, author) => {
+  const acl = new AV.ACL()
+  acl.setRoleReadAccess(new AV.Role('customerService'), true)
+  acl.setWriteAccess(author, true)
+  acl.setReadAccess(author, true)
+  Promise.resolve(acl)
+}
 
 AV.Cloud.afterSave('Ticket', (req) => {
   getTinyUserInfo(req.object.get('assignee'))
@@ -92,8 +101,24 @@ AV.Cloud.beforeSave('Reply', (req, res) => {
   if (!req.currentUser._sessionToken) {
     return res.error('noLogin')
   }
-  req.object.set('author', req.currentUser)
-  res.success()
+  getReplyAcl(req.object, req.currentUser).then((acl) => {
+    req.object.setACL(acl)
+    req.object.set('author', req.currentUser)
+    res.success()
+  }).catch(errorHandler.captureException)
 })
+
+const getReplyAcl = (reply, author) => {
+  return reply.get('ticket').fetch({
+    include: 'author'
+  }).then((ticket) => {
+    const acl = new AV.ACL()
+    acl.setWriteAccess(author, true)
+    acl.setReadAccess(author, true)
+    acl.setReadAccess(ticket.get('author'), true)
+    acl.setRoleReadAccess(new AV.Role('customerService'), true)
+    return acl
+  })
+}
 
 module.exports = AV.Cloud
