@@ -11,6 +11,9 @@ AV.Cloud.define('hello', function(request, response) {
 })
 
 AV.Cloud.beforeSave('Ticket', (req, res) => {
+  if (!req.currentUser._sessionToken) {
+    return res.error('noLogin')
+  }
   getTicketAcl(req.object, req.currentUser).then((acl) => {
     req.object.setACL(acl)
     req.object.set('author', req.currentUser)
@@ -101,6 +104,9 @@ AV.Cloud.afterUpdate('Ticket', (req) => {
 })
 
 AV.Cloud.beforeSave('Reply', (req, res) => {
+  if (!req.currentUser._sessionToken) {
+    return res.error('noLogin')
+  }
   getReplyAcl(req.object, req.currentUser).then((acl) => {
     req.object.setACL(acl)
     req.object.set('author', req.currentUser)
@@ -122,6 +128,9 @@ const getReplyAcl = (reply, author) => {
 }
 
 AV.Cloud.beforeSave('OpsLog', (req, res) => {
+  if (!req.currentUser._sessionToken) {
+    return res.error('noLogin')
+  }
   getOpsLogAcl(req.object).then((acl) => {
     req.object.setACL(acl)
     res.success()

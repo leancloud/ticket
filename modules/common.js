@@ -48,3 +48,16 @@ exports.getCustomerServices = () => {
         .find()
     })
 }
+
+exports.isCustomerService = (user) => {
+  if (!user) {
+    return Promise.resolve(false)
+  }
+  return new AV.Query(AV.Role)
+    .equalTo('name', 'customerService')
+    .equalTo('users', user)
+    .first()
+    .then((role) => {
+      return !!role
+    })
+}

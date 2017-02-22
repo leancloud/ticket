@@ -8,17 +8,24 @@ import common from './common'
 export default React.createClass({
   getInitialState() {
     return {
+      isCustomerService: false,
       categories: [],
       category: null,
       assignees: [],
     }
   },
   componentDidMount() {
-    Promise.all([
-      new AV.Query('Category').find(),
-      common.getCustomerServices()
-    ]).spread((categories, assignees) => {
-      this.setState({categories, assignees})
+    common.isCustomerService(AV.User.current()).then((isCustomerService) => {
+      if (!isCustomerService) {
+        this.setState({isCustomerService})
+      } else {
+        Promise.all([
+          new AV.Query('Category').find(),
+          common.getCustomerServices()
+        ]).spread((categories, assignees) => {
+          this.setState({isCustomerService, categories, assignees})
+        })
+      }
     })
   },
   handleCategoryChange(e) {
@@ -30,6 +37,9 @@ export default React.createClass({
     this.props.updateTicketAssignee(customerService)
   },
   render() {
+    if (!this.state.isCustomerService) {
+      return <div></div>
+    }
     const categoryOptions = this.state.categories.map((category) => {
       return (
         <option key={category.id} value={category.id}>{category.get('name')}</option>
