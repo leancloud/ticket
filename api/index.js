@@ -1,4 +1,4 @@
-var router = require('express').Router()
+const router = require('express').Router()
 const AV = require('leanengine')
 
 AV.init({
@@ -13,5 +13,7 @@ AV.Cloud.useMasterKey()
 require('./cloud')
 // 加载云引擎中间件
 router.use(AV.express())
+
+router.use('/api/leancloud', require('./leancloud'))
 
 module.exports = router
