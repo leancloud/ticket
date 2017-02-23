@@ -40,7 +40,7 @@ export default React.createClass({
       
           <div className="collapse navbar-collapse">
             <ul className="nav navbar-nav">
-              <li><Link to={common.getTicketsDefaultUrl()}>Tickets</Link></li>
+              <li><Link to="/tickets">Tickets</Link></li>
               <li><Link to="/about">About</Link></li>
             </ul>
             <ul className="nav navbar-nav navbar-right">

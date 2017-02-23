@@ -1,7 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router'
 import _ from 'lodash'
-import qs from 'qs'
 import AV from 'leancloud-storage'
 
 import {TICKET_STATUS_OPEN, TICKET_STATUS_CLOSED} from '../lib/constant'
@@ -12,54 +11,52 @@ export default React.createClass({
     return {
       tickets: [],
       isCustomerService: false,
+      userFilter: {},
+      statusFilter: TICKET_STATUS_OPEN,
     }
   },
   componentDidMount() {
-    this.findTickets(this.props.location.query)
-      .then(() => {
-        return common.isCustomerService(AV.User.current())
-      }).then((isCustomerService) => {
-        this.setState({isCustomerService})
-      })
+    let userFilter, isCustomerService
+    common.isCustomerService(AV.User.current()).then((_isCustomerService) => {
+      isCustomerService = _isCustomerService
+      if (isCustomerService) {
+        userFilter = {assignee: AV.User.current().get('username')}
+      } else {
+        userFilter = {author: AV.User.current().get('username')}
+      }
+      return this.findTickets(userFilter, this.state.statusFilter)
+    }).then((tickets) => {
+      this.setState({tickets, isCustomerService, userFilter})
+    })
   },
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.location.pathname !== '/tickets') {
-      return
-    }
-    this.findTickets(nextProps.location.query)
-      .then(() => {
-        return common.isCustomerService(AV.User.current())
-      }).then((isCustomerService) => {
-        this.setState({isCustomerService})
-      })
-  },
-  queryUrl(param) {
-    const query = _.assign(this.props.location.query, param)
-    return '/tickets?' + qs.stringify(query)
-  },
-  findTickets(params) {
+  findTickets(userFilter, statusFilter) {
     const query = new AV.Query('Ticket')
-    if (params.author && params.author !== '*') {
-      const innerQuery = new AV.Query('_User')
-        .equalTo('username', params.author)
-      query.matchesQuery('author', innerQuery)
+    if (!_.isEqual(userFilter, {})) {
+      if (userFilter.author) {
+        const innerQuery = new AV.Query('_User')
+          .equalTo('username', userFilter.author)
+        query.matchesQuery('author', innerQuery)
+      }
+      if (userFilter.assignee) {
+        const innerQuery = new AV.Query('_User')
+          .equalTo('username', userFilter.assignee)
+        query.matchesQuery('assignee', innerQuery)
+      }
     }
-    if (params.assignee) {
-      const innerQuery = new AV.Query('_User')
-        .equalTo('username', params.assignee)
-      query.matchesQuery('assignee', innerQuery)
-    }
-    if (params.status) {
-      query.equalTo('status', parseInt(params.status))
-    }
-    return query.descending('updatedAt')
-      .find()
-      .then((tickets) => {
-        this.setState({tickets})
-      }).catch(alert)
+    query.equalTo('status', statusFilter)
+    return query.descending('createdAt').find()
   },
-  handleTickerFilterChange(filter) {
-    this.findTickets(filter)
+  setUserFilter(userFilter) {
+    this.findTickets(userFilter, this.state.statusFilter)
+      .then((tickets) => {
+        this.setState({tickets, userFilter})
+      })
+  },
+  setStatusFilter(statusFilter) {
+    this.findTickets(this.state.userFilter, statusFilter)
+      .then((tickets) => {
+        this.setState({tickets, statusFilter})
+      })
   },
   contextTypes: {
     router: React.PropTypes.object
@@ -109,9 +106,9 @@ export default React.createClass({
     if (this.state.isCustomerService) {
       ticketAdminFilters = (
         <ul className="nav nav-tabs">
-          <li role="presentation"><Link to={`/tickets?author=${AV.User.current().get('username')}&status=${TICKET_STATUS_OPEN}`}>我创建的</Link></li>
-          <li role="presentation"><Link to={`/tickets?assignee=${AV.User.current().get('username')}&status=${TICKET_STATUS_OPEN}`}>分配给我的</Link></li>
-          <li role="presentation"><Link to={`/tickets?status=${TICKET_STATUS_OPEN}`}>全部</Link></li>
+          <li role="presentation"><button className="btn btn-default" onClick={() => this.setUserFilter({author: AV.User.current().get('username')})}>我创建的</button></li>
+          <li role="presentation"><button className="btn btn-default" onClick={() => this.setUserFilter({assignee: AV.User.current().get('username')})}>分配给我的</button></li>
+          <li role="presentation"><button className="btn btn-default" onClick={() => this.setUserFilter({})}>全部</button></li>
         </ul>
       )
     }
@@ -127,7 +124,7 @@ export default React.createClass({
             {ticketAdminFilters}
             <div className="panel panel-default">
               <div className="panel-heading">
-                <Link to={this.queryUrl({status: TICKET_STATUS_OPEN})}>打开的</Link> <Link to={this.queryUrl({status: TICKET_STATUS_CLOSED})}>关闭的</Link>
+                <button className="btn btn-default" onClick={() => this.setStatusFilter(TICKET_STATUS_OPEN)}>打开的</button> <button className="btn btn-default" onClick={() => this.setStatusFilter(TICKET_STATUS_CLOSED)}>关闭的</button>
               </div>
               <ul className="list-group">
                 {ticketLinks}

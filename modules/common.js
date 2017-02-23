@@ -64,11 +64,3 @@ exports.isCustomerService = (user) => {
       return !!role
     })
 }
-
-exports.getTicketsDefaultUrl = () => {
-  const filter = {status: TICKET_STATUS_OPEN}
-  if (AV.User.current()) {
-    filter.author = AV.User.current() && AV.User.current().get('username')
-  }
-  return '/tickets?' + qs.stringify(filter)
-}
