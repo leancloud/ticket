@@ -159,11 +159,11 @@ export default React.createClass({
       )
     }
     const timeline = _.chain(this.state.replies)
-    .concat(this.state.opsLogs)
-    .sortBy((data) => {
-      return data.get('createdAt')
-    }).map(this.ticketTimeline)
-    .value()
+      .concat(this.state.opsLogs)
+      .sortBy((data) => {
+        return data.get('createdAt')
+      }).map(this.ticketTimeline)
+      .value()
     let optionButtons, statusLabel
     if (this.state.ticket.get('status') == TICKET_STATUS_OPEN) {
       statusLabel = <span className="label label-success">Open</span>

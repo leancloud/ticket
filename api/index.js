@@ -11,6 +11,9 @@ AV.Cloud.useMasterKey()
 
 // 加载云函数定义
 require('./cloud')
+require('./Ticket')
+require('./Reply')
+require('./OpsLog')
 // 加载云引擎中间件
 router.use(AV.express())
 

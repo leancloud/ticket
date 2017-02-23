@@ -83,8 +83,26 @@ export default React.createClass({
   },
   render() {
     const ticketLinks = this.state.tickets.map((ticket) => {
+      let latestReply = ticket.get('latestReply')
+      let latestReplyContent = latestReply ? latestReply.content : ''
+      if (latestReplyContent.length > 40) {
+        latestReplyContent = latestReplyContent.slice(0, 40) + '……'
+      }
+      const isCustomerServiceReply = latestReply ? latestReply.isCustomerService : false
+      const joinedCustomerServices = (ticket.get('joinedCustomerServices') || []).map((user) => {
+        return (
+          <span key={user.objectId}>{common.userLabel(user)} </span>
+        )
+      })
       return (
-        <li className="list-group-item" key={ticket.get('nid')}><Link to={`/tickets/${ticket.get('nid')}`}>#{ticket.get('nid')} {ticket.get('title')}</Link></li>
+        <li className="list-group-item" key={ticket.get('nid')}>
+          <span className="badge">{ticket.get('replyCount')}</span>
+          <h4 className="list-group-item-heading">
+            <Link to={`/tickets/${ticket.get('nid')}`}>#{ticket.get('nid')} {ticket.get('title')}</Link> <small>{isCustomerServiceReply ? '已回复' : '未回复'}</small>
+          </h4>
+          <p className="list-group-item-text">{latestReplyContent}</p>
+          <p className="list-group-item-text">{joinedCustomerServices}</p>
+        </li>
       )
     })
     let ticketAdminFilters
