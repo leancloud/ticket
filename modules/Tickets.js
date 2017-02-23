@@ -1,9 +1,10 @@
 import React from 'react'
 import { Link } from 'react-router'
 import _ from 'lodash'
+import qs from 'qs'
 import AV from 'leancloud-storage'
 
-import {TICKET_STATUS_OPEN} from '../lib/constant'
+import {TICKET_STATUS_OPEN, TICKET_STATUS_CLOSED} from '../lib/constant'
 import common from './common'
 
 export default React.createClass({
@@ -26,10 +27,19 @@ export default React.createClass({
       return
     }
     this.findTickets(nextProps.location.query)
+      .then(() => {
+        return common.isCustomerService(AV.User.current())
+      }).then((isCustomerService) => {
+        this.setState({isCustomerService})
+      })
+  },
+  queryUrl(param) {
+    const query = _.assign(this.props.location.query, param)
+    return '/tickets?' + qs.stringify(query)
   },
   findTickets(params) {
     const query = new AV.Query('Ticket')
-    if (params.author) {
+    if (params.author && params.author !== '*') {
       const innerQuery = new AV.Query('_User')
         .equalTo('username', params.author)
       query.matchesQuery('author', innerQuery)
@@ -38,6 +48,9 @@ export default React.createClass({
       const innerQuery = new AV.Query('_User')
         .equalTo('username', params.assignee)
       query.matchesQuery('assignee', innerQuery)
+    }
+    if (params.status) {
+      query.equalTo('status', parseInt(params.status))
     }
     return query.descending('updatedAt')
       .find()
@@ -74,13 +87,13 @@ export default React.createClass({
         <li className="list-group-item" key={ticket.get('nid')}><Link to={`/tickets/${ticket.get('nid')}`}>#{ticket.get('nid')} {ticket.get('title')}</Link></li>
       )
     })
-    let ticketFilters
+    let ticketAdminFilters
     if (this.state.isCustomerService) {
-      ticketFilters = (
+      ticketAdminFilters = (
         <ul className="nav nav-tabs">
-          <li role="presentation"><Link to={'/tickets?author=' + AV.User.current().get('username')}>我创建的</Link></li>
-          <li role="presentation"><Link to={'/tickets?assignee=' + AV.User.current().get('username')}>分配给我的</Link></li>
-          <li role="presentation"><Link to={'/tickets'}>全部</Link></li>
+          <li role="presentation"><Link to={`/tickets?author=${AV.User.current().get('username')}&status=${TICKET_STATUS_OPEN}`}>我创建的</Link></li>
+          <li role="presentation"><Link to={`/tickets?assignee=${AV.User.current().get('username')}&status=${TICKET_STATUS_OPEN}`}>分配给我的</Link></li>
+          <li role="presentation"><Link to={`/tickets?status=${TICKET_STATUS_OPEN}`}>全部</Link></li>
         </ul>
       )
     }
@@ -93,10 +106,15 @@ export default React.createClass({
       <div>
         <div className="row">
           <div className="col-sm-4">
-            {ticketFilters}
-            <ul className="list-group">
-              {ticketLinks}
-            </ul>
+            {ticketAdminFilters}
+            <div className="panel panel-default">
+              <div className="panel-heading">
+                <Link to={this.queryUrl({status: TICKET_STATUS_OPEN})}>打开的</Link> <Link to={this.queryUrl({status: TICKET_STATUS_CLOSED})}>关闭的</Link>
+              </div>
+              <ul className="list-group">
+                {ticketLinks}
+              </ul>
+            </div>
           </div> 
           <div className="col-sm-8">
             {this.props.children && React.cloneElement(this.props.children,

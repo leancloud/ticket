@@ -1,5 +1,8 @@
 import React from 'react'
+import qs from 'qs'
 import AV from 'leancloud-storage'
+
+import {TICKET_STATUS_OPEN} from '../lib/constant'
 
 exports.userLabel = (user) => {
   return (
@@ -60,4 +63,12 @@ exports.isCustomerService = (user) => {
     .then((role) => {
       return !!role
     })
+}
+
+exports.getTicketsDefaultUrl = () => {
+  const filter = {status: TICKET_STATUS_OPEN}
+  if (AV.User.current()) {
+    filter.author = AV.User.current() && AV.User.current().get('username')
+  }
+  return '/tickets?' + qs.stringify(filter)
 }
