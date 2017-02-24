@@ -20,9 +20,9 @@ export default React.createClass({
     common.isCustomerService(AV.User.current()).then((_isCustomerService) => {
       isCustomerService = _isCustomerService
       if (isCustomerService) {
-        userFilter = {assignee: AV.User.current().get('username')}
+        userFilter = {assignee: AV.User.current()}
       } else {
-        userFilter = {author: AV.User.current().get('username')}
+        userFilter = {author: AV.User.current()}
       }
       return this.findTickets(userFilter, this.state.statusFilter)
     }).then((tickets) => {
@@ -33,14 +33,10 @@ export default React.createClass({
     const query = new AV.Query('Ticket')
     if (!_.isEqual(userFilter, {})) {
       if (userFilter.author) {
-        const innerQuery = new AV.Query('_User')
-          .equalTo('username', userFilter.author)
-        query.matchesQuery('author', innerQuery)
+        query.equalTo('author', userFilter.author)
       }
       if (userFilter.assignee) {
-        const innerQuery = new AV.Query('_User')
-          .equalTo('username', userFilter.assignee)
-        query.matchesQuery('assignee', innerQuery)
+        query.equalTo('assignee', userFilter.assignee)
       }
     }
     query.equalTo('status', statusFilter)
@@ -107,8 +103,8 @@ export default React.createClass({
     if (this.state.isCustomerService) {
       ticketAdminFilters = (
         <ul className="nav nav-tabs">
-          <li role="presentation"><button className="btn btn-default" onClick={() => this.setUserFilter({author: AV.User.current().get('username')})}>我创建的</button></li>
-          <li role="presentation"><button className="btn btn-default" onClick={() => this.setUserFilter({assignee: AV.User.current().get('username')})}>分配给我的</button></li>
+          <li role="presentation"><button className="btn btn-default" onClick={() => this.setUserFilter({author: AV.User.current()})}>我创建的</button></li>
+          <li role="presentation"><button className="btn btn-default" onClick={() => this.setUserFilter({assignee: AV.User.current()})}>分配给我的</button></li>
           <li role="presentation"><button className="btn btn-default" onClick={() => this.setUserFilter({})}>全部</button></li>
         </ul>
       )
