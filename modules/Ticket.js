@@ -69,7 +69,8 @@ export default React.createClass({
   },
   handleReplyCommit(e) {
     e.preventDefault()
-    common.uploadFiles($('#replyFile')[0].files)
+    const replyFile = $('#replyFile')[0]
+    common.uploadFiles(replyFile.files)
     .then((files) => {
       return new AV.Object('Reply').save({
         ticket: this.state.ticket,
@@ -78,10 +79,11 @@ export default React.createClass({
       })
     }).then((reply) => {
       return reply.fetch({
-        include: 'author'
+        include: 'author,files',
       })
     }).then((reply) => {
       this.setState({reply: ''})
+      replyFile.value = ''
       const replies = this.state.replies
       replies.push(reply)
       this.setState({replies})
