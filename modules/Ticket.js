@@ -14,6 +14,7 @@ export default React.createClass({
     return new AV.Query('Ticket')
     .equalTo('nid', parseInt(nid))
     .include('author')
+    .include('files')
     .first()
     .then((ticket) => {
       if (!ticket) {
@@ -23,6 +24,7 @@ export default React.createClass({
         new AV.Query('Reply')
           .equalTo('ticket', ticket)
           .include('author')
+          .include('files')
           .ascending('createdAt')
           .find(),
         new AV.Query('OpsLog')
@@ -67,9 +69,13 @@ export default React.createClass({
   },
   handleReplyCommit(e) {
     e.preventDefault()
-    new AV.Object('Reply').save({
-      ticket: this.state.ticket,
-      content: this.state.reply,
+    common.uploadFiles($('#replyFile')[0].files)
+    .then((files) => {
+      return new AV.Object('Reply').save({
+        ticket: this.state.ticket,
+        content: this.state.reply,
+        files,
+      })
     }).then((reply) => {
       return reply.fetch({
         include: 'author'
@@ -140,6 +146,16 @@ export default React.createClass({
         )
       }
     } else {
+      let panelFooter = <div></div>
+      const files = data.get('files')
+      if (files && files.length !== 0) {
+        const fileLinks = _.map(files, (file) => {
+          return (
+            <span><a href={file.url()} target='_blank'><span className="glyphicon glyphicon-paperclip"></span> {file.get('name')}</a> </span>
+          )
+        })
+        panelFooter = <div className="panel-footer">{fileLinks}</div>
+      }
       return (
         <div key={data.id} className="panel panel-default">
           <div className="panel-heading">
@@ -148,6 +164,7 @@ export default React.createClass({
           <div className="panel-body">
             {data.get('content')}
           </div>
+          {panelFooter}
         </div>
       )
     }
@@ -186,11 +203,16 @@ export default React.createClass({
           updateTicketCategory={this.updateTicketCategory}
           updateTicketAssignee={this.updateTicketAssignee} />
         <div>
-          <div className="form-group">
-            <textarea className="form-control" rows="8" placeholder="回复内容……" value={this.state.reply} onChange={this.handleReplyOnChange}></textarea>
-          </div>
-          <button type="button" className='btn btn-primary' onClick={this.handleReplyCommit}>回复</button>
-          {optionButtons}
+          <form onSubmit={this.handleReplyCommit}>
+            <div className="form-group">
+              <textarea className="form-control" rows="8" placeholder="回复内容……" value={this.state.reply} onChange={this.handleReplyOnChange}></textarea>
+            </div>
+            <div className="form-group">
+              <input id="replyFile" type="file" multiple />
+            </div>
+            <button type="submit" className='btn btn-primary'>回复</button>
+            {optionButtons}
+          </form>
         </div>
       </div>
     )

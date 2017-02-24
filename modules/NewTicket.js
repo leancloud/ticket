@@ -2,6 +2,8 @@ import React from 'react'
 import _ from 'lodash'
 import AV from 'leancloud-storage'
 
+const common = require('./common')
+
 export default React.createClass({
   getInitialState() {
     return {
@@ -28,15 +30,19 @@ export default React.createClass({
   },
   handleSubmit(e) {
     e.preventDefault()
-    this.props.addTicket({
-      title: this.state.title,
-      category: this.state.category.toJSON(),
-      content: this.state.content,
-    })
-    this.setState({
-      title: '',
-      category: '',
-      content: '',
+    common.uploadFiles($('#ticketFile')[0].files)
+    .then((files) => {
+      this.props.addTicket({
+        title: this.state.title,
+        category: this.state.category.toJSON(),
+        content: this.state.content,
+        files,
+      })
+      this.setState({
+        title: '',
+        category: '',
+        content: '',
+      })
     })
   },
   render() {
@@ -46,7 +52,7 @@ export default React.createClass({
       )
     })
     return (
-      <div>
+      <form onSubmit={this.handleSubmit}>
         <div className="form-group">
           <input type="text" className="form-control" placeholder="标题" value={this.state.title} onChange={this.handleTitleChange} />
         </div>
@@ -58,8 +64,11 @@ export default React.createClass({
         <div className="form-group">
           <textarea className="form-control" rows="8" placeholder="遇到的问题" value={this.state.content} onChange={this.handleContentChange}></textarea>
         </div>
-        <button type="submit" className="btn btn-default" onClick={this.handleSubmit}>提交</button>
-      </div>
+        <div className="form-group">
+          <input id="ticketFile" type="file" multiple />
+        </div>
+        <button type="submit" className="btn btn-default">提交</button>
+      </form>
     )
   }
 })

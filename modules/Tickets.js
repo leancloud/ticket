@@ -66,6 +66,7 @@ export default React.createClass({
       title: ticket.title,
       category: ticket.category,
       content: ticket.content,
+      files: ticket.files,
       status: TICKET_STATUS_OPEN,
     }).then((ticket) => {
       return ticket.fetch({
