@@ -3,3 +3,5 @@
 .avoscloud/
 .leancloud/
 node_modules/
+datas/
+dist/

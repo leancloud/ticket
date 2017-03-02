@@ -23,27 +23,11 @@ export default React.createClass({
     }
     const query = nextProps.location.query
     if (query.token) {
-      AV.User.become(query.token).then(() => {
-        this.context.router.push('/')
-      })
+      this.props.loginByToken(query.token)
     }
   },
-  contextTypes: {
-    router: React.PropTypes.object
-  },
   handleLogin() {
-    new AV.User()
-    .setUsername(this.state.username)
-    .setPassword(this.state.password)
-    .logIn()
-    .then(() => {
-      const { location } = this.props
-      if (location.state && location.state.nextPathname) {
-        this.props.router.replace(location.state.nextPathname)
-      } else {
-        this.props.router.replace('/')
-      }
-    })
+    this.props.login(this.state.username, this.state.password)
   },
   handleUsernameChange(e) {
     this.setState({username: e.target.value})
@@ -52,10 +36,7 @@ export default React.createClass({
     this.setState({password: e.target.value})
   },
   handleSignup() {
-    new AV.User()
-      .setUsername(this.state.username)
-      .setPassword(this.state.password)
-      .signUp()
+    this.props.signup(this.state.username, this.state.password)
   },
   render() {
     return <div>
@@ -65,7 +46,7 @@ export default React.createClass({
       <hr />
       <h2>测试使用</h2>
       <div><span>username: </span><input type="text" value={this.state.username} onChange={this.handleUsernameChange}/></div>
-      <div><span>password: </span><input type="text" value={this.state.password} onChange={this.handlePasswordChange} /></div>
+      <div><span>password: </span><input type="password" value={this.state.password} onChange={this.handlePasswordChange} /></div>
       <button type="submit" onClick={this.handleLogin}>Login</button>
       <button type="submit" onClick={this.handleSignup}>Signup</button>
     </div>

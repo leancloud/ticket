@@ -10,23 +10,20 @@ export default React.createClass({
   getInitialState() {
     return {
       tickets: [],
-      isCustomerService: false,
       userFilter: {},
       statusFilter: TICKET_STATUS_OPEN,
     }
   },
   componentDidMount() {
-    let userFilter, isCustomerService
-    common.isCustomerService(AV.User.current()).then((_isCustomerService) => {
-      isCustomerService = _isCustomerService
-      if (isCustomerService) {
-        userFilter = {assignee: AV.User.current()}
-      } else {
-        userFilter = {author: AV.User.current()}
-      }
-      return this.findTickets(userFilter, this.state.statusFilter)
-    }).then((tickets) => {
-      this.setState({tickets, isCustomerService, userFilter})
+    let userFilter
+    if (this.props.isCustomerService) {
+      userFilter = {assignee: AV.User.current()}
+    } else {
+      userFilter = {author: AV.User.current()}
+    }
+    return this.findTickets(userFilter, this.state.statusFilter)
+    .then((tickets) => {
+      this.setState({tickets, userFilter})
     })
   },
   findTickets(userFilter, statusFilter) {
@@ -82,7 +79,7 @@ export default React.createClass({
       )
     })
     let ticketAdminFilters
-    if (this.state.isCustomerService) {
+    if (this.props.isCustomerService) {
       ticketAdminFilters = (
         <ul className="nav nav-tabs">
           <li role="presentation"><button className="btn btn-default" onClick={() => this.setUserFilter({author: AV.User.current()})}>我创建的</button></li>
