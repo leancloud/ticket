@@ -2,8 +2,6 @@ import React, { Component } from 'react'
 import { Link } from 'react-router'
 import AV from 'leancloud-storage'
 
-import common from './common'
-
 export default React.createClass({
   handleLogout() {
     AV.User.logOut()
@@ -31,16 +29,22 @@ export default React.createClass({
     } else {
       user = <li><Link to="/login">Login</Link></li>
     }
+    let customerServiceOptions = <li></li>
+    if (this.props.isCustomerService) {
+      customerServiceOptions = (
+        <li><Link to="/customerService/tickets">后台 Tickets 入口</Link></li>
+      )
+    }
     return (
       <nav className="navbar navbar-default">
         <div className="container-fluid">
           <div className="navbar-header">
             <a className="navbar-brand" href="/">LeanTicket</a>
           </div>
-      
           <div className="collapse navbar-collapse">
             <ul className="nav navbar-nav">
               <li><Link to="/tickets">Tickets</Link></li>
+              {customerServiceOptions}
               <li><Link to="/about">About</Link></li>
             </ul>
             <ul className="nav navbar-nav navbar-right">

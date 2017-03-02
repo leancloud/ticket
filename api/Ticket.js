@@ -2,12 +2,14 @@ const _ = require('lodash')
 const AV = require('leanengine')
 
 const common = require('./common')
+const constant = require('../lib/constant')
 const errorHandler = require('./errorHandler')
 
 AV.Cloud.beforeSave('Ticket', (req, res) => {
   if (!req.currentUser._sessionToken) {
     return res.error('noLogin')
   }
+  req.object.set('status', constant.TICKET_STATUS_OPEN)
   getTicketAcl(req.object, req.currentUser).then((acl) => {
     req.object.setACL(acl)
     req.object.set('author', req.currentUser)

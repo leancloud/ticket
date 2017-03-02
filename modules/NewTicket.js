@@ -32,18 +32,18 @@ export default React.createClass({
     e.preventDefault()
     common.uploadFiles($('#ticketFile')[0].files)
     .then((files) => {
-      this.props.addTicket({
+      return new AV.Object('Ticket').save({
         title: this.state.title,
         category: common.getTinyCategoryInfo(this.state.category),
         content: this.state.content,
         files,
       })
-      this.setState({
-        title: '',
-        category: '',
-        content: '',
-      })
+    }).then(() => {
+      this.context.router.push('/tickets')
     })
+  },
+  contextTypes: {
+    router: React.PropTypes.object
   },
   render() {
     const options = this.state.categories.map((category) => {

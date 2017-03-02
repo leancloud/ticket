@@ -1,12 +1,13 @@
 import React from 'react'
-import moment from 'moment'
-import _ from 'lodash'
-import Promise from 'bluebird'
 import AV from 'leancloud-storage'
+import moment from 'moment'
+import Promise from 'bluebird'
+import _ from 'lodash'
 
-const common = require('./common')
+import UpdateTicket from './UpdateTicket'
+const common = require('../common')
 
-import {TICKET_STATUS_OPEN, TICKET_STATUS_CLOSED} from '../lib/constant'
+import {TICKET_STATUS_OPEN, TICKET_STATUS_CLOSED} from '../../lib/constant'
 
 export default React.createClass({
   delayRefreshOpsLogs() {
@@ -26,10 +27,19 @@ export default React.createClass({
       replies: [],
       opsLogs: [],
       reply: '',
+      categories: [],
     }
   },
   componentDidMount() {
     common.getTicketAndRelation(this.props.params.nid)
+    .then(({ticket, replies, opsLogs}) => {
+      this.setState({ticket, replies, opsLogs})
+    }).catch((err) => {
+      alert(err.stack)
+    })
+  },
+  componentWillReceiveProps(nextProps) {
+    common.getTicketAndRelation(nextProps.params.nid)
     .then(({ticket, replies, opsLogs}) => {
       this.setState({ticket, replies, opsLogs})
     }).catch((err) => {
@@ -65,6 +75,20 @@ export default React.createClass({
   },
   handleTicketClose() {
     this.state.ticket.set('status', TICKET_STATUS_CLOSED).save()
+    .then((ticket) => {
+      this.setState({ticket})
+      return this.delayRefreshOpsLogs()
+    })
+  },
+  updateTicketCategory(category) {
+    this.state.ticket.set('category', common.getTinyCategoryInfo(category)).save()
+    .then((ticket) => {
+      this.setState({ticket})
+      return this.delayRefreshOpsLogs()
+    })
+  },
+  updateTicketAssignee(assignee) {
+    this.state.ticket.set('assignee', assignee).save()
     .then((ticket) => {
       this.setState({ticket})
       return this.delayRefreshOpsLogs()
@@ -107,6 +131,9 @@ export default React.createClass({
         {common.ticketTimeline(this.state.ticket)}
         <div>{timeline}</div>
         <hr />
+        <UpdateTicket ticket={this.state.ticket}
+          updateTicketCategory={this.updateTicketCategory}
+          updateTicketAssignee={this.updateTicketAssignee} />
         <div>
           <form onSubmit={this.handleReplyCommit}>
             <div className="form-group">

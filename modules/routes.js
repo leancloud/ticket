@@ -8,10 +8,15 @@ import App from './App'
 import About from './About'
 import Login from './Login'
 import Profile from './Profile'
+
+import CsTickets from './customerService/Tickets'
+import CsTicket from './customerService/Ticket'
+
 import Tickets from './Tickets'
 import NewTicket from './NewTicket'
 import Ticket from './Ticket'
 import Home from './Home'
+
 import Settings from './Settings'
 import SettingsProfile from './settings/Profile'
 import Members from './settings/Members'
@@ -28,9 +33,11 @@ AV.init({
 module.exports = (
   <Route path="/" component={App}>
     <IndexRoute component={Home}/>
-    <Route path="/tickets" component={Tickets}>
-      <Route path="/tickets/new" component={NewTicket} />
-      <Route path="/tickets/:nid" component={Ticket}>
+    <Route path="/tickets" component={Tickets} />
+    <Route path="/tickets/new" component={NewTicket} />
+    <Route path="/tickets/:nid" component={Ticket} />
+    <Route path="/customerService/tickets" component={CsTickets}>
+      <Route path="/customerService/tickets/:nid" component={CsTicket}>
       </Route>
     </Route>
     <Route path="/about" component={About}/>
