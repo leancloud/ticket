@@ -99,7 +99,7 @@ export default React.createClass({
     })
   },
   updateTicketCategory(category) {
-    this.state.ticket.set('category', category.toJSON()).save()
+    this.state.ticket.set('category', common.getTinyCategoryInfo(category)).save()
     .then((ticket) => {
       this.setState({ticket})
       return this.delayRefreshOpsLogs()

@@ -28,10 +28,8 @@ const getTicketAcl = (ticket, author) => {
 }
 
 AV.Cloud.afterSave('Ticket', (req) => {
-  console.log('>> Ticket afterSave')
   common.getTinyUserInfo(req.object.get('assignee'))
   .then((assignee) => {
-    console.log('>> Ticket afterSave, assignee=', assignee)
     return new AV.Object('OpsLog').save({
       ticket: req.object,
       action: 'selectAssignee',

@@ -49,7 +49,7 @@ export default React.createClass({
   handleCategoryChange(e, categoryId) {
     let categories = this.state.checkedCategories
     if (e.target.checked) {
-      categories.push(_.find(this.state.categories, {id: categoryId}).toJSON())
+      categories.push(common.getTinyCategoryInfo(_.find(this.state.categories, {id: categoryId})))
       categories = _.uniqBy(categories, 'objectId')
     } else {
       categories = _.reject(categories, {objectId: categoryId})

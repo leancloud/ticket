@@ -34,7 +34,7 @@ export default React.createClass({
     .then((files) => {
       this.props.addTicket({
         title: this.state.title,
-        category: this.state.category.toJSON(),
+        category: common.getTinyCategoryInfo(this.state.category),
         content: this.state.content,
         files,
       })

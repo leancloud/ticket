@@ -11,6 +11,13 @@ exports.userLabel = (user) => {
   )
 }
 
+exports.getTinyCategoryInfo = (category) => {
+  return {
+    objectId: category.id,
+    name: category.get('name'),
+  }
+}
+
 exports.requireAuth = (nextState, replace) => {
   if (!AV.User.current()) {
     replace({
