@@ -18,5 +18,6 @@ require('./OpsLog')
 router.use(AV.express())
 
 router.use('/api/leancloud', require('./leancloud'))
+router.use('/webhooks/mailgun', require('./mailgun'))
 
 module.exports = router

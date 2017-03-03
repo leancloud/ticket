@@ -4,6 +4,7 @@ const AV = require('leanengine')
 const common = require('./common')
 const constant = require('../lib/constant')
 const errorHandler = require('./errorHandler')
+const notify = require('./notify')
 
 AV.Cloud.beforeSave('Ticket', (req, res) => {
   if (!req.currentUser._sessionToken) {
@@ -37,6 +38,8 @@ AV.Cloud.afterSave('Ticket', (req) => {
       action: 'selectAssignee',
       data: {assignee},
     })
+  }).then(() => {
+    return notify.newTicket(req.object, req.currentUser)
   }).catch(errorHandler.captureException)
 })
 

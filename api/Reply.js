@@ -4,6 +4,7 @@ const AV = require('leanengine')
 
 const common = require('./common')
 const errorHandler = require('./errorHandler')
+const notify = require('./notify')
 
 AV.Cloud.beforeSave('Reply', (req, res) => {
   if (!req.currentUser._sessionToken) {
@@ -21,7 +22,7 @@ AV.Cloud.beforeSave('Reply', (req, res) => {
 
 AV.Cloud.afterSave('Reply', (req) => {
   Promise.all([
-    req.object.get('ticket').fetch(),
+    req.object.get('ticket').fetch({include: 'author,assignee'}),
     common.getTinyReplyInfo(req.object),
   ]).spread((ticket, reply) => {
     return uniqJoinedCustomerServices(req.object, ticket.get('joinedCustomerServices'))
@@ -31,6 +32,8 @@ AV.Cloud.afterSave('Reply', (req) => {
           .set('joinedCustomerServices', joinedCustomerServices)
           .save()
       })
+  }).then((ticket) => {
+    return notify.replyTicket(ticket, req.object, req.currentUser)
   }).catch(errorHandler.captureException)
 })
 
