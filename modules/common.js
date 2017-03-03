@@ -163,7 +163,7 @@ exports.ticketTimeline = (avObj) => {
           {exports.userLabel(avObj.get('author'))} 于 {moment(avObj.get('createdAt')).fromNow()}提交
         </div>
         <div className="panel-body">
-          {avObj.get('content')}
+          <pre>{avObj.get('content')}</pre>
         </div>
         {panelFooter}
       </div>
