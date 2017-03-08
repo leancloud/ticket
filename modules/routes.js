@@ -9,9 +9,6 @@ import About from './About'
 import Login from './Login'
 import Profile from './Profile'
 
-import CsTickets from './customerService/Tickets'
-import CsTicket from './customerService/Ticket'
-
 import Tickets from './Tickets'
 import NewTicket from './NewTicket'
 import Ticket from './Ticket'
@@ -36,10 +33,6 @@ module.exports = (
     <Route path="/tickets" component={Tickets} />
     <Route path="/tickets/new" component={NewTicket} />
     <Route path="/tickets/:nid" component={Ticket} />
-    <Route path="/customerService/tickets" component={CsTickets}>
-      <Route path="/customerService/tickets/:nid" component={CsTicket}>
-      </Route>
-    </Route>
     <Route path="/about" component={About}/>
     <Route path="/login" component={Login}/>
     <Route path="/profile" component={Profile} />

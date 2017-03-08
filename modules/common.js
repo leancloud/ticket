@@ -1,11 +1,8 @@
 import React from 'react'
-import qs from 'qs'
 import Promise from 'bluebird'
-import moment from 'moment'
-import _ from 'lodash'
 import AV from 'leancloud-storage'
 
-import {TICKET_STATUS_OPEN} from '../lib/constant'
+const TICKET_STATUS = require('../lib/constant').TICKET_STATUS
 
 exports.userLabel = (user) => {
   return (
@@ -118,55 +115,31 @@ exports.getTicketAndRelation = (nid) => {
   })
 }
 
-exports.ticketTimeline = (avObj) => {
-  if (avObj.className === 'OpsLog') {
-    switch (avObj.get('action')) {
-    case 'selectAssignee':
-      return (
-        <p key={avObj.id}>
-          系统 于 {moment(avObj.get('createdAt')).fromNow()} 将工单分配给 {exports.userLabel(avObj.get('data').assignee)} 处理
-        </p>
-      )
-    case 'changeStatus':
-      return (
-        <p key={avObj.id}>
-          {exports.userLabel(avObj.get('data').operator)} 于 {moment(avObj.get('createdAt')).fromNow()} 将工单状态修改为 {avObj.get('data').status === 0 ? '开启' : '关闭'}
-        </p>
-      )
-    case 'changeCategory':
-      return (
-        <p key={avObj.id}>
-          {exports.userLabel(avObj.get('data').operator)} 于 {moment(avObj.get('createdAt')).fromNow()} 将工单类别改为 {avObj.get('data').category.name}
-        </p>
-      )
-    case 'changeAssignee':
-      return (
-        <p key={avObj.id}>
-          {exports.userLabel(avObj.get('data').operator)} 于 {moment(avObj.get('createdAt')).fromNow()} 将工单负责人改为 {exports.userLabel(avObj.get('data').assignee)}
-        </p>
-      )
-    }
+exports.getTicketStatusLabel = (ticket) => {
+  if (ticket.get('status') === TICKET_STATUS.FULFILLED) {
+    return <span className='label label-success'>已解决</span>
+  } else if (ticket.get('status') === TICKET_STATUS.REJECTED) {
+    return <span className='label label-danger'>不解决</span>
+  } else if (ticket.get('status') === TICKET_STATUS.PRE_FULFILLED) {
+    return <span className='label label-primary'>待确认解决</span>
   } else {
-    let panelFooter = <div></div>
-    const files = avObj.get('files')
-    if (files && files.length !== 0) {
-      const fileLinks = _.map(files, (file) => {
-        return (
-          <span><a href={file.url()} target='_blank'><span className="glyphicon glyphicon-paperclip"></span> {file.get('name')}</a> </span>
-        )
-      })
-      panelFooter = <div className="panel-footer">{fileLinks}</div>
+    const latestReply = ticket.get('latestReply')
+    if (latestReply && latestReply.isCustomerService) {
+      return <span className='label label-info'>已回复</span>
+    } else {
+      return <span className='label label-warning'>未回复</span>
     }
-    return (
-      <div key={avObj.id} className="panel panel-default">
-        <div className="panel-heading">
-          {exports.userLabel(avObj.get('author'))} 于 {moment(avObj.get('createdAt')).fromNow()}提交
-        </div>
-        <div className="panel-body">
-          <pre>{avObj.get('content')}</pre>
-        </div>
-        {panelFooter}
-      </div>
-    )
+  }
+}
+
+exports.getTicketStatusLabelOnlyStatus = (status) => {
+  if (status === TICKET_STATUS.FULFILLED) {
+    return <span className='label label-success'>已解决</span>
+  } else if (status === TICKET_STATUS.REJECTED) {
+    return <span className='label label-danger'>不解决</span>
+  } else if (status === TICKET_STATUS.PRE_FULFILLED) {
+    return <span className='label label-primary'>待确认解决</span>
+  } else if (status === TICKET_STATUS.OPEN) {
+    return <span className='label label-info'>打开</span>
   }
 }

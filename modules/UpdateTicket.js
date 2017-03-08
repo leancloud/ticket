@@ -3,7 +3,7 @@ import _ from 'lodash'
 import Promise from 'bluebird'
 import AV from 'leancloud-storage'
 
-import common from '../common'
+import common from './common'
 
 export default React.createClass({
   getInitialState() {

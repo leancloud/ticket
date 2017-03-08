@@ -4,9 +4,10 @@ import _ from 'lodash'
 import Promise from 'bluebird'
 import AV from 'leancloud-storage'
 
-const common = require('./common')
+import common from './common'
+import UpdateTicket from './UpdateTicket'
 
-import {TICKET_STATUS_OPEN, TICKET_STATUS_CLOSED} from '../lib/constant'
+import { TICKET_STATUS } from '../lib/constant'
 
 export default React.createClass({
   delayRefreshOpsLogs() {
@@ -26,6 +27,7 @@ export default React.createClass({
       replies: [],
       opsLogs: [],
       reply: '',
+      categories: [],
     }
   },
   componentDidMount() {
@@ -39,43 +41,109 @@ export default React.createClass({
   handleReplyOnChange(e) {
     this.setState({reply: e.target.value})
   },
-  handleReplyCommit(e) {
-    e.preventDefault()
+  commitReply() {
     const replyFile = $('#replyFile')[0]
-    common.uploadFiles(replyFile.files)
+    return common.uploadFiles(replyFile.files)
     .then((files) => {
+      if (this.state.reply.trim() === '' && files.length == 0) {
+        return
+      }
       return new AV.Object('Reply').save({
         ticket: this.state.ticket,
         content: this.state.reply,
         files,
+      }).then((reply) => {
+        return reply.fetch({
+          include: 'author,files',
+        })
+      }).then((reply) => {
+        this.setState({reply: ''})
+        replyFile.value = ''
+        const replies = this.state.replies
+        replies.push(reply)
+        this.setState({replies})
       })
-    }).then((reply) => {
-      return reply.fetch({
-        include: 'author,files',
-      })
-    }).then((reply) => {
-      this.setState({reply: ''})
-      replyFile.value = ''
-      const replies = this.state.replies
-      replies.push(reply)
-      this.setState({replies})
-    }).catch((err) => {
+    })
+  },
+  handleReplyCommit(e) {
+    e.preventDefault()
+    this.commitReply().catch((err) => {
       alert(err.stack)
     })
   },
-  handleTicketClose() {
-    this.state.ticket.set('status', TICKET_STATUS_CLOSED).save()
+  handleStatusChange(status) {
+    this.commitReply().then(() => {
+      return this.state.ticket.set('status', status).save()
+    }).then((ticket) => {
+      this.setState({ticket})
+      return this.delayRefreshOpsLogs()
+    }).catch(alert)
+  },
+  updateTicketCategory(category) {
+    this.state.ticket.set('category', common.getTinyCategoryInfo(category)).save()
     .then((ticket) => {
       this.setState({ticket})
       return this.delayRefreshOpsLogs()
     })
   },
-  handleTicketReopen() {
-    this.state.ticket.set('status', TICKET_STATUS_OPEN).save()
+  updateTicketAssignee(assignee) {
+    this.state.ticket.set('assignee', assignee).save()
     .then((ticket) => {
       this.setState({ticket})
-      this.delayRefreshOpsLogs()
+      return this.delayRefreshOpsLogs()
     })
+  },
+  ticketTimeline(avObj) {
+    if (avObj.className === 'OpsLog') {
+      switch (avObj.get('action')) {
+      case 'selectAssignee':
+        return (
+          <p key={avObj.id}>
+            系统 于 {moment(avObj.get('createdAt')).fromNow()} 将工单分配给 {common.userLabel(avObj.get('data').assignee)} 处理
+          </p>
+        )
+      case 'changeStatus':
+        return (
+          <p key={avObj.id}>
+            {common.userLabel(avObj.get('data').operator)} 于 {moment(avObj.get('createdAt')).fromNow()} 将工单状态修改为 {common.getTicketStatusLabelOnlyStatus(avObj.get('data').status)}
+          </p>
+        )
+      case 'changeCategory':
+        return (
+          <p key={avObj.id}>
+            {common.userLabel(avObj.get('data').operator)} 于 {moment(avObj.get('createdAt')).fromNow()} 将工单类别改为 {avObj.get('data').category.name}
+          </p>
+        )
+      case 'changeAssignee':
+        return (
+          <p key={avObj.id}>
+            {common.userLabel(avObj.get('data').operator)} 于 {moment(avObj.get('createdAt')).fromNow()} 将工单负责人改为 {common.userLabel(avObj.get('data').assignee)}
+          </p>
+        )
+      }
+    } else {
+      let panelFooter = <div></div>
+      const files = avObj.get('files')
+      if (files && files.length !== 0) {
+        const fileLinks = _.map(files, (file) => {
+          return (
+            <span><a href={file.url()} target='_blank'><span className="glyphicon glyphicon-paperclip"></span> {file.get('name')}</a> </span>
+          )
+        })
+        panelFooter = <div className="panel-footer">{fileLinks}</div>
+      }
+      return (
+        <div key={avObj.id} className="panel panel-default">
+          <div className="panel-heading">
+            {common.userLabel(avObj.get('author'))} 于 {moment(avObj.get('createdAt')).fromNow()}提交
+          </div>
+          <div className="panel-body">
+            <pre>{avObj.get('content')}</pre>
+          </div>
+          {panelFooter}
+        </div>
+      )
+    }
   },
   render() {
     if (this.state.ticket === null) {
@@ -87,35 +155,56 @@ export default React.createClass({
       .concat(this.state.opsLogs)
       .sortBy((data) => {
         return data.get('createdAt')
-      }).map(common.ticketTimeline)
+      }).map(this.ticketTimeline)
       .value()
-    let optionButtons, statusLabel
-    if (this.state.ticket.get('status') == TICKET_STATUS_OPEN) {
-      statusLabel = <span className="label label-success">Open</span>
-      optionButtons = <button type="button" className='btn btn-default' onClick={this.handleTicketClose}>关闭</button>
+    let optionButtons
+    if (this.state.ticket.get('status') === TICKET_STATUS.OPEN) {
+      optionButtons = (
+        <div>
+          <button type="button" className='btn btn-default' onClick={this.handleReplyCommit}>回复</button>
+          <button type="button" className='btn btn-default' onClick={() => this.handleStatusChange(this.props.isCustomerService ? TICKET_STATUS.PRE_FULFILLED : TICKET_STATUS.FULFILLED)}>已解决</button>
+          <button type="button" className='btn btn-default' onClick={() => this.handleStatusChange(TICKET_STATUS.REJECTED)}>关闭</button>
+        </div>
+      )
+    } else if (this.state.ticket.get('status') === TICKET_STATUS.PRE_FULFILLED) {
+      optionButtons = (
+        <div>
+          <button type="button" className='btn btn-default' onClick={this.handleReplyCommit}>回复</button>
+          <button type="button" className='btn btn-default' onClick={() => this.handleStatusChange(this.props.isCustomerService ? TICKET_STATUS.PRE_FULFILLED : TICKET_STATUS.FULFILLED)}>已解决</button>
+          <button type="button" className='btn btn-default' onClick={() => this.handleStatusChange(TICKET_STATUS.OPEN)}>未解决</button>
+          <button type="button" className='btn btn-default' onClick={() => this.handleStatusChange(TICKET_STATUS.REJECTED)}>关闭</button>
+        </div>
+      )
     } else {
-      statusLabel = <span className="label label-danger">Closed</span>
-      optionButtons = <button type="button" className='btn btn-default' onClick={this.handleTicketReopen}>重新打开</button>
+      optionButtons = (
+        <div>
+          <button type="button" className='btn btn-default' onClick={this.handleReplyCommit}>回复</button>
+          <button type="button" className='btn btn-default' onClick={() => this.handleStatusChange(TICKET_STATUS.OPEN)}>重新打开</button>
+        </div>
+      )
     }
     return (
       <div>
         <h2>{this.state.ticket.get('title')} <small>#{this.state.ticket.get('nid')}</small></h2>
         <div>
-          {statusLabel} <span>{common.userLabel(this.state.ticket.get('author'))} 于 {moment(this.state.ticket.get('createdAt')).fromNow()}创建该工单</span>
+          {common.getTicketStatusLabel(this.state.ticket)} <span>{common.userLabel(this.state.ticket.get('author'))} 于 {moment(this.state.ticket.get('createdAt')).fromNow()}创建该工单</span>
         </div>
         <hr />
-        {common.ticketTimeline(this.state.ticket)}
+        {this.ticketTimeline(this.state.ticket)}
         <div>{timeline}</div>
         <hr />
+        <UpdateTicket ticket={this.state.ticket}
+          isCustomerService={this.props.isCustomerService}
+          updateTicketCategory={this.updateTicketCategory}
+          updateTicketAssignee={this.updateTicketAssignee} />
         <div>
-          <form onSubmit={this.handleReplyCommit}>
+          <form>
             <div className="form-group">
               <textarea className="form-control" rows="8" placeholder="回复内容……" value={this.state.reply} onChange={this.handleReplyOnChange}></textarea>
             </div>
             <div className="form-group">
               <input id="replyFile" type="file" multiple />
             </div>
-            <button type="submit" className='btn btn-primary'>回复</button>
             {optionButtons}
           </form>
         </div>

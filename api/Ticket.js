@@ -2,7 +2,7 @@ const _ = require('lodash')
 const AV = require('leanengine')
 
 const common = require('./common')
-const constant = require('../lib/constant')
+const TICKET_STATUS = require('../lib/constant').TICKET_STATUS
 const errorHandler = require('./errorHandler')
 const notify = require('./notify')
 
@@ -10,7 +10,7 @@ AV.Cloud.beforeSave('Ticket', (req, res) => {
   if (!req.currentUser._sessionToken) {
     return res.error('noLogin')
   }
-  req.object.set('status', constant.TICKET_STATUS_OPEN)
+  req.object.set('status', TICKET_STATUS.OPEN)
   getTicketAcl(req.object, req.currentUser).then((acl) => {
     req.object.setACL(acl)
     req.object.set('author', req.currentUser)
