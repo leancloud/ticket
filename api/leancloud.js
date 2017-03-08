@@ -1,5 +1,6 @@
 const router = require('express').Router()
 const qs = require('qs')
+const _ = require('lodash')
 const request = require('request-promise')
 const AV = require('leanengine')
 
@@ -25,6 +26,12 @@ router.get('/callback', (req, res) => {
     accessToken.uid = '' + accessToken.uid
     return AV.User.signUpOrlogInWithAuthData(accessToken, 'leancloud')
   }).then((user) => {
+    if (_.isEqual(user.createdAt, user.updatedAt)) {
+      // 第一次登录，从 LeanCloud 初始化用户信息
+      return initUserInfo(user)
+    }
+    return user
+  }).then((user) => {
     res.redirect('/login?token=' + user._sessionToken)
   })
 })
@@ -39,6 +46,28 @@ const getAccessToken = (code) => {
       code,
     })
   return request({url, json: true})
+}
+
+const initUserInfo = (user) => {
+  return getClientInfo(user.get('authData').leancloud.access_token)
+  .then((client) => {
+    return user.save({
+      username: client.username,
+      email: client.email,
+    })
+  })
+}
+
+const getClientInfo = (token) => {
+  const url = serverDomain + '/1.1/open/clients/self'
+  return request({
+    url,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token
+    },
+    json: true,
+  })
 }
 
 module.exports = router
