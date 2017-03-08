@@ -82,9 +82,14 @@ const selectAssignee = (ticket) => {
     if (!_.isEmpty(category)) {
       query.equalTo('categories.objectId', category.objectId)
     }
-    return query.find()
-  }).then((users) => {
-    return _.sample(users)
+    return query.find().then((users) => {
+      if (users.length != 0) {
+        return _.sample(users)
+      }
+      return role.getUsers().query().find().then((users) => {
+        return _.sample(users)
+      })
+    })
   })
 }
 
