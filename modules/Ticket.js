@@ -2,6 +2,8 @@ import React from 'react'
 import moment from 'moment'
 import _ from 'lodash'
 import Promise from 'bluebird'
+import Remarkable from 'remarkable'
+import hljs from 'highlight.js'
 import AV from 'leancloud-storage'
 
 import common from './common'
@@ -93,6 +95,38 @@ export default React.createClass({
       return this.delayRefreshOpsLogs()
     })
   },
+  contentView(content) {
+    const md = new Remarkable({
+      html: true,
+      breaks: true,
+      linkify: true,
+      typographer: true,
+      highlight: (str, lang) => {
+        if (lang && hljs.getLanguage(lang)) {
+          try {
+            return hljs.highlight(lang, str).value
+          } catch (err) {
+            // ignore
+          }
+        }
+        try {
+          return hljs.highlightAuto(str).value
+        } catch (err) {
+          // ignore
+        }
+        return '' // use external default escaping
+      },
+    })
+    return (
+      <table>
+        <tbody>
+          <tr>
+            <td dangerouslySetInnerHTML={{__html: md.render(content)}} />
+          </tr>
+        </tbody>
+      </table>
+    )
+  },
   ticketTimeline(avObj) {
     if (avObj.className === 'OpsLog') {
       switch (avObj.get('action')) {
@@ -138,7 +172,7 @@ export default React.createClass({
             {common.userLabel(avObj.get('author'))} 于 {moment(avObj.get('createdAt')).fromNow()}提交
           </div>
           <div className="panel-body">
-            <pre>{avObj.get('content')}</pre>
+            {this.contentView(avObj.get('content'))}
           </div>
           {panelFooter}
         </div>
