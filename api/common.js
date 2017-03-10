@@ -1,3 +1,4 @@
+const crypto = require('crypto')
 const AV = require('leanengine')
 
 exports.getTinyUserInfo = (user) => {
@@ -5,12 +6,14 @@ exports.getTinyUserInfo = (user) => {
     return Promise.resolve({
       objectId: user.id,
       username: user.get('username'),
+      gravatarHash: getGravatarHash(user.get('email'))
     })
   }
   return user.fetch().then((user) => {
     return {
       objectId: user.id,
       username: user.get('username'),
+      gravatarHash: getGravatarHash(user.get('email'))
     }
   })
 }
@@ -39,4 +42,10 @@ exports.isCustomerService = (user) => {
     .then((role) => {
       return !!role
     })
+}
+
+const getGravatarHash = (email) => {
+  const shasum = crypto.createHash('md5')
+  shasum.update(email.trim().toLocaleLowerCase())
+  return shasum.digest('hex')
 }

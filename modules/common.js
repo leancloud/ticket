@@ -74,17 +74,7 @@ exports.isCustomerService = (user) => {
 
 exports.uploadFiles = (files) => {
   return Promise.map(files, (file) => {
-    return new Promise((resolve, reject) => {
-      var reader = new FileReader()
-      reader.onload = (function() {
-        return function(e) {
-          const result = e.target.result
-          const macher = result.match(new RegExp('^data:([a-zA-Z0-9-/]+)?;base64,([a-zA-Z0-9+/=]+)$'))
-          new AV.File(file.name, {base64: macher[2]}).save().then(resolve).catch(reject)
-        }
-      })()
-      reader.readAsDataURL(file)
-    })
+    return new AV.File(file.name, file).save()
   })
 }
 

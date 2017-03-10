@@ -10,6 +10,7 @@ AV.Cloud.beforeSave('Reply', (req, res) => {
   if (!req.currentUser._sessionToken) {
     return res.error('noLogin')
   }
+  req.object.set('content', req.object.get('content'))
   getReplyAcl(req.object, req.currentUser).then((acl) => {
     req.object.setACL(acl)
     req.object.set('author', req.currentUser)
