@@ -1,6 +1,5 @@
 const _ = require('lodash')
 const Promise = require('bluebird')
-const xss = require('xss')
 const AV = require('leanengine')
 
 const common = require('./common')
@@ -11,7 +10,7 @@ AV.Cloud.beforeSave('Reply', (req, res) => {
   if (!req.currentUser._sessionToken) {
     return res.error('noLogin')
   }
-  req.object.set('content', xss(req.object.get('content')))
+  req.object.set('content', req.object.get('content'))
   getReplyAcl(req.object, req.currentUser).then((acl) => {
     req.object.setACL(acl)
     req.object.set('author', req.currentUser)

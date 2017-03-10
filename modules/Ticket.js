@@ -4,6 +4,7 @@ import _ from 'lodash'
 import Promise from 'bluebird'
 import Remarkable from 'remarkable'
 import hljs from 'highlight.js'
+import xss from 'xss'
 import AV from 'leancloud-storage'
 
 import common from './common'
@@ -121,7 +122,7 @@ export default React.createClass({
       <table>
         <tbody>
           <tr>
-            <td dangerouslySetInnerHTML={{__html: md.render(content)}} />
+            <td dangerouslySetInnerHTML={{__html: md.render(xss(content))}} />
           </tr>
         </tbody>
       </table>

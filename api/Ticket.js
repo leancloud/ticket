@@ -1,5 +1,4 @@
 const _ = require('lodash')
-const xss = require('xss')
 const AV = require('leanengine')
 
 const common = require('./common')
@@ -11,7 +10,7 @@ AV.Cloud.beforeSave('Ticket', (req, res) => {
   if (!req.currentUser._sessionToken) {
     return res.error('noLogin')
   }
-  req.object.set('content', xss(req.object.get('content')))
+  req.object.set('content', req.object.get('content'))
   req.object.set('status', TICKET_STATUS.OPEN)
   getTicketAcl(req.object, req.currentUser).then((acl) => {
     req.object.setACL(acl)
