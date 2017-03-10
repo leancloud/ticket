@@ -14,10 +14,11 @@ require('./cloud')
 require('./Ticket')
 require('./Reply')
 require('./OpsLog')
+require('./User')
 // 加载云引擎中间件
 router.use(AV.express())
 
-router.use('/api/leancloud', require('./leancloud'))
+router.use('/api/leancloud', require('./leancloud').router)
 router.use('/webhooks/mailgun', require('./mailgun'))
 
 module.exports = router

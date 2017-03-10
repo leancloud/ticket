@@ -49,7 +49,7 @@ const getAccessToken = (code) => {
 }
 
 const initUserInfo = (user) => {
-  return getClientInfo(user.get('authData').leancloud.access_token)
+  return exports.getClientInfo(user.get('authData').leancloud)
   .then((client) => {
     return user.save({
       username: client.username,
@@ -58,16 +58,28 @@ const initUserInfo = (user) => {
   })
 }
 
-const getClientInfo = (token) => {
+exports.getClientInfo = (leancloudAuthData) => {
   const url = serverDomain + '/1.1/open/clients/self'
   return request({
     url,
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + token
+      'Authorization': 'Bearer ' + leancloudAuthData.access_token
     },
     json: true,
   })
 }
 
-module.exports = router
+exports.getApps = (leancloudAuthData) => {
+  const url = `${serverDomain}/1.1/open/clients/${leancloudAuthData.uid}/apps`
+  return request({
+    url,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + leancloudAuthData.access_token
+    },
+    json: true,
+  })
+}
+
+exports.router = router
