@@ -1,10 +1,12 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router'
 import AV from 'leancloud-storage'
+import Notification from './notification'
 
 export default React.createClass({
   handleLogout() {
     AV.User.logOut()
+    Notification.logout()
   },
   handleNewTicketClick() {
     this.context.router.push('/tickets/new')

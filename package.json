@@ -24,6 +24,7 @@
     "compression": "^1.6.2",
     "express": "^4.14.0",
     "highlight.js": "^9.10.0",
+    "leancloud-realtime": "^3.3.4",
     "leancloud-storage": "^2.1.1",
     "leanengine": "github:leancloud/leanengine-node-sdk#v2",
     "lodash": "^4.17.4",

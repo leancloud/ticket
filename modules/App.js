@@ -4,6 +4,8 @@ import AV from 'leancloud-storage'
 
 import common from './common'
 import GlobalNav from './GlobalNav'
+import Notification from './notification'
+import { tap } from '../utils/promise'
 
 export default React.createClass({
   getInitialState() {
@@ -12,10 +14,12 @@ export default React.createClass({
     }
   },
   componentDidMount() {
-    common.isCustomerService(AV.User.current())
-    .then((isCustomerService) => {
-      this.setState({isCustomerService})
-    })
+    const user = AV.User.current()
+    common.isCustomerService(user)
+      .then((isCustomerService) => {
+        this.setState({isCustomerService})
+      })
+    if (user) Notification.login(user.id)
   },
   contextTypes: {
     router: React.PropTypes.object
@@ -26,6 +30,7 @@ export default React.createClass({
     .setPassword(password)
     .logIn()
     .then((user) => {
+      Notification.login(user.id)
       return common.isCustomerService(user)
     }).then((isCustomerService) => {
       this.setState({isCustomerService})
@@ -39,6 +44,7 @@ export default React.createClass({
   },
   loginByToken(token) {
     AV.User.become(token).then((user) => {
+      Notification.login(user.id)
       return common.isCustomerService(user)
     }).then((isCustomerService) => {
       this.setState({isCustomerService})
@@ -50,6 +56,7 @@ export default React.createClass({
       .setUsername(username)
       .setPassword(password)
       .signUp()
+      .then(tap(user => Notification.login(user.id)))
   },
   render() {
     return (
