@@ -6,8 +6,6 @@ AV.init({
   appKey: process.env.LEANCLOUD_APP_KEY,
   masterKey: process.env.LEANCLOUD_APP_MASTER_KEY
 })
-// TODO 后续移除全局 masterKey
-AV.Cloud.useMasterKey()
 
 // 加载云函数定义
 require('./cloud')

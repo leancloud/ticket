@@ -38,7 +38,7 @@ AV.Cloud.afterSave('Ticket', (req) => {
       ticket: req.object,
       action: 'selectAssignee',
       data: {assignee},
-    })
+    }, {useMasterKey: true})
   }).then(() => {
     return notify.newTicket(req.object, req.currentUser)
   }).catch(errorHandler.captureException)
@@ -51,14 +51,14 @@ AV.Cloud.afterUpdate('Ticket', (req) => {
         ticket: req.object,
         action: 'changeStatus',
         data: {status: req.object.get('status'), operator: user},
-      })
+      }, {useMasterKey: true})
     }
     if (req.object.updatedKeys.indexOf('category') != -1) {
       new AV.Object('OpsLog').save({
         ticket: req.object,
         action: 'changeCategory',
         data: {category: req.object.get('category'), operator: user},
-      })
+      }, {useMasterKey: true})
     }
     if (req.object.updatedKeys.indexOf('assignee') != -1) {
       common.getTinyUserInfo(req.object.get('assignee')).then((assignee) => {
@@ -66,12 +66,11 @@ AV.Cloud.afterUpdate('Ticket', (req) => {
           ticket: req.object,
           action: 'changeAssignee',
           data: {assignee: assignee, operator: user},
-        })
+        }, {useMasterKey: true})
       })
     }
   })
 })
-
 
 const selectAssignee = (ticket) => {
   return new AV.Query(AV.Role)
@@ -83,11 +82,11 @@ const selectAssignee = (ticket) => {
     if (!_.isEmpty(category)) {
       query.equalTo('categories.objectId', category.objectId)
     }
-    return query.find().then((users) => {
+    return query.find({useMasterKey: true}).then((users) => {
       if (users.length != 0) {
         return _.sample(users)
       }
-      return role.getUsers().query().find().then((users) => {
+      return role.getUsers().query().find({useMasterKey: true}).then((users) => {
         return _.sample(users)
       })
     })

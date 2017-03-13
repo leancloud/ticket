@@ -6,7 +6,7 @@ const leancloud = require('./leancloud')
 AV.Cloud.define('getUserInfo', (req, res) => {
   new AV.Query(AV.User)
   .equalTo('username', req.params.username)
-  .first({userMasterKey: true})
+  .first({useMasterKey: true})
   .then((user) => {
     if (!user) {
       return res.error('notFound')
@@ -20,9 +20,9 @@ AV.Cloud.define('getLeanCloudUserInfo', (req, res) => {
     if (!isCustomerService) {
       return res.error('unauthorized')
     }
-    new AV.Query(AV.User)
+    return new AV.Query(AV.User)
     .equalTo('username', req.params.username)
-    .first({userMasterKey: true})
+    .first({useMasterKey: true})
     .then((user) => {
       return leancloud.getClientInfo(user.get('authData').leancloud)
     }).then((user) => {
@@ -38,7 +38,7 @@ AV.Cloud.define('getLeanCloudApps', (req, res) => {
     }
     new AV.Query(AV.User)
     .equalTo('username', req.params.username)
-    .first({userMasterKey: true})
+    .first({useMasterKey: true})
     .then((user) => {
       return leancloud.getApps(user.get('authData').leancloud)
     }).then((apps) => {

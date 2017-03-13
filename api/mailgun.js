@@ -24,7 +24,7 @@ router.post('/catchall', function (req, res, next) {
     return new AV.Object('Reply').save({
       ticket,
       content: req.body['stripped-text'].replace(/\r\n/g, '\n')
-    }, {sessionToken: fromUser._sessionToken})
+    }, {user: fromUser})
   }).then(() => {
     res.send('OK')
   }).catch(next)
@@ -33,7 +33,7 @@ router.post('/catchall', function (req, res, next) {
 const getTicket = (mail) => {
   const match = mail.Subject.match(/.*\s\(#(\d+)\)$/)
   if (match) {
-    return new AV.Query('Ticket').equalTo('nid', parseInt(match[1])).first()
+    return new AV.Query('Ticket').equalTo('nid', parseInt(match[1])).first({useMasterKey: true})
   }
   return Promise.resolve()
 }
@@ -41,10 +41,10 @@ const getTicket = (mail) => {
 const getFromUser = (mail) => {
   const match = mail.From.match(/^.*<(.*)>$/)
   if (match) {
-    return new AV.Query('_User').equalTo('email', match[1]).first()
+    return new AV.Query('_User').equalTo('email', match[1]).first({useMasterKey: true})
     .then((user) => {
       // 为了获取 sessionToken
-      return user.fetch()
+      return user.fetch({}, {useMasterKey: true})
     })
   }
   return Promise.resolve()

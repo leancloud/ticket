@@ -2,7 +2,8 @@ const mail = require('./mail')
 const config = require('../config')
 
 exports.newTicket = (ticket, author) => {
-  return ticket.get('assignee').fetch((assignee) => {
+  return ticket.get('assignee').fetch({}, {useMasterKey: true})
+  .then((assignee) => {
     if (assignee.get('email')) {
       return mail.send({
         from: `${author.get('username')} <ticket@leancloud.cn>`,
