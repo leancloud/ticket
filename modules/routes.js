@@ -12,6 +12,7 @@ import Profile from './Profile'
 import Tickets from './Tickets'
 import NewTicket from './NewTicket'
 import Ticket from './Ticket'
+import User from './User'
 import Home from './Home'
 
 import Settings from './Settings'
@@ -33,6 +34,7 @@ module.exports = (
     <Route path="/tickets" component={Tickets} />
     <Route path="/tickets/new" component={NewTicket} />
     <Route path="/tickets/:nid" component={Ticket} />
+    <Route path="/users/:username" component={User} />
     <Route path="/about" component={About}/>
     <Route path="/login" component={Login}/>
     <Route path="/profile" component={Profile} />

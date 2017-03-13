@@ -1,12 +1,14 @@
 import React from 'react'
 import Promise from 'bluebird'
+import { Link } from 'react-router'
 import AV from 'leancloud-storage'
 
 const TICKET_STATUS = require('../lib/constant').TICKET_STATUS
 
 exports.userLabel = (user) => {
+  const username = user.username || user.get('username')
   return (
-    <span>{user.username || user.get('username')}</span>
+    <span><Link to={'/users/' + username}>{username}</Link></span>
   )
 }
 

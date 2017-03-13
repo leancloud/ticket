@@ -12,7 +12,7 @@ AV.Cloud.beforeSave('OpsLog', (req, res) => {
 const getOpsLogAcl = (opsLog) => {
   return opsLog.get('ticket').fetch({
     include: 'author'
-  }).then((ticket) => {
+  }, {useMasterKey: true}).then((ticket) => {
     const acl = new AV.ACL()
     acl.setReadAccess(ticket.get('author'), true)
     acl.setRoleReadAccess(new AV.Role('customerService'), true)

@@ -6,18 +6,17 @@ AV.init({
   appKey: process.env.LEANCLOUD_APP_KEY,
   masterKey: process.env.LEANCLOUD_APP_MASTER_KEY
 })
-// TODO 后续移除全局 masterKey
-AV.Cloud.useMasterKey()
 
 // 加载云函数定义
 require('./cloud')
 require('./Ticket')
 require('./Reply')
 require('./OpsLog')
+require('./User')
 // 加载云引擎中间件
 router.use(AV.express())
 
-router.use('/api/leancloud', require('./leancloud'))
+router.use('/api/leancloud', require('./leancloud').router)
 router.use('/webhooks/mailgun', require('./mailgun'))
 
 module.exports = router
