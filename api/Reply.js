@@ -31,7 +31,7 @@ AV.Cloud.afterSave('Reply', (req) => {
         return ticket.set('latestReply', reply)
           .increment('replyCount', 1)
           .set('joinedCustomerServices', joinedCustomerServices)
-          .save()
+          .save({user: req.currentUser})
       })
   }).then((ticket) => {
     return notify.replyTicket(ticket, req.object, req.currentUser)

@@ -12,7 +12,8 @@ exports.newTicket = (ticket, author) => {
       ticket: ticket.get('nid'),
     }),
     // mail
-    ticket.get('assignee').fetch((assignee) => {
+    ticket.get('assignee').fetch({}, {useMasterKey: true})
+    .then((assignee) => {
       if (assignee.get('email')) {
         return mail.send({
           from: `${author.get('username')} <ticket@leancloud.cn>`,
