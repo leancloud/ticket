@@ -2,8 +2,6 @@ import React from 'react'
 import moment from 'moment'
 import _ from 'lodash'
 import Promise from 'bluebird'
-import Remarkable from 'remarkable'
-import hljs from 'highlight.js'
 import xss from 'xss'
 import {FormGroup, FormControl} from 'react-bootstrap'
 import AV from 'leancloud-storage'
@@ -35,16 +33,26 @@ export default React.createClass({
     }
   },
   componentDidMount() {
-    common.getTicketAndRelation(this.props.params.nid)
-    .then(({ticket, replies, opsLogs}) => {
-      this.setState({ticket, replies, opsLogs})
-      return Notification.getClient().then(client =>
-        client.getQuery().equalTo('ticket', ticket.get('nid')).find()
-      ).then(([conversation]) => {
-        if (conversation) {
-          conversation.on('message', this.handleNotification)
-          return conversation.join()
-        }
+    AV.Cloud.run('getTicketAndRepliesView', {nid: parseInt(this.props.params.nid)})
+    .then(({ticket, replies}) => {
+      ticket = AV.parseJSON(ticket)
+      return new AV.Query('OpsLog')
+      .equalTo('ticket', ticket)
+      .ascending('createdAt')
+      .find()
+      .then(opsLogs => {
+        this.setState({
+          ticket,
+          replies: replies.map(AV.parseJSON),
+          opsLogs})
+        return Notification.getClient().then(client =>
+          client.getQuery().equalTo('ticket', ticket.get('nid')).find()
+        ).then(([conversation]) => {
+          if (conversation) {
+            conversation.on('message', this.handleNotification)
+            return conversation.join()
+          }
+        })
       })
     }).catch(console.error)
   },
@@ -98,32 +106,11 @@ export default React.createClass({
     })
   },
   contentView(content) {
-    const md = new Remarkable({
-      html: true,
-      breaks: true,
-      linkify: true,
-      typographer: true,
-      highlight: (str, lang) => {
-        if (lang && hljs.getLanguage(lang)) {
-          try {
-            return hljs.highlight(lang, str).value
-          } catch (err) {
-            // ignore
-          }
-        }
-        try {
-          return hljs.highlightAuto(str).value
-        } catch (err) {
-          // ignore
-        }
-        return '' // use external default escaping
-      },
-    })
     return (
       <table>
         <tbody>
           <tr>
-            <td dangerouslySetInnerHTML={{__html: md.render(xss(content))}} />
+            <td dangerouslySetInnerHTML={{__html: xss(content)}} />
           </tr>
         </tbody>
       </table>
@@ -174,7 +161,7 @@ export default React.createClass({
             <UserLabel user={avObj.get('author')} /> 于 {moment(avObj.get('createdAt')).fromNow()}提交
           </div>
           <div className="panel-body">
-            {this.contentView(avObj.get('content'))}
+            {this.contentView(avObj.get('contentHtml'))}
           </div>
           {panelFooter}
         </div>

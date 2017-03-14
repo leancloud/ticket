@@ -1,4 +1,6 @@
 const _ = require('lodash')
+const Remarkable = require('remarkable')
+const hljs = require('highlight.js')
 const AV = require('leanengine')
 
 const common = require('./common')
@@ -70,6 +72,54 @@ AV.Cloud.afterUpdate('Ticket', (req) => {
       })
     }
   })
+})
+
+const md = new Remarkable({
+  html: true,
+  breaks: true,
+  linkify: true,
+  typographer: true,
+  highlight: (str, lang) => {
+    if (lang && hljs.getLanguage(lang)) {
+      try {
+        return hljs.highlight(lang, str).value
+      } catch (err) {
+        // ignore
+      }
+    }
+    try {
+      return hljs.highlightAuto(str).value
+    } catch (err) {
+      // ignore
+    }
+    return '' // use external default escaping
+  },
+})
+
+AV.Cloud.define('getTicketAndRepliesView', (req, res) => {
+  return new AV.Query('Ticket')
+  .equalTo('nid', req.params.nid)
+  .include('author')
+  .include('files')
+  .first({user: req.currentUser})
+  .then(ticket => {
+    if (!ticket) {
+      return res.error('notFound')
+    }
+    ticket.set('contentHtml', md.render(ticket.get('content')))
+    return new AV.Query('Reply')
+    .equalTo('ticket', ticket)
+    .include('author')
+    .include('files')
+    .find({user: req.currentUser})
+    .then(replies => {
+      replies = replies.map(reply => {
+        reply.set('contentHtml', md.render(reply.get('content')))
+        return reply.toFullJSON()
+      })
+      return res.success({ticket: ticket.toFullJSON(), replies})
+    })
+  }).catch(console.error)
 })
 
 const selectAssignee = (ticket) => {
