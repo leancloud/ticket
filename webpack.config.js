@@ -27,6 +27,5 @@ module.exports = {
         LEANCLOUD_APP_KEY: 'zWbsVPeSQtQOSy2bN3ixRVOq',
       })
     }),
-    new webpack.optimize.UglifyJsPlugin()
   ]),
 }

@@ -41,7 +41,7 @@ AV.Cloud.afterSave('Reply', (req) => {
 const getReplyAcl = (reply, author) => {
   return reply.get('ticket').fetch({
     include: 'author'
-  }).then((ticket) => {
+  }, {user: author}).then((ticket) => {
     const acl = new AV.ACL()
     acl.setWriteAccess(author, true)
     acl.setReadAccess(author, true)
