@@ -26,6 +26,7 @@ module.exports = {
         LEANCLOUD_APP_ID: 'qJnLgVRA9mnzVSw4Ho3HtIaI-gzGzoHsz',
         LEANCLOUD_APP_KEY: 'zWbsVPeSQtQOSy2bN3ixRVOq',
       })
-    })
-  ])
+    }),
+    new webpack.optimize.UglifyJsPlugin()
+  ]),
 }

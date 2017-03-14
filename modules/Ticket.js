@@ -9,6 +9,7 @@ import AV from 'leancloud-storage'
 
 import common from './common'
 import UpdateTicket from './UpdateTicket'
+import Notification from './notification'
 
 import { TICKET_STATUS } from '../lib/constant'
 
@@ -37,9 +38,22 @@ export default React.createClass({
     common.getTicketAndRelation(this.props.params.nid)
     .then(({ticket, replies, opsLogs}) => {
       this.setState({ticket, replies, opsLogs})
-    }).catch((err) => {
-      alert(err.stack)
-    })
+      return Notification.getClient().then(client =>
+        client.getQuery().equalTo('ticket', ticket.get('nid')).find()
+      ).then(([conversation]) => {
+        if (conversation) {
+          conversation.on('message', this.handleNotification)
+          return conversation.join()
+        }
+      })
+    }).catch(console.error)
+  },
+  handleNotification(message) {
+    // 只关注机器人发的消息
+    // TODO: 为了防止伪造，需要使用登录签名阻止所有试图使用机器人 id 登录的行为，既机器人的消息只能通过 Rest API + masterKey 发出
+    if (message.from !== 'LeanTicket Bot') return
+    console.log(message)
+    // TODO: fetch change and update UI
   },
   handleReplyOnChange(e) {
     this.setState({reply: e.target.value})
@@ -70,9 +84,7 @@ export default React.createClass({
   },
   handleReplyCommit(e) {
     e.preventDefault()
-    this.commitReply().catch((err) => {
-      alert(err.stack)
-    })
+    this.commitReply().catch(console.error)
   },
   handleStatusChange(status) {
     this.commitReply().then(() => {
@@ -80,7 +92,7 @@ export default React.createClass({
     }).then((ticket) => {
       this.setState({ticket})
       return this.delayRefreshOpsLogs()
-    }).catch(alert)
+    }).catch(console.error)
   },
   updateTicketCategory(category) {
     this.state.ticket.set('category', common.getTinyCategoryInfo(category)).save()
