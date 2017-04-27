@@ -17,7 +17,7 @@ export default React.createClass({
     let userFilter, statusFilter
     if (props.isCustomerService) {
       userFilter = {assignee: AV.User.current()}
-      statusFilter = TICKET_STATUS.OPEN
+      statusFilter = TICKET_STATUS.NEW
     } else {
       userFilter = {author: AV.User.current()}
       statusFilter = null
@@ -94,10 +94,11 @@ export default React.createClass({
             <button className="btn btn-default" onClick={() => this.setUserFilter({})}>全部</button>
           </div>
           <div className="form-group">
-            <button className="btn btn-default" onClick={() => this.setStatusFilter(TICKET_STATUS.OPEN)}>打开的</button>
-            <button className="btn btn-default" onClick={() => this.setStatusFilter(TICKET_STATUS.PRE_FULFILLED)}>待确认已解决的</button>
-            <button className="btn btn-default" onClick={() => this.setStatusFilter(TICKET_STATUS.FULFILLED)}>已解决的</button>
-            <button className="btn btn-default" onClick={() => this.setStatusFilter(TICKET_STATUS.REJECTED)}>关闭的</button>
+            <button className="btn btn-default" onClick={() => this.setStatusFilter(TICKET_STATUS.NEW)}>未处理</button>
+            <button className="btn btn-default" onClick={() => this.setStatusFilter(TICKET_STATUS.PENDING)}>处理中</button>
+            <button className="btn btn-default" onClick={() => this.setStatusFilter(TICKET_STATUS.PRE_FULFILLED)}>待确认已解决</button>
+            <button className="btn btn-default" onClick={() => this.setStatusFilter(TICKET_STATUS.FULFILLED)}>已解决</button>
+            <button className="btn btn-default" onClick={() => this.setStatusFilter(TICKET_STATUS.REJECTED)}>关闭</button>
           </div>
         </div>
       )

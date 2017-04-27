@@ -11,7 +11,7 @@ AV.Cloud.beforeSave('Ticket', (req, res) => {
     return res.error('noLogin')
   }
   req.object.set('content', req.object.get('content'))
-  req.object.set('status', TICKET_STATUS.OPEN)
+  req.object.set('status', TICKET_STATUS.NEW)
   getTicketAcl(req.object, req.currentUser).then((acl) => {
     req.object.setACL(acl)
     req.object.set('author', req.currentUser)
