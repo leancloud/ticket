@@ -5,9 +5,10 @@ import Promise from 'bluebird'
 import Remarkable from 'remarkable'
 import hljs from 'highlight.js'
 import xss from 'xss'
+import {FormGroup} from 'react-bootstrap'
 import AV from 'leancloud-storage'
 
-import common from './common'
+import common, {TicketStatusLabel, TicketReplyLabel} from './common'
 import UpdateTicket from './UpdateTicket'
 import Notification from './notification'
 
@@ -152,7 +153,7 @@ export default React.createClass({
       case 'changeStatus':
         return (
           <p key={avObj.id}>
-            {common.userLabel(avObj.get('data').operator)} 于 {moment(avObj.get('createdAt')).fromNow()} 将工单状态修改为 {common.getTicketStatusLabelOnlyStatus(avObj.get('data').status)}
+            {common.userLabel(avObj.get('data').operator)} 于 {moment(avObj.get('createdAt')).fromNow()} 将工单状态修改为 <TicketStatusLabel status={avObj.get('data').status} />
           </p>
         )
       case 'changeCategory':
@@ -205,36 +206,34 @@ export default React.createClass({
       }).map(this.ticketTimeline)
       .value()
     let optionButtons
-    if (this.state.ticket.get('status') === TICKET_STATUS.OPEN) {
+    const ticketStatus = this.state.ticket.get('status')
+    if (ticketStatus === TICKET_STATUS.NEW || ticketStatus === TICKET_STATUS.PENDING) {
       optionButtons = (
-        <div>
-          <button type="button" className='btn btn-default' onClick={this.handleReplyCommit}>回复</button>
+        <FormGroup>
           <button type="button" className='btn btn-default' onClick={() => this.handleStatusChange(this.props.isCustomerService ? TICKET_STATUS.PRE_FULFILLED : TICKET_STATUS.FULFILLED)}>已解决</button>
           <button type="button" className='btn btn-default' onClick={() => this.handleStatusChange(TICKET_STATUS.REJECTED)}>关闭</button>
-        </div>
+        </FormGroup>
       )
-    } else if (this.state.ticket.get('status') === TICKET_STATUS.PRE_FULFILLED) {
+    } else if (ticketStatus === TICKET_STATUS.PRE_FULFILLED && !this.props.isCustomerService) {
       optionButtons = (
-        <div>
-          <button type="button" className='btn btn-default' onClick={this.handleReplyCommit}>回复</button>
-          <button type="button" className='btn btn-default' onClick={() => this.handleStatusChange(this.props.isCustomerService ? TICKET_STATUS.PRE_FULFILLED : TICKET_STATUS.FULFILLED)}>已解决</button>
-          <button type="button" className='btn btn-default' onClick={() => this.handleStatusChange(TICKET_STATUS.OPEN)}>未解决</button>
-          <button type="button" className='btn btn-default' onClick={() => this.handleStatusChange(TICKET_STATUS.REJECTED)}>关闭</button>
-        </div>
+        <FormGroup>
+          <p>我们的工程师认为该工单已解决，请确认：</p>
+          <button type="button" className='btn btn-default' onClick={() => this.handleStatusChange(TICKET_STATUS.FULFILLED)}>已解决</button>
+          <button type="button" className='btn btn-default' onClick={() => this.handleStatusChange(TICKET_STATUS.PENDING)}>未解决</button>
+        </FormGroup>
       )
     } else {
       optionButtons = (
-        <div>
-          <button type="button" className='btn btn-default' onClick={this.handleReplyCommit}>回复</button>
-          <button type="button" className='btn btn-default' onClick={() => this.handleStatusChange(TICKET_STATUS.OPEN)}>重新打开</button>
-        </div>
+        <FormGroup>
+          <button type="button" className='btn btn-default' onClick={() => this.handleStatusChange(TICKET_STATUS.NEW)}>重新打开</button>
+        </FormGroup>
       )
     }
     return (
       <div>
         <h2>{this.state.ticket.get('title')} <small>#{this.state.ticket.get('nid')}</small></h2>
         <div>
-          {common.getTicketStatusLabel(this.state.ticket)} <span>{common.userLabel(this.state.ticket.get('author'))} 于 {moment(this.state.ticket.get('createdAt')).fromNow()}创建该工单</span>
+          <TicketStatusLabel status={this.state.ticket.get('status')} /> <TicketReplyLabel ticket={this.state.ticket} /> <span>{common.userLabel(this.state.ticket.get('author'))} 于 {moment(this.state.ticket.get('createdAt')).fromNow()}创建该工单</span>
         </div>
         <hr />
         {this.ticketTimeline(this.state.ticket)}
@@ -244,6 +243,7 @@ export default React.createClass({
           isCustomerService={this.props.isCustomerService}
           updateTicketCategory={this.updateTicketCategory}
           updateTicketAssignee={this.updateTicketAssignee} />
+        {optionButtons}
         <div>
           <form>
             <div className="form-group">
@@ -252,7 +252,7 @@ export default React.createClass({
             <div className="form-group">
               <input id="replyFile" type="file" multiple />
             </div>
-            {optionButtons}
+            <button type="button" className='btn btn-default' onClick={this.handleReplyCommit}>回复</button>
           </form>
         </div>
       </div>

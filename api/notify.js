@@ -1,4 +1,4 @@
-const AV = require('leancloud-storage')
+const AV = require('leanengine')
 const mail = require('./mail')
 const request = require('request-promise')
 const config = require('../config')
@@ -30,7 +30,10 @@ exports.newTicket = (ticket, author) => {
 exports.replyTicket = (ticket, reply, replyAuthor) => {
   return Promise.all([
     // online notification
-    new AV.Query('_Conversation').equalTo('ticket', ticket.get('nid')).first().then(conversation => {
+    new AV.Query('_Conversation')
+    .equalTo('ticket', ticket.get('nid'))
+    .first({useMasterKey: true})
+    .then(conversation => {
       if (conversation) {
         return request({
           url: 'https://api.leancloud.cn/1.1/rtm/messages',

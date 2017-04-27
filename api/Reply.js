@@ -2,6 +2,7 @@ const _ = require('lodash')
 const Promise = require('bluebird')
 const AV = require('leanengine')
 
+const ticketStatus = require('../lib/constant').TICKET_STATUS
 const common = require('./common')
 const errorHandler = require('./errorHandler')
 const notify = require('./notify')
@@ -22,19 +23,23 @@ AV.Cloud.beforeSave('Reply', (req, res) => {
 })
 
 AV.Cloud.afterSave('Reply', (req) => {
+  const reply = req.object
   Promise.all([
-    req.object.get('ticket').fetch({include: 'author,assignee'}),
-    common.getTinyReplyInfo(req.object),
-  ]).spread((ticket, reply) => {
-    return uniqJoinedCustomerServices(req.object, ticket.get('joinedCustomerServices'))
+    reply.get('ticket').fetch({include: 'author,assignee'}, {user: req.currentUser}),
+    common.getTinyReplyInfo(reply),
+  ]).spread((ticket, tinyReply) => {
+    return uniqJoinedCustomerServices(reply, ticket.get('joinedCustomerServices'))
       .then((joinedCustomerServices) => {
-        return ticket.set('latestReply', reply)
+        ticket.set('latestReply', tinyReply)
           .increment('replyCount', 1)
           .set('joinedCustomerServices', joinedCustomerServices)
-          .save({user: req.currentUser})
+        if (reply.get('isCustomerService') && ticket.get('status') === ticket.NEW) {
+          ticket.set('status', ticketStatus.PENDING)
+        }
+        ticket.save(null, {user: req.currentUser})
       })
   }).then((ticket) => {
-    return notify.replyTicket(ticket, req.object, req.currentUser)
+    return notify.replyTicket(ticket, reply, req.currentUser)
   }).catch(errorHandler.captureException)
 })
 

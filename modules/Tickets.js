@@ -3,7 +3,7 @@ import { Link } from 'react-router'
 import AV from 'leancloud-storage'
 
 import {TICKET_STATUS} from '../lib/constant'
-const common = require('./common')
+import common, {TicketStatusLabel, TicketReplyLabel} from './common'
 
 export default React.createClass({
   getInitialState() {
@@ -78,7 +78,7 @@ export default React.createClass({
         <li className="list-group-item" key={ticket.get('nid')}>
           <span className="badge">{ticket.get('replyCount')}</span>
           <h4 className="list-group-item-heading">
-            <Link to={`/tickets/${ticket.get('nid')}`}>#{ticket.get('nid')} {ticket.get('title')}</Link> <small>{common.getTicketStatusLabel(ticket)}</small>
+            <Link to={`/tickets/${ticket.get('nid')}`}>#{ticket.get('nid')} {ticket.get('title')}</Link> <small><TicketStatusLabel status={ticket.get('status')} /> <TicketReplyLabel ticket={ticket} /></small>
           </h4>
           <p className="list-group-item-text">{latestReplyContent}</p>
           {joinedCustomerServices}

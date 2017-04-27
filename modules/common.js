@@ -107,31 +107,34 @@ exports.getTicketAndRelation = (nid) => {
   })
 }
 
-exports.getTicketStatusLabel = (ticket) => {
-  if (ticket.get('status') === TICKET_STATUS.FULFILLED) {
-    return <span className='label label-success'>已解决</span>
-  } else if (ticket.get('status') === TICKET_STATUS.REJECTED) {
-    return <span className='label label-danger'>不解决</span>
-  } else if (ticket.get('status') === TICKET_STATUS.PRE_FULFILLED) {
-    return <span className='label label-primary'>待确认解决</span>
-  } else {
-    const latestReply = ticket.get('latestReply')
-    if (latestReply && latestReply.isCustomerService) {
-      return <span className='label label-info'>已回复</span>
-    } else {
-      return <span className='label label-warning'>未回复</span>
+exports.TicketStatusLabel = React.createClass({
+  render() {
+    if (this.props.status === TICKET_STATUS.FULFILLED) {
+      return <span className='label label-success'>已解决</span>
+    } else if (this.props.status === TICKET_STATUS.REJECTED) {
+      return <span className='label label-danger'>已关闭</span>
+    } else if (this.props.status === TICKET_STATUS.PRE_FULFILLED) {
+      return <span className='label label-primary'>待确认解决</span>
+    } else if (this.props.status === TICKET_STATUS.NEW) {
+      return <span className='label label-warning'>待处理</span>
+    } else if (this.props.status === TICKET_STATUS.PENDING) {
+      return <span className='label label-info'>处理中</span>
     }
   }
-}
+})
 
-exports.getTicketStatusLabelOnlyStatus = (status) => {
-  if (status === TICKET_STATUS.FULFILLED) {
-    return <span className='label label-success'>已解决</span>
-  } else if (status === TICKET_STATUS.REJECTED) {
-    return <span className='label label-danger'>不解决</span>
-  } else if (status === TICKET_STATUS.PRE_FULFILLED) {
-    return <span className='label label-primary'>待确认解决</span>
-  } else if (status === TICKET_STATUS.OPEN) {
-    return <span className='label label-info'>打开</span>
+exports.TicketReplyLabel = React.createClass({
+  render() {
+    const status = this.props.ticket.get('status')
+    if (status === TICKET_STATUS.PENDING) {
+      const latestReply = this.props.ticket.get('latestReply')
+      if (latestReply && latestReply.isCustomerService) {
+        return <span className='label label-info'>已回复</span>
+      } else {
+        return <span className='label label-warning'>未回复</span>
+      }
+    } else {
+      return <span></span>
+    }
   }
-}
+})

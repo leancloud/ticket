@@ -45,6 +45,7 @@ exports.isCustomerService = (user) => {
 }
 
 const getGravatarHash = (email) => {
+  email = email || ''
   const shasum = crypto.createHash('md5')
   shasum.update(email.trim().toLocaleLowerCase())
   return shasum.digest('hex')
