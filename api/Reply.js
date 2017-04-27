@@ -2,7 +2,7 @@ const _ = require('lodash')
 const Promise = require('bluebird')
 const AV = require('leanengine')
 
-const ticketStatus = require('../lib/constant').TICKET_STATUS
+const TICKET_STATUS = require('../lib/constant').TICKET_STATUS
 const common = require('./common')
 const errorHandler = require('./errorHandler')
 const notify = require('./notify')
@@ -33,8 +33,8 @@ AV.Cloud.afterSave('Reply', (req) => {
         ticket.set('latestReply', tinyReply)
           .increment('replyCount', 1)
           .set('joinedCustomerServices', joinedCustomerServices)
-        if (reply.get('isCustomerService') && ticket.get('status') === ticket.NEW) {
-          ticket.set('status', ticketStatus.PENDING)
+        if (reply.get('isCustomerService') && ticket.get('status') === TICKET_STATUS.NEW) {
+          ticket.set('status', TICKET_STATUS.PENDING)
         }
         ticket.save(null, {user: req.currentUser})
       })
