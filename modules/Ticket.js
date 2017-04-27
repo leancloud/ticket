@@ -5,7 +5,7 @@ import Promise from 'bluebird'
 import Remarkable from 'remarkable'
 import hljs from 'highlight.js'
 import xss from 'xss'
-import {FormGroup} from 'react-bootstrap'
+import {FormGroup, FormControl} from 'react-bootstrap'
 import AV from 'leancloud-storage'
 
 import common, {TicketStatusLabel, TicketReplyLabel} from './common'
@@ -31,7 +31,6 @@ export default React.createClass({
       ticket: null,
       replies: [],
       opsLogs: [],
-      reply: '',
       categories: [],
     }
   },
@@ -56,36 +55,26 @@ export default React.createClass({
     console.log(message)
     // TODO: fetch change and update UI
   },
-  handleReplyOnChange(e) {
-    this.setState({reply: e.target.value})
-  },
-  commitReply() {
-    const replyFile = $('#replyFile')[0]
-    return common.uploadFiles(replyFile.files)
+  commitReply(reply, files) {
+    return common.uploadFiles(files)
     .then((files) => {
-      if (this.state.reply.trim() === '' && files.length == 0) {
+      if (reply.trim() === '' && files.length == 0) {
         return
       }
       return new AV.Object('Reply').save({
         ticket: this.state.ticket,
-        content: this.state.reply,
+        content: reply,
         files,
       }).then((reply) => {
         return reply.fetch({
           include: 'author,files',
         })
       }).then((reply) => {
-        this.setState({reply: ''})
-        replyFile.value = ''
         const replies = this.state.replies
         replies.push(reply)
         this.setState({replies})
       })
     })
-  },
-  handleReplyCommit(e) {
-    e.preventDefault()
-    this.commitReply().catch(console.error)
   },
   handleStatusChange(status) {
     this.commitReply().then(() => {
@@ -244,18 +233,43 @@ export default React.createClass({
           updateTicketCategory={this.updateTicketCategory}
           updateTicketAssignee={this.updateTicketAssignee} />
         {optionButtons}
-        <div>
-          <form>
-            <div className="form-group">
-              <textarea className="form-control" rows="8" placeholder="回复内容……" value={this.state.reply} onChange={this.handleReplyOnChange}></textarea>
-            </div>
-            <div className="form-group">
-              <input id="replyFile" type="file" multiple />
-            </div>
-            <button type="button" className='btn btn-default' onClick={this.handleReplyCommit}>回复</button>
-          </form>
-        </div>
+        <TicketReply commitReply={this.commitReply} />
       </div>
     )
   }
 })
+
+class TicketReply extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      reply: '',
+      files: [],
+    }
+  }
+
+  handleReplyOnChange(e) {
+    this.setState({reply: e.target.value})
+  }
+
+  handleReplyCommit(e) {
+    e.preventDefault()
+    this.props.commitReply(this.state.reply, this.fileInput.files)
+    .then(() => {
+      this.setState({reply: ''})
+      this.fileInput.value = ''
+    }).catch(console.error)
+  }
+
+  render() {
+    return (
+      <form onSubmit={this.handleReplyCommit.bind(this)}>
+        <div className="form-group">
+          <textarea className="form-control" rows="8" placeholder="回复内容……" value={this.state.reply} onChange={this.handleReplyOnChange.bind(this)}></textarea>
+        </div>
+        <FormControl id="formControlsFile" type="file" multiple inputRef={ref => this.fileInput = ref} />
+        <button type="submit" className='btn btn-default'>回复</button>
+      </form>
+    )
+  }
+}
