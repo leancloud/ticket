@@ -3,7 +3,8 @@ module.exports = {
         "browser": true,
         "commonjs": true,
         "es6": true,
-        "node": true
+        "node": true,
+        "mocha": true
     },
     "extends": ["eslint:recommended", "plugin:react/recommended"],
     "installedESLint": true,
@@ -34,6 +35,7 @@ module.exports = {
             "error",
             "never"
         ],
-        "no-console": ["error", { allow: ["warn", "error"] }]
+        "no-console": ["error", { allow: ["warn", "error"] }],
+        "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }]
     }
 };

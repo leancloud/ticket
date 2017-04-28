@@ -7,6 +7,8 @@ AV.init({
   masterKey: process.env.LEANCLOUD_APP_MASTER_KEY
 })
 
+AV.setProduction(process.env.NODE_ENV === 'production')
+
 // 加载云函数定义
 require('./cloud')
 require('./Ticket')

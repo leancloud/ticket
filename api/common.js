@@ -1,6 +1,8 @@
 const crypto = require('crypto')
 const AV = require('leanengine')
 
+const config = require('../config')
+
 exports.getTinyUserInfo = (user) => {
   if (user.get('username')) {
     return Promise.resolve({
@@ -42,6 +44,10 @@ exports.isCustomerService = (user) => {
     .then((role) => {
       return !!role
     })
+}
+
+exports.getTicketUrl = (ticket) => {
+  return `${config.host}/tickets/${ticket.get('nid')}`
 }
 
 const getGravatarHash = (email) => {

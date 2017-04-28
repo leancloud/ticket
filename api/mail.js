@@ -2,21 +2,50 @@ const config = require('../config')
 const AV = require('leanengine')
 const mailgun = require('mailgun-js')({apiKey: config.mailgunKey, domain: config.mailgunDomain})
 
+const common = require('./common')
+const errorHandler = require('./errorHandler')
+
 exports.mailgun = mailgun
 
-exports.send = (data) => {
+exports.newTicket = (ticket, from, to) => {
+  if (!to.get('email')) {
+    return Promise.resolve()
+  }
+  return send({
+    from: `${from.get('username')} <ticket@leancloud.cn>`,
+    to: to.get('email'),
+    subject: `[LeanTicket] ${ticket.get('title')} (#${ticket.get('nid')})`,
+    text: ticket.get('content'),
+    url: common.getTicketUrl(ticket),
+  })
+}
+
+exports.replyTicket = (ticket, reply, from, to) => {
+  if (!to.get('email')) {
+    return Promise.resolve()
+  }
+  return send({
+    from: `${from.get('username')} <ticket@leancloud.cn>`,
+    to: to.get('email'),
+    subject: `[LeanTicket] ${ticket.get('title')} (#${ticket.get('nid')})`,
+    text: reply.get('content'),
+    url: common.getTicketUrl(ticket),
+  })
+}
+
+const send = (params) => {
   return new Promise((resolve, reject) => {
     mailgun.messages().send({
-      from: data.from,
-      to: data.to,
-      subject: data.subject,
-      text: `${data.text}
+      from: params.from,
+      to: params.to,
+      subject: params.subject,
+      text: `${params.text}
 --
 您能收到邮件是因为该工单与您相关。
-可以直接回复邮件，或者点击 ${data.url} 查看。`,
+可以直接回复邮件，或者点击 ${params.url} 查看。`,
     }, function (err, body) {
       new AV.Object('MailLog').save({
-        data,
+        params,
         result: body,
         err,
       })
@@ -25,5 +54,11 @@ exports.send = (data) => {
       }
       resolve(body)
     })
+  })
+  .catch((err) => {
+    errorHandler.captureException({
+      action: 'sendMail',
+      params
+    }, err)
   })
 }

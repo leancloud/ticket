@@ -29,15 +29,15 @@ AV.Cloud.afterSave('Reply', (req) => {
     common.getTinyReplyInfo(reply),
   ]).spread((ticket, tinyReply) => {
     return uniqJoinedCustomerServices(reply, ticket.get('joinedCustomerServices'))
-      .then((joinedCustomerServices) => {
-        ticket.set('latestReply', tinyReply)
-          .increment('replyCount', 1)
-          .set('joinedCustomerServices', joinedCustomerServices)
-        if (reply.get('isCustomerService') && ticket.get('status') === TICKET_STATUS.NEW) {
-          ticket.set('status', TICKET_STATUS.PENDING)
-        }
-        ticket.save(null, {user: req.currentUser})
-      })
+    .then((joinedCustomerServices) => {
+      ticket.set('latestReply', tinyReply)
+        .increment('replyCount', 1)
+        .set('joinedCustomerServices', joinedCustomerServices)
+      if (reply.get('isCustomerService') && ticket.get('status') === TICKET_STATUS.NEW) {
+        ticket.set('status', TICKET_STATUS.PENDING)
+      }
+      return ticket.save(null, {user: req.currentUser})
+    })
   }).then((ticket) => {
     return notify.replyTicket(ticket, reply, req.currentUser)
   }).catch(errorHandler.captureException)
