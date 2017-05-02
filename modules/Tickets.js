@@ -1,30 +1,21 @@
 import React from 'react'
 import { Link } from 'react-router'
+import _ from 'lodash'
 import AV from 'leancloud-storage'
 
 import {TICKET_STATUS} from '../lib/constant'
-import common, {TicketStatusLabel, TicketReplyLabel} from './common'
+import {sortTickets, TicketStatusLabel, TicketReplyLabel} from './common'
 
 export default React.createClass({
   getInitialState() {
     return {
       tickets: [],
-      userFilter: {author: AV.User.current()},
-      statusFilter: null,
     }
   },
-  refreshTickets(props) {
-    let userFilter, statusFilter
-    if (props.isCustomerService) {
-      userFilter = {assignee: AV.User.current()}
-      statusFilter = TICKET_STATUS.NEW
-    } else {
-      userFilter = {author: AV.User.current()}
-      statusFilter = null
-    }
-    return this.findTickets(userFilter, statusFilter)
+  refreshTickets() {
+    return this.findTickets()
     .then((tickets) => {
-      this.setState({tickets, userFilter, statusFilter})
+      this.setState({tickets})
     })
   },
   componentDidMount () {
@@ -33,46 +24,19 @@ export default React.createClass({
   componentWillReceiveProps(nextProps) {
     this.refreshTickets(nextProps)
   }, 
-  findTickets(userFilter, statusFilter) {
-    const query = new AV.Query('Ticket')
-    if (userFilter.author) {
-      query.equalTo('author', userFilter.author)
-    }
-    if (userFilter.assignee) {
-      query.equalTo('assignee', userFilter.assignee)
-    }
-    if (statusFilter) {
-      query.equalTo('status', statusFilter)
-    }
-    return query.descending('createdAt').find()
-  },
-  setUserFilter(userFilter) {
-    this.findTickets(userFilter, this.state.statusFilter)
-      .then((tickets) => {
-        this.setState({tickets, userFilter})
-      })
-  },
-  setStatusFilter(statusFilter) {
-    this.findTickets(this.state.userFilter, statusFilter)
-      .then((tickets) => {
-        this.setState({tickets, statusFilter})
-      })
+  findTickets() {
+    return new AV.Query('Ticket')
+    .equalTo('author', AV.User.current())
+    .descending('createdAt')
+    .find()
   },
   render() {
-    const ticketLinks = this.state.tickets.map((ticket) => {
+    const tickets = sortTickets(this.state.tickets)
+    const ticketLinks = tickets.map((ticket) => {
       let latestReply = ticket.get('latestReply')
       let latestReplyContent = latestReply ? latestReply.content : ''
       if (latestReplyContent.length > 200) {
         latestReplyContent = latestReplyContent.slice(0, 200) + '……'
-      }
-      let joinedCustomerServices
-      if (this.props.isCustomerService) {
-        const customerServices = (ticket.get('joinedCustomerServices') || []).map((user) => {
-          return (
-            <span key={user.objectId}>{common.userLabel(user)} </span>
-          )
-        })
-        joinedCustomerServices = <p className="list-group-item-text">{customerServices}</p>
       }
       return (
         <li className="list-group-item" key={ticket.get('nid')}>
@@ -81,28 +45,9 @@ export default React.createClass({
             <Link to={`/tickets/${ticket.get('nid')}`}>#{ticket.get('nid')} {ticket.get('title')}</Link> <small><TicketStatusLabel status={ticket.get('status')} /> <TicketReplyLabel ticket={ticket} /></small>
           </h4>
           <p className="list-group-item-text">{latestReplyContent}</p>
-          {joinedCustomerServices}
         </li>
       )
     })
-    let ticketAdminFilters
-    if (this.props.isCustomerService) {
-      ticketAdminFilters = (
-        <div>
-          <div className="form-group">
-            <button className="btn btn-default" onClick={() => this.setUserFilter({assignee: AV.User.current()})}>分配给我的</button>
-            <button className="btn btn-default" onClick={() => this.setUserFilter({})}>全部</button>
-          </div>
-          <div className="form-group">
-            <button className="btn btn-default" onClick={() => this.setStatusFilter(TICKET_STATUS.NEW)}>未处理</button>
-            <button className="btn btn-default" onClick={() => this.setStatusFilter(TICKET_STATUS.PENDING)}>处理中</button>
-            <button className="btn btn-default" onClick={() => this.setStatusFilter(TICKET_STATUS.PRE_FULFILLED)}>待确认已解决</button>
-            <button className="btn btn-default" onClick={() => this.setStatusFilter(TICKET_STATUS.FULFILLED)}>已解决</button>
-            <button className="btn btn-default" onClick={() => this.setStatusFilter(TICKET_STATUS.REJECTED)}>关闭</button>
-          </div>
-        </div>
-      )
-    }
     if (ticketLinks.length === 0) {
       ticketLinks.push(
         <li className="list-group-item" key={0}>未查询到相关工单，您可以 <Link to='/tickets/new'>新建工单</Link></li>
@@ -110,7 +55,6 @@ export default React.createClass({
     }
     return (
       <div>
-        {ticketAdminFilters}
         <div className="panel panel-default">
           <ul className="list-group">
             {ticketLinks}

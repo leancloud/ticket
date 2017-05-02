@@ -1,9 +1,8 @@
 import React from 'react'
-const Promise = require("bluebird")
 import _ from 'lodash'
 import AV from 'leancloud-storage'
 
-const common = require('../common')
+const {UserLabel} = require('../common')
 
 export default React.createClass({
   getInitialState() {
@@ -75,7 +74,7 @@ export default React.createClass({
       return (
         <tr key={customerService.id}>
           <td>
-            {common.userLabel(customerService)}
+            <UserLabel user={customerService} />
           </td>
           <td>
             {categories}

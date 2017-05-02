@@ -31,6 +31,14 @@ export default React.createClass({
     } else {
       user = <li><Link to="/login">Login</Link></li>
     }
+    let customerServiceLinks
+    if (this.props.isCustomerService) {
+      customerServiceLinks = (
+        <ul className="nav navbar-nav">
+          <li><Link to="/customerService/tickets">客服工单列表</Link></li>
+        </ul>
+      )
+    }
     return (
       <nav className="navbar navbar-default">
         <div className="container-fluid">
@@ -39,9 +47,10 @@ export default React.createClass({
           </div>
           <div className="collapse navbar-collapse">
             <ul className="nav navbar-nav">
-              <li><Link to="/tickets">Tickets</Link></li>
-              <li><Link to="/about">About</Link></li>
+              <li><Link to="/tickets">工单列表</Link></li>
+              <li><Link to="/about">关于</Link></li>
             </ul>
+            {customerServiceLinks}
             <ul className="nav navbar-nav navbar-right">
               <li>
                 <button type="submit" className="btn btn-primary navbar-btn" onClick={this.handleNewTicketClick}>新建工单</button>

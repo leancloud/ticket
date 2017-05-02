@@ -3,7 +3,7 @@ import _ from 'lodash'
 import Promise from 'bluebird'
 import AV from 'leancloud-storage'
 
-const common = require('../common')
+import common, {UserLabel} from '../common'
 
 export default React.createClass({
   getInitialState() {
@@ -66,7 +66,7 @@ export default React.createClass({
       const selectCustomerServices = _.filter(this.state.customerServices, (user) => {
         return _.find(user.get('categories'), {objectId: category.id})
       }).map((user) => {
-        return <span key={user.id}>{common.userLabel(user)} </span>
+        return <span key={user.id}><UserLabel user={user} /> </span>
       })
       return (
         <tr key={category.id}>

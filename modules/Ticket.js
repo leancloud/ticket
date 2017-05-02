@@ -8,7 +8,7 @@ import xss from 'xss'
 import {FormGroup, FormControl} from 'react-bootstrap'
 import AV from 'leancloud-storage'
 
-import common, {TicketStatusLabel, TicketReplyLabel} from './common'
+import common, {UserLabel, TicketStatusLabel, TicketReplyLabel} from './common'
 import UpdateTicket from './UpdateTicket'
 import Notification from './notification'
 
@@ -77,9 +77,8 @@ export default React.createClass({
     })
   },
   handleStatusChange(status) {
-    this.commitReply().then(() => {
-      return this.state.ticket.set('status', status).save()
-    }).then((ticket) => {
+    return this.state.ticket.set('status', status).save()
+    .then((ticket) => {
       this.setState({ticket})
       return this.delayRefreshOpsLogs()
     }).catch(console.error)
@@ -136,25 +135,25 @@ export default React.createClass({
       case 'selectAssignee':
         return (
           <p key={avObj.id}>
-            系统 于 {moment(avObj.get('createdAt')).fromNow()} 将工单分配给 {common.userLabel(avObj.get('data').assignee)} 处理
+            系统 于 {moment(avObj.get('createdAt')).fromNow()} 将工单分配给 <UserLabel user={avObj.get('data').assignee} /> 处理
           </p>
         )
       case 'changeStatus':
         return (
           <p key={avObj.id}>
-            {common.userLabel(avObj.get('data').operator)} 于 {moment(avObj.get('createdAt')).fromNow()} 将工单状态修改为 <TicketStatusLabel status={avObj.get('data').status} />
+            <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 将工单状态修改为 <TicketStatusLabel status={avObj.get('data').status} />
           </p>
         )
       case 'changeCategory':
         return (
           <p key={avObj.id}>
-            {common.userLabel(avObj.get('data').operator)} 于 {moment(avObj.get('createdAt')).fromNow()} 将工单类别改为 {avObj.get('data').category.name}
+            <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 将工单类别改为 {avObj.get('data').category.name}
           </p>
         )
       case 'changeAssignee':
         return (
           <p key={avObj.id}>
-            {common.userLabel(avObj.get('data').operator)} 于 {moment(avObj.get('createdAt')).fromNow()} 将工单负责人改为 {common.userLabel(avObj.get('data').assignee)}
+            <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 将工单负责人改为 <UserLabel user={avObj.get('data').assignee} />
           </p>
         )
       }
@@ -172,7 +171,7 @@ export default React.createClass({
       return (
         <div key={avObj.id} className="panel panel-default">
           <div className="panel-heading">
-            {common.userLabel(avObj.get('author'))} 于 {moment(avObj.get('createdAt')).fromNow()}提交
+            <UserLabel user={avObj.get('author')} /> 于 {moment(avObj.get('createdAt')).fromNow()}提交
           </div>
           <div className="panel-body">
             {this.contentView(avObj.get('content'))}
@@ -222,7 +221,7 @@ export default React.createClass({
       <div>
         <h2>{this.state.ticket.get('title')} <small>#{this.state.ticket.get('nid')}</small></h2>
         <div>
-          <TicketStatusLabel status={this.state.ticket.get('status')} /> <TicketReplyLabel ticket={this.state.ticket} /> <span>{common.userLabel(this.state.ticket.get('author'))} 于 {moment(this.state.ticket.get('createdAt')).fromNow()}创建该工单</span>
+          <TicketStatusLabel status={this.state.ticket.get('status')} /> <TicketReplyLabel ticket={this.state.ticket} /> <span><UserLabel user={this.state.ticket.get('author')} /> 于 {moment(this.state.ticket.get('createdAt')).fromNow()}创建该工单</span>
         </div>
         <hr />
         {this.ticketTimeline(this.state.ticket)}

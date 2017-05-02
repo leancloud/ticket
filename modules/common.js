@@ -1,16 +1,10 @@
 import React from 'react'
 import Promise from 'bluebird'
 import { Link } from 'react-router'
+import _ from 'lodash'
 import AV from 'leancloud-storage'
 
 const TICKET_STATUS = require('../lib/constant').TICKET_STATUS
-
-exports.userLabel = (user) => {
-  const username = user.username || user.get('username')
-  return (
-    <span><Link to={'/users/' + username}>{username}</Link></span>
-  )
-}
 
 exports.getTinyCategoryInfo = (category) => {
   return {
@@ -29,25 +23,23 @@ exports.requireAuth = (nextState, replace) => {
 }
 
 exports.requireCustomerServiceAuth = (nextState, replace, next) => {
-  new AV.Query(AV.Role)
-    .equalTo('name', 'customerService')
-    .equalTo('users', AV.User.current())
-    .first()
-    .then((role) => {
-      if (!role) {
-        replace({
-          pathname: '/error',
-          state: { code: 'requireCustomerServiceAuth' }
-        })
-      }
-      next()
-    }).catch((err) => {
+  exports.isCustomerService(AV.User.current())
+  .then((isCustomerService) => {
+    if (!isCustomerService) {
       replace({
         pathname: '/error',
-        state: { code: 'orz', err }
+        state: { code: 'requireCustomerServiceAuth' }
       })
-      next()
+    }
+    next()
+  })
+  .catch((err) => {
+    replace({
+      pathname: '/error',
+      state: { code: 'orz', err }
     })
+    next()
+  })
 }
 
 exports.getCustomerServices = () => {
@@ -106,6 +98,33 @@ exports.getTicketAndRelation = (nid) => {
     })
   })
 }
+
+exports.sortTickets = (tickets) => {
+  return _.sortBy(tickets, (ticket) => {
+    switch (ticket.get('status')) {
+    case TICKET_STATUS.NEW:
+      return 0
+    case TICKET_STATUS.PENDING:
+      return 1
+    case TICKET_STATUS.PRE_FULFILLED:
+      return 2
+    case TICKET_STATUS.FULFILLED:
+    case TICKET_STATUS.REJECTED:
+      return 3
+    default:
+      new Error('unkonwn ticket status:', ticket.get('status'))
+    }
+  })
+}
+
+exports.UserLabel = React.createClass({
+  render() {
+    const username = this.props.user.username || this.props.user.get('username')
+    return (
+      <span><Link to={'/users/' + username}>{username}</Link></span>
+    )
+  }
+})
 
 exports.TicketStatusLabel = React.createClass({
   render() {
