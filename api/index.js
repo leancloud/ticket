@@ -20,5 +20,6 @@ router.use(AV.express())
 
 router.use('/api/leancloud', require('./leancloud').router)
 router.use('/webhooks/mailgun', require('./mailgun'))
+router.use('/webhooks/wechat', require('./wechat').router)
 
 module.exports = router

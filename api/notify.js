@@ -1,5 +1,6 @@
 const mail = require('./mail')
 const bearychat = require('./bearychat')
+const wechat = require('./wechat')
 const onlineNotification = require('./onlineNotification')
 
 exports.newTicket = (ticket, author) => {
@@ -8,7 +9,8 @@ exports.newTicket = (ticket, author) => {
     return Promise.all([
       onlineNotification.newTicket(ticket, author, assignee),
       mail.newTicket(ticket, author, assignee),
-      bearychat.newTicket(ticket, author, assignee)
+      bearychat.newTicket(ticket, author, assignee),
+      wechat.newTicket(ticket, author, assignee),
     ])
   })
 }
@@ -19,5 +21,6 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
     onlineNotification.replyTicket(ticket, reply, replyAuthor, to),
     mail.replyTicket(ticket, reply, replyAuthor, to),
     bearychat.replyTicket(ticket, reply, replyAuthor, to),
+    wechat.replyTicket(ticket, reply, replyAuthor, to),
   ])
 }

@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "build": "webpack",
-    "dev:client": "webpack-dev-server --inline --content-base public --history-api-fallback",
+    "dev:client": "eval $(lean env) && webpack-dev-server --inline --content-base public --history-api-fallback",
     "dev": "nodemon --ignore modules server.js",
     "postinstall": "npm run build"
   },
@@ -39,6 +39,7 @@
     "request": "^2.79.0",
     "request-promise": "^4.1.1",
     "webpack": "^1.12.13",
+    "wechat-enterprise": "^0.1.1",
     "xss": "^0.3.3"
   },
   "devDependencies": {
@@ -46,6 +47,8 @@
     "eslint-plugin-react": "^6.10.0",
     "http-server": "^0.8.5",
     "nodemon": "^1.11.0",
+    "supertest": "^3.0.0",
+    "supertest-as-promised": "^4.0.2",
     "webpack-dev-server": "^1.14.1"
   }
 }

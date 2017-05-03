@@ -29,6 +29,8 @@ AV.init({
   appKey: process.env.LEANCLOUD_APP_KEY,
 })
 
+AV.setProduction(process.env.NODE_ENV === 'production')
+
 module.exports = (
   <Route path="/" component={App}>
     <IndexRoute component={Home}/>
