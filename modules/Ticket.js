@@ -199,6 +199,7 @@ export default React.createClass({
       optionButtons = (
         <FormGroup>
           <button type="button" className='btn btn-default' onClick={() => this.handleStatusChange(this.props.isCustomerService ? TICKET_STATUS.PRE_FULFILLED : TICKET_STATUS.FULFILLED)}>已解决</button>
+          {' '}
           <button type="button" className='btn btn-default' onClick={() => this.handleStatusChange(TICKET_STATUS.REJECTED)}>关闭</button>
         </FormGroup>
       )
@@ -207,6 +208,7 @@ export default React.createClass({
         <FormGroup>
           <p>我们的工程师认为该工单已解决，请确认：</p>
           <button type="button" className='btn btn-default' onClick={() => this.handleStatusChange(TICKET_STATUS.FULFILLED)}>已解决</button>
+          {' '}
           <button type="button" className='btn btn-default' onClick={() => this.handleStatusChange(TICKET_STATUS.PENDING)}>未解决</button>
         </FormGroup>
       )
@@ -231,8 +233,8 @@ export default React.createClass({
           isCustomerService={this.props.isCustomerService}
           updateTicketCategory={this.updateTicketCategory}
           updateTicketAssignee={this.updateTicketAssignee} />
-        {optionButtons}
         <TicketReply commitReply={this.commitReply} />
+        {optionButtons}
       </div>
     )
   }
@@ -263,11 +265,11 @@ class TicketReply extends React.Component {
   render() {
     return (
       <form onSubmit={this.handleReplyCommit.bind(this)}>
-        <div className="form-group">
-          <textarea className="form-control" rows="8" placeholder="回复内容……" value={this.state.reply} onChange={this.handleReplyOnChange.bind(this)}></textarea>
-        </div>
-        <FormControl id="formControlsFile" type="file" multiple inputRef={ref => this.fileInput = ref} />
-        <button type="submit" className='btn btn-default'>回复</button>
+        <FormGroup>
+          <FormControl componentClass="textarea" placeholder="回复内容……" rows="8" value={this.state.reply} onChange={this.handleReplyOnChange.bind(this)}/>
+          <FormControl type="file" multiple inputRef={ref => this.fileInput = ref} />
+          <button type="submit" className='btn btn-default'>回复</button>
+        </FormGroup>
       </form>
     )
   }
