@@ -119,6 +119,11 @@ exports.sortTickets = (tickets) => {
 
 exports.UserLabel = React.createClass({
   render() {
+    if (!this.props.user) {
+      return (
+        <span>data err</span>
+      )
+    }
     const username = this.props.user.username || this.props.user.get('username')
     return (
       <span><Link to={'/users/' + username}>{username}</Link></span>

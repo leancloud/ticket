@@ -43,6 +43,15 @@ AV.Cloud.afterSave('Reply', (req) => {
   }).catch(errorHandler.captureException)
 })
 
+AV.Cloud.define('getReplyView', (req, res) => {
+  AV.Object.createWithoutData('Reply', req.params.objectId)
+  .fetch({include: 'author,files'}, {user: req.currentUser})
+  .then((reply) => {
+    reply.set('contentHtml', common.md.render(reply.get('content')))
+    return res.success(reply)
+  })
+})
+
 const getReplyAcl = (reply, author) => {
   return reply.get('ticket').fetch({
     include: 'author'

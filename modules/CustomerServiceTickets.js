@@ -73,6 +73,7 @@ export default React.createClass({
         <tr key={ticket.get('nid')}>
           <td><Link to={'/tickets/' + ticket.get('nid')}>{ticket.get('nid')}</Link></td>
           <td><Link to={'/tickets/' + ticket.get('nid')}>{ticket.get('title')}</Link></td>
+          <td>{ticket.get('category').name}</td>
           <td><TicketStatusLabel status={ticket.get('status')} /> <TicketReplyLabel ticket={ticket} /></td>
           <td><UserLabel user={ticket.get('author')} /></td>
           <td><UserLabel user={ticket.get('assignee')} /></td>
@@ -96,7 +97,7 @@ export default React.createClass({
     )
     if (ticketTrs.length === 0) {
       ticketTrs.push(
-        <tr>
+        <tr key='0'>
           <td colSpan='7'>未查询到相关工单</td>
         </tr>
       )
@@ -110,6 +111,7 @@ export default React.createClass({
               <tr>
                 <th>编号</th>
                 <th>标题</th>
+                <th>分类</th>
                 <th>状态</th>
                 <th>提交人</th>
                 <th>责任人</th>

@@ -74,9 +74,7 @@ export default React.createClass({
         content: reply,
         files,
       }).then((reply) => {
-        return reply.fetch({
-          include: 'author,files',
-        })
+        return AV.Cloud.run('getReplyView', {objectId: reply.id})
       }).then((reply) => {
         const replies = this.state.replies
         replies.push(reply)
@@ -155,10 +153,12 @@ export default React.createClass({
         })
         panelFooter = <div className="panel-footer">{fileLinks}</div>
       }
+      const panelClass = 'panel ' + (avObj.get('isCustomerService') ? 'panel-info' : 'panel-success')
+      const userLabel = avObj.get('isCustomerService') ? <span>客服 <UserLabel user={avObj.get('author')} /></span> : <UserLabel user={avObj.get('author')} />
       return (
-        <div key={avObj.id} className="panel panel-default">
+        <div key={avObj.id} className={panelClass}>
           <div className="panel-heading">
-            <UserLabel user={avObj.get('author')} /> 于 {moment(avObj.get('createdAt')).fromNow()}提交
+          {userLabel} 于 {moment(avObj.get('createdAt')).fromNow()}提交
           </div>
           <div className="panel-body">
             {this.contentView(avObj.get('contentHtml'))}

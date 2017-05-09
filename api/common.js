@@ -1,4 +1,6 @@
 const crypto = require('crypto')
+const Remarkable = require('remarkable')
+const hljs = require('highlight.js')
 const AV = require('leanengine')
 
 const config = require('../config')
@@ -49,6 +51,28 @@ exports.isCustomerService = (user) => {
 exports.getTicketUrl = (ticket) => {
   return `${config.host}/tickets/${ticket.get('nid')}`
 }
+
+exports.md = new Remarkable({
+  html: true,
+  breaks: true,
+  linkify: true,
+  typographer: true,
+  highlight: (str, lang) => {
+    if (lang && hljs.getLanguage(lang)) {
+      try {
+        return hljs.highlight(lang, str).value
+      } catch (err) {
+        // ignore
+      }
+    }
+    try {
+      return hljs.highlightAuto(str).value
+    } catch (err) {
+      // ignore
+    }
+    return '' // use external default escaping
+  },
+})
 
 const getGravatarHash = (email) => {
   email = email || ''
