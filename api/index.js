@@ -15,6 +15,7 @@ require('./Ticket')
 require('./Reply')
 require('./OpsLog')
 require('./User')
+require('./stats')
 // 加载云引擎中间件
 router.use(AV.express())
 

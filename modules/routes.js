@@ -12,7 +12,9 @@ import Profile from './Profile'
 import Tickets from './Tickets'
 import NewTicket from './NewTicket'
 import Ticket from './Ticket'
+import CustomerService from './CustomerService'
 import CSTickets from './CustomerServiceTickets'
+import CSStats from './CustomerServiceStats'
 import User from './User'
 import Home from './Home'
 
@@ -37,7 +39,10 @@ module.exports = (
     <Route path="/tickets" component={Tickets} />
     <Route path="/tickets/new" component={NewTicket} />
     <Route path="/tickets/:nid" component={Ticket} />
-    <Route path="/customerService/tickets" component={CSTickets} onEnter={common.requireCustomerServiceAuth()} />
+    <Route path="/customerService" component={CustomerService} onEnter={common.requireCustomerServiceAuth()}>
+      <Route path="/customerService/tickets" component={CSTickets} />
+      <Route path="/customerService/stats" component={CSStats} />
+    </Route>
     <Route path="/users/:username" component={User} />
     <Route path="/about" component={About}/>
     <Route path="/login" component={Login}/>
