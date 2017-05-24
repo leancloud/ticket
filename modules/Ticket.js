@@ -3,7 +3,7 @@ import moment from 'moment'
 import _ from 'lodash'
 import Promise from 'bluebird'
 import xss from 'xss'
-import {FormGroup, FormControl, Label} from 'react-bootstrap'
+import {FormGroup, FormControl, Label, Alert, Button} from 'react-bootstrap'
 import AV from 'leancloud-storage'
 
 import common, {UserLabel, TicketStatusLabel, TicketReplyLabel} from './common'
@@ -204,12 +204,12 @@ export default React.createClass({
       )
     } else if (ticketStatus === TICKET_STATUS.PRE_FULFILLED && !this.props.isCustomerService) {
       optionButtons = (
-        <FormGroup>
+        <Alert>
           <p>我们的工程师认为该工单已解决，请确认：</p>
-          <button type="button" className='btn btn-default' onClick={() => this.handleStatusChange(TICKET_STATUS.FULFILLED)}>已解决</button>
+          <Button bsStyle="success" onClick={() => this.handleStatusChange(TICKET_STATUS.FULFILLED)}>已解决</Button>
           {' '}
-          <button type="button" className='btn btn-default' onClick={() => this.handleStatusChange(TICKET_STATUS.PENDING)}>未解决</button>
-        </FormGroup>
+          <Button onClick={() => this.handleStatusChange(TICKET_STATUS.PENDING)}>未解决</Button>
+        </Alert>
       )
     } else {
       optionButtons = (

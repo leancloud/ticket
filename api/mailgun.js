@@ -43,11 +43,14 @@ const getFromUser = (mail) => {
   if (match) {
     return new AV.Query('_User').equalTo('email', match[1]).first({useMasterKey: true})
     .then((user) => {
+      if (!user) {
+        throw new Error('user not found, email=' + match[1])
+      }
       // 为了获取 sessionToken
       return user.fetch({}, {useMasterKey: true})
     })
   }
-  return Promise.resolve()
+  throw new Error('mail mismatch:' + mail.From)
 }
 
 module.exports = router

@@ -13,13 +13,14 @@ leanengine.Cloud.define('yy', (req, res) => {
     .catch((err) => {
       console.log('err >>', ticket.id, err)
     })
-  })
+  }, {useMasterKey: true})
 })
 
 leanengine.Cloud.define('statsTicket', (req, res) => {
   const ticketId = req.params.ticketId
   console.log('statsTicket:', ticketId)
-  exports.statsTicket(ticketId)
+  const authOptions = {useMasterKey: true}
+  exports.statsTicket(ticketId, authOptions)
   .then((data) => {
     return removeTicketStats(data.ticketId)
     .then(() => {
@@ -28,22 +29,22 @@ leanengine.Cloud.define('statsTicket', (req, res) => {
       .save({
         type: 'ticketStats',
         data,
-      }, {useMasterKey: true})
+      }, authOptions)
     })
   })
   .then(res.success)
   .catch(res.error)
 })
 
-const removeTicketStats = (ticketId) => {
+const removeTicketStats = (ticketId, authOptions) => {
   return new AV.Query('Stats')
   .equalTo('type', 'ticketStats')
   .equalTo('data.ticketId', ticketId)
-  .destroyAll({useMasterKey: true})
+  .destroyAll(authOptions)
 }
 
-exports.statsTicket = (ticketId) => {
-  return getTicketAndTimeline(ticketId)
+exports.statsTicket = (ticketId, authOptions) => {
+  return getTicketAndTimeline(ticketId, authOptions)
   .then(({ticket, timeline}) => {
     const firstReplyStats = new FirstReplyStats(ticket) 
     const replyTimeStats = new ReplyTimeStats(ticket) 
@@ -160,20 +161,20 @@ class ReplyTimeStats {
   }
 }
 
-const getTicketAndTimeline = (ticketObjectId) => {
+const getTicketAndTimeline = (ticketObjectId, authOptions) => {
   const ticket = AV.Object.createWithoutData('Ticket', ticketObjectId)
   return Promise.all([
-    ticket.fetch({}, {useMasterKey: true}),
+    ticket.fetch({}, authOptions),
     new AV.Query('Reply')
       .equalTo('ticket', ticket)
       .limit(1000)
       .ascending('createdAt')
-      .find({useMasterKey: true}),
+      .find(authOptions),
     new AV.Query('OpsLog')
       .equalTo('ticket', ticket)
       .limit(1000)
       .ascending('createdAt')
-      .find({useMasterKey: true}),
+      .find(authOptions),
   ]).spread((ticket, replies, opsLogs) => {
     if (!ticket) {
       throw new Error('ticket is not exist: ' + ticketObjectId)
@@ -354,9 +355,10 @@ leanengine.Cloud.define('statsDaily', (req, res) => {
   let date = req.params.date && new Date(req.params.date) || moment().subtract(1, 'days').toDate()
   const start = moment(date).startOf('day').toDate()
   const end = moment(date).endOf('day').toDate()
-  return getActiveTicket(start, end)
+  const authOptions = {useMasterKey: true}
+  return getActiveTicket(start, end, authOptions)
   .then((data) => {
-    return removeDailyStats(start)
+    return removeDailyStats(start, authOptions)
     .then(() => {
       data.date = start
       return new AV.Object('Stats')
@@ -364,21 +366,21 @@ leanengine.Cloud.define('statsDaily', (req, res) => {
       .save({
         type: 'dailyStats',
         data,
-      }, {useMasterKey: true})
+      }, authOptions)
     })
   })
   .then(res.success)
   .catch(res.error)
 })
 
-const removeDailyStats = (date) => {
+const removeDailyStats = (date, authOptions) => {
   return new AV.Query('Stats')
   .equalTo('type', 'dailyStats')
   .equalTo('data.date', date)
-  .destroyAll({useMasterKey: true})
+  .destroyAll(authOptions)
 }
 
-const getActiveTicket = (start, end) => {
+const getActiveTicket = (start, end, authOptions) => {
   const query = new AV.Query('Reply')
   .greaterThanOrEqualTo('createdAt', start)
   .lessThan('createdAt', end)
@@ -402,7 +404,7 @@ const getActiveTicket = (start, end) => {
     return result
   }, {
     activeTickets: [],
-  })
+  }, authOptions)
   .then(({activeTickets}) => {
     return {
       tickets: _.map(activeTickets, 'objectId'),
@@ -421,11 +423,11 @@ const getActiveTicket = (start, end) => {
   .catch(console.error)
 }
 
-const reduceAVObject = (query, fn, accumulator) => {
+const reduceAVObject = (query, fn, accumulator, authOptions) => {
   query.limit(1000)
   .ascending('createdAt')
   const innerFn = () => {
-    return query.find({useMasterKey: true})
+    return query.find(authOptions)
     .then((datas) => {
       _.forEach(datas, (data) => {
         accumulator = fn(accumulator, data)
@@ -441,11 +443,11 @@ const reduceAVObject = (query, fn, accumulator) => {
   return innerFn()
 }
 
-const forEachAVObject = (query, fn) => {
+const forEachAVObject = (query, fn, authOptions) => {
   query.limit(1000)
   .descending('createdAt')
   const innerFn = () => {
-    return query.find({useMasterKey: true})
+    return query.find(authOptions)
     .then((datas) => {
       return Promise.each(datas, fn)
       .then(() => {

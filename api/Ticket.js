@@ -31,15 +31,19 @@ const getTicketAcl = (ticket, author) => {
 }
 
 AV.Cloud.afterSave('Ticket', (req) => {
-  common.getTinyUserInfo(req.object.get('assignee'))
+  req.object.get('assignee').fetch()
   .then((assignee) => {
-    return new AV.Object('OpsLog').save({
-      ticket: req.object,
-      action: 'selectAssignee',
-      data: {assignee},
-    }, {useMasterKey: true})
-  }).then(() => {
-    return notify.newTicket(req.object, req.currentUser)
+    return common.getTinyUserInfo(assignee)
+    .then((assigneeInfo) => {
+      return new AV.Object('OpsLog').save({
+        ticket: req.object,
+        action: 'selectAssignee',
+        data: {assignee: assigneeInfo},
+      }, {useMasterKey: true})
+    })
+    .then(() => {
+      return notify.newTicket(req.object, req.currentUser, assignee)
+    })
   }).catch(errorHandler.captureException)
 })
 
@@ -111,9 +115,7 @@ const selectAssignee = (ticket) => {
       if (users.length != 0) {
         return _.sample(users)
       }
-      return role.getUsers().query().find({useMasterKey: true}).then((users) => {
-        return _.sample(users)
-      })
+      return role.getUsers().query().find({useMasterKey: true}).then(_.sample)
     })
   })
 }

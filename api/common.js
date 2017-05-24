@@ -13,7 +13,7 @@ exports.getTinyUserInfo = (user) => {
       gravatarHash: getGravatarHash(user.get('email'))
     })
   }
-  return user.fetch({}, {useMasterKey: true}).then((user) => {
+  return user.fetch().then((user) => {
     return {
       objectId: user.id,
       username: user.get('username'),
