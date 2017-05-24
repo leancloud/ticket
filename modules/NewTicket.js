@@ -1,5 +1,6 @@
 import React from 'react'
 import _ from 'lodash'
+import {FormGroup, ControlLabel, FormControl} from 'react-bootstrap'
 import AV from 'leancloud-storage'
 
 const common = require('./common')
@@ -8,14 +9,20 @@ export default React.createClass({
   getInitialState() {
     return {
       categories: [],
+      apps: [],
       title: '',
+      appId: '',
       category: {},
       content: '',
     }
   },
   componentDidMount() {
-    new AV.Query('Category').find().then((categories) => {
-      this.setState({categories, category: categories[0]})
+    Promise.all([
+      new AV.Query('Category').find(),
+      AV.Cloud.run('getLeanCloudApps'),
+    ])
+    .then(([categories, apps]) => {
+      this.setState({categories, apps})
     })
   },
   handleTitleChange(e) {
@@ -24,6 +31,9 @@ export default React.createClass({
   handleCategoryChange(e) {
     const category = _.find(this.state.categories, {id: e.target.value})
     this.setState({category})
+  },
+  handleAppChange(e) {
+    this.setState({appId: e.target.value})
   },
   handleContentChange(e) {
     this.setState({content: e.target.value})
@@ -38,6 +48,13 @@ export default React.createClass({
         content: this.state.content,
         files,
       })
+      .then((ticket) => {
+        return new AV.Object('Tag').save({
+          key: 'appId',
+          value: this.state.appId,
+          ticket
+        })
+      })
     }).then(() => {
       this.context.router.push('/tickets')
     })
@@ -51,22 +68,35 @@ export default React.createClass({
         <option key={category.id} value={category.id}>{category.get('name')}</option>
       )
     })
+    const appOptions = this.state.apps.map((app) => {
+      return <option key={app.app_id} value={app.app_id}>{app.app_name}</option>
+    })
     return (
       <form onSubmit={this.handleSubmit}>
-        <div className="form-group">
-          <input type="text" className="form-control" placeholder="标题" value={this.state.title} onChange={this.handleTitleChange} />
-        </div>
-        <div className="form-group">
-          <select className="form-control" value={this.state.category.id} onChange={this.handleCategoryChange}>
+        <FormGroup>
+          <ControlLabel>标题</ControlLabel>
+          <input type="text" className="form-control" value={this.state.title} onChange={this.handleTitleChange} />
+        </FormGroup>
+        <FormGroup>
+          <ControlLabel>问题分类</ControlLabel>
+          <FormControl componentClass="select" value={this.state.category.id} onChange={this.handleCategoryChange}>
+            <option key='empty'></option>
             {options}
-          </select>
-        </div>
-        <div className="form-group">
+          </FormControl>
+        </FormGroup>
+        <FormGroup>
+          <ControlLabel>相关应用</ControlLabel>
+          <FormControl componentClass="select" value={this.state.appId} onChange={this.handleAppChange}>
+            <option key='empty'></option>
+            {appOptions}
+          </FormControl>
+        </FormGroup>
+        <FormGroup>
           <textarea className="form-control" rows="8" placeholder="遇到的问题" value={this.state.content} onChange={this.handleContentChange}></textarea>
-        </div>
-        <div className="form-group">
+        </FormGroup>
+        <FormGroup>
           <input id="ticketFile" type="file" multiple />
-        </div>
+        </FormGroup>
         <button type="submit" className="btn btn-default">提交</button>
       </form>
     )

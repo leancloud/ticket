@@ -5,6 +5,7 @@ const request = require('request-promise')
 const AV = require('leanengine')
 
 const config = require('../config')
+const common = require('./common')
 
 const serverDomain = 'https://leancloud.cn'
 const callbackUrl = config.host + '/api/leancloud/callback'
@@ -33,6 +34,73 @@ router.get('/callback', (req, res) => {
     return user
   }).then((user) => {
     res.redirect('/login?token=' + user._sessionToken)
+  })
+})
+
+AV.Cloud.define('getLeanCloudUserInfoByUsername', (req, res) => {
+  return common.isCustomerService(req.currentUser).then((isCustomerService) => {
+    if (!isCustomerService) {
+      return res.error('unauthorized')
+    }
+    return new AV.Query(AV.User)
+    .equalTo('username', req.params.username)
+    .first({useMasterKey: true})
+    .then((user) => {
+      return leancloud.getClientInfo(user.get('authData').leancloud)
+    }).then((user) => {
+      res.success(user)
+    })
+  })
+})
+
+AV.Cloud.define('getLeanCloudAppsByUsername', (req, res) => {
+  return common.isCustomerService(req.currentUser).then((isCustomerService) => {
+    if (!isCustomerService) {
+      return res.error('unauthorized')
+    }
+    new AV.Query(AV.User)
+    .equalTo('username', req.params.username)
+    .first({useMasterKey: true})
+    .then((user) => {
+      return getApps(user.get('authData').leancloud)
+    })
+    .then(res.success)
+  })
+})
+
+AV.Cloud.define('getLeanCloudApps', (req, res) => {
+  if (!req.currentUser) {
+    return res.error('unauthorized')
+  }
+  return req.currentUser.fetch()
+  .then((user) => {
+    return getApps(user.get('authData').leancloud)
+  })
+  .then(res.success)
+})
+
+AV.Cloud.define('getLeanCloudApp', (req) => {
+  const {username, appId} = req.params
+  return common.isCustomerService(req.currentUser).then((isCustomerService) => {
+    if (!isCustomerService) {
+      return res.error('unauthorized')
+    }
+    return new AV.Query(AV.User)
+    .equalTo('username', username)
+    .first({useMasterKey: true})
+    .then((user) => {
+      return getApp(user.get('authData').leancloud, appId)
+    })
+  })
+})
+
+AV.Cloud.define('getLeanCloudAppUrl', (req) => {
+  return common.isCustomerService(req.currentUser).then((isCustomerService) => {
+    if (!isCustomerService) {
+      return res.error('unauthorized')
+    }
+    const {appId} = req.params
+    return config.leancloudAppUrl.replace(':appId', appId)
   })
 })
 
@@ -70,8 +138,20 @@ exports.getClientInfo = (leancloudAuthData) => {
   })
 }
 
-exports.getApps = (leancloudAuthData) => {
+const getApps = (leancloudAuthData) => {
   const url = `${serverDomain}/1.1/open/clients/${leancloudAuthData.uid}/apps`
+  return request({
+    url,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + leancloudAuthData.access_token
+    },
+    json: true,
+  })
+}
+
+const getApp = (leancloudAuthData, appId) => {
+  const url = `${serverDomain}/1.1/open/clients/${leancloudAuthData.uid}/apps/${appId}`
   return request({
     url,
     headers: {

@@ -3,7 +3,7 @@ import moment from 'moment'
 import _ from 'lodash'
 import Promise from 'bluebird'
 import xss from 'xss'
-import {FormGroup, FormControl} from 'react-bootstrap'
+import {FormGroup, FormControl, Label} from 'react-bootstrap'
 import AV from 'leancloud-storage'
 
 import common, {UserLabel, TicketStatusLabel, TicketReplyLabel} from './common'
@@ -36,15 +36,22 @@ export default React.createClass({
     AV.Cloud.run('getTicketAndRepliesView', {nid: parseInt(this.props.params.nid)})
     .then(({ticket, replies}) => {
       ticket = AV.parseJSON(ticket)
-      return new AV.Query('OpsLog')
-      .equalTo('ticket', ticket)
-      .ascending('createdAt')
-      .find()
-      .then(opsLogs => {
+      Promise.all([
+        new AV.Query('Tag')
+          .equalTo('ticket', ticket)
+          .find(),
+        new AV.Query('OpsLog')
+          .equalTo('ticket', ticket)
+          .ascending('createdAt')
+          .find()
+      ])
+      .then(([tags, opsLogs]) => {
         this.setState({
           ticket,
           replies: replies.map(AV.parseJSON),
-          opsLogs})
+          tags,
+          opsLogs,
+        })
         return Notification.getClient().then(client =>
           client.getQuery().equalTo('ticket', ticket.get('nid')).find()
         ).then(([conversation]) => {
@@ -174,6 +181,11 @@ export default React.createClass({
       <div>读取中……</div>
       )
     }
+
+    const tags = this.state.tags.map((tag) => {
+      return <Tag data={tag} ticket={this.state.ticket} isCustomerService={this.props.isCustomerService} />
+    })
+
     const timeline = _.chain(this.state.replies)
       .concat(this.state.opsLogs)
       .sortBy((data) => {
@@ -206,21 +218,23 @@ export default React.createClass({
         </FormGroup>
       )
     }
+
     return (
       <div>
         <h2>{this.state.ticket.get('title')} <small>#{this.state.ticket.get('nid')}</small></h2>
         <div>
           <TicketStatusLabel status={this.state.ticket.get('status')} /> <TicketReplyLabel ticket={this.state.ticket} /> <span><UserLabel user={this.state.ticket.get('author')} /> 于 {moment(this.state.ticket.get('createdAt')).fromNow()}创建该工单</span>
         </div>
+        <div>{tags}</div>
         <hr />
         {this.ticketTimeline(this.state.ticket)}
         <div>{timeline}</div>
         <hr />
+        <TicketReply commitReply={this.commitReply} />
         <UpdateTicket ticket={this.state.ticket}
           isCustomerService={this.props.isCustomerService}
           updateTicketCategory={this.updateTicketCategory}
           updateTicketAssignee={this.updateTicketAssignee} />
-        <TicketReply commitReply={this.commitReply} />
         {optionButtons}
       </div>
     )
@@ -261,3 +275,34 @@ class TicketReply extends React.Component {
     )
   }
 }
+
+const Tag = React.createClass({
+  componentDidMount() {
+    if (this.props.data.get('key') === 'appId') {
+      const appId = this.props.data.get('value')
+      AV.Cloud.run('getLeanCloudApp', {
+        username: this.props.ticket.get('author').get('username'),
+        appId,
+      })
+      .then((app) => {
+        this.setState({key: '应用', value: app.app_name})
+        if (this.props.isCustomerService) {
+          AV.Cloud.run('getLeanCloudAppUrl', {appId})
+          .then((url) => {
+            this.setState({url})
+          })
+        }
+      })
+    }
+  },
+  render() {
+    if (!this.state) {
+      return <Label bsStyle="default">{this.props.data.get('key')} : {this.props.data.get('value')}</Label>
+    } else {
+      if (this.state.url) {
+        return <a href={this.state.url} target='_blank'><Label bsStyle="default">{this.state.key} : {this.state.value}</Label></a>
+      }
+      return <Label bsStyle="default">{this.state.key} : {this.state.value}</Label>
+    }
+  }
+})

@@ -27,7 +27,7 @@
     "highlight.js": "^9.10.0",
     "leancloud-realtime": "^3.3.4",
     "leancloud-storage": "^3.0.0-beta.2",
-    "leanengine": "^3.0.0-alpha.0",
+    "leanengine": "leancloud/leanengine-node-sdk#v3",
     "lodash": "^4.17.4",
     "mailgun-js": "^0.8.2",
     "moment": "^2.17.1",

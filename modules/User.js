@@ -21,8 +21,8 @@ export default React.createClass({
     const username = props.params.username
     Promise.all([
       AV.Cloud.run('getUserInfo', {username}),
-      props.isCustomerService ? AV.Cloud.run('getLeanCloudUserInfo', {username}) : null,
-      props.isCustomerService ? AV.Cloud.run('getLeanCloudApps', {username}) : null,
+      props.isCustomerService ? AV.Cloud.run('getLeanCloudUserInfoByUsername', {username}) : null,
+      props.isCustomerService ? AV.Cloud.run('getLeanCloudAppsByUsername', {username}) : null,
     ]).spread((user, leancloudUser, leancloudApps) => {
       this.setState({user, leancloudUser, leancloudApps: _.sortBy(leancloudApps, app => -app.month_reqs)})
     })
