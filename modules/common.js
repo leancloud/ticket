@@ -1,5 +1,5 @@
 import React from 'react'
-import Promise from 'bluebird'
+import PropTypes from 'prop-types'
 import { Link } from 'react-router'
 import _ from 'lodash'
 import AV from 'leancloud-storage'
@@ -67,9 +67,7 @@ exports.isCustomerService = (user) => {
 }
 
 exports.uploadFiles = (files) => {
-  return Promise.map(files, (file) => {
-    return new AV.File(file.name, file).save()
-  })
+  return Promise.all(_.map(files, file => new AV.File(file.name, file).save()))
 }
 
 exports.getTicketAndRelation = (nid) => {
@@ -117,48 +115,56 @@ exports.sortTickets = (tickets) => {
   })
 }
 
-exports.UserLabel = React.createClass({
-  render() {
-    if (!this.props.user) {
-      return (
-        <span>data err</span>
-      )
-    }
-    const username = this.props.user.username || this.props.user.get('username')
+exports.UserLabel = (props) => {
+  if (!props.user) {
     return (
-      <span><Link to={'/users/' + username}>{username}</Link></span>
+      <span>data err</span>
     )
   }
-})
+  const username = props.user.username || props.user.get('username')
+  return (
+    <span><Link to={'/users/' + username}>{username}</Link></span>
+  )
+}
 
-exports.TicketStatusLabel = React.createClass({
-  render() {
-    if (this.props.status === TICKET_STATUS.FULFILLED) {
-      return <span className='label label-success'>已解决</span>
-    } else if (this.props.status === TICKET_STATUS.REJECTED) {
-      return <span className='label label-danger'>已关闭</span>
-    } else if (this.props.status === TICKET_STATUS.PRE_FULFILLED) {
-      return <span className='label label-primary'>待确认解决</span>
-    } else if (this.props.status === TICKET_STATUS.NEW) {
-      return <span className='label label-warning'>待处理</span>
-    } else if (this.props.status === TICKET_STATUS.PENDING) {
-      return <span className='label label-info'>处理中</span>
-    }
+exports.UserLabel.displayName = 'UserLabel'
+exports.UserLabel.propTypes = {
+  user: PropTypes.object.isRequired,
+}
+
+exports.TicketStatusLabel = (props) => {
+  if (props.status === TICKET_STATUS.FULFILLED) {
+    return <span className='label label-success'>已解决</span>
+  } else if (props.status === TICKET_STATUS.REJECTED) {
+    return <span className='label label-danger'>已关闭</span>
+  } else if (props.status === TICKET_STATUS.PRE_FULFILLED) {
+    return <span className='label label-primary'>待确认解决</span>
+  } else if (props.status === TICKET_STATUS.NEW) {
+    return <span className='label label-warning'>待处理</span>
+  } else if (props.status === TICKET_STATUS.PENDING) {
+    return <span className='label label-info'>处理中</span>
   }
-})
+}
+exports.TicketStatusLabel.displayName = 'TicketStatusLabel'
+exports.TicketStatusLabel.propTypes = {
+  status: PropTypes.number.isRequired,
+}
 
-exports.TicketReplyLabel = React.createClass({
-  render() {
-    const status = this.props.ticket.get('status')
-    if (status === TICKET_STATUS.PENDING) {
-      const latestReply = this.props.ticket.get('latestReply')
-      if (latestReply && latestReply.isCustomerService) {
-        return <span className='label label-info'>已回复</span>
-      } else {
-        return <span className='label label-warning'>未回复</span>
-      }
+exports.TicketReplyLabel = (props) => {
+  const status = props.ticket.get('status')
+  if (status === TICKET_STATUS.PENDING) {
+    const latestReply = props.ticket.get('latestReply')
+    if (latestReply && latestReply.isCustomerService) {
+      return <span className='label label-info'>已回复</span>
     } else {
-      return <span></span>
+      return <span className='label label-warning'>未回复</span>
     }
+  } else {
+    return <span></span>
   }
-})
+}
+exports.TicketReplyLabel.displayName = 'TicketReplyLabel'
+exports.TicketReplyLabel.propTypes = {
+  ticket: PropTypes.instanceOf(AV.Object),
+}
+

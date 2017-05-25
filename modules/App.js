@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { Link, IndexLink } from 'react-router'
 import AV from 'leancloud-storage'
 
@@ -22,7 +23,7 @@ export default React.createClass({
     if (user) Notification.login(user.id)
   },
   contextTypes: {
-    router: React.PropTypes.object
+    router: PropTypes.object
   },
   login(username, password) {
     return new AV.User()
@@ -62,12 +63,14 @@ export default React.createClass({
     return (
       <div>
         <GlobalNav isCustomerService={this.state.isCustomerService} />
-        {this.props.children && React.cloneElement(this.props.children, {
-          login: this.login,
-          loginByToken: this.loginByToken,
-          signup: this.signup,
-          isCustomerService: this.state.isCustomerService,
-        })}
+        <div className="container">
+          {this.props.children && React.cloneElement(this.props.children, {
+            login: this.login,
+            loginByToken: this.loginByToken,
+            signup: this.signup,
+            isCustomerService: this.state.isCustomerService,
+          })}
+        </div>
       </div>
     )
   }

@@ -1,8 +1,8 @@
-import React from 'react'
 import moment from 'moment'
 import _ from 'lodash'
-import Promise from 'bluebird'
 import xss from 'xss'
+import React, {Component} from 'react'
+import PropTypes from 'prop-types'
 import {FormGroup, FormControl, Label, Alert, Button} from 'react-bootstrap'
 import AV from 'leancloud-storage'
 
@@ -12,9 +12,14 @@ import Notification from './notification'
 
 import { TICKET_STATUS } from '../lib/constant'
 
-export default React.createClass({
+export default class Ticket extends Component {
+
   delayRefreshOpsLogs() {
-    return Promise.delay(500)
+    return new Promise((resovle) => {
+      setTimeout(() => {
+        resovle()
+      }, 500)
+    })
     .then(() => {
       return new AV.Query('OpsLog')
       .equalTo('ticket', this.state.ticket)
@@ -23,15 +28,18 @@ export default React.createClass({
     }).then((opsLogs) => {
       this.setState({opsLogs})
     })
-  },
-  getInitialState() {
-    return {
+  }
+
+  constructor(props) {
+    super(props)
+    this.state = {
       ticket: null,
       replies: [],
       opsLogs: [],
       categories: [],
     }
-  },
+  }
+
   componentDidMount() {
     AV.Cloud.run('getTicketAndRepliesView', {nid: parseInt(this.props.params.nid)})
     .then(({ticket, replies}) => {
@@ -62,14 +70,16 @@ export default React.createClass({
         })
       })
     }).catch(console.error)
-  },
+  }
+
   handleNotification(message) {
     // 只关注机器人发的消息
     // TODO: 为了防止伪造，需要使用登录签名阻止所有试图使用机器人 id 登录的行为，既机器人的消息只能通过 Rest API + masterKey 发出
     if (message.from !== 'LeanTicket Bot') return
     console.log(message)
     // TODO: fetch change and update UI
-  },
+  }
+
   commitReply(reply, files) {
     return common.uploadFiles(files)
     .then((files) => {
@@ -88,28 +98,32 @@ export default React.createClass({
         this.setState({replies})
       })
     })
-  },
+  }
+
   handleStatusChange(status) {
     return this.state.ticket.set('status', status).save()
     .then((ticket) => {
       this.setState({ticket})
       return this.delayRefreshOpsLogs()
     }).catch(console.error)
-  },
+  }
+
   updateTicketCategory(category) {
     this.state.ticket.set('category', common.getTinyCategoryInfo(category)).save()
     .then((ticket) => {
       this.setState({ticket})
       return this.delayRefreshOpsLogs()
     })
-  },
+  }
+
   updateTicketAssignee(assignee) {
     this.state.ticket.set('assignee', assignee).save()
     .then((ticket) => {
       this.setState({ticket})
       return this.delayRefreshOpsLogs()
     })
-  },
+  }
+
   contentView(content) {
     return (
       <table>
@@ -120,7 +134,8 @@ export default React.createClass({
         </tbody>
       </table>
     )
-  },
+  }
+
   ticketTimeline(avObj) {
     if (avObj.className === 'OpsLog') {
       switch (avObj.get('action')) {
@@ -174,7 +189,8 @@ export default React.createClass({
         </div>
       )
     }
-  },
+  }
+
   render() {
     if (this.state.ticket === null) {
       return (
@@ -183,14 +199,14 @@ export default React.createClass({
     }
 
     const tags = this.state.tags.map((tag) => {
-      return <Tag data={tag} ticket={this.state.ticket} isCustomerService={this.props.isCustomerService} />
+      return <Tag key={tag.id} tag={tag} ticket={this.state.ticket} isCustomerService={this.props.isCustomerService} />
     })
 
     const timeline = _.chain(this.state.replies)
       .concat(this.state.opsLogs)
       .sortBy((data) => {
         return data.get('createdAt')
-      }).map(this.ticketTimeline)
+      }).map(this.ticketTimeline.bind(this))
       .value()
     let optionButtons
     const ticketStatus = this.state.ticket.get('status')
@@ -221,7 +237,7 @@ export default React.createClass({
 
     return (
       <div>
-        <h2>{this.state.ticket.get('title')} <small>#{this.state.ticket.get('nid')}</small></h2>
+        <h1>{this.state.ticket.get('title')} <small>#{this.state.ticket.get('nid')}</small></h1>
         <div>
           <TicketStatusLabel status={this.state.ticket.get('status')} /> <TicketReplyLabel ticket={this.state.ticket} /> <span><UserLabel user={this.state.ticket.get('author')} /> 于 {moment(this.state.ticket.get('createdAt')).fromNow()}创建该工单</span>
         </div>
@@ -230,18 +246,28 @@ export default React.createClass({
         {this.ticketTimeline(this.state.ticket)}
         <div>{timeline}</div>
         <hr />
-        <TicketReply commitReply={this.commitReply} />
-        <UpdateTicket ticket={this.state.ticket}
-          isCustomerService={this.props.isCustomerService}
-          updateTicketCategory={this.updateTicketCategory}
-          updateTicketAssignee={this.updateTicketAssignee} />
-        {optionButtons}
+        <p>
+          <TicketReply commitReply={this.commitReply} />
+        </p>
+        <p>
+          <UpdateTicket ticket={this.state.ticket}
+            isCustomerService={this.props.isCustomerService}
+            updateTicketCategory={this.updateTicketCategory}
+            updateTicketAssignee={this.updateTicketAssignee} />
+          {optionButtons}
+        </p>
       </div>
     )
   }
-})
 
-class TicketReply extends React.Component {
+}
+
+Ticket.propTypes = {
+  isCustomerService: PropTypes.bool,
+  params: PropTypes.object,
+}
+
+class TicketReply extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -268,18 +294,26 @@ class TicketReply extends React.Component {
       <form onSubmit={this.handleReplyCommit.bind(this)}>
         <FormGroup>
           <FormControl componentClass="textarea" placeholder="回复内容……" rows="8" value={this.state.reply} onChange={this.handleReplyOnChange.bind(this)}/>
-          <FormControl type="file" multiple inputRef={ref => this.fileInput = ref} />
-          <button type="submit" className='btn btn-default'>回复</button>
         </FormGroup>
+        <FormGroup>
+          <FormControl type="file" multiple inputRef={ref => this.fileInput = ref} />
+          <p className="help-block">上传附件可以多选</p>
+        </FormGroup>
+        <Button>回复</Button>
       </form>
     )
   }
 }
 
-const Tag = React.createClass({
+TicketReply.propTypes = {
+  commitReply: PropTypes.func.isRequired
+}
+
+class Tag extends Component{
+
   componentDidMount() {
-    if (this.props.data.get('key') === 'appId') {
-      const appId = this.props.data.get('value')
+    if (this.props.tag.get('key') === 'appId') {
+      const appId = this.props.tag.get('value')
       AV.Cloud.run('getLeanCloudApp', {
         username: this.props.ticket.get('author').get('username'),
         appId,
@@ -294,10 +328,11 @@ const Tag = React.createClass({
         }
       })
     }
-  },
+  }
+
   render() {
     if (!this.state) {
-      return <Label bsStyle="default">{this.props.data.get('key')} : {this.props.data.get('value')}</Label>
+      return <Label bsStyle="default">{this.props.tag.get('key')} : {this.props.tag.get('value')}</Label>
     } else {
       if (this.state.url) {
         return <a href={this.state.url} target='_blank'><Label bsStyle="default">{this.state.key} : {this.state.value}</Label></a>
@@ -305,4 +340,11 @@ const Tag = React.createClass({
       return <Label bsStyle="default">{this.state.key} : {this.state.value}</Label>
     }
   }
-})
+
+}
+
+Tag.propTypes = {
+  tag: PropTypes.instanceOf(AV.Object).isRequired,
+  ticket: PropTypes.object.isRequired,
+  isCustomerService: PropTypes.bool,
+}

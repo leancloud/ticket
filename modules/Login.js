@@ -40,7 +40,7 @@ export default React.createClass({
   },
   render() {
     return <div>
-      <h2>登录或注册</h2>
+      <h1>登录或注册</h1>
       <p>目前只支持通过 LeanCloud OAuth 授权进行登录和注册。</p>
       <a href='/api/leancloud/login' className='btn btn-primary'>前往 LeanCloud 授权页</a>
       <hr />

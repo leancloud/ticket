@@ -1,19 +1,20 @@
 import React, { Component } from 'react'
+import PropTypes from 'prop-types'
 import { Link } from 'react-router'
 import AV from 'leancloud-storage'
 import Notification from './notification'
 
-export default React.createClass({
+export default class GlobalNav extends Component {
+
   handleLogout() {
     AV.User.logOut()
     Notification.logout()
-  },
+  }
+
   handleNewTicketClick() {
     this.context.router.push('/tickets/new')
-  },
-  contextTypes: {
-    router: React.PropTypes.object
-  },
+  }
+
   render() {
     let user
     if (AV.User.current()) {
@@ -42,7 +43,7 @@ export default React.createClass({
     }
     return (
       <nav className="navbar navbar-default">
-        <div className="container-fluid">
+        <div className="container">
           <div className="navbar-header">
             <button type="button" className="navbar-toggle collapsed" data-toggle="collapse" data-target="#global-navbar-collapse" aria-expanded="false">
               <span className="sr-only">Toggle navigation</span>
@@ -69,4 +70,13 @@ export default React.createClass({
       </nav>
     )
   }
-})
+
+}
+
+GlobalNav.contextTypes = {
+  router: PropTypes.object
+}
+
+GlobalNav.propTypes = {
+  isCustomerService: PropTypes.bool,
+}
