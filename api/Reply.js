@@ -28,7 +28,7 @@ AV.Cloud.define('getReplyView', (req, res) => {
   .fetch({include: 'author,files'}, {user: req.currentUser})
   .then((reply) => {
     reply.set('contentHtml', common.md.render(reply.get('content')))
-    return res.success(reply)
+    return res.success(reply.toFullJSON())
   })
 })
 

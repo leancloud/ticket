@@ -102,12 +102,15 @@ AV.Cloud.define('getTicketAndRepliesView', (req, res) => {
 })
 
 AV.Cloud.define('replyWithNoContent', (req) => {
-  const ticket = AV.Object.createWithoutData('Ticket', req.params.ticketId)
   return common.isCustomerService(req.currentUser).then((isCustomerService) => {
     if (!isCustomerService) {
       throw new AV.Cloud.Error('unauthorized')
     }
-    return common.getTinyUserInfo(req.currentUser).then((operator) => {
+    return Promise.all([
+      new AV.Query('Ticket').get(req.params.ticketId),
+      common.getTinyUserInfo(req.currentUser),
+    ])
+    .then(([ticket, operator]) => {
       return new AV.Object('OpsLog').save({
         ticket,
         action: 'replyWithNoContent',
@@ -120,6 +123,7 @@ AV.Cloud.define('replyWithNoContent', (req) => {
         }
         return ticket.save(null, {user: req.currentUser})
       })
+      .then(ticket => ticket.toFullJSON())
     })
   }).catch(errorHandler.captureException)
 })
@@ -129,7 +133,7 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
     ticket.fetch({include: 'author,assignee'}, {user: replyAuthor}),
     common.getTinyReplyInfo(reply),
     common.getTinyUserInfo(reply.get('author'))
-  ]).spread((ticket, tinyReply, tinyReplyAuthor) => {
+  ]).then(([ticket, tinyReply, tinyReplyAuthor]) => {
     ticket.set('latestReply', tinyReply)
       .increment('replyCount', 1)
     if (reply.get('isCustomerService')) {

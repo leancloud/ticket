@@ -94,16 +94,16 @@ export default class Ticket extends Component {
         return AV.Cloud.run('getReplyView', {objectId: reply.id})
       }).then((reply) => {
         const replies = this.state.replies
-        replies.push(reply)
+        replies.push(AV.parseJSON(reply))
         this.setState({replies})
       })
     })
   }
 
   commitReplyNoContent() {
-    AV.Cloud.run('replyWithNoContent', {ticket: this.state.ticket})
+    return AV.Cloud.run('replyWithNoContent', {ticketId: this.state.ticket.id})
     .then((ticket) => {
-      this.setState({ticket})
+      this.setState({ticket: AV.parseJSON(ticket)})
       return this.delayRefreshOpsLogs()
     })
   }
@@ -261,13 +261,13 @@ export default class Ticket extends Component {
         <div>{timeline}</div>
         <hr />
         <p>
-          <TicketReply commitReply={this.commitReply} commitReplyNoContent={this.commitReplyNoContent} />
+          <TicketReply commitReply={this.commitReply.bind(this)} commitReplyNoContent={this.commitReplyNoContent.bind(this)} />
         </p>
         <p>
           <UpdateTicket ticket={this.state.ticket}
             isCustomerService={this.props.isCustomerService}
-            updateTicketCategory={this.updateTicketCategory}
-            updateTicketAssignee={this.updateTicketAssignee} />
+            updateTicketCategory={this.updateTicketCategory.bind(this)}
+            updateTicketAssignee={this.updateTicketAssignee.bind(this)} />
           {optionButtons}
         </p>
       </div>

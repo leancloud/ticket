@@ -87,7 +87,7 @@ AV.Cloud.define('getLeanCloudApp', (req) => {
     }
     return new AV.Query(AV.User)
     .equalTo('username', username)
-    .first({user: req.currentUser})
+    .first({useMasterKey: true})
     .then((user) => {
       return getApp(user.get('authData').leancloud, appId)
     })
