@@ -2,9 +2,9 @@ const _ = require('lodash')
 const AV = require('leanengine')
 
 const common = require('./common')
+const notify = require('./notify')
 const TICKET_STATUS = require('../lib/constant').TICKET_STATUS
 const errorHandler = require('./errorHandler')
-const notify = require('./notify')
 
 AV.Cloud.beforeSave('Ticket', (req, res) => {
   if (!req.currentUser._sessionToken) {
@@ -101,6 +101,51 @@ AV.Cloud.define('getTicketAndRepliesView', (req, res) => {
   }).catch(console.error)
 })
 
+AV.Cloud.define('replyWithNoContent', (req) => {
+  const ticket = AV.Object.createWithoutData('Ticket', req.params.ticketId)
+  return common.isCustomerService(req.currentUser).then((isCustomerService) => {
+    if (!isCustomerService) {
+      throw new AV.Cloud.Error('unauthorized')
+    }
+    return common.getTinyUserInfo(req.currentUser).then((operator) => {
+      return new AV.Object('OpsLog').save({
+        ticket,
+        action: 'replyWithNoContent',
+        data: {operator, isCustomerService},
+      }, {useMasterKey: true})
+      .then((opsLog) => {
+        ticket.set('latestReply', opsLog.toJSON())
+        if (isCustomerService) {
+          ticket.addUnique('joinedCustomerServices', operator)
+        }
+        return ticket.save(null, {user: req.currentUser})
+      })
+    })
+  }).catch(errorHandler.captureException)
+})
+
+exports.replyTicket = (ticket, reply, replyAuthor) => {
+  Promise.all([
+    ticket.fetch({include: 'author,assignee'}, {user: replyAuthor}),
+    common.getTinyReplyInfo(reply),
+    common.getTinyUserInfo(reply.get('author'))
+  ]).spread((ticket, tinyReply, tinyReplyAuthor) => {
+    ticket.set('latestReply', tinyReply)
+      .increment('replyCount', 1)
+    if (reply.get('isCustomerService')) {
+      ticket.addUnique('joinedCustomerServices', tinyReplyAuthor)
+      if (ticket.get('status') === TICKET_STATUS.NEW) {
+        ticket.set('status', TICKET_STATUS.PENDING)
+      }
+    }
+    return ticket.save(null, {user: replyAuthor})
+  }).then((ticket) => {
+    return notify.replyTicket(ticket, reply, replyAuthor)
+  }).then(() => {
+    return ticket
+  }).catch(errorHandler.captureException)
+}
+
 const selectAssignee = (ticket) => {
   return new AV.Query(AV.Role)
   .equalTo('name', 'customerService')
@@ -119,4 +164,3 @@ const selectAssignee = (ticket) => {
     })
   })
 }
-

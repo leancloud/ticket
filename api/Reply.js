@@ -1,11 +1,8 @@
-const _ = require('lodash')
-const Promise = require('bluebird')
 const AV = require('leanengine')
 
-const TICKET_STATUS = require('../lib/constant').TICKET_STATUS
+const ticket = require('./Ticket')
 const common = require('./common')
 const errorHandler = require('./errorHandler')
-const notify = require('./notify')
 
 AV.Cloud.beforeSave('Reply', (req, res) => {
   if (!req.currentUser._sessionToken) {
@@ -23,24 +20,7 @@ AV.Cloud.beforeSave('Reply', (req, res) => {
 })
 
 AV.Cloud.afterSave('Reply', (req) => {
-  const reply = req.object
-  Promise.all([
-    reply.get('ticket').fetch({include: 'author,assignee'}, {user: req.currentUser}),
-    common.getTinyReplyInfo(reply),
-  ]).spread((ticket, tinyReply) => {
-    return uniqJoinedCustomerServices(reply, ticket.get('joinedCustomerServices'))
-    .then((joinedCustomerServices) => {
-      ticket.set('latestReply', tinyReply)
-        .increment('replyCount', 1)
-        .set('joinedCustomerServices', joinedCustomerServices)
-      if (reply.get('isCustomerService') && ticket.get('status') === TICKET_STATUS.NEW) {
-        ticket.set('status', TICKET_STATUS.PENDING)
-      }
-      return ticket.save(null, {user: req.currentUser})
-    })
-  }).then((ticket) => {
-    return notify.replyTicket(ticket, reply, req.currentUser)
-  }).catch(errorHandler.captureException)
+  ticket.replyTicket(req.object.get('ticket'), req.object, req.currentUser)
 })
 
 AV.Cloud.define('getReplyView', (req, res) => {
@@ -62,16 +42,5 @@ const getReplyAcl = (reply, author) => {
     acl.setReadAccess(ticket.get('author'), true)
     acl.setRoleReadAccess(new AV.Role('customerService'), true)
     return acl
-  })
-}
-
-const uniqJoinedCustomerServices = (reply, joinedCustomerServices) => {
-  joinedCustomerServices = joinedCustomerServices || []
-  if (!reply.get('isCustomerService')) {
-    return Promise.resolve(joinedCustomerServices)
-  }
-  return common.getTinyUserInfo(reply.get('author')).then((user) => {
-    joinedCustomerServices.push(user)
-    return _.uniqBy(joinedCustomerServices, 'objectId')
   })
 }

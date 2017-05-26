@@ -148,6 +148,17 @@ class ReplyTimeStats {
       this.lastCustomerService = avObj.get('data').assignee
       return
     }
+    if (avObj.className === 'OpsLog'
+        && avObj.get('action') === 'replyWithNoContent'
+        && !this.isReply) {
+      const customerServiceTime = this.getCustomerServiceTime(this.lastCustomerService)
+      customerServiceTime.replyCount++
+      customerServiceTime.replyTime += avObj.createdAt - this.cursor
+      this.cursor = avObj.createdAt
+      this.isReply = true
+      this.lastCustomerService = avObj.get('data').assignee
+      return
+    }
   }
 
   result() {

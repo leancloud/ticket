@@ -100,6 +100,14 @@ export default class Ticket extends Component {
     })
   }
 
+  commitReplyNoContent() {
+    AV.Cloud.run('replyWithNoContent', {ticket: this.state.ticket})
+    .then((ticket) => {
+      this.setState({ticket})
+      return this.delayRefreshOpsLogs()
+    })
+  }
+
   handleStatusChange(status) {
     return this.state.ticket.set('status', status).save()
     .then((ticket) => {
@@ -142,25 +150,31 @@ export default class Ticket extends Component {
       case 'selectAssignee':
         return (
           <p key={avObj.id}>
-            系统 于 {moment(avObj.get('createdAt')).fromNow()} 将工单分配给 <UserLabel user={avObj.get('data').assignee} /> 处理
+            系统 于 {moment(avObj.get('createdAt')).fromNow()} 将工单分配给 <UserLabel user={avObj.get('data').assignee} /> 处理。
           </p>
         )
       case 'changeStatus':
         return (
           <p key={avObj.id}>
-            <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 将工单状态修改为 <TicketStatusLabel status={avObj.get('data').status} />
+            <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 将工单状态修改为 <TicketStatusLabel status={avObj.get('data').status} /> 。
           </p>
         )
       case 'changeCategory':
         return (
           <p key={avObj.id}>
-            <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 将工单类别改为 {avObj.get('data').category.name}
+            <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 将工单类别改为 {avObj.get('data').category.name} 。
           </p>
         )
       case 'changeAssignee':
         return (
           <p key={avObj.id}>
-            <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 将工单负责人改为 <UserLabel user={avObj.get('data').assignee} />
+            <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 将工单负责人改为 <UserLabel user={avObj.get('data').assignee} /> 。
+          </p>
+        )
+      case 'replyWithNoContent':
+        return (
+          <p key={avObj.id}>
+            <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 认为该工单暂时无需回复，如有问题可以回复该工单。
           </p>
         )
       }
@@ -247,7 +261,7 @@ export default class Ticket extends Component {
         <div>{timeline}</div>
         <hr />
         <p>
-          <TicketReply commitReply={this.commitReply} />
+          <TicketReply commitReply={this.commitReply} commitReplyNoContent={this.commitReplyNoContent} />
         </p>
         <p>
           <UpdateTicket ticket={this.state.ticket}
@@ -289,9 +303,15 @@ class TicketReply extends Component {
     }).catch(console.error)
   }
 
+  handleReplyNoContent(e) {
+    e.preventDefault()
+    this.props.commitReplyNoContent()
+    .catch(console.error)
+  }
+
   render() {
     return (
-      <form onSubmit={this.handleReplyCommit.bind(this)}>
+      <form>
         <FormGroup>
           <FormControl componentClass="textarea" placeholder="回复内容……" rows="8" value={this.state.reply} onChange={this.handleReplyOnChange.bind(this)}/>
         </FormGroup>
@@ -299,14 +319,17 @@ class TicketReply extends Component {
           <FormControl type="file" multiple inputRef={ref => this.fileInput = ref} />
           <p className="help-block">上传附件可以多选</p>
         </FormGroup>
-        <Button>回复</Button>
+        <Button onClick={this.handleReplyCommit.bind(this)}>回复</Button>
+        {' '}
+        <Button onClick={this.handleReplyNoContent.bind(this)}>暂无需回复</Button>
       </form>
     )
   }
 }
 
 TicketReply.propTypes = {
-  commitReply: PropTypes.func.isRequired
+  commitReply: PropTypes.func.isRequired,
+  commitReplyNoContent: PropTypes.func.isRequired,
 }
 
 class Tag extends Component{
