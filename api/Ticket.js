@@ -102,22 +102,26 @@ AV.Cloud.define('getTicketAndRepliesView', (req, res) => {
 })
 
 AV.Cloud.define('replyWithNoContent', (req) => {
+  const {ticketId} = req.params
   return common.isCustomerService(req.currentUser).then((isCustomerService) => {
     if (!isCustomerService) {
       throw new AV.Cloud.Error('unauthorized')
     }
     return Promise.all([
-      new AV.Query('Ticket').get(req.params.ticketId),
+      new AV.Query('Ticket').get(ticketId),
       common.getTinyUserInfo(req.currentUser),
     ])
     .then(([ticket, operator]) => {
       return new AV.Object('OpsLog').save({
         ticket,
         action: 'replyWithNoContent',
-        data: {operator, isCustomerService},
+        data: {operator},
+        isCustomerService,
       }, {useMasterKey: true})
       .then((opsLog) => {
-        ticket.set('latestReply', opsLog.toJSON())
+        opsLog = opsLog.toJSON()
+        delete opsLog.ticket
+        ticket.set('latestReply', opsLog)
         if (isCustomerService) {
           ticket.addUnique('joinedCustomerServices', operator)
         }

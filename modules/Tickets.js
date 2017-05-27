@@ -1,42 +1,54 @@
-import React from 'react'
+import React, {Component} from 'react'
 import { Link } from 'react-router'
-import _ from 'lodash'
 import AV from 'leancloud-storage'
 
 import {TICKET_STATUS} from '../lib/constant'
 import {sortTickets, TicketStatusLabel, TicketReplyLabel} from './common'
 
-export default React.createClass({
-  getInitialState() {
-    return {
+export default class Tickets extends Component {
+  
+  constructor(props) {
+    super(props)
+    this.state = {
       tickets: [],
     }
-  },
+  }
+
   refreshTickets() {
     return this.findTickets()
     .then((tickets) => {
       this.setState({tickets})
     })
-  },
+  }
+
   componentDidMount () {
     this.refreshTickets(this.props)
-  },
+  }
+
   componentWillReceiveProps(nextProps) {
     this.refreshTickets(nextProps)
-  }, 
+  }
+
   findTickets() {
     return new AV.Query('Ticket')
     .equalTo('author', AV.User.current())
     .descending('createdAt')
     .find()
-  },
+  }
+
   render() {
     const tickets = sortTickets(this.state.tickets)
     const ticketLinks = tickets.map((ticket) => {
       let latestReply = ticket.get('latestReply')
-      let latestReplyContent = latestReply ? latestReply.content : ''
-      if (latestReplyContent.length > 200) {
-        latestReplyContent = latestReplyContent.slice(0, 200) + '……'
+      let latestReplyContent = ''
+      if (latestReply && latestReply.content) {
+        let latestReplyContent = latestReply.content
+        if (latestReplyContent.length > 200) {
+          latestReplyContent = latestReplyContent.slice(0, 200) + '……'
+        }
+      }
+      if (latestReply && latestReply.action === 'replyWithNoContent') {
+        latestReplyContent = '客服将该工单设置为暂时无需回复。'
       }
       return (
         <li className="list-group-item" key={ticket.get('nid')}>
@@ -63,4 +75,4 @@ export default React.createClass({
       </div> 
     )
   }
-})
+}

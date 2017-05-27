@@ -1,6 +1,5 @@
-import React from 'react'
+import React, {Component} from 'react'
 import PropTypes from 'prop-types'
-import { Link, IndexLink } from 'react-router'
 import AV from 'leancloud-storage'
 
 import common from './common'
@@ -8,12 +7,15 @@ import GlobalNav from './GlobalNav'
 import Notification from './notification'
 import { tap } from '../utils/promise'
 
-export default React.createClass({
-  getInitialState() {
-    return {
+export default class App extends Component {
+
+  constructor(props) {
+    super(props)
+    this.state = {
       isCustomerService: false,
     }
-  },
+  }
+
   componentDidMount() {
     const user = AV.User.current()
     common.isCustomerService(user)
@@ -21,10 +23,8 @@ export default React.createClass({
         this.setState({isCustomerService})
       })
     if (user) Notification.login(user.id)
-  },
-  contextTypes: {
-    router: PropTypes.object
-  },
+  }
+
   login(username, password) {
     return new AV.User()
     .setUsername(username)
@@ -42,7 +42,8 @@ export default React.createClass({
         this.props.router.replace('/')
       }
     })
-  },
+  }
+
   loginByToken(token) {
     AV.User.become(token).then((user) => {
       Notification.login(user.id)
@@ -51,27 +52,35 @@ export default React.createClass({
       this.setState({isCustomerService})
       this.context.router.push('/')
     })
-  },
+  }
+  
   signup(username, password) {
     return new AV.User()
       .setUsername(username)
       .setPassword(password)
       .signUp()
       .then(tap(user => Notification.login(user.id)))
-  },
+  }
+
   render() {
     return (
       <div>
         <GlobalNav isCustomerService={this.state.isCustomerService} />
         <div className="container">
           {this.props.children && React.cloneElement(this.props.children, {
-            login: this.login,
-            loginByToken: this.loginByToken,
-            signup: this.signup,
+            login: this.login.bind(this),
+            loginByToken: this.loginByToken.bind(this),
+            signup: this.signup.bind(this),
             isCustomerService: this.state.isCustomerService,
           })}
         </div>
       </div>
     )
   }
-})
+}
+
+App.propTypes = {
+  router: PropTypes.object,
+  children: PropTypes.object.isRequired,
+  location: PropTypes.object,
+}

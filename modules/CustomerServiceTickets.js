@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {Component} from 'react'
 import { Link } from 'react-router'
 import {Table, ButtonGroup, Button} from 'react-bootstrap'
 import moment from 'moment'
@@ -7,23 +7,28 @@ import AV from 'leancloud-storage'
 import {TICKET_STATUS} from '../lib/constant'
 import {sortTickets, UserLabel, TicketStatusLabel, TicketReplyLabel} from './common'
 
-export default React.createClass({
-  getInitialState() {
-    return {
+export default class CustomerServiceTickets extends Component {
+
+  constructor(props) {
+    super(props)
+    this.state = {
       tickets: [],
       userFilter: {assignee: AV.User.current()},
       statusFilters: [TICKET_STATUS.NEW, TICKET_STATUS.PENDING],
     }
-  },
+  }
+
   refreshTickets() {
     return this.findTickets(this.state.userFilter, this.state.statusFilters)
     .then((tickets) => {
       this.setState({tickets})
     })
-  },
+  }
+
   componentDidMount () {
     this.refreshTickets()
-  },
+  }
+
   findTickets(userFilter, statusFilters) {
     let query = new AV.Query('Ticket')
     if (statusFilters) {
@@ -42,27 +47,25 @@ export default React.createClass({
     .include('assignee')
     .descending('createdAt')
     .find()
-  },
+  }
+
   setUserFilter(userFilter) {
     this.findTickets(userFilter, this.state.statusFilters)
       .then((tickets) => {
         this.setState({tickets, userFilter})
       })
-  },
+  }
+
   setStatusFilter(statusFilters) {
     this.findTickets(this.state.userFilter, statusFilters)
       .then((tickets) => {
         this.setState({tickets, statusFilters})
       })
-  },
+  }
+
   render() {
     const tickets = sortTickets(this.state.tickets)
     const ticketTrs = tickets.map((ticket) => {
-      let latestReply = ticket.get('latestReply')
-      let latestReplyContent = latestReply ? latestReply.content : ''
-      if (latestReplyContent.length > 200) {
-        latestReplyContent = latestReplyContent.slice(0, 200) + '……'
-      }
       const customerServices = (ticket.get('joinedCustomerServices') || []).map((user) => {
         return (
           <span key={user.objectId}><UserLabel user={user} /> </span>
@@ -131,4 +134,5 @@ export default React.createClass({
       </div> 
     )
   }
-})
+
+}
