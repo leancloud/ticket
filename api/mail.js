@@ -33,6 +33,28 @@ exports.replyTicket = (ticket, reply, from, to) => {
   })
 }
 
+exports.changeAssignee = (ticket, from, to) => {
+  if (!to.get('email')) {
+    return Promise.resolve()
+  }
+  return send({
+    from: `${from.get('username')} <ticket@leancloud.cn>`,
+    to: to.get('email'),
+    subject: `[LeanTicket] ${ticket.get('title')} (#${ticket.get('nid')})`,
+    text:
+      `${from.get('username')} 将该工单转交给您处理。
+该工单的问题：
+
+${ticket.get('content')}
+
+该工单最后一条回复：
+
+${ticket.get('latestReply') && ticket.get('latestReply').content}
+`,
+    url: common.getTicketUrl(ticket),
+  })
+}
+
 const send = (params) => {
   return new Promise((resolve, reject) => {
     mailgun.messages().send({

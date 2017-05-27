@@ -64,12 +64,16 @@ AV.Cloud.afterUpdate('Ticket', (req) => {
       }, {useMasterKey: true})
     }
     if (req.object.updatedKeys.indexOf('assignee') != -1) {
-      common.getTinyUserInfo(req.object.get('assignee')).then((assignee) => {
-        new AV.Object('OpsLog').save({
+      common.getTinyUserInfo(req.object.get('assignee'))
+      .then((assignee) => {
+        return new AV.Object('OpsLog').save({
           ticket: req.object,
           action: 'changeAssignee',
           data: {assignee: assignee, operator: user},
         }, {useMasterKey: true})
+      })
+      .then(() => {
+        return notify.changeAssignee(req.object, req.currentUser, req.object.get('assignee'))
       })
     }
   })

@@ -21,3 +21,11 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
     wechat.replyTicket(ticket, reply, replyAuthor, to),
   ])
 }
+
+exports.changeAssignee = (ticket, operator, assignee) => {
+  return Promise.all([
+    mail.changeAssignee(ticket, operator, assignee),
+    bearychat.changeAssignee(ticket, operator, assignee),
+    wechat.changeAssignee(ticket, operator, assignee),
+  ])
+}

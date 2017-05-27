@@ -82,6 +82,27 @@ exports.replyTicket = (ticket, reply, from, to) => {
   })
 }
 
+exports.changeAssignee = (ticket, from ,to) => {
+  if (!to.get('wechatEnterpriseUserId')) {
+    return Promise.resolve()
+  }
+  send({
+    to: to.get('wechatEnterpriseUserId'),
+    title: `${ticket.get('title')} (#${ticket.get('nid')})`,
+    content: 
+      `${from.get('username')} 将该工单转交给您处理。
+该工单的问题：
+
+${ticket.get('content')}
+
+该工单最后一条回复：
+
+${ticket.get('latestReply') && ticket.get('latestReply').content}
+`,
+    url: common.getTicketUrl(ticket),
+  })
+}
+
 const send = (params) => {
   return api.sendAsync({
     touser: params.to

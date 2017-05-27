@@ -39,6 +39,28 @@ exports.replyTicket = (ticket, reply, from, to) => {
   })
 }
 
+exports.changeAssignee = (ticket, from ,to) => {
+  if (!to.get('bearychatUrl')) {
+    return Promise.resolve()
+  }
+  return send(to.get('bearychatUrl'), {
+    text: `LeanTicket: [[${ticket.get('category').name}] #${ticket.get('nid')}](${common.getTicketUrl(ticket)}): ${from.get('username')} 将工单转交给 ${to.get('username')}`,
+    attachments: [{
+      title: ticket.get('title'),
+      text:
+        `该工单的问题：
+
+${ticket.get('content')}
+
+最后一条回复：
+
+${ticket.get('latestReply') && ticket.get('latestReply').content}
+`,
+      color: COLORS.warning,
+    }]
+  })
+}
+
 const send = (url, params) => {
   return request({
     url,
