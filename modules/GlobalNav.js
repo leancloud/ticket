@@ -22,7 +22,9 @@ export default class GlobalNav extends Component {
         <li className="dropdown">
           <a href="#" className="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{AV.User.current().get('username')} <span className="caret"></span></a>
           <ul className="dropdown-menu">
-            <li><Link to="/settings">设置</Link></li>
+            {this.props.isCustomerService &&
+              <li><Link to="/settings">设置</Link></li>
+            }
             <li><a href="#" onClick={this.handleLogout}>登出</a></li>
           </ul>
         </li>
