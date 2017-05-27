@@ -309,7 +309,10 @@ const StatsChart = React.createClass({
 
 const getHeadsAndTails = (datas, sortFn) => {
   const sorted = _.sortBy(datas, sortFn)
-  return sorted.slice(0, 3).concat(sorted.slice(sorted.length - 3))
+  _.forEach(sorted, (data, index) => {
+    data.index = index + 1
+  })
+  return _.concat(sorted.slice(0, 3), sorted.slice(sorted.length - 3))
 }
 
 
@@ -325,9 +328,9 @@ const StatsSummary = React.createClass({
       const newTicketCount = newTicketCounts[0]
       const stats = statses[0]
 
-      const activeTicketCountByCategory = getHeadsAndTails(_.toPairs(stats.categories), ([_k, v]) => v)
-      const activeTicketCountByAssignee = getHeadsAndTails(_.toPairs(stats.assignees), ([_k, v]) => v)
-      const activeTicketCountByAuthor = getHeadsAndTails(_.toPairs(stats.authors), ([_k, v]) => v)
+      const activeTicketCountByCategory = getHeadsAndTails(_.toPairs(stats.categories), ([_k, v]) => -v)
+      const activeTicketCountByAssignee = getHeadsAndTails(_.toPairs(stats.assignees), ([_k, v]) => -v)
+      const activeTicketCountByAuthor = getHeadsAndTails(_.toPairs(stats.authors), ([_k, v]) => -v)
       const firstReplyTimeByUser = getHeadsAndTails(stats.firstReplyTimeByUser, t => t.replyTime / t.replyCount)
       const replyTimeByUser = getHeadsAndTails(stats.replyTimeByUser, t => t.replyTime / t.replyCount)
       
@@ -356,33 +359,40 @@ const StatsSummary = React.createClass({
       return <div>数据读取中……</div>
     }
     const activeTicketCountByCategory = this.state.activeTicketCountByCategory
-    .map(([k, v]) => {
-      const category = _.find(this.props.categories, c => c.id === k)
+    .map((data) => {
+      const category = _.find(this.props.categories, c => c.id === data[0])
       return <tr>
+        <td>{data.index}</td>
         <td>{category && category.get('name') || 'data err'}</td>
-        <td>{v}</td>
+        <td colSpan='2'>{data[1]}</td>
       </tr>
     })
+
     const activeTicketCountByAssignee = this.state.activeTicketCountByAssignee
-    .map(([k, v]) => {
-      const user = _.find(this.state.users, c => c.id === k)
+    .map((data) => {
+      const user = _.find(this.state.users, c => c.id === data[0])
       return <tr>
+        <td>{data.index}</td>
         <td>{user && user.get('username') || 'data err'}</td>
-        <td>{v}</td>
+        <td colSpan='2'>{data[1]}</td>
       </tr>
     })
+
     const activeTicketCountByAuthor = this.state.activeTicketCountByAuthor
-    .map(([k, v]) => {
-      const user = _.find(this.state.users, c => c.id === k)
+    .map((data) => {
+      const user = _.find(this.state.users, c => c.id === data[0])
       return <tr>
+        <td>{data.index}</td>
         <td>{user && user.get('username') || 'data err'}</td>
-        <td>{v}</td>
+        <td colSpan='2'>{data[1]}</td>
       </tr>
     })
+
     const firstReplyTimeByUser = this.state.firstReplyTimeByUser
-    .map(({userId, replyTime, replyCount}) => {
+    .map(({userId, replyTime, replyCount, index}) => {
       const user = _.find(this.state.users, u => u.id === userId)
       return <tr>
+        <td>{index}</td>
         <td>{user && user.get('username') || 'data err'}</td>
         <td>{(replyTime / replyCount / 1000 / 60 / 60).toFixed(2)}</td>
         <td>{replyCount}</td>
@@ -390,52 +400,57 @@ const StatsSummary = React.createClass({
     })
 
     const replyTimeByUser = this.state.replyTimeByUser
-    .map(({userId, replyTime, replyCount}) => {
+    .map(({userId, replyTime, replyCount, index}) => {
       const user = _.find(this.state.users, u => u.id === userId)
       return <tr>
+        <td>{index}</td>
         <td>{user && user.get('username') || 'data err'}</td>
         <td>{(replyTime / replyCount / 1000 / 60 / 60).toFixed(2)}</td>
         <td>{replyCount}</td>
       </tr>
     })
+
     return <div>
       <h2>该要</h2>
       <Table>
         <thead>
           <tr>
-            <th></th>
-            <th>{moment(this.state.newTicketCount.date).format('gggg-[W]ww')}</th>
+            <th colSpan='5'>{moment(this.state.newTicketCount.date).format('gggg [年] [第] ww [周]')}</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <th>新增工单数</th>
-            <td>{this.state.newTicketCount.count}</td>
+            <td colSpan='4'>{this.state.newTicketCount.count}</td>
           </tr>
           <tr>
             <th>活跃工单数</th>
-            <td>{this.state.activeTicketCount}</td>
+            <td colSpan='4'>{this.state.activeTicketCount}</td>
           </tr>
           <tr>
             <th rowSpan='7'>活跃工单数（分类）</th>
+            <th>排名</th>
             <th>分类</th>
-            <th>活跃工单数</th>
+            <th colSpan='2'>活跃工单数</th>
           </tr>
           {activeTicketCountByCategory}
           <tr>
             <th rowSpan='7'>活跃工单数（客服）</th>
+            <th>排名</th>
             <th>客服</th>
-            <th>活跃工单数</th>
+            <th colSpan='2'>活跃工单数</th>
           </tr>
           {activeTicketCountByAssignee}
           <tr>
             <th rowSpan='7'>活跃工单数（用户）</th>
+            <th>排名</th>
             <th>用户</th>
-            <th>活跃工单数</th>
+            <th colSpan='2'>活跃工单数</th>
           </tr>
           {activeTicketCountByAuthor}
           <tr>
             <th rowSpan='7'>首次回复耗时</th>
+            <th>排名</th>
             <th>工程师</th>
             <th>平均耗时</th>
             <th>回复次数</th>
@@ -443,6 +458,7 @@ const StatsSummary = React.createClass({
           {firstReplyTimeByUser}
           <tr>
             <th rowSpan='7'>回复耗时</th>
+            <th>排名</th>
             <th>工程师</th>
             <th>平均耗时</th>
             <th>回复次数</th>
