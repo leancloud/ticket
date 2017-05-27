@@ -44,7 +44,7 @@ AV.Cloud.define('getLeanCloudUserInfoByUsername', (req) => {
     }
     return new AV.Query(AV.User)
     .equalTo('username', req.params.username)
-    .first({user: req.currentUser})
+    .first({useMasterKey: true})
     .then((user) => {
       return getClientInfo(user.get('authData').leancloud)
     })
@@ -56,9 +56,9 @@ AV.Cloud.define('getLeanCloudAppsByUsername', (req) => {
     if (!isCustomerService) {
       throw new AV.Cloud.Error('unauthorized', {status: 401})
     }
-    new AV.Query(AV.User)
+    return new AV.Query(AV.User)
     .equalTo('username', req.params.username)
-    .first({user: req.currentUser})
+    .first({useMasterKey: true})
     .then((user) => {
       return getApps(user.get('authData').leancloud)
     })

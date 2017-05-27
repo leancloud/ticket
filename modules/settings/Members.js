@@ -91,6 +91,7 @@ export default React.createClass({
           <div className="form-group">
             <input type="text" className="form-control" placeholder="用户名" value={this.state.username} onChange={this.handleUsernameChange} />
           </div>
+          {' '}
           <button type="submit" className="btn btn-primary">添加为技术支持人员</button>
         </form>
         <table className="table table-bordered">

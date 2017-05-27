@@ -85,6 +85,7 @@ export default React.createClass({
           <div className='form-group'>
             <input type="text" className="form-control" placeholder="分类名称" value={this.state.category} onChange={this.handleNewCategoryChange} />
           </div>
+          {' '}
           <button type="button" className="btn btn-default" onClick={this.handleCategorySubmit}>新增分类</button>
         </div>
         <table className='table table-bordered'>

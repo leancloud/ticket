@@ -261,7 +261,10 @@ export default class Ticket extends Component {
         <div>{timeline}</div>
         <hr />
         <p>
-          <TicketReply commitReply={this.commitReply.bind(this)} commitReplyNoContent={this.commitReplyNoContent.bind(this)} />
+          <TicketReply commitReply={this.commitReply.bind(this)}
+            commitReplyNoContent={this.commitReplyNoContent.bind(this)}
+            isCustomerService={this.props.isCustomerService}
+          />
         </p>
         <p>
           <UpdateTicket ticket={this.state.ticket}
@@ -310,6 +313,10 @@ class TicketReply extends Component {
   }
 
   render() {
+    let noContentReplyButton = <div></div>
+    if (this.props.isCustomerService) {
+      noContentReplyButton = <Button onClick={this.handleReplyNoContent.bind(this)}>暂无需回复</Button>
+    }
     return (
       <form>
         <FormGroup>
@@ -321,7 +328,7 @@ class TicketReply extends Component {
         </FormGroup>
         <Button onClick={this.handleReplyCommit.bind(this)}>回复</Button>
         {' '}
-        <Button onClick={this.handleReplyNoContent.bind(this)}>暂无需回复</Button>
+        {noContentReplyButton}
       </form>
     )
   }
@@ -330,6 +337,7 @@ class TicketReply extends Component {
 TicketReply.propTypes = {
   commitReply: PropTypes.func.isRequired,
   commitReplyNoContent: PropTypes.func.isRequired,
+  isCustomerService: PropTypes.bool,
 }
 
 class Tag extends Component{

@@ -22,8 +22,6 @@ export default class GlobalNav extends Component {
         <li className="dropdown">
           <a href="#" className="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{AV.User.current().get('username')} <span className="caret"></span></a>
           <ul className="dropdown-menu">
-            <li><Link to="/profile">个人信息</Link></li>
-            <li role="separator" className="divider"></li>
             <li><Link to="/settings">设置</Link></li>
             <li><a href="#" onClick={this.handleLogout}>登出</a></li>
           </ul>
@@ -61,7 +59,7 @@ export default class GlobalNav extends Component {
             {customerServiceLinks}
             <ul className="nav navbar-nav navbar-right">
               <li>
-                <button type="submit" className="btn btn-primary navbar-btn" onClick={this.handleNewTicketClick}>新建工单</button>
+                <button type="submit" className="btn btn-primary navbar-btn" onClick={this.handleNewTicketClick.bind(this)}>新建工单</button>
               </li>
               {user}
             </ul>

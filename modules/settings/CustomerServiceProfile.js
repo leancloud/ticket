@@ -30,14 +30,15 @@ export default React.createClass({
   },
   render() {
     const wechatUserOptions = this.state.wechatUsers.map((user) => {
-      return <option value={user.userid}>{user.name}</option>
+      return <option key={user.userid} value={user.userid}>{user.name}</option>
     })
     return <div>
-      <Form inline onSubmit={this.handleWechatIdSubmit}>
+      <Form onSubmit={this.handleWechatIdSubmit}>
         <FormGroup>
           <ControlLabel>微信企业号</ControlLabel>
           {' '}
           <FormControl componentClass="select" value={this.state.wechatUserId} onChange={this.handleWechatIdChange}>
+            <option key='undefined' value=''>未关联</option>
             {wechatUserOptions}
           </FormControl>
           {' '}

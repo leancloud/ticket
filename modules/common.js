@@ -129,7 +129,7 @@ exports.UserLabel = (props) => {
 
 exports.UserLabel.displayName = 'UserLabel'
 exports.UserLabel.propTypes = {
-  user: PropTypes.object.isRequired,
+  user: PropTypes.object,
 }
 
 exports.TicketStatusLabel = (props) => {

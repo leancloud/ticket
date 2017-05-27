@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router'
-import {Table} from 'react-bootstrap'
+import {Table, ButtonGroup, Button} from 'react-bootstrap'
 import moment from 'moment'
 import AV from 'leancloud-storage'
 
@@ -86,12 +86,15 @@ export default React.createClass({
     const ticketAdminFilters = (
       <div>
         <div className="form-group">
-          <button className="btn btn-default" onClick={() => this.setUserFilter({assignee: AV.User.current()})}>分配给我的</button>
-          <button className="btn btn-default" onClick={() => this.setUserFilter({})}>全部</button>
-        </div>
-        <div className="form-group">
-          <button className="btn btn-default" onClick={() => this.setStatusFilter([TICKET_STATUS.NEW, TICKET_STATUS.PENDING])}>未完成</button>
-          <button className="btn btn-default" onClick={() => this.setStatusFilter([TICKET_STATUS.PRE_FULFILLED, TICKET_STATUS.FULFILLED, TICKET_STATUS.REJECTED])}>已完成</button>
+          <ButtonGroup>
+            <button className="btn btn-default" onClick={() => this.setStatusFilter([TICKET_STATUS.NEW, TICKET_STATUS.PENDING])}>未完成</button>
+            <button className="btn btn-default" onClick={() => this.setStatusFilter([TICKET_STATUS.PRE_FULFILLED, TICKET_STATUS.FULFILLED, TICKET_STATUS.REJECTED])}>已完成</button>
+          </ButtonGroup>
+          {' '}
+          <ButtonGroup>
+            <Button onClick={() => this.setUserFilter({assignee: AV.User.current()})}>分配给我的</Button>
+            <Button onClick={() => this.setUserFilter({})}>全部</Button>
+          </ButtonGroup>
         </div>
       </div>
     )

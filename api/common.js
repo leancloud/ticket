@@ -6,6 +6,9 @@ const AV = require('leanengine')
 const config = require('../config')
 
 exports.getTinyUserInfo = (user) => {
+  if (!user) {
+    return null
+  }
   if (user.get('username')) {
     return Promise.resolve({
       objectId: user.id,
