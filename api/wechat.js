@@ -58,29 +58,6 @@ router.use('/', wechat(wechatConfig, function (req, res, _next) {
   res.end('ok')
 }))
 
-AV.Cloud.define('saveWechatEnterpriseId', (req, res) => {
-  const userid = req.params.userId
-  common.isCustomerService(req.currentUser)
-  .then((isCustomerService) => {
-    if (!isCustomerService) {
-      return res.error('unauthorized')
-    }
-    return getUsers()
-  })
-  .then((users) => {
-    const finded = _.find(users, {userid})
-    if (finded) {
-      return req.currentUser.set('wechatEnterpriseUserId', userid)
-      .save()
-      .then(() => {
-        res.success()
-      })
-    }
-    res.error(`微信企业号中找不到该 userId 的成员：${userid}`)
-  })
-  .catch(res.error)
-})
-
 exports.newTicket = (ticket, from, to) => {
   if (!to.get('wechatEnterpriseUserId')) {
     return Promise.resolve()
