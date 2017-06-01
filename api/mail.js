@@ -20,7 +20,7 @@ exports.newTicket = (ticket, from, to) => {
   })
 }
 
-exports.replyTicket = (ticket, reply, from, to) => {
+exports.replyTicket = ({ticket, reply, from, to}) => {
   if (!to.get('email')) {
     return Promise.resolve()
   }

@@ -70,7 +70,7 @@ exports.newTicket = (ticket, from, to) => {
   })
 }
 
-exports.replyTicket = (ticket, reply, from, to) => {
+exports.replyTicket = ({ticket, reply, to}) => {
   if (!to.get('wechatEnterpriseUserId')) {
     return Promise.resolve()
   }

@@ -14,11 +14,18 @@ exports.newTicket = (ticket, author, assignee) => {
 
 exports.replyTicket = (ticket, reply, replyAuthor) => {
   const to = reply.get('isCustomerService') ? ticket.get('author') : ticket.get('assignee')
+  const data = {
+    ticket,
+    reply,
+    from: replyAuthor,
+    to,
+    isCustomerServiceReply: reply.get('isCustomerService'),
+  }
   return Promise.all([
-    onlineNotification.replyTicket(ticket, reply, replyAuthor, to),
-    mail.replyTicket(ticket, reply, replyAuthor, to),
-    bearychat.replyTicket(ticket, reply, replyAuthor, to),
-    wechat.replyTicket(ticket, reply, replyAuthor, to),
+    onlineNotification.replyTicket(data),
+    mail.replyTicket(data),
+    bearychat.replyTicket(data),
+    wechat.replyTicket(data),
   ])
 }
 

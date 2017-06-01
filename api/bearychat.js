@@ -27,7 +27,7 @@ exports.newTicket = (ticket, from, to) => {
   ])
 }
 
-exports.replyTicket = (ticket, reply, from, to) => {
+exports.replyTicket = ({ticket, reply, from, to, isCustomerServiceReply}) => {
   const data = {
     text: `LeanTicket: [[${ticket.get('category').name}] #${ticket.get('nid')}](${common.getTicketUrl(ticket)}): ${from.get('username')} 回复工单`,
     attachments: [{
@@ -37,7 +37,7 @@ exports.replyTicket = (ticket, reply, from, to) => {
     }]
   }
   return Promise.all([
-    send(config.bearychatGlobalHookUrl, data),
+    isCustomerServiceReply ? Promise.resolve() : send(config.bearychatGlobalHookUrl, data),
     send(to.get('bearychatUrl'), data),
   ])
 }

@@ -10,7 +10,7 @@ exports.newTicket = (ticket, _from, _to) => {
   })
 }
 
-exports.replyTicket = (ticket, reply, _from, _to) => {
+exports.replyTicket = ({ticket, reply}) => {
   return new AV.Query('_Conversation')
   .equalTo('ticket', ticket.get('nid'))
   .first({useMasterKey: true})
