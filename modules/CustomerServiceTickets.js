@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import {Table, ButtonGroup, Button} from 'react-bootstrap'
 import moment from 'moment'
 import AV from 'leancloud-storage'
+import styles from './CustomerServiceTickets.css'
 
 import {TICKET_STATUS} from '../lib/constant'
 import {sortTickets, UserLabel, TicketStatusLabel, TicketReplyLabel} from './common'
@@ -131,7 +132,7 @@ export default class CustomerServiceTickets extends Component {
             </tbody>
           </Table>
         </div>
-      </div> 
+      </div>
     )
   }
 
