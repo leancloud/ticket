@@ -84,3 +84,7 @@ App.propTypes = {
   children: PropTypes.object.isRequired,
   location: PropTypes.object,
 }
+
+App.contextTypes = {
+  router: PropTypes.func.isRequired
+}

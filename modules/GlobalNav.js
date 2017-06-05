@@ -74,7 +74,7 @@ export default class GlobalNav extends Component {
 }
 
 GlobalNav.contextTypes = {
-  router: PropTypes.object
+  router: PropTypes.func.isRequired
 }
 
 GlobalNav.propTypes = {

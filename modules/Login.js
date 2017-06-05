@@ -70,3 +70,7 @@ Login.propTypes = {
   login: PropTypes.func.isRequired,
   signup: PropTypes.func.isRequired,
 }
+
+Login.contextTypes = {
+  router: PropTypes.func.isRequired
+}
