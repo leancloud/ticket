@@ -3,7 +3,7 @@ import _ from 'lodash'
 import xss from 'xss'
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
-import {FormGroup, FormControl, Label, Alert, Button} from 'react-bootstrap'
+import {FormGroup, FormControl, Label, Alert, Button, ButtonToolbar} from 'react-bootstrap'
 import AV from 'leancloud-storage'
 
 import common, {UserLabel, TicketStatusLabel} from './common'
@@ -100,6 +100,17 @@ export default class Ticket extends Component {
     })
   }
 
+  commitReplySoon(reply, files) {
+    this.commitReply(reply, files)
+    .then(() => {
+      return AV.Cloud.run('replySoon', {ticketId: this.state.ticket.id})
+      .then((ticket) => {
+        this.setState({ticket: AV.parseJSON(ticket)})
+        return this.delayRefreshOpsLogs()
+      })
+    })
+  }
+
   commitReplyNoContent() {
     return AV.Cloud.run('replyWithNoContent', {ticketId: this.state.ticket.id})
     .then((ticket) => {
@@ -175,6 +186,12 @@ export default class Ticket extends Component {
         return (
           <p key={avObj.id}>
             <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 认为该工单暂时无需回复，如有问题可以回复该工单。
+          </p>
+        )
+      case 'replySoon':
+        return (
+          <p key={avObj.id}>
+            <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 认为该工单处理需要一些时间，稍后会回复该工单。
           </p>
         )
       }
@@ -262,6 +279,7 @@ export default class Ticket extends Component {
         <hr />
         <p>
           <TicketReply commitReply={this.commitReply.bind(this)}
+            commitReplySoon={this.commitReplySoon.bind(this)}
             commitReplyNoContent={this.commitReplyNoContent.bind(this)}
             isCustomerService={this.props.isCustomerService}
           />
@@ -306,6 +324,12 @@ class TicketReply extends Component {
     }).catch(console.error)
   }
 
+  handleReplySoon(e) {
+    e.preventDefault()
+    this.props.commitReplySoon(this.state.reply, this.fileInput.files)
+    .catch(console.error)
+  }
+
   handleReplyNoContent(e) {
     e.preventDefault()
     this.props.commitReplyNoContent()
@@ -313,9 +337,21 @@ class TicketReply extends Component {
   }
 
   render() {
-    let noContentReplyButton = <div></div>
+    let buttons
     if (this.props.isCustomerService) {
-      noContentReplyButton = <Button onClick={this.handleReplyNoContent.bind(this)}>暂无需回复</Button>
+      buttons = (
+        <ButtonToolbar>
+          <Button onClick={this.handleReplyCommit.bind(this)}>回复</Button>
+          <Button onClick={this.handleReplySoon.bind(this)}>稍后继续回复</Button>
+          <Button onClick={this.handleReplyNoContent.bind(this)}>暂无需回复</Button>
+        </ButtonToolbar>
+      )
+    } else {
+      buttons = (
+        <ButtonToolbar>
+          <Button onClick={this.handleReplyCommit.bind(this)}>回复</Button>
+        </ButtonToolbar>
+      )
     }
     return (
       <form>
@@ -326,9 +362,7 @@ class TicketReply extends Component {
           <FormControl type="file" multiple inputRef={ref => this.fileInput = ref} />
           <p className="help-block">上传附件可以多选</p>
         </FormGroup>
-        <Button onClick={this.handleReplyCommit.bind(this)}>回复</Button>
-        {' '}
-        {noContentReplyButton}
+        {buttons}
       </form>
     )
   }
@@ -336,6 +370,7 @@ class TicketReply extends Component {
 
 TicketReply.propTypes = {
   commitReply: PropTypes.func.isRequired,
+  commitReplySoon: PropTypes.func.isRequired,
   commitReplyNoContent: PropTypes.func.isRequired,
   isCustomerService: PropTypes.bool,
 }

@@ -98,6 +98,34 @@ AV.Cloud.define('getTicketAndRepliesView', (req, res) => {
   }).catch(console.error)
 })
 
+AV.Cloud.define('replySoon', (req) => {
+  const {ticketId} = req.params
+  return common.isCustomerService(req.currentUser).then((isCustomerService) => {
+    if (!isCustomerService) {
+      throw new AV.Cloud.Error('unauthorized')
+    }
+    return Promise.all([
+      new AV.Query('Ticket').get(ticketId),
+      common.getTinyUserInfo(req.currentUser),
+    ])
+    .then(([ticket, operator]) => {
+      return new AV.Object('OpsLog').save({
+        ticket,
+        action: 'replySoon',
+        data: {operator},
+      }, {useMasterKey: true})
+      .then(() => {
+        ticket.set('status', TICKET_STATUS.WAITING_CUSTOMER_SERVICE)
+        if (isCustomerService) {
+          ticket.addUnique('joinedCustomerServices', operator)
+        }
+        return ticket.save(null, {user: req.currentUser})
+      })
+      .then(ticket => ticket.toFullJSON())
+    })
+  }).catch(errorHandler.captureException)
+})
+
 AV.Cloud.define('replyWithNoContent', (req) => {
   const {ticketId} = req.params
   return common.isCustomerService(req.currentUser).then((isCustomerService) => {
