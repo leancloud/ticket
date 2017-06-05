@@ -28,7 +28,7 @@ npm start
 ### 开发客户端
 
 ```
-eval $(lean env) && npm run dev:client
+npm run dev:client
 ```
 该命令依赖 LeanCloud 命令行工具，因为需要 `lean env` 导出 appId 和 appKey。
 
@@ -39,3 +39,7 @@ lean up
 # 或
 eval $(lean env) && npm run dev
 ```
+
+### 本地访问
+
+访问 http://localhost:3000
