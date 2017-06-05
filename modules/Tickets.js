@@ -2,7 +2,7 @@ import React, {Component} from 'react'
 import { Link } from 'react-router'
 import AV from 'leancloud-storage'
 
-import {sortTickets, TicketStatusLabel} from './common'
+import {sortTicketsForCustomer, TicketStatusLabel} from './common'
 
 export default class Tickets extends Component {
   
@@ -36,7 +36,7 @@ export default class Tickets extends Component {
   }
 
   render() {
-    const tickets = sortTickets(this.state.tickets)
+    const tickets = sortTicketsForCustomer(this.state.tickets)
     const ticketLinks = tickets.map((ticket) => {
       let latestReply = ticket.get('latestReply')
       let latestReplyContent = ''

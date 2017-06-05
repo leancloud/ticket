@@ -117,6 +117,26 @@ exports.sortTickets = (tickets) => {
   })
 }
 
+exports.sortTicketsForCustomer = (tickets) => {
+  return _.sortBy(tickets, (ticket) => {
+    switch (ticket.get('status')) {
+    case TICKET_STATUS.WAITING_CUSTOMER:
+      return 0
+    case TICKET_STATUS.PRE_FULFILLED:
+      return 1
+    case TICKET_STATUS.NEW:
+      return 2
+    case TICKET_STATUS.WAITING_CUSTOMER_SERVICE:
+      return 3
+    case TICKET_STATUS.FULFILLED:
+    case TICKET_STATUS.REJECTED:
+      return 4
+    default:
+      new Error('unkonwn ticket status:', ticket.get('status'))
+    }
+  })
+}
+
 exports.UserLabel = (props) => {
   if (!props.user) {
     return (
