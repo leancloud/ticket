@@ -12,8 +12,29 @@ app.use(bodyParser.urlencoded({ extended: false }))
 
 app.use(require('./api'))
 
+const indexPage =`
+<!doctype html public "storage">
+<html>
+<meta charset=utf-8/>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LeanTicket</title>
+<link rel="stylesheet" href="/index.css" />
+<link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+<link rel="stylesheet" href="/css/react-datepicker.css">
+<script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<div id=app></div>
+<script>
+  LEANCLOUD_APP_ID = '${process.env.LEANCLOUD_APP_ID}'
+  LEANCLOUD_APP_KEY = '${process.env.LEANCLOUD_APP_KEY}'
+  LEANCLOUD_APP_ENV = '${process.env.LEANCLOUD_APP_ENV}'
+</script>
+<script src='${process.env.WEBPACK_DEV_SERVER || ''}/bundle.js'></script>
+`
+
 app.get('*', function (req, res) {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'))
+  res.send(indexPage)
 })
 
 var PORT = parseInt(process.env.LEANCLOUD_APP_PORT || process.env.PORT || 8080)

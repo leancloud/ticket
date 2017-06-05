@@ -7,7 +7,14 @@ module.exports = {
   output: {
     path: 'public',
     filename: 'bundle.js',
-    publicPath: '/'
+    publicPath: 'http://localhost:8080/',
+  },
+
+  devServer: {
+    '/get': {
+      targer: 'localhost:' + process.env.LEANCLOUD_APP_PORT,
+      secure: false
+    }
   },
 
   module: {
@@ -20,13 +27,5 @@ module.exports = {
     new webpack.optimize.DedupePlugin(),
     new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.optimize.UglifyJsPlugin()
-  ] : []).concat([
-    new webpack.DefinePlugin({
-      'process.env': JSON.stringify({
-        LEANCLOUD_APP_ID: process.env.LEANCLOUD_APP_ID,
-        LEANCLOUD_APP_KEY: process.env.LEANCLOUD_APP_KEY,
-        NODE_ENV: process.env.NODE_ENV,
-      })
-    }),
-  ]),
+  ] : []),
 }

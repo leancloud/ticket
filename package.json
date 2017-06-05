@@ -6,8 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "build": "webpack",
-    "dev:client": "eval $(lean env) && webpack-dev-server --inline --content-base public --history-api-fallback",
-    "dev": "nodemon --ignore modules server.js",
+    "dev:client": "eval $(lean env) && webpack-dev-server --port 8080 --inline --content-base public --history-api-fallback",
+    "dev": "WEBPACK_DEV_SERVER=http://localhost:8080 nodemon --ignore modules server.js",
     "postinstall": "npm run build"
   },
   "author": "",
@@ -25,8 +25,7 @@
     "compression": "^1.6.2",
     "express": "^4.14.0",
     "highlight.js": "^9.10.0",
-    "leancloud-realtime": "^3.3.4",
-    "leancloud-storage": "^3.0.0-beta.2",
+    "leancloud-storage": "3.0.0-beta.3",
     "leanengine": "leancloud/leanengine-node-sdk#v3",
     "lodash": "^4.17.4",
     "mailgun-js": "^0.8.2",

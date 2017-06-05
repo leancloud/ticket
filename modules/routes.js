@@ -1,3 +1,4 @@
+/*global LEANCLOUD_APP_ID, LEANCLOUD_APP_KEY, LEANCLOUD_APP_ENV*/
 import React from 'react'
 import { Route, IndexRoute } from 'react-router'
 import moment from 'moment'
@@ -26,11 +27,11 @@ import Error from './Error'
 moment.locale('zh-cn')
 
 AV.init({
-  appId: process.env.LEANCLOUD_APP_ID,
-  appKey: process.env.LEANCLOUD_APP_KEY,
+  appId: LEANCLOUD_APP_ID,
+  appKey: LEANCLOUD_APP_KEY,
 })
 
-AV.setProduction(process.env.NODE_ENV === 'production')
+AV.setProduction(LEANCLOUD_APP_ENV === 'production')
 
 module.exports = (
   <Route path="/" component={App}>
@@ -38,7 +39,7 @@ module.exports = (
     <Route path="/tickets" component={Tickets} />
     <Route path="/tickets/new" component={NewTicket} />
     <Route path="/tickets/:nid" component={Ticket} />
-    <Route path="/customerService" component={CustomerService} onEnter={common.requireCustomerServiceAuth()}>
+    <Route path="/customerService" component={CustomerService} onEnter={common.requireCustomerServiceAuth}>
       <Route path="/customerService/tickets" component={CSTickets} />
       <Route path="/customerService/stats" component={CSStats} />
     </Route>
