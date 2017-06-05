@@ -5,7 +5,7 @@ import moment from 'moment'
 import AV from 'leancloud-storage'
 
 import {TICKET_STATUS} from '../lib/constant'
-import {sortTickets, UserLabel, TicketStatusLabel, TicketReplyLabel} from './common'
+import {sortTickets, UserLabel, TicketStatusLabel} from './common'
 
 export default class CustomerServiceTickets extends Component {
 
@@ -14,7 +14,7 @@ export default class CustomerServiceTickets extends Component {
     this.state = {
       tickets: [],
       userFilter: {assignee: AV.User.current()},
-      statusFilters: [TICKET_STATUS.NEW, TICKET_STATUS.PENDING],
+      statusFilters: [TICKET_STATUS.NEW, TICKET_STATUS.WAITING_CUSTOMER_SERVICE, TICKET_STATUS.WAITING_CUSTOMER],
     }
   }
 
@@ -77,7 +77,7 @@ export default class CustomerServiceTickets extends Component {
           <td><Link to={'/tickets/' + ticket.get('nid')}>{ticket.get('nid')}</Link></td>
           <td><Link to={'/tickets/' + ticket.get('nid')}>{ticket.get('title')}</Link></td>
           <td>{ticket.get('category').name}</td>
-          <td><TicketStatusLabel status={ticket.get('status')} /> <TicketReplyLabel ticket={ticket} /></td>
+          <td><TicketStatusLabel status={ticket.get('status')} /></td>
           <td><UserLabel user={ticket.get('author')} /></td>
           <td><UserLabel user={ticket.get('assignee')} /></td>
           <td>{ticket.get('replyCount') || <span className='label label-warning'>0</span>}</td>
@@ -90,7 +90,7 @@ export default class CustomerServiceTickets extends Component {
       <div>
         <div className="form-group">
           <ButtonGroup>
-            <button className="btn btn-default" onClick={() => this.setStatusFilter([TICKET_STATUS.NEW, TICKET_STATUS.PENDING])}>未完成</button>
+            <button className="btn btn-default" onClick={() => this.setStatusFilter([TICKET_STATUS.NEW, TICKET_STATUS.WAITING_CUSTOMER_SERVICE, TICKET_STATUS.WAITING_CUSTOMER])}>未完成</button>
             <button className="btn btn-default" onClick={() => this.setStatusFilter([TICKET_STATUS.PRE_FULFILLED, TICKET_STATUS.FULFILLED, TICKET_STATUS.REJECTED])}>已完成</button>
           </ButtonGroup>
           {' '}

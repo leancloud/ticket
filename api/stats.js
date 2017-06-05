@@ -70,12 +70,6 @@ class FirstReplyStats {
     if (this.firstReplyAt) {
       return
     }
-    if (avObj.className === 'OpsLog'
-        && avObj.get('action') === 'changeStatus'
-        && avObj.get('data').status === TICKET_STATUS.PENDING) {
-      this.firstReplyAt = avObj.createdAt
-      return
-    }
     if (avObj.className === 'Reply'
         && avObj.get('isCustomerService')) {
       this.firstReplyAt = avObj.createdAt
@@ -164,7 +158,7 @@ class ReplyTimeStats {
   result() {
     if (!this.isReply
         && (this.ticket.get('status') === TICKET_STATUS.NEW
-          || this.ticket.get('status') === TICKET_STATUS.PENDING)) {
+          || this.ticket.get('status') === TICKET_STATUS.WAITING_CUSTOMER_SERVICE)) {
       const customerServiceTime = this.getCustomerServiceTime(this.lastCustomerService)
       customerServiceTime.replyTime += new Date() - this.cursor
     }

@@ -6,7 +6,7 @@ import PropTypes from 'prop-types'
 import {FormGroup, FormControl, Label, Alert, Button} from 'react-bootstrap'
 import AV from 'leancloud-storage'
 
-import common, {UserLabel, TicketStatusLabel, TicketReplyLabel} from './common'
+import common, {UserLabel, TicketStatusLabel} from './common'
 import UpdateTicket from './UpdateTicket'
 import Notification from './notification'
 
@@ -224,7 +224,7 @@ export default class Ticket extends Component {
       .value()
     let optionButtons
     const ticketStatus = this.state.ticket.get('status')
-    if (ticketStatus === TICKET_STATUS.NEW || ticketStatus === TICKET_STATUS.PENDING) {
+    if (ticketStatus === TICKET_STATUS.NEW || ticketStatus === TICKET_STATUS.WAITING_CUSTOMER_SERVICE || ticketStatus === TICKET_STATUS.WAITING_CUSTOMER) {
       optionButtons = (
         <FormGroup>
           <button type="button" className='btn btn-default' onClick={() => this.handleStatusChange(this.props.isCustomerService ? TICKET_STATUS.PRE_FULFILLED : TICKET_STATUS.FULFILLED)}>已解决</button>
@@ -238,7 +238,7 @@ export default class Ticket extends Component {
           <p>我们的工程师认为该工单已解决，请确认：</p>
           <Button bsStyle="success" onClick={() => this.handleStatusChange(TICKET_STATUS.FULFILLED)}>已解决</Button>
           {' '}
-          <Button onClick={() => this.handleStatusChange(TICKET_STATUS.PENDING)}>未解决</Button>
+          <Button onClick={() => this.handleStatusChange(TICKET_STATUS.WAITING_CUSTOMER)}>未解决</Button>
         </Alert>
       )
     } else {
@@ -253,7 +253,7 @@ export default class Ticket extends Component {
       <div>
         <h1>{this.state.ticket.get('title')} <small>#{this.state.ticket.get('nid')}</small></h1>
         <div>
-          <TicketStatusLabel status={this.state.ticket.get('status')} /> <TicketReplyLabel ticket={this.state.ticket} /> <span><UserLabel user={this.state.ticket.get('author')} /> 于 {moment(this.state.ticket.get('createdAt')).fromNow()}创建该工单</span>
+          <TicketStatusLabel status={this.state.ticket.get('status')} /> <span><UserLabel user={this.state.ticket.get('author')} /> 于 {moment(this.state.ticket.get('createdAt')).fromNow()}创建该工单</span>
         </div>
         <div>{tags}</div>
         <hr />

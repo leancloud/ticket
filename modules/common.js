@@ -102,13 +102,15 @@ exports.sortTickets = (tickets) => {
     switch (ticket.get('status')) {
     case TICKET_STATUS.NEW:
       return 0
-    case TICKET_STATUS.PENDING:
+    case TICKET_STATUS.WAITING_CUSTOMER_SERVICE:
       return 1
-    case TICKET_STATUS.PRE_FULFILLED:
+    case TICKET_STATUS.WAITING_CUSTOMER:
       return 2
+    case TICKET_STATUS.PRE_FULFILLED:
+      return 3
     case TICKET_STATUS.FULFILLED:
     case TICKET_STATUS.REJECTED:
-      return 3
+      return 4
     default:
       new Error('unkonwn ticket status:', ticket.get('status'))
     }
@@ -141,30 +143,14 @@ exports.TicketStatusLabel = (props) => {
     return <span className='label label-primary'>待确认解决</span>
   } else if (props.status === TICKET_STATUS.NEW) {
     return <span className='label label-warning'>待处理</span>
-  } else if (props.status === TICKET_STATUS.PENDING) {
-    return <span className='label label-info'>处理中</span>
+  } else if (props.status === TICKET_STATUS.WAITING_CUSTOMER_SERVICE || props.status === 4) { // TODO 移除兼容代码
+    return <span className='label label-warning'>等待客服回复</span>
+  } else if (props.status === TICKET_STATUS.WAITING_CUSTOMER) {
+    return <span className='label label-info'>等待用户回复</span>
   }
 }
 exports.TicketStatusLabel.displayName = 'TicketStatusLabel'
 exports.TicketStatusLabel.propTypes = {
   status: PropTypes.number.isRequired,
-}
-
-exports.TicketReplyLabel = (props) => {
-  const status = props.ticket.get('status')
-  if (status === TICKET_STATUS.PENDING) {
-    const latestReply = props.ticket.get('latestReply')
-    if (latestReply && latestReply.isCustomerService) {
-      return <span className='label label-info'>已回复</span>
-    } else {
-      return <span className='label label-warning'>未回复</span>
-    }
-  } else {
-    return <span></span>
-  }
-}
-exports.TicketReplyLabel.displayName = 'TicketReplyLabel'
-exports.TicketReplyLabel.propTypes = {
-  ticket: PropTypes.instanceOf(AV.Object),
 }
 

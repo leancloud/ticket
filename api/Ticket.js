@@ -49,13 +49,6 @@ AV.Cloud.afterSave('Ticket', (req) => {
 
 AV.Cloud.afterUpdate('Ticket', (req) => {
   common.getTinyUserInfo(req.currentUser).then((user) => {
-    if (req.object.updatedKeys.indexOf('status') != -1) {
-      new AV.Object('OpsLog').save({
-        ticket: req.object,
-        action: 'changeStatus',
-        data: {status: req.object.get('status'), operator: user},
-      }, {useMasterKey: true})
-    }
     if (req.object.updatedKeys.indexOf('category') != -1) {
       new AV.Object('OpsLog').save({
         ticket: req.object,
@@ -120,12 +113,9 @@ AV.Cloud.define('replyWithNoContent', (req) => {
         ticket,
         action: 'replyWithNoContent',
         data: {operator},
-        isCustomerService,
       }, {useMasterKey: true})
-      .then((opsLog) => {
-        opsLog = opsLog.toJSON()
-        delete opsLog.ticket
-        ticket.set('latestReply', opsLog)
+      .then(() => {
+        ticket.set('status', TICKET_STATUS.WAITING_CUSTOMER)
         if (isCustomerService) {
           ticket.addUnique('joinedCustomerServices', operator)
         }
@@ -146,9 +136,9 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
       .increment('replyCount', 1)
     if (reply.get('isCustomerService')) {
       ticket.addUnique('joinedCustomerServices', tinyReplyAuthor)
-      if (ticket.get('status') === TICKET_STATUS.NEW) {
-        ticket.set('status', TICKET_STATUS.PENDING)
-      }
+      ticket.set('status', TICKET_STATUS.WAITING_CUSTOMER)
+    } else {
+      ticket.set('status', TICKET_STATUS.WAITING_CUSTOMER_SERVICE)
     }
     return ticket.save(null, {user: replyAuthor})
   }).then((ticket) => {
