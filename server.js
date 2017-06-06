@@ -25,10 +25,10 @@ const indexPage =`
 <meta charset=utf-8/>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>LeanTicket</title>
-<link rel="stylesheet" href="/index.css" />
 <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css">
 <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
 <link rel="stylesheet" href="/css/react-datepicker.css">
+<link rel="stylesheet" href="/index.css" />
 <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
 <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 <div id=app></div>
