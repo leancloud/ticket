@@ -14,6 +14,7 @@ require('./Ticket')
 require('./Reply')
 require('./OpsLog')
 require('./User')
+require('./Category')
 require('./Tag')
 require('./stats')
 

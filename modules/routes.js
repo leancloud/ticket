@@ -22,6 +22,7 @@ import Settings from './Settings'
 import SettingsCSProfile from './settings/CustomerServiceProfile'
 import Members from './settings/Members'
 import Categories from './settings/Categories'
+import Category from './settings/Category'
 import Error from './Error'
 
 moment.locale('zh-cn')
@@ -50,6 +51,7 @@ module.exports = (
       <Route path="/settings/customerServiceProfile" component={SettingsCSProfile} />
       <Route path="/settings/members" component={Members} />
       <Route path="/settings/categories" component={Categories} />
+      <Route path="/settings/categories/:id" component={Category} />
     </Route>
     <Route path="/error" component={Error} />
   </Route>

@@ -86,5 +86,5 @@ App.propTypes = {
 }
 
 App.contextTypes = {
-  router: PropTypes.func.isRequired
+  router: PropTypes.object.isRequired
 }

@@ -31,7 +31,7 @@ export default React.createClass({
   },
   handleCategoryChange(e) {
     const category = _.find(this.state.categories, {id: e.target.value})
-    this.setState({category})
+    this.setState({category, content: category.get('qTemplate') || ''})
   },
   handleAppChange(e) {
     this.setState({appId: e.target.value})
@@ -79,17 +79,17 @@ export default React.createClass({
           <input type="text" className="form-control" value={this.state.title} onChange={this.handleTitleChange} />
         </FormGroup>
         <FormGroup>
-          <ControlLabel>问题分类</ControlLabel>
-          <FormControl componentClass="select" value={this.state.category.id} onChange={this.handleCategoryChange}>
-            <option key='empty'></option>
-            {options}
-          </FormControl>
-        </FormGroup>
-        <FormGroup>
           <ControlLabel>相关应用</ControlLabel>
           <FormControl componentClass="select" value={this.state.appId} onChange={this.handleAppChange}>
             <option key='empty'></option>
             {appOptions}
+          </FormControl>
+        </FormGroup>
+        <FormGroup>
+          <ControlLabel>问题分类</ControlLabel>
+          <FormControl componentClass="select" value={this.state.category.id} onChange={this.handleCategoryChange}>
+            <option key='empty'></option>
+            {options}
           </FormControl>
         </FormGroup>
         <FormGroup>
