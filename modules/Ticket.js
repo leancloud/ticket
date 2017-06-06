@@ -6,7 +6,7 @@ import PropTypes from 'prop-types'
 import {FormGroup, FormControl, Label, Alert, Button, ButtonToolbar} from 'react-bootstrap'
 import AV from 'leancloud-storage'
 
-import common, {UserLabel, TicketStatusLabel} from './common'
+import common, {UserLabel, TicketStatusLabel, isTicketOpen} from './common'
 import UpdateTicket from './UpdateTicket'
 import Notification from './notification'
 
@@ -241,7 +241,7 @@ export default class Ticket extends Component {
       .value()
     let optionButtons
     const ticketStatus = this.state.ticket.get('status')
-    if (ticketStatus === TICKET_STATUS.NEW || ticketStatus === TICKET_STATUS.WAITING_CUSTOMER_SERVICE || ticketStatus === TICKET_STATUS.WAITING_CUSTOMER) {
+    if (isTicketOpen(this.state.ticket)) {
       optionButtons = (
         <FormGroup>
           <button type="button" className='btn btn-default' onClick={() => this.handleStatusChange(this.props.isCustomerService ? TICKET_STATUS.PRE_FULFILLED : TICKET_STATUS.FULFILLED)}>已解决</button>
@@ -277,20 +277,24 @@ export default class Ticket extends Component {
         {this.ticketTimeline(this.state.ticket)}
         <div>{timeline}</div>
         <hr />
-        <p>
-          <TicketReply commitReply={this.commitReply.bind(this)}
-            commitReplySoon={this.commitReplySoon.bind(this)}
-            commitReplyNoContent={this.commitReplyNoContent.bind(this)}
-            isCustomerService={this.props.isCustomerService}
-          />
-        </p>
-        <p>
-          <UpdateTicket ticket={this.state.ticket}
-            isCustomerService={this.props.isCustomerService}
-            updateTicketCategory={this.updateTicketCategory.bind(this)}
-            updateTicketAssignee={this.updateTicketAssignee.bind(this)} />
-          {optionButtons}
-        </p>
+        {isTicketOpen(this.state.ticket) &&
+          <div>
+            <p>
+              <TicketReply commitReply={this.commitReply.bind(this)}
+                commitReplySoon={this.commitReplySoon.bind(this)}
+                commitReplyNoContent={this.commitReplyNoContent.bind(this)}
+                isCustomerService={this.props.isCustomerService}
+              />
+            </p>
+            <p>
+              <UpdateTicket ticket={this.state.ticket}
+                isCustomerService={this.props.isCustomerService}
+                updateTicketCategory={this.updateTicketCategory.bind(this)}
+                updateTicketAssignee={this.updateTicketAssignee.bind(this)} />
+            </p>
+          </div>
+        }
+        {optionButtons}
       </div>
     )
   }

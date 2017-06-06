@@ -66,6 +66,14 @@ exports.isCustomerService = (user) => {
     })
 }
 
+exports.isTicketOpen = (ticket) => {
+  return [
+    TICKET_STATUS.NEW,
+    TICKET_STATUS.WAITING_CUSTOMER_SERVICE,
+    TICKET_STATUS.WAITING_CUSTOMER
+  ].indexOf(ticket.get('status')) != -1
+}
+
 exports.uploadFiles = (files) => {
   return Promise.all(_.map(files, file => new AV.File(file.name, file).save()))
 }
