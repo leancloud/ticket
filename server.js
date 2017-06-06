@@ -2,11 +2,18 @@ const express = require('express')
 const path = require('path')
 const bodyParser = require('body-parser')
 const compression = require('compression')
+const AV = require('leanengine')
 
 const app = express()
 app.use(compression())
-app.use(express.static(path.join(__dirname, 'public')))
 
+// 加载云引擎中间件
+app.use(AV.express())
+
+app.enable('trust proxy')
+app.use(AV.Cloud.HttpsRedirect())
+
+app.use(express.static(path.join(__dirname, 'public')))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 
