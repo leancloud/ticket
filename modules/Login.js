@@ -53,12 +53,6 @@ export default class Login extends Component {
       <h1>登录或注册</h1>
       <p>目前只支持通过 LeanCloud OAuth 授权进行登录和注册。</p>
       <a href='/api/leancloud/login' className='btn btn-primary'>前往 LeanCloud 授权页</a>
-      <hr />
-      <h2>测试使用</h2>
-      <div><span>username: </span><input type="text" value={this.state.username} onChange={this.handleUsernameChange.bind(this)}/></div>
-      <div><span>password: </span><input type="password" value={this.state.password} onChange={this.handlePasswordChange.bind(this)} /></div>
-      <button type="submit" onClick={this.handleLogin.bind(this)}>Login</button>
-      <button type="submit" onClick={this.handleSignup.bind(this)}>Signup</button>
     </div>
   }
 
