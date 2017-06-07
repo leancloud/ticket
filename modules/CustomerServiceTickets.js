@@ -80,6 +80,7 @@ export default class CustomerServiceTickets extends Component {
 
   render() {
     const tickets = sortTickets(this.state.tickets)
+    const filters = this.state.filters
     const ticketTrs = tickets.map((ticket) => {
       const customerServices = (ticket.get('joinedCustomerServices') || []).map((user) => {
         return (
@@ -93,7 +94,7 @@ export default class CustomerServiceTickets extends Component {
           <td><Link to={'/tickets/' + ticket.get('nid')}>{ticket.get('title')}</Link></td>
           <td>{ticket.get('category').name}</td>
           <td><TicketStatusLabel status={ticket.get('status')} /></td>
-          {this.state.isOpen ||
+          {filters.isOpen ||
             <td>{ticket.get('evaluation') && (ticket.get('evaluation').star === 1 && <span className="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span> || <span className="glyphicon glyphicon-thumbs-down" aria-hidden="true"></span>)}</td>
           }
           <td><UserLabel user={ticket.get('author')} /></td>
@@ -110,7 +111,6 @@ export default class CustomerServiceTickets extends Component {
     const categoryMenuItems = this.state.categories.map((category) => {
       return <MenuItem eventKey={category}>{category.get('name')}</MenuItem>
     })
-    const filters = this.state.filters
     const ticketAdminFilters = (
       <ButtonToolbar>
         <ButtonGroup>
@@ -119,16 +119,16 @@ export default class CustomerServiceTickets extends Component {
         </ButtonGroup>
         <ButtonGroup>
           <Button onClick={() => this.updateFilter({user: {assignee: AV.User.current()}})}>分配给我的</Button>
-          <DropdownButton title={filters.user.assignee ? filters.user.assignee.get('username') : '选择责任人'} onSelect={(eventKey) => this.updateFilter({user: {assignee: eventKey}})}>
+          <DropdownButton title={filters.user.assignee ? filters.user.assignee.get('username') : '全部责任人'} onSelect={(eventKey) => this.updateFilter({user: {assignee: eventKey}})}>
+            <MenuItem>全部负责人</MenuItem>
             {assigneeMenuItems}
           </DropdownButton>
-          <Button onClick={() => this.updateFilter({user: {}})}>全部</Button>
         </ButtonGroup>
         <ButtonGroup>
-          <DropdownButton title={filters.category ? filters.category.get('name') : '选择分类'} onSelect={(eventKey) => this.updateFilter({category: eventKey})}>
+          <DropdownButton title={filters.category ? filters.category.get('name') : '全部分类'} onSelect={(eventKey) => this.updateFilter({category: eventKey})}>
+            <MenuItem>全部分类</MenuItem>
             {categoryMenuItems}
           </DropdownButton>
-          <Button onClick={() => this.updateFilter({category: null})}>全部</Button>
         </ButtonGroup>
         {filters.isOpen ||
           <ButtonGroup>
@@ -157,7 +157,7 @@ export default class CustomerServiceTickets extends Component {
                 <th>标题</th>
                 <th>分类</th>
                 <th>状态</th>
-                {this.state.isOpen || <th>评价</th>}
+                {filters.isOpen || <th>评价</th>}
                 <th>提交人</th>
                 <th>责任人</th>
                 <th>回复次数</th>
