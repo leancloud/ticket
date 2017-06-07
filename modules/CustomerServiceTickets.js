@@ -1,11 +1,10 @@
 import React, {Component} from 'react'
 import { Link } from 'react-router'
-import {Table, ButtonToolbar, ButtonGroup, Button, DropdownButton, MenuItem} from 'react-bootstrap'
+import {Table, ButtonToolbar, ButtonGroup, Button, DropdownButton, MenuItem, Checkbox} from 'react-bootstrap'
 import moment from 'moment'
 import AV from 'leancloud-storage'
 
-import {TICKET_STATUS} from '../lib/constant'
-import {sortTickets, UserLabel, TicketStatusLabel, getCustomerServices} from './common'
+import {sortTickets, UserLabel, TicketStatusLabel, getCustomerServices, ticketOpenedStatuses, ticketClosedStatuses} from './common'
 
 export default class CustomerServiceTickets extends Component {
 
@@ -15,15 +14,18 @@ export default class CustomerServiceTickets extends Component {
       tickets: [],
       customerServices: [],
       categories: [],
-      userFilter: {assignee: AV.User.current()},
-      statusFilters: [TICKET_STATUS.NEW, TICKET_STATUS.WAITING_CUSTOMER_SERVICE, TICKET_STATUS.WAITING_CUSTOMER],
-      categoryFilter: null,
+      filters: {
+        user: {assignee: AV.User.current()},
+        isOpen: true,
+        category: null,
+        isOnlyUnlike: false,
+      },
     }
   }
 
   componentDidMount () {
     Promise.all([
-      this.findTickets(this.state.userFilter, this.state.statusFilters, this.state.categoryFilter),
+      this.findTickets(this.state.filters),
       getCustomerServices(),
       new AV.Query('Category')
         .descending('createdAt')
@@ -34,48 +36,46 @@ export default class CustomerServiceTickets extends Component {
     })
   }
 
-  findTickets(userFilter, statusFilters, categoryFilter) {
+  findTickets({user, isOpen, category, isOnlyUnlike}) {
     let query = new AV.Query('Ticket')
-    if (statusFilters) {
-      const queryFilters = statusFilters.map((status) => {
-        return new AV.Query('Ticket').equalTo('status', status)
-      })
-      query = AV.Query.or(...queryFilters)
+
+    const queryFilters = (isOpen? ticketOpenedStatuses() : ticketClosedStatuses())
+    .map((status) => {
+      return new AV.Query('Ticket').equalTo('status', status)
+    })
+    query = AV.Query.or(...queryFilters)
+
+    if (user.author) {
+      query.equalTo('author', user.author)
     }
-    if (userFilter.author) {
-      query.equalTo('author', userFilter.author)
+    if (user.assignee) {
+      query.equalTo('assignee', user.assignee)
     }
-    if (userFilter.assignee) {
-      query.equalTo('assignee', userFilter.assignee)
+
+    if (category) {
+      query.equalTo('category.objectId', category.id)
     }
-    if (categoryFilter) {
-      query.equalTo('category.objectId', categoryFilter.id)
+
+    if (isOnlyUnlike) {
+      query.equalTo('evaluation.star', 0)
     }
+
     return query.include('author')
     .include('assignee')
     .descending('createdAt')
     .find()
   }
 
-  setUserFilter(userFilter) {
-    this.findTickets(userFilter, this.state.statusFilters, this.state.categoryFilter)
-      .then((tickets) => {
-        this.setState({tickets, userFilter})
-      })
-  }
-
-  setStatusFilter(statusFilters) {
-    this.findTickets(this.state.userFilter, statusFilters, this.state.categoryFilter)
-      .then((tickets) => {
-        this.setState({tickets, statusFilters})
-      })
-  }
-
-  setCategoryFilter(categoryFilter) {
-    this.findTickets(this.state.userFilter, this.state.statusFilters, categoryFilter)
+  updateFilter(filter) {
+    const filters = Object.assign({}, this.state.filters, filter)
+    this.findTickets(filters)
     .then((tickets) => {
-      this.setState({tickets, categoryFilter})
+      this.setState({tickets, filters})
     })
+  }
+
+  handleUnlikeChange(e) {
+    this.updateFilter({isOnlyUnlike: e.target.checked})
   }
 
   render() {
@@ -93,6 +93,9 @@ export default class CustomerServiceTickets extends Component {
           <td><Link to={'/tickets/' + ticket.get('nid')}>{ticket.get('title')}</Link></td>
           <td>{ticket.get('category').name}</td>
           <td><TicketStatusLabel status={ticket.get('status')} /></td>
+          {this.state.isOpen ||
+            <td>{ticket.get('evaluation') && (ticket.get('evaluation').star === 1 && <span className="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span> || <span className="glyphicon glyphicon-thumbs-down" aria-hidden="true"></span>)}</td>
+          }
           <td><UserLabel user={ticket.get('author')} /></td>
           <td><UserLabel user={ticket.get('assignee')} /></td>
           <td>{ticket.get('replyCount') || <span className='label label-warning'>0</span>}</td>
@@ -107,25 +110,31 @@ export default class CustomerServiceTickets extends Component {
     const categoryMenuItems = this.state.categories.map((category) => {
       return <MenuItem eventKey={category}>{category.get('name')}</MenuItem>
     })
+    const filters = this.state.filters
     const ticketAdminFilters = (
       <ButtonToolbar>
         <ButtonGroup>
-          <button className="btn btn-default" onClick={() => this.setStatusFilter([TICKET_STATUS.NEW, TICKET_STATUS.WAITING_CUSTOMER_SERVICE, TICKET_STATUS.WAITING_CUSTOMER])}>未完成</button>
-          <button className="btn btn-default" onClick={() => this.setStatusFilter([TICKET_STATUS.PRE_FULFILLED, TICKET_STATUS.FULFILLED, TICKET_STATUS.REJECTED])}>已完成</button>
+          <button className={'btn btn-default' + (filters.isOpen ? ' active' : '')} onClick={() => this.updateFilter({isOpen: true})}>未完成</button>
+          <button className={'btn btn-default' + (filters.isOpen ? '' : ' active')} onClick={() => this.updateFilter({isOpen: false})}>已完成</button>
         </ButtonGroup>
         <ButtonGroup>
-          <Button onClick={() => this.setUserFilter({assignee: AV.User.current()})}>分配给我的</Button>
-          <DropdownButton title={this.state.userFilter.assignee.get('username')} onSelect={(eventKey) => this.setUserFilter({assignee: eventKey})}>
+          <Button onClick={() => this.updateFilter({user: {assignee: AV.User.current()}})}>分配给我的</Button>
+          <DropdownButton title={filters.user.assignee ? filters.user.assignee.get('username') : '选择责任人'} onSelect={(eventKey) => this.updateFilter({user: {assignee: eventKey}})}>
             {assigneeMenuItems}
           </DropdownButton>
-          <Button onClick={() => this.setUserFilter({})}>全部</Button>
+          <Button onClick={() => this.updateFilter({user: {}})}>全部</Button>
         </ButtonGroup>
         <ButtonGroup>
-          <DropdownButton title={this.state.categoryFilter ? this.state.categoryFilter.get('name') : '选择分类'} onSelect={(eventKey) => this.setCategoryFilter(eventKey)}>
+          <DropdownButton title={filters.category ? filters.category.get('name') : '选择分类'} onSelect={(eventKey) => this.updateFilter({category: eventKey})}>
             {categoryMenuItems}
           </DropdownButton>
-          <Button onClick={() => this.setCategoryFilter()}>全部</Button>
+          <Button onClick={() => this.updateFilter({category: null})}>全部</Button>
         </ButtonGroup>
+        {filters.isOpen ||
+          <ButtonGroup>
+            <Checkbox checked={filters.isOnlyUnlike} onChange={this.handleUnlikeChange.bind(this)}>只看差评</Checkbox>
+          </ButtonGroup>
+        }
       </ButtonToolbar>
     )
     if (ticketTrs.length === 0) {
@@ -148,6 +157,7 @@ export default class CustomerServiceTickets extends Component {
                 <th>标题</th>
                 <th>分类</th>
                 <th>状态</th>
+                {this.state.isOpen || <th>评价</th>}
                 <th>提交人</th>
                 <th>责任人</th>
                 <th>回复次数</th>

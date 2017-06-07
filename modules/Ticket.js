@@ -3,7 +3,7 @@ import _ from 'lodash'
 import xss from 'xss'
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
-import {FormGroup, FormControl, Label, Alert, Button, ButtonToolbar} from 'react-bootstrap'
+import {FormGroup, FormControl, Label, Alert, Button, ButtonToolbar, Radio} from 'react-bootstrap'
 import AV from 'leancloud-storage'
 
 import common, {UserLabel, TicketStatusLabel, isTicketOpen} from './common'
@@ -143,6 +143,13 @@ export default class Ticket extends Component {
     })
   }
 
+  saveEvaluation(evaluation) {
+    this.state.ticket.set('evaluation', evaluation).save()
+    .then((ticket) => {
+      this.setState({ticket})
+    }) 
+  }
+
   contentView(content) {
     return (
       <table>
@@ -201,7 +208,7 @@ export default class Ticket extends Component {
       if (files && files.length !== 0) {
         const fileLinks = _.map(files, (file) => {
           return (
-            <span><a href={file.url()} target='_blank'><span className="glyphicon glyphicon-paperclip"></span> {file.get('name')}</a> </span>
+            <span key={file.id}><a href={file.url()} target='_blank'><span className="glyphicon glyphicon-paperclip"></span> {file.get('name')}</a> </span>
           )
         })
         panelFooter = <div className="panel-footer">{fileLinks}</div>
@@ -295,6 +302,9 @@ export default class Ticket extends Component {
           </div>
         }
         {optionButtons}
+        {!isTicketOpen(this.state.ticket) &&
+          <Evaluation saveEvaluation={this.saveEvaluation.bind(this)} ticket={this.state.ticket} isCustomerService={this.props.isCustomerService} />
+        }
       </div>
     )
   }
@@ -417,4 +427,74 @@ Tag.propTypes = {
   tag: PropTypes.instanceOf(AV.Object).isRequired,
   ticket: PropTypes.object.isRequired,
   isCustomerService: PropTypes.bool,
+}
+
+class Evaluation extends Component {
+
+  constructor(props) {
+    super(props)
+    this.state = {
+      isAlreadyEvaluation: false,
+      star: 1,
+      content: '',
+    }
+  }
+
+  handleStarChange(e) {
+    this.setState({star: parseInt(e.target.value)})
+  }
+
+  handleContentChange(e) {
+    this.setState({content: e.target.value})
+  }
+
+  handleSubmit(e) {
+    e.preventDefault()
+    this.props.saveEvaluation({
+      star: this.state.star,
+      content: this.state.content
+    })
+  }
+
+  render() {
+    const evaluation = this.props.ticket.get('evaluation')
+    if (evaluation) {
+      return <Alert>
+        <p>对工单处理结果的评价：</p>
+        <FormGroup>
+          <Radio name="radioGroup" inline disabled defaultChecked={evaluation.star === 1}><span className="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span></Radio>
+          {' '}
+          <Radio name="radioGroup" inline disabled defaultChecked={evaluation.star === 0}><span className="glyphicon glyphicon-thumbs-down" aria-hidden="true"></span></Radio>
+        </FormGroup>
+        <FormGroup>
+          <FormControl componentClass="textarea" rows="8" value={evaluation.content} disabled />
+        </FormGroup>
+      </Alert>
+    }
+
+    if (!this.props.isCustomerService) {
+      return <Alert>
+        <p>对工单的处理结果，您是否满意？</p>
+        <form onSubmit={this.handleSubmit.bind(this)}>
+          <FormGroup>
+            <Radio name="radioGroup" inline value='1' onClick={this.handleStarChange.bind(this)}><span className="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span></Radio>
+            {' '}
+            <Radio name="radioGroup" inline value='0' onClick={this.handleStarChange.bind(this)}><span className="glyphicon glyphicon-thumbs-down" aria-hidden="true"></span></Radio>
+          </FormGroup>
+          <FormGroup>
+            <FormControl componentClass="textarea" placeholder="您可能想说些什么" rows="8" value={this.state.content} onChange={this.handleContentChange.bind(this)}/>
+          </FormGroup>
+          <Button type='submit'>提交</Button>
+        </form>
+      </Alert>
+    }
+
+    return <div></div>
+  }
+}
+
+Evaluation.propTypes = {
+  ticket: PropTypes.instanceOf(AV.Object),
+  isCustomerService: PropTypes.bool,
+  saveEvaluation: PropTypes.func.isRequired,
 }

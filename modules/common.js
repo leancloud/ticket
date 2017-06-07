@@ -66,12 +66,20 @@ exports.isCustomerService = (user) => {
     })
 }
 
-exports.isTicketOpen = (ticket) => {
+exports.ticketOpenedStatuses = () => {
   return [
     TICKET_STATUS.NEW,
     TICKET_STATUS.WAITING_CUSTOMER_SERVICE,
-    TICKET_STATUS.WAITING_CUSTOMER
-  ].indexOf(ticket.get('status')) != -1
+    TICKET_STATUS.WAITING_CUSTOMER,
+  ]
+}
+
+exports.ticketClosedStatuses = () => {
+  return _.filter(TICKET_STATUS, status => exports.ticketOpenedStatuses().indexOf(status) === -1)
+}
+
+exports.isTicketOpen = (ticket) => {
+  return exports.ticketOpenedStatuses().indexOf(ticket.get('status')) != -1
 }
 
 exports.uploadFiles = (files) => {
