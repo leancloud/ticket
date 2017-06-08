@@ -1,5 +1,6 @@
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
+import NotificationSystem from 'react-notification-system'
 import AV from 'leancloud-storage'
 
 import common from './common'
@@ -16,7 +17,33 @@ export default class App extends Component {
     }
   }
 
+  addNotification(obj) {
+    let notification
+    if (obj instanceof Error) {
+      const message = obj.message
+      const match = message.match(/^Cloud Code validation failed. Error detail : (.*)$/)
+      if (match) {
+        notification = {
+          message: match[1],
+          level: 'error'
+        }
+      } else {
+        notification = {
+          message,
+          level: 'error'
+        }
+      }
+    } else {
+      notification = {
+        message: obj.message || obj,
+        level: obj.level || 'info',
+      }
+    }
+    this._notificationSystem.addNotification(notification)
+  }
+
   componentDidMount() {
+    this._notificationSystem = this.refs.notificationSystem
     const user = AV.User.current()
     common.isCustomerService(user)
       .then((isCustomerService) => {
@@ -72,8 +99,10 @@ export default class App extends Component {
             loginByToken: this.loginByToken.bind(this),
             signup: this.signup.bind(this),
             isCustomerService: this.state.isCustomerService,
+            addNotification: this.addNotification.bind(this),
           })}
         </div>
+        <NotificationSystem ref="notificationSystem" />
       </div>
     )
   }

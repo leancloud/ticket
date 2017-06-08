@@ -189,4 +189,3 @@ exports.TicketStatusLabel.displayName = 'TicketStatusLabel'
 exports.TicketStatusLabel.propTypes = {
   status: PropTypes.number.isRequired,
 }
-

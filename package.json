@@ -36,6 +36,7 @@
     "react-chartjs-2": "^2.1.0",
     "react-datepicker": "^0.46.0",
     "react-dom": "^15.4.2",
+    "react-notification-system": "^0.2.14",
     "react-router": "^3.0.2",
     "remarkable": "^1.7.1",
     "request": "^2.79.0",

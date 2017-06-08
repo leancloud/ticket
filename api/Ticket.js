@@ -2,6 +2,7 @@ const _ = require('lodash')
 const AV = require('leanengine')
 
 const common = require('./common')
+const leancloud = require('./leancloud')
 const notify = require('./notify')
 const TICKET_STATUS = require('../lib/constant').TICKET_STATUS
 const errorHandler = require('./errorHandler')
@@ -10,15 +11,22 @@ AV.Cloud.beforeSave('Ticket', (req, res) => {
   if (!req.currentUser._sessionToken) {
     return res.error('noLogin')
   }
-  req.object.set('status', TICKET_STATUS.NEW)
-  getTicketAcl(req.object, req.currentUser).then((acl) => {
-    req.object.setACL(acl)
-    req.object.set('author', req.currentUser)
-    return selectAssignee(req.object)
-  }).then((assignee) => {
-    req.object.set('assignee', assignee)
-    res.success()
-  }).catch(errorHandler.captureException)
+  leancloud.hasPermission(req.currentUser)
+  .then((hasPremission) => {
+    if (!hasPremission) {
+      return res.error('您的账号不具备提交工单的条件。')
+    }
+
+    req.object.set('status', TICKET_STATUS.NEW)
+    getTicketAcl(req.object, req.currentUser).then((acl) => {
+      req.object.setACL(acl)
+      req.object.set('author', req.currentUser)
+      return selectAssignee(req.object)
+    }).then((assignee) => {
+      req.object.set('assignee', assignee)
+      res.success()
+    }).catch(errorHandler.captureException)
+  })
 })
 
 const getTicketAcl = (ticket, author) => {

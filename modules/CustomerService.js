@@ -1,11 +1,7 @@
 import React from 'react'
 
-export default React.createClass({
-  render() {
-    return (
-      <div>
-        {this.props.children}
-      </div>
-    )
-  }
-})
+export default function CustomerService(props) {
+  return <div>
+    {props.children}
+  </div>
+}

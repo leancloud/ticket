@@ -1,3 +1,4 @@
+/*global $*/
 import React from 'react'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
@@ -6,9 +7,11 @@ import AV from 'leancloud-storage'
 
 const common = require('./common')
 
-export default React.createClass({
-  getInitialState() {
-    return {
+export default class NewTicket extends React.Component {
+
+  constructor(props) {
+    super(props)
+    this.state = {
       categories: [],
       apps: [],
       title: '',
@@ -16,7 +19,8 @@ export default React.createClass({
       category: {},
       content: '',
     }
-  },
+  }
+
   componentDidMount() {
     Promise.all([
       new AV.Query('Category').find(),
@@ -25,20 +29,25 @@ export default React.createClass({
     .then(([categories, apps]) => {
       this.setState({categories, apps})
     })
-  },
+  }
+
   handleTitleChange(e) {
     this.setState({title: e.target.value})
-  },
+  }
+
   handleCategoryChange(e) {
     const category = _.find(this.state.categories, {id: e.target.value})
     this.setState({category, content: category.get('qTemplate') || ''})
-  },
+  }
+
   handleAppChange(e) {
     this.setState({appId: e.target.value})
-  },
+  }
+
   handleContentChange(e) {
     this.setState({content: e.target.value})
-  },
+  }
+
   handleSubmit(e) {
     e.preventDefault()
     common.uploadFiles($('#ticketFile')[0].files)
@@ -59,10 +68,9 @@ export default React.createClass({
     }).then(() => {
       this.context.router.push('/tickets')
     })
-  },
-  contextTypes: {
-    router: PropTypes.object
-  },
+    .catch(this.props.addNotification)
+  }
+
   render() {
     const options = this.state.categories.map((category) => {
       return (
@@ -73,27 +81,27 @@ export default React.createClass({
       return <option key={app.app_id} value={app.app_id}>{app.app_name}</option>
     })
     return (
-      <form onSubmit={this.handleSubmit}>
+      <form onSubmit={this.handleSubmit.bind(this)}>
         <FormGroup>
           <ControlLabel>标题</ControlLabel>
-          <input type="text" className="form-control" value={this.state.title} onChange={this.handleTitleChange} />
+          <input type="text" className="form-control" value={this.state.title} onChange={this.handleTitleChange.bind(this)} />
         </FormGroup>
         <FormGroup>
           <ControlLabel>相关应用</ControlLabel>
-          <FormControl componentClass="select" value={this.state.appId} onChange={this.handleAppChange}>
+          <FormControl componentClass="select" value={this.state.appId} onChange={this.handleAppChange.bind(this)}>
             <option key='empty'></option>
             {appOptions}
           </FormControl>
         </FormGroup>
         <FormGroup>
           <ControlLabel>问题分类</ControlLabel>
-          <FormControl componentClass="select" value={this.state.category.id} onChange={this.handleCategoryChange}>
+          <FormControl componentClass="select" value={this.state.category.id} onChange={this.handleCategoryChange.bind(this)}>
             <option key='empty'></option>
             {options}
           </FormControl>
         </FormGroup>
         <FormGroup>
-          <textarea className="form-control" rows="8" placeholder="遇到的问题" value={this.state.content} onChange={this.handleContentChange}></textarea>
+          <textarea className="form-control" rows="8" placeholder="遇到的问题" value={this.state.content} onChange={this.handleContentChange.bind(this)}></textarea>
         </FormGroup>
         <FormGroup>
           <input id="ticketFile" type="file" multiple />
@@ -102,4 +110,14 @@ export default React.createClass({
       </form>
     )
   }
-})
+
+}
+
+NewTicket.contextTypes = {
+  router: PropTypes.object
+}
+
+NewTicket.propTypes = {
+  addNotification: PropTypes.func.isRequired,
+}
+
