@@ -1,6 +1,5 @@
 import React from 'react'
 import _ from 'lodash'
-import Promise from 'bluebird'
 import {Link} from 'react-router'
 import AV from 'leancloud-storage'
 
@@ -19,7 +18,7 @@ export default class Cagegories extends React.Component {
   }
 
   componentDidMount() {
-    Promise.all([
+    return Promise.all([
       new AV.Query('Category')
         .descending('createdAt')
         .find(),
@@ -27,7 +26,7 @@ export default class Cagegories extends React.Component {
         .then((users) => {
           return _.reject(users, {id: AV.User.current().id})
         })
-    ]).spread((categories, customerServices) => {
+    ]).then(([categories, customerServices]) => {
       this.setState({
         categories,
         checkedCategories: AV.User.current().get('categories') || [],

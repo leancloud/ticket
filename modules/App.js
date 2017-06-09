@@ -17,28 +17,19 @@ export default class App extends Component {
   }
 
   addNotification(obj) {
-    let notification
     if (obj instanceof Error) {
       const message = obj.message
       const match = message.match(/^Cloud Code validation failed. Error detail : (.*)$/)
-      if (match) {
-        notification = {
-          message: match[1],
-          level: 'error'
-        }
-      } else {
-        notification = {
-          message,
-          level: 'error'
-        }
-      }
+      this._notificationSystem.addNotification({
+        message: match ? match[1] : message,
+        level: 'error',
+      })
     } else {
-      notification = {
-        message: obj.message || obj,
-        level: obj.level || 'info',
-      }
+      this._notificationSystem.addNotification({
+        message: obj && obj.message || '操作成功',
+        level: obj && obj.level || 'success',
+      })
     }
-    this._notificationSystem.addNotification(notification)
   }
 
   componentDidMount() {
