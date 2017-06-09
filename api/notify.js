@@ -36,3 +36,7 @@ exports.changeAssignee = (ticket, operator, assignee) => {
     wechat.changeAssignee(ticket, operator, assignee),
   ])
 }
+
+exports.ticketEvaluation = (ticket, author, to) => {
+  return bearychat.ticketEvaluation(ticket, author, to)
+}

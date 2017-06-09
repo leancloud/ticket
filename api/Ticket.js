@@ -56,7 +56,7 @@ AV.Cloud.afterSave('Ticket', (req) => {
 })
 
 AV.Cloud.afterUpdate('Ticket', (req) => {
-  common.getTinyUserInfo(req.currentUser).then((user) => {
+  return common.getTinyUserInfo(req.currentUser).then((user) => {
     if (req.object.updatedKeys.indexOf('category') != -1) {
       new AV.Object('OpsLog').save({
         ticket: req.object,
@@ -75,6 +75,12 @@ AV.Cloud.afterUpdate('Ticket', (req) => {
       })
       .then(() => {
         return notify.changeAssignee(req.object, req.currentUser, req.object.get('assignee'))
+      })
+    }
+    if (req.object.updatedKeys.indexOf('evaluation') != -1) {
+      return req.object.fetch({include: 'assignee'}, {user: req.currentUser})
+      .then((ticket) => {
+        return notify.ticketEvaluation(ticket, req.currentUser, ticket.get('assignee'))
       })
     }
   })
