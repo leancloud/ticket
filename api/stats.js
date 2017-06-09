@@ -1,12 +1,11 @@
 const Promise = require('bluebird')
 const _ = require('lodash')
 const moment = require('moment')
-const AV = require('leancloud-storage')
-const leanengine = require('leanengine')
+const AV = require('leanengine')
 
 const TICKET_STATUS = require('../lib/constant').TICKET_STATUS
 
-leanengine.Cloud.define('yy', (req, res) => {
+AV.Cloud.define('yy', (req, res) => {
   res.success()
   forEachAVObject(new AV.Query('Ticket'), (ticket) => {
     return AV.Cloud.run('statsTicket', {ticketId: ticket.id})
@@ -16,7 +15,7 @@ leanengine.Cloud.define('yy', (req, res) => {
   }, {useMasterKey: true})
 })
 
-leanengine.Cloud.define('statsTicket', (req, res) => {
+AV.Cloud.define('statsTicket', (req, res) => {
   const ticketId = req.params.ticketId
   console.log('statsTicket:', ticketId)
   const authOptions = {useMasterKey: true}
@@ -193,7 +192,7 @@ const getTicketAndTimeline = (ticketObjectId, authOptions) => {
   })
 }
 
-leanengine.Cloud.define('getNewTicketCount', (req) => {
+AV.Cloud.define('getNewTicketCount', (req) => {
   let {start, end, timeUnit} = req.params
   if (typeof start === 'string') {
     start = new Date(start)
@@ -231,7 +230,7 @@ const sumProperty = (obj, other, property) => {
   return _.mergeWith(obj[property], other[property], (a = 0, b) => a + b)
 }
 
-leanengine.Cloud.define('getStats', (req) => {
+AV.Cloud.define('getStats', (req) => {
   let {start, end, timeUnit} = req.params
   if (typeof start === 'string') {
     start = new Date(start)
@@ -344,7 +343,7 @@ const replyTimeByUser = (stats, ticketStatses) => {
   .value()
 }
 
-leanengine.Cloud.define('xx', (req, res) => {
+AV.Cloud.define('xx', (req, res) => {
   res.success()
   const fn = (date) => {
     return AV.Cloud.run('statsDaily', {date: date.format('YYYY-MM-DD')})
@@ -356,7 +355,7 @@ leanengine.Cloud.define('xx', (req, res) => {
   fn(moment('2017-04-01'))
 })
 
-leanengine.Cloud.define('statsDaily', (req, res) => {
+AV.Cloud.define('statsDaily', (req, res) => {
   let date = req.params.date && new Date(req.params.date) || moment().subtract(1, 'days').toDate()
   const start = moment(date).startOf('day').toDate()
   const end = moment(date).endOf('day').toDate()

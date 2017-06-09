@@ -1,4 +1,5 @@
 import React, {Component} from 'react'
+import PropTypes from 'prop-types'
 import { Link } from 'react-router'
 import {Table, ButtonToolbar, ButtonGroup, Button, DropdownButton, MenuItem, Checkbox} from 'react-bootstrap'
 import moment from 'moment'
@@ -34,6 +35,7 @@ export default class CustomerServiceTickets extends Component {
     .then(([tickets, customerServices, categories]) => {
       this.setState({tickets, customerServices, categories})
     })
+    .catch(this.props.addNotification)
   }
 
   findTickets({user, isOpen, category, isOnlyUnlike}) {
@@ -72,6 +74,7 @@ export default class CustomerServiceTickets extends Component {
     .then((tickets) => {
       this.setState({tickets, filters})
     })
+    .catch(this.props.addNotification)
   }
 
   handleUnlikeChange(e) {
@@ -146,9 +149,7 @@ export default class CustomerServiceTickets extends Component {
     }
     return (
       <div>
-        <p>
-          {ticketAdminFilters}
-        </p>
+        {ticketAdminFilters}
         <div className="panel panel-default">
           <Table striped bordered condensed hover>
             <thead>
@@ -174,4 +175,8 @@ export default class CustomerServiceTickets extends Component {
     )
   }
 
+}
+
+CustomerServiceTickets.propTypes = {
+  addNotification: PropTypes.func.isRequired,
 }

@@ -1,4 +1,5 @@
 import React, {Component} from 'react'
+import PropTypes from 'prop-types'
 import {Form, FormGroup, ControlLabel, FormControl, Button} from 'react-bootstrap'
 import AV from 'leancloud-storage'
 
@@ -34,9 +35,7 @@ export default class CustomerServiceProfile extends Component {
     currentUser.set('wechatEnterpriseUserId', this.state.wechatUserId)
     currentUser.set('bearychatUrl', this.state.bearychatUrl)
     currentUser.save()
-    .catch((err) => {
-      alert(err.error)
-    })
+    .catch(this.props.addNotification)
   }
 
   render() {
@@ -61,4 +60,8 @@ export default class CustomerServiceProfile extends Component {
     </div>
   }
 
+}
+
+CustomerServiceProfile.propTypes = {
+  addNotification: PropTypes.func.isRequired,
 }

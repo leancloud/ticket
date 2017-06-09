@@ -69,7 +69,8 @@ export default class Ticket extends Component {
           }
         })
       })
-    }).catch(console.error)
+    })
+    .catch(this.props.addNotification)
   }
 
   handleNotification(message) {
@@ -101,7 +102,7 @@ export default class Ticket extends Component {
   }
 
   commitReplySoon(reply, files) {
-    this.commitReply(reply, files)
+    return this.commitReply(reply, files)
     .then(() => {
       return AV.Cloud.run('replySoon', {ticketId: this.state.ticket.id})
       .then((ticket) => {
@@ -124,7 +125,8 @@ export default class Ticket extends Component {
     .then((ticket) => {
       this.setState({ticket})
       return this.delayRefreshOpsLogs()
-    }).catch(console.error)
+    })
+    .catch(this.props.addNotification)
   }
 
   updateTicketCategory(category) {
@@ -144,7 +146,7 @@ export default class Ticket extends Component {
   }
 
   saveEvaluation(evaluation) {
-    this.state.ticket.set('evaluation', evaluation).save()
+    return this.state.ticket.set('evaluation', evaluation).save()
     .then((ticket) => {
       this.setState({ticket})
     }) 
@@ -314,6 +316,7 @@ export default class Ticket extends Component {
 Ticket.propTypes = {
   isCustomerService: PropTypes.bool,
   params: PropTypes.object,
+  addNotification: PropTypes.func.isRequired,
 }
 
 class TicketReply extends Component {
@@ -335,19 +338,20 @@ class TicketReply extends Component {
     .then(() => {
       this.setState({reply: ''})
       this.fileInput.value = ''
-    }).catch(console.error)
+    })
+    .catch(this.props.addNotification)
   }
 
   handleReplySoon(e) {
     e.preventDefault()
     this.props.commitReplySoon(this.state.reply, this.fileInput.files)
-    .catch(console.error)
+    .catch(this.props.addNotification)
   }
 
   handleReplyNoContent(e) {
     e.preventDefault()
     this.props.commitReplyNoContent()
-    .catch(console.error)
+    .catch(this.props.addNotification)
   }
 
   render() {
@@ -387,6 +391,7 @@ TicketReply.propTypes = {
   commitReplySoon: PropTypes.func.isRequired,
   commitReplyNoContent: PropTypes.func.isRequired,
   isCustomerService: PropTypes.bool,
+  addNotification: PropTypes.func.isRequired,
 }
 
 class Tag extends Component{
@@ -407,6 +412,7 @@ class Tag extends Component{
           })
         }
       })
+      .catch(this.props.addNotification)
     }
   }
 
@@ -427,6 +433,7 @@ Tag.propTypes = {
   tag: PropTypes.instanceOf(AV.Object).isRequired,
   ticket: PropTypes.object.isRequired,
   isCustomerService: PropTypes.bool,
+  addNotification: PropTypes.func.isRequired,
 }
 
 class Evaluation extends Component {
@@ -454,6 +461,7 @@ class Evaluation extends Component {
       star: this.state.star,
       content: this.state.content
     })
+    .catch(this.props.addNotification)
   }
 
   render() {
@@ -497,4 +505,5 @@ Evaluation.propTypes = {
   ticket: PropTypes.instanceOf(AV.Object),
   isCustomerService: PropTypes.bool,
   saveEvaluation: PropTypes.func.isRequired,
+  addNotification: PropTypes.func.isRequired,
 }

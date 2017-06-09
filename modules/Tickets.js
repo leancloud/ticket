@@ -1,4 +1,5 @@
 import React, {Component} from 'react'
+import PropTypes from 'prop-types'
 import { Link } from 'react-router'
 import AV from 'leancloud-storage'
 
@@ -18,6 +19,7 @@ export default class Tickets extends Component {
     .then((tickets) => {
       this.setState({tickets})
     })
+    .catch(this.props.addNotification)
   }
 
   componentDidMount () {
@@ -71,4 +73,8 @@ export default class Tickets extends Component {
       </div> 
     )
   }
+}
+
+Tickets.propTypes = {
+  addNotification: PropTypes.func,
 }

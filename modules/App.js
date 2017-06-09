@@ -6,7 +6,6 @@ import AV from 'leancloud-storage'
 import common from './common'
 import GlobalNav from './GlobalNav'
 import Notification from './notification'
-import { tap } from '../utils/promise'
 
 export default class App extends Component {
 
@@ -72,21 +71,13 @@ export default class App extends Component {
   }
 
   loginByToken(token) {
-    AV.User.become(token).then((user) => {
+    return AV.User.become(token).then((user) => {
       Notification.login(user.id)
       return common.isCustomerService(user)
     }).then((isCustomerService) => {
       this.setState({isCustomerService})
       this.context.router.push('/')
     })
-  }
-  
-  signup(username, password) {
-    return new AV.User()
-      .setUsername(username)
-      .setPassword(password)
-      .signUp()
-      .then(tap(user => Notification.login(user.id)))
   }
 
   render() {
@@ -97,7 +88,6 @@ export default class App extends Component {
           {this.props.children && React.cloneElement(this.props.children, {
             login: this.login.bind(this),
             loginByToken: this.loginByToken.bind(this),
-            signup: this.signup.bind(this),
             isCustomerService: this.state.isCustomerService,
             addNotification: this.addNotification.bind(this),
           })}

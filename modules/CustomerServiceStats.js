@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import moment from 'moment'
 import _ from 'lodash'
 import {Table, Form, FormGroup, ControlLabel, Button} from 'react-bootstrap'
@@ -17,43 +18,6 @@ const fetchUsers = (userIds) => {
     .find()
   }))
   .then(_.flatten)
-}
-
-const mergeDailyStats = (statses) => {
-  const m = (obj, other, property) => {
-    return _.mergeWith(obj[property], other[property], (a = 0, b) => a + b)
-  }
-  return _.reduce(statses, (result, stats) => {
-    const weekDate = moment(stats.data.date).startOf('week').format()
-    let mergedData = _.find(result, (stats) => {
-      return stats.data.date === weekDate
-    })
-    if (!mergedData) {
-      mergedData = {
-        data: {
-          date: weekDate,
-          assignees: {},
-          authors: {},
-          categories: {},
-          joinedCustomerServices: {},
-          statuses: {},
-          replyCount: 0,
-          tickets: [],
-        }
-      }
-      result.push(mergedData)
-    }
-    const obj = mergedData.data
-    const src = stats.data
-    obj.assignees = m(obj, src, 'assignees')
-    obj.authors = m(obj, src, 'authors')
-    obj.categories = m(obj, src, 'categories')
-    obj.joinedCustomerServices = m(obj, src, 'joinedCustomerServices')
-    obj.statuses = m(obj, src, 'statuses')
-    obj.replyCount += src.replyCount
-    obj.tickets = _.union(obj.tickets, src.tickets)
-    return result
-  }, [])
 }
 
 const ticketCountLineChartData = (statses) => {
@@ -194,20 +158,25 @@ const replyTimeLineChartData = (statses, users) => {
   })
 }
 
-export default React.createClass({
-  getInitialState() {
-    return {
+export default class CustomerServiceStats extends React.Component {
+
+  constructor(props) {
+    super(props)
+    this.state = {
       categories: []
     }
-  },
+  }
+
   componentDidMount() {
-    new AV.Query('Category')
+    return new AV.Query('Category')
     .limit(1000)
     .find()
     .then((categories) => {
       this.setState({categories})
     })
-  },
+    .catch(this.props.addNotification)
+  }
+
   render() {
     return (
       <div>
@@ -216,23 +185,33 @@ export default React.createClass({
       </div>
     )
   }
-})
 
-const StatsChart = React.createClass({
-  getInitialState() {
-    return {
+}
+
+CustomerServiceStats.propTypes = {
+  addNotification: PropTypes.func.isRequired,
+}
+
+class StatsChart extends React.Component {
+
+  constructor(props) {
+    super(props)
+    this.state = {
       //startDate: moment().startOf('week').subtract(1, 'weeks'),
       //endDate: moment().endOf('week'),
       startDate: moment('2017-03-7').startOf('week').subtract(1, 'weeks'),
       endDate: moment('2017-03-7').endOf('week'),
     }
-  },
+  }
+
   handleChangeStart(startDate) {
     this.setState({startDate})
-  },
+  }
+
   handleChangeEnd(endDate) {
     this.setState({endDate})
-  },
+  }
+
   handleSubmit(e) {
     e.preventDefault()
     let timeUnit = 'day'
@@ -248,7 +227,7 @@ const StatsChart = React.createClass({
         }),
         statses.map((s) => {
           return _.map(s.replyTimeByUser, (t => t.userId))
-        }),
+        })
       )))
       fetchUsers(userIds).then((users) => {
         this.setState({
@@ -261,11 +240,12 @@ const StatsChart = React.createClass({
         })
       })
     })
-  },
+  }
+
   render() {
     return (
       <div>
-        <Form inline onSubmit={this.handleSubmit}>
+        <Form inline onSubmit={this.handleSubmit.bind(this)}>
           <FormGroup>
             <ControlLabel>startDate</ControlLabel>
             {' '}
@@ -274,7 +254,7 @@ const StatsChart = React.createClass({
                 selectsStart
                 startDate={this.state.startDate}
                 endDate={this.state.endDate}
-                onChange={this.handleChangeStart}
+                onChange={this.handleChangeStart.bind(this)}
             />
           </FormGroup>
           {' '}
@@ -286,7 +266,7 @@ const StatsChart = React.createClass({
                 selectsEnd
                 startDate={this.state.startDate}
                 endDate={this.state.endDate}
-                onChange={this.handleChangeEnd}
+                onChange={this.handleChangeEnd.bind(this)}
             />
           </FormGroup>
           {' '}
@@ -305,7 +285,12 @@ const StatsChart = React.createClass({
       </div>
     )
   }
-})
+
+}
+
+StatsChart.propTypes = {
+  categories: PropTypes.array.isRequired,
+}
 
 const getHeadsAndTails = (datas, sortFn) => {
   const sorted = _.sortBy(datas, sortFn)
@@ -316,7 +301,8 @@ const getHeadsAndTails = (datas, sortFn) => {
 }
 
 
-const StatsSummary = React.createClass({
+class StatsSummary extends React.Component {
+
   componentDidMount() {
     const startDate = moment('2017-03-7').startOf('week')
     const endDate = moment('2017-03-7').add(1, 'week').endOf('week')
@@ -353,7 +339,8 @@ const StatsSummary = React.createClass({
         })
       })
     })
-  },
+  }
+
   render() {
     if (!this.state) {
       return <div>数据读取中……</div>
@@ -468,4 +455,9 @@ const StatsSummary = React.createClass({
       </Table>
     </div>
   }
-})
+
+}
+
+StatsSummary.propTypes = {
+  categories: PropTypes.array.isRequired,
+}

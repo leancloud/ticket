@@ -24,17 +24,20 @@ export default class UpdateTicket extends Component {
       ]).then(([categories, assignees]) => {
         this.setState({categories, assignees})
       })
+      .catch(this.props.addNotification)
     }
   }
 
   handleCategoryChange(e) {
     const category = _.find(this.state.categories, {id: e.target.value})
     this.props.updateTicketCategory(category)
+    .catch(this.props.addNotification)
   }
 
   handleAssigneeChange(e) {
     const customerService = _.find(this.state.assignees, {id: e.target.value})
     this.props.updateTicketAssignee(customerService)
+    .catch(this.props.addNotification)
   }
 
   render() {
@@ -74,4 +77,5 @@ UpdateTicket.propTypes = {
   isCustomerService: PropTypes.bool,
   updateTicketCategory: PropTypes.func.isRequired,
   updateTicketAssignee: PropTypes.func.isRequired,
+  addNotification: PropTypes.func.isRequired,
 }

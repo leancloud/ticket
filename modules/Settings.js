@@ -22,9 +22,9 @@ export default React.createClass({
             </div>
           </div> 
           <div className="col-md-10">
-            {this.props.children && React.cloneElement(this.props.children,
-              {})
-            }
+            {this.props.children && React.cloneElement(this.props.children, {
+              addNotification: this.props.addNotification.bind(this),
+            })}
           </div>
         </div>
       </div>

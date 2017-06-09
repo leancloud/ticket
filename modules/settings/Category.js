@@ -43,9 +43,7 @@ export default class Category extends React.Component {
       .then(() => {
         this.context.router.push('/settings/categories')
       })
-      .catch((err) => {
-        alert(err.message)
-      })
+      .catch(this.props.addNotification)
     }
   }
 
@@ -83,6 +81,7 @@ export default class Category extends React.Component {
 
 Category.propTypes = {
   params: PropTypes.object.isRequired,
+  addNotification: PropTypes.func.isRequired,
 }
 
 Category.contextTypes = {

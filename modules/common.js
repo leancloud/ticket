@@ -36,7 +36,7 @@ exports.requireCustomerServiceAuth = (nextState, replace, next) => {
   .catch((err) => {
     replace({
       pathname: '/error',
-      state: { code: 'orz', err }
+      state: { code: err.code, err }
     })
     next()
   })

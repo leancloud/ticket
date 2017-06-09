@@ -29,11 +29,13 @@ export default class Login extends Component {
     const query = nextProps.location.query
     if (query.token) {
       this.props.loginByToken(query.token)
+      .catch(this.props.addNotification)
     }
   }
 
   handleLogin() {
     this.props.login(this.state.username, this.state.password)
+    .catch(this.props.addNotification)
   }
 
   handleUsernameChange(e) {
@@ -42,10 +44,6 @@ export default class Login extends Component {
 
   handlePasswordChange(e) {
     this.setState({password: e.target.value})
-  }
-
-  handleSignup() {
-    this.props.signup(this.state.username, this.state.password)
   }
 
   render() {
@@ -62,7 +60,7 @@ Login.propTypes = {
   location: PropTypes.object,
   loginByToken: PropTypes.func.isRequired,
   login: PropTypes.func.isRequired,
-  signup: PropTypes.func.isRequired,
+  addNotification: PropTypes.func.isRequired,
 }
 
 Login.contextTypes = {
