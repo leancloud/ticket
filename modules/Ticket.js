@@ -130,7 +130,7 @@ export default class Ticket extends Component {
   }
 
   updateTicketCategory(category) {
-    this.state.ticket.set('category', common.getTinyCategoryInfo(category)).save()
+    return this.state.ticket.set('category', common.getTinyCategoryInfo(category)).save()
     .then((ticket) => {
       this.setState({ticket})
       return this.delayRefreshOpsLogs()
@@ -138,7 +138,7 @@ export default class Ticket extends Component {
   }
 
   updateTicketAssignee(assignee) {
-    this.state.ticket.set('assignee', assignee).save()
+    return this.state.ticket.set('assignee', assignee).save()
     .then((ticket) => {
       this.setState({ticket})
       return this.delayRefreshOpsLogs()
@@ -298,8 +298,10 @@ export default class Ticket extends Component {
             <p>
               <UpdateTicket ticket={this.state.ticket}
                 isCustomerService={this.props.isCustomerService}
+                addNotification={this.props.addNotification.bind(this)}
                 updateTicketCategory={this.updateTicketCategory.bind(this)}
-                updateTicketAssignee={this.updateTicketAssignee.bind(this)} />
+                updateTicketAssignee={this.updateTicketAssignee.bind(this)}
+              />
             </p>
           </div>
         }

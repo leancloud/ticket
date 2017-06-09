@@ -31,12 +31,14 @@ export default class UpdateTicket extends Component {
   handleCategoryChange(e) {
     const category = _.find(this.state.categories, {id: e.target.value})
     this.props.updateTicketCategory(category)
+    .then(this.props.addNotification)
     .catch(this.props.addNotification)
   }
 
   handleAssigneeChange(e) {
     const customerService = _.find(this.state.assignees, {id: e.target.value})
     this.props.updateTicketAssignee(customerService)
+    .then(this.props.addNotification)
     .catch(this.props.addNotification)
   }
 
