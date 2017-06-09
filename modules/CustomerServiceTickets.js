@@ -1,11 +1,13 @@
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import { Link } from 'react-router'
-import {Table, ButtonToolbar, ButtonGroup, Button, DropdownButton, MenuItem, Checkbox} from 'react-bootstrap'
+import {Table, Form, FormGroup, ButtonToolbar, ButtonGroup, Button, DropdownButton, MenuItem, Checkbox, FormControl} from 'react-bootstrap'
 import moment from 'moment'
 import AV from 'leancloud-storage'
 
 import {sortTickets, UserLabel, TicketStatusLabel, getCustomerServices, ticketOpenedStatuses, ticketClosedStatuses} from './common'
+
+let authorSearchTimeoutId
 
 export default class CustomerServiceTickets extends Component {
 
@@ -16,9 +18,10 @@ export default class CustomerServiceTickets extends Component {
       customerServices: [],
       categories: [],
       filters: {
-        user: {assignee: AV.User.current()},
+        assignee: AV.User.current(),
         isOpen: true,
         category: null,
+        author: null,
         isOnlyUnlike: false,
       },
     }
@@ -38,7 +41,7 @@ export default class CustomerServiceTickets extends Component {
     .catch(this.props.addNotification)
   }
 
-  findTickets({user, isOpen, category, isOnlyUnlike}) {
+  findTickets({assignee, isOpen, category, author, isOnlyUnlike}) {
     let query = new AV.Query('Ticket')
 
     const queryFilters = (isOpen? ticketOpenedStatuses() : ticketClosedStatuses())
@@ -47,11 +50,12 @@ export default class CustomerServiceTickets extends Component {
     })
     query = AV.Query.or(...queryFilters)
 
-    if (user.author) {
-      query.equalTo('author', user.author)
+    if (assignee) {
+      query.equalTo('assignee', assignee)
     }
-    if (user.assignee) {
-      query.equalTo('assignee', user.assignee)
+
+    if (author) {
+      query.equalTo('author', AV.Object.createWithoutData('_User', author.objectId))
     }
 
     if (category) {
@@ -77,8 +81,51 @@ export default class CustomerServiceTickets extends Component {
     .catch(this.props.addNotification)
   }
 
+  handleAuthorChange(e) {
+    const username = e.target.value
+    this.setState({
+      authorFilterValidationState: null,
+      authorUsername: username,
+    })
+
+    if (authorSearchTimeoutId) {
+      clearTimeout(authorSearchTimeoutId)
+    }
+    authorSearchTimeoutId = setTimeout(() => {
+      if (username.trim() === '') {
+        const filters = Object.assign({}, this.state.filters, {author: null})
+        return this.findTickets(filters)
+        .then((tickets) => {
+          this.setState({tickets, filters, authorFilterValidationState: null})
+        })
+      }
+
+      AV.Cloud.run('getUserInfo', {username})
+      .then((user) => {
+        authorSearchTimeoutId = null
+        if (!user) {
+          this.setState({authorFilterValidationState: 'error'})
+        } else {
+          this.setState({authorFilterValidationState: 'success'})
+          const filters = Object.assign({}, this.state.filters, {author: user})
+          return this.findTickets(filters)
+          .then((tickets) => {
+            this.setState({tickets, filters})
+          })
+        }
+      })
+      .catch(this.props.addNotification)
+    }, 500)
+  }
+
   handleUnlikeChange(e) {
     this.updateFilter({isOnlyUnlike: e.target.checked})
+  }
+
+  handleFiltersCommit(e) {
+    e.preventDefault()
+    this.findTickets(this.state.filters)
+    .catch(this.props.addNotification)
   }
 
   render() {
@@ -115,30 +162,38 @@ export default class CustomerServiceTickets extends Component {
       return <MenuItem eventKey={category}>{category.get('name')}</MenuItem>
     })
     const ticketAdminFilters = (
-      <ButtonToolbar>
-        <ButtonGroup>
-          <button className={'btn btn-default' + (filters.isOpen ? ' active' : '')} onClick={() => this.updateFilter({isOpen: true})}>未完成</button>
-          <button className={'btn btn-default' + (filters.isOpen ? '' : ' active')} onClick={() => this.updateFilter({isOpen: false})}>已完成</button>
-        </ButtonGroup>
-        <ButtonGroup>
-          <Button onClick={() => this.updateFilter({user: {assignee: AV.User.current()}})}>分配给我的</Button>
-          <DropdownButton title={filters.user.assignee ? filters.user.assignee.get('username') : '全部责任人'} onSelect={(eventKey) => this.updateFilter({user: {assignee: eventKey}})}>
-            <MenuItem>全部负责人</MenuItem>
-            {assigneeMenuItems}
-          </DropdownButton>
-        </ButtonGroup>
-        <ButtonGroup>
-          <DropdownButton title={filters.category ? filters.category.get('name') : '全部分类'} onSelect={(eventKey) => this.updateFilter({category: eventKey})}>
-            <MenuItem>全部分类</MenuItem>
-            {categoryMenuItems}
-          </DropdownButton>
-        </ButtonGroup>
+      <Form inline onSubmit={this.handleFiltersCommit.bind(this)}>
+        <FormGroup>
+          <ButtonToolbar>
+            <ButtonGroup>
+              <button className={'btn btn-default' + (filters.isOpen ? ' active' : '')} onClick={() => this.updateFilter({isOpen: true})}>未完成</button>
+              <button className={'btn btn-default' + (filters.isOpen ? '' : ' active')} onClick={() => this.updateFilter({isOpen: false})}>已完成</button>
+            </ButtonGroup>
+            <ButtonGroup>
+              <Button onClick={() => this.updateFilter({assignee: AV.User.current()})}>分配给我的</Button>
+              <DropdownButton title={filters.assignee ? filters.assignee.get('username') : '全部责任人'} onSelect={(eventKey) => this.updateFilter({assignee: eventKey})}>
+                <MenuItem>全部负责人</MenuItem>
+                {assigneeMenuItems}
+              </DropdownButton>
+            </ButtonGroup>
+            <ButtonGroup>
+              <DropdownButton title={filters.category ? filters.category.get('name') : '全部分类'} onSelect={(eventKey) => this.updateFilter({category: eventKey})}>
+                <MenuItem>全部分类</MenuItem>
+                {categoryMenuItems}
+              </DropdownButton>
+            </ButtonGroup>
+          </ButtonToolbar>
+        </FormGroup>
+        {'  '}
+        <FormGroup validationState={this.state.authorFilterValidationState}>
+          <FormControl type="text" value={this.state.authorUsername} placeholder="提交人" onChange={this.handleAuthorChange.bind(this)} />
+        </FormGroup>
         {filters.isOpen ||
           <ButtonGroup>
             <Checkbox checked={filters.isOnlyUnlike} onChange={this.handleUnlikeChange.bind(this)}>只看差评</Checkbox>
           </ButtonGroup>
         }
-      </ButtonToolbar>
+      </Form>
     )
     if (ticketTrs.length === 0) {
       ticketTrs.push(
