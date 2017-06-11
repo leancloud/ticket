@@ -6,6 +6,7 @@ import common from './common'
 import GlobalNav from './GlobalNav'
 import Notification from './notification'
 import { tap } from '../utils/promise'
+import css from './App.css'
 
 export default class App extends Component {
 
@@ -53,7 +54,7 @@ export default class App extends Component {
       this.context.router.push('/')
     })
   }
-  
+
   signup(username, password) {
     return new AV.User()
       .setUsername(username)
@@ -66,7 +67,7 @@ export default class App extends Component {
     return (
       <div>
         <GlobalNav isCustomerService={this.state.isCustomerService} />
-        <div className="container">
+        <div className={ 'container ' + css.main }>
           {this.props.children && React.cloneElement(this.props.children, {
             login: this.login.bind(this),
             loginByToken: this.loginByToken.bind(this),
