@@ -9,6 +9,7 @@ import AV from 'leancloud-storage'
 import common, {UserLabel, TicketStatusLabel, TicketReplyLabel} from './common'
 import UpdateTicket from './UpdateTicket'
 import Notification from './notification'
+import css from './Ticket.css'
 
 import { TICKET_STATUS } from '../lib/constant'
 
@@ -189,14 +190,14 @@ export default class Ticket extends Component {
         })
         panelFooter = <div className="panel-footer">{fileLinks}</div>
       }
-      const panelClass = 'panel ' + (avObj.get('isCustomerService') ? 'panel-info' : 'panel-success')
+      const panelClass = `panel ${css.item} ${(avObj.get('isCustomerService') ? 'panel-info' : 'panel-success')}`
       const userLabel = avObj.get('isCustomerService') ? <span>客服 <UserLabel user={avObj.get('author')} /></span> : <UserLabel user={avObj.get('author')} />
       return (
         <div key={avObj.id} className={panelClass}>
-          <div className="panel-heading">
+          <div className={ 'panel-heading ' + css.heading }>
           {userLabel} 于 {moment(avObj.get('createdAt')).fromNow()}提交
           </div>
-          <div className="panel-body">
+          <div className={ 'panel-body ' + css.content }>
             {this.contentView(avObj.get('contentHtml'))}
           </div>
           {panelFooter}

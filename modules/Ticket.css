@@ -1,0 +1,15 @@
+.item {
+
+}
+
+.heading {
+
+}
+
+.content {
+
+}
+
+.content table td > *:last-child {
+  margin-bottom: 0;
+}
