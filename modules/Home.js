@@ -3,8 +3,8 @@ import PropTypes from 'prop-types'
 
 export default class Home extends Component {
 
-  componentDidMount() {
-    if (this.props.isCustomerService) {
+  componentWillReceiveProps(nextProps){
+    if (nextProps.isCustomerService) {
       this.context.router.push('/customerService/tickets')
     } else {
       this.context.router.push('/tickets')

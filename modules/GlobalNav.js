@@ -51,7 +51,7 @@ export default class GlobalNav extends Component {
               <span className="icon-bar"></span>
               <span className="icon-bar"></span>
             </button>
-            <a className="navbar-brand" href="/">LeanTicket</a>
+            <a className="navbar-brand" href='/'>LeanTicket</a>
           </div>
           <div className="collapse navbar-collapse" id="global-navbar-collapse">
             <ul className="nav navbar-nav">
