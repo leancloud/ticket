@@ -104,26 +104,14 @@ export default class Ticket extends Component {
   commitReplySoon(reply, files) {
     return this.commitReply(reply, files)
     .then(() => {
-      return AV.Cloud.run('replySoon', {ticketId: this.state.ticket.id})
-      .then((ticket) => {
-        this.setState({ticket: AV.parseJSON(ticket)})
-        return this.delayRefreshOpsLogs()
-      })
+      return this.operateTicket('replySoon')
     })
   }
 
-  commitReplyNoContent() {
-    return AV.Cloud.run('replyWithNoContent', {ticketId: this.state.ticket.id})
+  operateTicket(action) {
+    return AV.Cloud.run('operateTicket', {ticketId: this.state.ticket.id, action})
     .then((ticket) => {
       this.setState({ticket: AV.parseJSON(ticket)})
-      return this.delayRefreshOpsLogs()
-    })
-  }
-
-  handleStatusChange(status) {
-    return this.state.ticket.set('status', status).save()
-    .then((ticket) => {
-      this.setState({ticket})
       return this.delayRefreshOpsLogs()
     })
     .catch(this.props.addNotification)
@@ -170,37 +158,49 @@ export default class Ticket extends Component {
       case 'selectAssignee':
         return (
           <p key={avObj.id}>
-            系统 于 {moment(avObj.get('createdAt')).fromNow()} 将工单分配给 <UserLabel user={avObj.get('data').assignee} /> 处理。
-          </p>
-        )
-      case 'changeStatus':
-        return (
-          <p key={avObj.id}>
-            <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 将工单状态修改为 <TicketStatusLabel status={avObj.get('data').status} /> 。
+            <span className='glyphicon glyphicon-transfer'></span> 系统 于 {moment(avObj.get('createdAt')).fromNow()} 将工单分配给 <UserLabel user={avObj.get('data').assignee} /> 处理。
           </p>
         )
       case 'changeCategory':
         return (
           <p key={avObj.id}>
-            <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 将工单类别改为 {avObj.get('data').category.name} 。
+            <span className='glyphicon glyphicon-transfer'></span> <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 将工单类别改为 {avObj.get('data').category.name} 。
           </p>
         )
       case 'changeAssignee':
         return (
           <p key={avObj.id}>
-            <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 将工单负责人改为 <UserLabel user={avObj.get('data').assignee} /> 。
+            <span className='glyphicon glyphicon-transfer'></span> <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 将工单负责人改为 <UserLabel user={avObj.get('data').assignee} /> 。
           </p>
         )
       case 'replyWithNoContent':
         return (
           <p key={avObj.id}>
-            <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 认为该工单暂时无需回复，如有问题可以回复该工单。
+            <span className='glyphicon glyphicon-comment'></span> <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 认为该工单暂时无需回复，如有问题可以回复该工单。
           </p>
         )
       case 'replySoon':
         return (
           <p key={avObj.id}>
-            <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 认为该工单处理需要一些时间，稍后会回复该工单。
+            <span className='glyphicon glyphicon-hourglass'></span> <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 认为该工单处理需要一些时间，稍后会回复该工单。
+          </p>
+        )
+      case 'resolve':
+        return (
+          <p key={avObj.id}>
+            <span className='glyphicon glyphicon-ok-circle'></span> <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 认为该工单已经解决。
+          </p>
+        )
+      case 'reject':
+        return (
+          <p key={avObj.id}>
+            <span className='glyphicon glyphicon-ban-circle'></span> <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 关闭了该工单。
+          </p>
+        )
+      case 'reopen':
+        return (
+          <p key={avObj.id}>
+            <span className='glyphicon glyphicon-record'></span> <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 重新打开该工单。
           </p>
         )
       }
@@ -239,7 +239,7 @@ export default class Ticket extends Component {
     }
 
     const tags = this.state.tags.map((tag) => {
-      return <Tag key={tag.id} tag={tag} ticket={this.state.ticket} isCustomerService={this.props.isCustomerService} />
+      return <Tag key={tag.id} tag={tag} ticket={this.state.ticket} isCustomerService={this.props.isCustomerService} addNotification={this.props.addNotification.bind(this)} />
     })
 
     const timeline = _.chain(this.state.replies)
@@ -253,24 +253,24 @@ export default class Ticket extends Component {
     if (isTicketOpen(this.state.ticket)) {
       optionButtons = (
         <FormGroup>
-          <button type="button" className='btn btn-default' onClick={() => this.handleStatusChange(this.props.isCustomerService ? TICKET_STATUS.PRE_FULFILLED : TICKET_STATUS.FULFILLED)}>已解决</button>
+          <button type="button" className='btn btn-default' onClick={() => this.operateTicket('resolve')}>已解决</button>
           {' '}
-          <button type="button" className='btn btn-default' onClick={() => this.handleStatusChange(TICKET_STATUS.REJECTED)}>关闭</button>
+          <button type="button" className='btn btn-default' onClick={() => this.operateTicket('reject')}>关闭</button>
         </FormGroup>
       )
     } else if (ticketStatus === TICKET_STATUS.PRE_FULFILLED && !this.props.isCustomerService) {
       optionButtons = (
         <Alert>
           <p>我们的工程师认为该工单已解决，请确认：</p>
-          <Button bsStyle="success" onClick={() => this.handleStatusChange(TICKET_STATUS.FULFILLED)}>已解决</Button>
+          <Button bsStyle="success" onClick={() => this.operateTicket('resolve')}>已解决</Button>
           {' '}
-          <Button onClick={() => this.handleStatusChange(TICKET_STATUS.WAITING_CUSTOMER)}>未解决</Button>
+          <Button onClick={() => this.operateTicket('reopen')}>未解决</Button>
         </Alert>
       )
     } else {
       optionButtons = (
         <FormGroup>
-          <button type="button" className='btn btn-default' onClick={() => this.handleStatusChange(TICKET_STATUS.NEW)}>重新打开</button>
+          <button type="button" className='btn btn-default' onClick={() => this.operateTicket('reopen')}>重新打开</button>
         </FormGroup>
       )
     }
@@ -288,21 +288,18 @@ export default class Ticket extends Component {
         <hr />
         {isTicketOpen(this.state.ticket) &&
           <div>
-            <p>
-              <TicketReply commitReply={this.commitReply.bind(this)}
-                commitReplySoon={this.commitReplySoon.bind(this)}
-                commitReplyNoContent={this.commitReplyNoContent.bind(this)}
-                isCustomerService={this.props.isCustomerService}
-              />
-            </p>
-            <p>
-              <UpdateTicket ticket={this.state.ticket}
-                isCustomerService={this.props.isCustomerService}
-                addNotification={this.props.addNotification.bind(this)}
-                updateTicketCategory={this.updateTicketCategory.bind(this)}
-                updateTicketAssignee={this.updateTicketAssignee.bind(this)}
-              />
-            </p>
+            <TicketReply commitReply={this.commitReply.bind(this)}
+              commitReplySoon={this.commitReplySoon.bind(this)}
+              operateTicket={this.operateTicket.bind(this)}
+              isCustomerService={this.props.isCustomerService}
+              addNotification={this.props.addNotification.bind(this)}
+            />
+            <UpdateTicket ticket={this.state.ticket}
+              isCustomerService={this.props.isCustomerService}
+              addNotification={this.props.addNotification.bind(this)}
+              updateTicketCategory={this.updateTicketCategory.bind(this)}
+              updateTicketAssignee={this.updateTicketAssignee.bind(this)}
+            />
           </div>
         }
         {optionButtons}
@@ -352,7 +349,7 @@ class TicketReply extends Component {
 
   handleReplyNoContent(e) {
     e.preventDefault()
-    this.props.commitReplyNoContent()
+    this.props.operateTicket('replyWithNoContent')
     .catch(this.props.addNotification)
   }
 
@@ -391,7 +388,7 @@ class TicketReply extends Component {
 TicketReply.propTypes = {
   commitReply: PropTypes.func.isRequired,
   commitReplySoon: PropTypes.func.isRequired,
-  commitReplyNoContent: PropTypes.func.isRequired,
+  operateTicket: PropTypes.func.isRequired,
   isCustomerService: PropTypes.bool,
   addNotification: PropTypes.func.isRequired,
 }

@@ -112,61 +112,49 @@ AV.Cloud.define('getTicketAndRepliesView', (req, res) => {
   }).catch(console.error)
 })
 
-AV.Cloud.define('replySoon', (req) => {
-  const {ticketId} = req.params
-  return common.isCustomerService(req.currentUser).then((isCustomerService) => {
-    if (!isCustomerService) {
-      throw new AV.Cloud.Error('unauthorized')
+AV.Cloud.define('operateTicket', (req) => {
+  const {ticketId, action} = req.params
+  return Promise.all([
+    new AV.Query('Ticket').get(ticketId),
+    common.getTinyUserInfo(req.currentUser),
+    common.isCustomerService(req.currentUser),
+  ])
+  .then(([ticket, operator, isCustomerService]) => {
+    if (isCustomerService) {
+      ticket.addUnique('joinedCustomerServices', operator)
     }
-    return Promise.all([
-      new AV.Query('Ticket').get(ticketId),
-      common.getTinyUserInfo(req.currentUser),
-    ])
-    .then(([ticket, operator]) => {
+    ticket.set('status', getTargetStatus(action, isCustomerService))
+    return ticket.save(null, {user: req.currentUser})
+    .then(() => {
       return new AV.Object('OpsLog').save({
         ticket,
-        action: 'replySoon',
-        data: {operator},
+        action,
+        data: {operator}
       }, {useMasterKey: true})
-      .then(() => {
-        ticket.set('status', TICKET_STATUS.WAITING_CUSTOMER_SERVICE)
-        if (isCustomerService) {
-          ticket.addUnique('joinedCustomerServices', operator)
-        }
-        return ticket.save(null, {user: req.currentUser})
-      })
-      .then(ticket => ticket.toFullJSON())
     })
-  }).catch(errorHandler.captureException)
+    .then(() => {
+      return ticket.toFullJSON()
+    })
+  })
+  .catch(errorHandler.captureException)
 })
 
-AV.Cloud.define('replyWithNoContent', (req) => {
-  const {ticketId} = req.params
-  return common.isCustomerService(req.currentUser).then((isCustomerService) => {
-    if (!isCustomerService) {
-      throw new AV.Cloud.Error('unauthorized')
-    }
-    return Promise.all([
-      new AV.Query('Ticket').get(ticketId),
-      common.getTinyUserInfo(req.currentUser),
-    ])
-    .then(([ticket, operator]) => {
-      return new AV.Object('OpsLog').save({
-        ticket,
-        action: 'replyWithNoContent',
-        data: {operator},
-      }, {useMasterKey: true})
-      .then(() => {
-        ticket.set('status', TICKET_STATUS.WAITING_CUSTOMER)
-        if (isCustomerService) {
-          ticket.addUnique('joinedCustomerServices', operator)
-        }
-        return ticket.save(null, {user: req.currentUser})
-      })
-      .then(ticket => ticket.toFullJSON())
-    })
-  }).catch(errorHandler.captureException)
-})
+const getTargetStatus = (action, isCustomerService) => {
+  switch (action) {
+  case 'replyWithNoContent':
+    return TICKET_STATUS.WAITING_CUSTOMER
+  case 'replySoon':
+    return TICKET_STATUS.WAITING_CUSTOMER_SERVICE
+  case 'resolve':
+    return isCustomerService ? TICKET_STATUS.PRE_FULFILLED : TICKET_STATUS.FULFILLED
+  case 'reject':
+    return TICKET_STATUS.REJECTED
+  case 'reopen':
+    return TICKET_STATUS.WAITING_CUSTOMER
+  default:
+    throw new Error('unsupport action: ' + action)
+  }
+}
 
 exports.replyTicket = (ticket, reply, replyAuthor) => {
   Promise.all([
