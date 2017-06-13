@@ -12,7 +12,7 @@ exports.newTicket = (ticket, from, to) => {
     return Promise.resolve()
   }
   return send({
-    from: `${from.get('username')} <ticket@leancloud.cn>`,
+    from: `${from.get('username')} <ticket-${to.id}@leancloud.cn>`,
     to: to.get('email'),
     subject: `[LeanTicket] ${ticket.get('title')} (#${ticket.get('nid')})`,
     text: ticket.get('content'),
@@ -25,7 +25,7 @@ exports.replyTicket = ({ticket, reply, from, to}) => {
     return Promise.resolve()
   }
   return send({
-    from: `${from.get('username')} <ticket@leancloud.cn>`,
+    from: `${from.get('username')} <ticket-${to.id}@leancloud.cn>`,
     to: to.get('email'),
     subject: `[LeanTicket] ${ticket.get('title')} (#${ticket.get('nid')})`,
     text: reply.get('content'),
@@ -38,7 +38,7 @@ exports.changeAssignee = (ticket, from, to) => {
     return Promise.resolve()
   }
   return send({
-    from: `${from.get('username')} <ticket@leancloud.cn>`,
+    from: `${from.get('username')} <ticket-${to.id}@leancloud.cn>`,
     to: to.get('email'),
     subject: `[LeanTicket] ${ticket.get('title')} (#${ticket.get('nid')})`,
     text:
