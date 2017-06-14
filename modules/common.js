@@ -2,7 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Link } from 'react-router'
 import _ from 'lodash'
-import AV from 'leancloud-storage'
+import AV from 'leancloud-storage/live-query'
 
 const TICKET_STATUS = require('../lib/constant').TICKET_STATUS
 

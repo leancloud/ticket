@@ -1,14 +1,12 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import { Link } from 'react-router'
-import AV from 'leancloud-storage'
-import Notification from './notification'
+import AV from 'leancloud-storage/live-query'
 
 export default class GlobalNav extends Component {
 
   handleLogout() {
     AV.User.logOut()
-    Notification.logout()
   }
 
   handleNewTicketClick() {

@@ -1,7 +1,7 @@
 import React from 'react'
 import _ from 'lodash'
 import {Link} from 'react-router'
-import AV from 'leancloud-storage'
+import AV from 'leancloud-storage/live-query'
 
 import common, {UserLabel} from '../common'
 

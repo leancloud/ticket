@@ -2,7 +2,7 @@ import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 import {FormGroup, ControlLabel, FormControl} from 'react-bootstrap'
-import AV from 'leancloud-storage'
+import AV from 'leancloud-storage/live-query'
 
 import common from './common'
 

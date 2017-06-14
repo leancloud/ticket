@@ -4,31 +4,14 @@ import xss from 'xss'
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import {FormGroup, FormControl, Label, Alert, Button, ButtonToolbar, Radio} from 'react-bootstrap'
-import AV from 'leancloud-storage'
+import AV from 'leancloud-storage/live-query'
 
 import common, {UserLabel, TicketStatusLabel, isTicketOpen} from './common'
 import UpdateTicket from './UpdateTicket'
-import Notification from './notification'
 
 import { TICKET_STATUS } from '../lib/constant'
 
 export default class Ticket extends Component {
-
-  delayRefreshOpsLogs() {
-    return new Promise((resovle) => {
-      setTimeout(() => {
-        resovle()
-      }, 500)
-    })
-    .then(() => {
-      return new AV.Query('OpsLog')
-      .equalTo('ticket', this.state.ticket)
-      .ascending('createdAt')
-      .find()
-    }).then((opsLogs) => {
-      this.setState({opsLogs})
-    })
-  }
 
   constructor(props) {
     super(props)
@@ -36,49 +19,88 @@ export default class Ticket extends Component {
       ticket: null,
       replies: [],
       opsLogs: [],
-      categories: [],
     }
   }
 
   componentDidMount() {
-    AV.Cloud.run('getTicketAndRepliesView', {nid: parseInt(this.props.params.nid)})
-    .then(({ticket, replies}) => {
-      ticket = AV.parseJSON(ticket)
-      Promise.all([
+    new AV.Query('Ticket')
+    .equalTo('nid', parseInt(this.props.params.nid))
+    .include('author')
+    .include('files')
+    .first()
+    .then(ticket => {
+      return Promise.all([
+        AV.Cloud.run('htmlify', {content: ticket.get('content')}),
+        this.getReplyQuery(ticket).find().then(this.onRepliesCreate),
         new AV.Query('Tag')
           .equalTo('ticket', ticket)
           .find(),
-        new AV.Query('OpsLog')
-          .equalTo('ticket', ticket)
-          .ascending('createdAt')
-          .find()
+        this.getOpsLogQuery(ticket).find(),
       ])
-      .then(([tags, opsLogs]) => {
+      .then(([ticketContentHtml, replies, tags, opsLogs]) => {
+        ticket.contentHtml = ticketContentHtml
         this.setState({
           ticket,
-          replies: replies.map(AV.parseJSON),
+          replies,
           tags,
           opsLogs,
-        })
-        return Notification.getClient().then(client =>
-          client.getQuery().equalTo('ticket', ticket.get('nid')).find()
-        ).then(([conversation]) => {
-          if (conversation) {
-            conversation.on('message', this.handleNotification)
-            return conversation.join()
-          }
         })
       })
     })
     .catch(this.props.addNotification)
   }
 
-  handleNotification(message) {
-    // 只关注机器人发的消息
-    // TODO: 为了防止伪造，需要使用登录签名阻止所有试图使用机器人 id 登录的行为，既机器人的消息只能通过 Rest API + masterKey 发出
-    if (message.from !== 'LeanTicket Bot') return
-    console.log(message)
-    // TODO: fetch change and update UI
+  componentWillUnmount() {
+    Promise.all([
+      this.replyLiveQuery.unsubscribe(),
+      this.opsLogLiveQuery.unsubscribe()
+    ])
+    .catch(this.props.addNotification)
+  }
+
+  onRepliesCreate(replies) {
+    const replyContents = replies.map(reply => reply.get('content'))
+    return AV.Cloud.run('htmlify', {contents: replyContents})
+    .then(contentHtmls => {
+      replies.forEach((reply, i) => {
+        reply.contentHtml = contentHtmls[i]
+      })
+      return replies
+    })
+  }
+
+  getReplyQuery(ticket) {
+    const replyQuery = new AV.Query('Reply')
+    .equalTo('ticket', ticket)
+    .include('author')
+    .include('files')
+    replyQuery.subscribe().then(liveQuery => {
+      this.replyLiveQuery = liveQuery
+      this.replyLiveQuery.on('create', reply => {
+        this.onRepliesCreate([reply])
+        .then(([reply]) => {
+          const replies = this.state.replies
+          replies.push(reply)
+          this.setState({replies})
+        })
+      })
+    })
+    return replyQuery
+  }
+
+  getOpsLogQuery(ticket) {
+    const opsLogQuery = new AV.Query('OpsLog')
+    .equalTo('ticket', ticket)
+    .ascending('createdAt')
+    opsLogQuery.subscribe().then(liveQuery => {
+      this.opsLogLiveQuery = liveQuery
+      this.opsLogLiveQuery.on('create', opsLog => {
+        const opsLogs = this.state.opsLogs
+        opsLogs.push(opsLog)
+        this.setState({opsLogs})
+      })
+    })
+    return opsLogQuery
   }
 
   commitReply(reply, files) {
@@ -91,12 +113,6 @@ export default class Ticket extends Component {
         ticket: this.state.ticket,
         content: reply,
         files,
-      }).then((reply) => {
-        return AV.Cloud.run('getReplyView', {objectId: reply.id})
-      }).then((reply) => {
-        const replies = this.state.replies
-        replies.push(AV.parseJSON(reply))
-        this.setState({replies})
       })
     })
   }
@@ -112,7 +128,6 @@ export default class Ticket extends Component {
     return AV.Cloud.run('operateTicket', {ticketId: this.state.ticket.id, action})
     .then((ticket) => {
       this.setState({ticket: AV.parseJSON(ticket)})
-      return this.delayRefreshOpsLogs()
     })
     .catch(this.props.addNotification)
   }
@@ -121,7 +136,6 @@ export default class Ticket extends Component {
     return this.state.ticket.set('category', common.getTinyCategoryInfo(category)).save()
     .then((ticket) => {
       this.setState({ticket})
-      return this.delayRefreshOpsLogs()
     })
   }
 
@@ -129,7 +143,6 @@ export default class Ticket extends Component {
     return this.state.ticket.set('assignee', assignee).save()
     .then((ticket) => {
       this.setState({ticket})
-      return this.delayRefreshOpsLogs()
     })
   }
 
@@ -223,7 +236,7 @@ export default class Ticket extends Component {
           {userLabel} 于 {moment(avObj.get('createdAt')).fromNow()}提交
           </div>
           <div className="panel-body">
-            {this.contentView(avObj.get('contentHtml'))}
+            {this.contentView(avObj.contentHtml)}
           </div>
           {panelFooter}
         </div>
@@ -304,7 +317,12 @@ export default class Ticket extends Component {
         }
         {optionButtons}
         {!isTicketOpen(this.state.ticket) &&
-          <Evaluation saveEvaluation={this.saveEvaluation.bind(this)} ticket={this.state.ticket} isCustomerService={this.props.isCustomerService} />
+          <Evaluation
+            saveEvaluation={this.saveEvaluation.bind(this)}
+            ticket={this.state.ticket}
+            isCustomerService={this.props.isCustomerService}
+            addNotification={this.props.addNotification}
+          />
         }
       </div>
     )

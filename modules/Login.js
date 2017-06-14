@@ -1,6 +1,6 @@
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
-import AV from 'leancloud-storage'
+import AV from 'leancloud-storage/live-query'
 
 export default class Login extends Component {
 

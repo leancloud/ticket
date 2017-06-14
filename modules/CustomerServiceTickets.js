@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { Link } from 'react-router'
 import {Table, Form, FormGroup, ButtonToolbar, ButtonGroup, Button, DropdownButton, MenuItem, Checkbox, FormControl} from 'react-bootstrap'
 import moment from 'moment'
-import AV from 'leancloud-storage'
+import AV from 'leancloud-storage/live-query'
 
 import {sortTickets, UserLabel, TicketStatusLabel, getCustomerServices, ticketOpenedStatuses, ticketClosedStatuses} from './common'
 

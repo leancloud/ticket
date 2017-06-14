@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 import _ from 'lodash'
 import PropTypes from 'prop-types'
-import AV from 'leancloud-storage'
+import AV from 'leancloud-storage/live-query'
 
 export default class User extends Component {
 

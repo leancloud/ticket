@@ -1,17 +1,20 @@
 import React from 'react'
 import _ from 'lodash'
-import AV from 'leancloud-storage'
+import AV from 'leancloud-storage/live-query'
 
 const {UserLabel} = require('../common')
 
-export default React.createClass({
-  getInitialState() {
-    return {
+export default class SettingMembers extends React.Component {
+
+  constructor(props) {
+    super(props)
+    this.state = {
       customerServiceRole: null,
       customerServices: [],
       username: ''
     }
-  },
+  }
+
   componentDidMount() {
     this.getRoleAndUsers('customerService')
     .then((data) => {
@@ -20,7 +23,8 @@ export default React.createClass({
         customerServices: data.users,
       })
     })
-  },
+  }
+
   getRoleAndUsers(role) {
     return new AV.Query(AV.Role)
     .equalTo('name', role)
@@ -31,10 +35,12 @@ export default React.createClass({
         return { role, users }
       })
     })
-  },
+  }
+
   handleUsernameChange(e) {
     this.setState({username: e.target.value})
-  },
+  }
+
   handleSubmit(e) {
     e.preventDefault()
     new AV.Query(AV.User)
@@ -53,7 +59,8 @@ export default React.createClass({
         })
       })
     })
-  },
+  }
+
   handleRemoveCustomerService(id) {
     this.state.customerServiceRole.getUsers().remove(AV.Object.createWithoutData('_User', id))
     this.state.customerServiceRole.save()
@@ -65,7 +72,8 @@ export default React.createClass({
         customerServices: data.users,
       })
     })
-  },
+  }
+
   render() {
     const customerServices = this.state.customerServices.map((customerService) => {
       const categories = _.map(customerService.get('categories'), (category) => {
@@ -87,9 +95,9 @@ export default React.createClass({
     })
     return (
       <div>
-        <form className="form-inline" onSubmit={this.handleSubmit}>
+        <form className="form-inline" onSubmit={this.handleSubmit.bind(this)}>
           <div className="form-group">
-            <input type="text" className="form-control" placeholder="用户名" value={this.state.username} onChange={this.handleUsernameChange} />
+            <input type="text" className="form-control" placeholder="用户名" value={this.state.username} onChange={this.handleUsernameChange.bind(this)} />
           </div>
           {' '}
           <button type="submit" className="btn btn-primary">添加为技术支持人员</button>
@@ -109,4 +117,5 @@ export default React.createClass({
       </div>
     )
   }
-})
+
+}

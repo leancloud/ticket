@@ -112,10 +112,25 @@ AV.Cloud.define('getTicketAndRepliesView', (req, res) => {
   }).catch(console.error)
 })
 
+AV.Cloud.define('htmlify', (req) => {
+  const {content, contents} = req.params
+  if (content) {
+    return common.md.render(content)
+  }
+  if (contents) {
+    return contents.map(content => common.md.render(content))
+  }
+  return null
+})
+
 AV.Cloud.define('operateTicket', (req) => {
   const {ticketId, action} = req.params
   return Promise.all([
-    new AV.Query('Ticket').get(ticketId),
+    new AV.Query('Ticket')
+    .include('files')
+    .include('author')
+    .include('assignee')
+    .get(ticketId),
     common.getTinyUserInfo(req.currentUser),
     common.isCustomerService(req.currentUser),
   ])

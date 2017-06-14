@@ -1,11 +1,10 @@
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import NotificationSystem from 'react-notification-system'
-import AV from 'leancloud-storage'
+import AV from 'leancloud-storage/live-query'
 
 import common from './common'
 import GlobalNav from './GlobalNav'
-import Notification from './notification'
 
 export default class App extends Component {
 
@@ -39,7 +38,6 @@ export default class App extends Component {
       .then((isCustomerService) => {
         this.setState({isCustomerService})
       })
-    if (user) Notification.login(user.id)
   }
 
   login(username, password) {
@@ -48,7 +46,6 @@ export default class App extends Component {
     .setPassword(password)
     .logIn()
     .then((user) => {
-      Notification.login(user.id)
       return common.isCustomerService(user)
     }).then((isCustomerService) => {
       this.setState({isCustomerService})
@@ -63,7 +60,6 @@ export default class App extends Component {
 
   loginByToken(token) {
     return AV.User.become(token).then((user) => {
-      Notification.login(user.id)
       return common.isCustomerService(user)
     }).then((isCustomerService) => {
       this.setState({isCustomerService})

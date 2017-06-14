@@ -2,7 +2,7 @@
 import React from 'react'
 import { Route, IndexRoute } from 'react-router'
 import moment from 'moment'
-import AV from 'leancloud-storage'
+import AV from 'leancloud-storage/live-query'
 
 import common from './common'
 import App from './App'
@@ -31,7 +31,6 @@ AV.init({
   appId: LEANCLOUD_APP_ID,
   appKey: LEANCLOUD_APP_KEY,
 })
-
 AV.setProduction(LEANCLOUD_APP_ENV === 'production')
 
 module.exports = (

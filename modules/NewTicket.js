@@ -3,7 +3,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 import {FormGroup, ControlLabel, FormControl} from 'react-bootstrap'
-import AV from 'leancloud-storage'
+import AV from 'leancloud-storage/live-query'
 
 const common = require('./common')
 

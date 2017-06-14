@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import {Form, FormGroup, ControlLabel, FormControl, Button} from 'react-bootstrap'
-import AV from 'leancloud-storage'
+import AV from 'leancloud-storage/live-query'
 
 export default class CustomerServiceProfile extends Component {
 

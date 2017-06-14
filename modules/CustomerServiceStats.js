@@ -5,7 +5,7 @@ import _ from 'lodash'
 import {Table, Form, FormGroup, ControlLabel, Button} from 'react-bootstrap'
 import {Line} from 'react-chartjs-2'
 import DatePicker from 'react-datepicker'
-import AV from 'leancloud-storage'
+import AV from 'leancloud-storage/live-query'
 
 const getRandomInt = (min, max) => {
   return Math.floor(Math.random() * (max - min + 1) + min)

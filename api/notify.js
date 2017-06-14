@@ -1,11 +1,9 @@
 const mail = require('./mail')
 const bearychat = require('./bearychat')
 const wechat = require('./wechat')
-const onlineNotification = require('./onlineNotification')
 
 exports.newTicket = (ticket, author, assignee) => {
   return Promise.all([
-    onlineNotification.newTicket(ticket, author, assignee),
     mail.newTicket(ticket, author, assignee),
     bearychat.newTicket(ticket, author, assignee),
     wechat.newTicket(ticket, author, assignee),
@@ -22,7 +20,6 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
     isCustomerServiceReply: reply.get('isCustomerService'),
   }
   return Promise.all([
-    onlineNotification.replyTicket(data),
     mail.replyTicket(data),
     bearychat.replyTicket(data),
     wechat.replyTicket(data),
