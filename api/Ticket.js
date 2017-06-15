@@ -55,6 +55,21 @@ AV.Cloud.afterSave('Ticket', (req) => {
   }).catch(errorHandler.captureException)
 })
 
+AV.Cloud.beforeUpdate('Ticket', (req, res) => {
+  if (req.object.updatedKeys.indexOf('assignee') != -1) {
+    getVacationers()
+    .then(vacationers => {
+      const finded = _.find(vacationers, {id: req.object.get('assignee').id})
+      if (finded) {
+        return res.error('抱歉，该客服正在休假。')
+      }
+      return res.success()
+    })
+  } else {
+    return res.success()
+  }
+})
+
 AV.Cloud.afterUpdate('Ticket', (req) => {
   return common.getTinyUserInfo(req.currentUser).then((user) => {
     if (req.object.updatedKeys.indexOf('category') != -1) {
@@ -194,20 +209,43 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
 }
 
 const selectAssignee = (ticket) => {
-  return new AV.Query(AV.Role)
-  .equalTo('name', 'customerService')
-  .first()
-  .then((role) => {
+  return Promise.all([
+    new AV.Query(AV.Role)
+    .equalTo('name', 'customerService')
+    .first(),
+    getVacationers(),
+  ])
+  .then(([role, vacationers]) => {
+    let query = role.getUsers().query()
     const category = ticket.get('category')
-    const query = role.getUsers().query()
     if (!_.isEmpty(category)) {
       query.equalTo('categories.objectId', category.objectId)
     }
-    return query.find({useMasterKey: true}).then((users) => {
+    if (vacationers.length > 0) {
+      query.notContainedIn('objectId', vacationers.map(v => v.id))
+    }
+    return query.find({useMasterKey: true})
+    .then((users) => {
       if (users.length != 0) {
         return _.sample(users)
       }
-      return role.getUsers().query().find({useMasterKey: true}).then(_.sample)
+
+      query = role.getUsers().query()
+      if (vacationers.length > 0) {
+        query.notContainedIn('objectId', vacationers.map(v => v.id))
+      }
+      return query.find({useMasterKey: true}).then(_.sample)
     })
+  })
+}
+
+const getVacationers = () => {
+  const now = new Date()
+  return new AV.Query('Vacation')
+  .lessThan('startDate', now)
+  .greaterThan('endDate', now)
+  .find({useMasterKey: true})
+  .then(vacations => {
+    return vacations.map(v => v.get('vacationer'))
   })
 }

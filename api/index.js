@@ -17,6 +17,7 @@ require('./User')
 require('./Category')
 require('./Tag')
 require('./stats')
+require('./Vacation')
 
 router.use('/api/leancloud', require('./leancloud').router)
 router.use('/webhooks/mailgun', require('./mailgun'))
