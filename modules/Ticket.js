@@ -23,22 +23,16 @@ export default class Ticket extends Component {
   }
 
   componentDidMount() {
-    new AV.Query('Ticket')
-    .equalTo('nid', parseInt(this.props.params.nid))
-    .include('author')
-    .include('files')
-    .first()
+    AV.Cloud.run('getTicket', {nid: parseInt(this.props.params.nid)})
     .then(ticket => {
       return Promise.all([
-        AV.Cloud.run('htmlify', {content: ticket.get('content')}),
         this.getReplyQuery(ticket).find().then(this.onRepliesCreate),
         new AV.Query('Tag')
           .equalTo('ticket', ticket)
           .find(),
         this.getOpsLogQuery(ticket).find(),
       ])
-      .then(([ticketContentHtml, replies, tags, opsLogs]) => {
-        ticket.contentHtml = ticketContentHtml
+      .then(([replies, tags, opsLogs]) => {
         this.setState({
           ticket,
           replies,
@@ -236,7 +230,7 @@ export default class Ticket extends Component {
           {userLabel} 于 {moment(avObj.get('createdAt')).fromNow()}提交
           </div>
           <div className="panel-body">
-            {this.contentView(avObj.contentHtml)}
+            {this.contentView(avObj.contentHtml || avObj.get('contentHtml'))}
           </div>
           {panelFooter}
         </div>

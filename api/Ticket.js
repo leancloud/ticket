@@ -101,7 +101,7 @@ AV.Cloud.afterUpdate('Ticket', (req) => {
   })
 })
 
-AV.Cloud.define('getTicketAndRepliesView', (req, res) => {
+AV.Cloud.define('getTicket', (req, res) => {
   return new AV.Query('Ticket')
   .equalTo('nid', req.params.nid)
   .include('author')
@@ -112,18 +112,7 @@ AV.Cloud.define('getTicketAndRepliesView', (req, res) => {
       return res.error('notFound')
     }
     ticket.set('contentHtml', common.md.render(ticket.get('content')))
-    return new AV.Query('Reply')
-    .equalTo('ticket', ticket)
-    .include('author')
-    .include('files')
-    .find({user: req.currentUser})
-    .then(replies => {
-      replies = replies.map(reply => {
-        reply.set('contentHtml', common.md.render(reply.get('content')))
-        return reply.toFullJSON()
-      })
-      return res.success({ticket: ticket.toFullJSON(), replies})
-    })
+    return res.success(ticket.toFullJSON())
   }).catch(console.error)
 })
 
@@ -144,7 +133,6 @@ AV.Cloud.define('operateTicket', (req) => {
     new AV.Query('Ticket')
     .include('files')
     .include('author')
-    .include('assignee')
     .get(ticketId),
     common.getTinyUserInfo(req.currentUser),
     common.isCustomerService(req.currentUser),
@@ -163,6 +151,7 @@ AV.Cloud.define('operateTicket', (req) => {
       }, {useMasterKey: true})
     })
     .then(() => {
+      ticket.set('contentHtml', common.md.render(ticket.get('content')))
       return ticket.toFullJSON()
     })
   })
