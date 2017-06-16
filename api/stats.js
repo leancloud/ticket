@@ -284,6 +284,12 @@ AV.Cloud.define('getStats', (req) => {
       stats.firstReplyTimeByUser = firstReplyTimeByUser(stats, ticketStatses)
       stats.replyTimeByUser = replyTimeByUser(stats, ticketStatses)
     })
+    .forEach((stats) => {
+      stats.firstReplyTime = _.sumBy(stats.firstReplyTimeByUser, 'replyTime')
+      stats.firstReplyCount = _.sumBy(stats.firstReplyTimeByUser, 'replyCount')
+      stats.replyTime = _.sumBy(stats.replyTimeByUser, 'replyTime')
+      stats.replyCount = _.sumBy(stats.replyTimeByUser, 'replyCount')
+    })
     .value()
   })
 })

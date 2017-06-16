@@ -333,6 +333,10 @@ class StatsSummary extends React.Component {
           activeTicketCountByAuthor,
           firstReplyTimeByUser,
           replyTimeByUser,
+          firstReplyTime: stats.firstReplyTime,
+          firstReplyCount: stats.firstReplyCount,
+          replyTime: stats.replyTime,
+          replyCount: stats.replyCount,
           userIds
         }
       })
@@ -355,12 +359,25 @@ class StatsSummary extends React.Component {
       return <span>{moment(data.date).format('YYYY [年] MM [月] DD [日][（第] ww [周）]')}</span>
     })
 
-    const newTicketCountDoms = this.state.statsDatas.map(data => {
-      return <span>{data.newTicketCount}</span>
-    })
-
-    const activeTicketCountDoms = this.state.statsDatas.map(data => {
-      return <span>{data.activeTicketCounts}</span>
+    const summaryDoms = this.state.statsDatas.map(data => {
+      return <Table>
+        <thead>
+          <tr>
+            <th>新增工单</th>
+            <th>活跃工单</th>
+            <th>平均首次响应</th>
+            <th>平均响应</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{data.newTicketCount}</td>
+            <td>{data.activeTicketCounts}</td>
+            <td>{(data.firstReplyTime / data.firstReplyCount / 1000 / 60 / 60).toFixed(2)}</td>
+            <td>{(data.replyTime / data.replyCount / 1000 / 60 / 60).toFixed(2)}</td>
+          </tr>
+        </tbody>
+      </Table>
     })
 
     const activeTicketCountByCategoryDoms = this.state.statsDatas.map(data => {
@@ -493,12 +510,8 @@ class StatsSummary extends React.Component {
         </thead>
         <tbody>
           <tr>
-            <th>新增工单数</th>
-            {newTicketCountDoms.map(dom => <td>{dom}</td>)}
-          </tr>
-          <tr>
-            <th>活跃工单数</th>
-            {activeTicketCountDoms.map(dom => <td>{dom}</td>)}
+            <th>总览</th>
+            {summaryDoms.map(dom => <td>{dom}</td>)}
           </tr>
           <tr>
             <th>活跃工单数（分类）</th>
