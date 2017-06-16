@@ -14,10 +14,10 @@ export default class NewTicket extends React.Component {
     this.state = {
       categories: [],
       apps: [],
-      title: '',
+      title: localStorage.getItem('ticket:new:title') || '',
       appId: '',
       category: {},
-      content: '',
+      content: localStorage.getItem('ticket:new:content') || '',
     }
   }
 
@@ -32,6 +32,7 @@ export default class NewTicket extends React.Component {
   }
 
   handleTitleChange(e) {
+    localStorage.setItem('ticket:new:title', e.target.value)
     this.setState({title: e.target.value})
   }
 
@@ -45,6 +46,7 @@ export default class NewTicket extends React.Component {
   }
 
   handleContentChange(e) {
+    localStorage.setItem('ticket:new:content', e.target.value)
     this.setState({content: e.target.value})
   }
 
@@ -66,6 +68,8 @@ export default class NewTicket extends React.Component {
         })
       })
     }).then(() => {
+      localStorage.removeItem('ticket:new:title')
+      localStorage.removeItem('ticket:new:content')
       this.context.router.push('/tickets')
     })
     .catch(this.props.addNotification)

@@ -295,7 +295,9 @@ export default class Ticket extends Component {
         <hr />
         {isTicketOpen(this.state.ticket) &&
           <div>
-            <TicketReply commitReply={this.commitReply.bind(this)}
+            <TicketReply
+              ticket={this.state.ticket}
+              commitReply={this.commitReply.bind(this)}
               commitReplySoon={this.commitReplySoon.bind(this)}
               operateTicket={this.operateTicket.bind(this)}
               isCustomerService={this.props.isCustomerService}
@@ -334,12 +336,13 @@ class TicketReply extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      reply: '',
+      reply: localStorage.getItem(`ticket:${this.props.ticket.id}:reply`) || '',
       files: [],
     }
   }
 
   handleReplyOnChange(e) {
+    localStorage.setItem(`ticket:${this.props.ticket.id}:reply`, e.target.value)
     this.setState({reply: e.target.value})
   }
 
@@ -347,6 +350,7 @@ class TicketReply extends Component {
     e.preventDefault()
     this.props.commitReply(this.state.reply, this.fileInput.files)
     .then(() => {
+      localStorage.removeItem(`ticket:${this.props.ticket.id}:reply`)
       this.setState({reply: ''})
       this.fileInput.value = ''
     })
@@ -398,6 +402,7 @@ class TicketReply extends Component {
 }
 
 TicketReply.propTypes = {
+  ticket: PropTypes.instanceOf(AV.Object),
   commitReply: PropTypes.func.isRequired,
   commitReplySoon: PropTypes.func.isRequired,
   operateTicket: PropTypes.func.isRequired,
@@ -454,7 +459,7 @@ class Evaluation extends Component {
     this.state = {
       isAlreadyEvaluation: false,
       star: 1,
-      content: '',
+      content: localStorage.getItem(`ticket:${this.props.ticket.id}:evaluation`) || '',
     }
   }
 
@@ -463,6 +468,7 @@ class Evaluation extends Component {
   }
 
   handleContentChange(e) {
+    localStorage.setItem(`ticket:${this.props.ticket.id}:evaluation`, e.target.value)
     this.setState({content: e.target.value})
   }
 
@@ -471,6 +477,9 @@ class Evaluation extends Component {
     this.props.saveEvaluation({
       star: this.state.star,
       content: this.state.content
+    })
+    .then(() => {
+      localStorage.removeItem(`ticket:${this.props.ticket.id}:evaluation`)
     })
     .catch(this.props.addNotification)
   }
