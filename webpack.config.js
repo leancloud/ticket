@@ -34,5 +34,7 @@ module.exports = {
     new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.optimize.UglifyJsPlugin(),
     new ExtractTextPlugin('app.css')
-  ] : []),
+  ] : [
+    new ExtractTextPlugin('app.css')
+  ]),
 }
