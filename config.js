@@ -1,5 +1,18 @@
+let host
+switch (process.env.LEANCLOUD_APP_ENV) {
+case 'production':
+  host = process.env.TICKET_HOST
+  break
+case 'stage':
+  host = process.env.TICKET_HOST_STG
+  break
+case 'development':
+default:
+  host = 'http://localhost:' + process.env.LEANCLOUD_APP_PORT
+}
+
 module.exports = {
-  host: process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : process.env.TICKET_HOST,
+  host,
   leancloudOauthKey: process.env.LEANCLOUD_OAUTH_KEY,
   leancloudOauthSecret: process.env.LEANCLOUD_OAUTH_SECRET,
   leancloudAppUrl: process.env.LEANCLOUD_APP_URL,

@@ -65,6 +65,25 @@ ${ticket.get('latestReply') && ticket.get('latestReply').content}
   ])
 }
 
+exports.ticketEvaluation = (ticket, from, to) => {
+  const {star, content} = ticket.get('evaluation')
+  const data = {
+    text: `LeanTicket: [[${ticket.get('category').name}] #${ticket.get('nid')}](${common.getTicketUrl(ticket)}): ${from.get('username')} 评价工单`,
+    attachments: [{
+      title: ticket.get('title'),
+      text:
+`结果：${star === 1 ? '👍'  : '👎'  }
+附言：${content}
+`,
+      color: star === 1 ? COLORS.success : COLORS.danger,
+    }]
+  }
+  return Promise.all([
+    send(config.bearychatGlobalHookUrl, data),
+    send(to.get('bearychatUrl'), data),
+  ])
+}
+
 const send = (url, params) => {
   if (!url) {
     return Promise.resolve()

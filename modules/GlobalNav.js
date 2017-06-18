@@ -1,14 +1,12 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import { Link } from 'react-router'
-import AV from 'leancloud-storage'
-import Notification from './notification'
+import AV from 'leancloud-storage/live-query'
 
 export default class GlobalNav extends Component {
 
   handleLogout() {
     AV.User.logOut()
-    Notification.logout()
   }
 
   handleNewTicketClick() {
@@ -42,7 +40,7 @@ export default class GlobalNav extends Component {
       )
     }
     return (
-      <nav className="navbar navbar-default">
+      <nav className="navbar navbar-default navbar-fixed-top">
         <div className="container">
           <div className="navbar-header">
             <button type="button" className="navbar-toggle collapsed" data-toggle="collapse" data-target="#global-navbar-collapse" aria-expanded="false">
@@ -51,7 +49,7 @@ export default class GlobalNav extends Component {
               <span className="icon-bar"></span>
               <span className="icon-bar"></span>
             </button>
-            <a className="navbar-brand font-logo" href="/">LeanTicket</a>
+            <a className="navbar-brand font-logo" href='/'>LeanTicket</a>
           </div>
           <div className="collapse navbar-collapse" id="global-navbar-collapse">
             <ul className="nav navbar-nav">
@@ -74,7 +72,7 @@ export default class GlobalNav extends Component {
 }
 
 GlobalNav.contextTypes = {
-  router: PropTypes.object
+  router: PropTypes.object.isRequired
 }
 
 GlobalNav.propTypes = {

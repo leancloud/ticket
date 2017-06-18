@@ -1,9 +1,9 @@
 import React, {Component} from 'react'
+import PropTypes from 'prop-types'
 import { Link } from 'react-router'
-import AV from 'leancloud-storage'
+import AV from 'leancloud-storage/live-query'
 
-import {TICKET_STATUS} from '../lib/constant'
-import {sortTickets, TicketStatusLabel, TicketReplyLabel} from './common'
+import {sortTicketsForCustomer, TicketStatusLabel} from './common'
 
 export default class Tickets extends Component {
   
@@ -19,6 +19,7 @@ export default class Tickets extends Component {
     .then((tickets) => {
       this.setState({tickets})
     })
+    .catch(this.props.addNotification)
   }
 
   componentDidMount () {
@@ -37,7 +38,7 @@ export default class Tickets extends Component {
   }
 
   render() {
-    const tickets = sortTickets(this.state.tickets)
+    const tickets = sortTicketsForCustomer(this.state.tickets)
     const ticketLinks = tickets.map((ticket) => {
       let latestReply = ticket.get('latestReply')
       let latestReplyContent = ''
@@ -47,14 +48,11 @@ export default class Tickets extends Component {
           latestReplyContent = latestReplyContent.slice(0, 200) + '……'
         }
       }
-      if (latestReply && latestReply.action === 'replyWithNoContent') {
-        latestReplyContent = '客服将该工单设置为暂时无需回复。'
-      }
       return (
         <li className="list-group-item" key={ticket.get('nid')}>
           <span className="badge">{ticket.get('replyCount')}</span>
           <h4 className="list-group-item-heading">
-            <Link to={`/tickets/${ticket.get('nid')}`}>#{ticket.get('nid')} {ticket.get('title')}</Link> <small><TicketStatusLabel status={ticket.get('status')} /> <TicketReplyLabel ticket={ticket} /></small>
+            <Link to={`/tickets/${ticket.get('nid')}`}>#{ticket.get('nid')} {ticket.get('title')}</Link> <small><TicketStatusLabel status={ticket.get('status')} /></small>
           </h4>
           <p className="list-group-item-text">{latestReplyContent}</p>
         </li>
@@ -75,4 +73,8 @@ export default class Tickets extends Component {
       </div> 
     )
   }
+}
+
+Tickets.propTypes = {
+  addNotification: PropTypes.func,
 }

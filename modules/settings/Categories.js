@@ -1,21 +1,24 @@
 import React from 'react'
 import _ from 'lodash'
-import Promise from 'bluebird'
-import AV from 'leancloud-storage'
+import {Link} from 'react-router'
+import AV from 'leancloud-storage/live-query'
 
 import common, {UserLabel} from '../common'
 
-export default React.createClass({
-  getInitialState() {
-    return {
+export default class Cagegories extends React.Component {
+
+  constructor(props) {
+    super(props)
+    this.state = {
       categories: [],
       newCategory: '',
       checkedCategories: [],
       customerServices: [],
     }
-  },
+  }
+
   componentDidMount() {
-    Promise.all([
+    return Promise.all([
       new AV.Query('Category')
         .descending('createdAt')
         .find(),
@@ -23,17 +26,19 @@ export default React.createClass({
         .then((users) => {
           return _.reject(users, {id: AV.User.current().id})
         })
-    ]).spread((categories, customerServices) => {
+    ]).then(([categories, customerServices]) => {
       this.setState({
         categories,
         checkedCategories: AV.User.current().get('categories') || [],
         customerServices,
       })
     })
-  },
+  }
+
   handleNewCategoryChange(e) {
     this.setState({newCategory: e.target.value})
-  },
+  }
+
   handleCategorySubmit(e) {
     e.preventDefault()
     if (this.state.newCategory) {
@@ -45,7 +50,8 @@ export default React.createClass({
           this.setState({categories})
         })
     }
-  },
+  }
+
   handleCategoryChange(e, categoryId) {
     let categories = this.state.checkedCategories
     if (e.target.checked) {
@@ -60,7 +66,8 @@ export default React.createClass({
       .then(() => {
         this.setState({checkedCategories: categories})
       })
-  },
+  }
+
   render() {
     const categories = this.state.categories.map((category) => {
       const selectCustomerServices = _.filter(this.state.customerServices, (user) => {
@@ -70,7 +77,7 @@ export default React.createClass({
       })
       return (
         <tr key={category.id}>
-          <td>{category.get('name')}</td>
+          <td><Link to={'/settings/categories/' + category.id}>{category.get('name')}</Link></td>
           <td><input type='checkbox' 
                 checked={!!_.find(this.state.checkedCategories, {objectId: category.id})}
                 onChange={(e) => this.handleCategoryChange(e, category.id)}
@@ -83,10 +90,10 @@ export default React.createClass({
       <div>
         <div className="form-inline">
           <div className='form-group'>
-            <input type="text" className="form-control" placeholder="分类名称" value={this.state.category} onChange={this.handleNewCategoryChange} />
+            <input type="text" className="form-control" placeholder="分类名称" value={this.state.category} onChange={this.handleNewCategoryChange.bind(this)} />
           </div>
           {' '}
-          <button type="button" className="btn btn-default" onClick={this.handleCategorySubmit}>新增分类</button>
+          <button type="button" className="btn btn-default" onClick={this.handleCategorySubmit.bind(this)}>新增分类</button>
         </div>
         <table className='table table-bordered'>
           <thead>
@@ -103,4 +110,5 @@ export default React.createClass({
       </div>
     )
   }
-})
+
+}

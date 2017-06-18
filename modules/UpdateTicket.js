@@ -2,7 +2,7 @@ import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 import {FormGroup, ControlLabel, FormControl} from 'react-bootstrap'
-import AV from 'leancloud-storage'
+import AV from 'leancloud-storage/live-query'
 
 import common from './common'
 
@@ -24,17 +24,22 @@ export default class UpdateTicket extends Component {
       ]).then(([categories, assignees]) => {
         this.setState({categories, assignees})
       })
+      .catch(this.props.addNotification)
     }
   }
 
   handleCategoryChange(e) {
     const category = _.find(this.state.categories, {id: e.target.value})
     this.props.updateTicketCategory(category)
+    .then(this.props.addNotification)
+    .catch(this.props.addNotification)
   }
 
   handleAssigneeChange(e) {
     const customerService = _.find(this.state.assignees, {id: e.target.value})
     this.props.updateTicketAssignee(customerService)
+    .then(this.props.addNotification)
+    .catch(this.props.addNotification)
   }
 
   render() {
@@ -74,4 +79,5 @@ UpdateTicket.propTypes = {
   isCustomerService: PropTypes.bool,
   updateTicketCategory: PropTypes.func.isRequired,
   updateTicketAssignee: PropTypes.func.isRequired,
+  addNotification: PropTypes.func.isRequired,
 }

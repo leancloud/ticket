@@ -1,12 +1,11 @@
 const Promise = require('bluebird')
 const _ = require('lodash')
 const moment = require('moment')
-const AV = require('leancloud-storage')
-const leanengine = require('leanengine')
+const AV = require('leanengine')
 
 const TICKET_STATUS = require('../lib/constant').TICKET_STATUS
 
-leanengine.Cloud.define('yy', (req, res) => {
+AV.Cloud.define('yy', (req, res) => {
   res.success()
   forEachAVObject(new AV.Query('Ticket'), (ticket) => {
     return AV.Cloud.run('statsTicket', {ticketId: ticket.id})
@@ -16,7 +15,7 @@ leanengine.Cloud.define('yy', (req, res) => {
   }, {useMasterKey: true})
 })
 
-leanengine.Cloud.define('statsTicket', (req, res) => {
+AV.Cloud.define('statsTicket', (req, res) => {
   const ticketId = req.params.ticketId
   console.log('statsTicket:', ticketId)
   const authOptions = {useMasterKey: true}
@@ -68,12 +67,6 @@ class FirstReplyStats {
 
   forEachReplyOrOpsLog(avObj) {
     if (this.firstReplyAt) {
-      return
-    }
-    if (avObj.className === 'OpsLog'
-        && avObj.get('action') === 'changeStatus'
-        && avObj.get('data').status === TICKET_STATUS.PENDING) {
-      this.firstReplyAt = avObj.createdAt
       return
     }
     if (avObj.className === 'Reply'
@@ -164,7 +157,7 @@ class ReplyTimeStats {
   result() {
     if (!this.isReply
         && (this.ticket.get('status') === TICKET_STATUS.NEW
-          || this.ticket.get('status') === TICKET_STATUS.PENDING)) {
+          || this.ticket.get('status') === TICKET_STATUS.WAITING_CUSTOMER_SERVICE)) {
       const customerServiceTime = this.getCustomerServiceTime(this.lastCustomerService)
       customerServiceTime.replyTime += new Date() - this.cursor
     }
@@ -199,7 +192,7 @@ const getTicketAndTimeline = (ticketObjectId, authOptions) => {
   })
 }
 
-leanengine.Cloud.define('getNewTicketCount', (req) => {
+AV.Cloud.define('getNewTicketCount', (req) => {
   let {start, end, timeUnit} = req.params
   if (typeof start === 'string') {
     start = new Date(start)
@@ -237,7 +230,7 @@ const sumProperty = (obj, other, property) => {
   return _.mergeWith(obj[property], other[property], (a = 0, b) => a + b)
 }
 
-leanengine.Cloud.define('getStats', (req) => {
+AV.Cloud.define('getStats', (req) => {
   let {start, end, timeUnit} = req.params
   if (typeof start === 'string') {
     start = new Date(start)
@@ -290,6 +283,12 @@ leanengine.Cloud.define('getStats', (req) => {
     .forEach((stats) => {
       stats.firstReplyTimeByUser = firstReplyTimeByUser(stats, ticketStatses)
       stats.replyTimeByUser = replyTimeByUser(stats, ticketStatses)
+    })
+    .forEach((stats) => {
+      stats.firstReplyTime = _.sumBy(stats.firstReplyTimeByUser, 'replyTime')
+      stats.firstReplyCount = _.sumBy(stats.firstReplyTimeByUser, 'replyCount')
+      stats.replyTime = _.sumBy(stats.replyTimeByUser, 'replyTime')
+      stats.replyCount = _.sumBy(stats.replyTimeByUser, 'replyCount')
     })
     .value()
   })
@@ -350,7 +349,7 @@ const replyTimeByUser = (stats, ticketStatses) => {
   .value()
 }
 
-leanengine.Cloud.define('xx', (req, res) => {
+AV.Cloud.define('xx', (req, res) => {
   res.success()
   const fn = (date) => {
     return AV.Cloud.run('statsDaily', {date: date.format('YYYY-MM-DD')})
@@ -362,7 +361,7 @@ leanengine.Cloud.define('xx', (req, res) => {
   fn(moment('2017-04-01'))
 })
 
-leanengine.Cloud.define('statsDaily', (req, res) => {
+AV.Cloud.define('statsDaily', (req, res) => {
   let date = req.params.date && new Date(req.params.date) || moment().subtract(1, 'days').toDate()
   const start = moment(date).startOf('day').toDate()
   const end = moment(date).endOf('day').toDate()

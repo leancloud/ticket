@@ -2,6 +2,7 @@ const _ = require('lodash')
 const AV = require('leanengine')
 
 const common = require('./common')
+const leancloud = require('./leancloud')
 const notify = require('./notify')
 const TICKET_STATUS = require('../lib/constant').TICKET_STATUS
 const errorHandler = require('./errorHandler')
@@ -10,15 +11,22 @@ AV.Cloud.beforeSave('Ticket', (req, res) => {
   if (!req.currentUser._sessionToken) {
     return res.error('noLogin')
   }
-  req.object.set('status', TICKET_STATUS.NEW)
-  getTicketAcl(req.object, req.currentUser).then((acl) => {
-    req.object.setACL(acl)
-    req.object.set('author', req.currentUser)
-    return selectAssignee(req.object)
-  }).then((assignee) => {
-    req.object.set('assignee', assignee)
-    res.success()
-  }).catch(errorHandler.captureException)
+  leancloud.hasPermission(req.currentUser)
+  .then((hasPremission) => {
+    if (!hasPremission) {
+      return res.error('您的账号不具备提交工单的条件。')
+    }
+
+    req.object.set('status', TICKET_STATUS.NEW)
+    getTicketAcl(req.object, req.currentUser).then((acl) => {
+      req.object.setACL(acl)
+      req.object.set('author', req.currentUser)
+      return selectAssignee(req.object)
+    }).then((assignee) => {
+      req.object.set('assignee', assignee)
+      res.success()
+    }).catch(errorHandler.captureException)
+  })
 })
 
 const getTicketAcl = (ticket, author) => {
@@ -47,15 +55,23 @@ AV.Cloud.afterSave('Ticket', (req) => {
   }).catch(errorHandler.captureException)
 })
 
+AV.Cloud.beforeUpdate('Ticket', (req, res) => {
+  if (req.object.updatedKeys.indexOf('assignee') != -1) {
+    getVacationers()
+    .then(vacationers => {
+      const finded = _.find(vacationers, {id: req.object.get('assignee').id})
+      if (finded) {
+        return res.error('抱歉，该客服正在休假。')
+      }
+      return res.success()
+    })
+  } else {
+    return res.success()
+  }
+})
+
 AV.Cloud.afterUpdate('Ticket', (req) => {
-  common.getTinyUserInfo(req.currentUser).then((user) => {
-    if (req.object.updatedKeys.indexOf('status') != -1) {
-      new AV.Object('OpsLog').save({
-        ticket: req.object,
-        action: 'changeStatus',
-        data: {status: req.object.get('status'), operator: user},
-      }, {useMasterKey: true})
-    }
+  return common.getTinyUserInfo(req.currentUser).then((user) => {
     if (req.object.updatedKeys.indexOf('category') != -1) {
       new AV.Object('OpsLog').save({
         ticket: req.object,
@@ -76,10 +92,16 @@ AV.Cloud.afterUpdate('Ticket', (req) => {
         return notify.changeAssignee(req.object, req.currentUser, req.object.get('assignee'))
       })
     }
+    if (req.object.updatedKeys.indexOf('evaluation') != -1) {
+      return req.object.fetch({include: 'assignee'}, {user: req.currentUser})
+      .then((ticket) => {
+        return notify.ticketEvaluation(ticket, req.currentUser, ticket.get('assignee'))
+      })
+    }
   })
 })
 
-AV.Cloud.define('getTicketAndRepliesView', (req, res) => {
+AV.Cloud.define('getTicket', (req, res) => {
   return new AV.Query('Ticket')
   .equalTo('nid', req.params.nid)
   .include('author')
@@ -90,51 +112,68 @@ AV.Cloud.define('getTicketAndRepliesView', (req, res) => {
       return res.error('notFound')
     }
     ticket.set('contentHtml', common.md.render(ticket.get('content')))
-    return new AV.Query('Reply')
-    .equalTo('ticket', ticket)
-    .include('author')
-    .include('files')
-    .find({user: req.currentUser})
-    .then(replies => {
-      replies = replies.map(reply => {
-        reply.set('contentHtml', common.md.render(reply.get('content')))
-        return reply.toFullJSON()
-      })
-      return res.success({ticket: ticket.toFullJSON(), replies})
-    })
+    return res.success(ticket.toFullJSON())
   }).catch(console.error)
 })
 
-AV.Cloud.define('replyWithNoContent', (req) => {
-  const {ticketId} = req.params
-  return common.isCustomerService(req.currentUser).then((isCustomerService) => {
-    if (!isCustomerService) {
-      throw new AV.Cloud.Error('unauthorized')
+AV.Cloud.define('htmlify', (req) => {
+  const {content, contents} = req.params
+  if (content) {
+    return common.md.render(content)
+  }
+  if (contents) {
+    return contents.map(content => common.md.render(content))
+  }
+  return null
+})
+
+AV.Cloud.define('operateTicket', (req) => {
+  const {ticketId, action} = req.params
+  return Promise.all([
+    new AV.Query('Ticket')
+    .include('files')
+    .include('author')
+    .get(ticketId),
+    common.getTinyUserInfo(req.currentUser),
+    common.isCustomerService(req.currentUser),
+  ])
+  .then(([ticket, operator, isCustomerService]) => {
+    if (isCustomerService) {
+      ticket.addUnique('joinedCustomerServices', operator)
     }
-    return Promise.all([
-      new AV.Query('Ticket').get(ticketId),
-      common.getTinyUserInfo(req.currentUser),
-    ])
-    .then(([ticket, operator]) => {
+    ticket.set('status', getTargetStatus(action, isCustomerService))
+    return ticket.save(null, {user: req.currentUser})
+    .then(() => {
       return new AV.Object('OpsLog').save({
         ticket,
-        action: 'replyWithNoContent',
-        data: {operator},
-        isCustomerService,
+        action,
+        data: {operator}
       }, {useMasterKey: true})
-      .then((opsLog) => {
-        opsLog = opsLog.toJSON()
-        delete opsLog.ticket
-        ticket.set('latestReply', opsLog)
-        if (isCustomerService) {
-          ticket.addUnique('joinedCustomerServices', operator)
-        }
-        return ticket.save(null, {user: req.currentUser})
-      })
-      .then(ticket => ticket.toFullJSON())
     })
-  }).catch(errorHandler.captureException)
+    .then(() => {
+      ticket.set('contentHtml', common.md.render(ticket.get('content')))
+      return ticket.toFullJSON()
+    })
+  })
+  .catch(errorHandler.captureException)
 })
+
+const getTargetStatus = (action, isCustomerService) => {
+  switch (action) {
+  case 'replyWithNoContent':
+    return TICKET_STATUS.WAITING_CUSTOMER
+  case 'replySoon':
+    return TICKET_STATUS.WAITING_CUSTOMER_SERVICE
+  case 'resolve':
+    return isCustomerService ? TICKET_STATUS.PRE_FULFILLED : TICKET_STATUS.FULFILLED
+  case 'reject':
+    return TICKET_STATUS.REJECTED
+  case 'reopen':
+    return TICKET_STATUS.WAITING_CUSTOMER
+  default:
+    throw new Error('unsupport action: ' + action)
+  }
+}
 
 exports.replyTicket = (ticket, reply, replyAuthor) => {
   Promise.all([
@@ -146,9 +185,9 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
       .increment('replyCount', 1)
     if (reply.get('isCustomerService')) {
       ticket.addUnique('joinedCustomerServices', tinyReplyAuthor)
-      if (ticket.get('status') === TICKET_STATUS.NEW) {
-        ticket.set('status', TICKET_STATUS.PENDING)
-      }
+      ticket.set('status', TICKET_STATUS.WAITING_CUSTOMER)
+    } else {
+      ticket.set('status', TICKET_STATUS.WAITING_CUSTOMER_SERVICE)
     }
     return ticket.save(null, {user: replyAuthor})
   }).then((ticket) => {
@@ -159,20 +198,43 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
 }
 
 const selectAssignee = (ticket) => {
-  return new AV.Query(AV.Role)
-  .equalTo('name', 'customerService')
-  .first()
-  .then((role) => {
+  return Promise.all([
+    new AV.Query(AV.Role)
+    .equalTo('name', 'customerService')
+    .first(),
+    getVacationers(),
+  ])
+  .then(([role, vacationers]) => {
+    let query = role.getUsers().query()
     const category = ticket.get('category')
-    const query = role.getUsers().query()
     if (!_.isEmpty(category)) {
       query.equalTo('categories.objectId', category.objectId)
     }
-    return query.find({useMasterKey: true}).then((users) => {
+    if (vacationers.length > 0) {
+      query.notContainedIn('objectId', vacationers.map(v => v.id))
+    }
+    return query.find({useMasterKey: true})
+    .then((users) => {
       if (users.length != 0) {
         return _.sample(users)
       }
-      return role.getUsers().query().find({useMasterKey: true}).then(_.sample)
+
+      query = role.getUsers().query()
+      if (vacationers.length > 0) {
+        query.notContainedIn('objectId', vacationers.map(v => v.id))
+      }
+      return query.find({useMasterKey: true}).then(_.sample)
     })
+  })
+}
+
+const getVacationers = () => {
+  const now = new Date()
+  return new AV.Query('Vacation')
+  .lessThan('startDate', now)
+  .greaterThan('endDate', now)
+  .find({useMasterKey: true})
+  .then(vacations => {
+    return vacations.map(v => v.get('vacationer'))
   })
 }

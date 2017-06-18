@@ -39,17 +39,17 @@ const getTicket = (mail) => {
 }
 
 const getFromUser = (mail) => {
-  const match = mail.From.match(/^.*<(.*)>$/)
+  const match = mail.To.match(/^.*<ticket-(.*)@leancloud.cn>.*$/)
   if (match) {
-    return new AV.Query('_User').equalTo('email', match[1]).first({useMasterKey: true})
+    return new AV.Query('_User').get(match[1], {useMasterKey: true})
     .then((user) => {
       if (!user) {
-        throw new Error('user not found, email=' + match[1])
+        throw new Error('user not found, objectId=' + match[1])
       }
       return user
     })
   }
-  throw new Error('mail mismatch:' + mail.From)
+  throw new Error('user objectId mismatch:' + mail.To)
 }
 
 module.exports = router
