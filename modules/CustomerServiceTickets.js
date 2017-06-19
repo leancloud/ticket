@@ -53,7 +53,7 @@ export default class CustomerServiceTickets extends Component {
     })
   }
 
-  findTickets({assigneeId, isOpen, categoryId, authorId, isOnlyUnlike, page = 0, size = 20}) {
+  findTickets({assigneeId, isOpen, categoryId, authorId, isOnlyUnlike, page = '0', size = '20'}) {
     let query = new AV.Query('Ticket')
 
     const queryFilters = (isOpen === 'true' ? ticketOpenedStatuses() : ticketClosedStatuses())
@@ -80,16 +80,16 @@ export default class CustomerServiceTickets extends Component {
 
     return query.include('author')
     .include('assignee')
-    .limit(size)
-    .skip(page * size)
+    .limit(parseInt(size))
+    .skip(parseInt(page) * parseInt(size))
     .descending('createdAt')
     .find()
   }
 
   updateFilter(filter) {
     if (!filter.page && !filter.size) {
-      filter.page = 0
-      filter.size = 20
+      filter.page = '0'
+      filter.size = '20'
     }
     const filters = Object.assign({}, this.props.location.query, filter)
     this.context.router.push('/customerService/tickets?' + qs.stringify(filters))
@@ -259,8 +259,8 @@ export default class CustomerServiceTickets extends Component {
           </Table>
         </div>
         <Pager>
-          <Pager.Item disabled={filters.page === 0} previous onClick={() => this.updateFilter({page: filters.page - 1})}>&larr; 上一页</Pager.Item>
-          <Pager.Item disabled={filters.size !== this.state.tickets.length} next onClick={() => this.updateFilter({page: filters.page + 1})}>下一页 &rarr;</Pager.Item>
+          <Pager.Item disabled={filters.page === '0'} previous onClick={() => this.updateFilter({page: (parseInt(filters.page) - 1) + ''})}>&larr; 上一页</Pager.Item>
+          <Pager.Item disabled={parseInt(filters.size) !== this.state.tickets.length} next onClick={() => this.updateFilter({page: (parseInt(filters.page) + 1) + ''})}>下一页 &rarr;</Pager.Item>
         </Pager>
       </div> 
     )
