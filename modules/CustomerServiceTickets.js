@@ -77,6 +77,10 @@ export default class CustomerServiceTickets extends Component {
   }
 
   updateFilter(filter) {
+    if (!filter.page && !filter.size) {
+      filter.page = 0
+      filter.size = 20
+    }
     const filters = Object.assign({}, this.state.filters, filter)
     this.findTickets(filters)
     .then((tickets) => {
