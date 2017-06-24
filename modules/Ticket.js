@@ -9,6 +9,7 @@ import AV from 'leancloud-storage/live-query'
 import common, {UserLabel, TicketStatusLabel, isTicketOpen} from './common'
 import UpdateTicket from './UpdateTicket'
 import css from './Ticket.css'
+import DocumentTitle from 'react-document-title'
 
 import { TICKET_STATUS } from '../lib/constant'
 
@@ -287,6 +288,7 @@ export default class Ticket extends Component {
       <div>
         <div className="row">
           <div className="col-sm-12">
+            <DocumentTitle title={this.state.ticket.get('title') + ' - LeanTicket' || 'LeanTicket'} />
             <h1>{this.state.ticket.get('title')} <small>#{this.state.ticket.get('nid')}</small></h1>
             <div>
               <TicketStatusLabel status={this.state.ticket.get('status')} /> <span><UserLabel user={this.state.ticket.get('author')} /> 于 {moment(this.state.ticket.get('createdAt')).fromNow()}创建该工单</span>
