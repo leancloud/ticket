@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import { Link } from 'react-router'
-import {Table, Form, FormGroup, ButtonToolbar, ButtonGroup, Button, DropdownButton, MenuItem, Checkbox, FormControl} from 'react-bootstrap'
+import {Table, Form, FormGroup, ButtonToolbar, ButtonGroup, Button, DropdownButton, MenuItem, Checkbox, FormControl, Pager} from 'react-bootstrap'
 import moment from 'moment'
 import AV from 'leancloud-storage/live-query'
 import css from './CustomerServiceTickets.css'
@@ -24,6 +24,8 @@ export default class CustomerServiceTickets extends Component {
         category: null,
         author: null,
         isOnlyUnlike: false,
+        page: 0,
+        size: 20,
       },
     }
   }
@@ -42,7 +44,7 @@ export default class CustomerServiceTickets extends Component {
     .catch(this.props.addNotification)
   }
 
-  findTickets({assignee, isOpen, category, author, isOnlyUnlike}) {
+  findTickets({assignee, isOpen, category, author, isOnlyUnlike, page, size}) {
     let query = new AV.Query('Ticket')
 
     const queryFilters = (isOpen? ticketOpenedStatuses() : ticketClosedStatuses())
@@ -69,11 +71,17 @@ export default class CustomerServiceTickets extends Component {
 
     return query.include('author')
     .include('assignee')
+    .limit(size)
+    .skip(page * size)
     .descending('createdAt')
     .find()
   }
 
   updateFilter(filter) {
+    if (!filter.page && !filter.size) {
+      filter.page = 0
+      filter.size = 20
+    }
     const filters = Object.assign({}, this.state.filters, filter)
     this.findTickets(filters)
     .then((tickets) => {
@@ -227,6 +235,10 @@ export default class CustomerServiceTickets extends Component {
             </tbody>
           </Table>
         </div>
+        <Pager>
+          <Pager.Item disabled={filters.page === 0} previous onClick={() => this.updateFilter({page: filters.page - 1})}>&larr; 上一页</Pager.Item>
+          <Pager.Item disabled={filters.size !== this.state.tickets.length} next onClick={() => this.updateFilter({page: filters.page + 1})}>下一页 &rarr;</Pager.Item>
+        </Pager>
       </div>
     )
   }

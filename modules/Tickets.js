@@ -1,6 +1,7 @@
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import { Link } from 'react-router'
+import { Pager } from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
 import {sortTicketsForCustomer, TicketStatusLabel} from './common'
@@ -11,30 +12,29 @@ export default class Tickets extends Component {
     super(props)
     this.state = {
       tickets: [],
+      filters: {
+        page: 0,
+        size: 20,
+      },
     }
   }
 
-  refreshTickets() {
-    return this.findTickets()
-    .then((tickets) => {
-      this.setState({tickets})
-    })
-    .catch(this.props.addNotification)
-  }
-
   componentDidMount () {
-    this.refreshTickets(this.props)
+    this.findTickets({})
   }
 
-  componentWillReceiveProps(nextProps) {
-    this.refreshTickets(nextProps)
-  }
-
-  findTickets() {
+  findTickets(filter) {
+    const filters = Object.assign({}, this.state.filters, filter)
     return new AV.Query('Ticket')
     .equalTo('author', AV.User.current())
+    .limit(filters.size)
+    .skip(filters.page * filters.size)
     .descending('createdAt')
     .find()
+    .then((tickets) => {
+      this.setState({tickets, filters})
+    })
+    .catch(this.props.addNotification)
   }
 
   render() {
@@ -70,6 +70,10 @@ export default class Tickets extends Component {
             {ticketLinks}
           </ul>
         </div>
+        <Pager>
+          <Pager.Item disabled={this.state.filters.page === 0} previous onClick={() => this.findTickets({page: this.state.filters.page - 1})}>&larr; 上一页</Pager.Item>
+          <Pager.Item disabled={this.state.filters.size !== this.state.tickets.length} next onClick={() => this.findTickets({page: this.state.filters.page + 1})}>下一页 &rarr;</Pager.Item>
+        </Pager>
       </div> 
     )
   }
