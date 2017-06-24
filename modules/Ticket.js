@@ -285,42 +285,66 @@ export default class Ticket extends Component {
 
     return (
       <div>
-        <h1>{this.state.ticket.get('title')} <small>#{this.state.ticket.get('nid')}</small></h1>
-        <div>
-          <TicketStatusLabel status={this.state.ticket.get('status')} /> <span><UserLabel user={this.state.ticket.get('author')} /> 于 {moment(this.state.ticket.get('createdAt')).fromNow()}创建该工单</span>
-        </div>
-        <div>{tags}</div>
-        <hr />
-        {this.ticketTimeline(this.state.ticket)}
-        <div>{timeline}</div>
-        <hr />
-        {isTicketOpen(this.state.ticket) &&
-          <div>
-            <TicketReply
-              ticket={this.state.ticket}
-              commitReply={this.commitReply.bind(this)}
-              commitReplySoon={this.commitReplySoon.bind(this)}
-              operateTicket={this.operateTicket.bind(this)}
-              isCustomerService={this.props.isCustomerService}
-              addNotification={this.props.addNotification.bind(this)}
-            />
-            <UpdateTicket ticket={this.state.ticket}
-              isCustomerService={this.props.isCustomerService}
-              addNotification={this.props.addNotification.bind(this)}
-              updateTicketCategory={this.updateTicketCategory.bind(this)}
-              updateTicketAssignee={this.updateTicketAssignee.bind(this)}
-            />
+        <div className="row">
+          <div className="col-sm-12">
+            <h1>{this.state.ticket.get('title')} <small>#{this.state.ticket.get('nid')}</small></h1>
           </div>
-        }
-        {optionButtons}
-        {!isTicketOpen(this.state.ticket) &&
-          <Evaluation
-            saveEvaluation={this.saveEvaluation.bind(this)}
-            ticket={this.state.ticket}
-            isCustomerService={this.props.isCustomerService}
-            addNotification={this.props.addNotification}
-          />
-        }
+        </div>
+
+        <div className="row">
+          <div className="col-sm-8">
+            <div>
+              <TicketStatusLabel status={this.state.ticket.get('status')} /> <span><UserLabel user={this.state.ticket.get('author')} /> 于 {moment(this.state.ticket.get('createdAt')).fromNow()}创建该工单</span>
+            </div>
+            <div>{tags}</div>
+
+            <hr />
+
+            {this.ticketTimeline(this.state.ticket)}
+            <div>{timeline}</div>
+
+            {isTicketOpen(this.state.ticket) &&
+              <div>
+                <hr />
+
+                <TicketReply
+                  ticket={this.state.ticket}
+                  commitReply={this.commitReply.bind(this)}
+                  commitReplySoon={this.commitReplySoon.bind(this)}
+                  operateTicket={this.operateTicket.bind(this)}
+                  isCustomerService={this.props.isCustomerService}
+                  addNotification={this.props.addNotification.bind(this)}
+                />
+              </div>
+            }
+            {!isTicketOpen(this.state.ticket) &&
+              <div>
+                <hr />
+
+                <Evaluation
+                  saveEvaluation={this.saveEvaluation.bind(this)}
+                  ticket={this.state.ticket}
+                  isCustomerService={this.props.isCustomerService}
+                  addNotification={this.props.addNotification}
+                />
+              </div>
+            }
+          </div>
+
+          <div className="col-sm-4">
+            {isTicketOpen(this.state.ticket) &&
+              <div>
+                <UpdateTicket ticket={this.state.ticket}
+                  isCustomerService={this.props.isCustomerService}
+                  addNotification={this.props.addNotification.bind(this)}
+                  updateTicketCategory={this.updateTicketCategory.bind(this)}
+                  updateTicketAssignee={this.updateTicketAssignee.bind(this)}
+                />
+              </div>
+            }
+            {optionButtons}
+          </div>
+        </div>
       </div>
     )
   }
