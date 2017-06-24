@@ -3,6 +3,10 @@ body {
   text-decoration-skip: ink;
 }
 
+.username {
+  font-weight: bold;
+}
+
 .active {
   color: green;
 }
@@ -22,10 +26,6 @@ body {
 
 .panel-common > .panel-footer a:hover {
   color: #3090e4;
-}
-
-.panel .username {
-  font-weight: bold;
 }
 
 .panel-primary > .panel-heading a {
