@@ -288,18 +288,15 @@ export default class Ticket extends Component {
         <div className="row">
           <div className="col-sm-12">
             <h1>{this.state.ticket.get('title')} <small>#{this.state.ticket.get('nid')}</small></h1>
+            <div>
+              <TicketStatusLabel status={this.state.ticket.get('status')} /> <span><UserLabel user={this.state.ticket.get('author')} /> 于 {moment(this.state.ticket.get('createdAt')).fromNow()}创建该工单</span>
+            </div>
+            <hr />
           </div>
         </div>
 
         <div className="row">
           <div className="col-sm-8">
-            <div>
-              <TicketStatusLabel status={this.state.ticket.get('status')} /> <span><UserLabel user={this.state.ticket.get('author')} /> 于 {moment(this.state.ticket.get('createdAt')).fromNow()}创建该工单</span>
-            </div>
-            <div>{tags}</div>
-
-            <hr />
-
             {this.ticketTimeline(this.state.ticket)}
             <div>{timeline}</div>
 
@@ -332,6 +329,10 @@ export default class Ticket extends Component {
           </div>
 
           <div className="col-sm-4">
+            <div>{tags}</div>
+
+            <hr />
+
             {isTicketOpen(this.state.ticket) &&
               <div>
                 <UpdateTicket ticket={this.state.ticket}
