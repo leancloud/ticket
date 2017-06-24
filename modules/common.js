@@ -174,15 +174,15 @@ exports.TicketStatusLabel = (props) => {
   if (props.status === TICKET_STATUS.FULFILLED) {
     return <span className='label label-success'>已解决</span>
   } else if (props.status === TICKET_STATUS.REJECTED) {
-    return <span className='label label-danger'>已关闭</span>
+    return <span className='label label-default'>已关闭</span>
   } else if (props.status === TICKET_STATUS.PRE_FULFILLED) {
     return <span className='label label-primary'>待确认解决</span>
   } else if (props.status === TICKET_STATUS.NEW) {
-    return <span className='label label-warning'>待处理</span>
+    return <span className='label label-danger'>待处理</span>
   } else if (props.status === TICKET_STATUS.WAITING_CUSTOMER_SERVICE || props.status === 4) { // TODO 移除兼容代码
     return <span className='label label-warning'>等待客服回复</span>
   } else if (props.status === TICKET_STATUS.WAITING_CUSTOMER) {
-    return <span className='label label-info'>等待用户回复</span>
+    return <span className='label label-primary'>等待用户回复</span>
   }
 }
 exports.TicketStatusLabel.displayName = 'TicketStatusLabel'
