@@ -223,8 +223,8 @@ export default class Ticket extends Component {
         })
         panelFooter = <div className="panel-footer">{fileLinks}</div>
       }
-      const panelClass = `panel ${css.item} ${(avObj.get('isCustomerService') ? 'panel-info' : 'panel-success')}`
-      const userLabel = avObj.get('isCustomerService') ? <span>客服 <UserLabel user={avObj.get('author')} /></span> : <UserLabel user={avObj.get('author')} />
+      const panelClass = `panel ${css.item} ${(avObj.get('isCustomerService') ? 'panel-primary' : 'panel-common')}`
+      const userLabel = avObj.get('isCustomerService') ? <span><UserLabel user={avObj.get('author')} /><i className={css.badge}>客服</i></span> : <UserLabel user={avObj.get('author')} />
       return (
         <div key={avObj.id} className={panelClass}>
           <div className={ 'panel-heading ' + css.heading }>

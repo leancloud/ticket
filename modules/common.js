@@ -161,7 +161,7 @@ exports.UserLabel = (props) => {
   }
   const username = props.user.username || props.user.get('username')
   return (
-    <span><Link to={'/users/' + username}>{username}</Link></span>
+    <span><Link to={'/users/' + username} className="username">{username}</Link></span>
   )
 }
 

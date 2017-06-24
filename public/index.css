@@ -1,7 +1,33 @@
 body {
   padding-top: 60px;
+  text-decoration-skip: ink;
 }
 
 .active {
   color: green;
+}
+
+.panel-common {
+  border-color: #ddd;
+}
+
+.panel-common > .panel-heading {
+  background: #f4f4f4;
+  border-color: #f4f4f4;
+}
+
+.panel-common > .panel-footer a {
+  color: #696969;
+}
+
+.panel-common > .panel-footer a:hover {
+  color: #3090e4;
+}
+
+.panel .username {
+  font-weight: bold;
+}
+
+.panel-primary > .panel-heading a {
+  color: #fff;
 }
