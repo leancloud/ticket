@@ -33,7 +33,7 @@ const ticketCountLineChartData = (statses) => {
       label: '活跃工单数',
       fill: true,
       borderColor: 'rgba(53, 215, 142, 1)',
-      backgroundColor: 'rgba(53, 215, 142, .5)',
+      backgroundColor: 'rgba(53, 215, 142, .1)',
       data: [],
     }]
   })
@@ -50,7 +50,7 @@ const replyCountLineChartData = (statses) => {
       label: '活跃回复数',
       fill: true,
       borderColor: 'rgba(70, 117, 235, 1)',
-      backgroundColor: 'rgba(70, 117, 235, .5)',
+      backgroundColor: 'rgba(70, 117, 235, .1)',
       data: []
     }]
   })
