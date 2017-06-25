@@ -335,8 +335,6 @@ export default class Ticket extends Component {
           <div className="col-sm-4">
             <div>{tags}</div>
 
-            <hr />
-
             {isTicketOpen(this.state.ticket) &&
               <div>
                 <UpdateTicket ticket={this.state.ticket}
@@ -464,12 +462,30 @@ class Tag extends Component{
 
   render() {
     if (!this.state) {
-      return <Label bsStyle="default">{this.props.tag.get('key')} : {this.props.tag.get('value')}</Label>
+      return <Label bsStyle="default">{this.props.tag.get('key')}: {this.props.tag.get('value')}</Label>
     } else {
       if (this.state.url) {
-        return <a href={this.state.url} target='_blank'><Label bsStyle="default">{this.state.key} : {this.state.value}</Label></a>
+        return <div>
+          <label className="control-label">
+            {this.state.key}链接
+          </label>
+          <div className="form-group">
+            <a className="btn btn-default" href={this.state.url} target='_blank'>
+              {this.state.value}
+            </a>
+          </div>
+        </div>
       }
-      return <Label bsStyle="default">{this.state.key} : {this.state.value}</Label>
+      return <div>
+        <label className="control-label">
+          {this.state.key}
+        </label>
+        <div className="form-group">
+          <a className="btn btn-default disabled">
+            {this.state.value}
+          </a>
+        </div>
+      </div>
     }
   }
 
