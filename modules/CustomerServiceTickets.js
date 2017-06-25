@@ -231,7 +231,7 @@ export default class CustomerServiceTickets extends Component {
     if (ticketTrs.length === 0) {
       ticketTrs.push(
         <tr key='0'>
-          <td colSpan='7'>未查询到相关工单</td>
+          <td colSpan='9'>未查询到相关工单</td>
         </tr>
       )
     }
