@@ -533,7 +533,7 @@ class Evaluation extends Component {
   render() {
     const evaluation = this.props.ticket.get('evaluation')
     if (evaluation) {
-      return <Alert>
+      return <Alert bsStyle="warning">
         <p>对工单处理结果的评价：</p>
         <FormGroup>
           <Radio name="radioGroup" inline disabled defaultChecked={evaluation.star === 1}><span className="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span></Radio>
@@ -547,7 +547,7 @@ class Evaluation extends Component {
     }
 
     if (!this.props.isCustomerService) {
-      return <Alert>
+      return <Alert bsStyle="warning">
         <p>对工单的处理结果，您是否满意？</p>
         <form onSubmit={this.handleSubmit.bind(this)}>
           <FormGroup>
