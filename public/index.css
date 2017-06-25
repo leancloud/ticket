@@ -80,6 +80,11 @@ body {
 
 .ticket-status .icon-wrap.reopened {
   color: #fff;
+  background: #359cf7;
+}
+
+.ticket-status .icon-wrap.resolved {
+  color: #fff;
   background: #33c371;
 }
 

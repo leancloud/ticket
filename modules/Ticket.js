@@ -197,7 +197,7 @@ export default class Ticket extends Component {
       case 'resolve':
         return (
           <p className='ticket-status' key={avObj.id}>
-            <span className='icon-wrap'><span className='glyphicon glyphicon-ok-circle'></span></span> <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 认为该工单已经解决。
+            <span className='icon-wrap resolved'><span className='glyphicon glyphicon-ok-circle'></span></span> <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 认为该工单已经解决。
           </p>
         )
       case 'reject':
