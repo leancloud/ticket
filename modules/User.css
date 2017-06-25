@@ -1,0 +1,25 @@
+.userWrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.avatar img {
+  margin-right: 15px;
+  border-radius: 4px;
+}
+
+.info h2 {
+  margin-top: 0;
+  margin-left: -2px;
+  margin-bottom: 4px;
+}
+
+.info p {
+  margin-bottom: 0;
+}
+
+.id {
+  opacity: .4;
+}
