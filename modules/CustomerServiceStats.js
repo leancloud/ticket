@@ -6,6 +6,7 @@ import {Table, Form, FormGroup, ControlLabel, Button} from 'react-bootstrap'
 import {Line} from 'react-chartjs-2'
 import DatePicker from 'react-datepicker'
 import AV from 'leancloud-storage/live-query'
+import randomColor from 'randomcolor'
 
 const getRandomInt = (min, max) => {
   return Math.floor(Math.random() * (max - min + 1) + min)
@@ -30,6 +31,7 @@ const ticketCountLineChartData = (statses) => {
     datasets: [{
       label: '活跃工单数',
       fill: false,
+      borderColor: '#35d78e',
       data: []
     }]
   })
@@ -45,6 +47,7 @@ const replyCountLineChartData = (statses) => {
     datasets: [{
       label: '活跃回复数',
       fill: false,
+      borderColor: '#4675eb',
       data: []
     }]
   })
@@ -62,7 +65,7 @@ const categoryCountLineChartData = (statses, categories) => {
           id: key,
           label: category.get('name'),
           fill: false,
-          borderColor: `rgba(${getRandomInt(0, 255)}, ${getRandomInt(0, 255)}, ${getRandomInt(0, 255)},1)`,
+          borderColor: randomColor(),
           data: []
         }
         result.datasets.push(lineData)
@@ -89,7 +92,7 @@ const assigneeCountLineChartData = (statses, users) => {
           id: key,
           label: user && user.get('username') || key,
           fill: false,
-          borderColor: `rgba(${getRandomInt(0, 255)}, ${getRandomInt(0, 255)}, ${getRandomInt(0, 255)},1)`,
+          borderColor: randomColor(),
           data: []
         }
         result.datasets.push(lineData)
@@ -116,7 +119,7 @@ const firstReplyTimeLineChartData = (statses, users) => {
           id: userId,
           label: user && user.get('username') || userId,
           fill: false,
-          borderColor: `rgba(${getRandomInt(0, 255)}, ${getRandomInt(0, 255)}, ${getRandomInt(0, 255)},1)`,
+          borderColor: randomColor(),
           data: []
         }
         result.datasets.push(lineData)
@@ -143,7 +146,7 @@ const replyTimeLineChartData = (statses, users) => {
           id: userId,
           label: user && user.get('username') || userId,
           fill: false,
-          borderColor: `rgba(${getRandomInt(0, 255)}, ${getRandomInt(0, 255)}, ${getRandomInt(0, 255)},1)`,
+          borderColor: randomColor(),
           data: []
         }
         result.datasets.push(lineData)
@@ -340,7 +343,7 @@ class StatsSummary extends React.Component {
           userIds
         }
       })
-      
+
       fetchUsers(_.uniq(_.flatten(statsDatas.map(data => data.userIds)))).then((users) => {
         this.setState({
           users,
