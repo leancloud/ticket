@@ -415,7 +415,7 @@ class TicketReply extends Component {
       )
     }
     return (
-      <form>
+      <form className="form-group">
         <FormGroup>
           <FormControl componentClass="textarea" placeholder="回复内容……" rows="8" value={this.state.reply} onChange={this.handleReplyOnChange.bind(this)}/>
         </FormGroup>

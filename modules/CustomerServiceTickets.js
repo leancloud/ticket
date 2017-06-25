@@ -195,7 +195,7 @@ export default class CustomerServiceTickets extends Component {
     }
 
     const ticketAdminFilters = (
-      <Form inline onSubmit={this.handleFiltersCommit.bind(this)}>
+      <Form inline className='form-group' onSubmit={this.handleFiltersCommit.bind(this)}>
         <FormGroup>
           <ButtonToolbar>
             <ButtonGroup>
