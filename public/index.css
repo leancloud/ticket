@@ -7,6 +7,12 @@ body {
   font-weight: bold;
 }
 
+.avatar img {
+  border-radius: 2px;
+  vertical-align: -3px;
+  margin-right: 4px;
+}
+
 .active {
   color: green;
 }
@@ -30,4 +36,54 @@ body {
 
 .panel-primary > .panel-heading a {
   color: #fff;
+}
+
+.tickets {
+  position: relative;
+}
+
+.tickets:before {
+  position: absolute;
+  display: block;
+  top: 0;
+  bottom: 0;
+  left: 40px;
+  width: 2px;
+  content: '';
+  background-color: #efefef;
+  z-index: -1;
+}
+
+.ticket-status {
+  margin-left: 25px;
+  margin-bottom: 20px;
+}
+
+.ticket-status .icon-wrap {
+  background: #efefef;
+  padding: 9px;
+  border-radius: 50%;
+  margin-right: 4px;
+  box-shadow: 0 0 0 3px #fff;
+  color: #7d7e86;
+  vertical-align: -1px;
+}
+
+.ticket-status .icon-wrap .glyphicon {
+  vertical-align: -1px;
+}
+
+.ticket-status .icon-wrap.closed {
+  color: #fff;
+  background: #ff3d3d;
+}
+
+.ticket-status .icon-wrap.reopened {
+  color: #fff;
+  background: #33c371;
+}
+
+.ticket-status .icon-wrap.awaiting {
+  color: #fff;
+  background: #ffb741;
 }

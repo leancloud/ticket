@@ -161,7 +161,14 @@ exports.UserLabel = (props) => {
   }
   const username = props.user.username || props.user.get('username')
   return (
-    <span><Link to={'/users/' + username} className="username">{username}</Link></span>
+    <span>
+      <Link to={'/users/' + username} className="avatar">
+        <img height="16" width="16" src={'https://cdn.v2ex.com/gravatar/' + props.user.gravatarHash + '?s=64&r=pg&d=identicon'} />
+      </Link>
+      <Link to={'/users/' + username} className="username">
+        {username}
+      </Link>
+    </span>
   )
 }
 
