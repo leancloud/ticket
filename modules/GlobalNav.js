@@ -2,7 +2,6 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import { Link } from 'react-router'
 import AV from 'leancloud-storage/live-query'
-import css from './GlobalNav.css'
 
 export default class GlobalNav extends Component {
 
@@ -60,7 +59,7 @@ export default class GlobalNav extends Component {
             {customerServiceLinks}
             <ul className="nav navbar-nav navbar-right">
               <li>
-                <button type="submit" className={'btn btn-primary navbar-btn ' + css.submit} onClick={this.handleNewTicketClick.bind(this)}>新建工单</button>
+                <button type="submit" className='btn btn-primary navbar-btn nav-submit-btn' onClick={this.handleNewTicketClick.bind(this)}>新建工单</button>
               </li>
               {user}
             </ul>
