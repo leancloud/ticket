@@ -24,6 +24,7 @@ import Members from './settings/Members'
 import Categories from './settings/Categories'
 import Category from './settings/Category'
 import Error from './Error'
+import NotFound from './NotFound'
 
 moment.locale('zh-cn')
 
@@ -53,5 +54,6 @@ module.exports = (
       <Route path="/settings/categories/:id" component={Category} />
     </Route>
     <Route path="/error" component={Error} />
+    <Route path='*' component={NotFound} />
   </Route>
 )
