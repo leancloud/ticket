@@ -6,6 +6,8 @@ import {Table, Form, FormGroup, ControlLabel, Button} from 'react-bootstrap'
 import {Line} from 'react-chartjs-2'
 import DatePicker from 'react-datepicker'
 import AV from 'leancloud-storage/live-query'
+import randomColor from 'randomcolor'
+import Color from 'color'
 
 const getRandomInt = (min, max) => {
   return Math.floor(Math.random() * (max - min + 1) + min)
@@ -29,8 +31,10 @@ const ticketCountLineChartData = (statses) => {
     labels: [],
     datasets: [{
       label: '活跃工单数',
-      fill: false,
-      data: []
+      fill: true,
+      borderColor: 'rgba(53, 215, 142, 1)',
+      backgroundColor: 'rgba(53, 215, 142, .1)',
+      data: [],
     }]
   })
 }
@@ -44,7 +48,9 @@ const replyCountLineChartData = (statses) => {
     labels: [],
     datasets: [{
       label: '活跃回复数',
-      fill: false,
+      fill: true,
+      borderColor: 'rgba(70, 117, 235, 1)',
+      backgroundColor: 'rgba(70, 117, 235, .1)',
       data: []
     }]
   })
@@ -56,13 +62,15 @@ const categoryCountLineChartData = (statses, categories) => {
     result.labels.push(moment(stats.date).format('MM-DD'))
     _.map(stats.categories, (value, key) => {
       let lineData = _.find(result.datasets, {id: key})
+      let color = randomColor()
       if (!lineData) {
         const category = _.find(categories, c => c.id === key)
         lineData = {
           id: key,
           label: category.get('name'),
-          fill: false,
-          borderColor: `rgba(${getRandomInt(0, 255)}, ${getRandomInt(0, 255)}, ${getRandomInt(0, 255)},1)`,
+          fill: true,
+          borderColor: color,
+          backgroundColor: Color(color).fade(.9),
           data: []
         }
         result.datasets.push(lineData)
@@ -83,13 +91,15 @@ const assigneeCountLineChartData = (statses, users) => {
     result.labels.push(moment(stats.date).format('MM-DD'))
     _.map(stats.assignees, (value, key) => {
       let lineData =  _.find(result.datasets, {id: key})
+      let color = randomColor()
       if (!lineData) {
         const user = _.find(users, u => u.id === key)
         lineData = {
           id: key,
           label: user && user.get('username') || key,
-          fill: false,
-          borderColor: `rgba(${getRandomInt(0, 255)}, ${getRandomInt(0, 255)}, ${getRandomInt(0, 255)},1)`,
+          fill: true,
+          borderColor: color,
+          backgroundColor: Color(color).fade(.9),
           data: []
         }
         result.datasets.push(lineData)
@@ -110,13 +120,15 @@ const firstReplyTimeLineChartData = (statses, users) => {
     result.labels.push(moment(stats.date).format('MM-DD'))
     _.forEach(stats.firstReplyTimeByUser, ({userId, replyTime, replyCount}) => {
       let lineData =  _.find(result.datasets, {id: userId})
+      let color = randomColor()
       if (!lineData) {
         const user = _.find(users, u => u.id === userId)
         lineData = {
           id: userId,
           label: user && user.get('username') || userId,
-          fill: false,
-          borderColor: `rgba(${getRandomInt(0, 255)}, ${getRandomInt(0, 255)}, ${getRandomInt(0, 255)},1)`,
+          fill: true,
+          borderColor: color,
+          backgroundColor: Color(color).fade(.9),
           data: []
         }
         result.datasets.push(lineData)
@@ -137,13 +149,15 @@ const replyTimeLineChartData = (statses, users) => {
     result.labels.push(moment(stats.date).format('MM-DD'))
     _.forEach(stats.replyTimeByUser, ({userId, replyCount, replyTime}) => {
       let lineData =  _.find(result.datasets, {id: userId})
+      let color = randomColor()
       if (!lineData) {
         const user = _.find(users, u => u.id === userId)
         lineData = {
           id: userId,
           label: user && user.get('username') || userId,
-          fill: false,
-          borderColor: `rgba(${getRandomInt(0, 255)}, ${getRandomInt(0, 255)}, ${getRandomInt(0, 255)},1)`,
+          fill: true,
+          borderColor: color,
+          backgroundColor: Color(color).fade(.9),
           data: []
         }
         result.datasets.push(lineData)
@@ -340,7 +354,7 @@ class StatsSummary extends React.Component {
           userIds
         }
       })
-      
+
       fetchUsers(_.uniq(_.flatten(statsDatas.map(data => data.userIds)))).then((users) => {
         this.setState({
           users,

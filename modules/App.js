@@ -5,6 +5,7 @@ import AV from 'leancloud-storage/live-query'
 
 import common from './common'
 import GlobalNav from './GlobalNav'
+import css from './App.css'
 
 export default class App extends Component {
 
@@ -71,7 +72,7 @@ export default class App extends Component {
     return (
       <div>
         <GlobalNav isCustomerService={this.state.isCustomerService} />
-        <div className="container">
+        <div className={ 'container ' + css.main }>
           {this.props.children && React.cloneElement(this.props.children, {
             login: this.login.bind(this),
             loginByToken: this.loginByToken.bind(this),

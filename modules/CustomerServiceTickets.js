@@ -5,6 +5,7 @@ import {Table, Form, FormGroup, ButtonToolbar, ButtonGroup, Button, DropdownButt
 import qs from 'query-string'
 import moment from 'moment'
 import AV from 'leancloud-storage/live-query'
+import css from './CustomerServiceTickets.css'
 
 import {sortTickets, UserLabel, TicketStatusLabel, getCustomerServices, ticketOpenedStatuses, ticketClosedStatuses} from './common'
 
@@ -194,7 +195,7 @@ export default class CustomerServiceTickets extends Component {
     }
 
     const ticketAdminFilters = (
-      <Form inline onSubmit={this.handleFiltersCommit.bind(this)}>
+      <Form inline className='form-group' onSubmit={this.handleFiltersCommit.bind(this)}>
         <FormGroup>
           <ButtonToolbar>
             <ButtonGroup>
@@ -230,7 +231,7 @@ export default class CustomerServiceTickets extends Component {
     if (ticketTrs.length === 0) {
       ticketTrs.push(
         <tr key='0'>
-          <td colSpan='7'>未查询到相关工单</td>
+          <td colSpan='9'>未查询到相关工单</td>
         </tr>
       )
     }
@@ -262,7 +263,7 @@ export default class CustomerServiceTickets extends Component {
           <Pager.Item disabled={filters.page === '0'} previous onClick={() => this.updateFilter({page: (parseInt(filters.page) - 1) + ''})}>&larr; 上一页</Pager.Item>
           <Pager.Item disabled={parseInt(filters.size) !== this.state.tickets.length} next onClick={() => this.updateFilter({page: (parseInt(filters.page) + 1) + ''})}>下一页 &rarr;</Pager.Item>
         </Pager>
-      </div> 
+      </div>
     )
   }
 

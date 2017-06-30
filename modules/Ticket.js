@@ -8,6 +8,8 @@ import AV from 'leancloud-storage/live-query'
 
 import common, {UserLabel, TicketStatusLabel, isTicketOpen} from './common'
 import UpdateTicket from './UpdateTicket'
+import css from './Ticket.css'
+import DocumentTitle from 'react-document-title'
 
 import { TICKET_STATUS } from '../lib/constant'
 
@@ -144,7 +146,7 @@ export default class Ticket extends Component {
     return this.state.ticket.set('evaluation', evaluation).save()
     .then((ticket) => {
       this.setState({ticket})
-    }) 
+    })
   }
 
   contentView(content) {
@@ -164,50 +166,50 @@ export default class Ticket extends Component {
       switch (avObj.get('action')) {
       case 'selectAssignee':
         return (
-          <p key={avObj.id}>
-            <span className='glyphicon glyphicon-transfer'></span> 系统 于 {moment(avObj.get('createdAt')).fromNow()} 将工单分配给 <UserLabel user={avObj.get('data').assignee} /> 处理。
+          <p className='ticket-status' key={avObj.id}>
+            <span className='icon-wrap'><span className='glyphicon glyphicon-transfer'></span></span> 系统 于 {moment(avObj.get('createdAt')).fromNow()} 将工单分配给 <UserLabel user={avObj.get('data').assignee} /> 处理。
           </p>
         )
       case 'changeCategory':
         return (
-          <p key={avObj.id}>
-            <span className='glyphicon glyphicon-transfer'></span> <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 将工单类别改为 {avObj.get('data').category.name} 。
+          <p className='ticket-status' key={avObj.id}>
+            <span className='icon-wrap'><span className='glyphicon glyphicon-transfer'></span></span> <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 将工单类别改为 {avObj.get('data').category.name} 。
           </p>
         )
       case 'changeAssignee':
         return (
-          <p key={avObj.id}>
-            <span className='glyphicon glyphicon-transfer'></span> <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 将工单负责人改为 <UserLabel user={avObj.get('data').assignee} /> 。
+          <p className='ticket-status' key={avObj.id}>
+            <span className='icon-wrap'><span className='glyphicon glyphicon-transfer'></span></span> <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 将工单负责人改为 <UserLabel user={avObj.get('data').assignee} /> 。
           </p>
         )
       case 'replyWithNoContent':
         return (
-          <p key={avObj.id}>
-            <span className='glyphicon glyphicon-comment'></span> <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 认为该工单暂时无需回复，如有问题可以回复该工单。
+          <p className='ticket-status' key={avObj.id}>
+            <span className='icon-wrap'><span className='glyphicon glyphicon-comment'></span></span> <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 认为该工单暂时无需回复，如有问题可以回复该工单。
           </p>
         )
       case 'replySoon':
         return (
-          <p key={avObj.id}>
-            <span className='glyphicon glyphicon-hourglass'></span> <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 认为该工单处理需要一些时间，稍后会回复该工单。
+          <p className='ticket-status' key={avObj.id}>
+            <span className='icon-wrap awaiting'><span className='glyphicon glyphicon-hourglass'></span></span> <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 认为该工单处理需要一些时间，稍后会回复该工单。
           </p>
         )
       case 'resolve':
         return (
-          <p key={avObj.id}>
-            <span className='glyphicon glyphicon-ok-circle'></span> <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 认为该工单已经解决。
+          <p className='ticket-status' key={avObj.id}>
+            <span className='icon-wrap resolved'><span className='glyphicon glyphicon-ok-circle'></span></span> <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 认为该工单已经解决。
           </p>
         )
       case 'reject':
         return (
-          <p key={avObj.id}>
-            <span className='glyphicon glyphicon-ban-circle'></span> <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 关闭了该工单。
+          <p className='ticket-status' key={avObj.id}>
+            <span className='icon-wrap closed'><span className='glyphicon glyphicon-ban-circle'></span></span> <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 关闭了该工单。
           </p>
         )
       case 'reopen':
         return (
-          <p key={avObj.id}>
-            <span className='glyphicon glyphicon-record'></span> <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 重新打开该工单。
+          <p className='ticket-status' key={avObj.id}>
+            <span className='icon-wrap reopened'><span className='glyphicon glyphicon-record'></span></span> <UserLabel user={avObj.get('data').operator} /> 于 {moment(avObj.get('createdAt')).fromNow()} 重新打开该工单。
           </p>
         )
       }
@@ -222,14 +224,14 @@ export default class Ticket extends Component {
         })
         panelFooter = <div className="panel-footer">{fileLinks}</div>
       }
-      const panelClass = 'panel ' + (avObj.get('isCustomerService') ? 'panel-info' : 'panel-success')
-      const userLabel = avObj.get('isCustomerService') ? <span>客服 <UserLabel user={avObj.get('author')} /></span> : <UserLabel user={avObj.get('author')} />
+      const panelClass = `panel ${css.item} ${(avObj.get('isCustomerService') ? 'panel-primary' : 'panel-common')}`
+      const userLabel = avObj.get('isCustomerService') ? <span><UserLabel user={avObj.get('author')} /><i className={css.badge}>客服</i></span> : <UserLabel user={avObj.get('author')} />
       return (
         <div key={avObj.id} className={panelClass}>
-          <div className="panel-heading">
+          <div className={ 'panel-heading ' + css.heading }>
           {userLabel} 于 {moment(avObj.get('createdAt')).fromNow()}提交
           </div>
-          <div className="panel-body">
+          <div className={ 'panel-body ' + css.content }>
             {this.contentView(avObj.contentHtml || avObj.get('contentHtml'))}
           </div>
           {panelFooter}
@@ -284,42 +286,68 @@ export default class Ticket extends Component {
 
     return (
       <div>
-        <h1>{this.state.ticket.get('title')} <small>#{this.state.ticket.get('nid')}</small></h1>
-        <div>
-          <TicketStatusLabel status={this.state.ticket.get('status')} /> <span><UserLabel user={this.state.ticket.get('author')} /> 于 {moment(this.state.ticket.get('createdAt')).fromNow()}创建该工单</span>
-        </div>
-        <div>{tags}</div>
-        <hr />
-        {this.ticketTimeline(this.state.ticket)}
-        <div>{timeline}</div>
-        <hr />
-        {isTicketOpen(this.state.ticket) &&
-          <div>
-            <TicketReply
-              ticket={this.state.ticket}
-              commitReply={this.commitReply.bind(this)}
-              commitReplySoon={this.commitReplySoon.bind(this)}
-              operateTicket={this.operateTicket.bind(this)}
-              isCustomerService={this.props.isCustomerService}
-              addNotification={this.props.addNotification.bind(this)}
-            />
-            <UpdateTicket ticket={this.state.ticket}
-              isCustomerService={this.props.isCustomerService}
-              addNotification={this.props.addNotification.bind(this)}
-              updateTicketCategory={this.updateTicketCategory.bind(this)}
-              updateTicketAssignee={this.updateTicketAssignee.bind(this)}
-            />
+        <div className="row">
+          <div className="col-sm-12">
+            <DocumentTitle title={this.state.ticket.get('title') + ' - LeanTicket' || 'LeanTicket'} />
+            <h1>{this.state.ticket.get('title')} <small>#{this.state.ticket.get('nid')}</small></h1>
+            <div>
+              <TicketStatusLabel status={this.state.ticket.get('status')} /> <span><UserLabel user={this.state.ticket.get('author')} /> 于 {moment(this.state.ticket.get('createdAt')).fromNow()}创建该工单</span>
+            </div>
+            <hr />
           </div>
-        }
-        {optionButtons}
-        {!isTicketOpen(this.state.ticket) &&
-          <Evaluation
-            saveEvaluation={this.saveEvaluation.bind(this)}
-            ticket={this.state.ticket}
-            isCustomerService={this.props.isCustomerService}
-            addNotification={this.props.addNotification}
-          />
-        }
+        </div>
+
+        <div className="row">
+          <div className="col-sm-8">
+            <div className="tickets">
+              {this.ticketTimeline(this.state.ticket)}
+              <div>{timeline}</div>
+            </div>
+
+            {isTicketOpen(this.state.ticket) &&
+              <div>
+                <hr />
+
+                <TicketReply
+                  ticket={this.state.ticket}
+                  commitReply={this.commitReply.bind(this)}
+                  commitReplySoon={this.commitReplySoon.bind(this)}
+                  operateTicket={this.operateTicket.bind(this)}
+                  isCustomerService={this.props.isCustomerService}
+                  addNotification={this.props.addNotification.bind(this)}
+                />
+              </div>
+            }
+            {!isTicketOpen(this.state.ticket) &&
+              <div>
+                <hr />
+
+                <Evaluation
+                  saveEvaluation={this.saveEvaluation.bind(this)}
+                  ticket={this.state.ticket}
+                  isCustomerService={this.props.isCustomerService}
+                  addNotification={this.props.addNotification}
+                />
+              </div>
+            }
+          </div>
+
+          <div className="col-sm-4">
+            <div>{tags}</div>
+
+            {isTicketOpen(this.state.ticket) &&
+              <div>
+                <UpdateTicket ticket={this.state.ticket}
+                  isCustomerService={this.props.isCustomerService}
+                  addNotification={this.props.addNotification.bind(this)}
+                  updateTicketCategory={this.updateTicketCategory.bind(this)}
+                  updateTicketAssignee={this.updateTicketAssignee.bind(this)}
+                />
+              </div>
+            }
+            {optionButtons}
+          </div>
+        </div>
       </div>
     )
   }
@@ -387,7 +415,7 @@ class TicketReply extends Component {
       )
     }
     return (
-      <form>
+      <form className="form-group">
         <FormGroup>
           <FormControl componentClass="textarea" placeholder="回复内容……" rows="8" value={this.state.reply} onChange={this.handleReplyOnChange.bind(this)}/>
         </FormGroup>
@@ -434,12 +462,30 @@ class Tag extends Component{
 
   render() {
     if (!this.state) {
-      return <Label bsStyle="default">{this.props.tag.get('key')} : {this.props.tag.get('value')}</Label>
+      return <Label bsStyle="default">{this.props.tag.get('key')}: {this.props.tag.get('value')}</Label>
     } else {
       if (this.state.url) {
-        return <a href={this.state.url} target='_blank'><Label bsStyle="default">{this.state.key} : {this.state.value}</Label></a>
+        return <div>
+          <label className="control-label">
+            {this.state.key}链接
+          </label>
+          <div className="form-group">
+            <a className="btn btn-default" href={this.state.url} target='_blank'>
+              {this.state.value}
+            </a>
+          </div>
+        </div>
       }
-      return <Label bsStyle="default">{this.state.key} : {this.state.value}</Label>
+      return <div>
+        <label className="control-label">
+          {this.state.key}
+        </label>
+        <div className="form-group">
+          <a className="btn btn-default disabled">
+            {this.state.value}
+          </a>
+        </div>
+      </div>
     }
   }
 
@@ -487,7 +533,7 @@ class Evaluation extends Component {
   render() {
     const evaluation = this.props.ticket.get('evaluation')
     if (evaluation) {
-      return <Alert>
+      return <Alert bsStyle="warning">
         <p>对工单处理结果的评价：</p>
         <FormGroup>
           <Radio name="radioGroup" inline disabled defaultChecked={evaluation.star === 1}><span className="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span></Radio>
@@ -501,7 +547,7 @@ class Evaluation extends Component {
     }
 
     if (!this.props.isCustomerService) {
-      return <Alert>
+      return <Alert bsStyle="warning">
         <p>对工单的处理结果，您是否满意？</p>
         <form onSubmit={this.handleSubmit.bind(this)}>
           <FormGroup>

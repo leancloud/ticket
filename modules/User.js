@@ -2,6 +2,7 @@ import React, {Component} from 'react'
 import _ from 'lodash'
 import PropTypes from 'prop-types'
 import AV from 'leancloud-storage/live-query'
+import css from './User.css'
 
 export default class User extends Component {
 
@@ -33,32 +34,28 @@ export default class User extends Component {
   }
 
   render() {
-    let leancloudUser 
+    let leancloudUser
     if (this.state.leancloudUser) {
       leancloudUser = (
-        <table className='table table-bordered'>
-          <tbody>
-            <tr>
-              <td>id</td>
-              <td>{this.state.leancloudUser.id}</td>
-              <td>email</td>
-              <td>{this.state.leancloudUser.email}</td>
-            </tr>
-            <tr>
-              <td>username</td>
-              <td>{this.state.leancloudUser.username}</td>
-              <td>phone</td>
-              <td>{this.state.leancloudUser.phone}</td>
-            </tr>
-          </tbody>
-        </table>
+        <div>
+          <p>{this.state.leancloudUser.username}<span className={css.id}>#{this.state.leancloudUser.id}</span></p>
+          <p>{this.state.leancloudUser.email}</p>
+          <p><a href={'tel:' + this.state.leancloudUser.phone}>{this.state.leancloudUser.phone}</a></p>
+        </div>
       )
     }
     return (
       <div>
-        <div><img height="200" width="200" src={'https://cdn.v2ex.com/gravatar/' + this.state.user.gravatarHash + '?s=200&r=pg&d=identicon'} /></div>
-        <div>{this.state.user.username}</div>
-        {leancloudUser}
+        <div className={css.userWrap}>
+          <div className={css.avatar}>
+            <img height="100" width="100" src={'https://cdn.v2ex.com/gravatar/' + this.state.user.gravatarHash + '?s=300&r=pg&d=identicon'} />
+          </div>
+          <div className={css.info}>
+            <h2>{this.state.user.username}</h2>
+            {leancloudUser}
+          </div>
+        </div>
+
         <LeanCloudApps leancloudApps={this.state.leancloudApps} />
       </div>
     )

@@ -78,7 +78,7 @@ export default class Cagegories extends React.Component {
       return (
         <tr key={category.id}>
           <td><Link to={'/settings/categories/' + category.id}>{category.get('name')}</Link></td>
-          <td><input type='checkbox' 
+          <td><input type='checkbox'
                 checked={!!_.find(this.state.checkedCategories, {objectId: category.id})}
                 onChange={(e) => this.handleCategoryChange(e, category.id)}
               /></td>
@@ -88,7 +88,7 @@ export default class Cagegories extends React.Component {
     })
     return (
       <div>
-        <div className="form-inline">
+        <div className="form-inline form-group">
           <div className='form-group'>
             <input type="text" className="form-control" placeholder="分类名称" value={this.state.category} onChange={this.handleNewCategoryChange.bind(this)} />
           </div>

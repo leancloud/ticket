@@ -95,7 +95,7 @@ export default class SettingMembers extends React.Component {
     })
     return (
       <div>
-        <form className="form-inline" onSubmit={this.handleSubmit.bind(this)}>
+        <form className="form-group form-inline" onSubmit={this.handleSubmit.bind(this)}>
           <div className="form-group">
             <input type="text" className="form-control" placeholder="用户名" value={this.state.username} onChange={this.handleUsernameChange.bind(this)} />
           </div>

@@ -49,7 +49,7 @@ export default class GlobalNav extends Component {
               <span className="icon-bar"></span>
               <span className="icon-bar"></span>
             </button>
-            <a className="navbar-brand" href='/'>LeanTicket</a>
+            <a className="navbar-brand font-logo" href='/'>LeanTicket</a>
           </div>
           <div className="collapse navbar-collapse" id="global-navbar-collapse">
             <ul className="nav navbar-nav">
@@ -59,7 +59,7 @@ export default class GlobalNav extends Component {
             {customerServiceLinks}
             <ul className="nav navbar-nav navbar-right">
               <li>
-                <button type="submit" className="btn btn-primary navbar-btn" onClick={this.handleNewTicketClick.bind(this)}>新建工单</button>
+                <button type="submit" className='btn btn-primary navbar-btn nav-submit-btn' onClick={this.handleNewTicketClick.bind(this)}>新建工单</button>
               </li>
               {user}
             </ul>
