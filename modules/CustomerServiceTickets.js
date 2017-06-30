@@ -83,7 +83,7 @@ export default class CustomerServiceTickets extends Component {
     .include('assignee')
     .limit(parseInt(size))
     .skip(parseInt(page) * parseInt(size))
-    .descending('createdAt')
+    .descending('updatedAt')
     .find()
   }
 
@@ -159,6 +159,7 @@ export default class CustomerServiceTickets extends Component {
           <td><UserLabel user={ticket.get('assignee')} /></td>
           <td>{ticket.get('replyCount') || <span className='label label-warning'>0</span>}</td>
           <td>{joinedCustomerServices}</td>
+          <td>{moment(ticket.get('updatedAt')).fromNow()}</td>
           <td>{moment(ticket.get('createdAt')).fromNow()}</td>
         </tr>
       )
@@ -231,7 +232,7 @@ export default class CustomerServiceTickets extends Component {
     if (ticketTrs.length === 0) {
       ticketTrs.push(
         <tr key='0'>
-          <td colSpan='9'>未查询到相关工单</td>
+          <td colSpan='11'>未查询到相关工单</td>
         </tr>
       )
     }
@@ -251,6 +252,7 @@ export default class CustomerServiceTickets extends Component {
                 <th>责任人</th>
                 <th>回复次数</th>
                 <th>参与人</th>
+                <th>最后修改时间</th>
                 <th>创建时间</th>
               </tr>
             </thead>
