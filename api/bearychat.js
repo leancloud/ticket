@@ -12,6 +12,10 @@ const COLORS = {
   danger: '#d9534f',
 }
 
+if (!config.bearychatGlobalHookUrl) {
+  console.log('Bearychat 全局 hook URL 没有配置，所以相关消息通知无法使用。')
+}
+
 exports.newTicket = (ticket, from, to) => {
   const data = {
     text: `LeanTicket: [[${ticket.get('category').name}] #${ticket.get('nid')}](${common.getTicketUrl(ticket)}): ${from.get('username')} 提交新工单`,

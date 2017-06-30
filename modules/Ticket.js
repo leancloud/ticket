@@ -443,16 +443,18 @@ class Tag extends Component{
   componentDidMount() {
     if (this.props.tag.get('key') === 'appId') {
       const appId = this.props.tag.get('value')
-      AV.Cloud.run('getLeanCloudApp', {
+      return AV.Cloud.run('getLeanCloudApp', {
         username: this.props.ticket.get('author').get('username'),
         appId,
       })
       .then((app) => {
         this.setState({key: '应用', value: app.app_name})
         if (this.props.isCustomerService) {
-          AV.Cloud.run('getLeanCloudAppUrl', {appId})
+          return AV.Cloud.run('getLeanCloudAppUrl', {appId})
           .then((url) => {
-            this.setState({url})
+            if (url) {
+              this.setState({url})
+            }
           })
         }
       })

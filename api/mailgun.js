@@ -4,7 +4,7 @@ const AV = require('leanengine')
 
 const mailgun = require('./mail').mailgun
 
-if (process.env.NODE_ENV !== 'development') {
+if (process.env.NODE_ENV !== 'development' && !mailgun) {
   router.post('/*', function (req, res, next) {
     const body = req.body
     if (!mailgun.validateWebhook(body.timestamp, body.token, body.signature)) {

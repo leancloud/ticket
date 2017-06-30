@@ -1,11 +1,14 @@
 const config = require('../config')
 const AV = require('leanengine')
-const mailgun = require('mailgun-js')({apiKey: config.mailgunKey, domain: config.mailgunDomain})
+
+if (!config.mailgunKey || !config.mailgunDomain) {
+  console.log('mailgun 的 key 和 domain 没有配置，所以发送邮件功能无法使用。')
+} else {
+  exports.mailgun = require('mailgun-js')({apiKey: config.mailgunKey, domain: config.mailgunDomain})
+}
 
 const common = require('./common')
 const errorHandler = require('./errorHandler')
-
-exports.mailgun = mailgun
 
 exports.newTicket = (ticket, from, to) => {
   if (!to.get('email')) {
@@ -57,6 +60,10 @@ ${ticket.get('latestReply') && ticket.get('latestReply').content}
 
 const send = (params) => {
   return new Promise((resolve, reject) => {
+    if (!exports.mailgun) {
+      return
+    }
+
     mailgun.messages().send({
       from: params.from,
       to: params.to,

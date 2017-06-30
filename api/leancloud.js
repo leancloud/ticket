@@ -11,6 +11,10 @@ const serverDomain = 'https://leancloud.cn'
 const callbackUrl = config.host + '/api/leancloud/callback'
 const oauthScope = 'client:info app:info client:account'
 
+if (!config.leancloudAppUrl) {
+  console.log('leancloudAppUrl 没有配置，导致无法生成应用链接。')
+}
+
 router.get('/login', (req, res) => {
   const loginUrl = serverDomain + '/1.1/authorize?' +
     qs.stringify({
@@ -92,6 +96,9 @@ AV.Cloud.define('getLeanCloudAppUrl', (req) => {
   return common.isCustomerService(req.currentUser).then((isCustomerService) => {
     if (!isCustomerService) {
       throw new AV.Cloud.Error('unauthorized', {status: 401})
+    }
+    if (!config.leancloudAppUrl) {
+      return null
     }
     const {appId} = req.params
     return config.leancloudAppUrl.replace(':appId', appId)
