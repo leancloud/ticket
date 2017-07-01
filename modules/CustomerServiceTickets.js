@@ -170,7 +170,10 @@ export default class CustomerServiceTickets extends Component {
           <div className={css.meta}>
             <div className={css.left}>
               <span className={css.status}><TicketStatusLabel status={ticket.get('status')} /></span>
-              <span className={css.creator}><UserLabel user={ticket.get('author')} /></span> 创建于 {moment(ticket.get('createdAt')).fromNow()}，更新于 {moment(ticket.get('updatedAt')).fromNow()}
+              <span className={css.creator}><UserLabel user={ticket.get('author')} /></span> 创建于 {moment(ticket.get('createdAt')).fromNow()}
+              {moment(ticket.get('createdAt')).fromNow() === moment(ticket.get('updatedAt')).fromNow() ||
+                <span>，更新于 {moment(ticket.get('updatedAt')).fromNow()}</span>
+              }
             </div>
             <div className={css.right}>
               <span className={css.assignee}><UserLabel user={ticket.get('assignee')} /></span>
