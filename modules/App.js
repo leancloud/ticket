@@ -68,6 +68,14 @@ export default class App extends Component {
     })
   }
 
+  logout() {
+    AV.User.logOut()
+    .then(() => {
+      this.setState({isCustomerService: false})
+      this.context.router.push('/')
+    })
+  }
+
   getChildContext() {
     return {addNotification: this.addNotification.bind(this)}
   }
@@ -75,7 +83,7 @@ export default class App extends Component {
   render() {
     return (
       <div>
-        <GlobalNav isCustomerService={this.state.isCustomerService} />
+        <GlobalNav isCustomerService={this.state.isCustomerService} logout={this.logout.bind(this)} />
         <div className={ 'container ' + css.main }>
           {this.props.children && React.cloneElement(this.props.children, {
             login: this.login.bind(this),

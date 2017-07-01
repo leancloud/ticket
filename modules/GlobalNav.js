@@ -5,10 +5,6 @@ import AV from 'leancloud-storage/live-query'
 
 export default class GlobalNav extends Component {
 
-  handleLogout() {
-    AV.User.logOut()
-  }
-
   handleNewTicketClick() {
     this.context.router.push('/tickets/new')
   }
@@ -23,7 +19,7 @@ export default class GlobalNav extends Component {
             {this.props.isCustomerService &&
               <li><Link to="/settings">设置</Link></li>
             }
-            <li><a href="#" onClick={this.handleLogout}>登出</a></li>
+            <li><a href="#" onClick={() => this.props.logout()}>登出</a></li>
           </ul>
         </li>
       )
@@ -77,4 +73,5 @@ GlobalNav.contextTypes = {
 
 GlobalNav.propTypes = {
   isCustomerService: PropTypes.bool,
+  logout: PropTypes.func.isRequired,
 }

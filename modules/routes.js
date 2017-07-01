@@ -39,10 +39,9 @@ module.exports = (
     <IndexRoute component={Home}/>
     <Route path="/about" component={About}/>
     <Route path="/login" component={Login}/>
-    <Route path="/tickets" component={Tickets} onEnter={common.requireAuth}>
-      <Route path="/tickets/new" component={NewTicket} />
-      <Route path="/tickets/:nid" component={Ticket} />
-    </Route>
+    <Route path="/tickets" component={Tickets} onEnter={common.requireAuth} />
+    <Route path="/tickets/new" component={NewTicket} onEnter={common.requireAuth} />
+    <Route path="/tickets/:nid" component={Ticket} onEnter={common.requireAuth} />
     <Route path="/customerService" component={CustomerService} onEnter={common.requireCustomerServiceAuth}>
       <Route path="/customerService/tickets" component={CSTickets} />
       <Route path="/customerService/stats" component={CSStats} />
