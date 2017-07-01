@@ -7,14 +7,6 @@
   border-bottom: none;
 }
 
-.happy {
-  /*background: green;*/
-}
-
-.unhappy {
-  /*background: red;*/
-}
-
 .heading {
   display: flex;
   margin-bottom: 4px;
@@ -44,7 +36,8 @@
   vertical-align: 1px;
 }
 
-.category {
+.category,
+.satisfaction {
   display: inline-block;
   color: #afafaf;
   margin-left: .5em;
@@ -54,6 +47,18 @@
   border-radius: 4px;
   line-height: 1;
   vertical-align: 2px;
+}
+
+.happy {
+  background: #e5ffce;
+  color: #3eb34e;
+  border-color: #e5ffce;
+}
+
+.unhappy {
+  background: #ffe3e3;
+  color: #f16c5d;
+  border-color: #ffe3e3;
 }
 
 .commentCounter {

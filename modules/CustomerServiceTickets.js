@@ -147,12 +147,15 @@ export default class CustomerServiceTickets extends Component {
       })
       const joinedCustomerServices = <span>{customerServices}</span>
       return (
-        <div className={css.ticket + ' ' + (filters.isOpen === 'true' || ticket.get('evaluation') && (ticket.get('evaluation').star === 1 && css.happy || css.unhappy))} key={ticket.get('nid')}>
+        <div className={css.ticket} key={ticket.get('nid')}>
           <div className={css.heading}>
             <div className={css.left}>
               <span className={css.nid}>#{ticket.get('nid')}</span>
               <Link className={css.title} to={'/tickets/' + ticket.get('nid')}>{ticket.get('title')}</Link>
               <span className={css.category}>{ticket.get('category').name}</span>
+              {filters.isOpen === 'true' ||
+                <span>{ticket.get('evaluation') && (ticket.get('evaluation').star === 1 && <span className={css.satisfaction + ' ' + css.happy}>满意</span> || <span className={css.satisfaction + ' ' + css.unhappy}>不满意</span>)}</span>
+              }
             </div>
             <div className={css.right}>
               {ticket.get('replyCount') &&
