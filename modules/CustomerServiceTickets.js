@@ -145,23 +145,36 @@ export default class CustomerServiceTickets extends Component {
           <span key={user.objectId}><UserLabel user={user} /> </span>
         )
       })
-      const joinedCustomerServices = <p className="list-group-item-text">{customerServices}</p>
+      const joinedCustomerServices = <span>{customerServices}</span>
       return (
-        <tr key={ticket.get('nid')}>
-          <td><Link to={'/tickets/' + ticket.get('nid')}>{ticket.get('nid')}</Link></td>
-          <td><Link to={'/tickets/' + ticket.get('nid')}>{ticket.get('title')}</Link></td>
-          <td>{ticket.get('category').name}</td>
-          <td><TicketStatusLabel status={ticket.get('status')} /></td>
-          {filters.isOpen === 'true' ||
-            <td>{ticket.get('evaluation') && (ticket.get('evaluation').star === 1 && <span className="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span> || <span className="glyphicon glyphicon-thumbs-down" aria-hidden="true"></span>)}</td>
-          }
-          <td><UserLabel user={ticket.get('author')} /></td>
-          <td><UserLabel user={ticket.get('assignee')} /></td>
-          <td>{ticket.get('replyCount') || <span className='label label-warning'>0</span>}</td>
-          <td>{joinedCustomerServices}</td>
-          <td>{moment(ticket.get('updatedAt')).fromNow()}</td>
-          <td>{moment(ticket.get('createdAt')).fromNow()}</td>
-        </tr>
+        <div className={css.ticket + ' ' + (filters.isOpen === 'true' || ticket.get('evaluation') && (ticket.get('evaluation').star === 1 && css.happy || css.unhappy))} key={ticket.get('nid')}>
+          <div className={css.heading}>
+            <div className={css.left}>
+              <span className={css.nid}>#{ticket.get('nid')}</span>
+              <Link className={css.title} to={'/tickets/' + ticket.get('nid')}>{ticket.get('title')}</Link>
+              <span className={css.category}>{ticket.get('category').name}</span>
+            </div>
+            <div className={css.right}>
+              {ticket.get('replyCount') &&
+                <Link className={css.commentCounter} title={'reply ' + ticket.get('replyCount')} to={'/tickets/' + ticket.get('nid')}>
+                  <span className={css.commentCounterIcon + ' glyphicon glyphicon-comment'}></span>
+                  {ticket.get('replyCount')}
+                </Link>
+              }
+            </div>
+          </div>
+
+          <div className={css.meta}>
+            <div className={css.left}>
+              <span className={css.status}><TicketStatusLabel status={ticket.get('status')} /></span>
+              <span className={css.creator}><UserLabel user={ticket.get('author')} /></span> 创建于 {moment(ticket.get('createdAt')).fromNow()}，更新于 {moment(ticket.get('updatedAt')).fromNow()}
+            </div>
+            <div className={css.right}>
+              <span className={css.assignee}><UserLabel user={ticket.get('assignee')} /></span>
+              <span className={css.contributors}>{joinedCustomerServices}</span>
+            </div>
+          </div>
+        </div>
       )
     })
     const assigneeMenuItems = this.state.customerServices.map((user) => {
@@ -231,36 +244,17 @@ export default class CustomerServiceTickets extends Component {
     )
     if (ticketTrs.length === 0) {
       ticketTrs.push(
-        <tr key='0'>
-          <td colSpan='11'>未查询到相关工单</td>
-        </tr>
+        <div key='0'>
+          未查询到相关工单
+        </div>
       )
     }
     return (
       <div>
         {ticketAdminFilters}
-        <div className="panel panel-default">
-          <Table striped bordered condensed hover>
-            <thead>
-              <tr>
-                <th>编号</th>
-                <th>标题</th>
-                <th>分类</th>
-                <th>状态</th>
-                {filters.isOpen === 'true' || <th>评价</th>}
-                <th>提交人</th>
-                <th>责任人</th>
-                <th>回复次数</th>
-                <th>参与人</th>
-                <th>最后修改时间</th>
-                <th>创建时间</th>
-              </tr>
-            </thead>
-            <tbody>
-              {ticketTrs}
-            </tbody>
-          </Table>
-        </div>
+
+        {ticketTrs}
+
         <Pager>
           <Pager.Item disabled={filters.page === '0'} previous onClick={() => this.updateFilter({page: (parseInt(filters.page) - 1) + ''})}>&larr; 上一页</Pager.Item>
           <Pager.Item disabled={parseInt(filters.size) !== this.state.tickets.length} next onClick={() => this.updateFilter({page: (parseInt(filters.page) + 1) + ''})}>下一页 &rarr;</Pager.Item>
