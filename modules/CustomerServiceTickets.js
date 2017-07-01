@@ -75,7 +75,7 @@ export default class CustomerServiceTickets extends Component {
       query.equalTo('category.objectId', categoryId)
     }
 
-    if (isOnlyUnlike) {
+    if (JSON.parse(isOnlyUnlike || false)) {
       query.equalTo('evaluation.star', 0)
     }
 
