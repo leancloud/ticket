@@ -29,7 +29,7 @@ const indexPage =`
 <link rel="stylesheet" href="/css/leancloud-base.css">
 <link rel="stylesheet" href="/css/react-datepicker.css">
 <link rel="stylesheet" href="/index.css">
-<link rel="stylesheet" href="/app.css">
+<link rel="stylesheet" href="http://localhost:8080/app.css">
 <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
 <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 <div id=app></div>

@@ -223,15 +223,15 @@ export default class CustomerServiceTickets extends Component {
               <button className={'btn btn-default' + (filters.isOpen === 'true' ? '' : ' active')} onClick={() => this.updateFilter({isOpen: false})}>已完成</button>
             </ButtonGroup>
             <ButtonGroup>
-              <Button onClick={() => this.updateFilter({assigneeId: AV.User.current().id})}>分配给我的</Button>
-              <Button onClick={() => this.updateFilter({assigneeId: undefined})}>全部客服</Button>
-              <DropdownButton id='assigneeDropdown' title={assigneeTitle} onSelect={(eventKey) => this.updateFilter({assigneeId: eventKey})}>
+              <Button className={(filters.assigneeId === AV.User.current().id ? ' active' : '')} onClick={() => this.updateFilter({assigneeId: AV.User.current().id})}>分配给我的</Button>
+              <Button className={(filters.assigneeId ? '' : ' active')} onClick={() => this.updateFilter({assigneeId: undefined})}>全部客服</Button>
+              <DropdownButton className={(filters.assigneeId && filters.assigneeId !== AV.User.current().id ? ' active' : '')} id='assigneeDropdown' title={assigneeTitle} onSelect={(eventKey) => this.updateFilter({assigneeId: eventKey})}>
                 <MenuItem key='undefined'>全部客服</MenuItem>
                 {assigneeMenuItems}
               </DropdownButton>
             </ButtonGroup>
             <ButtonGroup>
-              <DropdownButton id='categoryDropdown' title={categoryTitle} onSelect={(eventKey) => this.updateFilter({categoryId: eventKey})}>
+              <DropdownButton className={(filters.categoryId ? ' active' : '')} id='categoryDropdown' title={categoryTitle} onSelect={(eventKey) => this.updateFilter({categoryId: eventKey})}>
                 <MenuItem key='undefined'>全部分类</MenuItem>
                 {categoryMenuItems}
               </DropdownButton>
