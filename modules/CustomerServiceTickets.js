@@ -43,7 +43,7 @@ export default class CustomerServiceTickets extends Component {
         this.findTickets(filters)
       }
     })
-    .catch(this.props.addNotification)
+    .catch(this.context.addNotification)
   }
 
   componentWillReceiveProps(nextProps) {
@@ -124,7 +124,7 @@ export default class CustomerServiceTickets extends Component {
           return this.updateFilter(filters)
         }
       })
-      .catch(this.props.addNotification)
+      .catch(this.context.addNotification)
     }, 500)
   }
 
@@ -273,10 +273,10 @@ export default class CustomerServiceTickets extends Component {
 }
 
 CustomerServiceTickets.propTypes = {
-  addNotification: PropTypes.func.isRequired,
   location: PropTypes.object.isRequired,
 }
 
 CustomerServiceTickets.contextTypes = {
   router: PropTypes.object.isRequired,
+  addNotification: PropTypes.func.isRequired,
 }

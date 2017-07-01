@@ -72,7 +72,7 @@ export default class NewTicket extends React.Component {
       localStorage.removeItem('ticket:new:content')
       this.context.router.push('/tickets')
     })
-    .catch(this.props.addNotification)
+    .catch(this.context.addNotification)
   }
 
   render() {
@@ -118,10 +118,10 @@ export default class NewTicket extends React.Component {
 }
 
 NewTicket.contextTypes = {
-  router: PropTypes.object
+  router: PropTypes.object,
+  addNotification: PropTypes.func.isRequired,
 }
 
 NewTicket.propTypes = {
-  addNotification: PropTypes.func.isRequired,
 }
 

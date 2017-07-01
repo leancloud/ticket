@@ -39,7 +39,7 @@ export default class CustomerServiceProfile extends Component {
     currentUser.set('wechatEnterpriseUserId', this.state.wechatUserId)
     currentUser.set('bearychatUrl', this.state.bearychatUrl)
     currentUser.save()
-    .catch(this.props.addNotification)
+    .catch(this.context.addNotification)
   }
 
   render() {
@@ -68,7 +68,7 @@ export default class CustomerServiceProfile extends Component {
 
 }
 
-CustomerServiceProfile.propTypes = {
+CustomerServiceProfile.contextTypes = {
   addNotification: PropTypes.func.isRequired,
 }
 

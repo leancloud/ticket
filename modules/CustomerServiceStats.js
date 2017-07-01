@@ -9,10 +9,6 @@ import AV from 'leancloud-storage/live-query'
 import randomColor from 'randomcolor'
 import Color from 'color'
 
-const getRandomInt = (min, max) => {
-  return Math.floor(Math.random() * (max - min + 1) + min)
-}
-
 const fetchUsers = (userIds) => {
   return Promise.all(_.map(_.chunk(userIds, 50), (userIds) => {
     return new AV.Query('_User')
@@ -188,7 +184,7 @@ export default class CustomerServiceStats extends React.Component {
     .then((categories) => {
       this.setState({categories})
     })
-    .catch(this.props.addNotification)
+    .catch(this.context.addNotification)
   }
 
   render() {
@@ -202,7 +198,7 @@ export default class CustomerServiceStats extends React.Component {
 
 }
 
-CustomerServiceStats.propTypes = {
+CustomerServiceStats.contextTypes = {
   addNotification: PropTypes.func.isRequired,
 }
 
@@ -286,16 +282,20 @@ class StatsChart extends React.Component {
           {' '}
           <Button type='submit'>查询</Button>
         </Form>
-        <Line data={this.state.ticketCountData} height={50} />
-        <Line data={this.state.replyCountData} height={50} />
-        <h3>活跃工单数——分类</h3>
-        <Line data={this.state.categoryCountData} height={100} />
-        <h3>活跃工单数——负责人</h3>
-        <Line data={this.state.assigneeCountData} height={100} />
-        <h3>工单回复速度——首次回复——技术支持</h3>
-        <Line data={this.state.firstReplyTimeData} height={100} />
-        <h3>工单回复速度——平均回复——技术支持</h3>
-        <Line data={this.state.replyTimeData} height={100} />
+        {this.state.ticketCountData &&
+          <div>
+            <Line data={this.state.ticketCountData} height={50} />
+            <Line data={this.state.replyCountData} height={50} />
+            <h3>活跃工单数——分类</h3>
+            <Line data={this.state.categoryCountData} height={100} />
+            <h3>活跃工单数——负责人</h3>
+            <Line data={this.state.assigneeCountData} height={100} />
+            <h3>工单回复速度——首次回复——技术支持</h3>
+            <Line data={this.state.firstReplyTimeData} height={100} />
+            <h3>工单回复速度——平均回复——技术支持</h3>
+            <Line data={this.state.replyTimeData} height={100} />
+          </div>
+        }
       </div>
     )
   }

@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { Link } from 'react-router'
 
 export default function Settings(props) {
@@ -21,11 +22,13 @@ export default function Settings(props) {
           </div>
         </div> 
         <div className="col-md-10">
-          {props.children && React.cloneElement(props.children, {
-            addNotification: props.addNotification,
-          })}
+          {props.children}
         </div>
       </div>
     </div>
   )
+}
+
+Settings.propTypes = {
+  children: PropTypes.object.isRequired,
 }

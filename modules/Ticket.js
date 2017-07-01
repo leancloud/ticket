@@ -43,7 +43,7 @@ export default class Ticket extends Component {
         })
       })
     })
-    .catch(this.props.addNotification)
+    .catch(this.context.addNotification)
   }
 
   componentWillUnmount() {
@@ -51,7 +51,7 @@ export default class Ticket extends Component {
       this.replyLiveQuery.unsubscribe(),
       this.opsLogLiveQuery.unsubscribe()
     ])
-    .catch(this.props.addNotification)
+    .catch(this.context.addNotification)
   }
 
   onRepliesCreate(replies) {
@@ -125,7 +125,7 @@ export default class Ticket extends Component {
     .then((ticket) => {
       this.setState({ticket: AV.parseJSON(ticket)})
     })
-    .catch(this.props.addNotification)
+    .catch(this.context.addNotification)
   }
 
   updateTicketCategory(category) {
@@ -248,7 +248,7 @@ export default class Ticket extends Component {
     }
 
     const tags = this.state.tags.map((tag) => {
-      return <Tag key={tag.id} tag={tag} ticket={this.state.ticket} isCustomerService={this.props.isCustomerService} addNotification={this.props.addNotification.bind(this)} />
+      return <Tag key={tag.id} tag={tag} ticket={this.state.ticket} isCustomerService={this.props.isCustomerService} />
     })
 
     const timeline = _.chain(this.state.replies)
@@ -314,7 +314,6 @@ export default class Ticket extends Component {
                   commitReplySoon={this.commitReplySoon.bind(this)}
                   operateTicket={this.operateTicket.bind(this)}
                   isCustomerService={this.props.isCustomerService}
-                  addNotification={this.props.addNotification.bind(this)}
                 />
               </div>
             }
@@ -326,7 +325,6 @@ export default class Ticket extends Component {
                   saveEvaluation={this.saveEvaluation.bind(this)}
                   ticket={this.state.ticket}
                   isCustomerService={this.props.isCustomerService}
-                  addNotification={this.props.addNotification}
                 />
               </div>
             }
@@ -339,7 +337,6 @@ export default class Ticket extends Component {
               <div>
                 <UpdateTicket ticket={this.state.ticket}
                   isCustomerService={this.props.isCustomerService}
-                  addNotification={this.props.addNotification.bind(this)}
                   updateTicketCategory={this.updateTicketCategory.bind(this)}
                   updateTicketAssignee={this.updateTicketAssignee.bind(this)}
                 />
@@ -357,6 +354,9 @@ export default class Ticket extends Component {
 Ticket.propTypes = {
   isCustomerService: PropTypes.bool,
   params: PropTypes.object,
+}
+
+Ticket.contextTypes = {
   addNotification: PropTypes.func.isRequired,
 }
 
@@ -382,19 +382,19 @@ class TicketReply extends Component {
       this.setState({reply: ''})
       this.fileInput.value = ''
     })
-    .catch(this.props.addNotification)
+    .catch(this.context.addNotification)
   }
 
   handleReplySoon(e) {
     e.preventDefault()
     this.props.commitReplySoon(this.state.reply, this.fileInput.files)
-    .catch(this.props.addNotification)
+    .catch(this.context.addNotification)
   }
 
   handleReplyNoContent(e) {
     e.preventDefault()
     this.props.operateTicket('replyWithNoContent')
-    .catch(this.props.addNotification)
+    .catch(this.context.addNotification)
   }
 
   render() {
@@ -435,6 +435,9 @@ TicketReply.propTypes = {
   commitReplySoon: PropTypes.func.isRequired,
   operateTicket: PropTypes.func.isRequired,
   isCustomerService: PropTypes.bool,
+}
+
+TicketReply.contextTypes = {
   addNotification: PropTypes.func.isRequired,
 }
 
@@ -458,7 +461,7 @@ class Tag extends Component{
           })
         }
       })
-      .catch(this.props.addNotification)
+      .catch(this.context.addNotification)
     }
   }
 
@@ -497,6 +500,9 @@ Tag.propTypes = {
   tag: PropTypes.instanceOf(AV.Object).isRequired,
   ticket: PropTypes.object.isRequired,
   isCustomerService: PropTypes.bool,
+}
+
+Tag.contextTypes = {
   addNotification: PropTypes.func.isRequired,
 }
 
@@ -529,7 +535,7 @@ class Evaluation extends Component {
     .then(() => {
       localStorage.removeItem(`ticket:${this.props.ticket.id}:evaluation`)
     })
-    .catch(this.props.addNotification)
+    .catch(this.context.addNotification)
   }
 
   render() {
@@ -573,5 +579,8 @@ Evaluation.propTypes = {
   ticket: PropTypes.instanceOf(AV.Object),
   isCustomerService: PropTypes.bool,
   saveEvaluation: PropTypes.func.isRequired,
+}
+
+Evaluation.contextTypes = {
   addNotification: PropTypes.func.isRequired,
 }

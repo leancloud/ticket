@@ -37,16 +37,17 @@ AV.setProduction(LEANCLOUD_APP_ENV === 'production')
 module.exports = (
   <Route path="/" component={App}>
     <IndexRoute component={Home}/>
-    <Route path="/tickets" component={Tickets} />
-    <Route path="/tickets/new" component={NewTicket} />
-    <Route path="/tickets/:nid" component={Ticket} />
+    <Route path="/about" component={About}/>
+    <Route path="/login" component={Login}/>
+    <Route path="/tickets" component={Tickets} onEnter={common.requireAuth}>
+      <Route path="/tickets/new" component={NewTicket} />
+      <Route path="/tickets/:nid" component={Ticket} />
+    </Route>
     <Route path="/customerService" component={CustomerService} onEnter={common.requireCustomerServiceAuth}>
       <Route path="/customerService/tickets" component={CSTickets} />
       <Route path="/customerService/stats" component={CSStats} />
     </Route>
-    <Route path="/users/:username" component={User} />
-    <Route path="/about" component={About}/>
-    <Route path="/login" component={Login}/>
+    <Route path="/users/:username" component={User} onEnter={common.requireAuth} />
     <Route path="/settings" component={Settings} onEnter={common.requireAuth}>
       <Route path="/settings/customerServiceProfile" component={SettingsCSProfile} />
       <Route path="/settings/members" component={Members} />

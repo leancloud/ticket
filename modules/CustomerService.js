@@ -5,9 +5,7 @@ export default class CustomerService extends React.Component {
 
   render() {
     return <div>
-      {this.props.children && React.cloneElement(this.props.children, {
-        addNotification: this.props.addNotification.bind(this),
-      })}
+      {this.props.children}
     </div>
   }
 
@@ -15,5 +13,4 @@ export default class CustomerService extends React.Component {
 
 CustomerService.propTypes = {
   children: PropTypes.object.isRequired,
-  addNotification: PropTypes.func.isRequired,
 }

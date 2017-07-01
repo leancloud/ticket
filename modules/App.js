@@ -68,6 +68,10 @@ export default class App extends Component {
     })
   }
 
+  getChildContext() {
+    return {addNotification: this.addNotification.bind(this)}
+  }
+
   render() {
     return (
       <div>
@@ -77,7 +81,6 @@ export default class App extends Component {
             login: this.login.bind(this),
             loginByToken: this.loginByToken.bind(this),
             isCustomerService: this.state.isCustomerService,
-            addNotification: this.addNotification.bind(this),
           })}
         </div>
         <NotificationSystem ref="notificationSystem" />
@@ -95,3 +98,8 @@ App.propTypes = {
 App.contextTypes = {
   router: PropTypes.object.isRequired
 }
+
+App.childContextTypes = {
+  addNotification: PropTypes.func
+}
+
