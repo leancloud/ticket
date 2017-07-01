@@ -224,6 +224,7 @@ export default class CustomerServiceTickets extends Component {
             </ButtonGroup>
             <ButtonGroup>
               <Button onClick={() => this.updateFilter({assigneeId: AV.User.current().id})}>分配给我的</Button>
+              <Button onClick={() => this.updateFilter({assigneeId: undefined})}>全部客服</Button>
               <DropdownButton id='assigneeDropdown' title={assigneeTitle} onSelect={(eventKey) => this.updateFilter({assigneeId: eventKey})}>
                 <MenuItem key='undefined'>全部客服</MenuItem>
                 {assigneeMenuItems}
