@@ -29,7 +29,7 @@ const indexPage =`
 <link rel="stylesheet" href="/css/leancloud-base.css">
 <link rel="stylesheet" href="/css/react-datepicker.css">
 <link rel="stylesheet" href="/index.css">
-<link rel="stylesheet" href="/app.css">
+<link rel="stylesheet" href="${process.env.WEBPACK_DEV_SERVER || ''}/app.css">
 <script src="/js/jquery.min.js"></script>
 <script src="/js/bootstrap.min.js"></script>
 <div id=app></div>
@@ -39,6 +39,17 @@ const indexPage =`
   LEANCLOUD_APP_ENV = '${process.env.LEANCLOUD_APP_ENV}'
 </script>
 <script src='${process.env.WEBPACK_DEV_SERVER || ''}/bundle.js'></script>
+<script>
+  window.addEventListener('load', function () {
+    if (window.Notification && Notification.permission !== "granted") {
+      Notification.requestPermission(function (status) {
+        if (Notification.permission !== status) {
+          Notification.permission = status;
+        }
+      });
+    }
+  })
+</script>
 `
 
 app.get('*', function (req, res) {

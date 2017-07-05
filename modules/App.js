@@ -91,6 +91,7 @@ export default class App extends Component {
             isCustomerService: this.state.isCustomerService,
           })}
         </div>
+        <ServerNotification isCustomerService={this.state.isCustomerService} />
         <NotificationSystem ref="notificationSystem" />
       </div>
     )
@@ -111,3 +112,67 @@ App.childContextTypes = {
   addNotification: PropTypes.func
 }
 
+class ServerNotification extends Component {
+
+  constructor(props) {
+    super(props)
+    new AV.Query('Ticket').equalTo('assignee', AV.User.current())
+    .subscribe().then((liveQuery) => {
+      this.ticketsLiveQuery = liveQuery
+      liveQuery.on('create', (ticket) => {
+        this.notify({title: '新的工单', body: `${ticket.get('title')} (#${ticket.get('nid')})`})
+      })
+      liveQuery.on('enter', (ticket, updatedKeys) => {
+        if (updatedKeys.indexOf('assignee') !== -1) {
+          this.notify({title: '转移工单', body: `${ticket.get('title')} (#${ticket.get('nid')})`})
+        }
+      })
+      liveQuery.on('update', (ticket, updatedKeys) => {
+        if (updatedKeys.indexOf('latestReply') !== -1
+            && ticket.get('latestReply').author.username !== AV.User.current().get('username')) {
+          this.notify({title: '新的回复', body: `${ticket.get('title')} (#${ticket.get('nid')})`})
+        }
+      })
+    })
+  }
+
+  componentWillUnmount() {
+    Promise.all([
+      this.ticketsLiveQuery.unsubscribe(),
+    ])
+  }
+
+  notify({title, body}) {
+    if (window.Notification && Notification.permission === 'granted') {
+      var n = new Notification(title, {body})
+      n.onshow = function () {
+        setTimeout(n.close.bind(n), 5000)
+      }
+    } else if (window.Notification && Notification.permission !== 'denied') {
+      Notification.requestPermission(function (status) {
+        if (Notification.permission !== status) {
+          Notification.permission = status
+        }
+        if (status === 'granted') {
+          var n = new Notification(title, {body})
+          n.onshow = function () {
+            setTimeout(n.close.bind(n), 5000)
+          }
+        } else {
+          alert(`${title}\n\n${body}`)
+        }
+      })
+    } else {
+      alert(`${title}\n\n${body}`)
+    }
+  }
+
+  render() {
+    return <div></div>
+  }
+
+}
+
+ServerNotification.propTypes = {
+  isCustomerService: PropTypes.bool,
+}
