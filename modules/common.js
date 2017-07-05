@@ -1,4 +1,5 @@
 import React from 'react'
+import crypto from 'crypto'
 import PropTypes from 'prop-types'
 import { Link } from 'react-router'
 import _ from 'lodash'
@@ -160,10 +161,14 @@ exports.UserLabel = (props) => {
     )
   }
   const username = props.user.username || props.user.get('username')
+  let gravatarHash = props.user.gravatarHash
+  if (!gravatarHash) {
+    gravatarHash = crypto.createHash('md5').update(props.user.get('email').trim().toLocaleLowerCase()).digest('hex')
+  }
   return (
     <span>
       <Link to={'/users/' + username} className="avatar">
-        <img height="16" width="16" src={'https://cdn.v2ex.com/gravatar/' + props.user.gravatarHash + '?s=64&r=pg&d=identicon'} />
+        <img height="16" width="16" src={'https://cdn.v2ex.com/gravatar/' + gravatarHash + '?s=64&r=pg&d=identicon'} />
       </Link>
       <Link to={'/users/' + username} className="username">
         {username}
