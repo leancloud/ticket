@@ -292,7 +292,12 @@ export default class Ticket extends Component {
             <DocumentTitle title={this.state.ticket.get('title') + ' - LeanTicket' || 'LeanTicket'} />
             <h1>{this.state.ticket.get('title')} <small>#{this.state.ticket.get('nid')}</small></h1>
             <div>
-              <TicketStatusLabel status={this.state.ticket.get('status')} /> <span><UserLabel user={this.state.ticket.get('author')} /> 于 {moment(this.state.ticket.get('createdAt')).fromNow()}创建该工单</span>
+              <TicketStatusLabel status={this.state.ticket.get('status')} /> <span>
+                <UserLabel user={this.state.ticket.get('author')} /> 创建于 <span title={moment(this.state.ticket.get('createdAt')).format()}>{moment(this.state.ticket.get('createdAt')).fromNow()}</span>
+                {moment(this.state.ticket.get('createdAt')).fromNow() === moment(this.state.ticket.get('updatedAt')).fromNow() ||
+                  <span>，更新于 <span title={moment(this.state.ticket.get('updatedAt')).format()}>{moment(this.state.ticket.get('updatedAt')).fromNow()}</span></span>
+                }
+              </span>
             </div>
             <hr />
           </div>
