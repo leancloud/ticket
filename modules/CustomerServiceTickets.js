@@ -41,6 +41,9 @@ export default class CustomerServiceTickets extends Component {
         })
       } else {
         this.findTickets(filters)
+        .then(tickets => {
+          this.setState({tickets})
+        })
       }
     })
     .catch(this.context.addNotification)
