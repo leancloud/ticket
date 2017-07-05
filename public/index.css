@@ -97,3 +97,11 @@ body {
   color: #fff;
   background: #ffb741;
 }
+
+.timestamp {
+  color: inherit;
+}
+
+.timestamp:hover {
+  color: #3090e4;
+}
