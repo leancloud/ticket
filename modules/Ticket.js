@@ -74,11 +74,14 @@ export default class Ticket extends Component {
     replyQuery.subscribe().then(liveQuery => {
       this.replyLiveQuery = liveQuery
       this.replyLiveQuery.on('create', reply => {
-        this.onRepliesCreate([reply])
-        .then(([reply]) => {
-          const replies = this.state.replies
-          replies.push(reply)
-          this.setState({replies})
+        reply.fetch({include: 'author'})
+        .then(() => {
+          this.onRepliesCreate([reply])
+          .then(([reply]) => {
+            const replies = this.state.replies
+            replies.push(reply)
+            this.setState({replies})
+          })
         })
       })
     })
