@@ -9,6 +9,7 @@ import AV from 'leancloud-storage/live-query'
 import common, {UserLabel, TicketStatusLabel, isTicketOpen} from './common'
 import UpdateTicket from './UpdateTicket'
 import css from './Ticket.css'
+import csCss from './CustomerServiceTickets.css'
 import DocumentTitle from 'react-document-title'
 
 import { TICKET_STATUS } from '../lib/constant'
@@ -173,7 +174,7 @@ export default class Ticket extends Component {
       case 'changeCategory':
         return (
           <p className='ticket-status' id={avObj.id} key={avObj.id}>
-            <span className='icon-wrap'><span className='glyphicon glyphicon-transfer'></span></span> <UserLabel user={avObj.get('data').operator} /> 于 <a href={'#' + avObj.id} className="timestamp" title={moment(avObj.get('createdAt')).format()}>{moment(avObj.get('createdAt')).fromNow()}</a> 将工单类别改为 {avObj.get('data').category.name}
+            <span className='icon-wrap'><span className='glyphicon glyphicon-transfer'></span></span> <UserLabel user={avObj.get('data').operator} /> 于 <a href={'#' + avObj.id} className="timestamp" title={moment(avObj.get('createdAt')).format()}>{moment(avObj.get('createdAt')).fromNow()}</a> 将工单类别改为 <span className={csCss.category + ' ' + css.category}>{avObj.get('data').category.name}</span>
           </p>
         )
       case 'changeAssignee':
