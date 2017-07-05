@@ -3,7 +3,7 @@ import _ from 'lodash'
 import xss from 'xss'
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
-import {FormGroup, FormControl, Label, Alert, Button, ButtonToolbar, Radio} from 'react-bootstrap'
+import {FormGroup, ControlLabel, FormControl, Label, Alert, Button, ButtonToolbar, Radio} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
 import common, {UserLabel, TicketStatusLabel, isTicketOpen} from './common'
@@ -263,16 +263,19 @@ export default class Ticket extends Component {
     if (isTicketOpen(this.state.ticket)) {
       optionButtons = (
         <FormGroup>
-          <button type="button" className='btn btn-default' onClick={() => this.operateTicket('resolve')}>已解决</button>
-          {' '}
-          <button type="button" className='btn btn-default' onClick={() => this.operateTicket('reject')}>关闭</button>
+          <ControlLabel>工单操作</ControlLabel>
+          <FormGroup>
+            <button type="button" className='btn btn-default' onClick={() => this.operateTicket('resolve')}>已解决</button>
+            {' '}
+            <button type="button" className='btn btn-default' onClick={() => this.operateTicket('reject')}>关闭</button>
+          </FormGroup>
         </FormGroup>
       )
     } else if (ticketStatus === TICKET_STATUS.PRE_FULFILLED && !this.props.isCustomerService) {
       optionButtons = (
-        <Alert>
-          <p>我们的工程师认为该工单已解决，请确认：</p>
-          <Button bsStyle="success" onClick={() => this.operateTicket('resolve')}>已解决</Button>
+        <Alert bsStyle="warning">
+          <ControlLabel>我们的工程师认为该工单已解决，请确认：</ControlLabel>
+          <Button bsStyle="primary" onClick={() => this.operateTicket('resolve')}>确认已解决</Button>
           {' '}
           <Button onClick={() => this.operateTicket('reopen')}>未解决</Button>
         </Alert>
