@@ -152,13 +152,7 @@ export default class Ticket extends Component {
 
   contentView(content) {
     return (
-      <table>
-        <tbody>
-          <tr>
-            <td dangerouslySetInnerHTML={{__html: xss(content)}} />
-          </tr>
-        </tbody>
-      </table>
+      <div dangerouslySetInnerHTML={{__html: xss(content)}} />
     )
   }
 
