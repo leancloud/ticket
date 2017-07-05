@@ -339,7 +339,7 @@ export default class Ticket extends Component {
             }
           </div>
 
-          <div className="col-sm-4">
+          <div className={'col-sm-4 ' + css.sidebar}>
             <div>{tags}</div>
 
             {isTicketOpen(this.state.ticket) &&

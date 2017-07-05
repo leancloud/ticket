@@ -14,6 +14,11 @@
   margin-bottom: 0;
 }
 
+.sidebar {
+  position: sticky;
+  top: 20px;
+}
+
 .badge {
   float: right;
   font-style: normal;
