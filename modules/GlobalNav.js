@@ -26,6 +26,14 @@ export default class GlobalNav extends Component {
     } else {
       user = <li><Link to="/login">登录</Link></li>
     }
+    let createTicket
+    if (AV.User.current()) {
+      createTicket = (
+        <li>
+          <button type="submit" className='btn btn-primary navbar-btn nav-submit-btn' onClick={this.handleNewTicketClick.bind(this)}>新建工单</button>
+        </li>
+      )
+    }
     let customerServiceLinks
     if (this.props.isCustomerService) {
       customerServiceLinks = (
@@ -54,9 +62,7 @@ export default class GlobalNav extends Component {
             </ul>
             {customerServiceLinks}
             <ul className="nav navbar-nav navbar-right">
-              <li>
-                <button type="submit" className='btn btn-primary navbar-btn nav-submit-btn' onClick={this.handleNewTicketClick.bind(this)}>新建工单</button>
-              </li>
+              {createTicket}
               {user}
             </ul>
           </div>
