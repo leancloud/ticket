@@ -283,7 +283,10 @@ export default class Ticket extends Component {
     } else {
       optionButtons = (
         <FormGroup>
-          <button type="button" className='btn btn-default' onClick={() => this.operateTicket('reopen')}>重新打开</button>
+          <ControlLabel>工单操作</ControlLabel>
+          <FormGroup>
+            <button type="button" className='btn btn-default' onClick={() => this.operateTicket('reopen')}>重新打开</button>
+          </FormGroup>
         </FormGroup>
       )
     }
