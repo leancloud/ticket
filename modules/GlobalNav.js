@@ -24,7 +24,7 @@ export default class GlobalNav extends Component {
         </li>
       )
     } else {
-      user = <li><Link to="/login">Login</Link></li>
+      user = <li><Link to="/login">登录</Link></li>
     }
     let customerServiceLinks
     if (this.props.isCustomerService) {
