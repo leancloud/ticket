@@ -29,6 +29,7 @@ export default class Tickets extends Component {
     const filters = Object.assign({}, this.state.filters, filter)
     return new AV.Query('Ticket')
     .equalTo('author', AV.User.current())
+    .include('author')
     .limit(filters.size)
     .skip(filters.page * filters.size)
     .descending('createdAt')
