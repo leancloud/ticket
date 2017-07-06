@@ -30,6 +30,7 @@ export default class Tickets extends Component {
     return new AV.Query('Ticket')
     .equalTo('author', AV.User.current())
     .include('author')
+    .include('assignee')
     .limit(filters.size)
     .skip(filters.page * filters.size)
     .descending('createdAt')
