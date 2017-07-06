@@ -55,7 +55,7 @@ exports.getTicketUrl = (ticket) => {
   return `${config.host}/tickets/${ticket.get('nid')}`
 }
 
-exports.md = new Remarkable({
+const md = new Remarkable({
   html: true,
   breaks: true,
   linkify: true,
@@ -76,6 +76,10 @@ exports.md = new Remarkable({
     return '' // use external default escaping
   },
 })
+
+exports.htmlify = (content) => {
+  return md.render(content)
+}
 
 const getGravatarHash = (email) => {
   email = email || ''

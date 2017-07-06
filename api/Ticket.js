@@ -18,6 +18,7 @@ AV.Cloud.beforeSave('Ticket', (req, res) => {
     }
 
     req.object.set('status', TICKET_STATUS.NEW)
+    req.object.set('content_HTML', common.htmlify(req.object.get('content')))
     getTicketAcl(req.object, req.currentUser).then((acl) => {
       req.object.setACL(acl)
       req.object.set('author', req.currentUser)
@@ -101,32 +102,6 @@ AV.Cloud.afterUpdate('Ticket', (req) => {
   })
 })
 
-AV.Cloud.define('getTicket', (req, res) => {
-  return new AV.Query('Ticket')
-  .equalTo('nid', req.params.nid)
-  .include('author')
-  .include('files')
-  .first({user: req.currentUser})
-  .then(ticket => {
-    if (!ticket) {
-      return res.error('notFound')
-    }
-    ticket.set('contentHtml', common.md.render(ticket.get('content')))
-    return res.success(ticket.toFullJSON())
-  }).catch(console.error)
-})
-
-AV.Cloud.define('htmlify', (req) => {
-  const {content, contents} = req.params
-  if (content) {
-    return common.md.render(content)
-  }
-  if (contents) {
-    return contents.map(content => common.md.render(content))
-  }
-  return null
-})
-
 AV.Cloud.define('operateTicket', (req) => {
   const {ticketId, action} = req.params
   return Promise.all([
@@ -151,7 +126,6 @@ AV.Cloud.define('operateTicket', (req) => {
       }, {useMasterKey: true})
     })
     .then(() => {
-      ticket.set('contentHtml', common.md.render(ticket.get('content')))
       return ticket.toFullJSON()
     })
   })

@@ -8,7 +8,7 @@ AV.Cloud.beforeSave('Reply', (req, res) => {
   if (!req.currentUser._sessionToken) {
     return res.error('noLogin')
   }
-  req.object.set('content', req.object.get('content'))
+  req.object.set('content_HTML', common.htmlify(req.object.get('content')))
   getReplyAcl(req.object, req.currentUser).then((acl) => {
     req.object.setACL(acl)
     req.object.set('author', req.currentUser)
@@ -21,15 +21,6 @@ AV.Cloud.beforeSave('Reply', (req, res) => {
 
 AV.Cloud.afterSave('Reply', (req) => {
   ticket.replyTicket(req.object.get('ticket'), req.object, req.currentUser)
-})
-
-AV.Cloud.define('getReplyView', (req, res) => {
-  AV.Object.createWithoutData('Reply', req.params.objectId)
-  .fetch({include: 'author,files'}, {user: req.currentUser})
-  .then((reply) => {
-    reply.set('contentHtml', common.md.render(reply.get('content')))
-    return res.success(reply.toFullJSON())
-  })
 })
 
 const getReplyAcl = (reply, author) => {

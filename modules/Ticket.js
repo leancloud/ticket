@@ -26,13 +26,15 @@ export default class Ticket extends Component {
   }
 
   componentDidMount() {
-    AV.Cloud.run('getTicket', {nid: parseInt(this.props.params.nid)})
+    return new AV.Query('Ticket')
+    .equalTo('nid', parseInt(this.props.params.nid))
+    .include('author')
+    .include('files')
+    .first()
     .then(ticket => {
       return Promise.all([
-        this.getReplyQuery(ticket).find().then(this.onRepliesCreate),
-        new AV.Query('Tag')
-          .equalTo('ticket', ticket)
-          .find(),
+        this.getReplyQuery(ticket).find(),
+        new AV.Query('Tag').equalTo('ticket', ticket).find(),
         this.getOpsLogQuery(ticket).find(),
       ])
       .then(([replies, tags, opsLogs]) => {
@@ -55,17 +57,6 @@ export default class Ticket extends Component {
     .catch(this.context.addNotification)
   }
 
-  onRepliesCreate(replies) {
-    const replyContents = replies.map(reply => reply.get('content'))
-    return AV.Cloud.run('htmlify', {contents: replyContents})
-    .then(contentHtmls => {
-      replies.forEach((reply, i) => {
-        reply.contentHtml = contentHtmls[i]
-      })
-      return replies
-    })
-  }
-
   getReplyQuery(ticket) {
     const replyQuery = new AV.Query('Reply')
     .equalTo('ticket', ticket)
@@ -76,12 +67,9 @@ export default class Ticket extends Component {
       this.replyLiveQuery.on('create', reply => {
         reply.fetch({include: 'author'})
         .then(() => {
-          this.onRepliesCreate([reply])
-          .then(([reply]) => {
-            const replies = this.state.replies
-            replies.push(reply)
-            this.setState({replies})
-          })
+          const replies = this.state.replies
+          replies.push(reply)
+          this.setState({replies})
         })
       })
     })
@@ -230,7 +218,7 @@ export default class Ticket extends Component {
           {userLabel} 提交于 <a href={'#' + avObj.id} className="timestamp" title={moment(avObj.get('createdAt')).format()}>{moment(avObj.get('createdAt')).fromNow()}</a>
           </div>
           <div className={ 'panel-body ' + css.content }>
-            {this.contentView(avObj.contentHtml || avObj.get('contentHtml'))}
+            {this.contentView(avObj.get('content_HTML'))}
           </div>
           {panelFooter}
         </div>
