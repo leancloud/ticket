@@ -163,7 +163,7 @@ exports.UserLabel = (props) => {
   const username = props.user.username || props.user.get('username')
   let gravatarHash = props.user.gravatarHash
   if (!gravatarHash) {
-    gravatarHash = crypto.createHash('md5').update(props.user.get('email').trim().toLocaleLowerCase()).digest('hex')
+    gravatarHash = crypto.createHash('md5').update((props.user.get('email') || '').trim().toLocaleLowerCase()).digest('hex')
   }
   return (
     <span>

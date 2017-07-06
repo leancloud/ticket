@@ -35,10 +35,12 @@ export default class App extends Component {
   componentDidMount() {
     this._notificationSystem = this.refs.notificationSystem
     const user = AV.User.current()
-    common.isCustomerService(user)
+    if (user) {
+      common.isCustomerService(user)
       .then((isCustomerService) => {
         this.setState({isCustomerService})
       })
+    }
   }
 
   login(username, password) {
@@ -71,8 +73,8 @@ export default class App extends Component {
   logout() {
     AV.User.logOut()
     .then(() => {
-      this.setState({isCustomerService: false})
       this.context.router.push('/')
+      this.setState({isCustomerService: false})
     })
   }
 
@@ -116,24 +118,67 @@ class ServerNotification extends Component {
 
   constructor(props) {
     super(props)
-    new AV.Query('Ticket').equalTo('assignee', AV.User.current())
-    .subscribe().then((liveQuery) => {
-      this.ticketsLiveQuery = liveQuery
-      liveQuery.on('create', (ticket) => {
-        this.notify({title: '新的工单', body: `${ticket.get('title')} (#${ticket.get('nid')})`})
-      })
-      liveQuery.on('enter', (ticket, updatedKeys) => {
-        if (updatedKeys.indexOf('assignee') !== -1) {
-          this.notify({title: '转移工单', body: `${ticket.get('title')} (#${ticket.get('nid')})`})
+    let permission = 'denied'
+    if (window.Notification && Notification.permission === 'granted') {
+      permission = 'granted'
+    } else if (window.Notification && Notification.permission !== 'denied') {
+      Notification.requestPermission(function (status) {
+        if (Notification.permission !== status) {
+          Notification.permission = status
         }
+        this.setState({permission: status})
       })
-      liveQuery.on('update', (ticket, updatedKeys) => {
-        if (updatedKeys.indexOf('latestReply') !== -1
-            && ticket.get('latestReply').author.username !== AV.User.current().get('username')) {
-          this.notify({title: '新的回复', body: `${ticket.get('title')} (#${ticket.get('nid')})`})
-        }
+    }
+    this.state = {permission}
+  }
+
+  componentDidMount() {
+    this.updateLiveQuery(this.props.isCustomerService)
+  }
+
+  shouldComponentUpdate(nextProps, _nextState) {
+    return this.props.isCustomerService !== nextProps.isCustomerService
+  }
+
+  componentWillReceiveProps(nextProps) {
+    this.updateLiveQuery(nextProps.isCustomerService)
+  }
+
+  updateLiveQuery(isCustomerService) {
+    if (this.ticketsLiveQuery) {
+      this.ticketsLiveQuery.unsubscribe()
+    }
+    if (isCustomerService) {
+      new AV.Query('Ticket').equalTo('assignee', AV.User.current())
+      .subscribe().then((liveQuery) => {
+        this.ticketsLiveQuery = liveQuery
+        liveQuery.on('create', (ticket) => {
+          this.notify({title: '新的工单', body: `${ticket.get('title')} (#${ticket.get('nid')})`})
+        })
+        liveQuery.on('enter', (ticket, updatedKeys) => {
+          if (updatedKeys.indexOf('assignee') !== -1) {
+            this.notify({title: '转移工单', body: `${ticket.get('title')} (#${ticket.get('nid')})`})
+          }
+        })
+        liveQuery.on('update', (ticket, updatedKeys) => {
+          if (updatedKeys.indexOf('latestReply') !== -1
+              && ticket.get('latestReply').author.username !== AV.User.current().get('username')) {
+            this.notify({title: '新的回复', body: `${ticket.get('title')} (#${ticket.get('nid')})`})
+          }
+        })
       })
-    })
+    } else {
+      new AV.Query('Ticket').equalTo('author', AV.User.current())
+      .subscribe().then((liveQuery) => {
+        this.ticketsLiveQuery = liveQuery
+        liveQuery.on('update', (ticket, updatedKeys) => {
+          if (updatedKeys.indexOf('latestReply') !== -1
+              && ticket.get('latestReply').author.username !== AV.User.current().get('username')) {
+            this.notify({title: '新的回复', body: `${ticket.get('title')} (#${ticket.get('nid')})`})
+          }
+        })
+      })
+    }
   }
 
   componentWillUnmount() {
@@ -143,25 +188,11 @@ class ServerNotification extends Component {
   }
 
   notify({title, body}) {
-    if (window.Notification && Notification.permission === 'granted') {
+    if (this.state.permission === 'granted') {
       var n = new Notification(title, {body})
       n.onshow = function () {
         setTimeout(n.close.bind(n), 5000)
       }
-    } else if (window.Notification && Notification.permission !== 'denied') {
-      Notification.requestPermission(function (status) {
-        if (Notification.permission !== status) {
-          Notification.permission = status
-        }
-        if (status === 'granted') {
-          var n = new Notification(title, {body})
-          n.onshow = function () {
-            setTimeout(n.close.bind(n), 5000)
-          }
-        } else {
-          alert(`${title}\n\n${body}`)
-        }
-      })
     } else {
       alert(`${title}\n\n${body}`)
     }
