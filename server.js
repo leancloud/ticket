@@ -34,6 +34,7 @@ const indexPage =`
 <script src="/js/bootstrap.min.js"></script>
 <div id=app></div>
 <script>
+  SENTRY_PUB_DSN = '${process.env.SENTRY_PUB_DSN}'
   LEANCLOUD_APP_ID = '${process.env.LEANCLOUD_APP_ID}'
   LEANCLOUD_APP_KEY = '${process.env.LEANCLOUD_APP_KEY}'
   LEANCLOUD_APP_ENV = '${process.env.LEANCLOUD_APP_ENV}'
