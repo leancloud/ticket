@@ -32,6 +32,13 @@ export default class Ticket extends Component {
     .include('files')
     .first()
     .then(ticket => {
+      if (!ticket) {
+        return this.props.router.replace({
+          pathname: '/error',
+          state: { code: 'Unauthorized' }
+        })
+      }
+
       return Promise.all([
         this.getReplyQuery(ticket).find(),
         new AV.Query('Tag').equalTo('ticket', ticket).find(),
@@ -50,11 +57,13 @@ export default class Ticket extends Component {
   }
 
   componentWillUnmount() {
-    Promise.all([
-      this.replyLiveQuery.unsubscribe(),
-      this.opsLogLiveQuery.unsubscribe()
-    ])
-    .catch(this.context.addNotification)
+    if (this.replyLiveQuery) {
+      Promise.all([
+        this.replyLiveQuery.unsubscribe(),
+        this.opsLogLiveQuery.unsubscribe()
+      ])
+      .catch(this.context.addNotification)
+    }
   }
 
   getReplyQuery(ticket) {
@@ -65,7 +74,7 @@ export default class Ticket extends Component {
     replyQuery.subscribe().then(liveQuery => {
       this.replyLiveQuery = liveQuery
       this.replyLiveQuery.on('create', reply => {
-        reply.fetch({include: 'author'})
+        reply.fetch({include: 'author,files'})
         .then(() => {
           const replies = this.state.replies
           replies.push(reply)
@@ -349,6 +358,7 @@ export default class Ticket extends Component {
 }
 
 Ticket.propTypes = {
+  router: PropTypes.object,
   isCustomerService: PropTypes.bool,
   params: PropTypes.object,
 }

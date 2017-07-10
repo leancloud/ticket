@@ -18,6 +18,9 @@ export default function Error(props) {
   case 'requireCustomerServiceAuth': 
     message = '您访问的页面需要技术支持人员权限。'
     break
+  case 'Unauthorized':
+    message = '您没有权限访问该页面。'
+    break
   default:
     message = '未知信息: ' + this.props.location.state.code
   }

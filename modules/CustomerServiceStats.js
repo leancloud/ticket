@@ -514,7 +514,7 @@ class StatsSummary extends React.Component {
     })
 
     return <div>
-      <h2>该要</h2>
+      <h2>概要</h2>
       <Table>
         <thead>
           <tr>
