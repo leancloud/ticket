@@ -1,7 +1,7 @@
 /*global SENTRY_PUB_DSN, LEANCLOUD_APP_ID, LEANCLOUD_APP_KEY, LEANCLOUD_APP_ENV*/
 import React from 'react'
 import Raven from 'raven-js'
-import { Route, IndexRoute } from 'react-router'
+import { Route, IndexRoute, Redirect } from 'react-router'
 import moment from 'moment'
 import AV from 'leancloud-storage/live-query'
 
@@ -56,6 +56,7 @@ module.exports = (
       <Route path="/settings/categories" component={Categories} />
       <Route path="/settings/categories/:id" component={Category} />
     </Route>
+    <Redirect from="/t/leancloud" to="/tickets" />
     <Route path="/error" component={Error} />
     <Route path='*' component={NotFound} />
   </Route>
