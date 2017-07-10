@@ -453,6 +453,9 @@ class Tag extends Component{
   componentDidMount() {
     if (this.props.tag.get('key') === 'appId') {
       const appId = this.props.tag.get('value')
+      if (!appId) {
+        return
+      }
       return AV.Cloud.run('getLeanCloudApp', {
         username: this.props.ticket.get('author').get('username'),
         appId,
@@ -474,7 +477,9 @@ class Tag extends Component{
 
   render() {
     if (!this.state) {
-      return <Label bsStyle="default">{this.props.tag.get('key')}: {this.props.tag.get('value')}</Label>
+      return <div className="form-group">
+        <Label bsStyle="default">{this.props.tag.get('key')}: {this.props.tag.get('value')}</Label>
+      </div>
     } else {
       if (this.state.url) {
         return <div>

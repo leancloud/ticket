@@ -52,6 +52,14 @@ export default class NewTicket extends React.Component {
 
   handleSubmit(e) {
     e.preventDefault()
+    if (!this.state.title || this.state.title.trim().length === 0) {
+      this.context.addNotification(new Error('标题不能为空'))
+      return
+    }
+    if (!this.state.category || !this.state.category.id) {
+      this.context.addNotification(new Error('问题分类不能为空'))
+      return
+    }
     common.uploadFiles($('#ticketFile')[0].files)
     .then((files) => {
       return new AV.Object('Ticket').save({
@@ -61,11 +69,13 @@ export default class NewTicket extends React.Component {
         files,
       })
       .then((ticket) => {
-        return new AV.Object('Tag').save({
-          key: 'appId',
-          value: this.state.appId,
-          ticket
-        })
+        if (this.state.appId) {
+          return new AV.Object('Tag').save({
+            key: 'appId',
+            value: this.state.appId,
+            ticket
+          })
+        }
       })
     }).then(() => {
       localStorage.removeItem('ticket:new:title')

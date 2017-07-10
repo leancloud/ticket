@@ -17,14 +17,22 @@ AV.Cloud.beforeSave('Ticket', (req, res) => {
       return res.error('您的账号不具备提交工单的条件。')
     }
 
-    req.object.set('status', TICKET_STATUS.NEW)
-    req.object.set('content_HTML', common.htmlify(req.object.get('content')))
-    getTicketAcl(req.object, req.currentUser).then((acl) => {
-      req.object.setACL(acl)
-      req.object.set('author', req.currentUser)
-      return selectAssignee(req.object)
+    const ticket = req.object
+    if (!ticket.get('title') || ticket.get('title').trim().length === 0) {
+      throw new AV.Cloud.Error('title 不能为空')
+    }
+    if (!ticket.get('category') || !ticket.get('category').objectId) {
+      throw new AV.Cloud.Error('category 不能为空')
+    }
+
+    ticket.set('status', TICKET_STATUS.NEW)
+    ticket.set('content_HTML', common.htmlify(ticket.get('content')))
+    getTicketAcl(ticket, req.currentUser).then((acl) => {
+      ticket.setACL(acl)
+      ticket.set('author', req.currentUser)
+      return selectAssignee(ticket)
     }).then((assignee) => {
-      req.object.set('assignee', assignee)
+      ticket.set('assignee', assignee)
       res.success()
     }).catch(errorHandler.captureException)
   })

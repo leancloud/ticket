@@ -64,7 +64,7 @@ const send = (params) => {
       return
     }
 
-    mailgun.messages().send({
+    exports.mailgun.messages().send({
       from: params.from,
       to: params.to,
       subject: params.subject,
