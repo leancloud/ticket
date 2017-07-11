@@ -43,12 +43,11 @@ export default class SettingMembers extends React.Component {
 
   handleSubmit(e) {
     e.preventDefault()
-    new AV.Query(AV.User)
-    .equalTo('username', this.state.username)
-    .first()
+    AV.Cloud.run('getUserInfo', {username: this.state.username})
     .then((user) => {
-      this.state.customerServiceRole.getUsers().add(user)
-      return this.state.customerServiceRole.save()
+      const role = this.state.customerServiceRole
+      role.getUsers().add(AV.Object.createWithoutData('_User', user.objectId))
+      return role.save()
       .then((role) => {
         return this.getRoleAndUsers(role.get('name'))
       }).then((data) => {
@@ -77,7 +76,7 @@ export default class SettingMembers extends React.Component {
   render() {
     const customerServices = this.state.customerServices.map((customerService) => {
       const categories = _.map(customerService.get('categories'), (category) => {
-        return <span>{category.name} </span>
+        return <span key={category.objectId}>{category.name} </span>
       })
       return (
         <tr key={customerService.id}>
