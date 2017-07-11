@@ -420,6 +420,11 @@ class TicketReply extends Component {
     e.preventDefault()
     this.setState({isCommitting: true})
     this.props.commitReplySoon(this.state.reply, this.fileInput.files)
+    .then(() => {
+      localStorage.removeItem(`ticket:${this.props.ticket.id}:reply`)
+      this.setState({reply: ''})
+      this.fileInput.value = ''
+    })
     .catch(this.context.addNotification)
     .then(() => {
       this.setState({isCommitting: false})
