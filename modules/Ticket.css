@@ -21,6 +21,10 @@
   overflow-wrap: break-word;
 }
 
+.content img {
+  max-width: 100%;
+}
+
 .content > div > *:last-child {
   margin-bottom: 0;
 }
