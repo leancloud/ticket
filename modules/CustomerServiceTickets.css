@@ -21,7 +21,7 @@
 
 .title {
   font-size: 18px;
-  font-weight: bold;
+  font-weight: 500;
   color: #444;
 }
 
@@ -30,10 +30,8 @@
 }
 
 .nid {
-  display: inline-block;
   color: #afafaf;
   margin-right: .5em;
-  vertical-align: 1px;
 }
 
 .category,
@@ -86,7 +84,8 @@
 
 .meta {
   display: flex;
-  color: #555;
+  color: #999;
+  font-size: 14px;
 }
 
 .meta .left {
@@ -102,7 +101,7 @@
 }
 
 .creator a {
-  color: #555;
+  color: #777;
   font-weight: normal;
 }
 
@@ -111,7 +110,7 @@
 }
 
 .assignee a {
-  color: #555;
+  color: #777;
   font-weight: normal;
 }
 

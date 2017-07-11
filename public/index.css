@@ -4,6 +4,13 @@ html {
 
 body {
   text-decoration-skip: ink;
+  -webkit-font-smoothing: antialiased;
+  font-smoothing: antialiased;
+}
+
+body,
+.label, label {
+  font-weight: 400;
 }
 
 .username {

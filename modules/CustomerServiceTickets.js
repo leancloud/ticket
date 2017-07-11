@@ -154,7 +154,6 @@ export default class CustomerServiceTickets extends Component {
         <div className={css.ticket} key={ticket.get('nid')}>
           <div className={css.heading}>
             <div className={css.left}>
-              <span className={css.nid}>#{ticket.get('nid')}</span>
               <Link className={css.title} to={'/tickets/' + ticket.get('nid')}>{ticket.get('title')}</Link>
               <span className={css.category}>{ticket.get('category').name}</span>
               {filters.isOpen === 'true' ||
@@ -173,6 +172,7 @@ export default class CustomerServiceTickets extends Component {
 
           <div className={css.meta}>
             <div className={css.left}>
+              <span className={css.nid}>#{ticket.get('nid')}</span>
               <span className={css.status}><TicketStatusLabel status={ticket.get('status')} /></span>
               <span className={css.creator}><UserLabel user={ticket.get('author')} /></span> 创建于 {moment(ticket.get('createdAt')).fromNow()}
               {moment(ticket.get('createdAt')).fromNow() === moment(ticket.get('updatedAt')).fromNow() ||
