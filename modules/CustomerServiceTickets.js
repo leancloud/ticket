@@ -57,7 +57,7 @@ export default class CustomerServiceTickets extends Component {
     })
   }
 
-  findTickets({assigneeId, isOpen, categoryId, authorId, isOnlyUnlike, page = '0', size = '20'}) {
+  findTickets({assigneeId, isOpen, categoryId, authorId, isOnlyUnlike, page = '0', size = '10'}) {
     let query = new AV.Query('Ticket')
 
     const queryFilters = (isOpen === 'true' ? ticketOpenedStatuses() : ticketClosedStatuses())
@@ -86,14 +86,15 @@ export default class CustomerServiceTickets extends Component {
     .include('assignee')
     .limit(parseInt(size))
     .skip(parseInt(page) * parseInt(size))
-    .descending('updatedAt')
+    .addAscending('status')
+    .addAscending('updatedAt')
     .find()
   }
 
   updateFilter(filter) {
     if (!filter.page && !filter.size) {
       filter.page = '0'
-      filter.size = '20'
+      filter.size = '10'
     }
     const filters = Object.assign({}, this.props.location.query, filter)
     this.context.router.push('/customerService/tickets?' + qs.stringify(filters))
