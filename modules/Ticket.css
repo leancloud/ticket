@@ -2,8 +2,13 @@
 
 }
 
-.heading {
+.panelModerator {
+  border-color: #c1d5e4;
+}
 
+.panelModerator .heading {
+  background: #e3edf7;
+  border-color: #e3edf7;
 }
 
 .content {
@@ -33,6 +38,7 @@
   padding: 4px 6px;
   border-radius: 4px;
   line-height: 1;
+  color: #779bbf;
 }
 
 /* reset categroy inherited from CustomerServiceTickets */
