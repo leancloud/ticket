@@ -210,14 +210,32 @@ export default class Ticket extends Component {
       }
     } else {
       let panelFooter = <div></div>
+      let imgBody = <div></div>
       const files = avObj.get('files')
       if (files && files.length !== 0) {
-        const fileLinks = _.map(files, (file) => {
-          return (
-            <span key={file.id}><a href={file.url()} target='_blank'><span className="glyphicon glyphicon-paperclip"></span> {file.get('name')}</a> </span>
-          )
+        const imgFiles = []
+        const otherFiles = []
+        files.forEach(f => {
+          const mimeType = f.get('mime_type')
+          if (['image/png', 'image/jpeg'].indexOf(mimeType) != -1) {
+            imgFiles.push(f)
+          } else {
+            otherFiles.push(f)
+          }
         })
-        panelFooter = <div className="panel-footer">{fileLinks}</div>
+
+        if (imgFiles.length > 0) {
+          imgBody = imgFiles.map(f => {
+            return <img key={f.id} src={f.get('url')} alt={f.get('name')} />
+          })
+        }
+
+        if (otherFiles.length > 0) {
+          const fileLinks = otherFiles.map(f => {
+            return <span key={f.id}><a href={f.url()} target='_blank'><span className="glyphicon glyphicon-paperclip"></span> {f.get('name')}</a> </span>
+          })
+          panelFooter = <div className="panel-footer">{fileLinks}</div>
+        }
       }
       const panelClass = `panel ${css.item} ${(avObj.get('isCustomerService') ? 'panel-primary' : 'panel-common')}`
       const userLabel = avObj.get('isCustomerService') ? <span><UserLabel user={avObj.get('author')} /><i className={css.badge}>客服</i></span> : <UserLabel user={avObj.get('author')} />
@@ -228,6 +246,7 @@ export default class Ticket extends Component {
           </div>
           <div className={ 'panel-body ' + css.content }>
             {this.contentView(avObj.get('content_HTML'))}
+            {imgBody}
           </div>
           {panelFooter}
         </div>
