@@ -10,6 +10,10 @@
 
 }
 
+.content img {
+  max-size: 100%;
+}
+
 .content table td > *:last-child {
   margin-bottom: 0;
 }
