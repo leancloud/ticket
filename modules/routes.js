@@ -57,6 +57,7 @@ module.exports = (
       <Route path="/settings/categories/:id" component={Category} />
     </Route>
     <Redirect from="/t/leancloud" to="/tickets" />
+    <Redirect from="/t/leancloud/:nid" to="/tickets/:nid" />
     <Route path="/error" component={Error} />
     <Route path='*' component={NotFound} />
   </Route>
