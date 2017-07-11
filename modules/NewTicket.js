@@ -2,7 +2,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
-import {FormGroup, ControlLabel, FormControl} from 'react-bootstrap'
+import {FormGroup, ControlLabel, FormControl, Button} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
 const common = require('./common')
@@ -18,6 +18,7 @@ export default class NewTicket extends React.Component {
       appId: '',
       category: {},
       content: localStorage.getItem('ticket:new:content') || '',
+      isCommitting: false,
     }
   }
 
@@ -52,6 +53,7 @@ export default class NewTicket extends React.Component {
 
   handleSubmit(e) {
     e.preventDefault()
+
     if (!this.state.title || this.state.title.trim().length === 0) {
       this.context.addNotification(new Error('标题不能为空'))
       return
@@ -60,6 +62,8 @@ export default class NewTicket extends React.Component {
       this.context.addNotification(new Error('问题分类不能为空'))
       return
     }
+
+    this.setState({isCommitting: true})
     common.uploadFiles($('#ticketFile')[0].files)
     .then((files) => {
       return new AV.Object('Ticket').save({
@@ -83,6 +87,9 @@ export default class NewTicket extends React.Component {
       this.context.router.push('/tickets')
     })
     .catch(this.context.addNotification)
+    .then(() => {
+      this.setState({isCommitting: false})
+    })
   }
 
   render() {
@@ -120,7 +127,7 @@ export default class NewTicket extends React.Component {
         <FormGroup>
           <input id="ticketFile" type="file" multiple />
         </FormGroup>
-        <button type="submit" className="btn btn-default">提交</button>
+        <Button type='submit' disabled={this.state.isCommitting}>提交</Button>
       </form>
     )
   }

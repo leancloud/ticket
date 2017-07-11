@@ -392,6 +392,7 @@ class TicketReply extends Component {
     this.state = {
       reply: localStorage.getItem(`ticket:${this.props.ticket.id}:reply`) || '',
       files: [],
+      isCommitting: false,
     }
   }
 
@@ -402,6 +403,7 @@ class TicketReply extends Component {
 
   handleReplyCommit(e) {
     e.preventDefault()
+    this.setState({isCommitting: true})
     this.props.commitReply(this.state.reply, this.fileInput.files)
     .then(() => {
       localStorage.removeItem(`ticket:${this.props.ticket.id}:reply`)
@@ -409,18 +411,29 @@ class TicketReply extends Component {
       this.fileInput.value = ''
     })
     .catch(this.context.addNotification)
+    .then(() => {
+      this.setState({isCommitting: false})
+    })
   }
 
   handleReplySoon(e) {
     e.preventDefault()
+    this.setState({isCommitting: true})
     this.props.commitReplySoon(this.state.reply, this.fileInput.files)
     .catch(this.context.addNotification)
+    .then(() => {
+      this.setState({isCommitting: false})
+    })
   }
 
   handleReplyNoContent(e) {
     e.preventDefault()
+    this.setState({isCommitting: true})
     this.props.operateTicket('replyWithNoContent')
     .catch(this.context.addNotification)
+    .then(() => {
+      this.setState({isCommitting: false})
+    })
   }
 
   render() {
@@ -428,9 +441,9 @@ class TicketReply extends Component {
     if (this.props.isCustomerService) {
       buttons = (
         <ButtonToolbar>
-          <Button onClick={this.handleReplyCommit.bind(this)}>回复</Button>
-          <Button onClick={this.handleReplySoon.bind(this)}>稍后继续回复</Button>
-          <Button onClick={this.handleReplyNoContent.bind(this)}>暂无需回复</Button>
+          <Button onClick={this.handleReplyCommit.bind(this)} disabled={this.state.isCommitting}>回复</Button>
+          <Button onClick={this.handleReplySoon.bind(this)} disabled={this.state.isCommitting}>稍后继续回复</Button>
+          <Button onClick={this.handleReplyNoContent.bind(this)} disabled={this.state.isCommitting}>暂无需回复</Button>
         </ButtonToolbar>
       )
     } else {
