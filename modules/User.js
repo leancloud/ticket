@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import _ from 'lodash'
+import {Link} from 'react-router'
 import PropTypes from 'prop-types'
 import AV from 'leancloud-storage/live-query'
 import css from './User.css'
@@ -29,7 +29,11 @@ export default class User extends Component {
       props.isCustomerService ? AV.Cloud.run('getLeanCloudUserInfoByUsername', {username}) : null,
       props.isCustomerService ? AV.Cloud.run('getLeanCloudAppsByUsername', {username}) : null,
     ]).then(([user, leancloudUser, leancloudApps]) => {
-      this.setState({user, leancloudUser, leancloudApps: _.sortBy(leancloudApps, app => -app.month_reqs)})
+      this.setState({
+        user,
+        leancloudUser,
+        leancloudApps: leancloudApps ? leancloudApps.sort((a, b) => b.month_reqs - a.month_reqs) : []
+      })
     })
   }
 
@@ -41,6 +45,7 @@ export default class User extends Component {
           <p>{this.state.leancloudUser.username}<span className={css.id}>#{this.state.leancloudUser.id}</span></p>
           <p>{this.state.leancloudUser.email}</p>
           <p><a href={'tel:' + this.state.leancloudUser.phone}>{this.state.leancloudUser.phone}</a></p>
+          <p><Link to={`/customerService/tickets?authorId=${this.state.user.objectId}&isOpen=true`}>工单列表</Link></p>
         </div>
       )
     }

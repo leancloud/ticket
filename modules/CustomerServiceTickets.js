@@ -245,6 +245,7 @@ export default class CustomerServiceTickets extends Component {
         <FormGroup validationState={this.state.authorFilterValidationState}>
           <FormControl type="text" value={this.state.authorUsername} placeholder="提交人" onChange={this.handleAuthorChange.bind(this)} />
         </FormGroup>
+        {'  '}
         {filters.isOpen === 'true' ||
           <ButtonGroup>
             <Checkbox checked={filters.isOnlyUnlike === 'true'} onChange={this.handleUnlikeChange.bind(this)}>只看差评</Checkbox>
