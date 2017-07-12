@@ -7,7 +7,8 @@ import moment from 'moment'
 import AV from 'leancloud-storage/live-query'
 import css from './CustomerServiceTickets.css'
 
-import {sortTickets, UserLabel, TicketStatusLabel, getCustomerServices, ticketOpenedStatuses, ticketClosedStatuses} from './common'
+import {UserLabel, TicketStatusLabel, getCustomerServices, ticketOpenedStatuses, ticketClosedStatuses} from './common'
+import {TICKET_STATUS, TICKET_STATUS_MSG} from '../lib/constant'
 
 let authorSearchTimeoutId
 
@@ -57,14 +58,25 @@ export default class CustomerServiceTickets extends Component {
     })
   }
 
-  findTickets({assigneeId, isOpen, categoryId, authorId, isOnlyUnlike, page = '0', size = '10'}) {
-    let query = new AV.Query('Ticket')
+  findTickets({assigneeId, isOpen, status, categoryId, authorId, isOnlyUnlike, page = '0', size = '10'}) {
+    let statuses = []
+    if (isOpen === 'true') {
+      statuses = ticketOpenedStatuses()
+    } else if (isOpen === 'false') {
+      statuses = ticketClosedStatuses()
+    } else if (status) {
+      statuses = [parseInt(status)]
+    }
 
-    const queryFilters = (isOpen === 'true' ? ticketOpenedStatuses() : ticketClosedStatuses())
-    .map((status) => {
-      return new AV.Query('Ticket').equalTo('status', status)
-    })
-    query = AV.Query.or(...queryFilters)
+    let query
+    if (statuses.length === 0) {
+      query = new AV.Query('Ticket')
+    } else {
+      const statusFilters = statuses.map((status) => {
+        return new AV.Query('Ticket').equalTo('status', status)
+      })
+      query = AV.Query.or(...statusFilters)
+    }
 
     if (assigneeId) {
       query.equalTo('assignee', AV.Object.createWithoutData('_User', assigneeId))
@@ -142,7 +154,7 @@ export default class CustomerServiceTickets extends Component {
 
   render() {
     const filters = this.props.location.query
-    const tickets = sortTickets(this.state.tickets)
+    const tickets = this.state.tickets
     const ticketTrs = tickets.map((ticket) => {
       const customerServices = (ticket.get('joinedCustomerServices') || []).map((user) => {
         return (
@@ -187,12 +199,28 @@ export default class CustomerServiceTickets extends Component {
         </div>
       )
     })
+
+    const statusMenuItems = Object.keys(TICKET_STATUS).map(key => {
+      const value = TICKET_STATUS[key]
+      return <MenuItem key={value} eventKey={value}>{TICKET_STATUS_MSG[value]}</MenuItem>
+    })
     const assigneeMenuItems = this.state.customerServices.map((user) => {
       return <MenuItem key={user.id} eventKey={user.id}>{user.get('username')}</MenuItem>
     })
     const categoryMenuItems = this.state.categories.map((category) => {
       return <MenuItem key={category.id} eventKey={category.id}>{category.get('name')}</MenuItem>
     })
+
+    let statusTitle
+    if (filters.status) {
+      statusTitle = TICKET_STATUS_MSG[filters.status]
+    } else if (filters.isOpen === 'true') {
+      statusTitle = '未完成'
+    } else if (filters.isOpen === 'false') {
+      statusTitle = '已完成'
+    } else {
+      statusTitle = '全部状态'
+    }
 
     let assigneeTitle
     if (filters.assigneeId) {
@@ -223,8 +251,12 @@ export default class CustomerServiceTickets extends Component {
         <FormGroup>
           <ButtonToolbar>
             <ButtonGroup>
-              <button className={'btn btn-default' + (filters.isOpen === 'true' ? ' active' : '')} onClick={() => this.updateFilter({isOpen: true})}>未完成</button>
-              <button className={'btn btn-default' + (filters.isOpen === 'true' ? '' : ' active')} onClick={() => this.updateFilter({isOpen: false})}>已完成</button>
+              <button className={'btn btn-default' + (filters.isOpen === 'true' ? ' active' : '')} onClick={() => this.updateFilter({isOpen: true, status: undefined})}>未完成</button>
+              <button className={'btn btn-default' + (filters.isOpen === 'false' ? ' active' : '')} onClick={() => this.updateFilter({isOpen: false, status: undefined})}>已完成</button>
+              <DropdownButton className={(filters.status ? ' active' : '')} id='statusDropdown' title={statusTitle} onSelect={(eventKey) => this.updateFilter({status: eventKey, isOpen: undefined})}>
+                <MenuItem key='undefined'>全部状态</MenuItem>
+                {statusMenuItems}
+              </DropdownButton>
             </ButtonGroup>
             <ButtonGroup>
               <Button className={(filters.assigneeId === AV.User.current().id ? ' active' : '')} onClick={() => this.updateFilter({assigneeId: AV.User.current().id})}>分配给我的</Button>

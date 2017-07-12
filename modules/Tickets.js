@@ -6,7 +6,7 @@ import moment from 'moment'
 import AV from 'leancloud-storage/live-query'
 import css from './CustomerServiceTickets.css'
 
-import {sortTicketsForCustomer, UserLabel, TicketStatusLabel} from './common'
+import {UserLabel, TicketStatusLabel} from './common'
 
 export default class Tickets extends Component {
 
@@ -42,8 +42,7 @@ export default class Tickets extends Component {
   }
 
   render() {
-    const tickets = sortTicketsForCustomer(this.state.tickets)
-    const ticketLinks = tickets.map((ticket) => {
+    const ticketLinks = this.state.tickets.map((ticket) => {
       let latestReply = ticket.get('latestReply')
       let latestReplyContent = ''
       if (latestReply && latestReply.content) {

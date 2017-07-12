@@ -5,7 +5,7 @@ import { Link } from 'react-router'
 import _ from 'lodash'
 import AV from 'leancloud-storage/live-query'
 
-const TICKET_STATUS = require('../lib/constant').TICKET_STATUS
+const {TICKET_STATUS, TICKET_STATUS_MSG} = require('../lib/constant')
 
 exports.getTinyCategoryInfo = (category) => {
   return {
@@ -114,46 +114,6 @@ exports.getTicketAndRelation = (nid) => {
   })
 }
 
-exports.sortTickets = (tickets) => {
-  return _.sortBy(tickets, (ticket) => {
-    switch (ticket.get('status')) {
-    case TICKET_STATUS.NEW:
-      return 0
-    case TICKET_STATUS.WAITING_CUSTOMER_SERVICE:
-      return 1
-    case TICKET_STATUS.WAITING_CUSTOMER:
-      return 2
-    case TICKET_STATUS.PRE_FULFILLED:
-      return 3
-    case TICKET_STATUS.FULFILLED:
-    case TICKET_STATUS.REJECTED:
-      return 4
-    default:
-      new Error('unkonwn ticket status:', ticket.get('status'))
-    }
-  })
-}
-
-exports.sortTicketsForCustomer = (tickets) => {
-  return _.sortBy(tickets, (ticket) => {
-    switch (ticket.get('status')) {
-    case TICKET_STATUS.WAITING_CUSTOMER:
-      return 0
-    case TICKET_STATUS.PRE_FULFILLED:
-      return 1
-    case TICKET_STATUS.NEW:
-      return 2
-    case TICKET_STATUS.WAITING_CUSTOMER_SERVICE:
-      return 3
-    case TICKET_STATUS.FULFILLED:
-    case TICKET_STATUS.REJECTED:
-      return 4
-    default:
-      new Error('unkonwn ticket status:', ticket.get('status'))
-    }
-  })
-}
-
 exports.UserLabel = (props) => {
   if (!props.user) {
     return (
@@ -183,18 +143,21 @@ exports.UserLabel.propTypes = {
 }
 
 exports.TicketStatusLabel = (props) => {
-  if (props.status === TICKET_STATUS.FULFILLED) {
-    return <span className='label label-success'>已解决</span>
-  } else if (props.status === TICKET_STATUS.REJECTED) {
-    return <span className='label label-default'>已关闭</span>
-  } else if (props.status === TICKET_STATUS.PRE_FULFILLED) {
-    return <span className='label label-primary'>待确认解决</span>
-  } else if (props.status === TICKET_STATUS.NEW) {
-    return <span className='label label-danger'>待处理</span>
-  } else if (props.status === TICKET_STATUS.WAITING_CUSTOMER_SERVICE) {
-    return <span className='label label-warning'>等待客服回复</span>
-  } else if (props.status === TICKET_STATUS.WAITING_CUSTOMER) {
-    return <span className='label label-primary'>等待用户回复</span>
+  switch (props.status) {
+  case TICKET_STATUS.FULFILLED:
+    return <span className='label label-success'>{TICKET_STATUS_MSG[props.status]}</span>
+  case TICKET_STATUS.REJECTED:
+    return <span className='label label-default'>{TICKET_STATUS_MSG[props.status]}</span>
+  case TICKET_STATUS.PRE_FULFILLED:
+    return <span className='label label-primary'>{TICKET_STATUS_MSG[props.status]}</span>
+  case TICKET_STATUS.NEW:
+    return <span className='label label-danger'>{TICKET_STATUS_MSG[props.status]}</span>
+  case TICKET_STATUS.WAITING_CUSTOMER_SERVICE:
+    return <span className='label label-warning'>{TICKET_STATUS_MSG[props.status]}</span>
+  case TICKET_STATUS.WAITING_CUSTOMER:
+    return <span className='label label-primary'>{TICKET_STATUS_MSG[props.status]}</span>
+  default:
+    new Error('unkonwn ticket status:', props.status)
   }
 }
 exports.TicketStatusLabel.displayName = 'TicketStatusLabel'
