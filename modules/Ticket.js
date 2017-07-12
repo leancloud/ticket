@@ -227,7 +227,7 @@ export default class Ticket extends Component {
 
         if (imgFiles.length > 0) {
           imgBody = imgFiles.map(f => {
-            return <img key={f.id} src={f.get('url')} alt={f.get('name')} />
+            return <a href={f.url()} target='_blank'><img key={f.id} src={f.url()} alt={f.get('name')} /></a>
           })
         }
 
