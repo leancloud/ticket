@@ -1,7 +1,6 @@
 /*global $*/
 import React from 'react'
 import PropTypes from 'prop-types'
-import _ from 'lodash'
 import {FormGroup, ControlLabel, FormControl, Button} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
@@ -14,11 +13,11 @@ export default class NewTicket extends React.Component {
     this.state = {
       categories: [],
       apps: [],
-      title: localStorage.getItem('ticket:new:title') || '',
-      appId: '',
-      category: {},
-      content: localStorage.getItem('ticket:new:content') || '',
       isCommitting: false,
+      title: '',
+      appId: '',
+      categoryId: '',
+      content: '',
     }
   }
 
@@ -28,7 +27,20 @@ export default class NewTicket extends React.Component {
       AV.Cloud.run('getLeanCloudApps'),
     ])
     .then(([categories, apps]) => {
-      this.setState({categories, apps})
+      let {
+        title=(localStorage.getItem('ticket:new:title') || ''),
+        appId='',
+        categoryId='',
+        content=(localStorage.getItem('ticket:new:content') || '')
+      } = this.props.location.query
+      const category = categories.find(c => c.id === categoryId)
+      if (content === '' && category && category.get('qTemplate')) {
+        content = category.get('qTemplate')
+      }
+      this.setState({
+        categories, apps,
+        title, appId, categoryId, content,
+      })
     })
   }
 
@@ -38,8 +50,8 @@ export default class NewTicket extends React.Component {
   }
 
   handleCategoryChange(e) {
-    const category = _.find(this.state.categories, {id: e.target.value})
-    this.setState({category, content: category.get('qTemplate') || ''})
+    const category = this.state.categories.find(c => c.id === e.target.value)
+    this.setState({categoryId: category.id, content: category.get('qTemplate') || ''})
   }
 
   handleAppChange(e) {
@@ -58,7 +70,7 @@ export default class NewTicket extends React.Component {
       this.context.addNotification(new Error('标题不能为空'))
       return
     }
-    if (!this.state.category || !this.state.category.id) {
+    if (!this.state.categoryId) {
       this.context.addNotification(new Error('问题分类不能为空'))
       return
     }
@@ -66,9 +78,10 @@ export default class NewTicket extends React.Component {
     this.setState({isCommitting: true})
     common.uploadFiles($('#ticketFile')[0].files)
     .then((files) => {
+      const category = this.state.categories.find(c => c.id === this.state.categoryId)
       return new AV.Object('Ticket').save({
         title: this.state.title,
-        category: common.getTinyCategoryInfo(this.state.category),
+        category: common.getTinyCategoryInfo(category),
         content: this.state.content,
         files,
       })
@@ -116,7 +129,7 @@ export default class NewTicket extends React.Component {
         </FormGroup>
         <FormGroup>
           <ControlLabel>问题分类</ControlLabel>
-          <FormControl componentClass="select" value={this.state.category.id} onChange={this.handleCategoryChange.bind(this)}>
+          <FormControl componentClass="select" value={this.state.categoryId} onChange={this.handleCategoryChange.bind(this)}>
             <option key='empty'></option>
             {options}
           </FormControl>
@@ -140,5 +153,6 @@ NewTicket.contextTypes = {
 }
 
 NewTicket.propTypes = {
+  location: PropTypes.object,
 }
 
