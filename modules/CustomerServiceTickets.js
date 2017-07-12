@@ -108,8 +108,12 @@ export default class CustomerServiceTickets extends Component {
       filter.page = '0'
       filter.size = '10'
     }
+    this.context.router.push(this.getQueryUrl(filter))
+  }
+
+  getQueryUrl(filter) {
     const filters = Object.assign({}, this.props.location.query, filter)
-    this.context.router.push('/customerService/tickets?' + qs.stringify(filters))
+    return this.props.location.pathname + '?' + qs.stringify(filters)
   }
 
   handleAuthorChange(e) {
@@ -167,7 +171,7 @@ export default class CustomerServiceTickets extends Component {
           <div className={css.heading}>
             <div className={css.left}>
               <Link className={css.title} to={'/tickets/' + ticket.get('nid')}>{ticket.get('title')}</Link>
-              <span className={css.category}>{ticket.get('category').name}</span>
+              <Link to={this.getQueryUrl({categoryId: ticket.get('category').objectId})}><span className={css.category}>{ticket.get('category').name}</span></Link>
               {filters.isOpen === 'true' ||
                 <span>{ticket.get('evaluation') && (ticket.get('evaluation').star === 1 && <span className={css.satisfaction + ' ' + css.happy}>满意</span> || <span className={css.satisfaction + ' ' + css.unhappy}>不满意</span>)}</span>
               }
@@ -185,7 +189,7 @@ export default class CustomerServiceTickets extends Component {
           <div className={css.meta}>
             <div className={css.left}>
               <span className={css.nid}>#{ticket.get('nid')}</span>
-              <span className={css.status}><TicketStatusLabel status={ticket.get('status')} /></span>
+              <Link to={this.getQueryUrl({status: ticket.get('status'), isOpen: undefined})}><span className={css.status}><TicketStatusLabel status={ticket.get('status')} /></span></Link>
               <span className={css.creator}><UserLabel user={ticket.get('author')} /></span> 创建于 {moment(ticket.get('createdAt')).fromNow()}
               {moment(ticket.get('createdAt')).fromNow() === moment(ticket.get('updatedAt')).fromNow() ||
                 <span>，更新于 {moment(ticket.get('updatedAt')).fromNow()}</span>
