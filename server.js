@@ -1,10 +1,13 @@
 const express = require('express')
+const favicon = require('serve-favicon')
 const path = require('path')
 const bodyParser = require('body-parser')
 const compression = require('compression')
+const uuid = require('uuid/v4')
 const AV = require('leanengine')
 
 const app = express()
+app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')))
 app.use(compression())
 
 // 加载云引擎中间件
@@ -19,7 +22,8 @@ app.use(bodyParser.urlencoded({ extended: false }))
 
 app.use(require('./api'))
 
-const indexPage =`
+const getIndexPage = (uuid) => {
+  return `
 <!doctype html public "storage">
 <html>
 <meta charset=utf-8/>
@@ -38,6 +42,7 @@ const indexPage =`
   LEANCLOUD_APP_ID = '${process.env.LEANCLOUD_APP_ID}'
   LEANCLOUD_APP_KEY = '${process.env.LEANCLOUD_APP_KEY}'
   LEANCLOUD_APP_ENV = '${process.env.LEANCLOUD_APP_ENV}'
+  UUID = '${uuid}'
 </script>
 <script src='${process.env.WEBPACK_DEV_SERVER || ''}/bundle.js'></script>
 <script>
@@ -52,9 +57,10 @@ const indexPage =`
   })
 </script>
 `
+}
 
 app.get('*', function (req, res) {
-  res.send(indexPage)
+  res.send(getIndexPage(uuid()))
 })
 
 var PORT = parseInt(process.env.LEANCLOUD_APP_PORT || process.env.PORT || 8080)
