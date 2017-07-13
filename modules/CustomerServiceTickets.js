@@ -99,7 +99,7 @@ export default class CustomerServiceTickets extends Component {
     .limit(parseInt(size))
     .skip(parseInt(page) * parseInt(size))
     .addAscending('status')
-    .addAscending('updatedAt')
+    .addDescending('updatedAt')
     .find()
   }
 
