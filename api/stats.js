@@ -3,11 +3,14 @@ const _ = require('lodash')
 const moment = require('moment')
 const AV = require('leanengine')
 
-const {TICKET_STATUS} = require('../lib/common')
+const {TICKET_STATUS, ticketClosedStatuses} = require('../lib/common')
 
-AV.Cloud.define('yy', (req, res) => {
+AV.Cloud.define('statsAllTicket', (req, res) => {
   res.success()
-  forEachAVObject(new AV.Query('Ticket'), (ticket) => {
+  forEachAVObject(new AV.Query('Ticket')
+      .containedIn('status', ticketClosedStatuses())
+      .lessThan('createdAt', new Date('2017-05-10 13:57:45'))
+    , (ticket) => {
     return AV.Cloud.run('statsTicket', {ticketId: ticket.id})
     .catch((err) => {
       console.log('err >>', ticket.id, err)
@@ -200,7 +203,7 @@ AV.Cloud.define('getNewTicketCount', (req) => {
     return new AV.Query('Ticket')
     .greaterThanOrEqualTo('createdAt', start)
     .lessThanOrEqualTo('createdAt', end)
-    .count()
+    .count({user: req.currentUser})
     .then((count) => {
       return {
         date: moment(start).startOf('week').toISOString(),
@@ -223,7 +226,7 @@ AV.Cloud.define('getNewTicketCount', (req) => {
 })
 
 const sumProperty = (obj, other, property) => {
-  return _.mergeWith(obj[property], other[property], (a = 0, b) => a + b)
+  return _.mergeWith(obj[property], other.get(property), (a = 0, b) => a + b)
 }
 
 AV.Cloud.define('getStats', (req) => {
@@ -235,16 +238,16 @@ AV.Cloud.define('getStats', (req) => {
     end = new Date(end)
   }
   let statses, ticketStatses
-  return new AV.Query('Stats')
-  .equalTo('type', 'dailyStats')
-  .greaterThanOrEqualTo('data.date', start)
-  .lessThanOrEqualTo('data.date', end)
-  .ascending('data.date')
+  const authOptions = {user: req.currentUser}
+  return new AV.Query('StatsDaily')
+  .greaterThanOrEqualTo('date', start)
+  .lessThanOrEqualTo('date', end)
+  .ascending('date')
   .limit(1000)
-  .find({user: req.currentUser})
+  .find(authOptions)
   .then((_statses) => {
     statses = _statses
-    return getTicketStats(statses)
+    return getTicketStats(statses, authOptions)
     .then((_ticketStatses) => {
       ticketStatses = _ticketStatses
     })
@@ -252,18 +255,17 @@ AV.Cloud.define('getStats', (req) => {
   .then(() => {
     return _.chain(statses)
     .groupBy((stats) => {
-      return moment(stats.get('data').date).startOf(timeUnit).format()
+      return moment(stats.get('date')).startOf(timeUnit).format()
     })
     .map((statses, date) => {
-      return _.reduce(statses, (result, stats) => {
-        const src = stats.get('data')
-        result.assignees = sumProperty(result, src, 'assignees')
-        result.authors = sumProperty(result, src, 'authors')
-        result.categories = sumProperty(result, src, 'categories')
-        result.joinedCustomerServices = sumProperty(result, src, 'joinedCustomerServices')
-        result.statuses = sumProperty(result, src, 'statuses')
-        result.replyCount += src.replyCount
-        result.tickets = _.union(result.tickets, src.tickets)
+      return _.reduce(statses, (result, statsDaily) => {
+        result.assignees = sumProperty(result, statsDaily, 'assignees')
+        result.authors = sumProperty(result, statsDaily, 'authors')
+        result.categories = sumProperty(result, statsDaily, 'categories')
+        result.joinedCustomerServices = sumProperty(result, statsDaily, 'joinedCustomerServices')
+        result.statuses = sumProperty(result, statsDaily, 'statuses')
+        result.replyCount += statsDaily.get('replyCount')
+        result.tickets = _.union(result.tickets, statsDaily.get('tickets'))
         return result
       }, {
         date: new Date(date).toISOString(),
@@ -290,31 +292,34 @@ AV.Cloud.define('getStats', (req) => {
   })
 })
 
-const getTicketStats = (statses) => {
+const getTicketStats = (statses, authOptions) => {
   const ticketIds = _.chain(statses)
-  .map(stats => stats.get('data').tickets)
+  .map(stats => stats.get('tickets'))
   .flatten()
   .uniq()
   .value()
   return Promise.all(_.map(_.chunk(ticketIds, 50), (ids) => {
-    return new AV.Query('Stats')
-    .equalTo('type', 'ticketStats')
-    .containedIn('data.ticketId', ids)
-    .find()
+    return new AV.Query('StatsTicket')
+    .containedIn('ticket', ids.map(id => new AV.Object.createWithoutData('Ticket', id)))
+    .find(authOptions)
   }))
   .then(_.flatten)
+  .then((result) => {
+    return result
+  })
 }
 
 const firstReplyTimeByUser = (stats, ticketStatses) => {
   return _.chain(stats.tickets)
   .map((ticketId) => {
-    return _.find(ticketStatses, ticketStats => ticketStats.get('data').ticketId === ticketId)
+    return _.find(ticketStatses, ticketStats => ticketStats.get('ticket').id === ticketId)
   })
-  .groupBy(ticketStats => ticketStats.get('data').firstReplyStats.userId)
+  .compact()
+  .groupBy(ticketStats => ticketStats.get('firstReplyStats').userId)
   .map((ticketStatses, userId) => {
     return {
       userId,
-      replyTime: _.sumBy(ticketStatses, ticketStats => ticketStats.get('data').firstReplyStats.firstReplyTime),
+      replyTime: _.sumBy(ticketStatses, ticketStats => ticketStats.get('firstReplyStats').firstReplyTime),
       replyCount: ticketStatses.length
     }
   })
@@ -324,10 +329,11 @@ const firstReplyTimeByUser = (stats, ticketStatses) => {
 const replyTimeByUser = (stats, ticketStatses) => {
   return _.chain(stats.tickets)
   .map((ticketId) => {
-    return _.find(ticketStatses, ticketStats => ticketStats.get('data').ticketId === ticketId)
+    return _.find(ticketStatses, ticketStats => ticketStats.get('ticket').id === ticketId)
   })
+  .compact()
   .reduce((result, ticketStats) => {
-    _.forEach(ticketStats.get('data').replyTimeStats, (replyTime) => {
+    _.forEach(ticketStats.get('replyTimeStats'), (replyTime) => {
       let replyTimeStats = _.find(result, {userId: replyTime.userId})
       if (!replyTimeStats) {
         replyTimeStats = {
@@ -345,7 +351,7 @@ const replyTimeByUser = (stats, ticketStatses) => {
   .value()
 }
 
-AV.Cloud.define('xx', (req, res) => {
+AV.Cloud.define('statsDailyRange', (req, res) => {
   res.success()
   const fn = (date) => {
     return AV.Cloud.run('statsDaily', {date: date.format('YYYY-MM-DD')})
@@ -354,7 +360,7 @@ AV.Cloud.define('xx', (req, res) => {
     })
     .catch(console.error)
   }
-  fn(moment('2017-04-01'))
+  fn(moment('2017-07-14'))
 })
 
 AV.Cloud.define('statsDaily', (req, res) => {
@@ -367,12 +373,9 @@ AV.Cloud.define('statsDaily', (req, res) => {
     return removeDailyStats(start, authOptions)
     .then(() => {
       data.date = start
-      return new AV.Object('Stats')
+      return new AV.Object('StatsDaily')
       .setACL(getStatsAcl())
-      .save({
-        type: 'dailyStats',
-        data,
-      }, authOptions)
+      .save(data, authOptions)
     })
   })
   .then(res.success)
@@ -380,9 +383,8 @@ AV.Cloud.define('statsDaily', (req, res) => {
 })
 
 const removeDailyStats = (date, authOptions) => {
-  return new AV.Query('Stats')
-  .equalTo('type', 'dailyStats')
-  .equalTo('data.date', date)
+  return new AV.Query('StatsDaily')
+  .equalTo('date', date)
   .destroyAll(authOptions)
 }
 
@@ -426,7 +428,6 @@ const getActiveTicket = (start, end, authOptions) => {
         .value(),
     }
   })
-  .catch(console.error)
 }
 
 const reduceAVObject = (query, fn, accumulator, authOptions) => {
@@ -455,14 +456,13 @@ const forEachAVObject = (query, fn, authOptions) => {
   const innerFn = () => {
     return query.find(authOptions)
     .then((datas) => {
+      if (datas.length === 0) {
+        return
+      }
       return Promise.each(datas, fn)
       .then(() => {
-        if (datas.length !== 1000) {
-          return
-        } else {
-          query.lessThan('createdAt', _.last(datas).get('createdAt'))
-          return innerFn()
-        }
+        query.lessThan('createdAt', _.last(datas).get('createdAt'))
+        return innerFn()
       })
     })
   }

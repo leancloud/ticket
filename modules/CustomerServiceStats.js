@@ -207,10 +207,8 @@ class StatsChart extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      //startDate: moment().startOf('week').subtract(1, 'weeks'),
-      //endDate: moment().endOf('week'),
-      startDate: moment('2017-03-7').startOf('week').subtract(1, 'weeks'),
-      endDate: moment('2017-03-7').endOf('week'),
+      startDate: moment().startOf('week').subtract(1, 'weeks'),
+      endDate: moment().endOf('week'),
     }
   }
 
@@ -318,8 +316,8 @@ const getHeadsAndTails = (datas, sortFn) => {
 class StatsSummary extends React.Component {
 
   componentDidMount() {
-    const startDate = moment('2017-03-7').startOf('week')
-    const endDate = moment('2017-03-7').add(1, 'week').endOf('week')
+    const startDate = moment().startOf('week').subtract(1, 'weeks')
+    const endDate = moment().endOf('week')
     Promise.all([
       AV.Cloud.run('getNewTicketCount', {start: startDate.toISOString(), end: endDate.toISOString(), timeUnit: 'week'}),
       AV.Cloud.run('getStats', {start: startDate.toISOString(), end: endDate.toISOString(), timeUnit: 'week'}),
