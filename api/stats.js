@@ -3,7 +3,7 @@ const _ = require('lodash')
 const moment = require('moment')
 const AV = require('leanengine')
 
-const TICKET_STATUS = require('../lib/constant').TICKET_STATUS
+const {TICKET_STATUS} = require('../lib/common')
 
 AV.Cloud.define('yy', (req, res) => {
   res.success()
@@ -21,24 +21,20 @@ AV.Cloud.define('statsTicket', (req, res) => {
   const authOptions = {useMasterKey: true}
   exports.statsTicket(ticketId, authOptions)
   .then((data) => {
-    return removeTicketStats(data.ticketId)
+    return removeTicketStats(data.ticket, authOptions)
     .then(() => {
-      return new AV.Object('Stats')
+      return new AV.Object('StatsTicket')
       .setACL(getStatsAcl())
-      .save({
-        type: 'ticketStats',
-        data,
-      }, authOptions)
+      .save(data, authOptions)
     })
   })
   .then(res.success)
   .catch(res.error)
 })
 
-const removeTicketStats = (ticketId, authOptions) => {
-  return new AV.Query('Stats')
-  .equalTo('type', 'ticketStats')
-  .equalTo('data.ticketId', ticketId)
+const removeTicketStats = (ticket, authOptions) => {
+  return new AV.Query('StatsTicket')
+  .equalTo('ticket', ticket)
   .destroyAll(authOptions)
 }
 
@@ -52,7 +48,7 @@ exports.statsTicket = (ticketId, authOptions) => {
       replyTimeStats.forEachReplyOrOpsLog(replyOrOpsLog)
     })
     return {
-      ticketId: ticketId,
+      ticket,
       firstReplyStats: firstReplyStats.result(),
       replyTimeStats: replyTimeStats.result(),
     }

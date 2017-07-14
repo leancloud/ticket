@@ -7,8 +7,8 @@ import moment from 'moment'
 import AV from 'leancloud-storage/live-query'
 import css from './CustomerServiceTickets.css'
 
-import {UserLabel, TicketStatusLabel, getCustomerServices, ticketOpenedStatuses, ticketClosedStatuses} from './common'
-import {TICKET_STATUS, TICKET_STATUS_MSG} from '../lib/constant'
+import {UserLabel, TicketStatusLabel, getCustomerServices} from './common'
+import {TICKET_STATUS, TICKET_STATUS_MSG, ticketOpenedStatuses, ticketClosedStatuses} from '../lib/common'
 
 let authorSearchTimeoutId
 

@@ -7,13 +7,13 @@ import PropTypes from 'prop-types'
 import {FormGroup, ControlLabel, FormControl, Label, Alert, Button, ButtonToolbar, Radio} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
-import common, {UserLabel, TicketStatusLabel, isTicketOpen} from './common'
+import {UserLabel, TicketStatusLabel, uploadFiles, getTinyCategoryInfo} from './common'
 import UpdateTicket from './UpdateTicket'
 import css from './Ticket.css'
 import csCss from './CustomerServiceTickets.css'
 import DocumentTitle from 'react-document-title'
 
-import { TICKET_STATUS } from '../lib/constant'
+import {TICKET_STATUS, isTicketOpen} from '../lib/common'
 
 export default class Ticket extends Component {
 
@@ -102,7 +102,7 @@ export default class Ticket extends Component {
   }
 
   commitReply(reply, files) {
-    return common.uploadFiles(files)
+    return uploadFiles(files)
     .then((files) => {
       if (reply.trim() === '' && files.length == 0) {
         return
@@ -131,7 +131,7 @@ export default class Ticket extends Component {
   }
 
   updateTicketCategory(category) {
-    return this.state.ticket.set('category', common.getTinyCategoryInfo(category)).save()
+    return this.state.ticket.set('category', getTinyCategoryInfo(category)).save()
     .then((ticket) => {
       this.setState({ticket})
     })

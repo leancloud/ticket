@@ -19,6 +19,7 @@ export default class App extends Component {
 
   addNotification(obj) {
     if (obj instanceof Error) {
+      console.error(obj.stack || obj)
       const message = obj.message
       const match = message.match(/^Cloud Code validation failed. Error detail : (.*)$/)
       this._notificationSystem.addNotification({

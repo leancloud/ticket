@@ -5,7 +5,7 @@ import { Link } from 'react-router'
 import _ from 'lodash'
 import AV from 'leancloud-storage/live-query'
 
-const {TICKET_STATUS, TICKET_STATUS_MSG} = require('../lib/constant')
+const {TICKET_STATUS, TICKET_STATUS_MSG} = require('../lib/common')
 
 exports.getTinyCategoryInfo = (category) => {
   return {
@@ -65,22 +65,6 @@ exports.isCustomerService = (user) => {
     .then((role) => {
       return !!role
     })
-}
-
-exports.ticketOpenedStatuses = () => {
-  return [
-    TICKET_STATUS.NEW,
-    TICKET_STATUS.WAITING_CUSTOMER_SERVICE,
-    TICKET_STATUS.WAITING_CUSTOMER,
-  ]
-}
-
-exports.ticketClosedStatuses = () => {
-  return _.filter(TICKET_STATUS, status => exports.ticketOpenedStatuses().indexOf(status) === -1)
-}
-
-exports.isTicketOpen = (ticket) => {
-  return exports.ticketOpenedStatuses().indexOf(ticket.get('status')) != -1
 }
 
 exports.uploadFiles = (files) => {

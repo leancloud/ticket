@@ -1,10 +1,10 @@
 const _ = require('lodash')
 const AV = require('leanengine')
 
-const common = require('./common')
+const {getTinyUserInfo, htmlify, isCustomerService, getTinyReplyInfo}= require('./common')
 const leancloud = require('./leancloud')
 const notify = require('./notify')
-const TICKET_STATUS = require('../lib/constant').TICKET_STATUS
+const {TICKET_STATUS} = require('../lib/common')
 const errorHandler = require('./errorHandler')
 
 AV.Cloud.beforeSave('Ticket', (req, res) => {
@@ -26,7 +26,7 @@ AV.Cloud.beforeSave('Ticket', (req, res) => {
     }
 
     ticket.set('status', TICKET_STATUS.NEW)
-    ticket.set('content_HTML', common.htmlify(ticket.get('content')))
+    ticket.set('content_HTML', htmlify(ticket.get('content')))
     getTicketAcl(ticket, req.currentUser).then((acl) => {
       ticket.setACL(acl)
       ticket.set('author', req.currentUser)
@@ -50,7 +50,7 @@ const getTicketAcl = (ticket, author) => {
 AV.Cloud.afterSave('Ticket', (req) => {
   req.object.get('assignee').fetch()
   .then((assignee) => {
-    return common.getTinyUserInfo(assignee)
+    return getTinyUserInfo(assignee)
     .then((assigneeInfo) => {
       return new AV.Object('OpsLog').save({
         ticket: req.object,
@@ -80,7 +80,7 @@ AV.Cloud.beforeUpdate('Ticket', (req, res) => {
 })
 
 AV.Cloud.afterUpdate('Ticket', (req) => {
-  return common.getTinyUserInfo(req.currentUser).then((user) => {
+  return getTinyUserInfo(req.currentUser).then((user) => {
     if (req.object.updatedKeys.indexOf('category') != -1) {
       new AV.Object('OpsLog').save({
         ticket: req.object,
@@ -89,7 +89,7 @@ AV.Cloud.afterUpdate('Ticket', (req) => {
       }, {useMasterKey: true})
     }
     if (req.object.updatedKeys.indexOf('assignee') != -1) {
-      common.getTinyUserInfo(req.object.get('assignee'))
+      getTinyUserInfo(req.object.get('assignee'))
       .then((assignee) => {
         return new AV.Object('OpsLog').save({
           ticket: req.object,
@@ -117,8 +117,8 @@ AV.Cloud.define('operateTicket', (req) => {
     .include('files')
     .include('author')
     .get(ticketId),
-    common.getTinyUserInfo(req.currentUser),
-    common.isCustomerService(req.currentUser),
+    getTinyUserInfo(req.currentUser),
+    isCustomerService(req.currentUser),
   ])
   .then(([ticket, operator, isCustomerService]) => {
     if (isCustomerService) {
@@ -160,8 +160,8 @@ const getTargetStatus = (action, isCustomerService) => {
 exports.replyTicket = (ticket, reply, replyAuthor) => {
   Promise.all([
     ticket.fetch({include: 'author,assignee'}, {user: replyAuthor}),
-    common.getTinyReplyInfo(reply),
-    common.getTinyUserInfo(reply.get('author'))
+    getTinyReplyInfo(reply),
+    getTinyUserInfo(reply.get('author'))
   ]).then(([ticket, tinyReply, tinyReplyAuthor]) => {
     ticket.set('latestReply', tinyReply)
       .increment('replyCount', 1)
