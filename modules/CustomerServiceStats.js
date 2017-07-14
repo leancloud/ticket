@@ -58,12 +58,12 @@ const categoryCountLineChartData = (statses, categories) => {
     result.labels.push(moment(stats.date).format('MM-DD'))
     _.map(stats.categories, (value, key) => {
       let lineData = _.find(result.datasets, {id: key})
-      let color = randomColor()
+      let color = getColorById(key)
       if (!lineData) {
         const category = _.find(categories, c => c.id === key)
         lineData = {
           id: key,
-          label: category.get('name'),
+          label: category && category.get('name') || key,
           fill: true,
           borderColor: color,
           backgroundColor: Color(color).fade(.9),
@@ -87,7 +87,7 @@ const assigneeCountLineChartData = (statses, users) => {
     result.labels.push(moment(stats.date).format('MM-DD'))
     _.map(stats.assignees, (value, key) => {
       let lineData =  _.find(result.datasets, {id: key})
-      let color = randomColor()
+      let color = getColorById(key)
       if (!lineData) {
         const user = _.find(users, u => u.id === key)
         lineData = {
@@ -116,7 +116,7 @@ const firstReplyTimeLineChartData = (statses, users) => {
     result.labels.push(moment(stats.date).format('MM-DD'))
     _.forEach(stats.firstReplyTimeByUser, ({userId, replyTime, replyCount}) => {
       let lineData =  _.find(result.datasets, {id: userId})
-      let color = randomColor()
+      let color = getColorById(userId)
       if (!lineData) {
         const user = _.find(users, u => u.id === userId)
         lineData = {
@@ -145,7 +145,7 @@ const replyTimeLineChartData = (statses, users) => {
     result.labels.push(moment(stats.date).format('MM-DD'))
     _.forEach(stats.replyTimeByUser, ({userId, replyCount, replyTime}) => {
       let lineData =  _.find(result.datasets, {id: userId})
-      let color = randomColor()
+      let color = getColorById(userId)
       if (!lineData) {
         const user = _.find(users, u => u.id === userId)
         lineData = {
@@ -166,6 +166,13 @@ const replyTimeLineChartData = (statses, users) => {
     labels: [],
     datasets: []
   })
+}
+
+const getColorById = (id) => {
+  if (id === 'undefined') {
+    return randomColor()
+  }
+  return '#' + id.slice(id.length - 6, id.length)
 }
 
 export default class CustomerServiceStats extends React.Component {
@@ -397,7 +404,7 @@ class StatsSummary extends React.Component {
         const category = _.find(this.props.categories, c => c.id === row[0])
         return <tr key={row[0]}>
           <td>{row.index}</td>
-          <td>{category && category.get('name') || 'data err'}</td>
+          <td>{category && category.get('name') || row[0]}</td>
           <td colSpan='2'>{row[1]}</td>
         </tr>
       })
@@ -420,7 +427,7 @@ class StatsSummary extends React.Component {
         const user = _.find(this.state.users, c => c.id === row[0])
         return <tr key={row[0]}>
           <td>{row.index}</td>
-          <td>{user && user.get('username') || 'data err'}</td>
+          <td>{user && user.get('username') || row[0]}</td>
           <td colSpan='2'>{row[1]}</td>
         </tr>
       })
@@ -443,7 +450,7 @@ class StatsSummary extends React.Component {
         const user = _.find(this.state.users, c => c.id === row[0])
         return <tr key={row[0]}>
           <td>{row.index}</td>
-          <td>{user && user.get('username') || 'data err'}</td>
+          <td>{user && user.get('username') || row[0]}</td>
           <td colSpan='2'>{row[1]}</td>
         </tr>
       })
@@ -466,7 +473,7 @@ class StatsSummary extends React.Component {
         const user = _.find(this.state.users, c => c.id === userId)
         return <tr key={userId}>
           <td>{index}</td>
-          <td>{user && user.get('username') || 'data err'}</td>
+          <td>{user && user.get('username') || userId}</td>
           <td>{(replyTime / replyCount / 1000 / 60 / 60).toFixed(2)}</td>
           <td>{replyCount}</td>
         </tr>
@@ -491,7 +498,7 @@ class StatsSummary extends React.Component {
         const user = _.find(this.state.users, c => c.id === userId)
         return <tr key={userId}>
           <td>{index}</td>
-          <td>{user && user.get('username') || 'data err'}</td>
+          <td>{user && user.get('username') || userId}</td>
           <td>{(replyTime / replyCount / 1000 / 60 / 60).toFixed(2)}</td>
           <td>{replyCount}</td>
         </tr>
