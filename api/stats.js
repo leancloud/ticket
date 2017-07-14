@@ -3,19 +3,21 @@ const _ = require('lodash')
 const moment = require('moment')
 const AV = require('leanengine')
 
-const {TICKET_STATUS, ticketClosedStatuses} = require('../lib/common')
+const {TICKET_STATUS, ticketOpenedStatuses} = require('../lib/common')
 
-AV.Cloud.define('statsAllTicket', (req, res) => {
+AV.Cloud.define('statsOpenedTicket', (req, res) => {
   res.success()
   forEachAVObject(new AV.Query('Ticket')
-      .containedIn('status', ticketClosedStatuses())
-      .lessThan('createdAt', new Date('2017-05-10 13:57:45'))
+      .containedIn('status', ticketOpenedStatuses())
     , (ticket) => {
     return AV.Cloud.run('statsTicket', {ticketId: ticket.id})
     .catch((err) => {
       console.log('err >>', ticket.id, err)
     })
   }, {useMasterKey: true})
+  .then(() => {
+    console.log('statsOpenedTicket done')
+  })
 })
 
 AV.Cloud.define('statsTicket', (req, res) => {
