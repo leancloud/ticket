@@ -4,7 +4,7 @@ const AV = require('leanengine')
 const {getTinyUserInfo, htmlify, isCustomerService, getTinyReplyInfo}= require('./common')
 const leancloud = require('./leancloud')
 const notify = require('./notify')
-const {TICKET_STATUS} = require('../lib/common')
+const {TICKET_STATUS, ticketClosedStatuses} = require('../lib/common')
 const errorHandler = require('./errorHandler')
 
 AV.Cloud.beforeSave('Ticket', (req, res) => {
@@ -80,29 +80,35 @@ AV.Cloud.beforeUpdate('Ticket', (req, res) => {
 })
 
 AV.Cloud.afterUpdate('Ticket', (req) => {
+  const ticket = req.object
   return getTinyUserInfo(req.currentUser).then((user) => {
-    if (req.object.updatedKeys.indexOf('category') != -1) {
+    if (ticket.updatedKeys.includes('category')) {
       new AV.Object('OpsLog').save({
-        ticket: req.object,
+        ticket,
         action: 'changeCategory',
-        data: {category: req.object.get('category'), operator: user},
+        data: {category: ticket.get('category'), operator: user},
       }, {useMasterKey: true})
     }
-    if (req.object.updatedKeys.indexOf('assignee') != -1) {
-      getTinyUserInfo(req.object.get('assignee'))
+    if (ticket.updatedKeys.includes('assignee')) {
+      getTinyUserInfo(ticket.get('assignee'))
       .then((assignee) => {
         return new AV.Object('OpsLog').save({
-          ticket: req.object,
+          ticket,
           action: 'changeAssignee',
           data: {assignee: assignee, operator: user},
         }, {useMasterKey: true})
       })
       .then(() => {
-        return notify.changeAssignee(req.object, req.currentUser, req.object.get('assignee'))
+        return notify.changeAssignee(ticket, req.currentUser, ticket.get('assignee'))
       })
     }
-    if (req.object.updatedKeys.indexOf('evaluation') != -1) {
-      return req.object.fetch({include: 'assignee'}, {user: req.currentUser})
+    if (ticket.updatedKeys.includes('status')
+        && ticketClosedStatuses().includes(ticket.get('status'))) {
+      AV.Cloud.run('statsTicket', {ticketId: ticket.id})
+      .catch(errorHandler.captureException)
+    }
+    if (ticket.updatedKeys.includes('evaluation')) {
+      ticket.fetch({include: 'assignee'}, {user: req.currentUser})
       .then((ticket) => {
         return notify.ticketEvaluation(ticket, req.currentUser, ticket.get('assignee'))
       })
