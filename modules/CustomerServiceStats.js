@@ -319,6 +319,13 @@ const getHeadsAndTails = (datas, sortFn) => {
   return _.concat(sorted.slice(0, 3), sorted.slice(sorted.length - 3))
 }
 
+const sortAndIndexed = (datas, sortFn) => {
+  const sorted = _.sortBy(datas, sortFn)
+  _.forEach(sorted, (data, index) => {
+    data.index = index + 1
+  })
+  return sorted
+}
 
 class StatsSummary extends React.Component {
 
@@ -332,11 +339,11 @@ class StatsSummary extends React.Component {
     .then(([newTicketCounts, statses]) => {
       statses = statses.slice(0, 2)
       const statsDatas = statses.map((stats, index) => {
-        const activeTicketCountsByCategory = getHeadsAndTails(_.toPairs(stats.categories), ([_k, v]) => -v)
-        const activeTicketCountByAssignee = getHeadsAndTails(_.toPairs(stats.assignees), ([_k, v]) => -v)
-        const activeTicketCountByAuthor = getHeadsAndTails(_.toPairs(stats.authors), ([_k, v]) => -v)
-        const firstReplyTimeByUser = getHeadsAndTails(stats.firstReplyTimeByUser, t => t.replyTime / t.replyCount)
-        const replyTimeByUser = getHeadsAndTails(stats.replyTimeByUser, t => t.replyTime / t.replyCount)
+        const activeTicketCountsByCategory = sortAndIndexed(_.toPairs(stats.categories), ([_k, v]) => -v)
+        const activeTicketCountByAssignee = sortAndIndexed(_.toPairs(stats.assignees), ([_k, v]) => -v)
+        const activeTicketCountByAuthor = sortAndIndexed(_.toPairs(stats.authors), ([_k, v]) => -v)
+        const firstReplyTimeByUser = sortAndIndexed(stats.firstReplyTimeByUser, t => t.replyTime / t.replyCount)
+        const replyTimeByUser = sortAndIndexed(stats.replyTimeByUser, t => t.replyTime / t.replyCount)
         const userIds = _.uniq(_.concat([],
           activeTicketCountByAssignee.map(([k, _v]) => k),
           activeTicketCountByAuthor.map(([k, _v]) => k),
@@ -399,123 +406,86 @@ class StatsSummary extends React.Component {
       </Table>
     })
 
-    const activeTicketCountByCategoryDoms = this.state.statsDatas.map(data => {
-      const trs = data.activeTicketCountsByCategory.map(row => {
+    const activeTicketCountsByCategoryDoms = this.state.statsDatas.map(d => {
+      const body = d.activeTicketCountsByCategory.map(row => {
         const category = _.find(this.props.categories, c => c.id === row[0])
-        return <tr key={row[0]}>
-          <td>{row.index}</td>
-          <td>{category && category.get('name') || row[0]}</td>
-          <td colSpan='2'>{row[1]}</td>
-        </tr>
+        return [
+          row[0],
+          row.index,
+          category && category.get('name') || row[0],
+          row[1],
+        ]
       })
-      return <Table>
-        <thead>
-          <tr>
-            <th>排名</th>
-            <th>分类</th>
-            <th>活跃工单数</th>
-          </tr>
-        </thead>
-        <tbody>
-          {trs}
-        </tbody>
-      </Table>
+      return <SummaryTable
+        header={['排名', '分类', '活跃工单']}
+        body={body}
+      />
     })
 
     const activeTicketCountByAssigneeDoms = this.state.statsDatas.map(data => {
-      const trs = data.activeTicketCountByAssignee.map(row => {
+      const body = data.activeTicketCountByAssignee.map(row => {
         const user = _.find(this.state.users, c => c.id === row[0])
-        return <tr key={row[0]}>
-          <td>{row.index}</td>
-          <td>{user && user.get('username') || row[0]}</td>
-          <td colSpan='2'>{row[1]}</td>
-        </tr>
+        return [
+          row[0],
+          row.index,
+          user && user.get('username') || row[0],
+          row[1],
+        ]
       })
-      return <Table>
-        <thead>
-          <tr>
-            <th>排名</th>
-            <th>客服</th>
-            <th>活跃工单数</th>
-          </tr>
-        </thead>
-        <tbody>
-          {trs}
-        </tbody>
-      </Table>
+      return <SummaryTable
+        header={['排名', '客服', '活跃工单数']}
+        body={body}
+      />
     })
 
     const activeTicketCountByAuthorDoms = this.state.statsDatas.map(data => {
-      const trs = data.activeTicketCountByAuthor.map(row => {
+      const body = data.activeTicketCountByAuthor.map(row => {
         const user = _.find(this.state.users, c => c.id === row[0])
-        return <tr key={row[0]}>
-          <td>{row.index}</td>
-          <td>{user && user.get('username') || row[0]}</td>
-          <td colSpan='2'>{row[1]}</td>
-        </tr>
+        return [
+          row[0],
+          row.index,
+          user && user.get('username') || row[0],
+          row[1],
+        ]
       })
-      return <Table>
-        <thead>
-          <tr>
-            <th>排名</th>
-            <th>用户</th>
-            <th>活跃工单数</th>
-          </tr>
-        </thead>
-        <tbody>
-          {trs}
-        </tbody>
-      </Table>
+      return <SummaryTable
+        header={['排名', '用户', '活跃工单数']}
+        body={body}
+      />
     })
 
     const firstReplyTimeByUserDoms = this.state.statsDatas.map(data => {
-      const trs = data.firstReplyTimeByUser.map(({userId, replyTime, replyCount, index}) => {
+      const body = data.firstReplyTimeByUser.map(({userId, replyTime, replyCount, index}) => {
         const user = _.find(this.state.users, c => c.id === userId)
-        return <tr key={userId}>
-          <td>{index}</td>
-          <td>{user && user.get('username') || userId}</td>
-          <td>{(replyTime / replyCount / 1000 / 60 / 60).toFixed(2)}</td>
-          <td>{replyCount}</td>
-        </tr>
+        return [
+          userId,
+          index,
+          user && user.get('username') || userId,
+          (replyTime / replyCount / 1000 / 60 / 60).toFixed(2),
+          replyCount,
+        ]
       })
-      return <Table>
-        <thead>
-          <tr>
-            <th>排名</th>
-            <th>客服</th>
-            <th>平均耗时</th>
-            <th>回复次数</th>
-          </tr>
-        </thead>
-        <tbody>
-          {trs}
-        </tbody>
-      </Table>
+      return <SummaryTable
+        header={['排名', '客服', '平均耗时', '回复次数 ']}
+        body={body}
+      />
     })
 
     const replyTimeByUserDoms = this.state.statsDatas.map(data => {
-      const trs = data.replyTimeByUser.map(({userId, replyTime, replyCount, index}) => {
+      const body = data.replyTimeByUser.map(({userId, replyTime, replyCount, index}) => {
         const user = _.find(this.state.users, c => c.id === userId)
-        return <tr key={userId}>
-          <td>{index}</td>
-          <td>{user && user.get('username') || userId}</td>
-          <td>{(replyTime / replyCount / 1000 / 60 / 60).toFixed(2)}</td>
-          <td>{replyCount}</td>
-        </tr>
+        return [
+          userId,
+          index,
+          user && user.get('username') || userId,
+          (replyTime / replyCount / 1000 / 60 / 60).toFixed(2),
+          replyCount,
+        ]
       })
-      return <Table>
-        <thead>
-          <tr>
-            <th>排名</th>
-            <th>客服</th>
-            <th>平均耗时</th>
-            <th>回复次数</th>
-          </tr>
-        </thead>
-        <tbody>
-          {trs}
-        </tbody>
-      </Table>
+      return <SummaryTable
+        header={['排名', '客服', '平均耗时', '回复次数 ']}
+        body={body}
+      />
     })
 
     return <div>
@@ -534,7 +504,7 @@ class StatsSummary extends React.Component {
           </tr>
           <tr>
             <th>活跃工单数（分类）</th>
-            {activeTicketCountByCategoryDoms.map(dom => <td>{dom}</td>)}
+            {activeTicketCountsByCategoryDoms.map(dom => <td>{dom}</td>)}
           </tr>
           <tr>
             <th>活跃工单数（客服）</th>
@@ -561,4 +531,54 @@ class StatsSummary extends React.Component {
 
 StatsSummary.propTypes = {
   categories: PropTypes.array.isRequired,
+}
+
+class SummaryTable extends React.Component {
+
+  constructor(props) {
+    super(props)
+    this.state = {
+      isOpen: false
+    }
+  }
+
+  open(e) {
+    e.preventDefault()
+    this.setState({isOpen: true})
+  }
+
+  render() {
+    let trs
+    const fn = (row) => {
+      return <tr key={row[0]}>
+        {row.slice(1).map(c => <td>{c}</td>)}
+      </tr>
+    }
+    if (this.state.isOpen || this.props.body.length <= 6) {
+      trs = this.props.body.map(fn)
+    } else {
+      const foldingLine = <tr>
+        <td colSpan='100'><a href='#' onClick={this.open.bind(this)}>……</a></td>
+      </tr>
+      trs = this.props.body.slice(0, 3).map(fn)
+      .concat(foldingLine,
+        this.props.body.slice(this.props.body.length - 3).map(fn)
+      )
+    }
+    return <Table>
+      <thead>
+        <tr>
+          {this.props.header.map(h => <th>{h}</th>)}
+        </tr>
+      </thead>
+      <tbody>
+        {trs}
+      </tbody>
+    </Table>
+  }
+}
+
+SummaryTable.propTypes = {
+  header: PropTypes.array.isRequired,
+  body: PropTypes.array.isRequired,
 }
