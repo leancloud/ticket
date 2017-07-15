@@ -96,6 +96,14 @@
 
 }
 
+.statusLink {
+  text-decoration: none;
+}
+
+.statusLink:hover {
+  text-decoration: none;
+}
+
 .status {
   margin-right: .5em;
 }
