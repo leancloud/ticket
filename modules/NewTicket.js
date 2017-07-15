@@ -1,7 +1,7 @@
 /*global $*/
 import React from 'react'
 import PropTypes from 'prop-types'
-import {FormGroup, ControlLabel, FormControl, Button} from 'react-bootstrap'
+import {FormGroup, ControlLabel, FormControl, Button, Tooltip, OverlayTrigger} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
 const common = require('./common')
@@ -114,6 +114,9 @@ export default class NewTicket extends React.Component {
     const appOptions = this.state.apps.map((app) => {
       return <option key={app.app_id} value={app.app_id}>{app.app_name}</option>
     })
+    const tooltip = (
+      <Tooltip id="tooltip">支持 Markdown 语法</Tooltip>
+    );
     return (
       <form onSubmit={this.handleSubmit.bind(this)}>
         <FormGroup>
@@ -135,6 +138,11 @@ export default class NewTicket extends React.Component {
           </FormControl>
         </FormGroup>
         <FormGroup>
+          <ControlLabel>
+            问题描述 <OverlayTrigger placement="top" overlay={tooltip}>
+              <b className="has-required" title="支持 Markdown 语法">M↓</b>
+            </OverlayTrigger>
+          </ControlLabel>
           <textarea className="form-control" rows="8" placeholder="遇到的问题" value={this.state.content} onChange={this.handleContentChange.bind(this)}></textarea>
         </FormGroup>
         <FormGroup>
@@ -155,4 +163,3 @@ NewTicket.contextTypes = {
 NewTicket.propTypes = {
   location: PropTypes.object,
 }
-

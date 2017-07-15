@@ -50,3 +50,31 @@
   vertical-align: inherit;
   margin-left: 0;
 }
+
+.form {
+  display: flex;
+}
+
+@media (max-width: 800px) {
+
+  .form {
+    display: block;
+  }
+}
+
+.formLeft {
+  flex: 1;
+}
+
+.formRight {
+
+}
+
+.markdownTip {
+  margin-top: 6px;
+  color: #999;
+}
+
+.markdownTip b {
+  color: #999;
+}

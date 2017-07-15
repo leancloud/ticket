@@ -4,7 +4,7 @@ import _ from 'lodash'
 import xss from 'xss'
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
-import {FormGroup, ControlLabel, FormControl, Label, Alert, Button, ButtonToolbar, Radio} from 'react-bootstrap'
+import {FormGroup, ControlLabel, FormControl, Label, Alert, Button, ButtonToolbar, Radio, Tooltip, OverlayTrigger} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
 import {UserLabel, TicketStatusLabel, uploadFiles, getTinyCategoryInfo} from './common'
@@ -444,32 +444,50 @@ class TicketReply extends Component {
 
   render() {
     let buttons
+    const tooltip = (
+      <Tooltip id="tooltip">Markdown 语法</Tooltip>
+    );
     if (this.props.isCustomerService) {
       buttons = (
         <ButtonToolbar>
-          <Button onClick={this.handleReplyCommit.bind(this)} disabled={this.state.isCommitting}>回复</Button>
+        <Button onClick={this.handleReplyNoContent.bind(this)} disabled={this.state.isCommitting}>暂无需回复</Button>
           <Button onClick={this.handleReplySoon.bind(this)} disabled={this.state.isCommitting}>稍后继续回复</Button>
-          <Button onClick={this.handleReplyNoContent.bind(this)} disabled={this.state.isCommitting}>暂无需回复</Button>
+          <Button onClick={this.handleReplyCommit.bind(this)} disabled={this.state.isCommitting} bsStyle="primary">回复</Button>
         </ButtonToolbar>
       )
     } else {
       buttons = (
         <ButtonToolbar>
-          <Button onClick={this.handleReplyCommit.bind(this)}>回复</Button>
+          <Button onClick={this.handleReplyCommit.bind(this)} bsStyle="primary">回复</Button>
         </ButtonToolbar>
       )
     }
     return (
-      <form className="form-group">
-        <FormGroup>
-          <FormControl componentClass="textarea" placeholder="回复内容……" rows="8" value={this.state.reply} onChange={this.handleReplyOnChange.bind(this)}/>
-        </FormGroup>
-        <FormGroup>
-          <FormControl type="file" multiple inputRef={ref => this.fileInput = ref} />
-          <p className="help-block">上传附件可以多选</p>
-        </FormGroup>
-        {buttons}
-      </form>
+      <div>
+        <form className="form-group">
+          <FormGroup>
+            <FormControl componentClass="textarea" placeholder="回复内容……" rows="8" value={this.state.reply} onChange={this.handleReplyOnChange.bind(this)}/>
+          </FormGroup>
+
+          <FormGroup>
+            <FormControl type="file" multiple inputRef={ref => this.fileInput = ref} />
+            <p className="help-block">上传附件可以多选</p>
+          </FormGroup>
+
+          <div className={css.form}>
+            <div className={css.formLeft}>
+              <p className={css.markdownTip}>
+                <OverlayTrigger placement="top" overlay={tooltip}>
+                  <b className="has-required" title="支持 Markdown 语法">M↓</b>
+                </OverlayTrigger> 支持 Markdown 语法
+              </p>
+            </div>
+            <div className={css.formRight}>
+              {buttons}
+            </div>
+          </div>
+        </form>
+      </div>
     )
   }
 }
