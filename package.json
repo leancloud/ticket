@@ -10,7 +10,12 @@
     "dev": "WEBPACK_DEV_SERVER=http://localhost:8080 nodemon --ignore modules server.js",
     "postinstall": "npm run build"
   },
-  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/leancloud/ticket.git"
+  },
+  "license": "MIT",
+  "author": "LeanCloud",
   "engines": {
     "node": "6.x"
   },
