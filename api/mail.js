@@ -59,30 +59,18 @@ ${ticket.get('latestReply') && ticket.get('latestReply').content}
 }
 
 const send = (params) => {
-  return new Promise((resolve, reject) => {
-    if (!exports.mailgun) {
-      return
-    }
+  if (!exports.mailgun) {
+    return
+  }
 
-    exports.mailgun.messages().send({
-      from: params.from,
-      to: params.to,
-      subject: params.subject,
-      text: `${params.text}
+  return exports.mailgun.messages().send({
+    from: params.from,
+    to: params.to,
+    subject: params.subject,
+    text: `${params.text}
 --
 您能收到邮件是因为该工单与您相关。
 可以直接回复邮件，或者点击 ${params.url} 查看。`,
-    }, function (err, body) {
-      new AV.Object('MailLog').save({
-        params,
-        result: body,
-        err,
-      })
-      if (err) {
-        return reject(err)
-      }
-      resolve(body)
-    })
   })
   .catch((err) => {
     errorHandler.captureException({
