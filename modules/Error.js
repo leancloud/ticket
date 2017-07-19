@@ -2,8 +2,6 @@ import React from 'react'
 import PropTypes from 'prop-types'
 
 export default function Error(props) {
-  let message
-
   if (!props.location.state) {
     return (
       <div>
@@ -15,6 +13,7 @@ export default function Error(props) {
     )
   }
 
+  let message
   switch (props.location.state.code) {
   case 'requireCustomerServiceAuth':
     message = '您访问的页面需要技术支持人员权限。'
@@ -23,7 +22,7 @@ export default function Error(props) {
     message = '您没有权限访问该页面。'
     break
   default:
-    message = '未知信息: ' + this.props.location.state.code
+    message = props.location.state.err.message
   }
   return (
     <div>

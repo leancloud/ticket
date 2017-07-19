@@ -244,7 +244,7 @@ export default class CustomerServiceTickets extends Component {
       if (category) {
         categoryTitle = category.get('name')
       } else {
-        categoryTitle = category.get('categoryId 错误')
+        categoryTitle = 'categoryId 错误'
       }
     } else {
       categoryTitle = '全部分类'
