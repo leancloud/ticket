@@ -312,10 +312,10 @@ export default class Ticket extends Component {
         <div className="row">
           <div className="col-sm-12">
             <DocumentTitle title={ticket.get('title') + ' - LeanTicket' || 'LeanTicket'} />
-            <h1>{ticket.get('title')} <small>#{ticket.get('nid')}</small></h1>
-            <div>
+            <h1>{ticket.get('title')}</h1>
+            <div className={css.meta}>
+              <span className={csCss.nid}>#{ticket.get('nid')}</span>
               <TicketStatusLabel status={ticket.get('status')} />
-              <span className={csCss.category}>{ticket.get('category').name}</span>
               {' '}
               <span>
                 <UserLabel user={ticket.get('author')} /> 创建于 <span title={moment(ticket.get('createdAt')).format()}>{moment(ticket.get('createdAt')).fromNow()}</span>
@@ -323,9 +323,6 @@ export default class Ticket extends Component {
                   <span>，更新于 <span title={moment(ticket.get('updatedAt')).format()}>{moment(ticket.get('updatedAt')).fromNow()}</span></span>
                 }
               </span>
-              {ticket.get('assignee') &&
-                <span>，当前负责人 <span className={css.assignee}><UserLabel user={ticket.get('assignee')} /></span></span>
-              }
             </div>
             <hr />
           </div>
@@ -367,8 +364,21 @@ export default class Ticket extends Component {
           <div className={'col-sm-4 ' + css.sidebar}>
             <div>{tags}</div>
 
+            {ticket.get('assignee') &&
+              <FormGroup>
+                <label className="label-block">负责人</label>
+                <span className={css.assignee}><UserLabel user={ticket.get('assignee')} /></span>
+              </FormGroup>
+            }
+
+            <FormGroup>
+              <label className="label-block">类别</label>
+              <span className={csCss.category + ' ' + css.categoryBlock}>{ticket.get('category').name}</span>
+            </FormGroup>
+
             {isTicketOpen(ticket) &&
               <div>
+                <hr />
                 <UpdateTicket ticket={ticket}
                   isCustomerService={this.props.isCustomerService}
                   updateTicketCategory={this.updateTicketCategory.bind(this)}
