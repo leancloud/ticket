@@ -116,3 +116,7 @@ body,
 .timestamp:hover {
   color: #3090e4;
 }
+
+.label-block {
+  display: block;
+}

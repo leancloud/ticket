@@ -2,6 +2,10 @@
 
 }
 
+.meta {
+  color: #999;
+}
+
 .panelModerator {
   border-color: #c1d5e4;
 }
@@ -49,6 +53,16 @@
 .category {
   vertical-align: inherit;
   margin-left: 0;
+}
+
+.categoryBlock {
+  font-size: inherit;
+  display: inline-block;
+  vertical-align: inherit;
+  margin-left: 0;
+  padding: 4px 8px;
+  color: #777;
+  border-color: #777;
 }
 
 .form {

@@ -30,6 +30,7 @@ export default class Ticket extends Component {
     return new AV.Query('Ticket')
     .equalTo('nid', parseInt(this.props.params.nid))
     .include('author')
+    .include('assignee')
     .include('files')
     .first()
     .then(ticket => {
@@ -256,14 +257,15 @@ export default class Ticket extends Component {
   }
 
   render() {
-    if (this.state.ticket === null) {
+    const ticket = this.state.ticket
+    if (ticket === null) {
       return (
       <div>读取中……</div>
       )
     }
 
     const tags = this.state.tags.map((tag) => {
-      return <Tag key={tag.id} tag={tag} ticket={this.state.ticket} isCustomerService={this.props.isCustomerService} />
+      return <Tag key={tag.id} tag={tag} ticket={ticket} isCustomerService={this.props.isCustomerService} />
     })
 
     const timeline = _.chain(this.state.replies)
@@ -273,8 +275,8 @@ export default class Ticket extends Component {
       }).map(this.ticketTimeline.bind(this))
       .value()
     let optionButtons
-    const ticketStatus = this.state.ticket.get('status')
-    if (isTicketOpen(this.state.ticket)) {
+    const ticketStatus = ticket.get('status')
+    if (isTicketOpen(ticket)) {
       optionButtons = (
         <FormGroup>
           <ControlLabel>工单操作</ControlLabel>
@@ -309,13 +311,16 @@ export default class Ticket extends Component {
       <div>
         <div className="row">
           <div className="col-sm-12">
-            <DocumentTitle title={this.state.ticket.get('title') + ' - LeanTicket' || 'LeanTicket'} />
-            <h1>{this.state.ticket.get('title')} <small>#{this.state.ticket.get('nid')}</small></h1>
-            <div>
-              <TicketStatusLabel status={this.state.ticket.get('status')} /> <span>
-                <UserLabel user={this.state.ticket.get('author')} /> 创建于 <span title={moment(this.state.ticket.get('createdAt')).format()}>{moment(this.state.ticket.get('createdAt')).fromNow()}</span>
-                {moment(this.state.ticket.get('createdAt')).fromNow() === moment(this.state.ticket.get('updatedAt')).fromNow() ||
-                  <span>，更新于 <span title={moment(this.state.ticket.get('updatedAt')).format()}>{moment(this.state.ticket.get('updatedAt')).fromNow()}</span></span>
+            <DocumentTitle title={ticket.get('title') + ' - LeanTicket' || 'LeanTicket'} />
+            <h1>{ticket.get('title')}</h1>
+            <div className={css.meta}>
+              <span className={csCss.nid}>#{ticket.get('nid')}</span>
+              <TicketStatusLabel status={ticket.get('status')} />
+              {' '}
+              <span>
+                <UserLabel user={ticket.get('author')} /> 创建于 <span title={moment(ticket.get('createdAt')).format()}>{moment(ticket.get('createdAt')).fromNow()}</span>
+                {moment(ticket.get('createdAt')).fromNow() === moment(ticket.get('updatedAt')).fromNow() ||
+                  <span>，更新于 <span title={moment(ticket.get('updatedAt')).format()}>{moment(ticket.get('updatedAt')).fromNow()}</span></span>
                 }
               </span>
             </div>
@@ -326,16 +331,16 @@ export default class Ticket extends Component {
         <div className="row">
           <div className="col-sm-8">
             <div className="tickets">
-              {this.ticketTimeline(this.state.ticket)}
+              {this.ticketTimeline(ticket)}
               <div>{timeline}</div>
             </div>
 
-            {isTicketOpen(this.state.ticket) &&
+            {isTicketOpen(ticket) &&
               <div>
                 <hr />
 
                 <TicketReply
-                  ticket={this.state.ticket}
+                  ticket={ticket}
                   commitReply={this.commitReply.bind(this)}
                   commitReplySoon={this.commitReplySoon.bind(this)}
                   operateTicket={this.operateTicket.bind(this)}
@@ -343,13 +348,13 @@ export default class Ticket extends Component {
                 />
               </div>
             }
-            {!isTicketOpen(this.state.ticket) &&
+            {!isTicketOpen(ticket) &&
               <div>
                 <hr />
 
                 <Evaluation
                   saveEvaluation={this.saveEvaluation.bind(this)}
-                  ticket={this.state.ticket}
+                  ticket={ticket}
                   isCustomerService={this.props.isCustomerService}
                 />
               </div>
@@ -359,9 +364,22 @@ export default class Ticket extends Component {
           <div className={'col-sm-4 ' + css.sidebar}>
             <div>{tags}</div>
 
-            {isTicketOpen(this.state.ticket) &&
+            {ticket.get('assignee') &&
+              <FormGroup>
+                <label className="label-block">负责人</label>
+                <span className={css.assignee}><UserLabel user={ticket.get('assignee')} /></span>
+              </FormGroup>
+            }
+
+            <FormGroup>
+              <label className="label-block">类别</label>
+              <span className={csCss.category + ' ' + css.categoryBlock}>{ticket.get('category').name}</span>
+            </FormGroup>
+
+            {isTicketOpen(ticket) &&
               <div>
-                <UpdateTicket ticket={this.state.ticket}
+                <hr />
+                <UpdateTicket ticket={ticket}
                   isCustomerService={this.props.isCustomerService}
                   updateTicketCategory={this.updateTicketCategory.bind(this)}
                   updateTicketAssignee={this.updateTicketAssignee.bind(this)}

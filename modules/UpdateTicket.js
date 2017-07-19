@@ -58,15 +58,15 @@ export default class UpdateTicket extends Component {
     })
     return <div>
       <FormGroup>
-        <ControlLabel>修改类别</ControlLabel>
-        <FormControl componentClass='select' value={this.props.ticket.get('category').objectId} onChange={this.handleCategoryChange.bind(this)}>
-          {categoryOptions}
-        </FormControl>
-      </FormGroup>
-      <FormGroup>
         <ControlLabel>修改负责人</ControlLabel>
         <FormControl componentClass='select' value={this.props.ticket.get('assignee').id} onChange={this.handleAssigneeChange.bind(this)}>
           {assigneesOptions}
+        </FormControl>
+      </FormGroup>
+      <FormGroup>
+        <ControlLabel>修改类别</ControlLabel>
+        <FormControl componentClass='select' value={this.props.ticket.get('category').objectId} onChange={this.handleCategoryChange.bind(this)}>
+          {categoryOptions}
         </FormControl>
       </FormGroup>
     </div>
