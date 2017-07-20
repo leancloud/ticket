@@ -460,6 +460,12 @@ class TicketReply extends Component {
     this.setState({reply: e.target.value})
   }
 
+  handleReplyOnKeyDown(e) {
+    if(e.keyCode == 13 && e.metaKey) {
+      this.handleReplyCommit(e)
+    }
+  }
+
   handleReplyCommit(e) {
     e.preventDefault()
     this.setState({isCommitting: true})
@@ -524,7 +530,7 @@ class TicketReply extends Component {
       <div>
         <form className="form-group">
           <FormGroup>
-            <FormControl componentClass="textarea" placeholder="回复内容……" rows="8" value={this.state.reply} onChange={this.handleReplyOnChange.bind(this)}/>
+            <FormControl componentClass="textarea" placeholder="回复内容……" rows="8" value={this.state.reply} onChange={this.handleReplyOnChange.bind(this)} onKeyDown={this.handleReplyOnKeyDown.bind(this)} />
           </FormGroup>
 
           <FormGroup>
