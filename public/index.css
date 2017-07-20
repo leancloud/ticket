@@ -71,18 +71,27 @@ body,
 }
 
 .ticket-status {
+  display: flex;
   margin-left: 25px;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+}
+
+.ticket-status-left {
+
+}
+
+.ticket-status-right {
+  flex: 1;
 }
 
 .ticket-status .icon-wrap {
   background: #efefef;
   padding: 9px;
   border-radius: 50%;
-  margin-right: 4px;
+  margin-top: -5px;
+  margin-right: 8px;
   box-shadow: 0 0 0 3px #fff;
   color: #7d7e86;
-  vertical-align: -1px;
 }
 
 .ticket-status .icon-wrap .glyphicon {

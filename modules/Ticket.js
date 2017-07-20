@@ -164,49 +164,89 @@ export default class Ticket extends Component {
       case 'selectAssignee':
         return (
           <p className='ticket-status' id={avObj.id} key={avObj.id}>
-            <span className='icon-wrap'><span className='glyphicon glyphicon-transfer'></span></span> 系统于 <a href={'#' + avObj.id} className="timestamp" title={moment(avObj.get('createdAt')).format()}>{moment(avObj.get('createdAt')).fromNow()}</a> 将工单分配给 <UserLabel user={avObj.get('data').assignee} /> 处理
+            <div className='ticket-status-left'>
+              <span className='icon-wrap'><span className='glyphicon glyphicon-transfer'></span></span>
+            </div>
+            <div className='ticket-status-right'>
+              系统于 <a href={'#' + avObj.id} className="timestamp" title={moment(avObj.get('createdAt')).format()}>{moment(avObj.get('createdAt')).fromNow()}</a> 将工单分配给 <UserLabel user={avObj.get('data').assignee} /> 处理
+            </div>
           </p>
         )
       case 'changeCategory':
         return (
           <p className='ticket-status' id={avObj.id} key={avObj.id}>
-            <span className='icon-wrap'><span className='glyphicon glyphicon-transfer'></span></span> <UserLabel user={avObj.get('data').operator} /> 于 <a href={'#' + avObj.id} className="timestamp" title={moment(avObj.get('createdAt')).format()}>{moment(avObj.get('createdAt')).fromNow()}</a> 将工单类别改为 <span className={csCss.category + ' ' + css.category}>{avObj.get('data').category.name}</span>
+            <div className='ticket-status-left'>
+              <span className='icon-wrap'><span className='glyphicon glyphicon-transfer'></span></span>
+            </div>
+            <div className='ticket-status-right'>
+              <UserLabel user={avObj.get('data').operator} /> 于 <a href={'#' + avObj.id} className="timestamp" title={moment(avObj.get('createdAt')).format()}>{moment(avObj.get('createdAt')).fromNow()}</a> 将工单类别改为 <span className={csCss.category + ' ' + css.category}>{avObj.get('data').category.name}</span>
+            </div>
           </p>
         )
       case 'changeAssignee':
         return (
           <p className='ticket-status' id={avObj.id} key={avObj.id}>
-            <span className='icon-wrap'><span className='glyphicon glyphicon-transfer'></span></span> <UserLabel user={avObj.get('data').operator} /> 于 <a href={'#' + avObj.id} className="timestamp" title={moment(avObj.get('createdAt')).format()}>{moment(avObj.get('createdAt')).fromNow()}</a> 将工单负责人改为 <UserLabel user={avObj.get('data').assignee} />
+            <div className='ticket-status-left'>
+              <span className='icon-wrap'><span className='glyphicon glyphicon-transfer'></span></span>
+            </div>
+            <div className='ticket-status-right'>
+              <UserLabel user={avObj.get('data').operator} /> 于 <a href={'#' + avObj.id} className="timestamp" title={moment(avObj.get('createdAt')).format()}>{moment(avObj.get('createdAt')).fromNow()}</a> 将工单负责人改为 <UserLabel user={avObj.get('data').assignee} />
+            </div>
           </p>
         )
       case 'replyWithNoContent':
         return (
           <p className='ticket-status' id={avObj.id} key={avObj.id}>
-            <span className='icon-wrap'><span className='glyphicon glyphicon-comment'></span></span> <UserLabel user={avObj.get('data').operator} /> 于 <a href={'#' + avObj.id} className="timestamp" title={moment(avObj.get('createdAt')).format()}>{moment(avObj.get('createdAt')).fromNow()}</a> 认为该工单暂时无需回复，如有问题可以回复该工单
+            <div className='ticket-status-left'>
+              <span className='icon-wrap'><span className='glyphicon glyphicon-comment'></span></span>
+            </div>
+            <div className='ticket-status-right'>
+              <UserLabel user={avObj.get('data').operator} /> 于 <a href={'#' + avObj.id} className="timestamp" title={moment(avObj.get('createdAt')).format()}>{moment(avObj.get('createdAt')).fromNow()}</a> 认为该工单暂时无需回复，如有问题可以回复该工单
+            </div>
           </p>
         )
       case 'replySoon':
         return (
           <p className='ticket-status' id={avObj.id} key={avObj.id}>
-            <span className='icon-wrap awaiting'><span className='glyphicon glyphicon-hourglass'></span></span> <UserLabel user={avObj.get('data').operator} /> 于 <a href={'#' + avObj.id} className="timestamp" title={moment(avObj.get('createdAt')).format()}>{moment(avObj.get('createdAt')).fromNow()}</a> 认为该工单处理需要一些时间，稍后会回复该工单
+            <div className='ticket-status-left'>
+              <span className='icon-wrap awaiting'><span className='glyphicon glyphicon-hourglass'></span></span>
+            </div>
+            <div className='ticket-status-right'>
+              <UserLabel user={avObj.get('data').operator} /> 于 <a href={'#' + avObj.id} className="timestamp" title={moment(avObj.get('createdAt')).format()}>{moment(avObj.get('createdAt')).fromNow()}</a> 认为该工单处理需要一些时间，稍后会回复该工单
+            </div>
           </p>
         )
       case 'resolve':
         return (
           <p className='ticket-status' id={avObj.id} key={avObj.id}>
-            <span className='icon-wrap resolved'><span className='glyphicon glyphicon-ok-circle'></span></span> <UserLabel user={avObj.get('data').operator} /> 于 <a href={'#' + avObj.id} className="timestamp" title={moment(avObj.get('createdAt')).format()}>{moment(avObj.get('createdAt')).fromNow()}</a> 认为该工单已经解决
+            <div className='ticket-status-left'>
+              <span className='icon-wrap resolved'><span className='glyphicon glyphicon-ok-circle'></span></span>
+            </div>
+            <div className='ticket-status-right'>
+              <UserLabel user={avObj.get('data').operator} /> 于 <a href={'#' + avObj.id} className="timestamp" title={moment(avObj.get('createdAt')).format()}>{moment(avObj.get('createdAt')).fromNow()}</a> 认为该工单已经解决
+            </div>
           </p>
         )
       case 'reject':
         return (
           <p className='ticket-status' id={avObj.id} key={avObj.id}>
-            <span className='icon-wrap closed'><span className='glyphicon glyphicon-ban-circle'></span></span> <UserLabel user={avObj.get('data').operator} /> 于 <a href={'#' + avObj.id} className="timestamp" title={moment(avObj.get('createdAt')).format()}>{moment(avObj.get('createdAt')).fromNow()}</a> 关闭了该工单
+            <div className='ticket-status-left'>
+              <span className='icon-wrap closed'><span className='glyphicon glyphicon-ban-circle'></span></span>
+            </div>
+            <div className='ticket-status-right'>
+              <UserLabel user={avObj.get('data').operator} /> 于 <a href={'#' + avObj.id} className="timestamp" title={moment(avObj.get('createdAt')).format()}>{moment(avObj.get('createdAt')).fromNow()}</a> 关闭了该工单
+            </div>
           </p>
         )
       case 'reopen':
         return (
           <p className='ticket-status' id={avObj.id} key={avObj.id}>
-            <span className='icon-wrap reopened'><span className='glyphicon glyphicon-record'></span></span> <UserLabel user={avObj.get('data').operator} /> 于 <a href={'#' + avObj.id} className="timestamp" title={moment(avObj.get('createdAt')).format()}>{moment(avObj.get('createdAt')).fromNow()}</a> 重新打开该工单
+            <div className='ticket-status-left'>
+              <span className='icon-wrap reopened'><span className='glyphicon glyphicon-record'></span></span>
+            </div>
+            <div className='ticket-status-right'>
+              <UserLabel user={avObj.get('data').operator} /> 于 <a href={'#' + avObj.id} className="timestamp" title={moment(avObj.get('createdAt')).format()}>{moment(avObj.get('createdAt')).fromNow()}</a> 重新打开该工单
+            </div>
           </p>
         )
       }
