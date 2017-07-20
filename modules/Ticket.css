@@ -94,6 +94,14 @@
   color: #999;
 }
 
+.markdownTip a {
+  color: #999;
+}
+
+.markdownTip a:hover {
+  color: #3090e4;
+}
+
 .markdownTip b {
   color: #999;
 }

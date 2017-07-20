@@ -497,7 +497,7 @@ class TicketReply extends Component {
               <p className={css.markdownTip}>
                 <OverlayTrigger placement="top" overlay={tooltip}>
                   <b className="has-required" title="支持 Markdown 语法">M↓</b>
-                </OverlayTrigger> 支持 Markdown 语法
+                </OverlayTrigger> <a href="http://wowubuntu.com/markdown/basic.html" target="_blank" rel="noopener">支持 Markdown 语法</a>
               </p>
             </div>
             <div className={css.formRight}>
