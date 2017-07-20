@@ -84,6 +84,11 @@
 
 }
 
+.submit {
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
 .markdownTip {
   margin-top: 6px;
   color: #999;

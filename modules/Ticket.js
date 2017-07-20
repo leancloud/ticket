@@ -468,15 +468,15 @@ class TicketReply extends Component {
     if (this.props.isCustomerService) {
       buttons = (
         <ButtonToolbar>
-        <Button onClick={this.handleReplyNoContent.bind(this)} disabled={this.state.isCommitting}>暂无需回复</Button>
-          <Button onClick={this.handleReplySoon.bind(this)} disabled={this.state.isCommitting}>稍后继续回复</Button>
-          <Button onClick={this.handleReplyCommit.bind(this)} disabled={this.state.isCommitting} bsStyle="primary">回复</Button>
+        <Button onClick={this.handleReplyNoContent.bind(this)} disabled={this.state.isCommitting}>无需回复</Button>
+          <Button onClick={this.handleReplySoon.bind(this)} disabled={this.state.isCommitting}>稍后回复</Button>
+          <Button onClick={this.handleReplyCommit.bind(this)} disabled={this.state.isCommitting} bsStyle="success" className={css.submit}>提交回复</Button>
         </ButtonToolbar>
       )
     } else {
       buttons = (
         <ButtonToolbar>
-          <Button onClick={this.handleReplyCommit.bind(this)} bsStyle="primary">回复</Button>
+          <Button onClick={this.handleReplyCommit.bind(this)} bsStyle="success" className={css.submit}>提交回复</Button>
         </ButtonToolbar>
       )
     }
