@@ -45,7 +45,7 @@ export default class User extends Component {
           <p>{this.state.leancloudUser.username}<span className={css.id}>#{this.state.leancloudUser.id}</span></p>
           <p>{this.state.leancloudUser.email}</p>
           <p><a href={'tel:' + this.state.leancloudUser.phone}>{this.state.leancloudUser.phone}</a></p>
-          <p><Link to={`/customerService/tickets?authorId=${this.state.user.objectId}`}>工单列表</Link></p>
+          <p><Link to={`/customerService/tickets?authorId=${this.state.user.objectId}&page=0&size=10`}>工单列表</Link></p>
         </div>
       )
     }
