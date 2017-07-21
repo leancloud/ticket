@@ -9,6 +9,11 @@ import AV from 'leancloud-storage/live-query'
 import randomColor from 'randomcolor'
 import Color from 'color'
 
+// 默认情况，周统计按照周日 23 点 59 分 59 秒作为统计周期分割
+// 可以通过修改统计偏移日期调整周期分割
+// 比如 -3 为周四 23 点 59 分 59 秒
+const offsetDays = -3
+
 const fetchUsers = (userIds) => {
   return Promise.all(_.map(_.chunk(userIds, 50), (userIds) => {
     return new AV.Query('_User')
@@ -214,8 +219,8 @@ class StatsChart extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      startDate: moment().startOf('week').subtract(1, 'weeks'),
-      endDate: moment().endOf('week'),
+      startDate: moment().startOf('week').subtract(1, 'weeks').add(offsetDays, 'days'),
+      endDate: moment().endOf('week').add(offsetDays, 'days'),
     }
   }
 
@@ -233,7 +238,7 @@ class StatsChart extends React.Component {
     if (this.state.endDate.diff(this.state.startDate, 'days') > 31) {
       timeUnit = 'week'
     }
-    return AV.Cloud.run('getStats', {start: this.state.startDate.toISOString(), end: this.state.endDate.toISOString(), timeUnit})
+    return AV.Cloud.run('getStats', {start: this.state.startDate.toISOString(), end: this.state.endDate.toISOString(), timeUnit, offsetDays})
     .then((statses) => {
       const userIds = _.uniq(_.flatten(_.concat([],
         statses.map(s => s.assignees),
@@ -311,14 +316,6 @@ StatsChart.propTypes = {
   categories: PropTypes.array.isRequired,
 }
 
-const getHeadsAndTails = (datas, sortFn) => {
-  const sorted = _.sortBy(datas, sortFn)
-  _.forEach(sorted, (data, index) => {
-    data.index = index + 1
-  })
-  return _.concat(sorted.slice(0, 3), sorted.slice(sorted.length - 3))
-}
-
 const sortAndIndexed = (datas, sortFn) => {
   const sorted = _.sortBy(datas, sortFn)
   _.forEach(sorted, (data, index) => {
@@ -330,14 +327,13 @@ const sortAndIndexed = (datas, sortFn) => {
 class StatsSummary extends React.Component {
 
   componentDidMount() {
-    const startDate = moment().startOf('week').subtract(1, 'weeks')
-    const endDate = moment().endOf('week')
+    const startDate = moment().startOf('week').subtract(1, 'weeks').add(offsetDays, 'days')
+    const endDate = moment().endOf('week').add(offsetDays, 'days')
     Promise.all([
       AV.Cloud.run('getNewTicketCount', {start: startDate.toISOString(), end: endDate.toISOString(), timeUnit: 'week'}),
-      AV.Cloud.run('getStats', {start: startDate.toISOString(), end: endDate.toISOString(), timeUnit: 'week'}),
+      AV.Cloud.run('getStats', {start: startDate.toISOString(), end: endDate.toISOString(), timeUnit: 'week', offsetDays}),
     ])
     .then(([newTicketCounts, statses]) => {
-      statses = statses.slice(0, 2)
       const statsDatas = statses.map((stats, index) => {
         const activeTicketCountsByCategory = sortAndIndexed(_.toPairs(stats.categories), ([_k, v]) => -v)
         const activeTicketCountByAssignee = sortAndIndexed(_.toPairs(stats.assignees), ([_k, v]) => -v)
@@ -382,7 +378,7 @@ class StatsSummary extends React.Component {
     }
 
     const dateDoms = this.state.statsDatas.map(data => {
-      return <span>{moment(data.date).format('YYYY [年] MM [月] DD [日][（第] ww [周）]')}</span>
+      return <span>截止到 {moment(data.date).add(1, 'weeks').format('YYYY [年] MM [月] DD [日][（第] ww [周）]')}</span>
     })
 
     const summaryDoms = this.state.statsDatas.map(data => {

@@ -3,6 +3,8 @@ const _ = require('lodash')
 const moment = require('moment')
 const AV = require('leanengine')
 
+moment.locale('zh-cn')
+
 const {TICKET_STATUS, ticketOpenedStatuses} = require('../lib/common')
 
 AV.Cloud.define('statsOpenedTicket', (req, res) => {
@@ -232,7 +234,7 @@ const sumProperty = (obj, other, property) => {
 }
 
 AV.Cloud.define('getStats', (req) => {
-  let {start, end, timeUnit} = req.params
+  let {start, end, timeUnit, offsetDays} = req.params
   if (typeof start === 'string') {
     start = new Date(start)
   }
@@ -257,7 +259,7 @@ AV.Cloud.define('getStats', (req) => {
   .then(() => {
     return _.chain(statses)
     .groupBy((stats) => {
-      return moment(stats.get('date')).startOf(timeUnit).format()
+      return moment(stats.get('date')).subtract(offsetDays, 'days').startOf(timeUnit).format()
     })
     .map((statses, date) => {
       return _.reduce(statses, (result, statsDaily) => {
@@ -270,7 +272,7 @@ AV.Cloud.define('getStats', (req) => {
         result.tickets = _.union(result.tickets, statsDaily.get('tickets'))
         return result
       }, {
-        date: new Date(date).toISOString(),
+        date: moment(date).add(offsetDays, 'days').format(),
         assignees: {},
         authors: {},
         categories: {},
