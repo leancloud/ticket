@@ -5,6 +5,7 @@ import { Pager } from 'react-bootstrap'
 import moment from 'moment'
 import AV from 'leancloud-storage/live-query'
 import css from './CustomerServiceTickets.css'
+import DocumentTitle from 'react-document-title'
 
 import {UserLabel, TicketStatusLabel} from './common'
 
@@ -98,6 +99,7 @@ export default class Tickets extends Component {
     }
     return (
       <div>
+        <DocumentTitle title='工单列表 - LeanTicket' />
         {ticketLinks}
         <Pager>
           <Pager.Item disabled={this.state.filters.page === 0} previous onClick={() => this.findTickets({page: this.state.filters.page - 1})}>&larr; 上一页</Pager.Item>

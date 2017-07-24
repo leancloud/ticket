@@ -8,6 +8,7 @@ import DatePicker from 'react-datepicker'
 import AV from 'leancloud-storage/live-query'
 import randomColor from 'randomcolor'
 import Color from 'color'
+import DocumentTitle from 'react-document-title'
 
 // 默认情况，周统计按照周日 23 点 59 分 59 秒作为统计周期分割
 // 可以通过修改统计偏移日期调整周期分割
@@ -202,6 +203,7 @@ export default class CustomerServiceStats extends React.Component {
   render() {
     return (
       <div>
+        <DocumentTitle title='统计 - LeanTicket' />
         <StatsSummary categories={this.state.categories} />
         <StatsChart categories={this.state.categories} />
       </div>

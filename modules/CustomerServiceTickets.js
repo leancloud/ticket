@@ -6,6 +6,7 @@ import qs from 'query-string'
 import moment from 'moment'
 import AV from 'leancloud-storage/live-query'
 import css from './CustomerServiceTickets.css'
+import DocumentTitle from 'react-document-title'
 
 import {UserLabel, TicketStatusLabel, getCustomerServices} from './common'
 import {TICKET_STATUS, TICKET_STATUS_MSG, ticketOpenedStatuses, ticketClosedStatuses} from '../lib/common'
@@ -298,6 +299,7 @@ export default class CustomerServiceTickets extends Component {
     }
     return (
       <div>
+        <DocumentTitle title='客服工单列表 - LeanTicket' />
         {ticketAdminFilters}
 
         {ticketTrs}

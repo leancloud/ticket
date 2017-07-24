@@ -1,7 +1,9 @@
 import React from 'react'
+import DocumentTitle from 'react-document-title'
 
 export default function About() {
   return <div>
+    <DocumentTitle title='关于 - LeanTicket' />
     <h1 className='font-logo'>LeanCloud Ticket</h1>
     <hr />
     <p>该应用是 <a href='https://leancloud.cn/'>LeanCloud</a> 的工单系统。为了更有效的解决 LeanCloud 开发者的问题而创建。</p>
