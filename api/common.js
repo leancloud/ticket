@@ -59,7 +59,7 @@ const md = new Remarkable({
   html: true,
   breaks: true,
   linkify: true,
-  typographer: true,
+  typographer: false,
   highlight: (str, lang) => {
     if (lang && hljs.getLanguage(lang)) {
       try {
