@@ -1,7 +1,7 @@
 exports.captureException = (message, err) => {
   if (message instanceof Error) {
     err = message
-    message = null
+    message = ''
   }
-  console.error(err.stack)
+  console.error(message, err.stack)
 }
