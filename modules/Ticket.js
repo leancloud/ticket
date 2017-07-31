@@ -314,7 +314,7 @@ export default class Ticket extends Component {
         return data.get('createdAt')
       }).map(this.ticketTimeline.bind(this))
       .value()
-    let optionButtons
+    let optionButtons = <div></div>
     const ticketStatus = ticket.get('status')
     if (isTicketOpen(ticket)) {
       optionButtons = (
@@ -335,15 +335,6 @@ export default class Ticket extends Component {
           {' '}
           <Button onClick={() => this.operateTicket('reopen')}>未解决</Button>
         </Alert>
-      )
-    } else {
-      optionButtons = (
-        <FormGroup>
-          <ControlLabel>工单操作</ControlLabel>
-          <FormGroup>
-            <button type="button" className='btn btn-default' onClick={() => this.operateTicket('reopen')}>重新打开</button>
-          </FormGroup>
-        </FormGroup>
       )
     }
 
