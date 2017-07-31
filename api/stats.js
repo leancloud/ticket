@@ -39,6 +39,22 @@ AV.Cloud.define('statsTicket', (req, res) => {
   .catch(res.error)
 })
 
+AV.Cloud.define('getStatsTicketByUser', (req) => {
+  let {userId, start, end} = req.params
+  return getDailyAndTicketStatses(start, end, {user: req.currentUser})
+  .then(({ticketStatses}) => {
+    return _.filter(ticketStatses, (stats) => {
+      if (_.find(stats.get('replyTimeStats'), {userId})) {
+        return true
+      }
+      if (_.find(stats.get('firstReplyStats'), {userId})) {
+        return true
+      }
+      return false
+    })
+  })
+})
+
 const removeTicketStats = (ticket, authOptions) => {
   return new AV.Query('StatsTicket')
   .equalTo('ticket', ticket)
@@ -166,6 +182,12 @@ class ReplyTimeStats {
       this.lastCustomerService = avObj.get('data').assignee
       return
     }
+    if (avObj.className === 'OpsLog'
+        && avObj.get('action') === 'reopen') {
+      this.cursor = avObj.createdAt
+      this.isReply = false
+      return
+    }
   }
 
   result() {
@@ -246,34 +268,15 @@ const sumProperty = (obj, other, property) => {
 
 AV.Cloud.define('getStats', (req) => {
   let {start, end, timeUnit, offsetDays} = req.params
-  if (typeof start === 'string') {
-    start = new Date(start)
-  }
-  if (typeof end === 'string') {
-    end = new Date(end)
-  }
-  let statses, ticketStatses
   const authOptions = {user: req.currentUser}
-  return new AV.Query('StatsDaily')
-  .greaterThanOrEqualTo('date', start)
-  .lessThanOrEqualTo('date', end)
-  .ascending('date')
-  .limit(1000)
-  .find(authOptions)
-  .then((_statses) => {
-    statses = _statses
-    return getTicketStats(statses, authOptions)
-    .then((_ticketStatses) => {
-      ticketStatses = _ticketStatses
-    })
-  })
-  .then(() => {
-    return _.chain(statses)
+  return getDailyAndTicketStatses(start, end, authOptions)
+  .then(({dailyStatses, ticketStatses}) => {
+    return _.chain(dailyStatses)
     .groupBy((stats) => {
       return moment(stats.get('date')).subtract(offsetDays, 'days').startOf(timeUnit).format()
     })
-    .map((statses, date) => {
-      return _.reduce(statses, (result, statsDaily) => {
+    .map((dailyStatses, date) => {
+      return _.reduce(dailyStatses, (result, statsDaily) => {
         result.assignees = sumProperty(result, statsDaily, 'assignees')
         result.authors = sumProperty(result, statsDaily, 'authors')
         result.categories = sumProperty(result, statsDaily, 'categories')
@@ -307,21 +310,39 @@ AV.Cloud.define('getStats', (req) => {
   })
 })
 
-const getTicketStats = (statses, authOptions) => {
-  const ticketIds = _.chain(statses)
-  .map(stats => stats.get('tickets'))
-  .flatten()
-  .uniq()
-  .value()
+const getDailyAndTicketStatses = (start, end, authOptions) => {
+  if (typeof start === 'string') {
+    start = new Date(start)
+  }
+  if (typeof end === 'string') {
+    end = new Date(end)
+  }
+  return new AV.Query('StatsDaily')
+  .greaterThanOrEqualTo('date', start)
+  .lessThanOrEqualTo('date', end)
+  .ascending('date')
+  .limit(1000)
+  .find(authOptions)
+  .then((dailyStatses) => {
+    const ticketIds = _.chain(dailyStatses)
+    .map(stats => stats.get('tickets'))
+    .flatten()
+    .uniq()
+    .value()
+    return getTicketStats(ticketIds, authOptions)
+    .then((ticketStatses) => {
+      return {dailyStatses, ticketStatses}
+    })
+  })
+}
+
+const getTicketStats = (ticketIds, authOptions) => {
   return Promise.all(_.map(_.chunk(ticketIds, 50), (ids) => {
     return new AV.Query('StatsTicket')
     .containedIn('ticket', ids.map(id => new AV.Object.createWithoutData('Ticket', id)))
     .find(authOptions)
   }))
   .then(_.flatten)
-  .then((result) => {
-    return result
-  })
 }
 
 const firstReplyTimeByUser = (stats, ticketStatses) => {
