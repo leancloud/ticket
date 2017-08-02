@@ -13,8 +13,8 @@ default:
 
 module.exports = {
   host,
-  leancloudOauthKey: process.env.LEANCLOUD_OAUTH_KEY,
-  leancloudOauthSecret: process.env.LEANCLOUD_OAUTH_SECRET,
+  oauthKey: process.env.OAUTH_KEY,
+  oauthSecret: process.env.OAUTH_SECRET,
   leancloudAppUrl: process.env.LEANCLOUD_APP_URL,
   mailgunKey: process.env.MAILGUN_KEY,
   mailgunDomain: process.env.MAILGUN_DOMAIN,

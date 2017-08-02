@@ -22,6 +22,8 @@ app.use(bodyParser.urlencoded({ extended: false }))
 
 app.use(require('./api'))
 
+const orgName = require('./api/oauth').orgName
+
 const getIndexPage = (uuid) => {
   return `
 <!doctype html public "storage">
@@ -38,11 +40,14 @@ const getIndexPage = (uuid) => {
 <script src="/js/bootstrap.min.js"></script>
 <div id=app></div>
 <script>
-  SENTRY_PUB_DSN = '${process.env.SENTRY_PUB_DSN}'
   LEANCLOUD_APP_ID = '${process.env.LEANCLOUD_APP_ID}'
   LEANCLOUD_APP_KEY = '${process.env.LEANCLOUD_APP_KEY}'
   LEANCLOUD_APP_ENV = '${process.env.LEANCLOUD_APP_ENV}'
+  LEAN_CLI_HAVE_STAGING = '${process.env.LEAN_CLI_HAVE_STAGING}'
+  SENTRY_PUB_DSN = '${process.env.SENTRY_PUB_DSN || ''}'
   UUID = '${uuid}'
+  ORG_NAME = '${orgName}'
+  USE_OAUTH = '${!!process.env.OAUTH_KEY}'
 </script>
 <script src='${process.env.WEBPACK_DEV_SERVER || ''}/bundle.js'></script>
 <script>

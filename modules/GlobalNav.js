@@ -24,7 +24,7 @@ export default class GlobalNav extends Component {
         </li>
       )
     } else {
-      user = <li><a href="/api/leancloud/login">登录</a></li>
+      user = <li><Link to="/login">登录</Link></li>
     }
     let createTicket
     if (AV.User.current()) {

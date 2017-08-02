@@ -1,0 +1,1 @@
+{"schema":{"qTemplate":{"type":"String"},"name":{"type":"String"},"updatedAt":{"type":"Date"},"createdAt":{"type":"Date"},"ACL":{"type":"ACL"},"objectId":{"type":"String"}},"permissions":{"add_fields":{"*":true},"delete":{"*":true},"update":{"*":true},"get":{"*":true},"find":{"*":true},"create":{"*":true}},"indexes":[]}

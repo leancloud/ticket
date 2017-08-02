@@ -17,14 +17,10 @@ AV.Cloud.define('statsOpenedTicket', (req, res) => {
       console.log('err >>', ticket.id, err)
     })
   }, {useMasterKey: true})
-  .then(() => {
-    console.log('statsOpenedTicket done')
-  })
 })
 
 AV.Cloud.define('statsTicket', (req, res) => {
   const ticketId = req.params.ticketId
-  console.log('statsTicket:', ticketId)
   const authOptions = {useMasterKey: true}
   exports.statsTicket(ticketId, authOptions)
   .then((data) => {

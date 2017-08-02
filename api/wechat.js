@@ -17,28 +17,42 @@ const wechatConfig = {
   corpId: config.wechatCorpID,
 }
 
-const api = new wechat.API(config.wechatCorpID, config.wechatSecret, config.wechatAgentId, (cb) => {
-  new AV.Query('Config')
-  .equalTo('key', 'wechatToken')
-  .descending('createdAt')
-  .first({useMasterKey: true})
-  .then((token) => {
-    if (token && token.createdAt > new Date(new Date().getTime() - 7200000)) {
-      cb(null, JSON.parse(token.get('value')))
-    } else {
-      cb(null, null)
-    }
+let api = null
+if (wechatConfig.token) {
+  router.use('/', wechat(wechatConfig, function (req, res, _next) {
+    res.status(200).send('ok')
+  }))
+
+  api = new wechat.API(config.wechatCorpID, config.wechatSecret, config.wechatAgentId, (cb) => {
+    new AV.Query('Config')
+    .equalTo('key', 'wechatToken')
+    .descending('createdAt')
+    .first({useMasterKey: true})
+    .then((token) => {
+      if (token && token.createdAt > new Date(new Date().getTime() - 7200000)) {
+        cb(null, JSON.parse(token.get('value')))
+      } else {
+        cb(null, null)
+      }
+    })
+    .catch(cb)
+  }, (token, cb) => {
+    new AV.Object('Config')
+    .setACL(new AV.ACL()) // 任何人无法读取，除非使用 masterKey
+    .save({key: 'wechatToken', value: JSON.stringify(token)})
+    .then(() => {
+      cb()
+    })
+    .catch(cb)
   })
-  .catch(cb)
-}, (token, cb) => {
-  new AV.Object('Config')
-  .setACL(new AV.ACL()) // 任何人无法读取，除非使用 masterKey
-  .save({key: 'wechatToken', value: JSON.stringify(token)})
-  .then(() => {
-    cb()
+} else {
+  console.log('微信相关信息没有配置，所以微信账号绑定和微信通知功能无法使用。')
+  router.use('/', (req, res) => {
+    res.status(501).send('Not Implemented')
   })
-  .catch(cb)
-})
+}
+
+exports.router = router
 
 AV.Cloud.define('getWechatEnterpriseUsers', (req, res) => {
   common.isCustomerService(req.currentUser)
@@ -53,11 +67,6 @@ AV.Cloud.define('getWechatEnterpriseUsers', (req, res) => {
   })
   .catch(res.error)
 })
-
-router.use('/', wechat(wechatConfig, function (req, res, _next) {
-  res.writeHead(200)
-  res.end('ok')
-}))
 
 exports.newTicket = (ticket, from, to) => {
   if (!to.get('wechatEnterpriseUserId')) {
@@ -105,6 +114,10 @@ ${ticket.get('latestReply') && ticket.get('latestReply').content}
 }
 
 const send = (params) => {
+  if (api === null) {
+    return
+  }
+
   return api.sendAsync({
     touser: params.to
   }, {
@@ -128,6 +141,10 @@ const send = (params) => {
 }
 
 const getUsers = () => {
+  if (api === null) {
+    return []
+  }
+
   return api.getDepartmentsAsync()
   .then((data) => {
     if (data.errcode !== 0) {
@@ -148,6 +165,4 @@ const getUsers = () => {
     return _.uniqWith(users, _.isEqual)
   })
 }
-
-exports.router = router
 

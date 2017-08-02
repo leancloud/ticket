@@ -1,0 +1,1 @@
+{"schema":{"updatedAt":{"type":"Date"},"ACL":{"type":"ACL"},"objectId":{"type":"String"},"createdAt":{"type":"Date"},"ticket":{"className":"Ticket","type":"Pointer"},"action":{"type":"String"},"data":{"type":"Object"}},"permissions":{"add_fields":{"*":true},"delete":{"*":true},"update":{"*":true},"get":{"*":true},"find":{"*":true},"create":{"*":true}},"indexes":[]}

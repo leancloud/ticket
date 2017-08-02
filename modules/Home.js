@@ -1,5 +1,6 @@
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
+import AV from 'leancloud-storage/live-query'
 
 export default class Home extends Component {
  
@@ -12,10 +13,15 @@ export default class Home extends Component {
   }
 
   redirect(props) {
+    if (!AV.User.current()) {
+      this.context.router.replace('/login')
+      return
+    }
+
     if (props.isCustomerService) {
-      this.context.router.push('/customerService/tickets')
+      this.context.router.replace('/customerService/tickets')
     } else {
-      this.context.router.push('/tickets')
+      this.context.router.replace('/tickets')
     }
   }
 

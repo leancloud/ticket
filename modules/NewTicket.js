@@ -24,7 +24,13 @@ export default class NewTicket extends React.Component {
   componentDidMount() {
     Promise.all([
       new AV.Query('Category').find(),
-      AV.Cloud.run('getLeanCloudApps'),
+      AV.Cloud.run('getLeanCloudApps')
+      .catch((err) => {
+        if (err.message.indexOf('Could not find LeanCloud authData:') === 0) {
+          return []
+        }
+        throw err
+      }),
     ])
     .then(([categories, apps]) => {
       let {
@@ -51,7 +57,11 @@ export default class NewTicket extends React.Component {
 
   handleCategoryChange(e) {
     const category = this.state.categories.find(c => c.id === e.target.value)
-    this.setState({categoryId: category.id, content: category.get('qTemplate') || ''})
+    if (category) {
+      this.setState({categoryId: category.id, content: category.get('qTemplate') || ''})
+    } else {
+      this.setState({categoryId: '', content: ''})
+    }
   }
 
   handleAppChange(e) {
@@ -116,7 +126,7 @@ export default class NewTicket extends React.Component {
     })
     const tooltip = (
       <Tooltip id="tooltip">支持 Markdown 语法</Tooltip>
-    );
+    )
     return (
       <form onSubmit={this.handleSubmit.bind(this)}>
         <FormGroup>

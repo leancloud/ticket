@@ -61,7 +61,7 @@ export default class Category extends React.Component {
             <FormControl type="text" value={this.state.category.get('name')} onChange={this.handleNameChange.bind(this)} />
           </FormGroup>
           <FormGroup>
-            <ControlLabel>问题模板</ControlLabel>
+            <ControlLabel>问题描述模板</ControlLabel>
             <FormControl
               componentClass="textarea"
               placeholder="用户新建该分类工单时，问题描述默认显示这里的内容。"

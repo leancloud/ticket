@@ -10,6 +10,7 @@ AV.init({
 })
 AV.setProduction(process.env.NODE_ENV === 'production')
 
+
 // 加载云函数定义
 require('./cloud')
 require('./Ticket')
@@ -21,17 +22,12 @@ require('./Tag')
 require('./stats')
 require('./Vacation')
 
-router.use('/api/leancloud', require('./leancloud').router)
-router.use('/webhooks/mailgun', require('./mailgun'))
+const loginCallbackPath = '/oauth/callback'
+const loginCallbackUrl = config.host + loginCallbackPath
+router.use('/oauth/login', require('./oauth').login(loginCallbackUrl))
+router.use(loginCallbackPath, require('./oauth').loginCallback(loginCallbackUrl))
 
-if (config.wechatCorpID
-    && config.wechatSecret
-    && config.wechatAgentId
-    && config.wechatToken
-    && config.wechatEncodingAESKey) {
-  router.use('/webhooks/wechat', require('./wechat').router)
-} else {
-  console.log('微信相关信息没有配置，所以微信账号绑定和微信通知功能无法使用。')
-}
+router.use('/webhooks/mailgun', require('./mailgun'))
+router.use('/webhooks/wechat', require('./wechat').router)
 
 module.exports = router

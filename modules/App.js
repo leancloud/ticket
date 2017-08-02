@@ -45,30 +45,10 @@ export default class App extends Component {
     }
   }
 
-  login(username, password) {
-    return new AV.User()
-    .setUsername(username)
-    .setPassword(password)
-    .logIn()
-    .then((user) => {
-      return common.isCustomerService(user)
-    }).then((isCustomerService) => {
+  onLogin(user) {
+    return common.isCustomerService(user)
+    .then((isCustomerService) => {
       this.setState({isCustomerService})
-      const { location } = this.props
-      if (location.state && location.state.nextPathname) {
-        this.props.router.replace(location.state.nextPathname)
-      } else {
-        this.props.router.replace('/')
-      }
-    })
-  }
-
-  loginByToken(token) {
-    return AV.User.become(token).then((user) => {
-      return common.isCustomerService(user)
-    }).then((isCustomerService) => {
-      this.setState({isCustomerService})
-      this.context.router.push('/')
     })
   }
 
@@ -90,8 +70,7 @@ export default class App extends Component {
         <GlobalNav isCustomerService={this.state.isCustomerService} logout={this.logout.bind(this)} />
         <div className={ 'container ' + css.main }>
           {this.props.children && React.cloneElement(this.props.children, {
-            login: this.login.bind(this),
-            loginByToken: this.loginByToken.bind(this),
+            onLogin: this.onLogin.bind(this),
             isCustomerService: this.state.isCustomerService,
           })}
         </div>

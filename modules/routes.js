@@ -1,4 +1,4 @@
-/*global SENTRY_PUB_DSN, LEANCLOUD_APP_ID, LEANCLOUD_APP_KEY, LEANCLOUD_APP_ENV*/
+/*global SENTRY_PUB_DSN, LEANCLOUD_APP_ID, LEANCLOUD_APP_KEY, LEANCLOUD_APP_ENV, LEAN_CLI_HAVE_STAGING*/
 import React from 'react'
 import Raven from 'raven-js'
 import { Route, IndexRoute, Redirect } from 'react-router'
@@ -29,13 +29,19 @@ import NotFound from './NotFound'
 
 moment.locale('zh-cn')
 
-Raven.config(SENTRY_PUB_DSN).install()
+if (SENTRY_PUB_DSN !== '') {
+  Raven.config(SENTRY_PUB_DSN).install()
+}
 
 AV.init({
   appId: LEANCLOUD_APP_ID,
   appKey: LEANCLOUD_APP_KEY,
 })
-AV.setProduction(LEANCLOUD_APP_ENV === 'production')
+if (LEANCLOUD_APP_ENV === 'development') {
+  AV.setProduction(LEAN_CLI_HAVE_STAGING !== 'true')
+} else {
+  AV.setProduction(LEANCLOUD_APP_ENV === 'production')
+}
 
 module.exports = (
   <Route path="/" component={App}>
