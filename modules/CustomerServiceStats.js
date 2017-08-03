@@ -397,8 +397,8 @@ class StatsSummary extends React.Component {
           <tr>
             <td>{data.newTicketCount}</td>
             <td>{data.activeTicketCounts}</td>
-            <td>{(data.firstReplyTime / data.firstReplyCount / 1000 / 60 / 60).toFixed(2)}</td>
-            <td>{(data.replyTime / data.replyCount / 1000 / 60 / 60).toFixed(2)}</td>
+            <td>{(data.firstReplyTime / data.firstReplyCount / 1000 / 60 / 60).toFixed(2)} 小时</td>
+            <td>{(data.replyTime / data.replyCount / 1000 / 60 / 60).toFixed(2)} 小时</td>
           </tr>
         </tbody>
       </Table>
@@ -459,7 +459,7 @@ class StatsSummary extends React.Component {
           userId,
           index,
           user && user.get('username') || userId,
-          (replyTime / replyCount / 1000 / 60 / 60).toFixed(2),
+          (replyTime / replyCount / 1000 / 60 / 60).toFixed(2) + ' 小时',
           replyCount,
         ]
       })
@@ -476,7 +476,7 @@ class StatsSummary extends React.Component {
           userId,
           index,
           user && user.get('username') || userId,
-          (replyTime / replyCount / 1000 / 60 / 60).toFixed(2),
+          (replyTime / replyCount / 1000 / 60 / 60).toFixed(2) + ' 小时',
           replyCount,
         ]
       })
