@@ -35,31 +35,26 @@ export default class CustomerServiceTickets extends Component {
     ])
     .then(([customerServices, categories, author]) => {
       this.setState({customerServices, categories, authorUsername: author && author.get('username')})
-      const filters = this.props.location.query
-      if (Object.keys(filters).length === 0) {
-        this.updateFilter({
-          assigneeId: AV.User.current().id,
-          isOpen: 'true',
-        })
-      } else {
-        this.findTickets(filters)
-        .then(tickets => {
-          this.setState({tickets})
-        })
-      }
+      return this.findTickets(this.props.location.query)
     })
     .catch(this.context.addNotification)
   }
 
   componentWillReceiveProps(nextProps) {
-    const filters = nextProps.location.query
-    this.findTickets(filters)
-    .then(tickets => {
-      this.setState({tickets})
-    })
+    this.findTickets(nextProps.location.query)
+    .catch(this.context.addNotification)
   }
 
-  findTickets({assigneeId, isOpen, status, categoryId, authorId, isOnlyUnlike, page = '0', size = '10'}) {
+  findTickets(filters) {
+    if (Object.keys(filters).length === 0) {
+      this.updateFilter({
+        assigneeId: AV.User.current().id,
+        isOpen: 'true',
+      })
+      return
+    }
+
+    const {assigneeId, isOpen, status, categoryId, authorId, isOnlyUnlike, page = '0', size = '10'} = filters
     let statuses = []
     if (isOpen === 'true') {
       statuses = ticketOpenedStatuses()
@@ -102,6 +97,9 @@ export default class CustomerServiceTickets extends Component {
     .addAscending('status')
     .addDescending('updatedAt')
     .find()
+    .then(tickets => {
+      this.setState({tickets})
+    })
   }
 
   updateFilter(filter) {
