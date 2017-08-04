@@ -232,30 +232,19 @@ AV.Cloud.define('getNewTicketCount', (req) => {
   if (typeof end === 'string') {
     end = new Date(end)
   }
-  const queryCount = (start, end) => {
+  const dateRanges = getDateRanges(start, end, timeUnit)
+  return Promise.map(dateRanges, ({start, end}) => {
     return new AV.Query('Ticket')
     .greaterThanOrEqualTo('createdAt', start)
-    .lessThanOrEqualTo('createdAt', end)
+    .lessThan('createdAt', end)
     .count({user: req.currentUser})
     .then((count) => {
       return {
-        date: moment(start).startOf('week').toISOString(),
+        date: start.toISOString(),
         count
       }
     })
-  }
-  let tStart = moment(start)
-  let tEnd = moment(start).endOf(timeUnit)
-  const promises = []
-  do {
-    promises.push(queryCount(tStart.toDate(), tEnd.toDate()))
-    tEnd.add(1, 'week')
-    if (tEnd > end) {
-      tEnd = moment(end)
-    }
-    tStart.add(1, 'week').startOf('week')
-  } while (tEnd < end)
-  return Promise.all(promises)
+  }, {concurrency: 3})
 })
 
 const sumProperty = (obj, other, property) => {
@@ -263,16 +252,19 @@ const sumProperty = (obj, other, property) => {
 }
 
 AV.Cloud.define('getStats', (req) => {
-  let {start, end, timeUnit, offsetDays} = req.params
+  let {start, end, timeUnit} = req.params
+  if (typeof start === 'string') {
+    start = new Date(start)
+  }
+  if (typeof end === 'string') {
+    end = new Date(end)
+  }
   const authOptions = {user: req.currentUser}
-  return getDailyAndTicketStatses(start, end, authOptions)
-  .then(({dailyStatses, ticketStatses}) => {
-    return _.chain(dailyStatses)
-    .groupBy((stats) => {
-      return moment(stats.get('date')).subtract(offsetDays, 'days').startOf(timeUnit).format()
-    })
-    .map((dailyStatses, date) => {
-      return _.reduce(dailyStatses, (result, statsDaily) => {
+  const dateRanges = getDateRanges(start, end, timeUnit)
+  return Promise.map(dateRanges, ({start, end}) => {
+    return getDailyAndTicketStatses(start, end, authOptions)
+    .then(({dailyStatses, ticketStatses}) => {
+      const result = _.reduce(dailyStatses, (result, statsDaily) => {
         result.assignees = sumProperty(result, statsDaily, 'assignees')
         result.authors = sumProperty(result, statsDaily, 'authors')
         result.categories = sumProperty(result, statsDaily, 'categories')
@@ -282,7 +274,7 @@ AV.Cloud.define('getStats', (req) => {
         result.tickets = _.union(result.tickets, statsDaily.get('tickets'))
         return result
       }, {
-        date: moment(date).add(offsetDays, 'days').format(),
+        date: start.toISOString(),
         assignees: {},
         authors: {},
         categories: {},
@@ -291,20 +283,31 @@ AV.Cloud.define('getStats', (req) => {
         replyCount: 0,
         tickets: [],
       })
+      result.firstReplyTimeByUser = firstReplyTimeByUser(result, ticketStatses)
+      result.replyTimeByUser = replyTimeByUser(result, ticketStatses)
+      result.firstReplyTime = _.sumBy(result.firstReplyTimeByUser, 'replyTime')
+      result.firstReplyCount = _.sumBy(result.firstReplyTimeByUser, 'replyCount')
+      result.replyTime = _.sumBy(result.replyTimeByUser, 'replyTime')
+      result.replyCount = _.sumBy(result.replyTimeByUser, 'replyCount')
+      return result
     })
-    .forEach((stats) => {
-      stats.firstReplyTimeByUser = firstReplyTimeByUser(stats, ticketStatses)
-      stats.replyTimeByUser = replyTimeByUser(stats, ticketStatses)
-    })
-    .forEach((stats) => {
-      stats.firstReplyTime = _.sumBy(stats.firstReplyTimeByUser, 'replyTime')
-      stats.firstReplyCount = _.sumBy(stats.firstReplyTimeByUser, 'replyCount')
-      stats.replyTime = _.sumBy(stats.replyTimeByUser, 'replyTime')
-      stats.replyCount = _.sumBy(stats.replyTimeByUser, 'replyCount')
-    })
-    .value()
   })
 })
+
+const getDateRanges = (start, end, timeUnit) => {
+  const result = []
+  let tStart = moment(start)
+  let tEnd
+  do {
+    tEnd = tStart.clone().add(1, timeUnit)
+    if (tEnd > end) {
+      tEnd = moment(end)
+    }
+    result.push({start: tStart.toDate(), end: tEnd.toDate()})
+    tStart = tEnd.clone()
+  } while (tEnd < end)
+  return result
+}
 
 const getDailyAndTicketStatses = (start, end, authOptions) => {
   if (typeof start === 'string') {
@@ -315,7 +318,7 @@ const getDailyAndTicketStatses = (start, end, authOptions) => {
   }
   return new AV.Query('StatsDaily')
   .greaterThanOrEqualTo('date', start)
-  .lessThanOrEqualTo('date', end)
+  .lessThan('date', end)
   .ascending('date')
   .limit(1000)
   .find(authOptions)

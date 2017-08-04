@@ -222,7 +222,7 @@ class StatsChart extends React.Component {
     super(props)
     this.state = {
       startDate: moment().startOf('week').subtract(1, 'weeks').add(offsetDays, 'days'),
-      endDate: moment().endOf('week').add(offsetDays, 'days'),
+      endDate: moment().startOf('week').add(1, 'weeks').add(offsetDays, 'days'),
     }
   }
 
@@ -240,7 +240,7 @@ class StatsChart extends React.Component {
     if (this.state.endDate.diff(this.state.startDate, 'days') > 31) {
       timeUnit = 'week'
     }
-    return AV.Cloud.run('getStats', {start: this.state.startDate.toISOString(), end: this.state.endDate.toISOString(), timeUnit, offsetDays})
+    return AV.Cloud.run('getStats', {start: this.state.startDate.toISOString(), end: this.state.endDate.toISOString(), timeUnit})
     .then((statses) => {
       const userIds = _.uniq(_.flatten(_.concat([],
         statses.map(s => s.assignees),
@@ -330,10 +330,10 @@ class StatsSummary extends React.Component {
 
   componentDidMount() {
     const startDate = moment().startOf('week').subtract(1, 'weeks').add(offsetDays, 'days')
-    const endDate = moment().endOf('week').add(offsetDays, 'days')
+    const endDate = moment().startOf('week').add(1, 'weeks').add(offsetDays, 'days')
     Promise.all([
       AV.Cloud.run('getNewTicketCount', {start: startDate.toISOString(), end: endDate.toISOString(), timeUnit: 'week'}),
-      AV.Cloud.run('getStats', {start: startDate.toISOString(), end: endDate.toISOString(), timeUnit: 'week', offsetDays}),
+      AV.Cloud.run('getStats', {start: startDate.toISOString(), end: endDate.toISOString(), timeUnit: 'week'}),
     ])
     .then(([newTicketCounts, statses]) => {
       const statsDatas = statses.map((stats, index) => {
