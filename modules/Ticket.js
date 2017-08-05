@@ -336,6 +336,15 @@ export default class Ticket extends Component {
           <Button onClick={() => this.operateTicket('reopen')}>未解决</Button>
         </Alert>
       )
+    } else if (this.props.isCustomerService) {
+      optionButtons = (
+        <FormGroup>
+          <ControlLabel>工单操作</ControlLabel>
+          <FormGroup>
+            <button type="button" className='btn btn-default' onClick={() => this.operateTicket('reopen')}>重新打开</button>
+          </FormGroup>
+        </FormGroup>
+      )
     }
 
     return (
