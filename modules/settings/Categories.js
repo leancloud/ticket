@@ -47,7 +47,10 @@ export default class Cagegories extends React.Component {
         .then((category) => {
           const categories = this.state.categories
           categories.unshift(category)
-          this.setState({categories})
+          this.setState({
+            categories,
+            newCategory: ''
+          })
         })
     }
   }
@@ -90,7 +93,7 @@ export default class Cagegories extends React.Component {
       <div>
         <div className="form-inline form-group">
           <div className='form-group'>
-            <input type="text" className="form-control" placeholder="分类名称" value={this.state.category} onChange={this.handleNewCategoryChange.bind(this)} />
+            <input type="text" className="form-control" placeholder="分类名称" value={this.state.newCategory} onChange={this.handleNewCategoryChange.bind(this)} />
           </div>
           {' '}
           <button type="button" className="btn btn-default" onClick={this.handleCategorySubmit.bind(this)}>新增分类</button>
