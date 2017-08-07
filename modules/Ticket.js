@@ -15,6 +15,19 @@ import DocumentTitle from 'react-document-title'
 
 import {TICKET_STATUS, isTicketOpen} from '../lib/common'
 
+// get a copy of default whiteList
+const whiteList = xss.getDefaultWhiteList()
+
+// allow class attribute for span and code tag
+whiteList.span.push('class')
+whiteList.code.push('class')
+
+// specified you custom whiteList
+const myxss = new xss.FilterXSS({
+  whiteList,
+  css: false,
+})
+
 export default class Ticket extends Component {
 
   constructor(props) {
@@ -154,7 +167,7 @@ export default class Ticket extends Component {
 
   contentView(content) {
     return (
-      <div dangerouslySetInnerHTML={{__html: xss(content)}} />
+      <div dangerouslySetInnerHTML={{__html: myxss.process(content)}} />
     )
   }
 
