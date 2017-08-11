@@ -455,6 +455,14 @@ class TicketReply extends Component {
     }
   }
 
+  componentDidMount() {
+    this.contentTextarea.addEventListener('paste', this.pasteEventListener.bind(this))
+  }
+
+  componentWillUnmount() {
+    this.contentTextarea.removeEventListener('paste', this.pasteEventListener.bind(this))
+  }
+
   handleReplyOnChange(e) {
     localStorage.setItem(`ticket:${this.props.ticket.id}:reply`, e.target.value)
     this.setState({reply: e.target.value})
@@ -506,11 +514,22 @@ class TicketReply extends Component {
     })
   }
 
+  pasteEventListener(e) {
+    if (e.clipboardData.types.indexOf('Files') != -1) {
+      this.setState({isCommitting: true})
+      return uploadFiles(e.clipboardData.files)
+      .then((files) => {
+        const reply = `${this.state.reply}\n<img src='${files[0].url()}' />`
+        this.setState({isCommitting: false, reply})
+      })
+    }
+  }
+
   render() {
     let buttons
     const tooltip = (
       <Tooltip id="tooltip">Markdown 语法</Tooltip>
-    );
+    )
     if (this.props.isCustomerService) {
       buttons = (
         <ButtonToolbar>
@@ -530,7 +549,12 @@ class TicketReply extends Component {
       <div>
         <form className="form-group">
           <FormGroup>
-            <FormControl componentClass="textarea" placeholder="回复内容……" rows="8" value={this.state.reply} onChange={this.handleReplyOnChange.bind(this)} onKeyDown={this.handleReplyOnKeyDown.bind(this)} />
+            <FormControl componentClass="textarea" placeholder="在这里输入，粘贴图片即可上传。" rows="8"
+              value={this.state.reply}
+              onChange={this.handleReplyOnChange.bind(this)}
+              onKeyDown={this.handleReplyOnKeyDown.bind(this)}
+              inputRef={(ref) => this.contentTextarea = ref }
+            />
           </FormGroup>
 
           <FormGroup>

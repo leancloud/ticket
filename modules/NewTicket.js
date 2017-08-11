@@ -4,7 +4,7 @@ import PropTypes from 'prop-types'
 import {FormGroup, ControlLabel, FormControl, Button, Tooltip, OverlayTrigger} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
-const common = require('./common')
+const {uploadFiles, getTinyCategoryInfo} = require('./common')
 
 export default class NewTicket extends React.Component {
 
@@ -22,6 +22,7 @@ export default class NewTicket extends React.Component {
   }
 
   componentDidMount() {
+    this.contentTextarea.addEventListener('paste', this.pasteEventListener.bind(this))
     Promise.all([
       new AV.Query('Category').find(),
       AV.Cloud.run('getLeanCloudApps')
@@ -48,6 +49,21 @@ export default class NewTicket extends React.Component {
         title, appId, categoryId, content,
       })
     })
+  }
+
+  componentWillUnmount() {
+    this.contentTextarea.removeEventListener('paste', this.pasteEventListener.bind(this))
+  }
+
+  pasteEventListener(e) {
+    if (e.clipboardData.types.indexOf('Files') != -1) {
+      this.setState({isCommitting: true})
+      return uploadFiles(e.clipboardData.files)
+      .then((files) => {
+        const content = `${this.state.content}\n<img src='${files[0].url()}' />`
+        this.setState({isCommitting: false, content})
+      })
+    }
   }
 
   handleTitleChange(e) {
@@ -86,12 +102,12 @@ export default class NewTicket extends React.Component {
     }
 
     this.setState({isCommitting: true})
-    common.uploadFiles($('#ticketFile')[0].files)
+    uploadFiles($('#ticketFile')[0].files)
     .then((files) => {
       const category = this.state.categories.find(c => c.id === this.state.categoryId)
       return new AV.Object('Ticket').save({
         title: this.state.title,
-        category: common.getTinyCategoryInfo(category),
+        category: getTinyCategoryInfo(category),
         content: this.state.content,
         files,
       })
@@ -153,7 +169,11 @@ export default class NewTicket extends React.Component {
               <b className="has-required" title="支持 Markdown 语法">M↓</b>
             </OverlayTrigger>
           </ControlLabel>
-          <textarea className="form-control" rows="8" placeholder="遇到的问题" value={this.state.content} onChange={this.handleContentChange.bind(this)}></textarea>
+          <FormControl componentClass="textarea" placeholder="在这里输入，粘贴图片即可上传。" rows="8"
+            value={this.state.content}
+            onChange={this.handleContentChange.bind(this)}
+            inputRef={(ref) => this.contentTextarea = ref }
+          />
         </FormGroup>
         <FormGroup>
           <input id="ticketFile" type="file" multiple />
