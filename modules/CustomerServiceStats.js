@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import moment from 'moment'
 import _ from 'lodash'
 import {Table, Form, FormGroup, ControlLabel, Button} from 'react-bootstrap'
+import {Link} from 'react-router'
 import {Line} from 'react-chartjs-2'
 import DatePicker from 'react-datepicker'
 import AV from 'leancloud-storage/live-query'
@@ -369,6 +370,8 @@ class StatsSummary extends React.Component {
         this.setState({
           users,
           statsDatas,
+          startDate,
+          endDate,
         })
       })
     })
@@ -458,7 +461,7 @@ class StatsSummary extends React.Component {
         return [
           userId,
           index,
-          user && user.get('username') || userId,
+          <Link to={`/customerService/stats/users/${userId}?start=${this.state.startDate.toISOString()}&end=${this.state.endDate.toISOString()}`}>{user && user.get('username') || userId}</Link>,
           (replyTime / replyCount / 1000 / 60 / 60).toFixed(2) + ' 小时',
           replyCount,
         ]
@@ -475,7 +478,7 @@ class StatsSummary extends React.Component {
         return [
           userId,
           index,
-          user && user.get('username') || userId,
+          <Link to={`/customerService/stats/users/${userId}?start=${this.state.startDate.toISOString()}&end=${this.state.endDate.toISOString()}`}>{user && user.get('username') || userId}</Link>,
           (replyTime / replyCount / 1000 / 60 / 60).toFixed(2) + ' 小时',
           replyCount,
         ]
