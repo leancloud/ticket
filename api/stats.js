@@ -175,7 +175,7 @@ class ReplyTimeStats {
       customerServiceTime.replyTime += avObj.createdAt - this.cursor
       this.cursor = avObj.createdAt
       this.isReply = true
-      this.lastCustomerService = avObj.get('data').assignee
+      this.lastCustomerService = avObj.get('data').operator
       return
     }
     if (avObj.className === 'OpsLog'
