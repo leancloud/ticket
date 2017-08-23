@@ -125,7 +125,7 @@ AV.Cloud.define('operateTicket', (req) => {
     new AV.Query('Ticket')
     .include('files')
     .include('author')
-    .get(ticketId),
+    .get(ticketId, {user: req.currentUser}),
     getTinyUserInfo(req.currentUser),
     isCustomerService(req.currentUser),
   ])
