@@ -103,7 +103,7 @@ class ServerNotification extends Component {
     if (window.Notification && Notification.permission === 'granted') {
       permission = 'granted'
     } else if (window.Notification && Notification.permission !== 'denied') {
-      Notification.requestPermission(function (status) {
+      Notification.requestPermission((status) => {
         if (Notification.permission !== status) {
           Notification.permission = status
         }
