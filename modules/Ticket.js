@@ -623,7 +623,6 @@ class Tag extends Component{
           })
         }
       })
-      .catch(this.context.addNotification)
     }
   }
 
