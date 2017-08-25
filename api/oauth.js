@@ -164,7 +164,7 @@ const initUserInfo = (user) => {
     return user.save({
       username: client.username,
       email: client.email,
-    })
+    }, {user})
   })
 }
 
