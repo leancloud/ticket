@@ -14,10 +14,12 @@ exports.newTicket = (ticket, from, to) => {
   if (!to.get('email')) {
     return Promise.resolve()
   }
+  console.log('>>')
   return send({
-    from: `${from.get('username')} <ticket-${to.id}@leancloud.cn>`,
+    from: `${from.get('username')} <ticket@leancloud.cn>`,
     to: to.get('email'),
     subject: `[LeanTicket] ${ticket.get('title')} (#${ticket.get('nid')})`,
+    'h:Reply-To': `ticket-${to.id}@leancloud.cn`,
     text: ticket.get('content'),
     url: common.getTicketUrl(ticket),
   })
@@ -28,9 +30,10 @@ exports.replyTicket = ({ticket, reply, from, to}) => {
     return Promise.resolve()
   }
   return send({
-    from: `${from.get('username')} <ticket-${to.id}@leancloud.cn>`,
+    from: `${from.get('username')} <ticket@leancloud.cn>`,
     to: to.get('email'),
     subject: `[LeanTicket] ${ticket.get('title')} (#${ticket.get('nid')})`,
+    'h:Reply-To': `ticket-${to.id}@leancloud.cn`,
     text: reply.get('content'),
     url: common.getTicketUrl(ticket),
   })
@@ -41,9 +44,10 @@ exports.changeAssignee = (ticket, from, to) => {
     return Promise.resolve()
   }
   return send({
-    from: `${from.get('username')} <ticket-${to.id}@leancloud.cn>`,
+    from: `${from.get('username')} <ticket@leancloud.cn>`,
     to: to.get('email'),
     subject: `[LeanTicket] ${ticket.get('title')} (#${ticket.get('nid')})`,
+    'h:Reply-To': `ticket-${to.id}@leancloud.cn`,
     text:
       `${from.get('username')} 将该工单转交给您处理。
 该工单的问题：
@@ -52,7 +56,7 @@ ${ticket.get('content')}
 
 该工单最后一条回复：
 
-${ticket.get('latestReply') && ticket.get('latestReply').content}
+${ticket.get('latestReply') && ticket.get('latestReply').content || '<暂无>'}
 `,
     url: common.getTicketUrl(ticket),
   })
@@ -67,7 +71,8 @@ const send = (params) => {
     from: params.from,
     to: params.to,
     subject: params.subject,
-    text: `${params.text}
+    'h:Reply-To': params['h:Reply-To'],
+    text: `${params.text},
 --
 您能收到邮件是因为该工单与您相关。
 可以直接回复邮件，或者点击 ${params.url} 查看。`,
