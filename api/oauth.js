@@ -68,6 +68,21 @@ exports.hasPermission = (user) => {
   })
 }
 
+AV.Cloud.define('getLeancloudAccount', (req) => {
+  return common.isCustomerService(req.currentUser)
+  .then((isCustomerService) => {
+    if (!isCustomerService) {
+      throw new AV.Cloud.Error('unauthorized', {status: 401})
+    }
+    if (!config.oauthKey) {
+      return Promise.resolve(true)
+    }
+    return getUser(req.params.username)
+    .then((user) => {
+      return getAccount(user)
+    })
+  })
+})
 
 AV.Cloud.define('getLeanCloudUserInfoByUsername', (req) => {
   return common.isCustomerService(req.currentUser).then((isCustomerService) => {
