@@ -1,5 +1,4 @@
 const config = require('../config')
-const AV = require('leanengine')
 
 if (!config.mailgunKey || !config.mailgunDomain) {
   console.log('mailgun 的 key 和 domain 没有配置，所以发送邮件功能无法使用。')
@@ -14,7 +13,6 @@ exports.newTicket = (ticket, from, to) => {
   if (!to.get('email')) {
     return Promise.resolve()
   }
-  console.log('>>')
   return send({
     from: `${from.get('username')} <ticket@leancloud.cn>`,
     to: to.get('email'),
