@@ -73,6 +73,7 @@ export default class Ticket extends Component {
     .equalTo('ticket', ticket)
     .include('author')
     .include('files')
+    .limit(500)
     replyQuery.subscribe({subscriptionId: UUID}).then(liveQuery => {
       this.replyLiveQuery = liveQuery
       this.replyLiveQuery.on('create', reply => {
