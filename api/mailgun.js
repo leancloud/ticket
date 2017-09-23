@@ -39,7 +39,7 @@ const getTicket = (mail) => {
 }
 
 const getFromUser = (mail) => {
-  const match = mail.To.match(/^.*<ticket-(.*)@leancloud.cn>.*$/)
+  const match = mail.To.match(/^.*<?ticket-(.*)@leancloud.cn>?.*$/)
   if (match) {
     return new AV.Query('_User').get(match[1], {useMasterKey: true})
     .then((user) => {
