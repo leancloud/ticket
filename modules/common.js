@@ -50,6 +50,7 @@ exports.getCustomerServices = () => {
     .then((role) => {
       return role.getUsers()
         .query()
+        .ascending('username')
         .find()
     })
 }
