@@ -11,12 +11,8 @@ AV.Cloud.beforeSave('Ticket', (req, res) => {
   if (!req.currentUser._sessionToken) {
     return res.error('noLogin')
   }
-  return oauth.hasPermission(req.currentUser)
-  .then((hasPremission) => {
-    if (!hasPremission) {
-      return res.error('您的账号不具备提交工单的条件。')
-    }
-
+  return oauth.checkPermission(req.currentUser)
+  .then(() => {
     const ticket = req.object
     if (!ticket.get('title') || ticket.get('title').trim().length === 0) {
       throw new AV.Cloud.Error('title 不能为空')

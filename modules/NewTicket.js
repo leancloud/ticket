@@ -23,16 +23,19 @@ export default class NewTicket extends React.Component {
 
   componentDidMount() {
     this.contentTextarea.addEventListener('paste', this.pasteEventListener.bind(this))
-    Promise.all([
-      new AV.Query('Category').find(),
-      AV.Cloud.run('getLeanCloudApps')
-      .catch((err) => {
-        if (err.message.indexOf('Could not find LeanCloud authData:') === 0) {
-          return []
-        }
-        throw err
-      }),
-    ])
+    AV.Cloud.run('checkPermission')
+    .then(() => {
+      return Promise.all([
+        new AV.Query('Category').find(),
+        AV.Cloud.run('getLeanCloudApps')
+        .catch((err) => {
+          if (err.message.indexOf('Could not find LeanCloud authData:') === 0) {
+            return []
+          }
+          throw err
+        }),
+      ])
+    })
     .then(([categories, apps]) => {
       let {
         title=(localStorage.getItem('ticket:new:title') || ''),
@@ -49,6 +52,7 @@ export default class NewTicket extends React.Component {
         title, appId, categoryId, content,
       })
     })
+    .catch(this.context.addNotification)
   }
 
   componentWillUnmount() {

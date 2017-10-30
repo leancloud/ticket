@@ -49,24 +49,30 @@ exports.loginCallback = (callbackUrl) => {
 /**
  * 判断该用户是否有权限提交工单
  */ 
-exports.hasPermission = (user) => {
+exports.checkPermission = (user) => {
   if (!config.oauthKey) {
-    return Promise.resolve(true)
+    return Promise.resolve()
   }
 
   return common.isCustomerService(user).then((isCustomerService) => {
     if (isCustomerService) {
-      return true
+      return
     }
     return getUser(user.get('username'))
     .then((user) => {
       return getAccount(user)
     })
     .then(({current_support_service}) => {
-      return !!current_support_service
+      if (!current_support_service) {
+        throw new AV.Cloud.Error('您的账号不具备提交工单的条件。')
+      }
     })
   })
 }
+
+AV.Cloud.define('checkPermission', (req) => {
+  return exports.checkPermission(req.currentUser)
+})
 
 AV.Cloud.define('getLeancloudAccount', (req) => {
   return common.isCustomerService(req.currentUser)
