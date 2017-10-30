@@ -49,7 +49,16 @@ const getFromUser = (mail) => {
       return user
     })
   }
-  throw new Error('user objectId mismatch:' + mail.To)
+  err = new Error('user objectId mismatch:' + mail.To)
+  new MailLog({
+    from: mail.From,
+    to: mail.To,
+    subject: mail.Subject,
+    body: req.body,
+    err: err.message,
+    ACL: new ACL()
+  }).save()
+  throw err
 }
 
 module.exports = router
