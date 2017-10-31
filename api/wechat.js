@@ -158,7 +158,7 @@ const getUsers = () => {
         }
         return data.userlist
       })
-    })
+    }, {concurrency: 2})
   })
   .then(_.flatten)
   .then((users) => {
