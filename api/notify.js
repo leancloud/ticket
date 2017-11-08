@@ -40,10 +40,15 @@ exports.ticketEvaluation = (ticket, author, to) => {
 }
 
 const delayNotify = () => { 
-  const deadline = new Date(Date.now() - 2 * 60 * 60 *1000);
-  new AV.Query('Ticket')
   // find all tickets that needs customer service
-  .equalTo('status', 120)
+  const needReplyTicketStatus = 120;
+  const needReplyQuery = new AV.Query('Ticket').equalTo('status', needReplyTicketStatus);
+  // find all tickets
+  const newTicketStatus = 50;
+  const newTicketQuery = new AV.Query('Ticket').equalTo('status', newTicketStatus);
+  
+  const deadline = new Date(Date.now() - 2 * 60 * 60 *1000);
+  new AV.Query.or(needReplyQuery, newTicketQuery)
   // updatedAt before 2h
   .lessThanOrEqualTo('updatedAt', deadline)
   .include('assignee')
