@@ -67,7 +67,7 @@ exports.delayNotify = (ticket, to) => {
   return send({
     from: 'support <ticket@leancloud.cn>',
     to: to.get('email'),
-    subject: `亲爱的 ${to.get('username')}，快去回工单，比心`,
+    subject: `亲爱的 ${to.get('username')}，快去回工单，比心👬👬👬`,
     text:
       `该工单的问题：
 

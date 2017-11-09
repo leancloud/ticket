@@ -2,6 +2,7 @@ const mail = require('./mail')
 const bearychat = require('./bearychat')
 const wechat = require('./wechat')
 const AV = require('leanengine')
+const {TICKET_STATUS} = require('../lib/common')
 
 exports.newTicket = (ticket, author, assignee) => {
   return Promise.all([
@@ -41,11 +42,9 @@ exports.ticketEvaluation = (ticket, author, to) => {
 
 const delayNotify = () => { 
   // find all tickets that needs customer service
-  const needReplyTicketStatus = 120;
-  const needReplyQuery = new AV.Query('Ticket').equalTo('status', needReplyTicketStatus);
+  const needReplyQuery = new AV.Query('Ticket').equalTo('status', TICKET_STATUS.WAITING_CUSTOMER_SERVICE);
   // find all tickets
-  const newTicketStatus = 50;
-  const newTicketQuery = new AV.Query('Ticket').equalTo('status', newTicketStatus);
+  const newTicketQuery = new AV.Query('Ticket').equalTo('status', TICKET_STATUS.NEW);
   
   const deadline = new Date(Date.now() - 2 * 60 * 60 *1000);
   new AV.Query.or(needReplyQuery, newTicketQuery)

@@ -71,7 +71,7 @@ ${ticket.get('latestReply') && ticket.get('latestReply').content}
 
 exports.delayNotify = (ticket ,to) => {
   const data = {
-    text: `亲爱的 ${to.get('username')}，快去回工单，比心`,
+    text: `亲爱的 ${to.get('username')}，快去回工单，比心👬👬👬`,
     attachments: [{
       title: '您有未回复的工单，请迅速前往回复',
       text:

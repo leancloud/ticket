@@ -119,7 +119,7 @@ exports.delayNotify = (ticket ,to) => {
   }
   send({
     to: to.get('wechatEnterpriseUserId'),
-    title: `亲爱的 ${to.get('username')}，快去回工单，比心`,
+    title: `亲爱的 ${to.get('username')}，快去回工单，比心👬👬👬`,
     content: 
       `该工单的问题：
 
