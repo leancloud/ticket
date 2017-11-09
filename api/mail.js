@@ -60,6 +60,27 @@ ${ticket.get('latestReply') && ticket.get('latestReply').content || '<暂无>'}
   })
 }
 
+exports.delayNotify = (ticket, to) => {
+  if (!to.get('email')) {
+    return Promise.resolve()
+  }
+  return send({
+    from: 'support <ticket@leancloud.cn>',
+    to: to.get('email'),
+    subject: `亲爱的 ${to.get('username')}，快去回工单，比心👬👬👬`,
+    text:
+      `该工单的问题：
+
+${ticket.get('content')}
+
+该工单最后一条回复：
+
+${ticket.get('latestReply') && ticket.get('latestReply').content || '<暂无>'}
+`,
+    url: common.getTicketUrl(ticket),
+  })
+}
+
 const send = (params) => {
   if (!exports.mailgun) {
     return

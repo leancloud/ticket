@@ -113,6 +113,26 @@ ${ticket.get('latestReply') && ticket.get('latestReply').content}
   })
 }
 
+exports.delayNotify = (ticket ,to) => {
+  if (!to.get('wechatEnterpriseUserId')) {
+    return Promise.resolve()
+  }
+  send({
+    to: to.get('wechatEnterpriseUserId'),
+    title: `亲爱的 ${to.get('username')}，快去回工单，比心👬👬👬`,
+    content: 
+      `该工单的问题：
+
+${ticket.get('content')}
+
+该工单最后一条回复：
+
+${ticket.get('latestReply') && ticket.get('latestReply').content}
+`,
+    url: common.getTicketUrl(ticket),
+  })
+}
+
 const send = (params) => {
   if (api === null) {
     return

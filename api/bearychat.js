@@ -69,6 +69,31 @@ ${ticket.get('latestReply') && ticket.get('latestReply').content}
   ])
 }
 
+exports.delayNotify = (ticket ,to) => {
+  const data = {
+    text: `亲爱的 ${to.get('username')}，快去回工单，比心👬👬👬`,
+    attachments: [{
+      title: '您有未回复的工单，请迅速前往回复',
+      text:
+        `该工单的问题：
+
+${ticket.get('content')}
+
+最后一条回复：
+
+${ticket.get('latestReply') && ticket.get('latestReply').content}
+`,
+      color: COLORS.warning,
+    }]
+  }
+  return Promise.all([
+    send(config.bearychatGlobalHookUrl, data),
+    send(to.get('bearychatUrl'), data),
+  ]).catch((err) => {
+    console.log(err);
+  })
+}
+
 exports.ticketEvaluation = (ticket, from, to) => {
   const {star, content} = ticket.get('evaluation')
   const data = {
