@@ -190,35 +190,47 @@ const initUserInfo = (user) => {
 }
 
 const getClientInfo = (user) => {
-  if (user.get('authData') && user.get('authData').leancloud) {
-    const authData = user.get('authData').leancloud
-    return requestLeanCloud(`${serverDomain}/1.1/open/clients/self`, authData)
-  }
-  throw new AV.Cloud.Error(`Could not find LeanCloud authData: userId=${user.id}`, {status: 404})
+  return user.fetch({}, {useMasterKey:true})
+  .then((user) => {
+    if (user.get('authData') && user.get('authData').leancloud) {
+      const authData = user.get('authData').leancloud
+      return requestLeanCloud(`${serverDomain}/1.1/open/clients/self`, authData)
+    }
+    throw new AV.Cloud.Error(`Could not find LeanCloud authData: userId=${user.id}`, {status: 404})
+  })
 }
 
 const getApps = (user) => {
-  if (user.get('authData') && user.get('authData').leancloud) {
-    const authData = user.get('authData').leancloud
-    return requestLeanCloud(`${serverDomain}/1.1/open/clients/${authData.uid}/apps`, authData)
-  }
-  throw new AV.Cloud.Error(`Could not find LeanCloud authData: userId=${user.id}`, {status: 404})
+  return user.fetch({}, {useMasterKey:true})
+  .then((user) => {
+    if (user.get('authData') && user.get('authData').leancloud) {
+      const authData = user.get('authData').leancloud
+      return requestLeanCloud(`${serverDomain}/1.1/open/clients/${authData.uid}/apps`, authData)
+    }
+    throw new AV.Cloud.Error(`Could not find LeanCloud authData: userId=${user.id}`, {status: 404})
+  })
 }
 
 const getApp = (user, appId) => {
-  if (user.get('authData') && user.get('authData').leancloud) {
-    const authData = user.get('authData').leancloud
-    return requestLeanCloud(`${serverDomain}/1.1/open/clients/${authData.uid}/apps/${appId}`, authData)
-  }
-  throw new AV.Cloud.Error(`Could not find LeanCloud authData: userId=${user.id}`, {status: 404})
+  return user.fetch({}, {useMasterKey:true})
+  .then((user) => {
+    if (user.get('authData') && user.get('authData').leancloud) {
+      const authData = user.get('authData').leancloud
+      return requestLeanCloud(`${serverDomain}/1.1/open/clients/${authData.uid}/apps/${appId}`, authData)
+    }
+    throw new AV.Cloud.Error(`Could not find LeanCloud authData: userId=${user.id}`, {status: 404})
+  })
 }
 
 const getAccount = (user) => {
-  if (user.get('authData') && user.get('authData').leancloud) {
-    const authData = user.get('authData').leancloud
-    return requestLeanCloud(`${serverDomain}/1.1/open/clients/${authData.uid}/account`, authData)
-  }
-  throw new AV.Cloud.Error(`Could not find LeanCloud authData: userId=${user.id}`, {status: 404})
+  return user.fetch({}, {useMasterKey:true})
+  .then((user) => {
+    if (user.get('authData') && user.get('authData').leancloud) {
+      const authData = user.get('authData').leancloud
+      return requestLeanCloud(`${serverDomain}/1.1/open/clients/${authData.uid}/account`, authData)
+    }
+    throw new AV.Cloud.Error(`Could not find LeanCloud authData: userId=${user.id}`, {status: 404})
+  })
 }
 
 const requestLeanCloud = (url, leancloudAuthData) => {
