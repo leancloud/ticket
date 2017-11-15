@@ -30,15 +30,23 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
 
 exports.changeAssignee = (ticket, operator, assignee) => {
   return Promise.all([
-    mail.changeAssignee(ticket, operator, assignee),
-    bearychat.changeAssignee(ticket, operator, assignee),
-    wechat.changeAssignee(ticket, operator, assignee),
+    mail.changeAssignee(ticket, operator, assignee).catch(err => errorHandler.captureException(err)),
+    bearychat.changeAssignee(ticket, operator, assignee).catch(err => errorHandler.captureException(err)),
+    wechat.changeAssignee(ticket, operator, assignee).catch(err => errorHandler.captureException(err)),
   ])
 }
 
 exports.ticketEvaluation = (ticket, author, to) => {
   return bearychat.ticketEvaluation(ticket, author, to)
 }
+
+const sendDelayNotify = (ticket, to) => {
+  return Promise.all([
+    mail.delayNotify(ticket, to).catch(err => errorHandler.captureException(err)),
+    bearychat.delayNotify(ticket, to).catch(err => errorHandler.captureException(err)),
+    wechat.delayNotify(ticket, to).catch(err => errorHandler.captureException(err)),
+  ]);
+};
 
 const delayNotify = () => { 
   // find all tickets that needs customer service
@@ -64,18 +72,10 @@ const delayNotify = () => {
         const assignee = ticket.get('assignee');
         if (opsLog.get('action') !== 'replySoon') {
           // the ticket which is being progressed do not need notify
-          return Promise.all([
-            mail.delayNotify(ticket, assignee),
-            bearychat.delayNotify(ticket, assignee),
-            wechat.delayNotify(ticket, assignee),
-          ])
+          sendDelayNotify(ticket, assignee);
         } else if (opsLog.updatedAt < ticket.updatedAt) {
           // Maybe the replySoon is out of date.
-          return Promise.all([
-            mail.delayNotify(ticket, assignee),
-            bearychat.delayNotify(ticket, assignee),
-            wechat.delayNotify(ticket, assignee),
-          ])
+          sendDelayNotify(ticket, assignee);
         }
       }).catch((err) => {
         errorHandler.captureException(err);
