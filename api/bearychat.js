@@ -47,51 +47,65 @@ exports.replyTicket = ({ticket, reply, from, to, isCustomerServiceReply}) => {
 }
 
 exports.changeAssignee = (ticket, from ,to) => {
+  let content = ticket.get('content');
+
+  if (content.length > 200) {
+    content = content.substring(0, 200) + '......';
+  }
+
+  let latestReply = '';
+
+  if (ticket.get('latestReply')) {
+    latestReply = ticket.get('latestReply').content;
+  }
+
+  if (latestReply.length > 200) {
+    latestReply = latestReply.substring(0, 200) + '......';
+  }
+
   const data = {
     text: `LeanTicket: [[${ticket.get('category').name}] #${ticket.get('nid')}](${common.getTicketUrl(ticket)}): ${from.get('username')} 将工单转交给 ${to.get('username')}`,
     attachments: [{
       title: ticket.get('title'),
-      text:
-        `该工单的问题：
-
-${ticket.get('content')}
-
-最后一条回复：
-
-${ticket.get('latestReply') && ticket.get('latestReply').content}
-`,
+      text: `该工单的问题：\n ${content} \n\n 最后一条回复：\n ${latestReply}`,
       color: COLORS.warning,
     }]
   }
+
   return Promise.all([
     send(config.bearychatGlobalHookUrl, data),
     send(to.get('bearychatUrl'), data),
   ])
 }
 
-exports.delayNotify = (ticket ,to) => {
+exports.delayNotify = (ticket, to) => {
+  let content = ticket.get('content');
+  if (content.length > 200) {
+    content = content.substring(0, 200) + '......';
+  }
+
+  let latestReply = '';
+  if (ticket.get('latestReply')) {
+    latestReply = ticket.get('latestReply').content;
+  }
+  if (latestReply.length > 200) {
+    latestReply = latestReply.substring(0, 200) + '......';
+  }
+
   const data = {
-    text: `亲爱的 ${to.get('username')}，快去回工单，比心👬👬👬`,
+    text: `[[${ticket.get('category').name}] #${ticket.get('nid')}](${common.getTicketUrl(ticket)}) 亲爱的 ${to.get('username')}，快去回工单，比心👬👬👬`,
     attachments: [{
-      title: `您有未回复的工单，请前往回复：[[${ticket.get('category').name}] #${ticket.get('nid')}](${common.getTicketUrl(ticket)})`,
+      title: ticket.get('title'),
       text:
-        `该工单的问题：
-
-${ticket.get('content')}
-
-最后一条回复：
-
-${ticket.get('latestReply') && ticket.get('latestReply').content}
-`,
+        `该工单的问题：\n ${content} \n\n 最后一条回复：\n ${latestReply}`,
       color: COLORS.warning,
     }]
   }
+  
   return Promise.all([
     send(config.bearychatGlobalHookUrl, data),
     send(to.get('bearychatUrl'), data),
-  ]).catch((err) => {
-    console.log(err);
-  })
+  ])
 }
 
 exports.ticketEvaluation = (ticket, from, to) => {
