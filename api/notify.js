@@ -61,9 +61,9 @@ const delayNotify = () => {
       .find({useMasterKey: true})
       .then((opsLogs) => {
         const opsLog = opsLogs[0];
+        const assignee = ticket.get('assignee');
         if (opsLog.get('action') !== 'replySoon') {
           // the ticket which is being progressed do not need notify
-          const assignee = ticket.get('assignee');
           return Promise.all([
             mail.delayNotify(ticket, assignee),
             bearychat.delayNotify(ticket, assignee),
