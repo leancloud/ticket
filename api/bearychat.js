@@ -47,20 +47,20 @@ exports.replyTicket = ({ticket, reply, from, to, isCustomerServiceReply}) => {
 }
 
 exports.changeAssignee = (ticket, from ,to) => {
-  let content = ticket.get('content');
+  let content = ticket.get('content')
 
   if (content.length > 200) {
-    content = content.substring(0, 200) + '......';
+    content = content.substring(0, 200) + '......'
   }
 
-  let latestReply = '';
+  let latestReply = ''
 
   if (ticket.get('latestReply')) {
-    latestReply = ticket.get('latestReply').content;
+    latestReply = ticket.get('latestReply').content
   }
 
   if (latestReply.length > 200) {
-    latestReply = latestReply.substring(0, 200) + '......';
+    latestReply = latestReply.substring(0, 200) + '......'
   }
 
   const data = {
@@ -79,17 +79,17 @@ exports.changeAssignee = (ticket, from ,to) => {
 }
 
 exports.delayNotify = (ticket, to) => {
-  let content = ticket.get('content');
+  let content = ticket.get('content')
   if (content.length > 200) {
-    content = content.substring(0, 200) + '......';
+    content = content.substring(0, 200) + '......'
   }
 
-  let latestReply = '';
+  let latestReply = ''
   if (ticket.get('latestReply')) {
-    latestReply = ticket.get('latestReply').content;
+    latestReply = ticket.get('latestReply').content
   }
   if (latestReply.length > 200) {
-    latestReply = latestReply.substring(0, 200) + '......';
+    latestReply = latestReply.substring(0, 200) + '......'
   }
 
   const data = {

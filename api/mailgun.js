@@ -49,14 +49,14 @@ const getFromUser = (mail) => {
       return user
     })
   }
-  err = new Error('user objectId mismatch:' + mail.To)
-  new MailLog({
+  const err = new Error('user objectId mismatch:' + mail.To)
+  new AV.Object('MailLog')({
     from: mail.From,
     to: mail.To,
     subject: mail.Subject,
-    body: req.body,
+    body: mail,
     err: err.message,
-    ACL: new ACL()
+    ACL: new AV.ACL()
   }).save()
   throw err
 }

@@ -2,7 +2,9 @@ const mail = require('./mail')
 const bearychat = require('./bearychat')
 const wechat = require('./wechat')
 const AV = require('leanengine')
+
 const {TICKET_STATUS} = require('../lib/common')
+const errorHandler = require('./errorHandler')
 
 exports.newTicket = (ticket, author, assignee) => {
   return Promise.all([
@@ -45,16 +47,16 @@ const sendDelayNotify = (ticket, to) => {
     mail.delayNotify(ticket, to).catch(err => errorHandler.captureException(err)),
     bearychat.delayNotify(ticket, to).catch(err => errorHandler.captureException(err)),
     wechat.delayNotify(ticket, to).catch(err => errorHandler.captureException(err)),
-  ]);
-};
+  ])
+}
 
 const delayNotify = () => { 
   // find all tickets that needs customer service
-  const needReplyQuery = new AV.Query('Ticket').equalTo('status', TICKET_STATUS.WAITING_CUSTOMER_SERVICE);
+  const needReplyQuery = new AV.Query('Ticket').equalTo('status', TICKET_STATUS.WAITING_CUSTOMER_SERVICE)
   // find all tickets
-  const newTicketQuery = new AV.Query('Ticket').equalTo('status', TICKET_STATUS.NEW);
+  const newTicketQuery = new AV.Query('Ticket').equalTo('status', TICKET_STATUS.NEW)
   
-  const deadline = new Date(Date.now() - 2 * 60 * 60 *1000);
+  const deadline = new Date(Date.now() - 2 * 60 * 60 *1000)
   new AV.Query.or(needReplyQuery, newTicketQuery)
   // updatedAt before 2h
   .lessThanOrEqualTo('updatedAt', deadline)
@@ -68,24 +70,24 @@ const delayNotify = () => {
       .limit(1)
       .find({useMasterKey: true})
       .then((opsLogs) => {
-        const opsLog = opsLogs[0];
-        const assignee = ticket.get('assignee');
+        const opsLog = opsLogs[0]
+        const assignee = ticket.get('assignee')
         if (opsLog.get('action') !== 'replySoon') {
           // the ticket which is being progressed do not need notify
-          sendDelayNotify(ticket, assignee);
+          sendDelayNotify(ticket, assignee)
         } else if (opsLog.updatedAt < ticket.updatedAt) {
           // Maybe the replySoon is out of date.
-          sendDelayNotify(ticket, assignee);
+          sendDelayNotify(ticket, assignee)
         }
       }).catch((err) => {
-        errorHandler.captureException(err);
-      });
+        errorHandler.captureException(err)
+      })
     })
   }).catch((err) => {
-    errorHandler.captureException(err);
+    errorHandler.captureException(err)
   })
 }
 
-AV.Cloud.define('delayNotify', (req) => {
-  delayNotify();
+AV.Cloud.define('delayNotify', () => {
+  delayNotify()
 })
