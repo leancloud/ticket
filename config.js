@@ -24,4 +24,6 @@ module.exports = {
   wechatToken: process.env.WECHAT_TOKEN,
   wechatEncodingAESKey: process.env.WECHAT_ENCODING_AES_KEY,
   bearychatGlobalHookUrl: process.env.BEARYCHAT_GLOBAL_HOOK_URL,
+  sentryDSN: process.env.SENTRY_DSN,
+  sentryDSNPublic: process.env.SENTRY_DSN_PUBLIC
 }

@@ -4,11 +4,17 @@ const path = require('path')
 const bodyParser = require('body-parser')
 const compression = require('compression')
 const uuid = require('uuid/v4')
+const Raven = require('raven')
 const AV = require('leanengine')
+
+const config = require('./config')
+
+Raven.config(config.sentryDSN).install()
 
 const app = express()
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')))
 app.use(compression())
+app.use(Raven.requestHandler())
 
 // 加载云引擎中间件
 app.use(AV.express())
@@ -44,7 +50,7 @@ const getIndexPage = (uuid) => {
   LEANCLOUD_APP_KEY = '${process.env.LEANCLOUD_APP_KEY}'
   LEANCLOUD_APP_ENV = '${process.env.LEANCLOUD_APP_ENV}'
   LEAN_CLI_HAVE_STAGING = '${process.env.LEAN_CLI_HAVE_STAGING}'
-  SENTRY_PUB_DSN = '${process.env.SENTRY_PUB_DSN || ''}'
+  SENTRY_DSN_PUBLIC = '${config.sentryDSNPublic || ''}'
   UUID = '${uuid}'
   ORG_NAME = '${orgName}'
   USE_OAUTH = '${!!process.env.OAUTH_KEY}'
@@ -67,6 +73,8 @@ const getIndexPage = (uuid) => {
 app.get('*', function (req, res) {
   res.send(getIndexPage(uuid()))
 })
+
+app.use(Raven.errorHandler())
 
 var PORT = parseInt(process.env.LEANCLOUD_APP_PORT || process.env.PORT || 8080)
 app.listen(PORT, function() {
