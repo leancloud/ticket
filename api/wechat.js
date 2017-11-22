@@ -72,7 +72,7 @@ exports.newTicket = (ticket, from, to) => {
   if (!to.get('wechatEnterpriseUserId')) {
     return Promise.resolve()
   }
-  send({
+  return send({
     to: to.get('wechatEnterpriseUserId'),
     title: `${ticket.get('title')} (#${ticket.get('nid')})`,
     content: ticket.get('content'),
@@ -84,7 +84,7 @@ exports.replyTicket = ({ticket, reply, to}) => {
   if (!to.get('wechatEnterpriseUserId')) {
     return Promise.resolve()
   }
-  send({
+  return send({
     to: to.get('wechatEnterpriseUserId'),
     title: `${ticket.get('title')} (#${ticket.get('nid')})`,
     content: reply.get('content'),
@@ -96,7 +96,7 @@ exports.changeAssignee = (ticket, from ,to) => {
   if (!to.get('wechatEnterpriseUserId')) {
     return Promise.resolve()
   }
-  send({
+  return send({
     to: to.get('wechatEnterpriseUserId'),
     title: `${ticket.get('title')} (#${ticket.get('nid')})`,
     content: 
@@ -117,7 +117,7 @@ exports.delayNotify = (ticket ,to) => {
   if (!to.get('wechatEnterpriseUserId')) {
     return Promise.resolve()
   }
-  send({
+  return send({
     to: to.get('wechatEnterpriseUserId'),
     title: `亲爱的 ${to.get('username')}，快去回工单，比心👬👬👬`,
     content: 
@@ -151,12 +151,6 @@ const send = (params) => {
         }
       ]
     },
-  })
-  .catch((err) => {
-    errorHandler.captureException({
-      action: 'sendWechatMessage',
-      params
-    }, err)
   })
 }
 

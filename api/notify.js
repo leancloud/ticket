@@ -10,9 +10,9 @@ const errorHandler = require('./errorHandler')
 
 exports.newTicket = (ticket, author, assignee) => {
   return Promise.each([
-    mail.newTicket(ticket, author, assignee),
-    bearychat.newTicket(ticket, author, assignee),
-    wechat.newTicket(ticket, author, assignee),
+    mail.newTicket(ticket, author, assignee).catch(err => errorHandler.captureException(err)),
+    bearychat.newTicket(ticket, author, assignee).catch(err => errorHandler.captureException(err)),
+    wechat.newTicket(ticket, author, assignee).catch(err => errorHandler.captureException(err)),
   ])
 }
 
@@ -26,9 +26,9 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
     isCustomerServiceReply: reply.get('isCustomerService'),
   }
   return Promise.each([
-    mail.replyTicket(data),
-    bearychat.replyTicket(data),
-    wechat.replyTicket(data),
+    mail.replyTicket(data).catch(err => errorHandler.captureException(err)),
+    bearychat.replyTicket(data).catch(err => errorHandler.captureException(err)),
+    wechat.replyTicket(data).catch(err => errorHandler.captureException(err)),
   ])
 }
 
