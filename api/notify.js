@@ -1,13 +1,15 @@
+const Promise = require('bluebird')
+const AV = require('leanengine')
+
 const mail = require('./mail')
 const bearychat = require('./bearychat')
 const wechat = require('./wechat')
-const AV = require('leanengine')
 
 const {TICKET_STATUS} = require('../lib/common')
 const errorHandler = require('./errorHandler')
 
 exports.newTicket = (ticket, author, assignee) => {
-  return Promise.all([
+  return Promise.each([
     mail.newTicket(ticket, author, assignee),
     bearychat.newTicket(ticket, author, assignee),
     wechat.newTicket(ticket, author, assignee),
@@ -23,7 +25,7 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
     to,
     isCustomerServiceReply: reply.get('isCustomerService'),
   }
-  return Promise.all([
+  return Promise.each([
     mail.replyTicket(data),
     bearychat.replyTicket(data),
     wechat.replyTicket(data),
@@ -31,7 +33,7 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
 }
 
 exports.changeAssignee = (ticket, operator, assignee) => {
-  return Promise.all([
+  return Promise.each([
     mail.changeAssignee(ticket, operator, assignee).catch(err => errorHandler.captureException(err)),
     bearychat.changeAssignee(ticket, operator, assignee).catch(err => errorHandler.captureException(err)),
     wechat.changeAssignee(ticket, operator, assignee).catch(err => errorHandler.captureException(err)),
@@ -43,7 +45,7 @@ exports.ticketEvaluation = (ticket, author, to) => {
 }
 
 const sendDelayNotify = (ticket, to) => {
-  return Promise.all([
+  return Promise.each([
     mail.delayNotify(ticket, to).catch(err => errorHandler.captureException(err)),
     bearychat.delayNotify(ticket, to).catch(err => errorHandler.captureException(err)),
     wechat.delayNotify(ticket, to).catch(err => errorHandler.captureException(err)),
@@ -57,14 +59,14 @@ const delayNotify = () => {
   const newTicketQuery = new AV.Query('Ticket').equalTo('status', TICKET_STATUS.NEW)
   
   const deadline = new Date(Date.now() - 2 * 60 * 60 *1000)
-  new AV.Query.or(needReplyQuery, newTicketQuery)
+  return new AV.Query.or(needReplyQuery, newTicketQuery)
   // updatedAt before 2h
   .lessThanOrEqualTo('updatedAt', deadline)
   .include('assignee')
   .find({useMasterKey: true})
   .then((tickets) => {
-    tickets.forEach((ticket) => {
-      new AV.Query('OpsLog')
+    return Promise.each(tickets, (ticket) => {
+      return new AV.Query('OpsLog')
       .equalTo('ticket', ticket)
       .descending('createdAt')
       .limit(1)
@@ -74,10 +76,10 @@ const delayNotify = () => {
         const assignee = ticket.get('assignee')
         if (opsLog.get('action') !== 'replySoon') {
           // the ticket which is being progressed do not need notify
-          sendDelayNotify(ticket, assignee)
+          return sendDelayNotify(ticket, assignee)
         } else if (opsLog.updatedAt < ticket.updatedAt) {
           // Maybe the replySoon is out of date.
-          sendDelayNotify(ticket, assignee)
+          return sendDelayNotify(ticket, assignee)
         }
       }).catch((err) => {
         errorHandler.captureException(err)
