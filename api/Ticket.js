@@ -30,6 +30,7 @@ AV.Cloud.beforeSave('Ticket', (req, res) => {
     }).then((assignee) => {
       ticket.set('assignee', assignee)
       res.success()
+      return
     })
   }).catch((err) => {
     errorHandler.captureException(err)
@@ -65,7 +66,7 @@ AV.Cloud.afterSave('Ticket', (req) => {
 
 AV.Cloud.beforeUpdate('Ticket', (req, res) => {
   if (req.object.updatedKeys.indexOf('assignee') != -1) {
-    getVacationers()
+    return getVacationers()
     .then(vacationers => {
       const finded = _.find(vacationers, {id: req.object.get('assignee').id})
       if (finded) {
@@ -100,6 +101,7 @@ AV.Cloud.afterUpdate('Ticket', (req) => {
       .then(() => {
         return notify.changeAssignee(ticket, req.currentUser, ticket.get('assignee'))
       })
+      .catch(errorHandler.captureException)
     }
     if (ticket.updatedKeys.includes('status')
         && ticketClosedStatuses().includes(ticket.get('status'))) {
@@ -111,7 +113,9 @@ AV.Cloud.afterUpdate('Ticket', (req) => {
       .then((ticket) => {
         return notify.ticketEvaluation(ticket, req.currentUser, ticket.get('assignee'))
       })
+      .catch(errorHandler.captureException)
     }
+    return
   })
 })
 

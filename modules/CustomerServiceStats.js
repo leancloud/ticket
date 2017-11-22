@@ -197,6 +197,7 @@ export default class CustomerServiceStats extends React.Component {
     .find()
     .then((categories) => {
       this.setState({categories})
+      return
     })
     .catch(this.context.addNotification)
   }
@@ -252,7 +253,7 @@ class StatsChart extends React.Component {
           return _.map(s.replyTimeByUser, (t => t.userId))
         })
       )))
-      fetchUsers(userIds).then((users) => {
+      return fetchUsers(userIds).then((users) => {
         this.setState({
           ticketCountData: ticketCountLineChartData(statses),
           replyCountData: replyCountLineChartData(statses),
@@ -261,6 +262,7 @@ class StatsChart extends React.Component {
           firstReplyTimeData: firstReplyTimeLineChartData(statses, users),
           replyTimeData: replyTimeLineChartData(statses, users),
         })
+        return
       })
     })
   }
@@ -332,7 +334,7 @@ class StatsSummary extends React.Component {
   componentDidMount() {
     const startDate = moment().startOf('week').subtract(1, 'weeks').add(offsetDays, 'days')
     const endDate = moment().startOf('week').add(1, 'weeks').add(offsetDays, 'days')
-    Promise.all([
+    return Promise.all([
       AV.Cloud.run('getNewTicketCount', {start: startDate.toISOString(), end: endDate.toISOString(), timeUnit: 'week'}),
       AV.Cloud.run('getStats', {start: startDate.toISOString(), end: endDate.toISOString(), timeUnit: 'week'}),
     ])
@@ -366,13 +368,14 @@ class StatsSummary extends React.Component {
         }
       })
 
-      fetchUsers(_.uniq(_.flatten(statsDatas.map(data => data.userIds)))).then((users) => {
+      return fetchUsers(_.uniq(_.flatten(statsDatas.map(data => data.userIds)))).then((users) => {
         this.setState({
           users,
           statsDatas,
           startDate,
           endDate,
         })
+        return
       })
     })
   }

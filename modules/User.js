@@ -24,7 +24,7 @@ export default class User extends Component {
 
   refreshUserInfo(props) {
     const username = props.params.username
-    Promise.all([
+    return Promise.all([
       AV.Cloud.run('getUserInfo', {username}),
       props.isCustomerService ? AV.Cloud.run('getLeanCloudUserInfoByUsername', {username}) : null,
       props.isCustomerService ? AV.Cloud.run('getLeanCloudAppsByUsername', {username}) : null,
@@ -34,6 +34,7 @@ export default class User extends Component {
         leancloudUser,
         leancloudApps: leancloudApps ? leancloudApps.sort((a, b) => b.month_reqs - a.month_reqs) : []
       })
+      return
     })
   }
 

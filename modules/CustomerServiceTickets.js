@@ -51,7 +51,7 @@ export default class CustomerServiceTickets extends Component {
         assigneeId: AV.User.current().id,
         isOpen: 'true',
       })
-      return
+      return Promise.resolve()
     }
 
     const {assigneeId, isOpen, status, categoryId, authorId, isOnlyUnlike, page = '0', size = '10'} = filters
@@ -99,6 +99,7 @@ export default class CustomerServiceTickets extends Component {
     .find()
     .then(tickets => {
       this.setState({tickets})
+      return
     })
   }
 
@@ -137,6 +138,7 @@ export default class CustomerServiceTickets extends Component {
         authorSearchTimeoutId = null
         if (!user) {
           this.setState({authorFilterValidationState: 'error'})
+          return
         } else {
           this.setState({authorFilterValidationState: 'success'})
           const filters = Object.assign({}, this.props.location.query, {authorId: user.objectId})

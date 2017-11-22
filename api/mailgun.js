@@ -26,7 +26,7 @@ router.post('/catchall', function (req, res, next) {
       content: req.body['stripped-text'].replace(/\r\n/g, '\n')
     }, {user: fromUser})
   }).then(() => {
-    res.send('OK')
+    return res.send('OK')
   }).catch(next)
 })
 

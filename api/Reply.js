@@ -16,6 +16,7 @@ AV.Cloud.beforeSave('Reply', (req, res) => {
   }).then((isCustomerService) => {
     req.object.set('isCustomerService', isCustomerService)
     res.success()
+    return
   }).catch(errorHandler.captureException)
 })
 

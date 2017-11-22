@@ -31,7 +31,7 @@ exports.login = (callbackUrl) => {
 
 exports.loginCallback = (callbackUrl) => {
   return (req, res) => {
-    getAccessToken(req.query.code, callbackUrl).then((accessToken) => {
+    return getAccessToken(req.query.code, callbackUrl).then((accessToken) => {
       accessToken.uid = '' + accessToken.uid
       return AV.User.signUpOrlogInWithAuthData(accessToken, 'leancloud')
     }).then((user) => {
@@ -41,7 +41,7 @@ exports.loginCallback = (callbackUrl) => {
       }
       return user
     }).then((user) => {
-      res.redirect('/login?token=' + user._sessionToken)
+      return res.redirect('/login?token=' + user._sessionToken)
     })
   }
 }
@@ -66,6 +66,7 @@ exports.checkPermission = (user) => {
       if (!current_support_service) {
         throw new AV.Cloud.Error('您的账号不具备提交工单的条件。')
       }
+      return
     })
   })
 }

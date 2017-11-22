@@ -32,7 +32,7 @@ exports.requireCustomerServiceAuth = (nextState, replace, next) => {
         state: { code: 'requireCustomerServiceAuth' }
       })
     }
-    next()
+    return next()
   })
   .catch((err) => {
     replace({

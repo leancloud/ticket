@@ -1,6 +1,7 @@
 const AV = require('leanengine')
 
 const common = require('./common')
+const errorHandler = require('./errorHandler')
 
 let newApp
 
@@ -10,16 +11,23 @@ const isNewApp = () => {
   .find({useMasterKey: true})
   .then((users) => {
     if (users.length === 0) {
-      newApp = true
       console.log('新应用启动，注册的第一个用户将成为管理员。')
+      return true
     } else {
-      newApp = false
+      return false
     }
   })
 }
 
 setTimeout(() => {
   isNewApp()
+  .then((result) => {
+    newApp = result
+    return
+  })
+  .catch((err) => {
+    errorHandler.captureException(err)
+  })
 }, 3000)
 
 AV.Cloud.define('getUserInfo', (req) => {
@@ -34,7 +42,7 @@ AV.Cloud.define('getUserInfo', (req) => {
 
 AV.Cloud.afterSave('_User', (req) => {
   if (newApp) {
-    Promise.all([
+    return Promise.all([
       addRole('admin', req.object),
       addRole('customerService', req.object)
     ])

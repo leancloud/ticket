@@ -10,6 +10,7 @@ AV.Cloud.beforeSave('Category', (req, res) => {
   getCategoryAcl().then((acl) => {
     req.object.setACL(acl)
     res.success()
+    return
   }).catch(errorHandler.captureException)
 })
 
@@ -23,6 +24,7 @@ AV.Cloud.beforeDelete('Category', (req) => {
     if (users.length > 0) {
       throw new AV.Cloud.Error('仍有人负责该分类，不能删除。')
     }
+    return
   })
 })
 

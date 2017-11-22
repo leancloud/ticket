@@ -19,8 +19,9 @@ export default class Login extends Component {
   componentDidMount() {
     const query = this.props.location.query
     if (query.token) {
-      AV.User.become(query.token).then(() => {
+      return AV.User.become(query.token).then(() => {
         this.context.router.push('/tickets')
+        return
       })
     }
   }
@@ -34,9 +35,11 @@ export default class Login extends Component {
       return AV.User.become(query.token)
       .then((user) => {
         this.props.onLogin(user)
+        return
       })
       .then(() => {
         this.redirect(nextProps)
+        return
       })
       .catch(this.context.addNotification)
     }
@@ -46,9 +49,11 @@ export default class Login extends Component {
     return AV.User.logIn(this.state.username, this.state.password)
     .then((user) => {
       this.props.onLogin(user)
+      return
     })
     .then(() => {
       this.redirect(this.props)
+      return
     })
     .catch(this.context.addNotification)
   }
@@ -60,9 +65,11 @@ export default class Login extends Component {
     .signUp()
     .then((user) => {
       this.props.onLogin(user)
+      return
     })
     .then(() => {
       this.redirect(this.props)
+      return
     })
     .catch(this.context.addNotification)
   }

@@ -81,6 +81,7 @@ const delayNotify = () => {
           // Maybe the replySoon is out of date.
           return sendDelayNotify(ticket, assignee)
         }
+        return
       }).catch((err) => {
         errorHandler.captureException(err)
       })

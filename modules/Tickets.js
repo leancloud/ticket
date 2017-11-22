@@ -38,20 +38,13 @@ export default class Tickets extends Component {
     .find()
     .then((tickets) => {
       this.setState({tickets, filters})
+      return
     })
     .catch(this.props.addNotification)
   }
 
   render() {
     const ticketLinks = this.state.tickets.map((ticket) => {
-      let latestReply = ticket.get('latestReply')
-      let latestReplyContent = ''
-      if (latestReply && latestReply.content) {
-        let latestReplyContent = latestReply.content
-        if (latestReplyContent.length > 200) {
-          latestReplyContent = latestReplyContent.slice(0, 200) + '……'
-        }
-      }
       const customerServices = (ticket.get('joinedCustomerServices') || []).map((user) => {
         return (
           <span key={user.objectId}><UserLabel user={user} /> </span>

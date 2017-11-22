@@ -51,6 +51,7 @@ export default class NewTicket extends React.Component {
         categories, apps,
         title, appId, categoryId, content,
       })
+      return
     })
     .catch(this.context.addNotification)
   }
@@ -66,6 +67,7 @@ export default class NewTicket extends React.Component {
       .then((files) => {
         const content = `${this.state.content}\n<img src='${files[0].url()}' />`
         this.setState({isCommitting: false, content})
+        return
       })
     }
   }
@@ -106,7 +108,7 @@ export default class NewTicket extends React.Component {
     }
 
     this.setState({isCommitting: true})
-    uploadFiles($('#ticketFile')[0].files)
+    return uploadFiles($('#ticketFile')[0].files)
     .then((files) => {
       const category = this.state.categories.find(c => c.id === this.state.categoryId)
       return new AV.Object('Ticket').save({
@@ -123,15 +125,18 @@ export default class NewTicket extends React.Component {
             ticket
           })
         }
+        return
       })
     }).then(() => {
       localStorage.removeItem('ticket:new:title')
       localStorage.removeItem('ticket:new:content')
       this.context.router.push('/tickets')
+      return
     })
     .catch(this.context.addNotification)
     .then(() => {
       this.setState({isCommitting: false})
+      return
     })
   }
 

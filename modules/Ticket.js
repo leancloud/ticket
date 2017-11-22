@@ -66,6 +66,7 @@ export default class Ticket extends Component {
           tags,
           opsLogs,
         })
+        return
       })
     })
     .catch(this.context.addNotification)
@@ -90,14 +91,17 @@ export default class Ticket extends Component {
     replyQuery.subscribe({subscriptionId: UUID}).then(liveQuery => {
       this.replyLiveQuery = liveQuery
       this.replyLiveQuery.on('create', reply => {
-        reply.fetch({include: 'author,files'})
+        return reply.fetch({include: 'author,files'})
         .then(() => {
           const replies = this.state.replies
           replies.push(reply)
           this.setState({replies})
+          return
         })
       })
+      return
     })
+    .catch(this.context.addNotification)
     return replyQuery
   }
 
@@ -105,14 +109,17 @@ export default class Ticket extends Component {
     const opsLogQuery = new AV.Query('OpsLog')
     .equalTo('ticket', ticket)
     .ascending('createdAt')
-    opsLogQuery.subscribe({subscriptionId: UUID}).then(liveQuery => {
+    opsLogQuery.subscribe({subscriptionId: UUID})
+    .then(liveQuery => {
       this.opsLogLiveQuery = liveQuery
       this.opsLogLiveQuery.on('create', opsLog => {
         const opsLogs = this.state.opsLogs
         opsLogs.push(opsLog)
         this.setState({opsLogs})
       })
+      return
     })
+    .catch(this.context.addNotification)
     return opsLogQuery
   }
 
@@ -141,6 +148,7 @@ export default class Ticket extends Component {
     return AV.Cloud.run('operateTicket', {ticketId: this.state.ticket.id, action})
     .then((ticket) => {
       this.setState({ticket: AV.parseJSON(ticket)})
+      return
     })
     .catch(this.context.addNotification)
   }
@@ -149,6 +157,7 @@ export default class Ticket extends Component {
     return this.state.ticket.set('category', getTinyCategoryInfo(category)).save()
     .then((ticket) => {
       this.setState({ticket})
+      return
     })
   }
 
@@ -156,6 +165,7 @@ export default class Ticket extends Component {
     return this.state.ticket.set('assignee', assignee).save()
     .then((ticket) => {
       this.setState({ticket})
+      return
     })
   }
 
@@ -163,6 +173,7 @@ export default class Ticket extends Component {
     return this.state.ticket.set('evaluation', evaluation).save()
     .then((ticket) => {
       this.setState({ticket})
+      return
     })
   }
 
@@ -499,40 +510,45 @@ class TicketReply extends Component {
   handleReplyCommit(e) {
     e.preventDefault()
     this.setState({isCommitting: true})
-    this.props.commitReply(this.state.reply, this.fileInput.files)
+    return this.props.commitReply(this.state.reply, this.fileInput.files)
     .then(() => {
       localStorage.removeItem(`ticket:${this.props.ticket.id}:reply`)
       this.setState({reply: ''})
       this.fileInput.value = ''
+      return
     })
     .catch(this.context.addNotification)
     .then(() => {
       this.setState({isCommitting: false})
+      return
     })
   }
 
   handleReplySoon(e) {
     e.preventDefault()
     this.setState({isCommitting: true})
-    this.props.commitReplySoon(this.state.reply, this.fileInput.files)
+    return this.props.commitReplySoon(this.state.reply, this.fileInput.files)
     .then(() => {
       localStorage.removeItem(`ticket:${this.props.ticket.id}:reply`)
       this.setState({reply: ''})
       this.fileInput.value = ''
+      return
     })
     .catch(this.context.addNotification)
     .then(() => {
       this.setState({isCommitting: false})
+      return
     })
   }
 
   handleReplyNoContent(e) {
     e.preventDefault()
     this.setState({isCommitting: true})
-    this.props.operateTicket('replyWithNoContent')
+    return this.props.operateTicket('replyWithNoContent')
     .catch(this.context.addNotification)
     .then(() => {
       this.setState({isCommitting: false})
+      return
     })
   }
 
@@ -543,6 +559,7 @@ class TicketReply extends Component {
       .then((files) => {
         const reply = `${this.state.reply}\n<img src='${files[0].url()}' />`
         this.setState({isCommitting: false, reply})
+        return
       })
     }
   }
@@ -634,8 +651,10 @@ class Tag extends Component{
             if (url) {
               this.setState({url})
             }
+            return
           })
         }
+        return
       })
     }
   }
@@ -711,6 +730,7 @@ class Evaluation extends Component {
     })
     .then(() => {
       localStorage.removeItem(`ticket:${this.props.ticket.id}:evaluation`)
+      return
     })
     .catch(this.context.addNotification)
   }

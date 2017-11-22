@@ -38,9 +38,10 @@ export default class App extends Component {
     this._notificationSystem = this.refs.notificationSystem
     const user = AV.User.current()
     if (user) {
-      common.isCustomerService(user)
+      return common.isCustomerService(user)
       .then((isCustomerService) => {
         this.setState({isCustomerService})
+        return
       })
     }
   }
@@ -49,14 +50,16 @@ export default class App extends Component {
     return common.isCustomerService(user)
     .then((isCustomerService) => {
       this.setState({isCustomerService})
+      return
     })
   }
 
   logout() {
-    AV.User.logOut()
+    return AV.User.logOut()
     .then(() => {
       this.context.router.push('/')
       this.setState({isCustomerService: false})
+      return
     })
   }
 
@@ -130,8 +133,9 @@ class ServerNotification extends Component {
       this.ticketsLiveQuery.unsubscribe()
     }
     if (isCustomerService) {
-      new AV.Query('Ticket').equalTo('assignee', AV.User.current())
-      .subscribe({subscriptionId: UUID}).then((liveQuery) => {
+      return new AV.Query('Ticket').equalTo('assignee', AV.User.current())
+      .subscribe({subscriptionId: UUID})
+      .then((liveQuery) => {
         this.ticketsLiveQuery = liveQuery
         liveQuery.on('create', (ticket) => {
           this.notify({title: '新的工单', body: `${ticket.get('title')} (#${ticket.get('nid')})`})
@@ -147,10 +151,12 @@ class ServerNotification extends Component {
             this.notify({title: '新的回复', body: `${ticket.get('title')} (#${ticket.get('nid')})`})
           }
         })
+        return
       })
     } else {
-      new AV.Query('Ticket').equalTo('author', AV.User.current())
-      .subscribe({subscriptionId: UUID}).then((liveQuery) => {
+      return new AV.Query('Ticket').equalTo('author', AV.User.current())
+      .subscribe({subscriptionId: UUID})
+      .then((liveQuery) => {
         this.ticketsLiveQuery = liveQuery
         liveQuery.on('update', (ticket, updatedKeys) => {
           if (updatedKeys.indexOf('latestReply') !== -1
@@ -158,12 +164,13 @@ class ServerNotification extends Component {
             this.notify({title: '新的回复', body: `${ticket.get('title')} (#${ticket.get('nid')})`})
           }
         })
+        return
       })
     }
   }
 
   componentWillUnmount() {
-    Promise.all([
+    return Promise.all([
       this.ticketsLiveQuery.unsubscribe(),
     ])
   }

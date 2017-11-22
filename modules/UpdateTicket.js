@@ -23,6 +23,7 @@ export default class UpdateTicket extends Component {
         common.getCustomerServices()
       ]).then(([categories, assignees]) => {
         this.setState({categories, assignees})
+        return
       })
       .catch(this.context.addNotification)
     }

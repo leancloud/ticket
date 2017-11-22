@@ -6,7 +6,11 @@ module.exports = {
         "node": true,
         "mocha": true
     },
-    "extends": ["eslint:recommended", "plugin:react/recommended"],
+    "extends": [
+        "eslint:recommended",
+        "plugin:react/recommended",
+        "plugin:promise/recommended"
+    ],
     "installedESLint": true,
     "parserOptions": {
         "ecmaFeatures": {
@@ -16,7 +20,8 @@ module.exports = {
         "sourceType": "module"
     },
     "plugins": [
-        "react"
+        "react",
+        "promise"
     ],
     "rules": {
         "indent": [
@@ -36,6 +41,8 @@ module.exports = {
             "never"
         ],
         "no-console": 0,
-        "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }]
+        "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+        "promise/no-nesting": 0,
+        "promise/no-callback-in-promise": 0
     }
 };

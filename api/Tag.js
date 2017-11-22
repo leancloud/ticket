@@ -10,6 +10,7 @@ AV.Cloud.beforeSave('Tag', (req, res) => {
     req.object.setACL(acl)
     req.object.set('author', req.currentUser)
     res.success()
+    return
   }).catch(errorHandler.captureException)
 })
 

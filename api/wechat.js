@@ -5,7 +5,6 @@ const wechat = require('wechat-enterprise')
 const AV = require('leanengine')
 
 const common = require('./common')
-const errorHandler = require('./errorHandler')
 
 Promise.promisifyAll(wechat.API.prototype)
 
@@ -34,6 +33,7 @@ if (wechatConfig.token) {
       } else {
         cb(null, null)
       }
+      return
     })
     .catch(cb)
   }, (token, cb) => {
@@ -42,6 +42,7 @@ if (wechatConfig.token) {
     .save({key: 'wechatToken', value: JSON.stringify(token)})
     .then(() => {
       cb()
+      return
     })
     .catch(cb)
   })
@@ -64,6 +65,7 @@ AV.Cloud.define('getWechatEnterpriseUsers', (req, res) => {
   })
   .then((users) => {
     res.success(users)
+    return
   })
   .catch(res.error)
 })

@@ -1,7 +1,6 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 
-export default function Error(props) {
+export default function Error(_props) {
   return (
     <div className="jumbotron">
       <h1>该页面不存在</h1>

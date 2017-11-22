@@ -6,6 +6,7 @@ AV.Cloud.beforeSave('OpsLog', (req, res) => {
   getOpsLogAcl(req.object).then((acl) => {
     req.object.setACL(acl)
     res.success()
+    return
   }).catch(errorHandler.captureException)
 })
 
