@@ -20,7 +20,7 @@ cd ticket
 使用 [命令行工具](https://leancloud.cn/docs/leanengine_cli.html) 关联代码到 LeanCloud 应用：
 
 ```
-lean checkout
+lean switch
 ```
 
 根据提示选择刚才创建的 LeanCloud 应用。

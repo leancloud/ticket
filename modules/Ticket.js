@@ -88,7 +88,7 @@ export default class Ticket extends Component {
     .include('author')
     .include('files')
     .limit(500)
-    replyQuery.subscribe({subscriptionId: UUID}).then(liveQuery => {
+    replyQuery.subscribe({subscriptionId: UUID + "@" + ticket.id}).then(liveQuery => {
       this.replyLiveQuery = liveQuery
       this.replyLiveQuery.on('create', reply => {
         return reply.fetch({include: 'author,files'})
@@ -109,7 +109,7 @@ export default class Ticket extends Component {
     const opsLogQuery = new AV.Query('OpsLog')
     .equalTo('ticket', ticket)
     .ascending('createdAt')
-    opsLogQuery.subscribe({subscriptionId: UUID})
+    opsLogQuery.subscribe({subscriptionId: UUID + "@" + ticket.id})
     .then(liveQuery => {
       this.opsLogLiveQuery = liveQuery
       this.opsLogLiveQuery.on('create', opsLog => {
