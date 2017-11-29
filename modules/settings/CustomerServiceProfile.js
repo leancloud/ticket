@@ -22,7 +22,9 @@ export default class CustomerServiceProfile extends Component {
     AV.Cloud.run('getWechatEnterpriseUsers', {})
     .then((wechatUsers) => {
       this.setState({wechatUsers})
+      return
     })
+    .catch(this.context.addNotification)
   }
 
   handleWechatIdChange(e) {

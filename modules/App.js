@@ -5,6 +5,7 @@ import NotificationSystem from 'react-notification-system'
 import AV from 'leancloud-storage/live-query'
 
 import common from './common'
+import {getGravatarHash} from '../lib/common'
 import GlobalNav from './GlobalNav'
 import css from './App.css'
 
@@ -13,6 +14,7 @@ export default class App extends Component {
   constructor(props) {
     super(props)
     this.state = {
+      currentUser: AV.User.current(),
       isCustomerService: false,
     }
   }
@@ -36,20 +38,28 @@ export default class App extends Component {
 
   componentDidMount() {
     this._notificationSystem = this.refs.notificationSystem
-    const user = AV.User.current()
-    if (user) {
+    const user = this.state.currentUser
+    if (!user) {
+      return
+    }
+
+    return user.fetch().then(user => {
       return common.isCustomerService(user)
       .then((isCustomerService) => {
         this.setState({isCustomerService})
         return
       })
-    }
+    })
+    .catch(err => {
+      this.setState({currentUser: null})
+      this.addNotification(err)
+    })
   }
 
   onLogin(user) {
     return common.isCustomerService(user)
     .then((isCustomerService) => {
-      this.setState({isCustomerService})
+      this.setState({currentUser: user, isCustomerService})
       return
     })
   }
@@ -58,7 +68,21 @@ export default class App extends Component {
     return AV.User.logOut()
     .then(() => {
       this.context.router.push('/')
-      this.setState({isCustomerService: false})
+      this.setState({currentUser: null, isCustomerService: false})
+      return
+    })
+  }
+
+  updateCurrentUser(props) {
+    const user = this.state.currentUser
+    Object.entries(props).forEach(([k, v]) => {
+      user.set(k, v)
+    })
+    if (props.email) {
+      user.set('gravatarHash', getGravatarHash(props.email))
+    }
+    return user.save().then(user => {
+      this.setState({currentUser: user})
       return
     })
   }
@@ -70,11 +94,15 @@ export default class App extends Component {
   render() {
     return (
       <div>
-        <GlobalNav isCustomerService={this.state.isCustomerService} logout={this.logout.bind(this)} />
+        <GlobalNav currentUser={this.state.currentUser}
+          isCustomerService={this.state.isCustomerService}
+          logout={this.logout.bind(this)} />
         <div className={ 'container ' + css.main }>
           {this.props.children && React.cloneElement(this.props.children, {
             onLogin: this.onLogin.bind(this),
+            currentUser: this.state.currentUser,
             isCustomerService: this.state.isCustomerService,
+            updateCurrentUser: this.updateCurrentUser.bind(this),
           })}
         </div>
         <ServerNotification isCustomerService={this.state.isCustomerService} />
@@ -147,7 +175,7 @@ class ServerNotification extends Component {
         })
         liveQuery.on('update', (ticket, updatedKeys) => {
           if (updatedKeys.indexOf('latestReply') !== -1
-              && ticket.get('latestReply').author.username !== AV.User.current().get('username')) {
+              && ticket.get('latestReply').author.username !== this.state.currentUser.get('username')) {
             this.notify({title: '新的回复', body: `${ticket.get('title')} (#${ticket.get('nid')})`})
           }
         })
@@ -160,7 +188,7 @@ class ServerNotification extends Component {
         this.ticketsLiveQuery = liveQuery
         liveQuery.on('update', (ticket, updatedKeys) => {
           if (updatedKeys.indexOf('latestReply') !== -1
-              && ticket.get('latestReply').author.username !== AV.User.current().get('username')) {
+              && ticket.get('latestReply').author.username !== this.state.currentUser.get('username')) {
             this.notify({title: '新的回复', body: `${ticket.get('title')} (#${ticket.get('nid')})`})
           }
         })

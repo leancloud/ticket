@@ -8,7 +8,8 @@
     "build": "webpack",
     "dev:client": "eval $(lean env) && webpack-dev-server --port 8080 --inline --content-base public --history-api-fallback",
     "dev": "WEBPACK_DEV_SERVER=http://localhost:8080 nodemon --ignore modules server.js",
-    "postinstall": "npm run build"
+    "postinstall": "npm run build",
+    "migrate": "migrate up --store=../../../migrations/leanstorage-store --migrations-dir=./migrations/versions"
   },
   "repository": {
     "type": "git",
@@ -67,6 +68,7 @@
     "eslint-plugin-promise": "^3.6.0",
     "eslint-plugin-react": "^6.10.0",
     "http-server": "^0.8.5",
+    "migrate": "^1.0.0-3",
     "nodemon": "^1.11.0",
     "supertest": "^3.0.0",
     "supertest-as-promised": "^4.0.2",

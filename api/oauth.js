@@ -6,6 +6,7 @@ const AV = require('leanengine')
 
 const config = require('../config')
 const common = require('./common')
+const getGravatarHash = require('../lib/common').getGravatarHash
 
 const serverDomain = 'https://leancloud.cn'
 const oauthScope = 'client:info app:info client:account'
@@ -186,6 +187,7 @@ const initUserInfo = (user) => {
     return user.save({
       username: client.username,
       email: client.email,
+      gravatarHash: getGravatarHash(client.email),
     }, {user})
   })
 }

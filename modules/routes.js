@@ -21,6 +21,7 @@ import User from './User'
 import Home from './Home'
 
 import Settings from './Settings'
+import Profile from './settings/Profile'
 import SettingsCSProfile from './settings/CustomerServiceProfile'
 import Members from './settings/Members'
 import Categories from './settings/Categories'
@@ -59,6 +60,7 @@ module.exports = (
     </Route>
     <Route path="/users/:username" component={User} onEnter={common.requireAuth} />
     <Route path="/settings" component={Settings} onEnter={common.requireAuth}>
+      <Route path="/settings/Profile" component={Profile} />
       <Route path="/settings/customerServiceProfile" component={SettingsCSProfile} />
       <Route path="/settings/members" component={Members} />
       <Route path="/settings/categories" component={Categories} />

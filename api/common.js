@@ -1,9 +1,11 @@
-const crypto = require('crypto')
+const Promise = require('bluebird')
+const _ = require('lodash')
 const Remarkable = require('remarkable')
 const hljs = require('highlight.js')
 const AV = require('leanengine')
 
 const config = require('../config')
+const getGravatarHash = require('../lib/common').getGravatarHash
 
 exports.getTinyUserInfo = (user) => {
   if (!user) {
@@ -13,6 +15,7 @@ exports.getTinyUserInfo = (user) => {
     return Promise.resolve({
       objectId: user.id,
       username: user.get('username'),
+      name: user.get('name'),
       gravatarHash: getGravatarHash(user.get('email'))
     })
   }
@@ -20,6 +23,7 @@ exports.getTinyUserInfo = (user) => {
     return {
       objectId: user.id,
       username: user.get('username'),
+      name: user.get('name'),
       gravatarHash: getGravatarHash(user.get('email'))
     }
   })
@@ -81,9 +85,22 @@ exports.htmlify = (content) => {
   return md.render(content)
 }
 
-const getGravatarHash = (email) => {
-  email = email || ''
-  const shasum = crypto.createHash('md5')
-  shasum.update(email.trim().toLocaleLowerCase())
-  return shasum.digest('hex')
+exports.forEachAVObject = (query, fn, authOptions) => {
+  query.limit(1000)
+  .ascending('createdAt')
+  const innerFn = () => {
+    return query.find(authOptions)
+    .then((datas) => {
+      if (datas.length === 0) {
+        return
+      }
+      return Promise.each(datas, fn)
+      .then(() => {
+        query.greaterThan('createdAt', _.last(datas).get('createdAt'))
+        return innerFn()
+      })
+    })
+  }
+  return innerFn()
 }
+

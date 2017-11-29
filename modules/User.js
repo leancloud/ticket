@@ -2,6 +2,7 @@ import React, {Component} from 'react'
 import {Link} from 'react-router'
 import PropTypes from 'prop-types'
 import AV from 'leancloud-storage/live-query'
+import {Avatar} from './common'
 import css from './User.css'
 
 export default class User extends Component {
@@ -9,7 +10,7 @@ export default class User extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      user: {},
+      user: null,
       leancloudApps: []
     }
   }
@@ -39,6 +40,10 @@ export default class User extends Component {
   }
 
   render() {
+    if (!this.state.user) {
+      return <div>读取中……</div>
+    }
+
     let leancloudUser
     if (this.state.leancloudUser) {
       leancloudUser = (
@@ -54,7 +59,7 @@ export default class User extends Component {
       <div>
         <div className={css.userWrap}>
           <div className={css.avatar}>
-            <img height="100" width="100" src={'https://cdn.v2ex.com/gravatar/' + this.state.user.gravatarHash + '?s=300&r=pg&d=identicon'} />
+            <Avatar height="200" width="200" user={this.state.user} />
           </div>
           <div className={css.info}>
             <h2>{this.state.user.username}</h2>

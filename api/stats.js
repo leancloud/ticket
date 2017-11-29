@@ -3,6 +3,8 @@ const _ = require('lodash')
 const moment = require('moment')
 const AV = require('leanengine')
 
+const forEachAVObject = require('./common').forEachAVObject
+
 moment.locale('zh-cn')
 
 const {TICKET_STATUS, ticketOpenedStatuses} = require('../lib/common')
@@ -480,25 +482,6 @@ const reduceAVObject = (query, fn, accumulator, authOptions) => {
         query.greaterThan('createdAt', _.last(datas).get('createdAt'))
         return innerFn()
       }
-    })
-  }
-  return innerFn()
-}
-
-const forEachAVObject = (query, fn, authOptions) => {
-  query.limit(1000)
-  .descending('createdAt')
-  const innerFn = () => {
-    return query.find(authOptions)
-    .then((datas) => {
-      if (datas.length === 0) {
-        return
-      }
-      return Promise.each(datas, fn)
-      .then(() => {
-        query.lessThan('createdAt', _.last(datas).get('createdAt'))
-        return innerFn()
-      })
     })
   }
   return innerFn()

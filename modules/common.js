@@ -1,7 +1,7 @@
 import React from 'react'
-import crypto from 'crypto'
 import PropTypes from 'prop-types'
-import { Link } from 'react-router'
+import {Link} from 'react-router'
+import {Image} from 'react-bootstrap'
 import _ from 'lodash'
 import AV from 'leancloud-storage/live-query'
 
@@ -106,17 +106,14 @@ exports.UserLabel = (props) => {
     )
   }
   const username = props.user.username || props.user.get('username')
-  let gravatarHash = props.user.gravatarHash
-  if (!gravatarHash) {
-    gravatarHash = crypto.createHash('md5').update((props.user.get('email') || '').trim().toLocaleLowerCase()).digest('hex')
-  }
+  const name = props.user.name || props.user.get('name')
   return (
     <span>
       <Link to={'/users/' + username} className="avatar">
-        <img height="16" width="16" src={'https://cdn.v2ex.com/gravatar/' + gravatarHash + '?s=64&r=pg&d=identicon'} />
+        <exports.Avatar user={props.user} />
       </Link>
       <Link to={'/users/' + username} className="username">
-        {username}
+        {name}
       </Link>
     </span>
   )
@@ -148,4 +145,15 @@ exports.TicketStatusLabel = (props) => {
 exports.TicketStatusLabel.displayName = 'TicketStatusLabel'
 exports.TicketStatusLabel.propTypes = {
   status: PropTypes.number.isRequired,
+}
+
+exports.Avatar = (props) => {
+  let src = `https://cdn.v2ex.com/gravatar/${props.user.gravatarHash || props.user.get('gravatarHash')}?s=${props.height || 16}&r=pg&d=identicon`
+  return <Image height={props.height || 16} width={props.width || 16} src={src} rounded />
+}
+exports.Avatar.displayName = 'Avatar'
+exports.Avatar.propTypes = {
+  user: PropTypes.object.isRequired,
+  height: PropTypes.string,
+  width: PropTypes.string
 }

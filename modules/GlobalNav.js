@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import { Link } from 'react-router'
-import AV from 'leancloud-storage/live-query'
 
 export default class GlobalNav extends Component {
 
@@ -11,14 +10,12 @@ export default class GlobalNav extends Component {
 
   render() {
     let user
-    if (AV.User.current()) {
+    if (this.props.currentUser) {
       user = (
         <li className="dropdown">
-          <a href="#" className="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{AV.User.current().get('username')} <span className="caret"></span></a>
+          <a href="#" className="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{this.props.currentUser.get('name')} <span className="caret"></span></a>
           <ul className="dropdown-menu">
-            {this.props.isCustomerService &&
-              <li><Link to="/settings">设置</Link></li>
-            }
+            <li><Link to="/settings">设置</Link></li>
             <li><a href="#" onClick={() => this.props.logout()}>登出</a></li>
           </ul>
         </li>
@@ -27,7 +24,7 @@ export default class GlobalNav extends Component {
       user = <li><Link to="/login">登录</Link></li>
     }
     let createTicket
-    if (AV.User.current()) {
+    if (this.props.currentUser) {
       createTicket = (
         <li>
           <button type="submit" className='btn btn-primary navbar-btn nav-submit-btn' onClick={this.handleNewTicketClick.bind(this)}>新建工单</button>
@@ -78,6 +75,7 @@ GlobalNav.contextTypes = {
 }
 
 GlobalNav.propTypes = {
+  currentUser: PropTypes.object,
   isCustomerService: PropTypes.bool,
   logout: PropTypes.func.isRequired,
 }
