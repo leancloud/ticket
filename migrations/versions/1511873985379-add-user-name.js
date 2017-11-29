@@ -4,6 +4,7 @@ const AV = require('leanengine')
 const forEachAVObject = require('../../api/common').forEachAVObject
 
 exports.up = function(next) {
+
   return addNameToUser().then(() => {
     return addNameToOpsLog()
   }).then(() => {
@@ -47,7 +48,10 @@ const addNameToTicket = () => {
       })
       ticket.set('joinedCustomerServices', joinedCustomerServices)
     }
-    return ticket.save()
+    if (ticket.dirty()) {
+      return ticket.save()
+    }
+    return
   }, {useMasterKey: true})
 }
 
