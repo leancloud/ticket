@@ -19,10 +19,16 @@ export default class Login extends Component {
   componentDidMount() {
     const query = this.props.location.query
     if (query.token) {
-      return AV.User.become(query.token).then(() => {
+      return AV.User.become(query.token)
+      .then((user) => {
+        this.props.onLogin(user)
+        return
+      })
+      .then(() => {
         this.context.router.push('/tickets')
         return
       })
+      .catch(this.context.addNotification)
     }
   }
 
@@ -126,10 +132,10 @@ export default class Login extends Component {
 
 Login.propTypes = {
   location: PropTypes.object,
-  onLogin: PropTypes.func.isRequired,
+  onLogin: PropTypes.func,
 }
 
 Login.contextTypes = {
-  router: PropTypes.func.isRequired,
+  router: PropTypes.object,
   addNotification: PropTypes.func.isRequired,
 }
