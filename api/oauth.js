@@ -186,6 +186,7 @@ const initUserInfo = (user) => {
   .then((client) => {
     return user.save({
       username: client.username,
+      name: client.username,
       email: client.email,
       gravatarHash: getGravatarHash(client.email),
     }, {user})
