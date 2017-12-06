@@ -29,7 +29,7 @@ module.exports = {
     ]
   },
 
-  plugins: (process.env.NODE_ENV === 'production' ? [
+  plugins: (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'stage' ? [
     new webpack.optimize.DedupePlugin(),
     new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.optimize.UglifyJsPlugin(),
