@@ -3,6 +3,7 @@ import React from 'react'
 import Raven from 'raven-js'
 import { Route, IndexRoute, Redirect } from 'react-router'
 import moment from 'moment'
+import _ from 'lodash'
 import AV from 'leancloud-storage/live-query'
 
 import common from './common'
@@ -29,7 +30,13 @@ import Category from './settings/Category'
 import Error from './Error'
 import NotFound from './NotFound'
 
-moment.locale('zh-cn')
+moment.updateLocale('zh-cn', {
+  calendar : {
+    lastWeek : function() {
+      return this < moment().startOf('week') ? '[上]ddddLT' : 'ddddLT'
+    },
+  }
+})
 
 if (SENTRY_DSN_PUBLIC !== '') {
   Raven.config(SENTRY_DSN_PUBLIC).install()
