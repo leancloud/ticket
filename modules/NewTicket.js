@@ -98,17 +98,18 @@ export default class NewTicket extends React.Component {
         content: this.state.content,
         files,
       })
-    }).then(() => {
+    })
+    .then(() => {
+      this.setState({isCommitting: false})
+      return
+    })
+    .then(() => {
       localStorage.removeItem('ticket:new:title')
       localStorage.removeItem('ticket:new:content')
       this.context.router.push('/tickets')
       return
     })
     .catch(this.context.addNotification)
-    .then(() => {
-      this.setState({isCommitting: false})
-      return
-    })
   }
 
   render() {
