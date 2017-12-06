@@ -105,7 +105,8 @@ export default class App extends Component {
             updateCurrentUser: this.updateCurrentUser.bind(this),
           })}
         </div>
-        <ServerNotification isCustomerService={this.state.isCustomerService} />
+        <ServerNotification currentUser={this.state.currentUser}
+          isCustomerService={this.state.isCustomerService} />
         <NotificationSystem ref="notificationSystem" />
       </div>
     )
@@ -161,7 +162,7 @@ class ServerNotification extends Component {
       this.ticketsLiveQuery.unsubscribe()
     }
     if (isCustomerService) {
-      return new AV.Query('Ticket').equalTo('assignee', AV.User.current())
+      return new AV.Query('Ticket').equalTo('assignee', this.props.currentUser)
       .subscribe({subscriptionId: UUID})
       .then((liveQuery) => {
         this.ticketsLiveQuery = liveQuery
@@ -175,20 +176,20 @@ class ServerNotification extends Component {
         })
         liveQuery.on('update', (ticket, updatedKeys) => {
           if (updatedKeys.indexOf('latestReply') !== -1
-              && ticket.get('latestReply').author.username !== this.state.currentUser.get('username')) {
+              && ticket.get('latestReply').author.username !== this.props.currentUser.get('username')) {
             this.notify({title: '新的回复', body: `${ticket.get('title')} (#${ticket.get('nid')})`})
           }
         })
         return
       })
     } else {
-      return new AV.Query('Ticket').equalTo('author', AV.User.current())
+      return new AV.Query('Ticket').equalTo('author', this.props.currentUser)
       .subscribe({subscriptionId: UUID})
       .then((liveQuery) => {
         this.ticketsLiveQuery = liveQuery
         liveQuery.on('update', (ticket, updatedKeys) => {
           if (updatedKeys.indexOf('latestReply') !== -1
-              && ticket.get('latestReply').author.username !== this.state.currentUser.get('username')) {
+              && ticket.get('latestReply').author.username !== this.props.currentUser.get('username')) {
             this.notify({title: '新的回复', body: `${ticket.get('title')} (#${ticket.get('nid')})`})
           }
         })
@@ -221,5 +222,6 @@ class ServerNotification extends Component {
 }
 
 ServerNotification.propTypes = {
+  currentUser: PropTypes.object,
   isCustomerService: PropTypes.bool,
 }
