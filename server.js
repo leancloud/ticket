@@ -28,8 +28,6 @@ app.use(bodyParser.urlencoded({ extended: false }))
 
 app.use(require('./api'))
 
-const orgName = require('./api/oauth').orgName
-
 const getIndexPage = (uuid) => {
   return `
 <!doctype html public "storage">
@@ -52,8 +50,6 @@ const getIndexPage = (uuid) => {
   LEAN_CLI_HAVE_STAGING = '${process.env.LEAN_CLI_HAVE_STAGING}'
   SENTRY_DSN_PUBLIC = '${config.sentryDSNPublic || ''}'
   UUID = '${uuid}'
-  ORG_NAME = '${orgName}'
-  USE_OAUTH = '${!!process.env.OAUTH_KEY}'
 </script>
 <script src='${process.env.WEBPACK_DEV_SERVER || ''}/bundle.js'></script>
 <script>

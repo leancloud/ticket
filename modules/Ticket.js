@@ -88,7 +88,7 @@ export default class Ticket extends Component {
     .include('author')
     .include('files')
     .limit(500)
-    replyQuery.subscribe({subscriptionId: UUID + "@" + ticket.id}).then(liveQuery => {
+    replyQuery.subscribe({subscriptionId: UUID + '@' + ticket.id}).then(liveQuery => {
       this.replyLiveQuery = liveQuery
       this.replyLiveQuery.on('create', reply => {
         return reply.fetch({include: 'author,files'})
@@ -109,7 +109,7 @@ export default class Ticket extends Component {
     const opsLogQuery = new AV.Query('OpsLog')
     .equalTo('ticket', ticket)
     .ascending('createdAt')
-    opsLogQuery.subscribe({subscriptionId: UUID + "@" + ticket.id})
+    opsLogQuery.subscribe({subscriptionId: UUID + '@' + ticket.id})
     .then(liveQuery => {
       this.opsLogLiveQuery = liveQuery
       this.opsLogLiveQuery.on('create', opsLog => {
@@ -634,60 +634,12 @@ TicketReply.contextTypes = {
 class Tag extends Component{
 
   componentDidMount() {
-    if (this.props.tag.get('key') === 'appId') {
-      const appId = this.props.tag.get('value')
-      if (!appId) {
-        return
-      }
-      return AV.Cloud.run('getLeanCloudApp', {
-        username: this.props.ticket.get('author').get('username'),
-        appId,
-      })
-      .then((app) => {
-        this.setState({key: '应用', value: app.app_name})
-        if (this.props.isCustomerService) {
-          return AV.Cloud.run('getLeanCloudAppUrl', {appId})
-          .then((url) => {
-            if (url) {
-              this.setState({url})
-            }
-            return
-          })
-        }
-        return
-      })
-    }
   }
 
   render() {
-    if (!this.state) {
-      return <div className="form-group">
-        <Label bsStyle="default">{this.props.tag.get('key')}: {this.props.tag.get('value')}</Label>
-      </div>
-    } else {
-      if (this.state.url) {
-        return <div>
-          <label className="control-label">
-            {this.state.key}链接
-          </label>
-          <div className="form-group">
-            <a className="btn btn-default" href={this.state.url} target='_blank'>
-              {this.state.value}
-            </a>
-          </div>
-        </div>
-      }
-      return <div>
-        <label className="control-label">
-          {this.state.key}
-        </label>
-        <div className="form-group">
-          <a className="btn btn-default disabled">
-            {this.state.value}
-          </a>
-        </div>
-      </div>
-    }
+    return <div className="form-group">
+      <Label bsStyle="default">{this.props.tag.get('key')}: {this.props.tag.get('value')}</Label>
+    </div>
   }
 
 }

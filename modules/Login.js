@@ -1,4 +1,3 @@
-/*global ORG_NAME, USE_OAUTH*/
 import React, {Component} from 'react'
 import {ControlLabel, FormControl, FormGroup, Button} from 'react-bootstrap'
 import PropTypes from 'prop-types'
@@ -98,33 +97,24 @@ export default class Login extends Component {
   }
 
   render() {
-    if (USE_OAUTH === 'false') {
-      return <div className={css.wrap}>
-        <h1 className='font-logo'>登录或注册</h1>
-        <hr />
-        <form>
-          <FormGroup>
-            <ControlLabel>用户名</ControlLabel>
-            <FormControl type='text' value={this.state.username} onChange={this.handleUsernameChange.bind(this)} />
-          </FormGroup>
-          <FormGroup>
-            <ControlLabel>密码</ControlLabel>
-            <FormControl type='password' value={this.state.password} onChange={this.handlePasswordChange.bind(this)} />
-          </FormGroup>
-          <FormGroup>
-            <Button type='button' bsStyle='primary' onClick={this.handleLogin.bind(this)}>登录</Button>
-            {' '}
-            <Button type='button' onClick={this.handleSignup.bind(this)}>注册</Button>
-          </FormGroup>
-        </form>
-      </div>
-    }
-
     return <div className={css.wrap}>
-      <h1 className='font-logo'>欢迎回来</h1>
+      <h1 className='font-logo'>登录或注册</h1>
       <hr />
-      <p>目前只支持通过 {ORG_NAME} OAuth 授权进行登录</p>
-      <a href='/oauth/login' className='btn btn-primary'>前往 {ORG_NAME} 授权页</a>
+      <form>
+        <FormGroup>
+          <ControlLabel>用户名</ControlLabel>
+          <FormControl type='text' value={this.state.username} onChange={this.handleUsernameChange.bind(this)} />
+        </FormGroup>
+        <FormGroup>
+          <ControlLabel>密码</ControlLabel>
+          <FormControl type='password' value={this.state.password} onChange={this.handlePasswordChange.bind(this)} />
+        </FormGroup>
+        <FormGroup>
+          <Button type='button' bsStyle='primary' onClick={this.handleLogin.bind(this)}>登录</Button>
+          {' '}
+          <Button type='button' onClick={this.handleSignup.bind(this)}>注册</Button>
+        </FormGroup>
+      </form>
     </div>
   }
 

@@ -12,10 +12,8 @@ export default class NewTicket extends React.Component {
     super(props)
     this.state = {
       categories: [],
-      apps: [],
       isCommitting: false,
       title: '',
-      appId: '',
       categoryId: '',
       content: '',
     }
@@ -23,23 +21,10 @@ export default class NewTicket extends React.Component {
 
   componentDidMount() {
     this.contentTextarea.addEventListener('paste', this.pasteEventListener.bind(this))
-    AV.Cloud.run('checkPermission')
-    .then(() => {
-      return Promise.all([
-        new AV.Query('Category').find(),
-        AV.Cloud.run('getLeanCloudApps')
-        .catch((err) => {
-          if (err.message.indexOf('Could not find LeanCloud authData:') === 0) {
-            return []
-          }
-          throw err
-        }),
-      ])
-    })
-    .then(([categories, apps]) => {
+    return new AV.Query('Category').find()
+    .then(categories => {
       let {
         title=(localStorage.getItem('ticket:new:title') || ''),
-        appId='',
         categoryId='',
         content=(localStorage.getItem('ticket:new:content') || '')
       } = this.props.location.query
@@ -48,8 +33,8 @@ export default class NewTicket extends React.Component {
         content = category.get('qTemplate')
       }
       this.setState({
-        categories, apps,
-        title, appId, categoryId, content,
+        categories,
+        title, categoryId, content,
       })
       return
     })
@@ -86,10 +71,6 @@ export default class NewTicket extends React.Component {
     }
   }
 
-  handleAppChange(e) {
-    this.setState({appId: e.target.value})
-  }
-
   handleContentChange(e) {
     localStorage.setItem('ticket:new:content', e.target.value)
     this.setState({content: e.target.value})
@@ -117,16 +98,6 @@ export default class NewTicket extends React.Component {
         content: this.state.content,
         files,
       })
-      .then((ticket) => {
-        if (this.state.appId) {
-          return new AV.Object('Tag').save({
-            key: 'appId',
-            value: this.state.appId,
-            ticket
-          })
-        }
-        return
-      })
     }).then(() => {
       localStorage.removeItem('ticket:new:title')
       localStorage.removeItem('ticket:new:content')
@@ -146,9 +117,6 @@ export default class NewTicket extends React.Component {
         <option key={category.id} value={category.id}>{category.get('name')}</option>
       )
     })
-    const appOptions = this.state.apps.map((app) => {
-      return <option key={app.app_id} value={app.app_id}>{app.app_name}</option>
-    })
     const tooltip = (
       <Tooltip id="tooltip">支持 Markdown 语法</Tooltip>
     )
@@ -157,13 +125,6 @@ export default class NewTicket extends React.Component {
         <FormGroup>
           <ControlLabel>标题</ControlLabel>
           <input type="text" className="form-control" value={this.state.title} onChange={this.handleTitleChange.bind(this)} />
-        </FormGroup>
-        <FormGroup>
-          <ControlLabel>相关应用</ControlLabel>
-          <FormControl componentClass="select" value={this.state.appId} onChange={this.handleAppChange.bind(this)}>
-            <option key='empty'></option>
-            {appOptions}
-          </FormControl>
         </FormGroup>
         <FormGroup>
           <ControlLabel>问题分类</ControlLabel>
