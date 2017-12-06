@@ -50,7 +50,7 @@ const getFromUser = (mail) => {
     })
   }
   const err = new Error('user objectId mismatch:' + mail.To)
-  new AV.Object('MailLog')({
+  new AV.Object('MailLog', {
     from: mail.From,
     to: mail.To,
     subject: mail.Subject,
