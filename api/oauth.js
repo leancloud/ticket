@@ -121,8 +121,8 @@ exports.checkPermission = (user) => {
       return getAccounts(user)
     })
     .then(accounts => {
-      for (let account in accounts) {
-        if (account.current_support_service) {
+      for (let index in accounts) {
+        if (accounts[index].current_support_service) {
           return
         }
       }
@@ -341,6 +341,7 @@ const mapAuthDatas = (user, fn) => {
       }
       return fn(region, authData[platform])
     })
+    .then(_.compact)
   })
 }
 
