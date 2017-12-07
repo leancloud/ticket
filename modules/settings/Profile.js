@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import {Form, FormGroup, ControlLabel, FormControl, Button} from 'react-bootstrap'
 
 import {Avatar} from '../common'
+import AccountLink from './AccountLink'
 
 export default class Profile extends Component {
 
@@ -36,6 +37,7 @@ export default class Profile extends Component {
     return <div>
       <div className="row">
         <div className="col-md-8">
+          <h2>基本信息</h2>
           <Form>
             <FormGroup>
               <ControlLabel>用户名</ControlLabel>
@@ -51,6 +53,7 @@ export default class Profile extends Component {
             </FormGroup>
             <Button type='button' onClick={this.handleSubmit.bind(this)}>保存</Button>
           </Form>
+          <AccountLink currentUser={this.props.currentUser} />
         </div>
         <div className="col-md-4">
           <Form>

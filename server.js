@@ -76,6 +76,20 @@ app.get('*', function (req, res) {
 
 app.use(Raven.errorHandler())
 
+// error handlers
+app.use(function(err, req, res, _next) {
+  var statusCode = err.status || 500
+  if (statusCode === 500) {
+    console.error(err.stack || err)
+  }
+  res.status(statusCode)
+  var error = {}
+  res.send({
+    message: err.message,
+    error: error
+  })
+})
+
 var PORT = parseInt(process.env.LEANCLOUD_APP_PORT || process.env.PORT || 8080)
 app.listen(PORT, function() {
   console.log('LeanTicket server running on:' + PORT)

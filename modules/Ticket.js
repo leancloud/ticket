@@ -646,7 +646,7 @@ class Tag extends Component{
       .then((app) => {
         this.setState({key: '应用', value: app.app_name})
         if (this.props.isCustomerService) {
-          return AV.Cloud.run('getLeanCloudAppUrl', {appId})
+          return AV.Cloud.run('getLeanCloudAppUrl', {appId, region: app.region})
           .then((url) => {
             if (url) {
               this.setState({url})

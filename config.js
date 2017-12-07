@@ -15,7 +15,7 @@ module.exports = {
   host,
   oauthKey: process.env.OAUTH_KEY,
   oauthSecret: process.env.OAUTH_SECRET,
-  leancloudAppUrl: process.env.LEANCLOUD_APP_URL,
+  leancloudAppUrl: process.env.LEANCLOUD_APP_URL_V2,
   mailgunKey: process.env.MAILGUN_KEY,
   mailgunDomain: process.env.MAILGUN_DOMAIN,
   wechatCorpID: process.env.WECHAT_CORP_ID,

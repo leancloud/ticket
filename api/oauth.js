@@ -1,14 +1,20 @@
+const format = require('util').format
 const router = require('express').Router()
 const qs = require('qs')
 const _ = require('lodash')
+const Promise = require('bluebird')
 const request = require('request-promise')
+const randomstring = require('randomstring')
 const AV = require('leanengine')
 
 const config = require('../config')
 const common = require('./common')
-const getGravatarHash = require('../lib/common').getGravatarHash
+const {getGravatarHash,
+  defaultLeanCloudRegion,
+  getLeanCloudRegions,
+  getLeanCloudServerDomain,
+  getLeanCloudPlatform} = require('../lib/common')
 
-const serverDomain = 'https://leancloud.cn'
 const oauthScope = 'client:info app:info client:account'
 
 if (!config.leancloudAppUrl) {
@@ -18,33 +24,84 @@ if (!config.leancloudAppUrl) {
 exports.orgName = 'LeanCloud'
 
 exports.login = (callbackUrl) => {
-  return (req, res) => {
-    const loginUrl = serverDomain + '/1.1/authorize?' +
-      qs.stringify({
-        client_id: config.oauthKey,
-        response_type: 'code',
-        redirect_uri: callbackUrl,
-        scope: oauthScope,
-      })
-    res.redirect(loginUrl)
+  return (req, res, next) => {
+    const region = req.body.region || defaultLeanCloudRegion
+    return createState({
+      region,
+      sessionToken: req.body.sessionToken,
+      referer: req.headers.referer,
+    })
+    .then(state => {
+      const loginUrl = getLeanCloudServerDomain(region) + '/1.1/authorize?' +
+        qs.stringify({
+          client_id: config.oauthKey,
+          response_type: 'code',
+          redirect_uri: callbackUrl,
+          scope: oauthScope,
+          state,
+        })
+      return res.redirect(loginUrl)
+    })
+    .catch(next)
   }
 }
 
 exports.loginCallback = (callbackUrl) => {
-  return (req, res) => {
-    return getAccessToken(req.query.code, callbackUrl).then((accessToken) => {
-      accessToken.uid = '' + accessToken.uid
-      return AV.User.signUpOrlogInWithAuthData(accessToken, 'leancloud')
-    }).then((user) => {
-      if (_.isEqual(user.createdAt, user.updatedAt)) {
-        // 第一次登录，从 LeanCloud 初始化用户信息
-        return initUserInfo(user)
-      }
-      return user
-    }).then((user) => {
-      return res.redirect('/login?token=' + user._sessionToken)
+  return (req, res, next) => {
+    return getStateData(req.query.state)
+    .then(({region, sessionToken, referer}) => {
+      return getAccessToken(region, req.query.code, callbackUrl)
+      .then((accessToken) => {
+        accessToken.uid = '' + accessToken.uid
+        if (!sessionToken) {
+          return AV.User.signUpOrlogInWithAuthData(accessToken, getLeanCloudPlatform(region))
+          .then((user) => {
+            if (_.isEqual(user.createdAt, user.updatedAt)) {
+              // 第一次登录，从 LeanCloud 初始化用户信息
+              return initUserInfo(region, user)
+            }
+            return user
+          })
+          .then(user => {
+            return res.redirect(referer + '?token=' + user._sessionToken)
+          })
+        } else {
+          return AV.User.become(sessionToken).then(user => {
+            return user.save({[`authData.${getLeanCloudPlatform(region)}`]: accessToken}, {user})
+          })
+          .then(() => {
+            return res.redirect(referer)
+          })
+        }
+      })
     })
+    .catch(next)
   }
+}
+
+const createState = (data) => {
+  return new AV.Object('State')
+  .save({
+    state: randomstring.generate(),
+    data,
+    ACL: new AV.ACL(),
+  })
+  .then(state => {
+    return state.get('state')
+  })
+}
+
+const getStateData = (state) => {
+  return new AV.Query('State')
+  .equalTo('state', state)
+  .first({useMasterKey: true})
+  .then(obj => {
+    if (!obj) {
+      throw new AV.Cloud.Error('state is invalid.')
+    }
+    obj.destroy({useMasterKey: true})
+    return obj.get('data')
+  })
 }
 
 /**
@@ -61,13 +118,15 @@ exports.checkPermission = (user) => {
     }
     return getUser(user.get('username'))
     .then((user) => {
-      return getAccount(user)
+      return getAccounts(user)
     })
-    .then(({current_support_service}) => {
-      if (!current_support_service) {
-        throw new AV.Cloud.Error('您的账号不具备提交工单的条件。')
+    .then(accounts => {
+      for (let account in accounts) {
+        if (account.current_support_service) {
+          return
+        }
       }
-      return
+      throw new AV.Cloud.Error('您的账号不具备提交工单的条件。')
     })
   })
 }
@@ -76,30 +135,22 @@ AV.Cloud.define('checkPermission', (req) => {
   return exports.checkPermission(req.currentUser)
 })
 
-AV.Cloud.define('getLeancloudAccount', (req) => {
-  return common.isCustomerService(req.currentUser)
-  .then((isCustomerService) => {
-    if (!isCustomerService) {
-      throw new AV.Cloud.Error('unauthorized', {status: 401})
-    }
-    if (!config.oauthKey) {
-      return Promise.resolve(true)
-    }
-    return getUser(req.params.username)
-    .then((user) => {
-      return getAccount(user)
-    })
-  })
+AV.Cloud.define('getLeanCloudUserInfos', (req) => {
+  const user = req.currentUser
+  if (!user) {
+    throw new AV.Cloud.Error('unauthorized', {status: 401})
+  }
+  return getClientInfos(user)
 })
 
-AV.Cloud.define('getLeanCloudUserInfoByUsername', (req) => {
+AV.Cloud.define('getLeanCloudUserInfosByUsername', (req) => {
   return common.isCustomerService(req.currentUser).then((isCustomerService) => {
     if (!isCustomerService) {
       throw new AV.Cloud.Error('unauthorized', {status: 401})
     }
     return getUser(req.params.username)
     .then((user) => {
-      return getClientInfo(user)
+      return getClientInfos(user)
     })
   })
 })
@@ -152,8 +203,14 @@ AV.Cloud.define('getLeanCloudAppUrl', (req) => {
     if (!config.leancloudAppUrl) {
       return null
     }
-    const {appId} = req.params
-    return config.leancloudAppUrl.replace(':appId', appId)
+    const {appId, region} = req.params
+    if (region === 'cn-e1') {
+      return format(config.leancloudAppUrl, 'admin-e1', appId)
+    } else if (region === 'us-w1') {
+      return format(config.leancloudAppUrl, 'admin-us', appId)
+    } else {
+      return format(config.leancloudAppUrl, 'admin', appId)
+    }
   })
 })
 
@@ -169,8 +226,8 @@ const getUser = (username) => {
   })
 }
 
-const getAccessToken = (code, callbackUrl) => {
-  const url = serverDomain + '/1.1/token?' +
+const getAccessToken = (region, code, callbackUrl) => {
+  const url = getLeanCloudServerDomain(region) + '/1.1/token?' +
     qs.stringify({
       grant_type: 'authorization_code',
       client_id: config.oauthKey,
@@ -181,8 +238,8 @@ const getAccessToken = (code, callbackUrl) => {
   return request({url, json: true})
 }
 
-const initUserInfo = (user) => {
-  return getClientInfo(user)
+const initUserInfo = (region, user) => {
+  return getClientInfo(region, user)
   .then((client) => {
     return user.save({
       username: client.username,
@@ -193,47 +250,97 @@ const initUserInfo = (user) => {
   })
 }
 
-const getClientInfo = (user) => {
-  return user.fetch({}, {useMasterKey:true})
-  .then((user) => {
-    if (user.get('authData') && user.get('authData').leancloud) {
-      const authData = user.get('authData').leancloud
-      return requestLeanCloud(`${serverDomain}/1.1/open/clients/self`, authData)
+const getClientInfos = (user) => {
+  return mapAuthDatas(user, (region, authData) => {
+    return requestLeanCloud(`${getLeanCloudServerDomain(region)}/1.1/open/clients/self`, authData)
+    .then(obj => {
+      obj.region = region
+      return obj
+    })
+  })
+}
+
+const getClientInfo = (region, user) => {
+  return mapAuthDatas(user, (r, authData) => {
+    if (region === r) {
+      return requestLeanCloud(`${getLeanCloudServerDomain(region)}/1.1/open/clients/self`, authData)
+      .then(obj => {
+        obj.region = region
+        return obj
+      })
     }
-    throw new AV.Cloud.Error(`Could not find LeanCloud authData: userId=${user.id}`, {status: 404})
+  })
+  .then(objs => {
+    for (let index in objs) {
+      if (objs[index]) {
+        return objs[index]
+      }
+    }
+    return
   })
 }
 
 const getApps = (user) => {
-  return user.fetch({}, {useMasterKey:true})
-  .then((user) => {
-    if (user.get('authData') && user.get('authData').leancloud) {
-      const authData = user.get('authData').leancloud
-      return requestLeanCloud(`${serverDomain}/1.1/open/clients/${authData.uid}/apps`, authData)
-    }
-    throw new AV.Cloud.Error(`Could not find LeanCloud authData: userId=${user.id}`, {status: 404})
+  return mapAuthDatas(user, (region, authData) => {
+    return requestLeanCloud(`${getLeanCloudServerDomain(region)}/1.1/open/clients/${authData.uid}/apps`, authData)
+    .then(objs => {
+      objs.forEach(obj => {
+        obj.region = region
+      })
+      return objs
+    })
   })
+  .then(_.flatten)
 }
 
 const getApp = (user, appId) => {
-  return user.fetch({}, {useMasterKey:true})
-  .then((user) => {
-    if (user.get('authData') && user.get('authData').leancloud) {
-      const authData = user.get('authData').leancloud
-      return requestLeanCloud(`${serverDomain}/1.1/open/clients/${authData.uid}/apps/${appId}`, authData)
+  return mapAuthDatas(user, (region, authData) => {
+    return requestLeanCloud(`${getLeanCloudServerDomain(region)}/1.1/open/clients/${authData.uid}/apps/${appId}`, authData)
+    .then(obj => {
+      obj.region = region
+      return obj
+    })
+    .catch(err => {
+      if (err.statusCode === 404) {
+        return null
+      }
+      throw err
+    })
+  })
+  .then(objs => {
+    for (let index in objs) {
+      if (objs[index]) {
+        return objs[index]
+      }
     }
-    throw new AV.Cloud.Error(`Could not find LeanCloud authData: userId=${user.id}`, {status: 404})
+    return
   })
 }
 
-const getAccount = (user) => {
+const getAccounts = (user) => {
+  return mapAuthDatas(user, (region, authData) => {
+    return requestLeanCloud(`${getLeanCloudServerDomain(region)}/1.1/open/clients/${authData.uid}/account`, authData)
+    .then(obj => {
+      obj.region = region
+      return obj
+    })
+  })
+}
+
+const mapAuthDatas = (user, fn) => {
   return user.fetch({}, {useMasterKey:true})
   .then((user) => {
-    if (user.get('authData') && user.get('authData').leancloud) {
-      const authData = user.get('authData').leancloud
-      return requestLeanCloud(`${serverDomain}/1.1/open/clients/${authData.uid}/account`, authData)
+    const authData = user.get('authData')
+    if (!authData) {
+      throw new AV.Cloud.Error(`Could not find LeanCloud authData: userId=${user.id}`, {status: 404})
     }
-    throw new AV.Cloud.Error(`Could not find LeanCloud authData: userId=${user.id}`, {status: 404})
+    return Promise.map(getLeanCloudRegions(), region => {
+      const platform = getLeanCloudPlatform(region)
+      if (!authData[platform]) {
+        return
+      }
+      return fn(region, authData[platform])
+    })
   })
 }
 

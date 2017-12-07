@@ -4,7 +4,9 @@ import PropTypes from 'prop-types'
 import {FormGroup, ControlLabel, FormControl, Button, Tooltip, OverlayTrigger} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
-const {uploadFiles, getTinyCategoryInfo} = require('./common')
+import {uploadFiles, getTinyCategoryInfo} from './common'
+import {defaultLeanCloudRegion, getLeanCloudRegionText} from '../lib/common'
+
 
 export default class NewTicket extends React.Component {
 
@@ -148,10 +150,16 @@ export default class NewTicket extends React.Component {
       )
     })
     const appOptions = this.state.apps.map((app) => {
-      return <option key={app.app_id} value={app.app_id}>{app.app_name}</option>
+      if (defaultLeanCloudRegion === app.region) {
+        return <option key={app.app_id} value={app.app_id}>{app.app_name}</option>
+      }
+      return <option key={app.app_id} value={app.app_id}>{app.app_name} ({getLeanCloudRegionText(app.region)})</option>
     })
     const tooltip = (
       <Tooltip id="tooltip">支持 Markdown 语法</Tooltip>
+    )
+    const appTooltip = (
+      <Tooltip id="appTooltip">如需显示北美和华东节点应用，请到帐号设置页面关联帐号</Tooltip>
     )
     return (
       <form onSubmit={this.handleSubmit.bind(this)}>
@@ -160,7 +168,11 @@ export default class NewTicket extends React.Component {
           <input type="text" className="form-control" value={this.state.title} onChange={this.handleTitleChange.bind(this)} />
         </FormGroup>
         <FormGroup>
-          <ControlLabel>相关应用</ControlLabel>
+          <ControlLabel>
+            相关应用 <OverlayTrigger placement="top" overlay={appTooltip}>
+              <span className='icon-wrap'><span className='glyphicon glyphicon-question-sign'></span></span>
+            </OverlayTrigger>
+          </ControlLabel>
           <FormControl componentClass="select" value={this.state.appId} onChange={this.handleAppChange.bind(this)}>
             <option key='empty'></option>
             {appOptions}
