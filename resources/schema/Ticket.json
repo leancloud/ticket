@@ -1,1 +1,83 @@
-{"schema":{"category":{"type":"Object"},"updatedAt":{"type":"Date"},"content_HTML":{"v":2,"type":"String"},"replyCount":{"type":"Number"},"ACL":{"type":"ACL"},"content":{"type":"String"},"remindAt":{"type":"Number"},"objectId":{"type":"String"},"nid":{"type":"Number","auto_increment":true,"default":0},"createdAt":{"type":"Date"},"title":{"type":"String"},"latestReply":{"type":"Object"},"joinedCustomerServices":{"type":"Array"},"author":{"className":"_User","type":"Pointer"},"evaluation":{"type":"Object"},"status":{"type":"Number"},"files":{"type":"Array"},"assignee":{"className":"_User","type":"Pointer"}},"permissions":{"add_fields":{"*":true},"delete":{"*":true},"update":{"*":true},"get":{"*":true},"find":{"*":true},"create":{"*":true}},"indexes":[]}
+{
+  "schema": {
+    "objectId": {
+      "type": "String"
+    },
+    "nid": {
+      "type": "Number",
+      "auto_increment": true,
+      "default": 0
+    },
+    "title": {
+      "type": "String"
+    },
+    "content": {
+      "type": "String"
+    },
+    "content_HTML": {
+      "type": "String"
+    },
+    "files": {
+      "type": "Array"
+    },
+    "category": {
+      "type": "Object"
+    },
+    "author": {
+      "className": "_User",
+      "type": "Pointer"
+    },
+    "assignee": {
+      "className": "_User",
+      "type": "Pointer"
+    },
+    "status": {
+      "type": "Number"
+    },
+    "replyCount": {
+      "type": "Number"
+    },
+    "remindAt": {
+      "type": "Number"
+    },
+    "latestReply": {
+      "type": "Object"
+    },
+    "joinedCustomerServices": {
+      "type": "Array"
+    },
+    "evaluation": {
+      "type": "Object"
+    },
+    "createdAt": {
+      "type": "Date"
+    },
+    "updatedAt": {
+      "type": "Date"
+    },
+    "ACL": {
+      "type": "ACL"
+    }
+  },
+  "permissions": {
+    "add_fields": {
+      "*": true
+    },
+    "delete": {
+      "*": true
+    },
+    "update": {
+      "*": true
+    },
+    "get": {
+      "*": true
+    },
+    "find": {
+      "*": true
+    },
+    "create": {
+      "*": true
+    }
+  },
+  "indexes": []
+}
