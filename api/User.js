@@ -42,6 +42,7 @@ AV.Cloud.define('getUserInfo', (req) => {
 
 AV.Cloud.afterSave('_User', (req) => {
   if (newApp) {
+    newApp = false
     return Promise.all([
       addRole('admin', req.object),
       addRole('customerService', req.object)

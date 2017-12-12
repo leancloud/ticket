@@ -65,10 +65,10 @@ export default class Login extends Component {
   }
 
   handleSignup() {
-    return new AV.User()
-    .setUsername(this.state.username)
-    .setPassword(this.state.password)
-    .signUp()
+    return AV.User.signUp(
+      this.state.username,
+      this.state.password,
+      {name: this.state.username})
     .then((user) => {
       this.props.onLogin(user)
       return
