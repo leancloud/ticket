@@ -1,5 +1,6 @@
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
+import _ from 'lodash'
 import { Link } from 'react-router'
 import { Pager } from 'react-bootstrap'
 import moment from 'moment'
@@ -27,7 +28,7 @@ export default class Tickets extends Component {
   }
 
   findTickets(filter) {
-    const filters = Object.assign({}, this.state.filters, filter)
+    const filters = _.assign({}, this.state.filters, filter)
     return new AV.Query('Ticket')
     .equalTo('author', AV.User.current())
     .include('author')

@@ -1,5 +1,6 @@
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
+import _ from 'lodash'
 import { Link } from 'react-router'
 import {Form, FormGroup, ButtonToolbar, ButtonGroup, Button, DropdownButton, MenuItem, Checkbox, FormControl, Pager} from 'react-bootstrap'
 import qs from 'query-string'
@@ -46,7 +47,7 @@ export default class CustomerServiceTickets extends Component {
   }
 
   findTickets(filters) {
-    if (Object.keys(filters).length === 0) {
+    if (_.keys(filters).length === 0) {
       this.updateFilter({
         assigneeId: AV.User.current().id,
         isOpen: 'true',
@@ -112,7 +113,7 @@ export default class CustomerServiceTickets extends Component {
   }
 
   getQueryUrl(filter) {
-    const filters = Object.assign({}, this.props.location.query, filter)
+    const filters = _.assign({}, this.props.location.query, filter)
     return this.props.location.pathname + '?' + qs.stringify(filters)
   }
 
@@ -129,7 +130,7 @@ export default class CustomerServiceTickets extends Component {
     authorSearchTimeoutId = setTimeout(() => {
       if (username.trim() === '') {
         this.setState({authorFilterValidationState: 'null'})
-        const filters = Object.assign({}, this.props.location.query, {authorId: null})
+        const filters = _.assign({}, this.props.location.query, {authorId: null})
         return this.updateFilter(filters)
       }
 
@@ -141,7 +142,7 @@ export default class CustomerServiceTickets extends Component {
           return
         } else {
           this.setState({authorFilterValidationState: 'success'})
-          const filters = Object.assign({}, this.props.location.query, {authorId: user.objectId})
+          const filters = _.assign({}, this.props.location.query, {authorId: user.objectId})
           return this.updateFilter(filters)
         }
       })
@@ -205,7 +206,7 @@ export default class CustomerServiceTickets extends Component {
       )
     })
 
-    const statusMenuItems = Object.keys(TICKET_STATUS).map(key => {
+    const statusMenuItems = _.keys(TICKET_STATUS).map(key => {
       const value = TICKET_STATUS[key]
       return <MenuItem key={value} eventKey={value}>{TICKET_STATUS_MSG[value]}</MenuItem>
     })
