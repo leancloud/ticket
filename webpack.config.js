@@ -20,7 +20,7 @@ module.exports = {
 
   module: {
     loaders: [
-      { test: /\.js$/, exclude: /node_modules/, loader: 'babel-loader?presets[]=es2015&presets[]=react' },
+      { test: /\.js$/, exclude: /node_modules/, loader: 'babel-loader?presets[]=env&presets[]=react' },
       {
         test: /\.css$/,
         loader: ExtractTextPlugin.extract('css?modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]'),
