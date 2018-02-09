@@ -6,7 +6,7 @@ LeanCloud 应用准备
 
 1. 创建 LeanCloud 应用。
 2. 调整应用选项：
-   - 设置 -> 应用选项 -> 勾选「启用 LiveQuery」
+   - 存储 -> 设置 -> 勾选「启用 LiveQuery」
 3. 初始化数据表：将 `./resources/schema` 目录下表结构导入到存储服务中。
 4. 设置云引擎二级域名：云引擎 -> 设置 -> Web 主机域名
 
