@@ -41,7 +41,9 @@ const getIndexPage = (uuid) => {
 <link rel="stylesheet" href="/css/leancloud-base.css">
 <link rel="stylesheet" href="/css/react-datepicker.css">
 <link rel="stylesheet" href="/index.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
 <link rel="stylesheet" href="${process.env.WEBPACK_DEV_SERVER || ''}/app.css">
+<link rel="stylesheet" href="/css/docsearch-override.css">
 <script src="/js/jquery.min.js"></script>
 <script src="/js/bootstrap.min.js"></script>
 <div id=app></div>
@@ -54,6 +56,7 @@ const getIndexPage = (uuid) => {
   UUID = '${uuid}'
   ORG_NAME = '${orgName}'
   USE_OAUTH = '${!!process.env.OAUTH_KEY}'
+  ALGOLIA_API_KEY = '${process.env.ALGOLIA_API_KEY}'
 </script>
 <script src='${process.env.WEBPACK_DEV_SERVER || ''}/bundle.js'></script>
 <script>

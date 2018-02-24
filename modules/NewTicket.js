@@ -1,8 +1,9 @@
-/*global $*/
+/*global $, ALGOLIA_API_KEY*/
 import React from 'react'
 import PropTypes from 'prop-types'
 import {FormGroup, ControlLabel, FormControl, Button, Tooltip, OverlayTrigger} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
+import docsearch from 'docsearch.js'
 
 import {uploadFiles, getTinyCategoryInfo} from './common'
 import {defaultLeanCloudRegion, getLeanCloudRegionText} from '../lib/common'
@@ -24,6 +25,13 @@ export default class NewTicket extends React.Component {
   }
 
   componentDidMount() {
+    docsearch({
+      apiKey: ALGOLIA_API_KEY,
+      indexName: 'leancloud',
+      inputSelector: '.docsearch-input',
+      debug: false // Set debug to true if you want to inspect the dropdown
+    })
+
     this.contentTextarea.addEventListener('paste', this.pasteEventListener.bind(this))
     AV.Cloud.run('checkPermission')
     .then(() => {
@@ -165,7 +173,8 @@ export default class NewTicket extends React.Component {
       <form onSubmit={this.handleSubmit.bind(this)}>
         <FormGroup>
           <ControlLabel>标题</ControlLabel>
-          <input type="text" className="form-control" value={this.state.title} onChange={this.handleTitleChange.bind(this)} />
+          <input type="text" className="form-control docsearch-input" value={this.state.title} 
+             onChange={this.handleTitleChange.bind(this)} />
         </FormGroup>
         <FormGroup>
           <ControlLabel>
