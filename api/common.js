@@ -42,8 +42,13 @@ exports.getTinyReplyInfo = (reply) => {
     })
 }
 
-exports.isCustomerService = (user) => {
+exports.isCustomerService = (user, ticketAuthor) => {
   if (!user) {
+    return Promise.resolve(false)
+  }
+  if (ticketAuthor && ticketAuthor.id === user.id) {
+    // 如果是客服自己提交工单，则当前客服在该工单中认为是用户，
+    // 这时为了方便工单作为内部工作协调使用。
     return Promise.resolve(false)
   }
   return new AV.Query(AV.Role)
