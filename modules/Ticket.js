@@ -92,11 +92,11 @@ export default class Ticket extends Component {
     replyQuery.subscribe({subscriptionId: UUID + '@' + ticket.id}).then(liveQuery => {
       this.replyLiveQuery = liveQuery
       this.replyLiveQuery.on('create', reply => {
-        return reply.fetch({include: 'author,files'})
+        return reply.fetch({include: 'ticket,author,files'})
         .then(() => {
           const replies = this.state.replies
           replies.push(reply)
-          this.setState({replies})
+          this.setState({ticket: reply.get('ticket'), replies})
           return
         })
       })
@@ -114,9 +114,13 @@ export default class Ticket extends Component {
     .then(liveQuery => {
       this.opsLogLiveQuery = liveQuery
       this.opsLogLiveQuery.on('create', opsLog => {
-        const opsLogs = this.state.opsLogs
-        opsLogs.push(opsLog)
-        this.setState({opsLogs})
+        return opsLog.fetch({include: 'ticket'})
+        .then(() => {
+          const opsLogs = this.state.opsLogs
+          opsLogs.push(opsLog)
+          this.setState({ticket: opsLog.get('ticket'), opsLogs})
+          return
+        })
       })
       return
     })
