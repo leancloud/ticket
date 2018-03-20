@@ -26,7 +26,7 @@ export default class NewTicket extends React.Component {
 
   componentDidMount() {
     docsearch({
-      apiKey: '357b777ed18e79673a2c1de3f6c64478',
+      apiKey: ALGOLIA_API_KEY,
       indexName: 'leancloud',
       inputSelector: '.docsearch-input',
       debug: false // Set debug to true if you want to inspect the dropdown

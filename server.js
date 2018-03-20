@@ -56,6 +56,7 @@ const getIndexPage = (uuid) => {
   UUID = '${uuid}'
   ORG_NAME = '${orgName}'
   USE_OAUTH = '${!!process.env.OAUTH_KEY}'
+  ALGOLIA_API_KEY = '${process.env.ALGOLIA_API_KEY}'
 </script>
 <script src='${process.env.WEBPACK_DEV_SERVER || ''}/bundle.js'></script>
 <script>
