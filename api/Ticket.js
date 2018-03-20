@@ -1,7 +1,8 @@
 const _ = require('lodash')
 const AV = require('leanengine')
 
-const {getTinyUserInfo, htmlify, isCustomerService, getTinyReplyInfo}= require('./common')
+const common = require('./common')
+const {getTinyUserInfo, htmlify, getTinyReplyInfo}= common
 const oauth = require('./oauth')
 const notify = require('./notify')
 const {TICKET_STATUS, ticketClosedStatuses} = require('../lib/common')
@@ -127,14 +128,16 @@ AV.Cloud.define('operateTicket', (req) => {
     .include('author')
     .get(ticketId, {user: req.currentUser}),
     getTinyUserInfo(req.currentUser),
-    isCustomerService(req.currentUser),
   ])
-  .then(([ticket, operator, isCustomerService]) => {
-    if (isCustomerService) {
-      ticket.addUnique('joinedCustomerServices', operator)
-    }
-    ticket.set('status', getTargetStatus(action, isCustomerService))
-    return ticket.save(null, {user: req.currentUser})
+  .then(([ticket, operator]) => {
+    return common.isCustomerService(req.currentUser, ticket.get('author'))
+    .then(isCustomerService => {
+      if (isCustomerService) {
+        ticket.addUnique('joinedCustomerServices', operator)
+      }
+      ticket.set('status', getTargetStatus(action, isCustomerService))
+      return ticket.save(null, {user: req.currentUser})
+    })
     .then(() => {
       return new AV.Object('OpsLog').save({
         ticket,

@@ -8,6 +8,7 @@ import {FormGroup, ControlLabel, FormControl, Label, Alert, Button, ButtonToolba
 import AV from 'leancloud-storage/live-query'
 
 import {UserLabel, TicketStatusLabel, uploadFiles, getTinyCategoryInfo} from './common'
+import common from './common'
 import UpdateTicket from './UpdateTicket'
 import css from './Ticket.css'
 import csCss from './CustomerServiceTickets.css'
@@ -91,11 +92,11 @@ export default class Ticket extends Component {
     replyQuery.subscribe({subscriptionId: UUID + '@' + ticket.id}).then(liveQuery => {
       this.replyLiveQuery = liveQuery
       this.replyLiveQuery.on('create', reply => {
-        return reply.fetch({include: 'author,files'})
+        return reply.fetch({include: 'ticket,author,files'})
         .then(() => {
           const replies = this.state.replies
           replies.push(reply)
-          this.setState({replies})
+          this.setState({ticket: reply.get('ticket'), replies})
           return
         })
       })
@@ -113,9 +114,13 @@ export default class Ticket extends Component {
     .then(liveQuery => {
       this.opsLogLiveQuery = liveQuery
       this.opsLogLiveQuery.on('create', opsLog => {
-        const opsLogs = this.state.opsLogs
-        opsLogs.push(opsLog)
-        this.setState({opsLogs})
+        return opsLog.fetch({include: 'ticket'})
+        .then(() => {
+          const opsLogs = this.state.opsLogs
+          opsLogs.push(opsLog)
+          this.setState({ticket: opsLog.get('ticket'), opsLogs})
+          return
+        })
       })
       return
     })
@@ -337,8 +342,9 @@ export default class Ticket extends Component {
       )
     }
 
+    const isCustomerService = this.props.isCustomerService && common.isCustomerService(this.props.currentUser, ticket.get('author'))
     const tags = this.state.tags.map((tag) => {
-      return <Tag key={tag.id} tag={tag} ticket={ticket} isCustomerService={this.props.isCustomerService} />
+      return <Tag key={tag.id} tag={tag} ticket={ticket} isCustomerService={isCustomerService} />
     })
 
     const timeline = _.chain(this.state.replies)
@@ -360,7 +366,7 @@ export default class Ticket extends Component {
           </FormGroup>
         </FormGroup>
       )
-    } else if (ticketStatus === TICKET_STATUS.PRE_FULFILLED && !this.props.isCustomerService) {
+    } else if (ticketStatus === TICKET_STATUS.PRE_FULFILLED && !isCustomerService) {
       optionButtons = (
         <Alert bsStyle="warning">
           <ControlLabel>我们的工程师认为该工单已解决，请确认：</ControlLabel>
@@ -369,7 +375,7 @@ export default class Ticket extends Component {
           <Button onClick={() => this.operateTicket('reopen')}>未解决</Button>
         </Alert>
       )
-    } else if (this.props.isCustomerService) {
+    } else if (isCustomerService) {
       optionButtons = (
         <FormGroup>
           <ControlLabel>工单操作</ControlLabel>
@@ -417,7 +423,7 @@ export default class Ticket extends Component {
                   commitReply={this.commitReply.bind(this)}
                   commitReplySoon={this.commitReplySoon.bind(this)}
                   operateTicket={this.operateTicket.bind(this)}
-                  isCustomerService={this.props.isCustomerService}
+                  isCustomerService={isCustomerService}
                 />
               </div>
             }
@@ -428,7 +434,7 @@ export default class Ticket extends Component {
                 <Evaluation
                   saveEvaluation={this.saveEvaluation.bind(this)}
                   ticket={ticket}
-                  isCustomerService={this.props.isCustomerService}
+                  isCustomerService={isCustomerService}
                 />
               </div>
             }
@@ -453,7 +459,7 @@ export default class Ticket extends Component {
               <div>
                 <hr />
                 <UpdateTicket ticket={ticket}
-                  isCustomerService={this.props.isCustomerService}
+                  isCustomerService={isCustomerService}
                   updateTicketCategory={this.updateTicketCategory.bind(this)}
                   updateTicketAssignee={this.updateTicketAssignee.bind(this)}
                 />
@@ -470,6 +476,7 @@ export default class Ticket extends Component {
 
 Ticket.propTypes = {
   router: PropTypes.object,
+  currentUser: PropTypes.object,
   isCustomerService: PropTypes.bool,
   params: PropTypes.object,
 }
