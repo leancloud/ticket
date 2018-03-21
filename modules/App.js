@@ -1,4 +1,4 @@
-/*global UUID, ALGOLIA_API_KEY*/
+/*global UUID*/
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import NotificationSystem from 'react-notification-system'

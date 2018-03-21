@@ -1,4 +1,4 @@
-/*global $*/
+/*global $, ALGOLIA_API_KEY*/
 import React from 'react'
 import PropTypes from 'prop-types'
 import {FormGroup, ControlLabel, FormControl, Button, Tooltip, OverlayTrigger} from 'react-bootstrap'
