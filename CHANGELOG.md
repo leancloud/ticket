@@ -1,3 +1,11 @@
+<a name="1.3.0-leancloud"></a>
+# 1.3.0-leancloud (2018-03-22)
+
+### Features
+
+* 创建工单时增加文档检索功能 ([971b231](https://github.com/leancloud/ticket/commit/971b231))
+
+
 <a name="1.2.1-leancloud"></a>
 ## 1.2.1-leancloud (2018-03-20)
 
