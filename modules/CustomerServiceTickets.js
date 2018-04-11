@@ -162,7 +162,7 @@ export default class CustomerServiceTickets extends Component {
     const filters = this.props.location.query
     const tickets = this.state.tickets
     const ticketTrs = tickets.map((ticket) => {
-      const customerServices = (ticket.get('joinedCustomerServices') || []).map((user) => {
+      const customerServices = _.uniqBy(ticket.get('joinedCustomerServices') || [], 'objectId').map((user) => {
         return (
           <span key={user.objectId}><UserLabel user={user} /> </span>
         )
