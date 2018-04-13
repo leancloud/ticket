@@ -65,14 +65,9 @@ export default class CustomerServiceTickets extends Component {
       statuses = [parseInt(status)]
     }
 
-    let query
-    if (statuses.length === 0) {
-      query = new AV.Query('Ticket')
-    } else {
-      const statusFilters = statuses.map((status) => {
-        return new AV.Query('Ticket').equalTo('status', status)
-      })
-      query = AV.Query.or(...statusFilters)
+    const query = new AV.Query('Ticket')
+    if (statuses.length !== 0) {
+      query.containedIn('status', statuses)
     }
 
     if (assigneeId) {
