@@ -56,16 +56,18 @@ export default class CustomerServiceTickets extends Component {
     }
 
     const {assigneeId, isOpen, status, categoryId, authorId, isOnlyUnlike, page = '0', size = '10'} = filters
+    const query = new AV.Query('Ticket')
+    
     let statuses = []
     if (isOpen === 'true') {
       statuses = ticketOpenedStatuses()
+      query.addAscending('status')
     } else if (isOpen === 'false') {
       statuses = ticketClosedStatuses()
     } else if (status) {
       statuses = [parseInt(status)]
     }
 
-    const query = new AV.Query('Ticket')
     if (statuses.length !== 0) {
       query.containedIn('status', statuses)
     }
@@ -90,7 +92,6 @@ export default class CustomerServiceTickets extends Component {
     .include('assignee')
     .limit(parseInt(size))
     .skip(parseInt(page) * parseInt(size))
-    .addAscending('status')
     .addDescending('updatedAt')
     .find()
     .then(tickets => {
