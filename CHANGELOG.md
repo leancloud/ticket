@@ -1,3 +1,19 @@
+<a name="1.2.2"></a>
+## [1.2.2](https://github.com/leancloud/ticket/compare/v1.2.1...v1.2.2) (2018-04-18)
+
+
+### Bug Fixes
+
+* 在渲染前对 joinedCustomerServices 去重 ([69c29ba](https://github.com/leancloud/ticket/commit/69c29ba))
+* 更新 leancloud-storage 修复 LiveQuery 链接异常断开的问题 ([5a81d13](https://github.com/leancloud/ticket/commit/5a81d13))
+
+
+### Features
+
+* 仅对「未完成」工单按照 status 排序 ([47c0c6e](https://github.com/leancloud/ticket/commit/47c0c6e))
+
+
+
 <a name="1.2.1"></a>
 ## 1.2.1 (2018-03-20)
 
