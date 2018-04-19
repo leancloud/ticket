@@ -46,7 +46,7 @@ export default class Tickets extends Component {
 
   render() {
     const ticketLinks = this.state.tickets.map((ticket) => {
-      const customerServices = (ticket.get('joinedCustomerServices') || []).map((user) => {
+      const customerServices = _.uniqBy(ticket.get('joinedCustomerServices') || [], 'objectId').map((user) => {
         return (
           <span key={user.objectId}><UserLabel user={user} /> </span>
         )

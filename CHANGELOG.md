@@ -1,13 +1,29 @@
-<a name="1.3.0-leancloud"></a>
-# 1.3.0-leancloud (2018-03-22)
+<a name="1.2.2"></a>
+## [1.2.2](https://github.com/leancloud/ticket/compare/v1.2.1...v1.2.2) (2018-04-18)
+
+
+### Bug Fixes
+
+* 在渲染前对 joinedCustomerServices 去重 ([69c29ba](https://github.com/leancloud/ticket/commit/69c29ba))
+* 更新 leancloud-storage 修复 LiveQuery 链接异常断开的问题 ([5a81d13](https://github.com/leancloud/ticket/commit/5a81d13))
+
+
+### Features
+
+* 仅对「未完成」工单按照 status 排序 ([47c0c6e](https://github.com/leancloud/ticket/commit/47c0c6e))
+
+
+
+<a name="1.2.1-leancloud.1"></a>
+# 1.2.1-leancloud.1 (2018-03-22)
 
 ### Features
 
 * 创建工单时增加文档检索功能 ([971b231](https://github.com/leancloud/ticket/commit/971b231))
 
 
-<a name="1.2.1-leancloud"></a>
-## 1.2.1-leancloud (2018-03-20)
+<a name="1.2.1"></a>
+## 1.2.1 (2018-03-20)
 
 
 ### Bug Fixes
