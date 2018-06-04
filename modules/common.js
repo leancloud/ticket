@@ -144,7 +144,7 @@ exports.TicketStatusLabel = (props) => {
   case TICKET_STATUS.WAITING_CUSTOMER:
     return <span className='label label-primary'>{TICKET_STATUS_MSG[props.status]}</span>
   default:
-    new Error('unkonwn ticket status:', props.status)
+    throw new Error('unkonwn ticket status:', props.status)
   }
 }
 exports.TicketStatusLabel.displayName = 'TicketStatusLabel'
