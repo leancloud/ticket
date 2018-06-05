@@ -10,6 +10,7 @@ import AV from 'leancloud-storage/live-query'
 import {UserLabel, TicketStatusLabel, uploadFiles, getTinyCategoryInfo} from './common'
 import common from './common'
 import UpdateTicket from './UpdateTicket'
+import TextareaWithPreview from './components/TextareaWithPreview'
 import css from './Ticket.css'
 import csCss from './CustomerServiceTickets.css'
 import DocumentTitle from 'react-document-title'
@@ -595,7 +596,7 @@ class TicketReply extends Component {
       <div>
         <form className="form-group">
           <FormGroup>
-            <FormControl componentClass="textarea" placeholder="在这里输入，粘贴图片即可上传。" rows="8"
+            <TextareaWithPreview componentClass="textarea" placeholder="在这里输入，粘贴图片即可上传。" rows="8"
               value={this.state.reply}
               onChange={this.handleReplyOnChange.bind(this)}
               onKeyDown={this.handleReplyOnKeyDown.bind(this)}
