@@ -1,3 +1,14 @@
+<a name="1.3.0"></a>
+# [1.3.0](https://github.com/leancloud/ticket/compare/v1.2.2...v1.3.0) (2018-06-06)
+
+
+### Features
+
+* 工单输入框增加预览功能 ([92b793f](https://github.com/leancloud/ticket/commit/92b793f))
+* 指定的 Node 版本升级到 10.x ([e7b1c9e](https://github.com/leancloud/ticket/commit/e7b1c9e))
+
+
+
 <a name="1.2.2"></a>
 ## [1.2.2](https://github.com/leancloud/ticket/compare/v1.2.1...v1.2.2) (2018-04-18)
 
