@@ -99,7 +99,7 @@ export default class Ticket extends Component {
           replies.push(reply)
           this.setState({ticket: reply.get('ticket'), replies})
           return
-        })
+        }).catch(this.context.addNotification)
       })
       return
     })
@@ -121,7 +121,7 @@ export default class Ticket extends Component {
           opsLogs.push(opsLog)
           this.setState({ticket: opsLog.get('ticket'), opsLogs})
           return
-        })
+        }).catch(this.context.addNotification)
       })
       return
     })
