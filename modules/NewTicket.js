@@ -5,6 +5,7 @@ import {FormGroup, ControlLabel, FormControl, Button, Tooltip, OverlayTrigger} f
 import AV from 'leancloud-storage/live-query'
 import docsearch from 'docsearch.js'
 
+import TextareaWithPreview from './components/TextareaWithPreview'
 import {uploadFiles, getTinyCategoryInfo} from './common'
 import {defaultLeanCloudRegion, getLeanCloudRegionText} from '../lib/common'
 
@@ -200,7 +201,7 @@ export default class NewTicket extends React.Component {
               <b className="has-required" title="支持 Markdown 语法">M↓</b>
             </OverlayTrigger>
           </ControlLabel>
-          <FormControl componentClass="textarea" placeholder="在这里输入，粘贴图片即可上传。" rows="8"
+          <TextareaWithPreview componentClass="textarea" placeholder="在这里输入，粘贴图片即可上传。" rows="8"
             value={this.state.content}
             onChange={this.handleContentChange.bind(this)}
             inputRef={(ref) => this.contentTextarea = ref }
