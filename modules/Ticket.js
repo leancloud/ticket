@@ -84,6 +84,17 @@ export default class Ticket extends Component {
     }
   }
 
+  refreshTicket() {
+    const { ticket } = this.state
+    if (!ticket) return
+    return ticket.fetch({
+      include: ['author', 'assignee', 'files']
+    }).then(() => {
+      this.setState({ticket})
+      return ticket
+    })
+  }
+
   getReplyQuery(ticket) {
     const replyQuery = new AV.Query('Reply')
     .equalTo('ticket', ticket)
@@ -93,12 +104,12 @@ export default class Ticket extends Component {
     replyQuery.subscribe({subscriptionId: UUID + '@' + ticket.id}).then(liveQuery => {
       this.replyLiveQuery = liveQuery
       this.replyLiveQuery.on('create', reply => {
-        return reply.fetch({include: 'ticket,author,files'})
+        return reply.fetch({include: 'author,files'})
         .then(() => {
           const replies = this.state.replies
           replies.push(reply)
-          this.setState({ticket: reply.get('ticket'), replies})
-          return
+          this.setState({replies})
+          return this.refreshTicket()
         }).catch(this.context.addNotification)
       })
       return
@@ -115,12 +126,12 @@ export default class Ticket extends Component {
     .then(liveQuery => {
       this.opsLogLiveQuery = liveQuery
       this.opsLogLiveQuery.on('create', opsLog => {
-        return opsLog.fetch({include: 'ticket'})
+        return opsLog.fetch()
         .then(() => {
           const opsLogs = this.state.opsLogs
           opsLogs.push(opsLog)
-          this.setState({ticket: opsLog.get('ticket'), opsLogs})
-          return
+          this.setState({opsLogs})
+          return this.refreshTicket()
         }).catch(this.context.addNotification)
       })
       return
