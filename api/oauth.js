@@ -54,7 +54,7 @@ exports.loginCallback = (callbackUrl) => {
       .then((accessToken) => {
         accessToken.uid = '' + accessToken.uid
         if (!sessionToken) {
-          return AV.User.signUpOrlogInWithAuthData(accessToken, getLeanCloudPlatform(region))
+          return AV.User.loginWithAuthData(accessToken, getLeanCloudPlatform(region))
           .then((user) => {
             if (_.isEqual(user.createdAt, user.updatedAt)) {
               // 第一次登录，从 LeanCloud 初始化用户信息
