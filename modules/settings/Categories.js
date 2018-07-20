@@ -1,9 +1,10 @@
 import React from 'react'
 import _ from 'lodash'
 import {Link} from 'react-router'
+import {FormGroup} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
-import common, {UserLabel} from '../common'
+import common, {UserLabel, makeTree, depthFirstSearchMap} from '../common'
 
 export default class Cagegories extends React.Component {
 
@@ -11,7 +12,6 @@ export default class Cagegories extends React.Component {
     super(props)
     this.state = {
       categories: [],
-      newCategory: '',
       checkedCategories: [],
       customerServices: [],
     }
@@ -32,27 +32,8 @@ export default class Cagegories extends React.Component {
         checkedCategories: AV.User.current().get('categories') || [],
         customerServices,
       })
+      return
     })
-  }
-
-  handleNewCategoryChange(e) {
-    this.setState({newCategory: e.target.value})
-  }
-
-  handleCategorySubmit(e) {
-    e.preventDefault()
-    if (this.state.newCategory) {
-      new AV.Object('Category')
-        .save({name: this.state.newCategory})
-        .then((category) => {
-          const categories = this.state.categories
-          categories.unshift(category)
-          this.setState({
-            categories,
-            newCategory: ''
-          })
-        })
-    }
   }
 
   handleCategoryChange(e, categoryId) {
@@ -63,16 +44,18 @@ export default class Cagegories extends React.Component {
     } else {
       categories = _.reject(categories, {objectId: categoryId})
     }
-    AV.User.current()
+    return AV.User.current()
       .set('categories', categories)
       .save()
       .then(() => {
         this.setState({checkedCategories: categories})
+        return
       })
   }
 
   render() {
-    const categories = this.state.categories.map((category) => {
+    const categoriesTree = makeTree(this.state.categories)
+    const categories = depthFirstSearchMap(categoriesTree, (category) => {
       const selectCustomerServices = _.filter(this.state.customerServices, (user) => {
         return _.find(user.get('categories'), {objectId: category.id})
       }).map((user) => {
@@ -80,7 +63,7 @@ export default class Cagegories extends React.Component {
       })
       return (
         <tr key={category.id}>
-          <td><Link to={'/settings/categories/' + category.id}>{category.get('name')}</Link></td>
+          <td>{category.get('parent') && ' └ '}<Link to={'/settings/categories/' + category.id}>{category.get('name')}</Link></td>
           <td><input type='checkbox'
                 checked={!!_.find(this.state.checkedCategories, {objectId: category.id})}
                 onChange={(e) => this.handleCategoryChange(e, category.id)}
@@ -91,13 +74,11 @@ export default class Cagegories extends React.Component {
     })
     return (
       <div>
-        <div className="form-inline form-group">
-          <div className='form-group'>
-            <input type="text" className="form-control" placeholder="分类名称" value={this.state.newCategory} onChange={this.handleNewCategoryChange.bind(this)} />
-          </div>
-          {' '}
-          <button type="button" className="btn btn-default" onClick={this.handleCategorySubmit.bind(this)}>新增分类</button>
-        </div>
+        <form>
+          <FormGroup>
+            <Link to={'/settings/categories/_new'}>新增分类</Link>
+          </FormGroup>
+        </form>
         <table className='table table-bordered'>
           <thead>
             <tr>

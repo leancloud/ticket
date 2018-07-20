@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import React from 'react'
 import PropTypes from 'prop-types'
 import {FormGroup, ControlLabel, FormControl, Button} from 'react-bootstrap'
@@ -7,41 +8,74 @@ export default class Category extends React.Component {
 
   componentDidMount() {
     return new AV.Query('Category')
-    .get(this.props.params.id)
-    .then((category) => {
-      this.setState({
-        category
+    .doesNotExist('parent')
+    .find()
+    .then(categories => {
+      const categoryId = this.props.params.id
+      return Promise.resolve()
+      .then(() => {
+        if (categoryId == '_new') {
+          return new AV.Object('Category', {
+            name: '',
+            qTemplate: '',
+          })
+        }
+
+        const category = _.find(categories, {id: categoryId})
+        if (category) {
+          return category
+        }
+
+        return new AV.Query('Category').get(categoryId)
+      })
+      .then(category => {
+        this.setState({
+          name: category.get('name'),
+          qTemplate: category.get('qTemplate'),
+          category,
+          parentCategory: null,
+          categories,
+        })
+        return
       })
     })
   }
 
   handleNameChange(e) {
-    const category = this.state.category
-    category.set('name', e.target.value)
-    this.setState({category})
+    this.setState({name: e.target.value})
+  }
+
+  handleParentChange(e) {
+    const category = this.state.categories.find(c => c.id === e.target.value)
+    this.setState({parentCategory: category})
   }
 
   handleQTemplateChange(e) {
-    const category = this.state.category
-    category.set('qTemplate', e.target.value)
-    this.setState({category})
+    this.setState({qTemplate: e.target.value})
   }
 
   handleSubmit(e) {
     e.preventDefault()
     const category = this.state.category
-    category.save()
-    .then(() => {
-      this.setState({category})
+    return category.save({
+      name: this.state.name,
+      parent: this.state.parentCategory,
+      qTemplate: this.state.qTemplate,
     })
+    .then(() => {
+      this.context.router.push('/settings/categories')
+      return
+    })
+    .then(this.context.addNotification)
   }
 
   handleDelete() {
-    const result = confirm('确认要删除分类：' + this.state.category.get('name'))
+    const result = confirm('确认要停用分类：' + this.state.category.get('name'))
     if (result) {
-      this.state.category.destroy()
+      return this.state.category.destroy()
       .then(() => {
         this.context.router.push('/settings/categories')
+        return
       })
       .catch(this.context.addNotification)
     }
@@ -52,26 +86,41 @@ export default class Category extends React.Component {
       return <div>数据读取中……</div>
     }
 
+    const categorieOptions = this.state.categories.map(c => {
+      return <option key={c.id} value={c.id}>{c.get('name')}</option>
+    })
+
     return (
       <div>
-        <h1>分类修改</h1>
         <form onSubmit={this.handleSubmit.bind(this)}>
-          <FormGroup controlId="qTemplateTextarea">
+          <FormGroup controlId="nameText">
             <ControlLabel>分类名称</ControlLabel>
-            <FormControl type="text" value={this.state.category.get('name')} onChange={this.handleNameChange.bind(this)} />
+            <FormControl type="text" value={this.state.name} onChange={this.handleNameChange.bind(this)} />
           </FormGroup>
-          <FormGroup>
+          <FormGroup controlId="parentSelect">
+            <ControlLabel>父分类(可选)</ControlLabel>
+            <FormControl componentClass='select'
+              value={this.state.category.get('parent') && this.state.category.get('parent').id}
+              onChange={this.handleParentChange.bind(this)}>
+              <option value=''></option>
+              {categorieOptions}
+            </FormControl>
+          </FormGroup>
+          <FormGroup controlId="qTemplateTextarea">
             <ControlLabel>问题描述模板</ControlLabel>
             <FormControl
               componentClass="textarea"
               placeholder="用户新建该分类工单时，问题描述默认显示这里的内容。"
               rows='8'
-              value={this.state.category.get('qTemplate')}
+              value={this.state.qTemplate}
               onChange={this.handleQTemplateChange.bind(this)}/>
           </FormGroup>
-          <Button type='submit'>保存</Button>
+          <Button type='submit' bsStyle='success'>保存</Button>
           {' '}
-          <Button type='button' bsStyle="danger" onClick={this.handleDelete.bind(this)}>删除</Button>
+          {this.state.category.id
+            && <Button type='button' bsStyle="danger" onClick={this.handleDelete.bind(this)}>删除</Button>
+            || <Button type='button' onClick={() => this.context.router.push('/settings/categories')}>取消</Button>
+          }
         </form>
       </div>
     )

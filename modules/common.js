@@ -162,3 +162,25 @@ exports.Avatar.propTypes = {
   height: PropTypes.string,
   width: PropTypes.string
 }
+
+exports.makeTree = (objs) => {
+  const [children, parents] = _.partition(objs, o => o.get('parent'))
+  parents.forEach(o => {
+    o.children = []
+  })
+  children.forEach(c => {
+    const p = _.find(parents, {id: c.get('parent').id})
+    p.children.push(c)
+  })
+  return parents
+}
+
+exports.depthFirstSearchMap = (array, fn) => {
+  return _.flatten(array.map(a => {
+    const result = fn(a)
+    if (a.children) {
+      return [result, ...exports.depthFirstSearchMap(a.children, fn)]
+    }
+    return result
+  }))
+}
