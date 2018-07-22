@@ -26,7 +26,7 @@ export default class NewTicket extends React.Component {
     .then(categories => {
       let {
         title=(localStorage.getItem('ticket:new:title') || ''),
-        categoryId='',
+        categoryId =(localStorage.getItem('ticket:new:categoryId') || ''),
         content=(localStorage.getItem('ticket:new:content') || '')
       } = this.props.location.query
       const category = categories.find(c => c.id === categoryId)
@@ -65,11 +65,27 @@ export default class NewTicket extends React.Component {
 
   handleCategoryChange(e) {
     const category = this.state.categories.find(c => c.id === e.target.value)
-    if (category) {
-      this.setState({categoryId: category.id, content: category.get('qTemplate') || ''})
+    let categoryId, content
+    if (!category) {
+      categoryId = ''
+
+    } else if (!this.state.content) {
+      categoryId = category.id
+      content = category.get('qTemplate') || ''
+
+    } else if (!category.get('qTemplate')) {
+      categoryId = category.id
+
+    } else if (confirm('当前「问题描述」不为空，所选「问题分类」的模板会覆盖现有描述。\n\n是否继续？')) {
+      categoryId = category.id
+      content = category.get('qTemplate')
+
     } else {
-      this.setState({categoryId: '', content: ''})
+      return false
     }
+
+    localStorage.setItem('ticket:new:categoryId', categoryId)
+    this.setState({categoryId, content})
   }
 
   handleContentChange(e) {
