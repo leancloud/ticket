@@ -7,8 +7,7 @@ import PropTypes from 'prop-types'
 import {FormGroup, ControlLabel, FormControl, Label, Alert, Button, ButtonToolbar, Radio, Tooltip, OverlayTrigger} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
-import {UserLabel, TicketStatusLabel, uploadFiles, getTinyCategoryInfo} from './common'
-import common from './common'
+import {UserLabel, TicketStatusLabel, uploadFiles} from './common'
 import UpdateTicket from './UpdateTicket'
 import TextareaWithPreview from './components/TextareaWithPreview'
 import css from './Ticket.css'
@@ -46,6 +45,7 @@ export default class Ticket extends Component {
     .equalTo('nid', parseInt(this.props.params.nid))
     .include('author')
     .include('assignee')
+    .include('categories')
     .include('files')
     .first()
     .then(ticket => {
@@ -171,7 +171,12 @@ export default class Ticket extends Component {
   }
 
   updateTicketCategory(category) {
-    return this.state.ticket.set('category', getTinyCategoryInfo(category)).save()
+    const categories = []
+    while (category) {
+      categories.unshift(category)
+      category = category.parent
+    }
+    return this.state.ticket.set('categories', categories).save()
     .then((ticket) => {
       this.setState({ticket})
       return
@@ -354,7 +359,9 @@ export default class Ticket extends Component {
       )
     }
 
-    const isCustomerService = this.props.isCustomerService && common.isCustomerService(this.props.currentUser, ticket.get('author'))
+    // 如果是客服自己提交工单，则当前客服在该工单中认为是用户，
+    // 这时为了方便工单作为内部工作协调使用。
+    const isCustomerService = this.props.isCustomerService && ticket.get('author').id != this.props.currentUser.id
     const tags = this.state.tags.map((tag) => {
       return <Tag key={tag.id} tag={tag} ticket={ticket} isCustomerService={isCustomerService} />
     })
@@ -464,7 +471,7 @@ export default class Ticket extends Component {
 
             <FormGroup>
               <label className="label-block">类别</label>
-              <span className={csCss.category + ' ' + css.categoryBlock}>{ticket.get('category').name}</span>
+              <span className={csCss.category + ' ' + css.categoryBlock}>{_.last(ticket.get('categories')).get('name')}</span>
             </FormGroup>
 
             {isTicketOpen(ticket) &&

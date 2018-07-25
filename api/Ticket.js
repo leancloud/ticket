@@ -15,7 +15,11 @@ AV.Cloud.beforeSave('Ticket', (req, res) => {
   if (!ticket.get('title') || ticket.get('title').trim().length === 0) {
     throw new AV.Cloud.Error('title 不能为空')
   }
-  if (!ticket.get('category') || !ticket.get('category').objectId) {
+
+  if (!(
+      (ticket.get('category') && ticket.get('category').objectId)
+      || (ticket.get('categories') && ticket.get('categories').length > 0)
+  )) {
     throw new AV.Cloud.Error('category 不能为空')
   }
 

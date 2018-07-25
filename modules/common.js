@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import {Link} from 'react-router'
-import {Image} from 'react-bootstrap'
+import {Image, FormControl} from 'react-bootstrap'
 import _ from 'lodash'
 import AV from 'leancloud-storage/live-query'
 
@@ -55,13 +55,8 @@ exports.getCustomerServices = () => {
     })
 }
 
-exports.isCustomerService = (user, ticketAuthor) => {
+exports.isCustomerService = (user) => {
   if (!user) {
-    return Promise.resolve(false)
-  }
-  if (ticketAuthor && ticketAuthor.id === user.id) {
-    // 如果是客服自己提交工单，则当前客服在该工单中认为是用户，
-    // 这时为了方便工单作为内部工作协调使用。
     return Promise.resolve(false)
   }
   return new AV.Query(AV.Role)
@@ -163,15 +158,48 @@ exports.Avatar.propTypes = {
   width: PropTypes.string
 }
 
-exports.makeTree = (objs) => {
-  const [children, parents] = _.partition(objs, o => o.get('parent'))
-  parents.forEach(o => {
-    o.children = []
+exports.CategoriesSelect = ({categoriesTree, selected, onChange}) => {
+  const options = exports.depthFirstSearchMap(categoriesTree, c => {
+    return <option key={c.id} value={c.id} disabled={selected && selected.id == c.id}>{exports.getNodeIndentString(c) + c.get('name')}</option>
   })
-  children.forEach(c => {
-    const p = _.find(parents, {id: c.get('parent').id})
-    p.children.push(c)
-  })
+  return (
+    <FormControl componentClass='select'
+      value={selected ? selected.id : ''}
+      onChange={onChange}>
+      <option value=''></option>
+      {options}
+    </FormControl>
+  )
+}
+exports.CategoriesSelect.displayName = 'CategoriesSelect'
+exports.CategoriesSelect.propTypes = {
+  categoriesTree: PropTypes.array.isRequired,
+  selected: PropTypes.object,
+  onChange: PropTypes.func,
+}
+
+exports.getCategoreisTree = () => {
+  return new AV.Query('Category')
+    .descending('createdAt')
+    .find()
+    .then(categories => {
+      return makeTree(categories)
+    })
+}
+
+const makeTree = (objs) => {
+  const innerFunc = (parents, children) => {
+    if (parents && children) {
+      parents.forEach(p => {
+        const [cs, others] = _.partition(children, c => c.get('parent').id == p.id)
+        p.children = cs
+        cs.forEach(c => c.parent = p)
+        innerFunc(p.children, others)
+      })
+    }
+  }
+  const [parents, children] = _.partition(objs, o => !o.get('parent'))
+  innerFunc(parents, children)
   return parents
 }
 
@@ -183,4 +211,32 @@ exports.depthFirstSearchMap = (array, fn) => {
     }
     return result
   }))
+}
+
+exports.depthFirstSearchFind = (array, fn) => {
+  for (let i = 0; i < array.length; i++) {
+    const obj = array[i]
+    if (fn(obj)) {
+      return obj
+    }
+
+    if (obj.children) {
+      const finded = exports.depthFirstSearchFind(obj.children, fn)
+      if (finded) {
+        return finded
+      }
+    }
+  }
+}
+
+const getNodeDepth = (obj) => {
+  if (!obj.parent) {
+    return 0
+  }
+  return 1 + getNodeDepth(obj.parent)
+}
+
+exports.getNodeIndentString = (treeNode) => {
+  const depth = getNodeDepth(treeNode)
+  return depth == 0 ? '' : '　'.repeat(depth) + '└ '
 }

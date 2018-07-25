@@ -442,7 +442,7 @@ const getActiveTicket = (start, end, authOptions) => {
     if (!ticketInfo) {
       ticketInfo = {
         objectId: ticket.id,
-        categoryId: ticket.get('category').objectId,
+        categoriesId: ticket.get('categories').map(c => c.id),
         authorId: ticket.get('author').id,
         assigneeId: ticket.get('assignee').id,
         status: ticket.get('status'),
@@ -460,7 +460,7 @@ const getActiveTicket = (start, end, authOptions) => {
     return {
       tickets: _.map(activeTickets, 'objectId'),
       replyCount: _.sumBy(activeTickets, 'replyCount'),
-      categories: _.countBy(activeTickets, 'categoryId'),
+      categories: _.countBy(_.flatten(activeTickets.map(t => t.categories))),
       assignees: _.countBy(activeTickets, 'assigneeId'),
       authors: _.countBy(activeTickets, 'authorId'),
       statuses: _.countBy(activeTickets, 'status'),

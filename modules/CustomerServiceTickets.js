@@ -9,7 +9,7 @@ import AV from 'leancloud-storage/live-query'
 import css from './CustomerServiceTickets.css'
 import DocumentTitle from 'react-document-title'
 
-import {UserLabel, TicketStatusLabel, getCustomerServices} from './common'
+import {UserLabel, TicketStatusLabel, getCustomerServices, getCategoreisTree, depthFirstSearchMap, depthFirstSearchFind, getNodeIndentString} from './common'
 import {TICKET_STATUS, TICKET_STATUS_MSG, ticketOpenedStatuses, ticketClosedStatuses} from '../lib/common'
 
 let authorSearchTimeoutId
@@ -21,7 +21,7 @@ export default class CustomerServiceTickets extends Component {
     this.state = {
       tickets: [],
       customerServices: [],
-      categories: [],
+      categoriesTree: [],
     }
   }
 
@@ -29,13 +29,11 @@ export default class CustomerServiceTickets extends Component {
     const authorId = this.props.location.query.authorId
     Promise.all([
       getCustomerServices(),
-      new AV.Query('Category')
-        .descending('createdAt')
-        .find(),
+      getCategoreisTree(),
       authorId && new AV.Query('_User').get(authorId),
     ])
-    .then(([customerServices, categories, author]) => {
-      this.setState({customerServices, categories, authorUsername: author && author.get('username')})
+    .then(([customerServices, categoriesTree, author]) => {
+      this.setState({customerServices, categoriesTree, authorUsername: author && author.get('username')})
       return this.findTickets(this.props.location.query)
     })
     .catch(this.context.addNotification)
@@ -81,7 +79,7 @@ export default class CustomerServiceTickets extends Component {
     }
 
     if (categoryId) {
-      query.equalTo('category.objectId', categoryId)
+      query.equalTo('categories', AV.Object.createWithoutData('Category', categoryId))
     }
 
     if (JSON.parse(isOnlyUnlike || false)) {
@@ -90,6 +88,7 @@ export default class CustomerServiceTickets extends Component {
 
     return query.include('author')
     .include('assignee')
+    .include('categories')
     .limit(parseInt(size))
     .skip(parseInt(page) * parseInt(size))
     .addDescending('updatedAt')
@@ -164,12 +163,13 @@ export default class CustomerServiceTickets extends Component {
         )
       })
       const joinedCustomerServices = <span>{customerServices}</span>
+      const category = _.last(ticket.get('categories'))
       return (
         <div className={css.ticket} key={ticket.get('nid')}>
           <div className={css.heading}>
             <div className={css.left}>
               <Link className={css.title} to={'/tickets/' + ticket.get('nid')}>{ticket.get('title')}</Link>
-              <Link to={this.getQueryUrl({categoryId: ticket.get('category').objectId})}><span className={css.category}>{ticket.get('category').name}</span></Link>
+              <Link to={this.getQueryUrl({categoryId: category.id})}><span className={css.category}>{category.get('name')}</span></Link>
               {filters.isOpen === 'true' ||
                 <span>{ticket.get('evaluation') && (ticket.get('evaluation').star === 1 && <span className={css.satisfaction + ' ' + css.happy}>满意</span> || <span className={css.satisfaction + ' ' + css.unhappy}>不满意</span>)}</span>
               }
@@ -209,8 +209,8 @@ export default class CustomerServiceTickets extends Component {
     const assigneeMenuItems = this.state.customerServices.map((user) => {
       return <MenuItem key={user.id} eventKey={user.id}>{user.get('username')}</MenuItem>
     })
-    const categoryMenuItems = this.state.categories.map((category) => {
-      return <MenuItem key={category.id} eventKey={category.id}>{category.get('name')}</MenuItem>
+    const categoryMenuItems = depthFirstSearchMap(this.state.categoriesTree, c => {
+      return <MenuItem key={c.id} eventKey={c.id}>{getNodeIndentString(c) + c.get('name')}</MenuItem>
     })
 
     let statusTitle
@@ -238,7 +238,7 @@ export default class CustomerServiceTickets extends Component {
 
     let categoryTitle
     if (filters.categoryId) {
-      const category = this.state.categories.find(c => c.id === filters.categoryId)
+      const category = depthFirstSearchFind(this.state.categoriesTree, c => c.id === filters.categoryId)
       if (category) {
         categoryTitle = category.get('name')
       } else {

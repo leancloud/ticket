@@ -1,16 +1,15 @@
-import _ from 'lodash'
 import React from 'react'
 import PropTypes from 'prop-types'
 import {FormGroup, ControlLabel, FormControl, Button} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
+import {getCategoreisTree, depthFirstSearchFind, CategoriesSelect} from './../common'
+
 export default class Category extends React.Component {
 
   componentDidMount() {
-    return new AV.Query('Category')
-    .doesNotExist('parent')
-    .find()
-    .then(categories => {
+    return getCategoreisTree()
+    .then(categoriesTree => {
       const categoryId = this.props.params.id
       return Promise.resolve()
       .then(() => {
@@ -21,20 +20,15 @@ export default class Category extends React.Component {
           })
         }
 
-        const category = _.find(categories, {id: categoryId})
-        if (category) {
-          return category
-        }
-
-        return new AV.Query('Category').get(categoryId)
+        return depthFirstSearchFind(categoriesTree, c => c.id == categoryId)
       })
       .then(category => {
         this.setState({
           name: category.get('name'),
           qTemplate: category.get('qTemplate'),
           category,
-          parentCategory: null,
-          categories,
+          parentCategory: category.get('parent'),
+          categoriesTree,
         })
         return
       })
@@ -46,8 +40,16 @@ export default class Category extends React.Component {
   }
 
   handleParentChange(e) {
-    const category = this.state.categories.find(c => c.id === e.target.value)
-    this.setState({parentCategory: category})
+    const parentCategory = depthFirstSearchFind(this.state.categoriesTree, c => c.id == e.target.value)
+    let tmp = parentCategory
+    while (tmp) {
+      if (tmp.id == this.state.category.id) {
+        alert('父分类不能是分类自己或自己的子分类。')
+        return false
+      }
+      tmp = tmp.parent
+    }
+    this.setState({parentCategory: depthFirstSearchFind(this.state.categoriesTree, c => c.id == e.target.value)})
   }
 
   handleQTemplateChange(e) {
@@ -57,9 +59,13 @@ export default class Category extends React.Component {
   handleSubmit(e) {
     e.preventDefault()
     const category = this.state.category
+    if (!this.state.parentCategory) {
+      category.unset('parent')
+    } else {
+      category.set('parent', this.state.parentCategory)
+    }
     return category.save({
       name: this.state.name,
-      parent: this.state.parentCategory,
       qTemplate: this.state.qTemplate,
     })
     .then(() => {
@@ -86,10 +92,6 @@ export default class Category extends React.Component {
       return <div>数据读取中……</div>
     }
 
-    const categorieOptions = this.state.categories.map(c => {
-      return <option key={c.id} value={c.id}>{c.get('name')}</option>
-    })
-
     return (
       <div>
         <form onSubmit={this.handleSubmit.bind(this)}>
@@ -99,12 +101,9 @@ export default class Category extends React.Component {
           </FormGroup>
           <FormGroup controlId="parentSelect">
             <ControlLabel>父分类(可选)</ControlLabel>
-            <FormControl componentClass='select'
-              value={this.state.category.get('parent') && this.state.category.get('parent').id}
-              onChange={this.handleParentChange.bind(this)}>
-              <option value=''></option>
-              {categorieOptions}
-            </FormControl>
+            <CategoriesSelect categoriesTree={this.state.categoriesTree}
+              selected={this.state.parentCategory}
+              onChange={this.handleParentChange.bind(this)}/>
           </FormGroup>
           <FormGroup controlId="qTemplateTextarea">
             <ControlLabel>问题描述模板</ControlLabel>

@@ -33,6 +33,7 @@ export default class Tickets extends Component {
     .equalTo('author', AV.User.current())
     .include('author')
     .include('assignee')
+    .include('categories')
     .limit(filters.size)
     .skip(filters.page * filters.size)
     .descending('createdAt')
@@ -58,7 +59,7 @@ export default class Tickets extends Component {
             <div className={css.left}>
               <span className={css.nid}>#{ticket.get('nid')}</span>
               <Link className={css.title} to={'/tickets/' + ticket.get('nid')}>{ticket.get('title')}</Link>
-              <span className={css.category}>{ticket.get('category').name}</span>
+              <span className={css.category}>{_.last(ticket.get('categories')).get('name')}</span>
             </div>
             <div className={css.right}>
               {ticket.get('replyCount') &&
