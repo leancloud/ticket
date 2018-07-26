@@ -188,11 +188,14 @@ exports.getCategoreisTree = () => {
 }
 
 const makeTree = (objs) => {
+  const sortFunc = (o) => {
+    return o.get('order') != null ? o.get('order') : o.createdAt.getTime()
+  }
   const innerFunc = (parents, children) => {
     if (parents && children) {
       parents.forEach(p => {
         const [cs, others] = _.partition(children, c => c.get('parent').id == p.id)
-        p.children = cs
+        p.children = _.sortBy(cs, sortFunc)
         cs.forEach(c => c.parent = p)
         innerFunc(p.children, others)
       })
@@ -200,12 +203,12 @@ const makeTree = (objs) => {
   }
   const [parents, children] = _.partition(objs, o => !o.get('parent'))
   innerFunc(parents, children)
-  return parents
+  return _.sortBy(parents, sortFunc)
 }
 
 exports.depthFirstSearchMap = (array, fn) => {
-  return _.flatten(array.map(a => {
-    const result = fn(a)
+  return _.flatten(array.map((a, index, array) => {
+    const result = fn(a, index, array)
     if (a.children) {
       return [result, ...exports.depthFirstSearchMap(a.children, fn)]
     }

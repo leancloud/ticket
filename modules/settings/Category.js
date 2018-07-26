@@ -29,6 +29,7 @@ export default class Category extends React.Component {
           category,
           parentCategory: category.get('parent'),
           categoriesTree,
+          isSubmitting: false,
         })
         return
       })
@@ -58,6 +59,7 @@ export default class Category extends React.Component {
 
   handleSubmit(e) {
     e.preventDefault()
+    this.setState({isSubmitting: true})
     const category = this.state.category
     if (!this.state.parentCategory) {
       category.unset('parent')
@@ -69,6 +71,7 @@ export default class Category extends React.Component {
       qTemplate: this.state.qTemplate,
     })
     .then(() => {
+      this.setState({isSubmitting: false})
       this.context.router.push('/settings/categories')
       return
     })
@@ -76,6 +79,11 @@ export default class Category extends React.Component {
   }
 
   handleDelete() {
+    if (this.state.category.children.length > 0) {
+      alert('该分类有子分类，不能删除。')
+      return false
+    }
+
     const result = confirm('确认要停用分类：' + this.state.category.get('name'))
     if (result) {
       return this.state.category.destroy()
@@ -114,7 +122,7 @@ export default class Category extends React.Component {
               value={this.state.qTemplate}
               onChange={this.handleQTemplateChange.bind(this)}/>
           </FormGroup>
-          <Button type='submit' bsStyle='success'>保存</Button>
+          <Button type='submit' disabled={this.state.isSubmitting} bsStyle='success'>保存</Button>
           {' '}
           {this.state.category.id
             && <Button type='button' bsStyle="danger" onClick={this.handleDelete.bind(this)}>删除</Button>

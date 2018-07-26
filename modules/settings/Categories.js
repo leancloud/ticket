@@ -1,12 +1,12 @@
 import React from 'react'
 import _ from 'lodash'
 import {Link} from 'react-router'
-import {FormGroup} from 'react-bootstrap'
+import {Form, FormGroup} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
 import common, {UserLabel, getCategoreisTree, depthFirstSearchMap, depthFirstSearchFind, getNodeIndentString} from '../common'
 
-export default class Cagegories extends React.Component {
+export default class Categories extends React.Component {
 
   constructor(props) {
     super(props)
@@ -51,19 +51,20 @@ export default class Cagegories extends React.Component {
       })
   }
 
+
   render() {
-    const categories = depthFirstSearchMap(this.state.categoriesTree, (category) => {
+    const tds = depthFirstSearchMap(this.state.categoriesTree, (c) => {
       const selectCustomerServices = _.filter(this.state.customerServices, (user) => {
-        return _.find(user.get('categories'), {objectId: category.id})
+        return _.find(user.get('categories'), {objectId: c.id})
       }).map((user) => {
         return <span key={user.id}><UserLabel user={user} /> </span>
       })
       return (
-        <tr key={category.id}>
-          <td><span>{getNodeIndentString(category)}</span><Link to={'/settings/categories/' + category.id}>{category.get('name')}</Link></td>
+        <tr key={c.id}>
+          <td><span>{getNodeIndentString(c)}</span><Link to={'/settings/categories/' + c.id}>{c.get('name')}</Link></td>
           <td><input type='checkbox'
-                checked={!!_.find(this.state.checkedCategories, {objectId: category.id})}
-                onChange={(e) => this.handleCategoryChange(e, category.id)}
+                checked={!!_.find(this.state.checkedCategories, {objectId: c.id})}
+                onChange={(e) => this.handleCategoryChange(e, c.id)}
               /></td>
           <td>{selectCustomerServices}</td>
         </tr>
@@ -71,11 +72,14 @@ export default class Cagegories extends React.Component {
     })
     return (
       <div>
-        <form>
+        <Form inline>
           <FormGroup>
             <Link to={'/settings/categories/_new'}>新增分类</Link>
+          </FormGroup>{' '}
+          <FormGroup>
+            <Link to={'/settings/categorySort'}>调整顺序</Link>
           </FormGroup>
-        </form>
+        </Form>
         <table className='table table-bordered'>
           <thead>
             <tr>
@@ -85,7 +89,7 @@ export default class Cagegories extends React.Component {
             </tr>
           </thead>
           <tbody>
-            {categories}
+            {tds}
           </tbody>
         </table>
       </div>
