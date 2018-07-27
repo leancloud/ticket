@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import {FormGroup, ControlLabel, FormControl, Button} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
-import {getCategoreisTree, depthFirstSearchFind, CategoriesSelect} from './../common'
+import {getCategoreisTree, depthFirstSearchFind, CategoriesSelect, getTinyCategoryInfo} from './../common'
 
 export default class Category extends React.Component {
 
@@ -61,14 +61,49 @@ export default class Category extends React.Component {
     e.preventDefault()
     this.setState({isSubmitting: true})
     const category = this.state.category
-    if (!this.state.parentCategory) {
-      category.unset('parent')
-    } else {
-      category.set('parent', this.state.parentCategory)
+
+    const getCategoryPath = (category) => {
+      if (!category.parent) {
+        return [getTinyCategoryInfo(category)]
+      }
+      const result = getCategoryPath(category.parent)
+      result.push(getTinyCategoryInfo(category))
+      return result
     }
-    return category.save({
-      name: this.state.name,
-      qTemplate: this.state.qTemplate,
+
+    const updateCategoryPath = (category) => {
+      category.set('path', getCategoryPath(category))
+      if (category.children && category.children.length) {
+        return [category].concat(category.children.map(c => updateCategoryPath(c)))
+      } else {
+        return category
+      }
+    }
+
+    let updatePath = false
+
+    if (this.state.parentCategory != category.parent) {
+      updatePath = true
+      if (!this.state.parentCategory) {
+        category.unset('parent')
+      } else {
+        category.set('parent', this.state.parentCategory)
+      }
+    }
+
+    if (this.state.name != category.get('name')) {
+      updatePath = true
+      category.set('name', this.state.name)
+    }
+
+    category.set('qTemplate', this.state.qTemplate)
+
+    Promise.resolve().then(() => {
+      if (updatePath) {
+        const updated = updateCategoryPath(category)
+        return AV.Object.saveAll(updated)
+      }
+      return category.save()
     })
     .then(() => {
       this.setState({isSubmitting: false})
@@ -76,6 +111,7 @@ export default class Category extends React.Component {
       return
     })
     .then(this.context.addNotification)
+    .catch(this.context.addNotification)
   }
 
   handleDelete() {

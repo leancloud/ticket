@@ -4,7 +4,8 @@ import {Link} from 'react-router'
 import {Form, FormGroup} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
-import common, {UserLabel, getCategoreisTree, depthFirstSearchMap, depthFirstSearchFind, getNodeIndentString} from '../common'
+import {getCustomerServices, getTinyCategoryInfo, UserLabel, getCategoreisTree,
+  depthFirstSearchMap, depthFirstSearchFind, getNodeIndentString} from '../common'
 
 export default class Categories extends React.Component {
 
@@ -20,7 +21,7 @@ export default class Categories extends React.Component {
   componentDidMount() {
     return Promise.all([
       getCategoreisTree(),
-      common.getCustomerServices()
+      getCustomerServices()
         .then((users) => {
           return _.reject(users, {id: AV.User.current().id})
         })
@@ -37,7 +38,7 @@ export default class Categories extends React.Component {
   handleCategoryChange(e, categoryId) {
     let categories = this.state.checkedCategories
     if (e.target.checked) {
-      categories.push(common.getTinyCategoryInfo(depthFirstSearchFind(this.state.categoriesTree, (c) => c.id == categoryId)))
+      categories.push(getTinyCategoryInfo(depthFirstSearchFind(this.state.categoriesTree, (c) => c.id == categoryId)))
       categories = _.uniqBy(categories, 'objectId')
     } else {
       categories = _.reject(categories, {objectId: categoryId})

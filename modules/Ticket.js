@@ -7,7 +7,7 @@ import PropTypes from 'prop-types'
 import {FormGroup, ControlLabel, FormControl, Label, Alert, Button, ButtonToolbar, Radio, Tooltip, OverlayTrigger} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
-import {UserLabel, TicketStatusLabel, uploadFiles} from './common'
+import {UserLabel, TicketStatusLabel, uploadFiles, getCategoryPathName, getCategoreisTree, getTinyCategoryInfo} from './common'
 import UpdateTicket from './UpdateTicket'
 import TextareaWithPreview from './components/TextareaWithPreview'
 import css from './Ticket.css'
@@ -34,6 +34,7 @@ export default class Ticket extends Component {
   constructor(props) {
     super(props)
     this.state = {
+      categoriesTree: [],
       ticket: null,
       replies: [],
       opsLogs: [],
@@ -41,13 +42,7 @@ export default class Ticket extends Component {
   }
 
   componentDidMount() {
-    return new AV.Query('Ticket')
-    .equalTo('nid', parseInt(this.props.params.nid))
-    .include('author')
-    .include('assignee')
-    .include('categories')
-    .include('files')
-    .first()
+    this.getTicketQuery(parseInt(this.props.params.nid)).first()
     .then(ticket => {
       if (!ticket) {
         return this.props.router.replace({
@@ -57,12 +52,14 @@ export default class Ticket extends Component {
       }
 
       return Promise.all([
+        getCategoreisTree(),
         this.getReplyQuery(ticket).find(),
         new AV.Query('Tag').equalTo('ticket', ticket).find(),
         this.getOpsLogQuery(ticket).find(),
       ])
-      .then(([replies, tags, opsLogs]) => {
+      .then(([categoriesTree, replies, tags, opsLogs]) => {
         this.setState({
+          categoriesTree,
           ticket,
           replies,
           tags,
@@ -77,6 +74,7 @@ export default class Ticket extends Component {
   componentWillUnmount() {
     if (this.replyLiveQuery) {
       Promise.all([
+        this.ticketLiveQuery.unsubscribe(),
         this.replyLiveQuery.unsubscribe(),
         this.opsLogLiveQuery.unsubscribe()
       ])
@@ -84,15 +82,28 @@ export default class Ticket extends Component {
     }
   }
 
-  refreshTicket() {
-    const { ticket } = this.state
-    if (!ticket) return
-    return ticket.fetch({
-      include: ['author', 'assignee', 'files']
-    }).then(() => {
-      this.setState({ticket})
-      return ticket
+  getTicketQuery(nid) {
+    const query = new AV.Query('Ticket')
+    .equalTo('nid', nid)
+    .include('author')
+    .include('assignee')
+    .include('files')
+    .limit(1)
+    query.subscribe({subscriptionId: UUID + '@' + nid}).then(liveQuery => {
+      this.ticketLiveQuery = liveQuery
+      return this.ticketLiveQuery.on('update', ticket => {
+        if (ticket.updatedAt.getTime() != this.state.ticket.updatedAt.getTime()) {
+          ticket.fetch({include: 'author,assignee,files'})
+          .then(() => {
+            this.setState({ticket})
+            return
+          })
+          .catch(this.context.addNotification)
+        }
+      })
     })
+    .catch(this.context.addNotification)
+    return query
   }
 
   getReplyQuery(ticket) {
@@ -103,16 +114,15 @@ export default class Ticket extends Component {
     .limit(500)
     replyQuery.subscribe({subscriptionId: UUID + '@' + ticket.id}).then(liveQuery => {
       this.replyLiveQuery = liveQuery
-      this.replyLiveQuery.on('create', reply => {
+      return this.replyLiveQuery.on('create', reply => {
         return reply.fetch({include: 'author,files'})
         .then(() => {
           const replies = this.state.replies
           replies.push(reply)
           this.setState({replies})
-          return this.refreshTicket()
+          return
         }).catch(this.context.addNotification)
       })
-      return
     })
     .catch(this.context.addNotification)
     return replyQuery
@@ -125,16 +135,15 @@ export default class Ticket extends Component {
     opsLogQuery.subscribe({subscriptionId: UUID + '@' + ticket.id})
     .then(liveQuery => {
       this.opsLogLiveQuery = liveQuery
-      this.opsLogLiveQuery.on('create', opsLog => {
+      return this.opsLogLiveQuery.on('create', opsLog => {
         return opsLog.fetch()
         .then(() => {
           const opsLogs = this.state.opsLogs
           opsLogs.push(opsLog)
           this.setState({opsLogs})
-          return this.refreshTicket()
+          return
         }).catch(this.context.addNotification)
       })
-      return
     })
     .catch(this.context.addNotification)
     return opsLogQuery
@@ -171,12 +180,7 @@ export default class Ticket extends Component {
   }
 
   updateTicketCategory(category) {
-    const categories = []
-    while (category) {
-      categories.unshift(category)
-      category = category.parent
-    }
-    return this.state.ticket.set('categories', categories).save()
+    return this.state.ticket.set('category', getTinyCategoryInfo(category)).save()
     .then((ticket) => {
       this.setState({ticket})
       return
@@ -234,7 +238,7 @@ export default class Ticket extends Component {
               <span className='icon-wrap'><span className='glyphicon glyphicon-transfer'></span></span>
             </div>
             <div className='ticket-status-right'>
-              <UserLabel user={avObj.get('data').operator} /> 于 {this.getTime(avObj)} 将工单类别改为 <span className={csCss.category + ' ' + css.category}>{avObj.get('data').category.name}</span>
+              <UserLabel user={avObj.get('data').operator} /> 于 {this.getTime(avObj)} 将工单类别改为 <span className={csCss.category + ' ' + css.category}>{getCategoryPathName(avObj.get('data').category, this.state.categoriesTree)}</span>
             </div>
           </div>
         )
@@ -471,7 +475,7 @@ export default class Ticket extends Component {
 
             <FormGroup>
               <label className="label-block">类别</label>
-              <span className={csCss.category + ' ' + css.categoryBlock}>{_.last(ticket.get('categories')).get('name')}</span>
+              <span className={csCss.category + ' ' + css.categoryBlock}>{getCategoryPathName(ticket.get('category'), this.state.categoriesTree)}</span>
             </FormGroup>
 
             {isTicketOpen(ticket) &&
@@ -481,6 +485,7 @@ export default class Ticket extends Component {
                   isCustomerService={isCustomerService}
                   updateTicketCategory={this.updateTicketCategory.bind(this)}
                   updateTicketAssignee={this.updateTicketAssignee.bind(this)}
+                  categoriesTree={this.state.categoriesTree}
                 />
               </div>
             }

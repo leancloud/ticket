@@ -6,7 +6,7 @@ import {FormGroup, ControlLabel, FormControl, Button, Tooltip, OverlayTrigger} f
 import AV from 'leancloud-storage/live-query'
 
 import TextareaWithPreview from './components/TextareaWithPreview'
-const {uploadFiles, getCategoreisTree, depthFirstSearchFind} = require('./common')
+const {uploadFiles, getCategoreisTree, depthFirstSearchFind, getTinyCategoryInfo} = require('./common')
 
 export default class NewTicket extends React.Component {
 
@@ -30,7 +30,7 @@ export default class NewTicket extends React.Component {
         categoryIds=JSON.parse(localStorage.getItem('ticket:new:categoryIds') || '[]'),
         content=(localStorage.getItem('ticket:new:content') || '')
       } = this.props.location.query
-      const categoryPath = categoryIds.map(cid => depthFirstSearchFind(categoriesTree, c => c.id == cid))
+      const categoryPath = _.compact(categoryIds.map(cid => depthFirstSearchFind(categoriesTree, c => c.id == cid)))
       const category = _.last(categoryPath)
       if (content === '' && category && category.get('qTemplate')) {
         content = category.get('qTemplate')
@@ -109,13 +109,17 @@ export default class NewTicket extends React.Component {
       this.context.addNotification(new Error('问题分类不能为空'))
       return
     }
+    if (_.last(this.state.categoryPath).children.length > 0) {
+      this.context.addNotification(new Error('分类信息不完整'))
+      return
+    }
 
     this.setState({isCommitting: true})
     return uploadFiles($('#ticketFile')[0].files)
     .then((files) => {
       return new AV.Object('Ticket').save({
         title: this.state.title,
-        categories: this.state.categoryPath,
+        category: getTinyCategoryInfo(_.last(this.state.categoryPath)),
         content: this.state.content,
         files,
       })

@@ -4,13 +4,12 @@ import _ from 'lodash'
 import {FormGroup, ControlLabel, FormControl} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
-import {getCustomerServices, CategoriesSelect, getCategoreisTree, depthFirstSearchFind} from './common'
+import {getCustomerServices, CategoriesSelect, depthFirstSearchFind} from './common'
 
 export default class UpdateTicket extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      categoriesTree: [],
       category: null,
       assignees: [],
     }
@@ -18,11 +17,9 @@ export default class UpdateTicket extends Component {
 
   componentDidMount() {
     if (this.props.isCustomerService) {
-      Promise.all([
-        getCategoreisTree(),
-        getCustomerServices()
-      ]).then(([categoriesTree, assignees]) => {
-        this.setState({categoriesTree, assignees})
+      getCustomerServices()
+      .then(assignees => {
+        this.setState({assignees})
         return
       })
       .catch(this.context.addNotification)
@@ -30,7 +27,7 @@ export default class UpdateTicket extends Component {
   }
 
   handleCategoryChange(e) {
-    this.props.updateTicketCategory(depthFirstSearchFind(this.state.categoriesTree, c => c.id == e.target.value))
+    this.props.updateTicketCategory(depthFirstSearchFind(this.props.categoriesTree, c => c.id == e.target.value))
     .then(this.context.addNotification)
     .catch(this.context.addNotification)
   }
@@ -60,8 +57,8 @@ export default class UpdateTicket extends Component {
       </FormGroup>
       <FormGroup>
         <ControlLabel>修改类别</ControlLabel>
-        <CategoriesSelect categoriesTree={this.state.categoriesTree}
-          selected={_.last(this.props.ticket.get('categories'))}
+        <CategoriesSelect categoriesTree={this.props.categoriesTree}
+          selected={this.props.ticket.get('category')}
           onChange={this.handleCategoryChange.bind(this)}/>
       </FormGroup>
     </div>
@@ -74,6 +71,7 @@ UpdateTicket.propTypes = {
   isCustomerService: PropTypes.bool,
   updateTicketCategory: PropTypes.func.isRequired,
   updateTicketAssignee: PropTypes.func.isRequired,
+  categoriesTree: PropTypes.array.isRequired,
 }
 
 UpdateTicket.contextTypes = {

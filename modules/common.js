@@ -5,13 +5,13 @@ import {Image, FormControl} from 'react-bootstrap'
 import _ from 'lodash'
 import AV from 'leancloud-storage/live-query'
 
-const {TICKET_STATUS, TICKET_STATUS_MSG} = require('../lib/common')
+const {TICKET_STATUS, TICKET_STATUS_MSG, getTinyCategoryInfo, getCategoryPathName} = require('../lib/common')
 
-exports.getTinyCategoryInfo = (category) => {
-  return {
-    objectId: category.id,
-    name: category.get('name'),
-  }
+exports.getTinyCategoryInfo = getTinyCategoryInfo
+
+exports.getCategoryPathName = (category, categoriesTree) => {
+  const c = exports.depthFirstSearchFind(categoriesTree, c => c.id == (category.id || category.objectId))
+  return getCategoryPathName(exports.getNodePath(c))
 }
 
 exports.requireAuth = (nextState, replace) => {
@@ -160,11 +160,11 @@ exports.Avatar.propTypes = {
 
 exports.CategoriesSelect = ({categoriesTree, selected, onChange}) => {
   const options = exports.depthFirstSearchMap(categoriesTree, c => {
-    return <option key={c.id} value={c.id} disabled={selected && selected.id == c.id}>{exports.getNodeIndentString(c) + c.get('name')}</option>
+    return <option key={c.id} value={c.id} disabled={selected && (selected.id || selected.objectId) == c.id}>{exports.getNodeIndentString(c) + c.get('name')}</option>
   })
   return (
     <FormControl componentClass='select'
-      value={selected ? selected.id : ''}
+      value={selected ? (selected.id || selected.objectId) : ''}
       onChange={onChange}>
       <option value=''></option>
       {options}
@@ -237,6 +237,15 @@ const getNodeDepth = (obj) => {
     return 0
   }
   return 1 + getNodeDepth(obj.parent)
+}
+
+exports.getNodePath = (obj) => {
+  if (!obj.parent) {
+    return [obj]
+  }
+  const result = exports.getNodePath(obj.parent)
+  result.push(obj)
+  return result
 }
 
 exports.getNodeIndentString = (treeNode) => {

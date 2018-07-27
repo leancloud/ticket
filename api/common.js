@@ -5,11 +5,14 @@ const hljs = require('highlight.js')
 const AV = require('leanengine')
 
 const config = require('../config')
-const getGravatarHash = require('../lib/common').getGravatarHash
+const {getGravatarHash, getTinyCategoryInfo, getCategoryPathName} = require('../lib/common')
+
+exports.getTinyCategoryInfo = getTinyCategoryInfo
+exports.getCategoryPathName = getCategoryPathName
 
 exports.getTinyUserInfo = (user) => {
   if (!user) {
-    return null
+    return Promise.resolve()
   }
   if (user.get('username')) {
     return Promise.resolve({

@@ -10,7 +10,7 @@
     "dev:client": "eval $(lean env) && webpack-dev-server --port 8080 --inline --content-base public --history-api-fallback",
     "dev": "WEBPACK_DEV_SERVER=http://localhost:8080 nodemon --ignore modules server.js",
     "postinstall": "npm run build",
-    "migrate": "migrate list --store=./migration-store"
+    "migrate": "eval $(lean env) && migrate up --store=./migration-store"
   },
   "repository": {
     "type": "git",

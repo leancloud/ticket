@@ -9,7 +9,7 @@ import AV from 'leancloud-storage/live-query'
 import css from './CustomerServiceTickets.css'
 import DocumentTitle from 'react-document-title'
 
-import {UserLabel, TicketStatusLabel, getCustomerServices, getCategoreisTree, depthFirstSearchMap, depthFirstSearchFind, getNodeIndentString} from './common'
+import {UserLabel, TicketStatusLabel, getCustomerServices, getCategoreisTree, depthFirstSearchMap, depthFirstSearchFind, getNodeIndentString, getNodePath} from './common'
 import {TICKET_STATUS, TICKET_STATUS_MSG, ticketOpenedStatuses, ticketClosedStatuses} from '../lib/common'
 
 let authorSearchTimeoutId
@@ -79,7 +79,7 @@ export default class CustomerServiceTickets extends Component {
     }
 
     if (categoryId) {
-      query.equalTo('categories', AV.Object.createWithoutData('Category', categoryId))
+      query.equalTo('category.objectId', categoryId)
     }
 
     if (JSON.parse(isOnlyUnlike || false)) {
@@ -88,7 +88,6 @@ export default class CustomerServiceTickets extends Component {
 
     return query.include('author')
     .include('assignee')
-    .include('categories')
     .limit(parseInt(size))
     .skip(parseInt(page) * parseInt(size))
     .addDescending('updatedAt')
@@ -163,13 +162,15 @@ export default class CustomerServiceTickets extends Component {
         )
       })
       const joinedCustomerServices = <span>{customerServices}</span>
-      const category = _.last(ticket.get('categories'))
+      const category = depthFirstSearchFind(this.state.categoriesTree, c => c.id == ticket.get('category').objectId)
       return (
         <div className={css.ticket} key={ticket.get('nid')}>
           <div className={css.heading}>
             <div className={css.left}>
               <Link className={css.title} to={'/tickets/' + ticket.get('nid')}>{ticket.get('title')}</Link>
-              <Link to={this.getQueryUrl({categoryId: category.id})}><span className={css.category}>{category.get('name')}</span></Link>
+              {getNodePath(category).map(c => {
+                return <Link key={c.id} to={this.getQueryUrl({categoryId: c.id})}><span className={css.category}>{c.get('name')}</span></Link>
+              })}
               {filters.isOpen === 'true' ||
                 <span>{ticket.get('evaluation') && (ticket.get('evaluation').star === 1 && <span className={css.satisfaction + ' ' + css.happy}>满意</span> || <span className={css.satisfaction + ' ' + css.unhappy}>不满意</span>)}</span>
               }
