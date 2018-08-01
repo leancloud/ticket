@@ -2,6 +2,7 @@
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import NotificationSystem from 'react-notification-system'
+import Raven from 'raven-js'
 import AV from 'leancloud-storage/live-query'
 
 import common from './common'
@@ -60,6 +61,10 @@ export default class App extends Component {
     return common.isCustomerService(user)
     .then((isCustomerService) => {
       this.setState({currentUser: user, isCustomerService})
+      Raven.setUserContext({
+        username: user.get('username'),
+        id: user.id,
+      })
       return
     })
   }
@@ -69,6 +74,7 @@ export default class App extends Component {
     .then(() => {
       this.context.router.push('/')
       this.setState({currentUser: null, isCustomerService: false})
+      Raven.setUserContext()
       return
     })
   }
