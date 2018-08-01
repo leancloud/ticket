@@ -19,6 +19,12 @@ function LeanStorageStore () {
 LeanStorageStore.prototype.save = function (set, fn) {
   return new AV.Query('Migration')
   .first({useMasterKey: true})
+  .catch(err => {
+    if (err.code == 101) { // Class or object doesn't exists.
+      return null
+    }
+    throw err
+  })
   .then(migration => {
     if (!migration) {
       migration = new AV.Object('Migration')
@@ -32,6 +38,7 @@ LeanStorageStore.prototype.save = function (set, fn) {
   .then(() => {
     return fn()
   })
+  .catch(fn)
 }
 
 /**
@@ -45,6 +52,12 @@ LeanStorageStore.prototype.save = function (set, fn) {
 LeanStorageStore.prototype.load = function (fn) {
   return new AV.Query('Migration')
   .first({useMasterKey: true})
+  .catch(err => {
+    if (err.code == 101) { // Class or object doesn't exists.
+      return null
+    }
+    throw err
+  })
   .then(migration => {
     if (!migration) {
       return fn(null, {})
@@ -54,10 +67,5 @@ LeanStorageStore.prototype.load = function (fn) {
       migrations: migration.get('migrations')
     })
   })
-  .catch(err => {
-    if (err.message.indexOf('Error: Class or object doesn\'t exists.') != 0) {
-      return fn(null, {})
-    }
-    return fn(err)
-  })
+  .catch(fn)
 }

@@ -1,17 +1,17 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import {Link} from 'react-router'
-import {Image} from 'react-bootstrap'
+import {Image, FormControl} from 'react-bootstrap'
 import _ from 'lodash'
 import AV from 'leancloud-storage/live-query'
 
-const {TICKET_STATUS, TICKET_STATUS_MSG} = require('../lib/common')
+const {TICKET_STATUS, TICKET_STATUS_MSG, getTinyCategoryInfo, getCategoryPathName} = require('../lib/common')
 
-exports.getTinyCategoryInfo = (category) => {
-  return {
-    objectId: category.id,
-    name: category.get('name'),
-  }
+exports.getTinyCategoryInfo = getTinyCategoryInfo
+
+exports.getCategoryPathName = (category, categoriesTree) => {
+  const c = exports.depthFirstSearchFind(categoriesTree, c => c.id == (category.id || category.objectId))
+  return getCategoryPathName(exports.getNodePath(c))
 }
 
 exports.requireAuth = (nextState, replace) => {
@@ -55,13 +55,8 @@ exports.getCustomerServices = () => {
     })
 }
 
-exports.isCustomerService = (user, ticketAuthor) => {
+exports.isCustomerService = (user) => {
   if (!user) {
-    return Promise.resolve(false)
-  }
-  if (ticketAuthor && ticketAuthor.id === user.id) {
-    // 如果是客服自己提交工单，则当前客服在该工单中认为是用户，
-    // 这时为了方便工单作为内部工作协调使用。
     return Promise.resolve(false)
   }
   return new AV.Query(AV.Role)
@@ -161,4 +156,99 @@ exports.Avatar.propTypes = {
   user: PropTypes.object.isRequired,
   height: PropTypes.string,
   width: PropTypes.string
+}
+
+exports.CategoriesSelect = ({categoriesTree, selected, onChange}) => {
+  const options = exports.depthFirstSearchMap(categoriesTree, c => {
+    return <option key={c.id} value={c.id} disabled={selected && (selected.id || selected.objectId) == c.id}>{exports.getNodeIndentString(c) + c.get('name')}</option>
+  })
+  return (
+    <FormControl componentClass='select'
+      value={selected ? (selected.id || selected.objectId) : ''}
+      onChange={onChange}>
+      <option value=''></option>
+      {options}
+    </FormControl>
+  )
+}
+exports.CategoriesSelect.displayName = 'CategoriesSelect'
+exports.CategoriesSelect.propTypes = {
+  categoriesTree: PropTypes.array.isRequired,
+  selected: PropTypes.object,
+  onChange: PropTypes.func,
+}
+
+exports.getCategoreisTree = () => {
+  return new AV.Query('Category')
+    .descending('createdAt')
+    .find()
+    .then(categories => {
+      return makeTree(categories)
+    })
+}
+
+const makeTree = (objs) => {
+  const sortFunc = (o) => {
+    return o.get('order') != null ? o.get('order') : o.createdAt.getTime()
+  }
+  const innerFunc = (parents, children) => {
+    if (parents && children) {
+      parents.forEach(p => {
+        const [cs, others] = _.partition(children, c => c.get('parent').id == p.id)
+        p.children = _.sortBy(cs, sortFunc)
+        cs.forEach(c => c.parent = p)
+        innerFunc(p.children, others)
+      })
+    }
+  }
+  const [parents, children] = _.partition(objs, o => !o.get('parent'))
+  innerFunc(parents, children)
+  return _.sortBy(parents, sortFunc)
+}
+
+exports.depthFirstSearchMap = (array, fn) => {
+  return _.flatten(array.map((a, index, array) => {
+    const result = fn(a, index, array)
+    if (a.children) {
+      return [result, ...exports.depthFirstSearchMap(a.children, fn)]
+    }
+    return result
+  }))
+}
+
+exports.depthFirstSearchFind = (array, fn) => {
+  for (let i = 0; i < array.length; i++) {
+    const obj = array[i]
+    if (fn(obj)) {
+      return obj
+    }
+
+    if (obj.children) {
+      const finded = exports.depthFirstSearchFind(obj.children, fn)
+      if (finded) {
+        return finded
+      }
+    }
+  }
+}
+
+const getNodeDepth = (obj) => {
+  if (!obj.parent) {
+    return 0
+  }
+  return 1 + getNodeDepth(obj.parent)
+}
+
+exports.getNodePath = (obj) => {
+  if (!obj.parent) {
+    return [obj]
+  }
+  const result = exports.getNodePath(obj.parent)
+  result.push(obj)
+  return result
+}
+
+exports.getNodeIndentString = (treeNode) => {
+  const depth = getNodeDepth(treeNode)
+  return depth == 0 ? '' : '　'.repeat(depth) + '└ '
 }
