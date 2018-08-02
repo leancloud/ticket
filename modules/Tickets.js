@@ -60,34 +60,36 @@ export default class Tickets extends Component {
       })
       const joinedCustomerServices = <span>{customerServices}</span>
       return (
-        <div className={css.ticket} key={ticket.get('nid')}>
-          <div className={css.heading}>
-            <div className={css.left}>
-              <span className={css.nid}>#{ticket.get('nid')}</span>
-              <Link className={css.title} to={'/tickets/' + ticket.get('nid')}>{ticket.get('title')}</Link>
-              <span className={css.category}>{getCategoryPathName(ticket.get('category'), this.state.categoriesTree)}</span>
+        <div className={`${css.ticket} ${css.row}`} key={ticket.get('nid')}>
+          <div className={css.ticketContent}>
+            <div className={css.heading}>
+              <div className={css.left}>
+                <span className={css.nid}>#{ticket.get('nid')}</span>
+                <Link className={css.title} to={'/tickets/' + ticket.get('nid')}>{ticket.get('title')}</Link>
+                <span className={css.category}>{getCategoryPathName(ticket.get('category'), this.state.categoriesTree)}</span>
+              </div>
+              <div className={css.right}>
+                {ticket.get('replyCount') &&
+                  <Link className={css.commentCounter} title={'reply ' + ticket.get('replyCount')} to={'/tickets/' + ticket.get('nid')}>
+                    <span className={css.commentCounterIcon + ' glyphicon glyphicon-comment'}></span>
+                    {ticket.get('replyCount')}
+                  </Link>
+                }
+              </div>
             </div>
-            <div className={css.right}>
-              {ticket.get('replyCount') &&
-                <Link className={css.commentCounter} title={'reply ' + ticket.get('replyCount')} to={'/tickets/' + ticket.get('nid')}>
-                  <span className={css.commentCounterIcon + ' glyphicon glyphicon-comment'}></span>
-                  {ticket.get('replyCount')}
-                </Link>
-              }
-            </div>
-          </div>
 
-          <div className={css.meta}>
-            <div className={css.left}>
-              <span className={css.status}><TicketStatusLabel status={ticket.get('status')} /></span>
-              <span className={css.creator}><UserLabel user={ticket.get('author')} /></span> 创建于 {moment(ticket.get('createdAt')).fromNow()}
-              {moment(ticket.get('createdAt')).fromNow() === moment(ticket.get('updatedAt')).fromNow() ||
-                <span>，更新于 {moment(ticket.get('updatedAt')).fromNow()}</span>
-              }
-            </div>
-            <div className={css.right}>
-              <span className={css.assignee}><UserLabel user={ticket.get('assignee')} /></span>
-              <span className={css.contributors}>{joinedCustomerServices}</span>
+            <div className={css.meta}>
+              <div className={css.left}>
+                <span className={css.status}><TicketStatusLabel status={ticket.get('status')} /></span>
+                <span className={css.creator}><UserLabel user={ticket.get('author')} /></span> 创建于 {moment(ticket.get('createdAt')).fromNow()}
+                {moment(ticket.get('createdAt')).fromNow() === moment(ticket.get('updatedAt')).fromNow() ||
+                  <span>，更新于 {moment(ticket.get('updatedAt')).fromNow()}</span>
+                }
+              </div>
+              <div className={css.right}>
+                <span className={css.assignee}><UserLabel user={ticket.get('assignee')} /></span>
+                <span className={css.contributors}>{joinedCustomerServices}</span>
+              </div>
             </div>
           </div>
         </div>

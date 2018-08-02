@@ -1,10 +1,23 @@
-.ticket {
-  padding: 10px 0 15px;
+.row {
+  display: flex;
   border-bottom: 1px solid #eee;
 }
-
-.ticket:last-child {
+.row:last-child {
   border-bottom: none;
+}
+
+.ticket {
+  padding: 10px 0 12px;
+  align-items: center;
+}
+
+
+.ticketSelectCheckbox {
+  line-height: 0;
+}
+
+.ticketContent {
+  flex: 1;
 }
 
 .heading {
