@@ -3,7 +3,6 @@ import React from 'react'
 import Raven from 'raven-js'
 import { Route, IndexRoute, Redirect } from 'react-router'
 import moment from 'moment'
-import _ from 'lodash'
 import AV from 'leancloud-storage/live-query'
 
 import common from './common'
@@ -27,6 +26,7 @@ import SettingsCSProfile from './settings/CustomerServiceProfile'
 import Members from './settings/Members'
 import Categories from './settings/Categories'
 import Category from './settings/Category'
+import CategorySort from './settings/CategorySort'
 import Error from './Error'
 import NotFound from './NotFound'
 
@@ -72,6 +72,7 @@ module.exports = (
       <Route path="/settings/members" component={Members} />
       <Route path="/settings/categories" component={Categories} />
       <Route path="/settings/categories/:id" component={Category} />
+      <Route path="/settings/categorySort" component={CategorySort} />
     </Route>
     <Redirect from="/t/leancloud" to="/tickets" />
     <Redirect from="/t/leancloud/:nid" to="/tickets/:nid" />

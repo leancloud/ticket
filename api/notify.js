@@ -83,7 +83,7 @@ const delayNotify = () => {
         }
         return
       }).catch((err) => {
-        errorHandler.captureException(err)
+        errorHandler.captureException({ticketId: ticket.id}, err)
       })
     })
   }).catch((err) => {

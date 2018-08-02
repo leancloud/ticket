@@ -4,13 +4,12 @@ import _ from 'lodash'
 import {FormGroup, ControlLabel, FormControl} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
-import common from './common'
+import {getCustomerServices, CategoriesSelect, depthFirstSearchFind} from './common'
 
 export default class UpdateTicket extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      categories: [],
       category: null,
       assignees: [],
     }
@@ -18,11 +17,9 @@ export default class UpdateTicket extends Component {
 
   componentDidMount() {
     if (this.props.isCustomerService) {
-      Promise.all([
-        new AV.Query('Category').find(),
-        common.getCustomerServices()
-      ]).then(([categories, assignees]) => {
-        this.setState({categories, assignees})
+      getCustomerServices()
+      .then(assignees => {
+        this.setState({assignees})
         return
       })
       .catch(this.context.addNotification)
@@ -30,8 +27,7 @@ export default class UpdateTicket extends Component {
   }
 
   handleCategoryChange(e) {
-    const category = _.find(this.state.categories, {id: e.target.value})
-    this.props.updateTicketCategory(category)
+    this.props.updateTicketCategory(depthFirstSearchFind(this.props.categoriesTree, c => c.id == e.target.value))
     .then(this.context.addNotification)
     .catch(this.context.addNotification)
   }
@@ -47,11 +43,6 @@ export default class UpdateTicket extends Component {
     if (!this.props.isCustomerService) {
       return <div></div>
     }
-    const categoryOptions = this.state.categories.map((category) => {
-      return (
-        <option key={category.id} value={category.id}>{category.get('name')}</option>
-      )
-    })
     const assigneesOptions = this.state.assignees.map((cs) => {
       return (
         <option key={cs.id} value={cs.id}>{cs.get('username')}</option>
@@ -66,9 +57,9 @@ export default class UpdateTicket extends Component {
       </FormGroup>
       <FormGroup>
         <ControlLabel>修改类别</ControlLabel>
-        <FormControl componentClass='select' value={this.props.ticket.get('category').objectId} onChange={this.handleCategoryChange.bind(this)}>
-          {categoryOptions}
-        </FormControl>
+        <CategoriesSelect categoriesTree={this.props.categoriesTree}
+          selected={this.props.ticket.get('category')}
+          onChange={this.handleCategoryChange.bind(this)}/>
       </FormGroup>
     </div>
   }
@@ -80,6 +71,7 @@ UpdateTicket.propTypes = {
   isCustomerService: PropTypes.bool,
   updateTicketCategory: PropTypes.func.isRequired,
   updateTicketAssignee: PropTypes.func.isRequired,
+  categoriesTree: PropTypes.array.isRequired,
 }
 
 UpdateTicket.contextTypes = {

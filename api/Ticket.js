@@ -2,7 +2,7 @@ const _ = require('lodash')
 const AV = require('leanengine')
 
 const common = require('./common')
-const {getTinyUserInfo, htmlify, getTinyReplyInfo}= common
+const {getTinyUserInfo, htmlify, getTinyReplyInfo} = common
 const notify = require('./notify')
 const {TICKET_STATUS, ticketClosedStatuses} = require('../lib/common')
 const errorHandler = require('./errorHandler')
@@ -15,6 +15,7 @@ AV.Cloud.beforeSave('Ticket', (req, res) => {
   if (!ticket.get('title') || ticket.get('title').trim().length === 0) {
     throw new AV.Cloud.Error('title 不能为空')
   }
+
   if (!ticket.get('category') || !ticket.get('category').objectId) {
     throw new AV.Cloud.Error('category 不能为空')
   }
@@ -45,9 +46,9 @@ const getTicketAcl = (ticket, author) => {
 }
 
 AV.Cloud.afterSave('Ticket', (req) => {
-  req.object.get('assignee').fetch()
-  .then((assignee) => {
-    return getTinyUserInfo(assignee)
+  req.object.fetch({include: 'assignee'}, {user: req.currentUser})
+  .then(ticket => {
+    return getTinyUserInfo(ticket.get('assignee'))
     .then((assigneeInfo) => {
       return new AV.Object('OpsLog').save({
         ticket: req.object,
@@ -56,7 +57,7 @@ AV.Cloud.afterSave('Ticket', (req) => {
       }, {useMasterKey: true})
     })
     .then(() => {
-      return notify.newTicket(req.object, req.currentUser, assignee)
+      return notify.newTicket(req.object, req.currentUser, ticket.get('assignee'))
     })
   }).catch(errorHandler.captureException)
 })
@@ -85,6 +86,7 @@ AV.Cloud.afterUpdate('Ticket', (req) => {
         action: 'changeCategory',
         data: {category: ticket.get('category'), operator: user},
       }, {useMasterKey: true})
+      .catch(errorHandler.captureException)
     }
     if (ticket.updatedKeys.includes('assignee')) {
       getTinyUserInfo(ticket.get('assignee'))
@@ -196,10 +198,7 @@ const selectAssignee = (ticket) => {
   ])
   .then(([role, vacationers]) => {
     let query = role.getUsers().query()
-    const category = ticket.get('category')
-    if (!_.isEmpty(category)) {
-      query.equalTo('categories.objectId', category.objectId)
-    }
+    query.equalTo('categories.objectId', ticket.get('category').objectId)
     if (vacationers.length > 0) {
       query.notContainedIn('objectId', vacationers.map(v => v.id))
     }

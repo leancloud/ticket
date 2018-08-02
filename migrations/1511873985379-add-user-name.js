@@ -1,7 +1,7 @@
 const _ = require('lodash')
 const AV = require('leanengine')
 
-const forEachAVObject = require('../../api/common').forEachAVObject
+const forEachAVObject = require('../api/common').forEachAVObject
 
 exports.up = function(next) {
 
