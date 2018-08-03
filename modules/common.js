@@ -190,6 +190,13 @@ exports.getCategoriesTree = (hiddenDisable = true) => {
     .then(categories => {
       return exports.makeTree(categories)
     })
+    .catch(err => {
+      // 如果还没有被停用的分类，deletedAt 属性可能不存在
+      if (err.code == 700 && err.message.includes('deletedAt')) {
+        return exports.getCategoriesTree(false)
+      }
+      throw err
+    })
 }
 
 const getNodeDepth = (obj) => {
