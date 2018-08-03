@@ -2,7 +2,7 @@ import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 import { Link } from 'react-router'
-import {Grid, Row, Col, Form, FormGroup, ButtonToolbar, ButtonGroup, Button, DropdownButton, MenuItem, Checkbox, FormControl, Pager} from 'react-bootstrap'
+import { Form, FormGroup, ButtonToolbar, ButtonGroup, Button, DropdownButton, MenuItem, Checkbox, FormControl, Pager} from 'react-bootstrap'
 import qs from 'query-string'
 import moment from 'moment'
 import AV from 'leancloud-storage/live-query'
@@ -197,11 +197,9 @@ export default class CustomerServiceTickets extends Component {
       const joinedCustomerServices = <span>{customerServices}</span>
       const category = depthFirstSearchFind(this.state.categoriesTree, c => c.id == ticket.get('category').objectId)
       return (
-        <Row className={css.ticket} key={ticket.get('nid')}>
-          <Col md={1}>
-            <Checkbox onClick={this.handleClickCheckbox.bind(this)} value={ticket.id} checked={this.state.checkedTickets.has(ticket.id)}></Checkbox>
-          </Col>
-          <Col md={11}>
+        <div className={`${css.ticket} ${css.row}`} key={ticket.get('nid')}>
+          <Checkbox className={css.ticketSelectCheckbox} onClick={this.handleClickCheckbox.bind(this)} value={ticket.id} checked={this.state.checkedTickets.has(ticket.id)}></Checkbox>
+          <div className={css.ticketContent}>
             <div className={css.heading}>
               <div className={css.left}>
                 <Link className={css.title} to={'/tickets/' + ticket.get('nid')}>{ticket.get('title')}</Link>
@@ -236,8 +234,8 @@ export default class CustomerServiceTickets extends Component {
                 <span className={css.contributors}>{joinedCustomerServices}</span>
               </div>
             </div>
-          </Col>
-        </Row>
+          </div>
+        </div>
       )
     })
 
@@ -337,30 +335,35 @@ export default class CustomerServiceTickets extends Component {
 
     if (ticketTrs.length === 0) {
       ticketTrs.push(
-        <Row key='0'>
+        <div className={css.ticket} key='0'>
           未查询到相关工单
-        </Row>
+        </div>
       )
     }
+
+    let pager
+    const isFirstPage = filters.page === '0'
+    const isLastPage = parseInt(filters.size) !== this.state.tickets.length
+    if (!(isFirstPage && isLastPage)) {
+      pager = (
+        <Pager>
+          <Pager.Item disabled={isFirstPage} previous onClick={() => this.updateFilter({page: (parseInt(filters.page) - 1) + ''})}>&larr; 上一页</Pager.Item>
+          <Pager.Item disabled={isLastPage} next onClick={() => this.updateFilter({page: (parseInt(filters.page) + 1) + ''})}>下一页 &rarr;</Pager.Item>
+        </Pager>
+      )
+    }
+
     return (
-      <Grid>
+      <div>
         <DocumentTitle title='客服工单列表 - LeanTicket' />
-        <Row>
-          <Col md={1}>
-            <Checkbox onClick={this.handleClickCheckAll.bind(this)} checked={this.state.isCheckedAll}></Checkbox>
-          </Col>
-          <Col>
-            {this.state.checkedTickets.size && ticketCheckedOperations || ticketAdminFilters}
-          </Col>
-        </Row>
+        <div className={css.row}>
+          <Checkbox className={css.ticketSelectCheckbox} onClick={this.handleClickCheckAll.bind(this)} checked={this.state.isCheckedAll}></Checkbox>
+          {this.state.checkedTickets.size && ticketCheckedOperations || ticketAdminFilters}
+        </div>
 
         {ticketTrs}
-
-        <Pager>
-          <Pager.Item disabled={filters.page === '0'} previous onClick={() => this.updateFilter({page: (parseInt(filters.page) - 1) + ''})}>&larr; 上一页</Pager.Item>
-          <Pager.Item disabled={parseInt(filters.size) !== this.state.tickets.length} next onClick={() => this.updateFilter({page: (parseInt(filters.page) + 1) + ''})}>下一页 &rarr;</Pager.Item>
-        </Pager>
-      </Grid>
+        {pager}
+      </div>
     )
   }
 
