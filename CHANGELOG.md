@@ -1,3 +1,28 @@
+<a name="1.4.0"></a>
+# [1.4.0](https://github.com/leancloud/ticket/compare/v1.3.0...v1.4.0) (2018-08-03)
+
+
+### Bug Fixes
+
+* 修复当 Ticket 带附件时，新的回复或操作不会即时刷新的问题 ([16995a9](https://github.com/leancloud/ticket/commit/16995a9))
+* 删除分类时增加更多限制 ([88747ad](https://github.com/leancloud/ticket/commit/88747ad))
+* 工单列表样式微调 ([2216bdc](https://github.com/leancloud/ticket/commit/2216bdc))
+* 暂时回退 node 版本至 6.x 绕过 npm list 失败的问题 ([954af74](https://github.com/leancloud/ticket/commit/954af74))
+* 添加了收到 LiveQuery 通知后逻辑的异常通知 ([fad5db3](https://github.com/leancloud/ticket/commit/fad5db3))
+* 错误上报增加上下文信息，方便确认问题 ([5a37ec0](https://github.com/leancloud/ticket/commit/5a37ec0))
+
+
+### Features
+
+* 分类标签显示层级关系 ([740b4ae](https://github.com/leancloud/ticket/commit/740b4ae))
+* 增加分类停用功能 ([aa86664](https://github.com/leancloud/ticket/commit/aa86664))
+* 增加批量变更工单分类的功能 ([fb07ca5](https://github.com/leancloud/ticket/commit/fb07ca5))
+* 支持二级分类 ([f715c6e](https://github.com/leancloud/ticket/commit/f715c6e))
+* 支持分类排序 ([0889b75](https://github.com/leancloud/ticket/commit/0889b75))
+* 支持多级分类 ([4425f9e](https://github.com/leancloud/ticket/commit/4425f9e))
+
+
+
 <a name="1.3.0"></a>
 # [1.3.0](https://github.com/leancloud/ticket/compare/v1.2.2...v1.3.0) (2018-06-06)
 
