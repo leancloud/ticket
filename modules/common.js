@@ -5,13 +5,11 @@ import {Image, FormControl} from 'react-bootstrap'
 import _ from 'lodash'
 import AV from 'leancloud-storage/live-query'
 
-const {TICKET_STATUS, TICKET_STATUS_MSG, getTinyCategoryInfo, getCategoryPathName} = require('../lib/common')
-
-exports.getTinyCategoryInfo = getTinyCategoryInfo
+Object.assign(module.exports, require('../lib/common'))
 
 exports.getCategoryPathName = (category, categoriesTree) => {
   const c = exports.depthFirstSearchFind(categoriesTree, c => c.id == (category.id || category.objectId))
-  return getCategoryPathName(exports.getNodePath(c))
+  return exports.getNodePath(c).map(c => exports.getCategoryName(c)).join(' / ')
 }
 
 exports.requireAuth = (nextState, replace) => {
@@ -126,18 +124,18 @@ exports.UserLabel.propTypes = {
 
 exports.TicketStatusLabel = (props) => {
   switch (props.status) {
-  case TICKET_STATUS.FULFILLED:
-    return <span className='label label-success'>{TICKET_STATUS_MSG[props.status]}</span>
-  case TICKET_STATUS.REJECTED:
-    return <span className='label label-default'>{TICKET_STATUS_MSG[props.status]}</span>
-  case TICKET_STATUS.PRE_FULFILLED:
-    return <span className='label label-primary'>{TICKET_STATUS_MSG[props.status]}</span>
-  case TICKET_STATUS.NEW:
-    return <span className='label label-danger'>{TICKET_STATUS_MSG[props.status]}</span>
-  case TICKET_STATUS.WAITING_CUSTOMER_SERVICE:
-    return <span className='label label-warning'>{TICKET_STATUS_MSG[props.status]}</span>
-  case TICKET_STATUS.WAITING_CUSTOMER:
-    return <span className='label label-primary'>{TICKET_STATUS_MSG[props.status]}</span>
+  case exports.TICKET_STATUS.FULFILLED:
+    return <span className='label label-success'>{exports.TICKET_STATUS_MSG[props.status]}</span>
+  case exports.TICKET_STATUS.REJECTED:
+    return <span className='label label-default'>{exports.TICKET_STATUS_MSG[props.status]}</span>
+  case exports.TICKET_STATUS.PRE_FULFILLED:
+    return <span className='label label-primary'>{exports.TICKET_STATUS_MSG[props.status]}</span>
+  case exports.TICKET_STATUS.NEW:
+    return <span className='label label-danger'>{exports.TICKET_STATUS_MSG[props.status]}</span>
+  case exports.TICKET_STATUS.WAITING_CUSTOMER_SERVICE:
+    return <span className='label label-warning'>{exports.TICKET_STATUS_MSG[props.status]}</span>
+  case exports.TICKET_STATUS.WAITING_CUSTOMER:
+    return <span className='label label-primary'>{exports.TICKET_STATUS_MSG[props.status]}</span>
   default:
     throw new Error('unkonwn ticket status:', props.status)
   }
@@ -158,10 +156,13 @@ exports.Avatar.propTypes = {
   width: PropTypes.string
 }
 
-exports.CategoriesSelect = ({categoriesTree, selected, onChange}) => {
-  const options = exports.depthFirstSearchMap(categoriesTree, c => {
-    return <option key={c.id} value={c.id} disabled={selected && (selected.id || selected.objectId) == c.id}>{exports.getNodeIndentString(c) + c.get('name')}</option>
-  })
+exports.CategoriesSelect = ({categoriesTree, selected, onChange, hiddenDisable = true}) => {
+  const options = _.compact(exports.depthFirstSearchMap(categoriesTree, c => {
+    if (hiddenDisable && c.get('deletedAt')) {
+      return
+    }
+    return <option key={c.id} value={c.id} disabled={selected && (selected.id || selected.objectId) == c.id}>{exports.getNodeIndentString(c) + exports.getCategoryName(c)}</option>
+  }))
   return (
     <FormControl componentClass='select'
       value={selected ? (selected.id || selected.objectId) : ''}
@@ -176,60 +177,19 @@ exports.CategoriesSelect.propTypes = {
   categoriesTree: PropTypes.array.isRequired,
   selected: PropTypes.object,
   onChange: PropTypes.func,
+  hiddenDisable: PropTypes.bool
 }
 
-exports.getCategoreisTree = () => {
-  return new AV.Query('Category')
-    .descending('createdAt')
+exports.getCategoriesTree = (hiddenDisable = true) => {
+  const query = new AV.Query('Category')
+  if (hiddenDisable) {
+    query.doesNotExist('deletedAt')
+  }
+  return query.descending('createdAt')
     .find()
     .then(categories => {
-      return makeTree(categories)
+      return exports.makeTree(categories)
     })
-}
-
-const makeTree = (objs) => {
-  const sortFunc = (o) => {
-    return o.get('order') != null ? o.get('order') : o.createdAt.getTime()
-  }
-  const innerFunc = (parents, children) => {
-    if (parents && children) {
-      parents.forEach(p => {
-        const [cs, others] = _.partition(children, c => c.get('parent').id == p.id)
-        p.children = _.sortBy(cs, sortFunc)
-        cs.forEach(c => c.parent = p)
-        innerFunc(p.children, others)
-      })
-    }
-  }
-  const [parents, children] = _.partition(objs, o => !o.get('parent'))
-  innerFunc(parents, children)
-  return _.sortBy(parents, sortFunc)
-}
-
-exports.depthFirstSearchMap = (array, fn) => {
-  return _.flatten(array.map((a, index, array) => {
-    const result = fn(a, index, array)
-    if (a.children) {
-      return [result, ...exports.depthFirstSearchMap(a.children, fn)]
-    }
-    return result
-  }))
-}
-
-exports.depthFirstSearchFind = (array, fn) => {
-  for (let i = 0; i < array.length; i++) {
-    const obj = array[i]
-    if (fn(obj)) {
-      return obj
-    }
-
-    if (obj.children) {
-      const finded = exports.depthFirstSearchFind(obj.children, fn)
-      if (finded) {
-        return finded
-      }
-    }
-  }
 }
 
 const getNodeDepth = (obj) => {
@@ -251,4 +211,8 @@ exports.getNodePath = (obj) => {
 exports.getNodeIndentString = (treeNode) => {
   const depth = getNodeDepth(treeNode)
   return depth == 0 ? '' : '　'.repeat(depth) + '└ '
+}
+
+exports.getCategoryName = (category) => {
+  return category.get('name') + (category.get('deletedAt') ? '（停用）' : '')
 }

@@ -3,12 +3,12 @@ import PropTypes from 'prop-types'
 import {FormGroup, ControlLabel, FormControl, Button} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
-import {getCategoreisTree, depthFirstSearchFind, CategoriesSelect, getTinyCategoryInfo} from './../common'
+import {getCategoriesTree, depthFirstSearchFind, CategoriesSelect, getTinyCategoryInfo} from './../common'
 
 export default class Category extends React.Component {
 
   componentDidMount() {
-    return getCategoreisTree()
+    return getCategoriesTree()
     .then(categoriesTree => {
       const categoryId = this.props.params.id
       return Promise.resolve()
@@ -114,15 +114,13 @@ export default class Category extends React.Component {
     .catch(this.context.addNotification)
   }
 
-  handleDelete() {
-    if (this.state.category.children.length > 0) {
-      alert('该分类有子分类，不能删除。')
-      return false
-    }
-
+  handleDisable() {
     const result = confirm('确认要停用分类：' + this.state.category.get('name'))
     if (result) {
-      return this.state.category.destroy()
+      this.state.category.save({
+        'deletedAt': new Date(),
+        'order': new Date().getTime(), // 确保在排序的时候尽量靠后
+      })
       .then(() => {
         this.context.router.push('/settings/categories')
         return
@@ -161,7 +159,7 @@ export default class Category extends React.Component {
           <Button type='submit' disabled={this.state.isSubmitting} bsStyle='success'>保存</Button>
           {' '}
           {this.state.category.id
-            && <Button type='button' bsStyle="danger" onClick={this.handleDelete.bind(this)}>删除</Button>
+            && <Button type='button' bsStyle="danger" onClick={this.handleDisable.bind(this)}>停用</Button>
             || <Button type='button' onClick={() => this.context.router.push('/settings/categories')}>取消</Button>
           }
         </form>

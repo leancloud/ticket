@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import {Form, FormGroup, Button} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
-import {getCategoreisTree, depthFirstSearchMap, getNodeIndentString} from '../common'
+import {getCategoriesTree, depthFirstSearchMap, getNodeIndentString} from '../common'
 
 export default class CategorySort extends React.Component {
 
@@ -15,7 +15,7 @@ export default class CategorySort extends React.Component {
   }
 
   componentDidMount() {
-    return getCategoreisTree()
+    return getCategoriesTree()
     .then(categoriesTree => {
       this.setState({
         categoriesTree,

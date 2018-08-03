@@ -7,7 +7,7 @@ import PropTypes from 'prop-types'
 import {FormGroup, ControlLabel, FormControl, Label, Alert, Button, ButtonToolbar, Radio, Tooltip, OverlayTrigger} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
-import {UserLabel, TicketStatusLabel, uploadFiles, getCategoryPathName, getCategoreisTree, getTinyCategoryInfo} from './common'
+import {UserLabel, TicketStatusLabel, uploadFiles, getCategoryPathName, getCategoriesTree, getTinyCategoryInfo} from './common'
 import UpdateTicket from './UpdateTicket'
 import TextareaWithPreview from './components/TextareaWithPreview'
 import css from './Ticket.css'
@@ -52,7 +52,7 @@ export default class Ticket extends Component {
       }
 
       return Promise.all([
-        getCategoreisTree(),
+        getCategoriesTree(false),
         this.getReplyQuery(ticket).find(),
         new AV.Query('Tag').equalTo('ticket', ticket).find(),
         this.getOpsLogQuery(ticket).find(),

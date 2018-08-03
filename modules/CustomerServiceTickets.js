@@ -9,7 +9,7 @@ import AV from 'leancloud-storage/live-query'
 import css from './CustomerServiceTickets.css'
 import DocumentTitle from 'react-document-title'
 
-import {UserLabel, TicketStatusLabel, getCustomerServices, getCategoreisTree, depthFirstSearchMap, depthFirstSearchFind, getNodeIndentString, getNodePath, getTinyCategoryInfo} from './common'
+import {UserLabel, TicketStatusLabel, getCustomerServices, getCategoriesTree, depthFirstSearchMap, depthFirstSearchFind, getNodeIndentString, getNodePath, getTinyCategoryInfo, getCategoryName} from './common'
 import {TICKET_STATUS, TICKET_STATUS_MSG, ticketOpenedStatuses, ticketClosedStatuses} from '../lib/common'
 
 let authorSearchTimeoutId
@@ -31,7 +31,7 @@ export default class CustomerServiceTickets extends Component {
     const authorId = this.props.location.query.authorId
     Promise.all([
       getCustomerServices(),
-      getCategoreisTree(),
+      getCategoriesTree(false),
       authorId && new AV.Query('_User').get(authorId),
     ])
     .then(([customerServices, categoriesTree, author]) => {
@@ -206,7 +206,7 @@ export default class CustomerServiceTickets extends Component {
               <div className={css.left}>
                 <Link className={css.title} to={'/tickets/' + ticket.get('nid')}>{ticket.get('title')}</Link>
                 {getNodePath(category).map(c => {
-                  return <Link key={c.id} to={this.getQueryUrl({categoryId: c.id})}><span className={css.category}>{c.get('name')}</span></Link>
+                  return <Link key={c.id} to={this.getQueryUrl({categoryId: c.id})}><span className={css.category}>{getCategoryName(c)}</span></Link>
                 })}
                 {filters.isOpen === 'true' ||
                   <span>{ticket.get('evaluation') && (ticket.get('evaluation').star === 1 && <span className={css.satisfaction + ' ' + css.happy}>满意</span> || <span className={css.satisfaction + ' ' + css.unhappy}>不满意</span>)}</span>
@@ -249,7 +249,7 @@ export default class CustomerServiceTickets extends Component {
       return <MenuItem key={user.id} eventKey={user.id}>{user.get('username')}</MenuItem>
     })
     const categoryMenuItems = depthFirstSearchMap(this.state.categoriesTree, c => {
-      return <MenuItem key={c.id} eventKey={c.id}>{getNodeIndentString(c) + c.get('name')}</MenuItem>
+      return <MenuItem key={c.id} eventKey={c.id}>{getNodeIndentString(c) + getCategoryName(c)}</MenuItem>
     })
 
     let statusTitle
@@ -279,7 +279,7 @@ export default class CustomerServiceTickets extends Component {
     if (filters.categoryId) {
       const category = depthFirstSearchFind(this.state.categoriesTree, c => c.id === filters.categoryId)
       if (category) {
-        categoryTitle = category.get('name')
+        categoryTitle = getCategoryName(category)
       } else {
         categoryTitle = 'categoryId 错误'
       }

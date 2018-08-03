@@ -5,10 +5,8 @@ const hljs = require('highlight.js')
 const AV = require('leanengine')
 
 const config = require('../config')
-const {getGravatarHash, getTinyCategoryInfo, getCategoryPathName} = require('../lib/common')
 
-exports.getTinyCategoryInfo = getTinyCategoryInfo
-exports.getCategoryPathName = getCategoryPathName
+Object.assign(module.exports, require('../lib/common'))
 
 exports.getTinyUserInfo = (user) => {
   if (!user) {
@@ -19,7 +17,7 @@ exports.getTinyUserInfo = (user) => {
       objectId: user.id,
       username: user.get('username'),
       name: user.get('name'),
-      gravatarHash: getGravatarHash(user.get('email'))
+      gravatarHash: exports.getGravatarHash(user.get('email'))
     })
   }
   return user.fetch().then((user) => {
@@ -27,7 +25,7 @@ exports.getTinyUserInfo = (user) => {
       objectId: user.id,
       username: user.get('username'),
       name: user.get('name'),
-      gravatarHash: getGravatarHash(user.get('email'))
+      gravatarHash: exports.getGravatarHash(user.get('email'))
     }
   })
 }
@@ -110,5 +108,14 @@ exports.forEachAVObject = (query, fn, authOptions) => {
     })
   }
   return innerFn()
+}
+
+exports.getCategoriesTree = (authOptions) => {
+  return new AV.Query('Category')
+    .descending('createdAt')
+    .find(authOptions)
+    .then(categories => {
+      return exports.makeTree(categories)
+    })
 }
 

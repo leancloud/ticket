@@ -8,7 +8,7 @@ import docsearch from 'docsearch.js'
 
 import TextareaWithPreview from './components/TextareaWithPreview'
 import {defaultLeanCloudRegion, getLeanCloudRegionText} from '../lib/common'
-const {uploadFiles, getCategoreisTree, depthFirstSearchFind, getTinyCategoryInfo} = require('./common')
+import {uploadFiles, getCategoriesTree, depthFirstSearchFind, getTinyCategoryInfo} from './common'
 
 export default class NewTicket extends React.Component {
 
@@ -37,7 +37,7 @@ export default class NewTicket extends React.Component {
     AV.Cloud.run('checkPermission')
     .then(() => {
       return Promise.all([
-        getCategoreisTree(),
+        getCategoriesTree(),
         AV.Cloud.run('getLeanCloudApps')
         .catch((err) => {
           if (err.message.indexOf('Could not find LeanCloud authData:') === 0) {
