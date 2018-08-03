@@ -19,7 +19,7 @@
   "license": "MIT",
   "author": "LeanCloud",
   "engines": {
-    "node": "6.x"
+    "node": "8.x"
   },
   "dependencies": {
     "anchorate": "^1.1.0",

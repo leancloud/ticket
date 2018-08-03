@@ -4,7 +4,7 @@ import {Link} from 'react-router'
 import {Form, FormGroup} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
-import {getCustomerServices, getTinyCategoryInfo, UserLabel, getCategoreisTree,
+import {getCustomerServices, getTinyCategoryInfo, UserLabel, getCategoriesTree,
   depthFirstSearchMap, depthFirstSearchFind, getNodeIndentString} from '../common'
 
 export default class Categories extends React.Component {
@@ -20,7 +20,7 @@ export default class Categories extends React.Component {
 
   componentDidMount() {
     return Promise.all([
-      getCategoreisTree(),
+      getCategoriesTree(),
       getCustomerServices()
         .then((users) => {
           return _.reject(users, {id: AV.User.current().id})

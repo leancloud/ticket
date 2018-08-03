@@ -6,7 +6,7 @@ import {FormGroup, ControlLabel, FormControl, Button, Tooltip, OverlayTrigger} f
 import AV from 'leancloud-storage/live-query'
 
 import TextareaWithPreview from './components/TextareaWithPreview'
-const {uploadFiles, getCategoreisTree, depthFirstSearchFind, getTinyCategoryInfo} = require('./common')
+import {uploadFiles, getCategoriesTree, depthFirstSearchFind, getTinyCategoryInfo} from './common'
 
 export default class NewTicket extends React.Component {
 
@@ -23,7 +23,7 @@ export default class NewTicket extends React.Component {
 
   componentDidMount() {
     this.contentTextarea.addEventListener('paste', this.pasteEventListener.bind(this))
-    return getCategoreisTree()
+    return getCategoriesTree()
     .then(categoriesTree => {
       let {
         title=(localStorage.getItem('ticket:new:title') || ''),

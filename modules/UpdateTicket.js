@@ -59,7 +59,7 @@ export default class UpdateTicket extends Component {
         <ControlLabel>修改类别</ControlLabel>
         <CategoriesSelect categoriesTree={this.props.categoriesTree}
           selected={this.props.ticket.get('category')}
-          onChange={this.handleCategoryChange.bind(this)}/>
+          onChange={this.handleCategoryChange.bind(this)} />
       </FormGroup>
     </div>
   }

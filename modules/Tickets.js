@@ -8,7 +8,7 @@ import AV from 'leancloud-storage/live-query'
 import css from './CustomerServiceTickets.css'
 import DocumentTitle from 'react-document-title'
 
-import {UserLabel, TicketStatusLabel, getCategoryPathName, getCategoreisTree} from './common'
+import {UserLabel, TicketStatusLabel, getCategoryPathName, getCategoriesTree} from './common'
 
 export default class Tickets extends Component {
 
@@ -25,7 +25,7 @@ export default class Tickets extends Component {
   }
 
   componentDidMount () {
-    getCategoreisTree()
+    getCategoriesTree(false)
     .then(categoriesTree => {
       this.setState({categoriesTree})
       this.findTickets({})
