@@ -3,7 +3,6 @@ const favicon = require('serve-favicon')
 const path = require('path')
 const bodyParser = require('body-parser')
 const compression = require('compression')
-const uuid = require('uuid/v4')
 const Raven = require('raven')
 const AV = require('leanengine')
 
@@ -28,7 +27,7 @@ app.use(bodyParser.urlencoded({ extended: false }))
 
 app.use(require('./api'))
 
-const getIndexPage = (uuid) => {
+const getIndexPage = () => {
   return `
 <!doctype html public "storage">
 <html>
@@ -49,7 +48,6 @@ const getIndexPage = (uuid) => {
   LEANCLOUD_APP_ENV = '${process.env.LEANCLOUD_APP_ENV}'
   LEAN_CLI_HAVE_STAGING = '${process.env.LEAN_CLI_HAVE_STAGING}'
   SENTRY_DSN_PUBLIC = '${config.sentryDSNPublic || ''}'
-  UUID = '${uuid}'
 </script>
 <script src='${process.env.WEBPACK_DEV_SERVER || ''}/bundle.js'></script>
 <script>
@@ -67,7 +65,7 @@ const getIndexPage = (uuid) => {
 }
 
 app.get('*', function (req, res) {
-  res.send(getIndexPage(uuid()))
+  res.send(getIndexPage())
 })
 
 app.use(Raven.errorHandler())

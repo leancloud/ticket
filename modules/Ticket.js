@@ -1,4 +1,3 @@
-/*global UUID*/
 import moment from 'moment'
 import _ from 'lodash'
 import xss from 'xss'
@@ -89,7 +88,7 @@ export default class Ticket extends Component {
     .include('assignee')
     .include('files')
     .limit(1)
-    query.subscribe({subscriptionId: UUID + '@' + nid}).then(liveQuery => {
+    query.subscribe().then(liveQuery => {
       this.ticketLiveQuery = liveQuery
       return this.ticketLiveQuery.on('update', ticket => {
         if (ticket.updatedAt.getTime() != this.state.ticket.updatedAt.getTime()) {
@@ -112,7 +111,7 @@ export default class Ticket extends Component {
     .include('author')
     .include('files')
     .limit(500)
-    replyQuery.subscribe({subscriptionId: UUID + '@' + ticket.id}).then(liveQuery => {
+    replyQuery.subscribe().then(liveQuery => {
       this.replyLiveQuery = liveQuery
       return this.replyLiveQuery.on('create', reply => {
         return reply.fetch({include: 'author,files'})
@@ -132,7 +131,7 @@ export default class Ticket extends Component {
     const opsLogQuery = new AV.Query('OpsLog')
     .equalTo('ticket', ticket)
     .ascending('createdAt')
-    opsLogQuery.subscribe({subscriptionId: UUID + '@' + ticket.id})
+    opsLogQuery.subscribe()
     .then(liveQuery => {
       this.opsLogLiveQuery = liveQuery
       return this.opsLogLiveQuery.on('create', opsLog => {

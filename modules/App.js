@@ -1,4 +1,3 @@
-/*global UUID*/
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import NotificationSystem from 'react-notification-system'
@@ -169,7 +168,7 @@ class ServerNotification extends Component {
     }
     if (isCustomerService) {
       return new AV.Query('Ticket').equalTo('assignee', this.props.currentUser)
-      .subscribe({subscriptionId: UUID})
+      .subscribe()
       .then((liveQuery) => {
         this.ticketsLiveQuery = liveQuery
         liveQuery.on('create', (ticket) => {
@@ -190,7 +189,7 @@ class ServerNotification extends Component {
       })
     } else {
       return new AV.Query('Ticket').equalTo('author', this.props.currentUser)
-      .subscribe({subscriptionId: UUID})
+      .subscribe()
       .then((liveQuery) => {
         this.ticketsLiveQuery = liveQuery
         liveQuery.on('update', (ticket, updatedKeys) => {
