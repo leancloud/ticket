@@ -3,7 +3,6 @@ const favicon = require('serve-favicon')
 const path = require('path')
 const bodyParser = require('body-parser')
 const compression = require('compression')
-const uuid = require('uuid/v4')
 const Raven = require('raven')
 const AV = require('leanengine')
 
@@ -30,7 +29,7 @@ app.use(require('./api'))
 
 const orgName = require('./api/oauth').orgName
 
-const getIndexPage = (uuid) => {
+const getIndexPage = () => {
   return `
 <!doctype html public "storage">
 <html>
@@ -53,7 +52,6 @@ const getIndexPage = (uuid) => {
   LEANCLOUD_APP_ENV = '${process.env.LEANCLOUD_APP_ENV}'
   LEAN_CLI_HAVE_STAGING = '${process.env.LEAN_CLI_HAVE_STAGING}'
   SENTRY_DSN_PUBLIC = '${config.sentryDSNPublic || ''}'
-  UUID = '${uuid}'
   ORG_NAME = '${orgName}'
   USE_OAUTH = '${!!process.env.OAUTH_KEY}'
   ALGOLIA_API_KEY = '${process.env.ALGOLIA_API_KEY}'
@@ -74,7 +72,7 @@ const getIndexPage = (uuid) => {
 }
 
 app.get('*', function (req, res) {
-  res.send(getIndexPage(uuid()))
+  res.send(getIndexPage())
 })
 
 app.use(Raven.errorHandler())

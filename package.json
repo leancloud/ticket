@@ -37,7 +37,7 @@
     "express": "^4.14.0",
     "extract-text-webpack-plugin": "^1.0.1",
     "highlight.js": "^9.10.0",
-    "leancloud-storage": "^3.7.2",
+    "leancloud-storage": "^3.10.0",
     "leanengine": "^3.2.0",
     "lodash": "^4.17.10",
     "mailgun-js": "^0.18.0",
@@ -62,7 +62,6 @@
     "serve-favicon": "^2.4.3",
     "stackedit-js": "^1.0.5",
     "style-loader": "^0.18.1",
-    "uuid": "^3.1.0",
     "webpack": "^1.12.13",
     "wechat-enterprise": "^0.1.1",
     "xss": "^0.3.3"
