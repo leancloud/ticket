@@ -29,12 +29,12 @@ module.exports = {
     ]
   },
 
-  plugins: (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'stage' ? [
+  plugins: process.env.NODE_ENV !== 'development' ? [
     new webpack.optimize.DedupePlugin(),
     new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.optimize.UglifyJsPlugin(),
     new ExtractTextPlugin('app.css')
   ] : [
     new ExtractTextPlugin('app.css')
-  ]),
+  ],
 }
