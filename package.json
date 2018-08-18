@@ -64,7 +64,8 @@
     "style-loader": "^0.18.1",
     "webpack": "^1.12.13",
     "wechat-enterprise": "^0.1.1",
-    "xss": "^0.3.3"
+    "xss": "^0.3.3",
+    "zulip-js": "^2.0.4"
   },
   "devDependencies": {
     "conventional-changelog-cli": "^2.0.0",
