@@ -66,11 +66,11 @@ ${reply.get('content')}
     }
 
     exports.changeAssignee = async (ticket, from ,to) => {
-      const content = `:arrows_counterclockwise: ${from.get('username')} 转移 [工单 #${ticket.get('nid')}]($getTicketUrl(ticket)) 给 ${to.get('username')}
+      const content = `:arrows_counterclockwise: ${from.get('username')} 转移 [工单 #${ticket.get('nid')}](${getTicketUrl(ticket)}) 给 ${to.get('username')}
 ~~~ quote
 ${ticket.get('title')}
 
-${ticket.get('latestReply') && ticket.get('latestReply').content}
+${ticket.get('latestReply') && ticket.get('latestReply').content || '<还没有回复>'}
 ~~~`
       await send(to, content)
       await client.messages.send({
@@ -82,7 +82,7 @@ ${ticket.get('latestReply') && ticket.get('latestReply').content}
     }
 
     exports.delayNotify = async (ticket, to) => {
-      const content = `:alarm_clock: 提醒 ${to.get('username')} 回复 [工单 #${ticket.get('nid')}]($getTicketUrl(ticket))
+      const content = `:alarm_clock: 提醒 ${to.get('username')} 回复 [工单 #${ticket.get('nid')}](${getTicketUrl(ticket)})
 ~~~ quote
 ${ticket.get('title')}
 
@@ -99,7 +99,7 @@ ${ticket.get('latestReply') && ticket.get('latestReply').content}
 
     exports.ticketEvaluation = async (ticket, from, to) => {
       const {star, content: evaluationContent} = ticket.get('evaluation')
-      const content = `${star == 1 ? ':thumbs_up:' : ':thumbs_down:'} ${from.get('username')} 评价 [工单 #${ticket.get('nid')}]($getTicketUrl(ticket))
+      const content = `${star == 1 ? ':thumbs_up:' : ':thumbs_down:'} ${from.get('username')} 评价 [工单 #${ticket.get('nid')}](${getTicketUrl(ticket)})
 ~~~ quote
 ${ticket.get('title')}
 
