@@ -8,9 +8,10 @@ export default function Settings(props) {
       <div className="row">
         <div className="col-md-3">
           <div className="panel panel-default">
-            <div className="panel-heading">个人设置</div>
+            <div className="panel-heading">设置</div>
             <ul className="list-group">
-              <li className="list-group-item"><Link to='/settings/Profile'>个人设置</Link></li>
+              <li className="list-group-item"><Link to='/settings/profile'>个人设置</Link></li>
+              <li className="list-group-item"><Link to='/settings/organizations'>组织设置</Link></li>
             </ul>
           </div>
           {props.isCustomerService &&
@@ -27,7 +28,10 @@ export default function Settings(props) {
         <div className="col-md-9">
           {props.children && React.cloneElement(props.children, {
             currentUser: props.currentUser,
-            updateCurrentUser: props.updateCurrentUser
+            updateCurrentUser: props.updateCurrentUser,
+            organizations: props.organizations,
+            joinOrganization: props.joinOrganization,
+            leaveOrganization: props.leaveOrganization,
           })}
         </div>
       </div>
@@ -40,4 +44,7 @@ Settings.propTypes = {
   currentUser: PropTypes.object,
   updateCurrentUser: PropTypes.func,
   isCustomerService: PropTypes.bool,
+  organizations: PropTypes.array,
+  joinOrganization: PropTypes.func,
+  leaveOrganization: PropTypes.func,
 }

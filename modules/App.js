@@ -1,10 +1,11 @@
+import _ from 'lodash'
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import NotificationSystem from 'react-notification-system'
 import Raven from 'raven-js'
 import AV from 'leancloud-storage/live-query'
 
-import common from './common'
+import {isCustomerService} from './common'
 import {getGravatarHash} from '../lib/common'
 import GlobalNav from './GlobalNav'
 import css from './App.css'
@@ -16,6 +17,8 @@ export default class App extends Component {
     this.state = {
       currentUser: AV.User.current(),
       isCustomerService: false,
+      organizations: [],
+      selectedOrgId: '',
     }
   }
 
@@ -44,36 +47,46 @@ export default class App extends Component {
     }
 
     return user.fetch().then(user => {
-      return common.isCustomerService(user)
-      .then((isCustomerService) => {
-        this.setState({isCustomerService})
-        return
-      })
+      return this.refreshGlobalInfo(user)
     })
     .catch(err => {
-      this.setState({currentUser: null})
+      this.refreshGlobalInfo()
       this.addNotification(err)
     })
   }
 
-  onLogin(user) {
-    return common.isCustomerService(user)
-    .then((isCustomerService) => {
-      this.setState({currentUser: user, isCustomerService})
+  refreshGlobalInfo(currentUser) {
+    if (!currentUser) {
+      this.setState({currentUser: null, isCustomerService: false, organizations: []})
+      Raven.setUserContext()
+      return
+    }
+
+    return Promise.all([
+      isCustomerService(currentUser),
+      new AV.Query('Organization')
+        .include('memberRole')
+        .find(),
+    ])
+    .then(([isCustomerService, organizations]) => {
+      this.setState({currentUser, isCustomerService, organizations})
       Raven.setUserContext({
-        username: user.get('username'),
-        id: user.id,
+        username: currentUser.get('username'),
+        id: currentUser.id,
       })
       return
     })
   }
 
+  onLogin(user) {
+    return this.refreshGlobalInfo(user)
+  }
+
   logout() {
     return AV.User.logOut()
     .then(() => {
+      this.refreshGlobalInfo()
       this.context.router.push('/')
-      this.setState({currentUser: null, isCustomerService: false})
-      Raven.setUserContext()
       return
     })
   }
@@ -92,6 +105,21 @@ export default class App extends Component {
     })
   }
 
+  joinOrganization(organization) {
+    const organizations = this.state.organizations
+    organizations.push(organization)
+    this.setState({organizations})
+  }
+
+  handleOrgChange(e) {
+    this.setState({selectedOrgId: e.target.value})
+  }
+
+  leaveOrganization(organization) {
+    const organizations = this.state.organizations
+    this.setState({organizations: _.reject(organizations, {id: organization.id})})
+  }
+
   getChildContext() {
     return {addNotification: this.addNotification.bind(this)}
   }
@@ -108,6 +136,11 @@ export default class App extends Component {
             currentUser: this.state.currentUser,
             isCustomerService: this.state.isCustomerService,
             updateCurrentUser: this.updateCurrentUser.bind(this),
+            organizations: this.state.organizations,
+            joinOrganization: this.joinOrganization.bind(this),
+            handleOrgChange: this.handleOrgChange.bind(this),
+            leaveOrganization: this.leaveOrganization.bind(this),
+            selectedOrgId: this.state.selectedOrgId,
           })}
         </div>
         <ServerNotification currentUser={this.state.currentUser}
