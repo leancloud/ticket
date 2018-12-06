@@ -8,7 +8,7 @@ import docsearch from 'docsearch.js'
 
 import TextareaWithPreview from './components/TextareaWithPreview'
 import {defaultLeanCloudRegion, getLeanCloudRegionText} from '../lib/common'
-import {uploadFiles, getCategoriesTree, depthFirstSearchFind, getTinyCategoryInfo} from './common'
+import {uploadFiles, getCategoriesTree, depthFirstSearchFind, getTinyCategoryInfo, getTicketAcl, OrganizationSelect} from './common'
 
 export default class NewTicket extends React.Component {
 
@@ -54,6 +54,7 @@ export default class NewTicket extends React.Component {
         categoryIds=JSON.parse(localStorage.getItem('ticket:new:categoryIds') || '[]'),
         content=(localStorage.getItem('ticket:new:content') || '')
       } = this.props.location.query
+
       const categoryPath = _.compact(categoryIds.map(cid => depthFirstSearchFind(categoriesTree, c => c.id == cid)))
       const category = _.last(categoryPath)
       if (content === '' && category && category.get('qTemplate')) {
@@ -145,12 +146,19 @@ export default class NewTicket extends React.Component {
     this.setState({isCommitting: true})
     return uploadFiles($('#ticketFile')[0].files)
     .then((files) => {
-      return new AV.Object('Ticket').save({
+      let org = null
+      if (this.props.selectedOrgId && this.props.selectedOrgId.length > 0) {
+        org = _.find(this.props.organizations, {id: this.props.selectedOrgId})
+      }
+      const ticket = new AV.Object('Ticket', {
+        organization: _.find(this.props.organizations, {id: this.props.selectedOrgId}),
         title: this.state.title,
         category: getTinyCategoryInfo(_.last(this.state.categoryPath)),
         content: this.state.content,
         files,
+        ACL: getTicketAcl(AV.User.current(), org),
       })
+      return ticket.save()
       .then((ticket) => {
         if (this.state.appId) {
           return new AV.Object('Tag').save({
@@ -188,7 +196,7 @@ export default class NewTicket extends React.Component {
       })
       return (
         <FormGroup key={'categorySelect' + index}>
-          <ControlLabel>{index == 0 ? '问题分类' : index + 1 + ' 级分类'}</ControlLabel>
+          <ControlLabel>{index == 0 ? '问题分类：' : index + 1 + ' 级分类：'}</ControlLabel>
           <FormControl componentClass="select" value={selectCategory && selectCategory.id || ''} onChange={(e) => this.handleCategoryChange(e, index)}>
             <option key='empty'></option>
             {options}
@@ -221,41 +229,46 @@ export default class NewTicket extends React.Component {
       <Tooltip id="appTooltip">如需显示北美和华东节点应用，请到帐号设置页面关联帐号</Tooltip>
     )
     return (
-      <form onSubmit={this.handleSubmit.bind(this)}>
-        <FormGroup>
-          <ControlLabel>标题</ControlLabel>
-          <input type="text" className="form-control docsearch-input" value={this.state.title} 
-             onChange={this.handleTitleChange.bind(this)} />
-        </FormGroup>
-        <FormGroup>
-          <ControlLabel>
-            相关应用 <OverlayTrigger placement="top" overlay={appTooltip}>
-              <span className='icon-wrap'><span className='glyphicon glyphicon-question-sign'></span></span>
-            </OverlayTrigger>
-          </ControlLabel>
-          <FormControl componentClass="select" value={this.state.appId} onChange={this.handleAppChange.bind(this)}>
-            <option key='empty'></option>
-            {appOptions}
-          </FormControl>
-        </FormGroup>
-        {categorySelects}
-        <FormGroup>
-          <ControlLabel>
-            问题描述 <OverlayTrigger placement="top" overlay={tooltip}>
-              <b className="has-required" title="支持 Markdown 语法">M↓</b>
-            </OverlayTrigger>
-          </ControlLabel>
-          <TextareaWithPreview componentClass="textarea" placeholder="在这里输入，粘贴图片即可上传。" rows="8"
-            value={this.state.content}
-            onChange={this.handleContentChange.bind(this)}
-            inputRef={(ref) => this.contentTextarea = ref }
-          />
-        </FormGroup>
-        <FormGroup>
-          <input id="ticketFile" type="file" multiple />
-        </FormGroup>
-        <Button type='submit' disabled={this.state.isCommitting}>提交</Button>
-      </form>
+      <div>
+        <form onSubmit={this.handleSubmit.bind(this)}>
+          {this.props.organizations.length > 0 && <OrganizationSelect organizations={this.props.organizations}
+            selectedOrgId={this.props.selectedOrgId}
+            onOrgChange={this.props.handleOrgChange} />}
+          <FormGroup>
+            <ControlLabel>标题：</ControlLabel>
+            <input type="text" className="form-control docsearch-input" value={this.state.title} 
+               onChange={this.handleTitleChange.bind(this)} />
+          </FormGroup>
+          <FormGroup>
+            <ControlLabel>
+              相关应用 <OverlayTrigger placement="top" overlay={appTooltip}>
+                <span className='icon-wrap'><span className='glyphicon glyphicon-question-sign'></span></span>
+              </OverlayTrigger>
+            </ControlLabel>
+            <FormControl componentClass="select" value={this.state.appId} onChange={this.handleAppChange.bind(this)}>
+              <option key='empty'></option>
+              {appOptions}
+            </FormControl>
+          </FormGroup>
+          {categorySelects}
+          <FormGroup>
+            <ControlLabel>
+              问题描述： <OverlayTrigger placement="top" overlay={tooltip}>
+                <b className="has-required" title="支持 Markdown 语法">M↓</b>
+              </OverlayTrigger>
+            </ControlLabel>
+            <TextareaWithPreview componentClass="textarea" placeholder="在这里输入，粘贴图片即可上传。" rows="8"
+              value={this.state.content}
+              onChange={this.handleContentChange.bind(this)}
+              inputRef={(ref) => this.contentTextarea = ref }
+            />
+          </FormGroup>
+          <FormGroup>
+            <input id="ticketFile" type="file" multiple />
+          </FormGroup>
+          <Button type='submit' disabled={this.state.isCommitting} bsStyle='primary'>提交</Button>
+        </form>
+      </div>
     )
   }
 
@@ -268,4 +281,7 @@ NewTicket.contextTypes = {
 
 NewTicket.propTypes = {
   location: PropTypes.object,
+  organizations: PropTypes.array,
+  handleOrgChange: PropTypes.func,
+  selectedOrgId: PropTypes.string,
 }

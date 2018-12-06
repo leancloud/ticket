@@ -24,11 +24,9 @@ AV.Cloud.beforeSave('Ticket', (req, res) => {
 
     ticket.set('status', TICKET_STATUS.NEW)
     ticket.set('content_HTML', htmlify(ticket.get('content')))
-    return getTicketAcl(ticket, req.currentUser).then((acl) => {
-      ticket.setACL(acl)
-      ticket.set('author', req.currentUser)
-      return selectAssignee(ticket)
-    }).then((assignee) => {
+    ticket.set('author', req.currentUser)
+    return selectAssignee(ticket)
+    .then((assignee) => {
       ticket.set('assignee', assignee)
       res.success()
       return
@@ -38,15 +36,6 @@ AV.Cloud.beforeSave('Ticket', (req, res) => {
     res.error(err)
   })
 })
-
-const getTicketAcl = (ticket, author) => {
-  const acl = new AV.ACL()
-  acl.setWriteAccess(author, true)
-  acl.setReadAccess(author, true)
-  acl.setRoleWriteAccess(new AV.Role('customerService'), true)
-  acl.setRoleReadAccess(new AV.Role('customerService'), true)
-  return Promise.resolve(acl)
-}
 
 AV.Cloud.afterSave('Ticket', (req) => {
   req.object.fetch({include: 'assignee'}, {user: req.currentUser})
