@@ -27,6 +27,8 @@ app.use(bodyParser.urlencoded({ extended: false }))
 
 app.use(require('./api'))
 
+const orgName = require('./api/oauth').orgName
+
 const getIndexPage = () => {
   return `
 <!doctype html public "storage">
@@ -38,7 +40,9 @@ const getIndexPage = () => {
 <link rel="stylesheet" href="/css/leancloud-base.css">
 <link rel="stylesheet" href="/css/react-datepicker.css">
 <link rel="stylesheet" href="/index.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
 <link rel="stylesheet" href="${process.env.WEBPACK_DEV_SERVER || ''}/app.css">
+<link rel="stylesheet" href="/css/docsearch-override.css">
 <script src="/js/jquery.min.js"></script>
 <script src="/js/bootstrap.min.js"></script>
 <div id=app></div>
@@ -48,6 +52,9 @@ const getIndexPage = () => {
   LEANCLOUD_APP_ENV = '${process.env.LEANCLOUD_APP_ENV}'
   LEAN_CLI_HAVE_STAGING = '${process.env.LEAN_CLI_HAVE_STAGING}'
   SENTRY_DSN_PUBLIC = '${config.sentryDSNPublic || ''}'
+  ORG_NAME = '${orgName}'
+  USE_OAUTH = '${!!process.env.OAUTH_KEY}'
+  ALGOLIA_API_KEY = '${process.env.ALGOLIA_API_KEY}'
 </script>
 <script src='${process.env.WEBPACK_DEV_SERVER || ''}/bundle.js'></script>
 <script>
@@ -69,6 +76,20 @@ app.get('*', function (req, res) {
 })
 
 app.use(Raven.errorHandler())
+
+// error handlers
+app.use(function(err, req, res, _next) {
+  var statusCode = err.status || 500
+  if (statusCode === 500) {
+    console.error(err.stack || err)
+  }
+  res.status(statusCode)
+  var error = {}
+  res.send({
+    message: err.message,
+    error: error
+  })
+})
 
 var PORT = parseInt(process.env.LEANCLOUD_APP_PORT || process.env.PORT || 8080)
 app.listen(PORT, function() {

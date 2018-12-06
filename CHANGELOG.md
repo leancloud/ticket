@@ -50,6 +50,14 @@
 
 
 
+<a name="1.2.1-leancloud.1"></a>
+# 1.2.1-leancloud.1 (2018-03-22)
+
+### Features
+
+* 创建工单时增加文档检索功能 ([971b231](https://github.com/leancloud/ticket/commit/971b231))
+
+
 <a name="1.2.1"></a>
 ## 1.2.1 (2018-03-20)
 
@@ -66,6 +74,7 @@
 ### Features
 
 * 支持客服自己提交工单，方便内部任务跟踪和流转 ([031b729](https://github.com/leancloud/ticket/commit/031b729))
+* 支持北美和华东节点应用 ([5b9e6ea](https://github.com/leancloud/ticket/commit/5b9e6ea))
 
 
 ## v1.2.0
