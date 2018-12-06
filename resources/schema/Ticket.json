@@ -31,6 +31,10 @@
       "className": "_User",
       "type": "Pointer"
     },
+    "organization": {
+      "className": "Organization",
+      "type": "Pointer"
+    },
     "status": {
       "type": "Number"
     },
