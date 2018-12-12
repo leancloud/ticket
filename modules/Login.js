@@ -1,6 +1,6 @@
-/*global ORG_NAME, USE_OAUTH*/
+/*global ORG_NAME, USE_OAUTH, LEANCLOUD_OAUTH_REGION*/
 import React, {Component} from 'react'
-import {ControlLabel, FormControl, FormGroup, Button} from 'react-bootstrap'
+import {ControlLabel, FormControl, FormGroup, Form, Button} from 'react-bootstrap'
 import PropTypes from 'prop-types'
 import AV from 'leancloud-storage/live-query'
 import css from './Login.css'
@@ -124,7 +124,12 @@ export default class Login extends Component {
       <h1 className='font-logo'>欢迎回来</h1>
       <hr />
       <p>目前只支持通过 {ORG_NAME} OAuth 授权进行登录</p>
-      <a href='/oauth/login' className='btn btn-primary'>前往 {ORG_NAME} 授权页</a>
+      <Form action='/oauth/login' method='post'>
+        <input type='hidden' name='region' value={LEANCLOUD_OAUTH_REGION} />
+        <FormGroup>
+          <Button type='submit' bsStyle='primary'>前往 {ORG_NAME} 授权页</Button>
+        </FormGroup>
+      </Form>
     </div>
   }
 
