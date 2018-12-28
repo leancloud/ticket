@@ -32,6 +32,13 @@ const getReplyAcl = (ticket, author) => {
   acl.setWriteAccess(author, true)
   acl.setReadAccess(author, true)
   acl.setReadAccess(ticket.get('author'), true)
+
+  const organization = ticket.get('organization')
+  if (organization) {
+    const organizationRoleName = common.getOrganizationRoleName(organization)
+    acl.setRoleReadAccess(organizationRoleName, true)
+  }
+
   acl.setRoleReadAccess(new AV.Role('customerService'), true)
   return acl
 }
