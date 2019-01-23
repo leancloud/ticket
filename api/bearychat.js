@@ -1,7 +1,7 @@
 const request = require('request-promise')
 
 const config = require('../config')
-const {getTicketUrl} = require('./common')
+const {getTicketUrl, getUserDisplayName} = require('./common')
 const errorHandler = require('./errorHandler')
 
 const COLORS = {
@@ -18,7 +18,7 @@ if (!config.bearychatGlobalHookUrl) {
 
 exports.newTicket = (ticket, from, to) => {
   const data = {
-    text: `LeanTicket: [#${ticket.get('nid')}](${getTicketUrl(ticket)}): ${from.get('username')} 提交新工单`,
+    text: `LeanTicket: [#${ticket.get('nid')}](${getTicketUrl(ticket)}): ${getUserDisplayName(from)} 提交新工单`,
     attachments: [{
       title: ticket.get('title'),
       text: ticket.get('content'),
@@ -33,7 +33,7 @@ exports.newTicket = (ticket, from, to) => {
 
 exports.replyTicket = ({ticket, reply, from, to, isCustomerServiceReply}) => {
   const data = {
-    text: `LeanTicket: [#${ticket.get('nid')}](${getTicketUrl(ticket)}): ${from.get('username')} 回复工单`,
+    text: `LeanTicket: [#${ticket.get('nid')}](${getTicketUrl(ticket)}): ${getUserDisplayName(from)} 回复工单`,
     attachments: [{
       title: ticket.get('title'),
       text: reply.get('content'),
@@ -64,7 +64,7 @@ exports.changeAssignee = (ticket, from ,to) => {
   }
 
   const data = {
-    text: `LeanTicket: [#${ticket.get('nid')}](${getTicketUrl(ticket)}): ${from.get('username')} 将工单转交给 ${to.get('username')}`,
+    text: `LeanTicket: [#${ticket.get('nid')}](${getTicketUrl(ticket)}): ${getUserDisplayName(from)} 将工单转交给 ${getUserDisplayName(to)}`,
     attachments: [{
       title: ticket.get('title'),
       text: `该工单的问题：\n ${content} \n\n 最后一条回复：\n ${latestReply}`,
@@ -93,7 +93,7 @@ exports.delayNotify = (ticket, to) => {
   }
 
   const data = {
-    text: `[#${ticket.get('nid')}](${getTicketUrl(ticket)}) 亲爱的 ${to.get('username')}，快去回工单，比心👬👬👬`,
+    text: `[#${ticket.get('nid')}](${getTicketUrl(ticket)}) 亲爱的 ${getUserDisplayName(to)}，快去回工单，比心👬👬👬`,
     attachments: [{
       title: ticket.get('title'),
       text:
@@ -111,7 +111,7 @@ exports.delayNotify = (ticket, to) => {
 exports.ticketEvaluation = (ticket, from, to) => {
   const {star, content} = ticket.get('evaluation')
   const data = {
-    text: `LeanTicket: [#${ticket.get('nid')}](${getTicketUrl(ticket)}): ${from.get('username')} 评价工单`,
+    text: `LeanTicket: [#${ticket.get('nid')}](${getTicketUrl(ticket)}): ${getUserDisplayName(from)} 评价工单`,
     attachments: [{
       title: ticket.get('title'),
       text:

@@ -10,6 +10,7 @@ import AV from 'leancloud-storage/live-query'
 import randomColor from 'randomcolor'
 import Color from 'color'
 import DocumentTitle from 'react-document-title'
+import {getUserDisplayName} from './common'
 
 // 默认情况，周统计按照周日 23 点 59 分 59 秒作为统计周期分割
 // 可以通过修改统计偏移日期调整周期分割
@@ -99,7 +100,7 @@ const assigneeCountLineChartData = (statses, users) => {
         const user = _.find(users, u => u.id === key)
         lineData = {
           id: key,
-          label: user && user.get('username') || key,
+          label: user && getUserDisplayName(user) || key,
           fill: true,
           borderColor: color,
           backgroundColor: Color(color).fade(.9),
@@ -128,7 +129,7 @@ const firstReplyTimeLineChartData = (statses, users) => {
         const user = _.find(users, u => u.id === userId)
         lineData = {
           id: userId,
-          label: user && user.get('username') || userId,
+          label: user && getUserDisplayName(user) || userId,
           fill: true,
           borderColor: color,
           backgroundColor: Color(color).fade(.9),
@@ -157,7 +158,7 @@ const replyTimeLineChartData = (statses, users) => {
         const user = _.find(users, u => u.id === userId)
         lineData = {
           id: userId,
-          label: user && user.get('username') || userId,
+          label: user && getUserDisplayName(user) || userId,
           fill: true,
           borderColor: color,
           backgroundColor: Color(color).fade(.9),
@@ -432,7 +433,7 @@ class StatsSummary extends React.Component {
         return [
           row[0],
           row.index,
-          user && user.get('username') || row[0],
+          user && getUserDisplayName(user) || row[0],
           row[1],
         ]
       })
@@ -448,7 +449,7 @@ class StatsSummary extends React.Component {
         return [
           row[0],
           row.index,
-          user && user.get('username') || row[0],
+          user && getUserDisplayName(user) || row[0],
           row[1],
         ]
       })
@@ -464,7 +465,7 @@ class StatsSummary extends React.Component {
         return [
           userId,
           index,
-          <Link to={`/customerService/stats/users/${userId}?start=${this.state.startDate.toISOString()}&end=${this.state.endDate.toISOString()}`}>{user && user.get('username') || userId}</Link>,
+          <Link to={`/customerService/stats/users/${userId}?start=${this.state.startDate.toISOString()}&end=${this.state.endDate.toISOString()}`}>{user && getUserDisplayName(user) || userId}</Link>,
           (replyTime / replyCount / 1000 / 60 / 60).toFixed(2) + ' 小时',
           replyCount,
         ]
@@ -481,7 +482,7 @@ class StatsSummary extends React.Component {
         return [
           userId,
           index,
-          <Link to={`/customerService/stats/users/${userId}?start=${this.state.startDate.toISOString()}&end=${this.state.endDate.toISOString()}`}>{user && user.get('username') || userId}</Link>,
+          <Link to={`/customerService/stats/users/${userId}?start=${this.state.startDate.toISOString()}&end=${this.state.endDate.toISOString()}`}>{user && getUserDisplayName(user) || userId}</Link>,
           (replyTime / replyCount / 1000 / 60 / 60).toFixed(2) + ' 小时',
           replyCount,
         ]
