@@ -2,7 +2,7 @@ const _ = require('lodash')
 const zulip = require('zulip-js')
 
 const {username, apiKey, realm, stream, topic} = require('../config').zulip
-const {getTicketUrl} = require('./common')
+const {getTicketUrl, getUserDisplayName} = require('./common')
 const errorHandler = require('./errorHandler')
 
 
@@ -30,7 +30,7 @@ if (!username) {
     }, 1000 * 60 * 5)
 
     exports.newTicket = async (ticket, from, to) => {
-      const content = `:envelope: ${from.get('username')} 提交 [工单 #${ticket.get('nid')}](${getTicketUrl(ticket)}) 给 ${to.get('username')}
+      const content = `:envelope: ${getUserDisplayName(from)} 提交 [工单 #${ticket.get('nid')}](${getTicketUrl(ticket)}) 给 ${getUserDisplayName(to)}
 ~~~ quote
 ${ticket.get('title')}
 
@@ -50,7 +50,7 @@ ${ticket.get('content')}
         return
       }
 
-      const content = `:left_speech_bubble: ${from.get('username')} 回复 [工单 #${ticket.get('nid')}](${getTicketUrl(ticket)})
+      const content = `:left_speech_bubble: ${getUserDisplayName(from)} 回复 [工单 #${ticket.get('nid')}](${getTicketUrl(ticket)})
 ~~~ quote
 ${ticket.get('title')}
 
@@ -66,7 +66,7 @@ ${reply.get('content')}
     }
 
     exports.changeAssignee = async (ticket, from ,to) => {
-      const content = `:arrows_counterclockwise: ${from.get('username')} 转移 [工单 #${ticket.get('nid')}](${getTicketUrl(ticket)}) 给 ${to.get('username')}
+      const content = `:arrows_counterclockwise: ${getUserDisplayName(from)} 转移 [工单 #${ticket.get('nid')}](${getTicketUrl(ticket)}) 给 ${getUserDisplayName(to)}
 ~~~ quote
 ${ticket.get('title')}
 
@@ -82,7 +82,7 @@ ${ticket.get('latestReply') && ticket.get('latestReply').content || '<还没有�
     }
 
     exports.delayNotify = async (ticket, to) => {
-      const content = `:alarm_clock: 提醒 ${to.get('username')} 回复 [工单 #${ticket.get('nid')}](${getTicketUrl(ticket)})
+      const content = `:alarm_clock: 提醒 ${getUserDisplayName(to)} 回复 [工单 #${ticket.get('nid')}](${getTicketUrl(ticket)})
 ~~~ quote
 ${ticket.get('title')}
 
@@ -99,7 +99,7 @@ ${ticket.get('latestReply') && ticket.get('latestReply').content}
 
     exports.ticketEvaluation = async (ticket, from, to) => {
       const {star, content: evaluationContent} = ticket.get('evaluation')
-      const content = `${star == 1 ? ':thumbs_up:' : ':thumbs_down:'} ${from.get('username')} 评价 [工单 #${ticket.get('nid')}](${getTicketUrl(ticket)})
+      const content = `${star == 1 ? ':thumbs_up:' : ':thumbs_down:'} ${getUserDisplayName(from)} 评价 [工单 #${ticket.get('nid')}](${getTicketUrl(ticket)})
 ~~~ quote
 ${ticket.get('title')}
 

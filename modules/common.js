@@ -5,7 +5,7 @@ import {Image, FormGroup, FormControl, Form, ControlLabel, Button} from 'react-b
 import _ from 'lodash'
 import AV from 'leancloud-storage/live-query'
 
-Object.assign(module.exports, require('../lib/common'))
+Object.assign(exports, require('../lib/common'))
 
 exports.getCategoryPathName = (category, categoriesTree) => {
   const c = exports.depthFirstSearchFind(categoriesTree, c => c.id == (category.id || category.objectId))
@@ -104,7 +104,7 @@ exports.UserLabel = (props) => {
     )
   }
   const username = props.user.username || props.user.get('username')
-  const name = props.user.name || props.user.get('name')
+  const name = props.user.name || exports.getUserDisplayName(props.user)
   return (
     <span>
       <Link to={'/users/' + username} className="avatar">
@@ -232,7 +232,7 @@ exports.OrganizationSelect = class OrganizationSelect extends React.Component {
       <ControlLabel>所属：</ControlLabel>
       <FormControl componentClass='select' value={this.props.selectedOrgId} onChange={this.props.onOrgChange}>
         {this.props.organizations.map(o => <option key={o.id} value={o.id}>组织：{o.get('name')}</option>)}
-        <option value=''>个人：{AV.User.current().get('username')}</option>
+        <option value=''>个人：{exports.getUserDisplayName(AV.User.current())}</option>
       </FormControl>
     </FormGroup>
   }

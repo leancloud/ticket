@@ -5,7 +5,7 @@ import moment from 'moment'
 import DatePicker from 'react-datepicker'
 import AV from 'leancloud-storage/live-query'
 
-import {getCustomerServices} from '../common'
+import {getCustomerServices, getUserDisplayName} from '../common'
 
 export default class CustomerServiceProfile extends Component {
 
@@ -153,17 +153,17 @@ class Vacation extends React.Component {
 
   render() {
     const userOptions = this.state.users.map(user => {
-      return <option key={user.id} value={user.id}>{user.get('username')}</option>
+      return <option key={user.id} value={user.id}>{getUserDisplayName(user)}</option>
     })
 
     const vacationTrs = this.state.vacations.map(vacation => {
       const startDate = moment(vacation.get('startDate'))
       const endDate = moment(vacation.get('endDate'))
       return <tr key={vacation.id}>
-        <td>{vacation.get('vacationer').get('username')}</td>
+        <td>{getUserDisplayName(vacation.get('vacationer'))}</td>
         <td>{startDate.format('YYYY-MM-DD') + (startDate.hours() === 12 ? ' 下午' : '')}</td>
         <td>{endDate.format('YYYY-MM-DD') + (endDate.hours() === 12 ? ' 下午' : '')}</td>
-        <td>{vacation.get('operator').get('username')}</td>
+        <td>{getUserDisplayName(vacation.get('operator'))}</td>
         <td>{moment(vacation.createdAt).fromNow()}</td>
         <td><Button type='button' onClick={() => this.handleRemove(vacation)}>删除</Button></td>
       </tr>
