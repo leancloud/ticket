@@ -55,7 +55,8 @@ export default class CustomerServiceTickets extends Component {
       return Promise.resolve()
     }
 
-    const {assigneeId, isOpen, status, categoryId, authorId, isOnlyUnlike, page = '0', size = '10'} = filters
+    const {assigneeId, isOpen, status, categoryId, authorId,
+      tagKey, tagValue, isOnlyUnlike, page = '0', size = '10'} = filters
     const query = new AV.Query('Ticket')
     
     let statuses = []
@@ -82,6 +83,18 @@ export default class CustomerServiceTickets extends Component {
 
     if (categoryId) {
       query.equalTo('category.objectId', categoryId)
+    }
+
+    if (tagKey) {
+      const tagMetadata = _.find(this.context.tagMetadatas, m => m.get('key') == tagKey)
+      if (tagMetadata) {
+        const columnName = tagMetadata.get('isPrivate') ? 'privateTags' : 'tags'
+        if (tagValue) {
+          query.equalTo(columnName, {key: tagKey, value: tagValue})
+        } else {
+          query.equalTo(columnName + '.key', tagKey)
+        }
+      }
     }
 
     if (JSON.parse(isOnlyUnlike || false)) {
@@ -310,9 +323,27 @@ export default class CustomerServiceTickets extends Component {
                 {categoryMenuItems}
               </DropdownButton>
             </ButtonGroup>
+            <ButtonGroup>
+              <DropdownButton className={(typeof filters.tagKey === 'undefined' || filters.tagKey ? ' active' : '')} id='tagKeyDropdown' title={filters.tagKey || '全部标签'} onSelect={(eventKey) => this.updateFilter({tagKey: eventKey, tagValue: undefined})}>
+                <MenuItem key='undefined'>全部标签</MenuItem>
+                {this.context.tagMetadatas.map(tagMetadata => {
+                  const key = tagMetadata.get('key')
+                  return <MenuItem key={key} eventKey={key}>{key}</MenuItem>
+                })}
+              </DropdownButton>
+              {filters.tagKey &&
+                <DropdownButton className={(typeof filters.tagValue === 'undefined' || filters.tagValue ? ' active' : '')} id='tagValueDropdown' title={filters.tagValue || '全部标签值'} onSelect={(eventKey) => this.updateFilter({tagValue: eventKey})}>
+                  <MenuItem key='undefined'>全部标签值</MenuItem>
+                  {_.find(this.context.tagMetadatas, m => m.get('key') == filters.tagKey).get('values').map(value => {
+                    return <MenuItem key={value} eventKey={value}>{value}</MenuItem>
+                  })}
+                </DropdownButton>
+              }
+            </ButtonGroup>
           </ButtonToolbar>
         </FormGroup>
         {'  '}
+
         <FormGroup validationState={this.state.authorFilterValidationState}>
           <FormControl type="text" value={this.state.authorUsername} placeholder="提交人" onChange={this.handleAuthorChange.bind(this)} />
         </FormGroup>
@@ -376,4 +407,5 @@ CustomerServiceTickets.propTypes = {
 CustomerServiceTickets.contextTypes = {
   router: PropTypes.object.isRequired,
   addNotification: PropTypes.func.isRequired,
+  tagMetadatas: PropTypes.array,
 }

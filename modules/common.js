@@ -280,3 +280,53 @@ exports.getNodeIndentString = (treeNode) => {
 exports.getCategoryName = (category) => {
   return category.get('name') + (category.get('deletedAt') ? '（停用）' : '')
 }
+
+exports.TagForm = class TagForm extends React.Component {
+
+  render() {
+    const tagMetadata = this.props.tagMetadata
+    if (tagMetadata.get('isPrivate') && !this.props.isCustomerService) {
+      return <div></div>
+    }
+
+    const tag = this.props.tag
+    if (!this.props.changeTagValue) {
+      // 没有修改方法，则标签以只读方式展现
+      if (!tag) {
+        return <div></div>
+      }
+
+      return <FormGroup key={tag.id}>
+        <label className="label-block"><strong>{tag.key}</strong></label>
+        <span>{tag.value}</span>
+      </FormGroup>
+
+    } else {
+      return <FormGroup key={tagMetadata.id}>
+        <ControlLabel>
+          {tagMetadata.get('key')}
+          {' '}
+          {tagMetadata.get('isPrivate') && <span className='label label-default'>Private</span>}
+        </ControlLabel>
+        {tagMetadata.get('type') == 'select'
+          && <FormControl componentClass="select"
+                          value={tag ? tag.value : ''}
+                          onChange={e => this.props.changeTagValue(tagMetadata.get('key'), e.target.value, tagMetadata.get('isPrivate'))}>
+             <option></option>
+             {tagMetadata.get('values').map(v => {
+               return <option key={v}>{v}</option>
+             })}
+           </FormControl>
+          || <FormControl type="text" value={tag && tag.value} onChange={(e) => this.props.changeTagValue(tagMetadata.get('key'), e.target.value, tagMetadata.get('isPrivate'))} />
+        }
+      </FormGroup>
+    }
+  }
+}
+
+exports.TagForm.propTypes = {
+  tagMetadata: PropTypes.object.isRequired,
+  tag: PropTypes.object,
+  changeTagValue: PropTypes.func,
+  isCustomerService: PropTypes.bool,
+}

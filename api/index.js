@@ -18,7 +18,6 @@ require('./User')
 require('./Category')
 require('./Organization')
 require('./Role')
-require('./Tag')
 require('./stats')
 require('./Vacation')
 

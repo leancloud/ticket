@@ -19,6 +19,7 @@ export default class App extends Component {
       isCustomerService: false,
       organizations: [],
       selectedOrgId: '',
+      tagMetadatas: [],
     }
   }
 
@@ -55,9 +56,31 @@ export default class App extends Component {
     })
   }
 
+  fetchTagMetadatas() {
+    return new AV.Query('TagMetadata').find()
+    .then(tagMetadatas => {
+      return tagMetadatas
+    })
+  }
+
+  refreshTagMetadatas() {
+    return this.fetchTagMetadatas()
+    .then(tagMetadatas => {
+      this.setState({
+        tagMetadatas
+      })
+      return
+    })
+  }
+
   refreshGlobalInfo(currentUser) {
     if (!currentUser) {
-      this.setState({currentUser: null, isCustomerService: false, organizations: []})
+      this.setState({
+        currentUser: null,
+        isCustomerService: false,
+        organizations: [],
+        tagMetadatas: []
+      })
       Raven.setUserContext()
       return
     }
@@ -67,9 +90,15 @@ export default class App extends Component {
       new AV.Query('Organization')
         .include('memberRole')
         .find(),
+      this.fetchTagMetadatas(),
     ])
-    .then(([isCustomerService, organizations]) => {
-      this.setState({currentUser, isCustomerService, organizations})
+    .then(([isCustomerService, organizations, tagMetadatas]) => {
+      this.setState({
+        currentUser,
+        isCustomerService,
+        organizations,
+        tagMetadatas
+      })
       Raven.setUserContext({
         username: currentUser.get('username'),
         id: currentUser.id,
@@ -121,7 +150,11 @@ export default class App extends Component {
   }
 
   getChildContext() {
-    return {addNotification: this.addNotification.bind(this)}
+    return {
+      addNotification: this.addNotification.bind(this),
+      tagMetadatas: this.state.tagMetadatas,
+      refreshTagMetadatas: this.refreshTagMetadatas.bind(this),
+    }
   }
 
   render() {
@@ -141,6 +174,7 @@ export default class App extends Component {
             handleOrgChange: this.handleOrgChange.bind(this),
             leaveOrganization: this.leaveOrganization.bind(this),
             selectedOrgId: this.state.selectedOrgId,
+            tagMetadatas: this.state.tagMetadatas,
           })}
         </div>
         <ServerNotification currentUser={this.state.currentUser}
@@ -162,7 +196,9 @@ App.contextTypes = {
 }
 
 App.childContextTypes = {
-  addNotification: PropTypes.func
+  addNotification: PropTypes.func,
+  tagMetadatas: PropTypes.array,
+  refreshTagMetadatas: PropTypes.func,
 }
 
 class ServerNotification extends Component {
