@@ -5,6 +5,7 @@ const wechat = require('wechat-enterprise')
 const AV = require('leanengine')
 
 const common = require('./common')
+const {getUserDisplayName} = common
 
 Promise.promisifyAll(wechat.API.prototype)
 
@@ -102,7 +103,7 @@ exports.changeAssignee = (ticket, from ,to) => {
     to: to.get('wechatEnterpriseUserId'),
     title: `${ticket.get('title')} (#${ticket.get('nid')})`,
     content: 
-      `${from.get('username')} 将该工单转交给您处理。
+      `${getUserDisplayName(from)} 将该工单转交给您处理。
 该工单的问题：
 
 ${ticket.get('content')}
@@ -121,7 +122,7 @@ exports.delayNotify = (ticket ,to) => {
   }
   return send({
     to: to.get('wechatEnterpriseUserId'),
-    title: `亲爱的 ${to.get('username')}，快去回工单，比心👬👬👬`,
+    title: `亲爱的 ${getUserDisplayName(to)}，快去回工单，比心👬👬👬`,
     content: 
       `该工单的问题：
 

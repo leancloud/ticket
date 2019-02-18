@@ -10,7 +10,7 @@ import css from './CustomerServiceTickets.css'
 import DocumentTitle from 'react-document-title'
 
 import {UserLabel, TicketStatusLabel, getCustomerServices, getCategoriesTree, depthFirstSearchMap, depthFirstSearchFind, getNodeIndentString, getNodePath, getTinyCategoryInfo, getCategoryName} from './common'
-import {TICKET_STATUS, TICKET_STATUS_MSG, ticketOpenedStatuses, ticketClosedStatuses} from '../lib/common'
+import {TICKET_STATUS, TICKET_STATUS_MSG, ticketOpenedStatuses, ticketClosedStatuses, getUserDisplayName} from '../lib/common'
 
 let authorSearchTimeoutId
 
@@ -244,7 +244,7 @@ export default class CustomerServiceTickets extends Component {
       return <MenuItem key={value} eventKey={value}>{TICKET_STATUS_MSG[value]}</MenuItem>
     })
     const assigneeMenuItems = this.state.customerServices.map((user) => {
-      return <MenuItem key={user.id} eventKey={user.id}>{user.get('username')}</MenuItem>
+      return <MenuItem key={user.id} eventKey={user.id}>{getUserDisplayName(user)}</MenuItem>
     })
     const categoryMenuItems = depthFirstSearchMap(this.state.categoriesTree, c => {
       return <MenuItem key={c.id} eventKey={c.id}>{getNodeIndentString(c) + getCategoryName(c)}</MenuItem>
@@ -265,7 +265,7 @@ export default class CustomerServiceTickets extends Component {
     if (filters.assigneeId) {
       const assignee = this.state.customerServices.find(user => user.id === filters.assigneeId)
       if (assignee) {
-        assigneeTitle = assignee.get('username')
+        assigneeTitle = getUserDisplayName(assignee)
       } else {
         assigneeTitle = 'assigneeId 错误'
       }

@@ -1,4 +1,5 @@
 const config = require('../config')
+const {getUserDisplayName} = require('./common')
 
 if (!config.mailgunKey || !config.mailgunDomain) {
   console.log('mailgun 的 key 和 domain 没有配置，所以发送邮件功能无法使用。')
@@ -14,7 +15,7 @@ exports.newTicket = (ticket, from, to) => {
     return Promise.resolve()
   }
   return send({
-    from: `${from.get('username')} <ticket@leancloud.cn>`,
+    from: `${getUserDisplayName(from)} <ticket@leancloud.cn>`,
     to: to.get('email'),
     subject: `[LeanTicket] ${ticket.get('title')} (#${ticket.get('nid')})`,
     'h:Reply-To': `ticket-${to.id}@leancloud.cn`,
@@ -28,7 +29,7 @@ exports.replyTicket = ({ticket, reply, from, to}) => {
     return Promise.resolve()
   }
   return send({
-    from: `${from.get('username')} <ticket@leancloud.cn>`,
+    from: `${getUserDisplayName(from)} <ticket@leancloud.cn>`,
     to: to.get('email'),
     subject: `[LeanTicket] ${ticket.get('title')} (#${ticket.get('nid')})`,
     'h:Reply-To': `ticket-${to.id}@leancloud.cn`,
@@ -42,12 +43,12 @@ exports.changeAssignee = (ticket, from, to) => {
     return Promise.resolve()
   }
   return send({
-    from: `${from.get('username')} <ticket@leancloud.cn>`,
+    from: `${getUserDisplayName(from)} <ticket@leancloud.cn>`,
     to: to.get('email'),
     subject: `[LeanTicket] ${ticket.get('title')} (#${ticket.get('nid')})`,
     'h:Reply-To': `ticket-${to.id}@leancloud.cn`,
     text:
-      `${from.get('username')} 将该工单转交给您处理。
+      `${getUserDisplayName(from)} 将该工单转交给您处理。
 该工单的问题：
 
 ${ticket.get('content')}
@@ -67,7 +68,7 @@ exports.delayNotify = (ticket, to) => {
   return send({
     from: 'support <ticket@leancloud.cn>',
     to: to.get('email'),
-    subject: `亲爱的 ${to.get('username')}，快去回工单，比心👬👬👬`,
+    subject: `亲爱的 ${getUserDisplayName(to)}，快去回工单，比心👬👬👬`,
     text:
       `该工单的问题：
 

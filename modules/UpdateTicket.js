@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 import {FormGroup, ControlLabel, FormControl} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
+import {getUserDisplayName} from './common'
 
 import {getCustomerServices, CategoriesSelect, depthFirstSearchFind} from './common'
 
@@ -45,7 +46,7 @@ export default class UpdateTicket extends Component {
     }
     const assigneesOptions = this.state.assignees.map((cs) => {
       return (
-        <option key={cs.id} value={cs.id}>{cs.get('username')}</option>
+        <option key={cs.id} value={cs.id}>{getUserDisplayName(cs)}</option>
       )
     })
     return <div>
