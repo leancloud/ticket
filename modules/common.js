@@ -308,17 +308,14 @@ exports.TagForm = class TagForm extends React.Component {
           {' '}
           {tagMetadata.get('isPrivate') && <span className='label label-default'>Private</span>}
         </ControlLabel>
-        {tagMetadata.get('type') == 'select'
-          && <FormControl componentClass="select"
-                          value={tag ? tag.value : ''}
-                          onChange={e => this.props.changeTagValue(tagMetadata.get('key'), e.target.value, tagMetadata.get('isPrivate'))}>
-             <option></option>
-             {tagMetadata.get('values').map(v => {
-               return <option key={v}>{v}</option>
-             })}
-           </FormControl>
-          || <FormControl type="text" value={tag && tag.value} onChange={(e) => this.props.changeTagValue(tagMetadata.get('key'), e.target.value, tagMetadata.get('isPrivate'))} />
-        }
+        <FormControl componentClass="select"
+                     value={tag ? tag.value : ''}
+                     onChange={e => this.props.changeTagValue(tagMetadata.get('key'), e.target.value, tagMetadata.get('isPrivate'))}>
+          <option></option>
+          {tagMetadata.get('values').map(v => {
+            return <option key={v}>{v}</option>
+          })}
+        </FormControl>
       </FormGroup>
     }
   }

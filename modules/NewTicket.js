@@ -222,9 +222,11 @@ export default class NewTicket extends React.Component {
           {categorySelects}
 
           {this.context.tagMetadatas.map(tagMetadata => {
+            const tags = ticket.get('tags')
+            const tag = _.find(tags, t => t.key == tagMetadata.get('key'))
             return <TagForm key={tagMetadata.id}
                             tagMetadata={tagMetadata}
-                            tags={this.state.ticket.get('tags')}
+                            tag={tag}
                             changeTagValue={this.changeTagValue.bind(this)} />
           })}
 
