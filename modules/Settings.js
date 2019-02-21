@@ -21,6 +21,7 @@ export default function Settings(props) {
                 <li className="list-group-item"><Link to='/settings/customerServiceProfile'>个人设置</Link></li>
                 <li className="list-group-item"><Link to='/settings/members'>成员</Link></li>
                 <li className="list-group-item"><Link to='/settings/categories'>分类</Link></li>
+                <li className="list-group-item"><Link to='/settings/tags'>标签</Link></li>
               </ul>
             </div>
           }

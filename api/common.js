@@ -8,28 +8,6 @@ const config = require('../config')
 
 Object.assign(module.exports, require('../lib/common'))
 
-exports.getTinyUserInfo = (user) => {
-  if (!user) {
-    return Promise.resolve()
-  }
-  if (user.get('username')) {
-    return Promise.resolve({
-      objectId: user.id,
-      username: user.get('username'),
-      name: user.get('name'),
-      gravatarHash: exports.getGravatarHash(user.get('email'))
-    })
-  }
-  return user.fetch().then((user) => {
-    return {
-      objectId: user.id,
-      username: user.get('username'),
-      name: user.get('name'),
-      gravatarHash: exports.getGravatarHash(user.get('email'))
-    }
-  })
-}
-
 exports.getTinyReplyInfo = (reply) => {
   return exports.getTinyUserInfo(reply.get('author'))
     .then((author) => {

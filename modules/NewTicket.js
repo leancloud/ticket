@@ -8,20 +8,31 @@ import docsearch from 'docsearch.js'
 
 import TextareaWithPreview from './components/TextareaWithPreview'
 import {defaultLeanCloudRegion, getLeanCloudRegionText} from '../lib/common'
-import {uploadFiles, getCategoriesTree, depthFirstSearchFind, getTinyCategoryInfo, getTicketAcl, OrganizationSelect} from './common'
+import {uploadFiles, getCategoriesTree, depthFirstSearchFind, getTinyCategoryInfo, getTicketAcl, OrganizationSelect, TagForm} from './common'
 
 export default class NewTicket extends React.Component {
 
   constructor(props) {
     super(props)
+    let org = null
+    if (this.props.selectedOrgId && this.props.selectedOrgId.length > 0) {
+      org = _.find(this.props.organizations, {id: this.props.selectedOrgId})
+    }
     this.state = {
+      ticket: new AV.Object('Ticket', {
+        organization: org || undefined,
+        title: '',
+        category: null,
+        content: '',
+        files: [],
+        tags: [],
+        ACL: getTicketAcl(AV.User.current(), org),
+      }),
       categoriesTree: [],
       apps: [],
       isCommitting: false,
-      title: '',
       appId: '',
       categoryPath: [],
-      content: '',
     }
   }
 
@@ -60,9 +71,15 @@ export default class NewTicket extends React.Component {
       if (content === '' && category && category.get('qTemplate')) {
         content = category.get('qTemplate')
       }
+      const ticket = this.state.ticket
+      ticket.set('title', title)
+      ticket.set('content', content)
       this.setState({
-        categoriesTree, apps,
-        title, appId, categoryPath, content,
+        ticket,
+        categoriesTree,
+        categoryPath, 
+        apps,
+        appId,
       })
       return
     })
@@ -78,8 +95,10 @@ export default class NewTicket extends React.Component {
       this.setState({isCommitting: true})
       return uploadFiles(e.clipboardData.files)
       .then((files) => {
-        const content = `${this.state.content}\n<img src='${files[0].url()}' />`
-        this.setState({isCommitting: false, content})
+        const ticket = this.state.ticket
+        const content = `${ticket.get('content')}\n<img src='${files[0].url()}' />`
+        ticket.set('content', content)
+        this.setState({isCommitting: false, ticket})
         return
       })
     }
@@ -87,7 +106,9 @@ export default class NewTicket extends React.Component {
 
   handleTitleChange(e) {
     localStorage.setItem('ticket:new:title', e.target.value)
-    this.setState({title: e.target.value})
+    const ticket = this.state.ticket
+    ticket.set('title', e.target.value)
+    this.setState({ticket})
   }
 
   handleCategoryChange(e, index) {
@@ -101,21 +122,36 @@ export default class NewTicket extends React.Component {
     }
 
     categoryPath.push(category)
-    if (this.state.content && category.get('qTemplate')) {
+    const ticket = this.state.ticket
+    if (ticket.get('content') && category.get('qTemplate')) {
       if (confirm('当前「问题描述」不为空，所选「问题分类」的模板会覆盖现有描述。\n\n是否继续？')) {
         localStorage.setItem('ticket:new:categoryIds', JSON.stringify(categoryPath.map(c => c.id)))
         localStorage.setItem('ticket:new:content', category.get('qTemplate'))
-        this.setState({categoryPath, content: category.get('qTemplate')})
+        ticket.set('content', category.get('qTemplate'))
+        this.setState({categoryPath, ticket})
         return
       } else {
         return false
       }
     }
 
-    const content = category.get('qTemplate') || this.state.content || ''
+    const content = category.get('qTemplate') || ticket.get('content') || ''
     localStorage.setItem('ticket:new:categoryIds', JSON.stringify(categoryPath.map(c => c.id)))
     localStorage.setItem('ticket:new:content', content)
-    this.setState({categoryPath, content})
+    ticket.set('content', content)
+    this.setState({categoryPath, ticket})
+  }
+
+  changeTagValue(key, value) {
+    const ticket = this.state.ticket
+    const tags = ticket.get('tags')
+    let tag = _.find(tags, {key})
+    if (!tag) {
+      tags.push({key, value})
+    } else {
+      tag.value = value
+    }
+    this.setState({ticket})
   }
 
   handleAppChange(e) {
@@ -124,13 +160,16 @@ export default class NewTicket extends React.Component {
 
   handleContentChange(e) {
     localStorage.setItem('ticket:new:content', e.target.value)
-    this.setState({content: e.target.value})
+    const ticket = this.state.ticket
+    ticket.set('content', e.target.value)
+    this.setState({ticket})
   }
 
   handleSubmit(e) {
     e.preventDefault()
 
-    if (!this.state.title || this.state.title.trim().length === 0) {
+    const ticket = this.state.ticket
+    if (!ticket.get('title') || ticket.get('title').trim().length === 0) {
       this.context.addNotification(new Error('标题不能为空'))
       return
     }
@@ -146,25 +185,17 @@ export default class NewTicket extends React.Component {
     this.setState({isCommitting: true})
     return uploadFiles($('#ticketFile')[0].files)
     .then((files) => {
-      let org = null
-      if (this.props.selectedOrgId && this.props.selectedOrgId.length > 0) {
-        org = _.find(this.props.organizations, {id: this.props.selectedOrgId})
-      }
-      const ticket = new AV.Object('Ticket', {
-        organization: _.find(this.props.organizations, {id: this.props.selectedOrgId}),
-        title: this.state.title,
-        category: getTinyCategoryInfo(_.last(this.state.categoryPath)),
-        content: this.state.content,
-        files,
-        ACL: getTicketAcl(AV.User.current(), org),
-      })
+      ticket.set('category', getTinyCategoryInfo(_.last(this.state.categoryPath)))
+      ticket.set('files', files)
       return ticket.save()
       .then((ticket) => {
         if (this.state.appId) {
           return new AV.Object('Tag').save({
             key: 'appId',
             value: this.state.appId,
-            ticket
+            ticket,
+            author: AV.User.current(),
+            ACL: getTicketAcl(AV.User.current(), ticket.get('organization')),
           })
         }
         return
@@ -228,6 +259,8 @@ export default class NewTicket extends React.Component {
     const appTooltip = (
       <Tooltip id="appTooltip">如需显示北美和华东节点应用，请到帐号设置页面关联帐号</Tooltip>
     )
+
+    const ticket = this.state.ticket
     return (
       <div>
         <form onSubmit={this.handleSubmit.bind(this)}>
@@ -236,7 +269,7 @@ export default class NewTicket extends React.Component {
             onOrgChange={this.props.handleOrgChange} />}
           <FormGroup>
             <ControlLabel>标题：</ControlLabel>
-            <input type="text" className="form-control docsearch-input" value={this.state.title} 
+            <input type="text" className="form-control docsearch-input" value={ticket.get('title')} 
                onChange={this.handleTitleChange.bind(this)} />
           </FormGroup>
           <FormGroup>
@@ -250,7 +283,18 @@ export default class NewTicket extends React.Component {
               {appOptions}
             </FormControl>
           </FormGroup>
+
           {categorySelects}
+
+          {this.context.tagMetadatas.map(tagMetadata => {
+            const tags = ticket.get('tags')
+            const tag = _.find(tags, t => t.key == tagMetadata.get('key'))
+            return <TagForm key={tagMetadata.id}
+                            tagMetadata={tagMetadata}
+                            tag={tag}
+                            changeTagValue={this.changeTagValue.bind(this)} />
+          })}
+
           <FormGroup>
             <ControlLabel>
               问题描述： <OverlayTrigger placement="top" overlay={tooltip}>
@@ -258,7 +302,7 @@ export default class NewTicket extends React.Component {
               </OverlayTrigger>
             </ControlLabel>
             <TextareaWithPreview componentClass="textarea" placeholder="在这里输入，粘贴图片即可上传。" rows="8"
-              value={this.state.content}
+              value={ticket.get('content')}
               onChange={this.handleContentChange.bind(this)}
               inputRef={(ref) => this.contentTextarea = ref }
             />
@@ -277,6 +321,7 @@ export default class NewTicket extends React.Component {
 NewTicket.contextTypes = {
   router: PropTypes.object,
   addNotification: PropTypes.func.isRequired,
+  tagMetadatas: PropTypes.array,
 }
 
 NewTicket.propTypes = {
@@ -285,3 +330,4 @@ NewTicket.propTypes = {
   handleOrgChange: PropTypes.func,
   selectedOrgId: PropTypes.string,
 }
+

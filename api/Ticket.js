@@ -113,10 +113,7 @@ AV.Cloud.afterUpdate('Ticket', (req) => {
 AV.Cloud.define('operateTicket', (req) => {
   const {ticketId, action} = req.params
   return Promise.all([
-    new AV.Query('Ticket')
-    .include('files')
-    .include('author')
-    .get(ticketId, {user: req.currentUser}),
+    new AV.Query('Ticket').get(ticketId, {user: req.currentUser}),
     getTinyUserInfo(req.currentUser),
   ])
   .then(([ticket, operator]) => {
@@ -136,10 +133,24 @@ AV.Cloud.define('operateTicket', (req) => {
       }, {useMasterKey: true})
     })
     .then(() => {
-      return ticket.toFullJSON()
+      return
     })
   })
   .catch(errorHandler.captureException)
+})
+
+AV.Cloud.define('getPrivateTags', (req) => {
+  const {ticketId} = req.params
+  return common.isCustomerService(req.currentUser)
+  .then(isCustomerService => {
+    if (isCustomerService) {
+      return new AV.Query('Ticket')
+      .select(['privateTags'])
+      .get(ticketId, {useMasterKey: true})
+    } else {
+      return
+    }
+  })
 })
 
 const getTargetStatus = (action, isCustomerService) => {
