@@ -57,7 +57,9 @@ export default class Ticket extends Component {
         this.getOpsLogQuery(ticket).find(),
       ])
       .then(([privateTags, categoriesTree, replies, tags, opsLogs]) => {
-        ticket.set('privateTags', privateTags.privateTags)
+        if (privateTags) {
+          ticket.set('privateTags', privateTags.privateTags)
+        }
         this.setState({
           categoriesTree,
           ticket,
@@ -99,7 +101,9 @@ export default class Ticket extends Component {
             AV.Cloud.run('getPrivateTags', {ticketId: ticket.id}),
           ])
           .then(([ticket, privateTags]) => {
-            ticket.set('privateTags', privateTags.privateTags)
+            if (privateTags) {
+              ticket.set('privateTags', privateTags.privateTags)
+            }
             this.setState({ticket})
             return
           })
