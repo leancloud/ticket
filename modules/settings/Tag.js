@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types'
 import React, {Component} from 'react'
-import {Form, FormGroup, ControlLabel, FormControl, InputGroup, Checkbox, Button, OverlayTrigger, Tooltip} from 'react-bootstrap'
+import {Form, FormGroup, ControlLabel, FormControl, InputGroup, Checkbox, Radio, Button, OverlayTrigger, Tooltip} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
 export default class Tag extends Component {
@@ -20,6 +20,7 @@ export default class Tag extends Component {
       if (id == 'new') {
         return new AV.Object('TagMetadata', {
           key: '',
+          type: 'select',
           values: [],
           isPrivate: false,
           ACL: {
@@ -52,6 +53,12 @@ export default class Tag extends Component {
   handleKeyChange(e) {
     const tagMetadata = this.state.tagMetadata
     tagMetadata.set('key', e.target.value)
+    this.setState({tagMetadata})
+  }
+
+  handleTypeChange(e) {
+    const tagMetadata = this.state.tagMetadata
+    tagMetadata.set('type', e.target.value)
     this.setState({tagMetadata})
   }
 
@@ -142,19 +149,42 @@ export default class Tag extends Component {
         </Checkbox>
       </FormGroup>
       <FormGroup>
-        <ControlLabel>标签可选值</ControlLabel>
-        {tagMetadata.get('values').map((value, index, array) => {
-          return <InputGroup key={index}>
-              <FormControl type='text' value={value} onChange={(e) => this.changeValue(index, e.target.value)} />
-              <InputGroup.Button>
-                <Button disabled={index == 0} onClick={() => this.handleSortUpdate(value, index, index - 1)}><span className="glyphicon glyphicon glyphicon-chevron-up" aria-hidden="true" /></Button>
-                <Button disabled={index == array.length - 1} onClick={() => this.handleSortUpdate(value, index, index + 1)}><span className="glyphicon glyphicon glyphicon-chevron-down" aria-hidden="true" /></Button>
-                <Button onClick={() => this.handleRemoveItem(index)}><span className="glyphicon glyphicon-remove" aria-hidden="true" /></Button>
-              </InputGroup.Button>
-            </InputGroup>
-        })}
-        <Button type='button' onClick={this.addValueItem.bind(this)}><span className="glyphicon glyphicon glyphicon-plus" aria-hidden="true" /></Button>
+        <ControlLabel>类型</ControlLabel>
+        <Radio name="tagTypeGroup" value='select' checked={tagMetadata.get('type') == 'select'} onChange={this.handleTypeChange.bind(this)}>
+          下拉选择
+          {' '}<OverlayTrigger placement="right" overlay={
+            <Tooltip id="tooltip">
+              用户只能在预设的标签值中选择一个。
+            </Tooltip>}>
+            <span className="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+          </OverlayTrigger>
+        </Radio>
+        <Radio name="tagTypeGroup" value="text" checked={tagMetadata.get('type') == 'text'} onChange={this.handleTypeChange.bind(this)}>
+          任意文本
+          {' '}<OverlayTrigger placement="right" overlay={
+            <Tooltip id="tooltip">
+              用户可以输入任意文本作为标签值。
+            </Tooltip>}>
+            <span className="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+          </OverlayTrigger>
+        </Radio>{' '}
       </FormGroup>
+      {tagMetadata.get('type') == 'select' &&
+        <FormGroup>
+          <ControlLabel>标签可选值</ControlLabel>
+          {tagMetadata.get('values').map((value, index, array) => {
+            return <InputGroup key={index}>
+                <FormControl type='text' value={value} onChange={(e) => this.changeValue(index, e.target.value)} />
+                <InputGroup.Button>
+                  <Button disabled={index == 0} onClick={() => this.handleSortUpdate(value, index, index - 1)}><span className="glyphicon glyphicon glyphicon-chevron-up" aria-hidden="true" /></Button>
+                  <Button disabled={index == array.length - 1} onClick={() => this.handleSortUpdate(value, index, index + 1)}><span className="glyphicon glyphicon glyphicon-chevron-down" aria-hidden="true" /></Button>
+                  <Button onClick={() => this.handleRemoveItem(index)}><span className="glyphicon glyphicon-remove" aria-hidden="true" /></Button>
+                </InputGroup.Button>
+              </InputGroup>
+          })}
+          <Button type='button' onClick={this.addValueItem.bind(this)}><span className="glyphicon glyphicon glyphicon-plus" aria-hidden="true" /></Button>
+        </FormGroup>
+      }
       <Button type='submit' bsStyle='success'>保存</Button>
       {' '}
       {this.state.tagMetadata.id
