@@ -27,7 +27,7 @@ export default class GlobalNav extends Component {
     if (this.props.currentUser) {
       createTicket = (
         <li>
-          <button type="submit" className='btn btn-primary navbar-btn nav-submit-btn' onClick={this.handleNewTicketClick.bind(this)}>新建工单</button>
+          <button type="submit" className='btn btn-success navbar-btn nav-submit-btn' onClick={this.handleNewTicketClick.bind(this)}>新建工单</button>
         </li>
       )
     }

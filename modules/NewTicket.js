@@ -310,7 +310,7 @@ export default class NewTicket extends React.Component {
           <FormGroup>
             <input id="ticketFile" type="file" multiple />
           </FormGroup>
-          <Button type='submit' disabled={this.state.isCommitting} bsStyle='primary'>提交</Button>
+          <Button type='submit' disabled={this.state.isCommitting} bsStyle='success'>提交</Button>
         </form>
       </div>
     )

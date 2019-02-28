@@ -233,7 +233,6 @@ export default class Ticket extends Component {
       this.setState({ticket})
       return
     })
-    .then(this.context.addNotification)
   }
 
   saveEvaluation(evaluation) {
@@ -505,19 +504,13 @@ export default class Ticket extends Component {
               return <Tag key={tag.id} tag={tag} ticket={ticket} isCustomerService={isCustomerService} />
             })}
 
-            {isCustomerService
-              && 
-                <TicketMetadataCS ticket={ticket}
-                  categoriesTree={this.state.categoriesTree}
-                  updateTicketAssignee={this.updateTicketAssignee.bind(this)}
-                  updateTicketCategory={this.updateTicketCategory}
-                  saveTag={this.saveTag.bind(this)}
-                />
-              ||
-                <TicketMetadata ticket={ticket}
-                  categoriesTree={this.state.categoriesTree}
-                />
-            }
+            <TicketMetadata ticket={ticket}
+              isCustomerService={isCustomerService}
+              categoriesTree={this.state.categoriesTree}
+              updateTicketAssignee={this.updateTicketAssignee.bind(this)}
+              updateTicketCategory={this.updateTicketCategory.bind(this)}
+              saveTag={this.saveTag.bind(this)}
+            />
 
             {optionButtons}
           </div>
@@ -765,47 +758,11 @@ Tag.contextTypes = {
 
 class TicketMetadata extends Component {
 
-  render() {
-    const ticket = this.props.ticket
-    return <div>
-      {ticket.get('assignee') &&
-        <FormGroup>
-          <label className="label-block">负责人</label>
-          <span className={css.assignee}><UserLabel user={ticket.get('assignee')} /></span>
-        </FormGroup>
-      }
-
-      <FormGroup>
-        <label className="label-block">类别</label>
-        <span className={csCss.category + ' ' + css.categoryBlock}>{getCategoryPathName(ticket.get('category'), this.props.categoriesTree)}</span>
-      </FormGroup>
-
-      {this.context.tagMetadatas.map(tagMetadata => {
-        const tags = this.props.ticket.get('tags')
-        const tag = _.find(tags, t => t.key == tagMetadata.get('key'))
-        return <TagForm key={tagMetadata.id}
-                        tagMetadata={tagMetadata}
-                        tag={tag} />
-      })}
-    </div>
-  }
-
-}
-
-TicketMetadata.propTypes = {
-  ticket: PropTypes.instanceOf(AV.Object),
-  categoriesTree: PropTypes.array.isRequired,
-}
-
-TicketMetadata.contextTypes = {
-  tagMetadatas: PropTypes.array,
-}
-
-class TicketMetadataCS extends Component {
-
   constructor(props) {
     super(props)
     this.state = {
+      isUpdateAssignee: false,
+      isUpdateCategory: false,
       assignees: [],
     }
   }
@@ -826,49 +783,83 @@ class TicketMetadataCS extends Component {
   handleAssigneeChange(e) {
     const customerService = _.find(this.state.assignees, {id: e.target.value})
     this.props.updateTicketAssignee(customerService)
+    .then(() => {
+      this.setState({isUpdateAssignee: false})
+      return
+    })
     .then(this.context.addNotification)
     .catch(this.context.addNotification)
   }
 
   handleCategoryChange(e) {
     this.props.updateTicketCategory(depthFirstSearchFind(this.props.categoriesTree, c => c.id == e.target.value))
+    .then(() => {
+      this.setState({isUpdateCategory: false})
+      return
+    })
     .then(this.context.addNotification)
     .catch(this.context.addNotification)
   }
 
   handleTagChange(key, value, isPrivate) {
-    this.props.saveTag(key, value, isPrivate)
+    return this.props.saveTag(key, value, isPrivate)
   }
 
   render() {
+    const {ticket, isCustomerService} = this.props
     return <div>
       <FormGroup>
-        <ControlLabel>负责人</ControlLabel>
-        <FormControl componentClass='select' value={this.props.ticket.get('assignee').id} onChange={this.handleAssigneeChange.bind(this)}>
-          {this.state.assignees.map((cs) => <option key={cs.id} value={cs.id}>{cs.get('username')}</option>)}
-        </FormControl>
+        <label className="label-block">负责人</label>
+        {this.state.isUpdateAssignee ?
+          <FormControl componentClass='select' value={ticket.get('assignee').id} onChange={this.handleAssigneeChange.bind(this)}>
+            {this.state.assignees.map((cs) => <option key={cs.id} value={cs.id}>{cs.get('username')}</option>)}
+          </FormControl>
+          :
+          <span className={css.assignee}>
+            <UserLabel user={ticket.get('assignee')} />
+            {isCustomerService && 
+              <Button bsStyle='link' onClick={() => this.setState({isUpdateAssignee: true})}>
+                <span className='glyphicon glyphicon-pencil' aria-hidden="true"></span>
+              </Button>
+            }
+          </span>
+        }
       </FormGroup>
       <FormGroup>
-        <ControlLabel>类别</ControlLabel>
-        <CategoriesSelect categoriesTree={this.props.categoriesTree}
-          selected={this.props.ticket.get('category')}
-          onChange={this.handleCategoryChange.bind(this)} />
+        <label className="label-block">类别</label>
+        {this.state.isUpdateCategory ?
+          <CategoriesSelect categoriesTree={this.props.categoriesTree}
+            selected={ticket.get('category')}
+            onChange={this.handleCategoryChange.bind(this)} />
+          :
+          <div>
+            <span className={csCss.category + ' ' + css.categoryBlock}>
+              {getCategoryPathName(ticket.get('category'), this.props.categoriesTree)}
+            </span>
+            {isCustomerService &&
+              <Button bsStyle='link' onClick={() => this.setState({isUpdateCategory: true})}>
+                <span className='glyphicon glyphicon-pencil' aria-hidden="true"></span>
+              </Button>
+            }
+          </div>
+        }
       </FormGroup>
 
       {this.context.tagMetadatas.map(tagMetadata => {
-        const tags = this.props.ticket.get(tagMetadata.get('isPrivate') ? 'privateTags' : 'tags')
+        const tags = ticket.get(tagMetadata.get('isPrivate') ? 'privateTags' : 'tags')
         const tag = _.find(tags, t => t.key == tagMetadata.get('key'))
         return <TagForm key={tagMetadata.id}
                         tagMetadata={tagMetadata}
                         tag={tag}
                         changeTagValue={this.handleTagChange.bind(this)}
-                        isCustomerService={true} />
+                        isCustomerService={isCustomerService} />
       })}
     </div>
   }
 }
 
-TicketMetadataCS.propTypes = {
+TicketMetadata.propTypes = {
+  isCustomerService: PropTypes.bool.isRequired,
   ticket: PropTypes.instanceOf(AV.Object),
   categoriesTree: PropTypes.array.isRequired,
   updateTicketAssignee: PropTypes.func.isRequired,
@@ -876,7 +867,7 @@ TicketMetadataCS.propTypes = {
   saveTag: PropTypes.func.isRequired,
 }
 
-TicketMetadataCS.contextTypes = {
+TicketMetadata.contextTypes = {
   tagMetadatas: PropTypes.array,
 }
 

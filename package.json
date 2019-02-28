@@ -62,6 +62,7 @@
     "serve-favicon": "^2.4.3",
     "stackedit-js": "^1.0.5",
     "style-loader": "^0.18.1",
+    "valid-url": "^1.0.9",
     "webpack": "^1.12.13",
     "wechat-enterprise": "^0.1.1",
     "xss": "^0.3.3",
