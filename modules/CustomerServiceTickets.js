@@ -334,7 +334,7 @@ export default class CustomerServiceTickets extends Component {
               {filters.tagKey &&
                 <DropdownButton className={(typeof filters.tagValue === 'undefined' || filters.tagValue ? ' active' : '')} id='tagValueDropdown' title={filters.tagValue || '全部标签值'} onSelect={(eventKey) => this.updateFilter({tagValue: eventKey})}>
                   <MenuItem key='undefined'>全部标签值</MenuItem>
-                  {_.find(this.context.tagMetadatas, m => m.get('key') == filters.tagKey).get('values').map(value => {
+                  {this.context.tagMetadatas.length > 0 && _.find(this.context.tagMetadatas, m => m.get('key') == filters.tagKey).get('values').map(value => {
                     return <MenuItem key={value} eventKey={value}>{value}</MenuItem>
                   })}
                 </DropdownButton>

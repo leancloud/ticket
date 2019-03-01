@@ -24,6 +24,7 @@ export default function Error(props) {
   default:
     message = props.location.state.err.message
   }
+  console.log(props.location.state.err)
   return (
     <div>
       <h1 className='font-logo'>很抱歉，看起来出了一些问题</h1>
