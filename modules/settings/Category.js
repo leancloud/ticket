@@ -160,7 +160,7 @@ export default class Category extends React.Component {
           {' '}
           {this.state.category.id
             && <Button type='button' bsStyle="danger" onClick={this.handleDisable.bind(this)}>停用</Button>
-            || <Button type='button' onClick={() => this.context.router.push('/settings/categories')}>取消</Button>
+            || <Button type='button' onClick={() => this.context.router.push('/settings/categories')}>返回</Button>
           }
         </form>
       </div>

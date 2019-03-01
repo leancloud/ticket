@@ -25,6 +25,8 @@ import Profile from './settings/Profile'
 import Organizations from './settings/Organizations'
 import OrganizationNew from './settings/OrganizationNew'
 import Organization from './settings/Organization'
+import Tags from './settings/Tags'
+import Tag from './settings/Tag'
 import SettingsCSProfile from './settings/CustomerServiceProfile'
 import Members from './settings/Members'
 import Categories from './settings/Categories'
@@ -74,6 +76,8 @@ module.exports = (
       <Route path="/settings/organizations" component={Organizations} />
       <Route path="/settings/organizations/new" component={OrganizationNew} />
       <Route path="/settings/organizations/:id" component={Organization} />
+      <Route path="/settings/tags" component={Tags} />
+      <Route path="/settings/tags/:id" component={Tag} />
       <Route path="/settings/customerServiceProfile" component={SettingsCSProfile} />
       <Route path="/settings/members" component={Members} />
       <Route path="/settings/categories" component={Categories} />

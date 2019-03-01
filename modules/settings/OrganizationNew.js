@@ -83,7 +83,7 @@ export default class OrganizationNew extends React.Component {
     return (
       <div>
         <form onSubmit={this.handleSubmit.bind(this)}>
-          <FormGroup controlId="nameText" validationState={this.state.nameValidationState}>
+          <FormGroup controlId="organizationNameText" validationState={this.state.nameValidationState}>
             <ControlLabel>组织名称</ControlLabel>
             <FormControl type="text" value={this.state.name} onChange={this.handleNameChange.bind(this)} />
             {this.state.nameValidationState === 'error' && <HelpBlock>{this.state.nameHelpMessage}</HelpBlock>}
