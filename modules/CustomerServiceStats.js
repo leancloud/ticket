@@ -346,6 +346,7 @@ class StatsSummary extends React.Component {
         const activeTicketCountByAuthor = sortAndIndexed(_.toPairs(stats.authors), ([_k, v]) => -v)
         const firstReplyTimeByUser = sortAndIndexed(stats.firstReplyTimeByUser, t => t.replyTime / t.replyCount)
         const replyTimeByUser = sortAndIndexed(stats.replyTimeByUser, t => t.replyTime / t.replyCount)
+        const tags = sortAndIndexed(_.toPairs(stats. tags), ([_k, v]) => -v)
         const userIds = _.uniq(_.concat([],
           activeTicketCountByAssignee.map(([k, _v]) => k),
           activeTicketCountByAuthor.map(([k, _v]) => k),
@@ -365,6 +366,7 @@ class StatsSummary extends React.Component {
           firstReplyCount: stats.firstReplyCount,
           replyTime: stats.replyTime,
           replyCount: stats.replyCount,
+          tags,
           userIds
         }
       })
@@ -493,6 +495,22 @@ class StatsSummary extends React.Component {
       />
     })
 
+    const tagDoms = this.state.statsDatas.map(data => {
+      const body = data.tags.map(row => {
+        const {key, value} = JSON.parse(row[0])
+        return [
+          row[0],
+          row.index,
+          `${key}: ${value}`,
+          row[1],
+        ]
+      })
+      return <SummaryTable
+        header={['排名', '标签', '数量']}
+        body={body}
+      />
+    })
+
     return <div>
       <h2>概要</h2>
       <Table>
@@ -524,8 +542,12 @@ class StatsSummary extends React.Component {
             {firstReplyTimeByUserDoms.map(dom => <td>{dom}</td>)}
           </tr>
           <tr>
-            <th rowSpan='7'>回复耗时</th>
+            <th>回复耗时</th>
             {replyTimeByUserDoms.map(dom => <td>{dom}</td>)}
+          </tr>
+          <tr>
+            <th>标签数</th>
+            {tagDoms.map(dom => <td>{dom}</td>)}
           </tr>
         </tbody>
       </Table>
@@ -562,7 +584,7 @@ class SummaryTable extends React.Component {
     if (this.state.isOpen || this.props.body.length <= 6) {
       trs = this.props.body.map(fn)
     } else {
-      const foldingLine = <tr>
+      const foldingLine = <tr key='compress'>
         <td colSpan='100'><a href='#' onClick={this.open.bind(this)}>……</a></td>
       </tr>
       trs = this.props.body.slice(0, 3).map(fn)
