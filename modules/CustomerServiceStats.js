@@ -332,12 +332,37 @@ const sortAndIndexed = (datas, sortFn) => {
 
 class StatsSummary extends React.Component {
 
-  componentDidMount() {
-    const startDate = moment().startOf('week').subtract(1, 'weeks').add(offsetDays, 'days')
-    const endDate = moment().startOf('week').add(1, 'weeks').add(offsetDays, 'days')
+  constructor(props) {
+    super(props)
+    this.state = _.extend({
+      startDate: null,
+      endDate: null,
+      timeUnit: null,
+      users: [],
+      statsDatas: [],
+    })
+  }
+
+  getTimeRange(timeUnit) {
+    if (timeUnit === 'month') {
+      return {
+        startDate: moment().startOf('month').subtract(2, 'month'),
+        endDate: moment().startOf('month'),
+        timeUnit: 'month',
+      }
+    } else {
+      return {
+        startDate: moment().startOf('week').subtract(1, 'weeks').add(offsetDays, 'days'),
+        endDate: moment().startOf('week').add(1, 'weeks').add(offsetDays, 'days'),
+        timeUnit: 'weeks',
+      }
+    }
+  }
+
+  fetchStatsDatas(startDate, endDate, timeUnit) {
     return Promise.all([
-      AV.Cloud.run('getNewTicketCount', {start: startDate.toISOString(), end: endDate.toISOString(), timeUnit: 'week'}),
-      AV.Cloud.run('getStats', {start: startDate.toISOString(), end: endDate.toISOString(), timeUnit: 'week'}),
+      AV.Cloud.run('getNewTicketCount', {start: startDate.toISOString(), end: endDate.toISOString(), timeUnit}),
+      AV.Cloud.run('getStats', {start: startDate.toISOString(), end: endDate.toISOString(), timeUnit}),
     ])
     .then(([newTicketCounts, statses]) => {
       const statsDatas = statses.map((stats, index) => {
@@ -372,14 +397,21 @@ class StatsSummary extends React.Component {
       })
 
       return fetchUsers(_.uniq(_.flatten(statsDatas.map(data => data.userIds)))).then((users) => {
-        this.setState({
-          users,
-          statsDatas,
-          startDate,
-          endDate,
-        })
-        return
+        return {users, statsDatas}
       })
+    })
+  }
+
+  componentDidMount() {
+    this.changeTimeUnit('weeks')
+  }
+
+  changeTimeUnit(timeUnit) {
+    const {startDate, endDate} = (this.getTimeRange(timeUnit))
+    return this.fetchStatsDatas(startDate, endDate, timeUnit)
+    .then(({users, statsDatas}) => {
+      this.setState({startDate, endDate, timeUnit, users, statsDatas})
+      return
     })
   }
 
@@ -389,7 +421,11 @@ class StatsSummary extends React.Component {
     }
 
     const dateDoms = this.state.statsDatas.map(data => {
-      return <span>截止到 {moment(data.date).add(1, 'weeks').format('YYYY [年] MM [月] DD [日][（第] ww [周）]')}</span>
+      if (this.state.timeUnit === 'month') {
+        return <span>{moment(data.date).format('YYYY [年] MM [月]')}</span>
+      } else {
+        return <span>截止到 {moment(data.date).add(1, 'weeks').format('YYYY [年] MM [月] DD [日][（第] ww [周）]')}</span>
+      }
     })
 
     const summaryDoms = this.state.statsDatas.map(data => {
@@ -512,7 +548,13 @@ class StatsSummary extends React.Component {
     })
 
     return <div>
-      <h2>概要</h2>
+      <h2>概要 <small>
+        {this.state.timeUnit === 'month' ?
+          <Button onClick={() => this.changeTimeUnit('weeks')} bsStyle="link">切换到周报</Button>
+          :
+          <Button onClick={() => this.changeTimeUnit('month')} bsStyle="link">切换到月报</Button>
+        }
+      </small></h2>
       <Table>
         <thead>
           <tr>
