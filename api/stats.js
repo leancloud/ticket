@@ -271,7 +271,7 @@ AV.Cloud.define('getStats', (req) => {
   const dateRanges = getDateRanges(start, end, timeUnit)
   return Promise.map(dateRanges, ({start, end}) => {
     return getDailyAndTicketStatses(start, end, authOptions)
-    .then(({dailyStatses, ticketStatses}) => {
+    .then(({dailyStatses, ticketStatses, tags}) => {
       const result = _.reduce(dailyStatses, (result, statsDaily) => {
         result.assignees = sumProperty(result, statsDaily, 'assignees')
         result.authors = sumProperty(result, statsDaily, 'authors')
@@ -297,6 +297,7 @@ AV.Cloud.define('getStats', (req) => {
       result.firstReplyCount = _.sumBy(result.firstReplyTimeByUser, 'replyCount')
       result.replyTime = _.sumBy(result.replyTimeByUser, 'replyTime')
       result.replyCount = _.sumBy(result.replyTimeByUser, 'replyCount')
+      result.tags = _.countBy(tags, t => JSON.stringify(t))
       return result
     })
   })
@@ -336,9 +337,12 @@ const getDailyAndTicketStatses = (start, end, authOptions) => {
     .flatten()
     .uniq()
     .value()
-    return getTicketStats(ticketIds, authOptions)
-    .then((ticketStatses) => {
-      return {dailyStatses, ticketStatses}
+    return Promise.all([
+      getTicketStats(ticketIds, authOptions),
+      getTagStats(ticketIds, authOptions)
+    ])
+    .then(([ticketStatses, tags]) => {
+      return {dailyStatses, ticketStatses, tags}
     })
   })
 }
@@ -350,6 +354,39 @@ const getTicketStats = (ticketIds, authOptions) => {
     .find(authOptions)
   }))
   .then(_.flatten)
+}
+
+const getTagStats = (ticketIds, authOptions) => {
+  return Promise.all(_.map(_.chunk(ticketIds, 50), (ids) => {
+    return new AV.Query('Ticket')
+    .select(['privateTags', 'tags'])
+    .containedIn('objectId', ids)
+    .find(authOptions)
+  }))
+  .then(_.flatten)
+  .then(tickets => {
+    return tickets.map(t => {
+      return [t.get('privateTags'), t.get('tags')]
+    })
+  })
+  .then(_.flattenDeep)
+  .then(_.compact)
+  .then(tags => {
+    return getSelectedTagKeys(authOptions)
+    .then(keys => {
+      return tags.filter(t => keys.includes(t.key))
+    })
+  })
+}
+
+const getSelectedTagKeys = (authOptions) => {
+  return new AV.Query('TagMetadata')
+  .limit(1000)
+  .find(authOptions)
+  .then(tagMetadatas => {
+    return tagMetadatas.filter(m => m.get('type') === 'select')
+    .map(m => m.get('key'))
+  })
 }
 
 const firstReplyTimeByUser = (stats, ticketStatses) => {
