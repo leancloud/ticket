@@ -332,12 +332,37 @@ const sortAndIndexed = (datas, sortFn) => {
 
 class StatsSummary extends React.Component {
 
-  componentDidMount() {
-    const startDate = moment().startOf('week').subtract(1, 'weeks').add(offsetDays, 'days')
-    const endDate = moment().startOf('week').add(1, 'weeks').add(offsetDays, 'days')
+  constructor(props) {
+    super(props)
+    this.state = _.extend({
+      startDate: null,
+      endDate: null,
+      timeUnit: null,
+      users: [],
+      statsDatas: [],
+    })
+  }
+
+  getTimeRange(timeUnit) {
+    if (timeUnit === 'month') {
+      return {
+        startDate: moment().startOf('month').subtract(2, 'month'),
+        endDate: moment().startOf('month'),
+        timeUnit: 'month',
+      }
+    } else {
+      return {
+        startDate: moment().startOf('week').subtract(1, 'weeks').add(offsetDays, 'days'),
+        endDate: moment().startOf('week').add(1, 'weeks').add(offsetDays, 'days'),
+        timeUnit: 'weeks',
+      }
+    }
+  }
+
+  fetchStatsDatas(startDate, endDate, timeUnit) {
     return Promise.all([
-      AV.Cloud.run('getNewTicketCount', {start: startDate.toISOString(), end: endDate.toISOString(), timeUnit: 'week'}),
-      AV.Cloud.run('getStats', {start: startDate.toISOString(), end: endDate.toISOString(), timeUnit: 'week'}),
+      AV.Cloud.run('getNewTicketCount', {start: startDate.toISOString(), end: endDate.toISOString(), timeUnit}),
+      AV.Cloud.run('getStats', {start: startDate.toISOString(), end: endDate.toISOString(), timeUnit}),
     ])
     .then(([newTicketCounts, statses]) => {
       const statsDatas = statses.map((stats, index) => {
@@ -346,6 +371,7 @@ class StatsSummary extends React.Component {
         const activeTicketCountByAuthor = sortAndIndexed(_.toPairs(stats.authors), ([_k, v]) => -v)
         const firstReplyTimeByUser = sortAndIndexed(stats.firstReplyTimeByUser, t => t.replyTime / t.replyCount)
         const replyTimeByUser = sortAndIndexed(stats.replyTimeByUser, t => t.replyTime / t.replyCount)
+        const tags = sortAndIndexed(_.toPairs(stats. tags), ([_k, v]) => -v)
         const userIds = _.uniq(_.concat([],
           activeTicketCountByAssignee.map(([k, _v]) => k),
           activeTicketCountByAuthor.map(([k, _v]) => k),
@@ -365,19 +391,27 @@ class StatsSummary extends React.Component {
           firstReplyCount: stats.firstReplyCount,
           replyTime: stats.replyTime,
           replyCount: stats.replyCount,
+          tags,
           userIds
         }
       })
 
       return fetchUsers(_.uniq(_.flatten(statsDatas.map(data => data.userIds)))).then((users) => {
-        this.setState({
-          users,
-          statsDatas,
-          startDate,
-          endDate,
-        })
-        return
+        return {users, statsDatas}
       })
+    })
+  }
+
+  componentDidMount() {
+    this.changeTimeUnit('weeks')
+  }
+
+  changeTimeUnit(timeUnit) {
+    const {startDate, endDate} = (this.getTimeRange(timeUnit))
+    return this.fetchStatsDatas(startDate, endDate, timeUnit)
+    .then(({users, statsDatas}) => {
+      this.setState({startDate, endDate, timeUnit, users, statsDatas})
+      return
     })
   }
 
@@ -387,7 +421,11 @@ class StatsSummary extends React.Component {
     }
 
     const dateDoms = this.state.statsDatas.map(data => {
-      return <span>截止到 {moment(data.date).add(1, 'weeks').format('YYYY [年] MM [月] DD [日][（第] ww [周）]')}</span>
+      if (this.state.timeUnit === 'month') {
+        return <span>{moment(data.date).format('YYYY [年] MM [月]')}</span>
+      } else {
+        return <span>截止到 {moment(data.date).add(1, 'weeks').format('YYYY [年] MM [月] DD [日][（第] ww [周）]')}</span>
+      }
     })
 
     const summaryDoms = this.state.statsDatas.map(data => {
@@ -493,8 +531,30 @@ class StatsSummary extends React.Component {
       />
     })
 
+    const tagDoms = this.state.statsDatas.map(data => {
+      const body = data.tags.map(row => {
+        const {key, value} = JSON.parse(row[0])
+        return [
+          row[0],
+          row.index,
+          `${key}: ${value}`,
+          row[1],
+        ]
+      })
+      return <SummaryTable
+        header={['排名', '标签', '数量']}
+        body={body}
+      />
+    })
+
     return <div>
-      <h2>概要</h2>
+      <h2>概要 <small>
+        {this.state.timeUnit === 'month' ?
+          <Button onClick={() => this.changeTimeUnit('weeks')} bsStyle="link">切换到周报</Button>
+          :
+          <Button onClick={() => this.changeTimeUnit('month')} bsStyle="link">切换到月报</Button>
+        }
+      </small></h2>
       <Table>
         <thead>
           <tr>
@@ -524,8 +584,12 @@ class StatsSummary extends React.Component {
             {firstReplyTimeByUserDoms.map(dom => <td>{dom}</td>)}
           </tr>
           <tr>
-            <th rowSpan='7'>回复耗时</th>
+            <th>回复耗时</th>
             {replyTimeByUserDoms.map(dom => <td>{dom}</td>)}
+          </tr>
+          <tr>
+            <th>标签数</th>
+            {tagDoms.map(dom => <td>{dom}</td>)}
           </tr>
         </tbody>
       </Table>
@@ -562,7 +626,7 @@ class SummaryTable extends React.Component {
     if (this.state.isOpen || this.props.body.length <= 6) {
       trs = this.props.body.map(fn)
     } else {
-      const foldingLine = <tr>
+      const foldingLine = <tr key='compress'>
         <td colSpan='100'><a href='#' onClick={this.open.bind(this)}>……</a></td>
       </tr>
       trs = this.props.body.slice(0, 3).map(fn)
