@@ -46,12 +46,15 @@ export default class Tickets extends Component {
 
   findTickets(filter) {
     const filters = _.assign({}, this.state.filters, filter)
-    const query = new AV.Query('Ticket')
+    let query
     if (filter.organizationId) {
+      query = new AV.Query('Ticket')
       query.equalTo('organization', _.find(this.props.organizations, {id: filter.organizationId}))
     } else {
+      const q1 = new AV.Query('Ticket').doesNotExist('organization')
+      const q2 = new AV.Query('Ticket').equalTo('organization', null)
+      query = AV.Query.or(q1, q2)
       query.equalTo('author', AV.User.current())
-      query.doesNotExist('organization')
     }
     query.include('author')
     .include('assignee')
