@@ -371,7 +371,12 @@ class StatsSummary extends React.Component {
         const activeTicketCountByAuthor = sortAndIndexed(_.toPairs(stats.authors), ([_k, v]) => -v)
         const firstReplyTimeByUser = sortAndIndexed(stats.firstReplyTimeByUser, t => t.replyTime / t.replyCount)
         const replyTimeByUser = sortAndIndexed(stats.replyTimeByUser, t => t.replyTime / t.replyCount)
-        const tags = sortAndIndexed(_.toPairs(stats. tags), ([_k, v]) => -v)
+        const tagsArray = _.chain(stats.tags)
+          .toPairs()
+          .groupBy(row => JSON.parse(row[0]).key)
+          .values()
+          .map(tags => sortAndIndexed(tags, ([_k, v]) => -v))
+          .value()
         const userIds = _.uniq(_.concat([],
           activeTicketCountByAssignee.map(([k, _v]) => k),
           activeTicketCountByAuthor.map(([k, _v]) => k),
@@ -391,7 +396,7 @@ class StatsSummary extends React.Component {
           firstReplyCount: stats.firstReplyCount,
           replyTime: stats.replyTime,
           replyCount: stats.replyCount,
-          tags,
+          tagsArray,
           userIds
         }
       })
@@ -532,19 +537,22 @@ class StatsSummary extends React.Component {
     })
 
     const tagDoms = this.state.statsDatas.map(data => {
-      const body = data.tags.map(row => {
-        const {key, value} = JSON.parse(row[0])
-        return [
-          row[0],
-          row.index,
-          `${key}: ${value}`,
-          row[1],
-        ]
+      const tables = data.tagsArray.map(tags => {
+        const body = tags.map((row, index) => {
+          const {value} = JSON.parse(row[0])
+          return [
+            index,
+            row.index,
+            value,
+            row[1],
+          ]
+        })
+        return <SummaryTable
+          header={['排名', '标签:' + JSON.parse(tags[0][0]).key, '数量']}
+          body={body}
+        />
       })
-      return <SummaryTable
-        header={['排名', '标签', '数量']}
-        body={body}
-      />
+      return <div>{tables}</div>
     })
 
     return <div>
