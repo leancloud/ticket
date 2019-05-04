@@ -150,6 +150,20 @@ AV.Cloud.define('getPrivateTags', (req) => {
   })
 })
 
+AV.Cloud.define('exploreTicket', ({params, currentUser}) => {
+  const now = new Date()
+  return new AV.Query('Message')
+    .equalTo('ticket', AV.Object.createWithoutData('Ticket', params.ticketId))
+    .equalTo('to', currentUser)
+    .lessThanOrEqualTo('createdAt', now)
+    .limit(1000)
+    .find({user: currentUser})
+    .then(messages => {
+      messages.forEach(m => m.set('isRead', true))
+      return AV.Object.saveAll(messages, {user: currentUser})
+    })
+})
+
 const getTargetStatus = (action, isCustomerService) => {
   switch (action) {
   case 'replyWithNoContent':
@@ -168,7 +182,7 @@ const getTargetStatus = (action, isCustomerService) => {
 }
 
 exports.replyTicket = (ticket, reply, replyAuthor) => {
-  Promise.all([
+  return Promise.all([
     ticket.fetch({include: 'author,assignee'}, {user: replyAuthor}),
     getTinyReplyInfo(reply),
     getTinyUserInfo(reply.get('author'))
