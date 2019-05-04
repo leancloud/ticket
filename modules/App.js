@@ -177,8 +177,7 @@ export default class App extends Component {
             tagMetadatas: this.state.tagMetadatas,
           })}
         </div>
-        <ServerNotification currentUser={this.state.currentUser}
-          isCustomerService={this.state.isCustomerService} />
+        <ServerNotification currentUser={this.state.currentUser} />
         <NotificationSystem ref="notificationSystem" />
       </div>
     )
@@ -220,62 +219,49 @@ class ServerNotification extends Component {
   }
 
   componentDidMount() {
-    this.updateLiveQuery(this.props.isCustomerService)
+    this.updateLiveQuery()
   }
 
-  shouldComponentUpdate(nextProps, _nextState) {
-    return this.props.isCustomerService !== nextProps.isCustomerService
-  }
-
-  componentWillReceiveProps(nextProps) {
-    this.updateLiveQuery(nextProps.isCustomerService)
-  }
-
-  updateLiveQuery(isCustomerService) {
-    if (this.ticketsLiveQuery) {
-      this.ticketsLiveQuery.unsubscribe()
+  componentDidUpdate(prevProps) {
+    if (this.props.currentUser !== prevProps.currentUser) {
+      return this.updateLiveQuery()
     }
-    if (isCustomerService) {
-      return new AV.Query('Ticket').equalTo('assignee', this.props.currentUser)
+  }
+
+  updateLiveQuery() {
+    if (this.messageLiveQuery) {
+      this.messageLiveQuery.unsubscribe()
+    }
+    if (!this.props.currentUser) {
+      return
+    }
+
+    return new AV.Query('Message')
+      .equalTo('to', this.props.currentUser)
+      .equalTo('isRead', false)
       .subscribe()
-      .then((liveQuery) => {
-        this.ticketsLiveQuery = liveQuery
-        liveQuery.on('create', (ticket) => {
-          this.notify({title: '新的工单', body: `${ticket.get('title')} (#${ticket.get('nid')})`})
-        })
-        liveQuery.on('enter', (ticket, updatedKeys) => {
-          if (updatedKeys.indexOf('assignee') !== -1) {
-            this.notify({title: '转移工单', body: `${ticket.get('title')} (#${ticket.get('nid')})`})
-          }
-        })
-        liveQuery.on('update', (ticket, updatedKeys) => {
-          if (updatedKeys.indexOf('latestReply') !== -1
-              && ticket.get('latestReply').author.username !== this.props.currentUser.get('username')) {
-            this.notify({title: '新的回复', body: `${ticket.get('title')} (#${ticket.get('nid')})`})
-          }
+      .then(liveQuery => {
+        this.messageLiveQuery = liveQuery
+        liveQuery.on('create', message => {
+          return message.fetch({include: 'ticket'}).then(message => {
+            const messageType = message.get('type')
+            const ticket = message.get('ticket')
+            if (messageType == 'newTicket') {
+              this.notify({title: '新的工单', body: `${ticket.get('title')} (#${ticket.get('nid')})`})
+            } else if (messageType == 'changeAssignee') {
+              this.notify({title: '转移工单', body: `${ticket.get('title')} (#${ticket.get('nid')})`})
+            } else if (messageType == 'reply') {
+              this.notify({title: '新的回复', body: `${ticket.get('title')} (#${ticket.get('nid')})`})
+            }
+            return
+          })
         })
         return
       })
-    } else {
-      return new AV.Query('Ticket').equalTo('author', this.props.currentUser)
-      .subscribe()
-      .then((liveQuery) => {
-        this.ticketsLiveQuery = liveQuery
-        liveQuery.on('update', (ticket, updatedKeys) => {
-          if (updatedKeys.indexOf('latestReply') !== -1
-              && ticket.get('latestReply').author.username !== this.props.currentUser.get('username')) {
-            this.notify({title: '新的回复', body: `${ticket.get('title')} (#${ticket.get('nid')})`})
-          }
-        })
-        return
-      })
-    }
   }
 
   componentWillUnmount() {
-    return Promise.all([
-      this.ticketsLiveQuery.unsubscribe(),
-    ])
+    return this.messageLiveQuery.unsubscribe()
   }
 
   notify({title, body}) {
@@ -297,5 +283,4 @@ class ServerNotification extends Component {
 
 ServerNotification.propTypes = {
   currentUser: PropTypes.object,
-  isCustomerService: PropTypes.bool,
 }
