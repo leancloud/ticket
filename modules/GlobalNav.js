@@ -60,6 +60,9 @@ export default class GlobalNav extends Component {
             {customerServiceLinks}
             <ul className="nav navbar-nav navbar-right">
               {createTicket}
+              <li>
+                <Link to='/messages'><span className='glyphicon glyphicon-bell' aria-hidden='true'></span></Link>
+              </li>
               {user}
             </ul>
           </div>
