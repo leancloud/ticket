@@ -20,6 +20,7 @@ exports.newTicket = (ticket, author, assignee) => {
         ticket,
         from: author,
         to: assignee,
+        isRead: false,
         ACL: {
           [assignee.id]: {write: true, read: true},
         }
@@ -48,6 +49,7 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
         reply,
         from: replyAuthor,
         to,
+        isRead: false,
         ACL: {
           [to.id]: {write: true, read: true},
         }
@@ -70,6 +72,7 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
           reply,
           from: replyAuthor,
           to: watch.get('user'),
+          isRead: false,
           ACL: {
             [watch.get('user').id]: {write: true, read: true},
           }
@@ -91,6 +94,7 @@ exports.changeAssignee = (ticket, operator, assignee) => {
         ticket,
         from: operator,
         to: assignee,
+        isRead: false,
         ACL: {
           [assignee.id]: {write: true, read: true},
         }
@@ -106,6 +110,7 @@ exports.ticketEvaluation = (ticket, author, to) => {
         ticket,
         from: author,
         to: to,
+        isRead: false,
         ACL: {
           [to.id]: {write: true, read: true},
         }
