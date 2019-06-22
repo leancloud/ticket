@@ -51,11 +51,6 @@ AV.init({
   appId: LEANCLOUD_APP_ID,
   appKey: LEANCLOUD_APP_KEY,
   serverURLs: 'https://avoscloud.com',
-  realtime: new AV._sharedConfig.liveQueryRealtime({
-    appId: LEANCLOUD_APP_ID,
-    appKey: LEANCLOUD_APP_KEY,
-    server: 'avoscloud.com',
-  }),
 })
 if (LEANCLOUD_APP_ENV === 'development') {
   AV.setProduction(LEAN_CLI_HAVE_STAGING !== 'true')
