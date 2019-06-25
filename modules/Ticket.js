@@ -373,7 +373,7 @@ export default class Ticket extends Component {
 
         if (otherFiles.length > 0) {
           const fileLinks = otherFiles.map(f => {
-            return <span key={f.id}><a href={f.url()} target='_blank'><span className="glyphicon glyphicon-paperclip"></span> {f.get('name')}</a> </span>
+            return <span key={f.id}><a href={f.url() + "?attname=" + encodeURIComponent(f.get('name'))} target='_blank'><span className="glyphicon glyphicon-paperclip"></span> {f.get('name')}</a> </span>
           })
           panelFooter = <div className="panel-footer">{fileLinks}</div>
         }
