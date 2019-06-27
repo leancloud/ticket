@@ -68,7 +68,9 @@ exports.isCustomerService = (user) => {
 }
 
 exports.uploadFiles = (files) => {
-  return Promise.all(_.map(files, file => new AV.File(file.name, file).save()))
+  return Promise.all(_.map(files, file => new AV.File(file.name, file).save({
+    keepFileName: true,
+  })))
 }
 
 exports.getTicketAndRelation = (nid) => {
