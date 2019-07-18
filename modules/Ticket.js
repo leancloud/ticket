@@ -170,11 +170,8 @@ export default class Ticket extends Component {
     })
   }
 
-  commitReplySoon(reply, files) {
-    return this.commitReply(reply, files)
-    .then(() => {
-      return this.operateTicket('replySoon')
-    })
+  commitReplySoon() {
+    return this.operateTicket('replySoon')
   }
 
   operateTicket(action) {
@@ -575,13 +572,7 @@ class TicketReply extends Component {
   handleReplySoon(e) {
     e.preventDefault()
     this.setState({isCommitting: true})
-    return this.props.commitReplySoon(this.state.reply, this.fileInput.files)
-    .then(() => {
-      localStorage.removeItem(`ticket:${this.props.ticket.id}:reply`)
-      this.setState({reply: ''})
-      this.fileInput.value = ''
-      return
-    })
+    return this.props.commitReplySoon()
     .catch(this.context.addNotification)
     .then(() => {
       this.setState({isCommitting: false})
