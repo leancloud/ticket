@@ -37,7 +37,6 @@ export default class GlobalNav extends Component {
         <ul className="nav navbar-nav">
           <li><Link to="/customerService/tickets">客服工单列表</Link></li>
           <li><Link to="/customerService/stats">统计</Link></li>
-          <li><Link to="/customerService/search">工单搜索</Link></li>
         </ul>
       )
     }

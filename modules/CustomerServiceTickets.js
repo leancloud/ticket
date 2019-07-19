@@ -56,7 +56,7 @@ export default class CustomerServiceTickets extends Component {
     }
 
     const {assigneeId, isOpen, status, categoryId, authorId,
-      tagKey, tagValue, isOnlyUnlike, page = '0', size = '10'} = filters
+      tagKey, tagValue, isOnlyUnlike, searchString, page = '0', size = '10'} = filters
     const query = new AV.Query('Ticket')
     
     let statuses = []
@@ -101,15 +101,45 @@ export default class CustomerServiceTickets extends Component {
       query.equalTo('evaluation.star', 0)
     }
 
-    return query.include('author')
-    .include('assignee')
-    .limit(parseInt(size))
-    .skip(parseInt(page) * parseInt(size))
-    .addDescending('updatedAt')
-    .find()
-    .then(tickets => {
-      this.setState({tickets})
-      return
+    return Promise.resolve()
+    .then(() => {
+      if (searchString && searchString.trim().length > 0) {
+        return Promise.all([
+          AV.Query.or(
+            new AV.Query('Ticket').contains('title', searchString),
+            new AV.Query('Ticket').contains('content', searchString)
+          )
+            .select('objectId')
+            .limit(1000)
+            .find()
+            .then(tickets => {
+              return tickets.map(t => t.id)
+            }),
+          new AV.Query('Reply').contains('content', searchString)
+            .limit(1000)
+            .find()
+        ])
+      }
+      return [[], []]
+    })
+    .then(([searchMatchedTicketIds, searchMatchedReplaies]) => {
+      if (searchMatchedTicketIds.length + searchMatchedReplaies.length > 0) {
+        const ticketIds = _.union(searchMatchedTicketIds, searchMatchedReplaies.map(r => r.get('ticket').id))
+        query.containedIn('objectId', ticketIds)
+      }
+      return query.include('author')
+      .include('assignee')
+      .limit(parseInt(size))
+      .skip(parseInt(page) * parseInt(size))
+      .addDescending('updatedAt')
+      .find()
+      .then(tickets => {
+        tickets.forEach(t => {
+          t.replies = _.filter(searchMatchedReplaies, r => r.get('ticket').id == t.id)
+        })
+        this.setState({tickets})
+        return
+      })
     })
   }
 
@@ -161,10 +191,6 @@ export default class CustomerServiceTickets extends Component {
 
   handleUnlikeChange(e) {
     this.updateFilter({isOnlyUnlike: e.target.checked})
-  }
-
-  handleFiltersCommit(e) {
-    e.preventDefault()
   }
 
   handleClickCheckbox(e) {
@@ -247,6 +273,10 @@ export default class CustomerServiceTickets extends Component {
                 <span className={css.contributors}>{joinedCustomerServices}</span>
               </div>
             </div>
+            <BlodSearchString content={ticket.get('content')} searchString={filters.searchString}/>
+            {ticket.replies.map(r => {
+              return <BlodSearchString key={r.id} content={r.get('content')} searchString={filters.searchString}/>
+            })}
           </div>
         </div>
       )
@@ -299,61 +329,67 @@ export default class CustomerServiceTickets extends Component {
     }
 
     const ticketAdminFilters = (
-      <Form inline className='form-group' onSubmit={this.handleFiltersCommit.bind(this)}>
-        <FormGroup>
-          <ButtonToolbar>
-            <ButtonGroup>
-              <button className={'btn btn-default' + (filters.isOpen === 'true' ? ' active' : '')} onClick={() => this.updateFilter({isOpen: true, status: undefined})}>未完成</button>
-              <button className={'btn btn-default' + (filters.isOpen === 'false' ? ' active' : '')} onClick={() => this.updateFilter({isOpen: false, status: undefined})}>已完成</button>
-              <DropdownButton className={(typeof filters.isOpen === 'undefined' ? ' active' : '')} id='statusDropdown' title={statusTitle} onSelect={(eventKey) => this.updateFilter({status: eventKey, isOpen: undefined})}>
-                <MenuItem key='undefined'>全部状态</MenuItem>
-                {statusMenuItems}
-              </DropdownButton>
-            </ButtonGroup>
-            <ButtonGroup>
-              <Button className={(filters.assigneeId === AV.User.current().id ? ' active' : '')} onClick={() => this.updateFilter({assigneeId: AV.User.current().id})}>分配给我的</Button>
-              <DropdownButton className={(typeof filters.assigneeId === 'undefined' || filters.assigneeId && filters.assigneeId !== AV.User.current().id ? ' active' : '')} id='assigneeDropdown' title={assigneeTitle} onSelect={(eventKey) => this.updateFilter({assigneeId: eventKey})}>
-                <MenuItem key='undefined'>全部客服</MenuItem>
-                {assigneeMenuItems}
-              </DropdownButton>
-            </ButtonGroup>
-            <ButtonGroup>
-              <DropdownButton className={(filters.categoryId ? ' active' : '')} id='categoryDropdown' title={categoryTitle} onSelect={(eventKey) => this.updateFilter({categoryId: eventKey})}>
-                <MenuItem key='undefined'>全部分类</MenuItem>
-                {categoryMenuItems}
-              </DropdownButton>
-            </ButtonGroup>
-            <ButtonGroup>
-              <DropdownButton className={(typeof filters.tagKey === 'undefined' || filters.tagKey ? ' active' : '')} id='tagKeyDropdown' title={filters.tagKey || '全部标签'} onSelect={(eventKey) => this.updateFilter({tagKey: eventKey, tagValue: undefined})}>
-                <MenuItem key='undefined'>全部标签</MenuItem>
-                {this.context.tagMetadatas.map(tagMetadata => {
-                  const key = tagMetadata.get('key')
-                  return <MenuItem key={key} eventKey={key}>{key}</MenuItem>
-                })}
-              </DropdownButton>
-              {filters.tagKey &&
-                <DropdownButton className={(typeof filters.tagValue === 'undefined' || filters.tagValue ? ' active' : '')} id='tagValueDropdown' title={filters.tagValue || '全部标签值'} onSelect={(eventKey) => this.updateFilter({tagValue: eventKey})}>
-                  <MenuItem key='undefined'>全部标签值</MenuItem>
-                  {this.context.tagMetadatas.length > 0 && _.find(this.context.tagMetadatas, m => m.get('key') == filters.tagKey).get('values').map(value => {
-                    return <MenuItem key={value} eventKey={value}>{value}</MenuItem>
+      <div>
+        <Form inline className='form-group'>
+          <FormGroup>
+            <DelayInputForm placeholder='关键字搜索' value={filters.searchString} onChange={(value) => this.updateFilter({searchString: value})} />
+          </FormGroup>
+          {'  '}
+          <FormGroup>
+            <ButtonToolbar>
+              <ButtonGroup>
+                <Button className={'btn btn-default' + (filters.isOpen === 'true' ? ' active' : '')} onClick={() => this.updateFilter({isOpen: true, status: undefined})}>未完成</Button>
+                <Button className={'btn btn-default' + (filters.isOpen === 'false' ? ' active' : '')} onClick={() => this.updateFilter({isOpen: false, status: undefined})}>已完成</Button>
+                <DropdownButton className={(typeof filters.isOpen === 'undefined' ? ' active' : '')} id='statusDropdown' title={statusTitle} onSelect={(eventKey) => this.updateFilter({status: eventKey, isOpen: undefined})}>
+                  <MenuItem key='undefined'>全部状态</MenuItem>
+                  {statusMenuItems}
+                </DropdownButton>
+              </ButtonGroup>
+              <ButtonGroup>
+                <Button className={(filters.assigneeId === AV.User.current().id ? ' active' : '')} onClick={() => this.updateFilter({assigneeId: AV.User.current().id})}>分配给我的</Button>
+                <DropdownButton className={(typeof filters.assigneeId === 'undefined' || filters.assigneeId && filters.assigneeId !== AV.User.current().id ? ' active' : '')} id='assigneeDropdown' title={assigneeTitle} onSelect={(eventKey) => this.updateFilter({assigneeId: eventKey})}>
+                  <MenuItem key='undefined'>全部客服</MenuItem>
+                  {assigneeMenuItems}
+                </DropdownButton>
+              </ButtonGroup>
+              <ButtonGroup>
+                <DropdownButton className={(filters.categoryId ? ' active' : '')} id='categoryDropdown' title={categoryTitle} onSelect={(eventKey) => this.updateFilter({categoryId: eventKey})}>
+                  <MenuItem key='undefined'>全部分类</MenuItem>
+                  {categoryMenuItems}
+                </DropdownButton>
+              </ButtonGroup>
+              <ButtonGroup>
+                <DropdownButton className={(typeof filters.tagKey === 'undefined' || filters.tagKey ? ' active' : '')} id='tagKeyDropdown' title={filters.tagKey || '全部标签'} onSelect={(eventKey) => this.updateFilter({tagKey: eventKey, tagValue: undefined})}>
+                  <MenuItem key='undefined'>全部标签</MenuItem>
+                  {this.context.tagMetadatas.map(tagMetadata => {
+                    const key = tagMetadata.get('key')
+                    return <MenuItem key={key} eventKey={key}>{key}</MenuItem>
                   })}
                 </DropdownButton>
-              }
-            </ButtonGroup>
-          </ButtonToolbar>
-        </FormGroup>
-        {'  '}
+                {filters.tagKey &&
+                  <DropdownButton className={(typeof filters.tagValue === 'undefined' || filters.tagValue ? ' active' : '')} id='tagValueDropdown' title={filters.tagValue || '全部标签值'} onSelect={(eventKey) => this.updateFilter({tagValue: eventKey})}>
+                    <MenuItem key='undefined'>全部标签值</MenuItem>
+                    {this.context.tagMetadatas.length > 0 && _.find(this.context.tagMetadatas, m => m.get('key') == filters.tagKey).get('values').map(value => {
+                      return <MenuItem key={value} eventKey={value}>{value}</MenuItem>
+                    })}
+                  </DropdownButton>
+                }
+              </ButtonGroup>
+            </ButtonToolbar>
+          </FormGroup>
+          {'  '}
 
-        <FormGroup validationState={this.state.authorFilterValidationState}>
-          <FormControl type="text" value={this.state.authorUsername} placeholder="提交人" onChange={this.handleAuthorChange.bind(this)} />
-        </FormGroup>
-        {'  '}
-        {filters.isOpen === 'true' ||
-          <ButtonGroup>
-            <Checkbox checked={filters.isOnlyUnlike === 'true'} onChange={this.handleUnlikeChange.bind(this)}>只看差评</Checkbox>
-          </ButtonGroup>
-        }
-      </Form>
+          <FormGroup validationState={this.state.authorFilterValidationState}>
+            <FormControl type="text" value={this.state.authorUsername} placeholder="提交人" onChange={this.handleAuthorChange.bind(this)} />
+          </FormGroup>
+          {'  '}
+          {filters.isOpen === 'true' ||
+            <ButtonGroup>
+              <Checkbox checked={filters.isOnlyUnlike === 'true'} onChange={this.handleUnlikeChange.bind(this)}>只看差评</Checkbox>
+            </ButtonGroup>
+          }
+        </Form>
+      </div>
     )
 
     const ticketCheckedOperations = (
@@ -408,4 +444,61 @@ CustomerServiceTickets.contextTypes = {
   router: PropTypes.object.isRequired,
   addNotification: PropTypes.func.isRequired,
   tagMetadatas: PropTypes.array,
+}
+
+class DelayInputForm extends Component {
+
+  constructor(props) {
+    super(props)
+    this.state = {
+      value: props.value || '',
+      timeoutId: null,
+    }
+  }
+
+  handleChange(e) {
+    const value = e.target.value
+    if (this.state.timeoutId) {
+      clearTimeout(this.state.timeoutId)
+    }
+    const timeoutId = setTimeout(() => {
+      this.props.onChange(this.state.value)
+    }, this.props.delay || 1000)
+    this.setState({value, timeoutId})
+  }
+
+  render() {
+    return <FormControl type="text" value={this.state.value} placeholder={this.props.placeholder} onChange={this.handleChange.bind(this)} />
+  }
+}
+
+DelayInputForm.propTypes = {
+  onChange: PropTypes.func.isRequired,
+  value: PropTypes.string,
+  delay: PropTypes.number,
+  placeholder: PropTypes.string,
+}
+
+const BlodSearchString = ({content, searchString}) => {
+  if (!searchString || !content.includes(searchString)) {
+    return <div></div>
+  }
+
+  const aroundLength = 40
+  const index = content.indexOf(searchString)
+
+  let before = content.slice(0, index)
+  if (before.length > aroundLength) {
+    before = '...' + before.slice(aroundLength)
+  }
+  let after = content.slice(index + searchString.length)
+  if (after.length > aroundLength) {
+    after = after.slice(0, aroundLength) + '...'
+  }
+  return <div>{before}<b>{searchString}</b>{after}</div>
+}
+
+BlodSearchString.propTypes = {
+  content: PropTypes.string.isRequired,
+  searchString: PropTypes.string,
 }
