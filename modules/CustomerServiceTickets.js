@@ -103,7 +103,7 @@ export default class CustomerServiceTickets extends Component {
 
     return Promise.resolve()
     .then(() => {
-      if (searchString.trim().length > 0) {
+      if (searchString && searchString.trim().length > 0) {
         return Promise.all([
           AV.Query.or(
             new AV.Query('Ticket').contains('title', searchString),
