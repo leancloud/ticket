@@ -105,17 +105,13 @@ export default class CustomerServiceTickets extends Component {
     .then(() => {
       if (searchString && searchString.trim().length > 0) {
         return Promise.all([
-          AV.Query.or(
-            new AV.Query('Ticket').contains('title', searchString),
-            new AV.Query('Ticket').contains('content', searchString)
-          )
-            .select('objectId')
+          new AV.SearchQuery('Ticket').queryString(searchString)
             .limit(1000)
             .find()
             .then(tickets => {
               return tickets.map(t => t.id)
             }),
-          new AV.Query('Reply').contains('content', searchString)
+          new AV.SearchQuery('Reply').queryString(searchString)
             .limit(1000)
             .find()
         ])
