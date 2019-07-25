@@ -121,3 +121,8 @@ npm run dev:client
 访问 http://localhost:3000 即可。
 
 **提示**：因为应用依赖较多的 [云函数](https://leancloud.cn/docs/leanengine_cloudfunction_guide-node.html#云函数) 和 [Hook 函数](https://leancloud.cn/docs/leanengine_cloudfunction_guide-node.html#Hook_函数) ，而本地运行时暂不能调用到本地应用的相关代码，所以需要先将应用部署到云端。
+
+### 内部贡献
+
+注意为了避免 master 和 leancloud 分支出现不一致情况，需要所有提交需要先提交到 master，然后再同步到 leancloud 分支，除非提交的功能是 leancloud 分支独有。
+
