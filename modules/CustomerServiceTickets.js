@@ -106,12 +106,14 @@ export default class CustomerServiceTickets extends Component {
       if (searchString && searchString.trim().length > 0) {
         return Promise.all([
           new AV.SearchQuery('Ticket').queryString(searchString)
+            .addDescending('updatedAt')
             .limit(1000)
             .find()
             .then(tickets => {
               return tickets.map(t => t.id)
             }),
           new AV.SearchQuery('Reply').queryString(searchString)
+            .addDescending('updatedAt')
             .limit(1000)
             .find()
         ])
