@@ -491,7 +491,7 @@ export default class Ticket extends Component {
                 }
               </span>
               {' '}
-              {this.state.watch ?
+              {this.props.isCustomerService ? this.state.watch ?
                 <OverlayTrigger placement="right" overlay={
                   <Tooltip id="tooltip">点击将取消关注</Tooltip>
                 }>
@@ -503,6 +503,7 @@ export default class Ticket extends Component {
                 }>
                   <Button bsStyle='link' onClick={this.handleAddWatch.bind(this)}><span className='glyphicon glyphicon-eye-close' aria-hidden='true'></span></Button>
                 </OverlayTrigger>
+                : <div></div>
               }
             </div>
             <hr />
