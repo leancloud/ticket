@@ -36,6 +36,7 @@ export default class Ticket extends Component {
       ticket: null,
       replies: [],
       opsLogs: [],
+      watch: null,
     }
   }
 
@@ -55,8 +56,12 @@ export default class Ticket extends Component {
         this.getReplyQuery(ticket).find(),
         new AV.Query('Tag').equalTo('ticket', ticket).find(),
         this.getOpsLogQuery(ticket).find(),
+        new AV.Query('Watch')
+          .equalTo('ticket', ticket)
+          .equalTo('user', AV.User.current())
+          .first(),
       ])
-      .then(([privateTags, categoriesTree, replies, tags, opsLogs]) => {
+      .then(([privateTags, categoriesTree, replies, tags, opsLogs, watch]) => {
         if (privateTags) {
           ticket.set('privateTags', privateTags.privateTags)
         }
@@ -66,7 +71,9 @@ export default class Ticket extends Component {
           replies,
           tags,
           opsLogs,
+          watch,
         })
+        AV.Cloud.run('exploreTicket', {ticketId: ticket.id})
         return
       })
     })
@@ -105,6 +112,7 @@ export default class Ticket extends Component {
               ticket.set('privateTags', privateTags.privateTags)
             }
             this.setState({ticket})
+            AV.Cloud.run('exploreTicket', {ticketId: ticket.id})
             return
           })
           .catch(this.context.addNotification)
@@ -120,6 +128,7 @@ export default class Ticket extends Component {
     .equalTo('ticket', ticket)
     .include('author')
     .include('files')
+    .ascending('createdAt')
     .limit(500)
     replyQuery.subscribe().then(liveQuery => {
       this.replyLiveQuery = liveQuery
@@ -165,7 +174,7 @@ export default class Ticket extends Component {
         return
       }
       return new AV.Object('Reply').save({
-        ticket: this.state.ticket,
+        ticket: AV.Object.createWithoutData('Ticket', this.state.ticket.id),
         content: reply,
         files,
       })
@@ -238,6 +247,31 @@ export default class Ticket extends Component {
       this.setState({ticket})
       return
     })
+  }
+
+  handleAddWatch() {
+    return new AV.Object('Watch', {
+      ticket: AV.Object.createWithoutData('Ticket', this.state.ticket.id),
+      user: AV.User.current(),
+      ACL: {
+        [AV.User.current().id]: {write: true, read: true},
+      }
+    })
+    .save()
+    .then(watch => {
+      this.setState({watch})
+      return
+    })
+    .catch(this.context.addNotification)
+  }
+
+  handleRemoveWatch() {
+    return this.state.watch.destroy()
+    .then(() => {
+      this.setState({watch: undefined})
+      return
+    })
+    .catch(this.context.addNotification)
   }
 
   contentView(content) {
@@ -458,6 +492,21 @@ export default class Ticket extends Component {
                   <span>，更新于 <span title={moment(ticket.get('updatedAt')).format()}>{moment(ticket.get('updatedAt')).fromNow()}</span></span>
                 }
               </span>
+              {' '}
+              {this.props.isCustomerService ? this.state.watch ?
+                <OverlayTrigger placement="right" overlay={
+                  <Tooltip id="tooltip">点击将取消关注</Tooltip>
+                }>
+                  <Button bsStyle='link' active onClick={this.handleRemoveWatch.bind(this)}><span className='glyphicon glyphicon-eye-open' aria-hidden='true'></span></Button>
+                </OverlayTrigger>
+                :
+                <OverlayTrigger placement="right" overlay={
+                  <Tooltip id="tooltip">点击将关注该工单</Tooltip>
+                }>
+                  <Button bsStyle='link' onClick={this.handleAddWatch.bind(this)}><span className='glyphicon glyphicon-eye-close' aria-hidden='true'></span></Button>
+                </OverlayTrigger>
+                : <div></div>
+              }
             </div>
             <hr />
           </div>

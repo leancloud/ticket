@@ -108,6 +108,11 @@ exports.UserLabel = (props) => {
   }
   const username = props.user.username || props.user.get('username')
   const name = props.user.name || exports.getUserDisplayName(props.user)
+
+  if (props.simple) {
+    return <span>{name}</span>
+  }
+
   return (
     <span>
       <Link to={'/users/' + username} className="avatar">
@@ -123,6 +128,7 @@ exports.UserLabel = (props) => {
 exports.UserLabel.displayName = 'UserLabel'
 exports.UserLabel.propTypes = {
   user: PropTypes.object,
+  simple: PropTypes.bool,
 }
 
 exports.TicketStatusLabel = (props) => {
