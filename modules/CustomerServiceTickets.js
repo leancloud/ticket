@@ -10,9 +10,10 @@ import css from './CustomerServiceTickets.css'
 import DocumentTitle from 'react-document-title'
 
 import {UserLabel, TicketStatusLabel, getCustomerServices, getCategoriesTree, depthFirstSearchMap, depthFirstSearchFind, getNodeIndentString, getNodePath, getTinyCategoryInfo, getCategoryName} from './common'
-import {TICKET_STATUS, TICKET_STATUS_MSG, ticketOpenedStatuses, ticketClosedStatuses, getUserDisplayName} from '../lib/common'
+import {TICKET_STATUS, TICKET_STATUS_MSG, ticketOpenedStatuses, ticketClosedStatuses, getUserDisplayName, TIME_RANGE_MAP} from '../lib/common'
 
 let authorSearchTimeoutId
+
 
 export default class CustomerServiceTickets extends Component {
 
@@ -56,7 +57,8 @@ export default class CustomerServiceTickets extends Component {
     }
 
     const {assigneeId, isOpen, status, categoryId, authorId,
-      tagKey, tagValue, isOnlyUnlike, searchString, page = '0', size = '10'} = filters
+      tagKey, tagValue, isOnlyUnlike, searchString, page = '0', size = '10', timeRange} = filters
+    console.log(timeRange)
     const query = new AV.Query('Ticket')
     
     let statuses = []
@@ -67,6 +69,11 @@ export default class CustomerServiceTickets extends Component {
       statuses = ticketClosedStatuses()
     } else if (status) {
       statuses = [parseInt(status)]
+    }
+
+    if(timeRange){
+      query.greaterThanOrEqualTo('updatedAt', TIME_RANGE_MAP[timeRange].starts)
+      query.lessThan('updatedAt', TIME_RANGE_MAP[timeRange].ends)
     }
 
     if (statuses.length !== 0) {
@@ -372,6 +379,13 @@ export default class CustomerServiceTickets extends Component {
                     })}
                   </DropdownButton>
                 }
+              </ButtonGroup>
+              <ButtonGroup>
+                <DropdownButton className={(filters.timeRange ? ' active' : '')} id='timeRange' title={filters.timeRange || '全部时间'} onSelect={(eventKey) => this.updateFilter({timeRange: eventKey})}>
+                  <MenuItem key='undefined'>全部时间</MenuItem>
+                  <MenuItem key='本月更新' eventKey='本月更新'>本月更新</MenuItem>
+                  <MenuItem key='上月更新' eventKey="上月更新">上月更新</MenuItem>
+                </DropdownButton>
               </ButtonGroup>
             </ButtonToolbar>
           </FormGroup>

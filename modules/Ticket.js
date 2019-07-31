@@ -3,7 +3,7 @@ import _ from 'lodash'
 import xss from 'xss'
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
-import {FormGroup, ControlLabel, FormControl, Alert, Button, ButtonToolbar, Radio, Tooltip, OverlayTrigger} from 'react-bootstrap'
+import {FormGroup, ControlLabel, FormControl, Label, Alert, Button, ButtonToolbar, Radio, Tooltip, OverlayTrigger} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
 import {getCustomerServices, UserLabel, TicketStatusLabel, uploadFiles, getCategoryPathName, getCategoriesTree, getTinyCategoryInfo, CategoriesSelect, depthFirstSearchFind, TagForm} from './common'
@@ -54,13 +54,14 @@ export default class Ticket extends Component {
         AV.Cloud.run('getPrivateTags', {ticketId: ticket.id}),
         getCategoriesTree(false),
         this.getReplyQuery(ticket).find(),
+        new AV.Query('Tag').equalTo('ticket', ticket).find(),
         this.getOpsLogQuery(ticket).find(),
         new AV.Query('Watch')
           .equalTo('ticket', ticket)
           .equalTo('user', AV.User.current())
           .first(),
       ])
-      .then(([privateTags, categoriesTree, replies, opsLogs, watch]) => {
+      .then(([privateTags, categoriesTree, replies, tags, opsLogs, watch]) => {
         if (privateTags) {
           ticket.set('privateTags', privateTags.privateTags)
         }
@@ -68,6 +69,7 @@ export default class Ticket extends Component {
           categoriesTree,
           ticket,
           replies,
+          tags,
           opsLogs,
           watch,
         })
@@ -544,6 +546,10 @@ export default class Ticket extends Component {
           </div>
 
           <div className={'col-sm-4 ' + css.sidebar}>
+            {this.state.tags.map((tag) => {
+              return <Tag key={tag.id} tag={tag} ticket={ticket} isCustomerService={isCustomerService} />
+            })}
+
             <TicketMetadata ticket={ticket}
               isCustomerService={isCustomerService}
               categoriesTree={this.state.categoriesTree}
@@ -716,6 +722,77 @@ TicketReply.propTypes = {
 }
 
 TicketReply.contextTypes = {
+  addNotification: PropTypes.func.isRequired,
+}
+
+class Tag extends Component {
+
+  componentDidMount() {
+    if (this.props.tag.get('key') === 'appId') {
+      const appId = this.props.tag.get('value')
+      if (!appId) {
+        return
+      }
+      return AV.Cloud.run('getLeanCloudApp', {
+        username: this.props.ticket.get('author').get('username'),
+        appId,
+      })
+      .then((app) => {
+        this.setState({key: '应用', value: app.app_name})
+        if (this.props.isCustomerService) {
+          return AV.Cloud.run('getLeanCloudAppUrl', {appId, region: app.region})
+          .then((url) => {
+            if (url) {
+              this.setState({url})
+            }
+            return
+          })
+        }
+        return
+      })
+    }
+  }
+
+  render() {
+    if (!this.state) {
+      return <div className="form-group">
+        <Label bsStyle="default">{this.props.tag.get('key')}: {this.props.tag.get('value')}</Label>
+      </div>
+    } else {
+      if (this.state.url) {
+        return <div>
+          <label className="control-label">
+            {this.state.key}链接
+          </label>
+          <div className="form-group">
+            <a className="btn btn-default" href={this.state.url} target='_blank'>
+              {this.state.value}
+            </a>
+          </div>
+        </div>
+      }
+      return <div>
+        <label className="control-label">
+          {this.state.key}
+        </label>
+        <div className="form-group">
+          <a className="btn btn-default disabled">
+            {this.state.value}
+          </a>
+        </div>
+      </div>
+    }
+  }
+
+}
+
+Tag.propTypes = {
+  tag: PropTypes.instanceOf(AV.Object).isRequired,
+  ticket: PropTypes.object.isRequired,
+  isCustomerService: PropTypes.bool,
+}
+
+Tag.contextTypes = {
   addNotification: PropTypes.func.isRequired,
 }
 
