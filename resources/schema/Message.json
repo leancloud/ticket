@@ -1,0 +1,61 @@
+{
+    "indexes": [],
+    "permissions": {
+        "add_fields": {
+            "*": true
+        },
+        "create": {
+            "*": true
+        },
+        "delete": {
+            "*": true
+        },
+        "find": {
+            "*": true
+        },
+        "get": {
+            "*": true
+        },
+        "update": {
+            "*": true
+        }
+    },
+    "schema": {
+        "ACL": {
+            "type": "ACL"
+        },
+        "createdAt": {
+            "type": "Date"
+        },
+        "from": {
+            "className": "_User",
+            "type": "Pointer"
+        },
+        "isRead": {
+            "type": "Boolean",
+            "v": 2
+        },
+        "objectId": {
+            "type": "String"
+        },
+        "reply": {
+            "className": "Reply",
+            "type": "Pointer"
+        },
+        "ticket": {
+            "className": "Ticket",
+            "type": "Pointer",
+            "v": 2
+        },
+        "to": {
+            "className": "_User",
+            "type": "Pointer"
+        },
+        "type": {
+            "type": "String"
+        },
+        "updatedAt": {
+            "type": "Date"
+        }
+    }
+}

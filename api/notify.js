@@ -14,6 +14,18 @@ exports.newTicket = (ticket, author, assignee) => {
     bearychat.newTicket(ticket, author, assignee).catch(err => errorHandler.captureException(err)),
     wechat.newTicket(ticket, author, assignee).catch(err => errorHandler.captureException(err)),
   ])
+    .then(() => {
+      return new AV.Object('Message').save({
+        type: 'newTicket',
+        ticket,
+        from: author,
+        to: assignee,
+        isRead: false,
+        ACL: {
+          [assignee.id]: {write: true, read: true},
+        }
+      })
+    })
 }
 
 exports.replyTicket = (ticket, reply, replyAuthor) => {
@@ -30,6 +42,44 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
     bearychat.replyTicket(data).catch(err => errorHandler.captureException(err)),
     wechat.replyTicket(data).catch(err => errorHandler.captureException(err)),
   ])
+    .then(() => {
+      return new AV.Object('Message', {
+        type: 'reply',
+        ticket,
+        reply,
+        from: replyAuthor,
+        to,
+        isRead: false,
+        ACL: {
+          [to.id]: {write: true, read: true},
+        }
+      }).save()
+    })
+    .then(() => {
+      return new AV.Query('Watch')
+        .equalTo('ticket', ticket)
+        .limit(1000)
+        .find({useMasterKey: true})
+    })
+    .then(watches => {
+      const messages = watches.map(watch => {
+        if (watch.get('user').id === to.id) {
+          return
+        }
+        return new AV.Object('Message', {
+          type: 'reply',
+          ticket,
+          reply,
+          from: replyAuthor,
+          to: watch.get('user'),
+          isRead: false,
+          ACL: {
+            [watch.get('user').id]: {write: true, read: true},
+          }
+        })
+      })
+      return AV.Object.saveAll(messages)
+    })
 }
 
 exports.changeAssignee = (ticket, operator, assignee) => {
@@ -38,10 +88,34 @@ exports.changeAssignee = (ticket, operator, assignee) => {
     bearychat.changeAssignee(ticket, operator, assignee).catch(err => errorHandler.captureException(err)),
     wechat.changeAssignee(ticket, operator, assignee).catch(err => errorHandler.captureException(err)),
   ])
+    .then(() => {
+      return new AV.Object('Message', {
+        type: 'changeAssignee',
+        ticket,
+        from: operator,
+        to: assignee,
+        isRead: false,
+        ACL: {
+          [assignee.id]: {write: true, read: true},
+        }
+      }).save()
+    })
 }
 
 exports.ticketEvaluation = (ticket, author, to) => {
   return bearychat.ticketEvaluation(ticket, author, to)
+    .then(() => {
+      return new AV.Object('Message', {
+        type: 'ticketEvaluation',
+        ticket,
+        from: author,
+        to: to,
+        isRead: false,
+        ACL: {
+          [to.id]: {write: true, read: true},
+        }
+      }).save()
+    })
 }
 
 const sendDelayNotify = (ticket, to) => {
