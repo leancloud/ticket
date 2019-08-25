@@ -157,3 +157,9 @@
 .contributors > span > span:last-child {
   margin-right: 0;
 }
+
+.formView {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
