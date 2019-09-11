@@ -64,7 +64,7 @@ export default class Messages extends Component {
                       <span className='label label-default'>未读</span>
                     }
                   </div>
-                  <span>{ticket.get('content')}</span>
+                  <span  style={{color:'black'}}>{ticket.get('content')}</span>
                 </td>
               </tr>
             }
@@ -86,7 +86,7 @@ export default class Messages extends Component {
                       <span className='label label-default'>未读</span>
                     }
                   </div>
-                  <span>{m.get('reply').get('content')}</span>
+                  <span style={{color:'black'}}>{m.get('reply').get('content')}</span>
                 </td>
               </tr>
             }
