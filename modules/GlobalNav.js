@@ -58,7 +58,7 @@ export default class GlobalNav extends Component {
               {createTicket}
               {this.props.isCustomerService &&
                 <li>
-                  <Link to='/messages'><span className='glyphicon glyphicon-bell' aria-hidden='true'></span></Link>
+                  <Link to='/notifications'><span className='glyphicon glyphicon-bell' aria-hidden='true'></span></Link>
                 </li>
               }
               {user}

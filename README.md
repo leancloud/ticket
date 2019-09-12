@@ -124,5 +124,10 @@ npm run dev:client
 
 ### 内部贡献
 
-注意为了避免 master 和 leancloud 分支出现不一致情况，需要所有提交需要先提交到 master，然后再同步到 leancloud 分支，除非提交的功能是 leancloud 分支独有。
+注意为了避免 master 和 leancloud 分支出现不一致情况，需要按照以下步骤进行合并：
 
+1. 所有特性和 bug 修复都先提交到 develop 分支，并进行测试。
+2. 将 develop 分支合并到 leancloud 分支，并测试 leancloud 分支。
+3. 将 develop 分支合并到 master 分支。
+
+如果是 LeanCloud 内部功能，则直接提交到 leancloud 分支。

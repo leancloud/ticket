@@ -14,6 +14,7 @@ import Tickets from './Tickets'
 import NewTicket from './NewTicket'
 import Ticket from './Ticket'
 import Messages from './Messages'
+import Notifications from './Notifications.js'
 import CustomerService from './CustomerService'
 import CSTickets from './CustomerServiceTickets'
 import CSStats from './CustomerServiceStats'
@@ -67,6 +68,8 @@ module.exports = (
     <Route path="/tickets/new" component={NewTicket} onEnter={common.requireAuth} />
     <Route path="/tickets/:nid" component={Ticket} onEnter={common.requireAuth} />
     <Route path="/messages" component={Messages} onEnter={common.requireAuth} />
+    <Route path="/notifications" component={Notifications} onEnter={common.requireAuth} />
+    <Route path="/notifications/subscriptions" component={Notifications} onEnter={common.requireAuth} />
     <Route path="/customerService" component={CustomerService} onEnter={common.requireCustomerServiceAuth}>
       <Route path="/customerService/tickets" component={CSTickets} />
       <Route path="/customerService/stats" component={CSStats} />
