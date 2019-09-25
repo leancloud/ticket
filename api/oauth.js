@@ -205,11 +205,11 @@ AV.Cloud.define('getLeanCloudAppUrl', (req) => {
     }
     const {appId, region} = req.params
     if (region === 'cn-e1') {
-      return format(config.leancloudAppUrl, 'cn', appId)
+      return format(config.leancloudAppUrl,'cn-e1-admin', 'cn', appId)
     } else if (region === 'us-w1') {
-      return format(config.leancloudAppUrl, 'app', appId)
+      return format(config.leancloudAppUrl,'admin','app', appId)
     } else {
-      return format(config.leancloudAppUrl, 'cn', appId)
+      return format(config.leancloudAppUrl,'admin','cn', appId)
     }
   })
 })
