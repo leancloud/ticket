@@ -72,8 +72,8 @@ export default class CustomerServiceTickets extends Component {
     }
 
     if(timeRange){
-      query.greaterThanOrEqualTo('updatedAt', TIME_RANGE_MAP[timeRange].starts)
-      query.lessThan('updatedAt', TIME_RANGE_MAP[timeRange].ends)
+      query.greaterThanOrEqualTo('createdAt', TIME_RANGE_MAP[timeRange].starts)
+      query.lessThan('createdAt', TIME_RANGE_MAP[timeRange].ends)
     }
 
     if (statuses.length !== 0) {
@@ -113,14 +113,14 @@ export default class CustomerServiceTickets extends Component {
       if (searchString && searchString.trim().length > 0) {
         return Promise.all([
           new AV.SearchQuery('Ticket').queryString(`title:*${searchString}* OR content:*${searchString}*`)
-            .addDescending('updatedAt')
+            .addDescending('latestReply.updatedAt')
             .limit(1000)
             .find()
             .then(tickets => {
               return tickets.map(t => t.id)
             }),
           new AV.SearchQuery('Reply').queryString(`content:*${searchString}*`)
-            .addDescending('updatedAt')
+            .addDescending('latestReply.updatedAt')
             .limit(1000)
             .find()
         ])
@@ -136,7 +136,7 @@ export default class CustomerServiceTickets extends Component {
       .include('assignee')
       .limit(parseInt(size))
       .skip(parseInt(page) * parseInt(size))
-      .addDescending('updatedAt')
+      .addDescending('latestReply.updatedAt')
       .find()
       .then(tickets => {
         tickets.forEach(t => {
@@ -385,6 +385,7 @@ export default class CustomerServiceTickets extends Component {
                   <MenuItem key='undefined'>全部时间</MenuItem>
                   <MenuItem key='本月更新' eventKey='本月更新'>本月更新</MenuItem>
                   <MenuItem key='上月更新' eventKey="上月更新">上月更新</MenuItem>
+                  <MenuItem key='两月前' eventKey="两月前">两月前</MenuItem>
                 </DropdownButton>
               </ButtonGroup>
             </ButtonToolbar>
