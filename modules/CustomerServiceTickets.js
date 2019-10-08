@@ -58,7 +58,6 @@ export default class CustomerServiceTickets extends Component {
 
     const {assigneeId, isOpen, status, categoryId, authorId,
       tagKey, tagValue, isOnlyUnlike, searchString, page = '0', size = '10', timeRange} = filters
-    console.log(timeRange)
     const query = new AV.Query('Ticket')
     
     let statuses = []
@@ -333,6 +332,8 @@ export default class CustomerServiceTickets extends Component {
       categoryTitle = '全部分类'
     }
 
+    
+
     const ticketAdminFilters = (
       <div>
         <Form inline className='form-group'>
@@ -381,11 +382,16 @@ export default class CustomerServiceTickets extends Component {
                 }
               </ButtonGroup>
               <ButtonGroup>
-                <DropdownButton className={(filters.timeRange ? ' active' : '')} id='timeRange' title={filters.timeRange || '全部时间'} onSelect={(eventKey) => this.updateFilter({timeRange: eventKey})}>
-                  <MenuItem key='undefined'>全部时间</MenuItem>
-                  <MenuItem key='本月更新' eventKey='本月更新'>本月更新</MenuItem>
-                  <MenuItem key='上月更新' eventKey="上月更新">上月更新</MenuItem>
-                  <MenuItem key='两月前' eventKey="两月前">两月前</MenuItem>
+                <DropdownButton 
+                  className={(filters.timeRange ? ' active' : '')} 
+                  id='timeRange' 
+                  title={TIME_RANGE_MAP[filters.timeRange]? TIME_RANGE_MAP[filters.timeRange].name : '全部时间'} 
+                  onSelect={(eventKey) => this.updateFilter({timeRange: eventKey})}
+                >
+                    <MenuItem key='undefined'>全部时间</MenuItem>
+                    <MenuItem key='本月工单' eventKey='本月工单'>{TIME_RANGE_MAP['本月工单'].name}</MenuItem>
+                    <MenuItem key='上月工单' eventKey="上月工单">{TIME_RANGE_MAP['上月工单'].name}</MenuItem>
+                    <MenuItem key='两月前工单' eventKey="两月前工单">{TIME_RANGE_MAP['两月前工单'].name}</MenuItem>
                 </DropdownButton>
               </ButtonGroup>
             </ButtonToolbar>
