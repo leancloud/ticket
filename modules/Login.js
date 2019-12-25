@@ -9,7 +9,7 @@ import {
 } from 'react-bootstrap'
 import PropTypes from 'prop-types'
 import AV from 'leancloud-storage/live-query'
-import isCN from './common'
+import { isCN } from './common'
 import css from './Login.css'
 
 export default class Login extends Component {
@@ -156,14 +156,14 @@ export default class Login extends Component {
           </FormGroup>
         </Form>
         {isCN() && (
-          <>
+          <React.Fragment>
             <p>美味书签（北京）信息技术有限公司 版权所有</p>
             <div>
               <a href="http://www.miitbeian.gov.cn/" target="_blank">
                 京ICP备12025059号-10
               </a>
             </div>
-          </>
+          </React.Fragment>
         )}
       </div>
     )
