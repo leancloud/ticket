@@ -49,6 +49,7 @@ const getIndexPage = () => {
 <script>
   LEANCLOUD_APP_ID = '${process.env.LEANCLOUD_APP_ID}'
   LEANCLOUD_APP_KEY = '${process.env.LEANCLOUD_APP_KEY}'
+  LEANCLOUD_API_HOST = ${process.env.LEANCLOUD_API_HOST ? ('"' + process.env.LEANCLOUD_API_HOST + '"') : undefined}
   LEANCLOUD_APP_ENV = '${process.env.LEANCLOUD_APP_ENV}'
   LEANCLOUD_OAUTH_REGION = '${process.env.LEANCLOUD_REGION == 'US' ? 'us-w1': 'cn-n1'}'
   LEAN_CLI_HAVE_STAGING = '${process.env.LEAN_CLI_HAVE_STAGING}'
