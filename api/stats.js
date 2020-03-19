@@ -351,6 +351,7 @@ const getTicketStats = (ticketIds, authOptions) => {
   return Promise.all(_.map(_.chunk(ticketIds, 50), (ids) => {
     return new AV.Query('StatsTicket')
     .containedIn('ticket', ids.map(id => new AV.Object.createWithoutData('Ticket', id)))
+    .include('ticket')
     .find(authOptions)
   }))
   .then(_.flatten)
