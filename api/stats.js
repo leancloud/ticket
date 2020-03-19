@@ -291,7 +291,7 @@ AV.Cloud.define('getStats', (req) => {
         replyCount: 0,
         tickets: [],
       })
-      result.firstReplyTimeByUser = firstReplyTimeByUser(result, ticketStatses,start)
+      result.firstReplyTimeByUser = firstReplyTimeByUser(result, ticketStatses,start,end)
       result.replyTimeByUser = replyTimeByUser(result, ticketStatses)
       result.firstReplyTime = _.sumBy(result.firstReplyTimeByUser, 'replyTime')
       result.firstReplyCount = _.sumBy(result.firstReplyTimeByUser, 'replyCount')
@@ -390,14 +390,18 @@ const getSelectedTagKeys = (authOptions) => {
   })
 }
 
-const firstReplyTimeByUser = (stats, ticketStatses, start) => {
+const firstReplyTimeByUser = (stats, ticketStatses, start, end) => {
   console.log('firstReplyTimeByUser start',start)
   return _.chain(stats.tickets)
   .map((ticketId) => {
     return _.find(ticketStatses, ticketStats => {
       console.log('ticketStats.get(\'ticket\').createdAt', ticketStats.get('ticket').createdAt)
       console.log('start',start) // && ticketStats.get('ticket').createdAt > start
-      return (ticketStats.get('ticket').id === ticketId )
+      console.log('end',end) // && ticketStats.get('ticket').createdAt > start
+      return (ticketStats.get('ticket').id === ticketId 
+        && ticketStats.get('ticket').createdAt.getTime() > start.getTime()
+        && ticketStats.get('ticket').createdAt.getTime() < end.getTime() 
+      )
     })
   })
   .compact()
