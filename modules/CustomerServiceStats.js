@@ -502,27 +502,13 @@ class StatsSummary extends React.Component {
       />
     })
 
-    const getLinkTimeRange = (i) =>{
-      const {startDate,endDate} = (this.getTimeRange(this.state.timeUnit))
-      let tStart = i === 0 ? moment(startDate) : moment(startDate).add(1, this.state.timeUnit)
-      let tEnd = tStart.clone().add(1, this.state.timeUnit)
-      if (tEnd > endDate) {
-        tEnd = moment(endDate)
-      }
-      return {
-        startTime: tStart.toDate(),
-        endTime: tEnd.toDate()
-      }
-    }
-
-    const firstReplyTimeByUserDoms = this.state.statsDatas.map((data,i) => {
+    const firstReplyTimeByUserDoms = this.state.statsDatas.map(data => {
       const body = data.firstReplyTimeByUser.map(({userId, replyTime, replyCount, index}) => {
-        const {startTime, endTime} = getLinkTimeRange(i)
         const user = _.find(this.state.users, c => c.id === userId)
         return [
           userId,
           index,
-          <Link to={`/customerService/stats/users/${userId}?start=${startTime.toISOString()}&end=${endTime.toISOString()}`}>{user && getUserDisplayName(user) || userId}</Link>,
+          <Link to={`/customerService/stats/users/${userId}?start=${this.state.startDate.toISOString()}&end=${this.state.endDate.toISOString()}`}>{user && getUserDisplayName(user) || userId}</Link>,
           (replyTime / replyCount / 1000 / 60 / 60).toFixed(2) + ' 小时',
           replyCount,
         ]
@@ -532,14 +518,14 @@ class StatsSummary extends React.Component {
         body={body}
       />
     })
-    const replyTimeByUserDoms = this.state.statsDatas.map((data,i) => {
+
+    const replyTimeByUserDoms = this.state.statsDatas.map(data => {
       const body = data.replyTimeByUser.map(({userId, replyTime, replyCount, index}) => {
-        const {startTime, endTime} = getLinkTimeRange(i)
         const user = _.find(this.state.users, c => c.id === userId)
         return [
           userId,
           index,
-          <Link to={`/customerService/stats/users/${userId}?start=${startTime.toISOString()}&end=${endTime.toISOString()}`}>{user && getUserDisplayName(user) || userId}</Link>,
+          <Link to={`/customerService/stats/users/${userId}?start=${this.state.startDate.toISOString()}&end=${this.state.endDate.toISOString()}`}>{user && getUserDisplayName(user) || userId}</Link>,
           (replyTime / replyCount / 1000 / 60 / 60).toFixed(2) + ' 小时',
           replyCount,
         ]
