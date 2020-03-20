@@ -35,6 +35,12 @@ export default class GlobalNav extends Component {
       <nav className="navbar navbar-default navbar-fixed-top">
         <div className="container">
           <div className="navbar-header">
+            <button type="button" className="navbar-toggle collapsed" data-toggle="collapse" data-target="#global-navbar-collapse" aria-expanded="false">
+              <span className="sr-only">Toggle navigation</span>
+              <span className="icon-bar"></span>
+              <span className="icon-bar"></span>
+              <span className="icon-bar"></span>
+            </button>
             <Link className="navbar-brand font-logo" to='/'>LeanTicket</Link>
           </div>
           <div className="collapse navbar-collapse" id="global-navbar-collapse">
