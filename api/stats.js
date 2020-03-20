@@ -395,9 +395,6 @@ const firstReplyTimeByUser = (stats, ticketStatses, start, end) => {
   return _.chain(stats.tickets)
   .map((ticketId) => {
     return _.find(ticketStatses, ticketStats => {
-      console.log('ticketStats.get(\'ticket\').createdAt', ticketStats.get('ticket').createdAt)
-      console.log('start',start) // && ticketStats.get('ticket').createdAt > start
-      console.log('end',end) // && ticketStats.get('ticket').createdAt > start
       return (ticketStats.get('ticket').id === ticketId 
         && ticketStats.get('ticket').createdAt.getTime() > start.getTime()
         && ticketStats.get('ticket').createdAt.getTime() < end.getTime() 
