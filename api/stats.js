@@ -391,7 +391,6 @@ const getSelectedTagKeys = (authOptions) => {
 }
 
 const firstReplyTimeByUser = (stats, ticketStatses, start, end) => {
-  console.log('firstReplyTimeByUser start',start)
   return _.chain(stats.tickets)
   .map((ticketId) => {
     return _.find(ticketStatses, ticketStats => {

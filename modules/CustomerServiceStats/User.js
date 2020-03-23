@@ -23,7 +23,6 @@ export default class CSStatsUser extends React.Component {
     .then((statses) => {
       return AV.Object.fetchAll(statses.map(s => new AV.Object.createWithoutData('Ticket', s.ticket.objectId) ))
       .then(() => this.setState({statses}))
-      .catch(e=>console.log(e))
     })
     .catch(this.context.addNotification)
   }
@@ -33,7 +32,6 @@ export default class CSStatsUser extends React.Component {
     let trs = []
     try {
       trs = this.state.statses.map(stats => {
-        console.log(stats)
         let firstReplyStatsTd = <td>没有参与</td>
         if (stats.firstReplyStats.userId === userId) {
           firstReplyStatsTd = <td>{(stats.firstReplyStats.firstReplyTime / 1000 / 60 / 60).toFixed(2)} 小时</td>
