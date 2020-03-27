@@ -39,6 +39,10 @@ export default class TextareaWithPreview extends Component {
     editor.on('fileChange', (file) => {
       this.setState({
         value: file.content.text,
+      }, () => {
+        const evt = new Event('change', { bubbles: true })
+        evt.simulated = true
+        this.ref.dispatchEvent(evt)
       })
     })
 
@@ -59,6 +63,7 @@ export default class TextareaWithPreview extends Component {
 
 TextareaWithPreview.propTypes = {
   value: PropTypes.any,
-  inputRef: PropTypes.func
+  inputRef: PropTypes.func,
+  onChange: PropTypes.func
 }
 

@@ -21,33 +21,36 @@ export default class CSStatsUser extends React.Component {
       end,
     })
     .then((statses) => {
-      return AV.Object.fetchAll(statses.map(s => s.ticket))
-      .then(() => {
-        this.setState({statses})
-      })
+      return AV.Object.fetchAll(statses.map(s => new AV.Object.createWithoutData('Ticket', s.ticket.objectId) ))
+      .then(() => this.setState({statses}))
     })
     .catch(this.context.addNotification)
   }
 
   render() {
     const userId = this.props.params.userId
-    const trs = this.state.statses.map(stats => {
-      let firstReplyStatsTd = <td>没有参与</td>
-      if (stats.firstReplyStats.userId === userId) {
-        firstReplyStatsTd = <td>{(stats.firstReplyStats.firstReplyTime / 1000 / 60 / 60).toFixed(2)} 小时</td>
-      }
-      const replyTime = stats.replyTimeStats.find(s => s.userId === userId)
-      let replyTimeTd = <td>没有参与</td>
-      if (replyTime) {
-        replyTimeTd = <td>{(replyTime.replyTime / replyTime.replyCount / 1000 / 60 / 60).toFixed(2)} 小时</td>
-      }
-      return <tr>
-        <td><a href={`/tickets/${stats.ticket.get('nid')}`} target='_blank'>{stats.ticket.get('nid')}</a></td>
-        {firstReplyStatsTd}
-        {replyTimeTd}
-        <td>{replyTime && replyTime.replyCount}</td>
-      </tr>
-    })
+    let trs = []
+    try {
+      trs = this.state.statses.map(stats => {
+        let firstReplyStatsTd = <td>没有参与</td>
+        if (stats.firstReplyStats.userId === userId) {
+          firstReplyStatsTd = <td>{(stats.firstReplyStats.firstReplyTime / 1000 / 60 / 60).toFixed(2)} 小时</td>
+        }
+        const replyTime = stats.replyTimeStats.find(s => s.userId === userId)
+        let replyTimeTd = <td>没有参与</td>
+        if (replyTime) {
+          replyTimeTd = <td>{(replyTime.replyTime / replyTime.replyCount / 1000 / 60 / 60).toFixed(2)} 小时</td>
+        }
+        return <tr>
+          <td><a href={`/tickets/${stats.ticket['nid']}`} target='_blank'>{stats.ticket['nid']}</a></td>
+          {firstReplyStatsTd}
+          {replyTimeTd}
+          <td>{replyTime && replyTime.replyCount}</td>
+        </tr>
+      })
+    } catch (error) {
+      console.log(error)
+    }
     return <div>
       <DocumentTitle title='统计 - LeanTicket' />
       <Table>

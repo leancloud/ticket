@@ -291,7 +291,7 @@ AV.Cloud.define('getStats', (req) => {
         replyCount: 0,
         tickets: [],
       })
-      result.firstReplyTimeByUser = firstReplyTimeByUser(result, ticketStatses)
+      result.firstReplyTimeByUser = firstReplyTimeByUser(result, ticketStatses,start,end)
       result.replyTimeByUser = replyTimeByUser(result, ticketStatses)
       result.firstReplyTime = _.sumBy(result.firstReplyTimeByUser, 'replyTime')
       result.firstReplyCount = _.sumBy(result.firstReplyTimeByUser, 'replyCount')
@@ -351,6 +351,7 @@ const getTicketStats = (ticketIds, authOptions) => {
   return Promise.all(_.map(_.chunk(ticketIds, 50), (ids) => {
     return new AV.Query('StatsTicket')
     .containedIn('ticket', ids.map(id => new AV.Object.createWithoutData('Ticket', id)))
+    .include('ticket')
     .find(authOptions)
   }))
   .then(_.flatten)
@@ -389,10 +390,15 @@ const getSelectedTagKeys = (authOptions) => {
   })
 }
 
-const firstReplyTimeByUser = (stats, ticketStatses) => {
+const firstReplyTimeByUser = (stats, ticketStatses, start, end) => {
   return _.chain(stats.tickets)
   .map((ticketId) => {
-    return _.find(ticketStatses, ticketStats => ticketStats.get('ticket').id === ticketId)
+    return _.find(ticketStatses, ticketStats => {
+      return (ticketStats.get('ticket').id === ticketId 
+        && ticketStats.get('ticket').createdAt.getTime() > start.getTime()
+        && ticketStats.get('ticket').createdAt.getTime() < end.getTime() 
+      )
+    })
   })
   .compact()
   .groupBy(ticketStats => ticketStats.get('firstReplyStats').userId)
