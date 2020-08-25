@@ -7,7 +7,6 @@ import AV from 'leancloud-storage/live-query'
 
 Object.assign(exports, require('../lib/common'))
 
-<<<<<<< HEAD
 exports.getCategoryPathName = (category, categoriesTree) => {
   const c = exports.depthFirstSearchFind(
     categoriesTree,
@@ -17,11 +16,6 @@ exports.getCategoryPathName = (category, categoriesTree) => {
     .getNodePath(c)
     .map(c => exports.getCategoryName(c))
     .join(' / ')
-=======
-exports.getCategoryPathName = (category, categoriesTree, t) => {
-  const c = exports.depthFirstSearchFind(categoriesTree, c => c.id == (category.id || category.objectId))
-  return exports.getNodePath(c).map(c => exports.getCategoryName(c, t)).join(' / ')
->>>>>>> 6a2fa8e... fix: getCategoryName invocation
 }
 
 exports.requireAuth = (nextState, replace) => {
