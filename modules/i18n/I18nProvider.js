@@ -1,26 +1,13 @@
 import { Children, Component, PropTypes } from 'react'
 import Polyglot from 'node-polyglot'
-
-const zhPhrases = {
-  world: '你好，世界'
-}
-  
-const enPhrases = {
-  world: 'Hello, World'
-}
-
-const messages = {
-  en: enPhrases,
-  zh: zhPhrases
-}
-
+import locales from './locales'
 class I18nProvider extends Component {
   getChildContext() {
     // eslint-disable-next-line react/prop-types
     const { locale } = this.props
     const polyglot = new Polyglot({
       locale,
-      phrases: messages[locale],
+      phrases: locales[locale],
     })
     const t = polyglot.t.bind(polyglot)
     return { locale, t }
