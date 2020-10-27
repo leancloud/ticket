@@ -1,11 +1,12 @@
 import React from 'react'
 import DocumentTitle from 'react-document-title'
-import translate from '../translate'
+import translate from './i18n/translate'
 
-function About({ translate }) {
+// eslint-disable-next-line react/prop-types
+function About({ t }) {
   return <div>
     <DocumentTitle title='关于 - LeanTicket' />
-    <h1>{translate('world')}</h1>
+    <h1>{t('world')}</h1>
     <h1 className='font-logo'>LeanCloud Ticket</h1>
     <hr />
     <p>该应用是 <a href='https://leancloud.cn/'>LeanCloud</a> 的工单系统，为更有效地解决 LeanCloud 开发者的问题而创建。</p>
