@@ -3,8 +3,9 @@ import {Link} from 'react-router'
 import AV from 'leancloud-storage/live-query'
 import {Avatar} from './common'
 import css from './User.css'
+import translate from './i18n/translate'
 
-export default class User extends Component {
+class User extends Component {
 
   constructor(props) {
     super(props)
@@ -31,8 +32,9 @@ export default class User extends Component {
   }
 
   render() {
+    const {t} = this.props
     if (!this.state.user) {
-      return <div>读取中……</div>
+      return <div>{t('loading')}……</div>
     }
 
     return (
@@ -43,10 +45,12 @@ export default class User extends Component {
           </div>
           <div className={css.info}>
             <h2>{this.state.user.username}</h2>
-            <p><Link to={`/customerService/tickets?authorId=${this.state.user.objectId}&page=0&size=10`}>工单列表</Link></p>
+            <p><Link to={`/customerService/tickets?authorId=${this.state.user.objectId}&page=0&size=10`}>{t('ticketList')}</Link></p>
           </div>
         </div>
       </div>
     )
   }
 }
+
+export default translate(User)
