@@ -3,8 +3,9 @@ import PropTypes from 'prop-types'
 import {Table} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 import DocumentTitle from 'react-document-title'
+import translate from '../i18n/translate'
 
-export default class CSStatsUser extends React.Component {
+class CSStatsUser extends React.Component {
 
   constructor(props) {
     super(props)
@@ -28,18 +29,19 @@ export default class CSStatsUser extends React.Component {
   }
 
   render() {
+    const {t} = this.props
     const userId = this.props.params.userId
     let trs = []
     try {
       trs = this.state.statses.map(stats => {
-        let firstReplyStatsTd = <td>没有参与</td>
+        let firstReplyStatsTd = <td>{t('notInvoled')}</td>
         if (stats.firstReplyStats.userId === userId) {
-          firstReplyStatsTd = <td>{(stats.firstReplyStats.firstReplyTime / 1000 / 60 / 60).toFixed(2)} 小时</td>
+          firstReplyStatsTd = <td>{(stats.firstReplyStats.firstReplyTime / 1000 / 60 / 60).toFixed(2)} {t('hour')}</td>
         }
         const replyTime = stats.replyTimeStats.find(s => s.userId === userId)
-        let replyTimeTd = <td>没有参与</td>
+        let replyTimeTd = <td>{t('notInvoled')}</td>
         if (replyTime) {
-          replyTimeTd = <td>{(replyTime.replyTime / replyTime.replyCount / 1000 / 60 / 60).toFixed(2)} 小时</td>
+          replyTimeTd = <td>{(replyTime.replyTime / replyTime.replyCount / 1000 / 60 / 60).toFixed(2)} {t('hour')}</td>
         }
         return <tr>
           <td><a href={`/tickets/${stats.ticket['nid']}`} target='_blank'>{stats.ticket['nid']}</a></td>
@@ -52,13 +54,13 @@ export default class CSStatsUser extends React.Component {
       console.log(error)
     }
     return <div>
-      <DocumentTitle title='统计 - LeanTicket' />
+      <DocumentTitle title={`${t('statistics')} - LeanTicket`} />
       <Table>
         <thead>
-          <td>工单 ID</td>
-          <td>首次回复时间</td>
-          <td>平均回复时间</td>
-          <td>回复次数</td>
+          <td>{t('ticket')} ID</td>
+          <td>{t('firstReplyTime')}</td>
+          <td>{t('averageReplyTime')}</td>
+          <td>{t('replyCount')}</td>
         </thead>
         <tbody>
           {trs}
@@ -72,4 +74,7 @@ export default class CSStatsUser extends React.Component {
 CSStatsUser.propTypes = {
   params: PropTypes.object,
   location: PropTypes.object,
+  t: PropTypes.func
 }
+
+export default translate(CSStatsUser)
