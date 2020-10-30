@@ -10,9 +10,13 @@ const en = {
   builtWithEnding: '.',
 
   // general
+  assigned: 'Assigned',
   hour: 'hour',
   loading: 'Loading',
+  name: 'Name',
+  otherAssignees: 'Other assignees',
   preview: 'Preview',
+  reorder: 'Reorder',
   statistics: 'Statistics',
   ticket: 'Ticket',
   ticketList: 'Tickets',
@@ -22,6 +26,9 @@ const en = {
   firstRelyTime: 'first reply time',
   averageReplyTime: 'average reply time',
   replyCount: 'replies',
+
+  // Categories
+  newCategory: 'New category',
 }
 
 const zh = {
@@ -35,9 +42,13 @@ const zh = {
   builtWithEnding: '构建。',
 
   // general
+  assigned: '我是否负责',
   hour: '小时',
   loading: '读取中',
+  name: '名称',
+  otherAssignees: '其他负责成员',
   preview: '预览',
+  reorder: '调整顺序',
   statistics: '统计',
   ticket: '工单',
   ticketList: '工单列表',
@@ -47,6 +58,9 @@ const zh = {
   firstRelyTime: '首次回复时间',
   averageReplyTime: '平均回复时间',
   replyCount: '回复次数',
+
+  // Categories
+  newCategory: '新增分类',
 }
 
 const locales = {en, zh}
