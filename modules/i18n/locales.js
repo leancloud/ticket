@@ -11,6 +11,7 @@ const en = {
 
   // general
   loading: 'Loading',
+  preview: 'Preview',
   ticketList: 'Tickets',
 }
 
@@ -26,6 +27,7 @@ const zh = {
 
   // general
   loading: '读取中',
+  preview: '预览',
   ticketList: '工单列表',
 }
 

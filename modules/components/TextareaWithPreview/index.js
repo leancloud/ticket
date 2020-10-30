@@ -3,8 +3,9 @@ import PropTypes from 'prop-types'
 import {FormControl} from 'react-bootstrap'
 import Stackedit from 'stackedit-js'
 import css from './index.css'
+import translate from '../i18n/translate'
 
-export default class TextareaWithPreview extends Component {
+class TextareaWithPreview extends Component {
   constructor(props) {
     super(props)
 
@@ -52,10 +53,11 @@ export default class TextareaWithPreview extends Component {
   }
 
   render() {
+    const {t} = this.props
     return (
       <div className={css.textareaWrapper}>
         <FormControl {...this.props} value={this.state.value} componentClass="textarea" inputRef={this.inputRef.bind(this)}/>
-        <div onClick={this.enterPreviewMode.bind(this)} title="预览" className={css.preview}><span className="glyphicon glyphicon-fullscreen" aria-hidden="true"></span></div>
+        <div onClick={this.enterPreviewMode.bind(this)} title={t('preview')} className={css.preview}><span className="glyphicon glyphicon-fullscreen" aria-hidden="true"></span></div>
       </div>
     )
   }
@@ -64,6 +66,8 @@ export default class TextareaWithPreview extends Component {
 TextareaWithPreview.propTypes = {
   value: PropTypes.any,
   inputRef: PropTypes.func,
-  onChange: PropTypes.func
+  onChange: PropTypes.func,
+  t: PropTypes.func
 }
 
+export default translate(TextareaWithPreview)
