@@ -1,3 +1,4 @@
+/* eslint-disable i18n/no-chinese-character */
 const en = {
   // about
   about: 'About',
