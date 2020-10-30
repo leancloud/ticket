@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import {FormControl} from 'react-bootstrap'
 import Stackedit from 'stackedit-js'
 import css from './index.css'
-import translate from '../i18n/translate'
+import translate from '../../i18n/translate'
 
 class TextareaWithPreview extends Component {
   constructor(props) {

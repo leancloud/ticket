@@ -1,4 +1,4 @@
-import React, {PropTypes} from 'react'
+import React, {Component, PropTypes} from 'react'
 import _ from 'lodash'
 import {Link} from 'react-router'
 import {Form, FormGroup} from 'react-bootstrap'
@@ -6,9 +6,9 @@ import AV from 'leancloud-storage/live-query'
 
 import {getCustomerServices, getTinyCategoryInfo, UserLabel, getCategoriesTree,
   depthFirstSearchMap, depthFirstSearchFind, getNodeIndentString} from '../common'
-import {translate} from '../i18n/translate'
+import translate from '../i18n/translate'
 
-class Categories extends React.Component {
+class Categories extends Component {
 
   constructor(props) {
     super(props)
