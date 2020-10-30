@@ -1,4 +1,4 @@
-import React, {Component} from 'react'
+import React, {Component, PropTypes} from 'react'
 import {Link} from 'react-router'
 import AV from 'leancloud-storage/live-query'
 import {Avatar} from './common'
@@ -51,6 +51,10 @@ class User extends Component {
       </div>
     )
   }
+}
+
+User.propTypes = {
+  t: PropTypes.func
 }
 
 export default translate(User)
