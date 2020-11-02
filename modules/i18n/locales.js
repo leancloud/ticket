@@ -38,6 +38,10 @@ const messages = {
     'Categories assigned',
     '负责分类'
   ],
+  'avatar': [
+    'Avatar',
+    '头像'
+  ],
   'delete': [
     'Delete',
     '删除'
@@ -45,6 +49,10 @@ const messages = {
   'disable': [
     'Disable',
     '停用'
+  ],
+  'email': [
+    'Email',
+    '电子邮箱'
   ],
   'hour': [
     'hour',
@@ -61,6 +69,10 @@ const messages = {
   'name': [
     'Name',
     '名称'
+  ],
+  'nickname': [
+    'Nickname',
+    '昵称'
   ],
   'operation': [
     'Operation',
@@ -256,6 +268,15 @@ const messages = {
   'totalMembers': [
     'Total members:',
     '成员数：'
+  ],
+  // Profile
+  'changeAvatar': [
+    'To change your avatar, please go to',
+    '更改头像请前往'
+  ],
+  'gravatarUrl': [
+    'https://en.gravatar.com/',
+    'https://cn.gravatar.com/'
   ]
 }
 
