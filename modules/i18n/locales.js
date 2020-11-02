@@ -34,6 +34,10 @@ const messages = {
     'Assigned',
     '我是否负责'
   ],
+  'delete': [
+    'Delete',
+    '删除'
+  ],
   'disable': [
     'Disable',
     '停用'
@@ -50,9 +54,17 @@ const messages = {
     'Name',
     '名称'
   ],
+  'operation': [
+    'Operation',
+    '操作'
+  ],
   'otherAssignees': [
     'Other assignees',
     '其他负责成员'
+  ],
+  'pm': [
+    ' PM',
+    ' 下午'
   ],
   'preview': [
     'Preview',
@@ -73,6 +85,18 @@ const messages = {
   'statistics': [
     'Statistics',
     '统计'
+  ],
+  'submit': [
+    'Submit',
+    '提交'
+  ],
+  'submitter': [
+    'Submitter',
+    '提交人'
+  ],
+  'submitDate': [
+    'Submit Date',
+    '提交时间'
   ],
   'ticket': [
     'Ticket',
@@ -141,6 +165,23 @@ const messages = {
   'unlinked': [
     'Unlinked',
     '未关联'
+  ],
+  // Vacation
+  'vacation': [
+    'Vacation',
+    '请假'
+  ],
+  'whoIsOnVacation': [
+    'Who',
+    '请假人'
+  ],
+  'vacationStart': [
+    'Start',
+    '请假开始'
+  ],
+  'backToWork': [
+    'Back',
+    '工作开始'
   ]
 }
 

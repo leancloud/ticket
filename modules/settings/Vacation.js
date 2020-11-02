@@ -96,26 +96,26 @@ class Vacation extends Component {
       const endDate = moment(vacation.get('endDate'))
       return <tr key={vacation.id}>
           <td>{getUserDisplayName(vacation.get('vacationer'))}</td>
-          <td>{startDate.format('YYYY-MM-DD') + (startDate.hours() === 12 ? ' 下午' : '')}</td>
-          <td>{endDate.format('YYYY-MM-DD') + (endDate.hours() === 12 ? ' 下午' : '')}</td>
+          <td>{startDate.format('YYYY-MM-DD') + (startDate.hours() === 12 ? t('pm') : '')}</td>
+          <td>{endDate.format('YYYY-MM-DD') + (endDate.hours() === 12 ? t('pm') : '')}</td>
           <td>{getUserDisplayName(vacation.get('operator'))}</td>
           <td>{moment(vacation.createdAt).fromNow()}</td>
-          <td><Button type='button' onClick={() => this.handleRemove(vacation)}>删除</Button></td>
+          <td><Button type='button' onClick={() => this.handleRemove(vacation)}>{t('delete')}</Button></td>
         </tr>
     })
     return (
         <div>
-          <h2>请假</h2>
+          <h2>{t('vacation')}</h2>
           <Form onSubmit={this.handleSubmit.bind(this)}>
             <FormGroup>
-              <ControlLabel>请假人</ControlLabel>
+              <ControlLabel>{t('whoIsOnVacation')}</ControlLabel>
               {' '}
               <FormControl componentClass="select" value={this.state.vacationerId} onChange={this.handleVacationUserChange.bind(this)}>
                 {userOptions}
               </FormControl>
             </FormGroup>
             <FormGroup>
-              <ControlLabel>请假开始</ControlLabel>
+              <ControlLabel>{t('vacationStart')}</ControlLabel>
               {' '}
               <DatePicker
                   selected={this.state.startDate}
@@ -125,11 +125,11 @@ class Vacation extends Component {
                   onChange={this.handleChangeStart.bind(this)}
               />
               {' '}
-              <Checkbox inline onClick={this.handleStartHalfDayClick.bind(this)}>下午</Checkbox>
+              <Checkbox inline onClick={this.handleStartHalfDayClick.bind(this)}>{t('pm')}</Checkbox>
             </FormGroup>
             {' '}
             <FormGroup>
-              <ControlLabel>工作开始</ControlLabel>
+              <ControlLabel>{t('backToWork')}</ControlLabel>
               {' '}
               <DatePicker
                   selected={this.state.endDate}
@@ -139,19 +139,19 @@ class Vacation extends Component {
                   onChange={this.handleChangeEnd.bind(this)}
               />
               {' '}
-              <Checkbox inline onClick={this.handleEndHalfDayClick.bind(this)}>下午</Checkbox>
+              <Checkbox inline onClick={this.handleEndHalfDayClick.bind(this)}>{t('pm')}</Checkbox>
             </FormGroup>
-            <Button type='submit'>请假</Button>
+            <Button type='submit'>{t('submit')}</Button>
           </Form>
           <Table>
             <thead>
               <tr>
-                <th>请假人</th>
-                <th>开始请假</th>
-                <th>开始上班</th>
-                <th>提交人</th>
-                <th>提交时间</th>
-                <th>操作</th>
+                <th>{t('whoIsOnVacation')}</th>
+                <th>{t('vacationStart')}</th>
+                <th>{t('backToWork')}</th>
+                <th>{t('submitter')}</th>
+                <th>{t('submitTime')}</th>
+                <th>{t('operation')}</th>
               </tr>
             </thead>
             <tbody>
