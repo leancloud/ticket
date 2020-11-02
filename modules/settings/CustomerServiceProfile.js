@@ -6,8 +6,9 @@ import DatePicker from 'react-datepicker'
 import AV from 'leancloud-storage/live-query'
 
 import {getCustomerServices, getUserDisplayName} from '../common'
+import translate from '../i18n/translate'
 
-export default class CustomerServiceProfile extends Component {
+class CustomerServiceProfile extends Component {
 
   constructor(props) {
     super(props)
@@ -45,24 +46,21 @@ export default class CustomerServiceProfile extends Component {
   }
 
   render() {
+    const {t} = this.props
     const wechatUserOptions = this.state.wechatUsers.map((user) => {
       return <option key={user.userid} value={user.userid}>{user.name}</option>
     })
     return <div>
-      <h2>账号关联</h2>
+      <h2>{t('associatedAccounts')}</h2>
       <Form>
         <FormGroup>
-          <ControlLabel>微信企业号</ControlLabel>
+          <ControlLabel>{t('weCom')}</ControlLabel>
           <FormControl componentClass="select" value={this.state.wechatUserId} onChange={this.handleWechatIdChange.bind(this)}>
-            <option key='undefined' value=''>未关联</option>
+            <option key='undefined' value=''>{t('unlinked')}</option>
             {wechatUserOptions}
           </FormControl>
         </FormGroup>
-        <FormGroup>
-          <ControlLabel>Bearychat 提醒 Hook URL</ControlLabel>
-          <FormControl type='text' value={this.state.bearychatUrl} onChange={this.handleBearychatUrlChange.bind(this)} />
-        </FormGroup>
-        <Button type='button' onClick={this.handleSubmit.bind(this)}>保存</Button>
+        <Button type='button' onClick={this.handleSubmit.bind(this)}>{t('save')}</Button>
       </Form>
       <Vacation />
     </div>
@@ -72,6 +70,10 @@ export default class CustomerServiceProfile extends Component {
 
 CustomerServiceProfile.contextTypes = {
   addNotification: PropTypes.func.isRequired,
+}
+
+CustomerServiceProfile.propTypes = {
+  t: PropTypes.func
 }
 
 class Vacation extends React.Component {
@@ -232,3 +234,4 @@ Vacation.propTypes = {
   addNotification: PropTypes.func.isRequired
 }
 
+export default translate(CustomerServiceProfile)
