@@ -34,6 +34,10 @@ const messages = {
     'Assigned',
     '我是否负责'
   ],
+  'assignedCategories': [
+    'Categories assigned',
+    '负责分类'
+  ],
   'delete': [
     'Delete',
     '删除'
@@ -70,6 +74,10 @@ const messages = {
     'Preview',
     '预览'
   ],
+  'remove': [
+    'Remove',
+    '移除'
+  ],
   'reorder': [
     'Reorder',
     '调整顺序'
@@ -105,6 +113,10 @@ const messages = {
   'ticketList': [
     'Tickets',
     '工单列表'
+  ],
+  'username': [
+    'Username',
+    '用户名'
   ],
   // CSStatsUser
   'notInvoled': [
