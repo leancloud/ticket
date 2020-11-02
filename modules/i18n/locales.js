@@ -34,6 +34,10 @@ const messages = {
     'Assigned',
     '我是否负责'
   ],
+  'disable': [
+    'Disable',
+    '停用'
+  ],
   'hour': [
     'hour',
     '小时'
@@ -57,6 +61,14 @@ const messages = {
   'reorder': [
     'Reorder',
     '调整顺序'
+  ],
+  'return': [
+    'Return',
+    '返回'
+  ],
+  'save': [
+    'Save',
+    '保存'
   ],
   'statistics': [
     'Statistics',
@@ -87,10 +99,35 @@ const messages = {
     'replies',
     '回复次数'
   ],
-  // Category
+  // Categories
   'newCategory': [
     'New category',
     '新增分类'
+  ],
+  // Category
+  'categoryName': [
+    'Name',
+    '分类名称'
+  ],
+  'confirmDisableCategory': [
+    'Confirm disabling this category: ',
+    '确认要停用分类：'
+  ],
+  'parentCategory': [
+    'Parent category (optional)',
+    '父分类(可选)'
+  ],
+  'parentCategoryRequirements': [
+    'You cannot assign this category itself or its subcategories as parent category.',
+    '父分类不能是分类自己或自己的子分类。'
+  ],
+  'ticketTemplate': [
+    'Ticket template',
+    '问题描述模板'
+  ],
+  'ticketTemplateInfo': [
+    'The default content shown when creating a new ticket under this category.',
+    '用户新建该分类工单时，问题描述默认显示这里的内容。'
   ]
 }
 
