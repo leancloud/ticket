@@ -86,6 +86,10 @@ const messages = {
     'Return',
     '返回'
   ],
+  'role': [
+    'Role',
+    '角色'
+  ],
   'save': [
     'Save',
     '保存'
@@ -190,6 +194,51 @@ const messages = {
   'backToWork': [
     'Back',
     '工作开始'
+  ],
+  // Organization
+  'organizationName': [
+    'Organization name',
+    '组织名称'
+  ],
+  'organizationNameNonempty': [
+    'The organization name should not be empty.',
+    '组织名称不能为空。'
+  ],
+  'admin': [
+    'Admin',
+    '管理员'
+  ],
+  'demoteToMember': [
+    'Demote to Member',
+    '降级为成员'
+  ],
+  'demoteToMemberError': [
+    'This organization should have at least one Admin.',
+    '该组织至少需要一名管理员。'
+  ],
+  'member': [
+    'Member',
+    '成员'
+  ],
+  'promoteToAdmin': [
+    'Promote to Admin',
+    '晋升为管理员'
+  ],
+  'deleteOrganization': [
+    'Delete organization',
+    '删除组织'
+  ],
+  'confirmDeleteOrganization': [
+    'Confirm deleting the organazation:',
+    '确认要删除组织：'
+  ],
+  'deleteOrganizationConsequence': [
+    'tickets will be reassociated to their creators during the deletion.',
+    '个工单将重新归属于创建者名下。'
+  ],
+  'confirmRemoveMember': [
+    'Confirm removing the following member from this organization:',
+    '确认将以下用户从该组织移除：',
   ]
 }
 
