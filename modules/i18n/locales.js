@@ -128,6 +128,19 @@ const messages = {
   'ticketTemplateInfo': [
     'The default content shown when creating a new ticket under this category.',
     '用户新建该分类工单时，问题描述默认显示这里的内容。'
+  ],
+  // CustomerServiceProfile
+  'associatedAccounts': [
+    'Associated accounts',
+    '账号关联'
+  ],
+  'weCom': [
+    'WeCom',
+    '微信企业号'
+  ],
+  'unlinked': [
+    'Unlinked',
+    '未关联'
   ]
 }
 
