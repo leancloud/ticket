@@ -34,7 +34,7 @@ class Organization extends React.Component {
     })
   }
 
-  handleNameChange(e, t) {
+  handleNameChange(t, e) {
     const name = e.target.value
     this.setState({
       name,
@@ -44,7 +44,7 @@ class Organization extends React.Component {
     })
   }
 
-  submitNameChange(e, t) {
+  submitNameChange(t, e) {
     e.preventDefault()
 
     const name = this.state.name.trim()
