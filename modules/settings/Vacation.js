@@ -108,7 +108,7 @@ class Vacation extends Component {
           <h2>{t('vacation')}</h2>
           <Form onSubmit={this.handleSubmit.bind(this)}>
             <FormGroup>
-              <ControlLabel>{t('whoIsOnVacation')}</ControlLabel>
+              <ControlLabel>{t('username')}</ControlLabel>
               {' '}
               <FormControl componentClass="select" value={this.state.vacationerId} onChange={this.handleVacationUserChange.bind(this)}>
                 {userOptions}
@@ -146,7 +146,7 @@ class Vacation extends Component {
           <Table>
             <thead>
               <tr>
-                <th>{t('whoIsOnVacation')}</th>
+                <th>{t('username')}</th>
                 <th>{t('vacationStart')}</th>
                 <th>{t('backToWork')}</th>
                 <th>{t('submitter')}</th>

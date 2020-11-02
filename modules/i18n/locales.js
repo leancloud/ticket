@@ -183,10 +183,6 @@ const messages = {
     'Vacation',
     '请假'
   ],
-  'whoIsOnVacation': [
-    'Who',
-    '请假人'
-  ],
   'vacationStart': [
     'Start',
     '请假开始'
