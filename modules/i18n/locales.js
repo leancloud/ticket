@@ -50,6 +50,10 @@ const messages = {
     'hour',
     '小时'
   ],
+  'leave': [
+    'Leave',
+    '离开'
+  ],
   'loading': [
     'Loading',
     '读取中'
@@ -239,6 +243,19 @@ const messages = {
   'confirmRemoveMember': [
     'Confirm removing the following member from this organization:',
     '确认将以下用户从该组织移除：',
+  ],
+  // Organizations
+  'newOrganization': [
+    'New organization',
+    '新增组织'
+  ],
+  'notInOrganization': [
+    'Not in any organization.',
+    '还没有加入任何组织'
+  ],
+  'totalMembers': [
+    'Total members:',
+    '成员数：'
   ]
 }
 
