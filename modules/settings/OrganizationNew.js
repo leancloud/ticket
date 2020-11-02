@@ -4,8 +4,9 @@ import {FormGroup, ControlLabel, FormControl, Button, HelpBlock} from 'react-boo
 import AV from 'leancloud-storage/live-query'
 
 import {getOrganizationRoleName} from './../common'
+import translate from '../i18n/translate'
 
-export default class OrganizationNew extends React.Component {
+class OrganizationNew extends React.Component {
 
   constructor(props) {
     super(props)
@@ -16,22 +17,22 @@ export default class OrganizationNew extends React.Component {
     }
   }
 
-  handleNameChange(e) {
+  handleNameChange(t, e) {
     this.setState({
       name: e.target.value,
       nameValidationState: e.target.value.trim().length > 0 ? 'success' : 'error',
-      nameHelpMessage: '组织名称不能为空。',
+      nameHelpMessage: t('organizationNameNonempty'),
     })
   }
 
-  handleSubmit(e) {
+  handleSubmit(t, e) {
     e.preventDefault()
    
     const name = this.state.name.trim()
     if (name.length == 0) {
       this.setState({
         nameValidationState: 'error',
-        nameHelpMessage: '组织名称不能为空。',
+        nameHelpMessage: t('organizationNameNonempty'),
       })
       return
     }
@@ -80,17 +81,18 @@ export default class OrganizationNew extends React.Component {
   }
 
   render() {
+    const {t} = this.props
     return (
       <div>
-        <form onSubmit={this.handleSubmit.bind(this)}>
+        <form onSubmit={this.handleSubmit.bind(this, t)}>
           <FormGroup controlId="organizationNameText" validationState={this.state.nameValidationState}>
-            <ControlLabel>组织名称</ControlLabel>
-            <FormControl type="text" value={this.state.name} onChange={this.handleNameChange.bind(this)} />
+            <ControlLabel>{t('organizationName')}</ControlLabel>
+            <FormControl type="text" value={this.state.name} onChange={this.handleNameChange.bind(this, t)} />
             {this.state.nameValidationState === 'error' && <HelpBlock>{this.state.nameHelpMessage}</HelpBlock>}
           </FormGroup>
-          <Button type='submit' disabled={this.state.isSubmitting} bsStyle='success'>保存</Button>
+          <Button type='submit' disabled={this.state.isSubmitting} bsStyle='success'>{t('save')}</Button>
           {' '}
-          <Button type='button' onClick={() => this.context.router.push('/settings/organizations')}>返回</Button>
+          <Button type='button' onClick={() => this.context.router.push('/settings/organizations')}>{t('return')}</Button>
         </form>
       </div>
     )
@@ -101,9 +103,12 @@ export default class OrganizationNew extends React.Component {
 OrganizationNew.propTypes = {
   params: PropTypes.object,
   joinOrganization: PropTypes.func,
+  t: PropTypes.func
 }
 
 OrganizationNew.contextTypes = {
   router: PropTypes.object.isRequired,
   addNotification: PropTypes.func.isRequired,
 }
+
+export default translate(OrganizationNew)
