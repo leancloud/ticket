@@ -4,8 +4,9 @@ import {Form, FormGroup, Button} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
 import {getCategoriesTree, depthFirstSearchMap, getNodeIndentString} from '../common'
+import translate from '../i18n/translate'
 
-export default class CategorySort extends React.Component {
+class CategorySort extends React.Component {
 
   constructor(props) {
     super(props)
@@ -50,6 +51,7 @@ export default class CategorySort extends React.Component {
   }
 
   render() {
+    const {t} = this.props
     const tds = depthFirstSearchMap(this.state.categoriesTree, (c, index, array) => {
       return (
         <tr key={c.id}>
@@ -69,13 +71,13 @@ export default class CategorySort extends React.Component {
       <div>
         <Form>
           <FormGroup>
-            <Button onClick={this.handleSave.bind(this)}>保存</Button>
+            <Button onClick={this.handleSave.bind(this)}>{t('save')}</Button>
           </FormGroup>
         </Form>
         <table className='table table-bordered table-hover'>
           <thead>
             <tr>
-              <th>名称</th>
+              <th>{t('name')}</th>
             </tr>
           </thead>
           <tbody>
@@ -91,3 +93,9 @@ CategorySort.contextTypes = {
   router: PropTypes.object.isRequired,
   addNotification: PropTypes.func.isRequired,
 }
+
+CategorySort.propTypes = {
+  t: PropTypes.func
+}
+
+export default translate(CategorySort)
