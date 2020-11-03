@@ -11,10 +11,11 @@ import DocumentTitle from 'react-document-title'
 
 import {UserLabel, TicketStatusLabel, getCustomerServices, getCategoriesTree, depthFirstSearchMap, depthFirstSearchFind, getNodeIndentString, getNodePath, getTinyCategoryInfo, getCategoryName} from './common'
 import {TICKET_STATUS, TICKET_STATUS_MSG, ticketOpenedStatuses, ticketClosedStatuses, getUserDisplayName} from '../lib/common'
+import translate from './i18n/translate'
 
 let authorSearchTimeoutId
 
-export default class CustomerServiceTickets extends Component {
+class CustomerServiceTickets extends Component {
 
   constructor(props) {
     super(props)
@@ -223,6 +224,7 @@ export default class CustomerServiceTickets extends Component {
   }
 
   render() {
+    const {t} = this.props
     const filters = this.props.location.query
     const tickets = this.state.tickets
     const ticketTrs = tickets.map((ticket) => {
@@ -244,7 +246,7 @@ export default class CustomerServiceTickets extends Component {
                   return <Link key={c.id} to={this.getQueryUrl({categoryId: c.id})}><span className={css.category}>{getCategoryName(c)}</span></Link>
                 })}
                 {filters.isOpen === 'true' ||
-                  <span>{ticket.get('evaluation') && (ticket.get('evaluation').star === 1 && <span className={css.satisfaction + ' ' + css.happy}>满意</span> || <span className={css.satisfaction + ' ' + css.unhappy}>不满意</span>)}</span>
+                  <span>{ticket.get('evaluation') && (ticket.get('evaluation').star === 1 && <span className={css.satisfaction + ' ' + css.happy}>{t('satisfied')}</span> || <span className={css.satisfaction + ' ' + css.unhappy}>{t('unsatisfied')}</span>)}</span>
                 }
               </div>
               <div className={css.right}>
@@ -261,9 +263,9 @@ export default class CustomerServiceTickets extends Component {
               <div className={css.left}>
                 <span className={css.nid}>#{ticket.get('nid')}</span>
                 <Link className={css.statusLink} to={this.getQueryUrl({status: ticket.get('status'), isOpen: undefined})}><span className={css.status}><TicketStatusLabel status={ticket.get('status')} /></span></Link>
-                <span className={css.creator}><UserLabel user={ticket.get('author')} /></span> 创建于 {moment(ticket.get('createdAt')).fromNow()}
+                <span className={css.creator}><UserLabel user={ticket.get('author')} /></span> {t('createdAt')} {moment(ticket.get('createdAt')).fromNow()}
                 {moment(ticket.get('createdAt')).fromNow() === moment(ticket.get('updatedAt')).fromNow() ||
-                  <span>，更新于 {moment(ticket.get('updatedAt')).fromNow()}</span>
+                  <span> {t('updatedAt')} {moment(ticket.get('updatedAt')).fromNow()}</span>
                 }
               </div>
               <div className={css.right}>
@@ -295,11 +297,11 @@ export default class CustomerServiceTickets extends Component {
     if (filters.status) {
       statusTitle = TICKET_STATUS_MSG[filters.status]
     } else if (filters.isOpen === 'true') {
-      statusTitle = '未完成'
+      statusTitle = t('incompleted')
     } else if (filters.isOpen === 'false') {
-      statusTitle = '已完成'
+      statusTitle = t('completed')
     } else {
-      statusTitle = '全部状态'
+      statusTitle = t('all')
     }
 
     let assigneeTitle
@@ -308,10 +310,10 @@ export default class CustomerServiceTickets extends Component {
       if (assignee) {
         assigneeTitle = getUserDisplayName(assignee)
       } else {
-        assigneeTitle = 'assigneeId 错误'
+        assigneeTitle = `assigneeId ${t('invalid')}`
       }
     } else {
-      assigneeTitle = '全部客服'
+      assigneeTitle = t('all')
     }
 
     let categoryTitle
@@ -320,53 +322,53 @@ export default class CustomerServiceTickets extends Component {
       if (category) {
         categoryTitle = getCategoryName(category)
       } else {
-        categoryTitle = 'categoryId 错误'
+        categoryTitle = `categoryId ${t('invalid')}`
       }
     } else {
-      categoryTitle = '全部分类'
+      categoryTitle = t('all') 
     }
 
     const ticketAdminFilters = (
       <div>
         <Form inline className='form-group'>
           <FormGroup>
-            <DelayInputForm placeholder='关键字搜索' value={filters.searchString} onChange={(value) => this.updateFilter({searchString: value})} />
+            <DelayInputForm placeholder={t('searchKeyword')} value={filters.searchString} onChange={(value) => this.updateFilter({searchString: value})} />
           </FormGroup>
           {'  '}
           <FormGroup>
             <ButtonToolbar>
               <ButtonGroup>
-                <Button className={'btn btn-default' + (filters.isOpen === 'true' ? ' active' : '')} onClick={() => this.updateFilter({isOpen: true, status: undefined})}>未完成</Button>
-                <Button className={'btn btn-default' + (filters.isOpen === 'false' ? ' active' : '')} onClick={() => this.updateFilter({isOpen: false, status: undefined})}>已完成</Button>
+                <Button className={'btn btn-default' + (filters.isOpen === 'true' ? ' active' : '')} onClick={() => this.updateFilter({isOpen: true, status: undefined})}>{t('incompleted')}</Button>
+                <Button className={'btn btn-default' + (filters.isOpen === 'false' ? ' active' : '')} onClick={() => this.updateFilter({isOpen: false, status: undefined})}>{t('Completed')}</Button>
                 <DropdownButton className={(typeof filters.isOpen === 'undefined' ? ' active' : '')} id='statusDropdown' title={statusTitle} onSelect={(eventKey) => this.updateFilter({status: eventKey, isOpen: undefined})}>
-                  <MenuItem key='undefined'>全部状态</MenuItem>
+                  <MenuItem key='undefined'>{t('all')}</MenuItem>
                   {statusMenuItems}
                 </DropdownButton>
               </ButtonGroup>
               <ButtonGroup>
-                <Button className={(filters.assigneeId === AV.User.current().id ? ' active' : '')} onClick={() => this.updateFilter({assigneeId: AV.User.current().id})}>分配给我的</Button>
+                <Button className={(filters.assigneeId === AV.User.current().id ? ' active' : '')} onClick={() => this.updateFilter({assigneeId: AV.User.current().id})}>{t('assignedToMe')}</Button>
                 <DropdownButton className={(typeof filters.assigneeId === 'undefined' || filters.assigneeId && filters.assigneeId !== AV.User.current().id ? ' active' : '')} id='assigneeDropdown' title={assigneeTitle} onSelect={(eventKey) => this.updateFilter({assigneeId: eventKey})}>
-                  <MenuItem key='undefined'>全部客服</MenuItem>
+                  <MenuItem key='undefined'>{t('all')}</MenuItem>
                   {assigneeMenuItems}
                 </DropdownButton>
               </ButtonGroup>
               <ButtonGroup>
                 <DropdownButton className={(filters.categoryId ? ' active' : '')} id='categoryDropdown' title={categoryTitle} onSelect={(eventKey) => this.updateFilter({categoryId: eventKey})}>
-                  <MenuItem key='undefined'>全部分类</MenuItem>
+                  <MenuItem key='undefined'>{t('all')}</MenuItem>
                   {categoryMenuItems}
                 </DropdownButton>
               </ButtonGroup>
               <ButtonGroup>
-                <DropdownButton className={(typeof filters.tagKey === 'undefined' || filters.tagKey ? ' active' : '')} id='tagKeyDropdown' title={filters.tagKey || '全部标签'} onSelect={(eventKey) => this.updateFilter({tagKey: eventKey, tagValue: undefined})}>
-                  <MenuItem key='undefined'>全部标签</MenuItem>
+                <DropdownButton className={(typeof filters.tagKey === 'undefined' || filters.tagKey ? ' active' : '')} id='tagKeyDropdown' title={filters.tagKey || t('all')} onSelect={(eventKey) => this.updateFilter({tagKey: eventKey, tagValue: undefined})}>
+                  <MenuItem key='undefined'>{t('all')}</MenuItem>
                   {this.context.tagMetadatas.map(tagMetadata => {
                     const key = tagMetadata.get('key')
                     return <MenuItem key={key} eventKey={key}>{key}</MenuItem>
                   })}
                 </DropdownButton>
                 {filters.tagKey &&
-                  <DropdownButton className={(typeof filters.tagValue === 'undefined' || filters.tagValue ? ' active' : '')} id='tagValueDropdown' title={filters.tagValue || '全部标签值'} onSelect={(eventKey) => this.updateFilter({tagValue: eventKey})}>
-                    <MenuItem key='undefined'>全部标签值</MenuItem>
+                  <DropdownButton className={(typeof filters.tagValue === 'undefined' || filters.tagValue ? ' active' : '')} id='tagValueDropdown' title={filters.tagValue || t('allTagValues')} onSelect={(eventKey) => this.updateFilter({tagValue: eventKey})}>
+                    <MenuItem key='undefined'>{t('allTagValues')}</MenuItem>
                     {this.context.tagMetadatas.length > 0 && _.find(this.context.tagMetadatas, m => m.get('key') == filters.tagKey).get('values').map(value => {
                       return <MenuItem key={value} eventKey={value}>{value}</MenuItem>
                     })}
@@ -378,12 +380,12 @@ export default class CustomerServiceTickets extends Component {
           {'  '}
 
           <FormGroup validationState={this.state.authorFilterValidationState}>
-            <FormControl type="text" value={this.state.authorUsername} placeholder="提交人" onChange={this.handleAuthorChange.bind(this)} />
+            <FormControl type="text" value={this.state.authorUsername} placeholder={t('submitter')} onChange={this.handleAuthorChange.bind(this)} />
           </FormGroup>
           {'  '}
           {filters.isOpen === 'true' ||
             <ButtonGroup>
-              <Checkbox checked={filters.isOnlyUnlike === 'true'} onChange={this.handleUnlikeChange.bind(this)}>只看差评</Checkbox>
+              <Checkbox checked={filters.isOnlyUnlike === 'true'} onChange={this.handleUnlikeChange.bind(this)}>{t('badReviewsOnly')}</Checkbox>
             </ButtonGroup>
           }
         </Form>
@@ -392,7 +394,7 @@ export default class CustomerServiceTickets extends Component {
 
     const ticketCheckedOperations = (
       <FormGroup>
-        <DropdownButton id='categoryMoveDropdown' title='分类移动到' onSelect={this.handleChangeCategory.bind(this)}>
+        <DropdownButton id='categoryMoveDropdown' title={t('changeCategory')} onSelect={this.handleChangeCategory.bind(this)}>
           {categoryMenuItems}
         </DropdownButton>
       </FormGroup>
@@ -401,7 +403,7 @@ export default class CustomerServiceTickets extends Component {
     if (ticketTrs.length === 0) {
       ticketTrs.push(
         <div className={css.ticket} key='0'>
-          未查询到相关工单
+          {t('notFound')}
         </div>
       )
     }
@@ -412,15 +414,15 @@ export default class CustomerServiceTickets extends Component {
     if (!(isFirstPage && isLastPage)) {
       pager = (
         <Pager>
-          <Pager.Item disabled={isFirstPage} previous onClick={() => this.updateFilter({page: (parseInt(filters.page) - 1) + ''})}>&larr; 上一页</Pager.Item>
-          <Pager.Item disabled={isLastPage} next onClick={() => this.updateFilter({page: (parseInt(filters.page) + 1) + ''})}>下一页 &rarr;</Pager.Item>
+          <Pager.Item disabled={isFirstPage} previous onClick={() => this.updateFilter({page: (parseInt(filters.page) - 1) + ''})}>&larr; {t('previousPage')}</Pager.Item>
+          <Pager.Item disabled={isLastPage} next onClick={() => this.updateFilter({page: (parseInt(filters.page) + 1) + ''})}>{t('nextPage')} &rarr;</Pager.Item>
         </Pager>
       )
     }
 
     return (
       <div>
-        <DocumentTitle title='客服工单列表 - LeanTicket' />
+        <DocumentTitle title={`${t('customerServiceTickets')} - LeanTicket`} />
         <div className={css.row}>
           <Checkbox className={css.ticketSelectCheckbox} onClick={this.handleClickCheckAll.bind(this)} checked={this.state.isCheckedAll}></Checkbox>
           {this.state.checkedTickets.size && ticketCheckedOperations || ticketAdminFilters}
@@ -436,6 +438,7 @@ export default class CustomerServiceTickets extends Component {
 
 CustomerServiceTickets.propTypes = {
   location: PropTypes.object.isRequired,
+  t: PropTypes.func
 }
 
 CustomerServiceTickets.contextTypes = {
@@ -500,3 +503,5 @@ BlodSearchString.propTypes = {
   content: PropTypes.string.isRequired,
   searchString: PropTypes.string,
 }
+
+export default translate(CustomerServiceTickets)
