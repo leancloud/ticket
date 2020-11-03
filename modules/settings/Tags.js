@@ -2,20 +2,21 @@ import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import {Link} from 'react-router'
 import {Form, FormGroup, Table} from 'react-bootstrap'
-
-export default class Tags extends Component {
+import translate from '../i18n/translate'
+class Tags extends Component {
 
   render() {
+    const {t} = this.props
     return <div>
       <Form inline>
         <FormGroup>
-          <Link to={'/settings/tags/new'}>新增标签</Link>
+          <Link to={'/settings/tags/new'}>{t('newTag')}</Link>
         </FormGroup>{' '}
       </Form>
       <Table>
         <thead>
           <tr>
-            <th>标签名称</th>
+            <th>{t('tagName')}</th>
           </tr>
         </thead>
         <tbody>
@@ -31,5 +32,11 @@ export default class Tags extends Component {
 }
 
 Tags.contextTypes = {
-  tagMetadatas: PropTypes.array,
+  tagMetadatas: PropTypes.array
 }
+
+Tags.propTypes = {
+  t: PropTypes.func
+}
+
+export default translate(Tags)
