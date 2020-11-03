@@ -322,7 +322,12 @@ const messages = {
   'confirmDeleteTag': [
     'Confirm deleting the following tag: ',
     '确认要删除标签：'
-  ]
+  ],
+  // Tags
+  'newTag': [
+    'New tag',
+    '新增标签'
+  ],
 }
 
 function splitIntoLocales(messages, localeIndex) {
