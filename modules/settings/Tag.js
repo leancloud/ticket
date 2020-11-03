@@ -2,8 +2,9 @@ import PropTypes from 'prop-types'
 import React, {Component} from 'react'
 import {Form, FormGroup, ControlLabel, FormControl, InputGroup, Checkbox, Radio, Button, OverlayTrigger, Tooltip} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
+import translate from '../i18n/translate'
 
-export default class Tag extends Component {
+class Tag extends Component {
 
   constructor(props) {
     super(props)
@@ -88,8 +89,8 @@ export default class Tag extends Component {
     this.setState({tagMetadata})
   }
 
-  handleRemove() {
-    const result = confirm('确认要删除标签：' + this.state.tagMetadata.get('key'))
+  handleRemove(t) {
+    const result = confirm(t('confirmDeleteTag') + this.state.tagMetadata.get('key'))
     if (result) {
       return this.state.tagMetadata.destroy()
       // TODO 移除相关 ticket 的标签
@@ -124,46 +125,47 @@ export default class Tag extends Component {
   }
 
   render() {
+    const {t} = this.props
     const tagMetadata = this.state.tagMetadata
     if (!tagMetadata) {
-      return <div>读取中……</div>
+      return <div>{t('loading')}……</div>
     }
 
     return <Form onSubmit={this.handleSubmit.bind(this)}>
       <FormGroup controlId="tagNameText">
-        <ControlLabel>标签名称</ControlLabel>
+        <ControlLabel>{t('tagName')}</ControlLabel>
         <FormControl type="text" value={tagMetadata.get('key')} onChange={this.handleKeyChange.bind(this)} />
       </FormGroup>
       <FormGroup>
-        <ControlLabel>权限</ControlLabel>
+        <ControlLabel>{t('permission')}</ControlLabel>
         <Checkbox
           checked={tagMetadata.get('isPrivate')}
           onChange={(e) => this.handleChangePrivate(e.target.checked)}>
-          非公开
+          {t('private')}
           {' '}<OverlayTrigger placement="right" overlay={
             <Tooltip id="tooltip">
-              该标签用户不可见，只有技术支持人员可见。
+              {t('privateInfo')}
             </Tooltip>}>
             <span className="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
           </OverlayTrigger>
         </Checkbox>
       </FormGroup>
       <FormGroup>
-        <ControlLabel>类型</ControlLabel>
+        <ControlLabel>{t('type')}</ControlLabel>
         <Radio name="tagTypeGroup" value='select' checked={tagMetadata.get('type') == 'select'} onChange={this.handleTypeChange.bind(this)}>
-          下拉选择
+          {t('tagTypeSelect')}
           {' '}<OverlayTrigger placement="right" overlay={
             <Tooltip id="tooltip">
-              用户只能在预设的标签值中选择一个。
+              {t('tagTypeSelectInfo')}
             </Tooltip>}>
             <span className="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
           </OverlayTrigger>
         </Radio>
         <Radio name="tagTypeGroup" value="text" checked={tagMetadata.get('type') == 'text'} onChange={this.handleTypeChange.bind(this)}>
-          任意文本
+          {t('tagTypeAnyText')}
           {' '}<OverlayTrigger placement="right" overlay={
             <Tooltip id="tooltip">
-              用户可以输入任意文本作为标签值。
+              {t('tagTypeAnyTextInfo')}
             </Tooltip>}>
             <span className="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
           </OverlayTrigger>
@@ -171,7 +173,7 @@ export default class Tag extends Component {
       </FormGroup>
       {tagMetadata.get('type') == 'select' &&
         <FormGroup>
-          <ControlLabel>标签可选值</ControlLabel>
+          <ControlLabel>{t('predefinedTags')}</ControlLabel>
           {tagMetadata.get('values').map((value, index, array) => {
             return <InputGroup key={index}>
                 <FormControl type='text' value={value} onChange={(e) => this.changeValue(index, e.target.value)} />
@@ -185,18 +187,19 @@ export default class Tag extends Component {
           <Button type='button' onClick={this.addValueItem.bind(this)}><span className="glyphicon glyphicon glyphicon-plus" aria-hidden="true" /></Button>
         </FormGroup>
       }
-      <Button type='submit' bsStyle='success'>保存</Button>
+      <Button type='submit' bsStyle='success'>{t('save')}</Button>
       {' '}
       {this.state.tagMetadata.id
-        && <Button type='button' onClick={this.handleRemove.bind(this)} bsStyle="danger">删除</Button>}
+        && <Button type='button' onClick={this.handleRemove.bind(this, t)} bsStyle="danger">{t('delete')}</Button>}
       {' '}
-      <Button type='button' onClick={() => this.context.router.push('/settings/tags')}>返回</Button>
+      <Button type='button' onClick={() => this.context.router.push('/settings/tags')}>{t('return')}</Button>
     </Form>
   }
 }
 
 Tag.propTypes = {
   params: PropTypes.object.isRequired,
+  t: PropTypes.func,
 }
 
 Tag.contextTypes = {
@@ -204,3 +207,5 @@ Tag.contextTypes = {
   addNotification: PropTypes.func.isRequired,
   refreshTagMetadatas: PropTypes.func.isRequired,
 }
+
+export default translate(Tag)
