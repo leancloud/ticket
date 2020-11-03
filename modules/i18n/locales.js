@@ -30,9 +30,17 @@ const messages = {
     '构建。'
   ],
   // general
+  'all': [
+    'All',
+    '全部'
+  ],
   'assigned': [
     'Assigned',
     '我是否负责'
+  ],
+  'assignedToMe': [
+    'Assigned',
+    '分配给我的'
   ],
   'assignedCategories': [
     'Categories assigned',
@@ -41,6 +49,14 @@ const messages = {
   'avatar': [
     'Avatar',
     '头像'
+  ],
+  'completed': [
+    'Completed',
+    '已完成'
+  ],
+  'createdAt': [
+    'Created at',
+    '创建于'
   ],
   'delete': [
     'Delete',
@@ -58,6 +74,14 @@ const messages = {
     'hour',
     '小时'
   ],
+  'incompleted': [
+    'Incompleted',
+    '未完成'
+  ],
+  'invalid': [
+    'Invalid',
+    '无效'
+  ],
   'leave': [
     'Leave',
     '离开'
@@ -73,6 +97,14 @@ const messages = {
   'nickname': [
     'Nickname',
     '昵称'
+  ],
+  'nextPage': [
+    'Next',
+    '下一页'
+  ],
+  'notFound': [
+    'Not found',
+    '未找到'
   ],
   'operation': [
     'Operation',
@@ -93,6 +125,10 @@ const messages = {
   'preview': [
     'Preview',
     '预览'
+  ],
+  'previousPage': [
+    'Previous',
+    '上一页'
   ],
   'private': [
     'Private',
@@ -122,6 +158,10 @@ const messages = {
     'Save',
     '保存'
   ],
+  'searchKeyword': [
+    'Search keyword',
+    '关键字搜索'
+  ],
   'statistics': [
     'Statistics',
     '统计'
@@ -149,6 +189,10 @@ const messages = {
   'type': [
     'Type',
     '类型'
+  ],
+  'updatedAt': [
+    'Updated at',
+    '更新于'
   ],
   'username': [
     'Username',
@@ -328,6 +372,31 @@ const messages = {
     'New tag',
     '新增标签'
   ],
+  // CustomerServiceTickets
+  'satisfied': [
+    'Satisfied',
+    '满意'
+  ],
+  'unsatisfied': [
+    'Unsatisfied',
+    '不满意'
+  ],
+  'allTagValues': [
+    'All tag values',
+    '全部标签值'
+  ],
+  'badReviewsOnly': [
+    'Bad reviews only',
+    '只看差评'
+  ],
+  'changeCategory': [
+    'Move to category',
+    '分类移动到'
+  ],
+  'customerServiceTickets': [
+    'Customer service tickets',
+    '客服工单列表'
+  ]
 }
 
 function splitIntoLocales(messages, localeIndex) {
