@@ -1,33 +1,35 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import { Link } from 'react-router'
+import translate from './i18n/translate'
 
-export default class GlobalNav extends Component {
+class GlobalNav extends Component {
 
   handleNewTicketClick() {
     this.context.router.push('/tickets/new')
   }
 
   render() {
+    const {t} = this.props
     let user
     if (this.props.currentUser) {
       user = (
         <li className="dropdown">
           <a href="#" className="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{this.props.currentUser.get('name')} <span className="caret"></span></a>
           <ul className="dropdown-menu">
-            <li><Link to="/settings">设置</Link></li>
-            <li><a href="#" onClick={() => this.props.logout()}>登出</a></li>
+            <li><Link to="/settings">{t('settings')}</Link></li>
+            <li><a href="#" onClick={() => this.props.logout()}>{t('logout')}</a></li>
           </ul>
         </li>
       )
     } else {
-      user = <li><Link to="/login">登录</Link></li>
+      user = <li><Link to="/login">{t('login')}</Link></li>
     }
     let createTicket
     if (this.props.currentUser) {
       createTicket = (
         <li>
-          <button type="submit" className='btn btn-success navbar-btn nav-submit-btn' onClick={this.handleNewTicketClick.bind(this)}>新建工单</button>
+          <button type="submit" className='btn btn-success navbar-btn nav-submit-btn' onClick={this.handleNewTicketClick.bind(this)}>{t('newTicket')}</button>
         </li>
       )
     }
@@ -35,8 +37,8 @@ export default class GlobalNav extends Component {
     if (this.props.isCustomerService) {
       customerServiceLinks = (
         <ul className="nav navbar-nav">
-          <li><Link to="/customerService/tickets">客服工单列表</Link></li>
-          <li><Link to="/customerService/stats">统计</Link></li>
+          <li><Link to="/customerService/tickets">{t('customerServiceTickets')}</Link></li>
+          <li><Link to="/customerService/stats">{t('statistics')}</Link></li>
         </ul>
       )
     }
@@ -54,8 +56,8 @@ export default class GlobalNav extends Component {
           </div>
           <div className="collapse navbar-collapse" id="global-navbar-collapse">
             <ul className="nav navbar-nav">
-              <li><Link to="/tickets">工单列表</Link></li>
-              <li><Link to="/about">关于</Link></li>
+              <li><Link to="/tickets">{t('ticketList')}</Link></li>
+              <li><Link to="/about">{t('about')}</Link></li>
             </ul>
             {customerServiceLinks}
             <ul className="nav navbar-nav navbar-right">
@@ -78,4 +80,7 @@ GlobalNav.propTypes = {
   currentUser: PropTypes.object,
   isCustomerService: PropTypes.bool,
   logout: PropTypes.func.isRequired,
+  t: PropTypes.func
 }
+
+export default translate(GlobalNav)

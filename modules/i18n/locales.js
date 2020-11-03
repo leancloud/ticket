@@ -90,6 +90,14 @@ const messages = {
     'Loading',
     '读取中'
   ],
+  'login': [
+    'Log in',
+    '登录'
+  ],
+  'logout': [
+    'Log out',
+    '登出'
+  ],
   'name': [
     'Name',
     '名称'
@@ -97,6 +105,10 @@ const messages = {
   'nickname': [
     'Nickname',
     '昵称'
+  ],
+  'newTicket': [
+    'New ticket',
+    '新建工单'
   ],
   'nextPage': [
     'Next',
@@ -161,6 +173,10 @@ const messages = {
   'searchKeyword': [
     'Search keyword',
     '关键字搜索'
+  ],
+  'settings': [
+    'Settings',
+    '设置'
   ],
   'statistics': [
     'Statistics',
