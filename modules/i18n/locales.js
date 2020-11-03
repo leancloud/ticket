@@ -82,6 +82,10 @@ const messages = {
     'Other assignees',
     '其他负责成员'
   ],
+  'permission': [
+    'Permission',
+    '权限'
+  ],
   'pm': [
     ' PM',
     ' 下午'
@@ -89,6 +93,14 @@ const messages = {
   'preview': [
     'Preview',
     '预览'
+  ],
+  'private': [
+    'Private',
+    '非公开'
+  ],
+  'privateInfo': [
+    'This tag is invisible to end users. It is only visible to staff.',
+    '该标签用户不可见，只有技术支持人员可见。'
   ],
   'remove': [
     'Remove',
@@ -133,6 +145,10 @@ const messages = {
   'ticketList': [
     'Tickets',
     '工单列表'
+  ],
+  'type': [
+    'Type',
+    '类型'
   ],
   'username': [
     'Username',
@@ -277,6 +293,35 @@ const messages = {
   'gravatarUrl': [
     'https://en.gravatar.com/',
     'https://cn.gravatar.com/'
+  ],
+  // Tag
+  'tagName': [
+    'Tag name',
+    '标签名称'
+  ],
+  'tagTypeSelect': [
+    'select',
+    '下拉选择'
+  ],
+  'tagTypeSelectInfo': [
+    'Choose one among the predefined tags.',
+    '用户只能在预设的标签值中选择一个。'
+  ],
+  'tagTypeAnyText': [
+    'Any text',
+    '任意文本'
+  ],
+  'tagTypeAnyTextInfo': [
+    'Use any text as the tag value.',
+    '用户可以输入任意文本作为标签值。'
+  ],
+  'predefinedTags': [
+    'Predefined tags',
+    '标签可选值'
+  ],
+  'confirmDeleteTag': [
+    'Confirm deleting the following tag: ',
+    '确认要删除标签：'
   ]
 }
 
