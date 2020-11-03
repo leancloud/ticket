@@ -50,6 +50,10 @@ const messages = {
     'Avatar',
     '头像'
   ],
+  'category': [
+    'Category',
+    '分类'
+  ],
   'completed': [
     'Completed',
     '已完成'
@@ -61,6 +65,10 @@ const messages = {
   'delete': [
     'Delete',
     '删除'
+  ],
+  'description': [
+    'Description',
+    '描述'
   ],
   'disable': [
     'Disable',
@@ -206,6 +214,10 @@ const messages = {
     'Submit Date',
     '提交时间'
   ],
+  'supportMarkdown': [
+    'Markdown syntax supported',
+    '支持 Markdown 语法'
+  ],
   'ticket': [
     'Ticket',
     '工单'
@@ -213,6 +225,10 @@ const messages = {
   'ticketList': [
     'Tickets',
     '工单列表'
+  ],
+  'title': [
+    'Title',
+    '标题'
   ],
   'type': [
     'Type',
@@ -424,6 +440,31 @@ const messages = {
   'customerServiceTickets': [
     'Customer service tickets',
     '客服工单列表'
+  ],
+  // NewTicket
+  'thCategory': [
+    'level category',
+    '级分类'
+  ],
+  'inputHere': [
+    'Input text and paste pictures here.',
+    '在这里输入，粘贴图片即可上传。'
+  ],
+  'titleNonempty': [
+    'The title should not be empty.',
+    '标题不能为空'
+  ],
+  'categoryNonempty': [
+    'The category should not be empty.',
+    '问题分类不能为空'
+  ],
+  'categoryIncomplete': [
+    'The category is incomplete.',
+    '分类信息不完整'
+  ],
+  'categoryChangeConfirm': [
+    'The current content will be overridden by the template content of the new category.\n\nStill continue?',
+    '当前「问题描述」不为空，所选「问题分类」的模板会覆盖现有描述。\n\n是否继续？'
   ]
 }
 

@@ -9,8 +9,9 @@ import docsearch from 'docsearch.js'
 import TextareaWithPreview from './components/TextareaWithPreview'
 import {defaultLeanCloudRegion, getLeanCloudRegionText} from '../lib/common'
 import {uploadFiles, getCategoriesTree, depthFirstSearchFind, getTinyCategoryInfo, getTicketAcl, OrganizationSelect, TagForm} from './common'
+import translate from './i18n/translate'
 
-export default class NewTicket extends React.Component {
+class NewTicket extends React.Component {
 
   constructor(props) {
     super(props)
@@ -111,7 +112,7 @@ export default class NewTicket extends React.Component {
     this.setState({ticket})
   }
 
-  handleCategoryChange(e, index) {
+  handleCategoryChange(e, index, t) {
     const categoryPath = this.state.categoryPath.slice(0, index)
 
     const category = depthFirstSearchFind(this.state.categoriesTree, c => c.id === e.target.value)
@@ -124,7 +125,7 @@ export default class NewTicket extends React.Component {
     categoryPath.push(category)
     const ticket = this.state.ticket
     if (ticket.get('content') && category.get('qTemplate')) {
-      if (confirm('当前「问题描述」不为空，所选「问题分类」的模板会覆盖现有描述。\n\n是否继续？')) {
+      if (confirm(t('categoryChangeConfirm'))) {
         localStorage.setItem('ticket:new:categoryIds', JSON.stringify(categoryPath.map(c => c.id)))
         localStorage.setItem('ticket:new:content', category.get('qTemplate'))
         ticket.set('content', category.get('qTemplate'))
@@ -165,20 +166,20 @@ export default class NewTicket extends React.Component {
     this.setState({ticket})
   }
 
-  handleSubmit(e) {
+  handleSubmit(t, e) {
     e.preventDefault()
 
     const ticket = this.state.ticket
     if (!ticket.get('title') || ticket.get('title').trim().length === 0) {
-      this.context.addNotification(new Error('标题不能为空'))
+      this.context.addNotification(new Error(t('titleNonempty')))
       return
     }
     if (!this.state.categoryPath) {
-      this.context.addNotification(new Error('问题分类不能为空'))
+      this.context.addNotification(new Error(t('categoryNonempty')))
       return
     }
     if (_.last(this.state.categoryPath).children.length > 0) {
-      this.context.addNotification(new Error('分类信息不完整'))
+      this.context.addNotification(new Error(t('categoryIncomplete')))
       return
     }
 
@@ -215,6 +216,7 @@ export default class NewTicket extends React.Component {
   }
 
   render() {
+    const {t} = this.props
     const getSelect = (categories, selectCategory, index) => {
       if (categories.length == 0) {
         return
@@ -227,8 +229,8 @@ export default class NewTicket extends React.Component {
       })
       return (
         <FormGroup key={'categorySelect' + index}>
-          <ControlLabel>{index == 0 ? '问题分类：' : index + 1 + ' 级分类：'}</ControlLabel>
-          <FormControl componentClass="select" value={selectCategory && selectCategory.id || ''} onChange={(e) => this.handleCategoryChange(e, index)}>
+          <ControlLabel>{index == 0 ? t('category') + ' ' : index + 1 + ' ' + t('nthCategory') + ' '}</ControlLabel>
+          <FormControl componentClass="select" value={selectCategory && selectCategory.id || ''} onChange={(e) => this.handleCategoryChange(e, index, t)}>
             <option key='empty'></option>
             {options}
           </FormControl>
@@ -254,7 +256,7 @@ export default class NewTicket extends React.Component {
     }
 
     const tooltip = (
-      <Tooltip id="tooltip">支持 Markdown 语法</Tooltip>
+      <Tooltip id="tooltip">{t('supportMarkdown')}</Tooltip>
     )
     const appTooltip = (
       <Tooltip id="appTooltip">如需显示北美和华东节点应用，请到帐号设置页面关联帐号</Tooltip>
@@ -263,12 +265,12 @@ export default class NewTicket extends React.Component {
     const ticket = this.state.ticket
     return (
       <div>
-        <form onSubmit={this.handleSubmit.bind(this)}>
+        <form onSubmit={this.handleSubmit.bind(this, t)}>
           {this.props.organizations.length > 0 && <OrganizationSelect organizations={this.props.organizations}
             selectedOrgId={this.props.selectedOrgId}
             onOrgChange={this.props.handleOrgChange} />}
           <FormGroup>
-            <ControlLabel>标题：</ControlLabel>
+            <ControlLabel>{t('title')}</ControlLabel>
             <input type="text" className="form-control docsearch-input" value={ticket.get('title')} 
                onChange={this.handleTitleChange.bind(this)} />
           </FormGroup>
@@ -297,11 +299,11 @@ export default class NewTicket extends React.Component {
 
           <FormGroup>
             <ControlLabel>
-              问题描述： <OverlayTrigger placement="top" overlay={tooltip}>
-                <b className="has-required" title="支持 Markdown 语法">M↓</b>
+              {t('description')} <OverlayTrigger placement="top" overlay={tooltip}>
+                <b className="has-required" title={t('supportMarkdown')}>M↓</b>
               </OverlayTrigger>
             </ControlLabel>
-            <TextareaWithPreview componentClass="textarea" placeholder="在这里输入，粘贴图片即可上传。" rows="8"
+            <TextareaWithPreview componentClass="textarea" placeholder={t('inputHere')} rows="8"
               value={ticket.get('content')}
               onChange={this.handleContentChange.bind(this)}
               inputRef={(ref) => this.contentTextarea = ref }
@@ -310,7 +312,7 @@ export default class NewTicket extends React.Component {
           <FormGroup>
             <input id="ticketFile" type="file" multiple />
           </FormGroup>
-          <Button type='submit' disabled={this.state.isCommitting} bsStyle='success'>提交</Button>
+          <Button type='submit' disabled={this.state.isCommitting} bsStyle='success'>{t('submit')}</Button>
         </form>
       </div>
     )
@@ -329,5 +331,7 @@ NewTicket.propTypes = {
   organizations: PropTypes.array,
   handleOrgChange: PropTypes.func,
   selectedOrgId: PropTypes.string,
+  t: PropTypes.func,
 }
 
+export default translate(NewTicket)
