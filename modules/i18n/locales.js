@@ -94,6 +94,10 @@ const messages = {
     'Log in',
     '登录'
   ],
+  'loginOrSignup': [
+    'Sign in/up',
+    '登录或注册'
+  ],
   'logout': [
     'Log out',
     '登出'
@@ -125,6 +129,10 @@ const messages = {
   'otherAssignees': [
     'Other assignees',
     '其他负责成员'
+  ],
+  'password': [
+    'Password',
+    '密码'
   ],
   'permission': [
     'Permission',
@@ -177,6 +185,10 @@ const messages = {
   'settings': [
     'Settings',
     '设置'
+  ],
+  'signup': [
+    'Sign up',
+    '注册'
   ],
   'statistics': [
     'Statistics',

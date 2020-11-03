@@ -11,8 +11,10 @@ import PropTypes from 'prop-types'
 import AV from 'leancloud-storage/live-query'
 import { isCN } from './common'
 import css from './Login.css'
+import translate from './i18n/translate'
 
-export default class Login extends Component {
+class Login extends Component {
+
   constructor(props) {
     super(props)
     this.state = {
@@ -103,14 +105,15 @@ export default class Login extends Component {
   }
 
   render() {
+    const {t} = this.props
     if (USE_OAUTH === 'false') {
       return (
         <div className={css.wrap}>
-          <h1 className="font-logo">登录或注册</h1>
+          <h1 className="font-logo">{t('loginOrSignup')}</h1>
           <hr />
           <form>
             <FormGroup>
-              <ControlLabel>用户名</ControlLabel>
+              <ControlLabel>{t('username')}</ControlLabel>
               <FormControl
                 type="text"
                 value={this.state.username}
@@ -118,7 +121,7 @@ export default class Login extends Component {
               />
             </FormGroup>
             <FormGroup>
-              <ControlLabel>密码</ControlLabel>
+              <ControlLabel>{t('password')}</ControlLabel>
               <FormControl
                 type="password"
                 value={this.state.password}
@@ -131,10 +134,10 @@ export default class Login extends Component {
                 bsStyle="primary"
                 onClick={this.handleLogin.bind(this)}
               >
-                登录
+                {t('login')} 
               </Button>{' '}
               <Button type="button" onClick={this.handleSignup.bind(this)}>
-                注册
+                {t('signup')}
               </Button>
             </FormGroup>
           </form>
@@ -173,10 +176,13 @@ export default class Login extends Component {
 
 Login.propTypes = {
   location: PropTypes.object,
-  onLogin: PropTypes.func
+  onLogin: PropTypes.func,
+  t: PropTypes.func
 }
 
 Login.contextTypes = {
   router: PropTypes.object,
   addNotification: PropTypes.func.isRequired
 }
+
+export default translate(Login)
