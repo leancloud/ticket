@@ -5,6 +5,10 @@ const messages = {
     'About',
     '关于'
   ],
+  'batchOperation': [
+    'Batch operation',
+    '批量操作'
+  ],
   'lightweight': [
     'A lightweight',
     '轻量级的'
@@ -193,6 +197,10 @@ const messages = {
   'searchKeyword': [
     'Search keyword',
     '关键字搜索'
+  ],
+  'selectAll': [
+    'Select all',
+    '全选'
   ],
   'settings': [
     'Settings',
@@ -508,6 +516,15 @@ const messages = {
   'moveTicketTo': [
     'Move ticket to',
     '工单转移到'
+  ],
+  // Tickets
+  'ticketsNotFound': [
+    'Tickets not found, you can',
+    '未查询到相关工单，您可以'
+  ],
+  'createANewOne': [
+    'create a new one.',
+    '新建工单。'
   ]
 }
 
