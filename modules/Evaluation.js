@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import {FormGroup, FormControl, Alert, Button, Radio} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
-import translate from './18n/translate'
+import translate from './i18n/translate'
 
 class Evaluation extends Component {
 
