@@ -62,6 +62,10 @@ const messages = {
     'Category',
     '分类'
   ],
+  'close': [
+    'Close',
+    '关闭'
+  ],
   'completed': [
     'Completed',
     '已完成'
@@ -182,9 +186,17 @@ const messages = {
     'Remove',
     '移除'
   ],
+  'reopen': [
+    'Reopen',
+    '重新打开'
+  ],
   'reorder': [
     'Reorder',
     '调整顺序'
+  ],
+  'resolved': [
+    'Resolved',
+    '已解决'
   ],
   'return': [
     'Return',
@@ -214,6 +226,10 @@ const messages = {
     'Sign up',
     '注册'
   ],
+  'staff': [
+    'Staff',
+    '客服'
+  ],
   'statistics': [
     'Statistics',
     '统计'
@@ -221,6 +237,10 @@ const messages = {
   'submit': [
     'Submit',
     '提交'
+  ],
+  'submittedAt': [
+    'submitted at',
+    '提交于'
   ],
   'submitter': [
     'Submitter',
@@ -253,6 +273,10 @@ const messages = {
   'type': [
     'Type',
     '类型'
+  ],
+  'unresolved': [
+    'Unresolved',
+    '未解决'
   ],
   'updatedAt': [
     'Updated at',
@@ -555,6 +579,55 @@ const messages = {
   'multipleAttachments': [
     'You can selet multiple files when uploading attachments.',
     '上传附件可以多选'
+  ],
+  // Ticket
+  'ticketOperation': [
+    'Ticket operation',
+    '工单操作'
+  ],
+  'confirmReloved': [
+    'Please confirm that this ticket has been resolved:',
+    '我们认为该工单已解决，请确认：'
+  ],
+  'resolutionConfirmed': [
+    'Resolved.',
+    '确认已解决'
+  ],
+  'system': [
+    'System',
+    '系统'
+  ],
+  'assignedTicketTo': [
+    'assigned this ticket to',
+    '将工单分配给'
+  ],
+  'changedTicketCategoryTo': [
+    'changed category to',
+    '将工单类别改为'
+  ],
+  'changedTicketAssigneeTo': [
+    'assigned this ticket to',
+    '将工单负责人改为'
+  ],
+  'thoughtNoNeedToReply': [
+    'thought the ticket did not need to be replied at this stage. If you have any question, please reply.',
+    '认为该工单暂时无需回复，如有问题可以回复该工单'
+  ],
+  'thoughtNeedTime': [
+    'thought the ticket need some time to investigate. The ticket will be replied later.',
+    '认为该工单处理需要一些时间，稍后会回复该工单'
+  ],
+  'thoughtResolved': [
+    'thought the ticket has been resolved.',
+    '认为该工单已经解决'
+  ],
+  'closedTicket': [
+    'closed this ticket.',
+    '关闭了该工单'
+  ],
+  'reopenedTicket': [
+    'reopened this ticket.',
+    '重新打开该工单'
   ]
 }
 

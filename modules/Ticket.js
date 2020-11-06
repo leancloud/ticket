@@ -3,11 +3,7 @@ import _ from 'lodash'
 import xss from 'xss'
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
-<<<<<<< HEAD
-import {FormGroup, ControlLabel, FormControl, Label, Alert, Button, ButtonToolbar, Tooltip, OverlayTrigger, } from 'react-bootstrap'
-=======
-import {FormGroup, ControlLabel, Alert, Button} from 'react-bootstrap'
->>>>>>> e7462d3... refactor(TicketReply): extract to seperate file
+import {FormGroup, ControlLabel, Label, Alert, Button, Tooltip, OverlayTrigger, } from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
 import {UserLabel, TicketStatusLabel, uploadFiles, getCategoryPathName, getCategoriesTree, getTinyCategoryInfo} from './common'
@@ -19,7 +15,7 @@ import {TICKET_STATUS, isTicketOpen} from '../lib/common'
 import Evaluation from './Evaluation'
 import TicketMetadata from './TicketMetadata'
 import TicketReply from './TicketReply'
-
+import translate from './i18n/translate'
 
 // get a copy of default whiteList
 const whiteList = xss.getDefaultWhiteList()
@@ -34,7 +30,7 @@ const myxss = new xss.FilterXSS({
   css: false,
 })
 
-export default class Ticket extends Component {
+class Ticket extends Component {
 
   constructor(props) {
     super(props)
@@ -295,7 +291,7 @@ export default class Ticket extends Component {
     }
   }
 
-  ticketTimeline(avObj) {
+  ticketTimeline(t, avObj) {
     if (avObj.className === 'OpsLog') {
       switch (avObj.get('action')) {
       case 'selectAssignee':
@@ -305,7 +301,7 @@ export default class Ticket extends Component {
               <span className='icon-wrap'><span className='glyphicon glyphicon-transfer'></span></span>
             </div>
             <div className='ticket-status-right'>
-              系统于 {this.getTime(avObj)} 将工单分配给 <UserLabel user={avObj.get('data').assignee} /> 处理
+              {t('system')} {t('assignedTicketTo')} <UserLabel user={avObj.get('data').assignee} /> {this.getTime(avObj)}
             </div>
           </div>
         )
@@ -316,7 +312,7 @@ export default class Ticket extends Component {
               <span className='icon-wrap'><span className='glyphicon glyphicon-transfer'></span></span>
             </div>
             <div className='ticket-status-right'>
-              <UserLabel user={avObj.get('data').operator} /> 于 {this.getTime(avObj)} 将工单类别改为 <span className={csCss.category + ' ' + css.category}>{getCategoryPathName(avObj.get('data').category, this.state.categoriesTree)}</span>
+              <UserLabel user={avObj.get('data').operator} /> {t('changedTicketCategoryTo')} <span className={csCss.category + ' ' + css.category}>{getCategoryPathName(avObj.get('data').category, this.state.categoriesTree)}</span> {this.getTime(avObj)}
             </div>
           </div>
         )
@@ -327,7 +323,7 @@ export default class Ticket extends Component {
               <span className='icon-wrap'><span className='glyphicon glyphicon-transfer'></span></span>
             </div>
             <div className='ticket-status-right'>
-              <UserLabel user={avObj.get('data').operator} /> 于 {this.getTime(avObj)} 将工单负责人改为 <UserLabel user={avObj.get('data').assignee} />
+              <UserLabel user={avObj.get('data').operator} /> {t('changedTicketAssigneeTo')}  <UserLabel user={avObj.get('data').assignee} /> {this.getTime(avObj)}
             </div>
           </div>
         )
@@ -338,7 +334,7 @@ export default class Ticket extends Component {
               <span className='icon-wrap'><span className='glyphicon glyphicon-comment'></span></span>
             </div>
             <div className='ticket-status-right'>
-              <UserLabel user={avObj.get('data').operator} /> 于 {this.getTime(avObj)} 认为该工单暂时无需回复，如有问题可以回复该工单
+              <UserLabel user={avObj.get('data').operator} /> {t('thoughtNoNeedToReply')} {this.getTime(avObj)}
             </div>
           </div>
         )
@@ -349,7 +345,7 @@ export default class Ticket extends Component {
               <span className='icon-wrap awaiting'><span className='glyphicon glyphicon-hourglass'></span></span>
             </div>
             <div className='ticket-status-right'>
-              <UserLabel user={avObj.get('data').operator} /> 于 {this.getTime(avObj)} 认为该工单处理需要一些时间，稍后会回复该工单
+              <UserLabel user={avObj.get('data').operator} /> {t('thoughtNeedTime')} {this.getTime(avObj)}
             </div>
           </div>
         )
@@ -360,7 +356,7 @@ export default class Ticket extends Component {
               <span className='icon-wrap resolved'><span className='glyphicon glyphicon-ok-circle'></span></span>
             </div>
             <div className='ticket-status-right'>
-              <UserLabel user={avObj.get('data').operator} /> 于 {this.getTime(avObj)} 认为该工单已经解决
+              <UserLabel user={avObj.get('data').operator} /> {t('thoughtResolved')} {this.getTime(avObj)} 
             </div>
           </div>
         )
@@ -371,7 +367,7 @@ export default class Ticket extends Component {
               <span className='icon-wrap closed'><span className='glyphicon glyphicon-ban-circle'></span></span>
             </div>
             <div className='ticket-status-right'>
-              <UserLabel user={avObj.get('data').operator} /> 于 {this.getTime(avObj)} 关闭了该工单
+              <UserLabel user={avObj.get('data').operator} /> {t('closedTicket')} {this.getTime(avObj)} 
             </div>
           </div>
         )
@@ -382,7 +378,7 @@ export default class Ticket extends Component {
               <span className='icon-wrap reopened'><span className='glyphicon glyphicon-record'></span></span>
             </div>
             <div className='ticket-status-right'>
-              <UserLabel user={avObj.get('data').operator} /> 于 {this.getTime(avObj)} 重新打开该工单
+              <UserLabel user={avObj.get('data').operator} /> {t('reopenedTicket')} {this.getTime(avObj)} 
             </div>
           </div>
         )
@@ -417,11 +413,11 @@ export default class Ticket extends Component {
         }
       }
       const panelClass = `panel ${css.item} ${(avObj.get('isCustomerService') ? css.panelModerator : 'panel-common')}`
-      const userLabel = avObj.get('isCustomerService') ? <span><UserLabel user={avObj.get('author')} /><i className={css.badge}>客服</i></span> : <UserLabel user={avObj.get('author')} />
+      const userLabel = avObj.get('isCustomerService') ? <span><UserLabel user={avObj.get('author')} /><i className={css.badge}>{t('staff')}</i></span> : <UserLabel user={avObj.get('author')} />
       return (
         <div id={avObj.id} key={avObj.id} className={panelClass}>
           <div className={ 'panel-heading ' + css.heading }>
-          {userLabel} 提交于 {this.getTime(avObj)}
+          {userLabel} {t('submittedAt')} {this.getTime(avObj)}
           </div>
           <div className={ 'panel-body ' + css.content }>
             {this.contentView(avObj.get('content_HTML'))}
@@ -434,50 +430,51 @@ export default class Ticket extends Component {
   }
 
   render() {
+    const {t} = this.props
     const ticket = this.state.ticket
     if (ticket === null) {
       return (
-      <div>读取中……</div>
+      <div>{t('loading')}……</div>
       )
     }
 
     // 如果是客服自己提交工单，则当前客服在该工单中认为是用户，
-    // 这时为了方便工单作为内部工作协调使用。
+    // 这是为了方便工单作为内部工作协调使用。
     const isCustomerService = this.props.isCustomerService && ticket.get('author').id != this.props.currentUser.id
     const timeline = _.chain(this.state.replies)
       .concat(this.state.opsLogs)
       .sortBy((data) => {
         return data.get('createdAt')
-      }).map(this.ticketTimeline.bind(this))
+      }).map(this.ticketTimeline.bind(this, t))
       .value()
     let optionButtons = <div></div>
     const ticketStatus = ticket.get('status')
     if (isTicketOpen(ticket)) {
       optionButtons = (
         <FormGroup>
-          <ControlLabel>工单操作</ControlLabel>
+          <ControlLabel>{t('ticketOperation')}</ControlLabel>
           <FormGroup>
-            <button type="button" className='btn btn-default' onClick={() => this.operateTicket('resolve')}>已解决</button>
+            <button type="button" className='btn btn-default' onClick={() => this.operateTicket('resolve')}>{t('resolved')}</button>
             {' '}
-            <button type="button" className='btn btn-default' onClick={() => this.operateTicket('reject')}>关闭</button>
+            <button type="button" className='btn btn-default' onClick={() => this.operateTicket('reject')}>{t('close')}</button>
           </FormGroup>
         </FormGroup>
       )
     } else if (ticketStatus === TICKET_STATUS.PRE_FULFILLED && !isCustomerService) {
       optionButtons = (
         <Alert bsStyle="warning">
-          <ControlLabel>我们认为该工单已解决，请确认：</ControlLabel>
-          <Button bsStyle="primary" onClick={() => this.operateTicket('resolve')}>确认已解决</Button>
+          <ControlLabel>{t('confirmResolved')}</ControlLabel>
+          <Button bsStyle="primary" onClick={() => this.operateTicket('resolve')}>{t('resolutionConfirmed')}</Button>
           {' '}
-          <Button onClick={() => this.operateTicket('reopen')}>未解决</Button>
+          <Button onClick={() => this.operateTicket('reopen')}>{t('unresolved')}</Button>
         </Alert>
       )
     } else if (isCustomerService) {
       optionButtons = (
         <FormGroup>
-          <ControlLabel>工单操作</ControlLabel>
+          <ControlLabel>{t('ticketOperation')}</ControlLabel>
           <FormGroup>
-            <button type="button" className='btn btn-default' onClick={() => this.operateTicket('reopen')}>重新打开</button>
+            <button type="button" className='btn btn-default' onClick={() => this.operateTicket('reopen')}>{t('reopen')}</button>
           </FormGroup>
         </FormGroup>
       )
@@ -494,9 +491,9 @@ export default class Ticket extends Component {
               <TicketStatusLabel status={ticket.get('status')} />
               {' '}
               <span>
-                <UserLabel user={ticket.get('author')} /> 创建于 <span title={moment(ticket.get('createdAt')).format()}>{moment(ticket.get('createdAt')).fromNow()}</span>
+                <UserLabel user={ticket.get('author')} /> {t('createdAt')} <span title={moment(ticket.get('createdAt')).format()}>{moment(ticket.get('createdAt')).fromNow()}</span>
                 {moment(ticket.get('createdAt')).fromNow() === moment(ticket.get('updatedAt')).fromNow() ||
-                  <span>，更新于 <span title={moment(ticket.get('updatedAt')).format()}>{moment(ticket.get('updatedAt')).fromNow()}</span></span>
+                  <span>, {t('updatedAt')} <span title={moment(ticket.get('updatedAt')).format()}>{moment(ticket.get('updatedAt')).fromNow()}</span></span>
                 }
               </span>
               {' '}
@@ -522,7 +519,7 @@ export default class Ticket extends Component {
         <div className="row">
           <div className="col-sm-8">
             <div className="tickets">
-              {this.ticketTimeline(ticket)}
+              {this.ticketTimeline(t, ticket)}
               <div>{timeline}</div>
             </div>
 
@@ -579,6 +576,7 @@ Ticket.propTypes = {
   currentUser: PropTypes.object,
   isCustomerService: PropTypes.bool,
   params: PropTypes.object,
+  t: PropTypes.func
 }
 
 Ticket.contextTypes = {
@@ -656,3 +654,4 @@ Tag.contextTypes = {
   addNotification: PropTypes.func.isRequired,
 }
 
+export default translate(Ticket)
