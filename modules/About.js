@@ -1,8 +1,7 @@
-import React from 'react'
+import React, { PropTypes }  from 'react'
 import DocumentTitle from 'react-document-title'
 import translate from './i18n/translate'
 
-// eslint-disable-next-line react/prop-types
 function About({ t }) {
   return <div>
     <DocumentTitle title={`${t('about')} - LeanTicket`} />
@@ -14,5 +13,8 @@ function About({ t }) {
 }
 
 About.displayName = 'About'
+About.propTypes = {
+  t: PropTypes.func
+}
 
 export default translate(About)
