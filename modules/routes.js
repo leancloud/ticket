@@ -38,6 +38,7 @@ import NotFound from './NotFound'
 moment.updateLocale('zh-cn', {
   calendar : {
     lastWeek : function() {
+      // eslint-disable-next-line i18n/no-chinese-character
       return this < moment().startOf('week') ? '[上]ddddLT' : 'ddddLT'
     },
   }
