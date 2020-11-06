@@ -542,6 +542,19 @@ const messages = {
   'haveSomethingToSay': [
     'Have something to say?',
     '您可能想说些什么'
+  ],
+  // TicketReply
+  'noNeedToReply': [
+    'No need to reply',
+    '无需回复'
+  ],
+  'replyLater': [
+    'Reply later',
+    '稍后回复'
+  ],
+  'multipleAttachments': [
+    'You can selet multiple files when uploading attachments.',
+    '上传附件可以多选'
   ]
 }
 
