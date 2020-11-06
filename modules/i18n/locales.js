@@ -218,6 +218,10 @@ const messages = {
     'Markdown syntax supported',
     '支持 Markdown 语法'
   ],
+  'tag': [
+    'Tag',
+    '标签'
+  ],
   'ticket': [
     'Ticket',
     '工单'
@@ -478,6 +482,19 @@ const messages = {
   'contactUs': [
     'If you have any question, please contact us.',
     '如有疑问，请联系我们。'
+  ],
+  // Settings
+  'staffSettings': [
+    'Staff settings',
+    '技术支持设置'
+  ],
+  'personalSettings': [
+    'Person',
+    '个人设置'
+  ],
+  'organizationSettings': [
+    'Organization',
+    '组织设置'
   ]
 }
 
