@@ -9,6 +9,7 @@ import css from './CustomerServiceTickets.css'
 import DocumentTitle from 'react-document-title'
 
 import {UserLabel, TicketStatusLabel, getCategoryPathName, getCategoriesTree, OrganizationSelect, getTicketAcl} from './common'
+import TicketsMoveButton from './TicketsMoveButton'
 
 export default class Tickets extends Component {
 
@@ -202,25 +203,4 @@ Tickets.propTypes = {
   addNotification: PropTypes.func,
 }
 
-const TicketsMoveButton = (props) => {
-  let items
-  if (props.selectedOrgId == '') {
-    items = props.organizations.map(org => {
-      return <MenuItem key={org.id} onClick={() => props.onTicketsMove(org)}>组织：{org.get('name')}</MenuItem>
-    })
-  } else {
-    items = _.reject(props.organizations, {id: props.selectedOrgId}).map(org => {
-      return <MenuItem key={org.id} onClick={() => props.onTicketsMove(org)}>组织：{org.get('name')}</MenuItem>
-    })
-    items.push(<MenuItem key={'author'} onClick={() => props.onTicketsMove()}>创建者名下</MenuItem>)
-  }
-  return <DropdownButton title='工单转移到' id='tickets-move'>
-    {items}
-  </DropdownButton>
-}
 
-TicketsMoveButton.propTypes = {
-  organizations: PropTypes.array,
-  selectedOrgId: PropTypes.string,
-  onTicketsMove: PropTypes.func,
-}
