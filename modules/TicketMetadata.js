@@ -7,8 +7,7 @@ import AV from 'leancloud-storage/live-query'
 import {getCustomerServices, UserLabel, getCategoryPathName, CategoriesSelect, depthFirstSearchFind, TagForm} from './common'
 import css from './Ticket.css'
 import csCss from './CustomerServiceTickets.css'
-
-
+import translate from './i18n/translate'
 
 class TicketMetadata extends Component {
 
@@ -60,10 +59,11 @@ class TicketMetadata extends Component {
   }
   
   render() {
+    const {t} = this.props
     const {ticket, isCustomerService} = this.props
     return <div>
         <FormGroup>
-          <label className="label-block">负责人</label>
+          <label className="label-block">{t('assignee')}</label>
           {this.state.isUpdateAssignee ?
             <FormControl componentClass='select' value={ticket.get('assignee').id} onChange={this.handleAssigneeChange.bind(this)}>
               {this.state.assignees.map((cs) => <option key={cs.id} value={cs.id}>{cs.get('username')}</option>)}
@@ -80,7 +80,7 @@ class TicketMetadata extends Component {
           }
         </FormGroup>
         <FormGroup>
-          <label className="label-block">类别</label>
+          <label className="label-block">{t('category')}</label>
           {this.state.isUpdateCategory ?
             <CategoriesSelect categoriesTree={this.props.categoriesTree}
               selected={ticket.get('category')}
@@ -119,11 +119,11 @@ TicketMetadata.propTypes = {
   updateTicketAssignee: PropTypes.func.isRequired,
   updateTicketCategory: PropTypes.func.isRequired,
   saveTag: PropTypes.func.isRequired,
+  t: PropTypes.func
 }
   
 TicketMetadata.contextTypes = {
   tagMetadatas: PropTypes.array,
 }
 
-export default TicketMetadata
-  
+export default translate(TicketMetadata)
