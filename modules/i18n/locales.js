@@ -465,6 +465,19 @@ const messages = {
   'categoryChangeConfirm': [
     'The current content will be overridden by the template content of the new category.\n\nStill continue?',
     '当前「问题描述」不为空，所选「问题分类」的模板会覆盖现有描述。\n\n是否继续？'
+  ],
+  // NotFound
+  'pageNotExist': [
+    'This page does not exist.',
+    '该页面不存在'
+  ],
+  'pageNotExistInfo': [
+    'Exexcuse me, I am wondering how did you get here.',
+    '很抱歉，不知道您是怎么到这里的。'
+  ],
+  'contactUs': [
+    'If you have any question, please contact us.',
+    '如有疑问，请联系我们。'
   ]
 }
 

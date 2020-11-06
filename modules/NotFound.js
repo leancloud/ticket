@@ -1,11 +1,20 @@
-import React from 'react'
+import React, { PropTypes } from 'react'
+import DocumentTitle from 'react-document-title'
+import translate from './i18n/translate'
 
-export default function Error(_props) {
+function Error({t}) {
   return (
     <div className="jumbotron">
-      <h1>该页面不存在</h1>
-      <p>很抱歉，不知道您是怎么到这里的。</p>
-      <p>如有疑问，可以通过 <a href="mailto:support@leancloud.cn">support@leancloud.cn</a> 联系我们</p>
+      <DocumentTitle title='404 - LeanTicket' />
+      <h1>{t('pageNotExist')}</h1>
+      <p>{t('pageNotExistInfo')}</p>
+      <p>{t('contactUs')}</p>
     </div>
   )
 }
+
+Error.propTypes = {
+  t: PropTypes.func
+}
+
+export default translate(Error)
