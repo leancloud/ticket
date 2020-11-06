@@ -10,8 +10,9 @@ import DocumentTitle from 'react-document-title'
 
 import {UserLabel, TicketStatusLabel, getCategoryPathName, getCategoriesTree, OrganizationSelect, getTicketAcl} from './common'
 import TicketsMoveButton from './TicketsMoveButton'
+import translate from './i18n/translate'
 
-export default class Tickets extends Component {
+class Tickets extends Component {
 
   constructor(props) {
     super(props)
@@ -111,6 +112,7 @@ export default class Tickets extends Component {
   }
 
   render() {
+    const {t} = this.props
     const ticketLinks = this.state.tickets.map((ticket) => {
       const customerServices = _.uniqBy(ticket.get('joinedCustomerServices') || [], 'objectId').map((user) => {
         return (
@@ -141,9 +143,9 @@ export default class Tickets extends Component {
             <div className={css.meta}>
               <div className={css.left}>
                 <span className={css.status}><TicketStatusLabel status={ticket.get('status')} /></span>
-                <span className={css.creator}><UserLabel user={ticket.get('author')} /></span> 创建于 {moment(ticket.get('createdAt')).fromNow()}
+                <span className={css.creator}><UserLabel user={ticket.get('author')} /></span> {t('createdAt')} {moment(ticket.get('createdAt')).fromNow()}
                 {moment(ticket.get('createdAt')).fromNow() === moment(ticket.get('updatedAt')).fromNow() ||
-                  <span>，更新于 {moment(ticket.get('updatedAt')).fromNow()}</span>
+                  <span>, {t('updatedAt')} {moment(ticket.get('updatedAt')).fromNow()}</span>
                 }
               </div>
               <div className={css.right}>
@@ -157,23 +159,23 @@ export default class Tickets extends Component {
     })
     if (ticketLinks.length === 0) {
       ticketLinks.push(
-        <div key={0}>未查询到相关工单，您可以 <Link to='/tickets/new'>新建工单</Link></div>
+        <div key={0}>{t('ticketsNotFound')} <Link to='/tickets/new'>{t('createANewOne')}</Link></div>
       )
     }
     return (
       <div>
-        <DocumentTitle title='工单列表 - LeanTicket' />
+        <DocumentTitle title={`${t('ticketList')} - LeanTicket`} />
         {this.props.organizations.length > 0 && <Form inline>
           {this.state.batchOpsEnable
             && <div>
-              <Checkbox className={css.ticketSelectCheckbox} onClick={this.handleClickCheckAll.bind(this)} checked={this.state.isCheckedAll}> 全选</Checkbox>
+              <Checkbox className={css.ticketSelectCheckbox} onClick={this.handleClickCheckAll.bind(this)} checked={this.state.isCheckedAll}> {t('selectAll')}</Checkbox>
               {' '}
               <TicketsMoveButton selectedOrgId={this.props.selectedOrgId}
                 organizations={this.props.organizations}
                 onTicketsMove={this.handleTicketsMove.bind(this)}
               />
               {' '}
-              <button className='btn btn-link' onClick={() => this.handleBatchOps(false)}>返回</button>
+              <button className='btn btn-link' onClick={() => this.handleBatchOps(false)}>{t('return')}</button>
             </div>
             || <div>
               <OrganizationSelect organizations={this.props.organizations}
@@ -181,15 +183,15 @@ export default class Tickets extends Component {
                 onOrgChange={this.props.handleOrgChange} />
               {' '}
               <DropdownButton title='' id='tickets-ops'>
-                <MenuItem onClick={() => this.handleBatchOps(true)}>批量操作</MenuItem>
+                <MenuItem onClick={() => this.handleBatchOps(true)}>{t('batchOperation')}</MenuItem>
               </DropdownButton>
             </div>
           }
         </Form>}
         {ticketLinks}
         <Pager>
-          <Pager.Item disabled={this.state.filters.page === 0} previous onClick={() => this.findTickets({page: this.state.filters.page - 1, organizationId: this.props.selectedOrgId})}>&larr; 上一页</Pager.Item>
-          <Pager.Item disabled={this.state.filters.size !== this.state.tickets.length} next onClick={() => this.findTickets({page: this.state.filters.page + 1, organizationId: this.props.selectedOrgId})}>下一页 &rarr;</Pager.Item>
+          <Pager.Item disabled={this.state.filters.page === 0} previous onClick={() => this.findTickets({page: this.state.filters.page - 1, organizationId: this.props.selectedOrgId})}>&larr; {t('previousPage')}</Pager.Item>
+          <Pager.Item disabled={this.state.filters.size !== this.state.tickets.length} next onClick={() => this.findTickets({page: this.state.filters.page + 1, organizationId: this.props.selectedOrgId})}>{t('nextPage')} &rarr;</Pager.Item>
         </Pager>
       </div>
     )
@@ -201,6 +203,7 @@ Tickets.propTypes = {
   handleOrgChange: PropTypes.func,
   selectedOrgId: PropTypes.string,
   addNotification: PropTypes.func,
+  t: PropTypes.func
 }
 
-
+export default translate(Tickets)
