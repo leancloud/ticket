@@ -525,6 +525,19 @@ const messages = {
   'createANewOne': [
     'create a new one.',
     '新建工单。'
+  ],
+  // Evaluation
+  'feedback': [
+    'Feedback',
+    '对工单处理结果的评价：'
+  ],
+  'satisfiedOrNot': [
+    'Are you satisfied with the experience?',
+    '对工单的处理结果，您是否满意？'
+  ],
+  'haveSomethingToSay': [
+    'Have something to say?',
+    '您可能想说些什么'
   ]
 }
 

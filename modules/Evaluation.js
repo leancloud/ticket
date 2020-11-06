@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import {FormGroup, FormControl, Alert, Button, Radio} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
-
+import translate from './18n/translate'
 
 class Evaluation extends Component {
 
@@ -39,10 +39,11 @@ class Evaluation extends Component {
   }
   
   render() {
+    const {t} = this.props
     const evaluation = this.props.ticket.get('evaluation')
     if (evaluation) {
       return <Alert bsStyle="warning">
-          <p>对工单处理结果的评价：</p>
+          <p>{t('feedback')}</p>
           <FormGroup>
             <Radio name="radioGroup" inline disabled defaultChecked={evaluation.star === 1}><span className="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span></Radio>
             {' '}
@@ -56,7 +57,7 @@ class Evaluation extends Component {
   
     if (!this.props.isCustomerService) {
       return <Alert bsStyle="warning">
-          <p>对工单的处理结果，您是否满意？</p>
+          <p>{t('satisfiedOrNot')}</p>
           <form onSubmit={this.handleSubmit.bind(this)}>
             <FormGroup>
               <Radio name="radioGroup" inline value='1' onClick={this.handleStarChange.bind(this)}><span className="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span></Radio>
@@ -64,9 +65,9 @@ class Evaluation extends Component {
               <Radio name="radioGroup" inline value='0' onClick={this.handleStarChange.bind(this)}><span className="glyphicon glyphicon-thumbs-down" aria-hidden="true"></span></Radio>
             </FormGroup>
             <FormGroup>
-              <FormControl componentClass="textarea" placeholder="您可能想说些什么" rows="8" value={this.state.content} onChange={this.handleContentChange.bind(this)}/>
+              <FormControl componentClass="textarea" placeholder={t('haveSomethingToSay')} rows="8" value={this.state.content} onChange={this.handleContentChange.bind(this)}/>
             </FormGroup>
-            <Button type='submit'>提交</Button>
+            <Button type='submit'>{t('submit')}</Button>
           </form>
         </Alert>
     }
@@ -79,10 +80,11 @@ Evaluation.propTypes = {
   ticket: PropTypes.instanceOf(AV.Object),
   isCustomerService: PropTypes.bool,
   saveEvaluation: PropTypes.func.isRequired,
+  t: PropTypes.func
 }
   
 Evaluation.contextTypes = {
   addNotification: PropTypes.func.isRequired,
 }
 
-export default Evaluation
+export default translate(Evaluation)
