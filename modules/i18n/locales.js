@@ -134,6 +134,10 @@ const messages = {
     'Operation',
     '操作'
   ],
+  'organization': [
+    'Organization',
+    '组织'
+  ],
   'otherAssignees': [
     'Other assignees',
     '其他负责成员'
@@ -495,6 +499,15 @@ const messages = {
   'organizationSettings': [
     'Organization',
     '组织设置'
+  ],
+  // TicketsMoveButton
+  'itsCreator': [
+    'it\'s creator',
+    '创建者名下'
+  ],
+  'moveTicketTo': [
+    'Move ticket to',
+    '工单转移到'
   ]
 }
 
