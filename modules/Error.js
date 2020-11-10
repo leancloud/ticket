@@ -2,6 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 
 import translate from './i18n/translate'
+import {supportEmail} from '../config'
 
 function Error(props) {
   const {t} = props
@@ -11,7 +12,7 @@ function Error(props) {
         <h1 className='font-logo'>{t('errorPage')}</h1>
         <hr />
         <p>{t('noErrorMessage')}</p>
-        <p>{t('contactUs')}</p>
+        <p>{t('contactUs')} <a href={`mailto:${supportEmail}`}>{supportEmail}`</a></p>
       </div>
     )
   }
@@ -33,7 +34,7 @@ function Error(props) {
       <h1 className='font-logo'>{t('somethingWrong')}</h1>
       <hr />
       <p>{message}</p>
-      <p>{t('contactUs')}</p>
+      <p>{t('contactUs')} <a href={`mailto:${supportEmail}`}>{supportEmail}`</a></p>
     </div>
   )
 }

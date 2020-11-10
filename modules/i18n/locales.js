@@ -520,8 +520,8 @@ const messages = {
     '很抱歉，不知道您是怎么到这里的。'
   ],
   'contactUs': [
-    'If you have any question, please contact us.',
-    '如有疑问，请联系我们。'
+    'If you have any question, please email us at',
+    '如有疑问，请通过邮件联系我们'
   ],
   // Settings
   'staffSettings': [

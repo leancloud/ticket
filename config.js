@@ -32,5 +32,6 @@ module.exports = {
     topic: process.env.ZULIP_TOPIC,
   },
   sentryDSN: process.env.SENTRY_DSN,
-  sentryDSNPublic: process.env.SENTRY_DSN_PUBLIC
+  sentryDSNPublic: process.env.SENTRY_DSN_PUBLIC,
+  supportEmail: 'mail@example.com',
 }
