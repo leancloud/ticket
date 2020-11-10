@@ -1,14 +1,17 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 
-export default function Error(props) {
+import translate from './i18n/translate'
+
+function Error(props) {
+  const {t} = props
   if (!props.location.state) {
     return (
       <div>
-        <h1 className='font-logo'>这里是错误页面</h1>
+        <h1 className='font-logo'>{t('errorPage')}</h1>
         <hr />
-        <p>不过好像没有抓到什么错误信息</p>
-        <p>如有疑问，可以通过 <a href="mailto:support@leancloud.cn">support@leancloud.cn</a> 联系我们</p>
+        <p>{t('noErrorMessage')}</p>
+        <p>{t('contactUs')}</p>
       </div>
     )
   }
@@ -16,10 +19,10 @@ export default function Error(props) {
   let message
   switch (props.location.state.code) {
   case 'requireCustomerServiceAuth':
-    message = '您访问的页面需要技术支持人员权限。'
+    message = t('staffOnlyPage')
     break
   case 'Unauthorized':
-    message = '您没有权限访问该页面。'
+    message = t('unauthorizedPage')
     break
   default:
     message = props.location.state.err.message
@@ -27,14 +30,17 @@ export default function Error(props) {
   console.log(props.location.state.err)
   return (
     <div>
-      <h1 className='font-logo'>很抱歉，看起来出了一些问题</h1>
+      <h1 className='font-logo'>{t('somethingWrong')}</h1>
       <hr />
       <p>{message}</p>
-      <p>如有疑问，可以通过 <a href="mailto:support@leancloud.cn">support@leancloud.cn</a> 联系我们</p>
+      <p>{t('contactUs')}</p>
     </div>
   )
 }
 
 Error.propTypes = {
-  location: PropTypes.object.isRequired
+  location: PropTypes.object.isRequired,
+  t: PropTypes.func
 }
+
+export default translate(Error)
