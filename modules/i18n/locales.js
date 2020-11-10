@@ -554,6 +554,27 @@ const messages = {
     'create a new one.',
     '新建工单。'
   ],
+  // Error
+  'errorPage': [
+    'This is an error page.',
+    '这里是错误页面'
+  ],
+  'noErrorMessage': [
+    'However, no error message has been caught.',
+    '不过好像没有抓到什么错误信息'
+  ],
+  'staffOnlyPage': [
+    'The page requested is for staff only.',
+    '您访问的页面需要技术支持人员权限。'
+  ],
+  'unauthorizedPage': [
+    'You do not have the required permissions to access this page.',
+    '您没有权限访问该页面。'
+  ],
+  'somethingWrong': [
+    'Sorry, something went wrong.',
+    '很抱歉，看起来出了一些问题'
+  ],
   // Evaluation
   'feedback': [
     'Feedback',
