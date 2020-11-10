@@ -27,4 +27,7 @@ module.exports = {
   sentryDSN: process.env.SENTRY_DSN,
   sentryDSNPublic: process.env.SENTRY_DSN_PUBLIC,
   supportEmail: 'mail@example.com',
+  // Used in CustomerServiceStats.
+  // 0/-1/-2/...: a week ends at 23:59:59 Sunday/Saturday/Friday/...
+  offsetDays: 0
 }

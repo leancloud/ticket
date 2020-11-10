@@ -100,6 +100,15 @@ exports.getTicketAndRelation = (nid) => {
   })
 }
 
+exports.fetchUsers = (userIds) => {
+  return Promise.all(_.map(_.chunk(userIds, 50), (userIds) => {
+    return new AV.Query('_User')
+    .containedIn('objectId', userIds)
+    .find()
+  }))
+  .then(_.flatten)
+}
+
 exports.UserLabel = (props) => {
   if (!props.user) {
     return (
