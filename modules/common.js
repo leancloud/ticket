@@ -119,7 +119,16 @@ exports.getTicketAndRelation = nid => {
     })
 }
 
-exports.UserLabel = props => {
+exports.fetchUsers = (userIds) => {
+  return Promise.all(_.map(_.chunk(userIds, 50), (userIds) => {
+    return new AV.Query('_User')
+    .containedIn('objectId', userIds)
+    .find()
+  }))
+  .then(_.flatten)
+}
+
+exports.UserLabel = (props) => {
   if (!props.user) {
     return <span>data err</span>
   }
@@ -150,44 +159,44 @@ exports.UserLabel.propTypes = {
 
 exports.TicketStatusLabel = props => {
   switch (props.status) {
-    case exports.TICKET_STATUS.FULFILLED:
-      return (
+  case exports.TICKET_STATUS.FULFILLED:
+    return (
         <span className="label label-success">
           {exports.TICKET_STATUS_MSG[props.status]}
         </span>
-      )
-    case exports.TICKET_STATUS.REJECTED:
-      return (
+    )
+  case exports.TICKET_STATUS.REJECTED:
+    return (
         <span className="label label-default">
           {exports.TICKET_STATUS_MSG[props.status]}
         </span>
-      )
-    case exports.TICKET_STATUS.PRE_FULFILLED:
-      return (
+    )
+  case exports.TICKET_STATUS.PRE_FULFILLED:
+    return (
         <span className="label label-primary">
           {exports.TICKET_STATUS_MSG[props.status]}
         </span>
-      )
-    case exports.TICKET_STATUS.NEW:
-      return (
+    )
+  case exports.TICKET_STATUS.NEW:
+    return (
         <span className="label label-danger">
           {exports.TICKET_STATUS_MSG[props.status]}
         </span>
-      )
-    case exports.TICKET_STATUS.WAITING_CUSTOMER_SERVICE:
-      return (
+    )
+  case exports.TICKET_STATUS.WAITING_CUSTOMER_SERVICE:
+    return (
         <span className="label label-warning">
           {exports.TICKET_STATUS_MSG[props.status]}
         </span>
-      )
-    case exports.TICKET_STATUS.WAITING_CUSTOMER:
-      return (
+    )
+  case exports.TICKET_STATUS.WAITING_CUSTOMER:
+    return (
         <span className="label label-primary">
           {exports.TICKET_STATUS_MSG[props.status]}
         </span>
-      )
-    default:
-      throw new Error('unkonwn ticket status:', props.status)
+    )
+  default:
+    throw new Error('unkonwn ticket status:', props.status)
   }
 }
 exports.TicketStatusLabel.displayName = 'TicketStatusLabel'
