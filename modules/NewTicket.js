@@ -8,8 +8,9 @@ import docsearch from 'docsearch.js'
 
 import TextareaWithPreview from './components/TextareaWithPreview'
 import {defaultLeanCloudRegion, getLeanCloudRegionText} from '../lib/common'
-import {uploadFiles, getCategoriesTree, depthFirstSearchFind, getTinyCategoryInfo, getTicketAcl, TagForm} from './common'
+import {uploadFiles, getCategoriesTree, depthFirstSearchFind, getTinyCategoryInfo, getTicketAcl} from './common'
 import OrganizationSelect from './OrganizationSelect'
+import TagForm from './TagForm'
 import translate from './i18n/translate'
 
 class NewTicket extends React.Component {
