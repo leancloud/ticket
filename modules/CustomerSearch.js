@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 import { Link } from 'react-router'
-import { Form, ButtonGroup, MenuItem, Checkbox, FormControl, Pager } from 'react-bootstrap'
+import { Form, ButtonGroup, Checkbox, FormControl, Pager } from 'react-bootstrap'
 import qs from 'query-string'
 import moment from 'moment'
 import AV from 'leancloud-storage/live-query'
@@ -10,15 +10,16 @@ import css from './CustomerServiceTickets.css'
 import DocumentTitle from 'react-document-title'
 
 import { UserLabel, TicketStatusLabel, getCustomerServices } from './common'
+import translate from './i18n/translate'
 
 const SELECT_BTN_TYPE = {
-  reply: '搜回复',
-  title: '搜标题'
+  reply: 'reply',
+  title: 'title'
 }
 
 
 
-export default class CustomerServiceTickets extends Component {
+class CustomerServiceTickets extends Component {
 
   constructor(props) {
     super(props)
@@ -138,6 +139,7 @@ export default class CustomerServiceTickets extends Component {
 
 
   render() {
+    const {t} = this.props
     const filters = this.props.location.query
     const { selectType } = this.state
     const replys = this.state.tickets
@@ -170,7 +172,7 @@ export default class CustomerServiceTickets extends Component {
                 }
                 <Link className={css.desc} to={'/tickets/' + ticket.get('nid')}>{ticket.get('title')}</Link>
 
-                <span>{ticket.get('evaluation') && (ticket.get('evaluation').star === 1 && <span className={css.satisfaction + ' ' + css.happy}>满意</span> || <span className={css.satisfaction + ' ' + css.unhappy}>不满意</span>)}</span>
+                <span>{ticket.get('evaluation') && (ticket.get('evaluation').star === 1 && <span className={css.satisfaction + ' ' + css.happy}>{t('satisfied')}</span> || <span className={css.satisfaction + ' ' + css.unhappy}>{t('unsatisfied')}</span>)}</span>
               </div>
               <div className={css.right}>
                 {ticket.get('replyCount') &&
@@ -186,9 +188,9 @@ export default class CustomerServiceTickets extends Component {
               <div className={css.left}>
                 <span className={css.nid}>#{ticket.get('nid')}</span>
                 <Link className={css.statusLink} to={this.getQueryUrl({ status: ticket.get('status'), isOpen: undefined })}><span className={css.status}><TicketStatusLabel status={ticket.get('status')} /></span></Link>
-                <span className={css.creator}><UserLabel user={ticket.get('author')} /></span> 创建于 {moment(ticket.get('createdAt')).fromNow()}
+                <span className={css.creator}><UserLabel user={ticket.get('author')} /></span> {t('createdAt')} {moment(ticket.get('createdAt')).fromNow()}
                 {moment(ticket.get('createdAt')).fromNow() === moment(ticket.get('updatedAt')).fromNow() ||
-                  <span>，更新于 {moment(ticket.get('updatedAt')).fromNow()}</span>
+                  <span>, {t('updatedAt')} {moment(ticket.get('updatedAt')).fromNow()}</span>
                 }
               </div>
               <div className={css.right}>
@@ -220,7 +222,7 @@ export default class CustomerServiceTickets extends Component {
     if (ticketTrs.length === 0) {
       ticketTrs.push(
         <div className={css.ticket} key='0'>
-          未查询到相关工单
+          {t('notFound')}
         </div>
       )
     }
@@ -231,15 +233,15 @@ export default class CustomerServiceTickets extends Component {
     if (!(isFirstPage && isLastPage)) {
       pager = (
         <Pager>
-          <Pager.Item disabled={isFirstPage} previous onClick={() => this.updateFilter({ page: (parseInt(filters.page) - 1) + '' })}>&larr; 上一页</Pager.Item>
-          <Pager.Item disabled={isLastPage} next onClick={() => this.updateFilter({ page: (parseInt(filters.page) + 1) + '' })}>下一页 &rarr;</Pager.Item>
+          <Pager.Item disabled={isFirstPage} previous onClick={() => this.updateFilter({ page: (parseInt(filters.page) - 1) + '' })}>&larr; {t('previousPage')}</Pager.Item>
+          <Pager.Item disabled={isLastPage} next onClick={() => this.updateFilter({ page: (parseInt(filters.page) + 1) + '' })}>{t('nextPage')} &rarr;</Pager.Item>
         </Pager>
       )
     }
 
     return (
       <div>
-        <DocumentTitle title='客服工单列表 - LeanTicket' />
+        <DocumentTitle title={`${t('customerServiceTickets')} - LeanTicket`} />
         <div className={css.row}>
           {ticketAdminFilters}
         </div>
@@ -254,6 +256,7 @@ export default class CustomerServiceTickets extends Component {
 
 CustomerServiceTickets.propTypes = {
   location: PropTypes.object.isRequired,
+  t: PropTypes.func
 }
 
 CustomerServiceTickets.contextTypes = {
@@ -261,3 +264,5 @@ CustomerServiceTickets.contextTypes = {
   addNotification: PropTypes.func.isRequired,
   tagMetadatas: PropTypes.array,
 }
+
+export default translate(CustomerServiceTickets)
