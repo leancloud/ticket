@@ -34,7 +34,7 @@ export default class App extends Component {
       })
     } else {
       this._notificationSystem.addNotification({
-        message: obj && obj.message || '操作成功',
+        message: obj && obj.message || 'Operation succeeded.',
         level: obj && obj.level || 'success',
       })
     }
