@@ -5,7 +5,7 @@ import {Form, FormGroup, ControlLabel, FormControl, Button, Table, HelpBlock} fr
 import AV from 'leancloud-storage/live-query'
 
 import {UserLabel} from './../common'
-import UserForm from './UserForm'
+import UserForm from '../UserForm'
 import translate from '../i18n/translate'
 class Organization extends React.Component {
 
