@@ -6,7 +6,8 @@ import {FormGroup, ControlLabel, FormControl, Button, Tooltip, OverlayTrigger} f
 import AV from 'leancloud-storage/live-query'
 
 import TextareaWithPreview from './components/TextareaWithPreview'
-import {uploadFiles, getCategoriesTree, depthFirstSearchFind, getTinyCategoryInfo, getTicketAcl, OrganizationSelect, TagForm} from './common'
+import {uploadFiles, getCategoriesTree, depthFirstSearchFind, getTinyCategoryInfo, getTicketAcl, TagForm} from './common'
+import OrganizationSelect from './OrganizationSelect'
 import translate from './i18n/translate'
 
 class NewTicket extends React.Component {
