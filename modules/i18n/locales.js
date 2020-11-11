@@ -707,6 +707,11 @@ const messages = {
   'reopenedTicket': [
     'reopened this ticket.',
     '重新打开该工单'
+  ],
+  // UserForm
+  'userNotFound': [
+    'Cannot find any user named',
+    '找不到用户'
   ]
 }
 
