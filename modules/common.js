@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import {Link} from 'react-router'
-import {Image, FormGroup, FormControl, ControlLabel, Button} from 'react-bootstrap'
+import {Image, FormGroup, FormControl, Button} from 'react-bootstrap'
 import _ from 'lodash'
 import validUrl from 'valid-url'
 import AV from 'leancloud-storage/live-query'
@@ -257,36 +257,6 @@ exports.CategoriesSelect.propTypes = {
   hiddenDisable: PropTypes.bool
 }
 
-
-exports.OrganizationSelect = class OrganizationSelect extends React.Component {
-  render() {
-    return (
-      <FormGroup controlId="orgSelect">
-        <ControlLabel>所属：</ControlLabel>
-        <FormControl
-          componentClass="select"
-          value={this.props.selectedOrgId}
-          onChange={this.props.onOrgChange}
-        >
-          {this.props.organizations.map(o => (
-            <option key={o.id} value={o.id}>
-              组织：{o.get('name')}
-            </option>
-          ))}
-          <option value="">
-            个人：{exports.getUserDisplayName(AV.User.current())}
-          </option>
-        </FormControl>
-      </FormGroup>
-    )
-  }
-}
-
-exports.OrganizationSelect.propTypes = {
-  organizations: PropTypes.array,
-  selectedOrgId: PropTypes.string,
-  onOrgChange: PropTypes.func
-}
 
 exports.getCategoriesTree = (hiddenDisable = true) => {
   const query = new AV.Query('Category')
