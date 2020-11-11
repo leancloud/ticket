@@ -247,7 +247,7 @@ class CustomerServiceTickets extends Component {
               <div className={css.left}>
                 <Link className={css.title} to={'/tickets/' + ticket.get('nid')}>{ticket.get('title')}</Link>
                 {getNodePath(category).map(c => {
-                  return <Link key={c.id} to={this.getQueryUrl({categoryId: c.id})}><span className={css.category}>{getCategoryName(c)}</span></Link>
+                  return <Link key={c.id} to={this.getQueryUrl({categoryId: c.id})}><span className={css.category}>{getCategoryName(c, t)}</span></Link>
                 })}
                 {filters.isOpen === 'true' ||
                   <span>{ticket.get('evaluation') && (ticket.get('evaluation').star === 1 && <span className={css.satisfaction + ' ' + css.happy}>{t('satisfied')}</span> || <span className={css.satisfaction + ' ' + css.unhappy}>{t('unsatisfied')}</span>)}</span>
@@ -294,7 +294,7 @@ class CustomerServiceTickets extends Component {
       return <MenuItem key={user.id} eventKey={user.id}>{getUserDisplayName(user)}</MenuItem>
     })
     const categoryMenuItems = depthFirstSearchMap(this.state.categoriesTree, c => {
-      return <MenuItem key={c.id} eventKey={c.id}>{getNodeIndentString(c) + getCategoryName(c)}</MenuItem>
+      return <MenuItem key={c.id} eventKey={c.id}>{getNodeIndentString(c) + getCategoryName(c, t)}</MenuItem>
     })
 
     let statusTitle
@@ -324,7 +324,7 @@ class CustomerServiceTickets extends Component {
     if (filters.categoryId) {
       const category = depthFirstSearchFind(this.state.categoriesTree, c => c.id === filters.categoryId)
       if (category) {
-        categoryTitle = getCategoryName(category)
+        categoryTitle = getCategoryName(category, t)
       } else {
         categoryTitle = `categoryId ${t('invalid')}`
       }

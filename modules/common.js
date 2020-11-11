@@ -298,8 +298,8 @@ exports.getNodeIndentString = treeNode => {
   return depth == 0 ? '' : '　'.repeat(depth) + '└ '
 }
 
-exports.getCategoryName = category => {
-  return category.get('name') + (category.get('deletedAt') ? '（停用）' : '')
+exports.getCategoryName = (category, t) => {
+  return category.get('name') + (category.get('deletedAt') ? t('disabled') : '')
 }
 
 exports.isCN = () => {

@@ -98,6 +98,10 @@ const messages = {
     'Disable',
     '停用'
   ],
+  'disabled': [
+    'Disabled',
+    '停用'
+  ],
   'email': [
     'Email',
     '电子邮箱'
