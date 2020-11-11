@@ -70,6 +70,10 @@ const messages = {
     'Completed',
     '已完成'
   ],
+  'count': [
+    'Count',
+    '数量'
+  ],
   'createdAt': [
     'Created at',
     '创建于'
@@ -154,6 +158,10 @@ const messages = {
     'Other assignees',
     '其他负责成员'
   ],
+  'overview': [
+    'Overview',
+    '总览'
+  ],
   'password': [
     'Password',
     '密码'
@@ -181,6 +189,10 @@ const messages = {
   'privateInfo': [
     'This tag is invisible to end users. It is only visible to staff.',
     '该标签用户不可见，只有技术支持人员可见。'
+  ],
+  'rank': [
+    'Rank',
+    '排名'
   ],
   'remove': [
     'Remove',
@@ -250,6 +262,10 @@ const messages = {
     'Submit Date',
     '提交时间'
   ],
+  'summary': [
+    'Summary',
+    '概要'
+  ],
   'supportMarkdown': [
     'Markdown syntax supported',
     '支持 Markdown 语法'
@@ -270,6 +286,10 @@ const messages = {
     'Title',
     '标题'
   ],
+  'time': [
+    'Time',
+    '时间'
+  ],
   'type': [
     'Type',
     '类型'
@@ -278,9 +298,17 @@ const messages = {
     'Unresolved',
     '未解决'
   ],
+  'until': [
+    'Until',
+    '截止到'
+  ],
   'updatedAt': [
     'Updated at',
     '更新于'
+  ],
+  'user': [
+    'User',
+    '用户'
   ],
   'username': [
     'Username',
@@ -291,16 +319,16 @@ const messages = {
     'Not involved',
     '没有参与'
   ],
-  'firstRelyTime': [
+  'firstReplyTime': [
     'first reply time',
     '首次回复时间'
   ],
   'averageReplyTime': [
-    'average reply time',
+    'Average reply time',
     '平均回复时间'
   ],
   'replyCount': [
-    'replies',
+    'Replies',
     '回复次数'
   ],
   // Categories
@@ -587,6 +615,31 @@ const messages = {
   'haveSomethingToSay': [
     'Have something to say?',
     '您可能想说些什么'
+  ],
+  // StatsSummary
+  'createdTicket': [
+    'Created ticket',
+    '新增工单'
+  ],
+  'activeTicket': [
+    'Active ticket',
+    '活跃工单'
+  ],
+  'averageFirstReplyTime': [
+    'Average first reply time',
+    '平均首次响应'
+  ],
+  'toWeekly': [
+    'Switch to weekly report',
+    '切换到周报'
+  ],
+  'toMonthly': [
+    'Switch to monthly report',
+    '切换到月报'
+  ],
+  'replyTime': [
+    'Reply time',
+    '回复耗时'
   ],
   // TicketReply
   'noNeedToReply': [
