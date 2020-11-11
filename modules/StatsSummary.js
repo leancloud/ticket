@@ -7,6 +7,7 @@ import {Link} from 'react-router'
 import AV from 'leancloud-storage/live-query'
 import {getUserDisplayName, fetchUsers} from './common'
 import offsetDays from '../config'
+import translate from './i18n/translate'
 
 const sortAndIndexed = (datas, sortFn) => {
   const sorted = _.sortBy(datas, sortFn)
@@ -159,15 +160,16 @@ class StatsSummary extends React.Component {
   }
   
   render() {
+    const {t} = this.props
     if (!this.state) {
-      return <div>数据读取中……</div>
+      return <div>{t('loading')}……</div>
     }
   
     const dateDoms = this.state.statsDatas.map(data => {
       if (this.state.timeUnit === 'month') {
-        return <span>{moment(data.date).format('YYYY [年] MM [月]')}</span>
+        return <span>{moment(data.date).format('YYYY-MM')}</span>
       } else {
-        return <span>截止到 {moment(data.date).add(1, 'weeks').format('YYYY [年] MM [月] DD [日][（第] ww [周）]')}</span>
+        return <span>{t('until')} {moment(data.date).add(1, 'weeks').format('YYYY-MM-DD, [W]WW')}</span>
       }
     })
   
@@ -175,18 +177,18 @@ class StatsSummary extends React.Component {
       return <Table>
           <thead>
             <tr>
-              <th>新增工单</th>
-              <th>活跃工单</th>
-              <th>平均首次响应</th>
-              <th>平均响应</th>
+              <th>{t('createdTicket')}</th>
+              <th>{t('activeTicket')}</th>
+              <th>{t('averageFirstReplyTime')}</th>
+              <th>{t('averageReplyTime')}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td>{data.newTicketCount}</td>
               <td>{data.activeTicketCounts}</td>
-              <td>{(data.firstReplyTime / data.firstReplyCount / 1000 / 60 / 60).toFixed(2)} 小时</td>
-              <td>{(data.replyTime / data.replyCount / 1000 / 60 / 60).toFixed(2)} 小时</td>
+              <td>{(data.firstReplyTime / data.firstReplyCount / 1000 / 60 / 60).toFixed(2)} {t('hour')}</td>
+              <td>{(data.replyTime / data.replyCount / 1000 / 60 / 60).toFixed(2)} {t('hour')}</td>
             </tr>
           </tbody>
         </Table>
@@ -203,7 +205,7 @@ class StatsSummary extends React.Component {
         ]
       })
       return <SummaryTable
-          header={['排名', '分类', '活跃工单']}
+          header={[t('rank'), t('category'), t('activeTicket')]}
           body={body}
         />
     })
@@ -219,7 +221,7 @@ class StatsSummary extends React.Component {
         ]
       })
       return <SummaryTable
-          header={['排名', '客服', '活跃工单数']}
+          header={[t('rank'), t('staff'), t('activeTicket')]}
           body={body}
         />
     })
@@ -235,7 +237,7 @@ class StatsSummary extends React.Component {
         ]
       })
       return <SummaryTable
-          header={['排名', '用户', '活跃工单数']}
+          header={[t('rank'), t('user'), t('activeTicket')]}
           body={body}
         />
     })
@@ -261,12 +263,12 @@ class StatsSummary extends React.Component {
           userId,
           index,
           <Link to={`/customerService/stats/users/${userId}?start=${startTime.toISOString()}&end=${endTime.toISOString()}`}>{user && getUserDisplayName(user) || userId}</Link>,
-          (replyTime / replyCount / 1000 / 60 / 60).toFixed(2) + ' 小时',
+          (replyTime / replyCount / 1000 / 60 / 60).toFixed(2) + ' ' + t('hour'),
           replyCount,
         ]
       })
       return <SummaryTable
-          header={['排名', '客服', '平均耗时', '回复次数 ']}
+          header={[t('rank'), t('staff'), t('averageReplyTime'), t('replyCount')]}
           body={body}
         />
     })
@@ -278,12 +280,12 @@ class StatsSummary extends React.Component {
           userId,
           index,
           <Link to={`/customerService/stats/users/${userId}?start=${startTime.toISOString()}&end=${endTime.toISOString()}`}>{user && getUserDisplayName(user) || userId}</Link>,
-          (replyTime / replyCount / 1000 / 60 / 60).toFixed(2) + ' 小时',
+          (replyTime / replyCount / 1000 / 60 / 60).toFixed(2) + ' ' + t('hour'),
           replyCount,
         ]
       })
       return <SummaryTable
-          header={['排名', '客服', '平均耗时', '回复次数 ']}
+          header={[t('rank'), t('staff'), t('averageReplyTime'), t('replyCount')]}
           body={body}
         />
     })
@@ -300,7 +302,7 @@ class StatsSummary extends React.Component {
           ]
         })
         return <SummaryTable
-            header={['排名', '标签:' + JSON.parse(tags[0][0]).key, '数量']}
+            header={[t('rank'), t('tag') + ':' + JSON.parse(tags[0][0]).key, t('count')]}
             body={body}
           />
       })
@@ -308,47 +310,47 @@ class StatsSummary extends React.Component {
     })
   
     return <div>
-        <h2>概要 <small>
+        <h2>{t('summary')} <small>
           {this.state.timeUnit === 'month' ?
-            <Button onClick={() => this.changeTimeUnit('weeks')} bsStyle="link">切换到周报</Button>
+            <Button onClick={() => this.changeTimeUnit('weeks')} bsStyle="link">{t('toWeekly')}</Button>
             :
-            <Button onClick={() => this.changeTimeUnit('month')} bsStyle="link">切换到月报</Button>
+            <Button onClick={() => this.changeTimeUnit('month')} bsStyle="link">{t('toMonthly')}</Button>
           }
         </small></h2>
         <Table>
           <thead>
             <tr>
-              <th>时间</th>
+              <th>{t('time')}</th>
               {dateDoms.map(dom => <td>{dom}</td>)}
             </tr>
           </thead>
           <tbody>
             <tr>
-              <th>总览</th>
+              <th>{t('overview')}</th>
               {summaryDoms.map(dom => <td>{dom}</td>)}
             </tr>
             <tr>
-              <th>活跃工单数（分类）</th>
+              <th>{t('activeTicket')+t('count')+' '+t('category')}</th>
               {activeTicketCountsByCategoryDoms.map(dom => <td>{dom}</td>)}
             </tr>
             <tr>
-              <th>活跃工单数（客服）</th>
+              <th>{t('activeTicket')+t('count')+' '+t('staff')}</th>
               {activeTicketCountByAssigneeDoms.map(dom => <td>{dom}</td>)}
             </tr>
             <tr>
-              <th>活跃工单数（用户）</th>
+              <th>{t('activeTicket')+t('count')+' '+t('user')}</th>
               {activeTicketCountByAuthorDoms.map(dom => <td>{dom}</td>)}
             </tr>
             <tr>
-              <th>首次回复耗时</th>
+              <th>{t('firstReplyTime')}</th>
               {firstReplyTimeByUserDoms.map(dom => <td>{dom}</td>)}
             </tr>
             <tr>
-              <th>回复耗时</th>
+              <th>{t('replyTime')}</th>
               {replyTimeByUserDoms.map(dom => <td>{dom}</td>)}
             </tr>
             <tr>
-              <th>标签数</th>
+              <th>{t('tag')+t('count')}</th>
               {tagDoms.map(dom => <td>{dom}</td>)}
             </tr>
           </tbody>
@@ -360,7 +362,8 @@ class StatsSummary extends React.Component {
   
 StatsSummary.propTypes = {
   categories: PropTypes.array.isRequired,
+  t: PropTypes.func
 }
 
-export default StatsSummary
+export default translate(StatsSummary)
   
