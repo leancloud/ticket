@@ -2,6 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import {FormGroup, FormControl, Button} from 'react-bootstrap'
 import validUrl from 'valid-url'
+import translate from './i18n/translate'
 
 class TagForm extends React.Component {
 
@@ -36,7 +37,7 @@ class TagForm extends React.Component {
   }
   
   render() {
-    const {tagMetadata, tag, isCustomerService} = this.props
+    const {t, tagMetadata, tag, isCustomerService} = this.props
     const isPrivate = tagMetadata.get('isPrivate')
     if (isPrivate && !isCustomerService) {
       return <div></div>
@@ -66,8 +67,8 @@ class TagForm extends React.Component {
             :
             <div>
               <FormControl type='text' value={this.state.value} onChange={this.handleChange.bind(this)} />
-              <Button bsStyle='success' onClick={this.handleCommit.bind(this)}>保存</Button>
-              <Button onClick={() => this.setState({isUpdate: false})}>取消</Button>
+              <Button bsStyle='success' onClick={this.handleCommit.bind(this)}>{t('save')}</Button>
+              <Button onClick={() => this.setState({isUpdate: false})}>{t('cancel')}</Button>
             </div>
           :
           <span>
@@ -77,7 +78,7 @@ class TagForm extends React.Component {
                 :
                 <span>{tag.value}</span>
               :
-              '<未设置>'
+              `<${t('unconfigured')}>`
             }
             {isCustomerService &&
               <Button bsStyle='link' onClick={() => this.setState({isUpdate: true})}>
@@ -95,7 +96,8 @@ TagForm.propTypes = {
   tag: PropTypes.object,
   changeTagValue: PropTypes.func,
   isCustomerService: PropTypes.bool,
+  t: PropTypes.func
 }
 
-export default TagForm
+export default translate(TagForm)
   

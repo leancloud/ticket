@@ -62,6 +62,10 @@ const messages = {
     'Belonging to',
     '所属'
   ],
+  'cancel': [
+    'Cancel',
+    '取消'
+  ],
   'category': [
     'Category',
     '分类'
@@ -305,6 +309,10 @@ const messages = {
   'unresolved': [
     'Unresolved',
     '未解决'
+  ],
+  'unconfigured': [
+    'unconfigured',
+    '未设置'
   ],
   'until': [
     'Until',
