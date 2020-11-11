@@ -4,9 +4,10 @@ import AV from 'leancloud-storage/live-query'
 import DocumentTitle from 'react-document-title'
 import StatsSummary from './StatsSummary'
 import StatsChart from './StatsChart'
+import translate from './i18n/translate'
 
 
-export default class CustomerServiceStats extends React.Component {
+class CustomerServiceStats extends React.Component {
 
   constructor(props) {
     super(props)
@@ -27,9 +28,10 @@ export default class CustomerServiceStats extends React.Component {
   }
 
   render() {
+    const {t} = this.props
     return (
       <div>
-        <DocumentTitle title='统计 - LeanTicket' />
+        <DocumentTitle title={`${t('statistics')} - LeanTicket`} />
         <StatsSummary categories={this.state.categories} />
         <StatsChart categories={this.state.categories} />
       </div>
@@ -41,4 +43,10 @@ export default class CustomerServiceStats extends React.Component {
 CustomerServiceStats.contextTypes = {
   addNotification: PropTypes.func.isRequired,
 }
+
+CustomerServiceStats.propTypes = {
+  t: PropTypes.func
+}
+
+export default translate(CustomerServiceStats)
 
