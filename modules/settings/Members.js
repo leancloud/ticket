@@ -3,7 +3,7 @@ import _ from 'lodash'
 import AV from 'leancloud-storage/live-query'
 
 const {UserLabel} = require('../common')
-import UserForm from './UserForm'
+import UserForm from '../UserForm'
 import translate from '../i18n/translate'
 
 class SettingMembers extends Component {
