@@ -34,7 +34,7 @@ export default class App extends Component {
       })
     } else {
       this._notificationSystem.addNotification({
-        message: obj && obj.message || '操作成功',
+        message: obj && obj.message || 'Operation succeeded.',
         level: obj && obj.level || 'success',
       })
     }
@@ -241,17 +241,17 @@ class ServerNotification extends Component {
       .then((liveQuery) => {
         this.ticketsLiveQuery = liveQuery
         liveQuery.on('create', (ticket) => {
-          this.notify({title: '新的工单', body: `${ticket.get('title')} (#${ticket.get('nid')})`})
+          this.notify({title: '📝', body: `${ticket.get('title')} (#${ticket.get('nid')})`})
         })
         liveQuery.on('enter', (ticket, updatedKeys) => {
           if (updatedKeys.indexOf('assignee') !== -1) {
-            this.notify({title: '转移工单', body: `${ticket.get('title')} (#${ticket.get('nid')})`})
+            this.notify({title: '🔊', body: `${ticket.get('title')} (#${ticket.get('nid')})`})
           }
         })
         liveQuery.on('update', (ticket, updatedKeys) => {
           if (updatedKeys.indexOf('latestReply') !== -1
               && ticket.get('latestReply').author.username !== this.props.currentUser.get('username')) {
-            this.notify({title: '新的回复', body: `${ticket.get('title')} (#${ticket.get('nid')})`})
+            this.notify({title: '💬', body: `${ticket.get('title')} (#${ticket.get('nid')})`})
           }
         })
         return
@@ -264,7 +264,7 @@ class ServerNotification extends Component {
         liveQuery.on('update', (ticket, updatedKeys) => {
           if (updatedKeys.indexOf('latestReply') !== -1
               && ticket.get('latestReply').author.username !== this.props.currentUser.get('username')) {
-            this.notify({title: '新的回复', body: `${ticket.get('title')} (#${ticket.get('nid')})`})
+            this.notify({title: '💬', body: `${ticket.get('title')} (#${ticket.get('nid')})`})
           }
         })
         return
