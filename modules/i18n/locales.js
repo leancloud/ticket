@@ -616,13 +616,18 @@ const messages = {
     'Have something to say?',
     '您可能想说些什么'
   ],
+  // StatsChart
+  'activeReply': [
+    'Active replies',
+    '活跃回复'
+  ],
   // StatsSummary
   'createdTicket': [
     'Created ticket',
     '新增工单'
   ],
   'activeTicket': [
-    'Active ticket',
+    'Active tickets',
     '活跃工单'
   ],
   'averageFirstReplyTime': [

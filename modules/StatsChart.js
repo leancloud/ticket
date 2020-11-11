@@ -10,8 +10,9 @@ import randomColor from 'randomcolor'
 import Color from 'color'
 import {getUserDisplayName, fetchUsers} from './common'
 import offsetDays from '../config'
+import translate from './i18n/translate'
 
-const ticketCountLineChartData = (statses) => {
+const ticketCountLineChartData = (statses, t) => {
   return _.reduce(statses, (result, stats) => {
     result.labels.push(moment(stats.date).format('MM-DD'))
     result.datasets[0].data.push(stats.tickets.length)
@@ -19,7 +20,7 @@ const ticketCountLineChartData = (statses) => {
   }, {
     labels: [],
     datasets: [{
-      label: '活跃工单数',
+      label: t('activeTicket'),
       fill: true,
       borderColor: 'rgba(53, 215, 142, 1)',
       backgroundColor: 'rgba(53, 215, 142, .1)',
@@ -28,7 +29,7 @@ const ticketCountLineChartData = (statses) => {
   })
 }
   
-const replyCountLineChartData = (statses) => {
+const replyCountLineChartData = (statses, t) => {
   return _.reduce(statses, (result, stats) => {
     result.labels.push(moment(stats.date).format('MM-DD'))
     result.datasets[0].data.push(stats.replyCount)
@@ -36,7 +37,7 @@ const replyCountLineChartData = (statses) => {
   }, {
     labels: [],
     datasets: [{
-      label: '活跃回复数',
+      label: t('activeReply'),
       fill: true,
       borderColor: 'rgba(70, 117, 235, 1)',
       backgroundColor: 'rgba(70, 117, 235, .1)',
@@ -186,7 +187,7 @@ class StatsChart extends React.Component {
     this.setState({endDate})
   }
   
-  handleSubmit(e) {
+  handleSubmit(t, e) {
     e.preventDefault()
     let timeUnit = 'day'
     if (this.state.endDate.diff(this.state.startDate, 'days') > 31) {
@@ -205,8 +206,8 @@ class StatsChart extends React.Component {
         )))
         return fetchUsers(userIds).then((users) => {
           this.setState({
-            ticketCountData: ticketCountLineChartData(statses),
-            replyCountData: replyCountLineChartData(statses),
+            ticketCountData: ticketCountLineChartData(statses, t),
+            replyCountData: replyCountLineChartData(statses, t),
             categoryCountData: categoryCountLineChartData(statses, this.props.categories),
             assigneeCountData: assigneeCountLineChartData(statses, users),
             firstReplyTimeData: firstReplyTimeLineChartData(statses, users),
@@ -218,9 +219,10 @@ class StatsChart extends React.Component {
   }
   
   render() {
+    const {t} = this.props
     return (
         <div>
-          <Form inline onSubmit={this.handleSubmit.bind(this)}>
+          <Form inline onSubmit={this.handleSubmit.bind(this, t)}>
             <FormGroup>
               <ControlLabel>startDate</ControlLabel>
               {' '}
@@ -245,19 +247,19 @@ class StatsChart extends React.Component {
               />
             </FormGroup>
             {' '}
-            <Button type='submit'>查询</Button>
+            <Button type='submit'>{t('submit')}</Button>
           </Form>
           {this.state.ticketCountData &&
             <div>
               <Line data={this.state.ticketCountData} height={50} />
               <Line data={this.state.replyCountData} height={50} />
-              <h3>活跃工单数——分类</h3>
+              <h3>{t('activeTicket')+t('count')+' '+t('category')}</h3>
               <Line data={this.state.categoryCountData} height={100} />
-              <h3>活跃工单数——负责人</h3>
+              <h3>{t('activeTicket')+t('count')+' '+t('assignee')}</h3>
               <Line data={this.state.assigneeCountData} height={100} />
-              <h3>工单回复速度——首次回复——技术支持</h3>
+              <h3>{t('firstReplyTime')+' '+t('staff')}</h3>
               <Line data={this.state.firstReplyTimeData} height={100} />
-              <h3>工单回复速度——平均回复——技术支持</h3>
+              <h3>{t('averageReplyTime')+' '+t('staff')}</h3>
               <Line data={this.state.replyTimeData} height={100} />
             </div>
           }
@@ -269,8 +271,9 @@ class StatsChart extends React.Component {
   
 StatsChart.propTypes = {
   categories: PropTypes.array.isRequired,
+  t: PropTypes.func
 }
   
-export default StatsChart
+export default translate(StatsChart)
   
   
