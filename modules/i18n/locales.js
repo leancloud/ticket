@@ -58,6 +58,10 @@ const messages = {
     'Avatar',
     '头像'
   ],
+  'belong': [
+    'Belonging to',
+    '所属'
+  ],
   'category': [
     'Category',
     '分类'
@@ -101,6 +105,10 @@ const messages = {
   'incompleted': [
     'Incompleted',
     '未完成'
+  ],
+  'individual': [
+    'Individual',
+    '个人'
   ],
   'invalid': [
     'Invalid',
