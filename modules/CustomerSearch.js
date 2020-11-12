@@ -9,7 +9,8 @@ import AV from 'leancloud-storage/live-query'
 import css from './CustomerServiceTickets.css'
 import DocumentTitle from 'react-document-title'
 
-import { UserLabel, TicketStatusLabel, getCustomerServices } from './common'
+import { UserLabel, getCustomerServices } from './common'
+import TicketStatusLabel from './TicketStatusLabel'
 import translate from './i18n/translate'
 
 const SELECT_BTN_TYPE = {

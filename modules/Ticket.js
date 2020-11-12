@@ -6,7 +6,7 @@ import PropTypes from 'prop-types'
 import {FormGroup, ControlLabel, Label, Alert, Button, Tooltip, OverlayTrigger, } from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
-import {UserLabel, TicketStatusLabel, uploadFiles, getCategoryPathName, getCategoriesTree, getTinyCategoryInfo} from './common'
+import {UserLabel, uploadFiles, getCategoryPathName, getCategoriesTree, getTinyCategoryInfo} from './common'
 import css from './Ticket.css'
 import csCss from './CustomerServiceTickets.css'
 import DocumentTitle from 'react-document-title'
@@ -15,6 +15,7 @@ import {TICKET_STATUS, isTicketOpen} from '../lib/common'
 import Evaluation from './Evaluation'
 import TicketMetadata from './TicketMetadata'
 import TicketReply from './TicketReply'
+import TicketStatusLabel from './TicketStatusLabel'
 import translate from './i18n/translate'
 
 // get a copy of default whiteList

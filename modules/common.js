@@ -149,52 +149,6 @@ exports.UserLabel.propTypes = {
   simple: PropTypes.bool
 }
 
-exports.TicketStatusLabel = props => {
-  switch (props.status) {
-  case exports.TICKET_STATUS.FULFILLED:
-    return (
-        <span className="label label-success">
-          {exports.TICKET_STATUS_MSG[props.status]}
-        </span>
-    )
-  case exports.TICKET_STATUS.REJECTED:
-    return (
-        <span className="label label-default">
-          {exports.TICKET_STATUS_MSG[props.status]}
-        </span>
-    )
-  case exports.TICKET_STATUS.PRE_FULFILLED:
-    return (
-        <span className="label label-primary">
-          {exports.TICKET_STATUS_MSG[props.status]}
-        </span>
-    )
-  case exports.TICKET_STATUS.NEW:
-    return (
-        <span className="label label-danger">
-          {exports.TICKET_STATUS_MSG[props.status]}
-        </span>
-    )
-  case exports.TICKET_STATUS.WAITING_CUSTOMER_SERVICE:
-    return (
-        <span className="label label-warning">
-          {exports.TICKET_STATUS_MSG[props.status]}
-        </span>
-    )
-  case exports.TICKET_STATUS.WAITING_CUSTOMER:
-    return (
-        <span className="label label-primary">
-          {exports.TICKET_STATUS_MSG[props.status]}
-        </span>
-    )
-  default:
-    throw new Error('unkonwn ticket status:', props.status)
-  }
-}
-exports.TicketStatusLabel.displayName = 'TicketStatusLabel'
-exports.TicketStatusLabel.propTypes = {
-  status: PropTypes.number.isRequired
-}
 
 exports.Avatar = props => {
   let src = `https://cdn.v2ex.com/gravatar/${props.user.gravatarHash ||
