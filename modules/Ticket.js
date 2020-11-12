@@ -302,7 +302,7 @@ class Ticket extends Component {
               <span className='icon-wrap'><span className='glyphicon glyphicon-transfer'></span></span>
             </div>
             <div className='ticket-status-right'>
-              {t('system')} {t('assignedTicketTo')} <UserLabel user={avObj.get('data').assignee} /> {this.getTime(avObj)}
+              {t('system')} {t('assignedTicketTo')} <UserLabel user={avObj.get('data').assignee} /> ({this.getTime(avObj)})
             </div>
           </div>
         )
@@ -313,7 +313,7 @@ class Ticket extends Component {
               <span className='icon-wrap'><span className='glyphicon glyphicon-transfer'></span></span>
             </div>
             <div className='ticket-status-right'>
-              <UserLabel user={avObj.get('data').operator} /> {t('changedTicketCategoryTo')} <span className={csCss.category + ' ' + css.category}>{getCategoryPathName(avObj.get('data').category, this.state.categoriesTree)}</span> {this.getTime(avObj)}
+              <UserLabel user={avObj.get('data').operator} /> {t('changedTicketCategoryTo')} <span className={csCss.category + ' ' + css.category}>{getCategoryPathName(avObj.get('data').category, this.state.categoriesTree)}</span> ({this.getTime(avObj)})
             </div>
           </div>
         )
@@ -324,7 +324,7 @@ class Ticket extends Component {
               <span className='icon-wrap'><span className='glyphicon glyphicon-transfer'></span></span>
             </div>
             <div className='ticket-status-right'>
-              <UserLabel user={avObj.get('data').operator} /> {t('changedTicketAssigneeTo')}  <UserLabel user={avObj.get('data').assignee} /> {this.getTime(avObj)}
+              <UserLabel user={avObj.get('data').operator} /> {t('changedTicketAssigneeTo')}  <UserLabel user={avObj.get('data').assignee} /> ({this.getTime(avObj)})
             </div>
           </div>
         )
@@ -335,7 +335,7 @@ class Ticket extends Component {
               <span className='icon-wrap'><span className='glyphicon glyphicon-comment'></span></span>
             </div>
             <div className='ticket-status-right'>
-              <UserLabel user={avObj.get('data').operator} /> {t('thoughtNoNeedToReply')} {this.getTime(avObj)}
+              <UserLabel user={avObj.get('data').operator} /> {t('thoughtNoNeedToReply')} ({this.getTime(avObj)})
             </div>
           </div>
         )
@@ -346,7 +346,7 @@ class Ticket extends Component {
               <span className='icon-wrap awaiting'><span className='glyphicon glyphicon-hourglass'></span></span>
             </div>
             <div className='ticket-status-right'>
-              <UserLabel user={avObj.get('data').operator} /> {t('thoughtNeedTime')} {this.getTime(avObj)}
+              <UserLabel user={avObj.get('data').operator} /> {t('thoughtNeedTime')} ({this.getTime(avObj)})
             </div>
           </div>
         )
@@ -357,7 +357,7 @@ class Ticket extends Component {
               <span className='icon-wrap resolved'><span className='glyphicon glyphicon-ok-circle'></span></span>
             </div>
             <div className='ticket-status-right'>
-              <UserLabel user={avObj.get('data').operator} /> {t('thoughtResolved')} {this.getTime(avObj)} 
+              <UserLabel user={avObj.get('data').operator} /> {t('thoughtResolved')} ({this.getTime(avObj)})
             </div>
           </div>
         )
@@ -368,7 +368,7 @@ class Ticket extends Component {
               <span className='icon-wrap closed'><span className='glyphicon glyphicon-ban-circle'></span></span>
             </div>
             <div className='ticket-status-right'>
-              <UserLabel user={avObj.get('data').operator} /> {t('closedTicket')} {this.getTime(avObj)} 
+              <UserLabel user={avObj.get('data').operator} /> {t('closedTicket')} ({this.getTime(avObj)}) 
             </div>
           </div>
         )
@@ -379,7 +379,7 @@ class Ticket extends Component {
               <span className='icon-wrap reopened'><span className='glyphicon glyphicon-record'></span></span>
             </div>
             <div className='ticket-status-right'>
-              <UserLabel user={avObj.get('data').operator} /> {t('reopenedTicket')} {this.getTime(avObj)} 
+              <UserLabel user={avObj.get('data').operator} /> {t('reopenedTicket')} ({this.getTime(avObj)}) 
             </div>
           </div>
         )
