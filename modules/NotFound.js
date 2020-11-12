@@ -10,7 +10,7 @@ function Error({t}) {
       <DocumentTitle title='404 - LeanTicket' />
       <h1>{t('pageNotExist')}</h1>
       <p>{t('pageNotExistInfo')}</p>
-      <p>{t('contactUs')} <a href={`mailto:${supportEmail}`}>{supportEmail}`</a></p>
+      <p>{t('contactUs')} <a href={`mailto:${supportEmail}`}>{supportEmail}</a></p>
     </div>
   )
 }
