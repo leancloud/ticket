@@ -1,4 +1,5 @@
-import { Children, Component, PropTypes } from 'react'
+import { Children, Component } from 'react'
+import PropTypes from 'prop-types'
 import Polyglot from 'node-polyglot'
 import locales from './locales'
 class I18nProvider extends Component {
