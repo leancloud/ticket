@@ -4,8 +4,9 @@ const moment = require('moment')
 const AV = require('leanengine')
 
 const forEachAVObject = require('./common').forEachAVObject
+const locale = require('./index').locale
 
-moment.locale('zh-cn')
+moment.locale(locale)
 
 const {TICKET_STATUS, ticketOpenedStatuses} = require('../lib/common')
 
