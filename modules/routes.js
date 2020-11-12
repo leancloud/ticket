@@ -36,15 +36,19 @@ import Category from './settings/Category'
 import CategorySort from './settings/CategorySort'
 import Error from './Error'
 import NotFound from './NotFound'
+import {locale} from '../index'
 
-moment.updateLocale('zh-cn', {
-  calendar : {
-    lastWeek : function() {
-      // eslint-disable-next-line i18n/no-chinese-character
-      return this < moment().startOf('week') ? '[上]ddddLT' : 'ddddLT'
-    },
-  }
-})
+if (locale === 'zh') {
+  moment.updateLocale('zh-cn', {
+    calendar : {
+      lastWeek : function() {
+        // eslint-disable-next-line i18n/no-chinese-character
+        return this < moment().startOf('week') ? '[上]ddddLT' : 'ddddLT'
+      },
+    }
+  })
+}
+
 
 if (SENTRY_DSN_PUBLIC !== '') {
   Raven.config(SENTRY_DSN_PUBLIC).install()
