@@ -231,7 +231,7 @@ class NewTicket extends React.Component {
       })
       return (
         <FormGroup key={'categorySelect' + index}>
-          <ControlLabel>{index == 0 ? t('category') + ' ' : index + 1 + ' ' + t('nthCategory') + ' '}</ControlLabel>
+          <ControlLabel>{index == 0 ? t('category') + ' ' : index + 1 + ' ' + t('thCategory') + ' '}</ControlLabel>
           <FormControl componentClass="select" value={selectCategory && selectCategory.id || ''} onChange={(e) => this.handleCategoryChange(e, index, t)}>
             <option key='empty'></option>
             {options}
