@@ -130,7 +130,7 @@ class Tickets extends Component {
               <div className={css.left}>
                 <span className={css.nid}>#{ticket.get('nid')}</span>
                 <Link className={css.title} to={'/tickets/' + ticket.get('nid')}>{ticket.get('title')}</Link>
-                <span className={css.category}>{getCategoryPathName(ticket.get('category'), this.state.categoriesTree)}</span>
+                <span className={css.category}>{getCategoryPathName(ticket.get('category'), this.state.categoriesTree, t)}</span>
               </div>
               <div className={css.right}>
                 {ticket.get('replyCount') &&

@@ -1,15 +1,15 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import {Link} from 'react-router'
-import {Image, FormControl} from 'react-bootstrap'
+import {Image} from 'react-bootstrap'
 import _ from 'lodash'
 import AV from 'leancloud-storage/live-query'
 
 Object.assign(exports, require('../lib/common'))
 
-exports.getCategoryPathName = (category, categoriesTree) => {
+exports.getCategoryPathName = (category, categoriesTree, t) => {
   const c = exports.depthFirstSearchFind(categoriesTree, c => c.id == (category.id || category.objectId))
-  return exports.getNodePath(c).map(c => exports.getCategoryName(c)).join(' / ')
+  return exports.getNodePath(c).map(c => exports.getCategoryName(c, t)).join(' / ')
 }
 
 exports.requireAuth = (nextState, replace) => {
@@ -144,30 +144,6 @@ exports.Avatar.propTypes = {
   user: PropTypes.object.isRequired,
   height: PropTypes.string,
   width: PropTypes.string
-}
-
-exports.CategoriesSelect = ({categoriesTree, selected, onChange, hiddenDisable = true}) => {
-  const options = _.compact(exports.depthFirstSearchMap(categoriesTree, c => {
-    if (hiddenDisable && c.get('deletedAt')) {
-      return
-    }
-    return <option key={c.id} value={c.id} disabled={selected && (selected.id || selected.objectId) == c.id}>{exports.getNodeIndentString(c) + exports.getCategoryName(c)}</option>
-  }))
-  return (
-    <FormControl componentClass='select'
-      value={selected ? (selected.id || selected.objectId) : ''}
-      onChange={onChange}>
-      <option value=''></option>
-      {options}
-    </FormControl>
-  )
-}
-exports.CategoriesSelect.displayName = 'CategoriesSelect'
-exports.CategoriesSelect.propTypes = {
-  categoriesTree: PropTypes.array.isRequired,
-  selected: PropTypes.object,
-  onChange: PropTypes.func,
-  hiddenDisable: PropTypes.bool
 }
 
 
