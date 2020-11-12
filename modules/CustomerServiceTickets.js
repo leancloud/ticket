@@ -285,7 +285,7 @@ class CustomerServiceTickets extends Component {
 
     const statusMenuItems = _.keys(TICKET_STATUS).map(key => {
       const value = TICKET_STATUS[key]
-      return <MenuItem key={value} eventKey={value}>{TICKET_STATUS_MSG[value]}</MenuItem>
+      return <MenuItem key={value} eventKey={value}>{t(TICKET_STATUS_MSG[value])}</MenuItem>
     })
     const assigneeMenuItems = this.state.customerServices.map((user) => {
       return <MenuItem key={user.id} eventKey={user.id}>{getUserDisplayName(user)}</MenuItem>
@@ -296,7 +296,7 @@ class CustomerServiceTickets extends Component {
 
     let statusTitle
     if (filters.status) {
-      statusTitle = TICKET_STATUS_MSG[filters.status]
+      statusTitle = t(TICKET_STATUS_MSG[filters.status])
     } else if (filters.isOpen === 'true') {
       statusTitle = t('incompleted')
     } else if (filters.isOpen === 'false') {
