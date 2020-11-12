@@ -732,6 +732,31 @@ const messages = {
   'userNotFound': [
     'Cannot find any user named',
     '找不到用户'
+  ],
+  // TICKET_STATUS_MSG
+  'statusNew': [
+    'New',
+    '待处理'
+  ],
+  'statusWaitingCustomerService': [
+    'Waiting on staff reply',
+    '等待客服回复'
+  ],
+  'statusWaitingCustomer': [
+    'Waiting on customer reply',
+    '等待用户回复'
+  ],
+  'statusPreFulfilled': [
+    'Waiting on confirming resolved',
+    '待确认解决'
+  ],
+  'statusFulfilled': [
+    'Resolved',
+    '已解决'
+  ],
+  'statusRejected': [
+    'Closed',
+    '已关闭'
   ]
 }
 
