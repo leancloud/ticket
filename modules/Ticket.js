@@ -313,7 +313,7 @@ class Ticket extends Component {
               <span className='icon-wrap'><span className='glyphicon glyphicon-transfer'></span></span>
             </div>
             <div className='ticket-status-right'>
-              <UserLabel user={avObj.get('data').operator} /> {t('changedTicketCategoryTo')} <span className={csCss.category + ' ' + css.category}>{getCategoryPathName(avObj.get('data').category, this.state.categoriesTree)}</span> ({this.getTime(avObj)})
+              <UserLabel user={avObj.get('data').operator} /> {t('changedTicketCategoryTo')} <span className={csCss.category + ' ' + css.category}>{getCategoryPathName(avObj.get('data').category, this.state.categoriesTree, t)}</span> ({this.getTime(avObj)})
             </div>
           </div>
         )

@@ -89,7 +89,7 @@ class TicketMetadata extends Component {
             :
             <div>
               <span className={csCss.category + ' ' + css.categoryBlock}>
-                {getCategoryPathName(ticket.get('category'), this.props.categoriesTree)}
+                {getCategoryPathName(ticket.get('category'), this.props.categoriesTree, t)}
               </span>
               {isCustomerService &&
                 <Button bsStyle='link' onClick={() => this.setState({isUpdateCategory: true})}>
