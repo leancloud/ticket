@@ -126,10 +126,9 @@ class TicketReply extends Component {
   
             <div className={css.form}>
               <div className={css.formLeft}>
-                <p className={css.markdownTip}>
-                  <OverlayTrigger placement="top">
-                    <b className="has-required" title={t('supportMarkdown')}>M↓</b>
-                  </OverlayTrigger> <a href="https://forum.leancloud.cn/t/topic/15412" target="_blank" rel="noopener">{t('supportMarkdown')}</a>
+                <p className={css.markdownTip}> 
+                  <b className="has-required">M↓</b>{' '}
+                  <a href="https://forum.leancloud.cn/t/topic/15412" target="_blank" rel="noopener">{t('supportMarkdown')}</a>
                 </p>
               </div>
               <div className={css.formRight}>
