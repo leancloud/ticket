@@ -240,7 +240,7 @@ class NewTicket extends React.Component {
                 <b className="has-required" title={t('supportMarkdown')}>M↓</b>
               </OverlayTrigger>
             </ControlLabel>
-            <TextareaWithPreview componentClass="textarea" placeholder={t('inputHere')} rows="8"
+            <TextareaWithPreview componentClass="textarea" rows="8"
               value={ticket.get('content')}
               onChange={this.handleContentChange.bind(this)}
               inputRef={(ref) => this.contentTextarea = ref }

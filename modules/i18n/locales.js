@@ -538,10 +538,6 @@ const messages = {
     'level category',
     '级分类'
   ],
-  'inputHere': [
-    'Input text and paste pictures here.',
-    '在这里输入，粘贴图片即可上传。'
-  ],
   'titleNonempty': [
     'The title should not be empty.',
     '标题不能为空'

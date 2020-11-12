@@ -111,7 +111,7 @@ class TicketReply extends Component {
         <div>
           <form className="form-group">
             <FormGroup>
-              <TextareaWithPreview componentClass="textarea" placeholder={t('inputHere')} rows="8"
+              <TextareaWithPreview componentClass="textarea" rows="8"
                 value={this.state.reply}
                 onChange={this.handleReplyOnChange.bind(this)}
                 onKeyDown={this.handleReplyOnKeyDown.bind(this)}
