@@ -9,7 +9,7 @@ import {isCustomerService} from './common'
 import {getGravatarHash} from '../lib/common'
 import GlobalNav from './GlobalNav'
 import css from './App.css'
-import {locale} from '../index'
+import {locale} from './i18n/I18nProvider'
 
 export default class App extends Component {
 

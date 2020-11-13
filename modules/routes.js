@@ -36,7 +36,7 @@ import Category from './settings/Category'
 import CategorySort from './settings/CategorySort'
 import Error from './Error'
 import NotFound from './NotFound'
-import {locale} from '../index'
+import {locale} from './i18n/I18nProvider'
 
 if (locale === 'zh') {
   moment.updateLocale('zh-cn', {
