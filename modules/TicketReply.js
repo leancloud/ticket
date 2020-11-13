@@ -1,6 +1,6 @@
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
-import {FormGroup, FormControl, Button, ButtonToolbar, OverlayTrigger} from 'react-bootstrap'
+import {FormGroup, FormControl, Button, ButtonToolbar} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
 import {uploadFiles} from './common'
