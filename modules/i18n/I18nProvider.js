@@ -2,6 +2,9 @@ import { Children, Component } from 'react'
 import PropTypes from 'prop-types'
 import Polyglot from 'node-polyglot'
 import locales from './locales'
+
+export const locale = window.navigator.language.slice(0, 2) === 'zh' ? 'zh' : 'en'
+
 class I18nProvider extends Component {
   getChildContext() {
     // eslint-disable-next-line react/prop-types
