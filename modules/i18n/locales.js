@@ -18,7 +18,7 @@ const messages = {
     '开源'
   ],
   'intro': [
-    'support ticket application, helping you to make happy customers.',
+    'support ticket application, helping you to make customers happy.',
     '工单应用，助你提升客户满意度。'
   ],
   'builtWith': [
