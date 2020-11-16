@@ -340,7 +340,7 @@ const messages = {
     '没有参与'
   ],
   'firstReplyTime': [
-    'first reply time',
+    'First reply time',
     '首次回复时间'
   ],
   'averageReplyTime': [
