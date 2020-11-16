@@ -111,7 +111,7 @@ const messages = {
     '小时'
   ],
   'incompleted': [
-    'Incompleted',
+    'Incomplete',
     '未完成'
   ],
   'individual': [
