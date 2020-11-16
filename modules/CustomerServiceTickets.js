@@ -346,7 +346,7 @@ class CustomerServiceTickets extends Component {
             <ButtonToolbar>
               <ButtonGroup>
                 <Button className={'btn btn-default' + (filters.isOpen === 'true' ? ' active' : '')} onClick={() => this.updateFilter({isOpen: true, status: undefined})}>{t('incompleted')}</Button>
-                <Button className={'btn btn-default' + (filters.isOpen === 'false' ? ' active' : '')} onClick={() => this.updateFilter({isOpen: false, status: undefined})}>{t('Completed')}</Button>
+                <Button className={'btn btn-default' + (filters.isOpen === 'false' ? ' active' : '')} onClick={() => this.updateFilter({isOpen: false, status: undefined})}>{t('completed')}</Button>
                 <DropdownButton className={(typeof filters.isOpen === 'undefined' ? ' active' : '')} id='statusDropdown' title={statusTitle} onSelect={(eventKey) => this.updateFilter({status: eventKey, isOpen: undefined})}>
                   <MenuItem key='undefined'>{t('all')}</MenuItem>
                   {statusMenuItems}
