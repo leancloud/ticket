@@ -99,8 +99,8 @@ const messages = {
     '停用'
   ],
   'disabled': [
-    'Disabled',
-    '停用'
+    ' (Disabled)',
+    '（停用）'
   ],
   'email': [
     'Email',
