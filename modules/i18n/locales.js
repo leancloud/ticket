@@ -203,7 +203,7 @@ const messages = {
     '非公开'
   ],
   'privateInfo': [
-    'This tag is invisible to end users. It is only visible to staff.',
+    'This tag is invisible to customers. It is only visible to staff.',
     '该标签用户不可见，只有技术支持人员可见。'
   ],
   'rank': [
