@@ -330,15 +330,15 @@ class StatsSummary extends React.Component {
               {summaryDoms.map(dom => <td>{dom}</td>)}
             </tr>
             <tr>
-              <th>{t('activeTicket')+t('count')+' '+t('category')}</th>
+              <th>{t('activeTicket')+' '+t('byCategory')}</th>
               {activeTicketCountsByCategoryDoms.map(dom => <td>{dom}</td>)}
             </tr>
             <tr>
-              <th>{t('activeTicket')+t('count')+' '+t('staff')}</th>
+              <th>{t('activeTicket')+' '+t('byStaff')}</th>
               {activeTicketCountByAssigneeDoms.map(dom => <td>{dom}</td>)}
             </tr>
             <tr>
-              <th>{t('activeTicket')+t('count')+' '+t('user')}</th>
+              <th>{t('activeTicket')+' '+t('byUser')}</th>
               {activeTicketCountByAuthorDoms.map(dom => <td>{dom}</td>)}
             </tr>
             <tr>
@@ -350,7 +350,7 @@ class StatsSummary extends React.Component {
               {replyTimeByUserDoms.map(dom => <td>{dom}</td>)}
             </tr>
             <tr>
-              <th>{t('tag')+t('count')}</th>
+              <th>{t('tagCount')}</th>
               {tagDoms.map(dom => <td>{dom}</td>)}
             </tr>
           </tbody>

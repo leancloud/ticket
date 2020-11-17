@@ -253,9 +253,9 @@ class StatsChart extends React.Component {
             <div>
               <Line data={this.state.ticketCountData} height={50} />
               <Line data={this.state.replyCountData} height={50} />
-              <h3>{t('activeTicket')+t('count')+' '+t('category')}</h3>
+              <h3>{t('activeTicket')+' '+t('byCategory')}</h3>
               <Line data={this.state.categoryCountData} height={100} />
-              <h3>{t('activeTicket')+t('count')+' '+t('assignee')}</h3>
+              <h3>{t('activeTicket')+' '+t('byAssignee')}</h3>
               <Line data={this.state.assigneeCountData} height={100} />
               <h3>{t('firstReplyTime')+' '+t('staff')}</h3>
               <Line data={this.state.firstReplyTimeData} height={100} />
