@@ -367,7 +367,7 @@ const messages = {
   ],
   'parentCategory': [
     'Parent category (optional)',
-    '父分类(可选)'
+    '父分类（可选）'
   ],
   'parentCategoryRequirements': [
     'You cannot assign this category itself or its subcategories as parent category.',
