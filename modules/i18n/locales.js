@@ -639,7 +639,7 @@ const messages = {
   ],
   // StatsSummary
   'createdTicket': [
-    'Created ticket',
+    'Created tickets',
     '新增工单'
   ],
   'activeTicket': [
