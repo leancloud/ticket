@@ -315,7 +315,7 @@ const messages = {
     '未解决'
   ],
   'unconfigured': [
-    'unconfigured',
+    'unset',
     '未设置'
   ],
   'until': [
