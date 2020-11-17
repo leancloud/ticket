@@ -539,7 +539,7 @@ const messages = {
     '级分类'
   ],
   'titleNonempty': [
-    'The title should not be empty.',
+    'The title cannot be empty.',
     '标题不能为空'
   ],
   'categoryNonempty': [
