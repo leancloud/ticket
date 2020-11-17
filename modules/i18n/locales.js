@@ -413,7 +413,7 @@ const messages = {
     '组织名称'
   ],
   'organizationNameNonempty': [
-    'The organization name should not be empty.',
+    'The organization name cannot be empty.',
     '组织名称不能为空。'
   ],
   'admin': [
