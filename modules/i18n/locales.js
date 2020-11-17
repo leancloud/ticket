@@ -543,7 +543,7 @@ const messages = {
     '标题不能为空'
   ],
   'categoryNonempty': [
-    'The category should not be empty.',
+    'The category cannot be empty.',
     '问题分类不能为空'
   ],
   'categoryIncomplete': [
