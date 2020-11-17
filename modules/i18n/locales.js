@@ -709,7 +709,7 @@ const messages = {
     '认为该工单暂时无需回复，如有问题可以回复该工单'
   ],
   'thoughtNeedTime': [
-    'thought the ticket need some time to investigate. The ticket will be replied later.',
+    'thought the ticket needs some time to be investigated. The ticket will be replied later.',
     '认为该工单处理需要一些时间，稍后会回复该工单'
   ],
   'thoughtResolved': [
