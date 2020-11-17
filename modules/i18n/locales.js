@@ -407,6 +407,10 @@ const messages = {
     'Back',
     '工作开始'
   ],
+  'submitTime': [
+    'Submit time',
+    '提交时间'
+  ],
   // Organization
   'organizationName': [
     'Organization name',
@@ -534,8 +538,12 @@ const messages = {
     '客服工单列表'
   ],
   // NewTicket
+  'categoryLevel': [
+    'Level',
+    ''
+  ],
   'thCategory': [
-    'level category',
+    'category',
     '级分类'
   ],
   'titleNonempty': [
@@ -637,6 +645,14 @@ const messages = {
     'Active replies',
     '活跃回复'
   ],
+  'byCategory': [
+    'by category',
+    '数（分类）'
+  ],
+  'byAssignee': [
+    'by assignee',
+    '数（负责人）'
+  ],
   // StatsSummary
   'createdTicket': [
     'Created tickets',
@@ -645,6 +661,14 @@ const messages = {
   'activeTicket': [
     'Active tickets',
     '活跃工单'
+  ],
+  'byStaff': [
+    'by staff',
+    '数（客服）'
+  ],
+  'byUser': [
+    'by user',
+    '数（用户）'
   ],
   'averageFirstReplyTime': [
     'Average first reply time',
@@ -661,6 +685,10 @@ const messages = {
   'replyTime': [
     'Reply time',
     '回复耗时'
+  ],
+  'tagCount': [
+    '标签数',
+    'Tag count',
   ],
   // TicketReply
   'noNeedToReply': [
