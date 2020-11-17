@@ -582,7 +582,7 @@ const messages = {
   ],
   // TicketsMoveButton
   'itsCreator': [
-    'it\'s creator',
+    'its creator',
     '创建者名下'
   ],
   'moveTicketTo': [
