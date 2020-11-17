@@ -425,7 +425,7 @@ const messages = {
     '降级为成员'
   ],
   'demoteToMemberError': [
-    'This organization should have at least one Admin.',
+    'This organization needs at least one Admin.',
     '该组织至少需要一名管理员。'
   ],
   'member': [
