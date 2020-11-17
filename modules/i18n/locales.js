@@ -441,7 +441,7 @@ const messages = {
     '删除组织'
   ],
   'confirmDeleteOrganization': [
-    'Confirm deleting the organazation:',
+    'Confirm deleting the organization:',
     '确认要删除组织：'
   ],
   'deleteOrganizationConsequence': [
