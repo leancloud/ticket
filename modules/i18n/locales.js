@@ -672,7 +672,7 @@ const messages = {
     '稍后回复'
   ],
   'multipleAttachments': [
-    'You can selet multiple files when uploading attachments.',
+    'You can select multiple files when uploading attachments.',
     '上传附件可以多选'
   ],
   // Ticket
