@@ -560,7 +560,7 @@ const messages = {
     '该页面不存在'
   ],
   'pageNotExistInfo': [
-    'Exexcuse me, I am wondering how did you get here.',
+    'Excuse me, I am wondering how you got here.',
     '很抱歉，不知道您是怎么到这里的。'
   ],
   'contactUs': [
