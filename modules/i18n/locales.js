@@ -480,7 +480,7 @@ const messages = {
     '标签名称'
   ],
   'tagTypeSelect': [
-    'select',
+    'Select',
     '下拉选择'
   ],
   'tagTypeSelectInfo': [
