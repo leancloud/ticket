@@ -708,7 +708,7 @@ const messages = {
     'Ticket operation',
     '工单操作'
   ],
-  'confirmReloved': [
+  'confirmResolved': [
     'Please confirm that this ticket has been resolved:',
     '我们认为该工单已解决，请确认：'
   ],
