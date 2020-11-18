@@ -4,8 +4,9 @@ import {FormGroup, ControlLabel, FormControl, Button} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
 import {getCategoriesTree, depthFirstSearchFind, CategoriesSelect, getTinyCategoryInfo} from './../common'
+import translate from '../i18n/translate'
 
-export default class Category extends React.Component {
+class Category extends React.Component {
 
   componentDidMount() {
     return getCategoriesTree()
@@ -40,12 +41,12 @@ export default class Category extends React.Component {
     this.setState({name: e.target.value})
   }
 
-  handleParentChange(e) {
+  handleParentChange(t, e) {
     const parentCategory = depthFirstSearchFind(this.state.categoriesTree, c => c.id == e.target.value)
     let tmp = parentCategory
     while (tmp) {
       if (tmp.id == this.state.category.id) {
-        alert('父分类不能是分类自己或自己的子分类。')
+        alert(t('parentCategoryRequirements'))
         return false
       }
       tmp = tmp.parent
@@ -114,8 +115,8 @@ export default class Category extends React.Component {
     .catch(this.context.addNotification)
   }
 
-  handleDisable() {
-    const result = confirm('确认要停用分类：' + this.state.category.get('name'))
+  handleDisable(t) {
+    const result = confirm(t('confirmDisableCategory') + this.state.category.get('name'))
     if (result) {
       this.state.category.save({
         'deletedAt': new Date(),
@@ -130,37 +131,38 @@ export default class Category extends React.Component {
   }
 
   render() {
+    const {t} = this.props
     if (!this.state) {
-      return <div>数据读取中……</div>
+      return <div>{t('loading')}……</div>
     }
 
     return (
       <div>
         <form onSubmit={this.handleSubmit.bind(this)}>
           <FormGroup controlId="nameText">
-            <ControlLabel>分类名称</ControlLabel>
+            <ControlLabel>{t('categoryName')}</ControlLabel>
             <FormControl type="text" value={this.state.name} onChange={this.handleNameChange.bind(this)} />
           </FormGroup>
           <FormGroup controlId="parentSelect">
-            <ControlLabel>父分类(可选)</ControlLabel>
+            <ControlLabel>{t('parentCategory')}</ControlLabel>
             <CategoriesSelect categoriesTree={this.state.categoriesTree}
               selected={this.state.parentCategory}
-              onChange={this.handleParentChange.bind(this)}/>
+              onChange={this.handleParentChange.bind(this, t)}/>
           </FormGroup>
           <FormGroup controlId="qTemplateTextarea">
-            <ControlLabel>问题描述模板</ControlLabel>
+            <ControlLabel>{t('ticketTemplate')}</ControlLabel>
             <FormControl
               componentClass="textarea"
-              placeholder="用户新建该分类工单时，问题描述默认显示这里的内容。"
+              placeholder={t('ticketTemplateInfo')}
               rows='8'
               value={this.state.qTemplate}
               onChange={this.handleQTemplateChange.bind(this)}/>
           </FormGroup>
-          <Button type='submit' disabled={this.state.isSubmitting} bsStyle='success'>保存</Button>
+          <Button type='submit' disabled={this.state.isSubmitting} bsStyle='success'>{t('save')}</Button>
           {' '}
           {this.state.category.id
-            && <Button type='button' bsStyle="danger" onClick={this.handleDisable.bind(this)}>停用</Button>
-            || <Button type='button' onClick={() => this.context.router.push('/settings/categories')}>返回</Button>
+            && <Button type='button' bsStyle="danger" onClick={this.handleDisable.bind(this, t)}>{t('disable')}</Button>
+            || <Button type='button' onClick={() => this.context.router.push('/settings/categories')}>{t('return')}</Button>
           }
         </form>
       </div>
@@ -171,9 +173,12 @@ export default class Category extends React.Component {
 
 Category.propTypes = {
   params: PropTypes.object.isRequired,
+  t: PropTypes.func,
 }
 
 Category.contextTypes = {
   router: PropTypes.object.isRequired,
   addNotification: PropTypes.func.isRequired,
 }
+
+export default translate(Category)

@@ -1,4 +1,5 @@
-import React from 'react'
+import React, {Component} from 'react'
+import PropTypes from 'prop-types'
 import _ from 'lodash'
 import {Link} from 'react-router'
 import {Form, FormGroup} from 'react-bootstrap'
@@ -6,8 +7,9 @@ import AV from 'leancloud-storage/live-query'
 
 import {getCustomerServices, getTinyCategoryInfo, UserLabel, getCategoriesTree,
   depthFirstSearchMap, depthFirstSearchFind, getNodeIndentString} from '../common'
+import translate from '../i18n/translate'
 
-export default class Categories extends React.Component {
+class Categories extends Component {
 
   constructor(props) {
     super(props)
@@ -54,6 +56,7 @@ export default class Categories extends React.Component {
 
 
   render() {
+    const {t} = this.props
     const tds = depthFirstSearchMap(this.state.categoriesTree, (c) => {
       const selectCustomerServices = _.filter(this.state.customerServices, (user) => {
         return _.find(user.get('categories'), {objectId: c.id})
@@ -75,18 +78,18 @@ export default class Categories extends React.Component {
       <div>
         <Form inline>
           <FormGroup>
-            <Link to={'/settings/categories/_new'}>新增分类</Link>
+            <Link to={'/settings/categories/_new'}>{t('newCategory')}</Link>
           </FormGroup>{' '}
           <FormGroup>
-            <Link to={'/settings/categorySort'}>调整顺序</Link>
+            <Link to={'/settings/categorySort'}>{t('reorder')}</Link>
           </FormGroup>
         </Form>
         <table className='table table-bordered'>
           <thead>
             <tr>
-              <th>名称</th>
-              <th>我是否负责</th>
-              <th>其他负责成员</th>
+              <th>{t('name')}</th>
+              <th>{t('assigned')}</th>
+              <th>{t('otherAssignees')}</th>
             </tr>
           </thead>
           <tbody>
@@ -98,3 +101,9 @@ export default class Categories extends React.Component {
   }
 
 }
+
+Categories.propTypes = {
+  t: PropTypes.func
+}
+
+export default translate(Categories)

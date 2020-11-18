@@ -41,6 +41,7 @@
     "lodash": "^4.17.10",
     "mailgun-js": "^0.18.0",
     "moment": "^2.17.1",
+    "node-polyglot": "^2.4.0",
     "qs": "^6.3.1",
     "query-string": "^4.3.4",
     "randomcolor": "^0.5.3",
@@ -68,6 +69,7 @@
   "devDependencies": {
     "conventional-changelog-cli": "^2.0.0",
     "eslint": "^3.15.0",
+    "eslint-plugin-i18n": "^2.0.0",
     "eslint-plugin-promise": "^3.6.0",
     "eslint-plugin-react": "^6.10.0",
     "http-server": "^0.10.0",

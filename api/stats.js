@@ -5,8 +5,6 @@ const AV = require('leanengine')
 
 const forEachAVObject = require('./common').forEachAVObject
 
-moment.locale('zh-cn')
-
 const {TICKET_STATUS, ticketOpenedStatuses} = require('../lib/common')
 
 AV.Cloud.define('statsOpenedTicket', (req, res) => {

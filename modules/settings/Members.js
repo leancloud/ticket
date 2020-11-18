@@ -1,10 +1,13 @@
-import React from 'react'
+import React, { Component } from 'react'
+import PropTypes from 'prop-types'
 import _ from 'lodash'
 import AV from 'leancloud-storage/live-query'
 
-const {UserLabel, UserForm} = require('../common')
+const {UserLabel} = require('../common')
+import UserForm from '../UserForm'
+import translate from '../i18n/translate'
 
-export default class SettingMembers extends React.Component {
+class SettingMembers extends Component {
 
   constructor(props) {
     super(props)
@@ -65,6 +68,7 @@ export default class SettingMembers extends React.Component {
   }
 
   render() {
+    const {t} = this.props
     const customerServices = this.state.customerServices.map((customerService) => {
       const categories = _.map(customerService.get('categories'), (category) => {
         return <span key={category.objectId}>{category.name} </span>
@@ -78,7 +82,7 @@ export default class SettingMembers extends React.Component {
             {categories}
           </td>
           <td>
-            <input type='button' className='btn btn-default' value='移除' onClick={() => this.handleRemoveCustomerService(customerService.id)} />
+            <input type='button' className='btn btn-default' value={t('remove')} onClick={() => this.handleRemoveCustomerService(customerService.id)} />
           </td>
         </tr>
       )
@@ -89,9 +93,9 @@ export default class SettingMembers extends React.Component {
         <table className="table table-bordered">
           <thead>
             <tr>
-              <th>用户名</th>
-              <th>负责分类</th>
-              <th>操作</th>
+              <th>{t('username')}</th>
+              <th>{t('assignedCategories')}</th>
+              <th>{t('operation')}</th>
             </tr>
           </thead>
           <tbody>
@@ -101,5 +105,10 @@ export default class SettingMembers extends React.Component {
       </div>
     )
   }
-
 }
+
+SettingMembers.propTypes = {
+  t: PropTypes.func
+}
+
+export default translate(SettingMembers)

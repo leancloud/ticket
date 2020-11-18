@@ -4,9 +4,10 @@ import PropTypes from 'prop-types'
 import {Form, FormGroup, ControlLabel, FormControl, Button, Table, HelpBlock} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
-import {UserForm, UserLabel} from './../common'
-
-export default class Organization extends React.Component {
+import {UserLabel} from './../common'
+import UserForm from '../UserForm'
+import translate from '../i18n/translate'
+class Organization extends React.Component {
 
   componentDidMount() {
     const id = this.props.params.id
@@ -34,24 +35,24 @@ export default class Organization extends React.Component {
     })
   }
 
-  handleNameChange(e) {
+  handleNameChange(t, e) {
     const name = e.target.value
     this.setState({
       name,
       nameChanged: name !== this.state.organization.get('name'),
       nameValidationState: name.trim().length > 0 ? 'success' : 'error',
-      nameHelpMessage: '组织名称不能为空。',
+      nameHelpMessage: t('organizationNameNonempty'),
     })
   }
 
-  submitNameChange(e) {
+  submitNameChange(t, e) {
     e.preventDefault()
 
     const name = this.state.name.trim()
     if (name.length == 0) {
       this.setState({
         nameValidationState: 'error',
-        nameHelpMessage: '组织名称不能为空。',
+        nameHelpMessage: t('organizationNameNonempty'),
       })
       return
     }
@@ -82,13 +83,13 @@ export default class Organization extends React.Component {
     .catch(this.context.addNotification)
   }
 
-  handleRemove() {
+  handleRemove(t) {
     new AV.Query('Ticket')
     .equalTo('organization', this.state.organization)
     .count()
     .then(count => {
-      const result = confirm(`确认要删除组织：${this.state.organization.get('name')}
-该操作会将 ${count} 个工单重新归属于创建者名下。`)
+      const result = confirm(`${t('confirmDeleteOrganization')} ${this.state.organization.get('name')}.
+${count} ${t('deleteOrganizationConsequence')}`)
       if (!result) {
         return
       }
@@ -143,10 +144,10 @@ export default class Organization extends React.Component {
     .catch(this.context.addNotification)
   }
 
-  handleDemotion(user) {
+  handleDemotion(user, t) {
     let {admins, members} = this.state
     if (admins.length <= 1) {
-      this.context.addNotification(new Error('该组织至少需要一名管理员。'))
+      this.context.addNotification(new Error(t('demoteToMemberError')))
       return
     }
 
@@ -162,8 +163,8 @@ export default class Organization extends React.Component {
     .catch(this.context.addNotification)
   }
 
-  handleRemoveMember(user) {
-    const result = confirm(`确认要将用户 ${user.get('name')} 从该组织移除？`) 
+  handleRemoveMember(user, t) {
+    const result = confirm(`${t('confirmRemoveMember')} ${user.get('name')}`) 
     if (result) {
       const memberRole = this.state.organization.get('memberRole')
       memberRole.getUsers().remove(user)
@@ -178,19 +179,20 @@ export default class Organization extends React.Component {
   }
 
   render() {
+    const {t} = this.props
     if (!this.state) {
-      return <div>数据读取中……</div>
+      return <div>{t('loading')}……</div>
     }
 
     return (
       <div>
         {this.state.isAdmin &&
-          <Form onSubmit={this.submitNameChange.bind(this)}>
+          <Form onSubmit={this.submitNameChange.bind(this, t)}>
             <FormGroup controlId='nameText' validationState={this.state.nameValidationState}>
-              <ControlLabel>组织名称</ControlLabel>
-              <FormControl type="text" value={this.state.name} onChange={this.handleNameChange.bind(this)} />
+              <ControlLabel>{t('organizationName')}</ControlLabel>
+              <FormControl type="text" value={this.state.name} onChange={this.handleNameChange.bind(this, t)} />
               {this.state.nameValidationState === 'error' && <HelpBlock>{this.state.nameHelpMessage}</HelpBlock>}
-              {this.state.nameValidationState !== 'error' && this.state.nameChanged && <Button type='submit' disabled={this.state.isSubmitting}>保存名称</Button>}
+              {this.state.nameValidationState !== 'error' && this.state.nameChanged && <Button type='submit' disabled={this.state.isSubmitting}>{t('save')}</Button>}
             </FormGroup>
           </Form>
           ||
@@ -200,35 +202,35 @@ export default class Organization extends React.Component {
         <Table bordered>
           <thead>
             <tr>
-              <th>用户</th>
-              <th>角色</th>
-              {this.state.isAdmin && <th>操作</th>}
+              <th>{t('username')}</th>
+              <th>{t('role')}</th>
+              {this.state.isAdmin && <th>{t('operation')}</th>}
             </tr>
           </thead>
           <tbody>
             {this.state.admins.map(u => {
               return <tr key={u.id}>
                 <td><UserLabel user={u} /></td>
-                <td>管理员</td>
+                <td>{t('admin')}</td>
                 {this.state.isAdmin && <td>
-                  <Button onClick={() => this.handleDemotion(u)}>降级为成员</Button>{' '}
+                  <Button onClick={() => this.handleDemotion(u, t)}>{t('demoteToMember')}</Button>{' '}
                 </td>}
               </tr>
             })}
             {this.state.members.map(u => {
               return <tr key={u.id}>
                 <td><UserLabel user={u} /></td>
-                <td>成员</td>
+                <td>{t('member')}</td>
                 {this.state.isAdmin && <td>
-                  <Button onClick={() => this.promote(u)}>晋升为管理员</Button>{' '}
-                  <Button onClick={() => this.handleRemoveMember(u)}>移除</Button>
+                  <Button onClick={() => this.promote(u)}>{t('promoteToAdmin')}</Button>{' '}
+                  <Button onClick={() => this.handleRemoveMember(u, t)}>{t('remove')}</Button>
                 </td>}
               </tr>
             })}
           </tbody>
         </Table>
-        <Button type='button' onClick={() => this.context.router.push('/settings/organizations')}>返回</Button>{' '}
-        {this.state.isAdmin && <Button type='button' onClick={this.handleRemove.bind(this)} bsStyle='danger'>删除组织</Button>}
+        <Button type='button' onClick={() => this.context.router.push('/settings/organizations')}>{t('return')}</Button>{' '}
+        {this.state.isAdmin && <Button type='button' onClick={this.handleRemove.bind(this, t)} bsStyle='danger'>{t('deleteOrganization')}</Button>}
       </div>
     )
   }
@@ -238,9 +240,12 @@ export default class Organization extends React.Component {
 Organization.propTypes = {
   params: PropTypes.object.isRequired,
   leaveOrganization: PropTypes.func,
+  t: PropTypes.func
 }
 
 Organization.contextTypes = {
   router: PropTypes.object.isRequired,
   addNotification: PropTypes.func.isRequired,
 }
+
+export default translate(Organization)

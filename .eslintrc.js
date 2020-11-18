@@ -22,7 +22,8 @@ module.exports = {
     },
     "plugins": [
         "react",
-        "promise"
+        "promise",
+        "i18n"
     ],
     "rules": {
         "indent": [
@@ -44,6 +45,7 @@ module.exports = {
         "no-console": 0,
         "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
         "promise/no-nesting": 0,
-        "promise/no-callback-in-promise": 0
+        "promise/no-callback-in-promise": 0,
+        "i18n/no-chinese-character": 1
     }
 };
