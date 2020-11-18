@@ -9,7 +9,7 @@ LeanCloud 应用准备
    - 存储 -> 设置 -> 勾选「启用 LiveQuery」
 3. 初始化数据表：将 `./resources/schema` 目录下表结构导入到存储服务中。然后在 Ticket 表新建一列，名为 `nid`，类型选择 `Number`，勾选「自增」。
 4. 设置客服邮箱：在 `./config.js` 文件中设置 `supportEmail` 变量。报错页面等处会显示该邮箱。
-5. 设置云引擎二级域名：云引擎 -> 设置 -> Web 主机域名
+5. 绑定云引擎域名：设置 -> 域名绑定 -> 云引擎、ClientEngine 域名
 
 
 获取应用源码：
@@ -33,7 +33,7 @@ lean switch
 lean deploy
 ```
 
-部署完成后，访问 [https://<刚才设置的二级域名>.leanapp.cn]() 即可访问。
+部署完成后，访问 `https://<刚才绑定的自定义域名>` 即可访问。
 
 ### 开始使用
 
@@ -79,13 +79,14 @@ lean deploy
 
 应用会将工单的一些信息按周汇总统计，方便客服了解一些数据指标。
 
-**提示**：因为某些原因，统计的时间分割为周五凌晨 0 点，也就是数据汇总是从上周五 0 点到本周五 0 点的数据。
+**提示**：统计默认每周从周一（凌晨 0 点）开始，至周日（23:59:59）结束。
+如果希望调整统计分割时间，可以修改 `config.js` 文件中的 `offsetDays`。
 
 #### 客服个人设置
 
 「客服」账号可以在 右上角点击用户名 -> 设置 -> 技术支持设置 -> 个人设置 页面进行设置。
 
-可以设置企业微信号关联和 Bearychat hook URL，这样有新的工单等信息时会收到响应的提醒。
+可以设置企业微信号关联，这样有新的工单等信息时会收到响应的提醒。
 
 如果客服无法处于工作状态，可以「请假」，工单不会分配给请假时间段内的客服。
 
@@ -122,6 +123,17 @@ npm run dev:client
 访问 http://localhost:3000 即可。
 
 **提示**：因为应用依赖较多的 [云函数](https://leancloud.cn/docs/leanengine_cloudfunction_guide-node.html#云函数) 和 [Hook 函数](https://leancloud.cn/docs/leanengine_cloudfunction_guide-node.html#Hook_函数) ，而本地运行时暂不能调用到本地应用的相关代码，所以需要先将应用部署到云端。
+
+### Demo
+
+为了方便大家体验 LeanTicket 的功能，我们部署了一个 Demo 应用（这个应用仅供测试，数据随时可能清空）。
+
+[LeanTicket Demo](https://ticket-demo.avosapps.us/)
+
+用户名 | 密码 | 角色
+- | - | -
+demo | demo | 客服
+test | test | 用户
 
 ### 内部贡献
 
