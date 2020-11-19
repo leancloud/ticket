@@ -687,8 +687,8 @@ const messages = {
     '回复耗时'
   ],
   'tagCount': [
-    '标签数',
     'Tag count',
+    '标签数',
   ],
   // TicketReply
   'noNeedToReply': [
