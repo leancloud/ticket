@@ -130,10 +130,10 @@ npm run dev:client
 
 [LeanTicket Demo](https://ticket-demo.avosapps.us/)
 
-用户名 | 密码 | 角色
-- | - | -
-demo | demo | 客服
-test | test | 用户
+| 用户名 | 密码 | 角色 |
+| - | - | - |
+| demo | demo | 客服 |
+| test | test | 用户 |
 
 ### 内部贡献
 
