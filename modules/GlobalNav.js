@@ -4,32 +4,56 @@ import { Link } from 'react-router'
 import translate from './i18n/translate'
 
 class GlobalNav extends Component {
-
   handleNewTicketClick() {
     this.context.router.push('/tickets/new')
   }
 
   render() {
-    const {t} = this.props
+    const { t } = this.props
     let user
     if (this.props.currentUser) {
       user = (
         <li className="dropdown">
-          <a href="#" className="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{this.props.currentUser.get('name')} <span className="caret"></span></a>
+          <a
+            href="#"
+            className="dropdown-toggle"
+            data-toggle="dropdown"
+            role="button"
+            aria-haspopup="true"
+            aria-expanded="false"
+          >
+            {this.props.currentUser.get('name')} <span className="caret"></span>
+          </a>
           <ul className="dropdown-menu">
-            <li><Link to="/settings">{t('settings')}</Link></li>
-            <li><a href="#" onClick={() => this.props.logout()}>{t('logout')}</a></li>
+            <li>
+              <Link to="/settings">{t('settings')}</Link>
+            </li>
+            <li>
+              <a href="#" onClick={() => this.props.logout()}>
+                {t('logout')}
+              </a>
+            </li>
           </ul>
         </li>
       )
     } else {
-      user = <li><Link to="/login">{t('login')}</Link></li>
+      user = (
+        <li>
+          <Link to="/login">{t('login')}</Link>
+        </li>
+      )
     }
     let createTicket
     if (this.props.currentUser) {
       createTicket = (
         <li>
-          <button type="submit" className='btn btn-success navbar-btn nav-submit-btn' onClick={this.handleNewTicketClick.bind(this)}>{t('newTicket')}</button>
+          <button
+            type="submit"
+            className="btn btn-success navbar-btn nav-submit-btn"
+            onClick={this.handleNewTicketClick.bind(this)}
+          >
+            {t('newTicket')}
+          </button>
         </li>
       )
     }
@@ -37,18 +61,30 @@ class GlobalNav extends Component {
       <nav className="navbar navbar-default navbar-fixed-top">
         <div className="container">
           <div className="navbar-header">
-            <button type="button" className="navbar-toggle collapsed" data-toggle="collapse" data-target="#global-navbar-collapse" aria-expanded="false">
+            <button
+              type="button"
+              className="navbar-toggle collapsed"
+              data-toggle="collapse"
+              data-target="#global-navbar-collapse"
+              aria-expanded="false"
+            >
               <span className="sr-only">Toggle navigation</span>
               <span className="icon-bar"></span>
               <span className="icon-bar"></span>
               <span className="icon-bar"></span>
             </button>
-            <Link className="navbar-brand font-logo" to='/'>LeanTicket</Link>
+            <Link className="navbar-brand font-logo" to="/">
+              LeanTicket
+            </Link>
           </div>
           <div className="collapse navbar-collapse" id="global-navbar-collapse">
             <ul className="nav navbar-nav">
-              <li><Link to="/tickets">{t('ticketList')}</Link></li>
-              <li><Link to="/about">{t('about')}</Link></li>
+              <li>
+                <Link to="/tickets">{t('ticketList')}</Link>
+              </li>
+              <li>
+                <Link to="/about">{t('about')}</Link>
+              </li>
             </ul>
             {this.props.isCustomerService &&
               <ul className="nav navbar-nav">
@@ -70,7 +106,6 @@ class GlobalNav extends Component {
       </nav>
     )
   }
-
 }
 
 GlobalNav.contextTypes = {
