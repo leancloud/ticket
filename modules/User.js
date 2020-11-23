@@ -136,7 +136,6 @@ const LeanCloudApps = (props) => {
 LeanCloudApps.propTypes = {
   leancloudApps: PropTypes.array
 }
-export default translate(User)
 User.propTypes = {
   t: PropTypes.func
 }
