@@ -46,7 +46,6 @@ class NewTicket extends React.Component {
       inputSelector: '.docsearch-input',
       debug: false // Set debug to true if you want to inspect the dropdown
     })
-
     this.contentTextarea.addEventListener('paste', this.pasteEventListener.bind(this))
     AV.Cloud.run('checkPermission')
     .then(() => {
