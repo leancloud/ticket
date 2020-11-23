@@ -14,7 +14,6 @@ import css from './Login.css'
 import translate from './i18n/translate'
 
 class Login extends Component {
-
   constructor(props) {
     super(props)
     this.state = {
@@ -144,7 +143,6 @@ class Login extends Component {
         </div>
       )
     }
-
     return (
       <div className={css.wrap}>
         <h1 className="font-logo">欢迎回来</h1>
