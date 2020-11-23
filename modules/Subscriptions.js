@@ -6,7 +6,8 @@ import _ from 'lodash'
 import moment from 'moment'
 import AV from 'leancloud-storage/live-query'
 import { Link } from 'react-router'
-import { UserLabel, TicketStatusLabel } from './common'
+import { UserLabel } from './common'
+import TicketStatusLabel from './TicketStatusLabel'
 import css from './CustomerServiceTickets.css'
 
 export default class Subscriptions extends Component {
