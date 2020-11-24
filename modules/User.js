@@ -1,7 +1,6 @@
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import {Link} from 'react-router'
-import PropTypes from 'prop-types'
 import AV from 'leancloud-storage/live-query'
 import {Avatar} from './common'
 import css from './User.css'
