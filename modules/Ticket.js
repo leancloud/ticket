@@ -3,7 +3,7 @@ import _ from 'lodash'
 import xss from 'xss'
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
-import {FormGroup, ControlLabel, Label, Alert, Button, Tooltip, OverlayTrigger, } from 'react-bootstrap'
+import {FormGroup, ControlLabel, Label, Alert, Button, Tooltip, OverlayTrigger} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
 import {UserLabel, uploadFiles, getCategoryPathName, getCategoriesTree, getTinyCategoryInfo} from './common'
