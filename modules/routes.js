@@ -1,4 +1,4 @@
-/*global SENTRY_DSN_PUBLIC, LEANCLOUD_APP_ID, LEANCLOUD_APP_KEY, LEANCLOUD_APP_ENV, LEAN_CLI_HAVE_STAGING*/
+/*global SENTRY_DSN_PUBLIC, LEANCLOUD_APP_ID, LEANCLOUD_APP_KEY, LEANCLOUD_API_HOST, LEANCLOUD_APP_ENV, LEAN_CLI_HAVE_STAGING*/
 import React from 'react'
 import Raven from 'raven-js'
 import { Route, IndexRoute, Redirect } from 'react-router'
@@ -13,6 +13,8 @@ import Login from './Login'
 import Tickets from './Tickets'
 import NewTicket from './NewTicket'
 import Ticket from './Ticket'
+import Messages from './Messages'
+import Notifications from './Notifications.js'
 import CustomerService from './CustomerService'
 import CSTickets from './CustomerServiceTickets'
 import CSStats from './CustomerServiceStats'
@@ -55,6 +57,7 @@ if (SENTRY_DSN_PUBLIC !== '') {
 AV.init({
   appId: LEANCLOUD_APP_ID,
   appKey: LEANCLOUD_APP_KEY,
+  serverURLs: LEANCLOUD_API_HOST,
 })
 if (LEANCLOUD_APP_ENV === 'development') {
   AV.setProduction(LEAN_CLI_HAVE_STAGING !== 'true')
@@ -70,6 +73,9 @@ module.exports = (
     <Route path="/tickets" component={Tickets} onEnter={common.requireAuth} />
     <Route path="/tickets/new" component={NewTicket} onEnter={common.requireAuth} />
     <Route path="/tickets/:nid" component={Ticket} onEnter={common.requireAuth} />
+    <Route path="/messages" component={Messages} onEnter={common.requireAuth} />
+    <Route path="/notifications" component={Notifications} onEnter={common.requireAuth} />
+    <Route path="/notifications/subscriptions" component={Notifications} onEnter={common.requireAuth} />
     <Route path="/customerService" component={CustomerService} onEnter={common.requireCustomerServiceAuth}>
       <Route path="/customerService/tickets" component={CSTickets} />
       <Route path="/customerService/stats" component={CSStats} />

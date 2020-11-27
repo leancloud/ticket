@@ -10,12 +10,11 @@ import css from './CustomerServiceTickets.css'
 import DocumentTitle from 'react-document-title'
 
 import {UserLabel, getCustomerServices, getCategoriesTree, depthFirstSearchMap, depthFirstSearchFind, getNodeIndentString, getNodePath, getTinyCategoryInfo, getCategoryName} from './common'
-import {TICKET_STATUS, TICKET_STATUS_MSG, ticketOpenedStatuses, ticketClosedStatuses, getUserDisplayName} from '../lib/common'
+import {TICKET_STATUS, TICKET_STATUS_MSG, ticketOpenedStatuses, ticketClosedStatuses, getUserDisplayName, TIME_RANGE_MAP} from '../lib/common'
 import TicketStatusLabel from './TicketStatusLabel'
 import translate from './i18n/translate'
 
 let authorSearchTimeoutId
-
 class CustomerServiceTickets extends Component {
 
   constructor(props) {
@@ -58,7 +57,7 @@ class CustomerServiceTickets extends Component {
     }
 
     const {assigneeId, isOpen, status, categoryId, authorId,
-      tagKey, tagValue, isOnlyUnlike, searchString, page = '0', size = '10'} = filters
+      tagKey, tagValue, isOnlyUnlike, searchString, page = '0', size = '10', timeRange} = filters
     const query = new AV.Query('Ticket')
     
     let statuses = []
@@ -69,6 +68,11 @@ class CustomerServiceTickets extends Component {
       statuses = ticketClosedStatuses()
     } else if (status) {
       statuses = [parseInt(status)]
+    }
+
+    if(timeRange){
+      query.greaterThanOrEqualTo('createdAt', TIME_RANGE_MAP[timeRange].starts)
+      query.lessThan('createdAt', TIME_RANGE_MAP[timeRange].ends)
     }
 
     if (statuses.length !== 0) {
@@ -108,14 +112,14 @@ class CustomerServiceTickets extends Component {
       if (searchString && searchString.trim().length > 0) {
         return Promise.all([
           new AV.SearchQuery('Ticket').queryString(`title:*${searchString}* OR content:*${searchString}*`)
-            .addDescending('updatedAt')
+            .addDescending('latestReply.updatedAt')
             .limit(1000)
             .find()
             .then(tickets => {
               return tickets.map(t => t.id)
             }),
           new AV.SearchQuery('Reply').queryString(`content:*${searchString}*`)
-            .addDescending('updatedAt')
+            .addDescending('latestReply.updatedAt')
             .limit(1000)
             .find()
         ])
@@ -131,7 +135,7 @@ class CustomerServiceTickets extends Component {
       .include('assignee')
       .limit(parseInt(size))
       .skip(parseInt(page) * parseInt(size))
-      .addDescending('updatedAt')
+      .addDescending('latestReply.updatedAt')
       .find()
       .then(tickets => {
         tickets.forEach(t => {
@@ -329,6 +333,8 @@ class CustomerServiceTickets extends Component {
       categoryTitle = t('all') 
     }
 
+    
+
     const ticketAdminFilters = (
       <div>
         <Form inline className='form-group'>
@@ -375,6 +381,19 @@ class CustomerServiceTickets extends Component {
                     })}
                   </DropdownButton>
                 }
+              </ButtonGroup>
+              <ButtonGroup>
+                <DropdownButton 
+                  className={(filters.timeRange ? ' active' : '')} 
+                  id='timeRange' 
+                  title={TIME_RANGE_MAP[filters.timeRange]? TIME_RANGE_MAP[filters.timeRange].name : '全部时间'} 
+                  onSelect={(eventKey) => this.updateFilter({timeRange: eventKey})}
+                >
+                    <MenuItem key='undefined'>全部时间</MenuItem>
+                    <MenuItem key='本月工单' eventKey='本月工单'>{TIME_RANGE_MAP['本月工单'].name}</MenuItem>
+                    <MenuItem key='上月工单' eventKey="上月工单">{TIME_RANGE_MAP['上月工单'].name}</MenuItem>
+                    <MenuItem key='两月前工单' eventKey="两月前工单">{TIME_RANGE_MAP['两月前工单'].name}</MenuItem>
+                </DropdownButton>
               </ButtonGroup>
             </ButtonToolbar>
           </FormGroup>

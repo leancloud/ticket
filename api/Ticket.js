@@ -3,6 +3,7 @@ const AV = require('leanengine')
 
 const common = require('./common')
 const {getTinyUserInfo, htmlify, getTinyReplyInfo} = common
+const oauth = require('./oauth')
 const notify = require('./notify')
 const {TICKET_STATUS, ticketClosedStatuses} = require('../lib/common')
 const errorHandler = require('./errorHandler')
@@ -11,23 +12,25 @@ AV.Cloud.beforeSave('Ticket', (req, res) => {
   if (!req.currentUser._sessionToken) {
     return res.error('noLogin')
   }
-  const ticket = req.object
-  if (!ticket.get('title') || ticket.get('title').trim().length === 0) {
-    throw new AV.Cloud.Error('title 不能为空')
-  }
+  return oauth.checkPermission(req.currentUser)
+  .then(() => {
+    const ticket = req.object
+    if (!ticket.get('title') || ticket.get('title').trim().length === 0) {
+      throw new AV.Cloud.Error('title 不能为空')
+    }
+    if (!ticket.get('category') || !ticket.get('category').objectId) {
+      throw new AV.Cloud.Error('category 不能为空')
+    }
 
-  if (!ticket.get('category') || !ticket.get('category').objectId) {
-    throw new AV.Cloud.Error('category 不能为空')
-  }
-
-  ticket.set('status', TICKET_STATUS.NEW)
-  ticket.set('content_HTML', htmlify(ticket.get('content')))
-  ticket.set('author', req.currentUser)
-  return selectAssignee(ticket)
-  .then((assignee) => {
-    ticket.set('assignee', assignee)
-    res.success()
-    return
+    ticket.set('status', TICKET_STATUS.NEW)
+    ticket.set('content_HTML', htmlify(ticket.get('content')))
+    ticket.set('author', req.currentUser)
+    return selectAssignee(ticket)
+    .then((assignee) => {
+      ticket.set('assignee', assignee)
+      res.success()
+      return
+    })
   }).catch((err) => {
     errorHandler.captureException(err)
     res.error(err)
@@ -150,6 +153,20 @@ AV.Cloud.define('getPrivateTags', (req) => {
   })
 })
 
+AV.Cloud.define('exploreTicket', ({params, currentUser}) => {
+  const now = new Date()
+  return new AV.Query('Message')
+    .equalTo('ticket', AV.Object.createWithoutData('Ticket', params.ticketId))
+    .equalTo('to', currentUser)
+    .lessThanOrEqualTo('createdAt', now)
+    .limit(1000)
+    .find({user: currentUser})
+    .then(messages => {
+      messages.forEach(m => m.set('isRead', true))
+      return AV.Object.saveAll(messages, {user: currentUser})
+    })
+})
+
 const getTargetStatus = (action, isCustomerService) => {
   switch (action) {
   case 'replyWithNoContent':
@@ -168,7 +185,7 @@ const getTargetStatus = (action, isCustomerService) => {
 }
 
 exports.replyTicket = (ticket, reply, replyAuthor) => {
-  Promise.all([
+  return Promise.all([
     ticket.fetch({include: 'author,assignee'}, {user: replyAuthor}),
     getTinyReplyInfo(reply),
     getTinyUserInfo(reply.get('author'))
