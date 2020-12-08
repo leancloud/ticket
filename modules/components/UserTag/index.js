@@ -63,11 +63,11 @@ export class UserTagManager extends React.Component {
         <UserTagGroup tags={this.props.tags} />
         <div>
           <Checkbox
-            checked={this.props.tags.includes(USER_TAG_NAME.MAJOR)}
-            onChange={() => this.toggleTag(USER_TAG_NAME.MAJOR)}
+            checked={this.props.tags.includes(USER_TAG_NAME.VIP)}
+            onChange={() => this.toggleTag(USER_TAG_NAME.VIP)}
             disabled={this.state.loading}
           >
-            标记为{USER_TAG[USER_TAG_NAME.MAJOR].name}
+            标记为{USER_TAG[USER_TAG_NAME.VIP].name}
           </Checkbox>
         </div>
       </div>
