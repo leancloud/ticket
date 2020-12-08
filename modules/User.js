@@ -41,15 +41,19 @@ export default class User extends Component {
   }
 
   addTag(tag) {
-    const user = AV.Object.createWithoutData('_User', this.state.user.objectId)
-    user.addUnique('tags', tag)
-    return user.save().then(() => this.refreshUserInfo(this.props))
+    return AV.Cloud.run('modifyUserTags', {
+      objectId: this.state.user.objectId,
+      action: 'add',
+      tags: [tag]
+    }).then(() => this.refreshUserInfo(this.props))
   }
 
   removeTag(tag) {
-    const user = AV.Object.createWithoutData('_User', this.state.user.objectId)
-    user.remove('tags', tag)
-    return user.save().then(() => this.refreshUserInfo(this.props))
+    return AV.Cloud.run('modifyUserTags', {
+      objectId: this.state.user.objectId,
+      action: 'remove',
+      tags: [tag]
+    }).then(() => this.refreshUserInfo(this.props))
   }
 
   render() {
