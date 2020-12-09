@@ -6,7 +6,6 @@ import StatsSummary from './StatsSummary'
 import StatsChart from './StatsChart'
 import translate from './i18n/translate'
 
-
 class CustomerServiceStats extends React.Component {
 
   constructor(props) {

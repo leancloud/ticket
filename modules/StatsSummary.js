@@ -9,6 +9,8 @@ import {fetchUsers} from './common'
 import offsetDays from '../config'
 import translate from './i18n/translate'
 import {getUserDisplayName} from '../lib/common'
+import { UserTagGroup } from './components/UserTag'
+import { getUserTags, USER_TAG_NAME } from '../lib/common'
 
 const sortAndIndexed = (datas, sortFn) => {
   const sorted = _.sortBy(datas, sortFn)
@@ -214,10 +216,16 @@ class StatsSummary extends React.Component {
     const activeTicketCountByAssigneeDoms = this.state.statsDatas.map(data => {
       const body = data.activeTicketCountByAssignee.map(row => {
         const user = _.find(this.state.users, c => c.id === row[0])
+        const username = (
+          <span>
+            {user && getUserDisplayName(user) || row[0]}
+            <UserTagGroup tags={getUserTags(user).filter(tag => tag === USER_TAG_NAME.NEW)} />
+          </span>
+        )
         return [
           row[0],
           row.index,
-          user && getUserDisplayName(user) || row[0],
+          username,
           row[1],
         ]
       })
