@@ -4,6 +4,7 @@ import PropTypes from 'prop-types'
 import AV from 'leancloud-storage/live-query'
 import {Avatar} from './common'
 import css from './User.css'
+import {UserTagManager} from './components/UserTag'
 
 export default class User extends Component {
 
@@ -39,6 +40,22 @@ export default class User extends Component {
     })
   }
 
+  addTag(tag) {
+    return AV.Cloud.run('modifyUserTags', {
+      objectId: this.state.user.objectId,
+      action: 'add',
+      tags: [tag]
+    }).then(() => this.refreshUserInfo(this.props))
+  }
+
+  removeTag(tag) {
+    return AV.Cloud.run('modifyUserTags', {
+      objectId: this.state.user.objectId,
+      action: 'remove',
+      tags: [tag]
+    }).then(() => this.refreshUserInfo(this.props))
+  }
+
   render() {
     if (!this.state.user) {
       return <div>读取中……</div>
@@ -52,6 +69,9 @@ export default class User extends Component {
           </div>
           <div className={css.info}>
             <h2>{this.state.user.username}</h2>
+            {this.props.isCustomerService && (
+              <UserTagManager tags={this.state.user.tags} onAdd={this.addTag.bind(this)} onRemove={this.removeTag.bind(this)} />
+            )}
             <p><Link to={`/customerService/tickets?authorId=${this.state.user.objectId}&page=0&size=10`}>工单列表</Link></p>
             {this.state.leancloudUsers &&
               <div>
@@ -88,6 +108,9 @@ export default class User extends Component {
       </div>
     )
   }
+}
+User.propTypes = {
+  isCustomerService: PropTypes.bool
 }
 
 const LeanCloudApps = (props) => {

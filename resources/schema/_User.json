@@ -58,6 +58,9 @@
     },
     "salt": {
       "type": "String"
+    },
+    "tags":{
+      "type": "Array"
     }
   },
   "permissions": {

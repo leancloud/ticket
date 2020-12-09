@@ -11,6 +11,8 @@ import randomColor from 'randomcolor'
 import Color from 'color'
 import DocumentTitle from 'react-document-title'
 import {getUserDisplayName} from './common'
+import { UserTagGroup } from './components/UserTag'
+import { getUserTags, USER_TAG_NAME } from '../lib/common'
 
 // 默认情况，周统计按照周日 23 点 59 分 59 秒作为统计周期分割
 // 可以通过修改统计偏移日期调整周期分割
@@ -489,10 +491,16 @@ class StatsSummary extends React.Component {
     const activeTicketCountByAuthorDoms = this.state.statsDatas.map(data => {
       const body = data.activeTicketCountByAuthor.map(row => {
         const user = _.find(this.state.users, c => c.id === row[0])
+        const username = (
+          <span>
+            {user && getUserDisplayName(user) || row[0]}
+            <UserTagGroup tags={getUserTags(user).filter(tag => tag === USER_TAG_NAME.NEW)} />
+          </span>
+        )
         return [
           row[0],
           row.index,
-          user && getUserDisplayName(user) || row[0],
+          username,
           row[1],
         ]
       })

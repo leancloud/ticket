@@ -59,7 +59,7 @@ export default class CustomerServiceTickets extends Component {
     const {assigneeId, isOpen, status, categoryId, authorId,
       tagKey, tagValue, isOnlyUnlike, searchString, page = '0', size = '10', timeRange} = filters
     const query = new AV.Query('Ticket')
-    
+
     let statuses = []
     if (isOpen === 'true') {
       statuses = ticketOpenedStatuses()
@@ -267,7 +267,7 @@ export default class CustomerServiceTickets extends Component {
               <div className={css.left}>
                 <span className={css.nid}>#{ticket.get('nid')}</span>
                 <Link className={css.statusLink} to={this.getQueryUrl({status: ticket.get('status'), isOpen: undefined})}><span className={css.status}><TicketStatusLabel status={ticket.get('status')} /></span></Link>
-                <span className={css.creator}><UserLabel user={ticket.get('author')} /></span> 创建于 {moment(ticket.get('createdAt')).fromNow()}
+                <span className={css.creator}><UserLabel user={ticket.get('author')} displayTags /></span> 创建于 {moment(ticket.get('createdAt')).fromNow()}
                 {moment(ticket.get('createdAt')).fromNow() === moment(ticket.get('updatedAt')).fromNow() ||
                   <span>，更新于 {moment(ticket.get('updatedAt')).fromNow()}</span>
                 }
@@ -332,7 +332,7 @@ export default class CustomerServiceTickets extends Component {
       categoryTitle = '全部分类'
     }
 
-    
+
 
     const ticketAdminFilters = (
       <div>
@@ -382,10 +382,10 @@ export default class CustomerServiceTickets extends Component {
                 }
               </ButtonGroup>
               <ButtonGroup>
-                <DropdownButton 
-                  className={(filters.timeRange ? ' active' : '')} 
-                  id='timeRange' 
-                  title={TIME_RANGE_MAP[filters.timeRange]? TIME_RANGE_MAP[filters.timeRange].name : '全部时间'} 
+                <DropdownButton
+                  className={(filters.timeRange ? ' active' : '')}
+                  id='timeRange'
+                  title={TIME_RANGE_MAP[filters.timeRange]? TIME_RANGE_MAP[filters.timeRange].name : '全部时间'}
                   onSelect={(eventKey) => this.updateFilter({timeRange: eventKey})}
                 >
                     <MenuItem key='undefined'>全部时间</MenuItem>

@@ -487,7 +487,7 @@ export default class Ticket extends Component {
               <TicketStatusLabel status={ticket.get('status')} />
               {' '}
               <span>
-                <UserLabel user={ticket.get('author')} /> 创建于 <span title={moment(ticket.get('createdAt')).format()}>{moment(ticket.get('createdAt')).fromNow()}</span>
+                <UserLabel user={ticket.get('author')} displayTags={isCustomerService} /> 创建于 <span title={moment(ticket.get('createdAt')).format()}>{moment(ticket.get('createdAt')).fromNow()}</span>
                 {moment(ticket.get('createdAt')).fromNow() === moment(ticket.get('updatedAt')).fromNow() ||
                   <span>，更新于 <span title={moment(ticket.get('updatedAt')).format()}>{moment(ticket.get('updatedAt')).fromNow()}</span></span>
                 }
@@ -857,7 +857,7 @@ class TicketMetadata extends Component {
           :
           <span className={css.assignee}>
             <UserLabel user={ticket.get('assignee')} />
-            {isCustomerService && 
+            {isCustomerService &&
               <Button bsStyle='link' onClick={() => this.setState({isUpdateAssignee: true})}>
                 <span className='glyphicon glyphicon-pencil' aria-hidden="true"></span>
               </Button>

@@ -12,6 +12,8 @@ import {
 import _ from 'lodash'
 import validUrl from 'valid-url'
 import AV from 'leancloud-storage/live-query'
+import {UserTagGroup} from './components/UserTag'
+import {getUserTags} from '../lib/common'
 
 Object.assign(exports, require('../lib/common'))
 
@@ -138,6 +140,7 @@ exports.UserLabel = props => {
       <Link to={'/users/' + username} className="username">
         {name}
       </Link>
+      {props.displayTags && <UserTagGroup tags={getUserTags(props.user)} />}
     </span>
   )
 }
@@ -145,7 +148,8 @@ exports.UserLabel = props => {
 exports.UserLabel.displayName = 'UserLabel'
 exports.UserLabel.propTypes = {
   user: PropTypes.object,
-  simple: PropTypes.bool
+  simple: PropTypes.bool,
+  displayTags: PropTypes.bool
 }
 
 exports.TicketStatusLabel = props => {
