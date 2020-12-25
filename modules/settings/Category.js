@@ -3,7 +3,8 @@ import PropTypes from 'prop-types'
 import {FormGroup, ControlLabel, FormControl, Button} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
-import {getCategoriesTree, depthFirstSearchFind, CategoriesSelect, getTinyCategoryInfo} from './../common'
+import {getCategoriesTree, depthFirstSearchFind, getTinyCategoryInfo} from '../common'
+import CategoriesSelect from '../CategoriesSelect'
 import translate from '../i18n/translate'
 
 class Category extends React.Component {
