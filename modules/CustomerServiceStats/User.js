@@ -34,12 +34,12 @@ class CSStatsUser extends React.Component {
     let trs = []
     try {
       trs = this.state.statses.map(stats => {
-        let firstReplyStatsTd = <td>{t('notInvoled')}</td>
+        let firstReplyStatsTd = <td>{t('notInvolved')}</td>
         if (stats.firstReplyStats.userId === userId) {
           firstReplyStatsTd = <td>{(stats.firstReplyStats.firstReplyTime / 1000 / 60 / 60).toFixed(2)} {t('hour')}</td>
         }
         const replyTime = stats.replyTimeStats.find(s => s.userId === userId)
-        let replyTimeTd = <td>{t('notInvoled')}</td>
+        let replyTimeTd = <td>{t('notInvolved')}</td>
         if (replyTime) {
           replyTimeTd = <td>{(replyTime.replyTime / replyTime.replyCount / 1000 / 60 / 60).toFixed(2)} {t('hour')}</td>
         }
