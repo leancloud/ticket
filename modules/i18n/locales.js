@@ -34,6 +34,10 @@ const messages = {
     '构建。'
   ],
   // general
+  'account': [
+    'account',
+    '账号'
+  ],
   'all': [
     'All',
     '全部'
@@ -222,6 +226,10 @@ const messages = {
     'Reorder',
     '调整顺序'
   ],
+  'region': [
+    'region',
+    '节点'
+  ],
   'resolved': [
     'Resolved',
     '已解决'
@@ -350,6 +358,24 @@ const messages = {
   'replyCount': [
     'Replies',
     '回复次数'
+  ],
+  // AccountLink
+  'linkedAccounts': [
+    'Linked accounts',
+    '账号关联'
+  ],
+  'loginIntlFirst': [
+    'Before linking the international account, please log in at leancloud.app first.',
+    '关联国际版账号之前，请先登录国际版。'
+  ],
+  // OauthButton
+  'linkedPrefix': [
+    '',
+    '已关联'
+  ],
+  'linkedSuffix': [
+    'linked',
+    ''
   ],
   // Categories
   'newCategory': [
