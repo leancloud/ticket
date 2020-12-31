@@ -3,7 +3,8 @@ import PropTypes from 'prop-types'
 import {FormControl} from 'react-bootstrap'
 import _ from 'lodash'
 import translate from './i18n/translate'
-import {depthFirstSearchMap, getNodeIndentString, getCategoryName} from './common'
+import {getNodeIndentString, getCategoryName} from './common'
+import {depthFirstSearchMap} from '../lib/common'
 
 const CategoriesSelect = ({t, categoriesTree, selected, onChange, hiddenDisable = true}) => {
   const options = _.compact(depthFirstSearchMap(categoriesTree, c => {

@@ -3,8 +3,8 @@ import PropTypes from 'prop-types'
 import {FormGroup, ControlLabel, FormControl, Button, HelpBlock} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
-import {getOrganizationRoleName} from './../common'
 import translate from '../i18n/translate'
+import {getOrganizationRoleName} from '../../lib/common'
 
 class OrganizationNew extends React.Component {
 

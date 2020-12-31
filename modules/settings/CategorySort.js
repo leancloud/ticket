@@ -3,8 +3,9 @@ import PropTypes from 'prop-types'
 import {Form, FormGroup, Button} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
-import {getCategoriesTree, depthFirstSearchMap, getNodeIndentString} from '../common'
+import {getCategoriesTree, getNodeIndentString} from '../common'
 import translate from '../i18n/translate'
+import {depthFirstSearchMap} from '../../lib/common'
 
 class CategorySort extends React.Component {
 

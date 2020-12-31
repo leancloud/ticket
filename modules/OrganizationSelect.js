@@ -2,8 +2,8 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import {FormGroup, FormControl, ControlLabel} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
-import {getUserDisplayName} from './common'
 import translate from './i18n/translate'
+import {getUserDisplayName} from '../lib/common'
 
 class OrganizationSelect extends React.Component {
 

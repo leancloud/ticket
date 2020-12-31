@@ -5,9 +5,10 @@ import _ from 'lodash'
 import {Table, Button} from 'react-bootstrap'
 import {Link} from 'react-router'
 import AV from 'leancloud-storage/live-query'
-import {getUserDisplayName, fetchUsers} from './common'
+import {fetchUsers} from './common'
 import offsetDays from '../config'
 import translate from './i18n/translate'
+import {getUserDisplayName} from '../lib/common'
 
 const sortAndIndexed = (datas, sortFn) => {
   const sorted = _.sortBy(datas, sortFn)

@@ -4,11 +4,13 @@ import PropTypes from 'prop-types'
 import {FormGroup, FormControl, Button} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
-import {getCustomerServices, UserLabel, getCategoryPathName, CategoriesSelect, depthFirstSearchFind} from './common'
+import {getCustomerServices, UserLabel, getCategoryPathName} from './common'
 import TagForm from './TagForm'
 import css from './Ticket.css'
 import csCss from './CustomerServiceTickets.css'
 import translate from './i18n/translate'
+import {depthFirstSearchFind} from '../lib/common'
+import CategoriesSelect from './CategoriesSelect'
 
 class TicketMetadata extends Component {
 

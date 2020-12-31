@@ -1,6 +1,6 @@
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
-import {Form, FormGroup, ControlLabel, FormControl, Button, Checkbox, Table} from 'react-bootstrap'
+import {Form, FormGroup, ControlLabel, FormControl, Button} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
 import Vacation from './Vacation'

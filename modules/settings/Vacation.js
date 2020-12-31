@@ -5,8 +5,9 @@ import moment from 'moment'
 import DatePicker from 'react-datepicker'
 import AV from 'leancloud-storage/live-query'
 
-import {getCustomerServices, getUserDisplayName} from '../common'
+import {getCustomerServices} from '../common'
 import translate from '../i18n/translate'
+import {getUserDisplayName} from '../../lib/common'
 
 class Vacation extends Component {
 
