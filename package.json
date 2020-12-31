@@ -55,7 +55,7 @@
     "react-dom": "^15.4.2",
     "react-notification-system": "^0.2.14",
     "react-router": "^3.0.2",
-    "remarkable": "leeyeh/remarkable",
+    "remarkable": "^1.7.2",
     "request": "^2.87.0",
     "request-promise": "^4.1.1",
     "serve-favicon": "^2.4.3",
