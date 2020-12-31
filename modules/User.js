@@ -60,11 +60,11 @@ class User extends Component {
                 <table className='table table-bordered table-striped'>
                   <thead>
                     <tr>
-                      <td>区域</td>
+                      <td>{t('region')}</td>
                       <td>Id</td>
-                      <td>用户名</td>
-                      <td>电子邮箱</td>
-                      <td>电话</td>
+                      <td>{t('username')}</td>
+                      <td>{t('email')}</td>
+                      <td>{}</td>
                     </tr>
                   </thead>
                   <tbody>

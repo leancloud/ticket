@@ -146,6 +146,10 @@ const messages = {
     'Log out',
     '登出'
   ],
+  'mobile': [
+    'mobile',
+    '电话'
+  ],
   'name': [
     'Name',
     '名称'
@@ -496,6 +500,10 @@ const messages = {
     '成员数：'
   ],
   // Profile
+  'basicInfo': [
+    'Basic info',
+    '基本信息'
+  ],
   'changeAvatar': [
     'To change your avatar, please go to',
     '更改头像请前往'
