@@ -8,11 +8,12 @@ import AV from 'leancloud-storage/live-query'
 import css from './CustomerServiceTickets.css'
 import DocumentTitle from 'react-document-title'
 
-import {UserLabel, getCategoryPathName, getCategoriesTree, getTicketAcl} from './common'
+import {UserLabel, getCategoryPathName, getCategoriesTree} from './common'
 import OrganizationSelect from './OrganizationSelect'
 import TicketsMoveButton from './TicketsMoveButton'
 import TicketStatusLabel from './TicketStatusLabel'
 import translate from './i18n/translate'
+import {getTicketAcl} from '../lib/common'
 
 class Tickets extends Component {
 

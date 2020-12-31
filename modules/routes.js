@@ -5,7 +5,7 @@ import { Route, IndexRoute, Redirect } from 'react-router'
 import moment from 'moment'
 import AV from 'leancloud-storage/live-query'
 
-import common from './common'
+const common = require('./common')
 import App from './App'
 import About from './About'
 import Login from './Login'

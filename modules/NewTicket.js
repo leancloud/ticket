@@ -7,8 +7,14 @@ import AV from 'leancloud-storage/live-query'
 import docsearch from 'docsearch.js'
 
 import TextareaWithPreview from './components/TextareaWithPreview'
-import {defaultLeanCloudRegion, getLeanCloudRegionText} from '../lib/common'
-import {uploadFiles, getCategoriesTree, depthFirstSearchFind, getTinyCategoryInfo, getTicketAcl} from './common'
+import {
+  defaultLeanCloudRegion,
+  depthFirstSearchFind,
+  getLeanCloudRegionText,
+  getTicketAcl,
+  getTinyCategoryInfo
+} from '../lib/common'
+import {uploadFiles, getCategoriesTree} from './common'
 import OrganizationSelect from './OrganizationSelect'
 import TagForm from './TagForm'
 import translate from './i18n/translate'

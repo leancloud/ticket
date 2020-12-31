@@ -8,9 +8,10 @@ import DatePicker from 'react-datepicker'
 import AV from 'leancloud-storage/live-query'
 import randomColor from 'randomcolor'
 import Color from 'color'
-import {getUserDisplayName, fetchUsers} from './common'
+import {fetchUsers} from './common'
 import offsetDays from '../config'
 import translate from './i18n/translate'
+import {getUserDisplayName} from '../lib/common'
 
 const ticketCountLineChartData = (statses, t) => {
   return _.reduce(statses, (result, stats) => {

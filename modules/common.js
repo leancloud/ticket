@@ -4,11 +4,12 @@ import {Link} from 'react-router'
 import {Image} from 'react-bootstrap'
 import _ from 'lodash'
 import AV from 'leancloud-storage/live-query'
+import {depthFirstSearchFind, getUserDisplayName, makeTree} from '../lib/common'
 
 Object.assign(exports, require('../lib/common'))
 
 exports.getCategoryPathName = (category, categoriesTree, t) => {
-  const c = exports.depthFirstSearchFind(categoriesTree, c => c.id == (category.id || category.objectId))
+  const c = depthFirstSearchFind(categoriesTree, c => c.id == (category.id || category.objectId))
   return exports.getNodePath(c).map(c => exports.getCategoryName(c, t)).join(' / ')
 }
 
@@ -128,7 +129,7 @@ exports.UserLabel = (props) => {
     return <span>data err</span>
   }
   const username = props.user.username || props.user.get('username')
-  const name = props.user.name || exports.getUserDisplayName(props.user)
+  const name = props.user.name || getUserDisplayName(props.user)
 
   if (props.simple) {
     return <span>{name}</span>
@@ -182,7 +183,7 @@ exports.getCategoriesTree = (hiddenDisable = true) => {
     .descending('createdAt')
     .find()
     .then(categories => {
-      return exports.makeTree(categories)
+      return makeTree(categories)
     })
     .catch(err => {
       // 如果还没有被停用的分类，deletedAt 属性可能不存在

@@ -5,9 +5,9 @@ import {Link} from 'react-router'
 import {Form, FormGroup} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
-import {getCustomerServices, getTinyCategoryInfo, UserLabel, getCategoriesTree,
-  depthFirstSearchMap, depthFirstSearchFind, getNodeIndentString} from '../common'
+import {getCustomerServices, UserLabel, getCategoriesTree, getNodeIndentString} from '../common'
 import translate from '../i18n/translate'
+import {depthFirstSearchFind, depthFirstSearchMap, getTinyCategoryInfo} from '../../lib/common'
 
 class Categories extends Component {
 

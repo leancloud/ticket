@@ -4,7 +4,7 @@ import PropTypes from 'prop-types'
 import {Form, FormGroup, ControlLabel, FormControl, Button, Table, HelpBlock} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
-import {UserLabel} from './../common'
+import {UserLabel} from '../common'
 import UserForm from '../UserForm'
 import translate from '../i18n/translate'
 class Organization extends React.Component {

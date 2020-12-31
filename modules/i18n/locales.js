@@ -335,7 +335,7 @@ const messages = {
     '用户名'
   ],
   // CSStatsUser
-  'notInvoled': [
+  'notInvolved': [
     'Not involved',
     '没有参与'
   ],
