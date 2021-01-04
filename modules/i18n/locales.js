@@ -114,6 +114,10 @@ const messages = {
     'Email',
     '电子邮箱'
   ],
+  'goto': [
+    'Please go to',
+    '前往'
+  ],
   'hour': [
     'hour',
     '小时'
@@ -350,6 +354,10 @@ const messages = {
     'Username',
     '用户名'
   ],
+  'welcome': [
+    'Welcome',
+    '欢迎'
+  ],
   // CSStatsUser
   'notInvolved': [
     'Not involved',
@@ -384,6 +392,19 @@ const messages = {
   'linkedSuffix': [
     'linked',
     ''
+  ],
+  // Login
+  'currentlyOnlySupports': [
+    'Currently we only support logging in via',
+    '目前只支持通过'
+  ],
+  'oauthAuthentication': [
+    'OAuth authentication.',
+    '授权进行登录'
+  ],
+  'oauthPage': [
+    'OAuth page.',
+    '授权页'
   ],
   // Categories
   'newCategory': [
@@ -575,7 +596,31 @@ const messages = {
     'Customer service tickets',
     '客服工单列表'
   ],
+  'allTime': [
+    'All time',
+    '全部时间'
+  ],
+  'thisMonth': [
+    'This month',
+    '本月'
+  ],
+  'lastMonth': [
+    'Last month',
+    '上月'
+  ],
+  'monthBeforeLast': [
+    'Month before last',
+    '上上月'
+  ],
   // NewTicket
+  'appTooltip': [
+    'To display applications in other regions, please link them first at Settings > Linked accounts',
+    '如需显示其他节点应用，请到帐号设置页面关联帐号'
+  ],
+  'associatedApplication': [
+    'Application',
+    '相关应用'
+  ],
   'categoryLevel': [
     'Level',
     ''

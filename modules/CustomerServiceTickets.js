@@ -386,13 +386,13 @@ class CustomerServiceTickets extends Component {
                 <DropdownButton 
                   className={(filters.timeRange ? ' active' : '')} 
                   id='timeRange' 
-                  title={TIME_RANGE_MAP[filters.timeRange]? TIME_RANGE_MAP[filters.timeRange].name : '全部时间'} 
+                  title={TIME_RANGE_MAP[filters.timeRange]? t(TIME_RANGE_MAP[filters.timeRange]) : t('allTime')}
                   onSelect={(eventKey) => this.updateFilter({timeRange: eventKey})}
                 >
-                    <MenuItem key='undefined'>全部时间</MenuItem>
-                    <MenuItem key='本月工单' eventKey='本月工单'>{TIME_RANGE_MAP['本月工单'].name}</MenuItem>
-                    <MenuItem key='上月工单' eventKey="上月工单">{TIME_RANGE_MAP['上月工单'].name}</MenuItem>
-                    <MenuItem key='两月前工单' eventKey="两月前工单">{TIME_RANGE_MAP['两月前工单'].name}</MenuItem>
+                    <MenuItem key='undefined'>{t('allTime')}</MenuItem>
+                    <MenuItem key='thisMonth' eventKey='thisMonth'>{t(TIME_RANGE_MAP['thisMonth'])}</MenuItem>
+                    <MenuItem key='lastMonth' eventKey='lastMonth'>{t(TIME_RANGE_MAP['lastMonth'])}</MenuItem>
+                    <MenuItem key='monthBeforeLast' eventKey='monthBeforeLast'>{t(TIME_RANGE_MAP['monthBeforeLast'])}</MenuItem>
                 </DropdownButton>
               </ButtonGroup>
             </ButtonToolbar>
