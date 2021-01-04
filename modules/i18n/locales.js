@@ -42,6 +42,10 @@ const messages = {
     'All',
     '全部'
   ],
+  'application': [
+    'Application',
+    '应用'
+  ],
   'assigned': [
     'Assigned',
     '我是否负责'
@@ -632,13 +636,21 @@ const messages = {
     '工单转移到'
   ],
   // Tickets
-  'ticketsNotFound': [
-    'Tickets not found, you can',
-    '未查询到相关工单，您可以'
+  'clickToSubscribe': [
+    'Click to subscribe',
+    '点击将关注该工单'
+  ],
+  'clickToUnsubscribe': [
+    'Click to unsubscribe',
+    '点击将取消关注'
   ],
   'createANewOne': [
     'create a new one.',
     '新建工单。'
+  ],
+  'ticketsNotFound': [
+    'Tickets not found, you can',
+    '未查询到相关工单，您可以'
   ],
   // Error
   'errorPage': [
