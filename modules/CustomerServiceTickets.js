@@ -386,13 +386,13 @@ class CustomerServiceTickets extends Component {
                 <DropdownButton 
                   className={(filters.timeRange ? ' active' : '')} 
                   id='timeRange' 
-                  title={TIME_RANGE_MAP[filters.timeRange]? t(TIME_RANGE_MAP[filters.timeRange]) : t('allTime')}
+                  title={TIME_RANGE_MAP[filters.timeRange]? t(filters.timeRange) : t('allTime')}
                   onSelect={(eventKey) => this.updateFilter({timeRange: eventKey})}
                 >
                     <MenuItem key='undefined'>{t('allTime')}</MenuItem>
-                    <MenuItem key='thisMonth' eventKey='thisMonth'>{t(TIME_RANGE_MAP['thisMonth'])}</MenuItem>
-                    <MenuItem key='lastMonth' eventKey='lastMonth'>{t(TIME_RANGE_MAP['lastMonth'])}</MenuItem>
-                    <MenuItem key='monthBeforeLast' eventKey='monthBeforeLast'>{t(TIME_RANGE_MAP['monthBeforeLast'])}</MenuItem>
+                    <MenuItem key='thisMonth' eventKey='thisMonth'>{t('thisMonth')}</MenuItem>
+                    <MenuItem key='lastMonth' eventKey='lastMonth'>{t('lastMonth')}</MenuItem>
+                    <MenuItem key='monthBeforeLast' eventKey='monthBeforeLast'>{t('monthBeforeLast')}</MenuItem>
                 </DropdownButton>
               </ButtonGroup>
             </ButtonToolbar>
