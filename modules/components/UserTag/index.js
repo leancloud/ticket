@@ -67,7 +67,7 @@ export class UserTagManager extends React.Component {
             onChange={() => this.toggleTag(USER_TAG_NAME.VIP)}
             disabled={this.state.loading}
           >
-            标记为{USER_TAG[USER_TAG_NAME.VIP].name}
+            {USER_TAG[USER_TAG_NAME.VIP].name}
           </Checkbox>
         </div>
       </div>
