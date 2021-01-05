@@ -115,7 +115,7 @@ const messages = {
     '电子邮箱'
   ],
   'goto': [
-    'Please go to',
+    'Go to',
     '前往'
   ],
   'hour': [
@@ -403,7 +403,7 @@ const messages = {
     '授权进行登录'
   ],
   'oauthPage': [
-    'OAuth page.',
+    'OAuth page',
     '授权页'
   ],
   // Categories
