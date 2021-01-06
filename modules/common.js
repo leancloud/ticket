@@ -4,7 +4,8 @@ import {Link} from 'react-router'
 import {Image} from 'react-bootstrap'
 import _ from 'lodash'
 import AV from 'leancloud-storage/live-query'
-import {depthFirstSearchFind, getUserDisplayName, makeTree} from '../lib/common'
+import {depthFirstSearchFind, getUserDisplayName, makeTree, getUserTags} from '../lib/common'
+import {UserTagGroup} from './components/UserTag'
 
 Object.assign(exports, require('../lib/common'))
 
@@ -143,6 +144,7 @@ exports.UserLabel = (props) => {
       <Link to={'/users/' + username} className="username">
         {name}
       </Link>
+      {props.displayTags && <UserTagGroup tags={getUserTags(props.user)} />}
     </span>
   )
 }
@@ -150,7 +152,8 @@ exports.UserLabel = (props) => {
 exports.UserLabel.displayName = 'UserLabel'
 exports.UserLabel.propTypes = {
   user: PropTypes.object,
-  simple: PropTypes.bool
+  simple: PropTypes.bool,
+  displayTags: PropTypes.bool
 }
 
 

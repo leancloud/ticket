@@ -39,7 +39,7 @@ class Profile extends Component {
     return <div>
       <div className="row">
         <div className="col-md-8">
-          <h2>基本信息</h2>
+          <h2>{t('basicInfo')}</h2>
           <Form>
             <FormGroup>
               <ControlLabel>{t('username')}</ControlLabel>

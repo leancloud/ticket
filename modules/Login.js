@@ -145,14 +145,14 @@ class Login extends Component {
     }
     return (
       <div className={css.wrap}>
-        <h1 className="font-logo">欢迎回来</h1>
+        <h1 className="font-logo">{t('welcome')}</h1>
         <hr />
-        <p>目前只支持通过 {ORG_NAME} OAuth 授权进行登录</p>
+        <p>{t('currentlyOnlySupports')} {ORG_NAME} OAuth {t('oauthAuthentication')}</p>
         <Form action="/oauth/login" method="post">
           <input type="hidden" name="region" value={LEANCLOUD_OAUTH_REGION} />
           <FormGroup>
             <Button type="submit" bsStyle="primary">
-              前往 {ORG_NAME} 授权页
+              {t('goto')} {ORG_NAME} {t('oauthPage')}
             </Button>
           </FormGroup>
         </Form>

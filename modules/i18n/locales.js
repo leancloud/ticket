@@ -34,9 +34,17 @@ const messages = {
     '构建。'
   ],
   // general
+  'account': [
+    'account',
+    '账号'
+  ],
   'all': [
     'All',
     '全部'
+  ],
+  'application': [
+    'Application',
+    '应用'
   ],
   'assigned': [
     'Assigned',
@@ -106,6 +114,10 @@ const messages = {
     'Email',
     '电子邮箱'
   ],
+  'goto': [
+    'Go to',
+    '前往'
+  ],
   'hour': [
     'hour',
     '小时'
@@ -141,6 +153,10 @@ const messages = {
   'logout': [
     'Log out',
     '登出'
+  ],
+  'mobile': [
+    'Mobile',
+    '电话'
   ],
   'name': [
     'Name',
@@ -221,6 +237,10 @@ const messages = {
   'reorder': [
     'Reorder',
     '调整顺序'
+  ],
+  'region': [
+    'Region',
+    '节点'
   ],
   'resolved': [
     'Resolved',
@@ -334,6 +354,10 @@ const messages = {
     'Username',
     '用户名'
   ],
+  'welcome': [
+    'Welcome',
+    '欢迎'
+  ],
   // CSStatsUser
   'notInvolved': [
     'Not involved',
@@ -350,6 +374,37 @@ const messages = {
   'replyCount': [
     'Replies',
     '回复次数'
+  ],
+  // AccountLink
+  'linkedAccounts': [
+    'Linked accounts',
+    '账号关联'
+  ],
+  'loginIntlFirst': [
+    'Before linking the international account, please log in at leancloud.app first.',
+    '关联国际版账号之前，请先登录国际版。'
+  ],
+  // OauthButton
+  'linkedPrefix': [
+    '',
+    '已关联'
+  ],
+  'linkedSuffix': [
+    'linked',
+    ''
+  ],
+  // Login
+  'currentlyOnlySupports': [
+    'Currently we only support logging in via',
+    '目前只支持通过'
+  ],
+  'oauthAuthentication': [
+    'OAuth authentication.',
+    '授权进行登录'
+  ],
+  'oauthPage': [
+    'OAuth page',
+    '授权页'
   ],
   // Categories
   'newCategory': [
@@ -470,6 +525,10 @@ const messages = {
     '成员数：'
   ],
   // Profile
+  'basicInfo': [
+    'Basic info',
+    '基本信息'
+  ],
   'changeAvatar': [
     'To change your avatar, please go to',
     '更改头像请前往'
@@ -537,7 +596,31 @@ const messages = {
     'Customer service tickets',
     '客服工单列表'
   ],
+  'allTime': [
+    'All time',
+    '全部时间'
+  ],
+  'thisMonth': [
+    'This month',
+    '本月'
+  ],
+  'lastMonth': [
+    'Last month',
+    '上月'
+  ],
+  'monthBeforeLast': [
+    'Month before last',
+    '上上月'
+  ],
   // NewTicket
+  'appTooltip': [
+    'To display applications in other regions, please first link them at Settings > Linked accounts',
+    '如需显示其他节点应用，请到帐号设置页面关联帐号'
+  ],
+  'associatedApplication': [
+    'Application',
+    '相关应用'
+  ],
   'categoryLevel': [
     'Level',
     ''
@@ -598,13 +681,21 @@ const messages = {
     '工单转移到'
   ],
   // Tickets
-  'ticketsNotFound': [
-    'Tickets not found, you can',
-    '未查询到相关工单，您可以'
+  'clickToSubscribe': [
+    'Click to subscribe',
+    '点击将关注该工单'
+  ],
+  'clickToUnsubscribe': [
+    'Click to unsubscribe',
+    '点击将取消关注'
   ],
   'createANewOne': [
     'create a new one.',
     '新建工单。'
+  ],
+  'ticketsNotFound': [
+    'Tickets not found, you can',
+    '未查询到相关工单，您可以'
   ],
   // Error
   'errorPage': [

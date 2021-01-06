@@ -59,3 +59,22 @@ const addRole = (name, initUser) => {
   return role.save()
 }
 
+AV.Cloud.define('modifyUserTags', async (req) => {
+  if (! await common.isCustomerService(req.currentUser)) {
+    throw new AV.Cloud.Error('unauthorized', {status: 401})
+  }
+
+  const {objectId, tags, action} = req.params
+  const user = AV.Object.createWithoutData('_User', objectId)
+  switch (action) {
+  case 'add':
+    user.addUnique('tags', tags)
+    break
+  case 'remove':
+    user.remove('tags', tags)
+    break
+  default:
+    throw new AV.Cloud.Error('unsupport action: ' + action, {status: 400})
+  }
+  return user.save(null, {useMasterKey: true})
+})

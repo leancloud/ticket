@@ -59,7 +59,7 @@ class CustomerServiceTickets extends Component {
     const {assigneeId, isOpen, status, categoryId, authorId,
       tagKey, tagValue, isOnlyUnlike, searchString, page = '0', size = '10', timeRange} = filters
     const query = new AV.Query('Ticket')
-    
+
     let statuses = []
     if (isOpen === 'true') {
       statuses = ticketOpenedStatuses()
@@ -268,7 +268,7 @@ class CustomerServiceTickets extends Component {
               <div className={css.left}>
                 <span className={css.nid}>#{ticket.get('nid')}</span>
                 <Link className={css.statusLink} to={this.getQueryUrl({status: ticket.get('status'), isOpen: undefined})}><span className={css.status}><TicketStatusLabel status={ticket.get('status')} /></span></Link>
-                <span className={css.creator}><UserLabel user={ticket.get('author')} /></span> {t('createdAt')} {moment(ticket.get('createdAt')).fromNow()}
+                <span className={css.creator}><UserLabel user={ticket.get('author')} displayTags /></span> {t('createdAt')} {moment(ticket.get('createdAt')).fromNow()}
                 {moment(ticket.get('createdAt')).fromNow() === moment(ticket.get('updatedAt')).fromNow() ||
                   <span> {t('updatedAt')} {moment(ticket.get('updatedAt')).fromNow()}</span>
                 }
@@ -333,7 +333,7 @@ class CustomerServiceTickets extends Component {
       categoryTitle = t('all') 
     }
 
-    
+
 
     const ticketAdminFilters = (
       <div>
@@ -386,13 +386,13 @@ class CustomerServiceTickets extends Component {
                 <DropdownButton 
                   className={(filters.timeRange ? ' active' : '')} 
                   id='timeRange' 
-                  title={TIME_RANGE_MAP[filters.timeRange]? TIME_RANGE_MAP[filters.timeRange].name : '全部时间'} 
+                  title={TIME_RANGE_MAP[filters.timeRange]? t(filters.timeRange) : t('allTime')}
                   onSelect={(eventKey) => this.updateFilter({timeRange: eventKey})}
                 >
-                    <MenuItem key='undefined'>全部时间</MenuItem>
-                    <MenuItem key='本月工单' eventKey='本月工单'>{TIME_RANGE_MAP['本月工单'].name}</MenuItem>
-                    <MenuItem key='上月工单' eventKey="上月工单">{TIME_RANGE_MAP['上月工单'].name}</MenuItem>
-                    <MenuItem key='两月前工单' eventKey="两月前工单">{TIME_RANGE_MAP['两月前工单'].name}</MenuItem>
+                    <MenuItem key='undefined'>{t('allTime')}</MenuItem>
+                    <MenuItem key='thisMonth' eventKey='thisMonth'>{t('thisMonth')}</MenuItem>
+                    <MenuItem key='lastMonth' eventKey='lastMonth'>{t('lastMonth')}</MenuItem>
+                    <MenuItem key='monthBeforeLast' eventKey='monthBeforeLast'>{t('monthBeforeLast')}</MenuItem>
                 </DropdownButton>
               </ButtonGroup>
             </ButtonToolbar>

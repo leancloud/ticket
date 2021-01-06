@@ -266,7 +266,7 @@ class NewTicket extends React.Component {
       <Tooltip id="tooltip">{t('supportMarkdown')}</Tooltip>
     )
     const appTooltip = (
-      <Tooltip id="appTooltip">如需显示北美和华东节点应用，请到帐号设置页面关联帐号</Tooltip>
+      <Tooltip id="appTooltip">{t('appTooltip')}</Tooltip>
     )
 
     const ticket = this.state.ticket
@@ -283,7 +283,7 @@ class NewTicket extends React.Component {
           </FormGroup>
           <FormGroup>
             <ControlLabel>
-              相关应用 <OverlayTrigger placement="top" overlay={appTooltip}>
+              {t('associatedApplication')} <OverlayTrigger placement="top" overlay={appTooltip}>
                 <span className='icon-wrap'><span className='glyphicon glyphicon-question-sign'></span></span>
               </OverlayTrigger>
             </ControlLabel>

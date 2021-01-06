@@ -3,7 +3,7 @@ import _ from 'lodash'
 import xss from 'xss'
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
-import {FormGroup, ControlLabel, Label, Alert, Button, Tooltip, OverlayTrigger} from 'react-bootstrap'
+import {FormGroup, ControlLabel, Alert, Button, Tooltip, OverlayTrigger} from 'react-bootstrap'
 import AV from 'leancloud-storage/live-query'
 
 import {UserLabel, uploadFiles, getCategoryPathName, getCategoriesTree} from './common'
@@ -17,6 +17,7 @@ import TicketMetadata from './TicketMetadata'
 import TicketReply from './TicketReply'
 import TicketStatusLabel from './TicketStatusLabel'
 import translate from './i18n/translate'
+import Tag from './Tag'
 
 // get a copy of default whiteList
 const whiteList = xss.getDefaultWhiteList()
@@ -492,7 +493,7 @@ class Ticket extends Component {
               <TicketStatusLabel status={ticket.get('status')} />
               {' '}
               <span>
-                <UserLabel user={ticket.get('author')} /> {t('createdAt')} <span title={moment(ticket.get('createdAt')).format()}>{moment(ticket.get('createdAt')).fromNow()}</span>
+                <UserLabel user={ticket.get('author')} displayTags={isCustomerService} /> {t('createdAt')} <span title={moment(ticket.get('createdAt')).format()}>{moment(ticket.get('createdAt')).fromNow()}</span>
                 {moment(ticket.get('createdAt')).fromNow() === moment(ticket.get('updatedAt')).fromNow() ||
                   <span>, {t('updatedAt')} <span title={moment(ticket.get('updatedAt')).format()}>{moment(ticket.get('updatedAt')).fromNow()}</span></span>
                 }
@@ -500,13 +501,13 @@ class Ticket extends Component {
               {' '}
               {this.props.isCustomerService ? this.state.watch ?
                 <OverlayTrigger placement="right" overlay={
-                  <Tooltip id="tooltip">点击将取消关注</Tooltip>
+                  <Tooltip id="tooltip">{t('clickToUnsubscribe')}</Tooltip>
                 }>
                   <Button bsStyle='link' active onClick={this.handleRemoveWatch.bind(this)}><span className='glyphicon glyphicon-eye-open' aria-hidden='true'></span></Button>
                 </OverlayTrigger>
                 :
                 <OverlayTrigger placement="right" overlay={
-                  <Tooltip id="tooltip">点击将关注该工单</Tooltip>
+                  <Tooltip id="tooltip">{t('clickToSubscribe')}</Tooltip>
                 }>
                   <Button bsStyle='link' onClick={this.handleAddWatch.bind(this)}><span className='glyphicon glyphicon-eye-close' aria-hidden='true'></span></Button>
                 </OverlayTrigger>
@@ -581,77 +582,6 @@ Ticket.propTypes = {
 }
 
 Ticket.contextTypes = {
-  addNotification: PropTypes.func.isRequired,
-}
-
-class Tag extends Component {
-
-  componentDidMount() {
-    if (this.props.tag.get('key') === 'appId') {
-      const appId = this.props.tag.get('value')
-      if (!appId) {
-        return
-      }
-      return AV.Cloud.run('getLeanCloudApp', {
-        username: this.props.ticket.get('author').get('username'),
-        appId,
-      })
-      .then((app) => {
-        this.setState({key: '应用', value: app.app_name})
-        if (this.props.isCustomerService) {
-          return AV.Cloud.run('getLeanCloudAppUrl', {appId, region: app.region})
-          .then((url) => {
-            if (url) {
-              this.setState({url})
-            }
-            return
-          })
-        }
-        return
-      })
-    }
-  }
-
-  render() {
-    if (!this.state) {
-      return <div className="form-group">
-        <Label bsStyle="default">{this.props.tag.get('key')}: {this.props.tag.get('value')}</Label>
-      </div>
-    } else {
-      if (this.state.url) {
-        return <div>
-          <label className="control-label">
-            {this.state.key}链接
-          </label>
-          <div className="form-group">
-            <a className="btn btn-default" href={this.state.url} target='_blank'>
-              {this.state.value}
-            </a>
-          </div>
-        </div>
-      }
-      return <div>
-        <label className="control-label">
-          {this.state.key}
-        </label>
-        <div className="form-group">
-          <a className="btn btn-default disabled">
-            {this.state.value}
-          </a>
-        </div>
-      </div>
-    }
-  }
-
-}
-
-Tag.propTypes = {
-  tag: PropTypes.instanceOf(AV.Object).isRequired,
-  ticket: PropTypes.object.isRequired,
-  isCustomerService: PropTypes.bool,
-}
-
-Tag.contextTypes = {
   addNotification: PropTypes.func.isRequired,
 }
 
