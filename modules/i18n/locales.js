@@ -155,7 +155,7 @@ const messages = {
     '登出'
   ],
   'mobile': [
-    'mobile',
+    'Mobile',
     '电话'
   ],
   'name': [
