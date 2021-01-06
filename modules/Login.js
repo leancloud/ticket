@@ -160,7 +160,7 @@ export default class Login extends Component {
             <hr />
             <p>美味书签（北京）信息技术有限公司 版权所有</p>
             <div>
-              <a href="http://www.miitbeian.gov.cn/" target="_blank">
+              <a href="https://beian.miit.gov.cn/" target="_blank">
                 京ICP备12025059号-10
               </a>
             </div>
