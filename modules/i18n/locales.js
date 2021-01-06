@@ -614,7 +614,7 @@ const messages = {
   ],
   // NewTicket
   'appTooltip': [
-    'To display applications in other regions, please link them first at Settings > Linked accounts',
+    'To display applications in other regions, please first link them at Settings > Linked accounts',
     '如需显示其他节点应用，请到帐号设置页面关联帐号'
   ],
   'associatedApplication': [
