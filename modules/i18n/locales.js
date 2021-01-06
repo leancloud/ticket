@@ -239,7 +239,7 @@ const messages = {
     '调整顺序'
   ],
   'region': [
-    'region',
+    'Region',
     '节点'
   ],
   'resolved': [
