@@ -84,7 +84,7 @@ class User extends Component {
                       <td>Id</td>
                       <td>{t('username')}</td>
                       <td>{t('email')}</td>
-                      <td>{}</td>
+                      <td>{t('mobile')}</td>
                     </tr>
                   </thead>
                   <tbody>
