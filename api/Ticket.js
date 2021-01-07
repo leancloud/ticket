@@ -175,8 +175,10 @@ const getTargetStatus = (action, isCustomerService) => {
     return TICKET_STATUS.WAITING_CUSTOMER_SERVICE
   case 'resolve':
     return isCustomerService ? TICKET_STATUS.PRE_FULFILLED : TICKET_STATUS.FULFILLED
+  case 'close':
+  // 向前兼容
   case 'reject':
-    return TICKET_STATUS.REJECTED
+    return TICKET_STATUS.CLOSED
   case 'reopen':
     return TICKET_STATUS.WAITING_CUSTOMER
   default:

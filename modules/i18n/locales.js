@@ -869,7 +869,7 @@ const messages = {
     'Resolved',
     '已解决'
   ],
-  'statusRejected': [
+  'statusClosed': [
     'Closed',
     '已关闭'
   ]
