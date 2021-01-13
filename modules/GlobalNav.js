@@ -17,19 +17,17 @@ class GlobalNav extends Component {
 
   render() {
     const {t} = this.props
-    // eslint-disable-next-line i18n/no-chinese-character
-    const chn = '中'
-    // eslint-disable-next-line i18n/no-chinese-character
-    const chinese = '中文'
+    /* eslint-disable i18n/no-chinese-character */
     const langSelector = (
         <li className="dropdown">
-          <a href="#" className="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">EN/{chn} <span className="caret"/></a>
+          <a href="#" className="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">EN/中 <span className="caret"/></a>
           <ul className="dropdown-menu">
             <li><a href="#" onClick={() => this.handleLanguageSwitch('en')}>English</a></li>
-            <li><a href="#" onClick={() => this.handleLanguageSwitch('zh')}>{chinese}</a></li>
+            <li><a href="#" onClick={() => this.handleLanguageSwitch('zh')}>中文</a></li>
           </ul>
         </li>
     )
+    /* eslint-enable i18n/no-chinese-character */
     let user
     if (this.props.currentUser) {
       user = (
