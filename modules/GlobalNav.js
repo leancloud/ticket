@@ -7,9 +7,29 @@ class GlobalNav extends Component {
   handleNewTicketClick() {
     this.context.router.push('/tickets/new')
   }
+  handleLanguageSwitch(lang) {
+    const currentLocale = window.localStorage.getItem('locale')
+    if (currentLocale !== lang) {
+      window.localStorage.setItem('locale', lang)
+      window.location.reload(false)
+    }
+  }
 
   render() {
     const {t} = this.props
+    // eslint-disable-next-line i18n/no-chinese-character
+    const chn = '中'
+    // eslint-disable-next-line i18n/no-chinese-character
+    const chinese = '中文'
+    const langSelector = (
+        <li className="dropdown">
+          <a href="#" className="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">EN/{chn} <span className="caret"/></a>
+          <ul className="dropdown-menu">
+            <li><a href="#" onClick={() => this.handleLanguageSwitch('en')}>English</a></li>
+            <li><a href="#" onClick={() => this.handleLanguageSwitch('zh')}>{chinese}</a></li>
+          </ul>
+        </li>
+    )
     let user
     if (this.props.currentUser) {
       user = (
@@ -85,6 +105,7 @@ class GlobalNav extends Component {
                   <Link to='/notifications'><span className='glyphicon glyphicon-bell' aria-hidden='true'></span></Link>
                 </li>
               }
+              {langSelector}
               {user}
             </ul>
           </div>
