@@ -3,7 +3,9 @@ import PropTypes from 'prop-types'
 import Polyglot from 'node-polyglot'
 import locales from './locales'
 
-export const locale = window.navigator.language.slice(0, 2) === 'zh' ? 'zh' : 'en'
+const defaultLocale = window.navigator.language.slice(0, 2) === 'zh' ? 'zh' : 'en'
+const userLocale = window.localStorage.getItem('locale')
+export const locale = userLocale || defaultLocale
 
 class I18nProvider extends Component {
   getChildContext() {
