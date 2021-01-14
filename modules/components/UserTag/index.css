@@ -1,27 +1,10 @@
 .tag {
-  margin: 0 0.3em;
-  padding: 0.3em 0.6em;
-  font-size: 0.85em;
-  font-weight: bold;
+  margin-left: 0.3em;
+  font-size: 1.1em;
   color: #555;
-  background-color: rgba(85,85,85,.1);
+  background-color: #fff;
   border-radius: 0.2em;
   cursor: default;
-}
-
-.new {
-  color: #fff;
-  background-color: #21ba45;
-}
-
-.early-adopter {
-  color: #fff;
-  background-color: #f2711c;
-}
-
-.vip {
-  color: #ffc107;
-  background-color: #343a40;
 }
 
 .manager {
