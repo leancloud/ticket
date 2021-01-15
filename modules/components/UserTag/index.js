@@ -63,7 +63,7 @@ export class UserTagManager extends React.Component {
         <UserTagGroup tags={this.props.tags} />
         <div>
           <Checkbox
-            checked={this.props.tags.includes(USER_TAG_NAME.VIP)}
+            checked={this.props.tags && this.props.tags.includes(USER_TAG_NAME.VIP)}
             onChange={() => this.toggleTag(USER_TAG_NAME.VIP)}
             disabled={this.state.loading}
           >

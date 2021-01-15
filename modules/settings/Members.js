@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
-import AV from 'leancloud-storage/live-query'
+import { auth } from '../../lib/leancloud'
 
 const {UserLabel} = require('../common')
 import UserForm from '../UserForm'
@@ -27,12 +27,12 @@ class SettingMembers extends Component {
     })
   }
 
-  getRoleAndUsers(role) {
-    return new AV.Query(AV.Role)
-    .equalTo('name', role)
+  getRoleAndUsers(roleName) {
+    return auth.queryRole()
+    .where('name', '==', roleName)
     .first()
     .then((role) => {
-      return role.getUsers().query().find()
+      return role.getUsers()
       .then((users) => {
         return { role, users }
       })
@@ -41,9 +41,8 @@ class SettingMembers extends Component {
 
   handleSubmit(user) {
     const role = this.state.customerServiceRole
-    role.getUsers().add(user)
-    return role.save()
-    .then((role) => {
+    return role.add(user)
+    .then(() => {
       return this.getRoleAndUsers(role.get('name'))
     }).then((data) => {
       this.setState({
@@ -55,9 +54,9 @@ class SettingMembers extends Component {
   }
 
   handleRemoveCustomerService(id) {
-    this.state.customerServiceRole.getUsers().remove(AV.Object.createWithoutData('_User', id))
-    this.state.customerServiceRole.save()
-    .then((role) => {
+    const role = this.state.customerServiceRole
+    return role.remove(auth.user(id))
+    .then(() => {
       return this.getRoleAndUsers(role.get('name'))
     }).then((data) => {
       this.setState({

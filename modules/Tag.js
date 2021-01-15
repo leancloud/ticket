@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import {Label} from 'react-bootstrap'
-import AV from 'leancloud-storage/live-query'
+import LC, { cloud } from '../lib/leancloud'
 
 import translate from './i18n/translate'
 
@@ -13,14 +13,14 @@ class Tag extends Component {
       if (!appId) {
         return
       }
-      return AV.Cloud.run('getLeanCloudApp', {
+      return cloud.run('getLeanCloudApp', {
         username: this.props.ticket.get('author').get('username'),
         appId,
       })
       .then((app) => {
         this.setState({key: 'application', value: app.app_name})
         if (this.props.isCustomerService) {
-          return AV.Cloud.run('getLeanCloudAppUrl', {appId, region: app.region})
+          return cloud.run('getLeanCloudAppUrl', {appId, region: app.region})
           .then((url) => {
             if (url) {
               this.setState({url})
@@ -68,7 +68,7 @@ class Tag extends Component {
 }
 
 Tag.propTypes = {
-  tag: PropTypes.instanceOf(AV.Object).isRequired,
+  tag: PropTypes.instanceOf(LC.LCObject).isRequired,
   ticket: PropTypes.object.isRequired,
   isCustomerService: PropTypes.bool,
   t: PropTypes.func.isRequired

@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import {Form, FormGroup, ControlLabel, FormControl, Button} from 'react-bootstrap'
-import AV from 'leancloud-storage/live-query'
+import {auth, cloud} from '../../lib/leancloud'
 
 import Vacation from './Vacation'
 import translate from '../i18n/translate'
@@ -12,13 +12,13 @@ class CustomerServiceProfile extends Component {
     super(props)
     this.state = {
       wechatUsers: [],
-      wechatUserId: AV.User.current().get('wechatEnterpriseUserId'),
-      bearychatUrl: AV.User.current().get('bearychatUrl'),
+      wechatUserId: auth.currentUser().data.wechatEnterpriseUserId,
+      bearychatUrl: auth.currentUser().data.bearychatUrl,
     }
   }
 
   componentDidMount() {
-    AV.Cloud.run('getWechatEnterpriseUsers', {})
+    cloud.run('getWechatEnterpriseUsers', {})
     .then((wechatUsers) => {
       this.setState({wechatUsers})
       return
@@ -36,10 +36,11 @@ class CustomerServiceProfile extends Component {
 
   handleSubmit(e) {
     e.preventDefault()
-    const currentUser = AV.User.current()
-    currentUser.set('wechatEnterpriseUserId', this.state.wechatUserId)
-    currentUser.set('bearychatUrl', this.state.bearychatUrl)
-    currentUser.save()
+    auth.currentUser()
+    .update({
+      wechatEnterpriseUserId: this.state.wechatUserId,
+      bearychatUrl: this.state.bearychatUrl,
+    })
     .catch(this.context.addNotification)
   }
 

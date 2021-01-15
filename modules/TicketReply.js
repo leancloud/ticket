@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import {FormGroup, FormControl, Button, ButtonToolbar} from 'react-bootstrap'
-import AV from 'leancloud-storage/live-query'
+import LC from '../lib/leancloud'
 
 import {uploadFiles} from './common'
 import TextareaWithPreview from './components/TextareaWithPreview'
@@ -82,7 +82,7 @@ class TicketReply extends Component {
       this.setState({isCommitting: true})
       return uploadFiles(e.clipboardData.files)
         .then((files) => {
-          const reply = `${this.state.reply}\n<img src='${files[0].url()}' />`
+          const reply = `${this.state.reply}\n<img src='${files[0].url}' />`
           this.setState({isCommitting: false, reply})
           return
         })
@@ -142,7 +142,7 @@ class TicketReply extends Component {
   }
   
 TicketReply.propTypes = {
-  ticket: PropTypes.instanceOf(AV.Object),
+  ticket: PropTypes.instanceOf(LC.LCObject),
   commitReply: PropTypes.func.isRequired,
   commitReplySoon: PropTypes.func.isRequired,
   operateTicket: PropTypes.func.isRequired,

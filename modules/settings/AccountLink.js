@@ -1,6 +1,6 @@
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
-import AV from 'leancloud-storage/live-query'
+import {cloud} from '../../lib/leancloud'
 
 import {getLeanCloudRegions, getLeanCloudRegionText} from '../../lib/common'
 import translate from '../i18n/translate'
@@ -16,7 +16,7 @@ class AccountLink extends Component {
   }
 
   componentDidMount() {
-    return AV.Cloud.run('getLeanCloudUserInfos').then(lcUserInfos => {
+    return cloud.run('getLeanCloudUserInfos').then(lcUserInfos => {
       this.setState({lcUserInfos})
       return
     })

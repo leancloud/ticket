@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import {Link} from 'react-router'
 import {Image} from 'react-bootstrap'
 import _ from 'lodash'
-import AV from 'leancloud-storage/live-query'
+import {auth, db, storage} from '../lib/leancloud'
 import {depthFirstSearchFind, getUserDisplayName, makeTree, getUserTags} from '../lib/common'
 import {UserTagGroup} from './components/UserTag'
 
@@ -15,7 +15,7 @@ exports.getCategoryPathName = (category, categoriesTree, t) => {
 }
 
 exports.requireAuth = (nextState, replace) => {
-  if (!AV.User.current()) {
+  if (!auth.currentUser()) {
     replace({
       pathname: '/login',
       state: { nextPathname: nextState.location.pathname }
@@ -25,7 +25,7 @@ exports.requireAuth = (nextState, replace) => {
 
 exports.requireCustomerServiceAuth = (nextState, replace, next) => {
   exports
-    .isCustomerService(AV.User.current())
+    .isCustomerService(auth.currentUser())
     .then(isCustomerService => {
       if (!isCustomerService) {
         replace({
@@ -45,14 +45,13 @@ exports.requireCustomerServiceAuth = (nextState, replace, next) => {
 }
 
 exports.getCustomerServices = () => {
-  return new AV.Query(AV.Role)
-    .equalTo('name', 'customerService')
+  return auth.queryRole()
+    .where('name', '==', 'customerService')
     .first()
     .then(role => {
       return role
-        .getUsers()
-        .query()
-        .ascending('username')
+        .queryUser()
+        .orderBy('username')
         .find()
     })
 }
@@ -61,9 +60,9 @@ exports.isCustomerService = user => {
   if (!user) {
     return Promise.resolve(false)
   }
-  return new AV.Query(AV.Role)
-    .equalTo('name', 'customerService')
-    .equalTo('users', user)
+  return auth.queryRole()
+    .where('name', '==', 'customerService')
+    .where('users', '==', user)
     .first()
     .then(role => {
       return !!role
@@ -73,33 +72,29 @@ exports.isCustomerService = user => {
 exports.uploadFiles = files => {
   return Promise.all(
     _.map(files, file =>
-      new AV.File(file.name, file).save({
-        keepFileName: true
-      })
+      storage.upload(file.name, file)
     )
   )
 }
 
 exports.getTicketAndRelation = nid => {
-  return new AV.Query('Ticket')
-    .equalTo('nid', parseInt(nid))
-    .include('author')
-    .include('files')
+  return db.query('Ticket')
+    .where('nid', '==', parseInt(nid))
+    .include('author', 'files')
     .first()
     .then(ticket => {
       if (!ticket) {
         return
       }
       return Promise.all([
-        new AV.Query('Reply')
-          .equalTo('ticket', ticket)
-          .include('author')
-          .include('files')
-          .ascending('createdAt')
+        db.query('Reply')
+          .where('ticket', ticket)
+          .include('author', 'files')
+          .orderBy('createdAt')
           .find(),
-        new AV.Query('OpsLog')
-          .equalTo('ticket', ticket)
-          .ascending('createdAt')
+        new db.query('OpsLog')
+          .where('ticket', '==', ticket)
+          .orderBy('createdAt')
           .find()
       ]).spread((replies, opsLogs) => {
         return { ticket, replies, opsLogs }
@@ -109,18 +104,9 @@ exports.getTicketAndRelation = nid => {
 
 exports.fetchUsers = (userIds) => {
   return Promise.all(_.map(_.chunk(userIds, 50), (userIds) => {
-    return new AV.Query('_User')
-    .containedIn('objectId', userIds)
-    .find()
-  }))
-  .then(_.flatten)
-}
-
-exports.fetchUsers = (userIds) => {
-  return Promise.all(_.map(_.chunk(userIds, 50), (userIds) => {
-    return new AV.Query('_User')
-    .containedIn('objectId', userIds)
-    .find()
+    return auth.queryUser()
+      .where('objectId', 'in', userIds)
+      .find()
   }))
   .then(_.flatten)
 }
@@ -178,12 +164,12 @@ exports.Avatar.propTypes = {
 
 
 exports.getCategoriesTree = (hiddenDisable = true) => {
-  const query = new AV.Query('Category')
+  const query = db.query('Category')
   if (hiddenDisable) {
-    query.doesNotExist('deletedAt')
+    query.where('deletedAt', 'not-exists')
   }
   return query
-    .descending('createdAt')
+    .orderBy('createdAt', 'desc')
     .find()
     .then(categories => {
       return makeTree(categories)

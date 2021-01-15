@@ -4,7 +4,7 @@ import xss from 'xss'
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import {FormGroup, ControlLabel, Alert, Button, Tooltip, OverlayTrigger} from 'react-bootstrap'
-import AV from 'leancloud-storage/live-query'
+import {auth, cloud, db} from '../lib/leancloud'
 
 import {UserLabel, uploadFiles, getCategoryPathName, getCategoriesTree} from './common'
 import css from './Ticket.css'
@@ -56,14 +56,14 @@ class Ticket extends Component {
       }
 
       return Promise.all([
-        AV.Cloud.run('getPrivateTags', {ticketId: ticket.id}),
+        cloud.run('getPrivateTags', {ticketId: ticket.id}),
         getCategoriesTree(false),
         this.getReplyQuery(ticket).find(),
-        new AV.Query('Tag').equalTo('ticket', ticket).find(),
+        db.query('Tag').where('ticket', '==', ticket).find(),
         this.getOpsLogQuery(ticket).find(),
-        new AV.Query('Watch')
-          .equalTo('ticket', ticket)
-          .equalTo('user', AV.User.current())
+        db.query('Watch')
+          .where('ticket', '==', ticket)
+          .where('user', '==', auth.currentUser())
           .first(),
       ])
       .then(([privateTags, categoriesTree, replies, tags, opsLogs, watch]) => {
@@ -78,7 +78,7 @@ class Ticket extends Component {
           opsLogs,
           watch,
         })
-        AV.Cloud.run('exploreTicket', {ticketId: ticket.id})
+        cloud.run('exploreTicket', {ticketId: ticket.id})
         return
       })
     })
@@ -97,8 +97,8 @@ class Ticket extends Component {
   }
 
   getTicketQuery(nid) {
-    const query = new AV.Query('Ticket')
-    .equalTo('nid', nid)
+    const query = db.query('Ticket')
+    .where('nid', '==', nid)
     .include('author')
     .include('organization')
     .include('assignee')
@@ -109,15 +109,15 @@ class Ticket extends Component {
       return this.ticketLiveQuery.on('update', ticket => {
         if (ticket.updatedAt.getTime() != this.state.ticket.updatedAt.getTime()) {
           return Promise.all([
-            ticket.fetch({include: 'author,organization,assignee,files'}),
-            AV.Cloud.run('getPrivateTags', {ticketId: ticket.id}),
+            ticket.get({include: ['author', 'organization', 'assignee', 'files']}),
+            cloud.run('getPrivateTags', {ticketId: ticket.id}),
           ])
           .then(([ticket, privateTags]) => {
             if (privateTags) {
-              ticket.set('privateTags', privateTags.privateTags)
+              ticket.data.privateTags = privateTags.privateTags
             }
             this.setState({ticket})
-            AV.Cloud.run('exploreTicket', {ticketId: ticket.id})
+            cloud.run('exploreTicket', {ticketId: ticket.id})
             return
           })
           .catch(this.context.addNotification)
@@ -129,17 +129,17 @@ class Ticket extends Component {
   }
 
   getReplyQuery(ticket) {
-    const replyQuery = new AV.Query('Reply')
-    .equalTo('ticket', ticket)
+    const replyQuery = db.query('Reply')
+    .where('ticket', '==', ticket)
     .include('author')
     .include('files')
-    .ascending('createdAt')
+    .orderBy('createdAt')
     .limit(500)
     replyQuery.subscribe().then(liveQuery => {
       this.replyLiveQuery = liveQuery
       return this.replyLiveQuery.on('create', reply => {
-        return reply.fetch({include: 'author,files'})
-        .then(() => {
+        return reply.get({include: ['author', 'files']})
+        .then((reply) => {
           const replies = this.state.replies
           replies.push(reply)
           this.setState({replies})
@@ -152,15 +152,15 @@ class Ticket extends Component {
   }
 
   getOpsLogQuery(ticket) {
-    const opsLogQuery = new AV.Query('OpsLog')
-    .equalTo('ticket', ticket)
-    .ascending('createdAt')
+    const opsLogQuery = db.query('OpsLog')
+    .where('ticket', '==', ticket)
+    .orderBy('createdAt')
     opsLogQuery.subscribe()
     .then(liveQuery => {
       this.opsLogLiveQuery = liveQuery
       return this.opsLogLiveQuery.on('create', opsLog => {
-        return opsLog.fetch()
-        .then(() => {
+        return opsLog.get()
+        .then((opsLog) => {
           const opsLogs = this.state.opsLogs
           opsLogs.push(opsLog)
           this.setState({opsLogs})
@@ -178,8 +178,8 @@ class Ticket extends Component {
       if (reply.trim() === '' && files.length == 0) {
         return
       }
-      return new AV.Object('Reply').save({
-        ticket: AV.Object.createWithoutData('Ticket', this.state.ticket.id),
+      return db.class('Reply').add({
+        ticket: this.state.ticket,
         content: reply,
         files,
       })
@@ -192,11 +192,11 @@ class Ticket extends Component {
 
   operateTicket(action) {
     const ticket = this.state.ticket
-    return AV.Cloud.run('operateTicket', {ticketId: ticket.id, action})
+    return cloud.run('operateTicket', {ticketId: ticket.id, action})
     .then(() => {
-      return ticket.fetch({include: 'author,organization,assignee,files'})
+      return ticket.get({include: ['author', 'organization', 'assignee', 'files']})
     })
-    .then(() => {
+    .then((ticket) => {
       this.setState({ticket})
       return
     })
@@ -204,17 +204,20 @@ class Ticket extends Component {
   }
 
   updateTicketCategory(category) {
-    return this.state.ticket.set('category', getTinyCategoryInfo(category)).save()
-    .then((ticket) => {
+    const ticket = this.state.ticket
+    return ticket.update({category: getTinyCategoryInfo(category)})
+    .then(() => {
+      ticket.data.category = category
       this.setState({ticket})
       return
     })
   }
 
   updateTicketAssignee(assignee) {
-    return this.state.ticket.set('assignee', assignee).save()
-    .then((ticket) => {
-      this.setState({ticket})
+    const ticket = this.state.ticket
+    return ticket.update({assignee})
+    .then(() => {
+      ticket.data.assignee = assignee
       return
     })
   }
@@ -238,8 +241,7 @@ class Ticket extends Component {
         tag.value = value
       }
     }
-    ticket.set(isPrivate ? 'privateTags' : 'tags', tags)
-    return ticket.save()
+    return ticket.update({[isPrivate ? 'privateTags' : 'tags']: tags})
     .then(() => {
       this.setState({ticket})
       return
@@ -247,22 +249,23 @@ class Ticket extends Component {
   }
 
   saveEvaluation(evaluation) {
-    return this.state.ticket.set('evaluation', evaluation).save()
-    .then((ticket) => {
+    const ticket = this.state.ticket
+    ticket.data.evaluation = evaluation
+    return ticket.update({evaluation})
+    .then(() => {
       this.setState({ticket})
       return
     })
   }
 
   handleAddWatch() {
-    return new AV.Object('Watch', {
-      ticket: AV.Object.createWithoutData('Ticket', this.state.ticket.id),
-      user: AV.User.current(),
+    return db.class('Watch').add({
+      ticket: this.state.ticket,
+      user: auth.currentUser(),
       ACL: {
-        [AV.User.current().id]: {write: true, read: true},
+        [auth.currentUser().id]: {write: true, read: true},
       }
     })
-    .save()
     .then(watch => {
       this.setState({watch})
       return
@@ -271,7 +274,7 @@ class Ticket extends Component {
   }
 
   handleRemoveWatch() {
-    return this.state.watch.destroy()
+    return this.state.watch.delete()
     .then(() => {
       this.setState({watch: undefined})
       return
@@ -394,7 +397,7 @@ class Ticket extends Component {
         const otherFiles = []
         files.forEach(f => {
           const mimeType = f.get('mime_type')
-          if (['image/png', 'image/jpeg'].indexOf(mimeType) != -1) {
+          if (['image/png', 'image/jpeg', 'image/gif'].indexOf(mimeType) != -1) {
             imgFiles.push(f)
           } else {
             otherFiles.push(f)
@@ -403,13 +406,13 @@ class Ticket extends Component {
 
         if (imgFiles.length > 0) {
           imgBody = imgFiles.map(f => {
-            return <a href={f.url()} target='_blank'><img key={f.id} src={f.url()} alt={f.get('name')} /></a>
+            return <a href={f.data.url} target='_blank' key={f.id}><img src={f.data.url} alt={f.get('name')} /></a>
           })
         }
 
         if (otherFiles.length > 0) {
           const fileLinks = otherFiles.map(f => {
-            return <span key={f.id}><a href={f.url() + '?attname=' + encodeURIComponent(f.get('name'))} target='_blank'><span className="glyphicon glyphicon-paperclip"></span> {f.get('name')}</a> </span>
+            return <span key={f.id}><a href={f.data.url + '?attname=' + encodeURIComponent(f.get('name'))} target='_blank'><span className="glyphicon glyphicon-paperclip"></span> {f.get('name')}</a> </span>
           })
           panelFooter = <div className="panel-footer">{fileLinks}</div>
         }

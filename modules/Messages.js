@@ -2,7 +2,7 @@ import React, {Component} from 'react'
 import { Link } from 'react-router'
 import { FormGroup, Button, Table } from 'react-bootstrap'
 import moment from 'moment'
-import AV from 'leancloud-storage/live-query'
+import { auth, db } from '../lib/leancloud'
 
 import {UserLabel} from './common'
 
@@ -16,10 +16,10 @@ export default class Messages extends Component {
   }
 
   componentDidMount() {
-    return new AV.Query('Message')
-      .equalTo('to', AV.User.current())
+    return db.query('Message')
+      .where('to', '==', auth.currentUser())
       .include(['from', 'ticket', 'reply'])
-      .descending('createdAt')
+      .orderBy('createdAt', 'desc')
       .limit(20)
       .find()
       .then(messages => {
@@ -30,8 +30,12 @@ export default class Messages extends Component {
 
   markAllReaded() {
     const unreadMessages = this.state.messages.filter(m => !m.get('isRead'))
-    unreadMessages.forEach(m => m.set('isRead', true))
-    AV.Object.saveAll(unreadMessages)
+    const p = db.pipeline()
+    unreadMessages.forEach(m => {
+      m.data.isRead = true
+      p.update(m, {isRead: true})
+    })
+    p.commit()
     const messages = this.state.messages
     this.setState({messages})
   }

@@ -1,6 +1,6 @@
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
-import AV from 'leancloud-storage/live-query'
+import {auth} from '../lib/leancloud'
 
 export default class Home extends Component {
  
@@ -13,7 +13,7 @@ export default class Home extends Component {
   }
 
   redirect(props) {
-    if (!AV.User.current()) {
+    if (!auth.currentUser()) {
       this.context.router.replace('/login')
       return
     }

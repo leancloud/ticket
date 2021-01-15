@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import {FormGroup, FormControl, ControlLabel} from 'react-bootstrap'
-import AV from 'leancloud-storage/live-query'
+import {auth} from '../lib/leancloud'
 import translate from './i18n/translate'
 import {getUserDisplayName} from '../lib/common'
 
@@ -13,7 +13,7 @@ class OrganizationSelect extends React.Component {
         <ControlLabel>{t('belong')}: </ControlLabel>
         <FormControl componentClass='select' value={this.props.selectedOrgId} onChange={this.props.onOrgChange}>
           {this.props.organizations.map(o => <option key={o.id} value={o.id}>{t('organization')}: {o.get('name')}</option>)}
-          <option value=''>{t('individual')}: {getUserDisplayName(AV.User.current())}</option>
+          <option value=''>{t('individual')}: {getUserDisplayName(auth.currentUser())}</option>
         </FormControl>
       </FormGroup>
   }

@@ -4,7 +4,7 @@ import { Pager } from 'react-bootstrap'
 import qs from 'query-string'
 import _ from 'lodash'
 import moment from 'moment'
-import AV from 'leancloud-storage/live-query'
+import { auth, db } from '../lib/leancloud'
 import { Link } from 'react-router'
 import { UserLabel } from './common'
 import TicketStatusLabel from './TicketStatusLabel'
@@ -36,9 +36,9 @@ export default class Subscriptions extends Component {
   findWatches(filters) {
     const { page = '0', size = '10' } = filters
 
-    new AV.Query('Watch')
-      .equalTo('user', AV.User.current())
-      .addDescending('updatedAt')
+    db.query('Watch')
+      .where('user', '==', auth.currentUser())
+      .orderBy('updatedAt', 'desc')
       .include('ticket')
       .limit(parseInt(size))
       .skip(parseInt(page) * parseInt(size))

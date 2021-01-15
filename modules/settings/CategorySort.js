@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import {Form, FormGroup, Button} from 'react-bootstrap'
-import AV from 'leancloud-storage/live-query'
+import {db} from '../../lib/leancloud'
 
 import {getCategoriesTree, getNodeIndentString} from '../common'
 import translate from '../i18n/translate'
@@ -27,11 +27,11 @@ class CategorySort extends React.Component {
   }
 
   handleSave() {
-    const categories = depthFirstSearchMap(this.state.categoriesTree, (c, index) => {
-      c.set('order', index)
-      return c
+    const p = db.pipeline()
+    depthFirstSearchMap(this.state.categoriesTree, (c, index) => {
+      p.update(c, {order: index})
     })
-    return AV.Object.saveAll(categories)
+    return p.commit()
     .then(() => {
       this.context.router.push('/settings/categories')
       return

@@ -4,7 +4,7 @@ import moment from 'moment'
 import _ from 'lodash'
 import {Table, Button} from 'react-bootstrap'
 import {Link} from 'react-router'
-import AV from 'leancloud-storage/live-query'
+import {cloud} from '../lib/leancloud'
 import {fetchUsers} from './common'
 import offsetDays from '../config'
 import translate from './i18n/translate'
@@ -103,8 +103,8 @@ class StatsSummary extends React.Component {
   
   fetchStatsDatas(startDate, endDate, timeUnit) {
     return Promise.all([
-      AV.Cloud.run('getNewTicketCount', {start: startDate.toISOString(), end: endDate.toISOString(), timeUnit}),
-      AV.Cloud.run('getStats', {start: startDate.toISOString(), end: endDate.toISOString(), timeUnit}),
+      cloud.run('getNewTicketCount', {start: startDate.toISOString(), end: endDate.toISOString(), timeUnit}),
+      cloud.run('getStats', {start: startDate.toISOString(), end: endDate.toISOString(), timeUnit})
     ])
       .then(([newTicketCounts, statses]) => {
         const statsDatas = statses.map((stats, index) => {

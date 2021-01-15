@@ -1,9 +1,8 @@
-/*global SENTRY_DSN_PUBLIC, LEANCLOUD_APP_ID, LEANCLOUD_APP_KEY, LEANCLOUD_API_HOST, LEANCLOUD_APP_ENV, LEAN_CLI_HAVE_STAGING*/
+/*global SENTRY_DSN_PUBLIC */
 import React from 'react'
 import Raven from 'raven-js'
 import { Route, IndexRoute, Redirect } from 'react-router'
 import moment from 'moment'
-import AV from 'leancloud-storage/live-query'
 
 const common = require('./common')
 import App from './App'
@@ -52,17 +51,6 @@ if (locale === 'zh') {
 
 if (SENTRY_DSN_PUBLIC !== '') {
   Raven.config(SENTRY_DSN_PUBLIC).install()
-}
-
-AV.init({
-  appId: LEANCLOUD_APP_ID,
-  appKey: LEANCLOUD_APP_KEY,
-  serverURLs: LEANCLOUD_API_HOST,
-})
-if (LEANCLOUD_APP_ENV === 'development') {
-  AV.setProduction(LEAN_CLI_HAVE_STAGING !== 'true')
-} else {
-  AV.setProduction(LEANCLOUD_APP_ENV === 'production')
 }
 
 module.exports = (

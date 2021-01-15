@@ -4,6 +4,7 @@ import {FormControl} from 'react-bootstrap'
 import Stackedit from 'stackedit-js'
 import css from './index.css'
 import translate from '../../i18n/translate'
+import _ from 'lodash'
 
 class TextareaWithPreview extends Component {
   constructor(props) {
@@ -56,7 +57,7 @@ class TextareaWithPreview extends Component {
     const {t} = this.props
     return (
       <div className={css.textareaWrapper}>
-        <FormControl {...this.props} value={this.state.value} componentClass="textarea" inputRef={this.inputRef.bind(this)}/>
+        <FormControl {..._.omit(this.props, ['t', 'locale'])} value={this.state.value} componentClass="textarea" inputRef={this.inputRef.bind(this)}/>
         <div onClick={this.enterPreviewMode.bind(this)} title={t('preview')} className={css.preview}><span className="glyphicon glyphicon-fullscreen" aria-hidden="true"></span></div>
       </div>
     )
