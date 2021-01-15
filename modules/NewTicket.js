@@ -17,6 +17,7 @@ import {
 import {uploadFiles, getCategoriesTree} from './common'
 import OrganizationSelect from './OrganizationSelect'
 import TagForm from './TagForm'
+import DocumentTitle from 'react-document-title'
 import translate from './i18n/translate'
 
 class NewTicket extends React.Component {
@@ -272,6 +273,7 @@ class NewTicket extends React.Component {
     const ticket = this.state.ticket
     return (
       <div>
+        <DocumentTitle title={`${t('newTicket')} - LeanTicket`} />
         <form onSubmit={this.handleSubmit.bind(this, t)}>
           {this.props.organizations.length > 0 && <OrganizationSelect organizations={this.props.organizations}
             selectedOrgId={this.props.selectedOrgId}
