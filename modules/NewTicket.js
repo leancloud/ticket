@@ -19,6 +19,7 @@ import OrganizationSelect from './OrganizationSelect'
 import TagForm from './TagForm'
 import DocumentTitle from 'react-document-title'
 import translate from './i18n/translate'
+import FAQ from './components/FAQ'
 
 class NewTicket extends React.Component {
 
@@ -43,6 +44,7 @@ class NewTicket extends React.Component {
       isCommitting: false,
       appId: '',
       categoryPath: [],
+      FAQs: [],
     }
   }
 
@@ -149,6 +151,22 @@ class NewTicket extends React.Component {
     localStorage.setItem('ticket:new:content', content)
     ticket.content = content
     this.setState({categoryPath, ticket})
+
+    this.fetchFAQs(category).then(FAQs => this.setState({ FAQs })).catch(error => {
+      this.setState({ FAQs: [] })
+      console.warn('Failed to fetch FAQs for category', category, error.message)
+    })
+  }
+
+  async fetchFAQs(category) {
+    if (!category) {
+      return []
+    }
+    const FAQs = category.get('FAQs')
+    if (!FAQs || FAQs.length === 0) {
+      return []
+    }
+    return (await category.fetch({ include: 'FAQs'})).get('FAQs')
   }
 
   changeTagValue(key, value) {
@@ -296,6 +314,17 @@ class NewTicket extends React.Component {
           </FormGroup>
 
           {categorySelects}
+
+          {this.state.FAQs.length > 0 && (
+            <FormGroup>
+              <ControlLabel>
+                {t('FAQ')}
+              </ControlLabel>
+              {
+                this.state.FAQs.map(faq => <FAQ faq={faq} key={faq.id}/>)
+              }
+            </FormGroup>
+          )}
 
           {this.context.tagMetadatas.map(tagMetadata => {
             const tags = ticket.tags

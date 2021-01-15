@@ -436,6 +436,31 @@ const messages = {
     'The default content shown when creating a new ticket under this category.',
     '用户新建该分类工单时，问题描述默认显示这里的内容。'
   ],
+  // FAQ
+  'FAQ': [
+    'FAQ',
+    '常见问题'
+  ],
+  'newFAQ': [
+    'New FAQ',
+    '新增 FAQ'
+  ],
+  'edit': [
+    'Edit',
+    '编辑'
+  ],
+  'archive': [
+    'Archive',
+    '归档'
+  ],
+  'unarchive': [
+    'unarchive',
+    '取消归档'
+  ],
+  'viewHint': [
+    'Ordered descending (0 means hidden)',
+    '数字越大显示越靠前，设为 0 则不显示'
+  ],
   // CustomerServiceProfile
   'associatedAccounts': [
     'Associated accounts',
