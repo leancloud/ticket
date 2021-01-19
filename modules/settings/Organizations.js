@@ -2,7 +2,7 @@ import PropTypes from 'prop-types'
 import React, {Component} from 'react'
 import {Link} from 'react-router'
 import {Form, FormGroup, Panel, ListGroup, ListGroupItem, Button} from 'react-bootstrap'
-import AV from 'leancloud-storage/live-query'
+import {cloud} from '../../lib/leancloud'
 import translate from '../i18n/translate'
 
 class Organizations extends Component {
@@ -25,7 +25,7 @@ class Organizations extends Component {
   fetchRoleUsers(organizations) {
     const organizationMembersCount = {}
     return Promise.all(organizations.map(o => {
-      return AV.Cloud.run('getRoleUsers', {roleId: o.get('memberRole').id}).then(users => {
+      return cloud.run('getRoleUsers', {roleId: o.get('memberRole').id}).then(users => {
         organizationMembersCount[o.id] = users.length
         return
       })
@@ -38,7 +38,7 @@ class Organizations extends Component {
   }
 
   handleLeaveOrganization(org) {
-    return AV.Cloud.run('leaveOrganization', {organizationId: org.id})
+    return cloud.run('leaveOrganization', {organizationId: org.id})
     .then(() => {
       this.props.leaveOrganization(org)
       return

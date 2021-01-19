@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import {FormGroup, ControlLabel, FormControl, Button} from 'react-bootstrap'
-import AV from 'leancloud-storage/live-query'
+import {db} from '../../lib/leancloud'
 
 import {getCategoriesTree} from '../common'
 import CategoriesSelect from '../CategoriesSelect'
@@ -9,33 +9,37 @@ import translate from '../i18n/translate'
 import {depthFirstSearchFind, getTinyCategoryInfo} from '../../lib/common'
 
 class Category extends React.Component {
+  constructor() {
+    super()
+    this.state = {
+      name: '',
+      qTemplate: '',
+      category: undefined,
+      parentCategory: undefined,
+      categoriesTree: undefined,
+      isSubmitting: false,
+      isLoading: true,
+    }
+  }
 
   componentDidMount() {
     return getCategoriesTree()
     .then(categoriesTree => {
-      const categoryId = this.props.params.id
-      return Promise.resolve()
-      .then(() => {
-        if (categoryId == '_new') {
-          return new AV.Object('Category', {
-            name: '',
-            qTemplate: '',
-          })
-        }
+      this.setState({categoriesTree, isLoading: false})
 
-        return depthFirstSearchFind(categoriesTree, c => c.id == categoryId)
-      })
-      .then(category => {
-        this.setState({
-          name: category.get('name'),
-          qTemplate: category.get('qTemplate'),
-          category,
-          parentCategory: category.get('parent'),
-          categoriesTree,
-          isSubmitting: false,
-        })
+      const categoryId = this.props.params.id
+      if (categoryId == '_new') {
         return
+      }
+
+      const category = depthFirstSearchFind(categoriesTree, c => c.id == categoryId)
+      this.setState({
+        category,
+        name: category.get('name'),
+        qTemplate: category.get('qTemplate'),
+        parentCategory: category.get('parent'),
       })
+      return
     })
   }
 
@@ -47,7 +51,7 @@ class Category extends React.Component {
     const parentCategory = depthFirstSearchFind(this.state.categoriesTree, c => c.id == e.target.value)
     let tmp = parentCategory
     while (tmp) {
-      if (tmp.id == this.state.category.id) {
+      if (this.state.category && tmp.id == this.state.category.id) {
         alert(t('parentCategoryRequirements'))
         return false
       }
@@ -64,6 +68,7 @@ class Category extends React.Component {
     e.preventDefault()
     this.setState({isSubmitting: true})
     const category = this.state.category
+    const pipeline = db.pipeline()
 
     const getCategoryPath = (category) => {
       if (!category.parent) {
@@ -75,39 +80,39 @@ class Category extends React.Component {
     }
 
     const updateCategoryPath = (category) => {
-      category.set('path', getCategoryPath(category))
+      pipeline.update(category, {path: getCategoryPath(category)})
       if (category.children && category.children.length) {
-        return [category].concat(category.children.map(c => updateCategoryPath(c)))
-      } else {
-        return category
+        category.children.forEach(c => updateCategoryPath(c))
       }
     }
 
-    let updatePath = false
+    if (!category) {
+      pipeline.add('Category', {
+        name: this.state.name,
+        parent: this.state.parentCategory,
+        qTemplate: this.state.qTemplate,
+      })
+    } else {
+      const data = {qTemplate: this.state.qTemplate}
 
-    if (this.state.parentCategory != category.parent) {
-      updatePath = true
-      if (!this.state.parentCategory) {
-        category.unset('parent')
-      } else {
-        category.set('parent', this.state.parentCategory)
+      if (this.state.parentCategory != category.parent) {
+        updateCategoryPath(category)
+        if (!this.state.parentCategory) {
+          data.parent = db.op.unset()
+        } else {
+          data.parent = this.state.parentCategory
+        }
       }
+
+      if (this.state.name != category.get('name')) {
+        updateCategoryPath(category)
+        data.name = this.state.name
+      }
+
+      pipeline.update(category, data)
     }
 
-    if (this.state.name != category.get('name')) {
-      updatePath = true
-      category.set('name', this.state.name)
-    }
-
-    category.set('qTemplate', this.state.qTemplate)
-
-    Promise.resolve().then(() => {
-      if (updatePath) {
-        const updated = updateCategoryPath(category)
-        return AV.Object.saveAll(updated)
-      }
-      return category.save()
-    })
+    pipeline.commit()
     .then(() => {
       this.setState({isSubmitting: false})
       this.context.router.push('/settings/categories')
@@ -120,7 +125,7 @@ class Category extends React.Component {
   handleDisable(t) {
     const result = confirm(t('confirmDisableCategory') + this.state.category.get('name'))
     if (result) {
-      this.state.category.save({
+      this.state.category.update({
         'deletedAt': new Date(),
         'order': new Date().getTime(), // 确保在排序的时候尽量靠后
       })
@@ -134,7 +139,7 @@ class Category extends React.Component {
 
   render() {
     const {t} = this.props
-    if (!this.state) {
+    if (this.state.isLoading) {
       return <div>{t('loading')}……</div>
     }
 
@@ -162,7 +167,7 @@ class Category extends React.Component {
           </FormGroup>
           <Button type='submit' disabled={this.state.isSubmitting} bsStyle='success'>{t('save')}</Button>
           {' '}
-          {this.state.category.id
+          {this.state.category
             && <Button type='button' bsStyle="danger" onClick={this.handleDisable.bind(this, t)}>{t('disable')}</Button>
             || <Button type='button' onClick={() => this.context.router.push('/settings/categories')}>{t('return')}</Button>
           }

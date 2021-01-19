@@ -2,7 +2,7 @@ import _ from 'lodash'
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import {FormGroup, FormControl, Button} from 'react-bootstrap'
-import AV from 'leancloud-storage/live-query'
+import LC from '../lib/leancloud'
 
 import {getCustomerServices, UserLabel, getCategoryPathName} from './common'
 import TagForm from './TagForm'
@@ -117,7 +117,7 @@ class TicketMetadata extends Component {
   
 TicketMetadata.propTypes = {
   isCustomerService: PropTypes.bool.isRequired,
-  ticket: PropTypes.instanceOf(AV.Object),
+  ticket: PropTypes.instanceOf(LC.LCObject),
   categoriesTree: PropTypes.array.isRequired,
   updateTicketAssignee: PropTypes.func.isRequired,
   updateTicketCategory: PropTypes.func.isRequired,

@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import {FormGroup, FormControl, Alert, Button, Radio} from 'react-bootstrap'
-import AV from 'leancloud-storage/live-query'
+import LC from '../lib/leancloud'
 
 import translate from './i18n/translate'
 
@@ -77,7 +77,7 @@ class Evaluation extends Component {
   }
   
 Evaluation.propTypes = {
-  ticket: PropTypes.instanceOf(AV.Object),
+  ticket: PropTypes.instanceOf(LC.LCObject),
   isCustomerService: PropTypes.bool,
   saveEvaluation: PropTypes.func.isRequired,
   t: PropTypes.func

@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import {Link} from 'react-router'
-import AV from 'leancloud-storage/live-query'
+import {cloud} from '../lib/leancloud'
 import {Avatar} from './common'
 import css from './User.css'
 import translate from './i18n/translate'
@@ -28,9 +28,9 @@ class User extends Component {
   refreshUserInfo(props) {
     const username = props.params.username
     return Promise.all([
-      AV.Cloud.run('getUserInfo', {username}),
-      props.isCustomerService ? AV.Cloud.run('getLeanCloudUserInfosByUsername', {username}) : null,
-      props.isCustomerService ? AV.Cloud.run('getLeanCloudAppsByUsername', {username}) : null,
+      cloud.run('getUserInfo', {username}),
+      props.isCustomerService ? cloud.run('getLeanCloudUserInfosByUsername', {username}) : null,
+      props.isCustomerService ? cloud.run('getLeanCloudAppsByUsername', {username}) : null,
     ]).then(([user, leancloudUsers, leancloudApps]) => {
       this.setState({
         user,
@@ -42,7 +42,7 @@ class User extends Component {
   }
 
   addTag(tag) {
-    return AV.Cloud.run('modifyUserTags', {
+    return cloud.run('modifyUserTags', {
       objectId: this.state.user.objectId,
       action: 'add',
       tags: [tag]
@@ -50,7 +50,7 @@ class User extends Component {
   }
 
   removeTag(tag) {
-    return AV.Cloud.run('modifyUserTags', {
+    return cloud.run('modifyUserTags', {
       objectId: this.state.user.objectId,
       action: 'remove',
       tags: [tag]

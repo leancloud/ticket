@@ -11,8 +11,8 @@ class Profile extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      name: this.props.currentUser.get('name'),
-      email: this.props.currentUser.get('email'),
+      name: this.props.currentUser.data.name,
+      email: this.props.currentUser.email,
     }
   }
 
@@ -43,7 +43,7 @@ class Profile extends Component {
           <Form>
             <FormGroup>
               <ControlLabel>{t('username')}</ControlLabel>
-              <FormControl type="text" value={this.props.currentUser.get('username')} disabled='true' />
+              <FormControl type="text" value={this.props.currentUser.username} disabled='true' />
             </FormGroup>
             <FormGroup>
               <ControlLabel>{t('nickname')}</ControlLabel>

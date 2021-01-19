@@ -3,8 +3,8 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import NotificationSystem from 'react-notification-system'
 import Raven from 'raven-js'
-import AV from 'leancloud-storage/live-query'
 
+import {auth, db} from '../lib/leancloud'
 import { isCustomerService } from './common'
 import { getGravatarHash } from '../lib/common'
 import GlobalNav from './GlobalNav'
@@ -15,7 +15,7 @@ export default class App extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      currentUser: AV.User.current(),
+      currentUser: auth.currentUser(),
       isCustomerService: false,
       organizations: [],
       selectedOrgId: '',
@@ -50,7 +50,7 @@ export default class App extends Component {
     }
 
     return user
-      .fetch()
+      .get()
       .then((user) => {
         return this.refreshGlobalInfo(user)
       })
@@ -61,7 +61,7 @@ export default class App extends Component {
   }
 
   fetchTagMetadatas() {
-    return new AV.Query('TagMetadata').find().then((tagMetadatas) => {
+    return db.query('TagMetadata').find().then((tagMetadatas) => {
       return tagMetadatas
     })
   }
@@ -89,7 +89,7 @@ export default class App extends Component {
 
     return Promise.all([
       isCustomerService(currentUser),
-      new AV.Query('Organization').include('memberRole').find(),
+      db.query('Organization').include('memberRole').find(),
       this.fetchTagMetadatas()
     ]).then(([isCustomerService, organizations, tagMetadatas]) => {
       this.setState({
@@ -111,7 +111,7 @@ export default class App extends Component {
   }
 
   logout() {
-    return AV.User.logOut().then(() => {
+    return auth.logOutAsync().then(() => {
       this.refreshGlobalInfo()
       this.context.router.push('/')
       return
@@ -120,13 +120,12 @@ export default class App extends Component {
 
   updateCurrentUser(props) {
     const user = this.state.currentUser
-    Object.entries(props).forEach(([k, v]) => {
-      user.set(k, v)
-    })
+    const data = _.clone(props)
     if (props.email) {
-      user.set('gravatarHash', getGravatarHash(props.email))
+      data.gravatarHash = getGravatarHash(props.email)
     }
-    return user.save().then((user) => {
+    return user.update(data).then((user) => {
+      Object.assign(user.data, data)
       this.setState({ currentUser: user })
       return
     })
@@ -257,14 +256,14 @@ class ServerNotification extends Component {
       return
     }
 
-    return new AV.Query('Message')
-      .equalTo('to', this.props.currentUser)
-      .equalTo('isRead', false)
+    return db.query('Message')
+      .where('to', '==', this.props.currentUser)
+      .where('isRead', '==', false)
       .subscribe()
       .then(liveQuery => {
         this.messageLiveQuery = liveQuery
         liveQuery.on('create', message => {
-          return message.fetch({include: 'ticket'}).then(message => {
+          return message.get({include: ['ticket']}).then(message => {
             const messageType = message.get('type')
             const ticket = message.get('ticket')
             if (messageType == 'newTicket') {

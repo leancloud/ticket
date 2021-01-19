@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types'
 import React, {Component} from 'react'
 import {Form, FormGroup, ControlLabel, FormControl, InputGroup, Checkbox, Radio, Button, OverlayTrigger, Tooltip} from 'react-bootstrap'
-import AV from 'leancloud-storage/live-query'
+import {db} from '../../lib/leancloud'
 import translate from '../i18n/translate'
 
 class Tag extends Component {
@@ -19,7 +19,7 @@ class Tag extends Component {
     return Promise.resolve()
     .then(() => {
       if (id == 'new') {
-        return new AV.Object('TagMetadata', {
+        return {
           key: '',
           type: 'select',
           values: [],
@@ -27,10 +27,10 @@ class Tag extends Component {
           ACL: {
             'role:customerService': {write: true, read: true}
           },
-        })
+        }
       } else {
-        const tagMetadata = AV.Object.createWithoutData('TagMetadata', id)
-        return tagMetadata.fetch()
+        const tagMetadata = db.class('TagMetadata').object(id)
+        return tagMetadata.get().then(t => t.data)
       }
     })
     .then(tagMetadata => {
@@ -44,40 +44,40 @@ class Tag extends Component {
   handleChangePrivate(isPrivate) {
     const tagMetadata = this.state.tagMetadata
     if (isPrivate) {
-      tagMetadata.set('isPrivate', true)
+      tagMetadata.isPrivate = true
     } else {
-      tagMetadata.set('isPrivate', false)
+      tagMetadata.isPrivate = false
     }
     this.setState({tagMetadata})
   }
 
   handleKeyChange(e) {
     const tagMetadata = this.state.tagMetadata
-    tagMetadata.set('key', e.target.value)
+    tagMetadata.key = e.target.value
     this.setState({tagMetadata})
   }
 
   handleTypeChange(e) {
     const tagMetadata = this.state.tagMetadata
-    tagMetadata.set('type', e.target.value)
+    tagMetadata.type = e.target.value
     this.setState({tagMetadata})
   }
 
   addValueItem() {
     const tagMetadata = this.state.tagMetadata
-    tagMetadata.get('values').push('')
+    tagMetadata.values.push('')
     this.setState({tagMetadata})
   }
 
   changeValue(index, value) {
     const tagMetadata = this.state.tagMetadata
-    tagMetadata.get('values')[index] = value
+    tagMetadata.values[index] = value
     this.setState({tagMetadata})
   }
 
   handleSortUpdate(value, oriIndex, newIndex) {
     const tagMetadata = this.state.tagMetadata
-    const values = tagMetadata.get('values')
+    const values = tagMetadata.values
     values.splice(oriIndex, 1)
     values.splice(newIndex, 0, value)
     this.setState({tagMetadata})
@@ -85,14 +85,14 @@ class Tag extends Component {
 
   handleRemoveItem(index) {
     const tagMetadata = this.state.tagMetadata
-    tagMetadata.get('values').splice(index, 1)
+    tagMetadata.values.splice(index, 1)
     this.setState({tagMetadata})
   }
 
   handleRemove(t) {
-    const result = confirm(t('confirmDeleteTag') + this.state.tagMetadata.get('key'))
+    const result = confirm(t('confirmDeleteTag') + this.state.tagMetadata.key)
     if (result) {
-      return this.state.tagMetadata.destroy()
+      return db.class('TagMetaData').object(this.state.tagMetadata.objectId).delete()
       // TODO 移除相关 ticket 的标签
       .then(() => {
         this.context.refreshTagMetadatas()
@@ -108,12 +108,20 @@ class Tag extends Component {
     this.setState({isSubmitting: true})
 
     const tagMetadata = this.state.tagMetadata
-    const acl = {
-      '*': {read: !tagMetadata.get('isPrivate')},
-      'role:customerService': {write: true, read: true}
+    const ACL = db.ACL().allow('role:customerService', 'read', 'write')
+    if (!tagMetadata.isPrivate) {
+      ACL.allow('*', 'read')
     }
-    tagMetadata.set('ACL', acl)
-    return tagMetadata.save()
+    const data = Object.assign({}, tagMetadata, { ACL })
+    return Promise.resolve()
+    .then(() => {
+      const id = this.props.params.id
+      if (id === 'new') {
+        return db.class('TagMetadata').add(data)
+      } else {
+        return db.class('TagMetadata').object(tagMetadata.objectId).update(data)
+      }
+    })
     .then(() => {
       this.setState({isSubmitting: false})
       this.context.refreshTagMetadatas()
@@ -134,12 +142,12 @@ class Tag extends Component {
     return <Form onSubmit={this.handleSubmit.bind(this)}>
       <FormGroup controlId="tagNameText">
         <ControlLabel>{t('tagName')}</ControlLabel>
-        <FormControl type="text" value={tagMetadata.get('key')} onChange={this.handleKeyChange.bind(this)} />
+        <FormControl type="text" value={tagMetadata.key} onChange={this.handleKeyChange.bind(this)} />
       </FormGroup>
       <FormGroup>
         <ControlLabel>{t('permission')}</ControlLabel>
         <Checkbox
-          checked={tagMetadata.get('isPrivate')}
+          checked={tagMetadata.isPrivate}
           onChange={(e) => this.handleChangePrivate(e.target.checked)}>
           {t('private')}
           {' '}<OverlayTrigger placement="right" overlay={
@@ -152,7 +160,7 @@ class Tag extends Component {
       </FormGroup>
       <FormGroup>
         <ControlLabel>{t('type')}</ControlLabel>
-        <Radio name="tagTypeGroup" value='select' checked={tagMetadata.get('type') == 'select'} onChange={this.handleTypeChange.bind(this)}>
+        <Radio name="tagTypeGroup" value='select' checked={tagMetadata.type == 'select'} onChange={this.handleTypeChange.bind(this)}>
           {t('tagTypeSelect')}
           {' '}<OverlayTrigger placement="right" overlay={
             <Tooltip id="tooltip">
@@ -161,7 +169,7 @@ class Tag extends Component {
             <span className="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
           </OverlayTrigger>
         </Radio>
-        <Radio name="tagTypeGroup" value="text" checked={tagMetadata.get('type') == 'text'} onChange={this.handleTypeChange.bind(this)}>
+        <Radio name="tagTypeGroup" value="text" checked={tagMetadata.type == 'text'} onChange={this.handleTypeChange.bind(this)}>
           {t('tagTypeAnyText')}
           {' '}<OverlayTrigger placement="right" overlay={
             <Tooltip id="tooltip">
@@ -171,10 +179,10 @@ class Tag extends Component {
           </OverlayTrigger>
         </Radio>{' '}
       </FormGroup>
-      {tagMetadata.get('type') == 'select' &&
+      {tagMetadata.type == 'select' &&
         <FormGroup>
           <ControlLabel>{t('predefinedTags')}</ControlLabel>
-          {tagMetadata.get('values').map((value, index, array) => {
+          {tagMetadata.values.map((value, index, array) => {
             return <InputGroup key={index}>
                 <FormControl type='text' value={value} onChange={(e) => this.changeValue(index, e.target.value)} />
                 <InputGroup.Button>
@@ -189,7 +197,7 @@ class Tag extends Component {
       }
       <Button type='submit' bsStyle='success'>{t('save')}</Button>
       {' '}
-      {this.state.tagMetadata.id
+      {this.props.params.id !== 'new'
         && <Button type='button' onClick={this.handleRemove.bind(this, t)} bsStyle="danger">{t('delete')}</Button>}
       {' '}
       <Button type='button' onClick={() => this.context.router.push('/settings/tags')}>{t('return')}</Button>

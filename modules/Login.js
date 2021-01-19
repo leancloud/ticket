@@ -8,7 +8,7 @@ import {
   Button
 } from 'react-bootstrap'
 import PropTypes from 'prop-types'
-import AV from 'leancloud-storage/live-query'
+import { auth } from '../lib/leancloud'
 import { isCN } from './common'
 import css from './Login.css'
 import translate from './i18n/translate'
@@ -26,7 +26,7 @@ class Login extends Component {
   componentDidMount() {
     const query = this.props.location.query
     if (query.token) {
-      return AV.User.become(query.token)
+      return auth.loginWithSessionToken(query.token)
         .then(user => {
           this.props.onLogin(user)
           return
@@ -45,7 +45,7 @@ class Login extends Component {
     }
     const query = nextProps.location.query
     if (query.token) {
-      return AV.User.become(query.token)
+      return auth.loginWithSessionToken(query.token)
         .then(user => {
           this.props.onLogin(user)
           return
@@ -59,7 +59,7 @@ class Login extends Component {
   }
 
   handleLogin() {
-    return AV.User.logIn(this.state.username, this.state.password)
+    return auth.login(this.state.username, this.state.password)
       .then(user => {
         this.props.onLogin(user)
         return
@@ -72,8 +72,10 @@ class Login extends Component {
   }
 
   handleSignup() {
-    return AV.User.signUp(this.state.username, this.state.password, {
-      name: this.state.username
+    return auth.signUp({
+      username: this.state.username, 
+      password: this.state.password,
+      name: this.state.username,
     })
       .then(user => {
         this.props.onLogin(user)

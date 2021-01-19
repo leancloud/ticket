@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import {Table} from 'react-bootstrap'
-import AV from 'leancloud-storage/live-query'
+import { cloud } from '../../lib/leancloud'
 import DocumentTitle from 'react-document-title'
 import translate from '../i18n/translate'
 
@@ -16,15 +16,12 @@ class CSStatsUser extends React.Component {
 
   componentDidMount() {
     const {start, end}= this.props.location.query
-    return AV.Cloud.run('getStatsTicketByUser', {
+    return cloud.run('getStatsTicketByUser', {
       userId: this.props.params.userId,
       start,
       end,
     })
-    .then((statses) => {
-      return AV.Object.fetchAll(statses.map(s => new AV.Object.createWithoutData('Ticket', s.ticket.objectId) ))
-      .then(() => this.setState({statses}))
-    })
+    .then((statses) => this.setState({statses}))
     .catch(this.context.addNotification)
   }
 
