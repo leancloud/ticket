@@ -85,7 +85,7 @@ class Organization extends React.Component {
   }
 
   handleRemove(t) {
-    db.query('Ticket')
+    db.class('Ticket')
     .where('organization', '==', this.state.organization)
     .count()
     .then(count => {

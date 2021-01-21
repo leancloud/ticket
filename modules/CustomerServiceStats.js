@@ -16,7 +16,7 @@ class CustomerServiceStats extends React.Component {
   }
 
   componentDidMount() {
-    return db.query('Catetory')
+    return db.class('Category')
     .limit(1000)
     .find()
     .then((categories) => {

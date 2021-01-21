@@ -16,7 +16,7 @@ export default class Messages extends Component {
   }
 
   componentDidMount() {
-    return db.query('Message')
+    return db.class('Message')
       .where('to', '==', auth.currentUser())
       .include(['from', 'ticket', 'reply'])
       .orderBy('createdAt', 'desc')

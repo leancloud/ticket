@@ -36,7 +36,7 @@ export default class Subscriptions extends Component {
   findWatches(filters) {
     const { page = '0', size = '10' } = filters
 
-    db.query('Watch')
+    db.class('Watch')
       .where('user', '==', auth.currentUser())
       .orderBy('updatedAt', 'desc')
       .include('ticket')

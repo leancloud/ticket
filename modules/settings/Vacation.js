@@ -27,7 +27,7 @@ class Vacation extends Component {
   componentDidMount() {
     Promise.all([
       getCustomerServices(),
-      db.query('Vacation')
+      db.class('Vacation')
         .where([
           {
             operator: auth.currentUser(),

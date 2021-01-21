@@ -38,7 +38,7 @@ class CustomerServiceTickets extends Component {
     const authorId = this.props.location.query.authorId
     Promise.all([
       getCustomerServices(),
-      authorId && db.class('_User').get(authorId),
+      authorId && db.class('_User').object(authorId).get(),
     ])
       .then(([customerServices, author]) => {
         this.setState({ customerServices, authorUsername: author && author.get('username') })
@@ -67,13 +67,13 @@ class CustomerServiceTickets extends Component {
     let query = null
     if (selectType === SELECT_BTN_TYPE.reply) {
 
-      query = db.query('Reply')
-      query.where('content', 'contains', replyContent)
-      query.include(['ticket'])
+      query = db.class('Reply')
+        .where('content', 'contains', replyContent)
+        .include(['ticket'])
 
     } else {
-      query = db.query('Ticket')
-      query.where('title', 'contains', replyContent)
+      query = db.class('Ticket')
+        .where('title', 'contains', replyContent)
     }
 
     this.setState({ replyContent, selectType })
