@@ -37,6 +37,7 @@ class FAQ extends React.Component {
           .then((faq) => faq.data)
       })
       .then((faq) => {
+        const { question, answer } = faq
         const viewStates = _.fromPairs(
           VIEWS.map((view) => {
             const value = faq[`priority_${view}`]
@@ -48,7 +49,12 @@ class FAQ extends React.Component {
             {
               isSubmitting: false
             },
-            { faq },
+            {
+              faq: {
+                question,
+                answer
+              }
+            },
             viewStates
           )
         )
@@ -86,7 +92,7 @@ class FAQ extends React.Component {
         if (id === '_new') {
           return db.class('FAQ').add(faq)
         } else {
-          return db.class('FAQ').object(faq.objectId).update(faq)
+          return db.class('FAQ').object(id).update(faq)
         }
       })
       .then(() => {

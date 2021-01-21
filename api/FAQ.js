@@ -7,12 +7,15 @@ AV.Cloud.beforeSave('FAQ', async (req) => {
   const FAQ = req.object
   FAQ.set('answer_HTML', htmlify(FAQ.get('answer')))
 })
-AV.Cloud.beforeUpdate('FAQ', async (req) => {
+AV.Cloud.afterUpdate('FAQ', async (req) => {
   const FAQ = req.object
   if (req.object.updatedKeys.indexOf('answer') === -1) {
     return
   }
   FAQ.set('answer_HTML', htmlify(FAQ.get('answer')))
+  return FAQ.save(null, {
+    useMasterKey: true,
+  })
 })
 
 const MAX_FAQ_CACHE_SIZE = Number(process.env.MAX_FAQ_CACHE_SIZE || 20)
