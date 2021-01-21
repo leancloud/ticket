@@ -118,7 +118,7 @@ exports.UserLabel = (props) => {
   const username =
     props.user.username ||
     (props.user.get ? props.user.get('username') : undefined)
-  const name = props.user.name || getUserDisplayName(props.user)
+  const name = props.user.name || getUserDisplayName(props.user) || username
 
   if (props.simple) {
     return <span>{name}</span>
@@ -147,10 +147,9 @@ exports.UserLabel.propTypes = {
 
 exports.Avatar = props => {
   const { user, height, width } = props
+  const userInfo = user.toJSON ? user.toJSON() : user
   let src = `https://cdn.v2ex.com/gravatar/${
-    user.gravatarHash ||
-    user.get('gravatarHash') ||
-    getGravatarHash(user.username || user.get('username'))
+    userInfo.gravatarHash || getGravatarHash(userInfo.username)
   }?s=${height || 16}&r=pg&d=identicon`
   return (
     <Image
