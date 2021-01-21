@@ -38,6 +38,7 @@ class Category extends React.Component {
         name: category.get('name'),
         qTemplate: category.get('qTemplate'),
         parentCategory: category.get('parent'),
+        FAQs: (category.get('FAQs') || []).map(FAQ => FAQ.id).join(','),
       })
       return
     })
@@ -45,6 +46,9 @@ class Category extends React.Component {
 
   handleNameChange(e) {
     this.setState({name: e.target.value})
+  }
+  handleFAQsChange(e) {
+    this.setState({FAQs: e.target.value})
   }
 
   handleParentChange(t, e) {
@@ -68,16 +72,19 @@ class Category extends React.Component {
     e.preventDefault()
     this.setState({isSubmitting: true})
     const category = this.state.category
+    const faqs = this.state.FAQs.split(',').filter(id=>id).map(id => db.class('FAQ').object(id))
 
     let promise
+
     if (!category) {
       promise = db.class('Category').add({
         name: this.state.name,
         parent: this.state.parentCategory,
         qTemplate: this.state.qTemplate,
+        faqs,
       })
     } else {
-      const data = {qTemplate: this.state.qTemplate}
+      const data = {qTemplate: this.state.qTemplate, faqs}
 
       if (this.state.parentCategory != category.parent) {
         if (!this.state.parentCategory) {
@@ -137,6 +144,10 @@ class Category extends React.Component {
             <CategoriesSelect categoriesTree={this.state.categoriesTree}
               selected={this.state.parentCategory}
               onChange={this.handleParentChange.bind(this, t)}/>
+          </FormGroup>
+          <FormGroup controlId="FAQsText">
+            <ControlLabel>{t('FAQs')}</ControlLabel>
+            <FormControl type="text" value={this.state.FAQs} onChange={this.handleFAQsChange.bind(this)} placeholder="objectId1,objectId2"/>
           </FormGroup>
           <FormGroup controlId="qTemplateTextarea">
             <ControlLabel>{t('ticketTemplate')}</ControlLabel>

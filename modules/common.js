@@ -115,7 +115,9 @@ exports.UserLabel = (props) => {
   if (!props.user) {
     return <span>data err</span>
   }
-  const username = props.user.username || props.user.get('username')
+  const username =
+    props.user.username ||
+    (props.user.get ? props.user.get('username') : undefined)
   const name = props.user.name || getUserDisplayName(props.user)
 
   if (props.simple) {

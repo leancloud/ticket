@@ -24,6 +24,7 @@ function Settings(props) {
                 <li className="list-group-item"><Link to='/settings/members'>{t('member')}</Link></li>
                 <li className="list-group-item"><Link to='/settings/categories'>{t('category')}</Link></li>
                 <li className="list-group-item"><Link to='/settings/tags'>{t('tag')}</Link></li>
+                <li className="list-group-item"><Link to='/settings/faqs'>{t('FAQ')}</Link></li>
               </ul>
             </div>
           }

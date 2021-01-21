@@ -30,6 +30,8 @@ import Tags from './settings/Tags'
 import Tag from './settings/Tag'
 import SettingsCSProfile from './settings/CustomerServiceProfile'
 import Members from './settings/Members'
+import FAQs from './settings/FAQs'
+import FAQ from './settings/FAQ'
 import Categories from './settings/Categories'
 import Category from './settings/Category'
 import CategorySort from './settings/CategorySort'
@@ -79,6 +81,8 @@ module.exports = (
       <Route path="/settings/tags/:id" component={Tag} />
       <Route path="/settings/customerServiceProfile" component={SettingsCSProfile} />
       <Route path="/settings/members" component={Members} />
+      <Route path="/settings/faqs" component={FAQs} />
+      <Route path="/settings/faqs/:id" component={FAQ} />
       <Route path="/settings/categories" component={Categories} />
       <Route path="/settings/categories/:id" component={Category} />
       <Route path="/settings/categorySort" component={CategorySort} />

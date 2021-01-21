@@ -57,6 +57,7 @@ const getIndexPage = () => {
   ORG_NAME = '${orgName}'
   USE_OAUTH = '${!!process.env.OAUTH_KEY}'
   ALGOLIA_API_KEY = '${process.env.ALGOLIA_API_KEY}'
+  FAQ_VIEWS = '${process.env.FAQ_VIEWS || ''}'
 </script>
 <script src='${process.env.WEBPACK_DEV_SERVER || ''}/bundle.js'></script>
 <script>
