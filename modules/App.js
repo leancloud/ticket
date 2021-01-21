@@ -61,7 +61,7 @@ export default class App extends Component {
   }
 
   fetchTagMetadatas() {
-    return db.query('TagMetadata').find().then((tagMetadatas) => {
+    return db.class('TagMetadata').find().then((tagMetadatas) => {
       return tagMetadatas
     })
   }
@@ -89,7 +89,7 @@ export default class App extends Component {
 
     return Promise.all([
       isCustomerService(currentUser),
-      db.query('Organization').include('memberRole').find(),
+      db.class('Organization').include('memberRole').find(),
       this.fetchTagMetadatas()
     ]).then(([isCustomerService, organizations, tagMetadatas]) => {
       this.setState({
@@ -256,7 +256,7 @@ class ServerNotification extends Component {
       return
     }
 
-    return db.query('Message')
+    return db.class('Message')
       .where('to', '==', this.props.currentUser)
       .where('isRead', '==', false)
       .subscribe()

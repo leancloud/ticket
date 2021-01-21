@@ -51,11 +51,11 @@ class Tickets extends Component {
 
   findTickets(filter) {
     const filters = _.assign({}, this.state.filters, filter)
-    let query = db.query('Ticket')
+    let query = db.class('Ticket')
     if (filter.organizationId) {
-      query.where('organization', '==', _.find(this.props.organizations, {id: filter.organizationId}))
+      query = query.where('organization', '==', _.find(this.props.organizations, {id: filter.organizationId}))
     } else {
-      query.where({
+      query = query.where({
         author: auth.currentUser(),
         organization: db.cmd.or(null, db.cmd.notExists())
       })

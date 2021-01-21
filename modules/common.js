@@ -78,7 +78,7 @@ exports.uploadFiles = files => {
 }
 
 exports.getTicketAndRelation = nid => {
-  return db.query('Ticket')
+  return db.class('Ticket')
     .where('nid', '==', parseInt(nid))
     .include('author', 'files')
     .first()
@@ -87,12 +87,12 @@ exports.getTicketAndRelation = nid => {
         return
       }
       return Promise.all([
-        db.query('Reply')
+        db.class('Reply')
           .where('ticket', ticket)
           .include('author', 'files')
           .orderBy('createdAt')
           .find(),
-        new db.query('OpsLog')
+        db.class('OpsLog')
           .where('ticket', '==', ticket)
           .orderBy('createdAt')
           .find()
@@ -164,10 +164,10 @@ exports.Avatar.propTypes = {
 
 
 exports.getCategoriesTree = (hiddenDisable = true) => {
-  const query = db.query('Category')
-  if (hiddenDisable) {
-    query.where('deletedAt', 'not-exists')
-  }
+  const query = db.class('Category')
+    .where({
+      deletedAt: hiddenDisable ? db.cmd.notExists() : undefined
+    })
   return query
     .orderBy('createdAt', 'desc')
     .find()

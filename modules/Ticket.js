@@ -59,9 +59,9 @@ class Ticket extends Component {
         cloud.run('getPrivateTags', {ticketId: ticket.id}),
         getCategoriesTree(false),
         this.getReplyQuery(ticket).find(),
-        db.query('Tag').where('ticket', '==', ticket).find(),
+        db.class('Tag').where('ticket', '==', ticket).find(),
         this.getOpsLogQuery(ticket).find(),
-        db.query('Watch')
+        db.class('Watch')
           .where('ticket', '==', ticket)
           .where('user', '==', auth.currentUser())
           .first(),
@@ -97,7 +97,7 @@ class Ticket extends Component {
   }
 
   getTicketQuery(nid) {
-    const query = db.query('Ticket')
+    const query = db.class('Ticket')
     .where('nid', '==', nid)
     .include('author')
     .include('organization')
@@ -129,7 +129,7 @@ class Ticket extends Component {
   }
 
   getReplyQuery(ticket) {
-    const replyQuery = db.query('Reply')
+    const replyQuery = db.class('Reply')
     .where('ticket', '==', ticket)
     .include('author')
     .include('files')
@@ -152,7 +152,7 @@ class Ticket extends Component {
   }
 
   getOpsLogQuery(ticket) {
-    const opsLogQuery = db.query('OpsLog')
+    const opsLogQuery = db.class('OpsLog')
     .where('ticket', '==', ticket)
     .orderBy('createdAt')
     opsLogQuery.subscribe()

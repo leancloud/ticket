@@ -33,7 +33,7 @@ class CustomerServiceTickets extends Component {
     Promise.all([
       getCustomerServices(),
       getCategoriesTree(false),
-      authorId && db.class('_User').get(authorId),
+      authorId && db.class('_User').object(authorId).get(),
     ])
     .then(([customerServices, categoriesTree, author]) => {
       this.setState({customerServices, categoriesTree, authorUsername: author && author.get('username')})
@@ -58,12 +58,12 @@ class CustomerServiceTickets extends Component {
 
     const {assigneeId, isOpen, status, categoryId, authorId,
       tagKey, tagValue, isOnlyUnlike, searchString, page = '0', size = '10', timeRange} = filters
-    const query = db.query('Ticket')
+    let query = db.class('Ticket')
 
     let statuses = []
     if (isOpen === 'true') {
       statuses = ticketOpenedStatuses()
-      query.orderBy('status')
+      query = query.orderBy('status')
     } else if (isOpen === 'false') {
       statuses = ticketClosedStatuses()
     } else if (status) {
@@ -71,24 +71,25 @@ class CustomerServiceTickets extends Component {
     }
 
     if(timeRange){
-      query.where('createdAt', '>=', TIME_RANGE_MAP[timeRange].starts)
-      query.where('createdAt', '<', TIME_RANGE_MAP[timeRange].ends)
+      query = query
+        .where('createdAt', '>=', TIME_RANGE_MAP[timeRange].starts)
+        .where('createdAt', '<', TIME_RANGE_MAP[timeRange].ends)
     }
 
     if (statuses.length !== 0) {
-      query.where('status', 'in', statuses)
+      query = query.where('status', 'in', statuses)
     }
 
     if (assigneeId) {
-      query.where('assignee', '==', db.class('_User').object(assigneeId))
+      query = query.where('assignee', '==', db.class('_User').object(assigneeId))
     }
 
     if (authorId) {
-      query.where('author', '==', db.class('_User').object(authorId))
+      query = query.where('author', '==', db.class('_User').object(authorId))
     }
 
     if (categoryId) {
-      query.where('category.objectId', '==', categoryId)
+      query = query.where('category.objectId', '==', categoryId)
     }
 
     if (tagKey) {
@@ -96,15 +97,15 @@ class CustomerServiceTickets extends Component {
       if (tagMetadata) {
         const columnName = tagMetadata.get('isPrivate') ? 'privateTags' : 'tags'
         if (tagValue) {
-          query.where(columnName, '==', {key: tagKey, value: tagValue})
+          query = query.where(columnName, '==', {key: tagKey, value: tagValue})
         } else {
-          query.where(columnName + '.key', '==', tagKey)
+          query = query.where(columnName + '.key', '==', tagKey)
         }
       }
     }
 
     if (JSON.parse(isOnlyUnlike || false)) {
-      query.where('evaluation.star', '==', 0)
+      query = query.where('evaluation.star', '==', 0)
     }
 
     return Promise.resolve()
@@ -130,7 +131,7 @@ class CustomerServiceTickets extends Component {
     .then(([searchMatchedTicketIds, searchMatchedReplaies]) => {
       if (searchMatchedTicketIds.length + searchMatchedReplaies.length > 0) {
         const ticketIds = _.union(searchMatchedTicketIds, searchMatchedReplaies.map(r => r.get('ticket').id))
-        query.where('objectId', 'in', ticketIds)
+        query = query.where('objectId', 'in', ticketIds)
       }
       return query.include('author')
       .include('assignee')
