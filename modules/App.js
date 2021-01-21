@@ -111,7 +111,7 @@ export default class App extends Component {
   }
 
   logout() {
-    return auth.logOutAsync().then(() => {
+    return auth.logOut().then(() => {
       this.refreshGlobalInfo()
       this.context.router.push('/')
       return
