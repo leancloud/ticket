@@ -4,7 +4,7 @@ import {Link} from 'react-router'
 import {Image} from 'react-bootstrap'
 import _ from 'lodash'
 import {auth, db, storage} from '../lib/leancloud'
-import {depthFirstSearchFind, getUserDisplayName, makeTree, getUserTags} from '../lib/common'
+import {depthFirstSearchFind, getUserDisplayName, makeTree, getUserTags, getGravatarHash} from '../lib/common'
 import {UserTagGroup} from './components/UserTag'
 
 Object.assign(exports, require('../lib/common'))
@@ -146,12 +146,16 @@ exports.UserLabel.propTypes = {
 
 
 exports.Avatar = props => {
-  let src = `https://cdn.v2ex.com/gravatar/${props.user.gravatarHash ||
-    props.user.get('gravatarHash')}?s=${props.height || 16}&r=pg&d=identicon`
+  const { user, height, width } = props
+  let src = `https://cdn.v2ex.com/gravatar/${
+    user.gravatarHash ||
+    user.get('gravatarHash') ||
+    getGravatarHash(user.username || user.get('username'))
+  }?s=${height || 16}&r=pg&d=identicon`
   return (
     <Image
-      height={props.height || 16}
-      width={props.width || 16}
+      height={height || 16}
+      width={width || 16}
       src={src}
       rounded
     />

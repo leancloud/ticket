@@ -28,6 +28,7 @@
     "babel-preset-env": "^1.7.0",
     "babel-preset-react": "^6.23.0",
     "bluebird": "^3.4.7",
+    "blueimp-md5": "^2.18.0",
     "bootstrap": "^3.3.7",
     "chart.js": "^2.7.2",
     "color": "^1.0.3",
