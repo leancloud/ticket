@@ -30,7 +30,7 @@ class Categories extends Component {
 
   reload() {
     return db
-      .query('FAQ')
+      .class('FAQ')
       .find()
       .then((FAQs) => {
         this.setState({ FAQs })
