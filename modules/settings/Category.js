@@ -6,7 +6,7 @@ import {db} from '../../lib/leancloud'
 import {getCategoriesTree} from '../common'
 import CategoriesSelect from '../CategoriesSelect'
 import translate from '../i18n/translate'
-import {depthFirstSearchFind, getTinyCategoryInfo} from '../../lib/common'
+import {depthFirstSearchFind} from '../../lib/common'
 
 class Category extends React.Component {
   constructor() {
@@ -68,26 +68,10 @@ class Category extends React.Component {
     e.preventDefault()
     this.setState({isSubmitting: true})
     const category = this.state.category
-    const pipeline = db.pipeline()
 
-    const getCategoryPath = (category) => {
-      if (!category.parent) {
-        return [getTinyCategoryInfo(category)]
-      }
-      const result = getCategoryPath(category.parent)
-      result.push(getTinyCategoryInfo(category))
-      return result
-    }
-
-    const updateCategoryPath = (category) => {
-      pipeline.update(category, {path: getCategoryPath(category)})
-      if (category.children && category.children.length) {
-        category.children.forEach(c => updateCategoryPath(c))
-      }
-    }
-
+    let promise
     if (!category) {
-      pipeline.add('Category', {
+      promise = db.class('Category').add({
         name: this.state.name,
         parent: this.state.parentCategory,
         qTemplate: this.state.qTemplate,
@@ -96,7 +80,6 @@ class Category extends React.Component {
       const data = {qTemplate: this.state.qTemplate}
 
       if (this.state.parentCategory != category.parent) {
-        updateCategoryPath(category)
         if (!this.state.parentCategory) {
           data.parent = db.op.unset()
         } else {
@@ -105,14 +88,13 @@ class Category extends React.Component {
       }
 
       if (this.state.name != category.get('name')) {
-        updateCategoryPath(category)
         data.name = this.state.name
       }
 
-      pipeline.update(category, data)
+      promise = category.update(data)
     }
 
-    pipeline.commit()
+    promise
     .then(() => {
       this.setState({isSubmitting: false})
       this.context.router.push('/settings/categories')
