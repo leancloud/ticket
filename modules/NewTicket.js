@@ -166,7 +166,7 @@ class NewTicket extends React.Component {
     if (!FAQs || FAQs.length === 0) {
       return []
     }
-    return (await category.fetch({ include: 'FAQs'})).get('FAQs')
+    return (await category.get({ include: ['FAQs']})).data.FAQs
   }
 
   changeTagValue(key, value) {
