@@ -58,7 +58,8 @@ class Login extends Component {
     }
   }
 
-  handleLogin() {
+  handleLogin(e) {
+    e.preventDefault()
     return auth.login(this.state.username, this.state.password)
       .then(user => {
         this.props.onLogin(user)
@@ -107,12 +108,12 @@ class Login extends Component {
 
   render() {
     const {t} = this.props
-    if (USE_OAUTH === 'false') {
+    if (!USE_OAUTH) {
       return (
         <div className={css.wrap}>
           <h1 className="font-logo">{t('loginOrSignup')}</h1>
           <hr />
-          <form>
+          <form onSubmit={this.handleLogin.bind(this)}>
             <FormGroup>
               <ControlLabel>{t('username')}</ControlLabel>
               <FormControl
@@ -131,9 +132,8 @@ class Login extends Component {
             </FormGroup>
             <FormGroup>
               <Button
-                type="button"
+                type="submit"
                 bsStyle="primary"
-                onClick={this.handleLogin.bind(this)}
               >
                 {t('login')} 
               </Button>{' '}
