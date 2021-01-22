@@ -4,9 +4,9 @@ import moment from 'moment'
 import _ from 'lodash'
 import {Table, Button} from 'react-bootstrap'
 import {Link} from 'react-router'
-import {cloud} from '../lib/leancloud'
+import {cloud, db} from '../lib/leancloud'
 import {fetchUsers} from './common'
-import offsetDays from '../config'
+import {offsetDays} from '../config'
 import translate from './i18n/translate'
 import {getUserDisplayName} from '../lib/common'
 import { UserTagGroup } from './components/UserTag'
@@ -19,7 +19,6 @@ const sortAndIndexed = (datas, sortFn) => {
   })
   return sorted
 }
-
 
 class SummaryTable extends React.Component {
 
@@ -39,7 +38,7 @@ class SummaryTable extends React.Component {
     let trs
     const fn = (row) => {
       return <tr key={row[0]}>
-          {row.slice(1).map(c => <td>{c}</td>)}
+          {row.slice(1).map((c, i) => <td key={i}>{c}</td>)}
         </tr>
     }
     if (this.state.isOpen || this.props.body.length <= 6) {
@@ -56,7 +55,7 @@ class SummaryTable extends React.Component {
     return <Table>
         <thead>
           <tr>
-            {this.props.header.map(h => <th>{h}</th>)}
+            {this.props.header.map(h => <th key={h}>{h}</th>)}
           </tr>
         </thead>
         <tbody>
@@ -100,53 +99,75 @@ class StatsSummary extends React.Component {
       }
     }
   }
-  
-  fetchStatsDatas(startDate, endDate, timeUnit) {
-    return Promise.all([
+
+  fetchTickets(ids) {
+    return Promise.all(
+      _.chunk(ids, 50).map(ids => 
+        db.class('Ticket')
+          .select('author', 'assignee', 'category')
+          .where('objectId', 'in', ids)
+          .find())
+    ).then(_.flatten)
+  }
+
+  async fetchStatsDatas(startDate, endDate, timeUnit) {
+    const [newTicketCounts, statses] = await Promise.all([
       cloud.run('getNewTicketCount', {start: startDate.toISOString(), end: endDate.toISOString(), timeUnit}),
       cloud.run('getStats', {start: startDate.toISOString(), end: endDate.toISOString(), timeUnit})
     ])
-      .then(([newTicketCounts, statses]) => {
-        const statsDatas = statses.map((stats, index) => {
-          const activeTicketCountsByCategory = sortAndIndexed(_.toPairs(stats.categories), ([_k, v]) => -v)
-          const activeTicketCountByAssignee = sortAndIndexed(_.toPairs(stats.assignees), ([_k, v]) => -v)
-          const activeTicketCountByAuthor = sortAndIndexed(_.toPairs(stats.authors), ([_k, v]) => -v)
-          const firstReplyTimeByUser = sortAndIndexed(stats.firstReplyTimeByUser, t => t.replyTime / t.replyCount)
-          const replyTimeByUser = sortAndIndexed(stats.replyTimeByUser, t => t.replyTime / t.replyCount)
-          const tagsArray = _.chain(stats.tags)
-            .toPairs()
-            .groupBy(row => JSON.parse(row[0]).key)
-            .values()
-            .map(tags => sortAndIndexed(tags, ([_k, v]) => -v))
-            .value()
-          const userIds = _.uniq(_.concat([],
-            activeTicketCountByAssignee.map(([k, _v]) => k),
-            activeTicketCountByAuthor.map(([k, _v]) => k),
-            firstReplyTimeByUser.map(t => t.userId),
-            replyTimeByUser.map(t => t.userId)
-          ))
-          return {
-            date: stats.date,
-            newTicketCount: newTicketCounts[index].count,
-            activeTicketCounts: stats.tickets.length,
-            activeTicketCountsByCategory,
-            activeTicketCountByAssignee,
-            activeTicketCountByAuthor,
-            firstReplyTimeByUser,
-            replyTimeByUser,
-            firstReplyTime: stats.firstReplyTime,
-            firstReplyCount: stats.firstReplyCount,
-            replyTime: stats.replyTime,
-            replyCount: stats.replyCount,
-            tagsArray,
-            userIds
-          }
-        })
-  
-        return fetchUsers(_.uniq(_.flatten(statsDatas.map(data => data.userIds)))).then((users) => {
-          return {users, statsDatas}
-        })
-      })
+
+    const activeTicketIds = _.uniq(statses.map(stats => stats.tickets).flat())
+    const activeTickets = (await this.fetchTickets(activeTicketIds)).map(o => o.toJSON())
+    const userIdSet = new Set([
+      ...statses.map(stats => stats.firstReplyTimeByUser.map(t => t.userId)).flat(),
+      ...statses.map(stats => stats.replyTimeByUser.map(t => t.userId)).flat(),
+    ])
+
+    const statsDatas = statses.map((stats, index) => {
+      const idSet = new Set(stats.tickets)
+      const tickets = activeTickets.filter(ticket => idSet.has(ticket.objectId))
+
+      const categoryIds = tickets.map(ticket => ticket.category.objectId)
+      const assigneeIds = tickets.map(ticket => ticket.assignee.objectId)
+      const authorIds = tickets.map(ticket => ticket.author.objectId)
+      assigneeIds.forEach(id => userIdSet.add(id))
+      authorIds.forEach(id => userIdSet.add(id))
+
+      const activeTicketCountsByCategory = sortAndIndexed(_.toPairs(_.countBy(categoryIds)), ([_k, v]) => -v)
+      const activeTicketCountByAssignee = sortAndIndexed(_.toPairs(_.countBy(assigneeIds)), ([_k, v]) => -v)
+      const activeTicketCountByAuthor = sortAndIndexed(_.toPairs(_.countBy(authorIds)), ([_k, v]) => -v)
+      const firstReplyTimeByUser = sortAndIndexed(stats.firstReplyTimeByUser, t => t.replyTime / t.replyCount)
+      const replyTimeByUser = sortAndIndexed(stats.replyTimeByUser, t => t.replyTime / t.replyCount)
+      const tagsArray = _.chain(stats.tags)
+        .toPairs()
+        .groupBy(row => JSON.parse(row[0]).key)
+        .values()
+        .map(tags => sortAndIndexed(tags, ([_k, v]) => -v))
+        .value()
+
+      return {
+        date: stats.date,
+        newTicketCount: newTicketCounts[index].count,
+        activeTicketCounts: stats.tickets.length,
+        activeTicketCountsByCategory,
+        activeTicketCountByAssignee,
+        activeTicketCountByAuthor,
+        firstReplyTimeByUser,
+        replyTimeByUser,
+        firstReplyTime: stats.firstReplyTime,
+        workdayFirstReplyTime: stats.workdayFirstReplyTime,
+        workdayFirstReplyCount: stats.workdayFirstReplyCount,
+        firstReplyCount: stats.firstReplyCount,
+        replyTime: stats.replyTime,
+        replyCount: stats.replyCount,
+        tagsArray,
+      }
+    })
+
+    return {
+      statsDatas,
+      users: await fetchUsers(Array.from(userIdSet)),
+    }
   }
   
   componentDidMount() {
@@ -183,6 +204,7 @@ class StatsSummary extends React.Component {
               <th>{t('createdTicket')}</th>
               <th>{t('activeTicket')}</th>
               <th>{t('averageFirstReplyTime')}</th>
+              <th>{t('workday') + t('averageFirstReplyTime')}</th>
               <th>{t('averageReplyTime')}</th>
             </tr>
           </thead>
@@ -191,6 +213,7 @@ class StatsSummary extends React.Component {
               <td>{data.newTicketCount}</td>
               <td>{data.activeTicketCounts}</td>
               <td>{(data.firstReplyTime / data.firstReplyCount / 1000 / 60 / 60).toFixed(2)} {t('hour')}</td>
+              <td>{(data.workdayFirstReplyTime / data.workdayFirstReplyCount / 1000 / 60 / 60).toFixed(2)} {t('hour')}</td>
               <td>{(data.replyTime / data.replyCount / 1000 / 60 / 60).toFixed(2)} {t('hour')}</td>
             </tr>
           </tbody>
@@ -216,6 +239,22 @@ class StatsSummary extends React.Component {
     const activeTicketCountByAssigneeDoms = this.state.statsDatas.map(data => {
       const body = data.activeTicketCountByAssignee.map(row => {
         const user = _.find(this.state.users, c => c.id === row[0])
+        return [
+          row[0],
+          row.index,
+          user && getUserDisplayName(user) || row[0],
+          row[1],
+        ]
+      })
+      return <SummaryTable
+          header={[t('rank'), t('staff'), t('activeTicket')]}
+          body={body}
+        />
+    })
+
+    const activeTicketCountByAuthorDoms = this.state.statsDatas.map(data => {
+      const body = data.activeTicketCountByAuthor.map(row => {
+        const user = _.find(this.state.users, c => c.id === row[0])
         const username = (
           <span>
             {user && getUserDisplayName(user) || row[0]}
@@ -230,27 +269,11 @@ class StatsSummary extends React.Component {
         ]
       })
       return <SummaryTable
-          header={[t('rank'), t('staff'), t('activeTicket')]}
-          body={body}
-        />
-    })
-  
-    const activeTicketCountByAuthorDoms = this.state.statsDatas.map(data => {
-      const body = data.activeTicketCountByAuthor.map(row => {
-        const user = _.find(this.state.users, c => c.id === row[0])
-        return [
-          row[0],
-          row.index,
-          user && getUserDisplayName(user) || row[0],
-          row[1],
-        ]
-      })
-      return <SummaryTable
           header={[t('rank'), t('user'), t('activeTicket')]}
           body={body}
         />
     })
-  
+
     const getLinkTimeRange = (i) =>{
       const {startDate,endDate} = (this.getTimeRange(this.state.timeUnit))
       let tStart = i === 0 ? moment(startDate) : moment(startDate).add(1, this.state.timeUnit)
@@ -263,7 +286,7 @@ class StatsSummary extends React.Component {
         endTime: tEnd.toDate()
       }
     }
-  
+
     const firstReplyTimeByUserDoms = this.state.statsDatas.map((data,i) => {
       const body = data.firstReplyTimeByUser.map(({userId, replyTime, replyCount, index}) => {
         const {startTime, endTime} = getLinkTimeRange(i)
@@ -310,14 +333,16 @@ class StatsSummary extends React.Component {
             row[1],
           ]
         })
+        const key = JSON.parse(tags[0][0]).key
         return <SummaryTable
-            header={[t('rank'), t('tag') + ':' + JSON.parse(tags[0][0]).key, t('count')]}
+            key={key}
+            header={[t('rank'), t('tag') + ':' + key, t('count')]}
             body={body}
           />
       })
       return <div>{tables}</div>
     })
-  
+
     return <div>
         <h2>{t('summary')} <small>
           {this.state.timeUnit === 'month' ?
@@ -330,49 +355,48 @@ class StatsSummary extends React.Component {
           <thead>
             <tr>
               <th>{t('time')}</th>
-              {dateDoms.map(dom => <td>{dom}</td>)}
+              {dateDoms.map((dom, i) => <td key={i}>{dom}</td>)}
             </tr>
           </thead>
           <tbody>
             <tr>
               <th>{t('overview')}</th>
-              {summaryDoms.map(dom => <td>{dom}</td>)}
+              {summaryDoms.map((dom, i) => <td key={i}>{dom}</td>)}
             </tr>
             <tr>
-              <th>{t('activeTicket')+' '+t('byCategory')}</th>
-              {activeTicketCountsByCategoryDoms.map(dom => <td>{dom}</td>)}
+              <th>{t('activeTicket') + t('byCategory')}</th>
+              {activeTicketCountsByCategoryDoms.map((dom, i) => <td key={i}>{dom}</td>)}
             </tr>
             <tr>
-              <th>{t('activeTicket')+' '+t('byStaff')}</th>
-              {activeTicketCountByAssigneeDoms.map(dom => <td>{dom}</td>)}
+              <th>{t('activeTicket') + t('byStaff')}</th>
+              {activeTicketCountByAssigneeDoms.map((dom, i) => <td key={i}>{dom}</td>)}
             </tr>
             <tr>
-              <th>{t('activeTicket')+' '+t('byUser')}</th>
-              {activeTicketCountByAuthorDoms.map(dom => <td>{dom}</td>)}
+              <th>{t('activeTicket') + t('byUser')}</th>
+              {activeTicketCountByAuthorDoms.map((dom, i) => <td key={i}>{dom}</td>)}
             </tr>
             <tr>
               <th>{t('firstReplyTime')}</th>
-              {firstReplyTimeByUserDoms.map(dom => <td>{dom}</td>)}
+              {firstReplyTimeByUserDoms.map((dom, i) => <td key={i}>{dom}</td>)}
             </tr>
             <tr>
               <th>{t('replyTime')}</th>
-              {replyTimeByUserDoms.map(dom => <td>{dom}</td>)}
+              {replyTimeByUserDoms.map((dom, i) => <td key={i}>{dom}</td>)}
             </tr>
             <tr>
               <th>{t('tagCount')}</th>
-              {tagDoms.map(dom => <td>{dom}</td>)}
+              {tagDoms.map((dom, i) => <td key={i}>{dom}</td>)}
             </tr>
           </tbody>
         </Table>
       </div>
   }
-  
-  }
-  
+
+}
+
 StatsSummary.propTypes = {
   categories: PropTypes.array.isRequired,
   t: PropTypes.func
 }
 
 export default translate(StatsSummary)
-  

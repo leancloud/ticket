@@ -194,6 +194,14 @@ const messages = {
     'Overview',
     '总览'
   ],
+  'workday': [
+    'Workday',
+    '工作日'
+  ],
+  'weekendWarning': [
+    '', // TODO
+    '当前为非工作日，您的请求可能会被延迟受理。'
+  ],
   'password': [
     'Password',
     '密码'
