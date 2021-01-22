@@ -1,4 +1,4 @@
-/*global $, ALGOLIA_API_KEY*/
+/*global $, ALGOLIA_API_KEY, ENABLE_LEANCLOUD_INTERGRATION*/
 import _ from 'lodash'
 import React from 'react'
 import PropTypes from 'prop-types'
@@ -60,13 +60,13 @@ class NewTicket extends React.Component {
     .then(() => {
       return Promise.all([
         getCategoriesTree(),
-        cloud.run('getLeanCloudApps')
+        ENABLE_LEANCLOUD_INTERGRATION ? cloud.run('getLeanCloudApps')
         .catch((err) => {
           if (err.message.indexOf('Could not find LeanCloud authData:') === 0) {
             return []
           }
           throw err
-        }),
+        }) : Promise.resolve([]),
       ])
     })
     .then(([categoriesTree, apps]) => {
@@ -301,17 +301,18 @@ class NewTicket extends React.Component {
             <input type="text" className="form-control docsearch-input" value={ticket.title}
                onChange={this.handleTitleChange.bind(this)} />
           </FormGroup>
-          <FormGroup>
-            <ControlLabel>
-              {t('associatedApplication')} <OverlayTrigger placement="top" overlay={appTooltip}>
-                <span className='icon-wrap'><span className='glyphicon glyphicon-question-sign'></span></span>
-              </OverlayTrigger>
-            </ControlLabel>
-            <FormControl componentClass="select" value={this.state.appId} onChange={this.handleAppChange.bind(this)}>
-              <option key='empty'></option>
-              {appOptions}
-            </FormControl>
-          </FormGroup>
+          {ENABLE_LEANCLOUD_INTERGRATION && 
+            <FormGroup>
+              <ControlLabel>
+                {t('associatedApplication')} <OverlayTrigger placement="top" overlay={appTooltip}>
+                  <span className='icon-wrap'><span className='glyphicon glyphicon-question-sign'></span></span>
+                </OverlayTrigger>
+              </ControlLabel>
+              <FormControl componentClass="select" value={this.state.appId} onChange={this.handleAppChange.bind(this)}>
+                <option key='empty'></option>
+                {appOptions}
+              </FormControl>
+            </FormGroup>}
 
           {categorySelects}
 

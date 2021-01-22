@@ -1,3 +1,4 @@
+/*global ENABLE_LEANCLOUD_INTERGRATION */
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import {Link} from 'react-router'
@@ -29,8 +30,8 @@ class User extends Component {
     const username = props.params.username
     return Promise.all([
       cloud.run('getUserInfo', {username}),
-      props.isCustomerService ? cloud.run('getLeanCloudUserInfosByUsername', {username}) : null,
-      props.isCustomerService ? cloud.run('getLeanCloudAppsByUsername', {username}) : null,
+      ENABLE_LEANCLOUD_INTERGRATION && props.isCustomerService ? cloud.run('getLeanCloudUserInfosByUsername', {username}) : null,
+      ENABLE_LEANCLOUD_INTERGRATION && props.isCustomerService ? cloud.run('getLeanCloudAppsByUsername', {username}) : null,
     ]).then(([user, leancloudUsers, leancloudApps]) => {
       this.setState({
         user,

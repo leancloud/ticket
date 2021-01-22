@@ -55,7 +55,8 @@ const getIndexPage = () => {
   LEAN_CLI_HAVE_STAGING = '${process.env.LEAN_CLI_HAVE_STAGING}'
   SENTRY_DSN_PUBLIC = '${config.sentryDSNPublic || ''}'
   ORG_NAME = '${orgName}'
-  USE_OAUTH = '${!!process.env.OAUTH_KEY}'
+  USE_OAUTH = ${!!process.env.OAUTH_KEY}
+  ENABLE_LEANCLOUD_INTERGRATION = ${!!process.env.ENABLE_LEANCLOUD_INTERGRATION}
   ALGOLIA_API_KEY = '${process.env.ALGOLIA_API_KEY}'
   FAQ_VIEWS = '${process.env.FAQ_VIEWS || ''}'
 </script>

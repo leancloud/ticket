@@ -17,10 +17,6 @@ const {getGravatarHash,
 
 const oauthScope = 'client:info app:info client:account'
 
-if (!config.leancloudAppUrl) {
-  console.log('leancloudAppUrl 没有配置，导致无法生成应用链接。')
-}
-
 exports.orgName = 'LeanCloud'
 
 exports.login = (callbackUrl) => {
@@ -108,7 +104,7 @@ const getStateData = (state) => {
  * 判断该用户是否有权限提交工单
  */ 
 exports.checkPermission = (user) => {
-  if (!config.oauthKey) {
+  if (!config.enableLeanCloudIntergration) {
     return Promise.resolve()
   }
 
@@ -135,84 +131,86 @@ AV.Cloud.define('checkPermission', (req) => {
   return exports.checkPermission(req.currentUser)
 })
 
-AV.Cloud.define('getLeanCloudUserInfos', (req) => {
-  const user = req.currentUser
-  if (!user) {
-    throw new AV.Cloud.Error('unauthorized', {status: 401})
-  }
-  return getClientInfos(user)
-})
-
-AV.Cloud.define('getLeanCloudUserInfosByUsername', (req) => {
-  return common.isCustomerService(req.currentUser).then((isCustomerService) => {
-    if (!isCustomerService) {
+if (config.enableLeanCloudIntergration) {
+  AV.Cloud.define('getLeanCloudUserInfos', (req) => {
+    const user = req.currentUser
+    if (!user) {
       throw new AV.Cloud.Error('unauthorized', {status: 401})
     }
-    return getUser(req.params.username)
-    .then((user) => {
-      return getClientInfos(user)
-    })
+    return getClientInfos(user)
   })
-})
-
-AV.Cloud.define('getLeanCloudAppsByUsername', (req) => {
-  return common.isCustomerService(req.currentUser).then((isCustomerService) => {
-    if (!isCustomerService) {
-      throw new AV.Cloud.Error('unauthorized', {status: 401})
-    }
-    return getUser(req.params.username)
-    .then((user) => {
-      return getApps(user)
-    })
-  })
-})
-
-AV.Cloud.define('getLeanCloudApps', (req) => {
-  const user = req.currentUser
-  if (!user) {
-    throw new AV.Cloud.Error('unauthorized', {status: 401})
-  }
-  return getApps(req.currentUser)
-})
-
-AV.Cloud.define('getLeanCloudApp', (req) => {
-  const {username, appId} = req.params
-  if (!req.currentUser) {
-    throw new AV.Cloud.Error('unauthorized', {status: 401})
-  }
-  if (req.currentUser.get('username') === username) {
-    return getApp(req.currentUser, appId)
-  }
   
-  return common.isCustomerService(req.currentUser).then((isCustomerService) => {
-    if (!isCustomerService) {
-      throw new AV.Cloud.Error('unauthorized', {status: 401})
-    }
-    return getUser(username)
-    .then((user) => {
-      return getApp(user, appId)
+  AV.Cloud.define('getLeanCloudUserInfosByUsername', (req) => {
+    return common.isCustomerService(req.currentUser).then((isCustomerService) => {
+      if (!isCustomerService) {
+        throw new AV.Cloud.Error('unauthorized', {status: 401})
+      }
+      return getUser(req.params.username)
+      .then((user) => {
+        return getClientInfos(user)
+      })
     })
   })
-})
-
-AV.Cloud.define('getLeanCloudAppUrl', (req) => {
-  return common.isCustomerService(req.currentUser).then((isCustomerService) => {
-    if (!isCustomerService) {
+  
+  AV.Cloud.define('getLeanCloudAppsByUsername', (req) => {
+    return common.isCustomerService(req.currentUser).then((isCustomerService) => {
+      if (!isCustomerService) {
+        throw new AV.Cloud.Error('unauthorized', {status: 401})
+      }
+      return getUser(req.params.username)
+      .then((user) => {
+        return getApps(user)
+      })
+    })
+  })
+  
+  AV.Cloud.define('getLeanCloudApps', (req) => {
+    const user = req.currentUser
+    if (!user) {
       throw new AV.Cloud.Error('unauthorized', {status: 401})
     }
-    if (!config.leancloudAppUrl) {
-      return null
-    }
-    const {appId, region} = req.params
-    if (region === 'cn-e1') {
-      return format(config.leancloudAppUrl,'cn-e1-admin', 'cn', appId)
-    } else if (region === 'us-w1') {
-      return format(config.leancloudAppUrl,'admin','app', appId)
-    } else {
-      return format(config.leancloudAppUrl,'admin','cn', appId)
-    }
+    return getApps(req.currentUser)
   })
-})
+  
+  AV.Cloud.define('getLeanCloudApp', (req) => {
+    const {username, appId} = req.params
+    if (!req.currentUser) {
+      throw new AV.Cloud.Error('unauthorized', {status: 401})
+    }
+    if (req.currentUser.get('username') === username) {
+      return getApp(req.currentUser, appId)
+    }
+    
+    return common.isCustomerService(req.currentUser).then((isCustomerService) => {
+      if (!isCustomerService) {
+        throw new AV.Cloud.Error('unauthorized', {status: 401})
+      }
+      return getUser(username)
+      .then((user) => {
+        return getApp(user, appId)
+      })
+    })
+  })
+  
+  AV.Cloud.define('getLeanCloudAppUrl', (req) => {
+    return common.isCustomerService(req.currentUser).then((isCustomerService) => {
+      if (!isCustomerService) {
+        throw new AV.Cloud.Error('unauthorized', {status: 401})
+      }
+      if (!config.leancloudAppUrl) {
+        return null
+      }
+      const {appId, region} = req.params
+      if (region === 'cn-e1') {
+        return format(config.leancloudAppUrl,'cn-e1-admin', 'cn', appId)
+      } else if (region === 'us-w1') {
+        return format(config.leancloudAppUrl,'admin','app', appId)
+      } else {
+        return format(config.leancloudAppUrl,'admin','cn', appId)
+      }
+    })
+  })
+}
 
 const getUser = (username) => {
   return new AV.Query(AV.User)

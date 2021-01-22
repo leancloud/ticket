@@ -6,7 +6,6 @@ import Raven from 'raven-js'
 
 import {auth, db} from '../lib/leancloud'
 import { isCustomerService } from './common'
-import { getGravatarHash } from '../lib/common'
 import GlobalNav from './GlobalNav'
 import css from './App.css'
 import {locale} from './i18n/I18nProvider'
@@ -121,9 +120,6 @@ export default class App extends Component {
   updateCurrentUser(props) {
     const user = this.state.currentUser
     const data = _.clone(props)
-    if (props.email) {
-      data.gravatarHash = getGravatarHash(props.email)
-    }
     return user.update(data).then((user) => {
       Object.assign(user.data, data)
       this.setState({ currentUser: user })

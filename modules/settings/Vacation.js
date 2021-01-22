@@ -170,7 +170,6 @@ class Vacation extends Component {
 }
   
 Vacation.propTypes = {
-  addNotification: PropTypes.func.isRequired,
   t: PropTypes.func
 }
 

@@ -1,3 +1,4 @@
+/*global ENABLE_LEANCLOUD_INTERGRATION */
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import {Form, FormGroup, ControlLabel, FormControl, Button} from 'react-bootstrap'
@@ -55,7 +56,7 @@ class Profile extends Component {
             </FormGroup>
             <Button type='button' onClick={this.handleSubmit.bind(this)}>{t('save')}</Button>
           </Form>
-          <AccountLink currentUser={this.props.currentUser} />
+          {ENABLE_LEANCLOUD_INTERGRATION && <AccountLink currentUser={this.props.currentUser} />}
         </div>
         <div className="col-md-4">
           <Form>

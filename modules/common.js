@@ -4,7 +4,7 @@ import {Link} from 'react-router'
 import {Image} from 'react-bootstrap'
 import _ from 'lodash'
 import {auth, db, storage} from '../lib/leancloud'
-import {depthFirstSearchFind, getUserDisplayName, makeTree, getUserTags} from '../lib/common'
+import {depthFirstSearchFind, getUserDisplayName, makeTree, getUserTags, getGravatarHash} from '../lib/common'
 import {UserTagGroup} from './components/UserTag'
 
 Object.assign(exports, require('../lib/common'))
@@ -118,7 +118,7 @@ exports.UserLabel = (props) => {
   const username =
     props.user.username ||
     (props.user.get ? props.user.get('username') : undefined)
-  const name = props.user.name || getUserDisplayName(props.user)
+  const name = props.user.name || getUserDisplayName(props.user) || username
 
   if (props.simple) {
     return <span>{name}</span>
@@ -146,12 +146,15 @@ exports.UserLabel.propTypes = {
 
 
 exports.Avatar = props => {
-  let src = `https://cdn.v2ex.com/gravatar/${props.user.gravatarHash ||
-    props.user.get('gravatarHash')}?s=${props.height || 16}&r=pg&d=identicon`
+  const { user, height, width } = props
+  const userInfo = user.toJSON ? user.toJSON() : user
+  let src = `https://cdn.v2ex.com/gravatar/${
+    userInfo.gravatarHash || getGravatarHash(userInfo.username)
+  }?s=${height || 16}&r=pg&d=identicon`
   return (
     <Image
-      height={props.height || 16}
-      width={props.width || 16}
+      height={height || 16}
+      width={width || 16}
       src={src}
       rounded
     />

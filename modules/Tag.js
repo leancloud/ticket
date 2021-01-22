@@ -1,3 +1,4 @@
+/*global ENABLE_LEANCLOUD_INTERGRATION */
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import {Label} from 'react-bootstrap'
@@ -8,7 +9,7 @@ import translate from './i18n/translate'
 class Tag extends Component {
 
   componentDidMount() {
-    if (this.props.tag.get('key') === 'appId') {
+    if (ENABLE_LEANCLOUD_INTERGRATION && this.props.tag.get('key') === 'appId') {
       const appId = this.props.tag.get('value')
       if (!appId) {
         return
