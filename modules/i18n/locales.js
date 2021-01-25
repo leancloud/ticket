@@ -414,7 +414,11 @@ const messages = {
   // Category
   'categoryName': [
     'Name',
-    '分类名称'
+    '名称'
+  ],
+  'categoryDescription': [
+    'Description',
+    '描述'
   ],
   'confirmDisableCategory': [
     'Confirm disabling this category: ',

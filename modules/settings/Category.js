@@ -13,6 +13,7 @@ class Category extends React.Component {
     super()
     this.state = {
       name: '',
+      description: '',
       qTemplate: '',
       category: undefined,
       parentCategory: undefined,
@@ -36,6 +37,7 @@ class Category extends React.Component {
       this.setState({
         category,
         name: category.get('name'),
+        description: category.get('description'),
         qTemplate: category.get('qTemplate'),
         parentCategory: category.get('parent'),
         FAQs: (category.get('FAQs') || []).map(FAQ => FAQ.id).join(','),
@@ -46,6 +48,9 @@ class Category extends React.Component {
 
   handleNameChange(e) {
     this.setState({name: e.target.value})
+  }
+  handleDescriptionChange(e) {
+    this.setState({description: e.target.value})
   }
   handleFAQsChange(e) {
     this.setState({FAQs: e.target.value})
@@ -79,6 +84,7 @@ class Category extends React.Component {
     if (!category) {
       promise = db.class('Category').add({
         name: this.state.name,
+        description: this.state.description,
         parent: this.state.parentCategory,
         qTemplate: this.state.qTemplate,
         faqs,
@@ -96,6 +102,9 @@ class Category extends React.Component {
 
       if (this.state.name != category.get('name')) {
         data.name = this.state.name
+      }
+      if (this.state.description != category.get('description')) {
+        data.description = this.state.description
       }
 
       promise = category.update(data)
@@ -138,6 +147,10 @@ class Category extends React.Component {
           <FormGroup controlId="nameText">
             <ControlLabel>{t('categoryName')}</ControlLabel>
             <FormControl type="text" value={this.state.name} onChange={this.handleNameChange.bind(this)} />
+          </FormGroup>
+          <FormGroup controlId="descriptionText">
+            <ControlLabel>{t('categoryDescription')}{t('optional')}</ControlLabel>
+            <FormControl type="text" value={this.state.description} onChange={this.handleDescriptionChange.bind(this)} />
           </FormGroup>
           <FormGroup controlId="parentSelect">
             <ControlLabel>{t('parentCategory')}{t('optional')}</ControlLabel>
