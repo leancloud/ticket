@@ -420,9 +420,13 @@ const messages = {
     'Confirm disabling this category: ',
     '确认要停用分类：'
   ],
+  'optional': [
+    ' (optional)',
+    '（可选）'
+  ],
   'parentCategory': [
-    'Parent category (optional)',
-    '父分类（可选）'
+    'Parent category',
+    '父分类'
   ],
   'parentCategoryRequirements': [
     'You cannot assign this category itself or its subcategories as parent category.',
@@ -435,6 +439,10 @@ const messages = {
   'ticketTemplateInfo': [
     'The default content shown when creating a new ticket under this category.',
     '用户新建该分类工单时，问题描述默认显示这里的内容。'
+  ],
+  'FAQInfo': [
+    'FAQs to display when this catogery is selected during ticket creating',
+    '新建工单时，选中该分类将展示的常见问题。'
   ],
   // FAQ
   'FAQ': [

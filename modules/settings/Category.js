@@ -140,23 +140,24 @@ class Category extends React.Component {
             <FormControl type="text" value={this.state.name} onChange={this.handleNameChange.bind(this)} />
           </FormGroup>
           <FormGroup controlId="parentSelect">
-            <ControlLabel>{t('parentCategory')}</ControlLabel>
+            <ControlLabel>{t('parentCategory')}{t('optional')}</ControlLabel>
             <CategoriesSelect categoriesTree={this.state.categoriesTree}
               selected={this.state.parentCategory}
               onChange={this.handleParentChange.bind(this, t)}/>
           </FormGroup>
           <FormGroup controlId="FAQsText">
-            <ControlLabel>{t('FAQs')}</ControlLabel>
+            <ControlLabel>{t('FAQ')}{t('optional')}</ControlLabel>
             <FormControl type="text" value={this.state.FAQs} onChange={this.handleFAQsChange.bind(this)} placeholder="objectId1,objectId2"/>
+            <p className="help-block">{t('FAQInfo')}</p>
           </FormGroup>
           <FormGroup controlId="qTemplateTextarea">
-            <ControlLabel>{t('ticketTemplate')}</ControlLabel>
+            <ControlLabel>{t('ticketTemplate')}{t('optional')}</ControlLabel>
             <FormControl
               componentClass="textarea"
-              placeholder={t('ticketTemplateInfo')}
               rows='8'
               value={this.state.qTemplate}
               onChange={this.handleQTemplateChange.bind(this)}/>
+            <p className="help-block">{t('ticketTemplateInfo')}</p>
           </FormGroup>
           <Button type='submit' disabled={this.state.isSubmitting} bsStyle='success'>{t('save')}</Button>
           {' '}
