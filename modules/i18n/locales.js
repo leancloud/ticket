@@ -279,7 +279,7 @@ const messages = {
     '客服'
   ],
   'statistics': [
-    'Statistics',
+    'Stats',
     '统计'
   ],
   'submit': [
@@ -316,7 +316,7 @@ const messages = {
   ],
   'ticketList': [
     'Tickets',
-    '工单列表'
+    '工单'
   ],
   'title': [
     'Title',
@@ -593,8 +593,8 @@ const messages = {
     '分类移动到'
   ],
   'customerServiceTickets': [
-    'Customer service tickets',
-    '客服工单列表'
+    'Staff',
+    '客服'
   ],
   'allTime': [
     'All time',
