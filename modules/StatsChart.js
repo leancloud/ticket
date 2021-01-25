@@ -8,7 +8,7 @@ import DatePicker from 'react-datepicker'
 import randomColor from 'randomcolor'
 import Color from 'color'
 import {fetchUsers} from './common'
-import offsetDays from '../config'
+import {offsetDays} from '../config'
 import translate from './i18n/translate'
 import {getUserDisplayName} from '../lib/common'
 import { cloud } from '../lib/leancloud'
@@ -218,7 +218,7 @@ class StatsChart extends React.Component {
         })
       })
   }
-  
+
   render() {
     const {t} = this.props
     return (
@@ -267,14 +267,11 @@ class StatsChart extends React.Component {
         </div>
     )
   }
-  
-  }
-  
+}
+
 StatsChart.propTypes = {
   categories: PropTypes.array.isRequired,
   t: PropTypes.func
 }
-  
+
 export default translate(StatsChart)
-  
-  

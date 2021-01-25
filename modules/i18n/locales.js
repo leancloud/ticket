@@ -194,10 +194,6 @@ const messages = {
     'Overview',
     '总览'
   ],
-  'workday': [
-    'Workday',
-    '工作日'
-  ],
   'weekendWarning': [
     '', // TODO
     '当前为非工作日，您的请求可能会被延迟受理。'
@@ -797,6 +793,10 @@ const messages = {
   'averageFirstReplyTime': [
     'Average first reply time',
     '平均首次响应'
+  ],
+  'averageFirstReplyTimeInTheWorkday': [
+    'Average first reply time in the workday',
+    '工作日平均首次响应'
   ],
   'toWeekly': [
     'Switch to weekly report',

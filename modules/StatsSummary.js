@@ -204,7 +204,7 @@ class StatsSummary extends React.Component {
               <th>{t('createdTicket')}</th>
               <th>{t('activeTicket')}</th>
               <th>{t('averageFirstReplyTime')}</th>
-              <th>{t('workday') + t('averageFirstReplyTime')}</th>
+              <th>{t('averageFirstReplyTimeInTheWorkday')}</th>
               <th>{t('averageReplyTime')}</th>
             </tr>
           </thead>

@@ -37,5 +37,5 @@ module.exports = {
   supportEmail: 'ask@leancloud.rocks',
   // Used in CustomerServiceStats.
   // 0/-1/-2/...: a week ends at 23:59:59 Sunday/Saturday/Friday/...
-  offsetDays: Number(process.env.OFFSET_DAYS || '0')
+  offsetDays: (typeof window !== 'undefined' && window.ENABLE_LEANCLOUD_INTERGRATION) ? -3 : 0
 }
