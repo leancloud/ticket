@@ -5,13 +5,15 @@ import Stackedit from 'stackedit-js'
 import css from './index.css'
 import translate from '../../i18n/translate'
 import _ from 'lodash'
+import {uploadFiles} from '../../common'
 
 class TextareaWithPreview extends Component {
   constructor(props) {
     super(props)
 
     this.state = {
-      value: props.value
+      value: props.value,
+      disabled: props.disabled,
     }
 
     this.inputRef = (ref, ...params) => {
@@ -19,6 +21,36 @@ class TextareaWithPreview extends Component {
       if (this.props.inputRef) {
         this.props.inputRef(ref, ...params)
       }
+    }
+    this.dispatchChangeEvent = () => {
+      const evt = new Event('change', { bubbles: true })
+      evt.simulated = true
+      this.ref.dispatchEvent(evt)
+    }
+  }
+  componentDidMount() {
+    this.ref.addEventListener('paste', this.pasteEventListener.bind(this))
+  }
+
+  componentWillUnmount() {
+    this.ref.removeEventListener('paste', this.pasteEventListener.bind(this))
+  }
+
+  pasteEventListener(e) {
+    if (this.state.disabled) {
+      return
+    }
+    if (e.clipboardData.types.indexOf('Files') != -1) {
+      this.setState({disabled: true})
+      return uploadFiles(e.clipboardData.files)
+      .then((files) => {
+        const newValue = `${this.props.value}\n<img src='${files[0].url}' />`
+        this.setState({disabled: this.props.disabled, value: newValue}, () => {
+          this.dispatchChangeEvent()
+          this.ref.focus() 
+        })
+        return
+      })
     }
   }
 
@@ -41,11 +73,7 @@ class TextareaWithPreview extends Component {
     editor.on('fileChange', (file) => {
       this.setState({
         value: file.content.text,
-      }, () => {
-        const evt = new Event('change', { bubbles: true })
-        evt.simulated = true
-        this.ref.dispatchEvent(evt)
-      })
+      }, this.dispatchChangeEvent)
     })
 
       
@@ -57,7 +85,7 @@ class TextareaWithPreview extends Component {
     const {t} = this.props
     return (
       <div className={css.textareaWrapper}>
-        <FormControl {..._.omit(this.props, ['t', 'locale'])} value={this.state.value} componentClass="textarea" inputRef={this.inputRef.bind(this)}/>
+        <FormControl {..._.omit(this.props, ['t', 'locale', 'disabled'])} value={this.state.value} disabled={this.state.disabled} componentClass="textarea" inputRef={this.inputRef.bind(this)}/>
         <div onClick={this.enterPreviewMode.bind(this)} title={t('preview')} className={css.preview}><span className="glyphicon glyphicon-fullscreen" aria-hidden="true"></span></div>
       </div>
     )
@@ -68,7 +96,8 @@ TextareaWithPreview.propTypes = {
   value: PropTypes.any,
   inputRef: PropTypes.func,
   onChange: PropTypes.func,
-  t: PropTypes.func
+  disabled: PropTypes.bool,
+  t: PropTypes.func,
 }
 
 export default translate(TextareaWithPreview)

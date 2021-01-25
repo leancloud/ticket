@@ -55,7 +55,6 @@ class NewTicket extends React.Component {
       inputSelector: '.docsearch-input',
       debug: false // Set debug to true if you want to inspect the dropdown
     })
-    this.contentTextarea.addEventListener('paste', this.pasteEventListener.bind(this))
     cloud.run('checkPermission')
     .then(() => {
       return Promise.all([
@@ -95,24 +94,6 @@ class NewTicket extends React.Component {
       return
     })
     .catch(this.context.addNotification)
-  }
-
-  componentWillUnmount() {
-    this.contentTextarea.removeEventListener('paste', this.pasteEventListener.bind(this))
-  }
-
-  pasteEventListener(e) {
-    if (e.clipboardData.types.indexOf('Files') != -1) {
-      this.setState({isCommitting: true})
-      return uploadFiles(e.clipboardData.files)
-      .then((files) => {
-        const ticket = this.state.ticket
-        const content = `${ticket.content}\n<img src='${files[0].url}' />`
-        ticket.content = content
-        this.setState({isCommitting: false, ticket})
-        return
-      })
-    }
   }
 
   handleTitleChange(e) {
@@ -345,7 +326,6 @@ class NewTicket extends React.Component {
             <TextareaWithPreview componentClass="textarea" rows="8"
               value={ticket.content}
               onChange={this.handleContentChange.bind(this)}
-              inputRef={(ref) => this.contentTextarea = ref }
             />
           </FormGroup>
           <FormGroup>
