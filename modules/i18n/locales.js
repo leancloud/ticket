@@ -196,7 +196,7 @@ const messages = {
   ],
   'weekendWarning': [
     '', // TODO
-    '当前为非工作日，您的请求可能会被延迟受理。'
+    '非工作日提醒：我们会尽快回复工单，请稍等'
   ],
   'password': [
     'Password',
