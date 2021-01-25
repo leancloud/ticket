@@ -490,7 +490,7 @@ class Ticket extends Component {
       <div>
         <div className="row">
           <div className="col-sm-12">
-            <WeekendWarning />
+            {!isCustomerService && <WeekendWarning />}
             <DocumentTitle title={ticket.get('title') + ' - LeanTicket' || 'LeanTicket'} />
             <h1>{ticket.get('title')}</h1>
             <div className={css.meta}>
