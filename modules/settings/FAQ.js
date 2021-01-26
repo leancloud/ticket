@@ -133,7 +133,6 @@ class FAQ extends React.Component {
               rows="8"
               value={this.state.faq.answer}
               onChange={this.handleAnswerChange.bind(this)}
-              inputRef={(ref) => (this.contentTextarea = ref)}
             />
           </FormGroup>
           {VIEWS.map((view) => (
