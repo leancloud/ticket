@@ -336,8 +336,7 @@ class CustomerServiceTickets extends Component {
       categoryTitle = t('all') 
     }
 
-
-
+    const assignedToMe = auth.currentUser() && filters.assigneeId === auth.currentUser().id
     const ticketAdminFilters = (
       <div>
         <Form inline className='form-group'>
@@ -356,8 +355,8 @@ class CustomerServiceTickets extends Component {
                 </DropdownButton>
               </ButtonGroup>
               <ButtonGroup>
-                <Button className={(filters.assigneeId === auth.currentUser().id ? ' active' : '')} onClick={() => this.updateFilter({assigneeId: auth.currentUser().id})}>{t('assignedToMe')}</Button>
-                <DropdownButton className={(typeof filters.assigneeId === 'undefined' || filters.assigneeId && filters.assigneeId !== auth.currentUser().id ? ' active' : '')} id='assigneeDropdown' title={assigneeTitle} onSelect={(eventKey) => this.updateFilter({assigneeId: eventKey})}>
+                <Button className={assignedToMe ? ' active' : ''} onClick={() => this.updateFilter({assigneeId: auth.currentUser().id})}>{t('assignedToMe')}</Button>
+                <DropdownButton className={!assignedToMe ? ' active' : ''} id='assigneeDropdown' title={assigneeTitle} onSelect={(eventKey) => this.updateFilter({assigneeId: eventKey})}>
                   <MenuItem key='undefined'>{t('all')}</MenuItem>
                   {assigneeMenuItems}
                 </DropdownButton>
