@@ -195,8 +195,8 @@ const messages = {
     '总览'
   ],
   'weekendWarning': [
-    '', // TODO
-    '非工作日提醒：我们会尽快回复工单，请稍等'
+    'Your tickets is submitted out of hours. Please expect a delay in responses.',
+    '在周末或假期提交的工单，回复可能会有延迟。'
   ],
   'password': [
     'Password',
