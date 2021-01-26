@@ -18,6 +18,7 @@ import TicketReply from './TicketReply'
 import TicketStatusLabel from './TicketStatusLabel'
 import translate from './i18n/translate'
 import Tag from './Tag'
+import {WeekendWarning} from './components/WeekendWarning'
 
 // get a copy of default whiteList
 const whiteList = xss.getDefaultWhiteList()
@@ -489,6 +490,7 @@ class Ticket extends Component {
       <div>
         <div className="row">
           <div className="col-sm-12">
+            {!isCustomerService && <WeekendWarning />}
             <DocumentTitle title={ticket.get('title') + ' - LeanTicket' || 'LeanTicket'} />
             <h1>{ticket.get('title')}</h1>
             <div className={css.meta}>

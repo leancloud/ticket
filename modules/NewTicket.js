@@ -7,6 +7,7 @@ import {auth, cloud, db} from '../lib/leancloud'
 import docsearch from 'docsearch.js'
 
 import TextareaWithPreview from './components/TextareaWithPreview'
+import {WeekendWarning} from './components/WeekendWarning'
 import {
   defaultLeanCloudRegion,
   depthFirstSearchFind,
@@ -273,6 +274,7 @@ class NewTicket extends React.Component {
     return (
       <div>
         <DocumentTitle title={`${t('newTicket')} - LeanTicket`} />
+        <WeekendWarning />
         <form onSubmit={this.handleSubmit.bind(this, t)}>
           {this.props.organizations.length > 0 && <OrganizationSelect organizations={this.props.organizations}
             selectedOrgId={this.props.selectedOrgId}

@@ -57,6 +57,8 @@ const getIndexPage = () => {
   ORG_NAME = '${orgName}'
   USE_OAUTH = ${!!process.env.OAUTH_KEY}
   ENABLE_LEANCLOUD_INTERGRATION = ${!!process.env.ENABLE_LEANCLOUD_INTERGRATION}
+  OFFSET_DAYS = ${config.offsetDays}
+  DISABLE_WEEKEND_WARNING = ${config.disableWeekendWarning}
   ALGOLIA_API_KEY = '${process.env.ALGOLIA_API_KEY}'
   FAQ_VIEWS = '${process.env.FAQ_VIEWS || ''}'
 </script>

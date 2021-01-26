@@ -194,6 +194,10 @@ const messages = {
     'Overview',
     '总览'
   ],
+  'weekendWarning': [
+    'Your tickets is submitted out of hours. Please expect a delay in responses.',
+    '在周末或假期提交的工单，回复可能会有延迟。'
+  ],
   'password': [
     'Password',
     '密码'
@@ -801,6 +805,10 @@ const messages = {
   'averageFirstReplyTime': [
     'Average first reply time',
     '平均首次响应'
+  ],
+  'averageFirstReplyTimeInTheWorkday': [
+    'Average first reply time in the workday',
+    '工作日平均首次响应'
   ],
   'toWeekly': [
     'Switch to weekly report',

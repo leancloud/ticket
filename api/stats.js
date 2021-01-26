@@ -267,37 +267,58 @@ AV.Cloud.define('getStats', (req) => {
   }
   const authOptions = {user: req.currentUser}
   const dateRanges = getDateRanges(start, end, timeUnit)
-  return Promise.map(dateRanges, ({start, end}) => {
-    return getDailyAndTicketStatses(start, end, authOptions)
-    .then(({dailyStatses, ticketStatses, tags}) => {
-      const result = _.reduce(dailyStatses, (result, statsDaily) => {
-        result.assignees = sumProperty(result, statsDaily, 'assignees')
-        result.authors = sumProperty(result, statsDaily, 'authors')
-        result.categories = sumProperty(result, statsDaily, 'categories')
-        result.joinedCustomerServices = sumProperty(result, statsDaily, 'joinedCustomerServices')
-        result.statuses = sumProperty(result, statsDaily, 'statuses')
-        result.replyCount += statsDaily.get('replyCount')
-        result.tickets = _.union(result.tickets, statsDaily.get('tickets'))
-        return result
-      }, {
-        date: start.toISOString(),
-        assignees: {},
-        authors: {},
-        categories: {},
-        joinedCustomerServices: {},
-        statuses: {},
-        replyCount: 0,
-        tickets: [],
-      })
-      result.firstReplyTimeByUser = firstReplyTimeByUser(result, ticketStatses,start,end)
-      result.replyTimeByUser = replyTimeByUser(result, ticketStatses)
-      result.firstReplyTime = _.sumBy(result.firstReplyTimeByUser, 'replyTime')
-      result.firstReplyCount = _.sumBy(result.firstReplyTimeByUser, 'replyCount')
-      result.replyTime = _.sumBy(result.replyTimeByUser, 'replyTime')
-      result.replyCount = _.sumBy(result.replyTimeByUser, 'replyCount')
-      result.tags = _.countBy(tags, t => JSON.stringify(t))
+  return Promise.map(dateRanges, async ({start, end}) => {
+    const {
+      dailyStatses,
+      ticketStatses,
+      tags,
+    } = await getDailyAndTicketStatses(start, end, authOptions)
+
+    const result = _.reduce(dailyStatses, (result, statsDaily) => {
+      result.assignees = sumProperty(result, statsDaily, 'assignees')
+      result.authors = sumProperty(result, statsDaily, 'authors')
+      result.categories = sumProperty(result, statsDaily, 'categories')
+      result.joinedCustomerServices = sumProperty(result, statsDaily, 'joinedCustomerServices')
+      result.statuses = sumProperty(result, statsDaily, 'statuses')
+      result.replyCount += statsDaily.get('replyCount')
+      result.tickets = _.union(result.tickets, statsDaily.get('tickets'))
       return result
+    }, {
+      date: start.toISOString(),
+      assignees: {},
+      authors: {},
+      categories: {},
+      joinedCustomerServices: {},
+      statuses: {},
+      replyCount: 0,
+      tickets: [],
     })
+
+    const newTicketStatses = ticketStatses
+      .filter(ticketStats => {
+        const ticket = ticketStats.get('ticket')
+        return ticket.createdAt >= start && ticket.createdAt < end
+      })
+    const workdayNewTicketStatses = newTicketStatses
+      .filter(ticketStats => {
+        const ticket = ticketStats.get('ticket')
+        const createDay = ticket.createdAt.getDay()
+        return createDay >= 1 && createDay <= 5
+      })
+
+    const workdayFirstReplyTime = workdayNewTicketStatses
+      .reduce((sum, ticketStats) => sum + ticketStats.get('firstReplyStats').firstReplyTime, 0)
+
+    result.firstReplyTimeByUser = firstReplyTimeByUser(newTicketStatses)
+    result.replyTimeByUser = replyTimeByUser(ticketStatses)
+    result.firstReplyTime = _.sumBy(result.firstReplyTimeByUser, 'replyTime')
+    result.firstReplyCount = _.sumBy(result.firstReplyTimeByUser, 'replyCount')
+    result.workdayFirstReplyTime = workdayFirstReplyTime
+    result.workdayFirstReplyCount = workdayNewTicketStatses.length
+    result.replyTime = _.sumBy(result.replyTimeByUser, 'replyTime')
+    result.replyCount = _.sumBy(result.replyTimeByUser, 'replyCount')
+    result.tags = _.countBy(tags, t => JSON.stringify(t))
+    return result
   })
 })
 
@@ -345,14 +366,17 @@ const getDailyAndTicketStatses = (start, end, authOptions) => {
   })
 }
 
-const getTicketStats = (ticketIds, authOptions) => {
-  return Promise.all(_.map(_.chunk(ticketIds, 50), (ids) => {
+const getTicketStats = async (ticketIds, authOptions) => {
+  const ticketStatsesChunk = await Promise.all(_.map(_.chunk(ticketIds, 50), (ids) => {
     return new AV.Query('StatsTicket')
-    .containedIn('ticket', ids.map(id => new AV.Object.createWithoutData('Ticket', id)))
-    .include('ticket')
-    .find(authOptions)
+      .containedIn('ticket', ids.map(id => new AV.Object.createWithoutData('Ticket', id)))
+      .include('ticket')
+      .find(authOptions)
   }))
-  .then(_.flatten)
+  return _.flatten(ticketStatsesChunk).filter(ticketStats => {
+    const {ticketId, userId, firstReplyTime} = ticketStats.get('firstReplyStats')
+    return ticketId && userId && (firstReplyTime !== undefined)
+  })
 }
 
 const getTagStats = (ticketIds, authOptions) => {
@@ -388,64 +412,39 @@ const getSelectedTagKeys = (authOptions) => {
   })
 }
 
-const firstReplyTimeByUser = (stats, ticketStatses, start, end) => {
-  return _.chain(stats.tickets)
-  .map((ticketId) => {
-    return _.find(ticketStatses, ticketStats => {
-      return (ticketStats.get('ticket').id === ticketId 
-        && ticketStats.get('ticket').createdAt.getTime() > start.getTime()
-        && ticketStats.get('ticket').createdAt.getTime() < end.getTime() 
-      )
-    })
-  })
-  .compact()
-  .groupBy(ticketStats => ticketStats.get('firstReplyStats').userId)
-  .map((ticketStatses, userId) => {
-    return {
-      userId,
-      replyTime: _.sumBy(ticketStatses, ticketStats => ticketStats.get('firstReplyStats').firstReplyTime),
-      replyCount: ticketStatses.length
-    }
-  })
-  .value()
-}
-
-const replyTimeByUser = (stats, ticketStatses) => {
-  return _.chain(stats.tickets)
-  .map((ticketId) => {
-    return _.find(ticketStatses, ticketStats => ticketStats.get('ticket').id === ticketId)
-  })
-  .compact()
-  .reduce((result, ticketStats) => {
-    _.forEach(ticketStats.get('replyTimeStats'), (replyTime) => {
-      let replyTimeStats = _.find(result, {userId: replyTime.userId})
-      if (!replyTimeStats) {
-        replyTimeStats = {
-          userId: replyTime.userId,
-          replyCount: 0,
-          replyTime: 0,
-        }
-        result.push(replyTimeStats)
+const firstReplyTimeByUser = (ticketStatses) => {
+  return _.chain(ticketStatses)
+    .groupBy(ticketStats => ticketStats.get('firstReplyStats').userId)
+    .map((ticketStatses, userId) => {
+      return {
+        userId,
+        replyTime: _.sumBy(ticketStatses, ticketStats => ticketStats.get('firstReplyStats').firstReplyTime),
+        replyCount: ticketStatses.length
       }
-      replyTimeStats.replyCount += replyTime.replyCount
-      replyTimeStats.replyTime += replyTime.replyTime
     })
-    return result
-  }, [])
-  .value()
+    .value()
 }
 
-AV.Cloud.define('statsDailyRange', (req, res) => {
-  res.success()
-  const fn = (date) => {
-    return AV.Cloud.run('statsDaily', {date: date.format('YYYY-MM-DD')})
-    .then(() => {
-      return fn(date.subtract(1, 'days'))
-    })
-    .catch(console.error)
-  }
-  fn(moment('2017-07-14'))
-})
+const replyTimeByUser = (ticketStatses) => {
+  return _.chain(ticketStatses)
+    .reduce((result, ticketStats) => {
+      _.forEach(ticketStats.get('replyTimeStats'), (replyTime) => {
+        let replyTimeStats = _.find(result, {userId: replyTime.userId})
+        if (!replyTimeStats) {
+          replyTimeStats = {
+            userId: replyTime.userId,
+            replyCount: 0,
+            replyTime: 0,
+          }
+          result.push(replyTimeStats)
+        }
+        replyTimeStats.replyCount += replyTime.replyCount
+        replyTimeStats.replyTime += replyTime.replyTime
+      })
+      return result
+    }, [])
+    .value()
+}
 
 AV.Cloud.define('statsDaily', (req, res) => {
   let date = req.params.date && new Date(req.params.date) || moment().subtract(1, 'days').toDate()
