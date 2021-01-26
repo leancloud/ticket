@@ -27,6 +27,8 @@ app.use(bodyParser.urlencoded({ extended: false }))
 
 app.use(require('./api'))
 
+const orgName = require('./api/oauth').orgName
+
 const getIndexPage = () => {
   return `
 <!doctype html public "storage">
@@ -38,16 +40,27 @@ const getIndexPage = () => {
 <link rel="stylesheet" href="/css/leancloud-base.css">
 <link rel="stylesheet" href="/css/react-datepicker.css">
 <link rel="stylesheet" href="/index.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
 <link rel="stylesheet" href="${process.env.WEBPACK_DEV_SERVER || ''}/app.css">
+<link rel="stylesheet" href="/css/docsearch-override.css">
 <script src="/js/jquery.min.js"></script>
 <script src="/js/bootstrap.min.js"></script>
 <div id=app></div>
 <script>
   LEANCLOUD_APP_ID = '${process.env.LEANCLOUD_APP_ID}'
   LEANCLOUD_APP_KEY = '${process.env.LEANCLOUD_APP_KEY}'
+  LEANCLOUD_API_HOST = ${process.env.LEANCLOUD_API_HOST ? ('"' + process.env.LEANCLOUD_API_HOST + '"') : undefined}
   LEANCLOUD_APP_ENV = '${process.env.LEANCLOUD_APP_ENV}'
+  LEANCLOUD_OAUTH_REGION = '${process.env.LEANCLOUD_REGION == 'US' ? 'us-w1': 'cn-n1'}'
   LEAN_CLI_HAVE_STAGING = '${process.env.LEAN_CLI_HAVE_STAGING}'
   SENTRY_DSN_PUBLIC = '${config.sentryDSNPublic || ''}'
+  ORG_NAME = '${orgName}'
+  USE_OAUTH = ${!!process.env.OAUTH_KEY}
+  ENABLE_LEANCLOUD_INTERGRATION = ${!!process.env.ENABLE_LEANCLOUD_INTERGRATION}
+  OFFSET_DAYS = ${config.offsetDays}
+  DISABLE_WEEKEND_WARNING = ${config.disableWeekendWarning}
+  ALGOLIA_API_KEY = '${process.env.ALGOLIA_API_KEY}'
+  FAQ_VIEWS = '${process.env.FAQ_VIEWS || ''}'
 </script>
 <script src='${process.env.WEBPACK_DEV_SERVER || ''}/bundle.js'></script>
 <script>
@@ -69,6 +82,20 @@ app.get('*', function (req, res) {
 })
 
 app.use(Raven.errorHandler())
+
+// error handlers
+app.use(function(err, req, res, _next) {
+  var statusCode = err.status || 500
+  if (statusCode === 500) {
+    console.error(err.stack || err)
+  }
+  res.status(statusCode)
+  var error = {}
+  res.send({
+    message: err.message,
+    error: error
+  })
+})
 
 var PORT = parseInt(process.env.LEANCLOUD_APP_PORT || process.env.PORT || 8080)
 app.listen(PORT, function() {

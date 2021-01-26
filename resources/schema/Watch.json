@@ -1,0 +1,45 @@
+{
+    "indexes": [],
+    "permissions": {
+        "add_fields": {
+            "*": true
+        },
+        "create": {
+            "*": true
+        },
+        "delete": {
+            "*": true
+        },
+        "find": {
+            "*": true
+        },
+        "get": {
+            "*": true
+        },
+        "update": {
+            "*": true
+        }
+    },
+    "schema": {
+        "ACL": {
+            "type": "ACL"
+        },
+        "createdAt": {
+            "type": "Date"
+        },
+        "objectId": {
+            "type": "String"
+        },
+        "ticket": {
+            "className": "Ticket",
+            "type": "Pointer"
+        },
+        "updatedAt": {
+            "type": "Date"
+        },
+        "user": {
+            "className": "_User",
+            "type": "Pointer"
+        }
+    }
+}

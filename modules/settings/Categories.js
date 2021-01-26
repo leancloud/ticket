@@ -3,11 +3,11 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 import {Link} from 'react-router'
 import {Form, FormGroup} from 'react-bootstrap'
-import AV from 'leancloud-storage/live-query'
+import {auth} from '../../lib/leancloud'
 
-import {getCustomerServices, getTinyCategoryInfo, UserLabel, getCategoriesTree,
-  depthFirstSearchMap, depthFirstSearchFind, getNodeIndentString} from '../common'
+import {getCustomerServices, UserLabel, getCategoriesTree, getNodeIndentString} from '../common'
 import translate from '../i18n/translate'
+import {depthFirstSearchFind, depthFirstSearchMap, getTinyCategoryInfo} from '../../lib/common'
 
 class Categories extends Component {
 
@@ -25,12 +25,12 @@ class Categories extends Component {
       getCategoriesTree(),
       getCustomerServices()
         .then((users) => {
-          return _.reject(users, {id: AV.User.current().id})
+          return _.reject(users, {id: auth.currentUser().id})
         })
     ]).then(([categoriesTree, customerServices]) => {
       this.setState({
         categoriesTree,
-        checkedCategories: AV.User.current().get('categories') || [],
+        checkedCategories: auth.currentUser().get('categories') || [],
         customerServices,
       })
       return
@@ -45,9 +45,8 @@ class Categories extends Component {
     } else {
       categories = _.reject(categories, {objectId: categoryId})
     }
-    return AV.User.current()
-      .set('categories', categories)
-      .save()
+    return auth.currentUser()
+      .update({ categories })
       .then(() => {
         this.setState({checkedCategories: categories})
         return

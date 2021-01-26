@@ -1,51 +1,66 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import {FormGroup, ControlLabel, FormControl, Button} from 'react-bootstrap'
-import AV from 'leancloud-storage/live-query'
+import {db} from '../../lib/leancloud'
 
-import {getCategoriesTree, depthFirstSearchFind, CategoriesSelect, getTinyCategoryInfo} from './../common'
+import {getCategoriesTree} from '../common'
+import CategoriesSelect from '../CategoriesSelect'
 import translate from '../i18n/translate'
+import {depthFirstSearchFind} from '../../lib/common'
 
 class Category extends React.Component {
+  constructor() {
+    super()
+    this.state = {
+      name: '',
+      description: '',
+      qTemplate: '',
+      category: undefined,
+      parentCategory: undefined,
+      categoriesTree: undefined,
+      isSubmitting: false,
+      isLoading: true,
+    }
+  }
 
   componentDidMount() {
     return getCategoriesTree()
     .then(categoriesTree => {
-      const categoryId = this.props.params.id
-      return Promise.resolve()
-      .then(() => {
-        if (categoryId == '_new') {
-          return new AV.Object('Category', {
-            name: '',
-            qTemplate: '',
-          })
-        }
+      this.setState({categoriesTree, isLoading: false})
 
-        return depthFirstSearchFind(categoriesTree, c => c.id == categoryId)
-      })
-      .then(category => {
-        this.setState({
-          name: category.get('name'),
-          qTemplate: category.get('qTemplate'),
-          category,
-          parentCategory: category.get('parent'),
-          categoriesTree,
-          isSubmitting: false,
-        })
+      const categoryId = this.props.params.id
+      if (categoryId == '_new') {
         return
+      }
+
+      const category = depthFirstSearchFind(categoriesTree, c => c.id == categoryId)
+      this.setState({
+        category,
+        name: category.get('name'),
+        description: category.get('description'),
+        qTemplate: category.get('qTemplate'),
+        parentCategory: category.get('parent'),
+        FAQs: (category.get('FAQs') || []).map(FAQ => FAQ.id).join(','),
       })
+      return
     })
   }
 
   handleNameChange(e) {
     this.setState({name: e.target.value})
   }
+  handleDescriptionChange(e) {
+    this.setState({description: e.target.value})
+  }
+  handleFAQsChange(e) {
+    this.setState({FAQs: e.target.value})
+  }
 
   handleParentChange(t, e) {
     const parentCategory = depthFirstSearchFind(this.state.categoriesTree, c => c.id == e.target.value)
     let tmp = parentCategory
     while (tmp) {
-      if (tmp.id == this.state.category.id) {
+      if (this.state.category && tmp.id == this.state.category.id) {
         alert(t('parentCategoryRequirements'))
         return false
       }
@@ -62,50 +77,40 @@ class Category extends React.Component {
     e.preventDefault()
     this.setState({isSubmitting: true})
     const category = this.state.category
+    const faqs = this.state.FAQs.split(',').filter(id=>id).map(id => db.class('FAQ').object(id))
 
-    const getCategoryPath = (category) => {
-      if (!category.parent) {
-        return [getTinyCategoryInfo(category)]
+    let promise
+
+    if (!category) {
+      promise = db.class('Category').add({
+        name: this.state.name,
+        description: this.state.description,
+        parent: this.state.parentCategory,
+        qTemplate: this.state.qTemplate,
+        faqs,
+      })
+    } else {
+      const data = {qTemplate: this.state.qTemplate, faqs}
+
+      if (this.state.parentCategory != category.parent) {
+        if (!this.state.parentCategory) {
+          data.parent = db.op.unset()
+        } else {
+          data.parent = this.state.parentCategory
+        }
       }
-      const result = getCategoryPath(category.parent)
-      result.push(getTinyCategoryInfo(category))
-      return result
+
+      if (this.state.name != category.get('name')) {
+        data.name = this.state.name
+      }
+      if (this.state.description != category.get('description')) {
+        data.description = this.state.description
+      }
+
+      promise = category.update(data)
     }
 
-    const updateCategoryPath = (category) => {
-      category.set('path', getCategoryPath(category))
-      if (category.children && category.children.length) {
-        return [category].concat(category.children.map(c => updateCategoryPath(c)))
-      } else {
-        return category
-      }
-    }
-
-    let updatePath = false
-
-    if (this.state.parentCategory != category.parent) {
-      updatePath = true
-      if (!this.state.parentCategory) {
-        category.unset('parent')
-      } else {
-        category.set('parent', this.state.parentCategory)
-      }
-    }
-
-    if (this.state.name != category.get('name')) {
-      updatePath = true
-      category.set('name', this.state.name)
-    }
-
-    category.set('qTemplate', this.state.qTemplate)
-
-    Promise.resolve().then(() => {
-      if (updatePath) {
-        const updated = updateCategoryPath(category)
-        return AV.Object.saveAll(updated)
-      }
-      return category.save()
-    })
+    promise
     .then(() => {
       this.setState({isSubmitting: false})
       this.context.router.push('/settings/categories')
@@ -118,7 +123,7 @@ class Category extends React.Component {
   handleDisable(t) {
     const result = confirm(t('confirmDisableCategory') + this.state.category.get('name'))
     if (result) {
-      this.state.category.save({
+      this.state.category.update({
         'deletedAt': new Date(),
         'order': new Date().getTime(), // 确保在排序的时候尽量靠后
       })
@@ -132,7 +137,7 @@ class Category extends React.Component {
 
   render() {
     const {t} = this.props
-    if (!this.state) {
+    if (this.state.isLoading) {
       return <div>{t('loading')}……</div>
     }
 
@@ -143,24 +148,33 @@ class Category extends React.Component {
             <ControlLabel>{t('categoryName')}</ControlLabel>
             <FormControl type="text" value={this.state.name} onChange={this.handleNameChange.bind(this)} />
           </FormGroup>
+          <FormGroup controlId="descriptionText">
+            <ControlLabel>{t('categoryDescription')}{t('optional')}</ControlLabel>
+            <FormControl type="text" value={this.state.description} onChange={this.handleDescriptionChange.bind(this)} />
+          </FormGroup>
           <FormGroup controlId="parentSelect">
-            <ControlLabel>{t('parentCategory')}</ControlLabel>
+            <ControlLabel>{t('parentCategory')}{t('optional')}</ControlLabel>
             <CategoriesSelect categoriesTree={this.state.categoriesTree}
               selected={this.state.parentCategory}
               onChange={this.handleParentChange.bind(this, t)}/>
           </FormGroup>
+          <FormGroup controlId="FAQsText">
+            <ControlLabel>{t('FAQ')}{t('optional')}</ControlLabel>
+            <FormControl type="text" value={this.state.FAQs} onChange={this.handleFAQsChange.bind(this)} placeholder="objectId1,objectId2"/>
+            <p className="help-block">{t('FAQInfo')}</p>
+          </FormGroup>
           <FormGroup controlId="qTemplateTextarea">
-            <ControlLabel>{t('ticketTemplate')}</ControlLabel>
+            <ControlLabel>{t('ticketTemplate')}{t('optional')}</ControlLabel>
             <FormControl
               componentClass="textarea"
-              placeholder={t('ticketTemplateInfo')}
               rows='8'
               value={this.state.qTemplate}
               onChange={this.handleQTemplateChange.bind(this)}/>
+            <p className="help-block">{t('ticketTemplateInfo')}</p>
           </FormGroup>
           <Button type='submit' disabled={this.state.isSubmitting} bsStyle='success'>{t('save')}</Button>
           {' '}
-          {this.state.category.id
+          {this.state.category
             && <Button type='button' bsStyle="danger" onClick={this.handleDisable.bind(this, t)}>{t('disable')}</Button>
             || <Button type='button' onClick={() => this.context.router.push('/settings/categories')}>{t('return')}</Button>
           }

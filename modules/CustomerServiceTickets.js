@@ -5,17 +5,16 @@ import { Link } from 'react-router'
 import { Form, FormGroup, ButtonToolbar, ButtonGroup, Button, DropdownButton, MenuItem, Checkbox, FormControl, Pager} from 'react-bootstrap'
 import qs from 'query-string'
 import moment from 'moment'
-import AV from 'leancloud-storage/live-query'
+import {auth, cloud, db} from '../lib/leancloud'
 import css from './CustomerServiceTickets.css'
 import DocumentTitle from 'react-document-title'
 
 import {UserLabel, getCustomerServices, getCategoriesTree, depthFirstSearchMap, depthFirstSearchFind, getNodeIndentString, getNodePath, getTinyCategoryInfo, getCategoryName} from './common'
-import {TICKET_STATUS, TICKET_STATUS_MSG, ticketOpenedStatuses, ticketClosedStatuses, getUserDisplayName} from '../lib/common'
+import {TICKET_STATUS, TICKET_STATUS_MSG, ticketOpenedStatuses, ticketClosedStatuses, getUserDisplayName, TIME_RANGE_MAP} from '../lib/common'
 import TicketStatusLabel from './TicketStatusLabel'
 import translate from './i18n/translate'
 
 let authorSearchTimeoutId
-
 class CustomerServiceTickets extends Component {
 
   constructor(props) {
@@ -34,7 +33,7 @@ class CustomerServiceTickets extends Component {
     Promise.all([
       getCustomerServices(),
       getCategoriesTree(false),
-      authorId && new AV.Query('_User').get(authorId),
+      authorId && db.class('_User').object(authorId).get(),
     ])
     .then(([customerServices, categoriesTree, author]) => {
       this.setState({customerServices, categoriesTree, authorUsername: author && author.get('username')})
@@ -51,40 +50,46 @@ class CustomerServiceTickets extends Component {
   findTickets(filters) {
     if (_.keys(filters).length === 0) {
       this.updateFilter({
-        assigneeId: AV.User.current().id,
+        assigneeId: auth.currentUser().id,
         isOpen: 'true',
       })
       return Promise.resolve()
     }
 
     const {assigneeId, isOpen, status, categoryId, authorId,
-      tagKey, tagValue, isOnlyUnlike, searchString, page = '0', size = '10'} = filters
-    const query = new AV.Query('Ticket')
-    
+      tagKey, tagValue, isOnlyUnlike, searchString, page = '0', size = '10', timeRange} = filters
+    let query = db.class('Ticket')
+
     let statuses = []
     if (isOpen === 'true') {
       statuses = ticketOpenedStatuses()
-      query.addAscending('status')
+      query = query.orderBy('status')
     } else if (isOpen === 'false') {
       statuses = ticketClosedStatuses()
     } else if (status) {
       statuses = [parseInt(status)]
     }
 
+    if(timeRange){
+      query = query
+        .where('createdAt', '>=', TIME_RANGE_MAP[timeRange].starts)
+        .where('createdAt', '<', TIME_RANGE_MAP[timeRange].ends)
+    }
+
     if (statuses.length !== 0) {
-      query.containedIn('status', statuses)
+      query = query.where('status', 'in', statuses)
     }
 
     if (assigneeId) {
-      query.equalTo('assignee', AV.Object.createWithoutData('_User', assigneeId))
+      query = query.where('assignee', '==', db.class('_User').object(assigneeId))
     }
 
     if (authorId) {
-      query.equalTo('author', AV.Object.createWithoutData('_User', authorId))
+      query = query.where('author', '==', db.class('_User').object(authorId))
     }
 
     if (categoryId) {
-      query.equalTo('category.objectId', categoryId)
+      query = query.where('category.objectId', '==', categoryId)
     }
 
     if (tagKey) {
@@ -92,32 +97,33 @@ class CustomerServiceTickets extends Component {
       if (tagMetadata) {
         const columnName = tagMetadata.get('isPrivate') ? 'privateTags' : 'tags'
         if (tagValue) {
-          query.equalTo(columnName, {key: tagKey, value: tagValue})
+          query = query.where(columnName, '==', {key: tagKey, value: tagValue})
         } else {
-          query.equalTo(columnName + '.key', tagKey)
+          query = query.where(columnName + '.key', '==', tagKey)
         }
       }
     }
 
     if (JSON.parse(isOnlyUnlike || false)) {
-      query.equalTo('evaluation.star', 0)
+      query = query.where('evaluation.star', '==', 0)
     }
 
     return Promise.resolve()
     .then(() => {
       if (searchString && searchString.trim().length > 0) {
         return Promise.all([
-          new AV.SearchQuery('Ticket').queryString(`title:*${searchString}* OR content:*${searchString}*`)
-            .addDescending('updatedAt')
+          db.search('Ticket').queryString(`title:*${searchString}* OR content:*${searchString}*`)
+            .orderBy('latestReply.updatedAt', 'desc')
             .limit(1000)
             .find()
-            .then(tickets => {
+            .then(({data: tickets}) => {
               return tickets.map(t => t.id)
             }),
-          new AV.SearchQuery('Reply').queryString(`content:*${searchString}*`)
-            .addDescending('updatedAt')
+          db.search('Reply').queryString(`content:*${searchString}*`)
+            .orderBy('latestReply.updatedAt', 'desc')
             .limit(1000)
             .find()
+            .then(result => result.data)
         ])
       }
       return [[], []]
@@ -125,13 +131,13 @@ class CustomerServiceTickets extends Component {
     .then(([searchMatchedTicketIds, searchMatchedReplaies]) => {
       if (searchMatchedTicketIds.length + searchMatchedReplaies.length > 0) {
         const ticketIds = _.union(searchMatchedTicketIds, searchMatchedReplaies.map(r => r.get('ticket').id))
-        query.containedIn('objectId', ticketIds)
+        query = query.where('objectId', 'in', ticketIds)
       }
       return query.include('author')
       .include('assignee')
       .limit(parseInt(size))
       .skip(parseInt(page) * parseInt(size))
-      .addDescending('updatedAt')
+      .orderBy('latestReply.updatedAt', 'desc')
       .find()
       .then(tickets => {
         tickets.forEach(t => {
@@ -168,12 +174,12 @@ class CustomerServiceTickets extends Component {
     }
     authorSearchTimeoutId = setTimeout(() => {
       if (username.trim() === '') {
-        this.setState({authorFilterValidationState: 'null'})
+        this.setState({authorFilterValidationState: null})
         const filters = _.assign({}, this.props.location.query, {authorId: null})
         return this.updateFilter(filters)
       }
 
-      AV.Cloud.run('getUserInfo', {username})
+      cloud.run('getUserInfo', {username})
       .then((user) => {
         authorSearchTimeoutId = null
         if (!user) {
@@ -214,8 +220,9 @@ class CustomerServiceTickets extends Component {
   handleChangeCategory(categoryId) {
     const tickets = _.filter(this.state.tickets, t => this.state.checkedTickets.has(t.id))
     const category = getTinyCategoryInfo(depthFirstSearchFind(this.state.categoriesTree, c => c.id == categoryId))
-    tickets.forEach(t => t.set('category', category))
-    AV.Object.saveAll(tickets)
+    const p = db.pipeline()
+    tickets.forEach(t => p.update(t, {category}))
+    p.commit()
     .then(() => {
       this.setState({isCheckedAll: false, checkedTickets: new Set()})
       this.updateFilter({})
@@ -264,7 +271,7 @@ class CustomerServiceTickets extends Component {
               <div className={css.left}>
                 <span className={css.nid}>#{ticket.get('nid')}</span>
                 <Link className={css.statusLink} to={this.getQueryUrl({status: ticket.get('status'), isOpen: undefined})}><span className={css.status}><TicketStatusLabel status={ticket.get('status')} /></span></Link>
-                <span className={css.creator}><UserLabel user={ticket.get('author')} /></span> {t('createdAt')} {moment(ticket.get('createdAt')).fromNow()}
+                <span className={css.creator}><UserLabel user={ticket.get('author')} displayTags /></span> {t('createdAt')} {moment(ticket.get('createdAt')).fromNow()}
                 {moment(ticket.get('createdAt')).fromNow() === moment(ticket.get('updatedAt')).fromNow() ||
                   <span> {t('updatedAt')} {moment(ticket.get('updatedAt')).fromNow()}</span>
                 }
@@ -329,6 +336,8 @@ class CustomerServiceTickets extends Component {
       categoryTitle = t('all') 
     }
 
+
+
     const ticketAdminFilters = (
       <div>
         <Form inline className='form-group'>
@@ -347,8 +356,8 @@ class CustomerServiceTickets extends Component {
                 </DropdownButton>
               </ButtonGroup>
               <ButtonGroup>
-                <Button className={(filters.assigneeId === AV.User.current().id ? ' active' : '')} onClick={() => this.updateFilter({assigneeId: AV.User.current().id})}>{t('assignedToMe')}</Button>
-                <DropdownButton className={(typeof filters.assigneeId === 'undefined' || filters.assigneeId && filters.assigneeId !== AV.User.current().id ? ' active' : '')} id='assigneeDropdown' title={assigneeTitle} onSelect={(eventKey) => this.updateFilter({assigneeId: eventKey})}>
+                <Button className={(filters.assigneeId === auth.currentUser().id ? ' active' : '')} onClick={() => this.updateFilter({assigneeId: auth.currentUser().id})}>{t('assignedToMe')}</Button>
+                <DropdownButton className={(typeof filters.assigneeId === 'undefined' || filters.assigneeId && filters.assigneeId !== auth.currentUser().id ? ' active' : '')} id='assigneeDropdown' title={assigneeTitle} onSelect={(eventKey) => this.updateFilter({assigneeId: eventKey})}>
                   <MenuItem key='undefined'>{t('all')}</MenuItem>
                   {assigneeMenuItems}
                 </DropdownButton>
@@ -375,6 +384,19 @@ class CustomerServiceTickets extends Component {
                     })}
                   </DropdownButton>
                 }
+              </ButtonGroup>
+              <ButtonGroup>
+                <DropdownButton 
+                  className={(filters.timeRange ? ' active' : '')} 
+                  id='timeRange' 
+                  title={TIME_RANGE_MAP[filters.timeRange]? t(filters.timeRange) : t('allTime')}
+                  onSelect={(eventKey) => this.updateFilter({timeRange: eventKey})}
+                >
+                    <MenuItem key='undefined'>{t('allTime')}</MenuItem>
+                    <MenuItem key='thisMonth' eventKey='thisMonth'>{t('thisMonth')}</MenuItem>
+                    <MenuItem key='lastMonth' eventKey='lastMonth'>{t('lastMonth')}</MenuItem>
+                    <MenuItem key='monthBeforeLast' eventKey='monthBeforeLast'>{t('monthBeforeLast')}</MenuItem>
+                </DropdownButton>
               </ButtonGroup>
             </ButtonToolbar>
           </FormGroup>

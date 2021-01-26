@@ -1,11 +1,10 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import AV from 'leancloud-storage/live-query'
+import { db } from '../lib/leancloud'
 import DocumentTitle from 'react-document-title'
 import StatsSummary from './StatsSummary'
 import StatsChart from './StatsChart'
 import translate from './i18n/translate'
-
 
 class CustomerServiceStats extends React.Component {
 
@@ -17,7 +16,7 @@ class CustomerServiceStats extends React.Component {
   }
 
   componentDidMount() {
-    return new AV.Query('Category')
+    return db.class('Category')
     .limit(1000)
     .find()
     .then((categories) => {

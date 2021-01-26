@@ -4,15 +4,16 @@ import _ from 'lodash'
 import { Link } from 'react-router'
 import { Pager, Checkbox, Form, DropdownButton, MenuItem } from 'react-bootstrap'
 import moment from 'moment'
-import AV from 'leancloud-storage/live-query'
+import {auth, db} from '../lib/leancloud'
 import css from './CustomerServiceTickets.css'
 import DocumentTitle from 'react-document-title'
 
-import {UserLabel, getCategoryPathName, getCategoriesTree, getTicketAcl} from './common'
+import {UserLabel, getCategoryPathName, getCategoriesTree} from './common'
 import OrganizationSelect from './OrganizationSelect'
 import TicketsMoveButton from './TicketsMoveButton'
 import TicketStatusLabel from './TicketStatusLabel'
 import translate from './i18n/translate'
+import {getTicketAcl} from '../lib/common'
 
 class Tickets extends Component {
 
@@ -50,21 +51,20 @@ class Tickets extends Component {
 
   findTickets(filter) {
     const filters = _.assign({}, this.state.filters, filter)
-    let query
+    let query = db.class('Ticket')
     if (filter.organizationId) {
-      query = new AV.Query('Ticket')
-      query.equalTo('organization', _.find(this.props.organizations, {id: filter.organizationId}))
+      query = query.where('organization', '==', _.find(this.props.organizations, {id: filter.organizationId}))
     } else {
-      const q1 = new AV.Query('Ticket').doesNotExist('organization')
-      const q2 = new AV.Query('Ticket').equalTo('organization', null)
-      query = AV.Query.or(q1, q2)
-      query.equalTo('author', AV.User.current())
+      query = query.where({
+        author: auth.currentUser(),
+        organization: db.cmd.or(null, db.cmd.notExists())
+      })
     }
     query.include('author')
     .include('assignee')
     .limit(filters.size)
     .skip(filters.page * filters.size)
-    .descending('createdAt')
+    .orderBy('createdAt', 'desc')
     .find()
     .then((tickets) => {
       this.setState({tickets, filters})
@@ -97,15 +97,16 @@ class Tickets extends Component {
 
   handleTicketsMove(organization) {
     const tickets = _.filter(this.state.tickets, t => this.state.checkedTickets.has(t.id))
+    const p = db.pipeline()
     tickets.forEach(t => {
+      const ACL = getTicketAcl(t.get('author'), organization)
       if (organization) {
-        t.set('organization', organization)
+        p.update(t, {ACL, organization})
       } else {
-        t.unset('organization')
+        p.update(t, {ACL, organization: db.op.unset()})
       }
-      t.setACL(getTicketAcl(t.get('author'), organization))
     })
-    AV.Object.saveAll(tickets).then(() => {
+    p.commit().then(() => {
       this.setState({checkedTickets: new Set(), isCheckedAll: false})
       this.findTickets({organizationId: this.props.selectedOrgId})
       return

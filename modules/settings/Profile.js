@@ -1,8 +1,10 @@
+/*global ENABLE_LEANCLOUD_INTERGRATION */
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import {Form, FormGroup, ControlLabel, FormControl, Button} from 'react-bootstrap'
 
 import {Avatar} from '../common'
+import AccountLink from './AccountLink'
 import translate from '../i18n/translate'
 
 class Profile extends Component {
@@ -10,8 +12,8 @@ class Profile extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      name: this.props.currentUser.get('name'),
-      email: this.props.currentUser.get('email'),
+      name: this.props.currentUser.data.name,
+      email: this.props.currentUser.email,
     }
   }
 
@@ -38,10 +40,11 @@ class Profile extends Component {
     return <div>
       <div className="row">
         <div className="col-md-8">
+          <h2>{t('basicInfo')}</h2>
           <Form>
             <FormGroup>
               <ControlLabel>{t('username')}</ControlLabel>
-              <FormControl type="text" value={this.props.currentUser.get('username')} disabled='true' />
+              <FormControl type="text" value={this.props.currentUser.username} disabled='true' />
             </FormGroup>
             <FormGroup>
               <ControlLabel>{t('nickname')}</ControlLabel>
@@ -53,6 +56,7 @@ class Profile extends Component {
             </FormGroup>
             <Button type='button' onClick={this.handleSubmit.bind(this)}>{t('save')}</Button>
           </Form>
+          {ENABLE_LEANCLOUD_INTERGRATION && <AccountLink currentUser={this.props.currentUser} />}
         </div>
         <div className="col-md-4">
           <Form>

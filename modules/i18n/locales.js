@@ -34,9 +34,17 @@ const messages = {
     '构建。'
   ],
   // general
+  'account': [
+    'account',
+    '账号'
+  ],
   'all': [
     'All',
     '全部'
+  ],
+  'application': [
+    'Application',
+    '应用'
   ],
   'assigned': [
     'Assigned',
@@ -106,6 +114,10 @@ const messages = {
     'Email',
     '电子邮箱'
   ],
+  'goto': [
+    'Go to',
+    '前往'
+  ],
   'hour': [
     'hour',
     '小时'
@@ -142,6 +154,10 @@ const messages = {
     'Log out',
     '登出'
   ],
+  'mobile': [
+    'Mobile',
+    '电话'
+  ],
   'name': [
     'Name',
     '名称'
@@ -177,6 +193,10 @@ const messages = {
   'overview': [
     'Overview',
     '总览'
+  ],
+  'weekendWarning': [
+    'Your tickets is submitted out of hours. Please expect a delay in responses.',
+    '在周末或假期提交的工单，回复可能会有延迟。'
   ],
   'password': [
     'Password',
@@ -222,6 +242,10 @@ const messages = {
     'Reorder',
     '调整顺序'
   ],
+  'region': [
+    'Region',
+    '节点'
+  ],
   'resolved': [
     'Resolved',
     '已解决'
@@ -259,7 +283,7 @@ const messages = {
     '客服'
   ],
   'statistics': [
-    'Statistics',
+    'Stats',
     '统计'
   ],
   'submit': [
@@ -296,7 +320,7 @@ const messages = {
   ],
   'ticketList': [
     'Tickets',
-    '工单列表'
+    '工单'
   ],
   'title': [
     'Title',
@@ -334,8 +358,12 @@ const messages = {
     'Username',
     '用户名'
   ],
+  'welcome': [
+    'Welcome',
+    '欢迎'
+  ],
   // CSStatsUser
-  'notInvoled': [
+  'notInvolved': [
     'Not involved',
     '没有参与'
   ],
@@ -351,6 +379,37 @@ const messages = {
     'Replies',
     '回复次数'
   ],
+  // AccountLink
+  'linkedAccounts': [
+    'Linked accounts',
+    '账号关联'
+  ],
+  'loginIntlFirst': [
+    'Before linking the international account, please log in at leancloud.app first.',
+    '关联国际版账号之前，请先登录国际版。'
+  ],
+  // OauthButton
+  'linkedPrefix': [
+    '',
+    '已关联'
+  ],
+  'linkedSuffix': [
+    'linked',
+    ''
+  ],
+  // Login
+  'currentlyOnlySupports': [
+    'Currently we only support logging in via',
+    '目前只支持通过'
+  ],
+  'oauthAuthentication': [
+    'OAuth authentication.',
+    '授权进行登录'
+  ],
+  'oauthPage': [
+    'OAuth page',
+    '授权页'
+  ],
   // Categories
   'newCategory': [
     'New category',
@@ -359,15 +418,23 @@ const messages = {
   // Category
   'categoryName': [
     'Name',
-    '分类名称'
+    '名称'
+  ],
+  'categoryDescription': [
+    'Description',
+    '描述'
   ],
   'confirmDisableCategory': [
     'Confirm disabling this category: ',
     '确认要停用分类：'
   ],
+  'optional': [
+    ' (optional)',
+    '（可选）'
+  ],
   'parentCategory': [
-    'Parent category (optional)',
-    '父分类（可选）'
+    'Parent category',
+    '父分类'
   ],
   'parentCategoryRequirements': [
     'You cannot assign this category itself or its subcategories as parent category.',
@@ -380,6 +447,35 @@ const messages = {
   'ticketTemplateInfo': [
     'The default content shown when creating a new ticket under this category.',
     '用户新建该分类工单时，问题描述默认显示这里的内容。'
+  ],
+  'FAQInfo': [
+    'FAQs to display when this catogery is selected during ticket creating',
+    '新建工单时，选中该分类将展示的常见问题。'
+  ],
+  // FAQ
+  'FAQ': [
+    'FAQ',
+    '常见问题'
+  ],
+  'newFAQ': [
+    'New FAQ',
+    '新增 FAQ'
+  ],
+  'edit': [
+    'Edit',
+    '编辑'
+  ],
+  'archive': [
+    'Archive',
+    '归档'
+  ],
+  'unarchive': [
+    'unarchive',
+    '取消归档'
+  ],
+  'viewHint': [
+    'Ordered descending (0 means hidden)',
+    '数字越大显示越靠前，设为 0 则不显示'
   ],
   // CustomerServiceProfile
   'associatedAccounts': [
@@ -470,6 +566,10 @@ const messages = {
     '成员数：'
   ],
   // Profile
+  'basicInfo': [
+    'Basic info',
+    '基本信息'
+  ],
   'changeAvatar': [
     'To change your avatar, please go to',
     '更改头像请前往'
@@ -534,10 +634,34 @@ const messages = {
     '分类移动到'
   ],
   'customerServiceTickets': [
-    'Customer service tickets',
-    '客服工单列表'
+    'Staff',
+    '客服'
+  ],
+  'allTime': [
+    'All time',
+    '全部时间'
+  ],
+  'thisMonth': [
+    'This month',
+    '本月'
+  ],
+  'lastMonth': [
+    'Last month',
+    '上月'
+  ],
+  'monthBeforeLast': [
+    'Month before last',
+    '上上月'
   ],
   // NewTicket
+  'appTooltip': [
+    'To display applications in other regions, please first link them at Settings > Linked accounts',
+    '如需显示其他节点应用，请到帐号设置页面关联帐号'
+  ],
+  'associatedApplication': [
+    'Application',
+    '相关应用'
+  ],
   'categoryLevel': [
     'Level',
     ''
@@ -598,13 +722,21 @@ const messages = {
     '工单转移到'
   ],
   // Tickets
-  'ticketsNotFound': [
-    'Tickets not found, you can',
-    '未查询到相关工单，您可以'
+  'clickToSubscribe': [
+    'Click to subscribe',
+    '点击将关注该工单'
+  ],
+  'clickToUnsubscribe': [
+    'Click to unsubscribe',
+    '点击将取消关注'
   ],
   'createANewOne': [
     'create a new one.',
     '新建工单。'
+  ],
+  'ticketsNotFound': [
+    'Tickets not found, you can',
+    '未查询到相关工单，您可以'
   ],
   // Error
   'errorPage': [
@@ -674,6 +806,10 @@ const messages = {
     'Average first reply time',
     '平均首次响应'
   ],
+  'averageFirstReplyTimeInTheWorkday': [
+    'Average first reply time in the workday',
+    '工作日平均首次响应'
+  ],
   'toWeekly': [
     'Switch to weekly report',
     '切换到周报'
@@ -687,8 +823,8 @@ const messages = {
     '回复耗时'
   ],
   'tagCount': [
-    '标签数',
     'Tag count',
+    '标签数',
   ],
   // TicketReply
   'noNeedToReply': [
@@ -708,7 +844,7 @@ const messages = {
     'Ticket operation',
     '工单操作'
   ],
-  'confirmReloved': [
+  'confirmResolved': [
     'Please confirm that this ticket has been resolved:',
     '我们认为该工单已解决，请确认：'
   ],
@@ -778,7 +914,7 @@ const messages = {
     'Resolved',
     '已解决'
   ],
-  'statusRejected': [
+  'statusClosed': [
     'Closed',
     '已关闭'
   ]

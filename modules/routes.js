@@ -1,11 +1,10 @@
-/*global SENTRY_DSN_PUBLIC, LEANCLOUD_APP_ID, LEANCLOUD_APP_KEY, LEANCLOUD_APP_ENV, LEAN_CLI_HAVE_STAGING*/
+/*global SENTRY_DSN_PUBLIC */
 import React from 'react'
 import Raven from 'raven-js'
 import { Route, IndexRoute, Redirect } from 'react-router'
 import moment from 'moment'
-import AV from 'leancloud-storage/live-query'
 
-import common from './common'
+const common = require('./common')
 import App from './App'
 import About from './About'
 import Login from './Login'
@@ -13,6 +12,8 @@ import Login from './Login'
 import Tickets from './Tickets'
 import NewTicket from './NewTicket'
 import Ticket from './Ticket'
+import Messages from './Messages'
+import Notifications from './Notifications.js'
 import CustomerService from './CustomerService'
 import CSTickets from './CustomerServiceTickets'
 import CSStats from './CustomerServiceStats'
@@ -29,6 +30,8 @@ import Tags from './settings/Tags'
 import Tag from './settings/Tag'
 import SettingsCSProfile from './settings/CustomerServiceProfile'
 import Members from './settings/Members'
+import FAQs from './settings/FAQs'
+import FAQ from './settings/FAQ'
 import Categories from './settings/Categories'
 import Category from './settings/Category'
 import CategorySort from './settings/CategorySort'
@@ -52,16 +55,6 @@ if (SENTRY_DSN_PUBLIC !== '') {
   Raven.config(SENTRY_DSN_PUBLIC).install()
 }
 
-AV.init({
-  appId: LEANCLOUD_APP_ID,
-  appKey: LEANCLOUD_APP_KEY,
-})
-if (LEANCLOUD_APP_ENV === 'development') {
-  AV.setProduction(LEAN_CLI_HAVE_STAGING !== 'true')
-} else {
-  AV.setProduction(LEANCLOUD_APP_ENV === 'production')
-}
-
 module.exports = (
   <Route path="/" component={App}>
     <IndexRoute component={Home}/>
@@ -70,6 +63,9 @@ module.exports = (
     <Route path="/tickets" component={Tickets} onEnter={common.requireAuth} />
     <Route path="/tickets/new" component={NewTicket} onEnter={common.requireAuth} />
     <Route path="/tickets/:nid" component={Ticket} onEnter={common.requireAuth} />
+    <Route path="/messages" component={Messages} onEnter={common.requireAuth} />
+    <Route path="/notifications" component={Notifications} onEnter={common.requireAuth} />
+    <Route path="/notifications/subscriptions" component={Notifications} onEnter={common.requireAuth} />
     <Route path="/customerService" component={CustomerService} onEnter={common.requireCustomerServiceAuth}>
       <Route path="/customerService/tickets" component={CSTickets} />
       <Route path="/customerService/stats" component={CSStats} />
@@ -85,6 +81,8 @@ module.exports = (
       <Route path="/settings/tags/:id" component={Tag} />
       <Route path="/settings/customerServiceProfile" component={SettingsCSProfile} />
       <Route path="/settings/members" component={Members} />
+      <Route path="/settings/faqs" component={FAQs} />
+      <Route path="/settings/faqs/:id" component={FAQ} />
       <Route path="/settings/categories" component={Categories} />
       <Route path="/settings/categories/:id" component={Category} />
       <Route path="/settings/categorySort" component={CategorySort} />

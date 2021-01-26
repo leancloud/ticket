@@ -3,10 +3,11 @@ import PropTypes from 'prop-types'
 import {Form, FormGroup, ControlLabel, FormControl, Button, Checkbox, Table} from 'react-bootstrap'
 import moment from 'moment'
 import DatePicker from 'react-datepicker'
-import AV from 'leancloud-storage/live-query'
+import {auth, db} from '../../lib/leancloud'
 
-import {getCustomerServices, getUserDisplayName} from '../common'
+import {getCustomerServices} from '../common'
 import translate from '../i18n/translate'
+import {getUserDisplayName} from '../../lib/common'
 
 class Vacation extends Component {
 
@@ -15,7 +16,7 @@ class Vacation extends Component {
     this.state = {
       users: [],
       vacations: [],
-      vacationerId: AV.User.current().id,
+      vacationerId: auth.currentUser().id,
       startDate: moment().startOf('day'),
       isStartHalfDay: false,
       endDate: moment().add(1, 'days').startOf('day'),
@@ -26,13 +27,18 @@ class Vacation extends Component {
   componentDidMount() {
     Promise.all([
       getCustomerServices(),
-      AV.Query.or(
-          new AV.Query('Vacation').equalTo('operator', AV.User.current()),
-          new AV.Query('Vacation').equalTo('vacationer', AV.User.current())
-        )
+      db.class('Vacation')
+        .where([
+          {
+            operator: auth.currentUser(),
+          },
+          {
+            vacationer: auth.currentUser(),
+          }
+        ])
         .include('vacationer')
         .include('operator')
-        .descending('createdAt')
+        .orderBy('createdAt', 'desc')
         .find(),
     ])
       .then(([users, vacations]) => {
@@ -62,14 +68,14 @@ class Vacation extends Component {
   
   handleSubmit(e) {
     e.preventDefault()
-    return new AV.Object('Vacation')
-      .save({
-        vacationer: AV.Object.createWithoutData('_User', this.state.vacationerId),
+    return db.class('Vacation')
+      .add({
+        vacationer: db.class('_User').object(this.state.vacationerId),
         startDate: this.state.startDate.add(this.state.isStartHalfDay ? 12 : 0, 'hours').toDate(),
         endDate: this.state.endDate.add(this.state.isEndHalfDay ? 12 : 0, 'hours').toDate(),
       })
       .then(vacation => {
-        return vacation.fetch({include: 'vacationer,operator'})
+        return vacation.get({include: ['vacationer', 'operator']})
       })
       .then(vacation => {
         const vacations = this.state.vacations
@@ -79,7 +85,7 @@ class Vacation extends Component {
   }
   
   handleRemove(vacation) {
-    vacation.destroy()
+    vacation.delete()
       .then(() => {
         this.setState({vacations: this.state.vacations.filter(v => v.id !== vacation.id)})
       })
@@ -164,7 +170,6 @@ class Vacation extends Component {
 }
   
 Vacation.propTypes = {
-  addNotification: PropTypes.func.isRequired,
   t: PropTypes.func
 }
 

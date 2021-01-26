@@ -5,7 +5,7 @@ import { Link } from 'react-router'
 import { Form, ButtonGroup, Checkbox, FormControl, Pager } from 'react-bootstrap'
 import qs from 'query-string'
 import moment from 'moment'
-import AV from 'leancloud-storage/live-query'
+import {auth, db} from '../lib/leancloud'
 import css from './CustomerServiceTickets.css'
 import DocumentTitle from 'react-document-title'
 
@@ -38,7 +38,7 @@ class CustomerServiceTickets extends Component {
     const authorId = this.props.location.query.authorId
     Promise.all([
       getCustomerServices(),
-      authorId && new AV.Query('_User').get(authorId),
+      authorId && db.class('_User').object(authorId).get(),
     ])
       .then(([customerServices, author]) => {
         this.setState({ customerServices, authorUsername: author && author.get('username') })
@@ -55,7 +55,7 @@ class CustomerServiceTickets extends Component {
   findTickets(filters) {
     if (_.keys(filters).length === 0) {
       this.updateFilter({
-        assigneeId: AV.User.current().id,
+        assigneeId: auth.currentUser().id,
         selectType: SELECT_BTN_TYPE.reply,
       })
       return Promise.resolve()
@@ -67,22 +67,22 @@ class CustomerServiceTickets extends Component {
     let query = null
     if (selectType === SELECT_BTN_TYPE.reply) {
 
-      query = new AV.Query('Reply')
-      query.contains('content', replyContent)
-      query.include(['ticket'])
+      query = db.class('Reply')
+        .where('content', 'contains', replyContent)
+        .include(['ticket'])
 
     } else {
-      query = new AV.Query('Ticket')
-      query.contains('title', replyContent)
+      query = db.class('Ticket')
+        .where('title', 'contains', replyContent)
     }
 
     this.setState({ replyContent, selectType })
 
-    return AV.Query.or(query)
+    return query
       .limit(parseInt(size))
       .include(['ticket'])
       .skip(parseInt(page) * parseInt(size))
-      .addDescending('updatedAt')
+      .orderBy('updatedAt', 'desc')
       .find()
       .then(tickets => {
         return this.setState({ tickets })

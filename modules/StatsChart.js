@@ -5,12 +5,13 @@ import _ from 'lodash'
 import {Form, FormGroup, ControlLabel, Button} from 'react-bootstrap'
 import {Line} from 'react-chartjs-2'
 import DatePicker from 'react-datepicker'
-import AV from 'leancloud-storage/live-query'
 import randomColor from 'randomcolor'
 import Color from 'color'
-import {getUserDisplayName, fetchUsers} from './common'
-import offsetDays from '../config'
+import {fetchUsers} from './common'
+import {offsetDays} from '../config'
 import translate from './i18n/translate'
+import {getUserDisplayName} from '../lib/common'
+import { cloud } from '../lib/leancloud'
 
 const ticketCountLineChartData = (statses, t) => {
   return _.reduce(statses, (result, stats) => {
@@ -193,7 +194,7 @@ class StatsChart extends React.Component {
     if (this.state.endDate.diff(this.state.startDate, 'days') > 31) {
       timeUnit = 'week'
     }
-    return AV.Cloud.run('getStats', {start: this.state.startDate.toISOString(), end: this.state.endDate.toISOString(), timeUnit})
+    return cloud.run('getStats', {start: this.state.startDate.toISOString(), end: this.state.endDate.toISOString(), timeUnit})
       .then((statses) => {
         const userIds = _.uniq(_.flatten(_.concat([],
           statses.map(s => s.assignees),
@@ -217,7 +218,7 @@ class StatsChart extends React.Component {
         })
       })
   }
-  
+
   render() {
     const {t} = this.props
     return (
@@ -266,14 +267,11 @@ class StatsChart extends React.Component {
         </div>
     )
   }
-  
-  }
-  
+}
+
 StatsChart.propTypes = {
   categories: PropTypes.array.isRequired,
   t: PropTypes.func
 }
-  
+
 export default translate(StatsChart)
-  
-  

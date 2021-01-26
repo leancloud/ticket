@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import {FormGroup, FormControl, Button, ButtonToolbar} from 'react-bootstrap'
-import AV from 'leancloud-storage/live-query'
+import LC from '../lib/leancloud'
 
 import {uploadFiles} from './common'
 import TextareaWithPreview from './components/TextareaWithPreview'
@@ -18,14 +18,7 @@ class TicketReply extends Component {
       isCommitting: false,
     }
   }
-  
-  componentDidMount() {
-    this.contentTextarea.addEventListener('paste', this.pasteEventListener.bind(this))
-  }
-  
-  componentWillUnmount() {
-    this.contentTextarea.removeEventListener('paste', this.pasteEventListener.bind(this))
-  }
+
   
   handleReplyOnChange(e) {
     localStorage.setItem(`ticket:${this.props.ticket.id}:reply`, e.target.value)
@@ -77,18 +70,6 @@ class TicketReply extends Component {
       })
   }
   
-  pasteEventListener(e) {
-    if (e.clipboardData.types.indexOf('Files') != -1) {
-      this.setState({isCommitting: true})
-      return uploadFiles(e.clipboardData.files)
-        .then((files) => {
-          const reply = `${this.state.reply}\n<img src='${files[0].url()}' />`
-          this.setState({isCommitting: false, reply})
-          return
-        })
-    }
-  }
-  
   render() {
     const {t} = this.props
     let buttons
@@ -115,7 +96,6 @@ class TicketReply extends Component {
                 value={this.state.reply}
                 onChange={this.handleReplyOnChange.bind(this)}
                 onKeyDown={this.handleReplyOnKeyDown.bind(this)}
-                inputRef={(ref) => this.contentTextarea = ref }
               />
             </FormGroup>
   
@@ -142,7 +122,7 @@ class TicketReply extends Component {
   }
   
 TicketReply.propTypes = {
-  ticket: PropTypes.instanceOf(AV.Object),
+  ticket: PropTypes.instanceOf(LC.LCObject),
   commitReply: PropTypes.func.isRequired,
   commitReplySoon: PropTypes.func.isRequired,
   operateTicket: PropTypes.func.isRequired,

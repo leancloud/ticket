@@ -8,7 +8,7 @@ const TicketStatusLabel = (props) => {
   switch (props.status) {
   case TICKET_STATUS.FULFILLED:
     return <span className='label label-success'>{t(TICKET_STATUS_MSG[props.status])}</span>
-  case TICKET_STATUS.REJECTED:
+  case TICKET_STATUS.CLOSED:
     return <span className='label label-default'>{t(TICKET_STATUS_MSG[props.status])}</span>
   case TICKET_STATUS.PRE_FULFILLED:
     return <span className='label label-primary'>{t(TICKET_STATUS_MSG[props.status])}</span>

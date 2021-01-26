@@ -1,26 +1,24 @@
 import _ from 'lodash'
-import React, {Component} from 'react'
+import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import NotificationSystem from 'react-notification-system'
 import Raven from 'raven-js'
-import AV from 'leancloud-storage/live-query'
 
-import {isCustomerService} from './common'
-import {getGravatarHash} from '../lib/common'
+import {auth, db} from '../lib/leancloud'
+import { isCustomerService } from './common'
 import GlobalNav from './GlobalNav'
 import css from './App.css'
 import {locale} from './i18n/I18nProvider'
 
 export default class App extends Component {
-
   constructor(props) {
     super(props)
     this.state = {
-      currentUser: AV.User.current(),
+      currentUser: auth.currentUser(),
       isCustomerService: false,
       organizations: [],
       selectedOrgId: '',
-      tagMetadatas: [],
+      tagMetadatas: []
     }
   }
 
@@ -28,15 +26,17 @@ export default class App extends Component {
     if (obj instanceof Error) {
       console.error(obj.stack || obj)
       const message = obj.message
-      const match = message.match(/^Cloud Code validation failed. Error detail : (.*)$/)
+      const match = message.match(
+        /^Cloud Code validation failed. Error detail : (.*)$/
+      )
       this._notificationSystem.addNotification({
         message: match ? match[1] : message,
-        level: 'error',
+        level: 'error'
       })
     } else {
       this._notificationSystem.addNotification({
-        message: obj && obj.message || 'Operation succeeded.',
-        level: obj && obj.level || 'success',
+        message: (obj && obj.message) || 'Operation succeeded.',
+        level: (obj && obj.level) || 'success'
       })
     }
   }
@@ -48,25 +48,25 @@ export default class App extends Component {
       return
     }
 
-    return user.fetch().then(user => {
-      return this.refreshGlobalInfo(user)
-    })
-    .catch(err => {
-      this.refreshGlobalInfo()
-      this.addNotification(err)
-    })
+    return user
+      .get()
+      .then((user) => {
+        return this.refreshGlobalInfo(user)
+      })
+      .catch((err) => {
+        this.refreshGlobalInfo()
+        this.addNotification(err)
+      })
   }
 
   fetchTagMetadatas() {
-    return new AV.Query('TagMetadata').find()
-    .then(tagMetadatas => {
+    return db.class('TagMetadata').find().then((tagMetadatas) => {
       return tagMetadatas
     })
   }
 
   refreshTagMetadatas() {
-    return this.fetchTagMetadatas()
-    .then(tagMetadatas => {
+    return this.fetchTagMetadatas().then((tagMetadatas) => {
       this.setState({
         tagMetadatas
       })
@@ -88,12 +88,9 @@ export default class App extends Component {
 
     return Promise.all([
       isCustomerService(currentUser),
-      new AV.Query('Organization')
-        .include('memberRole')
-        .find(),
-      this.fetchTagMetadatas(),
-    ])
-    .then(([isCustomerService, organizations, tagMetadatas]) => {
+      db.class('Organization').include('memberRole').find(),
+      this.fetchTagMetadatas()
+    ]).then(([isCustomerService, organizations, tagMetadatas]) => {
       this.setState({
         currentUser,
         isCustomerService,
@@ -102,7 +99,7 @@ export default class App extends Component {
       })
       Raven.setUserContext({
         username: currentUser.get('username'),
-        id: currentUser.id,
+        id: currentUser.id
       })
       return
     })
@@ -113,8 +110,7 @@ export default class App extends Component {
   }
 
   logout() {
-    return AV.User.logOut()
-    .then(() => {
+    return auth.logOut().then(() => {
       this.refreshGlobalInfo()
       this.context.router.push('/')
       return
@@ -123,14 +119,10 @@ export default class App extends Component {
 
   updateCurrentUser(props) {
     const user = this.state.currentUser
-    Object.entries(props).forEach(([k, v]) => {
-      user.set(k, v)
-    })
-    if (props.email) {
-      user.set('gravatarHash', getGravatarHash(props.email))
-    }
-    return user.save().then(user => {
-      this.setState({currentUser: user})
+    const data = _.clone(props)
+    return user.update(data).then((user) => {
+      Object.assign(user.data, data)
+      this.setState({ currentUser: user })
       return
     })
   }
@@ -138,48 +130,52 @@ export default class App extends Component {
   joinOrganization(organization) {
     const organizations = this.state.organizations
     organizations.push(organization)
-    this.setState({organizations})
+    this.setState({ organizations })
   }
 
   handleOrgChange(e) {
-    this.setState({selectedOrgId: e.target.value})
+    this.setState({ selectedOrgId: e.target.value })
   }
 
   leaveOrganization(organization) {
     const organizations = this.state.organizations
-    this.setState({organizations: _.reject(organizations, {id: organization.id})})
+    this.setState({
+      organizations: _.reject(organizations, { id: organization.id })
+    })
   }
 
   getChildContext() {
     return {
       addNotification: this.addNotification.bind(this),
       tagMetadatas: this.state.tagMetadatas,
-      refreshTagMetadatas: this.refreshTagMetadatas.bind(this),
+      refreshTagMetadatas: this.refreshTagMetadatas.bind(this)
     }
   }
 
   render() {
     return (
       <div>
-        <GlobalNav currentUser={this.state.currentUser}
+        <GlobalNav
+          currentUser={this.state.currentUser}
           isCustomerService={this.state.isCustomerService}
-          logout={this.logout.bind(this)} />
-        <div className={ 'container ' + css.main }>
-          {this.props.children && React.cloneElement(this.props.children, {
-            onLogin: this.onLogin.bind(this),
-            currentUser: this.state.currentUser,
-            isCustomerService: this.state.isCustomerService,
-            updateCurrentUser: this.updateCurrentUser.bind(this),
-            organizations: this.state.organizations,
-            joinOrganization: this.joinOrganization.bind(this),
-            handleOrgChange: this.handleOrgChange.bind(this),
-            leaveOrganization: this.leaveOrganization.bind(this),
-            selectedOrgId: this.state.selectedOrgId,
-            tagMetadatas: this.state.tagMetadatas,
-          })}
+          logout={this.logout.bind(this)}
+        />
+        <div className={'container ' + css.main}>
+          {this.props.children &&
+            React.cloneElement(this.props.children, {
+              onLogin: this.onLogin.bind(this),
+              currentUser: this.state.currentUser,
+              isCustomerService: this.state.isCustomerService,
+              updateCurrentUser: this.updateCurrentUser.bind(this),
+              organizations: this.state.organizations,
+              joinOrganization: this.joinOrganization.bind(this),
+              handleOrgChange: this.handleOrgChange.bind(this),
+              leaveOrganization: this.leaveOrganization.bind(this),
+              selectedOrgId: this.state.selectedOrgId,
+              tagMetadatas: this.state.tagMetadatas
+            })}
         </div>
-        <ServerNotification currentUser={this.state.currentUser}
-          isCustomerService={this.state.isCustomerService} />
+        <ServerNotification currentUser={this.state.currentUser} />
         <NotificationSystem ref="notificationSystem" />
       </div>
     )
@@ -189,7 +185,7 @@ export default class App extends Component {
 App.propTypes = {
   router: PropTypes.object,
   children: PropTypes.object.isRequired,
-  location: PropTypes.object,
+  location: PropTypes.object
 }
 
 App.contextTypes = {
@@ -199,11 +195,10 @@ App.contextTypes = {
 App.childContextTypes = {
   addNotification: PropTypes.func,
   tagMetadatas: PropTypes.array,
-  refreshTagMetadatas: PropTypes.func,
+  refreshTagMetadatas: PropTypes.func
 }
 
 class ServerNotification extends Component {
-
   constructor(props) {
     super(props)
     let permission = 'denied'
@@ -214,37 +209,35 @@ class ServerNotification extends Component {
         if (Notification.permission !== status) {
           Notification.permission = status
         }
-        this.setState({permission: status})
+        this.setState({ permission: status })
       })
     }
-    this.state = {permission}
+    this.state = { permission }
   }
 
   componentDidMount() {
-    this.updateLiveQuery(this.props.isCustomerService)
+    this.updateLiveQuery()
   }
 
-  shouldComponentUpdate(nextProps, _nextState) {
-    return this.props.isCustomerService !== nextProps.isCustomerService
+  componentDidUpdate(prevProps) {
+    if (this.props.currentUser !== prevProps.currentUser) {
+      return this.updateLiveQuery()
+    }
   }
 
-  componentWillReceiveProps(nextProps) {
-    this.updateLiveQuery(nextProps.isCustomerService)
-  }
-
-  updateLiveQuery(isCustomerService) {
+  updateLiveQuery() {
     const i18nMessages = {
-      'newTicket': [
+      newTicket: [
         'New ticket',
         // eslint-disable-next-line i18n/no-chinese-character
         '新的工单'
       ],
-      'assignTicket': [
+      assignTicket: [
         'Assign ticket',
         // eslint-disable-next-line i18n/no-chinese-character
         '转移工单'
       ],
-      'newReply': [
+      newReply: [
         'New reply',
         // eslint-disable-next-line i18n/no-chinese-character
         '新的回复'
@@ -252,55 +245,44 @@ class ServerNotification extends Component {
     }
     const localeIndex = locale === 'en' ? 0 : 1
     const t = (label) => i18nMessages[label][localeIndex]
-    if (this.ticketsLiveQuery) {
-      this.ticketsLiveQuery.unsubscribe()
+    if (this.messageLiveQuery) {
+      this.messageLiveQuery.unsubscribe()
     }
-    if (isCustomerService) {
-      return new AV.Query('Ticket').equalTo('assignee', this.props.currentUser)
+    if (!this.props.currentUser) {
+      return
+    }
+
+    return db.class('Message')
+      .where('to', '==', this.props.currentUser)
+      .where('isRead', '==', false)
       .subscribe()
-      .then((liveQuery) => {
-        this.ticketsLiveQuery = liveQuery
-        liveQuery.on('create', (ticket) => {
-          this.notify({title: t('newTicket'), body: `${ticket.get('title')} (#${ticket.get('nid')})`})
-        })
-        liveQuery.on('enter', (ticket, updatedKeys) => {
-          if (updatedKeys.indexOf('assignee') !== -1) {
-            this.notify({title: t('assignTicket'), body: `${ticket.get('title')} (#${ticket.get('nid')})`})
-          }
-        })
-        liveQuery.on('update', (ticket, updatedKeys) => {
-          if (updatedKeys.indexOf('latestReply') !== -1
-              && ticket.get('latestReply').author.username !== this.props.currentUser.get('username')) {
-            this.notify({title: t('newReply'), body: `${ticket.get('title')} (#${ticket.get('nid')})`})
-          }
+      .then(liveQuery => {
+        this.messageLiveQuery = liveQuery
+        liveQuery.on('create', message => {
+          return message.get({include: ['ticket']}).then(message => {
+            const messageType = message.get('type')
+            const ticket = message.get('ticket')
+            if (messageType == 'newTicket') {
+              this.notify({title: t('newTicket'), body: `${ticket.get('title')} (#${ticket.get('nid')})`})
+            } else if (messageType == 'changeAssignee') {
+              this.notify({title: t('assignTicket'), body: `${ticket.get('title')} (#${ticket.get('nid')})`})
+            } else if (messageType == 'reply') {
+              this.notify({title: t('newReply'), body: `${ticket.get('title')} (#${ticket.get('nid')})`})
+            }
+            return
+          })
         })
         return
       })
-    } else {
-      return new AV.Query('Ticket').equalTo('author', this.props.currentUser)
-      .subscribe()
-      .then((liveQuery) => {
-        this.ticketsLiveQuery = liveQuery
-        liveQuery.on('update', (ticket, updatedKeys) => {
-          if (updatedKeys.indexOf('latestReply') !== -1
-              && ticket.get('latestReply').author.username !== this.props.currentUser.get('username')) {
-            this.notify({title: t('newReply'), body: `${ticket.get('title')} (#${ticket.get('nid')})`})
-          }
-        })
-        return
-      })
-    }
   }
 
   componentWillUnmount() {
-    return Promise.all([
-      this.ticketsLiveQuery.unsubscribe(),
-    ])
+    return this.messageLiveQuery.unsubscribe()
   }
 
-  notify({title, body}) {
+  notify({ title, body }) {
     if (this.state.permission === 'granted') {
-      var n = new Notification(title, {body})
+      var n = new Notification(title, { body })
       n.onshow = function () {
         setTimeout(n.close.bind(n), 5000)
       }
@@ -312,10 +294,8 @@ class ServerNotification extends Component {
   render() {
     return <div></div>
   }
-
 }
 
 ServerNotification.propTypes = {
   currentUser: PropTypes.object,
-  isCustomerService: PropTypes.bool,
 }

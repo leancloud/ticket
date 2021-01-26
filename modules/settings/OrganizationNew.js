@@ -1,10 +1,10 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import {FormGroup, ControlLabel, FormControl, Button, HelpBlock} from 'react-bootstrap'
-import AV from 'leancloud-storage/live-query'
+import {auth, db} from '../../lib/leancloud'
 
-import {getOrganizationRoleName} from './../common'
 import translate from '../i18n/translate'
+import {getOrganizationRoleName} from '../../lib/common'
 
 class OrganizationNew extends React.Component {
 
@@ -25,7 +25,7 @@ class OrganizationNew extends React.Component {
     })
   }
 
-  handleSubmit(t, e) {
+  async handleSubmit(t, e) {
     e.preventDefault()
    
     const name = this.state.name.trim()
@@ -38,46 +38,36 @@ class OrganizationNew extends React.Component {
     }
 
     this.setState({isSubmitting: true})
-
-    return new AV.Object('Organization', {
-      name,
-      ACL: {
-        [AV.User.current().id]:{write: true}
-      }
-    }).save()
-    .then(organization => {
+    try {
+      const organization = await db.class('Organization').add({
+        name,
+        ACL: db.ACL().allow(auth.currentUser(), 'write')
+      })
       const adminRoleName = getOrganizationRoleName(organization, true)
       const memberRoleName = getOrganizationRoleName(organization)
-      const acl = {
-        ['role:' + adminRoleName]: {write: true},
-        ['role:' + memberRoleName]: {read: true},
-      }
-      const adminRole = new AV.Role(adminRoleName)
-      adminRole.getUsers().add(AV.User.current())
-      adminRole.setACL(acl)
-
-      const memberRole = new AV.Role(memberRoleName)
-      memberRole.getUsers().add(AV.User.current())
-      memberRole.setACL(acl)
-
-      return organization.save({
-        adminRole,
-        memberRole,
-        ACL: acl,
+      const ACL = db.ACL()
+        .allow(`role:${adminRoleName}`, 'write')
+        .allow(`role:${memberRoleName}`, 'read')
+      const adminRole = await auth.addRole({
+        ACL,
+        name: adminRoleName,
+        users: [auth.currentUser()]
       })
-      .then(() => {
-        memberRole.getRoles().add(adminRole)
-        return memberRole.save()
+      const memberRole = await auth.addRole({
+        ACL,
+        name: memberRoleName,
+        users: [auth.currentUser()],
+        roles: [adminRole]
       })
-      .then(() => {
-        this.setState({isSubmitting: false})
-        this.props.joinOrganization(organization)
-        this.context.router.push(`/settings/organizations/${organization.id}`)
-        return
-      })
-      .then(this.context.addNotification)
-      .catch(this.context.addNotification)
-    })
+      await organization.update({ACL, adminRole, memberRole})
+      this.props.joinOrganization(organization)
+      this.context.router.push(`/settings/organizations/${organization.id}`)
+      this.context.addNotification('Add organization successful')
+    } catch (e) {
+      this.context.addNotification(e)
+    } finally {
+      this.setState({isSubmitting: false})
+    }
   }
 
   render() {

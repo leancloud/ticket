@@ -1,0 +1,12 @@
+.tag {
+  margin-left: 0.3em;
+  font-size: 1.1em;
+  color: #555;
+  background-color: #fff;
+  border-radius: 0.2em;
+  cursor: default;
+}
+
+.manager {
+  margin: 1em 0;
+}

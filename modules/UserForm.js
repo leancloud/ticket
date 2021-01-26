@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import {FormControl, Form, Button} from 'react-bootstrap'
-import AV from 'leancloud-storage/live-query'
+import { auth, cloud } from '../lib/leancloud'
 import translate from './i18n/translate'
 class UserForm extends React.Component {
 
@@ -18,12 +18,12 @@ class UserForm extends React.Component {
   
   handleSubmit(t, e) {
     e.preventDefault()
-    AV.Cloud.run('getUserInfo', {username: this.state.username})
+    cloud.run('getUserInfo', {username: this.state.username})
       .then(user => {
         if (!user) {
           throw new Error(`${t('userNotFound')} ${this.state.username}`)
         }
-        return AV.Object.createWithoutData('_User', user.objectId).fetch()
+        return auth.user(user.objectId).get()
       })
       .then(user => {
         this.props.addUser(user)

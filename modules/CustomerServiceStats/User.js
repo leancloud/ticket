@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import {Table} from 'react-bootstrap'
-import AV from 'leancloud-storage/live-query'
+import { cloud } from '../../lib/leancloud'
 import DocumentTitle from 'react-document-title'
 import translate from '../i18n/translate'
 
@@ -16,15 +16,12 @@ class CSStatsUser extends React.Component {
 
   componentDidMount() {
     const {start, end}= this.props.location.query
-    return AV.Cloud.run('getStatsTicketByUser', {
+    return cloud.run('getStatsTicketByUser', {
       userId: this.props.params.userId,
       start,
       end,
     })
-    .then((statses) => {
-      return AV.Object.fetchAll(statses.map(s => new AV.Object.createWithoutData('Ticket', s.ticket.objectId) ))
-      .then(() => this.setState({statses}))
-    })
+    .then((statses) => this.setState({statses}))
     .catch(this.context.addNotification)
   }
 
@@ -34,12 +31,12 @@ class CSStatsUser extends React.Component {
     let trs = []
     try {
       trs = this.state.statses.map(stats => {
-        let firstReplyStatsTd = <td>{t('notInvoled')}</td>
+        let firstReplyStatsTd = <td>{t('notInvolved')}</td>
         if (stats.firstReplyStats.userId === userId) {
           firstReplyStatsTd = <td>{(stats.firstReplyStats.firstReplyTime / 1000 / 60 / 60).toFixed(2)} {t('hour')}</td>
         }
         const replyTime = stats.replyTimeStats.find(s => s.userId === userId)
-        let replyTimeTd = <td>{t('notInvoled')}</td>
+        let replyTimeTd = <td>{t('notInvolved')}</td>
         if (replyTime) {
           replyTimeTd = <td>{(replyTime.replyTime / replyTime.replyCount / 1000 / 60 / 60).toFixed(2)} {t('hour')}</td>
         }

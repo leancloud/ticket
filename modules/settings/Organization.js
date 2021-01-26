@@ -2,21 +2,21 @@ import _ from 'lodash'
 import React from 'react'
 import PropTypes from 'prop-types'
 import {Form, FormGroup, ControlLabel, FormControl, Button, Table, HelpBlock} from 'react-bootstrap'
-import AV from 'leancloud-storage/live-query'
+import {auth, cloud, db} from '../../lib/leancloud'
 
-import {UserLabel} from './../common'
+import {UserLabel} from '../common'
 import UserForm from '../UserForm'
 import translate from '../i18n/translate'
 class Organization extends React.Component {
 
   componentDidMount() {
     const id = this.props.params.id
-    return AV.Object.createWithoutData('Organization', id)
-    .fetch({include: 'memberRole,adminRole'})
+    return db.class('Organization').object(id)
+    .get({include: ['memberRole', 'adminRole']})
     .then(organization => {
       return Promise.all([
-        AV.Cloud.rpc('getRoleUsers', {roleId: organization.get('adminRole').id}),
-        AV.Cloud.rpc('getRoleUsers', {roleId: organization.get('memberRole').id})
+        cloud.rpc('getRoleUsers', {roleId: organization.get('adminRole').id}),
+        cloud.rpc('getRoleUsers', {roleId: organization.get('memberRole').id})
       ])
       .then(([admins, members]) => {
         members = _.differenceBy(members, admins, 'id')
@@ -28,7 +28,7 @@ class Organization extends React.Component {
           nameChanged: false,
           admins,
           members,
-          isAdmin: !!_.find(admins, u => u.id == AV.User.current().id),
+          isAdmin: !!_.find(admins, u => u.id == auth.currentUser().id),
         })
         return
       })
@@ -57,12 +57,14 @@ class Organization extends React.Component {
       return
     }
 
+    this.setState({isSubmitting: true})
     const organization = this.state.organization
-    return organization.save({name})
+    return organization.update({name})
     .then(() => {
       this.setState({
-        nameValidationState: 'null',
+        nameValidationState: null,
         nameHelpMessage: '',
+        isSubmitting: false,
       })
       return
     })
@@ -72,8 +74,7 @@ class Organization extends React.Component {
 
   handleAddUser(user) {
     const memberRole = this.state.organization.get('memberRole')
-    memberRole.getUsers().add(user)
-    return memberRole.save()
+    return auth.role(memberRole.id).add(user)
     .then(() => {
       const members = this.state.members
       members.push(user)
@@ -84,8 +85,8 @@ class Organization extends React.Component {
   }
 
   handleRemove(t) {
-    new AV.Query('Ticket')
-    .equalTo('organization', this.state.organization)
+    db.class('Ticket')
+    .where('organization', '==', this.state.organization)
     .count()
     .then(count => {
       const result = confirm(`${t('confirmDeleteOrganization')} ${this.state.organization.get('name')}.
@@ -98,12 +99,12 @@ ${count} ${t('deleteOrganizationConsequence')}`)
       const adminRole = organization.get('adminRole')
       const memberRole = organization.get('memberRole')
       // Organization afterDelete hook 将会更新相关 Tickets
-      return organization.destroy()
+      return organization.delete()
       .then(() => {
-        return memberRole.destroy()
+        return memberRole.delete()
       })
       .then(() => {
-        return adminRole.destroy()
+        return adminRole.delete()
       })
       .then(() => {
         this.props.leaveOrganization(organization)
@@ -114,26 +115,9 @@ ${count} ${t('deleteOrganizationConsequence')}`)
     .catch(this.context.addNotification)
   }
 
-  handleSubmit(e) {
-    e.preventDefault()
-    this.setState({isSubmitting: true})
-
-    const organization = this.state.organization
-
-    return organization.save()
-    .then(() => {
-      this.setState({isSubmitting: false})
-      this.context.router.push(`/settings/organizations/${organization.id}`)
-      return
-    })
-    .then(this.context.addNotification)
-    .catch(this.context.addNotification)
-  }
-
   promote(user) {
     const role = this.state.organization.get('adminRole')
-    role.getUsers().add(user)
-    role.save()
+    auth.role(role.id).add(user)
     .then(() => {
       let {admins, members} = this.state
       admins.push(user)
@@ -152,12 +136,11 @@ ${count} ${t('deleteOrganizationConsequence')}`)
     }
 
     const role = this.state.organization.get('adminRole')
-    role.getUsers().remove(user)
-    role.save()
+    auth.role(role.id).remove(user)
     .then(() => {
       admins = _.reject(admins, user)
       members.push(user)
-      this.setState({admins, members, isAdmin: user.id !== AV.User.current().id})
+      this.setState({admins, members, isAdmin: user.id !== auth.currentUser().id})
       return
     })
     .catch(this.context.addNotification)
@@ -167,8 +150,7 @@ ${count} ${t('deleteOrganizationConsequence')}`)
     const result = confirm(`${t('confirmRemoveMember')} ${user.get('name')}`) 
     if (result) {
       const memberRole = this.state.organization.get('memberRole')
-      memberRole.getUsers().remove(user)
-      memberRole.save()
+      auth.role(memberRole.id).remove(user)
       .then(() => {
         const members = this.state.members
         this.setState({members: _.reject(members, user)})
