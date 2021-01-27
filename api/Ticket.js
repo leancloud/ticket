@@ -5,7 +5,7 @@ const common = require('./common')
 const {getTinyUserInfo, htmlify, getTinyReplyInfo} = common
 const oauth = require('./oauth')
 const notify = require('./notify')
-const {TICKET_STATUS, ticketClosedStatuses} = require('../lib/common')
+const {TICKET_STATUS, ticketClosedStatuses, getTicketAcl} = require('../lib/common')
 const errorHandler = require('./errorHandler')
 
 AV.Cloud.beforeSave('Ticket', (req, res) => {
@@ -22,6 +22,7 @@ AV.Cloud.beforeSave('Ticket', (req, res) => {
       throw new AV.Cloud.Error('category 不能为空')
     }
 
+    ticket.setACL(getTicketAcl(req.currentUser), ticket.get('organization'))
     ticket.set('status', TICKET_STATUS.NEW)
     ticket.set('content_HTML', htmlify(ticket.get('content')))
     ticket.set('author', req.currentUser)
