@@ -61,6 +61,7 @@ const getIndexPage = () => {
   DISABLE_WEEKEND_WARNING = ${config.disableWeekendWarning}
   ALGOLIA_API_KEY = '${process.env.ALGOLIA_API_KEY}'
   FAQ_VIEWS = '${process.env.FAQ_VIEWS || ''}'
+  SUPPORT_EMAIL = '${config.supportEmail || ''}'
 </script>
 <script src='${process.env.WEBPACK_DEV_SERVER || ''}/bundle.js'></script>
 <script>
