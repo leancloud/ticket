@@ -333,7 +333,7 @@ class CustomerServiceTickets extends Component {
         categoryTitle = `categoryId ${t('invalid')}`
       }
     } else {
-      categoryTitle = t('all') 
+      categoryTitle = t('all')
     }
 
     const assignedToMe = auth.currentUser() && filters.assigneeId === auth.currentUser().id
@@ -385,9 +385,9 @@ class CustomerServiceTickets extends Component {
                 }
               </ButtonGroup>
               <ButtonGroup>
-                <DropdownButton 
-                  className={(filters.timeRange ? ' active' : '')} 
-                  id='timeRange' 
+                <DropdownButton
+                  className={(filters.timeRange ? ' active' : '')}
+                  id='timeRange'
                   title={TIME_RANGE_MAP[filters.timeRange]? t(filters.timeRange) : t('allTime')}
                   onSelect={(eventKey) => this.updateFilter({timeRange: eventKey})}
                 >

@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import {Form, FormGroup, ControlLabel, FormControl, Button} from 'react-bootstrap'
 
-import {Avatar} from '../common'
+import {Avatar} from '../Avatar'
 import AccountLink from './AccountLink'
 import translate from '../i18n/translate'
 
