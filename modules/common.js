@@ -147,10 +147,8 @@ exports.UserLabel.propTypes = {
 
 exports.Avatar = props => {
   const { user, height, width } = props
-  const userInfo = user.toJSON ? user.toJSON() : user
-  let src = `https://cdn.v2ex.com/gravatar/${
-    userInfo.gravatarHash || getGravatarHash(userInfo.username)
-  }?s=${height || 16}&r=pg&d=identicon`
+  const src = `https://cdn.v2ex.com/gravatar/${user.gravatarHash ||
+    user.get('gravatarHash') || getGravatarHash('')}?s=${height || 16}&r=pg&d=identicon`
   return (
     <Image
       height={height || 16}
@@ -216,4 +214,3 @@ exports.getCategoryName = (category, t) => {
 exports.isCN = () => {
   return window.location.hostname.endsWith('.cn')
 }
-
