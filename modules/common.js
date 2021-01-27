@@ -1,11 +1,11 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import {Link} from 'react-router'
-import {Image} from 'react-bootstrap'
 import _ from 'lodash'
 import {auth, db, storage} from '../lib/leancloud'
-import {depthFirstSearchFind, getUserDisplayName, makeTree, getUserTags, getGravatarHash} from '../lib/common'
+import {depthFirstSearchFind, getUserDisplayName, makeTree, getUserTags} from '../lib/common'
 import {UserTagGroup} from './components/UserTag'
+import {Avatar} from './Avatar'
 
 Object.assign(exports, require('../lib/common'))
 
@@ -127,7 +127,7 @@ exports.UserLabel = (props) => {
   return (
     <span>
       <Link to={'/users/' + username} className="avatar">
-        <exports.Avatar user={props.user} />
+        <Avatar user={props.user} />
       </Link>
       <Link to={'/users/' + username} className="username">
         {name}
@@ -136,37 +136,12 @@ exports.UserLabel = (props) => {
     </span>
   )
 }
-
 exports.UserLabel.displayName = 'UserLabel'
 exports.UserLabel.propTypes = {
   user: PropTypes.object,
   simple: PropTypes.bool,
   displayTags: PropTypes.bool
 }
-
-
-exports.Avatar = props => {
-  const { user, height, width } = props
-  const userInfo = user.toJSON ? user.toJSON() : user
-  let src = `https://cdn.v2ex.com/gravatar/${
-    userInfo.gravatarHash || getGravatarHash(userInfo.username)
-  }?s=${height || 16}&r=pg&d=identicon`
-  return (
-    <Image
-      height={height || 16}
-      width={width || 16}
-      src={src}
-      rounded
-    />
-  )
-}
-exports.Avatar.displayName = 'Avatar'
-exports.Avatar.propTypes = {
-  user: PropTypes.object.isRequired,
-  height: PropTypes.string,
-  width: PropTypes.string
-}
-
 
 exports.getCategoriesTree = (hiddenDisable = true) => {
   const query = db.class('Category')
@@ -216,4 +191,3 @@ exports.getCategoryName = (category, t) => {
 exports.isCN = () => {
   return window.location.hostname.endsWith('.cn')
 }
-
