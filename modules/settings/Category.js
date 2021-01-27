@@ -15,6 +15,7 @@ class Category extends React.Component {
       name: '',
       description: '',
       qTemplate: '',
+      FAQs: '',
       category: undefined,
       parentCategory: undefined,
       categoriesTree: undefined,
