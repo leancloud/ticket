@@ -4,23 +4,28 @@ const ticket = require('./Ticket')
 const common = require('./common')
 const errorHandler = require('./errorHandler')
 
-AV.Cloud.beforeSave('Reply', (req, res) => {
+AV.Cloud.beforeSave('Reply', async (req, res) => {
   if (!req.currentUser._sessionToken) {
-    return res.error('noLogin')
+    return res.error('No Login')
   }
-  const reply = req.object
-  return reply.get('ticket').fetch({
-    include: 'author'
-  }, {user: req.currentUser}).then((ticket) => {
+  try {
+    const reply = req.object
+    const ticket = reply.get('ticket')
+    await ticket.fetch({include: 'author'}, {user: req.currentUser})
     reply.setACL(getReplyAcl(ticket, req.currentUser))
     reply.set('content_HTML', common.htmlify(reply.get('content')))
     reply.set('author', req.currentUser)
-    return common.isCustomerService(req.currentUser, ticket.get('author'))
-  }).then((isCustomerService) => {
+    const isCustomerService = await common.isCustomerService(req.currentUser, ticket.get('author'))
     reply.set('isCustomerService', isCustomerService)
+    if (isCustomerService) {
+      ticket.increment('unreadCount')
+      await ticket.save(null, {user: req.currentUser})
+    }
     res.success()
-    return
-  }).catch(errorHandler.captureException)
+  } catch (error) {
+    errorHandler.captureException(error)
+    res.error('Internal Error')
+  }
 })
 
 AV.Cloud.afterSave('Reply', (req) => {

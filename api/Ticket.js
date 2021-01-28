@@ -111,33 +111,30 @@ AV.Cloud.afterUpdate('Ticket', (req) => {
   })
 })
 
-AV.Cloud.define('operateTicket', (req) => {
+AV.Cloud.define('operateTicket', async (req, res) => {
   const {ticketId, action} = req.params
-  return Promise.all([
-    new AV.Query('Ticket').get(ticketId, {user: req.currentUser}),
-    getTinyUserInfo(req.currentUser),
-  ])
-  .then(([ticket, operator]) => {
-    return common.isCustomerService(req.currentUser, ticket.get('author'))
-    .then(isCustomerService => {
-      if (isCustomerService) {
-        ticket.addUnique('joinedCustomerServices', operator)
-      }
-      ticket.set('status', getTargetStatus(action, isCustomerService))
-      return ticket.save(null, {user: req.currentUser})
-    })
-    .then(() => {
-      return new AV.Object('OpsLog').save({
+  try {
+    const [ticket, operator] = await Promise.all([
+      new AV.Query('Ticket').get(ticketId, {user: req.currentUser}),
+      getTinyUserInfo(req.currentUser),
+    ])
+    const isCustomerService = await common.isCustomerService(req.currentUser, ticket.get('author'))
+    if (isCustomerService) {
+      ticket.addUnique('joinedCustomerServices', operator)
+      ticket.increment('unreadCount')
+    }
+    ticket.set('status', getTargetStatus(action, isCustomerService))
+    await ticket.save(null, {user: req.currentUser})
+    await new AV.Object('OpsLog')
+      .save({
         ticket,
         action,
         data: {operator}
       }, {useMasterKey: true})
-    })
-    .then(() => {
-      return
-    })
-  })
-  .catch(errorHandler.captureException)
+  } catch (error) {
+    errorHandler.captureException(error)
+    res.error('Internal Error')
+  }
 })
 
 AV.Cloud.define('getPrivateTags', (req) => {
@@ -166,6 +163,20 @@ AV.Cloud.define('exploreTicket', ({params, currentUser}) => {
       messages.forEach(m => m.set('isRead', true))
       return AV.Object.saveAll(messages, {user: currentUser})
     })
+})
+
+AV.Cloud.define('resetTicketUnreadCount', async (req) => {
+  const {ticketIds} = req.params
+  if (!Array.isArray(ticketIds)) {
+    throw new AV.Cloud.Error('"ticketIds" should be an array', {status: 400})
+  }
+  const tickets = []
+  ticketIds.forEach(id => {
+    const ticket = AV.Object.createWithoutData('Ticket', id)
+    ticket.set('unreadCount', 0)
+    tickets.push(ticket)
+  })
+  await AV.Object.saveAll(tickets, {user: req.currentUser})
 })
 
 const getTargetStatus = (action, isCustomerService) => {
