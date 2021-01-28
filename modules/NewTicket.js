@@ -38,7 +38,6 @@ class NewTicket extends React.Component {
         content: '',
         files: [],
         tags: [],
-        ACL: getTicketAcl(auth.currentUser(), org),
       },
       categoriesTree: [],
       apps: [],
