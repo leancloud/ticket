@@ -166,16 +166,14 @@ AV.Cloud.define('exploreTicket', ({params, currentUser}) => {
 })
 
 AV.Cloud.define('resetTicketUnreadCount', async (req) => {
-  const {ticketIds} = req.params
-  if (!Array.isArray(ticketIds)) {
-    throw new AV.Cloud.Error('"ticketIds" should be an array', {status: 400})
+  if (!req.currentUser) {
+    throw new AV.Cloud.Error('unauthorized', {status: 401})
   }
-  const tickets = []
-  ticketIds.forEach(id => {
-    const ticket = AV.Object.createWithoutData('Ticket', id)
-    ticket.set('unreadCount', 0)
-    tickets.push(ticket)
-  })
+  const query = new AV.Query('Ticket')
+  query.equalTo('author', req.currentUser)
+  query.greaterThan('unreadCount', 0)
+  const tickets = await query.find({user: req.currentUser})
+  tickets.forEach(ticket => ticket.set('unreadCount', 0))
   await AV.Object.saveAll(tickets, {user: req.currentUser})
 })
 
