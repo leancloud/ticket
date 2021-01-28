@@ -12,6 +12,7 @@ import {
   defaultLeanCloudRegion,
   depthFirstSearchFind,
   getLeanCloudRegionText,
+  getTicketAcl,
   getTinyCategoryInfo
 } from '../lib/common'
 import {uploadFiles, getCategoriesTree} from './common'
@@ -202,6 +203,7 @@ class NewTicket extends React.Component {
             value: this.state.appId,
             ticket,
             author: auth.currentUser(),
+            ACL: getTicketAcl(auth.currentUser(), ticket.get('organization')),
           })
         }
         return
