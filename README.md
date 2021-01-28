@@ -135,12 +135,11 @@ npm run dev:client
 | demo | demo | 客服 |
 | test | test | 用户 |
 
-### 内部贡献
+### LeanCloud 内部贡献
 
-注意为了避免 master 和 leancloud 分支出现不一致情况，需要按照以下步骤进行合并：
+发布流程：
 
-1. 所有特性和 bug 修复都先提交到 develop 分支，并进行测试。
-2. 将 develop 分支合并到 leancloud 分支，并测试 leancloud 分支。
-3. 将 develop 分支合并到 master 分支。
+1. 特性和 bug 修复在合并到 master 分支后，将 master 分支发布到工单的预备环境测试（如有必要，改动未合并前也可临时在工单预备环境测试）。
+2. 在预备环境充分测试后（比如一周后，具体时间视改动的大小和影响自行把握），发布到工单的生产环境，并在代码仓库打上 `lc-YYYYMMDD` 的 tag. 
 
-如果是 LeanCloud 内部功能，则直接提交到 leancloud 分支。
+另外，实现 LeanCloud 内部功能请加上 `enableLeanCloudIntergration` 开关。
