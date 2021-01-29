@@ -1,8 +1,7 @@
 node_modules/
 .leancloud/
 server.bundle.js
-public/bundle.js
-public/bundle.js.map
-public/app.css
+public/bundle.js*
+public/app.css*
 datas/
 dist/
