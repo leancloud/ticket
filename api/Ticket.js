@@ -111,7 +111,7 @@ AV.Cloud.afterUpdate('Ticket', (req) => {
   })
 })
 
-AV.Cloud.define('operateTicket', async (req, res) => {
+AV.Cloud.define('operateTicket', async (req) => {
   const {ticketId, action} = req.params
   try {
     const [ticket, operator] = await Promise.all([
@@ -135,7 +135,7 @@ AV.Cloud.define('operateTicket', async (req, res) => {
       }, {useMasterKey: true})
   } catch (error) {
     errorHandler.captureException(error)
-    res.error('Internal Error')
+    throw new AV.Cloud.Error('Internal Error', {status: 500})
   }
 })
 
