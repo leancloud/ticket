@@ -4,7 +4,7 @@ import Raven from 'raven-js'
 import { Route, IndexRoute, Redirect } from 'react-router'
 import moment from 'moment'
 
-const common = require('./common')
+import {requireAuth, requireCustomerServiceAuth} from'./common'
 import App from './App'
 import About from './About'
 import Login from './Login'
@@ -55,24 +55,24 @@ if (SENTRY_DSN_PUBLIC !== '') {
   Raven.config(SENTRY_DSN_PUBLIC).install()
 }
 
-module.exports = (
+export default (
   <Route path="/" component={App}>
     <IndexRoute component={Home}/>
     <Route path="/about" component={About}/>
     <Route path="/login" component={Login}/>
-    <Route path="/tickets" component={Tickets} onEnter={common.requireAuth} />
-    <Route path="/tickets/new" component={NewTicket} onEnter={common.requireAuth} />
-    <Route path="/tickets/:nid" component={Ticket} onEnter={common.requireAuth} />
-    <Route path="/messages" component={Messages} onEnter={common.requireAuth} />
-    <Route path="/notifications" component={Notifications} onEnter={common.requireAuth} />
-    <Route path="/notifications/subscriptions" component={Notifications} onEnter={common.requireAuth} />
-    <Route path="/customerService" component={CustomerService} onEnter={common.requireCustomerServiceAuth}>
+    <Route path="/tickets" component={Tickets} onEnter={requireAuth} />
+    <Route path="/tickets/new" component={NewTicket} onEnter={requireAuth} />
+    <Route path="/tickets/:nid" component={Ticket} onEnter={requireAuth} />
+    <Route path="/messages" component={Messages} onEnter={requireAuth} />
+    <Route path="/notifications" component={Notifications} onEnter={requireAuth} />
+    <Route path="/notifications/subscriptions" component={Notifications} onEnter={requireAuth} />
+    <Route path="/customerService" component={CustomerService} onEnter={requireCustomerServiceAuth}>
       <Route path="/customerService/tickets" component={CSTickets} />
       <Route path="/customerService/stats" component={CSStats} />
       <Route path="/customerService/stats/users/:userId" component={CSStatsUser} />
     </Route>
-    <Route path="/users/:username" component={User} onEnter={common.requireAuth} />
-    <Route path="/settings" component={Settings} onEnter={common.requireAuth}>
+    <Route path="/users/:username" component={User} onEnter={requireAuth} />
+    <Route path="/settings" component={Settings} onEnter={requireAuth}>
       <Route path="/settings/profile" component={Profile} />
       <Route path="/settings/organizations" component={Organizations} />
       <Route path="/settings/organizations/new" component={OrganizationNew} />

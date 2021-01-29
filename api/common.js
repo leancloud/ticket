@@ -8,6 +8,22 @@ const config = require('../config')
 
 Object.assign(module.exports, require('../lib/common'))
 
+exports.getTinyUserInfo = async (user) => {
+  if (!user) {
+    return
+  }
+  if (!user.get('username')) {
+    await user.fetch()
+  }
+  return {
+    objectId: user.id,
+    username: user.get('username'),
+    name: user.get('name'),
+    email: user.get('email'),
+    tags: exports.getUserTags(user)
+  }
+}
+
 exports.getTinyReplyInfo = (reply) => {
   return exports.getTinyUserInfo(reply.get('author'))
     .then((author) => {
@@ -96,4 +112,3 @@ exports.getCategoriesTree = (authOptions) => {
       return exports.makeTree(categories)
     })
 }
-

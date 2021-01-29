@@ -7,14 +7,14 @@ import {depthFirstSearchFind, getUserDisplayName, makeTree, getUserTags} from '.
 import {UserTagGroup} from './components/UserTag'
 import {Avatar} from './Avatar'
 
-Object.assign(exports, require('../lib/common'))
+export * from '../lib/common'
 
-exports.getCategoryPathName = (category, categoriesTree, t) => {
+export const getCategoryPathName = (category, categoriesTree, t) => {
   const c = depthFirstSearchFind(categoriesTree, c => c.id == (category.id || category.objectId))
-  return exports.getNodePath(c).map(c => exports.getCategoryName(c, t)).join(' / ')
+  return getNodePath(c).map(c => getCategoryName(c, t)).join(' / ')
 }
 
-exports.requireAuth = (nextState, replace) => {
+export const requireAuth = (nextState, replace) => {
   if (!auth.currentUser()) {
     replace({
       pathname: '/login',
@@ -23,7 +23,7 @@ exports.requireAuth = (nextState, replace) => {
   }
 }
 
-exports.requireCustomerServiceAuth = (nextState, replace, next) => {
+export const requireCustomerServiceAuth = (nextState, replace, next) => {
   exports
     .isCustomerService(auth.currentUser())
     .then(isCustomerService => {
@@ -44,7 +44,7 @@ exports.requireCustomerServiceAuth = (nextState, replace, next) => {
     })
 }
 
-exports.getCustomerServices = () => {
+export const getCustomerServices = () => {
   return auth.queryRole()
     .where('name', '==', 'customerService')
     .first()
@@ -56,7 +56,7 @@ exports.getCustomerServices = () => {
     })
 }
 
-exports.isCustomerService = user => {
+export const isCustomerService = user => {
   if (!user) {
     return Promise.resolve(false)
   }
@@ -69,7 +69,7 @@ exports.isCustomerService = user => {
     })
 }
 
-exports.uploadFiles = files => {
+export const uploadFiles = files => {
   return Promise.all(
     _.map(files, file =>
       storage.upload(file.name, file)
@@ -77,7 +77,7 @@ exports.uploadFiles = files => {
   )
 }
 
-exports.getTicketAndRelation = nid => {
+export const getTicketAndRelation = nid => {
   return db.class('Ticket')
     .where('nid', '==', parseInt(nid))
     .include('author', 'files')
@@ -102,7 +102,7 @@ exports.getTicketAndRelation = nid => {
     })
 }
 
-exports.fetchUsers = (userIds) => {
+export const fetchUsers = (userIds) => {
   return Promise.all(_.map(_.chunk(userIds, 50), (userIds) => {
     return auth.queryUser()
       .where('objectId', 'in', userIds)
@@ -111,7 +111,7 @@ exports.fetchUsers = (userIds) => {
   .then(_.flatten)
 }
 
-exports.UserLabel = (props) => {
+export const UserLabel = (props) => {
   if (!props.user) {
     return <span>data err</span>
   }
@@ -136,14 +136,14 @@ exports.UserLabel = (props) => {
     </span>
   )
 }
-exports.UserLabel.displayName = 'UserLabel'
-exports.UserLabel.propTypes = {
+UserLabel.displayName = 'UserLabel'
+UserLabel.propTypes = {
   user: PropTypes.object,
   simple: PropTypes.bool,
   displayTags: PropTypes.bool
 }
 
-exports.getCategoriesTree = (hiddenDisable = true) => {
+export const getCategoriesTree = (hiddenDisable = true) => {
   const query = db.class('Category')
     .where({
       deletedAt: hiddenDisable ? db.cmd.notExists() : undefined
@@ -157,7 +157,7 @@ exports.getCategoriesTree = (hiddenDisable = true) => {
     .catch(err => {
       // 如果还没有被停用的分类，deletedAt 属性可能不存在
       if (err.code == 700 && err.message.includes('deletedAt')) {
-        return exports.getCategoriesTree(false)
+        return getCategoriesTree(false)
       }
       throw err
     })
@@ -170,24 +170,24 @@ const getNodeDepth = obj => {
   return 1 + getNodeDepth(obj.parent)
 }
 
-exports.getNodePath = obj => {
+export const getNodePath = obj => {
   if (!obj.parent) {
     return [obj]
   }
-  const result = exports.getNodePath(obj.parent)
+  const result = getNodePath(obj.parent)
   result.push(obj)
   return result
 }
 
-exports.getNodeIndentString = treeNode => {
+export const getNodeIndentString = treeNode => {
   const depth = getNodeDepth(treeNode)
   return depth == 0 ? '' : '　'.repeat(depth) + '└ '
 }
 
-exports.getCategoryName = (category, t) => {
+export const getCategoryName = (category, t) => {
   return category.get('name') + (category.get('deletedAt') ? t('disabled') : '')
 }
 
-exports.isCN = () => {
+export const isCN = () => {
   return window.location.hostname.endsWith('.cn')
 }
