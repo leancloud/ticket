@@ -1,35 +1,40 @@
 const AV = require('leanengine')
 
-const ticket = require('./Ticket')
+const {replyTicket} = require('./Ticket')
 const common = require('./common')
 const errorHandler = require('./errorHandler')
 
-AV.Cloud.beforeSave('Reply', async (req, res) => {
+AV.Cloud.beforeSave('Reply', (req, res) => {
   if (!req.currentUser._sessionToken) {
-    return res.error('No Login')
+    return res.error('noLogin')
   }
-  try {
-    const reply = req.object
-    const ticket = reply.get('ticket')
-    await ticket.fetch({include: 'author'}, {user: req.currentUser})
+  const reply = req.object
+  return reply.get('ticket').fetch({
+    include: 'author'
+  }, {user: req.currentUser}).then((ticket) => {
     reply.setACL(getReplyAcl(ticket, req.currentUser))
     reply.set('content_HTML', common.htmlify(reply.get('content')))
     reply.set('author', req.currentUser)
-    const isCustomerService = await common.isCustomerService(req.currentUser, ticket.get('author'))
+    return common.isCustomerService(req.currentUser, ticket.get('author'))
+  }).then((isCustomerService) => {
     reply.set('isCustomerService', isCustomerService)
-    if (isCustomerService) {
-      ticket.increment('unreadCount')
-      await ticket.save(null, {user: req.currentUser})
-    }
     res.success()
-  } catch (error) {
-    errorHandler.captureException(error)
-    res.error('Internal Error')
-  }
+    return
+  }).catch(errorHandler.captureException)
 })
 
 AV.Cloud.afterSave('Reply', (req) => {
-  ticket.replyTicket(req.object.get('ticket'), req.object, req.currentUser)
+  const ticket = req.object.get('ticket')
+  replyTicket(ticket, req.object, req.currentUser)
+  // eslint-disable-next-line promise/catch-or-return
+  ticket.fetch({keys: 'author'}, {user: req.currentUser})
+    .then(() => {
+      // eslint-disable-next-line promise/always-return
+      if (common.isCustomerService(req.currentUser, ticket.get('author'))) {
+        ticket.increment('unreadCount')
+        ticket.save(null, {user: req.currentUser})
+      }
+    })
 })
 
 const getReplyAcl = (ticket, author) => {

@@ -5,7 +5,7 @@ const common = require('./common')
 const {getTinyUserInfo, htmlify, getTinyReplyInfo} = common
 const oauth = require('./oauth')
 const notify = require('./notify')
-const {TICKET_STATUS, ticketClosedStatuses, getTicketAcl} = require('../lib/common')
+const {TICKET_ACTION, TICKET_STATUS, ticketClosedStatuses, getTicketAcl} = require('../lib/common')
 const errorHandler = require('./errorHandler')
 
 AV.Cloud.beforeSave('Ticket', (req, res) => {
@@ -121,7 +121,9 @@ AV.Cloud.define('operateTicket', async (req, res) => {
     const isCustomerService = await common.isCustomerService(req.currentUser, ticket.get('author'))
     if (isCustomerService) {
       ticket.addUnique('joinedCustomerServices', operator)
-      ticket.increment('unreadCount')
+      if (action === TICKET_ACTION.CLOSE || action === TICKET_ACTION.REOPEN) {
+        ticket.increment('unreadCount')
+      }
     }
     ticket.set('status', getTargetStatus(action, isCustomerService))
     await ticket.save(null, {user: req.currentUser})
@@ -179,17 +181,18 @@ AV.Cloud.define('resetTicketUnreadCount', async (req) => {
 
 const getTargetStatus = (action, isCustomerService) => {
   switch (action) {
-  case 'replyWithNoContent':
+  case TICKET_ACTION.REPLY_WITH_NO_CONTENT:
     return TICKET_STATUS.WAITING_CUSTOMER
-  case 'replySoon':
+  case TICKET_ACTION.REPLY_SOON:
     return TICKET_STATUS.WAITING_CUSTOMER_SERVICE
-  case 'resolve':
+  case TICKET_ACTION.RESOLVE:
     return isCustomerService ? TICKET_STATUS.PRE_FULFILLED : TICKET_STATUS.FULFILLED
-  case 'close':
+  case TICKET_ACTION.CLOSE:
   // 向前兼容
-  case 'reject':
+  // eslint-disable-next-line no-fallthrough
+  case TICKET_ACTION.REJECT:
     return TICKET_STATUS.CLOSED
-  case 'reopen':
+  case TICKET_ACTION.REOPEN:
     return TICKET_STATUS.WAITING_CUSTOMER
   default:
     throw new Error('unsupport action: ' + action)
