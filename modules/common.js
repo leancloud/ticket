@@ -24,8 +24,7 @@ export const requireAuth = (nextState, replace) => {
 }
 
 export const requireCustomerServiceAuth = (nextState, replace, next) => {
-  exports
-    .isCustomerService(auth.currentUser())
+  isCustomerService(auth.currentUser())
     .then(isCustomerService => {
       if (!isCustomerService) {
         replace({
