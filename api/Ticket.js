@@ -9,7 +9,7 @@ const {TICKET_ACTION, TICKET_STATUS, ticketClosedStatuses, getTicketAcl} = requi
 const errorHandler = require('./errorHandler')
 
 AV.Cloud.beforeSave('Ticket', (req, res) => {
-  if (!req.currentUser._sessionToken) {
+  if (!req.currentUser) {
     return res.error('noLogin')
   }
   return oauth.checkPermission(req.currentUser)

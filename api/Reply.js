@@ -5,7 +5,7 @@ const common = require('./common')
 const errorHandler = require('./errorHandler')
 
 AV.Cloud.beforeSave('Reply', (req, res) => {
-  if (!req.currentUser._sessionToken) {
+  if (!req.currentUser) {
     return res.error('noLogin')
   }
   const reply = req.object
