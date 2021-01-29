@@ -5,11 +5,11 @@ const common = require('./common')
 const {getTinyUserInfo, htmlify, getTinyReplyInfo} = common
 const oauth = require('./oauth')
 const notify = require('./notify')
-const {TICKET_STATUS, ticketClosedStatuses, getTicketAcl} = require('../lib/common')
+const {TICKET_ACTION, TICKET_STATUS, ticketClosedStatuses, getTicketAcl} = require('../lib/common')
 const errorHandler = require('./errorHandler')
 
 AV.Cloud.beforeSave('Ticket', (req, res) => {
-  if (!req.currentUser._sessionToken) {
+  if (!req.currentUser) {
     return res.error('noLogin')
   }
   return oauth.checkPermission(req.currentUser)
@@ -111,33 +111,32 @@ AV.Cloud.afterUpdate('Ticket', (req) => {
   })
 })
 
-AV.Cloud.define('operateTicket', (req) => {
+AV.Cloud.define('operateTicket', async (req, res) => {
   const {ticketId, action} = req.params
-  return Promise.all([
-    new AV.Query('Ticket').get(ticketId, {user: req.currentUser}),
-    getTinyUserInfo(req.currentUser),
-  ])
-  .then(([ticket, operator]) => {
-    return common.isCustomerService(req.currentUser, ticket.get('author'))
-    .then(isCustomerService => {
-      if (isCustomerService) {
-        ticket.addUnique('joinedCustomerServices', operator)
+  try {
+    const [ticket, operator] = await Promise.all([
+      new AV.Query('Ticket').get(ticketId, {user: req.currentUser}),
+      getTinyUserInfo(req.currentUser),
+    ])
+    const isCustomerService = await common.isCustomerService(req.currentUser, ticket.get('author'))
+    if (isCustomerService) {
+      ticket.addUnique('joinedCustomerServices', operator)
+      if (action === TICKET_ACTION.CLOSE || action === TICKET_ACTION.REOPEN) {
+        ticket.increment('unreadCount')
       }
-      ticket.set('status', getTargetStatus(action, isCustomerService))
-      return ticket.save(null, {user: req.currentUser})
-    })
-    .then(() => {
-      return new AV.Object('OpsLog').save({
+    }
+    ticket.set('status', getTargetStatus(action, isCustomerService))
+    await ticket.save(null, {user: req.currentUser})
+    await new AV.Object('OpsLog')
+      .save({
         ticket,
         action,
         data: {operator}
       }, {useMasterKey: true})
-    })
-    .then(() => {
-      return
-    })
-  })
-  .catch(errorHandler.captureException)
+  } catch (error) {
+    errorHandler.captureException(error)
+    res.error('Internal Error')
+  }
 })
 
 AV.Cloud.define('getPrivateTags', (req) => {
@@ -168,19 +167,32 @@ AV.Cloud.define('exploreTicket', ({params, currentUser}) => {
     })
 })
 
+AV.Cloud.define('resetTicketUnreadCount', async (req) => {
+  if (!req.currentUser) {
+    throw new AV.Cloud.Error('unauthorized', {status: 401})
+  }
+  const query = new AV.Query('Ticket')
+  query.equalTo('author', req.currentUser)
+  query.greaterThan('unreadCount', 0)
+  const tickets = await query.find({user: req.currentUser})
+  tickets.forEach(ticket => ticket.set('unreadCount', 0))
+  await AV.Object.saveAll(tickets, {user: req.currentUser})
+})
+
 const getTargetStatus = (action, isCustomerService) => {
   switch (action) {
-  case 'replyWithNoContent':
+  case TICKET_ACTION.REPLY_WITH_NO_CONTENT:
     return TICKET_STATUS.WAITING_CUSTOMER
-  case 'replySoon':
+  case TICKET_ACTION.REPLY_SOON:
     return TICKET_STATUS.WAITING_CUSTOMER_SERVICE
-  case 'resolve':
+  case TICKET_ACTION.RESOLVE:
     return isCustomerService ? TICKET_STATUS.PRE_FULFILLED : TICKET_STATUS.FULFILLED
-  case 'close':
+  case TICKET_ACTION.CLOSE:
   // 向前兼容
-  case 'reject':
+  // eslint-disable-next-line no-fallthrough
+  case TICKET_ACTION.REJECT:
     return TICKET_STATUS.CLOSED
-  case 'reopen':
+  case TICKET_ACTION.REOPEN:
     return TICKET_STATUS.WAITING_CUSTOMER
   default:
     throw new Error('unsupport action: ' + action)
@@ -198,6 +210,7 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
     if (reply.get('isCustomerService')) {
       ticket.addUnique('joinedCustomerServices', tinyReplyAuthor)
       ticket.set('status', TICKET_STATUS.WAITING_CUSTOMER)
+      ticket.increment('unreadCount')
     } else {
       ticket.set('status', TICKET_STATUS.WAITING_CUSTOMER_SERVICE)
     }

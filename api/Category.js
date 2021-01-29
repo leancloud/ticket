@@ -5,7 +5,7 @@ const {getCategoriesTree, depthFirstSearchFind} = require('./common')
 const errorHandler = require('./errorHandler')
 
 AV.Cloud.beforeSave('Category', (req, res) => {
-  if (!req.currentUser._sessionToken) {
+  if (!req.currentUser) {
     return res.error('noLogin')
   }
   getCategoryAcl().then((acl) => {

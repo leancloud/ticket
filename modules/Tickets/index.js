@@ -1,19 +1,18 @@
 import React, {Component} from 'react'
-import PropTypes from 'prop-types'
-import _ from 'lodash'
+import DocumentTitle from 'react-document-title'
 import { Link } from 'react-router'
 import { Pager, Checkbox, Form, DropdownButton, MenuItem } from 'react-bootstrap'
-import moment from 'moment'
-import {auth, db} from '../lib/leancloud'
-import css from './CustomerServiceTickets.css'
-import DocumentTitle from 'react-document-title'
+import PropTypes from 'prop-types'
+import _ from 'lodash'
+import {auth, db} from '../../lib/leancloud'
+import css from '../CustomerServiceTickets.css'
 
-import {UserLabel, getCategoryPathName, getCategoriesTree} from './common'
-import OrganizationSelect from './OrganizationSelect'
-import TicketsMoveButton from './TicketsMoveButton'
-import TicketStatusLabel from './TicketStatusLabel'
-import translate from './i18n/translate'
-import {getTicketAcl} from '../lib/common'
+import {getCategoryPathName, getCategoriesTree} from '../common'
+import OrganizationSelect from '../OrganizationSelect'
+import TicketsMoveButton from '../TicketsMoveButton'
+import translate from '../i18n/translate'
+import {getTicketAcl} from '../../lib/common'
+import {TicketItem} from './TicketItem'
 
 class Tickets extends Component {
 
@@ -73,12 +72,12 @@ class Tickets extends Component {
     .catch(this.props.addNotification)
   }
 
-  handleClickCheckbox(e) {
+  handleClickCheckbox(id) {
     const checkedTickets = this.state.checkedTickets
-    if (e.target.checked) {
-      checkedTickets.add(e.target.value)
+    if (this.state.checkedTickets.has(id)) {
+      checkedTickets.delete(id)
     } else {
-      checkedTickets.delete(e.target.value)
+      checkedTickets.add(id)
     }
     this.setState({checkedTickets, isCheckedAll: checkedTickets.size == this.state.tickets.length})
   }
@@ -116,55 +115,8 @@ class Tickets extends Component {
 
   render() {
     const {t} = this.props
-    const ticketLinks = this.state.tickets.map((ticket) => {
-      const customerServices = _.uniqBy(ticket.get('joinedCustomerServices') || [], 'objectId').map((user) => {
-        return (
-          <span key={user.objectId}><UserLabel user={user} /> </span>
-        )
-      })
-      const joinedCustomerServices = <span>{customerServices}</span>
-      return (
-        <div className={`${css.ticket} ${css.row}`} key={ticket.get('nid')}>
-          {this.state.batchOpsEnable && <Checkbox className={css.ticketSelectCheckbox} onClick={this.handleClickCheckbox.bind(this)} value={ticket.id} checked={this.state.checkedTickets.has(ticket.id)}></Checkbox>}
-          <div className={css.ticketContent}>
-            <div className={css.heading}>
-              <div className={css.left}>
-                <span className={css.nid}>#{ticket.get('nid')}</span>
-                <Link className={css.title} to={'/tickets/' + ticket.get('nid')}>{ticket.get('title')}</Link>
-                <span className={css.category}>{getCategoryPathName(ticket.get('category'), this.state.categoriesTree, t)}</span>
-              </div>
-              <div className={css.right}>
-                {ticket.get('replyCount') &&
-                  <Link className={css.commentCounter} title={'reply ' + ticket.get('replyCount')} to={'/tickets/' + ticket.get('nid')}>
-                    <span className={css.commentCounterIcon + ' glyphicon glyphicon-comment'}></span>
-                    {ticket.get('replyCount')}
-                  </Link>
-                }
-              </div>
-            </div>
+    const {tickets} = this.state
 
-            <div className={css.meta}>
-              <div className={css.left}>
-                <span className={css.status}><TicketStatusLabel status={ticket.get('status')} /></span>
-                <span className={css.creator}><UserLabel user={ticket.get('author')} /></span> {t('createdAt')} {moment(ticket.get('createdAt')).fromNow()}
-                {moment(ticket.get('createdAt')).fromNow() === moment(ticket.get('updatedAt')).fromNow() ||
-                  <span>, {t('updatedAt')} {moment(ticket.get('updatedAt')).fromNow()}</span>
-                }
-              </div>
-              <div className={css.right}>
-                <span className={css.assignee}><UserLabel user={ticket.get('assignee')} /></span>
-                <span className={css.contributors}>{joinedCustomerServices}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )
-    })
-    if (ticketLinks.length === 0) {
-      ticketLinks.push(
-        <div key={0}>{t('ticketsNotFound')} <Link to='/tickets/new'>{t('createANewOne')}</Link></div>
-      )
-    }
     return (
       <div>
         <DocumentTitle title={`${t('ticketList')} - LeanTicket`} />
@@ -191,7 +143,22 @@ class Tickets extends Component {
             </div>
           }
         </Form>}
-        {ticketLinks}
+        {tickets.length ? (
+          tickets.map(ticket => (
+            <TicketItem
+              key={ticket.data.nid}
+              ticket={ticket}
+              checkable={this.state.batchOpsEnable}
+              checked={this.state.checkedTickets.has(ticket.id)}
+              onClickCheckbox={() => this.handleClickCheckbox(ticket.id)}
+              category={getCategoryPathName(ticket.data.category, this.state.categoriesTree, t)}
+            />
+          ))
+        ) : (
+          <div key={0}>{t('ticketsNotFound')}
+            <Link to='/tickets/new'>{t('createANewOne')}</Link>
+          </div>
+        )}
         <Pager>
           <Pager.Item disabled={this.state.filters.page === 0} previous onClick={() => this.findTickets({page: this.state.filters.page - 1, organizationId: this.props.selectedOrgId})}>&larr; {t('previousPage')}</Pager.Item>
           <Pager.Item disabled={this.state.filters.size !== this.state.tickets.length} next onClick={() => this.findTickets({page: this.state.filters.page + 1, organizationId: this.props.selectedOrgId})}>{t('nextPage')} &rarr;</Pager.Item>
