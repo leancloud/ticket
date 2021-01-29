@@ -210,6 +210,7 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
     if (reply.get('isCustomerService')) {
       ticket.addUnique('joinedCustomerServices', tinyReplyAuthor)
       ticket.set('status', TICKET_STATUS.WAITING_CUSTOMER)
+      ticket.increment('unreadCount')
     } else {
       ticket.set('status', TICKET_STATUS.WAITING_CUSTOMER_SERVICE)
     }

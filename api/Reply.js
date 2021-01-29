@@ -1,6 +1,6 @@
 const AV = require('leanengine')
 
-const {replyTicket} = require('./Ticket')
+const ticket = require('./Ticket')
 const common = require('./common')
 const errorHandler = require('./errorHandler')
 
@@ -24,17 +24,7 @@ AV.Cloud.beforeSave('Reply', (req, res) => {
 })
 
 AV.Cloud.afterSave('Reply', (req) => {
-  const ticket = req.object.get('ticket')
-  replyTicket(ticket, req.object, req.currentUser)
-  // eslint-disable-next-line promise/catch-or-return
-  ticket.fetch({keys: 'author'}, {user: req.currentUser})
-    .then(() => {
-      // eslint-disable-next-line promise/always-return
-      if (common.isCustomerService(req.currentUser, ticket.get('author'))) {
-        ticket.increment('unreadCount')
-        ticket.save(null, {user: req.currentUser})
-      }
-    })
+  ticket.replyTicket(req.object.get('ticket'), req.object, req.currentUser)
 })
 
 const getReplyAcl = (ticket, author) => {
