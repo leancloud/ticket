@@ -29,5 +29,6 @@ router.use('/oauth/login', require('./oauth').login(loginCallbackUrl))
 router.use(loginCallbackPath, require('./oauth').loginCallback(loginCallbackUrl))
 router.use('/webhooks/mailgun', require('./mailgun'))
 router.use('/webhooks/wechat', require('./wechat').router)
+router.use('/files', require('./file'))
 
 module.exports = router
