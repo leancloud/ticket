@@ -1,1 +1,97 @@
-{"schema":{"category":{"type":"Object"},"privateTags":{"type":"Array","v":2,"hidden":true},"tags":{"type":"Array"},"updatedAt":{"type":"Date"},"content_HTML":{"type":"String"},"replyCount":{"type":"Number"},"ACL":{"type":"ACL"},"content":{"type":"String"},"remindAt":{"type":"Number"},"objectId":{"type":"String"},"createdAt":{"type":"Date"},"organization":{"className":"Organization","type":"Pointer"},"title":{"type":"String"},"latestReply":{"type":"Object"},"joinedCustomerServices":{"type":"Array"},"author":{"className":"_User","type":"Pointer"},"evaluation":{"type":"Object"},"status":{"type":"Number"},"files":{"type":"Array"},"assignee":{"className":"_User","type":"Pointer"},"unreadCount":{"type": "Number"}},"permissions":{"add_fields":{"*":true},"delete":{"*":true},"update":{"*":true},"get":{"*":true},"find":{"*":true},"create":{"*":true}},"indexes":[]}
+{
+  "schema": {
+    "category": {
+      "type": "Object"
+    },
+    "privateTags": {
+      "type": "Array",
+      "v": 2,
+      "hidden": true
+    },
+    "tags": {
+      "type": "Array"
+    },
+    "updatedAt": {
+      "type": "Date"
+    },
+    "content_HTML": {
+      "type": "String"
+    },
+    "replyCount": {
+      "type": "Number"
+    },
+    "ACL": {
+      "type": "ACL"
+    },
+    "content": {
+      "type": "String"
+    },
+    "remindAt": {
+      "type": "Number"
+    },
+    "objectId": {
+      "type": "String"
+    },
+    "createdAt": {
+      "type": "Date"
+    },
+    "organization": {
+      "className": "Organization",
+      "type": "Pointer"
+    },
+    "title": {
+      "type": "String"
+    },
+    "latestReply": {
+      "type": "Object"
+    },
+    "joinedCustomerServices": {
+      "type": "Array"
+    },
+    "author": {
+      "className": "_User",
+      "type": "Pointer"
+    },
+    "evaluation": {
+      "type": "Object"
+    },
+    "status": {
+      "type": "Number"
+    },
+    "files": {
+      "type": "Array"
+    },
+    "assignee": {
+      "className": "_User",
+      "type": "Pointer"
+    },
+    "unreadCount": {
+      "type": "Number",
+      "v": 2,
+      "required": false,
+      "auto_increment": false,
+      "hidden": false
+    }
+  },
+  "permissions": {
+    "add_fields": {
+      "*": true
+    },
+    "delete": {
+      "*": true
+    },
+    "update": {
+      "*": true
+    },
+    "get": {
+      "*": true
+    },
+    "find": {
+      "*": true
+    },
+    "create": {
+      "*": true
+    }
+  },
+  "indexes": []
+}
