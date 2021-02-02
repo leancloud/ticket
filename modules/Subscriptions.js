@@ -39,7 +39,7 @@ export default class Subscriptions extends Component {
     db.class('Watch')
       .where('user', '==', auth.currentUser())
       .orderBy('updatedAt', 'desc')
-      .include('ticket')
+      .include('ticket', 'ticket.author', 'ticket.assignee')
       .limit(parseInt(size))
       .skip(parseInt(page) * parseInt(size))
       .find()

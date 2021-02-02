@@ -373,7 +373,7 @@ class Ticket extends Component {
               <span className='icon-wrap closed'><span className='glyphicon glyphicon-ban-circle'></span></span>
             </div>
             <div className='ticket-status-right'>
-              <UserLabel user={avObj.get('data').operator} /> {t('closedTicket')} ({this.getTime(avObj)}) 
+              <UserLabel user={avObj.get('data').operator} /> {t('closedTicket')} ({this.getTime(avObj)})
             </div>
           </div>
         )
@@ -384,7 +384,7 @@ class Ticket extends Component {
               <span className='icon-wrap reopened'><span className='glyphicon glyphicon-record'></span></span>
             </div>
             <div className='ticket-status-right'>
-              <UserLabel user={avObj.get('data').operator} /> {t('reopenedTicket')} ({this.getTime(avObj)}) 
+              <UserLabel user={avObj.get('data').operator} /> {t('reopenedTicket')} ({this.getTime(avObj)})
             </div>
           </div>
         )
@@ -508,13 +508,13 @@ class Ticket extends Component {
                 <OverlayTrigger placement="right" overlay={
                   <Tooltip id="tooltip">{t('clickToUnsubscribe')}</Tooltip>
                 }>
-                  <Button bsStyle='link' active onClick={this.handleRemoveWatch.bind(this)}><span className='glyphicon glyphicon-eye-open' aria-hidden='true'></span></Button>
+                  <Button bsStyle='link' active onClick={this.handleRemoveWatch.bind(this)}><span className='glyphicon glyphicon-eye-close' aria-hidden='true'></span></Button>
                 </OverlayTrigger>
                 :
                 <OverlayTrigger placement="right" overlay={
                   <Tooltip id="tooltip">{t('clickToSubscribe')}</Tooltip>
                 }>
-                  <Button bsStyle='link' onClick={this.handleAddWatch.bind(this)}><span className='glyphicon glyphicon-eye-close' aria-hidden='true'></span></Button>
+                  <Button bsStyle='link' onClick={this.handleAddWatch.bind(this)}><span className='glyphicon glyphicon-eye-open' aria-hidden='true'></span></Button>
                 </OverlayTrigger>
                 : <div></div>
               }
