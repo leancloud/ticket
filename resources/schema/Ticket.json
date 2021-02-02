@@ -71,6 +71,12 @@
       "required": false,
       "auto_increment": false,
       "hidden": false
+    },
+    "metaData": {
+      "type": "Object",
+      "v": 2,
+      "required": false,
+      "hidden": false
     }
   },
   "permissions": {

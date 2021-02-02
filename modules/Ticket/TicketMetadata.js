@@ -2,15 +2,15 @@ import _ from 'lodash'
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import {FormGroup, FormControl, Button} from 'react-bootstrap'
-import LC from '../lib/leancloud'
+import LC from '../../lib/leancloud'
 
-import {getCustomerServices, UserLabel, getCategoryPathName} from './common'
-import TagForm from './TagForm'
-import css from './Ticket.css'
-import csCss from './CustomerServiceTickets.css'
-import translate from './i18n/translate'
-import {depthFirstSearchFind} from '../lib/common'
-import CategoriesSelect from './CategoriesSelect'
+import {getCustomerServices, UserLabel, getCategoryPathName} from '../common'
+import TagForm from '../TagForm'
+import css from './index.css'
+import csCss from '../CustomerServiceTickets.css'
+import translate from '../i18n/translate'
+import {depthFirstSearchFind} from '../../lib/common'
+import CategoriesSelect from '../CategoriesSelect'
 
 class TicketMetadata extends Component {
 
@@ -22,11 +22,11 @@ class TicketMetadata extends Component {
       assignees: [],
     }
   }
-  
+
   componentDidMount() {
     this.fetchDatas()
   }
-  
+
   fetchDatas() {
     getCustomerServices()
       .then(assignees => {
@@ -35,7 +35,7 @@ class TicketMetadata extends Component {
       })
       .catch(this.context.addNotification)
   }
-  
+
   handleAssigneeChange(e) {
     const customerService = _.find(this.state.assignees, {id: e.target.value})
     this.props.updateTicketAssignee(customerService)
@@ -46,7 +46,7 @@ class TicketMetadata extends Component {
       .then(this.context.addNotification)
       .catch(this.context.addNotification)
   }
-  
+
   handleCategoryChange(e) {
     this.props.updateTicketCategory(depthFirstSearchFind(this.props.categoriesTree, c => c.id == e.target.value))
       .then(() => {
@@ -56,15 +56,16 @@ class TicketMetadata extends Component {
       .then(this.context.addNotification)
       .catch(this.context.addNotification)
   }
-  
+
   handleTagChange(key, value, isPrivate) {
     return this.props.saveTag(key, value, isPrivate)
   }
-  
+
   render() {
     const {t} = this.props
     const {ticket, isCustomerService} = this.props
-    return <div>
+    return (
+      <div>
         <FormGroup>
           <label className="label-block">{t('assignee')}</label>
           {this.state.isUpdateAssignee ?
@@ -74,7 +75,7 @@ class TicketMetadata extends Component {
             :
             <span className={css.assignee}>
               <UserLabel user={ticket.get('assignee')} />
-              {isCustomerService && 
+              {isCustomerService &&
                 <Button bsStyle='link' onClick={() => this.setState({isUpdateAssignee: true})}>
                   <span className='glyphicon glyphicon-pencil' aria-hidden="true"></span>
                 </Button>
@@ -101,7 +102,16 @@ class TicketMetadata extends Component {
             </div>
           }
         </FormGroup>
-  
+
+        {isCustomerService && ticket.data.metaData && (
+          <FormGroup>
+            <label className="label-block">Metadata</label>
+            {Object.entries(ticket.data.metaData).map(([key, value]) => (
+              <div className={css.customMetadata} key={key}>{key}: {value}</div>
+            ))}
+          </FormGroup>
+        )}
+
         {this.context.tagMetadatas.map(tagMetadata => {
           const tags = ticket.get(tagMetadata.get('isPrivate') ? 'privateTags' : 'tags')
           const tag = _.find(tags, t => t.key == tagMetadata.get('key'))
@@ -112,9 +122,10 @@ class TicketMetadata extends Component {
                           isCustomerService={isCustomerService} />
         })}
       </div>
+    )
   }
 }
-  
+
 TicketMetadata.propTypes = {
   isCustomerService: PropTypes.bool.isRequired,
   ticket: PropTypes.instanceOf(LC.LCObject),
@@ -124,7 +135,7 @@ TicketMetadata.propTypes = {
   saveTag: PropTypes.func.isRequired,
   t: PropTypes.func
 }
-  
+
 TicketMetadata.contextTypes = {
   tagMetadatas: PropTypes.array,
 }

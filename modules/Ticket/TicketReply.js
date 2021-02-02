@@ -1,12 +1,11 @@
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import {FormGroup, FormControl, Button, ButtonToolbar} from 'react-bootstrap'
-import LC from '../lib/leancloud'
+import LC from '../../lib/leancloud'
 
-import TextareaWithPreview from './components/TextareaWithPreview'
-import translate from './i18n/translate'
-import css from './Ticket.css'
-
+import TextareaWithPreview from '../components/TextareaWithPreview'
+import translate from '../i18n/translate'
+import css from './index.css'
 
 class TicketReply extends Component {
   constructor(props) {
