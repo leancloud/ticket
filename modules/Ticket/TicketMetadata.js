@@ -107,7 +107,9 @@ class TicketMetadata extends Component {
           <FormGroup>
             <label className="label-block">Metadata</label>
             {Object.entries(ticket.data.metaData).map(([key, value]) => (
-              <div className={css.customMetadata} key={key}>{key}: {value}</div>
+              <div className={css.customMetadata} key={key}>
+                <span className={css.key}>{key}: </span>{value}
+              </div>
             ))}
           </FormGroup>
         )}

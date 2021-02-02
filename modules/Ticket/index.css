@@ -7,6 +7,9 @@
   color: grey;
   margin-top: 4px;
 }
+.customMetadata .key {
+  font-weight: 600;
+}
 
 .panelModerator {
   border-color: #c1d5e4;
