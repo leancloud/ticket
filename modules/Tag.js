@@ -8,64 +8,55 @@ import translate from './i18n/translate'
 
 class Tag extends Component {
 
-  componentDidMount() {
-    if (ENABLE_LEANCLOUD_INTERGRATION && this.props.tag.get('key') === 'appId') {
-      const appId = this.props.tag.get('value')
+  async componentDidMount() {
+    const {ticket, tag} = this.props
+    if (ENABLE_LEANCLOUD_INTERGRATION && tag.data.key === 'appId') {
+      const appId = tag.data.value
       if (!appId) {
         return
       }
-      return cloud.run('getLeanCloudApp', {
-        username: this.props.ticket.get('author').get('username'),
+      const app = await cloud.run('getLeanCloudApp', {
         appId,
+        username: ticket.data.author.data.username,
       })
-      .then((app) => {
-        this.setState({key: 'application', value: app.app_name})
-        if (this.props.isCustomerService) {
-          return cloud.run('getLeanCloudAppUrl', {appId, region: app.region})
-          .then((url) => {
-            if (url) {
-              this.setState({url})
-            }
-            return
-          })
+      this.setState({key: 'application', value: app.app_name})
+      if (this.props.isCustomerService) {
+        const url = await cloud.run('getLeanCloudAppUrl', {appId, region: app.region})
+        if (url) {
+          this.setState({url})
         }
-        return
-      })
+      }
     }
   }
 
   render() {
-    const {t} = this.props
+    const {t, tag} = this.props
     if (!this.state) {
-      return <div className="form-group">
-        <Label bsStyle="default">{this.props.tag.get('key')}: {this.props.tag.get('value')}</Label>
-      </div>
-    } else {
-      if (this.state.url) {
-        return <div>
-          <label className="control-label">
-            {t(this.state.key)}
-          </label>
-          <div className="form-group">
+      return (
+        <div className="form-group">
+          <Label bsStyle="default">{tag.data.key}: {tag.data.value}</Label>
+        </div>
+      )
+    }
+    return (
+      <div>
+        <label className="control-label">
+          {t(this.state.key)}
+        </label>
+        <div className="form-group">
+          {this.state.url ? (
             <a className="btn btn-default" href={this.state.url} target='_blank'>
               {this.state.value}
             </a>
-          </div>
-        </div>
-      }
-      return <div>
-        <label className="control-label">
-          {this.state.key}
-        </label>
-        <div className="form-group">
-          <a className="btn btn-default disabled">
-            {this.state.value}
-          </a>
+          ) : (
+            <a className="btn btn-default disabled">
+              {this.state.value}
+            </a>
+          )}
         </div>
       </div>
-    }
+    )
   }
-
 }
 
 Tag.propTypes = {
