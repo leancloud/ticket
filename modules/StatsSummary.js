@@ -9,7 +9,7 @@ import {Link} from 'react-router'
 import {cloud, db} from '../lib/leancloud'
 import {fetchUsers} from './common'
 import translate from './i18n/translate'
-import {userDisplayName} from '../config.webapp'
+import {userDisplayName, customerServiceDisplayName} from '../config.webapp'
 import { UserTagGroup } from './components/UserTag'
 import { getUserTags, USER_TAG_NAME } from '../lib/common'
 
@@ -243,7 +243,7 @@ class StatsSummary extends React.Component {
         return [
           row[0],
           row.index,
-          user && userDisplayName(user, true) || row[0],
+          user && customerServiceDisplayName(user) || row[0],
           row[1],
         ]
       })
@@ -295,7 +295,7 @@ class StatsSummary extends React.Component {
         return [
           userId,
           index,
-          <Link to={`/customerService/stats/users/${userId}?start=${startTime.toISOString()}&end=${endTime.toISOString()}`}>{user && userDisplayName(user, true) || userId}</Link>,
+          <Link to={`/customerService/stats/users/${userId}?start=${startTime.toISOString()}&end=${endTime.toISOString()}`}>{user && customerServiceDisplayName(user) || userId}</Link>,
           (replyTime / replyCount / 1000 / 60 / 60).toFixed(2) + ' ' + t('hour'),
           replyCount,
         ]
@@ -312,7 +312,7 @@ class StatsSummary extends React.Component {
         return [
           userId,
           index,
-          <Link to={`/customerService/stats/users/${userId}?start=${startTime.toISOString()}&end=${endTime.toISOString()}`}>{user && userDisplayName(user, true) || userId}</Link>,
+          <Link to={`/customerService/stats/users/${userId}?start=${startTime.toISOString()}&end=${endTime.toISOString()}`}>{user && customerServiceDisplayName(user) || userId}</Link>,
           (replyTime / replyCount / 1000 / 60 / 60).toFixed(2) + ' ' + t('hour'),
           replyCount,
         ]
