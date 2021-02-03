@@ -138,6 +138,7 @@ class CustomerServiceTickets extends Component {
       .limit(parseInt(size))
       .skip(parseInt(page) * parseInt(size))
       .orderBy('latestReply.updatedAt', 'desc')
+      .orderBy('updatedAt', 'desc')
       .find()
       .then(tickets => {
         tickets.forEach(t => {
