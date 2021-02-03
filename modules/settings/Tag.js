@@ -92,7 +92,7 @@ class Tag extends Component {
   handleRemove(t) {
     const result = confirm(t('confirmDeleteTag') + this.state.tagMetadata.key)
     if (result) {
-      return db.class('TagMetaData').object(this.state.tagMetadata.objectId).delete()
+      return db.class('TagMetadata').object(this.state.tagMetadata.objectId).delete()
       // TODO 移除相关 ticket 的标签
       .then(() => {
         this.context.refreshTagMetadatas()
