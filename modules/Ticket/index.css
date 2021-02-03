@@ -1,9 +1,14 @@
-.item {
-
-}
-
 .meta {
   color: #999;
+}
+
+.customMetadata {
+  font-size: 13px;
+  color: grey;
+  margin-top: 4px;
+}
+.customMetadata .key {
+  font-weight: 600;
 }
 
 .panelModerator {
@@ -78,10 +83,6 @@
 
 .formLeft {
   flex: 1;
-}
-
-.formRight {
-
 }
 
 .submit {
