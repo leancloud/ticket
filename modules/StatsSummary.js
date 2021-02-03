@@ -1,5 +1,3 @@
-/*global OFFSET_DAYS*/
-
 import React from 'react'
 import PropTypes from 'prop-types'
 import moment from 'moment'
@@ -9,7 +7,7 @@ import {Link} from 'react-router'
 import {cloud, db} from '../lib/leancloud'
 import {fetchUsers} from './common'
 import translate from './i18n/translate'
-import {getUserDisplayName} from '../lib/common'
+import {offsetDays, userDisplayName, customerServiceDisplayName} from '../config.webapp'
 import { UserTagGroup } from './components/UserTag'
 import { getUserTags, USER_TAG_NAME } from '../lib/common'
 
@@ -29,12 +27,12 @@ class SummaryTable extends React.Component {
       isOpen: false
     }
   }
-  
+
   open(e) {
     e.preventDefault()
     this.setState({isOpen: true})
   }
-  
+
   render() {
     let trs
     const fn = (row) => {
@@ -65,12 +63,12 @@ class SummaryTable extends React.Component {
       </Table>
   }
 }
-  
+
 SummaryTable.propTypes = {
   header: PropTypes.array.isRequired,
   body: PropTypes.array.isRequired,
 }
-  
+
 
 class StatsSummary extends React.Component {
 
@@ -84,7 +82,7 @@ class StatsSummary extends React.Component {
       statsDatas: [],
     })
   }
-  
+
   getTimeRange(timeUnit) {
     if (timeUnit === 'month') {
       return {
@@ -94,8 +92,8 @@ class StatsSummary extends React.Component {
       }
     } else {
       return {
-        startDate: moment().startOf('week').subtract(1, 'weeks').add(OFFSET_DAYS, 'days'),
-        endDate: moment().startOf('week').add(1, 'weeks').add(OFFSET_DAYS, 'days'),
+        startDate: moment().startOf('week').subtract(1, 'weeks').add(offsetDays, 'days'),
+        endDate: moment().startOf('week').add(1, 'weeks').add(offsetDays, 'days'),
         timeUnit: 'weeks',
       }
     }
@@ -103,7 +101,7 @@ class StatsSummary extends React.Component {
 
   fetchTickets(ids) {
     return Promise.all(
-      _.chunk(ids, 50).map(ids => 
+      _.chunk(ids, 50).map(ids =>
         db.class('Ticket')
           .select('author', 'assignee', 'category')
           .where('objectId', 'in', ids)
@@ -170,11 +168,11 @@ class StatsSummary extends React.Component {
       users: await fetchUsers(Array.from(userIdSet)),
     }
   }
-  
+
   componentDidMount() {
     this.changeTimeUnit('weeks')
   }
-  
+
   changeTimeUnit(timeUnit) {
     const {startDate, endDate} = (this.getTimeRange(timeUnit))
     return this.fetchStatsDatas(startDate, endDate, timeUnit)
@@ -183,13 +181,13 @@ class StatsSummary extends React.Component {
         return
       })
   }
-  
+
   render() {
     const {t} = this.props
     if (!this.state) {
       return <div>{t('loading')}……</div>
     }
-  
+
     const dateDoms = this.state.statsDatas.map(data => {
       if (this.state.timeUnit === 'month') {
         return <span>{moment(data.date).format('YYYY-MM')}</span>
@@ -197,7 +195,7 @@ class StatsSummary extends React.Component {
         return <span>{t('until')} {moment(data.date).add(1, 'weeks').format('YYYY-MM-DD, [W]WW')}</span>
       }
     })
-  
+
     const summaryDoms = this.state.statsDatas.map(data => {
       return <Table>
           <thead>
@@ -220,7 +218,7 @@ class StatsSummary extends React.Component {
           </tbody>
         </Table>
     })
-  
+
     const activeTicketCountsByCategoryDoms = this.state.statsDatas.map(d => {
       const body = d.activeTicketCountsByCategory.map(row => {
         const category = _.find(this.props.categories, c => c.id === row[0])
@@ -236,14 +234,14 @@ class StatsSummary extends React.Component {
           body={body}
         />
     })
-  
+
     const activeTicketCountByAssigneeDoms = this.state.statsDatas.map(data => {
       const body = data.activeTicketCountByAssignee.map(row => {
         const user = _.find(this.state.users, c => c.id === row[0])
         return [
           row[0],
           row.index,
-          user && getUserDisplayName(user) || row[0],
+          user && customerServiceDisplayName(user) || row[0],
           row[1],
         ]
       })
@@ -258,7 +256,7 @@ class StatsSummary extends React.Component {
         const user = _.find(this.state.users, c => c.id === row[0])
         const username = (
           <span>
-            {user && getUserDisplayName(user) || row[0]}
+            {user && userDisplayName(user, true) || row[0]}
             <UserTagGroup tags={getUserTags(user).filter(tag => tag === USER_TAG_NAME.NEW)} />
           </span>
         )
@@ -295,7 +293,7 @@ class StatsSummary extends React.Component {
         return [
           userId,
           index,
-          <Link to={`/customerService/stats/users/${userId}?start=${startTime.toISOString()}&end=${endTime.toISOString()}`}>{user && getUserDisplayName(user) || userId}</Link>,
+          <Link to={`/customerService/stats/users/${userId}?start=${startTime.toISOString()}&end=${endTime.toISOString()}`}>{user && customerServiceDisplayName(user) || userId}</Link>,
           (replyTime / replyCount / 1000 / 60 / 60).toFixed(2) + ' ' + t('hour'),
           replyCount,
         ]
@@ -312,7 +310,7 @@ class StatsSummary extends React.Component {
         return [
           userId,
           index,
-          <Link to={`/customerService/stats/users/${userId}?start=${startTime.toISOString()}&end=${endTime.toISOString()}`}>{user && getUserDisplayName(user) || userId}</Link>,
+          <Link to={`/customerService/stats/users/${userId}?start=${startTime.toISOString()}&end=${endTime.toISOString()}`}>{user && customerServiceDisplayName(user) || userId}</Link>,
           (replyTime / replyCount / 1000 / 60 / 60).toFixed(2) + ' ' + t('hour'),
           replyCount,
         ]
@@ -322,7 +320,7 @@ class StatsSummary extends React.Component {
           body={body}
         />
     })
-  
+
     const tagDoms = this.state.statsDatas.map(data => {
       const tables = data.tagsArray.map(tags => {
         const body = tags.map((row, index) => {

@@ -7,7 +7,7 @@ import {auth, db} from '../../lib/leancloud'
 
 import {getCustomerServices} from '../common'
 import translate from '../i18n/translate'
-import {getUserDisplayName} from '../../lib/common'
+import {customerServiceDisplayName} from '../../config.webapp'
 
 class Vacation extends Component {
 
@@ -23,7 +23,7 @@ class Vacation extends Component {
       isEndHalfDay: false,
     }
   }
-  
+
   componentDidMount() {
     Promise.all([
       getCustomerServices(),
@@ -36,8 +36,7 @@ class Vacation extends Component {
             vacationer: auth.currentUser(),
           }
         ])
-        .include('vacationer')
-        .include('operator')
+        .include('vacationer', 'operator')
         .orderBy('createdAt', 'desc')
         .find(),
     ])
@@ -45,27 +44,27 @@ class Vacation extends Component {
         this.setState({users, vacations})
       })
   }
-  
+
   handleVacationUserChange(e) {
     this.setState({vacationerId: e.target.value})
   }
-  
+
   handleChangeStart(startDate) {
     this.setState({startDate})
   }
-  
+
   handleStartHalfDayClick(e) {
     this.setState({isStartHalfDay: e.target.checked})
   }
-  
+
   handleChangeEnd(endDate) {
     this.setState({endDate})
   }
-  
+
   handleEndHalfDayClick(e) {
     this.setState({isEndHalfDay: e.target.checked})
   }
-  
+
   handleSubmit(e) {
     e.preventDefault()
     return db.class('Vacation')
@@ -83,28 +82,28 @@ class Vacation extends Component {
         this.setState({vacations})
       })
   }
-  
+
   handleRemove(vacation) {
     vacation.delete()
       .then(() => {
         this.setState({vacations: this.state.vacations.filter(v => v.id !== vacation.id)})
       })
   }
-  
+
   render() {
     const {t} = this.props
     const userOptions = this.state.users.map(user => {
-      return <option key={user.id} value={user.id}>{getUserDisplayName(user)}</option>
+      return <option key={user.id} value={user.id}>{customerServiceDisplayName(user)}</option>
     })
-  
+
     const vacationTrs = this.state.vacations.map(vacation => {
       const startDate = moment(vacation.get('startDate'))
       const endDate = moment(vacation.get('endDate'))
       return <tr key={vacation.id}>
-          <td>{getUserDisplayName(vacation.get('vacationer'))}</td>
+          <td>{customerServiceDisplayName(vacation.get('vacationer'))}</td>
           <td>{startDate.format('YYYY-MM-DD') + (startDate.hours() === 12 ? t('pm') : '')}</td>
           <td>{endDate.format('YYYY-MM-DD') + (endDate.hours() === 12 ? t('pm') : '')}</td>
-          <td>{getUserDisplayName(vacation.get('operator'))}</td>
+          <td>{customerServiceDisplayName(vacation.get('operator'))}</td>
           <td>{moment(vacation.createdAt).fromNow()}</td>
           <td><Button type='button' onClick={() => this.handleRemove(vacation)}>{t('delete')}</Button></td>
         </tr>
@@ -168,12 +167,9 @@ class Vacation extends Component {
     )
   }
 }
-  
+
 Vacation.propTypes = {
   t: PropTypes.func
 }
 
 export default translate(Vacation)
-
-
-

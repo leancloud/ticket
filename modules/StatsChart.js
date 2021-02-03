@@ -8,9 +8,8 @@ import DatePicker from 'react-datepicker'
 import randomColor from 'randomcolor'
 import Color from 'color'
 import {fetchUsers} from './common'
-import {offsetDays} from '../config'
 import translate from './i18n/translate'
-import {getUserDisplayName} from '../lib/common'
+import {offsetDays, userDisplayName} from '../config.webapp'
 import { cloud } from '../lib/leancloud'
 
 const ticketCountLineChartData = (statses, t) => {
@@ -29,7 +28,7 @@ const ticketCountLineChartData = (statses, t) => {
     }]
   })
 }
-  
+
 const replyCountLineChartData = (statses, t) => {
   return _.reduce(statses, (result, stats) => {
     result.labels.push(moment(stats.date).format('MM-DD'))
@@ -82,7 +81,7 @@ const categoryCountLineChartData = (statses, categories) => {
     datasets: []
   })
 }
-  
+
 const assigneeCountLineChartData = (statses, users) => {
   let index = 0
   return _.reduce(statses, (result, stats) => {
@@ -94,7 +93,7 @@ const assigneeCountLineChartData = (statses, users) => {
         const user = _.find(users, u => u.id === key)
         lineData = {
           id: key,
-          label: user && getUserDisplayName(user) || key,
+          label: user && userDisplayName(user, true) || key,
           fill: true,
           borderColor: color,
           backgroundColor: Color(color).fade(.9),
@@ -111,7 +110,7 @@ const assigneeCountLineChartData = (statses, users) => {
     datasets: []
   })
 }
-  
+
 const firstReplyTimeLineChartData = (statses, users) => {
   let index = 0
   return _.reduce(statses, (result, stats) => {
@@ -123,7 +122,7 @@ const firstReplyTimeLineChartData = (statses, users) => {
         const user = _.find(users, u => u.id === userId)
         lineData = {
           id: userId,
-          label: user && getUserDisplayName(user) || userId,
+          label: user && userDisplayName(user, true) || userId,
           fill: true,
           borderColor: color,
           backgroundColor: Color(color).fade(.9),
@@ -140,7 +139,7 @@ const firstReplyTimeLineChartData = (statses, users) => {
     datasets: []
   })
 }
-  
+
 const replyTimeLineChartData = (statses, users) => {
   let index = 0
   return _.reduce(statses, (result, stats) => {
@@ -152,7 +151,7 @@ const replyTimeLineChartData = (statses, users) => {
         const user = _.find(users, u => u.id === userId)
         lineData = {
           id: userId,
-          label: user && getUserDisplayName(user) || userId,
+          label: user && userDisplayName(user, true) || userId,
           fill: true,
           borderColor: color,
           backgroundColor: Color(color).fade(.9),
@@ -179,15 +178,15 @@ class StatsChart extends React.Component {
       endDate: moment().startOf('week').add(1, 'weeks').add(offsetDays, 'days'),
     }
   }
-  
+
   handleChangeStart(startDate) {
     this.setState({startDate})
   }
-  
+
   handleChangeEnd(endDate) {
     this.setState({endDate})
   }
-  
+
   handleSubmit(t, e) {
     e.preventDefault()
     let timeUnit = 'day'

@@ -3,7 +3,8 @@ import PropTypes from 'prop-types'
 import {Link} from 'react-router'
 import _ from 'lodash'
 import {auth, db, storage} from '../lib/leancloud'
-import {depthFirstSearchFind, getUserDisplayName, makeTree, getUserTags} from '../lib/common'
+import {depthFirstSearchFind, makeTree, getUserTags} from '../lib/common'
+import {userDisplayName} from '../config.webapp'
 import {UserTagGroup} from './components/UserTag'
 import {Avatar} from './Avatar'
 
@@ -110,28 +111,26 @@ export const fetchUsers = (userIds) => {
   .then(_.flatten)
 }
 
-export const UserLabel = (props) => {
-  if (!props.user) {
-    return <span>data err</span>
+export const UserLabel = ({user, simple, inCustomerServiceView}) => {
+  if (!user) {
+    return <span>{'<unknown>'}</span>
   }
-  const username =
-    props.user.username ||
-    (props.user.get ? props.user.get('username') : undefined)
-  const name = props.user.name || getUserDisplayName(props.user) || username
 
-  if (props.simple) {
+  const username = user.username || user.data.username
+  const name = user.name || (user.data ? userDisplayName(user, inCustomerServiceView) : username)
+
+  if (simple) {
     return <span>{name}</span>
   }
-
   return (
     <span>
       <Link to={'/users/' + username} className="avatar">
-        <Avatar user={props.user} />
+        <Avatar user={user} />
       </Link>
       <Link to={'/users/' + username} className="username">
         {name}
       </Link>
-      {props.displayTags && <UserTagGroup tags={getUserTags(props.user)} />}
+      {inCustomerServiceView && user.get && <UserTagGroup tags={getUserTags(user)} />}
     </span>
   )
 }
@@ -139,7 +138,7 @@ UserLabel.displayName = 'UserLabel'
 UserLabel.propTypes = {
   user: PropTypes.object,
   simple: PropTypes.bool,
-  displayTags: PropTypes.bool
+  inCustomerServiceView: PropTypes.bool,
 }
 
 export const getCategoriesTree = (hiddenDisable = true) => {

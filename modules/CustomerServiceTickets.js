@@ -9,8 +9,9 @@ import {auth, cloud, db} from '../lib/leancloud'
 import css from './CustomerServiceTickets.css'
 import DocumentTitle from 'react-document-title'
 
+import {customerServiceDisplayName} from '../config.webapp'
 import {UserLabel, getCustomerServices, getCategoriesTree, depthFirstSearchMap, depthFirstSearchFind, getNodeIndentString, getNodePath, getTinyCategoryInfo, getCategoryName} from './common'
-import {TICKET_STATUS, TICKET_STATUS_MSG, ticketOpenedStatuses, ticketClosedStatuses, getUserDisplayName, TIME_RANGE_MAP} from '../lib/common'
+import {TICKET_STATUS, TICKET_STATUS_MSG, ticketOpenedStatuses, ticketClosedStatuses, TIME_RANGE_MAP} from '../lib/common'
 import TicketStatusLabel from './TicketStatusLabel'
 import translate from './i18n/translate'
 
@@ -272,7 +273,7 @@ class CustomerServiceTickets extends Component {
               <div className={css.left}>
                 <span className={css.nid}>#{ticket.get('nid')}</span>
                 <Link className={css.statusLink} to={this.getQueryUrl({status: ticket.get('status'), isOpen: undefined})}><span className={css.status}><TicketStatusLabel status={ticket.get('status')} /></span></Link>
-                <span className={css.creator}><UserLabel user={ticket.get('author')} displayTags /></span> {t('createdAt')} {moment(ticket.get('createdAt')).fromNow()}
+                <span className={css.creator}><UserLabel user={ticket.get('author')} inCustomerServiceView /></span> {t('createdAt')} {moment(ticket.get('createdAt')).fromNow()}
                 {moment(ticket.get('createdAt')).fromNow() === moment(ticket.get('updatedAt')).fromNow() ||
                   <span> {t('updatedAt')} {moment(ticket.get('updatedAt')).fromNow()}</span>
                 }
@@ -295,9 +296,11 @@ class CustomerServiceTickets extends Component {
       const value = TICKET_STATUS[key]
       return <MenuItem key={value} eventKey={value}>{t(TICKET_STATUS_MSG[value])}</MenuItem>
     })
-    const assigneeMenuItems = this.state.customerServices.map((user) => {
-      return <MenuItem key={user.id} eventKey={user.id}>{getUserDisplayName(user)}</MenuItem>
-    })
+    const assigneeMenuItems = this.state.customerServices.map((user) => (
+      <MenuItem key={user.id} eventKey={user.id}>
+        {customerServiceDisplayName(user)}
+      </MenuItem>
+    ))
     const categoryMenuItems = depthFirstSearchMap(this.state.categoriesTree, c => {
       return <MenuItem key={c.id} eventKey={c.id}>{getNodeIndentString(c) + getCategoryName(c, t)}</MenuItem>
     })
@@ -317,7 +320,7 @@ class CustomerServiceTickets extends Component {
     if (filters.assigneeId) {
       const assignee = this.state.customerServices.find(user => user.id === filters.assigneeId)
       if (assignee) {
-        assigneeTitle = getUserDisplayName(assignee)
+        assigneeTitle = customerServiceDisplayName(assignee)
       } else {
         assigneeTitle = `assigneeId ${t('invalid')}`
       }
