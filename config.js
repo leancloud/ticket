@@ -37,8 +37,4 @@ module.exports = {
   // Use HELP_EMAIL instead of SUPPORT_EMAIL, because there is a bug in LeanEngine.
   // See #1830 of LeanEngine repo (private) for more information.
   supportEmail: process.env.HELP_EMAIL,
-  // Used in CustomerServiceStats.
-  // 0/-1/-2/...: a week ends at 23:59:59 Sunday/Saturday/Friday/...
-  offsetDays: Number(process.env.OFFSET_DAYS || '0'),
-  disableWeekendWarning: Boolean(process.env.DISABLE_WEEKEND_WARNING),
 }

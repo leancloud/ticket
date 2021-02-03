@@ -1,12 +1,11 @@
-/*global DISABLE_WEEKEND_WARNING*/
-
 import React from 'react'
 import {Alert} from 'react-bootstrap'
 
+import {enableWeekendWarning} from '../../../config.webapp'
 import translate from '../../i18n/translate'
 
 export const WeekendWarning = translate(({t}) => {
-  if (DISABLE_WEEKEND_WARNING) {
+  if (!enableWeekendWarning) {
     return null
   }
   const day = new Date().getDay()

@@ -1,5 +1,3 @@
-/*global OFFSET_DAYS*/
-
 import React from 'react'
 import PropTypes from 'prop-types'
 import moment from 'moment'
@@ -9,7 +7,7 @@ import {Link} from 'react-router'
 import {cloud, db} from '../lib/leancloud'
 import {fetchUsers} from './common'
 import translate from './i18n/translate'
-import {userDisplayName, customerServiceDisplayName} from '../config.webapp'
+import {offsetDays, userDisplayName, customerServiceDisplayName} from '../config.webapp'
 import { UserTagGroup } from './components/UserTag'
 import { getUserTags, USER_TAG_NAME } from '../lib/common'
 
@@ -94,8 +92,8 @@ class StatsSummary extends React.Component {
       }
     } else {
       return {
-        startDate: moment().startOf('week').subtract(1, 'weeks').add(OFFSET_DAYS, 'days'),
-        endDate: moment().startOf('week').add(1, 'weeks').add(OFFSET_DAYS, 'days'),
+        startDate: moment().startOf('week').subtract(1, 'weeks').add(offsetDays, 'days'),
+        endDate: moment().startOf('week').add(1, 'weeks').add(offsetDays, 'days'),
         timeUnit: 'weeks',
       }
     }
