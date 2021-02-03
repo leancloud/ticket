@@ -498,7 +498,7 @@ class Ticket extends Component {
               <TicketStatusLabel status={ticket.get('status')} />
               {' '}
               <span>
-                <UserLabel user={ticket.get('author')} displayTags={isCustomerService} /> {t('createdAt')} <span title={moment(ticket.get('createdAt')).format()}>{moment(ticket.get('createdAt')).fromNow()}</span>
+                <UserLabel user={ticket.get('author')} inCustomerServiceView={isCustomerService} /> {t('createdAt')} <span title={moment(ticket.get('createdAt')).format()}>{moment(ticket.get('createdAt')).fromNow()}</span>
                 {moment(ticket.get('createdAt')).fromNow() === moment(ticket.get('updatedAt')).fromNow() ||
                   <span>, {t('updatedAt')} <span title={moment(ticket.get('updatedAt')).format()}>{moment(ticket.get('updatedAt')).fromNow()}</span></span>
                 }
