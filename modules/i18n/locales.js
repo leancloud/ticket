@@ -102,6 +102,10 @@ const messages = {
     'Description',
     '描述'
   ],
+  'details': [
+    'Details',
+    '详细信息'
+  ],
   'disable': [
     'Disable',
     '停用'

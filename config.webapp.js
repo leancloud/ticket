@@ -13,3 +13,7 @@ export function customerServiceDisplayName(user) {
 export const offsetDays = -3
 
 export const enableWeekendWarning = true
+
+/* eslint-disable i18n/no-chinese-character */
+export const customTicketMetadataComments = {}
+/* esline-enable i18n/no-chinese-character */
