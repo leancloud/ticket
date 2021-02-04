@@ -921,7 +921,7 @@ const messages = {
   'statusClosed': [
     'Closed',
     '已关闭'
-  ],
+  ]
 }
 
 function splitIntoLocales(messages, localeIndex) {
