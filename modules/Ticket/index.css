@@ -6,6 +6,7 @@
   font-size: 13px;
   color: grey;
   margin-top: 4px;
+  overflow-wrap: break-word;
 }
 .customMetadata .key {
   font-weight: 600;

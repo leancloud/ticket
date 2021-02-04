@@ -11,6 +11,7 @@ import csCss from '../CustomerServiceTickets.css'
 import translate from '../i18n/translate'
 import {depthFirstSearchFind} from '../../lib/common'
 import CategoriesSelect from '../CategoriesSelect'
+import {customTicketMetadataComments} from '../../config.webapp'
 
 class TicketMetadata extends Component {
 
@@ -105,12 +106,18 @@ class TicketMetadata extends Component {
 
         {isCustomerService && ticket.data.metaData && (
           <FormGroup>
-            <label className="label-block">Metadata</label>
-            {Object.entries(ticket.data.metaData).map(([key, value]) => (
-              <div className={css.customMetadata} key={key}>
-                <span className={css.key}>{key}: </span>{value}
-              </div>
-            ))}
+            <label className="label-block">{t('details')}</label>
+            {Object.entries(ticket.data.metaData).map(([key, value]) => {
+              if (!value) {
+                return null
+              }
+              return (
+                <div className={css.customMetadata} key={key}>
+                  <span className={css.key}>{customTicketMetadataComments[key] || key}: </span>
+                  {value}
+                </div>
+              )
+            })}
           </FormGroup>
         )}
 

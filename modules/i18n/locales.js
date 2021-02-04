@@ -102,6 +102,10 @@ const messages = {
     'Description',
     '描述'
   ],
+  'details': [
+    'Details',
+    '详细信息'
+  ],
   'disable': [
     'Disable',
     '停用'
@@ -917,7 +921,7 @@ const messages = {
   'statusClosed': [
     'Closed',
     '已关闭'
-  ]
+  ],
 }
 
 function splitIntoLocales(messages, localeIndex) {
