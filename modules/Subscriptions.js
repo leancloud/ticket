@@ -6,7 +6,7 @@ import _ from 'lodash'
 import moment from 'moment'
 import { auth, db } from '../lib/leancloud'
 import { Link } from 'react-router'
-import { UserLabel } from './common'
+import { UserLabel } from './UserLabel'
 import TicketStatusLabel from './TicketStatusLabel'
 import css from './CustomerServiceTickets.css'
 
@@ -52,7 +52,6 @@ export default class Subscriptions extends Component {
 
   renderCell(watchData) {
     const ticket = watchData.data.ticket
-    const assignee = ticket.data.assignee
     const contributors = _.uniqBy(ticket.data.joinedCustomerServices || [], 'objectId')
 
     return (
@@ -92,7 +91,7 @@ export default class Subscriptions extends Component {
                 <TicketStatusLabel status={ticket.get('status')} />
               </span>
               <span className={css.creator}>
-                <UserLabel user={ticket.get('author')} />
+                <UserLabel user={ticket.data.author.data} />
               </span>
               创建于 {moment(ticket.get('createdAt')).fromNow()}
               {moment(ticket.get('createdAt')).fromNow() !==
@@ -104,7 +103,7 @@ export default class Subscriptions extends Component {
             </div>
             <div>
               <span className={css.assignee}>
-                <UserLabel user={assignee} />
+                <UserLabel user={ticket.data.assignee.data} />
               </span>
               <span className={css.contributors}>
                 {contributors.map(user => (

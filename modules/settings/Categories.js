@@ -5,7 +5,8 @@ import {Link} from 'react-router'
 import {Form, FormGroup} from 'react-bootstrap'
 import {auth} from '../../lib/leancloud'
 
-import {getCustomerServices, UserLabel, getCategoriesTree, getNodeIndentString} from '../common'
+import {getCustomerServices, getCategoriesTree, getNodeIndentString} from '../common'
+import {UserLabel} from '../UserLabel'
 import translate from '../i18n/translate'
 import {depthFirstSearchFind, depthFirstSearchMap, getTinyCategoryInfo} from '../../lib/common'
 
@@ -60,7 +61,7 @@ class Categories extends Component {
       const selectCustomerServices = _.filter(this.state.customerServices, (user) => {
         return _.find(user.get('categories'), {objectId: c.id})
       }).map((user) => {
-        return <span key={user.id}><UserLabel user={user} /> </span>
+        return <span key={user.id}><UserLabel user={user.toJSON()} /> </span>
       })
       return (
         <tr key={c.id}>

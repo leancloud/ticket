@@ -4,7 +4,7 @@ import PropTypes from 'prop-types'
 import {Form, FormGroup, ControlLabel, FormControl, Button, Table, HelpBlock} from 'react-bootstrap'
 import {auth, cloud, db} from '../../lib/leancloud'
 
-import {UserLabel} from '../common'
+import {UserLabel} from '../UserLabel'
 import UserForm from '../UserForm'
 import translate from '../i18n/translate'
 class Organization extends React.Component {
@@ -147,7 +147,7 @@ ${count} ${t('deleteOrganizationConsequence')}`)
   }
 
   handleRemoveMember(user, t) {
-    const result = confirm(`${t('confirmRemoveMember')} ${user.get('name')}`) 
+    const result = confirm(`${t('confirmRemoveMember')} ${user.get('name')}`)
     if (result) {
       const memberRole = this.state.organization.get('memberRole')
       auth.role(memberRole.id).remove(user)
@@ -184,31 +184,31 @@ ${count} ${t('deleteOrganizationConsequence')}`)
         <Table bordered>
           <thead>
             <tr>
-              <th>{t('username')}</th>
+              <th>{t('user')}</th>
               <th>{t('role')}</th>
               {this.state.isAdmin && <th>{t('operation')}</th>}
             </tr>
           </thead>
           <tbody>
-            {this.state.admins.map(u => {
-              return <tr key={u.id}>
-                <td><UserLabel user={u} /></td>
+            {this.state.admins.map(u => (
+              <tr key={u.id}>
+                <td><UserLabel user={u.data} /></td>
                 <td>{t('admin')}</td>
                 {this.state.isAdmin && <td>
                   <Button onClick={() => this.handleDemotion(u, t)}>{t('demoteToMember')}</Button>{' '}
                 </td>}
               </tr>
-            })}
-            {this.state.members.map(u => {
-              return <tr key={u.id}>
-                <td><UserLabel user={u} /></td>
+            ))}
+            {this.state.members.map(u => (
+              <tr key={u.id}>
+                <td><UserLabel user={u.data} /></td>
                 <td>{t('member')}</td>
                 {this.state.isAdmin && <td>
                   <Button onClick={() => this.promote(u)}>{t('promoteToAdmin')}</Button>{' '}
                   <Button onClick={() => this.handleRemoveMember(u, t)}>{t('remove')}</Button>
                 </td>}
               </tr>
-            })}
+            ))}
           </tbody>
         </Table>
         <Button type='button' onClick={() => this.context.router.push('/settings/organizations')}>{t('return')}</Button>{' '}

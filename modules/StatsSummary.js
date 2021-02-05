@@ -7,9 +7,8 @@ import {Link} from 'react-router'
 import {cloud, db} from '../lib/leancloud'
 import {fetchUsers} from './common'
 import translate from './i18n/translate'
-import {offsetDays, userDisplayName, customerServiceDisplayName} from '../config.webapp'
-import { UserTagGroup } from './components/UserTag'
-import { getUserTags, USER_TAG_NAME } from '../lib/common'
+import {offsetDays, userDisplayName} from '../config.webapp'
+import {UserLabel} from './UserLabel'
 
 const sortAndIndexed = (datas, sortFn) => {
   const sorted = _.sortBy(datas, sortFn)
@@ -241,7 +240,7 @@ class StatsSummary extends React.Component {
         return [
           row[0],
           row.index,
-          user && customerServiceDisplayName(user) || row[0],
+          user && userDisplayName(user) || row[0],
           row[1],
         ]
       })
@@ -254,16 +253,10 @@ class StatsSummary extends React.Component {
     const activeTicketCountByAuthorDoms = this.state.statsDatas.map(data => {
       const body = data.activeTicketCountByAuthor.map(row => {
         const user = _.find(this.state.users, c => c.id === row[0])
-        const username = (
-          <span>
-            {user && userDisplayName(user, true) || row[0]}
-            <UserTagGroup tags={getUserTags(user).filter(tag => tag === USER_TAG_NAME.NEW)} />
-          </span>
-        )
         return [
           row[0],
           row.index,
-          username,
+          <UserLabel user={user.data} displayTags />,
           row[1],
         ]
       })
@@ -293,7 +286,9 @@ class StatsSummary extends React.Component {
         return [
           userId,
           index,
-          <Link to={`/customerService/stats/users/${userId}?start=${startTime.toISOString()}&end=${endTime.toISOString()}`}>{user && customerServiceDisplayName(user) || userId}</Link>,
+          <Link to={`/customerService/stats/users/${userId}?start=${startTime.toISOString()}&end=${endTime.toISOString()}`}>
+            {user && userDisplayName(user.data) || userId}
+          </Link>,
           (replyTime / replyCount / 1000 / 60 / 60).toFixed(2) + ' ' + t('hour'),
           replyCount,
         ]
@@ -310,7 +305,9 @@ class StatsSummary extends React.Component {
         return [
           userId,
           index,
-          <Link to={`/customerService/stats/users/${userId}?start=${startTime.toISOString()}&end=${endTime.toISOString()}`}>{user && customerServiceDisplayName(user) || userId}</Link>,
+          <Link to={`/customerService/stats/users/${userId}?start=${startTime.toISOString()}&end=${endTime.toISOString()}`}>
+            {user && userDisplayName(user.data) || userId}
+          </Link>,
           (replyTime / replyCount / 1000 / 60 / 60).toFixed(2) + ' ' + t('hour'),
           replyCount,
         ]

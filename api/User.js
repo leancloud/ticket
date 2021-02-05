@@ -1,6 +1,6 @@
 const AV = require('leanengine')
 
-const common = require('./common')
+const {getTinyUserInfo} = require('./common')
 const errorHandler = require('./errorHandler')
 
 let newApp
@@ -30,14 +30,24 @@ setTimeout(() => {
   })
 }, 3000)
 
-AV.Cloud.define('getUserInfo', (req) => {
-  const {username} = req.params
-  return new AV.Query(AV.User)
-  .equalTo('username', username)
-  .first({useMasterKey: true})
-  .then((user) => {
-    return common.getTinyUserInfo(user)
-  })
+AV.Cloud.define('getUserInfo', async (req) => {
+  const username = req.params.username
+  if (!username) {
+    throw new AV.Cloud.Error('The username must be provided', {status: 400})
+  }
+
+  const user = await new AV.Query(AV.User)
+    .equalTo('username', username)
+    .first({useMasterKey: true})
+  if (!user) {
+    throw new AV.Cloud.Error('Not Found', {status: 404})
+  }
+
+  return {
+    ...(await getTinyUserInfo(user)),
+    tags: user.get('tags'),
+    createdAt: user.createdAt,
+  }
 })
 
 AV.Cloud.afterSave('_User', (req) => {
@@ -58,23 +68,3 @@ const addRole = (name, initUser) => {
   role.getUsers().add(initUser)
   return role.save()
 }
-
-AV.Cloud.define('modifyUserTags', async (req) => {
-  if (! await common.isCustomerService(req.currentUser)) {
-    throw new AV.Cloud.Error('unauthorized', {status: 401})
-  }
-
-  const {objectId, tags, action} = req.params
-  const user = AV.Object.createWithoutData('_User', objectId)
-  switch (action) {
-  case 'add':
-    user.addUnique('tags', tags)
-    break
-  case 'remove':
-    user.remove('tags', tags)
-    break
-  default:
-    throw new AV.Cloud.Error('unsupport action: ' + action, {status: 400})
-  }
-  return user.save(null, {useMasterKey: true})
-})

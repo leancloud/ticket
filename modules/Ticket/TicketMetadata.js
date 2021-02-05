@@ -4,7 +4,8 @@ import PropTypes from 'prop-types'
 import {FormGroup, FormControl, Button} from 'react-bootstrap'
 import LC from '../../lib/leancloud'
 
-import {getCustomerServices, UserLabel, getCategoryPathName} from '../common'
+import {getCustomerServices, getCategoryPathName} from '../common'
+import {UserLabel} from '../UserLabel'
 import TagForm from '../TagForm'
 import css from './index.css'
 import csCss from '../CustomerServiceTickets.css'
@@ -81,7 +82,7 @@ class TicketMetadata extends Component {
             </FormControl>
             :
             <span className={css.assignee}>
-              <UserLabel user={assignee} />
+              <UserLabel user={ticket.data.assignee.data} />
               {isCustomerService &&
                 <Button bsStyle='link' onClick={() => this.setState({isUpdateAssignee: true})}>
                   <span className='glyphicon glyphicon-pencil' aria-hidden="true"></span>

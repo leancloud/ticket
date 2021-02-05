@@ -5,7 +5,7 @@ import _ from 'lodash'
 import moment from 'moment'
 
 import TicketStatusLabel from '../TicketStatusLabel'
-import {UserLabel} from '../common'
+import {UserLabel} from '../UserLabel'
 import css from '../CustomerServiceTickets.css'
 import translate from '../i18n/translate'
 
@@ -40,8 +40,13 @@ export const TicketItem = translate(({t, ticket, checkable, checked, onClickChec
 
         <div className={css.meta}>
           <div className={css.left}>
-            <span className={css.status}><TicketStatusLabel status={ticket.status} /></span>
-            <span className={css.creator}><UserLabel user={ticket.author} /></span> {t('createdAt')} {moment(ticket.createdAt).fromNow()}
+            <span className={css.status}>
+              <TicketStatusLabel status={ticket.status} />
+            </span>
+            <span className={css.creator}>
+              <UserLabel user={ticket.author} />
+            </span> {t('createdAt')}
+            {moment(ticket.createdAt).fromNow()}
             {moment(ticket.createdAt).fromNow() === moment(ticket.updatedAt).fromNow() ||
               <span>, {t('updatedAt')} {moment(ticket.updatedAt).fromNow()}</span>
             }

@@ -7,7 +7,7 @@ import {FormGroup, ControlLabel, Alert, Button, Tooltip, OverlayTrigger} from 'r
 import PropTypes from 'prop-types'
 import {auth, cloud, db} from '../../lib/leancloud'
 
-import {UserLabel, uploadFiles, getCategoryPathName, getCategoriesTree} from '../common'
+import {uploadFiles, getCategoryPathName, getCategoriesTree} from '../common'
 import css from './index.css'
 import csCss from '../CustomerServiceTickets.css'
 
@@ -19,6 +19,7 @@ import TicketStatusLabel from '../TicketStatusLabel'
 import translate from '../i18n/translate'
 import Tag from '../Tag'
 import {WeekendWarning} from '../components/WeekendWarning'
+import {UserLabel} from '../UserLabel'
 
 // get a copy of default whiteList
 const whiteList = xss.getDefaultWhiteList()
@@ -450,9 +451,8 @@ class Ticket extends Component {
     const isCustomerService = this.props.isCustomerService && ticket.get('author').id != this.props.currentUser.id
     const timeline = _.chain(this.state.replies)
       .concat(this.state.opsLogs)
-      .sortBy((data) => {
-        return data.get('createdAt')
-      }).map(this.ticketTimeline.bind(this, t))
+      .sortBy((data) => data.createdAt)
+      .map(this.ticketTimeline.bind(this, t))
       .value()
     let optionButtons = <div></div>
     const ticketStatus = ticket.get('status')
@@ -499,7 +499,7 @@ class Ticket extends Component {
               <TicketStatusLabel status={ticket.get('status')} />
               {' '}
               <span>
-                <UserLabel user={ticket.get('author')} inCustomerServiceView={isCustomerService} /> {t('createdAt')} <span title={moment(ticket.get('createdAt')).format()}>{moment(ticket.get('createdAt')).fromNow()}</span>
+                <UserLabel user={ticket.data.author.data} displayTags={isCustomerService} /> {t('createdAt')} <span title={moment(ticket.get('createdAt')).format()}>{moment(ticket.get('createdAt')).fromNow()}</span>
                 {moment(ticket.get('createdAt')).fromNow() === moment(ticket.get('updatedAt')).fromNow() ||
                   <span>, {t('updatedAt')} <span title={moment(ticket.get('updatedAt')).format()}>{moment(ticket.get('updatedAt')).fromNow()}</span></span>
                 }

@@ -14,7 +14,7 @@ class OrganizationSelect extends React.Component {
         <ControlLabel>{t('belong')}:&nbsp;</ControlLabel>
         <FormControl componentClass='select' value={this.props.selectedOrgId} onChange={this.props.onOrgChange}>
           {this.props.organizations.map(o => <option key={o.id} value={o.id}>{t('organization')}: {o.get('name')}</option>)}
-          <option value=''>{t('individual')}: {userDisplayName(auth.currentUser())}</option>
+          <option value=''>{t('individual')}: {userDisplayName(auth.currentUser().data)}</option>
         </FormControl>
       </FormGroup>
     )
