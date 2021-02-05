@@ -93,7 +93,7 @@ const assigneeCountLineChartData = (statses, users) => {
         const user = _.find(users, u => u.id === key)
         lineData = {
           id: key,
-          label: user && userDisplayName(user, true) || key,
+          label: user && userDisplayName(user.data) || key,
           fill: true,
           borderColor: color,
           backgroundColor: Color(color).fade(.9),
@@ -122,7 +122,7 @@ const firstReplyTimeLineChartData = (statses, users) => {
         const user = _.find(users, u => u.id === userId)
         lineData = {
           id: userId,
-          label: user && userDisplayName(user, true) || userId,
+          label: user && userDisplayName(user.data) || userId,
           fill: true,
           borderColor: color,
           backgroundColor: Color(color).fade(.9),
@@ -151,7 +151,7 @@ const replyTimeLineChartData = (statses, users) => {
         const user = _.find(users, u => u.id === userId)
         lineData = {
           id: userId,
-          label: user && userDisplayName(user, true) || userId,
+          label: user && userDisplayName(user.data) || userId,
           fill: true,
           borderColor: color,
           backgroundColor: Color(color).fade(.9),

@@ -6,7 +6,7 @@ import {cloud} from '../lib/leancloud'
 import {Avatar} from './Avatar'
 import css from './User.css'
 import translate from './i18n/translate'
-import {UserTagManager} from './components/UserTag'
+import {UserTags} from './UserLabel'
 
 class User extends Component {
 
@@ -42,22 +42,6 @@ class User extends Component {
     })
   }
 
-  addTag(tag) {
-    return cloud.run('modifyUserTags', {
-      objectId: this.state.user.objectId,
-      action: 'add',
-      tags: [tag]
-    }).then(() => this.refreshUserInfo(this.props))
-  }
-
-  removeTag(tag) {
-    return cloud.run('modifyUserTags', {
-      objectId: this.state.user.objectId,
-      action: 'remove',
-      tags: [tag]
-    }).then(() => this.refreshUserInfo(this.props))
-  }
-
   render() {
     const {t} = this.props
     if (!this.state.user) {
@@ -73,7 +57,9 @@ class User extends Component {
           <div className={css.info}>
             <h2>{this.state.user.username}</h2>
             {this.props.isCustomerService && (
-              <UserTagManager tags={this.state.user.tags} onAdd={this.addTag.bind(this)} onRemove={this.removeTag.bind(this)} />
+              <div className={css.tags}>
+                <UserTags user={this.state.user} />
+              </div>
             )}
             <p><Link to={`/customerService/tickets?authorId=${this.state.user.objectId}&page=0&size=10`}>{t('ticketList')}</Link></p>
             {this.state.leancloudUsers &&

@@ -4,7 +4,7 @@ import { FormGroup, Button, Table } from 'react-bootstrap'
 import moment from 'moment'
 import { auth, db } from '../lib/leancloud'
 
-import {UserLabel} from './common'
+import {UserLabel} from './UserLabel'
 
 export default class Messages extends Component {
 
@@ -48,7 +48,9 @@ export default class Messages extends Component {
       <Table>
         <tbody>
           {this.state.messages.map(m => {
-            const ticket = m.get('ticket')
+            const ticket = m.data.ticket
+            const sender = m.data.from.data
+
             switch(m.get('type')) {
             case 'newTicket': {
               return <tr key={m.id}>
@@ -57,7 +59,7 @@ export default class Messages extends Component {
                     <Link to={'tickets/' + ticket.get('nid')}>
                       <span className="glyphicon glyphicon-record" aria-hidden="true"></span>
                       {' '}
-                      <UserLabel user={m.get('from')} simple={true} />
+                      <UserLabel user={sender} simple />
                       {' '}提交工单{' '}
                       #{ticket.get('nid') + ' ' + ticket.get('title')}
                     </Link>
@@ -79,7 +81,7 @@ export default class Messages extends Component {
                     <Link to={'tickets/' + ticket.get('nid')}>
                       <span className="glyphicon glyphicon-share-alt" aria-hidden="true"></span>
                       {' '}
-                      <UserLabel user={m.get('from')} simple={true} />
+                      <UserLabel user={sender} simple />
                       {' '}回复工单{' '}
                       #{ticket.get('nid') + ' ' + ticket.get('title')}
                     </Link>
@@ -101,7 +103,7 @@ export default class Messages extends Component {
                     <Link to={'tickets/' + ticket.get('nid')}>
                       <span className="glyphicon glyphicon-transfer" aria-hidden="true"></span>
                       {' '}
-                      <UserLabel user={m.get('from')} simple={true} />
+                      <UserLabel user={sender} />
                       {' '}将工单交由你处理{' '}
                       #{ticket.get('nid') + ' ' + ticket.get('title')}
                     </Link>
@@ -124,4 +126,3 @@ export default class Messages extends Component {
 
 Messages.propTypes = {
 }
-

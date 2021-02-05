@@ -23,3 +23,7 @@
 .id {
   opacity: .4;
 }
+
+.tags {
+  margin: 8px 0;
+}

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 import { auth } from '../../lib/leancloud'
 
-const {UserLabel} = require('../common')
+import {UserLabel} from '../UserLabel'
 import UserForm from '../UserForm'
 import translate from '../i18n/translate'
 
@@ -75,7 +75,7 @@ class SettingMembers extends Component {
       return (
         <tr key={customerService.id}>
           <td>
-            <UserLabel user={customerService} />
+            <UserLabel user={customerService.toJSON()} />
           </td>
           <td>
             {categories}
@@ -92,7 +92,7 @@ class SettingMembers extends Component {
         <table className="table table-bordered">
           <thead>
             <tr>
-              <th>{t('username')}</th>
+              <th>{t('user')}</th>
               <th>{t('assignedCategories')}</th>
               <th>{t('operation')}</th>
             </tr>

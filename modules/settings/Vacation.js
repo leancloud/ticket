@@ -7,7 +7,8 @@ import {auth, db} from '../../lib/leancloud'
 
 import {getCustomerServices} from '../common'
 import translate from '../i18n/translate'
-import {customerServiceDisplayName} from '../../config.webapp'
+import {UserLabel} from '../UserLabel'
+import {userDisplayName} from '../../config.webapp'
 
 class Vacation extends Component {
 
@@ -93,17 +94,17 @@ class Vacation extends Component {
   render() {
     const {t} = this.props
     const userOptions = this.state.users.map(user => {
-      return <option key={user.id} value={user.id}>{customerServiceDisplayName(user)}</option>
+      return <option key={user.id} value={user.id}>{userDisplayName(user.data)}</option>
     })
 
     const vacationTrs = this.state.vacations.map(vacation => {
       const startDate = moment(vacation.get('startDate'))
       const endDate = moment(vacation.get('endDate'))
       return <tr key={vacation.id}>
-          <td>{customerServiceDisplayName(vacation.get('vacationer'))}</td>
+          <td><UserLabel user={vacation.data.vacationer.data} simple /></td>
           <td>{startDate.format('YYYY-MM-DD') + (startDate.hours() === 12 ? t('pm') : '')}</td>
           <td>{endDate.format('YYYY-MM-DD') + (endDate.hours() === 12 ? t('pm') : '')}</td>
-          <td>{customerServiceDisplayName(vacation.get('operator'))}</td>
+          <td><UserLabel user={vacation.data.operator.data} simple /></td>
           <td>{moment(vacation.createdAt).fromNow()}</td>
           <td><Button type='button' onClick={() => this.handleRemove(vacation)}>{t('delete')}</Button></td>
         </tr>
