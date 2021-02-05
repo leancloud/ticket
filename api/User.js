@@ -33,7 +33,7 @@ setTimeout(() => {
 AV.Cloud.define('getUserInfo', async (req) => {
   const username = req.params.username
   if (!username) {
-    throw new AV.Cloud.Error('Bad Request', {status: 400})
+    throw new AV.Cloud.Error('The username must be provided', {status: 400})
   }
   const user = await new AV.Query(AV.User)
     .equalTo('username', username)
