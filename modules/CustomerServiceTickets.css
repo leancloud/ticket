@@ -29,9 +29,6 @@
   flex: 1;
 }
 
-.heading .right {
-}
-
 .title {
   font-size: 18px;
   font-weight: 500;
@@ -105,10 +102,6 @@
   flex: 1;
 }
 
-.meta .right {
-
-}
-
 .statusLink {
   text-decoration: none;
 }
@@ -144,16 +137,16 @@
   margin-right: 0;
 }
 
-.contributors > span > span {
+.contributors > span {
   display: inline-block;
   margin-right: -10px;
   transition: margin .2s ease;
 }
 
-.contributors:hover > span > span {
+.contributors:hover > span {
   margin-right: 4px;
 }
 
-.contributors > span > span:last-child {
+.contributors > span:last-child {
   margin-right: 0;
 }

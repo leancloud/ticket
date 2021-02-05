@@ -64,17 +64,23 @@ class TicketMetadata extends Component {
   render() {
     const {t} = this.props
     const {ticket, isCustomerService} = this.props
+    const assignee = ticket.data.assignee
+
     return (
       <div>
         <FormGroup>
           <label className="label-block">{t('assignee')}</label>
           {this.state.isUpdateAssignee ?
-            <FormControl componentClass='select' value={ticket.get('assignee').id} onChange={this.handleAssigneeChange.bind(this)}>
-              {this.state.assignees.map((cs) => <option key={cs.id} value={cs.id}>{cs.get('username')}</option>)}
+            <FormControl
+              componentClass='select'
+              value={assignee.id}
+              onChange={this.handleAssigneeChange.bind(this)}
+            >
+              {this.state.assignees.map((cs) => <option key={cs.id} value={cs.id}>{cs.data.username}</option>)}
             </FormControl>
             :
             <span className={css.assignee}>
-              <UserLabel user={ticket.get('assignee')} />
+              <UserLabel user={assignee} />
               {isCustomerService &&
                 <Button bsStyle='link' onClick={() => this.setState({isUpdateAssignee: true})}>
                   <span className='glyphicon glyphicon-pencil' aria-hidden="true"></span>

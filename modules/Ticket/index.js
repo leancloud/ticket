@@ -217,10 +217,11 @@ class Ticket extends Component {
   updateTicketAssignee(assignee) {
     const ticket = this.state.ticket
     return ticket.update({assignee})
-    .then(() => {
-      ticket.data.assignee = assignee
-      return
-    })
+      .then(() => {
+        ticket.data.assignee = assignee
+        return
+      })
+      .catch(this.context.addNotification)
   }
 
   saveTag(key, value, isPrivate) {
@@ -418,7 +419,7 @@ class Ticket extends Component {
           panelFooter = <div className="panel-footer">{fileLinks}</div>
         }
       }
-      const panelClass = `panel ${css.item} ${(avObj.get('isCustomerService') ? css.panelModerator : 'panel-common')}`
+      const panelClass = `panel ${(avObj.get('isCustomerService') ? css.panelModerator : 'panel-common')}`
       const userLabel = avObj.get('isCustomerService') ? <span><UserLabel user={avObj.get('author')} /><i className={css.badge}>{t('staff')}</i></span> : <UserLabel user={avObj.get('author')} />
       return (
         <div id={avObj.id} key={avObj.id} className={panelClass}>
@@ -561,7 +562,8 @@ class Ticket extends Component {
               return <Tag key={tag.id} tag={tag} ticket={ticket} isCustomerService={isCustomerService} />
             })}
 
-            <TicketMetadata ticket={ticket}
+            <TicketMetadata
+              ticket={ticket}
               isCustomerService={isCustomerService}
               categoriesTree={this.state.categoriesTree}
               updateTicketAssignee={this.updateTicketAssignee.bind(this)}

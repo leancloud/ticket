@@ -8,7 +8,7 @@ const randomstring = require('randomstring')
 const AV = require('leanengine')
 
 const config = require('../config')
-const common = require('./common')
+const {isCustomerService} = require('./common')
 const {getGravatarHash,
   defaultLeanCloudRegion,
   getLeanCloudRegions,
@@ -102,33 +102,20 @@ const getStateData = (state) => {
 
 /**
  * 判断该用户是否有权限提交工单
- */ 
-exports.checkPermission = (user) => {
-  if (!config.enableLeanCloudIntergration) {
-    return Promise.resolve()
+ */
+exports.checkPermission = async (user) => {
+  if (!config.enableLeanCloudIntergration || await isCustomerService(user)) {
+    return true
   }
-
-  return common.isCustomerService(user).then((isCustomerService) => {
-    if (isCustomerService) {
-      return
-    }
-    return getUser(user.get('username'))
-    .then((user) => {
-      return getAccounts(user)
-    })
-    .then(accounts => {
-      for (let index in accounts) {
-        if (accounts[index].current_support_service) {
-          return
-        }
-      }
-      throw new AV.Cloud.Error('您的账号不具备提交工单的条件。')
-    })
-  })
+  const userObj = await getUser(user.get('username'))
+  const accounts = await getAccounts(userObj)
+  return !!accounts.find(account => account.current_support_service)
 }
 
-AV.Cloud.define('checkPermission', (req) => {
-  return exports.checkPermission(req.currentUser)
+AV.Cloud.define('checkPermission', async (req) => {
+  if (!req.currentUser || !await exports.checkPermission(req.currentUser)) {
+    throw new AV.Cloud.Error('您的账号不具备提交工单的条件。')
+  }
 })
 
 if (config.enableLeanCloudIntergration) {
@@ -139,9 +126,9 @@ if (config.enableLeanCloudIntergration) {
     }
     return getClientInfos(user)
   })
-  
+
   AV.Cloud.define('getLeanCloudUserInfosByUsername', (req) => {
-    return common.isCustomerService(req.currentUser).then((isCustomerService) => {
+    return isCustomerService(req.currentUser).then((isCustomerService) => {
       if (!isCustomerService) {
         throw new AV.Cloud.Error('unauthorized', {status: 401})
       }
@@ -151,9 +138,9 @@ if (config.enableLeanCloudIntergration) {
       })
     })
   })
-  
+
   AV.Cloud.define('getLeanCloudAppsByUsername', (req) => {
-    return common.isCustomerService(req.currentUser).then((isCustomerService) => {
+    return isCustomerService(req.currentUser).then((isCustomerService) => {
       if (!isCustomerService) {
         throw new AV.Cloud.Error('unauthorized', {status: 401})
       }
@@ -163,7 +150,7 @@ if (config.enableLeanCloudIntergration) {
       })
     })
   })
-  
+
   AV.Cloud.define('getLeanCloudApps', (req) => {
     const user = req.currentUser
     if (!user) {
@@ -171,7 +158,7 @@ if (config.enableLeanCloudIntergration) {
     }
     return getApps(req.currentUser)
   })
-  
+
   AV.Cloud.define('getLeanCloudApp', (req) => {
     const {username, appId} = req.params
     if (!req.currentUser) {
@@ -180,8 +167,8 @@ if (config.enableLeanCloudIntergration) {
     if (req.currentUser.get('username') === username) {
       return getApp(req.currentUser, appId)
     }
-    
-    return common.isCustomerService(req.currentUser).then((isCustomerService) => {
+
+    return isCustomerService(req.currentUser).then((isCustomerService) => {
       if (!isCustomerService) {
         throw new AV.Cloud.Error('unauthorized', {status: 401})
       }
@@ -191,9 +178,9 @@ if (config.enableLeanCloudIntergration) {
       })
     })
   })
-  
+
   AV.Cloud.define('getLeanCloudAppUrl', (req) => {
-    return common.isCustomerService(req.currentUser).then((isCustomerService) => {
+    return isCustomerService(req.currentUser).then((isCustomerService) => {
       if (!isCustomerService) {
         throw new AV.Cloud.Error('unauthorized', {status: 401})
       }

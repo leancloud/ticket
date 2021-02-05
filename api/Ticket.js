@@ -1,72 +1,65 @@
 const _ = require('lodash')
 const AV = require('leanengine')
 
-const common = require('./common')
-const {getTinyUserInfo, htmlify, getTinyReplyInfo} = common
-const oauth = require('./oauth')
+const {getTinyUserInfo, htmlify, getTinyReplyInfo, isCustomerService} = require('./common')
+const {checkPermission} = require('./oauth')
 const notify = require('./notify')
 const {TICKET_ACTION, TICKET_STATUS, ticketClosedStatuses, getTicketAcl} = require('../lib/common')
 const errorHandler = require('./errorHandler')
 
-AV.Cloud.beforeSave('Ticket', (req, res) => {
-  if (!req.currentUser) {
-    return res.error('noLogin')
+AV.Cloud.beforeSave('Ticket', async (req) => {
+  if (!req.currentUser || !await checkPermission(req.currentUser)) {
+    throw new AV.Cloud.Error('Forbidden', {status: 403})
   }
-  return oauth.checkPermission(req.currentUser)
-  .then(() => {
-    const ticket = req.object
-    if (!ticket.get('title') || ticket.get('title').trim().length === 0) {
-      throw new AV.Cloud.Error('title 不能为空')
-    }
-    if (!ticket.get('category') || !ticket.get('category').objectId) {
-      throw new AV.Cloud.Error('category 不能为空')
-    }
 
-    ticket.setACL(getTicketAcl(req.currentUser), ticket.get('organization'))
-    ticket.set('status', TICKET_STATUS.NEW)
-    ticket.set('content_HTML', htmlify(ticket.get('content')))
-    ticket.set('author', req.currentUser)
-    return selectAssignee(ticket)
-    .then((assignee) => {
-      ticket.set('assignee', assignee)
-      res.success()
-      return
-    })
-  }).catch((err) => {
+  const ticket = req.object
+  if (!ticket.get('title') || ticket.get('title').trim().length === 0) {
+    throw new AV.Cloud.Error('Ticket title must be provided')
+  }
+  if (!ticket.get('category') || !ticket.get('category').objectId) {
+    throw new AV.Cloud.Error('Ticket category must be provided')
+  }
+  ticket.setACL(getTicketAcl(req.currentUser), ticket.get('organization'))
+  ticket.set('status', TICKET_STATUS.NEW)
+  ticket.set('content_HTML', htmlify(ticket.get('content')))
+  ticket.set('author', req.currentUser)
+
+  try {
+    const assignee = await selectAssignee(ticket)
+    ticket.set('assignee', assignee)
+  } catch (err) {
     errorHandler.captureException(err)
-    res.error(err)
-  })
+    throw new AV.Cloud.Error('Internal Error', {status: 500})
+  }
 })
 
-AV.Cloud.afterSave('Ticket', (req) => {
-  req.object.fetch({include: 'assignee'}, {user: req.currentUser})
-  .then(ticket => {
-    return getTinyUserInfo(ticket.get('assignee'))
-    .then((assigneeInfo) => {
-      return new AV.Object('OpsLog').save({
+AV.Cloud.afterSave('Ticket', async (req) => {
+  const ticket = req.object
+  try {
+    await ticket.fetch({include: 'assignee'}, {user: req.currentUser})
+    const assignee = ticket.get('assignee')
+    const assigneeInfo = await getTinyUserInfo(assignee)
+    await new AV.Object('OpsLog')
+      .save({
         ticket: req.object,
         action: 'selectAssignee',
         data: {assignee: assigneeInfo},
       }, {useMasterKey: true})
-    })
-    .then(() => {
-      return notify.newTicket(req.object, req.currentUser, ticket.get('assignee'))
-    })
-  }).catch(errorHandler.captureException)
+    await notify.newTicket(req.object, req.currentUser, assignee)
+  } catch (err) {
+    errorHandler.captureException(err)
+    throw new AV.Cloud.Error('Internal Error', {status: 500})
+  }
 })
 
-AV.Cloud.beforeUpdate('Ticket', (req, res) => {
-  if (req.object.updatedKeys.indexOf('assignee') != -1) {
-    return getVacationers()
-    .then(vacationers => {
-      const finded = _.find(vacationers, {id: req.object.get('assignee').id})
-      if (finded) {
-        return res.error('抱歉，该客服正在休假。')
-      }
-      return res.success()
-    })
-  } else {
-    return res.success()
+AV.Cloud.beforeUpdate('Ticket', async (req) => {
+  const ticket = req.object
+  if (ticket.updatedKeys.includes('assignee')) {
+    const assignee = ticket.get('assignee')
+    const vacationers = await getVacationers()
+    if (_.find(vacationers, {id: assignee.id})) {
+      throw new AV.Cloud.Error('Sorry, this customer service is in vacation.')
+    }
   }
 })
 
@@ -118,7 +111,7 @@ AV.Cloud.define('operateTicket', async (req) => {
       new AV.Query('Ticket').get(ticketId, {user: req.currentUser}),
       getTinyUserInfo(req.currentUser),
     ])
-    const isCustomerService = await common.isCustomerService(req.currentUser, ticket.get('author'))
+    const isCustomerService = await isCustomerService(req.currentUser, ticket.get('author'))
     if (isCustomerService) {
       ticket.addUnique('joinedCustomerServices', operator)
       if (action === TICKET_ACTION.CLOSE || action === TICKET_ACTION.REOPEN) {
@@ -141,7 +134,7 @@ AV.Cloud.define('operateTicket', async (req) => {
 
 AV.Cloud.define('getPrivateTags', (req) => {
   const {ticketId} = req.params
-  return common.isCustomerService(req.currentUser)
+  return isCustomerService(req.currentUser)
   .then(isCustomerService => {
     if (isCustomerService) {
       return new AV.Query('Ticket')
@@ -222,32 +215,29 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
   }).catch(errorHandler.captureException)
 }
 
-const selectAssignee = (ticket) => {
-  return Promise.all([
+const selectAssignee = async (ticket) => {
+  const [role, vacationers] = await Promise.all([
     new AV.Query(AV.Role)
-    .equalTo('name', 'customerService')
-    .first(),
+      .equalTo('name', 'customerService')
+      .first(),
     getVacationers(),
   ])
-  .then(([role, vacationers]) => {
-    let query = role.getUsers().query()
-    query.equalTo('categories.objectId', ticket.get('category').objectId)
-    if (vacationers.length > 0) {
-      query.notContainedIn('objectId', vacationers.map(v => v.id))
-    }
-    return query.find({useMasterKey: true})
-    .then((users) => {
-      if (users.length != 0) {
-        return _.sample(users)
-      }
+  let query = role.getUsers().query()
+  query.equalTo('categories.objectId', ticket.get('category').objectId)
+  if (vacationers.length > 0) {
+    query.notContainedIn('objectId', vacationers.map(v => v.id))
+  }
 
-      query = role.getUsers().query()
-      if (vacationers.length > 0) {
-        query.notContainedIn('objectId', vacationers.map(v => v.id))
-      }
-      return query.find({useMasterKey: true}).then(_.sample)
-    })
-  })
+  const users = await query.find({useMasterKey: true})
+  if (users.length > 0) {
+    return _.sample(users)
+  }
+
+  query = role.getUsers().query()
+  if (vacationers.length > 0) {
+    query.notContainedIn('objectId', vacationers.map(v => v.id))
+  }
+  return query.find({useMasterKey: true}).then(_.sample)
 }
 
 const getVacationers = () => {

@@ -10,7 +10,7 @@ import css from '../CustomerServiceTickets.css'
 import translate from '../i18n/translate'
 
 export const TicketItem = translate(({t, ticket, checkable, checked, onClickCheckbox, category}) => {
-  const customerServices = _.uniqBy(ticket.data.joinedCustomerServices || [], 'objectId')
+  const contributors = _.uniqBy(ticket.joinedCustomerServices || [], 'objectId')
 
   return (
     <div className={`${css.ticket} ${css.row}`}>
@@ -24,15 +24,15 @@ export const TicketItem = translate(({t, ticket, checkable, checked, onClickChec
       <div className={css.ticketContent}>
         <div className={css.heading}>
           <div className={css.left}>
-            <span className={css.nid}>#{ticket.data.nid}</span>
-            <Link className={css.title} to={'/tickets/' + ticket.data.nid}>{ticket.data.title}</Link>
+            <span className={css.nid}>#{ticket.nid}</span>
+            <Link className={css.title} to={'/tickets/' + ticket.nid}>{ticket.title}</Link>
             <span className={css.category}>{category}</span>
           </div>
-          <div className={css.right}>
-            {ticket.data.replyCount &&
-              <Link className={css.commentCounter} title={'reply ' + ticket.data.replyCount} to={'/tickets/' + ticket.data.nid}>
+          <div>
+            {ticket.replyCount &&
+              <Link className={css.commentCounter} title={'reply ' + ticket.replyCount} to={'/tickets/' + ticket.nid}>
                 <span className={css.commentCounterIcon + ' glyphicon glyphicon-comment'}></span>
-                {ticket.data.replyCount}
+                {ticket.replyCount}
               </Link>
             }
           </div>
@@ -40,20 +40,20 @@ export const TicketItem = translate(({t, ticket, checkable, checked, onClickChec
 
         <div className={css.meta}>
           <div className={css.left}>
-            <span className={css.status}><TicketStatusLabel status={ticket.data.status} /></span>
-            <span className={css.creator}><UserLabel user={ticket.data.author} /></span> {t('createdAt')} {moment(ticket.createdAt).fromNow()}
+            <span className={css.status}><TicketStatusLabel status={ticket.status} /></span>
+            <span className={css.creator}><UserLabel user={ticket.author} /></span> {t('createdAt')} {moment(ticket.createdAt).fromNow()}
             {moment(ticket.createdAt).fromNow() === moment(ticket.updatedAt).fromNow() ||
               <span>, {t('updatedAt')} {moment(ticket.updatedAt).fromNow()}</span>
             }
           </div>
-          <div className={css.right}>
-            <span className={css.assignee}><UserLabel user={ticket.data.assignee} /></span>
+          <div>
+            <span className={css.assignee}>
+              <UserLabel user={ticket.assignee} />
+            </span>
             <span className={css.contributors}>
-              <span>
-                {customerServices.map(user => (
-                  <span key={user.objectId}><UserLabel user={user} /> </span>
-                ))}
-              </span>
+              {contributors.map(user => (
+                <span key={user.objectId}><UserLabel user={user} /> </span>
+              ))}
             </span>
           </div>
         </div>
