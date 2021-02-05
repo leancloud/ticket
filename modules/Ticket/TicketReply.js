@@ -87,37 +87,37 @@ class TicketReply extends Component {
         )
     }
     return (
-        <div>
-          <form className="form-group">
-            <FormGroup>
-              <TextareaWithPreview componentClass="textarea" rows="8"
-                value={this.state.reply}
-                onChange={this.handleReplyOnChange.bind(this)}
-                onKeyDown={this.handleReplyOnKeyDown.bind(this)}
-              />
-            </FormGroup>
+      <div>
+        <form className="form-group">
+          <FormGroup>
+            <TextareaWithPreview componentClass="textarea" rows="8"
+              value={this.state.reply}
+              onChange={this.handleReplyOnChange.bind(this)}
+              onKeyDown={this.handleReplyOnKeyDown.bind(this)}
+            />
+          </FormGroup>
 
-            <FormGroup>
-              <FormControl type="file" multiple inputRef={ref => this.fileInput = ref} />
-              <p className="help-block">{t('multipleAttachments')}</p>
-            </FormGroup>
+          <FormGroup>
+            <FormControl type="file" multiple inputRef={ref => this.fileInput = ref} />
+            <p className="help-block">{t('multipleAttachments')}</p>
+          </FormGroup>
 
-            <div className={css.form}>
-              <div className={css.formLeft}>
-                <p className={css.markdownTip}>
-                  <b className="has-required">M↓</b>{' '}
-                  <a href="https://forum.leancloud.cn/t/topic/15412" target="_blank" rel="noopener">{t('supportMarkdown')}</a>
-                </p>
-              </div>
-              <div className={css.formRight}>
-                {buttons}
-              </div>
+          <div className={css.form}>
+            <div className={css.formLeft}>
+              <p className={css.markdownTip}>
+                <b className="has-required">M↓</b>{' '}
+                <a href="https://forum.leancloud.cn/t/topic/15412" target="_blank" rel="noopener">{t('supportMarkdown')}</a>
+              </p>
             </div>
-          </form>
-        </div>
+            <div className={css.formRight}>
+              {buttons}
+            </div>
+          </div>
+        </form>
+      </div>
     )
   }
-  }
+}
 
 TicketReply.propTypes = {
   ticket: PropTypes.instanceOf(LC.LCObject),

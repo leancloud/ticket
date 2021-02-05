@@ -244,7 +244,7 @@ class CustomerServiceTickets extends Component {
 
       return (
         <div className={`${css.ticket} ${css.row}`} key={ticket.get('nid')}>
-          <Checkbox className={css.ticketSelectCheckbox} onClick={this.handleClickCheckbox.bind(this)} value={ticket.id} checked={this.state.checkedTickets.has(ticket.id)}></Checkbox>
+          <Checkbox className={css.ticketSelectCheckbox} onChange={this.handleClickCheckbox.bind(this)} value={ticket.id} checked={this.state.checkedTickets.has(ticket.id)}></Checkbox>
           <div className={css.ticketContent}>
             <div className={css.heading}>
               <div className={css.left}>
@@ -453,7 +453,7 @@ class CustomerServiceTickets extends Component {
       <div>
         <DocumentTitle title={`${t('customerServiceTickets')} - LeanTicket`} />
         <div className={css.row}>
-          <Checkbox className={css.ticketSelectCheckbox} onClick={this.handleClickCheckAll.bind(this)} checked={this.state.isCheckedAll}></Checkbox>
+          <Checkbox className={css.ticketSelectCheckbox} onChange={this.handleClickCheckAll.bind(this)} checked={this.state.isCheckedAll}></Checkbox>
           {this.state.checkedTickets.size && ticketCheckedOperations || ticketAdminFilters}
         </div>
 
