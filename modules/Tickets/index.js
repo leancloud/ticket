@@ -147,7 +147,7 @@ class Tickets extends Component {
           tickets.map(ticket => (
             <TicketItem
               key={ticket.data.nid}
-              ticket={ticket}
+              ticket={ticket.toJSON()}
               checkable={this.state.batchOpsEnable}
               checked={this.state.checkedTickets.has(ticket.id)}
               onClickCheckbox={() => this.handleClickCheckbox(ticket.id)}

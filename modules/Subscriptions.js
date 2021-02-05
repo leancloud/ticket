@@ -51,7 +51,9 @@ export default class Subscriptions extends Component {
   }
 
   renderCell(watchData) {
-    const ticket = watchData.get('ticket')
+    const ticket = watchData.data.ticket
+    const assignee = ticket.data.assignee
+    const contributors = _.uniqBy(ticket.data.joinedCustomerServices || [], 'objectId')
 
     return (
       <div
@@ -65,7 +67,7 @@ export default class Subscriptions extends Component {
                 {ticket.get('title')}
               </Link>
             </div>
-            <div className={css.right}>
+            <div>
               {ticket.get('replyCount') && (
                 <Link
                   className={css.commentCounter}
@@ -100,16 +102,13 @@ export default class Subscriptions extends Component {
                 </span>
               )}
             </div>
-            <div className={css.right}>
+            <div>
               <span className={css.assignee}>
-                <UserLabel user={ticket.get('assignee')} />
+                <UserLabel user={assignee} />
               </span>
               <span className={css.contributors}>
-                {_.uniqBy(
-                  ticket.get('joinedCustomerServices') || [],
-                  'objectId'
-                ).map(user => (
-                  <UserLabel key={user.objectId} user={user} />
+                {contributors.map(user => (
+                  <span key={user.objectId}><UserLabel user={user} /></span>
                 ))}
               </span>
             </div>

@@ -60,8 +60,8 @@ const removeTicketStats = (ticket, authOptions) => {
 exports.statsTicket = (ticketId, authOptions) => {
   return getTicketAndTimeline(ticketId, authOptions)
   .then(({ticket, timeline}) => {
-    const firstReplyStats = new FirstReplyStats(ticket) 
-    const replyTimeStats = new ReplyTimeStats(ticket) 
+    const firstReplyStats = new FirstReplyStats(ticket)
+    const replyTimeStats = new ReplyTimeStats(ticket)
     _.forEach(timeline, (replyOrOpsLog) => {
       firstReplyStats.forEachReplyOrOpsLog(replyOrOpsLog)
       replyTimeStats.forEachReplyOrOpsLog(replyOrOpsLog)

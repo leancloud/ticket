@@ -238,13 +238,10 @@ class CustomerServiceTickets extends Component {
     const filters = this.props.location.query
     const tickets = this.state.tickets
     const ticketTrs = tickets.map((ticket) => {
-      const customerServices = _.uniqBy(ticket.get('joinedCustomerServices') || [], 'objectId').map((user) => {
-        return (
-          <span key={user.objectId}><UserLabel user={user} /> </span>
-        )
-      })
-      const joinedCustomerServices = <span>{customerServices}</span>
-      const category = depthFirstSearchFind(this.state.categoriesTree, c => c.id == ticket.get('category').objectId)
+      const assignee = ticket.data.assignee
+      const contributors = _.uniqBy(ticket.data.joinedCustomerServices || [], 'objectId')
+      const category = depthFirstSearchFind(this.state.categoriesTree, c => c.id == ticket.data.category.objectId)
+
       return (
         <div className={`${css.ticket} ${css.row}`} key={ticket.get('nid')}>
           <Checkbox className={css.ticketSelectCheckbox} onClick={this.handleClickCheckbox.bind(this)} value={ticket.id} checked={this.state.checkedTickets.has(ticket.id)}></Checkbox>
@@ -259,7 +256,7 @@ class CustomerServiceTickets extends Component {
                   <span>{ticket.get('evaluation') && (ticket.get('evaluation').star === 1 && <span className={css.satisfaction + ' ' + css.happy}>{t('satisfied')}</span> || <span className={css.satisfaction + ' ' + css.unhappy}>{t('unsatisfied')}</span>)}</span>
                 }
               </div>
-              <div className={css.right}>
+              <div>
                 {ticket.get('replyCount') &&
                   <Link className={css.commentCounter} title={'reply ' + ticket.get('replyCount')} to={'/tickets/' + ticket.get('nid')}>
                     <span className={css.commentCounterIcon + ' glyphicon glyphicon-comment'}></span>
@@ -278,9 +275,15 @@ class CustomerServiceTickets extends Component {
                   <span> {t('updatedAt')} {moment(ticket.get('updatedAt')).fromNow()}</span>
                 }
               </div>
-              <div className={css.right}>
-                <span className={css.assignee}><UserLabel user={ticket.get('assignee')} /></span>
-                <span className={css.contributors}>{joinedCustomerServices}</span>
+              <div>
+                <span className={css.assignee}>
+                  <UserLabel user={assignee} />
+                </span>
+                <span className={css.contributors}>
+                  {contributors.map(user => (
+                    <span key={user.objectId}><UserLabel user={user} /></span>
+                  ))}
+                </span>
               </div>
             </div>
             <BlodSearchString content={ticket.get('content')} searchString={filters.searchString}/>
