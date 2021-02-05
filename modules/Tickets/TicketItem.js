@@ -9,7 +9,7 @@ import {UserLabel} from '../UserLabel'
 import css from '../CustomerServiceTickets.css'
 import translate from '../i18n/translate'
 
-export const TicketItem = translate(({t, ticket, checkable, checked, onClickCheckbox, category}) => {
+export const TicketItem = translate(({t, ticket, checkable, checked, onCheckboxChange, category}) => {
   const contributors = _.uniqBy(ticket.joinedCustomerServices || [], 'objectId')
 
   return (
@@ -17,7 +17,7 @@ export const TicketItem = translate(({t, ticket, checkable, checked, onClickChec
       {checkable && (
         <Checkbox
           className={css.ticketSelectCheckbox}
-          onClick={onClickCheckbox}
+          onChange={onCheckboxChange}
           checked={checked}
         />
       )}

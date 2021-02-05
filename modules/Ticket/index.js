@@ -421,7 +421,7 @@ class Ticket extends Component {
         }
       }
       const panelClass = `panel ${(avObj.get('isCustomerService') ? css.panelModerator : 'panel-common')}`
-      const userLabel = avObj.get('isCustomerService') ? <span><UserLabel user={avObj.get('author')} /><i className={css.badge}>{t('staff')}</i></span> : <UserLabel user={avObj.get('author')} />
+      const userLabel = avObj.get('isCustomerService') ? <span><UserLabel user={avObj.get('author').data} /><i className={css.badge}>{t('staff')}</i></span> : <UserLabel user={avObj.get('author').data} />
       return (
         <div id={avObj.id} key={avObj.id} className={panelClass}>
           <div className={ 'panel-heading ' + css.heading }>

@@ -123,7 +123,7 @@ class Tickets extends Component {
         {this.props.organizations.length > 0 && <Form inline>
           {this.state.batchOpsEnable
             && <div>
-              <Checkbox className={css.ticketSelectCheckbox} onClick={this.handleClickCheckAll.bind(this)} checked={this.state.isCheckedAll}> {t('selectAll')}</Checkbox>
+              <Checkbox className={css.ticketSelectCheckbox} onChange={this.handleClickCheckAll.bind(this)} checked={this.state.isCheckedAll}> {t('selectAll')}</Checkbox>
               {' '}
               <TicketsMoveButton selectedOrgId={this.props.selectedOrgId}
                 organizations={this.props.organizations}
@@ -150,7 +150,7 @@ class Tickets extends Component {
               ticket={ticket.toJSON()}
               checkable={this.state.batchOpsEnable}
               checked={this.state.checkedTickets.has(ticket.id)}
-              onClickCheckbox={() => this.handleClickCheckbox(ticket.id)}
+              onCheckboxChange={() => this.handleClickCheckbox(ticket.id)}
               category={getCategoryPathName(ticket.data.category, this.state.categoriesTree, t)}
             />
           ))
