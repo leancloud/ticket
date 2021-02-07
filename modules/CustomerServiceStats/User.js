@@ -2,7 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import {Table} from 'react-bootstrap'
 import { cloud } from '../../lib/leancloud'
-import DocumentTitle from 'react-document-title'
+import {DocumentTitle} from '../utils/DocumentTitle'
 import translate from '../i18n/translate'
 
 class CSStatsUser extends React.Component {
@@ -50,22 +50,24 @@ class CSStatsUser extends React.Component {
     } catch (error) {
       console.log(error)
     }
-    return <div>
-      <DocumentTitle title={`${t('statistics')} - LeanTicket`} />
-      <Table>
-        <thead>
-          <td>{t('ticket')} ID</td>
-          <td>{t('firstReplyTime')}</td>
-          <td>{t('averageReplyTime')}</td>
-          <td>{t('replyCount')}</td>
-        </thead>
-        <tbody>
-          {trs}
-        </tbody>
-      </Table>
-    </div>
+    return (
+      <div>
+        <DocumentTitle title={`${t('statistics')} - LeanTicket`} />
+        <Table>
+          <thead>
+            <td>{t('ticket')} ID</td>
+            <td>{t('firstReplyTime')}</td>
+            <td>{t('averageReplyTime')}</td>
+            <td>{t('replyCount')}</td>
+          </thead>
+          <tbody>
+            {trs}
+          </tbody>
+        </Table>
+      </div>
+    )
   }
-  
+
 }
 
 CSStatsUser.propTypes = {

@@ -57,7 +57,6 @@
     "react-bootstrap": "^0.32.1",
     "react-chartjs-2": "^2.1.0",
     "react-datepicker": "^0.46.0",
-    "react-document-title": "^2.0.3",
     "react-dom": "^16.14.0",
     "react-notification-system": "^0.2.14",
     "react-router": "^3.0.2",
