@@ -1,5 +1,4 @@
 import React, {Component} from 'react'
-import DocumentTitle from 'react-document-title'
 import { Link } from 'react-router'
 import { Pager, Checkbox, Form, DropdownButton, MenuItem } from 'react-bootstrap'
 import PropTypes from 'prop-types'
@@ -13,6 +12,7 @@ import TicketsMoveButton from '../TicketsMoveButton'
 import translate from '../i18n/translate'
 import {getTicketAcl} from '../../lib/common'
 import {TicketItem} from './TicketItem'
+import {DocumentTitle} from '../utils/DocumentTitle'
 
 class Tickets extends Component {
 

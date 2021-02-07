@@ -7,7 +7,6 @@ import qs from 'query-string'
 import moment from 'moment'
 import {auth, cloud, db} from '../lib/leancloud'
 import css from './CustomerServiceTickets.css'
-import DocumentTitle from 'react-document-title'
 
 import {getCustomerServices, getCategoriesTree, depthFirstSearchMap, depthFirstSearchFind, getNodeIndentString, getNodePath, getTinyCategoryInfo, getCategoryName} from './common'
 import {TICKET_STATUS, TICKET_STATUS_MSG, ticketOpenedStatuses, ticketClosedStatuses, TIME_RANGE_MAP} from '../lib/common'
@@ -15,6 +14,7 @@ import TicketStatusLabel from './TicketStatusLabel'
 import {UserLabel} from './UserLabel'
 import translate from './i18n/translate'
 import {userDisplayName} from '../config.webapp'
+import {DocumentTitle} from './utils/DocumentTitle'
 
 let authorSearchTimeoutId
 class CustomerServiceTickets extends Component {

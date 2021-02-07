@@ -2,7 +2,6 @@ import moment from 'moment'
 import _ from 'lodash'
 import xss from 'xss'
 import React, {Component} from 'react'
-import DocumentTitle from 'react-document-title'
 import {FormGroup, ControlLabel, Alert, Button, Tooltip, OverlayTrigger} from 'react-bootstrap'
 import PropTypes from 'prop-types'
 import {auth, cloud, db} from '../../lib/leancloud'
@@ -20,6 +19,7 @@ import translate from '../i18n/translate'
 import Tag from '../Tag'
 import {WeekendWarning} from '../components/WeekendWarning'
 import {UserLabel} from '../UserLabel'
+import {DocumentTitle} from '../utils/DocumentTitle'
 
 // get a copy of default whiteList
 const whiteList = xss.getDefaultWhiteList()

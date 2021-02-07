@@ -18,7 +18,7 @@ import {
 import {uploadFiles, getCategoriesTree} from './common'
 import OrganizationSelect from './OrganizationSelect'
 import TagForm from './TagForm'
-import DocumentTitle from 'react-document-title'
+import {DocumentTitle} from './utils/DocumentTitle'
 import translate from './i18n/translate'
 import FAQ from './components/FAQ'
 
@@ -87,7 +87,7 @@ class NewTicket extends React.Component {
       this.setState({
         ticket,
         categoriesTree,
-        categoryPath, 
+        categoryPath,
         apps,
         appId,
       })
@@ -283,7 +283,7 @@ class NewTicket extends React.Component {
             <input type="text" className="form-control docsearch-input" value={ticket.title}
                onChange={this.handleTitleChange.bind(this)} />
           </FormGroup>
-          {ENABLE_LEANCLOUD_INTERGRATION && 
+          {ENABLE_LEANCLOUD_INTERGRATION &&
             <FormGroup>
               <ControlLabel>
                 {t('associatedApplication')} <OverlayTrigger placement="top" overlay={appTooltip}>

@@ -1,10 +1,10 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { db } from '../lib/leancloud'
-import DocumentTitle from 'react-document-title'
 import StatsSummary from './StatsSummary'
 import StatsChart from './StatsChart'
 import translate from './i18n/translate'
+import {DocumentTitle} from './utils/DocumentTitle'
 
 class CustomerServiceStats extends React.Component {
 
@@ -48,4 +48,3 @@ CustomerServiceStats.propTypes = {
 }
 
 export default translate(CustomerServiceStats)
-
