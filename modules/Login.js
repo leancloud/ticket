@@ -12,6 +12,7 @@ import { auth } from '../lib/leancloud'
 import { isCN } from './common'
 import css from './Login.css'
 import translate from './i18n/translate'
+import { withRouter } from 'react-router'
 
 class Login extends Component {
   constructor(props) {
@@ -24,34 +25,17 @@ class Login extends Component {
   }
 
   componentDidMount() {
-    const query = this.props.location.query
-    if (query.token) {
-      return auth.loginWithSessionToken(query.token)
-        .then(user => {
-          this.props.onLogin(user)
-          return
-        })
-        .then(() => {
-          this.context.router.push('/tickets')
-          return
-        })
-        .catch(this.context.addNotification)
-    }
-  }
-
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.location.pathname !== '/login') {
+    if (auth.currentUser()) {
+      this.props.history.push('/')
       return
     }
-    const query = nextProps.location.query
-    if (query.token) {
-      return auth.loginWithSessionToken(query.token)
+
+    const params = new URLSearchParams(this.props.location.search)
+    if (params.has('token')) {
+      return auth.loginWithSessionToken(params.get('token'))
         .then(user => {
           this.props.onLogin(user)
-          return
-        })
-        .then(() => {
-          this.redirect(nextProps)
+          this.props.history.push('/')
           return
         })
         .catch(this.context.addNotification)
@@ -74,7 +58,7 @@ class Login extends Component {
 
   handleSignup() {
     return auth.signUp({
-      username: this.state.username, 
+      username: this.state.username,
       password: this.state.password,
       name: this.state.username,
     })
@@ -92,9 +76,9 @@ class Login extends Component {
   redirect(props) {
     const { location } = props
     if (location.state && location.state.nextPathname) {
-      this.context.router.replace(location.state.nextPathname)
+      this.props.history.replace(location.state.nextPathname)
     } else {
-      this.context.router.replace('/')
+      this.props.history.replace('/')
     }
   }
 
@@ -135,7 +119,7 @@ class Login extends Component {
                 type="submit"
                 bsStyle="primary"
               >
-                {t('login')} 
+                {t('login')}
               </Button>{' '}
               <Button type="button" onClick={this.handleSignup.bind(this)}>
                 {t('signup')}
@@ -175,14 +159,14 @@ class Login extends Component {
 }
 
 Login.propTypes = {
-  location: PropTypes.object,
+  history: PropTypes.object.isRequired,
+  location: PropTypes.object.isRequired,
   onLogin: PropTypes.func,
   t: PropTypes.func
 }
 
 Login.contextTypes = {
-  router: PropTypes.object,
   addNotification: PropTypes.func.isRequired
 }
 
-export default translate(Login)
+export default withRouter(translate(Login))
