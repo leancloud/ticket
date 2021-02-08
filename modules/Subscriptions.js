@@ -19,16 +19,11 @@ class Subscriptions extends Component {
   }
 
   componentDidMount() {
-    if (this.props.location.pathname === '/notifications/subscriptions') {
-      this.findWatches()
-    }
+    this.findWatches()
   }
 
   componentDidUpdate(prevProps) {
-    if (
-      prevProps.location.search !== this.props.location.search &&
-      this.props.location.pathname === '/notifications/subscriptions'
-    ) {
+    if (prevProps.location.search !== this.props.location.search) {
       this.findWatches()
     }
   }

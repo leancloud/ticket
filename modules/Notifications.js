@@ -25,12 +25,7 @@ function Notifications() {
   }, [pathname])
 
   return (
-    <Tabs
-      defaultActiveKey={activeKey}
-      activeKey={activeKey}
-      id="uncontrolled-tab-example"
-      onSelect={handleSelect}
-    >
+    <Tabs mountOnEnter id="tabs-notifications" activeKey={activeKey} onSelect={handleSelect}>
       <Tab eventKey="Messages" title="消息">
         <div style={{ marginTop: 20 }}>
           <Messages />
