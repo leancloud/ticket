@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import { Link } from 'react-router'
+import { Link } from 'react-router-dom'
 import { Pager, Checkbox, Form, DropdownButton, MenuItem } from 'react-bootstrap'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
@@ -13,6 +13,7 @@ import translate from '../i18n/translate'
 import {getTicketAcl} from '../../lib/common'
 import {TicketItem} from './TicketItem'
 import {DocumentTitle} from '../utils/DocumentTitle'
+import { withAuth } from '../utils/withAuth'
 
 class Tickets extends Component {
 
@@ -176,4 +177,4 @@ Tickets.propTypes = {
   t: PropTypes.func
 }
 
-export default translate(Tickets)
+export default withAuth(translate(Tickets))
