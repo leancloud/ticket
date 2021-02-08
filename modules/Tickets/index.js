@@ -43,9 +43,9 @@ class Tickets extends Component {
     .catch(this.props.addNotification)
   }
 
-  componentWillReceiveProps(nextProps) {
-    if (this.props.selectedOrgId !== nextProps.selectedOrgId) {
-      this.findTickets({organizationId: nextProps.selectedOrgId})
+  componentDidUpdate(prevProps) {
+    if (this.props.selectedOrgId !== prevProps.selectedOrgId) {
+      this.findTickets({organizationId: this.props.selectedOrgId})
     }
   }
 
