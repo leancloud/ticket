@@ -5,12 +5,12 @@ import qs from 'query-string'
 import _ from 'lodash'
 import moment from 'moment'
 import { auth, db } from '../lib/leancloud'
-import { Link } from 'react-router'
+import { Link, withRouter } from 'react-router-dom'
 import { UserLabel } from './UserLabel'
 import TicketStatusLabel from './TicketStatusLabel'
 import css from './CustomerServiceTickets.css'
 
-export default class Subscriptions extends Component {
+class Subscriptions extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -20,21 +20,21 @@ export default class Subscriptions extends Component {
 
   componentDidMount() {
     if (this.props.location.pathname === '/notifications/subscriptions') {
-      this.findWatches(this.props.location.query)
+      this.findWatches()
     }
   }
 
-  componentWillReceiveProps(nextProps) {
+  componentDidUpdate(prevProps) {
     if (
-      !_.isEqual(nextProps.location, this.props.location) &&
-      nextProps.location.pathname === '/notifications/subscriptions'
+      prevProps.location.search !== this.props.location.search &&
+      this.props.location.pathname === '/notifications/subscriptions'
     ) {
-      this.findWatches(nextProps.location.query)
+      this.findWatches()
     }
   }
 
-  findWatches(filters) {
-    const { page = '0', size = '10' } = filters
+  findWatches() {
+    const { page = '0', size = '10' } = qs.parse(this.props.location.search)
 
     db.class('Watch')
       .where('user', '==', auth.currentUser())
@@ -126,16 +126,16 @@ export default class Subscriptions extends Component {
       filter.page = '0'
     }
     filter.size = '10'
-    this.context.router.push(this.getQueryUrl(filter))
+    this.props.history.push(this.getQueryUrl(filter))
   }
+
   getQueryUrl(filter) {
-    const filters = _.assign({}, this.props.location.query, filter)
+    const filters = _.assign({}, qs.parse(this.props.location.search), filter)
     return this.props.location.pathname + '?' + qs.stringify(filters)
   }
 
   renderPager() {
-    const filters = this.props.location.query
-    const { page = '0', size = '10' } = filters
+    const { page = '0', size = '10' } = qs.parse(this.props.location.search)
 
     let pager
     const isFirstPage = page === '0'
@@ -175,10 +175,12 @@ export default class Subscriptions extends Component {
 }
 
 Subscriptions.propTypes = {
-  location: PropTypes.object.isRequired
+  location: PropTypes.object.isRequired,
+  history: PropTypes.object.isRequired,
 }
 
 Subscriptions.contextTypes = {
   addNotification: PropTypes.func.isRequired,
-  router: PropTypes.object.isRequired
 }
+
+export default withRouter(Subscriptions)

@@ -1,12 +1,13 @@
 import React, {Component} from 'react'
-import { Link } from 'react-router'
+import { Link } from 'react-router-dom'
 import { FormGroup, Button, Table } from 'react-bootstrap'
 import moment from 'moment'
 import { auth, db } from '../lib/leancloud'
 
 import {UserLabel} from './UserLabel'
+import { withAuth } from './utils/withAuth'
 
-export default class Messages extends Component {
+class Messages extends Component {
 
   constructor(props) {
     super(props)
@@ -125,4 +126,7 @@ export default class Messages extends Component {
 }
 
 Messages.propTypes = {
+
 }
+
+export default withAuth(Messages)
