@@ -21,6 +21,8 @@ import TagForm from './TagForm'
 import {DocumentTitle} from './utils/DocumentTitle'
 import translate from './i18n/translate'
 import FAQ from './components/FAQ'
+import { withAuth } from './utils/withAuth'
+import { withRouter } from 'react-router'
 
 class NewTicket extends React.Component {
 
@@ -55,6 +57,9 @@ class NewTicket extends React.Component {
       inputSelector: '.docsearch-input',
       debug: false // Set debug to true if you want to inspect the dropdown
     })
+
+    const params = new URLSearchParams(this.props.location.search)
+
     cloud.run('checkPermission')
     .then(() => {
       return Promise.all([
@@ -69,18 +74,13 @@ class NewTicket extends React.Component {
       ])
     })
     .then(([categoriesTree, apps]) => {
-      let {
-        title=(localStorage.getItem('ticket:new:title') || ''),
-        appId='',
-        categoryIds=JSON.parse(localStorage.getItem('ticket:new:categoryIds') || '[]'),
-        content=(localStorage.getItem('ticket:new:content') || '')
-      } = this.props.location.query
-
+      const appId = params.get('appId') || ''
+      const title = params.get('title') || localStorage.getItem('ticket:new:title') || ''
+      const categoryIds = JSON.parse(localStorage.getItem('ticket:new:categoryIds') || '[]')
       const categoryPath = _.compact(categoryIds.map(cid => depthFirstSearchFind(categoriesTree, c => c.id == cid)))
       const category = _.last(categoryPath)
-      if (content === '' && category && category.get('qTemplate')) {
-        content = category.get('qTemplate')
-      }
+      const content = localStorage.getItem('ticket:new:content') || (category && category.get('qTemplate')) || ''
+
       const ticket = this.state.ticket
       ticket.title = title
       ticket.content = content
@@ -216,7 +216,7 @@ class NewTicket extends React.Component {
     .then(() => {
       localStorage.removeItem('ticket:new:title')
       localStorage.removeItem('ticket:new:content')
-      this.context.router.push('/tickets')
+      this.props.history.push('/tickets')
       return
     })
     .catch(this.context.addNotification)
@@ -341,17 +341,17 @@ class NewTicket extends React.Component {
 }
 
 NewTicket.contextTypes = {
-  router: PropTypes.object,
   addNotification: PropTypes.func.isRequired,
   tagMetadatas: PropTypes.array,
 }
 
 NewTicket.propTypes = {
-  location: PropTypes.object,
+  history: PropTypes.object.isRequired,
+  location: PropTypes.object.isRequired,
   organizations: PropTypes.array,
   handleOrgChange: PropTypes.func,
   selectedOrgId: PropTypes.string,
   t: PropTypes.func,
 }
 
-export default translate(NewTicket)
+export default withAuth(withRouter(translate(NewTicket)))
