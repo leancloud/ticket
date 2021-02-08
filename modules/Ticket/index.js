@@ -20,6 +20,8 @@ import Tag from '../Tag'
 import {WeekendWarning} from '../components/WeekendWarning'
 import {UserLabel} from '../UserLabel'
 import {DocumentTitle} from '../utils/DocumentTitle'
+import { withRouter } from 'react-router-dom'
+import { withAuth } from '../utils/withAuth'
 
 // get a copy of default whiteList
 const whiteList = xss.getDefaultWhiteList()
@@ -48,10 +50,11 @@ class Ticket extends Component {
   }
 
   componentDidMount() {
-    this.getTicketQuery(parseInt(this.props.params.nid)).first()
+    const { nid } = this.props.match.params
+    this.getTicketQuery(parseInt(nid)).first()
     .then(ticket => {
       if (!ticket) {
-        return this.props.router.replace({
+        return this.props.history.replace({
           pathname: '/error',
           state: { code: 'Unauthorized' }
         })
@@ -581,10 +584,10 @@ class Ticket extends Component {
 }
 
 Ticket.propTypes = {
-  router: PropTypes.object,
+  history: PropTypes.object.isRequired,
+  match: PropTypes.object.isRequired,
   currentUser: PropTypes.object,
   isCustomerService: PropTypes.bool,
-  params: PropTypes.object,
   t: PropTypes.func
 }
 
@@ -592,4 +595,4 @@ Ticket.contextTypes = {
   addNotification: PropTypes.func.isRequired,
 }
 
-export default translate(Ticket)
+export default withAuth(withRouter(translate(Ticket)))
