@@ -45,11 +45,13 @@ export const TicketItem = translate(({t, ticket, checkable, checked, onCheckboxC
             </span>
             <span className={css.creator}>
               <UserLabel user={ticket.author} />
-            </span> {t('createdAt')}
-            {moment(ticket.createdAt).fromNow()}
-            {moment(ticket.createdAt).fromNow() === moment(ticket.updatedAt).fromNow() ||
-              <span>, {t('updatedAt')} {moment(ticket.updatedAt).fromNow()}</span>
-            }
+            </span>
+            <span>
+              {` ${t('createdAt')} ${moment(ticket.createdAt).fromNow()}`}
+              {moment(ticket.createdAt).fromNow() !== moment(ticket.updatedAt).fromNow() &&
+                `, ${t('updatedAt')} ${moment(ticket.updatedAt).fromNow()}`
+              }
+            </span>
           </div>
           <div>
             <span className={css.assignee}>
