@@ -1,5 +1,6 @@
 /*global FAQ_VIEWS*/
 import React from 'react'
+import { withRouter } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 import {
@@ -20,7 +21,7 @@ const DEFAULT_PRIORITY = 10
 
 class FAQ extends React.Component {
   componentDidMount() {
-    const id = this.props.params.id
+    const { id } = this.props.match.params
     return Promise.resolve()
       .then(() => {
         if (id == '_new') {
@@ -88,7 +89,7 @@ class FAQ extends React.Component {
 
     return Promise.resolve()
       .then(() => {
-        const id = this.props.params.id
+        const { id } = this.props.match.params
         if (id === '_new') {
           return db.class('FAQ').add(faq)
         } else {
@@ -97,7 +98,7 @@ class FAQ extends React.Component {
       })
       .then(() => {
         this.setState({ isSubmitting: false })
-        this.context.router.push('/settings/faqs')
+        this.props.history.push('/settings/faqs')
         return
       })
       .then(this.context.addNotification)
@@ -161,7 +162,7 @@ class FAQ extends React.Component {
           </Button>{' '}
           <Button
             type="button"
-            onClick={() => this.context.router.push('/settings/faqs')}
+            onClick={() => this.props.history.push('/settings/faqs')}
           >
             {t('return')}
           </Button>
@@ -172,13 +173,13 @@ class FAQ extends React.Component {
 }
 
 FAQ.propTypes = {
-  params: PropTypes.object.isRequired,
+  history: PropTypes.object.isRequired,
+  match: PropTypes.object.isRequired,
   t: PropTypes.func
 }
 
 FAQ.contextTypes = {
-  router: PropTypes.object.isRequired,
   addNotification: PropTypes.func.isRequired
 }
 
-export default translate(FAQ)
+export default withRouter(translate(FAQ))

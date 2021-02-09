@@ -33,7 +33,7 @@ class CategorySort extends React.Component {
     })
     return p.commit()
     .then(() => {
-      this.context.router.push('/settings/categories')
+      this.props.history.push('/settings/categories')
       return
     })
     .catch(this.context.addNotification)
@@ -91,11 +91,11 @@ class CategorySort extends React.Component {
 }
 
 CategorySort.contextTypes = {
-  router: PropTypes.object.isRequired,
   addNotification: PropTypes.func.isRequired,
 }
 
 CategorySort.propTypes = {
+  history: PropTypes.object.isRequired,
   t: PropTypes.func
 }
 

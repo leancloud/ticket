@@ -8,16 +8,12 @@ import AccountLink from './AccountLink'
 import translate from '../i18n/translate'
 
 class Profile extends Component {
-
   constructor(props) {
     super(props)
     this.state = {
       name: this.props.currentUser.data.name,
       email: this.props.currentUser.email,
     }
-  }
-
-  componentDidMount() {
   }
 
   handleNameChange(e) {
@@ -44,7 +40,7 @@ class Profile extends Component {
           <Form>
             <FormGroup>
               <ControlLabel>{t('username')}</ControlLabel>
-              <FormControl type="text" value={this.props.currentUser.username} disabled='true' />
+              <FormControl type="text" value={this.props.currentUser.username} disabled />
             </FormGroup>
             <FormGroup>
               <ControlLabel>{t('nickname')}</ControlLabel>

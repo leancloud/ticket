@@ -1,11 +1,11 @@
 import PropTypes from 'prop-types'
 import React, {Component} from 'react'
 import {Form, FormGroup, ControlLabel, FormControl, InputGroup, Checkbox, Radio, Button, OverlayTrigger, Tooltip} from 'react-bootstrap'
+import { withRouter } from 'react-router-dom'
 import {db} from '../../lib/leancloud'
 import translate from '../i18n/translate'
 
 class Tag extends Component {
-
   constructor(props) {
     super(props)
     this.state = {
@@ -15,7 +15,7 @@ class Tag extends Component {
   }
 
   componentDidMount() {
-    const id = this.props.params.id
+    const { id } = this.props.match.params
     return Promise.resolve()
     .then(() => {
       if (id == 'new') {
@@ -96,7 +96,7 @@ class Tag extends Component {
       // TODO 移除相关 ticket 的标签
       .then(() => {
         this.context.refreshTagMetadatas()
-        this.context.router.push('/settings/tags')
+        this.props.history.push('/settings/tags')
         return
       })
       .catch(this.context.addNotification)
@@ -115,7 +115,7 @@ class Tag extends Component {
     const data = Object.assign({}, tagMetadata, { ACL })
     return Promise.resolve()
     .then(() => {
-      const id = this.props.params.id
+      const { id } = this.props.match.params
       if (id === 'new') {
         return db.class('TagMetadata').add(data)
       } else {
@@ -125,7 +125,7 @@ class Tag extends Component {
     .then(() => {
       this.setState({isSubmitting: false})
       this.context.refreshTagMetadatas()
-      this.context.router.push(`/settings/tags/${tagMetadata.id}`)
+      this.props.history.push(`/settings/tags/${tagMetadata.id}`)
       return
     })
     .then(this.context.addNotification)
@@ -133,7 +133,8 @@ class Tag extends Component {
   }
 
   render() {
-    const {t} = this.props
+    const { t } = this.props
+    const { id } = this.props.match.params
     const tagMetadata = this.state.tagMetadata
     if (!tagMetadata) {
       return <div>{t('loading')}……</div>
@@ -197,23 +198,22 @@ class Tag extends Component {
       }
       <Button type='submit' bsStyle='success'>{t('save')}</Button>
       {' '}
-      {this.props.params.id !== 'new'
-        && <Button type='button' onClick={this.handleRemove.bind(this, t)} bsStyle="danger">{t('delete')}</Button>}
+      {id !== 'new' && <Button type='button' onClick={this.handleRemove.bind(this, t)} bsStyle="danger">{t('delete')}</Button>}
       {' '}
-      <Button type='button' onClick={() => this.context.router.push('/settings/tags')}>{t('return')}</Button>
+      <Button type='button' onClick={() => this.props.history.push('/settings/tags')}>{t('return')}</Button>
     </Form>
   }
 }
 
 Tag.propTypes = {
-  params: PropTypes.object.isRequired,
+  history: PropTypes.object.isRequired,
+  match: PropTypes.object.isRequired,
   t: PropTypes.func,
 }
 
 Tag.contextTypes = {
-  router: PropTypes.object.isRequired,
   addNotification: PropTypes.func.isRequired,
   refreshTagMetadatas: PropTypes.func.isRequired,
 }
 
-export default translate(Tag)
+export default withRouter(translate(Tag))

@@ -1,12 +1,11 @@
 import PropTypes from 'prop-types'
 import React, {Component} from 'react'
-import {Link} from 'react-router'
+import {Link} from 'react-router-dom'
 import {Form, FormGroup, Panel, ListGroup, ListGroupItem, Button} from 'react-bootstrap'
 import {cloud} from '../../lib/leancloud'
 import translate from '../i18n/translate'
 
 class Organizations extends Component {
-
   constructor(props) {
     super(props)
     this.state = {
@@ -16,10 +15,6 @@ class Organizations extends Component {
 
   componentDidMount() {
     this.fetchRoleUsers(this.props.organizations)
-  }
-
-  componentWillReceiveProps(nextProps) {
-    this.fetchRoleUsers(nextProps.organizations)
   }
 
   fetchRoleUsers(organizations) {

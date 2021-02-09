@@ -5,9 +5,9 @@ import {auth, db} from '../../lib/leancloud'
 
 import translate from '../i18n/translate'
 import {getOrganizationRoleName} from '../../lib/common'
+import { withRouter } from 'react-router-dom'
 
 class OrganizationNew extends React.Component {
-
   constructor(props) {
     super(props)
     this.state = {
@@ -27,7 +27,7 @@ class OrganizationNew extends React.Component {
 
   async handleSubmit(t, e) {
     e.preventDefault()
-   
+
     const name = this.state.name.trim()
     if (name.length == 0) {
       this.setState({
@@ -61,7 +61,7 @@ class OrganizationNew extends React.Component {
       })
       await organization.update({ACL, adminRole, memberRole})
       this.props.joinOrganization(organization)
-      this.context.router.push(`/settings/organizations/${organization.id}`)
+      this.props.history.push(`/settings/organizations/${organization.id}`)
       this.context.addNotification('Add organization successful')
     } catch (e) {
       this.context.addNotification(e)
@@ -82,7 +82,7 @@ class OrganizationNew extends React.Component {
           </FormGroup>
           <Button type='submit' disabled={this.state.isSubmitting} bsStyle='success'>{t('save')}</Button>
           {' '}
-          <Button type='button' onClick={() => this.context.router.push('/settings/organizations')}>{t('return')}</Button>
+          <Button type='button' onClick={() => this.props.history.push('/settings/organizations')}>{t('return')}</Button>
         </form>
       </div>
     )
@@ -91,14 +91,13 @@ class OrganizationNew extends React.Component {
 }
 
 OrganizationNew.propTypes = {
-  params: PropTypes.object,
+  history: PropTypes.object.isRequired,
   joinOrganization: PropTypes.func,
   t: PropTypes.func
 }
 
 OrganizationNew.contextTypes = {
-  router: PropTypes.object.isRequired,
   addNotification: PropTypes.func.isRequired,
 }
 
-export default translate(OrganizationNew)
+export default withRouter(translate(OrganizationNew))

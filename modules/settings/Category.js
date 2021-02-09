@@ -1,4 +1,5 @@
 import React from 'react'
+import { withRouter } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import {FormGroup, ControlLabel, FormControl, Button} from 'react-bootstrap'
 import {db} from '../../lib/leancloud'
@@ -29,7 +30,7 @@ class Category extends React.Component {
     .then(categoriesTree => {
       this.setState({categoriesTree, isLoading: false})
 
-      const categoryId = this.props.params.id
+      const categoryId = this.props.match.params.id
       if (categoryId == '_new') {
         return
       }
@@ -114,7 +115,7 @@ class Category extends React.Component {
     promise
     .then(() => {
       this.setState({isSubmitting: false})
-      this.context.router.push('/settings/categories')
+      this.props.history.push('/settings/categories')
       return
     })
     .then(this.context.addNotification)
@@ -129,7 +130,7 @@ class Category extends React.Component {
         'order': new Date().getTime(), // 确保在排序的时候尽量靠后
       })
       .then(() => {
-        this.context.router.push('/settings/categories')
+        this.props.history.push('/settings/categories')
         return
       })
       .catch(this.context.addNotification)
@@ -177,7 +178,7 @@ class Category extends React.Component {
           {' '}
           {this.state.category
             && <Button type='button' bsStyle="danger" onClick={this.handleDisable.bind(this, t)}>{t('disable')}</Button>
-            || <Button type='button' onClick={() => this.context.router.push('/settings/categories')}>{t('return')}</Button>
+            || <Button type='button' onClick={() => this.props.history.push('/settings/categories')}>{t('return')}</Button>
           }
         </form>
       </div>
@@ -187,13 +188,13 @@ class Category extends React.Component {
 }
 
 Category.propTypes = {
-  params: PropTypes.object.isRequired,
+  history: PropTypes.object.isRequired,
+  match: PropTypes.object.isRequired,
   t: PropTypes.func,
 }
 
 Category.contextTypes = {
-  router: PropTypes.object.isRequired,
   addNotification: PropTypes.func.isRequired,
 }
 
-export default translate(Category)
+export default withRouter(translate(Category))
