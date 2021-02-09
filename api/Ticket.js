@@ -111,14 +111,14 @@ AV.Cloud.define('operateTicket', async (req) => {
       new AV.Query('Ticket').get(ticketId, {user: req.currentUser}),
       getTinyUserInfo(req.currentUser),
     ])
-    const isCustomerService = await isCustomerService(req.currentUser, ticket.get('author'))
-    if (isCustomerService) {
+    const isCS = await isCustomerService(req.currentUser, ticket.get('author'))
+    if (isCS) {
       ticket.addUnique('joinedCustomerServices', operator)
       if (action === TICKET_ACTION.CLOSE || action === TICKET_ACTION.REOPEN) {
         ticket.increment('unreadCount')
       }
     }
-    ticket.set('status', getTargetStatus(action, isCustomerService))
+    ticket.set('status', getTargetStatus(action, isCS))
     await ticket.save(null, {user: req.currentUser})
     await new AV.Object('OpsLog')
       .save({
