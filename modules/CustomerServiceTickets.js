@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
-import { Link } from 'react-router'
+import { Link, withRouter } from 'react-router-dom'
 import { Form, FormGroup, ButtonToolbar, ButtonGroup, Button, DropdownButton, MenuItem, Checkbox, FormControl, Pager} from 'react-bootstrap'
 import qs from 'query-string'
 import moment from 'moment'
@@ -31,7 +31,8 @@ class CustomerServiceTickets extends Component {
   }
 
   componentDidMount () {
-    const authorId = this.props.location.query.authorId
+    const filters = qs.parse(this.props.location.search)
+    const { authorId } = filters
     Promise.all([
       getCustomerServices(),
       getCategoriesTree(false),
@@ -39,14 +40,16 @@ class CustomerServiceTickets extends Component {
     ])
     .then(([customerServices, categoriesTree, author]) => {
       this.setState({customerServices, categoriesTree, authorUsername: author && author.get('username')})
-      return this.findTickets(this.props.location.query)
+      return this.findTickets(filters)
     })
     .catch(this.context.addNotification)
   }
 
-  componentWillReceiveProps(nextProps) {
-    this.findTickets(nextProps.location.query)
-    .catch(this.context.addNotification)
+  componentDidUpdate(prevProps) {
+    if (prevProps.location.search !== this.props.location.search) {
+      this.findTickets(qs.parse(this.props.location.search))
+        .catch(this.context.addNotification)
+    }
   }
 
   findTickets(filters) {
@@ -157,11 +160,11 @@ class CustomerServiceTickets extends Component {
       filter.page = '0'
       filter.size = '10'
     }
-    this.context.router.push(this.getQueryUrl(filter))
+    this.props.history.push(this.getQueryUrl(filter))
   }
 
   getQueryUrl(filter) {
-    const filters = _.assign({}, this.props.location.query, filter)
+    const filters = _.assign({}, qs.parse(this.props.location.search), filter)
     return this.props.location.pathname + '?' + qs.stringify(filters)
   }
 
@@ -178,7 +181,7 @@ class CustomerServiceTickets extends Component {
     authorSearchTimeoutId = setTimeout(() => {
       if (username.trim() === '') {
         this.setState({authorFilterValidationState: null})
-        const filters = _.assign({}, this.props.location.query, {authorId: null})
+        const filters = _.assign({}, qs.parse(this.props.location.search), {authorId: null})
         return this.updateFilter(filters)
       }
 
@@ -190,7 +193,7 @@ class CustomerServiceTickets extends Component {
           return
         } else {
           this.setState({authorFilterValidationState: 'success'})
-          const filters = _.assign({}, this.props.location.query, {authorId: user.objectId})
+          const filters = _.assign({}, qs.parse(this.props.location.search), {authorId: user.objectId})
           return this.updateFilter(filters)
         }
       })
@@ -236,7 +239,7 @@ class CustomerServiceTickets extends Component {
 
   render() {
     const {t} = this.props
-    const filters = this.props.location.query
+    const filters = qs.parse(this.props.location.search)
     const tickets = this.state.tickets
     const ticketTrs = tickets.map((ticket) => {
       const contributors = _.uniqBy(ticket.data.joinedCustomerServices || [], 'objectId')
@@ -466,12 +469,12 @@ class CustomerServiceTickets extends Component {
 }
 
 CustomerServiceTickets.propTypes = {
+  history: PropTypes.object.isRequired,
   location: PropTypes.object.isRequired,
   t: PropTypes.func
 }
 
 CustomerServiceTickets.contextTypes = {
-  router: PropTypes.object.isRequired,
   addNotification: PropTypes.func.isRequired,
   tagMetadatas: PropTypes.array,
 }
@@ -533,4 +536,4 @@ BlodSearchString.propTypes = {
   searchString: PropTypes.string,
 }
 
-export default translate(CustomerServiceTickets)
+export default withRouter(translate(CustomerServiceTickets))
