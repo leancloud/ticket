@@ -1,7 +1,7 @@
 /*global ENABLE_LEANCLOUD_INTERGRATION */
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
-import {Link} from 'react-router'
+import { Link, withRouter } from 'react-router-dom'
 import {cloud} from '../lib/leancloud'
 import {Avatar} from './Avatar'
 import css from './User.css'
@@ -9,7 +9,6 @@ import translate from './i18n/translate'
 import {UserTags} from './UserLabel'
 
 class User extends Component {
-
   constructor(props) {
     super(props)
     this.state = {
@@ -19,19 +18,16 @@ class User extends Component {
   }
 
   componentDidMount() {
-    this.refreshUserInfo(this.props)
+    this.refreshUserInfo()
   }
 
-  componentWillReceiveProps(nextProps) {
-    this.refreshUserInfo(nextProps)
-  }
-
-  refreshUserInfo(props) {
-    const username = props.params.username
+  refreshUserInfo() {
+    const { username } = this.props.match.params
+    const { isCustomerService } = this.props
     return Promise.all([
       cloud.run('getUserInfo', {username}),
-      ENABLE_LEANCLOUD_INTERGRATION && props.isCustomerService ? cloud.run('getLeanCloudUserInfosByUsername', {username}) : null,
-      ENABLE_LEANCLOUD_INTERGRATION && props.isCustomerService ? cloud.run('getLeanCloudAppsByUsername', {username}) : null,
+      ENABLE_LEANCLOUD_INTERGRATION && isCustomerService ? cloud.run('getLeanCloudUserInfosByUsername', {username}) : null,
+      ENABLE_LEANCLOUD_INTERGRATION && isCustomerService ? cloud.run('getLeanCloudAppsByUsername', {username}) : null,
     ]).then(([user, leancloudUsers, leancloudApps]) => {
       this.setState({
         user,
@@ -99,7 +95,9 @@ class User extends Component {
   }
 }
 User.propTypes = {
-  isCustomerService: PropTypes.bool
+  match: PropTypes.object.isRequired,
+  isCustomerService: PropTypes.bool,
+  t: PropTypes.func,
 }
 
 const LeanCloudApps = (props) => {
@@ -145,8 +143,5 @@ const LeanCloudApps = (props) => {
 LeanCloudApps.propTypes = {
   leancloudApps: PropTypes.array
 }
-User.propTypes = {
-  t: PropTypes.func
-}
 
-export default translate(User)
+export default withRouter(translate(User))
