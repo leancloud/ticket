@@ -21,7 +21,6 @@ import {WeekendWarning} from '../components/WeekendWarning'
 import {UserLabel} from '../UserLabel'
 import {DocumentTitle} from '../utils/DocumentTitle'
 import { withRouter } from 'react-router-dom'
-import { withAuth } from '../utils/withAuth'
 
 // get a copy of default whiteList
 const whiteList = xss.getDefaultWhiteList()
@@ -595,4 +594,4 @@ Ticket.contextTypes = {
   addNotification: PropTypes.func.isRequired,
 }
 
-export default withAuth(withRouter(translate(Ticket)))
+export default withRouter(translate(Ticket))

@@ -21,7 +21,6 @@ import TagForm from './TagForm'
 import {DocumentTitle} from './utils/DocumentTitle'
 import translate from './i18n/translate'
 import FAQ from './components/FAQ'
-import { withAuth } from './utils/withAuth'
 import { withRouter } from 'react-router'
 
 class NewTicket extends React.Component {
@@ -354,4 +353,4 @@ NewTicket.propTypes = {
   t: PropTypes.func,
 }
 
-export default withAuth(withRouter(translate(NewTicket)))
+export default withRouter(translate(NewTicket))

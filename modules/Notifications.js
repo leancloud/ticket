@@ -5,14 +5,13 @@ import Messages from './Messages'
 import Subscriptions from './Subscriptions'
 
 import _ from 'lodash'
-import { withAuth } from './utils/withAuth'
 
 const NOTIFICATIONS_PATHNAME_MAP = {
   Messages: '/notifications',
   Subscriptions: '/notifications/subscriptions'
 }
 
-function Notifications() {
+export default function Notifications() {
   const history = useHistory()
   const { pathname } = useLocation()
 
@@ -37,5 +36,3 @@ function Notifications() {
     </Tabs>
   )
 }
-
-export default withAuth(Notifications)

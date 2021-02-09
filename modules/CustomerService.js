@@ -1,16 +1,18 @@
 import React from 'react'
-import PropTypes from 'prop-types'
+import { Route, Switch, useRouteMatch } from 'react-router-dom'
 
-export default class CustomerService extends React.Component {
+import CSTickets from './CustomerServiceTickets'
+import CSStats from './CustomerServiceStats'
+import CSStatsUser from './CustomerServiceStats/User'
 
-  render() {
-    return <div>
-      {this.props.children}
-    </div>
-  }
+export default function CustomerService(props) {
+  const { path } = useRouteMatch()
 
-}
-
-CustomerService.propTypes = {
-  children: PropTypes.object.isRequired,
+  return (
+    <Switch>
+      <Route path={`${path}/tickets`}><CSTickets {...props} /></Route>
+      <Route path={`${path}/stats`} exact><CSStats {...props} /></Route>
+      <Route path={`${path}/stats/users/:userId`}><CSStatsUser {...props} /></Route>
+    </Switch>
+  )
 }

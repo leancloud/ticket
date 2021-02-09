@@ -5,10 +5,8 @@ import moment from 'moment'
 import { auth, db } from '../lib/leancloud'
 
 import {UserLabel} from './UserLabel'
-import { withAuth } from './utils/withAuth'
 
-class Messages extends Component {
-
+export default class Messages extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -124,9 +122,3 @@ class Messages extends Component {
     </div>
   }
 }
-
-Messages.propTypes = {
-
-}
-
-export default withAuth(Messages)
