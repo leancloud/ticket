@@ -13,7 +13,6 @@ import translate from '../i18n/translate'
 import {getTicketAcl} from '../../lib/common'
 import {TicketItem} from './TicketItem'
 import {DocumentTitle} from '../utils/DocumentTitle'
-import { withAuth } from '../utils/withAuth'
 
 class Tickets extends Component {
 
@@ -177,4 +176,4 @@ Tickets.propTypes = {
   t: PropTypes.func
 }
 
-export default withAuth(translate(Tickets))
+export default translate(Tickets)

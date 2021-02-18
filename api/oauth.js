@@ -1,6 +1,6 @@
 const format = require('util').format
 const router = require('express').Router()
-const qs = require('qs')
+const qs = require('query-string')
 const _ = require('lodash')
 const Promise = require('bluebird')
 const request = require('request-promise')

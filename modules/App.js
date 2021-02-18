@@ -1,8 +1,12 @@
+/* global SENTRY_DSN_PUBLIC */
+
 import _ from 'lodash'
 import React, { Component } from 'react'
+import {Route, Switch, withRouter} from 'react-router-dom'
 import PropTypes from 'prop-types'
 import NotificationSystem from 'react-notification-system'
 import Raven from 'raven-js'
+import moment from 'moment'
 
 import {auth, db} from '../lib/leancloud'
 import { isCustomerService } from './common'
@@ -10,7 +14,37 @@ import GlobalNav from './GlobalNav'
 import css from './App.css'
 import {locale} from './i18n/I18nProvider'
 
-export default class App extends Component {
+import { AuthRoute } from './utils/AuthRoute'
+import Home from './Home'
+import Tickets from './Tickets'
+import About from './About'
+import Login from './Login'
+import NewTicket from './NewTicket'
+import Ticket from './Ticket'
+import Messages from './Messages'
+import NotFound from './NotFound'
+import Notifications from './Notifications'
+import CustomerService from './CustomerService'
+import Error from './Error'
+import User from './User'
+import Settings from './Settings'
+
+if (locale === 'zh') {
+  moment.updateLocale('zh-cn', {
+    calendar : {
+      lastWeek : function() {
+        // eslint-disable-next-line i18n/no-chinese-character
+        return this < moment().startOf('week') ? '[上]ddddLT' : 'ddddLT'
+      },
+    }
+  })
+}
+
+if (SENTRY_DSN_PUBLIC !== '') {
+  Raven.config(SENTRY_DSN_PUBLIC).install()
+}
+
+class App extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -109,12 +143,10 @@ export default class App extends Component {
     return this.refreshGlobalInfo(user)
   }
 
-  logout() {
-    return auth.logOut().then(() => {
-      this.refreshGlobalInfo()
-      this.context.router.push('/')
-      return
-    })
+  async logout() {
+    await auth.logOut()
+    this.refreshGlobalInfo()
+    this.props.history.push('/login')
   }
 
   updateCurrentUser(props) {
@@ -153,6 +185,19 @@ export default class App extends Component {
   }
 
   render() {
+    const props = {
+      onLogin: this.onLogin.bind(this),
+      currentUser: this.state.currentUser,
+      isCustomerService: this.state.isCustomerService,
+      updateCurrentUser: this.updateCurrentUser.bind(this),
+      organizations: this.state.organizations,
+      joinOrganization: this.joinOrganization.bind(this),
+      handleOrgChange: this.handleOrgChange.bind(this),
+      leaveOrganization: this.leaveOrganization.bind(this),
+      selectedOrgId: this.state.selectedOrgId,
+      tagMetadatas: this.state.tagMetadatas
+    }
+
     return (
       <div>
         <GlobalNav
@@ -161,19 +206,21 @@ export default class App extends Component {
           logout={this.logout.bind(this)}
         />
         <div className={'container ' + css.main}>
-          {this.props.children &&
-            React.cloneElement(this.props.children, {
-              onLogin: this.onLogin.bind(this),
-              currentUser: this.state.currentUser,
-              isCustomerService: this.state.isCustomerService,
-              updateCurrentUser: this.updateCurrentUser.bind(this),
-              organizations: this.state.organizations,
-              joinOrganization: this.joinOrganization.bind(this),
-              handleOrgChange: this.handleOrgChange.bind(this),
-              leaveOrganization: this.leaveOrganization.bind(this),
-              selectedOrgId: this.state.selectedOrgId,
-              tagMetadatas: this.state.tagMetadatas
-            })}
+          <Switch>
+            <Route path="/" exact><Home {...props} /></Route>
+            <Route path="/about" component={About} />
+            <Route path="/login"><Login {...props} /></Route>
+            <AuthRoute path="/tickets" exact><Tickets {...props} /></AuthRoute>
+            <AuthRoute path="/tickets/new"><NewTicket {...props} /></AuthRoute>
+            <AuthRoute path="/tickets/:nid"><Ticket {...props} /></AuthRoute>
+            <AuthRoute path="/messages"><Messages {...props} /></AuthRoute>
+            <AuthRoute path="/notifications"><Notifications {...props} /></AuthRoute>
+            <AuthRoute mustCustomerService path="/customerService"><CustomerService /></AuthRoute>
+            <AuthRoute path="/users/:username"><User {...props} /></AuthRoute>
+            <AuthRoute path="/settings"><Settings {...props} /></AuthRoute>
+            <Route path="/error" component={Error} />
+            <Route path="*" component={NotFound} />
+          </Switch>
         </div>
         <ServerNotification currentUser={this.state.currentUser} />
         <NotificationSystem ref="notificationSystem" />
@@ -183,13 +230,8 @@ export default class App extends Component {
 }
 
 App.propTypes = {
-  router: PropTypes.object,
-  children: PropTypes.object.isRequired,
-  location: PropTypes.object
-}
-
-App.contextTypes = {
-  router: PropTypes.object.isRequired
+  history: PropTypes.object.isRequired,
+  location: PropTypes.object.isRequired,
 }
 
 App.childContextTypes = {
@@ -197,6 +239,8 @@ App.childContextTypes = {
   tagMetadatas: PropTypes.array,
   refreshTagMetadatas: PropTypes.func
 }
+
+export default withRouter(App)
 
 class ServerNotification extends Component {
   constructor(props) {

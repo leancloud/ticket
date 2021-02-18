@@ -5,6 +5,7 @@ import PropTypes from 'prop-types'
 import {FormGroup, ControlLabel, FormControl, Button, Tooltip, OverlayTrigger} from 'react-bootstrap'
 import {auth, cloud, db} from '../lib/leancloud'
 import docsearch from 'docsearch.js'
+import qs from 'query-string'
 
 import TextareaWithPreview from './components/TextareaWithPreview'
 import {WeekendWarning} from './components/WeekendWarning'
@@ -57,7 +58,7 @@ class NewTicket extends React.Component {
       debug: false // Set debug to true if you want to inspect the dropdown
     })
 
-    const params = new URLSearchParams(this.props.location.search)
+    const params = qs.parse(this.props.location.search)
 
     cloud.run('checkPermission')
     .then(() => {
@@ -73,8 +74,8 @@ class NewTicket extends React.Component {
       ])
     })
     .then(([categoriesTree, apps]) => {
-      const appId = params.get('appId') || ''
-      const title = params.get('title') || localStorage.getItem('ticket:new:title') || ''
+      const appId = params.appId || ''
+      const title = params.title || localStorage.getItem('ticket:new:title') || ''
       const categoryIds = JSON.parse(localStorage.getItem('ticket:new:categoryIds') || '[]')
       const categoryPath = _.compact(categoryIds.map(cid => depthFirstSearchFind(categoriesTree, c => c.id == cid)))
       const category = _.last(categoryPath)

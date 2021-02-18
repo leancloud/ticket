@@ -8,6 +8,7 @@ import {
   Button
 } from 'react-bootstrap'
 import PropTypes from 'prop-types'
+import qs from 'query-string'
 import { auth } from '../lib/leancloud'
 import { isCN } from './common'
 import css from './Login.css'
@@ -30,12 +31,12 @@ class Login extends Component {
       return
     }
 
-    const params = new URLSearchParams(this.props.location.search)
-    if (params.has('token')) {
-      return auth.loginWithSessionToken(params.get('token'))
+    const { token } = qs.parse(this.props.location.search)
+    if (token) {
+      return auth.loginWithSessionToken(token)
         .then(user => {
           this.props.onLogin(user)
-          this.props.history.push('/')
+          this.props.history.replace('/')
           return
         })
         .catch(this.context.addNotification)
