@@ -1,7 +1,7 @@
 /* eslint-disable promise/always-return */
 /* eslint-disable react/prop-types */
 
-import React, { useLayoutEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Route, useHistory, useLocation } from 'react-router-dom'
 import { auth } from '../../lib/leancloud'
 import { isCustomerService } from '../common'
@@ -11,7 +11,7 @@ function BasicAuthWrapper({ children }) {
   const location = useLocation()
   const [pass, setPass] = useState(false)
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (auth.currentUser()) {
       setPass(true)
     } else {
@@ -30,7 +30,7 @@ function CSAuthWrapper({ children }) {
   const history = useHistory()
   const [pass, setPass] = useState(false)
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     setPass(false)
     isCustomerService(auth.currentUser())
       .then(isCS => {
