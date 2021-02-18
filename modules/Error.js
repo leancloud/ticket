@@ -3,9 +3,11 @@ import React from 'react'
 import PropTypes from 'prop-types'
 
 import translate from './i18n/translate'
-import { withRouter } from 'react-router'
+import { useLocation } from 'react-router'
 
-function Error({t, location}) {
+function Error({ t }) {
+  const location = useLocation()
+
   if (!location.state) {
     return (
       <div>
@@ -44,4 +46,4 @@ Error.propTypes = {
   t: PropTypes.func.isRequired,
 }
 
-export default withRouter(translate(Error))
+export default translate(Error)
