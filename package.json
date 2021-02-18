@@ -25,7 +25,6 @@
     "@babel/core": "^7.12.10",
     "@babel/preset-env": "^7.12.11",
     "@babel/preset-react": "^7.12.10",
-    "anchorate": "^1.1.0",
     "babel-loader": "^8.2.2",
     "bluebird": "^3.4.7",
     "blueimp-md5": "^2.18.0",
