@@ -1,7 +1,7 @@
 /*global FAQ_VIEWS*/
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import { Link } from 'react-router'
+import { Link } from 'react-router-dom'
 import { db } from '../../lib/leancloud'
 import _ from 'lodash'
 import { Tooltip, OverlayTrigger } from 'react-bootstrap'
@@ -24,6 +24,7 @@ class Categories extends Component {
       view: VIEWS[0]
     }
   }
+
   componentDidMount() {
     this.reload()
   }

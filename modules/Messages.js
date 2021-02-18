@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import { Link } from 'react-router'
+import { Link } from 'react-router-dom'
 import { FormGroup, Button, Table } from 'react-bootstrap'
 import moment from 'moment'
 import { auth, db } from '../lib/leancloud'
@@ -7,7 +7,6 @@ import { auth, db } from '../lib/leancloud'
 import {UserLabel} from './UserLabel'
 
 export default class Messages extends Component {
-
   constructor(props) {
     super(props)
     this.state = {
@@ -122,7 +121,4 @@ export default class Messages extends Component {
       </Table>
     </div>
   }
-}
-
-Messages.propTypes = {
 }

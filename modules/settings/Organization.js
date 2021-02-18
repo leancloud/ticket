@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import React from 'react'
+import { withRouter } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import {Form, FormGroup, ControlLabel, FormControl, Button, Table, HelpBlock} from 'react-bootstrap'
 import {auth, cloud, db} from '../../lib/leancloud'
@@ -10,7 +11,7 @@ import translate from '../i18n/translate'
 class Organization extends React.Component {
 
   componentDidMount() {
-    const id = this.props.params.id
+    const { id } = this.props.match.params
     return db.class('Organization').object(id)
     .get({include: ['memberRole', 'adminRole']})
     .then(organization => {
@@ -108,7 +109,7 @@ ${count} ${t('deleteOrganizationConsequence')}`)
       })
       .then(() => {
         this.props.leaveOrganization(organization)
-        this.context.router.push('/settings/organizations')
+        this.props.history.push('/settings/organizations')
         return
       })
     })
@@ -211,7 +212,7 @@ ${count} ${t('deleteOrganizationConsequence')}`)
             ))}
           </tbody>
         </Table>
-        <Button type='button' onClick={() => this.context.router.push('/settings/organizations')}>{t('return')}</Button>{' '}
+        <Button type='button' onClick={() => this.props.history.push('/settings/organizations')}>{t('return')}</Button>{' '}
         {this.state.isAdmin && <Button type='button' onClick={this.handleRemove.bind(this, t)} bsStyle='danger'>{t('deleteOrganization')}</Button>}
       </div>
     )
@@ -220,14 +221,14 @@ ${count} ${t('deleteOrganizationConsequence')}`)
 }
 
 Organization.propTypes = {
-  params: PropTypes.object.isRequired,
+  history: PropTypes.object.isRequired,
+  match: PropTypes.object.isRequired,
   leaveOrganization: PropTypes.func,
   t: PropTypes.func
 }
 
 Organization.contextTypes = {
-  router: PropTypes.object.isRequired,
   addNotification: PropTypes.func.isRequired,
 }
 
-export default translate(Organization)
+export default withRouter(translate(Organization))

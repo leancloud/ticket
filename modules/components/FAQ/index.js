@@ -20,7 +20,7 @@ class FAQ extends React.Component {
     return (
       <div>
         <p onClick={this.toggleCollaped.bind(this)}>
-          <a href="javascript:;">{faq.get('question')}</a>
+          <a href="#">{faq.get('question')}</a>
         </p>
         {!this.state.collapsed && (
           <p

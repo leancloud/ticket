@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import { Link } from 'react-router'
+import { Link } from 'react-router-dom'
 import { Pager, Checkbox, Form, DropdownButton, MenuItem } from 'react-bootstrap'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
@@ -42,9 +42,9 @@ class Tickets extends Component {
     .catch(this.props.addNotification)
   }
 
-  componentWillReceiveProps(nextProps) {
-    if (this.props.selectedOrgId !== nextProps.selectedOrgId) {
-      this.findTickets({organizationId: nextProps.selectedOrgId})
+  componentDidUpdate(prevProps) {
+    if (this.props.selectedOrgId !== prevProps.selectedOrgId) {
+      this.findTickets({organizationId: this.props.selectedOrgId})
     }
   }
 

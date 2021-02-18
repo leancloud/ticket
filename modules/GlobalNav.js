@@ -1,12 +1,13 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import { Link } from 'react-router'
+import { Link, withRouter } from 'react-router-dom'
 import translate from './i18n/translate'
 
 class GlobalNav extends Component {
   handleNewTicketClick() {
-    this.context.router.push('/tickets/new')
+    this.props.history.push('/tickets/new')
   }
+
   handleLanguageSwitch(lang) {
     const currentLocale = window.localStorage.getItem('locale')
     if (currentLocale !== lang) {
@@ -51,20 +52,7 @@ class GlobalNav extends Component {
     } else {
       user = <li><Link to="/login">{t('login')}</Link></li>
     }
-    let createTicket
-    if (this.props.currentUser) {
-      createTicket = (
-        <li>
-          <button
-            type="submit"
-            className="btn btn-success navbar-btn nav-submit-btn"
-            onClick={this.handleNewTicketClick.bind(this)}
-          >
-            {t('newTicket')}
-          </button>
-        </li>
-      )
-    }
+
     return (
       <nav className="navbar navbar-default navbar-fixed-top">
         <div className="container">
@@ -97,7 +85,17 @@ class GlobalNav extends Component {
               </ul>
             }
             <ul className="nav navbar-nav navbar-right">
-              {createTicket}
+              {this.props.currentUser && (
+                <li>
+                  <button
+                    type="submit"
+                    className="btn btn-success navbar-btn nav-submit-btn"
+                    onClick={this.handleNewTicketClick.bind(this)}
+                  >
+                    {t('newTicket')}
+                  </button>
+                </li>
+              )}
               {this.props.isCustomerService &&
                 <li>
                   <Link to='/notifications'><span className='glyphicon glyphicon-bell' aria-hidden='true'></span></Link>
@@ -113,15 +111,12 @@ class GlobalNav extends Component {
   }
 }
 
-GlobalNav.contextTypes = {
-  router: PropTypes.object.isRequired
-}
-
 GlobalNav.propTypes = {
   currentUser: PropTypes.object,
   isCustomerService: PropTypes.bool,
   logout: PropTypes.func.isRequired,
-  t: PropTypes.func
+  t: PropTypes.func,
+  history: PropTypes.object.isRequired,
 }
 
-export default translate(GlobalNav)
+export default withRouter(translate(GlobalNav))

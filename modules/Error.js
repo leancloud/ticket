@@ -3,10 +3,12 @@ import React from 'react'
 import PropTypes from 'prop-types'
 
 import translate from './i18n/translate'
+import { useLocation } from 'react-router'
 
-function Error(props) {
-  const {t} = props
-  if (!props.location.state) {
+function Error({ t }) {
+  const location = useLocation()
+
+  if (!location.state) {
     return (
       <div>
         <h1 className='font-logo'>{t('errorPage')}</h1>
@@ -18,7 +20,7 @@ function Error(props) {
   }
 
   let message
-  switch (props.location.state.code) {
+  switch (location.state.code) {
   case 'requireCustomerServiceAuth':
     message = t('staffOnlyPage')
     break
@@ -26,9 +28,9 @@ function Error(props) {
     message = t('unauthorizedPage')
     break
   default:
-    message = props.location.state.err.message
+    message = location.state.err.message
   }
-  console.log(props.location.state.err)
+  console.log(location.state.err)
   return (
     <div>
       <h1 className='font-logo'>{t('somethingWrong')}</h1>
@@ -41,7 +43,7 @@ function Error(props) {
 
 Error.propTypes = {
   location: PropTypes.object.isRequired,
-  t: PropTypes.func
+  t: PropTypes.func.isRequired,
 }
 
 export default translate(Error)

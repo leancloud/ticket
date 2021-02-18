@@ -1,6 +1,6 @@
 import React from 'react'
 import {Checkbox} from 'react-bootstrap'
-import { Link } from 'react-router'
+import { Link } from 'react-router-dom'
 import _ from 'lodash'
 import moment from 'moment'
 

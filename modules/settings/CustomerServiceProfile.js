@@ -7,7 +7,6 @@ import Vacation from './Vacation'
 import translate from '../i18n/translate'
 
 class CustomerServiceProfile extends Component {
-
   constructor(props) {
     super(props)
     this.state = {
@@ -46,23 +45,25 @@ class CustomerServiceProfile extends Component {
 
   render() {
     const {t} = this.props
-    const wechatUserOptions = this.state.wechatUsers.map((user) => {
-      return <option key={user.userid} value={user.userid}>{user.name}</option>
-    })
-    return <div>
-      <h2>{t('associatedAccounts')}</h2>
-      <Form>
-        <FormGroup>
-          <ControlLabel>{t('weCom')}</ControlLabel>
-          <FormControl componentClass="select" value={this.state.wechatUserId} onChange={this.handleWechatIdChange.bind(this)}>
-            <option key='undefined' value=''>{t('unlinked')}</option>
-            {wechatUserOptions}
-          </FormControl>
-        </FormGroup>
-        <Button type='button' onClick={this.handleSubmit.bind(this)}>{t('save')}</Button>
-      </Form>
-      <Vacation />
-    </div>
+    const wechatUserOptions = this.state.wechatUsers.map((user) => (
+      <option key={user.userid} value={user.userid}>{user.name}</option>
+    ))
+    return (
+      <div>
+        <h2>{t('associatedAccounts')}</h2>
+        <Form>
+          <FormGroup>
+            <ControlLabel>{t('weCom')}</ControlLabel>
+            <FormControl componentClass="select" value={this.state.wechatUserId} onChange={this.handleWechatIdChange.bind(this)}>
+              <option key='undefined' value=''>{t('unlinked')}</option>
+              {wechatUserOptions}
+            </FormControl>
+          </FormGroup>
+          <Button type='button' onClick={this.handleSubmit.bind(this)}>{t('save')}</Button>
+        </Form>
+        <Vacation />
+      </div>
+    )
   }
 
 }

@@ -1,40 +1,26 @@
-import React, {Component} from 'react'
+import React, { useEffect } from 'react'
 import PropTypes from 'prop-types'
-import {auth} from '../lib/leancloud'
+import { auth } from '../lib/leancloud'
+import { useHistory } from 'react-router-dom'
 
-export default class Home extends Component {
- 
-  componentDidMount() {
-    this.redirect(this.props)
-  }
+export default function Home({ isCustomerService }) {
+  const history = useHistory()
 
-  componentWillReceiveProps(nextProps){
-    this.redirect(nextProps)
-  }
-
-  redirect(props) {
+  useEffect(() => {
     if (!auth.currentUser()) {
-      this.context.router.replace('/login')
+      history.replace('/login')
       return
     }
-
-    if (props.isCustomerService) {
-      this.context.router.replace('/customerService/tickets')
+    if (isCustomerService) {
+      history.replace('/customerService/tickets')
     } else {
-      this.context.router.replace('/tickets')
+      history.replace('/tickets')
     }
-  }
+  }, [history, isCustomerService])
 
-  render() {
-    return <div>Home</div>
-  }
-
+  return <div>Home</div>
 }
 
 Home.propTypes = {
-  isCustomerService: PropTypes.bool
-}
-
-Home.contextTypes = {
-  router: PropTypes.object.isRequired
+  isCustomerService: PropTypes.bool,
 }

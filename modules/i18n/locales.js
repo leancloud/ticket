@@ -31,7 +31,7 @@ const messages = {
   ],
   'builtWithEnding': [
     '.',
-    '构建。'
+    ' 构建。'
   ],
   // general
   'account': [

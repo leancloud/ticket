@@ -1,6 +1,8 @@
 import React from 'react'
+import { withRouter } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import {Table} from 'react-bootstrap'
+import qs from 'query-string'
 import { cloud } from '../../lib/leancloud'
 import {DocumentTitle} from '../utils/DocumentTitle'
 import translate from '../i18n/translate'
@@ -15,9 +17,9 @@ class CSStatsUser extends React.Component {
   }
 
   componentDidMount() {
-    const {start, end}= this.props.location.query
+    const {start, end} = qs.parse(this.props.location.search)
     return cloud.run('getStatsTicketByUser', {
-      userId: this.props.params.userId,
+      userId: this.props.match.params.userId,
       start,
       end,
     })
@@ -27,7 +29,7 @@ class CSStatsUser extends React.Component {
 
   render() {
     const {t} = this.props
-    const userId = this.props.params.userId
+    const userId = this.props.match.params.userId
     let trs = []
     try {
       trs = this.state.statses.map(stats => {
@@ -71,9 +73,9 @@ class CSStatsUser extends React.Component {
 }
 
 CSStatsUser.propTypes = {
-  params: PropTypes.object,
-  location: PropTypes.object,
+  match: PropTypes.object.isRequired,
+  location: PropTypes.object.isRequired,
   t: PropTypes.func
 }
 
-export default translate(CSStatsUser)
+export default withRouter(translate(CSStatsUser))
