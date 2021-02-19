@@ -142,13 +142,7 @@ class Ticket extends Component {
     replyQuery.subscribe().then(liveQuery => {
       this.replyLiveQuery = liveQuery
       return this.replyLiveQuery.on('create', reply => {
-        return reply.get({include: ['author', 'files']})
-        .then((reply) => {
-          const replies = this.state.replies
-          replies.push(reply)
-          this.setState({replies})
-          return
-        }).catch(this.context.addNotification)
+        return this.appendReply(reply).catch(this.context.addNotification)
       })
     })
     .catch(this.context.addNotification)
@@ -176,18 +170,30 @@ class Ticket extends Component {
     return opsLogQuery
   }
 
-  commitReply(reply, files) {
-    return uploadFiles(files)
-    .then((files) => {
-      if (reply.trim() === '' && files.length == 0) {
-        return
+  async appendReply(reply) {
+    reply = await reply.get({ include: ['author', 'files'] })
+    this.setState(({ replies }) => {
+      return {
+        replies: _.uniqBy([...replies, reply], r => r.id)
       }
-      return db.class('Reply').add({
-        ticket: this.state.ticket,
-        content: reply,
-        files,
-      })
     })
+  }
+
+  async commitReply(content, files) {
+    content = content.trim()
+    if (content === '') {
+      return
+    }
+    try {
+      const reply = await db.class('Reply').add({
+        content,
+        ticket: this.state.ticket,
+        files: await uploadFiles(files),
+      })
+      await this.appendReply(reply)
+    } catch (error) {
+      this.context.addNotification(error)
+    }
   }
 
   commitReplySoon() {
