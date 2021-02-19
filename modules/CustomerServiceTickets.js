@@ -117,14 +117,14 @@ class CustomerServiceTickets extends Component {
     .then(() => {
       if (searchString && searchString.trim().length > 0) {
         return Promise.all([
-          db.search('Ticket').queryString(`title:*${searchString}* OR content:*${searchString}*`)
+          db.search('Ticket').queryString(`title:${searchString} OR content:${searchString}`)
             .orderBy('latestReply.updatedAt', 'desc')
             .limit(1000)
             .find()
             .then(({data: tickets}) => {
               return tickets.map(t => t.id)
             }),
-          db.search('Reply').queryString(`content:*${searchString}*`)
+          db.search('Reply').queryString(`content:${searchString}`)
             .orderBy('latestReply.updatedAt', 'desc')
             .limit(1000)
             .find()
