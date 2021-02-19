@@ -179,18 +179,18 @@ class Ticket extends Component {
     })
   }
 
-  async commitReply(reply, files) {
-    reply = reply.trim()
-    if (reply === '') {
+  async commitReply(content, files) {
+    content = content.trim()
+    if (content === '') {
       return
     }
     try {
-      const replyObj = await db.class('Reply').add({
+      const reply = await db.class('Reply').add({
+        content,
         ticket: this.state.ticket,
-        content: reply,
         files: await uploadFiles(files),
       })
-      await this.appendReply(replyObj)
+      await this.appendReply(reply)
     } catch (error) {
       this.context.addNotification(error)
     }
