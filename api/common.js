@@ -4,8 +4,6 @@ const Remarkable = require('remarkable')
 const hljs = require('highlight.js')
 const AV = require('leanengine')
 
-const config = require('../config')
-
 Object.assign(module.exports, require('../lib/common'))
 
 exports.getTinyUserInfo = async (user) => {
@@ -55,6 +53,7 @@ exports.isCustomerService = (user, ticketAuthor) => {
 }
 
 exports.getTicketUrl = (ticket) => {
+  const config = require('../config')
   return `${config.host}/tickets/${ticket.get('nid')}`
 }
 

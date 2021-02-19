@@ -11,29 +11,46 @@ default:
   host = 'http://localhost:' + process.env.LEANCLOUD_APP_PORT
 }
 
+const intergrations = []
+
+const mailgun = require('./intergrations/mailgun/server')
+const zulip = require('./intergrations/zulip/server')
+const wechat = require('./intergrations/wechat/server')
+
+if (process.env.MAILGUN_KEY && process.env.MAILGUN_DOMAIN) {
+  intergrations.push(mailgun(process.env.MAILGUN_KEY, process.env.MAILGUN_DOMAIN))
+}
+if (process.env.ZULIP_API_KEY) {
+  const zulipConfig = {
+    username: process.env.ZULIP_USERNAME,
+    apiKey: process.env.ZULIP_API_KEY,
+    realm: process.env.ZULIP_REALM,
+    stream: process.env.ZULIP_STREAM,
+    topic: process.env.ZULIP_TOPIC,
+  }
+  intergrations.push(zulip(zulipConfig))
+}
+if (process.env.WECHAT_TOKEN) {
+  const wechatConfig = {
+    corpId: process.env.WECHAT_CORP_ID,
+    secret: process.env.WECHAT_SECRET,
+    agentId: process.env.WECHAT_AGENT_ID,
+    token: process.env.WECHAT_TOKEN,
+    encodingAESKey: process.env.WECHAT_ENCODING_AES_KEY,
+  }
+  intergrations.push(wechat(wechatConfig))
+}
+
 module.exports = {
   host,
   oauthKey: process.env.OAUTH_KEY,
   oauthSecret: process.env.OAUTH_SECRET,
   enableLeanCloudIntergration: process.env.ENABLE_LEANCLOUD_INTERGRATION,
   leancloudAppUrl: process.env.LEANCLOUD_APP_URL_V2,
-  mailgunKey: process.env.MAILGUN_KEY,
-  mailgunDomain: process.env.MAILGUN_DOMAIN,
-  wechatCorpID: process.env.WECHAT_CORP_ID,
-  wechatSecret: process.env.WECHAT_SECRET,
-  wechatAgentId: process.env.WECHAT_AGENT_ID,
-  wechatToken: process.env.WECHAT_TOKEN,
-  wechatEncodingAESKey: process.env.WECHAT_ENCODING_AES_KEY,
-  zulip: {
-    username: process.env.ZULIP_USERNAME,
-    apiKey: process.env.ZULIP_API_KEY,
-    realm: process.env.ZULIP_REALM,
-    stream: process.env.ZULIP_STREAM,
-    topic: process.env.ZULIP_TOPIC,
-  },
   sentryDSN: process.env.SENTRY_DSN,
   sentryDSNPublic: process.env.SENTRY_DSN_PUBLIC,
   // Use HELP_EMAIL instead of SUPPORT_EMAIL, because there is a bug in LeanEngine.
   // See #1830 of LeanEngine repo (private) for more information.
   supportEmail: process.env.HELP_EMAIL,
+  intergrations,
 }

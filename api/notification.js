@@ -1,19 +1,19 @@
+const _ = require('lodash')
 const Promise = require('bluebird')
 const AV = require('leanengine')
 
-const mail = require('./mail')
-const zulip = require('./zulip')
-const wechat = require('./wechat')
-
 const { TICKET_STATUS } = require('../lib/common')
 const errorHandler = require('./errorHandler')
+const captureException = err => errorHandler.captureException(err)
+
+const { intergrations } = require('../config')
+
+const channels= intergrations.map(intergration => intergration.notificationChannel).filter(_.identity)
 
 exports.newTicket = (ticket, author, assignee) => {
-  return Promise.all([
-    mail.newTicket(ticket, author, assignee).catch(err => errorHandler.captureException(err)),
-    zulip.newTicket(ticket, author, assignee).catch(err => errorHandler.captureException(err)),
-    wechat.newTicket(ticket, author, assignee).catch(err => errorHandler.captureException(err)),
-  ])
+  return Promise.all(channels.map(channel => 
+    Promise.resolve(channel.newTicket?.(ticket, author, assignee)).catch(captureException)
+  ))
     .then(() => {
       return new AV.Object('Message').save({
         type: 'newTicket',
@@ -39,11 +39,9 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
     to,
     isCustomerServiceReply: reply.get('isCustomerService')
   }
-  return Promise.all([
-    mail.replyTicket(data).catch(err => errorHandler.captureException(err)),
-    zulip.replyTicket(data).catch(err => errorHandler.captureException(err)),
-    wechat.replyTicket(data).catch(err => errorHandler.captureException(err)),
-  ])
+  return Promise.all(channels.map(channel => 
+    Promise.resolve(channel.replyTicket?.(data)).catch(captureException)
+  ))
     .then(() => {
       return new AV.Object('Message', {
         type: 'reply',
@@ -85,11 +83,9 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
 }
 
 exports.changeAssignee = (ticket, operator, assignee) => {
-  return Promise.all([
-    mail.changeAssignee(ticket, operator, assignee).catch(err => errorHandler.captureException(err)),
-    zulip.changeAssignee(ticket, operator, assignee).catch(err => errorHandler.captureException(err)),
-    wechat.changeAssignee(ticket, operator, assignee).catch(err => errorHandler.captureException(err)),
-  ])
+  return Promise.all(channels.map(channel => 
+    Promise.resolve(channel.changeAssignee?.(ticket, operator, assignee)).catch(captureException)
+  ))
     .then(() => {
       return new AV.Object('Message', {
         type: 'changeAssignee',
@@ -105,9 +101,9 @@ exports.changeAssignee = (ticket, operator, assignee) => {
 }
 
 exports.ticketEvaluation = (ticket, author, to) => {
-  return Promise.all([
-    zulip.ticketEvaluation(ticket, author, to).catch(err => errorHandler.captureException(err)),
-  ])
+  return Promise.all(channels.map(channel => 
+    Promise.resolve(channel.ticketEvaluation?.(ticket, author, to)).catch(captureException)
+  ))
     .then(() => {
       return new AV.Object('Message', {
         type: 'ticketEvaluation',
@@ -123,11 +119,9 @@ exports.ticketEvaluation = (ticket, author, to) => {
 }
 
 const sendDelayNotify = (ticket, to) => {
-  return Promise.all([
-    mail.delayNotify(ticket, to).catch(err => errorHandler.captureException(err)),
-    zulip.delayNotify(ticket, to).catch(err => errorHandler.captureException(err)),
-    wechat.delayNotify(ticket, to).catch(err => errorHandler.captureException(err)),
-  ])
+  return Promise.all(channels.map(channel => 
+    Promise.resolve(channel.delayNotify?.(ticket, to)).catch(captureException)
+  ))
 }
 
 const delayNotify = () => {
