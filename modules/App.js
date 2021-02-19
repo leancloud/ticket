@@ -25,7 +25,7 @@ import Messages from './Messages'
 import NotFound from './NotFound'
 import Notifications from './Notifications'
 import CustomerService from './CustomerService'
-import Error from './Error'
+import ErrorPage from './Error'
 import User from './User'
 import Settings from './Settings'
 
@@ -218,7 +218,7 @@ class App extends Component {
             <AuthRoute mustCustomerService path="/customerService"><CustomerService /></AuthRoute>
             <AuthRoute path="/users/:username"><User {...props} /></AuthRoute>
             <AuthRoute path="/settings"><Settings {...props} /></AuthRoute>
-            <Route path="/error" component={Error} />
+            <Route path="/error" component={ErrorPage} />
             <Route path="*" component={NotFound} />
           </Switch>
         </div>
