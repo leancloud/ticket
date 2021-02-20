@@ -12,7 +12,6 @@ class CustomerServiceProfile extends Component {
     this.state = {
       wechatUsers: [],
       wechatUserId: auth.currentUser().data.wechatEnterpriseUserId,
-      bearychatUrl: auth.currentUser().data.bearychatUrl,
     }
   }
 
@@ -29,16 +28,11 @@ class CustomerServiceProfile extends Component {
     this.setState({wechatUserId: e.target.value})
   }
 
-  handleBearychatUrlChange(e) {
-    this.setState({bearychatUrl: e.target.value})
-  }
-
   handleSubmit(e) {
     e.preventDefault()
     auth.currentUser()
     .update({
       wechatEnterpriseUserId: this.state.wechatUserId,
-      bearychatUrl: this.state.bearychatUrl,
     })
     .catch(this.context.addNotification)
   }

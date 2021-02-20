@@ -24,7 +24,6 @@ module.exports = {
   wechatAgentId: process.env.WECHAT_AGENT_ID,
   wechatToken: process.env.WECHAT_TOKEN,
   wechatEncodingAESKey: process.env.WECHAT_ENCODING_AES_KEY,
-  bearychatGlobalHookUrl: process.env.BEARYCHAT_GLOBAL_HOOK_URL,
   zulip: {
     username: process.env.ZULIP_USERNAME,
     apiKey: process.env.ZULIP_API_KEY,
