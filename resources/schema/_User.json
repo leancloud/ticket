@@ -32,9 +32,6 @@
       "hidden": true,
       "type": "Object"
     },
-    "bearychatUrl": {
-      "type": "String"
-    },
     "mobilePhoneVerified": {
       "type": "Boolean"
     },

@@ -2,7 +2,6 @@ const Promise = require('bluebird')
 const AV = require('leanengine')
 
 const mail = require('./mail')
-const bearychat = require('./bearychat')
 const zulip = require('./zulip')
 const wechat = require('./wechat')
 
@@ -12,7 +11,6 @@ const errorHandler = require('./errorHandler')
 exports.newTicket = (ticket, author, assignee) => {
   return Promise.all([
     mail.newTicket(ticket, author, assignee).catch(err => errorHandler.captureException(err)),
-    bearychat.newTicket(ticket, author, assignee).catch(err => errorHandler.captureException(err)),
     zulip.newTicket(ticket, author, assignee).catch(err => errorHandler.captureException(err)),
     wechat.newTicket(ticket, author, assignee).catch(err => errorHandler.captureException(err)),
   ])
@@ -43,7 +41,6 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
   }
   return Promise.all([
     mail.replyTicket(data).catch(err => errorHandler.captureException(err)),
-    bearychat.replyTicket(data).catch(err => errorHandler.captureException(err)),
     zulip.replyTicket(data).catch(err => errorHandler.captureException(err)),
     wechat.replyTicket(data).catch(err => errorHandler.captureException(err)),
   ])
@@ -90,7 +87,6 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
 exports.changeAssignee = (ticket, operator, assignee) => {
   return Promise.all([
     mail.changeAssignee(ticket, operator, assignee).catch(err => errorHandler.captureException(err)),
-    bearychat.changeAssignee(ticket, operator, assignee).catch(err => errorHandler.captureException(err)),
     zulip.changeAssignee(ticket, operator, assignee).catch(err => errorHandler.captureException(err)),
     wechat.changeAssignee(ticket, operator, assignee).catch(err => errorHandler.captureException(err)),
   ])
@@ -110,7 +106,6 @@ exports.changeAssignee = (ticket, operator, assignee) => {
 
 exports.ticketEvaluation = (ticket, author, to) => {
   return Promise.all([
-    bearychat.ticketEvaluation(ticket, author, to).catch(err => errorHandler.captureException(err)),
     zulip.ticketEvaluation(ticket, author, to).catch(err => errorHandler.captureException(err)),
   ])
     .then(() => {
@@ -130,7 +125,6 @@ exports.ticketEvaluation = (ticket, author, to) => {
 const sendDelayNotify = (ticket, to) => {
   return Promise.all([
     mail.delayNotify(ticket, to).catch(err => errorHandler.captureException(err)),
-    bearychat.delayNotify(ticket, to).catch(err => errorHandler.captureException(err)),
     zulip.delayNotify(ticket, to).catch(err => errorHandler.captureException(err)),
     wechat.delayNotify(ticket, to).catch(err => errorHandler.captureException(err)),
   ])
