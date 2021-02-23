@@ -1,27 +1,26 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
-import {Form, FormGroup, Button} from 'react-bootstrap'
+import { Form, FormGroup, Button } from 'react-bootstrap'
 import _ from 'lodash'
 
-import translate from '../i18n/translate'
-
-const OauthButton = (props) => {
-  const {t} = props
-  const userInfo = _.find(props.lcUserInfos, {region: props.region})
+export default function OauthButton({ currentUser, lcUserInfos, region, regionText }) {
+  const { t } = useTranslation()
+  const userInfo = _.find(lcUserInfos, { region })
   if (userInfo) {
     return (
       <FormGroup>
-        <Button disabled>{t('linkedPrefix')} LeanCloud {props.regionText} {t('region')} {userInfo.email} {t('account')} {t('linkedSuffix')}</Button>
+        <Button disabled>{t('linkedPrefix')} LeanCloud {regionText} {t('region')} {userInfo.email} {t('account')} {t('linkedSuffix')}</Button>
       </FormGroup>
     )
   }
 
   return (
     <Form action='/oauth/login' method='post'>
-      <input type='hidden' name='sessionToken' value={props.currentUser._sessionToken} />
-      <input type='hidden' name='region' value={props.region} />
+      <input type='hidden' name='sessionToken' value={currentUser.sessionToken} />
+      <input type='hidden' name='region' value={region} />
       <FormGroup>
-        <Button type='submit' bsStyle='primary'>LeanCloud {props.regionText} {t('region')}</Button>
+        <Button type='submit' bsStyle='primary'>LeanCloud {regionText} {t('region')}</Button>
       </FormGroup>
     </Form>
   )
@@ -32,7 +31,4 @@ OauthButton.propTypes = {
   lcUserInfos: PropTypes.array,
   region: PropTypes.string.isRequired,
   regionText: PropTypes.string.isRequired,
-  t: PropTypes.func
 }
-
-export default translate(OauthButton)

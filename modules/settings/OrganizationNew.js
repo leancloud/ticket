@@ -1,11 +1,11 @@
 import React from 'react'
+import { withTranslation } from 'react-i18next'
+import { withRouter } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import {FormGroup, ControlLabel, FormControl, Button, HelpBlock} from 'react-bootstrap'
+import { FormGroup, ControlLabel, FormControl, Button, HelpBlock } from 'react-bootstrap'
 import {auth, db} from '../../lib/leancloud'
 
-import translate from '../i18n/translate'
-import {getOrganizationRoleName} from '../../lib/common'
-import { withRouter } from 'react-router-dom'
+import { getOrganizationRoleName } from '../../lib/common'
 
 class OrganizationNew extends React.Component {
   constructor(props) {
@@ -71,7 +71,7 @@ class OrganizationNew extends React.Component {
   }
 
   render() {
-    const {t} = this.props
+    const { t } = this.props
     return (
       <div>
         <form onSubmit={this.handleSubmit.bind(this, t)}>
@@ -93,11 +93,11 @@ class OrganizationNew extends React.Component {
 OrganizationNew.propTypes = {
   history: PropTypes.object.isRequired,
   joinOrganization: PropTypes.func,
-  t: PropTypes.func
+  t: PropTypes.func.isRequired,
 }
 
 OrganizationNew.contextTypes = {
   addNotification: PropTypes.func.isRequired,
 }
 
-export default withRouter(translate(OrganizationNew))
+export default withTranslation()(withRouter(OrganizationNew))

@@ -1,13 +1,13 @@
 import React from 'react'
+import { withTranslation } from 'react-i18next'
 import { withRouter } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import {FormGroup, ControlLabel, FormControl, Button} from 'react-bootstrap'
-import {db} from '../../lib/leancloud'
+import { FormGroup, ControlLabel, FormControl, Button } from 'react-bootstrap'
+import { db } from '../../lib/leancloud'
 
-import {getCategoriesTree} from '../common'
+import { getCategoriesTree } from '../common'
 import CategoriesSelect from '../CategoriesSelect'
-import translate from '../i18n/translate'
-import {depthFirstSearchFind} from '../../lib/common'
+import { depthFirstSearchFind } from '../../lib/common'
 
 class Category extends React.Component {
   constructor() {
@@ -138,7 +138,7 @@ class Category extends React.Component {
   }
 
   render() {
-    const {t} = this.props
+    const { t } = this.props
     if (this.state.isLoading) {
       return <div>{t('loading')}……</div>
     }
@@ -197,4 +197,4 @@ Category.contextTypes = {
   addNotification: PropTypes.func.isRequired,
 }
 
-export default withRouter(translate(Category))
+export default withTranslation()(withRouter(Category))

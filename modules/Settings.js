@@ -1,7 +1,7 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import { Link, Route, Switch, useRouteMatch } from 'react-router-dom'
-import translate from './i18n/translate'
 
 import Profile from './settings/Profile'
 import Organization from './settings/Organization'
@@ -17,9 +17,9 @@ import Categories from './settings/Categories'
 import Category from './settings/Category'
 import CategorySort from './settings/CategorySort'
 
-function Settings(props) {
+export default function Settings(props) {
   const { path } = useRouteMatch()
-  const { t } = props
+  const { t } = useTranslation()
   const childrenProps = {
     currentUser: props.currentUser,
     updateCurrentUser: props.updateCurrentUser,
@@ -82,7 +82,4 @@ Settings.propTypes = {
   organizations: PropTypes.array,
   joinOrganization: PropTypes.func,
   leaveOrganization: PropTypes.func,
-  t: PropTypes.func
 }
-
-export default translate(Settings)

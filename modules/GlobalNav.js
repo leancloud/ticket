@@ -1,7 +1,8 @@
 import React, { Component } from 'react'
-import PropTypes from 'prop-types'
+import { withTranslation } from 'react-i18next'
 import { Link, withRouter } from 'react-router-dom'
-import translate from './i18n/translate'
+import i18next from 'i18next'
+import PropTypes from 'prop-types'
 
 class GlobalNav extends Component {
   handleNewTicketClick() {
@@ -9,24 +10,21 @@ class GlobalNav extends Component {
   }
 
   handleLanguageSwitch(lang) {
-    const currentLocale = window.localStorage.getItem('locale')
-    if (currentLocale !== lang) {
-      window.localStorage.setItem('locale', lang)
-      window.location.reload(false)
-    }
+    i18next.changeLanguage(lang)
+    window.localStorage.setItem('locale', lang)
   }
 
   render() {
-    const {t} = this.props
+    const { t } = this.props
     /* eslint-disable i18n/no-chinese-character */
     const langSelector = (
-        <li className="dropdown">
-          <a href="#" className="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">EN/中 <span className="caret"/></a>
-          <ul className="dropdown-menu">
-            <li><a href="#" onClick={() => this.handleLanguageSwitch('en')}>English</a></li>
-            <li><a href="#" onClick={() => this.handleLanguageSwitch('zh')}>中文</a></li>
-          </ul>
-        </li>
+      <li className="dropdown">
+        <a href="#" className="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">EN/中 <span className="caret"/></a>
+        <ul className="dropdown-menu">
+          <li><a href="#" onClick={() => this.handleLanguageSwitch('en')}>English</a></li>
+          <li><a href="#" onClick={() => this.handleLanguageSwitch('zh')}>中文</a></li>
+        </ul>
+      </li>
     )
     /* eslint-enable i18n/no-chinese-character */
     let user
@@ -119,4 +117,4 @@ GlobalNav.propTypes = {
   history: PropTypes.object.isRequired,
 }
 
-export default withRouter(translate(GlobalNav))
+export default withTranslation()(withRouter(GlobalNav))

@@ -921,6 +921,19 @@ const messages = {
   'statusClosed': [
     'Closed',
     '已关闭'
+  ],
+  // Message
+  'message.newTicket': [
+    'New ticket',
+    '新的工单'
+  ],
+  'message.assignTicket': [
+    'Assign ticket',
+    '转移工单'
+  ],
+  'message.newReply': [
+    'New reply',
+    '新的回复'
   ]
 }
 

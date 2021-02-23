@@ -1,12 +1,13 @@
 import _ from 'lodash'
-import {auth, db, storage} from '../lib/leancloud'
-import {depthFirstSearchFind, makeTree} from '../lib/common'
+import i18next from 'i18next'
+import { auth, db, storage } from '../lib/leancloud'
+import { depthFirstSearchFind, makeTree } from '../lib/common'
 
 export * from '../lib/common'
 
-export const getCategoryPathName = (category, categoriesTree, t) => {
+export const getCategoryPathName = (category, categoriesTree) => {
   const c = depthFirstSearchFind(categoriesTree, c => c.id == (category.id || category.objectId))
-  return getNodePath(c).map(c => getCategoryName(c, t)).join(' / ')
+  return getNodePath(c).map(c => getCategoryName(c)).join(' / ')
 }
 
 export const requireAuth = (nextState, replace) => {
@@ -146,8 +147,8 @@ export const getNodeIndentString = treeNode => {
   return depth == 0 ? '' : '　'.repeat(depth) + '└ '
 }
 
-export const getCategoryName = (category, t) => {
-  return category.get('name') + (category.get('deletedAt') ? t('disabled') : '')
+export const getCategoryName = (category) => {
+  return category.data.name + (category.data.deletedAt ? i18next.t('disabled') : '')
 }
 
 export const isCN = () => {

@@ -1,9 +1,9 @@
+import React, { Component } from 'react'
+import { withTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import React, {Component} from 'react'
-import {Link} from 'react-router-dom'
-import {Form, FormGroup, Panel, ListGroup, ListGroupItem, Button} from 'react-bootstrap'
-import {cloud} from '../../lib/leancloud'
-import translate from '../i18n/translate'
+import { Form, FormGroup, Panel, ListGroup, ListGroupItem, Button } from 'react-bootstrap'
+import { cloud } from '../../lib/leancloud'
 
 class Organizations extends Component {
   constructor(props) {
@@ -42,7 +42,7 @@ class Organizations extends Component {
   }
 
   render() {
-    const {t} = this.props
+    const { t } = this.props
     return <div>
       <Form inline>
         <FormGroup>
@@ -71,11 +71,11 @@ class Organizations extends Component {
 Organizations.propTypes = {
   organizations: PropTypes.array,
   leaveOrganization: PropTypes.func,
-  t: PropTypes.func
+  t: PropTypes.func.isRequired,
 }
 
 Organizations.contextTypes = {
   addNotification: PropTypes.func.isRequired,
 }
 
-export default translate(Organizations)
+export default withTranslation()(Organizations)

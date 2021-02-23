@@ -1,10 +1,12 @@
 import React from 'react'
-import {Alert} from 'react-bootstrap'
+import { useTranslation } from 'react-i18next'
+import { Alert } from 'react-bootstrap'
 
-import {enableWeekendWarning} from '../../../config.webapp'
-import translate from '../../i18n/translate'
+import { enableWeekendWarning } from '../../../config.webapp'
 
-export const WeekendWarning = translate(({t}) => {
+export function WeekendWarning() {
+  const { t } = useTranslation()
+
   if (!enableWeekendWarning) {
     return null
   }
@@ -14,4 +16,4 @@ export const WeekendWarning = translate(({t}) => {
   }
 
   return <Alert bsStyle="warning">{t('weekendWarning')}</Alert>
-})
+}

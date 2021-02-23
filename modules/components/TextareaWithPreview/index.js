@@ -1,103 +1,88 @@
-import React, {Component} from 'react'
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
-import {FormControl} from 'react-bootstrap'
+import { FormControl } from 'react-bootstrap'
 import Stackedit from 'stackedit-js'
 import css from './index.css'
-import translate from '../../i18n/translate'
-import _ from 'lodash'
-import {uploadFiles} from '../../common'
+import { uploadFiles } from '../../common'
 
-class TextareaWithPreview extends Component {
-  constructor(props) {
-    super(props)
+export default function TextareaWithPreview({ value, onChange, ...props }) {
+  const { t } = useTranslation()
+  const $input = useRef(null)
+  const $editor = useRef(new Stackedit())
+  const $value = useRef(value)
+  const [disabled, setDisabled] = useState(false)
 
-    this.state = {
-      value: props.value,
-      disabled: props.disabled,
-    }
+  const set$input = useCallback((ref) => $input.current = ref, [])
 
-    this.inputRef = (ref, ...params) => {
-      this.ref = ref
-      if (this.props.inputRef) {
-        this.props.inputRef(ref, ...params)
-      }
-    }
-    this.dispatchChangeEvent = () => {
-      const evt = new Event('change', { bubbles: true })
-      evt.simulated = true
-      this.ref.dispatchEvent(evt)
-    }
-  }
-  componentDidMount() {
-    this.ref.addEventListener('paste', this.pasteEventListener.bind(this))
-  }
+  useEffect(() => {
+    $value.current = value
+  }, [value])
 
-  componentWillUnmount() {
-    this.ref.removeEventListener('paste', this.pasteEventListener.bind(this))
-  }
-
-  pasteEventListener(e) {
-    if (this.state.disabled) {
-      return
-    }
-    if (e.clipboardData.types.indexOf('Files') != -1) {
-      this.setState({disabled: true})
-      return uploadFiles(e.clipboardData.files)
-      .then((files) => {
-        const newValue = `${this.props.value}\n<img src='${files[0].url}' />`
-        this.setState({disabled: this.props.disabled, value: newValue}, () => {
-          this.dispatchChangeEvent()
-          this.ref.focus() 
-        })
+  useLayoutEffect(() => {
+    const pasteListener = async ({ clipboardData }) => {
+      if (clipboardData.files.length === 0) {
         return
-      })
+      }
+      setDisabled(true)
+      try {
+        const files = await uploadFiles(clipboardData.files)
+        const img = `<img src="${files[0].url}" />`
+        const newValue = $value.current ? `${$value.current}\n${img}` : img
+        onChange(newValue)
+        $input.current.focus()
+      } finally {
+        setDisabled(false)
+      }
     }
-  }
+    $input.current.addEventListener('paste', pasteListener)
+    return () => {
+      $input.current.removeEventListener('paste', pasteListener)
+    }
+  }, [onChange])
 
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.value !== this.state.value) {
-      this.setState({ value: nextProps.value })
+  useEffect(() => {
+    const fileChangeListener = (file) => onChange(file.content.text)
+    $editor.current.on('fileChange', fileChangeListener)
+    return () => {
+      $editor.current.off('fileChange', fileChangeListener)
     }
-  }
-  
-  enterPreviewMode() {
-    const editor = this._editor = this._editor || new Stackedit()
-    editor.openFile({
+  }, [onChange])
+
+  useEffect(() => {
+    $editor.current.on('close', () => $input.current.focus())
+  }, [])
+
+  const enterPreviewMode = useCallback(() => {
+    $editor.current.openFile({
       content: {
-        text: this.state.value,
+        text: $value.current
       }
     })
-  
-    // Listen to StackEdit events and apply the changes to the textarea.
-    editor.off('fileChange')
-    editor.on('fileChange', (file) => {
-      this.setState({
-        value: file.content.text,
-      }, this.dispatchChangeEvent)
-    })
+  }, [])
 
-      
-    editor.off('close')
-    editor.on('close', () => this.ref.focus())
-  }
+  const handleChangeContent = useCallback((e) => {
+    onChange(e.target.value)
+  }, [onChange])
 
-  render() {
-    const {t} = this.props
-    return (
-      <div className={css.textareaWrapper}>
-        <FormControl {..._.omit(this.props, ['t', 'locale', 'disabled'])} value={this.state.value} disabled={this.state.disabled} componentClass="textarea" inputRef={this.inputRef.bind(this)}/>
-        <div onClick={this.enterPreviewMode.bind(this)} title={t('preview')} className={css.preview}><span className="glyphicon glyphicon-fullscreen" aria-hidden="true"></span></div>
+  return (
+    <div className={css.textareaWrapper}>
+      <FormControl
+        {...props}
+        componentClass="textarea"
+        value={value}
+        onChange={handleChangeContent}
+        inputRef={set$input}
+        disabled={disabled}
+      />
+      <div className={css.preview} title={t('preview')} onClick={enterPreviewMode}>
+        <span className="glyphicon glyphicon-fullscreen"></span>
       </div>
-    )
-  }
+    </div>
+  )
 }
 
 TextareaWithPreview.propTypes = {
   value: PropTypes.any,
-  inputRef: PropTypes.func,
   onChange: PropTypes.func,
-  disabled: PropTypes.bool,
-  t: PropTypes.func,
 }
-
-export default translate(TextareaWithPreview)

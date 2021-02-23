@@ -1,4 +1,5 @@
 import React from 'react'
+import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import moment from 'moment'
 import _ from 'lodash'
@@ -8,7 +9,6 @@ import DatePicker from 'react-datepicker'
 import randomColor from 'randomcolor'
 import Color from 'color'
 import {fetchUsers} from './common'
-import translate from './i18n/translate'
 import {offsetDays, userDisplayName} from '../config.webapp'
 import { cloud } from '../lib/leancloud'
 
@@ -273,4 +273,4 @@ StatsChart.propTypes = {
   t: PropTypes.func
 }
 
-export default translate(StatsChart)
+export default withTranslation()(StatsChart)
