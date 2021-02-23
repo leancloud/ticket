@@ -11,14 +11,14 @@ default:
   host = 'http://localhost:' + process.env.LEANCLOUD_APP_PORT
 }
 
-const intergrations = []
+const integrations = []
 
-const mailgun = require('./intergrations/mailgun/server')
-const zulip = require('./intergrations/zulip/server')
-const wechat = require('./intergrations/wechat/server')
+const mailgun = require('./integrations/mailgun/server')
+const zulip = require('./integrations/zulip/server')
+const wechat = require('./integrations/wechat/server')
 
 if (process.env.MAILGUN_KEY && process.env.MAILGUN_DOMAIN) {
-  intergrations.push(mailgun(process.env.MAILGUN_KEY, process.env.MAILGUN_DOMAIN))
+  integrations.push(mailgun(process.env.MAILGUN_KEY, process.env.MAILGUN_DOMAIN))
 }
 if (process.env.ZULIP_API_KEY) {
   const zulipConfig = {
@@ -28,7 +28,7 @@ if (process.env.ZULIP_API_KEY) {
     stream: process.env.ZULIP_STREAM,
     topic: process.env.ZULIP_TOPIC,
   }
-  intergrations.push(zulip(zulipConfig))
+  integrations.push(zulip(zulipConfig))
 }
 if (process.env.WECHAT_TOKEN) {
   const wechatConfig = {
@@ -38,19 +38,19 @@ if (process.env.WECHAT_TOKEN) {
     token: process.env.WECHAT_TOKEN,
     encodingAESKey: process.env.WECHAT_ENCODING_AES_KEY,
   }
-  intergrations.push(wechat(wechatConfig))
+  integrations.push(wechat(wechatConfig))
 }
 
 module.exports = {
   host,
   oauthKey: process.env.OAUTH_KEY,
   oauthSecret: process.env.OAUTH_SECRET,
-  enableLeanCloudIntergration: process.env.ENABLE_LEANCLOUD_INTERGRATION,
+  enableLeanCloudIntegration: process.env.ENABLE_LEANCLOUD_INTEGRATION,
   leancloudAppUrl: process.env.LEANCLOUD_APP_URL_V2,
   sentryDSN: process.env.SENTRY_DSN,
   sentryDSNPublic: process.env.SENTRY_DSN_PUBLIC,
   // Use HELP_EMAIL instead of SUPPORT_EMAIL, because there is a bug in LeanEngine.
   // See #1830 of LeanEngine repo (private) for more information.
   supportEmail: process.env.HELP_EMAIL,
-  intergrations,
+  integrations,
 }

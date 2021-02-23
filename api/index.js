@@ -33,23 +33,23 @@ router.use(
 
 router.use('/files', require('./file'))
 
-const { intergrations } = require('../config')
+const { integrations } = require('../config')
 console.log(
-  `Using plugins: ${intergrations
-    .map((intergration) => intergration.name)
+  `Using plugins: ${integrations
+    .map((integration) => integration.name)
     .join(', ')}`
 )
 
-intergrations.forEach(({ setup, name }) => {
+integrations.forEach(({ setup, name }) => {
   Promise.resolve(setup?.()).catch((error) => {
     console.error(`Failed to setup plugin [${name}]: ${error.message}`)
   })
 })
 
-const intergrationRouters = intergrations
-  .map((intergration) => intergration.routers)
+const integrationRouters = integrations
+  .map((integration) => integration.routers)
   .filter(_.identity)
   .flat()
-intergrationRouters.forEach((params) => router.use(...params))
+integrationRouters.forEach((params) => router.use(...params))
 
 module.exports = router

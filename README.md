@@ -141,4 +141,4 @@ npm run dev:client
 1. 特性和 bug 修复在合并到 master 分支后，将 master 分支发布到工单的预备环境测试（如有必要，改动未合并前也可临时在工单预备环境测试）。
 2. 在预备环境充分测试后（比如一周后，具体时间视改动的大小和影响自行把握），发布到工单的生产环境，并在代码仓库打上 `lc-YYYYMMDD` 的 tag. 
 
-另外，实现 LeanCloud 内部功能请加上 `enableLeanCloudIntergration` 开关。
+另外，实现 LeanCloud 内部功能请加上 `enableLeanCloudIntegration` 开关。

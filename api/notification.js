@@ -6,9 +6,9 @@ const { TICKET_STATUS } = require('../lib/common')
 const errorHandler = require('./errorHandler')
 const captureException = err => errorHandler.captureException(err)
 
-const { intergrations } = require('../config')
+const { integrations } = require('../config')
 
-const channels= intergrations.map(intergration => intergration.notificationChannel).filter(_.identity)
+const channels= integrations.map(integration => integration.notificationChannel).filter(_.identity)
 
 exports.newTicket = (ticket, author, assignee) => {
   return Promise.all(channels.map(channel => 

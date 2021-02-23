@@ -104,7 +104,7 @@ const getStateData = (state) => {
  * 判断该用户是否有权限提交工单
  */
 exports.checkPermission = async (user) => {
-  if (!config.enableLeanCloudIntergration || await isCustomerService(user)) {
+  if (!config.enableLeanCloudIntegration || await isCustomerService(user)) {
     return true
   }
   const userObj = await getUser(user.get('username'))
@@ -118,7 +118,7 @@ AV.Cloud.define('checkPermission', async (req) => {
   }
 })
 
-if (config.enableLeanCloudIntergration) {
+if (config.enableLeanCloudIntegration) {
   AV.Cloud.define('getLeanCloudUserInfos', (req) => {
     const user = req.currentUser
     if (!user) {
