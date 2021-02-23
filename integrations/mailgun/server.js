@@ -116,9 +116,7 @@ ${(ticket.get('latestReply') && ticket.get('latestReply').content) || '<暂无>'
   if (process.env.NODE_ENV !== 'development' && !mailgun) {
     router.post('/*', function (req, res, next) {
       const body = req.body
-      if (
-        !mailgun.validateWebhook(body.timestamp, body.token, body.signature)
-      ) {
+      if (!mailgun.validateWebhook(body.timestamp, body.token, body.signature)) {
         console.error('Request came, but not from Mailgun')
         res.send({
           error: { message: 'Invalid signature. Are you even Mailgun?' }
@@ -149,9 +147,7 @@ ${(ticket.get('latestReply') && ticket.get('latestReply').content) || '<暂无>'
   const getTicket = (mail) => {
     const match = mail.Subject.match(/.*\s\(#(\d+)\)$/)
     if (match) {
-      return new AV.Query('Ticket')
-        .equalTo('nid', parseInt(match[1]))
-        .first({ useMasterKey: true })
+      return new AV.Query('Ticket').equalTo('nid', parseInt(match[1])).first({ useMasterKey: true })
     }
     return Promise.resolve()
   }
@@ -159,14 +155,12 @@ ${(ticket.get('latestReply') && ticket.get('latestReply').content) || '<暂无>'
   const getFromUser = (mail) => {
     const match = mail.To.match(/^.*<?ticket-(.*)@leancloud.cn>?.*$/)
     if (match) {
-      return new AV.Query('_User')
-        .get(match[1], { useMasterKey: true })
-        .then((user) => {
-          if (!user) {
-            throw new Error('user not found, objectId=' + match[1])
-          }
-          return user
-        })
+      return new AV.Query('_User').get(match[1], { useMasterKey: true }).then((user) => {
+        if (!user) {
+          throw new Error('user not found, objectId=' + match[1])
+        }
+        return user
+      })
     }
     const err = new Error('user objectId mismatch:' + mail.To)
     new AV.Object('MailLog', {

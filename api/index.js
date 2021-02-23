@@ -26,19 +26,12 @@ require('./FAQ')
 const loginCallbackPath = '/oauth/callback'
 const loginCallbackUrl = config.host + loginCallbackPath
 router.use('/oauth/login', require('./oauth').login(loginCallbackUrl))
-router.use(
-  loginCallbackPath,
-  require('./oauth').loginCallback(loginCallbackUrl)
-)
+router.use(loginCallbackPath, require('./oauth').loginCallback(loginCallbackUrl))
 
 router.use('/files', require('./file'))
 
 const { integrations } = require('../config')
-console.log(
-  `Using plugins: ${integrations
-    .map((integration) => integration.name)
-    .join(', ')}`
-)
+console.log(`Using plugins: ${integrations.map((integration) => integration.name).join(', ')}`)
 
 integrations.forEach(({ setup, name }) => {
   Promise.resolve(setup?.()).catch((error) => {

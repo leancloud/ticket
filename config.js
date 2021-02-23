@@ -31,9 +31,7 @@ const zulip = require('./integrations/zulip/server')
 const wechat = require('./integrations/wechat/server')
 
 if (process.env.MAILGUN_KEY && process.env.MAILGUN_DOMAIN) {
-  integrations.push(
-    mailgun(process.env.MAILGUN_KEY, process.env.MAILGUN_DOMAIN)
-  )
+  integrations.push(mailgun(process.env.MAILGUN_KEY, process.env.MAILGUN_DOMAIN))
 }
 if (process.env.ZULIP_API_KEY) {
   const zulipConfig = {

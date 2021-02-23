@@ -3,3 +3,4 @@ tabWidth: 2
 trailingComma: "none"
 bracketSpacing: true
 semi: false
+printWidth: 100

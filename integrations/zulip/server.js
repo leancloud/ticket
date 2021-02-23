@@ -55,21 +55,22 @@ module.exports = (configs) => {
         realm
       })
       const updateUsers = () => {
-        return client.users.retrieve().then((result) => {
-          users = result.members
-          return
-        }).catch(errorHandler)
+        return client.users
+          .retrieve()
+          .then((result) => {
+            users = result.members
+            return
+          })
+          .catch(errorHandler)
       }
       setInterval(updateUsers, 1000 * 60 * 15)
-      updateUsers();
+      updateUsers()
     },
     notificationChannel: {
       newTicket: async (ticket, from, to) => {
-        const content = `:envelope: ${from.get(
-          'username'
-        )} 提交 [工单 #${ticket.get('nid')}](${getTicketUrl(
-          ticket
-        )}) 给 ${to.get('username')}
+        const content = `:envelope: ${from.get('username')} 提交 [工单 #${ticket.get(
+          'nid'
+        )}](${getTicketUrl(ticket)}) 给 ${to.get('username')}
 ~~~ quote
 ${ticket.get('title')}
 
@@ -78,20 +79,14 @@ ${ticket.get('content')}
         await send(to, content)
         await broadcast(content)
       },
-      replyTicket: async ({
-        ticket,
-        reply,
-        from,
-        to,
-        isCustomerServiceReply
-      }) => {
+      replyTicket: async ({ ticket, reply, from, to, isCustomerServiceReply }) => {
         if (isCustomerServiceReply) {
           return
         }
 
-        const content = `:left_speech_bubble: ${from.get(
-          'username'
-        )} 回复 [工单 #${ticket.get('nid')}](${getTicketUrl(ticket)})
+        const content = `:left_speech_bubble: ${from.get('username')} 回复 [工单 #${ticket.get(
+          'nid'
+        )}](${getTicketUrl(ticket)})
 ~~~ quote
 ${ticket.get('title')}
 
@@ -101,26 +96,21 @@ ${reply.get('content')}
         await broadcast(content)
       },
       changeAssignee: async (ticket, from, to) => {
-        const content = `:arrows_counterclockwise: ${from.get(
-          'username'
-        )} 转移 [工单 #${ticket.get('nid')}](${getTicketUrl(
-          ticket
-        )}) 给 ${to.get('username')}
+        const content = `:arrows_counterclockwise: ${from.get('username')} 转移 [工单 #${ticket.get(
+          'nid'
+        )}](${getTicketUrl(ticket)}) 给 ${to.get('username')}
 ~~~ quote
 ${ticket.get('title')}
 
-${
-  (ticket.get('latestReply') && ticket.get('latestReply').content) ||
-  '<还没有回复>'
-}
+${(ticket.get('latestReply') && ticket.get('latestReply').content) || '<还没有回复>'}
 ~~~`
         await send(to, content)
         await broadcast(content)
       },
       delayNotify: async (ticket, to) => {
-        const content = `:alarm_clock: 提醒 ${to.get(
-          'username'
-        )} 回复 [工单 #${ticket.get('nid')}](${getTicketUrl(ticket)})
+        const content = `:alarm_clock: 提醒 ${to.get('username')} 回复 [工单 #${ticket.get(
+          'nid'
+        )}](${getTicketUrl(ticket)})
 ~~~ quote
 ${ticket.get('title')}
 
@@ -131,11 +121,9 @@ ${ticket.get('latestReply') && ticket.get('latestReply').content}
       },
       ticketEvaluation: async (ticket, from, to) => {
         const { star, content: evaluationContent } = ticket.get('evaluation')
-        const content = `${
-          star == 1 ? ':thumbs_up:' : ':thumbs_down:'
-        } ${from.get('username')} 评价 [工单 #${ticket.get(
-          'nid'
-        )}](${getTicketUrl(ticket)})
+        const content = `${star == 1 ? ':thumbs_up:' : ':thumbs_down:'} ${from.get(
+          'username'
+        )} 评价 [工单 #${ticket.get('nid')}](${getTicketUrl(ticket)})
 ~~~ quote
 ${ticket.get('title')}
 

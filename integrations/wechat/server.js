@@ -49,16 +49,14 @@ module.exports = (configs) => {
         return Promise.map(
           data.department,
           (department) => {
-            return api
-              .getDepartmentUsersAsync(department.id, 1, 1)
-              .then((data) => {
-                if (data.errcode !== 0) {
-                  throw new Error(
-                    `wechat enterprise get department Users err: code=${data.errcode}, msg=${data.errmsg}`
-                  )
-                }
-                return data.userlist
-              })
+            return api.getDepartmentUsersAsync(department.id, 1, 1).then((data) => {
+              if (data.errcode !== 0) {
+                throw new Error(
+                  `wechat enterprise get department Users err: code=${data.errcode}, msg=${data.errmsg}`
+                )
+              }
+              return data.userlist
+            })
           },
           { concurrency: 2 }
         )
@@ -171,10 +169,7 @@ ${ticket.get('latestReply') && ticket.get('latestReply').content}
             .descending('createdAt')
             .first({ useMasterKey: true })
             .then((token) => {
-              if (
-                token &&
-                token.createdAt > new Date(new Date().getTime() - 7200000)
-              ) {
+              if (token && token.createdAt > new Date(new Date().getTime() - 7200000)) {
                 cb(null, JSON.parse(token.get('value')))
               } else {
                 cb(null, null)

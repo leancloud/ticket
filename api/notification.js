@@ -4,34 +4,35 @@ const AV = require('leanengine')
 
 const { TICKET_STATUS } = require('../lib/common')
 const errorHandler = require('./errorHandler')
-const captureException = err => errorHandler.captureException(err)
+const captureException = (err) => errorHandler.captureException(err)
 
 const { integrations } = require('../config')
 
-const channels= integrations.map(integration => integration.notificationChannel).filter(_.identity)
+const channels = integrations
+  .map((integration) => integration.notificationChannel)
+  .filter(_.identity)
 
 exports.newTicket = (ticket, author, assignee) => {
-  return Promise.all(channels.map(channel => 
-    Promise.resolve(channel.newTicket?.(ticket, author, assignee)).catch(captureException)
-  ))
-    .then(() => {
-      return new AV.Object('Message').save({
-        type: 'newTicket',
-        ticket,
-        from: author,
-        to: assignee,
-        isRead: false,
-        ACL: {
-          [assignee.id]: {write: true, read: true},
-        }
-      })
+  return Promise.all(
+    channels.map((channel) =>
+      Promise.resolve(channel.newTicket?.(ticket, author, assignee)).catch(captureException)
+    )
+  ).then(() => {
+    return new AV.Object('Message').save({
+      type: 'newTicket',
+      ticket,
+      from: author,
+      to: assignee,
+      isRead: false,
+      ACL: {
+        [assignee.id]: { write: true, read: true }
+      }
     })
+  })
 }
 
 exports.replyTicket = (ticket, reply, replyAuthor) => {
-  const to = reply.get('isCustomerService')
-    ? ticket.get('author')
-    : ticket.get('assignee')
+  const to = reply.get('isCustomerService') ? ticket.get('author') : ticket.get('assignee')
   const data = {
     ticket,
     reply,
@@ -39,9 +40,9 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
     to,
     isCustomerServiceReply: reply.get('isCustomerService')
   }
-  return Promise.all(channels.map(channel => 
-    Promise.resolve(channel.replyTicket?.(data)).catch(captureException)
-  ))
+  return Promise.all(
+    channels.map((channel) => Promise.resolve(channel.replyTicket?.(data)).catch(captureException))
+  )
     .then(() => {
       return new AV.Object('Message', {
         type: 'reply',
@@ -51,7 +52,7 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
         to,
         isRead: false,
         ACL: {
-          [to.id]: {write: true, read: true},
+          [to.id]: { write: true, read: true }
         }
       }).save()
     })
@@ -59,10 +60,10 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
       return new AV.Query('Watch')
         .equalTo('ticket', ticket)
         .limit(1000)
-        .find({useMasterKey: true})
+        .find({ useMasterKey: true })
     })
-    .then(watches => {
-      const messages = watches.map(watch => {
+    .then((watches) => {
+      const messages = watches.map((watch) => {
         if (watch.get('user').id === to.id) {
           return
         }
@@ -74,7 +75,7 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
           to: watch.get('user'),
           isRead: false,
           ACL: {
-            [watch.get('user').id]: {write: true, read: true},
+            [watch.get('user').id]: { write: true, read: true }
           }
         })
       })
@@ -83,45 +84,49 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
 }
 
 exports.changeAssignee = (ticket, operator, assignee) => {
-  return Promise.all(channels.map(channel => 
-    Promise.resolve(channel.changeAssignee?.(ticket, operator, assignee)).catch(captureException)
-  ))
-    .then(() => {
-      return new AV.Object('Message', {
-        type: 'changeAssignee',
-        ticket,
-        from: operator,
-        to: assignee,
-        isRead: false,
-        ACL: {
-          [assignee.id]: {write: true, read: true},
-        }
-      }).save()
-    })
+  return Promise.all(
+    channels.map((channel) =>
+      Promise.resolve(channel.changeAssignee?.(ticket, operator, assignee)).catch(captureException)
+    )
+  ).then(() => {
+    return new AV.Object('Message', {
+      type: 'changeAssignee',
+      ticket,
+      from: operator,
+      to: assignee,
+      isRead: false,
+      ACL: {
+        [assignee.id]: { write: true, read: true }
+      }
+    }).save()
+  })
 }
 
 exports.ticketEvaluation = (ticket, author, to) => {
-  return Promise.all(channels.map(channel => 
-    Promise.resolve(channel.ticketEvaluation?.(ticket, author, to)).catch(captureException)
-  ))
-    .then(() => {
-      return new AV.Object('Message', {
-        type: 'ticketEvaluation',
-        ticket,
-        from: author,
-        to: to,
-        isRead: false,
-        ACL: {
-          [to.id]: {write: true, read: true},
-        }
-      }).save()
-    })
+  return Promise.all(
+    channels.map((channel) =>
+      Promise.resolve(channel.ticketEvaluation?.(ticket, author, to)).catch(captureException)
+    )
+  ).then(() => {
+    return new AV.Object('Message', {
+      type: 'ticketEvaluation',
+      ticket,
+      from: author,
+      to: to,
+      isRead: false,
+      ACL: {
+        [to.id]: { write: true, read: true }
+      }
+    }).save()
+  })
 }
 
 const sendDelayNotify = (ticket, to) => {
-  return Promise.all(channels.map(channel => 
-    Promise.resolve(channel.delayNotify?.(ticket, to)).catch(captureException)
-  ))
+  return Promise.all(
+    channels.map((channel) =>
+      Promise.resolve(channel.delayNotify?.(ticket, to)).catch(captureException)
+    )
+  )
 }
 
 const delayNotify = () => {
@@ -131,10 +136,7 @@ const delayNotify = () => {
     TICKET_STATUS.WAITING_CUSTOMER_SERVICE
   )
   // find all tickets
-  const newTicketQuery = new AV.Query('Ticket').equalTo(
-    'status',
-    TICKET_STATUS.NEW
-  )
+  const newTicketQuery = new AV.Query('Ticket').equalTo('status', TICKET_STATUS.NEW)
 
   const deadline = new Date(Date.now() - 2 * 60 * 60 * 1000)
   return (
