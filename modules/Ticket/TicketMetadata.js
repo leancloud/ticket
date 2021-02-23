@@ -1,21 +1,20 @@
-import _ from 'lodash'
-import React, {Component} from 'react'
+import React, { Component } from 'react'
+import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
-import {FormGroup, FormControl, Button} from 'react-bootstrap'
+import _ from 'lodash'
+import { Button, FormControl, FormGroup} from 'react-bootstrap'
 import LC from '../../lib/leancloud'
 
-import {getCustomerServices, getCategoryPathName} from '../common'
-import {UserLabel} from '../UserLabel'
+import { getCustomerServices, getCategoryPathName } from '../common'
+import { UserLabel } from '../UserLabel'
 import TagForm from '../TagForm'
 import css from './index.css'
 import csCss from '../CustomerServiceTickets.css'
-import translate from '../i18n/translate'
-import {depthFirstSearchFind} from '../../lib/common'
+import { depthFirstSearchFind } from '../../lib/common'
 import CategoriesSelect from '../CategoriesSelect'
-import {customTicketMetadataComments} from '../../config.webapp'
+import { customTicketMetadataComments } from '../../config.webapp'
 
 class TicketMetadata extends Component {
-
   constructor(props) {
     super(props)
     this.state = {
@@ -64,7 +63,7 @@ class TicketMetadata extends Component {
   }
 
   render() {
-    const {t} = this.props
+    const { t } = this.props
     const {ticket, isCustomerService} = this.props
     const assignee = ticket.data.assignee
 
@@ -100,7 +99,7 @@ class TicketMetadata extends Component {
             :
             <div>
               <span className={csCss.category + ' ' + css.categoryBlock}>
-                {getCategoryPathName(ticket.get('category'), this.props.categoriesTree, t)}
+                {getCategoryPathName(ticket.get('category'), this.props.categoriesTree)}
               </span>
               {isCustomerService &&
                 <Button bsStyle='link' onClick={() => this.setState({isUpdateCategory: true})}>
@@ -131,11 +130,14 @@ class TicketMetadata extends Component {
         {this.context.tagMetadatas.map(tagMetadata => {
           const tags = ticket.get(tagMetadata.get('isPrivate') ? 'privateTags' : 'tags')
           const tag = _.find(tags, t => t.key == tagMetadata.get('key'))
-          return <TagForm key={tagMetadata.id}
-                          tagMetadata={tagMetadata}
-                          tag={tag}
-                          changeTagValue={this.handleTagChange.bind(this)}
-                          isCustomerService={isCustomerService} />
+          return (
+            <TagForm key={tagMetadata.id}
+              tagMetadata={tagMetadata}
+              tag={tag}
+              changeTagValue={this.handleTagChange.bind(this)}
+              isCustomerService={isCustomerService}
+            />
+          )
         })}
       </div>
     )
@@ -149,11 +151,11 @@ TicketMetadata.propTypes = {
   updateTicketAssignee: PropTypes.func.isRequired,
   updateTicketCategory: PropTypes.func.isRequired,
   saveTag: PropTypes.func.isRequired,
-  t: PropTypes.func
+  t: PropTypes.func.isRequired,
 }
 
 TicketMetadata.contextTypes = {
   tagMetadatas: PropTypes.array,
 }
 
-export default translate(TicketMetadata)
+export default withTranslation()(TicketMetadata)

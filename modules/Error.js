@@ -1,11 +1,10 @@
 /*global SUPPORT_EMAIL*/
 import React from 'react'
-import PropTypes from 'prop-types'
-
-import translate from './i18n/translate'
+import { useTranslation } from 'react-i18next'
 import { useLocation } from 'react-router'
 
-function Error({ t }) {
+export default function Error() {
+  const { t } = useTranslation()
   const location = useLocation()
 
   if (!location.state) {
@@ -40,10 +39,3 @@ function Error({ t }) {
     </div>
   )
 }
-
-Error.propTypes = {
-  location: PropTypes.object.isRequired,
-  t: PropTypes.func.isRequired,
-}
-
-export default translate(Error)

@@ -1,6 +1,7 @@
 /*global $, ALGOLIA_API_KEY, ENABLE_LEANCLOUD_INTERGRATION*/
 import _ from 'lodash'
 import React from 'react'
+import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import {FormGroup, ControlLabel, FormControl, Button, Tooltip, OverlayTrigger} from 'react-bootstrap'
 import {auth, cloud, db} from '../lib/leancloud'
@@ -20,7 +21,6 @@ import {uploadFiles, getCategoriesTree} from './common'
 import OrganizationSelect from './OrganizationSelect'
 import TagForm from './TagForm'
 import {DocumentTitle} from './utils/DocumentTitle'
-import translate from './i18n/translate'
 import FAQ from './components/FAQ'
 import { withRouter } from 'react-router'
 
@@ -166,10 +166,10 @@ class NewTicket extends React.Component {
     this.setState({appId: e.target.value})
   }
 
-  handleContentChange(e) {
-    localStorage.setItem('ticket:new:content', e.target.value)
+  handleContentChange(value) {
+    localStorage.setItem('ticket:new:content', value)
     const ticket = this.state.ticket
-    ticket.content = e.target.value
+    ticket.content = value
     this.setState({ticket})
   }
 
@@ -312,10 +312,14 @@ class NewTicket extends React.Component {
           {this.context.tagMetadatas.map(tagMetadata => {
             const tags = ticket.tags
             const tag = _.find(tags, t => t.key == tagMetadata.get('key'))
-            return <TagForm key={tagMetadata.id}
-                            tagMetadata={tagMetadata}
-                            tag={tag}
-                            changeTagValue={this.changeTagValue.bind(this)} />
+            return (
+              <TagForm
+                key={tagMetadata.id}
+                tagMetadata={tagMetadata}
+                tag={tag}
+                changeTagValue={this.changeTagValue.bind(this)}
+              />
+            )
           })}
 
           <FormGroup>
@@ -324,7 +328,8 @@ class NewTicket extends React.Component {
                 <b className="has-required" title={t('supportMarkdown')}>M↓</b>
               </OverlayTrigger>
             </ControlLabel>
-            <TextareaWithPreview componentClass="textarea" rows="8"
+            <TextareaWithPreview
+              rows="8"
               value={ticket.content}
               onChange={this.handleContentChange.bind(this)}
             />
@@ -354,4 +359,4 @@ NewTicket.propTypes = {
   t: PropTypes.func,
 }
 
-export default withRouter(translate(NewTicket))
+export default withTranslation()(withRouter(NewTicket))

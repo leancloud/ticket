@@ -1,11 +1,11 @@
 import React, { Component } from 'react'
+import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 import { auth } from '../../lib/leancloud'
 
-import {UserLabel} from '../UserLabel'
+import { UserLabel } from '../UserLabel'
 import UserForm from '../UserForm'
-import translate from '../i18n/translate'
 
 class SettingMembers extends Component {
 
@@ -67,7 +67,7 @@ class SettingMembers extends Component {
   }
 
   render() {
-    const {t} = this.props
+    const { t } = this.props
     const customerServices = this.state.customerServices.map((customerService) => {
       const categories = _.map(customerService.get('categories'), (category) => {
         return <span key={category.objectId}>{category.name} </span>
@@ -107,7 +107,7 @@ class SettingMembers extends Component {
 }
 
 SettingMembers.propTypes = {
-  t: PropTypes.func
+  t: PropTypes.func.isRequired,
 }
 
-export default translate(SettingMembers)
+export default withTranslation()(SettingMembers)

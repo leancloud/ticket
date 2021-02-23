@@ -1,5 +1,6 @@
 /*global FAQ_VIEWS*/
 import React from 'react'
+import { withTranslation } from 'react-i18next'
 import { withRouter } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
@@ -13,8 +14,6 @@ import {
 } from 'react-bootstrap'
 import { db } from '../../lib/leancloud'
 import TextareaWithPreview from '../components/TextareaWithPreview'
-
-import translate from '../i18n/translate'
 
 const VIEWS = FAQ_VIEWS.split(',').filter((view) => view)
 const DEFAULT_PRIORITY = 10
@@ -72,8 +71,9 @@ class FAQ extends React.Component {
   handleQuestionChange(e) {
     this.updateFAQState({ question: e.target.value })
   }
-  handleAnswerChange(e) {
-    this.updateFAQState({ answer: e.target.value })
+
+  handleAnswerChange(value) {
+    this.updateFAQState({ answer: value })
   }
 
   handleSubmit(e) {
@@ -130,7 +130,6 @@ class FAQ extends React.Component {
               </b>
             </ControlLabel>
             <TextareaWithPreview
-              componentClass="textarea"
               rows="8"
               value={this.state.faq.answer}
               onChange={this.handleAnswerChange.bind(this)}
@@ -182,4 +181,4 @@ FAQ.contextTypes = {
   addNotification: PropTypes.func.isRequired
 }
 
-export default withRouter(translate(FAQ))
+export default withTranslation()(withRouter(FAQ))

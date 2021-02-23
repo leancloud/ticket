@@ -6,13 +6,13 @@ import {Route, Switch, withRouter} from 'react-router-dom'
 import PropTypes from 'prop-types'
 import NotificationSystem from 'react-notification-system'
 import Raven from 'raven-js'
-import moment from 'moment'
+import i18next from 'i18next'
 
+import './i18n'
 import {auth, db} from '../lib/leancloud'
 import { isCustomerService } from './common'
 import GlobalNav from './GlobalNav'
 import css from './App.css'
-import {locale} from './i18n/I18nProvider'
 
 import { AuthRoute } from './utils/AuthRoute'
 import Home from './Home'
@@ -28,17 +28,6 @@ import CustomerService from './CustomerService'
 import ErrorPage from './Error'
 import User from './User'
 import Settings from './Settings'
-
-if (locale === 'zh') {
-  moment.updateLocale('zh-cn', {
-    calendar : {
-      lastWeek : function() {
-        // eslint-disable-next-line i18n/no-chinese-character
-        return this < moment().startOf('week') ? '[上]ddddLT' : 'ddddLT'
-      },
-    }
-  })
-}
 
 if (SENTRY_DSN_PUBLIC !== '') {
   Raven.config(SENTRY_DSN_PUBLIC).install()
@@ -242,6 +231,7 @@ App.childContextTypes = {
 
 export default withRouter(App)
 
+// TODO: 重构为 hooks
 class ServerNotification extends Component {
   constructor(props) {
     super(props)
@@ -270,25 +260,6 @@ class ServerNotification extends Component {
   }
 
   updateLiveQuery() {
-    const i18nMessages = {
-      newTicket: [
-        'New ticket',
-        // eslint-disable-next-line i18n/no-chinese-character
-        '新的工单'
-      ],
-      assignTicket: [
-        'Assign ticket',
-        // eslint-disable-next-line i18n/no-chinese-character
-        '转移工单'
-      ],
-      newReply: [
-        'New reply',
-        // eslint-disable-next-line i18n/no-chinese-character
-        '新的回复'
-      ]
-    }
-    const localeIndex = locale === 'en' ? 0 : 1
-    const t = (label) => i18nMessages[label][localeIndex]
     if (this.messageLiveQuery) {
       this.messageLiveQuery.unsubscribe()
     }
@@ -307,11 +278,11 @@ class ServerNotification extends Component {
             const messageType = message.get('type')
             const ticket = message.get('ticket')
             if (messageType == 'newTicket') {
-              this.notify({title: t('newTicket'), body: `${ticket.get('title')} (#${ticket.get('nid')})`})
+              this.notify({title: i18next.t('message.newTicket'), body: `${ticket.get('title')} (#${ticket.get('nid')})`})
             } else if (messageType == 'changeAssignee') {
-              this.notify({title: t('assignTicket'), body: `${ticket.get('title')} (#${ticket.get('nid')})`})
+              this.notify({title: i18next.t('message.assignTicket'), body: `${ticket.get('title')} (#${ticket.get('nid')})`})
             } else if (messageType == 'reply') {
-              this.notify({title: t('newReply'), body: `${ticket.get('title')} (#${ticket.get('nid')})`})
+              this.notify({title: i18next.t('message.newReply'), body: `${ticket.get('title')} (#${ticket.get('nid')})`})
             }
             return
           })
@@ -336,7 +307,7 @@ class ServerNotification extends Component {
   }
 
   render() {
-    return <div></div>
+    return null
   }
 }
 

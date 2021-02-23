@@ -1,5 +1,6 @@
 /*global ORG_NAME, USE_OAUTH, LEANCLOUD_OAUTH_REGION*/
 import React, { Component } from 'react'
+import { withTranslation } from 'react-i18next'
 import {
   ControlLabel,
   FormControl,
@@ -12,7 +13,6 @@ import qs from 'query-string'
 import { auth } from '../lib/leancloud'
 import { isCN } from './common'
 import css from './Login.css'
-import translate from './i18n/translate'
 import { withRouter } from 'react-router'
 
 class Login extends Component {
@@ -144,6 +144,7 @@ class Login extends Component {
           </FormGroup>
         </Form>
         {isCN() && (
+          /* eslint-disable i18n/no-chinese-character */
           <div>
             <hr />
             <p>美味书签（北京）信息技术有限公司 版权所有</p>
@@ -153,6 +154,7 @@ class Login extends Component {
               </a>
             </div>
           </div>
+          /* eslint-enable i18n/no-chinese-character */
         )}
       </div>
     )
@@ -170,4 +172,4 @@ Login.contextTypes = {
   addNotification: PropTypes.func.isRequired
 }
 
-export default withRouter(translate(Login))
+export default withTranslation()(withRouter(Login))

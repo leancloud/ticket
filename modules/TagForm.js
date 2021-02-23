@@ -1,8 +1,8 @@
 import React from 'react'
+import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
-import {FormGroup, FormControl, Button} from 'react-bootstrap'
+import { FormGroup, FormControl, Button } from 'react-bootstrap'
 import validUrl from 'valid-url'
-import translate from './i18n/translate'
 
 class TagForm extends React.Component {
 
@@ -13,7 +13,7 @@ class TagForm extends React.Component {
       value: props.tag ? props.tag.value : ''
     }
   }
-  
+
   handleChange(e) {
     const tagMetadata = this.props.tagMetadata
     if (tagMetadata.get('type') == 'select') {
@@ -23,10 +23,10 @@ class TagForm extends React.Component {
           return
         })
     }
-  
+
     this.setState({value: e.target.value})
   }
-  
+
   handleCommit() {
     const tagMetadata = this.props.tagMetadata
     return this.props.changeTagValue(tagMetadata.get('key'), this.state.value, tagMetadata.get('isPrivate'))
@@ -35,19 +35,19 @@ class TagForm extends React.Component {
         return
       })
   }
-  
+
   render() {
     const {t, tagMetadata, tag, isCustomerService} = this.props
     const isPrivate = tagMetadata.get('isPrivate')
     if (isPrivate && !isCustomerService) {
       return <div></div>
     }
-  
+
       // 如果标签不存在，说明标签还没设置过。对于非客服来说则什么都不显示
     if (!tag && !isCustomerService) {
       return <div></div>
     }
-  
+
     return <FormGroup key={tagMetadata.get('key')}>
         <label className="label-block">
           {tagMetadata.get('key')}
@@ -90,7 +90,7 @@ class TagForm extends React.Component {
       </FormGroup>
   }
   }
-  
+
 TagForm.propTypes = {
   tagMetadata: PropTypes.object.isRequired,
   tag: PropTypes.object,
@@ -99,5 +99,4 @@ TagForm.propTypes = {
   t: PropTypes.func
 }
 
-export default translate(TagForm)
-  
+export default withTranslation()(TagForm)

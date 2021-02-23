@@ -1,26 +1,33 @@
+import React, {Component} from 'react'
+import { withTranslation } from 'react-i18next'
+import { withRouter } from 'react-router-dom'
 import moment from 'moment'
 import _ from 'lodash'
 import xss from 'xss'
-import React, {Component} from 'react'
-import {FormGroup, ControlLabel, Alert, Button, Tooltip, OverlayTrigger} from 'react-bootstrap'
+import {
+  Alert,
+  Button,
+  ControlLabel,
+  FormGroup,
+  OverlayTrigger,
+  Tooltip,
+} from 'react-bootstrap'
 import PropTypes from 'prop-types'
-import {auth, cloud, db} from '../../lib/leancloud'
+import { auth, cloud, db } from '../../lib/leancloud'
 
-import {uploadFiles, getCategoryPathName, getCategoriesTree} from '../common'
+import { uploadFiles, getCategoryPathName, getCategoriesTree } from '../common'
 import css from './index.css'
 import csCss from '../CustomerServiceTickets.css'
 
-import {TICKET_STATUS, isTicketOpen, getTinyCategoryInfo} from '../../lib/common'
+import { TICKET_STATUS, isTicketOpen, getTinyCategoryInfo } from '../../lib/common'
 import Evaluation from '../Evaluation'
 import TicketMetadata from './TicketMetadata'
 import TicketReply from './TicketReply'
 import TicketStatusLabel from '../TicketStatusLabel'
-import translate from '../i18n/translate'
 import Tag from '../Tag'
-import {WeekendWarning} from '../components/WeekendWarning'
-import {UserLabel} from '../UserLabel'
-import {DocumentTitle} from '../utils/DocumentTitle'
-import { withRouter } from 'react-router-dom'
+import { WeekendWarning } from '../components/WeekendWarning'
+import { UserLabel } from '../UserLabel'
+import { DocumentTitle } from '../utils/DocumentTitle'
 
 // get a copy of default whiteList
 const whiteList = xss.getDefaultWhiteList()
@@ -181,7 +188,7 @@ class Ticket extends Component {
 
   async commitReply(content, files) {
     content = content.trim()
-    if (content === '') {
+    if (content === '' && files.length === 0) {
       return
     }
     try {
@@ -307,7 +314,8 @@ class Ticket extends Component {
     }
   }
 
-  ticketTimeline(t, avObj) {
+  ticketTimeline(avObj) {
+    const { t } = this.props
     if (avObj.className === 'OpsLog') {
       switch (avObj.get('action')) {
       case 'selectAssignee':
@@ -328,7 +336,7 @@ class Ticket extends Component {
               <span className='icon-wrap'><span className='glyphicon glyphicon-transfer'></span></span>
             </div>
             <div className='ticket-status-right'>
-              <UserLabel user={avObj.get('data').operator} /> {t('changedTicketCategoryTo')} <span className={csCss.category + ' ' + css.category}>{getCategoryPathName(avObj.get('data').category, this.state.categoriesTree, t)}</span> ({this.getTime(avObj)})
+              <UserLabel user={avObj.get('data').operator} /> {t('changedTicketCategoryTo')} <span className={csCss.category + ' ' + css.category}>{getCategoryPathName(avObj.get('data').category, this.state.categoriesTree)}</span> ({this.getTime(avObj)})
             </div>
           </div>
         )
@@ -446,12 +454,10 @@ class Ticket extends Component {
   }
 
   render() {
-    const {t} = this.props
+    const { t } = this.props
     const ticket = this.state.ticket
     if (ticket === null) {
-      return (
-      <div>{t('loading')}……</div>
-      )
+      return <div>{t('loading')}……</div>
     }
 
     // 如果是客服自己提交工单，则当前客服在该工单中认为是用户，
@@ -460,7 +466,7 @@ class Ticket extends Component {
     const timeline = _.chain(this.state.replies)
       .concat(this.state.opsLogs)
       .sortBy((data) => data.createdAt)
-      .map(this.ticketTimeline.bind(this, t))
+      .map(this.ticketTimeline.bind(this))
       .value()
     let optionButtons = <div></div>
     const ticketStatus = ticket.get('status')
@@ -535,7 +541,7 @@ class Ticket extends Component {
         <div className="row">
           <div className="col-sm-8">
             <div className="tickets">
-              {this.ticketTimeline(t, ticket)}
+              {this.ticketTimeline(ticket)}
               <div>{timeline}</div>
             </div>
 
@@ -593,11 +599,11 @@ Ticket.propTypes = {
   match: PropTypes.object.isRequired,
   currentUser: PropTypes.object,
   isCustomerService: PropTypes.bool,
-  t: PropTypes.func
+  t: PropTypes.func.isRequired,
 }
 
 Ticket.contextTypes = {
   addNotification: PropTypes.func.isRequired,
 }
 
-export default withRouter(translate(Ticket))
+export default withTranslation()(withRouter(Ticket))

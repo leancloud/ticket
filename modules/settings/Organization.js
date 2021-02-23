@@ -1,13 +1,21 @@
 import _ from 'lodash'
 import React from 'react'
+import { withTranslation } from 'react-i18next'
 import { withRouter } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import {Form, FormGroup, ControlLabel, FormControl, Button, Table, HelpBlock} from 'react-bootstrap'
-import {auth, cloud, db} from '../../lib/leancloud'
+import {
+  Button,
+  ControlLabel,
+  Form,
+  FormControl,
+  FormGroup,
+  HelpBlock,
+  Table,
+} from 'react-bootstrap'
+import { auth, cloud, db } from '../../lib/leancloud'
 
-import {UserLabel} from '../UserLabel'
+import { UserLabel } from '../UserLabel'
 import UserForm from '../UserForm'
-import translate from '../i18n/translate'
 class Organization extends React.Component {
 
   componentDidMount() {
@@ -162,7 +170,7 @@ ${count} ${t('deleteOrganizationConsequence')}`)
   }
 
   render() {
-    const {t} = this.props
+    const { t } = this.props
     if (!this.state) {
       return <div>{t('loading')}……</div>
     }
@@ -231,4 +239,4 @@ Organization.contextTypes = {
   addNotification: PropTypes.func.isRequired,
 }
 
-export default withRouter(translate(Organization))
+export default withTranslation()(withRouter(Organization))

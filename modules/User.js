@@ -1,12 +1,12 @@
 /*global ENABLE_LEANCLOUD_INTERGRATION */
-import React, {Component} from 'react'
+import React, { Component } from 'react'
+import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import { Link, withRouter } from 'react-router-dom'
 import {cloud} from '../lib/leancloud'
 import {Avatar} from './Avatar'
 import css from './User.css'
-import translate from './i18n/translate'
-import {UserTags} from './UserLabel'
+import { UserTags } from './UserLabel'
 
 class User extends Component {
   constructor(props) {
@@ -144,4 +144,4 @@ LeanCloudApps.propTypes = {
   leancloudApps: PropTypes.array
 }
 
-export default withRouter(translate(User))
+export default withTranslation()(withRouter(User))

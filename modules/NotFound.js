@@ -1,10 +1,10 @@
 /*global SUPPORT_EMAIL*/
 import React from 'react'
-import PropTypes from 'prop-types'
-import translate from './i18n/translate'
+import { useTranslation } from 'react-i18next'
 import { useTitle } from './utils/hooks'
 
-function Error({t}) {
+export default function NotFound() {
+  const { t } = useTranslation()
   useTitle('404 - LeanTicket')
 
   return (
@@ -15,9 +15,3 @@ function Error({t}) {
     </div>
   )
 }
-
-Error.propTypes = {
-  t: PropTypes.func
-}
-
-export default translate(Error)

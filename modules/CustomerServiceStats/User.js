@@ -1,11 +1,11 @@
 import React from 'react'
+import { withTranslation } from 'react-i18next'
 import { withRouter } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import {Table} from 'react-bootstrap'
+import { Table } from 'react-bootstrap'
 import qs from 'query-string'
 import { cloud } from '../../lib/leancloud'
-import {DocumentTitle} from '../utils/DocumentTitle'
-import translate from '../i18n/translate'
+import { DocumentTitle } from '../utils/DocumentTitle'
 
 class CSStatsUser extends React.Component {
 
@@ -78,4 +78,4 @@ CSStatsUser.propTypes = {
   t: PropTypes.func
 }
 
-export default withRouter(translate(CSStatsUser))
+export default withTranslation()(withRouter(CSStatsUser))

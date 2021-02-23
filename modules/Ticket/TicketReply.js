@@ -1,10 +1,10 @@
-import React, {Component} from 'react'
+import React, { Component } from 'react'
+import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
-import {FormGroup, FormControl, Button, ButtonToolbar} from 'react-bootstrap'
+import { Button, ButtonToolbar, FormControl, FormGroup } from 'react-bootstrap'
 import LC from '../../lib/leancloud'
 
 import TextareaWithPreview from '../components/TextareaWithPreview'
-import translate from '../i18n/translate'
 import css from './index.css'
 
 class TicketReply extends Component {
@@ -17,10 +17,9 @@ class TicketReply extends Component {
     }
   }
 
-
-  handleReplyOnChange(e) {
-    localStorage.setItem(`ticket:${this.props.ticket.id}:reply`, e.target.value)
-    this.setState({reply: e.target.value})
+  handleReplyOnChange(value) {
+    localStorage.setItem(`ticket:${this.props.ticket.id}:reply`, value)
+    this.setState({reply: value})
   }
 
   handleReplyOnKeyDown(e) {
@@ -69,7 +68,7 @@ class TicketReply extends Component {
   }
 
   render() {
-    const {t} = this.props
+    const { t } = this.props
     let buttons
     if (this.props.isCustomerService) {
       buttons = (
@@ -90,7 +89,8 @@ class TicketReply extends Component {
       <div>
         <form className="form-group">
           <FormGroup>
-            <TextareaWithPreview componentClass="textarea" rows="8"
+            <TextareaWithPreview
+              rows="8"
               value={this.state.reply}
               onChange={this.handleReplyOnChange.bind(this)}
               onKeyDown={this.handleReplyOnKeyDown.bind(this)}
@@ -125,12 +125,11 @@ TicketReply.propTypes = {
   commitReplySoon: PropTypes.func.isRequired,
   operateTicket: PropTypes.func.isRequired,
   isCustomerService: PropTypes.bool,
-  t: PropTypes.func
+  t: PropTypes.func.isRequired,
 }
 
 TicketReply.contextTypes = {
   addNotification: PropTypes.func.isRequired,
 }
 
-
-export default translate(TicketReply)
+export default withTranslation()(TicketReply)

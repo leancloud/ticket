@@ -1,5 +1,7 @@
 import React from 'react'
-import {Checkbox} from 'react-bootstrap'
+import { useTranslation } from 'react-i18next'
+import PropTypes from 'prop-types'
+import { Checkbox } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
 import _ from 'lodash'
 import moment from 'moment'
@@ -7,9 +9,9 @@ import moment from 'moment'
 import TicketStatusLabel from '../TicketStatusLabel'
 import {UserLabel} from '../UserLabel'
 import css from '../CustomerServiceTickets.css'
-import translate from '../i18n/translate'
 
-export const TicketItem = translate(({t, ticket, checkable, checked, onCheckboxChange, category}) => {
+export function TicketItem({ ticket, checkable, checked, onCheckboxChange, category }) {
+  const { t } = useTranslation()
   const contributors = _.uniqBy(ticket.joinedCustomerServices || [], 'objectId')
 
   return (
@@ -67,4 +69,12 @@ export const TicketItem = translate(({t, ticket, checkable, checked, onCheckboxC
       </div>
     </div>
   )
-})
+}
+
+TicketItem.propTypes = {
+  ticket: PropTypes.object.isRequired,
+  checkable: PropTypes.bool,
+  checked: PropTypes.bool,
+  onCheckboxChange: PropTypes.func,
+  category: PropTypes.string,
+}

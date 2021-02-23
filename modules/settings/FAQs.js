@@ -1,12 +1,12 @@
 /*global FAQ_VIEWS*/
 import React, { Component } from 'react'
+import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import { Link } from 'react-router-dom'
 import { db } from '../../lib/leancloud'
 import _ from 'lodash'
 import { Tooltip, OverlayTrigger } from 'react-bootstrap'
 
-import translate from '../i18n/translate'
 import FAQ from '../components/FAQ'
 
 const VIEWS = FAQ_VIEWS.split(',').filter((view) => view)
@@ -171,7 +171,7 @@ class Categories extends Component {
 }
 
 Categories.propTypes = {
-  t: PropTypes.func
+  t: PropTypes.func.isRequired,
 }
 
-export default translate(Categories)
+export default withTranslation()(Categories)

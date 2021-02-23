@@ -1,32 +1,35 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 import { DropdownButton, MenuItem } from 'react-bootstrap'
-import translate from './i18n/translate'
 
-const TicketsMoveButton = (props) => {
-  const {t} = props
+export default function TicketsMoveButton({ organizations, selectedOrgId, onTicketsMove }) {
+  const { t } = useTranslation()
   let items
-  if (props.selectedOrgId == '') {
-    items = props.organizations.map(org => {
-      return <MenuItem key={org.id} onClick={() => props.onTicketsMove(org)}>{t('organization')} {org.get('name')}</MenuItem>
-    })
+  if (selectedOrgId == '') {
+    items = organizations.map(org => (
+      <MenuItem key={org.id} onClick={() => onTicketsMove(org)}>
+        {t('organization')} {org.data.name}
+      </MenuItem>
+    ))
   } else {
-    items = _.reject(props.organizations, {id: props.selectedOrgId}).map(org => {
-      return <MenuItem key={org.id} onClick={() => props.onTicketsMove(org)}>{t('organization')} {org.get('name')}</MenuItem>
-    })
-    items.push(<MenuItem key={'author'} onClick={() => props.onTicketsMove()}>{t('itsCreator')}</MenuItem>)
+    items = _.reject(organizations, {id: selectedOrgId}).map(org => (
+      <MenuItem key={org.id} onClick={() => onTicketsMove(org)}>
+        {t('organization')} {org.data.name}
+      </MenuItem>
+    ))
+    items.push(<MenuItem key={'author'} onClick={() => onTicketsMove()}>{t('itsCreator')}</MenuItem>)
   }
-  return <DropdownButton title={t('moveTicketTo')} id='tickets-move'>
+  return (
+    <DropdownButton title={t('moveTicketTo')} id='tickets-move'>
       {items}
     </DropdownButton>
+  )
 }
-  
+
 TicketsMoveButton.propTypes = {
   organizations: PropTypes.array,
   selectedOrgId: PropTypes.string,
   onTicketsMove: PropTypes.func,
-  t: PropTypes.func
 }
-
-export default translate(TicketsMoveButton)

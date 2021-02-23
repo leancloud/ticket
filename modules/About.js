@@ -1,9 +1,9 @@
 import React from 'react'
-import PropTypes from 'prop-types'
-import translate from './i18n/translate'
-import {useTitle} from './utils/hooks'
+import { useTranslation } from 'react-i18next'
+import { useTitle } from './utils/hooks'
 
-function About({ t }) {
+export default function About() {
+  const { t } = useTranslation()
   useTitle(`${t('about')} - LeanTicket`)
 
   return (
@@ -15,10 +15,3 @@ function About({ t }) {
     </div>
   )
 }
-
-About.displayName = 'About'
-About.propTypes = {
-  t: PropTypes.func
-}
-
-export default translate(About)

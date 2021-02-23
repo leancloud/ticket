@@ -1,10 +1,10 @@
-import React, {Component} from 'react'
+import React, { Component } from 'react'
+import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
-import {Form, FormGroup, ControlLabel, FormControl, Button} from 'react-bootstrap'
-import {auth, cloud} from '../../lib/leancloud'
+import { Form, FormGroup, ControlLabel, FormControl, Button } from 'react-bootstrap'
+import { auth, cloud } from '../../lib/leancloud'
 
 import Vacation from './Vacation'
-import translate from '../i18n/translate'
 
 class CustomerServiceProfile extends Component {
   constructor(props) {
@@ -67,7 +67,7 @@ CustomerServiceProfile.contextTypes = {
 }
 
 CustomerServiceProfile.propTypes = {
-  t: PropTypes.func
+  t: PropTypes.func.isRequired,
 }
 
-export default translate(CustomerServiceProfile)
+export default withTranslation()(CustomerServiceProfile)

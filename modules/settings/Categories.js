@@ -1,14 +1,14 @@
-import React, {Component} from 'react'
+import React, { Component } from 'react'
+import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 import { Link } from 'react-router-dom'
-import {Form, FormGroup} from 'react-bootstrap'
-import {auth} from '../../lib/leancloud'
+import { Form, FormGroup } from 'react-bootstrap'
+import { auth } from '../../lib/leancloud'
 
-import {getCustomerServices, getCategoriesTree, getNodeIndentString} from '../common'
-import {UserLabel} from '../UserLabel'
-import translate from '../i18n/translate'
-import {depthFirstSearchFind, depthFirstSearchMap, getTinyCategoryInfo} from '../../lib/common'
+import { getCustomerServices, getCategoriesTree, getNodeIndentString } from '../common'
+import { UserLabel } from '../UserLabel'
+import { depthFirstSearchFind, depthFirstSearchMap, getTinyCategoryInfo } from '../../lib/common'
 
 class Categories extends Component {
 
@@ -56,7 +56,7 @@ class Categories extends Component {
 
 
   render() {
-    const {t} = this.props
+    const { t } = this.props
     const tds = depthFirstSearchMap(this.state.categoriesTree, (c) => {
       const selectCustomerServices = _.filter(this.state.customerServices, (user) => {
         return _.find(user.get('categories'), {objectId: c.id})
@@ -103,7 +103,7 @@ class Categories extends Component {
 }
 
 Categories.propTypes = {
-  t: PropTypes.func
+  t: PropTypes.func.isRequired,
 }
 
-export default translate(Categories)
+export default withTranslation()(Categories)

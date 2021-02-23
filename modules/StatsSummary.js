@@ -1,4 +1,5 @@
 import React from 'react'
+import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import moment from 'moment'
 import _ from 'lodash'
@@ -6,7 +7,6 @@ import {Table, Button} from 'react-bootstrap'
 import {Link} from 'react-router-dom'
 import {cloud, db} from '../lib/leancloud'
 import {fetchUsers} from './common'
-import translate from './i18n/translate'
 import {offsetDays, userDisplayName} from '../config.webapp'
 import {UserLabel} from './UserLabel'
 
@@ -395,4 +395,4 @@ StatsSummary.propTypes = {
   t: PropTypes.func
 }
 
-export default translate(StatsSummary)
+export default withTranslation()(StatsSummary)

@@ -1,17 +1,24 @@
-import React, {Component} from 'react'
+import React, { Component } from 'react'
+import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
-import {Form, FormGroup, ControlLabel, FormControl, Button, Checkbox, Table} from 'react-bootstrap'
+import {
+  Button,
+  ControlLabel,
+  Checkbox,
+  Form,
+  FormControl,
+  FormGroup,
+  Table,
+} from 'react-bootstrap'
 import moment from 'moment'
 import DatePicker from 'react-datepicker'
-import {auth, db} from '../../lib/leancloud'
+import { auth, db } from '../../lib/leancloud'
 
-import {getCustomerServices} from '../common'
-import translate from '../i18n/translate'
-import {UserLabel} from '../UserLabel'
-import {userDisplayName} from '../../config.webapp'
+import { getCustomerServices } from '../common'
+import { UserLabel } from '../UserLabel'
+import { userDisplayName } from '../../config.webapp'
 
 class Vacation extends Component {
-
   constructor(props) {
     super(props)
     this.state = {
@@ -110,67 +117,67 @@ class Vacation extends Component {
         </tr>
     })
     return (
-        <div>
-          <h2>{t('vacation')}</h2>
-          <Form onSubmit={this.handleSubmit.bind(this)}>
-            <FormGroup>
-              <ControlLabel>{t('username')}</ControlLabel>
-              {' '}
-              <FormControl componentClass="select" value={this.state.vacationerId} onChange={this.handleVacationUserChange.bind(this)}>
-                {userOptions}
-              </FormControl>
-            </FormGroup>
-            <FormGroup>
-              <ControlLabel>{t('vacationStart')}</ControlLabel>
-              {' '}
-              <DatePicker
-                  selected={this.state.startDate}
-                  selectsStart
-                  startDate={this.state.startDate}
-                  endDate={this.state.endDate}
-                  onChange={this.handleChangeStart.bind(this)}
-              />
-              {' '}
-              <Checkbox inline onClick={this.handleStartHalfDayClick.bind(this)}>{t('pm')}</Checkbox>
-            </FormGroup>
+      <div>
+        <h2>{t('vacation')}</h2>
+        <Form onSubmit={this.handleSubmit.bind(this)}>
+          <FormGroup>
+            <ControlLabel>{t('username')}</ControlLabel>
             {' '}
-            <FormGroup>
-              <ControlLabel>{t('backToWork')}</ControlLabel>
-              {' '}
-              <DatePicker
-                  selected={this.state.endDate}
-                  selectsEnd
-                  startDate={this.state.startDate}
-                  endDate={this.state.endDate}
-                  onChange={this.handleChangeEnd.bind(this)}
-              />
-              {' '}
-              <Checkbox inline onClick={this.handleEndHalfDayClick.bind(this)}>{t('pm')}</Checkbox>
-            </FormGroup>
-            <Button type='submit'>{t('submit')}</Button>
-          </Form>
-          <Table>
-            <thead>
-              <tr>
-                <th>{t('username')}</th>
-                <th>{t('vacationStart')}</th>
-                <th>{t('backToWork')}</th>
-                <th>{t('submitter')}</th>
-                <th>{t('submitTime')}</th>
-                <th>{t('operation')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {vacationTrs}
-            </tbody>
-          </Table>
-        </div>
+            <FormControl componentClass="select" value={this.state.vacationerId} onChange={this.handleVacationUserChange.bind(this)}>
+              {userOptions}
+            </FormControl>
+          </FormGroup>
+          <FormGroup>
+            <ControlLabel>{t('vacationStart')}</ControlLabel>
+            {' '}
+            <DatePicker
+              selected={this.state.startDate}
+              selectsStart
+              startDate={this.state.startDate}
+              endDate={this.state.endDate}
+              onChange={this.handleChangeStart.bind(this)}
+            />
+            {' '}
+            <Checkbox inline onClick={this.handleStartHalfDayClick.bind(this)}>{t('pm')}</Checkbox>
+          </FormGroup>
+          {' '}
+          <FormGroup>
+            <ControlLabel>{t('backToWork')}</ControlLabel>
+            {' '}
+            <DatePicker
+              selected={this.state.endDate}
+              selectsEnd
+              startDate={this.state.startDate}
+              endDate={this.state.endDate}
+              onChange={this.handleChangeEnd.bind(this)}
+            />
+            {' '}
+            <Checkbox inline onClick={this.handleEndHalfDayClick.bind(this)}>{t('pm')}</Checkbox>
+          </FormGroup>
+          <Button type='submit'>{t('submit')}</Button>
+        </Form>
+        <Table>
+          <thead>
+            <tr>
+              <th>{t('username')}</th>
+              <th>{t('vacationStart')}</th>
+              <th>{t('backToWork')}</th>
+              <th>{t('submitter')}</th>
+              <th>{t('submitTime')}</th>
+              <th>{t('operation')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {vacationTrs}
+          </tbody>
+        </Table>
+      </div>
     )
   }
 }
 
 Vacation.propTypes = {
-  t: PropTypes.func
+  t: PropTypes.func.isRequired,
 }
 
-export default translate(Vacation)
+export default withTranslation()(Vacation)

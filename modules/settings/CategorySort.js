@@ -1,11 +1,11 @@
 import React from 'react'
+import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
-import {Form, FormGroup, Button} from 'react-bootstrap'
-import {db} from '../../lib/leancloud'
+import { Form, FormGroup, Button } from 'react-bootstrap'
+import { db } from '../../lib/leancloud'
 
-import {getCategoriesTree, getNodeIndentString} from '../common'
-import translate from '../i18n/translate'
-import {depthFirstSearchMap} from '../../lib/common'
+import { getCategoriesTree, getNodeIndentString } from '../common'
+import { depthFirstSearchMap } from '../../lib/common'
 
 class CategorySort extends React.Component {
 
@@ -52,7 +52,7 @@ class CategorySort extends React.Component {
   }
 
   render() {
-    const {t} = this.props
+    const { t } = this.props
     const tds = depthFirstSearchMap(this.state.categoriesTree, (c, index, array) => {
       return (
         <tr key={c.id}>
@@ -96,7 +96,7 @@ CategorySort.contextTypes = {
 
 CategorySort.propTypes = {
   history: PropTypes.object.isRequired,
-  t: PropTypes.func
+  t: PropTypes.func.isRequired,
 }
 
-export default translate(CategorySort)
+export default withTranslation()(CategorySort)

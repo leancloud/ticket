@@ -1,4 +1,5 @@
 import React, {Component} from 'react'
+import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 import { Link, withRouter } from 'react-router-dom'
@@ -12,7 +13,6 @@ import {getCustomerServices, getCategoriesTree, depthFirstSearchMap, depthFirstS
 import {TICKET_STATUS, TICKET_STATUS_MSG, ticketOpenedStatuses, ticketClosedStatuses, TIME_RANGE_MAP} from '../lib/common'
 import TicketStatusLabel from './TicketStatusLabel'
 import {UserLabel} from './UserLabel'
-import translate from './i18n/translate'
 import {userDisplayName} from '../config.webapp'
 import {DocumentTitle} from './utils/DocumentTitle'
 
@@ -238,7 +238,7 @@ class CustomerServiceTickets extends Component {
   }
 
   render() {
-    const {t} = this.props
+    const { t } = this.props
     const filters = qs.parse(this.props.location.search)
     const tickets = this.state.tickets
     const ticketTrs = tickets.map((ticket) => {
@@ -253,7 +253,7 @@ class CustomerServiceTickets extends Component {
               <div className={css.left}>
                 <Link className={css.title} to={'/tickets/' + ticket.get('nid')}>{ticket.get('title')}</Link>
                 {getNodePath(category).map(c => {
-                  return <Link key={c.id} to={this.getQueryUrl({categoryId: c.id})}><span className={css.category}>{getCategoryName(c, t)}</span></Link>
+                  return <Link key={c.id} to={this.getQueryUrl({categoryId: c.id})}><span className={css.category}>{getCategoryName(c)}</span></Link>
                 })}
                 {filters.isOpen === 'true' ||
                   <span>{ticket.get('evaluation') && (ticket.get('evaluation').star === 1 && <span className={css.satisfaction + ' ' + css.happy}>{t('satisfied')}</span> || <span className={css.satisfaction + ' ' + css.unhappy}>{t('unsatisfied')}</span>)}</span>
@@ -308,7 +308,7 @@ class CustomerServiceTickets extends Component {
       </MenuItem>
     ))
     const categoryMenuItems = depthFirstSearchMap(this.state.categoriesTree, c => {
-      return <MenuItem key={c.id} eventKey={c.id}>{getNodeIndentString(c) + getCategoryName(c, t)}</MenuItem>
+      return <MenuItem key={c.id} eventKey={c.id}>{getNodeIndentString(c) + getCategoryName(c)}</MenuItem>
     })
 
     let statusTitle
@@ -338,7 +338,7 @@ class CustomerServiceTickets extends Component {
     if (filters.categoryId) {
       const category = depthFirstSearchFind(this.state.categoriesTree, c => c.id === filters.categoryId)
       if (category) {
-        categoryTitle = getCategoryName(category, t)
+        categoryTitle = getCategoryName(category)
       } else {
         categoryTitle = `categoryId ${t('invalid')}`
       }
@@ -536,4 +536,4 @@ BlodSearchString.propTypes = {
   searchString: PropTypes.string,
 }
 
-export default withRouter(translate(CustomerServiceTickets))
+export default withTranslation()(withRouter(CustomerServiceTickets))

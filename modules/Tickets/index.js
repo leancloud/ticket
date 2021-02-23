@@ -1,21 +1,20 @@
-import React, {Component} from 'react'
+import React, { Component } from 'react'
+import { withTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { Pager, Checkbox, Form, DropdownButton, MenuItem } from 'react-bootstrap'
+import { Checkbox, DropdownButton, Form, MenuItem, Pager } from 'react-bootstrap'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
-import {auth, db} from '../../lib/leancloud'
+import { auth, db } from '../../lib/leancloud'
 import css from '../CustomerServiceTickets.css'
 
-import {getCategoryPathName, getCategoriesTree} from '../common'
+import { getCategoryPathName, getCategoriesTree } from '../common'
 import OrganizationSelect from '../OrganizationSelect'
 import TicketsMoveButton from '../TicketsMoveButton'
-import translate from '../i18n/translate'
-import {getTicketAcl} from '../../lib/common'
-import {TicketItem} from './TicketItem'
-import {DocumentTitle} from '../utils/DocumentTitle'
+import { getTicketAcl } from '../../lib/common'
+import { TicketItem } from './TicketItem'
+import { DocumentTitle } from '../utils/DocumentTitle'
 
 class Tickets extends Component {
-
   constructor(props) {
     super(props)
     this.state = {
@@ -114,8 +113,8 @@ class Tickets extends Component {
   }
 
   render() {
-    const {t} = this.props
-    const {tickets} = this.state
+    const { t } = this.props
+    const { tickets } = this.state
 
     return (
       <div>
@@ -125,7 +124,8 @@ class Tickets extends Component {
             && <div>
               <Checkbox className={css.ticketSelectCheckbox} onChange={this.handleClickCheckAll.bind(this)} checked={this.state.isCheckedAll}> {t('selectAll')}</Checkbox>
               {' '}
-              <TicketsMoveButton selectedOrgId={this.props.selectedOrgId}
+              <TicketsMoveButton
+                selectedOrgId={this.props.selectedOrgId}
                 organizations={this.props.organizations}
                 onTicketsMove={this.handleTicketsMove.bind(this)}
               />
@@ -133,7 +133,8 @@ class Tickets extends Component {
               <button className='btn btn-link' onClick={() => this.handleBatchOps(false)}>{t('return')}</button>
             </div>
             || <div>
-              <OrganizationSelect organizations={this.props.organizations}
+              <OrganizationSelect
+                organizations={this.props.organizations}
                 selectedOrgId={this.props.selectedOrgId}
                 onOrgChange={this.props.handleOrgChange} />
               {' '}
@@ -151,7 +152,7 @@ class Tickets extends Component {
               checkable={this.state.batchOpsEnable}
               checked={this.state.checkedTickets.has(ticket.id)}
               onCheckboxChange={() => this.handleClickCheckbox(ticket.id)}
-              category={getCategoryPathName(ticket.data.category, this.state.categoriesTree, t)}
+              category={getCategoryPathName(ticket.data.category, this.state.categoriesTree)}
             />
           ))
         ) : (
@@ -173,7 +174,7 @@ Tickets.propTypes = {
   handleOrgChange: PropTypes.func,
   selectedOrgId: PropTypes.string,
   addNotification: PropTypes.func,
-  t: PropTypes.func
+  t: PropTypes.func.isRequired,
 }
 
-export default translate(Tickets)
+export default withTranslation()(Tickets)
