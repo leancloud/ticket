@@ -105,30 +105,62 @@ AV.Cloud.afterUpdate('Ticket', (req) => {
 })
 
 AV.Cloud.define('operateTicket', async (req) => {
-  const {ticketId, action} = req.params
+  if (!req.currentUser) {
+    throw new AV.Cloud.Error('Forbidden', { status: 403 })
+  }
+
+  const { ticketId, action } = req.params
+  if (!ticketId || !action) {
+    throw new AV.Cloud.Error('The ticketId and action must be provided', { status: 400 })
+  }
+
+  const ticketIds = _.uniq(Array.isArray(ticketId) ? ticketId : [ticketId])
+  if (ticketIds.find(id => typeof id !== 'string')) {
+    throw new AV.Cloud.Error('The ticketId must be a string or an array of string', { status: 400 })
+  }
+
   try {
-    const [ticket, operator] = await Promise.all([
-      new AV.Query('Ticket').get(ticketId, {user: req.currentUser}),
+    const [tickets, operator] = await Promise.all([
+      new AV.Query('Ticket')
+        .select('author')
+        .containedIn('objectId', ticketIds)
+        .find({ user: req.currentUser }),
       getTinyUserInfo(req.currentUser),
     ])
-    const isCS = await isCustomerService(req.currentUser, ticket.get('author'))
-    if (isCS) {
-      ticket.addUnique('joinedCustomerServices', operator)
-      if (action === TICKET_ACTION.CLOSE || action === TICKET_ACTION.REOPEN) {
-        ticket.increment('unreadCount')
-      }
+    if (tickets.length !== ticketIds.length) {
+      const set = new Set(tickets.map(t => t.id))
+      throw new AV.Cloud.Error(`Ticket(${ticketIds.find(id => !set.has(id))}) not exists`, {
+        status: 404
+      })
     }
-    ticket.set('status', getTargetStatus(action, isCS))
-    await ticket.save(null, {user: req.currentUser})
-    await new AV.Object('OpsLog')
-      .save({
-        ticket,
-        action,
-        data: {operator}
-      }, {useMasterKey: true})
+
+    const isCS = await isCustomerService(req.currentUser)
+
+    const opsLogs = []
+    tickets.forEach(ticket => {
+      if (isCS && ticket.get('author').id !== req.currentUser.id) {
+        ticket.addUnique('joinedCustomerServices', operator)
+        if (action === TICKET_ACTION.CLOSE || action === TICKET_ACTION.REOPEN) {
+          ticket.increment('unreadCount')
+        }
+      }
+      ticket.set('status', getTargetStatus(action, isCS))
+      opsLogs.push(
+        new AV.Object('OpsLog', {
+          ticket,
+          action,
+          data: { operator }
+        })
+      )
+    })
+    await AV.Object.saveAll(tickets.concat(opsLogs), { useMasterKey: true })
   } catch (error) {
-    errorHandler.captureException(error)
-    throw new AV.Cloud.Error('Internal Error', {status: 500})
+    if (error instanceof AV.Cloud.Error) {
+      throw error
+    } else {
+      errorHandler.captureException(error)
+      throw new AV.Cloud.Error('Internal Error', { status: 500 })
+    }
   }
 })
 

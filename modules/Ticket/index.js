@@ -468,7 +468,7 @@ class Ticket extends Component {
       .sortBy((data) => data.createdAt)
       .map(this.ticketTimeline.bind(this))
       .value()
-    let optionButtons = <div></div>
+    let optionButtons = null
     const ticketStatus = ticket.get('status')
     if (isTicketOpen(ticket)) {
       optionButtons = (

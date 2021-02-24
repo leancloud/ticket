@@ -1,20 +1,47 @@
-import React, {Component} from 'react'
+import React, { Component } from 'react'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 import { Link, withRouter } from 'react-router-dom'
-import { Form, FormGroup, ButtonToolbar, ButtonGroup, Button, DropdownButton, MenuItem, Checkbox, FormControl, Pager} from 'react-bootstrap'
+import {
+  Button,
+  ButtonGroup,
+  ButtonToolbar,
+  Checkbox,
+  DropdownButton,
+  Form,
+  FormControl,
+  FormGroup,
+  MenuItem,
+  Pager,
+} from 'react-bootstrap'
 import qs from 'query-string'
 import moment from 'moment'
-import {auth, cloud, db} from '../lib/leancloud'
+import { auth, cloud, db } from '../lib/leancloud'
 import css from './CustomerServiceTickets.css'
 
-import {getCustomerServices, getCategoriesTree, depthFirstSearchMap, depthFirstSearchFind, getNodeIndentString, getNodePath, getTinyCategoryInfo, getCategoryName} from './common'
-import {TICKET_STATUS, TICKET_STATUS_MSG, ticketOpenedStatuses, ticketClosedStatuses, TIME_RANGE_MAP} from '../lib/common'
+import {
+  depthFirstSearchFind,
+  depthFirstSearchMap,
+  getCustomerServices,
+  getCategoriesTree,
+  getNodeIndentString,
+  getNodePath,
+  getTinyCategoryInfo,
+  getCategoryName,
+} from './common'
+import {
+  TICKET_STATUS,
+  TICKET_STATUS_MSG,
+  TIME_RANGE_MAP,
+  ticketOpenedStatuses,
+  ticketClosedStatuses,
+  isTicketOpen,
+} from '../lib/common'
 import TicketStatusLabel from './TicketStatusLabel'
-import {UserLabel} from './UserLabel'
-import {userDisplayName} from '../config.webapp'
-import {DocumentTitle} from './utils/DocumentTitle'
+import { UserLabel } from './UserLabel'
+import { userDisplayName } from '../config.webapp'
+import { DocumentTitle } from './utils/DocumentTitle'
 
 let authorSearchTimeoutId
 class CustomerServiceTickets extends Component {
@@ -26,12 +53,15 @@ class CustomerServiceTickets extends Component {
       customerServices: [],
       categoriesTree: [],
       checkedTickets: new Set(),
-      isCheckedAll: false,
     }
   }
 
+  getFilters() {
+    return qs.parse(this.props.location.search)
+  }
+
   componentDidMount () {
-    const filters = qs.parse(this.props.location.search)
+    const filters = this.getFilters()
     const { authorId } = filters
     Promise.all([
       getCustomerServices(),
@@ -47,8 +77,7 @@ class CustomerServiceTickets extends Component {
 
   componentDidUpdate(prevProps) {
     if (prevProps.location.search !== this.props.location.search) {
-      this.findTickets(qs.parse(this.props.location.search))
-        .catch(this.context.addNotification)
+      this.findTickets(this.getFilters()).catch(this.context.addNotification)
     }
   }
 
@@ -164,7 +193,7 @@ class CustomerServiceTickets extends Component {
   }
 
   getQueryUrl(filter) {
-    const filters = _.assign({}, qs.parse(this.props.location.search), filter)
+    const filters = _.assign({}, this.getFilters(), filter)
     return this.props.location.pathname + '?' + qs.stringify(filters)
   }
 
@@ -181,7 +210,7 @@ class CustomerServiceTickets extends Component {
     authorSearchTimeoutId = setTimeout(() => {
       if (username.trim() === '') {
         this.setState({authorFilterValidationState: null})
-        const filters = _.assign({}, qs.parse(this.props.location.search), {authorId: null})
+        const filters = _.assign({}, this.getFilters(), {authorId: null})
         return this.updateFilter(filters)
       }
 
@@ -193,7 +222,7 @@ class CustomerServiceTickets extends Component {
           return
         } else {
           this.setState({authorFilterValidationState: 'success'})
-          const filters = _.assign({}, qs.parse(this.props.location.search), {authorId: user.objectId})
+          const filters = _.assign({}, this.getFilters(), {authorId: user.objectId})
           return this.updateFilter(filters)
         }
       })
@@ -212,14 +241,14 @@ class CustomerServiceTickets extends Component {
     } else {
       checkedTickets.delete(e.target.value)
     }
-    this.setState({checkedTickets, isCheckedAll: checkedTickets.size == this.state.tickets.length})
+    this.setState({ checkedTickets })
   }
 
   handleClickCheckAll(e) {
     if (e.target.checked) {
-      this.setState({checkedTickets: new Set(this.state.tickets.map(t => t.id)), isCheckedAll: true})
+      this.setState({ checkedTickets: new Set(this.state.tickets.map(t => t.id)) })
     } else {
-      this.setState({checkedTickets: new Set(), isCheckedAll: false})
+      this.setState({ checkedTickets: new Set() })
     }
   }
 
@@ -230,16 +259,34 @@ class CustomerServiceTickets extends Component {
     tickets.forEach(t => p.update(t, {category}))
     p.commit()
     .then(() => {
-      this.setState({isCheckedAll: false, checkedTickets: new Set()})
+      this.setState({ checkedTickets: new Set() })
       this.updateFilter({})
       return
     })
     .catch(this.context.addNotification)
   }
 
+  async handleBatchOperation(operation) {
+    if (operation === 'close') {
+      const ticketIds = this.state.tickets
+        .filter(t => this.state.checkedTickets.has(t.id) && isTicketOpen(t))
+        .map(t => t.id)
+      if (ticketIds.length === 0) {
+        return
+      }
+      try {
+        await cloud.run('operateTicket', { ticketId: ticketIds, action: 'reject' })
+        this.setState({ checkedTickets: new Set() })
+        await this.findTickets(this.getFilters())
+      } catch (error) {
+        this.context.addNotification(error)
+      }
+    }
+  }
+
   render() {
     const { t } = this.props
-    const filters = qs.parse(this.props.location.search)
+    const filters = this.getFilters()
     const tickets = this.state.tickets
     const ticketTrs = tickets.map((ticket) => {
       const contributors = _.uniqBy(ticket.data.joinedCustomerServices || [], 'objectId')
@@ -290,9 +337,9 @@ class CustomerServiceTickets extends Component {
               </div>
             </div>
             <BlodSearchString content={ticket.get('content')} searchString={filters.searchString}/>
-            {ticket.replies.map(r => {
-              return <BlodSearchString key={r.id} content={r.get('content')} searchString={filters.searchString}/>
-            })}
+            {ticket.replies.map(r => (
+              <BlodSearchString key={r.id} content={r.get('content')} searchString={filters.searchString}/>
+            ))}
           </div>
         </div>
       )
@@ -307,9 +354,9 @@ class CustomerServiceTickets extends Component {
         {userDisplayName(user.data)}
       </MenuItem>
     ))
-    const categoryMenuItems = depthFirstSearchMap(this.state.categoriesTree, c => {
-      return <MenuItem key={c.id} eventKey={c.id}>{getNodeIndentString(c) + getCategoryName(c)}</MenuItem>
-    })
+    const categoryMenuItems = depthFirstSearchMap(this.state.categoriesTree, c => (
+      <MenuItem key={c.id} eventKey={c.id}>{getNodeIndentString(c) + getCategoryName(c)}</MenuItem>
+    ))
 
     let statusTitle
     if (filters.status) {
@@ -348,87 +395,92 @@ class CustomerServiceTickets extends Component {
 
     const assignedToMe = auth.currentUser() && filters.assigneeId === auth.currentUser().id
     const ticketAdminFilters = (
-      <div>
-        <Form inline className='form-group'>
-          <FormGroup>
-            <DelayInputForm placeholder={t('searchKeyword')} value={filters.searchString} onChange={(value) => this.updateFilter({searchString: value})} />
-          </FormGroup>
-          {'  '}
-          <FormGroup>
-            <ButtonToolbar>
-              <ButtonGroup>
-                <Button className={'btn btn-default' + (filters.isOpen === 'true' ? ' active' : '')} onClick={() => this.updateFilter({isOpen: true, status: undefined})}>{t('incompleted')}</Button>
-                <Button className={'btn btn-default' + (filters.isOpen === 'false' ? ' active' : '')} onClick={() => this.updateFilter({isOpen: false, status: undefined})}>{t('completed')}</Button>
-                <DropdownButton className={(typeof filters.isOpen === 'undefined' ? ' active' : '')} id='statusDropdown' title={statusTitle} onSelect={(eventKey) => this.updateFilter({status: eventKey, isOpen: undefined})}>
-                  <MenuItem key='undefined'>{t('all')}</MenuItem>
-                  {statusMenuItems}
-                </DropdownButton>
-              </ButtonGroup>
-              <ButtonGroup>
-                <Button className={assignedToMe ? ' active' : ''} onClick={() => this.updateFilter({assigneeId: auth.currentUser().id})}>{t('assignedToMe')}</Button>
-                <DropdownButton className={!assignedToMe ? ' active' : ''} id='assigneeDropdown' title={assigneeTitle} onSelect={(eventKey) => this.updateFilter({assigneeId: eventKey})}>
-                  <MenuItem key='undefined'>{t('all')}</MenuItem>
-                  {assigneeMenuItems}
-                </DropdownButton>
-              </ButtonGroup>
-              <ButtonGroup>
-                <DropdownButton className={(filters.categoryId ? ' active' : '')} id='categoryDropdown' title={categoryTitle} onSelect={(eventKey) => this.updateFilter({categoryId: eventKey})}>
-                  <MenuItem key='undefined'>{t('all')}</MenuItem>
-                  {categoryMenuItems}
-                </DropdownButton>
-              </ButtonGroup>
-              <ButtonGroup>
-                <DropdownButton className={(typeof filters.tagKey === 'undefined' || filters.tagKey ? ' active' : '')} id='tagKeyDropdown' title={filters.tagKey || t('all')} onSelect={(eventKey) => this.updateFilter({tagKey: eventKey, tagValue: undefined})}>
-                  <MenuItem key='undefined'>{t('all')}</MenuItem>
-                  {this.context.tagMetadatas.map(tagMetadata => {
-                    const key = tagMetadata.get('key')
-                    return <MenuItem key={key} eventKey={key}>{key}</MenuItem>
-                  })}
-                </DropdownButton>
-                {filters.tagKey &&
-                  <DropdownButton className={(typeof filters.tagValue === 'undefined' || filters.tagValue ? ' active' : '')} id='tagValueDropdown' title={filters.tagValue || t('allTagValues')} onSelect={(eventKey) => this.updateFilter({tagValue: eventKey})}>
-                    <MenuItem key='undefined'>{t('allTagValues')}</MenuItem>
-                    {this.context.tagMetadatas.length > 0 && _.find(this.context.tagMetadatas, m => m.get('key') == filters.tagKey).get('values').map(value => {
-                      return <MenuItem key={value} eventKey={value}>{value}</MenuItem>
-                    })}
-                  </DropdownButton>
-                }
-              </ButtonGroup>
-              <ButtonGroup>
-                <DropdownButton
-                  className={(filters.timeRange ? ' active' : '')}
-                  id='timeRange'
-                  title={TIME_RANGE_MAP[filters.timeRange]? t(filters.timeRange) : t('allTime')}
-                  onSelect={(eventKey) => this.updateFilter({timeRange: eventKey})}
-                >
-                    <MenuItem key='undefined'>{t('allTime')}</MenuItem>
-                    <MenuItem key='thisMonth' eventKey='thisMonth'>{t('thisMonth')}</MenuItem>
-                    <MenuItem key='lastMonth' eventKey='lastMonth'>{t('lastMonth')}</MenuItem>
-                    <MenuItem key='monthBeforeLast' eventKey='monthBeforeLast'>{t('monthBeforeLast')}</MenuItem>
-                </DropdownButton>
-              </ButtonGroup>
-            </ButtonToolbar>
-          </FormGroup>
-          {'  '}
-
-          <FormGroup validationState={this.state.authorFilterValidationState}>
-            <FormControl type="text" value={this.state.authorUsername} placeholder={t('submitter')} onChange={this.handleAuthorChange.bind(this)} />
-          </FormGroup>
-          {'  '}
-          {filters.isOpen === 'true' ||
+      <Form inline className='form-group'>
+        <FormGroup>
+          <DelayInputForm placeholder={t('searchKeyword')} value={filters.searchString} onChange={(value) => this.updateFilter({searchString: value})} />
+        </FormGroup>
+        {'  '}
+        <FormGroup>
+          <ButtonToolbar>
             <ButtonGroup>
-              <Checkbox checked={filters.isOnlyUnlike === 'true'} onChange={this.handleUnlikeChange.bind(this)}>{t('badReviewsOnly')}</Checkbox>
+              <Button className={'btn btn-default' + (filters.isOpen === 'true' ? ' active' : '')} onClick={() => this.updateFilter({isOpen: true, status: undefined})}>{t('incompleted')}</Button>
+              <Button className={'btn btn-default' + (filters.isOpen === 'false' ? ' active' : '')} onClick={() => this.updateFilter({isOpen: false, status: undefined})}>{t('completed')}</Button>
+              <DropdownButton className={(typeof filters.isOpen === 'undefined' ? ' active' : '')} id='statusDropdown' title={statusTitle} onSelect={(eventKey) => this.updateFilter({status: eventKey, isOpen: undefined})}>
+                <MenuItem key='undefined'>{t('all')}</MenuItem>
+                {statusMenuItems}
+              </DropdownButton>
             </ButtonGroup>
-          }
-        </Form>
-      </div>
+            <ButtonGroup>
+              <Button className={assignedToMe ? ' active' : ''} onClick={() => this.updateFilter({assigneeId: auth.currentUser().id})}>{t('assignedToMe')}</Button>
+              <DropdownButton className={!assignedToMe ? ' active' : ''} id='assigneeDropdown' title={assigneeTitle} onSelect={(eventKey) => this.updateFilter({assigneeId: eventKey})}>
+                <MenuItem key='undefined'>{t('all')}</MenuItem>
+                {assigneeMenuItems}
+              </DropdownButton>
+            </ButtonGroup>
+            <ButtonGroup>
+              <DropdownButton className={(filters.categoryId ? ' active' : '')} id='categoryDropdown' title={categoryTitle} onSelect={(eventKey) => this.updateFilter({categoryId: eventKey})}>
+                <MenuItem key='undefined'>{t('all')}</MenuItem>
+                {categoryMenuItems}
+              </DropdownButton>
+            </ButtonGroup>
+            <ButtonGroup>
+              <DropdownButton className={(typeof filters.tagKey === 'undefined' || filters.tagKey ? ' active' : '')} id='tagKeyDropdown' title={filters.tagKey || t('all')} onSelect={(eventKey) => this.updateFilter({tagKey: eventKey, tagValue: undefined})}>
+                <MenuItem key='undefined'>{t('all')}</MenuItem>
+                {this.context.tagMetadatas.map(tagMetadata => {
+                  const key = tagMetadata.get('key')
+                  return <MenuItem key={key} eventKey={key}>{key}</MenuItem>
+                })}
+              </DropdownButton>
+              {filters.tagKey &&
+                <DropdownButton className={(typeof filters.tagValue === 'undefined' || filters.tagValue ? ' active' : '')} id='tagValueDropdown' title={filters.tagValue || t('allTagValues')} onSelect={(eventKey) => this.updateFilter({tagValue: eventKey})}>
+                  <MenuItem key='undefined'>{t('allTagValues')}</MenuItem>
+                  {this.context.tagMetadatas.length > 0 && _.find(this.context.tagMetadatas, m => m.get('key') == filters.tagKey).get('values').map(value => (
+                    <MenuItem key={value} eventKey={value}>{value}</MenuItem>
+                  ))}
+                </DropdownButton>
+              }
+            </ButtonGroup>
+            <ButtonGroup>
+              <DropdownButton
+                className={(filters.timeRange ? ' active' : '')}
+                id='timeRange'
+                title={TIME_RANGE_MAP[filters.timeRange]? t(filters.timeRange) : t('allTime')}
+                onSelect={(eventKey) => this.updateFilter({timeRange: eventKey})}
+              >
+                <MenuItem key='undefined'>{t('allTime')}</MenuItem>
+                <MenuItem key='thisMonth' eventKey='thisMonth'>{t('thisMonth')}</MenuItem>
+                <MenuItem key='lastMonth' eventKey='lastMonth'>{t('lastMonth')}</MenuItem>
+                <MenuItem key='monthBeforeLast' eventKey='monthBeforeLast'>{t('monthBeforeLast')}</MenuItem>
+              </DropdownButton>
+            </ButtonGroup>
+          </ButtonToolbar>
+        </FormGroup>
+        {'  '}
+
+        <FormGroup validationState={this.state.authorFilterValidationState}>
+          <FormControl type="text" value={this.state.authorUsername} placeholder={t('submitter')} onChange={this.handleAuthorChange.bind(this)} />
+        </FormGroup>
+        {'  '}
+        {filters.isOpen === 'false' && (
+          <ButtonGroup>
+            <Checkbox checked={filters.isOnlyUnlike === 'true'} onChange={this.handleUnlikeChange.bind(this)}>{t('badReviewsOnly')}</Checkbox>
+          </ButtonGroup>
+        )}
+      </Form>
     )
 
     const ticketCheckedOperations = (
       <FormGroup>
-        <DropdownButton id='categoryMoveDropdown' title={t('changeCategory')} onSelect={this.handleChangeCategory.bind(this)}>
-          {categoryMenuItems}
-        </DropdownButton>
+        <ButtonToolbar>
+          <DropdownButton id='categoryMoveDropdown' title={t('changeCategory')} onSelect={this.handleChangeCategory.bind(this)}>
+            {categoryMenuItems}
+          </DropdownButton>
+          {filters.isOpen === 'true' && (
+            <DropdownButton id="batchOperationDropdown" title={t('batchOperation')} onSelect={this.handleBatchOperation.bind(this)}>
+              <MenuItem eventKey="close">{t('close')}</MenuItem>
+            </DropdownButton>
+          )}
+        </ButtonToolbar>
       </FormGroup>
     )
 
@@ -456,8 +508,12 @@ class CustomerServiceTickets extends Component {
       <div>
         <DocumentTitle title={`${t('customerServiceTickets')} - LeanTicket`} />
         <div className={css.row}>
-          <Checkbox className={css.ticketSelectCheckbox} onChange={this.handleClickCheckAll.bind(this)} checked={this.state.isCheckedAll}></Checkbox>
-          {this.state.checkedTickets.size && ticketCheckedOperations || ticketAdminFilters}
+          <Checkbox
+            className={css.ticketSelectCheckbox}
+            checked={this.state.checkedTickets.size === this.state.tickets.length}
+            onChange={this.handleClickCheckAll.bind(this)}
+          />
+          {this.state.checkedTickets.size ? ticketCheckedOperations : ticketAdminFilters}
         </div>
 
         {ticketTrs}
