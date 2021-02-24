@@ -3,7 +3,7 @@ const AV = require('leanengine')
 
 const {getTinyUserInfo, htmlify, getTinyReplyInfo, isCustomerService} = require('./common')
 const {checkPermission} = require('./oauth')
-const notify = require('./notify')
+const notification = require('./notification')
 const {TICKET_ACTION, TICKET_STATUS, ticketClosedStatuses, getTicketAcl} = require('../lib/common')
 const errorHandler = require('./errorHandler')
 
@@ -45,7 +45,7 @@ AV.Cloud.afterSave('Ticket', async (req) => {
         action: 'selectAssignee',
         data: {assignee: assigneeInfo},
       }, {useMasterKey: true})
-    await notify.newTicket(req.object, req.currentUser, assignee)
+    await notification.newTicket(req.object, req.currentUser, assignee)
   } catch (err) {
     errorHandler.captureException(err)
     throw new AV.Cloud.Error('Internal Error', {status: 500})
@@ -84,7 +84,7 @@ AV.Cloud.afterUpdate('Ticket', (req) => {
         }, {useMasterKey: true})
       })
       .then(() => {
-        return notify.changeAssignee(ticket, req.currentUser, ticket.get('assignee'))
+        return notification.changeAssignee(ticket, req.currentUser, ticket.get('assignee'))
       })
       .catch(errorHandler.captureException)
     }
@@ -96,7 +96,7 @@ AV.Cloud.afterUpdate('Ticket', (req) => {
     if (ticket.updatedKeys.includes('evaluation')) {
       ticket.fetch({include: 'assignee'}, {user: req.currentUser})
       .then((ticket) => {
-        return notify.ticketEvaluation(ticket, req.currentUser, ticket.get('assignee'))
+        return notification.ticketEvaluation(ticket, req.currentUser, ticket.get('assignee'))
       })
       .catch(errorHandler.captureException)
     }
@@ -209,7 +209,7 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
     }
     return ticket.save(null, {user: replyAuthor})
   }).then((ticket) => {
-    return notify.replyTicket(ticket, reply, replyAuthor)
+    return notification.replyTicket(ticket, reply, replyAuthor)
   }).then(() => {
     return ticket
   }).catch(errorHandler.captureException)
