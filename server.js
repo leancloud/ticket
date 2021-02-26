@@ -47,6 +47,7 @@ const getIndexPage = () => {
 <script src="/js/bootstrap.min.js"></script>
 <div id=app></div>
 <script>
+  INTEGRATIONS = ${JSON.stringify(config.integrations.map(t => t.name))}
   LEANCLOUD_APP_ID = '${process.env.LEANCLOUD_APP_ID}'
   LEANCLOUD_APP_KEY = '${process.env.LEANCLOUD_APP_KEY}'
   LEANCLOUD_API_HOST = ${process.env.LEANCLOUD_API_HOST ? ('"' + process.env.LEANCLOUD_API_HOST + '"') : undefined}
