@@ -1,4 +1,4 @@
-/*global $, ALGOLIA_API_KEY, ENABLE_LEANCLOUD_INTERGRATION*/
+/* global $, ALGOLIA_API_KEY, ENABLE_LEANCLOUD_INTEGRATION */
 import _ from 'lodash'
 import React from 'react'
 import { withTranslation } from 'react-i18next'
@@ -64,7 +64,7 @@ class NewTicket extends React.Component {
     .then(() => {
       return Promise.all([
         getCategoriesTree(),
-        ENABLE_LEANCLOUD_INTERGRATION ? cloud.run('getLeanCloudApps')
+        ENABLE_LEANCLOUD_INTEGRATION ? cloud.run('getLeanCloudApps')
         .catch((err) => {
           if (err.message.indexOf('Could not find LeanCloud authData:') === 0) {
             return []
@@ -283,7 +283,7 @@ class NewTicket extends React.Component {
             <input type="text" className="form-control docsearch-input" value={ticket.title}
                onChange={this.handleTitleChange.bind(this)} />
           </FormGroup>
-          {ENABLE_LEANCLOUD_INTERGRATION &&
+          {ENABLE_LEANCLOUD_INTEGRATION &&
             <FormGroup>
               <ControlLabel>
                 {t('associatedApplication')} <OverlayTrigger placement="top" overlay={appTooltip}>

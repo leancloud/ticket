@@ -1,4 +1,4 @@
-/*global ENABLE_LEANCLOUD_INTERGRATION */
+/* global ENABLE_LEANCLOUD_INTEGRATION */
 import React, { Component } from 'react'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
@@ -26,8 +26,8 @@ class User extends Component {
     const { isCustomerService } = this.props
     return Promise.all([
       cloud.run('getUserInfo', {username}),
-      ENABLE_LEANCLOUD_INTERGRATION && isCustomerService ? cloud.run('getLeanCloudUserInfosByUsername', {username}) : null,
-      ENABLE_LEANCLOUD_INTERGRATION && isCustomerService ? cloud.run('getLeanCloudAppsByUsername', {username}) : null,
+      ENABLE_LEANCLOUD_INTEGRATION && isCustomerService ? cloud.run('getLeanCloudUserInfosByUsername', {username}) : null,
+      ENABLE_LEANCLOUD_INTEGRATION && isCustomerService ? cloud.run('getLeanCloudAppsByUsername', {username}) : null,
     ]).then(([user, leancloudUsers, leancloudApps]) => {
       this.setState({
         user,

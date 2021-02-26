@@ -1,4 +1,4 @@
-/*global ENABLE_LEANCLOUD_INTERGRATION */
+/* global ENABLE_LEANCLOUD_INTEGRATION */
 import React, { Component } from 'react'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
@@ -53,7 +53,7 @@ class Profile extends Component {
               </FormGroup>
               <Button type='button' onClick={this.handleSubmit.bind(this)}>{t('save')}</Button>
             </Form>
-            {ENABLE_LEANCLOUD_INTERGRATION && <AccountLink currentUser={this.props.currentUser} />}
+            {ENABLE_LEANCLOUD_INTEGRATION && <AccountLink currentUser={this.props.currentUser} />}
           </div>
           <div className="col-md-4">
             <Form>

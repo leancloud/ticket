@@ -1,4 +1,4 @@
-/*global ENABLE_LEANCLOUD_INTERGRATION */
+/* global ENABLE_LEANCLOUD_INTEGRATION */
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
@@ -12,7 +12,7 @@ export default function Tag({ tag, ticket, isCustomerService }) {
   // TODO: fix race condition
   useEffect(() => {
     (async () => {
-      if (ENABLE_LEANCLOUD_INTERGRATION && tag.data.key === 'appId') {
+      if (ENABLE_LEANCLOUD_INTEGRATION && tag.data.key === 'appId') {
         const appId = tag.data.value
         if (!appId) {
           return
