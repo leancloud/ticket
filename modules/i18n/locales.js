@@ -853,7 +853,7 @@ const messages = {
     '我们认为该工单已解决，请确认：'
   ],
   'resolutionConfirmed': [
-    'Resolved.',
+    'Resolved',
     '确认已解决'
   ],
   'system': [

@@ -138,13 +138,14 @@ AV.Cloud.define('operateTicket', async (req) => {
 
     const opsLogs = []
     tickets.forEach(ticket => {
-      if (isCS && ticket.get('author').id !== req.currentUser.id) {
+      const isCSInThisTicket = isCS && ticket.get('author').id !== req.currentUser.id
+      if (isCSInThisTicket) {
         ticket.addUnique('joinedCustomerServices', operator)
         if (action === TICKET_ACTION.CLOSE || action === TICKET_ACTION.REOPEN) {
           ticket.increment('unreadCount')
         }
       }
-      ticket.set('status', getTargetStatus(action, isCS))
+      ticket.set('status', getTargetStatus(action, isCSInThisTicket))
       opsLogs.push(
         new AV.Object('OpsLog', {
           ticket,

@@ -1,4 +1,4 @@
-import React, {Component} from 'react'
+import React, { Component } from 'react'
 import { withTranslation } from 'react-i18next'
 import { withRouter } from 'react-router-dom'
 import moment from 'moment'
@@ -7,6 +7,7 @@ import xss from 'xss'
 import {
   Alert,
   Button,
+  ButtonToolbar,
   ControlLabel,
   FormGroup,
   OverlayTrigger,
@@ -462,7 +463,7 @@ class Ticket extends Component {
 
     // 如果是客服自己提交工单，则当前客服在该工单中认为是用户，
     // 这是为了方便工单作为内部工作协调使用。
-    const isCustomerService = this.props.isCustomerService && ticket.get('author').id != this.props.currentUser.id
+    const isCustomerService = this.props.isCustomerService && ticket.get('author').id !== this.props.currentUser.id
     const timeline = _.chain(this.state.replies)
       .concat(this.state.opsLogs)
       .sortBy((data) => data.createdAt)
@@ -485,9 +486,10 @@ class Ticket extends Component {
       optionButtons = (
         <Alert bsStyle="warning">
           <ControlLabel>{t('confirmResolved')}</ControlLabel>
-          <Button bsStyle="primary" onClick={() => this.operateTicket('resolve')}>{t('resolutionConfirmed')}</Button>
-          {' '}
-          <Button onClick={() => this.operateTicket('reopen')}>{t('unresolved')}</Button>
+          <ButtonToolbar>
+            <Button bsStyle="primary" onClick={() => this.operateTicket('resolve')}>{t('resolutionConfirmed')}</Button>
+            <Button onClick={() => this.operateTicket('reopen')}>{t('unresolved')}</Button>
+          </ButtonToolbar>
         </Alert>
       )
     } else if (isCustomerService) {
