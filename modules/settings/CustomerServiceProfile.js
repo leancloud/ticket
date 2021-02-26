@@ -1,3 +1,5 @@
+/* global INTEGRATIONS */
+
 import React, { Component } from 'react'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
@@ -16,12 +18,14 @@ class CustomerServiceProfile extends Component {
   }
 
   componentDidMount() {
-    cloud.run('getWechatEnterpriseUsers', {})
-    .then((wechatUsers) => {
-      this.setState({wechatUsers})
-      return
-    })
-    .catch(this.context.addNotification)
+    if (INTEGRATIONS.includes('Wechat')) {
+      cloud.run('getWechatEnterpriseUsers', {})
+        .then((wechatUsers) => {
+          this.setState({wechatUsers})
+          return
+        })
+        .catch(this.context.addNotification)
+    }
   }
 
   handleWechatIdChange(e) {
@@ -45,16 +49,18 @@ class CustomerServiceProfile extends Component {
     return (
       <div>
         <h2>{t('associatedAccounts')}</h2>
-        <Form>
-          <FormGroup>
-            <ControlLabel>{t('weCom')}</ControlLabel>
-            <FormControl componentClass="select" value={this.state.wechatUserId} onChange={this.handleWechatIdChange.bind(this)}>
-              <option key='undefined' value=''>{t('unlinked')}</option>
-              {wechatUserOptions}
-            </FormControl>
-          </FormGroup>
-          <Button type='button' onClick={this.handleSubmit.bind(this)}>{t('save')}</Button>
-        </Form>
+        {INTEGRATIONS.includes('Wechat') && (
+          <Form>
+            <FormGroup>
+              <ControlLabel>{t('weCom')}</ControlLabel>
+              <FormControl componentClass="select" value={this.state.wechatUserId} onChange={this.handleWechatIdChange.bind(this)}>
+                <option key='undefined' value=''>{t('unlinked')}</option>
+                {wechatUserOptions}
+              </FormControl>
+            </FormGroup>
+            <Button type='button' onClick={this.handleSubmit.bind(this)}>{t('save')}</Button>
+          </Form>
+        )}
         <Vacation />
       </div>
     )
