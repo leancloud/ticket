@@ -6,8 +6,8 @@ const { isCustomerService } = require('../api/common')
 let webhooks = []
 
 async function refreshWebhooks() {
-  const query = new AV.Query('Webhook')
-  const objects = await query.find({ useMasterKey: true })
+  const objects = await new AV.Query('Webhook')
+    .find({ useMasterKey: true })
   webhooks = objects.map(o => ({
     objectId: o.id,
     url: o.get('url'),
@@ -15,21 +15,28 @@ async function refreshWebhooks() {
   }))
 }
 
-function invokeWebhooks(data) {
-  webhooks.forEach(hook => {
-    const body = JSON.stringify(data)
-    const hash = crypto
-      .createHmac('sha256', hook.secret)
-      .update(body)
-      .digest('base64')
+function generateHash(secret, data) {
+  return crypto
+    .createHmac('sha256', secret)
+    .update(data)
+    .digest('base64')
+}
+
+function invokeWebhooks(action, payload) {
+  webhooks.forEach(({ url, secret }) => {
+    const body = JSON.stringify({
+      action,
+      payload,
+      ts: new Date().toISOString(),
+    })
     request({
-      body,
+      url,
       method: 'POST',
-      url: hook.url,
       headers: {
         'content-type': 'application/json',
-        'x-leanticket-hmac-sha256': hash
+        'x-leanticket-hmac-sha256': generateHash(secret, body)
       },
+      body,
     })
   })
 }
@@ -45,7 +52,9 @@ AV.Cloud.define('addWebhook', async (req) => {
   }
 
   try {
-    await new AV.Object('Webhook', { url, secret }).save(null, { useMasterKey: true })
+    const hookData = { url, secret, ACL: {} }
+    await new AV.Object('Webhook', hookData)
+      .save(null, { useMasterKey: true })
     await refreshWebhooks()
   } catch (error) {
     throw new AV.Cloud.Error('Internal Error', { status: 500 })
@@ -63,24 +72,17 @@ AV.Cloud.define('removeWebhook', async (req) => {
   }
 
   try {
-    await AV.Object.createWithoutData('Webhook', id).destroy({ useMasterKey: true })
+    await AV.Object.createWithoutData('Webhook', id)
+      .destroy({ useMasterKey: true })
     await refreshWebhooks()
   } catch (error) {
     throw new AV.Cloud.Error('Internal Error', { status: 500 })
   }
 })
 
-AV.Cloud.define('refreshWebhooks', async (req) => {
-  if (!await isCustomerService(req.currentUser)) {
-    throw new AV.Cloud.Error('Forbidden', { status: 403 })
-  }
-
-  try {
-    await refreshWebhooks()
-  } catch (error) {
-    throw new AV.Cloud.Error('Internal Error', { status: 500 })
-  }
-})
+AV.Cloud.afterSave('Webhook', refreshWebhooks)
+AV.Cloud.afterUpdate('Webhook', refreshWebhooks)
+AV.Cloud.afterDelete('Webhook', refreshWebhooks)
 
 module.exports = {
   webhooks,

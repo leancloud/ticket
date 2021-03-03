@@ -26,10 +26,7 @@ AV.Cloud.beforeSave('Reply', (req, res) => {
 
 AV.Cloud.afterSave('Reply', (req) => {
   ticket.replyTicket(req.object.get('ticket'), req.object, req.currentUser)
-  invokeWebhooks({
-    type: 'replyCreated',
-    data: req.object.toJSON(),
-  })
+  invokeWebhooks('reply.create', { reply: req.object.toJSON() })
 })
 
 const getReplyAcl = (ticket, author) => {
