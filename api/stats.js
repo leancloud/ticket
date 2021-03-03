@@ -169,7 +169,13 @@ class ReplyTimeStats {
       this.lastCustomerService = avObj.get('data').operator
       return
     }
-    if (avObj.className === 'OpsLog' && avObj.get('action') === 'reopen') {
+    if (
+      avObj.className === 'OpsLog' &&
+      avObj.get('action') === 'reopen' &&
+      !!this.ticket
+        .get('joinedCustomerServices')
+        .find(({ objectId }) => objectId === avObj.get('data').operator.objectId)
+    ) {
       this.cursor = avObj.createdAt
       this.isReply = true
       this.lastCustomerService = avObj.get('data').operator
