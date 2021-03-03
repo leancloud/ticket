@@ -6,6 +6,7 @@ const {checkPermission} = require('./oauth')
 const notification = require('./notification')
 const {TICKET_ACTION, TICKET_STATUS, ticketClosedStatuses, getTicketAcl} = require('../lib/common')
 const errorHandler = require('./errorHandler')
+const { invokeWebhooks } = require('../webhook')
 
 AV.Cloud.beforeSave('Ticket', async (req) => {
   if (!req.currentUser || !await checkPermission(req.currentUser)) {
@@ -46,6 +47,7 @@ AV.Cloud.afterSave('Ticket', async (req) => {
         data: {assignee: assigneeInfo},
       }, {useMasterKey: true})
     await notification.newTicket(req.object, req.currentUser, assignee)
+    invokeWebhooks('ticket.create', { ticket: ticket.toJSON() })
   } catch (err) {
     errorHandler.captureException(err)
     throw new AV.Cloud.Error('Internal Error', {status: 500})
@@ -100,6 +102,10 @@ AV.Cloud.afterUpdate('Ticket', (req) => {
       })
       .catch(errorHandler.captureException)
     }
+    invokeWebhooks('ticket.update', {
+      ticket: ticket.toJSON(),
+      updatedKeys: ticket.updatedKeys,
+    })
     return
   })
 })

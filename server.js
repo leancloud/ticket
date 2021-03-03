@@ -7,6 +7,7 @@ const Raven = require('raven')
 const AV = require('leanengine')
 
 const config = require('./config')
+const { refreshWebhooks } = require('./webhook')
 
 Raven.config(config.sentryDSN).install()
 
@@ -101,3 +102,5 @@ var PORT = parseInt(process.env.LEANCLOUD_APP_PORT || process.env.PORT || 8080)
 app.listen(PORT, function() {
   console.log('LeanTicket server running on:' + PORT)
 })
+
+refreshWebhooks()
