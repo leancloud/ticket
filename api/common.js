@@ -24,16 +24,15 @@ exports.getTinyUserInfo = async (user) => {
 }
 
 exports.getTinyReplyInfo = (reply) => {
-  return exports.getTinyUserInfo(reply.get('author'))
-    .then((author) => {
-      return {
-        author,
-        content: reply.get('content'),
-        isCustomerService: reply.get('isCustomerService'),
-        createdAt: reply.get('createdAt'),
-        updatedAt: reply.get('updatedAt'),
-      }
-    })
+  return exports.getTinyUserInfo(reply.get('author')).then((author) => {
+    return {
+      author,
+      content: reply.get('content'),
+      isCustomerService: reply.get('isCustomerService'),
+      createdAt: reply.get('createdAt'),
+      updatedAt: reply.get('updatedAt'),
+    }
+  })
 }
 
 exports.isCustomerService = (user, ticketAuthor) => {
@@ -85,16 +84,13 @@ exports.htmlify = (content) => {
 }
 
 exports.forEachAVObject = (query, fn, authOptions) => {
-  query.limit(1000)
-  .ascending('createdAt')
+  query.limit(1000).ascending('createdAt')
   const innerFn = () => {
-    return query.find(authOptions)
-    .then((datas) => {
+    return query.find(authOptions).then((datas) => {
       if (datas.length === 0) {
         return
       }
-      return Promise.each(datas, fn)
-      .then(() => {
+      return Promise.each(datas, fn).then(() => {
         query.greaterThan('createdAt', _.last(datas).get('createdAt'))
         return innerFn()
       })
@@ -107,7 +103,7 @@ exports.getCategoriesTree = (authOptions) => {
   return new AV.Query('Category')
     .descending('createdAt')
     .find(authOptions)
-    .then(categories => {
+    .then((categories) => {
       return exports.makeTree(categories)
     })
 }

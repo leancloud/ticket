@@ -8,7 +8,6 @@ import { UserLabel } from '../UserLabel'
 import UserForm from '../UserForm'
 
 class SettingMembers extends Component {
-
   constructor(props) {
     super(props)
     this.state = {
@@ -18,8 +17,7 @@ class SettingMembers extends Component {
   }
 
   componentDidMount() {
-    this.getRoleAndUsers('customerService')
-    .then((data) => {
+    this.getRoleAndUsers('customerService').then((data) => {
       this.setState({
         customerServiceRole: data.role,
         customerServices: data.users,
@@ -28,42 +26,46 @@ class SettingMembers extends Component {
   }
 
   getRoleAndUsers(roleName) {
-    return auth.queryRole()
-    .where('name', '==', roleName)
-    .first()
-    .then((role) => {
-      return role.getUsers()
-      .then((users) => {
-        return { role, users }
+    return auth
+      .queryRole()
+      .where('name', '==', roleName)
+      .first()
+      .then((role) => {
+        return role.getUsers().then((users) => {
+          return { role, users }
+        })
       })
-    })
   }
 
   handleSubmit(user) {
     const role = this.state.customerServiceRole
-    return role.add(user)
-    .then(() => {
-      return this.getRoleAndUsers(role.get('name'))
-    }).then((data) => {
-      this.setState({
-        customerServiceRole: data.role,
-        customerServices: data.users,
+    return role
+      .add(user)
+      .then(() => {
+        return this.getRoleAndUsers(role.get('name'))
       })
-      return
-    })
+      .then((data) => {
+        this.setState({
+          customerServiceRole: data.role,
+          customerServices: data.users,
+        })
+        return
+      })
   }
 
   handleRemoveCustomerService(id) {
     const role = this.state.customerServiceRole
-    return role.remove(auth.user(id))
-    .then(() => {
-      return this.getRoleAndUsers(role.get('name'))
-    }).then((data) => {
-      this.setState({
-        customerServiceRole: data.role,
-        customerServices: data.users,
+    return role
+      .remove(auth.user(id))
+      .then(() => {
+        return this.getRoleAndUsers(role.get('name'))
       })
-    })
+      .then((data) => {
+        this.setState({
+          customerServiceRole: data.role,
+          customerServices: data.users,
+        })
+      })
   }
 
   render() {
@@ -77,18 +79,21 @@ class SettingMembers extends Component {
           <td>
             <UserLabel user={customerService.toJSON()} />
           </td>
+          <td>{categories}</td>
           <td>
-            {categories}
-          </td>
-          <td>
-            <input type='button' className='btn btn-default' value={t('remove')} onClick={() => this.handleRemoveCustomerService(customerService.id)} />
+            <input
+              type="button"
+              className="btn btn-default"
+              value={t('remove')}
+              onClick={() => this.handleRemoveCustomerService(customerService.id)}
+            />
           </td>
         </tr>
       )
     })
     return (
       <div>
-        <UserForm addUser={this.handleSubmit.bind(this)}/>
+        <UserForm addUser={this.handleSubmit.bind(this)} />
         <table className="table table-bordered">
           <thead>
             <tr>
@@ -97,9 +102,7 @@ class SettingMembers extends Component {
               <th>{t('operation')}</th>
             </tr>
           </thead>
-          <tbody>
-            {customerServices}
-          </tbody>
+          <tbody>{customerServices}</tbody>
         </table>
       </div>
     )

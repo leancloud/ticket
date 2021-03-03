@@ -11,7 +11,7 @@ export default function Tag({ tag, ticket, isCustomerService }) {
 
   // TODO: fix race condition
   useEffect(() => {
-    (async () => {
+    ;(async () => {
       if (ENABLE_LEANCLOUD_INTEGRATION && tag.data.key === 'appId') {
         const appId = tag.data.value
         if (!appId) {
@@ -21,14 +21,14 @@ export default function Tag({ tag, ticket, isCustomerService }) {
           appId,
           username: ticket.data.author.data.username,
         })
-        setData({key: 'application', value: app.app_name})
+        setData({ key: 'application', value: app.app_name })
         if (isCustomerService) {
           const url = await cloud.run('getLeanCloudAppUrl', {
             appId,
             region: app.region,
           })
           if (url) {
-            setData(prevData => ({...prevData, url}))
+            setData((prevData) => ({ ...prevData, url }))
           }
         }
       }
@@ -38,24 +38,22 @@ export default function Tag({ tag, ticket, isCustomerService }) {
   if (!data) {
     return (
       <div className="form-group">
-        <Label bsStyle="default">{tag.data.key}: {tag.data.value}</Label>
+        <Label bsStyle="default">
+          {tag.data.key}: {tag.data.value}
+        </Label>
       </div>
     )
   }
   return (
     <div>
-      <label className="control-label">
-        {t(data.key)}
-      </label>
+      <label className="control-label">{t(data.key)}</label>
       <div className="form-group">
         {data.url ? (
-          <a className="btn btn-default" href={data.url} target='_blank'>
+          <a className="btn btn-default" href={data.url} target="_blank">
             {data.value}
           </a>
         ) : (
-          <a className="btn btn-default disabled">
-            {data.value}
-          </a>
+          <a className="btn btn-default disabled">{data.value}</a>
         )}
       </div>
     </div>

@@ -1,25 +1,25 @@
 import React from 'react'
-import {Link} from 'react-router-dom'
-import {OverlayTrigger, Tooltip} from 'react-bootstrap'
+import { Link } from 'react-router-dom'
+import { OverlayTrigger, Tooltip } from 'react-bootstrap'
 import PropTypes from 'prop-types'
 import moment from 'moment'
 
 import css from './UserLabel.css'
-import {Avatar} from './Avatar'
-import {userDisplayName} from '../config.webapp'
+import { Avatar } from './Avatar'
+import { userDisplayName } from '../config.webapp'
 
 const USER_TAG = {
   new: {
     content: 'New',
-    tip: 'Registered within 3 months'
+    tip: 'Registered within 3 months',
   },
   early: {
     content: 'Early',
-    tip: 'Registered before 2 years ago'
+    tip: 'Registered before 2 years ago',
   },
   vip: {
-    content: 'VIP'
-  }
+    content: 'VIP',
+  },
 }
 
 function getUserTags(user) {
@@ -36,18 +36,15 @@ function getUserTags(user) {
   return user.tags ? tags.concat(user.tags) : tags
 }
 
-function UserTag({name}) {
+function UserTag({ name }) {
   if (!USER_TAG[name]) {
     return <span className={css.tag}>{name}</span>
   }
-  const {content, tip} = USER_TAG[name]
+  const { content, tip } = USER_TAG[name]
   const element = <span className={`${css.tag} ${css[name]}`}>{content}</span>
   if (tip) {
     return (
-      <OverlayTrigger
-        placement="bottom"
-        overlay={<Tooltip id={`user-tag-${name}`}>{tip}</Tooltip>}
-      >
+      <OverlayTrigger placement="bottom" overlay={<Tooltip id={`user-tag-${name}`}>{tip}</Tooltip>}>
         {element}
       </OverlayTrigger>
     )
@@ -58,18 +55,24 @@ UserTag.propTypes = {
   name: PropTypes.string.isRequired,
 }
 
-export function UserTags({user}) {
+export function UserTags({ user }) {
   const tags = getUserTags(user)
   if (tags.length === 0) {
     return null
   }
-  return <span>{tags.map(tag => <UserTag key={tag} name={tag} />)}</span>
+  return (
+    <span>
+      {tags.map((tag) => (
+        <UserTag key={tag} name={tag} />
+      ))}
+    </span>
+  )
 }
 UserTags.propTypes = {
   user: PropTypes.object.isRequired,
 }
 
-export function UserLabel({user, simple, displayTags}) {
+export function UserLabel({ user, simple, displayTags }) {
   const name = userDisplayName(user)
   if (simple) {
     return <span>{name}</span>

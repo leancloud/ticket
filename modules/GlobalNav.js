@@ -19,10 +19,27 @@ class GlobalNav extends Component {
     /* eslint-disable i18n/no-chinese-character */
     const langSelector = (
       <li className="dropdown">
-        <a href="#" className="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">EN/中 <span className="caret"/></a>
+        <a
+          href="#"
+          className="dropdown-toggle"
+          data-toggle="dropdown"
+          role="button"
+          aria-haspopup="true"
+          aria-expanded="false"
+        >
+          EN/中 <span className="caret" />
+        </a>
         <ul className="dropdown-menu">
-          <li><a href="#" onClick={() => this.handleLanguageSwitch('en')}>English</a></li>
-          <li><a href="#" onClick={() => this.handleLanguageSwitch('zh')}>中文</a></li>
+          <li>
+            <a href="#" onClick={() => this.handleLanguageSwitch('en')}>
+              English
+            </a>
+          </li>
+          <li>
+            <a href="#" onClick={() => this.handleLanguageSwitch('zh')}>
+              中文
+            </a>
+          </li>
         </ul>
       </li>
     )
@@ -42,13 +59,23 @@ class GlobalNav extends Component {
             {this.props.currentUser.get('name')} <span className="caret"></span>
           </a>
           <ul className="dropdown-menu">
-            <li><Link to="/settings">{t('settings')}</Link></li>
-            <li><a href="#" onClick={() => this.props.logout()}>{t('logout')}</a></li>
+            <li>
+              <Link to="/settings">{t('settings')}</Link>
+            </li>
+            <li>
+              <a href="#" onClick={() => this.props.logout()}>
+                {t('logout')}
+              </a>
+            </li>
           </ul>
         </li>
       )
     } else {
-      user = <li><Link to="/login">{t('login')}</Link></li>
+      user = (
+        <li>
+          <Link to="/login">{t('login')}</Link>
+        </li>
+      )
     }
 
     return (
@@ -73,15 +100,23 @@ class GlobalNav extends Component {
           </div>
           <div className="collapse navbar-collapse" id="global-navbar-collapse">
             <ul className="nav navbar-nav">
-              <li><Link to="/tickets">{t('ticketList')}</Link></li>
-              <li><Link to="/about">{t('about')}</Link></li>
+              <li>
+                <Link to="/tickets">{t('ticketList')}</Link>
+              </li>
+              <li>
+                <Link to="/about">{t('about')}</Link>
+              </li>
             </ul>
-            {this.props.isCustomerService &&
+            {this.props.isCustomerService && (
               <ul className="nav navbar-nav">
-                <li><Link to="/customerService/tickets">{t('customerServiceTickets')}</Link></li>
-                <li><Link to="/customerService/stats">{t('statistics')}</Link></li>
+                <li>
+                  <Link to="/customerService/tickets">{t('customerServiceTickets')}</Link>
+                </li>
+                <li>
+                  <Link to="/customerService/stats">{t('statistics')}</Link>
+                </li>
               </ul>
-            }
+            )}
             <ul className="nav navbar-nav navbar-right">
               {this.props.currentUser && (
                 <li>
@@ -94,11 +129,13 @@ class GlobalNav extends Component {
                   </button>
                 </li>
               )}
-              {this.props.isCustomerService &&
+              {this.props.isCustomerService && (
                 <li>
-                  <Link to='/notifications'><span className='glyphicon glyphicon-bell' aria-hidden='true'></span></Link>
+                  <Link to="/notifications">
+                    <span className="glyphicon glyphicon-bell" aria-hidden="true"></span>
+                  </Link>
                 </li>
-              }
+              )}
               {langSelector}
               {user}
             </ul>

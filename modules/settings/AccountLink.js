@@ -12,9 +12,7 @@ export default function AccountLink({ currentUser, updateCurrentUser }, context)
   const [LCUserInfos, setLCUserInfos] = useState()
 
   useEffect(() => {
-    cloud.run('getLeanCloudUserInfos')
-      .then(setLCUserInfos)
-      .catch(context.addNotification)
+    cloud.run('getLeanCloudUserInfos').then(setLCUserInfos).catch(context.addNotification)
   }, [])
 
   if (!LCUserInfos) {
@@ -24,7 +22,7 @@ export default function AccountLink({ currentUser, updateCurrentUser }, context)
   return (
     <div>
       <h2>{t('linkedAccounts')}</h2>
-      {getLeanCloudRegions().map(region => (
+      {getLeanCloudRegions().map((region) => (
         <OauthButton
           currentUser={currentUser}
           lcUserInfos={LCUserInfos}
@@ -32,7 +30,7 @@ export default function AccountLink({ currentUser, updateCurrentUser }, context)
           regionText={getLeanCloudRegionText(region)}
         />
       ))}
-      <span className='text-muted'>{t('loginIntlFirst')}</span>
+      <span className="text-muted">{t('loginIntlFirst')}</span>
     </div>
   )
 }

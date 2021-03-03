@@ -45,7 +45,6 @@ import { DocumentTitle } from './utils/DocumentTitle'
 
 let authorSearchTimeoutId
 class CustomerServiceTickets extends Component {
-
   constructor(props) {
     super(props)
     this.state = {
@@ -60,7 +59,7 @@ class CustomerServiceTickets extends Component {
     return qs.parse(this.props.location.search)
   }
 
-  componentDidMount () {
+  componentDidMount() {
     const filters = this.getFilters()
     const { authorId } = filters
     Promise.all([
@@ -68,11 +67,15 @@ class CustomerServiceTickets extends Component {
       getCategoriesTree(false),
       authorId && db.class('_User').object(authorId).get(),
     ])
-    .then(([customerServices, categoriesTree, author]) => {
-      this.setState({customerServices, categoriesTree, authorUsername: author && author.get('username')})
-      return this.findTickets(filters)
-    })
-    .catch(this.context.addNotification)
+      .then(([customerServices, categoriesTree, author]) => {
+        this.setState({
+          customerServices,
+          categoriesTree,
+          authorUsername: author && author.get('username'),
+        })
+        return this.findTickets(filters)
+      })
+      .catch(this.context.addNotification)
   }
 
   componentDidUpdate(prevProps) {
@@ -90,8 +93,20 @@ class CustomerServiceTickets extends Component {
       return Promise.resolve()
     }
 
-    const {assigneeId, isOpen, status, categoryId, authorId,
-      tagKey, tagValue, isOnlyUnlike, searchString, page = '0', size = '10', timeRange} = filters
+    const {
+      assigneeId,
+      isOpen,
+      status,
+      categoryId,
+      authorId,
+      tagKey,
+      tagValue,
+      isOnlyUnlike,
+      searchString,
+      page = '0',
+      size = '10',
+      timeRange,
+    } = filters
     let query = db.class('Ticket')
 
     let statuses = []
@@ -104,7 +119,7 @@ class CustomerServiceTickets extends Component {
       statuses = [parseInt(status)]
     }
 
-    if(timeRange){
+    if (timeRange) {
       query = query
         .where('createdAt', '>=', TIME_RANGE_MAP[timeRange].starts)
         .where('createdAt', '<', TIME_RANGE_MAP[timeRange].ends)
@@ -127,11 +142,11 @@ class CustomerServiceTickets extends Component {
     }
 
     if (tagKey) {
-      const tagMetadata = _.find(this.context.tagMetadatas, m => m.get('key') == tagKey)
+      const tagMetadata = _.find(this.context.tagMetadatas, (m) => m.get('key') == tagKey)
       if (tagMetadata) {
         const columnName = tagMetadata.get('isPrivate') ? 'privateTags' : 'tags'
         if (tagValue) {
-          query = query.where(columnName, '==', {key: tagKey, value: tagValue})
+          query = query.where(columnName, '==', { key: tagKey, value: tagValue })
         } else {
           query = query.where(columnName + '.key', '==', tagKey)
         }
@@ -143,45 +158,53 @@ class CustomerServiceTickets extends Component {
     }
 
     return Promise.resolve()
-    .then(() => {
-      if (searchString && searchString.trim().length > 0) {
-        return Promise.all([
-          db.search('Ticket').queryString(`title:${searchString} OR content:${searchString}`)
-            .orderBy('latestReply.updatedAt', 'desc')
-            .limit(1000)
-            .find()
-            .then(({data: tickets}) => {
-              return tickets.map(t => t.id)
-            }),
-          db.search('Reply').queryString(`content:${searchString}`)
-            .orderBy('latestReply.updatedAt', 'desc')
-            .limit(1000)
-            .find()
-            .then(result => result.data)
-        ])
-      }
-      return [[], []]
-    })
-    .then(([searchMatchedTicketIds, searchMatchedReplaies]) => {
-      if (searchMatchedTicketIds.length + searchMatchedReplaies.length > 0) {
-        const ticketIds = _.union(searchMatchedTicketIds, searchMatchedReplaies.map(r => r.get('ticket').id))
-        query = query.where('objectId', 'in', ticketIds)
-      }
-      return query.include('author')
-      .include('assignee')
-      .limit(parseInt(size))
-      .skip(parseInt(page) * parseInt(size))
-      .orderBy('latestReply.updatedAt', 'desc')
-      .orderBy('updatedAt', 'desc')
-      .find()
-      .then(tickets => {
-        tickets.forEach(t => {
-          t.replies = _.filter(searchMatchedReplaies, r => r.get('ticket').id == t.id)
-        })
-        this.setState({tickets})
-        return
+      .then(() => {
+        if (searchString && searchString.trim().length > 0) {
+          return Promise.all([
+            db
+              .search('Ticket')
+              .queryString(`title:${searchString} OR content:${searchString}`)
+              .orderBy('latestReply.updatedAt', 'desc')
+              .limit(1000)
+              .find()
+              .then(({ data: tickets }) => {
+                return tickets.map((t) => t.id)
+              }),
+            db
+              .search('Reply')
+              .queryString(`content:${searchString}`)
+              .orderBy('latestReply.updatedAt', 'desc')
+              .limit(1000)
+              .find()
+              .then((result) => result.data),
+          ])
+        }
+        return [[], []]
       })
-    })
+      .then(([searchMatchedTicketIds, searchMatchedReplaies]) => {
+        if (searchMatchedTicketIds.length + searchMatchedReplaies.length > 0) {
+          const ticketIds = _.union(
+            searchMatchedTicketIds,
+            searchMatchedReplaies.map((r) => r.get('ticket').id)
+          )
+          query = query.where('objectId', 'in', ticketIds)
+        }
+        return query
+          .include('author')
+          .include('assignee')
+          .limit(parseInt(size))
+          .skip(parseInt(page) * parseInt(size))
+          .orderBy('latestReply.updatedAt', 'desc')
+          .orderBy('updatedAt', 'desc')
+          .find()
+          .then((tickets) => {
+            tickets.forEach((t) => {
+              t.replies = _.filter(searchMatchedReplaies, (r) => r.get('ticket').id == t.id)
+            })
+            this.setState({ tickets })
+            return
+          })
+      })
   }
 
   updateFilter(filter) {
@@ -209,29 +232,30 @@ class CustomerServiceTickets extends Component {
     }
     authorSearchTimeoutId = setTimeout(() => {
       if (username.trim() === '') {
-        this.setState({authorFilterValidationState: null})
-        const filters = _.assign({}, this.getFilters(), {authorId: null})
+        this.setState({ authorFilterValidationState: null })
+        const filters = _.assign({}, this.getFilters(), { authorId: null })
         return this.updateFilter(filters)
       }
 
-      cloud.run('getUserInfo', {username})
-      .then((user) => {
-        authorSearchTimeoutId = null
-        if (!user) {
-          this.setState({authorFilterValidationState: 'error'})
-          return
-        } else {
-          this.setState({authorFilterValidationState: 'success'})
-          const filters = _.assign({}, this.getFilters(), {authorId: user.objectId})
-          return this.updateFilter(filters)
-        }
-      })
-      .catch(this.context.addNotification)
+      cloud
+        .run('getUserInfo', { username })
+        .then((user) => {
+          authorSearchTimeoutId = null
+          if (!user) {
+            this.setState({ authorFilterValidationState: 'error' })
+            return
+          } else {
+            this.setState({ authorFilterValidationState: 'success' })
+            const filters = _.assign({}, this.getFilters(), { authorId: user.objectId })
+            return this.updateFilter(filters)
+          }
+        })
+        .catch(this.context.addNotification)
     }, 500)
   }
 
   handleUnlikeChange(e) {
-    this.updateFilter({isOnlyUnlike: e.target.checked})
+    this.updateFilter({ isOnlyUnlike: e.target.checked })
   }
 
   handleClickCheckbox(e) {
@@ -246,31 +270,33 @@ class CustomerServiceTickets extends Component {
 
   handleClickCheckAll(e) {
     if (e.target.checked) {
-      this.setState({ checkedTickets: new Set(this.state.tickets.map(t => t.id)) })
+      this.setState({ checkedTickets: new Set(this.state.tickets.map((t) => t.id)) })
     } else {
       this.setState({ checkedTickets: new Set() })
     }
   }
 
   handleChangeCategory(categoryId) {
-    const tickets = _.filter(this.state.tickets, t => this.state.checkedTickets.has(t.id))
-    const category = getTinyCategoryInfo(depthFirstSearchFind(this.state.categoriesTree, c => c.id == categoryId))
+    const tickets = _.filter(this.state.tickets, (t) => this.state.checkedTickets.has(t.id))
+    const category = getTinyCategoryInfo(
+      depthFirstSearchFind(this.state.categoriesTree, (c) => c.id == categoryId)
+    )
     const p = db.pipeline()
-    tickets.forEach(t => p.update(t, {category}))
+    tickets.forEach((t) => p.update(t, { category }))
     p.commit()
-    .then(() => {
-      this.setState({ checkedTickets: new Set() })
-      this.updateFilter({})
-      return
-    })
-    .catch(this.context.addNotification)
+      .then(() => {
+        this.setState({ checkedTickets: new Set() })
+        this.updateFilter({})
+        return
+      })
+      .catch(this.context.addNotification)
   }
 
   async handleBatchOperation(operation) {
     if (operation === 'close') {
       const ticketIds = this.state.tickets
-        .filter(t => this.state.checkedTickets.has(t.id) && isTicketOpen(t))
-        .map(t => t.id)
+        .filter((t) => this.state.checkedTickets.has(t.id) && isTicketOpen(t))
+        .map((t) => t.id)
       if (ticketIds.length === 0) {
         return
       }
@@ -290,72 +316,127 @@ class CustomerServiceTickets extends Component {
     const tickets = this.state.tickets
     const ticketTrs = tickets.map((ticket) => {
       const contributors = _.uniqBy(ticket.data.joinedCustomerServices || [], 'objectId')
-      const category = depthFirstSearchFind(this.state.categoriesTree, c => c.id == ticket.data.category.objectId)
+      const category = depthFirstSearchFind(
+        this.state.categoriesTree,
+        (c) => c.id == ticket.data.category.objectId
+      )
 
       return (
         <div className={`${css.ticket} ${css.row}`} key={ticket.get('nid')}>
-          <Checkbox className={css.ticketSelectCheckbox} onChange={this.handleClickCheckbox.bind(this)} value={ticket.id} checked={this.state.checkedTickets.has(ticket.id)}></Checkbox>
+          <Checkbox
+            className={css.ticketSelectCheckbox}
+            onChange={this.handleClickCheckbox.bind(this)}
+            value={ticket.id}
+            checked={this.state.checkedTickets.has(ticket.id)}
+          ></Checkbox>
           <div className={css.ticketContent}>
             <div className={css.heading}>
               <div className={css.left}>
-                <Link className={css.title} to={'/tickets/' + ticket.get('nid')}>{ticket.get('title')}</Link>
-                {getNodePath(category).map(c => {
-                  return <Link key={c.id} to={this.getQueryUrl({categoryId: c.id})}><span className={css.category}>{getCategoryName(c)}</span></Link>
+                <Link className={css.title} to={'/tickets/' + ticket.get('nid')}>
+                  {ticket.get('title')}
+                </Link>
+                {getNodePath(category).map((c) => {
+                  return (
+                    <Link key={c.id} to={this.getQueryUrl({ categoryId: c.id })}>
+                      <span className={css.category}>{getCategoryName(c)}</span>
+                    </Link>
+                  )
                 })}
-                {filters.isOpen === 'true' ||
-                  <span>{ticket.get('evaluation') && (ticket.get('evaluation').star === 1 && <span className={css.satisfaction + ' ' + css.happy}>{t('satisfied')}</span> || <span className={css.satisfaction + ' ' + css.unhappy}>{t('unsatisfied')}</span>)}</span>
-                }
+                {filters.isOpen === 'true' || (
+                  <span>
+                    {ticket.get('evaluation') &&
+                      ((ticket.get('evaluation').star === 1 && (
+                        <span className={css.satisfaction + ' ' + css.happy}>{t('satisfied')}</span>
+                      )) || (
+                        <span className={css.satisfaction + ' ' + css.unhappy}>
+                          {t('unsatisfied')}
+                        </span>
+                      ))}
+                  </span>
+                )}
               </div>
               <div>
-                {ticket.get('replyCount') &&
-                  <Link className={css.commentCounter} title={'reply ' + ticket.get('replyCount')} to={'/tickets/' + ticket.get('nid')}>
-                    <span className={css.commentCounterIcon + ' glyphicon glyphicon-comment'}></span>
+                {ticket.get('replyCount') && (
+                  <Link
+                    className={css.commentCounter}
+                    title={'reply ' + ticket.get('replyCount')}
+                    to={'/tickets/' + ticket.get('nid')}
+                  >
+                    <span
+                      className={css.commentCounterIcon + ' glyphicon glyphicon-comment'}
+                    ></span>
                     {ticket.get('replyCount')}
                   </Link>
-                }
+                )}
               </div>
             </div>
 
             <div className={css.meta}>
               <div className={css.left}>
                 <span className={css.nid}>#{ticket.get('nid')}</span>
-                <Link className={css.statusLink} to={this.getQueryUrl({status: ticket.get('status'), isOpen: undefined})}><span className={css.status}><TicketStatusLabel status={ticket.get('status')} /></span></Link>
-                <span className={css.creator}><UserLabel user={ticket.data.author.data} displayTags /></span> {t('createdAt')} {moment(ticket.get('createdAt')).fromNow()}
-                {moment(ticket.get('createdAt')).fromNow() === moment(ticket.get('updatedAt')).fromNow() ||
-                  <span> {t('updatedAt')} {moment(ticket.get('updatedAt')).fromNow()}</span>
-                }
+                <Link
+                  className={css.statusLink}
+                  to={this.getQueryUrl({ status: ticket.get('status'), isOpen: undefined })}
+                >
+                  <span className={css.status}>
+                    <TicketStatusLabel status={ticket.get('status')} />
+                  </span>
+                </Link>
+                <span className={css.creator}>
+                  <UserLabel user={ticket.data.author.data} displayTags />
+                </span>{' '}
+                {t('createdAt')} {moment(ticket.get('createdAt')).fromNow()}
+                {moment(ticket.get('createdAt')).fromNow() ===
+                  moment(ticket.get('updatedAt')).fromNow() || (
+                  <span>
+                    {' '}
+                    {t('updatedAt')} {moment(ticket.get('updatedAt')).fromNow()}
+                  </span>
+                )}
               </div>
               <div>
                 <span className={css.assignee}>
                   <UserLabel user={ticket.data.assignee.data} />
                 </span>
                 <span className={css.contributors}>
-                  {contributors.map(user => (
-                    <span key={user.objectId}><UserLabel user={user} /></span>
+                  {contributors.map((user) => (
+                    <span key={user.objectId}>
+                      <UserLabel user={user} />
+                    </span>
                   ))}
                 </span>
               </div>
             </div>
-            <BlodSearchString content={ticket.get('content')} searchString={filters.searchString}/>
-            {ticket.replies.map(r => (
-              <BlodSearchString key={r.id} content={r.get('content')} searchString={filters.searchString}/>
+            <BlodSearchString content={ticket.get('content')} searchString={filters.searchString} />
+            {ticket.replies.map((r) => (
+              <BlodSearchString
+                key={r.id}
+                content={r.get('content')}
+                searchString={filters.searchString}
+              />
             ))}
           </div>
         </div>
       )
     })
 
-    const statusMenuItems = _.keys(TICKET_STATUS).map(key => {
+    const statusMenuItems = _.keys(TICKET_STATUS).map((key) => {
       const value = TICKET_STATUS[key]
-      return <MenuItem key={value} eventKey={value}>{t(TICKET_STATUS_MSG[value])}</MenuItem>
+      return (
+        <MenuItem key={value} eventKey={value}>
+          {t(TICKET_STATUS_MSG[value])}
+        </MenuItem>
+      )
     })
     const assigneeMenuItems = this.state.customerServices.map((user) => (
       <MenuItem key={user.id} eventKey={user.id}>
         {userDisplayName(user.data)}
       </MenuItem>
     ))
-    const categoryMenuItems = depthFirstSearchMap(this.state.categoriesTree, c => (
-      <MenuItem key={c.id} eventKey={c.id}>{getNodeIndentString(c) + getCategoryName(c)}</MenuItem>
+    const categoryMenuItems = depthFirstSearchMap(this.state.categoriesTree, (c) => (
+      <MenuItem key={c.id} eventKey={c.id}>
+        {getNodeIndentString(c) + getCategoryName(c)}
+      </MenuItem>
     ))
 
     let statusTitle
@@ -371,7 +452,7 @@ class CustomerServiceTickets extends Component {
 
     let assigneeTitle
     if (filters.assigneeId) {
-      const assignee = this.state.customerServices.find(user => user.id === filters.assigneeId)
+      const assignee = this.state.customerServices.find((user) => user.id === filters.assigneeId)
       if (assignee) {
         assigneeTitle = userDisplayName(assignee.data)
       } else {
@@ -383,7 +464,10 @@ class CustomerServiceTickets extends Component {
 
     let categoryTitle
     if (filters.categoryId) {
-      const category = depthFirstSearchFind(this.state.categoriesTree, c => c.id === filters.categoryId)
+      const category = depthFirstSearchFind(
+        this.state.categoriesTree,
+        (c) => c.id === filters.categoryId
+      )
       if (category) {
         categoryTitle = getCategoryName(category)
       } else {
@@ -395,62 +479,125 @@ class CustomerServiceTickets extends Component {
 
     const assignedToMe = auth.currentUser() && filters.assigneeId === auth.currentUser().id
     const ticketAdminFilters = (
-      <Form inline className='form-group'>
+      <Form inline className="form-group">
         <FormGroup>
-          <DelayInputForm placeholder={t('searchKeyword')} value={filters.searchString} onChange={(value) => this.updateFilter({searchString: value})} />
+          <DelayInputForm
+            placeholder={t('searchKeyword')}
+            value={filters.searchString}
+            onChange={(value) => this.updateFilter({ searchString: value })}
+          />
         </FormGroup>
         {'  '}
         <FormGroup>
           <ButtonToolbar>
             <ButtonGroup>
-              <Button className={'btn btn-default' + (filters.isOpen === 'true' ? ' active' : '')} onClick={() => this.updateFilter({isOpen: true, status: undefined})}>{t('incompleted')}</Button>
-              <Button className={'btn btn-default' + (filters.isOpen === 'false' ? ' active' : '')} onClick={() => this.updateFilter({isOpen: false, status: undefined})}>{t('completed')}</Button>
-              <DropdownButton className={(typeof filters.isOpen === 'undefined' ? ' active' : '')} id='statusDropdown' title={statusTitle} onSelect={(eventKey) => this.updateFilter({status: eventKey, isOpen: undefined})}>
-                <MenuItem key='undefined'>{t('all')}</MenuItem>
+              <Button
+                className={'btn btn-default' + (filters.isOpen === 'true' ? ' active' : '')}
+                onClick={() => this.updateFilter({ isOpen: true, status: undefined })}
+              >
+                {t('incompleted')}
+              </Button>
+              <Button
+                className={'btn btn-default' + (filters.isOpen === 'false' ? ' active' : '')}
+                onClick={() => this.updateFilter({ isOpen: false, status: undefined })}
+              >
+                {t('completed')}
+              </Button>
+              <DropdownButton
+                className={typeof filters.isOpen === 'undefined' ? ' active' : ''}
+                id="statusDropdown"
+                title={statusTitle}
+                onSelect={(eventKey) => this.updateFilter({ status: eventKey, isOpen: undefined })}
+              >
+                <MenuItem key="undefined">{t('all')}</MenuItem>
                 {statusMenuItems}
               </DropdownButton>
             </ButtonGroup>
             <ButtonGroup>
-              <Button className={assignedToMe ? ' active' : ''} onClick={() => this.updateFilter({assigneeId: auth.currentUser().id})}>{t('assignedToMe')}</Button>
-              <DropdownButton className={!assignedToMe ? ' active' : ''} id='assigneeDropdown' title={assigneeTitle} onSelect={(eventKey) => this.updateFilter({assigneeId: eventKey})}>
-                <MenuItem key='undefined'>{t('all')}</MenuItem>
+              <Button
+                className={assignedToMe ? ' active' : ''}
+                onClick={() => this.updateFilter({ assigneeId: auth.currentUser().id })}
+              >
+                {t('assignedToMe')}
+              </Button>
+              <DropdownButton
+                className={!assignedToMe ? ' active' : ''}
+                id="assigneeDropdown"
+                title={assigneeTitle}
+                onSelect={(eventKey) => this.updateFilter({ assigneeId: eventKey })}
+              >
+                <MenuItem key="undefined">{t('all')}</MenuItem>
                 {assigneeMenuItems}
               </DropdownButton>
             </ButtonGroup>
             <ButtonGroup>
-              <DropdownButton className={(filters.categoryId ? ' active' : '')} id='categoryDropdown' title={categoryTitle} onSelect={(eventKey) => this.updateFilter({categoryId: eventKey})}>
-                <MenuItem key='undefined'>{t('all')}</MenuItem>
+              <DropdownButton
+                className={filters.categoryId ? ' active' : ''}
+                id="categoryDropdown"
+                title={categoryTitle}
+                onSelect={(eventKey) => this.updateFilter({ categoryId: eventKey })}
+              >
+                <MenuItem key="undefined">{t('all')}</MenuItem>
                 {categoryMenuItems}
               </DropdownButton>
             </ButtonGroup>
             <ButtonGroup>
-              <DropdownButton className={(typeof filters.tagKey === 'undefined' || filters.tagKey ? ' active' : '')} id='tagKeyDropdown' title={filters.tagKey || t('all')} onSelect={(eventKey) => this.updateFilter({tagKey: eventKey, tagValue: undefined})}>
-                <MenuItem key='undefined'>{t('all')}</MenuItem>
-                {this.context.tagMetadatas.map(tagMetadata => {
+              <DropdownButton
+                className={typeof filters.tagKey === 'undefined' || filters.tagKey ? ' active' : ''}
+                id="tagKeyDropdown"
+                title={filters.tagKey || t('all')}
+                onSelect={(eventKey) =>
+                  this.updateFilter({ tagKey: eventKey, tagValue: undefined })
+                }
+              >
+                <MenuItem key="undefined">{t('all')}</MenuItem>
+                {this.context.tagMetadatas.map((tagMetadata) => {
                   const key = tagMetadata.get('key')
-                  return <MenuItem key={key} eventKey={key}>{key}</MenuItem>
+                  return (
+                    <MenuItem key={key} eventKey={key}>
+                      {key}
+                    </MenuItem>
+                  )
                 })}
               </DropdownButton>
-              {filters.tagKey &&
-                <DropdownButton className={(typeof filters.tagValue === 'undefined' || filters.tagValue ? ' active' : '')} id='tagValueDropdown' title={filters.tagValue || t('allTagValues')} onSelect={(eventKey) => this.updateFilter({tagValue: eventKey})}>
-                  <MenuItem key='undefined'>{t('allTagValues')}</MenuItem>
-                  {this.context.tagMetadatas.length > 0 && _.find(this.context.tagMetadatas, m => m.get('key') == filters.tagKey).get('values').map(value => (
-                    <MenuItem key={value} eventKey={value}>{value}</MenuItem>
-                  ))}
+              {filters.tagKey && (
+                <DropdownButton
+                  className={
+                    typeof filters.tagValue === 'undefined' || filters.tagValue ? ' active' : ''
+                  }
+                  id="tagValueDropdown"
+                  title={filters.tagValue || t('allTagValues')}
+                  onSelect={(eventKey) => this.updateFilter({ tagValue: eventKey })}
+                >
+                  <MenuItem key="undefined">{t('allTagValues')}</MenuItem>
+                  {this.context.tagMetadatas.length > 0 &&
+                    _.find(this.context.tagMetadatas, (m) => m.get('key') == filters.tagKey)
+                      .get('values')
+                      .map((value) => (
+                        <MenuItem key={value} eventKey={value}>
+                          {value}
+                        </MenuItem>
+                      ))}
                 </DropdownButton>
-              }
+              )}
             </ButtonGroup>
             <ButtonGroup>
               <DropdownButton
-                className={(filters.timeRange ? ' active' : '')}
-                id='timeRange'
-                title={TIME_RANGE_MAP[filters.timeRange]? t(filters.timeRange) : t('allTime')}
-                onSelect={(eventKey) => this.updateFilter({timeRange: eventKey})}
+                className={filters.timeRange ? ' active' : ''}
+                id="timeRange"
+                title={TIME_RANGE_MAP[filters.timeRange] ? t(filters.timeRange) : t('allTime')}
+                onSelect={(eventKey) => this.updateFilter({ timeRange: eventKey })}
               >
-                <MenuItem key='undefined'>{t('allTime')}</MenuItem>
-                <MenuItem key='thisMonth' eventKey='thisMonth'>{t('thisMonth')}</MenuItem>
-                <MenuItem key='lastMonth' eventKey='lastMonth'>{t('lastMonth')}</MenuItem>
-                <MenuItem key='monthBeforeLast' eventKey='monthBeforeLast'>{t('monthBeforeLast')}</MenuItem>
+                <MenuItem key="undefined">{t('allTime')}</MenuItem>
+                <MenuItem key="thisMonth" eventKey="thisMonth">
+                  {t('thisMonth')}
+                </MenuItem>
+                <MenuItem key="lastMonth" eventKey="lastMonth">
+                  {t('lastMonth')}
+                </MenuItem>
+                <MenuItem key="monthBeforeLast" eventKey="monthBeforeLast">
+                  {t('monthBeforeLast')}
+                </MenuItem>
               </DropdownButton>
             </ButtonGroup>
           </ButtonToolbar>
@@ -458,12 +605,22 @@ class CustomerServiceTickets extends Component {
         {'  '}
 
         <FormGroup validationState={this.state.authorFilterValidationState}>
-          <FormControl type="text" value={this.state.authorUsername} placeholder={t('submitter')} onChange={this.handleAuthorChange.bind(this)} />
+          <FormControl
+            type="text"
+            value={this.state.authorUsername}
+            placeholder={t('submitter')}
+            onChange={this.handleAuthorChange.bind(this)}
+          />
         </FormGroup>
         {'  '}
         {filters.isOpen === 'false' && (
           <ButtonGroup>
-            <Checkbox checked={filters.isOnlyUnlike === 'true'} onChange={this.handleUnlikeChange.bind(this)}>{t('badReviewsOnly')}</Checkbox>
+            <Checkbox
+              checked={filters.isOnlyUnlike === 'true'}
+              onChange={this.handleUnlikeChange.bind(this)}
+            >
+              {t('badReviewsOnly')}
+            </Checkbox>
           </ButtonGroup>
         )}
       </Form>
@@ -472,11 +629,19 @@ class CustomerServiceTickets extends Component {
     const ticketCheckedOperations = (
       <FormGroup>
         <ButtonToolbar>
-          <DropdownButton id='categoryMoveDropdown' title={t('changeCategory')} onSelect={this.handleChangeCategory.bind(this)}>
+          <DropdownButton
+            id="categoryMoveDropdown"
+            title={t('changeCategory')}
+            onSelect={this.handleChangeCategory.bind(this)}
+          >
             {categoryMenuItems}
           </DropdownButton>
           {filters.isOpen === 'true' && (
-            <DropdownButton id="batchOperationDropdown" title={t('batchOperation')} onSelect={this.handleBatchOperation.bind(this)}>
+            <DropdownButton
+              id="batchOperationDropdown"
+              title={t('batchOperation')}
+              onSelect={this.handleBatchOperation.bind(this)}
+            >
               <MenuItem eventKey="close">{t('close')}</MenuItem>
             </DropdownButton>
           )}
@@ -486,7 +651,7 @@ class CustomerServiceTickets extends Component {
 
     if (ticketTrs.length === 0) {
       ticketTrs.push(
-        <div className={css.ticket} key='0'>
+        <div className={css.ticket} key="0">
           {t('notFound')}
         </div>
       )
@@ -498,8 +663,20 @@ class CustomerServiceTickets extends Component {
     if (!(isFirstPage && isLastPage)) {
       pager = (
         <Pager>
-          <Pager.Item disabled={isFirstPage} previous onClick={() => this.updateFilter({page: (parseInt(filters.page) - 1) + ''})}>&larr; {t('previousPage')}</Pager.Item>
-          <Pager.Item disabled={isLastPage} next onClick={() => this.updateFilter({page: (parseInt(filters.page) + 1) + ''})}>{t('nextPage')} &rarr;</Pager.Item>
+          <Pager.Item
+            disabled={isFirstPage}
+            previous
+            onClick={() => this.updateFilter({ page: parseInt(filters.page) - 1 + '' })}
+          >
+            &larr; {t('previousPage')}
+          </Pager.Item>
+          <Pager.Item
+            disabled={isLastPage}
+            next
+            onClick={() => this.updateFilter({ page: parseInt(filters.page) + 1 + '' })}
+          >
+            {t('nextPage')} &rarr;
+          </Pager.Item>
         </Pager>
       )
     }
@@ -521,13 +698,12 @@ class CustomerServiceTickets extends Component {
       </div>
     )
   }
-
 }
 
 CustomerServiceTickets.propTypes = {
   history: PropTypes.object.isRequired,
   location: PropTypes.object.isRequired,
-  t: PropTypes.func
+  t: PropTypes.func,
 }
 
 CustomerServiceTickets.contextTypes = {
@@ -536,7 +712,6 @@ CustomerServiceTickets.contextTypes = {
 }
 
 class DelayInputForm extends Component {
-
   constructor(props) {
     super(props)
     this.state = {
@@ -553,11 +728,18 @@ class DelayInputForm extends Component {
     const timeoutId = setTimeout(() => {
       this.props.onChange(this.state.value)
     }, this.props.delay || 1000)
-    this.setState({value, timeoutId})
+    this.setState({ value, timeoutId })
   }
 
   render() {
-    return <FormControl type="text" value={this.state.value} placeholder={this.props.placeholder} onChange={this.handleChange.bind(this)} />
+    return (
+      <FormControl
+        type="text"
+        value={this.state.value}
+        placeholder={this.props.placeholder}
+        onChange={this.handleChange.bind(this)}
+      />
+    )
   }
 }
 
@@ -568,7 +750,7 @@ DelayInputForm.propTypes = {
   placeholder: PropTypes.string,
 }
 
-const BlodSearchString = ({content, searchString}) => {
+const BlodSearchString = ({ content, searchString }) => {
   if (!searchString || !content.includes(searchString)) {
     return <div></div>
   }
@@ -584,7 +766,13 @@ const BlodSearchString = ({content, searchString}) => {
   if (after.length > aroundLength) {
     after = after.slice(0, aroundLength) + '...'
   }
-  return <div>{before}<b>{searchString}</b>{after}</div>
+  return (
+    <div>
+      {before}
+      <b>{searchString}</b>
+      {after}
+    </div>
+  )
 }
 
 BlodSearchString.propTypes = {

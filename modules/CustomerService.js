@@ -10,9 +10,15 @@ export default function CustomerService(props) {
 
   return (
     <Switch>
-      <Route path={`${path}/tickets`}><CSTickets {...props} /></Route>
-      <Route path={`${path}/stats`} exact><CSStats {...props} /></Route>
-      <Route path={`${path}/stats/users/:userId`}><CSStatsUser {...props} /></Route>
+      <Route path={`${path}/tickets`}>
+        <CSTickets {...props} />
+      </Route>
+      <Route path={`${path}/stats`} exact>
+        <CSStats {...props} />
+      </Route>
+      <Route path={`${path}/stats/users/:userId`}>
+        <CSStatsUser {...props} />
+      </Route>
     </Switch>
   )
 }

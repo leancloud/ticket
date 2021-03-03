@@ -15,7 +15,9 @@ function getMessageColor(ticket, assignee) {
 }
 
 function getAssigneeDisplayName(assignee) {
-  return assignee.has('slack_user_id') ? `<@${assignee.get('slack_user_id')}>` : getUserDisplayName(assignee)
+  return assignee.has('slack_user_id')
+    ? `<@${assignee.get('slack_user_id')}>`
+    : getUserDisplayName(assignee)
 }
 
 function formatDate(date) {
@@ -39,17 +41,17 @@ function basicMessage({
       type: 'button',
       text: {
         type: 'plain_text',
-        text: '点击查看'
+        text: '点击查看',
       },
-      url
-    }
+      url,
+    },
   ]
   if (closeable) {
     actionButtons.push({
       type: 'button',
       text: {
         type: 'plain_text',
-        text: '关闭工单'
+        text: '关闭工单',
       },
       style: 'danger',
       value: ticketNid,
@@ -57,17 +59,17 @@ function basicMessage({
         style: 'danger',
         title: {
           type: 'plain_text',
-          text: '要关闭工单吗？'
+          text: '要关闭工单吗？',
         },
         confirm: {
           type: 'plain_text',
-          text: '确认关闭'
+          text: '确认关闭',
         },
         deny: {
           type: 'plain_text',
-          text: '取消'
-        }
-      }
+          text: '取消',
+        },
+      },
     })
   }
 
@@ -81,36 +83,36 @@ function basicMessage({
             type: 'header',
             text: {
               type: 'plain_text',
-              text: title
-            }
+              text: title,
+            },
           },
           {
             type: 'section',
             fields: [
               {
                 type: 'mrkdwn',
-                text: `*${createdAtTitle}:*\n${createdAt}`
+                text: `*${createdAtTitle}:*\n${createdAt}`,
               },
               {
                 type: 'mrkdwn',
-                text: `*分配给:*\n${assignedTo}`
-              }
-            ]
+                text: `*分配给:*\n${assignedTo}`,
+              },
+            ],
           },
           {
             type: 'section',
             text: {
               type: 'mrkdwn',
-              text: `*内容*:\n${content}`
-            }
+              text: `*内容*:\n${content}`,
+            },
           },
           {
             type: 'actions',
-            elements: actionButtons
-          }
-        ]
-      }
-    ]
+            elements: actionButtons,
+          },
+        ],
+      },
+    ],
   }
 }
 

@@ -7,7 +7,7 @@ import _ from 'lodash'
 import moment from 'moment'
 
 import TicketStatusLabel from '../TicketStatusLabel'
-import {UserLabel} from '../UserLabel'
+import { UserLabel } from '../UserLabel'
 import css from '../CustomerServiceTickets.css'
 
 export function TicketItem({ ticket, checkable, checked, onCheckboxChange, category }) {
@@ -27,16 +27,22 @@ export function TicketItem({ ticket, checkable, checked, onCheckboxChange, categ
         <div className={css.heading}>
           <div className={css.left}>
             <span className={css.nid}>#{ticket.nid}</span>
-            <Link className={css.title} to={'/tickets/' + ticket.nid}>{ticket.title}</Link>
+            <Link className={css.title} to={'/tickets/' + ticket.nid}>
+              {ticket.title}
+            </Link>
             <span className={css.category}>{category}</span>
           </div>
           <div>
-            {ticket.replyCount &&
-              <Link className={css.commentCounter} title={'reply ' + ticket.replyCount} to={'/tickets/' + ticket.nid}>
+            {ticket.replyCount && (
+              <Link
+                className={css.commentCounter}
+                title={'reply ' + ticket.replyCount}
+                to={'/tickets/' + ticket.nid}
+              >
                 <span className={css.commentCounterIcon + ' glyphicon glyphicon-comment'}></span>
                 {ticket.replyCount}
               </Link>
-            }
+            )}
           </div>
         </div>
 
@@ -51,8 +57,7 @@ export function TicketItem({ ticket, checkable, checked, onCheckboxChange, categ
             <span>
               {` ${t('createdAt')} ${moment(ticket.createdAt).fromNow()}`}
               {moment(ticket.createdAt).fromNow() !== moment(ticket.updatedAt).fromNow() &&
-                `, ${t('updatedAt')} ${moment(ticket.updatedAt).fromNow()}`
-              }
+                `, ${t('updatedAt')} ${moment(ticket.updatedAt).fromNow()}`}
             </span>
           </div>
           <div>
@@ -60,8 +65,10 @@ export function TicketItem({ ticket, checkable, checked, onCheckboxChange, categ
               <UserLabel user={ticket.assignee} />
             </span>
             <span className={css.contributors}>
-              {contributors.map(user => (
-                <span key={user.objectId}><UserLabel user={user} /> </span>
+              {contributors.map((user) => (
+                <span key={user.objectId}>
+                  <UserLabel user={user} />{' '}
+                </span>
               ))}
             </span>
           </div>

@@ -8,16 +8,19 @@ import _ from 'lodash'
 
 const NOTIFICATIONS_PATHNAME_MAP = {
   Messages: '/notifications',
-  Subscriptions: '/notifications/subscriptions'
+  Subscriptions: '/notifications/subscriptions',
 }
 
 export default function Notifications() {
   const history = useHistory()
   const { pathname } = useLocation()
 
-  const handleSelect = useCallback((key) => {
-    history.push(NOTIFICATIONS_PATHNAME_MAP[key])
-  }, [history])
+  const handleSelect = useCallback(
+    (key) => {
+      history.push(NOTIFICATIONS_PATHNAME_MAP[key])
+    },
+    [history]
+  )
 
   const activeKey = useMemo(() => {
     return _.invert(NOTIFICATIONS_PATHNAME_MAP)[pathname]

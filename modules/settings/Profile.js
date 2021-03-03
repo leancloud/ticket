@@ -17,18 +17,19 @@ class Profile extends Component {
   }
 
   handleNameChange(e) {
-    this.setState({name: e.target.value})
+    this.setState({ name: e.target.value })
   }
 
   handleEmailChange(e) {
-    this.setState({email: e.target.value})
+    this.setState({ email: e.target.value })
   }
 
   handleSubmit(e) {
     e.preventDefault()
-    return this.props.updateCurrentUser(this.state)
-    .then(this.context.addNotification)
-    .catch(this.context.addNotification)
+    return this.props
+      .updateCurrentUser(this.state)
+      .then(this.context.addNotification)
+      .catch(this.context.addNotification)
   }
 
   render() {
@@ -45,13 +46,23 @@ class Profile extends Component {
               </FormGroup>
               <FormGroup>
                 <ControlLabel>{t('nickname')}</ControlLabel>
-                <FormControl type="text" value={this.state.name} onChange={this.handleNameChange.bind(this)} />
+                <FormControl
+                  type="text"
+                  value={this.state.name}
+                  onChange={this.handleNameChange.bind(this)}
+                />
               </FormGroup>
               <FormGroup>
                 <ControlLabel>{t('email')}</ControlLabel>
-                <FormControl type="text" value={this.state.email} onChange={this.handleEmailChange.bind(this)} />
+                <FormControl
+                  type="text"
+                  value={this.state.email}
+                  onChange={this.handleEmailChange.bind(this)}
+                />
               </FormGroup>
-              <Button type='button' onClick={this.handleSubmit.bind(this)}>{t('save')}</Button>
+              <Button type="button" onClick={this.handleSubmit.bind(this)}>
+                {t('save')}
+              </Button>
             </Form>
             {ENABLE_LEANCLOUD_INTEGRATION && <AccountLink currentUser={this.props.currentUser} />}
           </div>
@@ -62,7 +73,12 @@ class Profile extends Component {
               </FormGroup>
               <Avatar height="200" width="200" user={this.props.currentUser} />
               <div>
-                <span>{t('changeAvatar')} <a href={t('gravatarUrl')} target='_blank'>Gravatar</a></span>
+                <span>
+                  {t('changeAvatar')}{' '}
+                  <a href={t('gravatarUrl')} target="_blank">
+                    Gravatar
+                  </a>
+                </span>
               </div>
             </Form>
           </div>
@@ -70,7 +86,6 @@ class Profile extends Component {
       </div>
     )
   }
-
 }
 
 Profile.propTypes = {

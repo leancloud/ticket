@@ -8,28 +8,29 @@ module.exports.up = function (next) {
     type: 'select',
     isPrivate: true,
   })
-  .save(null, {useMasterKey: true})
-  .then((m) => {
-    return m.destroy()
-  })
-  .then(() => {
-    const ticket = new AV.Object('Ticket', {
-      privateTags: [],
-      tags: [],
-    })
-    ticket.disableBeforeHook()
-    ticket.disableAfterHook()
-    return ticket.save(null, {useMasterKey: true})
-    .then(() => {
-      return ticket.destroy()
+    .save(null, { useMasterKey: true })
+    .then((m) => {
+      return m.destroy()
     })
     .then(() => {
-      return next()
+      const ticket = new AV.Object('Ticket', {
+        privateTags: [],
+        tags: [],
+      })
+      ticket.disableBeforeHook()
+      ticket.disableAfterHook()
+      return ticket
+        .save(null, { useMasterKey: true })
+        .then(() => {
+          return ticket.destroy()
+        })
+        .then(() => {
+          return next()
+        })
+        .catch((err) => {
+          return next(err)
+        })
     })
-    .catch(err => {
-      return next(err)
-    })
-  })
 }
 
 module.exports.down = function (next) {

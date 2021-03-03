@@ -35,38 +35,78 @@ export default function Settings(props) {
           <div className="panel panel-default">
             <div className="panel-heading">{t('settings')}</div>
             <ul className="list-group">
-              <li className="list-group-item"><Link to='/settings/profile'>{t('personalSettings')}</Link></li>
-              <li className="list-group-item"><Link to='/settings/organizations'>{t('organizationSettings')}</Link></li>
+              <li className="list-group-item">
+                <Link to="/settings/profile">{t('personalSettings')}</Link>
+              </li>
+              <li className="list-group-item">
+                <Link to="/settings/organizations">{t('organizationSettings')}</Link>
+              </li>
             </ul>
           </div>
-          {props.isCustomerService &&
+          {props.isCustomerService && (
             <div className="panel panel-default">
               <div className="panel-heading">{t('staffSettings')}</div>
               <ul className="list-group">
-                <li className="list-group-item"><Link to='/settings/customerServiceProfile'>{t('personalSettings')}</Link></li>
-                <li className="list-group-item"><Link to='/settings/members'>{t('member')}</Link></li>
-                <li className="list-group-item"><Link to='/settings/categories'>{t('category')}</Link></li>
-                <li className="list-group-item"><Link to='/settings/tags'>{t('tag')}</Link></li>
-                <li className="list-group-item"><Link to='/settings/faqs'>{t('FAQ')}</Link></li>
+                <li className="list-group-item">
+                  <Link to="/settings/customerServiceProfile">{t('personalSettings')}</Link>
+                </li>
+                <li className="list-group-item">
+                  <Link to="/settings/members">{t('member')}</Link>
+                </li>
+                <li className="list-group-item">
+                  <Link to="/settings/categories">{t('category')}</Link>
+                </li>
+                <li className="list-group-item">
+                  <Link to="/settings/tags">{t('tag')}</Link>
+                </li>
+                <li className="list-group-item">
+                  <Link to="/settings/faqs">{t('FAQ')}</Link>
+                </li>
               </ul>
             </div>
-          }
+          )}
         </div>
         <div className="col-md-9">
           <Switch>
-            <Route path={`${path}/profile`}><Profile {...childrenProps} /></Route>
-            <Route path={`${path}/organizations`} exact><Organizations {...childrenProps} /></Route>
-            <Route path={`${path}/organizations/new`}><OrganizationNew {...childrenProps} /></Route>
-            <Route path={`${path}/organizations/:id`}><Organization {...childrenProps} /></Route>
-            <Route path={`${path}/tags`} exact><Tags {...childrenProps} /></Route>
-            <Route path={`${path}/tags/:id`}><Tag {...childrenProps} /></Route>
-            <Route path={`${path}/customerServiceProfile`}><SettingsCSProfile {...childrenProps} /></Route>
-            <Route path={`${path}/members`}><Members {...childrenProps} /></Route>
-            <Route path={`${path}/faqs`} exact><FAQs {...childrenProps} /></Route>
-            <Route path={`${path}/faqs/:id`}><FAQ {...childrenProps} /></Route>
-            <Route path={`${path}/categories`} exact><Categories {...childrenProps} /></Route>
-            <Route path={`${path}/categories/:id`}><Category {...childrenProps} /></Route>
-            <Route path={`${path}/categorySort`}><CategorySort {...childrenProps} /></Route>
+            <Route path={`${path}/profile`}>
+              <Profile {...childrenProps} />
+            </Route>
+            <Route path={`${path}/organizations`} exact>
+              <Organizations {...childrenProps} />
+            </Route>
+            <Route path={`${path}/organizations/new`}>
+              <OrganizationNew {...childrenProps} />
+            </Route>
+            <Route path={`${path}/organizations/:id`}>
+              <Organization {...childrenProps} />
+            </Route>
+            <Route path={`${path}/tags`} exact>
+              <Tags {...childrenProps} />
+            </Route>
+            <Route path={`${path}/tags/:id`}>
+              <Tag {...childrenProps} />
+            </Route>
+            <Route path={`${path}/customerServiceProfile`}>
+              <SettingsCSProfile {...childrenProps} />
+            </Route>
+            <Route path={`${path}/members`}>
+              <Members {...childrenProps} />
+            </Route>
+            <Route path={`${path}/faqs`} exact>
+              <FAQs {...childrenProps} />
+            </Route>
+            <Route path={`${path}/faqs/:id`}>
+              <FAQ {...childrenProps} />
+            </Route>
+            <Route path={`${path}/categories`} exact>
+              <Categories {...childrenProps} />
+            </Route>
+            <Route path={`${path}/categories/:id`}>
+              <Category {...childrenProps} />
+            </Route>
+            <Route path={`${path}/categorySort`}>
+              <CategorySort {...childrenProps} />
+            </Route>
           </Switch>
         </div>
       </div>

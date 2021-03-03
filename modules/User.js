@@ -3,8 +3,8 @@ import React, { Component } from 'react'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import { Link, withRouter } from 'react-router-dom'
-import {cloud} from '../lib/leancloud'
-import {Avatar} from './Avatar'
+import { cloud } from '../lib/leancloud'
+import { Avatar } from './Avatar'
 import css from './User.css'
 import { UserTags } from './UserLabel'
 
@@ -13,7 +13,7 @@ class User extends Component {
     super(props)
     this.state = {
       user: null,
-      leancloudApps: []
+      leancloudApps: [],
     }
   }
 
@@ -25,21 +25,27 @@ class User extends Component {
     const { username } = this.props.match.params
     const { isCustomerService } = this.props
     return Promise.all([
-      cloud.run('getUserInfo', {username}),
-      ENABLE_LEANCLOUD_INTEGRATION && isCustomerService ? cloud.run('getLeanCloudUserInfosByUsername', {username}) : null,
-      ENABLE_LEANCLOUD_INTEGRATION && isCustomerService ? cloud.run('getLeanCloudAppsByUsername', {username}) : null,
+      cloud.run('getUserInfo', { username }),
+      ENABLE_LEANCLOUD_INTEGRATION && isCustomerService
+        ? cloud.run('getLeanCloudUserInfosByUsername', { username })
+        : null,
+      ENABLE_LEANCLOUD_INTEGRATION && isCustomerService
+        ? cloud.run('getLeanCloudAppsByUsername', { username })
+        : null,
     ]).then(([user, leancloudUsers, leancloudApps]) => {
       this.setState({
         user,
         leancloudUsers,
-        leancloudApps: leancloudApps ? leancloudApps.sort((a, b) => b.month_reqs - a.month_reqs) : []
+        leancloudApps: leancloudApps
+          ? leancloudApps.sort((a, b) => b.month_reqs - a.month_reqs)
+          : [],
       })
       return
     })
   }
 
   render() {
-    const {t} = this.props
+    const { t } = this.props
     if (!this.state.user) {
       return <div>{t('loading')}……</div>
     }
@@ -57,10 +63,16 @@ class User extends Component {
                 <UserTags user={this.state.user} />
               </div>
             )}
-            <p><Link to={`/customerService/tickets?authorId=${this.state.user.objectId}&page=0&size=10`}>{t('ticketList')}</Link></p>
-            {this.state.leancloudUsers &&
+            <p>
+              <Link
+                to={`/customerService/tickets?authorId=${this.state.user.objectId}&page=0&size=10`}
+              >
+                {t('ticketList')}
+              </Link>
+            </p>
+            {this.state.leancloudUsers && (
               <div>
-                <table className='table table-bordered table-striped'>
+                <table className="table table-bordered table-striped">
                   <thead>
                     <tr>
                       <td>{t('region')}</td>
@@ -71,7 +83,7 @@ class User extends Component {
                     </tr>
                   </thead>
                   <tbody>
-                    {this.state.leancloudUsers.map(leancloudUser => {
+                    {this.state.leancloudUsers.map((leancloudUser) => {
                       return (
                         <tr key={leancloudUser.id}>
                           <td>{leancloudUser.region}</td>
@@ -85,7 +97,7 @@ class User extends Component {
                   </tbody>
                 </table>
               </div>
-            }
+            )}
           </div>
         </div>
 
@@ -120,7 +132,7 @@ const LeanCloudApps = (props) => {
     )
   })
   return (
-    <table className='table table-bordered table-striped'>
+    <table className="table table-bordered table-striped">
       <thead>
         <tr>
           <th>region</th>
@@ -134,14 +146,12 @@ const LeanCloudApps = (props) => {
           <th>app_relation</th>
         </tr>
       </thead>
-      <tbody>
-        {apps}
-      </tbody>
+      <tbody>{apps}</tbody>
     </table>
   )
 }
 LeanCloudApps.propTypes = {
-  leancloudApps: PropTypes.array
+  leancloudApps: PropTypes.array,
 }
 
 export default withTranslation()(withRouter(User))

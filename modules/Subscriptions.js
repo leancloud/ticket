@@ -14,7 +14,7 @@ class Subscriptions extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      watches: []
+      watches: [],
     }
   }
 
@@ -38,7 +38,7 @@ class Subscriptions extends Component {
       .limit(parseInt(size))
       .skip(parseInt(page) * parseInt(size))
       .find()
-      .then(watches => {
+      .then((watches) => {
         this.setState({ watches })
         return watches
       })
@@ -50,10 +50,7 @@ class Subscriptions extends Component {
     const contributors = _.uniqBy(ticket.data.joinedCustomerServices || [], 'objectId')
 
     return (
-      <div
-        className={`${css.ticket} ${css.row}`}
-        key={ticket.get('nid')}
-      >
+      <div className={`${css.ticket} ${css.row}`} key={ticket.get('nid')}>
         <div className={css.ticketContent}>
           <div className={css.heading}>
             <div className={css.left}>
@@ -68,11 +65,7 @@ class Subscriptions extends Component {
                   title={'reply ' + ticket.get('replyCount')}
                   to={'/tickets/' + ticket.get('nid')}
                 >
-                  <span
-                    className={
-                      css.commentCounterIcon + ' glyphicon glyphicon-comment'
-                    }
-                  ></span>
+                  <span className={css.commentCounterIcon + ' glyphicon glyphicon-comment'}></span>
                   {ticket.get('replyCount')}
                 </Link>
               )}
@@ -91,9 +84,7 @@ class Subscriptions extends Component {
               创建于 {moment(ticket.get('createdAt')).fromNow()}
               {moment(ticket.get('createdAt')).fromNow() !==
                 moment(ticket.get('updatedAt')).fromNow() && (
-                <span>
-                  ，更新于 {moment(ticket.get('updatedAt')).fromNow()}
-                </span>
+                <span>，更新于 {moment(ticket.get('updatedAt')).fromNow()}</span>
               )}
             </div>
             <div>
@@ -101,15 +92,16 @@ class Subscriptions extends Component {
                 <UserLabel user={ticket.data.assignee.data} />
               </span>
               <span className={css.contributors}>
-                {contributors.map(user => (
-                  <span key={user.objectId}><UserLabel user={user} /></span>
+                {contributors.map((user) => (
+                  <span key={user.objectId}>
+                    <UserLabel user={user} />
+                  </span>
                 ))}
               </span>
             </div>
           </div>
           <span style={{ color: 'gray' }}>
-            {(ticket.get('latestReply') && ticket.get('latestReply').content) ||
-              '<暂无>'}
+            {(ticket.get('latestReply') && ticket.get('latestReply').content) || '<暂无>'}
           </span>
         </div>
       </div>
@@ -162,7 +154,7 @@ class Subscriptions extends Component {
   render() {
     return (
       <div>
-        {this.state.watches.map(watchItem => this.renderCell(watchItem))}
+        {this.state.watches.map((watchItem) => this.renderCell(watchItem))}
         {this.renderPager()}
       </div>
     )

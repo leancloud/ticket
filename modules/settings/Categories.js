@@ -11,7 +11,6 @@ import { UserLabel } from '../UserLabel'
 import { depthFirstSearchFind, depthFirstSearchMap, getTinyCategoryInfo } from '../../lib/common'
 
 class Categories extends Component {
-
   constructor(props) {
     super(props)
     this.state = {
@@ -24,10 +23,9 @@ class Categories extends Component {
   componentDidMount() {
     return Promise.all([
       getCategoriesTree(),
-      getCustomerServices()
-        .then((users) => {
-          return _.reject(users, {id: auth.currentUser().id})
-        })
+      getCustomerServices().then((users) => {
+        return _.reject(users, { id: auth.currentUser().id })
+      }),
     ]).then(([categoriesTree, customerServices]) => {
       this.setState({
         categoriesTree,
@@ -41,35 +39,49 @@ class Categories extends Component {
   handleCategoryChange(e, categoryId) {
     let categories = this.state.checkedCategories
     if (e.target.checked) {
-      categories.push(getTinyCategoryInfo(depthFirstSearchFind(this.state.categoriesTree, (c) => c.id == categoryId)))
+      categories.push(
+        getTinyCategoryInfo(
+          depthFirstSearchFind(this.state.categoriesTree, (c) => c.id == categoryId)
+        )
+      )
       categories = _.uniqBy(categories, 'objectId')
     } else {
-      categories = _.reject(categories, {objectId: categoryId})
+      categories = _.reject(categories, { objectId: categoryId })
     }
-    return auth.currentUser()
+    return auth
+      .currentUser()
       .update({ categories })
       .then(() => {
-        this.setState({checkedCategories: categories})
+        this.setState({ checkedCategories: categories })
         return
       })
   }
-
 
   render() {
     const { t } = this.props
     const tds = depthFirstSearchMap(this.state.categoriesTree, (c) => {
       const selectCustomerServices = _.filter(this.state.customerServices, (user) => {
-        return _.find(user.get('categories'), {objectId: c.id})
+        return _.find(user.get('categories'), { objectId: c.id })
       }).map((user) => {
-        return <span key={user.id}><UserLabel user={user.toJSON()} /> </span>
+        return (
+          <span key={user.id}>
+            <UserLabel user={user.toJSON()} />{' '}
+          </span>
+        )
       })
       return (
         <tr key={c.id}>
-          <td><span>{getNodeIndentString(c)}</span><Link to={'/settings/categories/' + c.id}>{c.get('name')}</Link></td>
-          <td><input type='checkbox'
-                checked={!!_.find(this.state.checkedCategories, {objectId: c.id})}
-                onChange={(e) => this.handleCategoryChange(e, c.id)}
-              /></td>
+          <td>
+            <span>{getNodeIndentString(c)}</span>
+            <Link to={'/settings/categories/' + c.id}>{c.get('name')}</Link>
+          </td>
+          <td>
+            <input
+              type="checkbox"
+              checked={!!_.find(this.state.checkedCategories, { objectId: c.id })}
+              onChange={(e) => this.handleCategoryChange(e, c.id)}
+            />
+          </td>
           <td>{selectCustomerServices}</td>
         </tr>
       )
@@ -84,7 +96,7 @@ class Categories extends Component {
             <Link to={'/settings/categorySort'}>{t('reorder')}</Link>
           </FormGroup>
         </Form>
-        <table className='table table-bordered'>
+        <table className="table table-bordered">
           <thead>
             <tr>
               <th>{t('name')}</th>
@@ -92,14 +104,11 @@ class Categories extends Component {
               <th>{t('otherAssignees')}</th>
             </tr>
           </thead>
-          <tbody>
-            {tds}
-          </tbody>
+          <tbody>{tds}</tbody>
         </table>
       </div>
     )
   }
-
 }
 
 Categories.propTypes = {

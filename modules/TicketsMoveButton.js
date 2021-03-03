@@ -8,21 +8,25 @@ export default function TicketsMoveButton({ organizations, selectedOrgId, onTick
   const { t } = useTranslation()
   let items
   if (selectedOrgId == '') {
-    items = organizations.map(org => (
+    items = organizations.map((org) => (
       <MenuItem key={org.id} onClick={() => onTicketsMove(org)}>
         {t('organization')} {org.data.name}
       </MenuItem>
     ))
   } else {
-    items = _.reject(organizations, {id: selectedOrgId}).map(org => (
+    items = _.reject(organizations, { id: selectedOrgId }).map((org) => (
       <MenuItem key={org.id} onClick={() => onTicketsMove(org)}>
         {t('organization')} {org.data.name}
       </MenuItem>
     ))
-    items.push(<MenuItem key={'author'} onClick={() => onTicketsMove()}>{t('itsCreator')}</MenuItem>)
+    items.push(
+      <MenuItem key={'author'} onClick={() => onTicketsMove()}>
+        {t('itsCreator')}
+      </MenuItem>
+    )
   }
   return (
-    <DropdownButton title={t('moveTicketTo')} id='tickets-move'>
+    <DropdownButton title={t('moveTicketTo')} id="tickets-move">
       {items}
     </DropdownButton>
   )

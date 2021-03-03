@@ -21,7 +21,7 @@ module.exports = {
   sentryDSNPublic: process.env.SENTRY_DSN_PUBLIC,
   // Use HELP_EMAIL instead of SUPPORT_EMAIL, because there is a bug in LeanEngine.
   // See #1830 of LeanEngine repo (private) for more information.
-  supportEmail: process.env.HELP_EMAIL
+  supportEmail: process.env.HELP_EMAIL,
 }
 
 const integrations = []
@@ -40,7 +40,7 @@ if (process.env.ZULIP_API_KEY) {
     apiKey: process.env.ZULIP_API_KEY,
     realm: process.env.ZULIP_REALM,
     stream: process.env.ZULIP_STREAM,
-    topic: process.env.ZULIP_TOPIC
+    topic: process.env.ZULIP_TOPIC,
   }
   integrations.push(zulip(zulipConfig))
 }
@@ -50,7 +50,7 @@ if (process.env.WECHAT_TOKEN) {
     secret: process.env.WECHAT_SECRET,
     agentId: process.env.WECHAT_AGENT_ID,
     token: process.env.WECHAT_TOKEN,
-    encodingAESKey: process.env.WECHAT_ENCODING_AES_KEY
+    encodingAESKey: process.env.WECHAT_ENCODING_AES_KEY,
   }
   integrations.push(wechat(wechatConfig))
 }
@@ -58,7 +58,7 @@ if (process.env.SLACK_TOKEN) {
   integrations.push(
     slack({
       token: process.env.SLACK_TOKEN,
-      broadcastChannel: process.env.SLACK_CHANNEL
+      broadcastChannel: process.env.SLACK_CHANNEL,
     })
   )
 }

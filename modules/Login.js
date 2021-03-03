@@ -1,13 +1,7 @@
 /*global ORG_NAME, USE_OAUTH, LEANCLOUD_OAUTH_REGION*/
 import React, { Component } from 'react'
 import { withTranslation } from 'react-i18next'
-import {
-  ControlLabel,
-  FormControl,
-  FormGroup,
-  Form,
-  Button
-} from 'react-bootstrap'
+import { ControlLabel, FormControl, FormGroup, Form, Button } from 'react-bootstrap'
 import PropTypes from 'prop-types'
 import qs from 'query-string'
 import { auth } from '../lib/leancloud'
@@ -21,7 +15,7 @@ class Login extends Component {
     this.state = {
       username: '',
       password: '',
-      error: ''
+      error: '',
     }
   }
 
@@ -33,8 +27,9 @@ class Login extends Component {
 
     const { token } = qs.parse(this.props.location.search)
     if (token) {
-      return auth.loginWithSessionToken(token)
-        .then(user => {
+      return auth
+        .loginWithSessionToken(token)
+        .then((user) => {
           this.props.onLogin(user)
           this.props.history.replace('/')
           return
@@ -45,8 +40,9 @@ class Login extends Component {
 
   handleLogin(e) {
     e.preventDefault()
-    return auth.login(this.state.username, this.state.password)
-      .then(user => {
+    return auth
+      .login(this.state.username, this.state.password)
+      .then((user) => {
         this.props.onLogin(user)
         return
       })
@@ -58,12 +54,13 @@ class Login extends Component {
   }
 
   handleSignup() {
-    return auth.signUp({
-      username: this.state.username,
-      password: this.state.password,
-      name: this.state.username,
-    })
-      .then(user => {
+    return auth
+      .signUp({
+        username: this.state.username,
+        password: this.state.password,
+        name: this.state.username,
+      })
+      .then((user) => {
         this.props.onLogin(user)
         return
       })
@@ -92,7 +89,7 @@ class Login extends Component {
   }
 
   render() {
-    const {t} = this.props
+    const { t } = this.props
     if (!USE_OAUTH) {
       return (
         <div className={css.wrap}>
@@ -116,10 +113,7 @@ class Login extends Component {
               />
             </FormGroup>
             <FormGroup>
-              <Button
-                type="submit"
-                bsStyle="primary"
-              >
+              <Button type="submit" bsStyle="primary">
                 {t('login')}
               </Button>{' '}
               <Button type="button" onClick={this.handleSignup.bind(this)}>
@@ -134,7 +128,9 @@ class Login extends Component {
       <div className={css.wrap}>
         <h1 className="font-logo">{t('welcome')}</h1>
         <hr />
-        <p>{t('currentlyOnlySupports')} {ORG_NAME} OAuth {t('oauthAuthentication')}</p>
+        <p>
+          {t('currentlyOnlySupports')} {ORG_NAME} OAuth {t('oauthAuthentication')}
+        </p>
         <Form action="/oauth/login" method="post">
           <input type="hidden" name="region" value={LEANCLOUD_OAUTH_REGION} />
           <FormGroup>
@@ -165,11 +161,11 @@ Login.propTypes = {
   history: PropTypes.object.isRequired,
   location: PropTypes.object.isRequired,
   onLogin: PropTypes.func,
-  t: PropTypes.func
+  t: PropTypes.func,
 }
 
 Login.contextTypes = {
-  addNotification: PropTypes.func.isRequired
+  addNotification: PropTypes.func.isRequired,
 }
 
 export default withTranslation()(withRouter(Login))

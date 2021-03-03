@@ -11,8 +11,8 @@ export const locale = userLocale || defaultLocale
 moment.updateLocale('zh-cn', {
   calendar: {
     // eslint-disable-next-line i18n/no-chinese-character
-    lastWeek: '[上]ddddLT'
-  }
+    lastWeek: '[上]ddddLT',
+  },
 })
 
 i18next.on('languageChanged', (lang) => {
@@ -23,19 +23,17 @@ i18next.on('languageChanged', (lang) => {
   }
 })
 
-i18next
-  .use(initReactI18next)
-  .init({
-    lng: locale,
-    interpolation: {
-      escapeValue: false
+i18next.use(initReactI18next).init({
+  lng: locale,
+  interpolation: {
+    escapeValue: false,
+  },
+  resources: {
+    zh: {
+      translation: locales.zh,
     },
-    resources: {
-      zh: {
-        translation: locales.zh
-      },
-      en: {
-        translation: locales.en
-      }
-    }
-  })
+    en: {
+      translation: locales.en,
+    },
+  },
+})

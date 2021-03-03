@@ -11,7 +11,7 @@ module.exports = {
     filename: 'bundle.js',
     publicPath: 'http://localhost:8080/',
   },
-  devtool: 'source-map' ,
+  devtool: 'source-map',
   devServer: {
     port: 8080,
     contentBase: 'public',
@@ -31,10 +31,7 @@ module.exports = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: [
-              '@babel/preset-env',
-              '@babel/preset-react',
-            ],
+            presets: ['@babel/preset-env', '@babel/preset-react'],
           },
         },
       },
@@ -47,7 +44,7 @@ module.exports = {
             loader: 'css-loader',
             options: {
               modules: {
-                localIdentName: '[name]__[local]___[hash:base64:5]'
+                localIdentName: '[name]__[local]___[hash:base64:5]',
               },
               importLoaders: 1,
             },
@@ -59,15 +56,12 @@ module.exports = {
   plugins: [
     new webpack.DefinePlugin({
       'process.env': {
-        'NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
+        NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'production'),
       },
     }),
-    new MiniCssExtractPlugin({filename: 'app.css'}),
+    new MiniCssExtractPlugin({ filename: 'app.css' }),
   ],
   optimization: {
-    minimizer: [
-      '...',
-      new CssMinimizerPlugin(),
-    ],
+    minimizer: ['...', new CssMinimizerPlugin()],
   },
 }

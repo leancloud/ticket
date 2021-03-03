@@ -23,7 +23,7 @@ module.exports = (configs) => {
       {
         token,
         encodingAESKey,
-        corpId
+        corpId,
       },
       function (req, res, _next) {
         res.status(200).send('ok')
@@ -74,7 +74,7 @@ module.exports = (configs) => {
 
     return api.sendAsync(
       {
-        touser: params.to
+        touser: params.to,
       },
       {
         msgtype: 'news',
@@ -83,10 +83,10 @@ module.exports = (configs) => {
             {
               title: params.title,
               description: params.content,
-              url: params.url
-            }
-          ]
-        }
+              url: params.url,
+            },
+          ],
+        },
       }
     )
   }
@@ -101,7 +101,7 @@ module.exports = (configs) => {
       to: to.get('wechatEnterpriseUserId'),
       title: `${ticket.get('title')} (#${ticket.get('nid')})`,
       content: ticket.get('content'),
-      url: common.getTicketUrl(ticket)
+      url: common.getTicketUrl(ticket),
     })
   }
 
@@ -113,7 +113,7 @@ module.exports = (configs) => {
       to: to.get('wechatEnterpriseUserId'),
       title: `${ticket.get('title')} (#${ticket.get('nid')})`,
       content: reply.get('content'),
-      url: common.getTicketUrl(ticket)
+      url: common.getTicketUrl(ticket),
     })
   }
 
@@ -133,7 +133,7 @@ ${ticket.get('content')}
 
 ${ticket.get('latestReply') && ticket.get('latestReply').content}
 `,
-      url: common.getTicketUrl(ticket)
+      url: common.getTicketUrl(ticket),
     })
   }
 
@@ -152,7 +152,7 @@ ${ticket.get('content')}
 
 ${ticket.get('latestReply') && ticket.get('latestReply').content}
 `,
-      url: common.getTicketUrl(ticket)
+      url: common.getTicketUrl(ticket),
     })
   }
 
@@ -207,6 +207,6 @@ ${ticket.get('latestReply') && ticket.get('latestReply').content}
       })
     },
     notificationChannel,
-    routers: [['/webhooks/wechat', router]]
+    routers: [['/webhooks/wechat', router]],
   }
 }

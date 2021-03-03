@@ -33,20 +33,20 @@ function CSAuthWrapper({ children }) {
   useEffect(() => {
     setPass(false)
     isCustomerService(auth.currentUser())
-      .then(isCS => {
+      .then((isCS) => {
         if (isCS) {
           setPass(true)
         } else {
           history.replace({
             pathname: '/error',
-            state: { code: 'requireCustomerServiceAuth' }
+            state: { code: 'requireCustomerServiceAuth' },
           })
         }
       })
-      .catch(err => {
+      .catch((err) => {
         history.replace({
           pathname: '/error',
-          state: { err, code: err.code }
+          state: { err, code: err.code },
         })
       })
   }, [history])
@@ -54,11 +54,12 @@ function CSAuthWrapper({ children }) {
   return pass && children
 }
 
-export const AuthRoute = ({children, mustCustomerService, ...props}) => (
+export const AuthRoute = ({ children, mustCustomerService, ...props }) => (
   <Route {...props}>
-    {mustCustomerService
-      ? <CSAuthWrapper children={children} />
-      : <BasicAuthWrapper children={children} />
-    }
+    {mustCustomerService ? (
+      <CSAuthWrapper children={children} />
+    ) : (
+      <BasicAuthWrapper children={children} />
+    )}
   </Route>
 )

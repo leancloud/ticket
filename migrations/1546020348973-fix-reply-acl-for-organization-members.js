@@ -1,8 +1,8 @@
 const AV = require('leanengine')
 
-const {forEachAVObject,getOrganizationRoleName} = require('../api/common')
+const { forEachAVObject, getOrganizationRoleName } = require('../api/common')
 
-exports.up = function(next) {
+exports.up = function (next) {
   const query = new AV.Query('Reply')
   query.include('ticket')
 
@@ -28,14 +28,14 @@ exports.up = function(next) {
     acl.setRoleReadAccess(new AV.Role('customerService'), true)
 
     reply.setACL(acl)
-    return reply.save(null, {useMasterKey: true})
+    return reply.save(null, { useMasterKey: true })
   })
-  .then(() => {
-    return next()
-  })
-  .catch(next)
+    .then(() => {
+      return next()
+    })
+    .catch(next)
 }
 
-exports.down = function(next) {
+exports.down = function (next) {
   next()
 }

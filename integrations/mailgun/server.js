@@ -11,7 +11,7 @@ module.exports = (mailgunKey, mailgunDomain) => {
 
   const mailgun = require('mailgun-js')({
     apiKey: mailgunKey,
-    domain: mailgunDomain
+    domain: mailgunDomain,
   })
 
   const send = (params) => {
@@ -29,13 +29,13 @@ module.exports = (mailgunKey, mailgunDomain) => {
         text: `${params.text},
 --
 您能收到邮件是因为该工单与您相关。
-可以直接回复邮件，或者点击 ${params.url} 查看。`
+可以直接回复邮件，或者点击 ${params.url} 查看。`,
       })
       .catch((err) => {
         errorHandler.captureException(
           {
             action: 'sendMail',
-            params
+            params,
           },
           err
         )
@@ -53,7 +53,7 @@ module.exports = (mailgunKey, mailgunDomain) => {
         subject: `[LeanTicket] ${ticket.get('title')} (#${ticket.get('nid')})`,
         'h:Reply-To': `ticket-${to.id}@leancloud.cn`,
         text: ticket.get('content'),
-        url: getTicketUrl(ticket)
+        url: getTicketUrl(ticket),
       })
     },
     replyTicket: ({ ticket, reply, from, to }) => {
@@ -66,7 +66,7 @@ module.exports = (mailgunKey, mailgunDomain) => {
         subject: `[LeanTicket] ${ticket.get('title')} (#${ticket.get('nid')})`,
         'h:Reply-To': `ticket-${to.id}@leancloud.cn`,
         text: reply.get('content'),
-        url: getTicketUrl(ticket)
+        url: getTicketUrl(ticket),
       })
     },
     changeAssignee: (ticket, from, to) => {
@@ -87,7 +87,7 @@ ${ticket.get('content')}
 
 ${(ticket.get('latestReply') && ticket.get('latestReply').content) || '<暂无>'}
     `,
-        url: getTicketUrl(ticket)
+        url: getTicketUrl(ticket),
       })
     },
     delayNotify: (ticket, to) => {
@@ -106,9 +106,9 @@ ${ticket.get('content')}
 
 ${(ticket.get('latestReply') && ticket.get('latestReply').content) || '<暂无>'}
     `,
-        url: getTicketUrl(ticket)
+        url: getTicketUrl(ticket),
       })
-    }
+    },
   }
 
   const router = express.Router()
@@ -119,7 +119,7 @@ ${(ticket.get('latestReply') && ticket.get('latestReply').content) || '<暂无>'
       if (!mailgun.validateWebhook(body.timestamp, body.token, body.signature)) {
         console.error('Request came, but not from Mailgun')
         res.send({
-          error: { message: 'Invalid signature. Are you even Mailgun?' }
+          error: { message: 'Invalid signature. Are you even Mailgun?' },
         })
         return
       }
@@ -133,7 +133,7 @@ ${(ticket.get('latestReply') && ticket.get('latestReply').content) || '<暂无>'
         return new AV.Object('Reply').save(
           {
             ticket,
-            content: req.body['stripped-text'].replace(/\r\n/g, '\n')
+            content: req.body['stripped-text'].replace(/\r\n/g, '\n'),
           },
           { user: fromUser }
         )
@@ -169,7 +169,7 @@ ${(ticket.get('latestReply') && ticket.get('latestReply').content) || '<暂无>'
       subject: mail.Subject,
       body: mail,
       err: err.message,
-      ACL: new AV.ACL()
+      ACL: new AV.ACL(),
     }).save()
     throw err
   }
@@ -177,6 +177,6 @@ ${(ticket.get('latestReply') && ticket.get('latestReply').content) || '<暂无>'
   return {
     name: 'Mailgun',
     notificationChannel,
-    routers: [['/webhooks/mailgun', router]]
+    routers: [['/webhooks/mailgun', router]],
   }
 }

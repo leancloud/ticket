@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import {Image} from 'react-bootstrap'
-import {getGravatarHash} from '../lib/common'
+import { Image } from 'react-bootstrap'
+import { getGravatarHash } from '../lib/common'
 
 export function Avatar({ user, height, width }) {
   const userInfo = user.toJSON ? user.toJSON() : user
@@ -19,5 +19,5 @@ Avatar.displayName = 'Avatar'
 Avatar.propTypes = {
   user: PropTypes.object.isRequired,
   height: PropTypes.string,
-  width: PropTypes.string
+  width: PropTypes.string,
 }

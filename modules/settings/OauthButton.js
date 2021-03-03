@@ -10,17 +10,22 @@ export default function OauthButton({ currentUser, lcUserInfos, region, regionTe
   if (userInfo) {
     return (
       <FormGroup>
-        <Button disabled>{t('linkedPrefix')} LeanCloud {regionText} {t('region')} {userInfo.email} {t('account')} {t('linkedSuffix')}</Button>
+        <Button disabled>
+          {t('linkedPrefix')} LeanCloud {regionText} {t('region')} {userInfo.email} {t('account')}{' '}
+          {t('linkedSuffix')}
+        </Button>
       </FormGroup>
     )
   }
 
   return (
-    <Form action='/oauth/login' method='post'>
-      <input type='hidden' name='sessionToken' value={currentUser.sessionToken} />
-      <input type='hidden' name='region' value={region} />
+    <Form action="/oauth/login" method="post">
+      <input type="hidden" name="sessionToken" value={currentUser.sessionToken} />
+      <input type="hidden" name="region" value={region} />
       <FormGroup>
-        <Button type='submit' bsStyle='primary'>LeanCloud {regionText} {t('region')}</Button>
+        <Button type="submit" bsStyle="primary">
+          LeanCloud {regionText} {t('region')}
+        </Button>
       </FormGroup>
     </Form>
   )

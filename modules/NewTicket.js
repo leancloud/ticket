@@ -3,34 +3,40 @@ import _ from 'lodash'
 import React from 'react'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
-import {FormGroup, ControlLabel, FormControl, Button, Tooltip, OverlayTrigger} from 'react-bootstrap'
-import {auth, cloud, db} from '../lib/leancloud'
+import {
+  FormGroup,
+  ControlLabel,
+  FormControl,
+  Button,
+  Tooltip,
+  OverlayTrigger,
+} from 'react-bootstrap'
+import { auth, cloud, db } from '../lib/leancloud'
 import docsearch from 'docsearch.js'
 import qs from 'query-string'
 
 import TextareaWithPreview from './components/TextareaWithPreview'
-import {WeekendWarning} from './components/WeekendWarning'
+import { WeekendWarning } from './components/WeekendWarning'
 import {
   defaultLeanCloudRegion,
   depthFirstSearchFind,
   getLeanCloudRegionText,
   getTicketAcl,
-  getTinyCategoryInfo
+  getTinyCategoryInfo,
 } from '../lib/common'
-import {uploadFiles, getCategoriesTree} from './common'
+import { uploadFiles, getCategoriesTree } from './common'
 import OrganizationSelect from './OrganizationSelect'
 import TagForm from './TagForm'
-import {DocumentTitle} from './utils/DocumentTitle'
+import { DocumentTitle } from './utils/DocumentTitle'
 import FAQ from './components/FAQ'
 import { withRouter } from 'react-router'
 
 class NewTicket extends React.Component {
-
   constructor(props) {
     super(props)
     let org = null
     if (this.props.selectedOrgId && this.props.selectedOrgId.length > 0) {
-      org = _.find(this.props.organizations, {id: this.props.selectedOrgId})
+      org = _.find(this.props.organizations, { id: this.props.selectedOrgId })
     }
     this.state = {
       ticket: {
@@ -55,61 +61,68 @@ class NewTicket extends React.Component {
       apiKey: ALGOLIA_API_KEY,
       indexName: 'leancloud',
       inputSelector: '.docsearch-input',
-      debug: false // Set debug to true if you want to inspect the dropdown
+      debug: false, // Set debug to true if you want to inspect the dropdown
     })
 
     const params = qs.parse(this.props.location.search)
 
-    cloud.run('checkPermission')
-    .then(() => {
-      return Promise.all([
-        getCategoriesTree(),
-        ENABLE_LEANCLOUD_INTEGRATION ? cloud.run('getLeanCloudApps')
-        .catch((err) => {
-          if (err.message.indexOf('Could not find LeanCloud authData:') === 0) {
-            return []
-          }
-          throw err
-        }) : Promise.resolve([]),
-      ])
-    })
-    .then(([categoriesTree, apps]) => {
-      const appId = params.appId || ''
-      const title = params.title || localStorage.getItem('ticket:new:title') || ''
-      const categoryIds = JSON.parse(localStorage.getItem('ticket:new:categoryIds') || '[]')
-      const categoryPath = _.compact(categoryIds.map(cid => depthFirstSearchFind(categoriesTree, c => c.id == cid)))
-      const category = _.last(categoryPath)
-      const content = localStorage.getItem('ticket:new:content') || (category && category.get('qTemplate')) || ''
-
-      const ticket = this.state.ticket
-      ticket.title = title
-      ticket.content = content
-      this.setState({
-        ticket,
-        categoriesTree,
-        categoryPath,
-        apps,
-        appId,
+    cloud
+      .run('checkPermission')
+      .then(() => {
+        return Promise.all([
+          getCategoriesTree(),
+          ENABLE_LEANCLOUD_INTEGRATION
+            ? cloud.run('getLeanCloudApps').catch((err) => {
+                if (err.message.indexOf('Could not find LeanCloud authData:') === 0) {
+                  return []
+                }
+                throw err
+              })
+            : Promise.resolve([]),
+        ])
       })
-      return
-    })
-    .catch(this.context.addNotification)
+      .then(([categoriesTree, apps]) => {
+        const appId = params.appId || ''
+        const title = params.title || localStorage.getItem('ticket:new:title') || ''
+        const categoryIds = JSON.parse(localStorage.getItem('ticket:new:categoryIds') || '[]')
+        const categoryPath = _.compact(
+          categoryIds.map((cid) => depthFirstSearchFind(categoriesTree, (c) => c.id == cid))
+        )
+        const category = _.last(categoryPath)
+        const content =
+          localStorage.getItem('ticket:new:content') ||
+          (category && category.get('qTemplate')) ||
+          ''
+
+        const ticket = this.state.ticket
+        ticket.title = title
+        ticket.content = content
+        this.setState({
+          ticket,
+          categoriesTree,
+          categoryPath,
+          apps,
+          appId,
+        })
+        return
+      })
+      .catch(this.context.addNotification)
   }
 
   handleTitleChange(e) {
     localStorage.setItem('ticket:new:title', e.target.value)
     const ticket = this.state.ticket
     ticket.title = e.target.value
-    this.setState({ticket})
+    this.setState({ ticket })
   }
 
   handleCategoryChange(e, index, t) {
     const categoryPath = this.state.categoryPath.slice(0, index)
 
-    const category = depthFirstSearchFind(this.state.categoriesTree, c => c.id === e.target.value)
+    const category = depthFirstSearchFind(this.state.categoriesTree, (c) => c.id === e.target.value)
     if (!category) {
-      localStorage.setItem('ticket:new:categoryIds', JSON.stringify(categoryPath.map(c => c.id)))
-      this.setState({categoryPath})
+      localStorage.setItem('ticket:new:categoryIds', JSON.stringify(categoryPath.map((c) => c.id)))
+      this.setState({ categoryPath })
       return
     }
 
@@ -117,10 +130,13 @@ class NewTicket extends React.Component {
     const ticket = this.state.ticket
     if (ticket.content && category.get('qTemplate')) {
       if (confirm(t('categoryChangeConfirm'))) {
-        localStorage.setItem('ticket:new:categoryIds', JSON.stringify(categoryPath.map(c => c.id)))
+        localStorage.setItem(
+          'ticket:new:categoryIds',
+          JSON.stringify(categoryPath.map((c) => c.id))
+        )
         localStorage.setItem('ticket:new:content', category.get('qTemplate'))
         ticket.content = category.get('qTemplate')
-        this.setState({categoryPath, ticket})
+        this.setState({ categoryPath, ticket })
         return
       } else {
         return false
@@ -128,15 +144,17 @@ class NewTicket extends React.Component {
     }
 
     const content = category.get('qTemplate') || ticket.content || ''
-    localStorage.setItem('ticket:new:categoryIds', JSON.stringify(categoryPath.map(c => c.id)))
+    localStorage.setItem('ticket:new:categoryIds', JSON.stringify(categoryPath.map((c) => c.id)))
     localStorage.setItem('ticket:new:content', content)
     ticket.content = content
-    this.setState({categoryPath, ticket})
+    this.setState({ categoryPath, ticket })
 
-    this.fetchFAQs(category).then(FAQs => this.setState({ FAQs })).catch(error => {
-      this.setState({ FAQs: [] })
-      console.warn('Failed to fetch FAQs for category', category, error.message)
-    })
+    this.fetchFAQs(category)
+      .then((FAQs) => this.setState({ FAQs }))
+      .catch((error) => {
+        this.setState({ FAQs: [] })
+        console.warn('Failed to fetch FAQs for category', category, error.message)
+      })
   }
 
   async fetchFAQs(category) {
@@ -147,30 +165,30 @@ class NewTicket extends React.Component {
     if (!FAQs || FAQs.length === 0) {
       return []
     }
-    return (await category.get({ include: ['FAQs']})).data.FAQs
+    return (await category.get({ include: ['FAQs'] })).data.FAQs
   }
 
   changeTagValue(key, value) {
     const ticket = this.state.ticket
     const tags = ticket.tags
-    let tag = _.find(tags, {key})
+    let tag = _.find(tags, { key })
     if (!tag) {
-      tags.push({key, value})
+      tags.push({ key, value })
     } else {
       tag.value = value
     }
-    this.setState({ticket})
+    this.setState({ ticket })
   }
 
   handleAppChange(e) {
-    this.setState({appId: e.target.value})
+    this.setState({ appId: e.target.value })
   }
 
   handleContentChange(value) {
     localStorage.setItem('ticket:new:content', value)
     const ticket = this.state.ticket
     ticket.content = value
-    this.setState({ticket})
+    this.setState({ ticket })
   }
 
   handleSubmit(t, e) {
@@ -190,40 +208,42 @@ class NewTicket extends React.Component {
       return
     }
 
-    this.setState({isCommitting: true})
+    this.setState({ isCommitting: true })
     return uploadFiles($('#ticketFile')[0].files)
-    .then((files) => {
-      ticket.category = getTinyCategoryInfo(_.last(this.state.categoryPath))
-      ticket.files = files
-      return db.class('Ticket').add(ticket)
-      .then((ticket) => {
-        if (this.state.appId) {
-          return db.class('Tag').add({
-            key: 'appId',
-            value: this.state.appId,
-            ticket,
-            author: auth.currentUser(),
-            ACL: getTicketAcl(auth.currentUser(), ticket.get('organization')),
+      .then((files) => {
+        ticket.category = getTinyCategoryInfo(_.last(this.state.categoryPath))
+        ticket.files = files
+        return db
+          .class('Ticket')
+          .add(ticket)
+          .then((ticket) => {
+            if (this.state.appId) {
+              return db.class('Tag').add({
+                key: 'appId',
+                value: this.state.appId,
+                ticket,
+                author: auth.currentUser(),
+                ACL: getTicketAcl(auth.currentUser(), ticket.get('organization')),
+              })
+            }
+            return
           })
-        }
+      })
+      .then(() => {
+        this.setState({ isCommitting: false })
         return
       })
-    })
-    .then(() => {
-      this.setState({isCommitting: false})
-      return
-    })
-    .then(() => {
-      localStorage.removeItem('ticket:new:title')
-      localStorage.removeItem('ticket:new:content')
-      this.props.history.push('/tickets')
-      return
-    })
-    .catch(this.context.addNotification)
+      .then(() => {
+        localStorage.removeItem('ticket:new:title')
+        localStorage.removeItem('ticket:new:content')
+        this.props.history.push('/tickets')
+        return
+      })
+      .catch(this.context.addNotification)
   }
 
   render() {
-    const {t} = this.props
+    const { t } = this.props
     const getSelect = (categories, selectCategory, index) => {
       if (categories.length == 0) {
         return
@@ -231,14 +251,24 @@ class NewTicket extends React.Component {
 
       const options = categories.map((category) => {
         return (
-          <option key={category.id} value={category.id}>{category.get('name')}</option>
+          <option key={category.id} value={category.id}>
+            {category.get('name')}
+          </option>
         )
       })
       return (
         <FormGroup key={'categorySelect' + index}>
-          <ControlLabel>{index == 0 ? t('category') + ' ' : t('categoryLevel') + ' ' + (index + 1) + ' ' + t('thCategory') + ' '}</ControlLabel>
-          <FormControl componentClass="select" value={selectCategory && selectCategory.id || ''} onChange={(e) => this.handleCategoryChange(e, index, t)}>
-            <option key='empty'></option>
+          <ControlLabel>
+            {index == 0
+              ? t('category') + ' '
+              : t('categoryLevel') + ' ' + (index + 1) + ' ' + t('thCategory') + ' '}
+          </ControlLabel>
+          <FormControl
+            componentClass="select"
+            value={(selectCategory && selectCategory.id) || ''}
+            onChange={(e) => this.handleCategoryChange(e, index, t)}
+          >
+            <option key="empty"></option>
             {options}
           </FormControl>
         </FormGroup>
@@ -247,9 +277,17 @@ class NewTicket extends React.Component {
 
     const appOptions = this.state.apps.map((app) => {
       if (defaultLeanCloudRegion === app.region) {
-        return <option key={app.app_id} value={app.app_id}>{app.app_name}</option>
+        return (
+          <option key={app.app_id} value={app.app_id}>
+            {app.app_name}
+          </option>
+        )
       }
-      return <option key={app.app_id} value={app.app_id}>{app.app_name} ({getLeanCloudRegionText(app.region)})</option>
+      return (
+        <option key={app.app_id} value={app.app_id}>
+          {app.app_name} ({getLeanCloudRegionText(app.region)})
+        </option>
+      )
     })
 
     const categorySelects = []
@@ -262,12 +300,8 @@ class NewTicket extends React.Component {
       }
     }
 
-    const tooltip = (
-      <Tooltip id="tooltip">{t('supportMarkdown')}</Tooltip>
-    )
-    const appTooltip = (
-      <Tooltip id="appTooltip">{t('appTooltip')}</Tooltip>
-    )
+    const tooltip = <Tooltip id="tooltip">{t('supportMarkdown')}</Tooltip>
+    const appTooltip = <Tooltip id="appTooltip">{t('appTooltip')}</Tooltip>
 
     const ticket = this.state.ticket
     return (
@@ -275,43 +309,57 @@ class NewTicket extends React.Component {
         <DocumentTitle title={`${t('newTicket')} - LeanTicket`} />
         <WeekendWarning />
         <form onSubmit={this.handleSubmit.bind(this, t)}>
-          {this.props.organizations.length > 0 && <OrganizationSelect organizations={this.props.organizations}
-            selectedOrgId={this.props.selectedOrgId}
-            onOrgChange={this.props.handleOrgChange} />}
+          {this.props.organizations.length > 0 && (
+            <OrganizationSelect
+              organizations={this.props.organizations}
+              selectedOrgId={this.props.selectedOrgId}
+              onOrgChange={this.props.handleOrgChange}
+            />
+          )}
           <FormGroup>
             <ControlLabel>{t('title')}</ControlLabel>
-            <input type="text" className="form-control docsearch-input" value={ticket.title}
-               onChange={this.handleTitleChange.bind(this)} />
+            <input
+              type="text"
+              className="form-control docsearch-input"
+              value={ticket.title}
+              onChange={this.handleTitleChange.bind(this)}
+            />
           </FormGroup>
-          {ENABLE_LEANCLOUD_INTEGRATION &&
+          {ENABLE_LEANCLOUD_INTEGRATION && (
             <FormGroup>
               <ControlLabel>
-                {t('associatedApplication')} <OverlayTrigger placement="top" overlay={appTooltip}>
-                  <span className='icon-wrap'><span className='glyphicon glyphicon-question-sign'></span></span>
+                {t('associatedApplication')}{' '}
+                <OverlayTrigger placement="top" overlay={appTooltip}>
+                  <span className="icon-wrap">
+                    <span className="glyphicon glyphicon-question-sign"></span>
+                  </span>
                 </OverlayTrigger>
               </ControlLabel>
-              <FormControl componentClass="select" value={this.state.appId} onChange={this.handleAppChange.bind(this)}>
-                <option key='empty'></option>
+              <FormControl
+                componentClass="select"
+                value={this.state.appId}
+                onChange={this.handleAppChange.bind(this)}
+              >
+                <option key="empty"></option>
                 {appOptions}
               </FormControl>
-            </FormGroup>}
+            </FormGroup>
+          )}
 
           {categorySelects}
 
           {this.state.FAQs.length > 0 && (
             <FormGroup>
-              <ControlLabel>
-                {t('FAQ')}
-              </ControlLabel>
-              {
-                this.state.FAQs.map(faq => <FAQ faq={faq} key={faq.id}/>)
-              }
+              <ControlLabel>{t('FAQ')}</ControlLabel>
+              {this.state.FAQs.map((faq) => (
+                <FAQ faq={faq} key={faq.id} />
+              ))}
             </FormGroup>
           )}
 
-          {this.context.tagMetadatas.map(tagMetadata => {
+          {this.context.tagMetadatas.map((tagMetadata) => {
             const tags = ticket.tags
-            const tag = _.find(tags, t => t.key == tagMetadata.get('key'))
+            const tag = _.find(tags, (t) => t.key == tagMetadata.get('key'))
             return (
               <TagForm
                 key={tagMetadata.id}
@@ -324,8 +372,11 @@ class NewTicket extends React.Component {
 
           <FormGroup>
             <ControlLabel>
-              {t('description')} <OverlayTrigger placement="top" overlay={tooltip}>
-                <b className="has-required" title={t('supportMarkdown')}>M↓</b>
+              {t('description')}{' '}
+              <OverlayTrigger placement="top" overlay={tooltip}>
+                <b className="has-required" title={t('supportMarkdown')}>
+                  M↓
+                </b>
               </OverlayTrigger>
             </ControlLabel>
             <TextareaWithPreview
@@ -337,12 +388,13 @@ class NewTicket extends React.Component {
           <FormGroup>
             <input id="ticketFile" type="file" multiple />
           </FormGroup>
-          <Button type='submit' disabled={this.state.isCommitting} bsStyle='success'>{t('submit')}</Button>
+          <Button type="submit" disabled={this.state.isCommitting} bsStyle="success">
+            {t('submit')}
+          </Button>
         </form>
       </div>
     )
   }
-
 }
 
 NewTicket.contextTypes = {

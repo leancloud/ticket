@@ -25,8 +25,8 @@ exports.newTicket = (ticket, author, assignee) => {
       to: assignee,
       isRead: false,
       ACL: {
-        [assignee.id]: { write: true, read: true }
-      }
+        [assignee.id]: { write: true, read: true },
+      },
     })
   })
 }
@@ -38,7 +38,7 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
     reply,
     from: replyAuthor,
     to,
-    isCustomerServiceReply: reply.get('isCustomerService')
+    isCustomerServiceReply: reply.get('isCustomerService'),
   }
   return Promise.all(
     channels.map((channel) => Promise.resolve(channel.replyTicket?.(data)).catch(captureException))
@@ -52,8 +52,8 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
         to,
         isRead: false,
         ACL: {
-          [to.id]: { write: true, read: true }
-        }
+          [to.id]: { write: true, read: true },
+        },
       }).save()
     })
     .then(() => {
@@ -75,8 +75,8 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
           to: watch.get('user'),
           isRead: false,
           ACL: {
-            [watch.get('user').id]: { write: true, read: true }
-          }
+            [watch.get('user').id]: { write: true, read: true },
+          },
         })
       })
       return AV.Object.saveAll(messages)
@@ -96,8 +96,8 @@ exports.changeAssignee = (ticket, operator, assignee) => {
       to: assignee,
       isRead: false,
       ACL: {
-        [assignee.id]: { write: true, read: true }
-      }
+        [assignee.id]: { write: true, read: true },
+      },
     }).save()
   })
 }
@@ -115,8 +115,8 @@ exports.ticketEvaluation = (ticket, author, to) => {
       to: to,
       isRead: false,
       ACL: {
-        [to.id]: { write: true, read: true }
-      }
+        [to.id]: { write: true, read: true },
+      },
     }).save()
   })
 }

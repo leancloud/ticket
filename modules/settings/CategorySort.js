@@ -8,7 +8,6 @@ import { getCategoriesTree, getNodeIndentString } from '../common'
 import { depthFirstSearchMap } from '../../lib/common'
 
 class CategorySort extends React.Component {
-
   constructor(props) {
     super(props)
     this.state = {
@@ -17,8 +16,7 @@ class CategorySort extends React.Component {
   }
 
   componentDidMount() {
-    return getCategoriesTree()
-    .then(categoriesTree => {
+    return getCategoriesTree().then((categoriesTree) => {
       this.setState({
         categoriesTree,
       })
@@ -29,14 +27,15 @@ class CategorySort extends React.Component {
   handleSave() {
     const p = db.pipeline()
     depthFirstSearchMap(this.state.categoriesTree, (c, index) => {
-      p.update(c, {order: index})
+      p.update(c, { order: index })
     })
-    return p.commit()
-    .then(() => {
-      this.props.history.push('/settings/categories')
-      return
-    })
-    .catch(this.context.addNotification)
+    return p
+      .commit()
+      .then(() => {
+        this.props.history.push('/settings/categories')
+        return
+      })
+      .catch(this.context.addNotification)
   }
 
   handleSortUpdate(category, oriIndex, newIndex) {
@@ -48,7 +47,7 @@ class CategorySort extends React.Component {
     }
     cs.splice(oriIndex, 1)
     cs.splice(newIndex, 0, category)
-    this.setState({categoriesTree: this.state.categoriesTree})
+    this.setState({ categoriesTree: this.state.categoriesTree })
   }
 
   render() {
@@ -56,13 +55,27 @@ class CategorySort extends React.Component {
     const tds = depthFirstSearchMap(this.state.categoriesTree, (c, index, array) => {
       return (
         <tr key={c.id}>
-          <td><span>{getNodeIndentString(c)}</span>{c.get('name')}</td>
           <td>
-            <Button disabled={index == 0} onClick={() => this.handleSortUpdate(c, index, index - 1)} className='btn-xs'>
+            <span>{getNodeIndentString(c)}</span>
+            {c.get('name')}
+          </td>
+          <td>
+            <Button
+              disabled={index == 0}
+              onClick={() => this.handleSortUpdate(c, index, index - 1)}
+              className="btn-xs"
+            >
               <span className="glyphicon glyphicon glyphicon-chevron-up" aria-hidden="true"></span>
             </Button>{' '}
-            <Button disabled={index == array.length - 1} onClick={() => this.handleSortUpdate(c, index, index + 1)} className='btn-xs'>
-              <span className="glyphicon glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
+            <Button
+              disabled={index == array.length - 1}
+              onClick={() => this.handleSortUpdate(c, index, index + 1)}
+              className="btn-xs"
+            >
+              <span
+                className="glyphicon glyphicon glyphicon-chevron-down"
+                aria-hidden="true"
+              ></span>
             </Button>
           </td>
         </tr>
@@ -75,15 +88,13 @@ class CategorySort extends React.Component {
             <Button onClick={this.handleSave.bind(this)}>{t('save')}</Button>
           </FormGroup>
         </Form>
-        <table className='table table-bordered table-hover'>
+        <table className="table table-bordered table-hover">
           <thead>
             <tr>
               <th>{t('name')}</th>
             </tr>
           </thead>
-          <tbody>
-            {tds}
-          </tbody>
+          <tbody>{tds}</tbody>
         </table>
       </div>
     )

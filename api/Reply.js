@@ -10,18 +10,26 @@ AV.Cloud.beforeSave('Reply', (req, res) => {
     return res.error('noLogin')
   }
   const reply = req.object
-  return reply.get('ticket').fetch({
-    include: 'author'
-  }, {user: req.currentUser}).then((ticket) => {
-    reply.setACL(getReplyAcl(ticket, req.currentUser))
-    reply.set('content_HTML', common.htmlify(reply.get('content')))
-    reply.set('author', req.currentUser)
-    return common.isCustomerService(req.currentUser, ticket.get('author'))
-  }).then((isCustomerService) => {
-    reply.set('isCustomerService', isCustomerService)
-    res.success()
-    return
-  }).catch(errorHandler.captureException)
+  return reply
+    .get('ticket')
+    .fetch(
+      {
+        include: 'author',
+      },
+      { user: req.currentUser }
+    )
+    .then((ticket) => {
+      reply.setACL(getReplyAcl(ticket, req.currentUser))
+      reply.set('content_HTML', common.htmlify(reply.get('content')))
+      reply.set('author', req.currentUser)
+      return common.isCustomerService(req.currentUser, ticket.get('author'))
+    })
+    .then((isCustomerService) => {
+      reply.set('isCustomerService', isCustomerService)
+      res.success()
+      return
+    })
+    .catch(errorHandler.captureException)
 })
 
 AV.Cloud.afterSave('Reply', (req) => {

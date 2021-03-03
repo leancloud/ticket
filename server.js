@@ -48,12 +48,14 @@ const getIndexPage = () => {
 <script src="/js/bootstrap.min.js"></script>
 <div id=app></div>
 <script>
-  INTEGRATIONS = ${JSON.stringify(config.integrations.map(t => t.name))}
+  INTEGRATIONS = ${JSON.stringify(config.integrations.map((t) => t.name))}
   LEANCLOUD_APP_ID = '${process.env.LEANCLOUD_APP_ID}'
   LEANCLOUD_APP_KEY = '${process.env.LEANCLOUD_APP_KEY}'
-  LEANCLOUD_API_HOST = ${process.env.LEANCLOUD_API_HOST ? ('"' + process.env.LEANCLOUD_API_HOST + '"') : undefined}
+  LEANCLOUD_API_HOST = ${
+    process.env.LEANCLOUD_API_HOST ? '"' + process.env.LEANCLOUD_API_HOST + '"' : undefined
+  }
   LEANCLOUD_APP_ENV = '${process.env.LEANCLOUD_APP_ENV}'
-  LEANCLOUD_OAUTH_REGION = '${process.env.LEANCLOUD_REGION == 'US' ? 'us-w1': 'cn-n1'}'
+  LEANCLOUD_OAUTH_REGION = '${process.env.LEANCLOUD_REGION == 'US' ? 'us-w1' : 'cn-n1'}'
   LEAN_CLI_HAVE_STAGING = '${process.env.LEAN_CLI_HAVE_STAGING}'
   SENTRY_DSN_PUBLIC = '${config.sentryDSNPublic || ''}'
   ORG_NAME = '${orgName}'
@@ -85,7 +87,7 @@ app.get('*', function (req, res) {
 app.use(Raven.errorHandler())
 
 // error handlers
-app.use(function(err, req, res, _next) {
+app.use(function (err, req, res, _next) {
   var statusCode = err.status || 500
   if (statusCode === 500) {
     console.error(err.stack || err)
@@ -94,12 +96,12 @@ app.use(function(err, req, res, _next) {
   var error = {}
   res.send({
     message: err.message,
-    error: error
+    error: error,
   })
 })
 
 var PORT = parseInt(process.env.LEANCLOUD_APP_PORT || process.env.PORT || 8080)
-app.listen(PORT, function() {
+app.listen(PORT, function () {
   console.log('LeanTicket server running on:' + PORT)
 })
 

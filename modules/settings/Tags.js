@@ -21,9 +21,11 @@ export default function Tags(props, context) {
           </tr>
         </thead>
         <tbody>
-          {context.tagMetadatas.map(m => (
+          {context.tagMetadatas.map((m) => (
             <tr key={m.id}>
-              <td><Link to={`/settings/tags/${m.id}`}>{m.data.key}</Link></td>
+              <td>
+                <Link to={`/settings/tags/${m.id}`}>{m.data.key}</Link>
+              </td>
             </tr>
           ))}
         </tbody>

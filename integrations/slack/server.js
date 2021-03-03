@@ -36,9 +36,7 @@ class SlackIntegration {
     })
 
     this.name = 'Slack'
-    this.routers = [
-      ['/webhooks/slack', router]
-    ]
+    this.routers = [['/webhooks/slack', router]]
     this.notificationChannel = {
       newTicket: this.notifyNewTicket.bind(this),
       changeAssignee: this.notifyChangeAssignee.bind(this),
@@ -163,12 +161,14 @@ class SlackIntegration {
     const nid = Number(payload.actions[0].value)
     const [sessionToken, ticket] = await Promise.all([
       getSessionTokenByEmail(email),
-      new AV.Query('Ticket')
-        .equalTo('nid', nid)
-        .first({ useMasterKey: true })
+      new AV.Query('Ticket').equalTo('nid', nid).first({ useMasterKey: true }),
     ])
     if (sessionToken && ticket && isTicketOpen(ticket)) {
-      await AV.Cloud.run('operateTicket', { ticketId: ticket.id, action: 'reject' }, { sessionToken })
+      await AV.Cloud.run(
+        'operateTicket',
+        { ticketId: ticket.id, action: 'reject' },
+        { sessionToken }
+      )
     }
   }
 }

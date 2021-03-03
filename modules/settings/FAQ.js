@@ -10,7 +10,7 @@ import {
   FormControl,
   Button,
   Tooltip,
-  OverlayTrigger
+  OverlayTrigger,
 } from 'react-bootstrap'
 import { db } from '../../lib/leancloud'
 import TextareaWithPreview from '../components/TextareaWithPreview'
@@ -26,7 +26,7 @@ class FAQ extends React.Component {
         if (id == '_new') {
           return {
             question: '',
-            answer: ''
+            answer: '',
           }
         }
 
@@ -47,13 +47,13 @@ class FAQ extends React.Component {
         this.setState(
           _.extend(
             {
-              isSubmitting: false
+              isSubmitting: false,
             },
             {
               faq: {
                 question,
-                answer
-              }
+                answer,
+              },
             },
             viewStates
           )
@@ -63,9 +63,7 @@ class FAQ extends React.Component {
   }
 
   updateFAQState(values) {
-    return this.setState((state) =>
-      _.extend({}, state, { faq: _.extend({}, state.faq, values) })
-    )
+    return this.setState((state) => _.extend({}, state, { faq: _.extend({}, state.faq, values) }))
   }
 
   handleQuestionChange(e) {
@@ -138,9 +136,7 @@ class FAQ extends React.Component {
           {VIEWS.map((view) => (
             <FormGroup key={view}>
               <ControlLabel>
-                <OverlayTrigger
-                  overlay={<Tooltip id="tooltip">{t('viewHint')}</Tooltip>}
-                >
+                <OverlayTrigger overlay={<Tooltip id="tooltip">{t('viewHint')}</Tooltip>}>
                   <span>{view}❓</span>
                 </OverlayTrigger>
               </ControlLabel>
@@ -152,17 +148,10 @@ class FAQ extends React.Component {
               />
             </FormGroup>
           ))}
-          <Button
-            type="submit"
-            disabled={this.state.isSubmitting}
-            bsStyle="success"
-          >
+          <Button type="submit" disabled={this.state.isSubmitting} bsStyle="success">
             {t('save')}
           </Button>{' '}
-          <Button
-            type="button"
-            onClick={() => this.props.history.push('/settings/faqs')}
-          >
+          <Button type="button" onClick={() => this.props.history.push('/settings/faqs')}>
             {t('return')}
           </Button>
         </form>
@@ -174,11 +163,11 @@ class FAQ extends React.Component {
 FAQ.propTypes = {
   history: PropTypes.object.isRequired,
   match: PropTypes.object.isRequired,
-  t: PropTypes.func
+  t: PropTypes.func,
 }
 
 FAQ.contextTypes = {
-  addNotification: PropTypes.func.isRequired
+  addNotification: PropTypes.func.isRequired,
 }
 
 export default withTranslation()(withRouter(FAQ))

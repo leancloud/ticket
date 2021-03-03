@@ -2,14 +2,14 @@
 
 import _ from 'lodash'
 import React, { Component } from 'react'
-import {Route, Switch, withRouter} from 'react-router-dom'
+import { Route, Switch, withRouter } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import NotificationSystem from 'react-notification-system'
 import Raven from 'raven-js'
 import i18next from 'i18next'
 
 import './i18n'
-import {auth, db} from '../lib/leancloud'
+import { auth, db } from '../lib/leancloud'
 import { isCustomerService } from './common'
 import GlobalNav from './GlobalNav'
 import css from './App.css'
@@ -41,7 +41,7 @@ class App extends Component {
       isCustomerService: false,
       organizations: [],
       selectedOrgId: '',
-      tagMetadatas: []
+      tagMetadatas: [],
     }
   }
 
@@ -49,17 +49,15 @@ class App extends Component {
     if (obj instanceof Error) {
       console.error(obj.stack || obj)
       const message = obj.message
-      const match = message.match(
-        /^Cloud Code validation failed. Error detail : (.*)$/
-      )
+      const match = message.match(/^Cloud Code validation failed. Error detail : (.*)$/)
       this._notificationSystem.addNotification({
         message: match ? match[1] : message,
-        level: 'error'
+        level: 'error',
       })
     } else {
       this._notificationSystem.addNotification({
         message: (obj && obj.message) || 'Operation succeeded.',
-        level: (obj && obj.level) || 'success'
+        level: (obj && obj.level) || 'success',
       })
     }
   }
@@ -83,15 +81,18 @@ class App extends Component {
   }
 
   fetchTagMetadatas() {
-    return db.class('TagMetadata').find().then((tagMetadatas) => {
-      return tagMetadatas
-    })
+    return db
+      .class('TagMetadata')
+      .find()
+      .then((tagMetadatas) => {
+        return tagMetadatas
+      })
   }
 
   refreshTagMetadatas() {
     return this.fetchTagMetadatas().then((tagMetadatas) => {
       this.setState({
-        tagMetadatas
+        tagMetadatas,
       })
       return
     })
@@ -103,7 +104,7 @@ class App extends Component {
         currentUser: null,
         isCustomerService: false,
         organizations: [],
-        tagMetadatas: []
+        tagMetadatas: [],
       })
       Raven.setUserContext()
       return
@@ -112,17 +113,17 @@ class App extends Component {
     return Promise.all([
       isCustomerService(currentUser),
       db.class('Organization').include('memberRole').find(),
-      this.fetchTagMetadatas()
+      this.fetchTagMetadatas(),
     ]).then(([isCustomerService, organizations, tagMetadatas]) => {
       this.setState({
         currentUser,
         isCustomerService,
         organizations,
-        tagMetadatas
+        tagMetadatas,
       })
       Raven.setUserContext({
         username: currentUser.get('username'),
-        id: currentUser.id
+        id: currentUser.id,
       })
       return
     })
@@ -161,7 +162,7 @@ class App extends Component {
   leaveOrganization(organization) {
     const organizations = this.state.organizations
     this.setState({
-      organizations: _.reject(organizations, { id: organization.id })
+      organizations: _.reject(organizations, { id: organization.id }),
     })
   }
 
@@ -169,7 +170,7 @@ class App extends Component {
     return {
       addNotification: this.addNotification.bind(this),
       tagMetadatas: this.state.tagMetadatas,
-      refreshTagMetadatas: this.refreshTagMetadatas.bind(this)
+      refreshTagMetadatas: this.refreshTagMetadatas.bind(this),
     }
   }
 
@@ -184,7 +185,7 @@ class App extends Component {
       handleOrgChange: this.handleOrgChange.bind(this),
       leaveOrganization: this.leaveOrganization.bind(this),
       selectedOrgId: this.state.selectedOrgId,
-      tagMetadatas: this.state.tagMetadatas
+      tagMetadatas: this.state.tagMetadatas,
     }
 
     return (
@@ -196,17 +197,37 @@ class App extends Component {
         />
         <div className={'container ' + css.main}>
           <Switch>
-            <Route path="/" exact><Home {...props} /></Route>
+            <Route path="/" exact>
+              <Home {...props} />
+            </Route>
             <Route path="/about" component={About} />
-            <Route path="/login"><Login {...props} /></Route>
-            <AuthRoute path="/tickets" exact><Tickets {...props} /></AuthRoute>
-            <AuthRoute path="/tickets/new"><NewTicket {...props} /></AuthRoute>
-            <AuthRoute path="/tickets/:nid"><Ticket {...props} /></AuthRoute>
-            <AuthRoute path="/messages"><Messages {...props} /></AuthRoute>
-            <AuthRoute path="/notifications"><Notifications {...props} /></AuthRoute>
-            <AuthRoute mustCustomerService path="/customerService"><CustomerService /></AuthRoute>
-            <AuthRoute path="/users/:username"><User {...props} /></AuthRoute>
-            <AuthRoute path="/settings"><Settings {...props} /></AuthRoute>
+            <Route path="/login">
+              <Login {...props} />
+            </Route>
+            <AuthRoute path="/tickets" exact>
+              <Tickets {...props} />
+            </AuthRoute>
+            <AuthRoute path="/tickets/new">
+              <NewTicket {...props} />
+            </AuthRoute>
+            <AuthRoute path="/tickets/:nid">
+              <Ticket {...props} />
+            </AuthRoute>
+            <AuthRoute path="/messages">
+              <Messages {...props} />
+            </AuthRoute>
+            <AuthRoute path="/notifications">
+              <Notifications {...props} />
+            </AuthRoute>
+            <AuthRoute mustCustomerService path="/customerService">
+              <CustomerService />
+            </AuthRoute>
+            <AuthRoute path="/users/:username">
+              <User {...props} />
+            </AuthRoute>
+            <AuthRoute path="/settings">
+              <Settings {...props} />
+            </AuthRoute>
             <Route path="/error" component={ErrorPage} />
             <Route path="*" component={NotFound} />
           </Switch>
@@ -226,7 +247,7 @@ App.propTypes = {
 App.childContextTypes = {
   addNotification: PropTypes.func,
   tagMetadatas: PropTypes.array,
-  refreshTagMetadatas: PropTypes.func
+  refreshTagMetadatas: PropTypes.func,
 }
 
 export default withRouter(App)
@@ -267,22 +288,32 @@ class ServerNotification extends Component {
       return
     }
 
-    return db.class('Message')
+    return db
+      .class('Message')
       .where('to', '==', this.props.currentUser)
       .where('isRead', '==', false)
       .subscribe()
-      .then(liveQuery => {
+      .then((liveQuery) => {
         this.messageLiveQuery = liveQuery
-        liveQuery.on('create', message => {
-          return message.get({include: ['ticket']}).then(message => {
+        liveQuery.on('create', (message) => {
+          return message.get({ include: ['ticket'] }).then((message) => {
             const messageType = message.get('type')
             const ticket = message.get('ticket')
             if (messageType == 'newTicket') {
-              this.notify({title: i18next.t('message.newTicket'), body: `${ticket.get('title')} (#${ticket.get('nid')})`})
+              this.notify({
+                title: i18next.t('message.newTicket'),
+                body: `${ticket.get('title')} (#${ticket.get('nid')})`,
+              })
             } else if (messageType == 'changeAssignee') {
-              this.notify({title: i18next.t('message.assignTicket'), body: `${ticket.get('title')} (#${ticket.get('nid')})`})
+              this.notify({
+                title: i18next.t('message.assignTicket'),
+                body: `${ticket.get('title')} (#${ticket.get('nid')})`,
+              })
             } else if (messageType == 'reply') {
-              this.notify({title: i18next.t('message.newReply'), body: `${ticket.get('title')} (#${ticket.get('nid')})`})
+              this.notify({
+                title: i18next.t('message.newReply'),
+                body: `${ticket.get('title')} (#${ticket.get('nid')})`,
+              })
             }
             return
           })

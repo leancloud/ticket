@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
-import { Button, FormControl, FormGroup} from 'react-bootstrap'
+import { Button, FormControl, FormGroup } from 'react-bootstrap'
 import LC from '../../lib/leancloud'
 
 import { getCustomerServices, getCategoryPathName } from '../common'
@@ -30,18 +30,19 @@ class TicketMetadata extends Component {
 
   fetchDatas() {
     getCustomerServices()
-      .then(assignees => {
-        this.setState({assignees})
+      .then((assignees) => {
+        this.setState({ assignees })
         return
       })
       .catch(this.context.addNotification)
   }
 
   handleAssigneeChange(e) {
-    const customerService = _.find(this.state.assignees, {id: e.target.value})
-    this.props.updateTicketAssignee(customerService)
+    const customerService = _.find(this.state.assignees, { id: e.target.value })
+    this.props
+      .updateTicketAssignee(customerService)
       .then(() => {
-        this.setState({isUpdateAssignee: false})
+        this.setState({ isUpdateAssignee: false })
         return
       })
       .then(this.context.addNotification)
@@ -49,9 +50,12 @@ class TicketMetadata extends Component {
   }
 
   handleCategoryChange(e) {
-    this.props.updateTicketCategory(depthFirstSearchFind(this.props.categoriesTree, c => c.id == e.target.value))
+    this.props
+      .updateTicketCategory(
+        depthFirstSearchFind(this.props.categoriesTree, (c) => c.id == e.target.value)
+      )
       .then(() => {
-        this.setState({isUpdateCategory: false})
+        this.setState({ isUpdateCategory: false })
         return
       })
       .then(this.context.addNotification)
@@ -64,50 +68,56 @@ class TicketMetadata extends Component {
 
   render() {
     const { t } = this.props
-    const {ticket, isCustomerService} = this.props
+    const { ticket, isCustomerService } = this.props
     const assignee = ticket.data.assignee
 
     return (
       <div>
         <FormGroup>
           <label className="label-block">{t('assignee')}</label>
-          {this.state.isUpdateAssignee ?
+          {this.state.isUpdateAssignee ? (
             <FormControl
-              componentClass='select'
+              componentClass="select"
               value={assignee.id}
               onChange={this.handleAssigneeChange.bind(this)}
             >
-              {this.state.assignees.map((cs) => <option key={cs.id} value={cs.id}>{cs.data.username}</option>)}
+              {this.state.assignees.map((cs) => (
+                <option key={cs.id} value={cs.id}>
+                  {cs.data.username}
+                </option>
+              ))}
             </FormControl>
-            :
+          ) : (
             <span className={css.assignee}>
               <UserLabel user={ticket.data.assignee.data} />
-              {isCustomerService &&
-                <Button bsStyle='link' onClick={() => this.setState({isUpdateAssignee: true})}>
-                  <span className='glyphicon glyphicon-pencil' aria-hidden="true"></span>
+              {isCustomerService && (
+                <Button bsStyle="link" onClick={() => this.setState({ isUpdateAssignee: true })}>
+                  <span className="glyphicon glyphicon-pencil" aria-hidden="true"></span>
                 </Button>
-              }
+              )}
             </span>
-          }
+          )}
         </FormGroup>
         <FormGroup>
           <label className="label-block">{t('category')}</label>
-          {this.state.isUpdateCategory ?
-            <CategoriesSelect categoriesTree={this.props.categoriesTree}
+          {this.state.isUpdateCategory ? (
+            <CategoriesSelect
+              categoriesTree={this.props.categoriesTree}
               selected={ticket.get('category')}
-              onChange={this.handleCategoryChange.bind(this)} />
-            :
+              onChange={this.handleCategoryChange.bind(this)}
+            />
+          ) : (
             <div>
               <span className={csCss.category + ' ' + css.categoryBlock}>
                 {getCategoryPathName(ticket.get('category'), this.props.categoriesTree)}
               </span>
-              {isCustomerService &&
-                <Button bsStyle='link' onClick={() => this.setState({isUpdateCategory: true})}>
-                  <span className='glyphicon glyphicon-pencil' aria-hidden="true"></span>
+              {isCustomerService && (
+                <Button bsStyle="link" onClick={() => this.setState({ isUpdateCategory: true })}>
+                  <span className="glyphicon glyphicon-pencil" aria-hidden="true"></span>
                 </Button>
-              }
+              )}
             </div>
-          }
+          )}
         </FormGroup>
 
         {isCustomerService && ticket.data.metaData && (
@@ -127,11 +137,12 @@ class TicketMetadata extends Component {
           </FormGroup>
         )}
 
-        {this.context.tagMetadatas.map(tagMetadata => {
+        {this.context.tagMetadatas.map((tagMetadata) => {
           const tags = ticket.get(tagMetadata.get('isPrivate') ? 'privateTags' : 'tags')
-          const tag = _.find(tags, t => t.key == tagMetadata.get('key'))
+          const tag = _.find(tags, (t) => t.key == tagMetadata.get('key'))
           return (
-            <TagForm key={tagMetadata.id}
+            <TagForm
+              key={tagMetadata.id}
               tagMetadata={tagMetadata}
               tag={tag}
               changeTagValue={this.handleTagChange.bind(this)}

@@ -7,8 +7,8 @@ exports.captureException = (message, err) => {
   }
   let extra = message
   if (typeof message == 'string') {
-    extra = {message}
+    extra = { message }
   }
   console.error(message, err.stack)
-  Raven.captureException(err, {extra})
+  Raven.captureException(err, { extra })
 }

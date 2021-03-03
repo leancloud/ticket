@@ -13,7 +13,7 @@ const VIEWS = FAQ_VIEWS.split(',').filter((view) => view)
 
 const toggleArchived = (faq) =>
   faq.update({
-    archived: !faq.get('archived')
+    archived: !faq.get('archived'),
   })
 
 class Categories extends Component {
@@ -21,7 +21,7 @@ class Categories extends Component {
     super(props)
     this.state = {
       FAQs: [],
-      view: VIEWS[0]
+      view: VIEWS[0],
     }
   }
 
@@ -49,9 +49,7 @@ class Categories extends Component {
           <th>Question (and answer)</th>
           {VIEWS.map((view) => (
             <th key={view}>
-              <OverlayTrigger
-                overlay={<Tooltip id="tooltip">{t('viewHint')}</Tooltip>}
-              >
+              <OverlayTrigger overlay={<Tooltip id="tooltip">{t('viewHint')}</Tooltip>}>
                 <span>{view}❓</span>
               </OverlayTrigger>
             </th>
@@ -80,10 +78,7 @@ class Categories extends Component {
               <td key={view}>{faq.get(`priority_${view}`)}</td>
             ))}
             <td>
-              <Link
-                to={'/settings/faqs/' + faq.id}
-                className="btn btn-default btn-sm"
-              >
+              <Link to={'/settings/faqs/' + faq.id} className="btn btn-default btn-sm">
                 {t('edit')}
               </Link>{' '}
               <button
@@ -113,10 +108,7 @@ class Categories extends Component {
               <FAQ faq={faq} />
             </td>
             <td>
-              <Link
-                to={'/settings/faqs/' + faq.id}
-                className="btn btn-default btn-sm"
-              >
+              <Link to={'/settings/faqs/' + faq.id} className="btn btn-default btn-sm">
                 {t('edit')}
               </Link>{' '}
               <button

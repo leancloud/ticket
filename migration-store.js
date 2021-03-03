@@ -1,11 +1,11 @@
 const AV = require('leanengine')
 module.exports = LeanStorageStore
 
-function LeanStorageStore () {
+function LeanStorageStore() {
   AV.init({
     appId: process.env.LEANCLOUD_APP_ID,
     appKey: process.env.LEANCLOUD_APP_KEY,
-    masterKey: process.env.LEANCLOUD_APP_MASTER_KEY
+    masterKey: process.env.LEANCLOUD_APP_MASTER_KEY,
   })
   AV.Cloud.useMasterKey()
 }
@@ -18,27 +18,28 @@ function LeanStorageStore () {
 
 LeanStorageStore.prototype.save = function (set, fn) {
   return new AV.Query('Migration')
-  .first({useMasterKey: true})
-  .catch(err => {
-    if (err.code == 101) { // Class or object doesn't exists.
-      return null
-    }
-    throw err
-  })
-  .then(migration => {
-    if (!migration) {
-      migration = new AV.Object('Migration')
-    }
-    return migration.save({
-      lastRun: set.lastRun,
-      migrations: set.migrations,
-      ACL: new AV.ACL()
+    .first({ useMasterKey: true })
+    .catch((err) => {
+      if (err.code == 101) {
+        // Class or object doesn't exists.
+        return null
+      }
+      throw err
     })
-  })
-  .then(() => {
-    return fn()
-  })
-  .catch(fn)
+    .then((migration) => {
+      if (!migration) {
+        migration = new AV.Object('Migration')
+      }
+      return migration.save({
+        lastRun: set.lastRun,
+        migrations: set.migrations,
+        ACL: new AV.ACL(),
+      })
+    })
+    .then(() => {
+      return fn()
+    })
+    .catch(fn)
 }
 
 /**
@@ -51,21 +52,22 @@ LeanStorageStore.prototype.save = function (set, fn) {
 
 LeanStorageStore.prototype.load = function (fn) {
   return new AV.Query('Migration')
-  .first({useMasterKey: true})
-  .catch(err => {
-    if (err.code == 101) { // Class or object doesn't exists.
-      return null
-    }
-    throw err
-  })
-  .then(migration => {
-    if (!migration) {
-      return fn(null, {})
-    }
-    return fn(null, {
-      lastRun: migration.get('lastRun'),
-      migrations: migration.get('migrations')
+    .first({ useMasterKey: true })
+    .catch((err) => {
+      if (err.code == 101) {
+        // Class or object doesn't exists.
+        return null
+      }
+      throw err
     })
-  })
-  .catch(fn)
+    .then((migration) => {
+      if (!migration) {
+        return fn(null, {})
+      }
+      return fn(null, {
+        lastRun: migration.get('lastRun'),
+        migrations: migration.get('migrations'),
+      })
+    })
+    .catch(fn)
 }

@@ -11,7 +11,11 @@ export default function NotFound() {
     <div className="jumbotron">
       <h1>{t('pageNotExist')}</h1>
       <p>{t('pageNotExistInfo')}</p>
-      {SUPPORT_EMAIL && <p>{t('contactUs')} <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a></p>}
+      {SUPPORT_EMAIL && (
+        <p>
+          {t('contactUs')} <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
+        </p>
+      )}
     </div>
   )
 }

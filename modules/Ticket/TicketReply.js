@@ -19,50 +19,53 @@ class TicketReply extends Component {
 
   handleReplyOnChange(value) {
     localStorage.setItem(`ticket:${this.props.ticket.id}:reply`, value)
-    this.setState({reply: value})
+    this.setState({ reply: value })
   }
 
   handleReplyOnKeyDown(e) {
-    if(e.keyCode == 13 && e.metaKey) {
+    if (e.keyCode == 13 && e.metaKey) {
       this.handleReplyCommit(e)
     }
   }
 
   handleReplyCommit(e) {
     e.preventDefault()
-    this.setState({isCommitting: true})
-    return this.props.commitReply(this.state.reply, this.fileInput.files)
+    this.setState({ isCommitting: true })
+    return this.props
+      .commitReply(this.state.reply, this.fileInput.files)
       .then(() => {
         localStorage.removeItem(`ticket:${this.props.ticket.id}:reply`)
-        this.setState({reply: ''})
+        this.setState({ reply: '' })
         this.fileInput.value = ''
         return
       })
       .catch(this.context.addNotification)
       .then(() => {
-        this.setState({isCommitting: false})
+        this.setState({ isCommitting: false })
         return
       })
   }
 
   handleReplySoon(e) {
     e.preventDefault()
-    this.setState({isCommitting: true})
-    return this.props.commitReplySoon()
+    this.setState({ isCommitting: true })
+    return this.props
+      .commitReplySoon()
       .catch(this.context.addNotification)
       .then(() => {
-        this.setState({isCommitting: false})
+        this.setState({ isCommitting: false })
         return
       })
   }
 
   handleReplyNoContent(e) {
     e.preventDefault()
-    this.setState({isCommitting: true})
-    return this.props.operateTicket('replyWithNoContent')
+    this.setState({ isCommitting: true })
+    return this.props
+      .operateTicket('replyWithNoContent')
       .catch(this.context.addNotification)
       .then(() => {
-        this.setState({isCommitting: false})
+        this.setState({ isCommitting: false })
         return
       })
   }
@@ -72,18 +75,35 @@ class TicketReply extends Component {
     let buttons
     if (this.props.isCustomerService) {
       buttons = (
-          <ButtonToolbar>
-          <Button onClick={this.handleReplyNoContent.bind(this)} disabled={this.state.isCommitting}>{t('noNeedToReply')}</Button>
-            <Button onClick={this.handleReplySoon.bind(this)} disabled={this.state.isCommitting}>{t('replyLater')}</Button>
-            <Button onClick={this.handleReplyCommit.bind(this)} disabled={this.state.isCommitting} bsStyle="success" className={css.submit}>{t('submit')}</Button>
-          </ButtonToolbar>
-        )
+        <ButtonToolbar>
+          <Button onClick={this.handleReplyNoContent.bind(this)} disabled={this.state.isCommitting}>
+            {t('noNeedToReply')}
+          </Button>
+          <Button onClick={this.handleReplySoon.bind(this)} disabled={this.state.isCommitting}>
+            {t('replyLater')}
+          </Button>
+          <Button
+            onClick={this.handleReplyCommit.bind(this)}
+            disabled={this.state.isCommitting}
+            bsStyle="success"
+            className={css.submit}
+          >
+            {t('submit')}
+          </Button>
+        </ButtonToolbar>
+      )
     } else {
       buttons = (
-          <ButtonToolbar>
-            <Button onClick={this.handleReplyCommit.bind(this)} bsStyle="success" className={css.submit}>{t('submit')}</Button>
-          </ButtonToolbar>
-        )
+        <ButtonToolbar>
+          <Button
+            onClick={this.handleReplyCommit.bind(this)}
+            bsStyle="success"
+            className={css.submit}
+          >
+            {t('submit')}
+          </Button>
+        </ButtonToolbar>
+      )
     }
     return (
       <div>
@@ -98,7 +118,7 @@ class TicketReply extends Component {
           </FormGroup>
 
           <FormGroup>
-            <FormControl type="file" multiple inputRef={ref => this.fileInput = ref} />
+            <FormControl type="file" multiple inputRef={(ref) => (this.fileInput = ref)} />
             <p className="help-block">{t('multipleAttachments')}</p>
           </FormGroup>
 
@@ -106,12 +126,12 @@ class TicketReply extends Component {
             <div className={css.formLeft}>
               <p className={css.markdownTip}>
                 <b className="has-required">M↓</b>{' '}
-                <a href="https://forum.leancloud.cn/t/topic/15412" target="_blank" rel="noopener">{t('supportMarkdown')}</a>
+                <a href="https://forum.leancloud.cn/t/topic/15412" target="_blank" rel="noopener">
+                  {t('supportMarkdown')}
+                </a>
               </p>
             </div>
-            <div className={css.formRight}>
-              {buttons}
-            </div>
+            <div className={css.formRight}>{buttons}</div>
           </div>
         </form>
       </div>

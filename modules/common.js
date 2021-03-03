@@ -6,91 +6,87 @@ import { depthFirstSearchFind, makeTree } from '../lib/common'
 export * from '../lib/common'
 
 export const getCategoryPathName = (category, categoriesTree) => {
-  const c = depthFirstSearchFind(categoriesTree, c => c.id == (category.id || category.objectId))
-  return getNodePath(c).map(c => getCategoryName(c)).join(' / ')
+  const c = depthFirstSearchFind(categoriesTree, (c) => c.id == (category.id || category.objectId))
+  return getNodePath(c)
+    .map((c) => getCategoryName(c))
+    .join(' / ')
 }
 
 export const requireAuth = (nextState, replace) => {
   if (!auth.currentUser()) {
     replace({
       pathname: '/login',
-      state: { nextPathname: nextState.location.pathname }
+      state: { nextPathname: nextState.location.pathname },
     })
   }
 }
 
 export const requireCustomerServiceAuth = (nextState, replace, next) => {
   isCustomerService(auth.currentUser())
-    .then(isCustomerService => {
+    .then((isCustomerService) => {
       if (!isCustomerService) {
         replace({
           pathname: '/error',
-          state: { code: 'requireCustomerServiceAuth' }
+          state: { code: 'requireCustomerServiceAuth' },
         })
       }
       return next()
     })
-    .catch(err => {
+    .catch((err) => {
       replace({
         pathname: '/error',
-        state: { code: err.code, err }
+        state: { code: err.code, err },
       })
       next()
     })
 }
 
 export const getCustomerServices = () => {
-  return auth.queryRole()
+  return auth
+    .queryRole()
     .where('name', '==', 'customerService')
     .first()
-    .then(role => {
-      return role
-        .queryUser()
-        .orderBy('username')
-        .find()
+    .then((role) => {
+      return role.queryUser().orderBy('username').find()
     })
 }
 
-export const isCustomerService = user => {
+export const isCustomerService = (user) => {
   if (!user) {
     return Promise.resolve(false)
   }
-  return auth.queryRole()
+  return auth
+    .queryRole()
     .where('name', '==', 'customerService')
     .where('users', '==', user)
     .first()
-    .then(role => {
+    .then((role) => {
       return !!role
     })
 }
 
-export const uploadFiles = files => {
-  return Promise.all(
-    _.map(files, file =>
-      storage.upload(file.name, file)
-    )
-  )
+export const uploadFiles = (files) => {
+  return Promise.all(_.map(files, (file) => storage.upload(file.name, file)))
 }
 
-export const getTicketAndRelation = nid => {
-  return db.class('Ticket')
+export const getTicketAndRelation = (nid) => {
+  return db
+    .class('Ticket')
     .where('nid', '==', parseInt(nid))
     .include('author', 'files')
     .first()
-    .then(ticket => {
+    .then((ticket) => {
       if (!ticket) {
         return
       }
       return Promise.all([
-        db.class('Reply')
+        db
+          .class('Reply')
           .where('ticket', ticket)
           .include('author', 'files')
           .orderBy('createdAt')
           .find(),
-        db.class('OpsLog')
-          .where('ticket', '==', ticket)
-          .orderBy('createdAt')
-          .find()
+        db.class('OpsLog').where('ticket', '==', ticket).orderBy('createdAt').find(),
       ]).spread((replies, opsLogs) => {
         return { ticket, replies, opsLogs }
       })
@@ -98,26 +94,24 @@ export const getTicketAndRelation = nid => {
 }
 
 export const fetchUsers = (userIds) => {
-  return Promise.all(_.map(_.chunk(userIds, 50), (userIds) => {
-    return auth.queryUser()
-      .where('objectId', 'in', userIds)
-      .find()
-  }))
-  .then(_.flatten)
+  return Promise.all(
+    _.map(_.chunk(userIds, 50), (userIds) => {
+      return auth.queryUser().where('objectId', 'in', userIds).find()
+    })
+  ).then(_.flatten)
 }
 
 export const getCategoriesTree = (hiddenDisable = true) => {
-  const query = db.class('Category')
-    .where({
-      deletedAt: hiddenDisable ? db.cmd.notExists() : undefined
-    })
+  const query = db.class('Category').where({
+    deletedAt: hiddenDisable ? db.cmd.notExists() : undefined,
+  })
   return query
     .orderBy('createdAt', 'desc')
     .find()
-    .then(categories => {
+    .then((categories) => {
       return makeTree(categories)
     })
-    .catch(err => {
+    .catch((err) => {
       // 如果还没有被停用的分类，deletedAt 属性可能不存在
       if (err.code == 700 && err.message.includes('deletedAt')) {
         return getCategoriesTree(false)
@@ -126,14 +120,14 @@ export const getCategoriesTree = (hiddenDisable = true) => {
     })
 }
 
-const getNodeDepth = obj => {
+const getNodeDepth = (obj) => {
   if (!obj.parent) {
     return 0
   }
   return 1 + getNodeDepth(obj.parent)
 }
 
-export const getNodePath = obj => {
+export const getNodePath = (obj) => {
   if (!obj.parent) {
     return [obj]
   }
@@ -142,7 +136,7 @@ export const getNodePath = obj => {
   return result
 }
 
-export const getNodeIndentString = treeNode => {
+export const getNodeIndentString = (treeNode) => {
   const depth = getNodeDepth(treeNode)
   return depth == 0 ? '' : '　'.repeat(depth) + '└ '
 }

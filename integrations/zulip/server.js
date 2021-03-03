@@ -26,7 +26,7 @@ module.exports = (configs) => {
     const result = await client.messages.send({
       type: 'private',
       to: toUser.email,
-      content
+      content,
     })
     if (result.result != 'success') {
       throw new Error(result.msg)
@@ -42,7 +42,7 @@ module.exports = (configs) => {
       type: 'stream',
       to: stream,
       subject: topic,
-      content
+      content,
     })
   }
 
@@ -52,7 +52,7 @@ module.exports = (configs) => {
       client = await zulip({
         username,
         apiKey,
-        realm
+        realm,
       })
       const updateUsers = () => {
         return client.users
@@ -131,7 +131,7 @@ ${evaluationContent}
 ~~~`
         await send(to, content)
         await broadcast(content)
-      }
-    }
+      },
+    },
   }
 }

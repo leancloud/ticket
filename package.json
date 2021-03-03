@@ -10,7 +10,8 @@
     "dev:client": "eval $(lean env) && NODE_ENV=development webpack serve",
     "dev": "WEBPACK_DEV_SERVER=http://localhost:8080 nodemon --ignore modules server.js",
     "postinstall": "npm run build",
-    "migrate": "eval $(lean env) && migrate up --store=./migration-store"
+    "migrate": "eval $(lean env) && migrate up --store=./migration-store",
+    "fmt": "prettier -w */**/*.js"
   },
   "repository": {
     "type": "git",
@@ -83,6 +84,7 @@
     "http-server": "^0.10.0",
     "migrate": "^1.5.0",
     "nodemon": "^1.17.5",
+    "prettier": "^2.2.1",
     "prop-types": "^15.7.2",
     "supertest": "^3.0.0",
     "webpack-dev-server": "^3.11.2"
