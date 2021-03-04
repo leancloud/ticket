@@ -428,7 +428,8 @@ class Ticket extends Component {
               </div>
             </div>
           )
-        case 'reject':
+        case 'close':
+        case 'reject': // 向前兼容
           return (
             <div className="ticket-status" id={avObj.id} key={avObj.id}>
               <div className="ticket-status-left">
@@ -558,7 +559,7 @@ class Ticket extends Component {
             <button
               type="button"
               className="btn btn-default"
-              onClick={() => this.operateTicket('reject')}
+              onClick={() => this.operateTicket('close')}
             >
               {t('close')}
             </button>
