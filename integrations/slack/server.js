@@ -166,7 +166,7 @@ class SlackIntegration {
     if (sessionToken && ticket && isTicketOpen(ticket)) {
       await AV.Cloud.run(
         'operateTicket',
-        { ticketId: ticket.id, action: 'reject' },
+        { ticketId: ticket.id, action: 'close' },
         { sessionToken }
       )
     }

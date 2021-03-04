@@ -301,7 +301,7 @@ class CustomerServiceTickets extends Component {
         return
       }
       try {
-        await cloud.run('operateTicket', { ticketId: ticketIds, action: 'reject' })
+        await cloud.run('operateTicket', { ticketId: ticketIds, action: 'close' })
         this.setState({ checkedTickets: new Set() })
         await this.findTickets(this.getFilters())
       } catch (error) {
