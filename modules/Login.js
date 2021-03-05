@@ -29,11 +29,8 @@ class Login extends Component {
     if (token) {
       return auth
         .loginWithSessionToken(token)
-        .then((user) => {
-          this.props.onLogin(user)
-          this.props.history.replace('/')
-          return
-        })
+        .then((user) => this.props.onLogin(user))
+        .then(() => this.redirect())
         .catch(this.context.addNotification)
     }
   }
@@ -42,14 +39,8 @@ class Login extends Component {
     e.preventDefault()
     return auth
       .login(this.state.username, this.state.password)
-      .then((user) => {
-        this.props.onLogin(user)
-        return
-      })
-      .then(() => {
-        this.redirect(this.props)
-        return
-      })
+      .then((user) => this.props.onLogin(user))
+      .then(() => this.redirect())
       .catch(this.context.addNotification)
   }
 
@@ -60,23 +51,19 @@ class Login extends Component {
         password: this.state.password,
         name: this.state.username,
       })
-      .then((user) => {
-        this.props.onLogin(user)
-        return
-      })
-      .then(() => {
-        this.redirect(this.props)
-        return
-      })
+      .then((user) => this.props.onLogin(user))
+      .then(() => this.redirect())
       .catch(this.context.addNotification)
   }
 
-  redirect(props) {
-    const { location } = props
-    if (location.state && location.state.nextPathname) {
-      this.props.history.replace(location.state.nextPathname)
+  redirect() {
+    const { history } = this.props
+    const nextPathname = localStorage.getItem('LeanTicket:nextPathname')
+    if (nextPathname) {
+      localStorage.removeItem('LeanTicket:nextPathname')
+      history.replace(nextPathname)
     } else {
-      this.props.history.replace('/')
+      history.replace('/')
     }
   }
 
