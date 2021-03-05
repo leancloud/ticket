@@ -4,12 +4,7 @@ const AV = require('leanengine')
 const { getTinyUserInfo, htmlify, getTinyReplyInfo, isCustomerService } = require('./common')
 const { checkPermission } = require('./oauth')
 const notification = require('./notification')
-const {
-  TICKET_ACTION,
-  TICKET_STATUS,
-  ticketClosedStatuses,
-  getTicketAcl,
-} = require('../lib/common')
+const { TICKET_ACTION, TICKET_STATUS, isTicketOpen } = require('../lib/common')
 const errorHandler = require('./errorHandler')
 const { invokeWebhooks } = require('../webhook')
 
@@ -25,7 +20,6 @@ AV.Cloud.beforeSave('Ticket', async (req) => {
   if (!ticket.get('category') || !ticket.get('category').objectId) {
     throw new AV.Cloud.Error('Ticket category must be provided')
   }
-  ticket.setACL(getTicketAcl(req.currentUser), ticket.get('organization'))
   ticket.set('status', TICKET_STATUS.NEW)
   ticket.set('content_HTML', htmlify(ticket.get('content')))
   ticket.set('author', req.currentUser)
@@ -104,10 +98,7 @@ AV.Cloud.afterUpdate('Ticket', (req) => {
         })
         .catch(errorHandler.captureException)
     }
-    if (
-      ticket.updatedKeys.includes('status') &&
-      ticketClosedStatuses().includes(ticket.get('status'))
-    ) {
+    if (ticket.updatedKeys.includes('status') && !isTicketOpen(ticket.get('status'))) {
       AV.Cloud.run('statsTicket', { ticketId: ticket.id }).catch(errorHandler.captureException)
     }
     if (ticket.updatedKeys.includes('evaluation')) {

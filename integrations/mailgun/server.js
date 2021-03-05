@@ -1,3 +1,5 @@
+/* eslint-disable i18n/no-chinese-character */
+
 const errorHandler = require('../../api/errorHandler')
 const { getUserDisplayName, getTicketUrl } = require('../../api/common')
 const AV = require('leanengine')
@@ -15,10 +17,6 @@ module.exports = (mailgunKey, mailgunDomain) => {
   })
 
   const send = (params) => {
-    if (!exports.mailgun) {
-      return
-    }
-
     return mailgun
       .messages()
       .send({
