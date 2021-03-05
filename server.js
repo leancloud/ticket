@@ -61,7 +61,7 @@ const getIndexPage = () => {
   ORG_NAME = '${orgName}'
   USE_OAUTH = ${!!process.env.OAUTH_KEY}
   ENABLE_LEANCLOUD_INTEGRATION = ${!!process.env.ENABLE_LEANCLOUD_INTEGRATION}
-  ALGOLIA_API_KEY = '${process.env.ALGOLIA_API_KEY}'
+  ALGOLIA_API_KEY = '${process.env.ALGOLIA_API_KEY || ''}'
   FAQ_VIEWS = '${process.env.FAQ_VIEWS || ''}'
   SUPPORT_EMAIL = '${config.supportEmail || ''}'
 </script>

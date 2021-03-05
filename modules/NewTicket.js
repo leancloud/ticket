@@ -34,13 +34,8 @@ import { withRouter } from 'react-router'
 class NewTicket extends React.Component {
   constructor(props) {
     super(props)
-    let org = null
-    if (this.props.selectedOrgId && this.props.selectedOrgId.length > 0) {
-      org = _.find(this.props.organizations, { id: this.props.selectedOrgId })
-    }
     this.state = {
       ticket: {
-        organization: org || undefined,
         title: '',
         category: null,
         content: '',
@@ -57,12 +52,14 @@ class NewTicket extends React.Component {
   }
 
   componentDidMount() {
-    docsearch({
-      apiKey: ALGOLIA_API_KEY,
-      indexName: 'leancloud',
-      inputSelector: '.docsearch-input',
-      debug: false, // Set debug to true if you want to inspect the dropdown
-    })
+    if (ALGOLIA_API_KEY) {
+      docsearch({
+        apiKey: ALGOLIA_API_KEY,
+        indexName: 'leancloud',
+        inputSelector: '.docsearch-input',
+        debug: false, // Set debug to true if you want to inspect the dropdown
+      })
+    }
 
     const params = qs.parse(this.props.location.search)
 
@@ -213,6 +210,9 @@ class NewTicket extends React.Component {
       .then((files) => {
         ticket.category = getTinyCategoryInfo(_.last(this.state.categoryPath))
         ticket.files = files
+        if (this.props.selectedOrgId) {
+          ticket.organization = _.find(this.props.organizations, { id: this.props.selectedOrgId })
+        }
         return db
           .class('Ticket')
           .add(ticket)
