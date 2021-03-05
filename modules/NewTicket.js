@@ -213,7 +213,6 @@ class NewTicket extends React.Component {
         if (this.props.selectedOrgId) {
           ticket.organization = _.find(this.props.organizations, { id: this.props.selectedOrgId })
         }
-        ticket.ACL = getTicketAcl(auth.currentUser(), ticket.organization)
         return db
           .class('Ticket')
           .add(ticket)
