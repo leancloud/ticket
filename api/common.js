@@ -48,9 +48,7 @@ exports.isCustomerService = (user, ticketAuthor) => {
     .equalTo('name', 'customerService')
     .equalTo('users', user)
     .first()
-    .then((role) => {
-      return !!role
-    })
+    .then((role) => !!role)
 }
 
 exports.getTicketUrl = (ticket) => {

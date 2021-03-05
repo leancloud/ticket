@@ -128,7 +128,7 @@ AV.Cloud.afterUpdate('Ticket', (req) => {
 
 AV.Cloud.define('operateTicket', async (req) => {
   if (!req.currentUser) {
-    throw new AV.Cloud.Error('Forbidden', { status: 403 })
+    throw new AV.Cloud.Error('Unauthorized', { status: 401 })
   }
 
   const { ticketId, action } = req.params
