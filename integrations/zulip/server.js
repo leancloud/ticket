@@ -1,3 +1,5 @@
+/* eslint-disable i18n/no-chinese-character */
+
 const _ = require('lodash')
 const { errorHandler } = require('raven')
 const zulip = require('zulip-js')
@@ -114,7 +116,7 @@ ${(ticket.get('latestReply') && ticket.get('latestReply').content) || '<还没�
 ~~~ quote
 ${ticket.get('title')}
 
-${ticket.get('latestReply') && ticket.get('latestReply').content}
+${(ticket.get('latestReply') && ticket.get('latestReply').content) || '<还没有回复>'}
 ~~~`
         await send(to, content)
         await broadcast(content)

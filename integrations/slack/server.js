@@ -1,57 +1,87 @@
 /* eslint-disable i18n/no-chinese-character */
 
 const { WebClient } = require('@slack/web-api')
-const { Router } = require('express')
-const AV = require('leancloud-storage')
-const { newTicketMessage, changeAssigneeMessage, replyTicketMessage } = require('./message')
-const { isTicketOpen } = require('../../lib/common')
+const { getTicketUrl } = require('../../api/common')
 
-function isCloseTicketAction(actions) {
-  return actions && actions.length === 1 && actions[0].text.text === '关闭工单'
+function basicMessage(text, ticketContent) {
+  return {
+    text,
+    attachments: [
+      {
+        blocks: [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: ticketContent,
+            },
+          },
+        ],
+      },
+    ],
+  }
 }
 
-async function getSessionTokenByEmail(email) {
-  const user = await new AV.Query('_User')
-    .select('objectId')
-    .equalTo('email', email)
-    .first({ useMasterKey: true })
-  if (user) {
-    await user.fetch({ keys: 'sessionToken' }, { useMasterKey: true })
-    return user.getSessionToken()
-  }
+function newTicketMessage({ author, assignee, title, nid, url, content }) {
+  return basicMessage(
+    `:envelope: ${author} 提交工单 <${url}|#${nid}> 给 ${assignee}`,
+    `${title}\n\n${content}`
+  )
+}
+
+function changeAssigneeMessage({ from, to, title, nid, url, latestReply = '<还没有回复>' }) {
+  return basicMessage(
+    `:arrows_counterclockwise: ${from} 转移工单 <${url}|#${nid}> 给 ${to}`,
+    `${title}\n\n${latestReply}`
+  )
+}
+
+function replyTicketMessage({ author, url, nid, title, reply }) {
+  return basicMessage(
+    `:left_speech_bubble: ${author} 回复工单 <${url}|#${nid}>`,
+    `${title}\n\n${reply}`
+  )
+}
+
+function delayNotifyMessage({ assignee, nid, url, title, latestReply = '<还没有回复>' }) {
+  return basicMessage(
+    `:alarm_clock: 提醒 ${assignee} 回复工单 <${url}|#${nid}>`,
+    `${title}\n\n${latestReply}`
+  )
+}
+
+function evaluateTicketMessage({ star, author, nid, url, title, evaluation = '' }) {
+  return basicMessage(
+    `${star === 1 ? ':thumbsup:' : ':thumbsdown:'} ${author} 评价工单 <${url}|#${nid}>`,
+    `${title}\n\n${evaluation}`
+  )
 }
 
 class SlackIntegration {
   constructor({ token, broadcastChannel }) {
-    this._userByEmail = new Map()
+    this._userIdByEmail = new Map()
     this._IMChannelByUserId = new Map()
     this.client = new WebClient(token)
     this.broadcastChannel = broadcastChannel
 
-    const router = Router()
-    router.post('/interactive-endpoint', (req, res) => {
-      const payload = JSON.parse(req.body.payload)
-      res.status(200).end()
-      this.handleInteractiveAction(payload)
-    })
-
     this.name = 'Slack'
-    this.routers = [['/webhooks/slack', router]]
     this.notificationChannel = {
       newTicket: this.notifyNewTicket.bind(this),
       changeAssignee: this.notifyChangeAssignee.bind(this),
       replyTicket: this.notifyReplyTicket.bind(this),
+      delayNotify: this.delayNotify.bind(this),
+      ticketEvaluation: this.notifyEvaluation.bind(this),
     }
   }
 
-  async findUserByEmail(email) {
-    if (this._userByEmail.has(email)) {
-      return this._userByEmail.get(email)
+  async getUserIdByEmail(email) {
+    if (this._userIdByEmail.has(email)) {
+      return this._userIdByEmail.get(email)
     }
     const { user } = await this.client.users.lookupByEmail({ email })
     if (user) {
-      this._userByEmail.set(email, user)
-      return user
+      this._userIdByEmail.set(email, user.id)
+      return user.id
     }
     return null
   }
@@ -73,103 +103,98 @@ class SlackIntegration {
   }
 
   async send(email, messageObject) {
-    const user = await this.findUserByEmail(email)
-    if (!user) {
+    const userId = await this.getUserIdByEmail(email)
+    if (!userId) {
       return
     }
-    const channel = await this.getIMChannelByUserId(user.id)
+    const channel = await this.getIMChannelByUserId(userId)
     if (!channel) {
       return
     }
     await this.sendToChannel(channel, messageObject)
   }
 
-  broadcast(messageObject) {
+  async broadcast(messageObject) {
     if (this.broadcastChannel) {
-      return this.sendToChannel(this.broadcastChannel, messageObject)
+      await this.sendToChannel(this.broadcastChannel, messageObject)
     }
-    return Promise.resolve()
   }
 
-  async notifyNewTicket(ticket, _from, to) {
+  async notifyNewTicket(ticket, from, to) {
+    const message = newTicketMessage({
+      author: from.get('username'),
+      assignee: to.get('username'),
+      title: ticket.get('title'),
+      content: ticket.get('content'),
+      nid: ticket.get('nid'),
+      url: getTicketUrl(ticket),
+    })
     if (to.has('email')) {
-      const slackUser = await this.findUserByEmail(to.get('email'))
-      if (slackUser) {
-        to.set('slack_user_id', slackUser.id)
-      }
+      await this.send(to.get('email'), message)
     }
-    await this.broadcast(newTicketMessage(ticket, to))
+    await this.broadcast(message)
   }
 
   async notifyChangeAssignee(ticket, from, to) {
+    const message = changeAssigneeMessage({
+      from: from.get('username'),
+      to: to.get('username'),
+      title: ticket.get('title'),
+      nid: ticket.get('nid'),
+      url: getTicketUrl(ticket),
+      latestReply: ticket.get('latestReply')?.content,
+    })
     if (to.has('email')) {
-      const slackUser = await this.findUserByEmail(to.get('email'))
-      if (slackUser) {
-        to.set('slack_user_id', slackUser.id)
-      }
+      await this.send(to.get('email'), message)
     }
-    await this.broadcast(changeAssigneeMessage(ticket, to))
+    await this.broadcast(message)
   }
 
-  async notifyReplyTicket({ ticket, reply, to, isCustomerServiceReply }) {
+  async notifyReplyTicket({ ticket, reply, from, to, isCustomerServiceReply }) {
     if (isCustomerServiceReply) {
       return
     }
+    const message = replyTicketMessage({
+      author: from.get('username'),
+      nid: ticket.get('nid'),
+      url: getTicketUrl(ticket),
+      title: ticket.get('title'),
+      reply: reply.get('content'),
+    })
     if (to.has('email')) {
-      const slackUser = await this.findUserByEmail(to.get('email'))
-      if (slackUser) {
-        to.set('slack_user_id', slackUser.id)
-      }
+      await this.send(to.get('email'), message)
     }
-    await this.broadcast(replyTicketMessage(ticket, to, reply))
+    await this.broadcast(message)
   }
 
-  handleInteractiveAction(payload) {
-    if (payload.type === 'block_actions') {
-      if (isCloseTicketAction(payload.actions)) {
-        this.handleCloseTicket(payload)
-      }
+  async delayNotify(ticket, to) {
+    const message = delayNotifyMessage({
+      assignee: to.get('username'),
+      nid: ticket.get('nid'),
+      url: getTicketUrl(ticket),
+      title: ticket.get('title'),
+      latestReply: ticket.get('latestReply')?.content,
+    })
+    if (to.has('email')) {
+      await this.send(to.get('email'), message)
     }
+    await this.broadcast(message)
   }
 
-  async getUserEmailByUserId(id) {
-    const { user } = await this.client.users.info({ user: id })
-    return user.profile.email
-  }
-
-  async handleCloseTicket(payload) {
-    const { attachments } = payload.message
-    if (attachments && attachments.length) {
-      attachments[0].color = '#198754'
-      const { blocks } = attachments[0]
-      if (blocks && blocks.length) {
-        const lastBlock = blocks[blocks.length - 1]
-        // remove close button
-        lastBlock.elements.pop()
-        this.client.chat.update({
-          ...payload.message,
-          channel: payload.channel.id,
-        })
-      }
+  async notifyEvaluation(ticket, from, to) {
+    const { star, content: evaluation } = ticket.get('evaluation')
+    const message = evaluateTicketMessage({
+      star,
+      evaluation,
+      author: from.get('username'),
+      title: ticket.get('title'),
+      nid: ticket.get('nid'),
+      url: getTicketUrl(ticket),
+    })
+    if (to.has('email')) {
+      await this.send(to.get('email'), message)
     }
-
-    const email = await this.getUserEmailByUserId(payload.user.id)
-    if (!email) {
-      return
-    }
-
-    const nid = Number(payload.actions[0].value)
-    const [sessionToken, ticket] = await Promise.all([
-      getSessionTokenByEmail(email),
-      new AV.Query('Ticket').equalTo('nid', nid).first({ useMasterKey: true }),
-    ])
-    if (sessionToken && ticket && isTicketOpen(ticket)) {
-      await AV.Cloud.run(
-        'operateTicket',
-        { ticketId: ticket.id, action: 'close' },
-        { sessionToken }
-      )
-    }
+    await this.broadcast(message)
   }
 }
 

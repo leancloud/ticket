@@ -12,43 +12,12 @@ export const getCategoryPathName = (category, categoriesTree) => {
     .join(' / ')
 }
 
-export const requireAuth = (nextState, replace) => {
-  if (!auth.currentUser()) {
-    replace({
-      pathname: '/login',
-      state: { nextPathname: nextState.location.pathname },
-    })
-  }
-}
-
-export const requireCustomerServiceAuth = (nextState, replace, next) => {
-  isCustomerService(auth.currentUser())
-    .then((isCustomerService) => {
-      if (!isCustomerService) {
-        replace({
-          pathname: '/error',
-          state: { code: 'requireCustomerServiceAuth' },
-        })
-      }
-      return next()
-    })
-    .catch((err) => {
-      replace({
-        pathname: '/error',
-        state: { code: err.code, err },
-      })
-      next()
-    })
-}
-
 export const getCustomerServices = () => {
   return auth
     .queryRole()
     .where('name', '==', 'customerService')
     .first()
-    .then((role) => {
-      return role.queryUser().orderBy('username').find()
-    })
+    .then((role) => role.queryUser().orderBy('username').find())
 }
 
 export const isCustomerService = (user) => {
@@ -60,37 +29,14 @@ export const isCustomerService = (user) => {
     .where('name', '==', 'customerService')
     .where('users', '==', user)
     .first()
-    .then((role) => {
-      return !!role
-    })
+    .then((role) => !!role)
 }
 
+/**
+ * @param {Array<File>} files
+ */
 export const uploadFiles = (files) => {
-  return Promise.all(_.map(files, (file) => storage.upload(file.name, file)))
-}
-
-export const getTicketAndRelation = (nid) => {
-  return db
-    .class('Ticket')
-    .where('nid', '==', parseInt(nid))
-    .include('author', 'files')
-    .first()
-    .then((ticket) => {
-      if (!ticket) {
-        return
-      }
-      return Promise.all([
-        db
-          .class('Reply')
-          .where('ticket', ticket)
-          .include('author', 'files')
-          .orderBy('createdAt')
-          .find(),
-        db.class('OpsLog').where('ticket', '==', ticket).orderBy('createdAt').find(),
-      ]).spread((replies, opsLogs) => {
-        return { ticket, replies, opsLogs }
-      })
-    })
+  return Promise.all(files.map((file) => storage.upload(file.name, file)))
 }
 
 export const fetchUsers = (userIds) => {
