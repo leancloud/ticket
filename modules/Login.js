@@ -58,9 +58,9 @@ class Login extends Component {
 
   redirect() {
     const { history } = this.props
-    const nextPathname = localStorage.getItem('LeanTicket:nextPathname')
+    const nextPathname = sessionStorage.getItem('LeanTicket:nextPathname')
     if (nextPathname) {
-      localStorage.removeItem('LeanTicket:nextPathname')
+      sessionStorage.removeItem('LeanTicket:nextPathname')
       history.replace(nextPathname)
     } else {
       history.replace('/')

@@ -15,7 +15,7 @@ function BasicAuthWrapper({ children }) {
     if (auth.currentUser()) {
       setPass(true)
     } else {
-      localStorage.setItem('LeanTicket:nextPathname', location.pathname)
+      sessionStorage.setItem('LeanTicket:nextPathname', location.pathname)
       history.replace('/login')
       setPass(false)
     }
