@@ -1,6 +1,6 @@
 export const plugins = {}
 
-export function setupPlugin(key, plugin) {
+export function usePlugin(key, plugin) {
   if (!plugins[key]) {
     plugins[key] = []
   }

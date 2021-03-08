@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 
 import { app } from '../../lib/leancloud'
-import { TICKET_STATUS, isOpenedStatus } from '../../lib/common'
+import { TICKET_STATUS, ticketStatus } from '../../lib/common'
 import { plugins } from '../plugin'
 
 export function TicketOperation({ ticket, isCustomerService, onOperate }) {
@@ -19,7 +19,7 @@ export function TicketOperation({ ticket, isCustomerService, onOperate }) {
     })
   )
 
-  if (isOpenedStatus(ticket.status)) {
+  if (ticketStatus.isOpened(ticket.status)) {
     return (
       <FormGroup>
         <ControlLabel>{t('ticketOperation')}</ControlLabel>
