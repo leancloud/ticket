@@ -9,6 +9,9 @@ import { MountCustomElement } from '../custom/element'
 export function TicketOperation({ ticket, isCustomerService, onOperate }) {
   const { t } = useTranslation()
 
+  const customAction = (
+    <MountCustomElement point="ticket.metadata.action" props={{ ticket, isCustomerService }} />
+  )
   if (ticketStatus.isOpened(ticket.status)) {
     return (
       <FormGroup>
@@ -16,10 +19,7 @@ export function TicketOperation({ ticket, isCustomerService, onOperate }) {
         <ButtonToolbar>
           <Button onClick={() => onOperate('resolve')}>{t('resolved')}</Button>
           <Button onClick={() => onOperate('close')}>{t('close')}</Button>
-          <MountCustomElement
-            point="ticket.metadata.action"
-            props={{ ticket, isCustomerService }}
-          />
+          {customAction}
         </ButtonToolbar>
       </FormGroup>
     )
@@ -33,10 +33,7 @@ export function TicketOperation({ ticket, isCustomerService, onOperate }) {
             {t('resolutionConfirmed')}
           </Button>
           <Button onClick={() => onOperate('reopen')}>{t('unresolved')}</Button>
-          <MountCustomElement
-            point="ticket.metadata.action"
-            props={{ ticket, isCustomerService }}
-          />
+          {customAction}
         </ButtonToolbar>
       </Alert>
     )
@@ -47,10 +44,7 @@ export function TicketOperation({ ticket, isCustomerService, onOperate }) {
         <ControlLabel>{t('ticketOperation')}</ControlLabel>
         <ButtonToolbar>
           <Button onClick={() => onOperate('reopen')}>{t('reopen')}</Button>
-          <MountCustomElement
-            point="ticket.metadata.action"
-            props={{ ticket, isCustomerService }}
-          />
+          {customAction}
         </ButtonToolbar>
       </FormGroup>
     )
