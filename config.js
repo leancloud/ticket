@@ -1,3 +1,5 @@
+const { setGlobalVars } = require('./globalVar')
+
 let host
 switch (process.env.LEANCLOUD_APP_ENV) {
   case 'production':
@@ -19,9 +21,6 @@ module.exports = {
   leancloudAppUrl: process.env.LEANCLOUD_APP_URL_V2,
   sentryDSN: process.env.SENTRY_DSN,
   sentryDSNPublic: process.env.SENTRY_DSN_PUBLIC,
-  // Use HELP_EMAIL instead of SUPPORT_EMAIL, because there is a bug in LeanEngine.
-  // See #1830 of LeanEngine repo (private) for more information.
-  supportEmail: process.env.HELP_EMAIL,
 }
 
 const integrations = []
@@ -64,3 +63,16 @@ if (process.env.SLACK_TOKEN) {
 }
 
 module.exports.integrations = integrations
+
+setGlobalVars({
+  INTEGRATIONS: integrations.map((t) => t.name),
+  ENABLE_LEANCLOUD_INTEGRATION: !!process.env.ENABLE_LEANCLOUD_INTEGRATION,
+  LEANCLOUD_APP_ID: process.env.LEANCLOUD_APP_ID,
+  LEANCLOUD_APP_KEY: process.env.LEANCLOUD_APP_KEY,
+  LEANCLOUD_API_HOST: process.env.LEANCLOUD_API_HOST,
+  LEANCLOUD_APP_ENV: process.env.LEANCLOUD_APP_ENV,
+  LEANCLOUD_OAUTH_REGION: process.env.LEANCLOUD_REGION == 'US' ? 'us-w1' : 'cn-n1',
+  // Use HELP_EMAIL instead of SUPPORT_EMAIL, because there is a bug in LeanEngine.
+  // See #1830 of LeanEngine repo (private) for more information.
+  SUPPORT_EMAIL: process.env.HELP_EMAIL,
+})

@@ -3,21 +3,11 @@ import { Alert, Button, ButtonToolbar, ControlLabel, FormGroup } from 'react-boo
 import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 
-import { app } from '../../lib/leancloud'
 import { TICKET_STATUS, ticketStatus } from '../../lib/common'
-import { plugins } from '../plugin'
+import { MountCustomElement } from '../custom/element'
 
 export function TicketOperation({ ticket, isCustomerService, onOperate }) {
   const { t } = useTranslation()
-
-  const pluginNodes = plugins['ticket.metadata.action']?.map((element, i) =>
-    React.createElement(element, {
-      app,
-      ticket,
-      isCustomerService,
-      key: `ticket.metadata.action.${i}`,
-    })
-  )
 
   if (ticketStatus.isOpened(ticket.status)) {
     return (
@@ -26,7 +16,10 @@ export function TicketOperation({ ticket, isCustomerService, onOperate }) {
         <ButtonToolbar>
           <Button onClick={() => onOperate('resolve')}>{t('resolved')}</Button>
           <Button onClick={() => onOperate('close')}>{t('close')}</Button>
-          {pluginNodes}
+          <MountCustomElement
+            point="ticket.metadata.action"
+            props={{ ticket, isCustomerService }}
+          />
         </ButtonToolbar>
       </FormGroup>
     )
@@ -40,7 +33,10 @@ export function TicketOperation({ ticket, isCustomerService, onOperate }) {
             {t('resolutionConfirmed')}
           </Button>
           <Button onClick={() => onOperate('reopen')}>{t('unresolved')}</Button>
-          {pluginNodes}
+          <MountCustomElement
+            point="ticket.metadata.action"
+            props={{ ticket, isCustomerService }}
+          />
         </ButtonToolbar>
       </Alert>
     )
@@ -51,7 +47,10 @@ export function TicketOperation({ ticket, isCustomerService, onOperate }) {
         <ControlLabel>{t('ticketOperation')}</ControlLabel>
         <ButtonToolbar>
           <Button onClick={() => onOperate('reopen')}>{t('reopen')}</Button>
-          {pluginNodes}
+          <MountCustomElement
+            point="ticket.metadata.action"
+            props={{ ticket, isCustomerService }}
+          />
         </ButtonToolbar>
       </FormGroup>
     )

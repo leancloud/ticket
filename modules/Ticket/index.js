@@ -638,7 +638,7 @@ class Ticket extends Component {
             />
 
             <TicketOperation
-              isCustomerService
+              isCustomerService={isCustomerService}
               ticket={ticket.toJSON()}
               onOperate={this.operateTicket.bind(this)}
             />
