@@ -1,4 +1,4 @@
-const { setGlobalVars } = require('./globalVar')
+const { setClientGlobalVars } = require('./clientGlobalVar')
 
 let host
 switch (process.env.LEANCLOUD_APP_ENV) {
@@ -64,7 +64,7 @@ if (process.env.SLACK_TOKEN) {
 
 module.exports.integrations = integrations
 
-setGlobalVars({
+setClientGlobalVars({
   INTEGRATIONS: integrations.map((t) => t.name),
   ENABLE_LEANCLOUD_INTEGRATION: !!process.env.ENABLE_LEANCLOUD_INTEGRATION,
   LEANCLOUD_APP_ID: process.env.LEANCLOUD_APP_ID,

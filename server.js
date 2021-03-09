@@ -7,7 +7,7 @@ const Raven = require('raven')
 const AV = require('leanengine')
 
 const config = require('./config')
-const { globalVars } = require('./globalVar')
+const { clientGlobalVars } = require('./clientGlobalVar')
 const { refreshWebhooks } = require('./webhook')
 
 Raven.config(config.sentryDSN).install()
@@ -48,7 +48,7 @@ const getIndexPage = () => {
 <script src="/js/bootstrap.min.js"></script>
 <div id=app></div>
 <script>
-  Object.assign(window, ${JSON.stringify(globalVars)})
+  Object.assign(window, ${JSON.stringify(clientGlobalVars)})
   LEAN_CLI_HAVE_STAGING = '${process.env.LEAN_CLI_HAVE_STAGING}'
   SENTRY_DSN_PUBLIC = '${config.sentryDSNPublic || ''}'
   ORG_NAME = '${orgName}'

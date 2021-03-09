@@ -1,9 +1,9 @@
-const { setGlobalVars } = require('../globalVar')
+const { setClientGlobalVars } = require('../clientGlobalVar')
 
 function useServerPlugin(plugin) {
   console.log('Using plugin:', plugin.name)
-  if (plugin.globalVars) {
-    setGlobalVars(plugin.globalVars)
+  if (plugin.clientGlobalVars) {
+    setClientGlobalVars(plugin.clientGlobalVars)
   }
 }
 
