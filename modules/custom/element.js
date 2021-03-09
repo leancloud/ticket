@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { app } from '../../lib/leancloud'
 
 const elementsByMountPoint = {}
@@ -15,9 +16,11 @@ export function addCustomElement(element) {
 }
 
 export function MountCustomElement({ point, props }) {
+  const { t } = useTranslation()
+
   const elements = elementsByMountPoint[point]
   if (!elements) {
     return null
   }
-  return elements.map((el, key) => React.createElement(el, { ...props, key, app }))
+  return elements.map((el, key) => React.createElement(el, { ...props, key, app, t }))
 }
