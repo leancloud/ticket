@@ -36,7 +36,7 @@ export const isCustomerService = (user) => {
  * @param {Array<File>} files
  */
 export const uploadFiles = (files) => {
-  return Promise.all(files.map((file) => storage.upload(file.name, file)))
+  return Promise.all(_.map(files, (file) => storage.upload(file.name, file)))
 }
 
 export const fetchUsers = (userIds) => {
