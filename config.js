@@ -76,3 +76,7 @@ setClientGlobalVars({
   // See #1830 of LeanEngine repo (private) for more information.
   SUPPORT_EMAIL: process.env.HELP_EMAIL,
 })
+
+const { useServerPlugin } = require('./plugin/server')
+const { jiraServerPlugin } = require('./tgb/jira/server')
+useServerPlugin(jiraServerPlugin(process.env.TGB_JIRA_REDIRECT_URL))
