@@ -99,7 +99,7 @@ AV.Cloud.afterUpdate('Ticket', (req) => {
         })
         .catch(errorHandler.captureException)
     }
-    if (ticket.updatedKeys.includes('status') && !isTicketOpen(ticket.get('status'))) {
+    if (ticket.updatedKeys.includes('status') && !isTicketOpen(ticket)) {
       AV.Cloud.run('statsTicket', { ticketId: ticket.id }).catch(errorHandler.captureException)
     }
     if (ticket.updatedKeys.includes('evaluation')) {
