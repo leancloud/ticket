@@ -4,15 +4,7 @@ import { withRouter } from 'react-router-dom'
 import moment from 'moment'
 import _ from 'lodash'
 import xss from 'xss'
-import {
-  Alert,
-  Button,
-  ButtonToolbar,
-  ControlLabel,
-  FormGroup,
-  OverlayTrigger,
-  Tooltip,
-} from 'react-bootstrap'
+import { Button, OverlayTrigger, Tooltip } from 'react-bootstrap'
 import PropTypes from 'prop-types'
 import { auth, cloud, db } from '../../lib/leancloud'
 
@@ -20,7 +12,7 @@ import { uploadFiles, getCategoryPathName, getCategoriesTree } from '../common'
 import css from './index.css'
 import csCss from '../CustomerServiceTickets.css'
 
-import { TICKET_STATUS, isTicketOpen, getTinyCategoryInfo } from '../../lib/common'
+import { isTicketOpen, getTinyCategoryInfo } from '../../lib/common'
 import Evaluation from '../Evaluation'
 import TicketMetadata from './TicketMetadata'
 import TicketReply from './TicketReply'
@@ -29,6 +21,7 @@ import Tag from '../Tag'
 import { WeekendWarning } from '../components/WeekendWarning'
 import { UserLabel } from '../UserLabel'
 import { DocumentTitle } from '../utils/DocumentTitle'
+import { TicketOperation } from './TicketOperation'
 
 // get a copy of default whiteList
 const whiteList = xss.getDefaultWhiteList()
@@ -542,58 +535,6 @@ class Ticket extends Component {
       .sortBy((data) => data.createdAt)
       .map(this.ticketTimeline.bind(this))
       .value()
-    let optionButtons = null
-    const ticketStatus = ticket.get('status')
-    if (isTicketOpen(ticket)) {
-      optionButtons = (
-        <FormGroup>
-          <ControlLabel>{t('ticketOperation')}</ControlLabel>
-          <FormGroup>
-            <button
-              type="button"
-              className="btn btn-default"
-              onClick={() => this.operateTicket('resolve')}
-            >
-              {t('resolved')}
-            </button>{' '}
-            <button
-              type="button"
-              className="btn btn-default"
-              onClick={() => this.operateTicket('close')}
-            >
-              {t('close')}
-            </button>
-          </FormGroup>
-        </FormGroup>
-      )
-    } else if (ticketStatus === TICKET_STATUS.PRE_FULFILLED && !isCustomerService) {
-      optionButtons = (
-        <Alert bsStyle="warning">
-          <ControlLabel>{t('confirmResolved')}</ControlLabel>
-          <ButtonToolbar>
-            <Button bsStyle="primary" onClick={() => this.operateTicket('resolve')}>
-              {t('resolutionConfirmed')}
-            </Button>
-            <Button onClick={() => this.operateTicket('reopen')}>{t('unresolved')}</Button>
-          </ButtonToolbar>
-        </Alert>
-      )
-    } else if (isCustomerService) {
-      optionButtons = (
-        <FormGroup>
-          <ControlLabel>{t('ticketOperation')}</ControlLabel>
-          <FormGroup>
-            <button
-              type="button"
-              className="btn btn-default"
-              onClick={() => this.operateTicket('reopen')}
-            >
-              {t('reopen')}
-            </button>
-          </FormGroup>
-        </FormGroup>
-      )
-    }
 
     return (
       <div>
@@ -683,11 +624,9 @@ class Ticket extends Component {
           </div>
 
           <div className={'col-sm-4 ' + css.sidebar}>
-            {this.state.tags.map((tag) => {
-              return (
-                <Tag key={tag.id} tag={tag} ticket={ticket} isCustomerService={isCustomerService} />
-              )
-            })}
+            {this.state.tags.map((tag) => (
+              <Tag key={tag.id} tag={tag} ticket={ticket} isCustomerService={isCustomerService} />
+            ))}
 
             <TicketMetadata
               ticket={ticket}
@@ -698,7 +637,11 @@ class Ticket extends Component {
               saveTag={this.saveTag.bind(this)}
             />
 
-            {optionButtons}
+            <TicketOperation
+              isCustomerService={isCustomerService}
+              ticket={ticket.toJSON()}
+              onOperate={this.operateTicket.bind(this)}
+            />
           </div>
         </div>
       </div>

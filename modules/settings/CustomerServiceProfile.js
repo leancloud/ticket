@@ -3,10 +3,11 @@
 import React, { Component } from 'react'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
-import { Form, FormGroup, ControlLabel, FormControl, Button } from 'react-bootstrap'
+import { Button, ControlLabel, Form, FormControl, FormGroup, InputGroup } from 'react-bootstrap'
 import { auth, cloud } from '../../lib/leancloud'
 
 import Vacation from './Vacation'
+import { MountCustomElement } from '../custom/element'
 
 class CustomerServiceProfile extends Component {
   constructor(props) {
@@ -57,22 +58,25 @@ class CustomerServiceProfile extends Component {
           <Form>
             <FormGroup>
               <ControlLabel>{t('weCom')}</ControlLabel>
-              <FormControl
-                componentClass="select"
-                value={this.state.wechatUserId}
-                onChange={this.handleWechatIdChange.bind(this)}
-              >
-                <option key="undefined" value="">
-                  {t('unlinked')}
-                </option>
-                {wechatUserOptions}
-              </FormControl>
+              <InputGroup>
+                <FormControl
+                  componentClass="select"
+                  value={this.state.wechatUserId}
+                  onChange={this.handleWechatIdChange.bind(this)}
+                >
+                  <option key="undefined" value="">
+                    {t('unlinked')}
+                  </option>
+                  {wechatUserOptions}
+                </FormControl>
+                <InputGroup.Button>
+                  <Button onClick={this.handleSubmit.bind(this)}>{t('save')}</Button>
+                </InputGroup.Button>
+              </InputGroup>
             </FormGroup>
-            <Button type="button" onClick={this.handleSubmit.bind(this)}>
-              {t('save')}
-            </Button>
           </Form>
         )}
+        <MountCustomElement point="settings.customerServiceProfile.associatedAccounts" />
         <Vacation />
       </div>
     )

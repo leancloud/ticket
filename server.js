@@ -7,6 +7,7 @@ const Raven = require('raven')
 const AV = require('leanengine')
 
 const config = require('./config')
+const { clientGlobalVars } = require('./clientGlobalVar')
 const { refreshWebhooks } = require('./webhook')
 
 Raven.config(config.sentryDSN).install()
@@ -28,11 +29,10 @@ app.use(bodyParser.urlencoded({ extended: false }))
 
 app.use(require('./api'))
 
-const orgName = require('./api/oauth').orgName
+const { orgName } = require('./api/oauth')
 
 const getIndexPage = () => {
-  return `
-<!doctype html public "storage">
+  return `<!doctype html public "storage">
 <html>
 <meta charset=utf-8/>
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -48,22 +48,13 @@ const getIndexPage = () => {
 <script src="/js/bootstrap.min.js"></script>
 <div id=app></div>
 <script>
-  INTEGRATIONS = ${JSON.stringify(config.integrations.map((t) => t.name))}
-  LEANCLOUD_APP_ID = '${process.env.LEANCLOUD_APP_ID}'
-  LEANCLOUD_APP_KEY = '${process.env.LEANCLOUD_APP_KEY}'
-  LEANCLOUD_API_HOST = ${
-    process.env.LEANCLOUD_API_HOST ? '"' + process.env.LEANCLOUD_API_HOST + '"' : undefined
-  }
-  LEANCLOUD_APP_ENV = '${process.env.LEANCLOUD_APP_ENV}'
-  LEANCLOUD_OAUTH_REGION = '${process.env.LEANCLOUD_REGION == 'US' ? 'us-w1' : 'cn-n1'}'
+  Object.assign(window, ${JSON.stringify(clientGlobalVars)})
   LEAN_CLI_HAVE_STAGING = '${process.env.LEAN_CLI_HAVE_STAGING}'
   SENTRY_DSN_PUBLIC = '${config.sentryDSNPublic || ''}'
   ORG_NAME = '${orgName}'
   USE_OAUTH = ${!!process.env.OAUTH_KEY}
-  ENABLE_LEANCLOUD_INTEGRATION = ${!!process.env.ENABLE_LEANCLOUD_INTEGRATION}
   ALGOLIA_API_KEY = '${process.env.ALGOLIA_API_KEY || ''}'
   FAQ_VIEWS = '${process.env.FAQ_VIEWS || ''}'
-  SUPPORT_EMAIL = '${config.supportEmail || ''}'
 </script>
 <script src='${process.env.WEBPACK_DEV_SERVER || ''}/bundle.js'></script>
 <script>
@@ -76,8 +67,7 @@ const getIndexPage = () => {
       });
     }
   })
-</script>
-`
+</script>`
 }
 
 app.get('*', function (req, res) {
@@ -100,7 +90,7 @@ app.use(function (err, req, res, _next) {
   })
 })
 
-var PORT = parseInt(process.env.LEANCLOUD_APP_PORT || process.env.PORT || 8080)
+const PORT = parseInt(process.env.LEANCLOUD_APP_PORT || process.env.PORT || 8080)
 app.listen(PORT, function () {
   console.log('LeanTicket server running on:' + PORT)
 })
