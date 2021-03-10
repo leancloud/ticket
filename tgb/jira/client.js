@@ -1,71 +1,57 @@
 /* eslint-disable promise/catch-or-return */
 /* eslint-disable react/prop-types */
 
-import React, { useEffect, useRef, useState } from 'react'
-import { Button, ControlLabel, Form, FormControl, FormGroup, InputGroup } from 'react-bootstrap'
+import React, { useEffect, useState } from 'react'
+import { Button, ButtonToolbar, ControlLabel, FormGroup } from 'react-bootstrap'
 
-function CreateJireIssue({ app, ticket, isCustomerService }) {
-  const $form = useRef(null)
-  const [creating, setCreating] = useState(false)
-
-  const currentUser = app.auth().currentUser()
-  const redirectURL = window.TGB?.jira?.redirectURL
-  if (!isCustomerService || !redirectURL) {
-    return null
-  }
-
-  const handleSubmit = () => {
-    setCreating(true)
-    $form.current?.submit()
-  }
-
-  return (
-    <Button disabled={creating} bsStyle="primary" onClick={handleSubmit}>
-      <form method="post" action={redirectURL} ref={$form} style={{ display: 'none' }}>
-        <input type="hidden" name="sessionToken" value={currentUser.sessionToken} />
-        <input type="hidden" name="ticketId" value={ticket.objectId} />
-      </form>
-      <span className="glyphicon glyphicon-plus" aria-hidden="true" />
-      &nbsp;Jira Issue
-    </Button>
-  )
-}
-CreateJireIssue.mountPoint = 'ticket.metadata.action'
-
-function JiraAccessTokenForm({ t, app }) {
-  const currentUser = app.auth().currentUser()
-  const [accessToken, setAccessToken] = useState('')
+function TicketMetadataJiraSection({ app, ticket }) {
+  const [issueURL, setIssueURL] = useState('')
+  const [loading, setLoading] = useState(true)
   useEffect(() => {
-    app.cloud().run('TGB_getJiraAccessToken').then(setAccessToken)
+    app
+      .cloud()
+      .run('TGB_getJiraIssueURL', { ticketId: ticket.objectId })
+      .then((url) => {
+        setIssueURL(url)
+        setLoading(false)
+        return
+      })
   }, [])
 
-  const handleSaveAccessToken = () => {
-    currentUser.update({ 'authData.jira.access_token': accessToken })
+  const handleCreateIssue = () => {
+    setLoading(true)
+    app
+      .cloud()
+      .run('TGB_createJiraIssue', { ticketId: ticket.objectId })
+      .then((url) => {
+        setIssueURL(url)
+        setLoading(false)
+        return
+      })
   }
 
   return (
-    <Form>
-      <FormGroup>
-        <ControlLabel>Jira Access Token</ControlLabel>
-        <InputGroup>
-          <FormControl
-            type="text"
-            value={accessToken}
-            onChange={(e) => setAccessToken(e.target.value)}
-          />
-          <InputGroup.Button>
-            <Button onClick={handleSaveAccessToken}>{t('save')}</Button>
-          </InputGroup.Button>
-        </InputGroup>
-      </FormGroup>
-    </Form>
+    <FormGroup>
+      <ControlLabel>Jira</ControlLabel>
+      <ButtonToolbar>
+        {issueURL ? (
+          <Button href={issueURL} target="_blank">
+            <span className="glyphicon glyphicon-link" aria-hidden="true" /> Open Issue
+          </Button>
+        ) : (
+          <Button bsStyle="success" disabled={loading} onClick={handleCreateIssue}>
+            <span className="glyphicon glyphicon-plus" aria-hidden="true" /> Create Issue
+          </Button>
+        )}
+      </ButtonToolbar>
+    </FormGroup>
   )
 }
-JiraAccessTokenForm.mountPoint = 'settings.customerServiceProfile.associatedAccounts'
+TicketMetadataJiraSection.mountPoint = 'ticket.metadata'
 
 export function jiraClientPlugin() {
   return {
     name: 'TGB_Jira',
-    customElements: [CreateJireIssue, JiraAccessTokenForm],
+    customElements: [TicketMetadataJiraSection],
   }
 }
