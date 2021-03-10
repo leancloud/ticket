@@ -139,7 +139,10 @@ class TicketMetadata extends Component {
           </FormGroup>
         )}
 
-        <MountCustomElement point="ticket.metadata" props={{ ticket, isCustomerService }} />
+        <MountCustomElement
+          point="ticket.metadata"
+          props={{ isCustomerService, ticket: ticket.toJSON() }}
+        />
 
         {this.context.tagMetadatas.map((tagMetadata) => {
           const tags = ticket.get(tagMetadata.get('isPrivate') ? 'privateTags' : 'tags')
