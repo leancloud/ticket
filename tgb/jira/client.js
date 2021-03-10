@@ -5,24 +5,26 @@ import React, { useEffect, useState } from 'react'
 import { Button, ButtonToolbar, ControlLabel, FormGroup } from 'react-bootstrap'
 
 function TicketMetadataJiraSection({ app, ticket }) {
+  const ticketId = ticket.objectId
   const [issueURL, setIssueURL] = useState('')
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   useEffect(() => {
+    setLoading(true)
     app
       .cloud()
-      .run('TGB_getJiraIssueURL', { ticketId: ticket.objectId })
+      .run('TGB_getJiraIssueURL', { ticketId })
       .then((url) => {
         setIssueURL(url)
         setLoading(false)
         return
       })
-  }, [])
+  }, [ticketId])
 
   const handleCreateIssue = () => {
     setLoading(true)
     app
       .cloud()
-      .run('TGB_createJiraIssue', { ticketId: ticket.objectId })
+      .run('TGB_createJiraIssue', { ticketId })
       .then((url) => {
         setIssueURL(url)
         setLoading(false)
@@ -39,7 +41,7 @@ function TicketMetadataJiraSection({ app, ticket }) {
             <span className="glyphicon glyphicon-link" aria-hidden="true" /> Open Issue
           </Button>
         ) : (
-          <Button bsStyle="success" disabled={loading} onClick={handleCreateIssue}>
+          <Button disabled={loading} onClick={handleCreateIssue}>
             <span className="glyphicon glyphicon-plus" aria-hidden="true" /> Create Issue
           </Button>
         )}
