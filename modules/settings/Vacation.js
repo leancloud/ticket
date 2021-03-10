@@ -16,7 +16,7 @@ import { auth, db } from '../../lib/leancloud'
 
 import { getCustomerServices } from '../common'
 import { UserLabel } from '../UserLabel'
-import { userDisplayName } from '../../config.webapp'
+import { getUserDisplayName } from '../../lib/common'
 
 class Vacation extends Component {
   constructor(props) {
@@ -103,7 +103,7 @@ class Vacation extends Component {
     const userOptions = this.state.users.map((user) => {
       return (
         <option key={user.id} value={user.id}>
-          {userDisplayName(user.data)}
+          {getUserDisplayName(user)}
         </option>
       )
     })

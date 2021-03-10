@@ -6,7 +6,7 @@ import moment from 'moment'
 
 import css from './UserLabel.css'
 import { Avatar } from './Avatar'
-import { userDisplayName } from '../config.webapp'
+import { getUserDisplayName } from '../lib/common'
 
 const USER_TAG = {
   new: {
@@ -73,7 +73,7 @@ UserTags.propTypes = {
 }
 
 export function UserLabel({ user, simple, displayTags }) {
-  const name = userDisplayName(user)
+  const name = getUserDisplayName(user)
   if (simple) {
     return <span>{name}</span>
   }
