@@ -41,7 +41,7 @@ class OrganizationNew extends React.Component {
     try {
       const organization = await db.class('Organization').add({
         name,
-        ACL: db.ACL().allow(auth.currentUser(), 'write'),
+        ACL: db.ACL().allow(auth.currentUser, 'write'),
       })
       const adminRoleName = getOrganizationRoleName(organization, true)
       const memberRoleName = getOrganizationRoleName(organization)
@@ -52,12 +52,12 @@ class OrganizationNew extends React.Component {
       const adminRole = await auth.addRole({
         ACL,
         name: adminRoleName,
-        users: [auth.currentUser()],
+        users: [auth.currentUser],
       })
       const memberRole = await auth.addRole({
         ACL,
         name: memberRoleName,
-        users: [auth.currentUser()],
+        users: [auth.currentUser],
         roles: [adminRole],
       })
       await organization.update({ ACL, adminRole, memberRole })

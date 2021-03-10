@@ -32,7 +32,7 @@ class Subscriptions extends Component {
     const { page = '0', size = '10' } = qs.parse(this.props.location.search)
 
     db.class('Watch')
-      .where('user', '==', auth.currentUser())
+      .where('user', '==', auth.currentUser)
       .orderBy('updatedAt', 'desc')
       .include('ticket', 'ticket.author', 'ticket.assignee')
       .limit(parseInt(size))

@@ -87,7 +87,7 @@ class CustomerServiceTickets extends Component {
   findTickets(filters) {
     if (_.keys(filters).length === 0) {
       this.updateFilter({
-        assigneeId: auth.currentUser().id,
+        assigneeId: auth.currentUser.id,
         isOpen: 'true',
       })
       return Promise.resolve()
@@ -477,7 +477,7 @@ class CustomerServiceTickets extends Component {
       categoryTitle = t('all')
     }
 
-    const assignedToMe = auth.currentUser() && filters.assigneeId === auth.currentUser().id
+    const assignedToMe = auth.currentUser?.id === filters.assigneeId
     const ticketAdminFilters = (
       <Form inline className="form-group">
         <FormGroup>
@@ -516,7 +516,7 @@ class CustomerServiceTickets extends Component {
             <ButtonGroup>
               <Button
                 className={assignedToMe ? ' active' : ''}
-                onClick={() => this.updateFilter({ assigneeId: auth.currentUser().id })}
+                onClick={() => this.updateFilter({ assigneeId: auth.currentUser.id })}
               >
                 {t('assignedToMe')}
               </Button>

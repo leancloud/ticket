@@ -24,7 +24,7 @@ class Vacation extends Component {
     this.state = {
       users: [],
       vacations: [],
-      vacationerId: auth.currentUser().id,
+      vacationerId: auth.currentUser.id,
       startDate: moment().startOf('day'),
       isStartHalfDay: false,
       endDate: moment().add(1, 'days').startOf('day'),
@@ -39,10 +39,10 @@ class Vacation extends Component {
         .class('Vacation')
         .where([
           {
-            operator: auth.currentUser(),
+            operator: auth.currentUser,
           },
           {
-            vacationer: auth.currentUser(),
+            vacationer: auth.currentUser,
           },
         ])
         .include('vacationer', 'operator')

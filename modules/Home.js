@@ -7,7 +7,7 @@ export default function Home({ isCustomerService }) {
   const history = useHistory()
 
   useEffect(() => {
-    if (!auth.currentUser()) {
+    if (!auth.currentUser) {
       history.replace('/login')
       return
     }

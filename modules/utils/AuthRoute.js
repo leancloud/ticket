@@ -12,7 +12,7 @@ function BasicAuthWrapper({ children }) {
   const [pass, setPass] = useState(false)
 
   useEffect(() => {
-    if (auth.currentUser()) {
+    if (auth.currentUser) {
       setPass(true)
     } else {
       sessionStorage.setItem('LeanTicket:nextPathname', location.pathname)
@@ -30,7 +30,7 @@ function CSAuthWrapper({ children }) {
 
   useEffect(() => {
     setPass(false)
-    isCustomerService(auth.currentUser())
+    isCustomerService(auth.currentUser)
       .then((isCS) => {
         if (isCS) {
           setPass(true)

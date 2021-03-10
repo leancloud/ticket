@@ -24,12 +24,12 @@ class Categories extends Component {
     return Promise.all([
       getCategoriesTree(),
       getCustomerServices().then((users) => {
-        return _.reject(users, { id: auth.currentUser().id })
+        return _.reject(users, { id: auth.currentUser.id })
       }),
     ]).then(([categoriesTree, customerServices]) => {
       this.setState({
         categoriesTree,
-        checkedCategories: auth.currentUser().get('categories') || [],
+        checkedCategories: auth.currentUser.data.categories || [],
         customerServices,
       })
       return
@@ -48,13 +48,10 @@ class Categories extends Component {
     } else {
       categories = _.reject(categories, { objectId: categoryId })
     }
-    return auth
-      .currentUser()
-      .update({ categories })
-      .then(() => {
-        this.setState({ checkedCategories: categories })
-        return
-      })
+    return auth.currentUser.update({ categories }).then(() => {
+      this.setState({ checkedCategories: categories })
+      return
+    })
   }
 
   render() {

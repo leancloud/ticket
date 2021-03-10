@@ -17,7 +17,7 @@ export default function OrganizationSelect({ organizations, selectedOrgId, onOrg
           </option>
         ))}
         <option value="">
-          {t('individual')}: {userDisplayName(auth.currentUser().data)}
+          {t('individual')}: {userDisplayName(auth.currentUser.data)}
         </option>
       </FormControl>
     </FormGroup>

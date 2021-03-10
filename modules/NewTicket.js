@@ -222,8 +222,8 @@ class NewTicket extends React.Component {
                 key: 'appId',
                 value: this.state.appId,
                 ticket,
-                author: auth.currentUser(),
-                ACL: getTicketAcl(auth.currentUser(), ticket.get('organization')),
+                author: auth.currentUser,
+                ACL: getTicketAcl(auth.currentUser, ticket.get('organization')),
               })
             }
             return

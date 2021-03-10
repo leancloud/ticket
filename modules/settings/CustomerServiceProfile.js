@@ -14,7 +14,7 @@ class CustomerServiceProfile extends Component {
     super(props)
     this.state = {
       wechatUsers: [],
-      wechatUserId: auth.currentUser().data.wechatEnterpriseUserId,
+      wechatUserId: auth.currentUser.data.wechatEnterpriseUserId,
     }
   }
 
@@ -36,8 +36,7 @@ class CustomerServiceProfile extends Component {
 
   handleSubmit(e) {
     e.preventDefault()
-    auth
-      .currentUser()
+    auth.currentUser
       .update({
         wechatEnterpriseUserId: this.state.wechatUserId,
       })

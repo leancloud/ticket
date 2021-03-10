@@ -37,7 +37,7 @@ class Organization extends React.Component {
             nameChanged: false,
             admins,
             members,
-            isAdmin: !!_.find(admins, (u) => u.id == auth.currentUser().id),
+            isAdmin: !!_.find(admins, (u) => u.id === auth.currentUser.id),
           })
           return
         })
@@ -159,7 +159,7 @@ ${count} ${t('deleteOrganizationConsequence')}`)
       .then(() => {
         admins = _.reject(admins, user)
         members.push(user)
-        this.setState({ admins, members, isAdmin: user.id !== auth.currentUser().id })
+        this.setState({ admins, members, isAdmin: user.id !== auth.currentUser.id })
         return
       })
       .catch(this.context.addNotification)

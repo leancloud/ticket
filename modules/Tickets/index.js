@@ -58,7 +58,7 @@ class Tickets extends Component {
       )
     } else {
       query = query.where({
-        author: auth.currentUser(),
+        author: auth.currentUser,
         organization: db.cmd.or(null, db.cmd.notExists()),
       })
     }

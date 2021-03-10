@@ -17,7 +17,7 @@ export default class Messages extends Component {
   componentDidMount() {
     return db
       .class('Message')
-      .where('to', '==', auth.currentUser())
+      .where('to', '==', auth.currentUser)
       .include(['from', 'ticket', 'reply'])
       .orderBy('createdAt', 'desc')
       .limit(20)

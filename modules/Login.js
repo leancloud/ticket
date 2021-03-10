@@ -20,7 +20,7 @@ class Login extends Component {
   }
 
   componentDidMount() {
-    if (auth.currentUser()) {
+    if (auth.currentUser) {
       this.props.history.push('/')
       return
     }

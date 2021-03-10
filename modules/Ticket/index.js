@@ -69,7 +69,7 @@ class Ticket extends Component {
           db
             .class('Watch')
             .where('ticket', '==', ticket)
-            .where('user', '==', auth.currentUser())
+            .where('user', '==', auth.currentUser)
             .first(),
         ]).then(([privateTags, categoriesTree, replies, tags, opsLogs, watch]) => {
           if (privateTags) {
@@ -280,9 +280,9 @@ class Ticket extends Component {
       .class('Watch')
       .add({
         ticket: this.state.ticket,
-        user: auth.currentUser(),
+        user: auth.currentUser,
         ACL: {
-          [auth.currentUser().id]: { write: true, read: true },
+          [auth.currentUser.id]: { write: true, read: true },
         },
       })
       .then((watch) => {
