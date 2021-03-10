@@ -9,7 +9,8 @@ import DatePicker from 'react-datepicker'
 import randomColor from 'randomcolor'
 import Color from 'color'
 import { fetchUsers } from './common'
-import { offsetDays, userDisplayName } from '../config.webapp'
+import { getUserDisplayName } from '../lib/common'
+import { getConfig } from './config'
 import { cloud } from '../lib/leancloud'
 
 const ticketCountLineChartData = (statses, t) => {
@@ -111,7 +112,7 @@ const assigneeCountLineChartData = (statses, users) => {
           const user = _.find(users, (u) => u.id === key)
           lineData = {
             id: key,
-            label: (user && userDisplayName(user.data)) || key,
+            label: (user && getUserDisplayName(user)) || key,
             fill: true,
             borderColor: color,
             backgroundColor: Color(color).fade(0.9),
@@ -144,7 +145,7 @@ const firstReplyTimeLineChartData = (statses, users) => {
           const user = _.find(users, (u) => u.id === userId)
           lineData = {
             id: userId,
-            label: (user && userDisplayName(user.data)) || userId,
+            label: (user && getUserDisplayName(user)) || userId,
             fill: true,
             borderColor: color,
             backgroundColor: Color(color).fade(0.9),
@@ -177,7 +178,7 @@ const replyTimeLineChartData = (statses, users) => {
           const user = _.find(users, (u) => u.id === userId)
           lineData = {
             id: userId,
-            label: (user && userDisplayName(user.data)) || userId,
+            label: (user && getUserDisplayName(user)) || userId,
             fill: true,
             borderColor: color,
             backgroundColor: Color(color).fade(0.9),
@@ -200,6 +201,7 @@ const replyTimeLineChartData = (statses, users) => {
 class StatsChart extends React.Component {
   constructor(props) {
     super(props)
+    const offsetDays = getConfig('stats.offsetDays', 0)
     this.state = {
       startDate: moment().startOf('week').subtract(1, 'weeks').add(offsetDays, 'days'),
       endDate: moment().startOf('week').add(1, 'weeks').add(offsetDays, 'days'),

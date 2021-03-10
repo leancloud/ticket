@@ -7,7 +7,8 @@ import { Table, Button } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
 import { cloud, db } from '../lib/leancloud'
 import { fetchUsers } from './common'
-import { offsetDays, userDisplayName } from '../config.webapp'
+import { getUserDisplayName } from '../lib/common'
+import { getConfig } from './config'
 import { UserLabel } from './UserLabel'
 
 const sortAndIndexed = (datas, sortFn) => {
@@ -99,6 +100,7 @@ class StatsSummary extends React.Component {
         timeUnit: 'month',
       }
     } else {
+      const offsetDays = getConfig('stats.offsetDays', 0)
       return {
         startDate: moment().startOf('week').subtract(1, 'weeks').add(offsetDays, 'days'),
         endDate: moment().startOf('week').add(1, 'weeks').add(offsetDays, 'days'),
@@ -282,7 +284,7 @@ class StatsSummary extends React.Component {
     const activeTicketCountByAssigneeDoms = this.state.statsDatas.map((data) => {
       const body = data.activeTicketCountByAssignee.map((row) => {
         const user = _.find(this.state.users, (c) => c.id === row[0])
-        return [row[0], row.index, (user && userDisplayName(user)) || row[0], row[1]]
+        return [row[0], row.index, (user && getUserDisplayName(user)) || row[0], row[1]]
       })
       return <SummaryTable header={[t('rank'), t('staff'), t('activeTicket')]} body={body} />
     })
@@ -318,7 +320,7 @@ class StatsSummary extends React.Component {
           <Link
             to={`/customerService/stats/users/${userId}?start=${startTime.toISOString()}&end=${endTime.toISOString()}`}
           >
-            {(user && userDisplayName(user.data)) || userId}
+            {(user && getUserDisplayName(user)) || userId}
           </Link>,
           (replyTime / replyCount / 1000 / 60 / 60).toFixed(2) + ' ' + t('hour'),
           replyCount,
@@ -341,7 +343,7 @@ class StatsSummary extends React.Component {
           <Link
             to={`/customerService/stats/users/${userId}?start=${startTime.toISOString()}&end=${endTime.toISOString()}`}
           >
-            {(user && userDisplayName(user.data)) || userId}
+            {(user && getUserDisplayName(user)) || userId}
           </Link>,
           (replyTime / replyCount / 1000 / 60 / 60).toFixed(2) + ' ' + t('hour'),
           replyCount,

@@ -2,12 +2,12 @@ import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { Alert } from 'react-bootstrap'
 
-import { enableWeekendWarning } from '../../../config.webapp'
+import { getConfig } from '../../config'
 
 export function WeekendWarning() {
   const { t } = useTranslation()
 
-  if (!enableWeekendWarning) {
+  if (!getConfig('weekendWarning.enabled')) {
     return null
   }
   const day = new Date().getDay()

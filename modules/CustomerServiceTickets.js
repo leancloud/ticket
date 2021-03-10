@@ -34,13 +34,13 @@ import {
   TICKET_STATUS,
   TICKET_STATUS_MSG,
   TIME_RANGE_MAP,
+  getUserDisplayName,
   ticketOpenedStatuses,
   ticketClosedStatuses,
   isTicketOpen,
 } from '../lib/common'
 import TicketStatusLabel from './TicketStatusLabel'
 import { UserLabel } from './UserLabel'
-import { userDisplayName } from '../config.webapp'
 import { DocumentTitle } from './utils/DocumentTitle'
 
 let authorSearchTimeoutId
@@ -430,7 +430,7 @@ class CustomerServiceTickets extends Component {
     })
     const assigneeMenuItems = this.state.customerServices.map((user) => (
       <MenuItem key={user.id} eventKey={user.id}>
-        {userDisplayName(user.data)}
+        {getUserDisplayName(user)}
       </MenuItem>
     ))
     const categoryMenuItems = depthFirstSearchMap(this.state.categoriesTree, (c) => (
@@ -454,7 +454,7 @@ class CustomerServiceTickets extends Component {
     if (filters.assigneeId) {
       const assignee = this.state.customerServices.find((user) => user.id === filters.assigneeId)
       if (assignee) {
-        assigneeTitle = userDisplayName(assignee.data)
+        assigneeTitle = getUserDisplayName(assignee)
       } else {
         assigneeTitle = `assigneeId ${t('invalid')}`
       }

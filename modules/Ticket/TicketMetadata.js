@@ -12,7 +12,8 @@ import css from './index.css'
 import csCss from '../CustomerServiceTickets.css'
 import { depthFirstSearchFind } from '../../lib/common'
 import CategoriesSelect from '../CategoriesSelect'
-import { customTicketMetadataComments } from '../../config.webapp'
+import { getConfig } from '../config'
+import { MountCustomElement } from '../custom/element'
 
 class TicketMetadata extends Component {
   constructor(props) {
@@ -127,15 +128,18 @@ class TicketMetadata extends Component {
               if (!value) {
                 return null
               }
+              const comments = getConfig('ticket.metadata.customMetadata.comments', {})
               return (
                 <div className={css.customMetadata} key={key}>
-                  <span className={css.key}>{customTicketMetadataComments[key] || key}: </span>
+                  <span className={css.key}>{comments[key] || key}: </span>
                   {value}
                 </div>
               )
             })}
           </FormGroup>
         )}
+
+        <MountCustomElement point="ticket.metadata" props={{ ticket, isCustomerService }} />
 
         {this.context.tagMetadatas.map((tagMetadata) => {
           const tags = ticket.get(tagMetadata.get('isPrivate') ? 'privateTags' : 'tags')

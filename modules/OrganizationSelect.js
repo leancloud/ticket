@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import { FormGroup, FormControl, ControlLabel } from 'react-bootstrap'
 import { auth } from '../lib/leancloud'
-import { userDisplayName } from '../config.webapp'
+import { getUserDisplayName } from '../lib/common'
 
 export default function OrganizationSelect({ organizations, selectedOrgId, onOrgChange }) {
   const { t } = useTranslation()
@@ -17,7 +17,7 @@ export default function OrganizationSelect({ organizations, selectedOrgId, onOrg
           </option>
         ))}
         <option value="">
-          {t('individual')}: {userDisplayName(auth.currentUser.data)}
+          {t('individual')}: {getUserDisplayName(auth.currentUser)}
         </option>
       </FormControl>
     </FormGroup>

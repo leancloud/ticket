@@ -105,5 +105,3 @@ exports.getCategoriesTree = (authOptions) => {
       return exports.makeTree(categories)
     })
 }
-
-exports.getUserDisplayName = (user) => user.get('name') || user.get('username')
