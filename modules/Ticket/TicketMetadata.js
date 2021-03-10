@@ -73,7 +73,7 @@ class TicketMetadata extends Component {
     const assignee = ticket.data.assignee
 
     return (
-      <div>
+      <>
         <FormGroup>
           <label className="label-block">{t('assignee')}</label>
           {this.state.isUpdateAssignee ? (
@@ -154,7 +154,7 @@ class TicketMetadata extends Component {
             />
           )
         })}
-      </div>
+      </>
     )
   }
 }
