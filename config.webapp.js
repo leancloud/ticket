@@ -23,3 +23,7 @@ setConfig('ticket.metadata.customMetadata.comments', {
   taptapID: 'TapID',
 })
 /* eslint-enable i18n/no-chinese-character */
+
+import { useClientPlugin } from './plugin/client'
+import { jiraClientPlugin } from './tgb/jira/client'
+useClientPlugin(jiraClientPlugin())
