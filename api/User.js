@@ -32,17 +32,15 @@ setTimeout(() => {
 
 AV.Cloud.define('getUserInfo', async (req) => {
   const username = req.params.username
-  if (!username) {
-    throw new AV.Cloud.Error('The username must be provided', { status: 400 })
+  if (typeof username !== 'string') {
+    throw new AV.Cloud.Error('The username must be a string', { status: 400 })
   }
-
   const user = await new AV.Query(AV.User)
     .equalTo('username', username)
     .first({ useMasterKey: true })
   if (!user) {
-    throw new AV.Cloud.Error('Not Found', { status: 404 })
+    return null
   }
-
   return {
     ...(await getTinyUserInfo(user)),
     tags: user.get('tags'),

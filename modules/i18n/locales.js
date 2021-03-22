@@ -646,6 +646,10 @@ const messages = {
     'All time',
     '全部时间'
   ],
+  'today': [
+    'Today',
+    '今日'
+  ],
   'thisMonth': [
     'This month',
     '本月'

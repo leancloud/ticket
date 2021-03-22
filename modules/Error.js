@@ -1,4 +1,4 @@
-/*global SUPPORT_EMAIL*/
+/* global SUPPORT_EMAIL */
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation } from 'react-router'
@@ -13,7 +13,7 @@ export default function Error() {
         <h1 className="font-logo">{t('errorPage')}</h1>
         <hr />
         <p>{t('noErrorMessage')}</p>
-        {SUPPORT_EMAIL && (
+        {typeof SUPPORT_EMAIL === 'string' && (
           <p>
             {t('contactUs')} <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
           </p>
@@ -39,7 +39,7 @@ export default function Error() {
       <h1 className="font-logo">{t('somethingWrong')}</h1>
       <hr />
       <p>{message}</p>
-      {SUPPORT_EMAIL && (
+      {typeof SUPPORT_EMAIL === 'string' && (
         <p>
           {t('contactUs')} <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
         </p>
