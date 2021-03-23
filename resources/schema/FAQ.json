@@ -1,0 +1,60 @@
+{
+  "schema": {
+    "archived": {
+      "type": "Boolean",
+      "v": 2,
+      "required": false,
+      "hidden": false
+    },
+    "updatedAt": {
+      "type": "Date"
+    },
+    "ACL": {
+      "type": "ACL",
+      "default": {
+        "*": {
+          "read": true,
+          "write": true
+        }
+      }
+    },
+    "answer_HTML": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false
+    },
+    "objectId": {
+      "type": "String"
+    },
+    "question": {
+      "type": "String",
+      "v": 2,
+      "required": true,
+      "hidden": false
+    },
+    "priority_ios": {
+      "type": "Number",
+      "v": 2,
+      "required": false,
+      "auto_increment": false,
+      "hidden": false
+    },
+    "createdAt": {
+      "type": "Date"
+    },
+    "priority_android": {
+      "type": "Number",
+      "v": 2,
+      "required": false,
+      "auto_increment": false,
+      "hidden": false
+    },
+    "answer": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false
+    }
+  }
+}
