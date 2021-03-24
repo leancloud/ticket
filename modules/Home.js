@@ -12,7 +12,7 @@ export default function Home({ isCustomerService }) {
       return
     }
     if (isCustomerService) {
-      history.replace('/customerService/tickets')
+      history.replace('/customerService/tickets?assignee=me&isOpen=true')
     } else {
       history.replace('/tickets')
     }

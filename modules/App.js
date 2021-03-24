@@ -10,6 +10,7 @@ import i18next from 'i18next'
 
 import './i18n'
 import { auth, db } from '../lib/leancloud'
+import { AppContext } from './context'
 import { isCustomerService } from './common'
 import GlobalNav from './GlobalNav'
 import css from './App.css'
@@ -37,6 +38,7 @@ class App extends Component {
   constructor(props) {
     super(props)
     this.state = {
+      loading: true,
       currentUser: auth.currentUser,
       isCustomerService: false,
       organizations: [],
@@ -65,28 +67,17 @@ class App extends Component {
   componentDidMount() {
     this._notificationSystem = this.refs.notificationSystem
     const user = this.state.currentUser
-    if (!user) {
-      return
+    if (user) {
+      return user
+        .get()
+        .then((user) => this.refreshGlobalInfo(user))
+        .catch((err) => this.addNotification(err))
     }
-
-    return user
-      .get()
-      .then((user) => {
-        return this.refreshGlobalInfo(user)
-      })
-      .catch((err) => {
-        this.refreshGlobalInfo()
-        this.addNotification(err)
-      })
+    return this.refreshGlobalInfo()
   }
 
   fetchTagMetadatas() {
-    return db
-      .class('TagMetadata')
-      .find()
-      .then((tagMetadatas) => {
-        return tagMetadatas
-      })
+    return db.class('TagMetadata').find()
   }
 
   refreshTagMetadatas() {
@@ -98,9 +89,10 @@ class App extends Component {
     })
   }
 
-  refreshGlobalInfo(currentUser) {
+  async refreshGlobalInfo(currentUser) {
     if (!currentUser) {
       this.setState({
+        loading: false,
         currentUser: null,
         isCustomerService: false,
         organizations: [],
@@ -110,23 +102,26 @@ class App extends Component {
       return
     }
 
-    return Promise.all([
-      isCustomerService(currentUser),
-      db.class('Organization').include('memberRole').find(),
-      this.fetchTagMetadatas(),
-    ]).then(([isCustomerService, organizations, tagMetadatas]) => {
+    this.setState({ loading: true })
+    try {
+      const [isCS, organizations, tagMetadatas] = await Promise.all([
+        isCustomerService(currentUser),
+        db.class('Organization').include('memberRole').find(),
+        this.fetchTagMetadatas(),
+      ])
       this.setState({
         currentUser,
-        isCustomerService,
         organizations,
         tagMetadatas,
+        isCustomerService: isCS,
       })
       Raven.setUserContext({
         username: currentUser.get('username'),
         id: currentUser.id,
       })
-      return
-    })
+    } finally {
+      this.setState({ loading: false })
+    }
   }
 
   onLogin(user) {
@@ -189,52 +184,58 @@ class App extends Component {
     }
 
     return (
-      <div>
-        <GlobalNav
-          currentUser={this.state.currentUser}
-          isCustomerService={this.state.isCustomerService}
-          logout={this.logout.bind(this)}
-        />
-        <div className={'container ' + css.main}>
-          <Switch>
-            <Route path="/" exact>
-              <Home {...props} />
-            </Route>
-            <Route path="/about" component={About} />
-            <Route path="/login">
-              <Login {...props} />
-            </Route>
-            <AuthRoute path="/tickets" exact>
-              <Tickets {...props} />
-            </AuthRoute>
-            <AuthRoute path="/tickets/new">
-              <NewTicket {...props} />
-            </AuthRoute>
-            <AuthRoute path="/tickets/:nid">
-              <Ticket {...props} />
-            </AuthRoute>
-            <AuthRoute path="/messages">
-              <Messages {...props} />
-            </AuthRoute>
-            <AuthRoute path="/notifications">
-              <Notifications {...props} />
-            </AuthRoute>
-            <AuthRoute mustCustomerService path="/customerService">
-              <CustomerService />
-            </AuthRoute>
-            <AuthRoute path="/users/:username">
-              <User {...props} />
-            </AuthRoute>
-            <AuthRoute path="/settings">
-              <Settings {...props} />
-            </AuthRoute>
-            <Route path="/error" component={ErrorPage} />
-            <Route path="*" component={NotFound} />
-          </Switch>
-        </div>
+      <>
+        {!this.state.loading && (
+          <AppContext.Provider
+            value={{
+              isCustomerService: props.isCustomerService,
+              tagMetadatas: props.tagMetadatas,
+              addNotification: props.addNotification,
+            }}
+          >
+            <GlobalNav user={this.state.currentUser?.toJSON()} onLogout={this.logout.bind(this)} />
+            <div className={'container ' + css.main}>
+              <Switch>
+                <Route path="/" exact>
+                  <Home {...props} />
+                </Route>
+                <Route path="/about" component={About} />
+                <Route path="/login">
+                  <Login {...props} />
+                </Route>
+                <AuthRoute path="/tickets" exact>
+                  <Tickets {...props} />
+                </AuthRoute>
+                <AuthRoute path="/tickets/new">
+                  <NewTicket {...props} />
+                </AuthRoute>
+                <AuthRoute path="/tickets/:nid">
+                  <Ticket {...props} />
+                </AuthRoute>
+                <AuthRoute path="/messages">
+                  <Messages {...props} />
+                </AuthRoute>
+                <AuthRoute path="/notifications">
+                  <Notifications {...props} />
+                </AuthRoute>
+                <AuthRoute mustCustomerService path="/customerService">
+                  <CustomerService />
+                </AuthRoute>
+                <AuthRoute path="/users/:username">
+                  <User {...props} />
+                </AuthRoute>
+                <AuthRoute path="/settings">
+                  <Settings {...props} />
+                </AuthRoute>
+                <Route path="/error" component={ErrorPage} />
+                <Route path="*" component={NotFound} />
+              </Switch>
+            </div>
+          </AppContext.Provider>
+        )}
         <ServerNotification currentUser={this.state.currentUser} />
         <NotificationSystem ref="notificationSystem" />
-      </div>
+      </>
     )
   }
 }
@@ -281,9 +282,7 @@ class ServerNotification extends Component {
   }
 
   updateLiveQuery() {
-    if (this.messageLiveQuery) {
-      this.messageLiveQuery.unsubscribe()
-    }
+    this.messageLiveQuery?.unsubscribe()
     if (!this.props.currentUser) {
       return
     }
@@ -323,7 +322,7 @@ class ServerNotification extends Component {
   }
 
   componentWillUnmount() {
-    return this.messageLiveQuery.unsubscribe()
+    this.messageLiveQuery?.unsubscribe()
   }
 
   notify({ title, body }) {

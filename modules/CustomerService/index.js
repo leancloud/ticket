@@ -1,9 +1,9 @@
 import React from 'react'
 import { Route, Switch, useRouteMatch } from 'react-router-dom'
 
-import CSTickets from './CustomerServiceTickets'
-import CSStats from './CustomerServiceStats'
-import CSStatsUser from './CustomerServiceStats/User'
+import CSTickets from './Tickets'
+import CSStats from '../CustomerServiceStats'
+import CSStatsUser from '../CustomerServiceStats/User'
 
 export default function CustomerService(props) {
   const { path } = useRouteMatch()
@@ -11,7 +11,7 @@ export default function CustomerService(props) {
   return (
     <Switch>
       <Route path={`${path}/tickets`}>
-        <CSTickets {...props} />
+        <CSTickets />
       </Route>
       <Route path={`${path}/stats`} exact>
         <CSStats {...props} />
