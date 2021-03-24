@@ -84,45 +84,6 @@ export default function GlobalNav({ user, onLogout }) {
     localStorage.setItem('locale', lang)
   }
 
-  let links = [
-    {
-      name: 'tickets',
-      href: '/tickets',
-      title: t('ticketList'),
-      priority: 100,
-    },
-    {
-      name: 'about',
-      href: '/about',
-      title: t('about'),
-      priority: 90,
-    },
-    {
-      name: 'customerServiceTickets',
-      href: '/customerService/tickets?assignee=me&isOpen=true',
-      title: t('customerServiceTickets'),
-      priority: 80,
-      customerServiceOnly: true,
-    },
-    {
-      name: 'stats',
-      href: '/customerService/stats',
-      title: t('statistics'),
-      priority: 70,
-      customerServiceOnly: true,
-    },
-  ]
-  if (!isCustomerService) {
-    links = links.filter((link) => !link.customerServiceOnly)
-  }
-  links.forEach((link) => {
-    if (link.priority === undefined) {
-      link.priority = getConfig(`nav.${link.name}.priority`, 0)
-    }
-    link.href = getConfig(`nav.${link.name}.href`, link.href)
-  })
-  links.sort((link1, link2) => link2.priority - link1.priority)
-
   return (
     <nav className="navbar navbar-default navbar-fixed-top">
       <div className="container">
@@ -140,17 +101,35 @@ export default function GlobalNav({ user, onLogout }) {
             <span className="icon-bar"></span>
           </button>
           <Link className="navbar-brand font-logo" to="/">
-            LeanTicket
+            {getConfig('nav.home.title', 'LeanTicket')}
           </Link>
         </div>
 
         <div className="collapse navbar-collapse" id="global-navbar-collapse">
           <ul className="nav navbar-nav">
-            {links.map(({ name, href, title }) => (
-              <li key={name}>
-                <Link to={href}>{title}</Link>
+            {isCustomerService ? (
+              <>
+                <li>
+                  <Link
+                    to={getConfig(
+                      'nav.customerServiceTickets.href',
+                      '/customerService/tickets?assignee=me&isOpen=true'
+                    )}
+                  >
+                    {t('customerServiceTickets')}
+                  </Link>
+                </li>
+                <li>
+                  <Link to={getConfig('nav.stats.href', '/customerService/stats')}>
+                    {t('statistics')}
+                  </Link>
+                </li>
+              </>
+            ) : (
+              <li>
+                <Link to={getConfig('nav.tickets.href', '/tickets')}>{t('ticketList')}</Link>
               </li>
-            ))}
+            )}
           </ul>
 
           <ul className="nav navbar-nav navbar-right">
