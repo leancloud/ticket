@@ -16,6 +16,7 @@ import FAQ from './FAQ'
 import Categories from './Categories'
 import Category from './Category'
 import CategorySort from './CategorySort'
+import DynamicContent from './DynamicContent'
 
 export default function Settings(props) {
   const { path } = useRouteMatch()
@@ -62,6 +63,9 @@ export default function Settings(props) {
                 <li className="list-group-item">
                   <Link to="/settings/faqs">{t('FAQ')}</Link>
                 </li>
+                <li className="list-group-item">
+                  <Link to="/settings/dynamicContent">{t('dynamicContent')}</Link>
+                </li>
               </ul>
             </div>
           )}
@@ -106,6 +110,9 @@ export default function Settings(props) {
             </Route>
             <Route path={`${path}/categorySort`}>
               <CategorySort {...childrenProps} />
+            </Route>
+            <Route path={`${path}/dynamicContent`}>
+              <DynamicContent />
             </Route>
           </Switch>
         </div>

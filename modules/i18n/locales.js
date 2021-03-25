@@ -482,6 +482,11 @@ const messages = {
     'Ordered descending (0 means hidden)',
     '数字越大显示越靠前，设为 0 则不显示'
   ],
+  // DynamicContent
+  'dynamicContent': [
+    'Dynamic Content',
+    '动态内容'
+  ],
   // CustomerServiceProfile
   'associatedAccounts': [
     'Associated accounts',

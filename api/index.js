@@ -22,6 +22,7 @@ require('./Role')
 require('./stats')
 require('./Vacation')
 require('./FAQ')
+require('./DynamicContent')
 
 const loginCallbackPath = '/oauth/callback'
 const loginCallbackUrl = config.host + loginCallbackPath
