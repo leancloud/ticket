@@ -24,6 +24,8 @@ setConfig('ticket.metadata.customMetadata.comments', {
 })
 /* eslint-enable i18n/no-chinese-character */
 
+setConfig('nav.customerServiceTickets.href', '/customerService/tickets?isOpen=true')
+
 import { useClientPlugin } from './plugin/client'
 import { jiraClientPlugin } from './tgb/jira/client'
 useClientPlugin(jiraClientPlugin())
