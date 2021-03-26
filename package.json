@@ -37,7 +37,7 @@
     "css-loader": "^5.0.1",
     "css-minimizer-webpack-plugin": "^1.2.0",
     "docsearch.js": "^2.5.2",
-    "express": "^4.14.0",
+    "express": "^4.17.1",
     "highlight.js": "^9.10.0",
     "i18next": "^19.8.9",
     "leancloud-storage": "^3.13.2",
