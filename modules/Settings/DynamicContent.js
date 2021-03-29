@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import {
   Button,
   ButtonGroup,
@@ -13,10 +13,52 @@ import {
 } from 'react-bootstrap'
 import { Link, Route, Switch, useParams, useRouteMatch } from 'react-router-dom'
 import PropTypes from 'prop-types'
+import { createResourceHook, useTransform } from '@leancloud/use-resource'
 
 import { AppContext } from '../context'
-import { db } from '../../lib/leancloud'
+import { fetch } from '../../lib/leancloud'
 import { langs } from '../../lib/lang'
+
+const useDynamicContents = createResourceHook(() => {
+  return fetch('/api/1/dynamicContents')
+})
+
+const useSubDynamicContents = createResourceHook((name) => {
+  return fetch('/api/1/dynamicContents/' + name)
+})
+
+function addDynamicContent(name, lang, content) {
+  return fetch('/api/1/dynamicContents', {
+    method: 'POST',
+    body: { name, lang, content },
+  })
+}
+
+function deleteDynamicContent(name) {
+  return fetch('/api/1/dynamicContents/' + name, {
+    method: 'DELETE',
+  })
+}
+
+function addSubDynamicContent(name, lang, isDefault, content) {
+  return fetch('/api/1/dynamicContents/' + name, {
+    method: 'POST',
+    body: { lang, isDefault: !!isDefault, content },
+  })
+}
+
+function deleteSubDynamicContent(name, lang) {
+  return fetch(`/api/1/dynamicContents/${name}/${lang}`, {
+    method: 'DELETE',
+  })
+}
+
+function updateSubDynamicContent(name, lang, isDefault, content) {
+  return fetch(`/api/1/dynamicContents/${name}/${lang}`, {
+    method: 'PATCH',
+    body: { isDefault: !!isDefault, content },
+  })
+}
 
 function LanguageSelect({ value, onChange, disabled }) {
   return (
@@ -41,60 +83,68 @@ LanguageSelect.propTypes = {
   disabled: PropTypes.bool,
 }
 
-function AddDynamicContentModal({ show, onHide, onAdd, dcName }) {
+function AddDynamicContentModal({ show, onHide, onCreated, name }) {
   const { addNotification } = useContext(AppContext)
-  const [name, setName] = useState(dcName || '')
-  const [lang, setLang] = useState('')
-  const [isDefault, setIsDefault] = useState(false)
-  const [content, setContent] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [data, setData] = useState({})
   const [validationState, setValidationState] = useState({})
+  const [submitting, setSubmitting] = useState(false)
+  const $unmounted = useRef(false)
 
-  const validate = () => {
-    const state = {}
-    if (!name) {
-      state.name = 'error'
+  useEffect(() => {
+    if (show) {
+      setData({})
+      setValidationState({})
     }
-    if (!lang) {
-      state.lang = 'error'
+  }, [show])
+
+  useEffect(
+    () => () => {
+      $unmounted.current = true
+    },
+    []
+  )
+
+  const handleHideModal = () => {
+    if (!submitting) {
+      onHide?.()
     }
-    if (!content) {
-      state.content = 'error'
-    }
-    setValidationState(state)
-    return Object.keys(state).length === 0
   }
 
-  const handleAdd = async () => {
-    if (!validate()) {
+  const handleSubmit = async () => {
+    const newValidationState = {}
+    if (!name && !data.name) {
+      newValidationState.name = 'error'
+    }
+    if (!data.lang) {
+      newValidationState.lang = 'error'
+    }
+    if (!data.content) {
+      newValidationState.content = 'error'
+    }
+    if (Object.keys(newValidationState).length) {
+      setValidationState(newValidationState)
       return
     }
-    setLoading(true)
+    setSubmitting(true)
     try {
-      await db.class('DynamicContent').add({
-        name,
-        lang,
-        content,
-        isDefault: true,
-      })
-      onAdd?.()
-      setName(dcName || '')
-      setLang('')
-      setIsDefault(false)
-      setContent('')
-    } catch (error) {
-      if (error.code === 137) {
-        addNotification(`Dynamic content "${name}" already exists`)
+      if (name) {
+        await addSubDynamicContent(name, data.lang, data.isDefault, data.content)
       } else {
-        addNotification(error)
+        await addDynamicContent(data.name, data.lang, data.content)
       }
+      onCreated?.()
+      onHide?.()
+    } catch (error) {
+      addNotification(error)
     } finally {
-      setLoading(false)
+      if (!$unmounted.current) {
+        setSubmitting(false)
+      }
     }
   }
 
   return (
-    <Modal show={show} onHide={() => !loading && onHide?.()}>
+    <Modal show={show} onHide={handleHideModal}>
       <Modal.Header>
         <Modal.Title>Add dynamic content</Modal.Title>
       </Modal.Header>
@@ -102,38 +152,40 @@ function AddDynamicContentModal({ show, onHide, onAdd, dcName }) {
         <FormGroup validationState={validationState.name}>
           <ControlLabel>Name</ControlLabel>
           <FormControl
+            disabled={!!name}
             type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            disabled={!!dcName}
+            value={name || data.name || ''}
+            onChange={(e) => setData({ ...data, name: e.target.value })}
           />
         </FormGroup>
         <FormGroup validationState={validationState.lang}>
-          <ControlLabel>{dcName ? 'Language' : 'Default Language'}</ControlLabel>
-          <LanguageSelect value={lang} onChange={setLang} />
+          <ControlLabel>{name ? 'Language' : 'Default language'}</ControlLabel>
+          <LanguageSelect value={data.lang || ''} onChange={(lang) => setData({ ...data, lang })} />
         </FormGroup>
-        <Checkbox
-          checked={dcName ? isDefault : true}
-          onChange={() => setIsDefault((v) => !v)}
-          disabled={!dcName}
-        >
-          Is default
-        </Checkbox>
+        {name && (
+          <Checkbox
+            disabled={!!data.isDefault}
+            checked={!!data.isDefault}
+            onChange={() => setData({ ...data, isDefault: !data.isDefault })}
+          >
+            Is default
+          </Checkbox>
+        )}
         <FormGroup validationState={validationState.content}>
           <ControlLabel>Content</ControlLabel>
           <FormControl
             componentClass="textarea"
             rows="5"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
+            value={data.content || ''}
+            onChange={(e) => setData({ ...data, content: e.target.value })}
           />
         </FormGroup>
       </Modal.Body>
       <Modal.Footer>
-        <Button disabled={loading} onClick={onHide}>
+        <Button disabled={submitting} onClick={onHide}>
           Cancel
         </Button>
-        <Button bsStyle="primary" disabled={loading} onClick={handleAdd}>
+        <Button bsStyle="primary" disabled={submitting} onClick={handleSubmit}>
           Add
         </Button>
       </Modal.Footer>
@@ -143,144 +195,150 @@ function AddDynamicContentModal({ show, onHide, onAdd, dcName }) {
 AddDynamicContentModal.propTypes = {
   show: PropTypes.bool,
   onHide: PropTypes.func,
-  onAdd: PropTypes.func,
-  dcName: PropTypes.string,
+  onCreated: PropTypes.func,
+  name: PropTypes.string,
 }
 
-function EditDynamicContentModal({ dynamicContent, show, onHide, onEdit }) {
+function EditDynamicContentModal({ show, onHide, initData, onUpdated }) {
   const { addNotification } = useContext(AppContext)
-  const [isDefault, setIsDefault] = useState(false)
-  const [content, setContent] = useState('')
-  const [loading, setLoading] = useState(false)
-  useEffect(() => {
-    if (dynamicContent) {
-      setIsDefault(!!dynamicContent.isDefault)
-      setContent(dynamicContent.content)
-    }
-  }, [dynamicContent])
+  const [data, setData] = useState({})
+  const [validationState, setValidationState] = useState({})
+  const [submitting, setSubmitting] = useState(false)
+  const $unmounted = useRef(false)
 
-  const handleChange = async () => {
-    setLoading(true)
+  useEffect(() => {
+    if (show) {
+      setData({ ...initData })
+      setValidationState({})
+    }
+  }, [show])
+
+  useEffect(
+    () => () => {
+      $unmounted.current = true
+    },
+    []
+  )
+
+  const handleHideModal = () => {
+    if (!submitting) {
+      onHide?.()
+    }
+  }
+
+  const handleSubmit = async () => {
+    const newValidationState = {}
+    if (!data.name) {
+      newValidationState.name = 'error'
+    }
+    if (!data.lang) {
+      newValidationState.lang = 'error'
+    }
+    if (!data.content) {
+      newValidationState.content = 'error'
+    }
+    if (Object.keys(newValidationState).length) {
+      setValidationState(newValidationState)
+      return
+    }
+    setSubmitting(true)
     try {
-      await db
-        .class('DynamicContent')
-        .object(dynamicContent.objectId)
-        .update({
-          content,
-          isDefault: dynamicContent.isDefault ? undefined : isDefault,
-        })
-      onEdit?.()
+      await updateSubDynamicContent(data.name, data.lang, !!data.isDefault, data.content)
+      onUpdated?.()
+      onHide?.()
     } catch (error) {
       addNotification(error)
     } finally {
-      setLoading(false)
+      if (!$unmounted.current) {
+        setSubmitting(false)
+      }
     }
   }
 
-  if (!dynamicContent) {
-    return null
-  }
   return (
-    <Modal show={show} onHide={() => !loading && onHide?.()}>
+    <Modal show={show} onHide={handleHideModal}>
       <Modal.Header>
         <Modal.Title>Edit dynamic content</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <FormGroup>
+        <FormGroup validationState={validationState.name}>
           <ControlLabel>Name</ControlLabel>
-          <FormControl type="text" value={dynamicContent.name} disabled />
+          <FormControl
+            disabled
+            type="text"
+            value={data.name || ''}
+            onChange={(e) => setData({ ...data, name: e.target.value })}
+          />
         </FormGroup>
-        <FormGroup>
+        <FormGroup validationState={validationState?.lang}>
           <ControlLabel>Language</ControlLabel>
-          <LanguageSelect value={dynamicContent.lang} disabled />
+          <LanguageSelect
+            disabled
+            value={data.lang || ''}
+            onChange={(lang) => setData({ ...data, lang })}
+          />
         </FormGroup>
         <Checkbox
-          checked={isDefault}
-          onChange={() => setIsDefault((v) => !v)}
-          disabled={dynamicContent.isDefault}
+          disabled={!!data.isDefault}
+          checked={!!data.isDefault}
+          onChange={() => setData({ ...data, isDefault: !data.isDefault })}
         >
           Is default
         </Checkbox>
-        <FormGroup>
+        <FormGroup validationState={validationState.content}>
           <ControlLabel>Content</ControlLabel>
           <FormControl
             componentClass="textarea"
             rows="5"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
+            value={data.content || ''}
+            onChange={(e) => setData({ ...data, content: e.target.value })}
           />
         </FormGroup>
       </Modal.Body>
       <Modal.Footer>
-        <Button disabled={loading} onClick={onHide}>
+        <Button disabled={submitting} onClick={onHide}>
           Cancel
         </Button>
-        <Button bsStyle="primary" disabled={loading} onClick={handleChange}>
-          Change
+        <Button bsStyle="primary" disabled={submitting} onClick={handleSubmit}>
+          Update
         </Button>
       </Modal.Footer>
     </Modal>
   )
 }
 EditDynamicContentModal.propTypes = {
-  dynamicContent: PropTypes.object,
   show: PropTypes.bool,
   onHide: PropTypes.func,
-  onEdit: PropTypes.func,
+  onUpdated: PropTypes.func,
+  initData: PropTypes.object,
 }
 
 function DynamicContentList() {
   const { addNotification } = useContext(AppContext)
-  const [DCList, setDCList] = useState([])
+  const [dynamicContents, { loading, reload, error }] = useDynamicContents()
   const [show, setShow] = useState(false)
-  const $unmounted = useRef(false)
-  useEffect(
-    () => () => {
-      $unmounted.current = false
-    },
-    []
-  )
 
-  const reload = async () => {
-    if ($unmounted.current) {
-      return
-    }
-    try {
-      const objects = await db
-        .class('DynamicContent')
-        .where('isDefault', '==', true)
-        .orderBy('name')
-        .find()
-      if ($unmounted.current) {
-        return
-      }
-      setDCList(objects.map((o) => o.toJSON()).sort((o1, o2) => o1.name - o2.name))
-    } catch (error) {
-      addNotification(error)
-    }
+  if (error) {
+    addNotification(error)
+  }
+  if (loading) {
+    return 'Loading...'
   }
 
-  useEffect(() => {
-    reload()
-  }, [])
-
-  const handleDelete = (id) => {
-    db.class('DynamicContent').object(id).delete().then(reload).catch(addNotification)
+  const handleDelete = (name) => {
+    deleteDynamicContent(name).then(reload).catch(addNotification)
   }
 
   return (
     <>
       <ButtonToolbar>
-        <Button onClick={() => setShow(true)}>Add</Button>
+        <Button disabled={loading} onClick={() => setShow(true)}>
+          Add
+        </Button>
       </ButtonToolbar>
-      <AddDynamicContentModal
-        show={show}
-        onHide={() => setShow(false)}
-        onAdd={() => {
-          reload()
-          setShow(false)
-        }}
-      />
+
+      <AddDynamicContentModal show={show} onHide={() => setShow(false)} onCreated={reload} />
+
       <Table condensed hover style={{ marginTop: 10 }}>
         <thead>
           <tr>
@@ -290,14 +348,14 @@ function DynamicContentList() {
           </tr>
         </thead>
         <tbody>
-          {DCList.map(({ objectId, name, lang }) => (
+          {dynamicContents.map(({ objectId, name, lang }) => (
             <tr key={objectId}>
               <td>
                 <Link to={`/settings/dynamicContent/${name}`}>{name}</Link>
               </td>
               <td>{langs[lang] || lang}</td>
               <td>
-                <Button bsSize="xsmall" bsStyle="danger" onClick={() => handleDelete(objectId)}>
+                <Button bsSize="xsmall" bsStyle="danger" onClick={() => handleDelete(name)}>
                   Delete
                 </Button>
               </td>
@@ -311,45 +369,40 @@ function DynamicContentList() {
 
 function DynamicContentDetail() {
   const { name } = useParams()
-  const [DCList, setDCList] = useState([])
   const { addNotification } = useContext(AppContext)
-  const [editingDC, setEditingDC] = useState()
-
-  const reload = async () => {
-    try {
-      const objects = await db.class('DynamicContent').where('name', '==', name).find()
-      setDCList(
-        objects
-          .map((o) => {
-            const json = o.toJSON()
-            json.langName = langs[json.lang] || json.lang
-            return json
-          })
-          .sort((o1, o2) => (o1.langName > o2.langName ? 1 : -1))
-      )
-    } catch (error) {
-      addNotification(error)
-    }
-  }
-
-  useEffect(() => {
-    reload()
-  }, [])
-
+  const [editingData, setEditingData] = useState({})
+  const [dynamicContents, { loading, reload, error }] = useTransform(
+    useSubDynamicContents([name]),
+    useCallback((dcs) => {
+      return dcs
+        ?.map((dc) => ({
+          ...dc,
+          name,
+          langName: langs[dc.lang] || dc.lang,
+        }))
+        .sort((o1, o2) => (o1.langName > o2.langName ? 1 : -1))
+    }, [])
+  )
   const [showAddModal, setShowAddModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
 
-  const handleEdit = (id) => {
-    const dc = DCList.find((dc) => dc.objectId === id)
-    if (dc) {
-      setEditingDC(dc)
+  const handleDelete = (lang) => {
+    deleteSubDynamicContent(name, lang).then(reload).catch(addNotification)
+  }
+  const handleEdit = (lang) => {
+    const data = dynamicContents.find((dc) => dc.lang === lang)
+    if (data) {
+      setEditingData(data)
       setShowEditModal(true)
     }
   }
-  const handleDelete = (id) => {
-    db.class('DynamicContent').object(id).delete().then(reload).catch(addNotification)
-  }
 
+  if (error) {
+    addNotification(error)
+  }
+  if (loading) {
+    return 'Loading...'
+  }
   return (
     <>
       <div>
@@ -361,22 +414,16 @@ function DynamicContentDetail() {
       </ButtonToolbar>
 
       <AddDynamicContentModal
-        dcName={name}
+        name={name}
         show={showAddModal}
         onHide={() => setShowAddModal(false)}
-        onAdd={() => {
-          reload()
-          setShowAddModal(false)
-        }}
+        onCreated={reload}
       />
       <EditDynamicContentModal
-        dynamicContent={editingDC}
         show={showEditModal}
         onHide={() => setShowEditModal(false)}
-        onEdit={() => {
-          reload()
-          setShowEditModal(false)
-        }}
+        initData={editingData}
+        onUpdated={reload}
       />
 
       <Table responsive condensed hover style={{ marginTop: 10 }}>
@@ -388,7 +435,7 @@ function DynamicContentDetail() {
           </tr>
         </thead>
         <tbody>
-          {DCList.map(({ objectId, langName, content, isDefault }) => (
+          {dynamicContents.map(({ objectId, lang, langName, content, isDefault }) => (
             <tr key={objectId}>
               <td>
                 {langName} {isDefault && <Label bsStyle="default">Default</Label>}
@@ -400,11 +447,11 @@ function DynamicContentDetail() {
                     bsSize="xsmall"
                     bsStyle="danger"
                     disabled={isDefault}
-                    onClick={() => handleDelete(objectId)}
+                    onClick={() => handleDelete(lang)}
                   >
                     Delete
                   </Button>
-                  <Button bsSize="xsmall" onClick={() => handleEdit(objectId)}>
+                  <Button bsSize="xsmall" onClick={() => handleEdit(lang)}>
                     Edit
                   </Button>
                 </ButtonGroup>

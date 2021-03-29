@@ -43,9 +43,7 @@
   },
   "permissions": {
     "create": {
-      "roles": [
-        "customerService"
-      ],
+      "roles": [],
       "users": []
     },
     "find": {
@@ -55,10 +53,12 @@
       "*": true
     },
     "update": {
-      "*": true
+      "roles": [],
+      "users": []
     },
     "delete": {
-      "*": true
+      "roles": [],
+      "users": []
     },
     "add_fields": {
       "roles": [],
