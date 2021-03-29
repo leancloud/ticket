@@ -468,7 +468,7 @@ export default function DynamicContent() {
   const { path } = useRouteMatch()
   return (
     <Switch>
-      <Route path={`${path}`} exact>
+      <Route path={path} exact>
         <DynamicContentList />
       </Route>
       <Route path={`${path}/:name`}>
