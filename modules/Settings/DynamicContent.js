@@ -20,41 +20,41 @@ import { fetch } from '../../lib/leancloud'
 import { langs } from '../../lib/lang'
 
 const useDynamicContents = createResourceHook(() => {
-  return fetch('/api/1/dynamicContents')
+  return fetch('/api/1/dynamic-contents')
 })
 
 const useSubDynamicContents = createResourceHook((name) => {
-  return fetch('/api/1/dynamicContents/' + name)
+  return fetch('/api/1/dynamic-contents/' + name)
 })
 
 function addDynamicContent(name, lang, content) {
-  return fetch('/api/1/dynamicContents', {
+  return fetch('/api/1/dynamic-contents', {
     method: 'POST',
     body: { name, lang, content },
   })
 }
 
 function deleteDynamicContent(name) {
-  return fetch('/api/1/dynamicContents/' + name, {
+  return fetch('/api/1/dynamic-contents/' + name, {
     method: 'DELETE',
   })
 }
 
 function addSubDynamicContent(name, lang, isDefault, content) {
-  return fetch('/api/1/dynamicContents/' + name, {
+  return fetch('/api/1/dynamic-contents/' + name, {
     method: 'POST',
     body: { lang, isDefault: !!isDefault, content },
   })
 }
 
 function deleteSubDynamicContent(name, lang) {
-  return fetch(`/api/1/dynamicContents/${name}/${lang}`, {
+  return fetch(`/api/1/dynamic-contents/${name}/${lang}`, {
     method: 'DELETE',
   })
 }
 
 function updateSubDynamicContent(name, lang, isDefault, content) {
-  return fetch(`/api/1/dynamicContents/${name}/${lang}`, {
+  return fetch(`/api/1/dynamic-contents/${name}/${lang}`, {
     method: 'PATCH',
     body: { isDefault: !!isDefault, content },
   })
