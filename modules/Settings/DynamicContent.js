@@ -164,7 +164,6 @@ function AddDynamicContentModal({ show, onHide, onCreated, name }) {
         </FormGroup>
         {name && (
           <Checkbox
-            disabled={!!data.isDefault}
             checked={!!data.isDefault}
             onChange={() => setData({ ...data, isDefault: !data.isDefault })}
           >
@@ -279,7 +278,7 @@ function EditDynamicContentModal({ show, onHide, initData, onUpdated }) {
           />
         </FormGroup>
         <Checkbox
-          disabled={!!data.isDefault}
+          disabled={!!initData.isDefault}
           checked={!!data.isDefault}
           onChange={() => setData({ ...data, isDefault: !data.isDefault })}
         >
