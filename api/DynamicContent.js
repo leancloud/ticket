@@ -4,7 +4,7 @@ const { checkSchema } = require('express-validator')
 const { langs } = require('../lib/lang')
 const { requireAuth, customerServiceOnly, catchError } = require('./middleware')
 
-const DYNAMIC_CONTENT_NAME_REGEX = /^[a-zA-Z_]+\w+$/
+const DYNAMIC_CONTENT_NAME_REGEX = /^[a-zA-Z_]+\w*$/
 
 async function unsetDefaultDynamicContent(name) {
   const objects = await new AV.Query('DynamicContent')
