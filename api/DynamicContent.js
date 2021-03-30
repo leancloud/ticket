@@ -1,7 +1,7 @@
 const AV = require('leanengine')
 const { Router } = require('express')
-const { checkSchema } = require('express-validator')
-const { langs } = require('../lib/lang')
+const { check } = require('express-validator')
+const { locales } = require('../lib/locale')
 const { requireAuth, customerServiceOnly, catchError } = require('./middleware')
 
 const DYNAMIC_CONTENT_NAME_REGEX = /^[a-zA-Z_]+\w*$/
@@ -9,10 +9,26 @@ const DYNAMIC_CONTENT_NAME_REGEX = /^[a-zA-Z_]+\w*$/
 async function unsetDefaultDynamicContent(name) {
   const objects = await new AV.Query('DynamicContent')
     .equalTo('name', name)
-    .equalTo('isDefault', true)
+    .equalTo('default', true)
     .find({ useMasterKey: true })
-  objects.forEach((o) => o.unset('isDefault'))
+  objects.forEach((o) => o.unset('default'))
   await AV.Object.saveAll(objects, { useMasterKey: true })
+}
+
+function assertLocaleIsValid(locale) {
+  if (locale in locales) {
+    return true
+  }
+  throw new Error('Invalid locale')
+}
+
+function assertNameIsValid(name) {
+  if (DYNAMIC_CONTENT_NAME_REGEX.test(name)) {
+    return true
+  }
+  throw new Error(
+    'Dynamic content name can only contain letters, underscores, numbers and cannot start with a number'
+  )
 }
 
 const router = Router().use(requireAuth)
@@ -20,62 +36,28 @@ const router = Router().use(requireAuth)
 router.post(
   '/',
   customerServiceOnly,
-  checkSchema({
-    name: {
-      isString: true,
-      isLength: {
-        options: { min: 1 },
-      },
-      custom: {
-        options: (value) => {
-          if (DYNAMIC_CONTENT_NAME_REGEX.test(value)) {
-            return true
-          }
-          throw new Error(
-            'Dynamic content name can only contain letters, underscores, numbers and cannot start with a number'
-          )
-        },
-      },
-    },
-    lang: {
-      toLowerCase: true,
-      custom: {
-        options: (value) => {
-          if (value in langs) {
-            return true
-          }
-          throw new Error('Unknown language')
-        },
-      },
-    },
-    content: {
-      isString: true,
-      isLength: {
-        options: { min: 1 },
-      },
-    },
-  }),
+  check('name').isString().isLength({ min: 1 }).custom(assertNameIsValid),
+  check('locale').isString().toLowerCase().custom(assertLocaleIsValid),
+  check('content').isString().isLength({ min: 1 }),
   catchError(async (req, res) => {
-    const { name, lang, content } = req.body
-    const defaultDC = await new AV.Query('DynamicContent')
+    const { name, locale, content } = req.body
+    let dc = await new AV.Query('DynamicContent')
       .select('objectId')
       .equalTo('name', name)
-      .equalTo('isDefault', true)
+      .equalTo('default', true)
       .first({ useMasterKey: true })
-
-    if (defaultDC) {
+    if (dc) {
       res.throw(409, 'Already exists')
     }
-
-    const dc = await new AV.Object('DynamicContent', {
+    dc = await new AV.Object('DynamicContent', {
       ACL: {
         '*': { read: true },
         'role:customerService': { read: true, write: true },
       },
       name,
-      lang,
+      default: true,
+      locale,
       content,
-      isDefault: true,
     }).save(null, { useMasterKey: true })
     res.json({ objectId: dc.id })
   })
@@ -85,32 +67,44 @@ router.get(
   '/',
   catchError(async (req, res) => {
     const objects = await new AV.Query('DynamicContent')
-      .select('name', 'content', 'lang')
-      .equalTo('isDefault', true)
+      .select('name', 'locale', 'content')
+      .equalTo('default', true)
       .ascending('name')
       .find({ useMasterKey: true })
-    res.json(objects)
+    const items = objects.map((o) => ({
+      name: o.get('name'),
+      variants: [
+        {
+          default: true,
+          locale: o.get('locale'),
+          content: o.get('content'),
+        },
+      ],
+    }))
+    res.json(items)
   })
 )
 
 router.param(
   'name',
   catchError((req, res, next, name) => {
-    if (DYNAMIC_CONTENT_NAME_REGEX.test(name)) {
+    try {
+      assertNameIsValid(name)
       next()
-    } else {
+    } catch {
       res.throw(400, 'Invalid name')
     }
   })
 )
 
 router.param(
-  'lang',
-  catchError((req, res, next, lang) => {
-    if (lang in langs) {
+  'locale',
+  catchError((req, res, next, locale) => {
+    try {
+      assertLocaleIsValid(locale)
       next()
-    } else {
-      res.throw(400, 'Unknown language')
+    } catch {
+      res.throw(400, 'Invalid locale')
     }
   })
 )
@@ -118,96 +112,22 @@ router.param(
 router.get(
   '/:name',
   catchError(async (req, res) => {
+    const { name } = req.params
     const objects = await new AV.Query('DynamicContent')
-      .select('lang', 'isDefault', 'content')
-      .equalTo('name', req.params.name)
+      .select('default', 'locale', 'content')
+      .equalTo('name', name)
       .find({ useMasterKey: true })
     if (objects.length === 0) {
       res.throw(404, 'Not Found')
     }
-    res.json(objects)
-  })
-)
-
-router.post(
-  '/:name',
-  customerServiceOnly,
-  checkSchema({
-    lang: {
-      toLowerCase: true,
-      custom: {
-        options: (value) => {
-          if (value in langs) {
-            return true
-          }
-          throw new Error('Unknown language')
-        },
-      },
-    },
-    isDefault: {
-      isBoolean: true,
-      optional: {
-        options: { nullable: true },
-      },
-    },
-    content: {
-      isString: true,
-      isLength: {
-        options: { min: 1 },
-      },
-    },
-  }),
-  catchError(async (req, res) => {
-    const { name } = req.params
-    const { lang, isDefault, content } = req.body
-    const defaultDCs = await new AV.Query('DynamicContent')
-      .equalTo('name', name)
-      .equalTo('isDefault', true)
-      .find({ useMasterKey: true })
-    if (isDefault && defaultDCs.length) {
-      defaultDCs.forEach((o) => o.unset('isDefault'))
-      await AV.Object.saveAll(defaultDCs, { useMasterKey: true })
-    }
-    const dc = await new AV.Object('DynamicContent', {
-      ACL: {
-        '*': { read: true },
-        'role:customerService': { read: true, write: true },
-      },
+    res.json({
       name,
-      lang,
-      content,
-      isDefault: isDefault || defaultDCs.length === 0 || undefined,
-    }).save(null, { useMasterKey: true })
-    res.json({ objectId: dc.id })
-  })
-)
-
-router.patch(
-  '/:name/:lang',
-  customerServiceOnly,
-  catchError(async (req, res) => {
-    const { name, lang } = req.params
-    const { isDefault, content } = req.body
-    const dc = await new AV.Query('DynamicContent')
-      .equalTo('name', name)
-      .equalTo('lang', lang)
-      .first()
-    if (!dc) {
-      res.throw(404, 'Not Found')
-    }
-
-    if (isDefault === false && dc.get('isDefault')) {
-      res.throw(400, 'Cannot unset isDefault of default dynamic content')
-    }
-    if (isDefault === true && !dc.get('isDefault')) {
-      dc.set('isDefault', true)
-      await unsetDefaultDynamicContent(dc.get('name'))
-    }
-    if (content) {
-      dc.set('content', content)
-    }
-    await dc.save(null, { useMasterKey: true })
-    res.json({})
+      variants: objects.map((o) => ({
+        default: !!o.get('default'),
+        locale: o.get('locale'),
+        content: o.get('content'),
+      })),
+    })
   })
 )
 
@@ -226,19 +146,81 @@ router.delete(
   })
 )
 
-router.delete(
-  '/:name/:lang',
+router.post(
+  '/:name/variants',
   customerServiceOnly,
+  check('locale').isString().toLowerCase().custom(assertLocaleIsValid),
+  check('default').isBoolean().optional(),
+  check('content').isString().isLength({ min: 1 }),
   catchError(async (req, res) => {
-    const { name, lang } = req.params
+    const { name } = req.params
+    const { locale, default: isDefault, content } = req.body
+    const defaultDCs = await new AV.Query('DynamicContent')
+      .equalTo('name', name)
+      .equalTo('default', true)
+      .find({ useMasterKey: true })
+    if (isDefault && defaultDCs.length) {
+      defaultDCs.forEach((o) => o.unset('default'))
+      await AV.Object.saveAll(defaultDCs, { useMasterKey: true })
+    }
+    const dc = await new AV.Object('DynamicContent', {
+      ACL: {
+        '*': { read: true },
+        'role:customerService': { read: true, write: true },
+      },
+      name,
+      locale,
+      content,
+      default: isDefault || defaultDCs.length === 0 || undefined,
+    }).save(null, { useMasterKey: true })
+    res.json({ objectId: dc.id })
+  })
+)
+
+router.patch(
+  '/:name/variants/:locale',
+  customerServiceOnly,
+  check('default').isBoolean().optional(),
+  check('content').isString().isLength({ min: 1 }).optional(),
+  catchError(async (req, res) => {
+    const { name, locale } = req.params
+    const { default: isDefault, content } = req.body
     const dc = await new AV.Query('DynamicContent')
       .equalTo('name', name)
-      .equalTo('lang', lang)
+      .equalTo('locale', locale)
+      .first()
+    if (!dc) {
+      res.throw(404, 'Not Found')
+    }
+
+    if (isDefault === false && dc.get('default')) {
+      res.throw(400, 'Cannot unset default dynamic content')
+    }
+    if (isDefault === true && !dc.get('default')) {
+      dc.set('default', true)
+      await unsetDefaultDynamicContent(dc.get('name'))
+    }
+    if (content) {
+      dc.set('content', content)
+    }
+    await dc.save(null, { useMasterKey: true })
+    res.json({})
+  })
+)
+
+router.delete(
+  '/:name/variants/:locale',
+  customerServiceOnly,
+  catchError(async (req, res) => {
+    const { name, locale } = req.params
+    const dc = await new AV.Query('DynamicContent')
+      .equalTo('name', name)
+      .equalTo('locale', locale)
       .first({ useMasterKey: true })
     if (!dc) {
       res.throw(404, 'Not Found')
     }
-    if (dc.get('isDefault')) {
+    if (dc.get('default')) {
       res.throw(409, 'Cannot delete default dynamic content')
     }
     await dc.destroy({ useMasterKey: true })

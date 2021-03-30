@@ -3,7 +3,7 @@
     "updatedAt": {
       "type": "Date"
     },
-    "isDefault": {
+    "default": {
       "type": "Boolean",
       "v": 2,
       "required": false,
@@ -33,7 +33,7 @@
     "createdAt": {
       "type": "Date"
     },
-    "lang": {
+    "locale": {
       "type": "String",
       "v": 2,
       "required": true,
@@ -71,9 +71,9 @@
       "unique": true,
       "key": {
         "name": 1,
-        "lang": 1
+        "locale": 1
       },
-      "name": "-user-name_1_lang_1",
+      "name": "-user-name_1_locale_1",
       "ns": "02AXSPNhJaEqgBfHftLpIsj2-gzGzoHsz.DynamicContent",
       "background": true
     }

@@ -17,7 +17,7 @@ import { createResourceHook, useTransform } from '@leancloud/use-resource'
 
 import { AppContext } from '../context'
 import { fetch } from '../../lib/leancloud'
-import { langs } from '../../lib/lang'
+import { locales } from '../../lib/locale'
 
 const useDynamicContents = createResourceHook(() => {
   return fetch('/api/1/dynamic-contents')
@@ -27,10 +27,10 @@ const useSubDynamicContents = createResourceHook((name) => {
   return fetch('/api/1/dynamic-contents/' + name)
 })
 
-function addDynamicContent(name, lang, content) {
+function addDynamicContent(name, locale, content) {
   return fetch('/api/1/dynamic-contents', {
     method: 'POST',
-    body: { name, lang, content },
+    body: { name, locale, content },
   })
 }
 
@@ -40,23 +40,23 @@ function deleteDynamicContent(name) {
   })
 }
 
-function addSubDynamicContent(name, lang, isDefault, content) {
-  return fetch('/api/1/dynamic-contents/' + name, {
+function addDynamicContentVariant(name, locale, isDefault, content) {
+  return fetch(`/api/1/dynamic-contents/${name}/variants`, {
     method: 'POST',
-    body: { lang, isDefault: !!isDefault, content },
+    body: { locale, default: !!isDefault, content },
   })
 }
 
-function deleteSubDynamicContent(name, lang) {
-  return fetch(`/api/1/dynamic-contents/${name}/${lang}`, {
+function deleteDynamicContentVariant(name, locale) {
+  return fetch(`/api/1/dynamic-contents/${name}/variants/${locale}`, {
     method: 'DELETE',
   })
 }
 
-function updateSubDynamicContent(name, lang, isDefault, content) {
-  return fetch(`/api/1/dynamic-contents/${name}/${lang}`, {
+function updateDynamicContentVariant(name, locale, isDefault, content) {
+  return fetch(`/api/1/dynamic-contents/${name}/variants/${locale}`, {
     method: 'PATCH',
-    body: { isDefault: !!isDefault, content },
+    body: { default: !!isDefault, content },
   })
 }
 
@@ -69,7 +69,7 @@ function LanguageSelect({ value, onChange, disabled }) {
       disabled={disabled}
     >
       <option value=""></option>
-      {Object.entries(langs).map(([code, name]) => (
+      {Object.entries(locales).map(([code, name]) => (
         <option key={code} value={code}>
           {name}
         </option>
@@ -115,8 +115,8 @@ function AddDynamicContentModal({ show, onHide, onCreated, name }) {
     if (!name && !data.name) {
       newValidationState.name = 'error'
     }
-    if (!data.lang) {
-      newValidationState.lang = 'error'
+    if (!data.locale) {
+      newValidationState.locale = 'error'
     }
     if (!data.content) {
       newValidationState.content = 'error'
@@ -128,9 +128,9 @@ function AddDynamicContentModal({ show, onHide, onCreated, name }) {
     setSubmitting(true)
     try {
       if (name) {
-        await addSubDynamicContent(name, data.lang, data.isDefault, data.content)
+        await addDynamicContentVariant(name, data.locale, data.default, data.content)
       } else {
-        await addDynamicContent(data.name, data.lang, data.content)
+        await addDynamicContent(data.name, data.locale, data.content)
       }
       onCreated?.()
       onHide?.()
@@ -158,14 +158,17 @@ function AddDynamicContentModal({ show, onHide, onCreated, name }) {
             onChange={(e) => setData({ ...data, name: e.target.value })}
           />
         </FormGroup>
-        <FormGroup validationState={validationState.lang}>
+        <FormGroup validationState={validationState.locale}>
           <ControlLabel>{name ? 'Language' : 'Default language'}</ControlLabel>
-          <LanguageSelect value={data.lang || ''} onChange={(lang) => setData({ ...data, lang })} />
+          <LanguageSelect
+            value={data.locale || ''}
+            onChange={(locale) => setData({ ...data, locale })}
+          />
         </FormGroup>
         {name && (
           <Checkbox
-            checked={!!data.isDefault}
-            onChange={() => setData({ ...data, isDefault: !data.isDefault })}
+            checked={!!data.default}
+            onChange={() => setData({ ...data, default: !data.default })}
           >
             Is default
           </Checkbox>
@@ -230,8 +233,8 @@ function EditDynamicContentModal({ show, onHide, initData, onUpdated }) {
     if (!data.name) {
       newValidationState.name = 'error'
     }
-    if (!data.lang) {
-      newValidationState.lang = 'error'
+    if (!data.locale) {
+      newValidationState.locale = 'error'
     }
     if (!data.content) {
       newValidationState.content = 'error'
@@ -242,7 +245,7 @@ function EditDynamicContentModal({ show, onHide, initData, onUpdated }) {
     }
     setSubmitting(true)
     try {
-      await updateSubDynamicContent(data.name, data.lang, !!data.isDefault, data.content)
+      await updateDynamicContentVariant(data.name, data.locale, !!data.default, data.content)
       onUpdated?.()
       onHide?.()
     } catch (error) {
@@ -269,18 +272,18 @@ function EditDynamicContentModal({ show, onHide, initData, onUpdated }) {
             onChange={(e) => setData({ ...data, name: e.target.value })}
           />
         </FormGroup>
-        <FormGroup validationState={validationState?.lang}>
+        <FormGroup validationState={validationState.locale}>
           <ControlLabel>Language</ControlLabel>
           <LanguageSelect
             disabled
-            value={data.lang || ''}
-            onChange={(lang) => setData({ ...data, lang })}
+            value={data.locale || ''}
+            onChange={(locale) => setData({ ...data, locale })}
           />
         </FormGroup>
         <Checkbox
-          disabled={!!initData.isDefault}
-          checked={!!data.isDefault}
-          onChange={() => setData({ ...data, isDefault: !data.isDefault })}
+          disabled={!!initData.default}
+          checked={!!data.default}
+          onChange={() => setData({ ...data, default: !data.default })}
         >
           Is default
         </Checkbox>
@@ -347,12 +350,12 @@ function DynamicContentList() {
           </tr>
         </thead>
         <tbody>
-          {dynamicContents.map(({ objectId, name, lang }) => (
-            <tr key={objectId}>
+          {dynamicContents.map(({ name, variants }) => (
+            <tr key={variants[0].locale}>
               <td>
                 <Link to={`/settings/dynamicContent/${name}`}>{name}</Link>
               </td>
-              <td>{langs[lang] || lang}</td>
+              <td>{locales[variants[0].locale] || variants[0].locale}</td>
               <td>
                 <Button bsSize="xsmall" bsStyle="danger" onClick={() => handleDelete(name)}>
                   Delete
@@ -373,23 +376,23 @@ function DynamicContentDetail() {
   const [dynamicContents, { loading, reload, error }] = useTransform(
     useSubDynamicContents([name]),
     useCallback((dcs) => {
-      return dcs
-        ?.map((dc) => ({
+      return dcs?.variants
+        .map((dc) => ({
           ...dc,
           name,
-          langName: langs[dc.lang] || dc.lang,
+          localeName: locales[dc.locale] || dc.locale,
         }))
-        .sort((o1, o2) => (o1.langName > o2.langName ? 1 : -1))
+        .sort((o1, o2) => (o1.localeName > o2.localeName ? 1 : -1))
     }, [])
   )
   const [showAddModal, setShowAddModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
 
-  const handleDelete = (lang) => {
-    deleteSubDynamicContent(name, lang).then(reload).catch(addNotification)
+  const handleDelete = (locale) => {
+    deleteDynamicContentVariant(name, locale).then(reload).catch(addNotification)
   }
-  const handleEdit = (lang) => {
-    const data = dynamicContents.find((dc) => dc.lang === lang)
+  const handleEdit = (locale) => {
+    const data = dynamicContents.find((dc) => dc.locale === locale)
     if (data) {
       setEditingData(data)
       setShowEditModal(true)
@@ -434,10 +437,10 @@ function DynamicContentDetail() {
           </tr>
         </thead>
         <tbody>
-          {dynamicContents.map(({ objectId, lang, langName, content, isDefault }) => (
-            <tr key={objectId}>
+          {dynamicContents.map(({ locale, localeName, content, default: isDefault }) => (
+            <tr key={locale}>
               <td>
-                {langName} {isDefault && <Label bsStyle="default">Default</Label>}
+                {localeName} {isDefault && <Label bsStyle="default">Default</Label>}
               </td>
               <td>{content}</td>
               <td>
@@ -446,11 +449,11 @@ function DynamicContentDetail() {
                     bsSize="xsmall"
                     bsStyle="danger"
                     disabled={isDefault}
-                    onClick={() => handleDelete(lang)}
+                    onClick={() => handleDelete(locale)}
                   >
                     Delete
                   </Button>
-                  <Button bsSize="xsmall" onClick={() => handleEdit(lang)}>
+                  <Button bsSize="xsmall" onClick={() => handleEdit(locale)}>
                     Edit
                   </Button>
                 </ButtonGroup>
