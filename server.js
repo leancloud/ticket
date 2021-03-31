@@ -1,7 +1,6 @@
 const express = require('express')
 const favicon = require('serve-favicon')
 const path = require('path')
-const bodyParser = require('body-parser')
 const compression = require('compression')
 const Raven = require('raven')
 const AV = require('leanengine')
@@ -24,8 +23,8 @@ app.enable('trust proxy')
 app.use(AV.Cloud.HttpsRedirect())
 
 app.use(express.static(path.join(__dirname, 'public')))
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: false }))
+app.use(express.json())
+app.use(express.urlencoded({ extended: false }))
 
 app.use(require('./api'))
 
@@ -82,12 +81,7 @@ app.use(function (err, req, res, _next) {
   if (statusCode === 500) {
     console.error(err.stack || err)
   }
-  res.status(statusCode)
-  var error = {}
-  res.send({
-    message: err.message,
-    error: error,
-  })
+  res.status(statusCode).json({ message: err.message })
 })
 
 const PORT = parseInt(process.env.LEANCLOUD_APP_PORT || process.env.PORT || 8080)

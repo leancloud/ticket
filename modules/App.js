@@ -190,7 +190,7 @@ class App extends Component {
             value={{
               isCustomerService: props.isCustomerService,
               tagMetadatas: props.tagMetadatas,
-              addNotification: props.addNotification,
+              addNotification: this.getChildContext().addNotification,
             }}
           >
             <GlobalNav user={this.state.currentUser?.toJSON()} onLogout={this.logout.bind(this)} />

@@ -1,0 +1,81 @@
+{
+  "schema": {
+    "updatedAt": {
+      "type": "Date"
+    },
+    "default": {
+      "type": "Boolean",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "ACL": {
+      "type": "ACL"
+    },
+    "content": {
+      "type": "String",
+      "v": 2,
+      "required": true,
+      "hidden": false,
+      "read_only": false
+    },
+    "name": {
+      "type": "String",
+      "v": 2,
+      "required": true,
+      "hidden": false,
+      "read_only": false
+    },
+    "objectId": {
+      "type": "String"
+    },
+    "createdAt": {
+      "type": "Date"
+    },
+    "locale": {
+      "type": "String",
+      "v": 2,
+      "required": true,
+      "hidden": false,
+      "read_only": false
+    }
+  },
+  "permissions": {
+    "create": {
+      "roles": [],
+      "users": []
+    },
+    "find": {
+      "*": true
+    },
+    "get": {
+      "*": true
+    },
+    "update": {
+      "roles": [],
+      "users": []
+    },
+    "delete": {
+      "roles": [],
+      "users": []
+    },
+    "add_fields": {
+      "roles": [],
+      "users": []
+    }
+  },
+  "indexes": [
+    {
+      "v": 2,
+      "unique": true,
+      "key": {
+        "name": 1,
+        "locale": 1
+      },
+      "name": "-user-name_1_locale_1",
+      "ns": "02AXSPNhJaEqgBfHftLpIsj2-gzGzoHsz.DynamicContent",
+      "background": true
+    }
+  ]
+}

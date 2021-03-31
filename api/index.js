@@ -28,7 +28,8 @@ const loginCallbackUrl = config.host + loginCallbackPath
 router.use('/oauth/login', require('./oauth').login(loginCallbackUrl))
 router.use(loginCallbackPath, require('./oauth').loginCallback(loginCallbackUrl))
 
-router.use('/files', require('./file'))
+router.use('/api/1/files', require('./file'))
+router.use('/api/1/dynamic-contents', require('./DynamicContent'))
 
 const { integrations } = require('../config')
 console.log(`Using plugins: ${integrations.map((integration) => integration.name).join(', ')}`)
