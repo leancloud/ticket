@@ -1,13 +1,12 @@
 /* global INTEGRATIONS */
 
 import React, { Component } from 'react'
+import { Button, Form, InputGroup } from 'react-bootstrap'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
-import { Button, ControlLabel, Form, FormControl, FormGroup, InputGroup } from 'react-bootstrap'
 import { auth, cloud } from '../../lib/leancloud'
 
 import Vacation from './Vacation'
-import { MountCustomElement } from '../custom/element'
 
 class CustomerServiceProfile extends Component {
   constructor(props) {
@@ -54,28 +53,27 @@ class CustomerServiceProfile extends Component {
       <div>
         <h2>{t('associatedAccounts')}</h2>
         {INTEGRATIONS.includes('Wechat') && (
-          <Form>
-            <FormGroup>
-              <ControlLabel>{t('weCom')}</ControlLabel>
-              <InputGroup>
-                <FormControl
-                  componentClass="select"
-                  value={this.state.wechatUserId}
-                  onChange={this.handleWechatIdChange.bind(this)}
-                >
-                  <option key="undefined" value="">
-                    {t('unlinked')}
-                  </option>
-                  {wechatUserOptions}
-                </FormControl>
-                <InputGroup.Button>
-                  <Button onClick={this.handleSubmit.bind(this)}>{t('save')}</Button>
-                </InputGroup.Button>
-              </InputGroup>
-            </FormGroup>
-          </Form>
+          <Form.Group>
+            <Form.Label>{t('weCom')}</Form.Label>
+            <InputGroup>
+              <Form.Control
+                as="select"
+                value={this.state.wechatUserId}
+                onChange={this.handleWechatIdChange.bind(this)}
+              >
+                <option key="undefined" value="">
+                  {t('unlinked')}
+                </option>
+                {wechatUserOptions}
+              </Form.Control>
+              <InputGroup.Append>
+                <Button variant="light" onClick={this.handleSubmit.bind(this)}>
+                  {t('save')}
+                </Button>
+              </InputGroup.Append>
+            </InputGroup>
+          </Form.Group>
         )}
-        <MountCustomElement point="settings.customerServiceProfile.associatedAccounts" />
         <Vacation />
       </div>
     )

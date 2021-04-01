@@ -1,52 +1,51 @@
 import React from 'react'
-import { Alert, Button, ButtonToolbar, ControlLabel, FormGroup } from 'react-bootstrap'
+import { Alert, Button, Form } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 
 import { TICKET_STATUS, ticketStatus } from '../../lib/common'
-import { MountCustomElement } from '../custom/element'
 
 export function TicketOperation({ ticket, isCustomerService, onOperate }) {
   const { t } = useTranslation()
 
-  const customAction = (
-    <MountCustomElement point="ticket.metadata.action" props={{ ticket, isCustomerService }} />
-  )
   if (ticketStatus.isOpened(ticket.status)) {
     return (
-      <FormGroup>
-        <ControlLabel>{t('ticketOperation')}</ControlLabel>
-        <ButtonToolbar>
-          <Button onClick={() => onOperate('resolve')}>{t('resolved')}</Button>
-          <Button onClick={() => onOperate('close')}>{t('close')}</Button>
-          {customAction}
-        </ButtonToolbar>
-      </FormGroup>
+      <Form.Group>
+        <Form.Label>{t('ticketOperation')}</Form.Label>
+        <div>
+          <Button variant="light" onClick={() => onOperate('resolve')}>
+            {t('resolved')}
+          </Button>{' '}
+          <Button variant="light" onClick={() => onOperate('close')}>
+            {t('close')}
+          </Button>
+        </div>
+      </Form.Group>
     )
   }
   if (!isCustomerService && ticket.status === TICKET_STATUS.PRE_FULFILLED) {
     return (
-      <Alert bsStyle="warning">
-        <ControlLabel>{t('confirmResolved')}</ControlLabel>
-        <ButtonToolbar>
-          <Button bsStyle="primary" onClick={() => onOperate('resolve')}>
-            {t('resolutionConfirmed')}
+      <Alert variant="warning">
+        <Form.Label>{t('confirmResolved')}</Form.Label>
+        <div>
+          <Button onClick={() => onOperate('resolve')}>{t('resolutionConfirmed')}</Button>{' '}
+          <Button variant="light" onClick={() => onOperate('reopen')}>
+            {t('unresolved')}
           </Button>
-          <Button onClick={() => onOperate('reopen')}>{t('unresolved')}</Button>
-          {customAction}
-        </ButtonToolbar>
+        </div>
       </Alert>
     )
   }
   if (isCustomerService) {
     return (
-      <FormGroup>
-        <ControlLabel>{t('ticketOperation')}</ControlLabel>
-        <ButtonToolbar>
-          <Button onClick={() => onOperate('reopen')}>{t('reopen')}</Button>
-          {customAction}
-        </ButtonToolbar>
-      </FormGroup>
+      <Form.Group>
+        <Form.Label>{t('ticketOperation')}</Form.Label>
+        <div>
+          <Button variant="light" onClick={() => onOperate('reopen')}>
+            {t('reopen')}
+          </Button>
+        </div>
+      </Form.Group>
     )
   }
   return null

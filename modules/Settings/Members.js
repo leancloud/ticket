@@ -1,9 +1,11 @@
 import React, { Component } from 'react'
+import { Button, Table } from 'react-bootstrap'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
-import { auth } from '../../lib/leancloud'
 
+import style from './index.css'
+import { auth } from '../../lib/leancloud'
 import { UserLabel } from '../UserLabel'
 import UserForm from '../UserForm'
 
@@ -17,11 +19,12 @@ class SettingMembers extends Component {
   }
 
   componentDidMount() {
-    this.getRoleAndUsers('customerService').then((data) => {
+    return this.getRoleAndUsers('customerService').then((data) => {
       this.setState({
         customerServiceRole: data.role,
         customerServices: data.users,
       })
+      return
     })
   }
 
@@ -65,6 +68,7 @@ class SettingMembers extends Component {
           customerServiceRole: data.role,
           customerServices: data.users,
         })
+        return
       })
   }
 
@@ -81,12 +85,9 @@ class SettingMembers extends Component {
           </td>
           <td>{categories}</td>
           <td>
-            <input
-              type="button"
-              className="btn btn-default"
-              value={t('remove')}
-              onClick={() => this.handleRemoveCustomerService(customerService.id)}
-            />
+            <Button onClick={() => this.handleRemoveCustomerService(customerService.id)}>
+              {t('remove')}
+            </Button>
           </td>
         </tr>
       )
@@ -94,7 +95,7 @@ class SettingMembers extends Component {
     return (
       <div>
         <UserForm addUser={this.handleSubmit.bind(this)} />
-        <table className="table table-bordered">
+        <Table bordered className={`${style.memberTable} mt-2`}>
           <thead>
             <tr>
               <th>{t('user')}</th>
@@ -103,7 +104,7 @@ class SettingMembers extends Component {
             </tr>
           </thead>
           <tbody>{customerServices}</tbody>
-        </table>
+        </Table>
       </div>
     )
   }

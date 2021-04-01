@@ -1,19 +1,9 @@
 import React, { Component } from 'react'
+import { Button, Form, InputGroup, OverlayTrigger, Tooltip } from 'react-bootstrap'
+import { withRouter } from 'react-router-dom'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
-import {
-  Button,
-  Checkbox,
-  ControlLabel,
-  Form,
-  FormControl,
-  FormGroup,
-  InputGroup,
-  OverlayTrigger,
-  Radio,
-  Tooltip,
-} from 'react-bootstrap'
-import { withRouter } from 'react-router-dom'
+
 import { db } from '../../lib/leancloud'
 
 class Tag extends Component {
@@ -158,111 +148,113 @@ class Tag extends Component {
 
     return (
       <Form onSubmit={this.handleSubmit.bind(this)}>
-        <FormGroup controlId="tagNameText">
-          <ControlLabel>{t('tagName')}</ControlLabel>
-          <FormControl
-            type="text"
-            value={tagMetadata.key}
-            onChange={this.handleKeyChange.bind(this)}
-          />
-        </FormGroup>
-        <FormGroup>
-          <ControlLabel>{t('permission')}</ControlLabel>
-          <Checkbox
-            checked={tagMetadata.isPrivate}
-            onChange={(e) => this.handleChangePrivate(e.target.checked)}
-          >
-            {t('private')}{' '}
+        <Form.Group controlId="tagNameText">
+          <Form.Label>{t('tagName')}</Form.Label>
+          <Form.Control value={tagMetadata.key} onChange={this.handleKeyChange.bind(this)} />
+        </Form.Group>
+        <Form.Group>
+          <Form.Label>{t('permission')}</Form.Label>
+          <div>
+            <Form.Check
+              inline
+              id="tagIsPrivate"
+              checked={tagMetadata.isPrivate}
+              onChange={(e) => this.handleChangePrivate(e.target.checked)}
+              label={t('private')}
+            />
             <OverlayTrigger
               placement="right"
               overlay={<Tooltip id="tooltip">{t('privateInfo')}</Tooltip>}
             >
-              <span className="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+              <i className="bi bi-question-circle-fill"></i>
             </OverlayTrigger>
-          </Checkbox>
-        </FormGroup>
-        <FormGroup>
-          <ControlLabel>{t('type')}</ControlLabel>
-          <Radio
-            name="tagTypeGroup"
-            value="select"
-            checked={tagMetadata.type == 'select'}
-            onChange={this.handleTypeChange.bind(this)}
-          >
-            {t('tagTypeSelect')}{' '}
+          </div>
+        </Form.Group>
+        <Form.Group>
+          <Form.Label>{t('type')}</Form.Label>
+          <div>
+            <Form.Check
+              inline
+              id="selectTag"
+              type="radio"
+              name="tagTypeGroup"
+              value="select"
+              checked={tagMetadata.type == 'select'}
+              onChange={this.handleTypeChange.bind(this)}
+              label={t('tagTypeSelect')}
+            />
             <OverlayTrigger
               placement="right"
               overlay={<Tooltip id="tooltip">{t('tagTypeSelectInfo')}</Tooltip>}
             >
-              <span className="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+              <i className="bi bi-question-circle-fill"></i>
             </OverlayTrigger>
-          </Radio>
-          <Radio
-            name="tagTypeGroup"
-            value="text"
-            checked={tagMetadata.type == 'text'}
-            onChange={this.handleTypeChange.bind(this)}
-          >
-            {t('tagTypeAnyText')}{' '}
+          </div>
+          <div>
+            <Form.Check
+              inline
+              id="textTag"
+              type="radio"
+              name="tagTypeGroup"
+              value="text"
+              checked={tagMetadata.type == 'text'}
+              onChange={this.handleTypeChange.bind(this)}
+              label={t('tagTypeAnyText')}
+            />
             <OverlayTrigger
               placement="right"
               overlay={<Tooltip id="tooltip">{t('tagTypeAnyTextInfo')}</Tooltip>}
             >
-              <span className="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+              <i className="bi bi-question-circle-fill"></i>
             </OverlayTrigger>
-          </Radio>{' '}
-        </FormGroup>
+          </div>
+        </Form.Group>
         {tagMetadata.type == 'select' && (
-          <FormGroup>
-            <ControlLabel>{t('predefinedTags')}</ControlLabel>
+          <Form.Group>
+            <Form.Label>{t('predefinedTags')}</Form.Label>
             {tagMetadata.values.map((value, index, array) => {
               return (
                 <InputGroup key={index}>
-                  <FormControl
-                    type="text"
+                  <Form.Control
                     value={value}
                     onChange={(e) => this.changeValue(index, e.target.value)}
                   />
-                  <InputGroup.Button>
+                  <InputGroup.Append>
                     <Button
+                      variant="light"
                       disabled={index == 0}
                       onClick={() => this.handleSortUpdate(value, index, index - 1)}
                     >
-                      <span
-                        className="glyphicon glyphicon glyphicon-chevron-up"
-                        aria-hidden="true"
-                      />
+                      <i className="bi bi-chevron-up"></i>
                     </Button>
                     <Button
+                      variant="light"
                       disabled={index == array.length - 1}
                       onClick={() => this.handleSortUpdate(value, index, index + 1)}
                     >
-                      <span
-                        className="glyphicon glyphicon glyphicon-chevron-down"
-                        aria-hidden="true"
-                      />
+                      <i className="bi bi-chevron-down"></i>
                     </Button>
-                    <Button onClick={() => this.handleRemoveItem(index)}>
-                      <span className="glyphicon glyphicon-remove" aria-hidden="true" />
+                    <Button variant="light" onClick={() => this.handleRemoveItem(index)}>
+                      <i className="bi bi-x"></i>
                     </Button>
-                  </InputGroup.Button>
+                  </InputGroup.Append>
                 </InputGroup>
               )
             })}
-            <Button type="button" onClick={this.addValueItem.bind(this)}>
-              <span className="glyphicon glyphicon glyphicon-plus" aria-hidden="true" />
+            <Button variant="light" onClick={this.addValueItem.bind(this)}>
+              <i className="bi bi-plus"></i>
             </Button>
-          </FormGroup>
+          </Form.Group>
         )}
-        <Button type="submit" bsStyle="success">
+        <Button type="submit" variant="success">
           {t('save')}
         </Button>{' '}
         {id !== 'new' && (
-          <Button type="button" onClick={this.handleRemove.bind(this, t)} bsStyle="danger">
+          <Button onClick={this.handleRemove.bind(this, t)} variant="danger">
             {t('delete')}
           </Button>
         )}{' '}
-        <Button type="button" onClick={() => this.props.history.push('/settings/tags')}>
+        <Button variant="light" onClick={() => this.props.history.push('/settings/tags')}>
           {t('return')}
         </Button>
       </Form>

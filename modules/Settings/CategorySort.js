@@ -1,11 +1,12 @@
 import React from 'react'
+import { Button, Table } from 'react-bootstrap'
+import { withRouter } from 'react-router-dom'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
-import { Form, FormGroup, Button } from 'react-bootstrap'
-import { db } from '../../lib/leancloud'
 
-import { getCategoriesTree, getNodeIndentString } from '../common'
+import { db } from '../../lib/leancloud'
 import { depthFirstSearchMap } from '../../lib/common'
+import { getCategoriesTree, getNodeIndentString } from '../common'
 
 class CategorySort extends React.Component {
   constructor(props) {
@@ -61,21 +62,20 @@ class CategorySort extends React.Component {
           </td>
           <td>
             <Button
+              size="sm"
+              variant="light"
               disabled={index == 0}
               onClick={() => this.handleSortUpdate(c, index, index - 1)}
-              className="btn-xs"
             >
-              <span className="glyphicon glyphicon glyphicon-chevron-up" aria-hidden="true"></span>
+              <i className="bi bi-chevron-up"></i>
             </Button>{' '}
             <Button
+              size="sm"
+              variant="light"
               disabled={index == array.length - 1}
               onClick={() => this.handleSortUpdate(c, index, index + 1)}
-              className="btn-xs"
             >
-              <span
-                className="glyphicon glyphicon glyphicon-chevron-down"
-                aria-hidden="true"
-              ></span>
+              <i className="bi bi-chevron-down"></i>
             </Button>
           </td>
         </tr>
@@ -83,19 +83,18 @@ class CategorySort extends React.Component {
     })
     return (
       <div>
-        <Form>
-          <FormGroup>
-            <Button onClick={this.handleSave.bind(this)}>{t('save')}</Button>
-          </FormGroup>
-        </Form>
-        <table className="table table-bordered table-hover">
+        <Button variant="light" onClick={this.handleSave.bind(this)}>
+          {t('save')}
+        </Button>
+        <Table bordered hover className="mt-2">
           <thead>
             <tr>
               <th>{t('name')}</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>{tds}</tbody>
-        </table>
+        </Table>
       </div>
     )
   }
@@ -110,4 +109,4 @@ CategorySort.propTypes = {
   t: PropTypes.func.isRequired,
 }
 
-export default withTranslation()(CategorySort)
+export default withTranslation()(withRouter(CategorySort))

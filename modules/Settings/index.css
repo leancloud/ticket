@@ -1,0 +1,4 @@
+.memberTable td:first-child,
+.memberTable td:last-child {
+  white-space: nowrap;
+}

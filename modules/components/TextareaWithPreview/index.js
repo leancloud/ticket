@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { FormControl } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
-import { FormControl } from 'react-bootstrap'
 import Stackedit from 'stackedit-js'
 import css from './index.css'
 import { uploadFiles } from '../../common'
@@ -12,8 +12,6 @@ export default function TextareaWithPreview({ value, onChange, ...props }) {
   const $editor = useRef(new Stackedit())
   const $value = useRef(value)
   const [disabled, setDisabled] = useState(false)
-
-  const set$input = useCallback((ref) => $input.current = ref, [])
 
   useEffect(() => {
     $value.current = value
@@ -56,27 +54,30 @@ export default function TextareaWithPreview({ value, onChange, ...props }) {
   const enterPreviewMode = useCallback(() => {
     $editor.current.openFile({
       content: {
-        text: $value.current
-      }
+        text: $value.current,
+      },
     })
   }, [])
 
-  const handleChangeContent = useCallback((e) => {
-    onChange(e.target.value)
-  }, [onChange])
+  const handleChangeContent = useCallback(
+    (e) => {
+      onChange(e.target.value)
+    },
+    [onChange]
+  )
 
   return (
     <div className={css.textareaWrapper}>
       <FormControl
         {...props}
-        componentClass="textarea"
+        as="textarea"
         value={value}
         onChange={handleChangeContent}
-        inputRef={set$input}
+        ref={$input}
         disabled={disabled}
       />
       <div className={css.preview} title={t('preview')} onClick={enterPreviewMode}>
-        <span className="glyphicon glyphicon-fullscreen"></span>
+        <i className="bi bi-arrows-fullscreen"></i>
       </div>
     </div>
   )

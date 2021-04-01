@@ -1,19 +1,11 @@
-import _ from 'lodash'
 import React from 'react'
+import { Button, Form, Table } from 'react-bootstrap'
 import { withTranslation } from 'react-i18next'
 import { withRouter } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import {
-  Button,
-  ControlLabel,
-  Form,
-  FormControl,
-  FormGroup,
-  HelpBlock,
-  Table,
-} from 'react-bootstrap'
-import { auth, cloud, db } from '../../lib/leancloud'
+import _ from 'lodash'
 
+import { auth, cloud, db } from '../../lib/leancloud'
 import { UserLabel } from '../UserLabel'
 import UserForm from '../UserForm'
 class Organization extends React.Component {
@@ -191,25 +183,36 @@ ${count} ${t('deleteOrganizationConsequence')}`)
       <div>
         {(this.state.isAdmin && (
           <Form onSubmit={this.submitNameChange.bind(this, t)}>
-            <FormGroup controlId="nameText" validationState={this.state.nameValidationState}>
-              <ControlLabel>{t('organizationName')}</ControlLabel>
-              <FormControl
-                type="text"
+            <Form.Group controlId="nameText">
+              <Form.Label>{t('organizationName')}</Form.Label>
+              <Form.Control
                 value={this.state.name}
                 onChange={this.handleNameChange.bind(this, t)}
+                isValid={this.state.nameValidationState === 'success'}
+                isInvalid={this.state.nameValidationState === 'error'}
               />
-              {this.state.nameValidationState === 'error' && (
-                <HelpBlock>{this.state.nameHelpMessage}</HelpBlock>
-              )}
-              {this.state.nameValidationState !== 'error' && this.state.nameChanged && (
-                <Button type="submit" disabled={this.state.isSubmitting}>
-                  {t('save')}
-                </Button>
-              )}
-            </FormGroup>
+              <Form.Control.Feedback type="invalid">
+                {this.state.nameHelpMessage}
+              </Form.Control.Feedback>
+            </Form.Group>
+            <Button
+              variant="light"
+              type="submit"
+              disabled={
+                this.state.isSubmitting ||
+                this.state.nameValidationState === 'error' ||
+                !this.state.nameChanged
+              }
+            >
+              {t('save')}
+            </Button>
           </Form>
         )) || <h2>{this.state.name}</h2>}
-        {this.state.isAdmin && <UserForm addUser={this.handleAddUser.bind(this)} />}
+        {this.state.isAdmin && (
+          <div className="mt-2 mb-1">
+            <UserForm addUser={this.handleAddUser.bind(this)} />
+          </div>
+        )}
         <Table bordered>
           <thead>
             <tr>
@@ -227,7 +230,9 @@ ${count} ${t('deleteOrganizationConsequence')}`)
                 <td>{t('admin')}</td>
                 {this.state.isAdmin && (
                   <td>
-                    <Button onClick={() => this.handleDemotion(u, t)}>{t('demoteToMember')}</Button>{' '}
+                    <Button variant="light" onClick={() => this.handleDemotion(u, t)}>
+                      {t('demoteToMember')}
+                    </Button>{' '}
                   </td>
                 )}
               </tr>
@@ -240,19 +245,23 @@ ${count} ${t('deleteOrganizationConsequence')}`)
                 <td>{t('member')}</td>
                 {this.state.isAdmin && (
                   <td>
-                    <Button onClick={() => this.promote(u)}>{t('promoteToAdmin')}</Button>{' '}
-                    <Button onClick={() => this.handleRemoveMember(u, t)}>{t('remove')}</Button>
+                    <Button variant="light" onClick={() => this.promote(u)}>
+                      {t('promoteToAdmin')}
+                    </Button>{' '}
+                    <Button variant="light" onClick={() => this.handleRemoveMember(u, t)}>
+                      {t('remove')}
+                    </Button>
                   </td>
                 )}
               </tr>
             ))}
           </tbody>
         </Table>
-        <Button type="button" onClick={() => this.props.history.push('/settings/organizations')}>
+        <Button variant="light" onClick={() => this.props.history.push('/settings/organizations')}>
           {t('return')}
         </Button>{' '}
         {this.state.isAdmin && (
-          <Button type="button" onClick={this.handleRemove.bind(this, t)} bsStyle="danger">
+          <Button onClick={this.handleRemove.bind(this, t)} variant="danger">
             {t('deleteOrganization')}
           </Button>
         )}

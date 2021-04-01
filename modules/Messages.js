@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
+import { Button, FormGroup, Table } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
-import { FormGroup, Button, Table } from 'react-bootstrap'
 import moment from 'moment'
 import { auth, db } from '../lib/leancloud'
 
@@ -44,7 +44,7 @@ export default class Messages extends Component {
     return (
       <div>
         <FormGroup>
-          <Button bsStyle="default" onClick={() => this.markAllReaded()}>
+          <Button variant="light" onClick={() => this.markAllReaded()}>
             全部标记为已读
           </Button>
         </FormGroup>
@@ -61,7 +61,7 @@ export default class Messages extends Component {
                       <td>
                         <div>
                           <Link to={'tickets/' + ticket.get('nid')}>
-                            <span className="glyphicon glyphicon-record" aria-hidden="true"></span>{' '}
+                            <i className="bi bi-record-circle"></i>{' '}
                             <UserLabel user={sender} simple /> 提交工单 #
                             {ticket.get('nid') + ' ' + ticket.get('title')}
                           </Link>{' '}
@@ -79,12 +79,8 @@ export default class Messages extends Component {
                       <td>
                         <div>
                           <Link to={'tickets/' + ticket.get('nid')}>
-                            <span
-                              className="glyphicon glyphicon-share-alt"
-                              aria-hidden="true"
-                            ></span>{' '}
-                            <UserLabel user={sender} simple /> 回复工单 #
-                            {ticket.get('nid') + ' ' + ticket.get('title')}
+                            <i className="bi bi-chat-left"></i> <UserLabel user={sender} simple />{' '}
+                            回复工单 #{ticket.get('nid') + ' ' + ticket.get('title')}
                           </Link>{' '}
                           <small>{moment(m.get('createdAt')).fromNow()}</small>{' '}
                           {!m.get('isRead') && <span className="label label-default">未读</span>}
@@ -100,12 +96,8 @@ export default class Messages extends Component {
                       <td>
                         <div>
                           <Link to={'tickets/' + ticket.get('nid')}>
-                            <span
-                              className="glyphicon glyphicon-transfer"
-                              aria-hidden="true"
-                            ></span>{' '}
-                            <UserLabel user={sender} /> 将工单交由你处理 #
-                            {ticket.get('nid') + ' ' + ticket.get('title')}
+                            <i className="bi bi-arrow-left-right"></i> <UserLabel user={sender} />{' '}
+                            将工单交由你处理 #{ticket.get('nid') + ' ' + ticket.get('title')}
                           </Link>{' '}
                           <small>{moment(m.get('createdAt')).fromNow()}</small>{' '}
                           {!m.get('isRead') && <span className="label label-default">未读</span>}

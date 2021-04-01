@@ -1,16 +1,5 @@
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react'
-import {
-  Button,
-  ButtonGroup,
-  ButtonToolbar,
-  Checkbox,
-  ControlLabel,
-  FormControl,
-  FormGroup,
-  Label,
-  Modal,
-  Table,
-} from 'react-bootstrap'
+import { Badge, Button, ButtonGroup, Form, Modal, Table } from 'react-bootstrap'
 import { Link, Route, Switch, useParams, useRouteMatch } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import { createResourceHook, useTransform } from '@leancloud/use-resource'
@@ -60,10 +49,11 @@ function updateDynamicContentVariant(name, locale, isDefault, content) {
   })
 }
 
-function LanguageSelect({ value, onChange, disabled }) {
+function LanguageSelect({ value, onChange, disabled, ...props }) {
   return (
-    <FormControl
-      componentClass="select"
+    <Form.Control
+      {...props}
+      as="select"
       value={value}
       onChange={(e) => onChange?.(e.target.value)}
       disabled={disabled}
@@ -74,7 +64,7 @@ function LanguageSelect({ value, onChange, disabled }) {
           {name}
         </option>
       ))}
-    </FormControl>
+    </Form.Control>
   )
 }
 LanguageSelect.propTypes = {
@@ -149,45 +139,47 @@ function AddDynamicContentModal({ show, onHide, onCreated, name }) {
         <Modal.Title>Add dynamic content</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <FormGroup validationState={validationState.name}>
-          <ControlLabel>Name</ControlLabel>
-          <FormControl
+        <Form.Group>
+          <Form.Label>Name</Form.Label>
+          <Form.Control
             disabled={!!name}
-            type="text"
             value={name || data.name || ''}
             onChange={(e) => setData({ ...data, name: e.target.value })}
+            isInvalid={validationState.name === 'error'}
           />
-        </FormGroup>
-        <FormGroup validationState={validationState.locale}>
-          <ControlLabel>{name ? 'Language' : 'Default language'}</ControlLabel>
+        </Form.Group>
+        <Form.Group>
+          <Form.Label>{name ? 'Language' : 'Default language'}</Form.Label>
           <LanguageSelect
             value={data.locale || ''}
             onChange={(locale) => setData({ ...data, locale })}
+            isInvalid={validationState.locale === 'error'}
           />
-        </FormGroup>
+        </Form.Group>
         {name && (
-          <Checkbox
+          <Form.Check
+            id="dynamicContentIsDefault"
             checked={!!data.default}
             onChange={() => setData({ ...data, default: !data.default })}
-          >
-            Is default
-          </Checkbox>
+            label="Is default"
+          />
         )}
-        <FormGroup validationState={validationState.content}>
-          <ControlLabel>Content</ControlLabel>
-          <FormControl
-            componentClass="textarea"
+        <Form.Group>
+          <Form.Label>Content</Form.Label>
+          <Form.Control
+            as="textarea"
             rows="5"
             value={data.content || ''}
             onChange={(e) => setData({ ...data, content: e.target.value })}
+            isInvalid={validationState.content === 'error'}
           />
-        </FormGroup>
+        </Form.Group>
       </Modal.Body>
       <Modal.Footer>
-        <Button disabled={submitting} onClick={onHide}>
+        <Button variant="secondary" disabled={submitting} onClick={onHide}>
           Cancel
         </Button>
-        <Button bsStyle="primary" disabled={submitting} onClick={handleSubmit}>
+        <Button disabled={submitting} onClick={handleSubmit}>
           Add
         </Button>
       </Modal.Footer>
@@ -263,45 +255,47 @@ function EditDynamicContentModal({ show, onHide, initData, onUpdated }) {
         <Modal.Title>Edit dynamic content</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <FormGroup validationState={validationState.name}>
-          <ControlLabel>Name</ControlLabel>
-          <FormControl
+        <Form.Group>
+          <Form.Label>Name</Form.Label>
+          <Form.Control
             disabled
-            type="text"
             value={data.name || ''}
             onChange={(e) => setData({ ...data, name: e.target.value })}
+            isInvalid={validationState.name === 'error'}
           />
-        </FormGroup>
-        <FormGroup validationState={validationState.locale}>
-          <ControlLabel>Language</ControlLabel>
+        </Form.Group>
+        <Form.Group>
+          <Form.Label>Language</Form.Label>
           <LanguageSelect
             disabled
             value={data.locale || ''}
             onChange={(locale) => setData({ ...data, locale })}
+            isInvalid={validationState.locale === 'error'}
           />
-        </FormGroup>
-        <Checkbox
+        </Form.Group>
+        <Form.Check
+          id="dynamicContentIsDefault"
           disabled={!!initData.default}
           checked={!!data.default}
           onChange={() => setData({ ...data, default: !data.default })}
-        >
-          Is default
-        </Checkbox>
-        <FormGroup validationState={validationState.content}>
-          <ControlLabel>Content</ControlLabel>
-          <FormControl
-            componentClass="textarea"
+          label="Is default"
+        />
+        <Form.Group>
+          <Form.Label>Content</Form.Label>
+          <Form.Control
+            as="textarea"
             rows="5"
             value={data.content || ''}
             onChange={(e) => setData({ ...data, content: e.target.value })}
+            isInvalid={validationState.content === 'error'}
           />
-        </FormGroup>
+        </Form.Group>
       </Modal.Body>
       <Modal.Footer>
-        <Button disabled={submitting} onClick={onHide}>
+        <Button variant="secondary" disabled={submitting} onClick={onHide}>
           Cancel
         </Button>
-        <Button bsStyle="primary" disabled={submitting} onClick={handleSubmit}>
+        <Button disabled={submitting} onClick={handleSubmit}>
           Update
         </Button>
       </Modal.Footer>
@@ -333,15 +327,13 @@ function DynamicContentList() {
 
   return (
     <>
-      <ButtonToolbar>
-        <Button disabled={loading} onClick={() => setShow(true)}>
-          Add
-        </Button>
-      </ButtonToolbar>
+      <Button variant="light" disabled={loading} onClick={() => setShow(true)}>
+        Add
+      </Button>
 
       <AddDynamicContentModal show={show} onHide={() => setShow(false)} onCreated={reload} />
 
-      <Table condensed hover style={{ marginTop: 10 }}>
+      <Table hover className="mt-2">
         <thead>
           <tr>
             <th>Name</th>
@@ -357,7 +349,7 @@ function DynamicContentList() {
               </td>
               <td>{locales[variants[0].locale] || variants[0].locale}</td>
               <td>
-                <Button bsSize="xsmall" bsStyle="danger" onClick={() => handleDelete(name)}>
+                <Button size="sm" variant="danger" onClick={() => handleDelete(name)}>
                   Delete
                 </Button>
               </td>
@@ -411,9 +403,11 @@ function DynamicContentDetail() {
         <strong>Placeholder:</strong> {`{{ dc.${name} }}`}
       </div>
 
-      <ButtonToolbar style={{ marginTop: 10 }}>
-        <Button onClick={() => setShowAddModal(true)}>Add</Button>
-      </ButtonToolbar>
+      <div className="mt-2">
+        <Button variant="light" onClick={() => setShowAddModal(true)}>
+          Add
+        </Button>
+      </div>
 
       <AddDynamicContentModal
         name={name}
@@ -428,7 +422,7 @@ function DynamicContentDetail() {
         onUpdated={reload}
       />
 
-      <Table responsive condensed hover style={{ marginTop: 10 }}>
+      <Table responsive hover className="mt-2">
         <thead>
           <tr>
             <th>Language</th>
@@ -440,20 +434,20 @@ function DynamicContentDetail() {
           {dynamicContents.map(({ locale, localeName, content, default: isDefault }) => (
             <tr key={locale}>
               <td>
-                {localeName} {isDefault && <Label bsStyle="default">Default</Label>}
+                {localeName} {isDefault && <Badge variant="secondary">Default</Badge>}
               </td>
               <td>{content}</td>
               <td>
                 <ButtonGroup>
                   <Button
-                    bsSize="xsmall"
-                    bsStyle="danger"
+                    variant="danger"
+                    size="sm"
                     disabled={isDefault}
                     onClick={() => handleDelete(locale)}
                   >
                     Delete
                   </Button>
-                  <Button bsSize="xsmall" onClick={() => handleEdit(locale)}>
+                  <Button variant="light" size="sm" onClick={() => handleEdit(locale)}>
                     Edit
                   </Button>
                 </ButtonGroup>

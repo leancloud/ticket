@@ -1,4 +1,5 @@
 import React from 'react'
+import { Badge } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import { TICKET_STATUS, TICKET_STATUS_MSG } from '../lib/common'
@@ -7,17 +8,17 @@ export default function TicketStatusLabel({ status }) {
   const { t } = useTranslation()
   switch (status) {
     case TICKET_STATUS.FULFILLED:
-      return <span className="label label-success">{t(TICKET_STATUS_MSG[status])}</span>
+      return <Badge variant="success">{t(TICKET_STATUS_MSG[status])}</Badge>
     case TICKET_STATUS.CLOSED:
-      return <span className="label label-default">{t(TICKET_STATUS_MSG[status])}</span>
+      return <Badge variant="secondary">{t(TICKET_STATUS_MSG[status])}</Badge>
     case TICKET_STATUS.PRE_FULFILLED:
-      return <span className="label label-primary">{t(TICKET_STATUS_MSG[status])}</span>
+      return <Badge variant="primary">{t(TICKET_STATUS_MSG[status])}</Badge>
     case TICKET_STATUS.NEW:
-      return <span className="label label-danger">{t(TICKET_STATUS_MSG[status])}</span>
+      return <Badge variant="danger">{t(TICKET_STATUS_MSG[status])}</Badge>
     case TICKET_STATUS.WAITING_CUSTOMER_SERVICE:
-      return <span className="label label-warning">{t(TICKET_STATUS_MSG[status])}</span>
+      return <Badge variant="warning">{t(TICKET_STATUS_MSG[status])}</Badge>
     case TICKET_STATUS.WAITING_CUSTOMER:
-      return <span className="label label-primary">{t(TICKET_STATUS_MSG[status])}</span>
+      return <Badge variant="primary">{t(TICKET_STATUS_MSG[status])}</Badge>
     default:
       throw new Error('unkonwn ticket status:', status)
   }

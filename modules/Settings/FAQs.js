@@ -1,12 +1,12 @@
-/*global FAQ_VIEWS*/
+/* global FAQ_VIEWS */
 import React, { Component } from 'react'
+import { Button, Form, OverlayTrigger, Table, Tooltip } from 'react-bootstrap'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import { Link } from 'react-router-dom'
-import { db } from '../../lib/leancloud'
 import _ from 'lodash'
-import { Tooltip, OverlayTrigger } from 'react-bootstrap'
 
+import { db } from '../../lib/leancloud'
 import FAQ from '../components/FAQ'
 
 const VIEWS = FAQ_VIEWS.split(',').filter((view) => view)
@@ -78,11 +78,12 @@ class Categories extends Component {
               <td key={view}>{faq.get(`priority_${view}`)}</td>
             ))}
             <td>
-              <Link to={'/settings/faqs/' + faq.id} className="btn btn-default btn-sm">
+              <Button as={Link} variant="light" size="sm" to={'/settings/faqs/' + faq.id}>
                 {t('edit')}
-              </Link>{' '}
-              <button
-                className="btn btn-default btn-sm"
+              </Button>{' '}
+              <Button
+                variant="light"
+                size="sm"
                 onClick={() =>
                   toggleArchived(faq)
                     .then(this.reload.bind(this))
@@ -90,7 +91,7 @@ class Categories extends Component {
                 }
               >
                 {t('archive')}
-              </button>
+              </Button>
             </td>
           </tr>
         )
@@ -108,11 +109,12 @@ class Categories extends Component {
               <FAQ faq={faq} />
             </td>
             <td>
-              <Link to={'/settings/faqs/' + faq.id} className="btn btn-default btn-sm">
+              <Button as={Link} variant="light" size="sm" to={'/settings/faqs/' + faq.id}>
                 {t('edit')}
-              </Link>{' '}
-              <button
-                className="btn btn-default btn-sm"
+              </Button>{' '}
+              <Button
+                variant="light"
+                size="sm"
                 onClick={() =>
                   toggleArchived(faq)
                     .then(this.reload.bind(this))
@@ -120,7 +122,7 @@ class Categories extends Component {
                 }
               >
                 {t('unarchive')}
-              </button>
+              </Button>
             </td>
           </tr>
         )
@@ -129,13 +131,16 @@ class Categories extends Component {
     return (
       <div>
         <p>
-          <Link to="/settings/faqs/_new" className="btn btn-default">
+          <Button as={Link} variant="light" to="/settings/faqs/_new">
             {t('newFAQ')}
-          </Link>
+          </Button>
           {VIEWS.length > 0 && (
-            <span style={{ float: 'right' }}>
-              Ordered by{' '}
-              <select
+            <Form inline className="float-right">
+              <Form.Label>Ordered by</Form.Label>
+              <Form.Control
+                className="ml-1"
+                as="select"
+                size="sm"
                 value={this.state.view}
                 onChange={(e) => this.setState({ view: e.target.value })}
               >
@@ -144,19 +149,19 @@ class Categories extends Component {
                     {view}
                   </option>
                 ))}
-              </select>
-            </span>
+              </Form.Control>
+            </Form>
           )}
         </p>
-        <table className="table">
+        <Table>
           {thead}
           <tbody>{activeFAQs}</tbody>
-        </table>
+        </Table>
         <p>Archived FAQ:</p>
-        <table className="table">
+        <Table>
           {thead}
           <tbody>{archivedFAQs}</tbody>
-        </table>
+        </Table>
       </div>
     )
   }

@@ -18,7 +18,7 @@
 
 .panelModerator .heading {
   background: #e3edf7;
-  border-color: #e3edf7;
+  border-color: #c1d5e4;
 }
 
 .content {
@@ -71,24 +71,8 @@
   border-color: #777;
 }
 
-.form {
-  display: flex;
-}
-
-@media (max-width: 800px) {
-
-  .form {
-    display: block;
-  }
-}
-
-.formLeft {
-  flex: 1;
-}
-
 .submit {
-  padding-left: 20px;
-  padding-right: 20px;
+  min-width: 74px;
 }
 
 .markdownTip {
@@ -102,8 +86,4 @@
 
 .markdownTip a:hover {
   color: #3090e4;
-}
-
-.markdownTip b {
-  color: #999;
 }

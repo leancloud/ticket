@@ -1,8 +1,8 @@
 import React from 'react'
+import { Button, Form, InputGroup } from 'react-bootstrap'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
-import { FormControl, Form, Button } from 'react-bootstrap'
-import { auth, cloud } from '../lib/leancloud'
+import { db, cloud } from '../lib/leancloud'
 class UserForm extends React.Component {
   constructor(props) {
     super(props)
@@ -23,7 +23,7 @@ class UserForm extends React.Component {
         if (!user) {
           throw new Error(`${t('userNotFound')} ${this.state.username}`)
         }
-        return auth.user(user.objectId).get()
+        return db.class('_User').object(user.objectId).get()
       })
       .then((user) => {
         this.props.addUser(user)
@@ -37,15 +37,16 @@ class UserForm extends React.Component {
     const { t } = this.props
     return (
       <Form inline onSubmit={this.handleSubmit.bind(this, t)}>
-        <FormControl
-          type="text"
-          value={this.state.username}
-          onChange={this.handleNameChange.bind(this)}
-          placeholder={t('username')}
-        />{' '}
-        <Button type="submit" bsStyle="primary">
-          {t('submit')}
-        </Button>
+        <InputGroup>
+          <Form.Control
+            value={this.state.username}
+            onChange={this.handleNameChange.bind(this)}
+            placeholder={t('username')}
+          />
+          <InputGroup.Append>
+            <Button type="submit">{t('submit')}</Button>
+          </InputGroup.Append>
+        </InputGroup>
       </Form>
     )
   }
@@ -55,6 +56,7 @@ UserForm.propTypes = {
   addUser: PropTypes.func,
   t: PropTypes.func,
 }
+
 UserForm.contextTypes = {
   addNotification: PropTypes.func.isRequired,
 }

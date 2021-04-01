@@ -2,6 +2,7 @@
 
 import _ from 'lodash'
 import React, { Component } from 'react'
+import { Container } from 'react-bootstrap'
 import { Route, Switch, withRouter } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import NotificationSystem from 'react-notification-system'
@@ -194,7 +195,7 @@ class App extends Component {
             }}
           >
             <GlobalNav user={this.state.currentUser?.toJSON()} onLogout={this.logout.bind(this)} />
-            <div className={'container ' + css.main}>
+            <Container className={`${css.main} py-2`}>
               <Switch>
                 <Route path="/" exact>
                   <Home {...props} />
@@ -230,7 +231,7 @@ class App extends Component {
                 <Route path="/error" component={ErrorPage} />
                 <Route path="*" component={NotFound} />
               </Switch>
-            </div>
+            </Container>
           </AppContext.Provider>
         )}
         <ServerNotification currentUser={this.state.currentUser} />

@@ -75,9 +75,6 @@
 }
 
 .commentCounterIcon {
-  -webkit-text-stroke: 1px #555;
-  text-stroke: 1px #555;
-  color: #fff;
   vertical-align: -2px;
   margin-right: 3px;
 }
@@ -88,8 +85,7 @@
 }
 
 .commentCounter:hover .commentCounterIcon {
-  -webkit-text-stroke: 1px #3090e4;
-  text-stroke: 1px #3090e4;
+  color: 1px #3090e4;
 }
 
 .meta {

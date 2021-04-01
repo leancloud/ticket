@@ -1,11 +1,11 @@
 import React, { Component } from 'react'
+import { Table } from 'react-bootstrap'
+import { Link } from 'react-router-dom'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
-import { Link } from 'react-router-dom'
-import { Form, FormGroup } from 'react-bootstrap'
-import { auth } from '../../lib/leancloud'
 
+import { auth } from '../../lib/leancloud'
 import { getCustomerServices, getCategoriesTree, getNodeIndentString } from '../common'
 import { UserLabel } from '../UserLabel'
 import { depthFirstSearchFind, depthFirstSearchMap, getTinyCategoryInfo } from '../../lib/common'
@@ -85,15 +85,9 @@ class Categories extends Component {
     })
     return (
       <div>
-        <Form inline>
-          <FormGroup>
-            <Link to={'/settings/categories/_new'}>{t('newCategory')}</Link>
-          </FormGroup>{' '}
-          <FormGroup>
-            <Link to={'/settings/categorySort'}>{t('reorder')}</Link>
-          </FormGroup>
-        </Form>
-        <table className="table table-bordered">
+        <Link to={'/settings/categories/_new'}>{t('newCategory')}</Link>{' '}
+        <Link to={'/settings/categorySort'}>{t('reorder')}</Link>
+        <Table bordered>
           <thead>
             <tr>
               <th>{t('name')}</th>
@@ -102,7 +96,7 @@ class Categories extends Component {
             </tr>
           </thead>
           <tbody>{tds}</tbody>
-        </table>
+        </Table>
       </div>
     )
   }

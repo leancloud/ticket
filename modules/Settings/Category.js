@@ -1,13 +1,13 @@
 import React from 'react'
+import { Button, Form } from 'react-bootstrap'
 import { withTranslation } from 'react-i18next'
 import { withRouter } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import { FormGroup, ControlLabel, FormControl, Button } from 'react-bootstrap'
-import { db } from '../../lib/leancloud'
 
+import { db } from '../../lib/leancloud'
+import { depthFirstSearchFind } from '../../lib/common'
 import { getCategoriesTree } from '../common'
 import CategoriesSelect from '../CategoriesSelect'
-import { depthFirstSearchFind } from '../../lib/common'
 
 class Category extends React.Component {
   constructor() {
@@ -154,78 +154,69 @@ class Category extends React.Component {
     }
 
     return (
-      <div>
-        <form onSubmit={this.handleSubmit.bind(this)}>
-          <FormGroup controlId="nameText">
-            <ControlLabel>{t('categoryName')}</ControlLabel>
-            <FormControl
-              type="text"
-              value={this.state.name}
-              onChange={this.handleNameChange.bind(this)}
-            />
-          </FormGroup>
-          <FormGroup controlId="descriptionText">
-            <ControlLabel>
-              {t('categoryDescription')}
-              {t('optional')}
-            </ControlLabel>
-            <FormControl
-              type="text"
-              value={this.state.description}
-              onChange={this.handleDescriptionChange.bind(this)}
-            />
-          </FormGroup>
-          <FormGroup controlId="parentSelect">
-            <ControlLabel>
-              {t('parentCategory')}
-              {t('optional')}
-            </ControlLabel>
-            <CategoriesSelect
-              categoriesTree={this.state.categoriesTree}
-              selected={this.state.parentCategory}
-              onChange={this.handleParentChange.bind(this, t)}
-            />
-          </FormGroup>
-          <FormGroup controlId="FAQsText">
-            <ControlLabel>
-              {t('FAQ')}
-              {t('optional')}
-            </ControlLabel>
-            <FormControl
-              type="text"
-              value={this.state.FAQs}
-              onChange={this.handleFAQsChange.bind(this)}
-              placeholder="objectId1,objectId2"
-            />
-            <p className="help-block">{t('FAQInfo')}</p>
-          </FormGroup>
-          <FormGroup controlId="qTemplateTextarea">
-            <ControlLabel>
-              {t('ticketTemplate')}
-              {t('optional')}
-            </ControlLabel>
-            <FormControl
-              componentClass="textarea"
-              rows="8"
-              value={this.state.qTemplate}
-              onChange={this.handleQTemplateChange.bind(this)}
-            />
-            <p className="help-block">{t('ticketTemplateInfo')}</p>
-          </FormGroup>
-          <Button type="submit" disabled={this.state.isSubmitting} bsStyle="success">
-            {t('save')}
-          </Button>{' '}
-          {(this.state.category && (
-            <Button type="button" bsStyle="danger" onClick={this.handleDisable.bind(this, t)}>
-              {t('disable')}
-            </Button>
-          )) || (
-            <Button type="button" onClick={() => this.props.history.push('/settings/categories')}>
-              {t('return')}
-            </Button>
-          )}
-        </form>
-      </div>
+      <Form onSubmit={this.handleSubmit.bind(this)}>
+        <Form.Group controlId="nameText">
+          <Form.Label>{t('categoryName')}</Form.Label>
+          <Form.Control value={this.state.name} onChange={this.handleNameChange.bind(this)} />
+        </Form.Group>
+        <Form.Group controlId="descriptionText">
+          <Form.Label>
+            {t('categoryDescription')}
+            {t('optional')}
+          </Form.Label>
+          <Form.Control
+            value={this.state.description}
+            onChange={this.handleDescriptionChange.bind(this)}
+          />
+        </Form.Group>
+        <Form.Group controlId="parentSelect">
+          <Form.Label>
+            {t('parentCategory')}
+            {t('optional')}
+          </Form.Label>
+          <CategoriesSelect
+            categoriesTree={this.state.categoriesTree}
+            selected={this.state.parentCategory}
+            onChange={this.handleParentChange.bind(this, t)}
+          />
+        </Form.Group>
+        <Form.Group controlId="FAQsText">
+          <Form.Label>
+            {t('FAQ')}
+            {t('optional')}
+          </Form.Label>
+          <Form.Control
+            value={this.state.FAQs}
+            onChange={this.handleFAQsChange.bind(this)}
+            placeholder="objectId1,objectId2"
+          />
+          <Form.Text>{t('FAQInfo')}</Form.Text>
+        </Form.Group>
+        <Form.Group controlId="qTemplateTextarea">
+          <Form.Label>
+            {t('ticketTemplate')}
+            {t('optional')}
+          </Form.Label>
+          <Form.Control
+            as="textarea"
+            rows="8"
+            value={this.state.qTemplate}
+            onChange={this.handleQTemplateChange.bind(this)}
+          />
+          <Form.Text>{t('ticketTemplateInfo')}</Form.Text>
+        </Form.Group>
+        <Button type="submit" disabled={this.state.isSubmitting} variant="success">
+          {t('save')}
+        </Button>{' '}
+        {this.state.category && (
+          <Button variant="danger" onClick={this.handleDisable.bind(this, t)}>
+            {t('disable')}
+          </Button>
+        )}{' '}
+        <Button variant="light" onClick={() => this.props.history.push('/settings/categories')}>
+          {t('return')}
+        </Button>
+      </Form>
     )
   }
 }

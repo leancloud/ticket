@@ -7,9 +7,8 @@ import PropTypes from 'prop-types'
  * @param {string} [props.value]
  * @param {Function} [props.onChange]
  * @param {number} [props.delay]
- * @param {string} [props.placeholder]
  */
-export function DelayInputForm({ value = '', onChange, placeholder, delay = 1000 }) {
+export function DelayInputForm({ value = '', onChange, delay = 1000, ...props }) {
   const [debouncedValue, setDebouncedValue] = useState(value)
 
   const $onChange = useRef(onChange)
@@ -35,18 +34,10 @@ export function DelayInputForm({ value = '', onChange, placeholder, delay = 1000
     [setDebouncedValue]
   )
 
-  return (
-    <FormControl
-      type="text"
-      value={debouncedValue}
-      placeholder={placeholder}
-      onChange={handleChange}
-    />
-  )
+  return <FormControl {...props} value={debouncedValue} onChange={handleChange} />
 }
 DelayInputForm.propTypes = {
   value: PropTypes.string,
   onChange: PropTypes.func,
   delay: PropTypes.number,
-  placeholder: PropTypes.string,
 }

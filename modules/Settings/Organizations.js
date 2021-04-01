@@ -1,8 +1,8 @@
 import React, { Component } from 'react'
+import { Button, Card, ListGroup } from 'react-bootstrap'
 import { withTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import { Form, FormGroup, Panel, ListGroup, ListGroupItem, Button } from 'react-bootstrap'
 import { cloud } from '../../lib/leancloud'
 
 class Organizations extends Component {
@@ -48,33 +48,28 @@ class Organizations extends Component {
     const { t } = this.props
     return (
       <div>
-        <Form inline>
-          <FormGroup>
-            <Link to={'/settings/organizations/new'}>{t('newOrganization')}</Link>
-          </FormGroup>{' '}
-        </Form>
-        <Panel>
-          <ListGroup>
-            {(this.props.organizations.length == 0 && (
-              <Panel.Body>{t('notInOrganization')}</Panel.Body>
-            )) ||
-              this.props.organizations.map((o) => {
-                return (
-                  <ListGroupItem key={o.id}>
-                    <Link to={'/settings/organizations/' + o.id}>
-                      <strong>{o.get('name')}</strong>
-                    </Link>{' '}
-                    <span>
-                      {t('totalMembers')} {this.state.organizationMembersCount[o.id]}
-                    </span>{' '}
-                    <span>
-                      <Button onClick={() => this.handleLeaveOrganization(o)}>{t('leave')}</Button>
-                    </span>
-                  </ListGroupItem>
-                )
-              })}
+        <div>
+          <Link to={'/settings/organizations/new'}>{t('newOrganization')}</Link>
+        </div>
+        <Card className="mt-1">
+          <ListGroup variant="flush">
+            {this.props.organizations.length === 0 ? (
+              <Card.Body>{t('notInOrganization')}</Card.Body>
+            ) : (
+              this.props.organizations.map((o) => (
+                <ListGroup.Item key={o.id}>
+                  <Link to={'/settings/organizations/' + o.id}>
+                    <strong>{o.data.name}</strong>
+                  </Link>{' '}
+                  <span>{t('totalMembers') + this.state.organizationMembersCount[o.id]}</span>{' '}
+                  <Button variant="light" onClick={() => this.handleLeaveOrganization(o)}>
+                    {t('leave')}
+                  </Button>
+                </ListGroup.Item>
+              ))
+            )}
           </ListGroup>
-        </Panel>
+        </Card>
       </div>
     )
   }

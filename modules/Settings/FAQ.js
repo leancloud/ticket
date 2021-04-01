@@ -1,17 +1,11 @@
 /*global FAQ_VIEWS*/
 import React from 'react'
+import { Button, Form, OverlayTrigger, Tooltip } from 'react-bootstrap'
 import { withTranslation } from 'react-i18next'
 import { withRouter } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
-import {
-  FormGroup,
-  ControlLabel,
-  FormControl,
-  Button,
-  Tooltip,
-  OverlayTrigger,
-} from 'react-bootstrap'
+
 import { db } from '../../lib/leancloud'
 import TextareaWithPreview from '../components/TextareaWithPreview'
 
@@ -110,52 +104,46 @@ class FAQ extends React.Component {
     }
 
     return (
-      <div>
-        <form onSubmit={this.handleSubmit.bind(this)}>
-          <FormGroup controlId="questionText">
-            <ControlLabel>Question</ControlLabel>
-            <FormControl
-              type="text"
-              value={this.state.faq.question}
-              onChange={this.handleQuestionChange.bind(this)}
+      <Form onSubmit={this.handleSubmit.bind(this)}>
+        <Form.Group controlId="questionText">
+          <Form.Label>Question</Form.Label>
+          <Form.Control
+            value={this.state.faq.question}
+            onChange={this.handleQuestionChange.bind(this)}
+          />
+        </Form.Group>
+        <Form.Group controlId="answerText">
+          <Form.Label>
+            Answer <i className="bi bi-markdown" title={t('supportMarkdown')}></i>
+          </Form.Label>
+          <TextareaWithPreview
+            rows="8"
+            value={this.state.faq.answer}
+            onChange={this.handleAnswerChange.bind(this)}
+          />
+        </Form.Group>
+        {VIEWS.map((view) => (
+          <Form.Group key={view}>
+            <Form.Label>
+              <OverlayTrigger overlay={<Tooltip id="tooltip">{t('viewHint')}</Tooltip>}>
+                <span>{view}❓</span>
+              </OverlayTrigger>
+            </Form.Label>
+            <Form.Control
+              type="number"
+              value={this.state[view]}
+              onChange={(e) => this.setState({ [view]: e.target.value })}
+              placeholder={DEFAULT_PRIORITY}
             />
-          </FormGroup>
-          <FormGroup controlId="answerText">
-            <ControlLabel>
-              Answer{' '}
-              <b className="has-required" title={t('supportMarkdown')}>
-                M↓
-              </b>
-            </ControlLabel>
-            <TextareaWithPreview
-              rows="8"
-              value={this.state.faq.answer}
-              onChange={this.handleAnswerChange.bind(this)}
-            />
-          </FormGroup>
-          {VIEWS.map((view) => (
-            <FormGroup key={view}>
-              <ControlLabel>
-                <OverlayTrigger overlay={<Tooltip id="tooltip">{t('viewHint')}</Tooltip>}>
-                  <span>{view}❓</span>
-                </OverlayTrigger>
-              </ControlLabel>
-              <FormControl
-                type="number"
-                value={this.state[view]}
-                onChange={(e) => this.setState({ [view]: e.target.value })}
-                placeholder={DEFAULT_PRIORITY}
-              />
-            </FormGroup>
-          ))}
-          <Button type="submit" disabled={this.state.isSubmitting} bsStyle="success">
-            {t('save')}
-          </Button>{' '}
-          <Button type="button" onClick={() => this.props.history.push('/settings/faqs')}>
-            {t('return')}
-          </Button>
-        </form>
-      </div>
+          </Form.Group>
+        ))}
+        <Button type="submit" disabled={this.state.isSubmitting} variant="success">
+          {t('save')}
+        </Button>{' '}
+        <Button variant="light" onClick={() => this.props.history.push('/settings/faqs')}>
+          {t('return')}
+        </Button>
+      </Form>
     )
   }
 }

@@ -1,11 +1,12 @@
 import React, { Component } from 'react'
+import { Button } from 'react-bootstrap'
+import { Link, withRouter } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import { Pager } from 'react-bootstrap'
 import qs from 'query-string'
 import _ from 'lodash'
 import moment from 'moment'
+
 import { auth, db } from '../lib/leancloud'
-import { Link, withRouter } from 'react-router-dom'
 import { UserLabel } from './UserLabel'
 import TicketStatusLabel from './TicketStatusLabel'
 import css from './CustomerServiceTickets.css'
@@ -65,7 +66,7 @@ class Subscriptions extends Component {
                   title={'reply ' + ticket.get('replyCount')}
                   to={'/tickets/' + ticket.get('nid')}
                 >
-                  <span className={css.commentCounterIcon + ' glyphicon glyphicon-comment'}></span>
+                  <i className={`${css.commentCounterIcon} bi bi-chat-left`}></i>
                   {ticket.get('replyCount')}
                 </Link>
               )}
@@ -129,22 +130,22 @@ class Subscriptions extends Component {
     const isLastPage = parseInt(size) !== this.state.watches.length
     if (!(isFirstPage && isLastPage)) {
       pager = (
-        <Pager>
-          <Pager.Item
+        <div className="my-2 d-flex justify-content-between">
+          <Button
+            variant="light"
             disabled={isFirstPage}
-            previous
             onClick={() => this.updateFilter({ page: parseInt(page) - 1 + '' })}
           >
             &larr; 上一页
-          </Pager.Item>
-          <Pager.Item
+          </Button>
+          <Button
+            variant="light"
             disabled={isLastPage}
-            next
             onClick={() => this.updateFilter({ page: parseInt(page) + 1 + '' })}
           >
             下一页 &rarr;
-          </Pager.Item>
-        </Pager>
+          </Button>
+        </div>
       )
     }
 

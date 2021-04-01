@@ -1,10 +1,11 @@
 import React from 'react'
+import { Button, Table } from 'react-bootstrap'
+import { Link } from 'react-router-dom'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import moment from 'moment'
 import _ from 'lodash'
-import { Table, Button } from 'react-bootstrap'
-import { Link } from 'react-router-dom'
+
 import { cloud, db } from '../lib/leancloud'
 import { fetchUsers } from './common'
 import { getUserDisplayName } from '../lib/common'
@@ -381,11 +382,11 @@ class StatsSummary extends React.Component {
           {t('summary')}{' '}
           <small>
             {this.state.timeUnit === 'month' ? (
-              <Button onClick={() => this.changeTimeUnit('weeks')} bsStyle="link">
+              <Button onClick={() => this.changeTimeUnit('weeks')} variant="link">
                 {t('toWeekly')}
               </Button>
             ) : (
-              <Button onClick={() => this.changeTimeUnit('month')} bsStyle="link">
+              <Button onClick={() => this.changeTimeUnit('month')} variant="link">
                 {t('toMonthly')}
               </Button>
             )}
