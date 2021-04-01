@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 import { Link, useHistory, useLocation } from 'react-router-dom'
-import { Button, ButtonGroup, ButtonToolbar, Dropdown, DropdownButton, Form } from 'react-bootstrap'
+import { Button, ButtonGroup, Dropdown, DropdownButton, Form } from 'react-bootstrap'
 import qs from 'query-string'
 import moment from 'moment'
 
@@ -64,7 +64,7 @@ function DropdownMenu({ active, title, onSelect, items, allTitle, ...props }) {
   )
   return (
     <Dropdown {...props} as={ButtonGroup} onSelect={handleSelect}>
-      <Dropdown.Toggle variant="light" active={active}>
+      <Dropdown.Toggle variant="light" size="sm" active={active}>
         {title}
       </Dropdown.Toggle>
       <Dropdown.Menu>
@@ -316,13 +316,16 @@ function TicketMenu({ customerServices, categories }) {
 
   return (
     <>
-      <DelayInputForm
-        placeholder={t('searchKeyword')}
-        value={searchString}
-        onChange={(searchString) => updatePath({ searchString: searchString || undefined })}
-      />
-      <ButtonToolbar className="ml-1">
-        <ButtonGroup>
+      <Form.Group>
+        <DelayInputForm
+          size="sm"
+          placeholder={t('searchKeyword')}
+          value={searchString}
+          onChange={(searchString) => updatePath({ searchString: searchString || undefined })}
+        />
+      </Form.Group>
+      <Form.Group className="ml-1">
+        <ButtonGroup size="sm">
           <Button
             variant="light"
             active={isOpen === 'true'}
@@ -348,7 +351,7 @@ function TicketMenu({ customerServices, categories }) {
           />
         </ButtonGroup>
 
-        <ButtonGroup className="ml-1">
+        <ButtonGroup className="ml-1" size="sm">
           <Button
             variant="light"
             active={assignedToMe}
@@ -378,7 +381,7 @@ function TicketMenu({ customerServices, categories }) {
           }))}
         />
 
-        <ButtonGroup className="ml-1">
+        <ButtonGroup className="ml-1" size="sm">
           <DropdownMenu
             active={!!tagKey}
             title={tagKey || t('all')}
@@ -414,10 +417,11 @@ function TicketMenu({ customerServices, categories }) {
             { key: 'monthBeforeLast', title: t('monthBeforeLast') },
           ]}
         />
-      </ButtonToolbar>
+      </Form.Group>
 
       <Form.Group className="ml-1">
         <Form.Control
+          size="sm"
           value={authorUsername}
           placeholder={t('submitter')}
           onChange={handleChangeAuthorUsername}
@@ -640,7 +644,7 @@ export default function CustomerServiceTickets() {
   const handleCheckTicket = useCallback(({ objectId }) => {
     setCheckedTickets((currentCheckedTickets) => {
       const nextCheckedTickets = new Set(currentCheckedTickets)
-      if (checkedTickets.has(objectId)) {
+      if (currentCheckedTickets.has(objectId)) {
         nextCheckedTickets.delete(objectId)
       } else {
         nextCheckedTickets.add(objectId)
@@ -682,13 +686,15 @@ export default function CustomerServiceTickets() {
 
   return (
     <div>
-      <div className={css.row}>
-        <Form inline className="pb-2">
-          <Form.Check
-            className={css.ticketSelectCheckbox}
-            checked={tickets.length && checkedTickets.size === tickets.length}
-            onChange={handleCheckAll}
-          />
+      <div className={`${css.row} pb-2`}>
+        <Form inline>
+          <Form.Group>
+            <Form.Check
+              className={css.ticketSelectCheckbox}
+              checked={tickets.length && checkedTickets.size === tickets.length}
+              onChange={handleCheckAll}
+            />
+          </Form.Group>
           {checkedTickets.size ? (
             <BatchOperationMenu
               categories={categories}

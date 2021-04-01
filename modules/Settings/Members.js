@@ -85,7 +85,11 @@ class SettingMembers extends Component {
           </td>
           <td>{categories}</td>
           <td>
-            <Button onClick={() => this.handleRemoveCustomerService(customerService.id)}>
+            <Button
+              variant="light"
+              size="sm"
+              onClick={() => this.handleRemoveCustomerService(customerService.id)}
+            >
               {t('remove')}
             </Button>
           </td>
@@ -95,7 +99,7 @@ class SettingMembers extends Component {
     return (
       <div>
         <UserForm addUser={this.handleSubmit.bind(this)} />
-        <Table bordered className={`${style.memberTable} mt-2`}>
+        <Table bordered className={`${style.memberTable} mt-2`} size="sm">
           <thead>
             <tr>
               <th>{t('user')}</th>

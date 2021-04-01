@@ -25,3 +25,39 @@ pre {
 .card-body {
   padding: 15px;
 }
+
+.btn-light {
+  border: 1px #ddd solid;
+}
+
+.btn-primary {
+  color: #fff;
+  background-color: #2c97e8;
+  border-color: #2c97e8;
+}
+.btn-primary.focus, .btn-primary:focus, .btn-primary:hover {
+  color: #fff;
+  background-color: #1784d6;
+  border-color: #167dcb;
+}
+.btn-primary.focus, .btn-primary:focus {
+  box-shadow: 0 0 0 0.2rem rgb(76 167 235 / 50%);
+}
+.btn-primary:not(:disabled):not(.disabled).active, .btn-primary:not(:disabled):not(.disabled):active, .show>.btn-primary.dropdown-toggle {
+  color: #fff;
+  background-color: #167dcb;
+  border-color: #1576bf;
+}
+.btn-primary.disabled, .btn-primary:disabled {
+  color: #fff;
+  background-color: #2c97e8;
+  border-color: #2c97e8;
+}
+
+a {
+  color: #3090e4;
+}
+
+.list-group-item {
+  padding: 10px 15px;
+}

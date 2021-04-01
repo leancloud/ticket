@@ -569,7 +569,7 @@ class Ticket extends Component {
                     overlay={<Tooltip id="tooltip">{t('clickToUnsubscribe')}</Tooltip>}
                   >
                     <Button variant="link" active onClick={this.handleRemoveWatch.bind(this)}>
-                      <i className="bi bi-eye"></i>
+                      <i className="bi bi-eye-slash"></i>
                     </Button>
                   </OverlayTrigger>
                 ) : (
@@ -578,7 +578,7 @@ class Ticket extends Component {
                     overlay={<Tooltip id="tooltip">{t('clickToSubscribe')}</Tooltip>}
                   >
                     <Button variant="link" onClick={this.handleAddWatch.bind(this)}>
-                      <i className="bi bi-eye-slash"></i>
+                      <i className="bi bi-eye"></i>
                     </Button>
                   </OverlayTrigger>
                 )

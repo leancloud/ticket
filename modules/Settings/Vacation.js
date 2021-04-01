@@ -118,7 +118,7 @@ class Vacation extends Component {
           </td>
           <td>{moment(vacation.createdAt).fromNow()}</td>
           <td>
-            <Button type="button" onClick={() => this.handleRemove(vacation)}>
+            <Button variant="light" size="sm" onClick={() => this.handleRemove(vacation)}>
               {t('delete')}
             </Button>
           </td>

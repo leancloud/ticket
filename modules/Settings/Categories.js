@@ -87,7 +87,7 @@ class Categories extends Component {
       <div>
         <Link to={'/settings/categories/_new'}>{t('newCategory')}</Link>{' '}
         <Link to={'/settings/categorySort'}>{t('reorder')}</Link>
-        <Table bordered>
+        <Table bordered size="sm">
           <thead>
             <tr>
               <th>{t('name')}</th>

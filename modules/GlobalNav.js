@@ -20,7 +20,7 @@ export default function GlobalNav({ user, onLogout }) {
   }
 
   return (
-    <Navbar bg="light" expand="lg" fixed="top">
+    <Navbar bg="light" expand="md" fixed="top">
       <Container>
         <Navbar.Brand as={Link} to="/">
           <b>{getConfig('nav.home.title', 'LeanTicket')}</b>

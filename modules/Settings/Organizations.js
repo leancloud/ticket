@@ -62,7 +62,7 @@ class Organizations extends Component {
                     <strong>{o.data.name}</strong>
                   </Link>{' '}
                   <span>{t('totalMembers') + this.state.organizationMembersCount[o.id]}</span>{' '}
-                  <Button variant="light" onClick={() => this.handleLeaveOrganization(o)}>
+                  <Button variant="light" size="sm" onClick={() => this.handleLeaveOrganization(o)}>
                     {t('leave')}
                   </Button>
                 </ListGroup.Item>
