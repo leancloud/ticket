@@ -20,7 +20,7 @@ import {
   ticketClosedStatuses,
   ticketStatus,
 } from '../../lib/common'
-import TicketStatusLabel from '../TicketStatusLabel'
+import { TicketStatusLabel } from '../components/TicketStatusLabel'
 import { UserLabel } from '../UserLabel'
 import { AppContext } from '../context'
 import { useCustomerServices } from './useCustomerServices'
@@ -459,6 +459,7 @@ function BatchOperationMenu({ categories, onChangeCategory, onBatchOperate }) {
     <Form.Group>
       <DropdownButton
         variant="light"
+        size="sm"
         id="categoryMoveDropdown"
         title={t('changeCategory')}
         onSelect={onChangeCategory}
@@ -472,6 +473,7 @@ function BatchOperationMenu({ categories, onChangeCategory, onBatchOperate }) {
       {filters.isOpen === 'true' && (
         <DropdownButton
           variant="light"
+          size="sm"
           className="ml-1"
           id="batchOperationDropdown"
           title={t('batchOperation')}

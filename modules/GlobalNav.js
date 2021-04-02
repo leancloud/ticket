@@ -1,7 +1,7 @@
 import React, { useContext } from 'react'
 import { Button, Container, Nav, Navbar, NavDropdown } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
-import { Link, useHistory } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import i18next from 'i18next'
 import PropTypes from 'prop-types'
 
@@ -11,7 +11,6 @@ import { AppContext } from './context'
 
 export default function GlobalNav({ user, onLogout }) {
   const { t } = useTranslation()
-  const history = useHistory()
   const { isCustomerService } = useContext(AppContext)
 
   const handleChangeLanguage = (lang) => {
@@ -22,8 +21,8 @@ export default function GlobalNav({ user, onLogout }) {
   return (
     <Navbar bg="light" expand="md" fixed="top">
       <Container>
-        <Navbar.Brand as={Link} to="/">
-          <b>{getConfig('nav.home.title', 'LeanTicket')}</b>
+        <Navbar.Brand className="font-logo" as={Link} to="/">
+          {getConfig('nav.home.title', 'LeanTicket')}
         </Navbar.Brand>
 
         <Navbar.Toggle />
@@ -53,11 +52,7 @@ export default function GlobalNav({ user, onLogout }) {
           </Nav>
           <Nav>
             {user && (
-              <Button
-                className="mx-3"
-                variant="success"
-                onClick={() => history.push('/tickets/new')}
-              >
+              <Button className="mx-3" variant="success" as={Link} to="/tickets/new">
                 {t('newTicket')}
               </Button>
             )}

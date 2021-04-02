@@ -9,6 +9,7 @@ import NotificationSystem from 'react-notification-system'
 import Raven from 'raven-js'
 import i18next from 'i18next'
 
+import './style/index.scss'
 import './i18n'
 import { auth, db } from '../lib/leancloud'
 import { AppContext } from './context'

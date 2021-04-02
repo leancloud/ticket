@@ -8,7 +8,7 @@ import moment from 'moment'
 
 import { auth, db } from '../lib/leancloud'
 import { UserLabel } from './UserLabel'
-import TicketStatusLabel from './TicketStatusLabel'
+import { TicketStatusLabel } from './components/TicketStatusLabel'
 import css from './CustomerServiceTickets.css'
 
 class Subscriptions extends Component {

@@ -96,8 +96,9 @@ export default class Messages extends Component {
                       <td>
                         <div>
                           <Link to={'tickets/' + ticket.get('nid')}>
-                            <i className="bi bi-arrow-left-right"></i> <UserLabel user={sender} />{' '}
-                            将工单交由你处理 #{ticket.get('nid') + ' ' + ticket.get('title')}
+                            <i className="bi bi-arrow-left-right"></i>{' '}
+                            <UserLabel user={sender} simple /> 将工单交由你处理 #
+                            {ticket.get('nid') + ' ' + ticket.get('title')}
                           </Link>{' '}
                           <small>{moment(m.get('createdAt')).fromNow()}</small>{' '}
                           {!m.get('isRead') && <span className="label label-default">未读</span>}

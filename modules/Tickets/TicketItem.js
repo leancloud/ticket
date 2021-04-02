@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom'
 import _ from 'lodash'
 import moment from 'moment'
 
-import TicketStatusLabel from '../TicketStatusLabel'
+import { TicketStatusLabel } from '../components/TicketStatusLabel'
 import { UserLabel } from '../UserLabel'
 import css from '../CustomerServiceTickets.css'
 
