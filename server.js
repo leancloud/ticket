@@ -31,7 +31,7 @@ app.use(require('./api'))
 const { orgName } = require('./api/oauth')
 
 const getIndexPage = () => {
-  return `<!doctype html public "storage">
+  return `<!doctype html>
 <html>
 <meta charset=utf-8/>
 <meta name="viewport" content="width=device-width, initial-scale=1">
