@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
+import { Alert, Button, Form } from 'react-bootstrap'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
-import { FormGroup, FormControl, Alert, Button, Radio } from 'react-bootstrap'
 import LC from '../lib/leancloud'
 
 class Evaluation extends Component {
@@ -42,52 +42,70 @@ class Evaluation extends Component {
     const evaluation = this.props.ticket.get('evaluation')
     if (evaluation) {
       return (
-        <Alert bsStyle="warning">
-          <p>{t('feedback')}</p>
-          <FormGroup>
-            <Radio name="radioGroup" inline disabled defaultChecked={evaluation.star === 1}>
-              <span className="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span>
-            </Radio>{' '}
-            <Radio name="radioGroup" inline disabled defaultChecked={evaluation.star === 0}>
-              <span className="glyphicon glyphicon-thumbs-down" aria-hidden="true"></span>
-            </Radio>
-          </FormGroup>
-          <FormGroup>
-            <FormControl componentClass="textarea" rows="8" value={evaluation.content} disabled />
-          </FormGroup>
+        <Alert variant="warning">
+          {t('feedback')}
+          <Form.Group>
+            <Form.Check
+              type="radio"
+              inline
+              disabled
+              defaultChecked={evaluation.star === 1}
+              label={<i className="bi bi-hand-thumbs-up"></i>}
+            />
+            <Form.Check
+              type="radio"
+              inline
+              disabled
+              defaultChecked={evaluation.star === 0}
+              label={<i className="bi bi-hand-thumbs-down"></i>}
+            />
+          </Form.Group>
+          <Form.Group>
+            <Form.Control as="textarea" rows="8" value={evaluation.content} disabled />
+          </Form.Group>
         </Alert>
       )
     }
 
     if (!this.props.isCustomerService) {
       return (
-        <Alert bsStyle="warning">
-          <p>{t('satisfiedOrNot')}</p>
-          <form onSubmit={this.handleSubmit.bind(this)}>
-            <FormGroup>
-              <Radio name="radioGroup" inline value="1" onClick={this.handleStarChange.bind(this)}>
-                <span className="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span>
-              </Radio>{' '}
-              <Radio name="radioGroup" inline value="0" onClick={this.handleStarChange.bind(this)}>
-                <span className="glyphicon glyphicon-thumbs-down" aria-hidden="true"></span>
-              </Radio>
-            </FormGroup>
-            <FormGroup>
-              <FormControl
-                componentClass="textarea"
+        <Alert variant="warning">
+          {t('satisfiedOrNot')}
+          <Form onSubmit={this.handleSubmit.bind(this)}>
+            <Form.Group>
+              <Form.Check
+                type="radio"
+                inline
+                value="1"
+                onClick={this.handleStarChange.bind(this)}
+                label={<i className="bi bi-hand-thumbs-up"></i>}
+              />
+              <Form.Check
+                type="radio"
+                inline
+                value="0"
+                onClick={this.handleStarChange.bind(this)}
+                label={<i className="bi bi-hand-thumbs-down"></i>}
+              />
+            </Form.Group>
+            <Form.Group>
+              <Form.Control
+                as="textarea"
                 placeholder={t('haveSomethingToSay')}
                 rows="8"
                 value={this.state.content}
                 onChange={this.handleContentChange.bind(this)}
               />
-            </FormGroup>
-            <Button type="submit">{t('submit')}</Button>
-          </form>
+            </Form.Group>
+            <Button type="submit" variant="light">
+              {t('submit')}
+            </Button>
+          </Form>
         </Alert>
       )
     }
 
-    return <div></div>
+    return null
   }
 }
 

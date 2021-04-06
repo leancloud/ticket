@@ -31,20 +31,19 @@ app.use(require('./api'))
 const { orgName } = require('./api/oauth')
 
 const getIndexPage = () => {
-  return `<!doctype html public "storage">
+  return `<!doctype html>
 <html>
-<meta charset=utf-8/>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>LeanTicket</title>
 <link rel="stylesheet" href="/css/highlight.default.min.css">
-<link rel="stylesheet" href="/css/leancloud-base.css">
+<link rel="stylesheet" href="/css/bootstrap-icons.css">
 <link rel="stylesheet" href="/css/react-datepicker.css">
 <link rel="stylesheet" href="/index.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
 <link rel="stylesheet" href="${process.env.WEBPACK_DEV_SERVER || ''}/app.css">
+<link rel="stylesheet" href="/css/leancloud-compatible.css">
 <link rel="stylesheet" href="/css/docsearch-override.css">
-<script src="/js/jquery.min.js"></script>
-<script src="/js/bootstrap.min.js"></script>
 <div id=app></div>
 <script>
   Object.assign(window, ${JSON.stringify(clientGlobalVars)})

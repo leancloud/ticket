@@ -1,0 +1,31 @@
+.label {
+  font-size: 85%;
+  padding: .3em .6em;
+  border-radius: 4px;
+  border: none;
+
+  &.green {
+    color: #2bb367;
+    background-color: rgba(43,179,103, .1);
+  }
+
+  &.grey {
+    color: #555;
+    background-color: rgba(85,85,85, .1);
+  }
+
+  &.blue {
+    color: #3090e4;
+    background-color: rgba(48,144,228, .1);
+  }
+
+  &.red {
+    color: #f74b46;
+    background-color: rgba(247,75,70, .1);
+  }
+
+  &.orange {
+    color: #ff8c2c;
+    background-color: rgba(255,140,44, .1);
+  }
+}

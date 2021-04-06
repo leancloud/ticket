@@ -1,22 +1,21 @@
 import React, { Component } from 'react'
+import { Button, Card, Col, OverlayTrigger, Row, Tooltip } from 'react-bootstrap'
 import { withTranslation } from 'react-i18next'
 import { withRouter } from 'react-router-dom'
 import moment from 'moment'
 import _ from 'lodash'
 import xss from 'xss'
-import { Button, OverlayTrigger, Tooltip } from 'react-bootstrap'
 import PropTypes from 'prop-types'
-import { auth, cloud, db } from '../../lib/leancloud'
 
-import { uploadFiles, getCategoryPathName, getCategoriesTree } from '../common'
 import css from './index.css'
+import { auth, cloud, db } from '../../lib/leancloud'
+import { uploadFiles, getCategoryPathName, getCategoriesTree } from '../common'
 import csCss from '../CustomerServiceTickets.css'
-
 import { isTicketOpen, getTinyCategoryInfo } from '../../lib/common'
 import Evaluation from '../Evaluation'
 import TicketMetadata from './TicketMetadata'
 import TicketReply from './TicketReply'
-import TicketStatusLabel from '../TicketStatusLabel'
+import { TicketStatusLabel } from '../components/TicketStatusLabel'
 import Tag from '../Tag'
 import { WeekendWarning } from '../components/WeekendWarning'
 import { UserLabel } from '../UserLabel'
@@ -339,7 +338,7 @@ class Ticket extends Component {
             <div className="ticket-status" id={avObj.id} key={avObj.id}>
               <div className="ticket-status-left">
                 <span className="icon-wrap">
-                  <span className="glyphicon glyphicon-transfer"></span>
+                  <i className="bi bi-arrow-left-right"></i>
                 </span>
               </div>
               <div className="ticket-status-right">
@@ -353,7 +352,7 @@ class Ticket extends Component {
             <div className="ticket-status" id={avObj.id} key={avObj.id}>
               <div className="ticket-status-left">
                 <span className="icon-wrap">
-                  <span className="glyphicon glyphicon-transfer"></span>
+                  <i className="bi bi-arrow-left-right"></i>
                 </span>
               </div>
               <div className="ticket-status-right">
@@ -370,7 +369,7 @@ class Ticket extends Component {
             <div className="ticket-status" id={avObj.id} key={avObj.id}>
               <div className="ticket-status-left">
                 <span className="icon-wrap">
-                  <span className="glyphicon glyphicon-transfer"></span>
+                  <i className="bi bi-arrow-left-right"></i>
                 </span>
               </div>
               <div className="ticket-status-right">
@@ -384,7 +383,7 @@ class Ticket extends Component {
             <div className="ticket-status" id={avObj.id} key={avObj.id}>
               <div className="ticket-status-left">
                 <span className="icon-wrap">
-                  <span className="glyphicon glyphicon-comment"></span>
+                  <i className="bi bi-chat-left-fill"></i>
                 </span>
               </div>
               <div className="ticket-status-right">
@@ -398,7 +397,7 @@ class Ticket extends Component {
             <div className="ticket-status" id={avObj.id} key={avObj.id}>
               <div className="ticket-status-left">
                 <span className="icon-wrap awaiting">
-                  <span className="glyphicon glyphicon-hourglass"></span>
+                  <i className="bi bi-hourglass"></i>
                 </span>
               </div>
               <div className="ticket-status-right">
@@ -412,7 +411,7 @@ class Ticket extends Component {
             <div className="ticket-status" id={avObj.id} key={avObj.id}>
               <div className="ticket-status-left">
                 <span className="icon-wrap resolved">
-                  <span className="glyphicon glyphicon-ok-circle"></span>
+                  <i className="bi bi-check-circle"></i>
                 </span>
               </div>
               <div className="ticket-status-right">
@@ -427,7 +426,7 @@ class Ticket extends Component {
             <div className="ticket-status" id={avObj.id} key={avObj.id}>
               <div className="ticket-status-left">
                 <span className="icon-wrap closed">
-                  <span className="glyphicon glyphicon-ban-circle"></span>
+                  <i className="bi bi-slash-circle"></i>
                 </span>
               </div>
               <div className="ticket-status-right">
@@ -441,7 +440,7 @@ class Ticket extends Component {
             <div className="ticket-status" id={avObj.id} key={avObj.id}>
               <div className="ticket-status-left">
                 <span className="icon-wrap reopened">
-                  <span className="glyphicon glyphicon-record"></span>
+                  <i className="bi bi-record-circle"></i>
                 </span>
               </div>
               <div className="ticket-status-right">
@@ -452,7 +451,7 @@ class Ticket extends Component {
           )
       }
     } else {
-      let panelFooter = <div></div>
+      let panelFooter = null
       let imgBody = <div></div>
       const files = avObj.get('files')
       if (files && files.length !== 0) {
@@ -485,17 +484,14 @@ class Ticket extends Component {
                   href={f.data.url + '?attname=' + encodeURIComponent(f.get('name'))}
                   target="_blank"
                 >
-                  <span className="glyphicon glyphicon-paperclip"></span> {f.get('name')}
+                  <i className="bi bi-paperclip"></i> {f.get('name')}
                 </a>{' '}
               </span>
             )
           })
-          panelFooter = <div className="panel-footer">{fileLinks}</div>
+          panelFooter = <Card.Footer className={css.footer}>{fileLinks}</Card.Footer>
         }
       }
-      const panelClass = `panel ${
-        avObj.get('isCustomerService') ? css.panelModerator : 'panel-common'
-      }`
       const userLabel = avObj.get('isCustomerService') ? (
         <span>
           <UserLabel user={avObj.get('author').data} />
@@ -505,16 +501,20 @@ class Ticket extends Component {
         <UserLabel user={avObj.get('author').data} />
       )
       return (
-        <div id={avObj.id} key={avObj.id} className={panelClass}>
-          <div className={'panel-heading ' + css.heading}>
+        <Card
+          id={avObj.id}
+          key={avObj.id}
+          className={avObj.get('isCustomerService') ? css.panelModerator : undefined}
+        >
+          <Card.Header className={css.heading}>
             {userLabel} {t('submittedAt')} {this.getTime(avObj)}
-          </div>
-          <div className={'panel-body ' + css.content}>
+          </Card.Header>
+          <Card.Body className={css.content}>
             {this.contentView(avObj.get('content_HTML'))}
             {imgBody}
-          </div>
+          </Card.Body>
           {panelFooter}
-        </div>
+        </Card>
       )
     }
   }
@@ -537,11 +537,11 @@ class Ticket extends Component {
       .value()
 
     return (
-      <div>
-        <div className="row">
-          <div className="col-sm-12">
+      <>
+        <DocumentTitle title={ticket.get('title') + ' - LeanTicket' || 'LeanTicket'} />
+        <Row className="mt-3">
+          <Col sm={12}>
             {!isCustomerService && <WeekendWarning />}
-            <DocumentTitle title={ticket.get('title') + ' - LeanTicket' || 'LeanTicket'} />
             <h1>{ticket.get('title')}</h1>
             <div className={css.meta}>
               <span className={csCss.nid}>#{ticket.get('nid')}</span>
@@ -568,8 +568,8 @@ class Ticket extends Component {
                     placement="right"
                     overlay={<Tooltip id="tooltip">{t('clickToUnsubscribe')}</Tooltip>}
                   >
-                    <Button bsStyle="link" active onClick={this.handleRemoveWatch.bind(this)}>
-                      <span className="glyphicon glyphicon-eye-close" aria-hidden="true"></span>
+                    <Button variant="link" active onClick={this.handleRemoveWatch.bind(this)}>
+                      <i className="bi bi-eye-slash"></i>
                     </Button>
                   </OverlayTrigger>
                 ) : (
@@ -577,8 +577,8 @@ class Ticket extends Component {
                     placement="right"
                     overlay={<Tooltip id="tooltip">{t('clickToSubscribe')}</Tooltip>}
                   >
-                    <Button bsStyle="link" onClick={this.handleAddWatch.bind(this)}>
-                      <span className="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
+                    <Button variant="link" onClick={this.handleAddWatch.bind(this)}>
+                      <i className="bi bi-eye"></i>
                     </Button>
                   </OverlayTrigger>
                 )
@@ -587,11 +587,11 @@ class Ticket extends Component {
               )}
             </div>
             <hr />
-          </div>
-        </div>
+          </Col>
+        </Row>
 
-        <div className="row">
-          <div className="col-sm-8">
+        <Row className="row">
+          <Col sm={8}>
             <div className="tickets">
               {this.ticketTimeline(ticket)}
               <div>{timeline}</div>
@@ -621,9 +621,9 @@ class Ticket extends Component {
                 />
               </div>
             )}
-          </div>
+          </Col>
 
-          <div className={'col-sm-4 ' + css.sidebar}>
+          <Col className={css.sidebar} sm={4}>
             {this.state.tags.map((tag) => (
               <Tag key={tag.id} tag={tag} ticket={ticket} isCustomerService={isCustomerService} />
             ))}
@@ -642,9 +642,9 @@ class Ticket extends Component {
               ticket={ticket.toJSON()}
               onOperate={this.operateTicket.bind(this)}
             />
-          </div>
-        </div>
-      </div>
+          </Col>
+        </Row>
+      </>
     )
   }
 }

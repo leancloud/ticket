@@ -1,19 +1,11 @@
 import React, { Component } from 'react'
+import { Button, Form, Table } from 'react-bootstrap'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
-import {
-  Button,
-  ControlLabel,
-  Checkbox,
-  Form,
-  FormControl,
-  FormGroup,
-  Table,
-} from 'react-bootstrap'
 import moment from 'moment'
 import DatePicker from 'react-datepicker'
-import { auth, db } from '../../lib/leancloud'
 
+import { auth, db } from '../../lib/leancloud'
 import { getCustomerServices } from '../common'
 import { UserLabel } from '../UserLabel'
 import { getUserDisplayName } from '../../lib/common'
@@ -33,7 +25,7 @@ class Vacation extends Component {
   }
 
   componentDidMount() {
-    Promise.all([
+    return Promise.all([
       getCustomerServices(),
       db
         .class('Vacation')
@@ -50,6 +42,7 @@ class Vacation extends Component {
         .find(),
     ]).then(([users, vacations]) => {
       this.setState({ users, vacations })
+      return
     })
   }
 
@@ -89,12 +82,14 @@ class Vacation extends Component {
         const vacations = this.state.vacations
         vacations.unshift(vacation)
         this.setState({ vacations })
+        return
       })
   }
 
   handleRemove(vacation) {
-    vacation.delete().then(() => {
+    return vacation.delete().then(() => {
       this.setState({ vacations: this.state.vacations.filter((v) => v.id !== vacation.id) })
+      return
     })
   }
 
@@ -123,7 +118,7 @@ class Vacation extends Component {
           </td>
           <td>{moment(vacation.createdAt).fromNow()}</td>
           <td>
-            <Button type="button" onClick={() => this.handleRemove(vacation)}>
+            <Button variant="light" size="sm" onClick={() => this.handleRemove(vacation)}>
               {t('delete')}
             </Button>
           </td>
@@ -134,18 +129,18 @@ class Vacation extends Component {
       <div>
         <h2>{t('vacation')}</h2>
         <Form onSubmit={this.handleSubmit.bind(this)}>
-          <FormGroup>
-            <ControlLabel>{t('username')}</ControlLabel>{' '}
-            <FormControl
-              componentClass="select"
+          <Form.Group>
+            <Form.Label>{t('username')}</Form.Label>
+            <Form.Control
+              as="select"
               value={this.state.vacationerId}
               onChange={this.handleVacationUserChange.bind(this)}
             >
               {userOptions}
-            </FormControl>
-          </FormGroup>
-          <FormGroup>
-            <ControlLabel>{t('vacationStart')}</ControlLabel>{' '}
+            </Form.Control>
+          </Form.Group>
+          <Form.Group>
+            <Form.Label>{t('vacationStart')}</Form.Label>{' '}
             <DatePicker
               selected={this.state.startDate}
               selectsStart
@@ -153,12 +148,10 @@ class Vacation extends Component {
               endDate={this.state.endDate}
               onChange={this.handleChangeStart.bind(this)}
             />{' '}
-            <Checkbox inline onClick={this.handleStartHalfDayClick.bind(this)}>
-              {t('pm')}
-            </Checkbox>
-          </FormGroup>{' '}
-          <FormGroup>
-            <ControlLabel>{t('backToWork')}</ControlLabel>{' '}
+            <Form.Check inline label={t('pm')} onClick={this.handleStartHalfDayClick.bind(this)} />
+          </Form.Group>
+          <Form.Group>
+            <Form.Label>{t('backToWork')}</Form.Label>{' '}
             <DatePicker
               selected={this.state.endDate}
               selectsEnd
@@ -166,13 +159,13 @@ class Vacation extends Component {
               endDate={this.state.endDate}
               onChange={this.handleChangeEnd.bind(this)}
             />{' '}
-            <Checkbox inline onClick={this.handleEndHalfDayClick.bind(this)}>
-              {t('pm')}
-            </Checkbox>
-          </FormGroup>
-          <Button type="submit">{t('submit')}</Button>
+            <Form.Check inline label={t('pm')} onClick={this.handleEndHalfDayClick.bind(this)} />
+          </Form.Group>
+          <Button type="submit" variant="light">
+            {t('submit')}
+          </Button>
         </Form>
-        <Table>
+        <Table className="mt-2">
           <thead>
             <tr>
               <th>{t('username')}</th>

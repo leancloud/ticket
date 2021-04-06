@@ -1,19 +1,16 @@
-import React from 'react'
-import { useTranslation } from 'react-i18next'
-import PropTypes from 'prop-types'
+import React, { useContext } from 'react'
+import { Table } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
-import { Form, FormGroup, Table } from 'react-bootstrap'
+import { useTranslation } from 'react-i18next'
 
-// TODO: 使用新的 Context 语法
-export default function Tags(props, context) {
+import { AppContext } from '../context'
+
+export default function Tags() {
   const { t } = useTranslation()
+  const { tagMetadatas } = useContext(AppContext)
   return (
     <div>
-      <Form inline>
-        <FormGroup>
-          <Link to={'/settings/tags/new'}>{t('newTag')}</Link>
-        </FormGroup>
-      </Form>
+      <Link to={'/settings/tags/new'}>{t('newTag')}</Link>
       <Table>
         <thead>
           <tr>
@@ -21,7 +18,7 @@ export default function Tags(props, context) {
           </tr>
         </thead>
         <tbody>
-          {context.tagMetadatas.map((m) => (
+          {tagMetadatas.map((m) => (
             <tr key={m.id}>
               <td>
                 <Link to={`/settings/tags/${m.id}`}>{m.data.key}</Link>
@@ -32,8 +29,4 @@ export default function Tags(props, context) {
       </Table>
     </div>
   )
-}
-
-Tags.contextTypes = {
-  tagMetadatas: PropTypes.array,
 }

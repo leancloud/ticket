@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
+import { Button, Form } from 'react-bootstrap'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
-import { Button, ButtonToolbar, FormControl, FormGroup } from 'react-bootstrap'
 import LC from '../../lib/leancloud'
 
 import TextareaWithPreview from '../components/TextareaWithPreview'
@@ -15,6 +15,7 @@ class TicketReply extends Component {
       files: [],
       isCommitting: false,
     }
+    this.fileInput = React.createRef()
   }
 
   handleReplyOnChange(value) {
@@ -40,10 +41,7 @@ class TicketReply extends Component {
         return
       })
       .catch(this.context.addNotification)
-      .then(() => {
-        this.setState({ isCommitting: false })
-        return
-      })
+      .finally(() => this.setState({ isCommitting: false }))
   }
 
   handleReplySoon(e) {
@@ -52,10 +50,7 @@ class TicketReply extends Component {
     return this.props
       .commitReplySoon()
       .catch(this.context.addNotification)
-      .then(() => {
-        this.setState({ isCommitting: false })
-        return
-      })
+      .finally(() => this.setState({ isCommitting: false }))
   }
 
   handleReplyNoContent(e) {
@@ -64,77 +59,66 @@ class TicketReply extends Component {
     return this.props
       .operateTicket('replyWithNoContent')
       .catch(this.context.addNotification)
-      .then(() => {
-        this.setState({ isCommitting: false })
-        return
-      })
+      .finally(() => this.setState({ isCommitting: false }))
   }
 
   render() {
-    const { t } = this.props
-    let buttons
-    if (this.props.isCustomerService) {
-      buttons = (
-        <ButtonToolbar>
-          <Button onClick={this.handleReplyNoContent.bind(this)} disabled={this.state.isCommitting}>
-            {t('noNeedToReply')}
-          </Button>
-          <Button onClick={this.handleReplySoon.bind(this)} disabled={this.state.isCommitting}>
-            {t('replyLater')}
-          </Button>
-          <Button
-            onClick={this.handleReplyCommit.bind(this)}
-            disabled={this.state.isCommitting}
-            bsStyle="success"
-            className={css.submit}
-          >
-            {t('submit')}
-          </Button>
-        </ButtonToolbar>
-      )
-    } else {
-      buttons = (
-        <ButtonToolbar>
-          <Button
-            onClick={this.handleReplyCommit.bind(this)}
-            bsStyle="success"
-            className={css.submit}
-          >
-            {t('submit')}
-          </Button>
-        </ButtonToolbar>
-      )
-    }
+    const { t, isCustomerService } = this.props
     return (
-      <div>
-        <form className="form-group">
-          <FormGroup>
-            <TextareaWithPreview
-              rows="8"
-              value={this.state.reply}
-              onChange={this.handleReplyOnChange.bind(this)}
-              onKeyDown={this.handleReplyOnKeyDown.bind(this)}
-            />
-          </FormGroup>
+      <Form>
+        <Form.Group>
+          <TextareaWithPreview
+            rows="8"
+            value={this.state.reply}
+            onChange={this.handleReplyOnChange.bind(this)}
+            onKeyDown={this.handleReplyOnKeyDown.bind(this)}
+          />
+        </Form.Group>
 
-          <FormGroup>
-            <FormControl type="file" multiple inputRef={(ref) => (this.fileInput = ref)} />
-            <p className="help-block">{t('multipleAttachments')}</p>
-          </FormGroup>
+        <Form.Group>
+          <Form.Control type="file" multiple ref={(ref) => (this.fileInput = ref)} />
+          <Form.Text muted>{t('multipleAttachments')}</Form.Text>
+        </Form.Group>
 
-          <div className={css.form}>
-            <div className={css.formLeft}>
-              <p className={css.markdownTip}>
-                <b className="has-required">M↓</b>{' '}
-                <a href="https://forum.leancloud.cn/t/topic/15412" target="_blank" rel="noopener">
-                  {t('supportMarkdown')}
-                </a>
-              </p>
-            </div>
-            <div className={css.formRight}>{buttons}</div>
+        <Form.Group className="d-block d-md-flex">
+          <div className="flex-fill">
+            <p className={css.markdownTip}>
+              <i className="bi bi-markdown"></i>{' '}
+              <a href="https://forum.leancloud.cn/t/topic/15412" target="_blank" rel="noopener">
+                {t('supportMarkdown')}
+              </a>
+            </p>
           </div>
-        </form>
-      </div>
+          <div>
+            {isCustomerService && (
+              <>
+                <Button
+                  variant="light"
+                  onClick={this.handleReplyNoContent.bind(this)}
+                  disabled={this.state.isCommitting}
+                >
+                  {t('noNeedToReply')}
+                </Button>{' '}
+                <Button
+                  variant="light"
+                  onClick={this.handleReplySoon.bind(this)}
+                  disabled={this.state.isCommitting}
+                >
+                  {t('replyLater')}
+                </Button>{' '}
+              </>
+            )}
+            <Button
+              className={css.submit}
+              variant="success"
+              onClick={this.handleReplyCommit.bind(this)}
+              disabled={this.state.isCommitting}
+            >
+              {t('submit')}
+            </Button>
+          </div>
+        </Form.Group>
+      </Form>
     )
   }
 }

@@ -35,7 +35,7 @@ export default function Error() {
   }
   console.log(location.state.err)
   return (
-    <div>
+    <div className="my-2">
       <h1 className="font-logo">{t('somethingWrong')}</h1>
       <hr />
       <p>{message}</p>

@@ -1,32 +1,37 @@
 import React from 'react'
+import { Dropdown, DropdownButton } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
-import { DropdownButton, MenuItem } from 'react-bootstrap'
 
-export default function TicketsMoveButton({ organizations, selectedOrgId, onTicketsMove }) {
+export default function TicketsMoveButton({
+  organizations,
+  selectedOrgId,
+  onTicketsMove,
+  ...props
+}) {
   const { t } = useTranslation()
   let items
   if (selectedOrgId == '') {
     items = organizations.map((org) => (
-      <MenuItem key={org.id} onClick={() => onTicketsMove(org)}>
+      <Dropdown.Item key={org.id} onClick={() => onTicketsMove(org)}>
         {t('organization')} {org.data.name}
-      </MenuItem>
+      </Dropdown.Item>
     ))
   } else {
     items = _.reject(organizations, { id: selectedOrgId }).map((org) => (
-      <MenuItem key={org.id} onClick={() => onTicketsMove(org)}>
+      <Dropdown.Item key={org.id} onClick={() => onTicketsMove(org)}>
         {t('organization')} {org.data.name}
-      </MenuItem>
+      </Dropdown.Item>
     ))
     items.push(
-      <MenuItem key={'author'} onClick={() => onTicketsMove()}>
+      <Dropdown.Item key={'author'} onClick={() => onTicketsMove()}>
         {t('itsCreator')}
-      </MenuItem>
+      </Dropdown.Item>
     )
   }
   return (
-    <DropdownButton title={t('moveTicketTo')} id="tickets-move">
+    <DropdownButton {...props} title={t('moveTicketTo')} id="tickets-move" variant="light">
       {items}
     </DropdownButton>
   )

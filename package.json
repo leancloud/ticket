@@ -31,7 +31,7 @@
     "babel-loader": "^8.2.2",
     "bluebird": "^3.4.7",
     "blueimp-md5": "^2.18.0",
-    "bootstrap": "^3.3.7",
+    "bootstrap": "^4.6.0",
     "chart.js": "^2.7.2",
     "color": "^1.0.3",
     "compression": "^1.6.2",
@@ -56,7 +56,7 @@
     "raven": "^2.2.1",
     "raven-js": "^3.20.1",
     "react": "^16.14.0",
-    "react-bootstrap": "^0.33.1",
+    "react-bootstrap": "^1.5.2",
     "react-chartjs-2": "^2.1.0",
     "react-datepicker": "^0.46.0",
     "react-dom": "^16.14.0",
@@ -77,6 +77,7 @@
     "zulip-js": "^2.0.4"
   },
   "devDependencies": {
+    "autoprefixer": "^10.2.5",
     "conventional-changelog-cli": "^2.0.0",
     "eslint": "^7.19.0",
     "eslint-config-prettier": "^7.2.0",
@@ -86,8 +87,12 @@
     "http-server": "^0.10.0",
     "migrate": "^1.5.0",
     "nodemon": "^1.17.5",
+    "postcss": "^8.2.9",
+    "postcss-loader": "^5.2.0",
     "prettier": "^2.2.1",
     "prop-types": "^15.7.2",
+    "sass": "^1.32.8",
+    "sass-loader": "^11.0.1",
     "supertest": "^3.0.0",
     "webpack-dev-server": "^3.11.2"
   }

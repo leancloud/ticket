@@ -1,7 +1,7 @@
 import React from 'react'
+import { Badge, Button, Form } from 'react-bootstrap'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
-import { FormGroup, FormControl, Button } from 'react-bootstrap'
 import validUrl from 'valid-url'
 
 class TagForm extends React.Component {
@@ -50,15 +50,14 @@ class TagForm extends React.Component {
     }
 
     return (
-      <FormGroup key={tagMetadata.get('key')}>
-        <label className="label-block">
-          {tagMetadata.get('key')}{' '}
-          {isPrivate && <span className="label label-default">Private</span>}
-        </label>
+      <Form.Group key={tagMetadata.get('key')}>
+        <Form.Label>
+          {tagMetadata.get('key')} {isPrivate && <Badge variant="secondary">Private</Badge>}
+        </Form.Label>
         {this.state.isUpdate ? (
           tagMetadata.get('type') == 'select' ? (
-            <FormControl
-              componentClass="select"
+            <Form.Control
+              as="select"
               value={tag ? tag.value : ''}
               onChange={this.handleChange.bind(this)}
             >
@@ -66,22 +65,18 @@ class TagForm extends React.Component {
               {tagMetadata.get('values').map((v) => {
                 return <option key={v}>{v}</option>
               })}
-            </FormControl>
+            </Form.Control>
           ) : (
-            <div>
-              <FormControl
-                type="text"
-                value={this.state.value}
-                onChange={this.handleChange.bind(this)}
-              />
-              <Button bsStyle="success" onClick={this.handleCommit.bind(this)}>
+            <Form.Group>
+              <Form.Control value={this.state.value} onChange={this.handleChange.bind(this)} />
+              <Button variant="success" onClick={this.handleCommit.bind(this)}>
                 {t('save')}
               </Button>
               <Button onClick={() => this.setState({ isUpdate: false })}>{t('cancel')}</Button>
-            </div>
+            </Form.Group>
           )
         ) : (
-          <span>
+          <Form.Group>
             {tag ? (
               validUrl.isUri(tag.value) ? (
                 <a href={tag.value} target="_blank">
@@ -94,13 +89,13 @@ class TagForm extends React.Component {
               `<${t('unconfigured')}>`
             )}
             {isCustomerService && (
-              <Button bsStyle="link" onClick={() => this.setState({ isUpdate: true })}>
-                <span className="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+              <Button variant="link" onClick={() => this.setState({ isUpdate: true })}>
+                <i className="bi bi-pencil-fill"></i>
               </Button>
             )}
-          </span>
+          </Form.Group>
         )}
-      </FormGroup>
+      </Form.Group>
     )
   }
 }

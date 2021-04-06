@@ -1,8 +1,8 @@
 import React, { Component } from 'react'
+import { Button, Form } from 'react-bootstrap'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
-import { Button, FormControl, FormGroup } from 'react-bootstrap'
 import LC from '../../lib/leancloud'
 
 import { getCustomerServices, getCategoryPathName } from '../common'
@@ -74,11 +74,11 @@ class TicketMetadata extends Component {
 
     return (
       <>
-        <FormGroup>
-          <label className="label-block">{t('assignee')}</label>
+        <Form.Group>
+          <Form.Label>{t('assignee')}</Form.Label>
           {this.state.isUpdateAssignee ? (
-            <FormControl
-              componentClass="select"
+            <Form.Control
+              as="select"
               value={assignee.id}
               onChange={this.handleAssigneeChange.bind(this)}
             >
@@ -87,20 +87,21 @@ class TicketMetadata extends Component {
                   {cs.data.username}
                 </option>
               ))}
-            </FormControl>
+            </Form.Control>
           ) : (
-            <span className={css.assignee}>
+            <Form.Group>
               <UserLabel user={ticket.data.assignee.data} />
               {isCustomerService && (
-                <Button bsStyle="link" onClick={() => this.setState({ isUpdateAssignee: true })}>
-                  <span className="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+                <Button variant="link" onClick={() => this.setState({ isUpdateAssignee: true })}>
+                  <i className="bi bi-pencil-fill"></i>
                 </Button>
               )}
-            </span>
+            </Form.Group>
           )}
-        </FormGroup>
-        <FormGroup>
-          <label className="label-block">{t('category')}</label>
+        </Form.Group>
+
+        <Form.Group>
+          <Form.Label>{t('category')}</Form.Label>
           {this.state.isUpdateCategory ? (
             <CategoriesSelect
               categoriesTree={this.props.categoriesTree}
@@ -113,17 +114,17 @@ class TicketMetadata extends Component {
                 {getCategoryPathName(ticket.get('category'), this.props.categoriesTree)}
               </span>
               {isCustomerService && (
-                <Button bsStyle="link" onClick={() => this.setState({ isUpdateCategory: true })}>
-                  <span className="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+                <Button variant="link" onClick={() => this.setState({ isUpdateCategory: true })}>
+                  <i className="bi bi-pencil-fill"></i>
                 </Button>
               )}
             </div>
           )}
-        </FormGroup>
+        </Form.Group>
 
         {isCustomerService && ticket.data.metaData && (
-          <FormGroup>
-            <label className="label-block">{t('details')}</label>
+          <Form.Group>
+            <Form.Label>{t('details')}</Form.Label>
             {Object.entries(ticket.data.metaData).map(([key, value]) => {
               if (!value) {
                 return null
@@ -136,7 +137,7 @@ class TicketMetadata extends Component {
                 </div>
               )
             })}
-          </FormGroup>
+          </Form.Group>
         )}
 
         <MountCustomElement

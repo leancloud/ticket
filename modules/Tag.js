@@ -1,8 +1,8 @@
 /* global ENABLE_LEANCLOUD_INTEGRATION */
 import React, { useEffect, useState } from 'react'
+import { Badge, Button, Form } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
-import { Label } from 'react-bootstrap'
 import LC, { cloud } from '../lib/leancloud'
 
 export default function Tag({ tag, ticket, isCustomerService }) {
@@ -38,25 +38,27 @@ export default function Tag({ tag, ticket, isCustomerService }) {
   if (!data) {
     return (
       <div className="form-group">
-        <Label bsStyle="default">
+        <Badge variant="secondary">
           {tag.data.key}: {tag.data.value}
-        </Label>
+        </Badge>
       </div>
     )
   }
   return (
-    <div>
-      <label className="control-label">{t(data.key)}</label>
-      <div className="form-group">
+    <Form.Group>
+      <Form.Label>{t(data.key)}</Form.Label>
+      <Form.Group>
         {data.url ? (
-          <a className="btn btn-default" href={data.url} target="_blank">
+          <Button variant="light" h2ref={data.url} target="_blank">
             {data.value}
-          </a>
+          </Button>
         ) : (
-          <a className="btn btn-default disabled">{data.value}</a>
+          <Button variant="light" disabled>
+            {data.value}
+          </Button>
         )}
-      </div>
-    </div>
+      </Form.Group>
+    </Form.Group>
   )
 }
 

@@ -1,10 +1,10 @@
 import React from 'react'
+import { Button, Form } from 'react-bootstrap'
 import { withTranslation } from 'react-i18next'
 import { withRouter } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import { FormGroup, ControlLabel, FormControl, Button, HelpBlock } from 'react-bootstrap'
-import { auth, db } from '../../lib/leancloud'
 
+import { auth, db } from '../../lib/leancloud'
 import { getOrganizationRoleName } from '../../lib/common'
 
 class OrganizationNew extends React.Component {
@@ -61,6 +61,7 @@ class OrganizationNew extends React.Component {
         roles: [adminRole],
       })
       await organization.update({ ACL, adminRole, memberRole })
+      Object.assign(organization.data, { name, adminRole, memberRole })
       this.props.joinOrganization(organization)
       this.props.history.push(`/settings/organizations/${organization.id}`)
       this.context.addNotification('Add organization successful')
@@ -74,30 +75,24 @@ class OrganizationNew extends React.Component {
   render() {
     const { t } = this.props
     return (
-      <div>
-        <form onSubmit={this.handleSubmit.bind(this, t)}>
-          <FormGroup
-            controlId="organizationNameText"
-            validationState={this.state.nameValidationState}
-          >
-            <ControlLabel>{t('organizationName')}</ControlLabel>
-            <FormControl
-              type="text"
-              value={this.state.name}
-              onChange={this.handleNameChange.bind(this, t)}
-            />
-            {this.state.nameValidationState === 'error' && (
-              <HelpBlock>{this.state.nameHelpMessage}</HelpBlock>
-            )}
-          </FormGroup>
-          <Button type="submit" disabled={this.state.isSubmitting} bsStyle="success">
-            {t('save')}
-          </Button>{' '}
-          <Button type="button" onClick={() => this.props.history.push('/settings/organizations')}>
-            {t('return')}
-          </Button>
-        </form>
-      </div>
+      <Form onSubmit={this.handleSubmit.bind(this, t)}>
+        <Form.Group controlId="organizationNameText">
+          <Form.Label>{t('organizationName')}</Form.Label>
+          <Form.Control
+            value={this.state.name}
+            onChange={this.handleNameChange.bind(this, t)}
+            isValid={this.state.nameValidationState === 'success'}
+            isInvalid={this.state.nameValidationState === 'error'}
+          />
+          <Form.Control.Feedback type="invalid">{this.state.nameHelpMessage}</Form.Control.Feedback>
+        </Form.Group>
+        <Button type="submit" variant="success" disabled={this.state.isSubmitting}>
+          {t('save')}
+        </Button>{' '}
+        <Button variant="light" onClick={() => this.props.history.push('/settings/organizations')}>
+          {t('return')}
+        </Button>
+      </Form>
     )
   }
 }

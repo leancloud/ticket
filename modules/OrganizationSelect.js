@@ -1,16 +1,16 @@
 import React from 'react'
+import { Form } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
-import { FormGroup, FormControl, ControlLabel } from 'react-bootstrap'
 import { auth } from '../lib/leancloud'
 import { getUserDisplayName } from '../lib/common'
 
 export default function OrganizationSelect({ organizations, selectedOrgId, onOrgChange }) {
   const { t } = useTranslation()
   return (
-    <FormGroup controlId="orgSelect">
-      <ControlLabel>{t('belong')}:&nbsp;</ControlLabel>
-      <FormControl componentClass="select" value={selectedOrgId} onChange={onOrgChange}>
+    <Form.Group controlId="orgSelect">
+      <Form.Label>{t('belong')}:&nbsp;</Form.Label>
+      <Form.Control as="select" value={selectedOrgId} onChange={onOrgChange}>
         {organizations.map((o) => (
           <option key={o.id} value={o.id}>
             {t('organization')}: {o.get('name')}
@@ -19,8 +19,8 @@ export default function OrganizationSelect({ organizations, selectedOrgId, onOrg
         <option value="">
           {t('individual')}: {getUserDisplayName(auth.currentUser)}
         </option>
-      </FormControl>
-    </FormGroup>
+      </Form.Control>
+    </Form.Group>
   )
 }
 

@@ -572,7 +572,7 @@ const messages = {
     '还没有加入任何组织'
   ],
   'totalMembers': [
-    'Total members:',
+    'Total members: ',
     '成员数：'
   ],
   // Profile

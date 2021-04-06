@@ -1,19 +1,12 @@
 /* global $, ALGOLIA_API_KEY, ENABLE_LEANCLOUD_INTEGRATION */
-import _ from 'lodash'
 import React from 'react'
+import { Button, Form, Tooltip, OverlayTrigger } from 'react-bootstrap'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
-import {
-  FormGroup,
-  ControlLabel,
-  FormControl,
-  Button,
-  Tooltip,
-  OverlayTrigger,
-} from 'react-bootstrap'
 import { auth, cloud, db } from '../lib/leancloud'
 import docsearch from 'docsearch.js'
 import qs from 'query-string'
+import _ from 'lodash'
 
 import TextareaWithPreview from './components/TextareaWithPreview'
 import { WeekendWarning } from './components/WeekendWarning'
@@ -257,21 +250,21 @@ class NewTicket extends React.Component {
         )
       })
       return (
-        <FormGroup key={'categorySelect' + index}>
-          <ControlLabel>
+        <Form.Group key={'categorySelect' + index}>
+          <Form.Label>
             {index == 0
               ? t('category') + ' '
               : t('categoryLevel') + ' ' + (index + 1) + ' ' + t('thCategory') + ' '}
-          </ControlLabel>
-          <FormControl
-            componentClass="select"
+          </Form.Label>
+          <Form.Control
+            as="select"
             value={(selectCategory && selectCategory.id) || ''}
             onChange={(e) => this.handleCategoryChange(e, index, t)}
           >
             <option key="empty"></option>
             {options}
-          </FormControl>
-        </FormGroup>
+          </Form.Control>
+        </Form.Group>
       )
     }
 
@@ -308,7 +301,7 @@ class NewTicket extends React.Component {
       <div>
         <DocumentTitle title={`${t('newTicket')} - LeanTicket`} />
         <WeekendWarning />
-        <form onSubmit={this.handleSubmit.bind(this, t)}>
+        <Form onSubmit={this.handleSubmit.bind(this, t)}>
           {this.props.organizations.length > 0 && (
             <OrganizationSelect
               organizations={this.props.organizations}
@@ -316,45 +309,42 @@ class NewTicket extends React.Component {
               onOrgChange={this.props.handleOrgChange}
             />
           )}
-          <FormGroup>
-            <ControlLabel>{t('title')}</ControlLabel>
-            <input
-              type="text"
-              className="form-control docsearch-input"
+          <Form.Group>
+            <Form.Label>{t('title')}</Form.Label>
+            <Form.Control
+              className="docsearch-input"
               value={ticket.title}
               onChange={this.handleTitleChange.bind(this)}
             />
-          </FormGroup>
+          </Form.Group>
           {ENABLE_LEANCLOUD_INTEGRATION && (
-            <FormGroup>
-              <ControlLabel>
+            <Form.Group>
+              <Form.Label>
                 {t('associatedApplication')}{' '}
                 <OverlayTrigger placement="top" overlay={appTooltip}>
-                  <span className="icon-wrap">
-                    <span className="glyphicon glyphicon-question-sign"></span>
-                  </span>
+                  <i className="bi bi-question-circle-fill"></i>
                 </OverlayTrigger>
-              </ControlLabel>
-              <FormControl
-                componentClass="select"
+              </Form.Label>
+              <Form.Control
+                as="select"
                 value={this.state.appId}
                 onChange={this.handleAppChange.bind(this)}
               >
                 <option key="empty"></option>
                 {appOptions}
-              </FormControl>
-            </FormGroup>
+              </Form.Control>
+            </Form.Group>
           )}
 
           {categorySelects}
 
           {this.state.FAQs.length > 0 && (
-            <FormGroup>
-              <ControlLabel>{t('FAQ')}</ControlLabel>
+            <Form.Group>
+              <Form.Label>{t('FAQ')}</Form.Label>
               {this.state.FAQs.map((faq) => (
                 <FAQ faq={faq} key={faq.id} />
               ))}
-            </FormGroup>
+            </Form.Group>
           )}
 
           {this.context.tagMetadatas.map((tagMetadata) => {
@@ -370,28 +360,26 @@ class NewTicket extends React.Component {
             )
           })}
 
-          <FormGroup>
-            <ControlLabel>
+          <Form.Group>
+            <Form.Label>
               {t('description')}{' '}
               <OverlayTrigger placement="top" overlay={tooltip}>
-                <b className="has-required" title={t('supportMarkdown')}>
-                  M↓
-                </b>
+                <i className="bi bi-markdown"></i>
               </OverlayTrigger>
-            </ControlLabel>
+            </Form.Label>
             <TextareaWithPreview
               rows="8"
               value={ticket.content}
               onChange={this.handleContentChange.bind(this)}
             />
-          </FormGroup>
-          <FormGroup>
-            <input id="ticketFile" type="file" multiple />
-          </FormGroup>
-          <Button type="submit" disabled={this.state.isCommitting} bsStyle="success">
+          </Form.Group>
+          <Form.Group>
+            <Form.File id="ticketFile" multiple />
+          </Form.Group>
+          <Button type="submit" disabled={this.state.isCommitting} variant="success">
             {t('submit')}
           </Button>
-        </form>
+        </Form>
       </div>
     )
   }

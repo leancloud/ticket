@@ -1,13 +1,14 @@
 import React from 'react'
+import { Button, Form } from 'react-bootstrap'
+import { Line } from 'react-chartjs-2'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import moment from 'moment'
 import _ from 'lodash'
-import { Form, FormGroup, ControlLabel, Button } from 'react-bootstrap'
-import { Line } from 'react-chartjs-2'
 import DatePicker from 'react-datepicker'
 import randomColor from 'randomcolor'
 import Color from 'color'
+
 import { fetchUsers } from './common'
 import { getUserDisplayName } from '../lib/common'
 import { getConfig } from './config'
@@ -262,8 +263,8 @@ class StatsChart extends React.Component {
     return (
       <div>
         <Form inline onSubmit={this.handleSubmit.bind(this, t)}>
-          <FormGroup>
-            <ControlLabel>startDate</ControlLabel>{' '}
+          <Form.Group>
+            <Form.Label className="mx-1">startDate</Form.Label>
             <DatePicker
               selected={this.state.startDate}
               selectsStart
@@ -271,9 +272,9 @@ class StatsChart extends React.Component {
               endDate={this.state.endDate}
               onChange={this.handleChangeStart.bind(this)}
             />
-          </FormGroup>{' '}
-          <FormGroup>
-            <ControlLabel>endDate</ControlLabel>{' '}
+          </Form.Group>
+          <Form.Group>
+            <Form.Label className="mx-1">endDate</Form.Label>
             <DatePicker
               selected={this.state.endDate}
               selectsEnd
@@ -281,8 +282,10 @@ class StatsChart extends React.Component {
               endDate={this.state.endDate}
               onChange={this.handleChangeEnd.bind(this)}
             />
-          </FormGroup>{' '}
-          <Button type="submit">{t('submit')}</Button>
+          </Form.Group>
+          <Button className="ml-1" variant="light" type="submit">
+            {t('submit')}
+          </Button>
         </Form>
         {this.state.ticketCountData && (
           <div>

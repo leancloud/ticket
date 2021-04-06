@@ -3,18 +3,7 @@ import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 import { Link, useHistory, useLocation } from 'react-router-dom'
-import {
-  Button,
-  ButtonGroup,
-  ButtonToolbar,
-  Checkbox,
-  DropdownButton,
-  Form,
-  FormControl,
-  FormGroup,
-  MenuItem,
-  Pager,
-} from 'react-bootstrap'
+import { Button, ButtonGroup, Dropdown, DropdownButton, Form } from 'react-bootstrap'
 import qs from 'query-string'
 import moment from 'moment'
 
@@ -31,7 +20,7 @@ import {
   ticketClosedStatuses,
   ticketStatus,
 } from '../../lib/common'
-import TicketStatusLabel from '../TicketStatusLabel'
+import { TicketStatusLabel } from '../components/TicketStatusLabel'
 import { UserLabel } from '../UserLabel'
 import { AppContext } from '../context'
 import { useCustomerServices } from './useCustomerServices'
@@ -63,6 +52,42 @@ function useTicketFilters() {
 
 /**
  * @param {object} props
+ * @param {Array<{ key: string, title: string }>} props.items
+ */
+function DropdownMenu({ active, title, onSelect, items, allTitle, ...props }) {
+  const { t } = useTranslation()
+  const handleSelect = useCallback(
+    (eventKey, ...args) => {
+      onSelect(eventKey || undefined, ...args)
+    },
+    [onSelect]
+  )
+  return (
+    <Dropdown {...props} as={ButtonGroup} onSelect={handleSelect}>
+      <Dropdown.Toggle variant="light" size="sm" active={active}>
+        {title}
+      </Dropdown.Toggle>
+      <Dropdown.Menu>
+        <Dropdown.Item>{allTitle || t('all')}</Dropdown.Item>
+        {items.map(({ key, title }) => (
+          <Dropdown.Item key={key} eventKey={key}>
+            {title}
+          </Dropdown.Item>
+        ))}
+      </Dropdown.Menu>
+    </Dropdown>
+  )
+}
+DropdownMenu.propTypes = {
+  active: PropTypes.bool,
+  title: PropTypes.string.isRequired,
+  allTitle: PropTypes.string,
+  onSelect: PropTypes.func,
+  items: PropTypes.array.isRequired,
+}
+
+/**
+ * @param {object} props
  * @param {Array} props.tickets
  * @param {CategoryManager} props.categories
  * @param {Set<string>} [props.checkedTicketIds]
@@ -83,7 +108,7 @@ function TicketList({ tickets, categories, checkedTicketIds, onCheckTicket }) {
 
     return (
       <div className={`${css.ticket} ${css.row}`} key={ticket.nid}>
-        <Checkbox
+        <Form.Check
           className={css.ticketSelectCheckbox}
           checked={checkedTicketIds?.has(ticket.objectId)}
           onChange={() => onCheckTicket?.(ticket)}
@@ -99,7 +124,7 @@ function TicketList({ tickets, categories, checkedTicketIds, onCheckTicket }) {
                   <span className={css.category}>{getCategoryName(c)}</span>
                 </Link>
               ))}
-              {filters.isOpen === 'false' && (
+              {filters.isOpen !== 'true' && (
                 <span>
                   {ticket.evaluation &&
                     (ticket.evaluation.star === 1 ? (
@@ -119,7 +144,7 @@ function TicketList({ tickets, categories, checkedTicketIds, onCheckTicket }) {
                   title={`reply ${ticket.replyCount}`}
                   to={`/tickets/${ticket.nid}`}
                 >
-                  <span className={css.commentCounterIcon + ' glyphicon glyphicon-comment'}></span>
+                  <i className={`${css.commentCounterIcon} bi bi-chat-left`}></i>
                   {ticket.replyCount}
                 </Link>
               )}
@@ -290,154 +315,131 @@ function TicketMenu({ customerServices, categories }) {
   }, [debouncedUsername, authorId, updatePath])
 
   return (
-    <Form className="form-group" inline>
-      <FormGroup>
+    <>
+      <Form.Group>
         <DelayInputForm
+          size="sm"
           placeholder={t('searchKeyword')}
           value={searchString}
           onChange={(searchString) => updatePath({ searchString: searchString || undefined })}
         />
-      </FormGroup>{' '}
-      <FormGroup>
-        <ButtonToolbar>
-          <ButtonGroup>
-            <Button
-              active={isOpen === 'true'}
-              onClick={() => updatePath({ isOpen: true, status: undefined })}
-            >
-              {t('incompleted')}
-            </Button>
-            <Button
-              active={isOpen === 'false'}
-              onClick={() => updatePath({ isOpen: false, status: undefined })}
-            >
-              {t('completed')}
-            </Button>
-            <DropdownButton
-              id="statusDropdown"
-              active={isOpen === undefined}
-              title={statusTitle}
-              onSelect={(eventKey) => updatePath({ status: eventKey, isOpen: undefined })}
-            >
-              <MenuItem key="undefined">{t('all')}</MenuItem>
-              {Object.values(TICKET_STATUS).map((value) => (
-                <MenuItem key={value} eventKey={value}>
-                  {t(TICKET_STATUS_MSG[value])}
-                </MenuItem>
-              ))}
-            </DropdownButton>
-          </ButtonGroup>
-          <ButtonGroup>
-            <Button active={assignedToMe} onClick={() => updatePath({ assignee: 'me' })}>
-              {t('assignedToMe')}
-            </Button>
-            <DropdownButton
-              id="assigneeDropdown"
-              active={!assignedToMe}
-              title={assigneeTitle}
-              onSelect={(assignee) => updatePath({ assignee })}
-            >
-              <MenuItem key="undefined">{t('all')}</MenuItem>
-              {customerServices.map((user) => (
-                <MenuItem key={user.objectId} eventKey={user.objectId}>
-                  {getUserDisplayName(user)}
-                </MenuItem>
-              ))}
-            </DropdownButton>
-          </ButtonGroup>
-          <ButtonGroup>
-            <DropdownButton
-              id="categoryDropdown"
-              active={!!categoryId}
-              title={categoryTitle}
-              onSelect={(categoryId) => updatePath({ categoryId })}
-            >
-              <MenuItem key="undefined">{t('all')}</MenuItem>
-              {categories.map((c, depth) => (
-                <MenuItem key={c.objectId} eventKey={c.objectId}>
-                  {getIndentString(depth) + getCategoryName(c)}
-                </MenuItem>
-              ))}
-            </DropdownButton>
-          </ButtonGroup>
-          <ButtonGroup>
-            <DropdownButton
-              id="tagKeyDropdown"
-              active={!!tagKey}
-              title={tagKey || t('all')}
-              onSelect={(tagKey) => updatePath({ tagKey, tagValue: undefined })}
-            >
-              <MenuItem key="undefined">{t('all')}</MenuItem>
-              {tagMetadatas.map((tagMetadata) => {
-                const key = tagMetadata.get('key')
-                return (
-                  <MenuItem key={key} eventKey={key}>
-                    {key}
-                  </MenuItem>
-                )
-              })}
-            </DropdownButton>
-            {tagKey && (
-              <DropdownButton
-                id="tagValueDropdown"
-                active={!!tagValue}
-                title={tagValue || t('allTagValues')}
-                onSelect={(tagValue) => updatePath({ tagValue })}
-              >
-                <MenuItem key="undefined">{t('allTagValues')}</MenuItem>
-                {tagMetadatas
-                  .find((m) => m.data.key === tagKey)
-                  .data.values.map((value) => (
-                    <MenuItem key={value} eventKey={value}>
-                      {value}
-                    </MenuItem>
-                  ))}
-              </DropdownButton>
-            )}
-          </ButtonGroup>
-          <ButtonGroup>
-            <DropdownButton
-              id="timeRange"
-              active={!!timeRange}
-              title={TIME_RANGE_MAP[timeRange] ? t(timeRange) : t('allTime')}
-              onSelect={(timeRange) => updatePath({ timeRange })}
-            >
-              <MenuItem key="undefined">{t('allTime')}</MenuItem>
-              <MenuItem key="today" eventKey="today">
-                {t('today')}
-              </MenuItem>
-              <MenuItem key="thisMonth" eventKey="thisMonth">
-                {t('thisMonth')}
-              </MenuItem>
-              <MenuItem key="lastMonth" eventKey="lastMonth">
-                {t('lastMonth')}
-              </MenuItem>
-              <MenuItem key="monthBeforeLast" eventKey="monthBeforeLast">
-                {t('monthBeforeLast')}
-              </MenuItem>
-            </DropdownButton>
-          </ButtonGroup>
-        </ButtonToolbar>
-      </FormGroup>{' '}
-      <FormGroup validationState={authorFilterValidationState}>
-        <FormControl
-          type="text"
+      </Form.Group>
+      <Form.Group className="ml-1">
+        <ButtonGroup size="sm">
+          <Button
+            variant="light"
+            active={isOpen === 'true'}
+            onClick={() => updatePath({ isOpen: true, status: undefined })}
+          >
+            {t('incompleted')}
+          </Button>
+          <Button
+            variant="light"
+            active={isOpen === 'false'}
+            onClick={() => updatePath({ isOpen: false, status: undefined })}
+          >
+            {t('completed')}
+          </Button>
+          <DropdownMenu
+            active={isOpen === undefined}
+            title={statusTitle}
+            onSelect={(status) => updatePath({ status, isOpen: undefined })}
+            items={Object.values(TICKET_STATUS).map((status) => ({
+              key: status,
+              title: t(TICKET_STATUS_MSG[status]),
+            }))}
+          />
+        </ButtonGroup>
+
+        <ButtonGroup className="ml-1" size="sm">
+          <Button
+            variant="light"
+            active={assignedToMe}
+            onClick={() => updatePath({ assignee: 'me' })}
+          >
+            {t('assignedToMe')}
+          </Button>
+          <DropdownMenu
+            active={!assignedToMe}
+            title={assigneeTitle}
+            onSelect={(assignee) => updatePath({ assignee })}
+            items={customerServices.map((user) => ({
+              key: user.objectId,
+              title: getUserDisplayName(user),
+            }))}
+          />
+        </ButtonGroup>
+
+        <DropdownMenu
+          className="ml-1"
+          active={!!categoryId}
+          title={categoryTitle}
+          onSelect={(categoryId) => updatePath({ categoryId })}
+          items={categories.map((c, depth) => ({
+            key: c.objectId,
+            title: getIndentString(depth) + getCategoryName(c),
+          }))}
+        />
+
+        <ButtonGroup className="ml-1" size="sm">
+          <DropdownMenu
+            active={!!tagKey}
+            title={tagKey || t('all')}
+            onSelect={(tagKey) => updatePath({ tagKey, tagValue: undefined })}
+            items={tagMetadatas.map((tagMetadata) => ({
+              key: tagMetadata.get('key'),
+              title: tagMetadata.get('key'),
+            }))}
+          />
+          {tagKey && (
+            <DropdownMenu
+              active={!!tagValue}
+              title={tagValue || t('allTagValues')}
+              allTitle={t('allTagValues')}
+              onSelect={(tagValue) => updatePath({ tagValue })}
+              items={tagMetadatas
+                .find((m) => m.data.key === tagKey)
+                .data.values.map((tagName) => ({ key: tagName, title: tagName }))}
+            />
+          )}
+        </ButtonGroup>
+
+        <DropdownMenu
+          className="ml-1"
+          active={!!timeRange}
+          title={TIME_RANGE_MAP[timeRange] ? t(timeRange) : t('allTime')}
+          allTitle={t('allTime')}
+          onSelect={(timeRange) => updatePath({ timeRange })}
+          items={[
+            { key: 'today', title: t('today') },
+            { key: 'thisMonth', title: t('thisMonth') },
+            { key: 'lastMonth', title: t('lastMonth') },
+            { key: 'monthBeforeLast', title: t('monthBeforeLast') },
+          ]}
+        />
+      </Form.Group>
+
+      <Form.Group className="ml-1">
+        <Form.Control
+          size="sm"
           value={authorUsername}
           placeholder={t('submitter')}
           onChange={handleChangeAuthorUsername}
+          isInvalid={authorFilterValidationState === 'error'}
+          isValid={authorFilterValidationState === 'success'}
         />
-      </FormGroup>{' '}
+      </Form.Group>
+
       {isOpen === 'false' && (
-        <ButtonGroup>
-          <Checkbox
+        <Form.Group className="ml-1" controlId="unlikeOnlyCheckbox">
+          <Form.Check
             checked={isOnlyUnlike === 'true'}
             onChange={(e) => updatePath({ isOnlyUnlike: e.target.checked ? 'true' : undefined })}
-          >
-            {t('badReviewsOnly')}
-          </Checkbox>
-        </ButtonGroup>
+            label={t('badReviewsOnly')}
+          />
+        </Form.Group>
       )}
-    </Form>
+    </>
   )
 }
 TicketMenu.propTypes = {
@@ -454,30 +456,33 @@ function BatchOperationMenu({ categories, onChangeCategory, onBatchOperate }) {
   const { filters } = useTicketFilters()
 
   return (
-    <FormGroup>
-      <ButtonToolbar>
+    <Form.Group>
+      <DropdownButton
+        variant="light"
+        size="sm"
+        id="categoryMoveDropdown"
+        title={t('changeCategory')}
+        onSelect={onChangeCategory}
+      >
+        {categories.map((c, depth) => (
+          <Dropdown.Item key={c.objectId} eventKey={c.objectId}>
+            {getIndentString(depth) + c.name}
+          </Dropdown.Item>
+        ))}
+      </DropdownButton>
+      {filters.isOpen === 'true' && (
         <DropdownButton
-          id="categoryMoveDropdown"
-          title={t('changeCategory')}
-          onSelect={onChangeCategory}
+          variant="light"
+          size="sm"
+          className="ml-1"
+          id="batchOperationDropdown"
+          title={t('batchOperation')}
+          onSelect={onBatchOperate}
         >
-          {categories.map((c, depth) => (
-            <MenuItem key={c.objectId} eventKey={c.objectId}>
-              {getIndentString(depth) + c.name}
-            </MenuItem>
-          ))}
+          <Dropdown.Item eventKey="close">{t('close')}</Dropdown.Item>
         </DropdownButton>
-        {filters.isOpen === 'true' && (
-          <DropdownButton
-            id="batchOperationDropdown"
-            title={t('batchOperation')}
-            onSelect={onBatchOperate}
-          >
-            <MenuItem eventKey="close">{t('close')}</MenuItem>
-          </DropdownButton>
-        )}
-      </ButtonToolbar>
-    </FormGroup>
+      )}
+    </Form.Group>
   )
 }
 BatchOperationMenu.propTypes = {
@@ -599,18 +604,22 @@ function TicketPager({ noMore }) {
     return null
   }
   return (
-    <Pager>
-      <Pager.Item
-        previous
+    <div className="my-2 d-flex justify-content-between">
+      <Button
+        variant="light"
         disabled={isFirstPage}
         onClick={() => updatePath({ page: parseInt(page) - 1 })}
       >
         &larr; {t('previousPage')}
-      </Pager.Item>
-      <Pager.Item next disabled={noMore} onClick={() => updatePath({ page: parseInt(page) + 1 })}>
+      </Button>
+      <Button
+        variant="light"
+        disabled={noMore}
+        onClick={() => updatePath({ page: parseInt(page) + 1 })}
+      >
         {t('nextPage')} &rarr;
-      </Pager.Item>
-    </Pager>
+      </Button>
+    </div>
   )
 }
 TicketPager.propTypes = {
@@ -637,7 +646,7 @@ export default function CustomerServiceTickets() {
   const handleCheckTicket = useCallback(({ objectId }) => {
     setCheckedTickets((currentCheckedTickets) => {
       const nextCheckedTickets = new Set(currentCheckedTickets)
-      if (checkedTickets.has(objectId)) {
+      if (currentCheckedTickets.has(objectId)) {
         nextCheckedTickets.delete(objectId)
       } else {
         nextCheckedTickets.add(objectId)
@@ -679,21 +688,25 @@ export default function CustomerServiceTickets() {
 
   return (
     <div>
-      <div className={css.row}>
-        <Checkbox
-          className={css.ticketSelectCheckbox}
-          checked={tickets.length && checkedTickets.size === tickets.length}
-          onChange={handleCheckAll}
-        />
-        {checkedTickets.size ? (
-          <BatchOperationMenu
-            categories={categories}
-            onChangeCategory={handleChangeCategory}
-            onBatchOperate={handleBatchOperation}
-          />
-        ) : (
-          <TicketMenu customerServices={customerServices} categories={categories} />
-        )}
+      <div className={`${css.row} pb-2`}>
+        <Form inline>
+          <Form.Group>
+            <Form.Check
+              className={css.ticketSelectCheckbox}
+              checked={tickets.length && checkedTickets.size === tickets.length}
+              onChange={handleCheckAll}
+            />
+          </Form.Group>
+          {checkedTickets.size ? (
+            <BatchOperationMenu
+              categories={categories}
+              onChangeCategory={handleChangeCategory}
+              onBatchOperate={handleBatchOperation}
+            />
+          ) : (
+            <TicketMenu customerServices={customerServices} categories={categories} />
+          )}
+        </Form>
       </div>
 
       <TicketList

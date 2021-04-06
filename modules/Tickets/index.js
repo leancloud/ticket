@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
+import { Button, Dropdown, DropdownButton, Form } from 'react-bootstrap'
 import { withTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { Checkbox, DropdownButton, Form, MenuItem, Pager } from 'react-bootstrap'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 import { auth, db } from '../../lib/leancloud'
@@ -134,37 +134,36 @@ class Tickets extends Component {
         {this.props.organizations.length > 0 && (
           <Form inline>
             {(this.state.batchOpsEnable && (
-              <div>
-                <Checkbox
+              <>
+                <Form.Check
                   className={css.ticketSelectCheckbox}
                   onChange={this.handleClickCheckAll.bind(this)}
                   checked={this.state.isCheckedAll}
-                >
-                  {' '}
-                  {t('selectAll')}
-                </Checkbox>{' '}
+                  label={t('selectAll')}
+                />
                 <TicketsMoveButton
+                  className="ml-1"
                   selectedOrgId={this.props.selectedOrgId}
                   organizations={this.props.organizations}
                   onTicketsMove={this.handleTicketsMove.bind(this)}
-                />{' '}
-                <button className="btn btn-link" onClick={() => this.handleBatchOps(false)}>
+                />
+                <Button className="ml-1" variant="link" onClick={() => this.handleBatchOps(false)}>
                   {t('return')}
-                </button>
-              </div>
+                </Button>
+              </>
             )) || (
-              <div>
+              <>
                 <OrganizationSelect
                   organizations={this.props.organizations}
                   selectedOrgId={this.props.selectedOrgId}
                   onOrgChange={this.props.handleOrgChange}
-                />{' '}
-                <DropdownButton title="" id="tickets-ops">
-                  <MenuItem onClick={() => this.handleBatchOps(true)}>
+                />
+                <DropdownButton id="tickets-ops" className="ml-1" variant="light">
+                  <Dropdown.Item onClick={() => this.handleBatchOps(true)}>
                     {t('batchOperation')}
-                  </MenuItem>
+                  </Dropdown.Item>
                 </DropdownButton>
-              </div>
+              </>
             )}
           </Form>
         )}
@@ -185,10 +184,10 @@ class Tickets extends Component {
             <Link to="/tickets/new">{t('createANewOne')}</Link>
           </div>
         )}
-        <Pager>
-          <Pager.Item
+        <div className="my-2 d-flex justify-content-between">
+          <Button
+            variant="light"
             disabled={this.state.filters.page === 0}
-            previous
             onClick={() =>
               this.findTickets({
                 page: this.state.filters.page - 1,
@@ -197,10 +196,10 @@ class Tickets extends Component {
             }
           >
             &larr; {t('previousPage')}
-          </Pager.Item>
-          <Pager.Item
+          </Button>
+          <Button
+            variant="light"
             disabled={this.state.filters.size !== this.state.tickets.length}
-            next
             onClick={() =>
               this.findTickets({
                 page: this.state.filters.page + 1,
@@ -209,8 +208,8 @@ class Tickets extends Component {
             }
           >
             {t('nextPage')} &rarr;
-          </Pager.Item>
-        </Pager>
+          </Button>
+        </div>
       </div>
     )
   }

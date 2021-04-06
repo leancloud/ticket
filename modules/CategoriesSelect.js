@@ -1,7 +1,8 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 import { FormControl } from 'react-bootstrap'
+import PropTypes from 'prop-types'
 import _ from 'lodash'
+
 import { getNodeIndentString, getCategoryName } from './common'
 import { depthFirstSearchMap } from '../lib/common'
 
@@ -29,7 +30,7 @@ export default function CategoriesSelect({
   )
   return (
     <FormControl
-      componentClass="select"
+      as="select"
       value={selected ? selected.id || selected.objectId : ''}
       onChange={onChange}
     >

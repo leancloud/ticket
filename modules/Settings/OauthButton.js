@@ -1,7 +1,7 @@
 import React from 'react'
+import { Form, Button } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
-import { Form, FormGroup, Button } from 'react-bootstrap'
 import _ from 'lodash'
 
 export default function OauthButton({ currentUser, lcUserInfos, region, regionText }) {
@@ -9,12 +9,12 @@ export default function OauthButton({ currentUser, lcUserInfos, region, regionTe
   const userInfo = _.find(lcUserInfos, { region })
   if (userInfo) {
     return (
-      <FormGroup>
-        <Button disabled>
+      <Form.Group>
+        <Button variant="light" disabled>
           {t('linkedPrefix')} LeanCloud {regionText} {t('region')} {userInfo.email} {t('account')}{' '}
           {t('linkedSuffix')}
         </Button>
-      </FormGroup>
+      </Form.Group>
     )
   }
 
@@ -22,11 +22,11 @@ export default function OauthButton({ currentUser, lcUserInfos, region, regionTe
     <Form action="/oauth/login" method="post">
       <input type="hidden" name="sessionToken" value={currentUser.sessionToken} />
       <input type="hidden" name="region" value={region} />
-      <FormGroup>
-        <Button type="submit" bsStyle="primary">
+      <Form.Group>
+        <Button type="submit">
           LeanCloud {regionText} {t('region')}
         </Button>
-      </FormGroup>
+      </Form.Group>
     </Form>
   )
 }

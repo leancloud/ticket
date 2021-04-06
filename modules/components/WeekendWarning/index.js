@@ -15,5 +15,5 @@ export function WeekendWarning() {
     return null
   }
 
-  return <Alert bsStyle="warning">{t('weekendWarning')}</Alert>
+  return <Alert variant="warning">{t('weekendWarning')}</Alert>
 }

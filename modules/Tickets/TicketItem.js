@@ -1,12 +1,12 @@
 import React from 'react'
+import { FormCheck } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
-import { Checkbox } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
 import _ from 'lodash'
 import moment from 'moment'
 
-import TicketStatusLabel from '../TicketStatusLabel'
+import { TicketStatusLabel } from '../components/TicketStatusLabel'
 import { UserLabel } from '../UserLabel'
 import css from '../CustomerServiceTickets.css'
 
@@ -17,7 +17,7 @@ export function TicketItem({ ticket, checkable, checked, onCheckboxChange, categ
   return (
     <div className={`${css.ticket} ${css.row}`}>
       {checkable && (
-        <Checkbox
+        <FormCheck
           className={css.ticketSelectCheckbox}
           onChange={onCheckboxChange}
           checked={checked}
@@ -39,7 +39,7 @@ export function TicketItem({ ticket, checkable, checked, onCheckboxChange, categ
                 title={'reply ' + ticket.replyCount}
                 to={'/tickets/' + ticket.nid}
               >
-                <span className={css.commentCounterIcon + ' glyphicon glyphicon-comment'}></span>
+                <i className={`${css.commentCounterIcon} bi bi-chat-left`}></i>
                 {ticket.replyCount}
               </Link>
             )}
