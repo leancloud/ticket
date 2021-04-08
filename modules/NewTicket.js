@@ -1,4 +1,4 @@
-/* global $, ALGOLIA_API_KEY, ENABLE_LEANCLOUD_INTEGRATION */
+/* global ALGOLIA_API_KEY, ENABLE_LEANCLOUD_INTEGRATION */
 import React from 'react'
 import { Button, Form, Tooltip, OverlayTrigger } from 'react-bootstrap'
 import { withTranslation } from 'react-i18next'
@@ -199,7 +199,7 @@ class NewTicket extends React.Component {
     }
 
     this.setState({ isCommitting: true })
-    return uploadFiles($('#ticketFile')[0].files)
+    return uploadFiles(document.getElementById('ticketFile').files)
       .then((files) => {
         ticket.category = getTinyCategoryInfo(_.last(this.state.categoryPath))
         ticket.files = files
