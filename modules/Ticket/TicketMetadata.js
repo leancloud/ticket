@@ -125,18 +125,17 @@ class TicketMetadata extends Component {
         {isCustomerService && ticket.data.metaData && (
           <Form.Group>
             <Form.Label>{t('details')}</Form.Label>
-            {Object.entries(ticket.data.metaData).map(([key, value]) => {
-              if (!value) {
-                return null
-              }
-              const comments = getConfig('ticket.metadata.customMetadata.comments', {})
-              return (
-                <div className={css.customMetadata} key={key}>
-                  <span className={css.key}>{comments[key] || key}: </span>
-                  {value}
-                </div>
-              )
-            })}
+            {Object.entries(ticket.data.metaData)
+              .filter(([, v]) => v && (typeof v === 'string' || typeof v === 'number'))
+              .map(([key, value]) => {
+                const comments = getConfig('ticket.metadata.customMetadata.comments', {})
+                return (
+                  <div className={css.customMetadata} key={key}>
+                    <span className={css.key}>{comments[key] || key}: </span>
+                    {value}
+                  </div>
+                )
+              })}
           </Form.Group>
         )}
 
