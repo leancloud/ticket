@@ -1,12 +1,122 @@
 const _ = require('lodash')
 const AV = require('leanengine')
 
-const { getTinyUserInfo, htmlify, getTinyReplyInfo, isCustomerService } = require('./common')
+const {
+  getTinyUserInfo,
+  htmlify,
+  getTinyReplyInfo,
+  isCustomerService,
+  systemUser,
+} = require('./common')
 const { checkPermission } = require('./oauth')
 const notification = require('./notification')
-const { TICKET_ACTION, TICKET_STATUS, getTicketAcl, isTicketOpen } = require('../lib/common')
+const { TICKET_ACTION, TICKET_STATUS, getTicketAcl, ticketStatus } = require('../lib/common')
 const errorHandler = require('./errorHandler')
-const { invokeWebhooks } = require('../webhook')
+const { invokeWebhooks } = require('./webhook')
+const { Context } = require('./rule/context')
+const { getActiveTriggers } = require('./rule/trigger')
+
+function addOpsLog(ticket, action, data) {
+  return new AV.Object('OpsLog')
+    .save({ ticket, action, data }, { useMasterKey: true })
+    .catch(errorHandler.captureException)
+}
+
+/**
+ * @param {AV.Object} ticket
+ * @param {'create' | 'update'} updateType
+ */
+async function invokeTriggers(ticket, updateType) {
+  // Triggers do not run or fire on tickets after they are closed.
+  // However, triggers can fire when a ticket is being set to closed.
+  if (ticketStatus.isClosed(ticket.get('status')) && !ticket.updatedKeys?.includes('status')) {
+    return
+  }
+  const ctx = new Context(ticket.toJSON(), updateType, ticket.updatedKeys)
+  const triggers = await getActiveTriggers()
+  triggers.exec(ctx)
+  const updatedTicket = await ctx.commitUpdate()
+  if (updatedTicket) {
+    afterUpdateTicketHandler(updatedTicket, {
+      skipTriggers: updateType === 'update',
+    })
+  }
+  const firedTriggers = triggers.getFiredTriggers()
+  if (firedTriggers.length) {
+    const logs = firedTriggers.map((trigger) => {
+      return AV.Object('TriggerLog', {
+        ACL: {},
+        ticket: AV.Object.createWithoutData('Ticket', ticket.id),
+        trigger: AV.Object.createWithoutData('Trigger', trigger.id),
+        actions: trigger.rawActions,
+        conditions: trigger.rawConditions,
+      })
+    })
+    AV.Object.saveAll(logs, { useMasterKey: true })
+  }
+}
+
+/**
+ * @param {AV.Object} ticket
+ */
+async function afterSaveTicketHandler(ticket) {
+  await ticket.fetch({ include: ['author', 'assignee'] }, { useMasterKey: true })
+  const author = ticket.get('author')
+  const assignee = ticket.get('assignee')
+  addOpsLog(ticket, 'selectAssignee', {
+    assignee: await getTinyUserInfo(assignee),
+  })
+  notification.newTicket(ticket, author, assignee)
+  invokeWebhooks('ticket.create', { ticket: ticket.toJSON() })
+  invokeTriggers(ticket, 'create')
+}
+
+/**
+ * @param {AV.Object} ticket
+ * @param {object} [options]
+ * @param {AV.User} [options.user]
+ * @param {boolean} [options.skipTriggers]
+ */
+async function afterUpdateTicketHandler(ticket, options) {
+  await ticket.fetch({ include: ['assignee'] }, { useMasterKey: true })
+  const user = options?.user || systemUser
+  const userInfo = await getTinyUserInfo(user)
+
+  if (ticket.updatedKeys?.includes('category')) {
+    addOpsLog(ticket, 'changeCategory', {
+      category: ticket.get('category'),
+      operator: userInfo,
+    })
+  }
+
+  if (ticket.updatedKeys?.includes('assignee')) {
+    const assigneeInfo = await getTinyUserInfo(ticket.get('assignee'))
+    addOpsLog(ticket, 'changeAssignee', {
+      assignee: assigneeInfo,
+      operator: userInfo,
+    })
+    notification.changeAssignee(ticket, user, ticket.get('assignee'))
+  }
+
+  if (ticket.updatedKeys?.includes('status')) {
+    if (ticketStatus.isClosed(ticket.get('status'))) {
+      AV.Cloud.run('statsTicket', { ticketId: ticket.id })
+    }
+  }
+
+  if (ticket.updatedKeys?.includes('evaluation') && options?.user) {
+    notification.ticketEvaluation(ticket, options.user, ticket.get('assignee'))
+  }
+
+  invokeWebhooks('ticket.update', {
+    ticket: ticket.toJSON(),
+    updatedKeys: ticket.updatedKeys,
+  })
+
+  if (!options?.skipTriggers) {
+    invokeTriggers(ticket, 'update')
+  }
+}
 
 AV.Cloud.beforeSave('Ticket', async (req) => {
   if (!req.currentUser || !(await checkPermission(req.currentUser))) {
@@ -35,21 +145,8 @@ AV.Cloud.beforeSave('Ticket', async (req) => {
 })
 
 AV.Cloud.afterSave('Ticket', async (req) => {
-  const ticket = req.object
   try {
-    await ticket.fetch({ include: 'assignee' }, { user: req.currentUser })
-    const assignee = ticket.get('assignee')
-    const assigneeInfo = await getTinyUserInfo(assignee)
-    await new AV.Object('OpsLog').save(
-      {
-        ticket: req.object,
-        action: 'selectAssignee',
-        data: { assignee: assigneeInfo },
-      },
-      { useMasterKey: true }
-    )
-    await notification.newTicket(req.object, req.currentUser, assignee)
-    invokeWebhooks('ticket.create', { ticket: ticket.toJSON() })
+    afterSaveTicketHandler(req.object)
   } catch (err) {
     errorHandler.captureException(err)
     throw new AV.Cloud.Error('Internal Error', { status: 500 })
@@ -68,53 +165,8 @@ AV.Cloud.beforeUpdate('Ticket', async (req) => {
 })
 
 AV.Cloud.afterUpdate('Ticket', (req) => {
-  const ticket = req.object
-  return getTinyUserInfo(req.currentUser).then((user) => {
-    if (ticket.updatedKeys.includes('category')) {
-      new AV.Object('OpsLog')
-        .save(
-          {
-            ticket,
-            action: 'changeCategory',
-            data: { category: ticket.get('category'), operator: user },
-          },
-          { useMasterKey: true }
-        )
-        .catch(errorHandler.captureException)
-    }
-    if (ticket.updatedKeys.includes('assignee')) {
-      getTinyUserInfo(ticket.get('assignee'))
-        .then((assignee) => {
-          return new AV.Object('OpsLog').save(
-            {
-              ticket,
-              action: 'changeAssignee',
-              data: { assignee: assignee, operator: user },
-            },
-            { useMasterKey: true }
-          )
-        })
-        .then(() => {
-          return notification.changeAssignee(ticket, req.currentUser, ticket.get('assignee'))
-        })
-        .catch(errorHandler.captureException)
-    }
-    if (ticket.updatedKeys.includes('status') && !isTicketOpen(ticket)) {
-      AV.Cloud.run('statsTicket', { ticketId: ticket.id }).catch(errorHandler.captureException)
-    }
-    if (ticket.updatedKeys.includes('evaluation')) {
-      ticket
-        .fetch({ include: 'assignee' }, { user: req.currentUser })
-        .then((ticket) => {
-          return notification.ticketEvaluation(ticket, req.currentUser, ticket.get('assignee'))
-        })
-        .catch(errorHandler.captureException)
-    }
-    invokeWebhooks('ticket.update', {
-      ticket: ticket.toJSON(),
-      updatedKeys: ticket.updatedKeys,
-    })
-    return
+  afterUpdateTicketHandler(req.object, {
+    user: req.currentUser,
   })
 })
 
@@ -297,7 +349,5 @@ const getVacationers = () => {
     .lessThan('startDate', now)
     .greaterThan('endDate', now)
     .find({ useMasterKey: true })
-    .then((vacations) => {
-      return vacations.map((v) => v.get('vacationer'))
-    })
+    .then((vacations) => vacations.map((v) => v.get('vacationer')))
 }

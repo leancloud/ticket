@@ -5,6 +5,8 @@ import CSTickets from './Tickets'
 import CSStats from '../CustomerServiceStats'
 import CSStatsUser from '../CustomerServiceStats/User'
 
+export { useCustomerServices } from './useCustomerServices'
+
 export default function CustomerService(props) {
   const { path } = useRouteMatch()
 

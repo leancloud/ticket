@@ -8,12 +8,22 @@ const config = require('../config')
 
 Object.assign(module.exports, require('../lib/common'))
 
+exports.systemUser = AV.Object.createWithoutData('_User', 'system')
+// 不要通过 set 方法设置属性, 不然会被保存
+exports.systemUser.attributes['username'] = 'system'
+
+/**
+ * @param {AV.Object} user
+ * @returns {Promise<{
+ *   objectId: string;
+ *   username: string;
+ *   name: string;
+ *   email: string;
+ * }>}
+ */
 exports.getTinyUserInfo = async (user) => {
-  if (!user) {
-    return
-  }
-  if (!user.get('username')) {
-    await user.fetch()
+  if (!user.has('username')) {
+    await user.fetch({ keys: ['username', 'name', 'email'] }, { useMasterKey: true })
   }
   return {
     objectId: user.id,

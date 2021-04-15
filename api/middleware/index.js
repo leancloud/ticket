@@ -53,6 +53,7 @@ exports.catchError = (handler) => {
       if (error.code === 101) {
         error.status = 404
       }
+      console.error(error)
       next(error)
     }
   }
