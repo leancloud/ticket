@@ -1,21 +1,6 @@
 const _ = require('lodash')
 
-class UpdateAssigneeId {
-  constructor(value) {
-    if (typeof value !== 'string') {
-      throw new Error('Assignee ID must be a string')
-    }
-    this.value = value
-  }
-
-  exec(ctx) {
-    ctx.setTicketAssigneeId(this.value)
-  }
-}
-
-const actionTypes = {
-  updateAssigneeId: (value) => new UpdateAssigneeId(value),
-}
+const actionTypes = require('./types')
 
 class Action {
   constructor(data, types = actionTypes) {

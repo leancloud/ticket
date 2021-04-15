@@ -55,10 +55,10 @@ class Context {
     await ticket.save(null, { useMasterKey: true })
 
     const updatedTicket = AV.Object.createWithoutData('Ticket', this._ticketData.objectId)
-    updatedTicket.updatedKeys = Array.from(this._updatedKeysInCtx)
-    updatedTicket.updatedKeys.forEach((key) => {
-      ticket.attributes[key] = this._ticketData[key]
+    Object.entries(this._ticketData).forEach(([key, value]) => {
+      ticket.attributes[key] = value
     })
+    updatedTicket.updatedKeys = Array.from(this._updatedKeysInCtx)
     return updatedTicket
   }
 }
