@@ -2,11 +2,15 @@ import React from 'react'
 import PropTypes from 'prop-types'
 
 import { Select } from './Select'
+import { TextInput } from './TextInput'
 
 export function Value({ component, initValue, onChange }) {
   const { type } = component
-  if (type === 'select') {
-    return <Select options={component.options} initValue={initValue} onChange={onChange} />
+  switch (type) {
+    case 'select':
+      return <Select options={component.options} initValue={initValue} onChange={onChange} />
+    case 'text':
+      return <TextInput initValue={initValue} onChange={onChange} />
   }
   return null
 }

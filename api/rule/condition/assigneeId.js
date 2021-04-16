@@ -6,11 +6,16 @@ class AssigneeIdIs {
     this.value = value
   }
 
+  /**
+   *
+   * @param {import('../context').Context} ctx
+   * @returns
+   */
   test(ctx) {
     if (this.value === '') {
-      return ctx.getTicketAssigneeId() === undefined
+      return ctx.getAssigneeId() === undefined
     }
-    return ctx.getTicketAssigneeId() === this.value
+    return ctx.getAssigneeId() === this.value
   }
 }
 

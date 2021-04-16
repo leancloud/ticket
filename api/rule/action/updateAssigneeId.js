@@ -13,7 +13,7 @@ class UpdateAssigneeId {
    * @param {import('../context').Context} ctx
    */
   exec(ctx) {
-    ctx.setTicketAssigneeId(this.value)
+    ctx.setAssigneeId(this.value)
   }
 }
 

@@ -32,6 +32,8 @@ function Condition({ fields, initData, onChange }) {
     if (fields[field].operators[operator].component) {
       if (value !== undefined) {
         onChange({ field, operator, value })
+      } else {
+        onChange(undefined)
       }
     } else {
       onChange({ field, operator })
@@ -58,7 +60,12 @@ function Condition({ fields, initData, onChange }) {
         })
       } else {
         valueElement = (
-          <Value component={component} initValue={initData?.value} onChange={setValue} />
+          <Value
+            key={`${field}.${operator}`}
+            component={component}
+            initValue={initData?.value}
+            onChange={setValue}
+          />
         )
       }
     }

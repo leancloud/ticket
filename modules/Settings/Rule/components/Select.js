@@ -5,9 +5,9 @@ import PropTypes from 'prop-types'
 /**
  *
  * @param {object} props
- * @param {Array<{title: string, value: string}>} props.options
+ * @param {Array<{title: string, value: string | number}>} props.options
  * @param {Function} props.onChange
- * @param {string} [props.initValue]
+ * @param {string | number} [props.initValue]
  */
 export function Select({ options, initValue, onChange }) {
   const [value, setValue] = useState(initValue || options[0].value)
@@ -28,9 +28,9 @@ Select.propTypes = {
   options: PropTypes.arrayOf(
     PropTypes.shape({
       title: PropTypes.string,
-      value: PropTypes.string,
+      value: PropTypes.oneOf(PropTypes.string, PropTypes.number),
     })
   ).isRequired,
-  initValue: PropTypes.string,
+  initValue: PropTypes.oneOf(PropTypes.string, PropTypes.number),
   onChange: PropTypes.func.isRequired,
 }

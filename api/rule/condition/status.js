@@ -10,8 +10,13 @@ class StatusIs {
     this.value = value
   }
 
+  /**
+   *
+   * @param {import('../context').Context} ctx
+   * @returns
+   */
   test(ctx) {
-    return ctx.getTicketStatus() === this.value
+    return ctx.getStatus() === this.value
   }
 }
 

@@ -17,26 +17,52 @@ class Context {
     return this._updatedKeysInCtx.has(key) || this._updatedKeys.has(key)
   }
 
-  getTicketStatus() {
+  /**
+   * @returns {number}
+   */
+  getStatus() {
     return this._ticketData.status
   }
 
-  setTicketStatus(value) {
+  /**
+   * @param {number} value
+   */
+  setStatus(value) {
     this._ticketData.status = value
     this._updatedKeysInCtx.add('status')
   }
 
-  getTicketAssigneeId() {
+  /**
+   * @returns {string}
+   */
+  getAssigneeId() {
     return this._ticketData.assignee?.objectId
   }
 
-  setTicketAssigneeId(value) {
+  /**
+   * @param {string} value
+   */
+  setAssigneeId(value) {
     this._ticketData.assignee = {
       __type: 'Pointer',
       className: '_User',
       objectId: value,
     }
     this._updatedKeysInCtx.add('assignee')
+  }
+
+  /**
+   * @returns {string}
+   */
+  getTitle() {
+    return this._ticketData.title
+  }
+
+  /**
+   * @returns {string}
+   */
+  getContent() {
+    return this._ticketData.content
   }
 
   /**
