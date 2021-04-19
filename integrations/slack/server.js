@@ -130,9 +130,9 @@ class SlackIntegration {
       url: getTicketUrl(ticket),
     })
     if (to.has('email')) {
-      await this.send(to.get('email'), message)
+      this.send(to.get('email'), message)
     }
-    await this.broadcast(message)
+    this.broadcast(message)
   }
 
   async notifyChangeAssignee(ticket, from, to) {
@@ -145,9 +145,9 @@ class SlackIntegration {
       latestReply: ticket.get('latestReply')?.content,
     })
     if (to.has('email')) {
-      await this.send(to.get('email'), message)
+      this.send(to.get('email'), message)
     }
-    await this.broadcast(message)
+    this.broadcast(message)
   }
 
   async notifyReplyTicket({ ticket, reply, from, to, isCustomerServiceReply }) {
@@ -162,9 +162,9 @@ class SlackIntegration {
       reply: reply.get('content'),
     })
     if (to.has('email')) {
-      await this.send(to.get('email'), message)
+      this.send(to.get('email'), message)
     }
-    await this.broadcast(message)
+    this.broadcast(message)
   }
 
   async delayNotify(ticket, to) {
@@ -176,9 +176,9 @@ class SlackIntegration {
       latestReply: ticket.get('latestReply')?.content,
     })
     if (to.has('email')) {
-      await this.send(to.get('email'), message)
+      this.send(to.get('email'), message)
     }
-    await this.broadcast(message)
+    this.broadcast(message)
   }
 
   async notifyEvaluation(ticket, from, to) {
@@ -192,9 +192,9 @@ class SlackIntegration {
       url: getTicketUrl(ticket),
     })
     if (to.has('email')) {
-      await this.send(to.get('email'), message)
+      this.send(to.get('email'), message)
     }
-    await this.broadcast(message)
+    this.broadcast(message)
   }
 }
 
