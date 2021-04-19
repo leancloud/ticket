@@ -1,7 +1,7 @@
 const crypto = require('crypto')
 const request = require('request-promise')
 const AV = require('leanengine')
-const { isCustomerService } = require('../api/common')
+const { isCustomerService } = require('../common')
 
 let webhooks = []
 
@@ -12,6 +12,7 @@ async function refreshWebhooks() {
     url: o.get('url'),
     secret: o.get('secret'),
   }))
+  console.log('[Webhook] load webhooks:', webhooks)
 }
 
 function generateHash(secret, data) {
@@ -73,10 +74,6 @@ AV.Cloud.define('removeWebhook', async (req) => {
     throw new AV.Cloud.Error('Internal Error', { status: 500 })
   }
 })
-
-AV.Cloud.afterSave('Webhook', refreshWebhooks)
-AV.Cloud.afterUpdate('Webhook', refreshWebhooks)
-AV.Cloud.afterDelete('Webhook', refreshWebhooks)
 
 module.exports = {
   webhooks,

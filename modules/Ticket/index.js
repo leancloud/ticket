@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { Button, Card, Col, OverlayTrigger, Row, Tooltip } from 'react-bootstrap'
-import { withTranslation } from 'react-i18next'
+import { useTranslation, withTranslation } from 'react-i18next'
 import { withRouter } from 'react-router-dom'
 import moment from 'moment'
 import _ from 'lodash'
@@ -34,6 +34,17 @@ const myxss = new xss.FilterXSS({
   whiteList,
   css: false,
 })
+
+function UserOrSystem({ operator }) {
+  const { t } = useTranslation(0)
+  if (!operator || operator.objectId === 'system') {
+    return t('system')
+  }
+  return <UserLabel user={operator} />
+}
+UserOrSystem.propTypes = {
+  operator: PropTypes.object,
+}
 
 class Ticket extends Component {
   constructor(props) {
@@ -373,8 +384,9 @@ class Ticket extends Component {
                 </span>
               </div>
               <div className="ticket-status-right">
-                <UserLabel user={avObj.get('data').operator} /> {t('changedTicketAssigneeTo')}{' '}
-                <UserLabel user={avObj.get('data').assignee} /> ({this.getTime(avObj)})
+                <UserOrSystem operator={avObj.get('data').operator} />{' '}
+                {t('changedTicketAssigneeTo')} <UserLabel user={avObj.get('data').assignee} /> (
+                {this.getTime(avObj)})
               </div>
             </div>
           )

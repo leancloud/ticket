@@ -3,7 +3,7 @@ const AV = require('leanengine')
 const ticket = require('./Ticket')
 const common = require('./common')
 const errorHandler = require('./errorHandler')
-const { invokeWebhooks } = require('../webhook')
+const { invokeWebhooks } = require('./webhook')
 
 AV.Cloud.beforeSave('Reply', (req, res) => {
   if (!req.currentUser) {
