@@ -37,7 +37,7 @@ function useTicketFilters() {
   const filters = useMemo(() => qs.parse(search), [search])
   const mergePath = useCallback(
     (newFilters) => {
-      return pathname + '?' + qs.stringify({ ...filters, ...newFilters })
+      return pathname + '?' + qs.stringify({ ...filters, page: undefined, ...newFilters })
     },
     [pathname, filters]
   )
