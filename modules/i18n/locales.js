@@ -223,6 +223,10 @@ const messages = {
     'Previous',
     '上一页'
   ],
+  'firstPage': [
+    'Page 1',
+    '第一页'
+  ],
   'private': [
     'Private',
     '非公开'
