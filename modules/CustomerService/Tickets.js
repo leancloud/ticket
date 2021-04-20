@@ -578,15 +578,14 @@ export function useTickets() {
       query = query.where('objectId', 'in', searchMatchedTicketIds)
     }
 
-    const ticketObjects = await query
+    const [ticketObjects, count] = await query
       .include('author', 'assignee')
       .limit(PAGE_SIZE)
       .skip(parseInt(page) * PAGE_SIZE)
       .orderBy('latestReply.updatedAt', 'desc')
       .orderBy('updatedAt', 'desc')
-      .find()
+      .findAndCount()
     setTickets(ticketObjects.map((t) => t.toJSON()))
-    const count = await query.count()
     setTotalCount(count)
   }, [filters])
 
