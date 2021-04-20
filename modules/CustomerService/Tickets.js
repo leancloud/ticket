@@ -499,6 +499,7 @@ BatchOperationMenu.propTypes = {
  */
 export function useTickets() {
   const [tickets, setTickets] = useState([])
+  const [totalCount, setTotalCount] = useState()
   const { tagMetadatas } = useContext(AppContext)
   const { filters } = useTicketFilters()
 
@@ -585,44 +586,52 @@ export function useTickets() {
       .orderBy('updatedAt', 'desc')
       .find()
     setTickets(ticketObjects.map((t) => t.toJSON()))
+    const count = await query.count()
+    setTotalCount(count)
   }, [filters])
 
   useEffect(() => {
     findTickets()
   }, [filters])
 
-  return { tickets, reload: findTickets }
+  return { tickets, totalCount, reload: findTickets }
 }
 
-function TicketPager({ noMore }) {
+function TicketPager({ totalCount }) {
   const { t } = useTranslation()
   const { filters, updatePath } = useTicketFilters()
-  const { page = '0' } = filters
-  const isFirstPage = page === '0'
+  const { page: pageParam = '0' } = filters
+  const page = parseInt(pageParam)
+  const isFirstPage = page === 0
+  const noMore = totalCount <= (page + 1) * PAGE_SIZE
 
-  if (isFirstPage && noMore) {
-    return null
-  }
   return (
-    <div className="my-2 d-flex justify-content-between">
-      <Button
-        variant="light"
-        disabled={isFirstPage}
-        onClick={() => updatePath({ page: parseInt(page) - 1 })}
-      >
-        &larr; {t('previousPage')}
-      </Button>
-      <Button
-        variant="light"
-        disabled={noMore}
-        onClick={() => updatePath({ page: parseInt(page) + 1 })}
-      >
+    <div className="my-2 d-flex justify-content-between align-items-center">
+      <div>
+        <Button variant="light" disabled={isFirstPage} onClick={() => updatePath({ page: 0 })}>
+          {t('firstPage')}
+        </Button>{' '}
+        <Button
+          variant="light"
+          disabled={isFirstPage}
+          onClick={() => updatePath({ page: page - 1 })}
+        >
+          &larr; {t('previousPage')}
+        </Button>
+      </div>
+      {totalCount > 0 && (
+        <span>
+          {page * PAGE_SIZE + 1} - {Math.min(totalCount, (page + 1) * PAGE_SIZE)} / {totalCount}
+        </span>
+      )}
+      <Button variant="light" disabled={noMore} onClick={() => updatePath({ page: page + 1 })}>
         {t('nextPage')} &rarr;
       </Button>
     </div>
   )
 }
 TicketPager.propTypes = {
+  totalCount: PropTypes.number,
   noMore: PropTypes.bool,
 }
 
@@ -633,7 +642,7 @@ export default function CustomerServiceTickets() {
   const [checkedTickets, setCheckedTickets] = useState(new Set())
   const customerServices = useCustomerServices()
   const categories = useCategories()
-  const { tickets, reload } = useTickets()
+  const { tickets, totalCount, reload } = useTickets()
 
   const handleCheckAll = (e) => {
     if (e.target.checked) {
@@ -715,7 +724,7 @@ export default function CustomerServiceTickets() {
         checkedTicketIds={checkedTickets}
         onCheckTicket={handleCheckTicket}
       />
-      <TicketPager noMore={tickets.length < PAGE_SIZE} />
+      <TicketPager totalCount={totalCount} />
     </div>
   )
 }
