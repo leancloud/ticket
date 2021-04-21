@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
@@ -242,6 +242,52 @@ function TicketMenu({ customerServices, categories }) {
   } = filters
   const assigneeId = assignee === 'me' ? auth.currentUser?.id : assignee
 
+  useEffect(() => {
+    if (authorId) {
+      db.class('_User')
+        .object(authorId)
+        .get()
+        .then((author) => setAuthorUsername(author.data.username))
+        .catch((error) => {
+          if (error.code === 211) {
+            updatePath({ authorId: undefined })
+          } else {
+            addNotification(error)
+          }
+        })
+    }
+  }, [])
+
+  const $searchAuthorTimer = useRef(null)
+  const handleChangeAuthorUsername = (e) => {
+    const username = e.target.value
+    setAuthorFilterValidationState(null)
+    setAuthorUsername(username)
+    if ($searchAuthorTimer.current) {
+      clearTimeout($searchAuthorTimer.current)
+      $searchAuthorTimer.current = null
+    }
+    const trimedUsername = username.trim()
+    if (trimedUsername) {
+      $searchAuthorTimer.current = setTimeout(() => {
+        cloud
+          .run('getUserInfo', { username: trimedUsername })
+          .then((user) => {
+            if (!user) {
+              setAuthorFilterValidationState('error')
+            } else {
+              setAuthorFilterValidationState('success')
+              updatePath({ authorId: user.objectId })
+            }
+            return
+          })
+          .catch(addNotification)
+      }, 500)
+    } else {
+      updatePath({ authorId: undefined })
+    }
+  }
+
   let statusTitle
   if (status) {
     statusTitle = t(TICKET_STATUS_MSG[status])
@@ -278,41 +324,6 @@ function TicketMenu({ customerServices, categories }) {
   }
 
   const assignedToMe = assigneeId === auth.currentUser?.id
-
-  const handleChangeAuthorUsername = (e) => {
-    const username = e.target.value
-    setAuthorFilterValidationState(null)
-    setAuthorUsername(username)
-  }
-
-  const [debouncedUsername, setDebouncedUsername] = useState('')
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedUsername(authorUsername.trim())
-    }, 500)
-    return () => clearTimeout(timer)
-  }, [authorUsername])
-
-  useEffect(() => {
-    if (!debouncedUsername) {
-      if (authorId) {
-        updatePath({ authorId: undefined })
-      }
-      return
-    }
-    cloud
-      .run('getUserInfo', { username: debouncedUsername })
-      .then((user) => {
-        if (!user) {
-          setAuthorFilterValidationState('error')
-        } else {
-          setAuthorFilterValidationState('success')
-          updatePath({ authorId: user.objectId })
-        }
-        return
-      })
-      .catch(addNotification)
-  }, [debouncedUsername, authorId, updatePath])
 
   return (
     <>

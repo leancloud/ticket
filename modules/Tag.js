@@ -49,7 +49,7 @@ export default function Tag({ tag, ticket, isCustomerService }) {
       <Form.Label>{t(data.key)}</Form.Label>
       <Form.Group>
         {data.url ? (
-          <Button variant="light" h2ref={data.url} target="_blank">
+          <Button variant="light" href={data.url} target="_blank">
             {data.value}
           </Button>
         ) : (

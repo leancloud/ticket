@@ -521,7 +521,7 @@ class Ticket extends Component {
           <Card.Header className={css.heading}>
             {userLabel} {t('submittedAt')} {this.getTime(avObj)}
           </Card.Header>
-          <Card.Body className={css.content}>
+          <Card.Body className={`${css.content} markdown-body`}>
             {this.contentView(avObj.get('content_HTML'))}
             {imgBody}
           </Card.Body>
