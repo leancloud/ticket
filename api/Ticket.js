@@ -44,12 +44,15 @@ async function invokeTriggers(ticket, updateType) {
   const triggers = await getActiveTriggers()
   triggers.exec(ctx)
   if (ctx.isUpdated()) {
-    const updatedTicket = AV.Object.createWithoutData('Ticket', ticket.id)
-    Object.entries(ctx.data).forEach(([key, value]) => (updatedTicket.attributes[key] = value))
     const updatedData = ctx.getUpdatedData()
-    await updatedTicket.save(updatedData, { useMasterKey: true })
-    updatedTicket.updatedKeys = Object.keys(updatedData)
-    afterUpdateTicketHandler(updatedTicket, { skipTriggers: updateType === 'update' })
+    const ticketToUpdate = AV.Object.createWithoutData('Ticket', ticket.id)
+    ticketToUpdate.disableAfterHook()
+    await ticketToUpdate.save(updatedData, { useMasterKey: true })
+
+    const ticketToInvokeHook = AV.Object.createWithoutData('Ticket', ticket.id)
+    Object.entries(ctx.data).forEach(([key, value]) => (ticketToInvokeHook.attributes[key] = value))
+    ticketToInvokeHook.updatedKeys = Object.keys(updatedData)
+    afterUpdateTicketHandler(ticketToInvokeHook, { skipTriggers: updateType === 'update' })
   }
 
   recordTriggerLog(triggers, ticket.id)
