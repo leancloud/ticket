@@ -31,6 +31,7 @@ router.use(loginCallbackPath, require('./oauth').loginCallback(loginCallbackUrl)
 router.use('/api/1/files', require('./file'))
 router.use('/api/1/dynamic-contents', require('./DynamicContent'))
 router.use('/api/1/triggers', require('./rule/trigger/api'))
+router.use('/api/1/automations', require('./rule/automation/api'))
 
 const { integrations } = require('../config')
 console.log(`Using plugins: ${integrations.map((integration) => integration.name).join(', ')}`)

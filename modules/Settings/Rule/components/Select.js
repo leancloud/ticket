@@ -28,9 +28,9 @@ Select.propTypes = {
   options: PropTypes.arrayOf(
     PropTypes.shape({
       title: PropTypes.string,
-      value: PropTypes.oneOf(PropTypes.string, PropTypes.number),
+      value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     })
   ).isRequired,
-  initValue: PropTypes.oneOf(PropTypes.string, PropTypes.number),
+  initValue: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   onChange: PropTypes.func.isRequired,
 }

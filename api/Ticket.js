@@ -10,11 +10,18 @@ const {
 } = require('./common')
 const { checkPermission } = require('./oauth')
 const notification = require('./notification')
-const { TICKET_ACTION, TICKET_STATUS, getTicketAcl, ticketStatus } = require('../lib/common')
+const {
+  TICKET_ACTION,
+  TICKET_STATUS,
+  getTicketAcl,
+  ticketStatus,
+  ticketOpenedStatuses,
+} = require('../lib/common')
 const errorHandler = require('./errorHandler')
 const { invokeWebhooks } = require('./webhook')
 const { Context } = require('./rule/context')
-const { getActiveTriggers } = require('./rule/trigger')
+const { getActiveTriggers, recordTriggerLog } = require('./rule/trigger')
+const { getActiveAutomations } = require('./rule/automation')
 
 function addOpsLog(ticket, action, data) {
   return new AV.Object('OpsLog')
@@ -32,28 +39,20 @@ async function invokeTriggers(ticket, updateType) {
   if (ticketStatus.isClosed(ticket.get('status')) && !ticket.updatedKeys?.includes('status')) {
     return
   }
+
   const ctx = new Context(ticket.toJSON(), updateType, ticket.updatedKeys)
   const triggers = await getActiveTriggers()
   triggers.exec(ctx)
-  const updatedTicket = await ctx.commitUpdate()
-  if (updatedTicket) {
-    afterUpdateTicketHandler(updatedTicket, {
-      skipTriggers: updateType === 'update',
-    })
+  if (ctx.isUpdated()) {
+    const updatedTicket = AV.Object.createWithoutData('Ticket', ticket.id)
+    Object.entries(ctx.data).forEach(([key, value]) => (updatedTicket.attributes[key] = value))
+    const updatedData = ctx.getUpdatedData()
+    await updatedTicket.save(updatedData, { useMasterKey: true })
+    updatedTicket.updatedKeys = Object.keys(updatedData)
+    afterUpdateTicketHandler(updatedTicket, { skipTriggers: updateType === 'update' })
   }
-  const firedTriggers = triggers.getFiredTriggers()
-  if (firedTriggers.length) {
-    const logs = firedTriggers.map((trigger) => {
-      return AV.Object('TriggerLog', {
-        ACL: {},
-        ticket: AV.Object.createWithoutData('Ticket', ticket.id),
-        trigger: AV.Object.createWithoutData('Trigger', trigger.id),
-        actions: trigger.rawActions,
-        conditions: trigger.rawConditions,
-      })
-    })
-    AV.Object.saveAll(logs, { useMasterKey: true })
-  }
+
+  recordTriggerLog(triggers, ticket.id)
 }
 
 /**
@@ -351,3 +350,26 @@ const getVacationers = () => {
     .find({ useMasterKey: true })
     .then((vacations) => vacations.map((v) => v.get('vacationer')))
 }
+
+async function tickAutomation() {
+  const query = new AV.Query('Ticket')
+  query.containedIn('status', ticketOpenedStatuses())
+  query.addAscending('createdAt')
+  query.limit(1000)
+  const [tickets, automations] = await Promise.all([
+    query.find({ useMasterKey: true }),
+    getActiveAutomations(),
+  ])
+  const ticketsToUpdate = []
+  for (const ticket of tickets) {
+    const ctx = new Context(ticket.toJSON())
+    automations.exec(ctx)
+    if (ctx.isUpdated()) {
+      ticketsToUpdate.push(ticket.set(ctx.getUpdatedData()))
+    }
+  }
+  if (ticketsToUpdate.length) {
+    await AV.Object.saveAll(ticketsToUpdate, { useMasterKey: true })
+  }
+}
+AV.Cloud.define('__tickAutomation', tickAutomation)

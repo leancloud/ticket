@@ -19,6 +19,7 @@ import Category from './Category'
 import CategorySort from './CategorySort'
 import DynamicContent from './DynamicContent'
 import Trigger from './Rule/Trigger'
+import Automation from './Rule/Automation'
 
 export default function Settings(props) {
   const { path } = useRouteMatch()
@@ -70,6 +71,9 @@ export default function Settings(props) {
               <ListGroup.Item>
                 <Link to="/settings/triggers">Trigger</Link>
               </ListGroup.Item>
+              <ListGroup.Item>
+                <Link to="/settings/automations">Automation</Link>
+              </ListGroup.Item>
             </ListGroup>
           </Card>
         )}
@@ -120,6 +124,9 @@ export default function Settings(props) {
           </Route>
           <Route path={`${path}/triggers`}>
             <Trigger />
+          </Route>
+          <Route path={`${path}/automations`}>
+            <Automation />
           </Route>
         </Switch>
       </Col>

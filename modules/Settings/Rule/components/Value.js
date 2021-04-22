@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 
 import { Select } from './Select'
 import { TextInput } from './TextInput'
+import { NumberInput } from './NumberInput'
 
 export function Value({ component, initValue, onChange }) {
   const { type } = component
@@ -11,6 +12,8 @@ export function Value({ component, initValue, onChange }) {
       return <Select options={component.options} initValue={initValue} onChange={onChange} />
     case 'text':
       return <TextInput initValue={initValue} onChange={onChange} />
+    case 'number':
+      return <NumberInput initValue={initValue} onChange={onChange} props={component.props} />
   }
   return null
 }

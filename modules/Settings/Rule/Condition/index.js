@@ -6,7 +6,7 @@ import _ from 'lodash'
 import { CardContainer } from '../components/CardContainer'
 import { MapSelect } from '../components/MapSelect'
 import { Value } from '../components/Value'
-import basicFields from './fields'
+import * as basicFields from './fields'
 
 function Condition({ fields, initData, onChange }) {
   const [field, setField] = useState(initData?.field || '')
