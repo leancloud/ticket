@@ -9,11 +9,18 @@ export function Value({ component, initValue, onChange }) {
   const { type } = component
   switch (type) {
     case 'select':
-      return <Select options={component.options} initValue={initValue} onChange={onChange} />
+      return (
+        <Select
+          options={component.options}
+          initValue={initValue}
+          onChange={onChange}
+          reducer={component.reducer}
+        />
+      )
     case 'text':
       return <TextInput initValue={initValue} onChange={onChange} />
     case 'number':
-      return <NumberInput initValue={initValue} onChange={onChange} props={component.props} />
+      return <NumberInput initValue={initValue} onChange={onChange} min={component.min} />
   }
   return null
 }

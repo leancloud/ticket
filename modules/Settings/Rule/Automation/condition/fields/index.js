@@ -7,27 +7,21 @@ export const createdAt = {
       title: 'Less than',
       component: {
         type: 'number',
-        props: {
-          min: 0,
-        },
+        min: 0,
       },
     },
     greaterThan: {
       title: 'Greater than',
       component: {
         type: 'number',
-        props: {
-          min: 0,
-        },
+        min: 0,
       },
     },
     is: {
       title: 'Is',
       component: {
         type: 'number',
-        props: {
-          min: 0,
-        },
+        min: 0,
       },
     },
   },
@@ -40,27 +34,21 @@ export const updatedAt = {
       title: 'Less than',
       component: {
         type: 'number',
-        props: {
-          min: 0,
-        },
+        min: 0,
       },
     },
     greaterThan: {
       title: 'Greater than',
       component: {
         type: 'number',
-        props: {
-          min: 0,
-        },
+        min: 0,
       },
     },
     is: {
       title: 'Is',
       component: {
         type: 'number',
-        props: {
-          min: 0,
-        },
+        min: 0,
       },
     },
   },

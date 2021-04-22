@@ -70,6 +70,7 @@ export const status = {
             value: TICKET_STATUS.CLOSED,
           },
         ],
+        reducer: (value) => parseInt(value),
       },
     },
   },

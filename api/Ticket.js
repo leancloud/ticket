@@ -375,4 +375,4 @@ async function tickAutomation() {
     await AV.Object.saveAll(ticketsToUpdate, { useMasterKey: true })
   }
 }
-AV.Cloud.define('__tickAutomation', tickAutomation)
+AV.Cloud.define('tickAutomation', { fetchUser: false, internal: true }, tickAutomation)
