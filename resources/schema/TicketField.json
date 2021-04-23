@@ -1,0 +1,80 @@
+{
+  "schema": {
+    "updatedAt": {
+      "type": "Date"
+    },
+    "ACL": {
+      "type": "ACL"
+    },
+    "name": {
+      "type": "String",
+      "v": 2,
+      "required": true,
+      "hidden": false,
+      "read_only": false
+    },
+    "objectId": {
+      "type": "String"
+    },
+    "defaultLocale": {
+      "type": "String",
+      "v": 2,
+      "required": true,
+      "hidden": false,
+      "read_only": false
+    },
+    "createdAt": {
+      "type": "Date"
+    },
+    "type": {
+      "type": "String",
+      "v": 2,
+      "required": true,
+      "hidden": false,
+      "read_only": false
+    },
+    "active": {
+      "type": "Boolean",
+      "v": 2,
+      "required": true,
+      "hidden": false,
+      "read_only": false,
+      "comment": ""
+    },
+    "required": {
+      "type": "Boolean",
+      "v": 2,
+      "required": true,
+      "hidden": false,
+      "read_only": false,
+      "comment": ""
+    }
+  },
+  "permissions": {
+    "create": {
+      "roles": [],
+      "users": []
+    },
+    "find": {
+      "roles": [],
+      "users": []
+    },
+    "get": {
+      "roles": [],
+      "users": []
+    },
+    "update": {
+      "roles": [],
+      "users": []
+    },
+    "delete": {
+      "roles": [],
+      "users": []
+    },
+    "add_fields": {
+      "roles": [],
+      "users": []
+    }
+  },
+  "indexes": []
+}
