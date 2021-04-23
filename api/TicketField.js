@@ -48,7 +48,8 @@ router.post(
     .isString()
     .custom((value) => LOCALES.includes(value)),
   check('variants.*.options').isArray().optional(),
-  check('variants.*.options.*').isString(),
+  check('variants.*.options.*.title').isString(),
+  check('variants.*.options.*.value').isString(),
   catchError(async (req, res) => {
     const { name, type, required, defaultLocale, variants } = req.body
     const variantLocales = variants.map((v) => v.locale)
@@ -199,7 +200,8 @@ router.post(
     .isString()
     .custom((value) => LOCALES.includes(value)),
   check('options').isArray().optional(),
-  check('options.*').isString(),
+  check('options.*.title').isString(),
+  check('options.*.value').isString(),
   catchError(async (req, res) => {
     const { field } = req
     const type = field.get('type')
@@ -242,7 +244,8 @@ router.patch(
   '/:id/variants/:locale',
   check('title').isString().isLength({ min: 1 }).optional(),
   check('options').isArray().optional(),
-  check('options.*').isString(),
+  check('options.*.title').isString(),
+  check('options.*.value').isString(),
   catchError(async (req, res) => {
     const { title, options } = req.body
     const { field, variant } = req
