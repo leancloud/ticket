@@ -3,72 +3,56 @@ import { Button, ButtonGroup, Form, Table } from 'react-bootstrap'
 import { Link, Route, Switch, useHistory, useRouteMatch } from 'react-router-dom'
 import { createResourceHook } from '@leancloud/use-resource'
 
-import style from './index.module.scss'
 import { AppContext } from '../../../context'
 import { fetch } from '../../../../lib/leancloud'
-import { useCustomerServices } from '../../../CustomerService'
 import { Context } from '../context'
-import { useConditions } from '../Condition'
+import { useCustomerServices } from '../../../CustomerService'
+import { useConditions } from './condition'
 import { useActions } from '../Action'
 
-const useTriggerList = createResourceHook(() => {
-  return fetch('/api/1/triggers')
-})
+const useAutomationList = createResourceHook(() => fetch('/api/1/automations'))
 
-const useTriggerData = createResourceHook((id) => {
-  return fetch('/api/1/triggers/' + id)
-})
+const useAutomationData = createResourceHook((id) => fetch('/api/1/automations/' + id))
 
-function addTrigger(data) {
-  return fetch('/api/1/triggers', {
-    method: 'POST',
-    body: data,
-  })
+function addAutomation(data) {
+  return fetch('/api/1/automations', { method: 'POST', body: data })
 }
 
-function updateTrigger(id, data) {
-  return fetch('/api/1/triggers/' + id, {
-    method: 'PATCH',
-    body: data,
-  })
+function updateAutomation(id, data) {
+  return fetch('/api/1/automations/' + id, { method: 'PATCH', body: data })
 }
 
-function deleteTrigger(id) {
-  return fetch('/api/1/triggers/' + id, {
-    method: 'DELETE',
-  })
+function deleteAutomation(id) {
+  return fetch('/api/1/automations/' + id, { method: 'DELETE' })
 }
 
-function reorderTriggers(triggerIds) {
-  return fetch('/api/1/triggers/reorder', {
-    method: 'POST',
-    body: { triggerIds },
-  })
+function reorderAutomations(automationIds) {
+  return fetch('/api/1/automations/reorder', { method: 'POST', body: { automationIds } })
 }
 
-function TriggerList() {
+function AutomationList() {
   const { path } = useRouteMatch()
   const { addNotification } = useContext(AppContext)
-  const [localTriggers, setLocalTriggers] = useState([])
-  const [triggers, { loading: loadingTriggers }] = useTriggerList()
+  const [localAutomations, setLocalAutomations] = useState([])
+  const [automations, { loading: loadingAutomations }] = useAutomationList()
   const [loading, setLoading] = useState(false)
   const [ordering, setOrdering] = useState(false)
 
   useEffect(() => {
-    if (triggers) {
-      setLocalTriggers(triggers)
+    if (automations) {
+      setLocalAutomations(automations)
     }
-  }, [triggers])
+  }, [automations])
 
-  if (loadingTriggers && !localTriggers) {
+  if (loadingAutomations && (!localAutomations || localAutomations.length === 0)) {
     return 'Loading...'
   }
 
   const handleChangeActive = async (id, active) => {
     setLoading(true)
     try {
-      await updateTrigger(id, { active })
-      setLocalTriggers((current) => {
+      await updateAutomation(id, { active })
+      setLocalAutomations((current) => {
         const next = [...current]
         next.find((t) => t.id === id).active = active
         return next
@@ -81,7 +65,7 @@ function TriggerList() {
   }
 
   const moveUp = (index) => {
-    setLocalTriggers((current) => [
+    setLocalAutomations((current) => [
       ...current.slice(0, index - 1),
       current[index],
       current[index - 1],
@@ -89,7 +73,7 @@ function TriggerList() {
     ])
   }
   const moveDown = (index) => {
-    setLocalTriggers((current) => [
+    setLocalAutomations((current) => [
       ...current.slice(0, index),
       current[index + 1],
       current[index],
@@ -99,7 +83,7 @@ function TriggerList() {
   const handleReorder = async () => {
     try {
       setLoading(true)
-      await reorderTriggers(localTriggers.map(({ id }) => id))
+      await reorderAutomations(localAutomations.map(({ id }) => id))
       setOrdering(false)
     } catch (error) {
       addNotification(error)
@@ -117,7 +101,7 @@ function TriggerList() {
               variant="link"
               onClick={() => {
                 setOrdering(false)
-                setLocalTriggers(triggers || [])
+                setLocalAutomations(automations || [])
               }}
             >
               Cancel
@@ -131,7 +115,7 @@ function TriggerList() {
             <Button variant="link" onClick={() => setOrdering(true)}>
               Edit order
             </Button>
-            <Button className="ml-2" as={Link} to={`${path}/new`} variant="outline-primary">
+            <Button variant="outline-primary" as={Link} to={`${path}/new`}>
               Create
             </Button>
           </>
@@ -141,18 +125,14 @@ function TriggerList() {
         <thead>
           <tr>
             <th>Title</th>
-            <th>Description</th>
             <th>Active</th>
             {ordering && <th></th>}
           </tr>
         </thead>
         <tbody>
-          {localTriggers.map(({ id, title, description, active }, index) => (
+          {localAutomations.map(({ id, title, active }, index) => (
             <tr key={id}>
               <td>{ordering ? title : <Link to={path + '/' + id}>{title}</Link>}</td>
-              <td>
-                <div className={style.desc}>{description}</div>
-              </td>
               <td>
                 <Form.Check
                   checked={active}
@@ -174,7 +154,7 @@ function TriggerList() {
                     <Button
                       className="py-0"
                       variant="light"
-                      disabled={index === localTriggers.length - 1}
+                      disabled={index === localAutomations.length - 1}
                       onClick={() => moveDown(index)}
                     >
                       <i className="bi bi-caret-down-fill"></i>
@@ -190,12 +170,11 @@ function TriggerList() {
   )
 }
 
-function NewTrigger() {
+function NewAutomation() {
   const history = useHistory()
   const { addNotification } = useContext(AppContext)
   const customerServices = useCustomerServices()
   const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
   const {
     conditions: allConditions,
     nodes: allConditionNodes,
@@ -223,16 +202,11 @@ function NewTrigger() {
     if (anyConditions.length) {
       conditions.any = anyConditions
     }
-    const data = {
-      title,
-      description,
-      conditions,
-      actions,
-    }
+    const data = { title, conditions, actions }
     setLoading(true)
+    history.push('.')
     try {
-      await addTrigger(data)
-      history.push('.')
+      await addAutomation(data)
     } catch (error) {
       addNotification(error)
     } finally {
@@ -244,21 +218,9 @@ function NewTrigger() {
 
   return (
     <Context.Provider value={{ assignees: customerServices }}>
-      <Form.Group controlId="trigger-name">
-        <Form.Label>Trigger name</Form.Label>
-        <Form.Control
-          placeholder="Enter a trigger name"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-      </Form.Group>
-      <Form.Group controlId="trigger-desc">
-        <Form.Label>Description</Form.Label>
-        <Form.Control
-          placeholder="Enter an optional description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
+      <Form.Group controlId="automation-title">
+        <Form.Label>Automation title</Form.Label>
+        <Form.Control value={title} onChange={(e) => setTitle(e.target.value)} />
       </Form.Group>
       <Form.Group>
         <Form.Label>Meet ALL of the following conditions</Form.Label>
@@ -297,49 +259,49 @@ function NewTrigger() {
   )
 }
 
-function TriggerDetail() {
+function AutomationDetail() {
   const history = useHistory()
   const { addNotification } = useContext(AppContext)
   const { params } = useRouteMatch()
-  const [triggerData, { error, loading: triggerDataLoading }] = useTriggerData([params.id])
+  const [automationData, { error, loading: automationDataLoading }] = useAutomationData([params.id])
   const customerServices = useCustomerServices()
   const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
   const {
     conditions: allConditions,
     nodes: allConditionNodes,
     add: addAllCondition,
-    reset: resetAllCondition,
+    reset: resetAllConditions,
   } = useConditions()
   const {
     conditions: anyConditions,
     nodes: anyConditionNodes,
     add: addAnyCondition,
-    reset: resetAnyCondition,
+    reset: resetAnyConditions,
   } = useConditions()
   const { actions, nodes: actionNodes, add: addAction, reset: resetActions } = useActions()
   const [loading, setLoading] = useState(false)
   const $unmounted = useRef(false)
   useEffect(() => () => ($unmounted.current = true), [])
   useEffect(() => {
-    if (triggerData) {
-      const { title, description, conditions, actions } = triggerData
-      setTitle(title || '')
-      setDescription(description || '')
-      resetAllCondition()
-      resetAnyCondition()
+    if (automationData) {
+      const { title, conditions, actions } = automationData
+      setTitle(title)
+      resetAllConditions()
+      resetAnyConditions()
       resetActions()
-      conditions?.all?.forEach(addAllCondition)
-      conditions?.any?.forEach(addAnyCondition)
+      if (conditions) {
+        conditions.all?.forEach(addAllCondition)
+        conditions.any?.forEach(addAnyCondition)
+      }
       actions?.forEach(addAction)
     }
-  }, [triggerData])
+  }, [automationData])
 
   if (error) {
     // TODO: replace with <APIError />
     return error.message
   }
-  if (triggerDataLoading) {
+  if (automationDataLoading) {
     return 'Loading...'
   }
 
@@ -357,13 +319,12 @@ function TriggerDetail() {
     }
     const data = {
       title,
-      description,
       conditions,
       actions,
     }
     setLoading(true)
     try {
-      await updateTrigger(params.id, data)
+      await updateAutomation(params.id, data)
       addNotification()
     } catch (error) {
       addNotification(error)
@@ -375,10 +336,10 @@ function TriggerDetail() {
   }
 
   const handleDelete = async () => {
-    if (confirm(`Delete trigger ${params.id} ?`)) {
+    if (confirm(`Delete automation ${params.id} ?`)) {
       try {
         setLoading(true)
-        await deleteTrigger(params.id)
+        await deleteAutomation(params.id)
         history.push('.')
       } catch (error) {
         addNotification(error)
@@ -392,21 +353,9 @@ function TriggerDetail() {
 
   return (
     <Context.Provider value={{ assignees: customerServices }}>
-      <Form.Group controlId="trigger-name">
-        <Form.Label>Trigger name</Form.Label>
-        <Form.Control
-          placeholder="Enter a trigger name"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-      </Form.Group>
-      <Form.Group controlId="triggers-desc">
-        <Form.Label>Description</Form.Label>
-        <Form.Control
-          placeholder="Enter an optional description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
+      <Form.Group controlId="automation-title">
+        <Form.Label>Automation title</Form.Label>
+        <Form.Control value={title} onChange={(e) => setTitle(e.target.value)} />
       </Form.Group>
       <Form.Group>
         <Form.Label>Meet ALL of the following conditions</Form.Label>
@@ -450,18 +399,18 @@ function TriggerDetail() {
   )
 }
 
-export default function Triggers() {
+export default function Automations() {
   const { path } = useRouteMatch()
   return (
     <Switch>
       <Route path={path} exact>
-        <TriggerList />
+        <AutomationList />
       </Route>
       <Route path={`${path}/new`}>
-        <NewTrigger />
+        <NewAutomation />
       </Route>
       <Route path={`${path}/:id`}>
-        <TriggerDetail />
+        <AutomationDetail />
       </Route>
     </Switch>
   )

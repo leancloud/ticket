@@ -1,16 +1,14 @@
-const AV = require('leancloud-storage')
-
 class Context {
   /**
    * @param {object} data
-   * @param {'create' | 'update'} updateType
-   * @param {Array<string>} updatedKeys
+   * @param {'create' | 'update'} [updateType]
+   * @param {Array<string>} [updatedKeys]
    */
   constructor(data, updateType, updatedKeys) {
+    this.data = { ...data }
     this.updateType = updateType
     this._updatedKeys = new Set(updatedKeys)
     this._updatedKeysInCtx = new Set()
-    this._ticketData = { ...data }
   }
 
   keyIsUpdated(key) {
@@ -21,14 +19,14 @@ class Context {
    * @returns {number}
    */
   getStatus() {
-    return this._ticketData.status
+    return this.data.status
   }
 
   /**
    * @param {number} value
    */
   setStatus(value) {
-    this._ticketData.status = value
+    this.data.status = value
     this._updatedKeysInCtx.add('status')
   }
 
@@ -36,14 +34,14 @@ class Context {
    * @returns {string}
    */
   getAssigneeId() {
-    return this._ticketData.assignee?.objectId
+    return this.data.assignee?.objectId
   }
 
   /**
    * @param {string} value
    */
   setAssigneeId(value) {
-    this._ticketData.assignee = {
+    this.data.assignee = {
       __type: 'Pointer',
       className: '_User',
       objectId: value,
@@ -55,37 +53,43 @@ class Context {
    * @returns {string}
    */
   getTitle() {
-    return this._ticketData.title
+    return this.data.title
   }
 
   /**
    * @returns {string}
    */
   getContent() {
-    return this._ticketData.content
+    return this.data.content
   }
 
   /**
-   * @returns {Promise<AV.Object | null>}
+   * @returns {Date}
    */
-  async commitUpdate() {
-    if (this._updatedKeysInCtx.size === 0) {
-      return null
-    }
+  getCreatedAt() {
+    return this.data.createdAt
+  }
 
-    const ticket = AV.Object.createWithoutData('Ticket', this._ticketData.objectId)
-    for (const key of this._updatedKeysInCtx) {
-      ticket.set(key, this._ticketData[key])
-    }
-    ticket.disableAfterHook()
-    await ticket.save(null, { useMasterKey: true })
+  /**
+   * @returns {Date}
+   */
+  getUpdatedAt() {
+    return this.data.updatedAt
+  }
 
-    const updatedTicket = AV.Object.createWithoutData('Ticket', this._ticketData.objectId)
-    Object.entries(this._ticketData).forEach(([key, value]) => {
-      ticket.attributes[key] = value
+  isUpdated() {
+    return this._updatedKeysInCtx.size > 0
+  }
+
+  /**
+   * @returns {object}
+   */
+  getUpdatedData() {
+    const data = {}
+    this._updatedKeysInCtx.forEach((key) => {
+      data[key] = this.data[key]
     })
-    updatedTicket.updatedKeys = Array.from(this._updatedKeysInCtx)
-    return updatedTicket
+    return data
   }
 }
 
