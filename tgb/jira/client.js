@@ -2,7 +2,7 @@
 /* eslint-disable react/prop-types */
 
 import React, { useEffect, useState } from 'react'
-import { Button, ButtonToolbar, ControlLabel, FormGroup } from 'react-bootstrap'
+import { Button, Form } from 'react-bootstrap'
 
 function TicketMetadataJiraSection({ app, ticket, isCustomerService }) {
   const ticketId = ticket.objectId
@@ -40,20 +40,20 @@ function TicketMetadataJiraSection({ app, ticket, isCustomerService }) {
 
   return (
     isCustomerService && (
-      <FormGroup>
-        <ControlLabel>Jira</ControlLabel>
-        <ButtonToolbar>
+      <Form.Group>
+        <Form.Label>Jira</Form.Label>
+        <div>
           {issueURL ? (
-            <Button href={issueURL} target="_blank">
-              <span className="glyphicon glyphicon-link" aria-hidden="true" /> Open Issue
+            <Button variant="light" href={issueURL} target="_blank">
+              Open Issue
             </Button>
           ) : (
-            <Button disabled={loading} onClick={handleCreateIssue}>
-              <span className="glyphicon glyphicon-plus" aria-hidden="true" /> Create Issue
+            <Button variant="light" disabled={loading} onClick={handleCreateIssue}>
+              Create Issue
             </Button>
           )}
-        </ButtonToolbar>
-      </FormGroup>
+        </div>
+      </Form.Group>
     )
   )
 }
