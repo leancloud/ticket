@@ -4,6 +4,9 @@ const { TICKET_STATUS } = require('../../../lib/common')
 
 class StatusIs {
   constructor(value) {
+    if (typeof value !== 'number') {
+      throw new Error('Status must be a number')
+    }
     if (!(value in _.invert(TICKET_STATUS))) {
       throw new Error('Invalid status')
     }

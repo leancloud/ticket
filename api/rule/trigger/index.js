@@ -31,4 +31,24 @@ async function validateTriggers() {
   return result
 }
 
-module.exports = { getActiveTriggers, validateTriggers }
+/**
+ * @param {Triggers} triggers
+ * @param {string} ticketId
+ */
+async function recordTriggerLog(triggers, ticketId) {
+  const firedTriggers = triggers.getFiredTriggers()
+  if (firedTriggers.length) {
+    const logs = firedTriggers.map((trigger) =>
+      AV.Object('TriggerLog', {
+        ACL: {},
+        ticket: AV.Object.createWithoutData('Ticket', ticketId),
+        trigger: AV.Object.createWithoutData('Trigger', trigger.id),
+        actions: trigger.rawActions,
+        conditions: trigger.rawConditions,
+      })
+    )
+    await AV.Object.saveAll(logs, { useMasterKey: true })
+  }
+}
+
+module.exports = { getActiveTriggers, validateTriggers, recordTriggerLog }
