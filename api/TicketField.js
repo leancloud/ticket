@@ -6,7 +6,7 @@ const { requireAuth, customerServiceOnly, catchError } = require('./middleware')
 
 const router = Router().use(requireAuth, customerServiceOnly)
 
-const TYPES = ['dropdown', 'text', 'multi-line', 'multi-select', 'checkbox', 'numeric']
+const TYPES = ['dropdown', 'text', 'multi-line', 'multi-select', 'checkbox']
 const LOCALES = [
   'zh-cn',
   'zh-tw',
@@ -34,7 +34,7 @@ function getVariants(id) {
 
 router.post(
   '/',
-  check('name').isString().isLength({ min: 1 }),
+  check('title').isString().isLength({ min: 1 }),
   check('type')
     .isString()
     .custom((value) => TYPES.includes(value)),
@@ -51,7 +51,7 @@ router.post(
   check('variants.*.options.*.title').isString(),
   check('variants.*.options.*.value').isString(),
   catchError(async (req, res) => {
-    const { name, type, required, defaultLocale, variants } = req.body
+    const { title, type, required, defaultLocale, variants } = req.body
     const variantLocales = variants.map((v) => v.locale)
     if (new Set(variantLocales).size !== variantLocales.length) {
       throw new Error('Duplicated variant locale')
@@ -69,7 +69,7 @@ router.post(
     await field.save(
       {
         ACL: {},
-        name,
+        title,
         type,
         required,
         active: true,
@@ -122,7 +122,7 @@ router.get(
     res.json({
       fields: fields.map((o) => ({
         id: o.id,
-        name: o.get('name'),
+        title: o.get('title'),
         type: o.get('type'),
         defaultLocale: o.get('defaultLocale'),
         active: !!o.get('active'),
@@ -146,7 +146,7 @@ router.get(
     const { field } = req
     const variants = await getVariants(field.id)
     res.json({
-      name: field.get('name'),
+      title: field.get('title'),
       type: field.get('type'),
       active: !!field.get('active'),
       required: !!field.get('required'),
@@ -162,7 +162,7 @@ router.get(
 
 router.patch(
   '/:id',
-  check('name').isString().isLength({ min: 1 }).optional(),
+  check('title').isString().isLength({ min: 1 }).optional(),
   check('active').isBoolean().optional(),
   check('required').isBoolean().optional(),
   check('defaultLocale')
@@ -170,10 +170,10 @@ router.patch(
     .custom((value) => LOCALES.includes(value))
     .optional(),
   catchError(async (req, res) => {
-    const { name, active, required, defaultLocale } = req.body
+    const { title, active, required, defaultLocale } = req.body
     const { field } = req
-    if (name) {
-      field.set('name', name)
+    if (title) {
+      field.set('title', title)
     }
     if (active !== undefined) {
       field.set('active', active)

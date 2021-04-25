@@ -6,7 +6,7 @@
     "ACL": {
       "type": "ACL"
     },
-    "name": {
+    "title": {
       "type": "String",
       "v": 2,
       "required": true,
