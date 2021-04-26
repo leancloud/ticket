@@ -10,7 +10,8 @@ export function Avatar({ user, height, width }) {
     <Image
       height={height || 16}
       width={width || 16}
-      src={`https://cdn.v2ex.com/gravatar/${hash}?s=${height || 16}&r=pg&d=identicon`}
+      src={`https://experiments.sparanoid.net/avatar/${hash}?s=${height || 16}&r=pg&d=identicon`}
+      
       rounded
     />
   )
