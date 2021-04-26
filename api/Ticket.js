@@ -15,7 +15,7 @@ const {
   TICKET_STATUS,
   getTicketAcl,
   ticketStatus,
-  ticketOpenedStatuses,
+  TICKET_OPENED_STATUSES,
 } = require('../lib/common')
 const errorHandler = require('./errorHandler')
 const { invokeWebhooks } = require('./webhook')
@@ -290,7 +290,7 @@ const getTargetStatus = (action, isCustomerService) => {
   }
 }
 
-exports.replyTicket = (ticket, reply, replyAuthor) => {
+const replyTicket = (ticket, reply, replyAuthor) => {
   return Promise.all([
     ticket.fetch({ include: 'author,assignee' }, { user: replyAuthor }),
     getTinyReplyInfo(reply),
@@ -356,7 +356,7 @@ const getVacationers = () => {
 
 async function tickAutomation() {
   const query = new AV.Query('Ticket')
-  query.containedIn('status', ticketOpenedStatuses())
+  query.containedIn('status', TICKET_OPENED_STATUSES)
   query.addAscending('createdAt')
   query.limit(1000)
   const [tickets, automations] = await Promise.all([
@@ -376,3 +376,5 @@ async function tickAutomation() {
   }
 }
 AV.Cloud.define('tickAutomation', { fetchUser: false, internal: true }, tickAutomation)
+
+module.exports = { replyTicket, selectAssignee }

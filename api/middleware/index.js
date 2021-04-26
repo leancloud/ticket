@@ -14,7 +14,7 @@ exports.requireAuth = async (req, res, next) => {
     if (error.code === 211) {
       return res.sendStatus(403)
     }
-    throw error
+    next(error)
   }
 }
 
@@ -33,13 +33,15 @@ exports.customerServiceOnly = async (req, res, next) => {
   }
 }
 
+function throwError(status = 500, message = 'Internal Error') {
+  const error = new Error(message)
+  error.status = status
+  throw error
+}
+
 exports.catchError = (handler) => {
   return async (req, res, next, ...args) => {
-    res.throw = (status = 500, message = 'Internal Error') => {
-      const error = new Error(message)
-      error.status = status
-      throw error
-    }
+    res.throw = throwError
     try {
       const errors = validationResult(req)
       if (!errors.isEmpty()) {

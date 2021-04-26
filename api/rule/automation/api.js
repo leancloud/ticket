@@ -3,7 +3,7 @@ const { check } = require('express-validator')
 const { Router } = require('express')
 
 const { requireAuth, customerServiceOnly, catchError } = require('../../middleware')
-const { ticketOpenedStatuses } = require('../../../lib/common')
+const { TICKET_OPENED_STATUSES } = require('../../../lib/common')
 const { Context } = require('../context')
 const { Automation } = require('./automation')
 
@@ -117,7 +117,7 @@ router.post(
   check('conditions').isObject(),
   catchError(async (req, res) => {
     const query = new AV.Query('Ticket')
-    query.containedIn('status', ticketOpenedStatuses())
+    query.containedIn('status', TICKET_OPENED_STATUSES)
     query.limit(1000)
     query.addAscending('createdAt')
     const tickets = await query.find({ useMasterKey: true })
