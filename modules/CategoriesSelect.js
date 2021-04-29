@@ -9,8 +9,8 @@ import { depthFirstSearchMap } from '../lib/common'
 export default function CategoriesSelect({
   categoriesTree,
   selected,
-  onChange,
   hiddenDisable = true,
+  ...props
 }) {
   const options = _.compact(
     depthFirstSearchMap(categoriesTree, (c) => {
@@ -21,7 +21,7 @@ export default function CategoriesSelect({
         <option
           key={c.id}
           value={c.id}
-          disabled={selected && (selected.id || selected.objectId) == c.id}
+          disabled={selected && (selected.id || selected.objectId) === c.id}
         >
           {getNodeIndentString(c) + getCategoryName(c)}
         </option>
@@ -29,22 +29,14 @@ export default function CategoriesSelect({
     })
   )
   return (
-    <FormControl
-      as="select"
-      value={selected ? selected.id || selected.objectId : ''}
-      onChange={onChange}
-    >
+    <FormControl {...props} as="select" value={selected ? selected.id || selected.objectId : ''}>
       <option value=""></option>
       {options}
     </FormControl>
   )
 }
-
-CategoriesSelect.displayName = 'CategoriesSelect'
-
 CategoriesSelect.propTypes = {
   categoriesTree: PropTypes.array.isRequired,
   selected: PropTypes.object,
-  onChange: PropTypes.func,
   hiddenDisable: PropTypes.bool,
 }
