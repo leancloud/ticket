@@ -4,6 +4,7 @@ import _ from 'lodash'
 import React, { Component } from 'react'
 import { Container } from 'react-bootstrap'
 import { Route, Switch, withRouter } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from 'react-query'
 import PropTypes from 'prop-types'
 import NotificationSystem from 'react-notification-system'
 import Raven from 'raven-js'
@@ -35,6 +36,14 @@ import Settings from './Settings'
 if (SENTRY_DSN_PUBLIC !== '') {
   Raven.config(SENTRY_DSN_PUBLIC).install()
 }
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+    },
+  },
+})
 
 class App extends Component {
   constructor(props) {
@@ -188,52 +197,57 @@ class App extends Component {
     return (
       <>
         {!this.state.loading && (
-          <AppContext.Provider
-            value={{
-              isCustomerService: props.isCustomerService,
-              tagMetadatas: props.tagMetadatas,
-              addNotification: this.getChildContext().addNotification,
-            }}
-          >
-            <GlobalNav user={this.state.currentUser?.toJSON()} onLogout={this.logout.bind(this)} />
-            <Container className={`${css.main} py-2`}>
-              <Switch>
-                <Route path="/" exact>
-                  <Home {...props} />
-                </Route>
-                <Route path="/about" component={About} />
-                <Route path="/login">
-                  <Login {...props} />
-                </Route>
-                <AuthRoute path="/tickets" exact>
-                  <Tickets {...props} />
-                </AuthRoute>
-                <AuthRoute path="/tickets/new">
-                  <NewTicket {...props} />
-                </AuthRoute>
-                <AuthRoute path="/tickets/:nid">
-                  <Ticket {...props} />
-                </AuthRoute>
-                <AuthRoute path="/messages">
-                  <Messages {...props} />
-                </AuthRoute>
-                <AuthRoute path="/notifications">
-                  <Notifications {...props} />
-                </AuthRoute>
-                <AuthRoute mustCustomerService path="/customerService">
-                  <CustomerService />
-                </AuthRoute>
-                <AuthRoute path="/users/:username">
-                  <User {...props} />
-                </AuthRoute>
-                <AuthRoute path="/settings">
-                  <Settings {...props} />
-                </AuthRoute>
-                <Route path="/error" component={ErrorPage} />
-                <Route path="*" component={NotFound} />
-              </Switch>
-            </Container>
-          </AppContext.Provider>
+          <QueryClientProvider client={queryClient}>
+            <AppContext.Provider
+              value={{
+                isCustomerService: props.isCustomerService,
+                tagMetadatas: props.tagMetadatas,
+                addNotification: this.getChildContext().addNotification,
+              }}
+            >
+              <GlobalNav
+                user={this.state.currentUser?.toJSON()}
+                onLogout={this.logout.bind(this)}
+              />
+              <Container className={`${css.main} py-2`}>
+                <Switch>
+                  <Route path="/" exact>
+                    <Home {...props} />
+                  </Route>
+                  <Route path="/about" component={About} />
+                  <Route path="/login">
+                    <Login {...props} />
+                  </Route>
+                  <AuthRoute path="/tickets" exact>
+                    <Tickets {...props} />
+                  </AuthRoute>
+                  <AuthRoute path="/tickets/new">
+                    <NewTicket {...props} />
+                  </AuthRoute>
+                  <AuthRoute path="/tickets/:nid">
+                    <Ticket {...props} />
+                  </AuthRoute>
+                  <AuthRoute path="/messages">
+                    <Messages {...props} />
+                  </AuthRoute>
+                  <AuthRoute path="/notifications">
+                    <Notifications {...props} />
+                  </AuthRoute>
+                  <AuthRoute mustCustomerService path="/customerService">
+                    <CustomerService />
+                  </AuthRoute>
+                  <AuthRoute path="/users/:username">
+                    <User {...props} />
+                  </AuthRoute>
+                  <AuthRoute path="/settings">
+                    <Settings {...props} />
+                  </AuthRoute>
+                  <Route path="/error" component={ErrorPage} />
+                  <Route path="*" component={NotFound} />
+                </Switch>
+              </Container>
+            </AppContext.Provider>
+          </QueryClientProvider>
         )}
         <ServerNotification currentUser={this.state.currentUser} />
         <NotificationSystem ref="notificationSystem" />
