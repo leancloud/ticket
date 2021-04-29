@@ -64,6 +64,7 @@
     "react-dom": "^16.14.0",
     "react-i18next": "^11.8.7",
     "react-notification-system": "^0.2.14",
+    "react-query": "^3.15.1",
     "react-router-dom": "^5.2.0",
     "remarkable": "^1.7.2",
     "request": "^2.87.0",
