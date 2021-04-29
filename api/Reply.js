@@ -52,3 +52,5 @@ const getReplyAcl = (ticket, author) => {
   acl.setRoleReadAccess(new AV.Role('customerService'), true)
   return acl
 }
+
+module.exports = { getReplyAcl }
