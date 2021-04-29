@@ -54,9 +54,7 @@ export const getCategoriesTree = (hiddenDisable = true) => {
   return query
     .orderBy('createdAt', 'desc')
     .find()
-    .then((categories) => {
-      return makeTree(categories)
-    })
+    .then(makeTree)
     .catch((err) => {
       // 如果还没有被停用的分类，deletedAt 属性可能不存在
       if (err.code == 700 && err.message.includes('deletedAt')) {
