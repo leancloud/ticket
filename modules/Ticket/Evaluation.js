@@ -3,7 +3,6 @@ import { Alert, Button, Form } from 'react-bootstrap'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import * as Icon from 'react-bootstrap-icons'
-import LC from '../lib/leancloud'
 
 class Evaluation extends Component {
   constructor(props) {
@@ -11,7 +10,7 @@ class Evaluation extends Component {
     this.state = {
       isAlreadyEvaluation: false,
       star: 1,
-      content: localStorage.getItem(`ticket:${this.props.ticket.id}:evaluation`) || '',
+      content: localStorage.getItem(`ticket:${this.props.ticket.objectId}:evaluation`) || '',
     }
   }
 
@@ -20,7 +19,7 @@ class Evaluation extends Component {
   }
 
   handleContentChange(e) {
-    localStorage.setItem(`ticket:${this.props.ticket.id}:evaluation`, e.target.value)
+    localStorage.setItem(`ticket:${this.props.ticket.objectId}:evaluation`, e.target.value)
     this.setState({ content: e.target.value })
   }
 
@@ -32,7 +31,7 @@ class Evaluation extends Component {
         content: this.state.content,
       })
       .then(() => {
-        localStorage.removeItem(`ticket:${this.props.ticket.id}:evaluation`)
+        localStorage.removeItem(`ticket:${this.props.ticket.objectId}:evaluation`)
         return
       })
       .catch(this.context.addNotification)
@@ -40,7 +39,7 @@ class Evaluation extends Component {
 
   render() {
     const { t } = this.props
-    const evaluation = this.props.ticket.get('evaluation')
+    const { evaluation } = this.props.ticket
     if (evaluation) {
       return (
         <Alert variant="warning">
@@ -111,7 +110,13 @@ class Evaluation extends Component {
 }
 
 Evaluation.propTypes = {
-  ticket: PropTypes.instanceOf(LC.LCObject),
+  ticket: PropTypes.shape({
+    objectId: PropTypes.string.isRequired,
+    evaluation: PropTypes.shape({
+      star: PropTypes.number.isRequired,
+      content: PropTypes.string.isRequired,
+    }),
+  }).isRequired,
   isCustomerService: PropTypes.bool,
   saveEvaluation: PropTypes.func.isRequired,
   t: PropTypes.func,

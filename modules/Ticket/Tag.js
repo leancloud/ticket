@@ -1,9 +1,8 @@
-/* global ENABLE_LEANCLOUD_INTEGRATION */
 import React, { useEffect, useState } from 'react'
 import { Badge, Button, Form } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
-import LC, { cloud } from '../lib/leancloud'
+import { cloud } from '../../lib/leancloud'
 
 export default function Tag({ tag, ticket, isCustomerService }) {
   const { t } = useTranslation()
@@ -12,14 +11,14 @@ export default function Tag({ tag, ticket, isCustomerService }) {
   // TODO: fix race condition
   useEffect(() => {
     ;(async () => {
-      if (ENABLE_LEANCLOUD_INTEGRATION && tag.data.key === 'appId') {
-        const appId = tag.data.value
+      if (window.ENABLE_LEANCLOUD_INTEGRATION && tag.key === 'appId') {
+        const appId = tag.value
         if (!appId) {
           return
         }
         const app = await cloud.run('getLeanCloudApp', {
           appId,
-          username: ticket.data.author.data.username,
+          username: ticket.author.username,
         })
         setData({ key: 'application', value: app.app_name })
         if (isCustomerService) {
@@ -33,13 +32,13 @@ export default function Tag({ tag, ticket, isCustomerService }) {
         }
       }
     })()
-  }, [tag, ticket, isCustomerService])
+  }, [tag.key, tag.value, ticket.author.username, isCustomerService])
 
   if (!data) {
     return (
       <div className="form-group">
         <Badge variant="secondary">
-          {tag.data.key}: {tag.data.value}
+          {tag.key}: {tag.value}
         </Badge>
       </div>
     )
@@ -63,11 +62,10 @@ export default function Tag({ tag, ticket, isCustomerService }) {
 }
 
 Tag.propTypes = {
-  tag: PropTypes.instanceOf(LC.LCObject).isRequired,
+  tag: PropTypes.shape({
+    key: PropTypes.string.isRequired,
+    value: PropTypes.string.isRequired,
+  }).isRequired,
   ticket: PropTypes.object.isRequired,
   isCustomerService: PropTypes.bool,
-}
-
-Tag.contextTypes = {
-  addNotification: PropTypes.func.isRequired,
 }
