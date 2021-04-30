@@ -25,6 +25,7 @@ i18next.on('languageChanged', (lang) => {
 
 i18next.use(initReactI18next).init({
   lng: locale,
+  keySeparator: false,
   interpolation: {
     escapeValue: false,
   },
