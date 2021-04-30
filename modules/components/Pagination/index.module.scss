@@ -1,0 +1,27 @@
+.info {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  .select {
+    box-shadow: none;
+    display: inline-block;
+    width: max-content;
+  }
+}
+.page {
+  display: flex;
+  align-items: center;
+  margin-right: 1em;
+  .pageInput {
+    box-shadow: none;
+    width: 4.5em;
+    margin-right: 0.5em;
+  }
+  > span {
+    vertical-align: middle;
+  }
+}
+
+.pageButton:disabled {
+  cursor: not-allowed;
+}
