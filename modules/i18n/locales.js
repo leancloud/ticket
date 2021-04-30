@@ -271,6 +271,10 @@ const messages = {
     'Save',
     '保存'
   ],
+  'confirm': [
+    'Confirm',
+    '确认',
+  ],
   'searchKeyword': [
     'Search keyword',
     '关键字搜索'
@@ -948,7 +952,28 @@ const messages = {
   'message.newReply': [
     'New reply',
     '新的回复'
-  ]
+  ],
+  
+  'pagination.totalPage': [
+    ' / {{total}}',
+    ' / {{total}} 页',
+  ],
+  'pagination.nextPage':[
+     'Next',
+     '下一页'
+  ],
+  'pagination.prePage':[
+     'Previous',
+     '上一页'
+  ],
+  'pagination.display':[
+     '<1>{{total}}</1> items · <3></3> items per page',
+     '共 <1>{{total}}</1> 条 · 每页显示 <3></3> 条'
+  ],
+  'noData': [
+    'No data available',
+    '暂无数据',
+  ],
 }
 
 function splitIntoLocales(messages, localeIndex) {
