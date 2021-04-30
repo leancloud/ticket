@@ -1,0 +1,22 @@
+.container {
+  position: relative;
+}
+.loading {
+  min-height: 10em;
+}
+.loadingOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba($color: #fff, $alpha: 0.5);
+  .loader {
+    z-index: 1;
+    width: 30%;
+    min-width: 100px;
+  }
+}
