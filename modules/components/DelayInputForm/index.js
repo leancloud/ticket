@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { FormControl } from 'react-bootstrap'
+import { Form } from 'react-bootstrap'
 import PropTypes from 'prop-types'
 
 /**
@@ -34,7 +34,7 @@ export function DelayInputForm({ value = '', onChange, delay = 1000, ...props })
     [setDebouncedValue]
   )
 
-  return <FormControl {...props} value={debouncedValue} onChange={handleChange} />
+  return <Form.Control {...props} value={debouncedValue} onChange={handleChange} />
 }
 DelayInputForm.propTypes = {
   value: PropTypes.string,
