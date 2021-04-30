@@ -4,7 +4,6 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin')
 
 const prod = process.env.NODE_ENV !== 'development'
-
 module.exports = {
   mode: prod ? 'production' : 'development',
   entry: './index.js',
@@ -78,5 +77,12 @@ module.exports = {
   ],
   optimization: {
     minimizer: ['...', new CssMinimizerPlugin()],
+  },
+  resolve: {
+    alias: {
+      modules: path.resolve(__dirname, 'modules/'),
+      lib: path.resolve(__dirname, 'lib/'),
+      extensions: ['.js', '.jsx'],
+    },
   },
 }
