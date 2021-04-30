@@ -3,6 +3,7 @@ import { FormControl } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import Stackedit from 'stackedit-js'
+import * as Icon from 'react-bootstrap-icons'
 import css from './index.css'
 import { uploadFiles } from '../../common'
 
@@ -77,7 +78,7 @@ export default function TextareaWithPreview({ value, onChange, ...props }) {
         disabled={disabled}
       />
       <div className={css.preview} title={t('preview')} onClick={enterPreviewMode}>
-        <i className="bi bi-arrows-fullscreen"></i>
+        <Icon.ArrowsFullscreen />
       </div>
     </div>
   )

@@ -3,6 +3,7 @@ import { Button, Table } from 'react-bootstrap'
 import { withRouter } from 'react-router-dom'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
+import * as Icon from 'react-bootstrap-icons'
 
 import { db } from '../../lib/leancloud'
 import { depthFirstSearchMap } from '../../lib/common'
@@ -67,7 +68,7 @@ class CategorySort extends React.Component {
               disabled={index == 0}
               onClick={() => this.handleSortUpdate(c, index, index - 1)}
             >
-              <i className="bi bi-chevron-up"></i>
+              <Icon.ChevronUp />
             </Button>{' '}
             <Button
               size="sm"
@@ -75,7 +76,7 @@ class CategorySort extends React.Component {
               disabled={index == array.length - 1}
               onClick={() => this.handleSortUpdate(c, index, index + 1)}
             >
-              <i className="bi bi-chevron-down"></i>
+              <Icon.ChevronDown />
             </Button>
           </td>
         </tr>

@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useRef, useState } from 'react'
 import { Button, ButtonGroup, Form, Table } from 'react-bootstrap'
 import { Link, Route, Switch, useHistory, useRouteMatch } from 'react-router-dom'
 import { createResourceHook } from '@leancloud/use-resource'
-
+import * as Icon from 'react-bootstrap-icons'
 import style from './index.module.scss'
 import { AppContext } from '../../../context'
 import { fetch } from '../../../../lib/leancloud'
@@ -169,7 +169,7 @@ function TriggerList() {
                       disabled={index === 0}
                       onClick={() => moveUp(index)}
                     >
-                      <i className="bi bi-caret-up-fill"></i>
+                      <Icon.CaretUpFill />
                     </Button>
                     <Button
                       className="py-0"
@@ -177,7 +177,7 @@ function TriggerList() {
                       disabled={index === localTriggers.length - 1}
                       onClick={() => moveDown(index)}
                     >
-                      <i className="bi bi-caret-down-fill"></i>
+                      <Icon.CaretDownFill />
                     </Button>
                   </ButtonGroup>
                 </td>

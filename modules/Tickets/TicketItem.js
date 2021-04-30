@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import { Link } from 'react-router-dom'
 import _ from 'lodash'
+import * as Icon from 'react-bootstrap-icons'
 import moment from 'moment'
 
 import { TicketStatusLabel } from '../components/TicketStatusLabel'
@@ -39,7 +40,7 @@ export function TicketItem({ ticket, checkable, checked, onCheckboxChange, categ
                 title={'reply ' + ticket.replyCount}
                 to={'/tickets/' + ticket.nid}
               >
-                <i className={`${css.commentCounterIcon} bi bi-chat-left`}></i>
+                <Icon.ChatLeft className={css.commentCounterIcon} />
                 {ticket.replyCount}
               </Link>
             )}
