@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { Alert, Button, Form } from 'react-bootstrap'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
+import * as Icon from 'react-bootstrap-icons'
 import LC from '../lib/leancloud'
 
 class Evaluation extends Component {
@@ -50,14 +51,14 @@ class Evaluation extends Component {
               inline
               disabled
               defaultChecked={evaluation.star === 1}
-              label={<i className="bi bi-hand-thumbs-up"></i>}
+              label={<Icon.HandThumbsUp />}
             />
             <Form.Check
               type="radio"
               inline
               disabled
               defaultChecked={evaluation.star === 0}
-              label={<i className="bi bi-hand-thumbs-down"></i>}
+              label={<Icon.HandThumbsDown />}
             />
           </Form.Group>
           <Form.Group>
@@ -78,14 +79,14 @@ class Evaluation extends Component {
                 inline
                 value="1"
                 onClick={this.handleStarChange.bind(this)}
-                label={<i className="bi bi-hand-thumbs-up"></i>}
+                label={<Icon.HandThumbsUp />}
               />
               <Form.Check
                 type="radio"
                 inline
                 value="0"
                 onClick={this.handleStarChange.bind(this)}
-                label={<i className="bi bi-hand-thumbs-down"></i>}
+                label={<Icon.HandThumbsDown />}
               />
             </Form.Group>
             <Form.Group>

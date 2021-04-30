@@ -3,7 +3,7 @@ import { Button, Form, InputGroup, OverlayTrigger, Tooltip } from 'react-bootstr
 import { withRouter } from 'react-router-dom'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
-
+import * as Icon from 'react-bootstrap-icons'
 import { db } from '../../lib/leancloud'
 
 class Tag extends Component {
@@ -166,7 +166,7 @@ class Tag extends Component {
               placement="right"
               overlay={<Tooltip id="tooltip">{t('privateInfo')}</Tooltip>}
             >
-              <i className="bi bi-question-circle-fill"></i>
+              <Icon.QuestionCircleFill />
             </OverlayTrigger>
           </div>
         </Form.Group>
@@ -187,7 +187,7 @@ class Tag extends Component {
               placement="right"
               overlay={<Tooltip id="tooltip">{t('tagTypeSelectInfo')}</Tooltip>}
             >
-              <i className="bi bi-question-circle-fill"></i>
+              <Icon.QuestionCircleFill />
             </OverlayTrigger>
           </div>
           <div>
@@ -205,7 +205,7 @@ class Tag extends Component {
               placement="right"
               overlay={<Tooltip id="tooltip">{t('tagTypeAnyTextInfo')}</Tooltip>}
             >
-              <i className="bi bi-question-circle-fill"></i>
+              <Icon.QuestionCircleFill />
             </OverlayTrigger>
           </div>
         </Form.Group>
@@ -225,24 +225,24 @@ class Tag extends Component {
                       disabled={index == 0}
                       onClick={() => this.handleSortUpdate(value, index, index - 1)}
                     >
-                      <i className="bi bi-chevron-up"></i>
+                      <Icon.ChevronUp />
                     </Button>
                     <Button
                       variant="light"
                       disabled={index == array.length - 1}
                       onClick={() => this.handleSortUpdate(value, index, index + 1)}
                     >
-                      <i className="bi bi-chevron-down"></i>
+                      <Icon.ChevronDown />
                     </Button>
                     <Button variant="light" onClick={() => this.handleRemoveItem(index)}>
-                      <i className="bi bi-x"></i>
+                      <Icon.X />
                     </Button>
                   </InputGroup.Append>
                 </InputGroup>
               )
             })}
             <Button variant="light" onClick={this.addValueItem.bind(this)}>
-              <i className="bi bi-plus"></i>
+              <Icon.Plus />
             </Button>
           </Form.Group>
         )}

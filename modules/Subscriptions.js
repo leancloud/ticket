@@ -5,7 +5,7 @@ import PropTypes from 'prop-types'
 import qs from 'query-string'
 import _ from 'lodash'
 import moment from 'moment'
-
+import * as Icon from 'react-bootstrap-icons'
 import { auth, db } from '../lib/leancloud'
 import { UserLabel } from './UserLabel'
 import { TicketStatusLabel } from './components/TicketStatusLabel'
@@ -66,7 +66,7 @@ class Subscriptions extends Component {
                   title={'reply ' + ticket.get('replyCount')}
                   to={'/tickets/' + ticket.get('nid')}
                 >
-                  <i className={`${css.commentCounterIcon} bi bi-chat-left`}></i>
+                  <Icon.ChatLeft className={css.commentCounterIcon} />
                   {ticket.get('replyCount')}
                 </Link>
               )}

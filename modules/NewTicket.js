@@ -6,6 +6,7 @@ import PropTypes from 'prop-types'
 import { auth, cloud, db } from '../lib/leancloud'
 import docsearch from 'docsearch.js'
 import qs from 'query-string'
+import * as Icon from 'react-bootstrap-icons'
 import _ from 'lodash'
 
 import TextareaWithPreview from './components/TextareaWithPreview'
@@ -322,7 +323,7 @@ class NewTicket extends React.Component {
               <Form.Label>
                 {t('associatedApplication')}{' '}
                 <OverlayTrigger placement="top" overlay={appTooltip}>
-                  <i className="bi bi-question-circle-fill"></i>
+                  <Icon.QuestionCircleFill />
                 </OverlayTrigger>
               </Form.Label>
               <Form.Control
@@ -364,7 +365,7 @@ class NewTicket extends React.Component {
             <Form.Label>
               {t('description')}{' '}
               <OverlayTrigger placement="top" overlay={tooltip}>
-                <i className="bi bi-markdown"></i>
+                <Icon.Markdown />
               </OverlayTrigger>
             </Form.Label>
             <TextareaWithPreview

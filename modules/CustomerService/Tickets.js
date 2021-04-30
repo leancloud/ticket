@@ -6,7 +6,7 @@ import { Link, useHistory, useLocation } from 'react-router-dom'
 import { Button, ButtonGroup, Dropdown, DropdownButton, Form } from 'react-bootstrap'
 import qs from 'query-string'
 import moment from 'moment'
-
+import * as Icon from 'react-bootstrap-icons'
 import { auth, cloud, db } from '../../lib/leancloud'
 import css from '../CustomerServiceTickets.css'
 
@@ -144,8 +144,7 @@ function TicketList({ tickets, categories, checkedTicketIds, onCheckTicket }) {
                   title={`reply ${ticket.replyCount}`}
                   to={`/tickets/${ticket.nid}`}
                 >
-                  <i className={`${css.commentCounterIcon} bi bi-chat-left`}></i>
-                  {ticket.replyCount}
+                  <Icon.ChatLeft className={css.commentCounterIcon} />
                 </Link>
               )}
             </div>

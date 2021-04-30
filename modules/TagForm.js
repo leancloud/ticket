@@ -3,6 +3,7 @@ import { Badge, Button, Form } from 'react-bootstrap'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import validUrl from 'valid-url'
+import * as Icon from 'react-bootstrap-icons'
 
 class TagForm extends React.Component {
   constructor(props) {
@@ -90,7 +91,7 @@ class TagForm extends React.Component {
             )}
             {isCustomerService && (
               <Button variant="link" onClick={() => this.setState({ isUpdate: true })}>
-                <i className="bi bi-pencil-fill"></i>
+                <Icon.PencilFill />
               </Button>
             )}
           </Form.Group>

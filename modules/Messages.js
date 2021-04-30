@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { Button, FormGroup, Table } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
 import moment from 'moment'
+import * as Icon from 'react-bootstrap-icons'
 import { auth, db } from '../lib/leancloud'
 
 import { UserLabel } from './UserLabel'
@@ -61,8 +62,7 @@ export default class Messages extends Component {
                       <td>
                         <div>
                           <Link to={'tickets/' + ticket.get('nid')}>
-                            <i className="bi bi-record-circle"></i>{' '}
-                            <UserLabel user={sender} simple /> 提交工单 #
+                            <Icon.RecordCircle /> <UserLabel user={sender} simple /> 提交工单 #
                             {ticket.get('nid') + ' ' + ticket.get('title')}
                           </Link>{' '}
                           <small>{moment(m.get('createdAt')).fromNow()}</small>{' '}
@@ -79,8 +79,8 @@ export default class Messages extends Component {
                       <td>
                         <div>
                           <Link to={'tickets/' + ticket.get('nid')}>
-                            <i className="bi bi-chat-left"></i> <UserLabel user={sender} simple />{' '}
-                            回复工单 #{ticket.get('nid') + ' ' + ticket.get('title')}
+                            <Icon.ChatLeft /> <UserLabel user={sender} simple /> 回复工单 #
+                            {ticket.get('nid') + ' ' + ticket.get('title')}
                           </Link>{' '}
                           <small>{moment(m.get('createdAt')).fromNow()}</small>{' '}
                           {!m.get('isRead') && <span className="label label-default">未读</span>}
@@ -96,9 +96,8 @@ export default class Messages extends Component {
                       <td>
                         <div>
                           <Link to={'tickets/' + ticket.get('nid')}>
-                            <i className="bi bi-arrow-left-right"></i>{' '}
-                            <UserLabel user={sender} simple /> 将工单交由你处理 #
-                            {ticket.get('nid') + ' ' + ticket.get('title')}
+                            <Icon.ArrowLeftRight /> <UserLabel user={sender} simple />{' '}
+                            将工单交由你处理 #{ticket.get('nid') + ' ' + ticket.get('title')}
                           </Link>{' '}
                           <small>{moment(m.get('createdAt')).fromNow()}</small>{' '}
                           {!m.get('isRead') && <span className="label label-default">未读</span>}

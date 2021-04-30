@@ -3,6 +3,7 @@ import { Button, Form } from 'react-bootstrap'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
+import * as Icon from 'react-bootstrap-icons'
 import LC from '../../lib/leancloud'
 
 import { getCustomerServices, getCategoryPathName } from '../common'
@@ -93,7 +94,7 @@ class TicketMetadata extends Component {
               <UserLabel user={ticket.data.assignee.data} />
               {isCustomerService && (
                 <Button variant="link" onClick={() => this.setState({ isUpdateAssignee: true })}>
-                  <i className="bi bi-pencil-fill"></i>
+                  <Icon.PencilFill />
                 </Button>
               )}
             </Form.Group>
@@ -115,7 +116,7 @@ class TicketMetadata extends Component {
               </span>
               {isCustomerService && (
                 <Button variant="link" onClick={() => this.setState({ isUpdateCategory: true })}>
-                  <i className="bi bi-pencil-fill"></i>
+                  <Icon.PencilFill />
                 </Button>
               )}
             </div>

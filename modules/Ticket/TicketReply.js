@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { Button, Form } from 'react-bootstrap'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
+import * as Icon from 'react-bootstrap-icons'
 import LC from '../../lib/leancloud'
 
 import TextareaWithPreview from '../components/TextareaWithPreview'
@@ -83,7 +84,7 @@ class TicketReply extends Component {
         <Form.Group className="d-block d-md-flex">
           <div className="flex-fill">
             <p className={css.markdownTip}>
-              <i className="bi bi-markdown"></i>{' '}
+              <Icon.Markdown />{' '}
               <a href="https://forum.leancloud.cn/t/topic/15412" target="_blank" rel="noopener">
                 {t('supportMarkdown')}
               </a>

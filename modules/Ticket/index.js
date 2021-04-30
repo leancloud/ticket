@@ -6,7 +6,7 @@ import moment from 'moment'
 import _ from 'lodash'
 import xss from 'xss'
 import PropTypes from 'prop-types'
-
+import * as Icon from 'react-bootstrap-icons'
 import css from './index.css'
 import { auth, cloud, db } from '../../lib/leancloud'
 import { uploadFiles, getCategoryPathName, getCategoriesTree } from '../common'
@@ -349,7 +349,7 @@ class Ticket extends Component {
             <div className="ticket-status" id={avObj.id} key={avObj.id}>
               <div className="ticket-status-left">
                 <span className="icon-wrap">
-                  <i className="bi bi-arrow-left-right"></i>
+                  <Icon.ArrowLeftRight />
                 </span>
               </div>
               <div className="ticket-status-right">
@@ -363,7 +363,7 @@ class Ticket extends Component {
             <div className="ticket-status" id={avObj.id} key={avObj.id}>
               <div className="ticket-status-left">
                 <span className="icon-wrap">
-                  <i className="bi bi-arrow-left-right"></i>
+                  <Icon.ArrowLeftRight />
                 </span>
               </div>
               <div className="ticket-status-right">
@@ -380,7 +380,7 @@ class Ticket extends Component {
             <div className="ticket-status" id={avObj.id} key={avObj.id}>
               <div className="ticket-status-left">
                 <span className="icon-wrap">
-                  <i className="bi bi-arrow-left-right"></i>
+                  <Icon.ArrowLeftRight />
                 </span>
               </div>
               <div className="ticket-status-right">
@@ -395,7 +395,7 @@ class Ticket extends Component {
             <div className="ticket-status" id={avObj.id} key={avObj.id}>
               <div className="ticket-status-left">
                 <span className="icon-wrap">
-                  <i className="bi bi-chat-left-fill"></i>
+                  <Icon.ChatLeftFill />
                 </span>
               </div>
               <div className="ticket-status-right">
@@ -409,7 +409,7 @@ class Ticket extends Component {
             <div className="ticket-status" id={avObj.id} key={avObj.id}>
               <div className="ticket-status-left">
                 <span className="icon-wrap awaiting">
-                  <i className="bi bi-hourglass"></i>
+                  <Icon.Hourglass />
                 </span>
               </div>
               <div className="ticket-status-right">
@@ -423,7 +423,7 @@ class Ticket extends Component {
             <div className="ticket-status" id={avObj.id} key={avObj.id}>
               <div className="ticket-status-left">
                 <span className="icon-wrap resolved">
-                  <i className="bi bi-check-circle"></i>
+                  <Icon.CheckCircle />
                 </span>
               </div>
               <div className="ticket-status-right">
@@ -438,7 +438,7 @@ class Ticket extends Component {
             <div className="ticket-status" id={avObj.id} key={avObj.id}>
               <div className="ticket-status-left">
                 <span className="icon-wrap closed">
-                  <i className="bi bi-slash-circle"></i>
+                  <Icon.SlashCircle />
                 </span>
               </div>
               <div className="ticket-status-right">
@@ -452,7 +452,7 @@ class Ticket extends Component {
             <div className="ticket-status" id={avObj.id} key={avObj.id}>
               <div className="ticket-status-left">
                 <span className="icon-wrap reopened">
-                  <i className="bi bi-record-circle"></i>
+                  <Icon.RecordCircle />
                 </span>
               </div>
               <div className="ticket-status-right">
@@ -496,7 +496,7 @@ class Ticket extends Component {
                   href={f.data.url + '?attname=' + encodeURIComponent(f.get('name'))}
                   target="_blank"
                 >
-                  <i className="bi bi-paperclip"></i> {f.get('name')}
+                  <Icon.Paperclip /> {f.get('name')}
                 </a>{' '}
               </span>
             )
@@ -581,7 +581,7 @@ class Ticket extends Component {
                     overlay={<Tooltip id="tooltip">{t('clickToUnsubscribe')}</Tooltip>}
                   >
                     <Button variant="link" active onClick={this.handleRemoveWatch.bind(this)}>
-                      <i className="bi bi-eye-slash"></i>
+                      <Icon.EyeSlash />
                     </Button>
                   </OverlayTrigger>
                 ) : (
@@ -590,7 +590,7 @@ class Ticket extends Component {
                     overlay={<Tooltip id="tooltip">{t('clickToSubscribe')}</Tooltip>}
                   >
                     <Button variant="link" onClick={this.handleAddWatch.bind(this)}>
-                      <i className="bi bi-eye"></i>
+                      <Icon.Eye />
                     </Button>
                   </OverlayTrigger>
                 )

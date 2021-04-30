@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import i18next from 'i18next'
 import PropTypes from 'prop-types'
-
+import * as Icon from 'react-bootstrap-icons'
 import { getUserDisplayName } from '../lib/common'
 import { getConfig } from './config'
 import { AppContext } from './context'
@@ -58,7 +58,7 @@ export default function GlobalNav({ user, onLogout }) {
             )}
             {isCustomerService && (
               <Nav.Link as={Link} to="/notifications">
-                <i className="bi bi-bell-fill"></i>
+                <Icon.BellFill />
               </Nav.Link>
             )}
             {/* eslint-disable i18n/no-chinese-character */}

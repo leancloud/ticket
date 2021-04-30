@@ -5,6 +5,7 @@ import { withTranslation } from 'react-i18next'
 import { withRouter } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
+import * as Icon from 'react-bootstrap-icons'
 
 import { db } from '../../lib/leancloud'
 import TextareaWithPreview from '../components/TextareaWithPreview'
@@ -114,7 +115,7 @@ class FAQ extends React.Component {
         </Form.Group>
         <Form.Group controlId="answerText">
           <Form.Label>
-            Answer <i className="bi bi-markdown" title={t('supportMarkdown')}></i>
+            Answer <Icon.Markdown title={t('supportMarkdown')} />
           </Form.Label>
           <TextareaWithPreview
             rows="8"
