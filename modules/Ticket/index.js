@@ -323,9 +323,6 @@ export default function Ticket({ isCustomerService, currentUser }) {
 }
 
 Ticket.propTypes = {
-  history: PropTypes.object.isRequired,
-  match: PropTypes.object.isRequired,
   currentUser: PropTypes.object,
   isCustomerService: PropTypes.bool,
-  t: PropTypes.func.isRequired,
 }
