@@ -3,7 +3,7 @@ const { Router } = require('express')
 const { check, query } = require('express-validator')
 
 const { checkPermission } = require('../oauth')
-const { requireAuth, catchError } = require('../middleware')
+const { requireAuth, catchError, customerServiceOnly } = require('../middleware')
 const {
   selectAssignee,
   getVacationerIds,
@@ -278,6 +278,9 @@ router.put(
      * @type {AV.Object}
      */
     const ticket = req.ticket
+    if (req.user.id !== ticket.get('author').id) {
+      res.throw(403)
+    }
     if (ticket.has('evaluation')) {
       res.throw(409, 'Evaluation already exists')
     }
@@ -340,6 +343,7 @@ router.patch(
 
 router.post(
   '/:id/subscription',
+  customerServiceOnly,
   catchError(async (req, res) => {
     const { user, ticket } = req
     const watch = await getWatchObject(user, ticket)
@@ -356,6 +360,7 @@ router.post(
 
 router.delete(
   '/:id/subscription',
+  customerServiceOnly,
   catchError(async (req, res) => {
     const { user, ticket } = req
     const watch = await getWatchObject(user, ticket)
