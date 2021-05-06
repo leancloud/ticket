@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react'
+import React, { useCallback, useContext, useState } from 'react'
 import { Button, Form } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
@@ -9,14 +9,14 @@ import { UserLabel } from '../UserLabel'
 import TagForm from '../TagForm'
 import css from './index.css'
 import csCss from '../CustomerServiceTickets.css'
-import { depthFirstSearchFind } from '../../lib/common'
 import CategoriesSelect from '../CategoriesSelect'
 import { getConfig } from '../config'
 import { MountCustomElement } from '../custom/element'
 import { AppContext } from '../context'
-import { useUpdateAssignee, useUpdateCategory, useSaveTicketTag } from './hooks'
+import { updateTicket } from './hooks'
 import { useCustomerServices } from '../CustomerService/hooks'
 import { useCategoriesTree } from '../category/hooks'
+import { useMutation, useQueryClient } from 'react-query'
 
 export default function TicketMetadata({ ticket, isCustomerService }) {
   const { t } = useTranslation()
@@ -26,32 +26,34 @@ export default function TicketMetadata({ ticket, isCustomerService }) {
   const [updatingAssignee, setUpdatingAssignee] = useState(false)
   const [updatingCategory, setUpdatingCategory] = useState(false)
 
-  const { mutate: updateAssignee, setLocalAssignee } = useUpdateAssignee(ticket.nid)
-  const { mutate: updateCateogry, setLocalCategory } = useUpdateCategory(ticket.nid)
-  const { mutate: saveTags, setLocalTags } = useSaveTicketTag(ticket.nid)
+  const queryClient = useQueryClient()
+  const { mutate } = useMutation((data) => updateTicket(ticket.nid, data), {
+    onError: (error) => addNotification(error),
+  })
+
+  const invalidateTicketCache = useCallback(
+    () => queryClient.invalidateQueries(['ticket', ticket.nid]),
+    [queryClient, ticket.nid]
+  )
 
   const handleChangeAssignee = (e) => {
-    const assigneeId = e.target.value
-    const assignee = customerServices.find(({ objectId }) => objectId === assigneeId)
-    updateAssignee(assigneeId, {
-      onSuccess: () => {
-        setLocalAssignee(assignee)
-        setUpdatingAssignee(false)
-      },
-      onError: addNotification,
-    })
+    mutate(
+      { assigneeId: e.target.value },
+      {
+        onSuccess: invalidateTicketCache,
+        onSettled: () => setUpdatingAssignee(false),
+      }
+    )
   }
 
   const handleChangeCategory = (e) => {
-    const categoryId = e.target.value
-    const category = depthFirstSearchFind(categoriesTree, (c) => c.id === categoryId)
-    updateCateogry(categoryId, {
-      onSuccess: () => {
-        setLocalCategory(category.toJSON())
-        setUpdatingCategory(false)
-      },
-      onError: addNotification,
-    })
+    mutate(
+      { categoryId: e.target.value },
+      {
+        onSuccess: invalidateTicketCache,
+        onSettled: () => setUpdatingCategory(false),
+      }
+    )
   }
 
   const handleSaveTag = (key, value, isPrivate) => {
@@ -69,11 +71,15 @@ export default function TicketMetadata({ ticket, isCustomerService }) {
         tags.splice(index, 1)
       }
     }
-    saveTags(
-      { tags, isPrivate },
+    mutate(
+      { [isPrivate ? 'privateTags' : 'tags']: tags },
       {
-        onSuccess: () => setLocalTags({ tags, isPrivate }),
-        onError: addNotification,
+        onSuccess: (res, data) => {
+          queryClient.setQueryData(['ticket', ticket.nid], (current) => ({
+            ...current,
+            ticket: { ...current.ticket, ...data },
+          }))
+        },
       }
     )
   }

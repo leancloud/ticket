@@ -1,4 +1,4 @@
-import { useInfiniteQuery, useMutation, useQueryClient } from 'react-query'
+import { useInfiniteQuery } from 'react-query'
 import _ from 'lodash'
 
 import { fetch } from '../../lib/leancloud'
@@ -74,72 +74,6 @@ export function useOpsLogs(nid) {
  */
 export function updateTicket(nid, data) {
   return fetch(`/api/1/tickets/${nid}`, { method: 'PATCH', body: data })
-}
-
-/**
- * @param {number} nid
- * @param {import('react-query').UseMutationOptions} [options]
- */
-export function useUpdateAssignee(nid, options) {
-  const queryClient = useQueryClient()
-  return {
-    ...useMutation((assigneeId) => updateTicket(nid, { assigneeId }), options),
-    setLocalAssignee: (assignee) => {
-      queryClient.setQueryData(['ticket', nid], (current) => ({
-        ...current,
-        ticket: { ...current.ticket, assignee },
-      }))
-    },
-  }
-}
-
-/**
- * @param {number} nid
- * @param {import('react-query').UseMutationOptions} [options]
- */
-export function useUpdateCategory(nid, options) {
-  const queryClient = useQueryClient()
-  return {
-    ...useMutation((categoryId) => updateTicket(nid, { categoryId }), options),
-    setLocalCategory: (category) => {
-      queryClient.setQueryData(['ticket', nid], (current) => ({
-        ...current,
-        ticket: { ...current.ticket, category },
-      }))
-    },
-  }
-}
-
-/**
- * @param {number} nid
- * @param {array} tags
- * @param {boolean} [isPrivate]
- */
-export function saveTicketTag(nid, tags, isPrivate) {
-  return fetch(`/api/1/tickets/${nid}/tags`, {
-    method: 'PUT',
-    body: { tags, isPrivate },
-  })
-}
-
-/**
- * @param {number} nid
- * @param {import('react-query').UseMutationOptions} [options]
- */
-export function useSaveTicketTag(nid, options) {
-  const queryClient = useQueryClient()
-  return {
-    ...useMutation(({ tags, isPrivate }) => saveTicketTag(nid, tags, isPrivate), options),
-    setLocalTags: ({ tags, isPrivate }) => {
-      queryClient.setQueryData(['ticket', nid], (current) => ({
-        ...current,
-        ticket: {
-          ...current.ticket,
-          [isPrivate ? 'privateTags' : 'tags']: tags,
-        },
-      }))
-    },
-  }
 }
 
 /**

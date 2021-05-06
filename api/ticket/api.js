@@ -297,10 +297,17 @@ router.put(
 
 router.patch(
   '/:id',
+  customerServiceOnly,
   check('assigneeId').isString().optional(),
   check('categoryId').isString().optional(),
+  check('tags').isArray().optional(),
+  check('tags.*.key').isString(),
+  check('tags.*.value').isString(),
+  check('privateTags').isArray().optional(),
+  check('privateTags.*.key').isString(),
+  check('privateTags.*.value').isString(),
   catchError(async (req, res) => {
-    const { assigneeId, categoryId } = req.body
+    const { assigneeId, categoryId, tags, privateTags } = req.body
     /**
      * @type {AV.Object}
      */
@@ -326,6 +333,22 @@ router.patch(
       const categoryInfo = await getTinyCategoryInfo(categoryId)
       ticket.set('category', categoryInfo)
       ticket.updatedKeys.push('category')
+    }
+
+    if (tags) {
+      ticket.set(
+        'tags',
+        tags.map((tag) => ({ key: tag.key, value: tag.value }))
+      )
+      ticket.updatedKeys.push('tags')
+    }
+
+    if (privateTags) {
+      ticket.set(
+        'privateTags',
+        privateTags.map((tag) => ({ key: tag.key, value: tag.value }))
+      )
+      ticket.updatedKeys.push('privateTags')
     }
 
     await saveWithoutHooks(ticket, {
@@ -368,27 +391,6 @@ router.delete(
       return res.throw(404)
     }
     await watch.destroy({ useMasterKey: true })
-    res.json({})
-  })
-)
-
-router.put(
-  '/:id/tags',
-  check('tags').isArray(),
-  check('tags.*.key').isString().isLength({ min: 1 }),
-  check('tags.*.value').isString(),
-  check('isPrivate').isBoolean().optional(),
-  catchError(async (req, res) => {
-    /**
-     * @type {AV.Object}
-     */
-    const ticket = req.ticket
-    const { tags, isPrivate } = req.body
-    ticket.set(isPrivate ? 'privateTags' : 'tags', tags)
-    await saveWithoutHooks(ticket, {
-      ignoreBeforeHook: true,
-      useMasterKey: true,
-    })
     res.json({})
   })
 )
