@@ -1,22 +1,33 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import { Alert, Button, Form } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 
 import { TICKET_STATUS, ticketStatus } from '../../lib/common'
+import { operateTicket } from './hooks'
+import { AppContext } from '../context'
 
-export function TicketOperation({ ticket, isCustomerService, onOperate }) {
+export function TicketOperation({ ticket, isCustomerService }) {
   const { t } = useTranslation()
+  const { addNotification } = useContext(AppContext)
+
+  const handleOperateTicket = async (action) => {
+    try {
+      await operateTicket(ticket.nid, action)
+    } catch (error) {
+      addNotification(error)
+    }
+  }
 
   if (ticketStatus.isOpened(ticket.status)) {
     return (
       <Form.Group>
         <Form.Label>{t('ticketOperation')}</Form.Label>
         <div>
-          <Button variant="light" onClick={() => onOperate('resolve')}>
+          <Button variant="light" onClick={() => handleOperateTicket('resolve')}>
             {t('resolved')}
           </Button>{' '}
-          <Button variant="light" onClick={() => onOperate('close')}>
+          <Button variant="light" onClick={() => handleOperateTicket('close')}>
             {t('close')}
           </Button>
         </div>
@@ -28,8 +39,8 @@ export function TicketOperation({ ticket, isCustomerService, onOperate }) {
       <Alert variant="warning">
         <Form.Label>{t('confirmResolved')}</Form.Label>
         <div>
-          <Button onClick={() => onOperate('resolve')}>{t('resolutionConfirmed')}</Button>{' '}
-          <Button variant="light" onClick={() => onOperate('reopen')}>
+          <Button onClick={() => handleOperateTicket('resolve')}>{t('resolutionConfirmed')}</Button>{' '}
+          <Button variant="light" onClick={() => handleOperateTicket('reopen')}>
             {t('unresolved')}
           </Button>
         </div>
@@ -41,7 +52,7 @@ export function TicketOperation({ ticket, isCustomerService, onOperate }) {
       <Form.Group>
         <Form.Label>{t('ticketOperation')}</Form.Label>
         <div>
-          <Button variant="light" onClick={() => onOperate('reopen')}>
+          <Button variant="light" onClick={() => handleOperateTicket('reopen')}>
             {t('reopen')}
           </Button>
         </div>
@@ -53,6 +64,5 @@ export function TicketOperation({ ticket, isCustomerService, onOperate }) {
 
 TicketOperation.propTypes = {
   ticket: PropTypes.object.isRequired,
-  onOperate: PropTypes.func.isRequired,
   isCustomerService: PropTypes.bool,
 }
