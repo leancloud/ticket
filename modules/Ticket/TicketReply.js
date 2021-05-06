@@ -42,10 +42,11 @@ export default function TicketReply({ ticket, isCustomerService }) {
     }
     try {
       setCommitting(true)
+      const uploadedFiles = await uploadFiles(files)
       commitReply({
         nid: ticket.nid,
         content: trimedContent,
-        files: await uploadFiles(files),
+        files: uploadedFiles.map((file) => ({ objectId: file.id })),
       })
     } catch (error) {
       addNotification(error)

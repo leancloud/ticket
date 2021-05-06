@@ -212,10 +212,11 @@ class NewTicket extends React.Component {
     this.setState({ isCommitting: true })
     try {
       const organization = this.props.selectedOrgId ? { id: this.props.selectedOrgId } : undefined
+      const uploadedFiles = await uploadFiles(document.getElementById('ticketFile').files)
       const ticketId = await createTicket({
         title: ticket.title,
         content: ticket.content,
-        files: await uploadFiles(document.getElementById('ticketFile').files),
+        files: uploadedFiles.map((file) => ({ objectId: file.id })),
         categoryId: _.last(this.state.categoryPath).id,
         organizationId: organization?.id,
       })
