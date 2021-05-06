@@ -14,40 +14,40 @@ class TagForm extends React.Component {
     }
   }
 
-  handleChange(e) {
+  async handleChange(e) {
     const tagMetadata = this.props.tagMetadata
-    if (tagMetadata.get('type') == 'select') {
-      return this.props
-        .changeTagValue(tagMetadata.get('key'), e.target.value, tagMetadata.get('isPrivate'))
-        .then(() => {
-          this.setState({ isUpdate: false })
-          return
-        })
+    if (tagMetadata.get('type') === 'select') {
+      await this.props.changeTagValue(
+        tagMetadata.get('key'),
+        e.target.value,
+        tagMetadata.get('isPrivate')
+      )
+      this.setState({ isUpdate: false })
+      return
     }
-
     this.setState({ value: e.target.value })
   }
 
-  handleCommit() {
+  async handleCommit() {
     const tagMetadata = this.props.tagMetadata
-    return this.props
-      .changeTagValue(tagMetadata.get('key'), this.state.value, tagMetadata.get('isPrivate'))
-      .then(() => {
-        this.setState({ isUpdate: false })
-        return
-      })
+    await this.props.changeTagValue(
+      tagMetadata.get('key'),
+      this.state.value,
+      tagMetadata.get('isPrivate')
+    )
+    this.setState({ isUpdate: false })
   }
 
   render() {
     const { t, tagMetadata, tag, isCustomerService } = this.props
     const isPrivate = tagMetadata.get('isPrivate')
     if (isPrivate && !isCustomerService) {
-      return <div></div>
+      return null
     }
 
     // 如果标签不存在，说明标签还没设置过。对于非客服来说则什么都不显示
     if (!tag && !isCustomerService) {
-      return <div></div>
+      return null
     }
 
     return (

@@ -1,26 +1,29 @@
-import React, { Component } from 'react'
+import React, { Component, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { Button, Card, Col, OverlayTrigger, Row, Tooltip } from 'react-bootstrap'
-import { useTranslation, withTranslation } from 'react-i18next'
-import { withRouter } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { useHistory, useRouteMatch } from 'react-router-dom'
 import moment from 'moment'
 import _ from 'lodash'
 import xss from 'xss'
 import PropTypes from 'prop-types'
 import * as Icon from 'react-bootstrap-icons'
 import css from './index.css'
-import { auth, cloud, db } from '../../lib/leancloud'
-import { uploadFiles, getCategoryPathName, getCategoriesTree } from '../common'
+import { auth, cloud, db, fetch } from '../../lib/leancloud'
+import { uploadFiles } from '../common'
 import csCss from '../CustomerServiceTickets.css'
-import { ticketStatus, getTinyCategoryInfo } from '../../lib/common'
-import Evaluation from '../Evaluation'
-import TicketMetadata from './TicketMetadata'
+import { ticketStatus } from '../../lib/common'
 import TicketReply from './TicketReply'
+import Evaluation from './Evaluation'
+import TicketMetadata from './TicketMetadata'
 import { TicketStatusLabel } from '../components/TicketStatusLabel'
-import Tag from '../Tag'
+import Tag from './Tag'
 import { WeekendWarning } from '../components/WeekendWarning'
 import { UserLabel } from '../UserLabel'
 import { DocumentTitle } from '../utils/DocumentTitle'
 import { TicketOperation } from './TicketOperation'
+import { OpsLog, Time } from './OpsLog'
+import { AppContext } from '../context'
+import { useOpsLogs, useReplies, useTicket } from './hooks'
 
 // get a copy of default whiteList
 const whiteList = xss.getDefaultWhiteList()
@@ -35,22 +38,71 @@ const myxss = new xss.FilterXSS({
   css: false,
 })
 
-function UserOrSystem({ operator }) {
-  const { t } = useTranslation(0)
-  if (!operator || operator.objectId === 'system') {
-    return t('system')
-  }
-  return <UserLabel user={operator} />
+const IMAGE_MIMES = ['image/png', 'image/jpeg', 'image/gif']
+
+function ReplyCard({ reply }) {
+  const { t } = useTranslation()
+  const { objectId, author, content_HTML, createdAt, files, isCustomerService } = reply
+  const imageFiles = []
+  const otherFiles = []
+  files?.forEach((file) => {
+    if (IMAGE_MIMES.includes(file.mime_type)) {
+      imageFiles.push(file)
+    } else {
+      otherFiles.push(file)
+    }
+  })
+
+  return (
+    <Card
+      id={objectId}
+      key={objectId}
+      className={isCustomerService ? css.panelModerator : undefined}
+    >
+      <Card.Header className={css.heading}>
+        <UserLabel user={author} /> {t('submittedAt')} <Time value={createdAt} hash={objectId} />
+        {isCustomerService && <i className={css.badge}>{t('staff')}</i>}
+      </Card.Header>
+      <Card.Body className={css.content}>
+        <div
+          className="markdown-body"
+          dangerouslySetInnerHTML={{ __html: myxss.process(content_HTML) }}
+        />
+        {imageFiles.map(({ objectId, name, url }) => (
+          <a key={objectId} href={url} target="_blank">
+            <img src={url} alt={name} />
+          </a>
+        ))}
+      </Card.Body>
+      {otherFiles.length > 0 && (
+        <Card.Footer>
+          {otherFiles.map(({ objectId, name, url }) => (
+            <div key={objectId}>
+              <a href={url + '?attname=' + encodeURIComponent(name)} target="_blank">
+                <i className="bi bi-paperclip"></i> {name}
+              </a>
+            </div>
+          ))}
+        </Card.Footer>
+      )}
+    </Card>
+  )
 }
-UserOrSystem.propTypes = {
-  operator: PropTypes.object,
+ReplyCard.propTypes = {
+  reply: PropTypes.shape({
+    objectId: PropTypes.string.isRequired,
+    author: PropTypes.object.isRequired,
+    content_HTML: PropTypes.string.isRequired,
+    createdAt: PropTypes.string.isRequired,
+    files: PropTypes.array,
+    isCustomerService: PropTypes.bool,
+  }),
 }
 
 class Ticket extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      categoriesTree: [],
       ticket: null,
       replies: [],
       opsLogs: [],
@@ -63,33 +115,18 @@ class Ticket extends Component {
     this.getTicketQuery(parseInt(nid))
       .first()
       .then((ticket) => {
-        if (!ticket) {
-          return this.props.history.replace({
-            pathname: '/error',
-            state: { code: 'Unauthorized' },
-          })
-        }
-
         return Promise.all([
-          cloud.run('getPrivateTags', { ticketId: ticket.id }),
-          getCategoriesTree(false),
           this.getReplyQuery(ticket).find(),
-          db.class('Tag').where('ticket', '==', ticket).find(),
           this.getOpsLogQuery(ticket).find(),
           db
             .class('Watch')
             .where('ticket', '==', ticket)
             .where('user', '==', auth.currentUser)
             .first(),
-        ]).then(([privateTags, categoriesTree, replies, tags, opsLogs, watch]) => {
-          if (privateTags) {
-            ticket.set('privateTags', privateTags.privateTags)
-          }
+        ]).then(([replies, opsLogs, watch]) => {
           this.setState({
-            categoriesTree,
             ticket,
             replies,
-            tags,
             opsLogs,
             watch,
           })
@@ -217,23 +254,9 @@ class Ticket extends Component {
     return this.operateTicket('replySoon')
   }
 
-  operateTicket(action) {
-    const ticket = this.state.ticket
-    return cloud
-      .run('operateTicket', { ticketId: ticket.id, action })
-      .then(() => {
-        return ticket.get({ include: ['author', 'organization', 'assignee', 'files'] })
-      })
-      .then((ticket) => {
-        this.setState({ ticket })
-        return
-      })
-      .catch(this.context.addNotification)
-  }
-
   updateTicketCategory(category) {
     const ticket = this.state.ticket
-    return ticket.update({ category: getTinyCategoryInfo(category) }).then(() => {
+    return updateTicket(ticket.id, { categoryId: category.id }).then(() => {
       ticket.data.category = category
       this.setState({ ticket })
       return
@@ -242,38 +265,12 @@ class Ticket extends Component {
 
   updateTicketAssignee(assignee) {
     const ticket = this.state.ticket
-    return ticket
-      .update({ assignee })
+    return updateTicket(ticket.id, { assigneeId: assignee.id })
       .then(() => {
         ticket.data.assignee = assignee
         return
       })
       .catch(this.context.addNotification)
-  }
-
-  saveTag(key, value, isPrivate) {
-    const ticket = this.state.ticket
-    let tags = ticket.get(isPrivate ? 'privateTags' : 'tags')
-    if (!tags) {
-      tags = []
-    }
-    const tag = _.find(tags, { key })
-    if (!tag) {
-      if (value == '') {
-        return
-      }
-      tags.push({ key, value })
-    } else {
-      if (value == '') {
-        tags = _.reject(tags, { key })
-      } else {
-        tag.value = value
-      }
-    }
-    return ticket.update({ [isPrivate ? 'privateTags' : 'tags']: tags }).then(() => {
-      this.setState({ ticket })
-      return
-    })
   }
 
   saveEvaluation(evaluation) {
@@ -285,263 +282,17 @@ class Ticket extends Component {
     })
   }
 
-  handleAddWatch() {
-    return db
-      .class('Watch')
-      .add({
-        ticket: this.state.ticket,
-        user: auth.currentUser,
-        ACL: {
-          [auth.currentUser.id]: { write: true, read: true },
-        },
-      })
-      .then((watch) => {
-        this.setState({ watch })
-        return
-      })
-      .catch(this.context.addNotification)
-  }
-
-  handleRemoveWatch() {
-    return this.state.watch
-      .delete()
-      .then(() => {
-        this.setState({ watch: undefined })
-        return
-      })
-      .catch(this.context.addNotification)
-  }
-
-  contentView(content) {
-    return <div dangerouslySetInnerHTML={{ __html: myxss.process(content) }} />
-  }
-
-  getTime(avObj) {
-    if (new Date() - avObj.get('createdAt') > 86400000) {
-      return (
-        <a
-          href={'#' + avObj.id}
-          className="timestamp"
-          title={moment(avObj.get('createdAt')).format()}
-        >
-          {moment(avObj.get('createdAt')).calendar()}
-        </a>
-      )
-    } else {
-      return (
-        <a
-          href={'#' + avObj.id}
-          className="timestamp"
-          title={moment(avObj.get('createdAt')).format()}
-        >
-          {moment(avObj.get('createdAt')).fromNow()}
-        </a>
-      )
-    }
-  }
-
-  ticketTimeline(avObj) {
-    const { t } = this.props
-    if (avObj.className === 'OpsLog') {
-      switch (avObj.get('action')) {
-        case 'selectAssignee':
-          return (
-            <div className="ticket-status" id={avObj.id} key={avObj.id}>
-              <div className="ticket-status-left">
-                <span className="icon-wrap">
-                  <Icon.ArrowLeftRight />
-                </span>
-              </div>
-              <div className="ticket-status-right">
-                {t('system')} {t('assignedTicketTo')}{' '}
-                <UserLabel user={avObj.get('data').assignee} /> ({this.getTime(avObj)})
-              </div>
-            </div>
-          )
-        case 'changeCategory':
-          return (
-            <div className="ticket-status" id={avObj.id} key={avObj.id}>
-              <div className="ticket-status-left">
-                <span className="icon-wrap">
-                  <Icon.ArrowLeftRight />
-                </span>
-              </div>
-              <div className="ticket-status-right">
-                <UserLabel user={avObj.get('data').operator} /> {t('changedTicketCategoryTo')}{' '}
-                <span className={csCss.category + ' ' + css.category}>
-                  {getCategoryPathName(avObj.get('data').category, this.state.categoriesTree)}
-                </span>{' '}
-                ({this.getTime(avObj)})
-              </div>
-            </div>
-          )
-        case 'changeAssignee':
-          return (
-            <div className="ticket-status" id={avObj.id} key={avObj.id}>
-              <div className="ticket-status-left">
-                <span className="icon-wrap">
-                  <Icon.ArrowLeftRight />
-                </span>
-              </div>
-              <div className="ticket-status-right">
-                <UserOrSystem operator={avObj.get('data').operator} />{' '}
-                {t('changedTicketAssigneeTo')} <UserLabel user={avObj.get('data').assignee} /> (
-                {this.getTime(avObj)})
-              </div>
-            </div>
-          )
-        case 'replyWithNoContent':
-          return (
-            <div className="ticket-status" id={avObj.id} key={avObj.id}>
-              <div className="ticket-status-left">
-                <span className="icon-wrap">
-                  <Icon.ChatLeftFill />
-                </span>
-              </div>
-              <div className="ticket-status-right">
-                <UserLabel user={avObj.get('data').operator} /> {t('thoughtNoNeedToReply')} (
-                {this.getTime(avObj)})
-              </div>
-            </div>
-          )
-        case 'replySoon':
-          return (
-            <div className="ticket-status" id={avObj.id} key={avObj.id}>
-              <div className="ticket-status-left">
-                <span className="icon-wrap awaiting">
-                  <Icon.Hourglass />
-                </span>
-              </div>
-              <div className="ticket-status-right">
-                <UserLabel user={avObj.get('data').operator} /> {t('thoughtNeedTime')} (
-                {this.getTime(avObj)})
-              </div>
-            </div>
-          )
-        case 'resolve':
-          return (
-            <div className="ticket-status" id={avObj.id} key={avObj.id}>
-              <div className="ticket-status-left">
-                <span className="icon-wrap resolved">
-                  <Icon.CheckCircle />
-                </span>
-              </div>
-              <div className="ticket-status-right">
-                <UserLabel user={avObj.get('data').operator} /> {t('thoughtResolved')} (
-                {this.getTime(avObj)})
-              </div>
-            </div>
-          )
-        case 'close':
-        case 'reject': // 向前兼容
-          return (
-            <div className="ticket-status" id={avObj.id} key={avObj.id}>
-              <div className="ticket-status-left">
-                <span className="icon-wrap closed">
-                  <Icon.SlashCircle />
-                </span>
-              </div>
-              <div className="ticket-status-right">
-                <UserLabel user={avObj.get('data').operator} /> {t('closedTicket')} (
-                {this.getTime(avObj)})
-              </div>
-            </div>
-          )
-        case 'reopen':
-          return (
-            <div className="ticket-status" id={avObj.id} key={avObj.id}>
-              <div className="ticket-status-left">
-                <span className="icon-wrap reopened">
-                  <Icon.RecordCircle />
-                </span>
-              </div>
-              <div className="ticket-status-right">
-                <UserLabel user={avObj.get('data').operator} /> {t('reopenedTicket')} (
-                {this.getTime(avObj)})
-              </div>
-            </div>
-          )
-      }
-    } else {
-      let panelFooter = null
-      let imgBody = <div></div>
-      const files = avObj.get('files')
-      if (files && files.length !== 0) {
-        const imgFiles = []
-        const otherFiles = []
-        files.forEach((f) => {
-          const mimeType = f.get('mime_type')
-          if (['image/png', 'image/jpeg', 'image/gif'].indexOf(mimeType) != -1) {
-            imgFiles.push(f)
-          } else {
-            otherFiles.push(f)
-          }
-        })
-
-        if (imgFiles.length > 0) {
-          imgBody = imgFiles.map((f) => {
-            return (
-              <a href={f.data.url} target="_blank" key={f.id}>
-                <img src={f.data.url} alt={f.get('name')} />
-              </a>
-            )
-          })
-        }
-
-        if (otherFiles.length > 0) {
-          const fileLinks = otherFiles.map((f) => {
-            return (
-              <span key={f.id}>
-                <a
-                  href={f.data.url + '?attname=' + encodeURIComponent(f.get('name'))}
-                  target="_blank"
-                >
-                  <Icon.Paperclip /> {f.get('name')}
-                </a>{' '}
-              </span>
-            )
-          })
-          panelFooter = <Card.Footer className={css.footer}>{fileLinks}</Card.Footer>
-        }
-      }
-      const userLabel = avObj.get('isCustomerService') ? (
-        <span>
-          <UserLabel user={avObj.get('author').data} />
-          <i className={css.badge}>{t('staff')}</i>
-        </span>
-      ) : (
-        <UserLabel user={avObj.get('author').data} />
-      )
-      return (
-        <Card
-          id={avObj.id}
-          key={avObj.id}
-          className={avObj.get('isCustomerService') ? css.panelModerator : undefined}
-        >
-          <Card.Header className={css.heading}>
-            {userLabel} {t('submittedAt')} {this.getTime(avObj)}
-          </Card.Header>
-          <Card.Body className={`${css.content} markdown-body`}>
-            {this.contentView(avObj.get('content_HTML'))}
-            {imgBody}
-          </Card.Body>
-          {panelFooter}
-        </Card>
-      )
-    }
-  }
-
   render() {
     const { t } = this.props
     const ticket = this.state.ticket
-    if (ticket === null) {
-      return <div>{t('loading')}……</div>
+    if (!ticket) {
+      return t('loading') + '...'
     }
 
     // 如果是客服自己提交工单，则当前客服在该工单中认为是用户，
     // 这是为了方便工单作为内部工作协调使用。
     const isCustomerService =
-      this.props.isCustomerService && ticket.get('author').id !== this.props.currentUser.id
+      this.props.isCustomerService && ticket.author.objectId !== this.props.currentUser.id
     const timeline = _.chain(this.state.replies)
       .concat(this.state.opsLogs)
       .sortBy((data) => data.createdAt)
@@ -550,26 +301,24 @@ class Ticket extends Component {
 
     return (
       <>
-        <DocumentTitle title={ticket.get('title') + ' - LeanTicket' || 'LeanTicket'} />
+        <DocumentTitle title={ticket.title + ' - LeanTicket' || 'LeanTicket'} />
         <Row className="mt-3">
           <Col sm={12}>
             {!isCustomerService && <WeekendWarning />}
-            <h1>{ticket.get('title')}</h1>
+            <h1>{ticket.title}</h1>
             <div className={css.meta}>
-              <span className={csCss.nid}>#{ticket.get('nid')}</span>
-              <TicketStatusLabel status={ticket.get('status')} />{' '}
+              <span className={csCss.nid}>#{ticket.nid}</span>
+              <TicketStatusLabel status={ticket.status} />{' '}
               <span>
-                <UserLabel user={ticket.data.author.data} displayTags={isCustomerService} />{' '}
-                {t('createdAt')}{' '}
-                <span title={moment(ticket.get('createdAt')).format()}>
-                  {moment(ticket.get('createdAt')).fromNow()}
+                <UserLabel user={ticket.author} displayTags={isCustomerService} /> {t('createdAt')}{' '}
+                <span title={moment(ticket.createdAt).format()}>
+                  {moment(ticket.createdAt).fromNow()}
                 </span>
-                {moment(ticket.get('createdAt')).fromNow() ===
-                  moment(ticket.get('updatedAt')).fromNow() || (
+                {moment(ticket.createdAt).fromNow() !== moment(ticket.updatedAt).fromNow() && (
                   <span>
                     , {t('updatedAt')}{' '}
-                    <span title={moment(ticket.get('updatedAt')).format()}>
-                      {moment(ticket.get('updatedAt')).fromNow()}
+                    <span title={moment(ticket.updatedAt).format()}>
+                      {moment(ticket.updatedAt).fromNow()}
                     </span>
                   </span>
                 )}
@@ -605,7 +354,7 @@ class Ticket extends Component {
         <Row className="row">
           <Col sm={8}>
             <div className="tickets">
-              {this.ticketTimeline(ticket)}
+              {React.createElement(ReplyCard, ticket)}
               <div>{timeline}</div>
             </div>
 
@@ -667,4 +416,327 @@ Ticket.contextTypes = {
   addNotification: PropTypes.func.isRequired,
 }
 
-export default withTranslation()(withRouter(Ticket))
+function Timeline({ data }) {
+  switch (data.type) {
+    case 'reply':
+      return <ReplyCard reply={data} />
+    case 'opsLog':
+      return <OpsLog opsLog={data} />
+    default:
+      return null
+  }
+}
+Timeline.propTypes = {
+  data: PropTypes.shape({
+    type: PropTypes.oneOf(['reply', 'opsLog']),
+  }),
+}
+
+/**
+ * @param {number} nid
+ */
+function useTicket__(nid) {
+  const { addNotification } = useContext(AppContext)
+  const [ticket, setTicket] = useState()
+  const [subscribed, setSubscribed] = useState(false)
+  const [error, setError] = useState()
+
+  const reload = useCallback(async () => {
+    setError(undefined)
+    try {
+      const { ticket, subscribed } = await fetch(`/api/1/tickets/${nid}`)
+      setTicket(ticket)
+      setSubscribed(subscribed)
+    } catch (error) {
+      setError(error)
+    }
+  }, [nid])
+
+  useEffect(() => {
+    reload()
+    let subscription
+    const query = db.class('Ticket').where('nid', '==', nid)
+    query
+      .subscribe()
+      .then((s) => {
+        subscription = s
+        s.on('update', reload)
+        return
+      })
+      .catch(addNotification)
+    return () => {
+      subscription?.unsubscribe()
+    }
+  }, [nid, addNotification])
+
+  const subscribe = useCallback(async () => {
+    try {
+      await fetch(`/api/1/tickets/${nid}/subscription`, {
+        method: 'POST',
+      })
+      setSubscribed(true)
+    } catch (error) {
+      addNotification(error)
+    }
+  }, [nid, addNotification])
+
+  const unsubscribe = useCallback(async () => {
+    try {
+      await fetch(`/api/1/tickets/${nid}/subscription`, {
+        method: 'DELETE',
+      })
+      setSubscribed(false)
+    } catch (error) {
+      addNotification(error)
+    }
+  }, [nid, addNotification])
+
+  const updateTicket = useCallback(
+    async (data) => {
+      try {
+        await fetch(`/api/1/tickets/${nid}`, { method: 'PATCH', body: data })
+      } catch (error) {
+        addNotification(error)
+      }
+    },
+    [nid, addNotification]
+  )
+
+  const updateAssignee = useCallback(
+    async (assignee) => {
+      await updateTicket({ assigneeId: assignee.id })
+      setTicket((current) => ({ ...current, assignee: assignee.toJSON() }))
+    },
+    [updateTicket]
+  )
+
+  const updateCategory = useCallback(
+    async (category) => {
+      await updateTicket({ categoryId: category.id })
+      setTicket((current) => ({ ...current, category: category.toJSON() }))
+    },
+    [updateTicket]
+  )
+
+  const saveTag = async (key, value, isPrivate) => {
+    const tags = [...ticket[isPrivate ? 'privateTags' : 'tags']]
+    const index = tags.findIndex((tag) => tag.key === key)
+    if (index === -1) {
+      if (!value) {
+        return
+      }
+      tags.push({ key, value })
+    } else {
+      if (value) {
+        tags[index] = { ...tags[index], value }
+      } else {
+        tags.splice(index, 1)
+      }
+    }
+    try {
+      await fetch(`/api/1/tickets/${nid}/tags`, {
+        method: 'PUT',
+        body: { tags, isPrivate },
+      })
+      setTicket((current) => ({ ...current, [isPrivate ? 'privateTags' : 'tags']: tags }))
+    } catch (error) {
+      addNotification(error)
+    }
+  }
+
+  const evaluate = useCallback(
+    async (evaluation) => {
+      try {
+        await fetch(`/api/1/tickets/${nid}/evaluation`, {
+          method: 'PUT',
+          body: { evaluation },
+        })
+      } catch (error) {
+        addNotification(error)
+      }
+    },
+    [nid, addNotification]
+  )
+
+  const operate = useCallback(
+    async (action) => {
+      try {
+        await fetch(`/api/1/tickets/${nid}/operate`, {
+          method: 'POST',
+          body: { action },
+        })
+      } catch (error) {
+        addNotification(error)
+      }
+    },
+    [nid]
+  )
+
+  return {
+    ticket,
+    subscribed,
+    error,
+    subscribe,
+    unsubscribe,
+    updateAssignee,
+    updateCategory,
+    saveTag,
+    evaluate,
+    operate,
+  }
+}
+
+export default function _Ticket({ isCustomerService, currentUser }) {
+  const { t } = useTranslation()
+  const { params } = useRouteMatch()
+  const history = useHistory()
+  const nid = parseInt(params.nid)
+  const { addNotification } = useContext(AppContext)
+  const { data, isError, isLoading } = useTicket(nid)
+  const ticket = data?.ticket
+  const subscribed = data?.subscribed
+  const { data: repliesData } = useReplies(nid)
+  const { data: opsLogsData } = useOpsLogs(nid)
+
+  useEffect(() => {
+    if (isError) {
+      history.replace({
+        pathname: '/error',
+        state: { code: 'Unauthorized' },
+      })
+    }
+  }, [isError])
+
+  const isCS = useMemo(() => {
+    if (!ticket) {
+      return isCustomerService
+    }
+    return isCustomerService && ticket.author.objectId !== currentUser.id
+  }, [isCustomerService, currentUser, ticket])
+
+  const replies = useMemo(() => {
+    return repliesData?.pages.map((page) => page.replies).flat() || []
+  }, [repliesData])
+
+  const opsLogs = useMemo(() => {
+    return opsLogsData?.pages.map((page) => page.opsLogs).flat() || []
+  }, [opsLogsData])
+
+  const timeline = useMemo(() => {
+    return [
+      ...replies.map((data) => ({ ...data, type: 'reply' })),
+      ...opsLogs.map((data) => ({ ...data, type: 'opsLog' })),
+    ].sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1))
+  }, [replies, opsLogs])
+
+  const [tags, setTags] = useState([])
+  const ticketId = ticket?.objectId
+  useEffect(() => {
+    if (ticketId) {
+      db.class('Tag')
+        .where('ticket', '==', db.class('Ticket').object(ticketId))
+        .find()
+        .then((tags) => setTags(tags.map((tag) => tag.toJSON())))
+        .catch(addNotification)
+    }
+  }, [ticketId])
+
+  if (isLoading) {
+    return t('loading') + '...'
+  }
+  return (
+    <>
+      <DocumentTitle title={ticket.title + ' - LeanTicket' || 'LeanTicket'} />
+      <Row className="mt-3">
+        <Col sm={12}>
+          {!isCS && <WeekendWarning />}
+          <h1>{ticket.title}</h1>
+          <div className={css.meta}>
+            <span className={csCss.nid}>#{ticket.nid}</span>
+            <TicketStatusLabel status={ticket.status} />{' '}
+            <span>
+              <UserLabel user={ticket.author} displayTags={isCS} /> {t('createdAt')}{' '}
+              <span title={moment(ticket.createdAt).format()}>
+                {moment(ticket.createdAt).fromNow()}
+              </span>
+              {moment(ticket.createdAt).fromNow() !== moment(ticket.updatedAt).fromNow() && (
+                <span>
+                  , {t('updatedAt')}{' '}
+                  <span title={moment(ticket.updatedAt).format()}>
+                    {moment(ticket.updatedAt).fromNow()}
+                  </span>
+                </span>
+              )}
+            </span>{' '}
+            {isCS &&
+              (subscribed ? (
+                <OverlayTrigger
+                  placement="right"
+                  overlay={<Tooltip id="tooltip">{t('clickToUnsubscribe')}</Tooltip>}
+                >
+                  <Button variant="link" active onClick={() => console.log('unsubscribe')}>
+                    <i className="bi bi-eye-slash"></i>
+                  </Button>
+                </OverlayTrigger>
+              ) : (
+                <OverlayTrigger
+                  placement="right"
+                  overlay={<Tooltip id="tooltip">{t('clickToSubscribe')}</Tooltip>}
+                >
+                  <Button variant="link" onClick={() => console.log('subscribe')}>
+                    <i className="bi bi-eye"></i>
+                  </Button>
+                </OverlayTrigger>
+              ))}
+          </div>
+          <hr />
+        </Col>
+      </Row>
+
+      <Row className="row">
+        <Col sm={8}>
+          <div className="tickets">
+            <ReplyCard reply={ticket} />
+            <div>
+              {timeline.map((data) => (
+                <Timeline key={data.objectId} data={data} />
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <hr />
+            {ticketStatus.isOpened(ticket.status) ? (
+              <TicketReply ticket={ticket} isCustomerService={isCustomerService} />
+            ) : (
+              <Evaluation
+                ticket={ticket}
+                isCustomerService={isCustomerService}
+                saveEvaluation={console.log}
+              />
+            )}
+          </div>
+        </Col>
+
+        <Col className={css.sidebar} sm={4}>
+          {tags.map((tag) => (
+            <Tag
+              key={tag.objectId}
+              tag={tag}
+              ticket={ticket}
+              isCustomerService={isCustomerService}
+            />
+          ))}
+
+          <TicketMetadata ticket={ticket} isCustomerService={isCustomerService} />
+
+          {/* <TicketOperation
+            ticket={ticket}
+            isCustomerService={isCustomerService}
+            onOperate={console.log}
+          /> */}
+        </Col>
+      </Row>
+    </>
+  )
+}

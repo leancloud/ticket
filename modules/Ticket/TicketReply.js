@@ -1,18 +1,20 @@
-import React, { Component } from 'react'
+import React, { Component, useEffect, useRef, useState } from 'react'
 import { Button, Form } from 'react-bootstrap'
-import { withTranslation } from 'react-i18next'
+import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import * as Icon from 'react-bootstrap-icons'
-import LC from '../../lib/leancloud'
 
 import TextareaWithPreview from '../components/TextareaWithPreview'
 import css from './index.css'
+import { useMutation, useQueryClient } from 'react-query'
+import { commitTicketReply } from './hooks'
+import { uploadFiles } from '../common'
 
-class TicketReply extends Component {
+class TicketReply_ extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      reply: localStorage.getItem(`ticket:${this.props.ticket.id}:reply`) || '',
+      reply: localStorage.getItem(`ticket:${this.props.ticket.objectId}:reply`) || '',
       files: [],
       isCommitting: false,
     }
@@ -20,7 +22,7 @@ class TicketReply extends Component {
   }
 
   handleReplyOnChange(value) {
-    localStorage.setItem(`ticket:${this.props.ticket.id}:reply`, value)
+    localStorage.setItem(`ticket:${this.props.ticket.objectId}:reply`, value)
     this.setState({ reply: value })
   }
 
@@ -36,7 +38,7 @@ class TicketReply extends Component {
     return this.props
       .commitReply(this.state.reply, this.fileInput.files)
       .then(() => {
-        localStorage.removeItem(`ticket:${this.props.ticket.id}:reply`)
+        localStorage.removeItem(`ticket:${this.props.ticket.objectId}:reply`)
         this.setState({ reply: '' })
         this.fileInput.value = ''
         return
@@ -124,17 +126,101 @@ class TicketReply extends Component {
   }
 }
 
+export default function TicketReply({ ticket, isCustomerService }) {
+  const { t } = useTranslation()
+  const [content, setContent] = useState(
+    localStorage.getItem(`ticket:${ticket.objectId}:reply`) || ''
+  )
+  const $fileInput = useRef()
+  const [committing, setCommitting] = useState(false)
+  useEffect(() => {
+    localStorage.setItem(`ticket:${ticket.objectId}:reply`, content)
+  }, [content])
+
+  const queryClient = useQueryClient()
+  const { mutate: commitReply } = useMutation(
+    ({ content, files }) => commitTicketReply(ticket.nid, content, files),
+    {
+      onMutate: () => setCommitting(true),
+      onSuccess: () => {
+        console.log('reply!!!')
+      },
+      onSettled: () => setCommitting(false),
+    }
+  )
+
+  const handleCommit = async () => {
+    const trimedContent = content.trim()
+    const files = $fileInput.current.files
+    if (!trimedContent && files.length === 0) {
+      return
+    }
+    commitReply({
+      content: trimedContent,
+      files: await uploadFiles(files),
+    })
+  }
+
+  const handleKeyDown = (e) => {
+    if (e.keyCode == 13 && e.metaKey) {
+      handleCommit(e)
+    }
+  }
+
+  return (
+    <Form>
+      <Form.Group>
+        <TextareaWithPreview
+          rows="8"
+          value={content}
+          onChange={setContent}
+          onKeyDown={handleKeyDown}
+        />
+      </Form.Group>
+
+      <Form.Group>
+        <Form.Control type="file" multiple ref={$fileInput} />
+        <Form.Text muted>{t('multipleAttachments')}</Form.Text>
+      </Form.Group>
+
+      <Form.Group className="d-block d-md-flex">
+        <div className="flex-fill">
+          <p className={css.markdownTip}>
+            <i className="bi bi-markdown"></i>{' '}
+            <a href="https://forum.leancloud.cn/t/topic/15412" target="_blank" rel="noopener">
+              {t('supportMarkdown')}
+            </a>
+          </p>
+        </div>
+        <div>
+          {isCustomerService && (
+            <>
+              <Button variant="light" onClick={() => {}} disabled={committing}>
+                {t('noNeedToReply')}
+              </Button>{' '}
+              <Button variant="light" onClick={() => {}} disabled={committing}>
+                {t('replyLater')}
+              </Button>{' '}
+            </>
+          )}
+          <Button
+            className={css.submit}
+            variant="success"
+            onClick={handleCommit}
+            disabled={committing}
+          >
+            {t('submit')}
+          </Button>
+        </div>
+      </Form.Group>
+    </Form>
+  )
+}
+
 TicketReply.propTypes = {
-  ticket: PropTypes.instanceOf(LC.LCObject),
-  commitReply: PropTypes.func.isRequired,
-  commitReplySoon: PropTypes.func.isRequired,
-  operateTicket: PropTypes.func.isRequired,
+  ticket: PropTypes.shape({
+    objectId: PropTypes.string.isRequired,
+  }).isRequired,
   isCustomerService: PropTypes.bool,
   t: PropTypes.func.isRequired,
 }
-
-TicketReply.contextTypes = {
-  addNotification: PropTypes.func.isRequired,
-}
-
-export default withTranslation()(TicketReply)

@@ -3,7 +3,7 @@ import React from 'react'
 import { Button, Form, Tooltip, OverlayTrigger } from 'react-bootstrap'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
-import { auth, cloud, db } from '../lib/leancloud'
+import { auth, cloud, db, fetch } from '../lib/leancloud'
 import docsearch from 'docsearch.js'
 import qs from 'query-string'
 import * as Icon from 'react-bootstrap-icons'
@@ -16,14 +16,24 @@ import {
   depthFirstSearchFind,
   getLeanCloudRegionText,
   getTicketAcl,
-  getTinyCategoryInfo,
 } from '../lib/common'
 import { uploadFiles, getCategoriesTree } from './common'
 import OrganizationSelect from './OrganizationSelect'
-import TagForm from './TagForm'
 import { DocumentTitle } from './utils/DocumentTitle'
 import FAQ from './components/FAQ'
 import { withRouter } from 'react-router'
+
+/**
+ * @param {object} data
+ * @returns {Promise<string>}
+ */
+async function createTicket(data) {
+  const { objectId } = await fetch('/api/1/tickets', {
+    method: 'POST',
+    body: data,
+  })
+  return objectId
+}
 
 class NewTicket extends React.Component {
   constructor(props) {
@@ -182,7 +192,7 @@ class NewTicket extends React.Component {
     this.setState({ ticket })
   }
 
-  handleSubmit(t, e) {
+  async handleSubmit(t, e) {
     e.preventDefault()
 
     const ticket = this.state.ticket
@@ -200,40 +210,32 @@ class NewTicket extends React.Component {
     }
 
     this.setState({ isCommitting: true })
-    return uploadFiles(document.getElementById('ticketFile').files)
-      .then((files) => {
-        ticket.category = getTinyCategoryInfo(_.last(this.state.categoryPath))
-        ticket.files = files
-        if (this.props.selectedOrgId) {
-          ticket.organization = _.find(this.props.organizations, { id: this.props.selectedOrgId })
-        }
-        return db
-          .class('Ticket')
-          .add(ticket)
-          .then((ticket) => {
-            if (this.state.appId) {
-              return db.class('Tag').add({
-                key: 'appId',
-                value: this.state.appId,
-                ticket,
-                author: auth.currentUser,
-                ACL: getTicketAcl(auth.currentUser, ticket.get('organization')),
-              })
-            }
-            return
-          })
+    try {
+      const organization = this.props.selectedOrgId ? { id: this.props.selectedOrgId } : undefined
+      const ticketId = await createTicket({
+        title: ticket.title,
+        content: ticket.content,
+        files: await uploadFiles(document.getElementById('ticketFile').files),
+        categoryId: _.last(this.state.categoryPath).id,
+        organizationId: organization?.id,
       })
-      .then(() => {
-        this.setState({ isCommitting: false })
-        return
-      })
-      .then(() => {
-        localStorage.removeItem('ticket:new:title')
-        localStorage.removeItem('ticket:new:content')
-        this.props.history.push('/tickets')
-        return
-      })
-      .catch(this.context.addNotification)
+      if (this.state.appId) {
+        await db.class('Tag').add({
+          ticket: db.class('Ticket').object(ticketId),
+          key: 'appId',
+          value: this.state.appId,
+          author: auth.currentUser,
+          ACL: getTicketAcl(auth.currentUser, organization),
+        })
+      }
+      localStorage.removeItem('ticket:new:title')
+      localStorage.removeItem('ticket:new:content')
+      this.props.history.push('/tickets')
+    } catch (error) {
+      this.context.addNotification(error)
+    } finally {
+      this.setState({ isCommitting: false })
+    }
   }
 
   render() {
@@ -347,19 +349,6 @@ class NewTicket extends React.Component {
               ))}
             </Form.Group>
           )}
-
-          {this.context.tagMetadatas.map((tagMetadata) => {
-            const tags = ticket.tags
-            const tag = _.find(tags, (t) => t.key == tagMetadata.get('key'))
-            return (
-              <TagForm
-                key={tagMetadata.id}
-                tagMetadata={tagMetadata}
-                tag={tag}
-                changeTagValue={this.changeTagValue.bind(this)}
-              />
-            )
-          })}
 
           <Form.Group>
             <Form.Label>
