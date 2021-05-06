@@ -10,6 +10,7 @@ const {
   getTinyCategoryInfo,
   saveWithoutHooks,
   getActionStatus,
+  addOpsLog,
 } = require('./utils')
 const { isCustomerService, getTinyUserInfo, htmlify, getTinyReplyInfo } = require('../common')
 const { TICKET_ACTION, TICKET_STATUS, ticketStatus, getTicketAcl } = require('../../lib/common')
@@ -28,6 +29,14 @@ function getWatchObject(user, ticket) {
     .first({ useMasterKey: true })
 }
 
+function makeFilePointer({ objectId }) {
+  return {
+    __type: 'Pointer',
+    className: '_File',
+    objectId,
+  }
+}
+
 router.post(
   '/',
   check('title').isString().trim().isLength({ min: 1 }),
@@ -35,8 +44,6 @@ router.post(
   check('content').isString(),
   check('organizationId').isString().optional(),
   check('files').isArray().optional(),
-  check('files.*.__type').custom((value) => value === 'Pointer'),
-  check('files.*.className').custom((value) => value === '_File'),
   check('files.*.objectId').isString(),
   catchError(async (req, res) => {
     if (!(await checkPermission(req.user))) {
@@ -62,7 +69,7 @@ router.post(
     ticket.set('category', categoryInfo)
     ticket.set('content', content)
     ticket.set('content_HTML', htmlify(content))
-    ticket.set('files', files)
+    ticket.set('files', files.map(makeFilePointer))
     if (organization) {
       ticket.set('organization', organization)
     }
@@ -182,8 +189,6 @@ router.post(
   '/:id/replies',
   check('content').isString(),
   check('files').isArray().optional(),
-  check('files.*.__type').custom((value) => value === 'Pointer'),
-  check('files.*.className').custom((value) => value === '_File'),
   check('files.*.objectId').isString(),
   catchError(async (req, res) => {
     /**
@@ -195,10 +200,11 @@ router.post(
     const reply = new AV.Object('Reply')
     const isCS = await isCustomerService(author, ticket.get('author'))
     reply.setACL(getReplyAcl(ticket, author))
+    reply.set('ticket', ticket)
     reply.set('author', author)
     reply.set('content', content)
     reply.set('content_HTML', htmlify(content))
-    reply.set('files', files)
+    reply.set('files', files.map(makeFilePointer))
     reply.set('isCustomerService', isCS)
 
     await saveWithoutHooks(reply, {
@@ -265,8 +271,8 @@ router.get(
 
 router.put(
   '/:id/evaluation',
-  check('evaluation.star').isInt().isIn([0, 1]),
-  check('evaluation.content').isString(),
+  check('star').isInt().isIn([0, 1]),
+  check('content').isString(),
   catchError(async (req, res) => {
     /**
      * @type {AV.Object}
@@ -276,8 +282,8 @@ router.put(
       res.throw(409, 'Evaluation already exists')
     }
 
-    const { evaluation } = req.body
-    ticket.set('evaluation', evaluation)
+    const { star, content } = req.body
+    ticket.set('evaluation', { star, content })
     await saveWithoutHooks(ticket, {
       ignoreBeforeHook: true,
       useMasterKey: true,
@@ -411,6 +417,7 @@ router.post(
       ignoreBeforeHook: true,
       useMasterKey: true,
     })
+    await addOpsLog(ticket, action, { operator: operatorInfo })
     res.json({})
   })
 )
