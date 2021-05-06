@@ -2,6 +2,7 @@ import React from 'react'
 import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import moment from 'moment'
+import * as Icon from 'react-bootstrap-icons'
 
 import css from './index.css'
 import csCss from '../CustomerServiceTickets.css'
@@ -52,7 +53,7 @@ export function OpsLog({ opsLog }) {
     case 'selectAssignee':
       content = [
         <span className="icon-wrap">
-          <i className="bi bi-arrow-left-right"></i>
+          <Icon.ArrowLeftRight />
         </span>,
         <>
           {t('system')} {t('assignedTicketTo')} <UserLabel user={opsLog.data.assignee} />
@@ -62,7 +63,7 @@ export function OpsLog({ opsLog }) {
     case 'changeCategory':
       content = [
         <span className="icon-wrap">
-          <i className="bi bi-arrow-left-right"></i>
+          <Icon.ArrowLeftRight />
         </span>,
         <>
           <UserLabel user={opsLog.data.operator} /> {t('changedTicketCategoryTo')}{' '}
@@ -77,7 +78,7 @@ export function OpsLog({ opsLog }) {
     case 'changeAssignee':
       content = [
         <span className="icon-wrap">
-          <i className="bi bi-arrow-left-right"></i>
+          <Icon.ArrowLeftRight />
         </span>,
         <>
           <Operator operator={opsLog.data.operator} /> {t('changedTicketAssigneeTo')}{' '}
@@ -88,7 +89,7 @@ export function OpsLog({ opsLog }) {
     case 'replyWithNoContent':
       content = [
         <span className="icon-wrap">
-          <i className="bi bi-chat-left-fill"></i>
+          <Icon.ChatLeftFill />
         </span>,
         <>
           <UserLabel user={opsLog.data.operator} /> {t('thoughtNoNeedToReply')}
@@ -98,7 +99,7 @@ export function OpsLog({ opsLog }) {
     case 'replySoon':
       content = [
         <span className="icon-wrap awaiting">
-          <i className="bi bi-hourglass"></i>
+          <Icon.Hourglass />
         </span>,
         <>
           <UserLabel user={opsLog.data.operator} /> {t('thoughtNeedTime')}
@@ -108,7 +109,7 @@ export function OpsLog({ opsLog }) {
     case 'resolve':
       content = [
         <span className="icon-wrap resolved">
-          <i className="bi bi-check-circle"></i>
+          <Icon.CheckCircle />
         </span>,
         <>
           <UserLabel user={opsLog.data.operator} /> {t('thoughtResolved')}
@@ -119,7 +120,7 @@ export function OpsLog({ opsLog }) {
     case 'reject': // 向前兼容
       content = [
         <span className="icon-wrap closed">
-          <i className="bi bi-slash-circle"></i>
+          <Icon.SlashCircle />
         </span>,
         <>
           <UserLabel user={opsLog.data.operator} /> {t('closedTicket')}
@@ -129,7 +130,7 @@ export function OpsLog({ opsLog }) {
     case 'reopen':
       content = [
         <span className="icon-wrap reopened">
-          <i className="bi bi-record-circle"></i>
+          <Icon.RecordCircle />
         </span>,
         <>
           <UserLabel user={opsLog.data.operator} /> {t('reopenedTicket')}

@@ -101,7 +101,7 @@ export default function TicketMetadata({ ticket, isCustomerService }) {
             <UserLabel user={assignee} />
             {isCustomerService && (
               <Button variant="link" onClick={() => setUpdatingAssignee(true)}>
-                <i className="bi bi-pencil-fill"></i>
+                <Icon.PencilFill />
               </Button>
             )}
           </Form.Group>
@@ -126,7 +126,7 @@ export default function TicketMetadata({ ticket, isCustomerService }) {
             </span>
             {isCustomerService && !isLoadingCategoriesTree && (
               <Button variant="link" onClick={() => setUpdatingCategory(true)}>
-                <i className="bi bi-pencil-fill"></i>
+                <Icon.PencilFill />
               </Button>
             )}
           </div>

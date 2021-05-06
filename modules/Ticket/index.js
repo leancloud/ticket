@@ -79,7 +79,7 @@ function ReplyCard({ reply }) {
           {otherFiles.map(({ objectId, name, url }) => (
             <div key={objectId}>
               <a href={url + '?attname=' + encodeURIComponent(name)} target="_blank">
-                <i className="bi bi-paperclip"></i> {name}
+                <Icon.Paperclip /> {name}
               </a>
             </div>
           ))}
@@ -675,7 +675,7 @@ export default function _Ticket({ isCustomerService, currentUser }) {
                   overlay={<Tooltip id="tooltip">{t('clickToUnsubscribe')}</Tooltip>}
                 >
                   <Button variant="link" active onClick={() => console.log('unsubscribe')}>
-                    <i className="bi bi-eye-slash"></i>
+                    <Icon.EyeSlash />
                   </Button>
                 </OverlayTrigger>
               ) : (
@@ -684,7 +684,7 @@ export default function _Ticket({ isCustomerService, currentUser }) {
                   overlay={<Tooltip id="tooltip">{t('clickToSubscribe')}</Tooltip>}
                 >
                   <Button variant="link" onClick={() => console.log('subscribe')}>
-                    <i className="bi bi-eye"></i>
+                    <Icon.Eye />
                   </Button>
                 </OverlayTrigger>
               ))}

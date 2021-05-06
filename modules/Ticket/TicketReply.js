@@ -186,7 +186,7 @@ export default function TicketReply({ ticket, isCustomerService }) {
       <Form.Group className="d-block d-md-flex">
         <div className="flex-fill">
           <p className={css.markdownTip}>
-            <i className="bi bi-markdown"></i>{' '}
+            <Icon.Markdown />{' '}
             <a href="https://forum.leancloud.cn/t/topic/15412" target="_blank" rel="noopener">
               {t('supportMarkdown')}
             </a>
