@@ -1,4 +1,4 @@
-import React, { Component, useEffect, useRef, useState } from 'react'
+import React, { useContext, useEffect, useRef, useState } from 'react'
 import { Button, Form } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
@@ -6,144 +6,29 @@ import * as Icon from 'react-bootstrap-icons'
 
 import TextareaWithPreview from '../components/TextareaWithPreview'
 import css from './index.css'
-import { useMutation, useQueryClient } from 'react-query'
-import { commitTicketReply } from './hooks'
+import { useMutation } from 'react-query'
+import { commitTicketReply, operateTicket } from './hooks'
 import { uploadFiles } from '../common'
-
-class TicketReply_ extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      reply: localStorage.getItem(`ticket:${this.props.ticket.objectId}:reply`) || '',
-      files: [],
-      isCommitting: false,
-    }
-    this.fileInput = React.createRef()
-  }
-
-  handleReplyOnChange(value) {
-    localStorage.setItem(`ticket:${this.props.ticket.objectId}:reply`, value)
-    this.setState({ reply: value })
-  }
-
-  handleReplyOnKeyDown(e) {
-    if (e.keyCode == 13 && e.metaKey) {
-      this.handleReplyCommit(e)
-    }
-  }
-
-  handleReplyCommit(e) {
-    e.preventDefault()
-    this.setState({ isCommitting: true })
-    return this.props
-      .commitReply(this.state.reply, this.fileInput.files)
-      .then(() => {
-        localStorage.removeItem(`ticket:${this.props.ticket.objectId}:reply`)
-        this.setState({ reply: '' })
-        this.fileInput.value = ''
-        return
-      })
-      .catch(this.context.addNotification)
-      .finally(() => this.setState({ isCommitting: false }))
-  }
-
-  handleReplySoon(e) {
-    e.preventDefault()
-    this.setState({ isCommitting: true })
-    return this.props
-      .commitReplySoon()
-      .catch(this.context.addNotification)
-      .finally(() => this.setState({ isCommitting: false }))
-  }
-
-  handleReplyNoContent(e) {
-    e.preventDefault()
-    this.setState({ isCommitting: true })
-    return this.props
-      .operateTicket('replyWithNoContent')
-      .catch(this.context.addNotification)
-      .finally(() => this.setState({ isCommitting: false }))
-  }
-
-  render() {
-    const { t, isCustomerService } = this.props
-    return (
-      <Form>
-        <Form.Group>
-          <TextareaWithPreview
-            rows="8"
-            value={this.state.reply}
-            onChange={this.handleReplyOnChange.bind(this)}
-            onKeyDown={this.handleReplyOnKeyDown.bind(this)}
-          />
-        </Form.Group>
-
-        <Form.Group>
-          <Form.Control type="file" multiple ref={(ref) => (this.fileInput = ref)} />
-          <Form.Text muted>{t('multipleAttachments')}</Form.Text>
-        </Form.Group>
-
-        <Form.Group className="d-block d-md-flex">
-          <div className="flex-fill">
-            <p className={css.markdownTip}>
-              <Icon.Markdown />{' '}
-              <a href="https://forum.leancloud.cn/t/topic/15412" target="_blank" rel="noopener">
-                {t('supportMarkdown')}
-              </a>
-            </p>
-          </div>
-          <div>
-            {isCustomerService && (
-              <>
-                <Button
-                  variant="light"
-                  onClick={this.handleReplyNoContent.bind(this)}
-                  disabled={this.state.isCommitting}
-                >
-                  {t('noNeedToReply')}
-                </Button>{' '}
-                <Button
-                  variant="light"
-                  onClick={this.handleReplySoon.bind(this)}
-                  disabled={this.state.isCommitting}
-                >
-                  {t('replyLater')}
-                </Button>{' '}
-              </>
-            )}
-            <Button
-              className={css.submit}
-              variant="success"
-              onClick={this.handleReplyCommit.bind(this)}
-              disabled={this.state.isCommitting}
-            >
-              {t('submit')}
-            </Button>
-          </div>
-        </Form.Group>
-      </Form>
-    )
-  }
-}
+import { AppContext } from '../context'
 
 export default function TicketReply({ ticket, isCustomerService }) {
   const { t } = useTranslation()
-  const [content, setContent] = useState(
-    localStorage.getItem(`ticket:${ticket.objectId}:reply`) || ''
-  )
+  const { addNotification } = useContext(AppContext)
+  const [content, setContent] = useState(localStorage.getItem(`ticket:${ticket.nid}:reply`) || '')
   const $fileInput = useRef()
   const [committing, setCommitting] = useState(false)
   useEffect(() => {
-    localStorage.setItem(`ticket:${ticket.objectId}:reply`, content)
-  }, [content])
+    localStorage.setItem(`ticket:${ticket.nid}:reply`, content)
+  }, [ticket.nid, content])
 
-  const queryClient = useQueryClient()
   const { mutate: commitReply } = useMutation(
-    ({ content, files }) => commitTicketReply(ticket.nid, content, files),
+    ({ nid, content, files }) => commitTicketReply(nid, content, files),
     {
       onMutate: () => setCommitting(true),
-      onSuccess: () => {
-        console.log('reply!!!')
+      onSuccess: (res, { nid }) => {
+        setContent('')
+        localStorage.removeItem(`ticket:${nid}:reply`)
+        $fileInput.current.value = ''
       },
       onSettled: () => setCommitting(false),
     }
@@ -155,15 +40,28 @@ export default function TicketReply({ ticket, isCustomerService }) {
     if (!trimedContent && files.length === 0) {
       return
     }
-    commitReply({
-      content: trimedContent,
-      files: await uploadFiles(files),
-    })
+    try {
+      setCommitting(true)
+      commitReply({
+        nid: ticket.nid,
+        content: trimedContent,
+        files: await uploadFiles(files),
+      })
+    } catch (error) {
+      addNotification(error)
+    } finally {
+      setCommitting(false)
+    }
   }
 
-  const handleKeyDown = (e) => {
-    if (e.keyCode == 13 && e.metaKey) {
-      handleCommit(e)
+  const handleOperateTicket = async (action) => {
+    try {
+      setCommitting(true)
+      await operateTicket(ticket.nid, action)
+    } catch (error) {
+      addNotification(error)
+    } finally {
+      setCommitting(false)
     }
   }
 
@@ -174,7 +72,7 @@ export default function TicketReply({ ticket, isCustomerService }) {
           rows="8"
           value={content}
           onChange={setContent}
-          onKeyDown={handleKeyDown}
+          onKeyDown={(e) => e.metaKey && e.keyCode === 13 && handleCommit()}
         />
       </Form.Group>
 
@@ -195,10 +93,18 @@ export default function TicketReply({ ticket, isCustomerService }) {
         <div>
           {isCustomerService && (
             <>
-              <Button variant="light" onClick={() => {}} disabled={committing}>
+              <Button
+                variant="light"
+                onClick={() => handleOperateTicket('replyWithNoContent')}
+                disabled={committing}
+              >
                 {t('noNeedToReply')}
               </Button>{' '}
-              <Button variant="light" onClick={() => {}} disabled={committing}>
+              <Button
+                variant="light"
+                onClick={() => handleOperateTicket('replySoon')}
+                disabled={committing}
+              >
                 {t('replyLater')}
               </Button>{' '}
             </>
@@ -222,5 +128,4 @@ TicketReply.propTypes = {
     objectId: PropTypes.string.isRequired,
   }).isRequired,
   isCustomerService: PropTypes.bool,
-  t: PropTypes.func.isRequired,
 }
