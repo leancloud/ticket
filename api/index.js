@@ -33,6 +33,7 @@ router.use('/api/1/dynamic-contents', require('./DynamicContent'))
 router.use('/api/1/triggers', require('./rule/trigger/api'))
 router.use('/api/1/automations', require('./rule/automation/api'))
 router.use('/api/1/ticket-fields', require('./TicketField'))
+router.use('/api/1/tickets', require('./ticket/api'))
 
 const { integrations } = require('../config')
 console.log(`Using plugins: ${integrations.map((integration) => integration.name).join(', ')}`)
