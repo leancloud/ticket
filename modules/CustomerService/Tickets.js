@@ -13,11 +13,11 @@ import css from '../CustomerServiceTickets.css'
 import { getTinyCategoryInfo } from '../common'
 import {
   TICKET_STATUS,
+  TICKET_OPENED_STATUSES,
+  TICKET_CLOSED_STATUSES,
   TICKET_STATUS_MSG,
   TIME_RANGE_MAP,
   getUserDisplayName,
-  ticketOpenedStatuses,
-  ticketClosedStatuses,
   ticketStatus,
 } from '../../lib/common'
 import { TicketStatusLabel } from '../components/TicketStatusLabel'
@@ -536,9 +536,9 @@ export function useTickets() {
     }
 
     if (isOpen === 'true') {
-      query = query.where('status', 'in', ticketOpenedStatuses()).orderBy('status')
+      query = query.where('status', 'in', TICKET_OPENED_STATUSES).orderBy('status')
     } else if (isOpen === 'false') {
-      query = query.where('status', 'in', ticketClosedStatuses())
+      query = query.where('status', 'in', TICKET_CLOSED_STATUSES)
     } else if (status) {
       query = query.where('status', '==', parseInt(status))
     }

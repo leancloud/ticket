@@ -5,12 +5,12 @@ const AV = require('leanengine')
 
 const forEachAVObject = require('./common').forEachAVObject
 
-const { TICKET_STATUS, ticketOpenedStatuses } = require('../lib/common')
+const { TICKET_STATUS, TICKET_OPENED_STATUSES } = require('../lib/common')
 
 AV.Cloud.define('statsOpenedTicket', (req, res) => {
   res.success()
   forEachAVObject(
-    new AV.Query('Ticket').containedIn('status', ticketOpenedStatuses()),
+    new AV.Query('Ticket').containedIn('status', TICKET_OPENED_STATUSES),
     (ticket) => {
       return AV.Cloud.run('statsTicket', { ticketId: ticket.id }).catch((err) => {
         console.log('err >>', ticket.id, err)

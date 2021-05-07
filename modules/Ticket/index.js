@@ -11,7 +11,7 @@ import css from './index.css'
 import { auth, cloud, db } from '../../lib/leancloud'
 import { uploadFiles, getCategoryPathName, getCategoriesTree } from '../common'
 import csCss from '../CustomerServiceTickets.css'
-import { isTicketOpen, getTinyCategoryInfo } from '../../lib/common'
+import { getTinyCategoryInfo, ticketStatus } from '../../lib/common'
 import Evaluation from '../Evaluation'
 import TicketMetadata from './TicketMetadata'
 import TicketReply from './TicketReply'
@@ -609,10 +609,9 @@ class Ticket extends Component {
               <div>{timeline}</div>
             </div>
 
-            {isTicketOpen(ticket) && (
-              <div>
-                <hr />
-
+            <div>
+              <hr />
+              {ticketStatus.isOpened(ticket.get('status')) ? (
                 <TicketReply
                   ticket={ticket}
                   commitReply={this.commitReply.bind(this)}
@@ -620,19 +619,14 @@ class Ticket extends Component {
                   operateTicket={this.operateTicket.bind(this)}
                   isCustomerService={isCustomerService}
                 />
-              </div>
-            )}
-            {!isTicketOpen(ticket) && (
-              <div>
-                <hr />
-
+              ) : (
                 <Evaluation
                   saveEvaluation={this.saveEvaluation.bind(this)}
                   ticket={ticket}
                   isCustomerService={isCustomerService}
                 />
-              </div>
-            )}
+              )}
+            </div>
           </Col>
 
           <Col className={css.sidebar} sm={4}>
