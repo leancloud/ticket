@@ -1,6 +1,7 @@
 const _ = require('lodash')
-const router = require('express').Router()
+const { Router } = require('express')
 const AV = require('leanengine')
+const cors = require('cors')
 const config = require('../config')
 
 AV.init({
@@ -25,15 +26,18 @@ require('./FAQ')
 
 const loginCallbackPath = '/oauth/callback'
 const loginCallbackUrl = config.host + loginCallbackPath
+const router = Router()
 router.use('/oauth/login', require('./oauth').login(loginCallbackUrl))
 router.use(loginCallbackPath, require('./oauth').loginCallback(loginCallbackUrl))
 
-router.use('/api/1/files', require('./file'))
-router.use('/api/1/dynamic-contents', require('./DynamicContent'))
-router.use('/api/1/triggers', require('./rule/trigger/api'))
-router.use('/api/1/automations', require('./rule/automation/api'))
-router.use('/api/1/ticket-fields', require('./TicketField'))
-router.use('/api/1/tickets', require('./ticket/api'))
+const apiRouter = Router().use(cors({ origin: config.corsOrigin }))
+apiRouter.use('/files', require('./file'))
+apiRouter.use('/dynamic-contents', require('./DynamicContent'))
+apiRouter.use('/triggers', require('./rule/trigger/api'))
+apiRouter.use('/automations', require('./rule/automation/api'))
+apiRouter.use('/ticket-fields', require('./TicketField'))
+apiRouter.use('/tickets', require('./ticket/api'))
+router.use('/api/1', apiRouter)
 
 const { integrations } = require('../config')
 console.log(`Using plugins: ${integrations.map((integration) => integration.name).join(', ')}`)
