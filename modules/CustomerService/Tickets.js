@@ -145,6 +145,7 @@ function TicketList({ tickets, categories, checkedTicketIds, onCheckTicket }) {
                   to={`/tickets/${ticket.nid}`}
                 >
                   <Icon.ChatLeft className={css.commentCounterIcon} />
+                  {ticket.replyCount}
                 </Link>
               )}
             </div>
