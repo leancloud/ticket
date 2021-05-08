@@ -17,16 +17,14 @@ function getCORSOrigin() {
   if (!process.env.CORS_ORIGIN) {
     return false
   }
-  if (process.env.CORS_ORIGIN === '*') {
-    return true
-  }
-  return process.env.CORS_ORIGIN.split(',').map((origin) => {
+  const origins = process.env.CORS_ORIGIN.split(',').map((origin) => {
     if (/^\/.*\/$/.test(origin)) {
       return new RegExp(origin.slice(1, -1))
     } else {
       return origin
     }
   })
+  return origins.length > 1 ? origins : origins[0]
 }
 
 module.exports = {
