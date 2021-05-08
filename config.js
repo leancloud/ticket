@@ -13,6 +13,22 @@ switch (process.env.LEANCLOUD_APP_ENV) {
     host = 'http://localhost:' + process.env.LEANCLOUD_APP_PORT
 }
 
+function getCORSOrigin() {
+  if (!process.env.CORS_ORIGIN) {
+    return false
+  }
+  if (process.env.CORS_ORIGIN === '*') {
+    return true
+  }
+  return process.env.CORS_ORIGIN.split(',').map((origin) => {
+    if (/^\/.*\/$/.test(origin)) {
+      return new RegExp(origin.slice(1, -1))
+    } else {
+      return origin
+    }
+  })
+}
+
 module.exports = {
   host,
   oauthKey: process.env.OAUTH_KEY,
@@ -21,6 +37,7 @@ module.exports = {
   leancloudAppUrl: process.env.LEANCLOUD_APP_URL_V2,
   sentryDSN: process.env.SENTRY_DSN,
   sentryDSNPublic: process.env.SENTRY_DSN_PUBLIC,
+  corsOrigin: getCORSOrigin(),
 }
 
 const integrations = []
