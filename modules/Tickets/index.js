@@ -158,7 +158,7 @@ class Tickets extends Component {
                   selectedOrgId={this.props.selectedOrgId}
                   onOrgChange={this.props.handleOrgChange}
                 />
-                <DropdownButton id="tickets-ops" className="ml-1" variant="light">
+                <DropdownButton id="tickets-ops" className="ml-1" variant="light" title="">
                   <Dropdown.Item onClick={() => this.handleBatchOps(true)}>
                     {t('batchOperation')}
                   </Dropdown.Item>

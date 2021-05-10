@@ -14,7 +14,7 @@ const errorHandler = require('./errorHandler')
 const { Context } = require('./rule/context')
 const { getActiveAutomations } = require('./rule/automation')
 const { afterSaveTicketHandler, afterUpdateTicketHandler } = require('./ticket/hook-handler')
-const { getVacationerIds, selectAssignee } = require('./ticket/utils')
+const { getVacationerIds, selectAssignee, getActionStatus } = require('./ticket/utils')
 
 AV.Cloud.beforeSave('Ticket', async (req) => {
   if (!req.currentUser || !(await checkPermission(req.currentUser))) {
@@ -108,7 +108,7 @@ AV.Cloud.define('operateTicket', async (req) => {
           ticket.increment('unreadCount')
         }
       }
-      ticket.set('status', getTargetStatus(action, isCSInThisTicket))
+      ticket.set('status', getActionStatus(action, isCSInThisTicket))
       opsLogs.push(
         new AV.Object('OpsLog', {
           ticket,
@@ -128,31 +128,6 @@ AV.Cloud.define('operateTicket', async (req) => {
   }
 })
 
-AV.Cloud.define('getPrivateTags', (req) => {
-  const { ticketId } = req.params
-  return isCustomerService(req.currentUser).then((isCustomerService) => {
-    if (isCustomerService) {
-      return new AV.Query('Ticket').select(['privateTags']).get(ticketId, { useMasterKey: true })
-    } else {
-      return
-    }
-  })
-})
-
-AV.Cloud.define('exploreTicket', ({ params, currentUser }) => {
-  const now = new Date()
-  return new AV.Query('Message')
-    .equalTo('ticket', AV.Object.createWithoutData('Ticket', params.ticketId))
-    .equalTo('to', currentUser)
-    .lessThanOrEqualTo('createdAt', now)
-    .limit(1000)
-    .find({ user: currentUser })
-    .then((messages) => {
-      messages.forEach((m) => m.set('isRead', true))
-      return AV.Object.saveAll(messages, { user: currentUser })
-    })
-})
-
 AV.Cloud.define('resetTicketUnreadCount', async (req) => {
   if (!req.currentUser) {
     throw new AV.Cloud.Error('unauthorized', { status: 401 })
@@ -164,26 +139,6 @@ AV.Cloud.define('resetTicketUnreadCount', async (req) => {
   tickets.forEach((ticket) => ticket.set('unreadCount', 0))
   await AV.Object.saveAll(tickets, { user: req.currentUser })
 })
-
-const getTargetStatus = (action, isCustomerService) => {
-  switch (action) {
-    case TICKET_ACTION.REPLY_WITH_NO_CONTENT:
-      return TICKET_STATUS.WAITING_CUSTOMER
-    case TICKET_ACTION.REPLY_SOON:
-      return TICKET_STATUS.WAITING_CUSTOMER_SERVICE
-    case TICKET_ACTION.RESOLVE:
-      return isCustomerService ? TICKET_STATUS.PRE_FULFILLED : TICKET_STATUS.FULFILLED
-    case TICKET_ACTION.CLOSE:
-    // 向前兼容
-    // eslint-disable-next-line no-fallthrough
-    case TICKET_ACTION.REJECT:
-      return TICKET_STATUS.CLOSED
-    case TICKET_ACTION.REOPEN:
-      return TICKET_STATUS.WAITING_CUSTOMER
-    default:
-      throw new Error('unsupport action: ' + action)
-  }
-}
 
 exports.replyTicket = (ticket, reply, replyAuthor) => {
   return Promise.all([
