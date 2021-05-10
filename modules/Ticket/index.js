@@ -157,9 +157,9 @@ class Ticket extends Component {
     })
   }
 
-  async fetchReplies(ticketId, cursor) {
+  async fetchReplies(ticketId, after) {
     const replies = await fetch(`/api/1/tickets/${ticketId}/replies`, {
-      query: { cursor },
+      query: { after },
     })
     const authorIds = new Set()
     const fileIds = new Set()
@@ -185,16 +185,16 @@ class Ticket extends Component {
     const subscription = await query.subscribe()
     this.replyLiveQuery = subscription
     subscription.on('create', async () => {
-      const replies = await this.fetchReplies(ticketId, _.last(this.state.replies)?.id)
+      const replies = await this.fetchReplies(ticketId, _.last(this.state.replies)?.created_at)
       this.setState((state) => ({
         replies: _.uniqBy(state.replies.concat(replies), 'id'),
       }))
     })
   }
 
-  async fetchOpsLogs(ticketId, cursor) {
+  async fetchOpsLogs(ticketId, after) {
     const opsLogs = await fetch(`/api/1/tickets/${ticketId}/ops-logs`, {
-      query: { cursor },
+      query: { after },
     })
     const userIds = new Set()
     const categoryIds = new Set()
@@ -235,8 +235,7 @@ class Ticket extends Component {
     const subscription = await query.subscribe()
     this.opsLogLiveQuery = subscription
     subscription.on('create', async () => {
-      console.log('coming')
-      const opsLogs = await this.fetchOpsLogs(ticketId, _.last(this.state.opsLogs)?.id)
+      const opsLogs = await this.fetchOpsLogs(ticketId, _.last(this.state.opsLogs)?.created_at)
       this.setState((state) => ({
         opsLogs: _.uniqBy(state.opsLogs.concat(opsLogs), 'id'),
       }))
