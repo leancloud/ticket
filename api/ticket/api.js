@@ -106,7 +106,7 @@ router.get(
     .default(10)
     .isInt()
     .toInt()
-    .custom((page_size) => page_size >= 0),
+    .custom((page_size) => page_size >= 0 && page_size <= 1000),
   query('sort_key').default('created_at').isIn(Object.keys(TICKET_SORT_KEY_MAP)),
   query('sort_order').default('asc').isIn(['asc', 'desc']),
   query('nid').isInt().toInt().optional(),
@@ -152,7 +152,7 @@ router.get(
     } else {
       query.descending(TICKET_SORT_KEY_MAP[sort_key])
     }
-    query.limit(page)
+    query.limit(page_size)
     if (page > 1) {
       query.skip((page - 1) * page_size)
     }
