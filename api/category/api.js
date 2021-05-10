@@ -10,8 +10,9 @@ router.get(
   '/',
   query('active').isBoolean().optional(),
   query('ids').isString().optional(),
+  query('parant_id').isString().optional(),
   catchError(async (req, res) => {
-    const { active, ids } = req.query
+    const { active, ids, parent_id } = req.query
     const query = new AV.Query('Category')
     if (active === 'true') {
       query.doesNotExist('deletedAt')
@@ -21,6 +22,13 @@ router.get(
     }
     if (ids) {
       query.containedIn('objectId', ids.split(','))
+    }
+    if (parent_id !== undefined) {
+      if (parent_id) {
+        query.equalTo('parent', AV.Object.createWithoutData('Category', parent_id))
+      } else {
+        query.doesNotExist('parent')
+      }
     }
 
     const categories = await query.find()
