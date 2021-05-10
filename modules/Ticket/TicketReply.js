@@ -3,7 +3,6 @@ import { Button, Form } from 'react-bootstrap'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import * as Icon from 'react-bootstrap-icons'
-import LC from '../../lib/leancloud'
 
 import TextareaWithPreview from '../components/TextareaWithPreview'
 import css from './index.css'
@@ -125,7 +124,7 @@ class TicketReply extends Component {
 }
 
 TicketReply.propTypes = {
-  ticket: PropTypes.instanceOf(LC.LCObject),
+  ticket: PropTypes.object.isRequired,
   commitReply: PropTypes.func.isRequired,
   commitReplySoon: PropTypes.func.isRequired,
   operateTicket: PropTypes.func.isRequired,

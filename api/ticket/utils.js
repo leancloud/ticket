@@ -1,6 +1,7 @@
 const AV = require('leancloud-storage')
 const _ = require('lodash')
 
+const { TICKET_ACTION, TICKET_STATUS } = require('../../lib/common')
 const { captureException } = require('../errorHandler')
 
 /**
@@ -59,6 +60,26 @@ function addOpsLog(ticket, action, data) {
     .catch(captureException)
 }
 
+function getActionStatus(action, isCustomerService) {
+  switch (action) {
+    case TICKET_ACTION.REPLY_WITH_NO_CONTENT:
+      return TICKET_STATUS.WAITING_CUSTOMER
+    case TICKET_ACTION.REPLY_SOON:
+      return TICKET_STATUS.WAITING_CUSTOMER_SERVICE
+    case TICKET_ACTION.RESOLVE:
+      return isCustomerService ? TICKET_STATUS.PRE_FULFILLED : TICKET_STATUS.FULFILLED
+    case TICKET_ACTION.CLOSE:
+    // 向前兼容
+    // eslint-disable-next-line no-fallthrough
+    case TICKET_ACTION.REJECT:
+      return TICKET_STATUS.CLOSED
+    case TICKET_ACTION.REOPEN:
+      return TICKET_STATUS.WAITING_CUSTOMER
+    default:
+      throw new Error('invalid action')
+  }
+}
+
 /**
  * @param {AV.Object} object
  * @param {object} [options]
@@ -86,5 +107,6 @@ module.exports = {
   getTinyCategoryInfo,
   addOpsLog,
   saveWithoutHooks,
+  getActionStatus,
   selectAssignee,
 }

@@ -8,10 +8,10 @@ import xss from 'xss'
 import PropTypes from 'prop-types'
 import * as Icon from 'react-bootstrap-icons'
 import css from './index.css'
-import { auth, cloud, db } from '../../lib/leancloud'
+import { cloud, db, fetch } from '../../lib/leancloud'
 import { uploadFiles, getCategoryPathName, getCategoriesTree } from '../common'
 import csCss from '../CustomerServiceTickets.css'
-import { getTinyCategoryInfo, ticketStatus } from '../../lib/common'
+import { ticketStatus } from '../../lib/common'
 import Evaluation from '../Evaluation'
 import TicketMetadata from './TicketMetadata'
 import TicketReply from './TicketReply'
@@ -37,7 +37,7 @@ const myxss = new xss.FilterXSS({
 
 function UserOrSystem({ operator }) {
   const { t } = useTranslation(0)
-  if (!operator || operator.objectId === 'system') {
+  if (!operator || operator.id === 'system') {
     return t('system')
   }
   return <UserLabel user={operator} />
@@ -55,49 +55,31 @@ class Ticket extends Component {
       replies: [],
       opsLogs: [],
       watch: null,
+      tags: [],
     }
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     const { nid } = this.props.match.params
-    this.getTicketQuery(parseInt(nid))
-      .first()
-      .then((ticket) => {
-        if (!ticket) {
-          return this.props.history.replace({
-            pathname: '/error',
-            state: { code: 'Unauthorized' },
-          })
-        }
-
-        return Promise.all([
-          cloud.run('getPrivateTags', { ticketId: ticket.id }),
-          getCategoriesTree(false),
-          this.getReplyQuery(ticket).find(),
-          db.class('Tag').where('ticket', '==', ticket).find(),
-          this.getOpsLogQuery(ticket).find(),
-          db
-            .class('Watch')
-            .where('ticket', '==', ticket)
-            .where('user', '==', auth.currentUser)
-            .first(),
-        ]).then(([privateTags, categoriesTree, replies, tags, opsLogs, watch]) => {
-          if (privateTags) {
-            ticket.set('privateTags', privateTags.privateTags)
-          }
-          this.setState({
-            categoriesTree,
-            ticket,
-            replies,
-            tags,
-            opsLogs,
-            watch,
-          })
-          cloud.run('exploreTicket', { ticketId: ticket.id })
-          return
-        })
+    const { tickets } = await fetch(`/api/1/tickets`, { query: { nid } })
+    if (tickets.length === 0) {
+      this.props.history.replace({
+        pathname: '/error',
+        state: { code: 'Unauthorized' },
       })
-      .catch(this.context.addNotification)
+      return
+    }
+    const ticket = await this.fetchTicket(tickets[0].id)
+    const [tags, categoriesTree, replies, opsLogs] = await Promise.all([
+      db.class('Tag').where('ticket', '==', db.class('Ticket').object(ticket.id)).find(),
+      getCategoriesTree(false),
+      this.fetchReplies(ticket.id),
+      this.fetchOpsLogs(ticket.id),
+    ])
+    this.setState({ ticket, watch: ticket.subscribed, tags, categoriesTree, replies, opsLogs })
+    this.subscribeReply(ticket.id)
+    this.subscribeOpsLog(ticket.id)
+    this.subscribeTicket(ticket.id)
   }
 
   componentWillUnmount() {
@@ -143,6 +125,122 @@ class Ticket extends Component {
       })
       .catch(this.context.addNotification)
     return query
+  }
+
+  async fetchTicket(ticketId) {
+    const { ticket } = await fetch(`/api/1/tickets/${ticketId}`)
+    const { users } = await fetch('/api/1/users', {
+      query: {
+        ids: `${ticket.author_id},${ticket.assignee_id}`,
+      },
+    })
+    ticket.author = users.find((user) => user.id === ticket.author_id)
+    ticket.assignee = users.find((user) => user.id === ticket.assignee_id)
+    if (ticket.file_ids.length) {
+      const { files } = await fetch(`/api/1/files`, {
+        query: {
+          ids: ticket.file_ids,
+        },
+      })
+      ticket.files = files
+    }
+    return ticket
+  }
+
+  async subscribeTicket(ticketId) {
+    const query = db.class('Ticket').where('objectId', '==', ticketId)
+    const subscription = await query.subscribe()
+    this.ticketLiveQuery = subscription
+    subscription.on('update', async () => {
+      const ticket = await this.fetchTicket(ticketId)
+      this.setState({ ticket })
+    })
+  }
+
+  async fetchReplies(ticketId, cursor) {
+    const { replies } = await fetch(`/api/1/tickets/${ticketId}/replies`, {
+      query: { cursor },
+    })
+    const authorIds = new Set()
+    const fileIds = new Set()
+    replies.forEach((reply) => {
+      authorIds.add(reply.author_id)
+      reply.file_ids.forEach((id) => fileIds.add(id))
+    })
+    const [{ users: authors }, { files = [] }] = await Promise.all([
+      authorIds.size
+        ? fetch(`/api/1/users`, { query: { ids: Array.from(authorIds).join(',') } })
+        : {},
+      fileIds.size ? fetch(`/api/1/files`, { query: { ids: Array.from(fileIds).join(',') } }) : {},
+    ])
+    replies.forEach((reply) => {
+      reply.author = authors.find((author) => author.id === reply.author_id)
+      reply.files = files.filter((file) => reply.file_ids.includes(file.id))
+    })
+    return replies
+  }
+
+  async subscribeReply(ticketId) {
+    const query = db.class('Reply').where('ticket', '==', db.class('Ticket').object(ticketId))
+    const subscription = await query.subscribe()
+    this.replyLiveQuery = subscription
+    subscription.on('create', async () => {
+      const replies = await this.fetchReplies(ticketId, _.last(this.state.replies)?.id)
+      this.setState((state) => ({
+        replies: _.uniqBy(state.replies.concat(replies), 'id'),
+      }))
+    })
+  }
+
+  async fetchOpsLogs(ticketId, cursor) {
+    const { ops_logs: opsLogs } = await fetch(`/api/1/tickets/${ticketId}/ops-logs`, {
+      query: { cursor },
+    })
+    const userIds = new Set()
+    const categoryIds = new Set()
+    opsLogs.forEach((opsLog) => {
+      if (opsLog.assignee_id) {
+        userIds.add(opsLog.assignee_id)
+      }
+      if (opsLog.operator_id && opsLog.operator_id !== 'system') {
+        userIds.add(opsLog.operator_id)
+      }
+      if (opsLog.category_id) {
+        categoryIds.add(opsLog.category_id)
+      }
+    })
+    const [{ users = [] }, { categories = [] }] = await Promise.all([
+      userIds.size ? fetch(`/api/1/users`, { query: { ids: Array.from(userIds).join(',') } }) : {},
+      categoryIds.size
+        ? fetch(`/api/1/categories`, { query: { ids: Array.from(categoryIds).join(',') } })
+        : {},
+    ])
+    opsLogs.forEach((opsLog) => {
+      opsLog.type = 'opsLog'
+      if (opsLog.assignee_id) {
+        opsLog.assignee = users.find((user) => user.id === opsLog.assignee_id)
+      }
+      if (opsLog.operator_id && opsLog.operator_id !== 'system') {
+        opsLog.operator = users.find((user) => user.id === opsLog.operator_id)
+      }
+      if (opsLog.category_id) {
+        opsLog.category = categories.find((category) => category.id === opsLog.category_id)
+      }
+    })
+    return opsLogs
+  }
+
+  async subscribeOpsLog(ticketId) {
+    const query = db.class('OpsLog').where('ticket', '==', db.class('Ticket').object(ticketId))
+    const subscription = await query.subscribe()
+    this.opsLogLiveQuery = subscription
+    subscription.on('create', async () => {
+      console.log('coming')
+      const opsLogs = await this.fetchOpsLogs(ticketId, _.last(this.state.opsLogs)?.id)
+      this.setState((state) => ({
+        opsLogs: _.uniqBy(state.opsLogs.concat(opsLogs), 'id'),
+      }))
+    })
   }
 
   getReplyQuery(ticket) {
@@ -202,12 +300,14 @@ class Ticket extends Component {
       return
     }
     try {
-      const reply = await db.class('Reply').add({
-        content,
-        ticket: this.state.ticket,
-        files: await uploadFiles(files),
+      const uploadedFiles = await uploadFiles(files)
+      await fetch(`/api/1/tickets/${this.state.ticket.id}/replies`, {
+        method: 'POST',
+        body: {
+          content,
+          file_ids: uploadedFiles.map((file) => file.id),
+        },
       })
-      await this.appendReply(reply)
     } catch (error) {
       this.context.addNotification(error)
     }
@@ -217,43 +317,37 @@ class Ticket extends Component {
     return this.operateTicket('replySoon')
   }
 
-  operateTicket(action) {
+  async operateTicket(action) {
     const ticket = this.state.ticket
-    return cloud
-      .run('operateTicket', { ticketId: ticket.id, action })
-      .then(() => {
-        return ticket.get({ include: ['author', 'organization', 'assignee', 'files'] })
+    try {
+      await fetch(`/api/1/tickets/${ticket.id}/operate`, {
+        method: 'POST',
+        body: { action },
       })
-      .then((ticket) => {
-        this.setState({ ticket })
-        return
-      })
-      .catch(this.context.addNotification)
+    } catch (error) {
+      this.context.addNotification(error)
+    }
   }
 
   updateTicketCategory(category) {
     const ticket = this.state.ticket
-    return ticket.update({ category: getTinyCategoryInfo(category) }).then(() => {
-      ticket.data.category = category
-      this.setState({ ticket })
-      return
+    return fetch(`/api/1/tickets/${ticket.id}`, {
+      method: 'PATCH',
+      body: { category_id: category.id },
     })
   }
 
   updateTicketAssignee(assignee) {
     const ticket = this.state.ticket
-    return ticket
-      .update({ assignee })
-      .then(() => {
-        ticket.data.assignee = assignee
-        return
-      })
-      .catch(this.context.addNotification)
+    return fetch(`/api/1/tickets/${ticket.id}`, {
+      method: 'PATCH',
+      body: { assignee_id: assignee.id },
+    })
   }
 
-  saveTag(key, value, isPrivate) {
+  async saveTag(key, value, isPrivate) {
     const ticket = this.state.ticket
-    let tags = ticket.get(isPrivate ? 'privateTags' : 'tags')
+    let tags = ticket[isPrivate ? 'private_tags' : 'tags']
     if (!tags) {
       tags = []
     }
@@ -270,46 +364,48 @@ class Ticket extends Component {
         tag.value = value
       }
     }
-    return ticket.update({ [isPrivate ? 'privateTags' : 'tags']: tags }).then(() => {
-      this.setState({ ticket })
-      return
-    })
+    try {
+      await fetch(`/api/1/tickets/${ticket.id}`, {
+        method: 'PATCH',
+        body: {
+          [isPrivate ? 'private_tags' : 'tags']: tags,
+        },
+      })
+    } catch (error) {
+      this.context.addNotification(error)
+    }
   }
 
   saveEvaluation(evaluation) {
     const ticket = this.state.ticket
-    ticket.data.evaluation = evaluation
-    return ticket.update({ evaluation }).then(() => {
-      this.setState({ ticket })
-      return
+    return fetch(`/api/1/tickets/${ticket.id}`, {
+      method: 'PATCH',
+      body: { evaluation },
     })
   }
 
-  handleAddWatch() {
-    return db
-      .class('Watch')
-      .add({
-        ticket: this.state.ticket,
-        user: auth.currentUser,
-        ACL: {
-          [auth.currentUser.id]: { write: true, read: true },
-        },
+  async handleAddWatch() {
+    try {
+      await fetch(`/api/1/tickets/${this.state.ticket.id}`, {
+        method: 'PATCH',
+        body: { subscribed: true },
       })
-      .then((watch) => {
-        this.setState({ watch })
-        return
-      })
-      .catch(this.context.addNotification)
+      this.setState({ watch: true })
+    } catch (error) {
+      this.context.addNotification(error)
+    }
   }
 
-  handleRemoveWatch() {
-    return this.state.watch
-      .delete()
-      .then(() => {
-        this.setState({ watch: undefined })
-        return
+  async handleRemoveWatch() {
+    try {
+      await fetch(`/api/1/tickets/${this.state.ticket.id}`, {
+        method: 'PATCH',
+        body: { subscribed: false },
       })
-      .catch(this.context.addNotification)
+      this.setState({ watch: false })
+    } catch (error) {
+      this.context.addNotification(error)
+    }
   }
 
   contentView(content) {
@@ -317,24 +413,16 @@ class Ticket extends Component {
   }
 
   getTime(avObj) {
-    if (new Date() - avObj.get('createdAt') > 86400000) {
+    if (moment().diff(avObj.created_at) > 86400000) {
       return (
-        <a
-          href={'#' + avObj.id}
-          className="timestamp"
-          title={moment(avObj.get('createdAt')).format()}
-        >
-          {moment(avObj.get('createdAt')).calendar()}
+        <a href={'#' + avObj.id} className="timestamp" title={moment(avObj.created_at).format()}>
+          {moment(avObj.created_at).calendar()}
         </a>
       )
     } else {
       return (
-        <a
-          href={'#' + avObj.id}
-          className="timestamp"
-          title={moment(avObj.get('createdAt')).format()}
-        >
-          {moment(avObj.get('createdAt')).fromNow()}
+        <a href={'#' + avObj.id} className="timestamp" title={moment(avObj.created_at).format()}>
+          {moment(avObj.created_at).fromNow()}
         </a>
       )
     }
@@ -342,8 +430,8 @@ class Ticket extends Component {
 
   ticketTimeline(avObj) {
     const { t } = this.props
-    if (avObj.className === 'OpsLog') {
-      switch (avObj.get('action')) {
+    if (avObj.type === 'opsLog') {
+      switch (avObj.action) {
         case 'selectAssignee':
           return (
             <div className="ticket-status" id={avObj.id} key={avObj.id}>
@@ -353,8 +441,8 @@ class Ticket extends Component {
                 </span>
               </div>
               <div className="ticket-status-right">
-                {t('system')} {t('assignedTicketTo')}{' '}
-                <UserLabel user={avObj.get('data').assignee} /> ({this.getTime(avObj)})
+                {t('system')} {t('assignedTicketTo')} <UserLabel user={avObj.assignee} /> (
+                {this.getTime(avObj)})
               </div>
             </div>
           )
@@ -367,9 +455,9 @@ class Ticket extends Component {
                 </span>
               </div>
               <div className="ticket-status-right">
-                <UserLabel user={avObj.get('data').operator} /> {t('changedTicketCategoryTo')}{' '}
+                <UserLabel user={avObj.operator} /> {t('changedTicketCategoryTo')}{' '}
                 <span className={csCss.category + ' ' + css.category}>
-                  {getCategoryPathName(avObj.get('data').category, this.state.categoriesTree)}
+                  {getCategoryPathName(avObj.category, this.state.categoriesTree)}
                 </span>{' '}
                 ({this.getTime(avObj)})
               </div>
@@ -384,9 +472,8 @@ class Ticket extends Component {
                 </span>
               </div>
               <div className="ticket-status-right">
-                <UserOrSystem operator={avObj.get('data').operator} />{' '}
-                {t('changedTicketAssigneeTo')} <UserLabel user={avObj.get('data').assignee} /> (
-                {this.getTime(avObj)})
+                <UserOrSystem operator={avObj.operator} /> {t('changedTicketAssigneeTo')}{' '}
+                <UserLabel user={avObj.assignee} /> ({this.getTime(avObj)})
               </div>
             </div>
           )
@@ -399,7 +486,7 @@ class Ticket extends Component {
                 </span>
               </div>
               <div className="ticket-status-right">
-                <UserLabel user={avObj.get('data').operator} /> {t('thoughtNoNeedToReply')} (
+                <UserLabel user={avObj.operator} /> {t('thoughtNoNeedToReply')} (
                 {this.getTime(avObj)})
               </div>
             </div>
@@ -413,8 +500,7 @@ class Ticket extends Component {
                 </span>
               </div>
               <div className="ticket-status-right">
-                <UserLabel user={avObj.get('data').operator} /> {t('thoughtNeedTime')} (
-                {this.getTime(avObj)})
+                <UserLabel user={avObj.operator} /> {t('thoughtNeedTime')} ({this.getTime(avObj)})
               </div>
             </div>
           )
@@ -427,8 +513,7 @@ class Ticket extends Component {
                 </span>
               </div>
               <div className="ticket-status-right">
-                <UserLabel user={avObj.get('data').operator} /> {t('thoughtResolved')} (
-                {this.getTime(avObj)})
+                <UserLabel user={avObj.operator} /> {t('thoughtResolved')} ({this.getTime(avObj)})
               </div>
             </div>
           )
@@ -442,8 +527,7 @@ class Ticket extends Component {
                 </span>
               </div>
               <div className="ticket-status-right">
-                <UserLabel user={avObj.get('data').operator} /> {t('closedTicket')} (
-                {this.getTime(avObj)})
+                <UserLabel user={avObj.operator} /> {t('closedTicket')} ({this.getTime(avObj)})
               </div>
             </div>
           )
@@ -456,8 +540,7 @@ class Ticket extends Component {
                 </span>
               </div>
               <div className="ticket-status-right">
-                <UserLabel user={avObj.get('data').operator} /> {t('reopenedTicket')} (
-                {this.getTime(avObj)})
+                <UserLabel user={avObj.operator} /> {t('reopenedTicket')} ({this.getTime(avObj)})
               </div>
             </div>
           )
@@ -465,13 +548,12 @@ class Ticket extends Component {
     } else {
       let panelFooter = null
       let imgBody = <div></div>
-      const files = avObj.get('files')
+      const files = avObj.files
       if (files && files.length !== 0) {
         const imgFiles = []
         const otherFiles = []
         files.forEach((f) => {
-          const mimeType = f.get('mime_type')
-          if (['image/png', 'image/jpeg', 'image/gif'].indexOf(mimeType) != -1) {
+          if (['image/png', 'image/jpeg', 'image/gif'].indexOf(f.mime) != -1) {
             imgFiles.push(f)
           } else {
             otherFiles.push(f)
@@ -481,8 +563,8 @@ class Ticket extends Component {
         if (imgFiles.length > 0) {
           imgBody = imgFiles.map((f) => {
             return (
-              <a href={f.data.url} target="_blank" key={f.id}>
-                <img src={f.data.url} alt={f.get('name')} />
+              <a href={f.url} target="_blank" key={f.id}>
+                <img src={f.url} alt={f.name} />
               </a>
             )
           })
@@ -492,11 +574,8 @@ class Ticket extends Component {
           const fileLinks = otherFiles.map((f) => {
             return (
               <span key={f.id}>
-                <a
-                  href={f.data.url + '?attname=' + encodeURIComponent(f.get('name'))}
-                  target="_blank"
-                >
-                  <Icon.Paperclip /> {f.get('name')}
+                <a href={f.url + '?attname=' + encodeURIComponent(f.name)} target="_blank">
+                  <Icon.Paperclip /> {f.name}
                 </a>{' '}
               </span>
             )
@@ -504,25 +583,25 @@ class Ticket extends Component {
           panelFooter = <Card.Footer className={css.footer}>{fileLinks}</Card.Footer>
         }
       }
-      const userLabel = avObj.get('isCustomerService') ? (
+      const userLabel = avObj.is_customer_service ? (
         <span>
-          <UserLabel user={avObj.get('author').data} />
+          <UserLabel user={avObj.author} />
           <i className={css.badge}>{t('staff')}</i>
         </span>
       ) : (
-        <UserLabel user={avObj.get('author').data} />
+        <UserLabel user={avObj.author} />
       )
       return (
         <Card
           id={avObj.id}
           key={avObj.id}
-          className={avObj.get('isCustomerService') ? css.panelModerator : undefined}
+          className={avObj.is_customer_service ? css.panelModerator : undefined}
         >
           <Card.Header className={css.heading}>
             {userLabel} {t('submittedAt')} {this.getTime(avObj)}
           </Card.Header>
           <Card.Body className={`${css.content} markdown-body`}>
-            {this.contentView(avObj.get('content_HTML'))}
+            {this.contentView(avObj.content_HTML)}
             {imgBody}
           </Card.Body>
           {panelFooter}
@@ -541,35 +620,33 @@ class Ticket extends Component {
     // 如果是客服自己提交工单，则当前客服在该工单中认为是用户，
     // 这是为了方便工单作为内部工作协调使用。
     const isCustomerService =
-      this.props.isCustomerService && ticket.get('author').id !== this.props.currentUser.id
+      this.props.isCustomerService && ticket.author_id !== this.props.currentUser.id
     const timeline = _.chain(this.state.replies)
       .concat(this.state.opsLogs)
-      .sortBy((data) => data.createdAt)
+      .sortBy((data) => data.created_at)
       .map(this.ticketTimeline.bind(this))
       .value()
 
     return (
       <>
-        <DocumentTitle title={ticket.get('title') + ' - LeanTicket' || 'LeanTicket'} />
+        <DocumentTitle title={ticket.title + ' - LeanTicket'} />
         <Row className="mt-3">
           <Col sm={12}>
             {!isCustomerService && <WeekendWarning />}
-            <h1>{ticket.get('title')}</h1>
+            <h1>{ticket.title}</h1>
             <div className={css.meta}>
-              <span className={csCss.nid}>#{ticket.get('nid')}</span>
-              <TicketStatusLabel status={ticket.get('status')} />{' '}
+              <span className={csCss.nid}>#{ticket.nid}</span>
+              <TicketStatusLabel status={ticket.status} />{' '}
               <span>
-                <UserLabel user={ticket.data.author.data} displayTags={isCustomerService} />{' '}
-                {t('createdAt')}{' '}
-                <span title={moment(ticket.get('createdAt')).format()}>
-                  {moment(ticket.get('createdAt')).fromNow()}
+                <UserLabel user={ticket.author} displayTags={isCustomerService} /> {t('createdAt')}{' '}
+                <span title={moment(ticket.created_at).format()}>
+                  {moment(ticket.created_at).fromNow()}
                 </span>
-                {moment(ticket.get('createdAt')).fromNow() ===
-                  moment(ticket.get('updatedAt')).fromNow() || (
+                {moment(ticket.created_at).fromNow() === moment(ticket.updated_at).fromNow() || (
                   <span>
                     , {t('updatedAt')}{' '}
-                    <span title={moment(ticket.get('updatedAt')).format()}>
-                      {moment(ticket.get('updatedAt')).fromNow()}
+                    <span title={moment(ticket.updated_at).format()}>
+                      {moment(ticket.updated_at).fromNow()}
                     </span>
                   </span>
                 )}
@@ -611,7 +688,7 @@ class Ticket extends Component {
 
             <div>
               <hr />
-              {ticketStatus.isOpened(ticket.get('status')) ? (
+              {ticketStatus.isOpened(ticket.status) ? (
                 <TicketReply
                   ticket={ticket}
                   commitReply={this.commitReply.bind(this)}
@@ -645,7 +722,7 @@ class Ticket extends Component {
 
             <TicketOperation
               isCustomerService={isCustomerService}
-              ticket={ticket.toJSON()}
+              ticket={ticket}
               onOperate={this.operateTicket.bind(this)}
             />
           </Col>

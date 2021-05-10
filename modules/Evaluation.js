@@ -3,7 +3,6 @@ import { Alert, Button, Form } from 'react-bootstrap'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import * as Icon from 'react-bootstrap-icons'
-import LC from '../lib/leancloud'
 
 class Evaluation extends Component {
   constructor(props) {
@@ -39,8 +38,10 @@ class Evaluation extends Component {
   }
 
   render() {
-    const { t } = this.props
-    const evaluation = this.props.ticket.get('evaluation')
+    const {
+      t,
+      ticket: { evaluation },
+    } = this.props
     if (evaluation) {
       return (
         <Alert variant="warning">
@@ -111,7 +112,7 @@ class Evaluation extends Component {
 }
 
 Evaluation.propTypes = {
-  ticket: PropTypes.instanceOf(LC.LCObject),
+  ticket: PropTypes.object.isRequired,
   isCustomerService: PropTypes.bool,
   saveEvaluation: PropTypes.func.isRequired,
   t: PropTypes.func,

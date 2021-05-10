@@ -19,7 +19,7 @@ export default function Tag({ tag, ticket, isCustomerService }) {
         }
         const app = await cloud.run('getLeanCloudApp', {
           appId,
-          username: ticket.data.author.data.username,
+          username: ticket.author.username,
         })
         setData({ key: 'application', value: app.app_name })
         if (isCustomerService) {

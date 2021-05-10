@@ -4,7 +4,6 @@ import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 import * as Icon from 'react-bootstrap-icons'
-import LC from '../../lib/leancloud'
 
 import { getCustomerServices, getCategoryPathName } from '../common'
 import { UserLabel } from '../UserLabel'
@@ -69,9 +68,7 @@ class TicketMetadata extends Component {
   }
 
   render() {
-    const { t } = this.props
-    const { ticket, isCustomerService } = this.props
-    const assignee = ticket.data.assignee
+    const { t, ticket, isCustomerService } = this.props
 
     return (
       <>
@@ -80,7 +77,7 @@ class TicketMetadata extends Component {
           {this.state.isUpdateAssignee ? (
             <Form.Control
               as="select"
-              value={assignee.id}
+              value={ticket.assignee_id}
               onChange={this.handleAssigneeChange.bind(this)}
             >
               {this.state.assignees.map((cs) => (
@@ -91,7 +88,7 @@ class TicketMetadata extends Component {
             </Form.Control>
           ) : (
             <Form.Group>
-              <UserLabel user={ticket.data.assignee.data} />
+              <UserLabel user={ticket.assignee} />
               {isCustomerService && (
                 <Button variant="link" onClick={() => this.setState({ isUpdateAssignee: true })}>
                   <Icon.PencilFill />
@@ -106,13 +103,13 @@ class TicketMetadata extends Component {
           {this.state.isUpdateCategory ? (
             <CategoriesSelect
               categoriesTree={this.props.categoriesTree}
-              selected={ticket.get('category')}
+              selected={{ id: ticket.category_id }}
               onChange={this.handleCategoryChange.bind(this)}
             />
           ) : (
             <div>
               <span className={csCss.category + ' ' + css.categoryBlock}>
-                {getCategoryPathName(ticket.get('category'), this.props.categoriesTree)}
+                {getCategoryPathName({ id: ticket.category_id }, this.props.categoriesTree)}
               </span>
               {isCustomerService && (
                 <Button variant="link" onClick={() => this.setState({ isUpdateCategory: true })}>
@@ -123,10 +120,10 @@ class TicketMetadata extends Component {
           )}
         </Form.Group>
 
-        {isCustomerService && ticket.data.metaData && (
+        {isCustomerService && ticket.metadata && (
           <Form.Group>
             <Form.Label>{t('details')}</Form.Label>
-            {Object.entries(ticket.data.metaData)
+            {Object.entries(ticket.metadata)
               .filter(([, v]) => v && (typeof v === 'string' || typeof v === 'number'))
               .map(([key, value]) => {
                 const comments = getConfig('ticket.metadata.customMetadata.comments', {})
@@ -140,13 +137,10 @@ class TicketMetadata extends Component {
           </Form.Group>
         )}
 
-        <MountCustomElement
-          point="ticket.metadata"
-          props={{ isCustomerService, ticket: ticket.toJSON() }}
-        />
+        <MountCustomElement point="ticket.metadata" props={{ isCustomerService, ticket }} />
 
         {this.context.tagMetadatas.map((tagMetadata) => {
-          const tags = ticket.get(tagMetadata.get('isPrivate') ? 'privateTags' : 'tags')
+          const tags = ticket[tagMetadata.get('isPrivate') ? 'private_tags' : 'tags']
           const tag = _.find(tags, (t) => t.key == tagMetadata.get('key'))
           return (
             <TagForm
@@ -165,7 +159,7 @@ class TicketMetadata extends Component {
 
 TicketMetadata.propTypes = {
   isCustomerService: PropTypes.bool.isRequired,
-  ticket: PropTypes.instanceOf(LC.LCObject),
+  ticket: PropTypes.object.isRequired,
   categoriesTree: PropTypes.array.isRequired,
   updateTicketAssignee: PropTypes.func.isRequired,
   updateTicketCategory: PropTypes.func.isRequired,
