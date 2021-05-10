@@ -26,9 +26,7 @@ router.get(
     const query = new AV.Query('_File')
     query.containedIn('objectId', ids)
     const files = await query.find()
-    res.json({
-      files: files.map(encodeFileObject),
-    })
+    res.json(files.map(encodeFileObject))
   })
 )
 
@@ -41,9 +39,7 @@ router.param(
 )
 
 router.get('/:id', (req, res) => {
-  res.json({
-    file: encodeFileObject(req.file),
-  })
+  res.json(encodeFileObject(req.file))
 })
 
 router.get('/:id/redirection', (req, res) => {

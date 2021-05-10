@@ -15,8 +15,8 @@ router.get(
     const query = new AV.Query('_User')
     query.containedIn('objectId', ids)
     const users = await query.find({ useMasterKey: true })
-    res.json({
-      users: users.map((user) => {
+    res.json(
+      users.map((user) => {
         return {
           id: user.id,
           nid: user.get('nid'),
@@ -25,8 +25,8 @@ router.get(
           name: user.get('name') || '',
           tags: user.get('tags') || [],
         }
-      }),
-    })
+      })
+    )
   })
 )
 
@@ -50,14 +50,12 @@ router.get(
      */
     const user = req.targetUser
     res.json({
-      user: {
-        id: user.id,
-        nid: user.get('nid'),
-        email: user.get('email') || '',
-        username: user.get('username'),
-        name: user.get('name') || '',
-        tags: user.get('tags') || [],
-      },
+      id: user.id,
+      nid: user.get('nid'),
+      email: user.get('email') || '',
+      username: user.get('username'),
+      name: user.get('name') || '',
+      tags: user.get('tags') || [],
     })
   })
 )

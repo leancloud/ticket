@@ -24,8 +24,8 @@ router.get(
     }
 
     const categories = await query.find()
-    res.json({
-      categories: categories.map((category) => {
+    res.json(
+      categories.map((category) => {
         return {
           id: category.id,
           name: category.get('name'),
@@ -38,8 +38,8 @@ router.get(
           created_at: category.createdAt,
           updated_at: category.updatedAt,
         }
-      }),
-    })
+      })
+    )
   })
 )
 

@@ -61,7 +61,7 @@ class Ticket extends Component {
 
   async componentDidMount() {
     const { nid } = this.props.match.params
-    const { tickets } = await fetch(`/api/1/tickets`, { query: { nid } })
+    const tickets = await fetch(`/api/1/tickets`, { query: { nid } })
     if (tickets.length === 0) {
       this.props.history.replace({
         pathname: '/error',
@@ -128,8 +128,8 @@ class Ticket extends Component {
   }
 
   async fetchTicket(ticketId) {
-    const { ticket } = await fetch(`/api/1/tickets/${ticketId}`)
-    const { users } = await fetch('/api/1/users', {
+    const ticket = await fetch(`/api/1/tickets/${ticketId}`)
+    const users = await fetch('/api/1/users', {
       query: {
         ids: `${ticket.author_id},${ticket.assignee_id}`,
       },
@@ -137,7 +137,7 @@ class Ticket extends Component {
     ticket.author = users.find((user) => user.id === ticket.author_id)
     ticket.assignee = users.find((user) => user.id === ticket.assignee_id)
     if (ticket.file_ids.length) {
-      const { files } = await fetch(`/api/1/files`, {
+      const files = await fetch(`/api/1/files`, {
         query: {
           ids: ticket.file_ids,
         },
@@ -158,7 +158,7 @@ class Ticket extends Component {
   }
 
   async fetchReplies(ticketId, cursor) {
-    const { replies } = await fetch(`/api/1/tickets/${ticketId}/replies`, {
+    const replies = await fetch(`/api/1/tickets/${ticketId}/replies`, {
       query: { cursor },
     })
     const authorIds = new Set()
@@ -167,11 +167,11 @@ class Ticket extends Component {
       authorIds.add(reply.author_id)
       reply.file_ids.forEach((id) => fileIds.add(id))
     })
-    const [{ users: authors }, { files = [] }] = await Promise.all([
+    const [authors, files] = await Promise.all([
       authorIds.size
         ? fetch(`/api/1/users`, { query: { ids: Array.from(authorIds).join(',') } })
-        : {},
-      fileIds.size ? fetch(`/api/1/files`, { query: { ids: Array.from(fileIds).join(',') } }) : {},
+        : [],
+      fileIds.size ? fetch(`/api/1/files`, { query: { ids: Array.from(fileIds).join(',') } }) : [],
     ])
     replies.forEach((reply) => {
       reply.author = authors.find((author) => author.id === reply.author_id)
@@ -193,7 +193,7 @@ class Ticket extends Component {
   }
 
   async fetchOpsLogs(ticketId, cursor) {
-    const { ops_logs: opsLogs } = await fetch(`/api/1/tickets/${ticketId}/ops-logs`, {
+    const opsLogs = await fetch(`/api/1/tickets/${ticketId}/ops-logs`, {
       query: { cursor },
     })
     const userIds = new Set()
@@ -209,11 +209,11 @@ class Ticket extends Component {
         categoryIds.add(opsLog.category_id)
       }
     })
-    const [{ users = [] }, { categories = [] }] = await Promise.all([
-      userIds.size ? fetch(`/api/1/users`, { query: { ids: Array.from(userIds).join(',') } }) : {},
+    const [users, categories] = await Promise.all([
+      userIds.size ? fetch(`/api/1/users`, { query: { ids: Array.from(userIds).join(',') } }) : [],
       categoryIds.size
         ? fetch(`/api/1/categories`, { query: { ids: Array.from(categoryIds).join(',') } })
-        : {},
+        : [],
     ])
     opsLogs.forEach((opsLog) => {
       opsLog.type = 'opsLog'

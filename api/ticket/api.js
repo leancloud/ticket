@@ -158,8 +158,8 @@ router.get(
     }
 
     const tickets = page_size ? await query.find({ user: req.user }) : []
-    res.json({
-      tickets: tickets.map((ticket) => {
+    res.json(
+      tickets.map((ticket) => {
         const joinedCustomerServiceIds = new Set()
         ticket.get('joinedCustomerServices')?.forEach((user) => {
           joinedCustomerServiceIds.add(user.objectId)
@@ -177,8 +177,8 @@ router.get(
           created_at: ticket.createdAt,
           updated_at: ticket.updatedAt,
         }
-      }),
-    })
+      })
+    )
   })
 )
 
@@ -206,28 +206,26 @@ router.get(
     }
 
     res.json({
-      ticket: {
-        id: ticket.id,
-        nid: ticket.get('nid'),
-        title: ticket.get('title'),
-        author_id: ticket.get('author').id,
-        organization_id: ticket.get('organization')?.id || '',
-        assignee_id: ticket.get('assignee').id,
-        category_id: ticket.get('category').objectId,
-        content: ticket.get('content'),
-        content_HTML: ticket.get('content_HTML'),
-        file_ids: ticket.get('files')?.map((file) => file.id) || [],
-        evaluation: ticket.get('evaluation') || null,
-        joined_customer_service_ids:
-          ticket.get('joinedCustomerServices')?.map((user) => user.objectId) || [],
-        status: ticket.get('status'),
-        tags: ticket.get('tags') || [],
-        private_tags: ticket.get('privateTags'),
-        metadata: ticket.get('metaData') || {},
-        created_at: ticket.createdAt,
-        updated_at: ticket.updatedAt,
-        subscribed: !!watch,
-      },
+      id: ticket.id,
+      nid: ticket.get('nid'),
+      title: ticket.get('title'),
+      author_id: ticket.get('author').id,
+      organization_id: ticket.get('organization')?.id || '',
+      assignee_id: ticket.get('assignee').id,
+      category_id: ticket.get('category').objectId,
+      content: ticket.get('content'),
+      content_HTML: ticket.get('content_HTML'),
+      file_ids: ticket.get('files')?.map((file) => file.id) || [],
+      evaluation: ticket.get('evaluation') || null,
+      joined_customer_service_ids:
+        ticket.get('joinedCustomerServices')?.map((user) => user.objectId) || [],
+      status: ticket.get('status'),
+      tags: ticket.get('tags') || [],
+      private_tags: ticket.get('privateTags'),
+      metadata: ticket.get('metaData') || {},
+      created_at: ticket.createdAt,
+      updated_at: ticket.updatedAt,
+      subscribed: !!watch,
     })
 
     try {
@@ -276,10 +274,7 @@ router.get(
       query.greaterThan('objectId', cursor)
     }
     const replies = await query.find({ useMasterKey: true })
-    res.json({
-      replies: replies.map(encodeReplyObject),
-      cursor: replies.length ? replies[replies.length - 1].id : undefined,
-    })
+    res.json(replies.map(encodeReplyObject))
   })
 )
 
@@ -359,8 +354,8 @@ router.get(
       query.greaterThan('objectId', cursor)
     }
     const opsLogs = await query.find({ useMasterKey: true })
-    res.json({
-      ops_logs: opsLogs.map((opsLog) => {
+    res.json(
+      opsLogs.map((opsLog) => {
         const log = {
           id: opsLog.id,
           action: opsLog.get('action'),
@@ -377,9 +372,8 @@ router.get(
           log.category_id = data.category.objectId
         }
         return log
-      }),
-      cursor: opsLogs.length ? opsLogs[opsLogs.length - 1].id : undefined,
-    })
+      })
+    )
   })
 )
 
