@@ -1,0 +1,85 @@
+.table {
+  th,
+  td {
+    text-align: center;
+  }
+  tr > th:first-child {
+    text-align: left;
+  }
+  tr > td:first-child {
+    text-align: left;
+  }
+}
+
+
+.icon {
+  font-size: 2.5em;
+}
+.plus {
+  margin-bottom: 2px;
+}
+
+.localeSelect {
+  display: flex;
+  align-items: center;
+  .select {
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 0.25rem;
+    outline: none;
+    box-shadow: none;
+    min-width: 10em;
+    text-align: left;
+    &::after {
+      position: absolute;
+      right: 8px;
+      top: 16px;
+    }
+    &:focus,
+    &:hover {
+      border-color: rgb(0, 95, 204);
+    }
+  }
+  .item {
+    min-width: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: default;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    &:focus .defaultBtn,
+    &:hover .defaultBtn {
+      visibility: visible;
+    }
+    background: none;
+  }
+  .content {
+    display: flex;
+    align-items: center;
+    flex: auto;
+    &:hover,
+    &:focus {
+      color: rgb(0, 95, 204);
+    }
+  }
+  .default {
+    font-size: 14px;
+    margin-left: 0.5em;
+  }
+  .defaultBtn {
+    visibility: hidden;
+    &:hover,
+    &:focus {
+      color: rgb(0, 95, 204);
+    }
+  }
+}
+
+.removeBtn {
+  width: 40px;
+  top: 2px;
+}
+
+.displayType{
+  font-size: 16px;
+}

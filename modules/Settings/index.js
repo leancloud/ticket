@@ -20,6 +20,7 @@ import CategorySort from './CategorySort'
 import DynamicContent from './DynamicContent'
 import Trigger from './Rule/Trigger'
 import Automation from './Rule/Automation'
+import TicketField from './TicketField'
 
 export default function Settings(props) {
   const { path } = useRouteMatch()
@@ -61,6 +62,9 @@ export default function Settings(props) {
               </ListGroup.Item>
               <ListGroup.Item>
                 <Link to="/settings/tags">{t('tag')}</Link>
+              </ListGroup.Item>
+              <ListGroup.Item>
+                <Link to="/settings/ticketField">{t('ticketField')}</Link>
               </ListGroup.Item>
               <ListGroup.Item>
                 <Link to="/settings/faqs">{t('FAQ')}</Link>
@@ -128,6 +132,7 @@ export default function Settings(props) {
           <Route path={`${path}/automations`}>
             <Automation />
           </Route>
+          <Route path={`${path}/ticketField`} component={TicketField} />
         </Switch>
       </Col>
     </Row>
