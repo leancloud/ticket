@@ -159,6 +159,7 @@ router.get(
     const { sort_key, sort_order } = req.query
 
     let query = new AV.Query('Ticket')
+    const statuses = []
     if (q) {
       try {
         applySearchQuery(q, {
@@ -230,10 +231,22 @@ router.get(
               }
             },
           ],
+          status: [
+            (v) => Object.values(TICKET_STATUS).includes(parseInt(v)),
+            (status) => {
+              statuses.push(status)
+            },
+          ],
         })
       } catch (error) {
         res.throw(400, error.message)
       }
+    }
+    if (statuses.length) {
+      query.containedIn(
+        'status',
+        statuses.map((s) => parseInt(s))
+      )
     }
 
     query.select(
