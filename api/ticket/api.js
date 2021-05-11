@@ -1,6 +1,8 @@
 const AV = require('leanengine')
 const { Router } = require('express')
 const { check, query } = require('express-validator')
+const sq = require('search-query-parser')
+const { default: validator } = require('validator')
 
 const { checkPermission } = require('../oauth')
 const { requireAuth, catchError } = require('../middleware')
@@ -18,8 +20,9 @@ const { TICKET_ACTION, TICKET_STATUS, ticketStatus, getTicketAcl } = require('..
 const { afterSaveTicketHandler, afterUpdateTicketHandler } = require('./hook-handler')
 const notification = require('../notification')
 const { invokeWebhooks } = require('../webhook')
-
-const EMPTY_STRINGS = ['', "''", '""']
+const { encodeFileObject } = require('../file/utils')
+const { encodeUserObject } = require('../user/utils')
+const { getCategories } = require('../category/utils')
 
 const TICKET_SORT_KEY_MAP = {
   created_at: 'createdAt',
@@ -56,12 +59,13 @@ router.post(
   check('organization_id').isString().optional(),
   check('file_ids').default([]).isArray(),
   check('file_ids.*').isString(),
+  check('metadata').isObject().optional(),
   catchError(async (req, res) => {
     if (!(await checkPermission(req.user))) {
       res.throw(403, 'Your account is not qualified to create ticket.')
     }
 
-    const { title, category_id, content, organization_id, file_ids } = req.body
+    const { title, category_id, content, organization_id, file_ids, metadata } = req.body
     const author = req.user
     const organization = organization_id
       ? AV.Object.createWithoutData('Organization', organization_id)
@@ -81,6 +85,9 @@ router.post(
     ticket.set('content', content)
     ticket.set('content_HTML', htmlify(content))
     ticket.set('files', file_ids.map(makeFilePointer))
+    if (metadata) {
+      ticket.set('metaData', metadata)
+    }
     if (organization) {
       ticket.set('organization', organization)
     }
@@ -94,6 +101,42 @@ router.post(
     res.json({ id: ticket.id })
   })
 )
+
+const getCategoryPath = (categoryById, categoryId) => {
+  let current = categoryById[categoryId]
+  const path = [{ id: current.id, name: current.name }]
+  while (current.parent_id) {
+    current = categoryById[current.parent_id]
+    path.unshift({ id: current.id, name: current.name })
+  }
+  return path
+}
+
+function applySearchQuery(q, keywords) {
+  const result = sq.parse(q, { keywords: Object.keys(keywords), alwaysArray: true })
+  console.log(result)
+  Object.keys(keywords).forEach((keyword) => {
+    let values = result[keyword]
+    if (values === undefined) {
+      if (result.offsets.findIndex((item) => item.keyword === keyword) === -1) {
+        return
+      }
+      values = ['']
+    }
+    values.forEach((value) => {
+      const matchResult = value.match(/^([<>]=?)|(!=)/)
+      let prefex = ''
+      if (matchResult) {
+        prefex = matchResult[0]
+        value = value.slice(prefex.length)
+      }
+      if (!keywords[keyword][0](value)) {
+        throw new Error(`query[q]: invalid keyword: ${keyword}`)
+      }
+      keywords[keyword][1](value, prefex)
+    })
+  })
+}
 
 router.get(
   '/',
@@ -109,31 +152,87 @@ router.get(
     .custom((page_size) => page_size >= 0 && page_size <= 1000),
   query('sort_key').default('created_at').isIn(Object.keys(TICKET_SORT_KEY_MAP)),
   query('sort_order').default('asc').isIn(['asc', 'desc']),
-  query('nid').isInt().toInt().optional(),
-  query('author_id').isString().isLength({ min: 1 }).optional(),
-  query('organization_id').isString().optional(),
+  query('count').isBoolean().toBoolean().optional(),
+  query('q').isString().optional(),
   catchError(async (req, res) => {
-    const { page, page_size } = req.query
+    const { page, page_size, count, q } = req.query
     const { sort_key, sort_order } = req.query
-    const { nid, author_id, organization_id } = req.query
 
     let query = new AV.Query('Ticket')
-
-    if (nid !== undefined) {
-      query.equalTo('nid', nid)
-    }
-    if (author_id) {
-      query.equalTo('author', AV.Object.createWithoutData('_User', author_id))
-    }
-    if (organization_id !== undefined) {
-      if (EMPTY_STRINGS.includes(organization_id)) {
-        const orgQuery = AV.Query.or(
-          new AV.Query('Ticket').equalTo('organization', null),
-          new AV.Query('Ticket').doesNotExist('organization')
-        )
-        query = AV.Query.and(query, orgQuery)
-      } else {
-        query.equalTo('organization', AV.Object.createWithoutData('Organization', organization_id))
+    if (q) {
+      try {
+        applySearchQuery(q, {
+          nid: [
+            (v) => validator.isInt(v),
+            (nid) => {
+              query.equalTo('nid', parseInt(nid))
+            },
+          ],
+          author_id: [
+            (v) => typeof v === 'string' && v.trim().length > 0,
+            (value) => {
+              query.equalTo('author', AV.Object.createWithoutData('_User', value))
+            },
+          ],
+          organization_id: [
+            (v) => typeof v === 'string',
+            (value) => {
+              if (value === '') {
+                const orgQuery = AV.Query.or(
+                  new AV.Query('Ticket').equalTo('organization', null),
+                  new AV.Query('Ticket').doesNotExist('organization')
+                )
+                query = AV.Query.and(query, orgQuery)
+              } else {
+                query.equalTo('organization', AV.Object.createWithoutData('Organization', value))
+              }
+            },
+          ],
+          created_at: [
+            (v) => validator.isISO8601(v),
+            (value, prefix) => {
+              switch (prefix) {
+                case '>':
+                  query.greaterThan('createdAt', new Date(value))
+                  break
+                case '>=':
+                  query.greaterThanOrEqualTo('createdAt', new Date(value))
+                  break
+                case '<':
+                  query.lessThan('createdAt', new Date(value))
+                  break
+                case '<=':
+                  query.lessThanOrEqualTo('createdAt', new Date(value))
+                  break
+                case '':
+                case '=':
+                  query.equalTo('createdAt', new Date(value))
+              }
+            },
+          ],
+          reply_count: [
+            (v) => validator.isInt(v),
+            (value, prefix) => {
+              switch (prefix) {
+                case '>':
+                  query.greaterThan('replyCount', parseInt(value))
+                  break
+              }
+            },
+          ],
+          unread_count: [
+            (v) => validator.isInt(v),
+            (value, prefix) => {
+              switch (prefix) {
+                case '>':
+                  query.greaterThan('unreadCount', parseInt(value))
+                  break
+              }
+            },
+          ],
+        })
+      } catch (error) {
+        res.throw(400, error.message)
       }
     }
 
@@ -145,7 +244,10 @@ router.get(
       'assignee',
       'category',
       'joinedCustomerServices',
-      'status'
+      'status',
+      'evaluation',
+      'unreadCount',
+      'replyCount'
     )
     if (sort_order === 'asc') {
       query.ascending(TICKET_SORT_KEY_MAP[sort_key])
@@ -157,23 +259,45 @@ router.get(
       query.skip((page - 1) * page_size)
     }
 
-    const tickets = page_size ? await query.find({ user: req.user }) : []
+    query.include('author', 'assignee')
+
+    const [tickets, totalCount, categories] = await Promise.all([
+      page_size ? query.find({ user: req.user }) : [],
+      count ? query.count({ user: req.user }) : 0,
+      getCategories(),
+    ])
+    if (count) {
+      res.append('X-Total-Count', totalCount)
+    }
+
+    const categoryById = categories.reduce((map, category) => {
+      map[category.id] = category
+      return map
+    }, {})
+
     res.json(
       tickets.map((ticket) => {
         const joinedCustomerServiceIds = new Set()
         ticket.get('joinedCustomerServices')?.forEach((user) => {
           joinedCustomerServiceIds.add(user.objectId)
         })
+        const categoryId = ticket.get('category').objectId
         return {
           id: ticket.id,
           nid: ticket.get('nid'),
           title: ticket.get('title'),
           author_id: ticket.get('author').id,
+          author: encodeUserObject(ticket.get('author')),
           organization_id: ticket.get('organization')?.id || '',
           assignee_id: ticket.get('assignee').id,
-          category_id: ticket.get('category').objectId,
+          assignee: encodeUserObject(ticket.get('assignee')),
+          category_id: categoryId,
+          category_path: getCategoryPath(categoryById, categoryId),
           joined_customer_service_ids: Array.from(joinedCustomerServiceIds),
           status: ticket.get('status'),
+          evaluation: ticket.get('evaluation') || null,
+          unread_count: ticket.get('unreadCount') || 0,
+          reply_count: ticket.get('replyCount') || 0,
           created_at: ticket.createdAt,
           updated_at: ticket.updatedAt,
         }
@@ -197,25 +321,39 @@ router.get(
      * @type {AV.Object}
      */
     const ticket = req.ticket
-    const [isCS, watch] = await Promise.all([
+    const [isCS, watch, categories] = await Promise.all([
       isCustomerService(req.user),
       getWatchObject(req.user, ticket),
+      getCategories(),
     ])
+
+    const keys = ['author', 'assignee', 'files']
+    const include = ['author', 'assignee', 'files']
     if (isCS) {
-      await ticket.fetch({ keys: ['privateTags'] }, { useMasterKey: true })
+      keys.push('privateTags')
     }
+    await ticket.fetch({ keys, include }, { useMasterKey: true })
+
+    const categoryById = categories.reduce((map, category) => {
+      map[category.id] = category
+      return map
+    }, {})
 
     res.json({
       id: ticket.id,
       nid: ticket.get('nid'),
       title: ticket.get('title'),
       author_id: ticket.get('author').id,
+      author: encodeUserObject(ticket.get('author')),
       organization_id: ticket.get('organization')?.id || '',
       assignee_id: ticket.get('assignee').id,
+      assignee: encodeUserObject(ticket.get('assignee')),
       category_id: ticket.get('category').objectId,
+      category_path: getCategoryPath(categoryById, ticket.get('category').objectId),
       content: ticket.get('content'),
       content_HTML: ticket.get('content_HTML'),
       file_ids: ticket.get('files')?.map((file) => file.id) || [],
+      files: ticket.get('files')?.map(encodeFileObject) || [],
       evaluation: ticket.get('evaluation') || null,
       joined_customer_service_ids:
         ticket.get('joinedCustomerServices')?.map((user) => user.objectId) || [],

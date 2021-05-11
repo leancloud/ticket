@@ -3,18 +3,7 @@ const { Router } = require('express')
 const { query } = require('express-validator')
 
 const { catchError } = require('../middleware')
-
-/**
- * @param {AV.Object} file
- */
-function encodeFileObject(file) {
-  return {
-    id: file.id,
-    name: file.get('name'),
-    mime: file.get('mime_type'),
-    url: file.get('url'),
-  }
-}
+const { encodeFileObject } = require('./utils')
 
 const router = Router()
 

@@ -41,6 +41,13 @@ function throwError(status = 500, message = 'Internal Error') {
 
 const errorFormatter = ({ location, msg, param }) => `${location}[${param}]: ${msg}`
 
+/**
+ * @typedef {import('express').Response & { throw: (status?: number, message?: string) => void }} Response
+ */
+
+/**
+ * @param {(req: import('express').Request, res: Response) => void | Promise<void>} handler
+ */
 exports.catchError = (handler) => {
   return async (req, res, next, ...args) => {
     res.throw = throwError
