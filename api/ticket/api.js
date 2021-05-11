@@ -303,6 +303,7 @@ router.post(
     await saveWithoutHooks(reply, {
       ignoreBeforeHook: true,
       ignoreAfterHook: true,
+      user: req.user,
     })
     res.json(encodeReplyObject(reply))
 

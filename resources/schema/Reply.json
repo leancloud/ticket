@@ -1,1 +1,76 @@
-{"schema":{"updatedAt":{"type":"Date"},"content_HTML":{"v":2,"type":"String"},"ACL":{"type":"ACL"},"content":{"type":"String"},"objectId":{"type":"String"},"createdAt":{"type":"Date"},"author":{"className":"_User","type":"Pointer"},"ticket":{"className":"Ticket","type":"Pointer"},"files":{"type":"Array"},"isCustomerService":{"type":"Boolean"}},"permissions":{"add_fields":{"*":true},"delete":{"*":true},"update":{"*":true},"get":{"*":true},"find":{"*":true},"create":{"*":true}},"indexes":[]}
+{
+  "schema": {
+    "updatedAt": {
+      "type": "Date"
+    },
+    "content_HTML": {
+      "type": "String",
+      "v": 2
+    },
+    "ACL": {
+      "type": "ACL",
+      "default": {
+        "*": {
+          "read": true,
+          "write": true
+        }
+      }
+    },
+    "content": {
+      "type": "String"
+    },
+    "objectId": {
+      "type": "String"
+    },
+    "createdAt": {
+      "type": "Date"
+    },
+    "author": {
+      "type": "Pointer",
+      "className": "_User"
+    },
+    "ticket": {
+      "type": "Pointer",
+      "className": "Ticket"
+    },
+    "files": {
+      "type": "Array"
+    },
+    "isCustomerService": {
+      "type": "Boolean"
+    }
+  },
+  "permissions": {
+    "create": {
+      "onlySignInUsers": true,
+      "users": [],
+      "roles": []
+    },
+    "find": {
+      "roles": [],
+      "users": [],
+      "*": true
+    },
+    "get": {
+      "roles": [],
+      "users": [],
+      "*": true
+    },
+    "update": {
+      "roles": [],
+      "users": [],
+      "onlySignInUsers": true
+    },
+    "delete": {
+      "roles": [],
+      "users": [],
+      "onlySignInUsers": true
+    },
+    "add_fields": {
+      "roles": [],
+      "users": [],
+      "onlySignInUsers": true
+    }
+  },
+  "indexes": []
+}
