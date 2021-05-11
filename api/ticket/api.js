@@ -534,10 +534,10 @@ router.post(
     ticket.set('status', status)
     await saveWithoutHooks(ticket, {
       ignoreBeforeHook: true,
-      useMasterKey: true,
+      user: req.user,
     })
-    await addOpsLog(ticket, action, { operator: operatorInfo })
     res.json({})
+    addOpsLog(ticket, action, { operator: operatorInfo })
   })
 )
 

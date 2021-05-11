@@ -86,6 +86,7 @@ function getActionStatus(action, isCustomerService) {
  * @param {boolean} [options.ignoreBeforeHook]
  * @param {boolean} [options.ignoreAfterHook]
  * @param {boolean} [options.useMasterKey]
+ * @param {AV.User} [options.user]
  */
 async function saveWithoutHooks(object, options) {
   const ignoredHooks = _.clone(object._flags.__ignore_hooks)
@@ -96,7 +97,10 @@ async function saveWithoutHooks(object, options) {
     object.disableAfterHook()
   }
   try {
-    await object.save(null, { useMasterKey: options?.useMasterKey })
+    await object.save(null, {
+      useMasterKey: options?.useMasterKey,
+      user: options.user,
+    })
   } finally {
     object._flags.__ignore_hooks = ignoredHooks
   }
