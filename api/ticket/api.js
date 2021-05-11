@@ -3,7 +3,7 @@ const { Router } = require('express')
 const { check, query } = require('express-validator')
 
 const { checkPermission } = require('../oauth')
-const { requireAuth, catchError, customerServiceOnly } = require('../middleware')
+const { requireAuth, catchError } = require('../middleware')
 const {
   addOpsLog,
   getActionStatus,
@@ -379,7 +379,6 @@ router.get(
 
 router.patch(
   '/:id',
-  customerServiceOnly,
   check('assignee_id').isString().optional(),
   check('category_id').isString().optional(),
   check('organization_id').isString().optional(),
