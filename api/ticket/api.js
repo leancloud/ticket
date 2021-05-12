@@ -281,6 +281,7 @@ router.get(
     ])
     if (count) {
       res.append('X-Total-Count', totalCount)
+      res.append('Access-Control-Expose-Headers', 'X-Total-Count')
     }
 
     const categoryById = categories.reduce((map, category) => {
@@ -376,6 +377,8 @@ router.get(
       metadata: ticket.get('metaData') || {},
       created_at: ticket.createdAt,
       updated_at: ticket.updatedAt,
+      reply_count: ticket.get('replyCount') || 0,
+      unread_count: ticket.get('unreadCount') || 0,
       subscribed: !!watch,
     })
 
@@ -551,6 +554,11 @@ router.patch(
       )
     }),
   check('subscribed').isBoolean().optional(),
+  check('unread_count')
+    .isInt()
+    .toInt()
+    .custom((v) => v === 0)
+    .optional(),
   catchError(async (req, res) => {
     const {
       assignee_id,
@@ -560,6 +568,7 @@ router.patch(
       private_tags,
       evaluation,
       subscribed,
+      unread_count,
     } = req.body
     /**
      * @type {AV.Object}
@@ -646,6 +655,11 @@ router.patch(
       if (!subscribed && watch) {
         await watch.destroy({ user: req.user })
       }
+    }
+
+    if (unread_count !== undefined) {
+      ticket.set('unreadCount', unread_count)
+      ticket.updatedKeys.push('unreadCount')
     }
 
     await saveWithoutHooks(ticket, {
