@@ -373,18 +373,31 @@ function encodeReplyObject(reply) {
 
 router.get(
   '/:id/replies',
-  query('after').isISO8601().optional(),
+  parseSearching({
+    created_at: {
+      gt: validator.isISO8601,
+    },
+  }),
   catchError(async (req, res) => {
-    const { after } = req.query
+    const q = req.q
     const query = new AV.Query('Reply')
       .equalTo('ticket', req.ticket)
       .ascending('createdAt')
+      .include('author', 'files')
       .limit(500)
-    if (after) {
-      query.greaterThan('createdAt', new Date(after))
+    if (q.created_at?.type === 'gt') {
+      query.greaterThan('createdAt', new Date(q.created_at.value))
     }
     const replies = await query.find({ useMasterKey: true })
-    res.json(replies.map(encodeReplyObject))
+    res.json(
+      replies.map((reply) => {
+        return {
+          ...encodeReplyObject(reply),
+          author: encodeUserObject(reply.get('author')),
+          files: reply.get('files')?.map(encodeFileObject) || [],
+        }
+      })
+    )
   })
 )
 
@@ -454,15 +467,19 @@ router.post(
 
 router.get(
   '/:id/ops-logs',
-  query('after').isISO8601().optional(),
+  parseSearching({
+    created_at: {
+      gt: validator.isISO8601,
+    },
+  }),
   catchError(async (req, res) => {
-    const { after } = req.query
+    const q = req.q
     const query = new AV.Query('OpsLog')
       .equalTo('ticket', req.ticket)
       .ascending('createdAt')
       .limit(500)
-    if (after) {
-      query.greaterThan('createdAt', new Date(after))
+    if (q.created_at?.type === 'gt') {
+      query.greaterThan('createdAt', new Date(q.created_at.value))
     }
     const opsLogs = await query.find({ useMasterKey: true })
     res.json(

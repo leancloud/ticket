@@ -1,32 +1,46 @@
 const AV = require('leancloud-storage')
 const { Router } = require('express')
-const { query } = require('express-validator')
+const { default: validator } = require('validator')
 
-const { requireAuth, catchError } = require('../middleware')
+const { requireAuth, catchError, parseSearching } = require('../middleware')
 const { encodeCategoryObject } = require('./utils')
 
 const router = Router().use(requireAuth)
 
 router.get(
   '/',
-  query('active').isBoolean().optional(),
-  query('ids').isString().optional(),
-  query('parant_id').isString().optional(),
+  parseSearching({
+    active: {
+      eq: validator.isBoolean,
+    },
+    id: {
+      eq: null,
+    },
+    parent_id: {
+      eq: null,
+    },
+  }),
   catchError(async (req, res) => {
-    const { active, ids, parent_id } = req.query
+    const q = req.q
     const query = new AV.Query('Category')
-    if (active === 'true') {
-      query.doesNotExist('deletedAt')
+    if (q.active?.type === 'eq') {
+      if (q.active.value === 'true') {
+        query.doesNotExist('deletedAt')
+      } else {
+        query.exists('deletedAt')
+      }
     }
-    if (active === 'false') {
-      query.exists('deletedAt')
+    if (q.id?.type === 'eq') {
+      const ids = q.id.value.split(',')
+      if (ids.length > 1) {
+        query.containedIn('objectId', ids)
+      } else {
+        query.equalTo('objectId', ids[0])
+      }
     }
-    if (ids) {
-      query.containedIn('objectId', ids.split(','))
-    }
-    if (parent_id !== undefined) {
-      if (parent_id) {
-        query.equalTo('parent', AV.Object.createWithoutData('Category', parent_id))
+    if (q.parent_id?.type === 'eq') {
+      if (q.parent_id.value) {
+        query.equalTo('parent', AV.Object.createWithoutData('Category', q.parent_id.value))
       } else {
         query.doesNotExist('parent')
       }

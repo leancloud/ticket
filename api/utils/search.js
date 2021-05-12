@@ -11,31 +11,16 @@ const STATE_VALUE = 90
 const STATE_VALUE_DOT = 100
 const STATE_VALUE_RANGE = 110
 
+function isBlank(ch) {
+  return ch === ' ' || ch === '\t'
+}
+
 /**
- *
- * @param {string} [q]
- * @returns {{
- *   text: string[];
- *   eq: Record<string, string>;
- *   gt: Record<string, string>;
- *   gte: Record<string, string>;
- *   lt: Record<string, string>;
- *   gte: Record<string, string>;
- *   range: Record<string, { from: string; to: string }>;
- *   sort: { key: string; order: 'asc' | 'desc' }[];
- * }}
+ * @param {string} q
+ * @returns {any[]}
  */
-function parse(q) {
-  const result = {
-    text: [],
-    eq: {},
-    gt: {},
-    gte: {},
-    lt: {},
-    lte: {},
-    range: {},
-    sort: [],
-  }
+function parseQ(q) {
+  const result = []
 
   if (!q || typeof q !== 'string') {
     return result
@@ -45,6 +30,20 @@ function parse(q) {
   let field = ''
   let value = ''
   let value2 = ''
+
+  const init = (item) => {
+    state = STATE_INIT
+    field = ''
+    value = ''
+    value2 = ''
+    if (item) {
+      if (item.type === 'eq' && item.field.startsWith('-')) {
+        item.type = 'ne'
+        item.field = item.field.slice(1)
+      }
+      result.push(item)
+    }
+  }
 
   for (let i = 0; i < q.length; i++) {
     const ch = q[i]
@@ -59,8 +58,7 @@ function parse(q) {
 
       case STATE_FIELD:
         if (isBlank(ch)) {
-          result.text.push(field)
-          state = STATE_INIT
+          init({ type: 'text', field })
         } else if (ch === ':') {
           state = STATE_PROBE_VALUE
         } else {
@@ -70,22 +68,21 @@ function parse(q) {
 
       case STATE_PROBE_VALUE:
         if (isBlank(ch)) {
-          result.eq[field] = ''
-          state = STATE_INIT
+          init({ type: 'eq', field, value })
         } else if (ch === '>') {
           state = STATE_GT
         } else if (ch === '<') {
           state = STATE_LT
         } else {
           state = STATE_VALUE
-          value = ch
+          value = ''
+          i--
         }
         break
 
       case STATE_GT:
         if (isBlank(ch)) {
-          result.gt[field] = ''
-          state = STATE_INIT
+          init({ type: 'gt', field, value })
         } else if (ch === '=') {
           state = STATE_GTE_VALUE
           value = ''
@@ -97,8 +94,7 @@ function parse(q) {
 
       case STATE_GT_VALUE:
         if (isBlank(ch)) {
-          result.gt[field] = value
-          state = STATE_INIT
+          init({ type: 'gt', field, value })
         } else {
           value += ch
         }
@@ -106,8 +102,7 @@ function parse(q) {
 
       case STATE_GTE_VALUE:
         if (isBlank(ch)) {
-          result.gte[field] = value
-          state = STATE_INIT
+          init({ type: 'gte', field, value })
         } else {
           value += ch
         }
@@ -115,8 +110,7 @@ function parse(q) {
 
       case STATE_LT:
         if (isBlank(ch)) {
-          result.lt[field] = ''
-          state = STATE_INIT
+          init({ type: 'lt', field, value })
         } else if (ch === '=') {
           state = STATE_LTE_VALUE
           value = ''
@@ -128,8 +122,7 @@ function parse(q) {
 
       case STATE_LT_VALUE:
         if (isBlank(ch)) {
-          result.lt[field] = value
-          state = STATE_INIT
+          init({ type: 'lt', field, value })
         } else {
           value += ch
         }
@@ -137,8 +130,7 @@ function parse(q) {
 
       case STATE_LTE_VALUE:
         if (isBlank(ch)) {
-          result.lte[field] = value
-          state = STATE_INIT
+          init({ type: 'lte', field, value })
         } else {
           value += ch
         }
@@ -146,8 +138,7 @@ function parse(q) {
 
       case STATE_VALUE:
         if (isBlank(ch)) {
-          result.eq[field] = value
-          state = STATE_INIT
+          init({ type: 'eq', field, value })
         } else if (ch === '.') {
           state = STATE_VALUE_DOT
         } else {
@@ -157,8 +148,7 @@ function parse(q) {
 
       case STATE_VALUE_DOT:
         if (isBlank(ch)) {
-          result.eq[field] = value + '.'
-          state = STATE_INIT
+          init({ type: 'eq', field, value: value + '.' })
         } else if (ch === '.') {
           state = STATE_VALUE_RANGE
           value2 = ''
@@ -170,8 +160,7 @@ function parse(q) {
 
       case STATE_VALUE_RANGE:
         if (isBlank(ch)) {
-          result.range[field] = { from: value, to: value2 }
-          state = STATE_INIT
+          init({ type: 'range', field, from: value, to: value2 })
         } else {
           value2 += ch
         }
@@ -181,61 +170,113 @@ function parse(q) {
 
   switch (state) {
     case STATE_FIELD:
-      result.text.push(field)
+      init({ type: 'text', field })
       break
     case STATE_PROBE_VALUE:
-      result.eq[field] = ''
+    case STATE_VALUE:
+      init({ type: 'eq', field, value })
       break
     case STATE_GT:
-      result.gt[field] = ''
-      break
     case STATE_GT_VALUE:
-      result.gt[field] = value
+      init({ type: 'gt', field, value })
       break
     case STATE_GTE_VALUE:
-      result.gte[field] = value
+      init({ type: 'gte', field, value })
       break
     case STATE_LT:
-      result.lt[field] = ''
-      break
     case STATE_LT_VALUE:
-      result.lt[field] = value
+      init({ type: 'lt', field, value })
       break
     case STATE_LTE_VALUE:
-      result.lte[field] = value
-      break
-    case STATE_VALUE:
-      result.eq[field] = value
+      init({ type: 'lte', field, value })
       break
     case STATE_VALUE_DOT:
-      result.eq[field] = value + '.'
+      init({ type: 'eq', field, value: value + '.' })
       break
     case STATE_VALUE_RANGE:
-      result.range[field] = { from: value, to: value2 }
+      init({ type: 'range', field, from: value, to: value2 })
       break
   }
 
-  return checkSortField(result)
+  return result
 }
 
-function isBlank(ch) {
-  return ch === ' ' || ch === '\t'
+function parseSort(value) {
+  return value.split(',').map((key) => {
+    let order = 'asc'
+    if (key.endsWith('-asc')) {
+      key = key.slice(0, -4)
+    } else if (key.endsWith('-desc')) {
+      key = key.slice(0, -5)
+      order = 'desc'
+    }
+    return { key, order }
+  })
 }
 
-function checkSortField(result) {
-  if (result.eq.sort) {
-    result.eq.sort.split(',').forEach((key) => {
-      let order = 'asc'
-      if (key.endsWith('-asc')) {
-        key = key.slice(0, -4)
-      } else if (key.endsWith('-desc')) {
-        key = key.slice(0, -5)
-        order = 'desc'
-      }
-      result.sort.push({ key, order })
-    })
-    delete result.eq.sort
+/**
+ *
+ * @param {string} [q]
+ * @returns {{
+ *   text: string[];
+ *   eq: Record<string, string>;
+ *   ne: Record<string, string>;
+ *   gt: Record<string, string>;
+ *   gte: Record<string, string>;
+ *   lt: Record<string, string>;
+ *   gte: Record<string, string>;
+ *   range: Record<string, { from: string; to: string }>;
+ *   sort: { key: string; order: 'asc' | 'desc' }[];
+ * }}
+ */
+function parse(q) {
+  const result = {
+    text: [],
+    eq: {},
+    ne: {},
+    gt: {},
+    gte: {},
+    lt: {},
+    lte: {},
+    range: {},
+    sort: [],
   }
+  const itemByField = parseQ(q).reduce((map, item) => {
+    map[item.field] = item
+    return map
+  }, {})
+  Object.values(itemByField).forEach(({ type, field, value, from, to }) => {
+    switch (type) {
+      case 'text':
+        result.text.push(field)
+        break
+      case 'eq':
+        if (field === 'sort') {
+          result.sort = parseSort(value)
+        } else {
+          result.eq[field] = value
+        }
+        break
+      case 'ne':
+        result.ne[field] = value
+        break
+      case 'gt':
+        result.gt[field] = value
+        break
+      case 'gte':
+        result.gte[field] = value
+        break
+      case 'lt':
+        result.gt[field] = value
+        break
+      case 'lte':
+        result.gte[field] = value
+        break
+      case 'range':
+        result.range[field] = { from, to }
+        break
+    }
+  })
   return result
 }
 

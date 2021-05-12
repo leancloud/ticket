@@ -1,8 +1,7 @@
 const AV = require('leanengine')
 const { Router } = require('express')
-const { query } = require('express-validator')
 
-const { requireAuth, catchError, customerServiceOnly } = require('../middleware')
+const { requireAuth, catchError, customerServiceOnly, parseSearching } = require('../middleware')
 const { encodeUserObject } = require('./utils')
 
 const router = Router().use(requireAuth)
@@ -10,11 +9,23 @@ const router = Router().use(requireAuth)
 router.get(
   '/',
   customerServiceOnly,
-  query('ids').isString().isLength({ min: 1 }),
+  parseSearching({
+    id: {
+      eq: null,
+    },
+  }),
   catchError(async (req, res) => {
-    const ids = req.query.ids.split(',')
+    const q = req.q
     const query = new AV.Query('_User')
-    query.containedIn('objectId', ids)
+    if (!q.id) {
+      res.throw(400, 'query[q.id] is required')
+    }
+    const ids = q.id.value.split(',')
+    if (ids.length > 1) {
+      query.containedIn('objectId', ids)
+    } else {
+      query.equalTo('objectId', ids[0])
+    }
     const users = await query.find({ useMasterKey: true })
     res.json(users.map(encodeUserObject))
   })
