@@ -69,7 +69,6 @@
     "remarkable": "^1.7.2",
     "request": "^2.87.0",
     "request-promise": "^4.1.1",
-    "search-query-parser": "^1.5.5",
     "serve-favicon": "^2.4.3",
     "sort-keys": "^4.2.0",
     "stackedit-js": "^1.0.5",

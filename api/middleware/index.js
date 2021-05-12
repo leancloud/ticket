@@ -1,6 +1,8 @@
 const AV = require('leancloud-storage')
 const { validationResult } = require('express-validator')
+
 const { isCustomerService } = require('../common')
+const { parse: parseQ } = require('../utils/search')
 
 exports.requireAuth = async (req, res, next) => {
   const sessionToken = req.get('X-LC-Session')
@@ -72,3 +74,25 @@ exports.catchError = (handler) => {
     }
   }
 }
+
+exports.parseSearching = (schema) =>
+  exports.catchError((req, res, next) => {
+    const q = parseQ(req.query.q)
+    const params = {}
+    Object.entries(schema).forEach(([key, validators]) => {
+      Object.entries(validators).forEach(([type, validator]) => {
+        const value = q[type]?.[key]
+        if (value === undefined) {
+          return
+        }
+        if (!validator(value)) {
+          res.throw(400, `Invalid query.q.${key}`)
+        }
+        params[key] = { type, value }
+      })
+    })
+
+    req.q = params
+    req.sort = q.sort
+    next()
+  })

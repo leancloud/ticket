@@ -1,11 +1,11 @@
 const AV = require('leanengine')
 const { Router } = require('express')
 const { check, query } = require('express-validator')
-const sq = require('search-query-parser')
 const { default: validator } = require('validator')
+const _ = require('lodash')
 
 const { checkPermission } = require('../oauth')
-const { requireAuth, catchError } = require('../middleware')
+const { requireAuth, catchError, parseSearching } = require('../middleware')
 const {
   addOpsLog,
   getActionStatus,
@@ -26,6 +26,7 @@ const { getCategories } = require('../category/utils')
 
 const TICKET_SORT_KEY_MAP = {
   created_at: 'createdAt',
+  status: 'status',
 }
 
 const router = Router().use(requireAuth)
@@ -112,32 +113,6 @@ const getCategoryPath = (categoryById, categoryId) => {
   return path
 }
 
-function applySearchQuery(q, keywords) {
-  const result = sq.parse(q, { keywords: Object.keys(keywords), alwaysArray: true })
-  console.log(result)
-  Object.keys(keywords).forEach((keyword) => {
-    let values = result[keyword]
-    if (values === undefined) {
-      if (result.offsets.findIndex((item) => item.keyword === keyword) === -1) {
-        return
-      }
-      values = ['']
-    }
-    values.forEach((value) => {
-      const matchResult = value.match(/^([<>]=?)|(!=)/)
-      let prefex = ''
-      if (matchResult) {
-        prefex = matchResult[0]
-        value = value.slice(prefex.length)
-      }
-      if (!keywords[keyword][0](value)) {
-        throw new Error(`query[q]: invalid keyword: ${keyword}`)
-      }
-      keywords[keyword][1](value, prefex)
-    })
-  })
-}
-
 router.get(
   '/',
   query('page')
@@ -150,102 +125,77 @@ router.get(
     .isInt()
     .toInt()
     .custom((page_size) => page_size >= 0 && page_size <= 1000),
-  query('sort_key').default('created_at').isIn(Object.keys(TICKET_SORT_KEY_MAP)),
-  query('sort_order').default('asc').isIn(['asc', 'desc']),
   query('count').isBoolean().toBoolean().optional(),
-  query('q').isString().optional(),
+  parseSearching({
+    nid: {
+      eq: validator.isInt,
+    },
+    author_id: {
+      eq: (v) => v.trim().length > 0,
+    },
+    organization_id: {
+      eq: _.noop,
+    },
+    created_at: {
+      range: ({ from, to }) => [from, to].every((v) => v === '*' || validator.isISO8601(v)),
+    },
+    reply_count: {
+      gt: validator.isInt,
+    },
+    unread_count: {
+      gt: validator.isInt,
+    },
+    status: {
+      eq: (v) => v.split(',').every((v) => Object.values(TICKET_STATUS).includes(parseInt(v))),
+    },
+  }),
   catchError(async (req, res) => {
-    const { page, page_size, count, q } = req.query
-    const { sort_key, sort_order } = req.query
+    const { page, page_size, count } = req.query
+    const q = req.q
+    const sort = req.sort
+    if (!sort.every(({ key }) => !!TICKET_SORT_KEY_MAP[key])) {
+      res.throw(400, 'Invalid sort key')
+    }
 
     let query = new AV.Query('Ticket')
-    const statuses = []
-    if (q) {
-      try {
-        applySearchQuery(q, {
-          nid: [
-            (v) => validator.isInt(v),
-            (nid) => {
-              query.equalTo('nid', parseInt(nid))
-            },
-          ],
-          author_id: [
-            (v) => typeof v === 'string' && v.trim().length > 0,
-            (value) => {
-              query.equalTo('author', AV.Object.createWithoutData('_User', value))
-            },
-          ],
-          organization_id: [
-            (v) => typeof v === 'string',
-            (value) => {
-              if (value === '') {
-                const orgQuery = AV.Query.or(
-                  new AV.Query('Ticket').equalTo('organization', null),
-                  new AV.Query('Ticket').doesNotExist('organization')
-                )
-                query = AV.Query.and(query, orgQuery)
-              } else {
-                query.equalTo('organization', AV.Object.createWithoutData('Organization', value))
-              }
-            },
-          ],
-          created_at: [
-            (v) => validator.isISO8601(v),
-            (value, prefix) => {
-              switch (prefix) {
-                case '>':
-                  query.greaterThan('createdAt', new Date(value))
-                  break
-                case '>=':
-                  query.greaterThanOrEqualTo('createdAt', new Date(value))
-                  break
-                case '<':
-                  query.lessThan('createdAt', new Date(value))
-                  break
-                case '<=':
-                  query.lessThanOrEqualTo('createdAt', new Date(value))
-                  break
-                case '':
-                case '=':
-                  query.equalTo('createdAt', new Date(value))
-              }
-            },
-          ],
-          reply_count: [
-            (v) => validator.isInt(v),
-            (value, prefix) => {
-              switch (prefix) {
-                case '>':
-                  query.greaterThan('replyCount', parseInt(value))
-                  break
-              }
-            },
-          ],
-          unread_count: [
-            (v) => validator.isInt(v),
-            (value, prefix) => {
-              switch (prefix) {
-                case '>':
-                  query.greaterThan('unreadCount', parseInt(value))
-                  break
-              }
-            },
-          ],
-          status: [
-            (v) => Object.values(TICKET_STATUS).includes(parseInt(v)),
-            (status) => {
-              statuses.push(status)
-            },
-          ],
-        })
-      } catch (error) {
-        res.throw(400, error.message)
+
+    if (q.nid && q.nid.type === 'eq') {
+      query.equalTo('nid', parseInt(q.nid.value))
+    }
+    if (q.author_id && q.author_id.type === 'eq') {
+      query.equalTo('author', AV.Object.createWithoutData('_User', q.author_id.value))
+    }
+    if (q.organization_id && q.organization_id.type === 'eq') {
+      const { value } = q.organization_id
+      if (value === '') {
+        const orgQuery = AV.Query.or(
+          new AV.Query('Ticket').equalTo('organization', null),
+          new AV.Query('Ticket').doesNotExist('organization')
+        )
+        query = AV.Query.and(query, orgQuery)
+      } else {
+        query.equalTo('organization', AV.Object.createWithoutData('Organization', value))
       }
     }
-    if (statuses.length) {
+    if (q.created_at && q.created_at.type === 'range') {
+      const { from, to } = q.created_at.value
+      if (from !== '*') {
+        query.greaterThanOrEqualTo('createdAt', new Date(from))
+      }
+      if (to !== '*') {
+        query.lessThan('createdAt', new Date(to))
+      }
+    }
+    if (q.reply_count && q.reply_count.type === 'gt') {
+      query.greaterThan('replyCount', parseInt(q.reply_count.value))
+    }
+    if (q.unread_count && q.unread_count.type === 'gt') {
+      query.greaterThan('unreadCount', parseInt(q.unread_count.value))
+    }
+    if (q.status && q.status.type === 'eq') {
       query.containedIn(
         'status',
-        statuses.map((s) => parseInt(s))
+        q.status.value.split(',').map((v) => parseInt(v))
       )
     }
 
@@ -262,10 +212,16 @@ router.get(
       'unreadCount',
       'replyCount'
     )
-    if (sort_order === 'asc') {
-      query.ascending(TICKET_SORT_KEY_MAP[sort_key])
+    if (sort.length) {
+      sort.forEach(({ key, order }) => {
+        if (order === 'asc') {
+          query.addAscending(TICKET_SORT_KEY_MAP[key])
+        } else {
+          query.addDescending(TICKET_SORT_KEY_MAP[key])
+        }
+      })
     } else {
-      query.descending(TICKET_SORT_KEY_MAP[sort_key])
+      query.ascending('createdAt')
     }
     query.limit(page_size)
     if (page > 1) {

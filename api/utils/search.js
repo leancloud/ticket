@@ -11,6 +11,20 @@ const STATE_VALUE = 90
 const STATE_VALUE_DOT = 100
 const STATE_VALUE_RANGE = 110
 
+/**
+ *
+ * @param {string} [q]
+ * @returns {{
+ *   text: string[];
+ *   eq: Record<string, string>;
+ *   gt: Record<string, string>;
+ *   gte: Record<string, string>;
+ *   lt: Record<string, string>;
+ *   gte: Record<string, string>;
+ *   range: Record<string, { from: string; to: string }>;
+ *   sort: { key: string; order: 'asc' | 'desc' }[];
+ * }}
+ */
 function parse(q) {
   const result = {
     text: [],
@@ -20,6 +34,7 @@ function parse(q) {
     lt: {},
     lte: {},
     range: {},
+    sort: [],
   }
 
   if (!q || typeof q !== 'string') {
@@ -208,7 +223,6 @@ function isBlank(ch) {
 }
 
 function checkSortField(result) {
-  result.sort = []
   if (result.eq.sort) {
     result.eq.sort.split(',').forEach((key) => {
       let order = 'asc'

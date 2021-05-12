@@ -49,7 +49,6 @@ function id(value) {
   switch (typeof value) {
     case 'number':
     case 'string':
-    case 'symbol':
       return value
 
     case 'object':
