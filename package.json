@@ -32,7 +32,7 @@
     "bluebird": "^3.4.7",
     "blueimp-md5": "^2.18.0",
     "bootstrap": "^4.6.0",
-    "chart.js": "^2.7.2",
+    "chart.js": "^2.9.4",
     "classnames": "^2.3.1",
     "color": "^1.0.3",
     "compression": "^1.6.2",
