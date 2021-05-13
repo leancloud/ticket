@@ -433,6 +433,7 @@ router.post(
     await ticket.fetch({ include: ['author', 'assignee'] }, { useMasterKey: true })
     const authorInfo = getTinyUserInfo(author)
     ticket.set('latestReply', {
+      objectId: reply.id,
       author: authorInfo,
       content,
       isCustomerService: isCS,
