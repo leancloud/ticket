@@ -96,3 +96,23 @@ exports.parseSearching = (schema) =>
     req.sort = q.sort
     next()
   })
+
+exports.parseSearchingQ = (req, res, next) => {
+  const q = parse(req.query.q)
+  Object.entries(q.eq).forEach(([key, value]) => (req.query[key] = value))
+  Object.entries(q.gt).forEach(([key, value]) => (req.query[key + '_gt'] = value))
+  Object.entries(q.gte).forEach(([key, value]) => (req.query[key + '_gte'] = value))
+  Object.entries(q.lt).forEach(([key, value]) => (req.query[key + '_lt'] = value))
+  Object.entries(q.lte).forEach(([key, value]) => (req.query[key + '_lte'] = value))
+  Object.entries(q.range).forEach(([key, { from, to }]) => {
+    if (from !== '*') {
+      req.query[key + '_gte'] = from
+    }
+    if (to !== '*') {
+      req.query[key + '_lt'] = to
+    }
+  })
+  req.q = q
+  req.sort = q.sort
+  next()
+}

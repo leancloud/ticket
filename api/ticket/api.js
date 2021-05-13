@@ -1,11 +1,9 @@
 const AV = require('leanengine')
 const { Router } = require('express')
 const { check, query } = require('express-validator')
-const { default: validator } = require('validator')
-const _ = require('lodash')
 
 const { checkPermission } = require('../oauth')
-const { requireAuth, catchError, parseSearching } = require('../middleware')
+const { requireAuth, catchError, parseSearchingQ } = require('../middleware')
 const {
   addOpsLog,
   getActionStatus,
@@ -132,6 +130,7 @@ const getCategoryPath = (categoryById, categoryId) => {
 
 router.get(
   '/',
+  parseSearchingQ,
   query('page')
     .default(1)
     .isInt()
@@ -143,32 +142,25 @@ router.get(
     .toInt()
     .custom((page_size) => page_size >= 0 && page_size <= 1000),
   query('count').isBoolean().toBoolean().optional(),
-  parseSearching({
-    nid: {
-      eq: validator.isInt,
-    },
-    author_id: {
-      eq: (v) => v.trim().length > 0,
-    },
-    organization_id: {
-      eq: _.noop,
-    },
-    created_at: {
-      range: ({ from, to }) => [from, to].every((v) => v === '*' || validator.isISO8601(v)),
-    },
-    reply_count: {
-      gt: validator.isInt,
-    },
-    unread_count: {
-      gt: validator.isInt,
-    },
-    status: {
-      eq: (v) => v.split(',').every((v) => Object.values(TICKET_STATUS).includes(parseInt(v))),
-    },
-  }),
+  query('nid').isInt().toInt().optional(),
+  query('author_id').trim().isLength({ min: 1 }).optional(),
+  query('organization_id').isString().optional(),
+  query(['created_at', 'created_at_gt', 'created_at_gte', 'created_at_lt', 'created_at_lte'])
+    .isISO8601()
+    .optional(),
+  query('reply_count_gt').isInt().toInt().optional(),
+  query('unread_count_gt').isInt().toInt().optional(),
+  query('status')
+    .custom((status) =>
+      status.split(',').every((v) => Object.values(TICKET_STATUS).includes(parseInt(v)))
+    )
+    .optional(),
   catchError(async (req, res) => {
     const { page, page_size, count } = req.query
-    const q = req.q
+    const { nid, author_id, organization_id, status } = req.query
+    const { created_at, created_at_gt, created_at_gte, created_at_lt, created_at_lte } = req.query
+    const { reply_count_gt, unread_count_gt } = req.query
+
     const sort = req.sort
     if (!sort.every(({ key }) => !!TICKET_SORT_KEY_MAP[key])) {
       res.throw(400, 'Invalid sort key')
@@ -176,44 +168,55 @@ router.get(
 
     let query = new AV.Query('Ticket')
 
-    if (q.nid && q.nid.type === 'eq') {
-      query.equalTo('nid', parseInt(q.nid.value))
+    if (nid !== undefined) {
+      query.equalTo('nid', nid)
     }
-    if (q.author_id && q.author_id.type === 'eq') {
-      query.equalTo('author', AV.Object.createWithoutData('_User', q.author_id.value))
+    if (author_id) {
+      query.equalTo('author', AV.Object.createWithoutData('_User', author_id))
     }
-    if (q.organization_id && q.organization_id.type === 'eq') {
-      const { value } = q.organization_id
-      if (value === '') {
+    if (organization_id !== undefined) {
+      if (organization_id === '') {
         const orgQuery = AV.Query.or(
           new AV.Query('Ticket').equalTo('organization', null),
           new AV.Query('Ticket').doesNotExist('organization')
         )
         query = AV.Query.and(query, orgQuery)
       } else {
-        query.equalTo('organization', AV.Object.createWithoutData('Organization', value))
+        query.equalTo('organization', AV.Object.createWithoutData('Organization', organization_id))
       }
     }
-    if (q.created_at && q.created_at.type === 'range') {
-      const { from, to } = q.created_at.value
-      if (from !== '*') {
-        query.greaterThanOrEqualTo('createdAt', new Date(from))
+    if (status) {
+      if (status.includes(',')) {
+        query.containedIn(
+          'status',
+          status.split(',').map((v) => parseInt(v))
+        )
+      } else {
+        query.equalTo('status', parseInt(status))
       }
-      if (to !== '*') {
-        query.lessThan('createdAt', new Date(to))
-      }
     }
-    if (q.reply_count && q.reply_count.type === 'gt') {
-      query.greaterThan('replyCount', parseInt(q.reply_count.value))
+
+    if (created_at) {
+      query.equalTo('createdAt', new Date(created_at))
     }
-    if (q.unread_count && q.unread_count.type === 'gt') {
-      query.greaterThan('unreadCount', parseInt(q.unread_count.value))
+    if (created_at_gt) {
+      query.greaterThan('createdAt', new Date(created_at_gt))
     }
-    if (q.status && q.status.type === 'eq') {
-      query.containedIn(
-        'status',
-        q.status.value.split(',').map((v) => parseInt(v))
-      )
+    if (created_at_gte) {
+      query.greaterThanOrEqualTo('createdAt', new Date(created_at_gte))
+    }
+    if (created_at_lt) {
+      query.lessThan('createdAt', new Date(created_at_lt))
+    }
+    if (created_at_lte) {
+      query.lessThanOrEqualTo('createdAt', new Date(created_at_lte))
+    }
+
+    if (reply_count_gt !== undefined) {
+      query.greaterThan('replyCount', reply_count_gt)
+    }
+    if (unread_count_gt !== undefined) {
+      query.greaterThan('unreadCount', unread_count_gt)
     }
 
     query.select(
@@ -393,20 +396,17 @@ function encodeReplyObject(reply) {
 
 router.get(
   '/:id/replies',
-  parseSearching({
-    created_at: {
-      gt: validator.isISO8601,
-    },
-  }),
+  parseSearchingQ,
+  query('created_at_gt').isISO8601().optional(),
   catchError(async (req, res) => {
-    const q = req.q
+    const { created_at_gt } = req.query
     const query = new AV.Query('Reply')
       .equalTo('ticket', req.ticket)
       .ascending('createdAt')
       .include('author', 'files')
       .limit(500)
-    if (q.created_at?.type === 'gt') {
-      query.greaterThan('createdAt', new Date(q.created_at.value))
+    if (created_at_gt) {
+      query.greaterThan('createdAt', new Date(created_at_gt))
     }
     const replies = await query.find({ useMasterKey: true })
     res.json(
@@ -488,19 +488,16 @@ router.post(
 
 router.get(
   '/:id/ops-logs',
-  parseSearching({
-    created_at: {
-      gt: validator.isISO8601,
-    },
-  }),
+  parseSearchingQ,
+  query('created_at_gt').isISO8601().optional(),
   catchError(async (req, res) => {
-    const q = req.q
+    const { created_at_gt } = req.query
     const query = new AV.Query('OpsLog')
       .equalTo('ticket', req.ticket)
       .ascending('createdAt')
       .limit(500)
-    if (q.created_at?.type === 'gt') {
-      query.greaterThan('createdAt', new Date(q.created_at.value))
+    if (created_at_gt) {
+      query.greaterThan('createdAt', new Date(created_at_gt))
     }
     const opsLogs = await query.find({ useMasterKey: true })
     res.json(
