@@ -52,6 +52,23 @@ function getTinyUserInfo(user) {
   }
 }
 
+function encodeLatestReply(latestReply) {
+  if (!latestReply) {
+    return null
+  }
+  return {
+    author: {
+      id: latestReply.author.objectId,
+      username: latestReply.author.username,
+      name: latestReply.author.name || '',
+      email: latestReply.author.email || '',
+    },
+    content: latestReply.content,
+    is_customer_service: latestReply.isCustomerService,
+    created_at: latestReply.createdAt,
+  }
+}
+
 router.post(
   '/',
   check('title').isString().trim().isLength({ min: 1 }),
@@ -210,7 +227,8 @@ router.get(
       'status',
       'evaluation',
       'unreadCount',
-      'replyCount'
+      'replyCount',
+      'latestReply'
     )
     if (sort.length) {
       sort.forEach(({ key, order }) => {
@@ -268,6 +286,7 @@ router.get(
           evaluation: ticket.get('evaluation') || null,
           unread_count: ticket.get('unreadCount') || 0,
           reply_count: ticket.get('replyCount') || 0,
+          latest_reply: encodeLatestReply(ticket.get('latestReply')),
           created_at: ticket.createdAt,
           updated_at: ticket.updatedAt,
         }
@@ -335,6 +354,7 @@ router.get(
       updated_at: ticket.updatedAt,
       reply_count: ticket.get('replyCount') || 0,
       unread_count: ticket.get('unreadCount') || 0,
+      latest_reply: encodeLatestReply(ticket.get('latestReply')),
       subscribed: !!watch,
     })
 
