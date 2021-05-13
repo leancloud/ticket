@@ -1,4 +1,4 @@
-import { useTitle } from 'react-use'
+import { useTitle } from './hooks'
 
 export function DocumentTitle({ title }) {
   useTitle(title)

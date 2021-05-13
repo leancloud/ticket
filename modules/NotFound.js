@@ -1,11 +1,12 @@
 /*global SUPPORT_EMAIL*/
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import { useTitle } from 'react-use'
+
+import { useTitle } from './utils/hooks'
 
 export default function NotFound() {
   const { t } = useTranslation()
-  useTitle('404 - LeanTicket')
+  useTitle('404')
 
   return (
     <div className="jumbotron">
