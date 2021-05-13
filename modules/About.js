@@ -1,6 +1,6 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import { useTitle } from './utils/hooks'
+import { useTitle } from 'react-use'
 
 export default function About() {
   const { t } = useTranslation()

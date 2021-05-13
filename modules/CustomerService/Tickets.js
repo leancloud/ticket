@@ -7,9 +7,10 @@ import { Button, ButtonGroup, Dropdown, DropdownButton, Form } from 'react-boots
 import qs from 'query-string'
 import moment from 'moment'
 import * as Icon from 'react-bootstrap-icons'
+import { useTitle } from 'react-use'
+
 import { auth, cloud, db } from '../../lib/leancloud'
 import css from '../CustomerServiceTickets.css'
-
 import { getTinyCategoryInfo } from '../common'
 import {
   TICKET_STATUS,
@@ -25,7 +26,6 @@ import { UserLabel } from '../UserLabel'
 import { AppContext } from '../context'
 import { useCustomerServices } from './useCustomerServices'
 import { CategoryManager, useCategories, getCategoryName } from '../category'
-import { useTitle } from '../utils/hooks'
 import { BlodSearchString } from '../components/BlodSearchString'
 import { DelayInputForm } from '../components/DelayInputForm'
 
