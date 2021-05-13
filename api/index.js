@@ -2,7 +2,9 @@ const _ = require('lodash')
 const { Router } = require('express')
 const AV = require('leanengine')
 const cors = require('cors')
+
 const config = require('../config')
+const { parseSearchingQ } = require('./middleware')
 
 AV.init({
   appId: process.env.LEANCLOUD_APP_ID,
@@ -39,6 +41,9 @@ apiRouter.use('/ticket-fields', require('./TicketField'))
 apiRouter.use('/tickets', require('./ticket/api'))
 apiRouter.use('/users', require('./user/api'))
 apiRouter.use('/categories', require('./category/api'))
+apiRouter.get('/debug/search', parseSearchingQ, (req, res) => {
+  res.json({ q: req.q, query: req.query })
+})
 router.use('/api/1', apiRouter)
 
 const { integrations } = require('../config')

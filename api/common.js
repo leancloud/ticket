@@ -36,6 +36,7 @@ exports.getTinyUserInfo = async (user) => {
 exports.getTinyReplyInfo = (reply) => {
   return exports.getTinyUserInfo(reply.get('author')).then((author) => {
     return {
+      objectId: reply.id,
       author,
       content: reply.get('content'),
       isCustomerService: reply.get('isCustomerService'),

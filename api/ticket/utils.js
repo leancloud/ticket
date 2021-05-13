@@ -99,7 +99,7 @@ async function saveWithoutHooks(object, options) {
   try {
     await object.save(null, {
       useMasterKey: options?.useMasterKey,
-      user: options.user,
+      user: options?.user,
     })
   } finally {
     object._flags.__ignore_hooks = ignoredHooks

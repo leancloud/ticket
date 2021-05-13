@@ -61,7 +61,7 @@ class Ticket extends Component {
 
   async componentDidMount() {
     const { nid } = this.props.match.params
-    const tickets = await fetch(`/api/1/tickets`, { query: { nid } })
+    const tickets = await fetch(`/api/1/tickets`, { query: { q: 'nid:' + nid } })
     if (tickets.length === 0) {
       this.props.history.replace({
         pathname: '/error',
@@ -128,23 +128,7 @@ class Ticket extends Component {
   }
 
   async fetchTicket(ticketId) {
-    const ticket = await fetch(`/api/1/tickets/${ticketId}`)
-    const users = await fetch('/api/1/users', {
-      query: {
-        ids: `${ticket.author_id},${ticket.assignee_id}`,
-      },
-    })
-    ticket.author = users.find((user) => user.id === ticket.author_id)
-    ticket.assignee = users.find((user) => user.id === ticket.assignee_id)
-    if (ticket.file_ids.length) {
-      const files = await fetch(`/api/1/files`, {
-        query: {
-          ids: ticket.file_ids,
-        },
-      })
-      ticket.files = files
-    }
-    return ticket
+    return fetch(`/api/1/tickets/${ticketId}`)
   }
 
   async subscribeTicket(ticketId) {
@@ -159,23 +143,9 @@ class Ticket extends Component {
 
   async fetchReplies(ticketId, after) {
     const replies = await fetch(`/api/1/tickets/${ticketId}/replies`, {
-      query: { after },
-    })
-    const authorIds = new Set()
-    const fileIds = new Set()
-    replies.forEach((reply) => {
-      authorIds.add(reply.author_id)
-      reply.file_ids.forEach((id) => fileIds.add(id))
-    })
-    const [authors, files] = await Promise.all([
-      authorIds.size
-        ? fetch(`/api/1/users`, { query: { ids: Array.from(authorIds).join(',') } })
-        : [],
-      fileIds.size ? fetch(`/api/1/files`, { query: { ids: Array.from(fileIds).join(',') } }) : [],
-    ])
-    replies.forEach((reply) => {
-      reply.author = authors.find((author) => author.id === reply.author_id)
-      reply.files = files.filter((file) => reply.file_ids.includes(file.id))
+      query: {
+        q: after ? `created_at:>${after}` : undefined,
+      },
     })
     return replies
   }
@@ -210,9 +180,11 @@ class Ticket extends Component {
       }
     })
     const [users, categories] = await Promise.all([
-      userIds.size ? fetch(`/api/1/users`, { query: { ids: Array.from(userIds).join(',') } }) : [],
+      userIds.size
+        ? fetch(`/api/1/users`, { query: { q: `id:${Array.from(userIds).join(',')}` } })
+        : [],
       categoryIds.size
-        ? fetch(`/api/1/categories`, { query: { ids: Array.from(categoryIds).join(',') } })
+        ? fetch(`/api/1/categories`, { query: { q: `id:${Array.from(categoryIds).join(',')}` } })
         : [],
     ])
     opsLogs.forEach((opsLog) => {

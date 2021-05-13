@@ -2,31 +2,27 @@ const AV = require('leanengine')
 const { Router } = require('express')
 const { query } = require('express-validator')
 
-const { requireAuth, catchError, customerServiceOnly } = require('../middleware')
+const { requireAuth, catchError, customerServiceOnly, parseSearchingQ } = require('../middleware')
+const { encodeUserObject } = require('./utils')
 
 const router = Router().use(requireAuth)
 
 router.get(
   '/',
   customerServiceOnly,
-  query('ids').isString().isLength({ min: 1 }),
+  parseSearchingQ,
+  query('id').isString().isLength({ min: 1 }),
   catchError(async (req, res) => {
-    const ids = req.query.ids.split(',')
+    const { id } = req.query
     const query = new AV.Query('_User')
-    query.containedIn('objectId', ids)
+    const ids = id.split(',')
+    if (ids.length > 1) {
+      query.containedIn('objectId', ids)
+    } else {
+      query.equalTo('objectId', ids[0])
+    }
     const users = await query.find({ useMasterKey: true })
-    res.json(
-      users.map((user) => {
-        return {
-          id: user.id,
-          nid: user.get('nid'),
-          email: user.get('email') || '',
-          username: user.get('username'),
-          name: user.get('name') || '',
-          tags: user.get('tags') || [],
-        }
-      })
-    )
+    res.json(users.map(encodeUserObject))
   })
 )
 
@@ -42,22 +38,8 @@ router.param(
   })
 )
 
-router.get(
-  '/:id',
-  catchError(async (req, res) => {
-    /**
-     * @type {AV.Object}
-     */
-    const user = req.targetUser
-    res.json({
-      id: user.id,
-      nid: user.get('nid'),
-      email: user.get('email') || '',
-      username: user.get('username'),
-      name: user.get('name') || '',
-      tags: user.get('tags') || [],
-    })
-  })
-)
+router.get('/:id', (req, res) => {
+  res.json(encodeUserObject(req.targetUser))
+})
 
 module.exports = router

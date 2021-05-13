@@ -3,7 +3,7 @@ const { Router } = require('express')
 const { check, query } = require('express-validator')
 
 const { checkPermission } = require('../oauth')
-const { requireAuth, catchError } = require('../middleware')
+const { requireAuth, catchError, parseSearchingQ } = require('../middleware')
 const {
   addOpsLog,
   getActionStatus,
@@ -18,11 +18,13 @@ const { TICKET_ACTION, TICKET_STATUS, ticketStatus, getTicketAcl } = require('..
 const { afterSaveTicketHandler, afterUpdateTicketHandler } = require('./hook-handler')
 const notification = require('../notification')
 const { invokeWebhooks } = require('../webhook')
-
-const EMPTY_STRINGS = ['', "''", '""']
+const { encodeFileObject } = require('../file/utils')
+const { encodeUserObject } = require('../user/utils')
+const { getCategories } = require('../category/utils')
 
 const TICKET_SORT_KEY_MAP = {
   created_at: 'createdAt',
+  status: 'status',
 }
 
 const router = Router().use(requireAuth)
@@ -48,6 +50,23 @@ function getTinyUserInfo(user) {
   }
 }
 
+function encodeLatestReply(latestReply) {
+  if (!latestReply) {
+    return null
+  }
+  return {
+    author: {
+      id: latestReply.author.objectId,
+      username: latestReply.author.username,
+      name: latestReply.author.name || '',
+      email: latestReply.author.email || '',
+    },
+    content: latestReply.content,
+    is_customer_service: latestReply.isCustomerService,
+    created_at: latestReply.createdAt,
+  }
+}
+
 router.post(
   '/',
   check('title').isString().trim().isLength({ min: 1 }),
@@ -56,12 +75,13 @@ router.post(
   check('organization_id').isString().optional(),
   check('file_ids').default([]).isArray(),
   check('file_ids.*').isString(),
+  check('metadata').isObject().optional(),
   catchError(async (req, res) => {
     if (!(await checkPermission(req.user))) {
       res.throw(403, 'Your account is not qualified to create ticket.')
     }
 
-    const { title, category_id, content, organization_id, file_ids } = req.body
+    const { title, category_id, content, organization_id, file_ids, metadata } = req.body
     const author = req.user
     const organization = organization_id
       ? AV.Object.createWithoutData('Organization', organization_id)
@@ -81,6 +101,9 @@ router.post(
     ticket.set('content', content)
     ticket.set('content_HTML', htmlify(content))
     ticket.set('files', file_ids.map(makeFilePointer))
+    if (metadata) {
+      ticket.set('metaData', metadata)
+    }
     if (organization) {
       ticket.set('organization', organization)
     }
@@ -95,8 +118,19 @@ router.post(
   })
 )
 
+const getCategoryPath = (categoryById, categoryId) => {
+  let current = categoryById[categoryId]
+  const path = [{ id: current.id, name: current.name }]
+  while (current.parent_id) {
+    current = categoryById[current.parent_id]
+    path.unshift({ id: current.id, name: current.name })
+  }
+  return path
+}
+
 router.get(
   '/',
+  parseSearchingQ,
   query('page')
     .default(1)
     .isInt()
@@ -107,15 +141,30 @@ router.get(
     .isInt()
     .toInt()
     .custom((page_size) => page_size >= 0 && page_size <= 1000),
-  query('sort_key').default('created_at').isIn(Object.keys(TICKET_SORT_KEY_MAP)),
-  query('sort_order').default('asc').isIn(['asc', 'desc']),
+  query('count').isBoolean().toBoolean().optional(),
   query('nid').isInt().toInt().optional(),
-  query('author_id').isString().isLength({ min: 1 }).optional(),
+  query('author_id').trim().isLength({ min: 1 }).optional(),
   query('organization_id').isString().optional(),
+  query(['created_at', 'created_at_gt', 'created_at_gte', 'created_at_lt', 'created_at_lte'])
+    .isISO8601()
+    .optional(),
+  query('reply_count_gt').isInt().toInt().optional(),
+  query('unread_count_gt').isInt().toInt().optional(),
+  query('status')
+    .custom((status) =>
+      status.split(',').every((v) => Object.values(TICKET_STATUS).includes(parseInt(v)))
+    )
+    .optional(),
   catchError(async (req, res) => {
-    const { page, page_size } = req.query
-    const { sort_key, sort_order } = req.query
-    const { nid, author_id, organization_id } = req.query
+    const { page, page_size, count } = req.query
+    const { nid, author_id, organization_id, status } = req.query
+    const { created_at, created_at_gt, created_at_gte, created_at_lt, created_at_lte } = req.query
+    const { reply_count_gt, unread_count_gt } = req.query
+
+    const sort = req.sort
+    if (!sort.every(({ key }) => !!TICKET_SORT_KEY_MAP[key])) {
+      res.throw(400, 'Invalid sort key')
+    }
 
     let query = new AV.Query('Ticket')
 
@@ -126,7 +175,7 @@ router.get(
       query.equalTo('author', AV.Object.createWithoutData('_User', author_id))
     }
     if (organization_id !== undefined) {
-      if (EMPTY_STRINGS.includes(organization_id)) {
+      if (organization_id === '') {
         const orgQuery = AV.Query.or(
           new AV.Query('Ticket').equalTo('organization', null),
           new AV.Query('Ticket').doesNotExist('organization')
@@ -135,6 +184,39 @@ router.get(
       } else {
         query.equalTo('organization', AV.Object.createWithoutData('Organization', organization_id))
       }
+    }
+    if (status) {
+      if (status.includes(',')) {
+        query.containedIn(
+          'status',
+          status.split(',').map((v) => parseInt(v))
+        )
+      } else {
+        query.equalTo('status', parseInt(status))
+      }
+    }
+
+    if (created_at) {
+      query.equalTo('createdAt', new Date(created_at))
+    }
+    if (created_at_gt) {
+      query.greaterThan('createdAt', new Date(created_at_gt))
+    }
+    if (created_at_gte) {
+      query.greaterThanOrEqualTo('createdAt', new Date(created_at_gte))
+    }
+    if (created_at_lt) {
+      query.lessThan('createdAt', new Date(created_at_lt))
+    }
+    if (created_at_lte) {
+      query.lessThanOrEqualTo('createdAt', new Date(created_at_lte))
+    }
+
+    if (reply_count_gt !== undefined) {
+      query.greaterThan('replyCount', reply_count_gt)
+    }
+    if (unread_count_gt !== undefined) {
+      query.greaterThan('unreadCount', unread_count_gt)
     }
 
     query.select(
@@ -145,35 +227,69 @@ router.get(
       'assignee',
       'category',
       'joinedCustomerServices',
-      'status'
+      'status',
+      'evaluation',
+      'unreadCount',
+      'replyCount',
+      'latestReply'
     )
-    if (sort_order === 'asc') {
-      query.ascending(TICKET_SORT_KEY_MAP[sort_key])
+    if (sort.length) {
+      sort.forEach(({ key, order }) => {
+        if (order === 'asc') {
+          query.addAscending(TICKET_SORT_KEY_MAP[key])
+        } else {
+          query.addDescending(TICKET_SORT_KEY_MAP[key])
+        }
+      })
     } else {
-      query.descending(TICKET_SORT_KEY_MAP[sort_key])
+      query.ascending('createdAt')
     }
     query.limit(page_size)
     if (page > 1) {
       query.skip((page - 1) * page_size)
     }
 
-    const tickets = page_size ? await query.find({ user: req.user }) : []
+    query.include('author', 'assignee')
+
+    const [tickets, totalCount, categories] = await Promise.all([
+      page_size ? query.find({ user: req.user }) : [],
+      count ? query.count({ user: req.user }) : 0,
+      getCategories(),
+    ])
+    if (count) {
+      res.append('X-Total-Count', totalCount)
+      res.append('Access-Control-Expose-Headers', 'X-Total-Count')
+    }
+
+    const categoryById = categories.reduce((map, category) => {
+      map[category.id] = category
+      return map
+    }, {})
+
     res.json(
       tickets.map((ticket) => {
         const joinedCustomerServiceIds = new Set()
         ticket.get('joinedCustomerServices')?.forEach((user) => {
           joinedCustomerServiceIds.add(user.objectId)
         })
+        const categoryId = ticket.get('category').objectId
         return {
           id: ticket.id,
           nid: ticket.get('nid'),
           title: ticket.get('title'),
           author_id: ticket.get('author').id,
+          author: encodeUserObject(ticket.get('author')),
           organization_id: ticket.get('organization')?.id || '',
           assignee_id: ticket.get('assignee').id,
-          category_id: ticket.get('category').objectId,
+          assignee: encodeUserObject(ticket.get('assignee')),
+          category_id: categoryId,
+          category_path: getCategoryPath(categoryById, categoryId),
           joined_customer_service_ids: Array.from(joinedCustomerServiceIds),
           status: ticket.get('status'),
+          evaluation: ticket.get('evaluation') || null,
+          unread_count: ticket.get('unreadCount') || 0,
+          reply_count: ticket.get('replyCount') || 0,
+          latest_reply: encodeLatestReply(ticket.get('latestReply')),
           created_at: ticket.createdAt,
           updated_at: ticket.updatedAt,
         }
@@ -197,25 +313,39 @@ router.get(
      * @type {AV.Object}
      */
     const ticket = req.ticket
-    const [isCS, watch] = await Promise.all([
+    const [isCS, watch, categories] = await Promise.all([
       isCustomerService(req.user),
       getWatchObject(req.user, ticket),
+      getCategories(),
     ])
+
+    const keys = ['author', 'assignee', 'files']
+    const include = ['author', 'assignee', 'files']
     if (isCS) {
-      await ticket.fetch({ keys: ['privateTags'] }, { useMasterKey: true })
+      keys.push('privateTags')
     }
+    await ticket.fetch({ keys, include }, { useMasterKey: true })
+
+    const categoryById = categories.reduce((map, category) => {
+      map[category.id] = category
+      return map
+    }, {})
 
     res.json({
       id: ticket.id,
       nid: ticket.get('nid'),
       title: ticket.get('title'),
       author_id: ticket.get('author').id,
+      author: encodeUserObject(ticket.get('author')),
       organization_id: ticket.get('organization')?.id || '',
       assignee_id: ticket.get('assignee').id,
+      assignee: encodeUserObject(ticket.get('assignee')),
       category_id: ticket.get('category').objectId,
+      category_path: getCategoryPath(categoryById, ticket.get('category').objectId),
       content: ticket.get('content'),
       content_HTML: ticket.get('content_HTML'),
       file_ids: ticket.get('files')?.map((file) => file.id) || [],
+      files: ticket.get('files')?.map(encodeFileObject) || [],
       evaluation: ticket.get('evaluation') || null,
       joined_customer_service_ids:
         ticket.get('joinedCustomerServices')?.map((user) => user.objectId) || [],
@@ -225,6 +355,9 @@ router.get(
       metadata: ticket.get('metaData') || {},
       created_at: ticket.createdAt,
       updated_at: ticket.updatedAt,
+      reply_count: ticket.get('replyCount') || 0,
+      unread_count: ticket.get('unreadCount') || 0,
+      latest_reply: encodeLatestReply(ticket.get('latestReply')),
       subscribed: !!watch,
     })
 
@@ -263,18 +396,28 @@ function encodeReplyObject(reply) {
 
 router.get(
   '/:id/replies',
-  query('after').isISO8601().optional(),
+  parseSearchingQ,
+  query('created_at_gt').isISO8601().optional(),
   catchError(async (req, res) => {
-    const { after } = req.query
+    const { created_at_gt } = req.query
     const query = new AV.Query('Reply')
       .equalTo('ticket', req.ticket)
       .ascending('createdAt')
+      .include('author', 'files')
       .limit(500)
-    if (after) {
-      query.greaterThan('createdAt', new Date(after))
+    if (created_at_gt) {
+      query.greaterThan('createdAt', new Date(created_at_gt))
     }
     const replies = await query.find({ useMasterKey: true })
-    res.json(replies.map(encodeReplyObject))
+    res.json(
+      replies.map((reply) => {
+        return {
+          ...encodeReplyObject(reply),
+          author: encodeUserObject(reply.get('author')),
+          files: reply.get('files')?.map(encodeFileObject) || [],
+        }
+      })
+    )
   })
 )
 
@@ -310,6 +453,7 @@ router.post(
     await ticket.fetch({ include: ['author', 'assignee'] }, { useMasterKey: true })
     const authorInfo = getTinyUserInfo(author)
     ticket.set('latestReply', {
+      objectId: reply.id,
       author: authorInfo,
       content,
       isCustomerService: isCS,
@@ -344,15 +488,16 @@ router.post(
 
 router.get(
   '/:id/ops-logs',
-  query('after').isISO8601().optional(),
+  parseSearchingQ,
+  query('created_at_gt').isISO8601().optional(),
   catchError(async (req, res) => {
-    const { after } = req.query
+    const { created_at_gt } = req.query
     const query = new AV.Query('OpsLog')
       .equalTo('ticket', req.ticket)
       .ascending('createdAt')
       .limit(500)
-    if (after) {
-      query.greaterThan('createdAt', new Date(after))
+    if (created_at_gt) {
+      query.greaterThan('createdAt', new Date(created_at_gt))
     }
     const opsLogs = await query.find({ useMasterKey: true })
     res.json(
@@ -400,6 +545,11 @@ router.patch(
       )
     }),
   check('subscribed').isBoolean().optional(),
+  check('unread_count')
+    .isInt()
+    .toInt()
+    .custom((v) => v === 0)
+    .optional(),
   catchError(async (req, res) => {
     const {
       assignee_id,
@@ -409,6 +559,7 @@ router.patch(
       private_tags,
       evaluation,
       subscribed,
+      unread_count,
     } = req.body
     /**
      * @type {AV.Object}
@@ -495,6 +646,11 @@ router.patch(
       if (!subscribed && watch) {
         await watch.destroy({ user: req.user })
       }
+    }
+
+    if (unread_count !== undefined) {
+      ticket.set('unreadCount', unread_count)
+      ticket.updatedKeys.push('unreadCount')
     }
 
     await saveWithoutHooks(ticket, {

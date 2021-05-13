@@ -2,29 +2,19 @@ const AV = require('leancloud-storage')
 const { Router } = require('express')
 const { query } = require('express-validator')
 
-const { catchError } = require('../middleware')
-
-/**
- * @param {AV.Object} file
- */
-function encodeFileObject(file) {
-  return {
-    id: file.id,
-    name: file.get('name'),
-    mime: file.get('mime_type'),
-    url: file.get('url'),
-  }
-}
+const { catchError, parseSearchingQ } = require('../middleware')
+const { encodeFileObject } = require('./utils')
 
 const router = Router()
 
 router.get(
   '/',
-  query('ids').isString().isLength({ min: 1 }),
+  parseSearchingQ,
+  query('id').isString().isLength({ min: 1 }),
   catchError(async (req, res) => {
-    const ids = req.query.ids.split(',')
+    const { id } = req.query
     const query = new AV.Query('_File')
-    query.containedIn('objectId', ids)
+    query.containedIn('objectId', id.split(','))
     const files = await query.find()
     res.json(files.map(encodeFileObject))
   })

@@ -20,6 +20,7 @@ app.use(Raven.requestHandler())
 // 加载云引擎中间件
 app.use(AV.express())
 
+app.disable('x-powered-by')
 app.enable('trust proxy')
 app.use(AV.Cloud.HttpsRedirect())
 
