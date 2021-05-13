@@ -66,6 +66,7 @@
     "react-i18next": "^11.8.7",
     "react-notification-system": "^0.2.14",
     "react-router-dom": "^5.2.0",
+    "react-use": "^17.2.4",
     "remarkable": "^1.7.2",
     "request": "^2.87.0",
     "request-promise": "^4.1.1",

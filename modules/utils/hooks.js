@@ -1,14 +1,6 @@
-import { useEffect, useRef, useMemo, useCallback } from 'react'
+import { useMemo, useCallback } from 'react'
 import { useHistory, useLocation } from 'react-router-dom'
 import _ from 'lodash'
-
-export function useTitle(title) {
-  const previousTitle = useRef(document.title)
-  useEffect(() => {
-    document.title = title
-    return () => (document.title = previousTitle.current)
-  }, [title])
-}
 
 export const useApplyChanges = () => {
   const history = useHistory()
