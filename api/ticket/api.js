@@ -228,10 +228,6 @@ router.get(
       query.exists('evaluation')
     }
 
-    Object.keys(req.query)
-      .filter((key) => key.startsWith('metadata.'))
-      .forEach((key) => query.equalTo('metaData.' + key.slice(9), req.query[key]))
-
     query.select(
       'nid',
       'title',
