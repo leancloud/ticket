@@ -100,6 +100,7 @@ exports.parseSearching = (schema) =>
 exports.parseSearchingQ = (req, res, next) => {
   const q = parse(req.query.q)
   Object.entries(q.eq).forEach(([key, value]) => (req.query[key] = value))
+  Object.entries(q.ne).forEach(([key, value]) => (req.query[key + '_ne'] = value))
   Object.entries(q.gt).forEach(([key, value]) => (req.query[key + '_gt'] = value))
   Object.entries(q.gte).forEach(([key, value]) => (req.query[key + '_gte'] = value))
   Object.entries(q.lt).forEach(([key, value]) => (req.query[key + '_lt'] = value))
