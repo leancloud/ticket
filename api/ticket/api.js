@@ -142,6 +142,7 @@ router.get(
     .toInt()
     .custom((page_size) => page_size >= 0 && page_size <= 1000),
   query('count').isBoolean().toBoolean().optional(),
+  query('where').isJSON().optional(),
   query('nid').isInt().toInt().optional(),
   query('author_id').trim().isLength({ min: 1 }).optional(),
   query('organization_id').isString().optional(),
@@ -155,6 +156,7 @@ router.get(
       status.split(',').every((v) => Object.values(TICKET_STATUS).includes(parseInt(v)))
     )
     .optional(),
+  query('evaluation_ne').isIn(['null']).optional(),
   catchError(async (req, res) => {
     const { page, page_size, count } = req.query
     const { nid, author_id, organization_id, status } = req.query
@@ -167,6 +169,9 @@ router.get(
     }
 
     let query = new AV.Query('Ticket')
+    if (req.query.where) {
+      query._where = JSON.parse(req.query.where)
+    }
 
     if (nid !== undefined) {
       query.equalTo('nid', nid)
@@ -219,6 +224,14 @@ router.get(
       query.greaterThan('unreadCount', unread_count_gt)
     }
 
+    if (req.query.evaluation_ne === 'null') {
+      query.exists('evaluation')
+    }
+
+    Object.keys(req.query)
+      .filter((key) => key.startsWith('metadata.'))
+      .forEach((key) => query.equalTo('metaData.' + key.slice(9), req.query[key]))
+
     query.select(
       'nid',
       'title',
@@ -226,6 +239,7 @@ router.get(
       'organization',
       'assignee',
       'category',
+      'content',
       'joinedCustomerServices',
       'status',
       'evaluation',
@@ -284,6 +298,7 @@ router.get(
           assignee: encodeUserObject(ticket.get('assignee')),
           category_id: categoryId,
           category_path: getCategoryPath(categoryById, categoryId),
+          content: ticket.get('content'),
           joined_customer_service_ids: Array.from(joinedCustomerServiceIds),
           status: ticket.get('status'),
           evaluation: ticket.get('evaluation') || null,
