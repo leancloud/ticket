@@ -142,6 +142,7 @@ router.get(
     .toInt()
     .custom((page_size) => page_size >= 0 && page_size <= 1000),
   query('count').isBoolean().toBoolean().optional(),
+  query('where').isJSON().optional(),
   query('nid').isInt().toInt().optional(),
   query('author_id').trim().isLength({ min: 1 }).optional(),
   query('organization_id').isString().optional(),
@@ -168,6 +169,9 @@ router.get(
     }
 
     let query = new AV.Query('Ticket')
+    if (req.query.where) {
+      query._where = JSON.parse(req.query.where)
+    }
 
     if (nid !== undefined) {
       query.equalTo('nid', nid)
