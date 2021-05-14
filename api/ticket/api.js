@@ -155,9 +155,7 @@ router.get(
       status.split(',').every((v) => Object.values(TICKET_STATUS).includes(parseInt(v)))
     )
     .optional(),
-  query('evaluation_ne')
-    .custom((evaluation) => evaluation === 'null')
-    .optional(),
+  query('evaluation_ne').isIn(['null']).optional(),
   catchError(async (req, res) => {
     const { page, page_size, count } = req.query
     const { nid, author_id, organization_id, status } = req.query
