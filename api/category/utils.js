@@ -29,7 +29,7 @@ function encodeCategoryObject(category) {
     parent_id: category.get('parent')?.id || '',
     position: category.get('order') ?? category.createdAt.getTime(),
     template: category.get('qTemplate') || '',
-    faq_ids: category.get('faqs')?.map((faq) => faq.id) || [],
+    faq_ids: category.get('FAQs')?.map((faq) => faq.id) || [],
     active: !category.get('deletedAt'),
     created_at: category.createdAt,
     updated_at: category.updatedAt,

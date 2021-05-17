@@ -86,7 +86,7 @@ class Category extends React.Component {
     e.preventDefault()
     this.setState({ isSubmitting: true })
     const category = this.state.category
-    const faqs = this.state.FAQs.split(',')
+    const FAQs = this.state.FAQs.split(',')
       .filter((id) => id)
       .map((id) => db.class('FAQ').object(id))
 
@@ -98,10 +98,10 @@ class Category extends React.Component {
         description: this.state.description,
         parent: this.state.parentCategory,
         qTemplate: this.state.qTemplate,
-        faqs,
+        FAQs,
       })
     } else {
-      const data = { qTemplate: this.state.qTemplate, faqs }
+      const data = { qTemplate: this.state.qTemplate, FAQs }
 
       if (this.state.parentCategory != category.parent) {
         if (!this.state.parentCategory) {
