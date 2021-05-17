@@ -36,19 +36,16 @@ export function TicketOperation({ ticket, isCustomerService, onOperate }) {
       </Alert>
     )
   }
-  if (isCustomerService) {
-    return (
-      <Form.Group>
-        <Form.Label>{t('ticketOperation')}</Form.Label>
-        <div>
-          <Button variant="light" onClick={() => onOperate('reopen')}>
-            {t('reopen')}
-          </Button>
-        </div>
-      </Form.Group>
-    )
-  }
-  return null
+  return (
+    <Form.Group>
+      <Form.Label>{t('ticketOperation')}</Form.Label>
+      <div>
+        <Button variant="light" onClick={() => onOperate('reopen')}>
+          {t('reopen')}
+        </Button>
+      </div>
+    </Form.Group>
+  )
 }
 
 TicketOperation.propTypes = {
