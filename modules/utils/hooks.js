@@ -1,6 +1,6 @@
 import { useMemo, useCallback } from 'react'
 import { useHistory, useLocation } from 'react-router-dom'
-import ReactUse from 'react-use'
+import * as ReactUse from 'react-use'
 import _ from 'lodash'
 
 /**

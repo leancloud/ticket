@@ -41,6 +41,7 @@ apiRouter.use('/ticket-fields', require('./TicketField'))
 apiRouter.use('/tickets', require('./ticket/api'))
 apiRouter.use('/users', require('./user/api'))
 apiRouter.use('/categories', require('./category/api'))
+apiRouter.use('/customer-services', require('./customerService/api'))
 apiRouter.get('/debug/search', parseSearchingQ, (req, res) => {
   res.json({ q: req.q, query: req.query })
 })
