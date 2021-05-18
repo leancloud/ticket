@@ -27,6 +27,8 @@ function getCORSOrigin() {
   return origins.length > 1 ? origins : origins[0]
 }
 
+const allowMutateEvaluation = !!process.env.ALLOW_MUTATE_EVALUATION
+
 module.exports = {
   host,
   oauthKey: process.env.OAUTH_KEY,
@@ -35,6 +37,7 @@ module.exports = {
   leancloudAppUrl: process.env.LEANCLOUD_APP_URL_V2,
   sentryDSN: process.env.SENTRY_DSN,
   sentryDSNPublic: process.env.SENTRY_DSN_PUBLIC,
+  allowMutateEvaluation,
   corsOrigin: getCORSOrigin(),
 }
 
@@ -90,4 +93,5 @@ setClientGlobalVars({
   // Use HELP_EMAIL instead of SUPPORT_EMAIL, because there is a bug in LeanEngine.
   // See #1830 of LeanEngine repo (private) for more information.
   SUPPORT_EMAIL: process.env.HELP_EMAIL,
+  ALLOW_MUTATE_EVALUATION: allowMutateEvaluation,
 })

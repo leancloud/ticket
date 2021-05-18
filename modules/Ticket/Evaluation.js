@@ -7,13 +7,16 @@ import * as Icon from 'react-bootstrap-icons'
 import { AppContext } from '../context'
 import { fetch } from '../../lib/leancloud'
 import { useMutation, useQueryClient } from 'react-query'
+import { useToggle } from 'react-use'
 
 export function Evaluation({ ticket, isCustomerService }) {
   const { t } = useTranslation()
   const { addNotification } = useContext(AppContext)
   const storageKey = `ticket:${ticket.id}:evaluation`
   const [star, setStar] = useState(ticket.evaluation?.star ?? 1)
-  const [content, setContent] = useState(localStorage.getItem(storageKey) ?? '')
+  const [content, setContent] = useState(ticket.evaluation?.content ?? localStorage.getItem(storageKey) ?? '')
+  const [editing, toggleEditing] = useToggle(ticket.evaluation === undefined)
+  const readonly = (ticket.evaluation || isLoading) && !editing
 
   const setEvaluationContent = useCallback(
     (content) => {
@@ -40,6 +43,7 @@ export function Evaluation({ ticket, isCustomerService }) {
         evaluation,
       }))
       localStorage.removeItem(storageKey)
+      toggleEditing(false)
     },
     onError: (error) => addNotification(error),
   })
@@ -56,7 +60,7 @@ export function Evaluation({ ticket, isCustomerService }) {
           label={<Icon.HandThumbsUp />}
           type="radio"
           inline
-          disabled={!!ticket.evaluation || isLoading}
+          disabled={readonly}
           checked={star === 1}
           value={1}
           onChange={() => setStar(1)}
@@ -66,23 +70,28 @@ export function Evaluation({ ticket, isCustomerService }) {
           label={<Icon.HandThumbsDown />}
           type="radio"
           inline
-          disabled={!!ticket.evaluation || isLoading}
+          disabled={readonly}
           checked={star === 0}
           value={0}
           onChange={() => setStar(0)}
         />
+        {ticket.evaluation && !editing && (
+          <Button variant="link" onClick={toggleEditing}>
+            {t('edit')}
+          </Button>
+        )}
       </Form.Group>
       <Form.Group>
         <Form.Control
           as="textarea"
           rows={8}
           placeholder={ticket.evaluation ? '' : t('haveSomethingToSay')}
-          value={ticket.evaluation?.content ?? content}
-          disabled={!!ticket.evaluation || isLoading}
+          value={content}
+          disabled={readonly}
           onChange={(e) => setEvaluationContent(e.target.value)}
         />
       </Form.Group>
-      {!ticket.evaluation && (
+      {!readonly && (
         <Button variant="light" disabled={isLoading} onClick={() => mutate({ star, content })}>
           {t('submit')}
         </Button>
