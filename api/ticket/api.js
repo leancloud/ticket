@@ -21,6 +21,7 @@ const { invokeWebhooks } = require('../webhook')
 const { encodeFileObject } = require('../file/utils')
 const { encodeUserObject } = require('../user/utils')
 const { getCategories } = require('../category/utils')
+const config = require('../../config')
 
 const TICKET_SORT_KEY_MAP = {
   created_at: 'createdAt',
@@ -636,7 +637,7 @@ router.patch(
       if (req.user.id !== ticket.get('author').id) {
         res.throw(403)
       }
-      if (ticket.has('evaluation')) {
+      if (!config.allowMutateEvaluation && ticket.has('evaluation')) {
         res.throw(409, 'Evaluation already exists')
       }
       ticket.set('evaluation', { star: evaluation.star, content: evaluation.content })
