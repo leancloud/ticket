@@ -28,10 +28,10 @@ export function LeanCloudApp({ ticketId, authorUserame, isCustomerService }) {
   }, [ticketId, addNotification])
 
   useEffect(() => {
+    if (!appId) {
+      return
+    }
     ;(async () => {
-      if (!window.ENABLE_LEANCLOUD_INTEGRATION || !appId) {
-        return
-      }
       const app = await cloud.run('getLeanCloudApp', {
         appId,
         username: authorUserame,

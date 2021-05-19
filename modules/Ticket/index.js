@@ -357,11 +357,13 @@ export default function Ticket() {
         </Col>
 
         <Col className={css.sidebar} sm={4}>
-          <LeanCloudApp
-            ticketId={ticket.id}
-            authorUserame={ticket.author.username}
-            isCustomerService={isCsInThisTicket}
-          />
+          {window.ENABLE_LEANCLOUD_INTEGRATION && (
+            <LeanCloudApp
+              ticketId={ticket.id}
+              authorUserame={ticket.author.username}
+              isCustomerService={isCsInThisTicket}
+            />
+          )}
 
           <TicketMetadata ticket={ticket} isCustomerService={isCsInThisTicket} />
 
