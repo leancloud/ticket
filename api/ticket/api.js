@@ -24,6 +24,7 @@ const { getCategories } = require('../category/utils')
 
 const TICKET_SORT_KEY_MAP = {
   created_at: 'createdAt',
+  updated_at: 'updatedAt',
   status: 'status',
 }
 
