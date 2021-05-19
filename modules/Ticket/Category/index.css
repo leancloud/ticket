@@ -1,0 +1,16 @@
+.category {
+  display: inline-block;
+  color: #afafaf;
+  border: 1px solid #d6d6d6;
+  font-size: 13px;
+  padding: 3px 5px;
+  border-radius: 4px;
+  line-height: 1;
+}
+
+.category.block {
+  color: #777;
+  border-color: #777;
+  font-size: inherit;
+  padding: 4px 8px;
+}

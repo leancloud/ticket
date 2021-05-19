@@ -1,6 +1,16 @@
 import { useMemo, useCallback } from 'react'
 import { useHistory, useLocation } from 'react-router-dom'
+import * as ReactUse from 'react-use'
 import _ from 'lodash'
+
+/**
+ * @param {string} [title]
+ */
+export function useTitle(title) {
+  ReactUse.useTitle(title === undefined ? 'LeanTicket' : `${title} - LeanTicket`, {
+    restoreOnUnmount: true,
+  })
+}
 
 export const useApplyChanges = () => {
   const history = useHistory()

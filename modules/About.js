@@ -1,10 +1,11 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import { useTitle } from 'react-use'
+
+import { useTitle } from './utils/hooks'
 
 export default function About() {
   const { t } = useTranslation()
-  useTitle(`${t('about')} - LeanTicket`)
+  useTitle(t('about'))
 
   return (
     <div>

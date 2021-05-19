@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Alert, Button, Form } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
@@ -7,16 +7,26 @@ import { TICKET_STATUS, ticketStatus } from '../../lib/common'
 
 export function TicketOperation({ ticket, isCustomerService, onOperate }) {
   const { t } = useTranslation()
+  const [operating, setOperating] = useState(false)
+
+  const operate = async (action) => {
+    setOperating(true)
+    try {
+      await onOperate(action)
+    } finally {
+      setOperating(false)
+    }
+  }
 
   if (ticketStatus.isOpened(ticket.status)) {
     return (
       <Form.Group>
         <Form.Label>{t('ticketOperation')}</Form.Label>
         <div>
-          <Button variant="light" onClick={() => onOperate('resolve')}>
+          <Button variant="light" disabled={operating} onClick={() => operate('resolve')}>
             {t('resolved')}
           </Button>{' '}
-          <Button variant="light" onClick={() => onOperate('close')}>
+          <Button variant="light" disabled={operating} onClick={() => operate('close')}>
             {t('close')}
           </Button>
         </div>
@@ -28,8 +38,10 @@ export function TicketOperation({ ticket, isCustomerService, onOperate }) {
       <Alert variant="warning">
         <Form.Label>{t('confirmResolved')}</Form.Label>
         <div>
-          <Button onClick={() => onOperate('resolve')}>{t('resolutionConfirmed')}</Button>{' '}
-          <Button variant="light" onClick={() => onOperate('reopen')}>
+          <Button disabled={operating} onClick={() => operate('resolve')}>
+            {t('resolutionConfirmed')}
+          </Button>{' '}
+          <Button variant="light" disabled={operating} onClick={() => operate('reopen')}>
             {t('unresolved')}
           </Button>
         </div>
@@ -40,7 +52,7 @@ export function TicketOperation({ ticket, isCustomerService, onOperate }) {
     <Form.Group>
       <Form.Label>{t('ticketOperation')}</Form.Label>
       <div>
-        <Button variant="light" onClick={() => onOperate('reopen')}>
+        <Button variant="light" disabled={operating} onClick={() => operate('reopen')}>
           {t('reopen')}
         </Button>
       </div>

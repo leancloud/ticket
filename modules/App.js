@@ -190,6 +190,7 @@ class App extends Component {
         {!this.state.loading && (
           <AppContext.Provider
             value={{
+              currentUser: this.state.currentUser,
               isCustomerService: props.isCustomerService,
               tagMetadatas: props.tagMetadatas,
               addNotification: this.getChildContext().addNotification,

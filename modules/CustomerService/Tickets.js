@@ -647,7 +647,7 @@ TicketPager.propTypes = {
 
 export default function CustomerServiceTickets() {
   const { t } = useTranslation()
-  useTitle(`${t('customerServiceTickets')} - LeanTicket`)
+  useTitle(t('customerServiceTickets'))
   const { addNotification } = useContext(AppContext)
   const [checkedTickets, setCheckedTickets] = useState(new Set())
   const customerServices = useCustomerServices()
