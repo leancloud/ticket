@@ -9,10 +9,17 @@ const userLocale = window.localStorage.getItem('locale')
 export const locale = userLocale || defaultLocale
 
 moment.updateLocale('zh-cn', {
+  /* eslint-disable i18n/no-chinese-character */
   calendar: {
-    // eslint-disable-next-line i18n/no-chinese-character
-    lastWeek: '[上]ddddLT',
+    lastWeek: function (now) {
+      if (this.week() === now.week()) {
+        return 'ddddLT'
+      } else {
+        return '[上]ddddLT'
+      }
+    },
   },
+  /* eslint-enable i18n/no-chinese-character */
 })
 
 i18next.on('languageChanged', (lang) => {

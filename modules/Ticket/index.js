@@ -53,7 +53,7 @@ function useTicket(nid) {
     ['tickets', { nid }],
     () => fetch('/api/1/tickets', { query: { nid } })
   )
-  const ticketId = tickets?.[0].id
+  const ticketId = tickets?.[0]?.id
 
   const {
     data: ticket,
@@ -67,7 +67,7 @@ function useTicket(nid) {
   })
 
   const noTicketError = useMemo(() => {
-    if (!loadingTickets && ticketId) {
+    if (!loadingTickets && !ticketId) {
       return new Error(`Ticket ${nid} not exists`)
     }
   }, [nid, loadingTickets, ticketId])
@@ -316,6 +316,7 @@ export default function Ticket() {
     return <div>{t('loading') + '...'}</div>
   }
   if (error) {
+    console.error('Fetch ticket:', error)
     history.replace({
       pathname: '/error',
       state: { code: 'Unauthorized' },
