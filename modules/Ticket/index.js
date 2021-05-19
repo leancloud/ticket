@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { useRouteMatch } from 'react-router'
+import { useHistory, useRouteMatch } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import { Button, Col, OverlayTrigger, Row, Tooltip } from 'react-bootstrap'
@@ -262,7 +262,8 @@ export default function Ticket() {
   } = useRouteMatch()
   const { t } = useTranslation()
   const { addNotification, currentUser, isCustomerService } = useContext(AppContext)
-  const { ticket, isLoading: loadingTicket, refetchTicket } = useTicket(nid)
+  const history = useHistory()
+  const { ticket, isLoading: loadingTicket, refetchTicket, error } = useTicket(nid)
   const { timeline, loadMoreReplies, loadMoreOpsLogs } = useTimeline(ticket?.id)
   useTitle(ticket?.title)
   const $onTicketUpdate = useRef()
@@ -290,7 +291,7 @@ export default function Ticket() {
       .subscribe()
       .then((subs) => {
         subscription = subs
-        subs.on('update', $onTicketUpdate.current)
+        subs.on('update', (...args) => $onTicketUpdate.current(...args))
         return
       })
       .catch(console.error)
@@ -313,6 +314,13 @@ export default function Ticket() {
 
   if (loadingTicket) {
     return <div>{t('loading') + '...'}</div>
+  }
+  if (error) {
+    history.replace({
+      pathname: '/error',
+      state: { code: 'Unauthorized' },
+    })
+    return null
   }
   return (
     <>
