@@ -15,8 +15,7 @@ export function Evaluation({ ticket, isCustomerService }) {
   const storageKey = `ticket:${ticket.id}:evaluation`
   const [star, setStar] = useState(ticket.evaluation?.star ?? 1)
   const [content, setContent] = useState(ticket.evaluation?.content ?? localStorage.getItem(storageKey) ?? '')
-  const [editing, toggleEditing] = useToggle(ticket.evaluation === undefined)
-  const readonly = (ticket.evaluation || isLoading) && !editing
+  const [editing, toggleEditing] = useToggle(!ticket.evaluation)
 
   const setEvaluationContent = useCallback(
     (content) => {
@@ -47,6 +46,8 @@ export function Evaluation({ ticket, isCustomerService }) {
     },
     onError: (error) => addNotification(error),
   })
+
+  const readonly = (ticket.evaluation || isLoading) && !editing
 
   if (!ticket.evaluation && isCustomerService) {
     return null
