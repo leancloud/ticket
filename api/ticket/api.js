@@ -664,15 +664,17 @@ router.patch(
       ticket.updatedKeys.push('unreadCount')
     }
 
-    await saveWithoutHooks(ticket, {
-      ignoreBeforeHook: true,
-      ignoreAfterHook: true,
-      useMasterKey: true,
-    })
-    afterUpdateTicketHandler(ticket, {
-      user: req.user,
-      skipFetchAssignee: !!assignee_id,
-    })
+    if (ticket.updatedKeys.length) {
+      await saveWithoutHooks(ticket, {
+        ignoreBeforeHook: true,
+        ignoreAfterHook: true,
+        useMasterKey: true,
+      })
+      afterUpdateTicketHandler(ticket, {
+        user: req.user,
+        skipFetchAssignee: !!assignee_id,
+      })
+    }
     res.json({})
   })
 )
