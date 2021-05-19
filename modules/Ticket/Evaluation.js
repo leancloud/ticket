@@ -1,21 +1,22 @@
 import React, { useCallback, useContext, useState } from 'react'
 import { Alert, Button, Form } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
+import { useMutation, useQueryClient } from 'react-query'
 import PropTypes from 'prop-types'
 import * as Icon from 'react-bootstrap-icons'
 
 import { AppContext } from '../context'
-import { fetch } from '../../lib/leancloud'
-import { useMutation, useQueryClient } from 'react-query'
-import { useToggle } from 'react-use'
+import { auth, fetch } from '../../lib/leancloud'
 
-export function Evaluation({ ticket, isCustomerService }) {
+export function Evaluation({ ticket }) {
   const { t } = useTranslation()
   const { addNotification } = useContext(AppContext)
   const storageKey = `ticket:${ticket.id}:evaluation`
   const [star, setStar] = useState(ticket.evaluation?.star ?? 1)
-  const [content, setContent] = useState(ticket.evaluation?.content ?? localStorage.getItem(storageKey) ?? '')
-  const [editing, toggleEditing] = useToggle(!ticket.evaluation)
+  const [content, setContent] = useState(
+    ticket.evaluation?.content ?? localStorage.getItem(storageKey) ?? ''
+  )
+  const [editing, setEditing] = useState(!ticket.evaluation)
 
   const setEvaluationContent = useCallback(
     (content) => {
@@ -42,14 +43,15 @@ export function Evaluation({ ticket, isCustomerService }) {
         evaluation,
       }))
       localStorage.removeItem(storageKey)
-      toggleEditing(false)
+      setEditing(false)
     },
     onError: (error) => addNotification(error),
   })
 
-  const readonly = (ticket.evaluation || isLoading) && !editing
+  const commitable = auth.currentUser?.id === ticket.author_id
+  const readonly = !editing || isLoading
 
-  if (!ticket.evaluation && isCustomerService) {
+  if (!ticket.evaluation && !commitable) {
     return null
   }
   return (
@@ -76,8 +78,8 @@ export function Evaluation({ ticket, isCustomerService }) {
           value={0}
           onChange={() => setStar(0)}
         />
-        {ticket.evaluation && !editing && (
-          <Button variant="link" onClick={toggleEditing}>
+        {!editing && commitable && window.ALLOW_MUTATE_EVALUATION && (
+          <Button variant="link" onClick={() => setEditing(true)}>
             {t('edit')}
           </Button>
         )}
@@ -92,7 +94,7 @@ export function Evaluation({ ticket, isCustomerService }) {
           onChange={(e) => setEvaluationContent(e.target.value)}
         />
       </Form.Group>
-      {!readonly && (
+      {editing && (
         <Button variant="light" disabled={isLoading} onClick={() => mutate({ star, content })}>
           {t('submit')}
         </Button>
