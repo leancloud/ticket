@@ -39,13 +39,9 @@ async function invokeTriggers(ticket, updateType) {
 
 /**
  * @param {AV.Object} ticket
- * @param {object} [options]
- * @param {boolean} [options.skipFetchAuthorAndAssignee]
  */
-async function afterSaveTicketHandler(ticket, options) {
-  if (!options?.skipFetchAuthorAndAssignee) {
-    await ticket.fetch({ include: ['author', 'assignee'] }, { useMasterKey: true })
-  }
+async function afterSaveTicketHandler(ticket) {
+  await ticket.fetch({ include: ['author', 'assignee'] }, { useMasterKey: true })
   const author = ticket.get('author')
   const assignee = ticket.get('assignee')
   addOpsLog(ticket, 'selectAssignee', {

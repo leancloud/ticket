@@ -114,7 +114,7 @@ router.post(
       ignoreBeforeHook: true,
       ignoreAfterHook: true,
     })
-    afterSaveTicketHandler(ticket, { skipFetchAuthorAndAssignee: true })
+    afterSaveTicketHandler(ticket)
 
     res.json({ id: ticket.id })
   })
