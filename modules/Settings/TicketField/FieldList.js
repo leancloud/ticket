@@ -2,8 +2,7 @@ import React, { memo, useCallback, useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
 import { useRouteMatch, Link } from 'react-router-dom'
 import { useTranslation, Trans } from 'react-i18next'
-import { Button } from 'react-bootstrap'
-import Table from 'modules/components/table'
+import { Button, Table } from 'react-bootstrap'
 import { DocumentTitle } from '../../utils/DocumentTitle'
 import Pagination, { usePagination } from 'modules/components/Pagination'
 import { NoDataRow } from 'modules/components/NoData'
@@ -122,7 +121,7 @@ const FieldList = memo(() => {
             <Button variant="primary">{t('ticketField.add')}</Button>
           </Link>
         </div>
-        <Table loading={loading} className={styles.table}>
+        <Table className={styles.table}>
           <thead>
             <tr>
               <th>{t('name')}</th>
