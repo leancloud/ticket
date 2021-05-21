@@ -2,7 +2,7 @@ import React from 'react'
 import { Card, Col, ListGroup, Row } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
-import { Link, Route, Switch, useRouteMatch } from 'react-router-dom'
+import { NavLink, Route, Switch, useRouteMatch } from 'react-router-dom'
 
 import Profile from './Profile'
 import Organization from './Organization'
@@ -12,6 +12,7 @@ import Tags from './Tags'
 import Tag from './Tag'
 import SettingsCSProfile from './CustomerServiceProfile'
 import Members from './Members'
+import Groups from './Groups'
 import FAQs from './FAQs'
 import FAQ from './FAQ'
 import Categories from './Categories'
@@ -40,10 +41,10 @@ export default function Settings(props) {
           <Card.Header>{t('settings')}</Card.Header>
           <ListGroup variant="flush">
             <ListGroup.Item>
-              <Link to="/settings/profile">{t('personalSettings')}</Link>
+              <NavLink to="/settings/profile">{t('personalSettings')}</NavLink>
             </ListGroup.Item>
             <ListGroup.Item>
-              <Link to="/settings/organizations">{t('organizationSettings')}</Link>
+              <NavLink to="/settings/organizations">{t('organizationSettings')}</NavLink>
             </ListGroup.Item>
           </ListGroup>
         </Card>
@@ -52,31 +53,34 @@ export default function Settings(props) {
             <Card.Header>{t('staffSettings')}</Card.Header>
             <ListGroup variant="flush">
               <ListGroup.Item>
-                <Link to="/settings/customerServiceProfile">{t('personalSettings')}</Link>
+                <NavLink to="/settings/customerServiceProfile">{t('personalSettings')}</NavLink>
               </ListGroup.Item>
               <ListGroup.Item>
-                <Link to="/settings/members">{t('member')}</Link>
+                <NavLink to="/settings/members">{t('member')}</NavLink>
               </ListGroup.Item>
               <ListGroup.Item>
-                <Link to="/settings/categories">{t('category')}</Link>
+                <NavLink to="/settings/groups">{t('group')}</NavLink>
               </ListGroup.Item>
               <ListGroup.Item>
-                <Link to="/settings/tags">{t('tag')}</Link>
+                <NavLink to="/settings/categories">{t('category')}</NavLink>
               </ListGroup.Item>
               <ListGroup.Item>
-                <Link to="/settings/ticketField">{t('ticketField')}</Link>
+                <NavLink to="/settings/ticketField">{t('ticketField')}</NavLink>
               </ListGroup.Item>
               <ListGroup.Item>
-                <Link to="/settings/faqs">{t('FAQ')}</Link>
+                <NavLink to="/settings/faqs">{t('FAQ')}</NavLink>
               </ListGroup.Item>
               <ListGroup.Item>
-                <Link to="/settings/dynamicContent">{t('dynamicContent')}</Link>
+                <NavLink to="/settings/faqs">{t('FAQ')}</NavLink>
               </ListGroup.Item>
               <ListGroup.Item>
-                <Link to="/settings/triggers">Trigger</Link>
+                <NavLink to="/settings/dynamicContent">{t('dynamicContent')}</NavLink>
               </ListGroup.Item>
               <ListGroup.Item>
-                <Link to="/settings/automations">Automation</Link>
+                <NavLink to="/settings/triggers">Trigger</NavLink>
+              </ListGroup.Item>
+              <ListGroup.Item>
+                <NavLink to="/settings/automations">Automation</NavLink>
               </ListGroup.Item>
             </ListGroup>
           </Card>
@@ -107,6 +111,9 @@ export default function Settings(props) {
           </Route>
           <Route path={`${path}/members`}>
             <Members {...childrenProps} />
+          </Route>
+          <Route path={`${path}/groups`}>
+            <Groups {...childrenProps} />
           </Route>
           <Route path={`${path}/faqs`} exact>
             <FAQs {...childrenProps} />

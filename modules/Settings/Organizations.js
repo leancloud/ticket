@@ -21,8 +21,8 @@ class Organizations extends Component {
     const organizationMembersCount = {}
     return Promise.all(
       organizations.map((o) => {
-        return cloud.run('getRoleUsers', { roleId: o.get('memberRole').id }).then((users) => {
-          organizationMembersCount[o.id] = users.length
+        return cloud.run('getRoleUsersCount', { roleId: o.get('memberRole').id }).then((count) => {
+          organizationMembersCount[o.id] = count
           return
         })
       })
