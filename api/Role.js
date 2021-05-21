@@ -1,14 +1,18 @@
 const AV = require('leanengine')
 
-AV.Cloud.define('getRoleUsers', ({ params, currentUser }) => {
+const getRoleUsersQuery = ({ params, currentUser }) => {
   const { roleId } = params
   return AV.Object.createWithoutData('_Role', roleId)
     .fetch({}, { user: currentUser })
     .then((organization) => {
       if (!organization) {
-        throw new AV.Cloud.Error('该组织不存在。')
+        throw new AV.Cloud.Error('该角色不存在。')
       }
 
-      return organization.getUsers().query().find({ useMasterKey: true })
+      return organization.getUsers().query()
     })
-})
+}
+
+AV.Cloud.define('getRoleUsers', (req) => getRoleUsersQuery(req).find({ useMasterKey: true }))
+
+AV.Cloud.define('getRoleUsersCount', (req) => getRoleUsersQuery(req).count({ useMasterKey: true }))

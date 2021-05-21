@@ -596,6 +596,11 @@ const messages = {
     'https://en.gravatar.com/',
     'https://cn.gravatar.com/'
   ],
+  // Group
+  'group': [
+    'Group',
+    '客服组'
+  ],
   // Tag
   'tagName': [
     'Tag name',

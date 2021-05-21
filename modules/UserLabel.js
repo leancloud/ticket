@@ -73,7 +73,7 @@ UserTags.propTypes = {
   user: PropTypes.object.isRequired,
 }
 
-export function UserLabel({ user, simple, displayTags }) {
+export function UserLabel({ user, simple, displayTags, displayId }) {
   const name = getUserDisplayName(user)
   if (simple) {
     return <span>{name}</span>
@@ -86,6 +86,7 @@ export function UserLabel({ user, simple, displayTags }) {
       <Link to={'/users/' + user.username} className="username">
         {name}
       </Link>
+      {displayId && <span className="text-muted"> ({user.username})</span>}
       {displayTags && <UserTags user={user} />}
     </span>
   )
@@ -95,4 +96,5 @@ UserLabel.propTypes = {
   user: PropTypes.object.isRequired,
   simple: PropTypes.bool,
   displayTags: PropTypes.bool,
+  displayId: PropTypes.bool,
 }
