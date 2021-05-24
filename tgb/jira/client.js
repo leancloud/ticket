@@ -5,7 +5,6 @@ import React, { useEffect, useState } from 'react'
 import { Button, Form } from 'react-bootstrap'
 
 function TicketMetadataJiraSection({ app, ticket, isCustomerService }) {
-  const ticketId = ticket.objectId
   const [issueURL, setIssueURL] = useState('')
   const [loading, setLoading] = useState(false)
   useEffect(() => {
@@ -15,13 +14,14 @@ function TicketMetadataJiraSection({ app, ticket, isCustomerService }) {
     setLoading(true)
     app
       .cloud()
-      .run('TGB_getJiraIssueURL', { ticketId })
+      .run('HS_getJiraIssueURL', { ticketId: ticket.id })
       .then((url) => {
         setIssueURL(url)
         setLoading(false)
         return
       })
-  }, [isCustomerService, ticketId])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCustomerService, ticket.id])
 
   const handleCreateIssue = () => {
     if (loading) {
@@ -30,7 +30,7 @@ function TicketMetadataJiraSection({ app, ticket, isCustomerService }) {
     setLoading(true)
     app
       .cloud()
-      .run('TGB_createJiraIssue', { ticketId })
+      .run('HS_createJiraIssue', { ticketId: ticket.id })
       .then((url) => {
         setIssueURL(url)
         setLoading(false)
