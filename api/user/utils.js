@@ -10,6 +10,7 @@ function encodeUserObject(user) {
     username: user.get('username'),
     name: user.get('name') || '',
     tags: user.get('tags') || [],
+    created_at: user.createdAt,
   }
 }
 

@@ -24,12 +24,13 @@ const USER_TAG = {
 
 function getUserTags(user) {
   const tags = []
-  if (user.createdAt) {
+  const createdAt = user.createdAt || user.created_at
+  if (createdAt) {
     const now = moment()
-    if (now.diff(user.createdAt, 'month') <= 3) {
+    if (now.diff(createdAt, 'month') <= 3) {
       tags.push('new')
     }
-    if (now.diff(user.createdAt, 'year') >= 2) {
+    if (now.diff(createdAt, 'year') >= 2) {
       tags.push('early')
     }
   }
