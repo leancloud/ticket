@@ -364,7 +364,7 @@ router.get(
         ticket.get('joinedCustomerServices')?.map((user) => user.objectId) || [],
       status: ticket.get('status'),
       tags: ticket.get('tags') || [],
-      private_tags: ticket.get('privateTags'),
+      private_tags: ticket.get('privateTags') || [],
       metadata: ticket.get('metaData') || {},
       created_at: ticket.createdAt,
       updated_at: ticket.updatedAt,
