@@ -2,11 +2,12 @@ const AV = require('leancloud-storage')
 
 const { addOpsLog } = require('./utils')
 const notification = require('../notification')
-const { getTinyUserInfo, systemUser } = require('../common')
+const { getTinyUserInfo } = require('../common')
 const { ticketStatus } = require('../../lib/common')
 const { invokeWebhooks } = require('../webhook')
 const { getActiveTriggers, recordTriggerLog } = require('../rule/trigger')
 const { Context } = require('../rule/context')
+const { systemUser } = require('../user/utils')
 
 /**
  * @param {AV.Object} ticket

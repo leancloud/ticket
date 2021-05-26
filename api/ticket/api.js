@@ -4,24 +4,16 @@ const { check, query } = require('express-validator')
 
 const { checkPermission } = require('../oauth')
 const { requireAuth, catchError, parseSearchingQ } = require('../middleware')
-const {
-  addOpsLog,
-  getActionStatus,
-  getTinyCategoryInfo,
-  getVacationerIds,
-  saveWithoutHooks,
-  selectAssignee,
-} = require('./utils')
-const { getReplyAcl } = require('../Reply')
-const { htmlify, isCustomerService } = require('../common')
-const { TICKET_ACTION, TICKET_STATUS, ticketStatus, getTicketAcl } = require('../../lib/common')
-const { afterSaveTicketHandler, afterUpdateTicketHandler } = require('./hook-handler')
-const notification = require('../notification')
-const { invokeWebhooks } = require('../webhook')
+const { makeTinyUserInfo } = require('../user/utils')
+const { getActionStatus, getVacationerIds } = require('./utils')
+const { isObjectExists } = require('../utils/object')
+const { TICKET_ACTION, TICKET_STATUS, ticketStatus } = require('../../lib/common')
 const { encodeFileObject } = require('../file/utils')
 const { encodeUserObject } = require('../user/utils')
+const { isCustomerService } = require('../customerService/utils')
 const { getCategories } = require('../category/utils')
 const config = require('../../config')
+const Ticket = require('./model')
 
 const TICKET_SORT_KEY_MAP = {
   created_at: 'createdAt',
@@ -39,17 +31,14 @@ function getWatchObject(user, ticket) {
     .first({ useMasterKey: true })
 }
 
-function makeFilePointer(objectId) {
-  return { __type: 'Pointer', className: '_File', objectId }
-}
-
-function getTinyUserInfo(user) {
-  return {
-    objectId: user.id,
-    username: user.get('username'),
-    name: user.get('name'),
-    email: user.get('email'),
+function getCategoryPath(categoryById, categoryId) {
+  let current = categoryById[categoryId]
+  const path = [{ id: current.id, name: current.name }]
+  while (current.parent_id) {
+    current = categoryById[current.parent_id]
+    path.unshift({ id: current.id, name: current.name })
   }
+  return path
 }
 
 function encodeLatestReply(latestReply) {
@@ -69,6 +58,16 @@ function encodeLatestReply(latestReply) {
   }
 }
 
+/**
+ * @param {AV.User | string} user
+ * @param {AV.User | string} author
+ */
+async function isCSInTicket(user, author) {
+  const userId = typeof user === 'string' ? user : user.id
+  const authorId = typeof author === 'string' ? author : author.id
+  return userId !== authorId && (await isCustomerService(userId))
+}
+
 router.post(
   '/',
   check('title').isString().trim().isLength({ min: 1 }),
@@ -85,50 +84,20 @@ router.post(
 
     const { title, category_id, content, organization_id, file_ids, metadata } = req.body
     const author = req.user
-    const organization = organization_id
-      ? AV.Object.createWithoutData('Organization', organization_id)
-      : undefined
-    const [assignee, categoryInfo] = await Promise.all([
-      selectAssignee(category_id),
-      getTinyCategoryInfo(category_id),
-    ])
 
-    const ticket = new AV.Object('Ticket')
-    ticket.setACL(new AV.ACL(getTicketAcl(author, organization)))
-    ticket.set('status', TICKET_STATUS.NEW)
-    ticket.set('title', title)
-    ticket.set('author', author)
-    ticket.set('assignee', assignee)
-    ticket.set('category', categoryInfo)
-    ticket.set('content', content)
-    ticket.set('content_HTML', htmlify(content))
-    ticket.set('files', file_ids.map(makeFilePointer))
-    if (metadata) {
-      ticket.set('metaData', metadata)
-    }
-    if (organization) {
-      ticket.set('organization', organization)
-    }
-
-    await saveWithoutHooks(ticket, {
-      ignoreBeforeHook: true,
-      ignoreAfterHook: true,
+    const ticket = await Ticket.create({
+      title,
+      category_id,
+      author,
+      content,
+      file_ids,
+      metadata,
+      organization_id,
     })
-    afterSaveTicketHandler(ticket)
 
     res.json({ id: ticket.id })
   })
 )
-
-const getCategoryPath = (categoryById, categoryId) => {
-  let current = categoryById[categoryId]
-  const path = [{ id: current.id, name: current.name }]
-  while (current.parent_id) {
-    current = categoryById[current.parent_id]
-    path.unshift({ id: current.id, name: current.name })
-  }
-  return path
-}
 
 router.get(
   '/',
@@ -327,7 +296,7 @@ router.get(
      */
     const ticket = req.ticket
     const [isCS, watch, categories] = await Promise.all([
-      isCustomerService(req.user),
+      isCSInTicket(req.user, ticket.get('author')),
       getWatchObject(req.user, ticket),
       getCategories(),
     ])
@@ -440,62 +409,15 @@ router.post(
   check('file_ids').default([]).isArray(),
   check('file_ids.*').isString(),
   catchError(async (req, res) => {
-    /**
-     * @type {AV.Object}
-     */
-    const ticket = req.ticket
-    const { content, file_ids } = req.body
+    const ticket = new Ticket(req.ticket)
     const author = req.user
-    const reply = new AV.Object('Reply')
-    const isCS = await isCustomerService(author, ticket.get('author'))
-    reply.setACL(getReplyAcl(ticket, author))
-    reply.set('ticket', ticket)
-    reply.set('author', author)
-    reply.set('content', content)
-    reply.set('content_HTML', htmlify(content))
-    reply.set('files', file_ids.map(makeFilePointer))
-    reply.set('isCustomerService', isCS)
-
-    await saveWithoutHooks(reply, {
-      ignoreBeforeHook: true,
-      ignoreAfterHook: true,
-      user: req.user,
+    const reply = await ticket.reply({
+      author,
+      content: req.body.content,
+      file_ids: req.body.file_ids,
+      isCustomerService: await isCSInTicket(req.user, req.ticket.get('author')),
     })
     res.json(encodeReplyObject(reply))
-
-    await ticket.fetch({ include: ['author', 'assignee'] }, { useMasterKey: true })
-    const authorInfo = getTinyUserInfo(author)
-    ticket.set('latestReply', {
-      objectId: reply.id,
-      author: authorInfo,
-      content,
-      isCustomerService: isCS,
-      createdAt: reply.createdAt,
-      updatedAt: reply.updatedAt,
-    })
-    ticket.increment('replyCount', 1)
-    ticket.updatedKeys = ['latestReply', 'replyCount']
-
-    if (isCS) {
-      ticket.addUnique('joinedCustomerServices', authorInfo)
-      ticket.set('status', TICKET_STATUS.WAITING_CUSTOMER)
-      ticket.increment('unreadCount')
-      ticket.updatedKeys.push('joinedCustomerServices', 'status', 'unreadCount')
-    } else {
-      ticket.set('status', TICKET_STATUS.WAITING_CUSTOMER_SERVICE)
-      ticket.updatedKeys.push('status')
-    }
-
-    await saveWithoutHooks(ticket, {
-      ignoreBeforeHook: true,
-      ignoreAfterHook: true,
-      useMasterKey: true,
-    })
-    afterUpdateTicketHandler(ticket, {
-      user: author,
-    })
-    notification.replyTicket(ticket, reply, author)
-    invokeWebhooks('reply.create', { reply: reply.toJSON() })
   })
 )
 
@@ -574,13 +496,9 @@ router.patch(
       subscribed,
       unread_count,
     } = req.body
-    /**
-     * @type {AV.Object}
-     */
-    const ticket = req.ticket
-    ticket.updatedKeys = []
+    const ticket = new Ticket(req.ticket)
 
-    const isCS = await isCustomerService(req.user)
+    const isCS = await isCSInTicket(req.user, ticket.author_id)
 
     if (assignee_id) {
       if (!isCS) {
@@ -590,70 +508,60 @@ router.patch(
       if (vacationerIds.includes(assignee_id)) {
         res.throw(400, 'Sorry, this customer service is in vacation.')
       }
-      const assignee = await new AV.Query('_User').get(assignee_id)
-      ticket.set('assignee', assignee)
-      ticket.updatedKeys.push('assignee')
+      if (!(await isObjectExists('_User', assignee_id))) {
+        res.throw(400, `Assignee(${assignee_id}) is not exists`)
+      }
+      ticket.assignee_id = assignee_id
     }
 
     if (category_id) {
       if (!isCS) {
         res.throw(403, 'Forbidden')
       }
-      const categoryInfo = await getTinyCategoryInfo(category_id)
-      ticket.set('category', categoryInfo)
-      ticket.updatedKeys.push('category')
+      ticket.category_id = category_id
     }
 
     if (organization_id !== undefined) {
-      const organization = AV.Object.createWithoutData('Organization', organization_id)
-      ticket.setACL(new AV.ACL(getTicketAcl(ticket.get('author'), organization)))
-      ticket.set('organization', organization)
-      ticket.updatedKeys.push('organization')
+      if (!(await isObjectExists('Organization', organization_id))) {
+        res.throw(400, `Organization(${organization_id}) is not exists`)
+      }
+      ticket.organization_id = organization_id
     }
 
     if (tags) {
       if (!isCS) {
         res.throw(403, 'Forbidden')
       }
-      ticket.set(
-        'tags',
-        tags.map((tag) => ({ key: tag.key, value: tag.value }))
-      )
-      ticket.updatedKeys.push('tags')
+      ticket.tags = tags.map((tag) => ({ key: tag.key, value: tag.value }))
     }
 
     if (private_tags) {
       if (!isCS) {
         res.throw(403, 'Forbidden')
       }
-      ticket.set(
-        'privateTags',
-        private_tags.map((tag) => ({ key: tag.key, value: tag.value }))
-      )
-      ticket.updatedKeys.push('privateTags')
+      ticket.private_tags = private_tags.map((tag) => ({ key: tag.key, value: tag.value }))
     }
 
     if (evaluation) {
-      if (req.user.id !== ticket.get('author').id) {
-        res.throw(403)
+      if (req.user.id !== ticket.author_id) {
+        res.throw(403, 'Only ticket author can submit evaluation')
       }
-      if (!config.allowMutateEvaluation && ticket.has('evaluation')) {
+      if (!config.allowMutateEvaluation && ticket.evaluation) {
         res.throw(409, 'Evaluation already exists')
       }
-      ticket.set('evaluation', { star: evaluation.star, content: evaluation.content })
-      ticket.updatedKeys.push('evaluation')
+      ticket.evaluation = { star: evaluation.star, content: evaluation.content }
     }
 
     if (subscribed !== undefined) {
       if (!isCS) {
         res.throw(403, 'Forbidden')
       }
-      const watch = await getWatchObject(req.user, ticket)
+      const watch = await getWatchObject(req.user, ticket.pointer)
       if (subscribed && !watch) {
         await new AV.Object('Watch', {
           ACL: { [req.user.id]: { read: true, write: true } },
           user: AV.Object.createWithoutData('_User', req.user.id),
-          ticket: AV.Object.createWithoutData('Ticket', ticket.id),
+          ticket: ticket.pointer,
         }).save()
       }
       if (!subscribed && watch) {
@@ -662,21 +570,11 @@ router.patch(
     }
 
     if (unread_count !== undefined) {
-      ticket.set('unreadCount', unread_count)
-      ticket.updatedKeys.push('unreadCount')
+      ticket.unread_count = unread_count
     }
 
-    if (ticket.updatedKeys.length) {
-      await saveWithoutHooks(ticket, {
-        ignoreBeforeHook: true,
-        ignoreAfterHook: true,
-        useMasterKey: true,
-      })
-      afterUpdateTicketHandler(ticket, {
-        user: req.user,
-        skipFetchAssignee: !!assignee_id,
-      })
-    }
+    await ticket.save({ operator: req.user })
+
     res.json({})
   })
 )
@@ -687,29 +585,21 @@ router.post(
     .isString()
     .custom((action) => Object.values(TICKET_ACTION).includes(action)),
   catchError(async (req, res) => {
-    /**
-     * @type {AV.Object}
-     */
-    const ticket = req.ticket
+    const ticket = new Ticket(req.ticket)
     const { action } = req.body
-    const isCS = await isCustomerService(req.user, ticket.get('author'))
-    const operatorInfo = getTinyUserInfo(req.user)
-
+    const isCS = await isCSInTicket(req.user, ticket.author_id)
+    const operatorInfo = makeTinyUserInfo(req.user)
     const status = getActionStatus(action, isCS)
     if (isCS) {
-      ticket.addUnique('joinedCustomerServices', operatorInfo)
-      if (ticketStatus.isOpened(status) !== ticketStatus.isOpened(ticket.get('status'))) {
-        ticket.increment('unreadCount')
+      ticket.object.addUnique('joinedCustomerServices', operatorInfo)
+      if (ticketStatus.isOpened(status) !== ticket.status) {
+        ticket.object.increment('unreadCount')
       }
     }
-
-    ticket.set('status', status)
-    await saveWithoutHooks(ticket, {
-      ignoreBeforeHook: true,
-      user: req.user,
-    })
+    ticket.status = status
+    ticket.pushOpsLog(action, { operator: operatorInfo })
+    await ticket.save({ operator: req.user })
     res.json({})
-    addOpsLog(ticket, action, { operator: operatorInfo })
   })
 )
 

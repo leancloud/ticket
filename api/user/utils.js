@@ -1,3 +1,9 @@
+const AV = require('leancloud-storage')
+
+const systemUser = AV.Object.createWithoutData('_User', 'system')
+// 不要通过 set 方法设置属性, 不然会被保存
+systemUser.attributes.username = 'system'
+
 /**
  * @param {import('leancloud-storage').User} user
  * @param {object} [options]
@@ -14,4 +20,16 @@ function encodeUserObject(user) {
   }
 }
 
-module.exports = { encodeUserObject }
+/**
+ * @param {AV.Object} user
+ */
+function makeTinyUserInfo(user) {
+  return {
+    objectId: user.id,
+    username: user.get('username'),
+    name: user.get('name'),
+    email: user.get('email'),
+  }
+}
+
+module.exports = { encodeUserObject, makeTinyUserInfo, systemUser }

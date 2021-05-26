@@ -9,12 +9,14 @@ const {
   TICKET_STATUS,
   TICKET_OPENED_STATUSES,
   getTicketAcl,
+  ticketStatus,
 } = require('../lib/common')
 const errorHandler = require('./errorHandler')
 const { Context } = require('./rule/context')
 const { getActiveAutomations } = require('./rule/automation')
-const { afterSaveTicketHandler, afterUpdateTicketHandler } = require('./ticket/hook-handler')
 const { getVacationerIds, selectAssignee, getActionStatus } = require('./ticket/utils')
+const { systemUser } = require('./user/utils')
+const { invokeWebhooks } = require('./webhook')
 
 AV.Cloud.beforeSave('Ticket', async (req) => {
   if (!req.currentUser || !(await checkPermission(req.currentUser))) {
@@ -43,12 +45,19 @@ AV.Cloud.beforeSave('Ticket', async (req) => {
 })
 
 AV.Cloud.afterSave('Ticket', async (req) => {
-  try {
-    afterSaveTicketHandler(req.object)
-  } catch (err) {
-    errorHandler.captureException(err)
-    throw new AV.Cloud.Error('Internal Error', { status: 500 })
-  }
+  const ticket = req.object
+  const assigneeInfo = await getTinyUserInfo(ticket.get('assignee'))
+  new AV.Object('OpsLog', {
+    ticket,
+    action: 'selectAssignee',
+    data: { assignee: assigneeInfo },
+  })
+    .save(null, { useMasterKey: true })
+    .catch(errorHandler.captureException)
+  notification
+    .newTicket(ticket, req.currentUser, ticket.get('assignee'))
+    .catch(errorHandler.captureException)
+  invokeWebhooks('ticket.create', { ticket: ticket.toJSON() })
 })
 
 AV.Cloud.beforeUpdate('Ticket', async (req) => {
@@ -61,9 +70,51 @@ AV.Cloud.beforeUpdate('Ticket', async (req) => {
   }
 })
 
-AV.Cloud.afterUpdate('Ticket', (req) => {
-  afterUpdateTicketHandler(req.object, {
-    user: req.currentUser,
+AV.Cloud.afterUpdate('Ticket', async (req) => {
+  const ticket = req.object
+  const updatedKeys = new Set(ticket.updatedKeys)
+  const user = req.currentUser || systemUser
+  const userInfo = await getTinyUserInfo(user)
+  const opsLogs = []
+  const addOpsLog = (action, data) => {
+    data.operator = userInfo
+    opsLogs.push(new AV.Object('OpsLog', { ticket, action, data }))
+  }
+
+  if (updatedKeys.has('category')) {
+    addOpsLog('changeCategory', { category: ticket.get('category') })
+  }
+
+  if (updatedKeys.has('assignee')) {
+    const assigneeInfo = await getTinyUserInfo(ticket.get('assignee'))
+    addOpsLog('changeAssignee', { assignee: assigneeInfo })
+    notification
+      .changeAssignee(ticket, user, ticket.get('assignee'))
+      .catch(errorHandler.captureException)
+  }
+
+  if (updatedKeys.has('evaluation') && req.currentUser) {
+    // use side effect
+    await getTinyUserInfo(ticket.get('assignee'))
+    notification
+      .ticketEvaluation(ticket, req.currentUser, ticket.get('assignee'))
+      .catch(errorHandler.captureException)
+  }
+
+  if (updatedKeys.has('status') && ticketStatus.isClosed(ticket.get('status'))) {
+    AV.Cloud.run('statsTicket', { ticketId: ticket.id }).catch(errorHandler.captureException)
+  }
+
+  if (opsLogs.length === 1) {
+    opsLogs[0].save(null, { useMasterKey: true }).catch(errorHandler.captureException)
+  }
+  if (opsLogs.length > 1) {
+    AV.Object.saveAll(opsLogs, { useMasterKey: true }).catch(errorHandler.captureException)
+  }
+
+  invokeWebhooks('ticket.update', {
+    ticket: ticket.toJSON(),
+    updatedKeys: ticket.updatedKeys,
   })
 })
 

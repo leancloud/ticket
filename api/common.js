@@ -8,10 +8,6 @@ const config = require('../config')
 
 Object.assign(module.exports, require('../lib/common'))
 
-exports.systemUser = AV.Object.createWithoutData('_User', 'system')
-// 不要通过 set 方法设置属性, 不然会被保存
-exports.systemUser.attributes['username'] = 'system'
-
 /**
  * @param {AV.Object} user
  * @returns {Promise<{
