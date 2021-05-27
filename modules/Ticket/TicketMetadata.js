@@ -4,8 +4,9 @@ import * as Icon from 'react-bootstrap-icons'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import PropTypes from 'prop-types'
+import { Link } from 'react-router-dom'
 
-import { fetch } from '../../lib/leancloud'
+import { db, fetch } from '../../lib/leancloud'
 import { UserLabel } from '../UserLabel'
 import { AppContext } from '../context'
 import { getConfig } from '../config'
@@ -19,6 +20,74 @@ function updateTicket(id, data) {
     method: 'PATCH',
     body: data,
   })
+}
+
+function GroupSection({ ticket }) {
+  const { t } = useTranslation()
+  const [editingGroup, setEditingGroup] = useState(false)
+  const { data: groups, isLoading } = useQuery({
+    queryKey: 'groups',
+    queryFn: () => db.class('Group').find(),
+    enabled: editingGroup,
+  })
+
+  const { addNotification } = useContext(AppContext)
+  const queryClient = useQueryClient()
+  const { mutate: updateGroup, isLoading: updating } = useMutation({
+    mutationFn: (group_id) => updateTicket(ticket.id, { group_id }),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['ticket', ticket.id])
+      setEditingGroup(false)
+    },
+    onError: (error) => addNotification(error),
+  })
+
+  return (
+    <Form.Group>
+      <Form.Label>{t('group')}</Form.Label>
+      {editingGroup ? (
+        <Form.Control
+          as="select"
+          value={ticket.group?.objectId}
+          disabled={isLoading || updating}
+          onChange={(e) => updateGroup(e.target.value === 'null' ? null : e.target.value)}
+          onBlur={() => setEditingGroup(false)}
+        >
+          {isLoading ? (
+            <option key="loading" value={ticket.group?.objectId}>
+              {t('loading') + '...'}
+            </option>
+          ) : (
+            <option key="null" value="null" />
+          )}
+          {groups?.map((group) => (
+            <option key={group.id} value={group.id}>
+              {group.data.name}
+            </option>
+          ))}
+        </Form.Control>
+      ) : (
+        <div className="d-flex align-items-center">
+          {ticket.group ? (
+            <Link to={`/settings/groups/${ticket.group.objectId}`} className="username">
+              {ticket.group.name}
+            </Link>
+          ) : (
+            '<Not set>'
+          )}
+          <Button variant="link" onClick={() => setEditingGroup(true)}>
+            <Icon.PencilFill />
+          </Button>
+        </div>
+      )}
+    </Form.Group>
+  )
+}
+GroupSection.propTypes = {
+  ticket: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    group: PropTypes.object,
+  }),
 }
 
 function AssigneeSection({ ticket, isCustomerService }) {
@@ -210,6 +279,8 @@ function TagSection({ ticket, isCustomerService }) {
 export function TicketMetadata({ ticket, isCustomerService }) {
   return (
     <>
+      {isCustomerService && <GroupSection ticket={ticket} isCustomerService={isCustomerService} />}
+
       <AssigneeSection ticket={ticket} isCustomerService={isCustomerService} />
 
       <CategorySection ticket={ticket} isCustomerService={isCustomerService} />
