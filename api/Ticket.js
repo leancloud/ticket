@@ -15,7 +15,6 @@ const errorHandler = require('./errorHandler')
 const { Context } = require('./rule/context')
 const { getActiveAutomations } = require('./rule/automation')
 const { getVacationerIds, selectAssignee, getActionStatus } = require('./ticket/utils')
-const { systemUser } = require('./user/utils')
 const { invokeWebhooks } = require('./webhook')
 
 AV.Cloud.beforeSave('Ticket', async (req) => {
@@ -73,8 +72,7 @@ AV.Cloud.beforeUpdate('Ticket', async (req) => {
 AV.Cloud.afterUpdate('Ticket', async (req) => {
   const ticket = req.object
   const updatedKeys = new Set(ticket.updatedKeys)
-  const user = req.currentUser || systemUser
-  const userInfo = await getTinyUserInfo(user)
+  const userInfo = await getTinyUserInfo(req.currentUser)
   const opsLogs = []
   const addOpsLog = (action, data) => {
     data.operator = userInfo
@@ -89,11 +87,11 @@ AV.Cloud.afterUpdate('Ticket', async (req) => {
     const assigneeInfo = await getTinyUserInfo(ticket.get('assignee'))
     addOpsLog('changeAssignee', { assignee: assigneeInfo })
     notification
-      .changeAssignee(ticket, user, ticket.get('assignee'))
+      .changeAssignee(ticket, req.currentUser, ticket.get('assignee'))
       .catch(errorHandler.captureException)
   }
 
-  if (updatedKeys.has('evaluation') && req.currentUser) {
+  if (updatedKeys.has('evaluation')) {
     // use side effect
     await getTinyUserInfo(ticket.get('assignee'))
     notification

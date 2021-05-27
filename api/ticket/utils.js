@@ -29,11 +29,7 @@ async function selectAssignee(categoryId) {
   const users = await query.find({ useMasterKey: true })
 
   const assignees = users.filter((user) => {
-    /**
-     * @type {Array<{objectId: string}>}
-     */
-    const categories = user.get('categories') || []
-    return categories.findIndex((c) => c.objectId === categoryId) !== -1
+    return user.get('categories')?.findIndex((c) => c.objectId === categoryId) !== -1
   })
 
   return assignees.length ? _.sample(assignees) : _.sample(users)

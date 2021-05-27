@@ -29,8 +29,7 @@ async function saveWithoutHooks(object, options) {
 
 async function isObjectExists(className, id) {
   try {
-    const query = new AV.Query(className).select('objectId')
-    await query.get(id)
+    await new AV.Query(className).select('objectId').get(id)
     return true
   } catch (error) {
     if (error.code === 101) {
