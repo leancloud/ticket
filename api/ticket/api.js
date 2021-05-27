@@ -300,8 +300,8 @@ router.get(
       fetchCategories(),
     ])
 
-    const keys = ['author', 'assignee', 'files']
-    const include = ['author', 'assignee', 'files']
+    const keys = ['author', 'assignee', 'files', 'group']
+    const include = ['author', 'assignee', 'files', 'group']
     if (isCS) {
       keys.push('privateTags')
     }
@@ -321,6 +321,7 @@ router.get(
       organization_id: ticket.get('organization')?.id || '',
       assignee_id: ticket.get('assignee').id,
       assignee: encodeUserObject(ticket.get('assignee')),
+      group: ticket.get('group')?.toJSON(),
       category_id: ticket.get('category').objectId,
       category_path: getCategoryPath(categoryById, ticket.get('category').objectId),
       content: ticket.get('content'),
@@ -480,6 +481,7 @@ router.get(
 
 router.patch(
   '/:id',
+  check('group_id').isString().optional({ nullable: true }),
   check('assignee_id').isString().optional(),
   check('category_id').isString().optional(),
   check('organization_id').isString().optional(),
@@ -507,6 +509,7 @@ router.patch(
     .optional(),
   catchError(async (req, res) => {
     const {
+      group_id,
       assignee_id,
       category_id,
       organization_id,
@@ -519,6 +522,21 @@ router.patch(
     const ticket = new Ticket(req.ticket)
 
     const isCS = await isCSInTicket(req.user, ticket.author_id)
+
+    if (group_id || group_id === null) {
+      if (!isCS) {
+        res.throw(403, 'Forbidden')
+      }
+      if (group_id === null) {
+        ticket.unset('group')
+      } else {
+        const group = await new AV.Query('Group').get(group_id, {
+          user: req.user,
+        })
+        ticket.set('group', group)
+      }
+      ticket.updatedKeys.push('group')
+    }
 
     if (assignee_id) {
       if (!isCS) {
