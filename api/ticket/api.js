@@ -415,7 +415,7 @@ router.post(
       author,
       content: req.body.content,
       file_ids: req.body.file_ids,
-      isCustomerService: await isCSInTicket(req.user, req.ticket.get('author')),
+      isCustomerService: await isCSInTicket(req.user, ticket.author_id),
     })
     res.json(encodeReplyObject(reply))
   })
