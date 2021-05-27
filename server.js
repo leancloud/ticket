@@ -8,7 +8,7 @@ const AV = require('leanengine')
 const config = require('./config')
 const { clientGlobalVars } = require('./clientGlobalVar')
 const { refreshWebhooks } = require('./api/webhook')
-const { validateTriggers } = require('./api/rule/trigger')
+const { Trigger, Triggers } = require('./api/rule/trigger')
 
 Raven.config(config.sentryDSN).install()
 
@@ -91,9 +91,20 @@ app.listen(PORT, function () {
 })
 
 refreshWebhooks()
-validateTriggers()
-  .then(({ success, fail }) => {
-    console.log(`[Trigger] triggers validated(success: ${success}, fail: ${fail})`)
+
+Triggers.fetchRaw({ includeInactive: true })
+  .then((objects) => {
+    let succeeded = 0
+    let failed = 0
+    objects.forEach((object) => {
+      try {
+        new Trigger(object.toJSON())
+        succeeded++
+      } catch {
+        failed++
+      }
+    })
+    console.log(`[Trigger]: triggers validated (${succeeded} succeeded, ${failed} failed)`)
     return
   })
   .catch(console.error)
