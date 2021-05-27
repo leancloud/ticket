@@ -3,7 +3,6 @@ const AV = require('leanengine')
 const ticket = require('./Ticket')
 const common = require('./common')
 const errorHandler = require('./errorHandler')
-const { invokeWebhooks } = require('./webhook')
 
 AV.Cloud.beforeSave('Reply', (req, res) => {
   if (!req.currentUser) {
@@ -34,7 +33,6 @@ AV.Cloud.beforeSave('Reply', (req, res) => {
 
 AV.Cloud.afterSave('Reply', (req) => {
   ticket.replyTicket(req.object.get('ticket'), req.object, req.currentUser)
-  invokeWebhooks('reply.create', { reply: req.object.toJSON() })
 })
 
 const getReplyAcl = (ticket, author) => {

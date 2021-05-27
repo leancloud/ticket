@@ -8,7 +8,17 @@ const notification = require('../notification')
 const { systemUser, makeTinyUserInfo } = require('../user/utils')
 const { captureException } = require('../errorHandler')
 const { invokeWebhooks } = require('../webhook')
-const { getActionStatus, selectAssignee } = require('./utils')
+const { selectAssignee } = require('./utils')
+
+const KEY_MAP = {
+  assignee_id: 'assignee',
+  category_id: 'category',
+  organization_id: 'organization',
+  tags: 'tags',
+  private_tags: 'privateTags',
+  evaluation: 'evaluation',
+  status: 'status',
+}
 
 class Ticket {
   /**
@@ -90,9 +100,7 @@ class Ticket {
 
     const ticket = new Ticket(obj)
 
-    ticket.pushOpsLog('selectAssignee', {
-      assignee: makeTinyUserInfo(assignee),
-    })
+    ticket.pushOpsLog('selectAssignee', { assignee: makeTinyUserInfo(assignee) })
     ticket.saveOpsLogs()
 
     notification.newTicket(obj, data.author, assignee).catch(captureException)
@@ -255,13 +263,7 @@ class Ticket {
   }
 
   pushOpsLog(action, data) {
-    this._unsavedOpsLogs.push(
-      new AV.Object('OpsLog', {
-        ticket: this.pointer,
-        action,
-        data,
-      })
-    )
+    this._unsavedOpsLogs.push(new AV.Object('OpsLog', { ticket: this.pointer, action, data }))
   }
 
   saveOpsLogs() {
@@ -326,6 +328,11 @@ class Ticket {
     if (this.isUpdated('status') && ticketStatus.isClosed(this.status)) {
       AV.Cloud.run('statsTicket', { ticketId: this.id })
     }
+
+    invokeWebhooks('ticket.update', {
+      ticket: this.object.toJSON(),
+      updatedKeys: Array.from(this._updatedKeys).map((key) => KEY_MAP[key] || key),
+    })
 
     this.saveOpsLogs()
     this._updatedKeys.clear()
@@ -397,39 +404,6 @@ class Ticket {
       .catch(captureException)
 
     return reply
-  }
-
-  /**
-   * @param {string} action
-   * @param {object} [options]
-   * @param {AV.User} [options.operator]
-   * @param {boolean} [options.isCustomerService]
-   */
-  async operate(action, options) {
-    const operator = options?.operator || systemUser
-    const operatorInfo = makeTinyUserInfo(operator)
-    const status = getActionStatus(action, !!options.isCustomerService)
-
-    if (options?.isCustomerService) {
-      if (operator !== systemUser) {
-        this.object.addUnique('joinedCustomerServices', operatorInfo)
-      }
-      if (ticketStatus.isOpened(status) !== ticketStatus.isOpened(this.object.get('status'))) {
-        this.object.increment('unreadCount')
-      }
-    }
-
-    this.status = status
-    await this.save({
-      operator,
-      opsLogs: [
-        new AV.Object('OpsLog', {
-          ticket: this.pointer,
-          action,
-          data: { operator: operatorInfo },
-        }),
-      ],
-    })
   }
 }
 
