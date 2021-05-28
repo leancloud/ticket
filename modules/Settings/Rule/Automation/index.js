@@ -26,8 +26,8 @@ function deleteAutomation(id) {
   return fetch('/api/1/automations/' + id, { method: 'DELETE' })
 }
 
-function reorderAutomations(automationIds) {
-  return fetch('/api/1/automations/reorder', { method: 'POST', body: { automationIds } })
+function reorderAutomations(automation_ids) {
+  return fetch('/api/1/automations/reorder', { method: 'POST', body: { automation_ids } })
 }
 
 function AutomationList() {
@@ -192,7 +192,7 @@ function NewAutomation() {
 
   const allCondIsValid = allConditions.findIndex((cond) => !cond) === -1
   const anyCondIsValid = anyConditions.findIndex((cond) => !cond) === -1
-  const actionsIsValid = actions.findIndex((act) => !act) === -1
+  const actionsIsValid = actions.length && actions.findIndex((act) => !act) === -1
 
   const handleAdd = async () => {
     const conditions = {}
@@ -295,6 +295,7 @@ function AutomationDetail() {
       }
       actions?.forEach(addAction)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [automationData])
 
   if (error) {
@@ -307,7 +308,7 @@ function AutomationDetail() {
 
   const allCondIsValid = allConditions.findIndex((cond) => !cond) === -1
   const anyCondIsValid = anyConditions.findIndex((cond) => !cond) === -1
-  const actionsIsValid = actions.findIndex((act) => !act) === -1
+  const actionsIsValid = actions.length && actions.findIndex((act) => !act) === -1
 
   const handleSave = async () => {
     const conditions = {}

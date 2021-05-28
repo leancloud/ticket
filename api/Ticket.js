@@ -12,10 +12,10 @@ const {
   ticketStatus,
 } = require('../lib/common')
 const errorHandler = require('./errorHandler')
-const { Context } = require('./rule/context')
-const { getActiveAutomations } = require('./rule/automation')
+const { Automations } = require('./rule/automation')
 const { getVacationerIds, selectAssignee, getActionStatus } = require('./ticket/utils')
 const { invokeWebhooks } = require('./webhook')
+const Ticket = require('./ticket/model')
 
 AV.Cloud.beforeSave('Ticket', async (req) => {
   if (!req.currentUser || !(await checkPermission(req.currentUser))) {
@@ -222,18 +222,14 @@ async function tickAutomation() {
   query.limit(1000)
   const [tickets, automations] = await Promise.all([
     query.find({ useMasterKey: true }),
-    getActiveAutomations(),
+    Automations.get(),
   ])
-  const ticketsToUpdate = []
   for (const ticket of tickets) {
-    const ctx = new Context(ticket.toJSON())
+    const ctx = { ticket: new Ticket(ticket) }
     automations.exec(ctx)
-    if (ctx.isUpdated()) {
-      ticketsToUpdate.push(ticket.set(ctx.getUpdatedData()))
+    if (ctx.ticket.isUpdated()) {
+      ctx.ticket.save()
     }
-  }
-  if (ticketsToUpdate.length) {
-    await AV.Object.saveAll(ticketsToUpdate, { useMasterKey: true })
   }
 }
 AV.Cloud.define('tickAutomation', { fetchUser: false, internal: true }, tickAutomation)

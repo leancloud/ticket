@@ -41,34 +41,31 @@ class Triggers {
   }
 
   /**
-   * @param {object} options
-   * @param {boolean} [options.includeInactive]
+   * @param {boolean} [includeInactive]
    */
-  static async fetchRaw(options) {
+  static fetchRaw(includeInactive) {
     const query = new AV.Query('Trigger').addAscending('position').addAscending('createdAt')
-    if (!options?.includeInactive) {
+    if (!includeInactive) {
       query.equalTo('active', true)
     }
-    return await query.find({ useMasterKey: true })
+    return query.find({ useMasterKey: true })
   }
 
   /**
-   * @param {object} options
-   * @param {boolean} [options.includeInactive]
+   * @param {boolean} [includeInactive]
    */
-  static async fetch(options) {
-    const objects = await this.fetchRaw(options)
+  static async fetch(includeInactive) {
+    const objects = await this.fetchRaw(includeInactive)
     return new Triggers(objects.map((o) => o.toJSON()))
   }
 
   /**
-   * @param {object} options
-   * @param {boolean} [options.includeInactive]
+   * @param {boolean} [includeInactive]
    */
-  static get(options) {
+  static get(includeInactive) {
     return cache.get(
-      ['triggers', { active: !!options?.includeInactive }],
-      () => this.fetch(options),
+      ['triggers', { active: !!includeInactive }],
+      () => this.fetch(includeInactive),
       1000 * 60 * 10
     )
   }

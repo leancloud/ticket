@@ -163,6 +163,20 @@ class Ticket {
     this._updatedKeys.add('organization_id')
   }
 
+  /**
+   * @type {string}
+   */
+  get title() {
+    return this.object.get('title')
+  }
+
+  /**
+   * @type {string}
+   */
+  get content() {
+    return this.object.get('content')
+  }
+
   get tags() {
     return this.object.get('tags') || []
   }
@@ -203,6 +217,20 @@ class Ticket {
   }
   set unread_count(v) {
     this.object.set('unreadCount', v)
+  }
+
+  /**
+   * @type {Date}
+   */
+  get created_at() {
+    return this.object.createdAt
+  }
+
+  /**
+   * @type {Date}
+   */
+  get updated_at() {
+    return this.object.updatedAt
   }
 
   getACL() {

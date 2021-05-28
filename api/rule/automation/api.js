@@ -3,17 +3,15 @@ const { check } = require('express-validator')
 const { Router } = require('express')
 
 const { requireAuth, customerServiceOnly, catchError } = require('../../middleware')
-const { TICKET_OPENED_STATUSES } = require('../../../lib/common')
-const { Context } = require('../context')
-const { Automation } = require('./automation')
+const { Automation } = require('.')
 
 const router = Router().use(requireAuth, customerServiceOnly)
 
 router.post(
   '/',
-  check('title').isString().isLength({ min: 1 }),
+  check('title').isString().trim().isLength({ min: 1 }),
   check('conditions').isObject().optional(),
-  check('actions').isArray().optional(),
+  check('actions').isArray({ min: 1 }),
   catchError(async (req, res) => {
     const { title, conditions, actions } = req.body
     Automation.parseConditions(conditions)
@@ -59,9 +57,9 @@ router.get(
 
 router.patch(
   '/:id',
-  check('title').isString().isLength({ min: 1 }).optional(),
+  check('title').isString().trim().isLength({ min: 1 }).optional(),
   check('conditions').isObject().optional(),
-  check('actions').isArray().optional(),
+  check('actions').isArray({ min: 1 }).optional(),
   check('active').isBoolean().optional(),
   catchError(async (req, res) => {
     const { id } = req.params
@@ -98,38 +96,17 @@ router.delete(
 
 router.post(
   '/reorder',
-  check('automationIds').isArray({ min: 1 }),
-  check('automationIds.*').isString(),
+  check('automation_ids').isArray({ min: 1 }),
+  check('automation_ids.*').isString(),
   catchError(async (req, res) => {
-    const { automationIds } = req.body
-    const objects = automationIds.map((id, index) => {
+    const { automation_ids } = req.body
+    const objects = automation_ids.map((id, index) => {
       const object = AV.Object.createWithoutData('Automation', id)
       object.set('position', index)
       return object
     })
     await AV.Object.saveAll(objects, { useMasterKey: true })
     res.json({})
-  })
-)
-
-router.post(
-  '/preview',
-  check('conditions').isObject(),
-  catchError(async (req, res) => {
-    const query = new AV.Query('Ticket')
-    query.containedIn('status', TICKET_OPENED_STATUSES)
-    query.limit(1000)
-    query.addAscending('createdAt')
-    const tickets = await query.find({ useMasterKey: true })
-    const conditions = Automation.parseConditions(req.body.conditions)
-    const matchedTicketIds = []
-    tickets.forEach((ticket) => {
-      const ctx = new Context(ticket.toJSON())
-      if (conditions.test(ctx)) {
-        matchedTicketIds.push(ticket.id)
-      }
-    })
-    res.json({ matchedTicketIds })
   })
 )
 

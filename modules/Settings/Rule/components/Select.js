@@ -1,22 +1,17 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { Form } from 'react-bootstrap'
 import PropTypes from 'prop-types'
 
 /**
- *
  * @param {object} props
- * @param {Array<{title: string, value: string | number}>} props.options
- * @param {Function} props.onChange
- * @param {string | number} [props.initValue]
- * @param {Function} [props.reducer]
+ * @param {{title: string; value: string | number;}[]} props.options
+ * @param {(value: string) => void} props.onChange
+ * @param {string | number} [props.value]
  */
-export function Select({ options, initValue, onChange, reducer }) {
-  const [value, setValue] = useState(initValue || options[0].value)
-  useEffect(() => {
-    onChange(reducer ? reducer(value) : value)
-  }, [value])
+export function Select({ options, value, onChange }) {
   return (
-    <Form.Control as="select" value={value} onChange={(e) => setValue(e.target.value)}>
+    <Form.Control as="select" value={value} onChange={(e) => onChange(e.target.value)}>
+      {!value && <option></option>}
       {options.map(({ title, value }) => (
         <option key={value} value={value}>
           {title}
@@ -32,7 +27,6 @@ Select.propTypes = {
       value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     })
   ).isRequired,
-  initValue: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   onChange: PropTypes.func.isRequired,
-  reducer: PropTypes.func,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 }
