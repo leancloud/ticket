@@ -9,6 +9,7 @@ const { systemUser, makeTinyUserInfo } = require('../user/utils')
 const { captureException } = require('../errorHandler')
 const { invokeWebhooks } = require('../webhook')
 const { selectAssignee } = require('./utils')
+const { Triggers } = require('../rule/trigger')
 
 const KEY_MAP = {
   assignee_id: 'assignee',
@@ -102,6 +103,12 @@ class Ticket {
 
     ticket.pushOpsLog('selectAssignee', { assignee: makeTinyUserInfo(assignee) })
     ticket.saveOpsLogs()
+
+    const triggers = await Triggers.get()
+    triggers.exec({ ticket, update_type: 'create' })
+    if (ticket.isUpdated()) {
+      ticket.save()
+    }
 
     notification.newTicket(obj, data.author, assignee).catch(captureException)
 
@@ -310,6 +317,7 @@ class Ticket {
   /**
    * @param {object} [options]
    * @param {AV.User} [options.operator]
+   * @param {boolean} [options.skipTriggers]
    */
   async save(options) {
     if (!this.object.dirty()) {
@@ -364,6 +372,18 @@ class Ticket {
 
     this.saveOpsLogs()
     this._updatedKeys.clear()
+
+    if (!options?.skipTriggers) {
+      // Triggers do not run or fire on tickets after they are closed.
+      // However, triggers can fire when a ticket is being set to closed.
+      if (ticketStatus.isOpened(this.status) || this.isUpdated('status')) {
+        const triggers = await Triggers.get()
+        triggers.exec({ ticket: this, update_type: 'update' })
+        if (this.isUpdated()) {
+          this.save({ skipTriggers: true })
+        }
+      }
+    }
   }
 
   /**

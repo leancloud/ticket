@@ -73,10 +73,10 @@ class Conditions {
     if (!_.isPlainObject(data)) {
       throw new Error('Conditions must be a JSON object')
     }
-    if (conditions.all) {
+    if (data.all) {
       this.all = new AllCondition(data.all, conditions)
     }
-    if (conditions.any) {
+    if (data.any) {
       this.any = new AnyCondition(data.any, conditions)
     }
   }

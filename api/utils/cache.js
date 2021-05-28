@@ -73,6 +73,9 @@ function id(value) {
           }, {})
       )
 
+    case 'boolean':
+      return value ? 'true' : 'false'
+
     default:
       throw new TypeError('Unsupported value type: ' + typeof value)
   }
