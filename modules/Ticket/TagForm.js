@@ -83,7 +83,7 @@ export function TagForm({ tagMetadata, tag, isCustomerService, onChange, disable
               <span>{tag.value}</span>
             )
           ) : (
-            `<${t('unconfigured')}>`
+            `<${t('unset')}>`
           )}
           {isCustomerService && (
             <Button variant="link" disabled={disabled} onClick={() => setEditing(true)}>

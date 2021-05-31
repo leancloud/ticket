@@ -9,7 +9,7 @@ import moment from 'moment'
 import * as Icon from 'react-bootstrap-icons'
 import { useTitle } from 'react-use'
 
-import { auth, cloud, db } from '../../lib/leancloud'
+import { auth, cloud, db, useObjects } from '../../lib/leancloud'
 import css from '../CustomerServiceTickets.css'
 import { getTinyCategoryInfo } from '../common'
 import {
@@ -233,6 +233,7 @@ function TicketMenu({ customerServices, categories }) {
     isOpen,
     status,
     authorId,
+    groupId,
     assignee,
     categoryId,
     tagKey,
@@ -299,6 +300,25 @@ function TicketMenu({ customerServices, categories }) {
     statusTitle = t('all')
   }
 
+  const [groups = []] = useObjects(['Group'])
+  let groupTitle
+  if (groupId) {
+    if (groupId === 'unset') {
+      groupTitle = `<${t('unset')}>`
+    } else if (groupId === 'mine') {
+      groupTitle = `<${t('myGroups')}>`
+    } else {
+      const matchedGroup = groups.find((g) => g.id === groupId)
+      if (matchedGroup) {
+        groupTitle = matchedGroup.data.name
+      } else {
+        groupTitle = `group ${t('invalid')}`
+      }
+    }
+  } else {
+    groupTitle = t('all')
+  }
+
   let assigneeTitle
   if (assignee) {
     const customerService = customerServices.find((cs) => cs.objectId === assigneeId)
@@ -363,6 +383,22 @@ function TicketMenu({ customerServices, categories }) {
         </ButtonGroup>
 
         <ButtonGroup className="ml-1" size="sm">
+          <DropdownMenu
+            active={!!groupId}
+            title={groupTitle}
+            onSelect={(groupId) => updatePath({ groupId })}
+            items={[
+              { key: 'unset', title: `<${t('unset')}>` },
+              { key: 'mine', title: `<${t('myGroups')}>` },
+              ...groups.map((g) => ({
+                key: g.id,
+                title: g.data.name,
+              })),
+            ]}
+          />
+        </ButtonGroup>
+
+        <ButtonGroup className="ml-1" size="sm">
           <Button
             variant="light"
             active={assignedToMe}
@@ -371,7 +407,7 @@ function TicketMenu({ customerServices, categories }) {
             {t('assignedToMe')}
           </Button>
           <DropdownMenu
-            active={!assignedToMe}
+            active={!!assigneeId}
             title={assigneeTitle}
             onSelect={(assignee) => updatePath({ assignee })}
             items={customerServices.map((user) => ({
@@ -519,6 +555,7 @@ export function useTickets() {
       timeRange,
       isOpen,
       status,
+      groupId,
       assignee,
       authorId,
       categoryId,
@@ -544,6 +581,24 @@ export function useTickets() {
       query = query.where('status', '==', parseInt(status))
     }
 
+    if (groupId) {
+      if (groupId === 'unset') {
+        query = query.where('group', 'not-exists')
+      } else if (groupId === 'mine') {
+        const groupRoles = await auth
+          .queryRole()
+          .where('name', 'starts-with', 'group_')
+          .where('users', '==', auth.currentUser)
+          .find()
+        query = query.where(
+          'group',
+          'in',
+          groupRoles.map((group) => db.class('Group').object(group.data.name.slice(6)))
+        )
+      } else {
+        query = query.where('group', '==', db.class('Group').object(groupId))
+      }
+    }
     if (assignee) {
       const assigneeId = assignee === 'me' ? auth.currentUser?.id : assignee
       query = query.where('assignee', '==', db.class('_User').object(assigneeId))
