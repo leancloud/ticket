@@ -89,16 +89,19 @@ exports.changeAssignee = (ticket, operator, assignee) => {
       Promise.resolve(channel.changeAssignee?.(ticket, operator, assignee)).catch(captureException)
     )
   ).then(() => {
-    return new AV.Object('Message', {
-      type: 'changeAssignee',
-      ticket,
-      from: operator,
-      to: assignee,
-      isRead: false,
-      ACL: {
-        [assignee.id]: { write: true, read: true },
-      },
-    }).save()
+    if (operator.id !== 'system') {
+      return new AV.Object('Message', {
+        type: 'changeAssignee',
+        ticket,
+        from: operator,
+        to: assignee,
+        isRead: false,
+        ACL: {
+          [assignee.id]: { write: true, read: true },
+        },
+      }).save()
+    }
+    return
   })
 }
 

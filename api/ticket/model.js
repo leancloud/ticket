@@ -1,5 +1,4 @@
 const AV = require('leancloud-storage')
-const _ = require('lodash')
 
 const { ticketStatus, TICKET_STATUS } = require('../../lib/common')
 const { getTinyCategoryInfo } = require('../category/utils')
@@ -223,6 +222,7 @@ class Ticket {
       ignoreBeforeHook: true,
       ignoreAfterHook: true,
       user: data.author,
+      fetchWhenSave: true,
     })
 
     const ticket = new Ticket(obj)
@@ -236,7 +236,7 @@ class Ticket {
       ticket.save()
     }
 
-    notification.newTicket(obj, data.author, assignee).catch(captureException)
+    notification.newTicket(obj, data.author, assignee)
 
     invokeWebhooks('ticket.create', { ticket: obj.toJSON() })
 
@@ -459,6 +459,8 @@ class Ticket {
     if (this._customerServicesToJoin) {
       object.addUnique('joinedCustomerServices', this._customerServicesToJoin)
     }
+
+    return object
   }
 
   /**
@@ -484,7 +486,7 @@ class Ticket {
     const operatorInfo = makeTinyUserInfo(operator)
     const useMasterKey = operator === systemUser
 
-    await saveWithoutHooks(this.object, {
+    await saveWithoutHooks(object, {
       ignoreBeforeHook: true,
       ignoreAfterHook: true,
       useMasterKey,
@@ -503,15 +505,32 @@ class Ticket {
         assignee: await this.getAssigneeInfo(),
         operator: operatorInfo,
       })
-      const assignee = new AV.Object('_User', _.omit(this._assigneeInfo, 'objectId'))
-      notification.changeAssignee(this.object, operator, assignee).catch(captureException)
+      const ticket = AV.Object.createWithoutData('Ticket', this.id)
+      ticket.attributes = {
+        nid: this.nid,
+        title: this.title,
+        content: this.content,
+        latestReply: this.latest_reply,
+      }
+      const assignee = AV.Object.createWithoutData('_User', this.assignee_id)
+      assignee.attributes = this._assigneeInfo
+      notification.changeAssignee(object, operator, assignee)
     }
 
     if (this.isUpdated('evaluation')) {
       this.getAssigneeInfo()
-        .then(() => {
-          const assignee = new AV.Object('_User', _.omit(this._assigneeInfo, 'objectId'))
-          return notification.ticketEvaluation(this.object, operator, assignee)
+        .then((assigneeInfo) => {
+          const ticket = AV.Object.createWithoutData('Ticket', this.id)
+          ticket.attributes = {
+            nid: this.nid,
+            title: this.title,
+            content: this.content,
+            latestReply: this.latest_reply,
+            evaluation: this.evaluation,
+          }
+          const assignee = AV.Object.createWithoutData('_User', this.assignee_id)
+          assignee.attributes = assigneeInfo
+          return notification.ticketEvaluation(ticket, operator, assignee)
         })
         .catch(captureException)
     }
@@ -612,13 +631,12 @@ class Ticket {
     // notification 需要 assignee 的信息
     Promise.all([this.getAuthorInfo(), this.getAssigneeInfo()])
       .then(([authorInfo, assigneeInfo]) => {
-        // TODO: refactor notification
-        const ticket = new AV.Object('Ticket', {
-          nid: this.nid,
-          title: this.title,
-          author: new AV.Object('_User', _.omit(authorInfo, 'objectId')),
-          assignee: new AV.Object('_User', _.omit(assigneeInfo, 'objectId')),
-        })
+        const author = AV.Object.createWithoutData('_User', this.author_id)
+        author.attributes = authorInfo
+        const assignee = AV.Object.createWithoutData('_User', this.assignee_id)
+        assignee.attributes = assigneeInfo
+        const ticket = AV.Object.createWithoutData('Ticket', this.id)
+        ticket.attributes = { author, assignee, nid: this.nid, title: this.title }
         return notification.replyTicket(ticket, reply, data.author)
       })
       .catch(captureException)

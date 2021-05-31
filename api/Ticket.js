@@ -53,9 +53,7 @@ AV.Cloud.afterSave('Ticket', async (req) => {
   })
     .save(null, { useMasterKey: true })
     .catch(errorHandler.captureException)
-  notification
-    .newTicket(ticket, req.currentUser, ticket.get('assignee'))
-    .catch(errorHandler.captureException)
+  notification.newTicket(ticket, req.currentUser, ticket.get('assignee'))
   invokeWebhooks('ticket.create', { ticket: ticket.toJSON() })
 })
 
@@ -86,17 +84,13 @@ AV.Cloud.afterUpdate('Ticket', async (req) => {
   if (updatedKeys.has('assignee')) {
     const assigneeInfo = await getTinyUserInfo(ticket.get('assignee'))
     addOpsLog('changeAssignee', { assignee: assigneeInfo })
-    notification
-      .changeAssignee(ticket, req.currentUser, ticket.get('assignee'))
-      .catch(errorHandler.captureException)
+    notification.changeAssignee(ticket, req.currentUser, ticket.get('assignee'))
   }
 
   if (updatedKeys.has('evaluation')) {
     // use side effect
     await getTinyUserInfo(ticket.get('assignee'))
-    notification
-      .ticketEvaluation(ticket, req.currentUser, ticket.get('assignee'))
-      .catch(errorHandler.captureException)
+    notification.ticketEvaluation(ticket, req.currentUser, ticket.get('assignee'))
   }
 
   if (updatedKeys.has('status') && ticketStatus.isClosed(ticket.get('status'))) {

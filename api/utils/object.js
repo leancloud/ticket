@@ -8,6 +8,7 @@ const _ = require('lodash')
  * @param {boolean} [options.ignoreAfterHook]
  * @param {boolean} [options.useMasterKey]
  * @param {AV.User} [options.user]
+ * @param {boolean} [options.fetchWhenSave]
  */
 async function saveWithoutHooks(object, options) {
   const ignoredHooks = _.clone(object._flags.__ignore_hooks)
@@ -21,6 +22,7 @@ async function saveWithoutHooks(object, options) {
     await object.save(null, {
       useMasterKey: options?.useMasterKey,
       user: options?.user,
+      fetchWhenSave: options?.fetchWhenSave,
     })
   } finally {
     object._flags.__ignore_hooks = ignoredHooks
