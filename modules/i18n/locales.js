@@ -351,9 +351,13 @@ const messages = {
     'Unresolved',
     '未解决'
   ],
-  'unconfigured': [
+  'unset': [
     'unset',
     '未设置'
+  ],
+  'myGroups': [
+    'My groups',
+    '我所在的组'
   ],
   'until': [
     'Until',
