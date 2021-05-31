@@ -1,14 +1,15 @@
 const AV = require('leancloud-storage')
+const _ = require('lodash')
 
 const { ticketStatus, TICKET_STATUS } = require('../../lib/common')
 const { getTinyCategoryInfo } = require('../category/utils')
 const { htmlify } = require('../common')
 const { saveWithoutHooks } = require('../utils/object')
 const notification = require('../notification')
-const { systemUser, makeTinyUserInfo } = require('../user/utils')
+const { systemUser, makeTinyUserInfo, getTinyUserInfo } = require('../user/utils')
 const { captureException } = require('../errorHandler')
 const { invokeWebhooks } = require('../webhook')
-const { selectAssignee } = require('./utils')
+const { selectAssignee, getActionStatus } = require('./utils')
 const { Triggers } = require('../rule/trigger')
 
 const KEY_MAP = {
@@ -19,25 +20,128 @@ const KEY_MAP = {
   private_tags: 'privateTags',
   evaluation: 'evaluation',
   status: 'status',
+  latest_reply: 'latestReply',
 }
+
+const ATTRIBUTES = ['nid', 'title', 'category', 'author', 'assignee', 'content', 'status']
 
 class Ticket {
   /**
    * @param {AV.Object} object
    */
   constructor(object) {
-    this.object = object
-    this.pointer = AV.Object.createWithoutData('Ticket', object.id)
+    if (!object.id) {
+      throw new Error('Cannot construct Ticket by an unsaved AVObject')
+    }
+    for (const attr of ATTRIBUTES) {
+      if (!object.has(attr)) {
+        throw new Error(`The ${attr} is missing in the AVObject`)
+      }
+    }
 
-    this._authorInfo = undefined
+    /**
+     * @readonly
+     */
+    this.pointer = { __type: 'Pointer', className: 'Ticket', objectId: object.id }
+
+    /**
+     * @readonly
+     */
+    this.id = object.id
+
+    /**
+     * @readonly
+     * @type {number}
+     */
+    this.nid = object.get('nid')
+
+    /**
+     * @readonly
+     */
+    this.created_at = object.createdAt
+
+    /**
+     * @readonly
+     */
+    this.updated_at = object.updatedAt
+
+    /**
+     * @private
+     * @type {string}
+     */
+    this._title = object.get('title')
+
+    /**
+     * @private
+     * @type {string}
+     */
+    this._content = object.get('content')
+
+    /**
+     * @private
+     * @type {{ objectId: string; name: string; }}
+     */
+    this._category = object.get('category')
+
+    /**
+     * @private
+     * @type {string}
+     */
+    this._organizationId = object.get('organization')?.id || ''
+
+    /**
+     * @private
+     * @type {string}
+     */
+    this._authorId = object.get('author').id
     if (object.get('author').has('username')) {
+      /**
+       * @private
+       */
       this._authorInfo = makeTinyUserInfo(object.get('author'))
     }
 
-    this._assigneeInfo = undefined
+    /**
+     * @private
+     * @type {string}
+     */
+    this._assigneeId = object.get('assignee').id
     if (object.get('assignee').has('username')) {
+      /**
+       * @private
+       */
       this._assigneeInfo = makeTinyUserInfo(object.get('assignee'))
     }
+
+    /**
+     * @private
+     * @type { {key: string; value: any; }[]}
+     */
+    this._tags = object.get('tags') || []
+
+    /**
+     * @private
+     * @type { {key: string; value: any; }[]}
+     */
+    this._privateTags = object.get('privateTags') || []
+
+    /**
+     * @private
+     * @type {{ star: 0 | 1; content: string; }}
+     */
+    this._evaluation = object.get('evaluation')
+
+    /**
+     * @private
+     * @type {number}
+     */
+    this._status = object.get('status')
+
+    /**
+     * @private
+     * @type {Record<string, any>}
+     */
+    this._latestReply = object.get('latestReply')
 
     /**
      * @private
@@ -47,9 +151,26 @@ class Ticket {
 
     /**
      * @private
-     * @type {AV.Object[]}
+     * @type {Record<string, any>[]}
      */
     this._unsavedOpsLogs = []
+
+    /**
+     * @private
+     */
+    this._replyCountIncrement = 0
+
+    /**
+     * @private
+     */
+    this._unreadCountIncrement = 0
+
+    this._clearUnreadCount = false
+
+    /**
+     * @private
+     */
+    this._customerServicesToJoin = undefined
   }
 
   /**
@@ -117,127 +238,81 @@ class Ticket {
     return ticket
   }
 
-  get id() {
-    return this.object.id
-  }
-
-  /**
-   * @type {number}
-   */
-  get nid() {
-    return this.object.get('nid')
-  }
-
-  /**
-   * @type {string}
-   */
   get author_id() {
-    return this.object.get('author').id
+    return this._authorId
   }
 
-  /**
-   * @type {string}
-   */
   get assignee_id() {
-    return this.object.get('assignee').id
+    return this._assigneeId
   }
   set assignee_id(v) {
-    this.object.set('assignee', AV.Object.createWithoutData('_User', v))
-    this._updatedKeys.add('assignee_id')
+    this._assigneeId = v
     this._assigneeInfo = undefined
+    this._updatedKeys.add('assignee_id')
   }
 
-  /**
-   * @type {string}
-   */
   get category_id() {
-    return this.object.get('category').objectId
+    return this._category.objectId
   }
   set category_id(v) {
-    this.object.set('category', { objectId: v })
+    this._category = { objectId: v }
     this._updatedKeys.add('category_id')
   }
 
-  /**
-   * @type {string}
-   */
   get organization_id() {
-    return this.object.get('organization')?.id
+    return this._organizationId
   }
   set organization_id(v) {
-    this.object.set('organization', AV.Object.createWithoutData('Organization', v))
-    this.object.setACL(this.getACL())
+    this._organizationId = v
     this._updatedKeys.add('organization_id')
   }
 
-  /**
-   * @type {string}
-   */
   get title() {
-    return this.object.get('title')
+    return this._title
   }
 
-  /**
-   * @type {string}
-   */
   get content() {
-    return this.object.get('content')
+    return this._content
   }
 
   get tags() {
-    return this.object.get('tags') || []
+    return this._tags
   }
   set tags(v) {
-    this.object.set('tags', v)
+    this._tags = v
     this._updatedKeys.add('tags')
   }
 
   get private_tags() {
-    return this.object.get('privateTags') || []
+    return this._privateTags
   }
   set private_tags(v) {
-    this.object.set('privateTags', v)
+    this._privateTags = v
     this._updatedKeys.add('private_tags')
   }
 
   get evaluation() {
-    return this.object.get('evaluation')
+    return this._evaluation
   }
   set evaluation(v) {
-    this.object.set('evaluation', v)
+    this._evaluation = v
     this._updatedKeys.add('evaluation')
   }
 
-  /**
-   * @type {number}
-   */
   get status() {
-    return this.object.get('status')
+    return this._status
   }
   set status(v) {
-    this.object.set('status', v)
+    this._status = v
     this._updatedKeys.add('status')
   }
 
-  get unread_count() {
-    return this.object.get('unreadCount') ?? 0
+  get latest_reply() {
+    return this._latestReply
   }
-  set unread_count(v) {
-    this.object.set('unreadCount', v)
-  }
-
-  /**
-   * @type {Date}
-   */
-  get created_at() {
-    return this.object.createdAt
-  }
-
-  /**
-   * @type {Date}
-   */
-  get updated_at() {
-    return this.object.updatedAt
+  set latest_reply(v) {
+    this._latestReply = v
+    this._updatedKeys.add('latest_reply')
   }
 
   getACL() {
@@ -263,54 +338,121 @@ class Ticket {
 
   async getAuthorInfo() {
     if (!this._authorInfo) {
-      const author = this.object.get('author')
-      if (!author.has('username')) {
-        await author.fetch(
-          {
-            keys: ['username', 'name', 'email'],
-          },
-          {
-            useMasterKey: true,
-          }
-        )
-      }
-      this._authorInfo = makeTinyUserInfo(author)
+      this._authorInfo = await getTinyUserInfo(this.author_id)
     }
     return this._authorInfo
   }
 
   async getAssigneeInfo() {
     if (!this._assigneeInfo) {
-      const assignee = this.object.get('assignee')
-      if (!assignee.has('username')) {
-        await assignee.fetch(
-          {
-            keys: ['username', 'name', 'email'],
-          },
-          {
-            useMasterKey: true,
-          }
-        )
-      }
-      this._assigneeInfo = makeTinyUserInfo(assignee)
+      this._assigneeInfo = await getTinyUserInfo(this.assignee_id)
     }
     return this._assigneeInfo
   }
 
   pushOpsLog(action, data) {
-    this._unsavedOpsLogs.push(new AV.Object('OpsLog', { ticket: this.pointer, action, data }))
+    this._unsavedOpsLogs.push({ ticket: this.pointer, action, data })
   }
 
   saveOpsLogs() {
     if (this._unsavedOpsLogs.length === 0) {
       return
     }
-    const opsLogs = this._unsavedOpsLogs
+    const opsLogs = this._unsavedOpsLogs.map((data) => new AV.Object('OpsLog', data))
     this._unsavedOpsLogs = []
     if (opsLogs.length === 1) {
-      opsLogs[0].save(null, { useMasterKey: true }).catch(captureException)
+      return opsLogs[0].save(null, { useMasterKey: true })
     } else {
-      AV.Object.saveAll(opsLogs, { useMasterKey: true }).catch(captureException)
+      return AV.Object.saveAll(opsLogs, { useMasterKey: true })
+    }
+  }
+
+  increaseReplyCount(amount = 1) {
+    this._replyCountIncrement += amount
+  }
+
+  increaseUnreadCount(amount = 1) {
+    if (this._clearUnreadCount) {
+      throw new Error('Cannot overwrite unread_count')
+    }
+    this._unreadCountIncrement += amount
+  }
+
+  clearUnreadCount() {
+    if (this._unreadCountIncrement) {
+      throw new Error('Cannot overwrite unread_count')
+    }
+    this._clearUnreadCount = true
+  }
+
+  joinCustomerService(user) {
+    if (this._customerServicesToJoin) {
+      throw new Error('Has unsaved joined customer service')
+    }
+    this._customerServicesToJoin = user
+  }
+
+  /**
+   * @private
+   */
+  _getDirtyAVObject() {
+    const object = AV.Object.createWithoutData('Ticket', this.id)
+
+    if (this.isUpdated('category_id')) {
+      if (!this._category.name) {
+        throw new Error('The name of category is missing')
+      }
+      object.set('category', this._category)
+    }
+
+    if (this.isUpdated('assignee_id')) {
+      object.set('assignee', AV.Object.createWithoutData('_User', this.assignee_id))
+    }
+
+    if (this.isUpdated('organization_id')) {
+      if (this.organization_id) {
+        object.set(
+          'organization',
+          AV.Object.createWithoutData('Organization', this.organization_id)
+        )
+      }
+      object.setACL(this.getACL())
+    }
+
+    if (this.isUpdated('tags')) {
+      object.set('tags', this.tags)
+    }
+
+    if (this.isUpdated('private_tags')) {
+      object.set('privateTags', this.private_tags)
+    }
+
+    if (this.isUpdated('evaluation')) {
+      object.set('evaluation', this.evaluation)
+    }
+
+    if (this.isUpdated('status')) {
+      object.set('status', this.status)
+    }
+
+    if (this.isUpdated('latest_reply')) {
+      object.set('latestReply', this.latest_reply)
+    }
+
+    if (this._replyCountIncrement) {
+      object.increment('replyCount', this._replyCountIncrement)
+    }
+
+    if (this._unreadCountIncrement) {
+      object.increment('unreadCount', this._unreadCountIncrement)
+    }
+
+    if (this._clearUnreadCount) {
+      object.set('unreadCount', 0)
+    }
+
+    if (this._customerServicesToJoin) {
+      object.addUnique('joinedCustomerServices', this._customerServicesToJoin)
     }
   }
 
@@ -320,27 +462,29 @@ class Ticket {
    * @param {boolean} [options.skipTriggers]
    */
   async save(options) {
-    if (!this.object.dirty()) {
+    if (this._updatedKeys.size === 0) {
       return
     }
 
+    if (this.isUpdated('category_id')) {
+      this._category = await getTinyCategoryInfo(this.category_id)
+    }
+
+    const object = this._getDirtyAVObject()
     const operator = options?.operator || systemUser
     const operatorInfo = makeTinyUserInfo(operator)
-
-    if (this.isUpdated('category_id')) {
-      this.object.set('category', await getTinyCategoryInfo(this.category_id))
-    }
+    const useMasterKey = operator === systemUser
 
     await saveWithoutHooks(this.object, {
       ignoreBeforeHook: true,
       ignoreAfterHook: true,
-      useMasterKey: operator === systemUser,
-      user: operator === systemUser ? undefined : operator,
+      useMasterKey,
+      user: useMasterKey ? undefined : operator,
     })
 
     if (this.isUpdated('category_id')) {
       this.pushOpsLog('changeCategory', {
-        category: this.object.get('category'),
+        category: this._category,
         operator: operatorInfo,
       })
     }
@@ -350,14 +494,16 @@ class Ticket {
         assignee: await this.getAssigneeInfo(),
         operator: operatorInfo,
       })
-      notification
-        .changeAssignee(this.object, operator, this.object.get('assignee'))
-        .catch(captureException)
+      const assignee = new AV.Object('_User', _.omit(this._assigneeInfo, 'objectId'))
+      notification.changeAssignee(this.object, operator, assignee).catch(captureException)
     }
 
     if (this.isUpdated('evaluation')) {
       this.getAssigneeInfo()
-        .then(() => notification.ticketEvaluation(this.object, operator, this.get('assignee')))
+        .then(() => {
+          const assignee = new AV.Object('_User', _.omit(this._assigneeInfo, 'objectId'))
+          return notification.ticketEvaluation(this.object, operator, assignee)
+        })
         .catch(captureException)
     }
 
@@ -366,17 +512,24 @@ class Ticket {
     }
 
     invokeWebhooks('ticket.update', {
-      ticket: this.object.toJSON(),
+      ticket: object.toJSON(),
       updatedKeys: Array.from(this._updatedKeys).map((key) => KEY_MAP[key] || key),
     })
 
-    this.saveOpsLogs()
+    this.saveOpsLogs().catch(captureException)
+
+    this._replyCountIncrement = 0
+    this._unreadCountIncrement = 0
+    this._clearUnreadCount = false
+    this._customerServicesToJoin = undefined
+
+    const statusUpdated = this.isUpdated('status')
     this._updatedKeys.clear()
 
     if (!options?.skipTriggers) {
       // Triggers do not run or fire on tickets after they are closed.
       // However, triggers can fire when a ticket is being set to closed.
-      if (ticketStatus.isOpened(this.status) || this.isUpdated('status')) {
+      if (ticketStatus.isOpened(this.status) || statusUpdated) {
         const triggers = await Triggers.get()
         triggers.exec({ ticket: this, update_type: 'update' })
         if (this.isUpdated()) {
@@ -425,20 +578,20 @@ class Ticket {
 
     const replyAuthorInfo = makeTinyUserInfo(data.author)
 
-    this.object.set('latestReply', {
+    this.latest_reply = {
       objectId: reply.id,
       author: replyAuthorInfo,
       content: data.content,
       isCustomerService: !!data.isCustomerService,
       createdAt: reply.createdAt,
       updatedAt: reply.updatedAt,
-    })
+    }
 
-    this.object.increment('replyCount', 1)
+    this.increaseReplyCount(1)
 
     if (data.isCustomerService) {
-      this.object.addUnique('joinedCustomerServices', replyAuthorInfo)
-      this.object.increment('unreadCount')
+      this.joinCustomerService(replyAuthorInfo)
+      this.increaseUnreadCount(1)
       this.status = TICKET_STATUS.WAITING_CUSTOMER
     } else {
       this.status = TICKET_STATUS.WAITING_CUSTOMER_SERVICE
@@ -448,10 +601,36 @@ class Ticket {
 
     // notification 需要 assignee 的信息
     this.getAssigneeInfo()
-      .then(() => notification.replyTicket(this.object, reply, data.author))
+      .then(() => {
+        // TODO: refactor notification
+        const ticket = new AV.Object('Ticket', { title: this.title, nid: this.nid })
+        return notification.replyTicket(ticket, reply, data.author)
+      })
       .catch(captureException)
 
     return reply
+  }
+
+  /**
+   * @param {string} action
+   * @param {object} [options]
+   * @param {AV.User} [options.operator]
+   * @param {boolean} [options.isCustomerService]
+   */
+  operate(action, options) {
+    const operator = options?.operator || systemUser
+    const operatorInfo = makeTinyUserInfo(operator)
+    const isCustomerService = operator === systemUser || !!options?.isCustomerService
+    const status = getActionStatus(action, isCustomerService)
+    if (isCustomerService) {
+      this.joinCustomerService(operatorInfo)
+      if (ticketStatus.isOpened(status) !== ticketStatus.isOpened(this.status)) {
+        this.increaseUnreadCount(1)
+      }
+    }
+    this.status = status
+    this.pushOpsLog(action, { operator: operatorInfo })
+    return this.save({ operator })
   }
 }
 

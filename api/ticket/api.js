@@ -4,10 +4,9 @@ const { check, query } = require('express-validator')
 
 const { checkPermission } = require('../oauth')
 const { requireAuth, catchError, parseSearchingQ } = require('../middleware')
-const { makeTinyUserInfo } = require('../user/utils')
-const { getActionStatus, getVacationerIds } = require('./utils')
+const { getVacationerIds } = require('./utils')
 const { isObjectExists } = require('../utils/object')
-const { TICKET_ACTION, TICKET_STATUS, ticketStatus } = require('../../lib/common')
+const { TICKET_ACTION, TICKET_STATUS } = require('../../lib/common')
 const { encodeFileObject } = require('../file/utils')
 const { encodeUserObject } = require('../user/utils')
 const { isCustomerService } = require('../customerService/utils')
@@ -569,8 +568,8 @@ router.patch(
       }
     }
 
-    if (unread_count !== undefined) {
-      ticket.unread_count = unread_count
+    if (unread_count === 0) {
+      ticket.clearUnreadCount()
     }
 
     await ticket.save({ operator: req.user })
@@ -586,19 +585,10 @@ router.post(
     .custom((action) => Object.values(TICKET_ACTION).includes(action)),
   catchError(async (req, res) => {
     const ticket = new Ticket(req.ticket)
-    const { action } = req.body
-    const isCS = await isCSInTicket(req.user, ticket.author_id)
-    const operatorInfo = makeTinyUserInfo(req.user)
-    const status = getActionStatus(action, isCS)
-    if (isCS) {
-      ticket.object.addUnique('joinedCustomerServices', operatorInfo)
-      if (ticketStatus.isOpened(status) !== ticket.status) {
-        ticket.object.increment('unreadCount')
-      }
-    }
-    ticket.status = status
-    ticket.pushOpsLog(action, { operator: operatorInfo })
-    await ticket.save({ operator: req.user })
+    await ticket.operate(req.body.action, {
+      isCustomerService: await isCSInTicket(req.user, ticket.author_id),
+      operator: req.user,
+    })
     res.json({})
   })
 )

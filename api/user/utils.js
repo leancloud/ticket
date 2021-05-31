@@ -32,4 +32,13 @@ function makeTinyUserInfo(user) {
   }
 }
 
-module.exports = { encodeUserObject, makeTinyUserInfo, systemUser }
+/**
+ * @param {string} userId
+ */
+async function getTinyUserInfo(userId) {
+  const query = new AV.Query('_User').select('username', 'name', 'email')
+  const user = await query.get(userId, { useMasterKey: true })
+  return makeTinyUserInfo(user)
+}
+
+module.exports = { encodeUserObject, makeTinyUserInfo, getTinyUserInfo, systemUser }
