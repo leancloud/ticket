@@ -24,7 +24,8 @@ module.exports = (mailgunKey, mailgunDomain) => {
         to: params.to,
         subject: params.subject,
         'h:Reply-To': params['h:Reply-To'],
-        text: `${params.text},
+        text: `${params.text}
+
 --
 您能收到邮件是因为该工单与您相关。
 可以直接回复邮件，或者点击 ${params.url} 查看。`,
@@ -83,8 +84,7 @@ ${ticket.get('content')}
 
 该工单最后一条回复：
 
-${(ticket.get('latestReply') && ticket.get('latestReply').content) || '<暂无>'}
-    `,
+${ticket.get('latestReply')?.content || '<暂无>'}`,
         url: getTicketUrl(ticket),
       })
     },

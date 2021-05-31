@@ -359,16 +359,16 @@ class Ticket {
     this._unsavedOpsLogs.push({ ticket: this.pointer, action, data })
   }
 
-  saveOpsLogs() {
+  async saveOpsLogs() {
     if (this._unsavedOpsLogs.length === 0) {
       return
     }
     const opsLogs = this._unsavedOpsLogs.map((data) => new AV.Object('OpsLog', data))
     this._unsavedOpsLogs = []
     if (opsLogs.length === 1) {
-      return opsLogs[0].save(null, { useMasterKey: true })
+      await opsLogs[0].save(null, { useMasterKey: true })
     } else {
-      return AV.Object.saveAll(opsLogs, { useMasterKey: true })
+      await AV.Object.saveAll(opsLogs, { useMasterKey: true })
     }
   }
 
@@ -514,7 +514,7 @@ class Ticket {
       }
       const assignee = AV.Object.createWithoutData('_User', this.assignee_id)
       assignee.attributes = this._assigneeInfo
-      notification.changeAssignee(object, operator, assignee)
+      notification.changeAssignee(ticket, operator, assignee)
     }
 
     if (this.isUpdated('evaluation')) {
