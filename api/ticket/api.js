@@ -585,10 +585,11 @@ router.post(
     .custom((action) => Object.values(TICKET_ACTION).includes(action)),
   catchError(async (req, res) => {
     const ticket = new Ticket(req.ticket)
-    await ticket.operate(req.body.action, {
+    ticket.operate(req.body.action, {
       isCustomerService: await isCSInTicket(req.user, ticket.author_id),
       operator: req.user,
     })
+    await ticket.save({ operator: req.user })
     res.json({})
   })
 )

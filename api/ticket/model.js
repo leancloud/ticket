@@ -171,6 +171,11 @@ class Ticket {
      * @private
      */
     this._customerServicesToJoin = undefined
+
+    /**
+     * @private
+     */
+    this._operatorId = undefined
   }
 
   /**
@@ -466,12 +471,16 @@ class Ticket {
       return
     }
 
+    const operator = options?.operator || systemUser
+    if (this._operatorId && this._operatorId !== operator.id) {
+      throw new Error('Operator must be ' + this._operatorId)
+    }
+
     if (this.isUpdated('category_id')) {
       this._category = await getTinyCategoryInfo(this.category_id)
     }
 
     const object = this._getDirtyAVObject()
-    const operator = options?.operator || systemUser
     const operatorInfo = makeTinyUserInfo(operator)
     const useMasterKey = operator === systemUser
 
@@ -522,6 +531,7 @@ class Ticket {
     this._unreadCountIncrement = 0
     this._clearUnreadCount = false
     this._customerServicesToJoin = undefined
+    this._operatorId = undefined
 
     const statusUpdated = this.isUpdated('status')
     this._updatedKeys.clear()
@@ -600,10 +610,15 @@ class Ticket {
     this.save().catch(captureException)
 
     // notification 需要 assignee 的信息
-    this.getAssigneeInfo()
-      .then(() => {
+    Promise.all([this.getAuthorInfo(), this.getAssigneeInfo()])
+      .then(([authorInfo, assigneeInfo]) => {
         // TODO: refactor notification
-        const ticket = new AV.Object('Ticket', { title: this.title, nid: this.nid })
+        const ticket = new AV.Object('Ticket', {
+          nid: this.nid,
+          title: this.title,
+          author: new AV.Object('_User', _.omit(authorInfo, 'objectId')),
+          assignee: new AV.Object('_User', _.omit(assigneeInfo, 'objectId')),
+        })
         return notification.replyTicket(ticket, reply, data.author)
       })
       .catch(captureException)
@@ -622,15 +637,19 @@ class Ticket {
     const operatorInfo = makeTinyUserInfo(operator)
     const isCustomerService = operator === systemUser || !!options?.isCustomerService
     const status = getActionStatus(action, isCustomerService)
+
     if (isCustomerService) {
-      this.joinCustomerService(operatorInfo)
+      if (operator !== systemUser) {
+        this.joinCustomerService(operatorInfo)
+      }
       if (ticketStatus.isOpened(status) !== ticketStatus.isOpened(this.status)) {
         this.increaseUnreadCount(1)
       }
     }
+
     this.status = status
     this.pushOpsLog(action, { operator: operatorInfo })
-    return this.save({ operator })
+    this._operatorId = operator.id
   }
 }
 
