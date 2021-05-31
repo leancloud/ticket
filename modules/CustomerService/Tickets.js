@@ -331,7 +331,7 @@ function TicketMenu({ customerServices, categories }) {
         <DelayInputForm
           size="sm"
           placeholder={t('searchKeyword')}
-          value={searchString}
+          initValue={searchString}
           onChange={(searchString) => updatePath({ searchString: searchString || undefined })}
         />
       </Form.Group>
