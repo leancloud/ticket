@@ -508,7 +508,7 @@ router.patch(
         res.throw(400, 'Sorry, this customer service is in vacation.')
       }
       if (!(await isObjectExists('_User', assignee_id))) {
-        res.throw(400, `Assignee(${assignee_id}) is not exists`)
+        res.throw(400, `Assignee(${assignee_id}) not exists`)
       }
       ticket.assignee_id = assignee_id
     }
