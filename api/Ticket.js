@@ -1,5 +1,6 @@
 const _ = require('lodash')
 const AV = require('leanengine')
+const throat = require('throat').default
 
 const { getTinyUserInfo, htmlify, getTinyReplyInfo, isCustomerService } = require('./common')
 const { checkPermission } = require('./oauth')
@@ -218,11 +219,12 @@ async function tickAutomation() {
     query.find({ useMasterKey: true }),
     Automations.get(),
   ])
+  const run = throat(3)
   for (const ticket of tickets) {
     const ctx = { ticket: new Ticket(ticket) }
     automations.exec(ctx)
     if (ctx.ticket.isUpdated()) {
-      ctx.ticket.save()
+      run(() => ctx.ticket.save())
     }
   }
 }
