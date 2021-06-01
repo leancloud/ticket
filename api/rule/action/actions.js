@@ -1,3 +1,5 @@
+const { TICKET_ACTION } = require('../../../lib/common')
+
 module.exports = {
   update_assignee_id: (value) => {
     if (typeof value !== 'string') {
@@ -5,6 +7,14 @@ module.exports = {
     }
     return (ctx) => {
       ctx.ticket.assignee_id = value
+    }
+  },
+  operate: (action) => {
+    if (!Object.values(TICKET_ACTION).includes(action)) {
+      throw new Error('Invalid action')
+    }
+    return (ctx) => {
+      ctx.ticket.operate(action)
     }
   },
 }
