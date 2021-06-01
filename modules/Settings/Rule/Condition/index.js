@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useMemo, useRef, useState } from 'react'
 import { Col, Form } from 'react-bootstrap'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
@@ -8,37 +8,38 @@ import { MapSelect } from '../components/MapSelect'
 import { Value } from '../components/Value'
 import * as basicFields from './fields'
 
-function Condition({ fields, initData, onChange }) {
-  const [field, setField] = useState(initData?.field || '')
-  const [operator, setOperator] = useState(initData?.operator || '')
-  const [value, setValue] = useState()
+function Condition({ fields, onChange, initValue }) {
+  const [field, setField] = useState(initValue?.field || '')
+  const [operator, setOperator] = useState(initValue?.operator || '')
+  const $initValueValue = useRef(initValue?.value)
+
+  const handleChange = useCallback(
+    (field, operator, value) => {
+      $initValueValue.current = undefined
+      if (!field || !operator) {
+        onChange(undefined)
+        return
+      }
+      if (fields[field].operators[operator].component && value === undefined) {
+        onChange(undefined)
+        return
+      }
+      onChange({ field, operator, value })
+    },
+    [fields, onChange]
+  )
 
   const handleChangeField = (field) => {
     setField(field)
-    setOperator(Object.keys(fields[field].operators)[0])
-    setValue(undefined)
+    const operator = Object.keys(fields[field].operators)[0]
+    setOperator(operator)
+    handleChange(field, operator)
   }
 
   const handleChangeOperator = (operator) => {
     setOperator(operator)
-    setValue(undefined)
+    handleChange(field, operator)
   }
-
-  useEffect(() => {
-    if (!field || !operator) {
-      onChange(undefined)
-      return
-    }
-    if (fields[field].operators[operator].component) {
-      if (value !== undefined) {
-        onChange({ field, operator, value })
-      } else {
-        onChange(undefined)
-      }
-    } else {
-      onChange({ field, operator })
-    }
-  }, [fields, field, operator, value])
 
   const fieldSelect = <MapSelect map={fields} value={field} onChange={handleChangeField} />
   if (!field) {
@@ -50,21 +51,20 @@ function Condition({ fields, initData, onChange }) {
   )
 
   let valueElement = null
-  if (field && operator) {
+  if (operator) {
     const component = fields[field].operators[operator].component
     if (component) {
       if (typeof component === 'function') {
         valueElement = React.createElement(component, {
-          initValue: initData?.value,
-          onChange: setValue,
+          initValue: $initValueValue.current,
+          onChange: (value) => handleChange(field, operator, value),
         })
       } else {
         valueElement = (
           <Value
-            key={`${field}.${operator}`}
             component={component}
-            initValue={initData?.value}
-            onChange={setValue}
+            initValue={$initValueValue.current}
+            onChange={(value) => handleChange(field, operator, value)}
           />
         )
       }
@@ -89,21 +89,21 @@ function Condition({ fields, initData, onChange }) {
 }
 Condition.propTypes = {
   fields: PropTypes.object.isRequired,
-  initData: PropTypes.object,
   onChange: PropTypes.func.isRequired,
+  initValue: PropTypes.object,
 }
 
 export function useConditions({ fields = basicFields } = {}) {
-  const [nodes, setNodes] = useState([])
+  const $fields = useRef(fields)
   const $nextId = useRef(0)
+  const [nodes, setNodes] = useState([])
   const [conditionById, setConditionById] = useState({})
-
   const conditions = useMemo(() => Object.values(conditionById), [conditionById])
 
-  const add = useCallback((initData) => {
+  const add = useCallback((initValue) => {
     const id = $nextId.current++
-    const handleChange = (condition) => {
-      setConditionById((current) => ({ ...current, [id]: condition }))
+    const handleChange = (value) => {
+      setConditionById((current) => ({ ...current, [id]: value }))
     }
     const handleRemove = () => {
       setConditionById((current) => _.omit(current, id))
@@ -111,11 +111,11 @@ export function useConditions({ fields = basicFields } = {}) {
     }
     const node = (
       <CardContainer key={id} onClose={handleRemove}>
-        <Condition fields={fields} onChange={handleChange} initData={initData} />
+        <Condition fields={$fields.current} initValue={initValue} onChange={handleChange} />
       </CardContainer>
     )
     setNodes((current) => [...current, node])
-    handleChange(undefined)
+    handleChange(initValue)
   }, [])
 
   const reset = useCallback(() => {

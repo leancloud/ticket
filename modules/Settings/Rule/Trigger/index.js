@@ -39,10 +39,10 @@ function deleteTrigger(id) {
   })
 }
 
-function reorderTriggers(triggerIds) {
+function reorderTriggers(trigger_ids) {
   return fetch('/api/1/triggers/reorder', {
     method: 'POST',
-    body: { triggerIds },
+    body: { trigger_ids },
   })
 }
 
@@ -213,7 +213,7 @@ function NewTrigger() {
 
   const allCondIsValid = allConditions.findIndex((cond) => !cond) === -1
   const anyCondIsValid = anyConditions.findIndex((cond) => !cond) === -1
-  const actionsIsValid = actions.findIndex((act) => !act) === -1
+  const actionsIsValid = actions.length && actions.findIndex((act) => !act) === -1
 
   const handleAdd = async () => {
     const conditions = {}
@@ -333,6 +333,7 @@ function TriggerDetail() {
       conditions?.any?.forEach(addAnyCondition)
       actions?.forEach(addAction)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [triggerData])
 
   if (error) {
@@ -345,7 +346,7 @@ function TriggerDetail() {
 
   const allCondIsValid = allConditions.findIndex((cond) => !cond) === -1
   const anyCondIsValid = anyConditions.findIndex((cond) => !cond) === -1
-  const actionsIsValid = actions.findIndex((act) => !act) === -1
+  const actionsIsValid = actions.length && actions.findIndex((act) => !act) === -1
 
   const handleSave = async () => {
     const conditions = {}

@@ -174,7 +174,7 @@ class ReplyTimeStats {
       avObj.get('action') === 'reopen' &&
       !!this.ticket
         .get('joinedCustomerServices')
-        .find(({ objectId }) => objectId === avObj.get('data').operator.objectId)
+        ?.find(({ objectId }) => objectId === avObj.get('data').operator.objectId)
     ) {
       this.cursor = avObj.createdAt
       this.isReply = true

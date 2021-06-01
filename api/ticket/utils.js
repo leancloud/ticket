@@ -2,19 +2,7 @@ const AV = require('leancloud-storage')
 const _ = require('lodash')
 
 const { TICKET_ACTION, TICKET_STATUS } = require('../../lib/common')
-const { captureException } = require('../errorHandler')
-
-/**
- * @param {string} categoryId
- * @returns {Promise<{ objectId: string; name: string }>}
- */
-async function getTinyCategoryInfo(categoryId) {
-  const category = await new AV.Query('Category').get(categoryId)
-  return {
-    objectId: category.id,
-    name: category.get('name'),
-  }
-}
+const { getCustomerServiceRole } = require('../customerService/utils')
 
 /**
  * @returns {Promise<string[]>}
@@ -33,10 +21,7 @@ async function getVacationerIds() {
  * @returns {Promise<AV.User>}
  */
 async function selectAssignee(categoryId) {
-  const [role, vacationerIds] = await Promise.all([
-    new AV.Query(AV.Role).equalTo('name', 'customerService').first(),
-    getVacationerIds(),
-  ])
+  const [role, vacationerIds] = await Promise.all([getCustomerServiceRole(), getVacationerIds()])
   const query = role.getUsers().query()
   if (vacationerIds.length) {
     query.notContainedIn('objectId', vacationerIds)
@@ -44,20 +29,14 @@ async function selectAssignee(categoryId) {
   const users = await query.find({ useMasterKey: true })
 
   const assignees = users.filter((user) => {
-    /**
-     * @type {Array<{objectId: string}>}
-     */
-    const categories = user.get('categories') || []
+    const categories = user.get('categories')
+    if (!categories) {
+      return false
+    }
     return categories.findIndex((c) => c.objectId === categoryId) !== -1
   })
 
   return assignees.length ? _.sample(assignees) : _.sample(users)
-}
-
-function addOpsLog(ticket, action, data) {
-  return new AV.Object('OpsLog')
-    .save({ ticket, action, data }, { useMasterKey: true })
-    .catch(captureException)
 }
 
 function getActionStatus(action, isCustomerService) {
@@ -80,37 +59,8 @@ function getActionStatus(action, isCustomerService) {
   }
 }
 
-/**
- * @param {AV.Object} object
- * @param {object} [options]
- * @param {boolean} [options.ignoreBeforeHook]
- * @param {boolean} [options.ignoreAfterHook]
- * @param {boolean} [options.useMasterKey]
- * @param {AV.User} [options.user]
- */
-async function saveWithoutHooks(object, options) {
-  const ignoredHooks = _.clone(object._flags.__ignore_hooks)
-  if (options?.ignoreBeforeHook) {
-    object.disableBeforeHook()
-  }
-  if (options?.ignoreAfterHook) {
-    object.disableAfterHook()
-  }
-  try {
-    await object.save(null, {
-      useMasterKey: options?.useMasterKey,
-      user: options?.user,
-    })
-  } finally {
-    object._flags.__ignore_hooks = ignoredHooks
-  }
-}
-
 module.exports = {
   getVacationerIds,
-  getTinyCategoryInfo,
-  addOpsLog,
-  saveWithoutHooks,
   getActionStatus,
   selectAssignee,
 }

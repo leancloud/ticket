@@ -33,6 +33,13 @@ class Cache {
     })
   }
 
+  /**
+   * @template T
+   * @param {any} key
+   * @param {() => Promise<T>} getter
+   * @param {number} lifetime
+   * @returns {Promise<T>}
+   */
   async get(key, getter, lifetime = 1000 * 60 * 5) {
     key = id(key)
     const item = this._data[key]
@@ -48,6 +55,8 @@ class Cache {
 function id(value) {
   switch (typeof value) {
     case 'number':
+      return value + ''
+
     case 'string':
       return value
 
@@ -63,6 +72,9 @@ function id(value) {
             return obj
           }, {})
       )
+
+    case 'boolean':
+      return value ? 'true' : 'false'
 
     default:
       throw new TypeError('Unsupported value type: ' + typeof value)

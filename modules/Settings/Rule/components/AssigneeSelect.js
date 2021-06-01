@@ -1,24 +1,31 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { Form } from 'react-bootstrap'
 import PropTypes from 'prop-types'
 
 import { getUserDisplayName } from '../../../../lib/common'
 import { Context } from '../context'
 
-export function AssigneeSelect({ initValue, onChange }) {
-  const [value, setValue] = useState(initValue || '')
+export function AssigneeSelect({ onChange, initValue }) {
   const { assignees } = useContext(Context)
-  const invalid = useMemo(() => {
-    return value && assignees.findIndex(({ objectId }) => objectId === value) === -1
-  }, [assignees, value])
+  const [value, setValue] = useState(initValue || '')
+  const [invalid, setInvalid] = useState(false)
 
   useEffect(() => {
-    if (invalid || !value) {
+    setInvalid(false)
+    if (!assignees) {
+      return
+    }
+    if (!value) {
+      onChange(undefined)
+      return
+    }
+    if (assignees.findIndex((a) => a.objectId === value) === -1) {
+      setInvalid(true)
       onChange(undefined)
       return
     }
     onChange(value)
-  }, [value, invalid])
+  }, [onChange, assignees, value])
 
   return (
     <Form.Control
@@ -26,18 +33,24 @@ export function AssigneeSelect({ initValue, onChange }) {
       value={value}
       onChange={(e) => setValue(e.target.value)}
       isInvalid={invalid}
+      disabled={!assignees}
     >
-      <option value=""></option>
-      {invalid && <option value={value}>{value}</option>}
-      {assignees.map((assignee) => (
-        <option key={assignee.objectId} value={assignee.objectId}>
-          {getUserDisplayName(assignee)}
-        </option>
-      ))}
+      {assignees ? (
+        <>
+          <option value=""></option>
+          {assignees.map((assignee) => (
+            <option key={assignee.objectId} value={assignee.objectId}>
+              {getUserDisplayName(assignee)}
+            </option>
+          ))}
+        </>
+      ) : (
+        <option>Loading...</option>
+      )}
     </Form.Control>
   )
 }
 AssigneeSelect.propTypes = {
-  initValue: PropTypes.string,
   onChange: PropTypes.func.isRequired,
+  initValue: PropTypes.string,
 }

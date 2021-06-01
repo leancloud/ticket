@@ -1,7 +1,7 @@
 import { AssigneeSelect } from '../../components/AssigneeSelect'
 import { TICKET_STATUS } from '../../../../../lib/common'
 
-export const updateType = {
+export const update_type = {
   title: 'Ticket',
   operators: {
     is: {
@@ -23,14 +23,14 @@ export const updateType = {
   },
 }
 
-export const assigneeId = {
+export const assignee_id = {
   title: 'Assignee',
   operators: {
     is: {
       title: 'Is',
       component: AssigneeSelect,
     },
-    isNot: {
+    is_not: {
       title: 'Is not',
       component: AssigneeSelect,
     },
@@ -85,7 +85,7 @@ export const title = {
         type: 'text',
       },
     },
-    notContains: {
+    not_contains: {
       title: 'Does not contain',
       component: {
         type: 'text',
@@ -103,7 +103,7 @@ export const content = {
         type: 'text',
       },
     },
-    notContains: {
+    not_contains: {
       title: 'Does not contain',
       component: {
         type: 'text',

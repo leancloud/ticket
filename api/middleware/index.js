@@ -1,7 +1,7 @@
 const AV = require('leancloud-storage')
 const { validationResult } = require('express-validator')
 
-const { isCustomerService } = require('../common')
+const { isCustomerService } = require('../customerService/utils')
 const { parse } = require('../utils/search')
 
 exports.requireAuth = async (req, res, next) => {

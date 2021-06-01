@@ -1,33 +1,37 @@
 const _ = require('lodash')
 
-const actionTypes = require('./types')
+const defaultActions = require('./actions')
 
 class Action {
-  constructor(data, types = actionTypes) {
+  constructor(data, actions = defaultActions) {
     if (!_.isPlainObject(data)) {
       throw new Error('Action must be a JSON object')
     }
     const { type, value } = data
     if (typeof type !== 'string') {
-      throw new Error('Invalid action type')
+      throw new Error('Action type must be a string')
     }
-    if (!(type in actionTypes)) {
+    if (!(type in actions)) {
       throw new Error('Unknown action type: ' + type)
     }
-    this._executor = types[type](value)
-  }
 
-  exec(ctx) {
-    this._executor.exec(ctx)
+    try {
+      /**
+       * @type {(ctx: any) => void}
+       */
+      this.exec = actions[type](value)
+    } catch (error) {
+      throw new Error(`Action "${type}": ${error.message}`)
+    }
   }
 }
 
 class Actions {
-  constructor(actions = [], types = actionTypes) {
-    if (!Array.isArray(actions)) {
+  constructor(data, actions = defaultActions) {
+    if (!Array.isArray(data)) {
       throw new Error('Actions must be an array')
     }
-    this.actions = actions.map((act) => new Action(act, types))
+    this.actions = data.map((item) => new Action(item, actions))
   }
 
   exec(ctx) {
@@ -35,4 +39,4 @@ class Actions {
   }
 }
 
-module.exports = { Action, Actions, actionTypes }
+module.exports = { Action, Actions }

@@ -1,40 +1,43 @@
 const _ = require('lodash')
 
-const conditionFields = require('./fields')
+const defaultConditions = require('./conditions')
 
 class Condition {
-  constructor(data, fields = conditionFields) {
+  constructor(data, conditions = defaultConditions) {
     if (!_.isPlainObject(data)) {
       throw new Error('Condition must be a JSON object')
     }
     const { field, operator, value } = data
     if (typeof field !== 'string') {
-      throw new Error('Field must be a string')
+      throw new Error('Condition field must be a string')
     }
     if (typeof operator !== 'string') {
-      throw new Error('Operator must be a string')
+      throw new Error('Condition operator must be a string')
     }
-    if (!(field in fields)) {
-      throw new Error('Unknown field: ' + field)
+    if (!(field in conditions)) {
+      throw new Error('Unknown condition field: ' + field)
     }
-    const operators = fields[field]
-    if (!(operator in operators)) {
-      throw new Error('Unknown operator: ' + operator)
+    if (!(operator in conditions[field])) {
+      throw new Error('Unknown condition operator: ' + operator)
     }
-    this._tester = operators[operator](value)
-  }
 
-  test(ctx) {
-    return this._tester.test(ctx)
+    try {
+      /**
+       * @type {(ctx) => boolean}
+       */
+      this.test = conditions[field][operator](value)
+    } catch (error) {
+      throw new Error(`Condition "${field} ${operator}": ${error.message}`)
+    }
   }
 }
 
 class AllCondition {
-  constructor(conditions, fields = conditionFields) {
-    if (!Array.isArray(conditions)) {
+  constructor(data, conditions = defaultConditions) {
+    if (!Array.isArray(data)) {
       throw new Error('All conditions must be an array')
     }
-    this.conditions = conditions.map((cond) => new Condition(cond, fields))
+    this.conditions = data.map((item) => new Condition(item, conditions))
   }
 
   test(ctx) {
@@ -48,11 +51,11 @@ class AllCondition {
 }
 
 class AnyCondition {
-  constructor(conditions = {}, fields = conditionFields) {
-    if (!Array.isArray(conditions)) {
+  constructor(data, conditions = defaultConditions) {
+    if (!Array.isArray(data)) {
       throw new Error('Any conditions must be an array')
     }
-    this.conditions = conditions.map((cond) => new Condition(cond, fields))
+    this.conditions = data.map((item) => new Condition(item, conditions))
   }
 
   test(ctx) {
@@ -66,15 +69,15 @@ class AnyCondition {
 }
 
 class Conditions {
-  constructor(conditions, fields = conditionFields) {
-    if (!_.isPlainObject(conditions)) {
+  constructor(data, conditions = defaultConditions) {
+    if (!_.isPlainObject(data)) {
       throw new Error('Conditions must be a JSON object')
     }
-    if (conditions.all) {
-      this.all = new AllCondition(conditions.all, fields)
+    if (data.all) {
+      this.all = new AllCondition(data.all, conditions)
     }
-    if (conditions.any) {
-      this.any = new AnyCondition(conditions.any, fields)
+    if (data.any) {
+      this.any = new AnyCondition(data.any, conditions)
     }
   }
 
@@ -94,5 +97,4 @@ module.exports = {
   AnyCondition,
   Condition,
   Conditions,
-  conditionFields,
 }

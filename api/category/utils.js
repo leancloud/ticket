@@ -45,15 +45,25 @@ async function fetchCategories() {
   return categories.map(encodeCategoryObject)
 }
 
-/**
- * @returns {Promise<Category[]>}
- */
 function getCategories() {
   return cache.get('categories', fetchCategories, 1000 * 60 * 5)
+}
+
+/**
+ * @param {string} categoryId
+ * @returns {Promise<{ objectId: string; name: string; }>}
+ */
+async function getTinyCategoryInfo(categoryId) {
+  const category = await new AV.Query('Category').get(categoryId)
+  return {
+    objectId: category.id,
+    name: category.get('name'),
+  }
 }
 
 module.exports = {
   encodeCategoryObject,
   fetchCategories,
   getCategories,
+  getTinyCategoryInfo,
 }

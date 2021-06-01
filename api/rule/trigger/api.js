@@ -3,16 +3,16 @@ const { check } = require('express-validator')
 const { Router } = require('express')
 
 const { requireAuth, customerServiceOnly, catchError } = require('../../middleware')
-const { Trigger } = require('./trigger')
+const { Trigger } = require('.')
 
 const router = Router().use(requireAuth, customerServiceOnly)
 
 router.post(
   '/',
-  check('title').isString().isLength({ min: 1 }),
-  check('description').isString().optional(),
+  check('title').isString().trim().isLength({ min: 1 }),
+  check('description').isString().trim().optional(),
   check('conditions').isObject().optional(),
-  check('actions').isArray().optional(),
+  check('actions').isArray({ min: 1 }),
   catchError(async (req, res) => {
     const { title, description, conditions, actions } = req.body
     Trigger.parseConditions(conditions)
@@ -60,10 +60,10 @@ router.get(
 
 router.patch(
   '/:id',
-  check('title').isString().isLength({ min: 1 }).optional(),
-  check('description').isString().optional(),
+  check('title').isString().trim().isLength({ min: 1 }).optional(),
+  check('description').isString().trim().optional(),
   check('conditions').isObject().optional(),
-  check('actions').isArray().optional(),
+  check('actions').isArray({ min: 1 }).optional(),
   check('active').isBoolean().optional(),
   catchError(async (req, res) => {
     const { id } = req.params
@@ -103,11 +103,11 @@ router.delete(
 
 router.post(
   '/reorder',
-  check('triggerIds').isArray({ min: 1 }),
-  check('triggerIds.*').isString(),
+  check('trigger_ids').isArray({ min: 1 }),
+  check('trigger_ids.*').isString(),
   catchError(async (req, res) => {
-    const { triggerIds } = req.body
-    const objects = triggerIds.map((id, index) => {
+    const { trigger_ids } = req.body
+    const objects = trigger_ids.map((id, index) => {
       const object = AV.Object.createWithoutData('Trigger', id)
       object.set('position', index)
       return object
