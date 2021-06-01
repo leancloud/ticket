@@ -1,6 +1,5 @@
 const AV = require('leancloud-storage')
 
-const cache = require('../../utils/cache')
 const { Conditions } = require('../condition')
 const { Actions } = require('../action')
 const conditions = require('./conditions')
@@ -56,20 +55,9 @@ class Automations {
   /**
    * @param {boolean} [includeInactive]
    */
-  static async fetch(includeInactive) {
+  static async get(includeInactive) {
     const objects = await this.fetchRaw(includeInactive)
     return new Automations(objects.map((o) => o.toJSON()))
-  }
-
-  /**
-   * @param {boolean} [includeInactive]
-   */
-  static get(includeInactive) {
-    return cache.get(
-      ['automations', { active: !!includeInactive }],
-      () => this.fetch(includeInactive),
-      1000 * 60 * 10
-    )
   }
 
   exec(ctx) {
