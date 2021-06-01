@@ -228,7 +228,7 @@ class Ticket {
     const ticket = new Ticket(obj)
 
     ticket.pushOpsLog('selectAssignee', { assignee: makeTinyUserInfo(assignee) })
-    ticket.saveOpsLogs()
+    ticket.saveOpsLogs().catch(captureException)
 
     const triggers = await Triggers.get()
     triggers.exec({ ticket, update_type: 'create' })
@@ -338,7 +338,13 @@ class Ticket {
     if (key) {
       return this._updatedKeys.has(key)
     }
-    return this._updatedKeys.size > 0
+    return (
+      this._updatedKeys.size > 0 ||
+      this._replyCountIncrement > 0 ||
+      this._unreadCountIncrement > 0 ||
+      this._clearUnreadCount ||
+      this._customerServicesToJoin !== undefined
+    )
   }
 
   async getAuthorInfo() {
@@ -469,7 +475,7 @@ class Ticket {
    * @param {boolean} [options.skipTriggers]
    */
   async save(options) {
-    if (this._updatedKeys.size === 0) {
+    if (!this.isUpdated()) {
       return
     }
 
@@ -484,7 +490,7 @@ class Ticket {
 
     const object = this._getDirtyAVObject()
     const operatorInfo = makeTinyUserInfo(operator)
-    const useMasterKey = operator === systemUser
+    const useMasterKey = operator.id === 'system'
 
     await saveWithoutHooks(object, {
       ignoreBeforeHook: true,
@@ -501,31 +507,34 @@ class Ticket {
     }
 
     if (this.isUpdated('assignee_id')) {
+      const assigneeInfo = await this.getAssigneeInfo()
       this.pushOpsLog('changeAssignee', {
-        assignee: await this.getAssigneeInfo(),
+        assignee: assigneeInfo,
         operator: operatorInfo,
       })
-      const ticket = AV.Object.createWithoutData('Ticket', this.id)
-      ticket.attributes = {
-        nid: this.nid,
-        title: this.title,
-        content: this.content,
-        latestReply: this.latest_reply,
+      if (operator.id !== 'system') {
+        // 适配 notification 使用的数据结构
+        const ticket = AV.Object.createWithoutData('Ticket', this.id)
+        ticket.attributes = {
+          nid: this.nid,
+          title: this.title,
+          content: this.content,
+          latestReply: this.latest_reply,
+        }
+        const assignee = AV.Object.createWithoutData('_User', this.assignee_id)
+        assignee.attributes = assigneeInfo
+        notification.changeAssignee(ticket, operator, assignee)
       }
-      const assignee = AV.Object.createWithoutData('_User', this.assignee_id)
-      assignee.attributes = this._assigneeInfo
-      notification.changeAssignee(ticket, operator, assignee)
     }
 
     if (this.isUpdated('evaluation')) {
       this.getAssigneeInfo()
         .then((assigneeInfo) => {
+          // 适配 notification 使用的数据结构
           const ticket = AV.Object.createWithoutData('Ticket', this.id)
           ticket.attributes = {
             nid: this.nid,
             title: this.title,
-            content: this.content,
-            latestReply: this.latest_reply,
             evaluation: this.evaluation,
           }
           const assignee = AV.Object.createWithoutData('_User', this.assignee_id)
@@ -653,11 +662,11 @@ class Ticket {
   operate(action, options) {
     const operator = options?.operator || systemUser
     const operatorInfo = makeTinyUserInfo(operator)
-    const isCustomerService = operator === systemUser || !!options?.isCustomerService
+    const isCustomerService = operator.id === 'system' || !!options?.isCustomerService
     const status = getActionStatus(action, isCustomerService)
 
     if (isCustomerService) {
-      if (operator !== systemUser) {
+      if (operator.id !== 'system') {
         this.joinCustomerService(operatorInfo)
       }
       if (ticketStatus.isOpened(status) !== ticketStatus.isOpened(this.status)) {
