@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useRef, useState } from 'react'
+import React, { useCallback, useContext, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button, Form } from 'react-bootstrap'
 import PropTypes from 'prop-types'
@@ -16,7 +16,11 @@ export function TicketReply({ ticket, isCustomerService, onCommitted, onOperate 
   const { addNotification } = useContext(AppContext)
   const storageKey = `ticket:${ticket.id}:reply`
   const [content, setContent] = useState(localStorage.getItem(storageKey) ?? '')
+  const [files, setFiles] = useState([])
   const $fileInput = useRef()
+  const commitable = useMemo(() => {
+    return content.trim().length > 0 || files.length > 0
+  }, [content, files])
   const [operating, setOperating] = useState(false)
 
   const setReplyContent = useCallback(
@@ -32,19 +36,20 @@ export function TicketReply({ ticket, isCustomerService, onCommitted, onOperate 
   )
 
   const { mutate: commit, isLoading: committing } = useMutation({
-    mutationFn: async ({ content, files }) => {
+    mutationFn: async () => {
       let file_ids = undefined
-      if (files?.length) {
+      if (files.length) {
         file_ids = (await uploadFiles(files)).map((file) => file.id)
       }
       await fetch(`/api/1/tickets/${ticket.id}/replies`, {
         method: 'POST',
-        body: { content, file_ids },
+        body: { content: content.trim(), file_ids },
       })
     },
     onSuccess: (reply) => {
       setReplyContent('')
-      $fileInput.current.value = ''
+      setFiles([])
+      $fileInput.current.value = null
       onCommitted?.(reply)
     },
     onError: (error) => addNotification(error),
@@ -68,14 +73,19 @@ export function TicketReply({ ticket, isCustomerService, onCommitted, onOperate 
           onChange={setReplyContent}
           onKeyDown={(e) => {
             if (e.metaKey && e.keyCode == 13) {
-              commit({ content, files: $fileInput.current.files })
+              commitable && commit()
             }
           }}
         />
       </Form.Group>
 
       <Form.Group>
-        <Form.Control type="file" multiple ref={$fileInput} />
+        <Form.Control
+          type="file"
+          multiple
+          ref={$fileInput}
+          onChange={(e) => setFiles(e.target.files)}
+        />
         <Form.Text muted>{t('multipleAttachments')}</Form.Text>
       </Form.Group>
 
@@ -106,8 +116,8 @@ export function TicketReply({ ticket, isCustomerService, onCommitted, onOperate 
           <Button
             className={css.submit}
             variant="success"
-            disabled={committing}
-            onClick={() => commit({ content, files: $fileInput.current.files })}
+            disabled={committing || !commitable}
+            onClick={commit}
           >
             {t('submit')}
           </Button>
