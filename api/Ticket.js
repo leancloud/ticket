@@ -161,7 +161,7 @@ AV.Cloud.define('operateTicket', async (req) => {
         })
       )
     })
-    await AV.Object.saveAll(tickets.concat(opsLogs), { useMasterKey: true })
+    await AV.Object.saveAll(tickets.concat(opsLogs), { user: req.currentUser, useMasterKey: true })
   } catch (error) {
     if (error instanceof AV.Cloud.Error) {
       throw error
