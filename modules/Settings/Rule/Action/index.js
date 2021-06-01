@@ -10,33 +10,44 @@ import * as basicTypes from './types'
 
 function Action({ types, onChange, initValue }) {
   const [type, setType] = useState(initValue?.type || '')
+  const $initValueValue = useRef(initValue?.value)
 
   const handleChange = useCallback(
     (type, value) => {
-      if (!type || value === undefined) {
+      $initValueValue.current = undefined
+      if (!type) {
+        onChange(undefined)
+        return
+      }
+      if (types[type].component && value === undefined) {
         onChange(undefined)
         return
       }
       onChange({ type, value })
     },
-    [onChange]
+    [types, onChange]
   )
 
-  const typeSelect = <MapSelect map={types} value={type} onChange={setType} />
+  const handleChangeType = (type) => {
+    setType(type)
+    handleChange(type)
+  }
+
+  const typeSelect = <MapSelect map={types} value={type} onChange={handleChangeType} />
 
   let valueElement = null
   if (type) {
     const component = types[type].component
     if (typeof component === 'function') {
       valueElement = React.createElement(component, {
-        initValue: initValue?.value,
+        initValue: $initValueValue.current,
         onChange: (value) => handleChange(type, value),
       })
     } else {
       valueElement = (
         <Value
           component={component}
-          initValue={initValue?.value}
+          initValue={$initValueValue.current}
           onChange={(value) => handleChange(type, value)}
         />
       )

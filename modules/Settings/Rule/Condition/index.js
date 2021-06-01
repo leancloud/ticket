@@ -11,9 +11,11 @@ import * as basicFields from './fields'
 function Condition({ fields, onChange, initValue }) {
   const [field, setField] = useState(initValue?.field || '')
   const [operator, setOperator] = useState(initValue?.operator || '')
+  const $initValueValue = useRef(initValue?.value)
 
   const handleChange = useCallback(
     (field, operator, value) => {
+      $initValueValue.current = undefined
       if (!field || !operator) {
         onChange(undefined)
         return
@@ -54,14 +56,14 @@ function Condition({ fields, onChange, initValue }) {
     if (component) {
       if (typeof component === 'function') {
         valueElement = React.createElement(component, {
-          initValue: initValue?.value,
+          initValue: $initValueValue.current,
           onChange: (value) => handleChange(field, operator, value),
         })
       } else {
         valueElement = (
           <Value
             component={component}
-            initValue={initValue?.value}
+            initValue={$initValueValue.current}
             onChange={(value) => handleChange(field, operator, value)}
           />
         )
