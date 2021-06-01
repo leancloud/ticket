@@ -549,7 +549,19 @@ class Ticket {
     }
 
     invokeWebhooks('ticket.update', {
-      ticket: object.toJSON(),
+      ticket: {
+        objectId: this.id,
+        nid: this.nid,
+        title: this.title,
+        category: this._category,
+        content: this.content,
+        author: await this.getAuthorInfo(),
+        assignee: await this.getAssigneeInfo(),
+        latestReply: this.latest_reply,
+        status: this.status,
+        createdAt: this.created_at,
+        updatedAt: this.updated_at,
+      },
       updatedKeys: Array.from(this._updatedKeys).map((key) => KEY_MAP[key] || key),
     })
 
