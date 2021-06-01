@@ -211,20 +211,36 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
 }
 
 async function tickAutomation() {
-  const query = new AV.Query('Ticket')
-  query.containedIn('status', TICKET_OPENED_STATUSES)
-  query.addAscending('createdAt')
-  query.limit(1000)
-  const [tickets, automations] = await Promise.all([
-    query.find({ useMasterKey: true }),
-    Automations.get(),
-  ])
+  const automations = await Automations.get()
   const run = throat(3)
-  for (const ticket of tickets) {
-    const ctx = { ticket: new Ticket(ticket) }
-    automations.exec(ctx)
-    if (ctx.ticket.isUpdated()) {
-      run(() => ctx.ticket.save())
+  const getQuery = (cursor) => {
+    const query = new AV.Query('Ticket')
+    query.containedIn('status', TICKET_OPENED_STATUSES)
+    query.addAscending('createdAt')
+    query.limit(1000)
+    if (cursor) {
+      query.greaterThan('createdAt', cursor)
+    }
+    return query
+  }
+
+  let cursor = null
+  let count = 0
+  while (count < 1000) {
+    const query = getQuery(cursor)
+    const tickets = await query.find({ useMasterKey: true })
+    if (tickets.length === 0) {
+      break
+    }
+    cursor = _.last(tickets).createdAt
+
+    for (const ticket of tickets) {
+      const ctx = { ticket: new Ticket(ticket) }
+      automations.exec(ctx)
+      if (ctx.ticket.isUpdated()) {
+        run(() => ctx.ticket.save())
+        count++
+      }
     }
   }
 }
