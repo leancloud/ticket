@@ -178,15 +178,20 @@ ${ticket.get('latestReply') && ticket.get('latestReply').content}
             })
             .catch(cb)
         },
-        (token, cb) => {
-          new AV.Object('Config')
-            .setACL(new AV.ACL()) // 任何人无法读取，除非使用 masterKey
-            .save({ key: 'wechatToken', value: JSON.stringify(token) })
-            .then(() => {
-              cb()
-              return
-            })
-            .catch(cb)
+        async (token, cb) => {
+          try {
+            const expiredTokens = await new AV.Query('Config')
+              .equalTo('key', 'wechatToken')
+              .descending('createdAt')
+              .find({ useMasterKey: true })
+            await AV.Object.destroyAll(expiredTokens, { useMasterKey: true })
+            await new AV.Object('Config')
+              .setACL(new AV.ACL()) // 任何人无法读取，除非使用 masterKey
+              .save({ key: 'wechatToken', value: JSON.stringify(token) })
+            cb()
+          } catch (error) {
+            cb(error)
+          }
         }
       )
 
