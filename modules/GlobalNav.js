@@ -35,7 +35,7 @@ export default function GlobalNav({ user, onLogout }) {
                   as={Link}
                   to={getConfig(
                     'nav.customerServiceTickets.href',
-                    '/customerService/tickets?assignee=me&isOpen=true'
+                    '/customerService/tickets?assignee=me&stage=todo'
                   )}
                 >
                   {t('customerServiceTickets')}

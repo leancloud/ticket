@@ -26,7 +26,7 @@ body,
 }
 
 .active {
-  color: green;
+  font-weight: bold;
 }
 
 .card-footer a {
