@@ -45,6 +45,7 @@ apiRouter.use('/customer-services', require('./customerService/api'))
 apiRouter.get('/debug/search', parseSearchingQ, (req, res) => {
   res.json({ q: req.q, query: req.query })
 })
+apiRouter.use('/translate', require('./translate/api'))
 router.use('/api/1', apiRouter)
 
 const { integrations } = require('../config')
