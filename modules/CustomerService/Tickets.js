@@ -3,7 +3,15 @@ import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 import { Link, useHistory, useLocation } from 'react-router-dom'
-import { Button, ButtonGroup, Dropdown, DropdownButton, Form } from 'react-bootstrap'
+import {
+  Button,
+  ButtonGroup,
+  Dropdown,
+  DropdownButton,
+  Form,
+  OverlayTrigger,
+  Tooltip,
+} from 'react-bootstrap'
 import qs from 'query-string'
 import moment from 'moment'
 import * as Icon from 'react-bootstrap-icons'
@@ -14,8 +22,6 @@ import css from '../CustomerServiceTickets.css'
 import { getTinyCategoryInfo } from '../common'
 import {
   TICKET_STATUS,
-  TICKET_OPENED_STATUSES,
-  TICKET_CLOSED_STATUSES,
   TICKET_STATUS_MSG,
   TIME_RANGE_MAP,
   getUserDisplayName,
@@ -47,7 +53,13 @@ function useTicketFilters() {
     },
     [history, mergePath]
   )
-  return { filters, mergePath, updatePath }
+  const replacePath = useCallback(
+    (newFilters) => {
+      history.push(pathname + '?' + qs.stringify(newFilters))
+    },
+    [history, pathname]
+  )
+  return { filters, mergePath, updatePath, replacePath }
 }
 
 /**
@@ -124,7 +136,7 @@ function TicketList({ tickets, categories, checkedTicketIds, onCheckTicket }) {
                   <span className={css.category}>{getCategoryName(c)}</span>
                 </Link>
               ))}
-              {filters.isOpen !== 'true' && (
+              {filters.stage === 'done' && (
                 <span>
                   {ticket.evaluation &&
                     (ticket.evaluation.star === 1 ? (
@@ -156,7 +168,7 @@ function TicketList({ tickets, categories, checkedTicketIds, onCheckTicket }) {
               <span className={css.nid}>#{ticket.nid}</span>
               <Link
                 className={css.statusLink}
-                to={mergePath({ status: ticket.status, isOpen: undefined })}
+                to={mergePath({ status: ticket.status, stage: undefined })}
               >
                 <span className={css.status}>
                   <TicketStatusLabel status={ticket.status} />
@@ -223,14 +235,14 @@ function getIndentString(depth) {
  */
 function TicketMenu({ customerServices, categories }) {
   const { t } = useTranslation()
-  const { filters, updatePath } = useTicketFilters()
+  const { filters, updatePath, replacePath } = useTicketFilters()
   const { tagMetadatas, addNotification } = useContext(AppContext)
   const [authorFilterValidationState, setAuthorFilterValidationState] = useState(null)
   const [authorUsername, setAuthorUsername] = useState('')
 
   const {
     searchString,
-    isOpen,
+    stage,
     status,
     authorId,
     groupId,
@@ -292,10 +304,12 @@ function TicketMenu({ customerServices, categories }) {
   let statusTitle
   if (status) {
     statusTitle = t(TICKET_STATUS_MSG[status])
-  } else if (isOpen === 'true') {
-    statusTitle = t('incompleted')
-  } else if (isOpen === 'false') {
-    statusTitle = t('completed')
+  } else if (stage === 'todp') {
+    statusTitle = t('todp')
+  } else if (stage === 'in-progress') {
+    statusTitle = t('in-progress')
+  } else if (stage === 'done') {
+    statusTitle = t('done')
   } else {
     statusTitle = t('all')
   }
@@ -347,34 +361,113 @@ function TicketMenu({ customerServices, categories }) {
 
   return (
     <>
-      <Form.Group>
-        <DelayInputForm
-          size="sm"
-          placeholder={t('searchKeyword')}
-          initValue={searchString}
-          onChange={(searchString) => updatePath({ searchString: searchString || undefined })}
-        />
-      </Form.Group>
-      <Form.Group className="ml-1">
-        <ButtonGroup size="sm">
+      <Form inline className="pb-2">
+        <OverlayTrigger
+          overlay={
+            <Tooltip>
+              {t('todo')} & {t('assignedToMe')}
+            </Tooltip>
+          }
+        >
           <Button
+            size="sm"
             variant="light"
-            active={isOpen === 'true'}
-            onClick={() => updatePath({ isOpen: true, status: undefined })}
+            className="mr-1"
+            active={stage === 'todo' && assignee === 'me'}
+            onClick={() => replacePath({ stage: 'todo', assignee: 'me' })}
           >
-            {t('incompleted')}
+            {t('On my desk')}
           </Button>
+        </OverlayTrigger>
+        <OverlayTrigger
+          overlay={
+            <Tooltip>
+              {t('todo')} & {t('myGroups')}
+            </Tooltip>
+          }
+        >
           <Button
+            size="sm"
             variant="light"
-            active={isOpen === 'false'}
-            onClick={() => updatePath({ isOpen: false, status: undefined })}
+            className="mr-1"
+            active={stage === 'todo' && groupId === 'mine'}
+            onClick={() => replacePath({ stage: 'todo', groupId: 'mine' })}
           >
-            {t('completed')}
+            {t('My groups')}
           </Button>
+        </OverlayTrigger>
+        <OverlayTrigger
+          overlay={
+            <Tooltip>
+              {t('group')} {t('unset')} & {t('unassigned')}
+            </Tooltip>
+          }
+        >
+          <Button
+            size="sm"
+            variant="light"
+            className="mr-1"
+            active={groupId === 'unset' && assignee === 'unset'}
+            onClick={() => replacePath({ groupId: 'unset', assignee: 'unset' })}
+          >
+            {t('To be triaged')}
+          </Button>
+        </OverlayTrigger>
+      </Form>
+      <Form inline className="pb-2">
+        <ButtonGroup size="sm" className="mr-1" >
+          <OverlayTrigger
+            overlay={
+              <Tooltip>
+                {t(TICKET_STATUS_MSG[TICKET_STATUS.NEW])} /{' '}
+                {t(TICKET_STATUS_MSG[TICKET_STATUS.WAITING_CUSTOMER_SERVICE])}
+              </Tooltip>
+            }
+          >
+            <Button
+              variant="light"
+              active={stage === 'todo'}
+              onClick={() => updatePath({ stage: 'todo', status: undefined })}
+            >
+              {t('todo')}
+            </Button>
+          </OverlayTrigger>
+          <OverlayTrigger
+            overlay={
+              <Tooltip>
+                {t(TICKET_STATUS_MSG[TICKET_STATUS.WAITING_CUSTOMER])} /{' '}
+                {t(TICKET_STATUS_MSG[TICKET_STATUS.PRE_FULFILLED])}
+              </Tooltip>
+            }
+          >
+            <Button
+              variant="light"
+              active={stage === 'in-progress'}
+              onClick={() => updatePath({ stage: 'in-progress', status: undefined })}
+            >
+              {t('in-progress')}
+            </Button>
+          </OverlayTrigger>
+          <OverlayTrigger
+            overlay={
+              <Tooltip>
+                {t(TICKET_STATUS_MSG[TICKET_STATUS.FULFILLED])} /{' '}
+                {t(TICKET_STATUS_MSG[TICKET_STATUS.CLOSED])}
+              </Tooltip>
+            }
+          >
+            <Button
+              variant="light"
+              active={stage === 'done'}
+              onClick={() => updatePath({ stage: 'done', status: undefined })}
+            >
+              {t('done')}
+            </Button>
+          </OverlayTrigger>
           <DropdownMenu
-            active={isOpen === undefined}
+            active={stage === undefined}
             title={statusTitle}
-            onSelect={(status) => updatePath({ status, isOpen: undefined })}
+            onSelect={(status) => updatePath({ status, stage: undefined })}
             items={Object.values(TICKET_STATUS).map((status) => ({
               key: status,
               title: t(TICKET_STATUS_MSG[status]),
@@ -382,7 +475,7 @@ function TicketMenu({ customerServices, categories }) {
           />
         </ButtonGroup>
 
-        <ButtonGroup className="ml-1" size="sm">
+        <ButtonGroup className="mr-1" size="sm">
           <DropdownMenu
             active={!!groupId}
             title={groupTitle}
@@ -398,7 +491,7 @@ function TicketMenu({ customerServices, categories }) {
           />
         </ButtonGroup>
 
-        <ButtonGroup className="ml-1" size="sm">
+        <ButtonGroup className="mr-1" size="sm">
           <Button
             variant="light"
             active={assignedToMe}
@@ -418,7 +511,7 @@ function TicketMenu({ customerServices, categories }) {
         </ButtonGroup>
 
         <DropdownMenu
-          className="ml-1"
+          className="mr-1"
           active={!!categoryId}
           title={categoryTitle}
           onSelect={(categoryId) => updatePath({ categoryId })}
@@ -428,7 +521,7 @@ function TicketMenu({ customerServices, categories }) {
           }))}
         />
 
-        <ButtonGroup className="ml-1" size="sm">
+        <ButtonGroup className="mr-1" size="sm">
           <DropdownMenu
             active={!!tagKey}
             title={tagKey || t('all')}
@@ -452,7 +545,7 @@ function TicketMenu({ customerServices, categories }) {
         </ButtonGroup>
 
         <DropdownMenu
-          className="ml-1"
+          className="mr-1"
           active={!!timeRange}
           title={TIME_RANGE_MAP[timeRange] ? t(timeRange) : t('allTime')}
           allTitle={t('allTime')}
@@ -464,9 +557,7 @@ function TicketMenu({ customerServices, categories }) {
             { key: 'monthBeforeLast', title: t('monthBeforeLast') },
           ]}
         />
-      </Form.Group>
 
-      <Form.Group className="ml-1">
         <Form.Control
           size="sm"
           value={authorUsername}
@@ -475,17 +566,22 @@ function TicketMenu({ customerServices, categories }) {
           isInvalid={authorFilterValidationState === 'error'}
           isValid={authorFilterValidationState === 'success'}
         />
-      </Form.Group>
 
-      {isOpen === 'false' && (
-        <Form.Group className="ml-1" controlId="unlikeOnlyCheckbox">
+        <DelayInputForm
+          size="sm"
+          placeholder={t('searchKeyword')}
+          initValue={searchString}
+          onChange={(searchString) => updatePath({ searchString: searchString || undefined })}
+        />
+
+        {stage === 'done' && (
           <Form.Check
             checked={isOnlyUnlike === 'true'}
             onChange={(e) => updatePath({ isOnlyUnlike: e.target.checked ? 'true' : undefined })}
             label={t('badReviewsOnly')}
           />
-        </Form.Group>
-      )}
+        )}
+      </Form>
     </>
   )
 }
@@ -517,11 +613,11 @@ function BatchOperationMenu({ categories, onChangeCategory, onBatchOperate }) {
           </Dropdown.Item>
         ))}
       </DropdownButton>
-      {filters.isOpen === 'true' && (
+      {filters.stage !== 'done' && (
         <DropdownButton
           variant="light"
           size="sm"
-          className="ml-1"
+          className="mr-1"
           id="batchOperationDropdown"
           title={t('batchOperation')}
           onSelect={onBatchOperate}
@@ -553,7 +649,7 @@ export function useTickets() {
   const findTickets = useCallback(async () => {
     const {
       timeRange,
-      isOpen,
+      stage,
       status,
       groupId,
       assignee,
@@ -573,10 +669,14 @@ export function useTickets() {
       query = query.where('createdAt', '>=', starts).where('createdAt', '<', ends)
     }
 
-    if (isOpen === 'true') {
-      query = query.where('status', 'in', TICKET_OPENED_STATUSES).orderBy('status')
-    } else if (isOpen === 'false') {
-      query = query.where('status', 'in', TICKET_CLOSED_STATUSES)
+    if (stage === 'todo') {
+      query = query.where('status', '<=', TICKET_STATUS.WAITING_CUSTOMER_SERVICE).orderBy('status')
+    } else if (stage === 'in-progress') {
+      query = query
+        .where('status', '>', TICKET_STATUS.WAITING_CUSTOMER_SERVICE)
+        .where('status', '<', TICKET_STATUS.FULFILLED)
+    } else if (stage === 'done') {
+      query = query.where('status', '>=', TICKET_STATUS.FULFILLED)
     } else if (status) {
       query = query.where('status', '==', parseInt(status))
     }
@@ -762,23 +862,26 @@ export default function CustomerServiceTickets() {
 
   return (
     <div>
-      <div className={`${css.row} pb-2`}>
+      <div>
+        <TicketMenu customerServices={customerServices} categories={categories} />
+      </div>
+      <div className={`${css.row}`}>
         <Form inline>
           <Form.Group>
             <Form.Check
+              id="selectAll"
+              label={t('selectAll')}
               className={css.ticketSelectCheckbox}
               checked={tickets.length && checkedTickets.size === tickets.length}
               onChange={handleCheckAll}
             />
           </Form.Group>
-          {checkedTickets.size ? (
+          {checkedTickets.size > 0 && (
             <BatchOperationMenu
               categories={categories}
               onChangeCategory={handleChangeCategory}
               onBatchOperate={handleBatchOperation}
             />
-          ) : (
-            <TicketMenu customerServices={customerServices} categories={categories} />
           )}
         </Form>
       </div>

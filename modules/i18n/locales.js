@@ -56,7 +56,7 @@ const messages = {
     '负责人'
   ],
   'assignedToMe': [
-    'Assigned',
+    'Assigned to me',
     '分配给我的'
   ],
   'assignedCategories': [
@@ -83,8 +83,8 @@ const messages = {
     'Close',
     '关闭'
   ],
-  'completed': [
-    'Completed',
+  'done': [
+    'Done',
     '已完成'
   ],
   'count': [
@@ -127,9 +127,13 @@ const messages = {
     'hour',
     '小时'
   ],
-  'incompleted': [
-    'Incomplete',
-    '未完成'
+  'todo': [
+    'Todo',
+    '待处理'
+  ],
+  'in-progress': [
+    'In-progress',
+    '进行中'
   ],
   'individual': [
     'Individual',
@@ -927,7 +931,7 @@ const messages = {
   // TICKET_STATUS_MSG
   'statusNew': [
     'New',
-    '待处理'
+    '新工单'
   ],
   'statusWaitingCustomerService': [
     'Waiting on staff reply',
