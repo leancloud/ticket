@@ -39,8 +39,6 @@ module.exports = {
   sentryDSNPublic: process.env.SENTRY_DSN_PUBLIC,
   allowMutateEvaluation,
   corsOrigin: getCORSOrigin(),
-  baiduTranslateAppId: process.env.BAIDU_TRANSLATE_APP_ID,
-  baiduTranslateSecret: process.env.BAIDU_TRANSLATE_SECRET,
 }
 
 const integrations = []
