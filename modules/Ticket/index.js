@@ -261,7 +261,8 @@ export default function Ticket() {
     params: { nid },
   } = useRouteMatch()
   const { t } = useTranslation()
-  const { addNotification, currentUser, isCustomerService } = useContext(AppContext)
+  const appContextValue = useContext(AppContext)
+  const { addNotification, currentUser, isCustomerService } = appContextValue
   const history = useHistory()
   const { ticket, isLoading: loadingTicket, refetchTicket, error } = useTicket(nid)
   const { timeline, loadMoreReplies, loadMoreOpsLogs } = useTimeline(ticket?.id)
@@ -324,7 +325,7 @@ export default function Ticket() {
     return null
   }
   return (
-    <>
+    <AppContext.Provider value={{ ...appContextValue, isCustomerService: isCsInThisTicket }}>
       <div className="mt-3">
         {!isCsInThisTicket && <WeekendWarning />}
         <h1>{ticket.title}</h1>
@@ -374,6 +375,6 @@ export default function Ticket() {
           />
         </Col>
       </Row>
-    </>
+    </AppContext.Provider>
   )
 }
