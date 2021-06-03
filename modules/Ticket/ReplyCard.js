@@ -138,14 +138,23 @@ export function ReplyCard({ data }) {
   const [translationEnabled, setTranslationEnabled] = useState(false)
 
   return (
-    <Card id={data.id} className={classNames({ [css.panelModerator]: data.is_customer_service })}>
+    <Card
+      id={data.id}
+      className={classNames({
+        [css.staff]: data.is_customer_service,
+        [css.internal]: data.internal,
+      })}
+    >
       <Card.Header className={classNames(css.heading, 'd-flex', 'justify-content-between')}>
         <div>
           <UserLabel user={data.author} /> {t('submittedAt')}{' '}
           <Time value={data.created_at} href={'#' + data.id} />
         </div>
         <div className="d-flex align-items-center">
-          {data.is_customer_service && <i className={css.badge}>{t('staff')}</i>}
+          {data.is_customer_service && (
+            <i className={css.badge}>{data.internal ? 'Internal' : t('staff')}</i>
+          )}
+
           {isCustomerService && (
             <Dropdown className="ml-2">
               <Dropdown.Toggle className="d-flex" as={MenuIcon} />

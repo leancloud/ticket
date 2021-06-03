@@ -381,21 +381,33 @@ router.get(
   query('created_at_gt').isISO8601().optional(),
   catchError(async (req, res) => {
     const { created_at_gt } = req.query
-    const query = new AV.Query('Reply')
-      .equalTo('ticket', req.ticket)
-      .ascending('createdAt')
-      .include('author', 'files')
-      .limit(500)
+    const isCS = await isCSInTicket(req.user, req.ticket.get('author'))
+
+    let query = new AV.Query('Reply').equalTo('ticket', req.ticket)
     if (created_at_gt) {
       query.greaterThan('createdAt', new Date(created_at_gt))
     }
-    const replies = await query.find({ useMasterKey: true })
+    if (!isCS) {
+      const internalQuery = AV.Query.or(
+        new AV.Query('Reply').doesNotExist('internal'),
+        new AV.Query('Reply').equalTo('internal', false)
+      )
+      query = AV.Query.and(query, internalQuery)
+    }
+
+    const replies = await query
+      .ascending('createdAt')
+      .include('author', 'files')
+      .limit(500)
+      .find({ useMasterKey: true })
+
     res.json(
       replies.map((reply) => {
         return {
           ...encodeReplyObject(reply),
           author: encodeUserObject(reply.get('author')),
           files: reply.get('files')?.map(encodeFileObject) || [],
+          internal: isCS ? !!reply.get('internal') : undefined,
         }
       })
     )
@@ -407,13 +419,16 @@ router.post(
   check('content').isString(),
   check('file_ids').default([]).isArray(),
   check('file_ids.*').isString(),
+  check('internal').isBoolean().optional(),
   catchError(async (req, res) => {
     const ticket = new Ticket(req.ticket)
     const author = req.user
+    const { content, file_ids, internal } = req.body
     const reply = await ticket.reply({
       author,
-      content: req.body.content,
-      file_ids: req.body.file_ids,
+      content,
+      file_ids,
+      internal,
       isCustomerService: await isCSInTicket(req.user, ticket.author_id),
     })
     res.json(encodeReplyObject(reply))

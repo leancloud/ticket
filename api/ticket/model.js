@@ -595,6 +595,7 @@ class Ticket {
    * @param {string} data.content
    * @param {string[]} [data.file_ids]
    * @param {boolean} [data.isCustomerService]
+   * @param {boolean} [data.internal]
    */
   async reply(data) {
     const reply = new AV.Object('Reply', {
@@ -603,6 +604,7 @@ class Ticket {
       content: data.content,
       content_HTML: htmlify(data.content),
       isCustomerService: !!data.isCustomerService,
+      internal: !!data.internal,
     })
 
     if (data.file_ids?.length) {
@@ -612,11 +614,13 @@ class Ticket {
 
     const ACL = new AV.ACL({
       [data.author.id]: { read: true, write: true },
-      [this.author_id]: { read: true },
       'role:customerService': { read: true },
     })
-    if (this.organization) {
-      ACL.setRoleReadAccess(this.organization.id + '_member', true)
+    if (!data.internal) {
+      ACL.setReadAccess(this.author_id, true)
+      if (this.organization) {
+        ACL.setRoleReadAccess(this.organization.id + '_member', true)
+      }
     }
     reply.setACL(ACL)
 
@@ -626,41 +630,43 @@ class Ticket {
       user: data.author,
     })
 
-    const replyAuthorInfo = makeTinyUserInfo(data.author)
+    if (!data.internal) {
+      const replyAuthorInfo = makeTinyUserInfo(data.author)
 
-    this.latest_reply = {
-      objectId: reply.id,
-      author: replyAuthorInfo,
-      content: data.content,
-      isCustomerService: !!data.isCustomerService,
-      createdAt: reply.createdAt,
-      updatedAt: reply.updatedAt,
+      this.latest_reply = {
+        objectId: reply.id,
+        author: replyAuthorInfo,
+        content: data.content,
+        isCustomerService: !!data.isCustomerService,
+        createdAt: reply.createdAt,
+        updatedAt: reply.updatedAt,
+      }
+
+      this.increaseReplyCount(1)
+
+      if (data.isCustomerService) {
+        this.joinCustomerService(replyAuthorInfo)
+        this.increaseUnreadCount(1)
+        this.status = TICKET_STATUS.WAITING_CUSTOMER
+      } else {
+        this.status = TICKET_STATUS.WAITING_CUSTOMER_SERVICE
+      }
+
+      this.save().catch(captureException)
+
+      // notification 需要 assignee 的信息
+      Promise.all([this.getAuthorInfo(), this.getAssigneeInfo()])
+        .then(([authorInfo, assigneeInfo]) => {
+          const author = AV.Object.createWithoutData('_User', this.author_id)
+          author.attributes = authorInfo
+          const assignee = AV.Object.createWithoutData('_User', this.assignee_id)
+          assignee.attributes = assigneeInfo
+          const ticket = AV.Object.createWithoutData('Ticket', this.id)
+          ticket.attributes = { author, assignee, nid: this.nid, title: this.title }
+          return notification.replyTicket(ticket, reply, data.author)
+        })
+        .catch(captureException)
     }
-
-    this.increaseReplyCount(1)
-
-    if (data.isCustomerService) {
-      this.joinCustomerService(replyAuthorInfo)
-      this.increaseUnreadCount(1)
-      this.status = TICKET_STATUS.WAITING_CUSTOMER
-    } else {
-      this.status = TICKET_STATUS.WAITING_CUSTOMER_SERVICE
-    }
-
-    this.save().catch(captureException)
-
-    // notification 需要 assignee 的信息
-    Promise.all([this.getAuthorInfo(), this.getAssigneeInfo()])
-      .then(([authorInfo, assigneeInfo]) => {
-        const author = AV.Object.createWithoutData('_User', this.author_id)
-        author.attributes = authorInfo
-        const assignee = AV.Object.createWithoutData('_User', this.assignee_id)
-        assignee.attributes = assigneeInfo
-        const ticket = AV.Object.createWithoutData('Ticket', this.id)
-        ticket.attributes = { author, assignee, nid: this.nid, title: this.title }
-        return notification.replyTicket(ticket, reply, data.author)
-      })
-      .catch(captureException)
 
     return reply
   }
