@@ -14,7 +14,7 @@ const fieldIconMap = {
   'multi-select': Icon.ListCheck, // th-list
   text: Icon.Fonts, // text-height
   multiLine: Icon.TextLeft,
-  checkbox: Icon.Check,
+  checkbox: Icon.CheckSquare,
 }
 
 export const CustomFieldLabel = memo(({ type }) => {

@@ -2,7 +2,7 @@ import React, { memo, useState, useMemo, useCallback, useEffect } from 'react'
 import PropTypes from 'prop-types'
 import { useTranslation } from 'react-i18next'
 import { Form, Button, Modal, Col, Dropdown, Breadcrumb } from 'react-bootstrap'
-import { Link, useRouteMatch } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import * as Icon from 'react-bootstrap-icons'
 import { DocumentTitle } from 'modules/utils/DocumentTitle'
 import { RadioGroup } from 'modules/components/Radio'
@@ -117,7 +117,7 @@ const DropdownOptions = memo(({ options = defaultOptions, onChange }) => {
                   variant="link"
                   size="sm"
                   onClick={() => {
-                    if (value.length > 1) {
+                    if (value.length > 0) {
                       onChange(
                         options.filter((value, i) => {
                           return i !== index
@@ -303,12 +303,13 @@ const FieldForm = memo(({ onSubmit, initData }) => {
           {initData && type && <DisplayCustomField type={type} />}
         </Form.Group>
         <Form.Group>
-          <Form.Label>{t('ticketField.required')}</Form.Label>
+          <Form.Label htmlFor="required">{t('ticketField.required')}</Form.Label>
           <div>
             <Form.Check
               type="radio"
-              id="required"
+              name="required"
               checked={!required}
+              id="no"
               label={t('ticketField.required.no')}
               inline
               onChange={() => setRequired(false)}
@@ -316,7 +317,8 @@ const FieldForm = memo(({ onSubmit, initData }) => {
             <Form.Check
               className="ml-2"
               type="radio"
-              id="required"
+              name="required"
+              id="yes"
               checked={required}
               label={t('ticketField.required.yes')}
               inline

@@ -1,7 +1,6 @@
 const AV = require('leancloud-storage')
 const { Router } = require('express')
 const { check } = require('express-validator')
-const Variant = require('./Variant')
 const { requireAuth, customerServiceOnly, catchError } = require('./middleware')
 
 const router = Router().use(requireAuth, customerServiceOnly)
@@ -25,7 +24,7 @@ const LOCALES = [
 ]
 const REQUIRE_OPTIONS = ['dropdown', 'multi-select']
 const CLASS_NAME = 'TicketField'
-
+const VARIANT_CLASS_NAME = 'TicketFieldVariant'
 router.get(
   '/',
   catchError(async (req, res) => {
@@ -78,7 +77,7 @@ router.get(
   '/:id',
   catchError(async (req, res) => {
     const { field } = req
-    const variants = await Variant.get([['key', 'equalTo', `${field.id}_${CLASS_NAME}`]])
+    const variants = await getVariants(field.id)
     res.json({
       field: {
         title: field.get('title'),
@@ -143,7 +142,7 @@ router.post(
         useMasterKey: true,
       }
     )
-    await Variant.add(variants, `${field.id}_${CLASS_NAME}`)
+    await addVariants(variants, field)
     res.json({ id: field.id })
   })
 )
@@ -167,16 +166,47 @@ router.patch(
       field.set('active', active)
     }
     if (required !== undefined) {
-      field.set('required',required)
+      field.set('required', required)
     }
-    if (defaultLocale!==undefined){
+    if (defaultLocale !== undefined) {
       field.set('defaultLocale', defaultLocale)
     }
-    await Variant.update(variants, `${field.id}_${CLASS_NAME}`)
+    if (variants !== undefined) {
+      await updateVariants(variants, field)
+    }
+    await field.save(null, { useMasterKey: true })
     res.json({})
   })
 )
 
+function addVariants(variants, field) {
+  if (!Array.isArray(variants)) {
+    throw new Error('Variant must be array')
+  }
+  const objects = variants.map(
+    (v) =>
+      new AV.Object(VARIANT_CLASS_NAME, {
+        ACL: {},
+        locale: v.locale,
+        title: v.title,
+        options: v.options,
+        field,
+      })
+  )
+  return AV.Object.saveAll(objects, { useMasterKey: true })
+}
+
+function getVariants(id) {
+  return new AV.Query(VARIANT_CLASS_NAME)
+    .equalTo('field', AV.Object.createWithoutData(CLASS_NAME, id))
+    .addAscending('locale')
+    .find({ useMasterKey: true })
+}
+
+async function updateVariants(newVariants, field) {
+  const variants = await getVariants(field.id)
+  await AV.Object.destroyAll(variants, { useMasterKey: true })
+  return addVariants(newVariants, field)
+}
+
 module.exports = router
-
-
