@@ -38,6 +38,13 @@
     },
     "isCustomerService": {
       "type": "Boolean"
+    },
+    "internal": {
+      "type": "Boolean",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
     }
   },
   "permissions": {

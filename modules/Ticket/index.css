@@ -12,13 +12,22 @@
   font-weight: 600;
 }
 
-.panelModerator {
+.staff {
   border-color: #c1d5e4;
 }
 
-.panelModerator .heading {
+.staff .heading {
   background: #e3edf7;
   border-color: #c1d5e4;
+}
+
+.internal {
+  border-color: #ff9800bf;
+}
+
+.internal .heading {
+  background: #ffc10733;
+  border-color: #ff9800bf;
 }
 
 .content {
@@ -51,7 +60,14 @@
   padding: 4px 6px;
   border-radius: 4px;
   line-height: 1;
+}
+
+.staff .badge {
   color: #779bbf;
+}
+
+.internal .badge {
+  color: #ff9800bf;
 }
 
 .replyMenuIcon {

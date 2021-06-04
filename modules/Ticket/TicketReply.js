@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Button, Form } from 'react-bootstrap'
+import { Button, ButtonGroup, Dropdown, Form } from 'react-bootstrap'
 import PropTypes from 'prop-types'
 import * as Icon from 'react-bootstrap-icons'
 
@@ -10,6 +10,41 @@ import { useMutation } from 'react-query'
 import { fetch } from '../../lib/leancloud'
 import { uploadFiles } from '../common'
 import { AppContext } from '../context'
+
+function CommitButton({ commitable, onCommit }) {
+  const { t } = useTranslation()
+  const { isCustomerService } = useContext(AppContext)
+
+  const commitButton = (
+    <Button
+      className={css.submit}
+      variant="success"
+      disabled={!commitable}
+      onClick={() => onCommit({})}
+    >
+      {t('submit')}
+    </Button>
+  )
+
+  if (!isCustomerService) {
+    return commitButton
+  }
+  return (
+    <Dropdown as={ButtonGroup} alignRight={true}>
+      {commitButton}
+      <Dropdown.Toggle split variant="success" />
+      <Dropdown.Menu className="super-colors">
+        <Dropdown.Item disabled={!commitable} onClick={() => onCommit({ internal: true })}>
+          Reply as internal comment
+        </Dropdown.Item>
+      </Dropdown.Menu>
+    </Dropdown>
+  )
+}
+CommitButton.propTypes = {
+  commitable: PropTypes.bool,
+  onCommit: PropTypes.func.isRequired,
+}
 
 export function TicketReply({ ticket, isCustomerService, onCommitted, onOperate }) {
   const { t } = useTranslation()
@@ -36,14 +71,14 @@ export function TicketReply({ ticket, isCustomerService, onCommitted, onOperate 
   )
 
   const { mutate: commit, isLoading: committing } = useMutation({
-    mutationFn: async () => {
+    mutationFn: async ({ internal }) => {
       let file_ids = undefined
       if (files.length) {
         file_ids = (await uploadFiles(files)).map((file) => file.id)
       }
       await fetch(`/api/1/tickets/${ticket.id}/replies`, {
         method: 'POST',
-        body: { content: content.trim(), file_ids },
+        body: { content: content.trim(), file_ids, internal },
       })
     },
     onSuccess: (reply) => {
@@ -73,7 +108,7 @@ export function TicketReply({ ticket, isCustomerService, onCommitted, onOperate 
           onChange={setReplyContent}
           onKeyDown={(e) => {
             if (e.metaKey && e.keyCode == 13) {
-              commitable && commit()
+              commitable && commit({})
             }
           }}
         />
@@ -113,14 +148,8 @@ export function TicketReply({ ticket, isCustomerService, onCommitted, onOperate 
               </Button>{' '}
             </>
           )}
-          <Button
-            className={css.submit}
-            variant="success"
-            disabled={committing || !commitable}
-            onClick={commit}
-          >
-            {t('submit')}
-          </Button>
+
+          <CommitButton commitable={!committing && commitable} onCommit={commit} />
         </div>
       </Form.Group>
     </Form>

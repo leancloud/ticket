@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useHistory, useRouteMatch } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
@@ -66,6 +66,27 @@ function useTicket(nid) {
     enabled: !!ticketId,
   })
 
+  const $onUpdate = useRef()
+  $onUpdate.current = (obj) => {
+    if (obj.updatedAt.toISOString() !== ticket?.updated_at) {
+      refetchTicket()
+    }
+  }
+
+  useEffect(() => {
+    if (!ticketId) {
+      return
+    }
+    const query = db.class('Ticket').where('objectId', '==', ticketId)
+    const liveQuery = query
+      .subscribe()
+      .then((subscription) => subscription.on('update', (...args) => $onUpdate.current(...args)))
+      .catch(console.error)
+    return () => {
+      liveQuery.then((subscription) => subscription.unsubscribe()).catch(console.error)
+    }
+  }, [ticketId])
+
   const noTicketError = useMemo(() => {
     if (!loadingTickets && !ticketId) {
       return new Error(`Ticket ${nid} not exists`)
@@ -86,11 +107,8 @@ function useTicket(nid) {
 function useReplies(ticketId) {
   const { addNotification } = useContext(AppContext)
   const [replies, setReplies] = useState([])
-
   const $ticketId = useRef(ticketId)
-  useEffect(() => {
-    $ticketId.current = ticketId
-  }, [ticketId])
+  $ticketId.current = ticketId
 
   const $cursor = useRef()
   useEffect(() => {
@@ -98,7 +116,7 @@ function useReplies(ticketId) {
   }, [replies])
 
   const $isLoading = useRef(false)
-  const $loadMoreReplies = useRef(async () => {
+  const loadMoreReplies = useCallback(async () => {
     if (!$ticketId.current || $isLoading.current) {
       return
     }
@@ -111,16 +129,34 @@ function useReplies(ticketId) {
     } finally {
       $isLoading.current = false
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
-    if (ticketId) {
-      setReplies([])
-      $loadMoreReplies.current()
+    if (!ticketId) {
+      return
     }
+    setReplies([])
+    loadMoreReplies()
+    const query = db.class('Reply').where('ticket', '==', db.class('Ticket').object(ticketId))
+    const liveQuery = query
+      .subscribe()
+      .then((subscription) => {
+        subscription.on('create', (reply) => {
+          if (!$cursor.current || new Date($cursor.current) < reply.createdAt) {
+            loadMoreReplies()
+          }
+        })
+        return subscription
+      })
+      .catch(addNotification)
+    return () => {
+      liveQuery.then((subscription) => subscription.unsubscribe()).catch(console.error)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ticketId])
 
-  return { replies, loadMoreReplies: $loadMoreReplies.current }
+  return { replies, loadMoreReplies }
 }
 
 /**
@@ -129,11 +165,8 @@ function useReplies(ticketId) {
 function useOpsLogs(ticketId) {
   const { addNotification } = useContext(AppContext)
   const [opsLogs, setOpsLogs] = useState([])
-
   const $ticketId = useRef(ticketId)
-  useEffect(() => {
-    $ticketId.current = ticketId
-  }, [ticketId])
+  $ticketId.current = ticketId
 
   const $cursor = useRef()
   useEffect(() => {
@@ -141,7 +174,7 @@ function useOpsLogs(ticketId) {
   }, [opsLogs])
 
   const $isLoading = useRef(false)
-  const $loadMoreOpsLogs = useRef(async () => {
+  const loadMoreOpsLogs = useCallback(async () => {
     if (!$ticketId.current || $isLoading.current) {
       return
     }
@@ -154,16 +187,34 @@ function useOpsLogs(ticketId) {
     } finally {
       $isLoading.current = false
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
-    if (ticketId) {
-      setOpsLogs([])
-      $loadMoreOpsLogs.current()
+    if (!ticketId) {
+      return
     }
+    setOpsLogs([])
+    loadMoreOpsLogs()
+    const query = db.class('OpsLog').where('ticket', '==', db.class('Ticket').object(ticketId))
+    const liveQuery = query
+      .subscribe()
+      .then((subscription) => {
+        subscription.on('create', (obj) => {
+          if (!$cursor.current || new Date($cursor.current) < obj.createdAt) {
+            loadMoreOpsLogs()
+          }
+        })
+        return subscription
+      })
+      .catch(addNotification)
+    return () => {
+      liveQuery.then((subscription) => subscription.unsubscribe()).catch(console.error)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ticketId])
 
-  return { opsLogs, loadMoreOpsLogs: $loadMoreOpsLogs.current }
+  return { opsLogs, loadMoreOpsLogs }
 }
 
 /**
@@ -267,39 +318,6 @@ export default function Ticket() {
   const { ticket, isLoading: loadingTicket, refetchTicket, error } = useTicket(nid)
   const { timeline, loadMoreReplies, loadMoreOpsLogs } = useTimeline(ticket?.id)
   useTitle(ticket?.title)
-  const $onTicketUpdate = useRef()
-
-  $onTicketUpdate.current = (obj, updatedKeys) => {
-    if (obj.updatedAt.toISOString() !== ticket?.updated_at) {
-      refetchTicket()
-    }
-    const keySet = new Set(updatedKeys)
-    if (keySet.has('latestReply')) {
-      loadMoreReplies()
-    }
-    if (keySet.has('assignee') || keySet.has('category') || keySet.has('status')) {
-      loadMoreOpsLogs()
-    }
-  }
-
-  useEffect(() => {
-    if (!ticket?.id) {
-      return
-    }
-    const query = db.class('Ticket').where('objectId', '==', ticket.id)
-    let subscription = null
-    query
-      .subscribe()
-      .then((subs) => {
-        subscription = subs
-        subs.on('update', (...args) => $onTicketUpdate.current(...args))
-        return
-      })
-      .catch(console.error)
-    return () => {
-      subscription?.unsubscribe()
-    }
-  }, [ticket?.id])
 
   const { mutateAsync: operateTicket } = useMutation({
     mutationFn: (action) =>
@@ -307,7 +325,10 @@ export default function Ticket() {
         method: 'POST',
         body: { action },
       }),
-    onSuccess: () => refetchTicket(),
+    onSuccess: () => {
+      refetchTicket()
+      loadMoreOpsLogs()
+    },
     onError: (error) => addNotification(error),
   })
 
