@@ -6,4 +6,4 @@
 
 ### `a20b1d2ed9815453bbd6262f86635210ac54fcc7`
 
-需要为 Ticket class 添加列 `internal` ，类型为 `Boolean` 。
+需要为 Reply 添加列 `internal` ，类型为 `Boolean` 。
