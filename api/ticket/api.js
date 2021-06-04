@@ -388,11 +388,11 @@ router.get(
       query.greaterThan('createdAt', new Date(created_at_gt))
     }
     if (!isCS) {
-      const internalQuery = AV.Query.or(
+      const nonInternalQuery = AV.Query.or(
         new AV.Query('Reply').doesNotExist('internal'),
         new AV.Query('Reply').equalTo('internal', false)
       )
-      query = AV.Query.and(query, internalQuery)
+      query = AV.Query.and(query, nonInternalQuery)
     }
 
     const replies = await query
@@ -424,12 +424,18 @@ router.post(
     const ticket = new Ticket(req.ticket)
     const author = req.user
     const { content, file_ids, internal } = req.body
+    const isCustomerService = await isCSInTicket(req.user, ticket.author_id)
+
+    if (internal && !isCustomerService) {
+      res.throw(403)
+    }
+
     const reply = await ticket.reply({
       author,
       content,
       file_ids,
       internal,
-      isCustomerService: await isCSInTicket(req.user, ticket.author_id),
+      isCustomerService,
     })
     res.json(encodeReplyObject(reply))
   })

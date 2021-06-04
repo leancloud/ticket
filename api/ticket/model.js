@@ -654,9 +654,9 @@ class Ticket {
 
       this.save().catch(captureException)
 
-      // notification 需要 assignee 的信息
       Promise.all([this.getAuthorInfo(), this.getAssigneeInfo()])
         .then(([authorInfo, assigneeInfo]) => {
+          // 适配 notification 使用的数据结构
           const author = AV.Object.createWithoutData('_User', this.author_id)
           author.attributes = authorInfo
           const assignee = AV.Object.createWithoutData('_User', this.assignee_id)
