@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import _ from 'lodash'
 
 export const AppContext = React.createContext({
@@ -7,3 +7,5 @@ export const AppContext = React.createContext({
   tagMetadatas: [],
   addNotification: _.noop,
 })
+
+export const useAppContext = () => useContext(AppContext)

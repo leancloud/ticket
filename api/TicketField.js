@@ -1,7 +1,6 @@
 const AV = require('leancloud-storage')
 const { Router } = require('express')
 const { check } = require('express-validator')
-
 const { requireAuth, customerServiceOnly, catchError } = require('./middleware')
 
 const router = Router().use(requireAuth, customerServiceOnly)
@@ -24,13 +23,77 @@ const LOCALES = [
   'tr',
 ]
 const REQUIRE_OPTIONS = ['dropdown', 'multi-select']
+const CLASS_NAME = 'TicketField'
+const VARIANT_CLASS_NAME = 'TicketFieldVariant'
+router.get(
+  '/',
+  catchError(async (req, res) => {
+    const { size, skip, active } = req.query
+    const query = new AV.Query(CLASS_NAME)
+    if (size) {
+      const limit = parseInt(size)
+      if (!Number.isNaN(limit)) {
+        query.limit(limit)
+      }
+    }
+    if (skip) {
+      const num = parseInt(skip)
+      if (!Number.isNaN(num)) {
+        query.skip(num)
+      }
+    }
+    query.equalTo('active', active !== 'false')
+    // 默认按照更新排序
+    query.addDescending('updatedAt')
+    const [fields, count] = await Promise.all([
+      query.find({ useMasterKey: true }),
+      query.count({
+        useMasterKey: true,
+      }),
+    ])
+    res.json({
+      count,
+      fields: fields.map((o) => ({
+        id: o.id,
+        title: o.get('title'),
+        type: o.get('type'),
+        defaultLocale: o.get('defaultLocale'),
+        active: !!o.get('active'),
+        required: !!o.get('required'),
+      })),
+    })
+  })
+)
 
-function getVariants(id) {
-  return new AV.Query('TicketFieldVariant')
-    .equalTo('field', AV.Object.createWithoutData('TicketField', id))
-    .addAscending('locale')
-    .find({ useMasterKey: true })
-}
+router.param(
+  'id',
+  catchError(async (req, res, next, id) => {
+    req.field = await new AV.Query(CLASS_NAME).get(id, { useMasterKey: true })
+    next()
+  })
+)
+
+router.get(
+  '/:id',
+  catchError(async (req, res) => {
+    const { field } = req
+    const variants = await getVariants(field.id)
+    res.json({
+      field: {
+        title: field.get('title'),
+        type: field.get('type'),
+        active: !!field.get('active'),
+        required: !!field.get('required'),
+        defaultLocale: field.get('defaultLocale'),
+        variants: variants.map((v) => ({
+          locale: v.get('locale'),
+          title: v.get('title'),
+          options: v.get('options'),
+        })),
+      },
+    })
+  })
+)
 
 router.post(
   '/',
@@ -64,8 +127,8 @@ router.post(
         throw new Error('The variants.*.options is required when type is ' + type)
       }
     }
-
-    const field = new AV.Object('TicketField')
+    const field = new AV.Object(CLASS_NAME)
+    // TODO
     await field.save(
       {
         ACL: {},
@@ -79,84 +142,8 @@ router.post(
         useMasterKey: true,
       }
     )
-    const fieldVariants = variants.map(
-      (v) =>
-        new AV.Object('TicketFieldVariant', {
-          ACL: {},
-          field,
-          locale: v.locale,
-          title: v.title,
-          options: v.options,
-        })
-    )
-    await AV.Object.saveAll(fieldVariants, { useMasterKey: true })
+    await addVariants(variants, field)
     res.json({ id: field.id })
-  })
-)
-
-router.get(
-  '/',
-  catchError(async (req, res) => {
-    const { page, active } = req.query
-    const query = new AV.Query('TicketField')
-    if (page?.size) {
-      const limit = parseInt(page.size)
-      if (!Number.isNaN(limit)) {
-        query.limit(limit)
-      }
-    }
-    if (page?.skip) {
-      const skip = parseInt(page.skip)
-      if (!Number.isNaN(skip)) {
-        query.skip(skip)
-      }
-    }
-    if (active === 'true') {
-      query.equalTo('active', true)
-    }
-    if (active === 'false') {
-      query.equalTo('active', false)
-    }
-
-    const fields = await query.find({ useMasterKey: true })
-    res.json({
-      fields: fields.map((o) => ({
-        id: o.id,
-        title: o.get('title'),
-        type: o.get('type'),
-        defaultLocale: o.get('defaultLocale'),
-        active: !!o.get('active'),
-        required: !!o.get('required'),
-      })),
-    })
-  })
-)
-
-router.param(
-  'id',
-  catchError(async (req, res, next, id) => {
-    req.field = await new AV.Query('TicketField').get(id, { useMasterKey: true })
-    next()
-  })
-)
-
-router.get(
-  '/:id',
-  catchError(async (req, res) => {
-    const { field } = req
-    const variants = await getVariants(field.id)
-    res.json({
-      title: field.get('title'),
-      type: field.get('type'),
-      active: !!field.get('active'),
-      required: !!field.get('required'),
-      defaultLocale: field.get('defaultLocale'),
-      variants: variants.map((v) => ({
-        locale: v.get('locale'),
-        title: v.get('title'),
-        options: v.get('options'),
-      })),
-    })
   })
 )
 
@@ -170,9 +157,9 @@ router.patch(
     .custom((value) => LOCALES.includes(value))
     .optional(),
   catchError(async (req, res) => {
-    const { title, active, required, defaultLocale } = req.body
     const { field } = req
-    if (title) {
+    const { title, active, required, defaultLocale, variants } = req.body
+    if (title !== undefined) {
       field.set('title', title)
     }
     if (active !== undefined) {
@@ -181,95 +168,45 @@ router.patch(
     if (required !== undefined) {
       field.set('required', required)
     }
-    if (defaultLocale) {
-      const varaiants = await getVariants(field.id)
-      if (varaiants.findIndex((v) => v.locale === defaultLocale) === -1) {
-        throw new Error(`No such variant with locale "${defaultLocale}"`)
-      }
+    if (defaultLocale !== undefined) {
       field.set('defaultLocale', defaultLocale)
+    }
+    if (variants !== undefined) {
+      await updateVariants(variants, field)
     }
     await field.save(null, { useMasterKey: true })
     res.json({})
   })
 )
 
-router.post(
-  '/:id/variants',
-  check('title').isString().isLength({ min: 1 }),
-  check('locale')
-    .isString()
-    .custom((value) => LOCALES.includes(value)),
-  check('options').isArray().optional(),
-  check('options.*.title').isString(),
-  check('options.*.value').isString(),
-  catchError(async (req, res) => {
-    const { field } = req
-    const type = field.get('type')
-    const { title, locale, options } = req.body
-    if (REQUIRE_OPTIONS.includes(type)) {
-      if (!options) {
-        throw new Error('The options is required when type is ' + type)
-      }
-    }
-    await new AV.Object('TicketFieldVariant', {
-      ACL: {},
-      field,
-      title,
-      locale,
-      options,
-    }).save(null, { useMasterKey: true })
-    res.json({})
-  })
-)
+function addVariants(variants, field) {
+  if (!Array.isArray(variants)) {
+    throw new Error('Variant must be array')
+  }
+  const objects = variants.map(
+    (v) =>
+      new AV.Object(VARIANT_CLASS_NAME, {
+        ACL: {},
+        locale: v.locale,
+        title: v.title,
+        options: v.options,
+        field,
+      })
+  )
+  return AV.Object.saveAll(objects, { useMasterKey: true })
+}
 
-router.param(
-  'locale',
-  catchError(async (req, res, next, locale) => {
-    if (!LOCALES.includes(locale)) {
-      throw new Error('Unsupported locale')
-    }
-    const variant = await new AV.Query('TicketFieldVariant')
-      .equalTo('field', req.field)
-      .equalTo('locale', locale)
-      .first({ useMasterKey: true })
-    if (!variant) {
-      res.throw(404, 'Field variant not found')
-    }
-    req.variant = variant
-    next()
-  })
-)
+function getVariants(id) {
+  return new AV.Query(VARIANT_CLASS_NAME)
+    .equalTo('field', AV.Object.createWithoutData(CLASS_NAME, id))
+    .addAscending('locale')
+    .find({ useMasterKey: true })
+}
 
-router.patch(
-  '/:id/variants/:locale',
-  check('title').isString().isLength({ min: 1 }).optional(),
-  check('options').isArray().optional(),
-  check('options.*.title').isString(),
-  check('options.*.value').isString(),
-  catchError(async (req, res) => {
-    const { title, options } = req.body
-    const { field, variant } = req
-    if (title) {
-      variant.set('title', title)
-    }
-    if (REQUIRE_OPTIONS.includes(field.get('type')) && options) {
-      variant.set('options', options)
-    }
-    await variant.save(null, { useMasterKey: true })
-    res.json({})
-  })
-)
-
-router.delete(
-  '/:id/variants/:locale',
-  catchError(async (req, res) => {
-    const { field, variant } = req
-    if (variant.get('locale') === field.get('defaultLocale')) {
-      throw new Error('Cannot delete variant of default locale')
-    }
-    await variant.destroy({ useMasterKey: true })
-    res.json({})
-  })
-)
+async function updateVariants(newVariants, field) {
+  const variants = await getVariants(field.id)
+  await AV.Object.destroyAll(variants, { useMasterKey: true })
+  return addVariants(newVariants, field)
+}
 
 module.exports = router

@@ -953,6 +953,164 @@ const messages = {
     'New reply',
     '新的回复'
   ],
+
+  'select': [
+    'Select',
+    '请选择'
+  ],
+  'required':[
+    'required',
+    '必填'
+  ],
+
+  'ticketField':[
+    'Ticket field',
+    '工单字段'
+  ],
+  'ticketField.list':[
+    'Field list',
+    '字段列表'
+  ],
+  'ticketField.add':[
+    'Add field',
+    '新增字段'
+  ],
+  'ticketField.edit':[
+    'Edit field',
+    '编辑字段'
+  ],
+  'ticketField.type.dropdown':[
+    'Drop-down',
+    '下拉框'
+  ],
+  'ticketField.type.multi-select':[
+    'Multi-select',
+    '多选'
+  ],
+  'ticketField.type.text':[
+    'Text',
+    '文本'
+  ],
+  'ticketField.type.multiLine':[
+    'Multi-line',
+    '多行'
+  ],
+  'ticketField.type.checkbox':[
+    'Checkbox',
+    '复选框'
+  ],
+  'ticketField.name':[
+    'Field name',
+    '字段名称'
+  ],
+  'ticketField.required':[
+    'Is required',
+    '是否必填项'
+  ],
+  'ticketField.required.yes':[
+    'Yes',
+    '是'
+  ],
+  'ticketField.required.no':[
+    'No',
+    '否'
+  ],
+  'ticketField.locale':[
+    'Language manage',
+    '语言管理'
+  ],
+  'ticketField.locale.zh-cn':[
+    'Chinese',
+    '简体中文'
+  ],
+   'ticketField.locale.zh-tw':[
+    'Chinese (Taiwan)',
+    '繁体中文（台湾）'
+  ],
+   'ticketField.locale.zh-hk':[
+    'Chinese (Hong Kong)',
+    '繁体中文（香港）'
+  ],
+  'ticketField.locale.en':[
+    'English',
+    '英文'
+  ],
+  'ticketField.locale.ja':[
+    'Japanese',
+    '日文'
+  ],
+  'ticketField.locale.ko':[
+    'Korean',
+    '韩文'
+  ],
+   'ticketField.locale.id':[
+    'Indonesian',
+    '印尼文'
+  ],
+  'ticketField.locale.th':[
+    'Thai',
+    '泰文'
+  ],
+  'ticketField.locale.de':[
+    'German',
+    '德文'
+  ],
+   'ticketField.locale.fr':[
+    'French',
+    '法文'
+  ],
+  'ticketField.locale.ru':[
+    'Russian',
+    '俄文'
+  ],
+  'ticketField.locale.es':[
+    'Spanish',
+    '西班牙文'
+  ],
+   'ticketField.locale.pt':[
+    'Portuguese',
+    '葡萄牙文'
+  ],
+  'ticketField.locale.tr':[
+    'Turkish',
+    '土耳其文'
+  ],
+  'ticketField.locale.required':[
+    'There are still other languages ​​that have not been configured',
+    '尚有其他语言未进行配置'
+  ],
+  'ticketField.locale.switch':[
+    'Add / Remove multiple languages',
+    '添加 / 移除多语言'
+  ],
+  'ticketField.default':[
+    'Default',
+    '默认'
+  ],
+  'ticketField.setDefault':[
+    'Set default',
+    '设为默认'
+  ],
+  'ticketField.success':[
+    'Saved',
+    '保存成功'
+  ],
+  'ticketField.options':[
+    'Field values',
+    '字段值'
+  ],
+  'ticketField.options.titleHint':[
+    'Each field value title must be unique',
+    '每个字段值标签必须是唯一的'
+  ],
+  'ticketField.delete':[
+    'Delete <Title />',
+    '删除字段 <Title />'
+  ],
+  'ticketField.deleteHint':[
+    'This ticket field may be used in some forms. Deleting a ticket field will remove it from these tables and cannot be restored',
+    '此工单字段可能用于某些表格，删除工单字段会将其从这些表格中移除，并且无法恢复。'
+  ],
   
   'pagination.totalPage': [
     ' / {{total}}',
