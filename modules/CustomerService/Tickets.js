@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import { useTranslation, Trans } from 'react-i18next'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 import { Link, useHistory, useLocation } from 'react-router-dom'
@@ -11,6 +11,7 @@ import {
   Form,
   OverlayTrigger,
   Tooltip,
+  Badge,
 } from 'react-bootstrap'
 import qs from 'query-string'
 import moment from 'moment'
@@ -227,6 +228,69 @@ function getIndentString(depth) {
   return depth === 0 ? '' : '　'.repeat(depth) + '└ '
 }
 
+// eslint-disable-next-line react/prop-types
+function FiltersSet({ filters, content, hint }) {
+  const { filters: currentFilters, replacePath } = useTicketFilters()
+  const active = Object.entries(filters).every(([key, value]) => currentFilters[key] === value)
+  const [matchCount, setMatchCount] = useState()
+  useEffect(() => {
+    async function count() {
+      let query = await getQuery(filters)
+      setMatchCount(await query.count())
+    }
+    count()
+  }, [filters])
+
+  return (
+    <OverlayTrigger overlay={<Tooltip>{hint}</Tooltip>}>
+      <Button
+        size="sm"
+        variant="light"
+        className="mr-1"
+        active={active}
+        onClick={() => replacePath(filters)}
+      >
+        {content}{' '}
+        {matchCount !== undefined && (
+          <Badge pill variant={matchCount ? 'danger' : 'secondary'}>
+            {matchCount}
+          </Badge>
+        )}
+      </Button>
+    </OverlayTrigger>
+  )
+}
+
+const FILTERS_PRESETS = [
+  {
+    filters: { stage: 'todo', assignee: 'me' },
+    content: <Trans i18nKey="On my desk" />,
+    hint: (
+      <>
+        <Trans i18nKey="todo" /> & <Trans i18nKey="assignedToMe" />
+      </>
+    ),
+  },
+  {
+    filters: { stage: 'todo', groupId: 'mine' },
+    content: <Trans i18nKey="My groups" />,
+    hint: (
+      <>
+        <Trans i18nKey="todo" /> & <Trans i18nKey="myGroups" />
+      </>
+    ),
+  },
+  {
+    filters: { groupId: 'unset', assignee: 'unset' },
+    content: <Trans i18nKey="To be triaged" />,
+    hint: (
+      <>
+        <Trans i18nKey="group" /> <Trans i18nKey="unset" /> & <Trans i18nKey="unassigned" />
+      </>
+    ),
+  },
+]
+
 /**
  *
  * @param {object} props
@@ -235,7 +299,7 @@ function getIndentString(depth) {
  */
 function TicketMenu({ customerServices, categories }) {
   const { t } = useTranslation()
-  const { filters, updatePath, replacePath } = useTicketFilters()
+  const { filters, updatePath } = useTicketFilters()
   const { tagMetadatas, addNotification } = useContext(AppContext)
   const [authorFilterValidationState, setAuthorFilterValidationState] = useState(null)
   const [authorUsername, setAuthorUsername] = useState('')
@@ -362,60 +426,12 @@ function TicketMenu({ customerServices, categories }) {
   return (
     <>
       <Form inline className="pb-2">
-        <OverlayTrigger
-          overlay={
-            <Tooltip>
-              {t('todo')} & {t('assignedToMe')}
-            </Tooltip>
-          }
-        >
-          <Button
-            size="sm"
-            variant="light"
-            className="mr-1"
-            active={stage === 'todo' && assignee === 'me'}
-            onClick={() => replacePath({ stage: 'todo', assignee: 'me' })}
-          >
-            {t('On my desk')}
-          </Button>
-        </OverlayTrigger>
-        <OverlayTrigger
-          overlay={
-            <Tooltip>
-              {t('todo')} & {t('myGroups')}
-            </Tooltip>
-          }
-        >
-          <Button
-            size="sm"
-            variant="light"
-            className="mr-1"
-            active={stage === 'todo' && groupId === 'mine'}
-            onClick={() => replacePath({ stage: 'todo', groupId: 'mine' })}
-          >
-            {t('My groups')}
-          </Button>
-        </OverlayTrigger>
-        <OverlayTrigger
-          overlay={
-            <Tooltip>
-              {t('group')} {t('unset')} & {t('unassigned')}
-            </Tooltip>
-          }
-        >
-          <Button
-            size="sm"
-            variant="light"
-            className="mr-1"
-            active={groupId === 'unset' && assignee === 'unset'}
-            onClick={() => replacePath({ groupId: 'unset', assignee: 'unset' })}
-          >
-            {t('To be triaged')}
-          </Button>
-        </OverlayTrigger>
+        {FILTERS_PRESETS.map((filterSet, index) => (
+          <FiltersSet key={index} {...filterSet} />
+        ))}
       </Form>
       <Form inline className="pb-2">
-        <ButtonGroup size="sm" className="mr-1" >
+        <ButtonGroup size="sm" className="mr-1">
           <OverlayTrigger
             overlay={
               <Tooltip>
@@ -634,6 +650,75 @@ BatchOperationMenu.propTypes = {
   onBatchOperate: PropTypes.func.isRequired,
 }
 
+async function getQuery(filters) {
+  const {
+    timeRange,
+    stage,
+    status,
+    groupId,
+    assignee,
+    authorId,
+    categoryId,
+    isOnlyUnlike,
+  } = filters
+
+  let query = db.class('Ticket')
+
+  if (timeRange && timeRange in TIME_RANGE_MAP) {
+    const { starts, ends } = TIME_RANGE_MAP[timeRange]
+    query = query.where('createdAt', '>=', starts).where('createdAt', '<', ends)
+  }
+
+  if (stage === 'todo') {
+    query = query.where('status', '<=', TICKET_STATUS.WAITING_CUSTOMER_SERVICE).orderBy('status')
+  } else if (stage === 'in-progress') {
+    query = query
+      .where('status', '>', TICKET_STATUS.WAITING_CUSTOMER_SERVICE)
+      .where('status', '<', TICKET_STATUS.FULFILLED)
+  } else if (stage === 'done') {
+    query = query.where('status', '>=', TICKET_STATUS.FULFILLED)
+  } else if (status) {
+    query = query.where('status', '==', parseInt(status))
+  }
+
+  if (groupId) {
+    if (groupId === 'unset') {
+      query = query.where('group', 'not-exists')
+    } else if (groupId === 'mine') {
+      const groupRoles = await auth
+        .queryRole()
+        .where('name', 'starts-with', 'group_')
+        .where('users', '==', auth.currentUser)
+        .find()
+      query = query.where(
+        'group',
+        'in',
+        groupRoles.map((group) => db.class('Group').object(group.data.name.slice(6)))
+      )
+    } else {
+      query = query.where('group', '==', db.class('Group').object(groupId))
+    }
+  }
+  if (assignee) {
+    const assigneeId = assignee === 'me' ? auth.currentUser?.id : assignee
+    query = query.where('assignee', '==', db.class('_User').object(assigneeId))
+  }
+
+  if (authorId) {
+    query = query.where('author', '==', db.class('_User').object(authorId))
+  }
+
+  if (categoryId) {
+    query = query.where('category.objectId', '==', categoryId)
+  }
+
+  if (isOnlyUnlike === 'true') {
+    query = query.where('evaluation.star', '==', 0)
+  }
+
+  return query
+}
+
 /**
  * @param {object} filter
  * @param {Array} [filter.statuses]
@@ -646,87 +731,10 @@ export function useTickets() {
   const { tagMetadatas } = useContext(AppContext)
   const { filters } = useTicketFilters()
 
-  const findTickets = useCallback(async () => {
-    const {
-      timeRange,
-      stage,
-      status,
-      groupId,
-      assignee,
-      authorId,
-      categoryId,
-      tagKey,
-      tagValue,
-      isOnlyUnlike,
-      page = '0',
-      searchString,
-    } = filters
+  const findTickets = useCallback(async (filters) => {
+    const { page = '0', searchString, tagKey, tagValue } = filters
 
-    let query = db.class('Ticket')
-
-    if (timeRange && timeRange in TIME_RANGE_MAP) {
-      const { starts, ends } = TIME_RANGE_MAP[timeRange]
-      query = query.where('createdAt', '>=', starts).where('createdAt', '<', ends)
-    }
-
-    if (stage === 'todo') {
-      query = query.where('status', '<=', TICKET_STATUS.WAITING_CUSTOMER_SERVICE).orderBy('status')
-    } else if (stage === 'in-progress') {
-      query = query
-        .where('status', '>', TICKET_STATUS.WAITING_CUSTOMER_SERVICE)
-        .where('status', '<', TICKET_STATUS.FULFILLED)
-    } else if (stage === 'done') {
-      query = query.where('status', '>=', TICKET_STATUS.FULFILLED)
-    } else if (status) {
-      query = query.where('status', '==', parseInt(status))
-    }
-
-    if (groupId) {
-      if (groupId === 'unset') {
-        query = query.where('group', 'not-exists')
-      } else if (groupId === 'mine') {
-        const groupRoles = await auth
-          .queryRole()
-          .where('name', 'starts-with', 'group_')
-          .where('users', '==', auth.currentUser)
-          .find()
-        query = query.where(
-          'group',
-          'in',
-          groupRoles.map((group) => db.class('Group').object(group.data.name.slice(6)))
-        )
-      } else {
-        query = query.where('group', '==', db.class('Group').object(groupId))
-      }
-    }
-    if (assignee) {
-      const assigneeId = assignee === 'me' ? auth.currentUser?.id : assignee
-      query = query.where('assignee', '==', db.class('_User').object(assigneeId))
-    }
-
-    if (authorId) {
-      query = query.where('author', '==', db.class('_User').object(authorId))
-    }
-
-    if (categoryId) {
-      query = query.where('category.objectId', '==', categoryId)
-    }
-
-    if (tagKey) {
-      const tagMetadata = tagMetadatas.find((m) => m.data.key === tagKey)
-      if (tagMetadata) {
-        const columnName = tagMetadata.data.isPrivate ? 'privateTags' : 'tags'
-        if (tagValue) {
-          query = query.where(columnName, '==', { key: tagKey, value: tagValue })
-        } else {
-          query = query.where(columnName + '.key', '==', tagKey)
-        }
-      }
-    }
-
-    if (isOnlyUnlike === 'true') {
-      query = query.where('evaluation.star', '==', 0)
-    }
+    let query = await getQuery(filters)
 
     const trimedSearchString = searchString?.trim()
     if (trimedSearchString) {
@@ -744,6 +752,18 @@ export function useTickets() {
       query = query.where('objectId', 'in', searchMatchedTicketIds)
     }
 
+    if (tagKey) {
+      const tagMetadata = tagMetadatas.find((m) => m.data.key === tagKey)
+      if (tagMetadata) {
+        const columnName = tagMetadata.data.isPrivate ? 'privateTags' : 'tags'
+        if (tagValue) {
+          query = query.where(columnName, '==', { key: tagKey, value: tagValue })
+        } else {
+          query = query.where(columnName + '.key', '==', tagKey)
+        }
+      }
+    }
+
     const [ticketObjects, count] = await query
       .include('author', 'assignee')
       .limit(PAGE_SIZE)
@@ -753,11 +773,11 @@ export function useTickets() {
       .findAndCount()
     setTickets(ticketObjects.map((t) => t.toJSON()))
     setTotalCount(count)
-  }, [filters])
+  }, [])
 
   useEffect(() => {
-    findTickets()
-  }, [filters])
+    findTickets(filters)
+  }, [filters, findTickets])
 
   return { tickets, totalCount, reload: findTickets }
 }
