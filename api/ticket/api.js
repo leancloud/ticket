@@ -305,7 +305,7 @@ router.get(
     if (isCS) {
       keys.push('privateTags')
     }
-    await ticket.fetch({ keys, include }, { useMasterKey: true })
+    await ticket.fetch({ keys, include }, { user: req.user })
 
     const categoryById = categories.reduce((map, category) => {
       map[category.id] = category
