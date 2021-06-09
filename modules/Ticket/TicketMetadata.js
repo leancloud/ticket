@@ -50,7 +50,7 @@ function GroupSection({ ticket }) {
           as="select"
           value={ticket.group?.objectId}
           disabled={isLoading || updating}
-          onChange={(e) => updateGroup(e.target.value === 'null' ? null : e.target.value)}
+          onChange={(e) => updateGroup(e.target.value)}
           onBlur={() => setEditingGroup(false)}
         >
           {isLoading ? (
@@ -58,7 +58,7 @@ function GroupSection({ ticket }) {
               {t('loading') + '...'}
             </option>
           ) : (
-            <option key="null" value="null" />
+            <option key="" value="" />
           )}
           {groups?.map((group) => (
             <option key={group.id} value={group.id}>
@@ -68,7 +68,7 @@ function GroupSection({ ticket }) {
         </Form.Control>
       ) : (
         <div className="d-flex align-items-center">
-          {ticket.group ? (
+          {ticket.group && ticket.group !== '' ? (
             <Link to={`/settings/groups/${ticket.group.objectId}`} className="username">
               {ticket.group.name}
             </Link>

@@ -104,6 +104,12 @@ class Ticket {
      * @private
      * @type {string}
      */
+    this._groupId = object.get('group')?.id
+    /**
+     * @private
+     * @type {string}
+     */
+
     this._assigneeId = object.get('assignee').id
     if (object.get('assignee').has('username')) {
       /**
@@ -245,6 +251,14 @@ class Ticket {
 
   get author_id() {
     return this._authorId
+  }
+
+  get group_id() {
+    return this._groupId
+  }
+  set group_id(v) {
+    this._groupId = v
+    this._updatedKeys.add('group_id')
   }
 
   get assignee_id() {
@@ -414,6 +428,14 @@ class Ticket {
         throw new Error('The name of category is missing')
       }
       object.set('category', this._category)
+    }
+
+    if (this.isUpdated('group_id')) {
+      if (this.group_id === '') {
+        object.unset('group')
+      } else {
+        object.set('group', AV.Object.createWithoutData('Group', this.group_id))
+      }
     }
 
     if (this.isUpdated('assignee_id')) {

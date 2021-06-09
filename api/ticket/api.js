@@ -523,19 +523,18 @@ router.patch(
 
     const isCS = await isCSInTicket(req.user, ticket.author_id)
 
-    if (group_id || group_id === null) {
+    if (group_id || group_id === '') {
       if (!isCS) {
         res.throw(403, 'Forbidden')
       }
-      if (group_id === null) {
-        ticket.unset('group')
+      if (group_id === '') {
+        ticket.group_id = ''
       } else {
-        const group = await new AV.Query('Group').get(group_id, {
+        await new AV.Query('Group').get(group_id, {
           user: req.user,
         })
-        ticket.set('group', group)
+        ticket.group_id = group_id
       }
-      ticket.updatedKeys.push('group')
     }
 
     if (assignee_id) {
