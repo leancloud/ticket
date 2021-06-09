@@ -13,6 +13,10 @@ const getRoleUsersQuery = ({ params, currentUser }) => {
     })
 }
 
-AV.Cloud.define('getRoleUsers', (req) => getRoleUsersQuery(req).find({ useMasterKey: true }))
+AV.Cloud.define('getRoleUsers', async (req) =>
+  (await getRoleUsersQuery(req)).find({ useMasterKey: true })
+)
 
-AV.Cloud.define('getRoleUsersCount', (req) => getRoleUsersQuery(req).count({ useMasterKey: true }))
+AV.Cloud.define('getRoleUsersCount', async (req) =>
+  (await getRoleUsersQuery(req)).count({ useMasterKey: true })
+)
