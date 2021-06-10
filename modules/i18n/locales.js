@@ -232,12 +232,16 @@ const messages = {
     '第一页'
   ],
   'private': [
-    'Private',
+    'Internal',
     '非公开'
   ],
   'privateInfo': [
     'This tag is invisible to customers. It is only visible to staff.',
     '该标签用户不可见，只有技术支持人员可见。'
+  ],
+  'internalTip': [
+    'only visible to custermer services.',
+    "仅客服可见"
   ],
   'rank': [
     'Rank',

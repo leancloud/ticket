@@ -14,6 +14,7 @@ import { MountCustomElement } from '../custom/element'
 import css from './index.css'
 import { Category, CategorySelect } from './Category'
 import { TagForm } from './TagForm'
+import { InternalBadge } from '../components/InternalBadge'
 
 function updateTicket(id, data) {
   return fetch(`/api/1/tickets/${id}`, {
@@ -44,7 +45,7 @@ function GroupSection({ ticket }) {
 
   return (
     <Form.Group>
-      <Form.Label>{t('group')}</Form.Label>
+      <Form.Label>{t('group')} <InternalBadge/></Form.Label>
       {editingGroup ? (
         <Form.Control
           as="select"

@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Card, Dropdown } from 'react-bootstrap'
+import { Badge, Card, Dropdown } from 'react-bootstrap'
 import * as Icon from 'react-bootstrap-icons'
 import PropTypes from 'prop-types'
 import classNames from 'classnames'
@@ -12,6 +12,7 @@ import { AppContext } from '../context'
 import css from './index.css'
 import { UserLabel } from '../UserLabel'
 import { Time } from './Time'
+import { InternalBadge } from '../components/InternalBadge'
 
 // get a copy of default whiteList
 const whiteList = xss.getDefaultWhiteList()
@@ -151,9 +152,8 @@ export function ReplyCard({ data }) {
           <Time value={data.created_at} href={'#' + data.id} />
         </div>
         <div className="d-flex align-items-center">
-          {data.is_customer_service && (
-            <i className={css.badge}>{data.internal ? 'Internal' : t('staff')}</i>
-          )}
+          {data.is_customer_service &&
+            (data.internal ? <InternalBadge className={css.badge} /> : <Badge className={css.badge} >{t('staff')}</Badge>)}
 
           {isCustomerService && (
             <Dropdown className="ml-2">

@@ -68,7 +68,7 @@ export default function Settings(props) {
                 <NavLink to="/settings/ticketField">{t('ticketField')}</NavLink>
               </ListGroup.Item>
               <ListGroup.Item>
-                <NavLink to="/settings/faqs">{t('FAQ')}</NavLink>
+                <NavLink to="/settings/tags">{t('tag')}</NavLink>
               </ListGroup.Item>
               <ListGroup.Item>
                 <NavLink to="/settings/faqs">{t('FAQ')}</NavLink>
