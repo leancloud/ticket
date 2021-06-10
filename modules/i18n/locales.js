@@ -907,6 +907,10 @@ const messages = {
     'assigned this ticket to',
     '将工单负责人改为'
   ],
+  'changedTicketGroupTo': [
+    'changed group to',
+    '将工单客服组改为'
+  ],
   'thoughtNoNeedToReply': [
     'thought the ticket does not need a reply at this time. If you have any question, please reply.',
     '认为该工单暂时无需回复，如有问题可以回复该工单'

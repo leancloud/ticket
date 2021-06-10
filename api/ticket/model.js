@@ -5,6 +5,7 @@ const { getTinyCategoryInfo } = require('../category/utils')
 const { htmlify } = require('../common')
 const { saveWithoutHooks } = require('../utils/object')
 const notification = require('../notification')
+const { getTinyGroupInfo } = require('../group/utils')
 const { systemUser, makeTinyUserInfo, getTinyUserInfo } = require('../user/utils')
 const { captureException } = require('../errorHandler')
 const { invokeWebhooks } = require('../webhook')
@@ -375,8 +376,8 @@ class Ticket {
     return this._assigneeInfo
   }
 
-  pushOpsLog(action, data) {
-    this._unsavedOpsLogs.push({ ticket: this.pointer, action, data })
+  pushOpsLog(action, data, internal) {
+    this._unsavedOpsLogs.push({ ticket: this.pointer, action, data, internal })
   }
 
   async saveOpsLogs() {
@@ -526,6 +527,13 @@ class Ticket {
         category: this._category,
         operator: operatorInfo,
       })
+    }
+    if (this.isUpdated('group_id')) {
+      this.pushOpsLog(
+        'changeGroup',
+        { group: await getTinyGroupInfo(this.group_id), operator: operatorInfo },
+        true
+      )
     }
 
     if (this.isUpdated('assignee_id')) {

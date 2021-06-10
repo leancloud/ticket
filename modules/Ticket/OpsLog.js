@@ -8,6 +8,8 @@ import { fetch } from '../../lib/leancloud'
 import { UserLabel } from '../UserLabel'
 import { Time } from './Time'
 import { Category } from './Category'
+import { Link } from 'react-router-dom'
+import { InternalBadge } from '../components/InternalBadge'
 
 export function AsyncUserLabel({ userId }) {
   const { t } = useTranslation()
@@ -67,6 +69,39 @@ ChangeCategory.propTypes = {
   id: PropTypes.string.isRequired,
   operator_id: PropTypes.string.isRequired,
   category_id: PropTypes.string.isRequired,
+  created_at: PropTypes.string.isRequired,
+}
+
+function ChangeGroup({ id, operator_id, group, created_at }) {
+  const { t } = useTranslation()
+  return (
+    <div className="ticket-status" id={id}>
+      <div className="ticket-status-left">
+        <span className="icon-wrap">
+          <Icon.People />
+        </span>
+      </div>
+      <div className="ticket-status-right">
+        <AsyncUserLabel userId={operator_id} /> {t('changedTicketGroupTo')}{' '}
+        {group ? (
+          <Link to={`/settings/groups/${group.id}`} className="username">
+            {group.name}
+          </Link>
+        ) : (
+          '<unset>'
+        )}{' '}
+        (<Time value={created_at} href={'#' + id} />) <InternalBadge />
+      </div>
+    </div>
+  )
+}
+ChangeGroup.propTypes = {
+  id: PropTypes.string.isRequired,
+  operator_id: PropTypes.string.isRequired,
+  group: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+  }),
   created_at: PropTypes.string.isRequired,
 }
 
@@ -211,6 +246,8 @@ export function OpsLog({ data }) {
       return <ChangeCategory {...data} />
     case 'changeAssignee':
       return <ChangeAssignee {...data} />
+    case 'changeGroup':
+      return <ChangeGroup {...data} />
     case 'replyWithNoContent':
       return <ReplyWithNoContent {...data} />
     case 'replySoon':
@@ -222,6 +259,8 @@ export function OpsLog({ data }) {
       return <Close {...data} />
     case 'reopen':
       return <Reopen {...data} />
+    default:
+      return null
   }
 }
 OpsLog.propTypes = {

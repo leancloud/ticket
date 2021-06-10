@@ -6,6 +6,7 @@ const { checkPermission } = require('../oauth')
 const { requireAuth, catchError, parseSearchingQ } = require('../middleware')
 const { getVacationerIds } = require('./utils')
 const { isObjectExists } = require('../utils/object')
+const { encodeGroupObject } = require('../group/utils')
 const { TICKET_ACTION, TICKET_STATUS } = require('../../lib/common')
 const { encodeFileObject } = require('../file/utils')
 const { encodeUserObject } = require('../user/utils')
@@ -321,7 +322,7 @@ router.get(
       organization_id: ticket.get('organization')?.id || '',
       assignee_id: ticket.get('assignee').id,
       assignee: encodeUserObject(ticket.get('assignee')),
-      group: ticket.get('group')?.toJSON(),
+      group: encodeGroupObject(ticket.get('group')),
       category_id: ticket.get('category').objectId,
       category_path: getCategoryPath(categoryById, ticket.get('category').objectId),
       content: ticket.get('content'),
@@ -455,7 +456,7 @@ router.get(
     if (created_at_gt) {
       query.greaterThan('createdAt', new Date(created_at_gt))
     }
-    const opsLogs = await query.find({ useMasterKey: true })
+    const opsLogs = await query.find({ user: req.user })
     res.json(
       opsLogs.map((opsLog) => {
         const log = {
@@ -472,6 +473,9 @@ router.get(
         }
         if (data.category) {
           log.category_id = data.category.objectId
+        }
+        if (data.group) {
+          log.group = data.group
         }
         return log
       })
