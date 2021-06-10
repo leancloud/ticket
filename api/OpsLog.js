@@ -12,7 +12,12 @@ AV.Cloud.beforeSave('OpsLog', (req, res) => {
     .catch(errorHandler.captureException)
 })
 
-const getOpsLogAcl = (opsLog) => {
+const getOpsLogAcl = async (opsLog) => {
+  if (opsLog.get('internal')) {
+    const acl = new AV.ACL()
+    acl.setRoleReadAccess(new AV.Role('customerService'), true)
+    return acl
+  }
   return opsLog
     .get('ticket')
     .fetch(

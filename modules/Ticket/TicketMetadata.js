@@ -49,13 +49,13 @@ function GroupSection({ ticket }) {
       {editingGroup ? (
         <Form.Control
           as="select"
-          value={ticket.group?.objectId}
+          value={ticket.group?.id}
           disabled={isLoading || updating}
           onChange={(e) => updateGroup(e.target.value)}
           onBlur={() => setEditingGroup(false)}
         >
           {isLoading ? (
-            <option key="loading" value={ticket.group?.objectId}>
+            <option key="loading" value={ticket.group?.id}>
               {t('loading') + '...'}
             </option>
           ) : (
@@ -70,11 +70,11 @@ function GroupSection({ ticket }) {
       ) : (
         <div className="d-flex align-items-center">
           {ticket.group && ticket.group !== '' ? (
-            <Link to={`/settings/groups/${ticket.group.objectId}`} className="username">
+            <Link to={`/settings/groups/${ticket.group.id}`} className="username">
               {ticket.group.name}
             </Link>
           ) : (
-            '<Not set>'
+            '<unset>'
           )}
           <Button variant="link" onClick={() => setEditingGroup(true)}>
             <Icon.PencilFill />
