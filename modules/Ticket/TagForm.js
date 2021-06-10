@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
-import { Badge, Button, Form, InputGroup } from 'react-bootstrap'
+import { Button, Form, InputGroup } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import { isUri } from 'valid-url'
 import * as Icon from 'react-bootstrap-icons'
+import { InternalBadge } from '../components/InternalBadge'
 
 export function TagForm({ tagMetadata, tag, isCustomerService, onChange, disabled }) {
   const { t } = useTranslation()
@@ -33,7 +34,7 @@ export function TagForm({ tagMetadata, tag, isCustomerService, onChange, disable
   return (
     <Form.Group>
       <Form.Label>
-        {tagMetadata.key} {tagMetadata.isPrivate && <Badge variant="secondary">Private</Badge>}
+        {tagMetadata.key} {tagMetadata.isPrivate && <InternalBadge/>}
       </Form.Label>
       {editing ? (
         tagMetadata.type == 'select' ? (
