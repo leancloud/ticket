@@ -10,7 +10,7 @@ const { TICKET_ACTION, TICKET_STATUS } = require('../../lib/common')
 const { encodeFileObject } = require('../file/utils')
 const { encodeUserObject } = require('../user/utils')
 const { isCustomerService } = require('../customerService/utils')
-const { getCategories } = require('../category/utils')
+const { fetchCategories } = require('../category/utils')
 const config = require('../../config')
 const Ticket = require('./model')
 
@@ -234,7 +234,7 @@ router.get(
     const [tickets, totalCount, categories] = await Promise.all([
       page_size ? query.find({ user: req.user }) : [],
       count ? query.count({ user: req.user }) : 0,
-      getCategories(),
+      fetchCategories(),
     ])
     if (count) {
       res.append('X-Total-Count', totalCount)
@@ -297,7 +297,7 @@ router.get(
     const [isCS, watch, categories] = await Promise.all([
       isCSInTicket(req.user, ticket.get('author')),
       getWatchObject(req.user, ticket),
-      getCategories(),
+      fetchCategories(),
     ])
 
     const keys = ['author', 'assignee', 'files']
