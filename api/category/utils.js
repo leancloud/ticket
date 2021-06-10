@@ -1,7 +1,5 @@
 const AV = require('leancloud-storage')
 
-const cache = require('../utils/cache')
-
 /**
  * @typedef {{
  *   id: string;
@@ -45,10 +43,6 @@ async function fetchCategories() {
   return categories.map(encodeCategoryObject)
 }
 
-function getCategories() {
-  return cache.get('categories', fetchCategories, 1000 * 60 * 5)
-}
-
 /**
  * @param {string} categoryId
  * @returns {Promise<{ objectId: string; name: string; }>}
@@ -64,6 +58,5 @@ async function getTinyCategoryInfo(categoryId) {
 module.exports = {
   encodeCategoryObject,
   fetchCategories,
-  getCategories,
   getTinyCategoryInfo,
 }
