@@ -8,8 +8,8 @@ import { fetch } from '../../lib/leancloud'
 import { UserLabel } from '../UserLabel'
 import { Time } from './Time'
 import { Category } from './Category'
-import { Link } from 'react-router-dom'
 import { InternalBadge } from '../components/InternalBadge'
+import { GroupLabel } from '../components/Group'
 
 export function AsyncUserLabel({ userId }) {
   const { t } = useTranslation()
@@ -72,7 +72,7 @@ ChangeCategory.propTypes = {
   created_at: PropTypes.string.isRequired,
 }
 
-function ChangeGroup({ id, operator_id, group, created_at }) {
+function ChangeGroup({ id, operator_id, group_id, created_at }) {
   const { t } = useTranslation()
   return (
     <div className="ticket-status" id={id}>
@@ -83,13 +83,7 @@ function ChangeGroup({ id, operator_id, group, created_at }) {
       </div>
       <div className="ticket-status-right">
         <AsyncUserLabel userId={operator_id} /> {t('changedTicketGroupTo')}{' '}
-        {group ? (
-          <Link to={`/settings/groups/${group.id}`} className="username">
-            {group.name}
-          </Link>
-        ) : (
-          '<unset>'
-        )}{' '}
+        <GroupLabel groupId={group_id}/>{' '}
         (<Time value={created_at} href={'#' + id} />) <InternalBadge />
       </div>
     </div>
@@ -98,10 +92,7 @@ function ChangeGroup({ id, operator_id, group, created_at }) {
 ChangeGroup.propTypes = {
   id: PropTypes.string.isRequired,
   operator_id: PropTypes.string.isRequired,
-  group: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-  }),
+  group_id: PropTypes.string,
   created_at: PropTypes.string.isRequired,
 }
 

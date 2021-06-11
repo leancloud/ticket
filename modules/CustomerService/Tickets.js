@@ -18,7 +18,7 @@ import moment from 'moment'
 import * as Icon from 'react-bootstrap-icons'
 import { useTitle } from 'react-use'
 
-import { auth, cloud, db, useObjects } from '../../lib/leancloud'
+import { auth, cloud, db } from '../../lib/leancloud'
 import css from '../CustomerServiceTickets.css'
 import { getTinyCategoryInfo } from '../common'
 import {
@@ -35,6 +35,7 @@ import { useCustomerServices } from './useCustomerServices'
 import { CategoryManager, useCategories, getCategoryName } from '../category'
 import { BlodSearchString } from '../components/BlodSearchString'
 import { DelayInputForm } from '../components/DelayInputForm'
+import { useGroups } from '../components/Group'
 
 const PAGE_SIZE = 10
 
@@ -378,7 +379,7 @@ function TicketMenu({ customerServices, categories }) {
     statusTitle = t('all')
   }
 
-  const [groups = []] = useObjects(['Group'])
+  const { data: groups = [] } = useGroups()
   let groupTitle
   if (groupId) {
     if (groupId === 'unset') {

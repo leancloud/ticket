@@ -1,10 +1,10 @@
 import React from 'react'
 import { Link, Route, Switch, useRouteMatch } from 'react-router-dom'
 import { Button, Table } from 'react-bootstrap'
-import { useObjects } from '../../lib/leancloud'
 import { Group } from './Group'
 import PropTypes from 'prop-types'
 import { useFunction } from '../../lib/leancloud'
+import { useGroups } from '../components/Group'
 
 function GroupSummary({ group }) {
   const {
@@ -31,7 +31,7 @@ GroupSummary.propTypes = {
 }
 
 function Groups() {
-  const [groups] = useObjects(['Group'])
+  const { data: groups } = useGroups()
   return (
     <>
       <Button as={Link} variant="light" to="/settings/groups/_new">
