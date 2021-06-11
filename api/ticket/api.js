@@ -475,7 +475,7 @@ router.get(
           log.category_id = data.category.objectId
         }
         if (data.group) {
-          log.group = data.group
+          log.group_id = data.group.objectId
         }
         return log
       })

@@ -15,7 +15,10 @@ async function getTinyGroupInfo(groupId) {
     return null
   }
   const group = await new AV.Query('Group').get(groupId, { useMasterKey: true })
-  return encodeGroupObject(group)
+  return {
+    objectId: group.id,
+    name: group.get('name'),
+  }
 }
 
 module.exports = { encodeGroupObject, getTinyGroupInfo }

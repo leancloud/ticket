@@ -6,7 +6,7 @@ import { useMutation, useQuery, useQueryClient } from 'react-query'
 import PropTypes from 'prop-types'
 import { Link } from 'react-router-dom'
 
-import { db, fetch } from '../../lib/leancloud'
+import { fetch } from '../../lib/leancloud'
 import { UserLabel } from '../UserLabel'
 import { AppContext } from '../context'
 import { getConfig } from '../config'
@@ -15,6 +15,7 @@ import css from './index.css'
 import { Category, CategorySelect } from './Category'
 import { TagForm } from './TagForm'
 import { InternalBadge } from '../components/InternalBadge'
+import { useGroups } from '../components/Group'
 
 function updateTicket(id, data) {
   return fetch(`/api/1/tickets/${id}`, {
@@ -26,11 +27,7 @@ function updateTicket(id, data) {
 function GroupSection({ ticket }) {
   const { t } = useTranslation()
   const [editingGroup, setEditingGroup] = useState(false)
-  const { data: groups, isLoading } = useQuery({
-    queryKey: 'groups',
-    queryFn: () => db.class('Group').find(),
-    enabled: editingGroup,
-  })
+  const { data: groups, isLoading } = useGroups()
 
   const { addNotification } = useContext(AppContext)
   const queryClient = useQueryClient()
