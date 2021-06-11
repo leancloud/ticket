@@ -4,7 +4,11 @@ import PropTypes from 'prop-types'
 import { useQuery } from 'react-query'
 import { db } from '../../../lib/leancloud'
 
-export const useGroups = () => useQuery('groups', () => db.class('Group').find())
+export const useGroups = () => useQuery({
+  queryKey: 'groups',
+  queryFn: () => db.class('Group').find(),
+  staleTime: 1000 * 60 * 5,
+})
 
 export function GroupLabel({ groupId }) {
   const { data: groups } = useGroups()
