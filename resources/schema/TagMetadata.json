@@ -1,1 +1,49 @@
-{"schema":{"updatedAt":{"type":"Date"},"key":{"type":"String"},"ACL":{"type":"ACL"},"objectId":{"type":"String"},"createdAt":{"type":"Date"},"type":{"type":"String"},"values":{"type":"Array"},"isPrivate":{"type":"Boolean"}},"permissions":{"create":{"*":true},"find":{"*":true},"get":{"*":true},"update":{"*":true},"delete":{"*":true},"add_fields":{"*":true}},"indexes":[]}
+{
+    "schema": {
+        "updatedAt": {
+            "type": "Date"
+        },
+        "key": {
+            "type": "String"
+        },
+        "ACL": {
+            "type": "ACL"
+        },
+        "objectId": {
+            "type": "String"
+        },
+        "createdAt": {
+            "type": "Date"
+        },
+        "type": {
+            "type": "String"
+        },
+        "values": {
+            "type": "Array"
+        },
+        "isPrivate": {
+            "type": "Boolean"
+        }
+    },
+    "permissions": {
+        "create": {
+            "*": true
+        },
+        "find": {
+            "*": true
+        },
+        "get": {
+            "*": true
+        },
+        "update": {
+            "*": true
+        },
+        "delete": {
+            "*": true
+        },
+        "add_fields": {
+            "*": true
+        }
+    },
+    "indexes": []
+}
