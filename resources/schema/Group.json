@@ -1,0 +1,72 @@
+{
+  "schema": {
+    "role": {
+      "type": "Pointer",
+      "v": 2,
+      "className": "_Role",
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "description": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false,
+      "comment": ""
+    },
+    "updatedAt": {
+      "type": "Date"
+    },
+    "ACL": {
+      "type": "ACL",
+      "default": {
+        "role:customerService": {
+          "write": true,
+          "read": true
+        }
+      }
+    },
+    "name": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "objectId": {
+      "type": "String"
+    },
+    "createdAt": {
+      "type": "Date"
+    }
+  },
+  "permissions": {
+    "create": {
+      "roles": ["customerService"],
+      "users": []
+    },
+    "find": {
+      "roles": ["customerService"],
+      "users": []
+    },
+    "get": {
+      "roles": ["customerService"],
+      "users": []
+    },
+    "update": {
+      "roles": ["customerService"],
+      "users": []
+    },
+    "delete": {
+      "roles": ["customerService"],
+      "users": []
+    },
+    "add_fields": {
+      "roles": [],
+      "users": []
+    }
+  },
+  "indexes": []
+}
