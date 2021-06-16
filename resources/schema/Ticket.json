@@ -14,6 +14,10 @@
     "updatedAt": {
       "type": "Date"
     },
+    "group": {
+      "type": "Pointer",
+      "className": "Group"
+    },
     "content_HTML": {
       "type": "String"
     },
@@ -31,6 +35,14 @@
     },
     "objectId": {
       "type": "String"
+    },
+    "nid": {
+      "type": "Number",
+      "auto_increment": true,
+      "required": false,
+      "comment": "",
+      "hidden": false,
+      "read_only": false
     },
     "createdAt": {
       "type": "Date"
