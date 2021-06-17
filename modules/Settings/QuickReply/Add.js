@@ -19,17 +19,21 @@ export function QuickReplyForm({ initValue, onSubmit, onCancel, ...props }) {
   const [content, setContent] = useState(initValue?.content || '')
   const [contentErrorMessage, setContentErrorMessage] = useState('')
   const $contentInput = useRef()
-  const [fileIds, setFileIds] = useState(initValue?.file_ids || [])
+  const [uploadedFileIds, setUploadedFileIds] = useState(initValue?.file_ids || [])
   const [newFileIds, setNewFileIds] = useState([])
   const [isUploading, setIsUploading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const $unmounted = useRef(false)
+  const $newFileIds = useRef(newFileIds)
   useEffect(
     () => () => {
       $unmounted.current = true
+      $newFileIds.current.forEach((id) => http.delete(`/api/1/files/${id}`))
     },
     []
   )
+
+  $newFileIds.current = newFileIds
 
   const nameIsValid = () => {
     if (name.trim()) {
@@ -64,7 +68,7 @@ export function QuickReplyForm({ initValue, onSubmit, onCancel, ...props }) {
       name: name.trim(),
       content: content.trim(),
       owner_id: permission === 'ONLY_ME' ? auth.currentUser.id : '',
-      file_ids: fileIds.concat(newFileIds),
+      file_ids: uploadedFileIds.concat(newFileIds),
     }
     setIsSubmitting(true)
     // eslint-disable-next-line promise/catch-or-return
@@ -73,11 +77,6 @@ export function QuickReplyForm({ initValue, onSubmit, onCancel, ...props }) {
         setIsSubmitting(false)
       }
     })
-  }
-
-  const handleCancel = () => {
-    newFileIds.forEach((id) => http.delete(`/api/1/files/${id}`))
-    onCancel()
   }
 
   return (
@@ -130,8 +129,10 @@ export function QuickReplyForm({ initValue, onSubmit, onCancel, ...props }) {
       </Form.Group>
 
       <Uploader
-        fileIds={fileIds}
-        onRemove={(id) => setFileIds((current) => current.filter((_id) => _id !== id))}
+        uploadedFileIds={uploadedFileIds}
+        onRemoveUploadedFile={(id) =>
+          setUploadedFileIds((current) => current.filter((_id) => _id !== id))
+        }
         onChange={(files) => {
           if (files.find((file) => file.isUploading)) {
             setIsUploading(true)
@@ -150,7 +151,7 @@ export function QuickReplyForm({ initValue, onSubmit, onCancel, ...props }) {
           className="mr-1"
           variant="link"
           disabled={isSubmitting || isUploading}
-          onClick={handleCancel}
+          onClick={onCancel}
         >
           {t('cancel')}
         </Button>

@@ -140,7 +140,7 @@ UploadButton.propTypes = {
   onChange: PropTypes.func.isRequired,
 }
 
-export function Uploader({ fileIds, onRemove, onChange }) {
+export function Uploader({ uploadedFileIds, onRemoveUploadedFile, onChange }) {
   const $nextKey = useRef(0)
   const [files, setFiles] = useState([])
   const [fileByKey, setFileByKey] = useState({})
@@ -164,8 +164,8 @@ export function Uploader({ fileIds, onRemove, onChange }) {
 
   return (
     <Card className="flex-row flex-wrap p-1">
-      {fileIds?.map((id) => (
-        <FetchFileItem key={id} id={id} onRemove={onRemove} />
+      {uploadedFileIds?.map((id) => (
+        <FetchFileItem key={id} id={id} onRemove={onRemoveUploadedFile} />
       ))}
       {files.map(({ key, file }) => (
         <UploadFileItem
@@ -180,7 +180,7 @@ export function Uploader({ fileIds, onRemove, onChange }) {
   )
 }
 Uploader.propTypes = {
-  fileIds: PropTypes.arrayOf(PropTypes.string),
-  onRemove: PropTypes.func,
+  uploadedFileIds: PropTypes.arrayOf(PropTypes.string),
+  onRemoveUploadedFile: PropTypes.func,
   onChange: PropTypes.func,
 }
