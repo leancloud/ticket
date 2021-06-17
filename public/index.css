@@ -25,10 +25,6 @@ body,
   background: #fff;
 }
 
-.active {
-  font-weight: bold;
-}
-
 .card-footer a {
   color: #696969;
 }
