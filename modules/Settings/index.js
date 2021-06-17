@@ -1,5 +1,5 @@
 import React from 'react'
-import { Card, Col, ListGroup, Row } from 'react-bootstrap'
+import { Col, ListGroup, Row } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import { NavLink, Route, Switch, useRouteMatch } from 'react-router-dom'
@@ -37,53 +37,53 @@ export default function Settings(props) {
   return (
     <Row className="my-2">
       <Col md={3}>
-        <Card>
-          <Card.Header>{t('settings')}</Card.Header>
-          <ListGroup variant="flush">
-            <ListGroup.Item>
-              <NavLink to="/settings/profile">{t('personalSettings')}</NavLink>
+        <section className="mb-4">
+          <h6>{t('userSettings')}</h6>
+          <ListGroup>
+            <ListGroup.Item as={NavLink} to="/settings/profile">
+              {t('personalSettings')}
             </ListGroup.Item>
-            <ListGroup.Item>
-              <NavLink to="/settings/organizations">{t('organizationSettings')}</NavLink>
+            <ListGroup.Item as={NavLink} to="/settings/organizations">
+              {t('organizationSettings')}
             </ListGroup.Item>
           </ListGroup>
-        </Card>
+        </section>
         {props.isCustomerService && (
-          <Card>
-            <Card.Header>{t('staffSettings')}</Card.Header>
-            <ListGroup variant="flush">
-              <ListGroup.Item>
-                <NavLink to="/settings/customerServiceProfile">{t('personalSettings')}</NavLink>
+          <section className="mb-4">
+            <h6>{t('staffSettings')}</h6>
+            <ListGroup>
+              <ListGroup.Item as={NavLink} to="/settings/customerServiceProfile">
+                {t('personalSettings')}
               </ListGroup.Item>
-              <ListGroup.Item>
-                <NavLink to="/settings/members">{t('member')}</NavLink>
+              <ListGroup.Item as={NavLink} to="/settings/members">
+                {t('member')}
               </ListGroup.Item>
-              <ListGroup.Item>
-                <NavLink to="/settings/groups">{t('group')}</NavLink>
+              <ListGroup.Item as={NavLink} to="/settings/groups">
+                {t('group')}
               </ListGroup.Item>
-              <ListGroup.Item>
-                <NavLink to="/settings/categories">{t('category')}</NavLink>
+              <ListGroup.Item as={NavLink} to="/settings/categories">
+                {t('category')}
               </ListGroup.Item>
-              <ListGroup.Item>
-                <NavLink to="/settings/ticketField">{t('ticketField')}</NavLink>
+              <ListGroup.Item as={NavLink} to="/settings/ticketField">
+                {t('ticketField')}
               </ListGroup.Item>
-              <ListGroup.Item>
-                <NavLink to="/settings/tags">{t('tag')}</NavLink>
+              <ListGroup.Item as={NavLink} to="/settings/tags">
+                {t('tag')}
               </ListGroup.Item>
-              <ListGroup.Item>
-                <NavLink to="/settings/faqs">{t('FAQ')}</NavLink>
+              <ListGroup.Item as={NavLink} to="/settings/faqs">
+                {t('FAQ')}
               </ListGroup.Item>
-              <ListGroup.Item>
-                <NavLink to="/settings/dynamicContent">{t('dynamicContent')}</NavLink>
+              <ListGroup.Item as={NavLink} to="/settings/dynamicContent">
+                {t('dynamicContent')}
               </ListGroup.Item>
-              <ListGroup.Item>
-                <NavLink to="/settings/triggers">Trigger</NavLink>
+              <ListGroup.Item as={NavLink} to="/settings/triggers">
+                Trigger
               </ListGroup.Item>
-              <ListGroup.Item>
-                <NavLink to="/settings/automations">Automation</NavLink>
+              <ListGroup.Item as={NavLink} to="/settings/automations">
+                Automation
               </ListGroup.Item>
             </ListGroup>
-          </Card>
+          </section>
         )}
       </Col>
       <Col md={9}>

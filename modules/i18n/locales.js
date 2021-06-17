@@ -739,9 +739,13 @@ const messages = {
     '如有疑问，请通过邮件联系我们'
   ],
   // Settings
+  'userSettings': [
+    'User settings',
+    '用户设置'
+  ],
   'staffSettings': [
     'Staff settings',
-    '技术支持设置'
+    '客服设置'
   ],
   'personalSettings': [
     'Person',
