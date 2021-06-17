@@ -3,15 +3,14 @@ import PropTypes from 'prop-types'
 import { Image } from 'react-bootstrap'
 import { getGravatarHash } from '../lib/common'
 
-export function Avatar({ user, height, width }) {
+export function Avatar({ user, height = 16, width = 16 }) {
   const userInfo = user.toJSON ? user.toJSON() : user
   const hash = userInfo.gravatarHash || getGravatarHash(userInfo.email || userInfo.username)
   return (
     <Image
-      height={height || 16}
-      width={width || 16}
-      src={`https://experiments.sparanoid.net/avatar/${hash}?s=${height || 16}&r=pg&d=identicon`}
-      
+      height={height}
+      width={width}
+      src={`https://gravatar.tapglb.com/avatar/${hash}?s=${height * 2}&r=pg&d=identicon`}
       rounded
     />
   )
