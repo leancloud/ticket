@@ -2,7 +2,7 @@ import React from 'react'
 import { Col, ListGroup, Row } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
-import { NavLink, Route, Switch, useRouteMatch } from 'react-router-dom'
+import { NavLink, Redirect, Route, Switch, useRouteMatch } from 'react-router-dom'
 
 import Profile from './Profile'
 import Organization from './Organization'
@@ -140,6 +140,7 @@ export default function Settings(props) {
             <Automation />
           </Route>
           <Route path={`${path}/ticketField`} component={TicketField} />
+          <Redirect exact from={path} to={`${path}/profile`}/>
         </Switch>
       </Col>
     </Row>
