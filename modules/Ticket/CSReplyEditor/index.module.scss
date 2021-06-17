@@ -1,0 +1,15 @@
+@import '../../style';
+
+.editorContainer {
+  margin-top: 20px;
+
+  &.internal {
+    :global(.w-md-editor-content) {
+      background-color: $internal-reply-background;
+    }
+  }
+}
+
+.submit {
+  min-width: 74px;
+}
