@@ -43,7 +43,7 @@ module.exports = (mailgunKey, mailgunDomain) => {
 
   const notificationChannel = {
     newTicket: (ticket, from, to) => {
-      if (!to.get('email')) {
+      if (!to?.get('email')) {
         return Promise.resolve()
       }
       return send({
@@ -56,7 +56,7 @@ module.exports = (mailgunKey, mailgunDomain) => {
       })
     },
     replyTicket: ({ ticket, reply, from, to }) => {
-      if (!to.get('email')) {
+      if (!to?.get('email')) {
         return Promise.resolve()
       }
       return send({
@@ -69,7 +69,7 @@ module.exports = (mailgunKey, mailgunDomain) => {
       })
     },
     changeAssignee: (ticket, from, to) => {
-      if (!to.get('email')) {
+      if (!to?.get('email')) {
         return Promise.resolve()
       }
       return send({
@@ -89,7 +89,7 @@ ${ticket.get('latestReply')?.content || '<暂无>'}`,
       })
     },
     delayNotify: (ticket, to) => {
-      if (!to.get('email')) {
+      if (!to?.get('email')) {
         return Promise.resolve()
       }
       return send({

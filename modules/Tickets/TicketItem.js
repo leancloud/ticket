@@ -62,9 +62,11 @@ export function TicketItem({ ticket, checkable, checked, onCheckboxChange, categ
             </span>
           </div>
           <div>
-            <span className={css.assignee}>
-              <UserLabel user={ticket.assignee} />
-            </span>
+            {ticket.assignee && (
+              <span className={css.assignee}>
+                <UserLabel user={ticket.assignee} />
+              </span>
+            )}
             <span className={css.contributors}>
               {contributors.map((user) => (
                 <span key={user.objectId}>

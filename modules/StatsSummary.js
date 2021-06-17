@@ -148,7 +148,7 @@ class StatsSummary extends React.Component {
       const tickets = activeTickets.filter((ticket) => idSet.has(ticket.objectId))
 
       const categoryIds = tickets.map((ticket) => ticket.category.objectId)
-      const assigneeIds = tickets.map((ticket) => ticket.assignee.objectId)
+      const assigneeIds = tickets.map((ticket) => ticket.assignee?.objectId).filter(_.identity)
       const authorIds = tickets.map((ticket) => ticket.author.objectId)
       assigneeIds.forEach((id) => userIdSet.add(id))
       authorIds.forEach((id) => userIdSet.add(id))

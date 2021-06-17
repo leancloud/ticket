@@ -42,7 +42,9 @@ function GroupSection({ ticket }) {
 
   return (
     <Form.Group>
-      <Form.Label>{t('group')} <InternalBadge/></Form.Label>
+      <Form.Label>
+        {t('group')} <InternalBadge />
+      </Form.Label>
       {editingGroup ? (
         <Form.Control
           as="select"
@@ -114,12 +116,16 @@ function AssigneeSection({ ticket, isCustomerService }) {
       {editingAssignee ? (
         <Form.Control
           as="select"
-          value={ticket.assignee.id}
+          value={ticket.assignee?.id}
           disabled={isLoading || updating}
           onChange={(e) => updateAssignee(e.target.value)}
           onBlur={() => setEditingAssignee(false)}
         >
-          {isLoading && <option value={ticket.assignee.id}>{t('loading') + '...'}</option>}
+          {isLoading ? (
+            <option value={ticket.assignee?.id}>{t('loading') + '...'}</option>
+          ) : (
+            <option key="" value="" />
+          )}
           {customerServices?.map((cs) => (
             <option key={cs.id} value={cs.id}>
               {cs.name || cs.username}
@@ -128,7 +134,7 @@ function AssigneeSection({ ticket, isCustomerService }) {
         </Form.Control>
       ) : (
         <div className="d-flex align-items-center">
-          <UserLabel user={ticket.assignee} />
+          {ticket.assignee ? <UserLabel user={ticket.assignee} /> : '<unset>'}
           {isCustomerService && (
             <Button variant="link" onClick={() => setEditingAssignee(true)}>
               <Icon.PencilFill />
@@ -142,7 +148,7 @@ function AssigneeSection({ ticket, isCustomerService }) {
 AssigneeSection.propTypes = {
   ticket: PropTypes.shape({
     id: PropTypes.string.isRequired,
-    assignee: PropTypes.object.isRequired,
+    assignee: PropTypes.object,
   }),
   isCustomerService: PropTypes.bool,
 }

@@ -493,7 +493,7 @@ const getActiveTicket = (start, end, authOptions) => {
           objectId: ticket.id,
           categoryId: ticket.get('category').objectId,
           authorId: ticket.get('author').id,
-          assigneeId: ticket.get('assignee').id,
+          assigneeId: ticket.get('assignee')?.id,
           status: ticket.get('status'),
           joinedCustomerServiceIds: _.map(ticket.get('joinedCustomerServices'), 'objectId'),
           replyCount: 0,
