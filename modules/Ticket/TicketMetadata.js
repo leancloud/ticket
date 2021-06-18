@@ -1,5 +1,5 @@
-import React, { useCallback, useContext, useMemo, useState } from 'react'
-import { Button, Form } from 'react-bootstrap'
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { Alert, Button, Form } from 'react-bootstrap'
 import * as Icon from 'react-bootstrap-icons'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
@@ -16,6 +16,7 @@ import { Category, CategorySelect } from './Category'
 import { TagForm } from './TagForm'
 import { InternalBadge } from '../components/InternalBadge'
 import { useGroups } from '../components/Group'
+import styles from './index.css'
 
 function updateTicket(id, data) {
   return fetch(`/api/1/tickets/${id}`, {
@@ -110,6 +111,25 @@ function AssigneeSection({ ticket, isCustomerService }) {
     onError: (error) => addNotification(error),
   })
 
+  const [groupIncludesAssignee, setgGroupIncludesAssignee] = useState(false)
+
+  useEffect(() => {
+    if (!ticket.assignee || !ticket.group) {
+      setgGroupIncludesAssignee(false)
+      return
+    }
+    const ac = new AbortController()
+    auth
+      .role(ticket.group.role_id)
+      .queryUser()
+      .where('objectId', '==', ticket.assignee.id)
+      .count({ abortSignal: ac.signal })
+      .then((count) => {
+        setgGroupIncludesAssignee(count === 0)
+      })
+    return ac.abort.bind(ac)
+  }, [ticket.assignee, ticket.group])
+
   return (
     <Form.Group>
       <Form.Label>{t('assignee')}</Form.Label>{' '}
@@ -146,11 +166,23 @@ function AssigneeSection({ ticket, isCustomerService }) {
         <div className="d-flex align-items-center">
           {ticket.assignee ? <UserLabel user={ticket.assignee} /> : '<unset>'}
           {isCustomerService && (
-            <Button variant="link" onClick={() => setEditingAssignee(true)}>
+            <Button
+              variant="link"
+              className="align-baseline"
+              onClick={() => setEditingAssignee(true)}
+            >
               <Icon.PencilFill />
             </Button>
           )}
         </div>
+      )}
+      {isCustomerService && ticket.assignee && ticket.group && groupIncludesAssignee && (
+        <Alert variant="warning" className={styles.metaAlert}>
+          {ticket.assignee.name} is not a member of {ticket.group.name}{' '}
+          <Button variant="light" size="sm" onClick={() => updateAssignee('')}>
+            Unassign {ticket.assignee.name}
+          </Button>
+        </Alert>
       )}
     </Form.Group>
   )
