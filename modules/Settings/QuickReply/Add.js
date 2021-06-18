@@ -8,7 +8,7 @@ import { useMutation, useQueryClient } from 'react-query'
 
 import styles from './index.module.scss'
 import { auth, http } from '../../../lib/leancloud'
-import { Uploader } from '../../components/Uploader'
+import { useUploader } from '../../utils/useUploader'
 
 export function QuickReplyForm({ initValue, onSubmit, onCancel, ...props }) {
   const { t } = useTranslation()
@@ -19,21 +19,17 @@ export function QuickReplyForm({ initValue, onSubmit, onCancel, ...props }) {
   const [content, setContent] = useState(initValue?.content || '')
   const [contentErrorMessage, setContentErrorMessage] = useState('')
   const $contentInput = useRef()
-  const [uploadedFileIds, setUploadedFileIds] = useState(initValue?.file_ids || [])
-  const [newFileIds, setNewFileIds] = useState([])
-  const [isUploading, setIsUploading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const $unmounted = useRef(false)
-  const $newFileIds = useRef(newFileIds)
   useEffect(
     () => () => {
       $unmounted.current = true
-      $newFileIds.current.forEach((id) => http.delete(`/api/1/files/${id}`))
     },
     []
   )
-
-  $newFileIds.current = newFileIds
+  const { uploader, fileIds, isUploading, hasError } = useUploader({
+    defaultFileIds: initValue?.file_ids,
+  })
 
   const nameIsValid = () => {
     if (name.trim()) {
@@ -68,7 +64,7 @@ export function QuickReplyForm({ initValue, onSubmit, onCancel, ...props }) {
       name: name.trim(),
       content: content.trim(),
       owner_id: permission === 'ONLY_ME' ? auth.currentUser.id : '',
-      file_ids: uploadedFileIds.concat(newFileIds),
+      file_ids: fileIds,
     }
     setIsSubmitting(true)
     // eslint-disable-next-line promise/catch-or-return
@@ -128,29 +124,16 @@ export function QuickReplyForm({ initValue, onSubmit, onCancel, ...props }) {
         <Form.Control.Feedback type="invalid">{contentErrorMessage}</Form.Control.Feedback>
       </Form.Group>
 
-      <Uploader
-        uploadedFileIds={uploadedFileIds}
-        onRemoveUploadedFile={(id) =>
-          setUploadedFileIds((current) => current.filter((_id) => _id !== id))
-        }
-        onChange={(files) => {
-          if (files.find((file) => file.isUploading)) {
-            setIsUploading(true)
-          } else {
-            setNewFileIds(files.map((file) => file.id))
-            setIsUploading(false)
-          }
-        }}
-      />
+      {uploader}
 
       <div className="d-flex flex-row-reverse">
-        <Button variant="primary" type="submit" disabled={isSubmitting || isUploading}>
+        <Button variant="primary" type="submit" disabled={isSubmitting || isUploading || hasError}>
           {t('save')}
         </Button>
         <Button
           className="mr-1"
           variant="link"
-          disabled={isSubmitting || isUploading}
+          disabled={isSubmitting || isUploading || hasError}
           onClick={onCancel}
         >
           {t('cancel')}

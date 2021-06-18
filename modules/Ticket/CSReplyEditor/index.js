@@ -6,6 +6,7 @@ import classNames from 'classnames'
 
 import { storage } from '../../../lib/leancloud'
 import MarkdownEditor from '../../components/MarkdownEditor'
+import { useUploader } from '../../utils/useUploader'
 import { useAutoSave } from '../../utils/useAutoSave'
 import styles from './index.module.scss'
 
@@ -50,7 +51,10 @@ export function CSReplyEditor({ ticketId, onReply, onOperate }) {
   const [content, setContent] = useAutoSave(`ticket:${ticketId}:reply`)
   const [operating, setOperating] = useState(false)
   const [committing, setCommitting] = useState(false)
-  const commitable = useMemo(() => content.trim().length > 0, [content])
+  const { uploader, fileIds, isUploading, hasError, clear } = useUploader()
+  const commitable = useMemo(() => {
+    return content.trim().length > 0 || (fileIds.length > 0 && !isUploading && !hasError)
+  }, [content, fileIds, isUploading, hasError])
 
   const handleReply = async () => {
     if (!commitable || committing) {
@@ -58,8 +62,9 @@ export function CSReplyEditor({ ticketId, onReply, onOperate }) {
     }
     setCommitting(true)
     try {
-      await onReply({ content, internal: replyType === 'internal' })
+      await onReply({ content, file_ids: fileIds, internal: replyType === 'internal' })
       setContent('')
+      clear()
     } finally {
       setCommitting(false)
     }
@@ -97,30 +102,33 @@ export function CSReplyEditor({ ticketId, onReply, onOperate }) {
         />
       </div>
 
-      <div className="d-flex flex-row-reverse mt-2">
-        <Button
-          className={`${styles.submit} ml-2`}
-          variant="success"
-          disabled={!commitable || committing}
-          onClick={handleReply}
-        >
-          {t('submit')}
-        </Button>
-        <Button
-          className="ml-2"
-          variant="light"
-          disabled={operating}
-          onClick={() => handleOperate('replySoon')}
-        >
-          {t('replyLater')}
-        </Button>
-        <Button
-          variant="light"
-          disabled={operating}
-          onClick={() => handleOperate('replyWithNoContent')}
-        >
-          {t('noNeedToReply')}
-        </Button>
+      {uploader}
+
+      <div className="d-flex justify-content-between my-2">
+        <div>
+          <Button variant="light">Insert quick reply</Button>
+        </div>
+
+        <div>
+          <Button
+            variant="light"
+            disabled={operating}
+            onClick={() => handleOperate('replyWithNoContent')}
+          >
+            {t('noNeedToReply')}
+          </Button>{' '}
+          <Button variant="light" disabled={operating} onClick={() => handleOperate('replySoon')}>
+            {t('replyLater')}
+          </Button>{' '}
+          <Button
+            className={styles.submit}
+            variant="success"
+            disabled={!commitable || committing}
+            onClick={handleReply}
+          >
+            {t('submit')}
+          </Button>
+        </div>
       </div>
     </div>
   )

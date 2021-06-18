@@ -1,186 +1,108 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useMemo, useRef } from 'react'
 import { Card, ProgressBar } from 'react-bootstrap'
-import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import * as Icon from 'react-bootstrap-icons'
 
-import { db, http, storage } from '../../../lib/leancloud'
 import styles from './index.module.scss'
 
 const IMAGE_MIMES = ['image/png', 'image/jpeg', 'image/gif']
 
-function FileItem({ id, name, mime, url, isUploading, progress = 100, onRemove }) {
-  const { t } = useTranslation()
-  const isImage = useMemo(() => mime && IMAGE_MIMES.includes(mime), [mime])
-
+function ErrorFileItem({ name, onRemove }) {
   return (
-    <Card
-      className={styles.fileItem}
-      style={{ backgroundImage: isImage && url ? `url(${url})` : undefined }}
-    >
-      {!isImage && (
+    <Card className={`${styles.fileItem} ${styles.error}`}>
+      <Icon.ExclamationCircle />
+      <div className={styles.name}>{name}</div>
+      <div className={styles.cover}>
+        <Icon.Trash onClick={onRemove} />
+      </div>
+    </Card>
+  )
+}
+ErrorFileItem.propTypes = {
+  name: PropTypes.string.isRequired,
+  onRemove: PropTypes.func,
+}
+
+function FileItem({ name, mime, url, progress, error, onRemove }) {
+  const isImage = useMemo(() => {
+    return mime && IMAGE_MIMES.includes(mime)
+  }, [mime])
+  const backgroundImage = useMemo(() => {
+    return isImage && url ? `url(${url})` : undefined
+  }, [isImage, url])
+  const handleOpenUrl = useCallback(() => url && window.open(url), [url])
+
+  const isUploading = progress !== undefined
+
+  if (error) {
+    return <ErrorFileItem name={name} error={error} onRemove={onRemove} />
+  }
+  return (
+    <Card className={styles.fileItem} style={{ backgroundImage }}>
+      {(!isImage || isUploading) && (
         <>
           {isUploading ? <Icon.FileEarmarkArrowUp /> : <Icon.FileEarmark />}
-          <div className={styles.name}>{name || t('loading')}</div>
+          <div className={styles.name}>{name}</div>
         </>
       )}
       {isUploading ? (
         <ProgressBar animated className={styles.progress} now={progress} />
       ) : (
         <div className={styles.cover}>
-          {url && <Icon.BoxArrowInUpRight onClick={() => window.open(url)} />}
-          {id && <Icon.Trash className={styles.trashIcon} onClick={() => onRemove?.(id)} />}
+          <Icon.BoxArrowInUpRight onClick={handleOpenUrl} />
+          <Icon.Trash onClick={onRemove} />
         </div>
       )}
     </Card>
   )
 }
 FileItem.propTypes = {
-  id: PropTypes.string,
-  name: PropTypes.string,
+  name: PropTypes.string.isRequired,
   mime: PropTypes.string,
   url: PropTypes.string,
-  isUploading: PropTypes.bool,
   progress: PropTypes.number,
+  error: PropTypes.any,
   onRemove: PropTypes.func,
 }
 
-function UploadFileItem({ file, onChange, ...props }) {
-  const $file = useRef(file)
-  const [progress, setProgress] = useState(0)
-  const [id, setId] = useState('')
-  const [name, setName] = useState(file.name)
-  const [mime, setMime] = useState('')
-  const [url, setUrl] = useState('')
-  const [isUploading, setIdUploading] = useState(false)
-  const $onChange = useRef(onChange)
-  $onChange.current = onChange
-
-  useEffect(() => {
-    const onProgress = ({ loaded, total }) => setProgress((loaded / total) * 100)
-    setIdUploading(true)
-    $onChange.current({ isUploading: true })
-    storage
-      .upload($file.current.name, $file.current, { onProgress })
-      .then((file) => {
-        setId(file.id)
-        setName(file.name)
-        setMime(file.mime)
-        setUrl(file.url)
-        setIdUploading(false)
-        $onChange.current({ id: file.id, isUploading: false })
-        return
-      })
-      .catch((error) => $onChange.current({ error, isUploading: false }))
-  }, [])
-
-  return (
-    <FileItem
-      {...props}
-      id={id}
-      name={name}
-      mime={mime}
-      url={url}
-      isUploading={isUploading}
-      progress={progress}
-    />
-  )
-}
-UploadFileItem.propTypes = {
-  file: PropTypes.instanceOf(File).isRequired,
-  onChange: PropTypes.func.isRequired,
-}
-
-function FetchFileItem({ id, ...props }) {
-  const $id = useRef(id)
-  const [name, setName] = useState('')
-  const [mime, setMime] = useState('')
-  const [url, setURL] = useState('')
-
-  useEffect(() => {
-    db.class('_File')
-      .object($id.current)
-      .get()
-      .then((obj) => {
-        setName(obj.data.name)
-        setMime(obj.data.mime_type)
-        setURL(obj.data.url)
-        return
-      })
-      .catch(console.error)
-  }, [])
-
-  return <FileItem {...props} id={$id.current} name={name} mime={mime} url={url} />
-}
-FetchFileItem.propTypes = {
-  id: PropTypes.string.isRequired,
-}
-
-function UploadButton({ onChange }) {
+function UploadButton({ onUpload }) {
   const $fileInput = useRef()
-  const handleFileChange = (e) => {
-    if (e.target.files.length) {
-      onChange(Array.from(e.target.files))
-      $fileInput.current.value = null
-    }
-  }
+  const handleChangeFile = useCallback(
+    (e) => {
+      const files = e.target.files
+      if (files.length) {
+        onUpload(Array.from(files))
+        $fileInput.current.value = null
+      }
+    },
+    [onUpload]
+  )
+  const handleClick = useCallback(() => $fileInput.current.click(), [])
 
   return (
-    <Card
-      className={`${styles.fileItem} ${styles.upload}`}
-      onClick={() => $fileInput.current.click()}
-    >
-      <input type="file" multiple ref={$fileInput} onChange={handleFileChange} />
+    <Card className={`${styles.fileItem} ${styles.upload}`} onClick={handleClick}>
+      <input type="file" multiple ref={$fileInput} onChange={handleChangeFile} />
       <Icon.Plus />
       <div className={styles.name}>Upload</div>
     </Card>
   )
 }
 UploadButton.propTypes = {
-  onChange: PropTypes.func.isRequired,
+  onUpload: PropTypes.func.isRequired,
 }
 
-export function Uploader({ uploadedFileIds, onRemoveUploadedFile, onChange }) {
-  const $nextKey = useRef(0)
-  const [files, setFiles] = useState([])
-  const [fileByKey, setFileByKey] = useState({})
-
-  const handleAddNewFiles = (files) => {
-    setFiles((current) => {
-      return current.concat(files.map((file) => ({ file, key: $nextKey.current++ })))
-    })
-  }
-
-  const handleRemoveNewFile = (key, id) => {
-    setFiles((current) => current.filter((file) => file.key !== key))
-    http.delete(`/api/1/files/${id}`).catch(console.error)
-  }
-
-  const handleChangeFileByKey = (key, info) => {
-    const nextFileByKey = { ...fileByKey, [key]: info }
-    setFileByKey(nextFileByKey)
-    onChange?.(Object.values(nextFileByKey))
-  }
-
+export function Uploader({ files, onUpload, onRemove }) {
   return (
     <Card className="flex-row flex-wrap p-1">
-      {uploadedFileIds?.map((id) => (
-        <FetchFileItem key={id} id={id} onRemove={onRemoveUploadedFile} />
+      {files?.map((file) => (
+        <FileItem {...file} key={file.key} onRemove={() => onRemove(file)} />
       ))}
-      {files.map(({ key, file }) => (
-        <UploadFileItem
-          key={key}
-          file={file}
-          onRemove={(id) => handleRemoveNewFile(key, id)}
-          onChange={(info) => handleChangeFileByKey(key, info)}
-        />
-      ))}
-      <UploadButton onChange={handleAddNewFiles} />
+      <UploadButton onUpload={onUpload} />
     </Card>
   )
 }
 Uploader.propTypes = {
-  uploadedFileIds: PropTypes.arrayOf(PropTypes.string),
-  onRemoveUploadedFile: PropTypes.func,
-  onChange: PropTypes.func,
+  files: PropTypes.array,
+  onUpload: PropTypes.func.isRequired,
+  onRemove: PropTypes.func.isRequired,
 }

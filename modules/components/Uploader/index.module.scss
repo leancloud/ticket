@@ -43,6 +43,11 @@
     }
   }
 
+  &.error {
+    color: $red;
+    border-color: $red;
+  }
+
   .cover {
     display: flex;
     justify-content: center;
