@@ -6,7 +6,7 @@ import { useMutation, useQuery, useQueryClient } from 'react-query'
 import PropTypes from 'prop-types'
 import { Link } from 'react-router-dom'
 
-import { fetch } from '../../lib/leancloud'
+import { auth, fetch } from '../../lib/leancloud'
 import { UserLabel } from '../UserLabel'
 import { AppContext } from '../context'
 import { getConfig } from '../config'
@@ -112,7 +112,17 @@ function AssigneeSection({ ticket, isCustomerService }) {
 
   return (
     <Form.Group>
-      <Form.Label>{t('assignee')}</Form.Label>
+      <Form.Label>{t('assignee')}</Form.Label>{' '}
+      {ticket.assignee?.id !== auth.currentUser.id && (
+        <Button
+          variant="light"
+          size="sm"
+          onClick={() => updateAssignee(auth.currentUser.id)}
+          className="align-baseline"
+        >
+          {t('assignYourself')}
+        </Button>
+      )}
       {editingAssignee ? (
         <Form.Control
           as="select"

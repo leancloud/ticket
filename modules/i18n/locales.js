@@ -59,6 +59,10 @@ const messages = {
     'Assignee',
     '负责人'
   ],
+  'assignYourself': [
+    'Assign yourself',
+    '分配给我'
+  ],
   'assignedToMe': [
     'Assigned to me',
     '分配给我的'
