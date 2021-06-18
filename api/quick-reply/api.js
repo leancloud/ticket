@@ -55,7 +55,7 @@ router.get(
         name: reply.get('name'),
         content: reply.get('content'),
         owner_id: reply.get('owner')?.id || '',
-        files: reply.get('files')?.map((file) => file.id) || [],
+        file_ids: reply.get('files')?.map((file) => file.id) || [],
         created_at: reply.createdAt,
       }))
     )

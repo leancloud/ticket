@@ -9,6 +9,7 @@ import MarkdownEditor from '../../components/MarkdownEditor'
 import { useUploader } from '../../utils/useUploader'
 import { useAutoSave } from '../../utils/useAutoSave'
 import styles from './index.module.scss'
+import { QuickReplySelector } from './QuickReplySelector'
 
 function ReplyType({ value, onChange }) {
   const handleChangeReplyType = (e) => onChange(e.target.value)
@@ -51,7 +52,8 @@ export function CSReplyEditor({ ticketId, onReply, onOperate }) {
   const [content, setContent] = useAutoSave(`ticket:${ticketId}:reply`)
   const [operating, setOperating] = useState(false)
   const [committing, setCommitting] = useState(false)
-  const { uploader, fileIds, isUploading, hasError, clear } = useUploader()
+  const [defaultFileIds, setDefaultFileIds] = useState([])
+  const { uploader, fileIds, isUploading, hasError, clear } = useUploader({ defaultFileIds })
   const commitable = useMemo(() => {
     return content.trim().length > 0 || (fileIds.length > 0 && !isUploading && !hasError)
   }, [content, fileIds, isUploading, hasError])
@@ -106,7 +108,13 @@ export function CSReplyEditor({ ticketId, onReply, onOperate }) {
 
       <div className="d-flex justify-content-between my-2">
         <div>
-          <Button variant="light">Insert quick reply</Button>
+          <QuickReplySelector
+            onChange={({ content, fileIds }) => {
+              setContent(content)
+              clear()
+              setDefaultFileIds(fileIds)
+            }}
+          />
         </div>
 
         <div>
