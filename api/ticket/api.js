@@ -529,7 +529,7 @@ router.patch(
 
     if (group_id || group_id === '') {
       if (!isCS) {
-        return res.throw(403, 'Forbidden')
+        res.throw(403, 'Forbidden')
       }
       if (group_id !== '') {
         if (
@@ -537,7 +537,7 @@ router.patch(
             user: req.user,
           }))
         ) {
-          return res.throw(400, `Group(${group_id}) not exists`)
+          res.throw(400, `Group(${group_id}) not exists`)
         }
       }
       ticket.group_id = group_id
@@ -545,15 +545,15 @@ router.patch(
 
     if (assignee_id || assignee_id === '') {
       if (!isCS) {
-        return res.throw(403, 'Forbidden')
+        res.throw(403, 'Forbidden')
       }
       const vacationerIds = await getVacationerIds()
       if (vacationerIds.includes(assignee_id)) {
-        return res.throw(400, 'Sorry, this customer service is in vacation.')
+        res.throw(400, 'Sorry, this customer service is in vacation.')
       }
       if (assignee_id !== '') {
         if (!(await isObjectExists('_User', assignee_id))) {
-          return res.throw(400, `Assignee(${assignee_id}) not exists`)
+          res.throw(400, `Assignee(${assignee_id}) not exists`)
         }
       }
       ticket.assignee_id = assignee_id
@@ -561,45 +561,45 @@ router.patch(
 
     if (category_id) {
       if (!isCS) {
-        return res.throw(403, 'Forbidden')
+        res.throw(403, 'Forbidden')
       }
       ticket.category_id = category_id
     }
 
     if (organization_id !== undefined) {
       if (!(await isObjectExists('Organization', organization_id))) {
-        return res.throw(400, `Organization(${organization_id}) is not exists`)
+        res.throw(400, `Organization(${organization_id}) is not exists`)
       }
       ticket.organization_id = organization_id
     }
 
     if (tags) {
       if (!isCS) {
-        return res.throw(403, 'Forbidden')
+        res.throw(403, 'Forbidden')
       }
       ticket.tags = tags.map((tag) => ({ key: tag.key, value: tag.value }))
     }
 
     if (private_tags) {
       if (!isCS) {
-        return res.throw(403, 'Forbidden')
+        res.throw(403, 'Forbidden')
       }
       ticket.private_tags = private_tags.map((tag) => ({ key: tag.key, value: tag.value }))
     }
 
     if (evaluation) {
       if (req.user.id !== ticket.author_id) {
-        return res.throw(403, 'Only ticket author can submit evaluation')
+        res.throw(403, 'Only ticket author can submit evaluation')
       }
       if (!config.allowMutateEvaluation && ticket.evaluation) {
-        return res.throw(409, 'Evaluation already exists')
+        res.throw(409, 'Evaluation already exists')
       }
       ticket.evaluation = { star: evaluation.star, content: evaluation.content }
     }
 
     if (subscribed !== undefined) {
       if (!isCS) {
-        return res.throw(403, 'Forbidden')
+        res.throw(403, 'Forbidden')
       }
       const watch = await getWatchObject(req.user, ticket.pointer)
       if (subscribed && !watch) {
