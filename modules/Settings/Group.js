@@ -1,122 +1,127 @@
-import React, { useState, useCallback, useContext, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Link, useHistory, useParams } from 'react-router-dom';
-import { Breadcrumb, Button, Form } from 'react-bootstrap';
-import { useObject, db, auth } from '../../lib/leancloud';
-import { AppContext } from '../context';
-import { UserLabel } from '../UserLabel';
-import { useCustomerServices } from '../CustomerService/useCustomerServices';
-import { useSet } from 'react-use';
-import _ from 'lodash';
+import React, { useState, useCallback, useContext, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Link, useHistory, useParams } from 'react-router-dom'
+import { Breadcrumb, Button, Form } from 'react-bootstrap'
+import { useObject, db, auth } from '../../lib/leancloud'
+import { AppContext } from '../context'
+import { UserLabel } from '../UserLabel'
+import { useCustomerServices } from '../CustomerService/useCustomerServices'
+import { useSet } from 'react-use'
+import _ from 'lodash'
+import { useQueryClient } from 'react-query'
+import { GROUPS_QUERY_KEY } from '../components/Group'
 
 export function Group() {
-  const { t } = useTranslation();
-  const history = useHistory();
+  const { t } = useTranslation()
+  const history = useHistory()
 
-  const { id } = useParams();
-  const editMode = id !== '_new';
-  const [editing, setEditing] = useState(!editMode);
-  const [group, { loading, error, reload }] = useObject(['Group', id], { condition: editMode });
-  const { addNotification } = useContext(AppContext);
+  const { id } = useParams()
+  const editMode = id !== '_new'
+  const [editing, setEditing] = useState(!editMode)
+  const [group, { loading, error, reload }] = useObject(['Group', id], { condition: editMode })
+  const { addNotification } = useContext(AppContext)
 
-  const customerServices = useCustomerServices();
-  const [members, setMembers] = useState([]);
+  const customerServices = useCustomerServices()
+  const [members, setMembers] = useState([])
 
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [fetchingMembers, setFetchingMembers] = useState(false);
-  const [selectedMembers, selectedMemberActions] = useSet();
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const [fetchingMembers, setFetchingMembers] = useState(false)
+  const [selectedMembers, selectedMemberActions] = useSet()
 
   useEffect(() => {
-    if (!group)
-      return;
-    setName(group.data.name);
-    setDescription(group.data.description);
-    setMembers([]);
-    selectedMemberActions.reset();
-    setFetchingMembers(true);
+    if (!group) return
+    setName(group.data.name)
+    setDescription(group.data.description)
+    setMembers([])
+    selectedMemberActions.reset()
+    setFetchingMembers(true)
     auth
       .role(group.data.role.id)
       .getUsers()
       .then((users) => {
-        const ids = users.map((user) => user.id);
-        setMembers(ids);
-        ids.forEach(selectedMemberActions.add);
-        return;
+        const ids = users.map((user) => user.id)
+        setMembers(ids)
+        ids.forEach(selectedMemberActions.add)
+        return
       })
       .catch(addNotification)
-      .finally(() => setFetchingMembers(false));
-  }, [addNotification, group]);
+      .finally(() => setFetchingMembers(false))
+  }, [addNotification, group])
 
   const save = useCallback(() => {
     if (editMode) {
-      const updates = [];
+      const updates = []
       if ((group && name !== group.data.name) || description !== group.data.description) {
         updates.push(
           group.update({
             name,
             description,
           })
-        );
+        )
       }
-      const toRemove = _.difference(members, Array.from(selectedMembers));
-      const toAdd = _.difference(Array.from(selectedMembers), members);
+      const toRemove = _.difference(members, Array.from(selectedMembers))
+      const toAdd = _.difference(Array.from(selectedMembers), members)
       if (toRemove.length) {
-        updates.push(auth.role(group.data.role.id).remove(toRemove.map((id) => auth.user(id))));
+        updates.push(auth.role(group.data.role.id).remove(toRemove.map((id) => auth.user(id))))
       }
       if (toAdd.length) {
-        updates.push(auth.role(group.data.role.id).add(toAdd.map((id) => auth.user(id))));
+        updates.push(auth.role(group.data.role.id).add(toAdd.map((id) => auth.user(id))))
       }
       Promise.all(updates)
         .then(() => {
-          reload();
-          setEditing(false);
-          return;
+          reload()
+          setEditing(false)
+          return
         })
-        .catch(addNotification);
+        .catch(addNotification)
     }
-  }, [editMode, group, name, description, members, selectedMembers, addNotification, reload]);
+  }, [editMode, group, name, description, members, selectedMembers, addNotification, reload])
 
+  const queryClient = useQueryClient()
   const create = useCallback(async () => {
     try {
       const newGroup = await db.class('Group').add({
         name,
         description,
-      });
+      })
       const role = await auth.addRole({
         name: `group_${newGroup.id}`,
         ACL: db.ACL().allow('role:customerService', 'read', 'write'),
-        users: Array.from(selectedMembers).map((id) => auth.user(id)),
-      });
-      await newGroup.update({ role });
-      history.push('/settings/groups');
+        users: selectedMembers.size
+          ? Array.from(selectedMembers).map((id) => auth.user(id))
+          : undefined,
+      })
+      await newGroup.update({ role })
+      queryClient.invalidateQueries(GROUPS_QUERY_KEY)
+      history.push('/settings/groups')
     } catch (error) {
-      addNotification(error);
+      addNotification(error)
     }
-  }, [addNotification, description, history, name, selectedMembers]);
+  }, [addNotification, description, history, name, queryClient, selectedMembers])
 
   const deleteGroup = useCallback(
     (targetGroup) => {
-      const result = confirm(`Delete group ${targetGroup.data.name}`);
+      const result = confirm(`Delete group ${targetGroup.data.name}`)
       if (!result) {
-        return;
+        return
       }
 
       Promise.all([targetGroup.delete(), targetGroup.data.role.delete()])
         .then(() => history.push('/settings/groups'))
-        .catch(addNotification);
+        .catch(addNotification)
     },
     [addNotification, history]
-  );
+  )
 
   if (error) {
-    addNotification(error);
+    addNotification(error)
   }
   if (loading) {
-    return 'Loading...';
+    return 'Loading...'
   }
   if (customerServices.length === 0) {
-    return 'Loading customer services...';
+    return 'Loading customer services...'
   }
 
   const form = (
@@ -138,15 +143,16 @@ export function Group() {
                 id={cs.objectId}
                 checked={selectedMembers.has(cs.objectId)}
                 onChange={() => {
-                  selectedMemberActions.toggle(cs.objectId);
+                  selectedMemberActions.toggle(cs.objectId)
                 }}
-                label={<UserLabel user={cs} displayId />} />
+                label={<UserLabel user={cs} displayId />}
+              />
             </div>
-          );
+          )
         })}
       </Form.Group>
     </>
-  );
+  )
 
   if (group) {
     return (
@@ -172,12 +178,13 @@ export function Group() {
               {fetchingMembers
                 ? 'Loading...'
                 : members.map((member) => (
-                  <li key={member}>
-                    <UserLabel
-                      user={customerServices.find(({ objectId }) => objectId === member)}
-                      displayId />
-                  </li>
-                ))}
+                    <li key={member}>
+                      <UserLabel
+                        user={customerServices.find(({ objectId }) => objectId === member)}
+                        displayId
+                      />
+                    </li>
+                  ))}
             </ul>
           </>
         )}
@@ -203,7 +210,7 @@ export function Group() {
           )}
         </p>
       </>
-    );
+    )
   }
   if (!editMode) {
     return (
@@ -216,7 +223,7 @@ export function Group() {
           </Button>
         </p>
       </>
-    );
+    )
   }
-  return null;
+  return null
 }
