@@ -11,7 +11,6 @@ class Trigger {
     this.rawActions = actions
     this.conditions = Trigger.parseConditions(conditions)
     this.actions = Trigger.parseActions(actions)
-    this.fired = false
   }
 
   static parseConditions(conditions) {
@@ -26,9 +25,8 @@ class Trigger {
     return this.conditions.test(ctx)
   }
 
-  async exec(ctx) {
-    await this.actions.exec(ctx)
-    this.fired = true
+  exec(ctx) {
+    return this.actions.exec(ctx)
   }
 }
 
@@ -72,17 +70,20 @@ class Triggers {
 
   async exec(ctx) {
     const triggers = [...this.triggers]
+    let fired = false
     loop: for (;;) {
       for (let i = 0; i < triggers.length; ++i) {
         const trigger = triggers[i]
         if (await trigger.test(ctx)) {
           await trigger.exec(ctx)
           triggers.splice(i, 1)
+          fired = true
           continue loop
         }
       }
       break
     }
+    return fired
   }
 }
 

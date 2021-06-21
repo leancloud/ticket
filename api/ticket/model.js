@@ -625,24 +625,23 @@ class Ticket {
     this._customerServicesToJoin = undefined
     this._operatorId = undefined
 
-    const statusUpdated = this.isUpdated('status')
-    this._updatedKeys.clear()
-
     if (!options?.skipTriggers) {
       // Triggers do not run or fire on tickets after they are closed.
       // However, triggers can fire when a ticket is being set to closed.
-      if (ticketStatus.isOpened(this.status) || statusUpdated) {
+      if (ticketStatus.isOpened(this.status) || this.isUpdated('status')) {
         const triggers = await Triggers.get()
-        triggers.exec({
+        const fired = await triggers.exec({
           ticket: this,
           update_type: 'update',
           operator_id: operator.id,
         })
-        if (this.isUpdated()) {
-          this.save({ skipTriggers: true })
+        if (fired) {
+          await this.save({ skipTriggers: true })
         }
       }
     }
+
+    this._updatedKeys.clear()
   }
 
   /**
@@ -708,15 +707,18 @@ class Ticket {
         this.status = TICKET_STATUS.WAITING_CUSTOMER_SERVICE
       }
 
-      this.save().catch(captureException)
+      this.save({ operator: data.author }).catch(captureException)
 
       Promise.all([this.getAuthorInfo(), this.getAssigneeInfo()])
         .then(([authorInfo, assigneeInfo]) => {
           // 适配 notification 使用的数据结构
           const author = AV.Object.createWithoutData('_User', this.author_id)
           author.attributes = authorInfo
-          const assignee = AV.Object.createWithoutData('_User', this.assignee_id)
-          assignee.attributes = assigneeInfo
+          let assignee = undefined
+          if (this.assignee_id) {
+            assignee = AV.Object.createWithoutData('_User', this.assignee_id)
+            assignee.attributes = assigneeInfo
+          }
           const ticket = AV.Object.createWithoutData('Ticket', this.id)
           ticket.attributes = { author, assignee, nid: this.nid, title: this.title }
           return notification.replyTicket(ticket, reply, data.author)
