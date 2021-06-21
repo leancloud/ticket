@@ -271,7 +271,7 @@ class Ticket {
   }
 
   get assignee_id() {
-    return this._assigneeId
+    return this._assigneeId || ''
   }
   set assignee_id(v) {
     if (v === 'system') {
