@@ -1,17 +1,9 @@
 const _ = require('lodash')
 const { Router } = require('express')
-const AV = require('leanengine')
 const cors = require('cors')
 
 const config = require('../config')
 const { parseSearchingQ } = require('./middleware')
-
-AV.init({
-  appId: process.env.LEANCLOUD_APP_ID,
-  appKey: process.env.LEANCLOUD_APP_KEY,
-  masterKey: process.env.LEANCLOUD_APP_MASTER_KEY,
-})
-AV.setProduction(process.env.NODE_ENV === 'production')
 
 // 加载云函数定义
 require('./cloud')

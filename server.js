@@ -5,6 +5,13 @@ const compression = require('compression')
 const Raven = require('raven')
 const AV = require('leanengine')
 
+AV.init({
+  appId: process.env.LEANCLOUD_APP_ID,
+  appKey: process.env.LEANCLOUD_APP_KEY,
+  masterKey: process.env.LEANCLOUD_APP_MASTER_KEY,
+})
+AV.setProduction(process.env.NODE_ENV === 'production')
+
 const config = require('./config')
 const { clientGlobalVars } = require('./clientGlobalVar')
 const { refreshWebhooks } = require('./api/webhook')

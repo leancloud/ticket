@@ -1,4 +1,6 @@
-const { setClientGlobalVars } = require('./clientGlobalVar')
+const AV = require('leancloud-storage')
+
+const { setClientGlobalVar, setClientGlobalVars } = require('./clientGlobalVar')
 
 let host
 switch (process.env.LEANCLOUD_APP_ENV) {
@@ -25,6 +27,18 @@ function getCORSOrigin() {
     }
   })
   return origins.length > 1 ? origins : origins[0]
+}
+
+/**
+ *
+ * @param {string} key
+ * @returns {Promise<string | null>}
+ */
+async function getConfigValue(key) {
+  const query = new AV.Query('Config')
+  query.equalTo('key', key)
+  const obj = await query.first({ useMasterKey: true })
+  return obj?.get('value') ?? null
 }
 
 const allowMutateEvaluation = !!process.env.ALLOW_MUTATE_EVALUATION
@@ -95,3 +109,7 @@ setClientGlobalVars({
   SUPPORT_EMAIL: process.env.HELP_EMAIL,
   ALLOW_MUTATE_EVALUATION: allowMutateEvaluation,
 })
+
+getConfigValue('gravatar_url')
+  .then((url) => url && setClientGlobalVar('GRAVATAR_URL', url))
+  .catch(console.error)
