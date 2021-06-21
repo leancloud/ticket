@@ -4,4 +4,5 @@ module.exports = {
   assignee_id: require('./assignee_id'),
   title: require('./title'),
   content: require('./content'),
+  latest_reply: require('./latest_reply'),
 }

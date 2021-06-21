@@ -242,7 +242,11 @@ class Ticket {
     }
 
     const triggers = await Triggers.get()
-    triggers.exec({ ticket, update_type: 'create' })
+    triggers.exec({
+      ticket,
+      update_type: 'create',
+      operator_id: data.author.id,
+    })
     if (ticket.isUpdated()) {
       ticket.save()
     }
@@ -270,6 +274,9 @@ class Ticket {
     return this._assigneeId
   }
   set assignee_id(v) {
+    if (v === 'system') {
+      return
+    }
     this._assigneeId = v
     this._assigneeInfo = undefined
     this._updatedKeys.add('assignee_id')
@@ -626,7 +633,11 @@ class Ticket {
       // However, triggers can fire when a ticket is being set to closed.
       if (ticketStatus.isOpened(this.status) || statusUpdated) {
         const triggers = await Triggers.get()
-        triggers.exec({ ticket: this, update_type: 'update' })
+        triggers.exec({
+          ticket: this,
+          update_type: 'update',
+          operator_id: operator.id,
+        })
         if (this.isUpdated()) {
           this.save({ skipTriggers: true })
         }
