@@ -26,8 +26,8 @@ class Trigger {
     return this.conditions.test(ctx)
   }
 
-  exec(ctx) {
-    this.actions.exec(ctx)
+  async exec(ctx) {
+    await this.actions.exec(ctx)
     this.fired = true
   }
 }
@@ -70,13 +70,13 @@ class Triggers {
     )
   }
 
-  exec(ctx) {
+  async exec(ctx) {
     const triggers = [...this.triggers]
     loop: for (;;) {
       for (let i = 0; i < triggers.length; ++i) {
         const trigger = triggers[i]
-        if (trigger.test(ctx)) {
-          trigger.exec(ctx)
+        if (await trigger.test(ctx)) {
+          await trigger.exec(ctx)
           triggers.splice(i, 1)
           continue loop
         }

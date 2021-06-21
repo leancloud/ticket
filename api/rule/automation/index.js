@@ -26,7 +26,7 @@ class Automation {
   }
 
   exec(ctx) {
-    this.actions.exec(ctx)
+    return this.actions.exec(ctx)
   }
 }
 
@@ -60,12 +60,12 @@ class Automations {
     return new Automations(objects.map((o) => o.toJSON()))
   }
 
-  exec(ctx) {
-    this.automations.forEach((automation) => {
-      if (automation.test(ctx)) {
-        automation.exec(ctx)
+  async exec(ctx) {
+    for (const automation of this.automations) {
+      if (await automation.test(ctx)) {
+        await automation.exec(ctx)
       }
-    })
+    }
   }
 }
 
