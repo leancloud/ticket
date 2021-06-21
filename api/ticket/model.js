@@ -242,13 +242,13 @@ class Ticket {
     }
 
     const triggers = await Triggers.get()
-    triggers.exec({
+    const fired = await triggers.exec({
       ticket,
       update_type: 'create',
       operator_id: data.author.id,
     })
-    if (ticket.isUpdated()) {
-      ticket.save()
+    if (fired) {
+      await ticket.save()
     }
 
     notification.newTicket(obj, data.author, assignee)
