@@ -22,14 +22,14 @@ function basicMessage(text, ticketContent) {
   }
 }
 
-function newTicketMessage({ author, assignee, title, nid, url, content }) {
+function newTicketMessage({ author, assignee = '<未分配>', title, nid, url, content }) {
   return basicMessage(
     `:envelope: ${author} 提交工单 <${url}|#${nid}> 给 ${assignee}`,
     `${title}\n\n${content}`
   )
 }
 
-function changeAssigneeMessage({ from, to, title, nid, url, latestReply = '<还没有回复>' }) {
+function changeAssigneeMessage({ from, to = '<未分配>', title, nid, url, latestReply = '<还没有回复>' }) {
   return basicMessage(
     `:arrows_counterclockwise: ${from} 转移工单 <${url}|#${nid}> 给 ${to}`,
     `${title}\n\n${latestReply}`
@@ -123,13 +123,13 @@ class SlackIntegration {
   async notifyNewTicket(ticket, from, to) {
     const message = newTicketMessage({
       author: from.get('username'),
-      assignee: to.get('username'),
+      assignee: to?.get('username'),
       title: ticket.get('title'),
       content: ticket.get('content'),
       nid: ticket.get('nid'),
       url: getTicketUrl(ticket),
     })
-    if (to.has('email')) {
+    if (to?.has('email')) {
       this.send(to.get('email'), message)
     }
     this.broadcast(message)
@@ -138,13 +138,13 @@ class SlackIntegration {
   async notifyChangeAssignee(ticket, from, to) {
     const message = changeAssigneeMessage({
       from: from.get('username'),
-      to: to.get('username'),
+      to: to?.get('username'),
       title: ticket.get('title'),
       nid: ticket.get('nid'),
       url: getTicketUrl(ticket),
       latestReply: ticket.get('latestReply')?.content,
     })
-    if (to.has('email')) {
+    if (to?.has('email')) {
       this.send(to.get('email'), message)
     }
     this.broadcast(message)
@@ -161,7 +161,7 @@ class SlackIntegration {
       title: ticket.get('title'),
       reply: reply.get('content'),
     })
-    if (to.has('email')) {
+    if (to?.has('email')) {
       this.send(to.get('email'), message)
     }
     this.broadcast(message)
@@ -175,7 +175,7 @@ class SlackIntegration {
       title: ticket.get('title'),
       latestReply: ticket.get('latestReply')?.content,
     })
-    if (to.has('email')) {
+    if (to?.has('email')) {
       this.send(to.get('email'), message)
     }
     this.broadcast(message)
@@ -191,7 +191,7 @@ class SlackIntegration {
       nid: ticket.get('nid'),
       url: getTicketUrl(ticket),
     })
-    if (to.has('email')) {
+    if (to?.has('email')) {
       this.send(to.get('email'), message)
     }
     this.broadcast(message)

@@ -188,9 +188,11 @@ function TicketList({ tickets, categories, checkedTicketIds, onCheckTicket }) {
               )}
             </div>
             <div>
-              <span className={css.assignee}>
-                <UserLabel user={ticket.assignee} />
-              </span>
+              {ticket.assignee && (
+                <span className={css.assignee}>
+                  <UserLabel user={ticket.assignee} />
+                </span>
+              )}
               <span className={css.contributors}>
                 {contributors.map((user) => (
                   <span key={user.objectId}>
@@ -282,11 +284,12 @@ const FILTERS_PRESETS = [
     ),
   },
   {
-    filters: { groupId: 'unset', assignee: 'unset' },
+    filters: { stage: 'todo', groupId: 'unset', assignee: 'unset' },
     content: <Trans i18nKey="To be triaged" />,
     hint: (
       <>
-        <Trans i18nKey="group" /> <Trans i18nKey="unset" /> & <Trans i18nKey="unassigned" />
+        <Trans i18nKey="todo" /> & <Trans i18nKey="unassigned" /> & <Trans i18nKey="group" />{' '}
+        <Trans i18nKey="unset" />
       </>
     ),
   },
@@ -400,11 +403,15 @@ function TicketMenu({ customerServices, categories }) {
 
   let assigneeTitle
   if (assignee) {
-    const customerService = customerServices.find((cs) => cs.objectId === assigneeId)
-    if (customerService) {
-      assigneeTitle = getUserDisplayName(customerService)
+    if (groupId === 'unset') {
+      assigneeTitle = `<${t('unassigned')}>`
     } else {
-      assigneeTitle = `assignee ${t('invalid')}`
+      const customerService = customerServices.find((cs) => cs.objectId === assigneeId)
+      if (customerService) {
+        assigneeTitle = getUserDisplayName(customerService)
+      } else {
+        assigneeTitle = `assignee ${t('invalid')}`
+      }
     }
   } else {
     assigneeTitle = t('all')
@@ -520,10 +527,13 @@ function TicketMenu({ customerServices, categories }) {
             active={!!assigneeId}
             title={assigneeTitle}
             onSelect={(assignee) => updatePath({ assignee })}
-            items={customerServices.map((user) => ({
-              key: user.objectId,
-              title: getUserDisplayName(user),
-            }))}
+            items={[
+              { key: 'unset', title: `<${t('unassigned')}>` },
+              ...customerServices.map((user) => ({
+                key: user.objectId,
+                title: getUserDisplayName(user),
+              })),
+            ]}
           />
         </ButtonGroup>
 
@@ -701,8 +711,12 @@ async function getQuery(filters) {
     }
   }
   if (assignee) {
-    const assigneeId = assignee === 'me' ? auth.currentUser?.id : assignee
-    query = query.where('assignee', '==', db.class('_User').object(assigneeId))
+    if (assignee === 'unset') {
+      query = query.where('assignee', 'not-exists')
+    } else {
+      const assigneeId = assignee === 'me' ? auth.currentUser?.id : assignee
+      query = query.where('assignee', '==', db.class('_User').object(assigneeId))
+    }
   }
 
   if (authorId) {

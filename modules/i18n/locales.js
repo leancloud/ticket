@@ -51,9 +51,17 @@ const messages = {
     'Assigned',
     '我是否负责'
   ],
+  'unassigned': [
+    'Unassigned',
+    '未分配'
+  ],
   'assignee': [
     'Assignee',
     '负责人'
+  ],
+  'assignYourself': [
+    'Assign yourself',
+    '分配给我'
   ],
   'assignedToMe': [
     'Assigned to me',

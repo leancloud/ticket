@@ -23,7 +23,7 @@ const KEY_MAP = {
   latest_reply: 'latestReply',
 }
 
-const ATTRIBUTES = ['nid', 'title', 'category', 'author', 'assignee', 'content', 'status']
+const ATTRIBUTES = ['nid', 'title', 'category', 'author', 'content', 'status']
 
 class Ticket {
   /**
@@ -111,8 +111,8 @@ class Ticket {
      * @type {string}
      */
 
-    this._assigneeId = object.get('assignee').id
-    if (object.get('assignee').has('username')) {
+    this._assigneeId = object.get('assignee')?.id
+    if (object.get('assignee')?.has('username')) {
       /**
        * @private
        */
@@ -203,7 +203,9 @@ class Ticket {
     obj.set('title', data.title)
     obj.set('category', await getTinyCategoryInfo(data.category_id))
     obj.set('author', AV.Object.createWithoutData('_User', data.author.id))
-    obj.set('assignee', AV.Object.createWithoutData('_User', assignee.id))
+    if (assignee) {
+      obj.set('assignee', AV.Object.createWithoutData('_User', assignee.id))
+    }
     obj.set('content', data.content)
     obj.set('content_HTML', htmlify(data.content))
     if (data.file_ids?.length) {
@@ -234,8 +236,10 @@ class Ticket {
 
     const ticket = new Ticket(obj)
 
-    ticket.pushOpsLog('selectAssignee', { assignee: makeTinyUserInfo(assignee) })
-    ticket.saveOpsLogs().catch(captureException)
+    if (assignee) {
+      ticket.pushOpsLog('selectAssignee', { assignee: makeTinyUserInfo(assignee) })
+      ticket.saveOpsLogs().catch(captureException)
+    }
 
     const triggers = await Triggers.get()
     triggers.exec({ ticket, update_type: 'create' })
@@ -370,6 +374,9 @@ class Ticket {
   }
 
   async getAssigneeInfo() {
+    if (!this.assignee_id) {
+      return null
+    }
     if (!this._assigneeInfo) {
       this._assigneeInfo = await getTinyUserInfo(this.assignee_id)
     }
@@ -440,7 +447,11 @@ class Ticket {
     }
 
     if (this.isUpdated('assignee_id')) {
-      object.set('assignee', AV.Object.createWithoutData('_User', this.assignee_id))
+      if (this.assignee_id === '') {
+        object.unset('assignee')
+      } else {
+        object.set('assignee', AV.Object.createWithoutData('_User', this.assignee_id))
+      }
     }
 
     if (this.isUpdated('organization_id')) {
@@ -551,9 +562,13 @@ class Ticket {
           content: this.content,
           latestReply: this.latest_reply,
         }
-        const assignee = AV.Object.createWithoutData('_User', this.assignee_id)
-        assignee.attributes = assigneeInfo
-        notification.changeAssignee(ticket, operator, assignee)
+        if (!this.assignee_id) {
+          notification.changeAssignee(ticket, operator, undefined)
+        } else {
+          const assignee = AV.Object.createWithoutData('_User', this.assignee_id)
+          assignee.attributes = assigneeInfo
+          notification.changeAssignee(ticket, operator, assignee)
+        }
       }
     }
 

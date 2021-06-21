@@ -70,6 +70,7 @@ module.exports = (configs) => {
     },
     notificationChannel: {
       newTicket: async (ticket, from, to) => {
+        if (!to) return
         const content = `:envelope: ${from.get('username')} 提交 [工单 #${ticket.get(
           'nid'
         )}](${getTicketUrl(ticket)}) 给 ${to.get('username')}
@@ -82,6 +83,7 @@ ${ticket.get('content')}
         await broadcast(content)
       },
       replyTicket: async ({ ticket, reply, from, to, isCustomerServiceReply }) => {
+        if (!to) return
         if (isCustomerServiceReply) {
           return
         }
@@ -98,6 +100,7 @@ ${reply.get('content')}
         await broadcast(content)
       },
       changeAssignee: async (ticket, from, to) => {
+        if (!to) return
         const content = `:arrows_counterclockwise: ${from.get('username')} 转移 [工单 #${ticket.get(
           'nid'
         )}](${getTicketUrl(ticket)}) 给 ${to.get('username')}
@@ -122,6 +125,7 @@ ${(ticket.get('latestReply') && ticket.get('latestReply').content) || '<还没�
         await broadcast(content)
       },
       ticketEvaluation: async (ticket, from, to) => {
+        if (!to) return
         const { star, content: evaluationContent } = ticket.get('evaluation')
         const content = `${star == 1 ? ':thumbs_up:' : ':thumbs_down:'} ${from.get(
           'username'

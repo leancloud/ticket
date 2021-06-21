@@ -98,3 +98,7 @@
 .markdownTip a:hover {
   color: #3090e4;
 }
+
+.metaAlert {
+  font-size: 90%;
+}

@@ -261,8 +261,7 @@ router.get(
           author_id: ticket.get('author').id,
           author: encodeUserObject(ticket.get('author')),
           organization_id: ticket.get('organization')?.id || '',
-          assignee_id: ticket.get('assignee').id,
-          assignee: encodeUserObject(ticket.get('assignee')),
+          assignee_id: ticket.get('assignee')?.id,
           category_id: categoryId,
           category_path: getCategoryPath(categoryById, categoryId),
           content: ticket.get('content'),
@@ -320,8 +319,7 @@ router.get(
       author_id: ticket.get('author').id,
       author: encodeUserObject(ticket.get('author')),
       organization_id: ticket.get('organization')?.id || '',
-      assignee_id: ticket.get('assignee').id,
-      assignee: encodeUserObject(ticket.get('assignee')),
+      assignee_id: ticket.get('assignee')?.id,
       group: encodeGroupObject(ticket.get('group')),
       category_id: ticket.get('category').objectId,
       category_path: getCategoryPath(categoryById, ticket.get('category').objectId),
@@ -531,17 +529,19 @@ router.patch(
       if (!isCS) {
         res.throw(403, 'Forbidden')
       }
-      if (group_id === '') {
-        ticket.group_id = ''
-      } else {
-        await new AV.Query('Group').get(group_id, {
-          user: req.user,
-        })
-        ticket.group_id = group_id
+      if (group_id !== '') {
+        if (
+          !(await isObjectExists('Group', group_id, {
+            user: req.user,
+          }))
+        ) {
+          res.throw(400, `Group(${group_id}) not exists`)
+        }
       }
+      ticket.group_id = group_id
     }
 
-    if (assignee_id) {
+    if (assignee_id || assignee_id === '') {
       if (!isCS) {
         res.throw(403, 'Forbidden')
       }
@@ -549,8 +549,10 @@ router.patch(
       if (vacationerIds.includes(assignee_id)) {
         res.throw(400, 'Sorry, this customer service is in vacation.')
       }
-      if (!(await isObjectExists('_User', assignee_id))) {
-        res.throw(400, `Assignee(${assignee_id}) not exists`)
+      if (assignee_id !== '') {
+        if (!(await isObjectExists('_User', assignee_id))) {
+          res.throw(400, `Assignee(${assignee_id}) not exists`)
+        }
       }
       ticket.assignee_id = assignee_id
     }

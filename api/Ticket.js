@@ -37,7 +37,7 @@ AV.Cloud.beforeSave('Ticket', async (req) => {
 
   try {
     const assignee = await selectAssignee(ticket.get('category').objectId)
-    ticket.set('assignee', assignee)
+    if (assignee) ticket.set('assignee', assignee)
   } catch (err) {
     errorHandler.captureException(err)
     throw new AV.Cloud.Error('Internal Error', { status: 500 })
@@ -46,14 +46,16 @@ AV.Cloud.beforeSave('Ticket', async (req) => {
 
 AV.Cloud.afterSave('Ticket', async (req) => {
   const ticket = req.object
-  const assigneeInfo = await getTinyUserInfo(ticket.get('assignee'))
-  new AV.Object('OpsLog', {
-    ticket,
-    action: 'selectAssignee',
-    data: { assignee: assigneeInfo },
-  })
-    .save(null, { useMasterKey: true })
-    .catch(errorHandler.captureException)
+  if (ticket.updatedKeys.includes('assignee')) {
+    const assigneeInfo = await getTinyUserInfo(ticket.get('assignee'))
+    new AV.Object('OpsLog', {
+      ticket,
+      action: 'selectAssignee',
+      data: { assignee: assigneeInfo },
+    })
+      .save(null, { useMasterKey: true })
+      .catch(errorHandler.captureException)
+  }
   notification.newTicket(ticket, req.currentUser, ticket.get('assignee'))
   invokeWebhooks('ticket.create', { ticket: ticket.toJSON() })
 })
@@ -61,9 +63,11 @@ AV.Cloud.afterSave('Ticket', async (req) => {
 AV.Cloud.beforeUpdate('Ticket', async (req) => {
   const ticket = req.object
   if (ticket.updatedKeys.includes('assignee')) {
-    const vacationerIds = await getVacationerIds()
-    if (vacationerIds.includes(ticket.get('assignee').id)) {
-      throw new AV.Cloud.Error('Sorry, this customer service is in vacation.')
+    if (ticket.get('assignee')) {
+      const vacationerIds = await getVacationerIds()
+      if (vacationerIds.includes(ticket.get('assignee').id)) {
+        throw new AV.Cloud.Error('Sorry, this customer service is in vacation.')
+      }
     }
   }
 })

@@ -18,6 +18,9 @@ exports.newTicket = (ticket, author, assignee) => {
       Promise.resolve(channel.newTicket?.(ticket, author, assignee)).catch(captureException)
     )
   ).then(() => {
+    if (!assignee) {
+      return
+    }
     return new AV.Object('Message').save({
       type: 'newTicket',
       ticket,
@@ -44,6 +47,9 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
     channels.map((channel) => Promise.resolve(channel.replyTicket?.(data)).catch(captureException))
   )
     .then(() => {
+      if (!to) {
+        return
+      }
       return new AV.Object('Message', {
         type: 'reply',
         ticket,
@@ -89,6 +95,9 @@ exports.changeAssignee = (ticket, operator, assignee) => {
       Promise.resolve(channel.changeAssignee?.(ticket, operator, assignee)).catch(captureException)
     )
   ).then(() => {
+    if (!assignee) {
+      return
+    }
     return new AV.Object('Message', {
       type: 'changeAssignee',
       ticket,
@@ -108,7 +117,10 @@ exports.ticketEvaluation = (ticket, author, to) => {
       Promise.resolve(channel.ticketEvaluation?.(ticket, author, to)).catch(captureException)
     )
   ).then(() => {
-    return new AV.Object('Message', {
+    if (!to) {
+      return
+    }
+  return new AV.Object('Message', {
       type: 'ticketEvaluation',
       ticket,
       from: author,
@@ -155,6 +167,7 @@ const delayNotify = () => {
             .then((opsLogs) => {
               const opsLog = opsLogs[0]
               const assignee = ticket.get('assignee')
+              if (!assignee) return
               if (opsLog.get('action') !== 'replySoon') {
                 // the ticket which is being progressed do not need notify
                 return sendDelayNotify(ticket, assignee)

@@ -83,8 +83,8 @@ function ChangeGroup({ id, operator_id, group_id, created_at }) {
       </div>
       <div className="ticket-status-right">
         <AsyncUserLabel userId={operator_id} /> {t('changedTicketGroupTo')}{' '}
-        <GroupLabel groupId={group_id}/>{' '}
-        (<Time value={created_at} href={'#' + id} />) <InternalBadge />
+        {group_id ? <GroupLabel groupId={group_id} /> : '<unset>'} (
+        <Time value={created_at} href={'#' + id} />) <InternalBadge />
       </div>
     </div>
   )
@@ -107,7 +107,8 @@ function ChangeAssignee({ id, operator_id, assignee_id, created_at }) {
       </div>
       <div className="ticket-status-right">
         <AsyncUserLabel userId={operator_id} /> {t('changedTicketAssigneeTo')}{' '}
-        <AsyncUserLabel userId={assignee_id} /> (<Time value={created_at} href={'#' + id} />)
+        {assignee_id ? <AsyncUserLabel userId={assignee_id} /> : '<unset>'} (
+        <Time value={created_at} href={'#' + id} />)
       </div>
     </div>
   )
@@ -115,7 +116,7 @@ function ChangeAssignee({ id, operator_id, assignee_id, created_at }) {
 ChangeAssignee.propTypes = {
   id: PropTypes.string.isRequired,
   operator_id: PropTypes.string.isRequired,
-  assignee_id: PropTypes.string.isRequired,
+  assignee_id: PropTypes.string,
   created_at: PropTypes.string.isRequired,
 }
 

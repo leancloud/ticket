@@ -36,7 +36,7 @@ async function selectAssignee(categoryId) {
     return categories.findIndex((c) => c.objectId === categoryId) !== -1
   })
 
-  return assignees.length ? _.sample(assignees) : _.sample(users)
+  return _.sample(assignees)
 }
 
 function getActionStatus(action, isCustomerService) {

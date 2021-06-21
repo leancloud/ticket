@@ -94,7 +94,7 @@ module.exports = (configs) => {
   const notificationChannel = {}
 
   notificationChannel.newTicket = (ticket, from, to) => {
-    if (!to.get('wechatEnterpriseUserId')) {
+    if (!to?.get('wechatEnterpriseUserId')) {
       return Promise.resolve()
     }
     return send({
@@ -106,7 +106,7 @@ module.exports = (configs) => {
   }
 
   notificationChannel.replyTicket = ({ ticket, reply, to }) => {
-    if (!to.get('wechatEnterpriseUserId')) {
+    if (!to?.get('wechatEnterpriseUserId')) {
       return Promise.resolve()
     }
     return send({
@@ -118,7 +118,7 @@ module.exports = (configs) => {
   }
 
   notificationChannel.changeAssignee = (ticket, from, to) => {
-    if (!to.get('wechatEnterpriseUserId')) {
+    if (!to?.get('wechatEnterpriseUserId')) {
       return Promise.resolve()
     }
     return send({
@@ -138,7 +138,7 @@ ${ticket.get('latestReply') && ticket.get('latestReply').content}
   }
 
   notificationChannel.delayNotify = (ticket, to) => {
-    if (!to.get('wechatEnterpriseUserId')) {
+    if (!to?.get('wechatEnterpriseUserId')) {
       return Promise.resolve()
     }
     return send({

@@ -7,6 +7,7 @@ function encodeGroupObject(group) {
   return {
     id: group.id,
     name: group.get('name'),
+    role_id: group.get('role').id,
   }
 }
 
