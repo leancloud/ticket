@@ -63,9 +63,11 @@ AV.Cloud.afterSave('Ticket', async (req) => {
 AV.Cloud.beforeUpdate('Ticket', async (req) => {
   const ticket = req.object
   if (ticket.updatedKeys.includes('assignee')) {
-    const vacationerIds = await getVacationerIds()
-    if (vacationerIds.includes(ticket.get('assignee')?.id)) {
-      throw new AV.Cloud.Error('Sorry, this customer service is in vacation.')
+    if (ticket.get('assignee')) {
+      const vacationerIds = await getVacationerIds()
+      if (vacationerIds.includes(ticket.get('assignee').id)) {
+        throw new AV.Cloud.Error('Sorry, this customer service is in vacation.')
+      }
     }
   }
 })
