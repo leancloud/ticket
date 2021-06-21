@@ -402,8 +402,8 @@ function TicketMenu({ customerServices, categories }) {
   }
 
   let assigneeTitle
-  if (assignee) {
-    if (groupId === 'unset') {
+  if (assigneeId) {
+    if (assigneeId === 'unset') {
       assigneeTitle = `<${t('unassigned')}>`
     } else {
       const customerService = customerServices.find((cs) => cs.objectId === assigneeId)
