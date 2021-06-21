@@ -5,4 +5,5 @@ module.exports = {
   title: require('./title'),
   content: require('./content'),
   latest_reply: require('./latest_reply'),
+  current_user: require('./current_user'),
 }

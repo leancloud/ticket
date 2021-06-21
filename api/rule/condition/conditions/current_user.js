@@ -1,4 +1,4 @@
-const { isCustomerService } = require('api/customerService/utils')
+const { isCustomerService } = require('../../../customerService/utils')
 
 function assertValueIsValid(value) {
   if (typeof value !== 'string') {
