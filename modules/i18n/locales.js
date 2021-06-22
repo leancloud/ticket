@@ -1024,7 +1024,7 @@ const messages = {
     'Text',
     '文本'
   ],
-  'ticketField.type.multiLine':[
+  'ticketField.type.multi-line':[
     'Multi-line',
     '多行'
   ],
@@ -1143,6 +1143,14 @@ const messages = {
   'ticketField.deleteHint':[
     'This ticket field may be used in some forms. Deleting a ticket field will remove it from these tables and cannot be restored',
     '此工单字段可能用于某些表格，删除工单字段会将其从这些表格中移除，并且无法恢复。'
+  ],
+  'ticketForm':[
+    '工单模板',
+    '工单模板'
+  ],
+   'ticketForm.add':[
+    '新增模板',
+    '新增模板'
   ],
   
   'pagination.totalPage': [

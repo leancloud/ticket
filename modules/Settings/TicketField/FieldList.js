@@ -1,55 +1,35 @@
-import React, { memo, useCallback, useEffect, useState } from 'react'
+import React, { memo } from 'react'
 import PropTypes from 'prop-types'
 import { useRouteMatch, Link } from 'react-router-dom'
 import { useTranslation, Trans } from 'react-i18next'
+import { useQuery, useMutation } from 'react-query'
 import { Button, Table } from 'react-bootstrap'
 import { DocumentTitle } from '../../utils/DocumentTitle'
 import Pagination, { usePagination } from 'modules/components/Pagination'
 import { NoDataRow } from 'modules/components/NoData'
-import { useDefault, useSmoothReload, createResourceHook } from '@leancloud/use-resource'
 import { useAppContext } from 'modules/context'
 import Confirm from 'modules/components/Confirm'
-import { fetch } from 'lib/leancloud'
+import { http } from 'lib/leancloud'
 import styles from './index.module.scss'
-
-
-const useFieldList = createResourceHook((skip, size) => {
-   const abortController = new AbortController()
-   return {
-     abort: () => abortController.abort(),
-     promise: fetch(
-       `/api/1/ticket-fields?${new URLSearchParams({
-         size,
-         skip,
-       }).toString()}`,
-       {
-         signal: abortController.signal,
-       }
-     ),
-   }
-})
 
 const FieldRow = memo(({ data, onDeleted }) => {
   const { t } = useTranslation()
   const match = useRouteMatch()
   const { addNotification } = useAppContext()
-  const [deleting, setDeleting] = useState(false)
   const { title, type, required, id } = data
-  const _delete = useCallback(async () => {
-    try {
-      await fetch(`/api/1/ticket-fields/${id}`, {
-        method: 'PATCH',
-        body: {
-          active: false,
-        },
+  const { mutateAsync, isLoading } = useMutation({
+    mutationFn: () =>
+      http.patch(`/api/1/ticket-fields/${id}`, {
+        active: false,
+      }),
+    onSuccess: () => {
+      addNotification({
+        message: t('delete.successfully'),
       })
-      setDeleting(false)
       onDeleted()
-    } catch (error) {
-      setDeleting(false)
-      addNotification(error)
-    }
-  }, [id, addNotification, onDeleted])
+    },
+    onError: (err) => addNotification(err),
+  })
   const TitleConfirm = () => <code>{title}</code>
   return (
     <tr>
@@ -57,7 +37,7 @@ const FieldRow = memo(({ data, onDeleted }) => {
       <td>{t(`ticketField.type.${type}`)}</td>
       <td>{t(`ticketField.required.${required ? 'yes' : 'no'}`)}</td>
       <td>
-        <Button variant="link" as={Link} to={`${match.path}/${id}`} >
+        <Button variant="link" as={Link} to={`${match.path}/${id}`}>
           {t('edit')}
         </Button>
         <Confirm
@@ -70,11 +50,11 @@ const FieldRow = memo(({ data, onDeleted }) => {
             />
           }
           danger
-          onConfirm={_delete}
+          onConfirm={mutateAsync}
           confirmButtonText={t('delete')}
           content={t('ticketField.deleteHint')}
           trigger={
-            <Button variant="link"  className="text-danger" disabled={deleting}>
+            <Button variant="link" className="text-danger" disabled={isLoading}>
               {t('delete')}
             </Button>
           }
@@ -89,29 +69,31 @@ FieldRow.propTypes = {
   onDeleted: PropTypes.func.isRequired,
 }
 
-
-
 const FieldList = memo(() => {
   const { t } = useTranslation()
   const match = useRouteMatch()
   const { addNotification } = useAppContext()
   const { skip, pageSize } = usePagination()
-  const [{ count, fields }, { loading, error, reload }] = useSmoothReload(
-    useDefault(
-      useFieldList([skip, pageSize], {
-        deps: [skip, pageSize],
+  const {
+    data: { fields, count },
+    isFetching,
+    refetch,
+  } = useQuery({
+    queryKey: ['setting/fields', skip, pageSize],
+    queryFn: () =>
+      http.get(`/api/1/ticket-fields`, {
+        params: {
+          size: pageSize,
+          skip,
+        },
       }),
-      {
-        count: 0,
-        fields: [],
-      }
-    )
-  )
-  useEffect(() => {
-    if (error) {
-      addNotification(error)
-    }
-  }, [error, addNotification])
+    keepPreviousData: true,
+    initialData: {
+      count: 0,
+      fields: [],
+    },
+    onError: (err) => addNotification(err),
+  })
   return (
     <div>
       <div>
@@ -132,9 +114,9 @@ const FieldList = memo(() => {
           </thead>
           <tbody>
             {fields.map((fieldData) => (
-              <FieldRow data={fieldData} key={fieldData.id} onDeleted={reload} />
+              <FieldRow data={fieldData} key={fieldData.id} onDeleted={refetch} />
             ))}
-            {!loading && fields.length === 0 && <NoDataRow />}
+            {!isFetching && fields.length === 0 && <NoDataRow />}
           </tbody>
         </Table>
         {count > 0 && <Pagination count={count} />}

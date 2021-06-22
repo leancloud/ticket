@@ -6,14 +6,14 @@ import _ from 'lodash'
 import * as Icon from 'react-bootstrap-icons'
 
 import styles from './index.module.scss'
-
-export const fieldType = ['text', 'multiLine', 'dropdown', 'checkbox', 'multi-select']
+ 
+export const fieldType = ['text', 'multi-line', 'dropdown', 'checkbox', 'multi-select']
 
 const fieldIconMap = {
   dropdown: Icon.ChevronDown,
   'multi-select': Icon.ListCheck, // th-list
   text: Icon.Fonts, // text-height
-  multiLine: Icon.TextLeft,
+  'multi-line': Icon.TextLeft,
   checkbox: Icon.CheckSquare,
 }
 
@@ -58,28 +58,28 @@ const CustomField = memo(
     required,
   }) => {
     const { t } = useTranslation()
-    if (type === 'checkbox') {
-      return (
-        <Form.Check type="checkbox">
-          <Form.Check.Input
-            id={id}
-            disabled={disabled}
-            checked={value || false}
-            onChange={(e) => {
-              if (onChange) {
-                const { checked } = e.target
-                onChange(checked)
-              }
-            }}
-            required={required}
-          />
-          {label && <Form.Check.Label htmlFor={id}>{label}</Form.Check.Label>}
-        </Form.Check>
-      )
-    }
     let content = null
     switch (type) {
-      case 'multiLine':
+      case 'checkbox':
+        content = (
+          <Form.Check type="checkbox">
+            <Form.Check.Input
+              id={id}
+              disabled={disabled}
+              checked={value}
+              onChange={(e) => {
+                if (onChange) {
+                  const { checked } = e.target
+                  onChange(checked)
+                }
+              }}
+              required={required}
+            />
+           <Form.Check.Label htmlFor={id}>{label || ' '}</Form.Check.Label> 
+          </Form.Check>
+        )
+        break
+      case 'multi-line':
         content = (
           <Form.Control
             id={id}
@@ -87,7 +87,7 @@ const CustomField = memo(
             rows={3}
             disabled={disabled}
             readOnly={readOnly}
-            value={value || ''}
+            value={value}
             onChange={(e) => {
               if (onChange) {
                 const v = e.target.value
@@ -104,7 +104,7 @@ const CustomField = memo(
             id={id}
             disabled={disabled}
             readOnly={readOnly}
-            value={value || ''}
+            value={value}
             onChange={(e) => {
               if (onChange) {
                 const v = e.target.value
@@ -175,12 +175,11 @@ const CustomField = memo(
         }
         break
     }
-
     return (
-      <>
-        {label && <Form.Label htmlFor={id}>{label}</Form.Label>}
+      <Form.Group>
+        {type !=='checkbox' && label && <Form.Label htmlFor={id}>{label}</Form.Label>}
         {content}
-      </>
+      </Form.Group>
     )
   }
 )
