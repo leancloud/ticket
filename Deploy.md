@@ -7,3 +7,9 @@
 ### `a20b1d2ed9815453bbd6262f86635210ac54fcc7`
 
 需要为 Reply 添加列 `internal` ，类型为 `Boolean` 。
+
+## 2021-06-22
+
+### `bdb3cd1d9fa12b2195982a5d6524be1f901f6ddc`
+
+导入 /resource/schema/QuickReply.json 。
