@@ -8,6 +8,10 @@
 
 需要为 Reply 添加列 `internal` ，类型为 `Boolean` 。
 
+### `ebc783f3456288fc74674138712fc65f8de352f3`
+
+导入 Group、Ticke 与 OpLog。
+
 ## 2021-06-22
 
 ### `bdb3cd1d9fa12b2195982a5d6524be1f901f6ddc`
