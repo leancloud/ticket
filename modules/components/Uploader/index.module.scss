@@ -1,0 +1,83 @@
+@import '../../style';
+
+.fileItem {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 6px !important;
+  width: 80px;
+  height: 80px;
+  position: relative;
+  user-select: none;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+
+  .name {
+    margin: 6px 4px 0 4px;
+    font-size: 12px !important;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .progress {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 4px;
+  }
+
+  &.upload {
+    border-style: dashed;
+    transition: border-color 200ms;
+    cursor: pointer;
+
+    &:hover {
+      border-color: $primary;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+  }
+
+  &.error {
+    color: $red;
+    border-color: $red;
+  }
+
+  .cover {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background-color: #00000000;
+    transition: background-color 200ms;
+
+    svg {
+      margin: 4px;
+      visibility: hidden;
+      color: #ddd;
+      cursor: pointer;
+      transition: color 200ms;
+
+      &:hover {
+        color: #fff;
+      }
+    }
+  }
+
+  &:hover {
+    .cover {
+      background-color: #00000060;
+
+      svg {
+        visibility: visible;
+      }
+    }
+  }
+}

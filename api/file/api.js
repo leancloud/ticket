@@ -2,7 +2,7 @@ const AV = require('leancloud-storage')
 const { Router } = require('express')
 const { query } = require('express-validator')
 
-const { catchError, parseSearchingQ } = require('../middleware')
+const { catchError, parseSearchingQ, requireAuth, customerServiceOnly } = require('../middleware')
 const { encodeFileObject } = require('./utils')
 
 const router = Router()
@@ -35,5 +35,15 @@ router.get('/:id', (req, res) => {
 router.get('/:id/redirection', (req, res) => {
   res.redirect(req.file.get('url'))
 })
+
+router.delete(
+  '/:id',
+  requireAuth,
+  customerServiceOnly,
+  catchError(async (req, res) => {
+    await req.file.destroy({ useMasterKey: true })
+    res.json({})
+  })
+)
 
 module.exports = router

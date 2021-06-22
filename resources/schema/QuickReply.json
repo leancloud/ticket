@@ -1,0 +1,66 @@
+{
+  "schema": {
+    "updatedAt": {
+      "type": "Date"
+    },
+    "ACL": {
+      "type": "ACL"
+    },
+    "content": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "name": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "objectId": {
+      "type": "String"
+    },
+    "createdAt": {
+      "type": "Date"
+    },
+    "files": {
+      "type": "Array",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "owner": {
+      "type": "Pointer",
+      "v": 2,
+      "className": "_User",
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    }
+  },
+  "permissions": {
+    "create": {
+      "*": true
+    },
+    "find": {
+      "*": true
+    },
+    "get": {
+      "*": true
+    },
+    "update": {
+      "*": true
+    },
+    "delete": {
+      "*": true
+    },
+    "add_fields": {
+      "*": true
+    }
+  },
+  "indexes": []
+}

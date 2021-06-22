@@ -38,6 +38,7 @@ apiRouter.get('/debug/search', parseSearchingQ, (req, res) => {
   res.json({ q: req.q, query: req.query })
 })
 apiRouter.use('/translate', require('./translate/api'))
+apiRouter.use('/quick-replies', require('./quick-reply/api'))
 router.use('/api/1', apiRouter)
 
 const { integrations } = require('../config')

@@ -1,0 +1,18 @@
+.title {
+  display: inline-flex;
+  a {
+    line-height: 1;
+  }
+}
+
+.quickReplyList {
+  th {
+    background-color: #00000008;
+    border-bottom: unset !important;
+  }
+}
+
+.actions {
+  padding: 0 !important;
+  vertical-align: middle !important;
+}

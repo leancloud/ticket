@@ -10,7 +10,7 @@ import _ from 'lodash'
 
 import css from './index.css'
 import csCss from '../CustomerServiceTickets.css'
-import { db, fetch } from '../../lib/leancloud'
+import { db, fetch, http } from '../../lib/leancloud'
 import { useTitle } from '../utils/hooks'
 import { WeekendWarning } from '../components/WeekendWarning'
 import { AppContext } from '../context'
@@ -24,6 +24,7 @@ import { ticketStatus } from '../../lib/common'
 import { TicketReply } from './TicketReply'
 import { Evaluation } from './Evaluation'
 import { LeanCloudApp } from './LeanCloudApp'
+import { CSReplyEditor } from './CSReplyEditor'
 
 function updateTicket(id, data) {
   return fetch(`/api/1/tickets/${id}`, {
@@ -332,6 +333,12 @@ export default function Ticket() {
     onError: (error) => addNotification(error),
   })
 
+  const { mutateAsync: replyTicket } = useMutation({
+    mutationFn: (data) => http.post(`/api/1/tickets/${ticket.id}/replies`, data),
+    onSuccess: () => loadMoreReplies(),
+    onError: (error) => addNotification(error),
+  })
+
   const isCsInThisTicket = isCustomerService && ticket?.author_id !== currentUser.id
 
   if (loadingTicket) {
@@ -365,13 +372,10 @@ export default function Ticket() {
 
           <div>
             <hr />
-            {ticketStatus.isOpened(ticket.status) ? (
-              <TicketReply
-                ticket={ticket}
-                isCustomerService={isCsInThisTicket}
-                onCommitted={() => loadMoreReplies()}
-                onOperate={operateTicket}
-              />
+            {isCsInThisTicket ? (
+              <CSReplyEditor ticketId={ticket.id} onReply={replyTicket} onOperate={operateTicket} />
+            ) : ticketStatus.isOpened(ticket.status) ? (
+              <TicketReply ticketId={ticket.id} onReply={replyTicket} />
             ) : (
               <Evaluation ticket={ticket} isCustomerService={isCsInThisTicket} />
             )}

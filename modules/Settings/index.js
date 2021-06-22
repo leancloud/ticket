@@ -22,6 +22,7 @@ import DynamicContent from './DynamicContent'
 import Trigger from './Rule/Trigger'
 import Automation from './Rule/Automation'
 import TicketField from './TicketField'
+import QuickReplies from './QuickReply'
 
 export default function Settings(props) {
   const { path } = useRouteMatch()
@@ -69,6 +70,9 @@ export default function Settings(props) {
               </ListGroup.Item>
               <ListGroup.Item as={NavLink} to="/settings/tags">
                 {t('tag')}
+              </ListGroup.Item>
+              <ListGroup.Item as={NavLink} to="/settings/quick-replies">
+                Quick reply
               </ListGroup.Item>
               <ListGroup.Item as={NavLink} to="/settings/faqs">
                 {t('FAQ')}
@@ -140,7 +144,10 @@ export default function Settings(props) {
             <Automation />
           </Route>
           <Route path={`${path}/ticketField`} component={TicketField} />
-          <Redirect exact from={path} to={`${path}/profile`}/>
+          <Route path={`${path}/quick-replies`}>
+            <QuickReplies />
+          </Route>
+          <Redirect exact from={path} to={`${path}/profile`} />
         </Switch>
       </Col>
     </Row>
