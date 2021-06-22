@@ -1,12 +1,17 @@
 const { TICKET_ACTION } = require('../../../lib/common')
 
 module.exports = {
-  update_assignee_id: (value) => {
-    if (typeof value !== 'string') {
+  update_assignee_id: (id) => {
+    if (typeof id !== 'string') {
       throw new Error('The assignee_id muet ba a string')
     }
+    if (id === '(current user)') {
+      return (ctx) => {
+        ctx.ticket.assignee_id = ctx.operator_id
+      }
+    }
     return (ctx) => {
-      ctx.ticket.assignee_id = value
+      ctx.ticket.assignee_id = id
     }
   },
   operate: (action) => {

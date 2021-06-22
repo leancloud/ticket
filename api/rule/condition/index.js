@@ -23,7 +23,7 @@ class Condition {
 
     try {
       /**
-       * @type {(ctx) => boolean}
+       * @type {(ctx) => boolean | Promise<boolean>}
        */
       this.test = conditions[field][operator](value)
     } catch (error) {
@@ -40,9 +40,9 @@ class AllCondition {
     this.conditions = data.map((item) => new Condition(item, conditions))
   }
 
-  test(ctx) {
+  async test(ctx) {
     for (const condition of this.conditions) {
-      if (!condition.test(ctx)) {
+      if (!(await condition.test(ctx))) {
         return false
       }
     }
@@ -58,9 +58,9 @@ class AnyCondition {
     this.conditions = data.map((item) => new Condition(item, conditions))
   }
 
-  test(ctx) {
+  async test(ctx) {
     for (const condition of this.conditions) {
-      if (condition.test(ctx)) {
+      if (await condition.test(ctx)) {
         return true
       }
     }
@@ -81,11 +81,11 @@ class Conditions {
     }
   }
 
-  test(ctx) {
-    if (this.all && !this.all.test(ctx)) {
+  async test(ctx) {
+    if (this.all && !(await this.all.test(ctx))) {
       return false
     }
-    if (this.any && !this.any.test(ctx)) {
+    if (this.any && !(await this.any.test(ctx))) {
       return false
     }
     return true

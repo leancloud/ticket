@@ -111,3 +111,42 @@ export const content = {
     },
   },
 }
+
+export const latest_reply = {
+  title: 'Latest reply',
+  operators: {
+    updated: {
+      title: 'Updated',
+    },
+  },
+}
+
+export const current_user = {
+  title: 'Current user',
+  operators: {
+    is: {
+      title: 'Is',
+      component: {
+        type: 'select',
+        options: [
+          {
+            title: '(Staff)',
+            value: '(customer service)',
+          },
+        ],
+      },
+    },
+    is_not: {
+      title: 'Is not',
+      component: {
+        type: 'select',
+        options: [
+          {
+            title: '(Staff)',
+            value: '(customer service)',
+          },
+        ],
+      },
+    },
+  },
+}

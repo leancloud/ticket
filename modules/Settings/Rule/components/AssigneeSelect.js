@@ -15,14 +15,12 @@ export function AssigneeSelect({ onChange, initValue }) {
     if (!assignees) {
       return
     }
-    if (!value) {
-      onChange(undefined)
-      return
-    }
-    if (assignees.findIndex((a) => a.objectId === value) === -1) {
-      setInvalid(true)
-      onChange(undefined)
-      return
+    if (value && value !== '(current user)') {
+      if (assignees.findIndex((a) => a.objectId === value) === -1) {
+        setInvalid(true)
+        onChange(undefined)
+        return
+      }
     }
     onChange(value)
   }, [onChange, assignees, value])
@@ -37,7 +35,9 @@ export function AssigneeSelect({ onChange, initValue }) {
     >
       {assignees ? (
         <>
-          <option value=""></option>
+          <option value="">(Empty)</option>
+          <option value="(current user)">(Current user)</option>
+          <option disabled>---</option>
           {assignees.map((assignee) => (
             <option key={assignee.objectId} value={assignee.objectId}>
               {getUserDisplayName(assignee)}

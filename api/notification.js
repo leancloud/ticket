@@ -120,7 +120,7 @@ exports.ticketEvaluation = (ticket, author, to) => {
     if (!to) {
       return
     }
-  return new AV.Object('Message', {
+    return new AV.Object('Message', {
       type: 'ticketEvaluation',
       ticket,
       from: author,

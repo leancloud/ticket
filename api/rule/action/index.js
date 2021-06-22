@@ -17,7 +17,7 @@ class Action {
 
     try {
       /**
-       * @type {(ctx: any) => void}
+       * @type {(ctx: any) => void | Promise<void>}
        */
       this.exec = actions[type](value)
     } catch (error) {
@@ -34,8 +34,10 @@ class Actions {
     this.actions = data.map((item) => new Action(item, actions))
   }
 
-  exec(ctx) {
-    this.actions.forEach((act) => act.exec(ctx))
+  async exec(ctx) {
+    for (const action of this.actions) {
+      await action.exec(ctx)
+    }
   }
 }
 
