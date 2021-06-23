@@ -19,7 +19,7 @@ module.exports = {
     historyApiFallback: true,
     proxy: {
       '/get': {
-        targer: 'localhost:' + process.env.LEANCLOUD_APP_PORT,
+        target: 'localhost:' + process.env.LEANCLOUD_APP_PORT,
         secure: false,
       },
     },
