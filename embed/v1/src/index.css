@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  min-width: 768px;
+  background-color: #ddd;
+  font-family: 'Source Han Sans CN';
+  font-size: 14px;
+}
