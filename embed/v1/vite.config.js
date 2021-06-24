@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import reactRefresh from '@vitejs/plugin-react-refresh';
 import reactJSX from 'vite-react-jsx';
+import path from 'path';
 
 export default defineConfig({
   base: '/embed/v1/',
@@ -13,6 +14,9 @@ export default defineConfig({
     // },
   },
   resolve: {
-    components: './src/components',
+    alias: {
+      components: path.resolve('./src/components/'),
+      utils: path.resolve('./src/utils/'),
+    },
   },
 });

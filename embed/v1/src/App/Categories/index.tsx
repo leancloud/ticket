@@ -1,24 +1,25 @@
 import { MouseEventHandler, useMemo } from 'react';
 import { useHistory, useRouteMatch } from 'react-router-dom';
-import { useQuery } from 'react-query';
+import { useQuery, UseQueryResult } from 'react-query';
 import { ChevronRightIcon } from '@heroicons/react/solid';
 
 import { Page } from 'components/Page';
-import { Loading } from 'components/Loading';
+import { QueryWrapper } from 'components/QueryWrapper';
 
 interface CategoryItemProps {
   name: string;
   onClick?: MouseEventHandler<HTMLDivElement>;
+  marker?: boolean;
 }
 
-function CategoryItem({ name, onClick }: CategoryItemProps) {
+function CategoryItem({ name, onClick, marker }: CategoryItemProps) {
   return (
     <div
       className="p-4 flex items-center text-gray-500 border-b border-gray-100 active:bg-gray-50"
       onClick={onClick}
     >
-      <div className="h-1 w-1 bg-primary" />
-      <div className="ml-4 flex-grow">{name}</div>
+      {marker && <div className="h-1 w-1 bg-primary mr-4" />}
+      <div className="flex-grow">{name}</div>
       <ChevronRightIcon className="h-4 w-4" />
     </div>
   );
@@ -28,15 +29,16 @@ export interface Category {
   id: string;
   name: string;
   parent_id?: string;
+  position: number;
 }
 
 async function fetchCategories(): Promise<Category[]> {
   const categories = [
-    { id: 'category-1', name: '账号问题' },
-    { id: 'category-2', name: '充值问题' },
-    { id: 'category-3', name: '账号丢失', parent_id: 'category-1' },
-    { id: 'category-4', name: '登录限制', parent_id: 'category-1' },
-    { id: 'category-5', name: '你咋就把账号给弄丢了呢', parent_id: 'category-3' },
+    { id: 'category-1', name: '账号问题', position: 1 },
+    { id: 'category-2', name: '充值问题', position: 2 },
+    { id: 'category-3', name: '账号丢失', parent_id: 'category-1', position: 1 },
+    { id: 'category-4', name: '登录限制', parent_id: 'category-1', position: 2 },
+    { id: 'category-5', name: '你咋就把账号给弄丢了呢', parent_id: 'category-3', position: 114514 },
   ];
   return new Promise((resolve) => {
     setTimeout(() => resolve(categories), 500);
@@ -44,30 +46,35 @@ async function fetchCategories(): Promise<Category[]> {
 }
 
 export function useCategories() {
-  const { data: categories, ...rest } = useQuery({
+  return useQuery({
     queryKey: 'categories',
     queryFn: fetchCategories,
     staleTime: 1000 * 60 * 5,
   });
-  return { categories, ...rest };
 }
 
 export function useCategory(id: string) {
-  const { categories, ...rest } = useCategories();
+  const { data: categories, ...rest } = useCategories();
   const category = useMemo(() => categories?.find((c) => c.id === id), [categories, id]);
-  return { category, ...rest };
+  return { data: category, ...rest } as UseQueryResult<Category>;
 }
 
 export type CategoryListProps = Omit<JSX.IntrinsicElements['div'], 'onClick'> & {
   categories: Category[];
   onClick?: (category: Category) => void;
+  marker?: boolean;
 };
 
-export function CategoryList({ categories, onClick, ...props }: CategoryListProps) {
+export function CategoryList({ categories, onClick, marker, ...props }: CategoryListProps) {
   return (
     <div {...props} className={`${props.className} flex-auto overflow-auto`}>
       {categories.map((category) => (
-        <CategoryItem key={category.id} name={category.name} onClick={() => onClick?.(category)} />
+        <CategoryItem
+          key={category.id}
+          marker={marker}
+          name={category.name}
+          onClick={() => onClick?.(category)}
+        />
       ))}
     </div>
   );
@@ -78,9 +85,10 @@ export default function Categories() {
     params: { id },
   } = useRouteMatch<{ id: string }>();
   const history = useHistory();
-  const { categories, error } = useCategories();
+  const result = useCategories();
+  const categories = result.data;
 
-  const [filteredCategories, title] = useMemo<[Category[], string | undefined]>(() => {
+  const [filteredCategories, title] = useMemo(() => {
     const filteredCategories: Category[] = [];
     let title: string | undefined = undefined;
     categories?.forEach((category) => {
@@ -106,16 +114,11 @@ export default function Categories() {
     }
   };
 
-  if (error) {
-    throw error;
-  }
   return (
     <Page title={title}>
-      {categories ? (
+      <QueryWrapper result={result}>
         <CategoryList categories={filteredCategories} onClick={handleClick} />
-      ) : (
-        <Loading />
-      )}
+      </QueryWrapper>
     </Page>
   );
 }

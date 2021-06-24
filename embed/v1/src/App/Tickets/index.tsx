@@ -12,7 +12,9 @@ function TicketForm() {
 export default function Tickets() {
   const { category_id } = useSearchParams();
 
-  const { category, isLoading: isLoadingCategory, error: categoryError } = useCategory(category_id);
+  const { data: category, isLoading: isLoadingCategory, error: categoryError } = useCategory(
+    category_id
+  );
 
   if (!category) {
     if (!isLoadingCategory) {

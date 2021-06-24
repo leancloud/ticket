@@ -16,11 +16,11 @@ export function ControlButton() {
     <div
       className={`${styles.controlButton} absolute top-6 left-12 flex items-center bg-white text-gray-400 rounded-full overflow-hidden`}
     >
-      <div className="px-2 py-1 active:bg-gray-100" onClick={goBack}>
+      <div className="px-2 py-1 active:bg-gray-100 select-none" onClick={goBack}>
         <ChevronLeftIcon className="h-5 w-5" />
       </div>
       <Divider />
-      <div className="px-2 py-1 active:bg-gray-100" onClick={goHome}>
+      <div className="px-2 py-1 active:bg-gray-100 select-none" onClick={goHome}>
         <HomeIcon className="h-5 w-5" />
       </div>
     </div>

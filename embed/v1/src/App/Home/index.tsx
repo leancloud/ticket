@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Link, useHistory } from 'react-router-dom';
 
 import { Page } from 'components/Page';
-import { Loading } from 'components/Loading';
+import { QueryWrapper } from 'components/QueryWrapper';
 import { Category, CategoryList, useCategories } from '../Categories';
 
 interface TicketsLinkProps {
@@ -20,13 +20,9 @@ function TicketsLink({ badge }: TicketsLinkProps) {
 
 export default function Home() {
   const history = useHistory();
-  const { categories, error } = useCategories();
-  const topCategories = useMemo(() => {
-    if (!categories) {
-      return [];
-    }
-    return categories.filter((c) => !c.parent_id);
-  }, [categories]);
+  const result = useCategories();
+  const categories = result.data;
+  const topCategories = useMemo(() => categories?.filter((c) => !c.parent_id) || [], [categories]);
 
   const handleClick = ({ id }: Category) => {
     if (!categories) {
@@ -40,22 +36,15 @@ export default function Home() {
     }
   };
 
-  if (error) {
-    throw error;
-  }
   return (
-    <Page>
-      <div className="flex flex-col p-4 max-h-full">
-        <div className="flex justify-between items-center relative">
-          <h2 className="font-bold">请选择你遇到的问题</h2>
-          <TicketsLink badge />
-        </div>
-        {categories ? (
-          <CategoryList className="mt-2" categories={topCategories} onClick={handleClick} />
-        ) : (
-          <Loading />
-        )}
+    <Page className="flex flex-col p-4">
+      <div className="flex justify-between items-center relative">
+        <h2 className="font-bold">请选择你遇到的问题</h2>
+        <TicketsLink badge />
       </div>
+      <QueryWrapper result={result}>
+        <CategoryList marker className="mt-2" categories={topCategories} onClick={handleClick} />
+      </QueryWrapper>
     </Page>
   );
 }
