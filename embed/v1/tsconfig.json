@@ -4,6 +4,13 @@
     "esModuleInterop": true,
     "target": "ES2020",
     "moduleResolution": "Node",
-    "jsx": "react-jsx"
-  }
+    "jsx": "react-jsx",
+    "isolatedModules": true,
+    "baseUrl": "src",
+    "paths": {
+      "components/*": ["components/*"],
+      "utils/*": ["utils/*"]
+    }
+  },
+  "include": ["src/**/*"]
 }

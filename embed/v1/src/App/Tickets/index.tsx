@@ -1,8 +1,8 @@
 import { Redirect } from 'react-router-dom';
 
-import { useSearchParams } from '../../utils/url';
-import { Page } from '../components/Page';
-import { Loading } from '../components/Loading';
+import { useSearchParams } from 'utils/url';
+import { Page } from 'components/Page';
+import { Loading } from 'components/Loading';
 import { useCategory } from '../Categories';
 
 function TicketForm() {

@@ -12,4 +12,7 @@ export default defineConfig({
     //   '/env.js': 'http://127.0.0.1:3000',
     // },
   },
+  resolve: {
+    components: './src/components',
+  },
 });

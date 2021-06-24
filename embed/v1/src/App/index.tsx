@@ -1,8 +1,8 @@
-import { FunctionComponent, useState } from 'react';
+import { useState } from 'react';
 import { createContext } from 'react';
 import { Redirect, Route, Switch } from 'react-router-dom';
 
-import { ControlButton } from './components/ControlButton';
+import { ControlButton } from 'components/ControlButton';
 import LogIn from './LogIn';
 import Home from './Home';
 import Categories from './Categories';

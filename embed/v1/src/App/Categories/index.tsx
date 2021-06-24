@@ -3,8 +3,8 @@ import { useHistory, useRouteMatch } from 'react-router-dom';
 import { useQuery } from 'react-query';
 import { ChevronRightIcon } from '@heroicons/react/solid';
 
-import { Page } from '../components/Page';
-import { Loading } from '../components/Loading';
+import { Page } from 'components/Page';
+import { Loading } from 'components/Loading';
 
 interface CategoryItemProps {
   name: string;

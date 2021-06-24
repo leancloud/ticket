@@ -1,9 +1,9 @@
+import { useMemo } from 'react';
 import { Link, useHistory } from 'react-router-dom';
 
-import { Page } from '../components/Page';
+import { Page } from 'components/Page';
+import { Loading } from 'components/Loading';
 import { Category, CategoryList, useCategories } from '../Categories';
-import { Loading } from '../components/Loading';
-import { useMemo } from 'react';
 
 interface TicketsLinkProps {
   badge?: boolean;
