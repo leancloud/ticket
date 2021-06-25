@@ -1,91 +1,119 @@
-import { useEffect, useRef, useState } from 'react';
-import { Redirect } from 'react-router-dom';
+import { Link, Route, Switch, useRouteMatch } from 'react-router-dom';
+import { useQuery } from 'react-query';
 import classNames from 'classnames';
 
-import { Page } from 'components/Page';
 import { QueryWrapper } from 'components/QueryWrapper';
-import { Input, Textarea } from 'components/Form';
-import { Uploader } from 'components/Uploader';
-import { Button } from 'components/Button';
-import { useSearchParams } from 'utils/url';
-import { useAlert } from 'utils/useAlert';
-import { useCategory } from '../Categories';
+import { Page } from 'components/Page';
+import { Ticket, TicketStatus } from './Ticket';
+import { NewTicket } from './New';
 
-type DivProps = JSX.IntrinsicElements['div'];
-
-export interface FromGroupProps extends DivProps {
-  title?: string;
-  controlId?: string;
+function fetchTickets(): Promise<Ticket[]> {
+  const tickets: Ticket[] = [
+    {
+      id: 'ticket-1',
+      title: '我是标题我是标题我是标题我',
+      content: '',
+      status: 50,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    },
+    {
+      id: 'ticket-2',
+      title: '我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题.',
+      content: '',
+      status: 160,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    },
+    {
+      id: 'ticket-3',
+      title: '我是标题我是标题我是标题我',
+      content: '',
+      status: 120,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    },
+    {
+      id: 'ticket-4',
+      title: '我是标题我是标题我是标题我',
+      content: '',
+      status: 250,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    },
+    {
+      id: 'ticket-5',
+      title: '我是标题我是标题我是标题我',
+      content: '',
+      status: 250,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    },
+  ];
+  return new Promise((resolve) => {
+    setTimeout(() => resolve(tickets), 500);
+  });
 }
 
-function FormGroup({ title, controlId, children, ...props }: FromGroupProps) {
-  const $container = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (controlId && $container.current) {
-      const input = $container.current.querySelector('input');
-      if (input) {
-        input.id = controlId;
-      }
-    }
-  }, [controlId]);
+export function useTickets() {
+  return useQuery({
+    queryKey: 'tickets',
+    queryFn: fetchTickets,
+  });
+}
 
+interface TicketItemProps {
+  ticket: Ticket;
+}
+
+function TicketItem({ ticket }: TicketItemProps) {
   return (
-    <div {...props} className={classNames(props.className, 'flex mb-5')} ref={$container}>
-      <label className="w-20 mt-1.5 flex-shrink-0" htmlFor={controlId}>
-        {title}
-      </label>
-      <div className="flex-grow">{children}</div>
+    <div className="p-4 border-b border-gray-100 active:bg-gray-50">
+      <div className="text-xs">
+        <TicketStatus status={ticket.status} />
+        <span className="ml-2 text-gray-400">更新时间: {ticket.updated_at}</span>
+      </div>
+      <div className="mt-2 truncate">{ticket.title}</div>
     </div>
   );
 }
 
-function TicketForm() {
-  const [description, setDescription] = useState('');
-  const { element: alertElement, alert } = useAlert();
-
-  const handleUpload = () => {
-    alert({ title: '上传失败', content: '附件大小不能超过 1 GB' });
-  };
+export function TicketList() {
+  const result = useTickets();
 
   return (
-    <div className="px-8 py-6">
-      {alertElement}
-      <FormGroup controlId="ticket_title" title="标题">
-        <Input placeholder="请输入标题" />
-      </FormGroup>
-      <FormGroup controlId="ticket_uid" title="账号ID">
-        <Input placeholder="请输入正确的账号ID" />
-      </FormGroup>
-      <FormGroup controlId="ticket_desc" title="描述">
-        <Textarea
-          rows={3}
-          placeholder="补充说明（非必填）"
-          value={description}
-          onChange={(e) => setDescription(e.target.value.slice(0, 100))}
-        />
-        <div className="text-right text-xs text-gray-400">{description.length}/100</div>
-      </FormGroup>
-      <FormGroup controlId="ticket_file" title="附件">
-        <Uploader onUpload={handleUpload} />
-      </FormGroup>
-      <FormGroup>
-        <Button>提 交</Button>
-      </FormGroup>
-    </div>
+    <Page title="问题记录">
+      <QueryWrapper noData={!result.data?.length} noDataMessage="暂无问题记录" result={result}>
+        {(tickets) => {
+          return (
+            <div className="">
+              {tickets.map((ticket) => (
+                <Link key={ticket.id} to={`/tickets/${ticket.id}`}>
+                  <TicketItem ticket={ticket} />
+                </Link>
+              ))}
+            </div>
+          );
+        }}
+      </QueryWrapper>
+    </Page>
   );
 }
 
 export default function Tickets() {
-  const { category_id } = useSearchParams();
-  const result = useCategory(category_id);
+  const { path } = useRouteMatch();
 
-  if (!result.data && !result.isLoading && !result.error) {
-    // Category is not exists :badbad:
-    return <Redirect to="/home" />;
-  }
   return (
-    <Page title={result.data?.name}>
-      <QueryWrapper result={result}>{(category) => <TicketForm />}</QueryWrapper>
-    </Page>
+    <Switch>
+      <Route path={path} exact>
+        <TicketList />
+      </Route>
+      <Route path={`${path}/new`}>
+        <NewTicket />
+      </Route>
+      <Route path={`${path}/:id`}>
+        <Ticket />
+      </Route>
+    </Switch>
   );
 }

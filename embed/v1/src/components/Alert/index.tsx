@@ -38,7 +38,7 @@ export function Alert({ title, content, buttonTitle, show, onClose }: AlertProps
           leaveTo="transform scale-90 opacity-0"
         >
           <Dialog.Title className="font-bold">{title}</Dialog.Title>
-          <Dialog.Description className="text-sm mt-4 mb-8 text-gray-400">
+          <Dialog.Description className="text-xs mt-4 mb-8 text-gray-400">
             {content}
           </Dialog.Description>
 

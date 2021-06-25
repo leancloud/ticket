@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import { UseQueryResult } from 'react-query';
 
 import { Loading } from 'components/Loading';
@@ -6,11 +7,15 @@ import { NoData } from 'components/NoData';
 
 export interface QueryWrapperProps<TData, TError> {
   result: UseQueryResult<TData, TError>;
-  children: ((data: TData) => JSX.Element) | JSX.Element;
+  noData?: boolean;
+  noDataMessage?: string;
+  children: ((data: TData) => ReactNode) | ReactNode;
 }
 
 export function QueryWrapper<TData, TError>({
   result,
+  noData,
+  noDataMessage,
   children,
 }: QueryWrapperProps<TData, TError>) {
   if (result.isLoading) {
@@ -19,8 +24,8 @@ export function QueryWrapper<TData, TError>({
   if (result.error) {
     return <APIError error={result.error} />;
   }
-  if (!result.data) {
-    return <NoData />;
+  if (!result.data || noData) {
+    return <NoData message={noDataMessage} />;
   }
   return typeof children === 'function' ? children(result.data) : children;
 }

@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { PlusIcon } from '@heroicons/react/solid';
 import classNames from 'classnames';
 
-import { FileItem } from './FileItem';
+import { FileItem } from '../FileItem';
 
 export class UploadTask {}
 

@@ -5,11 +5,16 @@ import styles from './index.module.css';
 
 export interface FileItemProps {
   name: string;
+  mime?: string;
+  url?: string;
   progress?: number;
 }
 
 export function FileItem({ name, progress }: FileItemProps) {
   const displayName = useMemo(() => {
+    if (!name) {
+      return '';
+    }
     const index = name.lastIndexOf('.');
     const pureName = name.slice(0, index);
     const ext = name.slice(index + 1);
@@ -20,7 +25,7 @@ export function FileItem({ name, progress }: FileItemProps) {
   }, [name]);
 
   return (
-    <div className="bg-gray-50 text-xs mr-2 mb-2 rounded text-gray-500 flex items-center relative overflow-hidden">
+    <div className="bg-gray-100 text-xs mr-2 mb-2 rounded text-gray-500 flex items-center relative overflow-hidden">
       <div className="my-2 ml-2">{displayName}</div>
 
       <div className="w-8 h-full flex justify-center items-center cursor-pointer">

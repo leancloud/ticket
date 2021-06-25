@@ -10,7 +10,6 @@ export function Input(props: InputProps) {
       {...props}
       className={classNames(
         props.className,
-        'w-full',
         'border rounded px-2 py-1 focus:border-tapBlue-600 focus:ring-tapBlue-600 focus:ring-1'
       )}
     />
