@@ -61,6 +61,7 @@
     "raven": "^2.2.1",
     "raven-js": "^3.20.1",
     "react": "^16.14.0",
+    "react-beautiful-dnd": "^13.1.0",
     "react-bootstrap": "^1.5.2",
     "react-bootstrap-icons": "^1.5.0",
     "react-chartjs-2": "^2.1.0",

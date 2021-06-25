@@ -25,10 +25,11 @@ const LOCALES = [
 const REQUIRE_OPTIONS = ['dropdown', 'multi-select']
 const CLASS_NAME = 'TicketField'
 const VARIANT_CLASS_NAME = 'TicketFieldVariant'
+
 router.get(
   '/',
   catchError(async (req, res) => {
-    const { size, skip, active } = req.query
+    const { size, skip, active, search } = req.query
     const query = new AV.Query(CLASS_NAME)
     if (size) {
       const limit = parseInt(size)
@@ -42,6 +43,9 @@ router.get(
         query.skip(num)
       }
     }
+    if (search){
+      query.contains('title',search)
+    } 
     query.equalTo('active', active !== 'false')
     // 默认按照更新排序
     query.addDescending('updatedAt')

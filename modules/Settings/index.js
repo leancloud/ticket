@@ -21,8 +21,9 @@ import CategorySort from './CategorySort'
 import DynamicContent from './DynamicContent'
 import Trigger from './Rule/Trigger'
 import Automation from './Rule/Automation'
-import TicketField from './TicketField'
 import QuickReplies from './QuickReply'
+import TicketField from './TicketField'
+import TicketForm from './TicketForm'
 
 export default function Settings(props) {
   const { path } = useRouteMatch()
@@ -67,6 +68,9 @@ export default function Settings(props) {
               </ListGroup.Item>
               <ListGroup.Item as={NavLink} to="/settings/ticketField">
                 {t('ticketField')}
+              </ListGroup.Item>
+              <ListGroup.Item as={NavLink} to="/settings/ticketForm">
+                {t('ticketForm')}
               </ListGroup.Item>
               <ListGroup.Item as={NavLink} to="/settings/tags">
                 {t('tag')}
@@ -144,6 +148,7 @@ export default function Settings(props) {
             <Automation />
           </Route>
           <Route path={`${path}/ticketField`} component={TicketField} />
+          <Route path={`${path}/ticketForm`} component={TicketForm} />
           <Route path={`${path}/quick-replies`}>
             <QuickReplies />
           </Route>
