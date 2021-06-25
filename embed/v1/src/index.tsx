@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
 
 import './index.css';
+import { ErrorBoundary } from 'components/ErrorBoundary';
 import App from './App';
 
 const queryClient = new QueryClient({
@@ -18,7 +19,9 @@ render(
   <StrictMode>
     <BrowserRouter basename="/embed/v1">
       <QueryClientProvider client={queryClient}>
-        <App />
+        <ErrorBoundary>
+          <App />
+        </ErrorBoundary>
       </QueryClientProvider>
     </BrowserRouter>
   </StrictMode>,

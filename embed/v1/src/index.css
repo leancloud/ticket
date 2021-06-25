@@ -12,3 +12,7 @@ body {
   font-family: 'Source Han Sans CN';
   font-size: 14px;
 }
+
+button:focus, input:focus, textarea:focus {
+  outline: none;
+}

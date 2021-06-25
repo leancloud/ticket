@@ -11,7 +11,7 @@ interface TicketsLinkProps {
 
 function TicketsLink({ badge }: TicketsLinkProps) {
   return (
-    <Link className="inline-block p-1.5 text-sm text-primary" to="/login">
+    <Link className="inline-block p-1.5 text-sm text-tapBlue-600" to="/login">
       问题记录
       {badge && <div className="h-1.5 w-1.5 bg-red-500 rounded-full absolute top-1 right-0" />}
     </Link>
