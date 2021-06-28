@@ -96,8 +96,6 @@ router.post(
     .isString()
     .custom((value) => LOCALES.includes(value)),
   check('variants.*.options').isArray().optional(),
-  check('variants.*.options.*.title').isString(),
-  check('variants.*.options.*.value').isString(),
   catchError(async (req, res) => {
     const { title, type, required, defaultLocale, variants } = req.body
     const variantLocales = variants.map((v) => v.locale)

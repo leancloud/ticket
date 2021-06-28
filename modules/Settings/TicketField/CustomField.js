@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Form, Badge } from 'react-bootstrap'
 import _ from 'lodash'
 import * as Icon from 'react-bootstrap-icons'
+import EnhanceSelect from 'modules/components/EnhanceSelect'
 
 import styles from './index.module.scss'
  
@@ -119,6 +120,7 @@ const CustomField = memo(
         content = (
           <Form.Control
             as="select"
+            id={id}
             value={value}
             onChange={(e) => {
               if (onChange) {
@@ -131,7 +133,7 @@ const CustomField = memo(
             multiple
           >
             {options &&
-              options.map(({ value: v, title }) => {
+              options.map(([v, title]) => {
                 return (
                   <option key={`${v}-${title}`} value={v}>
                     {title}
@@ -142,37 +144,15 @@ const CustomField = memo(
         )
         break
       case 'dropdown':
-        {
-          const valueIncluded = options && options.some(({ value: v }) => v === value)
-          content = (
-            <Form.Control
-              as="select"
-              value={value}
-              onChange={(e) => {
-                if (onChange) {
-                  const v = e.target.value
-                  onChange(v)
-                }
-              }}
-              disabled={disabled}
-              required={required}
-            >
-              {value === undefined && !valueIncluded && (
-                <option key="" value="">
-                  {t('select')}
-                </option>
-              )}
-              {options &&
-                options.map(({ value: v, title }) => {
-                  return (
-                    <option key={`${v}-${title}`} value={v}>
-                      {title}
-                    </option>
-                  )
-                })}
-            </Form.Control>
-          )
-        }
+        content = <EnhanceSelect {...{
+          id,
+          readOnly,
+          required,
+          disabled,
+          value,
+          onChange,
+          options,
+        }} />
         break
     }
     return (

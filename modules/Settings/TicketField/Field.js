@@ -18,18 +18,13 @@ import { useFieldId } from '.'
 import styles from './index.module.scss'
 
 const includeOptionsType = ['dropdown', 'multi-select']
-const defaultOptions = [
-  {
-    value: '',
-    title: '',
-  },
-]
+const defaultOptions = [['', '']]
 const DropdownOptions = memo(({ options = defaultOptions, onChange }) => {
   const { t } = useTranslation()
   const sameTagIndexes = useMemo(() => {
     const map = new Map()
     const result = []
-    options.forEach(({ title }, index) => {
+    options.forEach(([, title], index) => {
       if (title !== '') {
         if (map.has(title)) {
           result.push(map.get(title))
@@ -44,25 +39,17 @@ const DropdownOptions = memo(({ options = defaultOptions, onChange }) => {
   // auto expend
   const reOptions = useMemo(() => {
     if (options.length === 0) {
-      return [
-        {
-          value: '',
-          title: '',
-        },
-      ]
+      return ['', '']
     }
-    if (options[options.length - 1].value !== '') {
+    if (options[options.length - 1][0] !== '') {
       return [
         ...options,
-        {
-          value: '',
-          title: '',
-        },
+        [ '', '',],
       ]
     }
     return options
   }, [options])
-
+  
   return (
     <Form.Group>
       <Form.Label>{t('ticketField.options')}</Form.Label>
@@ -70,7 +57,7 @@ const DropdownOptions = memo(({ options = defaultOptions, onChange }) => {
         const duplicateTag = sameTagIndexes.includes(index)
         const isLast = index === reOptions.length - 1
         const required = reOptions.length === 1 ? true : !isLast
-        const { value, title } = option
+        const [ value, title ]= option
         return (
           <Form.Row key={index}>
             <Form.Group as={Col}>
@@ -82,10 +69,7 @@ const DropdownOptions = memo(({ options = defaultOptions, onChange }) => {
                 onChange={(e) => {
                   const inputValue = e.target.value
                   const tmp = [...options]
-                  tmp[index] = {
-                    value: inputValue,
-                    title: title === value ? inputValue : title,
-                  }
+                  tmp[index] = [inputValue, title === value ? inputValue : title]
                   onChange(tmp)
                 }}
               />
@@ -99,10 +83,7 @@ const DropdownOptions = memo(({ options = defaultOptions, onChange }) => {
                 onChange={(e) => {
                   const inputValue = e.target.value
                   const tmp = [...options]
-                  tmp[index] = {
-                    value: value,
-                    title: inputValue,
-                  }
+                  tmp[index] = [value,inputValue]
                   onChange(tmp)
                 }}
                 isInvalid={duplicateTag}
