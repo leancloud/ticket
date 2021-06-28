@@ -4,4 +4,9 @@
   &:active {
     box-shadow: none;
   }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
 }

@@ -38,21 +38,22 @@ function Evaluated() {
 }
 
 function NewEvaluation() {
-  const [useful, setUseful] = useState(true);
+  const [star, setStar] = useState<0 | 1>();
+  const [content, setContent] = useState('');
 
   return (
     <div className="p-6 border-t border-dashed border-gray-300">
       <div className="text-gray-600">服务评价与反馈</div>
 
       <div className="py-6">
-        <Radio id="evaluation-good" checked={useful} onChange={() => setUseful(true)}>
+        <Radio id="evaluation-good" checked={star === 1} onChange={() => setStar(1)}>
           <span className="text-yellow-500 inline-flex items-center">
             <ThumbUpIcon className="w-4 h-4 inline-block mr-1" />
             有用
           </span>
         </Radio>
 
-        <Radio id="evaluation-bad" checked={!useful} onChange={() => setUseful(false)}>
+        <Radio id="evaluation-bad" checked={star === 0} onChange={() => setStar(0)}>
           <span className="text-blue-500 inline-flex items-center">
             <ThumbDownIcon className="w-4 h-4 inline-block mr-1" />
             没用
@@ -61,13 +62,20 @@ function NewEvaluation() {
       </div>
 
       <div className="flex">
-        <Input className="flex-grow rounded-full px-3" placeholder="补充说明（非必填）" />
-        <Button className="ml-2 px-5">提交</Button>
+        <Input
+          className="flex-grow rounded-full px-3"
+          placeholder="补充说明（非必填）"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+        />
+        <Button className="ml-2 px-5" disabled={star === undefined}>
+          提交
+        </Button>
       </div>
     </div>
   );
 }
 
 export function Evaluation() {
-  return <Evaluated />;
+  return <NewEvaluation />;
 }
