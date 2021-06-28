@@ -472,17 +472,17 @@ const EditorField = memo(() => {
     queryKey: ['setting/forms', fieldId],
     queryFn: () => http.get(`/api/1/ticket-fields/${fieldId}`),
     onError: (err) => addNotification(err),
-    select: (data)=> {
-      const { variants } = data.field
+    select: (field) => {
+      const { variants } = field
       return {
-        ...data.field,
+        ...field,
         variants: variants.reduce((pre, current) => {
           const { locale, ...rest } = current
           pre[locale] = rest
           return pre
         }, {}),
       }
-    }
+    },
   })
 
   const { mutateAsync, isLoading } = useMutation({

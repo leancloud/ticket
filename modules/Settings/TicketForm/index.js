@@ -12,6 +12,7 @@ import { NoDataRow } from 'modules/components/NoData'
 import Pagination, { usePagination } from 'modules/components/Pagination'
 import Confirm from 'modules/components/Confirm'
 import { AddForm, EditorForm } from './FormPage'
+import ticketFieldStyles from '../ticketField/index.module.scss'
 
 export const useFormId = () => {
   return useParams().id
@@ -38,7 +39,7 @@ const FieldRow = memo(({ data, onDeleted }) => {
       <td>{title}</td>
       <td>{moment(updatedAt).format('YYYY-MM-DD HH:MM')}</td>
       <td>
-        <Button variant="link" as={Link} to={`${match.path}/${id}`}>
+        <Button variant="link" size="sm" as={Link} to={`${match.path}/${id}`}>
           {t('edit')}
         </Button>
         <Confirm
@@ -55,7 +56,7 @@ const FieldRow = memo(({ data, onDeleted }) => {
           confirmButtonText={t('delete')}
           content={t('ticketForm.deleteHint')}
           trigger={
-            <Button variant="link" className="text-danger" disabled={isLoading}>
+            <Button variant="link" size="sm" className="text-danger" disabled={isLoading}>
               {t('delete')}
             </Button>
           }
@@ -75,11 +76,7 @@ const FormList = memo(() => {
   const match = useRouteMatch()
   const { addNotification } = useAppContext()
   const { skip, pageSize } = usePagination()
-  const {
-    data: { count, forms },
-    isFetching,
-    refetch,
-  } = useQuery({
+  const { data: [forms,count], isFetching, refetch } = useQuery({
     queryKey: ['setting/ticketForms', skip, pageSize],
     queryFn: () =>
       http.get('/api/1/ticket-forms', {
@@ -88,14 +85,10 @@ const FormList = memo(() => {
           skip,
         },
       }),
-    initialData: {
-      count: 0,
-      forms: [],
-    },
+    initialData: [[],0],
     keepPreviousData: true,
     onError: (error) => addNotification(error),
   })
-
   return (
     <div>
       <div>
@@ -105,7 +98,7 @@ const FormList = memo(() => {
             <Button variant="primary">{t('ticketForm.add')}</Button>
           </Link>
         </div>
-        <Table>
+        <Table size="sm" className={ticketFieldStyles.table}>
           <thead>
             <tr>
               <th>{t('name')}</th>

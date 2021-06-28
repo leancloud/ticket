@@ -2,42 +2,24 @@ const AV = require('leancloud-storage')
 const { Router } = require('express')
 const { check } = require('express-validator')
 const { requireAuth, customerServiceOnly, catchError } = require('./middleware')
+const { getPaginationList } = require('./utils')
 const router = Router().use(requireAuth, customerServiceOnly)
 const CLASS_NAME = 'TicketForm'
 
 router.get(
   '/',
   catchError(async (req, res) => {
-    const { size, skip } = req.query
     const query = new AV.Query(CLASS_NAME)
-    if (size) {
-      const limit = parseInt(size)
-      if (!Number.isNaN(limit)) {
-        query.limit(limit)
-      }
-    }
-    if (skip) {
-      const num = parseInt(skip)
-      if (!Number.isNaN(num)) {
-        query.skip(num)
-      }
-    }
     // 默认按照更新排序
     query.addDescending('updatedAt')
-    const [forms, count] = await Promise.all([
-      query.find({ useMasterKey: true }),
-      query.count({
-        useMasterKey: true,
-      }),
-    ])
-    res.json({
-      count,
-      forms: forms.map((o) => ({
+    const list = await getPaginationList(req, res, query)
+    res.json(
+      list.map((o) => ({
         id: o.id,
         title: o.get('title'),
         updatedAt: o.get('updatedAt'),
-      })),
-    })
+      }))
+    )
   })
 )
 
@@ -54,12 +36,10 @@ router.get(
   catchError(async (req, res) => {
     const { form } = req
     res.json({
-      form: {
-        id: form.id,
-        title: form.get('title'),
-        updatedAt: form.get('updatedAt'),
-        fieldIds: form.get('fieldIds'),
-      },
+      id: form.id,
+      title: form.get('title'),
+      updatedAt: form.get('updatedAt'),
+      fieldIds: form.get('fieldIds'),
     })
   })
 )
@@ -77,8 +57,12 @@ router.get(
       fieldIds.map((fieldId) => AV.Object.createWithoutData('TicketField', fieldId))
     )
     const [fields, variants] = await Promise.all([
-      fieldQuery.find({ useMasterKey: true }).then((fields) =>fields.map(field=>field.toJSON())),
-      variantQuery.find({useMasterKey: true }).then((variants) => variants.map(variant=>variant.toJSON()))
+      fieldQuery
+        .find({ useMasterKey: true })
+        .then((fields) => fields.map((field) => field.toJSON())),
+      variantQuery
+        .find({ useMasterKey: true })
+        .then((variants) => variants.map((variant) => variant.toJSON())),
     ])
     const variantMap = variants.reduce((pre, current) => {
       pre[current.field.objectId] = {
@@ -89,20 +73,18 @@ router.get(
       return pre
     }, {})
     res.json({
-      form: {
-        id: form.id,
-        title: form.get('title'),
-        updatedAt: form.get('updatedAt'),
-        fields: fields.map((field) => ({
-          id: field.objectId,
-          title: field.title,
-          type: field.type,
-          active: !!field.active,
-          required: !!field.required,
-          defaultLocale: field.defaultLocale,
-          variants: variantMap[field.objectId],
-        })),
-      },
+      id: form.id,
+      title: form.get('title'),
+      updatedAt: form.get('updatedAt'),
+      fields: fields.map((field) => ({
+        id: field.objectId,
+        title: field.title,
+        type: field.type,
+        active: !!field.active,
+        required: !!field.required,
+        defaultLocale: field.defaultLocale,
+        variants: variantMap[field.objectId],
+      })),
     })
   })
 )
@@ -110,8 +92,7 @@ router.get(
 router.post(
   '/',
   check('title').isString().isLength({ min: 1 }),
-  check('fieldIds')
-    .isArray().isLength({ min: 1 }),
+  check('fieldIds').isArray().isLength({ min: 1 }),
   catchError(async (req, res) => {
     const { title, fieldIds } = req.body
     const form = new AV.Object(CLASS_NAME)
@@ -119,7 +100,7 @@ router.post(
       {
         ACL: {},
         fieldIds,
-        title
+        title,
       },
       {
         useMasterKey: true,
@@ -131,9 +112,8 @@ router.post(
 
 router.patch(
   '/:id',
-    check('title').isString().isLength({ min: 1 }),
-  check('fieldIds')
-    .isArray().isLength({ min: 1 }),
+  check('title').isString().isLength({ min: 1 }),
+  check('fieldIds').isArray().isLength({ min: 1 }),
   catchError(async (req, res) => {
     const { form } = req
     const { title, fieldIds } = req.body

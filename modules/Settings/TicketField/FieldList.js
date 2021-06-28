@@ -37,7 +37,7 @@ const FieldRow = memo(({ data, onDeleted }) => {
       <td>{t(`ticketField.type.${type}`)}</td>
       <td>{t(`ticketField.required.${required ? 'yes' : 'no'}`)}</td>
       <td>
-        <Button variant="link" as={Link} to={`${match.path}/${id}`}>
+        <Button variant="link" size="sm" as={Link} to={`${match.path}/${id}`}>
           {t('edit')}
         </Button>
         <Confirm
@@ -54,7 +54,7 @@ const FieldRow = memo(({ data, onDeleted }) => {
           confirmButtonText={t('delete')}
           content={t('ticketField.deleteHint')}
           trigger={
-            <Button variant="link" className="text-danger" disabled={isLoading}>
+            <Button variant="link" size="sm" className="text-danger" disabled={isLoading}>
               {t('delete')}
             </Button>
           }
@@ -75,7 +75,7 @@ const FieldList = memo(() => {
   const { addNotification } = useAppContext()
   const { skip, pageSize } = usePagination()
   const {
-    data: { fields, count },
+    data: [fields, count],
     isFetching,
     refetch,
   } = useQuery({
@@ -88,10 +88,7 @@ const FieldList = memo(() => {
         },
       }),
     keepPreviousData: true,
-    initialData: {
-      count: 0,
-      fields: [],
-    },
+    initialData: [[], 0],
     onError: (err) => addNotification(err),
   })
   return (
@@ -103,7 +100,7 @@ const FieldList = memo(() => {
             <Button variant="primary">{t('ticketField.add')}</Button>
           </Link>
         </div>
-        <Table className={styles.table}>
+        <Table size="sm" className={styles.table}>
           <thead>
             <tr>
               <th>{t('name')}</th>

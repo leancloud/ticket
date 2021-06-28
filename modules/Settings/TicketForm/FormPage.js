@@ -21,7 +21,7 @@ import { useTranslation } from 'react-i18next'
 import { useAppContext } from 'modules/context'
 import { DocumentTitle } from 'modules/utils/DocumentTitle'
 import NoData from 'modules/components/NoData'
-import { useFormId} from './'
+import { useFormId } from './'
 import Preview from './Preview'
 import styles from './index.module.scss'
 
@@ -72,7 +72,7 @@ const FieldList = ({ list, remove, add }) => {
   ))
 }
 
-const TicketForm = memo(({onSubmit,submitting, initData}) => {
+const TicketForm = memo(({ onSubmit, submitting, initData }) => {
   const { t } = useTranslation()
   const update = useUpdate()
   const [previewModalActive, setPreviewModalActive] = useState(false)
@@ -91,28 +91,24 @@ const TicketForm = memo(({onSubmit,submitting, initData}) => {
   )
 
   useEffect(() => {
-    if(initData){
+    if (initData) {
       setTitle(initData.title)
       setActiveFiledList(initData.fields)
     }
   }, [initData])
-  
-  const { data  ,isFetching } = useQuery(
+
+  const { data: [searchFields], isFetching } = useQuery(
     ['settings/ticketForm', debouncedSearchValue],
     () =>
-      http
-        .get('/api/1/ticket-fields', {
-          params: {
-            size: 30,
-            skip: 0,
-            search: debouncedSearchValue,
-          },
-        }),
+      http.get('/api/1/ticket-fields', {
+        params: {
+          size: 30,
+          skip: 0,
+          search: debouncedSearchValue,
+        },
+      }),
     {
-      initialData: {
-        count: 0,
-        fields: [],
-      },
+      initialData: [[], 0],
       keepPreviousData: true,
     }
   )
@@ -126,9 +122,9 @@ const TicketForm = memo(({onSubmit,submitting, initData}) => {
 
   useEffect(() => {
     setFiledList(
-      data.fields.filter((field) => !activeFiledList.some((item) => item.id === field.id))
+      searchFields.filter((field) => !activeFiledList.some((item) => item.id === field.id))
     )
-  }, [data.fields, activeFiledList])
+  }, [searchFields, activeFiledList])
 
   const move = useCallback(
     (sourceArea, sourceIndex, destIndex) => {
@@ -198,7 +194,7 @@ const TicketForm = memo(({onSubmit,submitting, initData}) => {
     },
     [move]
   )
-  
+
   const closePreview = useCallback(() => setPreviewModalActive(false), [])
 
   return (
@@ -362,8 +358,7 @@ const EditorForm = () => {
   const { data } = useQuery({
     queryKey: ['setting/forms', fieldId],
     queryFn: () => http.get(`/api/1/ticket-forms/${fieldId}/details`),
-    onError: (err) => addNotification(err),
-    select:(data=>data.form)
+    onError: (err) => addNotification(err)
   })
   const { mutateAsync, isLoading } = useMutation({
     mutationFn: (data) => http.patch(`/api/1/ticket-forms/${fieldId}`, data),

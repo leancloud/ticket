@@ -2,6 +2,7 @@ const AV = require('leancloud-storage')
 const { Router } = require('express')
 const { check } = require('express-validator')
 const { requireAuth, customerServiceOnly, catchError } = require('./middleware')
+const { getPaginationList } = require('./utils')
 
 const router = Router().use(requireAuth, customerServiceOnly)
 
@@ -29,43 +30,25 @@ const VARIANT_CLASS_NAME = 'TicketFieldVariant'
 router.get(
   '/',
   catchError(async (req, res) => {
-    const { size, skip, active, search } = req.query
+    const { active, search } = req.query
     const query = new AV.Query(CLASS_NAME)
-    if (size) {
-      const limit = parseInt(size)
-      if (!Number.isNaN(limit)) {
-        query.limit(limit)
-      }
+    if (search) {
+      query.contains('title', search)
     }
-    if (skip) {
-      const num = parseInt(skip)
-      if (!Number.isNaN(num)) {
-        query.skip(num)
-      }
-    }
-    if (search){
-      query.contains('title',search)
-    } 
     query.equalTo('active', active !== 'false')
     // 默认按照更新排序
     query.addDescending('updatedAt')
-    const [fields, count] = await Promise.all([
-      query.find({ useMasterKey: true }),
-      query.count({
-        useMasterKey: true,
-      }),
-    ])
-    res.json({
-      count,
-      fields: fields.map((o) => ({
+    const list = await getPaginationList(req, res, query)
+    res.json(
+      list.map((o) => ({
         id: o.id,
         title: o.get('title'),
         type: o.get('type'),
         defaultLocale: o.get('defaultLocale'),
         active: !!o.get('active'),
         required: !!o.get('required'),
-      })),
-    })
+      }))
+    )
   })
 )
 
@@ -83,7 +66,6 @@ router.get(
     const { field } = req
     const variants = await getVariants(field.id)
     res.json({
-      field: {
         title: field.get('title'),
         type: field.get('type'),
         active: !!field.get('active'),
@@ -94,7 +76,6 @@ router.get(
           title: v.get('title'),
           options: v.get('options'),
         })),
-      },
     })
   })
 )
