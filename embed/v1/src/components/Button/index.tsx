@@ -13,7 +13,7 @@ export function Button({ as = 'button', ...props }: ButtonProps) {
     ...props,
     className: classNames(
       styles.button,
-      'px-4 py-2 rounded-full bg-tapBlue-600 text-white text-center font-bold',
+      'px-4 py-2 rounded-full bg-tapBlue-600 text-white text-center font-bold select-none',
       props.className
     ),
   });

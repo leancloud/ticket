@@ -71,7 +71,14 @@ function TicketForm({ onCommit }: TicketFormProps) {
         <div className="text-right text-xs text-gray-400">{description.length}/100</div>
       </FormGroup>
       <FormGroup controlId="ticket_file" title="附件">
-        <Uploader onUpload={handleUpload} />
+        <Uploader
+          defaultFiles={[
+            { name: '附件有个很长的名称.png' },
+            { name: '附件.png' },
+            { name: '附件有个很长的名称.png', progress: 80 },
+          ]}
+          onUpload={handleUpload}
+        />
       </FormGroup>
       <FormGroup>
         <Button className="px-12" onClick={onCommit}>

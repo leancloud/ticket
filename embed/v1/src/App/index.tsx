@@ -41,7 +41,7 @@ export default function App() {
           <Route path="/tickets">
             <Tickets />
           </Route>
-          <Redirect to="/tickets" />
+          <Redirect to="/home" />
         </Switch>
       </div>
     </AppContext.Provider>

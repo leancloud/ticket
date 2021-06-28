@@ -20,7 +20,8 @@ module.exports = {
   variants: {
     extend: {
       backgroundColor: ['active'],
-      borderColor: ['active'],
+      borderColor: ['active', 'last'],
+      padding: ['last'],
     },
   },
   plugins: [],

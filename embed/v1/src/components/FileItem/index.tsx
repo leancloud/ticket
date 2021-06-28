@@ -1,4 +1,4 @@
-import { XIcon } from '@heroicons/react/solid';
+import { DownloadIcon, XIcon } from '@heroicons/react/solid';
 import { useMemo } from 'react';
 
 import styles from './index.module.css';
@@ -8,9 +8,10 @@ export interface FileItemProps {
   mime?: string;
   url?: string;
   progress?: number;
+  onDelete?: () => void;
 }
 
-export function FileItem({ name, progress }: FileItemProps) {
+export function FileItem({ name, progress, onDelete }: FileItemProps) {
   const displayName = useMemo(() => {
     if (!name) {
       return '';
@@ -25,15 +26,19 @@ export function FileItem({ name, progress }: FileItemProps) {
   }, [name]);
 
   return (
-    <div className="bg-gray-100 text-xs mr-2 mb-2 rounded text-gray-500 flex items-center relative overflow-hidden">
-      <div className="my-2 ml-2">{displayName}</div>
+    <div className="bg-gray-100 text-xs mr-2 mb-2 p-2 rounded text-gray-500 relative overflow-hidden">
+      <span>{displayName}</span>
 
-      <div className="w-8 h-full flex justify-center items-center cursor-pointer">
-        <XIcon className="w-3 h-3 text-tapBlue-600" />
-      </div>
+      <span className="ml-2 text-tapBlue-600">
+        <DownloadIcon className="inline-block w-4 h-4 cursor-pointer" />
+        {onDelete && <XIcon className="inline-block w-4 h-4 cursor-pointer" onClick={onDelete} />}
+      </span>
 
       {progress && (
-        <div className={`${styles.progress} absolute top-0`} style={{ width: progress + '%' }}>
+        <div
+          className={`${styles.progress} absolute top-0 left-0`}
+          style={{ width: progress + '%' }}
+        >
           <div className="h-full bg-tapBlue-600 bg-opacity-50" />
         </div>
       )}

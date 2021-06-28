@@ -12,9 +12,9 @@ export function Textarea(props: TextareaProps) {
     <textarea
       {...props}
       className={classNames(
-        props.className,
         'w-full px-2 py-1',
-        'border rounded focus:border-tapBlue-600 focus:ring-tapBlue-600 focus:ring-1'
+        'border rounded focus:border-tapBlue-600 focus:ring-tapBlue-600 focus:ring-1',
+        props.className
       )}
       placeholder={props.placeholder}
     />

@@ -1,0 +1,15 @@
+.radio {
+  &:checked {
+    &:before {
+      content: '';
+      width: 0.5rem;
+      height: 0.5rem;
+      background-color: #15C5CE;
+      display: block;
+      border-radius: 100%;
+      position: relative;
+      left: 0.11rem;
+      top: 0.11rem;
+    }
+  }
+}
