@@ -12,7 +12,7 @@ import { NoDataRow } from 'modules/components/NoData'
 import Pagination, { usePagination } from 'modules/components/Pagination'
 import Confirm from 'modules/components/Confirm'
 import { AddForm, EditorForm } from './FormPage'
-import ticketFieldStyles from '../ticketField/index.module.scss'
+import styles from './index.module.scss'
 
 export const useFormId = () => {
   return useParams().id
@@ -76,7 +76,11 @@ const FormList = memo(() => {
   const match = useRouteMatch()
   const { addNotification } = useAppContext()
   const { skip, pageSize } = usePagination()
-  const { data: [forms,count], isFetching, refetch } = useQuery({
+  const {
+    data: [forms, count],
+    isFetching,
+    refetch,
+  } = useQuery({
     queryKey: ['setting/ticketForms', skip, pageSize],
     queryFn: () =>
       http.get('/api/1/ticket-forms', {
@@ -85,7 +89,7 @@ const FormList = memo(() => {
           skip,
         },
       }),
-    initialData: [[],0],
+    initialData: [[], 0],
     keepPreviousData: true,
     onError: (error) => addNotification(error),
   })
@@ -98,7 +102,7 @@ const FormList = memo(() => {
             <Button variant="primary">{t('ticketForm.add')}</Button>
           </Link>
         </div>
-        <Table size="sm" className={ticketFieldStyles.table}>
+        <Table size="sm" className={styles.table}>
           <thead>
             <tr>
               <th>{t('name')}</th>

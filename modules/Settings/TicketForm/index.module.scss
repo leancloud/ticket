@@ -1,3 +1,18 @@
+.table {
+  td{
+    vertical-align: middle;
+  }
+  th,
+  td {
+    text-align: center;
+  }
+  tr > th:first-child {
+    text-align: left;
+  }
+  tr > td:first-child {
+    text-align: left;
+  }
+}
 .group{
   min-width: 50%;
   height: 60vh;
