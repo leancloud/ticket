@@ -13,9 +13,11 @@ import { Button } from 'components/Button';
 import styles from './index.module.css';
 import { Timeline } from './Timeline';
 import { Evaluation } from './Evaluation';
+import { http } from 'leancloud';
 
-export interface Ticket {
+export interface RawTicket {
   id: string;
+  nid: number;
   title: string;
   content: string;
   status: number;
@@ -23,18 +25,27 @@ export interface Ticket {
   updated_at: string;
 }
 
-function fetchTicket(id: string): Promise<Ticket> {
-  const ticket: Ticket = {
-    id,
-    title: '我是标题',
-    content: '我是描述'.repeat(20),
-    status: 220,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+export interface Ticket {
+  id: string;
+  nid: number;
+  title: string;
+  content: string;
+  status: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+async function fetchTicket(id: string): Promise<Ticket> {
+  const { data } = await http.get<RawTicket>('/api/1/tickets/' + id);
+  return {
+    id: data.id,
+    nid: data.nid,
+    title: data.title,
+    content: data.content,
+    status: data.status,
+    createdAt: new Date(data.created_at),
+    updatedAt: new Date(data.updated_at),
   };
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(ticket), 500);
-  });
 }
 
 export function useTicket(id: string) {
@@ -119,7 +130,7 @@ function TicketDetail({ ticket }: TicketDetailProps) {
       {expand && (
         <>
           <TicketAttribute expand title="编号">
-            {ticket.id}
+            #{ticket.nid}
           </TicketAttribute>
           <TicketAttribute expand title="状态">
             <TicketStatus status={ticket.status} />
@@ -150,16 +161,16 @@ function ReplyInput() {
   const [editing, setEditing] = useState(false);
   const [content, setContent] = useState('');
   const $textarea = useRef<HTMLTextAreaElement>(null);
+  const $container = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const resize = () => {
-      if (!$textarea.current) {
-        return;
-      }
+    if ($textarea.current) {
       $textarea.current.style.height = 'auto';
       $textarea.current.style.height = $textarea.current.scrollHeight + 'px';
-    };
-    resize();
+      if ($container.current) {
+        $container.current.scrollTop = $textarea.current.scrollHeight;
+      }
+    }
   }, [content]);
 
   if (editing) {
@@ -169,7 +180,10 @@ function ReplyInput() {
         <div className="px-4 py-2 border-t border-gray-100 bg-gray-50 fixed bottom-0 w-full">
           <div className="flex">
             <div className="w-full mr-4 relative">
-              <div className="flex-grow rounded-2xl border bg-white overflow-auto max-h-32 pr-5">
+              <div
+                className="flex-grow rounded-2xl border bg-white overflow-auto max-h-32 pr-5"
+                ref={$container}
+              >
                 <textarea
                   ref={$textarea}
                   className="w-full p-2 box-border"

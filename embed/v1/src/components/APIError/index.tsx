@@ -1,3 +1,5 @@
+import { ExclamationCircleIcon } from '@heroicons/react/solid';
+
 function getErrorMessage(error: any): string | null {
   if (error instanceof Error) {
     return error.message;
@@ -10,8 +12,8 @@ function getErrorMessage(error: any): string | null {
 
 export function APIError({ error }: { error?: any }) {
   return (
-    <div className="text-red-600">
-      <h1>Something went wrong.</h1>
+    <div className="flex flex-col items-center text-red-500">
+      <ExclamationCircleIcon className="w-12 h-12 m-8" />
       {error && <div>{getErrorMessage(error)}</div>}
     </div>
   );

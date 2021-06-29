@@ -45,7 +45,7 @@ function TimelineItem({ date, staff, content, fileIds }: TimelineItemProps) {
         <Time className="ml-2 text-gray-300" value={date} />
       </div>
       <div
-        className={`rounded-2xl rounded-tl-none px-3 pt-3 mt-2 text-gray-500 ${
+        className={`inline-block rounded-2xl rounded-tl-none px-3 pt-3 mt-2 text-gray-500 ${
           staff ? 'bg-tapBlue-100' : 'bg-gray-50'
         }`}
       >

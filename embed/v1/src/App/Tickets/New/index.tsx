@@ -7,69 +7,51 @@ import { useSearchParams } from 'utils/url';
 import { useAlert } from 'utils/useAlert';
 import { Page } from 'components/Page';
 import { Button } from 'components/Button';
-import { Input, Textarea } from 'components/Form';
 import { Uploader } from 'components/Uploader';
 import { QueryWrapper } from 'components/QueryWrapper';
 import { useCategory } from '../../Categories';
-
-type DivProps = JSX.IntrinsicElements['div'];
-
-export interface FromGroupProps extends DivProps {
-  title?: string;
-  controlId?: string;
-}
-
-function FormGroup({ title, controlId, children, ...props }: FromGroupProps) {
-  const $container = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (controlId && $container.current) {
-      const input = $container.current.querySelector('input');
-      if (input) {
-        input.id = controlId;
-      }
-    }
-  }, [controlId]);
-
-  return (
-    <div {...props} className={classNames(props.className, 'flex mb-5')} ref={$container}>
-      <label className="w-20 mt-1.5 flex-shrink-0" htmlFor={controlId}>
-        {title}
-      </label>
-      <div className="flex-grow">{children}</div>
-    </div>
-  );
-}
+import { FormGroup, useForm } from './Form';
 
 interface TicketFormProps {
   onCommit: () => void;
 }
 
 function TicketForm({ onCommit }: TicketFormProps) {
-  const [description, setDescription] = useState('');
+  const { element: formElement, validate, data: formData } = useForm({
+    template: [
+      {
+        name: 'title',
+        title: '标题',
+        type: 'text',
+        required: true,
+      },
+      {
+        name: 'uid',
+        title: '账号ID',
+        type: 'text',
+      },
+      {
+        name: 'content',
+        title: '描述',
+        type: 'multi-line',
+        rows: 4,
+        maxLength: 100,
+        required: true,
+      },
+    ],
+  });
   const { element: alertElement, alert } = useAlert();
 
   const handleUpload = () => {
     alert({ title: '上传失败', content: '附件大小不能超过 1 GB' });
   };
 
+  console.log(formData);
+
   return (
     <div className="px-8 py-6">
       {alertElement}
-      <FormGroup controlId="ticket_title" title="标题">
-        <Input className="w-full" placeholder="请输入标题" />
-      </FormGroup>
-      <FormGroup controlId="ticket_uid" title="账号ID">
-        <Input className="w-full" placeholder="请输入正确的账号ID" />
-      </FormGroup>
-      <FormGroup controlId="ticket_desc" title="描述">
-        <Textarea
-          rows={3}
-          placeholder="补充说明（非必填）"
-          value={description}
-          onChange={(e) => setDescription(e.target.value.slice(0, 100))}
-        />
-        <div className="text-right text-xs text-gray-400">{description.length}/100</div>
-      </FormGroup>
+      {formElement}
       <FormGroup controlId="ticket_file" title="附件">
         <Uploader
           defaultFiles={[
@@ -80,11 +62,9 @@ function TicketForm({ onCommit }: TicketFormProps) {
           onUpload={handleUpload}
         />
       </FormGroup>
-      <FormGroup>
-        <Button className="px-12" onClick={onCommit}>
-          提 交
-        </Button>
-      </FormGroup>
+      <Button className="ml-20 px-11" onClick={validate}>
+        提 交
+      </Button>
     </div>
   );
 }
@@ -109,6 +89,29 @@ export function NewTicket() {
   const { category_id } = useSearchParams();
   const result = useCategory(category_id);
   const [ticketId, setTicketId] = useState<string>();
+  const { element: formElement, validate } = useForm({
+    template: [
+      {
+        name: 'title',
+        title: '标题',
+        type: 'text',
+        required: true,
+      },
+      {
+        name: 'uid',
+        title: '账号ID',
+        type: 'text',
+      },
+      {
+        name: 'content',
+        title: '描述',
+        type: 'multi-line',
+        rows: 4,
+        maxLength: 100,
+        required: true,
+      },
+    ],
+  });
 
   const handleCommit = () => {
     setTicketId('114514');
@@ -121,9 +124,7 @@ export function NewTicket() {
   return (
     <Page title={result.data?.name}>
       <QueryWrapper result={result}>
-        {(category) =>
-          ticketId ? <Success ticketId={ticketId} /> : <TicketForm onCommit={handleCommit} />
-        }
+        {ticketId ? <Success ticketId={ticketId} /> : <TicketForm onCommit={handleCommit} />}
       </QueryWrapper>
     </Page>
   );

@@ -1,58 +1,28 @@
 import { Link, Route, Switch, useRouteMatch } from 'react-router-dom';
 import { useQuery } from 'react-query';
-import classNames from 'classnames';
 
 import { QueryWrapper } from 'components/QueryWrapper';
 import { Page } from 'components/Page';
-import { Ticket, TicketStatus } from './Ticket';
+import { Time } from 'components/Time';
+import { RawTicket, Ticket, TicketStatus } from './Ticket';
 import { NewTicket } from './New';
+import { auth, http } from 'leancloud';
 
-function fetchTickets(): Promise<Ticket[]> {
-  const tickets: Ticket[] = [
-    {
-      id: 'ticket-1',
-      title: '我是标题我是标题我是标题我',
-      content: '',
-      status: 50,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+async function fetchTickets(): Promise<Ticket[]> {
+  const { data } = await http.get<RawTicket[]>('/api/1/tickets', {
+    params: {
+      author_id: auth.currentUser?.id,
     },
-    {
-      id: 'ticket-2',
-      title: '我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题我是标题.',
-      content: '',
-      status: 160,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    {
-      id: 'ticket-3',
-      title: '我是标题我是标题我是标题我',
-      content: '',
-      status: 120,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    {
-      id: 'ticket-4',
-      title: '我是标题我是标题我是标题我',
-      content: '',
-      status: 250,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    {
-      id: 'ticket-5',
-      title: '我是标题我是标题我是标题我',
-      content: '',
-      status: 250,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-  ];
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(tickets), 500);
   });
+  return data.map((ticket) => ({
+    id: ticket.id,
+    nid: ticket.nid,
+    title: ticket.title,
+    content: ticket.content,
+    status: ticket.status,
+    createdAt: new Date(ticket.created_at),
+    updatedAt: new Date(ticket.updated_at),
+  }));
 }
 
 export function useTickets() {
@@ -71,7 +41,9 @@ function TicketItem({ ticket }: TicketItemProps) {
     <div className="p-4 border-b border-gray-100 active:bg-gray-50">
       <div className="text-xs">
         <TicketStatus status={ticket.status} />
-        <span className="ml-2 text-gray-400">更新时间: {ticket.updated_at}</span>
+        <span className="ml-2 text-gray-400">
+          更新时间: <Time value={ticket.updatedAt} />
+        </span>
       </div>
       <div className="mt-2 truncate">{ticket.title}</div>
     </div>
@@ -85,15 +57,11 @@ export function TicketList() {
     <Page title="问题记录">
       <QueryWrapper noData={!result.data?.length} noDataMessage="暂无问题记录" result={result}>
         {(tickets) => {
-          return (
-            <div className="">
-              {tickets.map((ticket) => (
-                <Link key={ticket.id} to={`/tickets/${ticket.id}`}>
-                  <TicketItem ticket={ticket} />
-                </Link>
-              ))}
-            </div>
-          );
+          return tickets.map((ticket) => (
+            <Link key={ticket.id} to={`/tickets/${ticket.id}`}>
+              <TicketItem ticket={ticket} />
+            </Link>
+          ));
         }}
       </QueryWrapper>
     </Page>

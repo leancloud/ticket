@@ -5,6 +5,7 @@ import { ChevronRightIcon } from '@heroicons/react/solid';
 
 import { Page } from 'components/Page';
 import { QueryWrapper } from 'components/QueryWrapper';
+import { http } from 'leancloud';
 
 interface CategoryItemProps {
   name: string;
@@ -24,7 +25,6 @@ function CategoryItem({ name, onClick, marker }: CategoryItemProps) {
     </div>
   );
 }
-
 export interface Category {
   id: string;
   name: string;
@@ -33,16 +33,12 @@ export interface Category {
 }
 
 async function fetchCategories(): Promise<Category[]> {
-  const categories = [
-    { id: 'category-1', name: '账号问题', position: 1 },
-    { id: 'category-2', name: '充值问题', position: 2 },
-    { id: 'category-3', name: '账号丢失', parent_id: 'category-1', position: 1 },
-    { id: 'category-4', name: '登录限制', parent_id: 'category-1', position: 2 },
-    { id: 'category-5', name: '你咋就把账号给弄丢了呢', parent_id: 'category-3', position: 114514 },
-  ];
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(categories), 500);
+  const { data } = await http.get<Category[]>('/api/1/categories', {
+    params: {
+      active: true,
+    },
   });
+  return data;
 }
 
 export function useCategories() {
@@ -99,6 +95,7 @@ export default function Categories() {
         filteredCategories.push(category);
       }
     });
+    filteredCategories.sort((a, b) => a.position - b.position);
     return [filteredCategories, title];
   }, [categories, id]);
 

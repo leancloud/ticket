@@ -20,39 +20,3 @@ export function Textarea(props: TextareaProps) {
     />
   );
 }
-
-function getValue(value: IntrinsicTextareaProps['value']): string {
-  if (!value) {
-    return '';
-  }
-  if (typeof value === 'string') {
-    return value;
-  }
-  if (typeof value === 'number') {
-    return value + '';
-  }
-  return value.join(',');
-}
-
-export function withMaxLength(maxLength: number, Component: typeof Textarea) {
-  return (props: TextareaProps) => {
-    const [value, setValue] = useState(getValue(props.value));
-    if (props.value !== undefined) {
-      setValue(getValue(props.value));
-    }
-
-    const handleChange: IntrinsicTextareaProps['onChange'] = (e) => {
-      setValue(e.target.value);
-      props.onChange?.(e);
-    };
-
-    return (
-      <div>
-        <Component {...props} value={value} onChange={handleChange} />
-        <div>
-          {value.length}/{maxLength}
-        </div>
-      </div>
-    );
-  };
-}

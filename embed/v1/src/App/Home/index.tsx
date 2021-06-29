@@ -22,7 +22,12 @@ export default function Home() {
   const history = useHistory();
   const result = useCategories();
   const categories = result.data;
-  const topCategories = useMemo(() => categories?.filter((c) => !c.parent_id) || [], [categories]);
+  const topCategories = useMemo(() => {
+    if (!categories) {
+      return [];
+    }
+    return categories.filter((c) => !c.parent_id).sort((a, b) => a.position - b.position);
+  }, [categories]);
 
   const handleClick = ({ id }: Category) => {
     if (!categories) {

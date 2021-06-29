@@ -1,8 +1,8 @@
 .spinner {
-  width: 70px;
   text-align: center;
 
   & > div {
+    margin: 0 1px;
     width: 18px;
     height: 18px;
     background-color: #15C5CEAA;
