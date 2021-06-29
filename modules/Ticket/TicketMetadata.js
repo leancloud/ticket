@@ -133,7 +133,7 @@ function AssigneeSection({ ticket, isCustomerService }) {
   return (
     <Form.Group>
       <Form.Label>{t('assignee')}</Form.Label>{' '}
-      {ticket.assignee?.id !== auth.currentUser.id && (
+      {isCustomerService && ticket.assignee?.id !== auth.currentUser.id && (
         <Button
           variant="light"
           size="sm"
