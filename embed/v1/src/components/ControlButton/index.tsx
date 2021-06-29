@@ -1,4 +1,3 @@
-import { PropsWithChildren } from 'react';
 import { useHistory } from 'react-router-dom';
 import { ChevronLeftIcon, HomeIcon } from '@heroicons/react/outline';
 

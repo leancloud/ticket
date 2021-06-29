@@ -8,15 +8,15 @@ export default defineConfig({
   plugins: [reactRefresh(), reactJSX()],
   server: {
     port: 8080,
-    // proxy: {
-    //   '/api': 'http://127.0.0.1:3000',
-    //   '/env.js': 'http://127.0.0.1:3000',
-    // },
+    proxy: {
+      '/api': 'http://127.0.0.1:3000',
+    },
   },
   resolve: {
     alias: {
       components: path.resolve('./src/components/'),
       utils: path.resolve('./src/utils/'),
+      leancloud: path.resolve('./src/leancloud'),
     },
   },
 });
