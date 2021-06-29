@@ -4,16 +4,17 @@ import { useTranslation } from 'react-i18next'
 import { Form, Badge } from 'react-bootstrap'
 import _ from 'lodash'
 import * as Icon from 'react-bootstrap-icons'
+import EnhanceSelect from 'modules/components/EnhanceSelect'
 
 import styles from './index.module.scss'
-
-export const fieldType = ['text', 'multiLine', 'dropdown', 'checkbox', 'multi-select']
+ 
+export const fieldType = ['text', 'multi-line', 'dropdown', 'checkbox', 'multi-select']
 
 const fieldIconMap = {
   dropdown: Icon.ChevronDown,
   'multi-select': Icon.ListCheck, // th-list
   text: Icon.Fonts, // text-height
-  multiLine: Icon.TextLeft,
+  'multi-line': Icon.TextLeft,
   checkbox: Icon.CheckSquare,
 }
 
@@ -57,29 +58,28 @@ const CustomField = memo(
     options,
     required,
   }) => {
-    const { t } = useTranslation()
-    if (type === 'checkbox') {
-      return (
-        <Form.Check type="checkbox">
-          <Form.Check.Input
-            id={id}
-            disabled={disabled}
-            checked={value || false}
-            onChange={(e) => {
-              if (onChange) {
-                const { checked } = e.target
-                onChange(checked)
-              }
-            }}
-            required={required}
-          />
-          {label && <Form.Check.Label htmlFor={id}>{label}</Form.Check.Label>}
-        </Form.Check>
-      )
-    }
     let content = null
     switch (type) {
-      case 'multiLine':
+      case 'checkbox':
+        content = (
+          <Form.Check type="checkbox">
+            <Form.Check.Input
+              id={id}
+              disabled={disabled}
+              checked={value}
+              onChange={(e) => {
+                if (onChange) {
+                  const { checked } = e.target
+                  onChange(checked)
+                }
+              }}
+              required={required}
+            />
+           <Form.Check.Label htmlFor={id}>{label || ' '}</Form.Check.Label> 
+          </Form.Check>
+        )
+        break
+      case 'multi-line':
         content = (
           <Form.Control
             id={id}
@@ -87,7 +87,7 @@ const CustomField = memo(
             rows={3}
             disabled={disabled}
             readOnly={readOnly}
-            value={value || ''}
+            value={value}
             onChange={(e) => {
               if (onChange) {
                 const v = e.target.value
@@ -104,7 +104,7 @@ const CustomField = memo(
             id={id}
             disabled={disabled}
             readOnly={readOnly}
-            value={value || ''}
+            value={value}
             onChange={(e) => {
               if (onChange) {
                 const v = e.target.value
@@ -119,6 +119,7 @@ const CustomField = memo(
         content = (
           <Form.Control
             as="select"
+            id={id}
             value={value}
             onChange={(e) => {
               if (onChange) {
@@ -131,7 +132,7 @@ const CustomField = memo(
             multiple
           >
             {options &&
-              options.map(({ value: v, title }) => {
+              options.map(([v, title]) => {
                 return (
                   <option key={`${v}-${title}`} value={v}>
                     {title}
@@ -142,45 +143,22 @@ const CustomField = memo(
         )
         break
       case 'dropdown':
-        {
-          const valueIncluded = options && options.some(({ value: v }) => v === value)
-          content = (
-            <Form.Control
-              as="select"
-              value={value}
-              onChange={(e) => {
-                if (onChange) {
-                  const v = e.target.value
-                  onChange(v)
-                }
-              }}
-              disabled={disabled}
-              required={required}
-            >
-              {value === undefined && !valueIncluded && (
-                <option key="" value="">
-                  {t('select')}
-                </option>
-              )}
-              {options &&
-                options.map(({ value: v, title }) => {
-                  return (
-                    <option key={`${v}-${title}`} value={v}>
-                      {title}
-                    </option>
-                  )
-                })}
-            </Form.Control>
-          )
-        }
+        content = <EnhanceSelect {...{
+          id,
+          readOnly,
+          required,
+          disabled,
+          value,
+          onChange,
+          options,
+        }} />
         break
     }
-
     return (
-      <>
-        {label && <Form.Label htmlFor={id}>{label}</Form.Label>}
+      <Form.Group>
+        {type !=='checkbox' && label && <Form.Label htmlFor={id}>{label}</Form.Label>}
         {content}
-      </>
+      </Form.Group>
     )
   }
 )

@@ -63,7 +63,7 @@ function QuickReplyList() {
 
   const { data: quickReplies, isLoading } = useQuery({
     queryKey: ['quickReplies', params],
-    queryFn: () => http.get('/api/1/quick-replies', { params }).then((res) => res.data),
+    queryFn: () => http.get('/api/1/quick-replies', { params }),
   })
 
   const { mutate: deleteQuickReply } = useMutation({

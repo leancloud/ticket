@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Form, Button, Modal, Col, Dropdown, Breadcrumb } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
 import * as Icon from 'react-bootstrap-icons'
+import { useMutation, useQuery } from 'react-query'
 import { DocumentTitle } from 'modules/utils/DocumentTitle'
 import { RadioGroup } from 'modules/components/Radio'
 import Divider from 'modules/components/Divider'
@@ -12,24 +13,18 @@ import _ from 'lodash'
 import Preview from './Preview'
 import { fieldType, CustomFieldLabel, DisplayCustomField } from './CustomField'
 import LocaleManage, { AllLocales } from './LocaleManage'
-import { fetch } from 'lib/leancloud'
+import { http } from 'lib/leancloud'
 import { useFieldId } from '.'
 import styles from './index.module.scss'
-import { useTransform, createResourceHook } from '@leancloud/use-resource'
 
 const includeOptionsType = ['dropdown', 'multi-select']
-const defaultOptions = [
-  {
-    value: '',
-    title: '',
-  },
-]
+const defaultOptions = [['', '']]
 const DropdownOptions = memo(({ options = defaultOptions, onChange }) => {
   const { t } = useTranslation()
   const sameTagIndexes = useMemo(() => {
     const map = new Map()
     const result = []
-    options.forEach(({ title }, index) => {
+    options.forEach(([, title], index) => {
       if (title !== '') {
         if (map.has(title)) {
           result.push(map.get(title))
@@ -44,25 +39,17 @@ const DropdownOptions = memo(({ options = defaultOptions, onChange }) => {
   // auto expend
   const reOptions = useMemo(() => {
     if (options.length === 0) {
-      return [
-        {
-          value: '',
-          title: '',
-        },
-      ]
+      return ['', '']
     }
-    if (options[options.length - 1].value !== '') {
+    if (options[options.length - 1][0] !== '') {
       return [
         ...options,
-        {
-          value: '',
-          title: '',
-        },
+        [ '', '',],
       ]
     }
     return options
   }, [options])
-
+  
   return (
     <Form.Group>
       <Form.Label>{t('ticketField.options')}</Form.Label>
@@ -70,7 +57,7 @@ const DropdownOptions = memo(({ options = defaultOptions, onChange }) => {
         const duplicateTag = sameTagIndexes.includes(index)
         const isLast = index === reOptions.length - 1
         const required = reOptions.length === 1 ? true : !isLast
-        const { value, title } = option
+        const [ value, title ]= option
         return (
           <Form.Row key={index}>
             <Form.Group as={Col}>
@@ -82,10 +69,7 @@ const DropdownOptions = memo(({ options = defaultOptions, onChange }) => {
                 onChange={(e) => {
                   const inputValue = e.target.value
                   const tmp = [...options]
-                  tmp[index] = {
-                    value: inputValue,
-                    title: title === value ? inputValue : title,
-                  }
+                  tmp[index] = [inputValue, title === value ? inputValue : title]
                   onChange(tmp)
                 }}
               />
@@ -99,10 +83,7 @@ const DropdownOptions = memo(({ options = defaultOptions, onChange }) => {
                 onChange={(e) => {
                   const inputValue = e.target.value
                   const tmp = [...options]
-                  tmp[index] = {
-                    value: value,
-                    title: inputValue,
-                  }
+                  tmp[index] = [value,inputValue]
                   onChange(tmp)
                 }}
                 isInvalid={duplicateTag}
@@ -142,12 +123,11 @@ DropdownOptions.propTypes = {
 }
 
 const DEFAULT_LOCALE = AllLocales[0]
-const FieldForm = memo(({ onSubmit, initData }) => {
+const FieldForm = memo(({ onSubmit, initData, submitting }) => {
   const { t } = useTranslation()
   const { addNotification } = useAppContext()
   const [previewModalActive, setPreviewModalActive] = useState(false)
   const [localeModalActive, setLocaleModalActive] = useState(false)
-
   const [locales, setLocales] = useState([DEFAULT_LOCALE])
   const [activeLocale, setActiveLocale] = useState(DEFAULT_LOCALE)
   const [defaultLocale, setDefaultLocale] = useState(DEFAULT_LOCALE)
@@ -156,8 +136,6 @@ const FieldForm = memo(({ onSubmit, initData }) => {
   const [type, setType] = useState()
   const [required, setRequired] = useState(false)
   const [variants, setVariants] = useState({})
-
-  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     if (initData && initData.title) {
@@ -170,12 +148,11 @@ const FieldForm = memo(({ onSubmit, initData }) => {
     }
   }, [initData])
 
-
   useEffect(() => {
-    setVariants(pre=>{
-      const newVariants = {};
-      locales.map(locale=>{
-        newVariants[locale]=pre[locale];
+    setVariants((pre) => {
+      const newVariants = {}
+      locales.map((locale) => {
+        newVariants[locale] = pre[locale]
       })
       return newVariants
     })
@@ -227,30 +204,23 @@ const FieldForm = memo(({ onSubmit, initData }) => {
   }, [locales, variants, type])
 
   const submit = async () => {
-    try {
-      setSubmitting(true)
-      await onSubmit({
-        title,
-        type,
-        required,
-        defaultLocale,
-        variants: Object.entries(variants).map(([key, value]) => {
-          const { title, options } = value
-          return {
-            title,
-            locale: key,
-            options: includeOptionsType.includes(type) ? options : undefined,
-          }
-        }),
-      })
-      setSubmitting(false)
-      if (!initData) {
-        setTitle()
-        setVariants({})
-      }
-    } catch (error) {
-      addNotification(error)
-      setSubmitting(false)
+    await onSubmit({
+      title,
+      type,
+      required,
+      defaultLocale,
+      variants: Object.entries(variants).map(([key, value]) => {
+        const { title, options } = value
+        return {
+          title,
+          locale: key,
+          options: includeOptionsType.includes(type) ? options : undefined,
+        }
+      }),
+    })
+    if (!initData) {
+      setTitle()
+      setVariants({})
     }
   }
 
@@ -445,27 +415,22 @@ const FieldForm = memo(({ onSubmit, initData }) => {
 FieldForm.propTypes = {
   initData: PropTypes.object,
   onSubmit: PropTypes.func.isRequired,
+  submitting: PropTypes.bool
 }
 
 const AddField = memo(() => {
   const { t } = useTranslation()
   const { addNotification } = useAppContext()
-  const onSubmit = useCallback(
-    async (params) => {
-      try {
-        await fetch('/api/1/ticket-fields', {
-          method: 'POST',
-          body: params,
-        })
-        addNotification({
-          message: t('ticketField.success'),
-        })
-      } catch (error) {
-        addNotification(error)
-      }
+  const { mutateAsync, isLoading } = useMutation({
+    mutationFn: (data) => http.post('/api/1/ticket-fields', data),
+    onSuccess: () => {
+      addNotification({
+        message: t('ticketField.success'),
+      })
     },
-    [addNotification, t]
-  )
+    onError: (err) => addNotification(err),
+  })
+
   return (
     <>
       <DocumentTitle title={`${t('ticketField.add')} - LeanTicket`} />
@@ -475,67 +440,41 @@ const AddField = memo(() => {
         </Breadcrumb.Item>
         <Breadcrumb.Item active>{t('ticketField.add')}</Breadcrumb.Item>
       </Breadcrumb>
-      <FieldForm onSubmit={onSubmit} />
+      <FieldForm onSubmit={mutateAsync} submitting={isLoading} />
     </>
   )
-})
-
-
-const useField = createResourceHook((id)=>{
-   const abortController = new AbortController()
-   return {
-     abort: () => abortController.abort(),
-     promise: fetch(`/api/1/ticket-fields/${id}`, {
-       signal: abortController.signal,
-     }),
-   }
 })
 
 const EditorField = memo(() => {
   const { t } = useTranslation()
   const { addNotification } = useAppContext()
   const fieldId = useFieldId()
-  const [fieldData, { error }] = useTransform(
-    useField([fieldId]),
-    useCallback((data) => {
-      if (!data) {
-        return {}
-      } else {
-        const { variants } = data.field
-        return {
-          ...data.field,
-          variants: variants.reduce((pre, current) => {
-            const { locale, ...rest } = current
-            pre[locale] = rest
-            return pre
-          }, {}),
-        }
-      }
-    }, [])
-  )
-
-  useEffect(() => {
-    if (error) {
-      addNotification(error)
-    }
-  }, [error, addNotification])
-
-  const onSubmit = useCallback(
-    async (params) => {
-      try {
-        await fetch(`/api/1/ticket-fields/${fieldId}`, {
-          method: 'PATCH',
-          body: params,
-        })
-        addNotification({
-          message: t('ticketField.success'),
-        })
-      } catch (error) {
-        addNotification(error)
+  const { data } = useQuery({
+    queryKey: ['setting/forms', fieldId],
+    queryFn: () => http.get(`/api/1/ticket-fields/${fieldId}`),
+    onError: (err) => addNotification(err),
+    select: (field) => {
+      const { variants } = field
+      return {
+        ...field,
+        variants: variants.reduce((pre, current) => {
+          const { locale, ...rest } = current
+          pre[locale] = rest
+          return pre
+        }, {}),
       }
     },
-    [addNotification, t, fieldId]
-  )
+  })
+
+  const { mutateAsync, isLoading } = useMutation({
+    mutationFn: (data) => http.patch(`/api/1/ticket-fields/${fieldId}`, data),
+    onSuccess: () => {
+      addNotification({
+        message: t('ticketField.success'),
+      })
+    },
+    onError: (err) => addNotification(err),
+  })
 
   return (
     <>
@@ -546,7 +485,7 @@ const EditorField = memo(() => {
         </Breadcrumb.Item>
         <Breadcrumb.Item active>{fieldId}</Breadcrumb.Item>
       </Breadcrumb>
-      <FieldForm initData={fieldData} type="edit" onSubmit={onSubmit} />
+      <FieldForm initData={data} onSubmit={mutateAsync} submitting={isLoading} />
     </>
   )
 })

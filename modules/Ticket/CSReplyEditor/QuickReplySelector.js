@@ -15,7 +15,7 @@ export function QuickReplySelector({ onChange }) {
 
   const { data: quickReplies, isLoading } = useQuery({
     queryKey: 'quickReplies',
-    queryFn: () => http.get('/api/1/quick-replies').then((res) => res.data),
+    queryFn: () => http.get('/api/1/quick-replies')
   })
 
   const handleSelect = useCallback(

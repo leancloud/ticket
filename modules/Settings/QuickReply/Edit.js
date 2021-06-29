@@ -19,7 +19,7 @@ export function EditQuickReply() {
 
   const { data: initValue, isLoading } = useQuery({
     queryKey: ['quickReply', id],
-    queryFn: () => http.get(`/api/1/quick-replies/${id}`).then((res) => res.data),
+    queryFn: () => http.get(`/api/1/quick-replies/${id}`),
   })
 
   const { mutateAsync: update } = useMutation({

@@ -1,27 +1,30 @@
 import React, { memo } from 'react'
-import PropTypes from 'prop-types'
-import { useRouteMatch, Link } from 'react-router-dom'
-import { useTranslation, Trans } from 'react-i18next'
-import { useQuery, useMutation } from 'react-query'
+import { Route, Switch, useParams, useRouteMatch, Link } from 'react-router-dom'
+import moment from 'moment'
+import { DocumentTitle } from 'modules/utils/DocumentTitle'
 import { Button, Table } from 'react-bootstrap'
-import { DocumentTitle } from '../../utils/DocumentTitle'
-import Pagination, { usePagination } from 'modules/components/Pagination'
-import { NoDataRow } from 'modules/components/NoData'
-import { useAppContext } from 'modules/context'
-import Confirm from 'modules/components/Confirm'
+import { useTranslation, Trans } from 'react-i18next'
+import PropTypes from 'prop-types'
+import { useQuery, useMutation } from 'react-query'
 import { http } from 'lib/leancloud'
-import styles from './index.module.scss'
+import { useAppContext } from 'modules/context'
+import { NoDataRow } from 'modules/components/NoData'
+import Pagination, { usePagination } from 'modules/components/Pagination'
+import Confirm from 'modules/components/Confirm'
+import { AddForm, EditorForm } from './FormPage'
+import ticketFieldStyles from '../ticketField/index.module.scss'
+
+export const useFormId = () => {
+  return useParams().id
+}
 
 const FieldRow = memo(({ data, onDeleted }) => {
   const { t } = useTranslation()
   const match = useRouteMatch()
   const { addNotification } = useAppContext()
-  const { title, type, required, id } = data
+  const { title, id, updatedAt } = data
   const { mutateAsync, isLoading } = useMutation({
-    mutationFn: () =>
-      http.patch(`/api/1/ticket-fields/${id}`, {
-        active: false,
-      }),
+    mutationFn: () => http.delete(`/api/1/ticket-forms/${id}`),
     onSuccess: () => {
       addNotification({
         message: t('delete.successfully'),
@@ -34,8 +37,7 @@ const FieldRow = memo(({ data, onDeleted }) => {
   return (
     <tr>
       <td>{title}</td>
-      <td>{t(`ticketField.type.${type}`)}</td>
-      <td>{t(`ticketField.required.${required ? 'yes' : 'no'}`)}</td>
+      <td>{moment(updatedAt).format('YYYY-MM-DD HH:MM')}</td>
       <td>
         <Button variant="link" size="sm" as={Link} to={`${match.path}/${id}`}>
           {t('edit')}
@@ -52,7 +54,7 @@ const FieldRow = memo(({ data, onDeleted }) => {
           danger
           onConfirm={mutateAsync}
           confirmButtonText={t('delete')}
-          content={t('ticketField.deleteHint')}
+          content={t('ticketForm.deleteHint')}
           trigger={
             <Button variant="link" size="sm" className="text-danger" disabled={isLoading}>
               {t('delete')}
@@ -69,51 +71,46 @@ FieldRow.propTypes = {
   onDeleted: PropTypes.func.isRequired,
 }
 
-const FieldList = memo(() => {
+const FormList = memo(() => {
   const { t } = useTranslation()
   const match = useRouteMatch()
   const { addNotification } = useAppContext()
   const { skip, pageSize } = usePagination()
-  const {
-    data: [fields, count],
-    isFetching,
-    refetch,
-  } = useQuery({
-    queryKey: ['setting/fields', skip, pageSize],
+  const { data: [forms,count], isFetching, refetch } = useQuery({
+    queryKey: ['setting/ticketForms', skip, pageSize],
     queryFn: () =>
-      http.get(`/api/1/ticket-fields`, {
+      http.get('/api/1/ticket-forms', {
         params: {
           size: pageSize,
           skip,
         },
       }),
+    initialData: [[],0],
     keepPreviousData: true,
-    initialData: [[], 0],
-    onError: (err) => addNotification(err),
+    onError: (error) => addNotification(error),
   })
   return (
     <div>
       <div>
         <div className="mb-3">
-          <DocumentTitle title={`${t('ticketField')} - LeanTicket`} />
+          <DocumentTitle title={`${t('ticketForm')} - LeanTicket`} />
           <Link to={`${match.path}/new`}>
-            <Button variant="primary">{t('ticketField.add')}</Button>
+            <Button variant="primary">{t('ticketForm.add')}</Button>
           </Link>
         </div>
-        <Table size="sm" className={styles.table}>
+        <Table size="sm" className={ticketFieldStyles.table}>
           <thead>
             <tr>
               <th>{t('name')}</th>
-              <th>{t('type')}</th>
-              <th>{t('required')}</th>
+              <th>{t('updated')}</th>
               <th>{t('operation')}</th>
             </tr>
           </thead>
           <tbody>
-            {fields.map((fieldData) => (
+            {forms.map((fieldData) => (
               <FieldRow data={fieldData} key={fieldData.id} onDeleted={refetch} />
             ))}
-            {!isFetching && fields.length === 0 && <NoDataRow />}
+            {!isFetching && forms.length === 0 && <NoDataRow />}
           </tbody>
         </Table>
         {count > 0 && <Pagination count={count} />}
@@ -122,4 +119,13 @@ const FieldList = memo(() => {
   )
 })
 
-export default FieldList
+export default function TicketFields() {
+  const match = useRouteMatch()
+  return (
+    <Switch>
+      <Route path={`${match.path}/new`} component={AddForm} />
+      <Route path={`${match.path}/:id`} component={EditorForm} />
+      <Route component={FormList} />
+    </Switch>
+  )
+}

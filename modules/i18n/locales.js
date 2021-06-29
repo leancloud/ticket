@@ -107,6 +107,14 @@ const messages = {
     'Delete',
     '删除'
   ],
+  'delete.successfully': [
+    'Deleted',
+    '删除成功'
+  ],
+  'add': [
+    'Add',
+    '添加'
+  ],
   'description': [
     'Description',
     '描述'
@@ -248,7 +256,7 @@ const messages = {
     '该标签用户不可见，只有技术支持人员可见。'
   ],
   'internalTip': [
-    'only visible to custermer services.',
+    'only visible to customer services.',
     "仅客服可见"
   ],
   'rank': [
@@ -383,6 +391,10 @@ const messages = {
     'Updated at',
     '更新于'
   ],
+  'updated': [
+    'Updated',
+    '更新时间'
+  ],
   'user': [
     'User',
     '用户'
@@ -482,7 +494,7 @@ const messages = {
     '用户新建该分类工单时，问题描述默认显示这里的内容。'
   ],
   'FAQInfo': [
-    'FAQs to display when this catogery is selected during ticket creating',
+    'FAQs to display when this category is selected during ticket creating',
     '新建工单时，选中该分类将展示的常见问题。'
   ],
   // FAQ
@@ -1024,7 +1036,7 @@ const messages = {
     'Text',
     '文本'
   ],
-  'ticketField.type.multiLine':[
+  'ticketField.type.multi-line':[
     'Multi-line',
     '多行'
   ],
@@ -1144,7 +1156,56 @@ const messages = {
     'This ticket field may be used in some forms. Deleting a ticket field will remove it from these tables and cannot be restored',
     '此工单字段可能用于某些表格，删除工单字段会将其从这些表格中移除，并且无法恢复。'
   ],
-  
+  'ticketForm':[
+    'Ticket template',
+    '工单模板'
+  ],
+  'ticketForm.list':[
+    'Template list',
+    '模板列表'
+  ],
+  'ticketForm.add':[
+    'Add template',
+    '新增模板'
+  ],
+  'ticketForm.delete':[
+    'Delete <Title />',
+    '删除模板 <Title />'
+  ],
+  'ticketForm.deleteHint':[
+    '此模版可能应用在某些工单中，删除后这些工单将会受到影响。是否删除该模版？', // todo
+    '此模版可能应用在某些工单中，删除后这些工单将会受到影响。是否删除该模版？'
+  ],
+  'ticketForm.nameHint':[
+    'Please enter a template name',
+    '请输入模版名称'
+  ],
+  'ticketForm.filedSelected':[
+    '已选工单字段',
+    '已选工单字段'
+  ],
+  'ticketForm.filedAdd':[
+    '直接拖动添加工单字段',
+    '直接拖动添加工单字段'
+  ],
+  'ticketForm.filedOptional':[
+    '可选工单字段',
+    '可选工单字段'
+  ],
+  'ticketForm.filedSearchHint':[
+    '请输入字段名称搜索',
+    '请输入字段名称搜索'
+  ],
+  'ticketForm.filedRequired':[
+    '没有工单字段',
+    '没有工单字段'
+  ],
+  'ticketForm.filedOptionalRequired':[
+    '没有可选工单字段',
+    '没有可选工单字段'
+  ],
+
+
   'pagination.totalPage': [
     ' / {{total}}',
     ' / {{total}} 页',
