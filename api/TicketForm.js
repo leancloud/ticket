@@ -2,17 +2,19 @@ const AV = require('leancloud-storage')
 const { Router } = require('express')
 const { check } = require('express-validator')
 const { requireAuth, customerServiceOnly, catchError } = require('./middleware')
-const { getPaginationList } = require('./utils')
+const { getLimitationData, responseAppendCount } = require('./utils')
 const router = Router().use(requireAuth, customerServiceOnly)
 const CLASS_NAME = 'TicketForm'
 
 router.get(
   '/',
   catchError(async (req, res) => {
+    const { size, skip } = req.query
     const query = new AV.Query(CLASS_NAME)
     // 默认按照更新排序
     query.addDescending('updatedAt')
-    const list = await getPaginationList(req, res, query)
+    const [list, count] = await getLimitationData({ size, skip }, query)
+    res = responseAppendCount(res, count)
     res.json(
       list.map((o) => ({
         id: o.id,

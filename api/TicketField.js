@@ -2,7 +2,7 @@ const AV = require('leancloud-storage')
 const { Router } = require('express')
 const { check } = require('express-validator')
 const { requireAuth, customerServiceOnly, catchError } = require('./middleware')
-const { getPaginationList } = require('./utils')
+const { getLimitationData, responseAppendCount } = require('./utils')
 
 const router = Router().use(requireAuth, customerServiceOnly)
 
@@ -30,7 +30,7 @@ const VARIANT_CLASS_NAME = 'TicketFieldVariant'
 router.get(
   '/',
   catchError(async (req, res) => {
-    const { active, search } = req.query
+    const { active, search, size, skip } = req.query
     const query = new AV.Query(CLASS_NAME)
     if (search) {
       query.contains('title', search)
@@ -38,7 +38,8 @@ router.get(
     query.equalTo('active', active !== 'false')
     // 默认按照更新排序
     query.addDescending('updatedAt')
-    const list = await getPaginationList(req, res, query)
+    const [list, count] = await getLimitationData({ size, skip }, query)
+    res = responseAppendCount(res, count)
     res.json(
       list.map((o) => ({
         id: o.id,
@@ -66,16 +67,16 @@ router.get(
     const { field } = req
     const variants = await getVariants(field.id)
     res.json({
-        title: field.get('title'),
-        type: field.get('type'),
-        active: !!field.get('active'),
-        required: !!field.get('required'),
-        defaultLocale: field.get('defaultLocale'),
-        variants: variants.map((v) => ({
-          locale: v.get('locale'),
-          title: v.get('title'),
-          options: v.get('options'),
-        })),
+      title: field.get('title'),
+      type: field.get('type'),
+      active: !!field.get('active'),
+      required: !!field.get('required'),
+      defaultLocale: field.get('defaultLocale'),
+      variants: variants.map((v) => ({
+        locale: v.get('locale'),
+        title: v.get('title'),
+        options: v.get('options'),
+      })),
     })
   })
 )

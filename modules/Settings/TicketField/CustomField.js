@@ -58,7 +58,6 @@ const CustomField = memo(
     options,
     required,
   }) => {
-    const { t } = useTranslation()
     let content = null
     switch (type) {
       case 'checkbox':

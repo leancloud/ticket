@@ -1,5 +1,5 @@
-async function getPaginationList(req, res, query) {
-  const { size, skip } = req.query
+async function getLimitationData(conditions, query) {
+  const { size, skip } = conditions
   if (size) {
     const limit = parseInt(size)
     if (!Number.isNaN(limit)) {
@@ -12,17 +12,28 @@ async function getPaginationList(req, res, query) {
       query.skip(num)
     }
   }
-  const [list, count] = await Promise.all([
+  return await Promise.all([
     query.find({ useMasterKey: true }),
     query.count({
       useMasterKey: true,
     }),
   ])
-  res.append('X-Total-Count', count)
-  res.append('Access-Control-Expose-Headers', 'X-Total-Count')
-  return list
+}
+
+const TOTAL_COUNT_KEY = 'X-Total-Count'
+/**
+ * 
+ * @param {*} res 
+ * @param {*} count number
+ * @returns res
+ */
+function responseAppendCount(res, count) {
+  res.append(TOTAL_COUNT_KEY, count)
+  res.append('Access-Control-Expose-Headers', TOTAL_COUNT_KEY)
+  return res
 }
 
 module.exports = {
-  getPaginationList,
+  getLimitationData,
+  responseAppendCount,
 }
