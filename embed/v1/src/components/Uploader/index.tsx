@@ -3,19 +3,22 @@ import { PlusIcon } from '@heroicons/react/solid';
 
 import { FileItem } from '../FileItem';
 
-export class UploadTask {}
-
-export interface File {
+export interface FileInfo {
+  key: string | number;
   name: string;
+  mime?: string;
+  url?: string;
   progress?: number;
 }
 
 export interface UploaderProps {
-  defaultFiles?: File[];
+  files?: FileInfo[];
+  download?: boolean;
   onUpload?: (files: FileList) => void;
+  onDelete?: (file: FileInfo) => void;
 }
 
-export function Uploader({ defaultFiles, onUpload }: UploaderProps) {
+export function Uploader({ files, onUpload, onDelete, download = true }: UploaderProps) {
   const $input = useRef<HTMLInputElement>(null);
 
   const handleClick = () => {
@@ -43,8 +46,8 @@ export function Uploader({ defaultFiles, onUpload }: UploaderProps) {
         </div>
       </div>
       <div className="mt-2 flex flex-wrap">
-        {defaultFiles?.map(({ name, progress }) => (
-          <FileItem name={name} progress={progress} />
+        {files?.map((info) => (
+          <FileItem {...info} download={download} onDelete={onDelete && (() => onDelete(info))} />
         ))}
       </div>
     </div>

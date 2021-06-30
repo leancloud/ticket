@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { Link, Redirect } from 'react-router-dom';
-import classNames from 'classnames';
 import { CheckCircleIcon } from '@heroicons/react/solid';
+import { useMutation } from 'react-query';
 
 import { useSearchParams } from 'utils/url';
 import { useAlert } from 'utils/useAlert';
@@ -10,43 +10,81 @@ import { Button } from 'components/Button';
 import { Uploader } from 'components/Uploader';
 import { QueryWrapper } from 'components/QueryWrapper';
 import { useCategory } from '../../Categories';
-import { FormGroup, useForm } from './Form';
+import { FormGroup, FormProps, useForm } from './Form';
+import { useUpload } from './useUpload';
+import { http } from 'leancloud';
 
-interface TicketFormProps {
-  onCommit: () => void;
+const PRESET_FORM_FIELDS: FormProps['template'] = [
+  {
+    name: 'title',
+    title: '标题',
+    type: 'text',
+    required: true,
+  },
+  {
+    name: 'uid',
+    title: '账号ID',
+    type: 'text',
+  },
+  {
+    name: 'content',
+    title: '描述',
+    type: 'multi-line',
+    rows: 4,
+    maxLength: 100,
+    required: true,
+  },
+];
+
+const MAX_FILE_SIZE = 1024 * 1024 * 1024; // 1 GB
+
+interface TicketData {
+  category_id: string;
+  title: string;
+  content: string;
+  file_ids: string[];
 }
 
-function TicketForm({ onCommit }: TicketFormProps) {
+interface TicketFormProps {
+  categoryId: string;
+  onCommit: (data: TicketData) => void;
+}
+
+function TicketForm({ categoryId, onCommit }: TicketFormProps) {
   const { element: formElement, validate, data: formData } = useForm({
-    template: [
-      {
-        name: 'title',
-        title: '标题',
-        type: 'text',
-        required: true,
-      },
-      {
-        name: 'uid',
-        title: '账号ID',
-        type: 'text',
-      },
-      {
-        name: 'content',
-        title: '描述',
-        type: 'multi-line',
-        rows: 4,
-        maxLength: 100,
-        required: true,
-      },
-    ],
+    template: PRESET_FORM_FIELDS,
   });
   const { element: alertElement, alert } = useAlert();
+  const { files, upload, remove, isUploading } = useUpload();
 
-  const handleUpload = () => {
-    alert({ title: '上传失败', content: '附件大小不能超过 1 GB' });
+  const handleUpload = (files: FileList) => {
+    if (!files.length) {
+      return;
+    }
+    const file = files[0];
+    if (file.size > MAX_FILE_SIZE) {
+      alert({ title: '上传失败', content: '附件大小不能超过 1 GB' });
+      return;
+    }
+    upload(file);
   };
 
-  console.log(formData);
+  const handleCommit = () => {
+    if (!validate()) {
+      return;
+    }
+    if (isUploading) {
+      alert({ title: '提交失败', content: '请等待全部文件上传完毕' });
+      return;
+    }
+    const data = {
+      category_id: categoryId,
+      title: formData.title as string,
+      content: formData.content as string,
+      file_ids: files.map((file) => file.id!),
+    };
+    onCommit(data);
+  };
 
   return (
     <div className="px-8 py-6">
@@ -54,15 +92,13 @@ function TicketForm({ onCommit }: TicketFormProps) {
       {formElement}
       <FormGroup controlId="ticket_file" title="附件">
         <Uploader
-          defaultFiles={[
-            { name: '附件有个很长的名称.png' },
-            { name: '附件.png' },
-            { name: '附件有个很长的名称.png', progress: 80 },
-          ]}
+          download={false}
+          files={files}
           onUpload={handleUpload}
+          onDelete={({ key }) => remove(key as number)}
         />
       </FormGroup>
-      <Button className="ml-20 px-11" onClick={validate}>
+      <Button className="ml-20 px-11" onClick={handleCommit}>
         提 交
       </Button>
     </div>
@@ -75,47 +111,35 @@ interface SuccessProps {
 
 function Success({ ticketId }: SuccessProps) {
   return (
-    <div className="flex flex-col items-center">
-      <CheckCircleIcon className="w-12 h-12 m-8 text-tapBlue-600" />
-      <div className="text-gray-500 mb-4">提交成功，我们将尽快为您处理</div>
-      <Button className="px-12" as={Link} to="/home">
+    <div className="flex flex-col justify-center items-center h-full">
+      <CheckCircleIcon className="w-12 h-12 text-tapBlue-600" />
+      <div className="text-gray-500 mt-8">提交成功，我们将尽快为您处理</div>
+      <Button className="mt-4 px-12" as={Link} to={`/tickets/${ticketId}`}>
         问题详情
       </Button>
     </div>
   );
 }
 
+async function commitTicket(data: TicketData): Promise<string> {
+  const {
+    data: { id },
+  } = await http.post<{ id: string }>('/api/1/tickets', data);
+  return id;
+}
+
 export function NewTicket() {
   const { category_id } = useSearchParams();
   const result = useCategory(category_id);
   const [ticketId, setTicketId] = useState<string>();
-  const { element: formElement, validate } = useForm({
-    template: [
-      {
-        name: 'title',
-        title: '标题',
-        type: 'text',
-        required: true,
-      },
-      {
-        name: 'uid',
-        title: '账号ID',
-        type: 'text',
-      },
-      {
-        name: 'content',
-        title: '描述',
-        type: 'multi-line',
-        rows: 4,
-        maxLength: 100,
-        required: true,
-      },
-    ],
-  });
 
-  const handleCommit = () => {
-    setTicketId('114514');
-  };
+  const { mutate } = useMutation({
+    mutationFn: commitTicket,
+    onSuccess: setTicketId,
+    onError: (error: Error) => {
+      alert(error.message);
+    },
+  });
 
   if (!result.data && !result.isLoading && !result.error) {
     // Category is not exists :badbad:
@@ -124,7 +148,11 @@ export function NewTicket() {
   return (
     <Page title={result.data?.name}>
       <QueryWrapper result={result}>
-        {ticketId ? <Success ticketId={ticketId} /> : <TicketForm onCommit={handleCommit} />}
+        {ticketId ? (
+          <Success ticketId={ticketId} />
+        ) : (
+          <TicketForm categoryId={category_id} onCommit={mutate} />
+        )}
       </QueryWrapper>
     </Page>
   );

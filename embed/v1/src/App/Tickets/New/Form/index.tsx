@@ -1,3 +1,4 @@
+import classNames from 'classnames';
 import { useEffect, useRef, useState } from 'react';
 
 import { Field } from './Fields';
@@ -67,7 +68,7 @@ export function FormGroup({ title, controlId, required, children, ...props }: Fr
   }, [controlId]);
 
   return (
-    <div {...props} className={`${props.className} flex mb-5`} ref={$container}>
+    <div {...props} className={classNames(props.className, 'flex mb-5')} ref={$container}>
       <div className="flex-shrink-0 w-20 mt-1.5">
         <label htmlFor={controlId}>
           {title}
@@ -119,6 +120,7 @@ export function useForm({ template }: UseFormOptions) {
       }
     });
     setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
   };
 
   return { element, validate, data };
