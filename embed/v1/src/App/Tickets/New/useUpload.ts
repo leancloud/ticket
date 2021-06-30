@@ -16,6 +16,7 @@ export interface UseUploadResult {
   isUploading: boolean;
   upload: (file: File) => void;
   remove: (key: number) => void;
+  removeAll: () => void;
 }
 
 export function useUpload({ onError }: UseUploadOptions = {}): UseUploadResult {
@@ -79,5 +80,7 @@ export function useUpload({ onError }: UseUploadOptions = {}): UseUploadResult {
     setFiles((prev) => prev.filter((f) => f.key !== key));
   }, []);
 
-  return { files, isUploading: uploadingCount > 0, upload, remove };
+  const removeAll = useCallback(() => setFiles([]), []);
+
+  return { files, isUploading: uploadingCount > 0, upload, remove, removeAll };
 }

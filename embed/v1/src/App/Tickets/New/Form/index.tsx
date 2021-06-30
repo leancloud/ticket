@@ -72,7 +72,7 @@ export function FormGroup({ title, controlId, required, children, ...props }: Fr
       <div className="flex-shrink-0 w-20 mt-1.5">
         <label htmlFor={controlId}>
           {title}
-          {required && <span className="ml-1 text-red-500">*</span>}
+          {required && <span className="ml-1 text-red-500 select-none">*</span>}
         </label>
       </div>
       <div className="flex-grow">{children}</div>

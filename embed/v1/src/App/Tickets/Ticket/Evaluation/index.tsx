@@ -4,6 +4,9 @@ import { CheckCircleIcon, ThumbDownIcon, ThumbUpIcon } from '@heroicons/react/so
 import styles from './index.module.css';
 import { Input } from 'components/Form';
 import { Button } from 'components/Button';
+import { useMutation } from 'react-query';
+import { Ticket } from '..';
+import { http } from 'leancloud';
 
 interface RadioProps {
   id: string;
@@ -29,7 +32,7 @@ function Radio({ id, checked, onChange, children }: RadioProps) {
   );
 }
 
-function Evaluated() {
+export function Evaluated() {
   return (
     <div className="p-6 border-t border-dashed border-gray-300 text-gray-600 flex items-center">
       <CheckCircleIcon className="w-6 h-6 mr-3 text-tapBlue-600" /> 您的评价已收到，感谢您的反馈
@@ -37,9 +40,25 @@ function Evaluated() {
   );
 }
 
-function NewEvaluation() {
+async function commitEvaluation(ticketId: string, data: Ticket['evaluation']) {
+  await http.patch(`/api/1/tickets/${ticketId}`, { evaluation: data });
+}
+
+export interface NewEvaluationProps {
+  ticketId: string;
+}
+
+export function NewEvaluation({ ticketId }: NewEvaluationProps) {
   const [star, setStar] = useState<0 | 1>();
   const [content, setContent] = useState('');
+
+  const { mutate, isLoading } = useMutation({
+    mutationFn: (data: Ticket['evaluation']) => commitEvaluation(ticketId, data),
+  });
+
+  const handleCommit = () => {
+    mutate({ star: star!, content });
+  };
 
   return (
     <div className="p-6 border-t border-dashed border-gray-300">
@@ -68,14 +87,14 @@ function NewEvaluation() {
           value={content}
           onChange={(e) => setContent(e.target.value)}
         />
-        <Button className="ml-2 px-5" disabled={star === undefined}>
+        <Button
+          className="ml-2 px-5"
+          disabled={star === undefined || isLoading}
+          onClick={handleCommit}
+        >
           提交
         </Button>
       </div>
     </div>
   );
-}
-
-export function Evaluation() {
-  return <NewEvaluation />;
 }

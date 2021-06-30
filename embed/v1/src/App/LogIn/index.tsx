@@ -1,7 +1,7 @@
 import { FormEvent, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
-import { auth } from 'leancloud';
+import { auth, http } from 'leancloud';
 import { Page } from 'components/Page';
 import { Input } from 'components/Form';
 import { Button } from 'components/Button';
@@ -14,6 +14,7 @@ function LogInForm() {
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     auth.login(username, password).then((user) => {
+      http.defaults.headers['X-LC-Session'] = user.sessionToken;
       history.push('/home');
     });
   };

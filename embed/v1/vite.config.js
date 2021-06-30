@@ -7,7 +7,7 @@ export default defineConfig({
   base: '/embed/v1/',
   plugins: [reactRefresh(), reactJSX()],
   server: {
-    port: 8080,
+    port: 8081,
     proxy: {
       '/api': 'http://127.0.0.1:3000',
     },

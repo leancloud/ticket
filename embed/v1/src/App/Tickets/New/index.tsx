@@ -47,7 +47,7 @@ interface TicketData {
 
 interface TicketFormProps {
   categoryId: string;
-  onCommit: (data: TicketData) => void;
+  onCommit: (data: TicketData) => any | Promise<any>;
 }
 
 function TicketForm({ categoryId, onCommit }: TicketFormProps) {
@@ -56,6 +56,7 @@ function TicketForm({ categoryId, onCommit }: TicketFormProps) {
   });
   const { element: alertElement, alert } = useAlert();
   const { files, upload, remove, isUploading } = useUpload();
+  const [isCommitting, setIsCommitting] = useState(false);
 
   const handleUpload = (files: FileList) => {
     if (!files.length) {
@@ -69,7 +70,7 @@ function TicketForm({ categoryId, onCommit }: TicketFormProps) {
     upload(file);
   };
 
-  const handleCommit = () => {
+  const handleCommit = async () => {
     if (!validate()) {
       return;
     }
@@ -83,7 +84,12 @@ function TicketForm({ categoryId, onCommit }: TicketFormProps) {
       content: formData.content as string,
       file_ids: files.map((file) => file.id!),
     };
-    onCommit(data);
+    try {
+      setIsCommitting(true);
+      await onCommit(data);
+    } catch {
+      setIsCommitting(false);
+    }
   };
 
   return (
@@ -98,7 +104,7 @@ function TicketForm({ categoryId, onCommit }: TicketFormProps) {
           onDelete={({ key }) => remove(key as number)}
         />
       </FormGroup>
-      <Button className="ml-20 px-11" onClick={handleCommit}>
+      <Button className="ml-20 px-11" disabled={isCommitting} onClick={handleCommit}>
         提 交
       </Button>
     </div>
@@ -133,12 +139,10 @@ export function NewTicket() {
   const result = useCategory(category_id);
   const [ticketId, setTicketId] = useState<string>();
 
-  const { mutate } = useMutation({
+  const { mutateAsync: commit } = useMutation({
     mutationFn: commitTicket,
     onSuccess: setTicketId,
-    onError: (error: Error) => {
-      alert(error.message);
-    },
+    onError: (error: Error) => alert(error.message),
   });
 
   if (!result.data && !result.isLoading && !result.error) {
@@ -151,7 +155,7 @@ export function NewTicket() {
         {ticketId ? (
           <Success ticketId={ticketId} />
         ) : (
-          <TicketForm categoryId={category_id} onCommit={mutate} />
+          <TicketForm categoryId={category_id} onCommit={commit} />
         )}
       </QueryWrapper>
     </Page>

@@ -1,5 +1,5 @@
 import { Link, Route, Switch, useRouteMatch } from 'react-router-dom';
-import { useQuery } from 'react-query';
+import { useInfiniteQuery, useQuery } from 'react-query';
 
 import { QueryWrapper } from 'components/QueryWrapper';
 import { Page } from 'components/Page';
@@ -7,11 +7,17 @@ import { Time } from 'components/Time';
 import { RawTicket, Ticket, TicketStatus } from './Ticket';
 import { NewTicket } from './New';
 import { auth, http } from 'leancloud';
+import { useMemo } from 'react';
 
-async function fetchTickets(): Promise<Ticket[]> {
+const TICKETS_PAGE_SIZE = 10;
+
+async function fetchTickets(page: number): Promise<Ticket[]> {
   const { data } = await http.get<RawTicket[]>('/api/1/tickets', {
     params: {
       author_id: auth.currentUser?.id,
+      page,
+      page_size: TICKETS_PAGE_SIZE,
+      q: 'sort:created_at-desc',
     },
   });
   return data.map((ticket) => ({
@@ -26,9 +32,14 @@ async function fetchTickets(): Promise<Ticket[]> {
 }
 
 export function useTickets() {
-  return useQuery({
+  return useInfiniteQuery<Ticket[], Error>({
     queryKey: 'tickets',
-    queryFn: fetchTickets,
+    queryFn: ({ pageParam = 1 }) => fetchTickets(pageParam),
+    getNextPageParam: (lastPage, allPages) => {
+      if (lastPage.length === TICKETS_PAGE_SIZE) {
+        return allPages.length + 1;
+      }
+    },
   });
 }
 
@@ -52,17 +63,31 @@ function TicketItem({ ticket }: TicketItemProps) {
 
 export function TicketList() {
   const result = useTickets();
+  const { data, hasNextPage, fetchNextPage } = result;
+  const noData = useMemo<boolean | undefined>(() => {
+    if (!data) {
+      return undefined;
+    }
+    return !data.pages[0]?.length;
+  }, [data]);
 
   return (
     <Page title="问题记录">
-      <QueryWrapper noData={!result.data?.length} noDataMessage="暂无问题记录" result={result}>
-        {(tickets) => {
-          return tickets.map((ticket) => (
-            <Link key={ticket.id} to={`/tickets/${ticket.id}`}>
-              <TicketItem ticket={ticket} />
-            </Link>
-          ));
-        }}
+      <QueryWrapper result={result} noData={noData} noDataMessage="暂无问题记录">
+        {(tickets) => (
+          <>
+            {tickets.pages.flat().map((ticket) => (
+              <Link key={ticket.id} to={`/tickets/${ticket.id}`}>
+                <TicketItem ticket={ticket} />
+              </Link>
+            ))}
+            {!noData && hasNextPage && (
+              <div className="text-center p-4" onClick={() => fetchNextPage()}>
+                点击加载更多
+              </div>
+            )}
+          </>
+        )}
       </QueryWrapper>
     </Page>
   );

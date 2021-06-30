@@ -43,7 +43,7 @@ export function FileItem({
   url,
   progress,
   onDelete,
-  download,
+  download = true,
   nameMaxLength = 4,
 }: FileItemProps) {
   const displayName = useMemo(() => {

@@ -1,117 +1,121 @@
-import { useQuery } from 'react-query';
-import classNames from 'classnames';
+import {
+  useInfiniteQuery,
+  UseInfiniteQueryOptions,
+  UseInfiniteQueryResult,
+  useQuery,
+} from 'react-query';
 
 import { QueryWrapper } from 'components/QueryWrapper';
 import { Time } from 'components/Time';
 import { FileItem } from 'components/FileItem';
-
-export interface UploadedFileProps {
-  fileIds: string[];
-}
-
-export function UploadedFiles({ fileIds }: UploadedFileProps) {
-  return (
-    <div className="flex flex-wrap">
-      {fileIds.map((id) => (
-        <FileItem key={id} name="Loading..." />
-      ))}
-    </div>
-  );
-}
+import { TicketFile } from '..';
+import { http } from 'leancloud';
 
 interface TimelineItemProps {
   date: Date;
-  staff?: boolean;
+  isStaff?: boolean;
   content: string;
-  fileIds?: string[];
+  files?: TicketFile[];
 }
 
-function TimelineItem({ date, staff, content, fileIds }: TimelineItemProps) {
+function TimelineItem({ date, isStaff, content, files }: TimelineItemProps) {
   return (
     <div className="border-l-2 px-4 pb-8 relative box-border last:border-white last:pb-0">
       <div
-        className={classNames(
-          'rounded-full absolute top-0 -left-px p-1.5 transform -translate-x-1/2',
-          {
-            'bg-gray-200': !staff,
-            'bg-tapBlue-600': staff,
-          }
-        )}
+        className={`rounded-full absolute top-0 -left-px p-1.5 transform -translate-x-1/2 ${
+          isStaff ? 'bg-tapBlue-600' : 'bg-gray-200'
+        }`}
       >
         <div className="bg-white w-1.5 h-1.5 rounded-full"></div>
       </div>
       <div className="text-xs">
-        <span className="text-gray-500">{staff ? '官方客服' : '我自己'}</span>
+        <span className="text-gray-500">{isStaff ? '官方客服' : '我自己'}</span>
         <Time className="ml-2 text-gray-300" value={date} />
       </div>
       <div
         className={`inline-block rounded-2xl rounded-tl-none px-3 pt-3 mt-2 text-gray-500 ${
-          staff ? 'bg-tapBlue-100' : 'bg-gray-50'
+          isStaff ? 'bg-tapBlue-100' : 'bg-gray-50'
         }`}
       >
         {content && <div className="pb-3">{content}</div>}
-        {fileIds && <UploadedFiles fileIds={fileIds} />}
+        {files && (
+          <div className="flex flex-wrap">
+            {files.map(({ id, name, mime, url }) => (
+              <FileItem key={id} name={name} mime={mime} url={url} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
+}
+
+export interface RawReply {
+  id: string;
+  content: string;
+  is_customer_service: boolean;
+  files: TicketFile[];
+  created_at: string;
 }
 
 export interface Reply {
   id: string;
   content: string;
   isStaff: boolean;
-  fileIds: string[];
+  files: TicketFile[];
   createdAt: Date;
 }
 
-function fetchReplies(): Promise<Reply[]> {
-  const replies: Reply[] = [
-    {
-      id: 'reply-1',
-      content:
-        '您好，根据您提供的情况，我们无法判断问题的关键，麻烦您提供具体的详细信息越详细越好。谢谢',
-      isStaff: true,
-      fileIds: [],
-      createdAt: new Date(),
+async function fetchReplies(ticketId: string, cursor?: string): Promise<Reply[]> {
+  const { data } = await http.get<RawReply[]>(`/api/1/tickets/${ticketId}/replies`, {
+    params: {
+      created_at_gt: cursor || undefined,
     },
-    {
-      id: 'reply-2',
-      content: '麻烦客服小姐姐，帮我看一下是什么问题啊...',
-      fileIds: ['114514'],
-      isStaff: false,
-      createdAt: new Date(),
-    },
-  ];
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(replies), 500);
   });
+  return data.map((reply) => ({
+    id: reply.id,
+    content: reply.content,
+    isStaff: reply.is_customer_service,
+    files: reply.files,
+    createdAt: new Date(reply.created_at),
+  }));
 }
 
-export function useReplies(ticketId: string) {
-  return useQuery({
+export type UseRepliesOptions = Omit<
+  UseInfiniteQueryOptions<Reply[]>,
+  'queryKey' | 'queryFn' | 'getNextPageParam'
+>;
+
+export function useReplies(ticketId: string, options?: UseRepliesOptions) {
+  return useInfiniteQuery<Reply[]>({
+    ...options,
     queryKey: ['replies', { ticketId }],
-    queryFn: () => fetchReplies(),
+    queryFn: ({ pageParam }) => fetchReplies(ticketId, pageParam),
+    getNextPageParam: (lastPage, allPages) => {
+      console.log(lastPage, allPages);
+      const replies = allPages.flat();
+      const lastReply = replies[replies.length - 1];
+      return lastReply?.createdAt.toISOString() || '';
+    },
   });
 }
 
 export interface TimelineProps {
-  ticketId: string;
+  repliesResult: UseInfiniteQueryResult<Reply[]>;
 }
 
-export function Timeline({ ticketId }: TimelineProps) {
-  const result = useReplies(ticketId);
-
+export function Timeline({ repliesResult }: TimelineProps) {
   return (
-    <QueryWrapper result={result}>
+    <QueryWrapper result={repliesResult}>
       {(replies) => (
         <div className="m-6">
-          {replies.map(({ id, isStaff, content, fileIds, createdAt }) => (
+          {replies.pages.flat().map(({ id, isStaff, content, files, createdAt }) => (
             <TimelineItem
               key={id}
-              staff={isStaff}
+              isStaff={isStaff}
               content={content}
               date={createdAt}
-              fileIds={fileIds.length ? fileIds : undefined}
+              files={files}
             />
           ))}
         </div>
