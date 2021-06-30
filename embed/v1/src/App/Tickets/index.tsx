@@ -4,12 +4,28 @@ import { useInfiniteQuery, useQuery } from 'react-query';
 import { QueryWrapper } from 'components/QueryWrapper';
 import { Page } from 'components/Page';
 import { Time } from 'components/Time';
-import { RawTicket, Ticket, TicketStatus } from './Ticket';
+import TicketDetail, { TicketStatus } from './Ticket';
 import { NewTicket } from './New';
 import { auth, http } from 'leancloud';
 import { useMemo } from 'react';
 
 const TICKETS_PAGE_SIZE = 10;
+
+interface RawTicket {
+  id: string;
+  nid: number;
+  title: string;
+  content: string;
+  status: number;
+  unread_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+interface Ticket extends RawTicket {
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 async function fetchTickets(page: number): Promise<Ticket[]> {
   const { data } = await http.get<RawTicket[]>('/api/1/tickets', {
@@ -21,11 +37,7 @@ async function fetchTickets(page: number): Promise<Ticket[]> {
     },
   });
   return data.map((ticket) => ({
-    id: ticket.id,
-    nid: ticket.nid,
-    title: ticket.title,
-    content: ticket.content,
-    status: ticket.status,
+    ...ticket,
     createdAt: new Date(ticket.created_at),
     updatedAt: new Date(ticket.updated_at),
   }));
@@ -49,14 +61,21 @@ interface TicketItemProps {
 
 function TicketItem({ ticket }: TicketItemProps) {
   return (
-    <div className="p-4 border-b border-gray-100 active:bg-gray-50">
-      <div className="text-xs">
-        <TicketStatus status={ticket.status} />
-        <span className="ml-2 text-gray-400">
-          更新时间: <Time value={ticket.updatedAt} />
-        </span>
+    <div className="p-4 border-b border-gray-100 active:bg-gray-50 flex justify-between items-center">
+      <div className="overflow-hidden">
+        <div className="text-xs">
+          <TicketStatus status={ticket.status} />
+          <span className="ml-2 text-gray-400">
+            更新时间: <Time value={ticket.updatedAt} />
+          </span>
+        </div>
+        <div className="mt-2 truncate">{ticket.title}</div>
       </div>
-      <div className="mt-2 truncate">{ticket.title}</div>
+      {ticket.unread_count > 0 && (
+        <div className="flex-shrink-0 ml-2 w-5 h-5 min-w-min p-1 bg-red-500 rounded-full text-white text-xs flex items-center justify-center">
+          {ticket.unread_count}
+        </div>
+      )}
     </div>
   );
 }
@@ -105,7 +124,7 @@ export default function Tickets() {
         <NewTicket />
       </Route>
       <Route path={`${path}/:id`}>
-        <Ticket />
+        <TicketDetail />
       </Route>
     </Switch>
   );

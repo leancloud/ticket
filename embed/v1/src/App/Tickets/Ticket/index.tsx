@@ -133,11 +133,11 @@ function ExpandButton({ expand, onClick }: ExpandButtonProps) {
   );
 }
 
-interface TicketDetailProps {
+interface TicketAttributesProps {
   ticket: Ticket;
 }
 
-function TicketDetail({ ticket }: TicketDetailProps) {
+function TicketAttributes({ ticket }: TicketAttributesProps) {
   const [expand, setExpand] = useState(false);
 
   return (
@@ -307,7 +307,7 @@ async function commitReply(ticketId: string, data: ReplyData) {
   await http.post(`/api/1/tickets/${ticketId}/replies`, data);
 }
 
-export function Ticket() {
+export default function TicketDetail() {
   const {
     params: { id },
   } = useRouteMatch<{ id: string }>();
@@ -337,7 +337,7 @@ export function Ticket() {
         {(ticket) => (
           <div className="flex flex-col h-full">
             <div className="flex-grow overflow-auto" ref={$container}>
-              <TicketDetail ticket={ticket} />
+              <TicketAttributes ticket={ticket} />
               <Timeline repliesResult={repliesResult} />
               {ticket.status >= 200 &&
                 (ticket.evaluation ? <Evaluated /> : <NewEvaluation ticketId={id} />)}
