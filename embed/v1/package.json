@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev:client": "vite"
+    "dev:client": "vite",
+    "build": "node ./script/generate_env.js && vite build"
   },
   "author": "",
   "license": "MIT",

@@ -38,6 +38,8 @@ app.use(express.urlencoded({ extended: false }))
 
 app.use(require('./api'))
 
+app.use('/embed/v1', express.static(path.join(__dirname, 'embed/v1/dist')))
+
 const { orgName } = require('./api/oauth')
 
 const getIndexPage = () => {
