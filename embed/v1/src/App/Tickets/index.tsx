@@ -1,5 +1,6 @@
+import { useMemo } from 'react';
 import { Link, Route, Switch, useRouteMatch } from 'react-router-dom';
-import { useInfiniteQuery, useQuery } from 'react-query';
+import { useInfiniteQuery } from 'react-query';
 
 import { QueryWrapper } from 'components/QueryWrapper';
 import { Page } from 'components/Page';
@@ -7,28 +8,12 @@ import { Time } from 'components/Time';
 import TicketDetail, { TicketStatus } from './Ticket';
 import { NewTicket } from './New';
 import { auth, http } from 'leancloud';
-import { useMemo } from 'react';
+import { Ticket } from '../types';
 
 const TICKETS_PAGE_SIZE = 10;
 
-interface RawTicket {
-  id: string;
-  nid: number;
-  title: string;
-  content: string;
-  status: number;
-  unread_count: number;
-  created_at: string;
-  updated_at: string;
-}
-
-interface Ticket extends RawTicket {
-  createdAt: Date;
-  updatedAt: Date;
-}
-
 async function fetchTickets(page: number): Promise<Ticket[]> {
-  const { data } = await http.get<RawTicket[]>('/api/1/tickets', {
+  const { data } = await http.get<any[]>('/api/1/tickets', {
     params: {
       author_id: auth.currentUser?.id,
       page,
@@ -37,7 +22,14 @@ async function fetchTickets(page: number): Promise<Ticket[]> {
     },
   });
   return data.map((ticket) => ({
-    ...ticket,
+    id: ticket.id,
+    nid: ticket.nid,
+    title: ticket.title,
+    content: ticket.content,
+    status: ticket.status,
+    unreadCount: ticket.unread_count,
+    files: ticket.files,
+    evaluation: ticket.evaluation,
     createdAt: new Date(ticket.created_at),
     updatedAt: new Date(ticket.updated_at),
   }));
@@ -71,9 +63,9 @@ function TicketItem({ ticket }: TicketItemProps) {
         </div>
         <div className="mt-2 truncate">{ticket.title}</div>
       </div>
-      {ticket.unread_count > 0 && (
+      {ticket.unreadCount > 0 && (
         <div className="flex-shrink-0 ml-2 w-5 h-5 min-w-min p-1 bg-red-500 rounded-full text-white text-xs flex items-center justify-center">
-          {ticket.unread_count}
+          {ticket.unreadCount}
         </div>
       )}
     </div>

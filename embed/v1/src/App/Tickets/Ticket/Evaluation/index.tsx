@@ -5,8 +5,8 @@ import styles from './index.module.css';
 import { Input } from 'components/Form';
 import { Button } from 'components/Button';
 import { useMutation } from 'react-query';
-import { Ticket } from '..';
 import { http } from 'leancloud';
+import { Ticket } from '../../../types';
 
 interface RadioProps {
   id: string;

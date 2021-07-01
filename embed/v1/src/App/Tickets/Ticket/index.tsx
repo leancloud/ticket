@@ -11,45 +11,14 @@ import { FileItem } from 'components/FileItem';
 import { Input } from 'components/Form';
 import { Button } from 'components/Button';
 import styles from './index.module.css';
-import { Timeline } from './Timeline';
+import { Replies, useReplies } from './Replies';
 import { Evaluated, NewEvaluation } from './Evaluation';
 import { http } from 'leancloud';
 import { useUpload } from '../New/useUpload';
-import { useReplies } from './Timeline';
-
-export interface TicketFile {
-  id: string;
-  name: string;
-  mime: string;
-  url: string;
-}
-
-export interface RawTicket {
-  id: string;
-  nid: number;
-  title: string;
-  content: string;
-  status: number;
-  created_at: string;
-  updated_at: string;
-  evaluation: { star: 0 | 1; content: string };
-  files: TicketFile[];
-}
-
-export interface Ticket {
-  id: string;
-  nid: number;
-  title: string;
-  content: string;
-  status: number;
-  files: TicketFile[];
-  evaluation: RawTicket['evaluation'];
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { Reply, Ticket } from '../../types';
 
 async function fetchTicket(id: string): Promise<Ticket> {
-  const { data } = await http.get<RawTicket>('/api/1/tickets/' + id);
+  const { data } = await http.get('/api/1/tickets/' + id);
   return {
     id: data.id,
     nid: data.nid,
@@ -58,6 +27,7 @@ async function fetchTicket(id: string): Promise<Ticket> {
     status: data.status,
     files: data.files,
     evaluation: data.evaluation,
+    unreadCount: data.unread_count,
     createdAt: new Date(data.created_at),
     updatedAt: new Date(data.updated_at),
   };
@@ -321,6 +291,13 @@ export default function TicketDetail() {
   });
   const $container = useRef<HTMLDivElement>(null);
 
+  const replies = useMemo<Reply[]>(() => {
+    if (!repliesResult.data) {
+      return [];
+    }
+    return repliesResult.data.pages.flat();
+  }, [repliesResult.data]);
+
   const { mutateAsync: reply } = useMutation({
     mutationFn: (data: ReplyData) => commitReply(id, data),
     onSuccess: () => repliesResult.fetchNextPage(),
@@ -338,7 +315,9 @@ export default function TicketDetail() {
           <div className="flex flex-col h-full">
             <div className="flex-grow overflow-auto" ref={$container}>
               <TicketAttributes ticket={ticket} />
-              <Timeline repliesResult={repliesResult} />
+              <QueryWrapper result={repliesResult}>
+                <Replies replies={replies} />
+              </QueryWrapper>
               {ticket.status >= 200 &&
                 (ticket.evaluation ? <Evaluated /> : <NewEvaluation ticketId={id} />)}
             </div>
