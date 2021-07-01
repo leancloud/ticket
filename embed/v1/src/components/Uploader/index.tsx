@@ -13,12 +13,11 @@ export interface FileInfo {
 
 export interface UploaderProps {
   files?: FileInfo[];
-  download?: boolean;
   onUpload?: (files: FileList) => void;
   onDelete?: (file: FileInfo) => void;
 }
 
-export function Uploader({ files, onUpload, onDelete, download = true }: UploaderProps) {
+export function Uploader({ files, onUpload, onDelete }: UploaderProps) {
   const $input = useRef<HTMLInputElement>(null);
 
   const handleClick = () => {
@@ -47,7 +46,7 @@ export function Uploader({ files, onUpload, onDelete, download = true }: Uploade
       </div>
       <div className="mt-2 flex flex-wrap">
         {files?.map((info) => (
-          <FileItem {...info} download={download} onDelete={onDelete && (() => onDelete(info))} />
+          <FileItem {...info} onDelete={onDelete && (() => onDelete(info))} />
         ))}
       </div>
     </div>

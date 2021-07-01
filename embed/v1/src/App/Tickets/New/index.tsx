@@ -98,7 +98,6 @@ function TicketForm({ categoryId, onCommit }: TicketFormProps) {
       {formElement}
       <FormGroup controlId="ticket_file" title="附件">
         <Uploader
-          download={false}
           files={files}
           onUpload={handleUpload}
           onDelete={({ key }) => remove(key as number)}

@@ -12,7 +12,9 @@
       "components/*": ["components/*"],
       "utils/*": ["utils/*"],
       "leancloud/*": ["leancloud/*"]
-    }
+    },
+    "typeRoots": ["./node_modules/@types"],
+    "skipLibCheck": true
   },
   "include": ["src/**/*"]
 }

@@ -254,7 +254,6 @@ function ReplyInput({ onCommit }: ReplyInputProps) {
                       mime={mime}
                       url={url}
                       progress={progress}
-                      download={false}
                       onDelete={() => remove(key as number)}
                     />
                   ))}

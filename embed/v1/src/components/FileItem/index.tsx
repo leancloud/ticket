@@ -25,7 +25,6 @@ export interface FileItemProps {
   progress?: number;
   onDelete?: () => void;
   nameMaxLength?: number;
-  download?: boolean;
 }
 
 function truncateName(name: string, length: number): string {
@@ -43,7 +42,6 @@ export function FileItem({
   url,
   progress,
   onDelete,
-  download = true,
   nameMaxLength = 4,
 }: FileItemProps) {
   const displayName = useMemo(() => {
@@ -68,11 +66,6 @@ export function FileItem({
       <span>{displayName}</span>
 
       <span className="ml-1 text-tapBlue-600">
-        {download && url && (
-          <a download href={url}>
-            <DownloadIcon className="inline-block w-4 h-4 cursor-pointer" />
-          </a>
-        )}
         {onDelete && progress === undefined && (
           <XIcon className="inline-block w-4 h-4 cursor-pointer" onClick={onDelete} />
         )}
