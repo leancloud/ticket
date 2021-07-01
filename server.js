@@ -39,6 +39,9 @@ app.use(express.urlencoded({ extended: false }))
 app.use(require('./api'))
 
 app.use('/embed/v1', express.static(path.join(__dirname, 'embed/v1/dist')))
+app.get('/embed/v1/*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'embed/v1/dist/index.html'))
+})
 
 const { orgName } = require('./api/oauth')
 
