@@ -8,6 +8,7 @@ function PreviewContent({ close, params }) {
   const { t } = useTranslation()
   const { type, variant } = params
   const [value, setValue] = useState()
+  console.log(value)
   return (
     <>
       <Modal.Header closeButton>

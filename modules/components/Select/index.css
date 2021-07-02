@@ -1,0 +1,14 @@
+/* Radio  */
+.groupContainer {
+  display: flex;
+  flex-wrap: wrap;
+}
+.container {
+  position: relative;
+  display: inline-block;
+  margin: 0px;
+  margin-bottom: 0.25em;
+}
+.container:not(:last-child) {
+  margin-right: 10px;
+}

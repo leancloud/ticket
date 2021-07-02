@@ -6,7 +6,7 @@ const { getLimitationData, responseAppendCount } = require('./utils')
 
 const router = Router().use(requireAuth, customerServiceOnly)
 
-const TYPES = ['dropdown', 'text', 'multi-line', 'multi-select', 'checkbox']
+const TYPES = ['dropdown', 'text', 'multi-line', 'multi-select', 'checkbox', 'radios']
 const LOCALES = [
   'zh-cn',
   'zh-tw',
@@ -193,4 +193,4 @@ async function updateVariants(newVariants, field) {
   return addVariants(newVariants, field)
 }
 
-module.exports = router
+module.exports = { router, LOCALES }
