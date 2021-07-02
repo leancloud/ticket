@@ -134,8 +134,8 @@ function TicketAttributes({ ticket }: TicketAttributesProps) {
             '（无）'
           ) : (
             <div className="flex flex-wrap">
-              {ticket.files.map(({ name, mime, url }) => (
-                <FileItem name={name} mime={mime} url={url} />
+              {ticket.files.map(({ id, name, mime, url }) => (
+                <FileItem key={id} name={name} mime={mime} url={url} />
               ))}
             </div>
           )}

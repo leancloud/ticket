@@ -1,5 +1,5 @@
-import { DownloadIcon, PaperClipIcon, XIcon } from '@heroicons/react/solid';
 import { useMemo } from 'react';
+import { PaperClipIcon, XIcon } from '@heroicons/react/solid';
 
 import styles from './index.module.css';
 
@@ -18,15 +18,6 @@ function Progress({ value }: { value: number }) {
   );
 }
 
-export interface FileItemProps {
-  name: string;
-  mime?: string;
-  url?: string;
-  progress?: number;
-  onDelete?: () => void;
-  nameMaxLength?: number;
-}
-
 function truncateName(name: string, length: number): string {
   if (name.length <= length) {
     return name;
@@ -34,6 +25,15 @@ function truncateName(name: string, length: number): string {
   const prefixLength = Math.floor(length / 2);
   const suffixLength = Math.ceil(length / 2);
   return name.slice(0, prefixLength) + '...' + name.slice(name.length - suffixLength);
+}
+
+export interface FileItemProps {
+  name: string;
+  mime?: string;
+  url?: string;
+  progress?: number;
+  onDelete?: () => void;
+  nameMaxLength?: number;
 }
 
 export function FileItem({
