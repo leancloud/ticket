@@ -1,13 +1,23 @@
 import Koa from 'koa';
+import bodyParser from 'koa-bodyparser';
 
-const app = new Koa();
+import api from './routers';
+import './leancloud';
 
-app.use(async (ctx) => {
-  ctx.body = {
-    message: 'hello world!',
-  };
+export const app = new Koa();
+
+app.use(async (ctx, next) => {
+  try {
+    await next();
+  } catch (error) {
+    const status = error.status || 500;
+    ctx.status = status;
+    ctx.body = { message: error.message };
+    if (status >= 500) {
+      console.error(error);
+    }
+  }
 });
 
-export function launch(port: number) {
-  app.listen(port);
-}
+app.use(bodyParser());
+app.use(api.routes()).use(api.allowedMethods());

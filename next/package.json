@@ -4,15 +4,24 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "postinstall": "npm run build:api",
+    "build:api": "tsc -p api",
+    "dev": "NODE_ENV=development nodemon"
   },
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "koa": "^2.13.1"
+    "@koa/router": "^10.0.0",
+    "koa": "^2.13.1",
+    "koa-bodyparser": "^4.3.0",
+    "leancloud-storage": "^4.11.1",
+    "leanengine": "^3.7.0"
   },
   "devDependencies": {
     "@types/koa": "^2.13.3",
+    "@types/koa-bodyparser": "^4.3.1",
+    "@types/koa__router": "^8.0.4",
+    "nodemon": "^2.0.9",
     "typescript": "^4.3.5"
   }
 }

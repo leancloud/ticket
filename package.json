@@ -11,7 +11,8 @@
     "dev:embed:v1": "cd embed/v1 && npm run dev:client",
     "dev": "WEBPACK_DEV_SERVER=http://localhost:8080 nodemon --ignore modules server.js",
     "install:embed": "cd ./embed/v1 && npm ci",
-    "postinstall": "npm run build && npm run install:embed",
+    "install:next": "cd next && npm ci",
+    "postinstall": "npm run build && npm run install:embed && npm run install:next",
     "migrate": "eval $(lean env) && migrate up --store=./migration-store",
     "fmt": "prettier -w */**/*.js",
     "prepare": "husky install"
@@ -49,6 +50,7 @@
     "express-validator": "^6.10.0",
     "form-data": "^4.0.0",
     "highlight.js": "^9.10.0",
+    "http-proxy-middleware": "^2.0.1",
     "i18next": "^19.8.9",
     "leancloud-storage": "^3.13.2",
     "leanengine": "^3.2.0",
