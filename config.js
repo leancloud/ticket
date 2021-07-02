@@ -32,9 +32,9 @@ function getCORSOrigin() {
 /**
  *
  * @param {string} key
- * @returns {Promise<string | null>}
+ * @returns {Promise<any | null>}
  */
-async function getConfigValue(key) {
+export async function getConfigValue(key) {
   const query = new AV.Query('Config')
   query.equalTo('key', key)
   const obj = await query.first({ useMasterKey: true })

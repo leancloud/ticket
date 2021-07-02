@@ -6,7 +6,7 @@ const { TICKET_STATUS } = require('../lib/common')
 const errorHandler = require('./errorHandler')
 const captureException = (err) => errorHandler.captureException(err)
 
-const { integrations } = require('../config')
+const { integrations, getConfigValue } = require('../config')
 
 const channels = integrations
   .map((integration) => integration.notificationChannel)
@@ -141,8 +141,16 @@ const sendDelayNotify = (ticket, to) => {
   )
 }
 
-const SLA = Number(process.env.SLA_IN_MINUTES ?? 120)
-if (_.isNaN(SLA) || SLA <= 0) throw new Error('SLA_IN_MINUTES must be a positive integer.')
+let SLA = 120
+getConfigValue('SLA_in_mimutes')
+  .then((SLA_in_mimutes) => {
+    if (SLA_in_mimutes > 0) {
+      SLA = SLA_in_mimutes
+      return
+    }
+    throw new Error('SLA_in_mimutes config must be a positive integer.')
+  })
+  .catch(console.error)
 
 const delayNotify = () => {
   const deadline = new Date(Date.now() - SLA * 60 * 1000)
