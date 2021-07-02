@@ -146,6 +146,7 @@ getConfigValue('SLA_in_mimutes')
   .then((SLA_in_mimutes) => {
     if (SLA_in_mimutes > 0) {
       SLA = SLA_in_mimutes
+      console.log(`[Config] SLA: ${SLA} mins`)
       return
     }
     throw new Error('SLA_in_mimutes config must be a positive integer.')
