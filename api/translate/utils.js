@@ -6,27 +6,16 @@ const AV = require('leancloud-storage')
 const config = { appId: '', secret: '' }
 
 async function loadConfig() {
-  const query = new AV.Query('Config').startsWith('key', 'translate.baidu')
-  const items = await query.find({ useMasterKey: true })
-  if (items.length) {
-    const newConfig = {}
-    items.forEach((item) => {
-      switch (item.get('key')) {
-        case 'translate.baidu.appId':
-          newConfig.appId = item.get('value')
-          break
-        case 'translate.baidu.secret':
-          newConfig.secret = item.get('value')
-          break
-      }
-    })
+  const query = new AV.Query('Config').equalTo('key', 'translate.baidu')
+  const remoteConfig = (await query.first({ useMasterKey: true }))?.get('value')
+  if (remoteConfig) {
     ;['appId', 'secret'].forEach((key) => {
-      if (!newConfig[key]) {
+      if (!remoteConfig[key]) {
         throw new Error(`[Baidu Translate]: ${key} is missing`)
       }
     })
-    Object.assign(config, newConfig)
-    console.log('[Baidu Translate]: enabled')
+    Object.assign(config, remoteConfig)
+    console.log(`[Baidu Translate]: enabled (appId=${config.appId})`)
   }
 }
 
@@ -62,6 +51,6 @@ async function translate(text, { from = 'auto', to = 'zh' } = {}) {
   return data.trans_result.map((result) => result.dst)
 }
 
-loadConfig()
+loadConfig().catch(console.warn)
 
 module.exports = { translate }
