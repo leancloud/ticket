@@ -138,3 +138,5 @@ Automations.fetchRaw(true)
     return
   })
   .catch(console.error)
+
+require('./next')
