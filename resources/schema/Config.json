@@ -1,7 +1,7 @@
 {
     "schema": {
         "value": {
-            "type": "String"
+            "type": "Any"
         },
         "key": {
             "type": "String"
@@ -21,22 +21,28 @@
     },
     "permissions": {
         "add_fields": {
-            "*": true
+            "roles": [],
+            "users": []
         },
         "delete": {
-            "*": true
+            "roles": [],
+            "users": []
         },
         "update": {
-            "*": true
+            "roles": [],
+            "users": []
         },
         "get": {
-            "*": true
+            "roles": [],
+            "users": []
         },
         "find": {
-            "*": true
+            "roles": [],
+            "users": []
         },
         "create": {
-            "*": true
+            "roles": [],
+            "users": []
         }
     },
     "indexes": []

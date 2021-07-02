@@ -19,3 +19,13 @@
 ### `bdb3cd1d9fa12b2195982a5d6524be1f901f6ddc`
 
 导入 /resource/schema/QuickReply.json 。
+
+## 2021-07-02
+
+### `TBD`
+
+1. 导出 `Config` 数据
+2. 删除 `value` 列
+3. 重新创建 `value` 列，类型为 `Any`
+4. 手动恢复数据
+5. 如果原来启用了百度翻译，新建一列 key = `translate.baidu`，value 为 `{ "appId", "appKey" }`
