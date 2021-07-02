@@ -11,7 +11,8 @@
     "paths": {
       "components/*": ["components/*"],
       "utils/*": ["utils/*"],
-      "leancloud/*": ["leancloud/*"]
+      "leancloud/*": ["leancloud/*"],
+      "types/*": ["types/*"]
     },
     "typeRoots": ["./node_modules/@types"],
     "skipLibCheck": true

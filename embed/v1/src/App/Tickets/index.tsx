@@ -8,7 +8,7 @@ import { Time } from 'components/Time';
 import TicketDetail, { TicketStatus } from './Ticket';
 import { NewTicket } from './New';
 import { auth, http } from 'leancloud';
-import { Ticket } from '../types';
+import { Ticket } from 'types';
 
 const TICKETS_PAGE_SIZE = 10;
 

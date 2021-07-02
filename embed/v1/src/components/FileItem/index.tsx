@@ -1,5 +1,6 @@
-import { useMemo } from 'react';
+import { ComponentPropsWithoutRef, useMemo } from 'react';
 import { PaperClipIcon, XIcon } from '@heroicons/react/solid';
+import classNames from 'classnames';
 
 import styles from './index.module.css';
 
@@ -27,7 +28,7 @@ function truncateName(name: string, length: number): string {
   return name.slice(0, prefixLength) + '...' + name.slice(name.length - suffixLength);
 }
 
-export interface FileItemProps {
+export interface FileItemProps extends ComponentPropsWithoutRef<'div'> {
   name: string;
   mime?: string;
   url?: string;
@@ -43,6 +44,7 @@ export function FileItem({
   progress,
   onDelete,
   nameMaxLength = 4,
+  ...props
 }: FileItemProps) {
   const displayName = useMemo(() => {
     if (!name) {
@@ -58,7 +60,13 @@ export function FileItem({
   }, [name, nameMaxLength]);
 
   return (
-    <div className="bg-gray-100 text-xs mr-2 mb-2 p-2 rounded text-gray-500 relative overflow-hidden inline-flex items-center">
+    <div
+      {...props}
+      className={classNames(
+        'bg-gray-100 text-xs mr-2 mb-2 p-2 rounded text-gray-500 relative overflow-hidden inline-flex items-center',
+        props.className
+      )}
+    >
       {progress && <Progress value={progress} />}
 
       <FileIcon mime={mime} url={url} />

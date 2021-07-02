@@ -1,8 +1,5 @@
-import { Dialog } from '@headlessui/react';
-import { useCallback } from 'react';
-import { useMemo } from 'react';
-import { useState } from 'react';
 import { useRef } from 'react';
+import { Dialog } from '@headlessui/react';
 
 export interface PreviewProps {
   show: boolean;
@@ -11,7 +8,7 @@ export interface PreviewProps {
   src: string;
 }
 
-export function Preview({ show, onClose, src, type }: PreviewProps) {
+export function Preview({ show, onClose, type, src }: PreviewProps) {
   const $container = useRef<HTMLDivElement>(null);
 
   return (
@@ -28,28 +25,4 @@ export function Preview({ show, onClose, src, type }: PreviewProps) {
       </div>
     </Dialog>
   );
-}
-
-export interface UsePreviewResult {
-  preview: (options: { type: PreviewProps['type']; src: PreviewProps['src'] }) => void;
-}
-
-export interface UsePreviewOptions {
-  type: PreviewProps['type'];
-  src: string;
-}
-
-export function usePreview({ type, src }: UsePreviewOptions) {
-  const [show, setShow] = useState(false);
-
-  const element = useMemo(() => {
-    if (show && type && src) {
-      return <Preview show onClose={() => setShow(false)} type={type} src={src} />;
-    }
-    return null;
-  }, [show, type, src]);
-
-  const toggle = useCallback(() => setShow((v) => !v), []);
-
-  return { element, toggle };
 }

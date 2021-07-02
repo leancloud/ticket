@@ -15,7 +15,8 @@ import { Replies, useReplies } from './Replies';
 import { Evaluated, NewEvaluation } from './Evaluation';
 import { http } from 'leancloud';
 import { useUpload } from '../New/useUpload';
-import { Reply, Ticket } from '../../types';
+import { Reply, Ticket } from 'types';
+import { usePreview } from 'utils/usePreview';
 
 async function fetchTicket(id: string): Promise<Ticket> {
   const { data } = await http.get('/api/1/tickets/' + id);
@@ -109,9 +110,11 @@ interface TicketAttributesProps {
 
 function TicketAttributes({ ticket }: TicketAttributesProps) {
   const [expand, setExpand] = useState(false);
+  const { element: previewElement, preview } = usePreview();
 
   return (
     <div className={`${styles.detail} px-4 pt-4 border-b border-gray-100 text-gray-500 text-xs`}>
+      {previewElement}
       {expand && (
         <>
           <TicketAttribute expand title="编号">
@@ -134,8 +137,14 @@ function TicketAttributes({ ticket }: TicketAttributesProps) {
             '（无）'
           ) : (
             <div className="flex flex-wrap">
-              {ticket.files.map(({ id, name, mime, url }) => (
-                <FileItem key={id} name={name} mime={mime} url={url} />
+              {ticket.files.map((file) => (
+                <FileItem
+                  key={file.id}
+                  name={file.name}
+                  mime={file.mime}
+                  url={file.url}
+                  onClick={() => preview(file)}
+                />
               ))}
             </div>
           )}

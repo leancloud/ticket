@@ -2,7 +2,7 @@ import { useInfiniteQuery, UseInfiniteQueryOptions, UseInfiniteQueryResult } fro
 
 import { Time } from 'components/Time';
 import { FileItem } from 'components/FileItem';
-import { Reply } from '../../../types';
+import { Reply } from 'types';
 import { http } from 'leancloud';
 
 interface ReplyItemProps {
