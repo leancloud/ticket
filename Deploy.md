@@ -12,7 +12,7 @@
 
 ### `ebc783f3456288fc74674138712fc65f8de352f3`
 
-导入 Group、Ticke 与 OpLog。
+导入 Group、Ticket 与 OpsLog。
 
 ## 2021-06-22
 
