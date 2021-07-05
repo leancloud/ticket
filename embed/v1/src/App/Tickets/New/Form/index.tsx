@@ -1,53 +1,52 @@
 import classNames from 'classnames';
 import { useEffect, useRef, useState } from 'react';
 
-import { Field } from './Fields';
+import { Field } from './Field';
 
 interface BaseTemplate<T extends string> {
   type: T;
   name: string;
   title?: string;
+  required?: boolean;
+  defaultValue?: any;
 }
 
 interface TextTemplate extends BaseTemplate<'text'> {
   placeholder?: string;
-  required?: boolean;
 }
 
 interface MultiLineTemplate extends BaseTemplate<'multi-line'> {
   placeholder?: string;
   rows?: number;
   maxLength?: number;
-  required?: boolean;
 }
 
-type FieldTemplate = TextTemplate | MultiLineTemplate;
-
-export interface FormProps {
-  template: FieldTemplate[];
+interface RadiosTemplate extends BaseTemplate<'radios'> {
+  options: string[];
 }
 
-export function Form({ template }: FormProps) {
-  const [data, setData] = useState<Record<string, any>>({});
+interface MultiSelectTemplate extends BaseTemplate<'multi-select'> {
+  options: string[];
+}
 
-  return (
-    <>
-      {template.map(({ name, title, ...rest }) => {
-        return (
-          <div key={name} className="flex mb-5">
-            <label className="flex-shrink-0 w-20 mt-1.5">{title ?? name}</label>
-            <div className="flex-grow">
-              <Field
-                {...rest}
-                value={data[name]}
-                onChange={(v) => setData((prev) => ({ ...prev, [name]: v }))}
-              />
-            </div>
-          </div>
-        );
-      })}
-    </>
-  );
+interface DropdownTemplate extends BaseTemplate<'dropdown'> {
+  options: string[];
+}
+
+export type FieldTemplate =
+  | TextTemplate
+  | MultiLineTemplate
+  | RadiosTemplate
+  | MultiSelectTemplate
+  | DropdownTemplate;
+
+function getDefaultValues(templates: FieldTemplate[]): Record<string, any> {
+  return templates.reduce<Record<string, any>>((defaultValues, tmpl) => {
+    if (tmpl.defaultValue !== undefined) {
+      defaultValues[tmpl.name] = tmpl.defaultValue;
+    }
+    return defaultValues;
+  }, {});
 }
 
 export type FromGroupProps = JSX.IntrinsicElements['div'] & {
@@ -60,8 +59,8 @@ export function FormGroup({ title, controlId, required, children, ...props }: Fr
   const $container = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (controlId && $container.current) {
-      const input = $container.current.querySelector('input,textarea');
-      if (input) {
+      const input = $container.current.querySelector('input[type="text"],textarea');
+      if (input && !input.id) {
         input.id = controlId;
       }
     }
@@ -84,17 +83,15 @@ export function FormGroup({ title, controlId, required, children, ...props }: Fr
   );
 }
 
-export interface UseFormOptions {
-  template: FieldTemplate[];
-}
-
-export function useForm({ template }: UseFormOptions) {
+export function useForm(templates: FieldTemplate[]) {
   const [data, setData] = useState<Record<string, any>>({});
+  useEffect(() => setData(getDefaultValues(templates)), [templates]);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  console.log(data);
 
   const element = (
     <>
-      {template.map(({ name, title, ...rest }) => (
+      {templates.map(({ name, title, ...rest }) => (
         <FormGroup
           key={name}
           title={title ?? name}
@@ -104,7 +101,7 @@ export function useForm({ template }: UseFormOptions) {
           <Field
             {...rest}
             value={data[name]}
-            onChange={(v) => setData((prev) => ({ ...prev, [name]: v }))}
+            onChange={(v: any) => setData((prev) => ({ ...prev, [name]: v }))}
             error={errors[name]}
           />
         </FormGroup>
@@ -114,10 +111,11 @@ export function useForm({ template }: UseFormOptions) {
 
   const validate = () => {
     const nextErrors: Record<string, string> = {};
-    template.forEach((tmpl) => {
+    templates.forEach((tmpl) => {
       switch (tmpl.type) {
         case 'text':
         case 'multi-line':
+        case 'radios':
           if (tmpl.required && !data[tmpl.name]) {
             nextErrors[tmpl.name] = '该内容不能为空';
           }

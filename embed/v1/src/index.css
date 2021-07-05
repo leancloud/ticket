@@ -11,11 +11,11 @@ body {
   font-size: 14px;
 }
 
-button:focus, input:focus, textarea:focus {
+button:focus, input:focus, textarea:focus, select:focus {
   outline: none;
 }
 
-input, textarea {
+input, textarea, select {
   appearance: none;
 }
 

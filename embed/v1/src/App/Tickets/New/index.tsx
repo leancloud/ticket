@@ -10,11 +10,11 @@ import { Button } from 'components/Button';
 import { Uploader } from 'components/Uploader';
 import { QueryWrapper } from 'components/QueryWrapper';
 import { useCategory } from '../../Categories';
-import { FormGroup, FormProps, useForm } from './Form';
+import { FieldTemplate, FormGroup, useForm } from './Form';
 import { useUpload } from './useUpload';
 import { http } from 'leancloud';
 
-const PRESET_FORM_FIELDS: FormProps['template'] = [
+const PRESET_FORM_FIELDS: FieldTemplate[] = [
   {
     name: 'title',
     title: '标题',
@@ -27,12 +27,33 @@ const PRESET_FORM_FIELDS: FormProps['template'] = [
     type: 'text',
   },
   {
+    name: 'dd',
+    title: '下拉框',
+    type: 'dropdown',
+    options: ['a', 'b'],
+  },
+  {
     name: 'content',
     title: '描述',
     type: 'multi-line',
     rows: 4,
     maxLength: 100,
     required: true,
+  },
+  {
+    name: 'multi-select demo',
+    title: '多选',
+    type: 'multi-select',
+    options: ['aa', 'bbb', 'cccc', 'd'],
+    defaultValue: ['bbb', 'd'],
+  },
+  {
+    name: 'radios demo',
+    title: '单选',
+    type: 'radios',
+    options: ['aa', 'bbb', 'ccccc', 'ddd', 'e'],
+    required: true,
+    defaultValue: 'ddd',
   },
 ];
 
@@ -51,9 +72,7 @@ interface TicketFormProps {
 }
 
 function TicketForm({ categoryId, onCommit }: TicketFormProps) {
-  const { element: formElement, validate, data: formData } = useForm({
-    template: PRESET_FORM_FIELDS,
-  });
+  const { element: formElement, validate, data: formData } = useForm(PRESET_FORM_FIELDS);
   const { element: alertElement, alert } = useAlert();
   const { files, upload, remove, isUploading } = useUpload();
   const [isCommitting, setIsCommitting] = useState(false);
