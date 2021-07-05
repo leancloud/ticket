@@ -305,11 +305,18 @@ async function commitReply(ticketId: string, data: ReplyData) {
   await http.post(`/api/1/tickets/${ticketId}/replies`, data);
 }
 
+function useClearUnreadCount(ticketId: string) {
+  useEffect(() => {
+    http.patch(`/api/1/tickets/${ticketId}`, { unread_count: 0 });
+  }, [ticketId]);
+}
+
 export default function TicketDetail() {
   const {
     params: { id },
   } = useRouteMatch<{ id: string }>();
   const result = useTicket(id);
+  useClearUnreadCount(id);
   const repliesResult = useReplies(id, {
     onSuccess: () => {
       if ($container.current) {

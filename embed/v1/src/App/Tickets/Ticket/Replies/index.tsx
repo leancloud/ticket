@@ -13,7 +13,7 @@ function ReplyItem({ data }: ReplyItemProps) {
   return (
     <div className="border-l-2 px-4 pb-8 relative box-border last:border-white last:pb-0">
       <div
-        className={`rounded-full absolute top-0 -left-px p-1.5 transform -translate-x-1/2 ${
+        className={`rounded-full absolute -top-px -left-px p-1.5 transform -translate-x-1/2 ${
           data.isStaff ? 'bg-tapBlue-600' : 'bg-gray-200'
         }`}
       >

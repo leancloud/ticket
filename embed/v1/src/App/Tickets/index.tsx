@@ -74,7 +74,7 @@ function TicketItem({ ticket }: TicketItemProps) {
 
 export function TicketList() {
   const result = useTickets();
-  const { data, hasNextPage, fetchNextPage } = result;
+  const { data, hasNextPage, fetchNextPage, isFetchingNextPage } = result;
   const noData = useMemo<boolean | undefined>(() => {
     if (!data) {
       return undefined;
@@ -93,9 +93,13 @@ export function TicketList() {
               </Link>
             ))}
             {!noData && hasNextPage && (
-              <div className="text-center p-4" onClick={() => fetchNextPage()}>
-                点击加载更多
-              </div>
+              <button
+                className="text-center w-full py-3 text-xs text-gray-400"
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
+              >
+                {isFetchingNextPage ? '加载中...' : '点击加载更多'}
+              </button>
             )}
           </>
         )}

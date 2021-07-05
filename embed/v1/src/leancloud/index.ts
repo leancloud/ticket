@@ -14,6 +14,8 @@ export const app = init({
 
 export const auth = app.auth();
 
+export const db = app.database();
+
 export const storage = app.storage();
 
 export const http = axios.create({
