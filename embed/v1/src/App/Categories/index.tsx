@@ -19,7 +19,7 @@ function CategoryItem({ name, onClick, marker }: CategoryItemProps) {
       className="p-4 flex items-center text-gray-500 border-b border-gray-100 active:bg-gray-50"
       onClick={onClick}
     >
-      {marker && <div className="h-1 w-1 bg-primary mr-4" />}
+      {marker && <div className="h-1 w-1 bg-tapBlue-600 mr-4" />}
       <div className="flex-grow">{name}</div>
       <ChevronRightIcon className="h-4 w-4" />
     </div>

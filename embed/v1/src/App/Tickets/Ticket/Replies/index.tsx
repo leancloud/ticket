@@ -67,7 +67,6 @@ export function useReplies(ticketId: string, options?: UseRepliesOptions) {
     queryKey: ['replies', { ticketId }],
     queryFn: ({ pageParam }) => fetchReplies(ticketId, pageParam),
     getNextPageParam: (lastPage, allPages) => {
-      console.log(lastPage, allPages);
       const replies = allPages.flat();
       const lastReply = replies[replies.length - 1];
       return lastReply?.createdAt.toISOString() || '';

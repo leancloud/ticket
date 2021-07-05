@@ -204,12 +204,25 @@ function ReplyInput({ onCommit }: ReplyInputProps) {
     return !isUploading && (content.trim() || files.length);
   }, [isUploading, content]);
 
-  useEffect(() => {
-    if ($textarea.current) {
-      $textarea.current.style.height = 'auto';
-      $textarea.current.style.height = $textarea.current.scrollHeight + 'px';
+  const $height = useRef(0);
+  const handleChangeContent = (nextContent: string) => {
+    setContent(nextContent);
+    if (!$textarea.current) {
+      return;
     }
-  }, [content]);
+    if (nextContent.length < content.length) {
+      $textarea.current.style.height = 'auto';
+    }
+    const height = $textarea.current.scrollHeight;
+    $textarea.current.style.height = height + 'px';
+    $height.current = height;
+  };
+  useEffect(() => {
+    if (editing && $textarea.current) {
+      $textarea.current.style.height = $height.current ? $height.current + 'px' : 'auto';
+    }
+  }, [editing]);
+  // TODO: 上传文件后滚动到底部
 
   const handleCommit = async () => {
     try {
@@ -225,12 +238,16 @@ function ReplyInput({ onCommit }: ReplyInputProps) {
 
   return (
     <>
-      <div className="px-4 py-2 border-t border-gray-100 bg-gray-50">
+      <div
+        className={classNames('px-4 py-2 border-t border-gray-100 bg-gray-50', {
+          invisible: editing,
+        })}
+      >
         <div className="flex">
           <Input
             className="rounded-full flex-grow mr-4"
             value={content}
-            onChange={(e) => setContent(e.target.value)}
+            onChange={(e) => handleChangeContent(e.target.value)}
             onFocus={() => setEditing(true)}
           />
           <Button className="min-w-min" disabled={!canUpload} onClick={handleCommit}>
@@ -244,13 +261,16 @@ function ReplyInput({ onCommit }: ReplyInputProps) {
           <div className="flex">
             <div className="w-full mr-4 relative">
               <div className="flex-grow rounded-2xl border bg-white overflow-auto max-h-32 pr-5">
-                <textarea
-                  ref={$textarea}
-                  className="w-full p-2 box-border"
-                  autoFocus
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                />
+                <div className="p-2 flex items-center">
+                  <textarea
+                    ref={$textarea}
+                    className="w-full"
+                    autoFocus
+                    value={content}
+                    onChange={(e) => handleChangeContent(e.target.value)}
+                    rows={1}
+                  />
+                </div>
                 <MiniUploader
                   className="absolute bottom-2 right-2"
                   onUpload={(files) => upload(files[0])}

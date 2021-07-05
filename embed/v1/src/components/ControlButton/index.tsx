@@ -1,5 +1,5 @@
 import { useHistory } from 'react-router-dom';
-import { ChevronLeftIcon, HomeIcon } from '@heroicons/react/outline';
+import { ChevronLeftIcon, HomeIcon, XIcon } from '@heroicons/react/outline';
 
 import styles from './index.module.css';
 
@@ -14,15 +14,15 @@ export function ControlButton() {
 
   return (
     <div
-      className={`${styles.controlButton} absolute top-6 left-12 flex items-center bg-white text-gray-400 rounded-full overflow-hidden`}
+      className={`${styles.shadow} absolute top-4 sm:top-6 sm:left-4 flex items-center bg-white text-gray-400 rounded-full overflow-hidden`}
     >
-      <div className="px-2 py-1 active:bg-gray-100 select-none cursor-pointer" onClick={goBack}>
+      <button className="px-2 py-1 active:bg-gray-100" onClick={goBack}>
         <ChevronLeftIcon className="h-5 w-5" />
-      </div>
+      </button>
       <Divider />
-      <div className="px-2 py-1 active:bg-gray-100 select-none cursor-pointer" onClick={goHome}>
+      <button className="px-2 py-1 active:bg-gray-100" onClick={goHome}>
         <HomeIcon className="h-5 w-5" />
-      </div>
+      </button>
     </div>
   );
 }

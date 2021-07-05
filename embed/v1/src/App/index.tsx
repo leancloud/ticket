@@ -17,7 +17,7 @@ function PrivateRoute(props: PropsWithChildren<{ path: string }>) {
 
 export default function App() {
   return (
-    <div className="h-full px-36 py-5">
+    <div className="h-full p-4 sm:px-24 pt-14 sm:pt-4">
       <ControlButton />
       <Switch>
         <Route path="/login">

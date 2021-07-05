@@ -68,8 +68,12 @@ export function FormGroup({ title, controlId, required, children, ...props }: Fr
   }, [controlId]);
 
   return (
-    <div {...props} className={classNames(props.className, 'flex mb-5')} ref={$container}>
-      <div className="flex-shrink-0 w-20 mt-1.5">
+    <div
+      {...props}
+      className={classNames(props.className, 'flex flex-col sm:flex-row mb-5')}
+      ref={$container}
+    >
+      <div className="flex-shrink-0 w-20 mb-1.5 sm:mb-0 sm:mt-1.5">
         <label htmlFor={controlId}>
           {title}
           {required && <span className="ml-1 text-red-500 select-none">*</span>}

@@ -2,19 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-/* @font-face {
-  font-family: 'Source Han Sans CN';
-  src: url('/font/SourceHanSansSC-VF.otf.woff2') format("woff2");
-} */
-
 html, body, #root {
   height: 100%;
 }
 
 body {
-  min-width: 768px;
   background-color: #f2f2f2;
-  /* font-family: 'Source Han Sans CN'; */
   font-size: 14px;
 }
 

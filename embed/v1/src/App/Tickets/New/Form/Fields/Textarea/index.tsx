@@ -19,10 +19,11 @@ export function Textarea({
 }: TextareaProps) {
   const handleChange = useCallback<ChangeEventHandler<HTMLTextAreaElement>>(
     (e) => {
-      if (maxLength !== undefined) {
-        onChange(e.target.value.slice(0, maxLength));
+      const value = e.target.value;
+      if (maxLength !== undefined && value.length > maxLength) {
+        onChange(value.slice(0, maxLength));
       } else {
-        onChange(e.target.value);
+        onChange(value);
       }
     },
     [onChange, maxLength]

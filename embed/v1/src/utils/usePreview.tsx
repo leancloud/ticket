@@ -7,6 +7,9 @@ function getFileType(mime: string): PreviewProps['type'] | 'unknown' {
   if (mime.startsWith('image')) {
     return 'image';
   }
+  if (mime.startsWith('video')) {
+    return 'video';
+  }
   return 'unknown';
 }
 
@@ -29,6 +32,14 @@ export function usePreview() {
         setType('image');
         setSrc(file.url);
         setShow(true);
+        break;
+      case 'video':
+        setType('video');
+        setSrc(file.url);
+        setShow(true);
+        break;
+      default:
+        window.open(file.url);
     }
   }, []);
 

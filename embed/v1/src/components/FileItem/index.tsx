@@ -1,14 +1,19 @@
 import { ComponentPropsWithoutRef, useMemo } from 'react';
-import { PaperClipIcon, XIcon } from '@heroicons/react/solid';
+import { FilmIcon, PaperClipIcon, XIcon } from '@heroicons/react/solid';
 import classNames from 'classnames';
 
 import styles from './index.module.css';
 
 function FileIcon({ mime, url }: { mime?: string; url?: string }) {
-  if (mime && mime.startsWith('image') && url) {
-    return <img className="inline-block h-4 w-4 mr-1" src={url} />;
+  if (mime) {
+    if (mime.startsWith('image') && url) {
+      return <img className="inline-block h-4 w-4 mr-1" src={url} />;
+    }
+    if (mime.startsWith('video')) {
+      return <FilmIcon className="w-4 h-4 mr-1 text-gray-400" />;
+    }
   }
-  return <PaperClipIcon className="w-4 h-4 text-gray-400 transform rotate-45" />;
+  return <PaperClipIcon className="w-4 h-4 mr-1 text-gray-400 transform rotate-45" />;
 }
 
 function Progress({ value }: { value: number }) {

@@ -38,7 +38,7 @@ const PRESET_FORM_FIELDS: FormProps['template'] = [
 
 const MAX_FILE_SIZE = 1024 * 1024 * 1024; // 1 GB
 
-interface TicketData {
+interface NewTicketData {
   category_id: string;
   title: string;
   content: string;
@@ -47,7 +47,7 @@ interface TicketData {
 
 interface TicketFormProps {
   categoryId: string;
-  onCommit: (data: TicketData) => any | Promise<any>;
+  onCommit: (data: NewTicketData) => any | Promise<any>;
 }
 
 function TicketForm({ categoryId, onCommit }: TicketFormProps) {
@@ -93,7 +93,7 @@ function TicketForm({ categoryId, onCommit }: TicketFormProps) {
   };
 
   return (
-    <div className="px-8 py-6">
+    <div className="p-4 sm:px-8 sm:py-6">
       {alertElement}
       {formElement}
       <FormGroup controlId="ticket_file" title="附件">
@@ -103,7 +103,11 @@ function TicketForm({ categoryId, onCommit }: TicketFormProps) {
           onDelete={({ key }) => remove(key as number)}
         />
       </FormGroup>
-      <Button className="ml-20 px-11" disabled={isCommitting} onClick={handleCommit}>
+      <Button
+        className="sm:ml-20 w-full sm:max-w-max sm:px-11"
+        disabled={isCommitting}
+        onClick={handleCommit}
+      >
         提 交
       </Button>
     </div>
@@ -126,7 +130,7 @@ function Success({ ticketId }: SuccessProps) {
   );
 }
 
-async function commitTicket(data: TicketData): Promise<string> {
+async function commitTicket(data: NewTicketData): Promise<string> {
   const {
     data: { id },
   } = await http.post<{ id: string }>('/api/1/tickets', data);
