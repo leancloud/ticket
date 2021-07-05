@@ -32,7 +32,7 @@ function getCORSOrigin() {
 /**
  *
  * @param {string} key
- * @returns {Promise<string | null>}
+ * @returns {Promise<any | null>}
  */
 async function getConfigValue(key) {
   const query = new AV.Query('Config')
@@ -53,6 +53,7 @@ module.exports = {
   sentryDSNPublic: process.env.SENTRY_DSN_PUBLIC,
   allowMutateEvaluation,
   corsOrigin: getCORSOrigin(),
+  getConfigValue,
 }
 
 const integrations = []

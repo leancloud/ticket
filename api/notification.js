@@ -6,7 +6,7 @@ const { TICKET_STATUS } = require('../lib/common')
 const errorHandler = require('./errorHandler')
 const captureException = (err) => errorHandler.captureException(err)
 
-const { integrations } = require('../config')
+const { integrations, getConfigValue } = require('../config')
 
 const channels = integrations
   .map((integration) => integration.notificationChannel)
@@ -141,19 +141,25 @@ const sendDelayNotify = (ticket, to) => {
   )
 }
 
-const delayNotify = () => {
-  // find all tickets that needs customer service
-  const needReplyQuery = new AV.Query('Ticket').equalTo(
-    'status',
-    TICKET_STATUS.WAITING_CUSTOMER_SERVICE
-  )
-  // find all tickets
-  const newTicketQuery = new AV.Query('Ticket').equalTo('status', TICKET_STATUS.NEW)
+let SLA = 120
+getConfigValue('SLA_in_mimutes')
+  .then((SLA_in_mimutes) => {
+    if (SLA_in_mimutes > 0) {
+      SLA = SLA_in_mimutes
+      console.log(`[Config] SLA: ${SLA} mins`)
+      return
+    }
+    throw new Error('SLA_in_mimutes config must be a positive integer.')
+  })
+  .catch(console.error)
 
-  const deadline = new Date(Date.now() - 2 * 60 * 60 * 1000)
+const delayNotify = () => {
+  const deadline = new Date(Date.now() - SLA * 60 * 1000)
   return (
-    new AV.Query.or(needReplyQuery, newTicketQuery)
-      // updatedAt before 2h
+    // find all tickets that needs customer service
+    new AV.Query('Ticket')
+      .containedIn('status', [TICKET_STATUS.WAITING_CUSTOMER_SERVICE, TICKET_STATUS.NEW])
+      // updatedAt before SLA
       .lessThanOrEqualTo('updatedAt', deadline)
       .include('assignee')
       .find({ useMasterKey: true })
@@ -171,7 +177,7 @@ const delayNotify = () => {
               if (opsLog.get('action') !== 'replySoon') {
                 // the ticket which is being progressed do not need notify
                 return sendDelayNotify(ticket, assignee)
-              } else if (opsLog.updatedAt < ticket.updatedAt) {
+              } else if (opsLog.createdAt < ticket.get('latestReply')?.createdAt) {
                 // Maybe the replySoon is out of date.
                 return sendDelayNotify(ticket, assignee)
               }
