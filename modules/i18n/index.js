@@ -2,7 +2,8 @@ import i18next from 'i18next'
 import { initReactI18next } from 'react-i18next'
 import moment from 'moment'
 import 'moment/locale/zh-cn'
-import locales from './locales'
+import zh from './locales/zh.json'
+import en from './locales/en.json'
 
 const defaultLocale = window.navigator.language.slice(0, 2) === 'zh' ? 'zh' : 'en'
 const userLocale = window.localStorage.getItem('locale')
@@ -38,10 +39,10 @@ i18next.use(initReactI18next).init({
   },
   resources: {
     zh: {
-      translation: locales.zh,
+      translation: zh,
     },
     en: {
-      translation: locales.en,
+      translation: en,
     },
   },
 })
