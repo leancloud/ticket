@@ -93,7 +93,6 @@ const FormList = memo(() => {
     keepPreviousData: true,
     onError: (error) => addNotification(error),
   })
-  console.log(forms)
   return (
     <div>
       <div>

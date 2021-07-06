@@ -226,7 +226,6 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
 
   const closePreview = useCallback(() => setPreviewModalActive(false), [])
 
-  console.log(activeFiledList)
   return (
     <Form
       onSubmit={(e) => {

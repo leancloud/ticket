@@ -99,7 +99,6 @@ const MultiSelectField = memo(
         value: v,
       }))
     }, [options])
-    console.log('reOptions', reOptions)
     return (
       <Form.Group>
         {label && <Form.Label htmlFor={id}>{label}</Form.Label>}
