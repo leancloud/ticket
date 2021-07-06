@@ -15,7 +15,7 @@ import { Link } from 'react-router-dom'
 import { useMutation, useQuery } from 'react-query'
 import { useDebounce, useUpdate } from 'react-use'
 import classnames from 'classnames'
-import { http } from 'lib/leancloud'
+import { http, httpWithLimitation } from 'lib/leancloud'
 import * as Icon from 'react-bootstrap-icons'
 import { useTranslation } from 'react-i18next'
 import { useAppContext } from 'modules/context'
@@ -102,7 +102,7 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
   const { isFetching } = useQuery(
     ['settings/ticketForm', debouncedSearchValue],
     () =>
-      http.get('/api/1/ticket-fields', {
+      httpWithLimitation.get('/api/1/ticket-fields', {
         params: {
           size: 30,
           skip: 0,
