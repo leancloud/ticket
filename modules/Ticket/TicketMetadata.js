@@ -250,6 +250,7 @@ CategorySection.propTypes = {
 function CustomMetadata({ metadata }) {
   const { t } = useTranslation()
   const comments = getConfig('ticket.metadata.customMetadata.comments', {})
+  const valueRenderers = getConfig('ticket.metadata.customMetadata.valueRenderers', {})
   const filteredMetadata = useMemo(() => {
     return Object.entries(metadata).reduce((arr, [key, value]) => {
       if (typeof value === 'string' || typeof value === 'number') {
@@ -266,7 +267,7 @@ function CustomMetadata({ metadata }) {
         {filteredMetadata.map(([key, value]) => (
           <div className={css.customMetadata} key={key}>
             <span className={css.key}>{comments[key] || key}: </span>
-            {value}
+            {typeof valueRenderers[key] === 'function' ? valueRenderers[key](value) : value}
           </div>
         ))}
       </Form.Group>
