@@ -1,36 +1,11 @@
 import { useState } from 'react';
 import { CheckCircleIcon, ThumbDownIcon, ThumbUpIcon } from '@heroicons/react/solid';
 
-import styles from './index.module.css';
-import { Input } from 'components/Form';
+import { Input, Radio } from 'components/Form';
 import { Button } from 'components/Button';
 import { useMutation } from 'react-query';
 import { http } from 'leancloud';
 import { Ticket } from 'types';
-
-interface RadioProps {
-  id: string;
-  checked: boolean;
-  onChange: () => void;
-  children: any;
-}
-
-function Radio({ id, checked, onChange, children }: RadioProps) {
-  return (
-    <span className="inline-flex items-center">
-      <input
-        type="radio"
-        id={id}
-        className={`${styles.radio} w-4 h-4 rounded-full border-tapBlue-600 border-2`}
-        checked={checked}
-        onChange={onChange}
-      />
-      <label className="inline-flex items-center ml-4 w-28" htmlFor={id}>
-        {children}
-      </label>
-    </span>
-  );
-}
 
 export function Evaluated() {
   return (
@@ -65,30 +40,33 @@ export function NewEvaluation({ ticketId }: NewEvaluationProps) {
       <div className="text-gray-600">服务评价与反馈</div>
 
       <div className="py-6">
-        <Radio id="evaluation-good" checked={star === 1} onChange={() => setStar(1)}>
-          <span className="text-yellow-500 inline-flex items-center">
-            <ThumbUpIcon className="w-4 h-4 inline-block mr-1" />
-            有用
-          </span>
-        </Radio>
-
-        <Radio id="evaluation-bad" checked={star === 0} onChange={() => setStar(0)}>
-          <span className="text-blue-500 inline-flex items-center">
-            <ThumbDownIcon className="w-4 h-4 inline-block mr-1" />
-            没用
-          </span>
-        </Radio>
+        <span>
+          <Radio checked={star === 1} onChange={() => setStar(1)}>
+            <span className="text-yellow-500 inline-flex items-center">
+              <ThumbUpIcon className="w-4 h-4 inline-block mr-1" />
+              有用
+            </span>
+          </Radio>
+        </span>
+        <span className="ml-16">
+          <Radio checked={star === 0} onChange={() => setStar(0)}>
+            <span className="text-blue-500 inline-flex items-center">
+              <ThumbDownIcon className="w-4 h-4 inline-block mr-1" />
+              没用
+            </span>
+          </Radio>
+        </span>
       </div>
 
-      <div className="flex">
+      <div className="flex flex-wrap gap-2">
         <Input
-          className="flex-grow rounded-full px-3"
+          className="flex-grow rounded-full"
           placeholder="补充说明（非必填）"
           value={content}
           onChange={(e) => setContent(e.target.value)}
         />
         <Button
-          className="ml-2 px-5"
+          className="px-5 flex-shrink-0"
           disabled={star === undefined || isLoading}
           onClick={handleCommit}
         >

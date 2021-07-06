@@ -1,4 +1,5 @@
 import { ChangeEventHandler, useCallback } from 'react';
+import { ErrorMessage } from '../ErrorMessage';
 
 export interface TextareaProps {
   value?: string;
@@ -32,7 +33,7 @@ export function Textarea({
   return (
     <div>
       <textarea
-        className={`w-full px-2 py-1 rounded border ${
+        className={`w-full px-3 py-1.5 border rounded border-gray-300 ${
           error ? 'border-red-500' : 'focus:border-tapBlue-600 focus:ring-1 focus:ring-tapBlue-600'
         }`}
         value={value}
@@ -40,14 +41,12 @@ export function Textarea({
         placeholder={placeholder}
         rows={rows}
       />
-      <div>
-        {error && <span className="float-left text-xs text-red-500">{error}</span>}
-        {maxLength !== undefined && (
-          <span className="float-right text-xs text-gray-400">
-            {value.length}/{maxLength}
-          </span>
-        )}
-      </div>
+      <ErrorMessage className="float-left">{error}</ErrorMessage>
+      {maxLength !== undefined && (
+        <span className="float-right text-xs text-gray-400">
+          {value.length}/{maxLength}
+        </span>
+      )}
     </div>
   );
 }

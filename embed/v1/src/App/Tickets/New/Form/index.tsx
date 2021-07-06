@@ -3,34 +3,39 @@ import { useEffect, useRef, useState } from 'react';
 
 import { Field } from './Field';
 
-interface BaseTemplate<T extends string> {
+interface BaseTemplate<T extends string, V = any> {
   type: T;
   name: string;
   title?: string;
   required?: boolean;
-  defaultValue?: any;
+  defaultValue?: V;
 }
 
-interface TextTemplate extends BaseTemplate<'text'> {
+interface Option {
+  title: string;
+  value: string;
+}
+
+interface TextTemplate extends BaseTemplate<'text', string> {
   placeholder?: string;
 }
 
-interface MultiLineTemplate extends BaseTemplate<'multi-line'> {
+interface MultiLineTemplate extends BaseTemplate<'multi-line', string> {
   placeholder?: string;
   rows?: number;
   maxLength?: number;
 }
 
-interface RadiosTemplate extends BaseTemplate<'radios'> {
-  options: string[];
+interface RadiosTemplate extends BaseTemplate<'radios', string> {
+  options: Option[];
 }
 
-interface MultiSelectTemplate extends BaseTemplate<'multi-select'> {
-  options: string[];
+interface MultiSelectTemplate extends BaseTemplate<'multi-select', string[]> {
+  options: Option[];
 }
 
-interface DropdownTemplate extends BaseTemplate<'dropdown'> {
-  options: string[];
+interface DropdownTemplate extends BaseTemplate<'dropdown', string> {
+  options: Option[];
 }
 
 export type FieldTemplate =
@@ -72,7 +77,7 @@ export function FormGroup({ title, controlId, required, children, ...props }: Fr
       className={classNames(props.className, 'flex flex-col sm:flex-row mb-5')}
       ref={$container}
     >
-      <div className="flex-shrink-0 w-20 mb-1.5 sm:mb-0 sm:mt-1.5">
+      <div className="flex-shrink-0 w-20 mb-1.5 sm:mb-0 py-1">
         <label htmlFor={controlId}>
           {title}
           {required && <span className="ml-1 text-red-500 select-none">*</span>}
@@ -116,9 +121,16 @@ export function useForm(templates: FieldTemplate[]) {
         case 'text':
         case 'multi-line':
         case 'radios':
+        case 'dropdown':
           if (tmpl.required && !data[tmpl.name]) {
             nextErrors[tmpl.name] = '该内容不能为空';
           }
+          break;
+        case 'multi-select':
+          if ((tmpl.required && !data[tmpl.name]) || data[tmpl.name].length === 0) {
+            nextErrors[tmpl.name] = '该内容不能为空';
+          }
+          break;
       }
     });
     setErrors(nextErrors);

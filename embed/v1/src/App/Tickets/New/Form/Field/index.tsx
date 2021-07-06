@@ -1,47 +1,28 @@
+import { createElement } from 'react';
+
 import { Input, InputProps } from './Input';
-import { Textarea, TextareaProps } from './Textarea';
-import { RadioGroup, RadioGroupProps } from './RadioGroup';
+import { Dropdown, DropdownProps } from './Dropdown';
 import { CheckboxGroup, CheckboxGroupProps } from './CheckboxGroup';
-import { Dropdown, DropdownProps as DropdownProps_ } from './Dropdown';
+import { RadioGroup, RadioGroupProps } from './RadioGroup';
+import { Textarea, TextareaProps } from './Textarea';
 
-interface TextProps extends InputProps {
-  type: 'text';
-}
-
-interface MultiLineProps extends TextareaProps {
-  type: 'multi-line';
-}
-
-interface RadiosProps extends RadioGroupProps {
-  type: 'radios';
-}
-
-interface MultiSelectProps extends CheckboxGroupProps {
-  type: 'multi-select';
-}
-
-interface DropdownProps extends DropdownProps_ {
-  type: 'dropdown';
-}
+type AddType<P extends {}, T extends string> = P & { type: T };
 
 export type FieldProps =
-  | TextProps
-  | MultiLineProps
-  | RadiosProps
-  | MultiSelectProps
-  | DropdownProps;
+  | AddType<InputProps, 'text'>
+  | AddType<DropdownProps, 'dropdown'>
+  | AddType<RadioGroupProps, 'radios'>
+  | AddType<CheckboxGroupProps, 'multi-select'>
+  | AddType<TextareaProps, 'multi-line'>;
 
-export function Field(props: FieldProps) {
-  switch (props.type) {
-    case 'text':
-      return <Input {...props} />;
-    case 'multi-line':
-      return <Textarea {...props} />;
-    case 'radios':
-      return <RadioGroup {...props} />;
-    case 'multi-select':
-      return <CheckboxGroup {...props} />;
-    case 'dropdown':
-      return <Dropdown {...props} />;
-  }
+const COMPONENTS: Record<FieldProps['type'], (...args: any[]) => JSX.Element> = {
+  text: Input,
+  dropdown: Dropdown,
+  radios: RadioGroup,
+  'multi-select': CheckboxGroup,
+  'multi-line': Textarea,
+};
+
+export function Field({ type, ...props }: FieldProps) {
+  return createElement(COMPONENTS[type], { ...props });
 }

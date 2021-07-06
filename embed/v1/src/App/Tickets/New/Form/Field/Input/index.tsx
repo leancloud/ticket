@@ -1,33 +1,29 @@
-import { ChangeEvent, useMemo } from 'react';
+import classNames from 'classnames';
+
+import { ErrorMessage } from '../ErrorMessage';
 
 export interface InputProps {
   value?: string;
-  onChange?: (value: string) => void;
+  onChange: (value: string) => void;
   required?: boolean;
   placeholder?: string;
   error?: string;
 }
 
 export function Input({ value, onChange, placeholder, error }: InputProps) {
-  const handleChange = useMemo(() => {
-    if (!onChange) {
-      return undefined;
-    }
-    return (e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value);
-  }, [onChange]);
-
   return (
     <div>
       <input
         type="text"
-        className={`w-full border rounded px-2 py-1 ${
-          error ? 'border-red-500' : 'focus:border-tapBlue-600 focus:ring-1 focus:ring-tapBlue-600'
-        }`}
+        className={classNames('w-full px-3 py-1.5 border rounded border-gray-300', {
+          'focus:border-tapBlue-600 focus:ring-1 focus:ring-tapBlue-600': !error,
+          'border-red-500': error,
+        })}
         value={value || ''}
-        onChange={handleChange}
+        onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
       />
-      {error && <div className="text-xs text-red-500 mt-1">{error}</div>}
+      <ErrorMessage className="mt-1">{error}</ErrorMessage>
     </div>
   );
 }

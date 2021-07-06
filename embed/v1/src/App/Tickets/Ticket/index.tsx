@@ -136,7 +136,7 @@ function TicketAttributes({ ticket }: TicketAttributesProps) {
           {ticket.files.length === 0 ? (
             '（无）'
           ) : (
-            <div className="flex flex-wrap">
+            <div className="flex flex-wrap gap-2">
               {ticket.files.map((file) => (
                 <FileItem
                   key={file.id}

@@ -1,4 +1,4 @@
-import { ChangeEvent, useRef } from 'react';
+import { ChangeEvent, ChangeEventHandler, useCallback, useRef } from 'react';
 import { PlusIcon } from '@heroicons/react/solid';
 
 import { FileItem } from '../FileItem';
@@ -18,24 +18,21 @@ export interface UploaderProps {
 }
 
 export function Uploader({ files, onUpload, onDelete }: UploaderProps) {
-  const $input = useRef<HTMLInputElement>(null);
-
-  const handleClick = () => {
-    $input.current?.click();
-  };
-
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files as FileList;
-    onUpload?.(files);
-    if ($input.current) {
+  const $input = useRef<HTMLInputElement>(null!);
+  const handleClick = useCallback(() => $input.current.click(), []);
+  const handleChange = useCallback<ChangeEventHandler<HTMLInputElement>>(
+    (e) => {
+      const files = e.target.files as FileList;
+      onUpload?.(files);
       $input.current.value = '';
-    }
-  };
+    },
+    [onUpload]
+  );
 
   return (
     <div className="w-full">
       <div
-        className="w-full h-14 p-4 border border-dashed border-gray-400 rounded flex justify-center items-center active:border active:border-tapBlue-600 cursor-pointer"
+        className="w-full h-14 p-4 border border-dashed border-gray-400 rounded flex justify-center items-center active:border active:border-tapBlue-600 hover:border-tapBlue-600 cursor-pointer"
         onClick={handleClick}
       >
         <input className="hidden" type="file" ref={$input} onChange={handleChange} />
@@ -44,7 +41,7 @@ export function Uploader({ files, onUpload, onDelete }: UploaderProps) {
           <span className="text-gray-500">点击上传</span>
         </div>
       </div>
-      <div className="mt-2 flex flex-wrap">
+      <div className="mt-2 flex flex-wrap gap-2">
         {files?.map((info) => (
           <FileItem {...info} onDelete={onDelete && (() => onDelete(info))} />
         ))}

@@ -1,15 +1,17 @@
-import { useInfiniteQuery, UseInfiniteQueryOptions, UseInfiniteQueryResult } from 'react-query';
+import { useInfiniteQuery, UseInfiniteQueryOptions } from 'react-query';
 
+import { http } from 'leancloud';
+import { File, Reply } from 'types';
 import { Time } from 'components/Time';
 import { FileItem } from 'components/FileItem';
-import { Reply } from 'types';
-import { http } from 'leancloud';
+import { usePreview } from 'utils/usePreview';
 
 interface ReplyItemProps {
   data: Reply;
+  onPreviewFile: (file: File) => void;
 }
 
-function ReplyItem({ data }: ReplyItemProps) {
+function ReplyItem({ data, onPreviewFile }: ReplyItemProps) {
   return (
     <div className="border-l-2 px-4 pb-8 relative box-border last:border-white last:pb-0">
       <div
@@ -24,15 +26,15 @@ function ReplyItem({ data }: ReplyItemProps) {
         <Time className="ml-2 text-gray-300" value={data.createdAt} />
       </div>
       <div
-        className={`inline-block rounded-2xl rounded-tl-none px-3 pt-3 mt-2 text-gray-500 ${
+        className={`inline-block rounded-2xl rounded-tl-none p-3 mt-2 text-gray-500 ${
           data.isStaff ? 'bg-tapBlue-100' : 'bg-gray-50'
         }`}
       >
-        {data.content && <div className="pb-3">{data.content}</div>}
-        {data.files && (
-          <div className="flex flex-wrap">
-            {data.files.map(({ id, name, mime, url }) => (
-              <FileItem key={id} name={name} mime={mime} url={url} />
+        {data.content && <div>{data.content}</div>}
+        {data.files.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {data.files.map((file) => (
+              <FileItem {...file} key={file.id} onClick={() => onPreviewFile(file)} />
             ))}
           </div>
         )}
@@ -79,10 +81,13 @@ export interface RepliesProps {
 }
 
 export function Replies({ replies }: RepliesProps) {
+  const { element: previewElement, preview } = usePreview();
+
   return (
     <div className="m-6">
+      {previewElement}
       {replies.map((reply) => (
-        <ReplyItem key={reply.id} data={reply} />
+        <ReplyItem key={reply.id} data={reply} onPreviewFile={preview} />
       ))}
     </div>
   );

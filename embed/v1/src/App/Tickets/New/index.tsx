@@ -22,38 +22,12 @@ const PRESET_FORM_FIELDS: FieldTemplate[] = [
     required: true,
   },
   {
-    name: 'uid',
-    title: '账号ID',
-    type: 'text',
-  },
-  {
-    name: 'dd',
-    title: '下拉框',
-    type: 'dropdown',
-    options: ['a', 'b'],
-  },
-  {
     name: 'content',
     title: '描述',
     type: 'multi-line',
     rows: 4,
     maxLength: 100,
     required: true,
-  },
-  {
-    name: 'multi-select demo',
-    title: '多选',
-    type: 'multi-select',
-    options: ['aa', 'bbb', 'cccc', 'd'],
-    defaultValue: ['bbb', 'd'],
-  },
-  {
-    name: 'radios demo',
-    title: '单选',
-    type: 'radios',
-    options: ['aa', 'bbb', 'ccccc', 'ddd', 'e'],
-    required: true,
-    defaultValue: 'ddd',
   },
 ];
 
