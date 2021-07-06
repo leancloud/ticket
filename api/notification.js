@@ -144,6 +144,7 @@ const sendDelayNotify = (ticket, to) => {
 let SLA = 120
 getConfigValue('SLA_in_mimutes')
   .then((SLA_in_mimutes) => {
+    if (SLA_in_mimutes === null) return
     if (SLA_in_mimutes > 0) {
       SLA = SLA_in_mimutes
       console.log(`[Config] SLA: ${SLA} mins`)
