@@ -22,10 +22,11 @@
 
 ## 2021-07-02
 
-### `TBD`
+### `a6c9fe3182cd41dbcd26e796ec8d6ebecc3745bf`
 
 1. 导出 `Config` 数据
 2. 删除 `value` 列
 3. 重新创建 `value` 列，类型为 `Any`
-4. 手动恢复数据
-5. 如果原来启用了百度翻译，新建一列 key = `translate.baidu`，value 为 `{ "appId", "appKey" }`
+4. 手动恢复数据。如果原来启用了企业微信通知，直接删掉 `wechatToken`
+5. 如果原来启用了百度翻译，新建一列 key = `translate.baidu`，value 为 `{ "appId", "appKey" }`，如果部署新版后没有问题，删除原来的 `translate.baidu.*` 行。
+6. 部署新版本

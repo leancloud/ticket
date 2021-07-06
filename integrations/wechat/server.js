@@ -170,7 +170,7 @@ ${ticket.get('latestReply') && ticket.get('latestReply').content}
             .first({ useMasterKey: true })
             .then((token) => {
               if (token && token.createdAt > new Date(new Date().getTime() - 7200000)) {
-                cb(null, JSON.parse(token.get('value')))
+                cb(null, token.get('value'))
               } else {
                 cb(null, null)
               }
@@ -187,7 +187,7 @@ ${ticket.get('latestReply') && ticket.get('latestReply').content}
             await AV.Object.destroyAll(expiredTokens, { useMasterKey: true })
             await new AV.Object('Config')
               .setACL(new AV.ACL()) // 任何人无法读取，除非使用 masterKey
-              .save({ key: 'wechatToken', value: JSON.stringify(token) })
+              .save({ key: 'wechatToken', value: token })
             cb()
           } catch (error) {
             cb(error)
