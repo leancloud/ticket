@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next'
 import { useAppContext } from 'modules/context'
 import { DocumentTitle } from 'modules/utils/DocumentTitle'
 import NoData from 'modules/components/NoData'
+import { includeOptionsType } from '../TicketField/CustomField'
 import { useFormId } from './'
 import Preview from './Preview'
 import styles from './index.module.scss'
@@ -75,12 +76,20 @@ const FieldList = ({ list, remove, add }) => {
 const TicketForm = memo(({ onSubmit, submitting, initData }) => {
   const { t } = useTranslation()
   const update = useUpdate()
+  const { addNotification } = useAppContext()
   const [previewModalActive, setPreviewModalActive] = useState(false)
   const [title, setTitle] = useState('')
   const [searchValue, setSearchValue] = useState('')
   const [debouncedSearchValue, setDebouncedSearchValue] = useState()
   const [activeFiledList, setActiveFiledList] = useState([])
-  const [filedList, setFiledList] = useState([])
+  const [fieldList, setFiledList] = useState([])
+
+  useEffect(() => {
+    if (initData) {
+      setTitle(initData.title)
+      setActiveFiledList(initData.fields)
+    }
+  }, [initData])
 
   useDebounce(
     () => {
@@ -90,14 +99,7 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
     [searchValue]
   )
 
-  useEffect(() => {
-    if (initData) {
-      setTitle(initData.title)
-      setActiveFiledList(initData.fields)
-    }
-  }, [initData])
-
-  const { data: [searchFields], isFetching } = useQuery(
+  const { isFetching } = useQuery(
     ['settings/ticketForm', debouncedSearchValue],
     () =>
       http.get('/api/1/ticket-fields', {
@@ -110,48 +112,85 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
     {
       initialData: [[], 0],
       keepPreviousData: true,
+      onSuccess: (data) => {
+        if (!data) {
+          return
+        }
+        setFiledList(
+          data[0].filter((field) => !activeFiledList.some((item) => item.id === field.id))
+        )
+      },
+      onError: (err) => addNotification(err),
     }
   )
 
-  useEffect(() => {
-    if (initData) {
-      setTitle(initData.title)
-      setActiveFiledList(initData.fields)
-    }
-  }, [initData])
+  const { mutate } = useMutation({
+    mutationFn: (id) => http.get(`/api/1/ticket-fields/${id}`),
+    onSuccess: (fieldData) => {
+      setActiveFiledList((pre) =>
+        pre.map((preFieldData) => {
+          if (preFieldData.id !== fieldData.id) {
+            return preFieldData
+          }
+          const filterVariant = fieldData.variants.filter(
+            (variant) => variant.locale === fieldData.defaultLocale
+          )
+          return {
+            ...preFieldData,
+            variant: filterVariant[0],
+          }
+        })
+      )
+    },
+    onError: (err) => addNotification(err),
+  })
 
-  useEffect(() => {
-    setFiledList(
-      searchFields.filter((field) => !activeFiledList.some((item) => item.id === field.id))
-    )
-  }, [searchFields, activeFiledList])
-
-  const move = useCallback(
-    (sourceArea, sourceIndex, destIndex) => {
-      if (sourceArea === 'waitingArea') {
-        const [removed] = [...filedList].splice(sourceIndex, 1)
-        setFiledList((preList) => {
-          preList.splice(sourceIndex, 1)
-          return preList
-        })
-        setActiveFiledList((preList) => {
-          preList.splice(destIndex, 0, removed)
-          return preList
-        })
-      } else {
-        const [removed] = [...activeFiledList].splice(sourceIndex, 1)
-        setActiveFiledList((preList) => {
-          preList.splice(sourceIndex, 1)
-          return preList
-        })
-        setFiledList((preList) => {
-          preList.splice(destIndex, 0, removed)
-          return preList
-        })
+  const appendFieldData = useCallback(
+    (fieldData) => {
+      if (!includeOptionsType.includes(fieldData.type)) {
+        return
       }
+      if (fieldData.variant) {
+        return
+      }
+      mutate(fieldData.id)
+    },
+    [mutate]
+  )
+
+  const remove = useCallback(
+    (sourceIndex, destIndex) => {
+      destIndex = destIndex ? destIndex : 0
+      const [removed] = [...activeFiledList].splice(sourceIndex, 1)
+      setActiveFiledList((preList) => {
+        preList.splice(sourceIndex, 1)
+        return preList
+      })
+      setFiledList((preList) => {
+        preList.splice(destIndex, 0, removed)
+        return preList
+      })
       update()
     },
-    [activeFiledList, filedList, update]
+    [activeFiledList, update]
+  )
+
+  const add = useCallback(
+    (sourceIndex, destIndex) => {
+      destIndex = destIndex === undefined ? fieldList.length : destIndex
+      const [removed] = [...fieldList].splice(sourceIndex, 1)
+      setFiledList((preList) => {
+        preList.splice(sourceIndex, 1)
+        return preList
+      })
+      setActiveFiledList((preList) => {
+        preList.splice(destIndex, 0, removed)
+        return preList
+      })
+      appendFieldData(removed)
+      update()
+    },
+    [fieldList, update, appendFieldData]
   )
 
   const onDragEnd = useCallback(
@@ -175,33 +214,24 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
           })
         }
       } else {
-        move(source.droppableId, source.index, destination.index)
+        if (source.droppableId === 'waitingArea') {
+          add(source.index, destination.index)
+        } else {
+          remove(source.index, destination.index)
+        }
       }
     },
-    [move]
-  )
-
-  const remove = useCallback(
-    (index) => {
-      move('selectedArea', index, 0)
-    },
-    [move]
-  )
-
-  const add = useCallback(
-    (index) => {
-      move('waitingArea', index, 0)
-    },
-    [move]
+    [add, remove]
   )
 
   const closePreview = useCallback(() => setPreviewModalActive(false), [])
 
+  console.log(activeFiledList)
   return (
     <Form
       onSubmit={(e) => {
         e.preventDefault()
-        const fieldIds = activeFiledList.map((filed) => filed.id)
+        const fieldIds = activeFiledList.map((field) => field.id)
         if (fieldIds.length < 1) {
           return
         }
@@ -229,7 +259,7 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
       <div className="d-flex flex-column-reverse flex-md-row">
         <DragDropContext onDragEnd={onDragEnd}>
           <Form.Group className={`${styles.group} d-flex flex-column`}>
-            <Form.Label>{t('ticketForm.filedSelected')}</Form.Label>
+            <Form.Label>{t('ticketForm.fieldSelected')}</Form.Label>
             <Droppable droppableId="selectedArea">
               {(provided, snapshot) => (
                 <div
@@ -243,19 +273,19 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
                   ref={provided.innerRef}
                 >
                   <FieldList list={activeFiledList} remove={remove} />
-                  {activeFiledList.length === 0 && <NoData info={t('ticketForm.filedAdd')} />}
+                  {activeFiledList.length === 0 && <NoData info={t('ticketForm.fieldAdd')} />}
                   {provided.placeholder}
                 </div>
               )}
             </Droppable>
           </Form.Group>
           <Form.Group className={`${styles.group} d-flex flex-column`}>
-            <Form.Label htmlFor="search">{t('ticketForm.filedOptional')}</Form.Label>
+            <Form.Label htmlFor="search">{t('ticketForm.fieldOptional')}</Form.Label>
             <InputGroup className="mb-2" size="sm">
               <FormControl
                 name="search"
                 id="search"
-                placeholder={t('ticketForm.filedSearchHint')}
+                placeholder={t('ticketForm.fieldSearchHint')}
                 value={searchValue}
                 onChange={(e) => {
                   const { value } = e.target
@@ -290,9 +320,9 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
                   )}
                   ref={provided.innerRef}
                 >
-                  <FieldList list={filedList} add={add} />
-                  {filedList.length === 0 && (
-                    <NoData info={t('ticketForm.filedOptionalRequired')} />
+                  <FieldList list={fieldList} add={add} />
+                  {fieldList.length === 0 && (
+                    <NoData info={t('ticketForm.fieldOptionalRequired')} />
                   )}
                   {provided.placeholder}
                 </div>
@@ -358,7 +388,7 @@ const EditorForm = () => {
   const { data } = useQuery({
     queryKey: ['setting/forms', fieldId],
     queryFn: () => http.get(`/api/1/ticket-forms/${fieldId}/details`),
-    onError: (err) => addNotification(err)
+    onError: (err) => addNotification(err),
   })
   const { mutateAsync, isLoading } = useMutation({
     mutationFn: (data) => http.patch(`/api/1/ticket-forms/${fieldId}`, data),
@@ -382,4 +412,5 @@ const EditorForm = () => {
     </>
   )
 }
+
 export { AddForm, EditorForm }

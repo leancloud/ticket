@@ -2,7 +2,8 @@ const AV = require('leancloud-storage')
 const { Router } = require('express')
 const { check } = require('express-validator')
 const { requireAuth, customerServiceOnly, catchError } = require('./middleware')
-const { getLimitationData, responseAppendCount } = require('./utils')
+const { responseAppendCount } = require('./utils')
+const { LOCALES, getFieldsDetail } = require('./TicketField')
 const router = Router().use(requireAuth, customerServiceOnly)
 const CLASS_NAME = 'TicketForm'
 
@@ -11,9 +12,25 @@ router.get(
   catchError(async (req, res) => {
     const { size, skip } = req.query
     const query = new AV.Query(CLASS_NAME)
-    // 默认按照更新排序
+    if (size) {
+      const limit = parseInt(size)
+      if (!Number.isNaN(limit)) {
+        query.limit(limit)
+      }
+    }
+    if (skip) {
+      const num = parseInt(skip)
+      if (!Number.isNaN(num)) {
+        query.skip(num)
+      }
+    }
     query.addDescending('updatedAt')
-    const [list, count] = await getLimitationData({ size, skip }, query)
+    const [list, count] = await Promise.all([
+      query.find({ useMasterKey: true }),
+      query.count({
+        useMasterKey: true,
+      }),
+    ])
     res = responseAppendCount(res, count)
     res.json(
       list.map((o) => ({
@@ -48,45 +65,33 @@ router.get(
 
 router.get(
   '/:id/details',
+  check('locale')
+    .isString()
+    .custom((value) => LOCALES.includes(value))
+    .optional(),
   catchError(async (req, res) => {
     const { form } = req
+    const { locale } = req.query
     const fieldIds = form.get('fieldIds')
-    const fieldQuery = new AV.Query('TicketField')
-    fieldQuery.containedIn('objectId', fieldIds)
-    const variantQuery = new AV.Query('TicketFieldVariant')
-    variantQuery.containedIn(
-      'field',
-      fieldIds.map((fieldId) => AV.Object.createWithoutData('TicketField', fieldId))
-    )
-    const [fields, variants] = await Promise.all([
-      fieldQuery
-        .find({ useMasterKey: true })
-        .then((fields) => fields.map((field) => field.toJSON())),
-      variantQuery
-        .find({ useMasterKey: true })
-        .then((variants) => variants.map((variant) => variant.toJSON())),
-    ])
-    const variantMap = variants.reduce((pre, current) => {
-      pre[current.field.objectId] = {
-        locale: current.locale,
-        title: current.title,
-        options: current.options,
+    const fieldDataList = await getFieldsDetail(fieldIds)
+    const fields = fieldDataList.map((fieldData) => {
+      const { variants, ...rest } = fieldData
+      const localeFilterData = variants.filter((variantData) => {
+        if (locale) {
+          return variantData.locale === locale
+        }
+        return variantData.locale === rest.defaultLocale
+      })
+      return {
+        ...rest,
+        variant: localeFilterData[0],
       }
-      return pre
-    }, {})
+    })
     res.json({
       id: form.id,
       title: form.get('title'),
       updatedAt: form.get('updatedAt'),
-      fields: fields.map((field) => ({
-        id: field.objectId,
-        title: field.title,
-        type: field.type,
-        active: !!field.active,
-        required: !!field.required,
-        defaultLocale: field.defaultLocale,
-        variants: variantMap[field.objectId],
-      })),
+      fields,
     })
   })
 )

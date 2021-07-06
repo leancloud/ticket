@@ -6,6 +6,7 @@ import Select, { MultiSelect } from 'modules/components/Select'
 import { RadioGroup, NativeRadio } from 'modules/components/Radio'
 import styles from './index.module.scss'
 
+export const includeOptionsType = ['dropdown', 'multi-select', 'radios']
 export const fieldType = ['text', 'multi-line', 'checkbox', 'dropdown', 'multi-select', 'radios']
 const Text = memo(
   ({ id = _.uniqueId('Text'), label, value, onChange, disabled, readOnly, required }) => {
@@ -98,6 +99,7 @@ const MultiSelectField = memo(
         value: v,
       }))
     }, [options])
+    console.log('reOptions', reOptions)
     return (
       <Form.Group>
         {label && <Form.Label htmlFor={id}>{label}</Form.Label>}

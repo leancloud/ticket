@@ -123,7 +123,7 @@ const FormList = memo(() => {
   )
 })
 
-export default function TicketFields() {
+export default function TicketForm() {
   const match = useRouteMatch()
   return (
     <Switch>

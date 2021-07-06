@@ -8,7 +8,7 @@ import { useMutation, useQuery } from 'react-query'
 import { DocumentTitle } from 'modules/utils/DocumentTitle'
 import { RadioGroup } from 'modules/components/Radio'
 import Divider from 'modules/components/Divider'
-import { fieldType } from './CustomField'
+import { fieldType, includeOptionsType } from './CustomField'
 import { useAppContext } from 'modules/context'
 import _ from 'lodash'
 import Preview from './Preview'
@@ -17,7 +17,7 @@ import LocaleManage, { AllLocales } from './LocaleManage'
 import { http } from 'lib/leancloud'
 import { useFieldId } from '.'
 import styles from './index.module.scss'
-const includeOptionsType = ['dropdown', 'multi-select', 'radios']
+
 const defaultOptions = [['', '']]
 const DropdownOptions = memo(({ options = defaultOptions, onChange }) => {
   const { t } = useTranslation()
