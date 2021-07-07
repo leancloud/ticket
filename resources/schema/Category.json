@@ -13,6 +13,10 @@
             "type": "Pointer",
             "className": "Category"
         },
+        "group": {
+            "type": "Pointer",
+            "className": "Group"
+        },
         "ACL": {
             "type": "ACL"
         },
