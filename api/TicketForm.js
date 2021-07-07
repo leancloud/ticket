@@ -74,19 +74,21 @@ router.get(
     const { locale } = req.query
     const fieldIds = form.get('fieldIds')
     const fieldDataList = await getFieldsDetail(fieldIds)
-    const fields = fieldDataList.map((fieldData) => {
-      const { variants, ...rest } = fieldData
-      const localeFilterData = variants.filter((variantData) => {
-        if (locale) {
-          return variantData.locale === locale
+    const fields = fieldDataList
+      .map((fieldData) => {
+        const { variants, ...rest } = fieldData
+        const localeFilterData = variants.filter((variantData) => {
+          if (locale) {
+            return variantData.locale === locale
+          }
+          return variantData.locale === rest.defaultLocale
+        })
+        return {
+          ...rest,
+          variant: localeFilterData[0],
         }
-        return variantData.locale === rest.defaultLocale
       })
-      return {
-        ...rest,
-        variant: localeFilterData[0],
-      }
-    })
+      .filter((fieldData) => fieldData.active)
     res.json({
       id: form.id,
       title: form.get('title'),
