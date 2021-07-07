@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 import { Center } from '../Center';
 
 export interface NoDataProps {
@@ -5,9 +7,11 @@ export interface NoDataProps {
 }
 
 export function NoData({ message }: NoDataProps) {
+  const { t } = useTranslation();
+
   return (
     <Center>
-      <div className="text-gray-300">{message || '暂无数据'}</div>
+      <div className="text-gray-300">{message || t('general.no_data')}</div>
     </Center>
   );
 }

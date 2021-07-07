@@ -1,5 +1,7 @@
 import { ChevronDownIcon } from '@heroicons/react/solid';
+import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
+
 import { ErrorMessage } from '../ErrorMessage';
 
 export interface DropdownOption {
@@ -15,6 +17,8 @@ export interface DropdownProps {
 }
 
 export function Dropdown({ options, value = '', onChange, error }: DropdownProps) {
+  const { t } = useTranslation();
+
   return (
     <div>
       <div className="relative flex items-center">
@@ -28,7 +32,7 @@ export function Dropdown({ options, value = '', onChange, error }: DropdownProps
           onChange={(e) => onChange?.(e.target.value)}
         >
           <option value="" hidden>
-            请选择
+            {t('general.select_hint')}
           </option>
           {options.map(({ title, value }) => (
             <option key={value} value={value}>

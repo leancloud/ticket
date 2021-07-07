@@ -1,8 +1,10 @@
 import { Fragment } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, Transition } from '@headlessui/react';
 import { XIcon } from '@heroicons/react/solid';
 
 import { Button } from 'components/Button';
+import { SpaceChinese } from 'components/SpaceChinese';
 
 export interface AlertProps {
   title: string;
@@ -13,6 +15,8 @@ export interface AlertProps {
 }
 
 export function Alert({ title, content, buttonTitle, show, onClose }: AlertProps) {
+  const { t } = useTranslation();
+
   return (
     <Transition show={show} as={Fragment}>
       <Dialog
@@ -46,7 +50,7 @@ export function Alert({ title, content, buttonTitle, show, onClose }: AlertProps
           <Dialog.Description className="mt-4 mb-8 text-gray-400">{content}</Dialog.Description>
 
           <Button className="w-full" onClick={onClose}>
-            {buttonTitle || '确 定'}
+            <SpaceChinese>{buttonTitle || t('general.confirm')}</SpaceChinese>
           </Button>
         </Transition.Child>
       </Dialog>

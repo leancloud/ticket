@@ -1,4 +1,5 @@
-import { ChangeEvent, ChangeEventHandler, useCallback, useRef } from 'react';
+import { ChangeEventHandler, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@heroicons/react/solid';
 
 import { FileItem } from '../FileItem';
@@ -18,6 +19,7 @@ export interface UploaderProps {
 }
 
 export function Uploader({ files, onUpload, onDelete }: UploaderProps) {
+  const { t } = useTranslation();
   const $input = useRef<HTMLInputElement>(null!);
   const handleClick = useCallback(() => $input.current.click(), []);
   const handleChange = useCallback<ChangeEventHandler<HTMLInputElement>>(
@@ -38,7 +40,7 @@ export function Uploader({ files, onUpload, onDelete }: UploaderProps) {
         <input className="hidden" type="file" ref={$input} onChange={handleChange} />
         <div className="flex items-center select-none">
           <PlusIcon className="w-7 h-7 text-tapBlue-600" />
-          <span className="text-gray-500">点击上传</span>
+          <span className="text-gray-500">{t('click_to_upload')}</span>
         </div>
       </div>
       <div className="mt-2 flex flex-wrap gap-2">

@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
 import { Link, Route, Switch, useRouteMatch } from 'react-router-dom';
 import { useInfiniteQuery } from 'react-query';
+import { useTranslation } from 'react-i18next';
+import { InView } from 'react-intersection-observer';
 
 import { QueryWrapper } from 'components/QueryWrapper';
 import { Page } from 'components/Page';
@@ -10,7 +12,7 @@ import { NewTicket } from './New';
 import { auth, http } from 'leancloud';
 import { Ticket } from 'types';
 
-const TICKETS_PAGE_SIZE = 10;
+const TICKETS_PAGE_SIZE = 20;
 
 async function fetchTickets(page: number): Promise<Ticket[]> {
   const { data } = await http.get<any[]>('/api/1/tickets', {
@@ -52,13 +54,15 @@ interface TicketItemProps {
 }
 
 function TicketItem({ ticket }: TicketItemProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="p-4 border-b border-gray-100 active:bg-gray-50 flex justify-between items-center">
       <div className="overflow-hidden">
         <div className="text-xs">
           <TicketStatus status={ticket.status} />
           <span className="ml-2 text-gray-400">
-            更新时间: <Time value={ticket.updatedAt} />
+            {t('general.update_time')}: <Time value={ticket.updatedAt} />
           </span>
         </div>
         <div className="mt-2 truncate">{ticket.title}</div>
@@ -73,8 +77,9 @@ function TicketItem({ ticket }: TicketItemProps) {
 }
 
 export function TicketList() {
+  const { t } = useTranslation();
   const result = useTickets();
-  const { data, hasNextPage, fetchNextPage, isFetchingNextPage } = result;
+  const { data, hasNextPage, fetchNextPage } = result;
   const noData = useMemo<boolean | undefined>(() => {
     if (!data) {
       return undefined;
@@ -83,8 +88,8 @@ export function TicketList() {
   }, [data]);
 
   return (
-    <Page title="问题记录">
-      <QueryWrapper result={result} noData={noData} noDataMessage="暂无问题记录">
+    <Page title={t('ticket.record')}>
+      <QueryWrapper result={result} noData={noData} noDataMessage={t('ticket.no_record')}>
         {(tickets) => (
           <>
             {tickets.pages.flat().map((ticket) => (
@@ -92,14 +97,13 @@ export function TicketList() {
                 <TicketItem ticket={ticket} />
               </Link>
             ))}
-            {!noData && hasNextPage && (
-              <button
+            {!noData && (
+              <InView
                 className="text-center w-full py-3 text-xs text-gray-400"
-                onClick={() => fetchNextPage()}
-                disabled={isFetchingNextPage}
+                onChange={(inView) => inView && fetchNextPage()}
               >
-                {isFetchingNextPage ? '加载中...' : '点击加载更多'}
-              </button>
+                {hasNextPage ? t('general.loading') + '...' : t('ticket.no_more_record')}
+              </InView>
             )}
           </>
         )}

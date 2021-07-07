@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useHistory } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import { db } from 'leancloud';
 import { Page } from 'components/Page';
@@ -12,9 +13,10 @@ interface TicketsLinkProps {
 }
 
 function TicketsLink({ badge }: TicketsLinkProps) {
+  const { t } = useTranslation();
   return (
     <Link className="inline-block p-1.5 text-xs leading-none text-tapBlue-600" to="/tickets">
-      问题记录
+      {t('ticket.record')}
       {badge && <div className="h-1.5 w-1.5 bg-red-500 rounded-full absolute top-0 right-0" />}
     </Link>
   );
@@ -36,6 +38,7 @@ function useHasUnreadTickets() {
 
 export default function Home() {
   const history = useHistory();
+  const { t } = useTranslation();
   const result = useCategories();
   const categories = result.data;
   const topCategories = useMemo(() => {
@@ -61,7 +64,7 @@ export default function Home() {
   return (
     <Page className="flex flex-col p-4">
       <div className="flex justify-between items-center relative">
-        <h2 className="font-bold">请选择你遇到的问题</h2>
+        <h2 className="font-bold">{t('ticket.create.select_category')}</h2>
         <TicketsLink badge={hasUnreadTickets} />
       </div>
       <QueryWrapper result={result}>

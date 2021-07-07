@@ -1,5 +1,6 @@
 import { FormEvent, useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import { Redirect, useHistory } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import { auth, http } from 'leancloud';
 import { Page } from 'components/Page';
@@ -20,7 +21,7 @@ function LogInForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form className="absolute" onSubmit={handleSubmit}>
       <div>
         <Input
           value={username}
@@ -44,10 +45,15 @@ function LogInForm() {
 }
 
 export default function LogIn() {
+  const { t } = useTranslation();
+
+  if (auth.currentUser) {
+    return <Redirect to="/home" />;
+  }
   return (
     <Page>
       <div className="h-full flex justify-center items-center">
-        {/* <div className="text-gray-500">检测到你未登录账号，请登录后重试。</div> */}
+        <div className="text-gray-500">{t('auth.not_logged_in_text')}</div>
         <LogInForm />
       </div>
     </Page>

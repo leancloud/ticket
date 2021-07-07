@@ -1,4 +1,5 @@
 import { useInfiniteQuery, UseInfiniteQueryOptions } from 'react-query';
+import { useTranslation } from 'react-i18next';
 
 import { http } from 'leancloud';
 import { File, Reply } from 'types';
@@ -12,6 +13,8 @@ interface ReplyItemProps {
 }
 
 function ReplyItem({ data, onPreviewFile }: ReplyItemProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="border-l-2 px-4 pb-8 relative box-border last:border-white last:pb-0">
       <div
@@ -22,7 +25,7 @@ function ReplyItem({ data, onPreviewFile }: ReplyItemProps) {
         <div className="bg-white w-1.5 h-1.5 rounded-full"></div>
       </div>
       <div className="text-xs">
-        <span className="text-gray-500">{data.isStaff ? '官方客服' : '我自己'}</span>
+        <span className="text-gray-500">{data.isStaff ? t('role.staff') : t('role.me')}</span>
         <Time className="ml-2 text-gray-300" value={data.createdAt} />
       </div>
       <div

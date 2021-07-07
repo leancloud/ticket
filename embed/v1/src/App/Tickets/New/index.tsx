@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, Redirect } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { CheckCircleIcon } from '@heroicons/react/solid';
 import { useMutation } from 'react-query';
 
@@ -9,6 +10,7 @@ import { Page } from 'components/Page';
 import { Button } from 'components/Button';
 import { Uploader } from 'components/Uploader';
 import { QueryWrapper } from 'components/QueryWrapper';
+import { SpaceChinese } from 'components/SpaceChinese';
 import { useCategory } from '../../Categories';
 import { FieldTemplate, FormGroup, useForm } from './Form';
 import { useUpload } from './useUpload';
@@ -46,6 +48,7 @@ interface TicketFormProps {
 }
 
 function TicketForm({ categoryId, onCommit }: TicketFormProps) {
+  const { t } = useTranslation();
   const { element: formElement, validate, data: formData } = useForm(PRESET_FORM_FIELDS);
   const { element: alertElement, alert } = useAlert();
   const { files, upload, remove, isUploading } = useUpload();
@@ -57,7 +60,10 @@ function TicketForm({ categoryId, onCommit }: TicketFormProps) {
     }
     const file = files[0];
     if (file.size > MAX_FILE_SIZE) {
-      alert({ title: '上传失败', content: '附件大小不能超过 1 GB' });
+      alert({
+        title: t('ticket.attachment_too_big'),
+        content: t('ticket.attachment_too_big_text', { size: 1, unit: 'GB' }),
+      });
       return;
     }
     upload(file);
@@ -65,10 +71,6 @@ function TicketForm({ categoryId, onCommit }: TicketFormProps) {
 
   const handleCommit = async () => {
     if (!validate()) {
-      return;
-    }
-    if (isUploading) {
-      alert({ title: '提交失败', content: '请等待全部文件上传完毕' });
       return;
     }
     const data = {
@@ -89,7 +91,7 @@ function TicketForm({ categoryId, onCommit }: TicketFormProps) {
     <div className="p-4 sm:px-8 sm:py-6">
       {alertElement}
       {formElement}
-      <FormGroup controlId="ticket_file" title="附件">
+      <FormGroup controlId="ticket_file" title={t('general.attachment')}>
         <Uploader
           files={files}
           onUpload={handleUpload}
@@ -98,10 +100,10 @@ function TicketForm({ categoryId, onCommit }: TicketFormProps) {
       </FormGroup>
       <Button
         className="sm:ml-20 w-full sm:max-w-max sm:px-11"
-        disabled={isCommitting}
+        disabled={isCommitting || isUploading}
         onClick={handleCommit}
       >
-        提 交
+        <SpaceChinese>{t('general.commit')}</SpaceChinese>
       </Button>
     </div>
   );
@@ -112,12 +114,14 @@ interface SuccessProps {
 }
 
 function Success({ ticketId }: SuccessProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="flex flex-col justify-center items-center h-full">
       <CheckCircleIcon className="w-12 h-12 text-tapBlue-600" />
-      <div className="text-gray-500 mt-8">提交成功，我们将尽快为您处理</div>
+      <div className="text-gray-500 mt-8">{t('ticket.create.success_text')}</div>
       <Button className="mt-4 px-12" as={Link} to={`/tickets/${ticketId}`}>
-        问题详情
+        {t('ticket.detail')}
       </Button>
     </div>
   );

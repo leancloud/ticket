@@ -1,5 +1,6 @@
-import classNames from 'classnames';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import classNames from 'classnames';
 
 import { Field } from './Field';
 
@@ -89,6 +90,7 @@ export function FormGroup({ title, controlId, required, children, ...props }: Fr
 }
 
 export function useForm(templates: FieldTemplate[]) {
+  const { t } = useTranslation();
   const [data, setData] = useState<Record<string, any>>({});
   useEffect(() => setData(getDefaultValues(templates)), [templates]);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -123,12 +125,12 @@ export function useForm(templates: FieldTemplate[]) {
         case 'radios':
         case 'dropdown':
           if (tmpl.required && !data[tmpl.name]) {
-            nextErrors[tmpl.name] = '该内容不能为空';
+            nextErrors[tmpl.name] = t('general.content_required');
           }
           break;
         case 'multi-select':
           if ((tmpl.required && !data[tmpl.name]) || data[tmpl.name].length === 0) {
-            nextErrors[tmpl.name] = '该内容不能为空';
+            nextErrors[tmpl.name] = t('general.content_required');
           }
           break;
       }

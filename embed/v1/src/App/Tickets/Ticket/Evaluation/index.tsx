@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { CheckCircleIcon, ThumbDownIcon, ThumbUpIcon } from '@heroicons/react/solid';
 
 import { Input, Radio } from 'components/Form';
@@ -8,9 +9,11 @@ import { http } from 'leancloud';
 import { Ticket } from 'types';
 
 export function Evaluated() {
+  const { t } = useTranslation();
   return (
     <div className="p-6 border-t border-dashed border-gray-300 text-gray-600 flex items-center">
-      <CheckCircleIcon className="w-6 h-6 mr-3 text-tapBlue-600" /> 您的评价已收到，感谢您的反馈
+      <CheckCircleIcon className="w-6 h-6 mr-3 text-tapBlue-600" />{' '}
+      {t('ticket.evaluate.success_text')}
     </div>
   );
 }
@@ -24,6 +27,7 @@ export interface NewEvaluationProps {
 }
 
 export function NewEvaluation({ ticketId }: NewEvaluationProps) {
+  const { t } = useTranslation();
   const [star, setStar] = useState<0 | 1>();
   const [content, setContent] = useState('');
 
@@ -37,14 +41,14 @@ export function NewEvaluation({ ticketId }: NewEvaluationProps) {
 
   return (
     <div className="p-6 border-t border-dashed border-gray-300">
-      <div className="text-gray-600">服务评价与反馈</div>
+      <div className="text-gray-600">{t('ticket.evaluation')}</div>
 
       <div className="py-6">
         <span>
           <Radio checked={star === 1} onChange={() => setStar(1)}>
             <span className="text-yellow-500 inline-flex items-center">
               <ThumbUpIcon className="w-4 h-4 inline-block mr-1" />
-              有用
+              {t('ticket.evaluate.useful')}
             </span>
           </Radio>
         </span>
@@ -52,7 +56,7 @@ export function NewEvaluation({ ticketId }: NewEvaluationProps) {
           <Radio checked={star === 0} onChange={() => setStar(0)}>
             <span className="text-blue-500 inline-flex items-center">
               <ThumbDownIcon className="w-4 h-4 inline-block mr-1" />
-              没用
+              {t('ticket.evaluate.useless')}
             </span>
           </Radio>
         </span>
@@ -61,7 +65,7 @@ export function NewEvaluation({ ticketId }: NewEvaluationProps) {
       <div className="flex flex-wrap gap-2">
         <Input
           className="flex-grow rounded-full"
-          placeholder="补充说明（非必填）"
+          placeholder={t('ticket.evaluate.content_hint')}
           value={content}
           onChange={(e) => setContent(e.target.value)}
         />
@@ -70,7 +74,7 @@ export function NewEvaluation({ ticketId }: NewEvaluationProps) {
           disabled={star === undefined || isLoading}
           onClick={handleCommit}
         >
-          提交
+          {t('general.commit')}
         </Button>
       </div>
     </div>

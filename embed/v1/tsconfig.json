@@ -15,7 +15,8 @@
       "types/*": ["types/*"]
     },
     "typeRoots": ["./node_modules/@types"],
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "resolveJsonModule": true
   },
   "include": ["src/**/*"]
 }

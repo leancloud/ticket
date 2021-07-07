@@ -1,6 +1,7 @@
 import { ChangeEventHandler, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery } from 'react-query';
 import { Redirect, useRouteMatch } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 import { ChevronDownIcon, ChevronUpIcon, PaperClipIcon } from '@heroicons/react/solid';
 import { Dialog } from '@headlessui/react';
@@ -51,18 +52,19 @@ const STATUS_CLASS: Record<number, string> = {
 };
 
 const STATUS_TEXT: Record<number, string> = {
-  50: '待处理',
-  120: '待客服回复',
-  160: '待用户处理',
-  220: '已解决',
-  250: '已解决',
-  280: '已解决',
+  50: 'ticket.status.new',
+  120: 'ticket.status.waiting_on_staff',
+  160: 'ticket.status.waiting_on_customer',
+  220: 'ticket.status.resolved',
+  250: 'ticket.status.resolved',
+  280: 'ticket.status.resolved',
 };
 
 export function TicketStatus({ status }: { status: number }) {
+  const { t } = useTranslation();
   return (
     <span className={classNames(styles.status, STATUS_CLASS[status])}>
-      {STATUS_TEXT[status] || '未知'}
+      {t(STATUS_TEXT[status])}
     </span>
   );
 }
@@ -87,16 +89,18 @@ interface ExpandButtonProps {
 }
 
 function ExpandButton({ expand, onClick }: ExpandButtonProps) {
+  const { t } = useTranslation();
+
   return (
     <button className="text-tapBlue-600" onClick={onClick}>
       {expand ? (
         <>
-          收起
+          {t('general.collapse')}
           <ChevronUpIcon className="w-5 h-5 inline-block" />
         </>
       ) : (
         <>
-          展开
+          {t('general.expand')}
           <ChevronDownIcon className="w-5 h-5 inline-block" />
         </>
       )}
@@ -109,6 +113,7 @@ interface TicketAttributesProps {
 }
 
 function TicketAttributes({ ticket }: TicketAttributesProps) {
+  const { t } = useTranslation();
   const [expand, setExpand] = useState(false);
   const { element: previewElement, preview } = usePreview();
 
@@ -117,37 +122,37 @@ function TicketAttributes({ ticket }: TicketAttributesProps) {
       {previewElement}
       {expand && (
         <>
-          <TicketAttribute expand title="编号">
+          <TicketAttribute expand title={t('general.number')}>
             #{ticket.nid}
           </TicketAttribute>
-          <TicketAttribute expand title="状态">
+          <TicketAttribute expand title={t('general.status')}>
             <TicketStatus status={ticket.status} />
           </TicketAttribute>
         </>
       )}
-      <TicketAttribute expand={expand} className="truncate" title="标题">
+      <TicketAttribute expand={expand} className="truncate" title={t('general.title')}>
         {ticket.title}
       </TicketAttribute>
-      <TicketAttribute expand={expand} className={expand ? undefined : 'truncate'} title="描述">
+      <TicketAttribute
+        expand={expand}
+        className={expand ? undefined : 'truncate'}
+        title={t('general.description')}
+      >
         {ticket.content}
       </TicketAttribute>
-      {expand && (
-        <TicketAttribute expand title="附件">
-          {ticket.files.length === 0 ? (
-            '（无）'
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              {ticket.files.map((file) => (
-                <FileItem
-                  key={file.id}
-                  name={file.name}
-                  mime={file.mime}
-                  url={file.url}
-                  onClick={() => preview(file)}
-                />
-              ))}
-            </div>
-          )}
+      {expand && ticket.files.length > 0 && (
+        <TicketAttribute expand title={t('general.attachment')}>
+          <div className="flex flex-wrap gap-2">
+            {ticket.files.map((file) => (
+              <FileItem
+                key={file.id}
+                name={file.name}
+                mime={file.mime}
+                url={file.url}
+                onClick={() => preview(file)}
+              />
+            ))}
+          </div>
         </TicketAttribute>
       )}
       <div className="p-2 text-center">
@@ -196,6 +201,7 @@ interface ReplyInputProps {
 }
 
 function ReplyInput({ onCommit }: ReplyInputProps) {
+  const { t } = useTranslation();
   const [editing, setEditing] = useState(false);
   const [content, setContent] = useState('');
   const $textarea = useRef<HTMLTextAreaElement>(null);
@@ -251,7 +257,7 @@ function ReplyInput({ onCommit }: ReplyInputProps) {
             onFocus={() => setEditing(true)}
           />
           <Button className="min-w-min" disabled={!canUpload} onClick={handleCommit}>
-            发送
+            {t('general.send')}
           </Button>
         </div>
       </div>
@@ -291,7 +297,7 @@ function ReplyInput({ onCommit }: ReplyInputProps) {
             </div>
             <div className="flex-none flex flex-col-reverse">
               <Button className="min-w-min" disabled={!canUpload} onClick={handleCommit}>
-                发送
+                {t('general.send')}
               </Button>
             </div>
           </div>
@@ -315,6 +321,7 @@ export default function TicketDetail() {
   const {
     params: { id },
   } = useRouteMatch<{ id: string }>();
+  const { t } = useTranslation();
   const result = useTicket(id);
   useClearUnreadCount(id);
   const repliesResult = useReplies(id, {
@@ -344,7 +351,7 @@ export default function TicketDetail() {
     return <Redirect to="/home" />;
   }
   return (
-    <Page title="问题详情">
+    <Page title={t('ticket.detail')}>
       <QueryWrapper result={result}>
         {(ticket) => (
           <div className="flex flex-col h-full">
