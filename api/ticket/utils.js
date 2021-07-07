@@ -49,6 +49,22 @@ async function selectAssignee(categoryId, customerServices) {
 
   return _.sample(candidates)
 }
+/**
+ * @param {string} categoryId
+ * @returns {Promise<AV.Object>}
+ */
+async function selectGroup(categoryId) {
+  const category = await new AV.Query('Category').get(categoryId)
+  if (category) {
+    if (category.get('group')) {
+      return category.get('group')
+    }
+    if (category.get('parent')) {
+      return selectGroup(category.get('parent').id)
+    }
+  }
+  return undefined
+}
 
 function getActionStatus(action, isCustomerService) {
   switch (action) {
@@ -74,4 +90,5 @@ module.exports = {
   getVacationerIds,
   getActionStatus,
   selectAssignee,
+  selectGroup,
 }
