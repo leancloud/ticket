@@ -96,7 +96,7 @@ class Categories extends Component {
               <th>{t('name')}</th>
               <th>{t('assigned')}</th>
               <th>{t('assignTo')}</th>
-              <th>{t('assigneToGroup')}</th>
+              <th>{t('assignToGroup')}</th>
             </tr>
           </thead>
           <tbody>{tds}</tbody>
