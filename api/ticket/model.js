@@ -208,7 +208,7 @@ class Ticket {
       obj.set('assignee', AV.Object.createWithoutData('_User', assignee.id))
     }
     if (group) {
-      obj.set('group', AV.Object.createWithoutData('_User', group.id))
+      obj.set('group', AV.Object.createWithoutData('Group', group.id))
     }
     obj.set('content', data.content)
     obj.set('content_HTML', htmlify(data.content))
@@ -244,10 +244,14 @@ class Ticket {
       ticket.pushOpsLog('selectAssignee', { assignee: makeTinyUserInfo(assignee) })
     }
     if (group) {
-      ticket.pushOpsLog('changeGroup', {
-        group: await getTinyGroupInfo(this.group_id),
-        operator: systemUser,
-      })
+      ticket.pushOpsLog(
+        'changeGroup',
+        {
+          group: await getTinyGroupInfo(group.id),
+          operator: systemUser,
+        },
+        true
+      )
     }
     ticket.saveOpsLogs().catch(captureException)
 

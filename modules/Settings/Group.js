@@ -177,14 +177,15 @@ export function Group() {
             <ul>
               {fetchingMembers
                 ? 'Loading...'
-                : members.map((member) => (
-                    <li key={member}>
-                      <UserLabel
-                        user={customerServices.find(({ objectId }) => objectId === member)}
-                        displayId
-                      />
-                    </li>
-                  ))}
+                : members.map((member) => {
+                    const user = customerServices.find(({ objectId }) => objectId === member)
+                    if (!user) return <li key={member}>{member} (非客服)</li>
+                    return (
+                      <li key={member}>
+                        <UserLabel user={user} displayId />
+                      </li>
+                    )
+                  })}
             </ul>
           </>
         )}
