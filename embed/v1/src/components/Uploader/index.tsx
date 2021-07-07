@@ -40,7 +40,7 @@ export function Uploader({ files, onUpload, onDelete }: UploaderProps) {
         <input className="hidden" type="file" ref={$input} onChange={handleChange} />
         <div className="flex items-center select-none">
           <PlusIcon className="w-7 h-7 text-tapBlue-600" />
-          <span className="text-gray-500">{t('click_to_upload')}</span>
+          <span className="text-gray-500">{t('general.click_to_upload')}</span>
         </div>
       </div>
       <div className="mt-2 flex flex-wrap gap-2">

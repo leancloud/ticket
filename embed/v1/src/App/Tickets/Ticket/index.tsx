@@ -52,12 +52,12 @@ const STATUS_CLASS: Record<number, string> = {
 };
 
 const STATUS_TEXT: Record<number, string> = {
-  50: 'ticket.status.new',
-  120: 'ticket.status.waiting_on_staff',
-  160: 'ticket.status.waiting_on_customer',
-  220: 'ticket.status.resolved',
-  250: 'ticket.status.resolved',
-  280: 'ticket.status.resolved',
+  50: 'status.new',
+  120: 'status.waiting_on_staff',
+  160: 'status.waiting_on_customer',
+  220: 'status.resolved',
+  250: 'status.resolved',
+  280: 'status.resolved',
 };
 
 export function TicketStatus({ status }: { status: number }) {
@@ -252,6 +252,7 @@ function ReplyInput({ onCommit }: ReplyInputProps) {
         <div className="flex">
           <Input
             className="rounded-full flex-grow mr-4"
+            placeholder={t('reply.input_content_hint')}
             value={content}
             onChange={(e) => handleChangeContent(e.target.value)}
             onFocus={() => setEditing(true)}
@@ -272,6 +273,7 @@ function ReplyInput({ onCommit }: ReplyInputProps) {
                     ref={$textarea}
                     className="w-full"
                     autoFocus
+                    placeholder={t('reply.input_content_hint')}
                     value={content}
                     onChange={(e) => handleChangeContent(e.target.value)}
                     rows={1}

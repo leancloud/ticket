@@ -15,7 +15,7 @@ export function Page({ title, children, ...props }: PageProps) {
   return (
     <div className="h-full flex flex-col bg-white rounded-lg shadow overflow-hidden">
       <h1 className="py-2 text-center border-b border-gray-100 font-semibold">
-        {title || t('call_center')}
+        {title || t('general.call_center')}
       </h1>
       <div {...props} className={classNames(props.className, 'flex-grow overflow-auto')}>
         <ErrorBoundary>{children}</ErrorBoundary>

@@ -61,8 +61,8 @@ function TicketForm({ categoryId, onCommit }: TicketFormProps) {
     const file = files[0];
     if (file.size > MAX_FILE_SIZE) {
       alert({
-        title: t('ticket.attachment_too_big'),
-        content: t('ticket.attachment_too_big_text', { size: 1, unit: 'GB' }),
+        title: t('validation.attachment_too_big'),
+        content: t('validation.attachment_too_big_text', { size: 1, unit: 'GB' }),
       });
       return;
     }

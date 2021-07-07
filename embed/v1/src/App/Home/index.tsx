@@ -64,7 +64,7 @@ export default function Home() {
   return (
     <Page className="flex flex-col p-4">
       <div className="flex justify-between items-center relative">
-        <h2 className="font-bold">{t('ticket.create.select_category')}</h2>
+        <h2 className="font-bold">{t('category.select_hint')}</h2>
         <TicketsLink badge={hasUnreadTickets} />
       </div>
       <QueryWrapper result={result}>

@@ -25,7 +25,9 @@ function ReplyItem({ data, onPreviewFile }: ReplyItemProps) {
         <div className="bg-white w-1.5 h-1.5 rounded-full"></div>
       </div>
       <div className="text-xs">
-        <span className="text-gray-500">{data.isStaff ? t('role.staff') : t('role.me')}</span>
+        <span className="text-gray-500">
+          {data.isStaff ? t('reply.staff_title') : t('reply.my_title')}
+        </span>
         <Time className="ml-2 text-gray-300" value={data.createdAt} />
       </div>
       <div

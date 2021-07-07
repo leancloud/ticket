@@ -2,8 +2,6 @@
   "general": {
     "commit": "提交",
     "loading": "加载中",
-    "update_time": "更新时间",
-    "content_required": "该内容不能为空",
     "select_hint": "请选择",
     "collapse": "收起",
     "expand": "展开",
@@ -14,41 +12,48 @@
     "attachment": "附件",
     "send": "发送",
     "confirm": "确定",
-    "no_data": "暂无数据"
+    "no_data": "暂无数据",
+    "call_center": "客服中心",
+    "click_to_upload": "点击上传"
   },
   "auth": {
-    "not_logged_in_text": "检测到你未登录账号，请登录后重试。"
+    "not_logged_in_text": "检测到你未登录账号，请登录后重试"
+  },
+  "category": {
+    "select_hint": "请选择你遇到的问题"
   },
   "ticket": {
     "record": "问题记录",
     "no_record": "暂无问题记录",
     "no_more_record": "没有更多记录",
-    "attachment_too_big": "上传失败",
-    "attachment_too_big_text": "附件大小不能超过 {{size}} {{unit}}",
     "create": {
-      "select_category": "请选择你遇到的问题",
       "success": "提交成功",
       "success_text": "$t(ticket.create.success)，我们将尽快为您处理"
     },
     "detail": "问题详情",
-    "status": {
-      "new": "待处理",
-      "waiting_on_staff": "待客服回复",
-      "waiting_on_customer": "待用户处理",
-      "resolved": "已解决"
-    },
-    "evaluation": "服务评价与反馈",
-    "evaluate": {
-      "useful": "有用",
-      "useless": "没用",
-      "content_hint": "补充说明（非必填）",
-      "success_text": "您的评价已收到，感谢您的反馈！"
-    }
+    "updated_at": "更新时间"
   },
-  "role": {
-    "staff": "官方客服",
-    "me": "我自己"
+  "reply": {
+    "staff_title": "官方客服",
+    "my_title": "我自己",
+    "input_content_hint": "请输入内容"
   },
-  "call_center": "客服中心",
-  "click_to_upload": "点击上传"
+  "status": {
+    "new": "待处理",
+    "waiting_on_staff": "待客服回复",
+    "waiting_on_customer": "待用户处理",
+    "resolved": "已解决"
+  },
+  "evaluation": {
+    "title": "服务评价与反馈",
+    "useful": "有用",
+    "useless": "没用",
+    "content_hint": "补充说明（非必填）",
+    "created_text": "您的评价已收到，感谢您的反馈！"
+  },
+  "validation": {
+    "required": "该内容不能为空",
+    "attachment_too_big": "上传失败",
+    "attachment_too_big_text": "附件大小不能超过 {{size}} {{unit}}"
+  }
 }

@@ -125,12 +125,12 @@ export function useForm(templates: FieldTemplate[]) {
         case 'radios':
         case 'dropdown':
           if (tmpl.required && !data[tmpl.name]) {
-            nextErrors[tmpl.name] = t('general.content_required');
+            nextErrors[tmpl.name] = t('validation.required');
           }
           break;
         case 'multi-select':
           if ((tmpl.required && !data[tmpl.name]) || data[tmpl.name].length === 0) {
-            nextErrors[tmpl.name] = t('general.content_required');
+            nextErrors[tmpl.name] = t('validation.required');
           }
           break;
       }
