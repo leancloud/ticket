@@ -4,12 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node ./embed/v1/script/build.js && node server.js",
     "build": "webpack",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
     "dev:client": "eval $(lean env) && NODE_ENV=development webpack serve",
+    "dev:embed:v1": "cd embed/v1 && npm run dev:client",
     "dev": "WEBPACK_DEV_SERVER=http://localhost:8080 nodemon --ignore modules server.js",
-    "postinstall": "npm run build",
+    "install:embed": "cd ./embed/v1 && npm ci",
+    "postinstall": "npm run build && npm run install:embed",
     "migrate": "eval $(lean env) && migrate up --store=./migration-store",
     "fmt": "prettier -w */**/*.js",
     "prepare": "husky install"

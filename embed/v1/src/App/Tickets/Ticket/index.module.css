@@ -1,0 +1,15 @@
+.status {
+  &.new, &.waitForStaff {
+    color: #15C5CE;
+  }
+  &.waitForCustomer {
+    color: #FF8156;
+  }
+  &.resolved {
+    color: #47b881;
+  }
+}
+
+.detail {
+  background-color: #FAFAFA;
+}

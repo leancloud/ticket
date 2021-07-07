@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "esModuleInterop": true,
+    "module": "ES2020",
+    "target": "ES2020",
+    "moduleResolution": "Node",
+    "jsx": "react-jsx",
+    "isolatedModules": true,
+    "baseUrl": "src",
+    "paths": {
+      "components/*": ["components/*"],
+      "utils/*": ["utils/*"],
+      "leancloud/*": ["leancloud/*"],
+      "types/*": ["types/*"]
+    },
+    "typeRoots": ["./node_modules/@types"],
+    "skipLibCheck": true,
+    "resolveJsonModule": true
+  },
+  "include": ["src/**/*"]
+}

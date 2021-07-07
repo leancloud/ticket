@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  background-color: #f2f2f2;
+  font-size: 14px;
+}
+
+button:focus, input:focus, textarea:focus, select:focus {
+  outline: none;
+}
+
+input, textarea, select {
+  appearance: none;
+}
+
+textarea {
+  resize: none;
+}
