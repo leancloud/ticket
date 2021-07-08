@@ -224,7 +224,7 @@ function parseSort(value) {
  *   gt: Record<string, string>;
  *   gte: Record<string, string>;
  *   lt: Record<string, string>;
- *   gte: Record<string, string>;
+ *   lte: Record<string, string>;
  *   range: Record<string, { from: string; to: string }>;
  *   sort: { key: string; order: 'asc' | 'desc' }[];
  * }}
