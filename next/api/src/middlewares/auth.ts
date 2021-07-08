@@ -1,5 +1,4 @@
 import Koa from 'koa';
-import AV from 'leancloud-storage';
 
 import { LoggedInUser } from '../models/user';
 
@@ -9,8 +8,7 @@ export default async function auth(ctx: Koa.Context, next: Koa.Next) {
     ctx.throw(401);
   }
   try {
-    const avUser = await AV.User.become(sessionToken);
-    ctx.state.user = new LoggedInUser(avUser);
+    ctx.state.user = await LoggedInUser.getBySessionToken(sessionToken);
   } catch (error) {
     if (error.code === 211) {
       ctx.throw(403);

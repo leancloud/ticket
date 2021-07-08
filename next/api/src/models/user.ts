@@ -15,42 +15,19 @@ export class User {
   readonly createdAt: Date;
   readonly updatedAt: Date;
 
-  constructor(data: UserData);
-  constructor(avUser: AV.User);
-  constructor(user: UserData | AV.User) {
-    if (user instanceof AV.User) {
-      if (!user.id) {
-        throw new Error('Cannot construct user by an unsaved AV.User');
-      }
-      this.id = user.id;
-
-      if (!user.has('username')) {
-        throw new Error('Cannot construct user by AV.User without username');
-      }
-      this.username = user.getUsername();
-
-      if (!user.createdAt || !user.updatedAt) {
-        throw new Error(
-          'Cannot construct user by AV.User without createdAt or updatedAt'
-        );
-      }
-      this.createdAt = user.createdAt;
-      this.updatedAt = user.updatedAt;
-
-      this.name = user.get('name');
-    } else {
-      this.id = user.id;
-      this.username = user.username;
-      this.name = user.name;
-      this.createdAt = user.createdAt;
-      this.updatedAt = user.updatedAt;
-    }
+  constructor(user: UserData) {
+    this.id = user.id;
+    this.username = user.username;
+    this.name = user.name;
+    this.createdAt = user.createdAt;
+    this.updatedAt = user.updatedAt;
   }
 
   toJSON() {
     return {
       id: this.id,
       username: this.username,
+      name: this.name,
       created_at: this.createdAt.toISOString(),
       updated_at: this.updatedAt.toISOString(),
     };
@@ -64,21 +41,21 @@ export interface LoggedInUserData extends UserData {
 export class LoggedInUser extends User {
   readonly sessionToken: string;
 
-  constructor(data: LoggedInUserData);
-  constructor(avUser: AV.User);
-  constructor(user: LoggedInUserData | AV.User) {
-    if (user instanceof AV.User) {
-      super(user);
-      if (!user.getSessionToken()) {
-        throw new Error(
-          'Cannot construct LoggedInUser by AV.User without sessionToken'
-        );
-      }
-      this.sessionToken = user.getSessionToken();
-    } else {
-      super(user);
-      this.sessionToken = user.sessionToken;
-    }
+  constructor(user: LoggedInUserData) {
+    super(user);
+    this.sessionToken = user.sessionToken;
+  }
+
+  static async getBySessionToken(sessionToken: string): Promise<LoggedInUser> {
+    const avUser = await AV.User.become(sessionToken);
+    return new LoggedInUser({
+      sessionToken,
+      id: avUser.id!,
+      username: avUser.getUsername(),
+      name: avUser.get('name') ?? undefined,
+      createdAt: avUser.createdAt!,
+      updatedAt: avUser.updatedAt!,
+    });
   }
 
   getAuthOptions(): AV.AuthOptions {
