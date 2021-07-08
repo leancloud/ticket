@@ -37,7 +37,7 @@ import { BlodSearchString } from '../components/BlodSearchString'
 import { DelayInputForm } from '../components/DelayInputForm'
 import { useGroups } from '../components/Group'
 
-const PAGE_SIZE = 10
+const PAGE_SIZE = 20
 
 function useTicketFilters() {
   const history = useHistory()
