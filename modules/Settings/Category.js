@@ -8,6 +8,7 @@ import { db } from '../../lib/leancloud'
 import { depthFirstSearchFind } from '../../lib/common'
 import { getCategoriesTree } from '../common'
 import CategoriesSelect from '../CategoriesSelect'
+import { GroupSelect } from '../components/Group'
 
 class Category extends React.Component {
   constructor() {
@@ -17,6 +18,7 @@ class Category extends React.Component {
       description: '',
       qTemplate: '',
       FAQs: '',
+      assignedGroupId: '',
       category: undefined,
       parentCategory: undefined,
       categoriesTree: undefined,
@@ -40,6 +42,7 @@ class Category extends React.Component {
         name: category.get('name'),
         description: category.get('description'),
         qTemplate: category.get('qTemplate'),
+        assignedGroupId: category.get('group')?.id,
         parentCategory: category.get('parent'),
         FAQs: (category.get('FAQs') || []).map((FAQ) => FAQ.id).join(','),
       })
@@ -81,6 +84,9 @@ class Category extends React.Component {
   handleQTemplateChange(e) {
     this.setState({ qTemplate: e.target.value })
   }
+  handleAssignedGroupIdChange(e) {
+    this.setState({ assignedGroupId: e.target.value })
+  }
 
   handleSubmit(e) {
     e.preventDefault()
@@ -108,6 +114,13 @@ class Category extends React.Component {
           data.parent = db.op.unset()
         } else {
           data.parent = this.state.parentCategory
+        }
+      }
+      if (this.state.assignedGroupId != category.get('group')?.id) {
+        if (!this.state.assignedGroupId) {
+          data.group = db.op.unset()
+        } else {
+          data.group = db.class('Group').object(this.state.assignedGroupId)
         }
       }
 
@@ -204,6 +217,16 @@ class Category extends React.Component {
             onChange={this.handleQTemplateChange.bind(this)}
           />
           <Form.Text>{t('ticketTemplateInfo')}</Form.Text>
+        </Form.Group>
+        <Form.Group controlId="groupSelect">
+          <Form.Label>
+            {t('assignToGroup')}
+            {t('optional')}
+          </Form.Label>
+          <GroupSelect
+            value={this.state.assignedGroupId}
+            onChange={this.handleAssignedGroupIdChange.bind(this)}
+          />
         </Form.Group>
         <Button type="submit" disabled={this.state.isSubmitting} variant="success">
           {t('save')}

@@ -20,23 +20,50 @@ async function getVacationerIds() {
  * @param {string} categoryId
  * @returns {Promise<AV.User>}
  */
-async function selectAssignee(categoryId) {
-  const [role, vacationerIds] = await Promise.all([getCustomerServiceRole(), getVacationerIds()])
-  const query = role.getUsers().query()
-  if (vacationerIds.length) {
-    query.notContainedIn('objectId', vacationerIds)
+async function selectAssignee(categoryId, customerServices) {
+  let availableCSs = customerServices
+  if (!availableCSs) {
+    const [role, vacationerIds] = await Promise.all([getCustomerServiceRole(), getVacationerIds()])
+    const query = role.getUsers().query()
+    if (vacationerIds.length) {
+      query.notContainedIn('objectId', vacationerIds)
+    }
+    availableCSs = await query.find({ useMasterKey: true })
   }
-  const users = await query.find({ useMasterKey: true })
-
-  const assignees = users.filter((user) => {
+  const candidates = availableCSs.filter((user) => {
     const categories = user.get('categories')
     if (!categories) {
       return false
     }
     return categories.findIndex((c) => c.objectId === categoryId) !== -1
   })
+  if (candidates.length === 0) {
+    const parentCategory = (
+      await new AV.Query('Category').equalTo('objectId', categoryId).first()
+    )?.get('parent')
+    if (parentCategory) {
+      return selectAssignee(parentCategory.id, availableCSs)
+    }
+    return undefined
+  }
 
-  return _.sample(assignees)
+  return _.sample(candidates)
+}
+/**
+ * @param {string} categoryId
+ * @returns {Promise<AV.Object>}
+ */
+async function selectGroup(categoryId) {
+  const category = await new AV.Query('Category').get(categoryId)
+  if (category) {
+    if (category.get('group')) {
+      return category.get('group')
+    }
+    if (category.get('parent')) {
+      return selectGroup(category.get('parent').id)
+    }
+  }
+  return undefined
 }
 
 function getActionStatus(action, isCustomerService) {
@@ -63,4 +90,5 @@ module.exports = {
   getVacationerIds,
   getActionStatus,
   selectAssignee,
+  selectGroup,
 }

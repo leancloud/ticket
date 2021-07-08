@@ -14,7 +14,7 @@ const {
 } = require('../lib/common')
 const errorHandler = require('./errorHandler')
 const { Automations } = require('./rule/automation')
-const { getVacationerIds, selectAssignee, getActionStatus } = require('./ticket/utils')
+const { getVacationerIds, selectAssignee, getActionStatus, selectGroup } = require('./ticket/utils')
 const { invokeWebhooks } = require('./webhook')
 const Ticket = require('./ticket/model')
 
@@ -36,11 +36,14 @@ AV.Cloud.beforeSave('Ticket', async (req) => {
   ticket.set('author', req.currentUser)
 
   try {
-    const assignee = await selectAssignee(ticket.get('category').objectId)
+    const categoryId = ticket.get('category').objectId
+    const assignee = await selectAssignee(categoryId)
     if (assignee) ticket.set('assignee', assignee)
+    const group = await selectGroup(categoryId)
+    if (group) ticket.set('group', group)
   } catch (err) {
     errorHandler.captureException(err)
-    throw new AV.Cloud.Error('Internal Error', { status: 500 })
+    throw new AV.Cloud.Error('Internal Error: ' + err.message, { status: 500 })
   }
 })
 

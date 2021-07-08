@@ -109,7 +109,7 @@ function QuickReplyList() {
             </tr>
           </thead>
           <tbody>
-            {quickReplies.map((quickReply) => (
+            {quickReplies?.map((quickReply) => (
               <tr key={quickReply.id}>
                 <td>{quickReply.name}</td>
                 <td>

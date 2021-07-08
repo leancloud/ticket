@@ -9,6 +9,7 @@ import { auth } from '../../lib/leancloud'
 import { getCustomerServices, getCategoriesTree, getNodeIndentString } from '../common'
 import { UserLabel } from '../UserLabel'
 import { depthFirstSearchFind, depthFirstSearchMap, getTinyCategoryInfo } from '../../lib/common'
+import { GroupLabel } from '../components/Group'
 
 class Categories extends Component {
   constructor(props) {
@@ -20,20 +21,21 @@ class Categories extends Component {
     }
   }
 
+  loadData() {
+    return Promise.all([getCategoriesTree(), getCustomerServices()]).then(
+      ([categoriesTree, customerServices]) => {
+        this.setState({
+          categoriesTree,
+          checkedCategories: auth.currentUser.data.categories || [],
+          customerServices,
+        })
+        return
+      }
+    )
+  }
+
   componentDidMount() {
-    return Promise.all([
-      getCategoriesTree(),
-      getCustomerServices().then((users) => {
-        return _.reject(users, { id: auth.currentUser.id })
-      }),
-    ]).then(([categoriesTree, customerServices]) => {
-      this.setState({
-        categoriesTree,
-        checkedCategories: auth.currentUser.data.categories || [],
-        customerServices,
-      })
-      return
-    })
+    this.loadData()
   }
 
   handleCategoryChange(e, categoryId) {
@@ -50,7 +52,7 @@ class Categories extends Component {
     }
     return auth.currentUser.update({ categories }).then(() => {
       this.setState({ checkedCategories: categories })
-      return
+      return this.loadData()
     })
   }
 
@@ -80,6 +82,7 @@ class Categories extends Component {
             />
           </td>
           <td>{selectCustomerServices}</td>
+          <td>{c.data.group && <GroupLabel groupId={c.data.group.id} />}</td>
         </tr>
       )
     })
@@ -92,7 +95,8 @@ class Categories extends Component {
             <tr>
               <th>{t('name')}</th>
               <th>{t('assigned')}</th>
-              <th>{t('otherAssignees')}</th>
+              <th>{t('assignTo')}</th>
+              <th>{t('assignToGroup')}</th>
             </tr>
           </thead>
           <tbody>{tds}</tbody>

@@ -4,7 +4,6 @@ import * as Icon from 'react-bootstrap-icons'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import PropTypes from 'prop-types'
-import { Link } from 'react-router-dom'
 
 import { auth, fetch } from '../../lib/leancloud'
 import { UserLabel } from '../UserLabel'
@@ -15,7 +14,7 @@ import css from './index.css'
 import { Category, CategorySelect } from './Category'
 import { TagForm } from './TagForm'
 import { InternalBadge } from '../components/InternalBadge'
-import { useGroups } from '../components/Group'
+import { useGroups, GroupLabel } from '../components/Group'
 import styles from './index.css'
 
 function updateTicket(id, data) {
@@ -69,13 +68,7 @@ function GroupSection({ ticket }) {
         </Form.Control>
       ) : (
         <div className="d-flex align-items-center">
-          {ticket.group && ticket.group !== '' ? (
-            <Link to={`/settings/groups/${ticket.group.id}`} className="username">
-              {ticket.group.name}
-            </Link>
-          ) : (
-            '<unset>'
-          )}
+          <GroupLabel groupId={ticket.group?.id} />
           <Button variant="link" onClick={() => setEditingGroup(true)}>
             <Icon.PencilFill />
           </Button>

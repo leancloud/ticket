@@ -9,7 +9,7 @@ const { getTinyGroupInfo } = require('../group/utils')
 const { systemUser, makeTinyUserInfo, getTinyUserInfo } = require('../user/utils')
 const { captureException } = require('../errorHandler')
 const { invokeWebhooks } = require('../webhook')
-const { selectAssignee, getActionStatus } = require('./utils')
+const { selectAssignee, getActionStatus, selectGroup } = require('./utils')
 const { Triggers } = require('../rule/trigger')
 
 const KEY_MAP = {
@@ -197,6 +197,7 @@ class Ticket {
    */
   static async create(data) {
     const assignee = data.assignee || (await selectAssignee(data.category_id))
+    const group = await selectGroup(data.category_id)
 
     const obj = new AV.Object('Ticket')
     obj.set('status', TICKET_STATUS.NEW)
@@ -205,6 +206,9 @@ class Ticket {
     obj.set('author', AV.Object.createWithoutData('_User', data.author.id))
     if (assignee) {
       obj.set('assignee', AV.Object.createWithoutData('_User', assignee.id))
+    }
+    if (group) {
+      obj.set('group', AV.Object.createWithoutData('Group', group.id))
     }
     obj.set('content', data.content)
     obj.set('content_HTML', htmlify(data.content))
@@ -238,8 +242,18 @@ class Ticket {
 
     if (assignee) {
       ticket.pushOpsLog('selectAssignee', { assignee: makeTinyUserInfo(assignee) })
-      ticket.saveOpsLogs().catch(captureException)
     }
+    if (group) {
+      ticket.pushOpsLog(
+        'changeGroup',
+        {
+          group: await getTinyGroupInfo(group.id),
+          operator: systemUser,
+        },
+        true
+      )
+    }
+    ticket.saveOpsLogs().catch(captureException)
 
     const triggers = await Triggers.get()
     const fired = await triggers.exec({
