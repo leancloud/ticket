@@ -746,7 +746,7 @@ export function useTickets() {
   const { tagMetadatas } = useContext(AppContext)
   const { filters } = useTicketFilters()
 
-  const findTickets = useCallback(async (filters) => {
+  const findTickets = useCallback(async (filters = {}) => {
     const { page = '0', searchString, tagKey, tagValue } = filters
 
     let query = await getQuery(filters)
