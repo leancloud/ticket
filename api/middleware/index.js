@@ -70,7 +70,7 @@ exports.catchError = (handler) => {
           error.status = 403
           break
       }
-      console.warn(error)
+      if (!(error.status < 500)) console.warn(error)
       next(error)
     }
   }
