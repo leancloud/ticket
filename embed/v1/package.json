@@ -6,7 +6,7 @@
   "scripts": {
     "postinstall": "npm run build",
     "dev:client": "vite",
-    "build": "vite build"
+    "build": "node ./script/generate_env.js && vite build"
   },
   "author": "",
   "license": "MIT",
