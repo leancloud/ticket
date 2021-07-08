@@ -6,7 +6,7 @@ import { Button, Table } from 'react-bootstrap'
 import { useTranslation, Trans } from 'react-i18next'
 import PropTypes from 'prop-types'
 import { useQuery, useMutation } from 'react-query'
-import { http } from 'lib/leancloud'
+import { http, httpWithLimitation } from 'lib/leancloud'
 import { useAppContext } from 'modules/context'
 import { NoDataRow } from 'modules/components/NoData'
 import Pagination, { usePagination } from 'modules/components/Pagination'
@@ -83,7 +83,7 @@ const FormList = memo(() => {
   } = useQuery({
     queryKey: ['setting/ticketForms', skip, pageSize],
     queryFn: () =>
-      http.get('/api/1/ticket-forms', {
+      httpWithLimitation.get('/api/1/ticket-forms', {
         params: {
           size: pageSize,
           skip,
@@ -123,7 +123,7 @@ const FormList = memo(() => {
   )
 })
 
-export default function TicketFields() {
+export default function TicketForm() {
   const match = useRouteMatch()
   return (
     <Switch>

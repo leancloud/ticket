@@ -9,7 +9,7 @@ import Pagination, { usePagination } from 'modules/components/Pagination'
 import { NoDataRow } from 'modules/components/NoData'
 import { useAppContext } from 'modules/context'
 import Confirm from 'modules/components/Confirm'
-import { http } from 'lib/leancloud'
+import { http, httpWithLimitation } from 'lib/leancloud'
 import styles from './index.module.scss'
 
 const FieldRow = memo(({ data, onDeleted }) => {
@@ -81,7 +81,7 @@ const FieldList = memo(() => {
   } = useQuery({
     queryKey: ['setting/fields', skip, pageSize],
     queryFn: () =>
-      http.get(`/api/1/ticket-fields`, {
+      httpWithLimitation.get(`/api/1/ticket-fields`, {
         params: {
           size: pageSize,
           skip,

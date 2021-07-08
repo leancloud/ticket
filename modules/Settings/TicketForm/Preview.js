@@ -1,4 +1,4 @@
-import React, { memo } from 'react'
+import React, { memo, useState } from 'react'
 import PropTypes from 'prop-types'
 import { useTranslation } from 'react-i18next'
 import { Form, Modal, Button } from 'react-bootstrap'
@@ -7,6 +7,7 @@ import CustomField from '../TicketField/CustomField'
 
 function PreviewContent({ close, data }) {
   const { t } = useTranslation()
+  const [values, setValues] = useState({})
   return (
     <>
       <Modal.Header closeButton>
@@ -15,10 +16,27 @@ function PreviewContent({ close, data }) {
       <Modal.Body>
         <Form>
           {data.length === 0 ? (
-            <NoData info={t('ticketForm.filedRequired')} />
+            <NoData info={t('ticketForm.fieldRequired')} />
           ) : (
             data.map((field) => {
-              return <CustomField type={field.type} label={field.title} key={field.id} />
+              const variant = field.variant
+              return (
+                <CustomField
+                  value={values[field.id]}
+                  onChange={(value) => {
+                    setValues((pre) => {
+                      return {
+                        ...pre,
+                        [field.id]: value,
+                      }
+                    })
+                  }}
+                  type={field.type}
+                  label={field.title}
+                  key={field.id}
+                  options={variant ? variant.options : undefined}
+                />
+              )
             })
           )}
         </Form>

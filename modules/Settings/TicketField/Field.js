@@ -1,29 +1,29 @@
 import React, { memo, useState, useMemo, useCallback, useEffect } from 'react'
 import PropTypes from 'prop-types'
 import { useTranslation } from 'react-i18next'
-import { Form, Button, Modal, Col, Dropdown, Breadcrumb } from 'react-bootstrap'
+import { Form, Button, Modal, Dropdown, Breadcrumb, Col } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
 import * as Icon from 'react-bootstrap-icons'
 import { useMutation, useQuery } from 'react-query'
 import { DocumentTitle } from 'modules/utils/DocumentTitle'
 import { RadioGroup } from 'modules/components/Radio'
 import Divider from 'modules/components/Divider'
+import { fieldType, includeOptionsType } from './CustomField'
 import { useAppContext } from 'modules/context'
 import _ from 'lodash'
 import Preview from './Preview'
-import { fieldType, CustomFieldLabel, DisplayCustomField } from './CustomField'
+import { CustomFieldLabel, DisplayCustomField } from './util'
 import LocaleManage, { AllLocales } from './LocaleManage'
 import { http } from 'lib/leancloud'
 import { useFieldId } from '.'
 import styles from './index.module.scss'
 
-const includeOptionsType = ['dropdown', 'multi-select']
 const defaultOptions = [['', '']]
 const DropdownOptions = memo(({ options = defaultOptions, onChange }) => {
   const { t } = useTranslation()
   const sameTagIndexes = useMemo(() => {
-    const map = new Map()
     const result = []
+    const map = new Map()
     options.forEach(([, title], index) => {
       if (title !== '') {
         if (map.has(title)) {
@@ -36,20 +36,18 @@ const DropdownOptions = memo(({ options = defaultOptions, onChange }) => {
     })
     return result
   }, [options])
-  // auto expend
+
   const reOptions = useMemo(() => {
     if (options.length === 0) {
-      return ['', '']
+      return defaultOptions
+    } else {
+      if (options[options.length - 1][0] !== '') {
+        return [...options, ['', '']]
+      }
+      return options
     }
-    if (options[options.length - 1][0] !== '') {
-      return [
-        ...options,
-        [ '', '',],
-      ]
-    }
-    return options
   }, [options])
-  
+
   return (
     <Form.Group>
       <Form.Label>{t('ticketField.options')}</Form.Label>
@@ -57,14 +55,14 @@ const DropdownOptions = memo(({ options = defaultOptions, onChange }) => {
         const duplicateTag = sameTagIndexes.includes(index)
         const isLast = index === reOptions.length - 1
         const required = reOptions.length === 1 ? true : !isLast
-        const [ value, title ]= option
+        const [value, title] = option
         return (
           <Form.Row key={index}>
             <Form.Group as={Col}>
               <Form.Control
                 type="text"
                 placeholder="value"
-                value={value}
+                value={value || ''}
                 required={!!title || required}
                 onChange={(e) => {
                   const inputValue = e.target.value
@@ -78,12 +76,12 @@ const DropdownOptions = memo(({ options = defaultOptions, onChange }) => {
               <Form.Control
                 type="text"
                 placeholder="title"
-                value={title}
+                value={title || ''}
                 required={!!value || required}
                 onChange={(e) => {
                   const inputValue = e.target.value
                   const tmp = [...options]
-                  tmp[index] = [value,inputValue]
+                  tmp[index] = [value, inputValue]
                   onChange(tmp)
                 }}
                 isInvalid={duplicateTag}
@@ -117,6 +115,7 @@ const DropdownOptions = memo(({ options = defaultOptions, onChange }) => {
     </Form.Group>
   )
 })
+
 DropdownOptions.propTypes = {
   options: PropTypes.array,
   onChange: PropTypes.func.isRequired,
@@ -415,7 +414,7 @@ const FieldForm = memo(({ onSubmit, initData, submitting }) => {
 FieldForm.propTypes = {
   initData: PropTypes.object,
   onSubmit: PropTypes.func.isRequired,
-  submitting: PropTypes.bool
+  submitting: PropTypes.bool,
 }
 
 const AddField = memo(() => {

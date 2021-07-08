@@ -2,11 +2,11 @@ const AV = require('leancloud-storage')
 const { Router } = require('express')
 const { check } = require('express-validator')
 const { requireAuth, customerServiceOnly, catchError } = require('./middleware')
-const { getLimitationData, responseAppendCount } = require('./utils')
+const { responseAppendCount } = require('./utils')
 
 const router = Router().use(requireAuth, customerServiceOnly)
 
-const TYPES = ['dropdown', 'text', 'multi-line', 'multi-select', 'checkbox']
+const TYPES = ['dropdown', 'text', 'multi-line', 'multi-select', 'checkbox', 'radios']
 const LOCALES = [
   'zh-cn',
   'zh-tw',
@@ -32,13 +32,30 @@ router.get(
   catchError(async (req, res) => {
     const { active, search, size, skip } = req.query
     const query = new AV.Query(CLASS_NAME)
+    if (size) {
+      const limit = parseInt(size)
+      if (!Number.isNaN(limit)) {
+        query.limit(limit)
+      }
+    }
+    if (skip) {
+      const num = parseInt(skip)
+      if (!Number.isNaN(num)) {
+        query.skip(num)
+      }
+    }
     if (search) {
       query.contains('title', search)
     }
     query.equalTo('active', active !== 'false')
     // 默认按照更新排序
     query.addDescending('updatedAt')
-    const [list, count] = await getLimitationData({ size, skip }, query)
+    const [list, count] = await Promise.all([
+      query.find({ useMasterKey: true }),
+      query.count({
+        useMasterKey: true,
+      }),
+    ])
     res = responseAppendCount(res, count)
     res.json(
       list.map((o) => ({
@@ -67,6 +84,7 @@ router.get(
     const { field } = req
     const variants = await getVariants(field.id)
     res.json({
+      id: field.id,
       title: field.get('title'),
       type: field.get('type'),
       active: !!field.get('active'),
@@ -192,5 +210,48 @@ async function updateVariants(newVariants, field) {
   await AV.Object.destroyAll(variants, { useMasterKey: true })
   return addVariants(newVariants, field)
 }
+/**
+ * fieldIds 获取字段详情
+ * @param {*} fieldIds
+ */
+async function getFieldsDetail(fieldIds) {
+  const fieldQuery = new AV.Query(CLASS_NAME)
+  fieldQuery.containedIn('objectId', fieldIds)
 
-module.exports = router
+  const variantQuery = new AV.Query(VARIANT_CLASS_NAME)
+  variantQuery.containedIn(
+    'field',
+    fieldIds.map((fieldId) => AV.Object.createWithoutData(CLASS_NAME, fieldId))
+  )
+
+  const [fields, variants] = await Promise.all([
+    fieldQuery.find({ useMasterKey: true }).then((fields) => fields.map((field) => field.toJSON())),
+    variantQuery
+      .find({ useMasterKey: true })
+      .then((variants) => variants.map((variant) => variant.toJSON())),
+  ])
+
+  const variantsMap = variants.reduce((pre, current) => {
+    const data = {
+      locale: current.locale,
+      title: current.title,
+      options: current.options,
+    }
+    pre[current.field.objectId] = pre[current.field.objectId]
+      ? [...pre[current.field.objectId], data]
+      : [data]
+    return pre
+  }, {})
+
+  return fields.map((field) => ({
+    id: field.objectId,
+    title: field.title,
+    type: field.type,
+    active: !!field.active,
+    required: !!field.required,
+    defaultLocale: field.defaultLocale,
+    variants: variantsMap[field.objectId],
+  }))
+}
+
+module.exports = { router, LOCALES, getFieldsDetail }
