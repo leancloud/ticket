@@ -49,7 +49,7 @@ AV.Cloud.beforeSave('Ticket', async (req) => {
 
 AV.Cloud.afterSave('Ticket', async (req) => {
   const ticket = req.object
-  if (ticket.updatedKeys.includes('assignee')) {
+  if (ticket.get('assignee')) {
     const assigneeInfo = await getTinyUserInfo(ticket.get('assignee'))
     new AV.Object('OpsLog', {
       ticket,
