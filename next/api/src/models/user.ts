@@ -1,5 +1,11 @@
 import AV from 'leancloud-storage';
 
+import {
+  assertAVObjectHasAttributes,
+  assertAVObjectHasBeenSaved,
+  assertAVObjectHasTimestamps,
+} from '../utils/av';
+
 export interface UserData {
   id: string;
   username: string;
@@ -21,6 +27,19 @@ export class User {
     this.name = user.name;
     this.createdAt = user.createdAt;
     this.updatedAt = user.updatedAt;
+  }
+
+  static fromAVObject(object: AV.User): User {
+    assertAVObjectHasBeenSaved(object);
+    assertAVObjectHasAttributes(object, 'username');
+    assertAVObjectHasTimestamps(object);
+    return new User({
+      id: object.id,
+      username: object.getUsername(),
+      name: object.get('name'),
+      createdAt: object.createdAt,
+      updatedAt: object.updatedAt,
+    });
   }
 
   toJSON() {

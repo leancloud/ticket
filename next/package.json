@@ -5,22 +5,27 @@
   "main": "index.js",
   "scripts": {
     "postinstall": "npm run build:api",
-    "build:api": "tsc -p api",
+    "build:api": "rm -rf api/dist && tsc -p api",
     "dev": "NODE_ENV=development nodemon"
   },
   "author": "",
   "license": "MIT",
   "dependencies": {
     "@koa/router": "^10.0.0",
+    "joi": "^17.4.0",
     "koa": "^2.13.1",
     "koa-bodyparser": "^4.3.0",
     "leancloud-storage": "^4.11.1",
-    "leanengine": "^3.7.0"
+    "leanengine": "^3.7.0",
+    "lodash": "^4.17.21",
+    "ts-node": "^10.0.0"
   },
   "devDependencies": {
+    "@types/joi": "^17.2.3",
     "@types/koa": "^2.13.3",
     "@types/koa-bodyparser": "^4.3.1",
     "@types/koa__router": "^8.0.4",
+    "@types/lodash": "^4.14.171",
     "nodemon": "^2.0.9",
     "typescript": "^4.3.5"
   }
