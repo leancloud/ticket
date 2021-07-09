@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useHistory } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-import { db } from 'leancloud';
+import { auth, db } from 'leancloud';
 import { Page } from 'components/Page';
 import { QueryWrapper } from 'components/QueryWrapper';
 import { useIsMounted } from 'utils/useIsMounted';
@@ -29,6 +29,7 @@ function useHasUnreadTickets() {
     db.class('Ticket')
       .select('objectId')
       .where('unreadCount', '>', 0)
+      .where('author', '==', auth.currentUser)
       .first()
       .then((ticket) => ticket && isMounted() && setHasUnreadTickets(true))
       .catch(console.error);
