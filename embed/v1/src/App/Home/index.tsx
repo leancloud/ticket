@@ -2,10 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useHistory } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-import { db } from 'leancloud';
+import { auth, db } from 'leancloud';
 import { Page } from 'components/Page';
 import { QueryWrapper } from 'components/QueryWrapper';
-import { useUnmounted } from 'utils/useUnmounted';
+import { useIsMounted } from 'utils/useIsMounted';
 import { Category, CategoryList, useCategories } from '../Categories';
 
 interface TicketsLinkProps {
@@ -24,13 +24,14 @@ function TicketsLink({ badge }: TicketsLinkProps) {
 
 function useHasUnreadTickets() {
   const [hasUnreadTickets, setHasUnreadTickets] = useState(false);
-  const unmounted = useUnmounted();
+  const isMounted = useIsMounted();
   useEffect(() => {
     db.class('Ticket')
       .select('objectId')
       .where('unreadCount', '>', 0)
+      .where('author', '==', auth.currentUser)
       .first()
-      .then((ticket) => ticket && !unmounted && setHasUnreadTickets(true))
+      .then((ticket) => ticket && isMounted() && setHasUnreadTickets(true))
       .catch(console.error);
   }, []);
   return hasUnreadTickets;
