@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node ./embed/v1/script/build.js && node server.js",
+    "start": "node server.js",
     "build": "webpack",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
     "dev:client": "eval $(lean env) && NODE_ENV=development webpack serve",
