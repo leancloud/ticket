@@ -383,14 +383,14 @@ const AddForm = memo(() => {
 const EditorForm = () => {
   const { t } = useTranslation()
   const { addNotification } = useAppContext()
-  const fieldId = useFormId()
+  const formId = useFormId()
   const { data } = useQuery({
-    queryKey: ['setting/forms', fieldId],
-    queryFn: () => http.get(`/api/1/ticket-forms/${fieldId}/details`),
+    queryKey: ['setting/forms', formId],
+    queryFn: () => http.get(`/api/1/ticket-forms/${formId}/details`),
     onError: (err) => addNotification(err),
   })
   const { mutateAsync, isLoading } = useMutation({
-    mutationFn: (data) => http.patch(`/api/1/ticket-forms/${fieldId}`, data),
+    mutationFn: (data) => http.patch(`/api/1/ticket-forms/${formId}`, data),
     onSuccess: () => {
       addNotification({
         message: t('ticketField.success'),
@@ -405,7 +405,7 @@ const EditorForm = () => {
         <Breadcrumb.Item linkProps={{ to: '/settings/ticketTemplate' }} linkAs={Link}>
           {t('ticketTemplate.list')}
         </Breadcrumb.Item>
-        <Breadcrumb.Item active>{fieldId}</Breadcrumb.Item>
+        <Breadcrumb.Item active>{formId}</Breadcrumb.Item>
       </Breadcrumb>
       <TicketForm onSubmit={mutateAsync} submitting={isLoading} initData={data} />
     </>
