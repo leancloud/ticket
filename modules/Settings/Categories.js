@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from 'react-query'
 import _ from 'lodash'
-import { httpWithLimitation } from 'lib/leancloud'
+import { http } from 'lib/leancloud'
 import { useAppContext } from 'modules/context'
 import { GroupLabel } from '../components/Group'
 import { auth } from '../../lib/leancloud'
@@ -33,7 +33,7 @@ export const useCategories = (queryConfig = {}) => {
   return useQuery({
     queryKey: ['setting/Categories'],
     queryFn: () =>
-      httpWithLimitation.get('/api/1/categories', {
+      http.get('/api/1/categories', {
         params: {
           active: true,
         },
