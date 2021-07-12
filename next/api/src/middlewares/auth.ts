@@ -1,8 +1,8 @@
-import Koa from 'koa';
+import type { Middleware } from 'koa';
 
 import { LoggedInUser } from '../models/user';
 
-export default async function auth(ctx: Koa.Context, next: Koa.Next) {
+export const auth: Middleware = async (ctx, next) => {
   const sessionToken = ctx.get('X-LC-Session');
   if (!sessionToken) {
     ctx.throw(401);
@@ -16,4 +16,4 @@ export default async function auth(ctx: Koa.Context, next: Koa.Next) {
     throw error;
   }
   return next();
-}
+};

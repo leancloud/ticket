@@ -4,6 +4,15 @@ import { Pointer } from '../../utils/av';
 import { Organization } from '../organization';
 import { User } from '../user';
 
+const STATUS = {
+  NEW: 50,
+  WAITING_CUSTOMER_SERVIVE: 120,
+  WAITING_CUSTOMER: 160,
+  PRE_FULFILLED: 220,
+  FULFILLED: 250,
+  CLOSED: 280,
+};
+
 export interface TicketData {
   id: string;
   nid: number;
@@ -20,29 +29,22 @@ export interface TicketData {
 }
 
 export interface FindTicketsConditions {
+  authorId?: string;
+  assigneeId?: string;
+  groupId?: string | string[];
+  categoryId?: string;
+  status?: number | number[];
+  evaluationStar?: 0 | 1;
   createdAt_gt?: Date;
   createdAt_gte?: Date;
   createdAt_lt?: Date;
   createdAt_lte?: Date;
-
-  status?: number;
-  status_in?: number[];
-
-  groupId?: string;
-  groupId_in?: string[];
-
-  assigneeId?: string;
-
-  authorId?: string;
-
-  categoryId?: string;
-
-  evaluationStar?: 0 | 1;
 }
 
 export interface FindTicketsOptions {
   skip?: number;
   limit?: number;
+  sort?: { key: string; order?: 'asc' | 'desc' }[];
   authOptions?: AV.AuthOptions;
 }
 
@@ -55,8 +57,11 @@ export class Ticket {
   readonly author: User;
   readonly assignee?: User;
   readonly organization?: Organization;
+  readonly status: number;
   readonly createdAt: Date;
   readonly updatedAt: Date;
+
+  static readonly STATUS = STATUS;
 
   constructor(data: TicketData) {
     this.id = data.id;
@@ -67,6 +72,7 @@ export class Ticket {
     this.author = data.author;
     this.assignee = data.assignee;
     this.organization = data.organization;
+    this.status = data.status;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
   }
@@ -85,10 +91,56 @@ export class Ticket {
       'assignee',
       'organization',
       'group',
-      'status',
-      'createdAt'
+      'status'
     );
     query.include('author', 'assignee', 'organization', 'group');
+
+    // author
+    if (conditions.authorId) {
+      query.equalTo('author', Pointer('_User', conditions.authorId));
+    }
+
+    // assignee
+    if (conditions.assigneeId !== undefined) {
+      if (conditions.assigneeId) {
+        query.equalTo('assignee', Pointer('_User', conditions.assigneeId));
+      } else {
+        query.doesNotExist('assignee');
+      }
+    }
+
+    // group
+    if (conditions.groupId !== undefined) {
+      if (conditions.groupId) {
+        if (Array.isArray(conditions.groupId)) {
+          const pointers = conditions.groupId.map((id) => Pointer('Group', id));
+          query.containedIn('group', pointers);
+        } else {
+          query.equalTo('group', Pointer('Group', conditions.groupId));
+        }
+      } else {
+        query.doesNotExist('group');
+      }
+    }
+
+    // status
+    if (conditions.status !== undefined) {
+      if (Array.isArray(conditions.status)) {
+        query.containedIn('status', conditions.status);
+      } else {
+        query.equalTo('status', conditions.status);
+      }
+    }
+
+    // category
+    if (conditions.categoryId) {
+      query.equalTo('category.objectId', conditions.categoryId);
+    }
+
+    // evaluation.star
+    if (conditions.evaluationStar !== undefined) {
+      query.equalTo('evaluation.star', conditions.evaluationStar);
+    }
 
     // createdAt
     if (conditions.createdAt_gt) {
@@ -104,36 +156,14 @@ export class Ticket {
       query.lessThanOrEqualTo('createdAt', conditions.createdAt_lte);
     }
 
-    // status
-    if (conditions.status !== undefined) {
-      query.equalTo('status', conditions.status);
-    }
-    if (conditions.status_in) {
-      query.containedIn('status', conditions.status_in);
-    }
-
-    // assignee
-    if (conditions.assigneeId !== undefined) {
-      if (conditions.assigneeId) {
-        query.equalTo('assignee', Pointer('_User', conditions.assigneeId));
-      } else {
-        query.doesNotExist('assignee');
-      }
-    }
-
-    // author
-    if (conditions.authorId) {
-      query.equalTo('author', Pointer('_User', conditions.authorId));
-    }
-
-    // category
-    if (conditions.categoryId) {
-      query.equalTo('category.objectId', conditions.categoryId);
-    }
-
-    // evaluation.star
-    if (conditions.evaluationStar !== undefined) {
-      query.equalTo('evaluation.star', conditions.evaluationStar);
+    if (options?.sort) {
+      options.sort.forEach(({ key, order }) => {
+        if (!order || order === 'asc') {
+          query.addAscending(key);
+        } else {
+          query.addDescending(key);
+        }
+      });
     }
 
     if (options?.skip !== undefined) {
@@ -155,13 +185,11 @@ export class Ticket {
         title: obj.get('title'),
         content: obj.get('content'),
         author: User.fromAVObject(obj.get('author')),
-        assignee: obj.has('assignee')
-          ? User.fromAVObject(obj.get('assignee'))
-          : undefined,
+        assignee: obj.has('assignee') ? User.fromAVObject(obj.get('assignee')) : undefined,
         organization: obj.has('organization')
           ? Organization.fromAVObject(obj.get('organization'))
           : undefined,
-        // groupId: obj.get('group')?.id || undefined,
+        groupId: obj.get('group')?.id || undefined,
         status: obj.get('status'),
         createdAt: obj.createdAt!,
         updatedAt: obj.updatedAt!,

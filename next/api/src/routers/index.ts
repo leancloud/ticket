@@ -1,16 +1,10 @@
 import Router from '@koa/router';
 
-import auth from '../middlewares/auth';
-import debug from './debug';
+import { catchYupError } from '../middlewares/yup';
 import ticket from './ticket';
 
-const r = new Router({ prefix: '/api/2' });
+const router = new Router({ prefix: '/api/2' }).use(catchYupError);
 
-r.get('/whoami', auth, async (ctx) => {
-  ctx.body = ctx.state.user;
-});
+router.use(ticket.routes());
 
-r.use(debug.routes());
-r.use(ticket.routes());
-
-export default r;
+export default router;

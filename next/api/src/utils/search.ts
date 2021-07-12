@@ -39,7 +39,7 @@ function isBlank(ch: string): boolean {
   return ch === ' ' || ch === '\t';
 }
 
-function parseQ(q: string): Field[] {
+export function parse(q: string): Field[] {
   const result: Field[] = [];
 
   if (!q) {
@@ -205,76 +205,6 @@ function parseQ(q: string): Field[] {
       init({ type: 'range', key, value: { from: value, to: rangeTo } });
       break;
   }
-
-  return result;
-}
-
-export interface Searching {
-  text: string[];
-  eq: Record<string, string>;
-  ne: Record<string, string>;
-  gt: Record<string, string>;
-  gte: Record<string, string>;
-  lt: Record<string, string>;
-  lte: Record<string, string>;
-  range: Record<string, { from: string; to: string }>;
-  sort: { key: string; order: 'asc' | 'desc' }[];
-}
-
-function parseSort(value: string): Searching['sort'] {
-  return value.split(',').map((key) => {
-    let order: 'asc' | 'desc' = 'asc';
-    if (key.endsWith('-asc')) {
-      key = key.slice(0, -4);
-    } else if (key.endsWith('-desc')) {
-      key = key.slice(0, -5);
-      order = 'desc';
-    }
-    return { key, order };
-  });
-}
-
-export function parse(q: string): Searching {
-  const result: Searching = {
-    text: [],
-    eq: {},
-    ne: {},
-    gt: {},
-    gte: {},
-    lt: {},
-    lte: {},
-    range: {},
-    sort: [],
-  };
-
-  const fields = parseQ(q);
-  const fieldByKey = fields.reduce<Record<string, Field>>((map, field) => {
-    map[field.key] = field;
-    return map;
-  }, {});
-
-  Object.values(fieldByKey).forEach((field) => {
-    switch (field.type) {
-      case 'text':
-        result.text.push(field.key);
-        break;
-      case 'eq':
-        if (field.key === 'sort') {
-          result.sort = parseSort(field.value);
-        } else {
-          result.eq[field.key] = field.value;
-        }
-        break;
-      case 'ne':
-      case 'gt':
-      case 'gte':
-      case 'lt':
-      case 'lte':
-      case 'range':
-        result[field.type][field.key] = field.value;
-        break;
-    }
-  });
 
   return result;
 }

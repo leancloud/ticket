@@ -12,16 +12,14 @@
   "license": "MIT",
   "dependencies": {
     "@koa/router": "^10.0.0",
-    "joi": "^17.4.0",
     "koa": "^2.13.1",
     "koa-bodyparser": "^4.3.0",
     "leancloud-storage": "^4.11.1",
     "leanengine": "^3.7.0",
     "lodash": "^4.17.21",
-    "ts-node": "^10.0.0"
+    "yup": "^0.32.9"
   },
   "devDependencies": {
-    "@types/joi": "^17.2.3",
     "@types/koa": "^2.13.3",
     "@types/koa-bodyparser": "^4.3.1",
     "@types/koa__router": "^8.0.4",
