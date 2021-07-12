@@ -233,7 +233,7 @@ class Category extends React.Component {
         </Form.Group>
         <Form.Group controlId="qTemplateTextarea">
           <Form.Label>
-            {t('ticketTemplate')}
+            {t('ticket.template')}
             {t('optional')}
           </Form.Label>
           <Form.Control
@@ -242,7 +242,7 @@ class Category extends React.Component {
             value={this.state.qTemplate}
             onChange={this.handleQTemplateChange.bind(this)}
           />
-          <Form.Text>{t('ticketTemplateInfo')}</Form.Text>
+          <Form.Text>{t('ticket.templateInfo')}</Form.Text>
         </Form.Group>
         <Form.Group controlId="groupSelect">
           <Form.Label>

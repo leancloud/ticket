@@ -54,7 +54,7 @@ const FieldRow = memo(({ data, onDeleted }) => {
           danger
           onConfirm={mutateAsync}
           confirmButtonText={t('delete')}
-          content={t('ticketForm.deleteHint')}
+          content={t('ticketTemplate.deleteHint')}
           trigger={
             <Button variant="link" size="sm" className="text-danger" disabled={isLoading}>
               {t('delete')}
@@ -73,7 +73,7 @@ FieldRow.propTypes = {
 
 export const useTicketFormList = (skip, size, queryConfig) => {
   return useQuery({
-    queryKey: ['setting/ticketForms', skip, size],
+    queryKey: ['setting/ticketTemplates', skip, size],
     queryFn: () =>
       httpWithLimitation.get('/api/1/ticket-forms', {
         params: {
@@ -103,9 +103,9 @@ const FormList = memo(() => {
     <div>
       <div>
         <div className="mb-3">
-          <DocumentTitle title={`${t('ticketForm')} - LeanTicket`} />
+          <DocumentTitle title={`${t('ticketTemplate')} - LeanTicket`} />
           <Link to={`${match.path}/new`}>
-            <Button variant="primary">{t('ticketForm.add')}</Button>
+            <Button variant="primary">{t('ticketTemplate.add')}</Button>
           </Link>
         </div>
         <Table size="sm" className={styles.table}>

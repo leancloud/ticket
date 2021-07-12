@@ -69,8 +69,8 @@ export default function Settings(props) {
               <ListGroup.Item as={NavLink} to="/settings/ticketField">
                 {t('ticketField')}
               </ListGroup.Item>
-              <ListGroup.Item as={NavLink} to="/settings/ticketForm">
-                {t('ticketForm')}
+              <ListGroup.Item as={NavLink} to="/settings/ticketTemplate">
+                {t('ticketTemplate')}
               </ListGroup.Item>
               <ListGroup.Item as={NavLink} to="/settings/tags">
                 {t('tag')}
@@ -148,7 +148,7 @@ export default function Settings(props) {
             <Automation />
           </Route>
           <Route path={`${path}/ticketField`} component={TicketField} />
-          <Route path={`${path}/ticketForm`} component={TicketForm} />
+          <Route path={`${path}/ticketTemplate`} component={TicketForm} />
           <Route path={`${path}/quick-replies`}>
             <QuickReplies />
           </Route>
