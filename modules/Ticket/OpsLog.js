@@ -24,7 +24,7 @@ export function AsyncUserLabel({ userId }) {
   return data ? <UserLabel user={data} /> : 'Loading...'
 }
 AsyncUserLabel.propTypes = {
-  userId: PropTypes.string.isRequired,
+  userId: PropTypes.string,
 }
 
 function SelectAssignee({ id, assignee_id, created_at }) {
@@ -91,7 +91,7 @@ function ChangeGroup({ id, operator_id, group_id, created_at }) {
 }
 ChangeGroup.propTypes = {
   id: PropTypes.string.isRequired,
-  operator_id: PropTypes.string.isRequired,
+  operator_id: PropTypes.string,
   group_id: PropTypes.string,
   created_at: PropTypes.string.isRequired,
 }
@@ -115,7 +115,7 @@ function ChangeAssignee({ id, operator_id, assignee_id, created_at }) {
 }
 ChangeAssignee.propTypes = {
   id: PropTypes.string.isRequired,
-  operator_id: PropTypes.string.isRequired,
+  operator_id: PropTypes.string,
   assignee_id: PropTypes.string,
   created_at: PropTypes.string.isRequired,
 }

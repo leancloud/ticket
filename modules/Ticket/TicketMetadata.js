@@ -220,7 +220,7 @@ function CategorySection({ ticket, isCustomerService }) {
         />
       ) : (
         <div className="d-flex align-items-center">
-          <Category block categoryPath={ticket.category_path} />
+          <Category block categoryId={ticket.category_id} />
           {isCustomerService && (
             <Button variant="link" onClick={() => setEditingCategory(true)}>
               <Icon.PencilFill />
@@ -235,7 +235,6 @@ CategorySection.propTypes = {
   ticket: PropTypes.shape({
     id: PropTypes.string.isRequired,
     category_id: PropTypes.string.isRequired,
-    category_path: PropTypes.array.isRequired,
   }),
   isCustomerService: PropTypes.bool,
 }
