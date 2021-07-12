@@ -27,15 +27,17 @@ function TicketsLink({ badge }: TicketsLinkProps) {
 function useHasUnreadTickets() {
   const [hasUnreadTickets, setHasUnreadTickets] = useState(false);
   const isMounted = useIsMounted();
+  const rootCategory = useRootCategory();
   useEffect(() => {
     db.class('Ticket')
       .select('objectId')
       .where('unreadCount', '>', 0)
       .where('author', '==', auth.currentUser)
+      .where('categoryPath', '==', rootCategory)
       .first()
       .then((ticket) => ticket && isMounted() && setHasUnreadTickets(true))
       .catch(console.error);
-  }, []);
+  }, [rootCategory]);
   return hasUnreadTickets;
 }
 

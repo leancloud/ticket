@@ -118,6 +118,8 @@ router.get(
   query('nid').isInt().toInt().optional(),
   query('author_id').trim().isLength({ min: 1 }).optional(),
   query('organization_id').isString().optional(),
+  query('category_id').isString().optional(),
+  query('root_category_id').isString().optional(),
   query(['created_at', 'created_at_gt', 'created_at_gte', 'created_at_lt', 'created_at_lte'])
     .isISO8601()
     .optional(),
@@ -131,7 +133,7 @@ router.get(
   query('evaluation_ne').isIn(['null']).optional(),
   catchError(async (req, res) => {
     const { page, page_size, count } = req.query
-    const { nid, author_id, organization_id, status } = req.query
+    const { nid, author_id, organization_id, category_id, root_category_id, status } = req.query
     const { created_at, created_at_gt, created_at_gte, created_at_lt, created_at_lte } = req.query
     const { reply_count_gt, unread_count_gt } = req.query
 
@@ -161,6 +163,12 @@ router.get(
       } else {
         query.equalTo('organization', AV.Object.createWithoutData('Organization', organization_id))
       }
+    }
+    if (category_id) {
+      query.equalTo('category.objectId', category_id)
+    }
+    if (root_category_id) {
+      query.equalTo('categoryPath', root_category_id)
     }
     if (status) {
       if (status.includes(',')) {
