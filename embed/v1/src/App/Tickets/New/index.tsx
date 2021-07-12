@@ -152,7 +152,7 @@ export function NewTicket() {
 
   if (!result.data && !result.isLoading && !result.error) {
     // Category is not exists :badbad:
-    return <Redirect to="/home" />;
+    return <>Category is not found</>;
   }
   return (
     <Page title={result.data?.name}>

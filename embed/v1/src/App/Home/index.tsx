@@ -8,6 +8,7 @@ import { Page } from 'components/Page';
 import { QueryWrapper } from 'components/QueryWrapper';
 import { useIsMounted } from 'utils/useIsMounted';
 import { CategoryList, useCategories } from '../Categories';
+import { useRootCategory } from '../../App';
 
 interface TicketsLinkProps {
   badge?: boolean;
@@ -43,11 +44,14 @@ export default function Home() {
   const { t } = useTranslation();
   const result = useCategories();
   const categories = result.data;
+  const rootCategory = useRootCategory();
   const topCategories = useMemo(() => {
     if (!categories) {
       return [];
     }
-    return categories.filter((c) => !c.parentId).sort((a, b) => a.position - b.position);
+    return categories
+      .filter((c) => (rootCategory ? c.parent_id === rootCategory : !c.parent_id))
+      .sort((a, b) => a.position - b.position);
   }, [categories]);
   const hasUnreadTickets = useHasUnreadTickets();
 
