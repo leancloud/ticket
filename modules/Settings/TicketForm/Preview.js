@@ -16,7 +16,7 @@ function PreviewContent({ close, data }) {
       <Modal.Body>
         <Form>
           {data.length === 0 ? (
-            <NoData info={t('ticketForm.fieldRequired')} />
+            <NoData info={t('ticketTemplate.fieldRequired')} />
           ) : (
             data.map((field) => {
               const variant = field.variant

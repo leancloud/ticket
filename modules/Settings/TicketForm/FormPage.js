@@ -100,7 +100,7 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
   )
 
   const { isFetching } = useQuery(
-    ['settings/ticketForm', debouncedSearchValue],
+    ['settings/ticketTemplate', debouncedSearchValue],
     () =>
       httpWithLimitation.get('/api/1/ticket-fields', {
         params: {
@@ -247,7 +247,7 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
           id="title"
           name="title"
           type="text"
-          placeholder={t('ticketForm.nameHint')}
+          placeholder={t('ticketTemplate.nameHint')}
           value={title}
           onChange={(e) => {
             const { value } = e.target
@@ -258,7 +258,7 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
       <div className="d-flex flex-column-reverse flex-md-row">
         <DragDropContext onDragEnd={onDragEnd}>
           <Form.Group className={`${styles.group} d-flex flex-column`}>
-            <Form.Label>{t('ticketForm.fieldSelected')}</Form.Label>
+            <Form.Label>{t('ticketTemplate.fieldSelected')}</Form.Label>
             <Droppable droppableId="selectedArea">
               {(provided, snapshot) => (
                 <div
@@ -272,19 +272,19 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
                   ref={provided.innerRef}
                 >
                   <FieldList list={activeFiledList} remove={remove} />
-                  {activeFiledList.length === 0 && <NoData info={t('ticketForm.fieldAdd')} />}
+                  {activeFiledList.length === 0 && <NoData info={t('ticketTemplate.fieldAdd')} />}
                   {provided.placeholder}
                 </div>
               )}
             </Droppable>
           </Form.Group>
           <Form.Group className={`${styles.group} d-flex flex-column`}>
-            <Form.Label htmlFor="search">{t('ticketForm.fieldOptional')}</Form.Label>
+            <Form.Label htmlFor="search">{t('ticketTemplate.fieldOptional')}</Form.Label>
             <InputGroup className="mb-2" size="sm">
               <FormControl
                 name="search"
                 id="search"
-                placeholder={t('ticketForm.fieldSearchHint')}
+                placeholder={t('ticketTemplate.fieldSearchHint')}
                 value={searchValue}
                 onChange={(e) => {
                   const { value } = e.target
@@ -321,7 +321,7 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
                 >
                   <FieldList list={fieldList} add={add} />
                   {fieldList.length === 0 && (
-                    <NoData info={t('ticketForm.fieldOptionalRequired')} />
+                    <NoData info={t('ticketTemplate.fieldOptionalRequired')} />
                   )}
                   {provided.placeholder}
                 </div>
@@ -334,7 +334,7 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
         <Button variant="secondary" className="mr-auto" onClick={() => setPreviewModalActive(true)}>
           {t('preview')}
         </Button>
-        <Link to="/settings/ticketForm">
+        <Link to="/settings/ticketTemplate">
           <Button className="mr-2" variant="outline-primary">
             {t('cancel')}
           </Button>
@@ -368,12 +368,12 @@ const AddForm = memo(() => {
   })
   return (
     <>
-      <DocumentTitle title={`${t('ticketForm.add')} - LeanTicket`} />
+      <DocumentTitle title={`${t('ticketTemplate.add')} - LeanTicket`} />
       <Breadcrumb>
-        <Breadcrumb.Item linkProps={{ to: '/settings/ticketForm' }} linkAs={Link}>
-          {t('ticketForm.list')}
+        <Breadcrumb.Item linkProps={{ to: '/settings/ticketTemplate' }} linkAs={Link}>
+          {t('ticketTemplate.list')}
         </Breadcrumb.Item>
-        <Breadcrumb.Item active>{t('ticketForm.add')}</Breadcrumb.Item>
+        <Breadcrumb.Item active>{t('ticketTemplate.add')}</Breadcrumb.Item>
       </Breadcrumb>
       <TicketForm onSubmit={mutateAsync} submitting={isLoading} />
     </>
@@ -402,8 +402,8 @@ const EditorForm = () => {
     <>
       <DocumentTitle title={`${t('ticketField.edit')} - LeanTicket`} />
       <Breadcrumb>
-        <Breadcrumb.Item linkProps={{ to: '/settings/ticketForm' }} linkAs={Link}>
-          {t('ticketForm.list')}
+        <Breadcrumb.Item linkProps={{ to: '/settings/ticketTemplate' }} linkAs={Link}>
+          {t('ticketTemplate.list')}
         </Breadcrumb.Item>
         <Breadcrumb.Item active>{fieldId}</Breadcrumb.Item>
       </Breadcrumb>
