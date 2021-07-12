@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { memo, useMemo } from 'react'
 import { Button, Form } from 'react-bootstrap'
 import { withTranslation } from 'react-i18next'
 import { withRouter } from 'react-router-dom'
@@ -9,6 +9,21 @@ import { depthFirstSearchFind } from '../../lib/common'
 import { getCategoriesTree } from '../common'
 import CategoriesSelect from '../CategoriesSelect'
 import { GroupSelect } from '../components/Group'
+import Select from 'modules/components/Select'
+import { useTicketFormList } from './TicketForm'
+import { useAppContext } from 'modules/context'
+
+// 应该用 seaach select 这里不搞这个了
+const FormSelect = memo(({ value, onChange }) => {
+  const { addNotification } = useAppContext()
+  const {
+    data: [forms],
+  } = useTicketFormList(0, 100, {
+    onError: (error) => addNotification(error),
+  })
+  const options = useMemo(() => forms.map((form) => [form.id, form.title]), [forms])
+  return <Select value={value} options={options} onChange={onChange} />
+})
 
 class Category extends React.Component {
   constructor() {
@@ -24,6 +39,7 @@ class Category extends React.Component {
       categoriesTree: undefined,
       isSubmitting: false,
       isLoading: true,
+      form: undefined,
     }
   }
 
@@ -35,8 +51,9 @@ class Category extends React.Component {
       if (categoryId == '_new') {
         return
       }
-
       const category = depthFirstSearchFind(categoriesTree, (c) => c.id == categoryId)
+      console.log(category.get('form'))
+
       this.setState({
         category,
         name: category.get('name'),
@@ -45,6 +62,7 @@ class Category extends React.Component {
         assignedGroupId: category.get('group')?.id,
         parentCategory: category.get('parent'),
         FAQs: (category.get('FAQs') || []).map((FAQ) => FAQ.id).join(','),
+        form: category.get('form') ? category.get('form').id : undefined,
       })
       return
     })
@@ -88,6 +106,10 @@ class Category extends React.Component {
     this.setState({ assignedGroupId: e.target.value })
   }
 
+  handleFromIdChange(id) {
+    this.setState({ form: id })
+  }
+
   handleSubmit(e) {
     e.preventDefault()
     this.setState({ isSubmitting: true })
@@ -105,6 +127,7 @@ class Category extends React.Component {
         parent: this.state.parentCategory,
         qTemplate: this.state.qTemplate,
         FAQs,
+        form: this.state.form ? db.class('TicketForm').object(this.state.form) : undefined,
       })
     } else {
       const data = { qTemplate: this.state.qTemplate, FAQs }
@@ -130,7 +153,9 @@ class Category extends React.Component {
       if (this.state.description != category.get('description')) {
         data.description = this.state.description
       }
-
+      if (category.get('form') && this.state.form !== category.get('form').id) {
+        data.form = db.class('TicketForm').object(this.state.form)
+      }
       promise = category.update(data)
     }
 
@@ -166,6 +191,7 @@ class Category extends React.Component {
       return <div>{t('loading')}……</div>
     }
 
+    console.log(this.state)
     return (
       <Form onSubmit={this.handleSubmit.bind(this)}>
         <Form.Group controlId="nameText">
@@ -227,6 +253,13 @@ class Category extends React.Component {
             value={this.state.assignedGroupId}
             onChange={this.handleAssignedGroupIdChange.bind(this)}
           />
+        </Form.Group>
+        <Form.Group>
+          <Form.Label>
+            {t('assignToTicketTemplate')}
+            {t('optional')}
+          </Form.Label>
+          <FormSelect value={this.state.form} onChange={this.handleFromIdChange.bind(this)} />
         </Form.Group>
         <Button type="submit" disabled={this.state.isSubmitting} variant="success">
           {t('save')}

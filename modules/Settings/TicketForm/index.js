@@ -71,6 +71,22 @@ FieldRow.propTypes = {
   onDeleted: PropTypes.func.isRequired,
 }
 
+export const useTicketFormList = (skip, size, queryConfig) => {
+  return useQuery({
+    queryKey: ['setting/ticketForms', skip, size],
+    queryFn: () =>
+      httpWithLimitation.get('/api/1/ticket-forms', {
+        params: {
+          size,
+          skip,
+        },
+      }),
+    initialData: [[], 0],
+    keepPreviousData: true,
+    ...queryConfig,
+  })
+}
+
 const FormList = memo(() => {
   const { t } = useTranslation()
   const match = useRouteMatch()
@@ -80,17 +96,7 @@ const FormList = memo(() => {
     data: [forms, count],
     isFetching,
     refetch,
-  } = useQuery({
-    queryKey: ['setting/ticketForms', skip, pageSize],
-    queryFn: () =>
-      httpWithLimitation.get('/api/1/ticket-forms', {
-        params: {
-          size: pageSize,
-          skip,
-        },
-      }),
-    initialData: [[], 0],
-    keepPreviousData: true,
+  } = useTicketFormList(skip, pageSize, {
     onError: (error) => addNotification(error),
   })
   return (
