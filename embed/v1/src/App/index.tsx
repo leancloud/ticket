@@ -1,14 +1,14 @@
 import { createContext, PropsWithChildren, useContext, useEffect, useMemo, useState } from 'react';
 import { BrowserRouter, Redirect, Route, Switch } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from 'react-query';
 
 import { auth } from 'leancloud';
 import { ControlButton } from 'components/ControlButton';
+import { ErrorBoundary } from 'components/ErrorBoundary';
 import LogIn from './LogIn';
 import Home from './Home';
 import Categories from './Categories';
 import Tickets from './Tickets';
-import { ErrorBoundary } from 'components/ErrorBoundary';
-import { QueryClient, QueryClientProvider } from 'react-query';
 import { parse } from 'query-string';
 import { decodeQueryParams, JsonParam } from 'serialize-query-params';
 
@@ -37,7 +37,6 @@ const NotFound = () => <>NOT FOUND</>;
 
 export default function App() {
   const pathname = window.location.pathname;
-  console.log(pathname);
   if (!pathname.startsWith(ROOT_URL)) return <NotFound />;
   const paths = pathname.split('/');
   const rootCategory = paths[4] === '-' ? undefined : paths[4];
@@ -66,8 +65,6 @@ const Routes = () => {
     () => decodeQueryParams({ meta: JsonParam, auth: JsonParam }, parse(window.location.hash)),
     []
   );
-
-  console.log(ticketContext);
 
   return (
     <TicketContext.Provider value={ticketContext}>
