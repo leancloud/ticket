@@ -53,6 +53,7 @@
     "organization": "Organization",
     "assignTo": "Auto assign to (randomly)",
     "assignToGroup": "Auto assign to group",
+    "assignToTicketTemplate": "Assign to ticket template",
     "overview": "Overview",
     "weekendWarning": "Your tickets is submitted out of hours. Please expect a delay in responses.",
     "password": "Password",
