@@ -64,7 +64,7 @@ const TableRow = memo(({ data, admin, otherServices, onCategoriesChange, prefix 
     )
   }, [otherServices, data.id])
 
-  const categories = admin.categories || []
+  const categories = admin && admin.categories ? admin.categories : []
   return (
     <>
       <tr>
