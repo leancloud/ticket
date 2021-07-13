@@ -213,6 +213,7 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
             return preList
           })
         }
+        update()
       } else {
         if (source.droppableId === 'waitingArea') {
           add(source.index, destination.index)
@@ -221,7 +222,7 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
         }
       }
     },
-    [add, remove]
+    [add, remove, update]
   )
 
   const closePreview = useCallback(() => setPreviewModalActive(false), [])
@@ -386,7 +387,7 @@ const EditorForm = () => {
   const formId = useFormId()
   const { data } = useQuery({
     queryKey: ['setting/forms', formId],
-    queryFn: () => http.get(`/api/1/ticket-forms/${formId}/details`),
+    queryFn: () => http.get(`/api/1/ticket-forms/${formId}`),
     onError: (err) => addNotification(err),
   })
   const { mutateAsync, isLoading } = useMutation({

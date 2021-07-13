@@ -52,19 +52,6 @@ router.param(
 
 router.get(
   '/:id',
-  catchError(async (req, res) => {
-    const { form } = req
-    res.json({
-      id: form.id,
-      title: form.get('title'),
-      updatedAt: form.get('updatedAt'),
-      fieldIds: form.get('fieldIds'),
-    })
-  })
-)
-
-router.get(
-  '/:id/details',
   check('locale')
     .isString()
     .custom((value) => LOCALES.includes(value))
@@ -74,21 +61,24 @@ router.get(
     const { locale } = req.query
     const fieldIds = form.get('fieldIds')
     const fieldDataList = await getFieldsDetail(fieldIds)
-    const fields = fieldDataList
-      .map((fieldData) => {
-        const { variants, ...rest } = fieldData
-        const localeFilterData = variants.filter((variantData) => {
-          if (locale) {
-            return variantData.locale === locale
-          }
-          return variantData.locale === rest.defaultLocale
-        })
-        return {
-          ...rest,
-          variant: localeFilterData[0],
+    const fields = []
+    fieldIds.forEach((fieldId) => {
+      const filterData = fieldDataList.filter((data) => data.active && data.id === fieldId)
+      if (!filterData || !filterData[0]) {
+        return
+      }
+      const { variants, ...rest } = filterData[0]
+      const localeFilterData = variants.filter((variantData) => {
+        if (locale) {
+          return variantData.locale === locale
         }
+        return variantData.locale === rest.defaultLocale
       })
-      .filter((fieldData) => fieldData.active)
+      fields.push({
+        ...rest,
+        variant: localeFilterData[0],
+      })
+    })
     res.json({
       id: form.id,
       title: form.get('title'),
