@@ -6,7 +6,7 @@ import { search, sort, SortItem } from '../middlewares/search';
 import { TicketConditions, Ticket } from '../models/ticket';
 import { LoggedInUser } from '../models/user';
 
-const router = new Router({ prefix: '/tickets' }).use(auth);
+const router = new Router().use(auth);
 
 const statuses = Object.values(Ticket.STATUS);
 
@@ -73,6 +73,7 @@ router.get('/', search, sort, async (ctx) => {
       category: {
         id: ticket.category.id,
         name: ticket.category.name,
+        parents: ticket.category.parents,
       },
       assignee: ticket.assignee
         ? {

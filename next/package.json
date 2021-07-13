@@ -12,6 +12,7 @@
   "license": "MIT",
   "dependencies": {
     "@koa/router": "^10.0.0",
+    "ioredis": "^4.27.6",
     "koa": "^2.13.1",
     "koa-bodyparser": "^4.3.0",
     "leancloud-storage": "^4.11.1",
@@ -20,6 +21,7 @@
     "yup": "^0.32.9"
   },
   "devDependencies": {
+    "@types/ioredis": "^4.26.5",
     "@types/koa": "^2.13.3",
     "@types/koa-bodyparser": "^4.3.1",
     "@types/koa__router": "^8.0.4",

@@ -195,14 +195,16 @@ export class Ticket {
       query.find(options?.authOptions),
       Category.getAll(),
     ]);
+    const categoryMap = categories.reduce<Record<string, Category>>((map, c) => {
+      map[c.id] = c;
+      return map;
+    }, {});
 
     return objects.map((obj) => {
-      const categoryId: string = obj.get('category').objectId;
-
       return new Ticket({
         id: obj.id!,
         nid: obj.get('nid'),
-        category: categories.find((c) => c.id === categoryId) ?? INVALID_CATEGORY,
+        category: categoryMap[obj.get('category').objectId] ?? INVALID_CATEGORY,
         title: obj.get('title'),
         content: obj.get('content'),
         author: User.fromAVObject(obj.get('author')),
