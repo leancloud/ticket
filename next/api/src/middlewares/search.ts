@@ -1,4 +1,4 @@
-import { Context, Middleware } from 'koa';
+import { Middleware } from 'koa';
 
 import { Field, parse as parseQ } from '../utils/search';
 
@@ -15,23 +15,9 @@ export interface Searching {
   gte: Record<string, string>;
   lt: Record<string, string>;
   lte: Record<string, string>;
-  sort: SortItem[];
 }
 
-function parseSort(value: string): Searching['sort'] {
-  return value.split(',').map((key) => {
-    let order: 'asc' | 'desc' = 'asc';
-    if (key.endsWith('-asc')) {
-      key = key.slice(0, -4);
-    } else if (key.endsWith('-desc')) {
-      key = key.slice(0, -5);
-      order = 'desc';
-    }
-    return { key, order };
-  });
-}
-
-export function parse(q: string): Searching {
+function parse(q: string): Searching {
   const result: Searching = {
     text: [],
     eq: {},
@@ -40,7 +26,6 @@ export function parse(q: string): Searching {
     gte: {},
     lt: {},
     lte: {},
-    sort: [],
   };
 
   const fields = parseQ(q);
@@ -55,12 +40,6 @@ export function parse(q: string): Searching {
         result.text.push(field.key);
         break;
       case 'eq':
-        if (field.key === 'sort') {
-          result.sort = parseSort(field.value);
-        } else {
-          result.eq[field.key] = field.value;
-        }
-        break;
       case 'ne':
       case 'gt':
       case 'gte':
@@ -82,29 +61,41 @@ export function parse(q: string): Searching {
   return result;
 }
 
-export interface SearchOptions {
-  sortKeyMap?: Record<string, string>;
+export const search: Middleware = (ctx, next) => {
+  if (typeof ctx.query.q === 'string') {
+    const { eq, gt, gte, lt, lte } = parse(ctx.query.q);
+    Object.keys(eq).forEach((key) => (ctx.query[key] = eq[key]));
+    Object.keys(gt).forEach((key) => (ctx.query[key + '_gt'] = gt[key]));
+    Object.keys(gte).forEach((key) => (ctx.query[key + '_gte'] = gte[key]));
+    Object.keys(lt).forEach((key) => (ctx.query[key + '_lt'] = lt[key]));
+    Object.keys(lte).forEach((key) => (ctx.query[key + '_lte'] = lte[key]));
+    delete ctx.query.q;
+  }
+  return next();
+};
+
+function parseSort(key: string): SortItem {
+  let order: SortItem['order'] = 'asc';
+  if (key.endsWith('-asc')) {
+    key = key.slice(0, -4);
+  } else if (key.endsWith('-desc')) {
+    key = key.slice(0, -5);
+    order = 'desc';
+  }
+  return { key, order };
 }
 
-export function search(options?: SearchOptions): Middleware {
-  return (ctx, next) => {
-    if (typeof ctx.query.q === 'string') {
-      const { eq, gt, gte, lt, lte, sort } = parse(ctx.query.q);
-      Object.keys(eq).forEach((key) => (ctx.query[key] = eq[key]));
-      Object.keys(gt).forEach((key) => (ctx.query[key + '_gt'] = gt[key]));
-      Object.keys(gte).forEach((key) => (ctx.query[key + '_gte'] = gte[key]));
-      Object.keys(lt).forEach((key) => (ctx.query[key + '_lt'] = lt[key]));
-      Object.keys(lte).forEach((key) => (ctx.query[key + '_lte'] = lte[key]));
-      delete ctx.query.q;
-
-      if (options?.sortKeyMap) {
-        const { sortKeyMap } = options;
-        if (!sort.every(({ key }) => sortKeyMap[key])) {
-          ctx.throw(400, 'sort must be one of ' + Object.keys(sortKeyMap).join(', '));
-        }
-        ctx.state.sort = sort.map(({ key, order }) => ({ order, key: sortKeyMap[key] }));
-      }
+export const sort: Middleware = (ctx, next) => {
+  if (ctx.query.sort) {
+    let keys: string[];
+    if (typeof ctx.query.sort === 'string') {
+      keys = ctx.query.sort.split(',');
+    } else {
+      keys = ctx.query.sort;
     }
-    return next();
-  };
-}
+    ctx.state.sort = keys.map(parseSort);
+  } else {
+    ctx.state.sort = [];
+  }
+  return next();
+};

@@ -1,21 +1,23 @@
 import Router from '@koa/router';
-import * as yup from 'yup';
 
+import * as yup from '../utils/yup';
 import { auth } from '../middlewares/auth';
-import { csv2array } from '../middlewares/convert';
-import { search } from '../middlewares/search';
-import { Ticket } from '../models/ticket';
+import { search, sort, SortItem } from '../middlewares/search';
+import { TicketConditions, Ticket } from '../models/ticket';
 import { LoggedInUser } from '../models/user';
 
 const router = new Router({ prefix: '/tickets' }).use(auth);
 
+const statuses = Object.values(Ticket.STATUS);
+
 const getTicketsSchema = yup.object({
-  author_id: yup.string().trim(),
-  assignee_id: yup.string().trim(),
-  group_id: yup.string().trim(),
-  category_id: yup.string().trim(),
-  status: yup.array(yup.number().oneOf(Object.values(Ticket.STATUS)).required()),
-  evaluation_star: yup.array(yup.number().oneOf([0, 1])),
+  id: yup.csv(yup.string().required()),
+  author_id: yup.string(),
+  assignee_id: yup.string(),
+  category_id: yup.string(),
+  group_id: yup.csv(yup.string().required()),
+  status: yup.csv(yup.number().oneOf(statuses).required()),
+  evaluation_star: yup.number().oneOf([0, 1]),
   created_at_gt: yup.date(),
   created_at_gte: yup.date(),
   created_at_lt: yup.date(),
@@ -30,28 +32,34 @@ const sortKeyMap: Record<string, string> = {
   updated_at: 'updatedAt',
 };
 
-router.get('/', search({ sortKeyMap }), csv2array('status'), async (ctx) => {
-  const user = ctx.state.user as LoggedInUser;
+router.get('/', search, sort, async (ctx) => {
+  const user: LoggedInUser = ctx.state.user;
   const query = getTicketsSchema.validateSync(ctx.query);
-  const tickets = await Ticket.find(
-    {
-      authorId: query.author_id,
-      assigneeId: query.assignee_id,
-      groupId: query.group_id,
-      categoryId: query.category_id,
-      status: query.status,
-      createdAt_gt: query.created_at_gt,
-      createdAt_gte: query.created_at_gte,
-      createdAt_lt: query.created_at_lt,
-      createdAt_lte: query.created_at_lte,
-    },
-    {
-      skip: (query.page - 1) * query.page_size,
-      limit: query.page_size,
-      sort: ctx.state.sort,
-      authOptions: user.getAuthOptions(),
-    }
-  );
+  const sort: SortItem[] = ctx.state.sort;
+
+  if (!sort.every(({ key }) => sortKeyMap[key])) {
+    ctx.throw(400, 'sort must be one of ' + Object.keys(sortKeyMap).join(', '));
+  }
+
+  const conditions: TicketConditions = {
+    id: query.id,
+    authorId: query.author_id,
+    assigneeId: query.assignee_id,
+    groupId: query.group_id,
+    status: query.status,
+    evaluationStar: query.evaluation_star as 0 | 1,
+    createdAt_gt: query.created_at_gt,
+    createdAt_gte: query.created_at_gte,
+    createdAt_lt: query.created_at_lt,
+    createdAt_lte: query.created_at_lte,
+  };
+  const tickets = await Ticket.find(conditions, {
+    skip: (query.page - 1) * query.page_size,
+    limit: query.page_size,
+    sort: sort.map(({ key, order }) => ({ key: sortKeyMap[key], order })),
+    authOptions: user.getAuthOptions(),
+  });
+
   ctx.body = tickets.map((ticket) => {
     return {
       id: ticket.id,
@@ -62,6 +70,23 @@ router.get('/', search({ sortKeyMap }), csv2array('status'), async (ctx) => {
         username: ticket.author.username,
         name: ticket.author.name,
       },
+      category: {
+        id: ticket.category.id,
+        name: ticket.category.name,
+      },
+      assignee: ticket.assignee
+        ? {
+            id: ticket.assignee.id,
+            username: ticket.assignee.username,
+            name: ticket.assignee.name,
+          }
+        : null,
+      group: ticket.group
+        ? {
+            id: ticket.group.id,
+            name: ticket.group.name,
+          }
+        : null,
       status: ticket.status,
       created_at: ticket.createdAt.toISOString(),
       updated_at: ticket.updatedAt.toISOString(),

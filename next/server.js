@@ -1,5 +1,5 @@
 const { app } = require('./api/dist');
 
 app.listen(4000, () => {
-  console.log('Launched');
+  console.log('[Next API] Launched');
 });
