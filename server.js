@@ -4,6 +4,7 @@ const path = require('path')
 const compression = require('compression')
 const Raven = require('raven')
 const AV = require('leanengine')
+const { createProxyMiddleware } = require('http-proxy-middleware')
 
 AV.init({
   appId: process.env.LEANCLOUD_APP_ID,
@@ -36,12 +37,24 @@ app.use(express.static(path.join(__dirname, 'public')))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 
+// legacy api
 app.use(require('./api'))
 
+// embed pages
 app.use('/embed/v1', express.static(path.join(__dirname, 'embed/v1/dist')))
 app.get('/embed/v1/*', (req, res) => {
   res.sendFile(path.join(__dirname, 'embed/v1/dist/index.html'))
 })
+
+// next api
+require('./next/server')
+app.use(
+  '/api/2',
+  createProxyMiddleware({
+    target: 'http://127.0.0.1:4000',
+    changeOrigin: true,
+  })
+)
 
 const { orgName } = require('./api/oauth')
 

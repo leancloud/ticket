@@ -1,0 +1,5 @@
+{
+  "watch": ["api/src"],
+  "ext": "ts,json",
+  "exec": "npx tsc -p api && node server.js"
+}
