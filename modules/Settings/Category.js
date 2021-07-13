@@ -52,7 +52,6 @@ class Category extends React.Component {
         return
       }
       const category = depthFirstSearchFind(categoriesTree, (c) => c.id == categoryId)
-      console.log(category.get('form'))
 
       this.setState({
         category,
@@ -153,7 +152,7 @@ class Category extends React.Component {
       if (this.state.description != category.get('description')) {
         data.description = this.state.description
       }
-      if (category.get('form') && this.state.form !== category.get('form').id) {
+      if (!category.get('form') || this.state.form !== category.get('form').id) {
         data.form = db.class('TicketForm').object(this.state.form)
       }
       promise = category.update(data)
@@ -191,7 +190,6 @@ class Category extends React.Component {
       return <div>{t('loading')}……</div>
     }
 
-    console.log(this.state)
     return (
       <Form onSubmit={this.handleSubmit.bind(this)}>
         <Form.Group controlId="nameText">
