@@ -17,7 +17,7 @@ const Text = memo(
           id={id}
           disabled={disabled}
           readOnly={readOnly}
-          value={value}
+          value={value || ''}
           onChange={(e) => {
             if (onChange) {
               const v = e.target.value
@@ -41,7 +41,7 @@ const MultiLine = memo(
           rows={3}
           disabled={disabled}
           readOnly={readOnly}
-          value={value}
+          value={value || ''}
           onChange={(e) => {
             if (onChange) {
               const v = e.target.value
@@ -62,7 +62,7 @@ const Checkbox = memo(
           <Form.Check.Input
             id={id}
             disabled={disabled}
-            checked={value}
+            checked={value || false}
             readOnly={readOnly}
             onChange={(e) => {
               if (onChange) {
