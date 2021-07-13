@@ -253,7 +253,7 @@ const NewTicket = memo((props) => {
     try {
       setSubmitting(true)
       const uploadedFiles = await uploadFiles(files)
-      const ticketId = await http.post('/api/1/tickets', {
+      const ticket = await http.post('/api/1/tickets', {
         title,
         content,
         file_ids: uploadedFiles.map((file) => file.id),
@@ -263,7 +263,7 @@ const NewTicket = memo((props) => {
       // ENABLE_LEANCLOUD_INTEGRATION && loggedIn && appId
       if (appId) {
         await db.class('Tag').add({
-          ticket: db.class('Ticket').object(ticketId),
+          ticket: db.class('Ticket').object(ticket.id),
           key: 'appId',
           value: appId,
           author: auth.currentUser,
