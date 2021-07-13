@@ -54,7 +54,7 @@ const getIndexPage = () => {
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/github.min.css">
 <link rel="stylesheet" href="/css/react-datepicker.css">
 <link rel="stylesheet" href="/index.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" href="/css/docsearch.min.css" />
 <link rel="stylesheet" href="/css/docsearch-override.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/4.0.0/github-markdown.min.css" integrity="sha512-Oy18vBnbSJkXTndr2n6lDMO5NN31UljR8e/ICzVPrGpSud4Gkckb8yUpqhKuUNoE+o9gAb4O/rAxxw1ojyUVzg==" crossorigin="anonymous" />
 <link rel="stylesheet" href="${process.env.WEBPACK_DEV_SERVER || ''}/app.css">
