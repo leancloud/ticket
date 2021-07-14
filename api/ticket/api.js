@@ -77,12 +77,21 @@ router.post(
   check('file_ids').default([]).isArray(),
   check('file_ids.*').isString(),
   check('metadata').isObject().optional(),
+  check('form_values').isObject().optional(),
   catchError(async (req, res) => {
     if (!(await checkPermission(req.user))) {
       res.throw(403, 'Your account is not qualified to create ticket.')
     }
 
-    const { title, category_id, content, organization_id, file_ids, metadata } = req.body
+    const {
+      title,
+      category_id,
+      content,
+      organization_id,
+      file_ids,
+      metadata,
+      form_values,
+    } = req.body
     const author = req.user
 
     const ticket = await Ticket.create({
@@ -94,7 +103,9 @@ router.post(
       metadata,
       organization_id,
     })
-
+    if (form_values) {
+      await ticket.saveFormValues(form_values)
+    }
     res.json({ id: ticket.id })
   })
 )
@@ -637,6 +648,15 @@ router.post(
     })
     await ticket.save({ operator: req.user })
     res.json({})
+  })
+)
+
+router.get(
+  '/:id/formValues',
+  catchError(async (req, res) => {
+    let query = new AV.Query('TicketFormValues').equalTo('ticket', req.ticket)
+    const formValues = await query.find({ useMasterKey: true })
+    res.json(formValues[0] ? formValues[0].get('values') : {})
   })
 )
 

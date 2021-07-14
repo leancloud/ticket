@@ -743,6 +743,21 @@ class Ticket {
     return reply
   }
 
+  async saveFormValues(values) {
+    const formValues = new AV.Object('TicketFormValues')
+    const result = await formValues.save(
+      {
+        ACL: {},
+        ticket: AV.Object.createWithoutData('Ticket', this.id),
+        values,
+      },
+      {
+        useMasterKey: true,
+      }
+    )
+    return { id: result.id }
+  }
+
   /**
    * @param {string} action
    * @param {object} [options]

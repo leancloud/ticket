@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next'
 
 import { auth, cloud, db, http } from '../lib/leancloud'
 import { useURLSearchParam } from './utils/hooks'
+import CustomField from './Settings/TicketField/CustomField'
 import TextareaWithPreview from './components/TextareaWithPreview'
 import { WeekendWarning } from './components/WeekendWarning'
 import Select from './components/Select'
@@ -21,6 +22,7 @@ import OrganizationSelect from './OrganizationSelect'
 import { DocumentTitle } from './utils/DocumentTitle'
 import FAQ from './components/FAQ'
 import { useCategories } from './Settings/Categories'
+import { locale } from './i18n'
 
 const AssociatedApplication = memo(({ value, onChange }) => {
   const { t } = useTranslation()
@@ -206,6 +208,55 @@ const FAQs = memo(({ categoryId }) => {
   )
 })
 
+const useCustomForm = (formId) => {
+  const { addNotification } = useAppContext()
+  const [values, setValues] = useState({})
+
+  useEffect(() => {
+    setValues({})
+  }, [formId])
+
+  const { data: fields } = useQuery({
+    queryKey: ['setting/forms', formId],
+    enabled: !!formId,
+    queryFn: () =>
+      http.get(`/api/1/ticket-forms/${formId}`, {
+        params: {
+          locale: locale === 'zh' ? 'zh-cn' : locale,
+        },
+      }),
+    select: (data) => data.fields,
+    onError: (err) => addNotification(err),
+  })
+
+  const node = useMemo(() => {
+    if (!formId || !fields) {
+      return null
+    }
+    return fields.map((field) => {
+      const { required, title, type, variant, id } = field
+      return (
+        <CustomField
+          type={type}
+          label={title}
+          value={values[id]}
+          key={id}
+          onChange={(value) =>
+            setValues((pre) => ({
+              ...pre,
+              [id]: value,
+            }))
+          }
+          required={!!required}
+          options={variant ? variant.options : undefined}
+        />
+      )
+    })
+  }, [formId, fields, values])
+
+  return [values, node]
+}
+
 const NewTicket = memo((props) => {
   const { t } = useTranslation()
   const history = useHistory()
@@ -220,6 +271,7 @@ const NewTicket = memo((props) => {
   const [content, contentNode] = useContent(category)
   const [loggedIn, setLoggedIn] = useState(false)
   const [files, setFiles] = useState([])
+  const [formValues, FormNode] = useCustomForm(category ? category.form : undefined)
   const [submitting, setSubmitting] = useState(false)
 
   const FAQCategory = useMemo(
@@ -259,6 +311,7 @@ const NewTicket = memo((props) => {
         file_ids: uploadedFiles.map((file) => file.id),
         category_id: category.id,
         organization_id: selectedOrgId,
+        form_values: _.isEmpty(formValues) ? undefined : formValues,
       })
       // ENABLE_LEANCLOUD_INTEGRATION && loggedIn && appId
       if (appId) {
@@ -318,6 +371,7 @@ const NewTicket = memo((props) => {
         )}
         {selectedCategoriesNode}
         {FAQCategory && <FAQs categoryId={FAQCategory.id} />}
+        {FormNode}
         {contentNode}
         <Form.Group>
           <Form.File
