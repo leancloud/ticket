@@ -1,8 +1,9 @@
 import Koa from 'koa';
 import bodyParser from 'koa-bodyparser';
 
-import api from './routers';
 import './leancloud';
+import './config';
+import api from './routers';
 
 export const app = new Koa();
 

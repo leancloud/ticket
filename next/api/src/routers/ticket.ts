@@ -1,98 +1,137 @@
 import Router from '@koa/router';
 
 import * as yup from '../utils/yup';
+import { getGravatarURL } from '../utils/gravatar';
 import { auth } from '../middlewares/auth';
 import { search, sort, SortItem } from '../middlewares/search';
-import { TicketConditions, Ticket } from '../models/ticket';
-import { LoggedInUser } from '../models/user';
+import * as ticket from '../objects/ticket';
+import { AuthedUser, isStaff } from '../objects/user';
 
 const router = new Router().use(auth);
 
-const statuses = Object.values(Ticket.STATUS);
+const statuses = [50, 120, 160, 220, 250, 280];
+
+const sortKeys = new Set(['status', 'createdAt', 'updatedAt']);
 
 const getTicketsSchema = yup.object({
   id: yup.csv(yup.string().required()),
-  author_id: yup.string(),
-  assignee_id: yup.string(),
-  category_id: yup.string(),
-  group_id: yup.csv(yup.string().required()),
+  authorId: yup.string(),
+  assigneeId: yup.string(),
+  categoryId: yup.string(),
+  groupId: yup.csv(yup.string().required()),
   status: yup.csv(yup.number().oneOf(statuses).required()),
-  evaluation_star: yup.number().oneOf([0, 1]),
-  created_at_gt: yup.date(),
-  created_at_gte: yup.date(),
-  created_at_lt: yup.date(),
-  created_at_lte: yup.date(),
+  evaluationStar: yup.number().oneOf([0, 1]),
+  createdAt_gt: yup.date(),
+  createdAt_gte: yup.date(),
+  createdAt_lt: yup.date(),
+  createdAt_lte: yup.date(),
   page: yup.number().min(1).default(1),
-  page_size: yup.number().min(1).max(100).default(10),
+  pageSize: yup.number().min(1).max(100).default(10),
+  includeGroup: yup.bool().default(false),
+  count: yup.bool().default(false),
 });
 
-const sortKeyMap: Record<string, string> = {
-  status: 'status',
-  created_at: 'createdAt',
-  updated_at: 'updatedAt',
-};
-
 router.get('/', search, sort, async (ctx) => {
-  const user: LoggedInUser = ctx.state.user;
+  const user: AuthedUser = ctx.state.user;
   const query = getTicketsSchema.validateSync(ctx.query);
   const sort: SortItem[] = ctx.state.sort;
 
-  if (!sort.every(({ key }) => sortKeyMap[key])) {
-    ctx.throw(400, 'sort must be one of ' + Object.keys(sortKeyMap).join(', '));
+  if (query.includeGroup) {
+    if (!(await isStaff(user.id))) {
+      ctx.throw(403);
+    }
   }
 
-  const conditions: TicketConditions = {
-    id: query.id,
-    authorId: query.author_id,
-    assigneeId: query.assignee_id,
-    groupId: query.group_id,
-    status: query.status,
-    evaluationStar: query.evaluation_star as 0 | 1,
-    createdAt_gt: query.created_at_gt,
-    createdAt_gte: query.created_at_gte,
-    createdAt_lt: query.created_at_lt,
-    createdAt_lte: query.created_at_lte,
-  };
-  const tickets = await Ticket.find(conditions, {
-    skip: (query.page - 1) * query.page_size,
-    limit: query.page_size,
-    sort: sort.map(({ key, order }) => ({ key: sortKeyMap[key], order })),
-    authOptions: user.getAuthOptions(),
-  });
+  let ticketQuery = ticket
+    .query()
+    .withAuthor()
+    .withAssignee()
+    .skip(query.page - 1 + query.pageSize)
+    .limit(query.pageSize)
+    .inUserView(user);
 
-  ctx.body = tickets.map((ticket) => {
-    return {
-      id: ticket.id,
-      nid: ticket.nid,
-      title: ticket.title,
-      author: {
-        id: ticket.author.id,
-        username: ticket.author.username,
-        name: ticket.author.name,
-      },
-      category: {
-        id: ticket.category.id,
-        name: ticket.category.name,
-        parents: ticket.category.parents,
-      },
-      assignee: ticket.assignee
-        ? {
-            id: ticket.assignee.id,
-            username: ticket.assignee.username,
-            name: ticket.assignee.name,
-          }
-        : null,
-      group: ticket.group
-        ? {
-            id: ticket.group.id,
-            name: ticket.group.name,
-          }
-        : null,
-      status: ticket.status,
-      created_at: ticket.createdAt.toISOString(),
-      updated_at: ticket.updatedAt.toISOString(),
-    };
-  });
+  if (query.id) {
+    ticketQuery = ticketQuery.filterById(query.id);
+  }
+  if (query.authorId) {
+    ticketQuery = ticketQuery.filterByAuthorId(query.authorId);
+  }
+  if (query.assigneeId !== undefined) {
+    ticketQuery = ticketQuery.filterByAssigneeId(query.assigneeId);
+  }
+  if (query.groupId !== undefined) {
+    ticketQuery = ticketQuery.filterByGroupId(query.groupId);
+  }
+  if (query.status) {
+    ticketQuery = ticketQuery.filterByStatus(query.status);
+  }
+  if (query.evaluationStar) {
+    ticketQuery = ticketQuery.filterByEvaluationStar(query.evaluationStar);
+  }
+  if (query.createdAt_gt) {
+    ticketQuery = ticketQuery.filterByCreatedAtGT(query.createdAt_gt);
+  }
+  if (query.createdAt_gte) {
+    ticketQuery = ticketQuery.filterByCreatedAtGT(query.createdAt_gte);
+  }
+  if (query.createdAt_lt) {
+    ticketQuery = ticketQuery.filterByCreatedAtGT(query.createdAt_lt);
+  }
+  if (query.createdAt_lte) {
+    ticketQuery = ticketQuery.filterByCreatedAtGT(query.createdAt_lte);
+  }
+  if (query.includeGroup) {
+    ticketQuery = ticketQuery.withGroup();
+  }
+  if (query.count) {
+    ticketQuery = ticketQuery.count();
+  }
+
+  if (sort) {
+    if (!sort.every(({ key }) => sortKeys.has(key))) {
+      ctx.throw(400, 'sort must be one of ' + Array.from(sortKeys).join(', '));
+    }
+    ticketQuery = ticketQuery.sortBy(sort);
+  }
+
+  const { tickets, totalCount } = await ticketQuery.exec();
+  const ticketsWithCategoryInfo = await ticket.fillCategoryInfo(tickets);
+
+  ctx.body = {
+    totalCount,
+    items: ticketsWithCategoryInfo.map((t) => {
+      const { author, assignee } = t;
+
+      return {
+        id: t.id,
+        nid: t.nid,
+        title: t.title,
+        category: {
+          id: t.category.id,
+          name: t.category.name,
+        },
+        categoryPath: t.categoryPath,
+        author: {
+          id: author.id,
+          username: author.username,
+          name: author.name,
+          avatar: getGravatarURL(author.email ?? author.username),
+        },
+        assignee: assignee
+          ? {
+              id: assignee.id,
+              username: assignee.username,
+              name: assignee.name,
+              avatar: getGravatarURL(assignee.email ?? assignee.username),
+            }
+          : null,
+        group: query.includeGroup ? t.group ?? null : undefined,
+        status: t.status,
+        createdAt: t.createdAt.toISOString(),
+        updatedAt: t.updatedAt.toISOString(),
+      };
+    }),
+  };
 });
 
 export default router;
