@@ -18,6 +18,7 @@
     "leancloud-storage": "^4.11.1",
     "leanengine": "^3.7.0",
     "lodash": "^4.17.21",
+    "lru-cache": "^6.0.0",
     "yup": "^0.32.9"
   },
   "devDependencies": {
@@ -26,6 +27,7 @@
     "@types/koa-bodyparser": "^4.3.1",
     "@types/koa__router": "^8.0.4",
     "@types/lodash": "^4.14.171",
+    "@types/lru-cache": "^5.1.1",
     "nodemon": "^2.0.9",
     "typescript": "^4.3.5"
   }
