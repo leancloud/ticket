@@ -41,7 +41,7 @@ function PrivateRoute(props: PropsWithChildren<{ path: string; exact?: boolean }
 const RootCategoryContext = createContext<string | undefined>(undefined);
 export const useRootCategory = () => useContext(RootCategoryContext);
 
-const ROOT_URL = '/embed/v1/catogeries';
+const ROOT_URL = '/embed/v1/categories';
 
 const NotFound = () => <>NOT FOUND</>;
 
