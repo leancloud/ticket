@@ -4,7 +4,7 @@ import reactJSX from 'vite-react-jsx';
 import path from 'path';
 
 export default defineConfig({
-  base: '/embed/v1/',
+  base: '/in-app/v1/',
   plugins: [reactRefresh(), reactJSX()],
   server: {
     port: 8081,
