@@ -10,7 +10,7 @@ import Home from './Home';
 import Categories from './Categories';
 import Tickets from './Tickets';
 import { parse } from 'query-string';
-import { ArrayParam, decodeQueryParams, JsonParam } from 'serialize-query-params';
+import { ArrayParam, decodeQueryParams, JsonParam, StringParam } from 'serialize-query-params';
 import { User } from 'open-leancloud-storage/auth';
 import { Loading } from 'components/Loading';
 import { APIError } from 'components/APIError';
@@ -64,7 +64,7 @@ export default function App() {
   const params = useMemo(
     () =>
       decodeQueryParams(
-        { meta: JsonParam, tags: ArrayParam, auth: JsonParam },
+        { meta: JsonParam, tags: ArrayParam, auth: JsonParam, 'anonymous-id': StringParam },
         parse(window.location.hash)
       ),
     []
@@ -73,7 +73,12 @@ export default function App() {
 
   const [auth, setAuth] = useState<[User | null, boolean, any]>([null, true, null]);
   useEffect(() => {
-    if (params.auth) {
+    if (params['anonymous-id']) {
+      lcAuth
+        .loginWithAuthData('anonymous', { id: params['anonymous-id'] })
+        .then((user) => setAuth([user, false, null]))
+        .catch((error) => setAuth([null, false, error]));
+    } else if (params.auth) {
       if (!params.auth['platform']) {
         setAuth([null, false, new Error('Malformed auth param: platform is required')]);
         return;
