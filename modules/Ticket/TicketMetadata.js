@@ -331,7 +331,7 @@ const TicketFormModal = memo(({ fields, values, onUpdated, close, ticketId }) =>
   const { mutateAsync, isLoading } = useMutation({
     mutationFn: (data) =>
       http.patch(`/api/1/tickets/${ticketId}/formValues`, {
-        form_values: data,
+        formValues: data,
       }),
   })
 
@@ -346,7 +346,6 @@ const TicketFormModal = memo(({ fields, values, onUpdated, close, ticketId }) =>
           onSubmit={(e) => {
             e.preventDefault()
             e.stopPropagation()
-            console.log(formValues)
             mutateAsync(formValues)
               .then(() => {
                 onUpdated(formValues)

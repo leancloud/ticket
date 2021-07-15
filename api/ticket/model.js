@@ -744,8 +744,8 @@ class Ticket {
   }
 
   async saveFormValues(values) {
-    const formValues = new AV.Object('TicketFormValues')
-    const result = await formValues.save(
+    const obj = new AV.Object('TicketFormValues')
+    const result = await obj.save(
       {
         ACL: {},
         ticket: AV.Object.createWithoutData('Ticket', this.id),
