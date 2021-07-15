@@ -17,6 +17,10 @@
             "type": "Pointer",
             "className": "Group"
         },
+        "form": {
+            "type": "Pointer",
+            "className": "TicketForm"
+        },
         "ACL": {
             "type": "ACL"
         },
