@@ -15,6 +15,7 @@ import { useCategory } from '../../Categories';
 import { FieldTemplate, FormGroup, useForm } from './Form';
 import { useUpload } from './useUpload';
 import { http } from 'leancloud';
+import { useTicketInfo } from '../..';
 
 const PRESET_FORM_FIELDS: FieldTemplate[] = [
   {
@@ -53,6 +54,7 @@ function TicketForm({ categoryId, onCommit }: TicketFormProps) {
   const { element: alertElement, alert } = useAlert();
   const { files, upload, remove, isUploading } = useUpload();
   const [isCommitting, setIsCommitting] = useState(false);
+  const { meta, tags } = useTicketInfo();
 
   const handleUpload = (files: FileList) => {
     if (!files.length) {
@@ -78,6 +80,8 @@ function TicketForm({ categoryId, onCommit }: TicketFormProps) {
       title: formData.title as string,
       content: formData.content as string,
       file_ids: files.map((file) => file.id!),
+      metadata: meta,
+      tags,
     };
     try {
       setIsCommitting(true);
