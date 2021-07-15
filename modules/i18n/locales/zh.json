@@ -239,6 +239,7 @@
     "message.newTicket": "新的工单",
     "message.assignTicket": "转移工单",
     "message.newReply": "新的回复",
+    "otherInfo":"其他信息",
     "select": "请选择",
     "required": "必填",
     "ticketField": "工单字段",

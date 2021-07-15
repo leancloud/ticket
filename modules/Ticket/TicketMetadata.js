@@ -338,7 +338,7 @@ const TicketFormModal = memo(({ fields, values, onUpdated, close, ticketId }) =>
   return (
     <>
       <Modal.Header closeButton>
-        <Modal.Title>其他信息</Modal.Title>
+        <Modal.Title>{t('otherInfo')}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form
@@ -452,7 +452,7 @@ const TicketFormValues = memo(({ ticket }) => {
   return (
     <Form className={styles.otherInfo}>
       <Form.Label>
-        其他信息{' '}
+        {t('otherInfo')}{' '}
         <Button variant="light" size="sm" onClick={() => setEdit(true)} className="align-baseline">
           {t('edit')}
         </Button>
