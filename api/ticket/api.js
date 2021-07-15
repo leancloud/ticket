@@ -654,9 +654,32 @@ router.post(
 router.get(
   '/:id/formValues',
   catchError(async (req, res) => {
-    let query = new AV.Query('TicketFormValues').equalTo('ticket', req.ticket)
-    const formValues = await query.find({ useMasterKey: true })
-    res.json(formValues[0] ? formValues[0].get('values') : {})
+    const formValues = await new AV.Query('TicketFormValues').equalTo('ticket', req.ticket).first({
+      useMasterKey: true,
+    })
+    if (!formValues) {
+      res.throw(404, 'Not Found')
+    }
+    res.json(formValues.get('values'))
+  })
+)
+
+router.patch(
+  '/:id/formValues',
+  check('form_values').isObject().optional(),
+  catchError(async (req, res) => {
+    const { form_values } = req.body
+    const formValues = await new AV.Query('TicketFormValues').equalTo('ticket', req.ticket).first({
+      useMasterKey: true,
+    })
+    if (!formValues) {
+      res.throw(404, 'Not Found')
+    }
+    formValues.set('form_values', form_values)
+    const result = await formValues.save(null, { useMasterKey: true })
+    res.json({
+      updatedAt: result.get('updatedAt'),
+    })
   })
 )
 
