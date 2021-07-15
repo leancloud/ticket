@@ -65,10 +65,10 @@ export const search: Middleware = (ctx, next) => {
   if (typeof ctx.query.q === 'string') {
     const { eq, gt, gte, lt, lte } = parse(ctx.query.q);
     Object.keys(eq).forEach((key) => (ctx.query[key] = eq[key]));
-    Object.keys(gt).forEach((key) => (ctx.query[key + '_gt'] = gt[key]));
-    Object.keys(gte).forEach((key) => (ctx.query[key + '_gte'] = gte[key]));
-    Object.keys(lt).forEach((key) => (ctx.query[key + '_lt'] = lt[key]));
-    Object.keys(lte).forEach((key) => (ctx.query[key + '_lte'] = lte[key]));
+    Object.keys(gt).forEach((key) => (ctx.query[key + 'GT'] = gt[key]));
+    Object.keys(gte).forEach((key) => (ctx.query[key + 'GTE'] = gte[key]));
+    Object.keys(lt).forEach((key) => (ctx.query[key + 'LT'] = lt[key]));
+    Object.keys(lte).forEach((key) => (ctx.query[key + 'LTE'] = lte[key]));
     delete ctx.query.q;
   }
   return next();
@@ -85,17 +85,19 @@ function parseSort(key: string): SortItem {
   return { key, order };
 }
 
-export const sort: Middleware = (ctx, next) => {
-  if (ctx.query.sort) {
-    let keys: string[];
-    if (typeof ctx.query.sort === 'string') {
-      keys = ctx.query.sort.split(',');
-    } else {
-      keys = ctx.query.sort;
-    }
-    ctx.state.sort = keys.map(parseSort);
-  } else {
+export function sort(fields?: string[]): Middleware {
+  return (ctx, next) => {
     ctx.state.sort = [];
-  }
-  return next();
-};
+    if (ctx.query.sort) {
+      const keys = typeof ctx.query.sort === 'string' ? ctx.query.sort.split(',') : ctx.query.sort;
+      keys.forEach((key) => {
+        const item = parseSort(key);
+        if (fields && !fields.includes(item.key)) {
+          ctx.throw(400, 'sort must be one of ' + fields.join(', '));
+        }
+        ctx.state.sort.push(item);
+      });
+    }
+    return next();
+  };
+}
