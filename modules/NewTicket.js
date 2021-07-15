@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next'
 
 import { auth, cloud, db, http } from '../lib/leancloud'
 import { useURLSearchParam } from './utils/hooks'
-import CustomField from './Settings/TicketField/CustomField'
+import CustomField from './components/CustomField'
 import TextareaWithPreview from './components/TextareaWithPreview'
 import { WeekendWarning } from './components/WeekendWarning'
 import Select from './components/Select'

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { useTranslation } from 'react-i18next'
 import { Badge } from 'react-bootstrap'
 import * as Icon from 'react-bootstrap-icons'
-import { fieldType } from './CustomField'
+import { fieldType } from 'modules/components/CustomField'
 import styles from './index.module.scss'
 
 const fieldIconMap = {
