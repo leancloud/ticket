@@ -16,6 +16,7 @@ import { SpaceChinese } from 'components/SpaceChinese';
 import { useCategory } from '../../Categories';
 import { FieldTemplate, FormGroup, useForm } from './Form';
 import { http } from 'leancloud';
+import { useTicketInfo } from '../..';
 
 const PRESET_FORM_FIELDS_HEAD: FieldTemplate[] = [
   {
@@ -66,6 +67,7 @@ function TicketForm({ categoryId, onCommit }: TicketFormProps) {
   const { t } = useTranslation();
   const { files, upload, remove, isUploading } = useUpload();
   const [isCommitting, setIsCommitting] = useState(false);
+  const { meta, tags } = useTicketInfo();
 
   const { data: fields, isLoading: isLoadingFields } = useCategoryFields(categoryId);
   const formFields = useMemo(() => {
@@ -84,6 +86,8 @@ function TicketForm({ categoryId, onCommit }: TicketFormProps) {
       content: content as string,
       file_ids: files.map((file) => file.id!),
       form_values: Object.entries(fieldValues).map(([id, value]) => ({ field: id, value })),
+      metadata: meta,
+      tags,
     };
     try {
       setIsCommitting(true);

@@ -50,7 +50,7 @@ const TicketInfoContext = createContext<{
   tags?: Array<string | null> | null;
   // fields
 }>({});
-export const useTicketContext = () => useContext(TicketInfoContext);
+export const useTicketInfo = () => useContext(TicketInfoContext);
 
 const AuthContext = createContext<[User | null, boolean, any]>([null, true, null]);
 export const useAuth = () => useContext(AuthContext);
