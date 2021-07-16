@@ -77,16 +77,7 @@ const MultiLine = memo(
   }
 )
 const Checkbox = memo(
-  ({
-    id = _.uniqueId('Checkbox'),
-    label,
-    disabled,
-    onChange,
-    value,
-    required,
-    readOnly,
-    className,
-  }) => {
+  ({ id = _.uniqueId('Checkbox'), label, disabled, onChange, value, readOnly, className }) => {
     return (
       <Form.Group className={className}>
         <Form.Check type="checkbox">
@@ -101,7 +92,6 @@ const Checkbox = memo(
                 onChange(checked)
               }
             }}
-            required={required}
           />
           <Form.Check.Label htmlFor={id}>{label || ' '}</Form.Check.Label>
         </Form.Check>
@@ -243,25 +233,25 @@ const Radios = memo(
   }
 )
 
-function CustomField({ type, options, ...rest }) {
+function CustomField({ type, options, required, ...rest }) {
   switch (type) {
     case 'text':
-      return <Text {...rest} />
+      return <Text required={required} {...rest} />
     case 'multi-line':
-      return <MultiLine {...rest} />
+      return <MultiLine required={required} {...rest} />
     case 'checkbox':
       return <Checkbox {...rest} />
     case 'dropdown':
-      return <Dropdown {...rest} options={options} />
+      return <Dropdown {...rest} required={required} options={options} />
     case 'multi-select':
-      return <MultiSelectField {...rest} options={options} />
+      return <MultiSelectField required={required} {...rest} options={options} />
     case 'radios':
-      return <Radios {...rest} options={options} />
+      return <Radios {...rest} required={required} options={options} />
     default:
       return null
   }
 }
-Dropdown.propTypes = CustomField.propTypes = {
+CustomField.propTypes = {
   type: PropTypes.oneOf(fieldType),
   id: PropTypes.string,
   label: PropTypes.node,
