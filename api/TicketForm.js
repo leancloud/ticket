@@ -36,7 +36,7 @@ router.get(
       list.map((o) => ({
         id: o.id,
         title: o.get('title'),
-        updatedAt: o.get('updatedAt'),
+        updated_at: o.get('updatedAt'),
       }))
     )
   })
@@ -82,7 +82,7 @@ router.get(
     res.json({
       id: form.id,
       title: form.get('title'),
-      updatedAt: form.get('updatedAt'),
+      updated_at: form.get('updatedAt'),
       fields,
     })
   })
