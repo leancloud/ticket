@@ -32,20 +32,8 @@ AsyncCategory.propTypes = {
   block: PropTypes.bool,
 }
 
-function CategoryByPath({ block, categoryPath }) {
-  const fullName = useMemo(() => categoryPath.map((c) => c.name).join(' / '), [categoryPath])
-  return <span className={classNames(css.category, { [css.block]: block })}>{fullName}</span>
-}
-CategoryByPath.propTypes = {
-  categoryPath: PropTypes.array.isRequired,
-  block: PropTypes.bool,
-}
-
 // eslint-disable-next-line react/prop-types
-export function Category({ categoryId, categoryPath, block }) {
-  if (categoryPath) {
-    return <CategoryByPath block={block} categoryPath={categoryPath} />
-  }
+export function Category({ categoryId, block }) {
   return <AsyncCategory block={block} categoryId={categoryId} />
 }
 

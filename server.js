@@ -40,9 +40,9 @@ app.use(express.urlencoded({ extended: false }))
 // legacy api
 app.use(require('./api'))
 
-// embed pages
-app.use('/embed/v1', express.static(path.join(__dirname, 'embed/v1/dist')))
-app.get('/embed/v1/*', (req, res) => {
+// in-app pages
+app.use('/in-app/v1', express.static(path.join(__dirname, 'embed/v1/dist')))
+app.get('/in-app/v1/*', (req, res) => {
   res.sendFile(path.join(__dirname, 'embed/v1/dist/index.html'))
 })
 

@@ -17,13 +17,15 @@
     "classnames": "^2.3.1",
     "i18next": "^20.3.2",
     "i18next-browser-languagedetector": "^6.1.2",
-    "open-leancloud-storage": "0.0.34",
+    "open-leancloud-storage": "0.0.35",
+    "query-string": "^7.0.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-i18next": "^11.11.1",
     "react-intersection-observer": "^8.32.0",
     "react-query": "^3.17.2",
-    "react-router-dom": "^5.2.0"
+    "react-router-dom": "^5.2.0",
+    "serialize-query-params": "^1.3.5"
   },
   "devDependencies": {
     "@types/axios": "^0.14.0",

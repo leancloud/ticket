@@ -1,7 +1,7 @@
 import React, { memo, useMemo } from 'react'
-import { Button, Form } from 'react-bootstrap'
+import { Button, Form, Breadcrumb } from 'react-bootstrap'
 import { withTranslation } from 'react-i18next'
-import { withRouter } from 'react-router-dom'
+import { withRouter, Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
 
 import { db } from '../../lib/leancloud'
@@ -192,6 +192,14 @@ class Category extends React.Component {
 
     return (
       <Form onSubmit={this.handleSubmit.bind(this)}>
+        <Breadcrumb>
+          <Breadcrumb.Item linkProps={{ to: '/settings/categories' }} linkAs={Link}>
+            {t('category')}
+          </Breadcrumb.Item>
+          <Breadcrumb.Item active>
+            {this.state.category?.id ? this.state.category.id : t('add')}
+          </Breadcrumb.Item>
+        </Breadcrumb>
         <Form.Group controlId="nameText">
           <Form.Label>{t('categoryName')}</Form.Label>
           <Form.Control value={this.state.name} onChange={this.handleNameChange.bind(this)} />

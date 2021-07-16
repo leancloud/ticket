@@ -16,7 +16,7 @@ function LogInForm() {
     e.preventDefault();
     auth.login(username, password).then((user) => {
       http.defaults.headers['X-LC-Session'] = user.sessionToken;
-      history.push('/home');
+      history.push('/');
     });
   };
 
@@ -48,7 +48,7 @@ export default function LogIn() {
   const { t } = useTranslation();
 
   if (auth.currentUser) {
-    return <Redirect to="/home" />;
+    return <Redirect to="/" />;
   }
   return (
     <Page>
