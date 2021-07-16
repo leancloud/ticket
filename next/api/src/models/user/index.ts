@@ -53,6 +53,12 @@ export class User {
     });
   }
 
+  static async get(id: string): Promise<User> {
+    const query = new AV.Query<AV.Object>('_User');
+    const object = await query.get(id, { useMasterKey: true });
+    return User.fromAVObject(object);
+  }
+
   static async getBySessionToken(token: string): Promise<AuthedUser> {
     const avUser = await AV.User.become(token);
     const user = User.fromAVObject(avUser);
@@ -76,6 +82,10 @@ export class User {
       throw new Error('You should call User#isCustomerService first');
     }
     return this._isCustomerService;
+  }
+
+  toPointer() {
+    return AV.Object.createWithoutData('_User', this.id);
   }
 
   toJSON() {

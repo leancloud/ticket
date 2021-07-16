@@ -26,6 +26,20 @@ export class Group {
     });
   }
 
+  static async findForUser(id: string): Promise<Group[]> {
+    const roleQuery = new AV.Query(AV.Role);
+    roleQuery.startsWith('name', 'group_');
+    roleQuery.equalTo('users', AV.Object.createWithoutData('_User', id));
+    const roles = await roleQuery.find({ useMasterKey: true });
+
+    const groupIds = roles.map((role) => role.getName().slice(6));
+    const groupQuery = new AV.Query<AV.Object>('Group');
+    groupQuery.containedIn('objectId', groupIds);
+    const groups = await groupQuery.find({ useMasterKey: true });
+
+    return groups.map(Group.fromAVObject);
+  }
+
   toJSON() {
     return {
       id: this.id,
