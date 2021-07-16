@@ -330,8 +330,8 @@ const TicketFormModal = memo(({ fields, values, onUpdated, close, ticketId }) =>
 
   const { mutateAsync, isLoading } = useMutation({
     mutationFn: (data) =>
-      http.patch(`/api/1/tickets/${ticketId}/formValues`, {
-        formValues: data,
+      http.patch(`/api/1/tickets/${ticketId}/form-values`, {
+        form_values: data,
       }),
   })
 
@@ -433,7 +433,7 @@ const TicketFormValues = memo(({ ticket }) => {
   })
   const { data: fromValues } = useQuery({
     queryKey: ['ticket/fromValues', ticket ? ticket.id : ''],
-    queryFn: () => http.get(`/api/1/tickets/${ticket.id}/formValues`),
+    queryFn: () => http.get(`/api/1/tickets/${ticket.id}/form-values`),
     enabled: Boolean(formId && ticket && ticket.id),
     retry: false,
     onError: (err) => addNotification(err),

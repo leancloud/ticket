@@ -77,7 +77,7 @@ router.post(
   check('file_ids').default([]).isArray(),
   check('file_ids.*').isString(),
   check('metadata').isObject().optional(),
-  check('formValues').isObject().optional(),
+  check('form_values').isObject().optional(),
   catchError(async (req, res) => {
     if (!(await checkPermission(req.user))) {
       res.throw(403, 'Your account is not qualified to create ticket.')
@@ -90,7 +90,7 @@ router.post(
       organization_id,
       file_ids,
       metadata,
-      formValues,
+      form_values,
     } = req.body
     const author = req.user
 
@@ -103,8 +103,8 @@ router.post(
       metadata,
       organization_id,
     })
-    if (formValues) {
-      await ticket.saveFormValues(formValues)
+    if (form_values) {
+      await ticket.saveFormValues(form_values)
     }
     res.json({ id: ticket.id })
   })
@@ -652,9 +652,9 @@ router.post(
 )
 
 router.get(
-  '/:id/formValues',
+  '/:id/form-values',
   catchError(async (req, res) => {
-    const formValues = await new AV.Query('TicketFormValues').equalTo('ticket', req.ticket).first({
+    const formValues = await new AV.Query('TicketFormValue').equalTo('ticket', req.ticket).first({
       useMasterKey: true,
     })
     if (!formValues) {
@@ -665,17 +665,17 @@ router.get(
 )
 
 router.patch(
-  '/:id/formValues',
+  '/:id/form-values',
   check('formValues').isObject().optional(),
   catchError(async (req, res) => {
-    const { formValues } = req.body
-    const obj = await new AV.Query('TicketFormValues').equalTo('ticket', req.ticket).first({
+    const { form_values } = req.body
+    const obj = await new AV.Query('TicketFormValue').equalTo('ticket', req.ticket).first({
       useMasterKey: true,
     })
     if (!obj) {
       res.throw(404, 'Not Found')
     }
-    obj.set('values', formValues)
+    obj.set('values', form_values)
     const result = await obj.save(null, { useMasterKey: true })
     res.json({
       updatedAt: result.get('updatedAt'),

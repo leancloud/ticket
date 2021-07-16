@@ -271,7 +271,7 @@ const NewTicket = memo((props) => {
   const [content, contentNode] = useContent(category)
   const [loggedIn, setLoggedIn] = useState(false)
   const [files, setFiles] = useState([])
-  const [formValues, FormNode] = useCustomForm(category ? category.form : undefined)
+  const [formValues, FormNode] = useCustomForm(category ? category.form_id : undefined)
   const [submitting, setSubmitting] = useState(false)
 
   const FAQCategory = useMemo(
@@ -311,7 +311,7 @@ const NewTicket = memo((props) => {
         file_ids: uploadedFiles.map((file) => file.id),
         category_id: category.id,
         organization_id: selectedOrgId,
-        formValues: _.isEmpty(formValues) ? undefined : formValues,
+        form_values: _.isEmpty(formValues) ? undefined : formValues,
       })
       // ENABLE_LEANCLOUD_INTEGRATION && loggedIn && appId
       if (appId) {
