@@ -18,7 +18,7 @@
       "required": true
     },
     "values": {
-      "type": "Object",
+      "type": "Array",
       "v": 2,
       "required": true,
       "hidden": false,

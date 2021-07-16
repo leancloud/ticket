@@ -744,7 +744,7 @@ class Ticket {
   }
 
   async saveFormValues(values) {
-    const obj = new AV.Object('TicketFormValues')
+    const obj = new AV.Object('TicketFieldValue')
     const result = await obj.save(
       {
         ACL: {},

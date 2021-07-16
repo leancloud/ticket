@@ -102,7 +102,9 @@
 .metaAlert {
   font-size: 90%;
 }
-
+.otherInfo{
+  margin-bottom: 1rem;
+}
 .field{
   font-size: 85%;
   margin-bottom: .25rem;

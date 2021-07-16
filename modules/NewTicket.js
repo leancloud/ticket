@@ -311,7 +311,14 @@ const NewTicket = memo((props) => {
         file_ids: uploadedFiles.map((file) => file.id),
         category_id: category.id,
         organization_id: selectedOrgId,
-        form_values: _.isEmpty(formValues) ? undefined : formValues,
+        form_values: _.isEmpty(formValues)
+          ? undefined
+          : Object.keys(formValues).map((field) => {
+              return {
+                field,
+                value: formValues[field],
+              }
+            }),
       })
       // ENABLE_LEANCLOUD_INTEGRATION && loggedIn && appId
       if (appId) {

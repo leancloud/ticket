@@ -329,9 +329,9 @@ const TicketFormModal = memo(({ fields, values, onUpdated, close, ticketId }) =>
   }, [values])
 
   const { mutateAsync, isLoading } = useMutation({
-    mutationFn: (data) =>
+    mutationFn: (form_values) =>
       http.patch(`/api/1/tickets/${ticketId}/form-values`, {
-        form_values: data,
+        form_values,
       }),
   })
 
@@ -346,9 +346,15 @@ const TicketFormModal = memo(({ fields, values, onUpdated, close, ticketId }) =>
           onSubmit={(e) => {
             e.preventDefault()
             e.stopPropagation()
-            mutateAsync(formValues)
+            const newValues = Object.keys(formValues).map((field) => {
+              return {
+                field,
+                value: formValues[field],
+              }
+            })
+            mutateAsync(newValues)
               .then(() => {
-                onUpdated(formValues)
+                onUpdated(newValues)
                 close()
                 return
               })
@@ -399,7 +405,7 @@ const TicketFormValues = memo(({ ticket }) => {
         },
       }),
     retry: false,
-    select: (data) => (data[0] ? data[0].form : undefined),
+    select: (data) => (data[0] ? data[0].form_id : undefined),
     enabled: Boolean(ticket && ticket.category_id),
     onError: (err) => addNotification(err),
   })
@@ -436,6 +442,13 @@ const TicketFormValues = memo(({ ticket }) => {
     queryFn: () => http.get(`/api/1/tickets/${ticket.id}/form-values`),
     enabled: Boolean(formId && ticket && ticket.id),
     retry: false,
+    select: (data) =>
+      Array.isArray(data)
+        ? data.reduce((pre, cur) => {
+            pre[cur.field] = cur.value
+            return pre
+          }, {})
+        : {},
     onError: (err) => addNotification(err),
   })
   const onUpdated = useCallback(
@@ -448,6 +461,7 @@ const TicketFormValues = memo(({ ticket }) => {
   if (!formId || !fields || fields.length === 0) {
     return null
   }
+
   return (
     <Form className={styles.otherInfo}>
       <Form.Label>
