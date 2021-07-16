@@ -1,13 +1,13 @@
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import { Alert, Button, Form } from 'react-bootstrap'
+import React, { memo, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { Alert, Button, Form, Modal } from 'react-bootstrap'
 import * as Icon from 'react-bootstrap-icons'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import PropTypes from 'prop-types'
 
-import { auth, fetch } from '../../lib/leancloud'
+import { auth, fetch, http } from '../../lib/leancloud'
 import { UserLabel } from '../UserLabel'
-import { AppContext } from '../context'
+import { AppContext, useAppContext } from '../context'
 import { getConfig } from '../config'
 import { MountCustomElement } from '../custom/element'
 import css from './index.css'
@@ -15,6 +15,8 @@ import { Category, CategorySelect } from './Category'
 import { TagForm } from './TagForm'
 import { InternalBadge } from '../components/InternalBadge'
 import { useGroups, GroupLabel } from '../components/Group'
+import CustomField from '../components/CustomField'
+import { locale } from '../i18n'
 import styles from './index.css'
 
 function updateTicket(id, data) {
@@ -316,6 +318,184 @@ function TagSection({ ticket, isCustomerService }) {
   })
 }
 
+const TicketFormModal = memo(({ fields, values, onUpdated, close, ticketId }) => {
+  const { t } = useTranslation()
+  const { addNotification } = useAppContext()
+  const [formValues, setFormValues] = useState({})
+  useEffect(() => {
+    if (values) {
+      setFormValues(values)
+    }
+  }, [values])
+
+  const { mutateAsync, isLoading } = useMutation({
+    mutationFn: (form_values) =>
+      http.patch(`/api/1/tickets/${ticketId}/form-values`, {
+        form_values,
+      }),
+  })
+
+  return (
+    <>
+      <Modal.Header closeButton>
+        <Modal.Title>{t('otherInfo')}</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <Form
+          id="otherInfo"
+          onSubmit={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            const newValues = Object.keys(formValues).map((field) => {
+              return {
+                field,
+                value: formValues[field],
+              }
+            })
+            mutateAsync(newValues)
+              .then(() => {
+                onUpdated(newValues)
+                close()
+                return
+              })
+              .catch(addNotification)
+          }}
+        >
+          {fields.map((field) => {
+            return (
+              <CustomField
+                value={formValues[field.id]}
+                key={field.id}
+                {...field}
+                onChange={(v) => {
+                  setFormValues((pre) => ({
+                    ...pre,
+                    [field.id]: v,
+                  }))
+                }}
+              />
+            )
+          })}
+        </Form>
+      </Modal.Body>
+      <Modal.Footer>
+        <Button className="mr-2" variant="secondary" onClick={close}>
+          {t('cancel')}
+        </Button>
+        <Button variant="primary" type="submit" form="otherInfo" disabled={isLoading}>
+          {t('confirm')}
+        </Button>
+      </Modal.Footer>
+    </>
+  )
+})
+const TicketFormValues = memo(({ ticket }) => {
+  const { t } = useTranslation()
+  const { addNotification } = useAppContext()
+  const queryClient = useQueryClient()
+  const [edit, setEdit] = useState(false)
+  const close = useCallback(() => setEdit(false), [])
+  const { data: formId } = useQuery({
+    queryKey: ['ticket/category', ticket ? ticket.category_id : ''],
+    queryFn: () =>
+      http.get('/api/1/categories', {
+        params: {
+          id: ticket.category_id,
+          active: true,
+        },
+      }),
+    retry: false,
+    select: (data) => (data[0] ? data[0].form_id : undefined),
+    enabled: Boolean(ticket && ticket.category_id),
+    onError: (err) => addNotification(err),
+  })
+  const { data: fields } = useQuery({
+    queryKey: ['ticket/form', formId],
+    queryFn: () =>
+      http.get(`/api/1/ticket-forms/${formId}`, {
+        params: {
+          locale: locale === 'zh' ? 'zh-cn' : locale,
+        },
+      }),
+    select: (data) =>
+      data.fields.map((field) => {
+        const {
+          type,
+          id,
+          required,
+          variant: { options, title },
+        } = field
+        return {
+          type,
+          id,
+          required,
+          options,
+          label: title,
+        }
+      }),
+    enabled: !!formId,
+    retry: false,
+    onError: (err) => addNotification(err),
+  })
+  const { data: fromValues } = useQuery({
+    queryKey: ['ticket/fromValues', ticket ? ticket.id : ''],
+    queryFn: () => http.get(`/api/1/tickets/${ticket.id}/form-values`),
+    enabled: Boolean(formId && ticket && ticket.id),
+    retry: false,
+    select: (data) =>
+      Array.isArray(data)
+        ? data.reduce((pre, cur) => {
+            pre[cur.field] = cur.value
+            return pre
+          }, {})
+        : {},
+    onError: (err) => addNotification(err),
+  })
+  const onUpdated = useCallback(
+    (data) => {
+      queryClient.setQueryData(['ticket/fromValues', ticket ? ticket.id : ''], data)
+    },
+    [queryClient, ticket]
+  )
+
+  if (!formId || !fields || fields.length === 0) {
+    return null
+  }
+
+  return (
+    <Form className={styles.otherInfo}>
+      <Form.Label>
+        {t('otherInfo')}{' '}
+        <Button variant="light" size="sm" onClick={() => setEdit(true)} className="align-baseline">
+          {t('edit')}
+        </Button>
+      </Form.Label>
+      {fields &&
+        fields.map((field) => {
+          return (
+            <CustomField
+              size="sm"
+              className={styles.field}
+              value={fromValues ? fromValues[field.id] : undefined}
+              key={field.id}
+              readOnly={true}
+              {...field}
+            />
+          )
+        })}
+      <Modal show={edit} onHide={close}>
+        <TicketFormModal
+          ticketId={ticket.id}
+          fields={fields || []}
+          values={fromValues}
+          onUpdated={onUpdated}
+          close={close}
+        />
+      </Modal>
+    </Form>
+  )
+})
+
 export function TicketMetadata({ ticket, isCustomerService }) {
   return (
     <>
@@ -330,6 +510,8 @@ export function TicketMetadata({ ticket, isCustomerService }) {
       <MountCustomElement point="ticket.metadata" props={{ ticket, isCustomerService }} />
 
       <TagSection ticket={ticket} isCustomerService={isCustomerService} />
+
+      <TicketFormValues ticket={ticket} />
     </>
   )
 }

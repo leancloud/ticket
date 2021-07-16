@@ -239,6 +239,7 @@
     "message.newTicket": "New ticket",
     "message.assignTicket": "Assign ticket",
     "message.newReply": "New reply",
+    "otherInfo":"Other infos",
     "select": "Select",
     "required": "required",
     "ticketField": "Ticket field",

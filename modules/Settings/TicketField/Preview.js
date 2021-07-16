@@ -2,7 +2,7 @@ import React, { memo, useState } from 'react'
 import PropTypes from 'prop-types'
 import { useTranslation } from 'react-i18next'
 import { Form, Modal, Button } from 'react-bootstrap'
-import CustomField from './CustomField'
+import CustomField from 'modules/components/CustomField'
 
 function PreviewContent({ close, params }) {
   const { t } = useTranslation()

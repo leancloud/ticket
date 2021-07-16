@@ -9,15 +9,26 @@ import styles from './index.module.scss'
 export const includeOptionsType = ['dropdown', 'multi-select', 'radios']
 export const fieldType = ['text', 'multi-line', 'checkbox', 'dropdown', 'multi-select', 'radios']
 const Text = memo(
-  ({ id = _.uniqueId('Text'), label, value, onChange, disabled, readOnly, required }) => {
+  ({
+    id = _.uniqueId('Text'),
+    label,
+    value,
+    onChange,
+    disabled,
+    readOnly,
+    required,
+    className,
+    size,
+  }) => {
     return (
-      <Form.Group>
+      <Form.Group className={className}>
         {label && <Form.Label htmlFor={id}>{label}</Form.Label>}
         <Form.Control
           id={id}
+          size={size}
           disabled={disabled}
           readOnly={readOnly}
-          value={value}
+          value={value || ''}
           onChange={(e) => {
             if (onChange) {
               const v = e.target.value
@@ -31,17 +42,28 @@ const Text = memo(
   }
 )
 const MultiLine = memo(
-  ({ id = _.uniqueId('MultiLine'), label, value, onChange, disabled, readOnly, required }) => {
+  ({
+    id = _.uniqueId('MultiLine'),
+    label,
+    value,
+    onChange,
+    disabled,
+    readOnly,
+    required,
+    className,
+    size,
+  }) => {
     return (
-      <Form.Group>
+      <Form.Group className={className}>
         {label && <Form.Label htmlFor={id}>{label}</Form.Label>}
         <Form.Control
+          size={size}
           id={id}
           as="textarea"
           rows={3}
           disabled={disabled}
           readOnly={readOnly}
-          value={value}
+          value={value || ''}
           onChange={(e) => {
             if (onChange) {
               const v = e.target.value
@@ -55,14 +77,14 @@ const MultiLine = memo(
   }
 )
 const Checkbox = memo(
-  ({ id = _.uniqueId('Checkbox'), label, disabled, onChange, value, required, readOnly }) => {
+  ({ id = _.uniqueId('Checkbox'), label, disabled, onChange, value, readOnly, className }) => {
     return (
-      <Form.Group>
+      <Form.Group className={className}>
         <Form.Check type="checkbox">
           <Form.Check.Input
             id={id}
             disabled={disabled}
-            checked={value}
+            checked={value || false}
             readOnly={readOnly}
             onChange={(e) => {
               if (onChange) {
@@ -70,7 +92,6 @@ const Checkbox = memo(
                 onChange(checked)
               }
             }}
-            required={required}
           />
           <Form.Check.Label htmlFor={id}>{label || ' '}</Form.Check.Label>
         </Form.Check>
@@ -79,17 +100,74 @@ const Checkbox = memo(
   }
 )
 const defaultPlaceholder = ''
-const Dropdown = memo(({ id = _.uniqueId('Dropdown'), label, ...rest }) => {
-  return (
-    <Form.Group>
-      {label && <Form.Label htmlFor={id}>{label}</Form.Label>}
-      <Select id={id} placeholder={defaultPlaceholder} {...rest} />
-    </Form.Group>
-  )
-})
+const getDisplayText = (options, value) => {
+  if (!options) {
+    return value
+  }
+  let result = value
+  options.some((v) => {
+    if (Array.isArray(v) && v[0] === value) {
+      result = v[1]
+      return true
+    } else {
+      if (v === value) {
+        result = v
+        return true
+      }
+    }
+    return false
+  })
+  return result
+}
+const Dropdown = memo(
+  ({
+    id = _.uniqueId('Dropdown'),
+    size,
+    label,
+    readOnly,
+    disabled,
+    options,
+    className,
+    ...rest
+  }) => {
+    const displayMode = readOnly || disabled
+    return (
+      <Form.Group className={className}>
+        {label && <Form.Label htmlFor={id}>{label}</Form.Label>}
+        {displayMode && (
+          <Form.Control
+            size={size}
+            readOnly={readOnly}
+            disabled={disabled}
+            value={getDisplayText(options, rest.value)}
+          />
+        )}
+        {!displayMode && (
+          <Select
+            id={id}
+            size={size}
+            placeholder={defaultPlaceholder}
+            options={options}
+            {...rest}
+          />
+        )}
+      </Form.Group>
+    )
+  }
+)
 
 const MultiSelectField = memo(
-  ({ id = _.uniqueId('MultiSelect'), label, onChange, value, required, options }) => {
+  ({
+    id = _.uniqueId('MultiSelect'),
+    label,
+    onChange,
+    value,
+    disabled,
+    required,
+    options,
+    readOnly,
+    className,
+  }) => {
     const reOptions = useMemo(() => {
       if (!options) {
         return []
@@ -97,10 +175,11 @@ const MultiSelectField = memo(
       return options.map(([v, title]) => ({
         label: title,
         value: v,
+        disabled: disabled || readOnly,
       }))
-    }, [options])
+    }, [options, readOnly, disabled])
     return (
-      <Form.Group>
+      <Form.Group className={className}>
         {label && <Form.Label htmlFor={id}>{label}</Form.Label>}
         <MultiSelect
           options={reOptions}
@@ -125,6 +204,7 @@ const Radios = memo(
     options,
     value,
     onChange,
+    className,
   }) => {
     const radios = useMemo(() => {
       if (!options) {
@@ -137,7 +217,7 @@ const Radios = memo(
       }))
     }, [options, disabled, readOnly])
     return (
-      <Form.Group>
+      <Form.Group className={className}>
         {label && <Form.Label htmlFor={id}>{label}</Form.Label>}
         <RadioGroup
           as={NativeRadio}
@@ -153,25 +233,24 @@ const Radios = memo(
   }
 )
 
-const CustomField = memo(({ type, options, ...rest }) => {
+function CustomField({ type, options, required, ...rest }) {
   switch (type) {
     case 'text':
-      return <Text {...rest} />
+      return <Text required={required} {...rest} />
     case 'multi-line':
-      return <MultiLine {...rest} />
+      return <MultiLine required={required} {...rest} />
     case 'checkbox':
       return <Checkbox {...rest} />
     case 'dropdown':
-      return <Dropdown {...rest} options={options} />
+      return <Dropdown {...rest} required={required} options={options} />
     case 'multi-select':
-      return <MultiSelectField {...rest} options={options} />
+      return <MultiSelectField required={required} {...rest} options={options} />
     case 'radios':
-      return <Radios {...rest} options={options} />
+      return <Radios {...rest} required={required} options={options} />
     default:
       return null
   }
-})
-
+}
 CustomField.propTypes = {
   type: PropTypes.oneOf(fieldType),
   id: PropTypes.string,
@@ -182,6 +261,8 @@ CustomField.propTypes = {
   required: PropTypes.bool,
   value: PropTypes.any,
   onChange: PropTypes.func,
-  options: PropTypes.array,
+  options: PropTypes.any,
+  className: PropTypes.string,
+  size: PropTypes.string,
 }
 export default CustomField

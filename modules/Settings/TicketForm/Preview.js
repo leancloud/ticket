@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { useTranslation } from 'react-i18next'
 import { Form, Modal, Button } from 'react-bootstrap'
 import NoData from 'modules/components/NoData'
-import CustomField from '../TicketField/CustomField'
+import CustomField from 'modules/components/CustomField'
 
 function PreviewContent({ close, data }) {
   const { t } = useTranslation()

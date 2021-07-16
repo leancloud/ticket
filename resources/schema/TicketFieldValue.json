@@ -1,0 +1,55 @@
+{
+  "schema": {
+    "objectId": {
+      "type": "String"
+    },
+    "ACL": {
+      "type": "ACL"
+    },
+    "updatedAt": {
+      "type": "Date"
+    },
+    "createdAt": {
+      "type": "Date"
+    },
+    "ticket": {
+      "type": "Pointer",
+      "className": "Ticket",
+      "required": true
+    },
+    "values": {
+      "type": "Array",
+      "v": 2,
+      "required": true,
+      "hidden": false,
+      "read_only": false
+    }
+  },
+  "permissions": {
+    "create": {
+      "roles": [],
+      "users": []
+    },
+    "find": {
+      "roles": [],
+      "users": []
+    },
+    "get": {
+      "roles": [],
+      "users": []
+    },
+    "update": {
+      "roles": [],
+      "users": []
+    },
+    "delete": {
+      "roles": [],
+      "users": []
+    },
+    "add_fields": {
+      "roles": [],
+      "users": []
+    }
+  },
+  "indexes": []
+}

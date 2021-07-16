@@ -1,5 +1,4 @@
 const AV = require('leancloud-storage')
-const _ = require('lodash')
 
 /**
  * @typedef {{
@@ -31,6 +30,7 @@ function encodeCategoryObject(category) {
     faq_ids: category.get('FAQs')?.map((faq) => faq.id) || [],
     active: !category.get('deletedAt'),
     group: category.get('group'),
+    form_id: category.get('form')?.id || '',
     created_at: category.createdAt,
     updated_at: category.updatedAt,
   }
