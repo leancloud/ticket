@@ -17,3 +17,14 @@ export const auth: Middleware = async (ctx, next) => {
   }
   return next();
 };
+
+export const customerServiceOnly: Middleware = async (ctx, next) => {
+  const currentUser = ctx.state.currentUser as User;
+  if (!currentUser) {
+    ctx.throw(401);
+  }
+  if (!(await currentUser.isCustomerService())) {
+    ctx.throw(403);
+  }
+  return next();
+};

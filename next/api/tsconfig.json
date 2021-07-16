@@ -6,7 +6,8 @@
     "target": "ES2020",
     "module": "CommonJS",
     "esModuleInterop": true,
-    "moduleResolution": "Node"
+    "moduleResolution": "Node",
+    "skipLibCheck": true
   },
   "include": [
     "src"
