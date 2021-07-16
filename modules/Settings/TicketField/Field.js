@@ -142,7 +142,7 @@ const FieldForm = memo(({ onSubmit, initData, submitting }) => {
       setType(initData.type)
       setRequired(initData.required)
       setVariants(initData.variants)
-      setDefaultLocale(initData.defaultLocale)
+      setDefaultLocale(initData.default_locale)
       setLocales(Object.keys(initData.variants))
     }
   }, [initData])
@@ -207,7 +207,7 @@ const FieldForm = memo(({ onSubmit, initData, submitting }) => {
       title,
       type,
       required,
-      defaultLocale,
+      default_locale: defaultLocale,
       variants: Object.entries(variants).map(([key, value]) => {
         const { title, options } = value
         return {

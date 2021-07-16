@@ -62,7 +62,7 @@ router.get(
         id: o.id,
         title: o.get('title'),
         type: o.get('type'),
-        defaultLocale: o.get('defaultLocale'),
+        default_locale: o.get('defaultLocale'),
         active: !!o.get('active'),
         required: !!o.get('required'),
       }))
@@ -89,7 +89,7 @@ router.get(
       type: field.get('type'),
       active: !!field.get('active'),
       required: !!field.get('required'),
-      defaultLocale: field.get('defaultLocale'),
+      default_locale: field.get('defaultLocale'),
       variants: variants.map((v) => ({
         locale: v.get('locale'),
         title: v.get('title'),
@@ -106,7 +106,7 @@ router.post(
     .isString()
     .custom((value) => TYPES.includes(value)),
   check('required').default(false).isBoolean(),
-  check('defaultLocale')
+  check('default_locale')
     .isString()
     .custom((value) => LOCALES.includes(value)),
   check('variants').isArray().isLength({ min: 1 }),
@@ -116,12 +116,12 @@ router.post(
     .custom((value) => LOCALES.includes(value)),
   check('variants.*.options').isArray().optional(),
   catchError(async (req, res) => {
-    const { title, type, required, defaultLocale, variants } = req.body
+    const { title, type, required, default_locale, variants } = req.body
     const variantLocales = variants.map((v) => v.locale)
     if (new Set(variantLocales).size !== variantLocales.length) {
       throw new Error('Duplicated variant locale')
     }
-    if (!variantLocales.includes(defaultLocale)) {
+    if (!variantLocales.includes(default_locale)) {
       throw new Error('Variant with default locale must be provided')
     }
     if (REQUIRE_OPTIONS.includes(type)) {
@@ -138,7 +138,7 @@ router.post(
         type,
         required,
         active: true,
-        defaultLocale,
+        defaultLocale: default_locale,
       },
       {
         useMasterKey: true,
@@ -154,13 +154,13 @@ router.patch(
   check('title').isString().isLength({ min: 1 }).optional(),
   check('active').isBoolean().optional(),
   check('required').isBoolean().optional(),
-  check('defaultLocale')
+  check('default_locale')
     .isString()
     .custom((value) => LOCALES.includes(value))
     .optional(),
   catchError(async (req, res) => {
     const { field } = req
-    const { title, active, required, defaultLocale, variants } = req.body
+    const { title, active, required, default_locale, variants } = req.body
     if (title !== undefined) {
       field.set('title', title)
     }
@@ -170,8 +170,8 @@ router.patch(
     if (required !== undefined) {
       field.set('required', required)
     }
-    if (defaultLocale !== undefined) {
-      field.set('defaultLocale', defaultLocale)
+    if (default_locale !== undefined) {
+      field.set('defaultLocale', default_locale)
     }
     if (variants !== undefined) {
       await updateVariants(variants, field)

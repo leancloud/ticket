@@ -132,12 +132,12 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
           if (preFieldData.id !== fieldData.id) {
             return preFieldData
           }
-          const filterVariant = fieldData.variants.filter(
+          const filteredVariants = fieldData.variants.filter(
             (variant) => variant.locale === fieldData.defaultLocale
           )
           return {
             ...preFieldData,
-            variant: filterVariant[0],
+            variant: filteredVariants[0],
           }
         })
       )
