@@ -11,3 +11,15 @@ export const catchYupError: Middleware = async (ctx, next) => {
     throw error;
   }
 };
+
+export const catchLCError: Middleware = async (ctx, next) => {
+  try {
+    await next();
+  } catch (error) {
+    switch (error.code) {
+      case 211:
+        ctx.throw(404, error.rawMessage);
+    }
+    throw error;
+  }
+};
