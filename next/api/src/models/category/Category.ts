@@ -64,7 +64,7 @@ export class Category {
     });
   }
 
-  static async getAllFromCache(): Promise<Category[] | null> {
+  static async getAllFromRedis(): Promise<Category[] | null> {
     const cached = await redis.hvals(REDIS_CACHE_KEY);
     if (cached.length === 0) {
       return null;
@@ -72,7 +72,7 @@ export class Category {
     return cached.map((item) => Category.fromJSON(JSON.parse(item)));
   }
 
-  static async setAllToCache(categories: Category[]) {
+  static async setAllToRedis(categories: Category[]) {
     await redis
       .pipeline()
       .del(REDIS_CACHE_KEY)
@@ -83,20 +83,20 @@ export class Category {
 
   static async getAll(options?: { ignoreCache?: boolean }): Promise<Category[]> {
     if (!options?.ignoreCache) {
-      const cached = await Category.getAllFromCache();
+      const cached = await Category.getAllFromRedis();
       if (cached) {
         return cached;
       }
     }
     const categories = await Category.getAllFromStorage();
-    Category.setAllToCache(categories).catch((error) => {
+    Category.setAllToRedis(categories).catch((error) => {
       // TODO(sdjdd): Sentry
       console.error(`[Cache] Set ${REDIS_CACHE_KEY}:`, error);
     });
     return categories;
   }
 
-  static async getSomeFromCache(ids: string[]): Promise<Category[] | null> {
+  static async getSomeFromRedis(ids: string[]): Promise<Category[] | null> {
     if (ids.length === 0) {
       return [];
     }
@@ -114,7 +114,7 @@ export class Category {
       return [];
     }
     const id_set = new Set(ids);
-    const cached = await Category.getSomeFromCache(ids);
+    const cached = await Category.getSomeFromRedis(ids);
     if (cached && cached.length === id_set.size) {
       return cached;
     }
@@ -122,7 +122,7 @@ export class Category {
     return categories.filter((c) => id_set.has(c.id));
   }
 
-  static async getFromCache(id: string): Promise<Category | null> {
+  static async getFromRedis(id: string): Promise<Category | null> {
     const cached = await redis.hget(REDIS_CACHE_KEY, id);
     if (!cached) {
       return null;
@@ -131,7 +131,7 @@ export class Category {
   }
 
   static async get(id: string): Promise<Category | null> {
-    const cached = await Category.getFromCache(id);
+    const cached = await Category.getFromRedis(id);
     if (cached) {
       return cached;
     }
