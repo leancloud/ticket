@@ -1,37 +1,33 @@
 import Router from '@koa/router';
 
 import * as yup from '../utils/yup';
-import { auth } from '../middlewares/auth';
-import { search, sort } from '../middlewares/search';
+import { auth, sort } from '../middlewares';
 import { AuthedUser } from '../models/user';
-import { Ticket } from '../models/ticket';
+import { Ticket, TicketFilter } from '../models/ticket';
 
 const router = new Router().use(auth);
 
 const statuses = [50, 120, 160, 220, 250, 280];
 const sortKeys = ['status', 'createdAt', 'updatedAt'];
 
-const getTicketsSchema = yup.object({
-  id: yup.csv(yup.string().required()),
+const findTicketsSchema = yup.object({
   authorId: yup.string(),
   assigneeId: yup.string(),
   categoryId: yup.string(),
   groupId: yup.csv(yup.string().required()),
   status: yup.csv(yup.number().oneOf(statuses).required()),
   evaluationStar: yup.number().oneOf([0, 1]),
-  createdAtGT: yup.date(),
-  createdAtLT: yup.date(),
-  createdAtGTE: yup.date(),
-  createdAtLTE: yup.date(),
+  createdAtSince: yup.date(),
+  createdAtUntil: yup.date(),
   page: yup.number().min(1).default(1),
   pageSize: yup.number().min(1).max(100).default(10),
   includeGroup: yup.bool().default(false),
   count: yup.bool().default(false),
 });
 
-router.get('/', search, sort(sortKeys), async (ctx) => {
+router.get('/', sort('orderBy', sortKeys), async (ctx) => {
   const currentUser = ctx.state.currentUser as AuthedUser;
-  const query = getTicketsSchema.validateSync(ctx.query);
+  const query = findTicketsSchema.validateSync(ctx.query);
 
   if (query.includeGroup) {
     if (!(await currentUser.isCustomerService())) {
@@ -39,7 +35,17 @@ router.get('/', search, sort(sortKeys), async (ctx) => {
     }
   }
 
-  const { tickets, totalCount } = await Ticket.find(query, {
+  const filter: TicketFilter = {
+    authorId: query.authorId,
+    assigneeId: query.assigneeId,
+    categoryId: query.categoryId,
+    groupId: query.groupId,
+    status: query.status,
+    evaluationStar: query.evaluationStar,
+    createdAt: [query.createdAtSince, query.createdAtUntil],
+  };
+
+  const { tickets, totalCount } = await Ticket.find(filter, {
     user: currentUser,
     sort: ctx.state.sort,
     skip: (query.page - 1) * query.pageSize,
@@ -48,10 +54,38 @@ router.get('/', search, sort(sortKeys), async (ctx) => {
     includeGroup: query.includeGroup,
   });
 
-  ctx.body = {
-    totalCount,
-    items: tickets,
-  };
+  if (totalCount !== undefined) {
+    ctx.set('X-Total-Count', totalCount.toString());
+  }
+  ctx.body = tickets;
+});
+
+router.param('ticket', async (id, ctx, next) => {
+  ctx.state.ticket = await Ticket.get(id, {
+    user: ctx.state.currentUser,
+  });
+  return next();
+});
+
+const getTicketSchema = yup.object({
+  includeGroup: yup.bool(),
+});
+
+router.get('/:id', async (ctx) => {
+  const currentUser = ctx.state.currentUser as AuthedUser;
+  const query = getTicketSchema.validateSync(ctx.query);
+
+  if (query.includeGroup) {
+    if (!(await currentUser.isCustomerService())) {
+      ctx.throw(403);
+    }
+  }
+
+  const ticket = await Ticket.get(ctx.params.id, {
+    user: ctx.state.currentUser,
+    includeGroup: query.includeGroup,
+  });
+  ctx.body = ticket;
 });
 
 export default router;

@@ -7,7 +7,7 @@ import { isCustomerService } from './customer-service';
 export interface UserData {
   id: string;
   username: string;
-  name?: string;
+  nickname?: string;
   email?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -18,11 +18,11 @@ export type AuthedUser = User & Required<Pick<User, 'sessionToken'>>;
 export class User {
   id: string;
   username: string;
-  name?: string;
+  nickname: string;
   email?: string;
   createdAt: Date;
   updatedAt: Date;
-  avatar: string;
+  avatarUrl: string;
   sessionToken?: string;
 
   private _isCustomerService?: boolean;
@@ -30,11 +30,11 @@ export class User {
   constructor(data: UserData) {
     this.id = data.id;
     this.username = data.username;
-    this.name = data.name;
+    this.nickname = data.nickname || data.username;
     this.email = data.email;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
-    this.avatar = getGravatarURL(this.email ?? this.username);
+    this.avatarUrl = getGravatarURL(this.email ?? this.username);
   }
 
   static pointer(id: string) {
@@ -46,7 +46,7 @@ export class User {
     return new User({
       id: object.id!,
       username: object.get('username'),
-      name: object.get('name') ?? undefined,
+      nickname: object.get('name') ?? undefined,
       email: object.get('email') ?? undefined,
       createdAt: object.createdAt!,
       updatedAt: object.updatedAt!,
@@ -77,13 +77,6 @@ export class User {
     return this._isCustomerService;
   }
 
-  isCustomerServiceSync(): boolean | never {
-    if (this._isCustomerService === undefined) {
-      throw new Error('You should call User#isCustomerService first');
-    }
-    return this._isCustomerService;
-  }
-
   toPointer() {
     return AV.Object.createWithoutData('_User', this.id);
   }
@@ -92,8 +85,8 @@ export class User {
     return {
       id: this.id,
       username: this.username,
-      name: this.name,
-      avatar: this.avatar,
+      nickname: this.nickname,
+      avatarUrl: this.avatarUrl,
     };
   }
 }

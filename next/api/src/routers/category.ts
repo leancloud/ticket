@@ -23,9 +23,7 @@ router.get('/', search, async (ctx) => {
     }
   }
 
-  ctx.body = {
-    items: categories,
-  };
+  ctx.body = categories;
 });
 
 export default router;

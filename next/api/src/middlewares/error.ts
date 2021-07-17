@@ -19,6 +19,8 @@ export const catchLCError: Middleware = async (ctx, next) => {
     switch (error.code) {
       case 211:
         ctx.throw(404, error.rawMessage);
+      case 403:
+        ctx.throw(403, error.rawMessage);
     }
     throw error;
   }

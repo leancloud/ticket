@@ -1,10 +1,11 @@
 import AV from 'leancloud-storage';
 
-import { redis } from '../../cache';
+import { LocalCache, redis } from '../../cache';
 import { array2map } from '../../utils/convert';
 
-const CACHE_KEY = 'categories';
-const CACHE_TTL = 60 * 5; // 5 min
+const REDIS_CACHE_KEY = 'categories';
+const REDIS_CACHE_TTL = 60 * 5; // 5 min
+const LOCAL_CACHE_TTL = 10; // 10 sec
 
 export interface CategoryData {
   id: string;
@@ -64,7 +65,7 @@ export class Category {
   }
 
   static async getAllFromCache(): Promise<Category[] | null> {
-    const cached = await redis.hvals(CACHE_KEY);
+    const cached = await redis.hvals(REDIS_CACHE_KEY);
     if (cached.length === 0) {
       return null;
     }
@@ -74,23 +75,23 @@ export class Category {
   static async setAllToCache(categories: Category[]) {
     await redis
       .pipeline()
-      .del(CACHE_KEY)
-      .hset(CACHE_KEY, ...categories.map((c) => [c.id, JSON.stringify(c.toJSON())]))
-      .expire(CACHE_KEY, CACHE_TTL)
+      .del(REDIS_CACHE_KEY)
+      .hset(REDIS_CACHE_KEY, ...categories.map((c) => [c.id, JSON.stringify(c.toJSON())]))
+      .expire(REDIS_CACHE_KEY, REDIS_CACHE_TTL)
       .exec();
   }
 
   static async getAll(options?: { ignoreCache?: boolean }): Promise<Category[]> {
     if (!options?.ignoreCache) {
-      const cached = await this.getAllFromCache();
+      const cached = await Category.getAllFromCache();
       if (cached) {
         return cached;
       }
     }
-    const categories = await this.getAllFromStorage();
-    this.setAllToCache(categories).catch((error) => {
+    const categories = await Category.getAllFromStorage();
+    Category.setAllToCache(categories).catch((error) => {
       // TODO(sdjdd): Sentry
-      console.error(`[Cache] Set ${CACHE_KEY}:`, error);
+      console.error(`[Cache] Set ${REDIS_CACHE_KEY}:`, error);
     });
     return categories;
   }
@@ -100,7 +101,7 @@ export class Category {
       return [];
     }
     const id_set = new Set(ids);
-    const cached = await redis.hmget(CACHE_KEY, ...id_set);
+    const cached = await redis.hmget(REDIS_CACHE_KEY, ...id_set);
     const cached_str = cached.filter((item) => item !== null) as string[];
     if (cached_str.length === 0) {
       return null;
@@ -113,12 +114,29 @@ export class Category {
       return [];
     }
     const id_set = new Set(ids);
-    const cached = await this.getSomeFromCache(ids);
+    const cached = await Category.getSomeFromCache(ids);
     if (cached && cached.length === id_set.size) {
       return cached;
     }
-    const categories = await this.getAll({ ignoreCache: true });
+    const categories = await Category.getAll({ ignoreCache: true });
     return categories.filter((c) => id_set.has(c.id));
+  }
+
+  static async getFromCache(id: string): Promise<Category | null> {
+    const cached = await redis.hget(REDIS_CACHE_KEY, id);
+    if (!cached) {
+      return null;
+    }
+    return Category.fromJSON(JSON.parse(cached));
+  }
+
+  static async get(id: string): Promise<Category | null> {
+    const cached = await Category.getFromCache(id);
+    if (cached) {
+      return cached;
+    }
+    const categories = await Category.getAll({ ignoreCache: true });
+    return categories.find((c) => c.id === id) ?? INVALID_CATEGORY;
   }
 
   toJSON() {
@@ -143,6 +161,8 @@ export const INVALID_CATEGORY = new Category({
   deletedAt: new Date(0),
 });
 
+const localCache = new LocalCache(LOCAL_CACHE_TTL, Category.getAll);
+
 export type CategoryPathItem = Pick<Category, 'id' | 'name'>;
 
 export class Categories {
@@ -154,7 +174,7 @@ export class Categories {
   }
 
   static async create(): Promise<Categories> {
-    return new Categories(await Category.getAll());
+    return new Categories(await localCache.get());
   }
 
   get(id: string): Category {
