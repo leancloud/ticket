@@ -25,7 +25,7 @@ router.get('/', async (ctx) => {
     id: c.id,
     name: c.name,
     parentId: c.parentId,
-    order: c.order,
+    position: c.order,
     active: !c.deletedAt,
     createdAt: c.createdAt,
     updatedAt: c.updatedAt,
