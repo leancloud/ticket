@@ -94,7 +94,6 @@ export function useForm(templates: FieldTemplate[]) {
   const [data, setData] = useState<Record<string, any>>({});
   useEffect(() => setData(getDefaultValues(templates)), [templates]);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  console.log(data);
 
   const element = (
     <>
@@ -129,7 +128,7 @@ export function useForm(templates: FieldTemplate[]) {
           }
           break;
         case 'multi-select':
-          if ((tmpl.required && !data[tmpl.name]) || data[tmpl.name].length === 0) {
+          if (tmpl.required && (!data[tmpl.name] || data[tmpl.name].length === 0)) {
             nextErrors[tmpl.name] = t('validation.required');
           }
           break;

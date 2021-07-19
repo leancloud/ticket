@@ -14,7 +14,7 @@ export function Textarea({
   value = '',
   onChange,
   placeholder,
-  rows,
+  rows = 3,
   maxLength,
   error,
 }: TextareaProps) {
