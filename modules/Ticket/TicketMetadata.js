@@ -15,7 +15,7 @@ import { Category, CategorySelect } from './Category'
 import { TagForm } from './TagForm'
 import { InternalBadge } from '../components/InternalBadge'
 import { useGroups, GroupLabel } from '../components/Group'
-import CustomField from '../components/CustomField'
+import CustomField, { CustomFieldDisplay } from '../components/CustomField'
 import { locale } from '../i18n'
 import styles from './index.css'
 
@@ -473,13 +473,13 @@ const TicketFormValues = memo(({ ticket }) => {
       {fields &&
         fields.map((field) => {
           return (
-            <CustomField
-              size="sm"
-              className={styles.field}
-              value={fromValues ? fromValues[field.id] : undefined}
+            <CustomFieldDisplay
               key={field.id}
-              readOnly={true}
-              {...field}
+              type={field.type}
+              label={field.label}
+              value={fromValues ? fromValues[field.id] : undefined}
+              options={field.options}
+              className={styles.field}
             />
           )
         })}

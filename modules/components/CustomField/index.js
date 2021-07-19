@@ -1,6 +1,7 @@
 import React, { memo, useMemo } from 'react'
 import PropTypes from 'prop-types'
 import { Form } from 'react-bootstrap'
+import { useTranslation } from 'react-i18next'
 import _ from 'lodash'
 import Select, { MultiSelect } from 'modules/components/Select'
 import { RadioGroup, NativeRadio } from 'modules/components/Radio'
@@ -119,6 +120,7 @@ const getDisplayText = (options, value) => {
   })
   return result
 }
+
 const Dropdown = memo(
   ({
     id = _.uniqueId('Dropdown'),
@@ -266,3 +268,62 @@ CustomField.propTypes = {
   size: PropTypes.string,
 }
 export default CustomField
+
+function CustomFieldDisplay({ type, value, label, className, options }) {
+  const { t } = useTranslation()
+  const NoneNode = (
+    <Form.Group className={className}>
+      <Form.Label>{label}</Form.Label>
+      <p>{t('none')} </p>
+    </Form.Group>
+  )
+  switch (type) {
+    case 'text':
+    case 'multi-line':
+      if (value === undefined) {
+        return NoneNode
+      }
+      return (
+        <Form.Group className={className}>
+          <Form.Label>{label}</Form.Label>
+          <p>{value} </p>
+        </Form.Group>
+      )
+    case 'checkbox':
+      value = value === 'false' ? false : Boolean(value)
+      return <Checkbox value={value} className={className} label={label} readOnly />
+    case 'dropdown':
+    case 'radios':
+      return (
+        <Form.Group className={className}>
+          <Form.Label>{label}</Form.Label>
+          <p>{getDisplayText(options, value) || t('none')} </p>
+        </Form.Group>
+      )
+    case 'multi-select':
+      if (!value || !Array.isArray(value)) {
+        return NoneNode
+      }
+      const reOptions = (options || []).filter(([v]) => {
+        return value.includes(v)
+      })
+      if (reOptions.length === 0) {
+        return NoneNode
+      }
+      return (
+        <MultiSelectField label={label} options={reOptions} value={value} className={className} />
+      )
+    default:
+      return null
+  }
+}
+
+CustomFieldDisplay.propTypes = {
+  type: PropTypes.oneOf(fieldType),
+  label: PropTypes.node,
+  value: PropTypes.any,
+  options: PropTypes.any,
+  className: PropTypes.string,
+}
+
+export { CustomFieldDisplay }

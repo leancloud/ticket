@@ -106,9 +106,14 @@
   margin-bottom: 1rem;
 }
 .field{
-  font-size: 85%;
+  font-size: 90%;
   margin-bottom: .25rem;
 }
-.field :global(.form-label){
-  margin-bottom: 2px
+.field >label{
+  font-weight: bold;
+  margin-bottom: 0px;
+
+}
+.field p{
+  margin: 0;
 }
