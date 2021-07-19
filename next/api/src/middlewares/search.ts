@@ -2,11 +2,6 @@ import { Middleware } from 'koa';
 
 import { Field, parse as parseQ } from '../utils/search';
 
-export interface SortItem {
-  key: string;
-  order: 'asc' | 'desc';
-}
-
 export interface Searching {
   text: string[];
   eq: Record<string, string>;
@@ -73,31 +68,3 @@ export const search: Middleware = (ctx, next) => {
   }
   return next();
 };
-
-function parseSort(key: string): SortItem {
-  let order: SortItem['order'] = 'asc';
-  if (key.endsWith('-asc')) {
-    key = key.slice(0, -4);
-  } else if (key.endsWith('-desc')) {
-    key = key.slice(0, -5);
-    order = 'desc';
-  }
-  return { key, order };
-}
-
-export function sort(fields?: string[]): Middleware {
-  return (ctx, next) => {
-    ctx.state.sort = [];
-    if (ctx.query.sort) {
-      const keys = typeof ctx.query.sort === 'string' ? ctx.query.sort.split(',') : ctx.query.sort;
-      keys.forEach((key) => {
-        const item = parseSort(key);
-        if (fields && !fields.includes(item.key)) {
-          ctx.throw(400, 'sort must be one of ' + fields.join(', '));
-        }
-        ctx.state.sort.push(item);
-      });
-    }
-    return next();
-  };
-}

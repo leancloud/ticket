@@ -22,9 +22,7 @@ router.param('user', async (id, ctx, next) => {
 router.get('/:user/groups', async (ctx) => {
   const user = ctx.state.user as User;
   const groups = await Group.findForUser(user.id);
-  ctx.body = {
-    items: groups,
-  };
+  ctx.body = groups;
 });
 
 export default router;

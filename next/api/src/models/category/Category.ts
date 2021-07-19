@@ -1,16 +1,19 @@
 import AV from 'leancloud-storage';
 
-import { redis } from '../../cache';
+import { LocalCache, redis } from '../../cache';
 import { array2map } from '../../utils/convert';
+import { TicketForm } from '../form';
 
-const CACHE_KEY = 'categories';
-const CACHE_TTL = 60 * 5; // 5 min
+const REDIS_CACHE_KEY = 'categories';
+const REDIS_CACHE_TTL = 60 * 5; // 5 min
+const LOCAL_CACHE_TTL = 10; // 10 sec
 
 export interface CategoryData {
   id: string;
   name: string;
   parentId?: string;
   order?: number;
+  form?: TicketForm;
   createdAt: Date;
   updatedAt: Date;
   deletedAt?: Date;
@@ -21,6 +24,7 @@ export class Category {
   name: string;
   parentId?: string;
   order: number;
+  form?: TicketForm;
   createdAt: Date;
   updatedAt: Date;
   deletedAt?: Date;
@@ -30,6 +34,7 @@ export class Category {
     this.name = data.name;
     this.parentId = data.parentId;
     this.order = data.order ?? data.createdAt.getTime();
+    this.form = data.form;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
     this.deletedAt = data.deletedAt;
@@ -41,6 +46,7 @@ export class Category {
       name: data.name,
       parentId: data.parentId,
       order: data.order,
+      form: data.form ? TicketForm.fromJSON(data.form) : undefined,
       createdAt: new Date(data.createdAt),
       updatedAt: new Date(data.updatedAt),
       deletedAt: data.deletedAt ? new Date(data.deletedAt) : undefined,
@@ -49,13 +55,15 @@ export class Category {
 
   static async getAllFromStorage(): Promise<Category[]> {
     const query = new AV.Query<AV.Object>('Category');
-    const objects = await query.find();
+    query.include('form');
+    const objects = await query.find({ useMasterKey: true });
     return objects.map((obj) => {
       return new Category({
         id: obj.id!,
         name: obj.get('name'),
         parentId: obj.get('parent')?.id ?? undefined,
         order: obj.get('order') ?? undefined,
+        form: obj.has('form') ? TicketForm.fromAVObject(obj.get('form')) : undefined,
         createdAt: obj.createdAt!,
         updatedAt: obj.updatedAt!,
         deletedAt: obj.get('deletedAt') ?? undefined,
@@ -63,44 +71,44 @@ export class Category {
     });
   }
 
-  static async getAllFromCache(): Promise<Category[] | null> {
-    const cached = await redis.hvals(CACHE_KEY);
+  static async getAllFromRedis(): Promise<Category[] | null> {
+    const cached = await redis.hvals(REDIS_CACHE_KEY);
     if (cached.length === 0) {
       return null;
     }
     return cached.map((item) => Category.fromJSON(JSON.parse(item)));
   }
 
-  static async setAllToCache(categories: Category[]) {
+  static async setAllToRedis(categories: Category[]) {
     await redis
       .pipeline()
-      .del(CACHE_KEY)
-      .hset(CACHE_KEY, ...categories.map((c) => [c.id, JSON.stringify(c.toJSON())]))
-      .expire(CACHE_KEY, CACHE_TTL)
+      .del(REDIS_CACHE_KEY)
+      .hset(REDIS_CACHE_KEY, ...categories.map((c) => [c.id, JSON.stringify(c.toJSON())]))
+      .expire(REDIS_CACHE_KEY, REDIS_CACHE_TTL)
       .exec();
   }
 
   static async getAll(options?: { ignoreCache?: boolean }): Promise<Category[]> {
     if (!options?.ignoreCache) {
-      const cached = await this.getAllFromCache();
+      const cached = await Category.getAllFromRedis();
       if (cached) {
         return cached;
       }
     }
-    const categories = await this.getAllFromStorage();
-    this.setAllToCache(categories).catch((error) => {
+    const categories = await Category.getAllFromStorage();
+    Category.setAllToRedis(categories).catch((error) => {
       // TODO(sdjdd): Sentry
-      console.error(`[Cache] Set ${CACHE_KEY}:`, error);
+      console.error(`[Cache] Set ${REDIS_CACHE_KEY}:`, error);
     });
     return categories;
   }
 
-  static async getSomeFromCache(ids: string[]): Promise<Category[] | null> {
+  static async getSomeFromRedis(ids: string[]): Promise<Category[] | null> {
     if (ids.length === 0) {
       return [];
     }
     const id_set = new Set(ids);
-    const cached = await redis.hmget(CACHE_KEY, ...id_set);
+    const cached = await redis.hmget(REDIS_CACHE_KEY, ...id_set);
     const cached_str = cached.filter((item) => item !== null) as string[];
     if (cached_str.length === 0) {
       return null;
@@ -113,12 +121,29 @@ export class Category {
       return [];
     }
     const id_set = new Set(ids);
-    const cached = await this.getSomeFromCache(ids);
+    const cached = await Category.getSomeFromRedis(ids);
     if (cached && cached.length === id_set.size) {
       return cached;
     }
-    const categories = await this.getAll({ ignoreCache: true });
+    const categories = await Category.getAll({ ignoreCache: true });
     return categories.filter((c) => id_set.has(c.id));
+  }
+
+  static async getFromRedis(id: string): Promise<Category | null> {
+    const cached = await redis.hget(REDIS_CACHE_KEY, id);
+    if (!cached) {
+      return null;
+    }
+    return Category.fromJSON(JSON.parse(cached));
+  }
+
+  static async get(id: string): Promise<Category | null> {
+    const cached = await Category.getFromRedis(id);
+    if (cached) {
+      return cached;
+    }
+    const categories = await Category.getAll({ ignoreCache: true });
+    return categories.find((c) => c.id === id) ?? INVALID_CATEGORY;
   }
 
   toJSON() {
@@ -127,6 +152,7 @@ export class Category {
       name: this.name,
       parentId: this.parentId,
       order: this.order,
+      form: this.form ? this.form.toJSON() : null,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
       deletedAt: this.deletedAt,
@@ -143,6 +169,11 @@ export const INVALID_CATEGORY = new Category({
   deletedAt: new Date(0),
 });
 
+const localCache = new LocalCache(
+  LOCAL_CACHE_TTL,
+  async () => new Categories(await Category.getAll())
+);
+
 export type CategoryPathItem = Pick<Category, 'id' | 'name'>;
 
 export class Categories {
@@ -154,7 +185,7 @@ export class Categories {
   }
 
   static async create(): Promise<Categories> {
-    return new Categories(await Category.getAll());
+    return localCache.get();
   }
 
   get(id: string): Category {
@@ -183,5 +214,9 @@ export class Categories {
 
     this.categoryPathMap[id] = path;
     return path;
+  }
+
+  getAll(): Category[] {
+    return Object.values(this.categoryMap);
   }
 }
