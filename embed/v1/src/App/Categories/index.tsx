@@ -6,6 +6,7 @@ import { ChevronRightIcon } from '@heroicons/react/solid';
 import { Page } from 'components/Page';
 import { QueryWrapper } from 'components/QueryWrapper';
 import { http } from 'leancloud';
+import { Category } from 'types';
 
 interface CategoryItemProps {
   name: string;
@@ -25,19 +26,9 @@ function CategoryItem({ name, onClick, marker }: CategoryItemProps) {
     </div>
   );
 }
-export interface Category {
-  id: string;
-  name: string;
-  parent_id?: string;
-  position: number;
-}
 
 async function fetchCategories(): Promise<Category[]> {
-  const { data } = await http.get<Category[]>('/api/1/categories', {
-    params: {
-      active: true,
-    },
-  });
+  const { data } = await http.get<Category[]>('/api/2/categories?active=true');
   return data;
 }
 
@@ -91,7 +82,7 @@ export default function Categories() {
       if (category.id === id) {
         title = category.name;
       }
-      if (category.parent_id === id) {
+      if (category.parentId === id) {
         filteredCategories.push(category);
       }
     });
@@ -103,7 +94,7 @@ export default function Categories() {
     if (!categories) {
       return;
     }
-    const hasChildren = categories.findIndex((c) => c.parent_id === id) !== -1;
+    const hasChildren = categories.findIndex((c) => c.parentId === id) !== -1;
     if (hasChildren) {
       history.push(`/categories/${id}`);
     } else {

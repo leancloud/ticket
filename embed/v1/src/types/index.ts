@@ -1,3 +1,10 @@
+export interface Category {
+  id: string;
+  name: string;
+  parentId?: string;
+  position: number;
+}
+
 export interface File {
   id: string;
   name: string;
