@@ -2,6 +2,7 @@ import AV from 'leancloud-storage';
 
 import { LocalCache, redis } from '../../cache';
 import { array2map } from '../../utils/convert';
+import { TicketForm } from '../form';
 
 const REDIS_CACHE_KEY = 'categories';
 const REDIS_CACHE_TTL = 60 * 5; // 5 min
@@ -12,6 +13,7 @@ export interface CategoryData {
   name: string;
   parentId?: string;
   order?: number;
+  form?: TicketForm;
   createdAt: Date;
   updatedAt: Date;
   deletedAt?: Date;
@@ -22,6 +24,7 @@ export class Category {
   name: string;
   parentId?: string;
   order: number;
+  form?: TicketForm;
   createdAt: Date;
   updatedAt: Date;
   deletedAt?: Date;
@@ -31,6 +34,7 @@ export class Category {
     this.name = data.name;
     this.parentId = data.parentId;
     this.order = data.order ?? data.createdAt.getTime();
+    this.form = data.form;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
     this.deletedAt = data.deletedAt;
@@ -42,6 +46,7 @@ export class Category {
       name: data.name,
       parentId: data.parentId,
       order: data.order,
+      form: data.form ? TicketForm.fromJSON(data.form) : undefined,
       createdAt: new Date(data.createdAt),
       updatedAt: new Date(data.updatedAt),
       deletedAt: data.deletedAt ? new Date(data.deletedAt) : undefined,
@@ -50,13 +55,15 @@ export class Category {
 
   static async getAllFromStorage(): Promise<Category[]> {
     const query = new AV.Query<AV.Object>('Category');
-    const objects = await query.find();
+    query.include('form');
+    const objects = await query.find({ useMasterKey: true });
     return objects.map((obj) => {
       return new Category({
         id: obj.id!,
         name: obj.get('name'),
         parentId: obj.get('parent')?.id ?? undefined,
         order: obj.get('order') ?? undefined,
+        form: obj.has('form') ? TicketForm.fromAVObject(obj.get('form')) : undefined,
         createdAt: obj.createdAt!,
         updatedAt: obj.updatedAt!,
         deletedAt: obj.get('deletedAt') ?? undefined,
@@ -145,6 +152,7 @@ export class Category {
       name: this.name,
       parentId: this.parentId,
       order: this.order,
+      form: this.form ? this.form.toJSON() : null,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
       deletedAt: this.deletedAt,
@@ -161,7 +169,10 @@ export const INVALID_CATEGORY = new Category({
   deletedAt: new Date(0),
 });
 
-const localCache = new LocalCache(LOCAL_CACHE_TTL, Category.getAll);
+const localCache = new LocalCache(
+  LOCAL_CACHE_TTL,
+  async () => new Categories(await Category.getAll())
+);
 
 export type CategoryPathItem = Pick<Category, 'id' | 'name'>;
 
@@ -174,7 +185,7 @@ export class Categories {
   }
 
   static async create(): Promise<Categories> {
-    return new Categories(await localCache.get());
+    return localCache.get();
   }
 
   get(id: string): Category {
@@ -203,5 +214,9 @@ export class Categories {
 
     this.categoryPathMap[id] = path;
     return path;
+  }
+
+  getAll(): Category[] {
+    return Object.values(this.categoryMap);
   }
 }
