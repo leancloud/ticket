@@ -60,6 +60,7 @@ export interface TicketFieldOption {
 
 export interface TicketFieldVariantData {
   id: string;
+  fieldId: string;
   locale: string;
   title: string;
   type: string;
@@ -69,6 +70,7 @@ export interface TicketFieldVariantData {
 
 export class TicketFieldVariant {
   id: string;
+  fieldId: string;
   locale: string;
   title: string;
   type: string;
@@ -77,6 +79,7 @@ export class TicketFieldVariant {
 
   constructor(data: TicketFieldVariantData) {
     this.id = data.id;
+    this.fieldId = data.fieldId;
     this.locale = data.locale;
     this.title = data.title;
     this.type = data.type;
@@ -161,6 +164,7 @@ export class TicketForm {
       const field = field_map[fieldId];
       const variant = new TicketFieldVariant({
         id: obj.id!,
+        fieldId: field.id,
         locale: obj.get('locale'),
         title: obj.get('title'),
         type: field.type,

@@ -55,11 +55,20 @@ function getPreferedLocale(ctx: Context): string {
 router.get('/:id/fields', async (ctx) => {
   const locale = getPreferedLocale(ctx);
   const category = ctx.state.category as Category;
-  if (category.form) {
-    ctx.body = await category.form.getFieldVariants(locale);
-  } else {
+
+  if (!category.form) {
     ctx.body = [];
+    return;
   }
+
+  const fields = await category.form.getFieldVariants(locale);
+  ctx.body = fields.map((f) => ({
+    id: f.fieldId,
+    title: f.title,
+    type: f.type,
+    required: f.required,
+    options: f.options,
+  }));
 });
 
 export default router;

@@ -101,7 +101,7 @@ function TicketForm({ categoryId, onCommit }: TicketFormProps) {
       title: title as string,
       content: content as string,
       file_ids: files.map((file) => file.id!),
-      form_values: Object.entries(fieldValues).map(([field, value]) => ({ field, value })),
+      form_values: Object.entries(fieldValues).map(([id, value]) => ({ field: id, value })),
     };
     try {
       setIsCommitting(true);
