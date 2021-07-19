@@ -13,6 +13,7 @@ const fieldIconMap = {
   dropdown: Icon.ChevronDown,
   'multi-select': Icon.ListCheck, // th-list
   radios: Icon.UiRadiosGrid,
+  file: Icon.FileText,
 }
 export const CustomFieldLabel = memo(({ type }) => {
   const { t } = useTranslation()

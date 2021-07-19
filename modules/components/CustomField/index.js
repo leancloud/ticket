@@ -1,14 +1,24 @@
-import React, { memo, useMemo } from 'react'
+import React, { memo, useCallback, useMemo, useState } from 'react'
 import PropTypes from 'prop-types'
-import { Form } from 'react-bootstrap'
+import { Form, Button, InputGroup } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import _ from 'lodash'
+import { storage } from 'lib/leancloud'
 import Select, { MultiSelect } from 'modules/components/Select'
 import { RadioGroup, NativeRadio } from 'modules/components/Radio'
 import styles from './index.module.scss'
 
 export const includeOptionsType = ['dropdown', 'multi-select', 'radios']
-export const fieldType = ['text', 'multi-line', 'checkbox', 'dropdown', 'multi-select', 'radios']
+export const fieldType = [
+  'text',
+  'multi-line',
+  'checkbox',
+  'dropdown',
+  'multi-select',
+  'radios',
+  'file',
+]
+
 const Text = memo(
   ({
     id = _.uniqueId('Text'),
@@ -42,6 +52,7 @@ const Text = memo(
     )
   }
 )
+
 const MultiLine = memo(
   ({
     id = _.uniqueId('MultiLine'),
@@ -77,6 +88,7 @@ const MultiLine = memo(
     )
   }
 )
+
 const Checkbox = memo(
   ({ id = _.uniqueId('Checkbox'), label, disabled, onChange, value, readOnly, className }) => {
     return (
@@ -235,6 +247,69 @@ const Radios = memo(
   }
 )
 
+const FileInput = memo(
+  ({
+    id = _.uniqueId('FileInput'),
+    label,
+    value,
+    onChange,
+    disabled,
+    readOnly,
+    required,
+    className,
+    size,
+  }) => {
+    const { t } = useTranslation()
+    const [path, setPath] = useState(value || '')
+    const banned = disabled || readOnly
+    const uploadFile = useCallback(
+      (file) => {
+        if (!onChange) {
+          return
+        }
+        setPath(file)
+        storage
+          .upload(file.name, file)
+          .then(({ url }) => {
+            onChange(url)
+            return
+          })
+          .catch((err) => {
+            // todo err 如何处理比较好？
+            console.log(err)
+            setPath(undefined)
+          })
+      },
+      [onChange]
+    )
+    console.log(path)
+    return (
+      <Form.Group className={className}>
+        {label && <Form.Label htmlFor={id}>{label}</Form.Label>}
+        <input
+          hidden
+          type="file"
+          id={id}
+          disabled={banned}
+          onChange={(e) => {
+            if (e.target && e.target.files) {
+              uploadFile(e.target.files[0])
+            }
+          }}
+        />
+        <InputGroup size={size}>
+          <Form.Control type="text" required={required} value={path} readOnly disabled={disabled} />
+          <InputGroup.Append>
+            <Button as={banned ? undefined : Form.Label} htmlFor={id} disabled={banned}>
+              {t('upload')}
+            </Button>
+          </InputGroup.Append>
+        </InputGroup>
+      </Form.Group>
+    )
+  }
+)
+
 function CustomField({ type, options, required, ...rest }) {
   switch (type) {
     case 'text':
@@ -249,6 +324,8 @@ function CustomField({ type, options, required, ...rest }) {
       return <MultiSelectField required={required} {...rest} options={options} />
     case 'radios':
       return <Radios {...rest} required={required} options={options} />
+    case 'file':
+      return <FileInput {...rest} required={required} />
     default:
       return null
   }
@@ -278,6 +355,7 @@ function CustomFieldDisplay({ type, value, label, className, options }) {
     </Form.Group>
   )
   switch (type) {
+    case 'file':
     case 'text':
     case 'multi-line':
       if (value === undefined) {

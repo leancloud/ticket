@@ -6,7 +6,7 @@ const { responseAppendCount } = require('./utils')
 
 const router = Router().use(requireAuth, customerServiceOnly)
 
-const TYPES = ['dropdown', 'text', 'multi-line', 'multi-select', 'checkbox', 'radios']
+const TYPES = ['dropdown', 'text', 'multi-line', 'multi-select', 'checkbox', 'radios', 'file']
 const LOCALES = [
   'zh-cn',
   'zh-tw',
