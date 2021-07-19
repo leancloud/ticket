@@ -251,7 +251,7 @@ function ReplyInput({ onCommit }: ReplyInputProps) {
       >
         <div className="flex">
           <Input
-            className="rounded-full flex-grow mr-4"
+            className="rounded-full placeholder-gray-300 flex-grow mr-4"
             placeholder={t('reply.input_content_hint')}
             value={content}
             onChange={(e) => handleChangeContent(e.target.value)}
@@ -271,7 +271,7 @@ function ReplyInput({ onCommit }: ReplyInputProps) {
                 <div className="p-2 flex items-center">
                   <textarea
                     ref={$textarea}
-                    className="w-full"
+                    className="w-full placeholder-gray-300"
                     autoFocus
                     placeholder={t('reply.input_content_hint')}
                     value={content}
