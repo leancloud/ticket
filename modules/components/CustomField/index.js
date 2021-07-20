@@ -7,6 +7,7 @@ import _ from 'lodash'
 import { storage, http } from 'lib/leancloud'
 import Select, { MultiSelect } from 'modules/components/Select'
 import { RadioGroup, NativeRadio } from 'modules/components/Radio'
+import { useAppContext } from 'modules/context'
 import styles from './index.module.scss'
 import { useQuery } from 'react-query'
 
@@ -272,6 +273,7 @@ const FileInput = memo(
     size,
   }) => {
     const { t } = useTranslation()
+    const { addNotification } = useAppContext()
     const banned = disabled || readOnly
     const [uploadProgress, setUploadProgress] = useState()
     const uploadFile = useCallback(
@@ -297,9 +299,7 @@ const FileInput = memo(
             .upload(file.name, file, {
               onProgress: ({ percent }) => updateProgress(percent, file),
             })
-            .catch((error) => {
-              console.log(error)
-            })
+            .catch(addNotification)
         )
         try {
           const fileIds = await Promise.all(
@@ -307,11 +307,11 @@ const FileInput = memo(
           ).then((objects) => objects.map((obj) => obj.id))
           onChange(fileIds)
         } catch (error) {
-          console.log(error)
+          addNotification(error)
         }
         setUploadProgress(undefined)
       },
-      [onChange]
+      [onChange, addNotification]
     )
     const isEmpty = Array.isArray(value) && value.length === 0
     return (
@@ -382,15 +382,14 @@ CustomField.propTypes = {
 }
 export default CustomField
 function FileLink({ id }) {
+  const { addNotification } = useAppContext()
   const {
     data: { url },
   } = useQuery({
     queryKey: ['FileLink', id],
     queryFn: () => http.get(`/api/1/files/${id}`),
     initialData: { url: '' },
-    onError: (err) => {
-      console.log(err)
-    },
+    onError: addNotification,
   })
   return (
     <a href={url} target="_blank">
