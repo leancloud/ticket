@@ -2,3 +2,16 @@
   min-width: 50%;
   margin-right: 0 !important;
 }
+
+.fileList {
+  list-style-type: none;
+  margin-bottom: 0px;
+  padding-left: 0px;
+}
+
+.badge + .badge {
+  margin-left: 0.25rem;
+}
+.badge {
+  font-size: 90%;
+}
