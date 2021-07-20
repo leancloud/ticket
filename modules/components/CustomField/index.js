@@ -1,12 +1,14 @@
 import React, { memo, useCallback, useMemo, useState } from 'react'
 import PropTypes from 'prop-types'
-import { Form, Button, InputGroup } from 'react-bootstrap'
+import { Form, Button } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
+import throat from 'throat'
 import _ from 'lodash'
-import { storage } from 'lib/leancloud'
+import { storage, http } from 'lib/leancloud'
 import Select, { MultiSelect } from 'modules/components/Select'
 import { RadioGroup, NativeRadio } from 'modules/components/Radio'
 import styles from './index.module.scss'
+import { useQuery } from 'react-query'
 
 export const includeOptionsType = ['dropdown', 'multi-select', 'radios']
 export const fieldType = [
@@ -256,7 +258,7 @@ const Radios = memo(
     )
   }
 )
-
+const UPLOAD_CONCURRENCY = 3
 const FileInput = memo(
   ({
     id = _.uniqueId('FileInput'),
@@ -270,28 +272,48 @@ const FileInput = memo(
     size,
   }) => {
     const { t } = useTranslation()
-    const [path, setPath] = useState(value || '')
     const banned = disabled || readOnly
+    const [uploadProgress, setUploadProgress] = useState()
     const uploadFile = useCallback(
-      (file) => {
-        if (!onChange) {
+      async (fileList) => {
+        const files = Array.from(fileList)
+        if (!onChange || files.length === 0) {
           return
         }
-        setPath(file)
-        storage
-          .upload(file.name, file)
-          .then(({ url }) => {
-            onChange(url)
-            return
-          })
-          .catch((err) => {
-            // todo err 如何处理比较好？
-            console.log(err)
-            setPath(undefined)
-          })
+        setUploadProgress(0)
+        const fileDonePercent = new WeakMap()
+        const totalSize = files.reduce((prev, current) => prev + current.size, 0)
+        const updateProgress = (percent, file) => {
+          fileDonePercent.set(file, percent)
+          const totalDoneSize = files.reduce(
+            (prev, current) => prev + (fileDonePercent.get(current) || 0) * current.size,
+            0
+          )
+          const progress = Number((totalDoneSize / totalSize).toFixed(0))
+          setUploadProgress(progress)
+        }
+        const uploadTasks = files.map((file) => () =>
+          storage
+            .upload(file.name, file, {
+              onProgress: ({ percent }) => updateProgress(percent, file),
+            })
+            .catch((error) => {
+              console.log(error)
+            })
+        )
+        try {
+          const fileIds = await Promise.all(
+            uploadTasks.map(throat(UPLOAD_CONCURRENCY, (task) => task()))
+          ).then((objects) => objects.map((obj) => obj.id))
+          onChange(fileIds)
+        } catch (error) {
+          console.log(error)
+        }
+        setUploadProgress(undefined)
       },
       [onChange]
     )
+    const isEmpty = Array.isArray(value) && value.length === 0
     return (
       <Form.Group className={className}>
         {label && <Form.Label htmlFor={id}>{label}</Form.Label>}
@@ -300,20 +322,25 @@ const FileInput = memo(
           type="file"
           id={id}
           disabled={banned}
+          required={required && isEmpty}
+          multiple
           onChange={(e) => {
             if (e.target && e.target.files) {
-              uploadFile(e.target.files[0])
+              uploadFile(e.target.files)
             }
           }}
         />
-        <InputGroup size={size}>
-          <Form.Control type="text" required={required} value={path} readOnly disabled={disabled} />
-          <InputGroup.Append>
-            <Button as={banned ? undefined : Form.Label} htmlFor={id} disabled={banned}>
-              {t('upload')}
-            </Button>
-          </InputGroup.Append>
-        </InputGroup>
+        <div>
+          <Button
+            as={banned ? undefined : Form.Label}
+            htmlFor={id}
+            disabled={banned}
+            size={size}
+            variant="secondary"
+          >
+            {uploadProgress === undefined ? t('upload') : `${t('uploading')} (${uploadProgress}%)`}
+          </Button>
+        </div>
       </Form.Group>
     )
   }
@@ -354,7 +381,26 @@ CustomField.propTypes = {
   size: PropTypes.string,
 }
 export default CustomField
-
+function FileLink({ id }) {
+  const {
+    data: { url },
+  } = useQuery({
+    queryKey: ['FileLink', id],
+    queryFn: () => http.get(`/api/1/files/${id}`),
+    initialData: { url: '' },
+    onError: (err) => {
+      console.log(err)
+    },
+  })
+  return (
+    <a href={url} target="_blank">
+      {id}
+    </a>
+  )
+}
+FileLink.propTypes = {
+  id: PropTypes.string.isRequired,
+}
 function CustomFieldDisplay({ type, value, label, className, options }) {
   const { t } = useTranslation()
   const NoneNode = (
@@ -365,6 +411,23 @@ function CustomFieldDisplay({ type, value, label, className, options }) {
   )
   switch (type) {
     case 'file':
+      if (value === undefined || !Array.isArray(value) || value.length === 0) {
+        return NoneNode
+      }
+      return (
+        <Form.Group className={className}>
+          <Form.Label>{label}</Form.Label>
+          <ul>
+            {value.map((id) => {
+              return (
+                <li key={id}>
+                  <FileLink id={id} />
+                </li>
+              )
+            })}
+          </ul>
+        </Form.Group>
+      )
     case 'text':
     case 'multi-line':
       if (value === undefined) {

@@ -119,6 +119,7 @@
     "confirmDisableCategory": "Confirm disabling this category: ",
     "optional": " (optional)",
     "upload": "Upload",
+    "uploading": "Uploading", 
     "none": "None",
     "parentCategory": "Parent category",
     "parentCategoryRequirements": "You cannot assign this category itself or its subcategories as parent category.",

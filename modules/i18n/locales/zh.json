@@ -119,6 +119,7 @@
     "confirmDisableCategory": "确认要停用分类：",
     "optional": "（可选）",
     "upload": "上传",
+    "uploading": "上传中",
     "none": "无",
     "parentCategory": "父分类",
     "parentCategoryRequirements": "父分类不能是分类自己或自己的子分类。",
