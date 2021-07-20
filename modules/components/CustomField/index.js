@@ -90,7 +90,16 @@ const MultiLine = memo(
 )
 
 const Checkbox = memo(
-  ({ id = _.uniqueId('Checkbox'), label, disabled, onChange, value, readOnly, className }) => {
+  ({
+    id = _.uniqueId('Checkbox'),
+    label,
+    disabled,
+    required,
+    onChange,
+    value,
+    readOnly,
+    className,
+  }) => {
     return (
       <Form.Group className={className}>
         <Form.Check type="checkbox">
@@ -99,6 +108,7 @@ const Checkbox = memo(
             disabled={disabled}
             checked={value || false}
             readOnly={readOnly}
+            required={required}
             onChange={(e) => {
               if (onChange) {
                 const { checked } = e.target
@@ -282,7 +292,6 @@ const FileInput = memo(
       },
       [onChange]
     )
-    console.log(path)
     return (
       <Form.Group className={className}>
         {label && <Form.Label htmlFor={id}>{label}</Form.Label>}
@@ -310,22 +319,22 @@ const FileInput = memo(
   }
 )
 
-function CustomField({ type, options, required, ...rest }) {
+function CustomField({ type, options, ...rest }) {
   switch (type) {
     case 'text':
-      return <Text required={required} {...rest} />
+      return <Text {...rest} />
     case 'multi-line':
-      return <MultiLine required={required} {...rest} />
+      return <MultiLine {...rest} />
     case 'checkbox':
       return <Checkbox {...rest} />
     case 'dropdown':
-      return <Dropdown {...rest} required={required} options={options} />
+      return <Dropdown {...rest} options={options} />
     case 'multi-select':
-      return <MultiSelectField required={required} {...rest} options={options} />
+      return <MultiSelectField {...rest} options={options} />
     case 'radios':
-      return <Radios {...rest} required={required} options={options} />
+      return <Radios {...rest} options={options} />
     case 'file':
-      return <FileInput {...rest} required={required} />
+      return <FileInput {...rest} />
     default:
       return null
   }
