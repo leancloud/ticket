@@ -3,14 +3,12 @@ import classNames from 'classnames';
 import { ErrorMessage } from '../ErrorMessage';
 
 export interface InputProps {
-  value?: string;
-  onChange: (value: string) => void;
-  required?: boolean;
+  onChange: (value?: string) => void;
   placeholder?: string;
   error?: string;
 }
 
-export function Input({ value, onChange, placeholder, error }: InputProps) {
+export function Input({ onChange, placeholder, error }: InputProps) {
   return (
     <div>
       <input
@@ -19,8 +17,7 @@ export function Input({ value, onChange, placeholder, error }: InputProps) {
           'focus:border-tapBlue-600 focus:ring-1 focus:ring-tapBlue-600': !error,
           'border-red-500': error,
         })}
-        value={value || ''}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => onChange(e.target.value || undefined)}
         placeholder={placeholder}
       />
       <ErrorMessage className="mt-1">{error}</ErrorMessage>

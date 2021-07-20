@@ -15,9 +15,9 @@ import styles from './index.module.css';
 import { Replies, useReplies } from './Replies';
 import { Evaluated, NewEvaluation } from './Evaluation';
 import { http } from 'leancloud';
-import { useUpload } from '../New/useUpload';
 import { Reply, Ticket } from 'types';
 import { usePreview } from 'utils/usePreview';
+import { useUpload } from 'utils/useUpload';
 
 async function fetchTicket(id: string): Promise<Ticket> {
   const { data } = await http.get('/api/1/tickets/' + id);
@@ -251,7 +251,7 @@ function ReplyInput({ onCommit }: ReplyInputProps) {
       >
         <div className="flex">
           <Input
-            className="rounded-full flex-grow mr-4"
+            className="rounded-full placeholder-gray-300 flex-grow mr-4"
             placeholder={t('reply.input_content_hint')}
             value={content}
             onChange={(e) => handleChangeContent(e.target.value)}
@@ -271,7 +271,7 @@ function ReplyInput({ onCommit }: ReplyInputProps) {
                 <div className="p-2 flex items-center">
                   <textarea
                     ref={$textarea}
-                    className="w-full"
+                    className="w-full placeholder-gray-300"
                     autoFocus
                     placeholder={t('reply.input_content_hint')}
                     value={content}

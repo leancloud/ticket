@@ -3,10 +3,11 @@ import { Link, useHistory } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 import { auth, db } from 'leancloud';
+import { Category } from 'types';
 import { Page } from 'components/Page';
 import { QueryWrapper } from 'components/QueryWrapper';
 import { useIsMounted } from 'utils/useIsMounted';
-import { Category, CategoryList, useCategories } from '../Categories';
+import { CategoryList, useCategories } from '../Categories';
 
 interface TicketsLinkProps {
   badge?: boolean;
@@ -46,7 +47,7 @@ export default function Home() {
     if (!categories) {
       return [];
     }
-    return categories.filter((c) => !c.parent_id).sort((a, b) => a.position - b.position);
+    return categories.filter((c) => !c.parentId).sort((a, b) => a.position - b.position);
   }, [categories]);
   const hasUnreadTickets = useHasUnreadTickets();
 
@@ -54,7 +55,7 @@ export default function Home() {
     if (!categories) {
       return;
     }
-    const hasChildren = categories.findIndex((c) => c.parent_id === id) !== -1;
+    const hasChildren = categories.findIndex((c) => c.parentId === id) !== -1;
     if (hasChildren) {
       history.push(`/categories/${id}`);
     } else {

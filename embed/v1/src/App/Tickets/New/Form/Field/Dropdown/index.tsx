@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 
 import { ErrorMessage } from '../ErrorMessage';
+import { ChangeEventHandler, useCallback, useState } from 'react';
 
 export interface DropdownOption {
   title: string;
@@ -11,13 +12,22 @@ export interface DropdownOption {
 
 export interface DropdownProps {
   options: DropdownOption[];
-  value?: string;
   onChange: (value: string) => void;
   error?: string;
 }
 
-export function Dropdown({ options, value = '', onChange, error }: DropdownProps) {
+export function Dropdown({ options, onChange, error }: DropdownProps) {
   const { t } = useTranslation();
+  const [value, setValue] = useState('');
+
+  const handleChange = useCallback<ChangeEventHandler<HTMLSelectElement>>(
+    (e) => {
+      const value = e.target.value;
+      setValue(value);
+      onChange(value);
+    },
+    [onChange]
+  );
 
   return (
     <div>
@@ -29,7 +39,7 @@ export function Dropdown({ options, value = '', onChange, error }: DropdownProps
             'border-red-500': error,
           })}
           value={value}
-          onChange={(e) => onChange?.(e.target.value)}
+          onChange={handleChange}
         >
           <option value="" hidden>
             {t('general.select_hint')}

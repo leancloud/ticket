@@ -3,7 +3,7 @@ import { useCallback, useRef, useState } from 'react';
 import { storage } from 'leancloud';
 import { FileInfo } from 'components/Uploader';
 
-interface FileInfoWithId extends FileInfo {
+interface FileInfoWithId extends FileInfo<number> {
   id?: string;
 }
 
@@ -26,7 +26,7 @@ export function useUpload({ onError }: UseUploadOptions = {}): UseUploadResult {
 
   const upload = useCallback((file: File) => {
     const key = $nextKey.current++;
-    const fileInfo: FileInfo = {
+    const fileInfo: FileInfo<number> = {
       key,
       name: file.name,
       progress: 0,

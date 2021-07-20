@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, Redirect } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { CheckCircleIcon } from '@heroicons/react/solid';
-import { useMutation } from 'react-query';
+import { useMutation, useQuery } from 'react-query';
+import i18next from 'i18next';
 
+import { Field } from 'types';
 import { useSearchParams } from 'utils/url';
-import { useAlert } from 'utils/useAlert';
+import { useUpload } from 'utils/useUpload';
 import { Page } from 'components/Page';
 import { Button } from 'components/Button';
 import { Uploader } from 'components/Uploader';
@@ -13,19 +15,21 @@ import { QueryWrapper } from 'components/QueryWrapper';
 import { SpaceChinese } from 'components/SpaceChinese';
 import { useCategory } from '../../Categories';
 import { FieldTemplate, FormGroup, useForm } from './Form';
-import { useUpload } from './useUpload';
 import { http } from 'leancloud';
 
-const PRESET_FORM_FIELDS: FieldTemplate[] = [
+const PRESET_FORM_FIELDS_HEAD: FieldTemplate[] = [
   {
     name: 'title',
-    title: '标题',
+    title: i18next.t('general.title'),
     type: 'text',
     required: true,
   },
+];
+
+const PRESET_FORM_FIELDS_FOOT: FieldTemplate[] = [
   {
     name: 'content',
-    title: '描述',
+    title: i18next.t('general.description'),
     type: 'multi-line',
     rows: 4,
     maxLength: 100,
@@ -33,7 +37,18 @@ const PRESET_FORM_FIELDS: FieldTemplate[] = [
   },
 ];
 
-const MAX_FILE_SIZE = 1024 * 1024 * 1024; // 1 GB
+async function fetchCategoryFields(categoryId: string): Promise<FieldTemplate[]> {
+  const { data } = await http.get<Field[]>(`/api/2/categories/${categoryId}/fields`);
+  return data.map((field) => ({ ...field, name: field.id }));
+}
+
+function useCategoryFields(categoryId: string) {
+  return useQuery({
+    queryKey: ['fields', { categoryId }],
+    queryFn: () => fetchCategoryFields(categoryId),
+    staleTime: 1000 * 60 * 5,
+  });
+}
 
 interface NewTicketData {
   category_id: string;
@@ -49,35 +64,26 @@ interface TicketFormProps {
 
 function TicketForm({ categoryId, onCommit }: TicketFormProps) {
   const { t } = useTranslation();
-  const { element: formElement, validate, data: formData } = useForm(PRESET_FORM_FIELDS);
-  const { element: alertElement, alert } = useAlert();
   const { files, upload, remove, isUploading } = useUpload();
   const [isCommitting, setIsCommitting] = useState(false);
 
-  const handleUpload = (files: FileList) => {
-    if (!files.length) {
-      return;
-    }
-    const file = files[0];
-    if (file.size > MAX_FILE_SIZE) {
-      alert({
-        title: t('validation.attachment_too_big'),
-        content: t('validation.attachment_too_big_text', { size: 1, unit: 'GB' }),
-      });
-      return;
-    }
-    upload(file);
-  };
+  const { data: fields, isLoading: isLoadingFields } = useCategoryFields(categoryId);
+  const formFields = useMemo(() => {
+    return [...PRESET_FORM_FIELDS_HEAD, ...(fields ?? []), ...PRESET_FORM_FIELDS_FOOT];
+  }, [fields]);
+  const { element: formElement, validate, data: formData } = useForm(formFields);
 
   const handleCommit = async () => {
     if (!validate()) {
       return;
     }
+    const { title, content, ...fieldValues } = formData;
     const data = {
       category_id: categoryId,
-      title: formData.title as string,
-      content: formData.content as string,
+      title: title as string,
+      content: content as string,
       file_ids: files.map((file) => file.id!),
+      form_values: Object.entries(fieldValues).map(([id, value]) => ({ field: id, value })),
     };
     try {
       setIsCommitting(true);
@@ -89,18 +95,17 @@ function TicketForm({ categoryId, onCommit }: TicketFormProps) {
 
   return (
     <div className="p-4 sm:px-8 sm:py-6">
-      {alertElement}
       {formElement}
       <FormGroup controlId="ticket_file" title={t('general.attachment')}>
         <Uploader
           files={files}
-          onUpload={handleUpload}
-          onDelete={({ key }) => remove(key as number)}
+          onUpload={(files) => upload(files[0])}
+          onDelete={({ key }) => remove(key)}
         />
       </FormGroup>
       <Button
         className="sm:ml-20 w-full sm:max-w-max sm:px-11"
-        disabled={isCommitting || isUploading}
+        disabled={isLoadingFields || isCommitting || isUploading}
         onClick={handleCommit}
       >
         <SpaceChinese>{t('general.commit')}</SpaceChinese>

@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 
 import { Checkbox } from 'components/Form';
 import { ErrorMessage } from '../ErrorMessage';
@@ -9,24 +9,26 @@ export interface Option {
 }
 
 export interface CheckboxGroupProps {
-  value: string[];
-  onChange: (value: string[]) => void;
+  onChange: (value?: string[]) => void;
   options: Option[];
   error?: string;
 }
 
-export function CheckboxGroup({ options, value = [], onChange, error }: CheckboxGroupProps) {
+export function CheckboxGroup({ options, onChange, error }: CheckboxGroupProps) {
+  const [values, setValues] = useState(new Set<string>());
+
   const handleChange = useCallback(
     (newValue: string, add: boolean) => {
-      const value_set = new Set(value);
+      const nextValues = new Set(values);
       if (add) {
-        value_set.add(newValue);
+        nextValues.add(newValue);
       } else {
-        value_set.delete(newValue);
+        nextValues.delete(newValue);
       }
-      onChange(Array.from(value_set));
+      onChange(nextValues.size ? Array.from(nextValues) : undefined);
+      setValues(nextValues);
     },
-    [value, onChange]
+    [values, onChange]
   );
 
   return (
@@ -36,7 +38,7 @@ export function CheckboxGroup({ options, value = [], onChange, error }: Checkbox
           <div key={option.value} className="flex items-center mb-3 break-all">
             <Checkbox
               fluid
-              checked={value.includes(option.value)}
+              checked={values.has(option.value)}
               onChange={(checked) => handleChange(option.value, checked)}
             >
               {option.title}
