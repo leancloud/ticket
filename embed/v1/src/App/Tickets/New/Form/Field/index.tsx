@@ -23,6 +23,14 @@ const COMPONENTS: Record<FieldProps['type'], (...args: any[]) => JSX.Element> = 
   'multi-line': Textarea,
 };
 
+function Unknown({ type }: { type: string }) {
+  return <div className="text-red-500">Unsupported component: {type}</div>;
+}
+
 export function Field({ type, ...props }: FieldProps) {
-  return createElement(COMPONENTS[type], { ...props });
+  const Component = COMPONENTS[type];
+  if (!Component) {
+    return <Unknown type={type} />;
+  }
+  return createElement(Component, { ...props });
 }
