@@ -417,7 +417,7 @@ function CustomFieldDisplay({ type, value, label, className, options }) {
       return (
         <Form.Group className={className}>
           <Form.Label>{label}</Form.Label>
-          <ul>
+          <ul className={styles.fileList}>
             {value.map((id) => {
               return (
                 <li key={id}>
