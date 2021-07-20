@@ -51,7 +51,7 @@ export default function Home() {
       return [];
     }
     return categories
-      .filter((c) => (rootCategory ? c.parent_id === rootCategory : !c.parent_id))
+      .filter((c) => (rootCategory ? c.parentId === rootCategory : !c.parentId))
       .sort((a, b) => a.position - b.position);
   }, [categories]);
   const hasUnreadTickets = useHasUnreadTickets();
