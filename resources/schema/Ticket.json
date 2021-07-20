@@ -3,9 +3,6 @@
     "category": {
       "type": "Object"
     },
-    "categoryPath": {
-      "type": "Array"
-    },
     "privateTags": {
       "type": "Array",
       "v": 2,
