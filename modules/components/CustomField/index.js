@@ -451,8 +451,8 @@ function CustomFieldDisplay({ type, value, label, className, options }) {
         <Form.Group className={className}>
           <Form.Label>{label}</Form.Label>
           <p>
-            {selectedOptions.map(([, text]) => (
-              <Badge pill className={styles.badge} variant="info">
+            {selectedOptions.map(([, text], index) => (
+              <Badge pill className={styles.badge} variant="info" key={index}>
                 {text}
               </Badge>
             ))}
