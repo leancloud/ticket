@@ -1,5 +1,5 @@
 /* global ALGOLIA_API_KEY, ENABLE_LEANCLOUD_INTEGRATION */
-import React, { memo, useEffect, useMemo, useState, useCallback } from 'react'
+import React, { memo, useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import PropTypes from 'prop-types'
 import { Button, Form, Tooltip, OverlayTrigger } from 'react-bootstrap'
 import * as Icon from 'react-bootstrap-icons'
@@ -260,6 +260,7 @@ const useCustomForm = (formId) => {
 const NewTicket = memo((props) => {
   const { t } = useTranslation()
   const history = useHistory()
+  const fileInput = useRef()
   const { organizations, selectedOrgId, handleOrgChange } = props
   const { addNotification } = useAppContext()
   const [urlAppId] = useURLSearchParam('appId')
@@ -270,7 +271,6 @@ const NewTicket = memo((props) => {
   const [appId, setAppId] = useState(urlAppId)
   const [content, contentNode] = useContent(category)
   const [loggedIn, setLoggedIn] = useState(false)
-  const [files, setFiles] = useState([])
   const [formValues, FormNode] = useCustomForm(category ? category.form_id : undefined)
   const [submitting, setSubmitting] = useState(false)
 
@@ -304,11 +304,15 @@ const NewTicket = memo((props) => {
   const submit = async () => {
     try {
       setSubmitting(true)
-      const uploadedFiles = await uploadFiles(files)
+      let fileIds = []
+      if (fileInput.current && fileInput.current.files.length > 0) {
+        const files = Array.from(fileInput.current.files)
+        fileIds = await uploadFiles(files).then((data) => data.map((file) => file.id))
+      }
       const ticket = await http.post('/api/1/tickets', {
         title,
         content,
-        file_ids: uploadedFiles.map((file) => file.id),
+        file_ids: fileIds,
         category_id: category.id,
         organization_id: selectedOrgId,
         form_values: _.isEmpty(formValues)
@@ -381,15 +385,7 @@ const NewTicket = memo((props) => {
         {FormNode}
         {contentNode}
         <Form.Group>
-          <Form.File
-            id="ticketFile"
-            multiple
-            value={files}
-            onChange={(e) => {
-              const { files } = e.target
-              setFiles(Array.from(files))
-            }}
-          />
+          <Form.File id="ticketFile" multiple ref={fileInput} />
         </Form.Group>
         <Button type="submit" variant="success" disabled={submitting}>
           {t('submit')}
