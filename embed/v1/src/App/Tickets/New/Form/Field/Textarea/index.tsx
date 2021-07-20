@@ -1,31 +1,25 @@
-import { ChangeEventHandler, useCallback } from 'react';
+import { ChangeEventHandler, useCallback, useState } from 'react';
+
 import { ErrorMessage } from '../ErrorMessage';
 
 export interface TextareaProps {
-  value?: string;
-  onChange: (value: string) => void;
+  onChange: (value?: string) => void;
   placeholder?: string;
   rows?: number;
   maxLength?: number;
   error?: string;
 }
 
-export function Textarea({
-  value = '',
-  onChange,
-  placeholder,
-  rows = 3,
-  maxLength,
-  error,
-}: TextareaProps) {
+export function Textarea({ onChange, placeholder, rows = 3, maxLength, error }: TextareaProps) {
+  const [value, setValue] = useState('');
   const handleChange = useCallback<ChangeEventHandler<HTMLTextAreaElement>>(
     (e) => {
-      const value = e.target.value;
-      if (maxLength !== undefined && value.length > maxLength) {
-        onChange(value.slice(0, maxLength));
-      } else {
-        onChange(value);
+      let nextValue = e.target.value;
+      if (maxLength !== undefined && nextValue.length > maxLength) {
+        nextValue = nextValue.slice(0, maxLength);
       }
+      onChange(nextValue || undefined);
+      setValue(nextValue);
     },
     [onChange, maxLength]
   );

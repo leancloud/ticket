@@ -5,6 +5,7 @@ import { Dropdown, DropdownProps } from './Dropdown';
 import { CheckboxGroup, CheckboxGroupProps } from './CheckboxGroup';
 import { RadioGroup, RadioGroupProps } from './RadioGroup';
 import { Textarea, TextareaProps } from './Textarea';
+import { Uploader, UploaderProps } from './Uploader';
 
 type AddType<P extends {}, T extends string> = P & { type: T };
 
@@ -13,7 +14,8 @@ export type FieldProps =
   | AddType<DropdownProps, 'dropdown'>
   | AddType<RadioGroupProps, 'radios'>
   | AddType<CheckboxGroupProps, 'multi-select'>
-  | AddType<TextareaProps, 'multi-line'>;
+  | AddType<TextareaProps, 'multi-line'>
+  | AddType<UploaderProps, 'file'>;
 
 const COMPONENTS: Record<FieldProps['type'], (...args: any[]) => JSX.Element> = {
   text: Input,
@@ -21,6 +23,7 @@ const COMPONENTS: Record<FieldProps['type'], (...args: any[]) => JSX.Element> = 
   radios: RadioGroup,
   'multi-select': CheckboxGroup,
   'multi-line': Textarea,
+  file: Uploader,
 };
 
 function Unknown({ type }: { type: string }) {
