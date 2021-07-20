@@ -30,3 +30,9 @@
 4. 手动恢复数据。如果原来启用了企业微信通知，直接删掉 `wechatToken`
 5. 如果原来启用了百度翻译，新建一列 key = `translate.baidu`，value 为 `{ "appId", "appKey" }`，如果部署新版后没有问题，删除原来的 `translate.baidu.*` 行。
 6. 部署新版本
+
+## 2021-07-20
+
+### `a86cd6d4231663d345a6f37d57d5fdacb0634562`
+
+创建一个名为 `CACHE` 的 Redis 实例。
