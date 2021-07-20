@@ -33,7 +33,6 @@ function useHasUnreadTickets() {
       .select('objectId')
       .where('unreadCount', '>', 0)
       .where('author', '==', auth.currentUser)
-      .where('categoryPath', '==', rootCategory)
       .first()
       .then((ticket) => ticket && isMounted() && setHasUnreadTickets(true))
       .catch(console.error);

@@ -11,7 +11,7 @@ const { captureException } = require('../errorHandler')
 const { invokeWebhooks } = require('../webhook')
 const { selectAssignee, getActionStatus, selectGroup } = require('./utils')
 const { Triggers } = require('../rule/trigger')
-const { fetchCategoryMap, getCategoryPath } = require('../category/utils')
+const { fetchCategoryMap } = require('../category/utils')
 
 const KEY_MAP = {
   assignee_id: 'assignee',
@@ -83,12 +83,6 @@ class Ticket {
      * @type {{ objectId: string; name: string; }}
      */
     this._category = object.get('category')
-
-    /**
-     * @private
-     * @type {string[]}
-     */
-    this._categoryPath = object.get('categoryPath')
 
     /**
      * @private
@@ -211,7 +205,6 @@ class Ticket {
     obj.set('status', TICKET_STATUS.NEW)
     obj.set('title', data.title)
     obj.set('category', await getTinyCategoryInfo(data.category_id, categories))
-    obj.set('categoryPath', getCategoryPath(data.category_id, categories))
     obj.set('author', AV.Object.createWithoutData('_User', data.author.id))
     if (assignee) {
       obj.set('assignee', AV.Object.createWithoutData('_User', assignee.id))
@@ -466,7 +459,6 @@ class Ticket {
         throw new Error('The name of category is missing')
       }
       object.set('category', this._category)
-      object.set('categoryPath', this._categoryPath)
     }
 
     if (this.isUpdated('group_id')) {
@@ -552,7 +544,6 @@ class Ticket {
     if (this.isUpdated('category_id')) {
       const categories = await fetchCategoryMap()
       this._category = await getTinyCategoryInfo(this.category_id, categories)
-      this._categoryPath = getCategoryPath(this.category_id, categories)
     }
 
     const object = this._getDirtyAVObject()

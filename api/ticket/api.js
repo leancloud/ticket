@@ -133,7 +133,7 @@ router.get(
   query('evaluation_ne').isIn(['null']).optional(),
   catchError(async (req, res) => {
     const { page, page_size, count } = req.query
-    const { nid, author_id, organization_id, category_id, root_category_id, status } = req.query
+    const { nid, author_id, organization_id, category_id, status } = req.query
     const { created_at, created_at_gt, created_at_gte, created_at_lt, created_at_lte } = req.query
     const { reply_count_gt, unread_count_gt } = req.query
 
@@ -166,9 +166,6 @@ router.get(
     }
     if (category_id) {
       query.equalTo('category.objectId', category_id)
-    }
-    if (root_category_id) {
-      query.equalTo('categoryPath', root_category_id)
     }
     if (status) {
       if (status.includes(',')) {
