@@ -17,7 +17,7 @@ export type FieldProps =
   | AddType<TextareaProps, 'multi-line'>
   | AddType<UploaderProps, 'file'>;
 
-const COMPONENTS: Record<FieldProps['type'], (...args: any[]) => JSX.Element> = {
+const COMPONENTS: Record<string, ((...args: any[]) => JSX.Element) | undefined> = {
   text: Input,
   dropdown: Dropdown,
   radios: RadioGroup,
