@@ -1,15 +1,14 @@
 import React, { memo, useCallback, useMemo, useState } from 'react'
 import PropTypes from 'prop-types'
-import { Form, Button } from 'react-bootstrap'
+import { Form, Button, Badge } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import throat from 'throat'
 import _ from 'lodash'
-import { storage, http } from 'lib/leancloud'
+import { storage } from 'lib/leancloud'
 import Select, { MultiSelect } from 'modules/components/Select'
 import { RadioGroup, NativeRadio } from 'modules/components/Radio'
 import { useAppContext } from 'modules/context'
 import styles from './index.module.scss'
-import { useQuery } from 'react-query'
 
 export const includeOptionsType = ['dropdown', 'multi-select', 'radios']
 export const fieldType = [
@@ -381,25 +380,7 @@ CustomField.propTypes = {
   size: PropTypes.string,
 }
 export default CustomField
-function FileLink({ id }) {
-  const { addNotification } = useAppContext()
-  const {
-    data: { url },
-  } = useQuery({
-    queryKey: ['FileLink', id],
-    queryFn: () => http.get(`/api/1/files/${id}`),
-    initialData: { url: '' },
-    onError: addNotification,
-  })
-  return (
-    <a href={url} target="_blank">
-      {id}
-    </a>
-  )
-}
-FileLink.propTypes = {
-  id: PropTypes.string.isRequired,
-}
+
 function CustomFieldDisplay({ type, value, label, className, options }) {
   const { t } = useTranslation()
   const NoneNode = (
@@ -420,7 +401,9 @@ function CustomFieldDisplay({ type, value, label, className, options }) {
             {value.map((id) => {
               return (
                 <li key={id}>
-                  <FileLink id={id} />
+                  <a href={`/api/1/files/${id}/redirection`} target="_blank">
+                    {id}
+                  </a>
                 </li>
               )
             })}
@@ -440,7 +423,12 @@ function CustomFieldDisplay({ type, value, label, className, options }) {
       )
     case 'checkbox':
       value = value === 'false' ? false : Boolean(value)
-      return <Checkbox value={value} className={className} label={label} readOnly />
+      return (
+        <Form.Group className={className}>
+          <Form.Label>{label}</Form.Label>
+          <p>{value ? 'Yes' : 'No'}</p>
+        </Form.Group>
+      )
     case 'dropdown':
     case 'radios':
       return (
@@ -453,14 +441,23 @@ function CustomFieldDisplay({ type, value, label, className, options }) {
       if (!value || !Array.isArray(value)) {
         return NoneNode
       }
-      const reOptions = (options || []).filter(([v]) => {
+      const selectedOptions = (options || []).filter(([v]) => {
         return value.includes(v)
       })
-      if (reOptions.length === 0) {
+      if (selectedOptions.length === 0) {
         return NoneNode
       }
       return (
-        <MultiSelectField label={label} options={reOptions} value={value} className={className} />
+        <Form.Group className={className}>
+          <Form.Label>{label}</Form.Label>
+          <p>
+            {selectedOptions.map(([, text]) => (
+              <Badge pill className={styles.badge} variant="info">
+                {text}
+              </Badge>
+            ))}
+          </p>
+        </Form.Group>
       )
     default:
       return null
