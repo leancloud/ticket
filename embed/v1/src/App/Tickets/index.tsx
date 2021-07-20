@@ -19,6 +19,7 @@ async function fetchTickets(category_id: string, page: number): Promise<Ticket[]
   const { data } = await http.get<any[]>('/api/1/tickets', {
     params: {
       author_id: auth.currentUser?.id,
+      // TODO: waiting for support in v2 API
       root_category_id: category_id,
       page,
       page_size: TICKETS_PAGE_SIZE,

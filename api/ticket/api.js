@@ -119,7 +119,6 @@ router.get(
   query('author_id').trim().isLength({ min: 1 }).optional(),
   query('organization_id').isString().optional(),
   query('category_id').isString().optional(),
-  query('root_category_id').isString().optional(),
   query(['created_at', 'created_at_gt', 'created_at_gte', 'created_at_lt', 'created_at_lte'])
     .isISO8601()
     .optional(),
