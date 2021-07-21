@@ -8,6 +8,7 @@ import { Page } from 'components/Page';
 import { QueryWrapper } from 'components/QueryWrapper';
 import { useIsMounted } from 'utils/useIsMounted';
 import { CategoryList, useCategories } from '../Categories';
+import { useRootCategory } from '../../App';
 
 interface TicketsLinkProps {
   badge?: boolean;
@@ -26,6 +27,7 @@ function TicketsLink({ badge }: TicketsLinkProps) {
 function useHasUnreadTickets() {
   const [hasUnreadTickets, setHasUnreadTickets] = useState(false);
   const isMounted = useIsMounted();
+  const rootCategory = useRootCategory();
   useEffect(() => {
     db.class('Ticket')
       .select('objectId')
@@ -34,7 +36,7 @@ function useHasUnreadTickets() {
       .first()
       .then((ticket) => ticket && isMounted() && setHasUnreadTickets(true))
       .catch(console.error);
-  }, []);
+  }, [rootCategory]);
   return hasUnreadTickets;
 }
 
@@ -43,11 +45,14 @@ export default function Home() {
   const { t } = useTranslation();
   const result = useCategories();
   const categories = result.data;
+  const rootCategory = useRootCategory();
   const topCategories = useMemo(() => {
     if (!categories) {
       return [];
     }
-    return categories.filter((c) => !c.parentId).sort((a, b) => a.position - b.position);
+    return categories
+      .filter((c) => (rootCategory ? c.parentId === rootCategory : !c.parentId))
+      .sort((a, b) => a.position - b.position);
   }, [categories]);
   const hasUnreadTickets = useHasUnreadTickets();
 

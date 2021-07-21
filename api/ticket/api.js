@@ -11,7 +11,6 @@ const { TICKET_ACTION, TICKET_STATUS } = require('../../lib/common')
 const { encodeFileObject } = require('../file/utils')
 const { encodeUserObject } = require('../user/utils')
 const { isCustomerService } = require('../customerService/utils')
-const { fetchCategories } = require('../category/utils')
 const config = require('../../config')
 const Ticket = require('./model')
 
@@ -29,16 +28,6 @@ function getWatchObject(user, ticket) {
     .equalTo('user', user)
     .equalTo('ticket', ticket)
     .first({ useMasterKey: true })
-}
-
-function getCategoryPath(categoryById, categoryId) {
-  let current = categoryById[categoryId]
-  const path = [{ id: current.id, name: current.name }]
-  while (current.parent_id) {
-    current = categoryById[current.parent_id]
-    path.unshift({ id: current.id, name: current.name })
-  }
-  return path
 }
 
 function encodeLatestReply(latestReply) {
@@ -128,6 +117,7 @@ router.get(
   query('nid').isInt().toInt().optional(),
   query('author_id').trim().isLength({ min: 1 }).optional(),
   query('organization_id').isString().optional(),
+  query('category_id').isString().optional(),
   query(['created_at', 'created_at_gt', 'created_at_gte', 'created_at_lt', 'created_at_lte'])
     .isISO8601()
     .optional(),
@@ -141,7 +131,7 @@ router.get(
   query('evaluation_ne').isIn(['null']).optional(),
   catchError(async (req, res) => {
     const { page, page_size, count } = req.query
-    const { nid, author_id, organization_id, status } = req.query
+    const { nid, author_id, organization_id, category_id, status } = req.query
     const { created_at, created_at_gt, created_at_gte, created_at_lt, created_at_lte } = req.query
     const { reply_count_gt, unread_count_gt } = req.query
 
@@ -171,6 +161,9 @@ router.get(
       } else {
         query.equalTo('organization', AV.Object.createWithoutData('Organization', organization_id))
       }
+    }
+    if (category_id) {
+      query.equalTo('category.objectId', category_id)
     }
     if (status) {
       if (status.includes(',')) {
@@ -243,20 +236,14 @@ router.get(
 
     query.include('author', 'assignee')
 
-    const [tickets, totalCount, categories] = await Promise.all([
+    const [tickets, totalCount] = await Promise.all([
       page_size ? query.find({ user: req.user }) : [],
       count ? query.count({ user: req.user }) : 0,
-      fetchCategories(),
     ])
     if (count) {
       res.append('X-Total-Count', totalCount)
       res.append('Access-Control-Expose-Headers', 'X-Total-Count')
     }
-
-    const categoryById = categories.reduce((map, category) => {
-      map[category.id] = category
-      return map
-    }, {})
 
     res.json(
       tickets.map((ticket) => {
@@ -275,7 +262,6 @@ router.get(
           assignee_id: ticket.get('assignee')?.id,
           assignee: ticket.get('assignee') ? encodeUserObject(ticket.get('assignee')) : null,
           category_id: categoryId,
-          category_path: getCategoryPath(categoryById, categoryId),
           content: ticket.get('content'),
           joined_customer_service_ids: Array.from(joinedCustomerServiceIds),
           status: ticket.get('status'),
@@ -306,10 +292,9 @@ router.get(
      * @type {AV.Object}
      */
     const ticket = req.ticket
-    const [isCS, watch, categories] = await Promise.all([
+    const [isCS, watch] = await Promise.all([
       isCSInTicket(req.user, ticket.get('author')),
       getWatchObject(req.user, ticket),
-      fetchCategories(),
     ])
 
     const keys = ['author', 'assignee', 'files', 'group']
@@ -318,11 +303,6 @@ router.get(
       keys.push('privateTags')
     }
     await ticket.fetch({ keys, include }, { user: req.user, useMasterKey: isCS })
-
-    const categoryById = categories.reduce((map, category) => {
-      map[category.id] = category
-      return map
-    }, {})
 
     res.json({
       id: ticket.id,
@@ -335,7 +315,6 @@ router.get(
       assignee: ticket.get('assignee') ? encodeUserObject(ticket.get('assignee')) : null,
       group: encodeGroupObject(ticket.get('group')),
       category_id: ticket.get('category').objectId,
-      category_path: getCategoryPath(categoryById, ticket.get('category').objectId),
       content: ticket.get('content'),
       content_HTML: ticket.get('content_HTML'),
       file_ids: ticket.get('files')?.map((file) => file.id) || [],

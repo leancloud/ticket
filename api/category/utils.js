@@ -46,19 +46,43 @@ async function fetchCategories() {
 }
 
 /**
+ * @returns {Promise<{[key: string]: Category}>}
+ */
+async function fetchCategoryMap() {
+  return (await fetchCategories()).reduce((map, category) => {
+    map[category.id] = category
+    return map
+  }, {})
+}
+
+/**
  * @param {string} categoryId
  * @returns {Promise<{ objectId: string; name: string; }>}
  */
-async function getTinyCategoryInfo(categoryId) {
-  const category = await new AV.Query('Category').get(categoryId)
+async function getTinyCategoryInfo(categoryId, categories) {
+  const category = categories
+    ? categories[categoryId]
+    : encodeCategoryObject(await new AV.Query('Category').get(categoryId))
   return {
     objectId: category.id,
-    name: category.get('name'),
+    name: category.name,
   }
+}
+
+function getCategoryPath(categoryId, categoryById) {
+  let current = categoryById[categoryId]
+  const path = [current.id]
+  while (current.parent_id) {
+    current = categoryById[current.parent_id]
+    path.unshift(current.id)
+  }
+  return path
 }
 
 module.exports = {
   encodeCategoryObject,
   fetchCategories,
+  fetchCategoryMap,
   getTinyCategoryInfo,
+  getCategoryPath,
 }

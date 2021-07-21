@@ -11,13 +11,16 @@ import TicketDetail, { TicketStatus } from './Ticket';
 import { NewTicket } from './New';
 import { auth, http } from 'leancloud';
 import { Ticket } from 'types';
+import { useRootCategory } from '../../App';
 
 const TICKETS_PAGE_SIZE = 20;
 
-async function fetchTickets(page: number): Promise<Ticket[]> {
+async function fetchTickets(category_id: string, page: number): Promise<Ticket[]> {
   const { data } = await http.get<any[]>('/api/1/tickets', {
     params: {
       author_id: auth.currentUser?.id,
+      // TODO: waiting for support in v2 API
+      root_category_id: category_id,
       page,
       page_size: TICKETS_PAGE_SIZE,
       q: 'sort:created_at-desc',
@@ -38,9 +41,10 @@ async function fetchTickets(page: number): Promise<Ticket[]> {
 }
 
 export function useTickets() {
+  const category = useRootCategory();
   return useInfiniteQuery<Ticket[], Error>({
     queryKey: 'tickets',
-    queryFn: ({ pageParam = 1 }) => fetchTickets(pageParam),
+    queryFn: ({ pageParam = 1 }) => fetchTickets(category, pageParam),
     getNextPageParam: (lastPage, allPages) => {
       if (lastPage.length === TICKETS_PAGE_SIZE) {
         return allPages.length + 1;

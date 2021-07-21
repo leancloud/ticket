@@ -11,6 +11,7 @@ const { captureException } = require('../errorHandler')
 const { invokeWebhooks } = require('../webhook')
 const { selectAssignee, getActionStatus, selectGroup } = require('./utils')
 const { Triggers } = require('../rule/trigger')
+const { fetchCategoryMap } = require('../category/utils')
 
 const KEY_MAP = {
   assignee_id: 'assignee',
@@ -198,11 +199,12 @@ class Ticket {
   static async create(data) {
     const assignee = data.assignee || (await selectAssignee(data.category_id))
     const group = await selectGroup(data.category_id)
+    const categories = await fetchCategoryMap()
 
     const obj = new AV.Object('Ticket')
     obj.set('status', TICKET_STATUS.NEW)
     obj.set('title', data.title)
-    obj.set('category', await getTinyCategoryInfo(data.category_id))
+    obj.set('category', await getTinyCategoryInfo(data.category_id, categories))
     obj.set('author', AV.Object.createWithoutData('_User', data.author.id))
     if (assignee) {
       obj.set('assignee', AV.Object.createWithoutData('_User', assignee.id))
@@ -540,7 +542,8 @@ class Ticket {
     }
 
     if (this.isUpdated('category_id')) {
-      this._category = await getTinyCategoryInfo(this.category_id)
+      const categories = await fetchCategoryMap()
+      this._category = await getTinyCategoryInfo(this.category_id, categories)
     }
 
     const object = this._getDirtyAVObject()

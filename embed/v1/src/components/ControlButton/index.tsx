@@ -10,7 +10,7 @@ function Divider() {
 export function ControlButton() {
   const history = useHistory();
   const goBack = () => history.goBack();
-  const goHome = () => history.push('/home');
+  const goHome = () => history.push('/');
 
   return (
     <div

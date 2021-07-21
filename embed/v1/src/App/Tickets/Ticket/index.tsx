@@ -350,7 +350,7 @@ export default function TicketDetail() {
 
   if (!result.isLoading && !result.isError && !result.data) {
     // Ticket is not exists :badbad:
-    return <Redirect to="/home" />;
+    return <>Ticket is not found</>;
   }
   return (
     <Page title={t('ticket.detail')}>
