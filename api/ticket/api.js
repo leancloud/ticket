@@ -11,7 +11,6 @@ const { TICKET_ACTION, TICKET_STATUS } = require('../../lib/common')
 const { encodeFileObject } = require('../file/utils')
 const { encodeUserObject } = require('../user/utils')
 const { isCustomerService } = require('../customerService/utils')
-const { fetchCategoryMap } = require('../category/utils')
 const config = require('../../config')
 const Ticket = require('./model')
 

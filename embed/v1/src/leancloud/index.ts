@@ -19,7 +19,7 @@ export const db = app.database();
 export const storage = app.storage();
 
 export const http = axios.create({
-  headers: {
-    'X-LC-Session': auth.currentUser?.sessionToken,
+  transformRequest: (data, header) => {
+    header['X-LC-Session'] = auth.currentUser?.sessionToken;
   },
 });
