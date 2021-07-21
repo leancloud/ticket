@@ -8,21 +8,23 @@ export interface TicketFilter {
   authorId?: string;
   assigneeId?: string;
   categoryId?: string | string[];
+  rootCategoryId?: string;
   groupId?: string | string[];
   status?: number | number[];
   evaluationStar?: number;
   createdAt?: [Date | undefined, Date | undefined];
 }
 
-export function makeQuery({
+async function makeQuery({
   authorId,
   assigneeId,
   categoryId,
+  rootCategoryId,
   groupId,
   status,
   evaluationStar,
   createdAt,
-}: TicketFilter): AV.Query<AV.Object> {
+}: TicketFilter): Promise<AV.Query<AV.Object>> {
   const query = new AV.Query<AV.Object>('Ticket');
 
   if (authorId) {
@@ -43,6 +45,15 @@ export function makeQuery({
     } else {
       query.containedIn('category.objectId', categoryId);
     }
+  }
+
+  if (rootCategoryId) {
+    const categories = await Categories.create();
+    const categoryIds = categories
+      .getChildren(rootCategoryId, Number.MAX_SAFE_INTEGER)
+      .map((child) => child.id)
+      .concat(rootCategoryId);
+    query.containedIn('category.objectId', categoryIds);
   }
 
   if (groupId !== undefined) {
@@ -103,7 +114,7 @@ export class TicketItem {
   categoryPath: CategoryPathItem[];
   author: User;
   assignee?: User;
-  group?: Group | null;
+  group?: Group;
   status: number;
   createdAt: Date;
   updatedAt: Date;
@@ -132,7 +143,7 @@ export class TicketItem {
       },
       categoryPath: this.categoryPath,
       author: this.author.toJSON(),
-      assignee: this.assignee ? this.assignee.toJSON() : null,
+      assignee: this.assignee?.toJSON(),
       group: this.group,
       status: this.status,
       createdAt: this.createdAt.toISOString(),
@@ -173,7 +184,7 @@ export class Ticket {
   categoryPath: CategoryPathItem[];
   author: User;
   assignee?: User;
-  group?: Group | null;
+  group?: Group;
   status: number;
   content: string;
   contentHtml: string;
@@ -196,7 +207,7 @@ export class Ticket {
   }
 
   static async find(filter: TicketFilter, options?: FindOptions): Promise<FindResults> {
-    const query = makeQuery(filter);
+    const query = await makeQuery(filter);
     query.select('nid', 'title', 'category', 'author', 'assignee', 'status');
     query.include('author', 'assignee');
     if (options) {
@@ -246,8 +257,8 @@ export class Ticket {
         updatedAt: obj.updatedAt!,
       });
 
-      if (options?.includeGroup) {
-        item.group = obj.has('group') ? Group.fromAVObject(obj.get('group')) : null;
+      if (options?.includeGroup && obj.has('group')) {
+        item.group = Group.fromAVObject(obj.get('group'));
       }
 
       return item;
@@ -287,8 +298,8 @@ export class Ticket {
       updatedAt: object.updatedAt!,
     });
 
-    if (options?.includeGroup) {
-      ticket.group = object.has('group') ? Group.fromAVObject(object.get('group')) : null;
+    if (options?.includeGroup && object.has('group')) {
+      ticket.group = Group.fromAVObject(object.get('group'));
     }
 
     return ticket;
@@ -305,7 +316,7 @@ export class Ticket {
       },
       categoryPath: this.categoryPath,
       author: this.author.toJSON(),
-      assignee: this.assignee ? this.assignee.toJSON() : null,
+      assignee: this.assignee?.toJSON(),
       group: this.group,
       content: this.content,
       contentHtml: this.contentHtml,

@@ -152,7 +152,7 @@ export class Category {
       name: this.name,
       parentId: this.parentId,
       order: this.order,
-      form: this.form ? this.form.toJSON() : null,
+      form: this.form?.toJSON(),
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
       deletedAt: this.deletedAt,
@@ -179,8 +179,9 @@ export type CategoryPathItem = Pick<Category, 'id' | 'name'>;
 export class Categories {
   private categoryMap: Record<string, Category>;
   private categoryPathMap: Record<string, CategoryPathItem[]> = {};
+  private directChildrenMap: Record<string, Category[]> = {};
 
-  constructor(categories: Category[]) {
+  constructor(private categories: Category[]) {
     this.categoryMap = array2map(categories, 'id');
   }
 
@@ -217,6 +218,33 @@ export class Categories {
   }
 
   getAll(): Category[] {
-    return Object.values(this.categoryMap);
+    return this.categories;
+  }
+
+  /**
+   * @param id 父分类的 id
+   * @param depth 获取的子分类的深度. 1 表示直接子分类, 以此类推.
+   */
+  getChildren(id: string, depth = 1): Category[] {
+    if (depth === 1) {
+      if (!this.directChildrenMap[id]) {
+        this.directChildrenMap[id] = this.categories.filter((c) => c.parentId === id);
+      }
+      return this.directChildrenMap[id];
+    }
+
+    const result: Category[] = [];
+    const met = new Set<string>();
+    const dfs = (id: string, depth: number) => {
+      if (depth <= 0 || met.has(id)) {
+        return;
+      }
+      met.add(id);
+      const children = this.getChildren(id);
+      result.push(...children);
+      children.forEach((child) => dfs(child.id, depth - 1));
+    };
+    dfs(id, depth);
+    return result;
   }
 }
