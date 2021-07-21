@@ -15,7 +15,6 @@ export default function GlobalNav({ user, onLogout }) {
 
   const handleChangeLanguage = (lang) => {
     i18next.changeLanguage(lang)
-    localStorage.setItem('locale', lang)
   }
 
   return (
@@ -67,6 +66,7 @@ export default function GlobalNav({ user, onLogout }) {
                 English
               </NavDropdown.Item>
               <NavDropdown.Item onClick={() => handleChangeLanguage('zh')}>中文</NavDropdown.Item>
+              <NavDropdown.Item onClick={() => handleChangeLanguage('ko')}>한국어</NavDropdown.Item>
             </NavDropdown>
             {/* eslint-enable i18n/no-chinese-character */}
             {user ? (

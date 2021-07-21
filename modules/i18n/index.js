@@ -1,13 +1,12 @@
 import i18next from 'i18next'
 import { initReactI18next } from 'react-i18next'
+import LanguageDetector from 'i18next-browser-languagedetector'
 import moment from 'moment'
+import 'moment/locale/ko'
 import 'moment/locale/zh-cn'
 import zh from './locales/zh.json'
 import en from './locales/en.json'
-
-const defaultLocale = window.navigator.language.slice(0, 2) === 'zh' ? 'zh' : 'en'
-const userLocale = window.localStorage.getItem('locale')
-export const locale = userLocale || defaultLocale
+import ko from './locales/ko.json'
 
 moment.updateLocale('zh-cn', {
   /* eslint-disable i18n/no-chinese-character */
@@ -26,23 +25,30 @@ moment.updateLocale('zh-cn', {
 i18next.on('languageChanged', (lang) => {
   if (lang === 'zh') {
     moment.locale('zh-cn')
+  } else if (lang === 'ko') {
+    moment.locale('ko')
   } else {
     moment.locale('en')
   }
 })
 
-i18next.use(initReactI18next).init({
-  lng: locale,
-  keySeparator: false,
-  interpolation: {
-    escapeValue: false,
-  },
-  resources: {
-    zh: {
-      translation: zh,
+i18next
+  .use(LanguageDetector)
+  .use(initReactI18next)
+  .init({
+    keySeparator: false,
+    interpolation: {
+      escapeValue: false,
     },
-    en: {
-      translation: en,
+    resources: {
+      zh: {
+        translation: zh,
+      },
+      en: {
+        translation: en,
+      },
+      ko: {
+        translation: ko,
+      },
     },
-  },
-})
+  })

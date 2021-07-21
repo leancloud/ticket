@@ -52,6 +52,7 @@
     "highlight.js": "^9.10.0",
     "http-proxy-middleware": "^2.0.1",
     "i18next": "^19.8.9",
+    "i18next-browser-languagedetector": "^6.1.2",
     "leancloud-storage": "^3.13.2",
     "leanengine": "^3.2.0",
     "lodash": "^4.17.21",
