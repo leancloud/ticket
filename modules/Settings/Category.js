@@ -152,8 +152,12 @@ class Category extends React.Component {
       if (this.state.description != category.get('description')) {
         data.description = this.state.description
       }
-      if (!category.get('form') || this.state.form !== category.get('form').id) {
-        data.form = db.class('TicketForm').object(this.state.form)
+      if (this.state.form != category.get('form')?.id) {
+        if (!this.state.form) {
+          data.form = db.op.unset()
+        } else {
+          data.form = db.class('TicketForm').object(this.state.form)
+        }
       }
       promise = category.update(data)
     }
