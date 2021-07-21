@@ -4,7 +4,7 @@ const { check } = require('express-validator')
 const { requireAuth, customerServiceOnly, catchError } = require('./middleware')
 const { responseAppendCount } = require('./utils')
 const { LOCALES, getFieldsDetail } = require('./TicketField')
-const router = Router().use(requireAuth, customerServiceOnly)
+const router = Router().use(requireAuth)
 const CLASS_NAME = 'TicketForm'
 
 router.get(
@@ -90,6 +90,7 @@ router.get(
 
 router.post(
   '/',
+  customerServiceOnly,
   check('title').isString().isLength({ min: 1 }),
   check('fieldIds').isArray().isLength({ min: 1 }),
   catchError(async (req, res) => {
@@ -111,6 +112,7 @@ router.post(
 
 router.patch(
   '/:id',
+  customerServiceOnly,
   check('title').isString().isLength({ min: 1 }),
   check('fieldIds').isArray().isLength({ min: 1 }),
   catchError(async (req, res) => {
