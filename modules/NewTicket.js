@@ -22,7 +22,7 @@ import OrganizationSelect from './OrganizationSelect'
 import { DocumentTitle } from './utils/DocumentTitle'
 import FAQ from './components/FAQ'
 import { useCategories } from './Settings/Categories'
-import { locale } from './i18n'
+import i18next from 'i18next'
 
 const AssociatedApplication = memo(({ value, onChange }) => {
   const { t } = useTranslation()
@@ -222,7 +222,7 @@ const useCustomForm = (formId) => {
     queryFn: () =>
       http.get(`/api/1/ticket-forms/${formId}`, {
         params: {
-          locale: locale === 'zh' ? 'zh-cn' : locale,
+          locale: i18next.language === 'zh' ? 'zh-cn' : i18next.language,
         },
       }),
     select: (data) => data.fields,
