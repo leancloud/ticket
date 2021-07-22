@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link, Redirect } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { CheckCircleIcon } from '@heroicons/react/solid';
 import { useMutation, useQuery } from 'react-query';
@@ -92,7 +92,7 @@ function TicketForm({ categoryId, onCommit }: TicketFormProps) {
     try {
       setIsCommitting(true);
       await onCommit(data);
-    } catch {
+    } finally {
       setIsCommitting(false);
     }
   };
