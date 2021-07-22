@@ -1,10 +1,10 @@
 const AV = require('leanengine')
 const { Router } = require('express')
 const { check, query } = require('express-validator')
-
+const { captureException } = require('../errorHandler')
 const { checkPermission } = require('../oauth')
 const { requireAuth, catchError, parseSearchingQ } = require('../middleware')
-const { getVacationerIds } = require('./utils')
+const { getVacationerIds, getFormValuesDifference } = require('./utils')
 const { isObjectExists } = require('../utils/object')
 const { encodeGroupObject } = require('../group/utils')
 const { TICKET_ACTION, TICKET_STATUS } = require('../../lib/common')
@@ -654,8 +654,22 @@ router.patch(
     if (!obj) {
       res.throw(404, 'Not Found')
     }
+    const differenceArray = getFormValuesDifference(form_values, obj.get('values'))
+    /**
+     * no change no save
+     */
+    if (differenceArray.length === 0) {
+      res.json({
+        updatedAt: obj.get('updatedAt'),
+      })
+    }
     obj.set('values', form_values)
     const result = await obj.save(null, { useMasterKey: true })
+    const ticket = new Ticket(req.ticket)
+    differenceArray.forEach((differenceItem) => {
+      ticket.pushOpsLog('changeForm', differenceItem)
+    })
+    await ticket.saveOpsLogs().catch(captureException)
     res.json({
       updatedAt: result.get('updatedAt'),
     })

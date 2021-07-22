@@ -86,9 +86,39 @@ function getActionStatus(action, isCustomerService) {
   }
 }
 
+/**
+ *
+ * @param {Array} oldData formValues array
+ * @param {Array} newData formValues array
+ */
+function getFormValuesDifference(newFormValues, oldFormValues) {
+  const oldMap = oldFormValues.reduce((current, item) => {
+    current[item.field] = item
+    return current
+  }, {})
+  const result = []
+  newFormValues.forEach((valueItem) => {
+    if (oldMap[valueItem.field] === undefined) {
+      result.push({
+        new: valueItem.item,
+      })
+    } else {
+      const oldValue = oldMap[valueItem.field].value
+      if (!_.isEqual(valueItem.value, oldValue)) {
+        result.push({
+          new: valueItem.value,
+          old: oldValue,
+        })
+      }
+    }
+  })
+  return result
+}
+
 module.exports = {
   getVacationerIds,
   getActionStatus,
   selectAssignee,
   selectGroup,
+  getFormValuesDifference,
 }

@@ -321,6 +321,7 @@ const TicketFormModal = memo(({ fields, values, onUpdated, close, ticketId }) =>
   const { t } = useTranslation()
   const { addNotification } = useAppContext()
   const [formValues, setFormValues] = useState({})
+
   useEffect(() => {
     if (values) {
       setFormValues(values)
@@ -388,7 +389,7 @@ const TicketFormModal = memo(({ fields, values, onUpdated, close, ticketId }) =>
     </>
   )
 })
-const TicketFormValues = memo(({ ticket }) => {
+const TicketFormValues = memo(({ ticket, loadMoreOpsLogs }) => {
   const { t } = useTranslation()
   const { addNotification } = useAppContext()
   const queryClient = useQueryClient()
@@ -455,8 +456,9 @@ const TicketFormValues = memo(({ ticket }) => {
   const onUpdated = useCallback(
     (data) => {
       queryClient.setQueryData(['ticket/fromValues', ticket ? ticket.id : ''], data)
+      loadMoreOpsLogs()
     },
-    [queryClient, ticket]
+    [queryClient, ticket, loadMoreOpsLogs]
   )
 
   if (!formId || !fields || fields.length === 0) {
@@ -497,7 +499,7 @@ const TicketFormValues = memo(({ ticket }) => {
   )
 })
 
-export function TicketMetadata({ ticket, isCustomerService }) {
+export function TicketMetadata({ ticket, isCustomerService, loadMoreOpsLogs }) {
   return (
     <>
       {isCustomerService && <GroupSection ticket={ticket} isCustomerService={isCustomerService} />}
@@ -512,11 +514,12 @@ export function TicketMetadata({ ticket, isCustomerService }) {
 
       <TagSection ticket={ticket} isCustomerService={isCustomerService} />
 
-      <TicketFormValues ticket={ticket} />
+      <TicketFormValues ticket={ticket} loadMoreOpsLogs={loadMoreOpsLogs} />
     </>
   )
 }
 TicketMetadata.propTypes = {
   ticket: PropTypes.object.isRequired,
   isCustomerService: PropTypes.bool,
+  loadMoreOpsLogs: PropTypes.func,
 }

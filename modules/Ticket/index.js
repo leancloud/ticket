@@ -391,7 +391,11 @@ export default function Ticket() {
             />
           )}
 
-          <TicketMetadata ticket={ticket} isCustomerService={isCsInThisTicket} />
+          <TicketMetadata
+            ticket={ticket}
+            isCustomerService={isCsInThisTicket}
+            loadMoreOpsLogs={loadMoreOpsLogs}
+          />
 
           <TicketOperation
             ticket={ticket}
