@@ -22,7 +22,7 @@ const FormSelect = memo(({ value, onChange }) => {
     onError: (error) => addNotification(error),
   })
   const options = useMemo(() => forms.map((form) => [form.id, form.title]), [forms])
-  return <Select value={value} options={options} onChange={onChange} />
+  return <Select value={value} options={options} onChange={onChange} placeholder="" />
 })
 
 class Category extends React.Component {
