@@ -12,7 +12,8 @@ export function Uploader({ onChange, error }: UploaderProps) {
   const { files, upload, remove } = useUpload();
 
   useEffect(() => {
-    if (files.some((f) => !f.id)) {
+    if (files.length === 0 || files.some((f) => !f.id)) {
+      // 没有 id 的是正在上传或上传失败的文件
       onChange(undefined);
     } else {
       onChange(files.map((f) => f.id!));
