@@ -21,6 +21,7 @@ const Select = memo((props) => {
   } = props
   const reOptions = options.map((option) => (Array.isArray(option) ? option : [option, option]))
   const valueIncluded = reOptions.some(([v]) => v === props.value)
+  const showNullOption = !required || (value === undefined && !valueIncluded)
   return (
     <Form.Control
       as="select"
@@ -36,7 +37,7 @@ const Select = memo((props) => {
       className={className}
       required={required}
     >
-      {value === undefined && !valueIncluded && (
+      {showNullOption && (
         <option key="" value="">
           {placeholder}
         </option>
