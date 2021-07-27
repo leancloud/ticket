@@ -9,7 +9,7 @@ const { isObjectExists } = require('../utils/object')
 const { encodeGroupObject } = require('../group/utils')
 const { TICKET_ACTION, TICKET_STATUS } = require('../../lib/common')
 const { encodeFileObject } = require('../file/utils')
-const { encodeUserObject } = require('../user/utils')
+const { encodeUserObject, makeTinyUserInfo } = require('../user/utils')
 const { isCustomerService } = require('../customerService/utils')
 const config = require('../../config')
 const Ticket = require('./model')
@@ -467,6 +467,9 @@ router.get(
         if (data.group) {
           log.group_id = data.group.objectId
         }
+        if (data.changes) {
+          log.changes = data.changes
+        }
         return log
       })
     )
@@ -666,8 +669,9 @@ router.patch(
     obj.set('values', form_values)
     const result = await obj.save(null, { useMasterKey: true })
     const ticket = new Ticket(req.ticket)
-    differenceArray.forEach((differenceItem) => {
-      ticket.pushOpsLog('changeForm', differenceItem)
+    ticket.pushOpsLog('changeFields', {
+      changes: differenceArray,
+      operator: makeTinyUserInfo(req.user),
     })
     await ticket.saveOpsLogs().catch(captureException)
     res.json({
