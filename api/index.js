@@ -21,8 +21,8 @@ require('./FAQ')
 const loginCallbackPath = '/oauth/callback'
 const loginCallbackUrl = config.host + loginCallbackPath
 const router = Router()
-router.use('/oauth/login', require('./oauth').login(loginCallbackUrl))
-router.use(loginCallbackPath, require('./oauth').loginCallback(loginCallbackUrl))
+router.use('/oauth/login', require('./oauth-lc').login(loginCallbackUrl))
+router.use(loginCallbackPath, require('./oauth-lc').loginCallback(loginCallbackUrl))
 
 const apiRouter = Router().use(cors({ origin: config.corsOrigin }))
 apiRouter.use('/files', require('./file/api'))

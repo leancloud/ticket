@@ -57,7 +57,7 @@ app.get('/in-app/v1/*', (req, res) => {
   res.sendFile(path.join(__dirname, 'in-app/v1/dist/index.html'))
 })
 
-const { orgName } = require('./api/oauth')
+const { orgName } = require('./api/oauth-lc')
 
 const getIndexPage = () => {
   return `<!doctype html>
