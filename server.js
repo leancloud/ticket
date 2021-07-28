@@ -22,6 +22,17 @@ const { Automation, Automations } = require('./api/rule/automation')
 Raven.config(config.sentryDSN).install()
 
 const app = express()
+
+// next api
+require('./next/server')
+app.use(
+  '/api/2',
+  createProxyMiddleware({
+    target: 'http://127.0.0.1:4000',
+    changeOrigin: true,
+  })
+)
+
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')))
 app.use(compression())
 app.use(Raven.requestHandler())
@@ -45,16 +56,6 @@ app.use('/in-app/v1', express.static(path.join(__dirname, 'in-app/v1/dist')))
 app.get('/in-app/v1/*', (req, res) => {
   res.sendFile(path.join(__dirname, 'in-app/v1/dist/index.html'))
 })
-
-// next api
-require('./next/server')
-app.use(
-  '/api/2',
-  createProxyMiddleware({
-    target: 'http://127.0.0.1:4000',
-    changeOrigin: true,
-  })
-)
 
 const { orgName } = require('./api/oauth')
 
