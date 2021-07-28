@@ -220,7 +220,7 @@ const useCustomForm = (formId) => {
     queryKey: ['setting/forms', formId],
     enabled: !!formId,
     queryFn: () =>
-      http.get(`/api/1/ticket-forms/${formId}`, {
+      http.get(`/api/2/ticket-forms/${formId}`, {
         params: {
           locale: i18next.language === 'zh' ? 'zh-cn' : i18next.language,
         },

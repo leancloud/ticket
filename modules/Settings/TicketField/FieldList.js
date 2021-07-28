@@ -18,10 +18,7 @@ const FieldRow = memo(({ data, onDeleted }) => {
   const { addNotification } = useAppContext()
   const { title, type, required, id } = data
   const { mutateAsync, isLoading } = useMutation({
-    mutationFn: () =>
-      http.patch(`/api/1/ticket-fields/${id}`, {
-        active: false,
-      }),
+    mutationFn: () => http.delete(`/api/2/ticket-fields/${id}`),
     onSuccess: () => {
       addNotification({
         message: t('delete.successfully'),
@@ -73,17 +70,17 @@ const FieldList = memo(() => {
   const { t } = useTranslation()
   const match = useRouteMatch()
   const { addNotification } = useAppContext()
-  const { skip, pageSize } = usePagination()
+  const { skip, limit } = usePagination()
   const {
     data: [fields, count],
     isFetching,
     refetch,
   } = useQuery({
-    queryKey: ['setting/fields', skip, pageSize],
+    queryKey: ['setting/fields', skip, limit],
     queryFn: () =>
-      httpWithLimitation.get(`/api/1/ticket-fields`, {
+      httpWithLimitation.get(`/api/2/ticket-fields`, {
         params: {
-          size: pageSize,
+          limit,
           skip,
         },
       }),

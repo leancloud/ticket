@@ -411,7 +411,7 @@ const TicketFormValues = memo(({ ticket }) => {
   const { data: fields } = useQuery({
     queryKey: ['ticket/form', formId],
     queryFn: () =>
-      http.get(`/api/1/ticket-forms/${formId}`, {
+      http.get(`/api/2/ticket-forms/${formId}`, {
         params: {
           locale: i18next.language === 'zh' ? 'zh-cn' : i18next.language,
         },

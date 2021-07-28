@@ -24,7 +24,7 @@ const FieldRow = memo(({ data, onDeleted }) => {
   const { addNotification } = useAppContext()
   const { title, id, updated_at } = data
   const { mutateAsync, isLoading } = useMutation({
-    mutationFn: () => http.delete(`/api/1/ticket-forms/${id}`),
+    mutationFn: () => http.delete(`/api/2/ticket-forms/${id}`),
     onSuccess: () => {
       addNotification({
         message: t('delete.successfully'),
@@ -71,13 +71,13 @@ FieldRow.propTypes = {
   onDeleted: PropTypes.func.isRequired,
 }
 
-export const useTicketFormList = (skip, size, queryConfig) => {
+export const useTicketFormList = (skip, limit, queryConfig) => {
   return useQuery({
-    queryKey: ['setting/ticketTemplates', skip, size],
+    queryKey: ['setting/ticketTemplates', skip, limit],
     queryFn: () =>
-      httpWithLimitation.get('/api/1/ticket-forms', {
+      httpWithLimitation.get('/api/2/ticket-forms', {
         params: {
-          size,
+          limit,
           skip,
         },
       }),

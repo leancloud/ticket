@@ -15,7 +15,7 @@ import { Link } from 'react-router-dom'
 import { useMutation, useQuery } from 'react-query'
 import { useDebounce, useUpdate } from 'react-use'
 import classnames from 'classnames'
-import { http, httpWithLimitation } from 'lib/leancloud'
+import { http } from 'lib/leancloud'
 import * as Icon from 'react-bootstrap-icons'
 import { useTranslation } from 'react-i18next'
 import { useAppContext } from 'modules/context'
@@ -25,6 +25,7 @@ import { includeOptionsType } from 'modules/components/CustomField'
 import { useFormId } from './'
 import Preview from './Preview'
 import styles from './index.module.scss'
+import i18next from 'i18next'
 
 const FieldList = ({ list, remove, add }) => {
   const { t } = useTranslation()
@@ -80,7 +81,7 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
   const [previewModalActive, setPreviewModalActive] = useState(false)
   const [title, setTitle] = useState('')
   const [searchValue, setSearchValue] = useState('')
-  const [debouncedSearchValue, setDebouncedSearchValue] = useState()
+  const [debouncedSearchValue, setDebouncedSearchValue] = useState('')
   const [activeFiledList, setActiveFiledList] = useState([])
   const [fieldList, setFiledList] = useState([])
 
@@ -88,6 +89,9 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
     if (initData) {
       setTitle(initData.title)
       setActiveFiledList(initData.fields)
+      setFiledList((pre) =>
+        pre.filter((field) => !initData.fields.some((item) => item.id === field.id))
+      )
     }
   }, [initData])
 
@@ -102,30 +106,28 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
   const { isFetching } = useQuery(
     ['settings/ticketTemplate', debouncedSearchValue],
     () =>
-      httpWithLimitation.get('/api/1/ticket-fields', {
+      http.get('/api/2/ticket-fields', {
         params: {
           size: 30,
           skip: 0,
-          search: debouncedSearchValue,
+          title: debouncedSearchValue,
         },
       }),
     {
-      initialData: [[], 0],
+      initialData: [],
       keepPreviousData: true,
       onSuccess: (data) => {
         if (!data) {
           return
         }
-        setFiledList(
-          data[0].filter((field) => !activeFiledList.some((item) => item.id === field.id))
-        )
+        setFiledList(data.filter((field) => !activeFiledList.some((item) => item.id === field.id)))
       },
       onError: (err) => addNotification(err),
     }
   )
 
   const { mutate } = useMutation({
-    mutationFn: (id) => http.get(`/api/1/ticket-fields/${id}`),
+    mutationFn: (id) => http.get(`/api/2/ticket-fields/${id}`),
     onSuccess: (fieldData) => {
       setActiveFiledList((pre) =>
         pre.map((preFieldData) => {
@@ -133,9 +135,8 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
             return preFieldData
           }
           const filteredVariants = fieldData.variants.filter(
-            (variant) => variant.locale === fieldData.default_locale
+            (variant) => variant.locale === fieldData.defaultLocale
           )
-          console.log(preFieldData, filteredVariants)
           return {
             ...preFieldData,
             variant: filteredVariants[0],
@@ -360,7 +361,7 @@ const AddForm = memo(() => {
   const { t } = useTranslation()
   const { addNotification } = useAppContext()
   const { mutateAsync, isLoading } = useMutation({
-    mutationFn: (data) => http.post('/api/1/ticket-forms', data),
+    mutationFn: (data) => http.post('/api/2/ticket-forms', data),
     onSuccess: () => {
       addNotification({
         message: t('ticketField.success'),
@@ -388,11 +389,16 @@ const EditorForm = () => {
   const formId = useFormId()
   const { data } = useQuery({
     queryKey: ['setting/forms', formId],
-    queryFn: () => http.get(`/api/1/ticket-forms/${formId}`),
+    queryFn: () =>
+      http.get(`/api/2/ticket-forms/${formId}`, {
+        params: {
+          locale: i18next.language === 'zh' ? 'zh-cn' : i18next.language,
+        },
+      }),
     onError: (err) => addNotification(err),
   })
   const { mutateAsync, isLoading } = useMutation({
-    mutationFn: (data) => http.patch(`/api/1/ticket-forms/${formId}`, data),
+    mutationFn: (data) => http.patch(`/api/2/ticket-forms/${formId}`, data),
     onSuccess: () => {
       addNotification({
         message: t('ticketField.success'),

@@ -142,7 +142,7 @@ const FieldForm = memo(({ onSubmit, initData, submitting }) => {
       setType(initData.type)
       setRequired(initData.required)
       setVariants(initData.variants)
-      setDefaultLocale(initData.default_locale)
+      setDefaultLocale(initData.defaultLocale)
       setLocales(Object.keys(initData.variants))
     }
   }, [initData])
@@ -207,7 +207,7 @@ const FieldForm = memo(({ onSubmit, initData, submitting }) => {
       title,
       type,
       required,
-      default_locale: defaultLocale,
+      defaultLocale,
       variants: Object.entries(variants).map(([key, value]) => {
         const { title, options } = value
         return {
@@ -421,7 +421,7 @@ const AddField = memo(() => {
   const { t } = useTranslation()
   const { addNotification } = useAppContext()
   const { mutateAsync, isLoading } = useMutation({
-    mutationFn: (data) => http.post('/api/1/ticket-fields', data),
+    mutationFn: (data) => http.post('/api/2/ticket-fields', data),
     onSuccess: () => {
       addNotification({
         message: t('ticketField.success'),
@@ -450,7 +450,7 @@ const EditorField = memo(() => {
   const fieldId = useFieldId()
   const { data } = useQuery({
     queryKey: ['setting/forms', fieldId],
-    queryFn: () => http.get(`/api/1/ticket-fields/${fieldId}`),
+    queryFn: () => http.get(`/api/2/ticket-fields/${fieldId}`),
     onError: (err) => addNotification(err),
     select: (field) => {
       const { variants } = field
@@ -466,7 +466,7 @@ const EditorField = memo(() => {
   })
 
   const { mutateAsync, isLoading } = useMutation({
-    mutationFn: (data) => http.patch(`/api/1/ticket-fields/${fieldId}`, data),
+    mutationFn: (data) => http.patch(`/api/2/ticket-fields/${fieldId}`, data),
     onSuccess: () => {
       addNotification({
         message: t('ticketField.success'),
