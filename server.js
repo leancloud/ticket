@@ -53,6 +53,14 @@ app.use(
   createProxyMiddleware({
     target: 'http://127.0.0.1:4000',
     changeOrigin: true,
+    onProxyReq: (proxyReq, req) => {
+      if (req.body) {
+        const bodyData = JSON.stringify(req.body)
+        proxyReq.setHeader('Content-Type', 'application/json')
+        proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData))
+        proxyReq.write(bodyData)
+      }
+    },
   })
 )
 
