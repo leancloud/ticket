@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { useHistory, useRouteMatch } from 'react-router'
+import { useRouteMatch } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import { Button, Col, OverlayTrigger, Row, Tooltip } from 'react-bootstrap'
@@ -314,8 +314,7 @@ export default function Ticket() {
   } = useRouteMatch()
   const { t } = useTranslation()
   const appContextValue = useContext(AppContext)
-  const { addNotification, currentUser, isCustomerService } = appContextValue
-  const history = useHistory()
+  const { addNotification, currentUser, isStaff } = appContextValue
   const { ticket, isLoading: loadingTicket, refetchTicket, error } = useTicket(nid)
   const { timeline, loadMoreReplies, loadMoreOpsLogs } = useTimeline(ticket?.id)
   useTitle(ticket?.title)
@@ -338,18 +337,14 @@ export default function Ticket() {
     onError: (error) => addNotification(error),
   })
 
-  const isCsInThisTicket = isCustomerService && ticket?.author_id !== currentUser.id
+  const isCsInThisTicket = isStaff && ticket?.author_id !== currentUser.id
 
   if (loadingTicket) {
     return <div>{t('loading') + '...'}</div>
   }
   if (error) {
     console.error('Fetch ticket:', error)
-    history.replace({
-      pathname: '/error',
-      state: { code: 'Unauthorized' },
-    })
-    return null
+    return error.message
   }
   return (
     <AppContext.Provider value={{ ...appContextValue, isCustomerService: isCsInThisTicket }}>

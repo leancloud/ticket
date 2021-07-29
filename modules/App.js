@@ -13,11 +13,11 @@ import './style/index.scss'
 import './i18n'
 import { auth, db } from '../lib/leancloud'
 import { AppContext } from './context'
-import { isCustomerService } from './common'
+import { isCustomerService, isStaff } from './common'
 import GlobalNav from './GlobalNav'
 import css from './App.css'
 
-import { AuthRoute } from './utils/AuthRoute'
+import { AuthRoute, StaffRoute } from './utils/AuthRoute'
 import Home from './Home'
 import Tickets from './Tickets'
 import About from './About'
@@ -42,6 +42,7 @@ class App extends Component {
     this.state = {
       loading: true,
       currentUser: auth.currentUser,
+      isStaff: false,
       isCustomerService: false,
       organizations: [],
       selectedOrgId: '',
@@ -96,6 +97,7 @@ class App extends Component {
       this.setState({
         loading: false,
         currentUser: null,
+        isStaff: false,
         isCustomerService: false,
         organizations: [],
         tagMetadatas: [],
@@ -106,7 +108,8 @@ class App extends Component {
 
     this.setState({ loading: true })
     try {
-      const [isCS, organizations, tagMetadatas] = await Promise.all([
+      const [staff, isCS, organizations, tagMetadatas] = await Promise.all([
+        isStaff(currentUser),
         isCustomerService(currentUser),
         db.class('Organization').include('memberRole').find(),
         this.fetchTagMetadatas(),
@@ -115,6 +118,7 @@ class App extends Component {
         currentUser,
         organizations,
         tagMetadatas,
+        isStaff: staff,
         isCustomerService: isCS,
       })
       Raven.setUserContext({
@@ -126,7 +130,7 @@ class App extends Component {
     }
   }
 
-  onLogin(user) {
+  setCurrentUser(user) {
     return this.refreshGlobalInfo(user)
   }
 
@@ -173,8 +177,8 @@ class App extends Component {
 
   render() {
     const props = {
-      onLogin: this.onLogin.bind(this),
       currentUser: this.state.currentUser,
+      isStaff: this.state.isStaff,
       isCustomerService: this.state.isCustomerService,
       updateCurrentUser: this.updateCurrentUser.bind(this),
       organizations: this.state.organizations,
@@ -191,9 +195,11 @@ class App extends Component {
           <AppContext.Provider
             value={{
               currentUser: this.state.currentUser,
+              isStaff: props.isStaff,
               isCustomerService: props.isCustomerService,
               tagMetadatas: props.tagMetadatas,
               addNotification: this.getChildContext().addNotification,
+              setCurrentUser: this.setCurrentUser.bind(this),
             }}
           >
             <GlobalNav user={this.state.currentUser?.toJSON()} onLogout={this.logout.bind(this)} />
@@ -221,9 +227,9 @@ class App extends Component {
                 <AuthRoute path="/notifications">
                   <Notifications {...props} />
                 </AuthRoute>
-                <AuthRoute mustCustomerService path="/customerService">
+                <StaffRoute path="/customerService">
                   <CustomerService />
-                </AuthRoute>
+                </StaffRoute>
                 <AuthRoute path="/users/:username">
                   <User {...props} />
                 </AuthRoute>

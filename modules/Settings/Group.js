@@ -87,7 +87,7 @@ export function Group() {
       })
       const role = await auth.addRole({
         name: `group_${newGroup.id}`,
-        ACL: db.ACL().allow('role:customerService', 'read', 'write'),
+        ACL: db.ACL().allow('role:customerService', 'read', 'write').allow('role:staff', 'read'),
         users: selectedMembers.size
           ? Array.from(selectedMembers).map((id) => auth.user(id))
           : undefined,

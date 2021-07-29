@@ -25,6 +25,9 @@
         "role:customerService": {
           "write": true,
           "read": true
+        },
+        "role:staff": {
+          "read": true
         }
       }
     },
@@ -44,23 +47,33 @@
   },
   "permissions": {
     "create": {
-      "roles": ["customerService"],
+      "roles": [
+        "customerService"
+      ],
       "users": []
     },
     "find": {
-      "roles": ["customerService"],
+      "roles": [
+        "customerService"
+      ],
       "users": []
     },
     "get": {
-      "roles": ["customerService"],
+      "roles": [
+        "customerService"
+      ],
       "users": []
     },
     "update": {
-      "roles": ["customerService"],
+      "roles": [
+        "customerService"
+      ],
       "users": []
     },
     "delete": {
-      "roles": ["customerService"],
+      "roles": [
+        "customerService"
+      ],
       "users": []
     },
     "add_fields": {

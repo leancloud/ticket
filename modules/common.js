@@ -28,8 +28,20 @@ export const isCustomerService = (user) => {
     .queryRole()
     .where('name', '==', 'customerService')
     .where('users', '==', user)
-    .first()
-    .then((role) => !!role)
+    .count()
+    .then((count) => count > 0)
+}
+
+export const isStaff = (user) => {
+  if (!user) {
+    return Promise.resolve(false)
+  }
+  return auth
+    .queryRole()
+    .where('name', '==', 'staff')
+    .where('users', '==', user)
+    .count()
+    .then((count) => count > 0)
 }
 
 /**

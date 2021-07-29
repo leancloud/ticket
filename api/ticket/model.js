@@ -225,6 +225,7 @@ class Ticket {
     const ACL = new AV.ACL({
       [data.author.id]: { read: true, write: true },
       'role:customerService': { read: true, write: true },
+      'role:staff': { read: true },
     })
     if (data.organization_id) {
       ACL.setRoleReadAccess(data.organization_id + '_member', true)
@@ -366,6 +367,7 @@ class Ticket {
     const rawACL = {
       [this.author_id]: { read: true, write: true },
       'role:customerService': { read: true, write: true },
+      'role:staff': { read: true },
     }
     if (this.organization_id) {
       rawACL[this.organization_id + '_member'] = { read: true, write: true }
@@ -686,7 +688,7 @@ class Ticket {
 
     const ACL = new AV.ACL({
       [data.author.id]: { read: true, write: true },
-      'role:customerService': { read: true },
+      'role:staff': { read: true },
     })
     if (!data.internal) {
       ACL.setReadAccess(this.author_id, true)

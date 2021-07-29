@@ -18,12 +18,6 @@ require('./stats')
 require('./Vacation')
 require('./FAQ')
 
-const loginCallbackPath = '/oauth/callback'
-const loginCallbackUrl = config.host + loginCallbackPath
-const router = Router()
-router.use('/oauth/login', require('./oauth-lc').login(loginCallbackUrl))
-router.use(loginCallbackPath, require('./oauth-lc').loginCallback(loginCallbackUrl))
-
 const apiRouter = Router().use(cors({ origin: config.corsOrigin }))
 apiRouter.use('/files', require('./file/api'))
 apiRouter.use('/dynamic-contents', require('./DynamicContent'))
@@ -40,6 +34,8 @@ apiRouter.get('/debug/search', parseSearchingQ, (req, res) => {
 })
 apiRouter.use('/translate', require('./translate/api'))
 apiRouter.use('/quick-replies', require('./quick-reply/api'))
+
+const router = Router()
 router.use('/api/1', apiRouter)
 
 const { integrations } = require('../config')

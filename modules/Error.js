@@ -1,13 +1,12 @@
+/* eslint-disable react/prop-types */
 /* global SUPPORT_EMAIL */
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import { useLocation } from 'react-router'
 
-export default function Error() {
+export default function Error(props) {
   const { t } = useTranslation()
-  const location = useLocation()
 
-  if (!location.state) {
+  if (!props.error) {
     return (
       <div>
         <h1 className="font-logo">{t('errorPage')}</h1>
@@ -23,17 +22,14 @@ export default function Error() {
   }
 
   let message
-  switch (location.state.code) {
+  switch (props.error.code) {
     case 'requireCustomerServiceAuth':
       message = t('staffOnlyPage')
       break
-    case 'Unauthorized':
-      message = t('unauthorizedPage')
-      break
     default:
-      message = location.state.err.message
+      message = props.error.message
   }
-  console.log(location.state.err)
+  console.log(props.error)
   return (
     <div className="my-2">
       <h1 className="font-logo">{t('somethingWrong')}</h1>

@@ -3,7 +3,7 @@ const AV = require('leanengine')
 const throat = require('throat').default
 
 const { getTinyUserInfo, htmlify, getTinyReplyInfo, isCustomerService } = require('./common')
-const { checkPermission } = require('./oauth-lc')
+const { checkPermission } = require('../oauth/lc')
 const notification = require('./notification')
 const {
   TICKET_ACTION,

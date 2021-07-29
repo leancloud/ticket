@@ -48,18 +48,38 @@ AV.Cloud.define('getUserInfo', async (req) => {
   }
 })
 
-AV.Cloud.afterSave('_User', (req) => {
-  if (newApp) {
-    newApp = false
-    return Promise.all([addRole('admin', req.object), addRole('customerService', req.object)])
-  }
-})
+if (!newApp) {
+  AV.Cloud.afterSave('_User', async (req) => {
+    if (newApp) {
+      newApp = false
+      const admin = await addRole(
+        'admin',
+        new AV.ACL().setPublicReadAccess(true).setRoleWriteAccess('admin', true),
+        req.object
+      )
+      const customerService = await addRole(
+        'customerService',
+        new AV.ACL().setPublicReadAccess(true).setRoleWriteAccess('customerService', true),
+        undefined,
+        admin
+      )
+      await addRole(
+        'staff',
+        new AV.ACL().setPublicReadAccess(true).setRoleWriteAccess('customerService', true),
+        undefined,
+        customerService
+      )
+    }
+  })
+}
 
-const addRole = (name, initUser) => {
-  const roleAcl = new AV.ACL()
-  roleAcl.setPublicReadAccess(true)
-  roleAcl.setRoleWriteAccess(name, true)
-  const role = new AV.Role(name, roleAcl)
-  role.getUsers().add(initUser)
+const addRole = (name, acl, initUser, initSubRole) => {
+  const role = new AV.Role(name, acl)
+  if (initUser) {
+    role.getUsers().add(initUser)
+  }
+  if (initSubRole) {
+    role.getRoles().add(initSubRole)
+  }
   return role.save()
 }

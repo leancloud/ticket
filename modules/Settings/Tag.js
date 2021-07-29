@@ -27,6 +27,7 @@ class Tag extends Component {
             isPrivate: false,
             ACL: {
               'role:customerService': { write: true, read: true },
+              'role:staff': { read: true },
             },
           }
         } else {
@@ -114,7 +115,7 @@ class Tag extends Component {
     this.setState({ isSubmitting: true })
 
     const tagMetadata = this.state.tagMetadata
-    const ACL = db.ACL().allow('role:customerService', 'read', 'write')
+    const ACL = db.ACL().allow('role:customerService', 'read', 'write').allow('role:staff', 'read')
     if (!tagMetadata.isPrivate) {
       ACL.allow('*', 'read')
     }
