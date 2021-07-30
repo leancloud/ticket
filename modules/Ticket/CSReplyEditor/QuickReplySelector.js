@@ -15,7 +15,7 @@ export function QuickReplySelector({ onChange }) {
 
   const { data: quickReplies, isLoading } = useQuery({
     queryKey: 'quickReplies',
-    queryFn: () => http.get('/api/1/quick-replies')
+    queryFn: () => http.get('/api/1/quick-replies'),
   })
 
   const handleSelect = useCallback(
@@ -29,11 +29,11 @@ export function QuickReplySelector({ onChange }) {
   return (
     <>
       <Button variant="light" onClick={toggleShow}>
-        Insert quick reply
+        {t('ticket.quickReplay.insert')}
       </Button>
       <Modal show={show} onHide={toggleShow}>
         <Modal.Header closeButton>
-          <Modal.Title>Choose a quick reply</Modal.Title>
+          <Modal.Title> {t('ticket.quickReplay.choice')}</Modal.Title>
         </Modal.Header>
         <Modal.Body style={{ padding: 0 }}>
           <ListGroup className={styles.quickReplyList} variant="flush">
