@@ -43,6 +43,7 @@ export default function MarkdownEditor({ value, onChange, onPasteFile, onPaste, 
     <MDEditor
       value={value}
       onChange={onChange}
+      commands={[]}
       preview="edit"
       textareaProps={{
         onPaste: (...args) => $onPaste.current(...args),
