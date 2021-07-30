@@ -14,7 +14,7 @@ export const includeOptionsType = ['dropdown', 'multi-select', 'radios']
 export const fieldType = [
   'text',
   'multi-line',
-  'checkbox',
+  // 'checkbox',
   'dropdown',
   'multi-select',
   'radios',
@@ -351,8 +351,8 @@ function CustomField({ type, options, ...rest }) {
       return <Text {...rest} />
     case 'multi-line':
       return <MultiLine {...rest} />
-    case 'checkbox':
-      return <Checkbox {...rest} />
+    // case 'checkbox':
+    //   return <Checkbox {...rest} />
     case 'dropdown':
       return <Dropdown {...rest} options={options} />
     case 'multi-select':
