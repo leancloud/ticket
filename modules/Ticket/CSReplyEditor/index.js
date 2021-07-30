@@ -12,6 +12,7 @@ import styles from './index.module.scss'
 import { QuickReplySelector } from './QuickReplySelector'
 
 function ReplyType({ value, onChange }) {
+  const { t } = useTranslation()
   const handleChangeReplyType = (e) => onChange(e.target.value)
   return (
     <>
@@ -19,7 +20,8 @@ function ReplyType({ value, onChange }) {
         inline
         type="radio"
         id="reply-type-public"
-        label="Public"
+        // label="Public"
+        label={t('replyType.public')}
         value="public"
         checked={value === 'public'}
         onChange={handleChangeReplyType}
@@ -28,7 +30,8 @@ function ReplyType({ value, onChange }) {
         inline
         type="radio"
         id="reply-type-internal"
-        label="Internal"
+        // label="Internal"
+        label={t('replyType.internal')}
         value="internal"
         checked={value === 'internal'}
         onChange={handleChangeReplyType}
