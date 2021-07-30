@@ -5,6 +5,7 @@ import { Group } from './Group'
 import PropTypes from 'prop-types'
 import { useFunction } from '../../lib/leancloud'
 import { useGroups } from '../components/Group'
+import { useTranslation } from 'react-i18next'
 
 function GroupSummary({ group }) {
   const {
@@ -31,17 +32,18 @@ GroupSummary.propTypes = {
 }
 
 function Groups() {
+  const { t } = useTranslation()
   const { data: groups } = useGroups()
   return (
     <>
       <Button as={Link} variant="light" to="/settings/groups/_new">
-        New group
+        {t('newGroup')}
       </Button>
       <Table hover className="mt-2">
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Description</th>
+            <th>{t('name')}</th>
+            <th>{t('description')}</th>
           </tr>
         </thead>
         <tbody>

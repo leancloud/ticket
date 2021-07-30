@@ -158,6 +158,7 @@
     "changeAvatar": "更改头像请前往",
     "gravatarUrl": "https://cn.gravatar.com/",
     "group": "客服组",
+    "newGroup": "新增客服组",
     "tagName": "标签名称",
     "tagTypeSelect": "下拉选择",
     "tagTypeSelectInfo": "用户只能在预设的标签值中选择一个。",
