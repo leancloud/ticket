@@ -10,7 +10,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({ className, ...p
     type="text"
     className={classNames(
       className,
-      'border rounded px-3 py-1 focus:border-tapBlue-600 focus:ring-1 focus:ring-tapBlue-600'
+      'border rounded px-3 py-1 focus:border-tapBlue focus:ring-1 focus:ring-tapBlue'
     )}
   />
 ));

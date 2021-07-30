@@ -17,7 +17,7 @@ interface TicketsLinkProps {
 function TicketsLink({ badge }: TicketsLinkProps) {
   const { t } = useTranslation();
   return (
-    <Link className="inline-block p-1.5 text-xs leading-none text-tapBlue-600" to="/tickets">
+    <Link className="inline-block p-1.5 text-xs leading-none text-tapBlue" to="/tickets">
       {t('ticket.record')}
       {badge && <div className="h-1.5 w-1.5 bg-red-500 rounded-full absolute top-0 right-0" />}
     </Link>

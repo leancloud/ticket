@@ -61,12 +61,12 @@ export function Uploader<Key extends FileKey>({
     <div className="w-full">
       {alertElement}
       <div
-        className="w-full h-14 p-4 border border-dashed border-gray-400 rounded flex justify-center items-center active:border active:border-tapBlue-600 hover:border-tapBlue-600 cursor-pointer"
+        className="w-full h-14 p-4 border border-dashed border-gray-400 rounded flex justify-center items-center active:border active:border-tapBlue hover:border-tapBlue cursor-pointer"
         onClick={handleClick}
       >
         <input className="hidden" type="file" ref={$input} onChange={handleChange} />
         <div className="flex items-center select-none">
-          <PlusIcon className="w-7 h-7 text-tapBlue-600" />
+          <PlusIcon className="w-7 h-7 text-tapBlue" />
           <span className="text-gray-500">{t('general.click_to_upload')}</span>
         </div>
       </div>

@@ -127,7 +127,7 @@ function Success({ ticketId }: SuccessProps) {
 
   return (
     <div className="flex flex-col justify-center items-center h-full">
-      <CheckCircleIcon className="w-12 h-12 text-tapBlue-600" />
+      <CheckCircleIcon className="w-12 h-12 text-tapBlue" />
       <div className="text-gray-500 mt-8">{t('ticket.create.success_text')}</div>
       <Button className="mt-4 px-12" as={Link} to={`/tickets/${ticketId}`}>
         {t('ticket.detail')}

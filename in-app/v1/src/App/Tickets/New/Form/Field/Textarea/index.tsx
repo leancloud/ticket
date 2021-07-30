@@ -28,7 +28,7 @@ export function Textarea({ onChange, placeholder, rows = 3, maxLength, error }: 
     <div>
       <textarea
         className={`w-full px-3 py-1.5 border rounded border-gray-300 ${
-          error ? 'border-red-500' : 'focus:border-tapBlue-600 focus:ring-1 focus:ring-tapBlue-600'
+          error ? 'border-red-500' : 'focus:border-tapBlue focus:ring-1 focus:ring-tapBlue'
         }`}
         value={value}
         onChange={handleChange}

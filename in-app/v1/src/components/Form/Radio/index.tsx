@@ -22,7 +22,7 @@ export function Radio({ checked, onChange, fluid, children }: PropsWithChildren<
           styles.radio,
           'flex-shrink-0 w-4 h-4 rounded-full border-2 border-gray-300',
           {
-            'border-tapBlue-600': checked,
+            'border-tapBlue': checked,
           }
         )}
         checked={checked}

@@ -20,7 +20,7 @@ function Progress({ value }: { value: number }) {
   return (
     <div className={`${styles.progress} absolute top-0 left-0 w-full`}>
       <div
-        className="h-full bg-tapBlue-600 bg-opacity-50 transition-all ease-linear"
+        className="h-full bg-tapBlue bg-opacity-50 transition-all ease-linear"
         style={{ width: value + '%' }}
       />
     </div>
@@ -82,7 +82,7 @@ export function FileItem({
       <span className="select-none">{displayName}</span>
 
       {onDelete && progress === undefined && (
-        <XIcon className="ml-1 w-4 h-4 text-tapBlue-600 cursor-pointer" onClick={onDelete} />
+        <XIcon className="ml-1 w-4 h-4 text-tapBlue cursor-pointer" onClick={onDelete} />
       )}
     </div>
   );

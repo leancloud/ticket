@@ -19,7 +19,7 @@ export function Checkbox({ checked, onChange, fluid, children }: PropsWithChildr
           ref={$input}
           type="checkbox"
           className={classNames('w-full h-full rounded-sm box-border border-2 border-gray-300', {
-            'bg-tapBlue-600 border-tapBlue-600': checked,
+            'bg-tapBlue border-tapBlue': checked,
           })}
           checked={checked}
           onChange={(e) => onChange?.(e.target.checked)}

@@ -12,7 +12,7 @@ export function Evaluated() {
   const { t } = useTranslation();
   return (
     <div className="p-6 border-t border-dashed border-gray-300 text-gray-600 flex items-center">
-      <CheckCircleIcon className="w-6 h-6 mr-3 text-tapBlue-600" /> {t('evaluation.created_text')}
+      <CheckCircleIcon className="w-6 h-6 mr-3 text-tapBlue" /> {t('evaluation.created_text')}
     </div>
   );
 }

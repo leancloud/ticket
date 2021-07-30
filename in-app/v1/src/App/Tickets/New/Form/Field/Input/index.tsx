@@ -14,7 +14,7 @@ export function Input({ onChange, placeholder, error }: InputProps) {
       <input
         type="text"
         className={classNames('w-full px-3 py-1.5 border rounded border-gray-300', {
-          'focus:border-tapBlue-600 focus:ring-1 focus:ring-tapBlue-600': !error,
+          'focus:border-tapBlue focus:ring-1 focus:ring-tapBlue': !error,
           'border-red-500': error,
         })}
         onChange={(e) => onChange(e.target.value || undefined)}

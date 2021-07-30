@@ -92,7 +92,7 @@ function ExpandButton({ expand, onClick }: ExpandButtonProps) {
   const { t } = useTranslation();
 
   return (
-    <button className="text-tapBlue-600" onClick={onClick}>
+    <button className="text-tapBlue" onClick={onClick}>
       {expand ? (
         <>
           {t('general.collapse')}
@@ -182,7 +182,7 @@ function MiniUploader({ className, onUpload }: MiniUploaderProps) {
 
   return (
     <button
-      className={classNames(className, 'w-5 h-5 text-tapBlue-600 transform rotate-45 scale-y-125')}
+      className={classNames(className, 'w-5 h-5 text-tapBlue transform rotate-45 scale-y-125')}
       onClick={() => $fileInput.current?.click()}
     >
       <input className="hidden" type="file" ref={$fileInput} onChange={handleUpload} />

@@ -35,7 +35,7 @@ export function Dropdown({ options, onChange, error }: DropdownProps) {
         <select
           className={classNames('w-full px-3 py-1.5 border rounded border-gray-300', {
             'text-gray-400': !value,
-            'focus:border-tapBlue-600 focus:ring-1 focus:ring-tapBlue-600': !error,
+            'focus:border-tapBlue focus:ring-1 focus:ring-tapBlue': !error,
             'border-red-500': error,
           })}
           value={value}
