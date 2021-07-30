@@ -5,3 +5,9 @@
   overflow: hidden;
   display: block;
 }
+.inlineDivider{
+  display: inline-block;
+  border-right: 1px solid rgba(34, 36, 38, 0.06);
+  margin: 0 0.75em;
+  height: 2em;
+}
