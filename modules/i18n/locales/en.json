@@ -158,6 +158,7 @@
     "changeAvatar": "To change your avatar, please go to",
     "gravatarUrl": "https://en.gravatar.com/",
     "group": "Group",
+    "newGroup": "New group",
     "tagName": "Tag name",
     "tagTypeSelect": "Select",
     "tagTypeSelectInfo": "Choose one among the predefined tags.",
