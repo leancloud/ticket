@@ -19,7 +19,7 @@ export const CustomFieldLabel = memo(({ type }) => {
   const { t } = useTranslation()
   const TypeIcon = fieldIconMap[type]
   return (
-    <div className={'d-flex flex-column align-items-center pl-3 pr-3'}>
+    <div className={`d-flex flex-column align-items-center ${styles.radio}`}>
       <TypeIcon className={styles.icon} />
       <span className="mt-2">{t(`ticketField.type.${type}`)}</span>
     </div>

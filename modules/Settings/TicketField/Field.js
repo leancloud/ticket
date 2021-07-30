@@ -132,7 +132,7 @@ const FieldForm = memo(({ onSubmit, initData, submitting }) => {
   const [defaultLocale, setDefaultLocale] = useState(DEFAULT_LOCALE)
 
   const [title, setTitle] = useState()
-  const [type, setType] = useState()
+  const [type, setType] = useState('text')
   const [required, setRequired] = useState(false)
   const [variants, setVariants] = useState({})
 
