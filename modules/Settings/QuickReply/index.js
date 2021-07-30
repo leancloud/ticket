@@ -10,15 +10,18 @@ import { auth, http } from '../../../lib/leancloud'
 import styles from './index.module.scss'
 import { AddQuickReply } from './Add'
 import { EditQuickReply } from './Edit'
+import Divider from 'modules/components/Divider'
+import { DocumentTitle } from '../../utils/DocumentTitle'
 
 function Permission({ quickReply }) {
+  const { t } = useTranslation()
   if (quickReply.owner_id) {
     if (quickReply.owner_id === auth.currentUser.id) {
-      return 'Only me'
+      return t('quickReply.onlyMe')
     }
     return quickReply.owner_id
   }
-  return 'Everyone'
+  return t('quickReply.everyone')
 }
 Permission.propTypes = {
   quickReply: PropTypes.shape({
@@ -79,8 +82,12 @@ function QuickReplyList() {
 
   return (
     <>
-      <h1>Quick replies</h1>
-      <div className="mt-3 d-flex justify-content-between">
+      <DocumentTitle title={`${t('quickReply')} - LeanTicket`} />
+      <div className="mt-3 d-flex align-items-center">
+        <Button as={Link} to={`${path}/new`} variant="light">
+          {t('newQuickReply')}
+        </Button>
+        <Divider inline />
         <Form.Group className="m-0">
           <Form.Control
             as="select"
@@ -88,13 +95,10 @@ function QuickReplyList() {
             onChange={(e) => setPermission(e.target.value)}
           >
             <option value="ALL">{t('all')}</option>
-            <option value="EVERYONE">Everyone</option>
-            <option value="ONLY_ME">Only me</option>
+            <option value="EVERYONE">{t('quickReply.everyone')}</option>
+            <option value="ONLY_ME">{t('quickReply.onlyMe')}</option>
           </Form.Control>
         </Form.Group>
-        <Button as={Link} to={`${path}/new`}>
-          Add
-        </Button>
       </div>
 
       {isLoading ? (
@@ -105,7 +109,7 @@ function QuickReplyList() {
             <tr>
               <th>{t('name')}</th>
               <th>{t('permission')}</th>
-              <th>Actions</th>
+              <th>{t('operation')}</th>
             </tr>
           </thead>
           <tbody>

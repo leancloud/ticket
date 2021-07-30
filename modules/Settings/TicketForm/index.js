@@ -105,7 +105,7 @@ const FormList = memo(() => {
         <div className="mb-3">
           <DocumentTitle title={`${t('ticketTemplate')} - LeanTicket`} />
           <Link to={`${match.path}/new`}>
-            <Button variant="primary">{t('ticketTemplate.add')}</Button>
+            <Button variant="light">{t('ticketTemplate.add')}</Button>
           </Link>
         </div>
         <Table size="sm" className={styles.table}>
