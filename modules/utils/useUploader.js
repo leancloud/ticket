@@ -20,10 +20,9 @@ export function useUploader({ defaultFileIds } = {}) {
         preset: true,
       })),
     ])
-
     http
       .get('/api/1/files', { params: { id: defaultFileIds.join(',') } })
-      .then(({ data }) => {
+      .then((data) => {
         setFiles((current) => {
           const next = [...current]
           data.forEach((file) => {

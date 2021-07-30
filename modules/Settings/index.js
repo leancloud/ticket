@@ -76,7 +76,7 @@ export default function Settings(props) {
                 {t('tag')}
               </ListGroup.Item>
               <ListGroup.Item as={NavLink} to="/settings/quick-replies">
-                Quick reply
+                {t('quickReply')}
               </ListGroup.Item>
               <ListGroup.Item as={NavLink} to="/settings/faqs">
                 {t('FAQ')}

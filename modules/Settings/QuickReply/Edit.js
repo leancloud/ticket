@@ -1,12 +1,12 @@
 import React, { useCallback } from 'react'
-import * as Icon from 'react-bootstrap-icons'
+import { Breadcrumb } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import { Link, useHistory, useRouteMatch } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 
-import styles from './index.module.scss'
 import { http } from '../../../lib/leancloud'
 import { QuickReplyForm } from './Add'
+import { DocumentTitle } from '../../utils/DocumentTitle'
 
 export function EditQuickReply() {
   const { t } = useTranslation()
@@ -33,12 +33,13 @@ export function EditQuickReply() {
 
   return (
     <>
-      <h1 className={styles.title}>
-        <Link className="mr-2" to="/settings/quick-replies">
-          <Icon.ChevronLeft />
-        </Link>
-        Edit quick reply
-      </h1>
+      <DocumentTitle title={`${t('quickReply.edit')} - LeanTicket`} />
+      <Breadcrumb>
+        <Breadcrumb.Item linkProps={{ to: '/settings/quick-replies' }} linkAs={Link}>
+          {t('quickReply.list')}
+        </Breadcrumb.Item>
+        <Breadcrumb.Item active>{t('quickReply.edit')}</Breadcrumb.Item>
+      </Breadcrumb>
       {isLoading ? (
         <div>{t('loading')}</div>
       ) : (

@@ -4,6 +4,7 @@ import PropTypes from 'prop-types'
 import * as Icon from 'react-bootstrap-icons'
 
 import styles from './index.module.scss'
+import { useTranslation } from 'react-i18next'
 
 const IMAGE_MIMES = ['image/png', 'image/jpeg', 'image/gif']
 
@@ -66,6 +67,7 @@ FileItem.propTypes = {
 }
 
 function UploadButton({ onUpload }) {
+  const { t } = useTranslation()
   const $fileInput = useRef()
   const handleChangeFile = useCallback(
     (e) => {
@@ -83,7 +85,7 @@ function UploadButton({ onUpload }) {
     <Card className={`${styles.fileItem} ${styles.upload}`} onClick={handleClick}>
       <input type="file" multiple ref={$fileInput} onChange={handleChangeFile} />
       <Icon.Plus />
-      <div className={styles.name}>Upload</div>
+      <div className={styles.name}>{t('upload')}</div>
     </Card>
   )
 }

@@ -1,24 +1,18 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { Button, Form } from 'react-bootstrap'
-import * as Icon from 'react-bootstrap-icons'
+import { Button, Form, Breadcrumb } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import { Link, useHistory } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import { useMutation, useQueryClient } from 'react-query'
-
-import styles from './index.module.scss'
 import { auth, http } from '../../../lib/leancloud'
 import { useUploader } from '../../utils/useUploader'
+import { DocumentTitle } from '../../utils/DocumentTitle'
 
 export function QuickReplyForm({ initValue, onSubmit, onCancel, ...props }) {
   const { t } = useTranslation()
   const [name, setName] = useState(initValue?.name || '')
-  const [nameErrorMessage, setNameErrorMessage] = useState('')
-  const $nameInput = useRef()
   const [permission, setPermission] = useState(initValue?.owner_id ? 'ONLY_ME' : 'EVERYONE')
   const [content, setContent] = useState(initValue?.content || '')
-  const [contentErrorMessage, setContentErrorMessage] = useState('')
-  const $contentInput = useRef()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const $unmounted = useRef(false)
   useEffect(
@@ -31,35 +25,8 @@ export function QuickReplyForm({ initValue, onSubmit, onCancel, ...props }) {
     defaultFileIds: initValue?.file_ids,
   })
 
-  const nameIsValid = () => {
-    if (name.trim()) {
-      setNameErrorMessage('')
-      return true
-    }
-    setNameErrorMessage('Name cannot be empty')
-    return false
-  }
-
-  const contentIsValid = () => {
-    if (content.trim()) {
-      setContentErrorMessage('')
-      return true
-    }
-    setContentErrorMessage('Content cannot be empty')
-    return false
-  }
-
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!nameIsValid()) {
-      $nameInput.current.focus()
-      return
-    }
-    if (!contentIsValid()) {
-      $contentInput.current.focus()
-      return
-    }
-
     const data = {
       name: name.trim(),
       content: content.trim(),
@@ -82,14 +49,7 @@ export function QuickReplyForm({ initValue, onSubmit, onCancel, ...props }) {
           <span className="text-danger">*</span>
           {t('name')}
         </Form.Label>
-        <Form.Control
-          ref={$nameInput}
-          value={name}
-          isInvalid={nameErrorMessage !== ''}
-          onChange={(e) => setName(e.target.value)}
-          onBlur={nameIsValid}
-        />
-        <Form.Control.Feedback type="invalid">{nameErrorMessage}</Form.Control.Feedback>
+        <Form.Control value={name} required onChange={(e) => setName(e.target.value)} />
       </Form.Group>
       <Form.Group controlId="quickReply.privilege">
         <Form.Label>
@@ -101,27 +61,25 @@ export function QuickReplyForm({ initValue, onSubmit, onCancel, ...props }) {
           value={permission}
           onChange={(e) => setPermission(e.target.value)}
         >
-          <option value="EVERYONE">Everyone</option>
-          <option value="ONLY_ME">Only me</option>
+          <option value="EVERYONE">{t('quickReply.everyone')}</option>
+          <option value="ONLY_ME">{t('quickReply.onlyMe')}</option>
         </Form.Control>
-        <Form.Text muted>Who can use this quick reply</Form.Text>
+        <Form.Text muted>{t('quickReply.permissionHint')}</Form.Text>
       </Form.Group>
 
       <hr />
       <Form.Group controlId="quickReply.content">
         <Form.Label>
-          <span className="text-danger">*</span>Content
+          <span className="text-danger">*</span>
+          {t('content')}
         </Form.Label>
         <Form.Control
-          ref={$contentInput}
+          required
           as="textarea"
           rows={5}
           value={content}
-          isInvalid={contentErrorMessage !== ''}
           onChange={(e) => setContent(e.target.value)}
-          onBlur={contentIsValid}
         />
-        <Form.Control.Feedback type="invalid">{contentErrorMessage}</Form.Control.Feedback>
       </Form.Group>
 
       {uploader}
@@ -152,10 +110,10 @@ QuickReplyForm.propTypes = {
 }
 
 export function AddQuickReply() {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const history = useHistory()
   const backToList = useCallback(() => history.push('/settings/quick-replies'), [history])
-
   const { mutateAsync } = useMutation({
     mutationFn: (data) => http.post('/api/1/quick-replies', data),
     onSuccess: () => {
@@ -166,12 +124,13 @@ export function AddQuickReply() {
 
   return (
     <>
-      <h1 className={styles.title}>
-        <Link className="mr-2" to="/settings/quick-replies">
-          <Icon.ChevronLeft />
-        </Link>
-        Add quick reply
-      </h1>
+      <DocumentTitle title={`${t('quickReply')} - LeanTicket`} />
+      <Breadcrumb>
+        <Breadcrumb.Item linkProps={{ to: '/settings/quick-replies' }} linkAs={Link}>
+          {t('quickReply.list')}
+        </Breadcrumb.Item>
+        <Breadcrumb.Item active>{t('newQuickReply')}</Breadcrumb.Item>
+      </Breadcrumb>
       <QuickReplyForm className="mt-2" onSubmit={mutateAsync} onCancel={backToList} />
     </>
   )
