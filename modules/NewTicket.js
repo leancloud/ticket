@@ -7,7 +7,7 @@ import { useHistory } from 'react-router-dom'
 import docsearch from 'docsearch.js'
 import _ from 'lodash'
 import { useQuery } from 'react-query'
-import { useTranslation } from 'react-i18next'
+import { useTranslation, Trans } from 'react-i18next'
 
 import { auth, cloud, db, http } from '../lib/leancloud'
 import { useURLSearchParam } from './utils/hooks'
@@ -103,9 +103,11 @@ const useSelectedCategories = () => {
       return (
         <Form.Group key={index}>
           <Form.Label>
-            {index == 0
-              ? t('category') + ' '
-              : t('categoryLevel') + ' ' + (index + 1) + ' ' + t('thCategory') + ' '}
+            {index > 0 ? (
+              <Trans i18nKey="levelCategory" values={{ level: index + 1 }} />
+            ) : (
+              t('category')
+            )}
           </Form.Label>
           <Select
             required

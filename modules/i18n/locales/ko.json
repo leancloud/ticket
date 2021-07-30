@@ -58,7 +58,7 @@
     "pageNotExist": "페이지가 존재하지 않습니다",
     "categoryChangeConfirm": "현재 \"문제 설명\"이 비어 있지 않으며 선택한 \"문제 범주\" 템플릿이 기존 설명을 덮어씁니다. \\n\\n계속하시겠습니까?",
     "categoryIncomplete": "완전하지 않은 분류 정보",
-    "thCategory": "종류 분류",
+    "levelCategory":"{{level}} 종류 분류",
     "associatedApplication": "관련 애플리케이션",
     "monthBeforeLast": "지난 달",
     "lastMonth": "지난 달",
