@@ -283,7 +283,7 @@
     "ticketField.options": "字段值",
     "ticketField.options.titleHint": "每个字段值标签必须是唯一的",
     "ticketField.delete": "删除字段 <Title />",
-    "ticketField.deleteHint": "此工单字段可能用于某些表格，删除工单字段会将其从这些表格中移除，并且无法恢复。",
+    "ticketField.deleteHint": "此工单字段可能用于某些工单模板。删除工单字段会将其从这些模板中移除，并且无法恢复。",
     "ticketTemplate": "工单模板",
     "ticketTemplate.list": "模板列表",
     "ticketTemplate.add": "新增模板",
