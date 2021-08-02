@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { useRouteMatch, Link } from 'react-router-dom'
 import { useTranslation, Trans } from 'react-i18next'
 import { useQuery, useMutation } from 'react-query'
-import { Button, Table } from 'react-bootstrap'
+import { Badge, Button, Table } from 'react-bootstrap'
 import { DocumentTitle } from '../../utils/DocumentTitle'
 import Pagination, { usePagination } from 'modules/components/Pagination'
 import { NoDataRow } from 'modules/components/NoData'
@@ -11,12 +11,13 @@ import { useAppContext } from 'modules/context'
 import Confirm from 'modules/components/Confirm'
 import { http, httpWithLimitation } from 'lib/leancloud'
 import styles from './index.module.scss'
+import { systemFieldData } from './'
 
 const FieldRow = memo(({ data, onDeleted }) => {
   const { t } = useTranslation()
   const match = useRouteMatch()
   const { addNotification } = useAppContext()
-  const { title, type, required, id } = data
+  const { title, type, required, id, system } = data
   const { mutateAsync, isLoading } = useMutation({
     mutationFn: () =>
       http.patch(`/api/1/ticket-fields/${id}`, {
@@ -33,32 +34,43 @@ const FieldRow = memo(({ data, onDeleted }) => {
   const TitleConfirm = () => <code>{title}</code>
   return (
     <tr>
-      <td>{title}</td>
+      <td>
+        {system && (
+          <>
+            {t(id)} <Badge variant="info">{t('ticketField.system')}</Badge>
+          </>
+        )}
+        {!system && title}
+      </td>
       <td>{t(`ticketField.type.${type}`)}</td>
       <td>{t(`ticketField.required.${required ? 'yes' : 'no'}`)}</td>
       <td>
-        <Button variant="link" size="sm" as={Link} to={`${match.path}/${id}`}>
-          {t('edit')}
-        </Button>
-        <Confirm
-          header={
-            <Trans
-              i18nKey="ticketField.delete"
-              components={{
-                Title: <TitleConfirm />,
-              }}
-            />
-          }
-          danger
-          onConfirm={mutateAsync}
-          confirmButtonText={t('delete')}
-          content={t('ticketField.deleteHint')}
-          trigger={
-            <Button variant="link" size="sm" className="text-danger" disabled={isLoading}>
-              {t('delete')}
+        {!system && (
+          <>
+            <Button variant="link" size="sm" as={Link} to={`${match.path}/${id}`}>
+              {t('edit')}
             </Button>
-          }
-        />
+            <Confirm
+              header={
+                <Trans
+                  i18nKey="ticketField.delete"
+                  components={{
+                    Title: <TitleConfirm />,
+                  }}
+                />
+              }
+              danger
+              onConfirm={mutateAsync}
+              confirmButtonText={t('delete')}
+              content={t('ticketField.deleteHint')}
+              trigger={
+                <Button variant="link" size="sm" className="text-danger" disabled={isLoading}>
+                  {t('delete')}
+                </Button>
+              }
+            />
+          </>
+        )}
       </td>
     </tr>
   )
@@ -110,6 +122,10 @@ const FieldList = memo(() => {
             </tr>
           </thead>
           <tbody>
+            {skip === 0 &&
+              systemFieldData.map((fieldData) => (
+                <FieldRow data={fieldData} key={fieldData.id} onDeleted={refetch} />
+              ))}
             {fields.map((fieldData) => (
               <FieldRow data={fieldData} key={fieldData.id} onDeleted={refetch} />
             ))}

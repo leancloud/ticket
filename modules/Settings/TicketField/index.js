@@ -17,3 +17,24 @@ export default function TicketFields() {
     </Switch>
   )
 }
+
+export const systemFieldData = [
+  {
+    active: true,
+    default_locale: 'zh-cn',
+    id: 'title',
+    required: true,
+    title: 'Title',
+    type: 'text',
+    system: true,
+  },
+  {
+    active: true,
+    default_locale: 'zh-cn',
+    id: 'description',
+    required: true,
+    title: 'Description',
+    type: 'multi-line',
+    system: true,
+  },
+]

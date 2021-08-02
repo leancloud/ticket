@@ -15,6 +15,7 @@ import { Link } from 'react-router-dom'
 import { useMutation, useQuery } from 'react-query'
 import { useDebounce, useUpdate } from 'react-use'
 import classnames from 'classnames'
+import _ from 'lodash'
 import { http, httpWithLimitation } from 'lib/leancloud'
 import * as Icon from 'react-bootstrap-icons'
 import { useTranslation } from 'react-i18next'
@@ -25,6 +26,7 @@ import { includeOptionsType } from 'modules/components/CustomField'
 import { useFormId } from './'
 import Preview from './Preview'
 import styles from './index.module.scss'
+import { systemFieldData } from '../TicketField'
 
 const FieldList = ({ list, remove, add }) => {
   const { t } = useTranslation()
@@ -43,26 +45,36 @@ const FieldList = ({ list, remove, add }) => {
           >
             <Card.Body className="p-2">
               <Card.Text>
-                {item.title} <Badge variant="info"> {t(`ticketField.type.${item.type}`)}</Badge>
-                {remove && (
-                  <Button
-                    size="sm"
-                    variant="light"
-                    className="float-right"
-                    onClick={() => remove(index)}
-                  >
-                    {t('remove')}
-                  </Button>
+                {item.system && (
+                  <>
+                    {t(item.id)} <Badge variant="info">{t('ticketField.system')}</Badge>
+                  </>
                 )}
-                {add && (
-                  <Button
-                    size="sm"
-                    variant="light"
-                    className="float-right"
-                    onClick={() => add(index)}
-                  >
-                    {t('add')}
-                  </Button>
+                {!item.system && item.title}{' '}
+                <Badge variant="info">{t(`ticketField.type.${item.type}`)}</Badge>
+                {!item.system && (
+                  <>
+                    {remove && (
+                      <Button
+                        size="sm"
+                        variant="light"
+                        className="float-right"
+                        onClick={() => remove(index)}
+                      >
+                        {t('remove')}
+                      </Button>
+                    )}
+                    {add && (
+                      <Button
+                        size="sm"
+                        variant="light"
+                        className="float-right"
+                        onClick={() => add(index)}
+                      >
+                        {t('add')}
+                      </Button>
+                    )}
+                  </>
                 )}
               </Card.Text>
             </Card.Body>
@@ -81,13 +93,21 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
   const [title, setTitle] = useState('')
   const [searchValue, setSearchValue] = useState('')
   const [debouncedSearchValue, setDebouncedSearchValue] = useState()
-  const [activeFiledList, setActiveFiledList] = useState([])
+  const [activeFiledList, setActiveFiledList] = useState(systemFieldData)
   const [fieldList, setFiledList] = useState([])
-
   useEffect(() => {
     if (initData) {
       setTitle(initData.title)
-      setActiveFiledList(initData.fields)
+      setActiveFiledList(() => {
+        const hasSystemFiled = _.intersectionBy(systemFieldData, initData.fields, 'id')
+        if (hasSystemFiled.length > 0) {
+          return initData.fields.map((field) => {
+            const filterField = systemFieldData.filter((fieldItem) => fieldItem.id === field.id)
+            return filterField.length > 0 ? filterField[0] : field
+          })
+        }
+        return [...systemFieldData, initData.fields]
+      })
     }
   }, [initData])
 
@@ -135,7 +155,6 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
           const filteredVariants = fieldData.variants.filter(
             (variant) => variant.locale === fieldData.default_locale
           )
-          console.log(preFieldData, filteredVariants)
           return {
             ...preFieldData,
             variant: filteredVariants[0],
@@ -163,14 +182,16 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
     (sourceIndex, destIndex) => {
       destIndex = destIndex ? destIndex : 0
       const [removed] = [...activeFiledList].splice(sourceIndex, 1)
-      setActiveFiledList((preList) => {
-        preList.splice(sourceIndex, 1)
-        return preList
-      })
-      setFiledList((preList) => {
-        preList.splice(destIndex, 0, removed)
-        return preList
-      })
+      if (!removed.system) {
+        setActiveFiledList((preList) => {
+          preList.splice(sourceIndex, 1)
+          return preList
+        })
+        setFiledList((preList) => {
+          preList.splice(destIndex, 0, removed)
+          return preList
+        })
+      }
       update()
     },
     [activeFiledList, update]
