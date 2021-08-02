@@ -47,7 +47,7 @@ const FieldList = ({ list, remove, add }) => {
               <Card.Text>
                 {item.system && (
                   <>
-                    {t(item.id)} <Badge variant="info">{t('ticketField.system')}</Badge>
+                    {t(item.id)} <Badge variant="info">{t('ticketField.defaultField')}</Badge>
                   </>
                 )}
                 {!item.system && item.title}{' '}
