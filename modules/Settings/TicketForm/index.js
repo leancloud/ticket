@@ -18,7 +18,7 @@ export const useFormId = () => {
   return useParams().id
 }
 
-const FieldRow = memo(({ data, onDeleted }) => {
+const FormRow = memo(({ data, onDeleted }) => {
   const { t } = useTranslation()
   const match = useRouteMatch()
   const { addNotification } = useAppContext()
@@ -66,7 +66,7 @@ const FieldRow = memo(({ data, onDeleted }) => {
   )
 })
 
-FieldRow.propTypes = {
+FormRow.propTypes = {
   data: PropTypes.object.isRequired,
   onDeleted: PropTypes.func.isRequired,
 }
@@ -118,7 +118,7 @@ const FormList = memo(() => {
           </thead>
           <tbody>
             {forms.map((fieldData) => (
-              <FieldRow data={fieldData} key={fieldData.id} onDeleted={refetch} />
+              <FormRow data={fieldData} key={fieldData.id} onDeleted={refetch} />
             ))}
             {!isFetching && forms.length === 0 && <NoDataRow />}
           </tbody>
