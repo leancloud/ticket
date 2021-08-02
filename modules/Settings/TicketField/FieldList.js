@@ -37,7 +37,7 @@ const FieldRow = memo(({ data, onDeleted }) => {
       <td>
         {system && (
           <>
-            {t(id)} <Badge variant="info">{t('ticketField.system')}</Badge>
+            {t(id)} <Badge variant="info">{t('ticketField.defaultField')}</Badge>
           </>
         )}
         {!system && title}
