@@ -63,6 +63,13 @@ router.get(
     const fieldDataList = await getFieldsDetail(fieldIds)
     const fields = []
     fieldIds.forEach((fieldId) => {
+      // 不在根据字段内容进行过滤 title 和 description
+      if (fieldId === 'title' || fieldId === 'description') {
+        fields.push({
+          id: fieldId,
+        })
+        return
+      }
       const filterData = fieldDataList.filter((data) => data.active && data.id === fieldId)
       if (!filterData || !filterData[0]) {
         return
