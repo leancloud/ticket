@@ -106,7 +106,7 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
             return filterField.length > 0 ? filterField[0] : field
           })
         }
-        return [...systemFieldData, initData.fields]
+        return [...systemFieldData, ...initData.fields]
       })
     }
   }, [initData])
