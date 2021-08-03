@@ -66,8 +66,8 @@ const TableRow = memo(({ data, services, onCategoriesChange, prefix = '' }) => {
   }, [services, data.id])
 
   const categories = useMemo(() => {
-    const admin = services.filter((server) => server.objectId === auth.currentUser.id)
-    return admin[0] && admin[0].categories ? admin.categories : []
+    const admin = services.filter((server) => server.objectId === auth.currentUser.id).shift()
+    return admin && admin.categories ? admin.categories : []
   }, [services])
 
   return (
@@ -132,6 +132,7 @@ const Categories = memo(() => {
     queryKey: ['setting/customerServices', auth.currentUser.id],
     queryFn: () => getCustomerServices(),
     onError: addNotification,
+    select: (users) => users.map((user) => user.toJSON()),
     initialData: [],
   })
 
