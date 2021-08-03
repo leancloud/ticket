@@ -417,21 +417,23 @@ const TicketFormValues = memo(({ ticket }) => {
         },
       }),
     select: (data) =>
-      data.fields.map((field) => {
-        const {
-          type,
-          id,
-          required,
-          variant: { options, title },
-        } = field
-        return {
-          type,
-          id,
-          required,
-          options,
-          label: title,
-        }
-      }),
+      data.fields
+        .filter((field) => field.type)
+        .map((field) => {
+          const {
+            type,
+            id,
+            required,
+            variant: { options, title },
+          } = field
+          return {
+            type,
+            id,
+            required,
+            options,
+            label: title,
+          }
+        }),
     enabled: !!formId,
     retry: false,
     onError: (err) => addNotification(err),
