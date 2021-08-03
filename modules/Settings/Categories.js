@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useMemo, useState } from 'react'
+import React, { memo, useCallback, useEffect, useMemo } from 'react'
 import { Table } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -45,8 +45,9 @@ export const useCategories = (queryConfig = {}) => {
   })
 }
 
-const TableRow = memo(({ data, admin, otherServices, onCategoriesChange, prefix = '' }) => {
+const TableRow = memo(({ data, services, onCategoriesChange, prefix = '' }) => {
   const { addNotification } = useAppContext()
+
   const handleCategoryChange = useCallback(
     (newCategories) => {
       auth.currentUser
@@ -57,14 +58,18 @@ const TableRow = memo(({ data, admin, otherServices, onCategoriesChange, prefix 
     [addNotification, onCategoriesChange]
   )
 
-  const otherUsers = useMemo(() => {
-    return otherServices.filter(
+  const assignToList = useMemo(() => {
+    return services.filter(
       (customer) =>
         customer.categories && customer.categories.some((category) => category.objectId === data.id)
     )
-  }, [otherServices, data.id])
+  }, [services, data.id])
 
-  const categories = admin && admin.categories ? admin.categories : []
+  const categories = useMemo(() => {
+    const admin = services.filter((server) => server.objectId === auth.currentUser.id)
+    return admin[0] && admin[0].categories ? admin.categories : []
+  }, [services])
+
   return (
     <>
       <tr>
@@ -75,18 +80,27 @@ const TableRow = memo(({ data, admin, otherServices, onCategoriesChange, prefix 
         <td>
           <input
             type="checkbox"
-            checked={categories.includes(data.id)}
+            checked={categories.map((item) => item.objectId).includes(data.id)}
             onChange={(e) => {
               const { checked } = e.target
               const newCategories = checked
-                ? Array.from(new Set([...categories, data.id]))
-                : categories.filter((category) => category !== data.id)
+                ? _.uniqBy(
+                    [
+                      ...categories,
+                      {
+                        name: data.name,
+                        objectId: data.id,
+                      },
+                    ],
+                    'objectId'
+                  )
+                : categories.filter((category) => category.objectId !== data.id)
               handleCategoryChange(newCategories)
             }}
           />
         </td>
         <td>
-          {otherUsers.map((user) => (
+          {assignToList.map((user) => (
             <span key={user.objectId}>
               <UserLabel user={user} />{' '}
             </span>
@@ -99,8 +113,7 @@ const TableRow = memo(({ data, admin, otherServices, onCategoriesChange, prefix 
           <TableRow
             key={childrenData.id}
             data={childrenData}
-            otherServices={otherServices}
-            admin={admin}
+            services={services}
             onCategoriesChange={onCategoriesChange}
             prefix={prefix ? `\u00a0\u00a0\u00a0\u00a0${prefix}` : '\u00a0\u00a0└ '}
           />
@@ -115,17 +128,9 @@ const Categories = memo(() => {
   const { data } = useCategories({
     onError: addNotification,
   })
-  const {
-    data: [[admin], otherServices],
-    refetch,
-  } = useQuery({
+  const { data: services, refetch } = useQuery({
     queryKey: ['setting/customerServices', auth.currentUser.id],
     queryFn: () => getCustomerServices(),
-    select: (users) =>
-      _(users)
-        .map((user) => user.toJSON())
-        .partition((user) => user.objectId === auth.currentUser.id)
-        .valueOf(),
     onError: addNotification,
     initialData: [],
   })
@@ -149,8 +154,7 @@ const Categories = memo(() => {
               key={rowData.id}
               onCategoriesChange={refetch}
               data={rowData}
-              otherServices={otherServices}
-              admin={admin}
+              services={services}
             />
           ))}
         </tbody>
