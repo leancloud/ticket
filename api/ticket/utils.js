@@ -100,12 +100,14 @@ function getFormValuesDifference(newFormValues, oldFormValues) {
   newFormValues.forEach((valueItem) => {
     if (oldMap[valueItem.field] === undefined) {
       result.push({
+        fieldId: valueItem.field,
         new: valueItem.item,
       })
     } else {
       const oldValue = oldMap[valueItem.field].value
       if (!_.isEqual(valueItem.value, oldValue)) {
         result.push({
+          fieldId: valueItem.field,
           new: valueItem.value,
           old: oldValue,
         })
