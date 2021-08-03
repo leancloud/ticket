@@ -160,21 +160,23 @@ function ChangeField({ change }) {
     const variant = variantMap[currentLocale] || variantMap[default_locale]
     return {
       title: variant.title,
-      oldText: variant.options ? getDisplayTextByOptions(change.old, variant.options) : change.old,
-      newText: variant.options ? getDisplayTextByOptions(change.new, variant.options) : change.new,
+      fromText: variant.options
+        ? getDisplayTextByOptions(change.from, variant.options)
+        : change.from,
+      toText: variant.options ? getDisplayTextByOptions(change.to, variant.options) : change.to,
     }
   }, [data, currentLocale, change])
   return (
     <Form.Group controlId={change.fieldId} key={change.fieldId}>
       <Form.Label className="font-weight-bold">{displayText.title || change.fieldId}</Form.Label>
       <div>
-        {change.old !== undefined && (
+        {change.from !== undefined && (
           <>
-            <del className="text-info">{displayText.oldText || change.old}</del>
+            <del className="text-info">{displayText.fromText || change.from}</del>
             <Icon.ArrowRight className="ml-2 mr-2" />
           </>
         )}
-        <span className="text-info">{displayText.newText || change.new}</span>
+        <span className="text-info">{displayText.toText || change.to}</span>
       </div>
     </Form.Group>
   )
