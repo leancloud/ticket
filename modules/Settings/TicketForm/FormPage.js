@@ -11,7 +11,7 @@ import {
   Modal,
 } from 'react-bootstrap'
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
-import { Link } from 'react-router-dom'
+import { Link, useHistory } from 'react-router-dom'
 import { useMutation, useQuery } from 'react-query'
 import { useDebounce, useUpdate } from 'react-use'
 import classnames from 'classnames'
@@ -380,12 +380,14 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
 const AddForm = memo(() => {
   const { t } = useTranslation()
   const { addNotification } = useAppContext()
+  const history = useHistory()
   const { mutateAsync, isLoading } = useMutation({
     mutationFn: (data) => http.post('/api/1/ticket-forms', data),
     onSuccess: () => {
       addNotification({
         message: t('ticketField.success'),
       })
+      history.push('/settings/ticketTemplate')
     },
     onError: (err) => addNotification(err),
   })
