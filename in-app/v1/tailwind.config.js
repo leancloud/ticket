@@ -18,6 +18,11 @@ module.exports = {
           900: '#0C6C71',
         },
       },
+      fontSize: {
+        xs: '10px',
+        sm: '12px',
+        base: '14px',
+      },
     },
   },
 };
