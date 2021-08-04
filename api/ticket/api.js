@@ -639,10 +639,7 @@ router.get(
     const formValues = await new AV.Query('TicketFieldValue').equalTo('ticket', req.ticket).first({
       useMasterKey: true,
     })
-    if (!formValues) {
-      res.throw(404, 'Not Found')
-    }
-    res.json(formValues.get('values'))
+    res.json(formValues ? formValues.get('values') : {})
   })
 )
 
