@@ -1,4 +1,4 @@
-import { Fragment, useRef } from 'react';
+import { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 
 export interface PreviewProps {
@@ -9,8 +9,6 @@ export interface PreviewProps {
 }
 
 export function Preview({ show, onClose, type, src }: PreviewProps) {
-  const $element = useRef<HTMLDivElement>(null);
-
   return (
     <Transition
       show={show}
@@ -22,15 +20,11 @@ export function Preview({ show, onClose, type, src }: PreviewProps) {
       leaveFrom="opacity-100"
       leaveTo="opacity-0"
     >
-      <Dialog
-        className="fixed inset-0 flex justify-center items-center"
-        onClose={onClose}
-        initialFocus={$element}
-      >
+      <Dialog className="fixed inset-0 z-50 flex justify-center items-center" onClose={onClose}>
         <Dialog.Overlay className="fixed inset-0 bg-black opacity-60" />
 
-        <div className="z-10" ref={$element}>
-          {type === 'image' && <img src={src} />}
+        <div tabIndex={0} className="z-10">
+          {type === 'image' && <img className="max-h-screen" onClick={onClose} src={src} />}
           {type === 'video' && <video className="max-h-screen" src={src} controls />}
         </div>
       </Dialog>

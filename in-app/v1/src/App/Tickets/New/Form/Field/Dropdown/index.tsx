@@ -33,9 +33,10 @@ export function Dropdown({ options, onChange, error }: DropdownProps) {
     <div>
       <div className="relative flex items-center">
         <select
-          className={classNames('w-full px-3 py-1.5 border rounded border-gray-300', {
-            'text-gray-400': !value,
+          className={classNames('w-full px-3 py-2 border rounded text-sm', {
+            'text-[#BFBFBF]': !value,
             'focus:border-tapBlue focus:ring-1 focus:ring-tapBlue': !error,
+            'border-[rgba(0,0,0,0.08)]': !error,
             'border-red-500': error,
           })}
           value={value}
@@ -50,7 +51,7 @@ export function Dropdown({ options, onChange, error }: DropdownProps) {
             </option>
           ))}
         </select>
-        <ChevronDownIcon className="w-4 h-4 absolute right-2 text-gray-300 pointer-events-none" />
+        <ChevronDownIcon className="w-4 h-4 absolute right-2 text-[#BFBFBF] pointer-events-none" />
       </div>
       <ErrorMessage className="mt-1">{error}</ErrorMessage>
     </div>

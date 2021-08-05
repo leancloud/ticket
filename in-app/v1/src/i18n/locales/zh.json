@@ -41,7 +41,7 @@
   "status": {
     "new": "待处理",
     "waiting_on_staff": "待客服回复",
-    "waiting_on_customer": "待用户处理",
+    "waiting_on_customer": "待用户回复",
     "resolved": "已解决"
   },
   "evaluation": {

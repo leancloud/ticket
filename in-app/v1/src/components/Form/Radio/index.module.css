@@ -2,15 +2,9 @@
   position: relative;
 
   &:checked:before {
+    @apply absolute bg-tapBlue rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2;
     content: '';
-    width: 0.5rem;
-    height: 0.5rem;
-    background-color: #15C5CE;
-    display: block;
-    border-radius: 100%;
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
+    width: 6px;
+    height: 6px;
   }
 }

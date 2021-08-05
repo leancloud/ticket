@@ -17,12 +17,12 @@ interface CategoryItemProps {
 function CategoryItem({ name, onClick, marker }: CategoryItemProps) {
   return (
     <div
-      className="p-4 flex items-center text-gray-500 border-b border-gray-100 active:bg-gray-50"
+      className="h-11 flex items-center text-[#666] border-b border-gray-100 active:bg-gray-50"
       onClick={onClick}
     >
-      {marker && <div className="h-1 w-1 bg-tapBlue mr-4" />}
-      <div className="flex-grow">{name}</div>
-      <ChevronRightIcon className="h-4 w-4" />
+      {marker && <div className="flex-shrink-0 h-1 w-1 bg-tapBlue mr-4" />}
+      <div className="flex-grow truncate">{name}</div>
+      <ChevronRightIcon className="flex-shrink-0 h-4 w-4" />
     </div>
   );
 }
@@ -54,7 +54,7 @@ export type CategoryListProps = Omit<JSX.IntrinsicElements['div'], 'onClick'> & 
 
 export function CategoryList({ categories, onClick, marker, ...props }: CategoryListProps) {
   return (
-    <div {...props} className={`${props.className} flex-auto overflow-auto`}>
+    <div {...props}>
       {categories.map((category) => (
         <CategoryItem
           key={category.id}
@@ -103,9 +103,11 @@ export default function Categories() {
   };
 
   return (
-    <Page title={title}>
+    <Page title={title ?? 'Loading...'}>
       <QueryWrapper result={result}>
-        <CategoryList categories={filteredCategories} onClick={handleClick} />
+        <div className="px-4 pb-4">
+          <CategoryList categories={filteredCategories} onClick={handleClick} />
+        </div>
       </QueryWrapper>
     </Page>
   );

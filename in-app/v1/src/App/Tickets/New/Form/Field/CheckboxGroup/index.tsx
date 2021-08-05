@@ -46,7 +46,7 @@ export function CheckboxGroup({ options, onChange, error }: CheckboxGroupProps) 
           </div>
         ))}
       </div>
-      <ErrorMessage>{error}</ErrorMessage>
+      <ErrorMessage className="mt-1">{error}</ErrorMessage>
     </div>
   );
 }

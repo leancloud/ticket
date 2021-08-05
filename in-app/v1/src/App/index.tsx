@@ -1,19 +1,18 @@
 import { createContext, PropsWithChildren, useContext, useEffect, useMemo, useState } from 'react';
 import { BrowserRouter, Redirect, Route, Switch } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
+import { ArrayParam, decodeQueryParams, JsonParam, StringParam } from 'serialize-query-params';
+import { parse } from 'query-string';
 
-import { auth as lcAuth } from 'leancloud';
+import { User, auth as lcAuth } from 'leancloud';
+import { APIError } from 'components/APIError';
 import { ControlButton } from 'components/ControlButton';
 import { ErrorBoundary } from 'components/ErrorBoundary';
+import { Loading } from 'components/Loading';
 import LogIn from './LogIn';
 import Home from './Home';
 import Categories from './Categories';
 import Tickets from './Tickets';
-import { parse } from 'query-string';
-import { ArrayParam, decodeQueryParams, JsonParam, StringParam } from 'serialize-query-params';
-import { User } from 'open-leancloud-storage/auth';
-import { Loading } from 'components/Loading';
-import { APIError } from 'components/APIError';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -57,7 +56,6 @@ export const useAuth = () => useContext(AuthContext);
 
 export default function App() {
   const pathname = window.location.pathname;
-  if (!pathname.startsWith(ROOT_URL)) return <NotFound />;
   const paths = pathname.split('/');
   const rootCategory = paths[4] === '-' ? undefined : paths[4];
 
@@ -94,6 +92,9 @@ export default function App() {
     }
   }, []);
 
+  if (!pathname.startsWith(ROOT_URL)) {
+    return <NotFound />;
+  }
   return (
     <BrowserRouter basename={`${ROOT_URL}/${paths[4]}`}>
       <QueryClientProvider client={queryClient}>
@@ -101,10 +102,7 @@ export default function App() {
           <RootCategoryContext.Provider value={rootCategory}>
             <AuthContext.Provider value={auth}>
               <TicketInfoContext.Provider value={ticketInfo}>
-                <div className="h-full p-4 sm:px-24 pt-14 sm:pt-4">
-                  <ControlButton />
-                  <Routes />
-                </div>
+                <Routes />
               </TicketInfoContext.Provider>
             </AuthContext.Provider>
           </RootCategoryContext.Provider>

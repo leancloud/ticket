@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-function SvgComponent(props: React.SVGProps<SVGSVGElement>) {
+function HomeIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       width={16}
@@ -27,4 +27,4 @@ function SvgComponent(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-export default SvgComponent;
+export default HomeIcon;

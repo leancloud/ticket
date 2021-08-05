@@ -1,9 +1,10 @@
 import { ChangeEventHandler, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@heroicons/react/solid';
+import cx from 'classnames';
 
 import { useAlert } from 'utils/useAlert';
-import { FileItem } from '../FileItem';
+import { FileItems } from '../FileItem';
 
 const MAX_FILE_SIZE = 1024 * 1024 * 1024; // 1 GB
 
@@ -21,6 +22,7 @@ export interface UploaderProps<Key extends FileKey> {
   files?: FileInfo<Key>[];
   onUpload?: (files: FileList) => void;
   onDelete?: (file: FileInfo<Key>) => void;
+  error?: boolean;
   maxSize?: number;
 }
 
@@ -28,6 +30,7 @@ export function Uploader<Key extends FileKey>({
   files,
   onUpload,
   onDelete,
+  error,
   maxSize = MAX_FILE_SIZE,
 }: UploaderProps<Key>) {
   const { t } = useTranslation();
@@ -61,20 +64,22 @@ export function Uploader<Key extends FileKey>({
     <div className="w-full">
       {alertElement}
       <div
-        className="w-full h-14 p-4 border border-dashed border-gray-400 rounded flex justify-center items-center active:border active:border-tapBlue hover:border-tapBlue cursor-pointer"
+        className={cx(
+          'w-full h-14 p-4 border rounded flex justify-center items-center active:border active:border-tapBlue hover:border-tapBlue cursor-pointer',
+          {
+            'border-dashed border-[#D9D9D9]': !error,
+            'border-red-500': error,
+          }
+        )}
         onClick={handleClick}
       >
         <input className="hidden" type="file" ref={$input} onChange={handleChange} />
         <div className="flex items-center select-none">
           <PlusIcon className="w-7 h-7 text-tapBlue" />
-          <span className="text-gray-500">{t('general.click_to_upload')}</span>
+          <span className="text-[#666]">{t('general.click_to_upload')}</span>
         </div>
       </div>
-      <div className="mt-2 flex flex-wrap gap-2">
-        {files?.map((info) => (
-          <FileItem {...info} onDelete={onDelete && (() => onDelete(info))} />
-        ))}
-      </div>
+      {files && files.length > 0 && <FileItems files={files} onDelete={onDelete} />}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { PropsWithChildren, useCallback, useRef } from 'react';
 import { CheckIcon } from '@heroicons/react/solid';
-import classNames from 'classnames';
+import cx from 'classnames';
 
 export interface CheckboxProps {
   checked?: boolean;
@@ -13,12 +13,12 @@ export function Checkbox({ checked, onChange, fluid, children }: PropsWithChildr
   const handleClick = useCallback(() => $input.current.click(), []);
 
   return (
-    <span className={classNames('inline-flex items-center', { 'w-full': fluid })}>
+    <span className={cx('inline-flex items-center', { 'w-full': fluid })}>
       <span className={`flex-shrink-0 inline-flex justify-center items-center w-4 h-4 relative`}>
         <input
           ref={$input}
           type="checkbox"
-          className={classNames('w-full h-full rounded-sm box-border border-2 border-gray-300', {
+          className={cx('w-full h-full rounded-sm box-border border-2 border-[#D9D9D9]', {
             'bg-tapBlue border-tapBlue': checked,
           })}
           checked={checked}
@@ -26,7 +26,7 @@ export function Checkbox({ checked, onChange, fluid, children }: PropsWithChildr
         />
         {checked && <CheckIcon className="absolute w-4 h-4 text-white pointer-events-none" />}
       </span>
-      <label className="flex-grow ml-2 text-gray-500" onClick={handleClick}>
+      <label className="flex-grow ml-2 text-[#666]" onClick={handleClick}>
         {children}
       </label>
     </span>

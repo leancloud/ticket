@@ -26,8 +26,9 @@ export function Uploader({ onChange, error }: UploaderProps) {
         files={files}
         onUpload={(files) => upload(files[0])}
         onDelete={(file) => remove(file.key)}
+        error={!!error}
       />
-      <ErrorMessage>{error}</ErrorMessage>
+      <ErrorMessage className="mt-1">{error}</ErrorMessage>
     </div>
   );
 }

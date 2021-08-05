@@ -27,17 +27,19 @@ export function Textarea({ onChange, placeholder, rows = 3, maxLength, error }: 
   return (
     <div>
       <textarea
-        className={`w-full px-3 py-1.5 border rounded border-gray-300 ${
-          error ? 'border-red-500' : 'focus:border-tapBlue focus:ring-1 focus:ring-tapBlue'
+        className={`w-full px-3 py-1.5 border rounded text-sm ${
+          error
+            ? 'border-red-500'
+            : 'focus:border-tapBlue focus:ring-1 focus:ring-tapBlue border-[rgba(0,0,0,0.08)]'
         }`}
         value={value}
         onChange={handleChange}
         placeholder={placeholder}
         rows={rows}
       />
-      <ErrorMessage className="float-left">{error}</ErrorMessage>
+      <ErrorMessage className="float-left mt-0.5">{error}</ErrorMessage>
       {maxLength !== undefined && (
-        <span className="float-right text-xs text-gray-400">
+        <span className="float-right mt-0.5 text-xs text-[#BFBFBF]">
           {value.length}/{maxLength}
         </span>
       )}

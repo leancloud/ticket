@@ -1,6 +1,5 @@
 import { useCallback, useState } from 'react';
 
-import { File } from 'types';
 import { Preview, PreviewProps } from 'components/Preview';
 
 function getFileType(mime: string): PreviewProps['type'] | 'unknown' {
@@ -13,13 +12,18 @@ function getFileType(mime: string): PreviewProps['type'] | 'unknown' {
   return 'unknown';
 }
 
+export interface PreviewableFile {
+  mime: string;
+  url: string;
+}
+
 export function usePreview() {
   const [props, setProps] = useState<Omit<PreviewProps, 'onClose'>>({ show: false });
   const handleClose = useCallback(() => setProps((prev) => ({ ...prev, show: false })), []);
 
   const element = <Preview {...props} onClose={handleClose} />;
 
-  const preview = useCallback((file: File) => {
+  const preview = useCallback((file: PreviewableFile) => {
     const fileType = getFileType(file.mime);
     switch (fileType) {
       case 'image':

@@ -1,22 +1,29 @@
-import { ChangeEventHandler, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ChangeEventHandler,
+  PropsWithChildren,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useMutation, useQuery } from 'react-query';
-import { Redirect, useRouteMatch } from 'react-router-dom';
+import { useRouteMatch } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import classNames from 'classnames';
-import { ChevronDownIcon, ChevronUpIcon, PaperClipIcon } from '@heroicons/react/solid';
+import cx from 'classnames';
+import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/solid';
 import { Dialog } from '@headlessui/react';
 
 import { Page } from 'components/Page';
 import { QueryWrapper } from 'components/QueryWrapper';
-import { FileItem } from 'components/FileItem';
-import { Input } from 'components/Form';
+import { FileItems } from 'components/FileItem';
 import { Button } from 'components/Button';
+import ClipIcon from 'icons/Clip';
 import styles from './index.module.css';
 import { Replies, useReplies } from './Replies';
 import { Evaluated, NewEvaluation } from './Evaluation';
 import { http } from 'leancloud';
 import { Reply, Ticket } from 'types';
-import { usePreview } from 'utils/usePreview';
 import { useUpload } from 'utils/useUpload';
 
 async function fetchTicket(id: string): Promise<Ticket> {
@@ -62,25 +69,7 @@ const STATUS_TEXT: Record<number, string> = {
 
 export function TicketStatus({ status }: { status: number }) {
   const { t } = useTranslation();
-  return (
-    <span className={classNames(styles.status, STATUS_CLASS[status])}>
-      {t(STATUS_TEXT[status])}
-    </span>
-  );
-}
-
-type TicketAttributeProps = JSX.IntrinsicElements['div'] & {
-  title: string;
-  expand?: boolean;
-};
-
-function TicketAttribute({ title, expand, ...props }: TicketAttributeProps) {
-  return (
-    <div className={`flex ${expand ? 'mb-2' : 'mb-1'}`}>
-      <div className="flex-shrink-0 w-20 text-gray-400">{title}</div>
-      <div {...props} />
-    </div>
-  );
+  return <span className={cx(styles.status, STATUS_CLASS[status])}>{t(STATUS_TEXT[status])}</span>;
 }
 
 interface ExpandButtonProps {
@@ -92,7 +81,7 @@ function ExpandButton({ expand, onClick }: ExpandButtonProps) {
   const { t } = useTranslation();
 
   return (
-    <button className="text-tapBlue" onClick={onClick}>
+    <button className="mx-auto text-tapBlue" onClick={onClick}>
       {expand ? (
         <>
           {t('general.collapse')}
@@ -108,55 +97,37 @@ function ExpandButton({ expand, onClick }: ExpandButtonProps) {
   );
 }
 
-interface TicketAttributesProps {
-  ticket: Ticket;
+function TicketAttribute({ title, children }: PropsWithChildren<{ title: string }>) {
+  return (
+    <>
+      <label className="min-w-[2em] max-w-[5em] text-[#BFBFBF]">{title}</label>
+      <div className="text-[#666] overflow-hidden">{children}</div>
+    </>
+  );
 }
 
-function TicketAttributes({ ticket }: TicketAttributesProps) {
+function TicketAttributes({ ticket }: { ticket: Ticket }) {
   const { t } = useTranslation();
   const [expand, setExpand] = useState(false);
-  const { element: previewElement, preview } = usePreview();
 
   return (
-    <div className={`${styles.detail} px-4 pt-4 border-b border-gray-100 text-gray-500 text-xs`}>
-      {previewElement}
-      {expand && (
-        <>
-          <TicketAttribute expand title={t('general.number')}>
-            #{ticket.nid}
-          </TicketAttribute>
-          <TicketAttribute expand title={t('general.status')}>
+    <div className="bg-[#FAFAFA] border-b border-gray-100 text-sm transition-all px-4 pt-4">
+      <div className={`${styles.dataGrid} gap-x-4 ${expand ? 'gap-y-2' : 'gap-y-1'}`}>
+        {expand && <TicketAttribute title={t('general.number')}>#{ticket.nid}</TicketAttribute>}
+        {expand && (
+          <TicketAttribute title={t('general.status')}>
             <TicketStatus status={ticket.status} />
           </TicketAttribute>
-        </>
-      )}
-      <TicketAttribute expand={expand} className="truncate" title={t('general.title')}>
-        {ticket.title}
-      </TicketAttribute>
-      <TicketAttribute
-        expand={expand}
-        className={expand ? undefined : 'truncate'}
-        title={t('general.description')}
-      >
-        {ticket.content}
-      </TicketAttribute>
-      {expand && ticket.files.length > 0 && (
-        <TicketAttribute expand title={t('general.attachment')}>
-          <div className="flex flex-wrap gap-2">
-            {ticket.files.map((file) => (
-              <FileItem
-                key={file.id}
-                name={file.name}
-                mime={file.mime}
-                url={file.url}
-                onClick={() => preview(file)}
-              />
-            ))}
-          </div>
+        )}
+        <TicketAttribute title={t('general.title')}>
+          <div className={cx({ truncate: !expand })}>{ticket.title}</div>
         </TicketAttribute>
-      )}
-      <div className="p-2 text-center">
-        <ExpandButton expand={expand} onClick={() => setExpand((v) => !v)} />
+        <TicketAttribute title={t('general.description')}>
+          <div className={cx({ truncate: !expand })}>{ticket.content}</div>
+        </TicketAttribute>
+      </div>
+      <div className="text-center mt-4 mb-1">
+        <ExpandButton expand={expand} onClick={() => setExpand(!expand)} />
       </div>
     </div>
   );
@@ -168,25 +139,22 @@ interface MiniUploaderProps {
 }
 
 function MiniUploader({ className, onUpload }: MiniUploaderProps) {
-  const $fileInput = useRef<HTMLInputElement>(null);
+  const $input = useRef<HTMLInputElement>(null!);
   const handleUpload = useCallback<ChangeEventHandler<HTMLInputElement>>(
     (e) => {
       const files = e.target.files;
       if (files?.length) {
         onUpload(files);
-        $fileInput.current!.value = '';
+        $input.current!.value = '';
       }
     },
     [onUpload]
   );
 
   return (
-    <button
-      className={classNames(className, 'w-5 h-5 text-tapBlue transform rotate-45 scale-y-125')}
-      onClick={() => $fileInput.current?.click()}
-    >
-      <input className="hidden" type="file" ref={$fileInput} onChange={handleUpload} />
-      <PaperClipIcon />
+    <button className={className} onClick={() => $input.current.click()}>
+      <input className="hidden" type="file" ref={$input} onChange={handleUpload} />
+      <ClipIcon className="text-tapBlue" />
     </button>
   );
 }
@@ -206,7 +174,7 @@ function ReplyInput({ onCommit }: ReplyInputProps) {
   const [content, setContent] = useState('');
   const $textarea = useRef<HTMLTextAreaElement>(null);
   const { files, isUploading, upload, remove, removeAll } = useUpload();
-  const canUpload = useMemo(() => {
+  const submitable = useMemo(() => {
     return !isUploading && (content.trim() || files.length);
   }, [isUploading, content]);
 
@@ -237,6 +205,7 @@ function ReplyInput({ onCommit }: ReplyInputProps) {
         file_ids: files.map((file) => file.id!),
       });
       setContent('');
+      $height.current = 0;
       setEditing(false);
       removeAll();
     } catch {}
@@ -245,63 +214,62 @@ function ReplyInput({ onCommit }: ReplyInputProps) {
   return (
     <>
       <div
-        className={classNames('px-4 py-2 border-t border-gray-100 bg-gray-50', {
+        className={cx('border-t border-gray-100 bg-[#FAFAFA]', {
           invisible: editing,
         })}
       >
-        <div className="flex">
-          <Input
-            className="rounded-full placeholder-gray-300 flex-grow mr-4"
+        <div className="flex items-center p-2 text-sm">
+          <input
+            className="leading-[16px] border rounded-full placeholder-[#BFBFBF] flex-grow p-2"
             placeholder={t('reply.input_content_hint')}
             value={content}
             onChange={(e) => handleChangeContent(e.target.value)}
             onFocus={() => setEditing(true)}
           />
-          <Button className="min-w-min" disabled={!canUpload} onClick={handleCommit}>
+          <Button
+            className="ml-2 leading-none w-16 h-8"
+            disabled={!submitable}
+            onClick={handleCommit}
+          >
             {t('general.send')}
           </Button>
         </div>
       </div>
+
       <Dialog open={editing} onClose={() => setEditing(false)}>
-        <Dialog.Overlay className="fixed inset-0 bg-black opacity-30" />
-        <div className="px-4 py-2 border-t border-gray-100 bg-gray-50 fixed bottom-0 w-full">
-          <div className="flex">
-            <div className="w-full mr-4 relative">
-              <div className="flex-grow rounded-2xl border bg-white overflow-auto max-h-32 pr-5">
-                <div className="p-2 flex items-center">
-                  <textarea
-                    ref={$textarea}
-                    className="w-full placeholder-gray-300"
-                    autoFocus
-                    placeholder={t('reply.input_content_hint')}
-                    value={content}
-                    onChange={(e) => handleChangeContent(e.target.value)}
-                    rows={1}
-                  />
-                </div>
-                <MiniUploader
-                  className="absolute bottom-2 right-2"
-                  onUpload={(files) => upload(files[0])}
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-black opacity-30" />
+
+        <div className="fixed bottom-0 z-50 w-full">
+          <div className="flex border-t border-gray-100 bg-[#FAFAFA] p-2 text-sm">
+            <div className="flex flex-grow bg-white border rounded-[18px] leading-none">
+              <div className="flex-grow max-h-[calc(100vh-4rem)] min-h-[32px] p-2 overflow-y-auto rounded-[18px]">
+                <textarea
+                  ref={$textarea}
+                  className="w-full h-4 leading-[16px] placeholder-gray-300"
+                  autoFocus
+                  placeholder={t('reply.input_content_hint')}
+                  value={content}
+                  onChange={(e) => handleChangeContent(e.target.value)}
+                  rows={1}
                 />
-                <div className="flex flex-wrap px-2">
-                  {files.map(({ key, name, mime, url, progress }) => (
-                    <FileItem
-                      key={key}
-                      name={name}
-                      mime={mime}
-                      url={url}
-                      progress={progress}
-                      onDelete={() => remove(key as number)}
-                    />
-                  ))}
-                </div>
+
+                {files.length > 0 && (
+                  <FileItems className="mt-2" files={files} onDelete={(file) => remove(file.key)} />
+                )}
+              </div>
+
+              <div className="flex flex-col-reverse">
+                <MiniUploader className="mr-2 mb-[7px]" onUpload={(files) => upload(files[0])} />
               </div>
             </div>
-            <div className="flex-none flex flex-col-reverse">
-              <Button className="min-w-min" disabled={!canUpload} onClick={handleCommit}>
-                {t('general.send')}
-              </Button>
-            </div>
+
+            <Button
+              className="ml-2 mt-auto mb-px leading-none w-16 h-8"
+              disabled={!submitable}
+              onClick={handleCommit}
+            >
+              {t('general.send')}
+            </Button>
           </div>
         </div>
       </Dialog>
@@ -313,10 +281,12 @@ async function commitReply(ticketId: string, data: ReplyData) {
   await http.post(`/api/1/tickets/${ticketId}/replies`, data);
 }
 
-function useClearUnreadCount(ticketId: string) {
+function useClearUnreadCount(ticketId: string, enabled?: any) {
   useEffect(() => {
-    http.patch(`/api/1/tickets/${ticketId}`, { unread_count: 0 });
-  }, [ticketId]);
+    if (enabled) {
+      http.patch(`/api/1/tickets/${ticketId}`, { unread_count: 0 });
+    }
+  }, [ticketId, enabled]);
 }
 
 export default function TicketDetail() {
@@ -325,7 +295,7 @@ export default function TicketDetail() {
   } = useRouteMatch<{ id: string }>();
   const { t } = useTranslation();
   const result = useTicket(id);
-  useClearUnreadCount(id);
+  useClearUnreadCount(id, result.data?.unreadCount);
   const repliesResult = useReplies(id, {
     onSuccess: () => {
       if ($container.current) {
@@ -352,21 +322,31 @@ export default function TicketDetail() {
     // Ticket is not exists :badbad:
     return <>Ticket is not found</>;
   }
+
   return (
-    <Page title={t('ticket.detail')}>
+    <Page title={t('ticket.detail')} className="rounded-b-none mb-0 min-h-full">
       <QueryWrapper result={result}>
         {(ticket) => (
-          <div className="flex flex-col h-full">
-            <div className="flex-grow overflow-auto" ref={$container}>
+          <>
+            <div className="flex-grow" ref={$container}>
               <TicketAttributes ticket={ticket} />
               <QueryWrapper result={repliesResult}>
-                <Replies replies={replies} />
+                <Replies className="p-4" replies={replies} />
               </QueryWrapper>
-              {ticket.status >= 200 &&
-                (ticket.evaluation ? <Evaluated /> : <NewEvaluation ticketId={id} />)}
+
+              <div id="dummyNewestReply" />
             </div>
-            {ticket.status < 200 && <ReplyInput onCommit={reply} />}
-          </div>
+
+            <div className="sticky bottom-0 bg-white">
+              {ticket.status < 200 ? (
+                <ReplyInput onCommit={reply} />
+              ) : ticket.evaluation ? (
+                <Evaluated />
+              ) : (
+                <NewEvaluation ticketId={id} />
+              )}
+            </div>
+          </>
         )}
       </QueryWrapper>
     </Page>

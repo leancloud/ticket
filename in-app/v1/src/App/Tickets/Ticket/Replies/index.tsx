@@ -1,48 +1,52 @@
-import { useInfiniteQuery, UseInfiniteQueryOptions } from 'react-query';
+import { ComponentPropsWithoutRef, useMemo } from 'react';
+import { UseInfiniteQueryOptions, useInfiniteQuery } from 'react-query';
 import { useTranslation } from 'react-i18next';
+import cx from 'classnames';
 
 import { http } from 'leancloud';
-import { File, Reply } from 'types';
+import { Reply } from 'types';
 import { Time } from 'components/Time';
-import { FileItem } from 'components/FileItem';
-import { usePreview } from 'utils/usePreview';
+import { FileInfoWithKey, FileItems } from 'components/FileItem';
 
 interface ReplyItemProps {
   data: Reply;
-  onPreviewFile: (file: File) => void;
+  isLast?: boolean;
 }
 
-function ReplyItem({ data, onPreviewFile }: ReplyItemProps) {
+function ReplyItem({ data, isLast }: ReplyItemProps) {
   const { t } = useTranslation();
+  const files = useMemo<FileInfoWithKey<string>[]>(() => {
+    return data.files.map((file) => ({ ...file, key: file.id }));
+  }, [data.files]);
 
   return (
-    <div className="border-l-2 px-4 pb-8 relative box-border last:border-white last:pb-0">
-      <div
-        className={`rounded-full absolute -top-px -left-px p-1.5 transform -translate-x-1/2 ${
-          data.isStaff ? 'bg-tapBlue' : 'bg-gray-200'
-        }`}
-      >
-        <div className="bg-white w-1.5 h-1.5 rounded-full"></div>
+    <div className="flex">
+      <div className="flex-shrink-0 flex flex-col">
+        <div
+          className={cx('flex-shrink-0 flex w-[12px] h-[12px] rounded-full left-[-6px]', {
+            'bg-tapBlue': data.isStaff,
+            'bg-[#D9D9D9]': !data.isStaff,
+          })}
+        >
+          <div className="m-auto bg-white w-[4px] h-[4px] rounded-full" />
+        </div>
+        {!isLast && <div className="flex-grow mx-auto w-px bg-gray-100" />}
       </div>
-      <div className="text-xs">
-        <span className="text-gray-500">
+
+      <div className="flex-grow ml-2 pb-8 text-[#666]">
+        <div className="text-xs leading-[12px]">
           {data.isStaff ? t('reply.staff_title') : t('reply.my_title')}
-        </span>
-        <Time className="ml-2 text-gray-300" value={data.createdAt} />
-      </div>
-      <div
-        className={`inline-block rounded-2xl rounded-tl-none p-3 mt-2 text-gray-500 ${
-          data.isStaff ? 'bg-tapBlue-100' : 'bg-gray-50'
-        }`}
-      >
-        {data.content && <div>{data.content}</div>}
-        {data.files.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-2">
-            {data.files.map((file) => (
-              <FileItem {...file} key={file.id} onClick={() => onPreviewFile(file)} />
-            ))}
-          </div>
-        )}
+          <Time className="ml-2 text-[#BFBFBF]" value={data.createdAt} />
+        </div>
+        <div
+          className={cx('inline-block rounded-2xl rounded-tl-none mt-2 p-1 text-sm', {
+            'bg-[#F2FDFE]': data.isStaff,
+            'bg-[rgba(0,0,0,0.02)]': !data.isStaff,
+          })}
+        >
+          {data.content.length > 0 && <div className="m-2 whitespace-pre-line">{data.content}</div>}
+          {files.length > 0 && <FileItems className="m-2" files={files} />}
+        </div>
       </div>
     </div>
   );
@@ -81,18 +85,15 @@ export function useReplies(ticketId: string, options?: UseRepliesOptions) {
   });
 }
 
-export interface RepliesProps {
+export interface RepliesProps extends Omit<ComponentPropsWithoutRef<'div'>, 'children'> {
   replies: Reply[];
 }
 
-export function Replies({ replies }: RepliesProps) {
-  const { element: previewElement, preview } = usePreview();
-
+export function Replies({ replies, ...props }: RepliesProps) {
   return (
-    <div className="m-6">
-      {previewElement}
-      {replies.map((reply) => (
-        <ReplyItem key={reply.id} data={reply} onPreviewFile={preview} />
+    <div {...props}>
+      {replies.map((reply, index) => (
+        <ReplyItem key={reply.id} data={reply} isLast={index === replies.length - 1} />
       ))}
     </div>
   );

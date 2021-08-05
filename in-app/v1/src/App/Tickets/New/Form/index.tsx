@@ -58,7 +58,7 @@ export function FormGroup({ title, controlId, required, children, ...props }: Fr
   const $container = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (controlId && $container.current) {
-      const input = $container.current.querySelector('input[type="text"],textarea');
+      const input = $container.current.querySelector('input[type="text"],textarea,select');
       if (input && !input.id) {
         input.id = controlId;
       }
@@ -68,10 +68,10 @@ export function FormGroup({ title, controlId, required, children, ...props }: Fr
   return (
     <div
       {...props}
-      className={classNames(props.className, 'flex flex-col sm:flex-row mb-5')}
+      className={classNames(props.className, 'flex flex-col sm:flex-row mb-5 last:mb-0')}
       ref={$container}
     >
-      <div className="flex-shrink-0 sm:w-20 mb-1.5 sm:mb-0 py-1">
+      <div className="flex-shrink-0 sm:w-20 sm:mb-0 py-[7px]">
         <label htmlFor={controlId}>
           {title}
           {required && <span className="ml-1 text-red-500 select-none">*</span>}
