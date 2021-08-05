@@ -230,6 +230,7 @@
     "changedTicketCategoryTo": "将工单类别改为",
     "changedTicketAssigneeTo": "将工单负责人改为",
     "changedTicketGroupTo": "将工单客服组改为",
+    "changedTicketFields": "修改工单信息",
     "thoughtNoNeedToReply": "认为该工单暂时无需回复，如有问题可以回复该工单",
     "thoughtNeedTime": "认为该工单处理需要一些时间，稍后会回复该工单",
     "thoughtResolved": "认为该工单已经解决",

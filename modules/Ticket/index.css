@@ -112,3 +112,8 @@
 .field >label{
   font-weight: bold;
 }
+
+
+.form :global(.form-group:last-child){
+  margin-bottom: 0;
+}

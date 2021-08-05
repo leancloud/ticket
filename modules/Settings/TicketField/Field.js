@@ -2,7 +2,7 @@ import React, { memo, useState, useMemo, useCallback, useEffect } from 'react'
 import PropTypes from 'prop-types'
 import { useTranslation } from 'react-i18next'
 import { Form, Button, Modal, Dropdown, Breadcrumb, Col } from 'react-bootstrap'
-import { Link } from 'react-router-dom'
+import { Link, useHistory } from 'react-router-dom'
 import * as Icon from 'react-bootstrap-icons'
 import { useMutation, useQuery } from 'react-query'
 import { DocumentTitle } from 'modules/utils/DocumentTitle'
@@ -202,34 +202,26 @@ const FieldForm = memo(({ onSubmit, initData, submitting }) => {
     })
   }, [locales, variants, type])
 
-  const submit = async () => {
-    await onSubmit({
-      title,
-      type,
-      required,
-      default_locale: defaultLocale,
-      variants: Object.entries(variants).map(([key, value]) => {
-        const { title, options } = value
-        return {
-          title,
-          locale: key,
-          options: includeOptionsType.includes(type) ? options : undefined,
-        }
-      }),
-    })
-    if (!initData) {
-      setTitle()
-      setVariants({})
-    }
-  }
-
   return (
     <>
       <Form
         onSubmit={(e) => {
           e.preventDefault()
           if (errorLocales.length < 1) {
-            submit()
+            onSubmit({
+              title,
+              type,
+              required,
+              default_locale: defaultLocale,
+              variants: Object.entries(variants).map(([key, value]) => {
+                const { title, options } = value
+                return {
+                  title,
+                  locale: key,
+                  options: includeOptionsType.includes(type) ? options : undefined,
+                }
+              }),
+            })
           } else {
             addNotification({
               message: t('ticketField.locale.required'),
@@ -419,6 +411,7 @@ FieldForm.propTypes = {
 
 const AddField = memo(() => {
   const { t } = useTranslation()
+  const history = useHistory()
   const { addNotification } = useAppContext()
   const { mutateAsync, isLoading } = useMutation({
     mutationFn: (data) => http.post('/api/1/ticket-fields', data),
@@ -426,6 +419,7 @@ const AddField = memo(() => {
       addNotification({
         message: t('ticketField.success'),
       })
+      history.push('/settings/ticketField')
     },
     onError: (err) => addNotification(err),
   })

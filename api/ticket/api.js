@@ -1,15 +1,15 @@
 const AV = require('leanengine')
 const { Router } = require('express')
 const { check, query } = require('express-validator')
-
+const { captureException } = require('../errorHandler')
 const { checkPermission } = require('../oauth')
 const { requireAuth, catchError, parseSearchingQ } = require('../middleware')
-const { getVacationerIds } = require('./utils')
+const { getVacationerIds, getFormValuesDifference } = require('./utils')
 const { isObjectExists } = require('../utils/object')
 const { encodeGroupObject } = require('../group/utils')
 const { TICKET_ACTION, TICKET_STATUS } = require('../../lib/common')
 const { encodeFileObject } = require('../file/utils')
-const { encodeUserObject } = require('../user/utils')
+const { encodeUserObject, makeTinyUserInfo } = require('../user/utils')
 const { isCustomerService } = require('../customerService/utils')
 const config = require('../../config')
 const Ticket = require('./model')
@@ -467,6 +467,9 @@ router.get(
         if (data.group) {
           log.group_id = data.group.objectId
         }
+        if (data.changes) {
+          log.changes = data.changes
+        }
         return log
       })
     )
@@ -636,10 +639,7 @@ router.get(
     const formValues = await new AV.Query('TicketFieldValue').equalTo('ticket', req.ticket).first({
       useMasterKey: true,
     })
-    if (!formValues) {
-      res.throw(404, 'Not Found')
-    }
-    res.json(formValues.get('values'))
+    res.json(formValues ? formValues.get('values') : {})
   })
 )
 
@@ -654,8 +654,23 @@ router.patch(
     if (!obj) {
       res.throw(404, 'Not Found')
     }
+    const differenceArray = getFormValuesDifference(form_values, obj.get('values'))
+    /**
+     * no change no save
+     */
+    if (differenceArray.length === 0) {
+      res.json({
+        updatedAt: obj.get('updatedAt'),
+      })
+    }
     obj.set('values', form_values)
     const result = await obj.save(null, { useMasterKey: true })
+    const ticket = new Ticket(req.ticket)
+    ticket.pushOpsLog('changeFields', {
+      changes: differenceArray,
+      operator: makeTinyUserInfo(req.user),
+    })
+    await ticket.saveOpsLogs().catch(captureException)
     res.json({
       updatedAt: result.get('updatedAt'),
     })

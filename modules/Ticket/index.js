@@ -319,7 +319,6 @@ export default function Ticket() {
   const { ticket, isLoading: loadingTicket, refetchTicket, error } = useTicket(nid)
   const { timeline, loadMoreReplies, loadMoreOpsLogs } = useTimeline(ticket?.id)
   useTitle(ticket?.title)
-
   const { mutateAsync: operateTicket } = useMutation({
     mutationFn: (action) =>
       fetch(`/api/1/tickets/${ticket.id}/operate`, {
@@ -391,7 +390,11 @@ export default function Ticket() {
             />
           )}
 
-          <TicketMetadata ticket={ticket} isCustomerService={isCsInThisTicket} />
+          <TicketMetadata
+            ticket={ticket}
+            isCustomerService={isCsInThisTicket}
+            loadMoreOpsLogs={loadMoreOpsLogs}
+          />
 
           <TicketOperation
             ticket={ticket}

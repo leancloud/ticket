@@ -1,10 +1,10 @@
 const AV = require('leancloud-storage')
 const { Router } = require('express')
 const { check } = require('express-validator')
-const { requireAuth, customerServiceOnly, catchError } = require('./middleware')
+const { requireAuth, catchError, customerServiceOnly } = require('./middleware')
 const { responseAppendCount } = require('./utils')
 
-const router = Router().use(requireAuth, customerServiceOnly)
+const router = Router().use(requireAuth)
 
 const TYPES = ['dropdown', 'text', 'multi-line', 'multi-select', 'checkbox', 'radios', 'file']
 const LOCALES = [
@@ -101,6 +101,7 @@ router.get(
 
 router.post(
   '/',
+  customerServiceOnly,
   check('title').isString().isLength({ min: 1 }),
   check('type')
     .isString()
@@ -151,6 +152,7 @@ router.post(
 
 router.patch(
   '/:id',
+  customerServiceOnly,
   check('title').isString().isLength({ min: 1 }).optional(),
   check('active').isBoolean().optional(),
   check('required').isBoolean().optional(),
