@@ -23,7 +23,7 @@ export function Preview({ show, onClose, type, src }: PreviewProps) {
       <Dialog className="fixed inset-0 z-50 flex justify-center items-center" onClose={onClose}>
         <Dialog.Overlay className="fixed inset-0 bg-black opacity-60" />
 
-        <div tabIndex={0} className="z-10">
+        <div tabIndex={0} className="z-10 outline-none">
           {type === 'image' && <img className="max-h-screen" onClick={onClose} src={src} />}
           {type === 'video' && <video className="max-h-screen" src={src} controls />}
         </div>

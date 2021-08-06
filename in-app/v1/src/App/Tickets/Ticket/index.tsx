@@ -214,7 +214,7 @@ function ReplyInput({ onCommit }: ReplyInputProps) {
   return (
     <>
       <div
-        className={cx('border-t border-gray-100 bg-[#FAFAFA]', {
+        className={cx('border-t border-gray-100 bg-[#FAFAFA] pb-[env(safe-area-inset-bottom)]', {
           invisible: editing,
         })}
       >
@@ -240,9 +240,9 @@ function ReplyInput({ onCommit }: ReplyInputProps) {
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black opacity-30" />
 
         <div className="fixed bottom-0 z-50 w-full">
-          <div className="flex border-t border-gray-100 bg-[#FAFAFA] p-2 text-sm">
-            <div className="flex flex-grow bg-white border rounded-[18px] leading-none">
-              <div className="flex-grow max-h-[calc(100vh-4rem)] min-h-[32px] p-2 overflow-y-auto rounded-[18px]">
+          <div className="flex items-center border-t border-gray-100 bg-[#FAFAFA] p-2 text-sm">
+            <div className="flex flex-grow bg-white border rounded-[17px] leading-none">
+              <div className="flex-grow max-h-[calc(100vh-4rem)] min-h-[32px] p-2 overflow-y-auto rounded-[16px] leading-[0]">
                 <textarea
                   ref={$textarea}
                   className="w-full h-4 leading-[16px] placeholder-gray-300"
