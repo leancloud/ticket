@@ -1,5 +1,7 @@
 import classNames from 'classnames';
+import { forwardRef, useImperativeHandle, useRef } from 'react';
 
+import { ControlRef } from '..';
 import { ErrorMessage } from '../ErrorMessage';
 
 export interface InputProps {
@@ -8,10 +10,17 @@ export interface InputProps {
   error?: string;
 }
 
-export function Input({ onChange, placeholder, error }: InputProps) {
+export const Input = forwardRef<ControlRef, InputProps>(({ onChange, placeholder, error }, ref) => {
+  const $input = useRef<HTMLInputElement>(null!);
+
+  useImperativeHandle(ref, () => ({
+    focus: () => $input.current.focus(),
+  }));
+
   return (
     <div>
       <input
+        ref={$input}
         type="text"
         className={classNames('w-full px-3 py-2 border rounded text-sm', {
           'focus:border-tapBlue focus:ring-1 focus:ring-tapBlue': !error,
@@ -21,7 +30,8 @@ export function Input({ onChange, placeholder, error }: InputProps) {
         onChange={(e) => onChange(e.target.value || undefined)}
         placeholder={placeholder}
       />
+
       <ErrorMessage className="mt-1">{error}</ErrorMessage>
     </div>
   );
-}
+});

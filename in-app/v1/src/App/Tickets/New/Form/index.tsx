@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 
-import { Field } from './Field';
+import { ControlRef, Field } from './Field';
 
 interface BaseTemplate<T extends string> {
   type: T;
@@ -96,6 +96,7 @@ export function useForm(templates: FieldTemplate[]) {
   const { t } = useTranslation();
   const [data, setData] = useState<Record<string, any>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const $refs = useRef<Record<string, ControlRef>>({});
 
   const element = (
     <>
@@ -108,6 +109,7 @@ export function useForm(templates: FieldTemplate[]) {
         >
           <Field
             {...rest}
+            ref={(current) => ($refs.current[name] = current!)}
             onChange={(v: any) => setData((prev) => omitUndefined({ ...prev, [name]: v }))}
             error={errors[name]}
           />
@@ -118,21 +120,30 @@ export function useForm(templates: FieldTemplate[]) {
 
   const validate = () => {
     const nextErrors: Record<string, string> = {};
+    let count = 0;
     templates.forEach((tmpl) => {
+      let error: string | undefined;
       switch (tmpl.type) {
         case 'text':
         case 'multi-line':
         case 'radios':
         case 'dropdown':
           if (tmpl.required && !data[tmpl.name]) {
-            nextErrors[tmpl.name] = t('validation.required');
+            error = t('validation.required');
           }
           break;
         case 'multi-select':
           if (tmpl.required && (!data[tmpl.name] || data[tmpl.name].length === 0)) {
-            nextErrors[tmpl.name] = t('validation.required');
+            error = t('validation.required');
           }
           break;
+      }
+      if (error) {
+        nextErrors[tmpl.name] = error;
+        if (count === 0) {
+          $refs.current[tmpl.name]?.focus();
+        }
+        count++;
       }
     });
     setErrors(nextErrors);

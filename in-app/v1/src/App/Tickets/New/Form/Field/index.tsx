@@ -1,4 +1,4 @@
-import { createElement } from 'react';
+import { ExoticComponent, createElement, forwardRef } from 'react';
 
 import { Input, InputProps } from './Input';
 import { Dropdown, DropdownProps } from './Dropdown';
@@ -17,7 +17,11 @@ export type FieldProps =
   | AddType<TextareaProps, 'multi-line'>
   | AddType<UploaderProps, 'file'>;
 
-const COMPONENTS: Record<string, ((...args: any[]) => JSX.Element) | undefined> = {
+export interface ControlRef {
+  focus: () => void;
+}
+
+const COMPONENTS: Record<string, ExoticComponent<any> | undefined> = {
   text: Input,
   dropdown: Dropdown,
   radios: RadioGroup,
@@ -30,10 +34,10 @@ function Unknown({ type }: { type: string }) {
   return <div className="text-red-500">Unsupported component: {type}</div>;
 }
 
-export function Field({ type, ...props }: FieldProps) {
+export const Field = forwardRef<ControlRef, FieldProps>(({ type, ...props }, ref) => {
   const Component = COMPONENTS[type];
   if (!Component) {
     return <Unknown type={type} />;
   }
-  return createElement(Component, { ...props });
-}
+  return createElement(Component, { ...props, ref });
+});
