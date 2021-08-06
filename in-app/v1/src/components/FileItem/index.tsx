@@ -1,8 +1,9 @@
 import { ComponentPropsWithoutRef, Key, useMemo } from 'react';
-import { FilmIcon, PaperClipIcon, XIcon } from '@heroicons/react/solid';
+import { FilmIcon, PaperClipIcon } from '@heroicons/react/solid';
 import cx from 'classnames';
 
 import { usePreview } from 'utils/usePreview';
+import XIcon from 'icons/X';
 import styles from './index.module.css';
 
 function FileIcon({ mime, url }: { mime?: string; url?: string }) {

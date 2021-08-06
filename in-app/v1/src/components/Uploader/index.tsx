@@ -1,9 +1,9 @@
 import { ChangeEventHandler, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PlusIcon } from '@heroicons/react/solid';
 import cx from 'classnames';
 
 import { useAlert } from 'utils/useAlert';
+import PlusIcon from 'icons/Plus';
 import { FileItems } from '../FileItem';
 
 const MAX_FILE_SIZE = 1024 * 1024 * 1024; // 1 GB
@@ -75,11 +75,13 @@ export function Uploader<Key extends FileKey>({
       >
         <input className="hidden" type="file" ref={$input} onChange={handleChange} />
         <div className="flex items-center select-none">
-          <PlusIcon className="w-7 h-7 text-tapBlue" />
-          <span className="text-[#666]">{t('general.click_to_upload')}</span>
+          <PlusIcon className="w-4 h-4 text-tapBlue" />
+          <span className="ml-1 text-[#666] text-sm">{t('general.click_to_upload')}</span>
         </div>
       </div>
-      {files && files.length > 0 && <FileItems files={files} onDelete={onDelete} />}
+      {files && files.length > 0 && (
+        <FileItems className="mt-2" files={files} onDelete={onDelete} />
+      )}
     </div>
   );
 }

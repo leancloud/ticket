@@ -1,6 +1,7 @@
-import { MouseEventHandler, useMemo } from 'react';
-import { useHistory, useRouteMatch } from 'react-router-dom';
+import { MouseEventHandler, useEffect, useMemo, useState } from 'react';
+import { useHistory, useParams } from 'react-router-dom';
 import { useQuery, UseQueryResult } from 'react-query';
+import { useTranslation } from 'react-i18next';
 import { ChevronRightIcon } from '@heroicons/react/solid';
 
 import { Page } from 'components/Page';
@@ -68,33 +69,40 @@ export function CategoryList({ categories, onClick, marker, ...props }: Category
 }
 
 export default function Categories() {
-  const {
-    params: { id },
-  } = useRouteMatch<{ id: string }>();
+  const { id } = useParams<{ id: string }>();
   const history = useHistory();
   const result = useCategories();
-  const categories = result.data;
+  const [categories, setCateogries] = useState<Category[]>([]);
+  const { t } = useTranslation();
+  const [title, setTitle] = useState(t('general.loading') + '...');
 
-  const [filteredCategories, title] = useMemo(() => {
-    const filteredCategories: Category[] = [];
-    let title: string | undefined = undefined;
-    categories?.forEach((category) => {
-      if (category.id === id) {
-        title = category.name;
+  useEffect(() => {
+    if (result.data) {
+      const categories: Category[] = [];
+      result.data.forEach((category) => {
+        if (category.id === id) {
+          setTitle(category.name);
+        }
+        if (category.parentId === id) {
+          categories.push(category);
+        }
+      });
+      if (categories.length) {
+        categories.sort((a, b) => a.position - b.position);
+        setCateogries(categories);
+      } else {
+        history.push('/404');
       }
-      if (category.parentId === id) {
-        filteredCategories.push(category);
-      }
-    });
-    filteredCategories.sort((a, b) => a.position - b.position);
-    return [filteredCategories, title];
-  }, [categories, id]);
+    } else {
+      setTitle(t('general.loading') + '...');
+    }
+  }, [t, result.data, id, history]);
 
   const handleClick = ({ id }: Category) => {
-    if (!categories) {
+    if (!result.data) {
       return;
     }
-    const hasChildren = categories.findIndex((c) => c.parentId === id) !== -1;
+    const hasChildren = result.data.findIndex((c) => c.parentId === id) !== -1;
     if (hasChildren) {
       history.push(`/categories/${id}`);
     } else {
@@ -103,10 +111,10 @@ export default function Categories() {
   };
 
   return (
-    <Page title={title ?? 'Loading...'}>
+    <Page title={title}>
       <QueryWrapper result={result}>
         <div className="px-4 pb-4">
-          <CategoryList categories={filteredCategories} onClick={handleClick} />
+          <CategoryList categories={categories} onClick={handleClick} />
         </div>
       </QueryWrapper>
     </Page>

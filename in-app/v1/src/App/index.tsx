@@ -6,13 +6,13 @@ import { parse } from 'query-string';
 
 import { User, auth as lcAuth } from 'leancloud';
 import { APIError } from 'components/APIError';
-import { ControlButton } from 'components/ControlButton';
 import { ErrorBoundary } from 'components/ErrorBoundary';
 import { Loading } from 'components/Loading';
 import LogIn from './LogIn';
 import Home from './Home';
 import Categories from './Categories';
 import Tickets from './Tickets';
+import NotFound from './NotFound';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -29,7 +29,7 @@ function PrivateRoute(props: PropsWithChildren<{ path: string; exact?: boolean }
     return <Loading />;
   }
   if (error) {
-    return <APIError error={error} />;
+    return <APIError onRetry={() => location.reload()} />;
   }
   if (!auth) {
     return <Redirect to="/login" />;
@@ -41,8 +41,6 @@ const RootCategoryContext = createContext<string | undefined>(undefined);
 export const useRootCategory = () => useContext(RootCategoryContext);
 
 const ROOT_URL = '/in-app/v1/categories';
-
-const NotFound = () => <>NOT FOUND</>;
 
 const TicketInfoContext = createContext<{
   meta?: Record<string, unknown> | null;
@@ -93,7 +91,7 @@ export default function App() {
   }, []);
 
   if (!pathname.startsWith(ROOT_URL)) {
-    return <NotFound />;
+    return <Redirect to="/404" />;
   }
   return (
     <BrowserRouter basename={`${ROOT_URL}/${paths[4]}`}>
@@ -130,9 +128,10 @@ const Routes = () => {
       <PrivateRoute path="/" exact>
         <Home />
       </PrivateRoute>
-      <Route path="*">
+      <Route path="/404">
         <NotFound />
       </Route>
+      <Redirect to="/404" />
     </Switch>
   );
 };

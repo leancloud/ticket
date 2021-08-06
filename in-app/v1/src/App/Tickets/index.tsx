@@ -7,6 +7,7 @@ import { InView } from 'react-intersection-observer';
 import { QueryWrapper } from 'components/QueryWrapper';
 import { Page } from 'components/Page';
 import { Time } from 'components/Time';
+import { LoadingHint } from 'components/Loading';
 import TicketDetail, { TicketStatus } from './Ticket';
 import { NewTicket } from './New';
 import { auth, http } from 'leancloud';
@@ -104,10 +105,10 @@ export function TicketList() {
           ))}
           {!noData && (
             <InView
-              className="text-center w-full py-3 text-xs text-gray-300"
+              className="flex justify-center items-center w-full h-12 text-[#BFBFBF]"
               onChange={(inView) => inView && fetchNextPage()}
             >
-              {hasNextPage ? t('general.loading') + '...' : t('ticket.no_more_record')}
+              {hasNextPage ? <LoadingHint /> : t('ticket.no_more_record')}
             </InView>
           )}
         </>
