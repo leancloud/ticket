@@ -30,7 +30,7 @@ async function fetchTickets({
       root_category_id: categoryId,
       page,
       page_size: TICKETS_PAGE_SIZE,
-      q: 'sort:created_at-desc',
+      q: 'sort:updated_at-desc',
     },
   });
   return data.map((ticket) => ({
