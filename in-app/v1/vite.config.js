@@ -18,6 +18,7 @@ export default defineConfig({
       utils: path.resolve('./src/utils/'),
       leancloud: path.resolve('./src/leancloud'),
       types: path.resolve('./src/types'),
+      icons: path.resolve('./src/icons'),
     },
   },
 });

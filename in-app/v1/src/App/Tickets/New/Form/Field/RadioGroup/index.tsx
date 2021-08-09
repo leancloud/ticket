@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 
 import { Radio } from 'components/Form/Radio';
 import { ErrorMessage } from '../ErrorMessage';
+import { ControlRef } from '..';
 
 export interface RadioOption {
   title: string;
@@ -14,28 +15,35 @@ export interface RadioGroupProps {
   error?: string;
 }
 
-export function RadioGroup({ options, onChange, error }: RadioGroupProps) {
-  const [value, setValue] = useState<string>();
+export const RadioGroup = forwardRef<ControlRef, RadioGroupProps>(
+  ({ options, onChange, error }, ref) => {
+    const $container = useRef<HTMLDivElement>(null!);
+    const [value, setValue] = useState<string>();
 
-  return (
-    <div>
-      <div className="grid sm:grid-cols-2 gap-3">
-        {options.map((option) => (
-          <div key={option.value} className="flex items-center break-all">
-            <Radio
-              fluid
-              checked={value === option.value}
-              onChange={() => {
-                setValue(option.value);
-                onChange(option.value);
-              }}
-            >
-              {option.title}
-            </Radio>
-          </div>
-        ))}
+    useImperativeHandle(ref, () => ({
+      focus: () => $container.current.focus(),
+    }));
+
+    return (
+      <div>
+        <div className="grid sm:grid-cols-2 gap-3">
+          {options.map((option) => (
+            <div key={option.value} className="flex items-center break-all">
+              <Radio
+                fluid
+                checked={value === option.value}
+                onChange={() => {
+                  setValue(option.value);
+                  onChange(option.value);
+                }}
+              >
+                {option.title}
+              </Radio>
+            </div>
+          ))}
+        </div>
+        <ErrorMessage className="mt-1">{error}</ErrorMessage>
       </div>
-      <ErrorMessage className="mt-1">{error}</ErrorMessage>
-    </div>
-  );
-}
+    );
+  }
+);

@@ -1,6 +1,7 @@
 import { PropsWithChildren, useCallback, useRef } from 'react';
-import { CheckIcon } from '@heroicons/react/solid';
-import classNames from 'classnames';
+import cx from 'classnames';
+
+import CheckIcon from 'icons/Check';
 
 export interface CheckboxProps {
   checked?: boolean;
@@ -13,20 +14,24 @@ export function Checkbox({ checked, onChange, fluid, children }: PropsWithChildr
   const handleClick = useCallback(() => $input.current.click(), []);
 
   return (
-    <span className={classNames('inline-flex items-center', { 'w-full': fluid })}>
-      <span className={`flex-shrink-0 inline-flex justify-center items-center w-4 h-4 relative`}>
+    <span className={cx('inline-flex items-center', { 'w-full': fluid })}>
+      <span
+        className={`flex-shrink-0 inline-flex justify-center items-center w-[14px] h-[14px] relative`}
+      >
         <input
           ref={$input}
           type="checkbox"
-          className={classNames('w-full h-full rounded-sm box-border border-2 border-gray-300', {
-            'bg-tapBlue-600 border-tapBlue-600': checked,
+          className={cx('w-full h-full rounded-sm box-border border-2 border-[#D9D9D9]', {
+            'bg-tapBlue border-tapBlue': checked,
           })}
           checked={checked}
           onChange={(e) => onChange?.(e.target.checked)}
         />
-        {checked && <CheckIcon className="absolute w-4 h-4 text-white pointer-events-none" />}
+        {checked && (
+          <CheckIcon className="absolute w-[11px] h-[11px] text-white pointer-events-none" />
+        )}
       </span>
-      <label className="flex-grow ml-2 text-gray-500" onClick={handleClick}>
+      <label className="flex-grow ml-2 text-[#666]" onClick={handleClick}>
         {children}
       </label>
     </span>

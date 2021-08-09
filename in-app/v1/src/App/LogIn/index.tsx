@@ -1,4 +1,4 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useMemo, useState } from 'react';
 import { Redirect, useHistory } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
@@ -21,7 +21,7 @@ function LogInForm() {
   };
 
   return (
-    <form className="absolute" onSubmit={handleSubmit}>
+    <form className="m-auto" onSubmit={handleSubmit}>
       <div>
         <Input
           value={username}
@@ -29,7 +29,7 @@ function LogInForm() {
           onChange={(e) => setUsername(e.target.value)}
         />
       </div>
-      <div>
+      <div className="mt-1">
         <Input
           type="password"
           value={password}
@@ -37,7 +37,7 @@ function LogInForm() {
           onChange={(e) => setPassword(e.target.value)}
         />
       </div>
-      <Button type="submit" disabled={!username || !password}>
+      <Button className="mt-1" type="submit" disabled={!username || !password}>
         Sign in
       </Button>
     </form>
@@ -47,15 +47,21 @@ function LogInForm() {
 export default function LogIn() {
   const { t } = useTranslation();
 
+  const showLoginForm = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return params.has('showLoginForm');
+  }, []);
+
   if (auth.currentUser) {
     return <Redirect to="/" />;
   }
   return (
     <Page>
-      <div className="h-full flex justify-center items-center">
-        <div className="text-gray-500">{t('auth.not_logged_in_text')}</div>
+      {showLoginForm ? (
         <LogInForm />
-      </div>
+      ) : (
+        <div className="mx-auto mt-28 sm:m-auto text-[#666]">{t('auth.not_logged_in_text')}</div>
+      )}
     </Page>
   );
 }

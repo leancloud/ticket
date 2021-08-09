@@ -1,6 +1,8 @@
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
+
 import { Uploader as Uploader_ } from 'components/Uploader';
-import { useEffect } from 'react';
 import { useUpload } from 'utils/useUpload';
+import { ControlRef } from '..';
 import { ErrorMessage } from '../ErrorMessage';
 
 export interface UploaderProps {
@@ -8,7 +10,8 @@ export interface UploaderProps {
   error?: string;
 }
 
-export function Uploader({ onChange, error }: UploaderProps) {
+export const Uploader = forwardRef<ControlRef, UploaderProps>(({ onChange, error }, ref) => {
+  const $container = useRef<HTMLDivElement>(null!);
   const { files, upload, remove } = useUpload();
 
   useEffect(() => {
@@ -20,14 +23,19 @@ export function Uploader({ onChange, error }: UploaderProps) {
     }
   }, [files]);
 
+  useImperativeHandle(ref, () => ({
+    focus: () => $container.current.scrollIntoView(),
+  }));
+
   return (
     <div>
       <Uploader_
         files={files}
         onUpload={(files) => upload(files[0])}
         onDelete={(file) => remove(file.key)}
+        error={!!error}
       />
-      <ErrorMessage>{error}</ErrorMessage>
+      <ErrorMessage className="mt-1">{error}</ErrorMessage>
     </div>
   );
-}
+});

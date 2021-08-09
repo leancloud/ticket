@@ -3,6 +3,8 @@ import { authModule } from 'open-leancloud-storage/auth';
 import { storageModule } from 'open-leancloud-storage/storage';
 import axios from 'axios';
 
+export type { User } from 'open-leancloud-storage/auth';
+
 use(authModule);
 use(storageModule);
 

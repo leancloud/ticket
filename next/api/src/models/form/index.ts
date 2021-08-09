@@ -88,6 +88,48 @@ export class TicketFieldVariant {
   }
 }
 
+const presetFields: Record<string, TicketField | undefined> = {
+  title: new TicketField({
+    id: 'title',
+    title: 'Title',
+    type: 'text',
+    active: true,
+    defaultLocale: 'en',
+    required: true,
+  }),
+  description: new TicketField({
+    id: 'description',
+    title: 'Description',
+    type: 'multi-line',
+    active: true,
+    defaultLocale: 'en',
+    required: true,
+  }),
+};
+
+const presetFieldVariants: Record<string, TicketFieldVariant[] | undefined> = {
+  title: [
+    new TicketFieldVariant({
+      id: 'title',
+      fieldId: 'title',
+      locale: 'en',
+      title: 'Title',
+      type: 'text',
+      required: true,
+    }),
+  ],
+  description: [
+    new TicketFieldVariant({
+      id: 'description',
+      fieldId: 'description',
+      locale: 'en',
+      title: 'Description',
+      type: 'multi-line',
+      required: true,
+    }),
+  ],
+};
+
 export interface TicketFormData {
   id: string;
   title: string;
@@ -120,9 +162,12 @@ export class TicketForm {
 
   async getFields(): Promise<TicketField[]> {
     const query = new AV.Query<AV.Object>('TicketField');
-    query.containedIn('objectId', this.fieldIds);
+    query.containedIn(
+      'objectId',
+      this.fieldIds.filter((id) => !presetFields[id])
+    );
     const objects = await query.find({ useMasterKey: true });
-    const fieldMap: Record<string, TicketField> = {};
+    const fieldMap = { ...presetFields };
     objects.forEach((obj) => {
       fieldMap[obj.id!] = new TicketField({
         id: obj.id!,
@@ -133,13 +178,30 @@ export class TicketForm {
         required: obj.get('required'),
       });
     });
+
     const fields: TicketField[] = [];
+    let hasTitle = false;
+    let hasDesc = false;
+
     this.fieldIds.forEach((id) => {
+      if (id === 'title') {
+        hasTitle = true;
+      } else if (id === 'description') {
+        hasDesc = true;
+      }
       const field = fieldMap[id];
       if (field) {
         fields.push(field);
       }
     });
+
+    if (!hasTitle) {
+      fields.unshift(presetFields['title']!);
+    }
+    if (!hasDesc) {
+      fields.push(presetFields['description']!);
+    }
+
     return fields;
   }
 
@@ -158,7 +220,7 @@ export class TicketForm {
     query.containedIn('locale', Array.from(locale_set));
     const objects = await query.find({ useMasterKey: true });
 
-    const fieldVariants_map: Record<string, TicketFieldVariant[]> = {};
+    const fieldVariants_map = { ...presetFieldVariants };
     objects.forEach((obj) => {
       const fieldId = obj.get('field').id as string;
       const field = field_map[fieldId];
@@ -173,7 +235,7 @@ export class TicketForm {
       });
 
       if (fieldVariants_map[fieldId]) {
-        fieldVariants_map[fieldId].push(variant);
+        fieldVariants_map[fieldId]!.push(variant);
       } else {
         fieldVariants_map[fieldId] = [variant];
       }

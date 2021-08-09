@@ -1,42 +1,37 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { CheckCircleIcon } from '@heroicons/react/solid';
 import { useMutation, useQuery } from 'react-query';
 import i18next from 'i18next';
 
 import { Field } from 'types';
 import { useSearchParams } from 'utils/url';
-import { useUpload } from 'utils/useUpload';
 import { Page } from 'components/Page';
 import { Button } from 'components/Button';
-import { Uploader } from 'components/Uploader';
 import { QueryWrapper } from 'components/QueryWrapper';
 import { SpaceChinese } from 'components/SpaceChinese';
+import CheckIcon from 'icons/Check';
 import { useCategory } from '../../Categories';
-import { FieldTemplate, FormGroup, useForm } from './Form';
+import { FieldTemplate, useForm } from './Form';
 import { http } from 'leancloud';
 import { useTicketInfo } from '../..';
 
-const PRESET_FORM_FIELDS_HEAD: FieldTemplate[] = [
-  {
+const presetFieldCreators: Record<string, (() => FieldTemplate) | undefined> = {
+  title: () => ({
     name: 'title',
     title: i18next.t('general.title'),
     type: 'text',
     required: true,
-  },
-];
-
-const PRESET_FORM_FIELDS_FOOT: FieldTemplate[] = [
-  {
+  }),
+  description: () => ({
     name: 'content',
     title: i18next.t('general.description'),
     type: 'multi-line',
     rows: 4,
     maxLength: 100,
     required: true,
-  },
-];
+  }),
+};
 
 async function fetchCategoryFields(categoryId: string): Promise<FieldTemplate[]> {
   const { data } = await http.get<Field[]>(`/api/2/categories/${categoryId}/fields`);
@@ -55,7 +50,7 @@ interface NewTicketData {
   category_id: string;
   title: string;
   content: string;
-  file_ids: string[];
+  file_ids?: string[];
 }
 
 interface TicketFormProps {
@@ -65,13 +60,27 @@ interface TicketFormProps {
 
 function TicketForm({ categoryId, onCommit }: TicketFormProps) {
   const { t } = useTranslation();
-  const { files, upload, remove, isUploading } = useUpload();
   const [isCommitting, setIsCommitting] = useState(false);
   const { meta, tags } = useTicketInfo();
 
-  const { data: fields, isLoading: isLoadingFields } = useCategoryFields(categoryId);
+  const result = useCategoryFields(categoryId);
+  const { data: fields } = result;
+
   const formFields = useMemo(() => {
-    return [...PRESET_FORM_FIELDS_HEAD, ...(fields ?? []), ...PRESET_FORM_FIELDS_FOOT];
+    if (!fields) {
+      return [];
+    }
+    if (fields.length === 0) {
+      // 没有为当期分类配置表单时, 展示 title & description.
+      return Object.values(presetFieldCreators).map((creator) => creator!());
+    }
+    return fields.map((field) => {
+      if (field.name in presetFieldCreators) {
+        return presetFieldCreators[field.name]!();
+      } else {
+        return field;
+      }
+    });
   }, [fields]);
   const { element: formElement, validate, data: formData } = useForm(formFields);
 
@@ -84,7 +93,6 @@ function TicketForm({ categoryId, onCommit }: TicketFormProps) {
       category_id: categoryId,
       title: title as string,
       content: content as string,
-      file_ids: files.map((file) => file.id!),
       form_values: Object.entries(fieldValues).map(([id, value]) => ({ field: id, value })),
       metadata: meta,
       tags,
@@ -98,23 +106,18 @@ function TicketForm({ categoryId, onCommit }: TicketFormProps) {
   };
 
   return (
-    <div className="p-4 sm:px-8 sm:py-6">
-      {formElement}
-      <FormGroup controlId="ticket_file" title={t('general.attachment')}>
-        <Uploader
-          files={files}
-          onUpload={(files) => upload(files[0])}
-          onDelete={({ key }) => remove(key)}
-        />
-      </FormGroup>
-      <Button
-        className="sm:ml-20 w-full sm:max-w-max sm:px-11"
-        disabled={isLoadingFields || isCommitting || isUploading}
-        onClick={handleCommit}
-      >
-        <SpaceChinese>{t('general.commit')}</SpaceChinese>
-      </Button>
-    </div>
+    <QueryWrapper result={result}>
+      <div className="p-4">
+        {formElement}
+        <Button
+          className="mb-4 sm:ml-20 w-full sm:max-w-max sm:px-11"
+          disabled={isCommitting}
+          onClick={handleCommit}
+        >
+          <SpaceChinese>{t('general.commit')}</SpaceChinese>
+        </Button>
+      </div>
+    </QueryWrapper>
   );
 }
 
@@ -126,10 +129,12 @@ function Success({ ticketId }: SuccessProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="flex flex-col justify-center items-center h-full">
-      <CheckCircleIcon className="w-12 h-12 text-tapBlue-600" />
-      <div className="text-gray-500 mt-8">{t('ticket.create.success_text')}</div>
-      <Button className="mt-4 px-12" as={Link} to={`/tickets/${ticketId}`}>
+    <div className="flex flex-col justify-center items-center h-60">
+      <div className="p-2.5 rounded-full bg-tapBlue">
+        <CheckIcon className="w-4 h-4 text-white" />
+      </div>
+      <div className="text-[#666] mt-8">{t('ticket.create.success_text')}</div>
+      <Button className="w-32 mt-4" as={Link} to={`/tickets/${ticketId}`}>
         {t('ticket.detail')}
       </Button>
     </div>
@@ -159,7 +164,7 @@ export function NewTicket() {
     return <>Category is not found</>;
   }
   return (
-    <Page title={result.data?.name}>
+    <Page title={result.data?.name ?? 'Loading...'}>
       <QueryWrapper result={result}>
         {ticketId ? (
           <Success ticketId={ticketId} />

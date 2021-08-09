@@ -10,6 +10,7 @@
   }
 }
 
-.detail {
-  background-color: #FAFAFA;
+.dataGrid {
+  display: grid;
+  grid-template-columns: auto 1fr;
 }

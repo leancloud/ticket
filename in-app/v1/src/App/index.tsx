@@ -1,19 +1,18 @@
 import { createContext, PropsWithChildren, useContext, useEffect, useMemo, useState } from 'react';
 import { BrowserRouter, Redirect, Route, Switch } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
+import { ArrayParam, decodeQueryParams, JsonParam, StringParam } from 'serialize-query-params';
+import { parse } from 'query-string';
 
-import { auth as lcAuth } from 'leancloud';
-import { ControlButton } from 'components/ControlButton';
+import { User, auth as lcAuth } from 'leancloud';
+import { APIError } from 'components/APIError';
 import { ErrorBoundary } from 'components/ErrorBoundary';
+import { Loading } from 'components/Loading';
 import LogIn from './LogIn';
 import Home from './Home';
 import Categories from './Categories';
 import Tickets from './Tickets';
-import { parse } from 'query-string';
-import { ArrayParam, decodeQueryParams, JsonParam, StringParam } from 'serialize-query-params';
-import { User } from 'open-leancloud-storage/auth';
-import { Loading } from 'components/Loading';
-import { APIError } from 'components/APIError';
+import NotFound from './NotFound';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,7 +29,7 @@ function PrivateRoute(props: PropsWithChildren<{ path: string; exact?: boolean }
     return <Loading />;
   }
   if (error) {
-    return <APIError error={error} />;
+    return <APIError onRetry={() => location.reload()} />;
   }
   if (!auth) {
     return <Redirect to="/login" />;
@@ -42,8 +41,6 @@ const RootCategoryContext = createContext<string | undefined>(undefined);
 export const useRootCategory = () => useContext(RootCategoryContext);
 
 const ROOT_URL = '/in-app/v1/categories';
-
-const NotFound = () => <>NOT FOUND</>;
 
 const TicketInfoContext = createContext<{
   meta?: Record<string, unknown> | null;
@@ -57,7 +54,6 @@ export const useAuth = () => useContext(AuthContext);
 
 export default function App() {
   const pathname = window.location.pathname;
-  if (!pathname.startsWith(ROOT_URL)) return <NotFound />;
   const paths = pathname.split('/');
   const rootCategory = paths[4] === '-' ? undefined : paths[4];
 
@@ -94,6 +90,9 @@ export default function App() {
     }
   }, []);
 
+  if (!pathname.startsWith(ROOT_URL)) {
+    return 'Not Found';
+  }
   return (
     <BrowserRouter basename={`${ROOT_URL}/${paths[4]}`}>
       <QueryClientProvider client={queryClient}>
@@ -101,10 +100,7 @@ export default function App() {
           <RootCategoryContext.Provider value={rootCategory}>
             <AuthContext.Provider value={auth}>
               <TicketInfoContext.Provider value={ticketInfo}>
-                <div className="h-full p-4 sm:px-24 pt-14 sm:pt-4">
-                  <ControlButton />
-                  <Routes />
-                </div>
+                <Routes />
               </TicketInfoContext.Provider>
             </AuthContext.Provider>
           </RootCategoryContext.Provider>
@@ -132,9 +128,10 @@ const Routes = () => {
       <PrivateRoute path="/" exact>
         <Home />
       </PrivateRoute>
-      <Route path="*">
+      <Route path="/404">
         <NotFound />
       </Route>
+      <Redirect to="/404" />
     </Switch>
   );
 };

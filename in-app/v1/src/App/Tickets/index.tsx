@@ -7,6 +7,7 @@ import { InView } from 'react-intersection-observer';
 import { QueryWrapper } from 'components/QueryWrapper';
 import { Page } from 'components/Page';
 import { Time } from 'components/Time';
+import { LoadingHint } from 'components/Loading';
 import TicketDetail, { TicketStatus } from './Ticket';
 import { NewTicket } from './New';
 import { auth, http } from 'leancloud';
@@ -15,15 +16,21 @@ import { useRootCategory } from '../../App';
 
 const TICKETS_PAGE_SIZE = 20;
 
-async function fetchTickets(category_id: string, page: number): Promise<Ticket[]> {
+async function fetchTickets({
+  categoryId,
+  page,
+}: {
+  categoryId?: string;
+  page?: number;
+}): Promise<Ticket[]> {
   const { data } = await http.get<any[]>('/api/1/tickets', {
     params: {
       author_id: auth.currentUser?.id,
       // TODO: waiting for support in v2 API
-      root_category_id: category_id,
+      root_category_id: categoryId,
       page,
       page_size: TICKETS_PAGE_SIZE,
-      q: 'sort:created_at-desc',
+      q: 'sort:updated_at-desc',
     },
   });
   return data.map((ticket) => ({
@@ -41,10 +48,10 @@ async function fetchTickets(category_id: string, page: number): Promise<Ticket[]
 }
 
 export function useTickets() {
-  const category = useRootCategory();
+  const categoryId = useRootCategory();
   return useInfiniteQuery<Ticket[], Error>({
     queryKey: 'tickets',
-    queryFn: ({ pageParam = 1 }) => fetchTickets(category, pageParam),
+    queryFn: ({ pageParam = 1 }) => fetchTickets({ categoryId, page: pageParam }),
     getNextPageParam: (lastPage, allPages) => {
       if (lastPage.length === TICKETS_PAGE_SIZE) {
         return allPages.length + 1;
@@ -61,18 +68,18 @@ function TicketItem({ ticket }: TicketItemProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="p-4 border-b border-gray-100 active:bg-gray-50 flex justify-between items-center">
+    <div className="h-[68px] flex justify-between items-center border-b border-gray-100">
       <div className="overflow-hidden">
-        <div className="text-xs">
+        <div className="text-sm">
           <TicketStatus status={ticket.status} />
-          <span className="ml-2 text-gray-400">
+          <span className="ml-3 text-[#BFBFBF]">
             {t('ticket.updated_at')}: <Time value={ticket.updatedAt} />
           </span>
         </div>
-        <div className="mt-2 truncate">{ticket.title}</div>
+        <div className="mt-1.5 truncate text-[13px]">{ticket.title}</div>
       </div>
       {ticket.unreadCount > 0 && (
-        <div className="flex-shrink-0 ml-2 w-5 h-5 min-w-min p-1 bg-red-500 rounded-full text-white text-xs flex items-center justify-center">
+        <div className="flex-shrink-0 ml-2 w-[18px] h-[18px] leading-[18px] px-1 min-w-min bg-red-500 rounded-full text-white text-xs text-center">
           {ticket.unreadCount}
         </div>
       )}
@@ -84,33 +91,27 @@ export function TicketList() {
   const { t } = useTranslation();
   const result = useTickets();
   const { data, hasNextPage, fetchNextPage } = result;
-  const noData = useMemo<boolean | undefined>(() => {
-    if (!data) {
-      return undefined;
-    }
-    return !data.pages[0]?.length;
-  }, [data]);
+  const noData = useMemo(() => !data?.pages[0]?.length, [data]);
+  const tickets = useMemo(() => data?.pages.flat() ?? [], [data]);
 
   return (
     <Page title={t('ticket.record')}>
       <QueryWrapper result={result} noData={noData} noDataMessage={t('ticket.no_record')}>
-        {(tickets) => (
-          <>
-            {tickets.pages.flat().map((ticket) => (
-              <Link key={ticket.id} to={`/tickets/${ticket.id}`}>
-                <TicketItem ticket={ticket} />
-              </Link>
-            ))}
-            {!noData && (
-              <InView
-                className="text-center w-full py-3 text-xs text-gray-400"
-                onChange={(inView) => inView && fetchNextPage()}
-              >
-                {hasNextPage ? t('general.loading') + '...' : t('ticket.no_more_record')}
-              </InView>
-            )}
-          </>
-        )}
+        <>
+          {tickets.map((ticket) => (
+            <Link key={ticket.id} className="px-4 active:bg-gray-50" to={`/tickets/${ticket.id}`}>
+              <TicketItem ticket={ticket} />
+            </Link>
+          ))}
+          {!noData && (
+            <InView
+              className="flex justify-center items-center w-full h-12 text-[#BFBFBF]"
+              onChange={(inView) => inView && fetchNextPage()}
+            >
+              {hasNextPage ? <LoadingHint /> : t('ticket.no_more_record')}
+            </InView>
+          )}
+        </>
       </QueryWrapper>
     </Page>
   );

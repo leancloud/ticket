@@ -1,27 +1,42 @@
-import { useHistory } from 'react-router-dom';
-import { ChevronLeftIcon, HomeIcon, XIcon } from '@heroicons/react/outline';
+import { ComponentPropsWithoutRef, useCallback } from 'react';
+import { useHistory, useLocation } from 'react-router-dom';
+import cx from 'classnames';
 
+import BackIcon from 'icons/Back';
+import HomeIcon from 'icons/Home';
 import styles from './index.module.css';
 
-function Divider() {
-  return <div className="bg-gray-200 h-4 w-px" />;
-}
-
-export function ControlButton() {
+export function ControlButton(props: ComponentPropsWithoutRef<'div'>) {
   const history = useHistory();
-  const goBack = () => history.goBack();
-  const goHome = () => history.push('/');
+  const goBack = useCallback(() => history.goBack(), [history]);
+  const goHome = useCallback(() => history.push('/'), [history]);
+
+  const { pathname } = useLocation();
 
   return (
     <div
-      className={`${styles.shadow} absolute top-4 sm:top-6 sm:left-4 flex items-center bg-white text-gray-400 rounded-full overflow-hidden`}
+      {...props}
+      className={cx(
+        styles.shadow,
+        'w-16 h-7 flex items-center bg-[#FAFAFA] text-[#888888] border border-gray-100 rounded-full overflow-hidden',
+        props.className,
+        {
+          invisible: pathname === '/',
+        }
+      )}
     >
-      <button className="px-2 py-1 active:bg-gray-100" onClick={goBack}>
-        <ChevronLeftIcon className="h-5 w-5" />
+      <button
+        className="flex-grow h-full flex justify-center items-center active:bg-gray-200"
+        onClick={goBack}
+      >
+        <BackIcon />
       </button>
-      <Divider />
-      <button className="px-2 py-1 active:bg-gray-100" onClick={goHome}>
-        <HomeIcon className="h-5 w-5" />
+      <div className="bg-gray-200 h-4 w-px" />
+      <button
+        className="flex-grow h-full flex justify-center items-center active:bg-gray-200"
+        onClick={goHome}
+      >
+        <HomeIcon />
       </button>
     </div>
   );

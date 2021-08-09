@@ -1,18 +1,23 @@
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { CheckCircleIcon, ThumbDownIcon, ThumbUpIcon } from '@heroicons/react/solid';
-
-import { Input, Radio } from 'components/Form';
-import { Button } from 'components/Button';
 import { useMutation } from 'react-query';
+import { useTranslation } from 'react-i18next';
+
+import { Radio } from 'components/Form';
+import { Button } from 'components/Button';
+import CheckIcon from 'icons/Check';
+import ThumbDownIcon from 'icons/ThumbDown';
+import ThumbUpIcon from 'icons/ThumbUp';
 import { http } from 'leancloud';
 import { Ticket } from 'types';
 
 export function Evaluated() {
   const { t } = useTranslation();
   return (
-    <div className="p-6 border-t border-dashed border-gray-300 text-gray-600 flex items-center">
-      <CheckCircleIcon className="w-6 h-6 mr-3 text-tapBlue-600" /> {t('evaluation.created_text')}
+    <div className="p-6 border-t border-dashed border-gray-300 text-gray-600 flex items-center text-sm pb-[max(env(safe-area-inset-bottom),1.5rem)]">
+      <div className="flex w-4 h-4 bg-tapBlue rounded-full mr-2">
+        <CheckIcon className="w-1.5 h-1.5 m-auto text-white" />
+      </div>
+      {t('evaluation.created_text')}
     </div>
   );
 }
@@ -39,37 +44,37 @@ export function NewEvaluation({ ticketId }: NewEvaluationProps) {
   };
 
   return (
-    <div className="p-6 border-t border-dashed border-gray-300">
+    <div className="p-6 border-t border-dashed border-gray-300 text-sm pb-[max(env(safe-area-inset-bottom),1.5rem)]">
       <div className="text-gray-600">{t('evaluation.title')}</div>
 
       <div className="py-6">
         <span>
           <Radio checked={star === 1} onChange={() => setStar(1)}>
-            <span className="text-yellow-500 inline-flex items-center">
-              <ThumbUpIcon className="w-4 h-4 inline-block mr-1" />
+            <span className="inline-flex items-center text-[#FF8156]">
+              <ThumbUpIcon className="w-[14px] h-[14px] inline-block mr-1" />
               {t('evaluation.useful')}
             </span>
           </Radio>
         </span>
-        <span className="ml-16">
+        <span className="ml-14">
           <Radio checked={star === 0} onChange={() => setStar(0)}>
-            <span className="text-blue-500 inline-flex items-center">
-              <ThumbDownIcon className="w-4 h-4 inline-block mr-1" />
+            <span className="inline-flex items-center text-[#3AB1F3]">
+              <ThumbDownIcon className="w-[14px] h-[14px] inline-block mr-1" />
               {t('evaluation.useless')}
             </span>
           </Radio>
         </span>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        <Input
-          className="flex-grow rounded-full"
+      <div className="flex items-center">
+        <input
+          className="flex-grow leading-[16px] border rounded-full placeholder-[#BFBFBF] p-2"
           placeholder={t('evaluation.content_hint')}
           value={content}
           onChange={(e) => setContent(e.target.value)}
         />
         <Button
-          className="px-5 flex-shrink-0"
+          className="ml-2 leading-none w-16 h-8"
           disabled={star === undefined || isLoading}
           onClick={handleCommit}
         >

@@ -1,28 +1,28 @@
 module.exports = {
+  mode: 'jit',
   purge: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
-  darkMode: false, // or 'media' or 'class'
   theme: {
     extend: {
       colors: {
         tapBlue: {
-          50: '#FAFEFE',
-          100: '#EFFBFC',
-          200: '#E8F9FA',
-          300: '#C7F1F3',
-          400: '#A4E8EC',
-          500: '#44D1D8',
-          600: '#15C5CE',
-          700: '#12ADB5',
+          DEFAULT: '#15C5CE',
+          50: '#CEF8FA',
+          100: '#B7F5F8',
+          200: '#89EEF3',
+          300: '#5BE7EE',
+          400: '#2CE0EA',
+          500: '#15C5CE',
+          600: '#13AFB7',
+          700: '#1099A0',
+          800: '#0E8389',
+          900: '#0C6C71',
         },
+      },
+      fontSize: {
+        xs: ['10px', '14px'],
+        sm: ['12px', '16px'],
+        base: ['14px', '20px'],
       },
     },
   },
-  variants: {
-    extend: {
-      backgroundColor: ['active'],
-      borderColor: ['active', 'last'],
-      padding: ['last'],
-    },
-  },
-  plugins: [],
 };

@@ -13,7 +13,8 @@
       "components/*": ["components/*"],
       "utils/*": ["utils/*"],
       "leancloud/*": ["leancloud/*"],
-      "types/*": ["types/*"]
+      "types/*": ["types/*"],
+      "icons/*": ["icons/*"],
     },
     "typeRoots": ["./node_modules/@types"],
     "skipLibCheck": true,

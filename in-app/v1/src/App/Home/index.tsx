@@ -17,7 +17,7 @@ interface TicketsLinkProps {
 function TicketsLink({ badge }: TicketsLinkProps) {
   const { t } = useTranslation();
   return (
-    <Link className="inline-block p-1.5 text-xs leading-none text-tapBlue-600" to="/tickets">
+    <Link className="relative p-1.5 text-sm leading-none text-tapBlue" to="/tickets">
       {t('ticket.record')}
       {badge && <div className="h-1.5 w-1.5 bg-red-500 rounded-full absolute top-0 right-0" />}
     </Link>
@@ -69,14 +69,16 @@ export default function Home() {
   };
 
   return (
-    <Page className="flex flex-col p-4">
-      <div className="flex justify-between items-center relative">
-        <h2 className="font-bold">{t('category.select_hint')}</h2>
-        <TicketsLink badge={hasUnreadTickets} />
+    <Page>
+      <div className="p-4">
+        <div className="flex items-center mb-[12px]">
+          <h2 className="flex-grow font-bold">{t('category.select_hint')}</h2>
+          <TicketsLink badge={hasUnreadTickets} />
+        </div>
+        <QueryWrapper result={result}>
+          <CategoryList marker categories={topCategories} onClick={handleClick} />
+        </QueryWrapper>
       </div>
-      <QueryWrapper result={result}>
-        <CategoryList marker className="mt-2" categories={topCategories} onClick={handleClick} />
-      </QueryWrapper>
     </Page>
   );
 }
