@@ -16,25 +16,22 @@ import { FieldTemplate, useForm } from './Form';
 import { http } from 'leancloud';
 import { useTicketInfo } from '../..';
 
-const PRESET_FORM_FIELDS_HEAD: FieldTemplate[] = [
-  {
+const presetFieldCreators: Record<string, (() => FieldTemplate) | undefined> = {
+  title: () => ({
     name: 'title',
     title: i18next.t('general.title'),
     type: 'text',
     required: true,
-  },
-];
-
-const PRESET_FORM_FIELDS_FOOT: FieldTemplate[] = [
-  {
+  }),
+  description: () => ({
     name: 'content',
     title: i18next.t('general.description'),
     type: 'multi-line',
     rows: 4,
     maxLength: 100,
     required: true,
-  },
-];
+  }),
+};
 
 async function fetchCategoryFields(categoryId: string): Promise<FieldTemplate[]> {
   const { data } = await http.get<Field[]>(`/api/2/categories/${categoryId}/fields`);
@@ -66,9 +63,20 @@ function TicketForm({ categoryId, onCommit }: TicketFormProps) {
   const [isCommitting, setIsCommitting] = useState(false);
   const { meta, tags } = useTicketInfo();
 
-  const { data: fields, isLoading: isLoadingFields } = useCategoryFields(categoryId);
+  const result = useCategoryFields(categoryId);
+  const { data: fields } = result;
+
   const formFields = useMemo(() => {
-    return [...PRESET_FORM_FIELDS_HEAD, ...(fields ?? []), ...PRESET_FORM_FIELDS_FOOT];
+    if (!fields) {
+      return [];
+    }
+    return fields.map((field) => {
+      if (field.name in presetFieldCreators) {
+        return presetFieldCreators[field.name]!();
+      } else {
+        return field;
+      }
+    });
   }, [fields]);
   const { element: formElement, validate, data: formData } = useForm(formFields);
 
@@ -94,16 +102,18 @@ function TicketForm({ categoryId, onCommit }: TicketFormProps) {
   };
 
   return (
-    <div className="p-4">
-      {formElement}
-      <Button
-        className="mb-4 sm:ml-20 w-full sm:max-w-max sm:px-11"
-        disabled={isLoadingFields || isCommitting}
-        onClick={handleCommit}
-      >
-        <SpaceChinese>{t('general.commit')}</SpaceChinese>
-      </Button>
-    </div>
+    <QueryWrapper result={result}>
+      <div className="p-4">
+        {formElement}
+        <Button
+          className="mb-4 sm:ml-20 w-full sm:max-w-max sm:px-11"
+          disabled={isCommitting}
+          onClick={handleCommit}
+        >
+          <SpaceChinese>{t('general.commit')}</SpaceChinese>
+        </Button>
+      </div>
+    </QueryWrapper>
   );
 }
 
@@ -120,7 +130,7 @@ function Success({ ticketId }: SuccessProps) {
         <CheckIcon className="w-4 h-4 text-white" />
       </div>
       <div className="text-[#666] mt-8">{t('ticket.create.success_text')}</div>
-      <Button className="mt-4 px-12" as={Link} to={`/tickets/${ticketId}`}>
+      <Button className="w-32 mt-4" as={Link} to={`/tickets/${ticketId}`}>
         {t('ticket.detail')}
       </Button>
     </div>

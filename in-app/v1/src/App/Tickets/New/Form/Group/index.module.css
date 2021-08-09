@@ -1,0 +1,8 @@
+.required {
+  &::after {
+    content: '*';
+    color: #F64C4C;
+    position: relative;
+    left: 3px;
+  }
+}

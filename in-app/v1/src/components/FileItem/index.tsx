@@ -94,12 +94,14 @@ export interface FileItemsProps<K extends Key> extends ComponentPropsWithoutRef<
   files: FileInfoWithKey<K>[];
   onDelete?: (file: FileInfoWithKey<K>) => void;
   nameMaxLength?: number;
+  previewable?: boolean;
 }
 
 export function FileItems<K extends Key>({
   files,
   onDelete,
   nameMaxLength,
+  previewable = true,
   ...props
 }: FileItemsProps<K>) {
   const { element: previewer, preview } = usePreview();
@@ -113,7 +115,7 @@ export function FileItems<K extends Key>({
             key={file.key}
             className="mr-2 mb-2"
             file={file}
-            onClick={() => file.mime && file.url && preview(file as any)}
+            onClick={() => previewable && file.mime && file.url && preview(file as any)}
             onDelete={onDelete && (() => onDelete(file))}
             nameMaxLength={nameMaxLength}
           />

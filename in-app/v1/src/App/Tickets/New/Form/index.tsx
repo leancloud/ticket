@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import classNames from 'classnames';
 
 import { ControlRef, Field } from './Field';
+import { Group } from './Group';
 
 interface BaseTemplate<T extends string> {
   type: T;
@@ -48,40 +48,6 @@ export type FieldTemplate =
   | DropdownTemplate
   | FileTemplate;
 
-export type FromGroupProps = JSX.IntrinsicElements['div'] & {
-  title?: string;
-  controlId?: string;
-  required?: boolean;
-};
-
-export function FormGroup({ title, controlId, required, children, ...props }: FromGroupProps) {
-  const $container = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (controlId && $container.current) {
-      const input = $container.current.querySelector('input[type="text"],textarea,select');
-      if (input && !input.id) {
-        input.id = controlId;
-      }
-    }
-  }, [controlId]);
-
-  return (
-    <div
-      {...props}
-      className={classNames(props.className, 'flex flex-col sm:flex-row mb-5 last:mb-0')}
-      ref={$container}
-    >
-      <div className="flex-shrink-0 sm:w-20 sm:mb-0 py-[7px]">
-        <label htmlFor={controlId}>
-          {title}
-          {required && <span className="ml-1 text-red-500 select-none">*</span>}
-        </label>
-      </div>
-      <div className="flex-grow">{children}</div>
-    </div>
-  );
-}
-
 function omitUndefined(data: Record<string, any>): Record<string, any> {
   const nextData: typeof data = {};
   Object.entries(data).forEach(([key, value]) => {
@@ -101,11 +67,11 @@ export function useForm(templates: FieldTemplate[]) {
   const element = (
     <>
       {templates.map(({ name, title, ...rest }) => (
-        <FormGroup
+        <Group
           key={name}
           title={title ?? name}
           required={rest.required}
-          controlId={`ticket_${name}`}
+          labelAtTop={rest.type === 'multi-select' || rest.type === 'radios'}
         >
           <Field
             {...rest}
@@ -113,7 +79,7 @@ export function useForm(templates: FieldTemplate[]) {
             onChange={(v: any) => setData((prev) => omitUndefined({ ...prev, [name]: v }))}
             error={errors[name]}
           />
-        </FormGroup>
+        </Group>
       ))}
     </>
   );

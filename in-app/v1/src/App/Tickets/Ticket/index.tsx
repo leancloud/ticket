@@ -3,6 +3,7 @@ import {
   PropsWithChildren,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -152,7 +153,15 @@ function MiniUploader({ className, onUpload }: MiniUploaderProps) {
   );
 
   return (
-    <button className={className} onClick={() => $input.current.click()}>
+    <button
+      className={className}
+      onClick={() => $input.current.click()}
+      onTouchStart={(e) => e.preventDefault()}
+      onTouchEnd={(e) => {
+        e.preventDefault();
+        $input.current.click();
+      }}
+    >
       <input className="hidden" type="file" ref={$input} onChange={handleUpload} />
       <ClipIcon className="text-tapBlue" />
     </button>
@@ -166,9 +175,10 @@ interface ReplyData {
 
 interface ReplyInputProps {
   onCommit: (data: ReplyData) => void | Promise<void>;
+  disabled?: boolean;
 }
 
-function ReplyInput({ onCommit }: ReplyInputProps) {
+function ReplyInput({ onCommit, disabled }: ReplyInputProps) {
   const { t } = useTranslation();
   const [editing, setEditing] = useState(false);
   const [content, setContent] = useState('');
@@ -176,7 +186,7 @@ function ReplyInput({ onCommit }: ReplyInputProps) {
   const { files, isUploading, upload, remove, removeAll } = useUpload();
   const submitable = useMemo(() => {
     return !isUploading && (content.trim() || files.length);
-  }, [isUploading, content]);
+  }, [files, isUploading, content]);
 
   const $height = useRef(0);
   const handleChangeContent = (nextContent: string) => {
@@ -227,8 +237,8 @@ function ReplyInput({ onCommit }: ReplyInputProps) {
             onFocus={() => setEditing(true)}
           />
           <Button
-            className="ml-2 leading-none w-16 h-8"
-            disabled={!submitable}
+            className="flex-shrink-0 ml-2 leading-none w-16 h-8"
+            disabled={!submitable || disabled}
             onClick={handleCommit}
           >
             {t('general.send')}
@@ -239,8 +249,16 @@ function ReplyInput({ onCommit }: ReplyInputProps) {
       <Dialog open={editing} onClose={() => setEditing(false)}>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black opacity-30" />
 
-        <div className="fixed bottom-0 z-50 w-full">
-          <div className="flex items-center border-t border-gray-100 bg-[#FAFAFA] p-2 text-sm">
+        <div
+          tabIndex={-1}
+          className="fixed bottom-0 z-50 w-full bg-[#FAFAFA] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] outline-none"
+          onBlur={(e) => {
+            if (!e.currentTarget.contains(e.relatedTarget as any)) {
+              setEditing(false);
+            }
+          }}
+        >
+          <div className="flex items-center border-t border-gray-100 p-2 text-sm">
             <div className="flex flex-grow bg-white border rounded-[17px] leading-none">
               <div className="flex-grow max-h-[calc(100vh-4rem)] min-h-[32px] p-2 overflow-y-auto rounded-[16px] leading-[0]">
                 <textarea
@@ -254,7 +272,12 @@ function ReplyInput({ onCommit }: ReplyInputProps) {
                 />
 
                 {files.length > 0 && (
-                  <FileItems className="mt-2" files={files} onDelete={(file) => remove(file.key)} />
+                  <FileItems
+                    className="mt-2"
+                    files={files}
+                    previewable={false}
+                    onDelete={(file) => remove(file.key)}
+                  />
                 )}
               </div>
 
@@ -264,8 +287,8 @@ function ReplyInput({ onCommit }: ReplyInputProps) {
             </div>
 
             <Button
-              className="ml-2 mt-auto mb-px leading-none w-16 h-8"
-              disabled={!submitable}
+              className="flex-shrink-0 ml-2 mt-auto mb-px leading-none w-16 h-8"
+              disabled={!submitable || disabled}
               onClick={handleCommit}
             >
               {t('general.send')}
@@ -294,16 +317,19 @@ export default function TicketDetail() {
     params: { id },
   } = useRouteMatch<{ id: string }>();
   const { t } = useTranslation();
+  const $dummyReply = useRef<HTMLDivElement>(null);
+
+  const [scrollTrigger, setScrollTrigger] = useState(0);
+  useLayoutEffect(() => {
+    $dummyReply.current?.scrollIntoView();
+  }, [scrollTrigger]);
+  const scrollToEnd = useCallback(() => setScrollTrigger((v) => v + 1), []);
+
   const result = useTicket(id);
   useClearUnreadCount(id, result.data?.unreadCount);
   const repliesResult = useReplies(id, {
-    onSuccess: () => {
-      if ($container.current) {
-        $container.current.scrollTop = $container.current.scrollHeight;
-      }
-    },
+    onSuccess: scrollToEnd,
   });
-  const $container = useRef<HTMLDivElement>(null);
 
   const replies = useMemo<Reply[]>(() => {
     if (!repliesResult.data) {
@@ -312,7 +338,7 @@ export default function TicketDetail() {
     return repliesResult.data.pages.flat();
   }, [repliesResult.data]);
 
-  const { mutateAsync: reply } = useMutation({
+  const { mutateAsync: reply, isLoading: committing } = useMutation({
     mutationFn: (data: ReplyData) => commitReply(id, data),
     onSuccess: () => repliesResult.fetchNextPage(),
     onError: (error: Error) => alert(error.message),
@@ -328,18 +354,18 @@ export default function TicketDetail() {
       <QueryWrapper result={result}>
         {(ticket) => (
           <>
-            <div className="flex-grow" ref={$container}>
+            <div className="flex-grow">
               <TicketAttributes ticket={ticket} />
               <QueryWrapper result={repliesResult}>
                 <Replies className="p-4" replies={replies} />
               </QueryWrapper>
 
-              <div id="dummyNewestReply" />
+              <div id="dummyNewestReply" ref={$dummyReply} />
             </div>
 
             <div className="sticky bottom-0 bg-white">
               {ticket.status < 200 ? (
-                <ReplyInput onCommit={reply} />
+                <ReplyInput onCommit={reply} disabled={committing} />
               ) : ticket.evaluation ? (
                 <Evaluated />
               ) : (

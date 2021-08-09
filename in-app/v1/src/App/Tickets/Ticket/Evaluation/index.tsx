@@ -13,7 +13,7 @@ import { Ticket } from 'types';
 export function Evaluated() {
   const { t } = useTranslation();
   return (
-    <div className="p-6 border-t border-dashed border-gray-300 text-gray-600 flex items-center text-sm pb-[env(safe-area-inset-bottom)]">
+    <div className="p-6 border-t border-dashed border-gray-300 text-gray-600 flex items-center text-sm pb-[max(env(safe-area-inset-bottom),1.5rem)]">
       <div className="flex w-4 h-4 bg-tapBlue rounded-full mr-2">
         <CheckIcon className="w-1.5 h-1.5 m-auto text-white" />
       </div>
@@ -44,7 +44,7 @@ export function NewEvaluation({ ticketId }: NewEvaluationProps) {
   };
 
   return (
-    <div className="p-6 border-t border-dashed border-gray-300 text-sm pb-[env(safe-area-inset-bottom)]">
+    <div className="p-6 border-t border-dashed border-gray-300 text-sm pb-[max(env(safe-area-inset-bottom),1.5rem)]">
       <div className="text-gray-600">{t('evaluation.title')}</div>
 
       <div className="py-6">
