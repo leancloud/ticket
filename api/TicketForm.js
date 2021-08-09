@@ -50,15 +50,26 @@ router.param(
   })
 )
 
+const getLocale = (locale) => {
+  if (!locale) {
+    return
+  }
+  locale = locale.toLowerCase()
+  if (locale === 'zh') {
+    return 'zh-cn'
+  }
+  if (LOCALES.includes(locale)) {
+    return locale
+  }
+  return
+}
+
 router.get(
   '/:id',
-  check('locale')
-    .isString()
-    .custom((value) => LOCALES.includes(value))
-    .optional(),
+
   catchError(async (req, res) => {
     const { form } = req
-    const { locale } = req.query
+    const locale = getLocale(req.query.locale)
     const fieldIds = form.get('fieldIds')
     const fieldDataList = await getFieldsDetail(fieldIds)
     const fields = []

@@ -224,7 +224,7 @@ const useCustomForm = (formId) => {
     queryFn: () =>
       http.get(`/api/1/ticket-forms/${formId}`, {
         params: {
-          locale: i18next.language === 'zh' ? 'zh-cn' : i18next.language,
+          locale: i18next.language,
         },
       }),
     select: (data) => data.fields,
