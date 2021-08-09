@@ -70,6 +70,10 @@ function TicketForm({ categoryId, onCommit }: TicketFormProps) {
     if (!fields) {
       return [];
     }
+    if (fields.length === 0) {
+      // 没有为当期分类配置表单时, 展示 title & description.
+      return Object.values(presetFieldCreators).map((creator) => creator!());
+    }
     return fields.map((field) => {
       if (field.name in presetFieldCreators) {
         return presetFieldCreators[field.name]!();
