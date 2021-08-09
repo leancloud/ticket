@@ -127,15 +127,15 @@ export function Group() {
   const form = (
     <>
       <Form.Group controlId="nameText">
-        <Form.Label>Name</Form.Label>
+        <Form.Label>{t('name')}</Form.Label>
         <Form.Control value={name || ''} onChange={(e) => setName(e.target.value)} />
       </Form.Group>
       <Form.Group controlId="descText">
-        <Form.Label>Description</Form.Label>
+        <Form.Label>{t('description')}</Form.Label>
         <Form.Control value={description || ''} onChange={(e) => setDescription(e.target.value)} />
       </Form.Group>
       <Form.Group>
-        <Form.Label>Members</Form.Label>
+        <Form.Label>{t('members')}</Form.Label>
         {customerServices?.map((cs) => {
           return (
             <div key={cs.objectId}>

@@ -199,6 +199,7 @@
     "details": "세부",
     "description": "기술",
     "add": "에 추가",
+    "members": "Members", 
     "delete.successfully": "성공적으로 삭제되었습니다",
     "delete": "지우다",
     "createdAt": "내장",
