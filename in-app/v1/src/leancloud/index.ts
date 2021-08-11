@@ -13,12 +13,18 @@ use({
     if (!adapters.storage) {
       throw new Error('No storage adapter, you should set adapters first.');
     }
-    const setItem = adapters.storage.setItem;
-    adapters.storage.setItem = (key, value) => {
-      if (key.endsWith('current_user')) {
-        return;
-      }
-      return setItem.call(adapters.storage, key, value);
+    const storage = adapters.storage;
+    adapters.storage = {
+      async: storage.async as any,
+      getItem: storage.getItem.bind(storage) as any,
+      removeItem: storage.removeItem.bind(storage),
+      clear: storage.clear.bind(storage),
+      setItem: (key, value) => {
+        if (key.endsWith('current_user')) {
+          return;
+        }
+        return storage.setItem.call(storage, key, value);
+      },
     };
   },
 });
