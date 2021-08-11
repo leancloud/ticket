@@ -55,7 +55,7 @@ export function Evaluation({ ticket }) {
     return null
   }
   return (
-    <Alert variant="warning">
+    <Alert variant={ticket.evaluation ? (ticket.evaluation.star ? 'success' : 'danger') : 'info'}>
       {ticket.evaluation ? t('feedback') : t('satisfiedOrNot')}
       <Form.Group>
         <Form.Check

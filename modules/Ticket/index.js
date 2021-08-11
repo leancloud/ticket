@@ -368,15 +368,27 @@ export default function Ticket() {
               <Timeline key={data.id} data={data} />
             ))}
           </div>
-
+          <hr />
           <div>
-            <hr />
             {isCsInThisTicket ? (
-              <CSReplyEditor ticketId={ticket.id} onReply={replyTicket} onOperate={operateTicket} />
+              <>
+                {ticket.evaluation && (
+                  <>
+                    <Evaluation ticket={ticket} isCustomerService={true} />
+                    <hr />
+                  </>
+                )}
+
+                <CSReplyEditor
+                  ticketId={ticket.id}
+                  onReply={replyTicket}
+                  onOperate={operateTicket}
+                />
+              </>
             ) : ticketStatus.isOpened(ticket.status) ? (
               <TicketReply ticketId={ticket.id} onReply={replyTicket} />
             ) : (
-              <Evaluation ticket={ticket} isCustomerService={isCsInThisTicket} />
+              <Evaluation ticket={ticket} isCustomerService={false} />
             )}
           </div>
         </Col>
