@@ -1,9 +1,19 @@
-import { init, use } from 'open-leancloud-storage/core';
+import { init, use, setAdapters } from 'open-leancloud-storage/core';
 import { authModule } from 'open-leancloud-storage/auth';
 import { storageModule } from 'open-leancloud-storage/storage';
 import axios from 'axios';
 
 export type { User } from 'open-leancloud-storage/auth';
+
+setAdapters({
+  storage: {
+    async: false,
+    getItem: (key: string) => null,
+    setItem: (key: string, value: string) => undefined,
+    removeItem: (key: string) => undefined,
+    clear: () => undefined,
+  },
+});
 
 use(authModule);
 use(storageModule);
