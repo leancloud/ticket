@@ -23,7 +23,7 @@ use({
         if (key.endsWith('current_user')) {
           return;
         }
-        return storage.setItem.call(storage, key, value);
+        return storage.setItem(key, value);
       },
     };
   },
