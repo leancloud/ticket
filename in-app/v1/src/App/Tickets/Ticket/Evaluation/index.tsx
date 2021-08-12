@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMutation } from 'react-query';
+import { useMutation, useQueryClient } from 'react-query';
 import { useTranslation } from 'react-i18next';
 
 import { Radio } from 'components/Form';
@@ -35,8 +35,12 @@ export function NewEvaluation({ ticketId }: NewEvaluationProps) {
   const [star, setStar] = useState<0 | 1>();
   const [content, setContent] = useState('');
 
+  const queryClient = useQueryClient();
   const { mutate, isLoading } = useMutation({
     mutationFn: (data: Ticket['evaluation']) => commitEvaluation(ticketId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['ticket', ticketId]);
+    },
   });
 
   const handleCommit = () => {
