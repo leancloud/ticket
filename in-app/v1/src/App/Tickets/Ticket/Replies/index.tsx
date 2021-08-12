@@ -44,7 +44,9 @@ function ReplyItem({ data, isLast }: ReplyItemProps) {
             'bg-[rgba(0,0,0,0.02)]': !data.isStaff,
           })}
         >
-          {data.content.length > 0 && <div className="m-2 whitespace-pre-line">{data.content}</div>}
+          {data.content.length > 0 && (
+            <div className="m-2 whitespace-pre-line break-all">{data.content}</div>
+          )}
           {files.length > 0 && <FileItems className="m-2" files={files} />}
         </div>
       </div>
