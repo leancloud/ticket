@@ -58,10 +58,13 @@ app.use(express.static(path.join(__dirname, 'public')))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 
+// oauth
+app.use(require('./oauth'))
+
 // legacy api
 app.use(require('./api'))
 
-const { orgName } = require('./api/oauth')
+const { orgName } = require('./oauth/lc')
 
 const getIndexPage = () => {
   return `<!doctype html>
@@ -83,7 +86,7 @@ const getIndexPage = () => {
   LEAN_CLI_HAVE_STAGING = '${process.env.LEAN_CLI_HAVE_STAGING}'
   SENTRY_DSN_PUBLIC = '${config.sentryDSNPublic || ''}'
   ORG_NAME = '${orgName}'
-  USE_OAUTH = ${!!process.env.OAUTH_KEY}
+  USE_LC_OAUTH = ${!!process.env.OAUTH_KEY}
   ALGOLIA_API_KEY = '${process.env.ALGOLIA_API_KEY || ''}'
   FAQ_VIEWS = '${process.env.FAQ_VIEWS || ''}'
 </script>

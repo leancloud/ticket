@@ -4,60 +4,68 @@
 import React, { useEffect, useState } from 'react'
 import { Route, useHistory, useLocation } from 'react-router-dom'
 import { auth } from '../../lib/leancloud'
-import { isCustomerService } from '../common'
+import { isStaff } from '../common'
+import Login from '../Login'
 
 function BasicAuthWrapper({ children }) {
   const history = useHistory()
   const location = useLocation()
-  const [pass, setPass] = useState(false)
+  const [pass, setPass] = useState()
 
   useEffect(() => {
     if (auth.currentUser) {
       setPass(true)
     } else {
       sessionStorage.setItem('LeanTicket:nextPathname', location.pathname)
-      history.replace('/login')
       setPass(false)
     }
   }, [history, location])
 
-  return pass && children
+  if (pass === undefined) {
+    return null
+  }
+  if (pass === false) {
+    return <Login />
+  }
+  return children
 }
 
 function CSAuthWrapper({ children }) {
   const history = useHistory()
   const [pass, setPass] = useState(false)
+  const [error, setError] = useState()
 
   useEffect(() => {
     setPass(false)
-    isCustomerService(auth.currentUser)
+    setError()
+    isStaff(auth.currentUser)
       .then((isCS) => {
         if (isCS) {
           setPass(true)
         } else {
-          history.replace({
-            pathname: '/error',
-            state: { code: 'requireCustomerServiceAuth' },
-          })
+          const err = new Error()
+          err.code = 'requireCustomerServiceAuth'
+          setError(err)
         }
       })
       .catch((err) => {
-        history.replace({
-          pathname: '/error',
-          state: { err, code: err.code },
-        })
+        setError(err)
       })
   }, [history])
 
-  return pass && children
+  if (pass) {
+    return children
+  }
+  if (error) {
+    return <Error error={error} />
+  }
+  return null
 }
 
-export const AuthRoute = ({ children, mustCustomerService, ...props }) => (
-  <Route {...props}>
-    {mustCustomerService ? (
-      <CSAuthWrapper children={children} />
-    ) : (
-      <BasicAuthWrapper children={children} />
-    )}
-  </Route>
+export const AuthRoute = ({ children, ...props }) => (
+  <Route {...props}>{<BasicAuthWrapper children={children} />}</Route>
+)
+
+export const StaffRoute = ({ children, ...props }) => (
+  <Route {...props}>{<CSAuthWrapper children={children} />}</Route>
 )

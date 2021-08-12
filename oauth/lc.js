@@ -8,7 +8,7 @@ const randomstring = require('randomstring')
 const AV = require('leanengine')
 
 const config = require('../config')
-const { isCustomerService } = require('./common')
+const { isCustomerService } = require('../api/common')
 const {
   getGravatarHash,
   defaultLeanCloudRegion,

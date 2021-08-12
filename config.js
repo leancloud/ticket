@@ -109,6 +109,7 @@ setClientGlobalVars({
   // See #1830 of LeanEngine repo (private) for more information.
   SUPPORT_EMAIL: process.env.HELP_EMAIL,
   ALLOW_MUTATE_EVALUATION: allowMutateEvaluation,
+  ENABLE_XD_OAUTH: !!process.env.ENABLE_XD_OAUTH,
 })
 
 getConfigValue('gravatar_url')

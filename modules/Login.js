@@ -1,4 +1,4 @@
-/*global ORG_NAME, USE_OAUTH, LEANCLOUD_OAUTH_REGION*/
+/*global ORG_NAME, ENABLE_XD_OAUTH, USE_LC_OAUTH, LEANCLOUD_OAUTH_REGION*/
 import React, { useCallback, useContext, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button, Form } from 'react-bootstrap'
@@ -12,11 +12,12 @@ import { AppContext } from './context'
 
 const KEY_PATHNAME = 'LeanTicket:nextPathname'
 
-export default function Login({ onLogin }) {
+export default function Login() {
   const { t } = useTranslation()
   const history = useHistory()
   const location = useLocation()
-  const { addNotification } = useContext(AppContext)
+  const [loading, setLoading] = useState(true)
+  const { addNotification, setCurrentUser } = useContext(AppContext)
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
 
@@ -40,20 +41,21 @@ export default function Login({ onLogin }) {
       ;(async () => {
         try {
           const user = await auth.loginWithSessionToken(token)
-          onLogin(user)
+          setCurrentUser(user)
           redirect()
         } catch (error) {
           addNotification(error)
         }
       })()
     }
+    setLoading(false)
   }, [])
 
   const handleLogin = async (e) => {
     e.preventDefault()
     try {
       const user = await auth.login(username, password)
-      onLogin(user)
+      setCurrentUser(user)
       redirect()
     } catch (error) {
       addNotification(error)
@@ -67,14 +69,23 @@ export default function Login({ onLogin }) {
         password,
         name: username,
       })
-      onLogin(user)
+      setCurrentUser(user)
       redirect()
     } catch (error) {
       addNotification(error)
     }
   }
 
-  if (!USE_OAUTH) {
+  const staffOAuth = ENABLE_XD_OAUTH ? (
+    <>
+      <hr />
+      <p>
+        <a href="/auth/xd-cas">客服入口</a>
+      </p>
+    </>
+  ) : null
+
+  if (!USE_LC_OAUTH) {
     return (
       <div className={css.wrap}>
         <h1>{t('loginOrSignup')}</h1>
@@ -99,6 +110,7 @@ export default function Login({ onLogin }) {
             </Button>
           </Form.Group>
         </Form>
+        {staffOAuth}
       </div>
     )
   }
@@ -117,6 +129,7 @@ export default function Login({ onLogin }) {
           </Button>
         </Form.Group>
       </Form>
+      {staffOAuth}
       {isCN() && (
         /* eslint-disable i18n/no-chinese-character */
         <div>

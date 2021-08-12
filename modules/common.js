@@ -32,6 +32,18 @@ export const isCustomerService = (user) => {
     .then((role) => !!role)
 }
 
+export const isStaff = (user) => {
+  if (!user) {
+    return Promise.resolve(false)
+  }
+  return auth
+    .queryRole()
+    .where('name', '==', 'staff')
+    .where('users', '==', user)
+    .first()
+    .then((role) => !!role)
+}
+
 /**
  * @param {Array<File>} files
  */

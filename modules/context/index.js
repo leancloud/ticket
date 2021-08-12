@@ -6,6 +6,7 @@ export const AppContext = React.createContext({
   isCustomerService: false,
   tagMetadatas: [],
   addNotification: _.noop,
+  setCurrentUser: _.noop,
 })
 
 export const useAppContext = () => useContext(AppContext)
