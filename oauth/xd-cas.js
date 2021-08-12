@@ -33,20 +33,17 @@ module.exports = (router) => {
               console.log('authData matched', matchedUser.id)
               return done(undefined, matchedUser)
             } catch (error) {
-              // console.log(error)
               const USER_NOT_FOUND = 211
               if (error.code === USER_NOT_FOUND) {
                 const emailMatchedUser = await new AV.Query(AV.User)
                   .equalTo('email', email)
                   .first({ useMasterKey: true })
                 if (emailMatchedUser) {
-                  // await emailMatchedUser.fetch({ keys: 'sessionToken'}, { useMasterKey: true })
                   emailMatchedUser
                     .set('password', randomstring.generate())
                     .set('name', realname)
                     .set('authData', { xd_cas: { uid: userId } })
                   await emailMatchedUser.save(undefined, { useMasterKey: true })
-                  // await emailMatchedUser.associateWithAuthData({ uid: userId }, 'xd_cas')
                   console.log('email matched', emailMatchedUser.id)
                   return done(undefined, emailMatchedUser)
                 }

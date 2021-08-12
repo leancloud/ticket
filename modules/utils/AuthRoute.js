@@ -17,7 +17,6 @@ function BasicAuthWrapper({ children }) {
       setPass(true)
     } else {
       sessionStorage.setItem('LeanTicket:nextPathname', location.pathname)
-      // history.replace('/login')
       setPass(false)
     }
   }, [history, location])

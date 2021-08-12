@@ -15,7 +15,6 @@ router.use('/oauth/login', require('./lc').login(loginCallbackUrl))
 router.use(loginCallbackPath, require('./lc').loginCallback(loginCallbackUrl))
 
 passport.serializeUser(function (user, done) {
-  // console.log('serializeUser:', user.id)
   done(null, user.id)
 })
 router.use(passport.initialize())
