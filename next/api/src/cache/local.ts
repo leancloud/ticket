@@ -18,7 +18,9 @@ export class LocalCache<T> {
       this.fetchTask = (async () => {
         try {
           this.data = await this.fetcher();
-          setTimeout(() => delete this.data, this.ttl * 1000);
+          if (this.ttl > 0) {
+            setTimeout(() => delete this.data, this.ttl * 1000);
+          }
           return this.data;
         } finally {
           delete this.fetchTask;

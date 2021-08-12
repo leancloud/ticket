@@ -3,7 +3,7 @@ import bodyParser from 'koa-bodyparser';
 
 import './leancloud';
 import './config';
-import api from './routers';
+import api from './router';
 
 export const app = new Koa();
 
