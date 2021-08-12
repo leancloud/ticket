@@ -27,9 +27,13 @@ module.exports = (router) => {
           .then(async ({ data: { userId, email, realname } }) => {
             // 先尝试匹配，如果已存在 authData 对应的用户直接登录
             try {
-              const matchedUser = await AV.User.loginWithAuthData({ uid: userId }, 'xd_cas', {
-                failOnNotExist: true,
-              })
+              const matchedUser = await AV.User.loginWithAuthData(
+                { uid: userId, access_token: accessToken },
+                'xd_cas',
+                {
+                  failOnNotExist: true,
+                }
+              )
               console.log('authData matched', matchedUser.id)
               return done(undefined, matchedUser)
             } catch (error) {
@@ -42,14 +46,14 @@ module.exports = (router) => {
                   emailMatchedUser
                     .set('password', randomstring.generate())
                     .set('name', realname)
-                    .set('authData', { xd_cas: { uid: userId } })
+                    .set('authData', { xd_cas: { uid: userId, access_token: accessToken } })
                   await emailMatchedUser.save(undefined, { useMasterKey: true })
                   console.log('email matched', emailMatchedUser.id)
                   return done(undefined, emailMatchedUser)
                 }
                 const user = new AV.User()
                 user.set('email', email).set('name', realname)
-                await user.loginWithAuthData({ uid: userId }, 'xd_cas')
+                await user.loginWithAuthData({ uid: userId, access_token: accessToken }, 'xd_cas')
                 console.log('new user created', user.id)
                 return done(undefined, user)
               }
