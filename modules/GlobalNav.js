@@ -11,7 +11,7 @@ import { AppContext } from './context'
 
 export default function GlobalNav({ user, onLogout }) {
   const { t } = useTranslation()
-  const { isStaff } = useContext(AppContext)
+  const { isCustomerService } = useContext(AppContext)
 
   const handleChangeLanguage = (lang) => {
     i18next.changeLanguage(lang)
@@ -28,7 +28,7 @@ export default function GlobalNav({ user, onLogout }) {
 
         <Navbar.Collapse>
           <Nav className="mr-auto">
-            {isStaff ? (
+            {isCustomerService ? (
               <>
                 <Nav.Link
                   as={Link}
@@ -55,7 +55,7 @@ export default function GlobalNav({ user, onLogout }) {
                 {t('newTicket')}
               </Button>
             )}
-            {isStaff && (
+            {isCustomerService && (
               <Nav.Link as={Link} to="/notifications">
                 <Icon.BellFill />
               </Nav.Link>

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { auth } from '../lib/leancloud'
 import { useHistory } from 'react-router-dom'
 
-export default function Home({ isStaff }) {
+export default function Home({ isCustomerService }) {
   const history = useHistory()
 
   useEffect(() => {
@@ -11,16 +11,16 @@ export default function Home({ isStaff }) {
       history.replace('/login')
       return
     }
-    if (isStaff) {
+    if (isCustomerService) {
       history.replace('/customerService/tickets?assignee=me&stage=todo')
     } else {
       history.replace('/tickets')
     }
-  }, [history, isStaff])
+  }, [history, isCustomerService])
 
   return <div>Home</div>
 }
 
 Home.propTypes = {
-  isStaff: PropTypes.bool,
+  isCustomerService: PropTypes.bool,
 }

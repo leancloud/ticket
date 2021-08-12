@@ -4,7 +4,7 @@
 import React, { useEffect, useState } from 'react'
 import { Route, useHistory, useLocation } from 'react-router-dom'
 import { auth } from '../../lib/leancloud'
-import { isStaff } from '../common'
+import { isCustomerService } from '../common'
 import Login from '../Login'
 
 function BasicAuthWrapper({ children }) {
@@ -38,8 +38,9 @@ function CSAuthWrapper({ children }) {
   useEffect(() => {
     setPass(false)
     setError()
-    isStaff(auth.currentUser)
+    isCustomerService(auth.currentUser)
       .then((isCS) => {
+        console.log(isCS)
         if (isCS) {
           setPass(true)
         } else {
