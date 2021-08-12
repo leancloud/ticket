@@ -28,8 +28,8 @@ export const isCustomerService = (user) => {
     .queryRole()
     .where('name', '==', 'customerService')
     .where('users', '==', user)
-    .count()
-    .then((count) => count > 0)
+    .first()
+    .then((role) => !!role)
 }
 
 export const isStaff = (user) => {
@@ -40,8 +40,8 @@ export const isStaff = (user) => {
     .queryRole()
     .where('name', '==', 'staff')
     .where('users', '==', user)
-    .count()
-    .then((count) => count > 0)
+    .first()
+    .then((role) => !!role)
 }
 
 /**
