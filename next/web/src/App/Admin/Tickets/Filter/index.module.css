@@ -1,7 +1,0 @@
-.select {
-  @apply w-full px-3 rounded border-gray-200;
-
-  background-size: 1rem;
-  padding-top: 0.25rem;
-  padding-bottom: 0.25rem;
-}

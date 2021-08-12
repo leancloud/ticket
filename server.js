@@ -23,6 +23,11 @@ Raven.config(config.sentryDSN).install()
 
 const app = express()
 
+// in-app pages
+app.use('/in-app/v1', express.static(path.join(__dirname, 'in-app/v1/dist')))
+const inAppIndexPage = path.join(__dirname, 'in-app/v1/dist/index.html')
+app.get('/in-app/v1/*', (req, res) => res.sendFile(inAppIndexPage))
+
 // next api
 require('./next/server')
 app.use(
@@ -32,6 +37,11 @@ app.use(
     changeOrigin: true,
   })
 )
+
+// next pages
+app.use('/next', express.static(path.join(__dirname, 'next/web/dist')))
+const nextWebIndexPage = path.join(__dirname, 'next/web/dist/index.html')
+app.get('/next/*', (req, res) => res.sendFile(nextWebIndexPage))
 
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')))
 app.use(compression())
@@ -53,12 +63,6 @@ app.use(require('./oauth'))
 
 // legacy api
 app.use(require('./api'))
-
-// in-app pages
-app.use('/in-app/v1', express.static(path.join(__dirname, 'in-app/v1/dist')))
-app.get('/in-app/v1/*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'in-app/v1/dist/index.html'))
-})
 
 const { orgName } = require('./oauth/lc')
 

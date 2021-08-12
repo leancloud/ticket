@@ -1,7 +1,11 @@
-import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
+import { RecoilRoot } from 'recoil';
+import { BrowserRouter, Redirect, Route, RouteProps, Switch } from 'react-router-dom';
+import { QueryParamProvider } from 'use-query-params';
 
+import { auth } from '../leancloud';
 import Admin from './Admin';
+import { useEffect } from 'react';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -12,19 +16,23 @@ const queryClient = new QueryClient({
   },
 });
 
-function NotFound() {
-  return <div>404</div>;
+function AuthRoute(props: RouteProps) {
+  useEffect(() => {
+    if (!auth.currentUser) {
+      location.href = '/login';
+    }
+  });
+
+  return auth.currentUser ? <Route {...props} /> : null;
 }
 
 function Routes() {
   return (
     <Switch>
-      <Route path="/a">
+      <AuthRoute path="/admin">
         <Admin />
-      </Route>
-      <Route>
-        <NotFound />
-      </Route>
+      </AuthRoute>
+      <Redirect to="/admin" />
     </Switch>
   );
 }
@@ -32,9 +40,13 @@ function Routes() {
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter basename="/next">
-        <Routes />
-      </BrowserRouter>
+      <RecoilRoot>
+        <BrowserRouter basename="/next">
+          <QueryParamProvider ReactRouterRoute={Route}>
+            <Routes />
+          </QueryParamProvider>
+        </BrowserRouter>
+      </RecoilRoot>
     </QueryClientProvider>
   );
 }

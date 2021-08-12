@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import { Button, Form } from 'react-bootstrap'
+import { Button, Form, OverlayTrigger, Tooltip } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import classNames from 'classnames'
@@ -121,23 +121,41 @@ export function CSReplyEditor({ ticketId, onReply, onOperate }) {
         </div>
 
         <div>
-          <Button
-            variant="light"
-            disabled={operating}
-            onClick={() => handleOperate('replyWithNoContent')}
+          <OverlayTrigger
+            placement="top"
+            overlay={
+              <Tooltip>
+                {t('changedTicketStatusTo')} {t('statusWaitingCustomer')}
+              </Tooltip>
+            }
           >
-            {t('noNeedToReply')}
-          </Button>{' '}
-          <Button variant="light" disabled={operating} onClick={() => handleOperate('replySoon')}>
-            {t('replyLater')}
-          </Button>{' '}
+            <Button
+              variant="light"
+              disabled={operating}
+              onClick={() => handleOperate('replyWithNoContent')}
+            >
+              {t('noNeedToReply')}
+            </Button>
+          </OverlayTrigger>{' '}
+          <OverlayTrigger
+            placement="top"
+            overlay={
+              <Tooltip>
+                {t('changedTicketStatusTo')} {t('statusWaitingCustomerService')}
+              </Tooltip>
+            }
+          >
+            <Button variant="light" disabled={operating} onClick={() => handleOperate('replySoon')}>
+              {t('replyLater')}
+            </Button>
+          </OverlayTrigger>{' '}
           <Button
             className={styles.submit}
             variant="success"
             disabled={!commitable || committing}
             onClick={handleReply}
           >
-            {t('submit')}
+            {replyType === 'public' ? t('replyCustomer') : t('leaveMessage')}
           </Button>
         </div>
       </div>

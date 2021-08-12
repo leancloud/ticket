@@ -1,39 +1,46 @@
+import { BsPersonPlus } from 'react-icons/bs';
 import cx from 'classnames';
 import moment from 'moment';
 
-import { TicketStatus } from '../TicketStatus';
+import { TicketItem } from 'api';
+import Status from '../Status';
 
-export interface TicketItemProps {
-  title: string;
-  nid: number;
-  author: string;
-  status: number;
-  createdAt: Date | string;
-  updatedAt: Date | string;
+function CategoryPath({ path }: { path: { name: string }[] }) {
+  return (
+    <span className="text-xs px-1 py-0.5 border rounded border-gray-500 text-gray-500">
+      {path.map((c) => c.name).join(' / ')}
+    </span>
+  );
 }
 
-export function TicketItem({ title, nid, author, status, createdAt, updatedAt }: TicketItemProps) {
-  const asai = status >= 250;
+export interface TicketItemComponentProps {
+  ticket: TicketItem;
+}
+
+export function TicketItemComponent({ ticket }: TicketItemComponentProps) {
+  const asai = ticket.status >= 250;
 
   return (
-    <div className="flex-shrink-0 flex justify-between bg-white h-24 rounded shadow-sm border-b border-gray-300">
-      <div className="h-full flex flex-col justify-center gap-1 items-start ml-4">
-        <TicketStatus status={status} />
+    <div className="flex-shrink-0 grid grid-cols-4 bg-white h-24 rounded shadow-sm border-b border-gray-300 text-[#183247]">
+      <div className="h-full col-span-3 flex flex-col justify-center gap-1 items-start ml-4">
+        <span>
+          <Status status={ticket.status} /> <CategoryPath path={[{ name: 'todo' }]} />
+        </span>
         <a
-          href="/"
+          href={`/tickets/${ticket.nid}`}
           className={cx('font-semibold', {
             'text-gray-800 hover:text-blue-800': !asai,
             'text-gray-400': asai,
           })}
         >
-          <span>{title}</span>
+          <span>{ticket.title}</span>
           <span
             className={cx('ml-2', {
               'text-gray-600': !asai,
               'text-gray-300': asai,
             })}
           >
-            #{nid}
+            #{ticket.nid}
           </span>
         </a>
         <div
@@ -42,7 +49,16 @@ export function TicketItem({ title, nid, author, status, createdAt, updatedAt }:
             'text-gray-300': asai,
           })}
         >
-          {author} · 创建于 {moment(createdAt).fromNow()} · 更新于 {moment(updatedAt).fromNow()}
+          {ticket.author.nickname} · 创建于 {moment(ticket.createdAt).fromNow()} · 更新于{' '}
+          {moment(ticket.updatedAt).fromNow()}
+        </div>
+      </div>
+      <div className="flex flex-col justify-center gap-1 items-start text-sm">
+        <div>
+          <BsPersonPlus className="inline-block" />
+          <span className="ml-2">
+            {ticket.group?.name ?? '--'} / {ticket.assignee?.nickname ?? '--'}
+          </span>
         </div>
       </div>
     </div>
