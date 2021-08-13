@@ -63,14 +63,14 @@ export default function Settings(props) {
               <ListGroup.Item as={NavLink} to="/settings/groups">
                 {t('group')}
               </ListGroup.Item>
-              <ListGroup.Item as={NavLink} to="/settings/categories">
-                {t('category')}
-              </ListGroup.Item>
               <ListGroup.Item as={NavLink} to="/settings/ticketField">
                 {t('ticketField')}
               </ListGroup.Item>
               <ListGroup.Item as={NavLink} to="/settings/ticketTemplate">
                 {t('ticketTemplate')}
+              </ListGroup.Item>
+              <ListGroup.Item as={NavLink} to="/settings/categories">
+                {t('category')}
               </ListGroup.Item>
               <ListGroup.Item as={NavLink} to="/settings/tags">
                 {t('tag')}
