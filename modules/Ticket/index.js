@@ -314,7 +314,7 @@ export default function Ticket() {
   } = useRouteMatch()
   const { t } = useTranslation()
   const appContextValue = useContext(AppContext)
-  const { addNotification, currentUser, isStaff } = appContextValue
+  const { addNotification, currentUser, isCustomerService } = appContextValue
   const { ticket, isLoading: loadingTicket, refetchTicket, error } = useTicket(nid)
   const { timeline, loadMoreReplies, loadMoreOpsLogs } = useTimeline(ticket?.id)
   useTitle(ticket?.title)
@@ -337,7 +337,7 @@ export default function Ticket() {
     onError: (error) => addNotification(error),
   })
 
-  const isCsInThisTicket = isStaff && ticket?.author_id !== currentUser.id
+  const isCsInThisTicket = isCustomerService && ticket?.author_id !== currentUser.id
 
   if (loadingTicket) {
     return <div>{t('loading') + '...'}</div>
