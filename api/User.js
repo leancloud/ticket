@@ -52,25 +52,23 @@ if (!newApp) {
   AV.Cloud.afterSave('_User', async (req) => {
     if (newApp) {
       newApp = false
-      const admin = await addRole(
-        'admin',
-        new AV.ACL().setPublicReadAccess(true).setRoleWriteAccess('admin', true),
-        req.object
-      )
+      const admin = await addRole('admin', getRoleACL('admin'), req.object)
       const customerService = await addRole(
         'customerService',
-        new AV.ACL().setPublicReadAccess(true).setRoleWriteAccess('customerService', true),
+        getRoleACL('customerService'),
         undefined,
         admin
       )
-      await addRole(
-        'staff',
-        new AV.ACL().setPublicReadAccess(true).setRoleWriteAccess('customerService', true),
-        undefined,
-        customerService
-      )
+      await addRole('staff', getRoleACL('customerService'), undefined, customerService)
     }
   })
+}
+
+const getRoleACL = (writableRole) => {
+  const acl = new AV.ACL()
+  acl.setPublicReadAccess(true)
+  acl.setRoleWriteAccess(writableRole, true)
+  return acl
 }
 
 const addRole = (name, acl, initUser, initSubRole) => {
