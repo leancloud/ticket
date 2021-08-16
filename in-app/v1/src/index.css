@@ -2,12 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body, #root {
-  height: 100%;
-}
-
 body {
   background-color: #E5E5E5;
+  @apply pl-[max(10px,env(safe-area-inset-left))] sm:pl-[calc(84px+env(safe-area-inset-left))] pr-[max(10px,env(safe-area-inset-right))] sm:pr-[calc(84px+env(safe-area-inset-right))];
 }
 
 button:focus, input:focus, textarea:focus, select:focus {

@@ -1,3 +1,5 @@
+import { ComponentPropsWithoutRef } from 'react';
+
 function addZeroPrefix(value: number, width: number): string {
   const str = value + '';
   if (str.length >= width) {
@@ -6,9 +8,9 @@ function addZeroPrefix(value: number, width: number): string {
   return '0'.repeat(width - str.length) + str;
 }
 
-export type TimeProps = JSX.IntrinsicElements['span'] & {
+export interface TimeProps extends ComponentPropsWithoutRef<'span'> {
   value: Date;
-};
+}
 
 export function Time({ value, ...props }: TimeProps) {
   const year = value.getFullYear();

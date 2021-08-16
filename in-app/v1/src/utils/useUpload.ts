@@ -29,6 +29,7 @@ export function useUpload({ onError }: UseUploadOptions = {}): UseUploadResult {
     const fileInfo: FileInfo<number> = {
       key,
       name: file.name,
+      url: URL.createObjectURL(file),
       progress: 0,
     };
 
@@ -64,7 +65,7 @@ export function useUpload({ onError }: UseUploadOptions = {}): UseUploadResult {
       .then((file) => {
         update({
           id: file.id,
-          url: file.url,
+          // url: file.url,
           mime: file.mime,
           progress: undefined,
         });

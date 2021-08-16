@@ -13,7 +13,7 @@ import { Ticket } from 'types';
 export function Evaluated() {
   const { t } = useTranslation();
   return (
-    <div className="p-6 border-t border-dashed border-gray-300 text-gray-600 flex items-center text-sm pb-[max(env(safe-area-inset-bottom),1.5rem)]">
+    <div className="p-6 border-t border-dashed border-gray-300 text-gray-600 flex items-center text-sm">
       <div className="flex w-4 h-4 bg-tapBlue rounded-full mr-2">
         <CheckIcon className="w-1.5 h-1.5 m-auto text-white" />
       </div>
@@ -48,7 +48,7 @@ export function NewEvaluation({ ticketId }: NewEvaluationProps) {
   };
 
   return (
-    <div className="p-6 border-t border-dashed border-gray-300 text-sm pb-[max(env(safe-area-inset-bottom),1.5rem)]">
+    <div className="p-6 border-t border-dashed border-gray-300 text-sm">
       <div className="text-gray-600">{t('evaluation.title')}</div>
 
       <div className="py-6">
@@ -72,13 +72,13 @@ export function NewEvaluation({ ticketId }: NewEvaluationProps) {
 
       <div className="flex items-center">
         <input
-          className="flex-grow leading-[16px] border rounded-full placeholder-[#BFBFBF] p-2"
+          className="flex-grow leading-[16px] border rounded-full placeholder-[#BFBFBF] px-3 py-[7px]"
           placeholder={t('evaluation.content_hint')}
           value={content}
           onChange={(e) => setContent(e.target.value)}
         />
         <Button
-          className="ml-2 leading-none w-16 h-8"
+          className="ml-2 w-16 text-[13px] leading-[30px]"
           disabled={star === undefined || isLoading}
           onClick={handleCommit}
         >

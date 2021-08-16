@@ -71,8 +71,8 @@ function TicketItem({ ticket }: TicketItemProps) {
     <div className="h-[68px] flex justify-between items-center border-b border-gray-100">
       <div className="overflow-hidden">
         <div className="text-sm">
-          <TicketStatus status={ticket.status} />
-          <span className="ml-3 text-[#BFBFBF]">
+          <TicketStatus className="mr-3" status={ticket.status} />
+          <span className="text-[#BFBFBF] whitespace-nowrap">
             {t('ticket.updated_at')}: <Time value={ticket.updatedAt} />
           </span>
         </div>
@@ -95,24 +95,31 @@ export function TicketList() {
   const tickets = useMemo(() => data?.pages.flat() ?? [], [data]);
 
   return (
-    <Page title={t('ticket.record')}>
-      <QueryWrapper result={result} noData={noData} noDataMessage={t('ticket.no_record')}>
-        <>
+    <Page>
+      <Page.Header>{t('ticket.record')}</Page.Header>
+      <Page.Content>
+        <QueryWrapper result={result} noData={noData} noDataMessage={t('ticket.no_record')}>
           {tickets.map((ticket) => (
-            <Link key={ticket.id} className="px-4 active:bg-gray-50" to={`/tickets/${ticket.id}`}>
+            <Link
+              key={ticket.id}
+              className="block px-4 active:bg-gray-50"
+              to={`/tickets/${ticket.id}`}
+            >
               <TicketItem ticket={ticket} />
             </Link>
           ))}
-          {!noData && (
-            <InView
-              className="flex justify-center items-center w-full h-12 text-[#BFBFBF]"
-              onChange={(inView) => inView && fetchNextPage()}
-            >
-              {hasNextPage ? <LoadingHint /> : t('ticket.no_more_record')}
-            </InView>
-          )}
-        </>
-      </QueryWrapper>
+        </QueryWrapper>
+      </Page.Content>
+      <Page.Footer>
+        {!noData && !result.error && (
+          <InView
+            className="flex justify-center items-center w-full h-12 text-[#BFBFBF] text-[13px]"
+            onChange={(inView) => inView && fetchNextPage()}
+          >
+            {hasNextPage ? <LoadingHint /> : t('ticket.no_more_record')}
+          </InView>
+        )}
+      </Page.Footer>
     </Page>
   );
 }

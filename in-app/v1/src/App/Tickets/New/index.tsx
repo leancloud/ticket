@@ -107,10 +107,10 @@ function TicketForm({ categoryId, onCommit }: TicketFormProps) {
 
   return (
     <QueryWrapper result={result}>
-      <div className="p-4">
+      <div className="px-5 sm:px-10 pt-7 pb-5">
         {formElement}
         <Button
-          className="mb-4 sm:ml-20 w-full sm:max-w-max sm:px-11"
+          className="sm:ml-20 w-full sm:max-w-max sm:px-11"
           disabled={isCommitting}
           onClick={handleCommit}
         >
@@ -129,12 +129,12 @@ function Success({ ticketId }: SuccessProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="flex flex-col justify-center items-center h-60">
-      <div className="p-2.5 rounded-full bg-tapBlue">
-        <CheckIcon className="w-4 h-4 text-white" />
+    <div className="text-center mt-12 sm:m-auto">
+      <div className="flex w-9 h-9 mx-auto rounded-full bg-tapBlue">
+        <CheckIcon className="w-4 h-4 m-auto text-white" />
       </div>
-      <div className="text-[#666] mt-8">{t('ticket.create.success_text')}</div>
-      <Button className="w-32 mt-4" as={Link} to={`/tickets/${ticketId}`}>
+      <div className="text-[#666] mt-10">{t('ticket.create.success_text')}</div>
+      <Button className="inline-block w-32 mt-4" as={Link} to={`/tickets/${ticketId}`}>
         {t('ticket.detail')}
       </Button>
     </div>
@@ -149,6 +149,7 @@ async function commitTicket(data: NewTicketData): Promise<string> {
 }
 
 export function NewTicket() {
+  const { t } = useTranslation();
   const { category_id } = useSearchParams();
   const result = useCategory(category_id);
   const [ticketId, setTicketId] = useState<string>();
@@ -164,14 +165,18 @@ export function NewTicket() {
     return <>Category is not found</>;
   }
   return (
-    <Page title={result.data?.name ?? 'Loading...'}>
-      <QueryWrapper result={result}>
-        {ticketId ? (
-          <Success ticketId={ticketId} />
-        ) : (
-          <TicketForm categoryId={category_id} onCommit={commit} />
-        )}
-      </QueryWrapper>
+    <Page>
+      <Page.Header>{result.data?.name ?? t('general.loading') + '...'}</Page.Header>
+      <Page.Content>
+        <QueryWrapper result={result}>
+          {ticketId ? (
+            <Success ticketId={ticketId} />
+          ) : (
+            <TicketForm categoryId={category_id} onCommit={commit} />
+          )}
+        </QueryWrapper>
+      </Page.Content>
+      <Page.Footer />
     </Page>
   );
 }

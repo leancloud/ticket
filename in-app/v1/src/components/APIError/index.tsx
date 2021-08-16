@@ -83,15 +83,17 @@ export function APIError({ onRetry }: APIErrorProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="flex flex-col items-center mt-24 sm:mt-10">
-      <RadarIcon className="mx-auto" />
-      <div className="mx-auto mt-2 h-6 flex items-center text-[#BFBFBF]">{t('network_error')}</div>
-      <button
-        className="mt-3 px-3 h-8 box-border rounded-full border border-[rgba(0,0,0,0.06)] text-tapBlue text-sm"
-        onClick={onRetry}
-      >
-        {t('network_error.retry')}
-      </button>
+    <div className="h-full flex flex-grow">
+      <div className="mx-auto mt-24 sm:my-auto text-center">
+        <RadarIcon className="mx-auto" />
+        <div className="mt-2 h-6 text-[#BFBFBF]">{t('network_error')}</div>
+        <button
+          className="mt-3 px-3 h-8 box-border rounded-full border border-[rgba(0,0,0,0.06)] text-tapBlue text-sm"
+          onClick={onRetry}
+        >
+          {t('network_error.retry')}
+        </button>
+      </div>
     </div>
   );
 }
