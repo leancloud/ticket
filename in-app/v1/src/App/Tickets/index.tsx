@@ -79,7 +79,7 @@ function TicketItem({ ticket }: TicketItemProps) {
         <div className="mt-1.5 truncate text-[13px]">{ticket.title}</div>
       </div>
       {ticket.unreadCount > 0 && (
-        <div className="flex-shrink-0 ml-2 w-[18px] h-[18px] leading-[18px] px-1 min-w-min bg-red-500 rounded-full text-white text-xs text-center">
+        <div className="flex-shrink-0 ml-2 w-[18px] leading-[18px] px-1 min-w-min bg-red-500 rounded-full text-white text-xs text-center">
           {ticket.unreadCount}
         </div>
       )}

@@ -1,7 +1,7 @@
 import {
-  ChangeEvent,
   ChangeEventHandler,
   ComponentPropsWithoutRef,
+  forwardRef,
   PropsWithChildren,
   useCallback,
   useEffect,
@@ -9,12 +9,12 @@ import {
   useRef,
   useState,
 } from 'react';
+import { createPortal } from 'react-dom';
 import { useMutation, useQuery } from 'react-query';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import cx from 'classnames';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/solid';
-import { Dialog } from '@headlessui/react';
 
 import { Page } from 'components/Page';
 import { QueryWrapper } from 'components/QueryWrapper';
@@ -163,7 +163,7 @@ function MiniUploader({ className, onUpload }: MiniUploaderProps) {
 
   return (
     <button
-      className={className}
+      className={cx('flex', className)}
       onClick={() => $input.current.click()}
       onTouchStart={(e) => e.preventDefault()}
       onTouchEnd={(e) => {
@@ -172,39 +172,51 @@ function MiniUploader({ className, onUpload }: MiniUploaderProps) {
       }}
     >
       <input className="hidden" type="file" ref={$input} onChange={handleUpload} />
-      <ClipIcon className="text-tapBlue" />
+      <ClipIcon className="m-auto text-tapBlue" />
     </button>
   );
 }
 
-function AutosizedTextarea(props: ComponentPropsWithoutRef<'textarea'>) {
-  const $textarea = useRef<HTMLTextAreaElement>(null);
+const AutosizedTextarea = forwardRef<HTMLTextAreaElement, ComponentPropsWithoutRef<'textarea'>>(
+  (props, ref) => {
+    const $textarea = useRef<HTMLTextAreaElement>(null);
 
-  const resize = useCallback(() => {
-    const textarea = $textarea.current;
-    if (textarea) {
-      textarea.style.height = 'auto';
-      textarea.style.height = textarea.scrollHeight + 'px';
-    }
-  }, []);
+    const resize = useCallback(() => {
+      const textarea = $textarea.current;
+      if (textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = textarea.scrollHeight + 'px';
+      }
+    }, []);
 
-  useEffect(() => {
-    const textarea = $textarea.current!;
-    let ob: ResizeObserver | undefined;
-    if (typeof ResizeObserver !== 'undefined') {
-      ob = new ResizeObserver(resize);
-      ob.observe(textarea);
-    }
-    textarea.addEventListener('input', resize);
+    useEffect(() => {
+      const textarea = $textarea.current!;
+      let ob: ResizeObserver | undefined;
+      if (typeof ResizeObserver !== 'undefined') {
+        ob = new ResizeObserver(resize);
+        ob.observe(textarea);
+      }
+      textarea.addEventListener('input', resize);
 
-    return () => {
-      ob?.disconnect();
-      textarea.removeEventListener('input', resize);
-    };
-  }, []);
+      return () => {
+        ob?.disconnect();
+        textarea.removeEventListener('input', resize);
+      };
+    }, []);
 
-  return <textarea {...props} ref={$textarea} />;
-}
+    useEffect(() => {
+      if (ref) {
+        if (typeof ref === 'function') {
+          ref($textarea.current);
+        } else {
+          ref.current = $textarea.current;
+        }
+      }
+    }, [ref]);
+
+    return <textarea {...props} ref={$textarea} />;
+  }
+);
 
 interface ReplyData {
   content: string;
@@ -218,19 +230,14 @@ interface ReplyInputProps {
 
 function ReplyInput({ onCommit, disabled }: ReplyInputProps) {
   const { t } = useTranslation();
-  const [editing, setEditing] = useState(false);
+  const [show, setShow] = useState(false);
   const [content, setContent] = useState('');
   const { files, isUploading, upload, remove, removeAll } = useUpload();
   const submitable = useMemo(() => {
     return !isUploading && (content.trim() || files.length);
   }, [files, isUploading, content]);
 
-  const handleChangeContent = useCallback(
-    (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      setContent(e.target.value);
-    },
-    []
-  );
+  const handleChangeContent = useCallback((content: string) => setContent(content), []);
 
   // TODO: 上传文件后滚动到底部
 
@@ -241,30 +248,40 @@ function ReplyInput({ onCommit, disabled }: ReplyInputProps) {
         file_ids: files.map((file) => file.id!),
       });
       setContent('');
-      setEditing(false);
+      setShow(false);
       removeAll();
     } catch {}
   };
+
+  const $editor = useRef<HTMLDivElement>(null);
+  const $content = useRef(content);
+  $content.current = content;
+  useEffect(() => {
+    if (show) {
+      $editor.current!.innerText = $content.current;
+      $editor.current!.focus();
+    }
+  }, [show]);
 
   return (
     <>
       <div
         className={cx(
-          'flex border-t border-gray-100 bg-[#FAFAFA] px-3 pt-2 pb-[max(8px,env(safe-area-inset-bottom))]',
+          'flex items-center border-t border-gray-100 bg-[#FAFAFA] px-3 pt-2 pb-[max(8px,env(safe-area-inset-bottom))]',
           {
-            invisible: editing,
+            invisible: show,
           }
         )}
       >
         <input
-          className="flex-grow h-8 px-2 border rounded-full placeholder-[#BFBFBF] text-sm"
+          className="flex-grow h-8 px-3 border rounded-full placeholder-[#BFBFBF] text-sm"
           placeholder={t('reply.input_content_hint')}
           value={content}
-          onChange={handleChangeContent}
-          onFocus={() => setEditing(true)}
+          onChange={(e) => handleChangeContent(e.target.value)}
+          onFocus={() => setShow(true)}
         />
         <Button
-          className="flex-shrink-0 ml-2 w-16 leading-8 text-[13px]"
+          className="flex-shrink-0 ml-2 w-16 leading-[30px] text-[13px]"
           disabled={!submitable || disabled}
           onClick={handleCommit}
         >
@@ -272,44 +289,59 @@ function ReplyInput({ onCommit, disabled }: ReplyInputProps) {
         </Button>
       </div>
 
-      <Dialog open={editing} onClose={() => setEditing(false)}>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-black opacity-30" />
+      {show &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-50 bg-[rgba(0,0,0,0.3)]"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShow(false);
+              }
+            }}
+          >
+            <div className="fixed left-0 right-0 bottom-0 z-50 bg-[#FAFAFA] border-t border-gray-100 px-3 pt-2 pl-[max(12px,env(safe-area-inset-left))] pr-[max(12px,env(safe-area-inset-right))] pb-[max(8px,env(safe-area-inset-bottom))]">
+              <div className="relative flex items-end">
+                <div className="relative bg-white flex-grow rounded-[16px] border pl-3 pr-[34px] max-h-[200px] sm:max-h-[140px] overflow-y-auto text-sm">
+                  <div
+                    ref={$editor}
+                    contentEditable
+                    className="outline-none leading-[16px] my-[7px] whitespace-pre-line"
+                    onInput={(e) => {
+                      handleChangeContent((e.target as HTMLDivElement).innerText);
+                    }}
+                  />
+                  {(content.length === 0 || content === '\n') && (
+                    <div className="absolute left-3 top-0 leading-[30px] text-[#BFBFBF]">
+                      {t('reply.input_content_hint')}
+                    </div>
+                  )}
 
-        <div className="fixed left-0 right-0 bottom-0 z-50 bg-[#FAFAFA] border-t border-gray-100 px-3 pt-2 pl-[max(12px,env(safe-area-inset-left))] pr-[max(12px,env(safe-area-inset-right))] pb-[max(8px,env(safe-area-inset-bottom))]">
-          <div className="relative flex items-end">
-            <div className="bg-white flex-grow leading-[0] rounded-[16px] border pl-3 pr-[34px] max-h-[calc(100vh-13px)] overflow-y-auto">
-              <AutosizedTextarea
-                className="w-full text-sm leading-[16px] my-[7px] placeholder-[#BFBFBF]"
-                autoFocus
-                placeholder={t('reply.input_content_hint')}
-                value={content}
-                onChange={handleChangeContent}
-                rows={1}
-              />
-              {files.length > 0 && (
-                <FileItems
-                  files={files}
-                  previewable={false}
-                  onDelete={(file) => remove(file.key)}
+                  {files.length > 0 && (
+                    <FileItems
+                      files={files}
+                      previewable={false}
+                      onDelete={(file) => remove(file.key)}
+                    />
+                  )}
+                </div>
+
+                <MiniUploader
+                  className="absolute right-[74px] bottom-px w-[34px] h-[30px]"
+                  onUpload={(files) => upload(files[0])}
                 />
-              )}
+
+                <Button
+                  className="relative bottom-px flex-shrink-0 w-16 ml-2 leading-[30px] text-[13px]"
+                  disabled={!submitable || disabled}
+                  onClick={handleCommit}
+                >
+                  {t('general.send')}
+                </Button>
+              </div>
             </div>
-
-            <MiniUploader
-              className="absolute right-[82px] bottom-1.5"
-              onUpload={(files) => upload(files[0])}
-            />
-
-            <Button
-              className="relative bottom-px flex-shrink-0 w-16 ml-2 leading-[30px] text-[13px]"
-              disabled={!submitable || disabled}
-              onClick={handleCommit}
-            >
-              {t('general.send')}
-            </Button>
-          </div>
-        </div>
-      </Dialog>
+          </div>,
+          document.body
+        )}
     </>
   );
 }
