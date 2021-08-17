@@ -9,7 +9,7 @@ export class TicketFieldVariantJson {
 
   toJSON() {
     return {
-      id: this.variant.id,
+      id: this.variant.field!.id,
       title: this.variant.title,
       type: this.variant.field!.type,
       required: this.variant.field!.required,
