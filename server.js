@@ -5,6 +5,8 @@ const compression = require('compression')
 const Raven = require('raven')
 const AV = require('leanengine')
 const { createProxyMiddleware } = require('http-proxy-middleware')
+const swaggerUi = require('swagger-ui-express')
+const YAML = require('yamljs')
 
 AV.init({
   appId: process.env.LEANCLOUD_APP_ID,
@@ -63,6 +65,9 @@ app.use(require('./oauth'))
 
 // legacy api
 app.use(require('./api'))
+
+// api document
+app.use('/docs/1', swaggerUi.serve, swaggerUi.setup(YAML.load('./docs/api1.yml')))
 
 const { orgName } = require('./oauth/lc')
 
