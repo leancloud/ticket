@@ -10,7 +10,7 @@ router.get('/', async (ctx) => {
 
   const unreadTicketQuery = Ticket.query()
     .where('author', '==', User.ptr(currentUser.id))
-    .where('unreadCount', '>=', 0);
+    .where('unreadCount', '>=', 1);
   const unreadTicket = await unreadTicketQuery.first({ useMasterKey: true });
   const unread = !!unreadTicket;
 
