@@ -3,26 +3,15 @@ import Router from '@koa/router';
 import { Ticket } from '../model/ticket';
 import AV from 'leancloud-storage';
 import { User } from '../model/user';
+import { auth } from '../middleware/auth';
 
-const router = new Router();
+const router = new Router().use(auth);
 
 router.get('/', async (ctx) => {
-  const anonymousId = ctx.headers['x-anonymous-id'];
-  if (!anonymousId) {
-    console.log('x-anonymous-id not exists');
-    ctx.throw(401);
-  }
-  const query = new AV.Query<AV.Object>('_User');
-  const user = (
-    await query.equalTo('authData.anonymous.id', anonymousId).find({ useMasterKey: true })
-  )[0];
-  if (!user) {
-    console.log('x-anonymous-id user not found');
-    ctx.throw(401);
-  }
+  const currentUser = ctx.state.currentUser as User;
 
   const unreadTicketQuery = Ticket.query()
-    .where('author', '==', User.ptr(user.id!))
+    .where('author', '==', User.ptr(currentUser.id))
     .where('unreadCount', '>=', 0);
   const unreadTicket = await unreadTicketQuery.first({ useMasterKey: true });
   const unread = !!unreadTicket;
