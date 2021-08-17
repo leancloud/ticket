@@ -5,7 +5,15 @@ const RedisStore = require('connect-redis')(session)
 const Redis = require('ioredis')
 const config = require('../config')
 
-const redisClient = new Redis(process.env.REDIS_URL_CACHE)
+let sessionStore = undefined // will use the builtin memory store bu default
+if (process.env.REDIS_URL_CACHE) {
+  const redisClient = new Redis(process.env.REDIS_URL_CACHE)
+  sessionStore = new RedisStore({ client: redisClient })
+} else {
+  console.warn(
+    'Running at local mode as the sessoin cache redis was not found. To enable the cluster mode, set the REDIS_URL_CACHE.'
+  )
+}
 
 // LeanCloud OAuth
 const loginCallbackPath = '/oauth/callback'
@@ -18,7 +26,7 @@ passport.serializeUser(function (user, done) {
   done(null, user.id)
 })
 router.use(passport.initialize())
-router.use(session({ secret: 'ticket', store: new RedisStore({ client: redisClient }) }))
+router.use(session({ secret: process.env.LEANCLOUD_APP_MASTER_KEY, store: sessionStore }))
 router.use(passport.session()) // requied for state store
 
 if (process.env.ENABLE_XD_OAUTH) {
