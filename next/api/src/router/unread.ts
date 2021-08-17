@@ -1,7 +1,5 @@
-import { Context } from 'koa';
 import Router from '@koa/router';
 import { Ticket } from '../model/ticket';
-import AV from 'leancloud-storage';
 import { User } from '../model/user';
 import { auth } from '../middleware/auth';
 
