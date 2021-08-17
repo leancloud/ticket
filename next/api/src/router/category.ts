@@ -5,8 +5,7 @@ import * as yup from '../utils/yup';
 import { auth } from '../middleware/auth';
 import { Category, CategoryManager } from '../model/category';
 import { TicketForm } from '../model/ticket-form';
-import { CategoryJson } from '../json/category';
-import { TicketFieldVariantJson } from '../json/ticket-field-variant';
+import { CategoryJson, CategoryFieldResponse } from '../json/category';
 
 const router = new Router().use(auth);
 
@@ -67,7 +66,7 @@ router.get('/:id/fields', async (ctx) => {
   }
 
   const variants = await form.getFieldVariants(locale);
-  ctx.body = variants.map((v) => new TicketFieldVariantJson(v));
+  ctx.body = variants.map((v) => new CategoryFieldResponse(v));
 });
 
 export default router;
