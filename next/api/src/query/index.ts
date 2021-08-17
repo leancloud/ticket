@@ -198,8 +198,8 @@ export class Query<M extends ModelClass> {
         const items = [item];
         const objects = [object];
         await Promise.all(this.resultModifiers.map((m) => m(items, objects)));
-        return item;
       }
+      return item;
     }
   }
 
