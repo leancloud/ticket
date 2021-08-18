@@ -508,13 +508,13 @@ export function TicketMetadata({ ticket, isCustomerService, loadMoreOpsLogs }) {
 
       <CategorySection ticket={ticket} isCustomerService={isCustomerService} />
 
+      <TicketFormValues ticket={ticket} loadMoreOpsLogs={loadMoreOpsLogs} />
+
       {isCustomerService && <CustomMetadata metadata={ticket.metadata} />}
 
       <MountCustomElement point="ticket.metadata" props={{ ticket, isCustomerService }} />
 
       <TagSection ticket={ticket} isCustomerService={isCustomerService} />
-
-      <TicketFormValues ticket={ticket} loadMoreOpsLogs={loadMoreOpsLogs} />
     </>
   )
 }
