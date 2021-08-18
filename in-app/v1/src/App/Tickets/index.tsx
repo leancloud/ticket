@@ -3,6 +3,7 @@ import { Link, Route, Switch, useRouteMatch } from 'react-router-dom';
 import { useInfiniteQuery } from 'react-query';
 import { useTranslation } from 'react-i18next';
 import { InView } from 'react-intersection-observer';
+import { flatten } from 'lodash-es';
 
 import { QueryWrapper } from 'components/QueryWrapper';
 import { PageContent, PageHeader } from 'components/Page';
@@ -92,7 +93,7 @@ export function TicketList() {
   const result = useTickets();
   const { data, hasNextPage, fetchNextPage } = result;
   const noData = useMemo(() => !data?.pages[0]?.length, [data]);
-  const tickets = useMemo(() => data?.pages.flat() ?? [], [data]);
+  const tickets = useMemo(() => flatten(data?.pages), [data]);
 
   return (
     <>

@@ -1,7 +1,6 @@
 import {
   ChangeEventHandler,
   ComponentPropsWithoutRef,
-  forwardRef,
   PropsWithChildren,
   useCallback,
   useEffect,
@@ -15,6 +14,7 @@ import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import cx from 'classnames';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/solid';
+import { flatten } from 'lodash-es';
 
 import { PageContent, PageHeader } from 'components/Page';
 import { QueryWrapper } from 'components/QueryWrapper';
@@ -335,12 +335,7 @@ export default function TicketDetail() {
   const repliesResult = useReplies(id);
   const { data: replyPages } = repliesResult;
 
-  const replies = useMemo<Reply[]>(() => {
-    if (!replyPages) {
-      return [];
-    }
-    return replyPages.pages.flat();
-  }, [replyPages]);
+  const replies = useMemo<Reply[]>(() => flatten(replyPages?.pages), [replyPages]);
 
   const { mutateAsync: reply, isLoading: committing } = useMutation({
     mutationFn: (data: ReplyData) => commitReply(id, data),
