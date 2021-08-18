@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { InView } from 'react-intersection-observer';
 
 import { QueryWrapper } from 'components/QueryWrapper';
-import { Page } from 'components/Page';
+import { PageContent, PageHeader } from 'components/Page';
 import { Time } from 'components/Time';
 import { LoadingHint } from 'components/Loading';
 import TicketDetail, { TicketStatus } from './Ticket';
@@ -95,9 +95,9 @@ export function TicketList() {
   const tickets = useMemo(() => data?.pages.flat() ?? [], [data]);
 
   return (
-    <Page>
-      <Page.Header>{t('ticket.record')}</Page.Header>
-      <Page.Content>
+    <>
+      <PageHeader>{t('ticket.record')}</PageHeader>
+      <PageContent>
         <QueryWrapper result={result} noData={noData} noDataMessage={t('ticket.no_record')}>
           {tickets.map((ticket) => (
             <Link
@@ -108,19 +108,15 @@ export function TicketList() {
               <TicketItem ticket={ticket} />
             </Link>
           ))}
-        </QueryWrapper>
-      </Page.Content>
-      <Page.Footer>
-        {!noData && !result.error && (
           <InView
             className="flex justify-center items-center w-full h-12 text-[#BFBFBF] text-[13px]"
             onChange={(inView) => inView && fetchNextPage()}
           >
             {hasNextPage ? <LoadingHint /> : t('ticket.no_more_record')}
           </InView>
-        )}
-      </Page.Footer>
-    </Page>
+        </QueryWrapper>
+      </PageContent>
+    </>
   );
 }
 

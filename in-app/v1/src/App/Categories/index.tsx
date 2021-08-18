@@ -4,7 +4,7 @@ import { useQuery, UseQueryResult } from 'react-query';
 import { useTranslation } from 'react-i18next';
 import { ChevronRightIcon } from '@heroicons/react/solid';
 
-import { Page } from 'components/Page';
+import { PageContent, PageHeader } from 'components/Page';
 import { QueryWrapper } from 'components/QueryWrapper';
 import { http } from 'leancloud';
 import { Category } from 'types';
@@ -111,14 +111,13 @@ export default function Categories() {
   };
 
   return (
-    <Page>
-      <Page.Header>{title}</Page.Header>
-      <Page.Content>
+    <>
+      <PageHeader>{title}</PageHeader>
+      <PageContent>
         <QueryWrapper result={result}>
           <CategoryList categories={categories} onClick={handleClick} />
         </QueryWrapper>
-      </Page.Content>
-      <Page.Footer />
-    </Page>
+      </PageContent>
+    </>
   );
 }

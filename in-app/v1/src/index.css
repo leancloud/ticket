@@ -2,9 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  height: 100%;
+}
+
 body {
-  background-color: #E5E5E5;
-  @apply pl-[max(10px,env(safe-area-inset-left))] sm:pl-[calc(84px+env(safe-area-inset-left))] pr-[max(10px,env(safe-area-inset-right))] sm:pr-[calc(84px+env(safe-area-inset-right))];
+  @apply flex flex-col min-h-full text-base bg-[#E5E5E5] text-[#222];
+}
+
+#root {
+  @apply flex flex-col flex-grow;
 }
 
 button:focus, input:focus, textarea:focus, select:focus {

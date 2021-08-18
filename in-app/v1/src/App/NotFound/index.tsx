@@ -1,7 +1,7 @@
 import { SVGProps } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Page } from 'components/Page';
+import { PageContent, PageHeader } from 'components/Page';
 
 function PaperPlaneIcon(props: SVGProps<SVGSVGElement>) {
   return (
@@ -103,15 +103,14 @@ export default function NotFound() {
   const { t } = useTranslation();
 
   return (
-    <Page>
-      <Page.Header>Not Found</Page.Header>
-      <Page.Content>
+    <>
+      <PageHeader>Not Found</PageHeader>
+      <PageContent>
         <div className="mt-24 sm:m-auto text-center">
           <PaperPlaneIcon className="mx-auto" />
           <div className="mt-2 text-[#BFBFBF]">{t('general.content_deleted')}</div>
         </div>
-      </Page.Content>
-      <Page.Footer />
-    </Page>
+      </PageContent>
+    </>
   );
 }

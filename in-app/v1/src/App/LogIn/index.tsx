@@ -3,7 +3,7 @@ import { Redirect, useHistory } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 import { auth } from 'leancloud';
-import { Page } from 'components/Page';
+import { PageContent, PageHeader } from 'components/Page';
 import { Input } from 'components/Form';
 import { Button } from 'components/Button';
 
@@ -53,16 +53,15 @@ export default function LogIn() {
     return <Redirect to="/" />;
   }
   return (
-    <Page>
-      <Page.Header />
-      <Page.Content>
+    <>
+      <PageHeader />
+      <PageContent>
         {showLoginForm ? (
           <LogInForm />
         ) : (
           <div className="mx-auto mt-28 sm:my-auto text-[#666]">{t('auth.not_logged_in_text')}</div>
         )}
-      </Page.Content>
-      <Page.Footer />
-    </Page>
+      </PageContent>
+    </>
   );
 }

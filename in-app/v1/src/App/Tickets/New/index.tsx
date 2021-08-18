@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Redirect } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery } from 'react-query';
 import i18next from 'i18next';
 
 import { Field } from 'types';
 import { useSearchParams } from 'utils/url';
-import { Page } from 'components/Page';
+import { PageContent, PageHeader } from 'components/Page';
 import { Button } from 'components/Button';
 import { QueryWrapper } from 'components/QueryWrapper';
 import { SpaceChinese } from 'components/SpaceChinese';
@@ -107,7 +107,7 @@ function TicketForm({ categoryId, onCommit }: TicketFormProps) {
 
   return (
     <QueryWrapper result={result}>
-      <div className="px-5 sm:px-10 pt-7 pb-5">
+      <div className="px-5 sm:px-10 py-7">
         {formElement}
         <Button
           className="sm:ml-20 w-full sm:max-w-max sm:px-11"
@@ -162,12 +162,12 @@ export function NewTicket() {
 
   if (!result.data && !result.isLoading && !result.error) {
     // Category is not exists :badbad:
-    return <>Category is not found</>;
+    return <Redirect to="/404" />;
   }
   return (
-    <Page>
-      <Page.Header>{result.data?.name ?? t('general.loading') + '...'}</Page.Header>
-      <Page.Content>
+    <>
+      <PageHeader>{result.data?.name ?? t('general.loading') + '...'}</PageHeader>
+      <PageContent>
         <QueryWrapper result={result}>
           {ticketId ? (
             <Success ticketId={ticketId} />
@@ -175,8 +175,7 @@ export function NewTicket() {
             <TicketForm categoryId={category_id} onCommit={commit} />
           )}
         </QueryWrapper>
-      </Page.Content>
-      <Page.Footer />
-    </Page>
+      </PageContent>
+    </>
   );
 }

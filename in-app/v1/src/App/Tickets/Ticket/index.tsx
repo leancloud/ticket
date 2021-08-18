@@ -16,7 +16,7 @@ import { useTranslation } from 'react-i18next';
 import cx from 'classnames';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/solid';
 
-import { Page } from 'components/Page';
+import { PageContent, PageHeader } from 'components/Page';
 import { QueryWrapper } from 'components/QueryWrapper';
 import { FileItems } from 'components/FileItem';
 import { Button } from 'components/Button';
@@ -121,7 +121,7 @@ function TicketAttributes({ ticket }: { ticket: Ticket }) {
   const [expand, setExpand] = useState(false);
 
   return (
-    <div className="bg-[#FAFAFA] border-b border-gray-100 text-sm transition-all px-4 pt-4">
+    <div className="flex-shrink-0 bg-[#FAFAFA] border-b border-gray-100 text-sm px-4 pt-4">
       <div className={`${styles.dataGrid} gap-x-4 ${expand ? 'gap-y-2' : 'gap-y-1'}`}>
         {expand && <TicketAttribute title={t('general.number')}>#{ticket.nid}</TicketAttribute>}
         {expand && (
@@ -177,47 +177,6 @@ function MiniUploader({ className, onUpload }: MiniUploaderProps) {
   );
 }
 
-const AutosizedTextarea = forwardRef<HTMLTextAreaElement, ComponentPropsWithoutRef<'textarea'>>(
-  (props, ref) => {
-    const $textarea = useRef<HTMLTextAreaElement>(null);
-
-    const resize = useCallback(() => {
-      const textarea = $textarea.current;
-      if (textarea) {
-        textarea.style.height = 'auto';
-        textarea.style.height = textarea.scrollHeight + 'px';
-      }
-    }, []);
-
-    useEffect(() => {
-      const textarea = $textarea.current!;
-      let ob: ResizeObserver | undefined;
-      if (typeof ResizeObserver !== 'undefined') {
-        ob = new ResizeObserver(resize);
-        ob.observe(textarea);
-      }
-      textarea.addEventListener('input', resize);
-
-      return () => {
-        ob?.disconnect();
-        textarea.removeEventListener('input', resize);
-      };
-    }, []);
-
-    useEffect(() => {
-      if (ref) {
-        if (typeof ref === 'function') {
-          ref($textarea.current);
-        } else {
-          ref.current = $textarea.current;
-        }
-      }
-    }, [ref]);
-
-    return <textarea {...props} ref={$textarea} />;
-  }
-);
-
 interface ReplyData {
   content: string;
   file_ids: string[];
@@ -267,26 +226,28 @@ function ReplyInput({ onCommit, disabled }: ReplyInputProps) {
     <>
       <div
         className={cx(
-          'flex items-center border-t border-gray-100 bg-[#FAFAFA] px-3 pt-2 pb-[max(8px,env(safe-area-inset-bottom))]',
+          'sticky bottom-0 border-t border-gray-100 bg-[#FAFAFA] pb-[env(safe-area-inset-bottom)]',
           {
             invisible: show,
           }
         )}
       >
-        <input
-          className="flex-grow h-8 px-3 border rounded-full placeholder-[#BFBFBF] text-sm"
-          placeholder={t('reply.input_content_hint')}
-          value={content}
-          onChange={(e) => handleChangeContent(e.target.value)}
-          onFocus={() => setShow(true)}
-        />
-        <Button
-          className="flex-shrink-0 ml-2 w-16 leading-[30px] text-[13px]"
-          disabled={!submitable || disabled}
-          onClick={handleCommit}
-        >
-          {t('general.send')}
-        </Button>
+        <div className="flex items-center px-3 py-2">
+          <input
+            className="flex-grow h-8 px-3 border rounded-full placeholder-[#BFBFBF] text-sm"
+            placeholder={t('reply.input_content_hint')}
+            value={content}
+            onChange={(e) => handleChangeContent(e.target.value)}
+            onFocus={() => setShow(true)}
+          />
+          <Button
+            className="flex-shrink-0 ml-2 w-16 leading-[30px] text-[13px]"
+            disabled={!submitable || disabled}
+            onClick={handleCommit}
+          >
+            {t('general.send')}
+          </Button>
+        </div>
       </div>
 
       {show &&
@@ -299,8 +260,8 @@ function ReplyInput({ onCommit, disabled }: ReplyInputProps) {
               }
             }}
           >
-            <div className="fixed left-0 right-0 bottom-0 z-50 bg-[#FAFAFA] border-t border-gray-100 px-3 pt-2 pl-[max(12px,env(safe-area-inset-left))] pr-[max(12px,env(safe-area-inset-right))] pb-[max(8px,env(safe-area-inset-bottom))]">
-              <div className="relative flex items-end">
+            <div className="fixed left-0 right-0 bottom-0 z-50 bg-[#FAFAFA] border-t border-gray-100 pb-[env(safe-area-inset-bottom)]">
+              <div className="relative flex items-end px-3 py-2">
                 <div className="relative bg-white flex-grow rounded-[16px] border pl-3 pr-[34px] max-h-[200px] sm:max-h-[140px] overflow-y-auto text-sm">
                   <div
                     ref={$editor}
@@ -326,7 +287,7 @@ function ReplyInput({ onCommit, disabled }: ReplyInputProps) {
                 </div>
 
                 <MiniUploader
-                  className="absolute right-[74px] bottom-px w-[34px] h-[30px]"
+                  className="absolute right-[85px] bottom-[9px] w-[34px] h-[30px]"
                   onUpload={(files) => upload(files[0])}
                 />
 
@@ -388,37 +349,28 @@ export default function TicketDetail() {
   });
 
   return (
-    <Page>
-      <Page.Header>{t('ticket.detail')}</Page.Header>
-
-      <Page.Content id="shit">
+    <>
+      <PageHeader>{t('ticket.detail')}</PageHeader>
+      <PageContent className={cx({ 'mb-0 rounded-b-none': !ticketIsClosed })}>
         <QueryWrapper result={result}>
-          <div className="flex-grow">
-            <TicketAttributes ticket={ticket!} />
-            <QueryWrapper result={repliesResult}>
-              <Replies className="px-4 pt-4" replies={replies} />
-            </QueryWrapper>
-          </div>
-        </QueryWrapper>
-      </Page.Content>
+          <QueryWrapper result={repliesResult}>
+            {ticket && <TicketAttributes ticket={ticket} />}
 
-      <Page.Footer
-        containerProps={{
-          className: ticketIsClosed ? undefined : 'sticky bottom-0',
-          style: ticketIsClosed ? undefined : { paddingBottom: 0 },
-        }}
-      >
-        {ticket &&
-          (ticketIsClosed ? (
-            ticket.evaluation ? (
-              <Evaluated />
-            ) : (
-              <NewEvaluation ticketId={id} />
-            )
-          ) : (
-            <ReplyInput onCommit={reply} disabled={committing} />
-          ))}
-      </Page.Footer>
-    </Page>
+            <Replies className="flex-grow px-4 pt-4" replies={replies} />
+
+            {ticket &&
+              (ticketIsClosed ? (
+                ticket.evaluation ? (
+                  <Evaluated />
+                ) : (
+                  <NewEvaluation ticketId={id} />
+                )
+              ) : (
+                <ReplyInput onCommit={reply} disabled={committing} />
+              ))}
+          </QueryWrapper>
+        </QueryWrapper>
+      </PageContent>
+    </>
   );
 }
