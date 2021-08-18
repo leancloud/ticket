@@ -1,4 +1,4 @@
-import { ComponentPropsWithoutRef, useMemo } from 'react';
+import { ComponentPropsWithoutRef, useEffect, useMemo, useRef } from 'react';
 import { UseInfiniteQueryOptions, useInfiniteQuery } from 'react-query';
 import { useTranslation } from 'react-i18next';
 import cx from 'classnames';
@@ -35,8 +35,10 @@ function ReplyItem({ data, isLast }: ReplyItemProps) {
 
       <div className="flex-grow ml-2 pb-8 text-[#666]">
         <div className="text-xs leading-[12px]">
-          {data.isStaff ? t('reply.staff_title') : t('reply.my_title')}
-          <Time className="ml-2 text-[#BFBFBF]" value={data.createdAt} />
+          <span className="mr-2">
+            {data.isStaff ? t('reply.staff_title') : t('reply.my_title')}
+          </span>
+          <Time className="text-[#BFBFBF] whitespace-nowrap" value={data.createdAt} />
         </div>
         <div
           className={cx('inline-block rounded-2xl rounded-tl-none mt-2 p-1 text-sm', {
@@ -44,8 +46,10 @@ function ReplyItem({ data, isLast }: ReplyItemProps) {
             'bg-[rgba(0,0,0,0.02)]': !data.isStaff,
           })}
         >
-          {data.content.length > 0 && <div className="m-2 whitespace-pre-line">{data.content}</div>}
-          {files.length > 0 && <FileItems className="m-2" files={files} />}
+          {data.content.length > 0 && (
+            <div className="m-2 whitespace-pre-line break-all">{data.content}</div>
+          )}
+          {files.length > 0 && <FileItems className="ml-2 mt-2" files={files} />}
         </div>
       </div>
     </div>
@@ -90,11 +94,25 @@ export interface RepliesProps extends Omit<ComponentPropsWithoutRef<'div'>, 'chi
 }
 
 export function Replies({ replies, ...props }: RepliesProps) {
+  const $container = useRef<HTMLDivElement>(null!);
+  const $dummy = useRef<HTMLDivElement>(null!);
+
+  useEffect(() => {
+    const scrollToButtom = () => $dummy.current.scrollIntoView();
+    scrollToButtom();
+    const ob = new MutationObserver(scrollToButtom);
+    ob.observe($container.current, { childList: true });
+    return () => {
+      ob.disconnect();
+    };
+  }, []);
+
   return (
-    <div {...props}>
+    <div {...props} ref={$container}>
       {replies.map((reply, index) => (
         <ReplyItem key={reply.id} data={reply} isLast={index === replies.length - 1} />
       ))}
+      <div ref={$dummy} className="invisible" />
     </div>
   );
 }

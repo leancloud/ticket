@@ -2,8 +2,8 @@ import { FormEvent, useMemo, useState } from 'react';
 import { Redirect, useHistory } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-import { auth, http } from 'leancloud';
-import { Page } from 'components/Page';
+import { auth } from 'leancloud';
+import { PageContent, PageHeader } from 'components/Page';
 import { Input } from 'components/Form';
 import { Button } from 'components/Button';
 
@@ -14,10 +14,7 @@ function LogInForm() {
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    auth.login(username, password).then((user) => {
-      http.defaults.headers['X-LC-Session'] = user.sessionToken;
-      history.push('/');
-    });
+    auth.login(username, password).then(() => location.reload());
   };
 
   return (
@@ -56,12 +53,15 @@ export default function LogIn() {
     return <Redirect to="/" />;
   }
   return (
-    <Page>
-      {showLoginForm ? (
-        <LogInForm />
-      ) : (
-        <div className="mx-auto mt-28 sm:m-auto text-[#666]">{t('auth.not_logged_in_text')}</div>
-      )}
-    </Page>
+    <>
+      <PageHeader />
+      <PageContent>
+        {showLoginForm ? (
+          <LogInForm />
+        ) : (
+          <div className="mx-auto mt-28 sm:my-auto text-[#666]">{t('auth.not_logged_in_text')}</div>
+        )}
+      </PageContent>
+    </>
   );
 }

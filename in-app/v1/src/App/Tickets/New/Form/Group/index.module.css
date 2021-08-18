@@ -2,7 +2,8 @@
   &::after {
     content: '*';
     color: #F64C4C;
-    position: relative;
-    left: 3px;
+    position: absolute;
+    line-height: 18px;
+    padding-left: 2px;
   }
 }

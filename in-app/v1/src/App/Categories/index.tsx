@@ -4,10 +4,11 @@ import { useQuery, UseQueryResult } from 'react-query';
 import { useTranslation } from 'react-i18next';
 import { ChevronRightIcon } from '@heroicons/react/solid';
 
-import { Page } from 'components/Page';
+import { PageContent, PageHeader } from 'components/Page';
 import { QueryWrapper } from 'components/QueryWrapper';
 import { http } from 'leancloud';
 import { Category } from 'types';
+import styles from './index.module.css';
 
 interface CategoryItemProps {
   name: string;
@@ -17,13 +18,12 @@ interface CategoryItemProps {
 
 function CategoryItem({ name, onClick, marker }: CategoryItemProps) {
   return (
-    <div
-      className="h-11 flex items-center text-[#666] border-b border-gray-100 active:bg-gray-50"
-      onClick={onClick}
-    >
-      {marker && <div className="flex-shrink-0 h-1 w-1 bg-tapBlue mr-4" />}
-      <div className="flex-grow truncate">{name}</div>
-      <ChevronRightIcon className="flex-shrink-0 h-4 w-4" />
+    <div className="px-5 active:bg-gray-50" onClick={onClick}>
+      <div className="h-11 flex items-center text-[#666] border-b border-gray-100">
+        {marker && <div className={styles.marker} />}
+        <div className="flex-grow truncate">{name}</div>
+        <ChevronRightIcon className="flex-shrink-0 h-4 w-4" />
+      </div>
     </div>
   );
 }
@@ -111,12 +111,13 @@ export default function Categories() {
   };
 
   return (
-    <Page title={title}>
-      <QueryWrapper result={result}>
-        <div className="px-4 pb-4">
+    <>
+      <PageHeader>{title}</PageHeader>
+      <PageContent>
+        <QueryWrapper result={result}>
           <CategoryList categories={categories} onClick={handleClick} />
-        </div>
-      </QueryWrapper>
-    </Page>
+        </QueryWrapper>
+      </PageContent>
+    </>
   );
 }

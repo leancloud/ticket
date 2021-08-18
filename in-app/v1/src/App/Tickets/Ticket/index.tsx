@@ -1,21 +1,22 @@
 import {
   ChangeEventHandler,
+  ComponentPropsWithoutRef,
+  forwardRef,
   PropsWithChildren,
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
+import { createPortal } from 'react-dom';
 import { useMutation, useQuery } from 'react-query';
-import { useRouteMatch } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import cx from 'classnames';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/solid';
-import { Dialog } from '@headlessui/react';
 
-import { Page } from 'components/Page';
+import { PageContent, PageHeader } from 'components/Page';
 import { QueryWrapper } from 'components/QueryWrapper';
 import { FileItems } from 'components/FileItem';
 import { Button } from 'components/Button';
@@ -68,9 +69,17 @@ const STATUS_TEXT: Record<number, string> = {
   280: 'status.resolved',
 };
 
-export function TicketStatus({ status }: { status: number }) {
+export interface TicketStatusProps extends Omit<ComponentPropsWithoutRef<'span'>, 'children'> {
+  status: number;
+}
+
+export function TicketStatus({ status, ...props }: TicketStatusProps) {
   const { t } = useTranslation();
-  return <span className={cx(styles.status, STATUS_CLASS[status])}>{t(STATUS_TEXT[status])}</span>;
+  return (
+    <span {...props} className={cx(styles.status, STATUS_CLASS[status], props.className)}>
+      {t(STATUS_TEXT[status])}
+    </span>
+  );
 }
 
 interface ExpandButtonProps {
@@ -112,7 +121,7 @@ function TicketAttributes({ ticket }: { ticket: Ticket }) {
   const [expand, setExpand] = useState(false);
 
   return (
-    <div className="bg-[#FAFAFA] border-b border-gray-100 text-sm transition-all px-4 pt-4">
+    <div className="flex-shrink-0 bg-[#FAFAFA] border-b border-gray-100 text-sm px-4 pt-4">
       <div className={`${styles.dataGrid} gap-x-4 ${expand ? 'gap-y-2' : 'gap-y-1'}`}>
         {expand && <TicketAttribute title={t('general.number')}>#{ticket.nid}</TicketAttribute>}
         {expand && (
@@ -154,7 +163,7 @@ function MiniUploader({ className, onUpload }: MiniUploaderProps) {
 
   return (
     <button
-      className={className}
+      className={cx('flex', className)}
       onClick={() => $input.current.click()}
       onTouchStart={(e) => e.preventDefault()}
       onTouchEnd={(e) => {
@@ -163,7 +172,7 @@ function MiniUploader({ className, onUpload }: MiniUploaderProps) {
       }}
     >
       <input className="hidden" type="file" ref={$input} onChange={handleUpload} />
-      <ClipIcon className="text-tapBlue" />
+      <ClipIcon className="m-auto text-tapBlue" />
     </button>
   );
 }
@@ -180,32 +189,15 @@ interface ReplyInputProps {
 
 function ReplyInput({ onCommit, disabled }: ReplyInputProps) {
   const { t } = useTranslation();
-  const [editing, setEditing] = useState(false);
+  const [show, setShow] = useState(false);
   const [content, setContent] = useState('');
-  const $textarea = useRef<HTMLTextAreaElement>(null);
   const { files, isUploading, upload, remove, removeAll } = useUpload();
   const submitable = useMemo(() => {
     return !isUploading && (content.trim() || files.length);
   }, [files, isUploading, content]);
 
-  const $height = useRef(0);
-  const handleChangeContent = (nextContent: string) => {
-    setContent(nextContent);
-    if (!$textarea.current) {
-      return;
-    }
-    if (nextContent.length < content.length) {
-      $textarea.current.style.height = 'auto';
-    }
-    const height = $textarea.current.scrollHeight;
-    $textarea.current.style.height = height + 'px';
-    $height.current = height;
-  };
-  useEffect(() => {
-    if (editing && $textarea.current) {
-      $textarea.current.style.height = $height.current ? $height.current + 'px' : 'auto';
-    }
-  }, [editing]);
+  const handleChangeContent = useCallback((content: string) => setContent(content), []);
+
   // TODO: 上传文件后滚动到底部
 
   const handleCommit = async () => {
@@ -215,29 +207,41 @@ function ReplyInput({ onCommit, disabled }: ReplyInputProps) {
         file_ids: files.map((file) => file.id!),
       });
       setContent('');
-      $height.current = 0;
-      setEditing(false);
+      setShow(false);
       removeAll();
     } catch {}
   };
 
+  const $editor = useRef<HTMLDivElement>(null);
+  const $content = useRef(content);
+  $content.current = content;
+  useEffect(() => {
+    if (show) {
+      $editor.current!.innerText = $content.current;
+      $editor.current!.focus();
+    }
+  }, [show]);
+
   return (
     <>
       <div
-        className={cx('border-t border-gray-100 bg-[#FAFAFA] pb-[env(safe-area-inset-bottom)]', {
-          invisible: editing,
-        })}
+        className={cx(
+          'sticky bottom-0 border-t border-gray-100 bg-[#FAFAFA] pb-[env(safe-area-inset-bottom)]',
+          {
+            invisible: show,
+          }
+        )}
       >
-        <div className="flex items-center p-2 text-sm">
+        <div className="flex items-center px-3 py-2">
           <input
-            className="leading-[16px] border rounded-full placeholder-[#BFBFBF] flex-grow p-2"
+            className="flex-grow h-8 px-3 border rounded-full placeholder-[#BFBFBF] text-sm"
             placeholder={t('reply.input_content_hint')}
             value={content}
             onChange={(e) => handleChangeContent(e.target.value)}
-            onFocus={() => setEditing(true)}
+            onFocus={() => setShow(true)}
           />
           <Button
-            className="flex-shrink-0 ml-2 leading-none w-16 h-8"
+            className="flex-shrink-0 ml-2 w-16 leading-[30px] text-[13px]"
             disabled={!submitable || disabled}
             onClick={handleCommit}
           >
@@ -246,56 +250,59 @@ function ReplyInput({ onCommit, disabled }: ReplyInputProps) {
         </div>
       </div>
 
-      <Dialog open={editing} onClose={() => setEditing(false)}>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-black opacity-30" />
+      {show &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-50 bg-[rgba(0,0,0,0.3)]"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShow(false);
+              }
+            }}
+          >
+            <div className="fixed left-0 right-0 bottom-0 z-50 bg-[#FAFAFA] border-t border-gray-100 pb-[env(safe-area-inset-bottom)]">
+              <div className="relative flex items-end px-3 py-2">
+                <div className="relative bg-white flex-grow rounded-[16px] border pl-3 pr-[34px] max-h-[200px] sm:max-h-[140px] overflow-y-auto text-sm">
+                  <div
+                    ref={$editor}
+                    contentEditable
+                    className="outline-none leading-[16px] my-[7px] whitespace-pre-line"
+                    onInput={(e) => {
+                      handleChangeContent((e.target as HTMLDivElement).innerText);
+                    }}
+                  />
+                  {(content.length === 0 || content === '\n') && (
+                    <div className="absolute left-3 top-0 leading-[30px] text-[#BFBFBF]">
+                      {t('reply.input_content_hint')}
+                    </div>
+                  )}
 
-        <div
-          tabIndex={-1}
-          className="fixed bottom-0 z-50 w-full bg-[#FAFAFA] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] outline-none"
-          onBlur={(e) => {
-            if (!e.currentTarget.contains(e.relatedTarget as any)) {
-              setEditing(false);
-            }
-          }}
-        >
-          <div className="flex items-center border-t border-gray-100 p-2 text-sm">
-            <div className="flex flex-grow bg-white border rounded-[17px] leading-none">
-              <div className="flex-grow max-h-[calc(100vh-4rem)] min-h-[32px] p-2 overflow-y-auto rounded-[16px] leading-[0]">
-                <textarea
-                  ref={$textarea}
-                  className="w-full h-4 leading-[16px] placeholder-gray-300"
-                  autoFocus
-                  placeholder={t('reply.input_content_hint')}
-                  value={content}
-                  onChange={(e) => handleChangeContent(e.target.value)}
-                  rows={1}
+                  {files.length > 0 && (
+                    <FileItems
+                      files={files}
+                      previewable={false}
+                      onDelete={(file) => remove(file.key)}
+                    />
+                  )}
+                </div>
+
+                <MiniUploader
+                  className="absolute right-[85px] bottom-[9px] w-[34px] h-[30px]"
+                  onUpload={(files) => upload(files[0])}
                 />
 
-                {files.length > 0 && (
-                  <FileItems
-                    className="mt-2"
-                    files={files}
-                    previewable={false}
-                    onDelete={(file) => remove(file.key)}
-                  />
-                )}
-              </div>
-
-              <div className="flex flex-col-reverse">
-                <MiniUploader className="mr-2 mb-[7px]" onUpload={(files) => upload(files[0])} />
+                <Button
+                  className="relative bottom-px flex-shrink-0 w-16 ml-2 leading-[30px] text-[13px]"
+                  disabled={!submitable || disabled}
+                  onClick={handleCommit}
+                >
+                  {t('general.send')}
+                </Button>
               </div>
             </div>
-
-            <Button
-              className="flex-shrink-0 ml-2 mt-auto mb-px leading-none w-16 h-8"
-              disabled={!submitable || disabled}
-              onClick={handleCommit}
-            >
-              {t('general.send')}
-            </Button>
-          </div>
-        </div>
-      </Dialog>
+          </div>,
+          document.body
+        )}
     </>
   );
 }
@@ -313,30 +320,27 @@ function useClearUnreadCount(ticketId: string, enabled?: any) {
 }
 
 export default function TicketDetail() {
-  const {
-    params: { id },
-  } = useRouteMatch<{ id: string }>();
+  const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
-  const $dummyReply = useRef<HTMLDivElement>(null);
-
-  const [scrollTrigger, setScrollTrigger] = useState(0);
-  useLayoutEffect(() => {
-    $dummyReply.current?.scrollIntoView();
-  }, [scrollTrigger]);
-  const scrollToEnd = useCallback(() => setScrollTrigger((v) => v + 1), []);
 
   const result = useTicket(id);
-  useClearUnreadCount(id, result.data?.unreadCount);
-  const repliesResult = useReplies(id, {
-    onSuccess: scrollToEnd,
-  });
+  const { data: ticket } = result;
+
+  useClearUnreadCount(id, ticket?.unreadCount);
+
+  const ticketIsClosed = useMemo(() => {
+    return ticket !== undefined && ticket.status >= 200;
+  }, [ticket]);
+
+  const repliesResult = useReplies(id);
+  const { data: replyPages } = repliesResult;
 
   const replies = useMemo<Reply[]>(() => {
-    if (!repliesResult.data) {
+    if (!replyPages) {
       return [];
     }
-    return repliesResult.data.pages.flat();
-  }, [repliesResult.data]);
+    return replyPages.pages.flat();
+  }, [replyPages]);
 
   const { mutateAsync: reply, isLoading: committing } = useMutation({
     mutationFn: (data: ReplyData) => commitReply(id, data),
@@ -344,37 +348,29 @@ export default function TicketDetail() {
     onError: (error: Error) => alert(error.message),
   });
 
-  if (!result.isLoading && !result.isError && !result.data) {
-    // Ticket is not exists :badbad:
-    return <>Ticket is not found</>;
-  }
-
   return (
-    <Page title={t('ticket.detail')} className="rounded-b-none mb-0 min-h-full">
-      <QueryWrapper result={result}>
-        {(ticket) => (
-          <>
-            <div className="flex-grow">
-              <TicketAttributes ticket={ticket} />
-              <QueryWrapper result={repliesResult}>
-                <Replies className="p-4" replies={replies} />
-              </QueryWrapper>
+    <>
+      <PageHeader>{t('ticket.detail')}</PageHeader>
+      <PageContent className={cx({ 'mb-0 rounded-b-none': !ticketIsClosed })}>
+        <QueryWrapper result={result}>
+          <QueryWrapper result={repliesResult}>
+            {ticket && <TicketAttributes ticket={ticket} />}
 
-              <div id="dummyNewestReply" ref={$dummyReply} />
-            </div>
+            <Replies className="flex-grow px-4 pt-4" replies={replies} />
 
-            <div className="sticky bottom-0 bg-white">
-              {ticket.status < 200 ? (
-                <ReplyInput onCommit={reply} disabled={committing} />
-              ) : ticket.evaluation ? (
-                <Evaluated />
+            {ticket &&
+              (ticketIsClosed ? (
+                ticket.evaluation ? (
+                  <Evaluated />
+                ) : (
+                  <NewEvaluation ticketId={id} />
+                )
               ) : (
-                <NewEvaluation ticketId={id} />
-              )}
-            </div>
-          </>
-        )}
-      </QueryWrapper>
-    </Page>
+                <ReplyInput onCommit={reply} disabled={committing} />
+              ))}
+          </QueryWrapper>
+        </QueryWrapper>
+      </PageContent>
+    </>
   );
 }

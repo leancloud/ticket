@@ -168,16 +168,18 @@ export function LoadingHint(props: ComponentPropsWithoutRef<'div'>) {
   return (
     <div {...props} className={cx('h-6 flex items-center', props.className)}>
       <LoadingIcon className={styles.spinner} />
-      <div className="ml-2 text-[#BFBFBF]">{t('general.loading')}...</div>
+      <div className="ml-2 text-[#BFBFBF] text-[13px]">{t('general.loading')}...</div>
     </div>
   );
 }
 
 export function Loading() {
   return (
-    <div className="flex flex-col items-center mt-24 sm:mt-10">
-      <StarIcon />
-      <LoadingHint className="mt-2" />
+    <div className="h-full flex flex-grow flex-col">
+      <div className="mx-auto mt-24 sm:my-auto">
+        <StarIcon />
+        <LoadingHint className="mt-2" />
+      </div>
     </div>
   );
 }

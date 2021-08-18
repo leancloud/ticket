@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { auth, db } from 'leancloud';
 import { Category } from 'types';
-import { Page } from 'components/Page';
+import { PageContent, PageHeader } from 'components/Page';
 import { QueryWrapper } from 'components/QueryWrapper';
 import { useIsMounted } from 'utils/useIsMounted';
 import { CategoryList, useCategories } from '../Categories';
@@ -69,16 +69,17 @@ export default function Home() {
   };
 
   return (
-    <Page>
-      <div className="p-4">
-        <div className="flex items-center mb-[12px]">
+    <>
+      <PageHeader />
+      <PageContent>
+        <div className="flex items-center h-[46px] px-5">
           <h2 className="flex-grow font-bold">{t('category.select_hint')}</h2>
           <TicketsLink badge={hasUnreadTickets} />
         </div>
         <QueryWrapper result={result}>
           <CategoryList marker categories={topCategories} onClick={handleClick} />
         </QueryWrapper>
-      </div>
-    </Page>
+      </PageContent>
+    </>
   );
 }
