@@ -86,6 +86,7 @@ module.exports = {
   plugins: [
     new webpack.DefinePlugin({
       'process.env': {
+        ENABLE_USER_CONFIRMATION: JSON.stringify(process.env.ENABLE_USER_CONFIRMATION),
         NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'production'),
       },
     }),

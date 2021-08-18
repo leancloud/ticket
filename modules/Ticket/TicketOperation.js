@@ -23,9 +23,11 @@ export function TicketOperation({ ticket, isCustomerService, onOperate }) {
       <Form.Group>
         <Form.Label>{t('ticketOperation')}</Form.Label>
         <div>
-          <Button variant="light" disabled={operating} onClick={() => operate('resolve')}>
-            {t('resolved')}
-          </Button>{' '}
+          {process.env.ENABLE_USER_CONFIRMATION && (
+            <Button variant="light" disabled={operating} onClick={() => operate('resolve')}>
+              {t('resolved')}
+            </Button>
+          )}{' '}
           <Button variant="light" disabled={operating} onClick={() => operate('close')}>
             {t('close')}
           </Button>
