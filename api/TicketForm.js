@@ -86,15 +86,12 @@ router.get(
         return
       }
       const { variants, ...rest } = filterData[0]
-      const localeFilterData = variants.filter((variantData) => {
-        if (locale) {
-          return variantData.locale === locale
-        }
-        return variantData.locale === rest.defaultLocale
-      })
+      const localeVariant =
+        variants.find((variant) => variant.locale === locale) ||
+        variants.find((variant) => variant.locale === rest.defaultLocale)
       fields.push({
         ...rest,
-        variant: localeFilterData[0],
+        variant: localeVariant,
       })
     })
     res.json({
