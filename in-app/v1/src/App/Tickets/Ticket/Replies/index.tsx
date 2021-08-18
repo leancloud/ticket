@@ -2,6 +2,7 @@ import { ComponentPropsWithoutRef, useEffect, useMemo, useRef } from 'react';
 import { UseInfiniteQueryOptions, useInfiniteQuery } from 'react-query';
 import { useTranslation } from 'react-i18next';
 import cx from 'classnames';
+import { flatten, last } from 'lodash-es';
 
 import { http } from 'leancloud';
 import { Reply } from 'types';
@@ -82,8 +83,7 @@ export function useReplies(ticketId: string, options?: UseRepliesOptions) {
     queryKey: ['replies', { ticketId }],
     queryFn: ({ pageParam }) => fetchReplies(ticketId, pageParam),
     getNextPageParam: (lastPage, allPages) => {
-      const replies = allPages.flat();
-      const lastReply = replies[replies.length - 1];
+      const lastReply = last(flatten(allPages));
       return lastReply?.createdAt.toISOString() || '';
     },
   });
