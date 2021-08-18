@@ -20,7 +20,7 @@ export function AsyncUserLabel({ userId }) {
   const { data } = useQuery({
     queryKey: ['user', userId],
     queryFn: () => fetch(`/api/1/users/${userId}`),
-    enabled: userId && userId !== 'system',
+    enabled: userId !== undefined && userId !== 'system',
   })
   if (userId === undefined || userId === 'system') {
     return t('system')
