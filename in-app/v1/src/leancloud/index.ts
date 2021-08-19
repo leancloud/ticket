@@ -1,12 +1,14 @@
 import { init, use } from 'open-leancloud-storage/core';
 import { authModule } from 'open-leancloud-storage/auth';
 import { storageModule } from 'open-leancloud-storage/storage';
+import { liveQueryModule } from 'open-leancloud-storage/live-query';
 import axios from 'axios';
 
 export type { User } from 'open-leancloud-storage/auth';
 
 use(authModule);
 use(storageModule);
+use(liveQueryModule);
 use({
   name: 'do-not-persist-current-user',
   onLoad: ({ adapters }) => {
