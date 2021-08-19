@@ -9,12 +9,13 @@ import {
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { useMutation, useQuery } from 'react-query';
+import { InfiniteData, UseQueryOptions, useMutation, useQuery, useQueryClient } from 'react-query';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import cx from 'classnames';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/solid';
-import { flatten } from 'lodash-es';
+import { flatten, last } from 'lodash-es';
+import { produce } from 'immer';
 
 import { PageContent, PageHeader } from 'components/Page';
 import { QueryWrapper } from 'components/QueryWrapper';
@@ -24,7 +25,7 @@ import ClipIcon from 'icons/Clip';
 import styles from './index.module.css';
 import { Replies, useReplies } from './Replies';
 import { Evaluated, NewEvaluation } from './Evaluation';
-import { http } from 'leancloud';
+import { auth, db, http } from 'leancloud';
 import { Reply, Ticket } from 'types';
 import { useUpload } from 'utils/useUpload';
 
@@ -44,8 +45,9 @@ async function fetchTicket(id: string): Promise<Ticket> {
   };
 }
 
-export function useTicket(id: string) {
+export function useTicket(id: string, options?: UseQueryOptions<Ticket>) {
   return useQuery({
+    ...options,
     queryKey: ['ticket', id],
     queryFn: () => fetchTicket(id),
   });
@@ -311,36 +313,91 @@ async function commitReply(ticketId: string, data: ReplyData) {
   await http.post(`/api/1/tickets/${ticketId}/replies`, data);
 }
 
-function useClearUnreadCount(ticketId: string, enabled?: any) {
-  useEffect(() => {
-    if (enabled) {
+function useClearUnreadCount() {
+  const queryClient = useQueryClient();
+  return useCallback(
+    (ticketId: string) => {
       http.patch(`/api/1/tickets/${ticketId}`, { unread_count: 0 });
-    }
-  }, [ticketId, enabled]);
+      queryClient.setQueryData<InfiniteData<Ticket[]> | undefined>('tickets', (data) => {
+        if (data) {
+          return produce(data, (draft) => {
+            for (const page of draft.pages) {
+              for (const ticket of page) {
+                if (ticket.id === ticketId) {
+                  ticket.unreadCount = 0;
+                  return;
+                }
+              }
+            }
+          });
+        }
+      });
+    },
+    [queryClient]
+  );
+}
+
+function useWatchNewReply(
+  ticketId: string,
+  onCreate: (reply: { id: string; createdAt: Date }) => void
+) {
+  const $onCreate = useRef(onCreate);
+  $onCreate.current = onCreate;
+
+  useEffect(() => {
+    let unsubscribe: (() => any) | undefined;
+    let unmounted = false;
+
+    db.class('Reply')
+      .where('ticket', '==', db.class('Ticket').object(ticketId))
+      .where('author', '!=', auth.currentUser)
+      .subscribe()
+      .then((subscription) => {
+        if (unmounted) {
+          return subscription.unsubscribe();
+        }
+        unsubscribe = () => subscription.unsubscribe();
+        subscription.on('create', (reply) => $onCreate.current(reply));
+      });
+
+    return () => {
+      unsubscribe?.();
+      unmounted = true;
+    };
+  }, [ticketId]);
 }
 
 export default function TicketDetail() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
+  const clearUnreadCount = useClearUnreadCount();
 
-  const result = useTicket(id);
+  const result = useTicket(id, {
+    onSuccess: (ticket) => ticket.unreadCount && clearUnreadCount(ticket.id),
+  });
   const { data: ticket } = result;
-
-  useClearUnreadCount(id, ticket?.unreadCount);
 
   const ticketIsClosed = useMemo(() => {
     return ticket !== undefined && ticket.status >= 200;
   }, [ticket]);
 
   const repliesResult = useReplies(id);
-  const { data: replyPages } = repliesResult;
+  const { data: replyPages, fetchNextPage: fetchMoreReplies } = repliesResult;
 
   const replies = useMemo<Reply[]>(() => flatten(replyPages?.pages), [replyPages]);
 
   const { mutateAsync: reply, isLoading: committing } = useMutation({
     mutationFn: (data: ReplyData) => commitReply(id, data),
-    onSuccess: () => repliesResult.fetchNextPage(),
+    onSuccess: () => fetchMoreReplies(),
     onError: (error: Error) => alert(error.message),
+  });
+
+  useWatchNewReply(id, (reply) => {
+    const lastReply = last(replies);
+    if (!lastReply || reply.createdAt > lastReply.createdAt) {
+      fetchMoreReplies();
+      clearUnreadCount(id);
+    }
   });
 
   return (
