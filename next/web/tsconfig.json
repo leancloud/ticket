@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "strict": true,
+    "strictNullChecks": true,
     "esModuleInterop": true,
     "module": "ES2020",
     "target": "ES2020",
@@ -13,7 +14,7 @@
       "components/*": ["src/components/*"],
       "utils/*": ["src/utils/*"]
     },
-    "typeRoots": ["./node_modules/@types"],
+    "typeRoots": ["../node_modules/@types"],
     "skipLibCheck": true,
     "resolveJsonModule": true
   },
