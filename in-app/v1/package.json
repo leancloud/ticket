@@ -17,6 +17,7 @@
     "classnames": "^2.3.1",
     "i18next": "^20.4.0",
     "i18next-browser-languagedetector": "^6.1.2",
+    "immer": "^9.0.5",
     "lodash-es": "^4.17.21",
     "open-leancloud-storage": "0.0.35",
     "query-string": "^7.0.1",
