@@ -688,6 +688,7 @@ class Ticket {
 
     const ACL = new AV.ACL({
       [data.author.id]: { read: true, write: true },
+      'role:customerService': { read: true },
       'role:staff': { read: true },
     })
     if (!data.internal) {
