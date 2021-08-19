@@ -10,7 +10,6 @@ const OVERFLOW = '...'
  * @param {string} props.searchString
  */
 export function BlodSearchString({ content, searchString }) {
-  console.log({ content, searchString })
   const index = content.indexOf(searchString)
   if (index < 0) {
     return null

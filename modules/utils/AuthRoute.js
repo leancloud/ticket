@@ -40,7 +40,6 @@ function CSAuthWrapper({ children }) {
     setError()
     isCustomerService(auth.currentUser)
       .then((isCS) => {
-        console.log(isCS)
         if (isCS) {
           setPass(true)
         } else {

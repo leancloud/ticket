@@ -20,7 +20,6 @@ export const useApplyChanges = () => {
       history[replace ? 'replace' : 'push']({
         search: _.flowRight(changeDescriptors)(location.search),
       })
-      console.log('useApplyChanges')
     },
     [history, location.search]
   )
