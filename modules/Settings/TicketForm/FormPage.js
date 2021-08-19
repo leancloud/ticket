@@ -1,4 +1,4 @@
-import React, { memo, useState, useCallback, useEffect } from 'react'
+import React, { memo, useState, useCallback, useEffect, useMemo } from 'react'
 import {
   Form,
   Button,
@@ -19,6 +19,7 @@ import _ from 'lodash'
 import { http, httpWithLimitation } from 'lib/leancloud'
 import * as Icon from 'react-bootstrap-icons'
 import { useTranslation } from 'react-i18next'
+import i18next from 'i18next'
 import { useAppContext } from 'modules/context'
 import { DocumentTitle } from 'modules/utils/DocumentTitle'
 import NoData from 'modules/components/NoData'
@@ -145,19 +146,21 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
   )
 
   const { mutate } = useMutation({
-    mutationFn: (id) => http.get(`/api/1/ticket-fields/${id}`),
+    mutationFn: (id) =>
+      http.get(`/api/1/ticket-fields/${id}`, {
+        params: {
+          locale: i18next.language || 'default',
+        },
+      }),
     onSuccess: (fieldData) => {
       setActiveFiledList((pre) =>
         pre.map((preFieldData) => {
           if (preFieldData.id !== fieldData.id) {
             return preFieldData
           }
-          const filteredVariants = fieldData.variants.filter(
-            (variant) => variant.locale === fieldData.default_locale
-          )
           return {
             ...preFieldData,
-            variant: filteredVariants[0],
+            variant: fieldData.variants[0],
           }
         })
       )
@@ -409,11 +412,48 @@ const EditorForm = () => {
   const { t } = useTranslation()
   const { addNotification } = useAppContext()
   const formId = useFormId()
-  const { data } = useQuery({
+  const { data: formData } = useQuery({
     queryKey: ['setting/forms', formId],
     queryFn: () => http.get(`/api/1/ticket-forms/${formId}`),
     onError: (err) => addNotification(err),
   })
+  const ids = useMemo(() => {
+    if (!formData) {
+      return
+    }
+    return formData.fieldIds.filter((id) => id !== 'title' && id !== 'description').join(',')
+  }, [formData])
+  const { data: fieldDataList } = useQuery({
+    queryKey: ['setting/formFields', ids],
+    queryFn: () =>
+      http.get(`/api/1/ticket-fields`, {
+        params: {
+          ids,
+          includeVariant: true,
+          locale: i18next.language || 'default',
+        },
+      }),
+    enabled: !!ids,
+    onError: (err) => addNotification(err),
+  })
+  const data = useMemo(() => {
+    if (!formData || !fieldDataList) {
+      return
+    }
+    const { fieldIds, ...rest } = formData
+    const fields = []
+    fieldIds.forEach((fieldId) => {
+      const filterData = fieldDataList.filter((fieldData) => fieldData.id === fieldId)
+      if (filterData && filterData[0]) {
+        fields.push(filterData[0])
+      }
+    })
+    return {
+      ...rest,
+      fields,
+    }
+  }, [formData, fieldDataList])
+
   const { mutateAsync, isLoading } = useMutation({
     mutationFn: (data) => http.patch(`/api/1/ticket-forms/${formId}`, data),
     onSuccess: () => {
@@ -423,6 +463,7 @@ const EditorForm = () => {
     },
     onError: (err) => addNotification(err),
   })
+
   return (
     <>
       <DocumentTitle title={`${t('ticketField.edit')} - LeanTicket`} />
