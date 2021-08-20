@@ -722,9 +722,11 @@ class Ticket {
       if (data.isCustomerService) {
         this.joinCustomerService(replyAuthorInfo)
         this.increaseUnreadCount(1)
-        this.status = TICKET_STATUS.WAITING_CUSTOMER
-      } else {
-        this.status = TICKET_STATUS.WAITING_CUSTOMER_SERVICE
+      }
+      if (this.status < TICKET_STATUS.FULFILLED) {
+        this.status = data.isCustomerService
+          ? TICKET_STATUS.WAITING_CUSTOMER
+          : TICKET_STATUS.WAITING_CUSTOMER_SERVICE
       }
 
       this.save({ operator: data.author }).catch(captureException)
