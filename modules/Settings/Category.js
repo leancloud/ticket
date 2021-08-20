@@ -12,7 +12,7 @@ import { GroupSelect } from '../components/Group'
 import Select from 'modules/components/Select'
 import { useTicketFormList } from './TicketForm'
 import { useAppContext } from 'modules/context'
-import { categoryFAQEnabled } from '../config/feature-flags'
+import { ENABLE_BUILTIN_DESCRIPTION_TEMPLATE, ENABLE_FAQ } from '../config/feature-flags'
 // 应该用 seaach select 这里不搞这个了
 const FormSelect = memo(({ value, onChange }) => {
   const { addNotification } = useAppContext()
@@ -229,34 +229,34 @@ class Category extends React.Component {
             onChange={this.handleParentChange.bind(this, t)}
           />
         </Form.Group>
-        {categoryFAQEnabled && (
-          <>
-            <Form.Group controlId="FAQsText">
-              <Form.Label>
-                {t('FAQ')}
-                {t('optional')}
-              </Form.Label>
-              <Form.Control
-                value={this.state.FAQs}
-                onChange={this.handleFAQsChange.bind(this)}
-                placeholder="objectId1,objectId2"
-              />
-              <Form.Text>{t('FAQInfo')}</Form.Text>
-            </Form.Group>
-            <Form.Group controlId="qTemplateTextarea">
-              <Form.Label>
-                {t('ticket.template')}
-                {t('optional')}
-              </Form.Label>
-              <Form.Control
-                as="textarea"
-                rows="8"
-                value={this.state.qTemplate}
-                onChange={this.handleQTemplateChange.bind(this)}
-              />
-              <Form.Text>{t('ticket.templateInfo')}</Form.Text>
-            </Form.Group>
-          </>
+        {ENABLE_FAQ && (
+          <Form.Group controlId="FAQsText">
+            <Form.Label>
+              {t('FAQ')}
+              {t('optional')}
+            </Form.Label>
+            <Form.Control
+              value={this.state.FAQs}
+              onChange={this.handleFAQsChange.bind(this)}
+              placeholder="objectId1,objectId2"
+            />
+            <Form.Text>{t('FAQInfo')}</Form.Text>
+          </Form.Group>
+        )}
+        {ENABLE_BUILTIN_DESCRIPTION_TEMPLATE && (
+          <Form.Group controlId="qTemplateTextarea">
+            <Form.Label>
+              {t('ticket.template')}
+              {t('optional')}
+            </Form.Label>
+            <Form.Control
+              as="textarea"
+              rows="8"
+              value={this.state.qTemplate}
+              onChange={this.handleQTemplateChange.bind(this)}
+            />
+            <Form.Text>{t('ticket.templateInfo')}</Form.Text>
+          </Form.Group>
         )}
         <Form.Group controlId="groupSelect">
           <Form.Label>
