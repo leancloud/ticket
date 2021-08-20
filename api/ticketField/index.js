@@ -7,6 +7,21 @@ const fieldService = require('./fieldService').service
 const variantService = require('./variantService').service
 const router = Router().use(requireAuth)
 
+const merge = (field, variants, locale) => {
+  return {
+    ...field,
+    variants: locale
+      ? variants.filter((variant) => {
+          if (locale === 'default') {
+            return variant.locale === field.default_locale
+          } else {
+            return variant.locale === locale
+          }
+        })
+      : variants,
+  }
+}
+
 router.get(
   '/',
   query('size')
@@ -55,23 +70,7 @@ router.get(
         pre[key] = pre[key] ? pre[key].concat([curr]) : [curr]
         return pre
       }, {})
-      res.json(
-        list.map((field) => {
-          const variants = variantMap[field.id] || []
-          return {
-            ...field,
-            variants: locale
-              ? variants.filter((variant) => {
-                  if (locale === 'default') {
-                    return variant.locale === field.default_locale
-                  } else {
-                    return variant.locale === locale
-                  }
-                })
-              : variants,
-          }
-        })
-      )
+      res.json(list.map((field) => merge(field, variantMap[field.id] || [], locale)))
     } else {
       res.json(list)
     }
@@ -137,12 +136,10 @@ router.get(
     .optional(),
   catchError(async (req, res) => {
     const { id } = req.params
+    const locale = req.query.locale
     const field = await fieldService.get(id)
     const variants = await variantService.list([id])
-    res.json({
-      ...field,
-      variants,
-    })
+    res.json(merge(field, variants, locale))
   })
 )
 

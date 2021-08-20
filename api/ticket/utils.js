@@ -86,35 +86,30 @@ function getActionStatus(action, isCustomerService) {
   }
 }
 
-/**
- *
- * @param {Array} oldData formValues array
- * @param {Array} newData formValues array
- */
-function getFormValuesDifference(newFormValues, oldFormValues) {
-  const oldMap = oldFormValues.reduce((current, item) => {
-    current[item.field] = item
-    return current
+function getFormValuesDifference(toValues, fromValues) {
+  const valueMap = fromValues.reduce((pre, curr) => {
+    pre[curr.field] = [curr.value]
+    return pre
   }, {})
-  const result = []
-  newFormValues.forEach((valueItem) => {
-    if (oldMap[valueItem.field] === undefined) {
-      result.push({
-        fieldId: valueItem.field,
-        form: valueItem.item,
-      })
-    } else {
-      const fromValue = oldMap[valueItem.field].value
-      if (!_.isEqual(valueItem.value, fromValue)) {
-        result.push({
-          fieldId: valueItem.field,
+  toValues.reduce((pre, curr) => {
+    const fromValue = pre[curr.field] ? pre[curr.field][0] : undefined
+    pre[curr.field] = [fromValue, curr.value]
+    return pre
+  }, valueMap)
+  return _.keys(valueMap)
+    .map((fieldId) => {
+      const [fromValue, toValue] = valueMap[fieldId]
+      if (!_.isEqual(fromValue, toValue)) {
+        return {
+          fieldId,
           from: fromValue,
-          to: valueItem.value,
-        })
+          to: toValue,
+        }
+      } else {
+        return
       }
-    }
-  })
-  return result
+    })
+    .filter((v) => v)
 }
 
 module.exports = {

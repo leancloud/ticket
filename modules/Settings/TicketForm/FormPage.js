@@ -1,4 +1,4 @@
-import React, { memo, useState, useCallback, useEffect, useMemo } from 'react'
+import React, { memo, useState, useCallback, useEffect } from 'react'
 import {
   Form,
   Button,
@@ -28,6 +28,7 @@ import { useFormId } from './'
 import Preview from './Preview'
 import styles from './index.module.scss'
 import { systemFieldData } from '../TicketField'
+import useTicketForm from './useTicketForm'
 
 const FieldList = ({ list, remove, add }) => {
   const { t } = useTranslation()
@@ -96,6 +97,7 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
   const [debouncedSearchValue, setDebouncedSearchValue] = useState()
   const [activeFiledList, setActiveFiledList] = useState(systemFieldData)
   const [fieldList, setFiledList] = useState([])
+
   useEffect(() => {
     if (initData) {
       setTitle(initData.title)
@@ -108,6 +110,10 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
           })
         }
         return [...systemFieldData, ...initData.fields]
+      })
+      setFiledList((pre) => {
+        const activeIds = initData.fields.map((field) => field.id)
+        return pre.filter((field) => !activeIds.includes(field.id))
       })
     }
   }, [initData])
@@ -412,47 +418,12 @@ const EditorForm = () => {
   const { t } = useTranslation()
   const { addNotification } = useAppContext()
   const formId = useFormId()
-  const { data: formData } = useQuery({
-    queryKey: ['setting/forms', formId],
-    queryFn: () => http.get(`/api/1/ticket-forms/${formId}`),
-    onError: (err) => addNotification(err),
-  })
-  const ids = useMemo(() => {
-    if (!formData) {
-      return
+  const { data, error } = useTicketForm(formId)
+  useEffect(() => {
+    if (error) {
+      addNotification(error)
     }
-    return formData.fieldIds.filter((id) => id !== 'title' && id !== 'description').join(',')
-  }, [formData])
-  const { data: fieldDataList } = useQuery({
-    queryKey: ['setting/formFields', ids],
-    queryFn: () =>
-      http.get(`/api/1/ticket-fields`, {
-        params: {
-          ids,
-          includeVariant: true,
-          locale: i18next.language || 'default',
-        },
-      }),
-    enabled: !!ids,
-    onError: (err) => addNotification(err),
-  })
-  const data = useMemo(() => {
-    if (!formData || !fieldDataList) {
-      return
-    }
-    const { fieldIds, ...rest } = formData
-    const fields = []
-    fieldIds.forEach((fieldId) => {
-      const filterData = fieldDataList.filter((fieldData) => fieldData.id === fieldId)
-      if (filterData && filterData[0]) {
-        fields.push(filterData[0])
-      }
-    })
-    return {
-      ...rest,
-      fields,
-    }
-  }, [formData, fieldDataList])
+  }, [error, addNotification])
 
   const { mutateAsync, isLoading } = useMutation({
     mutationFn: (data) => http.patch(`/api/1/ticket-forms/${formId}`, data),

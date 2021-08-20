@@ -22,7 +22,7 @@ import OrganizationSelect from './OrganizationSelect'
 import { DocumentTitle } from './utils/DocumentTitle'
 import FAQ from './components/FAQ'
 import { useCategories } from './Settings/Categories'
-import i18next from 'i18next'
+import useTicketForm from './Settings/TicketForm/useTicketForm'
 
 const AssociatedApplication = memo(({ value, onChange }) => {
   const { t } = useTranslation()
@@ -211,32 +211,17 @@ const FAQs = memo(({ categoryId }) => {
 })
 
 const useCustomForm = (formId) => {
-  const { addNotification } = useAppContext()
   const [values, setValues] = useState({})
-
+  const { data } = useTicketForm(formId)
   useEffect(() => {
     setValues({})
   }, [formId])
-
-  const { data: fields } = useQuery({
-    queryKey: ['setting/forms', formId],
-    enabled: !!formId,
-    queryFn: () =>
-      http.get(`/api/1/ticket-forms/${formId}`, {
-        params: {
-          locale: i18next.language,
-        },
-      }),
-    select: (data) => data.fields,
-    onError: (err) => addNotification(err),
-  })
-
   const node = useMemo(() => {
-    if (!formId || !fields) {
+    if (!data) {
       return null
     }
-    return fields.map((field) => {
-      const { required, title, type, variant, id } = field
+    return data.fields.map((field) => {
+      const { required, title, type, variants, id } = field
       return (
         <CustomField
           type={type}
@@ -250,12 +235,11 @@ const useCustomForm = (formId) => {
             }))
           }
           required={!!required}
-          options={variant ? variant.options : undefined}
+          options={variants && variants[0] ? variants[0].options : undefined}
         />
       )
     })
-  }, [formId, fields, values])
-
+  }, [data, values])
   return [values, node]
 }
 
