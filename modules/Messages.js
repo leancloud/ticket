@@ -85,7 +85,8 @@ export default class Messages extends Component {
                           <small>{moment(m.get('createdAt')).fromNow()}</small>{' '}
                           {!m.get('isRead') && <span className="label label-default">未读</span>}
                         </div>
-                        <span style={{ color: 'black' }}>{m.get('reply').get('content')}</span>
+                        {/* The reply might be undefined because of an ACL bug */}
+                        <span style={{ color: 'black' }}>{m.get('reply')?.get('content')}</span>
                       </td>
                     </tr>
                   )
