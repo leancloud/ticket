@@ -12,7 +12,6 @@ import { GroupSelect } from '../components/Group'
 import Select from 'modules/components/Select'
 import { useTicketFormList } from './TicketForm'
 import { useAppContext } from 'modules/context'
-import { ENABLE_BUILTIN_DESCRIPTION_TEMPLATE, ENABLE_FAQ } from '../config/feature-flags'
 // 应该用 seaach select 这里不搞这个了
 const FormSelect = memo(({ value, onChange }) => {
   const { addNotification } = useAppContext()
@@ -229,7 +228,7 @@ class Category extends React.Component {
             onChange={this.handleParentChange.bind(this, t)}
           />
         </Form.Group>
-        {ENABLE_FAQ && (
+        {process.env.ENABLE_FAQ && (
           <Form.Group controlId="FAQsText">
             <Form.Label>
               {t('FAQ')}
@@ -243,7 +242,7 @@ class Category extends React.Component {
             <Form.Text>{t('FAQInfo')}</Form.Text>
           </Form.Group>
         )}
-        {ENABLE_BUILTIN_DESCRIPTION_TEMPLATE && (
+        {process.env.ENABLE_BUILTIN_DESCRIPTION_TEMPLATE && (
           <Form.Group controlId="qTemplateTextarea">
             <Form.Label>
               {t('ticket.template')}
