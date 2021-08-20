@@ -8,17 +8,10 @@ const variantService = require('./variantService').service
 const router = Router().use(requireAuth)
 
 const merge = (field, variants, locale) => {
+  locale = locale === 'default' ? field.default_locale : locale
   return {
     ...field,
-    variants: locale
-      ? variants.filter((variant) => {
-          if (locale === 'default') {
-            return variant.locale === field.default_locale
-          } else {
-            return variant.locale === locale
-          }
-        })
-      : variants,
+    variants: locale ? variants.filter((variant) => variant.locale === locale) : variants,
   }
 }
 
