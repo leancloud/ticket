@@ -336,7 +336,6 @@ const TicketFormModal = memo(({ fields, values, onUpdated, close, ticketId }) =>
       }),
   })
 
-  console.log(fields)
   return (
     <>
       <Modal.Header closeButton>
