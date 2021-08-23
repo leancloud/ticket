@@ -1,5 +1,4 @@
 import {
-  ChangeEventHandler,
   ComponentPropsWithoutRef,
   PropsWithChildren,
   useCallback,
@@ -8,7 +7,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import { createPortal } from 'react-dom';
 import { InfiniteData, UseQueryOptions, useMutation, useQuery, useQueryClient } from 'react-query';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -19,15 +17,12 @@ import { produce } from 'immer';
 
 import { PageContent, PageHeader } from 'components/Page';
 import { QueryWrapper } from 'components/QueryWrapper';
-import { FileItems } from 'components/FileItem';
-import { Button } from 'components/Button';
-import ClipIcon from 'icons/Clip';
 import styles from './index.module.css';
 import { Replies, useReplies } from './Replies';
 import { Evaluated, NewEvaluation } from './Evaluation';
 import { auth, db, http } from 'leancloud';
 import { Reply, Ticket } from 'types';
-import { useUpload } from 'utils/useUpload';
+import { ReplyData, ReplyInput } from './ReplyInput';
 
 async function fetchTicket(id: string): Promise<Ticket> {
   const { data } = await http.get('/api/1/tickets/' + id);
@@ -145,170 +140,6 @@ function TicketAttributes({ ticket }: { ticket: Ticket }) {
   );
 }
 
-interface MiniUploaderProps {
-  className?: string;
-  onUpload: (files: FileList) => void;
-}
-
-function MiniUploader({ className, onUpload }: MiniUploaderProps) {
-  const $input = useRef<HTMLInputElement>(null!);
-  const handleUpload = useCallback<ChangeEventHandler<HTMLInputElement>>(
-    (e) => {
-      const files = e.target.files;
-      if (files?.length) {
-        onUpload(files);
-        $input.current!.value = '';
-      }
-    },
-    [onUpload]
-  );
-
-  return (
-    <button
-      className={cx('flex', className)}
-      onClick={() => $input.current.click()}
-      onTouchStart={(e) => e.preventDefault()}
-      onTouchEnd={(e) => {
-        e.preventDefault();
-        $input.current.click();
-      }}
-    >
-      <input className="hidden" type="file" ref={$input} onChange={handleUpload} />
-      <ClipIcon className="m-auto text-tapBlue" />
-    </button>
-  );
-}
-
-interface ReplyData {
-  content: string;
-  file_ids: string[];
-}
-
-interface ReplyInputProps {
-  onCommit: (data: ReplyData) => void | Promise<void>;
-  disabled?: boolean;
-}
-
-function ReplyInput({ onCommit, disabled }: ReplyInputProps) {
-  const { t } = useTranslation();
-  const [show, setShow] = useState(false);
-  const [content, setContent] = useState('');
-  const { files, isUploading, upload, remove, removeAll } = useUpload();
-  const submitable = useMemo(() => {
-    return !isUploading && (content.trim() || files.length);
-  }, [files, isUploading, content]);
-
-  const handleChangeContent = useCallback((content: string) => setContent(content), []);
-
-  // TODO: 上传文件后滚动到底部
-
-  const handleCommit = async () => {
-    try {
-      await onCommit({
-        content: content.trim(),
-        file_ids: files.map((file) => file.id!),
-      });
-      setContent('');
-      setShow(false);
-      removeAll();
-    } catch {}
-  };
-
-  const $editor = useRef<HTMLDivElement>(null);
-  const $content = useRef(content);
-  $content.current = content;
-  useEffect(() => {
-    if (show) {
-      $editor.current!.innerText = $content.current;
-      $editor.current!.focus();
-    }
-  }, [show]);
-
-  return (
-    <>
-      <div
-        className={cx(
-          'sticky bottom-0 border-t border-gray-100 bg-[#FAFAFA] pb-[env(safe-area-inset-bottom)]',
-          {
-            invisible: show,
-          }
-        )}
-      >
-        <div className="flex items-center px-3 py-2">
-          <input
-            className="flex-grow h-8 px-3 border rounded-full placeholder-[#BFBFBF] text-sm"
-            placeholder={t('reply.input_content_hint')}
-            value={content}
-            onChange={(e) => handleChangeContent(e.target.value)}
-            onFocus={() => setShow(true)}
-          />
-          <Button
-            className="flex-shrink-0 ml-2 w-16 leading-[30px] text-[13px]"
-            disabled={!submitable || disabled}
-            onClick={handleCommit}
-          >
-            {t('general.send')}
-          </Button>
-        </div>
-      </div>
-
-      {show &&
-        createPortal(
-          <div
-            className="fixed inset-0 z-50 bg-[rgba(0,0,0,0.3)]"
-            onClick={(e) => {
-              if (e.target === e.currentTarget) {
-                setShow(false);
-              }
-            }}
-          >
-            <div className="fixed left-0 right-0 bottom-0 z-50 bg-[#FAFAFA] border-t border-gray-100 pb-[env(safe-area-inset-bottom)]">
-              <div className="relative flex items-end px-3 py-2">
-                <div className="relative bg-white flex-grow rounded-[16px] border pl-3 pr-[34px] max-h-[200px] sm:max-h-[140px] overflow-y-auto text-sm">
-                  <div
-                    ref={$editor}
-                    contentEditable
-                    className="outline-none leading-[16px] my-[7px] whitespace-pre-line"
-                    onInput={(e) => {
-                      handleChangeContent((e.target as HTMLDivElement).innerText);
-                    }}
-                  />
-                  {(content.length === 0 || content === '\n') && (
-                    <div className="absolute left-3 top-0 leading-[30px] text-[#BFBFBF]">
-                      {t('reply.input_content_hint')}
-                    </div>
-                  )}
-
-                  {files.length > 0 && (
-                    <FileItems
-                      files={files}
-                      previewable={false}
-                      onDelete={(file) => remove(file.key)}
-                    />
-                  )}
-                </div>
-
-                <MiniUploader
-                  className="absolute right-[85px] bottom-[9px] w-[34px] h-[30px]"
-                  onUpload={(files) => upload(files[0])}
-                />
-
-                <Button
-                  className="relative bottom-px flex-shrink-0 w-16 ml-2 leading-[30px] text-[13px]"
-                  disabled={!submitable || disabled}
-                  onClick={handleCommit}
-                >
-                  {t('general.send')}
-                </Button>
-              </div>
-            </div>
-          </div>,
-          document.body
-        )}
-    </>
-  );
-}
-
 async function commitReply(ticketId: string, data: ReplyData) {
   await http.post(`/api/1/tickets/${ticketId}/replies`, data);
 }
@@ -386,7 +217,7 @@ export default function TicketDetail() {
 
   const replies = useMemo<Reply[]>(() => flatten(replyPages?.pages), [replyPages]);
 
-  const { mutateAsync: reply, isLoading: committing } = useMutation({
+  const { mutateAsync: reply } = useMutation({
     mutationFn: (data: ReplyData) => commitReply(id, data),
     onSuccess: () => fetchMoreReplies(),
     onError: (error: Error) => alert(error.message),
@@ -418,7 +249,7 @@ export default function TicketDetail() {
                   <NewEvaluation ticketId={id} />
                 )
               ) : (
-                <ReplyInput onCommit={reply} disabled={committing} />
+                <ReplyInput onCommit={reply} />
               ))}
           </QueryWrapper>
         </QueryWrapper>
