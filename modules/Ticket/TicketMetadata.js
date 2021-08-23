@@ -510,23 +510,22 @@ const TicketFormValues = memo(({ ticket, loadMoreOpsLogs }) => {
           {t('edit')}
         </Button>
       </Form.Label>
-      <fieldset>
-        {formFields.map((field) => {
-          const variant = field.variants[0] || {}
-          return (
-            <CustomFieldDisplay
-              key={field.id}
-              type={field.type}
-              label={variant.title}
-              value={matchFormValues[field.id]}
-              options={variant.options}
-              className={styles.field}
-            />
-          )
-        })}
-      </fieldset>
+      {formFields.map((field) => {
+        const variant = field.variants[0] || {}
+        return (
+          <CustomFieldDisplay
+            key={field.id}
+            type={field.type}
+            label={variant.title}
+            value={matchFormValues[field.id]}
+            options={variant.options}
+            className={styles.field}
+          />
+        )
+      })}
       {otherFields.length > 0 && (
-        <fieldset>
+        <>
+          <hr />
           {otherFields.map((field) => {
             const variant = field.variants[0] || {}
             return (
@@ -540,7 +539,7 @@ const TicketFormValues = memo(({ ticket, loadMoreOpsLogs }) => {
               />
             )
           })}
-        </fieldset>
+        </>
       )}
 
       <Modal show={edit} onHide={close}>
