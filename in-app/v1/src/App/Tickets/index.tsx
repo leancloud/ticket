@@ -58,7 +58,7 @@ export function useTickets() {
         return allPages.length + 1;
       }
     },
-    refetchOnMount: false,
+    cacheTime: 0,
   });
 }
 
