@@ -1,10 +1,10 @@
 import { ComponentPropsWithoutRef, Key, useMemo } from 'react';
-import { FilmIcon } from '@heroicons/react/solid';
 import cx from 'classnames';
 
 import { usePreview } from 'utils/usePreview';
 import XIcon from 'icons/X';
 import ClipIcon from 'icons/Clip';
+import FileVideoIcon from 'icons/FileVideo';
 import styles from './index.module.css';
 
 function FileIcon({ mime, url }: { mime?: string; url?: string }) {
@@ -13,7 +13,7 @@ function FileIcon({ mime, url }: { mime?: string; url?: string }) {
       return <img className="inline-block h-4 w-4 mr-1" src={url} />;
     }
     if (mime.startsWith('video')) {
-      return <FilmIcon className="w-4 h-4 mr-1 text-[#BFBFBF]" />;
+      return <FileVideoIcon className="w-4 h-4 mr-1 text-[#BFBFBF]" />;
     }
   }
   return <ClipIcon className="w-4 h-4 mr-1 text-[#BFBFBF]" />;
