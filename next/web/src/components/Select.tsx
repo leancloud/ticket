@@ -129,7 +129,7 @@ export function Select<K extends Key>({
   return (
     <div
       tabIndex={-1}
-      className="relative outline-none"
+      className="relative outline-none text-sm text-[#183247]"
       onFocus={() => setIsFocus(true)}
       onBlur={(e) => {
         if (!e.currentTarget.contains(e.relatedTarget as any)) {
@@ -163,7 +163,7 @@ export function Select<K extends Key>({
 
           <input
             ref={$input}
-            className="w-0 flex-grow flex-shrink outline-none cursor-default"
+            className="w-0 flex-grow flex-shrink outline-none cursor-default leading-6"
             style={{ width: keyword.length + 'em' }}
             placeholder={selectedCount ? undefined : placeholder}
             value={keyword}
@@ -184,7 +184,7 @@ export function Select<K extends Key>({
               return (
                 <li
                   key={key}
-                  className={cx('flex items-center px-2 py-1 active:bg-primary-100', {
+                  className={cx('flex items-center px-2 leading-8 active:bg-primary-100', {
                     'hover:bg-gray-100': !active,
                     'bg-primary-100 text-primary': active,
                   })}
@@ -196,7 +196,7 @@ export function Select<K extends Key>({
               );
             })
           ) : (
-            <li className="px-2 py-1 text-center text-gray-400">No options</li>
+            <li className="px-2 leading-8 text-center text-gray-400">No options</li>
           )}
         </ul>
       )}
