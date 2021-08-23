@@ -10,6 +10,7 @@ import React, {
 import PropTypes from 'prop-types'
 import { Button, Modal } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
+import styles from './index.module.scss'
 
 const ConfirmModal = memo((props) => {
   const mountedRef = useRef(false)
@@ -51,10 +52,10 @@ const ConfirmModal = memo((props) => {
     }
   }, [onConfirm, close])
   return (
-    <Modal show={show} onHide={cancel}>
+    <Modal show={show} onHide={cancel} className={styles.confirm}>
       {header && (
-        <Modal.Header >
-          <Modal.Title as="h5" >{header}</Modal.Title>
+        <Modal.Header>
+          <Modal.Title as="h5">{header}</Modal.Title>
         </Modal.Header>
       )}
       {content && <Modal.Body>{content}</Modal.Body>}
@@ -76,7 +77,7 @@ const Confirm = memo(({ trigger, ...rest }) => {
     setShow(false)
   }, [setShow])
   if (isValidElement(trigger)) {
-    const reTrigger= cloneElement(trigger, {
+    const reTrigger = cloneElement(trigger, {
       onClick: open,
     })
     return (

@@ -1,0 +1,9 @@
+.confirm {
+  :global {
+    .modal-content {
+      .modal-header + .modal-footer {
+        border-top: none;
+      }
+    }
+  }
+}
