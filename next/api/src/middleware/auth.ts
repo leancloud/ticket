@@ -17,9 +17,7 @@ export const auth: Middleware = async (ctx, next) => {
   }
   const anonymousId = ctx.get('X-Anonymous-ID');
   if (anonymousId) {
-    const user = await User.query()
-      .where('authData.anonymous.id', '==', anonymousId)
-      .first({ useMasterKey: true });
+    const user = await User.findByAnonymousID(anonymousId);
     if (!user) {
       console.log('x-anonymous-id user not found');
       return ctx.throw(401);
