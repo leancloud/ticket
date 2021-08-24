@@ -3,6 +3,7 @@ import { forwardRef, useImperativeHandle, useRef } from 'react';
 
 import { ControlRef } from '..';
 import { ErrorMessage } from '../ErrorMessage';
+import { scrollIntoViewInNeeded } from '../utils';
 
 export interface InputProps {
   onChange: (value?: string) => void;
@@ -14,7 +15,10 @@ export const Input = forwardRef<ControlRef, InputProps>(({ onChange, placeholder
   const $input = useRef<HTMLInputElement>(null!);
 
   useImperativeHandle(ref, () => ({
-    focus: () => $input.current.focus(),
+    focus: () => {
+      $input.current.focus();
+      setTimeout(() => scrollIntoViewInNeeded($input.current), 17);
+    },
   }));
 
   return (
@@ -27,8 +31,9 @@ export const Input = forwardRef<ControlRef, InputProps>(({ onChange, placeholder
           'border-[rgba(0,0,0,0.08)]': !error,
           'border-red-500': error,
         })}
-        onChange={(e) => onChange(e.target.value || undefined)}
         placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value || undefined)}
+        onBlur={(e) => scrollIntoViewInNeeded(e.target)}
       />
 
       <ErrorMessage className="mt-1">{error}</ErrorMessage>

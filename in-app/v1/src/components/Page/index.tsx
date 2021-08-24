@@ -12,6 +12,7 @@ export function PageHeader(props: ComponentPropsWithoutRef<'div'>) {
 
   return (
     <div
+      id="page-header"
       className={cx(
         'flex-shrink-0 sticky z-10 top-0 px-[10px] sm:px-[108px] pt-[52px] sm:pt-[10px] bg-[#E5E5E5] overflow-hidden',
         props.className
