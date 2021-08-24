@@ -12,6 +12,7 @@ import cx from 'classnames';
 
 import { Button } from 'components/Button';
 import { FileInfoWithKey, FileItems } from 'components/FileItem';
+import { useAlert } from 'utils/useAlert';
 import { useUpload } from 'utils/useUpload';
 import ClipIcon from 'icons/Clip';
 
@@ -28,7 +29,14 @@ export function ReplyInput({ onCommit }: ReplyInputProps) {
   const { t } = useTranslation();
   const [show, setShow] = useState(false);
   const [content, setContent] = useState('');
-  const { files, isUploading, upload, remove, removeAll } = useUpload();
+  const { element: alertElement, alert } = useAlert();
+  const { files, isUploading, upload, remove, removeAll } = useUpload({
+    onError: (e) =>
+      alert({
+        title: t('validation.attachment_too_big'),
+        content: e.message,
+      }),
+  });
 
   const [isCommitting, setIsCommitting] = useState(false);
   const commitable = !isCommitting && !isUploading && (!!content.trim() || !!files.length);
@@ -53,6 +61,7 @@ export function ReplyInput({ onCommit }: ReplyInputProps) {
         { invisible: show }
       )}
     >
+      {alertElement}
       <div className="flex items-center px-3 py-2">
         <input
           className="flex-grow leading-8 px-3 border rounded-full placeholder-[#BFBFBF] text-sm"

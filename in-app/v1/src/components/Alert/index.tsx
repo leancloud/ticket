@@ -20,7 +20,7 @@ export function Alert({ title, content, buttonTitle, show, onClose }: AlertProps
   return (
     <Transition show={show} as={Fragment}>
       <Dialog
-        className="fixed inset-0 overflow-y-auto flex justify-center items-center"
+        className="fixed inset-0 z-50 overflow-y-auto flex justify-center items-center"
         onClose={onClose}
       >
         <Transition.Child
@@ -34,7 +34,7 @@ export function Alert({ title, content, buttonTitle, show, onClose }: AlertProps
           <Dialog.Overlay className="fixed inset-0 bg-black" />
         </Transition.Child>
         <Transition.Child
-          className="bg-white rounded-lg w-80 z-10 p-4 shadow-lg relative"
+          className="bg-white rounded-lg w-80 p-4 shadow-lg relative"
           enter="duration-100 ease-out"
           enterFrom="transform scale-90 opacity-0"
           enterTo="transform scale-100 opacity-100"

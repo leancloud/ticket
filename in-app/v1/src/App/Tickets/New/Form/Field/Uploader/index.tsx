@@ -1,6 +1,8 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { Uploader as Uploader_ } from 'components/Uploader';
+import { useAlert } from 'utils/useAlert';
 import { useUpload } from 'utils/useUpload';
 import { ControlRef } from '..';
 import { ErrorMessage } from '../ErrorMessage';
@@ -11,8 +13,16 @@ export interface UploaderProps {
 }
 
 export const Uploader = forwardRef<ControlRef, UploaderProps>(({ onChange, error }, ref) => {
+  const { t } = useTranslation();
   const $container = useRef<HTMLDivElement>(null!);
-  const { files, upload, remove } = useUpload();
+  const { element: alertElement, alert } = useAlert();
+  const { files, upload, remove } = useUpload({
+    onError: (e) =>
+      alert({
+        title: t('validation.attachment_too_big'),
+        content: e.message,
+      }),
+  });
 
   useEffect(() => {
     if (files.length === 0 || files.some((f) => !f.id)) {
@@ -29,6 +39,7 @@ export const Uploader = forwardRef<ControlRef, UploaderProps>(({ onChange, error
 
   return (
     <div>
+      {alertElement}
       <Uploader_
         files={files}
         onUpload={(files) => upload(files[0])}
