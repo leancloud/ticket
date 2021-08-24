@@ -30,7 +30,9 @@ export function Preview({ show, onClose, type, src }: PreviewProps) {
           className={`${styles.content} flex z-10 outline-none bg-black rounded w-[85%] sm:w-[60%] h-[60%] sm:h-[85%] overflow-hidden shadow-md`}
         >
           {type === 'image' && <img className="m-auto max-h-full" src={src} />}
-          {type === 'video' && <video className="m-auto max-h-full" src={src} autoPlay controls />}
+          {type === 'video' && (
+            <video className="m-auto max-h-full" src={src} autoPlay controls playsInline />
+          )}
         </div>
       </Dialog>
     </Transition>
