@@ -29,10 +29,10 @@ function useHasUnreadTickets() {
   const isMounted = useIsMounted();
   const rootCategory = useRootCategory();
   useEffect(() => {
-    db.class('Ticket')
+    db.class('notification')
       .select('objectId')
       .where('unreadCount', '>', 0)
-      .where('author', '==', auth.currentUser)
+      .where('user', '==', auth.currentUser)
       .first()
       .then((ticket) => ticket && isMounted() && setHasUnreadTickets(true))
       .catch(console.error);

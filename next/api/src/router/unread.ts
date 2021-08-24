@@ -1,18 +1,17 @@
 import Router from '@koa/router';
-import { Ticket } from '../model/ticket';
-import { User } from '../model/user';
 import { auth } from '../middleware/auth';
+import { Query, User, Object } from 'leancloud-storage';
 
 const router = new Router().use(auth);
 
 router.get('/', async (ctx) => {
-  const currentUser = ctx.state.currentUser as User;
+  const currentUser = ctx.state.currentUser;
 
-  const unreadTicketQuery = Ticket.query()
-    .where('author', '==', User.ptr(currentUser.id))
-    .where('unreadCount', '>=', 1);
-  const unreadTicket = await unreadTicketQuery.first({ useMasterKey: true });
-  const unread = !!unreadTicket;
+  const unreadNotificationQuery = new Query('notification')
+    .equalTo('user', Object.createWithoutData(User, currentUser.id))
+    .greaterThan('unreadCount', 0);
+  const unreadNotification = await unreadNotificationQuery.first({ useMasterKey: true });
+  const unread = !!unreadNotification;
 
   ctx.body = unread;
 });

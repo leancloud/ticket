@@ -170,13 +170,6 @@ class Ticket {
     /**
      * @private
      */
-    this._unreadCountIncrement = 0
-
-    this._clearUnreadCount = false
-
-    /**
-     * @private
-     */
     this._customerServicesToJoin = undefined
 
     /**
@@ -385,8 +378,6 @@ class Ticket {
     return (
       this._updatedKeys.size > 0 ||
       this._replyCountIncrement > 0 ||
-      this._unreadCountIncrement > 0 ||
-      this._clearUnreadCount ||
       this._customerServicesToJoin !== undefined
     )
   }
@@ -427,20 +418,6 @@ class Ticket {
 
   increaseReplyCount(amount = 1) {
     this._replyCountIncrement += amount
-  }
-
-  increaseUnreadCount(amount = 1) {
-    if (this._clearUnreadCount) {
-      throw new Error('Cannot overwrite unread_count')
-    }
-    this._unreadCountIncrement += amount
-  }
-
-  clearUnreadCount() {
-    if (this._unreadCountIncrement) {
-      throw new Error('Cannot overwrite unread_count')
-    }
-    this._clearUnreadCount = true
   }
 
   joinCustomerService(user) {
@@ -511,14 +488,6 @@ class Ticket {
 
     if (this._replyCountIncrement) {
       object.increment('replyCount', this._replyCountIncrement)
-    }
-
-    if (this._unreadCountIncrement) {
-      object.increment('unreadCount', this._unreadCountIncrement)
-    }
-
-    if (this._clearUnreadCount) {
-      object.set('unreadCount', 0)
     }
 
     if (this._customerServicesToJoin) {
@@ -639,8 +608,6 @@ class Ticket {
     this.saveOpsLogs().catch(captureException)
 
     this._replyCountIncrement = 0
-    this._unreadCountIncrement = 0
-    this._clearUnreadCount = false
     this._customerServicesToJoin = undefined
     this._operatorId = undefined
 
@@ -721,7 +688,6 @@ class Ticket {
 
       if (data.isCustomerService) {
         this.joinCustomerService(replyAuthorInfo)
-        this.increaseUnreadCount(1)
       }
       if (this.status < TICKET_STATUS.FULFILLED) {
         this.status = data.isCustomerService
@@ -783,7 +749,15 @@ class Ticket {
         this.joinCustomerService(operatorInfo)
       }
       if (ticketStatus.isOpened(status) !== ticketStatus.isOpened(this.status)) {
-        this.increaseUnreadCount(1)
+        // 适配 notification 使用的数据结构
+        const author = AV.Object.createWithoutData('_User', this.author_id)
+        let assignee = undefined
+        if (this.assignee_id) {
+          assignee = AV.Object.createWithoutData('_User', this.assignee_id)
+        }
+        const ticket = AV.Object.createWithoutData('Ticket', this.id)
+        ticket.attributes = { author, assignee, nid: this.nid, title: this.title }
+        notification.changeStatus(ticket, operator).catch(console.error)
       }
     }
 
