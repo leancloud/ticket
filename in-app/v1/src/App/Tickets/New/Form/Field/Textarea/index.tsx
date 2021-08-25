@@ -9,6 +9,7 @@ import {
 
 import { ControlRef } from '..';
 import { ErrorMessage } from '../ErrorMessage';
+import { scrollIntoViewInNeeded } from '../utils';
 
 export interface TextareaProps {
   onChange: (value?: string) => void;
@@ -36,7 +37,10 @@ export const Textarea = forwardRef<ControlRef, TextareaProps>(
     );
 
     useImperativeHandle(ref, () => ({
-      focus: () => $textarea.current.focus(),
+      focus: () => {
+        $textarea.current.focus();
+        setTimeout(() => scrollIntoViewInNeeded($textarea.current), 17);
+      },
     }));
 
     return (
@@ -48,10 +52,11 @@ export const Textarea = forwardRef<ControlRef, TextareaProps>(
               ? 'border-red-500'
               : 'focus:border-tapBlue focus:ring-1 focus:ring-tapBlue border-[rgba(0,0,0,0.08)]'
           }`}
+          rows={rows}
+          placeholder={placeholder}
           value={value}
           onChange={handleChange}
-          placeholder={placeholder}
-          rows={rows}
+          onBlur={(e) => scrollIntoViewInNeeded(e.target)}
         />
 
         <ErrorMessage className="float-left mt-0.5">{error}</ErrorMessage>

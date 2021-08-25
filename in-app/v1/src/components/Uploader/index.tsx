@@ -2,11 +2,8 @@ import { ChangeEventHandler, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import cx from 'classnames';
 
-import { useAlert } from 'utils/useAlert';
 import PlusIcon from 'icons/Plus';
 import { FileItems } from '../FileItem';
-
-const MAX_FILE_SIZE = 1024 * 1024 * 1024; // 1 GB
 
 type FileKey = string | number;
 
@@ -23,7 +20,6 @@ export interface UploaderProps<Key extends FileKey> {
   onUpload?: (files: FileList) => void;
   onDelete?: (file: FileInfo<Key>) => void;
   error?: boolean;
-  maxSize?: number;
 }
 
 export function Uploader<Key extends FileKey>({
@@ -31,11 +27,9 @@ export function Uploader<Key extends FileKey>({
   onUpload,
   onDelete,
   error,
-  maxSize = MAX_FILE_SIZE,
 }: UploaderProps<Key>) {
   const { t } = useTranslation();
   const $input = useRef<HTMLInputElement>(null!);
-  const { element: alertElement, alert } = useAlert();
   const handleClick = useCallback(() => $input.current.click(), []);
   const handleChange = useCallback<ChangeEventHandler<HTMLInputElement>>(
     (e) => {
@@ -43,26 +37,14 @@ export function Uploader<Key extends FileKey>({
       if (!files || files.length === 0) {
         return;
       }
-      if (maxSize) {
-        for (const file of files) {
-          if (file.size > maxSize) {
-            alert({
-              title: t('validation.attachment_too_big'),
-              content: t('validation.attachment_too_big_text', { size: 1, unit: 'GB' }),
-            });
-            return;
-          }
-        }
-      }
       onUpload?.(files);
       $input.current.value = '';
     },
-    [maxSize, t, onUpload]
+    [onUpload]
   );
 
   return (
     <div className="w-full">
-      {alertElement}
       <div
         className={cx(
           'w-full h-12 p-4 border rounded flex justify-center items-center active:border active:border-tapBlue hover:border-tapBlue cursor-pointer',
@@ -80,7 +62,7 @@ export function Uploader<Key extends FileKey>({
         </div>
       </div>
       {files && files.length > 0 && (
-        <FileItems className="mt-2" files={files} onDelete={onDelete} />
+        <FileItems className="mt-2" previewable={false} files={files} onDelete={onDelete} />
       )}
     </div>
   );
