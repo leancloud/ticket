@@ -1,5 +1,4 @@
 import { ComponentPropsWithoutRef } from 'react';
-import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import cx from 'classnames';
 
@@ -14,19 +13,19 @@ export function PageHeader(props: ComponentPropsWithoutRef<'div'>) {
     <div
       id="page-header"
       className={cx(
-        'flex-shrink-0 sticky z-10 top-0 px-[10px] sm:px-[108px] pt-[52px] sm:pt-[10px] bg-[#E5E5E5] overflow-hidden',
+        styles.header,
+        'flex-shrink-0 z-10 top-0 px-[10px] sm:px-[108px] pt-[52px] sm:pt-[10px] bg-[#E5E5E5]',
         props.className
       )}
     >
-      {createPortal(
-        <ControlButton className="fixed z-20 top-3 sm:top-[10px] left-[10px] sm:left-[21px]" />,
-        document.body
-      )}
-      <h1
-        className={`bg-white rounded-t-lg leading-[38px] text-center font-semibold border-b border-gray-100 ${styles.header}`}
-      >
-        {props.children ?? t('general.call_center')}
-      </h1>
+      <ControlButton className="absolute z-20 top-3 sm:top-[10px] left-[10px] sm:left-[22px]" />
+      <div className="overflow-hidden">
+        <h1
+          className={`bg-white rounded-t-lg leading-[38px] text-center font-semibold border-b border-gray-100`}
+        >
+          {props.children ?? t('general.call_center')}
+        </h1>
+      </div>
     </div>
   );
 }

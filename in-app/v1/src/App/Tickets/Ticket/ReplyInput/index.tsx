@@ -1,13 +1,6 @@
-import {
-  ChangeEventHandler,
-  PropsWithChildren,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
-import { createPortal } from 'react-dom';
+import { ChangeEventHandler, useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Dialog } from '@headlessui/react';
 import cx from 'classnames';
 
 import { Button } from 'components/Button';
@@ -79,8 +72,9 @@ export function ReplyInput({ onCommit }: ReplyInputProps) {
         </Button>
       </div>
 
-      {show && (
-        <InputModal onHide={() => setShow(false)}>
+      <Dialog className="fixed inset-0 z-50" open={show} onClose={() => setShow(false)}>
+        <Dialog.Overlay className="fixed bg-[rgba(0,0,0,0.3)] inset-0" />
+        <div className="fixed inset-x-0 bottom-0">
           <AdvancedReplyInput
             value={content}
             files={files}
@@ -90,19 +84,9 @@ export function ReplyInput({ onCommit }: ReplyInputProps) {
             onRemove={remove}
             onCommit={handleCommit}
           />
-        </InputModal>
-      )}
+        </div>
+      </Dialog>
     </div>
-  );
-}
-
-function InputModal({ children, onHide }: PropsWithChildren<{ onHide?: () => void }>) {
-  return createPortal(
-    <div className="fixed inset-0 z-50 flex flex-col">
-      <div className="flex-grow bg-[rgba(0,0,0,0.3)]" onClick={onHide} />
-      <div className="max-h-[216px] sm:max-h-[156px]">{children}</div>
-    </div>,
-    document.body
   );
 }
 
@@ -128,9 +112,9 @@ function AdvancedReplyInput({
   const { t } = useTranslation();
 
   return (
-    <div className="bg-[#FAFAFA] border-t border-gray-100 pb-[env(safe-area-inset-bottom)] h-full">
-      <div className="relative flex items-end px-3 py-2 h-full">
-        <div className="bg-white flex-grow rounded-2xl border pl-3 pr-[34px] overflow-y-auto text-sm h-full">
+    <div className="bg-[#FAFAFA] border-t border-gray-100 pb-[env(safe-area-inset-bottom)]">
+      <div className="relative flex px-3 py-2">
+        <div className="bg-white flex-grow rounded-2xl border pl-3 pr-[34px] max-h-[200px] sm:max-h-[140px] overflow-y-auto text-sm">
           <Editor
             autoFocus
             placeholder={t('reply.input_content_hint')}
@@ -146,7 +130,7 @@ function AdvancedReplyInput({
           )}
         </div>
         <Button
-          className="flex-shrink-0 w-16 ml-2 leading-[30px] text-[13px]"
+          className="flex-shrink-0 w-16 mt-auto ml-2 leading-[30px] text-[13px]"
           disabled={disabled}
           onClick={onCommit}
         >
