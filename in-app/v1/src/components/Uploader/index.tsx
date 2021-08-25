@@ -62,7 +62,7 @@ export function Uploader<Key extends FileKey>({
         </div>
       </div>
       {files && files.length > 0 && (
-        <FileItems className="mt-2" files={files} onDelete={onDelete} />
+        <FileItems className="mt-2" previewable={false} files={files} onDelete={onDelete} />
       )}
     </div>
   );
