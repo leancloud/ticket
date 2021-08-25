@@ -242,7 +242,7 @@ router.get(
       res.append('Access-Control-Expose-Headers', 'X-Total-Count')
     }
 
-    let notificationMap = []
+    let notificationMap = {}
     try {
       const notifications = await new AV.Query('notification')
         .containedIn('ticket', tickets)
