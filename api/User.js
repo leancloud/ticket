@@ -56,7 +56,7 @@ if (!newApp) {
       const customerService = await addRole(
         'customerService',
         getRoleACL('customerService'),
-        undefined,
+        req.object,
         admin
       )
       await addRole('staff', getRoleACL('customerService'), undefined, customerService)
