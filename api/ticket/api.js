@@ -341,17 +341,12 @@ router.get(
       subscribed: !!watch,
     })
 
-    try {
-      const notification = await new AV.Query('notification')
-        .equalTo('ticket', ticket)
-        .equalTo('user', req.user)
-        .first({ user: req.user })
-      if (notification) {
-        await notification.save({ unreadCount: 0 }, { user: req.user })
-      }
-    } catch (error) {
-      console.error(error)
-    }
+    new AV.Query('notification')
+      .equalTo('ticket', ticket)
+      .equalTo('user', req.user)
+      .first({ user: req.user })
+      .then((notification) => notification.save({ unreadCount: 0 }, { user: req.user }))
+      .catch(console.error)
   })
 )
 
