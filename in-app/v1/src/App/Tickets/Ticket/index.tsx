@@ -232,7 +232,6 @@ export default function TicketDetail() {
 
   return (
     <>
-      1111111111
       <PageHeader>{t('ticket.detail')}</PageHeader>
       <PageContent className={cx({ 'mb-0 rounded-b-none': !ticketIsClosed })}>
         <QueryWrapper result={result}>
