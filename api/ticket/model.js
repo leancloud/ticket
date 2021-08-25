@@ -711,7 +711,7 @@ class Ticket {
           ticket.attributes = { author, assignee, nid: this.nid, title: this.title }
           return notification.replyTicket(ticket, reply, data.author)
         })
-        .catch(captureException)
+        .catch(console.error)
     }
 
     return reply

@@ -148,7 +148,6 @@ function useClearLocalUnreadCount() {
   const queryClient = useQueryClient();
   return useCallback(
     (ticketId: string) => {
-      console.log(ticketId);
       queryClient.setQueryData<InfiniteData<Ticket[]> | undefined>('tickets', (data) => {
         if (data) {
           return produce(data, (draft) => {

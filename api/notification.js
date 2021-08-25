@@ -52,7 +52,7 @@ exports.newTicket = (ticket, author, assignee) => {
   })
 }
 
-exports.replyTicket = (ticket, reply, replyAuthor) => {
+exports.replyTicket = async (ticket, reply, replyAuthor) => {
   const to = reply.get('isCustomerService') ? ticket.get('author') : ticket.get('assignee')
   const data = {
     ticket,
@@ -61,40 +61,29 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
     to,
     isCustomerServiceReply: reply.get('isCustomerService'),
   }
-  return Promise.all(
+  await Promise.all(
     channels.map((channel) => Promise.resolve(channel.replyTicket?.(data)).catch(captureException))
   )
-    .then(() => {
-      if (!to) {
-        return
-      }
-      return getNotification(ticket, to)
+  const watches = await new AV.Query('Watch')
+    .equalTo('ticket', ticket)
+    .limit(1000)
+    .find({ useMasterKey: true })
+  const targets = _.uniqBy(
+    _.compact([...watches.map((watch) => watch.get('user')), to]),
+    (user) => user.id
+  )
+  const notifications = await Promise.all(
+    targets.map((target) => {
+      if (target.id === replyAuthor?.id) return
+      return getNotification(ticket, target)
     })
-    .then((notification) =>
-      notification
-        .set('latestAction', 'reply')
-        .increment('unreadCount', 1)
-        .save(null, { useMasterKey: true })
-    )
-    .then(() => {
-      return new AV.Query('Watch')
-        .equalTo('ticket', ticket)
-        .limit(1000)
-        .find({ useMasterKey: true })
-    })
-    .then((watches) => {
-      const notificationPromises = watches.map((watch) => {
-        if (watch.get('user').id === to.id) {
-          return
-        }
-        return getNotification(ticket, to).then((notification) =>
-          notification.set('latestAction', 'reply').increment('unreadCount', 1)
-        )
-      })
-      return Promise.all(notificationPromises).then((notifications) =>
-        AV.Object.saveAll(notifications, { useMasterKey: true })
-      )
-    })
+  )
+  await AV.Object.saveAll(
+    _.compact(notifications).map((notification) =>
+      notification.set('latestAction', 'reply').increment('unreadCount', 1)
+    ),
+    { useMasterKey: true }
+  )
 }
 
 exports.changeAssignee = (ticket, operator, assignee) => {
@@ -139,20 +128,25 @@ exports.changeStatus = async function (ticket, operator) {
     .limit(1000)
     .find({ useMasterKey: true })
   const targets = _.uniqBy(
-    [...watches, ticket.get('author'), ticket.get('assignee')].filter(_.identity),
+    _.compact([
+      ...watches.map((watch) => watch.get('user')),
+      ticket.get('author'),
+      ticket.get('assignee'),
+    ]),
     (user) => user.id
   )
-  targets.forEach((target) => {
-    if (target.id === operator.id) return
-    getNotification(ticket, target)
-      .then((notification) =>
-        notification
-          .set('latestAction', 'changeStatus')
-          .increment('unreadCount', 1)
-          .save(null, { useMasterKey: true })
-      )
-      .catch(console.error)
-  })
+  const notifications = await Promise.all(
+    targets.map((target) => {
+      if (target.id === operator.id) return
+      return getNotification(ticket, target)
+    })
+  )
+  await AV.Object.saveAll(
+    _.compact(notifications).map((notification) =>
+      notification.set('latestAction', 'changeStatus').increment('unreadCount', 1)
+    ),
+    { useMasterKey: true }
+  )
 }
 
 const sendDelayNotify = (ticket, to) => {

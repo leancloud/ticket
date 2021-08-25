@@ -5,7 +5,7 @@ const { check, query } = require('express-validator')
 const { captureException } = require('../errorHandler')
 const { checkPermission } = require('../../oauth/lc')
 const { requireAuth, catchError, parseSearchingQ } = require('../middleware')
-const { getVacationerIds, getFormValuesDifference } = require('./utils')
+const { getVacationerIds, getFormValuesDifference, resetUnreadCount } = require('./utils')
 const { isObjectExists } = require('../utils/object')
 const { encodeGroupObject } = require('../group/utils')
 const { TICKET_ACTION, TICKET_STATUS } = require('../../lib/common')
@@ -341,12 +341,7 @@ router.get(
       subscribed: !!watch,
     })
 
-    new AV.Query('notification')
-      .equalTo('ticket', ticket)
-      .equalTo('user', req.user)
-      .first({ user: req.user })
-      .then((notification) => notification.save({ unreadCount: 0 }, { user: req.user }))
-      .catch(console.error)
+    resetUnreadCount(ticket, req.user)
   })
 )
 
@@ -402,6 +397,8 @@ router.get(
         }
       })
     )
+
+    resetUnreadCount(req.ticket, req.user)
   })
 )
 
