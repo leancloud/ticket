@@ -370,6 +370,7 @@ router.get(
     const isCS = await isCSInTicket(req.user, req.ticket.get('author'))
 
     let query = new AV.Query('Reply').equalTo('ticket', req.ticket)
+    query.equalTo('active', true)
     if (created_at_gt) {
       query.greaterThan('createdAt', new Date(created_at_gt))
     }
@@ -426,6 +427,22 @@ router.post(
       isCustomerService,
     })
     res.json(encodeReplyObject(reply))
+  })
+)
+
+router.delete(
+  '/:id/replies/:replyId',
+  catchError(async (req, res) => {
+    const { replyId } = req.params
+    const reply = await new AV.Query('Reply').get(replyId, { useMasterKey: true })
+    if (reply.get('author').id !== req.user.id) {
+      throw new Error('This action must be done by the author')
+    }
+    reply.set('active', false)
+    await reply.save(null, { useMasterKey: true })
+    res.json({
+      id: replyId,
+    })
   })
 )
 

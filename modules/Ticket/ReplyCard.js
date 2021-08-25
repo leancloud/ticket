@@ -6,7 +6,9 @@ import PropTypes from 'prop-types'
 import classNames from 'classnames'
 import xss from 'xss'
 import _ from 'lodash'
-
+import { useMutation } from 'react-query'
+import { http } from 'lib/leancloud'
+import Confirm from '../components/Confirm'
 import { fetch } from '../../lib/leancloud'
 import { AppContext } from '../context'
 import css from './index.css'
@@ -130,14 +132,30 @@ const MenuIcon = React.forwardRef(({ onClick }, ref) => (
   <Icon.ThreeDots className={`${css.replyMenuIcon} d-block`} ref={ref} onClick={onClick} />
 ))
 
-export function ReplyCard({ data }) {
+export function ReplyCard({ data, onDeleted, ticketId }) {
   const { t } = useTranslation()
-  const { isCustomerService } = useContext(AppContext)
+  const { isCustomerService, currentUser, addNotification } = useContext(AppContext)
   const [imageFiles, otherFiles] = useMemo(() => {
     return _.partition(data.files, (file) => IMAGE_FILE_MIMES.includes(file.mime))
   }, [data.files])
   const [translationEnabled, setTranslationEnabled] = useState(false)
 
+  const actions = useMemo(() => {
+    const isReplay = data.type === 'reply'
+    const isAuthor = currentUser && currentUser.id === data.author.id
+    const tmpActions = {
+      translation: isCustomerService,
+      // edit: false,
+      delete: isReplay && isAuthor,
+    }
+    return Object.values(tmpActions).some((v) => v) ? tmpActions : undefined
+  }, [isCustomerService, data, currentUser])
+  const { mutateAsync: deleteReply, isLoading: deleting } = useMutation({
+    mutationFn: () => http.delete(`/api/1/tickets/${ticketId}/replies/${data.id}`),
+    onSuccess: () => onDeleted(data.id),
+    onError: (error) => addNotification(error),
+  })
+  console.log(data)
   return (
     <Card
       id={data.id}
@@ -153,18 +171,51 @@ export function ReplyCard({ data }) {
         </div>
         <div className="d-flex align-items-center">
           {data.is_customer_service &&
-            (data.internal ? <InternalBadge className={css.badge} /> : <Badge className={css.badge} >{t('staff')}</Badge>)}
+            (data.internal ? (
+              <InternalBadge className={css.badge} />
+            ) : (
+              <Badge className={css.badge}>{t('staff')}</Badge>
+            ))}
 
-          {isCustomerService && (
+          {/* {isCustomerService && ( */}
+          {actions && (
             <Dropdown className="ml-2">
               <Dropdown.Toggle className="d-flex" as={MenuIcon} />
               <Dropdown.Menu align="right">
-                <Dropdown.Item
-                  active={translationEnabled}
-                  onClick={() => setTranslationEnabled(!translationEnabled)}
-                >
-                  Translate
-                </Dropdown.Item>
+                {actions.translation && (
+                  <Dropdown.Item
+                    active={translationEnabled}
+                    onClick={() => setTranslationEnabled(!translationEnabled)}
+                  >
+                    Translate
+                  </Dropdown.Item>
+                )}
+                {/* {actions.edit && (
+                  <Dropdown.Item
+                    active={translationEnabled}
+                    onClick={() => setTranslationEnabled(!translationEnabled)}
+                  >
+                    Edit
+                  </Dropdown.Item>
+                )} */}
+
+                {/* <Button variant="link" size="sm" className="text-danger" disabled={isLoading}>
+    {t('delete')}
+  </Button> */}
+
+                {actions.delete && (
+                  <Confirm
+                    header={'Are you sure you want to delete this?'}
+                    danger
+                    onConfirm={deleteReply}
+                    content={null}
+                    trigger={
+                      <Dropdown.Item className="text-danger" disabled={deleting}>
+                        {t('delete')}
+                      </Dropdown.Item>
+                    }
+                  />
+                )}
               </Dropdown.Menu>
             </Dropdown>
           )}
@@ -210,4 +261,6 @@ ReplyCard.propTypes = {
     content_HTML: PropTypes.string.isRequired,
     files: PropTypes.array.isRequired,
   }),
+  onDeleted: PropTypes.func,
+  ticketId: PropTypes.string.isRequired,
 }
