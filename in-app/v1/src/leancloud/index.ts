@@ -18,7 +18,12 @@ use({
     const storage = adapters.storage;
     adapters.storage = {
       async: storage.async as any,
-      getItem: storage.getItem.bind(storage) as any,
+      getItem: ((key: string) => {
+        if (key.endsWith('current_user')) {
+          return null;
+        }
+        return storage.getItem(key);
+      }) as any,
       removeItem: storage.removeItem.bind(storage),
       clear: storage.clear.bind(storage),
       setItem: (key, value) => {

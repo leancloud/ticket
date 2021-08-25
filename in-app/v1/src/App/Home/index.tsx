@@ -2,13 +2,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useHistory } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-import { auth, db } from 'leancloud';
+import { auth, db, http } from 'leancloud';
 import { Category } from 'types';
 import { PageContent, PageHeader } from 'components/Page';
 import { QueryWrapper } from 'components/QueryWrapper';
 import { useIsMounted } from 'utils/useIsMounted';
 import { CategoryList, useCategories } from '../Categories';
 import { useRootCategory } from '../../App';
+import { useQuery } from 'react-query';
 
 interface TicketsLinkProps {
   badge?: boolean;
@@ -23,21 +24,16 @@ function TicketsLink({ badge }: TicketsLinkProps) {
     </Link>
   );
 }
+async function fetchUnread() {
+  const { data } = await http.get<boolean>('/api/2/unread');
+  return data;
+}
 
 function useHasUnreadTickets() {
-  const [hasUnreadTickets, setHasUnreadTickets] = useState(false);
-  const isMounted = useIsMounted();
-  const rootCategory = useRootCategory();
-  useEffect(() => {
-    db.class('notification')
-      .select('objectId')
-      .where('unreadCount', '>', 0)
-      .where('user', '==', auth.currentUser)
-      .first()
-      .then((ticket) => ticket && isMounted() && setHasUnreadTickets(true))
-      .catch(console.error);
-  }, [rootCategory]);
-  return hasUnreadTickets;
+  return useQuery({
+    queryKey: 'unread',
+    queryFn: fetchUnread,
+  });
 }
 
 export default function Home() {
@@ -54,7 +50,7 @@ export default function Home() {
       .filter((c) => (rootCategory ? c.parentId === rootCategory : !c.parentId))
       .sort((a, b) => a.position - b.position);
   }, [categories]);
-  const hasUnreadTickets = useHasUnreadTickets();
+  const { data: hasUnreadTickets } = useHasUnreadTickets();
 
   const handleClick = ({ id }: Category) => {
     if (!categories) {
