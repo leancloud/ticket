@@ -144,11 +144,10 @@ async function commitReply(ticketId: string, data: ReplyData) {
   await http.post(`/api/1/tickets/${ticketId}/replies`, data);
 }
 
-function useClearUnreadCount() {
+function useClearLocalUnreadCount() {
   const queryClient = useQueryClient();
   return useCallback(
     (ticketId: string) => {
-      http.patch(`/api/1/tickets/${ticketId}`, { unread_count: 0 });
       queryClient.setQueryData<InfiniteData<Ticket[]> | undefined>('tickets', (data) => {
         if (data) {
           return produce(data, (draft) => {
@@ -201,11 +200,10 @@ function useWatchNewReply(
 export default function TicketDetail() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
-  const clearUnreadCount = useClearUnreadCount();
+  const clearLocalUnreadCount = useClearLocalUnreadCount();
+  useEffect(() => clearLocalUnreadCount(id), [id]);
 
-  const result = useTicket(id, {
-    onSuccess: (ticket) => ticket.unreadCount && clearUnreadCount(ticket.id),
-  });
+  const result = useTicket(id);
   const { data: ticket } = result;
 
   const ticketIsClosed = useMemo(() => {
@@ -227,7 +225,7 @@ export default function TicketDetail() {
     const lastReply = last(replies);
     if (!lastReply || reply.createdAt > lastReply.createdAt) {
       fetchMoreReplies();
-      clearUnreadCount(id);
+      clearLocalUnreadCount(id);
     }
   });
 

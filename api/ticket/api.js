@@ -1,10 +1,11 @@
+const _ = require('lodash')
 const AV = require('leanengine')
 const { Router } = require('express')
 const { check, query } = require('express-validator')
 const { captureException } = require('../errorHandler')
 const { checkPermission } = require('../../oauth/lc')
 const { requireAuth, catchError, parseSearchingQ } = require('../middleware')
-const { getVacationerIds, getFormValuesDifference } = require('./utils')
+const { getVacationerIds, getFormValuesDifference, resetUnreadCount } = require('./utils')
 const { isObjectExists } = require('../utils/object')
 const { encodeGroupObject } = require('../group/utils')
 const { TICKET_ACTION, TICKET_STATUS } = require('../../lib/common')
@@ -122,7 +123,6 @@ router.get(
     .isISO8601()
     .optional(),
   query('reply_count_gt').isInt().toInt().optional(),
-  query('unread_count_gt').isInt().toInt().optional(),
   query('status')
     .custom((status) =>
       status.split(',').every((v) => Object.values(TICKET_STATUS).includes(parseInt(v)))
@@ -133,7 +133,7 @@ router.get(
     const { page, page_size, count } = req.query
     const { nid, author_id, organization_id, category_id, status } = req.query
     const { created_at, created_at_gt, created_at_gte, created_at_lt, created_at_lte } = req.query
-    const { reply_count_gt, unread_count_gt } = req.query
+    const { reply_count_gt } = req.query
 
     const sort = req.sort
     if (!sort.every(({ key }) => !!TICKET_SORT_KEY_MAP[key])) {
@@ -195,9 +195,6 @@ router.get(
     if (reply_count_gt !== undefined) {
       query.greaterThan('replyCount', reply_count_gt)
     }
-    if (unread_count_gt !== undefined) {
-      query.greaterThan('unreadCount', unread_count_gt)
-    }
 
     if (req.query.evaluation_ne === 'null') {
       query.exists('evaluation')
@@ -245,6 +242,17 @@ router.get(
       res.append('Access-Control-Expose-Headers', 'X-Total-Count')
     }
 
+    let notificationMap = {}
+    try {
+      const notifications = await new AV.Query('notification')
+        .containedIn('ticket', tickets)
+        .equalTo('user', req.user)
+        .find({ user: req.user })
+      notificationMap = _.keyBy(notifications, (notification) => notification.get('ticket')?.id)
+    } catch (error) {
+      console.error(error)
+    }
+
     res.json(
       tickets.map((ticket) => {
         const joinedCustomerServiceIds = new Set()
@@ -266,7 +274,7 @@ router.get(
           joined_customer_service_ids: Array.from(joinedCustomerServiceIds),
           status: ticket.get('status'),
           evaluation: ticket.get('evaluation') || null,
-          unread_count: ticket.get('unreadCount') || 0,
+          unread_count: notificationMap[ticket.id]?.get('unreadCount') || 0,
           reply_count: ticket.get('replyCount') || 0,
           latest_reply: encodeLatestReply(ticket.get('latestReply')),
           created_at: ticket.createdAt,
@@ -329,25 +337,11 @@ router.get(
       created_at: ticket.createdAt,
       updated_at: ticket.updatedAt,
       reply_count: ticket.get('replyCount') || 0,
-      unread_count: ticket.get('unreadCount') || 0,
       latest_reply: encodeLatestReply(ticket.get('latestReply')),
       subscribed: !!watch,
     })
 
-    try {
-      const messages = await new AV.Query('Message')
-        .equalTo('ticket', ticket)
-        .equalTo('to', req.user)
-        .lessThanOrEqualTo('createdAt', new Date())
-        .limit(1000)
-        .find({ user: req.user })
-      if (messages.length) {
-        messages.forEach((message) => message.set('isRead', true))
-        await AV.Object.saveAll(messages, { user: req.user })
-      }
-    } catch {
-      // ignore errors
-    }
+    resetUnreadCount(ticket, req.user)
   })
 )
 
@@ -403,6 +397,8 @@ router.get(
         }
       })
     )
+
+    resetUnreadCount(req.ticket, req.user)
   })
 )
 
@@ -499,11 +495,6 @@ router.patch(
       )
     }),
   check('subscribed').isBoolean().optional(),
-  check('unread_count')
-    .isInt()
-    .toInt()
-    .custom((v) => v === 0)
-    .optional(),
   catchError(async (req, res) => {
     const {
       group_id,
@@ -514,7 +505,6 @@ router.patch(
       private_tags,
       evaluation,
       subscribed,
-      unread_count,
     } = req.body
     const ticket = new Ticket(req.ticket)
 
@@ -605,10 +595,6 @@ router.patch(
       if (!subscribed && watch) {
         await watch.destroy({ user: req.user })
       }
-    }
-
-    if (unread_count === 0) {
-      ticket.clearUnreadCount()
     }
 
     await ticket.save({ operator: req.user })

@@ -117,10 +117,21 @@ function getFormValuesDifference(newFormValues, oldFormValues) {
   return result
 }
 
+function resetUnreadCount(ticket, currentUser) {
+  new AV.Query('notification')
+    .equalTo('ticket', ticket)
+    .equalTo('user', currentUser)
+    .greaterThan('unreadCount', 0)
+    .first({ user: currentUser })
+    .then((notification) => notification?.save({ unreadCount: 0 }, { user: currentUser }))
+    .catch(console.error)
+}
+
 module.exports = {
   getVacationerIds,
   getActionStatus,
   selectAssignee,
   selectGroup,
   getFormValuesDifference,
+  resetUnreadCount,
 }

@@ -1,10 +1,25 @@
 import AV from 'leancloud-storage';
 
-import { LocalCache } from '../../cache';
+import { LocalCache, RedisCache } from '../../cache';
 import { Query } from '../../query';
 import { getCustomerServiceRole } from './utils';
 
 const localCustomerServiceRole = new LocalCache(0, getCustomerServiceRole);
+
+const userCache = new RedisCache<AV.User>(
+  'user:session',
+  (sessionToken: string) => AV.User.become(sessionToken),
+  (user) => AV.stringify(user)!,
+  AV.parse
+);
+
+const anonymousUserCache = new RedisCache<AV.User | null | undefined>(
+  'user:anonymous',
+  (id: string) =>
+    new AV.Query(AV.User).equalTo('authData.anonymous.id', id).first({ useMasterKey: true }),
+  (user) => AV.stringify(user) ?? 'null',
+  AV.parse
+);
 
 export class User {
   id: string;
@@ -70,13 +85,19 @@ export class User {
   }
 
   static async findBySessionToken(token: string): Promise<User> {
-    const avUser = await AV.User.become(token);
+    const avUser = await userCache.get(token);
     return User.fromAVUser(avUser);
+  }
+
+  static async findByAnonymousID(id: string): Promise<User | undefined> {
+    const AVUser = await anonymousUserCache.get(id);
+    if (!AVUser) return undefined;
+    return User.fromAVUser(AVUser);
   }
 
   static async isCustomerService(user: string | { id: string }): Promise<boolean> {
     const userId = typeof user === 'string' ? user : user.id;
-    const role = await localCustomerServiceRole.get();
+    const role = await localCustomerServiceRole.get('');
     const query = role.getUsers().query();
     query.select('objectId');
     query.equalTo('objectId', userId);
@@ -84,7 +105,7 @@ export class User {
   }
 
   static async getCustomerServices(): Promise<User[]> {
-    const role = await localCustomerServiceRole.get();
+    const role = await localCustomerServiceRole.get('');
     const query = role.getUsers().query();
     const users = await query.find({ useMasterKey: true });
     return users.map(User.fromAVObject);

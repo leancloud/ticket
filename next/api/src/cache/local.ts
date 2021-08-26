@@ -1,32 +1,32 @@
-export type Fetcher<T> = () => Promise<T>;
+import { Fetcher } from './types';
 
 export class LocalCache<T> {
-  private data?: T;
-  private fetchTask?: Promise<T>;
+  private data: Record<string, T> = {};
+  private fetchTask: Record<string, Promise<T>> = {};
 
   /**
    * @param ttl 和 redis 保持一致, 单位是秒!
    * @param fetcher
    */
-  constructor(readonly ttl: number, private fetcher: Fetcher<T>) {}
+  constructor(readonly defaultTtl: number, private fetcher: Fetcher<T>) {}
 
-  async get(): Promise<T> {
-    if (this.data) {
-      return this.data;
+  async get(id: string, ttl = this.defaultTtl): Promise<T> {
+    if (this.data[id]) {
+      return this.data[id];
     }
-    if (!this.fetchTask) {
-      this.fetchTask = (async () => {
+    if (!this.fetchTask[id]) {
+      this.fetchTask[id] = (async () => {
         try {
-          this.data = await this.fetcher();
-          if (this.ttl > 0) {
-            setTimeout(() => delete this.data, this.ttl * 1000);
+          this.data[id] = await this.fetcher(id);
+          if (ttl > 0) {
+            setTimeout(() => delete this.data[id], ttl * 1000);
           }
-          return this.data;
+          return this.data[id];
         } finally {
-          delete this.fetchTask;
+          delete this.fetchTask[id];
         }
       })();
     }
-    return this.fetchTask;
+    return this.fetchTask[id];
   }
 }

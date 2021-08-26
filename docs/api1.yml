@@ -200,8 +200,6 @@ components:
           description: 私有标签（仅客服可见）
         metadata:
           type: object
-        unread_count:
-          type: integer
         reply_count:
           type: integer
         latest_reply:
@@ -476,11 +474,6 @@ paths:
           schema:
             type: integer
           description: 查询回复数量大于该值的工单
-        - name: unread_count_gt
-          in: query
-          schema:
-            type: integer
-          description: 查询未读数量大于该值的工单
         - name: status
           in: query
           schema:
@@ -582,10 +575,6 @@ paths:
                   deprecated: true
                   type: boolean
                   description: 当前客服是否关注该工单
-                unread_count:
-                  type: integer
-                  enum: [0]
-                  description: 重置未读消息数为 0
       responses:
         '200':
           description: OK

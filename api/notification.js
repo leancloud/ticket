@@ -8,6 +8,24 @@ const captureException = (err) => errorHandler.captureException(err)
 
 const { integrations, getConfigValue } = require('../config')
 
+const Notification = AV.Object.extend('notification')
+const getNotification = (ticket, user) =>
+  new AV.Query(Notification)
+    .equalTo('user', user)
+    .equalTo('ticket', ticket)
+    .first({ useMasterKey: true })
+    .then(
+      (matchedNotification) =>
+        matchedNotification ||
+        new Notification({
+          ticket,
+          user,
+          ACL: {
+            [user.id]: { write: true, read: true },
+          },
+        })
+    )
+
 const channels = integrations
   .map((integration) => integration.notificationChannel)
   .filter(_.identity)
@@ -21,12 +39,12 @@ exports.newTicket = (ticket, author, assignee) => {
     if (!assignee) {
       return
     }
-    return new AV.Object('Message').save({
-      type: 'newTicket',
+    return new Notification().save({
+      latestAction: 'newTicket',
       ticket,
-      from: author,
-      to: assignee,
-      isRead: false,
+      // from: author,
+      user: assignee,
+      unreadCount: 1,
       ACL: {
         [assignee.id]: { write: true, read: true },
       },
@@ -34,7 +52,7 @@ exports.newTicket = (ticket, author, assignee) => {
   })
 }
 
-exports.replyTicket = (ticket, reply, replyAuthor) => {
+exports.replyTicket = async (ticket, reply, replyAuthor) => {
   const to = reply.get('isCustomerService') ? ticket.get('author') : ticket.get('assignee')
   const data = {
     ticket,
@@ -43,50 +61,29 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
     to,
     isCustomerServiceReply: reply.get('isCustomerService'),
   }
-  return Promise.all(
+  await Promise.all(
     channels.map((channel) => Promise.resolve(channel.replyTicket?.(data)).catch(captureException))
   )
-    .then(() => {
-      if (!to) {
-        return
-      }
-      return new AV.Object('Message', {
-        type: 'reply',
-        ticket,
-        reply,
-        from: replyAuthor,
-        to,
-        isRead: false,
-        ACL: {
-          [to.id]: { write: true, read: true },
-        },
-      }).save()
+  const watches = await new AV.Query('Watch')
+    .equalTo('ticket', ticket)
+    .limit(1000)
+    .find({ useMasterKey: true })
+  const targets = _.uniqBy(
+    _.compact([...watches.map((watch) => watch.get('user')), to]),
+    (user) => user.id
+  )
+  const notifications = await Promise.all(
+    targets.map((target) => {
+      if (target.id === replyAuthor?.id) return
+      return getNotification(ticket, target)
     })
-    .then(() => {
-      return new AV.Query('Watch')
-        .equalTo('ticket', ticket)
-        .limit(1000)
-        .find({ useMasterKey: true })
-    })
-    .then((watches) => {
-      const messages = watches.map((watch) => {
-        if (watch.get('user').id === to.id) {
-          return
-        }
-        return new AV.Object('Message', {
-          type: 'reply',
-          ticket,
-          reply,
-          from: replyAuthor,
-          to: watch.get('user'),
-          isRead: false,
-          ACL: {
-            [watch.get('user').id]: { write: true, read: true },
-          },
-        })
-      })
-      return AV.Object.saveAll(messages)
-    })
+  )
+  await AV.Object.saveAll(
+    _.compact(notifications).map((notification) =>
+      notification.set('latestAction', 'reply').increment('unreadCount', 1)
+    ),
+    { useMasterKey: true }
+  )
 }
 
 exports.changeAssignee = (ticket, operator, assignee) => {
@@ -98,16 +95,12 @@ exports.changeAssignee = (ticket, operator, assignee) => {
     if (!assignee) {
       return
     }
-    return new AV.Object('Message', {
-      type: 'changeAssignee',
-      ticket,
-      from: operator,
-      to: assignee,
-      isRead: false,
-      ACL: {
-        [assignee.id]: { write: true, read: true },
-      },
-    }).save()
+    return getNotification(ticket, assignee).then((notification) =>
+      notification
+        .set('latestAction', 'changeAssignee')
+        .increment('unreadCount', 1)
+        .save(null, { useMasterKey: true })
+    )
   })
 }
 
@@ -120,17 +113,40 @@ exports.ticketEvaluation = (ticket, author, to) => {
     if (!to) {
       return
     }
-    return new AV.Object('Message', {
-      type: 'ticketEvaluation',
-      ticket,
-      from: author,
-      to: to,
-      isRead: false,
-      ACL: {
-        [to.id]: { write: true, read: true },
-      },
-    }).save()
+    return getNotification(ticket, to).then((notification) =>
+      notification
+        .set('latestAction', 'ticketEvaluation')
+        .increment('unreadCount', 1)
+        .save(null, { useMasterKey: true })
+    )
   })
+}
+
+exports.changeStatus = async function (ticket, operator) {
+  const watches = await new AV.Query('Watch')
+    .equalTo('ticket', ticket)
+    .limit(1000)
+    .find({ useMasterKey: true })
+  const targets = _.uniqBy(
+    _.compact([
+      ...watches.map((watch) => watch.get('user')),
+      ticket.get('author'),
+      ticket.get('assignee'),
+    ]),
+    (user) => user.id
+  )
+  const notifications = await Promise.all(
+    targets.map((target) => {
+      if (target.id === operator.id) return
+      return getNotification(ticket, target)
+    })
+  )
+  await AV.Object.saveAll(
+    _.compact(notifications).map((notification) =>
+      notification.set('latestAction', 'changeStatus').increment('unreadCount', 1)
+    ),
+    { useMasterKey: true }
+  )
 }
 
 const sendDelayNotify = (ticket, to) => {
