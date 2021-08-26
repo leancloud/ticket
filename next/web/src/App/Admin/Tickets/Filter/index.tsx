@@ -1,339 +1,137 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { QueryParamConfig, StringParam, useQueryParams } from 'use-query-params';
-import moment from 'moment';
+import {
+  ComponentPropsWithoutRef,
+  PropsWithChildren,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
+import cx from 'classnames';
+import { QueryParamConfig, useQueryParams } from 'use-query-params';
 
-import { CategoryTreeNode, useCategoryTree, useGroups, useStaffs } from 'api';
 import { usePage } from 'utils/usePage';
-import { Button } from 'components/Button';
-import { QueryResult } from 'components/QueryResult';
-import { Select } from 'components/Select';
-import { STATUSES } from '../Status';
+import Button from 'components/Button';
+import { AssigneeSelect } from './AssigneeSelect';
+import { GroupSelect } from './GroupSelect';
+import { CreatedAtSelect } from './CreatedAtSelect';
+import { CategorySelect } from './CategorySelect';
+import { StatusSelect } from './StatusSelect';
 
-export interface FiltersData {
-  assigneeIds?: string[];
-  groupIds?: string[];
-  createdAt?: string;
-  categoryId?: string;
-  status?: number[];
-}
-
-const CommaArrayParam: QueryParamConfig<string[] | undefined> = {
-  encode: (data) => (data?.length ? data.join(',') : undefined),
-  decode: (data) => {
-    if (!data) {
-      return undefined;
+const CsvParam: QueryParamConfig<string[] | undefined> = {
+  encode: (data) => {
+    if (data && data.length) {
+      return data.join(',');
     }
+  },
+  decode: (data) => {
     if (typeof data === 'string') {
       return data.split(',');
     }
-    return data.filter((str) => str !== null) as string[];
   },
 };
 
-const CommaIntArrayParam: QueryParamConfig<number[] | undefined> = {
-  encode: (data) => (data?.length ? data.join(',') : undefined),
-  decode: (data) => CommaArrayParam.decode(data)?.map((n) => parseInt(n)),
+const StrParam: QueryParamConfig<string | undefined> = {
+  encode: (data) => data,
+  decode: (data) => {
+    if (typeof data === 'string') {
+      return data;
+    }
+  },
 };
 
-export function useFiltersFromQueryParams() {
-  const [, setPage] = usePage();
+const CsvIntParam: QueryParamConfig<number[] | undefined> = {
+  encode: (data) => CsvParam.encode(data?.map((item) => item.toString())),
+  decode: (data) => CsvParam.decode(data)?.map((item) => parseInt(item)),
+};
 
-  const [params, setParams] = useQueryParams({
-    assigneeId: CommaArrayParam,
-    groupId: CommaArrayParam,
-    createdAt: StringParam,
-    categoryId: StringParam,
-    status: CommaIntArrayParam,
+export function useTicketSearchParams() {
+  return useQueryParams({
+    assigneeId: CsvParam,
+    groupId: CsvParam,
+    createdAt: StrParam,
+    categoryId: StrParam,
+    status: CsvIntParam,
   });
-
-  const filters = useMemo<FiltersData>(
-    () => ({
-      assigneeIds: params.assigneeId,
-      groupIds: params.groupId,
-      createdAt: params.createdAt ?? undefined,
-      categoryId: params.categoryId ?? undefined,
-      status: params.status,
-    }),
-    [params]
-  );
-
-  const setFilters = useCallback(
-    (filters: FiltersData) => {
-      setPage(1);
-      setParams({
-        assigneeId: filters.assigneeIds,
-        groupId: filters.groupIds,
-        createdAt: filters.createdAt,
-        categoryId: filters.categoryId,
-        status: filters.status,
-      });
-    },
-    [setParams]
-  );
-
-  return [filters, setFilters] as const;
 }
 
-interface FilterSelectProps<Value> {
-  value?: Value;
-  onChange: (value?: Value) => void;
-}
-
-const selectPlaceholder = <Select placeholder="Loading..." />;
-
-function StaffSelect({ value, onChange }: FilterSelectProps<string[]>) {
-  const result = useStaffs();
-  const options = useMemo(() => {
-    return result.data?.map((staff) => ({ key: staff.id, text: staff.nickname }));
-  }, [result.data]);
-
+function Field({ title, children }: PropsWithChildren<{ title: string }>) {
   return (
-    <QueryResult result={result} placeholder={selectPlaceholder}>
-      <Select
-        placeholder="任何"
-        options={options}
-        selected={value}
-        onSelect={(id) => onChange(value ? value.concat(id) : [id])}
-        onDeselect={(id) => onChange(value?.filter((v) => v !== id))}
-      />
-    </QueryResult>
+    <div className="mt-4">
+      <label className="block pb-1.5 font-medium text-sm text-[#314d66]">{title}</label>
+      {children}
+    </div>
   );
 }
 
-function GroupSelect({ value, onChange }: FilterSelectProps<string[]>) {
-  const result = useGroups();
-  const options = useMemo(() => {
-    return result.data?.map((group) => ({ key: group.id, text: group.name }));
-  }, [result.data]);
+export interface FilterProps extends ComponentPropsWithoutRef<'div'> {}
 
-  return (
-    <QueryResult result={result} placeholder={selectPlaceholder}>
-      <Select
-        placeholder="任何"
-        options={options}
-        selected={value}
-        onSelect={(id) => onChange(value ? value.concat(id) : [id])}
-        onDeselect={(id) => onChange(value?.filter((v) => v !== id))}
-      />
-    </QueryResult>
-  );
-}
-
-const timeRanges = {
-  any: '所有时间',
-  today: '今天',
-  yesterday: '昨天',
-  week: '本周',
-  '7d': '过去 7 天',
-  month: '本月',
-  '30d': '过去 30 天',
-};
-
-export function getTimeRange(value: string) {
-  switch (value) {
-    case 'any':
-      return undefined;
-    case 'today':
-      return [moment().startOf('day').toDate(), moment().endOf('day').toDate()];
-    case 'yesterday':
-      return [
-        moment().subtract(1, 'day').startOf('day').toDate(),
-        moment().subtract(1, 'day').endOf('day').toDate(),
-      ];
-    case 'week':
-      return [
-        moment().weekday(1).startOf('day').toDate(),
-        moment().weekday(7).endOf('day').toDate(),
-      ];
-    case '7d':
-      return [
-        moment().startOf('day').subtract(7, 'day').toDate(),
-        moment().endOf('day').subtract(1, 'day').toDate(),
-      ];
-    case 'month':
-      return [moment().startOf('month').toDate(), moment().endOf('month').toDate()];
-    case '30d':
-      return [
-        moment().startOf('day').subtract(30, 'day').toDate(),
-        moment().endOf('day').subtract(1, 'day').toDate(),
-      ];
-  }
-}
-
-const timeRangeOptions = Object.entries(timeRanges).map(([key, text]) => ({ key, text }));
-
-function CreatedAtSelect({ value, onChange }: FilterSelectProps<string>) {
-  return (
-    <Select
-      closeOnChange
-      options={timeRangeOptions}
-      selected={value || 'any'}
-      onSelect={(key) => onChange(key === 'any' ? undefined : key)}
-    />
-  );
-}
-
-function CategorySelect({
-  categories,
-  path,
-  onChange,
-}: {
-  categories: CategoryTreeNode[];
-  path: (string | undefined)[];
-  onChange: (id: string) => void;
-}) {
-  const options = useMemo(
-    () => [
-      { key: 'any', text: '任何' },
-      ...categories.map((c) => ({
-        key: c.id,
-        text: c.name + (c.active ? '' : ' (停用)'),
-      })),
-    ],
-    [categories]
-  );
-
-  const currentId = path[0] ?? 'any';
-
-  const current = useMemo(() => {
-    return categories.find((c) => c.id === currentId);
-  }, [categories, currentId]);
-
-  return (
-    <>
-      <Select closeOnChange options={options} selected={currentId} onSelect={onChange} />
-      {current && current.children && (
-        <CategorySelect
-          categories={current.children}
-          path={path.slice(1)}
-          onChange={(id) => onChange(id === 'any' ? current.id : id)}
-        />
-      )}
-    </>
-  );
-}
-
-function CategorySelectGroup({ value, onChange }: FilterSelectProps<string>) {
-  const result = useCategoryTree();
-
-  const current = useMemo(() => {
-    if (!result.data || !value) {
-      return;
-    }
-    const queue = result.data.slice();
-    while (queue.length) {
-      const front = queue.shift()!;
-      if (front.id === value) {
-        return front;
-      }
-      if (front.children) {
-        queue.push(...front.children);
-      }
-    }
-  }, [result.data, value]);
-
-  const path = useMemo(() => {
-    const path: (string | undefined)[] = [];
-    for (let p = current; p; p = p.parent) {
-      path.unshift(p.id);
-    }
-    return path;
-  }, [current]);
-
-  return (
-    <QueryResult result={result} placeholder={selectPlaceholder}>
-      {(categories) => (
-        <div className="flex flex-col gap-2">
-          <CategorySelect
-            categories={categories}
-            path={path}
-            onChange={(id) => onChange(id === 'any' ? undefined : id)}
-          />
-        </div>
-      )}
-    </QueryResult>
-  );
-}
-
-const statusOptions = STATUSES.map((status) => ({ key: status.value, text: status.title }));
-
-function StatusSelect({ value, onChange }: FilterSelectProps<number[]>) {
-  return (
-    <Select
-      placeholder="任何"
-      options={statusOptions}
-      selected={value}
-      onSelect={(status) => onChange(value ? value.concat(status) : [status])}
-      onDeselect={(status) => onChange(value?.filter((v) => v !== status))}
-    />
-  );
-}
-
-export interface FiltersPanelProps {
-  filters: FiltersData;
-  onChange: (filters: FiltersData) => void;
-}
-
-export function FiltersPanel({ filters, onChange }: FiltersPanelProps) {
-  const [tmpFilters, setTmpFilters] = useState<FiltersData>({});
+export function Filter(props: FilterProps) {
+  const [, setPage] = usePage();
+  const [data, setData] = useTicketSearchParams();
+  const [tempData, setTempData] = useState(data);
   const [dirty, setDirty] = useState(false);
 
   useEffect(() => {
-    setTmpFilters(filters);
+    setTempData(data);
     setDirty(false);
-  }, [filters]);
+  }, [data]);
 
-  const merge = useCallback((filters: FiltersData) => {
-    setTmpFilters((prev) => ({ ...prev, ...filters }));
+  const merge = useCallback((newData: Partial<typeof data>) => {
+    setTempData((prev) => ({ ...prev, ...newData }));
     setDirty(true);
   }, []);
 
-  const apply = () => onChange(tmpFilters);
+  const apply = () => {
+    setData(tempData);
+    setPage(1);
+  };
 
   return (
-    <div className="w-80 border-l border-gray-300 text-gray-700 overflow-y-auto flex flex-col">
-      <div className="flex-grow overflow-y-auto px-4 pt-4">
-        <div className="text-sm">过滤</div>
+    <div
+      {...props}
+      className={cx(
+        'flex flex-col bg-[#f5f7f9] w-[320px] border-l border-[#cfd7df] overflow-y-auto',
+        props.className
+      )}
+    >
+      <div className="flex-grow p-4">
+        <div className="h-7 text-sm font-medium">过滤</div>
 
-        <div className="mt-6">
-          <label className="block mb-1 text-sm">客服</label>
-          <StaffSelect
-            value={tmpFilters.assigneeIds}
-            onChange={(ids) => merge({ assigneeIds: ids })}
+        <Field title="客服">
+          <AssigneeSelect
+            value={tempData.assigneeId}
+            onChange={(assigneeId) => merge({ assigneeId })}
           />
-        </div>
+        </Field>
 
-        <div className="mt-4">
-          <label className="block mb-1 text-sm">组</label>
-          <GroupSelect value={tmpFilters.groupIds} onChange={(groupIds) => merge({ groupIds })} />
-        </div>
+        <Field title="客服组">
+          <GroupSelect value={tempData.groupId} onChange={(groupId) => merge({ groupId })} />
+        </Field>
 
-        <div className="mt-4">
-          <label className="block mb-1 text-sm">创建时间</label>
+        <Field title="创建时间">
           <CreatedAtSelect
-            value={tmpFilters.createdAt}
+            value={tempData.createdAt}
             onChange={(createdAt) => merge({ createdAt })}
           />
-        </div>
+        </Field>
 
-        <div className="mt-4">
-          <label className="block mb-1 text-sm">分类</label>
-          <CategorySelectGroup
-            value={tmpFilters.categoryId}
+        <Field title="分类">
+          <CategorySelect
+            value={tempData.categoryId}
             onChange={(categoryId) => merge({ categoryId })}
           />
-        </div>
+        </Field>
 
-        <div className="mt-4">
-          <label className="block mb-1 text-sm">状态</label>
-          <StatusSelect value={tmpFilters.status} onChange={(status) => merge({ status })} />
-        </div>
+        <Field title="状态">
+          <StatusSelect value={tempData.status} onChange={(status) => merge({ status })} />
+        </Field>
       </div>
 
-      <div className="border-t mx-4 py-4">
-        <Button className="w-full py-1" variant="primary" disabled={!dirty} onClick={apply}>
-          应用
-        </Button>
+      <div className="sticky bottom-0 px-4 pb-2 bg-[#f5f7f9]">
+        <div className="pt-4 border-t border-[#ebeff3]">
+          <Button className="w-full" variant="primary" disabled={!dirty} onClick={apply}>
+            应用
+          </Button>
+        </div>
       </div>
     </div>
   );

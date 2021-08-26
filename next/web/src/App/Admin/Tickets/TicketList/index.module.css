@@ -1,0 +1,21 @@
+.ticket {
+  .time {
+    background-image: url('data:image/svg+xml,%3csvg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"%3e%3cpath fill="%236f7c87" d="M27.733 16c0 6.48-5.253 11.733-11.733 11.733S4.267 22.48 4.267 16 9.52 4.267 16 4.267 27.733 9.52 27.733 16z"%3e%3c/path%3e%3c/svg%3e');
+    background-size: 4px 4px;
+    background-position: left 6px center;
+    background-repeat: no-repeat;
+    @apply pl-4;
+  }
+
+  &.closed {
+    @apply text-[#acb6be];
+
+    .nid, .time {
+      @apply text-[#acb6be];
+    }
+
+    .categoryPath {
+      @apply border-[#acb6be];
+    }
+  }
+}

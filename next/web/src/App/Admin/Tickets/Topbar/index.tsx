@@ -1,87 +1,20 @@
-import { useCallback, useMemo, useState } from 'react';
+import { ComponentPropsWithoutRef, useCallback, useEffect, useState } from 'react';
 import { BsLayoutSidebarReverse } from 'react-icons/bs';
 import { HiChevronDown, HiChevronLeft, HiChevronRight } from 'react-icons/hi';
 import { Transition } from '@headlessui/react';
-import { StringParam, useQueryParam } from 'use-query-params';
+import cx from 'classnames';
 
-import { usePage } from 'utils/usePage';
-import Button from 'components/Button';
+import { Button } from 'components/Button';
 import Menu from 'components/Menu';
+import { usePage } from 'utils/usePage';
+import { useOrderBy as _useOrderBy } from 'utils/useOrderBy';
+import styles from './index.module.css';
 
-export interface PaginationProps {
-  starts?: number;
-  ends?: number;
-  totalCount?: number;
-  isLoading?: boolean;
-}
-
-export function Pagination({ starts = 0, ends = 0, totalCount = 0, isLoading }: PaginationProps) {
-  const [page = 1, setPage] = usePage();
-
-  return (
-    <>
-      <div className="text-sm text-gray-900 mx-1">
-        {starts} - {ends} / {totalCount}
-      </div>
-      <div>
-        <Button
-          className="rounded-r-none"
-          onClick={() => setPage(page - 1)}
-          disabled={isLoading || page === 1}
-        >
-          <HiChevronLeft className="w-4 h-4" />
-        </Button>
-        <Button
-          className="rounded-l-none"
-          onClick={() => setPage(page + 1)}
-          disabled={isLoading || ends === totalCount}
-        >
-          <HiChevronRight className="w-4 h-4" />
-        </Button>
-      </div>
-    </>
-  );
-}
-
-export function useOrderBy(key = 'orderBy') {
-  const [orderBy, setOrderBy] = useQueryParam(key, StringParam);
-  const [orderKey, orderType] = useMemo<[string, 'asc' | 'desc']>(() => {
-    if (!orderBy) {
-      return ['createdAt', 'desc'];
-    }
-    if (orderBy.endsWith('-asc')) {
-      return [orderBy.slice(0, -4), 'asc'];
-    }
-    if (orderBy.endsWith('-desc')) {
-      return [orderBy.slice(0, -5), 'desc'];
-    }
-    return [orderBy, 'desc'];
-  }, [orderBy]);
-
-  const setOrderKey = useCallback(
-    (orderKey: string) => {
-      if (orderType === 'asc') {
-        setOrderBy(orderKey + '-asc');
-      } else {
-        setOrderBy(orderKey);
-      }
-    },
-    [orderType, setOrderBy]
-  );
-
-  const setOrderType = useCallback(
-    (orderType: 'asc' | 'desc') => {
-      if (orderType === 'asc') {
-        setOrderBy(orderKey + '-asc');
-      } else {
-        setOrderBy(orderKey);
-      }
-    },
-    [orderKey, setOrderBy]
-  );
-
-  return { orderKey, orderType, setOrderKey, setOrderType };
-}
+export const useOrderBy = () =>
+  _useOrderBy({
+    defaultOrderKey: 'createdAt',
+    defaultOrderType: 'desc',
+  });
 
 const orderKeys: Record<string, string> = {
   createdAt: '创建日期',
@@ -89,25 +22,18 @@ const orderKeys: Record<string, string> = {
   status: '状态',
 };
 
-export function OrderDropdown() {
+function SortDropdown() {
   const [open, setOpen] = useState(false);
-  const toggle = useCallback(() => setOpen((v) => !v), []);
+  const toggle = useCallback(() => setOpen((cur) => !cur), []);
   const { orderKey, orderType, setOrderKey, setOrderType } = useOrderBy();
 
   const handleSelect = useCallback(
-    (key: string) => {
-      switch (key) {
-        case 'createdAt':
-        case 'updatedAt':
-        case 'status':
-          setOrderKey(key);
-          break;
-        case 'asc':
-        case 'desc':
-          setOrderType(key);
-          break;
+    (eventKey: string) => {
+      if (eventKey === 'asc' || eventKey === 'desc') {
+        setOrderType(eventKey);
+      } else {
+        setOrderKey(eventKey);
       }
-      setOpen(false);
     },
     [setOrderKey, setOrderType]
   );
@@ -116,15 +42,11 @@ export function OrderDropdown() {
     <span
       tabIndex={-1}
       className="relative"
-      onBlur={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget as any)) {
-          setOpen(false);
-        }
-      }}
+      onBlur={(e) => !e.currentTarget.contains(e.relatedTarget as any) && setOpen(false)}
     >
-      <button className="" onClick={toggle}>
-        <span className="text-gray-500">排序方式:</span>
-        <span className="ml-2 text-sm text-[#183247] font-medium">
+      <button onClick={toggle}>
+        <span className="text-[#6f7c87]">排序方式:</span>
+        <span className="ml-2 text-[13px] font-medium">
           {orderKeys[orderKey]} <HiChevronDown className="inline" />
         </span>
       </button>
@@ -138,7 +60,7 @@ export function OrderDropdown() {
         leaveFrom="opacity-100"
         leaveTo="opacity-0"
       >
-        <Menu className="shadow" onSelect={handleSelect}>
+        <Menu className="shadow-md min-w-[120px]" onSelect={handleSelect}>
           <Menu.Item eventKey="createdAt" active={orderKey === 'createdAt'}>
             {orderKeys.createdAt}
           </Menu.Item>
@@ -161,30 +83,83 @@ export function OrderDropdown() {
   );
 }
 
-export interface TopbarProps extends PaginationProps {
-  showFilter?: boolean;
-  onClickFilter: () => void;
+interface PaginationProps {
+  pageSize: number;
+  count: number;
+  totalCount: number;
+  isLoading?: boolean;
 }
 
-export function Topbar({
-  starts,
-  ends,
-  totalCount,
-  isLoading,
-  showFilter,
-  onClickFilter,
-}: TopbarProps) {
+function Pagination({ pageSize, count, totalCount, isLoading }: PaginationProps) {
+  const [page = 1, setPage] = usePage();
+  const [text, setText] = useState('');
+  const [noMorePages, setNoMorePages] = useState(false);
+  const [overflow, setOverflow] = useState(false);
+
+  useEffect(() => {
+    if (!isLoading) {
+      const starts = (page - 1) * pageSize;
+      const ends = starts + count;
+      if (count) {
+        setText(`${starts + 1} - ${ends} / ${totalCount}`);
+      } else {
+        setText(`-- / ${totalCount}`);
+      }
+      setNoMorePages(ends === totalCount);
+      setOverflow(ends > totalCount);
+    }
+  }, [page, pageSize, count, totalCount, isLoading]);
+
   return (
-    <div className="flex-shrink-0 bg-gray-50 h-14 flex items-center px-4 border-b border-gray-200">
+    <>
+      <span className="text-[#6f7c87]">{text || 'Loading...'}</span>
+      <Button
+        className="ml-2.5 px-[7px] py-[7px] rounded-r-none"
+        disabled={isLoading || page === 1}
+        onClick={() => (overflow ? setPage(1) : setPage(page - 1))}
+      >
+        <HiChevronLeft className="w-4 h-4" />
+      </Button>
+      <Button
+        className="px-[7px] py-[7px] rounded-l-none"
+        disabled={isLoading || noMorePages || overflow}
+        onClick={() => setPage(page + 1)}
+      >
+        <HiChevronRight className="w-4 h-4" />
+      </Button>
+    </>
+  );
+}
+
+export interface TopbarProps extends ComponentPropsWithoutRef<'div'> {
+  pagination: PaginationProps;
+  showFilter?: boolean;
+  onChangeShowFilter?: (value: boolean) => void;
+}
+
+export function Topbar({ showFilter, onChangeShowFilter, pagination, ...props }: TopbarProps) {
+  return (
+    <div
+      {...props}
+      className={cx(
+        styles.topbar,
+        'flex items-center h-14 bg-[#f4f7f9] px-4 border-b border-[#cfd7df] z-[1]',
+        props.className
+      )}
+    >
       <div className="flex-grow">
-        <OrderDropdown />
+        <SortDropdown />
       </div>
-      <div className="flex items-center gap-2">
-        <Pagination starts={starts} ends={ends} totalCount={totalCount} isLoading={isLoading} />
-        <Button active={showFilter} onClick={onClickFilter}>
-          <BsLayoutSidebarReverse className="w-4 h-4" />
-        </Button>
-      </div>
+
+      <Pagination {...pagination} />
+
+      <Button
+        className="ml-2 px-[7px] py-[7px]"
+        active={showFilter}
+        onClick={() => onChangeShowFilter?.(!showFilter)}
+      >
+        <BsLayoutSidebarReverse className="w-4 h-4" />
+      </Button>
     </div>
   );
 }

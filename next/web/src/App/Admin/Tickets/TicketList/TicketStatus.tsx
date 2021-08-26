@@ -1,37 +1,28 @@
 import { ComponentPropsWithoutRef, FC } from 'react';
 import cx from 'classnames';
 
-export const STATUSES = [
-  { title: '新工单', value: 50 },
-  { title: '等待客服回复', value: 120 },
-  { title: '已回复用户', value: 160 },
-  { title: '待用户确认', value: 220 },
-  { title: '已解决', value: 250 },
-  { title: '已关闭', value: 280 },
-];
-
 function Base(props: ComponentPropsWithoutRef<'span'>) {
-  return <span {...props} className={cx('text-xs px-1 py-0.5 border rounded', props.className)} />;
+  return <span {...props} className={cx('px-1 text-sm border rounded', props.className)} />;
 }
 
 function New() {
-  return <Base className="bg-green-50 text-green-500 border-green-500">新工单</Base>;
+  return <Base className="bg-[#e0f5f0] text-[#007958] border-[#b4e5d9]">新工单</Base>;
 }
 
 function WaitingOnStaffReply() {
-  return <Base className="bg-yellow-50 text-yellow-500 border-yellow-500">等待客服回复</Base>;
+  return <Base className="bg-yellow-50 text-yellow-500 border-yellow-200">等待客服回复</Base>;
 }
 
 function WaitingOnCustomerReply() {
-  return <Base className="bg-blue-50 text-blue-500 border-blue-500">已回复用户</Base>;
+  return <Base className="bg-blue-50 text-blue-500 border-blue-200">已回复用户</Base>;
 }
 
 function PreFulfilled() {
-  return <Base className="bg-blue-50 text-blue-500 border-blue-500">待用户确认</Base>;
+  return <Base className="bg-blue-50 text-blue-500 border-blue-200">待用户确认</Base>;
 }
 
 function Resolved() {
-  return null;
+  return <Base className="bg-gray-50 text-gray-500 border-gray-200">已关闭</Base>;
 }
 
 function Unknown() {

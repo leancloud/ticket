@@ -1,208 +1,137 @@
-import { ComponentPropsWithoutRef, useCallback, useMemo, useState } from 'react';
-import { Switch, Route, useRouteMatch, Link } from 'react-router-dom';
-import { BsLayoutSidebarReverse } from 'react-icons/bs';
-import { HiCheck, HiMenuAlt2, HiX } from 'react-icons/hi';
-import cx from 'classnames';
+import { useMemo, useState } from 'react';
+import { Route, Switch, useRouteMatch } from 'react-router-dom';
+import { keyBy, partition } from 'lodash';
 
-import {
-  CategoryTreeNode,
-  FetchTicketsOptions,
-  TicketItem,
-  useCategoryTree,
-  useTickets,
-  UseTicketsOptions,
-} from 'api';
+import { CategorySchema, useCategories } from 'api/category';
+import { TicketParams, TicketSchema, useTickets } from 'api/ticket';
 import { usePage } from 'utils/usePage';
-import { Button } from 'components/Button';
-import { OrderDropdown, Pagination, useOrderBy } from './Topbar';
-import { TicketItemComponent } from './TicketItem';
-import { FiltersData, FiltersPanel, getTimeRange, useFiltersFromQueryParams } from './Filter';
+import { Topbar, useOrderBy } from './Topbar';
+import { Filter, useTicketSearchParams } from './Filter';
+import { TicketList } from './TicketList';
+import { getTimeRange } from './Filter/CreatedAtSelect';
 
 const pageSize = 20;
 
-function findCategory(tree: CategoryTreeNode[], id: string): CategoryTreeNode | undefined {
-  const queue = [...tree];
-  while (queue.length) {
-    const front = queue.shift()!;
-    if (front.id === id) {
-      return front;
+function makeCategoryPathGetter(categories: CategorySchema[]) {
+  const map: Record<string, string[]> = {};
+  const categoryById = keyBy(categories, (c) => c.id);
+  const getPath = (id: string): string[] => {
+    if (map[id]) {
+      return map[id];
     }
-    if (front.children) {
-      queue.push(...front.children);
-    }
-  }
-}
-
-function getSubCategories(category: CategoryTreeNode): CategoryTreeNode[] {
-  const categories: CategoryTreeNode[] = [];
-  const queue = [category];
-  while (queue.length) {
-    const front = queue.shift()!;
-    categories.push(front);
-    if (front.children) {
-      categories.push(...front.children);
-      queue.push(...front.children);
-    }
-  }
-  return categories;
-}
-
-function useTicketParam(filters: FiltersData) {
-  return useMemo(() => {
-    const params: FetchTicketsOptions['params'] = {};
-    if (filters.assigneeIds?.length) {
-      params.assigneeId = filters.assigneeIds.join(',');
-    }
-    if (filters.groupIds?.length) {
-      params.groupId = filters.groupIds.join(',');
-    }
-    if (filters.createdAt) {
-      const range = getTimeRange(filters.createdAt);
-      if (range) {
-        params.createdAt = `${range[0]?.toISOString() ?? '*'}..${range[1]?.toISOString() ?? '*'}`;
+    let path: string[] = [];
+    const category = categoryById[id];
+    if (category) {
+      if (category.parentId) {
+        path = getPath(category.parentId).concat(category.name);
+      } else {
+        path = [category.name];
       }
     }
-    if (filters.categoryId) {
-      params.categoryId = filters.categoryId;
-    }
-    if (filters.status?.length) {
-      params.status = filters.status.join(',');
-    }
-    return params;
-  }, [filters]);
+    map[id] = path;
+    return path;
+  };
+  return getPath;
 }
 
-interface TicketListProps extends ComponentPropsWithoutRef<'div'> {
-  tickets: TicketItem[];
+function getAllSubCategoryIds(categories: CategorySchema[], id: string): string[] {
+  const result: string[] = [];
+  const parentIds = [id];
+  while (parentIds.length) {
+    const parentId = parentIds.shift()!;
+    const [hited, rest] = partition(categories, (c) => c.parentId === parentId);
+    result.push(...hited.map((c) => c.id));
+    categories = rest;
+  }
+  return result;
 }
 
-function TicketList({ tickets, ...props }: TicketListProps) {
-  return (
-    <div
-      {...props}
-      className={cx('h-full p-3 flex-grow flex flex-col gap-2 overflow-y-auto', props.className)}
-    >
-      {tickets.length ? (
-        tickets.map((ticket) => <TicketItemComponent key={ticket.id} ticket={ticket} />)
-      ) : (
-        <div className="text-center">
-          <h1 className="text-2xl font-medium">此处无工单！</h1>
-          <p className="p-2 text-gray-500">您在此视图中没有任何工单。</p>
-          <Link className="text-primary font-bold" to="all-tickets">
-            查看所有工单
-          </Link>
-        </div>
-      )}
-    </div>
-  );
+interface UseTicketParamsOptions {
+  categories?: CategorySchema[];
 }
 
-export function TopbarFilter() {
-  return (
-    <div className="flex items-center gap-4 text-[#183247]">
-      <button className="p-1 rounded transition-colors hover:bg-gray-200">
-        <HiMenuAlt2 className="w-6 h-6" />
-      </button>
-      <div className="font-bold">未命名</div>
-      <button>
-        <HiCheck className="w-6 h-6" />
-      </button>
-      <button>
-        <HiX className="w-6 h-6" />
-      </button>
-    </div>
-  );
-}
-
-function useTicketsByRootCategory({
-  rootCategoryId,
-  ...options
-}: UseTicketsOptions & { rootCategoryId?: string }) {
-  const { data: categoryTree, isLoading: isLoadingCategoryTree } = useCategoryTree({
-    enabled: !!rootCategoryId,
-  });
+function useTicketParams({ categories }: UseTicketParamsOptions): TicketParams {
+  const [params] = useTicketSearchParams();
 
   const categoryId = useMemo(() => {
-    if (categoryTree && rootCategoryId) {
-      const category = findCategory(categoryTree, rootCategoryId);
-      if (category) {
-        return getSubCategories(category)
-          .map((c) => c.id)
-          .join(',');
-      }
+    if (params.categoryId && categories) {
+      return [params.categoryId, ...getAllSubCategoryIds(categories, params.categoryId)];
     }
-    return undefined;
-  }, [categoryTree, rootCategoryId]);
+  }, [params.categoryId, categories]);
 
-  const result = useTickets({
-    ...options,
-    queryOptions: {
-      ...options.queryOptions,
-      enabled: !isLoadingCategoryTree && options.queryOptions?.enabled,
-    },
-    params: { ...options.params, categoryId },
-  });
-
-  return { ...result, isLoading: result.isLoading ?? isLoadingCategoryTree };
+  return {
+    assigneeId: params.assigneeId,
+    groupId: params.groupId,
+    createdAt: params.createdAt ? getTimeRange(params.createdAt) : undefined,
+    categoryId,
+    status: params.status,
+  };
 }
 
-function TicketsComponent() {
-  const [filterShow, setFilterShow] = useState(false);
+function TicketsPage() {
+  const [showFilter, setShowFilter] = useState(false);
+  const { data: categories } = useCategories();
+  const params = useTicketParams({ categories });
+  const [page = 1] = usePage();
   const { orderKey, orderType } = useOrderBy();
-  const [tmpFilters, setTmpFilters] = useFiltersFromQueryParams();
-  const { categoryId, ...ticketsParams } = useTicketParam(tmpFilters);
-  console.log(categoryId);
-  const [page] = usePage();
-  const [starts, setStarts] = useState(0);
-  const [ends, setEnds] = useState(0);
-  const { data: tickets, totalCount, isFetching } = useTicketsByRootCategory({
-    page,
+  const { data, isLoading, isFetching } = useTickets({
+    ...params,
     pageSize,
+    page,
     orderKey,
     orderType,
-    rootCategoryId: categoryId as string,
-    params: ticketsParams,
     queryOptions: {
       keepPreviousData: true,
-      onSuccess: useCallback(
-        ({ tickets }) => {
-          const index = (page - 1) * pageSize;
-          setStarts(index + 1);
-          setEnds(index + tickets.length);
-        },
-        [page]
-      ),
     },
   });
 
+  const getCategoryPath = useMemo(() => makeCategoryPathGetter(categories ?? []), [categories]);
+
+  const tickets = useMemo<(TicketSchema & { categoryPath: string[] })[]>(() => {
+    if (!data) {
+      return [];
+    }
+    return data.tickets.map((ticket) => ({
+      ...ticket,
+      categoryPath: getCategoryPath(ticket.categoryId),
+    }));
+  }, [data, getCategoryPath]);
+
   return (
-    <div className="h-full flex flex-col">
-      <div className="flex-shrink-0 bg-gray-50 h-14 flex items-center px-4 border-b border-gray-200">
-        <div className="flex-grow">
-          <OrderDropdown />
+    <div className="flex flex-col h-full">
+      <Topbar
+        className="flex-shrink-0"
+        showFilter={showFilter}
+        onChangeShowFilter={setShowFilter}
+        pagination={{
+          pageSize,
+          count: data?.tickets.length ?? 0,
+          totalCount: data?.totalCount ?? 0,
+          isLoading: isLoading || isFetching,
+        }}
+      />
+      <div className="flex flex-grow overflow-hidden">
+        <div className="flex flex-grow flex-col bg-[#ebeff3] p-[10px] gap-2 overflow-auto">
+          {isLoading ? (
+            'Loading...'
+          ) : tickets.length > 0 ? (
+            <TicketList tickets={tickets} />
+          ) : (
+            'No data'
+          )}
         </div>
-        <div className="flex items-center gap-2">
-          <Pagination starts={starts} ends={ends} totalCount={totalCount} isLoading={isFetching} />
-          <Button active={filterShow} onClick={() => setFilterShow(!filterShow)}>
-            <BsLayoutSidebarReverse className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-      <div className="bg-gray-100 flex-grow flex overflow-hidden">
-        <TicketList tickets={tickets ?? []} />
-        {filterShow && <FiltersPanel filters={tmpFilters} onChange={setTmpFilters} />}
+        {showFilter && <Filter className="flex-shrink-0" />}
       </div>
     </div>
   );
 }
 
-export default function Tickets() {
+export default function TicketRoutes() {
   const { path } = useRouteMatch();
-
   return (
     <Switch>
       <Route path={path}>
-        <TicketsComponent />
+        <TicketsPage />
       </Route>
     </Switch>
   );
