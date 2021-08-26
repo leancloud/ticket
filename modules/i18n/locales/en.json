@@ -252,6 +252,7 @@
   "otherInfo": "Other infos",
   "select": "Select",
   "required": "required",
+  "reply.deleteConfirm": "已发送给用户的通知不会被撤回，用户可能已经阅读了该回复。",
   "ticketField": "Ticket field",
   "ticketField.list": "Field list",
   "ticketField.add": "Add field",

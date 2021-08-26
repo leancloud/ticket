@@ -253,6 +253,7 @@
     "otherInfo":"其他信息",
     "select": "请选择",
     "required": "必填",
+    "reply.deleteConfirm": "已发送给用户的通知不会被撤回，用户可能已经阅读了该回复。",
     "ticketField": "工单字段",
     "ticketField.list": "字段列表",
     "ticketField.add": "新增字段",

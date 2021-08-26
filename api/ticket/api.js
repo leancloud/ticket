@@ -4,7 +4,7 @@ const { Router } = require('express')
 const { check, query } = require('express-validator')
 const { captureException } = require('../errorHandler')
 const { checkPermission } = require('../../oauth/lc')
-const { requireAuth, catchError, parseSearchingQ } = require('../middleware')
+const { requireAuth, catchError, parseSearchingQ, customerServiceOnly } = require('../middleware')
 const { getVacationerIds, getFormValuesDifference, resetUnreadCount } = require('./utils')
 const { isObjectExists } = require('../utils/object')
 const { encodeGroupObject } = require('../group/utils')
@@ -432,6 +432,7 @@ router.post(
 
 router.delete(
   '/:id/replies/:replyId',
+  customerServiceOnly,
   catchError(async (req, res) => {
     const { replyId } = req.params
     const reply = await new AV.Query('Reply').get(replyId, { useMasterKey: true })
@@ -439,6 +440,7 @@ router.delete(
       throw new Error('This action must be done by the author')
     }
     reply.set('active', false)
+    reply.setACL({})
     await reply.save(null, { useMasterKey: true })
     res.json({
       id: replyId,

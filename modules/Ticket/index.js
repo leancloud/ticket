@@ -147,6 +147,18 @@ function useReplies(ticketId) {
     const liveQuery = query
       .subscribe()
       .then((subscription) => {
+        subscription.on('update', (reply) => {
+          const replyObj = reply.toJSON()
+          // delete
+          if (!replyObj.active) {
+            setReplies((pre) =>
+              pre.filter((curr) => {
+                return curr.id !== replyObj.objectId
+              })
+            )
+          }
+          // update
+        })
         subscription.on('create', (reply) => {
           if (!$cursor.current || new Date($cursor.current) < reply.createdAt) {
             loadMoreReplies()
@@ -364,7 +376,7 @@ export default function Ticket() {
       <Row>
         <Col sm={8}>
           <div className="tickets">
-            <ReplyCard data={ticket} />
+            <ReplyCard data={ticket} ticketId={ticket.id} />
             {timeline.map((data) => (
               <Timeline
                 key={data.id}

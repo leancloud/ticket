@@ -146,7 +146,7 @@ export function ReplyCard({ data, onDeleted, ticketId }) {
     const tmpActions = {
       translation: isCustomerService,
       // edit: false,
-      delete: isReplay && isAuthor,
+      delete: isCustomerService && isReplay && isAuthor,
     }
     return Object.values(tmpActions).some((v) => v) ? tmpActions : undefined
   }, [isCustomerService, data, currentUser])
@@ -189,10 +189,8 @@ export function ReplyCard({ data, onDeleted, ticketId }) {
                 )}
                 {actions.delete && (
                   <Confirm
-                    header={'Are you sure you want to delete this?'}
-                    danger
+                    content={t('reply.deleteConfirm')}
                     onConfirm={deleteReply}
-                    content={null}
                     trigger={
                       <Dropdown.Item className="text-danger" disabled={deleting}>
                         {t('delete')}
