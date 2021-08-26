@@ -25,54 +25,57 @@ Raven.config(config.sentryDSN).install()
 
 const app = express()
 
-// in-app pages
-app.use('/in-app/v1', express.static(path.join(__dirname, 'in-app/v1/dist')))
-const inAppIndexPage = path.join(__dirname, 'in-app/v1/dist/index.html')
-app.get('/in-app/v1/*', (req, res) => res.sendFile(inAppIndexPage))
+if (process.env.MAINTENANCE_MODE) {
+  app.get('*',  (req, res) => res.sendFile(path.join(__dirname, 'public/maintenance-mode.html')))
+} else {
+  // in-app pages
+  app.use('/in-app/v1', express.static(path.join(__dirname, 'in-app/v1/dist')))
+  const inAppIndexPage = path.join(__dirname, 'in-app/v1/dist/index.html')
+  app.get('/in-app/v1/*', (req, res) => res.sendFile(inAppIndexPage))
 
-// next api
-require('./next/server')
-app.use(
-  '/api/2',
-  createProxyMiddleware({
-    target: 'http://127.0.0.1:4000',
-    changeOrigin: true,
-  })
-)
+  // next api
+  require('./next/server')
+  app.use(
+    '/api/2',
+    createProxyMiddleware({
+      target: 'http://127.0.0.1:4000',
+      changeOrigin: true,
+    })
+  )
 
-// next pages
-app.use('/next', express.static(path.join(__dirname, 'next/web/dist')))
-const nextWebIndexPage = path.join(__dirname, 'next/web/dist/index.html')
-app.get('/next/*', (req, res) => res.sendFile(nextWebIndexPage))
+  // next pages
+  app.use('/next', express.static(path.join(__dirname, 'next/web/dist')))
+  const nextWebIndexPage = path.join(__dirname, 'next/web/dist/index.html')
+  app.get('/next/*', (req, res) => res.sendFile(nextWebIndexPage))
 
-app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')))
-app.use(compression())
-app.use(Raven.requestHandler())
+  app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')))
+  app.use(compression())
+  app.use(Raven.requestHandler())
 
-// 加载云引擎中间件
-app.use(AV.express())
+  // 加载云引擎中间件
+  app.use(AV.express())
 
-app.disable('x-powered-by')
-app.enable('trust proxy')
-app.use(AV.Cloud.HttpsRedirect())
+  app.disable('x-powered-by')
+  app.enable('trust proxy')
+  app.use(AV.Cloud.HttpsRedirect())
 
-app.use(express.static(path.join(__dirname, 'public')))
-app.use(express.json())
-app.use(express.urlencoded({ extended: false }))
+  app.use(express.static(path.join(__dirname, 'public')))
+  app.use(express.json())
+  app.use(express.urlencoded({ extended: false }))
 
-// oauth
-app.use(require('./oauth'))
+  // oauth
+  app.use(require('./oauth'))
 
-// legacy api
-app.use(require('./api'))
+  // legacy api
+  app.use(require('./api'))
 
-// api document
-app.use('/docs/1', swaggerUi.serve, swaggerUi.setup(YAML.load('./docs/api1.yml')))
+  // api document
+  app.use('/docs/1', swaggerUi.serve, swaggerUi.setup(YAML.load('./docs/api1.yml')))
 
-const { orgName } = require('./oauth/lc')
+  const { orgName } = require('./oauth/lc')
 
-const getIndexPage = () => {
-  return `<!doctype html>
+  const getIndexPage = () => {
+    return `<!doctype html>
 <html>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -107,11 +110,12 @@ const getIndexPage = () => {
     }
   })
 </script>`
-}
+  }
 
-app.get('*', function (req, res) {
-  res.send(getIndexPage())
-})
+  app.get('*', function (req, res) {
+    res.send(getIndexPage())
+  })
+}
 
 app.use(Raven.errorHandler())
 
