@@ -126,57 +126,56 @@ ChangeAssignee.propTypes = {
 }
 
 const getDisplayTextByOptions = (value, options) => {
-  if (value === undefined || !options) {
-    return
+  if (value === undefined) {
+    return ''
   }
-  if (Array.isArray(value)) {
-    return value.map((v) => getDisplayTextByOptions(v, options)).join(' , ')
+  if (!options || !Array.isArray(options)) {
+    return Array.isArray(value) ? value.join(' , ') : value
   }
-  const option = options.filter(([v]) => v === value).shift()
-  if (!option) {
-    return
-  }
-  return option[1]
+  value = Array.isArray(value) ? value : [value]
+  return value
+    .map((v) => {
+      const option = options.filter(([optionValue]) => optionValue === v)
+      return option && option[0] ? option[0][1] : v
+    })
+    .join(' , ')
 }
+
 function ChangeField({ change }) {
   const { addNotification } = useAppContext()
   const { data } = useQuery({
     queryKey: ['ticket/fields', change.fieldId],
-    queryFn: () => http.get(`/api/1/ticket-fields/${change.fieldId}`),
+    queryFn: () =>
+      http.get(`/api/1/ticket-fields/${change.fieldId}`, {
+        params: {
+          locale: i18next.language || 'default',
+        },
+      }),
     staleTime: 1000 * 60 * 5,
     onError: (err) => addNotification(err),
   })
-  const currentLocale = useMemo(() => (i18next.language === 'zh' ? 'zh-cn' : i18next.language), [])
   const displayText = useMemo(() => {
     if (!data || !data.active) {
       return {}
     }
-    const { variants, default_locale } = data
-    const variantMap = variants.reduce((pre, current) => {
-      const { locale, ...rest } = current
-      pre[locale] = rest
-      return pre
-    }, {})
-    const variant = variantMap[currentLocale] || variantMap[default_locale]
+    const { title, options } = data.variants[0]
     return {
-      title: variant.title,
-      fromText: variant.options
-        ? getDisplayTextByOptions(change.from, variant.options)
-        : change.from,
-      toText: variant.options ? getDisplayTextByOptions(change.to, variant.options) : change.to,
+      title,
+      from: getDisplayTextByOptions(change.from, options),
+      to: getDisplayTextByOptions(change.to, options),
     }
-  }, [data, currentLocale, change])
+  }, [data, change])
   return (
     <Form.Group controlId={change.fieldId} key={change.fieldId}>
       <Form.Label className="font-weight-bold">{displayText.title || change.fieldId}</Form.Label>
       <div>
-        {change.from !== undefined && (
+        {displayText.from && <del className="text-info">{displayText.from}</del>}
+        {displayText.to && (
           <>
-            <del className="text-info">{displayText.fromText || change.from}</del>
             <Icon.ArrowRight className="ml-2 mr-2" />
+            <span className="text-info">{displayText.to}</span>
           </>
         )}
-        <span className="text-info">{displayText.toText || change.to}</span>
       </div>
     </Form.Group>
   )

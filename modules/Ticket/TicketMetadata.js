@@ -4,6 +4,7 @@ import * as Icon from 'react-bootstrap-icons'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import PropTypes from 'prop-types'
+import _ from 'lodash'
 
 import { auth, fetch, http } from '../../lib/leancloud'
 import { UserLabel } from '../UserLabel'
@@ -362,11 +363,16 @@ const TicketFormModal = memo(({ fields, values, onUpdated, close, ticketId }) =>
           }}
         >
           {fields.map((field) => {
+            const variant = field.variants[0] || {}
             return (
               <CustomField
                 value={formValues[field.id]}
                 key={field.id}
-                {...field}
+                id={field.id}
+                type={field.type}
+                required={field.required}
+                options={variant.options}
+                label={variant.title}
                 onChange={(v) => {
                   setFormValues((pre) => ({
                     ...pre,
@@ -395,8 +401,9 @@ const TicketFormValues = memo(({ ticket, loadMoreOpsLogs }) => {
   const queryClient = useQueryClient()
   const [edit, setEdit] = useState(false)
   const close = useCallback(() => setEdit(false), [])
+
   const { data: formId } = useQuery({
-    queryKey: ['ticket/category', ticket ? ticket.category_id : ''],
+    queryKey: ['meta/category', ticket ? ticket.category_id : ''],
     queryFn: () =>
       http.get('/api/1/categories', {
         params: {
@@ -404,46 +411,15 @@ const TicketFormValues = memo(({ ticket, loadMoreOpsLogs }) => {
           active: true,
         },
       }),
-    retry: false,
     select: (data) => (data[0] ? data[0].form_id : undefined),
-    enabled: Boolean(ticket && ticket.category_id),
+    enabled: !!ticket,
     onError: (err) => addNotification(err),
   })
-  const { data: fields } = useQuery({
-    queryKey: ['ticket/form', formId],
-    queryFn: () =>
-      http.get(`/api/1/ticket-forms/${formId}`, {
-        params: {
-          locale: i18next.language,
-        },
-      }),
-    select: (data) =>
-      data.fields
-        .filter((field) => field.type)
-        .map((field) => {
-          const {
-            type,
-            id,
-            required,
-            variant: { options, title },
-          } = field
-          return {
-            type,
-            id,
-            required,
-            options,
-            label: title,
-          }
-        }),
-    enabled: !!formId,
-    retry: false,
-    onError: (err) => addNotification(err),
-  })
-  const { data: fromValues } = useQuery({
-    queryKey: ['ticket/fromValues', ticket ? ticket.id : ''],
+
+  const { data: formValues } = useQuery({
+    queryKey: ['meta/formValues', ticket ? ticket.id : ''],
     queryFn: () => http.get(`/api/1/tickets/${ticket.id}/form-values`),
-    enabled: Boolean(formId && ticket && ticket.id),
-    retry: false,
+    enabled: !!ticket,
     select: (data) =>
       Array.isArray(data)
         ? data.reduce((pre, cur) => {
@@ -453,44 +429,124 @@ const TicketFormValues = memo(({ ticket, loadMoreOpsLogs }) => {
         : {},
     onError: (err) => addNotification(err),
   })
+
+  const { data: fieldIds } = useQuery({
+    queryKey: ['meta/form', formId],
+    queryFn: () => http.get(`/api/1/ticket-forms/${formId}`),
+    select: (data) => data.fieldIds.filter((id) => id !== 'title' && id !== 'description'),
+    enabled: !!formId,
+    onError: (err) => addNotification(err),
+  })
+
+  const matchFormValues = useMemo(() => {
+    if (!fieldIds || !formValues) {
+      return {}
+    }
+    return fieldIds.reduce((pre, curr) => {
+      pre[curr] = formValues[curr]
+      return pre
+    }, {})
+  }, [fieldIds, formValues])
+
+  const ids = useMemo(() => {
+    if (!formValues || !fieldIds) {
+      return
+    }
+    return _(formValues).keys().concat(fieldIds).uniq().value()
+  }, [formValues, fieldIds])
+
+  const { data: fields } = useQuery({
+    queryKey: ['meta/fieldMap', ids],
+    queryFn: () =>
+      http.get(`/api/1/ticket-fields`, {
+        params: {
+          ids: ids.join(','),
+          includeVariant: true,
+          locale: i18next.language || 'default',
+        },
+      }),
+    onError: (err) => addNotification(err),
+    enabled: !!ids,
+  })
+
+  const { formFields, otherFields } = useMemo(() => {
+    if (!fieldIds || !fields) {
+      return {
+        formFields: [],
+        otherFields: [],
+      }
+    }
+    const map = fields.reduce((pre, curr) => {
+      pre[curr.id] = curr
+      return pre
+    }, {})
+    const formFields = fieldIds.map((id) => map[id]).filter((v) => !!v)
+    const otherFields = _.filter(ids, (id) => !fieldIds.includes(id))
+      .map((id) => map[id])
+      .filter((v) => !!v)
+    return {
+      formFields,
+      otherFields,
+    }
+  }, [fieldIds, fields, ids])
+
   const onUpdated = useCallback(
     (data) => {
-      queryClient.setQueryData(['ticket/fromValues', ticket ? ticket.id : ''], data)
+      queryClient.setQueryData(['meta/formValues', ticket ? ticket.id : ''], data)
       loadMoreOpsLogs()
     },
     [queryClient, ticket, loadMoreOpsLogs]
   )
 
-  if (!formId || !fields || fields.length === 0) {
+  if (!fields || fields.length === 0) {
     return null
   }
 
   return (
-    <Form className={styles.otherInfo}>
+    <Form>
       <Form.Label>
         {t('otherInfo')}{' '}
         <Button variant="light" size="sm" onClick={() => setEdit(true)} className="align-baseline">
           {t('edit')}
         </Button>
       </Form.Label>
-      {fields &&
-        fields.map((field) => {
-          return (
-            <CustomFieldDisplay
-              key={field.id}
-              type={field.type}
-              label={field.label}
-              value={fromValues ? fromValues[field.id] : undefined}
-              options={field.options}
-              className={styles.field}
-            />
-          )
-        })}
+      {formFields.map((field) => {
+        const variant = field.variants[0] || {}
+        return (
+          <CustomFieldDisplay
+            key={field.id}
+            type={field.type}
+            label={variant.title}
+            value={matchFormValues[field.id]}
+            options={variant.options}
+            className={styles.field}
+          />
+        )
+      })}
+      {otherFields.length > 0 && (
+        <>
+          <hr />
+          {otherFields.map((field) => {
+            const variant = field.variants[0] || {}
+            return (
+              <CustomFieldDisplay
+                key={field.id}
+                type={field.type}
+                label={variant.title}
+                value={formValues ? formValues[field.id] : undefined}
+                options={variant.options}
+                className={styles.field}
+              />
+            )
+          })}
+        </>
+      )}
+
       <Modal show={edit} onHide={close}>
         <TicketFormModal
           ticketId={ticket.id}
-          fields={fields || []}
-          values={fromValues}
+          fields={formFields}
+          values={matchFormValues}
           onUpdated={onUpdated}
           close={close}
         />

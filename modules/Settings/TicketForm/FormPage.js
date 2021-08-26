@@ -19,6 +19,7 @@ import _ from 'lodash'
 import { http, httpWithLimitation } from 'lib/leancloud'
 import * as Icon from 'react-bootstrap-icons'
 import { useTranslation } from 'react-i18next'
+import i18next from 'i18next'
 import { useAppContext } from 'modules/context'
 import { DocumentTitle } from 'modules/utils/DocumentTitle'
 import NoData from 'modules/components/NoData'
@@ -27,6 +28,7 @@ import { useFormId } from './'
 import Preview from './Preview'
 import styles from './index.module.scss'
 import { systemFieldData } from '../TicketField'
+import useTicketForm from './useTicketForm'
 
 const FieldList = ({ list, remove, add }) => {
   const { t } = useTranslation()
@@ -95,6 +97,7 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
   const [debouncedSearchValue, setDebouncedSearchValue] = useState()
   const [activeFiledList, setActiveFiledList] = useState(systemFieldData)
   const [fieldList, setFiledList] = useState([])
+
   useEffect(() => {
     if (initData) {
       setTitle(initData.title)
@@ -107,6 +110,10 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
           })
         }
         return [...systemFieldData, ...initData.fields]
+      })
+      setFiledList((pre) => {
+        const activeIds = initData.fields.map((field) => field.id)
+        return pre.filter((field) => !activeIds.includes(field.id))
       })
     }
   }, [initData])
@@ -145,19 +152,21 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
   )
 
   const { mutate } = useMutation({
-    mutationFn: (id) => http.get(`/api/1/ticket-fields/${id}`),
+    mutationFn: (id) =>
+      http.get(`/api/1/ticket-fields/${id}`, {
+        params: {
+          locale: i18next.language || 'default',
+        },
+      }),
     onSuccess: (fieldData) => {
       setActiveFiledList((pre) =>
         pre.map((preFieldData) => {
           if (preFieldData.id !== fieldData.id) {
             return preFieldData
           }
-          const filteredVariants = fieldData.variants.filter(
-            (variant) => variant.locale === fieldData.default_locale
-          )
           return {
             ...preFieldData,
-            variant: filteredVariants[0],
+            variant: fieldData.variants[0],
           }
         })
       )
@@ -409,11 +418,13 @@ const EditorForm = () => {
   const { t } = useTranslation()
   const { addNotification } = useAppContext()
   const formId = useFormId()
-  const { data } = useQuery({
-    queryKey: ['setting/forms', formId],
-    queryFn: () => http.get(`/api/1/ticket-forms/${formId}`),
-    onError: (err) => addNotification(err),
-  })
+  const { data, error } = useTicketForm(formId)
+  useEffect(() => {
+    if (error) {
+      addNotification(error)
+    }
+  }, [error, addNotification])
+
   const { mutateAsync, isLoading } = useMutation({
     mutationFn: (data) => http.patch(`/api/1/ticket-forms/${formId}`, data),
     onSuccess: () => {
@@ -423,6 +434,7 @@ const EditorForm = () => {
     },
     onError: (err) => addNotification(err),
   })
+
   return (
     <>
       <DocumentTitle title={`${t('ticketField.edit')} - LeanTicket`} />
