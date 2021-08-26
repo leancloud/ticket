@@ -6,19 +6,32 @@ import { getCustomerServiceRole } from './utils';
 
 const localCustomerServiceRole = new LocalCache(0, getCustomerServiceRole);
 
+function encodeAVUser(user: AV.User): string {
+  const json = user.toFullJSON();
+  json._sessionToken = user.getSessionToken();
+  return JSON.stringify(json);
+}
+
+function decodeAVUser(data: string): AV.User {
+  const json = JSON.parse(data);
+  const user = AV.parseJSON(json);
+  user._sessionToken = json._sessionToken;
+  return user;
+}
+
 const userCache = new RedisCache<AV.User>(
   'user:session',
   (sessionToken: string) => AV.User.become(sessionToken),
-  (user) => JSON.stringify(user.toFullJSON()),
-  AV.parse
+  encodeAVUser,
+  decodeAVUser
 );
 
 const anonymousUserCache = new RedisCache<AV.User | null | undefined>(
   'user:anonymous',
   (id: string) =>
     new AV.Query(AV.User).equalTo('authData.anonymous.id', id).first({ useMasterKey: true }),
-  (user) => JSON.stringify(user?.toFullJSON() ?? null),
-  AV.parse
+  (user) => (user ? encodeAVUser(user) : 'null'),
+  (data) => (data === 'null' ? null : decodeAVUser(data))
 );
 
 export class User {
