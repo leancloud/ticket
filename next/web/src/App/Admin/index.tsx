@@ -1,4 +1,4 @@
-import { Route, Switch, useRouteMatch } from 'react-router-dom';
+import { Redirect, Route, Switch, useRouteMatch } from 'react-router-dom';
 
 import { useCategories } from 'api/category';
 import { Sidebar } from './Sidebar';
@@ -12,6 +12,7 @@ function Routes() {
       <Route path={`${path}/tickets`}>
         <Tickets />
       </Route>
+      <Redirect to={`${path}/tickets`} />
     </Switch>
   );
 }

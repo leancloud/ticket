@@ -1,44 +1,48 @@
 import { AxiosError } from 'axios';
-import { UseQueryOptions, useQuery, UseQueryResult } from 'react-query';
+import { UseQueryOptions, useQuery } from 'react-query';
+import { castArray } from 'lodash-es';
 
 import { http } from '../leancloud';
 
-export interface TicketItem {
+export interface TicketSchema {
   id: string;
   nid: number;
   title: string;
   categoryId: string;
-  status: number;
   author: {
     id: string;
-    username: string;
     nickname: string;
-    avatarUrl: string;
   };
   assignee?: {
     id: string;
-    username: string;
     nickname: string;
-    avatarUrl: string;
   };
   group?: {
     id: string;
     name: string;
   };
+  status: number;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface FetchTicketsOptions {
-  page?: string | number;
+export interface TicketParams {
+  assigneeId?: string | string[];
+  groupId?: string | string[];
+  createdAt?: [Date | undefined, Date | undefined];
+  categoryId?: string | string[];
+  status?: number | number[];
+}
+
+export interface FetchTicketsOptions extends TicketParams {
+  page?: number;
   pageSize?: number;
   orderKey?: string;
   orderType?: 'asc' | 'desc';
-  params?: Record<string, string | number | boolean | undefined>;
 }
 
 export interface FetchTicketsResult {
-  tickets: TicketItem[];
+  tickets: TicketSchema[];
   totalCount: number;
 }
 
@@ -47,38 +51,48 @@ export async function fetchTickets({
   pageSize = 10,
   orderKey = 'createdAt',
   orderType = 'desc',
-  params,
-}: FetchTicketsOptions): Promise<FetchTicketsResult> {
-  const { headers, data } = await http.get('/api/2/tickets', {
-    params: {
-      ...params,
-      page,
-      pageSize,
-      count: 1,
-      include: 'author,assignee,group',
-      orderBy: orderKey + '-' + orderType,
-    },
-  });
+  assigneeId,
+  groupId,
+  createdAt,
+  categoryId,
+  status,
+}: FetchTicketsOptions = {}): Promise<FetchTicketsResult> {
+  const params: any = {
+    page,
+    pageSize,
+    count: 1,
+    include: 'author,assignee,group',
+    orderBy: `${orderKey}-${orderType}`,
+  };
+
+  if (assigneeId) {
+    params.assigneeId = castArray(assigneeId).join(',');
+  }
+  if (groupId) {
+    params.groupId = castArray(groupId).join(',');
+  }
+  if (createdAt) {
+    params.createdAt = createdAt.map((date) => date?.toISOString() ?? '').join('..');
+  }
+  if (categoryId) {
+    params.categoryId = castArray(categoryId).join(',');
+  }
+  if (status) {
+    params.status = castArray(status).join(',');
+  }
+
+  const { headers, data } = await http.get('/api/2/tickets', { params });
   return { tickets: data, totalCount: parseInt(headers['x-total-count']) };
 }
 
 export interface UseTicketsOptions extends FetchTicketsOptions {
-  queryOptions?: UseQueryOptions<FetchTicketsResult, AxiosError<FetchTicketsResult>>;
+  queryOptions?: UseQueryOptions<FetchTicketsResult, AxiosError>;
 }
 
-export type UseTicketsResult = UseQueryResult<TicketItem[], AxiosError> & {
-  totalCount?: number;
-};
-
-export function useTickets({ queryOptions, ...fetchOptions }: UseTicketsOptions = {}) {
-  const { data, ...result } = useQuery<FetchTicketsResult, AxiosError>({
-    queryKey: ['tickets', fetchOptions],
-    queryFn: () => fetchTickets(fetchOptions),
+export function useTickets({ queryOptions, ...options }: UseTicketsOptions = {}) {
+  return useQuery({
+    queryKey: ['tickets', options],
+    queryFn: () => fetchTickets(options),
     ...queryOptions,
   });
-  return {
-    ...result,
-    data: data?.tickets,
-    totalCount: data?.totalCount,
-  } as UseTicketsResult;
 }

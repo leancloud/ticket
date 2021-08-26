@@ -25,7 +25,7 @@ export function MenuItem({ eventKey, active, children }: MenuItemProps) {
       onClick={() => onSelect?.(eventKey)}
     >
       <span className="flex-grow">{children}</span>
-      {active && <HiCheck className="ml-2" />}
+      <HiCheck className={`ml-2 ${active ? 'visible' : 'invisible'}`} />
     </button>
   );
 }
@@ -45,10 +45,7 @@ export const Menu = forwardRef<HTMLDivElement, MenuProps>(
         <div
           {...props}
           ref={ref}
-          className={cx(
-            'bg-white border border-gray-300 rounded p-2 text-[#183247] select-none',
-            className
-          )}
+          className={cx('bg-white border border-gray-300 rounded p-2 select-none', className)}
         />
       </MenuContext.Provider>
     );

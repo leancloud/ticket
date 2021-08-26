@@ -19,9 +19,11 @@ function SelectedOptions<K extends Key>({ options, onDeselect }: SelectedOptions
       {options.map(({ key, text }) => (
         <span
           key={key}
-          className="inline-flex items-center h-6 bg-gray-200 text-sm rounded select-none overflow-hidden"
+          className="inline-flex items-center h-6 bg-gray-200 rounded select-none overflow-hidden"
         >
-          <span className="px-1">{text}</span>
+          <span className="px-1 truncate" title={text}>
+            {text}
+          </span>
           <button
             className="px-0.5 h-full transition-colors hover:bg-gray-300"
             onMouseDown={(e) => e.stopPropagation()}
@@ -129,7 +131,7 @@ export function Select<K extends Key>({
   return (
     <div
       tabIndex={-1}
-      className="relative outline-none text-sm text-[#183247]"
+      className="relative outline-none"
       onFocus={() => setIsFocus(true)}
       onBlur={(e) => {
         if (!e.currentTarget.contains(e.relatedTarget as any)) {
@@ -153,12 +155,16 @@ export function Select<K extends Key>({
           setIsOpen((v) => !v);
         }}
       >
-        <div className="flex-grow flex flex-wrap items-center gap-1 pl-2 py-1 overflow-hidden">
+        <div className="relative flex-grow flex flex-wrap items-center gap-1 pl-2 py-1 overflow-hidden">
           {selectedOption &&
             (Array.isArray(selectedOption) ? (
               <SelectedOptions options={selectedOption} onDeselect={deselect} />
             ) : (
-              !keyword && <div className="absolute">{selectedOption.text}</div>
+              !keyword && (
+                <div className="absolute w-full truncate" title={selectedOption.text}>
+                  {selectedOption.text}
+                </div>
+              )
             ))}
 
           <input
@@ -177,7 +183,7 @@ export function Select<K extends Key>({
       </div>
 
       {isOpen && (
-        <ul className="absolute z-10 w-full max-h-64 mt-1 bg-white border rounded border-gray-300 shadow-lg select-none overflow-y-auto">
+        <ul className="absolute z-10 w-full max-h-64 mt-1 bg-white border rounded border-gray-300 shadow-md select-none overflow-y-auto">
           {filteredOptions.length ? (
             filteredOptions.map(({ key, text }) => {
               const active = selectedSet.has(key);
@@ -190,8 +196,10 @@ export function Select<K extends Key>({
                   })}
                   onClick={() => (active ? deselect(key) : select(key))}
                 >
-                  <span className="flex-grow">{text}</span>
-                  {active && <HiCheck />}
+                  <span className="flex-grow truncate" title={text}>
+                    {text}
+                  </span>
+                  {active && <HiCheck className="flex-shrink-0" />}
                 </li>
               );
             })
