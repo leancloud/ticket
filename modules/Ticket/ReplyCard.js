@@ -155,7 +155,6 @@ export function ReplyCard({ data, onDeleted, ticketId }) {
     onSuccess: () => onDeleted(data.id),
     onError: (error) => addNotification(error),
   })
-  console.log(data)
   return (
     <Card
       id={data.id}
@@ -176,8 +175,6 @@ export function ReplyCard({ data, onDeleted, ticketId }) {
             ) : (
               <Badge className={css.badge}>{t('staff')}</Badge>
             ))}
-
-          {/* {isCustomerService && ( */}
           {actions && (
             <Dropdown className="ml-2">
               <Dropdown.Toggle className="d-flex" as={MenuIcon} />
@@ -190,19 +187,6 @@ export function ReplyCard({ data, onDeleted, ticketId }) {
                     Translate
                   </Dropdown.Item>
                 )}
-                {/* {actions.edit && (
-                  <Dropdown.Item
-                    active={translationEnabled}
-                    onClick={() => setTranslationEnabled(!translationEnabled)}
-                  >
-                    Edit
-                  </Dropdown.Item>
-                )} */}
-
-                {/* <Button variant="link" size="sm" className="text-danger" disabled={isLoading}>
-    {t('delete')}
-  </Button> */}
-
                 {actions.delete && (
                   <Confirm
                     header={'Are you sure you want to delete this?'}
