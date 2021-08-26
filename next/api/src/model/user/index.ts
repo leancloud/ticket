@@ -9,7 +9,7 @@ const localCustomerServiceRole = new LocalCache(0, getCustomerServiceRole);
 const userCache = new RedisCache<AV.User>(
   'user:session',
   (sessionToken: string) => AV.User.become(sessionToken),
-  (user) => AV.stringify(user)!,
+  (user) => JSON.stringify(user.toFullJSON()),
   AV.parse
 );
 
@@ -17,7 +17,7 @@ const anonymousUserCache = new RedisCache<AV.User | null | undefined>(
   'user:anonymous',
   (id: string) =>
     new AV.Query(AV.User).equalTo('authData.anonymous.id', id).first({ useMasterKey: true }),
-  (user) => AV.stringify(user) ?? 'null',
+  (user) => JSON.stringify(user?.toFullJSON() ?? null),
   AV.parse
 );
 
