@@ -189,7 +189,9 @@ export function ReplyCard({ data, onDeleted, ticketId }) {
                 )}
                 {actions.delete && (
                   <Confirm
-                    content={t('reply.deleteConfirm')}
+                    danger
+                    header={t('reply.deleteTitle')}
+                    content={t('reply.deleteContent')}
                     onConfirm={deleteReply}
                     trigger={
                       <Dropdown.Item className="text-danger" disabled={deleting}>
