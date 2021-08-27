@@ -276,7 +276,6 @@
     "ticketField.list": "필드 목록",
     "ticketField": "티켓 필드",
     "required": "필수",
-    "reply.deleteConfirm": "已发送给用户的通知不会被撤回，用户可能已经阅读了该回复。",
     "select": "선택해주세요",
     "message.newReply": "새 답장",
     "message.assignTicket": "작업 이동",
