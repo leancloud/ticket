@@ -24,7 +24,7 @@ function CurrentUserSection(props: ComponentPropsWithoutRef<'section'>) {
 export function Topbar(props: ComponentPropsWithoutRef<'header'>) {
   return (
     <header {...props} className={cx('flex items-center h-16 border-b px-4', props.className)}>
-      <section className="flex-grow"></section>
+      <section id="custom-section" className="flex-grow"></section>
       <CurrentUserSection className="flex-shrink-0" />
     </header>
   );

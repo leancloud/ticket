@@ -34,6 +34,7 @@ function SortDropdown() {
       } else {
         setOrderKey(eventKey);
       }
+      setOpen(false);
     },
     [setOrderKey, setOrderType]
   );
@@ -52,15 +53,18 @@ function SortDropdown() {
       </button>
       <Transition
         show={open}
-        className="absolute mt-1"
-        enter="transition pointer-events-none"
+        className="absolute mt-1 transition"
+        enter="pointer-events-none"
         enterFrom="opacity-0 -translate-y-4"
         enterTo="opacity-100 translate-y-0"
-        leave="transition pointer-events-none"
+        leave="pointer-events-none"
         leaveFrom="opacity-100"
         leaveTo="opacity-0"
       >
-        <Menu className="shadow-md min-w-[120px]" onSelect={handleSelect}>
+        <Menu
+          className="border border-gray-300 rounded shadow-md min-w-[120px]"
+          onSelect={handleSelect}
+        >
           <Menu.Item eventKey="createdAt" active={orderKey === 'createdAt'}>
             {orderKeys.createdAt}
           </Menu.Item>
@@ -143,13 +147,11 @@ export function Topbar({ showFilter, onChangeShowFilter, pagination, ...props }:
       {...props}
       className={cx(
         styles.topbar,
-        'flex items-center h-14 bg-[#f4f7f9] px-4 border-b border-[#cfd7df] z-[1]',
+        'flex items-center h-14 bg-[#f4f7f9] px-4 border-b border-[#cfd7df]',
         props.className
       )}
     >
-      <div className="flex-grow">
-        <SortDropdown />
-      </div>
+      <div className="flex-grow">{pagination.count > 0 && <SortDropdown />}</div>
 
       <Pagination {...pagination} />
 

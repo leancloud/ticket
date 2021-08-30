@@ -57,13 +57,31 @@ function SubCategorySelect({ parentId, depth }: SubCategorySelectProps) {
 }
 
 export interface CategorySelectProps {
-  value?: string;
-  onChange: (value?: string) => void;
+  value?: string | null;
+  onChange: (value: string | null) => void;
 }
 
 export function CategorySelect({ value, onChange }: CategorySelectProps) {
-  const { data: categories, isLoading } = useCategories();
+  const { data: categories } = useCategories();
+  const categoryById = useMemo(() => keyBy(categories, (c) => c.id), [categories]);
   const [values, setValues] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!value) {
+      setValues([]);
+      return;
+    }
+    const values: string[] = [];
+    let category = categoryById[value];
+    while (category) {
+      values.push(category.id);
+      if (!category.parentId) {
+        break;
+      }
+      category = categoryById[category.parentId];
+    }
+    setValues(values.reverse());
+  }, [categoryById, value]);
 
   const setValue = (depth: number, value?: string) => {
     const next = values.slice(0, depth);
@@ -71,7 +89,7 @@ export function CategorySelect({ value, onChange }: CategorySelectProps) {
       next.push(value);
     }
     setValues(next);
-    onChange(last(next));
+    onChange(last(next) ?? null);
   };
 
   const getValue = (depth: number) => {
@@ -80,28 +98,7 @@ export function CategorySelect({ value, onChange }: CategorySelectProps) {
     }
   };
 
-  const categoryById = useMemo(() => {
-    return keyBy(categories, (c) => c.id);
-  }, [categories]);
-
-  useEffect(() => {
-    if (value) {
-      let p = categoryById[value];
-      if (p) {
-        const values: string[] = [];
-        while (p) {
-          values.unshift(p.id);
-          if (!p.parentId) {
-            break;
-          }
-          p = categoryById[p.parentId];
-        }
-        setValues(values);
-      }
-    }
-  }, [categoryById, value]);
-
-  if (isLoading || !categories) {
+  if (!categories) {
     return <Select placeholder="Loading..." />;
   }
   return (

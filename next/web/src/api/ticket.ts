@@ -1,8 +1,8 @@
 import { AxiosError } from 'axios';
 import { UseQueryOptions, useQuery } from 'react-query';
-import { castArray } from 'lodash-es';
 
-import { http } from '../leancloud';
+import { http } from 'leancloud';
+import { decodeDateRange } from 'utils/date-range';
 
 export interface TicketSchema {
   id: string;
@@ -26,19 +26,18 @@ export interface TicketSchema {
   updatedAt: string;
 }
 
-export interface TicketParams {
-  assigneeId?: string | string[];
-  groupId?: string | string[];
-  createdAt?: [Date | undefined, Date | undefined];
-  categoryId?: string | string[];
-  status?: number | number[];
-}
-
-export interface FetchTicketsOptions extends TicketParams {
+export interface FetchTicketsOptions {
   page?: number;
   pageSize?: number;
   orderKey?: string;
   orderType?: 'asc' | 'desc';
+  filters?: {
+    assigneeIds?: string[];
+    groupIds?: string[];
+    createdAt?: string;
+    rootCategoryId?: string;
+    statuses?: number[];
+  };
 }
 
 export interface FetchTicketsResult {
@@ -51,11 +50,7 @@ export async function fetchTickets({
   pageSize = 10,
   orderKey = 'createdAt',
   orderType = 'desc',
-  assigneeId,
-  groupId,
-  createdAt,
-  categoryId,
-  status,
+  filters,
 }: FetchTicketsOptions = {}): Promise<FetchTicketsResult> {
   const params: any = {
     page,
@@ -65,20 +60,26 @@ export async function fetchTickets({
     orderBy: `${orderKey}-${orderType}`,
   };
 
-  if (assigneeId) {
-    params.assigneeId = castArray(assigneeId).join(',');
-  }
-  if (groupId) {
-    params.groupId = castArray(groupId).join(',');
-  }
-  if (createdAt) {
-    params.createdAt = createdAt.map((date) => date?.toISOString() ?? '').join('..');
-  }
-  if (categoryId) {
-    params.categoryId = castArray(categoryId).join(',');
-  }
-  if (status) {
-    params.status = castArray(status).join(',');
+  if (filters) {
+    if (filters.assigneeIds) {
+      params.assigneeId = filters.assigneeIds.join(',');
+    }
+    if (filters.groupIds) {
+      params.groupId = filters.groupIds.join(',');
+    }
+    if (filters.createdAt) {
+      const dateRange = decodeDateRange(filters.createdAt);
+      if (dateRange && (dateRange.from || dateRange.to)) {
+        // "2021-08-01..2021-08-31", "2021-08-01..*", etc.
+        params.createdAt = [dateRange.from ?? '*', dateRange.to ?? '*'].join('..');
+      }
+    }
+    if (filters.rootCategoryId) {
+      params.rootCategoryId = filters.rootCategoryId;
+    }
+    if (filters.statuses) {
+      params.status = filters.statuses.join(',');
+    }
   }
 
   const { headers, data } = await http.get('/api/2/tickets', { params });

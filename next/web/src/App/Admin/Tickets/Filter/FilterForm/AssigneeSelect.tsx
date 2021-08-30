@@ -6,8 +6,8 @@ import { Select } from 'components/Select';
 const unassignedOption = { key: 'null', text: '未指派' };
 
 export interface AssigneeSelectProps {
-  value?: string[];
-  onChange: (value: string[]) => void;
+  value?: string[] | null;
+  onChange: (value: string[] | null) => void;
 }
 
 export function AssigneeSelect({ value, onChange }: AssigneeSelectProps) {
@@ -28,13 +28,32 @@ export function AssigneeSelect({ value, onChange }: AssigneeSelectProps) {
     }
   }, [assignees]);
 
+  const handleSelect = (id: string) => {
+    if (value) {
+      onChange(value.concat(id));
+    } else {
+      onChange([id]);
+    }
+  };
+
+  const handleDeselete = (id: string) => {
+    if (value) {
+      const filtered = value.filter((v) => v !== id);
+      if (filtered.length) {
+        onChange(filtered);
+      } else {
+        onChange(null);
+      }
+    }
+  };
+
   return (
     <Select
       placeholder={isLoading ? 'Loading...' : '任何'}
       options={options}
       selected={value}
-      onSelect={(key) => onChange(value ? value.concat(key) : [key])}
-      onDeselect={(key) => value && onChange(value.filter((k) => k !== key))}
+      onSelect={handleSelect}
+      onDeselect={handleDeselete}
     />
   );
 }
