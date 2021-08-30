@@ -9,21 +9,34 @@ import { User } from '../model/user';
 
 const router = new Router().use(auth, customerServiceOnly);
 
+const querySchema = yup.object({
+  userId: yup.csv(yup.string().required()),
+  groupId: yup.csv(yup.string().required()),
+});
+
 router.get('/', async (ctx) => {
-  const { userId, groupId } = ctx.query;
+  const { userId, groupId } = querySchema.validateSync(ctx.query);
 
   const query = TicketFilter.query()
-    .when(typeof userId === 'string', (query) => {
-      if (userId === 'null') {
+    .when(userId, (query, userId) => {
+      if (userId.includes('null')) {
+        userId = userId.filter((id) => id !== null);
+        if (userId.length) {
+          return query.whereInOrNotExists('user', userId.map(User.ptr));
+        }
         return query.where('user', 'not-exists');
       }
-      return query.where('user', '==', User.ptr(userId as string));
+      return query.where('user', 'in', userId.map(User.ptr));
     })
-    .when(typeof groupId === 'string', (query) => {
-      if (groupId === 'null') {
+    .when(groupId, (query, groupId) => {
+      if (groupId.includes('null')) {
+        groupId = groupId.filter((id) => id !== 'null');
+        if (groupId.length) {
+          return query.whereInOrNotExists('group', groupId.map(Group.ptr));
+        }
         return query.where('group', 'not-exists');
       }
-      return query.where('group', '==', Group.ptr(groupId as string));
+      return query.where('group', 'in', groupId.map(Group.ptr));
     });
 
   const filters = await query.get({ useMasterKey: true });
