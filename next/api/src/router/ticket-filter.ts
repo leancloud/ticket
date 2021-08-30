@@ -3,9 +3,7 @@ import { TicketFilterResponse } from '../json/ticket-filter';
 
 import { auth, customerServiceOnly } from '../middleware';
 import * as yup from '../utils/yup';
-import { Group } from '../model/group';
 import { TicketFilter } from '../model/ticket-filter';
-import { User } from '../model/user';
 
 const router = new Router().use(auth, customerServiceOnly);
 
@@ -22,21 +20,21 @@ router.get('/', async (ctx) => {
       if (userId.includes('null')) {
         userId = userId.filter((id) => id !== null);
         if (userId.length) {
-          return query.whereInOrNotExists('user', userId.map(User.ptr));
+          return query.whereInOrNotExists('userIds', userId);
         }
-        return query.where('user', 'not-exists');
+        return query.where('userIds', 'not-exists');
       }
-      return query.where('user', 'in', userId.map(User.ptr));
+      return query.where('userIds', 'in', userId);
     })
     .when(groupId, (query, groupId) => {
       if (groupId.includes('null')) {
         groupId = groupId.filter((id) => id !== 'null');
         if (groupId.length) {
-          return query.whereInOrNotExists('group', groupId.map(Group.ptr));
+          return query.whereInOrNotExists('groupIds', groupId);
         }
-        return query.where('group', 'not-exists');
+        return query.where('groupIds', 'not-exists');
       }
-      return query.where('group', 'in', groupId.map(Group.ptr));
+      return query.where('groupIds', 'in', groupId);
     });
 
   const filters = await query.get({ useMasterKey: true });

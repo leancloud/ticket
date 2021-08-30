@@ -6,14 +6,15 @@ import {
   useQuery,
   useQueryClient,
 } from 'react-query';
+import { castArray } from 'lodash';
 
 import { http } from 'leancloud';
 
 export interface TicketFilterSchema {
   id: string;
   name: string;
-  userId?: string;
-  groupId?: string;
+  userIds?: string[];
+  groupIds?: string[];
   filters: {
     assigneeIds?: string[];
     groupIds?: string[];
@@ -24,19 +25,21 @@ export interface TicketFilterSchema {
 }
 
 export interface FetchTicketFiltersOptions {
-  userId?: string;
-  groupId?: string;
+  userId?: string | string[];
+  groupId?: string | string[];
 }
 
 export async function fetchTicketFilters(
   options?: FetchTicketFiltersOptions
 ): Promise<TicketFilterSchema[]> {
-  const { data } = await http.get('/api/2/ticket-filters', {
-    params: {
-      userId: options?.userId,
-      groupId: options?.groupId,
-    },
-  });
+  const params: any = {};
+  if (options?.userId) {
+    params.userId = castArray(options.userId).join(',');
+  }
+  if (options?.groupId) {
+    params.groupId = castArray(options.groupId).join(',');
+  }
+  const { data } = await http.get('/api/2/ticket-filters', { params });
   return data;
 }
 
@@ -47,7 +50,7 @@ export async function fetchTicketFilter(id: string): Promise<TicketFilterSchema>
 
 export type CreateTicketFilterData = Pick<
   TicketFilterSchema,
-  'name' | 'userId' | 'groupId' | 'filters'
+  'name' | 'userIds' | 'groupIds' | 'filters'
 >;
 
 export async function createTicketFilter(
@@ -59,8 +62,8 @@ export async function createTicketFilter(
 
 export interface UpdateTicketFilterData {
   name?: string;
-  userId?: string | null;
-  groupId?: string | null;
+  userIds?: string[] | null;
+  groupIds?: string[] | null;
   filters?: TicketFilterSchema['filters'];
 }
 

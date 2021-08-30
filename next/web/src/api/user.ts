@@ -1,7 +1,8 @@
 import { AxiosError } from 'axios';
 import { UseQueryOptions, useQuery } from 'react-query';
 
-import { http } from '../leancloud';
+import { http } from 'leancloud';
+import { GroupSchema } from './group';
 
 export interface UserSchema {
   id: string;
@@ -36,6 +37,22 @@ export function useCustomerService(id: string, options?: UseCustomerServiceOptio
   return useQuery({
     queryKey: ['customerService', id],
     queryFn: () => fetchCustomerService(id),
+    ...options,
+  });
+}
+
+export async function fetchCustomerServiceGroups(id: string): Promise<GroupSchema[]> {
+  const { data } = await http.get(`/api/2/customer-services/${id}/groups`);
+  return data;
+}
+
+export function useCustomerServiceGroups(
+  id: string,
+  options?: UseQueryOptions<GroupSchema[], AxiosError>
+) {
+  return useQuery({
+    queryKey: ['customerServiceGroups', id],
+    queryFn: () => fetchCustomerServiceGroups(id),
     ...options,
   });
 }

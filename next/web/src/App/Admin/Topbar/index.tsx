@@ -6,7 +6,6 @@ import { useCustomerService } from 'api/user';
 function CurrentUserSection(props: ComponentPropsWithoutRef<'section'>) {
   const { data, isLoading } = useCustomerService('me', {
     staleTime: Infinity,
-    cacheTime: Infinity,
   });
 
   return (

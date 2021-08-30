@@ -8,23 +8,24 @@ import { StringParam, useQueryParam } from 'use-query-params';
 import { isEmpty, isNull, omitBy } from 'lodash';
 import { produce } from 'immer';
 
-import Menu from 'components/Menu';
-import styles from './index.module.css';
-import { FilterSearch } from './FilterSearch';
-import { SaveData, SaveDialog } from './SaveDialog';
-import { presetFilters } from '../prest-filters';
+import { auth } from 'leancloud';
 import {
   useCreateTicketFilter,
   useDeleteTicketFilter,
   useTicketFilters,
   useUpdateTicketFilter,
 } from 'api/ticket-filter';
-import { auth } from 'leancloud';
+import { useCustomerServiceGroups } from 'api/user';
+import Menu from 'components/Menu';
+import styles from './index.module.css';
+import { FilterSearch } from './FilterSearch';
+import { SaveData, SaveDialog } from './SaveDialog';
+import { presetFilters } from '../prest-filters';
 import { useTicketFilter } from '../../useTicketFilter';
 import { useTempFilters } from '..';
 
-function getPrivilege(filter: { userId?: string; groupId?: string }): SaveData['privilege'] {
-  return filter.userId ? 'private' : filter.groupId ? 'group' : 'public';
+function getPrivilege(filter: { userIds?: string[]; groupIds?: string[] }): SaveData['privilege'] {
+  return filter.userIds ? 'private' : filter.groupIds ? 'group' : 'public';
 }
 
 interface FilterMenuProps {
@@ -56,10 +57,22 @@ function FilterMenus({ open, onClose, selected, onSelect }: FilterMenusProps) {
   const $input = useRef<HTMLInputElement>(null!);
   const [keyword, setKeyword] = useState('');
 
+  const { data: groups } = useCustomerServiceGroups('me', {
+    enabled: !!open,
+  });
+
   const { data: privateFilters } = useTicketFilters({
     userId: auth.currentUser?.id,
     queryOptions: {
       enabled: !!open,
+      staleTime: Infinity,
+    },
+  });
+
+  const { data: groupFilters } = useTicketFilters({
+    groupId: groups?.map((g) => g.id),
+    queryOptions: {
+      enabled: !!open && !!groups,
       staleTime: Infinity,
     },
   });
@@ -120,6 +133,10 @@ function FilterMenus({ open, onClose, selected, onSelect }: FilterMenusProps) {
             <FilterMenu filters={privateFilters} selected={selected} onSelect={handleSelect} />
           )}
 
+          {!keyword && groupFilters && groupFilters.length > 0 && (
+            <FilterMenu filters={groupFilters} selected={selected} onSelect={handleSelect} />
+          )}
+
           {!keyword && publicFilters && publicFilters.length > 0 && (
             <FilterMenu filters={publicFilters} selected={selected} onSelect={handleSelect} />
           )}
@@ -133,21 +150,7 @@ function FilterMenus({ open, onClose, selected, onSelect }: FilterMenusProps) {
   );
 }
 
-interface FilterMenuTriggerProps {
-  canSave?: boolean;
-  canSaveAs?: boolean;
-  canReset?: boolean;
-  canEdit?: boolean;
-  canDelete?: boolean;
-}
-
-function FilterMenuTrigger({
-  canSave,
-  canSaveAs,
-  canReset,
-  canEdit,
-  canDelete,
-}: FilterMenuTriggerProps) {
+function FilterMenuTrigger() {
   const [menusOpen, setMenusOpen] = useState(false);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const toggleMenus = useCallback(() => setMenusOpen((v) => !v), []);
@@ -162,6 +165,8 @@ function FilterMenuTrigger({
     name: '',
     privilege: 'private',
   });
+
+  const { data: groups, isLoading: isLoadingGroups } = useCustomerServiceGroups('me');
 
   const handleOpenSaveDialog = useCallback(() => {
     if (!filter) return;
@@ -186,6 +191,7 @@ function FilterMenuTrigger({
   const { mutate: createFilter } = useCreateTicketFilter({
     onSuccess: ({ id }, data) => {
       queryClient.setQueryData(['ticketFilter', id], data);
+      queryClient.invalidateQueries('ticketFilters');
       setFilterId(id);
       setTempFilters(undefined);
       setSaveDialogOpen(false);
@@ -195,7 +201,8 @@ function FilterMenuTrigger({
   const handleCreateFilter = () => {
     createFilter({
       name: data.name,
-      userId: data.privilege === 'private' ? auth.currentUser?.id : undefined,
+      userIds: data.privilege === 'private' ? [auth.currentUser!.id] : undefined,
+      groupIds: data.privilege === 'group' ? groups?.map((g) => g.id) : undefined,
       filters: omitBy({ ...filter?.filters, ...tempFilters }, isNull),
     });
   };
@@ -229,7 +236,8 @@ function FilterMenuTrigger({
     updateFilter({
       id: filter.id,
       name: data.name,
-      userId: data.privilege === 'private' ? auth.currentUser?.id : null,
+      userIds: data.privilege === 'private' ? [auth.currentUser!.id] : null,
+      groupIds: data.privilege === 'group' ? groups?.map((g) => g.id) : null,
     });
   };
 
@@ -246,7 +254,7 @@ function FilterMenuTrigger({
     }
   }, [filter]);
 
-  const disabled = updating || deleting;
+  const disabled = updating || deleting || isLoadingGroups;
   const isDirty = !isEmpty(tempFilters);
 
   return (
@@ -317,11 +325,11 @@ function FilterMenuTrigger({
   );
 }
 
-export function FilterMenuTriggerPortal(props: FilterMenuTriggerProps) {
+export function FilterMenuTriggerPortal() {
   const [container, setContainer] = useState<Element | null>(null);
   useEffect(() => {
     setContainer(document.querySelector('header #custom-section'));
   }, []);
 
-  return container && createPortal(<FilterMenuTrigger {...props} />, container);
+  return container && createPortal(<FilterMenuTrigger />, container);
 }

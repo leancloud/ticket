@@ -13,7 +13,6 @@ export interface AssigneeSelectProps {
 export function AssigneeSelect({ value, onChange }: AssigneeSelectProps) {
   const { data: assignees, isLoading } = useCustomerServices({
     cacheTime: Infinity,
-    staleTime: Infinity,
   });
   // TODO: handle api error
 

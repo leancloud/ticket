@@ -7,8 +7,8 @@ export class TicketFilterResponse {
     return {
       id: this.ticketFilter.id,
       name: this.ticketFilter.name,
-      userId: this.ticketFilter.userId ?? undefined,
-      groupId: this.ticketFilter.groupId ?? undefined,
+      userIds: this.ticketFilter.userIds ?? undefined,
+      groupIds: this.ticketFilter.groupIds ?? undefined,
       filters: this.ticketFilter.filters,
     };
   }
