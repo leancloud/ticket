@@ -1,0 +1,17 @@
+.label {
+  &.required::after {
+    @apply relative text-[#d72d30] text-base top-[2px] pl-[2px] font-bold;
+    content: '*';
+  }
+}
+
+.radio {
+  &:checked {
+    @apply border-primary;
+
+    &::after {
+      @apply inline-block relative top-[-3px] left-[2px] w-2 h-2 bg-primary rounded-full;
+      content: '';
+    }
+  }
+}

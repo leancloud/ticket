@@ -17,14 +17,14 @@ export function MenuItem({ eventKey, active, children }: MenuItemProps) {
   return (
     <button
       className={cx(
-        'flex items-center w-full text-left px-2 py-1 rounded hover:bg-gray-200 whitespace-nowrap',
+        'flex items-center w-full text-left px-2 py-1 rounded hover:bg-[#f2f5f7] whitespace-nowrap',
         {
           'text-primary': active,
         }
       )}
       onClick={() => onSelect?.(eventKey)}
     >
-      <span className="flex-grow">{children}</span>
+      <span className="flex-grow truncate">{children}</span>
       <HiCheck className={`ml-2 ${active ? 'visible' : 'invisible'}`} />
     </button>
   );
@@ -42,11 +42,7 @@ export const Menu = forwardRef<HTMLDivElement, MenuProps>(
   ({ className, onSelect, ...props }, ref) => {
     return (
       <MenuContext.Provider value={{ onSelect }}>
-        <div
-          {...props}
-          ref={ref}
-          className={cx('bg-white border border-gray-300 rounded p-2 select-none', className)}
-        />
+        <div {...props} ref={ref} className={cx('bg-white p-2 select-none', className)} />
       </MenuContext.Provider>
     );
   }
