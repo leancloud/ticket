@@ -440,8 +440,12 @@ router.delete(
       throw new Error('This action must be done by the author')
     }
     reply.set('active', false)
+    // reply.setACL({})
+    await reply.save(null, { useMasterKey: true })
+    // 同时修改 active 和 acl 会导致 liveQuery 无法收到更新
     reply.setACL({})
     await reply.save(null, { useMasterKey: true })
+
     res.json({
       id: replyId,
     })
