@@ -133,6 +133,10 @@ function useReplies(ticketId) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  const deleteReply = useCallback((id) => {
+    setReplies((pre) => pre.filter((reply) => reply.id !== id))
+  }, [])
+
   useEffect(() => {
     if (!ticketId) {
       return
@@ -143,6 +147,18 @@ function useReplies(ticketId) {
     const liveQuery = query
       .subscribe()
       .then((subscription) => {
+        subscription.on('update', (reply) => {
+          const replyObj = reply.toJSON()
+          // delete
+          if (!replyObj.active) {
+            setReplies((pre) =>
+              pre.filter((curr) => {
+                return curr.id !== replyObj.objectId
+              })
+            )
+          }
+          // update
+        })
         subscription.on('create', (reply) => {
           if (!$cursor.current || new Date($cursor.current) < reply.createdAt) {
             loadMoreReplies()
@@ -157,7 +173,7 @@ function useReplies(ticketId) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ticketId])
 
-  return { replies, loadMoreReplies }
+  return { replies, loadMoreReplies, deleteReply }
 }
 
 /**
@@ -222,7 +238,7 @@ function useOpsLogs(ticketId) {
  * @param {string} [ticketId]
  */
 function useTimeline(ticketId) {
-  const { replies, loadMoreReplies } = useReplies(ticketId)
+  const { replies, loadMoreReplies, deleteReply } = useReplies(ticketId)
   const { opsLogs, loadMoreOpsLogs } = useOpsLogs(ticketId)
   const timeline = useMemo(() => {
     return [
@@ -230,7 +246,7 @@ function useTimeline(ticketId) {
       ...opsLogs.map((opsLog) => ({ ...opsLog, type: 'opsLog' })),
     ].sort((a, b) => (a.created_at > b.created_at ? 1 : -1))
   }, [replies, opsLogs])
-  return { timeline, loadMoreReplies, loadMoreOpsLogs }
+  return [timeline, { loadMoreReplies, loadMoreOpsLogs, deleteReply }]
 }
 
 function TicketInfo({ ticket, isCustomerService }) {
@@ -296,16 +312,18 @@ TicketInfo.propTypes = {
   isCustomerService: PropTypes.bool,
 }
 
-function Timeline({ data }) {
+function Timeline({ data, onReplyDeleted, ticketId }) {
   switch (data.type) {
     case 'opsLog':
       return <OpsLog data={data} />
     case 'reply':
-      return <ReplyCard data={data} />
+      return <ReplyCard data={data} ticketId={ticketId} onDeleted={onReplyDeleted} />
   }
 }
 Timeline.propTypes = {
   data: PropTypes.object.isRequired,
+  onReplyDeleted: PropTypes.func,
+  ticketId: PropTypes.string.isRequired,
 }
 
 export default function Ticket() {
@@ -316,7 +334,7 @@ export default function Ticket() {
   const appContextValue = useContext(AppContext)
   const { addNotification, currentUser, isCustomerService } = appContextValue
   const { ticket, isLoading: loadingTicket, refetchTicket, error } = useTicket(nid)
-  const { timeline, loadMoreReplies, loadMoreOpsLogs } = useTimeline(ticket?.id)
+  const [timeline, { loadMoreReplies, loadMoreOpsLogs, deleteReply }] = useTimeline(ticket?.id)
   useTitle(ticket?.title)
   const { mutateAsync: operateTicket } = useMutation({
     mutationFn: (action) =>
@@ -358,9 +376,14 @@ export default function Ticket() {
       <Row>
         <Col sm={8}>
           <div className="tickets">
-            <ReplyCard data={ticket} />
+            <ReplyCard data={ticket} ticketId={ticket.id} />
             {timeline.map((data) => (
-              <Timeline key={data.id} data={data} />
+              <Timeline
+                key={data.id}
+                data={data}
+                ticketId={ticket.id}
+                onReplyDeleted={deleteReply}
+              />
             ))}
           </div>
           <hr />

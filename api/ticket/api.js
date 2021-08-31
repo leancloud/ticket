@@ -4,7 +4,7 @@ const { Router } = require('express')
 const { check, query } = require('express-validator')
 const { captureException } = require('../errorHandler')
 const { checkPermission } = require('../../oauth/lc')
-const { requireAuth, catchError, parseSearchingQ } = require('../middleware')
+const { requireAuth, catchError, parseSearchingQ, customerServiceOnly } = require('../middleware')
 const { getVacationerIds, getFormValuesDifference, resetUnreadCount } = require('./utils')
 const { isObjectExists } = require('../utils/object')
 const { encodeGroupObject } = require('../group/utils')
@@ -370,6 +370,7 @@ router.get(
     const isCS = await isCSInTicket(req.user, req.ticket.get('author'))
 
     let query = new AV.Query('Reply').equalTo('ticket', req.ticket)
+    query.equalTo('active', true)
     if (created_at_gt) {
       query.greaterThan('createdAt', new Date(created_at_gt))
     }
@@ -426,6 +427,28 @@ router.post(
       isCustomerService,
     })
     res.json(encodeReplyObject(reply))
+  })
+)
+
+router.delete(
+  '/:id/replies/:replyId',
+  customerServiceOnly,
+  catchError(async (req, res) => {
+    const { replyId } = req.params
+    const reply = await new AV.Query('Reply').get(replyId, { useMasterKey: true })
+    if (reply.get('author').id !== req.user.id) {
+      throw new Error('This action must be done by the author')
+    }
+    reply.set('active', false)
+    // reply.setACL({})
+    await reply.save(null, { useMasterKey: true })
+    // 同时修改 active 和 acl 会导致 liveQuery 无法收到更新
+    reply.setACL({})
+    await reply.save(null, { useMasterKey: true })
+
+    res.json({
+      id: replyId,
+    })
   })
 )
 
