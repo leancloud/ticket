@@ -56,27 +56,29 @@ export function SaveDialog({
           <div className="mt-4">
             <Form.Label>显示对象</Form.Label>
             <div>
-              <Form.Radio
-                className="w-full mt-2"
-                checked={data.privilege === 'private'}
-                onChange={() => onChange({ ...data, privilege: 'private' })}
-              >
-                只有我
-              </Form.Radio>
-              <Form.Radio
-                className="w-full mt-1"
-                checked={data.privilege === 'group'}
-                onChange={() => onChange({ ...data, privilege: 'group' })}
-              >
-                同组客服
-              </Form.Radio>
-              <Form.Radio
-                className="w-full mt-1"
-                checked={data.privilege === 'public'}
-                onChange={() => onChange({ ...data, privilege: 'public' })}
-              >
-                所有客服
-              </Form.Radio>
+              <Form.Label className="flex items-center mt-2">
+                <Form.Radio
+                  checked={data.privilege === 'private'}
+                  onChange={() => onChange({ ...data, privilege: 'private' })}
+                />
+                <span className="ml-1.5">只有我</span>
+              </Form.Label>
+
+              <Form.Label className="flex items-center mt-2">
+                <Form.Radio
+                  checked={data.privilege === 'group'}
+                  onChange={() => onChange({ ...data, privilege: 'group' })}
+                />
+                <span className="ml-1.5">同组客服</span>
+              </Form.Label>
+
+              <Form.Label className="flex items-center mt-2">
+                <Form.Radio
+                  checked={data.privilege === 'public'}
+                  onChange={() => onChange({ ...data, privilege: 'public' })}
+                />
+                <span className="ml-1.5">所有客服</span>
+              </Form.Label>
             </div>
           </div>
         </div>

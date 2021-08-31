@@ -4,14 +4,3 @@
     content: '*';
   }
 }
-
-.radio {
-  &:checked {
-    @apply border-primary;
-
-    &::after {
-      @apply inline-block relative top-[-3px] left-[2px] w-2 h-2 bg-primary rounded-full;
-      content: '';
-    }
-  }
-}
