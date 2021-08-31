@@ -29,7 +29,7 @@ export default function AdminPage() {
   }
   return (
     <div className="flex h-full">
-      <Sidebar className="z-50" />
+      <Sidebar className="z-40" />
       <div className="flex flex-grow flex-col overflow-hidden">
         <Topbar className="flex-shrink-0" />
         <div className="flex-grow overflow-hidden">

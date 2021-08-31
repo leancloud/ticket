@@ -26,6 +26,7 @@ function TicketsPage() {
     return omitBy({ ...filter?.filters, ...tempFilters }, isNull);
   }, [filter, tempFilters]);
 
+  const [checkedIds, setCheckedIds] = useState<string[]>([]);
   const { data, isLoading, isFetching } = useTickets({
     pageSize,
     page,
@@ -35,6 +36,7 @@ function TicketsPage() {
     queryOptions: {
       enabled: !isLoadingFilters,
       keepPreviousData: true,
+      onSuccess: () => setCheckedIds([]),
     },
   });
 
@@ -49,11 +51,17 @@ function TicketsPage() {
         className="flex-shrink-0 z-0"
         showFilter={showFilter}
         onChangeShowFilter={setShowFilter}
-        pagination={{
-          pageSize,
-          count: tickets?.length ?? 0,
-          totalCount: totalCount ?? 0,
-          isLoading: isLoading || isFetching,
+        pageSize={pageSize}
+        count={tickets?.length}
+        totalCount={totalCount}
+        isLoading={isLoading || isFetching}
+        checkedTicketIds={checkedIds}
+        onCheckedChange={(checked) => {
+          if (checked) {
+            tickets && setCheckedIds(tickets.map((t) => t.id));
+          } else {
+            setCheckedIds([]);
+          }
         }}
       />
 
@@ -62,7 +70,11 @@ function TicketsPage() {
           {isLoading ? (
             'Loading...'
           ) : tickets && tickets.length > 0 ? (
-            <TicketList tickets={tickets} />
+            <TicketList
+              tickets={tickets}
+              checkedIds={checkedIds}
+              onCheckedIdsChange={setCheckedIds}
+            />
           ) : (
             'No data'
           )}

@@ -107,9 +107,7 @@ function FilterMenus({ open, onClose, selected, onSelect }: FilterMenusProps) {
       as={Fragment}
       enter="transition"
       enterFrom="opacity-0 -translate-x-4"
-      enterTo="opacity-100"
       leave="transition"
-      leaveFrom="opacity-100"
       leaveTo="opacity-0 -translate-x-4"
     >
       <Dialog

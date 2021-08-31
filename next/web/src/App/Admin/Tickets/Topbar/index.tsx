@@ -1,14 +1,16 @@
-import { ComponentPropsWithoutRef, useCallback, useEffect, useState } from 'react';
+import { ComponentPropsWithoutRef, useCallback, useEffect, useMemo, useState } from 'react';
 import { BsLayoutSidebarReverse } from 'react-icons/bs';
-import { HiChevronDown, HiChevronLeft, HiChevronRight } from 'react-icons/hi';
+import { HiChevronDown, HiChevronLeft, HiChevronRight, HiOutlineRefresh } from 'react-icons/hi';
 import { Transition } from '@headlessui/react';
 import cx from 'classnames';
 
 import { Button } from 'components/Button';
+import { Checkbox } from 'components/Form/Checkbox';
 import Menu from 'components/Menu';
 import { usePage } from 'utils/usePage';
 import { useOrderBy as _useOrderBy } from 'utils/useOrderBy';
 import styles from './index.module.css';
+import { BatchUpdateDialog } from './BatchUpdateDialog';
 
 export const useOrderBy = () =>
   _useOrderBy({
@@ -87,10 +89,25 @@ function SortDropdown() {
   );
 }
 
+function BatchOperations() {
+  const [batchUpdateOpen, setBatchUpdateOpen] = useState(false);
+
+  return (
+    <>
+      <Button className="px-2 py-1" onClick={() => setBatchUpdateOpen(!batchUpdateOpen)}>
+        <HiOutlineRefresh className="inline w-[14px] h-[14px] mb-px mr-1" />
+        批量更新
+      </Button>
+
+      <BatchUpdateDialog open={batchUpdateOpen} onClose={() => setBatchUpdateOpen(false)} />
+    </>
+  );
+}
+
 interface PaginationProps {
   pageSize: number;
-  count: number;
-  totalCount: number;
+  count?: number;
+  totalCount?: number;
   isLoading?: boolean;
 }
 
@@ -101,7 +118,7 @@ function Pagination({ pageSize, count, totalCount, isLoading }: PaginationProps)
   const [overflow, setOverflow] = useState(false);
 
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading && count !== undefined && totalCount !== undefined) {
       const starts = (page - 1) * pageSize;
       const ends = starts + count;
       if (count) {
@@ -136,12 +153,36 @@ function Pagination({ pageSize, count, totalCount, isLoading }: PaginationProps)
 }
 
 export interface TopbarProps extends ComponentPropsWithoutRef<'div'> {
-  pagination: PaginationProps;
   showFilter?: boolean;
   onChangeShowFilter?: (value: boolean) => void;
+  pageSize: number;
+  count?: number;
+  totalCount?: number;
+  isLoading?: boolean;
+  checkedTicketIds?: string[];
+  onCheckedChange?: (checked: boolean) => void;
 }
 
-export function Topbar({ showFilter, onChangeShowFilter, pagination, ...props }: TopbarProps) {
+export function Topbar({
+  showFilter,
+  onChangeShowFilter,
+  pageSize,
+  count,
+  totalCount,
+  isLoading,
+  checkedTicketIds,
+  onCheckedChange,
+  ...props
+}: TopbarProps) {
+  const indeterminate = useMemo(() => {
+    if (checkedTicketIds !== undefined && count !== undefined) {
+      if (checkedTicketIds.length > 0 && checkedTicketIds.length !== count) {
+        return true;
+      }
+    }
+    return false;
+  }, [checkedTicketIds, count]);
+
   return (
     <div
       {...props}
@@ -151,9 +192,24 @@ export function Topbar({ showFilter, onChangeShowFilter, pagination, ...props }:
         props.className
       )}
     >
-      <div className="flex-grow">{pagination.count > 0 && <SortDropdown />}</div>
+      <div className="flex flex-grow items-center">
+        {!isLoading && (
+          <>
+            <Checkbox
+              className="mr-4"
+              indeterminate={indeterminate}
+              onChange={(e) => onCheckedChange?.(e.target.checked)}
+            />
+            {!checkedTicketIds || checkedTicketIds.length === 0 ? (
+              <SortDropdown />
+            ) : (
+              <BatchOperations />
+            )}
+          </>
+        )}
+      </div>
 
-      <Pagination {...pagination} />
+      <Pagination pageSize={pageSize} count={count} totalCount={totalCount} isLoading={isLoading} />
 
       <Button
         className="ml-2 px-[7px] py-[7px]"
