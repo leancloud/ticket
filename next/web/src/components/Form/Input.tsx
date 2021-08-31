@@ -1,9 +1,7 @@
 import { ComponentPropsWithoutRef } from 'react';
 import cx from 'classnames';
 
-export interface InputProps extends ComponentPropsWithoutRef<'input'> {}
-
-export function Input({ ...props }: InputProps) {
+export function Input({ ...props }: ComponentPropsWithoutRef<'input'>) {
   return (
     <input
       {...props}
