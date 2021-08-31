@@ -29,7 +29,6 @@ export function useCategories({ active, queryOptions }: UseCategoriesOptions = {
     queryKey: ['categories', active],
     queryFn: () => fetchCategories(active),
     staleTime: Infinity,
-    cacheTime: Infinity,
     ...queryOptions,
   });
 }

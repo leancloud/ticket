@@ -11,9 +11,7 @@ export interface AssigneeSelectProps {
 }
 
 export function AssigneeSelect({ value, onChange }: AssigneeSelectProps) {
-  const { data: assignees, isLoading } = useCustomerServices({
-    cacheTime: Infinity,
-  });
+  const { data: assignees, isLoading } = useCustomerServices();
   // TODO: handle api error
 
   const options = useMemo(() => {

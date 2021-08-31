@@ -22,6 +22,7 @@ export function useCustomerServices(options?: UseCustomerServicesOptions) {
   return useQuery({
     queryKey: 'customerServices',
     queryFn: fetchCustomerServices,
+    staleTime: Infinity,
     ...options,
   });
 }

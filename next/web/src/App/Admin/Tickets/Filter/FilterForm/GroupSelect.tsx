@@ -11,10 +11,7 @@ export interface GroupSelectProps {
 }
 
 export function GroupSelect({ value, onChange }: GroupSelectProps) {
-  const { data: groups, isLoading } = useGroups({
-    staleTime: Infinity,
-    cacheTime: Infinity,
-  });
+  const { data: groups, isLoading } = useGroups();
   // TODO: handle api error
 
   const options = useMemo(() => {

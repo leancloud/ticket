@@ -17,6 +17,7 @@ export function useGroups(options?: UseQueryOptions<GroupSchema[], AxiosError>) 
   return useQuery({
     queryKey: 'groups',
     queryFn: fetchGroups,
+    staleTime: Infinity,
     ...options,
   });
 }
