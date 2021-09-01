@@ -37,6 +37,7 @@
     "react-icons": "^4.2.0",
     "react-query": "^3.21.0",
     "recoil": "^0.4.0",
+    "throat": "^6.0.1",
     "use-query-params": "^1.2.3",
     "yup": "^0.32.9"
   },
