@@ -1,6 +1,12 @@
 import { ComponentPropsWithoutRef, useCallback, useEffect, useMemo, useState } from 'react';
 import { BsLayoutSidebarReverse } from 'react-icons/bs';
-import { HiChevronDown, HiChevronLeft, HiChevronRight, HiOutlineRefresh } from 'react-icons/hi';
+import {
+  HiAdjustments,
+  HiChevronDown,
+  HiChevronLeft,
+  HiChevronRight,
+  HiOutlineRefresh,
+} from 'react-icons/hi';
 import { Menu as HLMenu, Transition } from '@headlessui/react';
 import { useQueryClient } from 'react-query';
 import cx from 'classnames';
@@ -12,6 +18,7 @@ import { usePage } from 'utils/usePage';
 import { useOrderBy as _useOrderBy } from 'utils/useOrderBy';
 import styles from './index.module.css';
 import { BatchUpdateDialog } from './BatchUpdateDialog';
+import { BatchOperationMenu } from './BatchOperateMenu';
 import { BatchUpdateData, BatchUpdateError, batchUpdate } from './batchUpdate';
 
 export const useOrderBy = () =>
@@ -48,6 +55,7 @@ function SortDropdown({ disabled }: { disabled?: boolean }) {
           {orderKeys[orderKey]} <HiChevronDown className="inline" />
         </span>
       </HLMenu.Button>
+
       <Transition
         enter="transition"
         enterFrom="opacity-0 -translate-y-4"
@@ -59,22 +67,22 @@ function SortDropdown({ disabled }: { disabled?: boolean }) {
           className="absolute mt-1 border border-gray-300 rounded shadow-md"
           onSelect={handleSelect}
         >
-          <Menu.Item eventKey="createdAt" active={orderKey === 'createdAt'}>
+          <HLMenu.Item as={Menu.Item} eventKey="createdAt" active={orderKey === 'createdAt'}>
             {orderKeys.createdAt}
-          </Menu.Item>
-          <Menu.Item eventKey="updatedAt" active={orderKey === 'updatedAt'}>
+          </HLMenu.Item>
+          <HLMenu.Item as={Menu.Item} eventKey="updatedAt" active={orderKey === 'updatedAt'}>
             {orderKeys.updatedAt}
-          </Menu.Item>
-          <Menu.Item eventKey="status" active={orderKey === 'status'}>
+          </HLMenu.Item>
+          <HLMenu.Item as={Menu.Item} eventKey="status" active={orderKey === 'status'}>
             {orderKeys.status}
-          </Menu.Item>
+          </HLMenu.Item>
           <Menu.Divider />
-          <Menu.Item eventKey="asc" active={orderType === 'asc'}>
+          <HLMenu.Item as={Menu.Item} eventKey="asc" active={orderType === 'asc'}>
             升序
-          </Menu.Item>
-          <Menu.Item eventKey="desc" active={orderType === 'desc'}>
+          </HLMenu.Item>
+          <HLMenu.Item as={Menu.Item} eventKey="desc" active={orderType === 'desc'}>
             降序
-          </Menu.Item>
+          </HLMenu.Item>
         </HLMenu.Items>
       </Transition>
     </HLMenu>
@@ -117,12 +125,23 @@ function BatchOperations({ checkedTicketIds, disabled, onSuccess }: BatchOperati
     <>
       <Button
         className="px-2 py-1"
-        disabled={disabled}
+        disabled={disabled || isLoading}
         onClick={() => setBatchUpdateOpen(!batchUpdateOpen)}
       >
         <HiOutlineRefresh className="inline w-[14px] h-[14px] mb-px mr-1" />
         批量更新
       </Button>
+
+      <BatchOperationMenu
+        className="ml-1"
+        trigger={
+          <Button className="px-2 py-1" disabled={disabled || isLoading}>
+            <HiAdjustments className="inline w-[14px] h-[14px] mb-px mr-1" />
+            批量操作
+          </Button>
+        }
+        onOperate={(operation) => handleSubmit({ operation })}
+      />
 
       <BatchUpdateDialog
         open={batchUpdateOpen}

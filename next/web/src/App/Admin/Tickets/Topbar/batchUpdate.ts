@@ -8,11 +8,14 @@ export interface BatchReply {
   content: string;
 }
 
+export type Operation = 'close';
+
 export interface BatchUpdateData {
   reply?: BatchReply;
   assigneeId?: string;
   groupId?: string;
   caregoryId?: string;
+  operation?: Operation;
 }
 
 async function replyTicket(ticketId: string, reply: BatchReply) {
@@ -36,6 +39,15 @@ async function updateTicket(ticketId: string, data: Omit<BatchUpdateData, 'reply
   } catch (error) {
     const msg = (error as AxiosError).response?.data;
     throw new Error(`update ticket ${ticketId} failed: ${JSON.stringify(msg)}`);
+  }
+}
+
+async function operateTicket(ticketId: string, operation: Operation) {
+  try {
+    await http.post(`/api/1/tickets/${ticketId}/operate`, { action: operation });
+  } catch (error) {
+    const msg = (error as AxiosError).response?.data;
+    throw new Error(`operate ticket ${ticketId} failed: ${JSON.stringify(msg)}`);
   }
 }
 
@@ -75,6 +87,14 @@ export async function batchUpdate(
   if (data.assigneeId || data.groupId || data.caregoryId) {
     ticketIds.forEach((id) => {
       const task = () => updateTicket(id, data).catch(errorHandler);
+      tasks.push(task);
+    });
+  }
+
+  if (data.operation) {
+    const op = data.operation;
+    ticketIds.forEach((id) => {
+      const task = () => operateTicket(id, op).catch(errorHandler);
       tasks.push(task);
     });
   }

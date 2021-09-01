@@ -1,4 +1,4 @@
-import { ComponentPropsWithRef, ReactNode, createContext, useContext, forwardRef } from 'react';
+import { ComponentPropsWithRef, createContext, useContext, forwardRef } from 'react';
 import { HiCheck } from 'react-icons/hi';
 import cx from 'classnames';
 
@@ -6,25 +6,29 @@ const MenuContext = createContext<{
   onSelect?: (eventKey: string) => void;
 }>({});
 
-export interface MenuItemProps {
+export interface MenuItemProps extends ComponentPropsWithRef<'button'> {
   eventKey: string;
   active?: boolean;
-  children?: ReactNode;
 }
 
-export function MenuItem({ eventKey, active, children }: MenuItemProps) {
+export function MenuItem({ eventKey, active, ...props }: MenuItemProps) {
   const { onSelect } = useContext(MenuContext);
   return (
     <button
+      {...props}
       className={cx(
         'flex items-center w-full text-left px-2 py-1 rounded hover:bg-[#f2f5f7] whitespace-nowrap',
         {
           'text-primary': active,
-        }
+        },
+        props.className
       )}
-      onClick={() => onSelect?.(eventKey)}
+      onClick={(e) => {
+        onSelect?.(eventKey);
+        props.onClick?.(e);
+      }}
     >
-      <span className="flex-grow truncate">{children}</span>
+      <span className="flex-grow truncate">{props.children}</span>
       <HiCheck className={`ml-2 ${active ? 'visible' : 'invisible'}`} />
     </button>
   );
