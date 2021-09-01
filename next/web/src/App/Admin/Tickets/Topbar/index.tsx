@@ -1,7 +1,7 @@
 import { ComponentPropsWithoutRef, useCallback, useEffect, useMemo, useState } from 'react';
 import { BsLayoutSidebarReverse } from 'react-icons/bs';
 import { HiChevronDown, HiChevronLeft, HiChevronRight, HiOutlineRefresh } from 'react-icons/hi';
-import { Transition } from '@headlessui/react';
+import { Menu as HLMenu, Transition } from '@headlessui/react';
 import { useQueryClient } from 'react-query';
 import cx from 'classnames';
 
@@ -27,8 +27,6 @@ const orderKeys: Record<string, string> = {
 };
 
 function SortDropdown() {
-  const [open, setOpen] = useState(false);
-  const toggle = useCallback(() => setOpen((cur) => !cur), []);
   const { orderKey, orderType, setOrderKey, setOrderType } = useOrderBy();
 
   const handleSelect = useCallback(
@@ -38,35 +36,27 @@ function SortDropdown() {
       } else {
         setOrderKey(eventKey);
       }
-      setOpen(false);
     },
     [setOrderKey, setOrderType]
   );
 
   return (
-    <span
-      tabIndex={-1}
-      className="relative"
-      onBlur={(e) => !e.currentTarget.contains(e.relatedTarget as any) && setOpen(false)}
-    >
-      <button onClick={toggle}>
+    <HLMenu as="span" className="relative">
+      <HLMenu.Button>
         <span className="text-[#6f7c87]">排序方式:</span>
         <span className="ml-2 text-[13px] font-medium">
           {orderKeys[orderKey]} <HiChevronDown className="inline" />
         </span>
-      </button>
+      </HLMenu.Button>
       <Transition
-        show={open}
-        className="absolute mt-1 transition"
-        enter="pointer-events-none"
+        enter="transition"
         enterFrom="opacity-0 -translate-y-4"
-        enterTo="opacity-100 translate-y-0"
-        leave="pointer-events-none"
-        leaveFrom="opacity-100"
+        leave="transition"
         leaveTo="opacity-0"
       >
-        <Menu
-          className="border border-gray-300 rounded shadow-md min-w-[120px]"
+        <HLMenu.Items
+          as={Menu}
+          className="absolute mt-1 border border-gray-300 rounded shadow-md"
           onSelect={handleSelect}
         >
           <Menu.Item eventKey="createdAt" active={orderKey === 'createdAt'}>
@@ -85,9 +75,9 @@ function SortDropdown() {
           <Menu.Item eventKey="desc" active={orderType === 'desc'}>
             降序
           </Menu.Item>
-        </Menu>
+        </HLMenu.Items>
       </Transition>
-    </span>
+    </HLMenu>
   );
 }
 
