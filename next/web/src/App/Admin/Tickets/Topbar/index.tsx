@@ -2,6 +2,7 @@ import { ComponentPropsWithoutRef, useCallback, useEffect, useMemo, useState } f
 import { BsLayoutSidebarReverse } from 'react-icons/bs';
 import { HiChevronDown, HiChevronLeft, HiChevronRight, HiOutlineRefresh } from 'react-icons/hi';
 import { Transition } from '@headlessui/react';
+import { useQueryClient } from 'react-query';
 import cx from 'classnames';
 
 import { Button } from 'components/Button';
@@ -11,6 +12,7 @@ import { usePage } from 'utils/usePage';
 import { useOrderBy as _useOrderBy } from 'utils/useOrderBy';
 import styles from './index.module.css';
 import { BatchUpdateDialog } from './BatchUpdateDialog';
+import { BatchUpdateData, BatchUpdateError, batchUpdate } from './batchUpdate';
 
 export const useOrderBy = () =>
   _useOrderBy({
@@ -89,8 +91,36 @@ function SortDropdown() {
   );
 }
 
-function BatchOperations() {
+interface BatchOperationsProps {
+  checkedTicketIds: string[];
+  onSuccess: () => void;
+}
+
+function BatchOperations({ checkedTicketIds, onSuccess }: BatchOperationsProps) {
   const [batchUpdateOpen, setBatchUpdateOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
+
+  const handleSubmit = async (data: BatchUpdateData) => {
+    if (isLoading) {
+      return;
+    }
+    setIsLoading(true);
+    try {
+      await batchUpdate(checkedTicketIds, data);
+      // TODO(sdjdd): 整个好看的 toast :wise-me:
+      alert(`${checkedTicketIds.length} 个工单更新成功`);
+      setBatchUpdateOpen(false);
+      onSuccess();
+      queryClient.invalidateQueries('tickets');
+    } catch (error) {
+      const errors = (error as BatchUpdateError).errors;
+      console.error(errors);
+      alert(`${errors.length} 个子任务执行失败，请打开控制台查看详细信息`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <>
@@ -99,7 +129,11 @@ function BatchOperations() {
         批量更新
       </Button>
 
-      <BatchUpdateDialog open={batchUpdateOpen} onClose={() => setBatchUpdateOpen(false)} />
+      <BatchUpdateDialog
+        open={batchUpdateOpen}
+        onClose={() => !isLoading && setBatchUpdateOpen(false)}
+        onSubmit={handleSubmit}
+      />
     </>
   );
 }
@@ -160,7 +194,7 @@ export interface TopbarProps extends ComponentPropsWithoutRef<'div'> {
   totalCount?: number;
   isLoading?: boolean;
   checkedTicketIds?: string[];
-  onCheckedChange?: (checked: boolean) => void;
+  onCheckedChange: (checked: boolean) => void;
 }
 
 export function Topbar({
@@ -198,12 +232,15 @@ export function Topbar({
             <Checkbox
               className="mr-4"
               indeterminate={indeterminate}
-              onChange={(e) => onCheckedChange?.(e.target.checked)}
+              onChange={(e) => onCheckedChange(e.target.checked)}
             />
             {!checkedTicketIds || checkedTicketIds.length === 0 ? (
               <SortDropdown />
             ) : (
-              <BatchOperations />
+              <BatchOperations
+                checkedTicketIds={checkedTicketIds}
+                onSuccess={() => onCheckedChange(false)}
+              />
             )}
           </>
         )}

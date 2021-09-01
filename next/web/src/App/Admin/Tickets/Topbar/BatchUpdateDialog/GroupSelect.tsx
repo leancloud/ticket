@@ -6,13 +6,10 @@ import { Select } from 'components/Select';
 export interface GroupSelectProps {
   value?: string;
   onChange: (value?: string) => void;
-  open?: boolean;
 }
 
-export function GroupSelect({ value, onChange, open }: GroupSelectProps) {
-  const { data: groups, isLoading } = useGroups({
-    enabled: !!open,
-  });
+export function GroupSelect({ value, onChange }: GroupSelectProps) {
+  const { data: groups, isLoading } = useGroups();
 
   const options = useMemo(() => {
     if (groups) {

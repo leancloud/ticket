@@ -57,15 +57,10 @@ function SubCategorySelect({
 export interface CategorySelectProps {
   value?: string;
   onChange: (value: string | undefined) => void;
-  open?: boolean;
 }
 
-export function CategorySelect({ value, onChange, open }: CategorySelectProps) {
-  const { data: categories, isLoading } = useCategories({
-    queryOptions: {
-      enabled: !!open,
-    },
-  });
+export function CategorySelect({ value, onChange }: CategorySelectProps) {
+  const { data: categories, isLoading } = useCategories();
 
   const activeCategories = useMemo(() => {
     if (!categories) {

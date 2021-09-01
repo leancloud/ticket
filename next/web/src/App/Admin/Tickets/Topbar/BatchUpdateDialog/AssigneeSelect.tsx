@@ -6,13 +6,10 @@ import { Select } from 'components/Select';
 export interface AssigneeSelectProps {
   value?: string;
   onChange: (value?: string) => void;
-  open?: boolean;
 }
 
-export function AssigneeSelect({ value, onChange, open }: AssigneeSelectProps) {
-  const { data: assignees, isLoading } = useCustomerServices({
-    enabled: !!open,
-  });
+export function AssigneeSelect({ value, onChange }: AssigneeSelectProps) {
+  const { data: assignees, isLoading } = useCustomerServices();
 
   const options = useMemo(() => {
     if (assignees) {
