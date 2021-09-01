@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Route, Switch, useRouteMatch } from 'react-router-dom';
 import { StringParam, useQueryParam } from 'use-query-params';
 import { isEqual, isNull, omitBy } from 'lodash';
@@ -26,7 +26,6 @@ function TicketsPage() {
     return omitBy({ ...filter?.filters, ...tempFilters }, isNull);
   }, [filter, tempFilters]);
 
-  const [checkedIds, setCheckedIds] = useState<string[]>([]);
   const { data, isLoading, isFetching } = useTickets({
     pageSize,
     page,
@@ -36,9 +35,11 @@ function TicketsPage() {
     queryOptions: {
       enabled: !isLoadingFilters,
       keepPreviousData: true,
-      onSuccess: () => setCheckedIds([]),
     },
   });
+
+  const [checkedIds, setCheckedIds] = useState<string[]>([]);
+  useEffect(() => setCheckedIds([]), [data]);
 
   const tickets = data?.tickets;
   const totalCount = data?.totalCount;

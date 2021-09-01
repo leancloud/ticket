@@ -26,7 +26,7 @@ const orderKeys: Record<string, string> = {
   status: '状态',
 };
 
-function SortDropdown() {
+function SortDropdown({ disabled }: { disabled?: boolean }) {
   const { orderKey, orderType, setOrderKey, setOrderType } = useOrderBy();
 
   const handleSelect = useCallback(
@@ -42,7 +42,7 @@ function SortDropdown() {
 
   return (
     <HLMenu as="span" className="relative">
-      <HLMenu.Button>
+      <HLMenu.Button disabled={disabled}>
         <span className="text-[#6f7c87]">排序方式:</span>
         <span className="ml-2 text-[13px] font-medium">
           {orderKeys[orderKey]} <HiChevronDown className="inline" />
@@ -83,10 +83,11 @@ function SortDropdown() {
 
 interface BatchOperationsProps {
   checkedTicketIds: string[];
+  disabled?: boolean;
   onSuccess: () => void;
 }
 
-function BatchOperations({ checkedTicketIds, onSuccess }: BatchOperationsProps) {
+function BatchOperations({ checkedTicketIds, disabled, onSuccess }: BatchOperationsProps) {
   const [batchUpdateOpen, setBatchUpdateOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const queryClient = useQueryClient();
@@ -114,7 +115,11 @@ function BatchOperations({ checkedTicketIds, onSuccess }: BatchOperationsProps) 
 
   return (
     <>
-      <Button className="px-2 py-1" onClick={() => setBatchUpdateOpen(!batchUpdateOpen)}>
+      <Button
+        className="px-2 py-1"
+        disabled={disabled}
+        onClick={() => setBatchUpdateOpen(!batchUpdateOpen)}
+      >
         <HiOutlineRefresh className="inline w-[14px] h-[14px] mb-px mr-1" />
         批量更新
       </Button>
@@ -217,22 +222,21 @@ export function Topbar({
       )}
     >
       <div className="flex flex-grow items-center">
-        {!isLoading && (
-          <>
-            <Checkbox
-              className="mr-4"
-              indeterminate={indeterminate}
-              onChange={(e) => onCheckedChange(e.target.checked)}
-            />
-            {!checkedTicketIds || checkedTicketIds.length === 0 ? (
-              <SortDropdown />
-            ) : (
-              <BatchOperations
-                checkedTicketIds={checkedTicketIds}
-                onSuccess={() => onCheckedChange(false)}
-              />
-            )}
-          </>
+        <Checkbox
+          className="mr-4"
+          indeterminate={indeterminate}
+          disabled={isLoading}
+          checked={!!(checkedTicketIds && count && checkedTicketIds.length === count)}
+          onChange={(e) => onCheckedChange(e.target.checked)}
+        />
+        {!checkedTicketIds || checkedTicketIds.length === 0 ? (
+          <SortDropdown disabled={isLoading} />
+        ) : (
+          <BatchOperations
+            checkedTicketIds={checkedTicketIds}
+            disabled={isLoading}
+            onSuccess={() => onCheckedChange(false)}
+          />
         )}
       </div>
 
