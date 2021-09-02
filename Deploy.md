@@ -60,3 +60,7 @@
 ### `8801cbbed85ae2a4fd15f22ff898af12a602d0fc`
 
 导入 TicketFilter.json 。
+
+### `facde73046f279297e511e12bc540d80b71d386f`
+
+删除 Reply class 的 active 列，然后重新导入 Reply.json 。
