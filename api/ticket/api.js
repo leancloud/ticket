@@ -370,7 +370,7 @@ router.get(
     const isCS = await isCSInTicket(req.user, req.ticket.get('author'))
 
     let query = new AV.Query('Reply').equalTo('ticket', req.ticket)
-    query.equalTo('active', true)
+    query.doesNotExist('deletedAt')
     if (created_at_gt) {
       query.greaterThan('createdAt', new Date(created_at_gt))
     }
@@ -439,8 +439,7 @@ router.delete(
     if (reply.get('author').id !== req.user.id) {
       throw new Error('This action must be done by the author')
     }
-    reply.set('active', false)
-    // reply.setACL({})
+    reply.set('deletedAt', new Date())
     await reply.save(null, { useMasterKey: true })
     // 同时修改 active 和 acl 会导致 liveQuery 无法收到更新
     reply.setACL({})

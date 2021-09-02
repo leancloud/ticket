@@ -166,13 +166,16 @@ function useClearLocalUnreadCount() {
     [queryClient]
   );
 }
-type Action = 'create' | 'update' |'delete'
+
+type Action = 'create' | 'update' | 'delete';
+
 function useWatchReply(
   ticketId: string,
-  callBack:(action:Action,reply:Reply)=>void
+  callBack: (action: Action, reply: { id: string; createdAt: Date }) => void
 ) {
-  const $onCreate = useRef(callBack);
-  $onCreate.current = callBack;
+  const $cb = useRef(callBack);
+  $cb.current = callBack;
+
   useEffect(() => {
     let unsubscribe: (() => any) | undefined;
     let unmounted = false;
@@ -186,30 +189,10 @@ function useWatchReply(
           return subscription.unsubscribe();
         }
         unsubscribe = () => subscription.unsubscribe();
-        subscription.on('create',(lcObject) => {
-          const replyRaw=lcObject.toJSON();
-          $onCreate.current('create',{
-            id: replyRaw.objectId,
-            content: replyRaw.content,
-            isStaff:replyRaw.isCustomerService,
-            files:  replyRaw.files,
-            createdAt: replyRaw.createdAt
-          })
-        });
-
-        subscription.on('update', (lcObject) => {
-          const replyRaw=lcObject.toJSON();
-          const reply = {
-            id: replyRaw.objectId,
-            content: replyRaw.content,
-            isStaff:replyRaw.isCustomerService,
-            files:  replyRaw.files,
-            createdAt: replyRaw.createdAt
-          }
-          if(replyRaw.active){
-            $onCreate.current('update',reply)
-          }else{
-            $onCreate.current('delete',reply)
+        subscription.on('create', (reply) => $cb.current('create', reply));
+        subscription.on('update', (reply) => {
+          if (reply.data.deletedAt) {
+            $cb.current('delete', reply);
           }
         });
       });
@@ -237,12 +220,7 @@ export default function TicketDetail() {
   const repliesResult = useReplies(id);
   const { data: replyPages, fetchNextPage: fetchMoreReplies } = repliesResult;
 
-  const [replies,setReplies] = useState<Reply[]>([])
-  useEffect(()=>{
-    if(replyPages){
-      setReplies(flatten(replyPages.pages))
-    }
-  },[replyPages])
+  const replies = useMemo<Reply[]>(() => flatten(replyPages?.pages), [replyPages]);
 
   const { mutateAsync: reply } = useMutation({
     mutationFn: (data: ReplyData) => commitReply(id, data),
@@ -250,8 +228,9 @@ export default function TicketDetail() {
     onError: (error: Error) => alert(error.message),
   });
 
-  useWatchReply(id, (action,reply) => {
-    switch(action){
+  const queryClient = useQueryClient();
+  useWatchReply(id, (action, reply) => {
+    switch (action) {
       case 'create':
         const lastReply = last(replies);
         if (!lastReply || reply.createdAt > lastReply.createdAt) {
@@ -260,13 +239,24 @@ export default function TicketDetail() {
         }
         break;
       case 'delete':
-        setReplies(pre=>pre.filter(curr=>curr.id!==reply.id))
-        break;
-      case 'update':
-        setReplies(pre=>pre.map(curr=> curr.id===reply.id ? {
-          ...curr,
-          ...reply
-        }:curr))
+        const replyId = reply.id;
+        queryClient.setQueryData<InfiniteData<Reply[]> | undefined>(
+          ['replies', { ticketId: id }],
+          (data) => {
+            if (data) {
+              return produce(data, (draft) => {
+                for (const page of draft.pages) {
+                  for (let i = 0; i < page.length; ++i) {
+                    if (page[i].id === replyId) {
+                      page.splice(i, 1);
+                      return;
+                    }
+                  }
+                }
+              });
+            }
+          }
+        );
         break;
     }
   });

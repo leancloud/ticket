@@ -148,14 +148,9 @@ function useReplies(ticketId) {
       .subscribe()
       .then((subscription) => {
         subscription.on('update', (reply) => {
-          const replyObj = reply.toJSON()
           // delete
-          if (!replyObj.active) {
-            setReplies((pre) =>
-              pre.filter((curr) => {
-                return curr.id !== replyObj.objectId
-              })
-            )
+          if (reply.data.deletedAt) {
+            deleteReply(reply.id)
           }
           // update
         })
