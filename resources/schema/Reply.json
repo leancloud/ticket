@@ -25,6 +25,13 @@
     "createdAt": {
       "type": "Date"
     },
+    "deletedAt": {
+      "type": "Date",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
     "author": {
       "type": "Pointer",
       "className": "_User"
@@ -45,14 +52,6 @@
       "required": false,
       "hidden": false,
       "read_only": false
-    },
-    "active": {
-      "type": "Boolean",
-      "v": 2,
-      "required": false,
-      "hidden": false,
-      "read_only": false,
-      "default": true
     }
   },
   "permissions": {
