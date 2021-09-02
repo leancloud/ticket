@@ -5,3 +5,7 @@
 html, body, #app {
   height: 100%;
 }
+
+body{
+  @apply text-base text-[#183247];
+}

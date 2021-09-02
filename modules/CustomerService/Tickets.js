@@ -36,6 +36,7 @@ import { CategoryManager, useCategories, getCategoryName } from '../category'
 import { BlodSearchString } from '../components/BlodSearchString'
 import { DelayInputForm } from '../components/DelayInputForm'
 import { useGroups } from '../components/Group'
+import { PreviewTip } from './PreviewTip'
 
 const PAGE_SIZE = 20
 
@@ -928,6 +929,8 @@ export default function CustomerServiceTickets() {
         onCheckTicket={handleCheckTicket}
       />
       <TicketPager totalCount={totalCount} />
+
+      <PreviewTip />
     </div>
   )
 }

@@ -1,87 +1,31 @@
-import { useCallback, useMemo, useState } from 'react';
+import { ComponentPropsWithoutRef, useCallback, useEffect, useMemo, useState } from 'react';
 import { BsLayoutSidebarReverse } from 'react-icons/bs';
-import { HiChevronDown, HiChevronLeft, HiChevronRight } from 'react-icons/hi';
-import { Transition } from '@headlessui/react';
-import { StringParam, useQueryParam } from 'use-query-params';
+import {
+  HiAdjustments,
+  HiChevronDown,
+  HiChevronLeft,
+  HiChevronRight,
+  HiOutlineRefresh,
+} from 'react-icons/hi';
+import { Menu as HLMenu, Transition } from '@headlessui/react';
+import { useQueryClient } from 'react-query';
+import cx from 'classnames';
 
-import { usePage } from 'utils/usePage';
-import Button from 'components/Button';
+import { Button } from 'components/Button';
+import { Checkbox } from 'components/Form/Checkbox';
 import Menu from 'components/Menu';
+import { usePage } from 'utils/usePage';
+import { useOrderBy as _useOrderBy } from 'utils/useOrderBy';
+import styles from './index.module.css';
+import { BatchUpdateDialog } from './BatchUpdateDialog';
+import { BatchOperationMenu } from './BatchOperateMenu';
+import { BatchUpdateData, BatchUpdateError, batchUpdate } from './batchUpdate';
 
-export interface PaginationProps {
-  starts?: number;
-  ends?: number;
-  totalCount?: number;
-  isLoading?: boolean;
-}
-
-export function Pagination({ starts = 0, ends = 0, totalCount = 0, isLoading }: PaginationProps) {
-  const [page = 1, setPage] = usePage();
-
-  return (
-    <>
-      <div className="text-sm text-gray-900 mx-1">
-        {starts} - {ends} / {totalCount}
-      </div>
-      <div>
-        <Button
-          className="rounded-r-none"
-          onClick={() => setPage(page - 1)}
-          disabled={isLoading || page === 1}
-        >
-          <HiChevronLeft className="w-4 h-4" />
-        </Button>
-        <Button
-          className="rounded-l-none"
-          onClick={() => setPage(page + 1)}
-          disabled={isLoading || ends === totalCount}
-        >
-          <HiChevronRight className="w-4 h-4" />
-        </Button>
-      </div>
-    </>
-  );
-}
-
-export function useOrderBy(key = 'orderBy') {
-  const [orderBy, setOrderBy] = useQueryParam(key, StringParam);
-  const [orderKey, orderType] = useMemo<[string, 'asc' | 'desc']>(() => {
-    if (!orderBy) {
-      return ['createdAt', 'desc'];
-    }
-    if (orderBy.endsWith('-asc')) {
-      return [orderBy.slice(0, -4), 'asc'];
-    }
-    if (orderBy.endsWith('-desc')) {
-      return [orderBy.slice(0, -5), 'desc'];
-    }
-    return [orderBy, 'desc'];
-  }, [orderBy]);
-
-  const setOrderKey = useCallback(
-    (orderKey: string) => {
-      if (orderType === 'asc') {
-        setOrderBy(orderKey + '-asc');
-      } else {
-        setOrderBy(orderKey);
-      }
-    },
-    [orderType, setOrderBy]
-  );
-
-  const setOrderType = useCallback(
-    (orderType: 'asc' | 'desc') => {
-      if (orderType === 'asc') {
-        setOrderBy(orderKey + '-asc');
-      } else {
-        setOrderBy(orderKey);
-      }
-    },
-    [orderKey, setOrderBy]
-  );
-
-  return { orderKey, orderType, setOrderKey, setOrderType };
-}
+export const useOrderBy = () =>
+  _useOrderBy({
+    defaultOrderKey: 'createdAt',
+    defaultOrderType: 'desc',
+  });
 
 const orderKeys: Record<string, string> = {
   createdAt: '创建日期',
@@ -89,102 +33,241 @@ const orderKeys: Record<string, string> = {
   status: '状态',
 };
 
-export function OrderDropdown() {
-  const [open, setOpen] = useState(false);
-  const toggle = useCallback(() => setOpen((v) => !v), []);
+function SortDropdown({ disabled }: { disabled?: boolean }) {
   const { orderKey, orderType, setOrderKey, setOrderType } = useOrderBy();
 
   const handleSelect = useCallback(
-    (key: string) => {
-      switch (key) {
-        case 'createdAt':
-        case 'updatedAt':
-        case 'status':
-          setOrderKey(key);
-          break;
-        case 'asc':
-        case 'desc':
-          setOrderType(key);
-          break;
+    (eventKey: string) => {
+      if (eventKey === 'asc' || eventKey === 'desc') {
+        setOrderType(eventKey);
+      } else {
+        setOrderKey(eventKey);
       }
-      setOpen(false);
     },
     [setOrderKey, setOrderType]
   );
 
   return (
-    <span
-      tabIndex={-1}
-      className="relative"
-      onBlur={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget as any)) {
-          setOpen(false);
-        }
-      }}
-    >
-      <button className="" onClick={toggle}>
-        <span className="text-gray-500">排序方式:</span>
-        <span className="ml-2 text-sm text-[#183247] font-medium">
+    <HLMenu as="span" className="relative">
+      <HLMenu.Button disabled={disabled}>
+        <span className="text-[#6f7c87]">排序方式:</span>
+        <span className="ml-2 text-[13px] font-medium">
           {orderKeys[orderKey]} <HiChevronDown className="inline" />
         </span>
-      </button>
+      </HLMenu.Button>
+
       <Transition
-        show={open}
-        className="absolute mt-1"
-        enter="transition pointer-events-none"
+        enter="transition"
         enterFrom="opacity-0 -translate-y-4"
-        enterTo="opacity-100 translate-y-0"
-        leave="transition pointer-events-none"
-        leaveFrom="opacity-100"
+        leave="transition"
         leaveTo="opacity-0"
       >
-        <Menu className="shadow" onSelect={handleSelect}>
-          <Menu.Item eventKey="createdAt" active={orderKey === 'createdAt'}>
+        <HLMenu.Items
+          as={Menu}
+          className="absolute mt-1 border border-gray-300 rounded shadow-md"
+          onSelect={handleSelect}
+        >
+          <HLMenu.Item as={Menu.Item} eventKey="createdAt" active={orderKey === 'createdAt'}>
             {orderKeys.createdAt}
-          </Menu.Item>
-          <Menu.Item eventKey="updatedAt" active={orderKey === 'updatedAt'}>
+          </HLMenu.Item>
+          <HLMenu.Item as={Menu.Item} eventKey="updatedAt" active={orderKey === 'updatedAt'}>
             {orderKeys.updatedAt}
-          </Menu.Item>
-          <Menu.Item eventKey="status" active={orderKey === 'status'}>
+          </HLMenu.Item>
+          <HLMenu.Item as={Menu.Item} eventKey="status" active={orderKey === 'status'}>
             {orderKeys.status}
-          </Menu.Item>
+          </HLMenu.Item>
           <Menu.Divider />
-          <Menu.Item eventKey="asc" active={orderType === 'asc'}>
+          <HLMenu.Item as={Menu.Item} eventKey="asc" active={orderType === 'asc'}>
             升序
-          </Menu.Item>
-          <Menu.Item eventKey="desc" active={orderType === 'desc'}>
+          </HLMenu.Item>
+          <HLMenu.Item as={Menu.Item} eventKey="desc" active={orderType === 'desc'}>
             降序
-          </Menu.Item>
-        </Menu>
+          </HLMenu.Item>
+        </HLMenu.Items>
       </Transition>
-    </span>
+    </HLMenu>
   );
 }
 
-export interface TopbarProps extends PaginationProps {
+interface BatchOperationsProps {
+  checkedTicketIds: string[];
+  disabled?: boolean;
+  onSuccess: () => void;
+}
+
+function BatchOperations({ checkedTicketIds, disabled, onSuccess }: BatchOperationsProps) {
+  const [batchUpdateOpen, setBatchUpdateOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
+
+  const handleSubmit = async (data: BatchUpdateData) => {
+    if (isLoading) {
+      return;
+    }
+    setIsLoading(true);
+    try {
+      await batchUpdate(checkedTicketIds, data);
+      // TODO(sdjdd): 整个好看的 toast :wise-me:
+      alert(`${checkedTicketIds.length} 个工单更新成功`);
+      setBatchUpdateOpen(false);
+      onSuccess();
+      queryClient.invalidateQueries('tickets');
+    } catch (error) {
+      const errors = (error as BatchUpdateError).errors;
+      console.error(errors);
+      alert(`${errors.length} 个子任务执行失败，请打开控制台查看详细信息`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <Button
+        className="px-2 py-1"
+        disabled={disabled || isLoading}
+        onClick={() => setBatchUpdateOpen(!batchUpdateOpen)}
+      >
+        <HiOutlineRefresh className="inline w-[14px] h-[14px] mb-px mr-1" />
+        批量更新
+      </Button>
+
+      <BatchOperationMenu
+        className="ml-1"
+        trigger={
+          <Button className="px-2 py-1" disabled={disabled || isLoading}>
+            <HiAdjustments className="inline w-[14px] h-[14px] mb-px mr-1" />
+            批量操作
+          </Button>
+        }
+        onOperate={(operation) => handleSubmit({ operation })}
+      />
+
+      <BatchUpdateDialog
+        open={batchUpdateOpen}
+        onClose={() => !isLoading && setBatchUpdateOpen(false)}
+        onSubmit={handleSubmit}
+      />
+    </>
+  );
+}
+
+interface PaginationProps {
+  pageSize: number;
+  count?: number;
+  totalCount?: number;
+  isLoading?: boolean;
+}
+
+function Pagination({ pageSize, count, totalCount, isLoading }: PaginationProps) {
+  const [page = 1, setPage] = usePage();
+  const [text, setText] = useState('');
+  const [noMorePages, setNoMorePages] = useState(false);
+  const [overflow, setOverflow] = useState(false);
+
+  useEffect(() => {
+    if (!isLoading && count !== undefined && totalCount !== undefined) {
+      const starts = (page - 1) * pageSize;
+      const ends = starts + count;
+      if (count) {
+        setText(`${starts + 1} - ${ends} / ${totalCount}`);
+      } else {
+        setText(`-- / ${totalCount}`);
+      }
+      setNoMorePages(ends === totalCount);
+      setOverflow(ends > totalCount);
+    }
+  }, [page, pageSize, count, totalCount, isLoading]);
+
+  return (
+    <>
+      <span className="text-[#6f7c87]">{text || 'Loading...'}</span>
+      <Button
+        className="ml-2.5 px-[7px] py-[7px] rounded-r-none"
+        disabled={isLoading || page === 1}
+        onClick={() => (overflow ? setPage(1) : setPage(page - 1))}
+      >
+        <HiChevronLeft className="w-4 h-4" />
+      </Button>
+      <Button
+        className="px-[7px] py-[7px] rounded-l-none"
+        disabled={isLoading || noMorePages || overflow}
+        onClick={() => setPage(page + 1)}
+      >
+        <HiChevronRight className="w-4 h-4" />
+      </Button>
+    </>
+  );
+}
+
+export interface TopbarProps extends ComponentPropsWithoutRef<'div'> {
   showFilter?: boolean;
-  onClickFilter: () => void;
+  onChangeShowFilter?: (value: boolean) => void;
+  pageSize: number;
+  count?: number;
+  totalCount?: number;
+  isLoading?: boolean;
+  checkedTicketIds?: string[];
+  onCheckedChange: (checked: boolean) => void;
 }
 
 export function Topbar({
-  starts,
-  ends,
+  showFilter,
+  onChangeShowFilter,
+  pageSize,
+  count,
   totalCount,
   isLoading,
-  showFilter,
-  onClickFilter,
+  checkedTicketIds,
+  onCheckedChange,
+  ...props
 }: TopbarProps) {
+  const indeterminate = useMemo(() => {
+    if (checkedTicketIds !== undefined && count !== undefined) {
+      if (checkedTicketIds.length > 0 && checkedTicketIds.length !== count) {
+        return true;
+      }
+    }
+    return false;
+  }, [checkedTicketIds, count]);
+
   return (
-    <div className="flex-shrink-0 bg-gray-50 h-14 flex items-center px-4 border-b border-gray-200">
-      <div className="flex-grow">
-        <OrderDropdown />
+    <div
+      {...props}
+      className={cx(
+        styles.topbar,
+        'flex items-center h-14 bg-[#f4f7f9] px-4 border-b border-[#cfd7df]',
+        props.className
+      )}
+    >
+      <div className="flex flex-grow items-center">
+        <Checkbox
+          className="mr-4"
+          indeterminate={indeterminate}
+          disabled={isLoading}
+          checked={!!(checkedTicketIds && count && checkedTicketIds.length === count)}
+          onChange={(e) => onCheckedChange(e.target.checked)}
+        />
+        {!checkedTicketIds || checkedTicketIds.length === 0 ? (
+          <SortDropdown disabled={isLoading} />
+        ) : (
+          <BatchOperations
+            checkedTicketIds={checkedTicketIds}
+            disabled={isLoading}
+            onSuccess={() => onCheckedChange(false)}
+          />
+        )}
       </div>
-      <div className="flex items-center gap-2">
-        <Pagination starts={starts} ends={ends} totalCount={totalCount} isLoading={isLoading} />
-        <Button active={showFilter} onClick={onClickFilter}>
-          <BsLayoutSidebarReverse className="w-4 h-4" />
-        </Button>
-      </div>
+
+      <Pagination pageSize={pageSize} count={count} totalCount={totalCount} isLoading={isLoading} />
+
+      <Button
+        className="ml-2 px-[7px] py-[7px]"
+        active={showFilter}
+        onClick={() => onChangeShowFilter?.(!showFilter)}
+      >
+        <BsLayoutSidebarReverse className="w-4 h-4" />
+      </Button>
     </div>
   );
 }

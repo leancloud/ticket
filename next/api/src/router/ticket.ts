@@ -6,6 +6,7 @@ import { SortItem, auth, parseRange, sort } from '../middleware';
 import { Ticket } from '../model/ticket';
 import { User } from '../model/user';
 import { Group } from '../model/group';
+import { CategoryManager } from '../model/category';
 import { TicketListItemJson } from '../json/ticket';
 
 const router = new Router().use(auth);
@@ -19,6 +20,7 @@ const findTicketsSchema = yup.object({
   authorId: yup.string(),
   assigneeId: yup.csv(yup.string().required()),
   categoryId: yup.csv(yup.string().required()),
+  rootCategoryId: yup.string(),
   groupId: yup.csv(yup.string().required()),
   status: yup.csv(yup.number().oneOf(statuses).required()),
   'evaluation.star': yup.number().oneOf([0, 1]),
@@ -40,6 +42,13 @@ router.get('/', sort('orderBy', sortKeys), parseRange('createdAt'), async (ctx) 
     if (!(await currentUser.isCustomerService())) {
       ctx.throw(403);
     }
+  }
+
+  const categoryIds = new Set(params.categoryId);
+  if (params.rootCategoryId) {
+    categoryIds.add(params.rootCategoryId);
+    const subCategories = await CategoryManager.getSubCategories(params.rootCategoryId);
+    subCategories.forEach((c) => categoryIds.add(c.id));
   }
 
   const query = Ticket.query()
@@ -66,8 +75,8 @@ router.get('/', sort('orderBy', sortKeys), parseRange('createdAt'), async (ctx) 
       }
       return query.where('group', 'in', groupId.map(Group.ptr));
     })
-    .when(params.categoryId, (query, categoryId) => {
-      return query.where('category.objectId', 'in', categoryId);
+    .when(categoryIds.size, (query) => {
+      return query.where('category.objectId', 'in', Array.from(categoryIds));
     })
     .when(params.status, (query, status) => {
       return query.where('status', 'in', status);

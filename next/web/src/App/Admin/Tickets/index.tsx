@@ -1,208 +1,112 @@
-import { ComponentPropsWithoutRef, useCallback, useMemo, useState } from 'react';
-import { Switch, Route, useRouteMatch, Link } from 'react-router-dom';
-import { BsLayoutSidebarReverse } from 'react-icons/bs';
-import { HiCheck, HiMenuAlt2, HiX } from 'react-icons/hi';
-import cx from 'classnames';
+import { useEffect, useMemo, useState } from 'react';
+import { Route, Switch, useRouteMatch } from 'react-router-dom';
+import { StringParam, useQueryParam } from 'use-query-params';
+import { isEqual, isNull, omitBy } from 'lodash';
 
-import {
-  CategoryTreeNode,
-  FetchTicketsOptions,
-  TicketItem,
-  useCategoryTree,
-  useTickets,
-  UseTicketsOptions,
-} from 'api';
+import { useTickets } from 'api/ticket';
 import { usePage } from 'utils/usePage';
-import { Button } from 'components/Button';
-import { OrderDropdown, Pagination, useOrderBy } from './Topbar';
-import { TicketItemComponent } from './TicketItem';
-import { FiltersData, FiltersPanel, getTimeRange, useFiltersFromQueryParams } from './Filter';
+import { Topbar, useOrderBy } from './Topbar';
+import { FilterForm, FilterMap, FilterMenu, useTempFilters } from './Filter';
+import { useTicketFilter } from './useTicketFilter';
+import { TicketList } from './TicketList';
 
 const pageSize = 20;
 
-function findCategory(tree: CategoryTreeNode[], id: string): CategoryTreeNode | undefined {
-  const queue = [...tree];
-  while (queue.length) {
-    const front = queue.shift()!;
-    if (front.id === id) {
-      return front;
-    }
-    if (front.children) {
-      queue.push(...front.children);
-    }
-  }
-}
-
-function getSubCategories(category: CategoryTreeNode): CategoryTreeNode[] {
-  const categories: CategoryTreeNode[] = [];
-  const queue = [category];
-  while (queue.length) {
-    const front = queue.shift()!;
-    categories.push(front);
-    if (front.children) {
-      categories.push(...front.children);
-      queue.push(...front.children);
-    }
-  }
-  return categories;
-}
-
-function useTicketParam(filters: FiltersData) {
-  return useMemo(() => {
-    const params: FetchTicketsOptions['params'] = {};
-    if (filters.assigneeIds?.length) {
-      params.assigneeId = filters.assigneeIds.join(',');
-    }
-    if (filters.groupIds?.length) {
-      params.groupId = filters.groupIds.join(',');
-    }
-    if (filters.createdAt) {
-      const range = getTimeRange(filters.createdAt);
-      if (range) {
-        params.createdAt = `${range[0]?.toISOString() ?? '*'}..${range[1]?.toISOString() ?? '*'}`;
-      }
-    }
-    if (filters.categoryId) {
-      params.categoryId = filters.categoryId;
-    }
-    if (filters.status?.length) {
-      params.status = filters.status.join(',');
-    }
-    return params;
-  }, [filters]);
-}
-
-interface TicketListProps extends ComponentPropsWithoutRef<'div'> {
-  tickets: TicketItem[];
-}
-
-function TicketList({ tickets, ...props }: TicketListProps) {
-  return (
-    <div
-      {...props}
-      className={cx('h-full p-3 flex-grow flex flex-col gap-2 overflow-y-auto', props.className)}
-    >
-      {tickets.length ? (
-        tickets.map((ticket) => <TicketItemComponent key={ticket.id} ticket={ticket} />)
-      ) : (
-        <div className="text-center">
-          <h1 className="text-2xl font-medium">此处无工单！</h1>
-          <p className="p-2 text-gray-500">您在此视图中没有任何工单。</p>
-          <Link className="text-primary font-bold" to="all-tickets">
-            查看所有工单
-          </Link>
-        </div>
-      )}
-    </div>
-  );
-}
-
-export function TopbarFilter() {
-  return (
-    <div className="flex items-center gap-4 text-[#183247]">
-      <button className="p-1 rounded transition-colors hover:bg-gray-200">
-        <HiMenuAlt2 className="w-6 h-6" />
-      </button>
-      <div className="font-bold">未命名</div>
-      <button>
-        <HiCheck className="w-6 h-6" />
-      </button>
-      <button>
-        <HiX className="w-6 h-6" />
-      </button>
-    </div>
-  );
-}
-
-function useTicketsByRootCategory({
-  rootCategoryId,
-  ...options
-}: UseTicketsOptions & { rootCategoryId?: string }) {
-  const { data: categoryTree, isLoading: isLoadingCategoryTree } = useCategoryTree({
-    enabled: !!rootCategoryId,
-  });
-
-  const categoryId = useMemo(() => {
-    if (categoryTree && rootCategoryId) {
-      const category = findCategory(categoryTree, rootCategoryId);
-      if (category) {
-        return getSubCategories(category)
-          .map((c) => c.id)
-          .join(',');
-      }
-    }
-    return undefined;
-  }, [categoryTree, rootCategoryId]);
-
-  const result = useTickets({
-    ...options,
-    queryOptions: {
-      ...options.queryOptions,
-      enabled: !isLoadingCategoryTree && options.queryOptions?.enabled,
-    },
-    params: { ...options.params, categoryId },
-  });
-
-  return { ...result, isLoading: result.isLoading ?? isLoadingCategoryTree };
-}
-
-function TicketsComponent() {
-  const [filterShow, setFilterShow] = useState(false);
+function TicketsPage() {
+  const [showFilter, setShowFilter] = useState(false);
+  const [page = 1, setPage] = usePage();
   const { orderKey, orderType } = useOrderBy();
-  const [tmpFilters, setTmpFilters] = useFiltersFromQueryParams();
-  const { categoryId, ...ticketsParams } = useTicketParam(tmpFilters);
-  console.log(categoryId);
-  const [page] = usePage();
-  const [starts, setStarts] = useState(0);
-  const [ends, setEnds] = useState(0);
-  const { data: tickets, totalCount, isFetching } = useTicketsByRootCategory({
-    page,
+  const [filterId] = useQueryParam('filterId', StringParam);
+
+  const { filter, isLoading: isLoadingFilters } = useTicketFilter(filterId);
+
+  const [tempFilters, setTempFilters] = useTempFilters();
+
+  const combinedFilters = useMemo(() => {
+    return omitBy({ ...filter?.filters, ...tempFilters }, isNull);
+  }, [filter, tempFilters]);
+
+  const { data, isLoading, isFetching } = useTickets({
     pageSize,
+    page,
     orderKey,
     orderType,
-    rootCategoryId: categoryId as string,
-    params: ticketsParams,
+    filters: combinedFilters,
     queryOptions: {
+      enabled: !isLoadingFilters,
       keepPreviousData: true,
-      onSuccess: useCallback(
-        ({ tickets }) => {
-          const index = (page - 1) * pageSize;
-          setStarts(index + 1);
-          setEnds(index + tickets.length);
-        },
-        [page]
-      ),
     },
   });
 
+  const [checkedIds, setCheckedIds] = useState<string[]>([]);
+  useEffect(() => setCheckedIds([]), [data]);
+
+  const tickets = data?.tickets;
+  const totalCount = data?.totalCount;
+
   return (
-    <div className="h-full flex flex-col">
-      <div className="flex-shrink-0 bg-gray-50 h-14 flex items-center px-4 border-b border-gray-200">
-        <div className="flex-grow">
-          <OrderDropdown />
+    <div className="flex flex-col h-full">
+      <FilterMenu />
+
+      <Topbar
+        className="flex-shrink-0 z-0"
+        showFilter={showFilter}
+        onChangeShowFilter={setShowFilter}
+        pageSize={pageSize}
+        count={tickets?.length}
+        totalCount={totalCount}
+        isLoading={isLoading || isFetching}
+        checkedTicketIds={checkedIds}
+        onCheckedChange={(checked) => {
+          if (checked) {
+            tickets && setCheckedIds(tickets.map((t) => t.id));
+          } else {
+            setCheckedIds([]);
+          }
+        }}
+      />
+
+      <div className="flex flex-grow bg-[#ebeff3] overflow-hidden">
+        <div className="flex flex-grow flex-col p-[10px] gap-2 overflow-auto">
+          {isLoading ? (
+            'Loading...'
+          ) : tickets && tickets.length > 0 ? (
+            <TicketList
+              tickets={tickets}
+              checkedIds={checkedIds}
+              onCheckedIdsChange={setCheckedIds}
+            />
+          ) : (
+            'No data'
+          )}
         </div>
-        <div className="flex items-center gap-2">
-          <Pagination starts={starts} ends={ends} totalCount={totalCount} isLoading={isFetching} />
-          <Button active={filterShow} onClick={() => setFilterShow(!filterShow)}>
-            <BsLayoutSidebarReverse className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-      <div className="bg-gray-100 flex-grow flex overflow-hidden">
-        <TicketList tickets={tickets ?? []} />
-        {filterShow && <FiltersPanel filters={tmpFilters} onChange={setTmpFilters} />}
+
+        {showFilter && (
+          <FilterForm
+            className="flex-shrink-0"
+            filters={combinedFilters}
+            onChange={(data) => {
+              if (filter && filterId) {
+                data = omitBy(data, (v, k) => isEqual(v, filter.filters[k as keyof FilterMap]));
+              } else {
+                data = omitBy(data, isNull);
+              }
+              setPage(1);
+              setTempFilters(data);
+            }}
+          />
+        )}
       </div>
     </div>
   );
 }
 
-export default function Tickets() {
+export default function TicketRoutes() {
   const { path } = useRouteMatch();
-
   return (
     <Switch>
       <Route path={path}>
-        <TicketsComponent />
+        <TicketsPage />
       </Route>
     </Switch>
   );

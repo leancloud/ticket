@@ -12,7 +12,7 @@ const DefaultButton = forwardRef<HTMLButtonElement, BaseButtonProps>(
         ref={ref}
         {...props}
         className={cx(
-          'border border-gray-300 rounded p-2 transition-colors text-gray-600 hover:bg-gray-200 disabled:hover:bg-transparent disabled:cursor-default disabled:opacity-40',
+          'border border-gray-300 rounded px-3 py-1.5 transition-colors text-gray-600 hover:bg-gray-200 disabled:hover:bg-transparent disabled:cursor-default disabled:opacity-40',
           {
             'shadow-inner': active,
             'bg-gray-200': active,
@@ -30,7 +30,7 @@ const PrimaryButton = forwardRef<HTMLButtonElement, ButtonProps>(({ active, ...p
       ref={ref}
       {...props}
       className={cx(
-        'p-2 bg-primary transition-colors text-white rounded disabled:opacity-50 disabled:cursor-default',
+        'px-3 py-1.5 bg-primary transition-colors text-white rounded disabled:opacity-50 disabled:cursor-default',
         {
           'hover:bg-primary-600 ': !props.disabled,
         },

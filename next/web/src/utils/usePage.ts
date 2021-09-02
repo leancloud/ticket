@@ -16,4 +16,17 @@ const PageParam: QueryParamConfig<number> = {
   },
 };
 
-export const usePage = (key = 'page') => useQueryParam(key, PageParam);
+export interface UsePageOptions {
+  key?: string;
+  min?: number;
+  max?: number;
+}
+
+export function usePage({ key = 'page', min = 1, max }: UsePageOptions = {}) {
+  const result = useQueryParam(key, PageParam);
+  result[0] = Math.max(result[0], min);
+  if (max !== undefined) {
+    result[0] = Math.min(result[0], max);
+  }
+  return result;
+}

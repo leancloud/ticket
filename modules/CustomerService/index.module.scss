@@ -1,0 +1,21 @@
+.previewTip {
+  position: fixed;
+  right: 10px;
+  bottom: 10px;
+
+  :global {
+    .close {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 18px;
+      height: 18px;
+      line-height: 18px;
+      font-size: 18px;
+    }
+
+    .card-text {
+      margin-bottom: 10px;
+    }
+  }
+}

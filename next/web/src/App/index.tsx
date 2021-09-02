@@ -1,29 +1,18 @@
-import { QueryClient, QueryClientProvider } from 'react-query';
+import { QueryClientProvider } from 'react-query';
 import { RecoilRoot } from 'recoil';
 import { BrowserRouter, Redirect, Route, RouteProps, Switch } from 'react-router-dom';
 import { QueryParamProvider } from 'use-query-params';
 
-import { auth } from '../leancloud';
+import { auth } from 'leancloud';
+import { queryClient } from 'api/query-client';
 import Admin from './Admin';
-import { useEffect } from 'react';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: false,
-    },
-  },
-});
+import Login from './Login';
 
 function AuthRoute(props: RouteProps) {
-  useEffect(() => {
-    if (!auth.currentUser) {
-      location.href = '/login';
-    }
-  });
-
-  return auth.currentUser ? <Route {...props} /> : null;
+  if (!auth.currentUser) {
+    return <Redirect to="/login" />;
+  }
+  return <Route {...props} />;
 }
 
 function Routes() {
@@ -32,6 +21,9 @@ function Routes() {
       <AuthRoute path="/admin">
         <Admin />
       </AuthRoute>
+      <Route path="/login">
+        <Login />
+      </Route>
       <Redirect to="/admin" />
     </Switch>
   );

@@ -1,3 +1,4 @@
+import { AxiosError } from 'axios';
 import { useMemo } from 'react';
 import { UseQueryOptions, useQuery } from 'react-query';
 
@@ -18,16 +19,17 @@ export async function fetchCategories(active?: boolean): Promise<CategorySchema[
   return data;
 }
 
-export interface UseCategoriesOptions extends UseQueryOptions<CategorySchema[], Error> {
+export interface UseCategoriesOptions {
   active?: boolean;
+  queryOptions?: UseQueryOptions<CategorySchema[], AxiosError<CategorySchema[]>>;
 }
 
-export function useCategories(options?: UseCategoriesOptions) {
+export function useCategories({ active, queryOptions }: UseCategoriesOptions = {}) {
   return useQuery({
-    queryKey: ['categories', options?.active],
-    queryFn: () => fetchCategories(options?.active),
-    staleTime: 1000 * 60 * 5,
-    ...options,
+    queryKey: ['categories', active],
+    queryFn: () => fetchCategories(active),
+    staleTime: Infinity,
+    ...queryOptions,
   });
 }
 

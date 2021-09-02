@@ -1,4 +1,5 @@
 import AV from 'leancloud-storage';
+import _ from 'lodash';
 
 import { redis } from '../../cache';
 
@@ -152,5 +153,29 @@ export class CategoryManager {
 
     // XXX: 当 categories 缓存不存在时总是会查数据库, 但这种情况不会经常出现
     return Category.find(id);
+  }
+
+  static async getSubCategories(id: string | string[]): Promise<Category[]> {
+    let categories = await CategoryManager.get();
+    const parentIds = _.castArray(id);
+    const result: Category[] = [];
+
+    while (parentIds.length) {
+      const parentId = parentIds.shift()!;
+      const rest: Category[] = [];
+
+      for (const category of categories) {
+        if (category.parentId === parentId) {
+          result.push(category);
+          parentIds.push(category.id);
+        } else {
+          rest.push(category);
+        }
+      }
+
+      categories = rest;
+    }
+
+    return result;
   }
 }

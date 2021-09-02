@@ -1,3 +1,4 @@
+import { AxiosError } from 'axios';
 import { UseQueryOptions, useQuery } from 'react-query';
 
 import { http } from '../leancloud';
@@ -12,9 +13,11 @@ export async function fetchGroups(): Promise<GroupSchema[]> {
   return data;
 }
 
-export function useGroups(options?: UseQueryOptions<GroupSchema[], Error>) {
-  return useQuery<GroupSchema[], Error>('groups', fetchGroups, {
-    staleTime: 1000 * 60 * 5,
+export function useGroups(options?: UseQueryOptions<GroupSchema[], AxiosError>) {
+  return useQuery({
+    queryKey: 'groups',
+    queryFn: fetchGroups,
+    staleTime: Infinity,
     ...options,
   });
 }
