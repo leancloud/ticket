@@ -17,6 +17,7 @@ import {
 } from 'api/ticket-filter';
 import { useCustomerServiceGroups } from 'api/user';
 import Menu from 'components/Menu';
+import { usePage } from 'utils/usePage';
 import styles from './index.module.css';
 import { FilterSearch } from './FilterSearch';
 import { SaveData, SaveDialog } from './SaveDialog';
@@ -50,12 +51,13 @@ interface FilterMenusProps {
   open?: boolean;
   onClose: () => void;
   selected?: string | null;
-  onSelect: (id: string) => void;
+  onSelect: (id: string | undefined) => void;
 }
 
 function FilterMenus({ open, onClose, selected, onSelect }: FilterMenusProps) {
   const $input = useRef<HTMLInputElement>(null!);
   const [keyword, setKeyword] = useState('');
+  const [, setPage] = usePage();
 
   const { data: groups } = useCustomerServiceGroups('me', {
     enabled: !!open,
@@ -96,9 +98,10 @@ function FilterMenus({ open, onClose, selected, onSelect }: FilterMenusProps) {
     );
   }, [keyword, privateFilters, publicFilters]);
 
-  const handleSelect = (id: string) => {
+  const handleSelect = (id: string | undefined) => {
     onSelect(id);
     onClose();
+    setPage(1);
   };
 
   return (
@@ -140,7 +143,11 @@ function FilterMenus({ open, onClose, selected, onSelect }: FilterMenusProps) {
           )}
 
           {!keyword && (
-            <FilterMenu filters={presetFilters} selected={selected ?? ''} onSelect={handleSelect} />
+            <FilterMenu
+              filters={presetFilters}
+              selected={selected ?? ''}
+              onSelect={(id) => handleSelect(id || undefined)}
+            />
           )}
         </div>
       </Dialog>

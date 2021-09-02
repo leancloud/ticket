@@ -14,7 +14,7 @@ const pageSize = 20;
 
 function TicketsPage() {
   const [showFilter, setShowFilter] = useState(false);
-  const [page = 1] = usePage();
+  const [page = 1, setPage] = usePage();
   const { orderKey, orderType } = useOrderBy();
   const [filterId] = useQueryParam('filterId', StringParam);
 
@@ -91,6 +91,7 @@ function TicketsPage() {
               } else {
                 data = omitBy(data, isNull);
               }
+              setPage(1);
               setTempFilters(data);
             }}
           />
