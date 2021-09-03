@@ -1,4 +1,5 @@
 import { Ticket } from '../model/ticket';
+import { FileResponse } from './file';
 import { GroupJson } from './group';
 import { UserJson } from './user';
 
@@ -17,6 +18,7 @@ export class TicketListItemJson {
       assignee: this.ticket.assignee ? new UserJson(this.ticket.assignee) : undefined,
       groupId: this.ticket.groupId,
       group: this.ticket.group ? new GroupJson(this.ticket.group) : undefined,
+      files: this.ticket.files?.map((file) => new FileResponse(file)),
       status: this.ticket.status,
       createdAt: this.ticket.createdAt.toISOString(),
       updatedAt: this.ticket.updatedAt.toISOString(),
