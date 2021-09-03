@@ -48,7 +48,7 @@ AV.Cloud.define('getUserInfo', async (req) => {
   }
 })
 
-if (!newApp) {
+if (newApp) {
   AV.Cloud.afterSave('_User', async (req) => {
     if (newApp) {
       newApp = false
