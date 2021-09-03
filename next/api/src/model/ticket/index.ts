@@ -3,6 +3,7 @@ import AV from 'leancloud-storage';
 import { Query } from '../../query';
 import { Group } from '../group';
 import { User } from '../user';
+import { File } from '../file';
 
 export class Ticket {
   id: string;
@@ -18,6 +19,7 @@ export class Ticket {
   group?: Group;
   organizationId?: string;
   fileIds?: string[];
+  files?: File[];
   status: number;
   evaluation?: { star: number; content: string };
   createdAt: Date;

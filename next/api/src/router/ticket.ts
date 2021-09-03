@@ -5,6 +5,7 @@ import * as yup from '../utils/yup';
 import { SortItem, auth, parseRange, sort } from '../middleware';
 import { Ticket } from '../model/ticket';
 import { User } from '../model/user';
+import { File } from '../model/file';
 import { Group } from '../model/group';
 import { CategoryManager } from '../model/category';
 import { TicketListItemJson } from '../json/ticket';
@@ -13,7 +14,7 @@ const router = new Router().use(auth);
 
 const statuses = [50, 120, 160, 220, 250, 280];
 const sortKeys = ['status', 'createdAt', 'updatedAt'];
-const includeKeys = ['author', 'assignee', 'category'];
+const includeKeys = ['author', 'assignee', 'category', 'files'];
 const staffOnlyIncludeKeys = ['group'];
 
 const findTicketsSchema = yup.object({
@@ -123,6 +124,18 @@ router.get('/', sort('orderBy', sortKeys), parseRange('createdAt'), async (ctx) 
               const groupObj = objects[index].get('group');
               if (groupObj) {
                 item.group = Group.fromAVObject(groupObj);
+              }
+            });
+          });
+      }
+      if (includeKeys.includes('files')) {
+        query = query
+          .modifyQuery((q) => q.include('files'))
+          .modifyResult((items, objects) => {
+            items.forEach((item, index) => {
+              const fileObjs = objects[index].get('files');
+              if (fileObjs?.length) {
+                item.files = fileObjs.map(File.fromAVObject);
               }
             });
           });
