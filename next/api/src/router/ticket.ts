@@ -17,6 +17,10 @@ const sortKeys = ['status', 'createdAt', 'updatedAt'];
 const includeKeys = ['author', 'assignee', 'category', 'files'];
 const staffOnlyIncludeKeys = ['group'];
 
+const incluldeSchema = yup.csv(
+  yup.string().oneOf(includeKeys.concat(staffOnlyIncludeKeys)).required()
+);
+
 const findTicketsSchema = yup.object({
   authorId: yup.string(),
   assigneeId: yup.csv(yup.string().required()),
@@ -30,7 +34,7 @@ const findTicketsSchema = yup.object({
   createdAtTo: yup.date(),
   page: yup.number().min(1).default(1),
   pageSize: yup.number().min(1).max(100).default(10),
-  include: yup.csv(yup.string().oneOf(includeKeys.concat(staffOnlyIncludeKeys)).required()),
+  include: incluldeSchema,
   count: yup.bool().default(false),
 });
 
@@ -129,16 +133,7 @@ router.get('/', sort('orderBy', sortKeys), parseRange('createdAt'), async (ctx) 
           });
       }
       if (includeKeys.includes('files')) {
-        query = query
-          .modifyQuery((q) => q.include('files'))
-          .modifyResult((items, objects) => {
-            items.forEach((item, index) => {
-              const fileObjs = objects[index].get('files');
-              if (fileObjs?.length) {
-                item.files = fileObjs.map(File.fromAVObject);
-              }
-            });
-          });
+        query = query.modifyQuery((q) => q.include('files'));
       }
       return query;
     })
@@ -155,6 +150,22 @@ router.get('/', sort('orderBy', sortKeys), parseRange('createdAt'), async (ctx) 
   }
 
   ctx.body = tickets.map((t) => new TicketListItemJson(t));
+});
+
+const getTicketSchema = yup.object({
+  include: incluldeSchema,
+});
+
+router.get('/:id', async (ctx) => {
+  const currentUser = ctx.state.currentUser as User;
+  const params = getTicketSchema.validateSync(ctx.query);
+  console.log(params, ctx.query);
+  if (_.intersection(params.include, staffOnlyIncludeKeys).length) {
+    if (!(await currentUser.isCustomerService())) {
+      ctx.throw(403);
+    }
+  }
+  ctx.body = await Ticket.find(ctx.params.id, params.include, currentUser.sessionToken);
 });
 
 export default router;

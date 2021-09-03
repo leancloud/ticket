@@ -36,6 +36,7 @@ export class Ticket {
     groupId?: string;
     organizationId?: string;
     fileIds?: string[];
+    files?: File[];
     status: number;
     evaluation?: { star: number; content: string };
     createdAt: Date;
@@ -51,6 +52,7 @@ export class Ticket {
     this.groupId = data.groupId;
     this.organizationId = data.organizationId;
     this.fileIds = data.fileIds;
+    this.files = data.files;
     this.status = data.status;
     this.evaluation = data.evaluation;
     this.createdAt = data.createdAt;
@@ -71,6 +73,7 @@ export class Ticket {
       groupId: object.get('group')?.id,
       organizationId: object.get('organization')?.id,
       fileIds: object.get('files')?.map((f: AV.File) => f.id),
+      files: object.get('files')?.map(File.fromAVObject),
       status: object.get('status'),
       evaluation: object.get('evaluation'),
       createdAt: object.createdAt!,
@@ -80,5 +83,12 @@ export class Ticket {
 
   static query() {
     return new Query(Ticket);
+  }
+
+  static async find(id: string, include?: string[], sessionToken?: string): Promise<Ticket> {
+    const object = await new AV.Query<AV.Object>(Ticket.className).include(include ?? []).get(id, {
+      sessionToken,
+    });
+    return Ticket.fromAVObject(object);
   }
 }
