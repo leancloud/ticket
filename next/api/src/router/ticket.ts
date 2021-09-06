@@ -5,12 +5,12 @@ import * as yup from '../utils/yup';
 import { SortItem, auth, parseRange, sort } from '../middleware';
 import { Ticket } from '../model/ticket';
 import { User } from '../model/user';
-import { File } from '../model/file';
 import { Group } from '../model/group';
 import { CategoryManager } from '../model/category';
 import { TicketJSON, TicketListItemJson } from '../json/ticket';
 import { Reply } from '../model/reply';
 import { ReplyJSON } from '../json/reply';
+import AV from 'leancloud-storage';
 
 const router = new Router().use(auth);
 
@@ -154,6 +154,18 @@ router.get('/', sort('orderBy', sortKeys), parseRange('createdAt'), async (ctx) 
   ctx.body = tickets.map((t) => new TicketListItemJson(t));
 });
 
+function resetUnreadCount(ticket: Ticket, currentUser: User) {
+  new AV.Query<AV.Object>('notification')
+    .equalTo('ticket', Ticket.ptr(ticket.id))
+    .equalTo('user', User.ptr(currentUser.id))
+    .greaterThan('unreadCount', 0)
+    .first({ sessionToken: currentUser.sessionToken })
+    .then((notification) =>
+      notification?.save({ unreadCount: 0 }, { sessionToken: currentUser.sessionToken })
+    )
+    .catch(console.error);
+}
+
 const getTicketSchema = yup.object({
   include: incluldeSchema,
 });
@@ -168,6 +180,7 @@ router.get('/:id', async (ctx) => {
   }
   const ticket = await Ticket.find(ctx.params.id, params.include, currentUser.sessionToken);
   ctx.body = new TicketJSON(ticket).toJSON();
+  resetUnreadCount(ticket, currentUser);
 });
 
 router.get('/:id/replies', async (ctx) => {
