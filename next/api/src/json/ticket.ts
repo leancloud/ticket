@@ -1,3 +1,4 @@
+import xss from '../utils/xss';
 import { Ticket } from '../model/ticket';
 import { FileResponse } from './file';
 import { GroupJson } from './group';
@@ -22,6 +23,17 @@ export class TicketListItemJson {
       status: this.ticket.status,
       createdAt: this.ticket.createdAt.toISOString(),
       updatedAt: this.ticket.updatedAt.toISOString(),
+    };
+  }
+}
+
+export class TicketJSON {
+  constructor(readonly ticket: Ticket) {}
+
+  toJSON() {
+    return {
+      ...new TicketListItemJson(this.ticket).toJSON(),
+      contentSafeHTML: xss.process(this.ticket.contentHTML),
     };
   }
 }

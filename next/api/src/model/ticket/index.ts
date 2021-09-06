@@ -10,6 +10,7 @@ export class Ticket {
   nid: number;
   title: string;
   content: string;
+  contentHTML: string;
   categoryId: string;
   authorId: string;
   author?: User;
@@ -30,6 +31,7 @@ export class Ticket {
     nid: number;
     title: string;
     content: string;
+    contentHTML: string;
     categoryId: string;
     authorId: string;
     assigneeId?: string;
@@ -46,6 +48,7 @@ export class Ticket {
     this.nid = data.nid;
     this.title = data.title;
     this.content = data.content;
+    this.contentHTML = data.contentHTML;
     this.categoryId = data.categoryId;
     this.authorId = data.authorId;
     this.assigneeId = data.assigneeId;
@@ -67,6 +70,7 @@ export class Ticket {
       nid: object.get('nid'),
       title: object.get('title'),
       content: object.get('content'),
+      contentHTML: object.get('content_HTML'),
       categoryId: object.get('category').objectId,
       authorId: object.get('author')?.id,
       assigneeId: object.get('assignee')?.id,
@@ -83,6 +87,10 @@ export class Ticket {
 
   static query() {
     return new Query(Ticket);
+  }
+
+  static ptr(id: string) {
+    return { __type: 'Pointer', className: Ticket.className, objectId: id };
   }
 
   static async find(id: string, include?: string[], sessionToken?: string): Promise<Ticket> {

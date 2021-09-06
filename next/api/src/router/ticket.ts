@@ -8,7 +8,9 @@ import { User } from '../model/user';
 import { File } from '../model/file';
 import { Group } from '../model/group';
 import { CategoryManager } from '../model/category';
-import { TicketListItemJson } from '../json/ticket';
+import { TicketJSON, TicketListItemJson } from '../json/ticket';
+import { Reply } from '../model/reply';
+import { ReplyJSON } from '../json/reply';
 
 const router = new Router().use(auth);
 
@@ -159,13 +161,22 @@ const getTicketSchema = yup.object({
 router.get('/:id', async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   const params = getTicketSchema.validateSync(ctx.query);
-  console.log(params, ctx.query);
   if (_.intersection(params.include, staffOnlyIncludeKeys).length) {
     if (!(await currentUser.isCustomerService())) {
       ctx.throw(403);
     }
   }
-  ctx.body = await Ticket.find(ctx.params.id, params.include, currentUser.sessionToken);
+  const ticket = await Ticket.find(ctx.params.id, params.include, currentUser.sessionToken);
+  ctx.body = new TicketJSON(ticket).toJSON();
+});
+
+router.get('/:id/replies', async (ctx) => {
+  const currentUser = ctx.state.currentUser as User;
+  const query = Reply.query()
+    .where('ticket', '==', Ticket.ptr(ctx.params.id))
+    .modifyQuery((q) => q.include(['author', 'files']));
+  const replies = await query.get({ sessionToken: currentUser.sessionToken });
+  ctx.body = replies.map((reply) => new ReplyJSON(reply));
 });
 
 export default router;
