@@ -5,10 +5,12 @@ import * as yup from '../utils/yup';
 import { SortItem, auth, parseRange, sort } from '../middleware';
 import { Ticket } from '../model/ticket';
 import { User } from '../model/user';
-import { File } from '../model/file';
 import { Group } from '../model/group';
 import { CategoryManager } from '../model/category';
-import { TicketListItemJson } from '../json/ticket';
+import { TicketJSON, TicketListItemJson } from '../json/ticket';
+import { Reply } from '../model/reply';
+import { ReplyJSON } from '../json/reply';
+import AV from 'leancloud-storage';
 
 const router = new Router().use(auth);
 
@@ -16,6 +18,10 @@ const statuses = [50, 120, 160, 220, 250, 280];
 const sortKeys = ['status', 'createdAt', 'updatedAt'];
 const includeKeys = ['author', 'assignee', 'category', 'files'];
 const staffOnlyIncludeKeys = ['group'];
+
+const incluldeSchema = yup.csv(
+  yup.string().oneOf(includeKeys.concat(staffOnlyIncludeKeys)).required()
+);
 
 const findTicketsSchema = yup.object({
   authorId: yup.string(),
@@ -30,7 +36,7 @@ const findTicketsSchema = yup.object({
   createdAtTo: yup.date(),
   page: yup.number().min(1).default(1),
   pageSize: yup.number().min(1).max(100).default(10),
-  include: yup.csv(yup.string().oneOf(includeKeys.concat(staffOnlyIncludeKeys)).required()),
+  include: incluldeSchema,
   count: yup.bool().default(false),
 });
 
@@ -129,16 +135,7 @@ router.get('/', sort('orderBy', sortKeys), parseRange('createdAt'), async (ctx) 
           });
       }
       if (includeKeys.includes('files')) {
-        query = query
-          .modifyQuery((q) => q.include('files'))
-          .modifyResult((items, objects) => {
-            items.forEach((item, index) => {
-              const fileObjs = objects[index].get('files');
-              if (fileObjs?.length) {
-                item.files = fileObjs.map(File.fromAVObject);
-              }
-            });
-          });
+        query = query.modifyQuery((q) => q.include('files'));
       }
       return query;
     })
@@ -155,6 +152,44 @@ router.get('/', sort('orderBy', sortKeys), parseRange('createdAt'), async (ctx) 
   }
 
   ctx.body = tickets.map((t) => new TicketListItemJson(t));
+});
+
+function resetUnreadCount(ticket: Ticket, currentUser: User) {
+  new AV.Query<AV.Object>('notification')
+    .equalTo('ticket', Ticket.ptr(ticket.id))
+    .equalTo('user', User.ptr(currentUser.id))
+    .greaterThan('unreadCount', 0)
+    .first({ sessionToken: currentUser.sessionToken })
+    .then((notification) =>
+      notification?.save({ unreadCount: 0 }, { sessionToken: currentUser.sessionToken })
+    )
+    .catch(console.error);
+}
+
+const getTicketSchema = yup.object({
+  include: incluldeSchema,
+});
+
+router.get('/:id', async (ctx) => {
+  const currentUser = ctx.state.currentUser as User;
+  const params = getTicketSchema.validateSync(ctx.query);
+  if (_.intersection(params.include, staffOnlyIncludeKeys).length) {
+    if (!(await currentUser.isCustomerService())) {
+      ctx.throw(403);
+    }
+  }
+  const ticket = await Ticket.find(ctx.params.id, params.include, currentUser.sessionToken);
+  ctx.body = new TicketJSON(ticket).toJSON();
+  resetUnreadCount(ticket, currentUser);
+});
+
+router.get('/:id/replies', async (ctx) => {
+  const currentUser = ctx.state.currentUser as User;
+  const query = Reply.query()
+    .where('ticket', '==', Ticket.ptr(ctx.params.id))
+    .modifyQuery((q) => q.include(['author', 'files']));
+  const replies = await query.get({ sessionToken: currentUser.sessionToken });
+  ctx.body = replies.map((reply) => new ReplyJSON(reply));
 });
 
 export default router;
