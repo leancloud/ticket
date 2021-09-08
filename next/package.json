@@ -30,6 +30,7 @@
     "lodash": "^4.17.21",
     "lodash-es": "^4.17.21",
     "lru-cache": "^6.0.0",
+    "mem": "^8.1.1",
     "moment": "^2.29.1",
     "query-string": "^7.0.1",
     "react": "^17.0.2",

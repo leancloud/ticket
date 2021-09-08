@@ -1,5 +1,6 @@
 import AV from 'leancloud-storage';
 import _ from 'lodash';
+import mem from 'mem';
 
 import { redis } from '../../cache';
 
@@ -103,60 +104,55 @@ export class Category {
   }
 }
 
-export class CategoryCache {
-  static CACHE_KEY = 'categories';
+const CACHE_KEY = 'categories';
+
+class RedisCache {
   static CACHE_TTL = 60 * 5; // 5 min
 
-  static async get(): Promise<Category[] | undefined> {
-    const data = await redis.hvals(CategoryCache.CACHE_KEY);
+  private static async fetch(): Promise<Category[] | undefined> {
+    const data = await redis.hvals(CACHE_KEY);
     if (data.length) {
       return data.map((item) => Category.fromJSON(JSON.parse(item)));
     }
   }
 
-  static async set(categories: Category[]) {
+  private static async set(categories: Category[]) {
     const p = redis.pipeline();
-    p.del(CategoryCache.CACHE_KEY);
-    categories.forEach((c) => p.hset(CategoryCache.CACHE_KEY, c.id, JSON.stringify(c)));
-    p.expire(CategoryCache.CACHE_KEY, CategoryCache.CACHE_TTL);
+    p.del(CACHE_KEY);
+    categories.forEach((c) => p.hset(CACHE_KEY, c.id, JSON.stringify(c)));
+    p.expire(CACHE_KEY, this.CACHE_TTL);
     await p.exec();
   }
 
-  static async find(id: string): Promise<Category | undefined> {
-    const data = await redis.hget(CategoryCache.CACHE_KEY, id);
-    if (data) {
-      return Category.fromJSON(JSON.parse(data));
-    }
-  }
-}
-
-export class CategoryManager {
-  static async get(): Promise<Category[]> {
-    const cached = await CategoryCache.get();
+  public static async get(): Promise<Category[]> {
+    const cached = await RedisCache.fetch();
     if (cached) {
       return cached;
     }
 
     const categories = await Category.get();
-    CategoryCache.set(categories).catch((error) => {
+    RedisCache.set(categories).catch((error) => {
       // TODO(sdjdd): Sentry
-      console.error(`[Cache] Set ${CategoryCache.CACHE_KEY}:`, error);
+      console.error(`[Cache] Set ${CACHE_KEY}:`, error);
     });
     return categories;
   }
+};
 
-  static async find(id: string): Promise<Category | undefined> {
-    const cached = await CategoryCache.find(id);
-    if (cached) {
-      return cached;
-    }
+const memorizedGet = mem(RedisCache.get, { maxAge: 5000});
 
-    // XXX: 当 categories 缓存不存在时总是会查数据库, 但这种情况不会经常出现
-    return Category.find(id);
-  }
+export const CategoryManager = {
+  async get(): Promise<Category[]> {
+    return await memorizedGet();
+  },
 
-  static async getSubCategories(id: string | string[]): Promise<Category[]> {
-    let categories = await CategoryManager.get();
+  async find(id: string): Promise<Category | undefined> {
+    const categories = await this.get();
+    return categories.find((category) => category.id === id);
+  },
+
+  async getSubCategories(id: string | string[]): Promise<Category[]> {
+    let categories = await this.get();
     const parentIds = _.castArray(id);
     const result: Category[] = [];
 
@@ -177,5 +173,5 @@ export class CategoryManager {
     }
 
     return result;
-  }
-}
+  },
+};
