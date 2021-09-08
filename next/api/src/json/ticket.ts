@@ -13,6 +13,10 @@ export class TicketListItemJson {
       nid: this.ticket.nid,
       title: this.ticket.title,
       categoryId: this.ticket.categoryId,
+      categoryPath: this.ticket.categoryPath?.map(({ id, name }) => ({
+        id,
+        name,
+      })),
       authorId: this.ticket.authorId,
       author: this.ticket.author ? new UserJson(this.ticket.author) : undefined,
       assigneeId: this.ticket.assigneeId,
@@ -21,6 +25,8 @@ export class TicketListItemJson {
       group: this.ticket.group ? new GroupJson(this.ticket.group) : undefined,
       files: this.ticket.files?.map((file) => new FileResponse(file)),
       status: this.ticket.status,
+      evaluation: this.ticket.evaluation,
+      replyCount: this.ticket.replyCount,
       createdAt: this.ticket.createdAt.toISOString(),
       updatedAt: this.ticket.updatedAt.toISOString(),
     };

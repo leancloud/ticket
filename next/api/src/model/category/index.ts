@@ -137,9 +137,10 @@ class RedisCache {
     });
     return categories;
   }
-};
+}
 
-const memorizedGet = mem(RedisCache.get, { maxAge: 5000});
+const memorizedGet = mem(RedisCache.get, { maxAge: 5000 });
+const getCategoryMap = mem((categories: Category[]) => _.keyBy(categories, 'id'));
 
 export const CategoryManager = {
   async get(): Promise<Category[]> {
@@ -149,6 +150,21 @@ export const CategoryManager = {
   async find(id: string): Promise<Category | undefined> {
     const categories = await this.get();
     return categories.find((category) => category.id === id);
+  },
+
+  async getFullCategoryPath(id: string): Promise<Category[]> {
+    const categories = await this.get();
+    const categoriesMap = getCategoryMap(categories);
+    const path = [];
+    let category = categoriesMap[id];
+    while (category) {
+      path.unshift(category);
+      if (!category.parentId) {
+        break;
+      }
+      category = categoriesMap[category.parentId];
+    }
+    return path;
   },
 
   async getSubCategories(id: string | string[]): Promise<Category[]> {

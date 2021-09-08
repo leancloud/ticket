@@ -4,6 +4,7 @@ import { Query } from '../../query';
 import { Group } from '../group';
 import { User } from '../user';
 import { File } from '../file';
+import { Category, CategoryManager } from '../category';
 
 export class Ticket {
   id: string;
@@ -12,6 +13,7 @@ export class Ticket {
   content: string;
   contentHTML: string;
   categoryId: string;
+  categoryPath?: Category[];
   authorId: string;
   author?: User;
   assigneeId?: string;
@@ -23,6 +25,7 @@ export class Ticket {
   files?: File[];
   status: number;
   evaluation?: { star: number; content: string };
+  replyCount?: number;
   createdAt: Date;
   updatedAt: Date;
 
@@ -41,6 +44,7 @@ export class Ticket {
     files?: File[];
     status: number;
     evaluation?: { star: number; content: string };
+    replyCount?: number;
     createdAt: Date;
     updatedAt: Date;
   }) {
@@ -58,6 +62,7 @@ export class Ticket {
     this.files = data.files;
     this.status = data.status;
     this.evaluation = data.evaluation;
+    this.replyCount = data.replyCount;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
   }
@@ -80,6 +85,7 @@ export class Ticket {
       files: object.get('files')?.map(File.fromAVObject),
       status: object.get('status'),
       evaluation: object.get('evaluation'),
+      replyCount: object.get('replyCount'),
       createdAt: object.createdAt!,
       updatedAt: object.updatedAt!,
     });
@@ -98,5 +104,9 @@ export class Ticket {
       sessionToken,
     });
     return Ticket.fromAVObject(object);
+  }
+
+  async updateCategoryPath() {
+    this.categoryPath = await CategoryManager.getFullCategoryPath(this.categoryId);
   }
 }

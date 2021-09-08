@@ -24,6 +24,7 @@ const incluldeSchema = yup.csv(
 );
 
 const findTicketsSchema = yup.object({
+  where: yup.object(),
   authorId: yup.string(),
   assigneeId: yup.csv(yup.string().required()),
   categoryId: yup.csv(yup.string().required()),
@@ -38,6 +39,7 @@ const findTicketsSchema = yup.object({
   pageSize: yup.number().min(1).max(100).default(10),
   include: incluldeSchema,
   count: yup.bool().default(false),
+  includeCategoryPath: yup.bool().default(false),
 });
 
 router.get('/', sort('orderBy', sortKeys), parseRange('createdAt'), async (ctx) => {
@@ -59,6 +61,10 @@ router.get('/', sort('orderBy', sortKeys), parseRange('createdAt'), async (ctx) 
   }
 
   const query = Ticket.query()
+    .when(params.where, (query, where) => {
+      console.log(where);
+      return query.where('', 'init', where);
+    })
     .when(params.authorId, (query, authorId) => {
       return query.where('author', '==', User.ptr(authorId));
     })
@@ -147,11 +153,37 @@ router.get('/', sort('orderBy', sortKeys), parseRange('createdAt'), async (ctx) 
     const result = await query.getWithTotalCount(currentUser);
     tickets = result[0];
     ctx.set('X-Total-Count', result[1].toString());
+    ctx.set('Access-Control-Expose-Headers', 'X-Total-Count');
   } else {
     tickets = await query.get(currentUser);
   }
 
-  ctx.body = tickets.map((t) => new TicketListItemJson(t));
+  if (params.includeCategoryPath) {
+    await Promise.all(tickets.map((ticket) => ticket.updateCategoryPath()));
+  }
+
+  let notificationMap: Record<string, AV.Object> = {};
+  try {
+    const notifications = await new AV.Query<AV.Object>('notification')
+      .containedIn(
+        'ticket',
+        tickets.map((ticket) => Ticket.ptr(ticket.id))
+      )
+      .equalTo('user', User.ptr(currentUser.id))
+      .find({ sessionToken: currentUser.sessionToken });
+    notificationMap = _.keyBy(
+      notifications,
+      (notification) => notification.get('ticket')?.id as string
+    );
+  } catch (error) {
+    // It's OK to fail fetching notifications
+    // TODO: Sentry
+    console.error(error);
+  }
+  ctx.body = tickets.map((ticket) => ({
+    ...new TicketListItemJson(ticket).toJSON(),
+    unreadCount: notificationMap[ticket.id]?.get('unreadCount') || 0,
+  }));
 });
 
 function resetUnreadCount(ticket: Ticket, currentUser: User) {
@@ -168,6 +200,7 @@ function resetUnreadCount(ticket: Ticket, currentUser: User) {
 
 const getTicketSchema = yup.object({
   include: incluldeSchema,
+  includeCategoryPath: yup.bool().default(false),
 });
 
 router.get('/:id', async (ctx) => {
@@ -179,6 +212,9 @@ router.get('/:id', async (ctx) => {
     }
   }
   const ticket = await Ticket.find(ctx.params.id, params.include, currentUser.sessionToken);
+  if (params.includeCategoryPath) {
+    await ticket.updateCategoryPath();
+  }
   ctx.body = new TicketJSON(ticket).toJSON();
   resetUnreadCount(ticket, currentUser);
 });
