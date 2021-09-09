@@ -34,7 +34,7 @@ export abstract class Model {
 
   private static fields: Record<string, Field>;
 
-  private static relations: Record<string, Relation<any, any>>;
+  private static relations: Record<string, Relation>;
 
   id!: string;
 
@@ -51,7 +51,7 @@ export abstract class Model {
     this.fields[name] = field;
   }
 
-  static setRelation(name: string, relation: Relation<any, any>) {
+  static setRelation(name: string, relation: Relation) {
     this.relations ??= {};
     this.relations[name] = relation;
   }

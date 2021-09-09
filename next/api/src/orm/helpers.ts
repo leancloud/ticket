@@ -2,7 +2,7 @@ import AV from 'leancloud-storage';
 import _ from 'lodash';
 
 import { Field, Model } from './model';
-import { RelatedIdGetter, RelatedIdsGetter } from './relation';
+import { BelongsTo, HasManyThroughIdArray, HasManyThroughPointerArray, PointTo } from './relation';
 
 export type DefineFieldOptions = Partial<Field> & Pick<Field, 'localKey'>;
 
@@ -67,7 +67,7 @@ export function pointerArray(pointerClass: typeof Model, avObjectKey?: string) {
 
 export function belongsTo(
   relatedModel: typeof Model,
-  getRelatedId?: string | RelatedIdGetter<any>
+  getRelatedId?: string | BelongsTo['getRelatedId']
 ) {
   return (target: Model, name: string) => {
     if (getRelatedId === undefined) {
@@ -91,7 +91,7 @@ export function belongsTo(
 export function pointTo(
   relatedModel: typeof Model,
   includeKey?: string,
-  getRelatedId?: string | RelatedIdGetter<any>
+  getRelatedId?: string | PointTo['getRelatedId']
 ) {
   return (target: Model, name: string) => {
     if (getRelatedId === undefined) {
@@ -115,7 +115,7 @@ export function pointTo(
 
 export function hasManyThroughIdArray(
   relatedModel: typeof Model,
-  getRelatedIds?: string | RelatedIdsGetter<any>
+  getRelatedIds?: string | HasManyThroughIdArray['getRelatedIds']
 ) {
   return (target: Model, name: string) => {
     if (getRelatedIds === undefined) {
@@ -139,7 +139,7 @@ export function hasManyThroughIdArray(
 export function hasManyThroughPointerArray(
   relatedModel: typeof Model,
   includeKey?: string,
-  getRelatedIds?: string | RelatedIdsGetter<any>
+  getRelatedIds?: string | HasManyThroughPointerArray['getRelatedIds']
 ) {
   return (target: Model, name: string) => {
     if (getRelatedIds === undefined) {

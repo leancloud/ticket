@@ -2,19 +2,14 @@ import AV from 'leancloud-storage';
 import _ from 'lodash';
 
 import { Model } from './model';
-import { BelongsTo, HasManyThroughIdArray, HasManyThroughPointerArray, PointTo } from './relation';
+import {
+  BelongsTo,
+  HasManyThroughIdArray,
+  HasManyThroughPointerArray,
+  PointTo,
+  RelationName,
+} from './relation';
 import { AuthOptions, AVQuery } from './query';
-import { KeysOfType } from './utils';
-
-export type PreloadKeys<M extends typeof Model> = Extract<
-  KeysOfType<InstanceType<M>, Model | Model[] | undefined>,
-  string
->;
-
-export type PreloadData<
-  M extends typeof Model,
-  K extends PreloadKeys<M> = PreloadKeys<M>
-> = NonNullable<InstanceType<M>[K]>[];
 
 export interface BeforeQueryConntext {
   avQuery: AVQuery;
@@ -24,39 +19,42 @@ export interface AfterQueryContext {
   objects: AV.Object[];
 }
 
-export interface Preloader<M extends typeof Model, K extends PreloadKeys<M> = PreloadKeys<M>> {
-  data?: PreloadData<M, K>;
-  beforeQuery?: (ctx: BeforeQueryConntext) => void | Promise<void>;
-  afterQuery?: (ctx: AfterQueryContext) => void | Promise<void>;
-  load: (items: InstanceType<M>[], options?: AuthOptions) => Promise<void>;
+export interface Item extends Record<string, any> {
+  id: string;
 }
 
-class BelongsToPreloader<
-  M extends typeof Model,
-  R extends typeof Model,
-  K extends PreloadKeys<M> = PreloadKeys<M>
-> {
-  data?: PreloadData<M, K>;
+export interface Preloader {
+  data?: Item[];
+  beforeQuery?: (ctx: BeforeQueryConntext) => void | Promise<void>;
+  afterQuery?: (ctx: AfterQueryContext) => void | Promise<void>;
+  load: (items: Item[], options?: AuthOptions) => Promise<void>;
+}
 
-  constructor(private relation: BelongsTo<M, R>) {}
+class BelongsToPreloader {
+  data?: Item[];
 
-  async load(items: InstanceType<M>[], options?: AuthOptions) {
+  constructor(private relation: BelongsTo) {}
+
+  async load(items: Item[], options?: AuthOptions) {
     if (items.length === 0) {
       return;
     }
 
     const { name, relatedModel, getRelatedId } = this.relation;
 
-    let relatedItems: InstanceType<R>[];
-    if (this.data) {
-      relatedItems = this.data;
-    } else {
-      const ids = _.uniq(items.map(getRelatedId).filter(_.isString));
-      if (ids.length === 0) {
-        return;
-      }
+    const relatedItems = this.data ?? [];
+
+    const ids = _(items)
+      .map(getRelatedId)
+      .compact()
+      .uniq()
+      .difference(relatedItems.map((item) => item.id))
+      .value();
+
+    if (ids.length) {
       const query = relatedModel.query().where('objectId', 'in', ids);
-      relatedItems = await query.find(options);
+      const fetchedItems = await query.find(options);
+      fetchedItems.forEach((item) => relatedItems.push(item));
     }
 
     const relatedItemMap = _.keyBy(relatedItems, (t) => t.id);
@@ -66,17 +64,17 @@ class BelongsToPreloader<
       if (relatedId) {
         const relatedItem = relatedItemMap[relatedId];
         if (relatedItem) {
-          item[name as keyof typeof item] = relatedItem as any;
+          item[name] = relatedItem;
         }
       }
     });
   }
 }
 
-class PointToPreloader<M extends typeof Model, R extends typeof Model> {
+class PointToPreloader {
   private objects?: AV.Object[];
 
-  constructor(private relation: PointTo<M, R>) {}
+  constructor(private relation: PointTo) {}
 
   beforeQuery({ avQuery }: BeforeQueryConntext) {
     avQuery.include(this.relation.includeKey);
@@ -86,7 +84,7 @@ class PointToPreloader<M extends typeof Model, R extends typeof Model> {
     this.objects = objects;
   }
 
-  async load(items: InstanceType<M>[], options?: AuthOptions) {
+  async load(items: Item[], options?: AuthOptions) {
     if (this.objects) {
       const { name, relatedModel, includeKey } = this.relation;
       const objectMap = _.keyBy(this.objects, (o) => o.id!);
@@ -95,7 +93,7 @@ class PointToPreloader<M extends typeof Model, R extends typeof Model> {
         const subObject = object.get(includeKey) as AV.Object | undefined;
         if (subObject) {
           const data = relatedModel.fromAVObject(subObject);
-          item[name as keyof typeof item] = data as any;
+          item[name] = data;
         }
       });
     } else {
@@ -106,50 +104,49 @@ class PointToPreloader<M extends typeof Model, R extends typeof Model> {
   }
 }
 
-class HasManyThrouchIdArrayPreloader<
-  M extends typeof Model,
-  R extends typeof Model,
-  K extends PreloadKeys<M> = PreloadKeys<M>
-> {
-  data?: PreloadData<M, K>;
+class HasManyThrouchIdArrayPreloader {
+  data?: Item[];
 
-  constructor(private relation: HasManyThroughIdArray<M, R>) {}
+  constructor(private relation: HasManyThroughIdArray) {}
 
-  async load(items: InstanceType<M>[], options?: AuthOptions) {
+  async load(items: Item[], options?: AuthOptions) {
     if (items.length === 0) {
       return;
     }
 
     const { name, relatedModel, getRelatedIds } = this.relation;
 
-    let relatedItems: InstanceType<R>[];
-    if (this.data) {
-      relatedItems = this.data;
-    } else {
-      const ids = _.uniq(items.map(getRelatedIds).flat().filter(_.isString));
-      if (ids.length === 0) {
-        return;
-      }
+    const relatedItems = this.data ?? [];
+
+    const ids = _(items)
+      .map(getRelatedIds)
+      .compact()
+      .flatten()
+      .uniq()
+      .difference(relatedItems.map((item) => item.id))
+      .value();
+
+    if (ids.length) {
       const query = relatedModel.query().where('objectId', 'in', ids);
-      relatedItems = await query.find(options);
+      const fetchedItems = await query.find(options);
+      fetchedItems.forEach((item) => relatedItems.push(item));
     }
 
     const relatedItemMap = _.keyBy(relatedItems, (t) => t.id);
-
     items.forEach((item) => {
       const relatedIds = getRelatedIds(item);
       if (relatedIds) {
         const relatedItems = relatedIds.map((id) => relatedItemMap[id]);
-        item[name as keyof typeof item] = _.compact(relatedItems) as any;
+        item[name] = _.compact(relatedItems);
       }
     });
   }
 }
 
-class HasManyThrouchPointerArrayPreloader<M extends typeof Model, R extends typeof Model> {
+class HasManyThrouchPointerArrayPreloader {
   private objects?: AV.Object[];
 
-  constructor(private relation: HasManyThroughPointerArray<M, R>) {}
+  constructor(private relation: HasManyThroughPointerArray) {}
 
   beforeQuery({ avQuery }: BeforeQueryConntext) {
     avQuery.include(this.relation.includeKey);
@@ -159,7 +156,7 @@ class HasManyThrouchPointerArrayPreloader<M extends typeof Model, R extends type
     this.objects = objects;
   }
 
-  async load(items: InstanceType<M>[], options?: AuthOptions) {
+  async load(items: Item[], options?: AuthOptions) {
     if (this.objects) {
       const { name, relatedModel, includeKey } = this.relation;
       const objectMap = _.keyBy(this.objects, (o) => o.id!);
@@ -168,7 +165,7 @@ class HasManyThrouchPointerArrayPreloader<M extends typeof Model, R extends type
         const subObjects = object.get(includeKey) as AV.Object[] | undefined;
         if (subObjects) {
           const data = subObjects.map((o) => relatedModel.fromAVObject(o));
-          item[name as keyof typeof item] = data as any;
+          item[name] = data;
         }
       });
     } else {
@@ -182,13 +179,13 @@ class HasManyThrouchPointerArrayPreloader<M extends typeof Model, R extends type
   }
 }
 
-export function preloaderFactory<M extends typeof Model>(
+export function preloaderFactory<M extends typeof Model, N extends RelationName<M>>(
   model: M,
-  key: PreloadKeys<M>
-): Preloader<M> {
-  const relation = model.getRelation(key);
+  name: N
+): Preloader {
+  const relation = model.getRelation(name);
   if (!relation) {
-    throw new Error(`Cannot create preloader, relation ${key} is not exists`);
+    throw new Error(`Cannot create preloader, relation ${name} is not exists`);
   }
   switch (relation.type) {
     case 'belongsTo':

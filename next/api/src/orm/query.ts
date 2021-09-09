@@ -2,7 +2,9 @@ import AV from 'leancloud-storage';
 import _ from 'lodash';
 
 import { Model } from './model';
-import { PreloadData, Preloader, preloaderFactory, PreloadKeys } from './preloader';
+import { Preloader, preloaderFactory } from './preloader';
+import { RelationName } from './relation';
+import { Flat } from './utils';
 
 export interface AuthOptions {
   sessionToken?: string;
@@ -82,13 +84,16 @@ type ValuesType<T> = T extends (where: any, key: string, ...values: infer V) => 
 
 export type QueryBunch<M extends typeof Model> = (query: Query<M>) => Query<M>;
 
-export interface PreloadOptions<M extends typeof Model, K extends PreloadKeys<M> = PreloadKeys<M>> {
-  data?: PreloadData<M, K>;
+export interface PreloadOptions<
+  M extends typeof Model,
+  K extends RelationName<M> = RelationName<M>
+> {
+  data?: Flat<NonNullable<InstanceType<M>[K]>>[];
   authOptions?: AuthOptions;
 }
 
-interface QueryPreloader<M extends typeof Model> {
-  preloader: Preloader<M>;
+interface QueryPreloader {
+  preloader: Preloader;
   authOptions?: AuthOptions;
 }
 
@@ -98,7 +103,7 @@ export class Query<M extends typeof Model> {
   private condition: any = {};
   private skipCount?: number;
   private limitCount?: number;
-  private preloaders: Record<string, QueryPreloader<M>> = {};
+  private preloaders: Record<string, QueryPreloader> = {};
 
   constructor(protected model: M) {}
 
@@ -171,12 +176,12 @@ export class Query<M extends typeof Model> {
     return query;
   }
 
-  preload<K extends PreloadKeys<M>>(key: K, options?: PreloadOptions<M, K>): Query<M> {
+  preload<K extends RelationName<M>>(key: K, options?: PreloadOptions<M, K>): Query<M> {
     const query = this.clone();
 
     const preloader = preloaderFactory(this.model, key);
     if (options?.data) {
-      preloader.data = options.data;
+      preloader.data = options.data as Model[];
     }
     query.preloaders[key] = {
       preloader,
@@ -215,14 +220,13 @@ export class Query<M extends typeof Model> {
   }
 
   async first(options?: AuthOptions): Promise<InstanceType<M> | undefined> {
-    const limitCount = this.limitCount;
-    this.limitCount = 1;
-    try {
-      const items = await this.find(options);
-      return items[0];
-    } finally {
-      this.limitCount = limitCount;
-    }
+    const builderMode = this.builderMode;
+    this.builderMode = false;
+    const query = this.limit(1);
+    this.builderMode = builderMode;
+
+    const items = await query.find(options);
+    return items[0];
   }
 
   count(options?: AuthOptions): Promise<number> {
