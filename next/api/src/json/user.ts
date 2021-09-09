@@ -1,11 +1,11 @@
 import crypto from 'crypto';
-import LRU from 'lru-cache';
+import LRU from 'quick-lru';
 
 import { config } from '../config';
 import { User } from '../model/user';
 
 class GravatarUrlManager {
-  static cache = new LRU<string, string>({ max: 100_000 });
+  static cache = new LRU<string, string>({ maxSize: 100_000 });
 
   static getHash(email: string): string {
     const cached = GravatarUrlManager.cache.get(email);
