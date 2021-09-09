@@ -5,7 +5,7 @@ import {
   belongsTo,
   field,
   pointerId,
-  pointerArray,
+  pointerIds,
   pointTo,
   hasManyThroughPointerArray,
 } from '../orm';
@@ -63,7 +63,7 @@ export class Ticket extends Model {
   @pointerId(Organization)
   organizationId?: string;
 
-  @pointerArray(File)
+  @pointerIds(File)
   fileIds?: string[];
 
   @hasManyThroughPointerArray(File)

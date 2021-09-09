@@ -1,4 +1,4 @@
-import { Model, field, pointerArray, pointerId, pointTo } from '../orm';
+import { Model, field, pointerIds, pointerId, pointTo } from '../orm';
 import { FAQ } from './FAQ';
 import { TicketForm } from './TicketForm';
 
@@ -15,7 +15,7 @@ export class Category extends Model {
   @field()
   order?: number;
 
-  @pointerArray(FAQ)
+  @pointerIds(FAQ)
   FAQIds?: string[];
 
   @pointerId(TicketForm)

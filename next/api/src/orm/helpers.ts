@@ -51,7 +51,7 @@ export function pointerId(pointerClass: typeof Model, avObjectKey?: string) {
   };
 }
 
-export function pointerArray(pointerClass: typeof Model, avObjectKey?: string) {
+export function pointerIds(pointerClass: typeof Model, avObjectKey?: string) {
   return (target: Model, localKey: string) => {
     const modelClass = target.constructor as typeof Model;
     avObjectKey ??= localKey.endsWith('Ids') ? localKey.slice(0, -3) + 's' : localKey;
