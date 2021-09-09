@@ -62,7 +62,6 @@ router.get('/', sort('orderBy', sortKeys), parseRange('createdAt'), async (ctx) 
 
   const query = Ticket.query()
     .when(params.where, (query, where) => {
-      console.log(where);
       return query.where('', 'init', where);
     })
     .when(params.authorId, (query, authorId) => {
