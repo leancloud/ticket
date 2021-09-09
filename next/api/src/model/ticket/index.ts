@@ -26,6 +26,7 @@ export class Ticket {
   status: number;
   evaluation?: { star: number; content: string };
   replyCount?: number;
+  metaData?: object;
   createdAt: Date;
   updatedAt: Date;
 
@@ -45,6 +46,7 @@ export class Ticket {
     status: number;
     evaluation?: { star: number; content: string };
     replyCount?: number;
+    metaData?: object;
     createdAt: Date;
     updatedAt: Date;
   }) {
@@ -63,6 +65,7 @@ export class Ticket {
     this.status = data.status;
     this.evaluation = data.evaluation;
     this.replyCount = data.replyCount;
+    this.metaData = data.metaData;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
   }
@@ -86,6 +89,7 @@ export class Ticket {
       status: object.get('status'),
       evaluation: object.get('evaluation'),
       replyCount: object.get('replyCount'),
+      metaData: object.get('metaData'),
       createdAt: object.createdAt!,
       updatedAt: object.updatedAt!,
     });

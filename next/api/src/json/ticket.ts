@@ -39,6 +39,7 @@ export class TicketJSON {
   toJSON() {
     return {
       ...new TicketListItemJson(this.ticket).toJSON(),
+      metaData: this.ticket.metaData,
       contentSafeHTML: xss.process(this.ticket.contentHTML),
     };
   }
