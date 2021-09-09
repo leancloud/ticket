@@ -24,6 +24,13 @@ const queryCommands = {
     }
     return (query) => query.containedIn(key, value);
   },
+  init: (key: string, value: any): QueryModifier => {
+    return (query) => {
+      // @ts-ignore
+      query._where = value;
+      return query;
+    };
+  },
 };
 
 export type QueryCommand = keyof typeof queryCommands;
