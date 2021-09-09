@@ -1,6 +1,7 @@
 import AV from 'leancloud-storage';
 import _ from 'lodash';
 import mem from 'mem';
+import QuickLRU from 'quick-lru';
 
 import { redis } from '../../cache';
 
@@ -139,8 +140,10 @@ class RedisCache {
   }
 }
 
-const memorizedGet = mem(RedisCache.get, { maxAge: 5000 });
-const getCategoryMap = mem((categories: Category[]) => _.keyBy(categories, 'id'));
+const memorizedGet = mem(RedisCache.get.bind(RedisCache), { maxAge: 5000 });
+const getCategoryMap = mem((categories: Category[]) => _.keyBy(categories, 'id'), {
+  cache: new QuickLRU({ maxSize: 1 }),
+});
 
 export const CategoryManager = {
   async get(): Promise<Category[]> {
