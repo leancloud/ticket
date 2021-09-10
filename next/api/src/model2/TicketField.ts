@@ -18,6 +18,7 @@ export class TicketField extends Model {
 }
 
 const title = new TicketField();
+// @ts-ignore
 title.id = 'title';
 title.type = 'text';
 title.defaultLocale = 'en';
@@ -25,6 +26,7 @@ title.active = true;
 title.required = true;
 
 const descroption = new TicketField();
+// @ts-ignore
 descroption.id = 'description';
 descroption.type = 'multi-line';
 descroption.defaultLocale = 'en';
