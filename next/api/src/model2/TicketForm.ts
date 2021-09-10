@@ -8,6 +8,6 @@ export class TicketForm extends Model {
   @field()
   fieldIds!: string[];
 
-  @hasManyThroughIdArray(TicketField)
+  @hasManyThroughIdArray(() => TicketField)
   fields!: TicketField[];
 }

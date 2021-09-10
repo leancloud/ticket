@@ -2,7 +2,13 @@ import AV from 'leancloud-storage';
 import _ from 'lodash';
 
 import { Field, Model } from './model';
-import { BelongsTo, HasManyThroughIdArray, HasManyThroughPointerArray, PointTo } from './relation';
+import {
+  BelongsTo,
+  HasManyThroughIdArray,
+  HasManyThroughPointerArray,
+  ModelGetter,
+  PointTo,
+} from './relation';
 
 export type DefineFieldOptions = Partial<Field> & Pick<Field, 'localKey'>;
 
@@ -37,36 +43,38 @@ export function field(config?: string | Partial<Omit<DefineFieldOptions, 'localK
   };
 }
 
-export function pointerId(pointerClass: typeof Model, avObjectKey?: string) {
+export function pointerId(getPointedModel: ModelGetter, avObjectKey?: string) {
   return (target: Model, localKey: string) => {
-    const modelClass = target.constructor as typeof Model;
     avObjectKey ??= localKey.endsWith('Id') ? localKey.slice(0, -2) : localKey;
-    const className = pointerClass.getClassName();
-    defineField(modelClass, {
+    defineField(target.constructor as typeof Model, {
       localKey,
       avObjectKey,
-      encode: (id: string) => AV.Object.createWithoutData(className, id),
+      encode: (id: string) => {
+        const className = getPointedModel().getClassName();
+        AV.Object.createWithoutData(className, id);
+      },
       decode: (obj: AV.Object) => obj.id,
     });
   };
 }
 
-export function pointerIds(pointerClass: typeof Model, avObjectKey?: string) {
+export function pointerIds(getPointerModel: ModelGetter, avObjectKey?: string) {
   return (target: Model, localKey: string) => {
-    const modelClass = target.constructor as typeof Model;
     avObjectKey ??= localKey.endsWith('Ids') ? localKey.slice(0, -3) + 's' : localKey;
-    const className = pointerClass.getClassName();
-    defineField(modelClass, {
+    defineField(target.constructor as typeof Model, {
       localKey,
       avObjectKey,
-      encode: (ids: string[]) => ids.map((id) => AV.Object.createWithoutData(className, id)),
+      encode: (ids: string[]) => {
+        const className = getPointerModel().getClassName();
+        ids.map((id) => AV.Object.createWithoutData(className, id));
+      },
       decode: (objs: AV.Object[]) => objs.map((o) => o.id),
     });
   };
 }
 
 export function belongsTo(
-  relatedModel: typeof Model,
+  getRelatedModel: ModelGetter,
   getRelatedId?: string | BelongsTo['getRelatedId']
 ) {
   return (target: Model, name: string) => {
@@ -82,14 +90,14 @@ export function belongsTo(
       name,
       type: 'belongsTo',
       model,
-      relatedModel,
+      getRelatedModel,
       getRelatedId,
     });
   };
 }
 
 export function pointTo(
-  relatedModel: typeof Model,
+  getRelatedModel: ModelGetter,
   includeKey?: string,
   getRelatedId?: string | PointTo['getRelatedId']
 ) {
@@ -106,7 +114,7 @@ export function pointTo(
       name,
       type: 'pointTo',
       model,
-      relatedModel,
+      getRelatedModel,
       getRelatedId,
       includeKey: includeKey ?? name,
     });
@@ -114,7 +122,7 @@ export function pointTo(
 }
 
 export function hasManyThroughIdArray(
-  relatedModel: typeof Model,
+  getRelatedModel: ModelGetter,
   getRelatedIds?: string | HasManyThroughIdArray['getRelatedIds']
 ) {
   return (target: Model, name: string) => {
@@ -130,14 +138,14 @@ export function hasManyThroughIdArray(
       name,
       type: 'hasManyThroughIdArray',
       model,
-      relatedModel,
+      getRelatedModel,
       getRelatedIds,
     });
   };
 }
 
 export function hasManyThroughPointerArray(
-  relatedModel: typeof Model,
+  getRelatedModel: ModelGetter,
   includeKey?: string,
   getRelatedIds?: string | HasManyThroughPointerArray['getRelatedIds']
 ) {
@@ -154,21 +162,21 @@ export function hasManyThroughPointerArray(
       name,
       type: 'hasManyThroughPointerArray',
       model,
-      relatedModel,
+      getRelatedModel,
       getRelatedIds,
       includeKey: includeKey ?? name,
     });
   };
 }
 
-export function hasManyThroughRelation(relatedModel: typeof Model, relatedKey?: string) {
+export function hasManyThroughRelation(getRelatedModel: ModelGetter, relatedKey?: string) {
   return (target: Model, name: string) => {
     const model = target.constructor as typeof Model;
     model.setRelation(name, {
       name,
       type: 'hasManyThroughRelation',
       model,
-      relatedModel,
+      getRelatedModel,
       relatedKey: relatedKey ?? name,
     });
   };

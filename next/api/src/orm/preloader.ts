@@ -41,7 +41,7 @@ class BelongsToPreloader {
       return;
     }
 
-    const { name, relatedModel, getRelatedId } = this.relation;
+    const { name, getRelatedModel, getRelatedId } = this.relation;
 
     const relatedItems = this.data ?? [];
 
@@ -53,7 +53,7 @@ class BelongsToPreloader {
       .value();
 
     if (ids.length) {
-      const query = relatedModel.query().where('objectId', 'in', ids);
+      const query = getRelatedModel().query().where('objectId', 'in', ids);
       const fetchedItems = await query.find(options);
       fetchedItems.forEach((item) => relatedItems.push(item));
     }
@@ -87,7 +87,8 @@ class PointToPreloader {
 
   async load(items: Item[], options?: AuthOptions) {
     if (this.objects) {
-      const { name, relatedModel, includeKey } = this.relation;
+      const { name, getRelatedModel, includeKey } = this.relation;
+      const relatedModel = getRelatedModel();
       const objectMap = _.keyBy(this.objects, (o) => o.id!);
       items.forEach((item) => {
         const object = objectMap[item.id];
@@ -115,7 +116,7 @@ class HasManyThrouchIdArrayPreloader {
       return;
     }
 
-    const { name, relatedModel, getRelatedIds } = this.relation;
+    const { name, getRelatedModel, getRelatedIds } = this.relation;
 
     const relatedItems = this.data ?? [];
 
@@ -128,7 +129,7 @@ class HasManyThrouchIdArrayPreloader {
       .value();
 
     if (ids.length) {
-      const query = relatedModel.query().where('objectId', 'in', ids);
+      const query = getRelatedModel().query().where('objectId', 'in', ids);
       const fetchedItems = await query.find(options);
       fetchedItems.forEach((item) => relatedItems.push(item));
     }
@@ -159,7 +160,8 @@ class HasManyThrouchPointerArrayPreloader {
 
   async load(items: Item[], options?: AuthOptions) {
     if (this.objects) {
-      const { name, relatedModel, includeKey } = this.relation;
+      const { name, getRelatedModel, includeKey } = this.relation;
+      const relatedModel = getRelatedModel();
       const objectMap = _.keyBy(this.objects, (o) => o.id!);
       items.forEach((item) => {
         const object = objectMap[item.id];
@@ -188,7 +190,8 @@ class HasManyThrouchRelationPreloader {
       return;
     }
 
-    const { name, model, relatedModel, relatedKey } = this.relation;
+    const { name, model, getRelatedModel, relatedKey } = this.relation;
+    const relatedModel = getRelatedModel();
 
     const tasks = items.map(async (item) => {
       const query = relatedModel.queryBuilder().relatedTo(model, relatedKey, item.id);

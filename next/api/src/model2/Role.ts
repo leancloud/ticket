@@ -11,9 +11,9 @@ export class Role extends Model {
   @field()
   name!: string;
 
-  @hasManyThroughRelation(Role)
+  @hasManyThroughRelation(() => Role)
   roles!: Role[];
 
-  @hasManyThroughRelation(User)
+  @hasManyThroughRelation(() => User)
   users!: User[];
 }
