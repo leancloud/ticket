@@ -7,11 +7,13 @@ export type RelationName<M extends typeof Model> = Extract<
   string
 >;
 
+export type ModelGetter = () => typeof Model;
+
 export interface BelongsTo {
   name: string;
   type: 'belongsTo';
   model: typeof Model;
-  relatedModel: typeof Model;
+  getRelatedModel: ModelGetter;
   getRelatedId: (instance: any) => string | undefined;
 }
 
@@ -24,7 +26,7 @@ export interface HasManyThroughIdArray {
   name: string;
   type: 'hasManyThroughIdArray';
   model: typeof Model;
-  relatedModel: typeof Model;
+  getRelatedModel: ModelGetter;
   getRelatedIds: (instance: any) => string[] | undefined;
 }
 
@@ -37,7 +39,7 @@ export interface HasManyThroughRelation {
   name: string;
   type: 'hasManyThroughRelation';
   model: typeof Model;
-  relatedModel: typeof Model;
+  getRelatedModel: ModelGetter;
   relatedKey: string;
 }
 
