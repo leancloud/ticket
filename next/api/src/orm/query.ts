@@ -98,8 +98,6 @@ interface QueryPreloader {
 }
 
 export class Query<M extends typeof Model> {
-  builderMode = false;
-
   private condition: any = {};
   private skipCount?: number;
   private limitCount?: number;
@@ -108,10 +106,6 @@ export class Query<M extends typeof Model> {
   constructor(protected model: M) {}
 
   clone(): Query<M> {
-    if (this.builderMode) {
-      return this;
-    }
-
     const query = new Query(this.model);
     query.condition = { ...this.condition };
     query.skipCount = this.skipCount;
@@ -220,16 +214,21 @@ export class Query<M extends typeof Model> {
   }
 
   async first(options?: AuthOptions): Promise<InstanceType<M> | undefined> {
-    const builderMode = this.builderMode;
-    this.builderMode = false;
-    const query = this.limit(1);
-    this.builderMode = builderMode;
-
-    const items = await query.find(options);
+    const items = await this.limit(1).find(options);
     return items[0];
   }
 
   count(options?: AuthOptions): Promise<number> {
     return this.buildAVQuery().count(options);
+  }
+}
+
+export class QueryBuilder<M extends typeof Model> extends Query<M> {
+  clone() {
+    return this;
+  }
+
+  first(options?: AuthOptions) {
+    return super.clone().first(options);
   }
 }

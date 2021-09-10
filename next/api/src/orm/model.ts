@@ -1,7 +1,7 @@
 import AV from 'leancloud-storage';
 import _ from 'lodash';
 
-import { AuthOptions, Query } from './query';
+import { AuthOptions, Query, QueryBuilder } from './query';
 import { KeysOfType } from './utils';
 import { Relation } from './relation';
 import { preloaderFactory } from './preloader';
@@ -122,9 +122,7 @@ export abstract class Model {
   }
 
   static queryBuilder<M extends typeof Model>(this: M): Query<M> {
-    const query = new Query(this);
-    query.builderMode = true;
-    return query;
+    return new QueryBuilder(this);
   }
 
   static find<M extends typeof Model>(
