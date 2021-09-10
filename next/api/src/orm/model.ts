@@ -177,15 +177,17 @@ export abstract class Model {
     const avObject = instance.toAVObject();
 
     if (this.beforeCreateHooks) {
-      await Promise.all(this.beforeCreateHooks.map((hook) => hook({ avObject })));
+      const ctx = { avObject };
+      await Promise.all(this.beforeCreateHooks.map((hook) => hook(ctx)));
     }
 
     await saveAVObject(avObject, { ...options, fetchWhenSave: true });
     instance = this.fromAVObject(avObject);
 
     if (this.afterCreateHooks) {
+      const ctx = { instance };
       try {
-        this.afterCreateHooks.forEach((hook) => hook({ instance }));
+        this.afterCreateHooks.forEach((hook) => hook(ctx));
       } catch {} // ignore error
     }
 
