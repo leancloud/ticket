@@ -28,8 +28,16 @@ const userCache = new RedisCache<AV.User>(
 
 const anonymousUserCache = new RedisCache<AV.User | null | undefined>(
   'user:anonymous',
-  (id: string) =>
-    new AV.Query(AV.User).equalTo('authData.anonymous.id', id).first({ useMasterKey: true }),
+  async (id: string) => {
+    try {
+      return await AV.User.loginWithAuthData({ id }, 'anonymous', { failOnNotExist: true });
+    } catch (error: any) {
+      if (error.code === 211) {
+        return undefined;
+      }
+      throw error;
+    }
+  },
   (user) => (user ? encodeAVUser(user) : 'null'),
   (data) => (data === 'null' ? null : decodeAVUser(data))
 );
