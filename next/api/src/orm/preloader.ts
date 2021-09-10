@@ -6,6 +6,7 @@ import {
   BelongsTo,
   HasManyThroughIdArray,
   HasManyThroughPointerArray,
+  HasManyThroughRelation,
   PointTo,
   RelationName,
 } from './relation';
@@ -179,6 +180,25 @@ class HasManyThrouchPointerArrayPreloader {
   }
 }
 
+class HasManyThrouchRelationPreloader {
+  constructor(private relation: HasManyThroughRelation) {}
+
+  async load(items: Item[], options?: AuthOptions) {
+    if (items.length === 0) {
+      return;
+    }
+
+    const { name, model, relatedModel, relatedKey } = this.relation;
+
+    const tasks = items.map(async (item) => {
+      const query = relatedModel.queryBuilder().relatedTo(model, relatedKey, item.id);
+      item[name] = await query.find(options);
+    });
+
+    await Promise.all(tasks);
+  }
+}
+
 export function preloaderFactory<M extends typeof Model, N extends RelationName<M>>(
   model: M,
   name: N
@@ -196,5 +216,7 @@ export function preloaderFactory<M extends typeof Model, N extends RelationName<
       return new HasManyThrouchIdArrayPreloader(relation);
     case 'hasManyThroughPointerArray':
       return new HasManyThrouchPointerArrayPreloader(relation);
+    case 'hasManyThroughRelation':
+      return new HasManyThrouchRelationPreloader(relation);
   }
 }

@@ -158,6 +158,10 @@ export class Query<M extends typeof Model> {
     return query;
   }
 
+  relatedTo(model: typeof Model, key: string, id: string): Query<M> {
+    return this.where('$relatedTo', '==', { key, object: model.ptr(id) });
+  }
+
   skip(count: number): Query<M> {
     const query = this.clone();
     query.skipCount = count;

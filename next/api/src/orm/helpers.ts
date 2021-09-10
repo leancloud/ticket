@@ -160,3 +160,16 @@ export function hasManyThroughPointerArray(
     });
   };
 }
+
+export function hasManyThroughRelation(relatedModel: typeof Model, relatedKey?: string) {
+  return (target: Model, name: string) => {
+    const model = target.constructor as typeof Model;
+    model.setRelation(name, {
+      name,
+      type: 'hasManyThroughRelation',
+      model,
+      relatedModel,
+      relatedKey: relatedKey ?? name,
+    });
+  };
+}

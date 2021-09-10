@@ -33,4 +33,17 @@ export interface HasManyThroughPointerArray extends Omit<HasManyThroughIdArray, 
   includeKey: string;
 }
 
-export type Relation = BelongsTo | PointTo | HasManyThroughIdArray | HasManyThroughPointerArray;
+export interface HasManyThroughRelation {
+  name: string;
+  type: 'hasManyThroughRelation';
+  model: typeof Model;
+  relatedModel: typeof Model;
+  relatedKey: string;
+}
+
+export type Relation =
+  | BelongsTo
+  | PointTo
+  | HasManyThroughIdArray
+  | HasManyThroughPointerArray
+  | HasManyThroughRelation;
