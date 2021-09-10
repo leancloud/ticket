@@ -25,12 +25,12 @@ title.defaultLocale = 'en';
 title.active = true;
 title.required = true;
 
-const descroption = new TicketField();
+const descroiption = new TicketField();
 // @ts-ignore
-descroption.id = 'description';
-descroption.type = 'multi-line';
-descroption.defaultLocale = 'en';
-descroption.active = true;
-descroption.required = true;
+descroiption.id = 'description';
+descroiption.type = 'multi-line';
+descroiption.defaultLocale = 'en';
+descroiption.active = true;
+descroiption.required = true;
 
-export const presetTicketFields = [title, descroption];
+export const presetTicketFields = [title, descroiption];
