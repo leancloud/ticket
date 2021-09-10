@@ -13,7 +13,7 @@ const QuickReplyContent = React.memo(({ onSelected }) => {
   const { t } = useTranslation()
   const { data: quickReplies, isLoading } = useQuery({
     queryKey: 'quickReplies',
-    staleTime: 5 * 60 * 60,
+    staleTime: 5 * 60 * 1000,
     queryFn: () => http.get('/api/1/quick-replies'),
   })
   return (
