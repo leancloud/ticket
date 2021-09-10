@@ -8,8 +8,6 @@ import { preloaderFactory } from './preloader';
 
 type RelationKeys<T> = Extract<KeysOfType<T, Model | Model[] | undefined>, string>;
 
-type CreateData<T> = Partial<Omit<T, 'id' | 'createdAt' | 'updatedAt' | KeysOfType<T, Function>>>;
-
 export type FieldEncoder = (data: any) => any;
 
 export type FieldDecoder = (data: any) => any;
@@ -27,6 +25,16 @@ export interface Field {
   onDecode?: OnDecodeField;
 }
 
+export type CreateData<T> = Partial<
+  Omit<T, 'id' | 'createdAt' | 'updatedAt' | KeysOfType<T, Function>>
+>;
+
+export interface SaveAVObjectOptions extends AuthOptions {
+  ignoreBeforeHooks?: boolean;
+  ignoreAfterHooks?: boolean;
+  fetchWhenSave?: boolean;
+}
+
 export abstract class Model {
   static readonly className: string;
 
@@ -36,11 +44,11 @@ export abstract class Model {
 
   private static relations: Record<string, Relation>;
 
-  id!: string;
+  readonly id!: string;
 
-  createdAt!: Date;
+  readonly createdAt!: Date;
 
-  updatedAt!: Date;
+  readonly updatedAt!: Date;
 
   static getClassName(): string {
     return this.className ?? this.name;
@@ -128,12 +136,22 @@ export abstract class Model {
     };
   }
 
-  static async create<T extends typeof Model>(
-    this: T,
-    data: CreateData<InstanceType<T>>
-  ): Promise<any> {
-    throw new Error('Not implemented');
-    return {} as any;
+  static async create<M extends typeof Model>(
+    this: M,
+    data: CreateData<InstanceType<M>>,
+    options?: Omit<SaveAVObjectOptions, 'fetchWhenSave'>
+  ): Promise<InstanceType<M>> {
+    // @ts-ignore
+    const instance = new this() as InstanceType<M>;
+    Object.entries(data).forEach(([key, value]) => {
+      // @ts-ignore
+      instance[key] = value;
+    });
+
+    const avObj = instance.toAVObject();
+    await saveAVObject(avObj, { ...options, fetchWhenSave: true });
+
+    return this.fromAVObject(avObj);
   }
 
   toJSON(): any {
@@ -166,5 +184,24 @@ export abstract class Model {
       onEncode?.(this, object);
     });
     return object;
+  }
+}
+
+async function saveAVObject(object: AV.Object, options: SaveAVObjectOptions = {}) {
+  const { ignoreBeforeHooks, ignoreAfterHooks, ...saveOptions } = options;
+
+  // @ts-ignore
+  const ignoredHooks = _.clone(object._flags.__ignore_hooks);
+  if (ignoreBeforeHooks) {
+    object.disableBeforeHook();
+  }
+  if (ignoreAfterHooks) {
+    object.disableAfterHook();
+  }
+  try {
+    await object.save(null, saveOptions);
+  } finally {
+    // @ts-ignore
+    object._flags.__ignore_hooks = ignoredHooks;
   }
 }
