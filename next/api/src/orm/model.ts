@@ -66,6 +66,10 @@ export abstract class Model {
 
   readonly updatedAt!: Date;
 
+  get className() {
+    return (this.constructor as typeof Model).getClassName();
+  }
+
   static getClassName(): string {
     return this.className ?? this.name;
   }
@@ -143,21 +147,25 @@ export abstract class Model {
     return this.fromAVObject(object);
   }
 
-  get className() {
-    return (this.constructor as typeof Model).getClassName();
-  }
-
-  async load<M extends Model, K extends RelationKeys<M>>(
+  async reload<M extends Model, K extends RelationKeys<M>>(
     this: M,
-    field: K,
+    key: K,
     options?: AuthOptions
   ): Promise<M[K]> {
-    if (this[field as keyof M] !== undefined) {
-      return this[field as keyof M] as M[K];
-    }
-    const preloader = preloaderFactory(this.constructor as any, field);
+    const preloader = preloaderFactory(this.constructor as any, key);
     await preloader.load([this], options);
-    return this[field as keyof M] as M[K];
+    return this[key as keyof M] as M[K];
+  }
+
+  load<M extends Model, K extends RelationKeys<M>>(
+    this: M,
+    key: K,
+    options?: AuthOptions
+  ): Promise<M[K]> {
+    if (this[key as keyof M] !== undefined) {
+      return this[key as keyof M] as M[K];
+    }
+    return this.reload(key, options);
   }
 
   static ptr(objectId: string) {
