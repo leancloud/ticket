@@ -127,7 +127,15 @@ export abstract class Model {
     return query;
   }
 
-  static async find<M extends typeof Model>(
+  static find<M extends typeof Model>(
+    this: M,
+    id: string,
+    options?: AuthOptions
+  ): Promise<InstanceType<M> | undefined> {
+    return this.query().where('objectId', '==', id).first(options);
+  }
+
+  static async findOrFail<M extends typeof Model>(
     this: M,
     id: string,
     options?: AuthOptions
