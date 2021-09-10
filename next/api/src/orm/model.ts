@@ -25,6 +25,18 @@ export interface Field {
   onDecode?: OnDecodeField;
 }
 
+export interface BeforeCreateContext {
+  avObject: AV.Object;
+}
+
+export type BeforeCreateHook = (context: BeforeCreateContext) => void | Promise<void>;
+
+export interface AfterCreateContext<M extends typeof Model> {
+  instance: InstanceType<M>;
+}
+
+export type AfterCreateHook<M extends typeof Model> = (context: AfterCreateContext<M>) => void;
+
 export type CreateData<T> = Partial<
   Omit<T, 'id' | 'createdAt' | 'updatedAt' | KeysOfType<T, Function>>
 >;
@@ -43,6 +55,10 @@ export abstract class Model {
   private static fields: Record<string, Field>;
 
   private static relations: Record<string, Relation>;
+
+  private static beforeCreateHooks: BeforeCreateHook[];
+
+  private static afterCreateHooks: AfterCreateHook<any>[];
 
   readonly id!: string;
 
@@ -66,6 +82,16 @@ export abstract class Model {
 
   static getRelation(name: string): Relation | undefined {
     return this.relations?.[name];
+  }
+
+  static beforeCreate(hook: BeforeCreateHook) {
+    this.beforeCreateHooks ??= [];
+    this.beforeCreateHooks.push(hook);
+  }
+
+  static afterCreate<M extends typeof Model>(this: M, hook: AfterCreateHook<M>) {
+    this.afterCreateHooks ??= [];
+    this.afterCreateHooks.push(hook);
   }
 
   static fromAVObject<M extends typeof Model>(this: M, object: AV.Object): InstanceType<M> {
@@ -142,16 +168,28 @@ export abstract class Model {
     options?: Omit<SaveAVObjectOptions, 'fetchWhenSave'>
   ): Promise<InstanceType<M>> {
     // @ts-ignore
-    const instance = new this() as InstanceType<M>;
+    let instance = new this() as InstanceType<M>;
     Object.entries(data).forEach(([key, value]) => {
       // @ts-ignore
       instance[key] = value;
     });
 
-    const avObj = instance.toAVObject();
-    await saveAVObject(avObj, { ...options, fetchWhenSave: true });
+    const avObject = instance.toAVObject();
 
-    return this.fromAVObject(avObj);
+    if (this.beforeCreateHooks) {
+      await Promise.all(this.beforeCreateHooks.map((hook) => hook({ avObject })));
+    }
+
+    await saveAVObject(avObject, { ...options, fetchWhenSave: true });
+    instance = this.fromAVObject(avObject);
+
+    if (this.afterCreateHooks) {
+      try {
+        this.afterCreateHooks.forEach((hook) => hook({ instance }));
+      } catch {} // ignore error
+    }
+
+    return instance;
   }
 
   toJSON(): any {
