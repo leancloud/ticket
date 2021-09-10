@@ -9,19 +9,19 @@ export class Category extends Model {
   @field()
   description?: string;
 
-  @pointerId(Category)
+  @pointerId(() => Category)
   parentId?: string;
 
   @field()
   order?: number;
 
-  @pointerIds(FAQ)
+  @pointerIds(() => FAQ)
   FAQIds?: string[];
 
-  @pointerId(TicketForm)
+  @pointerId(() => TicketForm)
   formId?: string;
 
-  @pointTo(TicketForm)
+  @pointTo(() => TicketForm)
   form?: TicketForm;
 
   @field()

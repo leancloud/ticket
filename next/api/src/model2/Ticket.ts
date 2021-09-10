@@ -42,31 +42,31 @@ export class Ticket extends Model {
     encode: (c: Category) => ({ objectId: c.id, name: c.name }),
     decode: false,
   })
-  @belongsTo(Category)
+  @belongsTo(() => Category)
   category?: Category;
 
-  @pointerId(User)
+  @pointerId(() => User)
   authorId!: string;
 
-  @pointTo(User)
+  @pointTo(() => User)
   author?: User;
 
-  @pointerId(User)
+  @pointerId(() => User)
   assigneeId?: string;
 
-  @pointTo(User)
+  @pointTo(() => User)
   assignee?: User;
 
-  @pointerId(Group)
+  @pointerId(() => Group)
   groupId?: string;
 
-  @pointerId(Organization)
+  @pointerId(() => Organization)
   organizationId?: string;
 
-  @pointerIds(File)
+  @pointerIds(() => File)
   fileIds?: string[];
 
-  @hasManyThroughPointerArray(File)
+  @hasManyThroughPointerArray(() => File)
   files?: File[];
 
   @field()

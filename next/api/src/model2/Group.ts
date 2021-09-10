@@ -8,9 +8,9 @@ export class Group extends Model {
   @field()
   description?: string;
 
-  @pointerId(Role)
+  @pointerId(() => Role)
   roleId!: string;
 
-  @pointTo(Role)
+  @pointTo(() => Role)
   role!: Role;
 }
