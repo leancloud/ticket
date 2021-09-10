@@ -39,7 +39,7 @@ export class Ticket extends Model {
   categoryId!: string;
 
   @field({
-    encode: (c: Category) => ({ name: c.name, objectId: c.id }),
+    encode: (c: Category) => ({ objectId: c.id, name: c.name }),
     decode: false,
   })
   @belongsTo(Category)
@@ -75,3 +75,12 @@ export class Ticket extends Model {
   @field()
   evaluation?: Evaluation;
 }
+
+Ticket.beforeCreate(({ avObject }) => {
+  const authorId = avObject.get('author').id as string;
+  avObject.set('ACL', {
+    [authorId]: { read: true, write: true },
+    'role:customerService': { read: true, write: true },
+    'role:staff': { read: true },
+  });
+});
