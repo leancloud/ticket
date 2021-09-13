@@ -1,4 +1,4 @@
-import { Group } from '../model/group';
+import { Group } from '../model2/Group';
 
 export class GroupJson {
   constructor(readonly group: Group) {}

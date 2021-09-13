@@ -1,5 +1,5 @@
 import xss from '../utils/xss';
-import { Reply } from '../model/reply';
+import { Reply } from '../model2/Reply';
 import { FileResponse } from './file';
 import { UserJson } from './user';
 

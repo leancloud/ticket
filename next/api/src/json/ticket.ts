@@ -1,5 +1,5 @@
 import xss from '../utils/xss';
-import { Ticket } from '../model/ticket';
+import { Ticket } from '../model2/Ticket';
 import { FileResponse } from './file';
 import { GroupJson } from './group';
 import { UserJson } from './user';
@@ -13,10 +13,7 @@ export class TicketListItemJson {
       nid: this.ticket.nid,
       title: this.ticket.title,
       categoryId: this.ticket.categoryId,
-      categoryPath: this.ticket.categoryPath?.map(({ id, name }) => ({
-        id,
-        name,
-      })),
+      categoryPath: this.ticket.categoryPath?.map(({ id, name }) => ({ id, name })),
       authorId: this.ticket.authorId,
       author: this.ticket.author ? new UserJson(this.ticket.author) : undefined,
       assigneeId: this.ticket.assigneeId,

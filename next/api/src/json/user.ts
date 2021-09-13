@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import LRU from 'quick-lru';
 
 import { config } from '../config';
-import { User } from '../model/user';
+import { User } from '../model2/User';
 
 class GravatarUrlManager {
   static cache = new LRU<string, string>({ maxSize: 100_000 });
