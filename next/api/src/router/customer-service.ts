@@ -1,9 +1,9 @@
 import Router from '@koa/router';
 
 import { auth, customerServiceOnly } from '../middleware/auth';
-import { Group } from '../model2/Group';
-import { Role } from '../model2/Role';
-import { User } from '../model2/User';
+import { Group } from '../model/Group';
+import { Role } from '../model/Role';
+import { User } from '../model/User';
 import { GroupJson } from '../json/group';
 import { UserJson } from '../json/user';
 

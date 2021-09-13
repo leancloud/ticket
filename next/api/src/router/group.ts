@@ -1,8 +1,8 @@
 import Router from '@koa/router';
 
 import { auth, customerServiceOnly } from '../middleware/auth';
-import { Group } from '../model2/Group';
-import { User } from '../model2/User';
+import { Group } from '../model/Group';
+import { User } from '../model/User';
 import { GroupJson } from '../json/group';
 
 const router = new Router().use(auth, customerServiceOnly);

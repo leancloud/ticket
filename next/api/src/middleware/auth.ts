@@ -1,6 +1,6 @@
 import type { Middleware } from 'koa';
 
-import { User } from '../model2/User';
+import { User } from '../model/User';
 
 export const auth: Middleware = async (ctx, next) => {
   const sessionToken = ctx.get('X-LC-Session');

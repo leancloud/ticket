@@ -4,7 +4,7 @@ import { TicketFilterResponse } from '../json/ticket-filter';
 import { auth, customerServiceOnly } from '../middleware';
 import * as yup from '../utils/yup';
 import { QueryBuilder } from '../orm';
-import { TicketFilter } from '../model2/TicketFilter';
+import { TicketFilter } from '../model/TicketFilter';
 
 const router = new Router().use(auth, customerServiceOnly);
 

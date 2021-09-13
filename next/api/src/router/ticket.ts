@@ -5,11 +5,11 @@ import _ from 'lodash';
 import * as yup from '../utils/yup';
 import { SortItem, auth, include, parseRange, sort } from '../middleware';
 import { Model, QueryBuilder } from '../orm';
-import { CategoryManager } from '../model2/Category';
-import { Group } from '../model2/Group';
-import { Reply } from '../model2/Reply';
-import { Ticket } from '../model2/Ticket';
-import { User } from '../model2/User';
+import { CategoryManager } from '../model/Category';
+import { Group } from '../model/Group';
+import { Reply } from '../model/Reply';
+import { Ticket } from '../model/Ticket';
+import { User } from '../model/User';
 import { TicketJSON, TicketListItemJson } from '../json/ticket';
 import { ReplyJSON } from '../json/reply';
 
