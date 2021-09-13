@@ -83,6 +83,8 @@ export abstract class Model {
 
   readonly id!: string;
 
+  readonly ACL?: Record<string, { read?: true; write?: true }>;
+
   readonly createdAt!: Date;
 
   readonly updatedAt!: Date;
@@ -259,15 +261,18 @@ export abstract class Model {
     data: UpdateData<M>,
     options?: Omit<SaveAVObjectOptions, 'fetchWhenSave'>
   ): Promise<M> {
+    const model = this.constructor as typeof Model;
     // @ts-ignore
-    let instance = new this() as M;
+    let instance = new model() as M;
+    // @ts-ignore
+    instance.id = this.id;
     // @ts-ignore
     Object.entries(data).forEach(([key, value]) => (instance[key] = value));
 
     const avObject = instance.toAVObject();
 
     await saveAVObject(avObject, { ...options, fetchWhenSave: true });
-    instance = (this.constructor as typeof Model).fromAVObject(avObject) as M;
+    instance = model.fromAVObject(avObject) as M;
 
     return instance;
   }
@@ -307,27 +312,31 @@ export abstract class Model {
     const className = model.getClassName();
     const AVObject = model.avObjectConstructor;
 
-    const object = this.id
+    const avObject = this.id
       ? AVObject.createWithoutData(className, this.id)
       : new AVObject(className);
+
+    if (this.ACL) {
+      avObject.set('ACL', this.ACL);
+    }
 
     Object.values(model.fields).forEach(({ localKey, avObjectKey, encode, onEncode }) => {
       if (encode) {
         const value = this[localKey as keyof this];
         if (value !== undefined) {
           if (value === null) {
-            object.unset(avObjectKey);
+            avObject.unset(avObjectKey);
           } else {
             const encodedValue = encode(value);
             if (encodedValue !== undefined) {
-              object.set(avObjectKey, encodedValue);
+              avObject.set(avObjectKey, encodedValue);
             }
           }
         }
       }
-      onEncode?.(this, object);
+      onEncode?.(this, avObject);
     });
-    return object;
+    return avObject;
   }
 }
 
