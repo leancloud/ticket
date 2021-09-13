@@ -1,8 +1,9 @@
 import Router from '@koa/router';
 
 import { auth, customerServiceOnly } from '../middleware/auth';
-import { Group } from '../model/group';
-import { User } from '../model/user';
+import { Group } from '../model2/Group';
+import { Role } from '../model2/Role';
+import { User } from '../model2/User';
 import { GroupJson } from '../json/group';
 import { UserJson } from '../json/user';
 
@@ -17,7 +18,7 @@ router.param('user', async (id, ctx, next) => {
   if (id === 'me') {
     ctx.state.user = ctx.state.currentUser;
   } else {
-    const user = await User.find(id);
+    const user = await User.findOrFail(id);
     if (!(await user.isCustomerService())) {
       ctx.throw(404);
     }
@@ -31,7 +32,18 @@ router.get('/:user', (ctx) => {
 });
 
 router.get('/:user/groups', async (ctx) => {
-  const groups = await Group.findByUser(ctx.state.user);
+  const user = ctx.state.user as User;
+  const roles = await Role.queryBuilder()
+    .where('name', 'starts-with', 'group_')
+    .where('users', '==', user.toPointer())
+    .find({ useMasterKey: true });
+  const groups = await Group.queryBuilder()
+    .where(
+      'role',
+      'in',
+      roles.map((r) => r.toPointer())
+    )
+    .find({ useMasterKey: true });
   ctx.body = groups.map((g) => new GroupJson(g));
 });
 

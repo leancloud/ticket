@@ -3,8 +3,8 @@ import Router from '@koa/router';
 
 import * as yup from '../utils/yup';
 import { auth } from '../middleware/auth';
-import { Category, CategoryManager } from '../model/category';
-import { TicketForm } from '../model/ticket-form';
+import { Category, CategoryManager } from '../model2/Category';
+import { TicketForm } from '../model2/TicketForm';
 import { CategoryJson, CategoryFieldResponse } from '../json/category';
 
 const router = new Router().use(auth);
@@ -59,7 +59,7 @@ router.get('/:id/fields', async (ctx) => {
     return;
   }
 
-  const form = await TicketForm.find(category.formId);
+  const form = await TicketForm.find(category.formId, { useMasterKey: true });
   if (!form) {
     ctx.body = [];
     return;

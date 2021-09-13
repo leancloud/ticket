@@ -1,13 +1,16 @@
 import Router from '@koa/router';
 
 import { auth, customerServiceOnly } from '../middleware/auth';
-import { Group } from '../model/group';
+import { Group } from '../model2/Group';
+import { User } from '../model2/User';
+import { GroupJson } from '../json/group';
 
 const router = new Router().use(auth, customerServiceOnly);
 
 router.get('/', async (ctx) => {
-  const groups = await Group.query().get(ctx.state.currentUser);
-  ctx.body = groups.map((group) => ({ id: group.id, name: group.name }));
+  const currentUser = ctx.state.currentUser as User;
+  const groups = await Group.queryBuilder().find(currentUser.getAuthOptions());
+  ctx.body = groups.map((g) => new GroupJson(g));
 });
 
 export default router;
