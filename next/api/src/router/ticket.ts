@@ -10,8 +10,8 @@ import { Group } from '../model/Group';
 import { Reply } from '../model/Reply';
 import { Ticket } from '../model/Ticket';
 import { User } from '../model/User';
-import { TicketResponse, TicketListItemResponse } from '../json/ticket';
-import { ReplyResponse } from '../json/reply';
+import { TicketResponse, TicketListItemResponse } from '../response/ticket';
+import { ReplyResponse } from '../response/reply';
 
 const router = new Router().use(auth);
 

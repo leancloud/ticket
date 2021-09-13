@@ -3,7 +3,7 @@ import Router from '@koa/router';
 import { auth, customerServiceOnly } from '../middleware/auth';
 import { Group } from '../model/Group';
 import { User } from '../model/User';
-import { GroupResponse } from '../json/group';
+import { GroupResponse } from '../response/group';
 
 const router = new Router().use(auth, customerServiceOnly);
 

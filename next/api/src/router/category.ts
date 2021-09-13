@@ -5,7 +5,7 @@ import * as yup from '../utils/yup';
 import { auth } from '../middleware/auth';
 import { Category, CategoryManager } from '../model/Category';
 import { TicketForm } from '../model/TicketForm';
-import { CategoryResponse, CategoryFieldResponse } from '../json/category';
+import { CategoryResponse, CategoryFieldResponse } from '../response/category';
 
 const router = new Router().use(auth);
 

@@ -1,5 +1,5 @@
 import Router from '@koa/router';
-import { TicketFilterResponse } from '../json/ticket-filter';
+import { TicketFilterResponse } from '../response/ticket-filter';
 
 import { auth, customerServiceOnly } from '../middleware';
 import * as yup from '../utils/yup';
