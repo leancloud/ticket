@@ -1,6 +1,6 @@
 import { Group } from '../model/Group';
 
-export class GroupJson {
+export class GroupResponse {
   constructor(readonly group: Group) {}
 
   toJSON() {

@@ -10,8 +10,8 @@ import { Group } from '../model/Group';
 import { Reply } from '../model/Reply';
 import { Ticket } from '../model/Ticket';
 import { User } from '../model/User';
-import { TicketJSON, TicketListItemJson } from '../json/ticket';
-import { ReplyJSON } from '../json/reply';
+import { TicketResponse, TicketListItemResponse } from '../json/ticket';
+import { ReplyResponse } from '../json/reply';
 
 const router = new Router().use(auth);
 
@@ -160,7 +160,7 @@ router.get(
       console.error(error);
     }
     ctx.body = tickets.map((ticket) => ({
-      ...new TicketListItemJson(ticket).toJSON(),
+      ...new TicketListItemResponse(ticket).toJSON(),
       unreadCount: notificationMap[ticket.id]?.get('unreadCount') || 0,
     }));
   }
@@ -209,7 +209,7 @@ router.get('/:id', include, async (ctx) => {
   if (params.includeCategoryPath) {
     await ticket.loadCategoryPath();
   }
-  ctx.body = new TicketJSON(ticket).toJSON();
+  ctx.body = new TicketResponse(ticket).toJSON();
   resetUnreadCount(ticket, currentUser);
 });
 
@@ -220,7 +220,7 @@ router.get('/:id/replies', async (ctx) => {
     .preload('author')
     .preload('files');
   const replies = await query.find(currentUser.getAuthOptions());
-  ctx.body = replies.map((reply) => new ReplyJSON(reply));
+  ctx.body = replies.map((reply) => new ReplyResponse(reply));
 });
 
 export default router;

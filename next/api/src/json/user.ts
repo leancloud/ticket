@@ -22,7 +22,7 @@ class GravatarUrlManager {
   }
 }
 
-export class UserJson {
+export class UserResponse {
   constructor(readonly user: User) {}
 
   toJSON() {

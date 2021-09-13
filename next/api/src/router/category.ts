@@ -5,7 +5,7 @@ import * as yup from '../utils/yup';
 import { auth } from '../middleware/auth';
 import { Category, CategoryManager } from '../model/Category';
 import { TicketForm } from '../model/TicketForm';
-import { CategoryJson, CategoryFieldResponse } from '../json/category';
+import { CategoryResponse, CategoryFieldResponse } from '../json/category';
 
 const router = new Router().use(auth);
 
@@ -24,7 +24,7 @@ router.get('/', async (ctx) => {
     categories = categories.filter(filter);
   }
 
-  ctx.body = categories.map((c) => new CategoryJson(c));
+  ctx.body = categories.map((c) => new CategoryResponse(c));
 });
 
 router.param('id', async (id, ctx, next) => {

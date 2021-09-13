@@ -1,7 +1,7 @@
 import { Category } from '../model/Category';
 import { TicketFieldVariant } from '../model/TicketFieldVariant';
 
-export class CategoryJson {
+export class CategoryResponse {
   constructor(readonly category: Category) {}
 
   toJSON() {

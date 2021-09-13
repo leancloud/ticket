@@ -4,14 +4,14 @@ import { auth, customerServiceOnly } from '../middleware/auth';
 import { Group } from '../model/Group';
 import { Role } from '../model/Role';
 import { User } from '../model/User';
-import { GroupJson } from '../json/group';
-import { UserJson } from '../json/user';
+import { GroupResponse } from '../json/group';
+import { UserResponse } from '../json/user';
 
 const router = new Router().use(auth, customerServiceOnly);
 
 router.get('/', async (ctx) => {
   const users = await User.getCustomerServices();
-  ctx.body = users.map((u) => new UserJson(u));
+  ctx.body = users.map((u) => new UserResponse(u));
 });
 
 router.param('user', async (id, ctx, next) => {
@@ -28,7 +28,7 @@ router.param('user', async (id, ctx, next) => {
 });
 
 router.get('/:user', (ctx) => {
-  ctx.body = new UserJson(ctx.state.user);
+  ctx.body = new UserResponse(ctx.state.user);
 });
 
 router.get('/:user/groups', async (ctx) => {
@@ -44,7 +44,7 @@ router.get('/:user/groups', async (ctx) => {
       roles.map((r) => r.toPointer())
     )
     .find({ useMasterKey: true });
-  ctx.body = groups.map((g) => new GroupJson(g));
+  ctx.body = groups.map((g) => new GroupResponse(g));
 });
 
 export default router;
