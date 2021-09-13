@@ -25,6 +25,16 @@ export interface Field {
   onDecode?: OnDecodeField;
 }
 
+export type SerializedFieldEncoder = (data: any) => any;
+
+export type SerializedFieldDecoder = (data: any) => any;
+
+export interface SerializedField {
+  key: string;
+  encode: SerializedFieldEncoder;
+  decode: SerializedFieldDecoder;
+}
+
 export interface BeforeCreateContext {
   avObject: AV.Object;
 }
@@ -54,6 +64,8 @@ export abstract class Model {
 
   private static fields: Record<string, Field>;
 
+  private static serializedFields: Record<string, SerializedField>;
+
   private static relations: Record<string, Relation>;
 
   private static beforeCreateHooks: BeforeCreateHook[];
@@ -79,6 +91,11 @@ export abstract class Model {
     this.fields[name] = field;
   }
 
+  static setSerializedField(name: string, field: SerializedField) {
+    this.serializedFields ??= {};
+    this.serializedFields[name] = field;
+  }
+
   static setRelation(name: string, relation: Relation) {
     this.relations ??= {};
     this.relations[name] = relation;
@@ -96,6 +113,23 @@ export abstract class Model {
   static afterCreate<M extends typeof Model>(this: M, hook: AfterCreateHook<M>) {
     this.afterCreateHooks ??= [];
     this.afterCreateHooks.push(hook);
+  }
+
+  static fromJSON<M extends typeof Model>(this: M, data: any): InstanceType<M> {
+    // @ts-ignore
+    const instance = new this();
+    instance.id = data.id;
+    if (this.serializedFields) {
+      Object.entries(this.serializedFields).forEach(([key, { decode }]) => {
+        const value = decode(data[key]);
+        if (value !== undefined) {
+          instance[key] = value;
+        }
+      });
+    }
+    instance.createdAt = new Date(data.createdAt);
+    instance.updatedAt = new Date(data.updatedAt);
+    return instance;
   }
 
   static fromAVObject<M extends typeof Model>(this: M, object: AV.Object): InstanceType<M> {
@@ -209,23 +243,35 @@ export abstract class Model {
   }
 
   toJSON(): any {
-    return {
+    const data: any = {
       id: this.id,
       createdAt: this.createdAt.toISOString(),
       updatedAt: this.updatedAt.toISOString(),
     };
+
+    const model = this.constructor as typeof Model;
+    if (model.serializedFields) {
+      Object.entries(model.serializedFields).forEach(([key, { encode }]) => {
+        const value = encode(this[key as keyof this]);
+        if (value !== undefined) {
+          data[key] = value;
+        }
+      });
+    }
+
+    return data;
   }
 
   toAVObject(): AV.Object {
-    const clazz = this.constructor as typeof Model;
-    const className = clazz.getClassName();
-    const AVObject = clazz.avObjectConstructor;
+    const model = this.constructor as typeof Model;
+    const className = model.getClassName();
+    const AVObject = model.avObjectConstructor;
 
     const object = this.id
       ? AVObject.createWithoutData(className, this.id)
       : new AVObject(className);
 
-    Object.values(clazz.fields).forEach(({ localKey, avObjectKey, encode, onEncode }) => {
+    Object.values(model.fields).forEach(({ localKey, avObjectKey, encode, onEncode }) => {
       if (encode) {
         const value = this[localKey as keyof this];
         if (value !== undefined) {
