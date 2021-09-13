@@ -2,11 +2,16 @@ import AV from 'leancloud-storage';
 import _ from 'lodash';
 
 import { AuthOptions, Query, QueryBuilder } from './query';
-import { KeysOfType } from './utils';
+import { Flat, KeysOfType } from './utils';
 import { Relation } from './relation';
 import { preloaderFactory } from './preloader';
 
-type RelationKeys<T> = Extract<KeysOfType<T, Model | Model[] | undefined>, string>;
+type RelationKey<T> = Extract<KeysOfType<T, Model | Model[] | undefined>, string>;
+
+export interface ReloadOptions<M extends Model, K extends RelationKey<M> = RelationKey<M>> {
+  data?: Flat<NonNullable<M[K][]>>;
+  authOptions?: AuthOptions;
+}
 
 export type FieldEncoder = (data: any) => any;
 
@@ -48,8 +53,12 @@ export interface AfterCreateContext<M extends typeof Model> {
 export type AfterCreateHook<M extends typeof Model> = (context: AfterCreateContext<M>) => void;
 
 export type CreateData<T> = Partial<
-  Omit<T, 'id' | 'createdAt' | 'updatedAt' | KeysOfType<T, Function>>
+  Omit<T, 'id' | 'createdAt' | 'updatedAt' | KeysOfType<T, Function | Model | Model[]>>
 >;
+
+export type UpdateData<T> = {
+  [K in keyof CreateData<T>]?: T[K] | null;
+};
 
 export interface SaveAVObjectOptions extends AuthOptions {
   ignoreBeforeHooks?: boolean;
@@ -181,20 +190,23 @@ export abstract class Model {
     return this.fromAVObject(object);
   }
 
-  async reload<M extends Model, K extends RelationKeys<M>>(
+  async reload<M extends Model, K extends RelationKey<M>>(
     this: M,
     key: K,
-    options?: AuthOptions
+    options?: ReloadOptions<M, K>
   ): Promise<M[K]> {
     const preloader = preloaderFactory(this.constructor as any, key);
-    await preloader.load([this], options);
+    if (options?.data) {
+      preloader.data = options.data;
+    }
+    await preloader.load([this], options?.authOptions);
     return this[key as keyof M] as M[K];
   }
 
-  load<M extends Model, K extends RelationKeys<M>>(
+  load<M extends Model, K extends RelationKey<M>>(
     this: M,
     key: K,
-    options?: AuthOptions
+    options?: ReloadOptions<M, K>
   ): Promise<M[K]> {
     if (this[key as keyof M] !== undefined) {
       return this[key as keyof M] as M[K];
@@ -242,6 +254,34 @@ export abstract class Model {
     return instance;
   }
 
+  async update<M extends Model>(
+    this: M,
+    data: UpdateData<M>,
+    options?: Omit<SaveAVObjectOptions, 'fetchWhenSave'>
+  ): Promise<M> {
+    // @ts-ignore
+    let instance = new this() as M;
+    // @ts-ignore
+    Object.entries(data).forEach(([key, value]) => (instance[key] = value));
+
+    const avObject = instance.toAVObject();
+
+    await saveAVObject(avObject, { ...options, fetchWhenSave: true });
+    instance = (this.constructor as typeof Model).fromAVObject(avObject) as M;
+
+    return instance;
+  }
+
+  async delete(options?: AuthOptions) {
+    const avObject = AV.Object.createWithoutData(this.className, this.id);
+    await avObject.destroy(options);
+  }
+
+  toPointer() {
+    const model = this.constructor as typeof Model;
+    return model.ptr(this.id);
+  }
+
   toJSON(): any {
     const data: any = {
       id: this.id,
@@ -275,9 +315,13 @@ export abstract class Model {
       if (encode) {
         const value = this[localKey as keyof this];
         if (value !== undefined) {
-          const encodedValue = encode(value);
-          if (encodedValue !== undefined) {
-            object.set(avObjectKey, encodedValue);
+          if (value === null) {
+            object.unset(avObjectKey);
+          } else {
+            const encodedValue = encode(value);
+            if (encodedValue !== undefined) {
+              object.set(avObjectKey, encodedValue);
+            }
           }
         }
       }
