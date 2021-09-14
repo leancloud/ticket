@@ -90,7 +90,9 @@ export class Ticket extends Model {
   metaData?: any;
 
   async loadCategoryPath(): Promise<Category[]> {
-    this.categoryPath = await CategoryManager.getCategoryPath(this.categoryId);
+    if (!this.categoryPath) {
+      this.categoryPath = await CategoryManager.getCategoryPath(this.categoryId);
+    }
     return this.categoryPath;
   }
 }
