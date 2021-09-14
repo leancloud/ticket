@@ -272,9 +272,20 @@ export abstract class Model {
     const avObject = instance.toAVObject();
 
     await saveAVObject(avObject, { ...options, fetchWhenSave: true });
-    instance = model.fromAVObject(avObject) as M;
 
-    return instance;
+    const newInstance = model.fromAVObject(avObject) as M;
+    Object.values(model.fields).forEach(({ localKey }) => {
+      // @ts-ignore
+      const value = instance[localKey] ?? this[localKey] ?? undefined;
+      if (value !== undefined) {
+        // @ts-ignore
+        newInstance[localKey] ??= value;
+      }
+    });
+    // @ts-ignore
+    newInstance.createdAt = this.createdAt;
+
+    return newInstance;
   }
 
   async delete(options?: AuthOptions) {
