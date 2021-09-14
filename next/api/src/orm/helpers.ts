@@ -22,7 +22,7 @@ function defineField(model: typeof Model, options: DefineFieldOptions) {
     onDecode,
   } = options;
 
-  model.setField(localKey, {
+  model.setField({
     localKey,
     avObjectKey,
     encode,
@@ -101,7 +101,7 @@ export function belongsTo(
       getRelatedId = (o) => o[idKey];
     }
     const model = target.constructor as typeof Model;
-    model.setRelation(name, {
+    model.setRelation({
       name,
       type: 'belongsTo',
       model,
@@ -125,7 +125,7 @@ export function pointTo(
       getRelatedId = (o) => o[key];
     }
     const model = target.constructor as typeof Model;
-    model.setRelation(name, {
+    model.setRelation({
       name,
       type: 'pointTo',
       model,
@@ -149,7 +149,7 @@ export function hasManyThroughIdArray(
       getRelatedIds = (o) => o[key];
     }
     const model = target.constructor as typeof Model;
-    model.setRelation(name, {
+    model.setRelation({
       name,
       type: 'hasManyThroughIdArray',
       model,
@@ -173,7 +173,7 @@ export function hasManyThroughPointerArray(
       getRelatedIds = (o) => o[key];
     }
     const model = target.constructor as typeof Model;
-    model.setRelation(name, {
+    model.setRelation({
       name,
       type: 'hasManyThroughPointerArray',
       model,
@@ -187,7 +187,7 @@ export function hasManyThroughPointerArray(
 export function hasManyThroughRelation(getRelatedModel: ModelGetter, relatedKey?: string) {
   return (target: Model, name: string) => {
     const model = target.constructor as typeof Model;
-    model.setRelation(name, {
+    model.setRelation({
       name,
       type: 'hasManyThroughRelation',
       model,

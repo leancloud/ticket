@@ -97,9 +97,9 @@ export abstract class Model {
     return this.className ?? this.name;
   }
 
-  static setField(name: string, field: Field) {
+  static setField(field: Field) {
     this.fields ??= {};
-    this.fields[name] = field;
+    this.fields[field.localKey] = field;
   }
 
   static setSerializedField(name: string, field: SerializedField) {
@@ -107,9 +107,9 @@ export abstract class Model {
     this.serializedFields[name] = field;
   }
 
-  static setRelation(name: string, relation: Relation) {
+  static setRelation(relation: Relation) {
     this.relations ??= {};
-    this.relations[name] = relation;
+    this.relations[relation.name] = relation;
   }
 
   static getRelation(name: string): Relation | undefined {
