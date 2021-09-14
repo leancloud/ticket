@@ -1,5 +1,4 @@
 import Router from '@koa/router';
-import AV from 'leancloud-storage';
 import _ from 'lodash';
 
 import * as yup from '../utils/yup';
@@ -7,6 +6,7 @@ import { SortItem, auth, include, parseRange, sort } from '../middleware';
 import { Model, QueryBuilder } from '../orm';
 import { CategoryManager } from '../model/Category';
 import { Group } from '../model/Group';
+import { Notification } from '../model/Notification';
 import { Reply } from '../model/Reply';
 import { Ticket } from '../model/Ticket';
 import { User } from '../model/User';
@@ -141,19 +141,17 @@ router.get(
       await Promise.all(tickets.map((ticket) => ticket.loadCategoryPath()));
     }
 
-    let notificationMap: Record<string, AV.Object> = {};
+    let notificationMap: Record<string, Notification> = {};
     try {
-      const notifications = await new AV.Query<AV.Object>('notification')
-        .containedIn(
+      const notifications = await Notification.queryBuilder()
+        .where(
           'ticket',
-          tickets.map((ticket) => Ticket.ptr(ticket.id))
+          'in',
+          tickets.map((t) => t.toPointer())
         )
-        .equalTo('user', User.ptr(currentUser.id))
+        .where('user', '==', currentUser.toPointer())
         .find(currentUser.getAuthOptions());
-      notificationMap = _.keyBy(
-        notifications,
-        (notification) => notification.get('ticket')?.id as string
-      );
+      notificationMap = _.keyBy(notifications, 'ticketId');
     } catch (error) {
       // It's OK to fail fetching notifications
       // TODO: Sentry
@@ -161,20 +159,19 @@ router.get(
     }
     ctx.body = tickets.map((ticket) => ({
       ...new TicketListItemResponse(ticket).toJSON(),
-      unreadCount: notificationMap[ticket.id]?.get('unreadCount') || 0,
+      unreadCount: notificationMap[ticket.id]?.unreadCount || 0,
     }));
   }
 );
 
 function resetUnreadCount(ticket: Ticket, currentUser: User) {
-  new AV.Query<AV.Object>('notification')
-    .equalTo('ticket', Ticket.ptr(ticket.id))
-    .equalTo('user', User.ptr(currentUser.id))
-    .greaterThan('unreadCount', 0)
-    .first({ sessionToken: currentUser.sessionToken })
-    .then((notification) =>
-      notification?.save({ unreadCount: 0 }, { sessionToken: currentUser.sessionToken })
-    )
+  const authOptions = currentUser.getAuthOptions();
+  Notification.queryBuilder()
+    .where('ticket', '==', ticket.toPointer())
+    .where('user', '==', currentUser.toPointer())
+    .where('unreadCount', '>', 0)
+    .first(authOptions)
+    .then((notification) => notification?.update({ unreadCount: 0 }, authOptions))
     .catch(console.error);
 }
 
