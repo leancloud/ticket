@@ -15,10 +15,6 @@ export class CategoryResponse {
   }
 }
 
-function optionTupleToMap([value, title]: [string, string]): { title: string; value: string } {
-  return { title, value };
-}
-
 export class CategoryFieldResponse {
   constructor(readonly variant: TicketFieldVariant) {}
 
@@ -28,7 +24,7 @@ export class CategoryFieldResponse {
       title: this.variant.title,
       type: this.variant.field!.type,
       required: this.variant.field!.required,
-      options: this.variant.options?.map(optionTupleToMap),
+      options: this.variant.options,
     };
   }
 }
