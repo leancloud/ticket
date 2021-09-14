@@ -22,7 +22,7 @@ const FormRow = memo(({ data, onDeleted }) => {
   const { t } = useTranslation()
   const match = useRouteMatch()
   const { addNotification } = useAppContext()
-  const { title, id, updated_at } = data
+  const { title, id, updatedAt } = data
   const { mutateAsync, isLoading } = useMutation({
     mutationFn: () => http.delete(`/api/1/ticket-forms/${id}`),
     onSuccess: () => {
@@ -37,7 +37,7 @@ const FormRow = memo(({ data, onDeleted }) => {
   return (
     <tr>
       <td>{title}</td>
-      <td>{moment(updated_at).format('YYYY-MM-DD HH:MM')}</td>
+      <td>{moment(updatedAt).format('YYYY-MM-DD HH:MM')}</td>
       <td>
         <Button variant="link" size="sm" as={Link} to={`${match.path}/${id}`}>
           {t('edit')}
