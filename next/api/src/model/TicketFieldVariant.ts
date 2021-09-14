@@ -15,7 +15,7 @@ export class TicketFieldVariant extends Model {
   locale!: string;
 
   @field()
-  options?: [string, string][]; // [value, title] :sweat_smile:
+  options?: [string, string][]; // [value, title] 😅
 }
 
 export const presetTicketFieldVariants = presetTicketFields.map((field) => {
