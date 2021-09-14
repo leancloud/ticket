@@ -222,6 +222,10 @@ export class Query<M extends typeof Model> {
   }
 
   private async _find(avQuery: AVQuery, options?: AuthOptions): Promise<InstanceType<M>[]> {
+    if (this.limitCount === 0) {
+      return [];
+    }
+
     const preloaders = Object.values(this.preloaders);
 
     await Promise.all(preloaders.map(({ preloader }) => preloader.beforeQuery?.({ avQuery })));

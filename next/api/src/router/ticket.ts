@@ -38,7 +38,7 @@ const findTicketsSchema = yup.object({
   createdAtFrom: yup.date(),
   createdAtTo: yup.date(),
   page: yup.number().min(1).default(1),
-  pageSize: yup.number().min(1).max(100).default(10),
+  pageSize: yup.number().min(0).max(100).default(10),
   count: yup.bool().default(false),
   ...includeSchema,
 });
