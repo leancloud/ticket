@@ -76,6 +76,9 @@ const queryModifiers = {
   'not-exists': (where: any, key: string) => {
     merge(where, (q) => q.doesNotExist(key));
   },
+  'starts-with': (where: any, key: string, value: string) => {
+    merge(where, (q) => q.startsWith(key, value));
+  },
 };
 
 export type QueryCommand = keyof typeof queryModifiers;
@@ -83,6 +86,8 @@ export type QueryCommand = keyof typeof queryModifiers;
 type ValuesType<T> = T extends (where: any, key: string, ...values: infer V) => void ? V : never;
 
 export type QueryBunch<M extends typeof Model> = (query: Query<M>) => Query<M>;
+
+export type OrderType = 'asc' | 'desc';
 
 export interface PreloadOptions<
   M extends typeof Model,
@@ -101,6 +106,7 @@ export class Query<M extends typeof Model> {
   private condition: any = {};
   private skipCount?: number;
   private limitCount?: number;
+  private orderKeys: Record<string, OrderType> = {};
   private preloaders: Record<string, QueryPreloader> = {};
 
   constructor(protected model: M) {}
@@ -110,6 +116,7 @@ export class Query<M extends typeof Model> {
     query.condition = { ...this.condition };
     query.skipCount = this.skipCount;
     query.limitCount = this.limitCount;
+    query.orderKeys = { ...this.orderKeys };
     query.preloaders = { ...this.preloaders };
     return query;
   }
@@ -174,6 +181,12 @@ export class Query<M extends typeof Model> {
     return query;
   }
 
+  orderBy(key: string, orderType: OrderType = 'asc'): Query<M> {
+    const query = this.clone();
+    query.orderKeys[key] = orderType;
+    return query;
+  }
+
   preload<K extends RelationName<M>>(key: K, options?: PreloadOptions<M, K>): Query<M> {
     const query = this.clone();
 
@@ -198,11 +211,21 @@ export class Query<M extends typeof Model> {
     if (this.limitCount !== undefined) {
       avQuery.limit(this.limitCount);
     }
+    Object.entries(this.orderKeys).forEach(([key, type]) => {
+      if (type === 'asc') {
+        avQuery.addAscending(key);
+      } else {
+        avQuery.addDescending(key);
+      }
+    });
     return avQuery;
   }
 
-  async find(options?: AuthOptions): Promise<InstanceType<M>[]> {
-    const avQuery = this.buildAVQuery();
+  private async _find(avQuery: AVQuery, options?: AuthOptions): Promise<InstanceType<M>[]> {
+    if (this.limitCount === 0) {
+      return [];
+    }
+
     const preloaders = Object.values(this.preloaders);
 
     await Promise.all(preloaders.map(({ preloader }) => preloader.beforeQuery?.({ avQuery })));
@@ -217,6 +240,10 @@ export class Query<M extends typeof Model> {
     return items;
   }
 
+  find(options?: AuthOptions): Promise<InstanceType<M>[]> {
+    return this._find(this.buildAVQuery(), options);
+  }
+
   async first(options?: AuthOptions): Promise<InstanceType<M> | undefined> {
     const items = await this.limit(1).find(options);
     return items[0];
@@ -224,6 +251,11 @@ export class Query<M extends typeof Model> {
 
   count(options?: AuthOptions): Promise<number> {
     return this.buildAVQuery().count(options);
+  }
+
+  async findAndCount(options?: AuthOptions): Promise<[InstanceType<M>[], number]> {
+    const avQuery = this.buildAVQuery();
+    return Promise.all([this._find(avQuery, options), avQuery.count(options)]);
   }
 }
 

@@ -1,7 +1,7 @@
-import { Category } from '../model/category';
-import { TicketFieldVariant } from '../model/ticket-field-variant';
+import { Category } from '../model/Category';
+import { TicketFieldVariant } from '../model/TicketFieldVariant';
 
-export class CategoryJson {
+export class CategoryResponse {
   constructor(readonly category: Category) {}
 
   toJSON() {
@@ -15,10 +15,6 @@ export class CategoryJson {
   }
 }
 
-function optionTupleToMap([value, title]: [string, string]): { title: string; value: string } {
-  return { title, value };
-}
-
 export class CategoryFieldResponse {
   constructor(readonly variant: TicketFieldVariant) {}
 
@@ -28,7 +24,7 @@ export class CategoryFieldResponse {
       title: this.variant.title,
       type: this.variant.field!.type,
       required: this.variant.field!.required,
-      options: this.variant.options?.map(optionTupleToMap),
+      options: this.variant.options,
     };
   }
 }

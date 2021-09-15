@@ -1,4 +1,4 @@
-import { TicketFilter } from '../model/ticket-filter';
+import { TicketFilter } from '../model/TicketFilter';
 
 export class TicketFilterResponse {
   constructor(readonly ticketFilter: TicketFilter) {}
@@ -7,8 +7,8 @@ export class TicketFilterResponse {
     return {
       id: this.ticketFilter.id,
       name: this.ticketFilter.name,
-      userIds: this.ticketFilter.userIds ?? undefined,
-      groupIds: this.ticketFilter.groupIds ?? undefined,
+      userIds: this.ticketFilter.userIds,
+      groupIds: this.ticketFilter.groupIds,
       filters: this.ticketFilter.filters,
     };
   }

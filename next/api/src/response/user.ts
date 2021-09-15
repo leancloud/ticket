@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import LRU from 'quick-lru';
 
 import { config } from '../config';
-import { User } from '../model/user';
+import { User } from '../model/User';
 
 class GravatarUrlManager {
   static cache = new LRU<string, string>({ maxSize: 100_000 });
@@ -22,7 +22,7 @@ class GravatarUrlManager {
   }
 }
 
-export class UserJson {
+export class UserResponse {
   constructor(readonly user: User) {}
 
   toJSON() {

@@ -1,7 +1,7 @@
 import AV from 'leancloud-storage';
 import _ from 'lodash';
 
-import { Field, Model } from './model';
+import { Field, Model, SerializedField } from './model';
 import {
   BelongsTo,
   HasManyThroughIdArray,
@@ -12,7 +12,7 @@ import {
 
 export type DefineFieldOptions = Partial<Field> & Pick<Field, 'localKey'>;
 
-export function defineField(modelClass: typeof Model, options: DefineFieldOptions) {
+function defineField(model: typeof Model, options: DefineFieldOptions) {
   const {
     localKey,
     avObjectKey = localKey,
@@ -22,7 +22,7 @@ export function defineField(modelClass: typeof Model, options: DefineFieldOption
     onDecode,
   } = options;
 
-  modelClass.setField(localKey, {
+  model.setField({
     localKey,
     avObjectKey,
     encode,
@@ -32,14 +32,29 @@ export function defineField(modelClass: typeof Model, options: DefineFieldOption
   });
 }
 
-export function field(config?: string | Partial<Omit<DefineFieldOptions, 'localKey'>>) {
+export function field(config?: string | Partial<Field>) {
   return (target: Model, localKey: string) => {
-    const modelClass = target.constructor as typeof Model;
+    const model = target.constructor as typeof Model;
     if (typeof config === 'string') {
-      defineField(modelClass, { localKey, avObjectKey: config });
+      defineField(model, { localKey, avObjectKey: config });
     } else {
-      defineField(modelClass, { ...config, localKey });
+      defineField(model, { ...config, localKey });
     }
+  };
+}
+
+export type DefineSerializedFieldOptions = Partial<SerializedField> & Pick<SerializedField, 'key'>;
+
+function defineSerializedField(model: typeof Model, options: DefineSerializedFieldOptions) {
+  const { key, encode = _.identity, decode = _.identity } = options;
+
+  model.setSerializedField(key, { key, encode, decode });
+}
+
+export function serialize(config?: Omit<DefineSerializedFieldOptions, 'key'>) {
+  return (target: Model, key: string) => {
+    const model = target.constructor as typeof Model;
+    defineSerializedField(model, { ...config, key });
   };
 }
 
@@ -86,7 +101,7 @@ export function belongsTo(
       getRelatedId = (o) => o[idKey];
     }
     const model = target.constructor as typeof Model;
-    model.setRelation(name, {
+    model.setRelation({
       name,
       type: 'belongsTo',
       model,
@@ -110,7 +125,7 @@ export function pointTo(
       getRelatedId = (o) => o[key];
     }
     const model = target.constructor as typeof Model;
-    model.setRelation(name, {
+    model.setRelation({
       name,
       type: 'pointTo',
       model,
@@ -134,7 +149,7 @@ export function hasManyThroughIdArray(
       getRelatedIds = (o) => o[key];
     }
     const model = target.constructor as typeof Model;
-    model.setRelation(name, {
+    model.setRelation({
       name,
       type: 'hasManyThroughIdArray',
       model,
@@ -158,7 +173,7 @@ export function hasManyThroughPointerArray(
       getRelatedIds = (o) => o[key];
     }
     const model = target.constructor as typeof Model;
-    model.setRelation(name, {
+    model.setRelation({
       name,
       type: 'hasManyThroughPointerArray',
       model,
@@ -172,7 +187,7 @@ export function hasManyThroughPointerArray(
 export function hasManyThroughRelation(getRelatedModel: ModelGetter, relatedKey?: string) {
   return (target: Model, name: string) => {
     const model = target.constructor as typeof Model;
-    model.setRelation(name, {
+    model.setRelation({
       name,
       type: 'hasManyThroughRelation',
       model,
@@ -181,3 +196,10 @@ export function hasManyThroughRelation(getRelatedModel: ModelGetter, relatedKey?
     });
   };
 }
+
+export const SERIALIZE = {
+  DATE: {
+    encode: (data: Date) => data?.toISOString(),
+    decode: (data?: string) => (data ? new Date(data) : undefined),
+  },
+};

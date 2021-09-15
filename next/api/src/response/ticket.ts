@@ -1,10 +1,10 @@
 import xss from '../utils/xss';
-import { Ticket } from '../model/ticket';
+import { Ticket } from '../model/Ticket';
 import { FileResponse } from './file';
-import { GroupJson } from './group';
-import { UserJson } from './user';
+import { GroupResponse } from './group';
+import { UserResponse } from './user';
 
-export class TicketListItemJson {
+export class TicketListItemResponse {
   constructor(readonly ticket: Ticket) {}
 
   toJSON() {
@@ -13,16 +13,13 @@ export class TicketListItemJson {
       nid: this.ticket.nid,
       title: this.ticket.title,
       categoryId: this.ticket.categoryId,
-      categoryPath: this.ticket.categoryPath?.map(({ id, name }) => ({
-        id,
-        name,
-      })),
+      categoryPath: this.ticket.categoryPath?.map(({ id, name }) => ({ id, name })),
       authorId: this.ticket.authorId,
-      author: this.ticket.author ? new UserJson(this.ticket.author) : undefined,
+      author: this.ticket.author ? new UserResponse(this.ticket.author) : undefined,
       assigneeId: this.ticket.assigneeId,
-      assignee: this.ticket.assignee ? new UserJson(this.ticket.assignee) : undefined,
+      assignee: this.ticket.assignee ? new UserResponse(this.ticket.assignee) : undefined,
       groupId: this.ticket.groupId,
-      group: this.ticket.group ? new GroupJson(this.ticket.group) : undefined,
+      group: this.ticket.group ? new GroupResponse(this.ticket.group) : undefined,
       files: this.ticket.files?.map((file) => new FileResponse(file)),
       status: this.ticket.status,
       evaluation: this.ticket.evaluation,
@@ -33,12 +30,10 @@ export class TicketListItemJson {
   }
 }
 
-export class TicketJSON {
-  constructor(readonly ticket: Ticket) {}
-
+export class TicketResponse extends TicketListItemResponse {
   toJSON() {
     return {
-      ...new TicketListItemJson(this.ticket).toJSON(),
+      ...super.toJSON(),
       metaData: this.ticket.metaData,
       contentSafeHTML: xss.process(this.ticket.contentHTML),
     };

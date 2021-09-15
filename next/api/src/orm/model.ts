@@ -2,11 +2,16 @@ import AV from 'leancloud-storage';
 import _ from 'lodash';
 
 import { AuthOptions, Query, QueryBuilder } from './query';
-import { KeysOfType } from './utils';
+import { Flat, KeysOfType } from './utils';
 import { Relation } from './relation';
 import { preloaderFactory } from './preloader';
 
-type RelationKeys<T> = Extract<KeysOfType<T, Model | Model[] | undefined>, string>;
+type RelationKey<T> = Extract<KeysOfType<T, Model | Model[] | undefined>, string>;
+
+export interface ReloadOptions<M extends Model, K extends RelationKey<M> = RelationKey<M>> {
+  data?: Flat<NonNullable<M[K][]>>;
+  authOptions?: AuthOptions;
+}
 
 export type FieldEncoder = (data: any) => any;
 
@@ -25,6 +30,16 @@ export interface Field {
   onDecode?: OnDecodeField;
 }
 
+export type SerializedFieldEncoder = (data: any) => any;
+
+export type SerializedFieldDecoder = (data: any) => any;
+
+export interface SerializedField {
+  key: string;
+  encode: SerializedFieldEncoder;
+  decode: SerializedFieldDecoder;
+}
+
 export interface BeforeCreateContext {
   avObject: AV.Object;
 }
@@ -38,8 +53,12 @@ export interface AfterCreateContext<M extends typeof Model> {
 export type AfterCreateHook<M extends typeof Model> = (context: AfterCreateContext<M>) => void;
 
 export type CreateData<T> = Partial<
-  Omit<T, 'id' | 'createdAt' | 'updatedAt' | KeysOfType<T, Function>>
+  Omit<T, 'id' | 'createdAt' | 'updatedAt' | KeysOfType<T, Function | Model | Model[]>>
 >;
+
+export type UpdateData<T> = {
+  [K in keyof CreateData<T>]?: T[K] | null;
+};
 
 export interface SaveAVObjectOptions extends AuthOptions {
   ignoreBeforeHooks?: boolean;
@@ -54,6 +73,8 @@ export abstract class Model {
 
   private static fields: Record<string, Field>;
 
+  private static serializedFields: Record<string, SerializedField>;
+
   private static relations: Record<string, Relation>;
 
   private static beforeCreateHooks: BeforeCreateHook[];
@@ -61,6 +82,8 @@ export abstract class Model {
   private static afterCreateHooks: AfterCreateHook<any>[];
 
   readonly id!: string;
+
+  readonly ACL?: Record<string, { read?: true; write?: true }>;
 
   readonly createdAt!: Date;
 
@@ -74,14 +97,19 @@ export abstract class Model {
     return this.className ?? this.name;
   }
 
-  static setField(name: string, field: Field) {
+  static setField(field: Field) {
     this.fields ??= {};
-    this.fields[name] = field;
+    this.fields[field.localKey] = field;
   }
 
-  static setRelation(name: string, relation: Relation) {
+  static setSerializedField(name: string, field: SerializedField) {
+    this.serializedFields ??= {};
+    this.serializedFields[name] = field;
+  }
+
+  static setRelation(relation: Relation) {
     this.relations ??= {};
-    this.relations[name] = relation;
+    this.relations[relation.name] = relation;
   }
 
   static getRelation(name: string): Relation | undefined {
@@ -96,6 +124,23 @@ export abstract class Model {
   static afterCreate<M extends typeof Model>(this: M, hook: AfterCreateHook<M>) {
     this.afterCreateHooks ??= [];
     this.afterCreateHooks.push(hook);
+  }
+
+  static fromJSON<M extends typeof Model>(this: M, data: any): InstanceType<M> {
+    // @ts-ignore
+    const instance = new this();
+    instance.id = data.id;
+    if (this.serializedFields) {
+      Object.entries(this.serializedFields).forEach(([key, { decode }]) => {
+        const value = decode(data[key]);
+        if (value !== undefined) {
+          instance[key] = value;
+        }
+      });
+    }
+    instance.createdAt = new Date(data.createdAt);
+    instance.updatedAt = new Date(data.updatedAt);
+    return instance;
   }
 
   static fromAVObject<M extends typeof Model>(this: M, object: AV.Object): InstanceType<M> {
@@ -147,20 +192,23 @@ export abstract class Model {
     return this.fromAVObject(object);
   }
 
-  async reload<M extends Model, K extends RelationKeys<M>>(
+  async reload<M extends Model, K extends RelationKey<M>>(
     this: M,
     key: K,
-    options?: AuthOptions
+    options?: ReloadOptions<M, K>
   ): Promise<M[K]> {
     const preloader = preloaderFactory(this.constructor as any, key);
-    await preloader.load([this], options);
+    if (options?.data) {
+      preloader.data = options.data;
+    }
+    await preloader.load([this], options?.authOptions);
     return this[key as keyof M] as M[K];
   }
 
-  load<M extends Model, K extends RelationKeys<M>>(
+  load<M extends Model, K extends RelationKey<M>>(
     this: M,
     key: K,
-    options?: AuthOptions
+    options?: ReloadOptions<M, K>
   ): Promise<M[K]> {
     if (this[key as keyof M] !== undefined) {
       return this[key as keyof M] as M[K];
@@ -208,36 +256,98 @@ export abstract class Model {
     return instance;
   }
 
+  async update<M extends Model>(
+    this: M,
+    data: UpdateData<M>,
+    options?: Omit<SaveAVObjectOptions, 'fetchWhenSave'>
+  ): Promise<M> {
+    const model = this.constructor as typeof Model;
+    // @ts-ignore
+    let instance = new model() as M;
+    // @ts-ignore
+    instance.id = this.id;
+    // @ts-ignore
+    Object.entries(data).forEach(([key, value]) => (instance[key] = value));
+
+    const avObject = instance.toAVObject();
+
+    await saveAVObject(avObject, { ...options, fetchWhenSave: true });
+
+    const newInstance = model.fromAVObject(avObject) as M;
+    Object.values(model.fields).forEach(({ localKey }) => {
+      // @ts-ignore
+      const value = instance[localKey] ?? this[localKey] ?? undefined;
+      if (value !== undefined) {
+        // @ts-ignore
+        newInstance[localKey] ??= value;
+      }
+    });
+    // @ts-ignore
+    newInstance.createdAt = this.createdAt;
+
+    return newInstance;
+  }
+
+  async delete(options?: AuthOptions) {
+    const avObject = AV.Object.createWithoutData(this.className, this.id);
+    await avObject.destroy(options);
+  }
+
+  toPointer() {
+    const model = this.constructor as typeof Model;
+    return model.ptr(this.id);
+  }
+
   toJSON(): any {
-    return {
+    const data: any = {
       id: this.id,
       createdAt: this.createdAt.toISOString(),
       updatedAt: this.updatedAt.toISOString(),
     };
+
+    const model = this.constructor as typeof Model;
+    if (model.serializedFields) {
+      Object.entries(model.serializedFields).forEach(([key, { encode }]) => {
+        const value = encode(this[key as keyof this]);
+        if (value !== undefined) {
+          data[key] = value;
+        }
+      });
+    }
+
+    return data;
   }
 
   toAVObject(): AV.Object {
-    const clazz = this.constructor as typeof Model;
-    const className = clazz.getClassName();
-    const AVObject = clazz.avObjectConstructor;
+    const model = this.constructor as typeof Model;
+    const className = model.getClassName();
+    const AVObject = model.avObjectConstructor;
 
-    const object = this.id
+    const avObject = this.id
       ? AVObject.createWithoutData(className, this.id)
       : new AVObject(className);
 
-    Object.values(clazz.fields).forEach(({ localKey, avObjectKey, encode, onEncode }) => {
+    if (this.ACL) {
+      avObject.set('ACL', this.ACL);
+    }
+
+    Object.values(model.fields).forEach(({ localKey, avObjectKey, encode, onEncode }) => {
       if (encode) {
         const value = this[localKey as keyof this];
         if (value !== undefined) {
-          const encodedValue = encode(value);
-          if (encodedValue !== undefined) {
-            object.set(avObjectKey, encodedValue);
+          if (value === null) {
+            avObject.unset(avObjectKey);
+          } else {
+            const encodedValue = encode(value);
+            if (encodedValue !== undefined) {
+              avObject.set(avObjectKey, encodedValue);
+            }
           }
         }
       }
-      onEncode?.(this, object);
+      onEncode?.(this, avObject);
     });
-    return object;
+    return avObject;
   }
 }
 

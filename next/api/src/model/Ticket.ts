@@ -9,7 +9,7 @@ import {
   pointTo,
   hasManyThroughPointerArray,
 } from '../orm';
-import { Category } from './Category';
+import { Category, CategoryManager } from './Category';
 import { File } from './File';
 import { Group } from './Group';
 import { Organization } from './Organization';
@@ -30,6 +30,9 @@ export class Ticket extends Model {
   @field()
   content!: string;
 
+  @field('content_HTML')
+  contentHTML!: string;
+
   @field({
     avObjectKey: 'category',
     // 不 encode ，而是通过 category 设置分类。目的是同时设置分类名称，兼容旧的数据结构。
@@ -37,6 +40,8 @@ export class Ticket extends Model {
     decode: (category) => category.objectId,
   })
   categoryId!: string;
+
+  categoryPath?: Category[];
 
   @field({
     encode: (c: Category) => ({ objectId: c.id, name: c.name }),
@@ -60,6 +65,9 @@ export class Ticket extends Model {
   @pointerId(() => Group)
   groupId?: string;
 
+  @pointTo(() => Group)
+  group?: Group;
+
   @pointerId(() => Organization)
   organizationId?: string;
 
@@ -74,6 +82,19 @@ export class Ticket extends Model {
 
   @field()
   evaluation?: Evaluation;
+
+  @field()
+  replyCount?: number;
+
+  @field()
+  metaData?: any;
+
+  async loadCategoryPath(): Promise<Category[]> {
+    if (!this.categoryPath) {
+      this.categoryPath = await CategoryManager.getCategoryPath(this.categoryId);
+    }
+    return this.categoryPath;
+  }
 }
 
 Ticket.beforeCreate(({ avObject }) => {

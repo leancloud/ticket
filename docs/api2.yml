@@ -1,0 +1,219 @@
+openapi: '3.0.0'
+info:
+  title: TapDesk REST API
+  version: '2.0'
+servers:
+  - url: /
+    description: 当前环境
+  - url: http://127.0.0.1:4000
+    description: 开发环境
+components:
+  securitySchemes:
+    Session token:
+      type: apiKey
+      in: header
+      name: x-lc-session
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        nickname:
+          type: string
+        avatarUrl:
+          type: string
+    Group:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+    File:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        mime:
+          type: string
+        url:
+          type: string
+    Evaluation:
+      type: object
+      properties:
+        star:
+          type: integer
+        content:
+          type: string
+    Ticket:
+      type: object
+      properties:
+        id:
+          type: string
+        nid:
+          type: integer
+        title:
+          type: string
+        categoryId:
+          type: string
+        categoryPath:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+        authorId:
+          type: string
+        author:
+          $ref: '#/components/schemas/User'
+        assigneeId:
+          type: string
+        assignee:
+          $ref: '#/components/schemas/User'
+        groupId:
+          type: string
+        group:
+          $ref: '#/components/schemas/Group'
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/File'
+        status:
+          $ref: '#/components/schemas/Status'
+        evaluation:
+          $ref: '#/components/schemas/Evaluation'
+        replyCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    Status:
+      type: integer
+      enum: [50, 120, 160, 220, 250, 280]
+security:
+  - Session token: []
+paths:
+  /api/2/tickets:
+    get:
+      tags: [ticket]
+      summary: 查询工单
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+          description: 页数，范围：[1, Infinity)
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+          description: 每页数量，范围：[0, 100]，默认为 10
+        - name: count
+          in: query
+          schema:
+            type: boolean
+          description: 为 `true` 时通过 x-total-count 返回符合条件的工单数量
+        - name: authorId
+          in: query
+          schema:
+            type: string
+          description: 工单创建者 ID
+        - name: assigneeId
+          in: query
+          schema:
+            type: string
+          description: 工单负责人 ID，多个值可用 `,` 分隔。`null` 表示未分配负责人
+        - name: groupId
+          in: query
+          schema:
+            type: string
+          description: 客服组 ID，多个值可用 `,` 分隔。`null` 表示未分配客服组
+        - name: categoryId
+          in: query
+          schema:
+            type: string
+          description: 分类 ID，多个值可用 `,` 分隔
+        - name: rootCategoryId
+          in: query
+          schema:
+            type: string
+          description: 根分类 ID，等同于将 categoryId 设置为 rootCategoryId + 其下所有子分类的 ID
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/Status'
+        - name: evaluation.star
+          in: query
+          schema:
+            type: integer
+            enum: [0, 1]
+          description: 评价星级
+        - name: createdAt
+          in: query
+          schema:
+            type: string
+          description: |
+            创建时间的范围，格式为：`{starts}..{ends}`，缺省值用 `*` 表示：
+
+            `2021-09-01T00:00:00.000..*`
+
+            `*..2021-09-30T23:59:59.999`
+
+            `2021-09-01T00:00:00.000..2021-09-30T23:59:59.999`
+        - name: orderBy
+          in: query
+          schema:
+            type: string
+            enum:
+              - createdAt
+              - createdAt-desc
+              - updatedAt
+              - updatedAt-desc
+              - status
+              - status-desc
+          description: 排序字段，默认为升序，`-desc` 后缀表示降序
+        - name: include
+          in: query
+          schema:
+            type: string
+          description: |
+            将指定字段包含进查询结果中。可选值：
+            - author
+            - assignee
+            - category
+            - categoryPath
+            - group（仅客服可用）
+            - files
+
+            多个值可用 `,` 分隔
+        - name: where
+          in: query
+          schema:
+            type: string
+          description: 底层查询条件，格式为 JSON 字符串。详见 [LeanCloud REST API 文档](https://leancloud.cn/docs/rest_api.html)
+      responses:
+        '200':
+          description: OK
+          headers:
+            x-total-count:
+              schema:
+                type: string
+                format: integer
+              description: 符合条件的工单数量
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ticket'

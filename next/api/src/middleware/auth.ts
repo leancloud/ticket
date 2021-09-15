@@ -1,13 +1,13 @@
 import type { Middleware } from 'koa';
 
-import { User } from '../model/user';
+import { User } from '../model/User';
 
 export const auth: Middleware = async (ctx, next) => {
   const sessionToken = ctx.get('X-LC-Session');
   if (sessionToken) {
     try {
       ctx.state.currentUser = await User.findBySessionToken(sessionToken);
-    } catch (error) {
+    } catch (error: any) {
       if (error.code === 211) {
         ctx.throw(403);
       }
@@ -15,12 +15,13 @@ export const auth: Middleware = async (ctx, next) => {
     }
     return next();
   }
+
   const anonymousId = ctx.get('X-Anonymous-ID');
   if (anonymousId) {
-    const user = await User.findByAnonymousID(anonymousId);
+    const user = await User.findByAnonymousId(anonymousId);
     if (!user) {
       console.log('x-anonymous-id user not found');
-      return ctx.throw(401);
+      ctx.throw(403);
     }
     ctx.state.currentUser = user;
     return next();
