@@ -1,5 +1,9 @@
 import AV from 'leancloud-storage';
+import axios from 'axios';
+import _ from 'lodash';
 
+import { regions } from '../leancloud';
+import { config } from '../config';
 import { RedisCache } from '../cache';
 import { AuthOptions, Model, field } from '../orm';
 import { Role } from './Role';
@@ -40,10 +44,17 @@ const anonymousUserCache = new RedisCache<AV.User | null | undefined>(
   (data) => (data === 'null' ? null : decodeAVUser(data))
 );
 
+export interface LeanCloudAccount {
+  current_support_service?: any;
+}
+
 export class User extends Model {
   static readonly className = '_User';
 
   static readonly avObjectConstructor = AV.User;
+
+  @field()
+  authData?: Record<string, any>;
 
   @field()
   username!: string;
@@ -119,5 +130,37 @@ export class User extends Model {
       throw new Error('User instance has no session token');
     }
     return { sessionToken: this.sessionToken };
+  }
+
+  async getLeanCloudAccounts(): Promise<LeanCloudAccount[]> {
+    if (!this.authData) {
+      throw new Error('user has no authData');
+    }
+    const tasks = regions.map(({ oauthPlatform, serverDomain }) => {
+      const authData = this.authData![oauthPlatform];
+      if (authData) {
+        return axios.get(`${serverDomain}/1.1/open/clients/${authData.uid}/account`, {
+          headers: {
+            Authorization: `Bearer ${authData.access_token}`,
+          },
+        });
+      }
+    });
+    const responses = await Promise.all(_.compact(tasks));
+    return responses.map((res) => res.data);
+  }
+
+  async canCreateTicket(): Promise<boolean> {
+    if (!config.enableLeanCloudIntegration) {
+      return true;
+    }
+    if (await this.isCustomerService()) {
+      return true;
+    }
+    if (this.authData) {
+      const accounts = await this.getLeanCloudAccounts();
+      return accounts.some((account) => !!account.current_support_service);
+    }
+    return false;
   }
 }
