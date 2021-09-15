@@ -81,7 +81,7 @@ export function pointerIds(getPointerModel: ModelGetter, avObjectKey?: string) {
       avObjectKey,
       encode: (ids: string[]) => {
         const className = getPointerModel().getClassName();
-        ids.map((id) => AV.Object.createWithoutData(className, id));
+        return ids.map((id) => AV.Object.createWithoutData(className, id));
       },
       decode: (objs: AV.Object[]) => objs.map((o) => o.id),
     });
