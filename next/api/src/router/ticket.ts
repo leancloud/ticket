@@ -4,11 +4,13 @@ import _ from 'lodash';
 import * as yup from '../utils/yup';
 import { SortItem, auth, include, parseRange, sort } from '../middleware';
 import { Model, QueryBuilder } from '../orm';
-import { CategoryManager } from '../model/Category';
+import { Category, CategoryManager } from '../model/Category';
 import { Group } from '../model/Group';
 import { Notification } from '../model/Notification';
+import { Organization } from '../model/Organization';
 import { Reply } from '../model/Reply';
 import { Ticket } from '../model/Ticket';
+import { TicketFieldValue } from '../model/TicketFieldValue';
 import { User } from '../model/User';
 import { TicketResponse, TicketListItemResponse } from '../response/ticket';
 import { ReplyResponse } from '../response/reply';
@@ -208,6 +210,60 @@ router.get('/:id', include, async (ctx) => {
   }
   ctx.body = new TicketResponse(ticket).toJSON();
   resetUnreadCount(ticket, currentUser);
+});
+
+const customFieldSchema = yup.object({
+  field: yup.string().required(),
+  value: yup.mixed().required(), // TODO(lyw): 更严格的验证
+});
+
+const ticketDataSchema = yup.object({
+  title: yup.string().trim().min(1).max(100).required(),
+  content: yup.string().trim().required(),
+  categoryId: yup.string().required(),
+  organizationId: yup.string(),
+  fileIds: yup.array(yup.string().required()).min(1),
+  metaData: yup.object(),
+  customFields: yup.array(customFieldSchema.required()),
+});
+
+router.post('/', async (ctx) => {
+  const currentUser = ctx.state.currentUser as User;
+  if (!(await currentUser.canCreateTicket())) {
+    ctx.throw(403, 'Your account is not qualified to create ticket.');
+  }
+
+  const data = ticketDataSchema.validateSync(ctx.request.body);
+  const [category, organization] = await Promise.all([
+    Category.findOrFail(data.categoryId),
+    data.organizationId ? Organization.findOrFail(data.organizationId) : undefined,
+  ]);
+
+  const ticket = await Ticket.createTicket({
+    title: data.title,
+    content: data.content,
+    author: currentUser,
+    category,
+    organization,
+    fileIds: data.fileIds,
+    metaData: data.metaData,
+  });
+
+  if (data.customFields) {
+    await TicketFieldValue.create(
+      {
+        ACL: {},
+        ticketId: ticket.id,
+        values: data.customFields,
+      },
+      {
+        useMasterKey: true,
+      }
+    );
+  }
+
+  // TODO: 可以返回全部数据
+  ctx.body = { id: ticket.id };
 });
 
 router.get('/:id/replies', async (ctx) => {

@@ -52,19 +52,29 @@ export interface AfterCreateContext<M extends typeof Model> {
 
 export type AfterCreateHook<M extends typeof Model> = (context: AfterCreateContext<M>) => void;
 
-export type CreateData<T> = Partial<
+type _CreateData<T> = Partial<
   Omit<T, 'id' | 'createdAt' | 'updatedAt' | KeysOfType<T, Function | Model | Model[]>>
 >;
 
-export type UpdateData<T> = {
-  [K in keyof CreateData<T>]?: T[K] | null;
+export type CreateData<M extends typeof Model | Model> = M extends typeof Model
+  ? _CreateData<InstanceType<M>>
+  : _CreateData<M>;
+
+type _UpdateData<T> = {
+  [K in keyof _CreateData<T>]?: T[K] | null;
 };
+
+export type UpdateData<M extends typeof Model | Model> = M extends typeof Model
+  ? _UpdateData<InstanceType<M>>
+  : _UpdateData<M>;
 
 export interface SaveAVObjectOptions extends AuthOptions {
   ignoreBeforeHooks?: boolean;
   ignoreAfterHooks?: boolean;
   fetchWhenSave?: boolean;
 }
+
+export type RawACL = Record<string, { read?: true; write?: true }>;
 
 export abstract class Model {
   static readonly className: string;
@@ -83,7 +93,7 @@ export abstract class Model {
 
   readonly id!: string;
 
-  readonly ACL?: Record<string, { read?: true; write?: true }>;
+  readonly ACL?: RawACL;
 
   readonly createdAt!: Date;
 
@@ -226,7 +236,7 @@ export abstract class Model {
 
   static async create<M extends typeof Model>(
     this: M,
-    data: CreateData<InstanceType<M>>,
+    data: CreateData<M>,
     options?: Omit<SaveAVObjectOptions, 'fetchWhenSave'>
   ): Promise<InstanceType<M>> {
     // @ts-ignore
@@ -354,8 +364,7 @@ export abstract class Model {
 async function saveAVObject(object: AV.Object, options: SaveAVObjectOptions = {}) {
   const { ignoreBeforeHooks, ignoreAfterHooks, ...saveOptions } = options;
 
-  // @ts-ignore
-  const ignoredHooks = _.clone(object._flags.__ignore_hooks);
+  const ignoredHooks = _.clone((object as any)._flags.__ignore_hooks);
   if (ignoreBeforeHooks) {
     object.disableBeforeHook();
   }
@@ -365,7 +374,6 @@ async function saveAVObject(object: AV.Object, options: SaveAVObjectOptions = {}
   try {
     await object.save(null, saveOptions);
   } finally {
-    // @ts-ignore
-    object._flags.__ignore_hooks = ignoredHooks;
+    (object as any)._flags.__ignore_hooks = ignoredHooks;
   }
 }

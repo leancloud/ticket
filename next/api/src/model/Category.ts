@@ -25,6 +25,9 @@ export class Category extends Model {
   @serialize()
   parentId?: string;
 
+  @pointTo(() => Category)
+  parent?: Category;
+
   @field()
   @serialize()
   order?: number;

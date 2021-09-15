@@ -82,6 +82,13 @@ export class User extends Model {
   })
   sessionToken?: string;
 
+  @field({
+    avObjectKey: 'categories',
+    encode: false,
+    decode: (data: { objectId: string }[]) => data.map((item) => item.objectId),
+  })
+  categoryIds?: string[];
+
   private isCustomerServiceTask?: Promise<boolean>;
 
   static async findBySessionToken(sessionToken: string): Promise<User> {
@@ -164,3 +171,12 @@ export class User extends Model {
     return false;
   }
 }
+
+export const systemUser = new User();
+// @ts-ignore
+systemUser.id = 'system';
+systemUser.username = 'system';
+// @ts-ignore
+systemUser.createdAt = new Date(0);
+// @ts-ignore
+systemUser.updatedAt = new Date(0);
