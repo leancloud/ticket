@@ -66,7 +66,7 @@ export function pointerId(getPointedModel: ModelGetter, avObjectKey?: string) {
       avObjectKey,
       encode: (id: string) => {
         const className = getPointedModel().getClassName();
-        AV.Object.createWithoutData(className, id);
+        return AV.Object.createWithoutData(className, id);
       },
       decode: (obj: AV.Object) => obj.id,
     });
