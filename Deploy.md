@@ -64,3 +64,13 @@
 ### `facde73046f279297e511e12bc540d80b71d386f`
 
 删除 Reply class 的 active 列，然后重新导入 Reply.json 。
+
+## 2021-09-15
+
+### `0a3eaddba44500c70bcc19afc655106a217c82ae`
+
+修改了 Redis 中 Category 的格式，部署后需要清除 Category 的缓存：
+```sh
+> lean cache
+> del categories
+```
