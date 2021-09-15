@@ -4,6 +4,21 @@ import { FileResponse } from './file';
 import { GroupJson } from './group';
 import { UserJson } from './user';
 
+// XXX: 临时提供给 DC 使用，不过只用到了 author.name 和 content
+function encodeLatestReply(latestReply: any) {
+  return {
+    author: {
+      id: latestReply.author.objectId,
+      username: latestReply.author.username,
+      name: latestReply.author.name,
+      email: latestReply.author.email,
+    },
+    content: latestReply.content,
+    is_customer_service: latestReply.isCustomerService,
+    created_at: latestReply.createdAt,
+  };
+}
+
 export class TicketListItemJson {
   constructor(readonly ticket: Ticket) {}
 
@@ -27,6 +42,9 @@ export class TicketListItemJson {
       status: this.ticket.status,
       evaluation: this.ticket.evaluation,
       replyCount: this.ticket.replyCount,
+      latest_reply: this.ticket.latestReply
+        ? encodeLatestReply(this.ticket.latestReply)
+        : undefined,
       createdAt: this.ticket.createdAt.toISOString(),
       updatedAt: this.ticket.updatedAt.toISOString(),
     };
