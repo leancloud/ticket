@@ -12,7 +12,6 @@ import { InternalBadge } from '../components/InternalBadge'
 import { GroupLabel } from '../components/Group'
 import { http } from '../../lib/leancloud'
 import { useAppContext } from '../context'
-import i18next from 'i18next'
 import css from './index.css'
 
 export function AsyncUserLabel({ userId }) {
@@ -142,13 +141,14 @@ const getDisplayTextByOptions = (value, options) => {
 }
 
 function ChangeField({ change }) {
+  const { i18n } = useTranslation()
   const { addNotification } = useAppContext()
   const { data } = useQuery({
-    queryKey: ['ticket/fields', change.fieldId],
+    queryKey: ['ticket/fields', i18n.language, change.fieldId],
     queryFn: () =>
       http.get(`/api/1/ticket-fields/${change.fieldId}`, {
         params: {
-          locale: i18next.language || 'default',
+          locale: i18n.language || 'default',
         },
       }),
     staleTime: 1000 * 60 * 5,

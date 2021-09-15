@@ -19,7 +19,6 @@ import _ from 'lodash'
 import { http, httpWithLimitation } from 'lib/leancloud'
 import * as Icon from 'react-bootstrap-icons'
 import { useTranslation } from 'react-i18next'
-import i18next from 'i18next'
 import { useAppContext } from 'modules/context'
 import { DocumentTitle } from 'modules/utils/DocumentTitle'
 import NoData from 'modules/components/NoData'
@@ -88,7 +87,7 @@ const FieldList = ({ list, remove, add }) => {
 }
 
 const TicketForm = memo(({ onSubmit, submitting, initData }) => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const update = useUpdate()
   const { addNotification } = useAppContext()
   const [previewModalActive, setPreviewModalActive] = useState(false)
@@ -152,10 +151,11 @@ const TicketForm = memo(({ onSubmit, submitting, initData }) => {
   )
 
   const { mutate } = useMutation({
+    mutationKey: [i18n.language],
     mutationFn: (id) =>
       http.get(`/api/1/ticket-fields/${id}`, {
         params: {
-          locale: i18next.language || 'default',
+          locale: i18n.language || 'default',
         },
       }),
     onSuccess: (fieldData) => {

@@ -1,9 +1,10 @@
 import { useMemo } from 'react'
 import { useQuery } from 'react-query'
 import { http } from 'lib/leancloud'
-import i18next from 'i18next'
+import { useTranslation } from 'react-i18next'
 
 const useTicketForm = (formId) => {
+  const { i18n } = useTranslation()
   const { data: formData, isLoading, error } = useQuery({
     queryKey: ['ticketForm', formId],
     enabled: !!formId,
@@ -17,13 +18,13 @@ const useTicketForm = (formId) => {
     queryFn: () => http.get(`/api/1/ticket-forms/${formId}`),
   })
   const { data: fieldDataList, isLoading: fieldLoading, error: fieldError } = useQuery({
-    queryKey: ['ticketForm/fields', formData ? formData.fieldIds : []],
+    queryKey: ['ticketForm/fields', i18n.language, formData ? formData.fieldIds : []],
     queryFn: () =>
       http.get(`/api/1/ticket-fields`, {
         params: {
           ids: formData.fieldIds.join(','),
           includeVariant: true,
-          locale: i18next.language || 'default',
+          locale: i18n.language || 'default',
         },
       }),
     enabled: !!formData,

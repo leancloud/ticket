@@ -17,7 +17,6 @@ import { TagForm } from './TagForm'
 import { InternalBadge } from '../components/InternalBadge'
 import { useGroups, GroupLabel } from '../components/Group'
 import CustomField, { CustomFieldDisplay } from '../components/CustomField'
-import i18next from 'i18next'
 import styles from './index.css'
 
 function updateTicket(id, data) {
@@ -396,7 +395,7 @@ const TicketFormModal = memo(({ fields, values, onUpdated, close, ticketId }) =>
   )
 })
 const TicketFormValues = memo(({ ticket, loadMoreOpsLogs }) => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { addNotification } = useAppContext()
   const queryClient = useQueryClient()
   const [edit, setEdit] = useState(false)
@@ -456,13 +455,13 @@ const TicketFormValues = memo(({ ticket, loadMoreOpsLogs }) => {
   }, [formValues, fieldIds])
 
   const { data: fields } = useQuery({
-    queryKey: ['meta/fieldMap', ids],
+    queryKey: ['meta/fieldMap', i18n.language, ids],
     queryFn: () =>
       http.get(`/api/1/ticket-fields`, {
         params: {
           ids: ids.join(','),
           includeVariant: true,
-          locale: i18next.language || 'default',
+          locale: i18n.language || 'default',
         },
       }),
     onError: (err) => addNotification(err),
