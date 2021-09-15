@@ -242,27 +242,31 @@ CategorySection.propTypes = {
   isCustomerService: PropTypes.bool,
 }
 
+const tryToCall = (fn, ...params) => {
+  try {
+    return fn(...params)
+  } catch (error) {
+    return error.message
+  }
+}
+
 function CustomMetadata({ metadata }) {
   const { t } = useTranslation()
   const comments = getConfig('ticket.metadata.customMetadata.comments', {})
   const valueRenderers = getConfig('ticket.metadata.customMetadata.valueRenderers', {})
-  const filteredMetadata = useMemo(() => {
-    return Object.entries(metadata).reduce((arr, [key, value]) => {
-      if (typeof value === 'string' || typeof value === 'number') {
-        arr.push([key, value])
-      }
-      return arr
-    }, [])
-  }, [metadata])
 
   return (
-    filteredMetadata.length > 0 && (
+    Object.entries(metadata).length > 0 && (
       <Form.Group>
         <Form.Label>{t('details')}</Form.Label>
-        {filteredMetadata.map(([key, value]) => (
+        {Object.entries(metadata).map(([key, value]) => (
           <div className={css.customMetadata} key={key}>
             <span className={css.key}>{comments[key] || key}: </span>
-            {typeof valueRenderers[key] === 'function' ? valueRenderers[key](value) : value}
+            {typeof valueRenderers[key] === 'function'
+              ? tryToCall(valueRenderers[key], value)
+              : typeof value === 'string'
+              ? value
+              : JSON.stringify(value)}
           </div>
         ))}
       </Form.Group>
