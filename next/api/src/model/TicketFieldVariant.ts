@@ -28,15 +28,12 @@ export class TicketFieldVariant extends Model {
 
 export const presetTicketFieldVariants = presetTicketFields.map((field) => {
   const variant = new TicketFieldVariant();
-  // @ts-ignore
   variant.id = field.id;
   variant.fieldId = field.id;
   variant.field = field;
   variant.title = field.title;
   variant.locale = field.defaultLocale;
-  // @ts-ignore
   variant.createdAt = field.createdAt;
-  // @ts-ignore
   variant.updatedAt = field.updatedAt;
   return variant;
 });

@@ -173,10 +173,7 @@ export class User extends Model {
 }
 
 export const systemUser = new User();
-// @ts-ignore
 systemUser.id = 'system';
 systemUser.username = 'system';
-// @ts-ignore
 systemUser.createdAt = new Date(0);
-// @ts-ignore
 systemUser.updatedAt = new Date(0);
