@@ -70,6 +70,15 @@ const queryModifiers = {
       merge(where, (q) => q.containedIn(key, value));
     }
   },
+  'not-in': (where: any, key: string, value: any[]) => {
+    if (value.length) {
+      if (value.length === 1) {
+        queryModifiers['!='](where, key, value[0]);
+      } else {
+        merge(where, (q) => q.notContainedIn(key, value));
+      }
+    }
+  },
   exists: (where: any, key: string) => {
     merge(where, (q) => q.exists(key));
   },

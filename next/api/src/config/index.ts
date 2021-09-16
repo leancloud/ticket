@@ -2,6 +2,7 @@ import AV from 'leancloud-storage';
 
 export const config = {
   gravatarURL: 'https://www.gravatar.com/avatar',
+  enableLeanCloudIntegration: !!process.env.ENABLE_LEANCLOUD_INTEGRATION,
 };
 
 export async function getConfig(key: string): Promise<any> {
