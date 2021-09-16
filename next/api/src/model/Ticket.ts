@@ -1,6 +1,7 @@
 import _ from 'lodash';
 
 import {
+  CreateData,
   Model,
   RawACL,
   belongsTo,
@@ -170,13 +171,15 @@ export class Ticket extends Model {
       }
     );
 
-    // TODO(sdjdd): 批量创建，保证顺序，减少请求次数
+    const opsLogDatas: CreateData<OpsLog>[] = [];
     if (assignee) {
-      OpsLog.selectAssignee(ticket, assignee).catch(console.error);
+      opsLogDatas.push(OpsLog.selectAssignee(ticket, assignee));
     }
     if (group) {
-      OpsLog.changeGroup(ticket, group, systemUser).catch(console.error);
+      opsLogDatas.push(OpsLog.changeGroup(ticket, group, systemUser));
     }
+    // TODO: Sentry
+    OpsLog.createSome(opsLogDatas).catch(console.error);
 
     return ticket;
   }
