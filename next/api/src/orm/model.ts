@@ -40,11 +40,14 @@ export interface SerializedField {
   decode: SerializedFieldDecoder;
 }
 
-export interface BeforeCreateContext {
+export interface BeforeCreateContext<M extends typeof Model> {
   avObject: AV.Object;
+  data: CreateData<M>;
 }
 
-export type BeforeCreateHook = (context: BeforeCreateContext) => void | Promise<void>;
+export type BeforeCreateHook<M extends typeof Model> = (
+  context: BeforeCreateContext<M>
+) => void | Promise<void>;
 
 export interface AfterCreateContext<M extends typeof Model> {
   instance: InstanceType<M>;
@@ -91,7 +94,7 @@ export abstract class Model {
 
   private static relations: Record<string, Relation>;
 
-  private static beforeCreateHooks: BeforeCreateHook[];
+  private static beforeCreateHooks: BeforeCreateHook<any>[];
 
   private static afterCreateHooks: AfterCreateHook<any>[];
 
@@ -130,7 +133,7 @@ export abstract class Model {
     return this.relations?.[name];
   }
 
-  static beforeCreate(hook: BeforeCreateHook) {
+  static beforeCreate<M extends typeof Model>(this: M, hook: BeforeCreateHook<M>) {
     this.beforeCreateHooks ??= [];
     this.beforeCreateHooks.push(hook);
   }
@@ -254,7 +257,7 @@ export abstract class Model {
     const avObject = instance.toAVObject();
 
     if (this.beforeCreateHooks) {
-      const ctx = { avObject };
+      const ctx = { avObject, data };
       await Promise.all(this.beforeCreateHooks.map((hook) => hook(ctx)));
     }
 
@@ -295,8 +298,8 @@ export abstract class Model {
     const avObjects = instances.map((instance) => instance.toAVObject());
 
     if (this.beforeCreateHooks) {
-      const tasks = avObjects.map((avObject) => {
-        const ctx = { avObject };
+      const tasks = avObjects.map((avObject, i) => {
+        const ctx = { avObject, data: datas[i] };
         return Promise.all(this.beforeCreateHooks.map((hook) => hook(ctx)));
       });
       await Promise.all(tasks);
