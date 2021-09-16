@@ -61,7 +61,7 @@ export class OpsLog extends Model {
 }
 
 OpsLog.beforeCreate(({ avObject }) => {
-  // XXX: 旧版在 beforeSave 中设置 OpsLog 的 ACL，新版中不舍弃此逻辑，所以需要跳过 before hooks
+  // XXX: 旧版在 beforeSave 中设置 OpsLog 的 ACL
   avObject.disableBeforeHook();
 });
 
