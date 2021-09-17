@@ -117,7 +117,7 @@
 }
 
 .title{
-  margin-bottom: 4px;
+  margin-bottom: 10px;
 }
 .recentList{
   list-style-type :none;
@@ -128,14 +128,28 @@
   justify-content: space-between;
   padding-right: 10px;
   font-size: 14px;
+  align-items: center;
 }
 .recentList li + li {
-  margin-top: 10px;
+  margin-top: 8px;
 }
 .recentList .link {
   overflow: hidden;
   text-overflow:ellipsis;
   white-space: nowrap;
-  max-width: 70%;
+  max-width: 60%;
+  display: inline-block;
   margin-right: 10px;
 } 
+.recentList .ticketInfo{
+  display: flex;
+  align-items: center;
+}
+.recentList .creator{
+  color: #777;
+  margin-left: 10px;
+}
+.nid{
+  color: #afafaf;
+  margin-right: .5em;
+}
