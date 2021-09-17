@@ -5,6 +5,7 @@ import { AuthOptions, Query, QueryBuilder } from './query';
 import { Flat, KeysOfType } from './utils';
 import { Relation } from './relation';
 import { preloaderFactory } from './preloader';
+import { TypeCommands } from './command';
 
 type RelationKey<T> = Extract<KeysOfType<T, Model | Model[] | undefined>, string>;
 
@@ -64,7 +65,7 @@ export type CreateData<M extends typeof Model | Model> = M extends typeof Model
   : _CreateData<M>;
 
 type _UpdateData<T> = {
-  [K in keyof _CreateData<T>]?: T[K] | null;
+  [K in keyof _CreateData<T>]?: T[K] | null | TypeCommands<T[K]>;
 };
 
 export type UpdateData<M extends typeof Model | Model> = M extends typeof Model
@@ -398,16 +399,22 @@ export abstract class Model {
 
     Object.values(model.fields).forEach(({ localKey, avObjectKey, encode, onEncode }) => {
       if (encode) {
-        const value = this[localKey as keyof this];
-        if (value !== undefined) {
-          if (value === null) {
-            avObject.unset(avObjectKey);
-          } else {
-            const encodedValue = encode(value);
-            if (encodedValue !== undefined) {
-              avObject.set(avObjectKey, encodedValue);
-            }
-          }
+        // @ts-ignore
+        const value = this[localKey];
+        if (value === undefined) {
+          return;
+        }
+        if (value === null) {
+          avObject.unset(avObjectKey);
+          return;
+        }
+        if (value.__op) {
+          avObject.set(avObjectKey, value);
+          return;
+        }
+        const encodedValue = encode(value);
+        if (encodedValue !== undefined) {
+          avObject.set(avObjectKey, encodedValue);
         }
       }
       onEncode?.(this, avObject);
