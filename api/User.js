@@ -48,6 +48,16 @@ AV.Cloud.define('getUserInfo', async (req) => {
   }
 })
 
+// 通过 email / username 查询用户 ID
+AV.Cloud.define('getUserId', async (req) => {
+  const identity = req.params.identity
+  let user = await new AV.Query(AV.User).equalTo('email', identity).first({ useMasterKey: true })
+  if (!user) {
+    user = await new AV.Query(AV.User).equalTo('username', identity).first({ useMasterKey: true })
+  }
+  return user ? user.id : null
+})
+
 if (newApp) {
   AV.Cloud.afterSave('_User', async (req) => {
     if (newApp) {
