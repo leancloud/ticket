@@ -4,7 +4,9 @@ import {
   CreateData,
   Model,
   RawACL,
+  UpdateData,
   belongsTo,
+  commands,
   field,
   pointerId,
   pointerIds,
@@ -17,30 +19,34 @@ import { File } from './File';
 import { Group } from './Group';
 import { OpsLog } from './OpsLog';
 import { Organization } from './Organization';
+import { Reply, TinyReplyInfo } from './Reply';
 import { Role } from './Role';
-import { systemUser, User } from './User';
+import { TinyUserInfo, User, systemUser } from './User';
 import { Vacation } from './Vacation';
+
+export enum STATUS {
+  // 0~99 未开始处理
+  NEW = 50, // 新工单，还没有技术支持人员回复
+  // 100~199 处理中
+  WAITING_CUSTOMER_SERVICE = 120,
+  WAITING_CUSTOMER = 160,
+  // 200~299 处理完成
+  PRE_FULFILLED = 220, // 技术支持人员点击“解决”时会设置该状态，用户确认后状态变更为 FULFILLED
+  FULFILLED = 250, // 已解决
+  CLOSED = 280, // 已关闭
+}
 
 export interface Evaluation {
   star: number;
   content: string;
 }
 
-export interface LatestReply {
+export interface LatestReply extends Omit<TinyReplyInfo, 'objectId'> {
+  // 较早记录的数据没有 objectId
   objectId?: string;
-  content: string;
-  author: {
-    objectId: string;
-    username: string;
-    name: string;
-    email?: string;
-  };
-  isCustomerService: boolean;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
-export interface CreatedTicketData {
+export interface CreateTicketData {
   title: string;
   content: string;
   author: User;
@@ -48,6 +54,14 @@ export interface CreatedTicketData {
   organization?: Organization;
   fileIds?: string[];
   metaData?: Record<string, any>;
+}
+
+export interface CreateReplyData {
+  content: string;
+  author: User;
+  isCustomerService: boolean;
+  fileIds?: string[];
+  internal?: boolean;
 }
 
 export class Ticket extends Model {
@@ -128,7 +142,12 @@ export class Ticket extends Model {
   latestReply?: LatestReply;
 
   @field()
+  joinedCustomerServices?: TinyUserInfo[];
+
+  @field()
   metaData?: Record<string, any>;
+
+  static STATUS = STATUS;
 
   static async createTicket({
     title,
@@ -138,7 +157,7 @@ export class Ticket extends Model {
     organization,
     fileIds,
     metaData,
-  }: CreatedTicketData): Promise<Ticket> {
+  }: CreateTicketData): Promise<Ticket> {
     const [assignee, group] = await Promise.all([selectAssignee(category), selectGroup(category)]);
 
     const ACL: RawACL = {
@@ -147,7 +166,8 @@ export class Ticket extends Model {
       'role:staff': { read: true },
     };
     if (organization) {
-      ACL[organization.id + '_member'] = { read: true, write: true };
+      const orgRole = 'role:' + organization.id + '_member';
+      ACL[orgRole] = { read: true, write: true };
     }
 
     const ticket = await this.create(
@@ -162,13 +182,9 @@ export class Ticket extends Model {
         groupId: group?.id,
         fileIds,
         metaData,
-        status: 50,
+        status: STATUS.NEW,
       },
-      {
-        ignoreBeforeHooks: true,
-        ignoreAfterHooks: true,
-        sessionToken: author.sessionToken,
-      }
+      author.getAuthOptions()
     );
 
     const opsLogDatas: CreateData<OpsLog>[] = [];
@@ -190,7 +206,70 @@ export class Ticket extends Model {
     }
     return this.categoryPath;
   }
+
+  async reply(
+    this: Ticket,
+    { content, author, isCustomerService, fileIds, internal }: CreateReplyData
+  ): Promise<Reply> {
+    const ACL: RawACL = {
+      [author.id]: { read: true, write: true },
+      'role:customerService': { read: true },
+      'role:staff': { read: true },
+    };
+    if (!internal) {
+      if (this.authorId !== author.id) {
+        ACL[this.authorId] = { read: true };
+      }
+      if (this.organizationId) {
+        const orgRole = 'role:' + this.organizationId + '_member';
+        ACL[orgRole] = { read: true };
+      }
+    }
+
+    const authOptions = author.getAuthOptions();
+    const reply = await Reply.create(
+      {
+        ACL,
+        content,
+        contentHTML: htmlify(content),
+        ticketId: this.id,
+        authorId: author.id,
+        isCustomerService,
+        fileIds,
+        internal: internal || undefined,
+      },
+      authOptions
+    );
+    reply.author = author;
+
+    if (!internal) {
+      const updateData: UpdateData<Ticket> = {
+        latestReply: reply.tinyInfo(),
+        replyCount: commands.inc(),
+      };
+      if (isCustomerService) {
+        updateData.joinedCustomerServices = commands.pushUniq(author.tinyInfo());
+      }
+      if (this.status < STATUS.FULFILLED) {
+        updateData.status = isCustomerService
+          ? STATUS.WAITING_CUSTOMER
+          : STATUS.WAITING_CUSTOMER_SERVICE;
+      }
+
+      // TODO: Sentry
+      this.update(updateData, authOptions).catch(console.error);
+
+      // TODO: notification
+    }
+
+    return reply;
+  }
 }
+
+Ticket.beforeCreate(({ avObject }) => {
+  avObject.disableBeforeHook();
+  avObject.disableAfterHook();
+});
 
 async function getVacationerIds(): Promise<string[]> {
   const now = new Date();
