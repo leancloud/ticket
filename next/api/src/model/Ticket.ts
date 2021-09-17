@@ -211,7 +211,7 @@ async function selectAssignee(
       getVacationerIds(),
     ]);
     customerServices = await User.queryBuilder()
-      .relatedTo(Role, 'users', csRole.id)
+      .relatedTo(csRole, 'users')
       .where('objectId', 'not-in', vacationerIds)
       .find({ useMasterKey: true });
   }

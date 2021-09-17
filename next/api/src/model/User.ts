@@ -112,7 +112,7 @@ export class User extends Model {
 
   static async getCustomerServices(): Promise<User[]> {
     const customerService = await Role.getCustomerServiceRole();
-    const query = User.queryBuilder().relatedTo(Role, 'users', customerService.id);
+    const query = User.queryBuilder().relatedTo(customerService, 'users');
     return query.find({ useMasterKey: true });
   }
 
