@@ -39,7 +39,7 @@ export class OpsLog extends Model {
       ticketId: ticket.id,
       action: 'selectAssignee',
       data: {
-        assignee: makeTinyUserInfo(assignee),
+        assignee: assignee.tinyInfo(),
       },
     };
   }
@@ -52,8 +52,8 @@ export class OpsLog extends Model {
       ticketId: ticket.id,
       action: 'changeGroup',
       data: {
-        group: group ? makeTinyGroupInfo(group) : null,
-        operator: makeTinyUserInfo(operator),
+        group: group?.tinyInfo() ?? null,
+        operator: operator.tinyInfo(),
       },
       internal: true,
     };
@@ -64,19 +64,3 @@ OpsLog.beforeCreate(({ avObject }) => {
   // XXX: 旧版在 beforeSave 中设置 OpsLog 的 ACL
   avObject.disableBeforeHook();
 });
-
-function makeTinyUserInfo(user: User) {
-  return {
-    objectId: user.id,
-    username: user.username,
-    name: user.name,
-    email: user.email,
-  };
-}
-
-function makeTinyGroupInfo(group: Group) {
-  return {
-    objectId: group.id,
-    name: group.name,
-  };
-}

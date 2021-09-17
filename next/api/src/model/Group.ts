@@ -1,6 +1,11 @@
 import { Model, field, pointTo, pointerId } from '../orm';
 import { Role } from './Role';
 
+export interface TinyGroupInfo {
+  objectId: string;
+  name: string;
+}
+
 export class Group extends Model {
   @field()
   name!: string;
@@ -13,4 +18,11 @@ export class Group extends Model {
 
   @pointTo(() => Role)
   role!: Role;
+
+  tinyInfo(): TinyGroupInfo {
+    return {
+      objectId: this.id,
+      name: this.name,
+    };
+  }
 }
