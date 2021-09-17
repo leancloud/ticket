@@ -7,27 +7,27 @@ class UserForm extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      username: '',
+      identity: '',
     }
   }
 
   handleNameChange(e) {
-    this.setState({ username: e.target.value })
+    this.setState({ identity: e.target.value })
   }
 
   handleSubmit(t, e) {
     e.preventDefault()
     cloud
-      .run('getUserInfo', { username: this.state.username })
-      .then((user) => {
-        if (!user) {
-          throw new Error(`${t('userNotFound')} ${this.state.username}`)
+      .run('getUserId', { identity: this.state.identity })
+      .then((userId) => {
+        if (!userId) {
+          throw new Error(`${t('userNotFound')} ${this.state.identity}`)
         }
-        return db.class('_User').object(user.objectId).get()
+        return db.class('_User').object(userId).get()
       })
       .then((user) => {
         this.props.addUser(user)
-        this.setState({ username: '' })
+        this.setState({ identity: '' })
         return
       })
       .catch(this.context.addNotification)
@@ -39,9 +39,9 @@ class UserForm extends React.Component {
       <Form inline onSubmit={this.handleSubmit.bind(this, t)}>
         <InputGroup>
           <Form.Control
-            value={this.state.username}
+            value={this.state.identity}
             onChange={this.handleNameChange.bind(this)}
-            placeholder={t('username')}
+            placeholder={`Email / ${t('username')}`}
           />
           <InputGroup.Append>
             <Button type="submit">{t('submit')}</Button>
