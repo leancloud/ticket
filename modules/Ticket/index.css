@@ -127,6 +127,10 @@
   display: flex;
   justify-content: space-between;
   padding-right: 10px;
+  font-size: 14px;
+}
+.recentList li + li {
+  margin-top: 10px;
 }
 .recentList .link {
   overflow: hidden;
