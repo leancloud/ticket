@@ -129,6 +129,7 @@
     "ticket.templateInfo": "用户新建该分类工单时，问题描述默认显示这里的内容。",
     "ticket.quickReplay.insert": "插入快捷回复",
     "ticket.quickReplay.choice": "选择快捷回复",
+    "ticket.recently": "最近工单",
     "FAQInfo": "新建工单时，选中该分类将展示的常见问题。",
     "FAQ": "常见问题",
     "newFAQ": "新增 FAQ",

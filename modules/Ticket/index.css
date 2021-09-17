@@ -115,3 +115,23 @@
 .form :global(.form-group:last-child){
   margin-bottom: 0;
 }
+
+.title{
+  margin-bottom: 4px;
+}
+.recentList{
+  list-style-type :none;
+  padding-left: 0;
+}
+.recentList li {
+  display: flex;
+  justify-content: space-between;
+  padding-right: 10px;
+}
+.recentList .link {
+  overflow: hidden;
+  text-overflow:ellipsis;
+  white-space: nowrap;
+  max-width: 70%;
+  margin-right: 10px;
+} 

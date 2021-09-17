@@ -129,6 +129,7 @@
   "ticket.templateInfo": "The default content shown when creating a new ticket under this category.",
   "ticket.quickReplay.insert": "Insert quick reply",
   "ticket.quickReplay.choice": "Choose a quick reply",
+  "ticket.recently": "Recent tickets",
   "FAQInfo": "FAQs to display when this category is selected during ticket creating",
   "FAQ": "FAQ",
   "newFAQ": "New FAQ",

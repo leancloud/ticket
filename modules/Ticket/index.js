@@ -25,6 +25,7 @@ import { TicketReply } from './TicketReply'
 import { Evaluation } from './Evaluation'
 import { LeanCloudApp } from './LeanCloudApp'
 import { CSReplyEditor } from './CSReplyEditor'
+import { RecentTickets } from './RecentTickets'
 
 function updateTicket(id, data) {
   return fetch(`/api/1/tickets/${id}`, {
@@ -168,7 +169,7 @@ function useReplies(ticketId) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ticketId])
 
-  return { replies, loadMoreReplies, deleteReply }
+  return { replies, loadMoreReplies, deleteReply, loading: $isLoading.current }
 }
 
 /**
@@ -227,21 +228,6 @@ function useOpsLogs(ticketId) {
   }, [ticketId])
 
   return { opsLogs, loadMoreOpsLogs }
-}
-
-/**
- * @param {string} [ticketId]
- */
-function useTimeline(ticketId) {
-  const { replies, loadMoreReplies, deleteReply } = useReplies(ticketId)
-  const { opsLogs, loadMoreOpsLogs } = useOpsLogs(ticketId)
-  const timeline = useMemo(() => {
-    return [
-      ...replies.map((reply) => ({ ...reply, type: 'reply' })),
-      ...opsLogs.map((opsLog) => ({ ...opsLog, type: 'opsLog' })),
-    ].sort((a, b) => (a.created_at > b.created_at ? 1 : -1))
-  }, [replies, opsLogs])
-  return [timeline, { loadMoreReplies, loadMoreOpsLogs, deleteReply }]
 }
 
 function TicketInfo({ ticket, isCustomerService }) {
@@ -329,7 +315,15 @@ export default function Ticket() {
   const appContextValue = useContext(AppContext)
   const { addNotification, currentUser, isCustomerService } = appContextValue
   const { ticket, isLoading: loadingTicket, refetchTicket, error } = useTicket(nid)
-  const [timeline, { loadMoreReplies, loadMoreOpsLogs, deleteReply }] = useTimeline(ticket?.id)
+  const { replies, loadMoreReplies, deleteReply, replyLoading } = useReplies(ticket?.id)
+  const { opsLogs, loadMoreOpsLogs } = useOpsLogs(ticket?.id)
+  const timeline = useMemo(() => {
+    return [
+      ...replies.map((reply) => ({ ...reply, type: 'reply' })),
+      ...opsLogs.map((opsLog) => ({ ...opsLog, type: 'opsLog' })),
+    ].sort((a, b) => (a.created_at > b.created_at ? 1 : -1))
+  }, [replies, opsLogs])
+
   useTitle(ticket?.title)
   const { mutateAsync: operateTicket } = useMutation({
     mutationFn: (action) =>
@@ -350,8 +344,18 @@ export default function Ticket() {
     onError: (error) => addNotification(error),
   })
 
-  const isCsInThisTicket = isCustomerService && ticket?.author_id !== currentUser.id
+  const showRecentTickets = useMemo(() => {
+    if (!ticket || replyLoading || !isCustomerService) {
+      return false
+    }
+    if (ticketStatus.isClosed(ticket.status)) {
+      return false
+    }
+    const staffReplies = replies.filter((reply) => reply.is_customer_service)
+    return staffReplies.length === 0
+  }, [ticket, replyLoading, replies, isCustomerService])
 
+  const isCsInThisTicket = isCustomerService && ticket?.author_id !== currentUser.id
   if (loadingTicket) {
     return <div>{t('loading') + '...'}</div>
   }
@@ -381,6 +385,12 @@ export default function Ticket() {
               />
             ))}
           </div>
+          {showRecentTickets && (
+            <>
+              <hr />
+              <RecentTickets ticket={ticket} />
+            </>
+          )}
           <hr />
           <div>
             {isCsInThisTicket ? (
