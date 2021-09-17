@@ -43,6 +43,8 @@ module.exports = (router) => {
                   .equalTo('email', email)
                   .first({ useMasterKey: true })
                 if (emailMatchedUser) {
+                  // fetch to get the sessionToken
+                  await emailMatchedUser.fetch({ keys: 'sessionToken' }, { useMasterKey: true })
                   emailMatchedUser
                     .set('password', randomstring.generate())
                     .set('name', realname)
