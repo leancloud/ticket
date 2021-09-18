@@ -44,7 +44,7 @@ class UserForm extends React.Component {
             placeholder={`Email / ${t('username')}`}
           />
           <InputGroup.Append>
-            <Button type="submit">{t('submit')}</Button>
+            <Button type="submit">{t('add')}</Button>
           </InputGroup.Append>
         </InputGroup>
       </Form>
