@@ -10,12 +10,6 @@
   border-radius: 4px;
 }
 
-.info h2 {
-  margin-top: 0;
-  margin-left: -2px;
-  margin-bottom: 4px;
-}
-
 .info p {
   margin-bottom: 0;
 }
@@ -23,7 +17,16 @@
 .id {
   opacity: .4;
 }
-
-.tags {
-  margin: 8px 0;
+.userInfo{
+  display: flex;
+  align-items: center;
 }
+.userInfo .tags {
+  font-size: 14px;
+  top: 2px;
+  position: relative;
+}
+.userTable{
+  margin-top: .5em;
+}
+

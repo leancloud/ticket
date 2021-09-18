@@ -388,7 +388,7 @@ export default function Ticket() {
           {showRecentTickets && (
             <>
               <hr />
-              <RecentTickets ticket={ticket} />
+              <RecentTickets authorId={ticket.author_id} excludeNid={ticket.nid} />
             </>
           )}
           <hr />

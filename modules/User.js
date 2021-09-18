@@ -1,12 +1,13 @@
 /* global ENABLE_LEANCLOUD_INTEGRATION */
 import React, { Component } from 'react'
-import { withTranslation } from 'react-i18next'
+import { useTranslation, withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import { Link, withRouter } from 'react-router-dom'
 import { cloud } from '../lib/leancloud'
 import { Avatar } from './Avatar'
 import css from './User.css'
 import { UserTags } from './UserLabel'
+import { RecentTickets } from 'modules/Ticket/RecentTickets'
 
 class User extends Component {
   constructor(props) {
@@ -49,7 +50,6 @@ class User extends Component {
     if (!this.state.user) {
       return <div>{t('loading')}……</div>
     }
-
     return (
       <div>
         <div className={css.userWrap}>
@@ -57,12 +57,12 @@ class User extends Component {
             <Avatar height="200" width="200" user={this.state.user} />
           </div>
           <div className={css.info}>
-            <h2>{this.state.user.username}</h2>
-            {this.props.isCustomerService && (
-              <div className={css.tags}>
-                <UserTags user={this.state.user} />
-              </div>
-            )}
+            <h2 className={css.userInfo}>
+              {this.state.user.username}{' '}
+              {this.props.isCustomerService && (
+                <UserTags user={this.state.user} className={css.tags} />
+              )}
+            </h2>
             <p>
               <Link
                 to={`/customerService/tickets?authorId=${this.state.user.objectId}&page=0&size=10`}
@@ -71,7 +71,7 @@ class User extends Component {
               </Link>
             </p>
             {this.state.leancloudUsers && (
-              <div>
+              <div className={css.userTable}>
                 <table className="table table-bordered table-striped">
                   <thead>
                     <tr>
@@ -101,11 +101,14 @@ class User extends Component {
           </div>
         </div>
 
+        <RecentTickets authorId={this.state.user.objectId} />
+
         <LeanCloudApps leancloudApps={this.state.leancloudApps} />
       </div>
     )
   }
 }
+// 605aeb3ee7580f00f741d0b9
 User.propTypes = {
   match: PropTypes.object.isRequired,
   isCustomerService: PropTypes.bool,
@@ -113,8 +116,9 @@ User.propTypes = {
 }
 
 const LeanCloudApps = (props) => {
+  const { t } = useTranslation()
   if (props.leancloudApps.length === 0) {
-    return <div></div>
+    return null
   }
   const apps = props.leancloudApps.map((app) => {
     return (
@@ -132,22 +136,25 @@ const LeanCloudApps = (props) => {
     )
   })
   return (
-    <table className="table table-bordered table-striped">
-      <thead>
-        <tr>
-          <th>region</th>
-          <th>id</th>
-          <th>app_name</th>
-          <th>app_id</th>
-          <th>biz_type</th>
-          <th>total_user_count</th>
-          <th>yesterday_reqs</th>
-          <th>month_reqs</th>
-          <th>app_relation</th>
-        </tr>
-      </thead>
-      <tbody>{apps}</tbody>
-    </table>
+    <>
+      <p>{t('ticketApplications')}</p>
+      <table className="table table-bordered table-striped">
+        <thead>
+          <tr>
+            <th>region</th>
+            <th>id</th>
+            <th>app_name</th>
+            <th>app_id</th>
+            <th>biz_type</th>
+            <th>total_user_count</th>
+            <th>yesterday_reqs</th>
+            <th>month_reqs</th>
+            <th>app_relation</th>
+          </tr>
+        </thead>
+        <tbody>{apps}</tbody>
+      </table>
+    </>
   )
 }
 LeanCloudApps.propTypes = {

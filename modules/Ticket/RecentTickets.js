@@ -10,30 +10,33 @@ import { UserLabel } from '../UserLabel'
 import { useTranslation } from 'react-i18next'
 import { TicketStatusLabel } from '../components/TicketStatusLabel'
 
-function RecentTickets({ ticket }) {
+function RecentTickets({ authorId, excludeNid }) {
   const { t } = useTranslation()
   const { addNotification } = useAppContext()
-  const { author_id } = ticket
   const { data } = useQuery({
-    queryKey: ['tickets', author_id],
+    queryKey: ['tickets', authorId, excludeNid],
     queryFn: () =>
       http.get('/api/1/tickets', {
         params: {
-          author_id,
-          page_size: 110,
+          author_id: authorId,
+          page_size: excludeNid ? 11 : 10,
           q: 'sort:created_at-desc',
           // created_at_lt: ticket.created_at,
         },
       }),
-    enabled: !!author_id,
+    enabled: !!authorId,
     onError: addNotification,
   })
   const tickets = useMemo(() => {
     if (!data) {
       return []
     }
-    return data.filter((ticketItem) => ticketItem.nid !== ticket.nid).splice(0, 10)
-  }, [data, ticket.nid])
+    if (!excludeNid) {
+      return data
+    }
+    return data.filter((ticketItem) => ticketItem.nid !== excludeNid)
+  }, [data, excludeNid])
+
   if (tickets.length === 0) {
     return null
   }
@@ -42,7 +45,6 @@ function RecentTickets({ ticket }) {
       <div className={styles.title}>{t('ticket.recently')}</div>
       <ul className={styles.recentList}>
         {tickets.map((ticketItem) => {
-          console.log(ticketItem)
           return (
             <li key={ticketItem.nid}>
               <div className={styles.ticketInfo}>
@@ -75,7 +77,8 @@ function RecentTickets({ ticket }) {
 }
 
 RecentTickets.propTypes = {
-  ticket: PropTypes.object.isRequired,
+  authorId: PropTypes.string.isRequired,
+  excludeNid: PropTypes.number,
 }
 const MemoRecentTickets = React.memo(RecentTickets)
 export { MemoRecentTickets as RecentTickets }

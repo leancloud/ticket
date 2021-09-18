@@ -308,6 +308,7 @@
     "ticketTemplate.fieldSearchHint": "请输入字段名称搜索",
     "ticketTemplate.fieldRequired": "没有工单字段",
     "ticketTemplate.fieldOptionalRequired": "没有可选工单字段",
+    "ticketApplications": "工单应用",
     "quickReply":"快捷回复",
     "quickReply.list": "回复列表",
     "newQuickReply":"新增回复",
