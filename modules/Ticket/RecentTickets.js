@@ -66,7 +66,7 @@ function RecentTickets({ authorId, excludeNid }) {
               </div>
 
               <span>
-                {ticketItem.assignee ? <UserLabel user={ticketItem.assignee} /> : '<unset>'}
+                {ticketItem.assignee ? <UserLabel user={ticketItem.assignee} /> : '<unassigned>'}
               </span>
             </li>
           )
