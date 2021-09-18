@@ -80,7 +80,7 @@ export default function Login() {
     <>
       <hr />
       <p>
-        <a href="/auth/xd-cas">客服入口</a>
+        <a href="/auth/xd-cas">XD 员工账号登录</a>
       </p>
     </>
   ) : null
@@ -89,6 +89,7 @@ export default function Login() {
     return (
       <div className={css.wrap}>
         <h1>{t('loginOrSignup')}</h1>
+        {staffOAuth}
         <hr />
         <Form onSubmit={handleLogin}>
           <Form.Group>
@@ -110,7 +111,6 @@ export default function Login() {
             </Button>
           </Form.Group>
         </Form>
-        {staffOAuth}
       </div>
     )
   }
