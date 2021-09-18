@@ -11,6 +11,7 @@ export class CategoryResponse {
       parentId: this.category.parentId,
       position: this.category.order ?? this.category.createdAt.getTime(),
       active: !this.category.deletedAt,
+      template: this.category.qTemplate,
     };
   }
 }
