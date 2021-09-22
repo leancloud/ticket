@@ -46,13 +46,13 @@ export class Reply extends Model {
   @field()
   deletedAt?: Date;
 
-  tinyInfo(): TinyReplyInfo {
+  getTinyInfo(): TinyReplyInfo {
     if (!this.author) {
       throw new Error('missing reply author');
     }
     return {
       objectId: this.id,
-      author: this.author.tinyInfo(),
+      author: this.author.getTinyInfo(),
       content: this.content,
       isCustomerService: this.isCustomerService,
       createdAt: this.createdAt,

@@ -39,7 +39,7 @@ export class OpsLog extends Model {
       ticketId: ticket.id,
       action: 'selectAssignee',
       data: {
-        assignee: assignee.tinyInfo(),
+        assignee: assignee.getTinyInfo(),
       },
     };
   }
@@ -52,8 +52,8 @@ export class OpsLog extends Model {
       ticketId: ticket.id,
       action: 'changeGroup',
       data: {
-        group: group?.tinyInfo() ?? null,
-        operator: operator.tinyInfo(),
+        group: group?.getTinyInfo() ?? null,
+        operator: operator.getTinyInfo(),
       },
       internal: true,
     };

@@ -19,7 +19,7 @@ export class Group extends Model {
   @pointTo(() => Role)
   role!: Role;
 
-  tinyInfo(): TinyGroupInfo {
+  getTinyInfo(): TinyGroupInfo {
     return {
       objectId: this.id,
       name: this.name,

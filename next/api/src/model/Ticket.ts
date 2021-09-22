@@ -244,11 +244,11 @@ export class Ticket extends Model {
 
     if (!internal) {
       const updateData: UpdateData<Ticket> = {
-        latestReply: reply.tinyInfo(),
+        latestReply: reply.getTinyInfo(),
         replyCount: commands.inc(),
       };
       if (isCustomerService) {
-        updateData.joinedCustomerServices = commands.pushUniq(author.tinyInfo());
+        updateData.joinedCustomerServices = commands.pushUniq(author.getTinyInfo());
       }
       if (this.status < STATUS.FULFILLED) {
         updateData.status = isCustomerService

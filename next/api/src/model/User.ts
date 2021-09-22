@@ -178,7 +178,7 @@ export class User extends Model {
     return false;
   }
 
-  tinyInfo(): TinyUserInfo {
+  getTinyInfo(): TinyUserInfo {
     return {
       objectId: this.id,
       username: this.username,
