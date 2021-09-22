@@ -22,6 +22,14 @@ export interface PointTo extends Omit<BelongsTo, 'type'> {
   includeKey: string;
 }
 
+export interface HasOne {
+  name: string;
+  type: 'hasOne';
+  model: typeof Model;
+  getRelatedModel: ModelGetter;
+  pointerKey: string;
+}
+
 export interface HasManyThroughIdArray {
   name: string;
   type: 'hasManyThroughIdArray';
@@ -46,6 +54,7 @@ export interface HasManyThroughRelation {
 export type Relation =
   | BelongsTo
   | PointTo
+  | HasOne
   | HasManyThroughIdArray
   | HasManyThroughPointerArray
   | HasManyThroughRelation;

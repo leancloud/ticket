@@ -7,10 +7,11 @@ import {
   HasManyThroughIdArray,
   HasManyThroughPointerArray,
   HasManyThroughRelation,
+  HasOne,
   PointTo,
   RelationName,
 } from './relation';
-import { AuthOptions, AVQuery } from './query';
+import { AuthOptions, AVQuery, QueryBuilder } from './query';
 
 export interface BeforeQueryConntext {
   avQuery: AVQuery;
@@ -26,6 +27,7 @@ export interface Item extends Record<string, any> {
 
 export interface Preloader {
   data?: Item[];
+  queryModifier?: (query: QueryBuilder<any>) => void;
   beforeQuery?: (ctx: BeforeQueryConntext) => void | Promise<void>;
   afterQuery?: (ctx: AfterQueryContext) => void | Promise<void>;
   load: (items: Item[], options?: AuthOptions) => Promise<void>;
@@ -33,6 +35,7 @@ export interface Preloader {
 
 class BelongsToPreloader {
   data?: Item[];
+  queryModifier?: (query: QueryBuilder<any>) => void;
 
   constructor(private relation: BelongsTo) {}
 
@@ -53,7 +56,9 @@ class BelongsToPreloader {
       .value();
 
     if (ids.length) {
-      const query = getRelatedModel().query().where('objectId', 'in', ids);
+      const query = getRelatedModel().queryBuilder();
+      this.queryModifier?.(query);
+      query.where('objectId', 'in', ids);
       const fetchedItems = await query.find(options);
       fetchedItems.forEach((item) => relatedItems.push(item));
     }
@@ -73,6 +78,8 @@ class BelongsToPreloader {
 }
 
 class PointToPreloader {
+  queryModifier?: (query: QueryBuilder<any>) => void;
+
   private objects?: AV.Object[];
 
   constructor(private relation: PointTo) {}
@@ -101,13 +108,60 @@ class PointToPreloader {
     } else {
       // 退化成 BelongsToPreloader
       const preloader = new BelongsToPreloader({ ...this.relation, type: 'belongsTo' });
+      preloader.queryModifier = this.queryModifier;
       await preloader.load(items, options);
     }
   }
 }
 
+class HasOnePreloader {
+  data?: Item[];
+  queryModifier?: (query: QueryBuilder<any>) => void;
+
+  constructor(private relation: HasOne) {}
+
+  async load(items: Item[], options?: AuthOptions) {
+    if (items.length === 0) {
+      return;
+    }
+
+    const { name, model, getRelatedModel, pointerKey } = this.relation;
+
+    const relatedItems = this.data ?? [];
+
+    const pointers = _(items)
+      .map('id')
+      .uniq()
+      .difference(relatedItems.map((item) => item.id))
+      .map((id) => model.ptr(id))
+      .value();
+
+    if (pointers.length) {
+      const query = getRelatedModel().queryBuilder();
+      this.queryModifier?.(query);
+      query.where(pointerKey, 'in', pointers);
+      const fetchedItems = await query.find(options);
+      fetchedItems.forEach((item) => relatedItems.push(item));
+    }
+
+    const itemMap = _.keyBy(items, 'id');
+    const idKey = pointerKey + 'Id';
+
+    relatedItems.forEach((relatedItem) => {
+      const id = relatedItem[idKey];
+      if (id) {
+        const item = itemMap[id];
+        if (item) {
+          item[name] = relatedItem;
+        }
+      }
+    });
+  }
+}
+
 class HasManyThrouchIdArrayPreloader {
   data?: Item[];
+  queryModifier?: (query: QueryBuilder<any>) => void;
 
   constructor(private relation: HasManyThroughIdArray) {}
 
@@ -129,7 +183,9 @@ class HasManyThrouchIdArrayPreloader {
       .value();
 
     if (ids.length) {
-      const query = getRelatedModel().query().where('objectId', 'in', ids);
+      const query = getRelatedModel().queryBuilder();
+      this.queryModifier?.(query);
+      query.where('objectId', 'in', ids);
       const fetchedItems = await query.find(options);
       fetchedItems.forEach((item) => relatedItems.push(item));
     }
@@ -146,6 +202,8 @@ class HasManyThrouchIdArrayPreloader {
 }
 
 class HasManyThrouchPointerArrayPreloader {
+  queryModifier?: (query: QueryBuilder<any>) => void;
+
   private objects?: AV.Object[];
 
   constructor(private relation: HasManyThroughPointerArray) {}
@@ -177,12 +235,15 @@ class HasManyThrouchPointerArrayPreloader {
         ...this.relation,
         type: 'hasManyThroughIdArray',
       });
+      preloader.queryModifier = this.queryModifier;
       await preloader.load(items, options);
     }
   }
 }
 
 class HasManyThrouchRelationPreloader {
+  queryModifier?: (query: QueryBuilder<any>) => void;
+
   constructor(private relation: HasManyThroughRelation) {}
 
   async load(items: Item[], options?: AuthOptions) {
@@ -194,7 +255,9 @@ class HasManyThrouchRelationPreloader {
     const relatedModel = getRelatedModel();
 
     const tasks = items.map(async (item) => {
-      const query = relatedModel.queryBuilder().relatedTo(model, relatedKey, item.id);
+      const query = relatedModel.queryBuilder();
+      this.queryModifier?.(query);
+      query.relatedTo(model, relatedKey, item.id);
       item[name] = await query.find(options);
     });
 
@@ -215,6 +278,8 @@ export function preloaderFactory<M extends typeof Model, N extends RelationName<
       return new BelongsToPreloader(relation);
     case 'pointTo':
       return new PointToPreloader(relation);
+    case 'hasOne':
+      return new HasOnePreloader(relation);
     case 'hasManyThroughIdArray':
       return new HasManyThrouchIdArrayPreloader(relation);
     case 'hasManyThroughPointerArray':

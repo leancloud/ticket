@@ -104,6 +104,7 @@ export interface PreloadOptions<
 > {
   data?: Flat<NonNullable<InstanceType<M>[K]>>[];
   authOptions?: AuthOptions;
+  onQuery?: (query: QueryBuilder<any>) => void;
 }
 
 interface QueryPreloader {
@@ -210,6 +211,9 @@ export class Query<M extends typeof Model> {
     const preloader = preloaderFactory(this.model, key);
     if (options?.data) {
       preloader.data = options.data as Model[];
+    }
+    if (options?.onQuery) {
+      preloader.queryModifier = options.onQuery;
     }
     query.preloaders[key] = {
       preloader,
