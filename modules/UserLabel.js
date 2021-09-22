@@ -56,13 +56,13 @@ UserTag.propTypes = {
   name: PropTypes.string.isRequired,
 }
 
-export function UserTags({ user }) {
+export function UserTags({ user, className }) {
   const tags = getUserTags(user)
   if (tags.length === 0) {
     return null
   }
   return (
-    <span>
+    <span className={className}>
       {tags.map((tag) => (
         <UserTag key={tag} name={tag} />
       ))}
@@ -71,6 +71,7 @@ export function UserTags({ user }) {
 }
 UserTags.propTypes = {
   user: PropTypes.object.isRequired,
+  className: PropTypes.string,
 }
 
 export function UserLabel({ user, simple, displayTags, displayId }) {
