@@ -48,6 +48,13 @@ export interface LeanCloudAccount {
   current_support_service?: any;
 }
 
+export interface TinyUserInfo {
+  objectId: string;
+  username: string;
+  name?: string;
+  email?: string;
+}
+
 export class User extends Model {
   static readonly className = '_User';
 
@@ -105,7 +112,7 @@ export class User extends Model {
 
   static async getCustomerServices(): Promise<User[]> {
     const customerService = await Role.getCustomerServiceRole();
-    const query = User.queryBuilder().relatedTo(Role, 'users', customerService.id);
+    const query = User.queryBuilder().relatedTo(customerService, 'users');
     return query.find({ useMasterKey: true });
   }
 
@@ -170,10 +177,33 @@ export class User extends Model {
     }
     return false;
   }
+
+  getTinyInfo(): TinyUserInfo {
+    return {
+      objectId: this.id,
+      username: this.username,
+      name: this.name,
+      email: this.email,
+    };
+  }
 }
 
-export const systemUser = new User();
-systemUser.id = 'system';
-systemUser.username = 'system';
-systemUser.createdAt = new Date(0);
-systemUser.updatedAt = new Date(0);
+class SystemUser extends User {
+  constructor() {
+    super();
+    this.id = 'system';
+    this.username = 'system';
+    this.createdAt = new Date(0);
+    this.updatedAt = new Date(0);
+  }
+
+  async isCustomerService() {
+    return true;
+  }
+
+  getAuthOptions() {
+    return { useMasterKey: true };
+  }
+}
+
+export const systemUser = new SystemUser();

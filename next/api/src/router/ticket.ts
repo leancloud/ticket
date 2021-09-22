@@ -127,7 +127,12 @@ router.get(
       query.preload('files');
     }
 
-    query.skip((params.page - 1) * params.pageSize).limit(params.pageSize);
+    query
+      .preload('notification', {
+        onQuery: (query) => query.where('user', '==', currentUser.toPointer()),
+      })
+      .skip((params.page - 1) * params.pageSize)
+      .limit(params.pageSize);
 
     let tickets: Ticket[];
     if (params.count) {
@@ -143,26 +148,7 @@ router.get(
       await Promise.all(tickets.map((ticket) => ticket.loadCategoryPath()));
     }
 
-    let notificationMap: Record<string, Notification> = {};
-    try {
-      const notifications = await Notification.queryBuilder()
-        .where(
-          'ticket',
-          'in',
-          tickets.map((t) => t.toPointer())
-        )
-        .where('user', '==', currentUser.toPointer())
-        .find(currentUser.getAuthOptions());
-      notificationMap = _.keyBy(notifications, 'ticketId');
-    } catch (error) {
-      // It's OK to fail fetching notifications
-      // TODO: Sentry
-      console.error(error);
-    }
-    ctx.body = tickets.map((ticket) => ({
-      ...new TicketListItemResponse(ticket).toJSON(),
-      unreadCount: notificationMap[ticket.id]?.unreadCount || 0,
-    }));
+    ctx.body = tickets.map((ticket) => new TicketListItemResponse(ticket).toJSON());
   }
 );
 
@@ -266,14 +252,56 @@ router.post('/', async (ctx) => {
   ctx.body = { id: ticket.id };
 });
 
+router.param('id', async (id, ctx, next) => {
+  const currentUser = ctx.state.currentUser as User;
+  ctx.state.ticket = await Ticket.findOrFail(id, currentUser.getAuthOptions());
+  return next();
+});
+
 router.get('/:id/replies', async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
+  const ticket = ctx.state.ticket as Ticket;
   const query = Reply.queryBuilder()
-    .where('ticket', '==', Ticket.ptr(ctx.params.id))
+    .where('ticket', '==', ticket.toPointer())
     .preload('author')
     .preload('files');
   const replies = await query.find(currentUser.getAuthOptions());
   ctx.body = replies.map((reply) => new ReplyResponse(reply));
 });
+
+const replyDataSchema = yup.object({
+  content: yup.string().trim().required(),
+  fileIds: yup.array(yup.string().required()).min(1),
+  internal: yup.bool(),
+});
+
+router.post('/:id/replies', async (ctx) => {
+  const currentUser = ctx.state.currentUser as User;
+  const ticket = ctx.state.ticket as Ticket;
+
+  const data = replyDataSchema.validateSync(ctx.request.body);
+  const isCustomerService = await isCustomerServiceInTicket(currentUser, ticket);
+
+  if (data.internal && !isCustomerService) {
+    ctx.throw(403);
+  }
+
+  const reply = await ticket.reply({
+    content: data.content,
+    author: currentUser,
+    isCustomerService,
+    fileIds: data.fileIds,
+    internal: data.internal,
+  });
+
+  ctx.body = new ReplyResponse(reply);
+});
+
+async function isCustomerServiceInTicket(user: User, ticket: Ticket): Promise<boolean> {
+  if (user.id === ticket.authorId) {
+    return false;
+  }
+  return user.isCustomerService();
+}
 
 export default router;

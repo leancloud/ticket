@@ -104,6 +104,7 @@ export interface PreloadOptions<
 > {
   data?: Flat<NonNullable<InstanceType<M>[K]>>[];
   authOptions?: AuthOptions;
+  onQuery?: (query: QueryBuilder<any>) => void;
 }
 
 interface QueryPreloader {
@@ -174,8 +175,16 @@ export class Query<M extends typeof Model> {
     return query;
   }
 
-  relatedTo(model: typeof Model, key: string, id: string): Query<M> {
-    return this.where('$relatedTo', '==', { key, object: model.ptr(id) });
+  relatedTo(model: typeof Model, key: string, id: string): Query<M>;
+  relatedTo(model: Model, key: string): Query<M>;
+  relatedTo(model: typeof Model | Model, key: string, id?: string): Query<M> {
+    let object: ReturnType<typeof Model.ptr>;
+    if (id) {
+      object = (model as typeof Model).ptr(id);
+    } else {
+      object = (model as Model).toPointer();
+    }
+    return this.where('$relatedTo', '==', { key, object });
   }
 
   skip(count: number): Query<M> {
@@ -202,6 +211,9 @@ export class Query<M extends typeof Model> {
     const preloader = preloaderFactory(this.model, key);
     if (options?.data) {
       preloader.data = options.data as Model[];
+    }
+    if (options?.onQuery) {
+      preloader.queryModifier = options.onQuery;
     }
     query.preloaders[key] = {
       preloader,

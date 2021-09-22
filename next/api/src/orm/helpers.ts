@@ -111,6 +111,22 @@ export function belongsTo(
   };
 }
 
+export function hasOne(getRelatedModel: ModelGetter, pointerKey?: string) {
+  return (target: Model, name: string) => {
+    const model = target.constructor as typeof Model;
+    if (pointerKey === undefined) {
+      pointerKey = model.getClassName().toLowerCase();
+    }
+    model.setRelation({
+      name,
+      type: 'hasOne',
+      model,
+      getRelatedModel,
+      pointerKey,
+    });
+  };
+}
+
 export function pointTo(
   getRelatedModel: ModelGetter,
   includeKey?: string,
