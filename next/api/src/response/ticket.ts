@@ -24,6 +24,7 @@ export class TicketListItemResponse {
       status: this.ticket.status,
       evaluation: this.ticket.evaluation,
       replyCount: this.ticket.replyCount,
+      unreadCount: this.ticket.notification?.unreadCount ?? 0,
       createdAt: this.ticket.createdAt.toISOString(),
       updatedAt: this.ticket.updatedAt.toISOString(),
     };

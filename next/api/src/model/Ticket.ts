@@ -12,11 +12,13 @@ import {
   pointerIds,
   pointTo,
   hasManyThroughPointerArray,
+  hasOne,
 } from '../orm';
 import htmlify from '../utils/htmlify';
 import { Category, CategoryManager } from './Category';
 import { File } from './File';
 import { Group } from './Group';
+import { Notification } from './Notification';
 import { OpsLog } from './OpsLog';
 import { Organization } from './Organization';
 import { Reply, TinyReplyInfo } from './Reply';
@@ -146,6 +148,9 @@ export class Ticket extends Model {
 
   @field()
   metaData?: Record<string, any>;
+
+  @hasOne(() => Notification)
+  notification?: Notification;
 
   static STATUS = STATUS;
 
