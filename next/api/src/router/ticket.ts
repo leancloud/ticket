@@ -6,7 +6,6 @@ import { SortItem, auth, include, parseRange, sort } from '../middleware';
 import { Model, QueryBuilder } from '../orm';
 import { Category, CategoryManager } from '../model/Category';
 import { Group } from '../model/Group';
-import { Notification } from '../model/Notification';
 import { Organization } from '../model/Organization';
 import { Reply } from '../model/Reply';
 import { Ticket } from '../model/Ticket';
@@ -152,52 +151,6 @@ router.get(
   }
 );
 
-function resetUnreadCount(ticket: Ticket, currentUser: User) {
-  const authOptions = currentUser.getAuthOptions();
-  Notification.queryBuilder()
-    .where('ticket', '==', ticket.toPointer())
-    .where('user', '==', currentUser.toPointer())
-    .where('unreadCount', '>', 0)
-    .first(authOptions)
-    .then((notification) => notification?.update({ unreadCount: 0 }, authOptions))
-    .catch(console.error);
-}
-
-const getTicketSchema = yup.object({ ...includeSchema });
-
-router.get('/:id', include, async (ctx) => {
-  const currentUser = ctx.state.currentUser as User;
-  const params = getTicketSchema.validateSync(ctx.query);
-
-  const query = Ticket.queryBuilder().where('objectId', '==', ctx.params.id);
-  if (params.includeAuthor) {
-    query.preload('author');
-  }
-  if (params.includeAssignee) {
-    query.preload('assignee');
-  }
-  if (params.includeGroup) {
-    if (!(await currentUser.isCustomerService())) {
-      ctx.throw(403);
-    }
-    query.preload('group');
-  }
-  if (params.includeFiles) {
-    query.preload('files');
-  }
-
-  const ticket = await query.first(currentUser.getAuthOptions());
-  if (!ticket) {
-    ctx.throw(404);
-    return;
-  }
-  if (params.includeCategoryPath) {
-    await ticket.loadCategoryPath();
-  }
-  ctx.body = new TicketResponse(ticket).toJSON();
-  resetUnreadCount(ticket, currentUser);
-});
-
 const customFieldSchema = yup.object({
   field: yup.string().required(),
   value: yup.mixed().required(), // TODO(lyw): 更严格的验证
@@ -256,6 +209,44 @@ router.param('id', async (id, ctx, next) => {
   const currentUser = ctx.state.currentUser as User;
   ctx.state.ticket = await Ticket.findOrFail(id, currentUser.getAuthOptions());
   return next();
+});
+
+const getTicketSchema = yup.object({ ...includeSchema });
+
+router.get('/:id', include, async (ctx) => {
+  const currentUser = ctx.state.currentUser as User;
+  const params = getTicketSchema.validateSync(ctx.query);
+
+  const query = Ticket.queryBuilder().where('objectId', '==', ctx.params.id);
+  if (params.includeAuthor) {
+    query.preload('author');
+  }
+  if (params.includeAssignee) {
+    query.preload('assignee');
+  }
+  if (params.includeGroup) {
+    if (!(await currentUser.isCustomerService())) {
+      ctx.throw(403);
+    }
+    query.preload('group');
+  }
+  if (params.includeFiles) {
+    query.preload('files');
+  }
+
+  const ticket = await query.first(currentUser.getAuthOptions());
+  if (!ticket) {
+    ctx.throw(404);
+    return;
+  }
+  if (params.includeCategoryPath) {
+    await ticket.loadCategoryPath();
+  }
+
+  // TODO: Sentry
+  ticket.resetUnreadCount(currentUser).catch(console.error);
+
+  ctx.body = new TicketResponse(ticket);
 });
 
 router.get('/:id/replies', async (ctx) => {

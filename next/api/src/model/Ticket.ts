@@ -269,6 +269,18 @@ export class Ticket extends Model {
 
     return reply;
   }
+
+
+  async resetUnreadCount(this: Ticket, user: User) {
+    const authOptions = user.getAuthOptions();
+    const notification = await this.load('notification', {
+      authOptions,
+      onQuery: (query) => query.where('user', '==', user.toPointer()),
+    });
+    if (notification) {
+      await notification.update({ unreadCount: 0 }, authOptions);
+    }
+  }
 }
 
 Ticket.beforeCreate(({ avObject }) => {
