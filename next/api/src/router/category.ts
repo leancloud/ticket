@@ -6,6 +6,9 @@ import { auth } from '@/middleware/auth';
 import { Category, CategoryManager } from '@/model/Category';
 import { TicketForm } from '@/model/TicketForm';
 import { CategoryResponse, CategoryFieldResponse } from '@/response/category';
+import { getArticle } from '@/model/Article';
+import { ArticleResponse } from '@/response/article';
+import _ from 'lodash';
 
 const router = new Router().use(auth);
 
@@ -67,6 +70,20 @@ router.get('/:id/fields', async (ctx) => {
 
   const variants = await form.getFieldVariants(locale);
   ctx.body = variants.map((v) => new CategoryFieldResponse(v));
+});
+
+router.get('/:id/faqs', async (ctx) => {
+  const { FAQIds: articleIds } = ctx.state.category as Category;
+
+  if (!articleIds) {
+    ctx.body = [];
+    return;
+  }
+
+  const articles = await Promise.all(articleIds.map(getArticle));
+  ctx.body = articles
+    .filter((article) => !article?.archived)
+    .map((article) => new ArticleResponse(article!));
 });
 
 export default router;
