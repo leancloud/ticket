@@ -9,7 +9,6 @@ import { Group } from '../model/Group';
 import { Organization } from '../model/Organization';
 import { Reply } from '../model/Reply';
 import { Ticket } from '../model/Ticket';
-import { TicketFieldValue } from '../model/TicketFieldValue';
 import { User } from '../model/User';
 import { TicketResponse, TicketListItemResponse } from '../response/ticket';
 import { ReplyResponse } from '../response/reply';
@@ -186,22 +185,9 @@ router.post('/', async (ctx) => {
     organization,
     fileIds: data.fileIds,
     metaData: data.metaData,
+    customFields: data.customFields,
   });
 
-  if (data.customFields) {
-    await TicketFieldValue.create(
-      {
-        ACL: {},
-        ticketId: ticket.id,
-        values: data.customFields,
-      },
-      {
-        useMasterKey: true,
-      }
-    );
-  }
-
-  // TODO: 可以返回全部数据
   ctx.body = { id: ticket.id };
 });
 
@@ -286,6 +272,22 @@ router.post('/:id/replies', async (ctx) => {
   });
 
   ctx.body = new ReplyResponse(reply);
+});
+
+const operateSchema = yup.object({
+  action: yup
+    .string()
+    .oneOf(['replyWithNoContent', 'replySoon', 'resolve', 'close', 'reopen'])
+    .required(),
+});
+
+router.post('/:id/operate', async (ctx) => {
+  const currentUser = ctx.state.currentUser as User;
+  const ticket = ctx.state.ticket as Ticket;
+  const { action } = operateSchema.validateSync(ctx.request.body);
+  const isCustomerService = await isCustomerServiceInTicket(currentUser, ticket);
+  await ticket.operate(action as any, currentUser, isCustomerService);
+  ctx.body = {};
 });
 
 async function isCustomerServiceInTicket(user: User, ticket: Ticket): Promise<boolean> {

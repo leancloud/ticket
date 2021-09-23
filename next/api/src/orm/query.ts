@@ -209,10 +209,8 @@ export class Query<M extends typeof Model> {
     const query = this.clone();
 
     const preloader = preloaderFactory(this.model, key);
-    if (options?.data) {
+    if (options) {
       preloader.data = options.data as Model[];
-    }
-    if (options?.onQuery) {
       preloader.queryModifier = options.onQuery;
     }
     query.preloaders[key] = {

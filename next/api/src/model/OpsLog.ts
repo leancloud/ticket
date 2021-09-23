@@ -1,6 +1,6 @@
 import { CreateData, Model, field, pointerId, pointTo } from '../orm';
 import { Group } from './Group';
-import { Ticket } from './Ticket';
+import { OperateAction, Ticket } from './Ticket';
 import { User } from './User';
 
 export type Action =
@@ -8,11 +8,7 @@ export type Action =
   | 'changeAssignee'
   | 'changeGroup'
   | 'changeFields'
-  | 'replySoon'
-  | 'replyWithNoContent'
-  | 'resolve'
-  | 'close'
-  | 'reopen';
+  | OperateAction;
 
 export class OpsLog extends Model {
   @field()
@@ -29,9 +25,18 @@ export class OpsLog extends Model {
 
   @pointTo(() => Ticket)
   ticket?: Ticket;
+}
 
-  static selectAssignee(ticket: Ticket, assignee: User): CreateData<OpsLog> {
-    return {
+OpsLog.beforeCreate(({ options }) => {
+  // XXX: 旧版在 beforeSave 中设置 OpsLog 的 ACL
+  options.ignoreBeforeHook = true;
+});
+
+export class OpsLogCreator {
+  private datas: CreateData<OpsLog>[] = [];
+
+  selectAssignee(ticket: Ticket, assignee: User): this {
+    this.datas.push({
       ACL: {
         [ticket.authorId]: { read: true },
         'role:customerService': { read: true },
@@ -41,26 +46,31 @@ export class OpsLog extends Model {
       data: {
         assignee: assignee.getTinyInfo(),
       },
-    };
+    });
+    return this;
   }
 
-  static changeGroup(ticket: Ticket, group: Group | null, operator: User): CreateData<OpsLog> {
-    return {
+  changeGroup(ticket: Ticket, group: Group | null, operator: User): this {
+    this.datas.push({
       ACL: {
         'role:customerService': { read: true },
       },
       ticketId: ticket.id,
       action: 'changeGroup',
       data: {
-        group: group?.getTinyInfo() ?? null,
+        group: group ? group.getTinyInfo() : null,
         operator: operator.getTinyInfo(),
       },
       internal: true,
-    };
+    });
+    return this;
+  }
+
+  create() {
+    if (this.datas.length) {
+      // TODO: Sentry
+      OpsLog.createSome(this.datas).catch(console.error);
+      this.datas = [];
+    }
   }
 }
-
-OpsLog.beforeCreate(({ avObject }) => {
-  // XXX: 旧版在 beforeSave 中设置 OpsLog 的 ACL
-  avObject.disableBeforeHook();
-});

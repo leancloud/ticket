@@ -4,7 +4,7 @@ import { FileResponse } from './file';
 import { GroupResponse } from './group';
 import { UserResponse } from './user';
 
-export class TicketListItemResponse {
+class BaseTicketResponse {
   constructor(readonly ticket: Ticket) {}
 
   toJSON() {
@@ -24,14 +24,22 @@ export class TicketListItemResponse {
       status: this.ticket.status,
       evaluation: this.ticket.evaluation,
       replyCount: this.ticket.replyCount,
-      unreadCount: this.ticket.notification?.unreadCount ?? 0,
       createdAt: this.ticket.createdAt.toISOString(),
       updatedAt: this.ticket.updatedAt.toISOString(),
     };
   }
 }
 
-export class TicketResponse extends TicketListItemResponse {
+export class TicketListItemResponse extends BaseTicketResponse {
+  toJSON() {
+    return {
+      ...super.toJSON(),
+      unreadCount: this.ticket.notification?.unreadCount ?? 0,
+    };
+  }
+}
+
+export class TicketResponse extends BaseTicketResponse {
   toJSON() {
     return {
       ...super.toJSON(),
