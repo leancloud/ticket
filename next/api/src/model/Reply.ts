@@ -61,7 +61,7 @@ export class Reply extends Model {
   }
 }
 
-Reply.beforeCreate(({ avObject }) => {
-  avObject.disableBeforeHook();
-  avObject.disableAfterHook();
+Reply.beforeCreate(({ options }) => {
+  options.ignoreBeforeHook = true;
+  options.ignoreAfterHook = true;
 });

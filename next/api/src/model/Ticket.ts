@@ -1,9 +1,8 @@
 import _ from 'lodash';
 
 import {
-  CreateData,
+  ACLBuilder,
   Model,
-  RawACL,
   UpdateData,
   belongsTo,
   commands,
@@ -19,10 +18,11 @@ import { Category, CategoryManager } from './Category';
 import { File } from './File';
 import { Group } from './Group';
 import { Notification } from './Notification';
-import { OpsLog } from './OpsLog';
+import { OpsLog, OpsLogCreator } from './OpsLog';
 import { Organization } from './Organization';
 import { Reply, TinyReplyInfo } from './Reply';
 import { Role } from './Role';
+import { FieldValue, TicketFieldValue } from './TicketFieldValue';
 import { TinyUserInfo, User, systemUser } from './User';
 import { Vacation } from './Vacation';
 
@@ -37,6 +37,8 @@ export enum STATUS {
   FULFILLED = 250, // 已解决
   CLOSED = 280, // 已关闭
 }
+
+export type OperateAction = 'replyWithNoContent' | 'replySoon' | 'resolve' | 'close' | 'reopen';
 
 export interface Evaluation {
   star: number;
@@ -56,6 +58,7 @@ export interface CreateTicketData {
   organization?: Organization;
   fileIds?: string[];
   metaData?: Record<string, any>;
+  customFields?: FieldValue[];
 }
 
 export interface CreateReplyData {
@@ -152,55 +155,62 @@ export class Ticket extends Model {
   @hasOne(() => Notification)
   notification?: Notification;
 
-  static STATUS = STATUS;
+  static readonly STATUS = STATUS;
 
-  static async createTicket({
-    title,
-    content,
-    author,
-    category,
-    organization,
-    fileIds,
-    metaData,
-  }: CreateTicketData): Promise<Ticket> {
-    const [assignee, group] = await Promise.all([selectAssignee(category), selectGroup(category)]);
+  static async createTicket(data: CreateTicketData, currentUser = data.author): Promise<Ticket> {
+    const [assignee, group] = await Promise.all([
+      selectAssignee(data.category),
+      selectGroup(data.category),
+    ]);
 
-    const ACL: RawACL = {
-      [author.id]: { read: true, write: true },
-      'role:customerService': { read: true, write: true },
-      'role:staff': { read: true },
-    };
-    if (organization) {
-      const orgRole = 'role:' + organization.id + '_member';
-      ACL[orgRole] = { read: true, write: true };
+    const ACL = new ACLBuilder()
+      .allow(data.author, 'read', 'write')
+      .allowCustomerService('read', 'write')
+      .allowStaff('read');
+    if (data.organization) {
+      ACL.allowOrgMember(data.organization, 'read', 'write');
     }
 
     const ticket = await this.create(
       {
         ACL,
-        title,
-        content,
-        contentHTML: htmlify(content),
-        category,
-        authorId: author.id,
+        title: data.title,
+        content: data.content,
+        contentHTML: htmlify(data.content),
+        category: data.category,
+        authorId: data.author.id,
         assigneeId: assignee?.id,
         groupId: group?.id,
-        fileIds,
-        metaData,
+        fileIds: data.fileIds,
+        metaData: data.metaData,
         status: STATUS.NEW,
       },
-      author.getAuthOptions()
+      {
+        currentUser,
+      }
     );
 
-    const opsLogDatas: CreateData<OpsLog>[] = [];
+    if (data.customFields) {
+      await TicketFieldValue.create(
+        {
+          ACL: {},
+          ticketId: ticket.id,
+          values: data.customFields,
+        },
+        {
+          useMasterKey: true,
+        }
+      );
+    }
+
+    const opsLogCreator = new OpsLogCreator();
     if (assignee) {
-      opsLogDatas.push(OpsLog.selectAssignee(ticket, assignee));
+      opsLogCreator.selectAssignee(ticket, assignee);
     }
     if (group) {
-      opsLogDatas.push(OpsLog.changeGroup(ticket, group, systemUser));
+      opsLogCreator.changeGroup(ticket, group, systemUser);
     }
-    // TODO: Sentry
-    OpsLog.createSome(opsLogDatas).catch(console.error);
+    opsLogCreator.create();
 
     return ticket;
   }
@@ -212,68 +222,101 @@ export class Ticket extends Model {
     return this.categoryPath;
   }
 
-  async reply(
-    this: Ticket,
-    { content, author, isCustomerService, fileIds, internal }: CreateReplyData
-  ): Promise<Reply> {
-    const ACL: RawACL = {
-      [author.id]: { read: true, write: true },
-      'role:customerService': { read: true },
-      'role:staff': { read: true },
-    };
-    if (!internal) {
-      if (this.authorId !== author.id) {
-        ACL[this.authorId] = { read: true };
-      }
+  async reply(this: Ticket, data: CreateReplyData): Promise<Reply> {
+    const ACL = new ACLBuilder()
+      .allow(data.author, 'read', 'write')
+      .allowCustomerService('read')
+      .allowStaff('read');
+    if (!data.internal) {
+      ACL.allow(this.authorId, 'read');
       if (this.organizationId) {
-        const orgRole = 'role:' + this.organizationId + '_member';
-        ACL[orgRole] = { read: true };
+        ACL.allow(this.organizationId, 'read');
       }
     }
 
-    const authOptions = author.getAuthOptions();
     const reply = await Reply.create(
       {
         ACL,
-        content,
-        contentHTML: htmlify(content),
+        content: data.content,
+        contentHTML: htmlify(data.content),
         ticketId: this.id,
-        authorId: author.id,
-        isCustomerService,
-        fileIds,
-        internal: internal || undefined,
+        authorId: data.author.id,
+        isCustomerService: data.isCustomerService,
+        fileIds: data.fileIds,
+        internal: data.internal || undefined,
       },
-      authOptions
+      {
+        currentUser: data.author,
+      }
     );
-    reply.author = author;
+    reply.author = data.author;
 
-    if (!internal) {
+    if (!data.internal) {
       const updateData: UpdateData<Ticket> = {
         latestReply: reply.getTinyInfo(),
         replyCount: commands.inc(),
       };
-      if (isCustomerService) {
-        updateData.joinedCustomerServices = commands.pushUniq(author.getTinyInfo());
+      if (data.isCustomerService) {
+        updateData.joinedCustomerServices = commands.pushUniq(data.author.getTinyInfo());
       }
       if (this.status < STATUS.FULFILLED) {
-        updateData.status = isCustomerService
+        updateData.status = data.isCustomerService
           ? STATUS.WAITING_CUSTOMER
           : STATUS.WAITING_CUSTOMER_SERVICE;
       }
 
       // TODO: Sentry
-      this.update(updateData, authOptions).catch(console.error);
+      this.update(updateData, { currentUser: data.author }).catch(console.error);
 
       // TODO: notification
     }
 
     return reply;
   }
+
+  async resetUnreadCount(this: Ticket, user: User) {
+    const authOptions = user.getAuthOptions();
+    const notification = await this.load('notification', {
+      authOptions,
+      onQuery: (query) => query.where('user', '==', user.toPointer()),
+    });
+    if (notification) {
+      await notification.update({ unreadCount: 0 }, authOptions);
+    }
+  }
+
+  async operate(action: OperateAction, operator: User, isCustomerService: boolean) {
+    const status = getActionStatus(action, isCustomerService);
+    const data: UpdateData<Ticket> = { status };
+    if (isCustomerService) {
+      data.joinedCustomerServices = commands.pushUniq(operator.getTinyInfo());
+    }
+    const ticket = await this.update(data, { currentUser: operator });
+
+    const ACL = new ACLBuilder()
+      .allow(this.authorId, 'read')
+      .allowCustomerService('read')
+      .allowStaff('read');
+    if (this.organizationId) {
+      ACL.allowOrgMember(this.organizationId, 'read');
+    }
+    OpsLog.create({
+      ACL,
+      ticketId: this.id,
+      action,
+      data: {
+        operator: operator.getTinyInfo(),
+      },
+    }).catch(console.error); // TODO: Sentry
+
+    // TODO: notification
+    return ticket;
+  }
 }
 
-Ticket.beforeCreate(({ avObject }) => {
-  avObject.disableBeforeHook();
-  avObject.disableAfterHook();
+Ticket.beforeCreate(({ options }) => {
+  options.ignoreBeforeHook = true;
+  options.ignoreAfterHook = true;
 });
 
 async function getVacationerIds(): Promise<string[]> {
@@ -328,5 +371,20 @@ async function selectGroup(category: Category): Promise<Group | undefined> {
     if (parent) {
       return selectGroup(parent);
     }
+  }
+}
+
+function getActionStatus(action: OperateAction, isCustomerService: boolean): STATUS {
+  switch (action) {
+    case 'replyWithNoContent':
+      return STATUS.WAITING_CUSTOMER;
+    case 'replySoon':
+      return STATUS.WAITING_CUSTOMER_SERVICE;
+    case 'resolve':
+      return isCustomerService ? STATUS.PRE_FULFILLED : STATUS.FULFILLED;
+    case 'close':
+      return STATUS.CLOSED;
+    case 'reopen':
+      return STATUS.WAITING_CUSTOMER;
   }
 }

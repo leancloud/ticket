@@ -1,6 +1,7 @@
 import AV from 'leancloud-storage';
 import _ from 'lodash';
 
+import { ACLBuilder, RawACL } from './acl';
 import { AuthOptions, Query, QueryBuilder } from './query';
 import { Flat, KeysOfType } from './utils';
 import { Relation } from './relation';
@@ -12,6 +13,7 @@ type RelationKey<T> = Extract<KeysOfType<T, Model | Model[] | undefined>, string
 export interface ReloadOptions<M extends Model, K extends RelationKey<M> = RelationKey<M>> {
   data?: Flat<NonNullable<M[K][]>>;
   authOptions?: AuthOptions;
+  onQuery?: (query: QueryBuilder<any>) => void;
 }
 
 export type FieldEncoder = (data: any) => any;
@@ -41,9 +43,14 @@ export interface SerializedField {
   decode: SerializedFieldDecoder;
 }
 
+export interface CurrentUser {
+  id: string;
+  getAuthOptions(): AuthOptions;
+}
+
 export interface BeforeCreateContext<M extends typeof Model> {
-  avObject: AV.Object;
   data: CreateData<M>;
+  options: ModifyOptions;
 }
 
 export type BeforeCreateHook<M extends typeof Model> = (
@@ -52,6 +59,8 @@ export type BeforeCreateHook<M extends typeof Model> = (
 
 export interface AfterCreateContext<M extends typeof Model> {
   instance: InstanceType<M>;
+  data: CreateData<M>;
+  options: ModifyOptions;
 }
 
 export type AfterCreateHook<M extends typeof Model> = (context: AfterCreateContext<M>) => void;
@@ -76,13 +85,15 @@ export type InstanceData<M extends typeof Model> = Partial<
   Omit<InstanceType<M>, KeysOfType<InstanceType<M>, Function>>
 >;
 
-export interface SaveAVObjectOptions extends AuthOptions {
-  ignoreBeforeHooks?: boolean;
-  ignoreAfterHooks?: boolean;
-  fetchWhenSave?: boolean;
+interface IgnoreHookOptions {
+  ignoreBeforeHook?: boolean;
+  ignoreAfterHook?: boolean;
 }
 
-export type RawACL = Record<string, { read?: true; write?: true }>;
+export interface ModifyOptions extends IgnoreHookOptions {
+  currentUser?: CurrentUser;
+  useMasterKey?: boolean;
+}
 
 export abstract class Model {
   static readonly className: string;
@@ -101,7 +112,7 @@ export abstract class Model {
 
   id!: string;
 
-  ACL?: RawACL;
+  ACL?: RawACL | ACLBuilder;
 
   createdAt!: Date;
 
@@ -223,8 +234,9 @@ export abstract class Model {
     options?: ReloadOptions<M, K>
   ): Promise<M[K]> {
     const preloader = preloaderFactory(this.constructor as any, key);
-    if (options?.data) {
+    if (options) {
       preloader.data = options.data;
+      preloader.queryModifier = options.onQuery;
     }
     await preloader.load([this], options?.authOptions);
     return this[key as keyof M] as M[K];
@@ -252,27 +264,22 @@ export abstract class Model {
   static async create<M extends typeof Model>(
     this: M,
     data: CreateData<M>,
-    options?: Omit<SaveAVObjectOptions, 'fetchWhenSave'>
+    options?: ModifyOptions
   ): Promise<InstanceType<M>> {
-    let instance = this.newInstance(data);
-    const avObject = instance.toAVObject();
+    data = { ...data };
+    options = { ...options };
 
     if (this.beforeCreateHooks) {
-      const ctx = { avObject, data };
+      const ctx = { data, options };
       await Promise.all(this.beforeCreateHooks.map((hook) => hook(ctx)));
     }
 
-    if (options?.ignoreBeforeHooks) {
-      avObject.disableBeforeHook();
-    }
-    if (options?.ignoreAfterHooks) {
-      avObject.disableAfterHook();
-    }
-    await avObject.save(null, { ...options, fetchWhenSave: true });
-    instance = this.fromAVObject(avObject);
+    const avObject = this.newInstance(data).toAVObject();
+    await saveAVObject(avObject, options);
+    const instance = this.fromAVObject(avObject);
 
     if (this.afterCreateHooks) {
-      const ctx = { instance };
+      const ctx = { instance, data, options };
       this.afterCreateHooks.forEach((hook) => {
         try {
           hook(ctx);
@@ -286,7 +293,7 @@ export abstract class Model {
   static async createSome<M extends typeof Model>(
     this: M,
     datas: CreateData<M>[],
-    options?: Omit<SaveAVObjectOptions, 'fetchWhenSave'>
+    options?: ModifyOptions
   ): Promise<InstanceType<M>[]> {
     if (datas.length === 0) {
       return [];
@@ -295,29 +302,24 @@ export abstract class Model {
       return [await this.create(datas[0], options)];
     }
 
-    let instances = datas.map((data) => this.newInstance(data));
-    const avObjects = instances.map((instance) => instance.toAVObject());
+    datas = datas.map((data) => ({ ...data }));
+    options = { ...options };
 
     if (this.beforeCreateHooks) {
-      const tasks = avObjects.map((avObject, i) => {
-        const ctx = { avObject, data: datas[i] };
+      const tasks = datas.map((data) => {
+        const ctx = { data, options: options! };
         return Promise.all(this.beforeCreateHooks.map((hook) => hook(ctx)));
       });
       await Promise.all(tasks);
     }
 
-    if (options?.ignoreBeforeHooks) {
-      avObjects.forEach((o) => o.disableBeforeHook());
-    }
-    if (options?.ignoreAfterHooks) {
-      avObjects.forEach((o) => o.disableAfterHook());
-    }
-    await AV.Object.saveAll(avObjects, { ...options, fetchWhenSave: true });
-    instances = avObjects.map((o) => this.fromAVObject(o));
+    const avObjects = datas.map((data) => this.newInstance(data).toAVObject());
+    await saveAVObjects(avObjects, options);
+    const instances = avObjects.map((o) => this.fromAVObject(o));
 
     if (this.afterCreateHooks) {
-      instances.forEach((instance) => {
-        const ctx = { instance };
+      instances.forEach((instance, i) => {
+        const ctx = { instance, data: datas[i], options: options! };
         this.afterCreateHooks.forEach((hook) => {
           try {
             hook(ctx);
@@ -329,18 +331,15 @@ export abstract class Model {
     return instances;
   }
 
-  async update<M extends Model>(
-    this: M,
-    data: UpdateData<M>,
-    options?: Omit<SaveAVObjectOptions, 'fetchWhenSave'>
-  ): Promise<M> {
+  async update<M extends Model>(this: M, data: UpdateData<M>, options?: ModifyOptions): Promise<M> {
     const model = this.constructor as typeof Model;
     const instance = model.newInstance(data) as M;
     instance.id = this.id;
-    const avObject = instance.toAVObject();
 
-    await avObject.save(null, { ...options, fetchWhenSave: true });
+    const avObject = instance.toAVObject();
+    await saveAVObject(avObject, options);
     const newInstance = model.fromAVObject(avObject) as M;
+
     Object.values(model.fields).forEach(({ localKey }) => {
       // @ts-ignore
       const value = instance[localKey] ?? this[localKey] ?? undefined;
@@ -354,9 +353,10 @@ export abstract class Model {
     return newInstance;
   }
 
-  async delete(options?: AuthOptions) {
-    const avObject = AV.Object.createWithoutData(this.className, this.id);
-    await avObject.destroy(options);
+  async delete(options: ModifyOptions = {}) {
+    const object = AV.Object.createWithoutData(this.className, this.id);
+    applyIgnoreHookOptions(object, options);
+    await object.destroy(getAuthOptions(options));
   }
 
   toPointer() {
@@ -394,7 +394,7 @@ export abstract class Model {
       : new AVObject(className);
 
     if (this.ACL) {
-      avObject.set('ACL', this.ACL);
+      avObject.set('ACL', this.ACL instanceof ACLBuilder ? this.ACL.toJSON() : this.ACL);
     }
 
     Object.values(model.fields).forEach(({ localKey, avObjectKey, encode, onEncode }) => {
@@ -421,4 +421,32 @@ export abstract class Model {
     });
     return avObject;
   }
+}
+
+function getAuthOptions(options: ModifyOptions): AuthOptions | undefined {
+  if (options.useMasterKey) {
+    return { useMasterKey: true };
+  }
+  if (options.currentUser) {
+    return options.currentUser.getAuthOptions();
+  }
+}
+
+function applyIgnoreHookOptions(object: AV.Object, options: IgnoreHookOptions) {
+  if (options.ignoreBeforeHook) {
+    object.disableBeforeHook();
+  }
+  if (options.ignoreAfterHook) {
+    object.disableAfterHook();
+  }
+}
+
+function saveAVObject(object: AV.Object, options: ModifyOptions = {}) {
+  applyIgnoreHookOptions(object, options);
+  return object.save(null, { ...getAuthOptions(options), fetchWhenSave: true });
+}
+
+function saveAVObjects(objects: AV.Object[], options: ModifyOptions = {}) {
+  objects.forEach((object) => applyIgnoreHookOptions(object, options));
+  return AV.Object.saveAll(objects, { ...getAuthOptions(options), fetchWhenSave: true });
 }

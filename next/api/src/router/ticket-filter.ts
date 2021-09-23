@@ -64,7 +64,9 @@ router.post('/', async (ctx) => {
         'role:customerService': { read: true, write: true },
       },
     },
-    { useMasterKey: true }
+    {
+      useMasterKey: true,
+    }
   );
   ctx.body = new TicketFilterResponse(filter);
 });

@@ -6,11 +6,9 @@ import { SortItem, auth, include, parseRange, sort } from '../middleware';
 import { Model, QueryBuilder } from '../orm';
 import { Category, CategoryManager } from '../model/Category';
 import { Group } from '../model/Group';
-import { Notification } from '../model/Notification';
 import { Organization } from '../model/Organization';
 import { Reply } from '../model/Reply';
 import { Ticket } from '../model/Ticket';
-import { TicketFieldValue } from '../model/TicketFieldValue';
 import { User } from '../model/User';
 import { TicketResponse, TicketListItemResponse } from '../response/ticket';
 import { ReplyResponse } from '../response/reply';
@@ -152,52 +150,6 @@ router.get(
   }
 );
 
-function resetUnreadCount(ticket: Ticket, currentUser: User) {
-  const authOptions = currentUser.getAuthOptions();
-  Notification.queryBuilder()
-    .where('ticket', '==', ticket.toPointer())
-    .where('user', '==', currentUser.toPointer())
-    .where('unreadCount', '>', 0)
-    .first(authOptions)
-    .then((notification) => notification?.update({ unreadCount: 0 }, authOptions))
-    .catch(console.error);
-}
-
-const getTicketSchema = yup.object({ ...includeSchema });
-
-router.get('/:id', include, async (ctx) => {
-  const currentUser = ctx.state.currentUser as User;
-  const params = getTicketSchema.validateSync(ctx.query);
-
-  const query = Ticket.queryBuilder().where('objectId', '==', ctx.params.id);
-  if (params.includeAuthor) {
-    query.preload('author');
-  }
-  if (params.includeAssignee) {
-    query.preload('assignee');
-  }
-  if (params.includeGroup) {
-    if (!(await currentUser.isCustomerService())) {
-      ctx.throw(403);
-    }
-    query.preload('group');
-  }
-  if (params.includeFiles) {
-    query.preload('files');
-  }
-
-  const ticket = await query.first(currentUser.getAuthOptions());
-  if (!ticket) {
-    ctx.throw(404);
-    return;
-  }
-  if (params.includeCategoryPath) {
-    await ticket.loadCategoryPath();
-  }
-  ctx.body = new TicketResponse(ticket).toJSON();
-  resetUnreadCount(ticket, currentUser);
-});
-
 const customFieldSchema = yup.object({
   field: yup.string().required(),
   value: yup.mixed().required(), // TODO(lyw): 更严格的验证
@@ -233,22 +185,9 @@ router.post('/', async (ctx) => {
     organization,
     fileIds: data.fileIds,
     metaData: data.metaData,
+    customFields: data.customFields,
   });
 
-  if (data.customFields) {
-    await TicketFieldValue.create(
-      {
-        ACL: {},
-        ticketId: ticket.id,
-        values: data.customFields,
-      },
-      {
-        useMasterKey: true,
-      }
-    );
-  }
-
-  // TODO: 可以返回全部数据
   ctx.body = { id: ticket.id };
 });
 
@@ -256,6 +195,44 @@ router.param('id', async (id, ctx, next) => {
   const currentUser = ctx.state.currentUser as User;
   ctx.state.ticket = await Ticket.findOrFail(id, currentUser.getAuthOptions());
   return next();
+});
+
+const getTicketSchema = yup.object({ ...includeSchema });
+
+router.get('/:id', include, async (ctx) => {
+  const currentUser = ctx.state.currentUser as User;
+  const params = getTicketSchema.validateSync(ctx.query);
+
+  const query = Ticket.queryBuilder().where('objectId', '==', ctx.params.id);
+  if (params.includeAuthor) {
+    query.preload('author');
+  }
+  if (params.includeAssignee) {
+    query.preload('assignee');
+  }
+  if (params.includeGroup) {
+    if (!(await currentUser.isCustomerService())) {
+      ctx.throw(403);
+    }
+    query.preload('group');
+  }
+  if (params.includeFiles) {
+    query.preload('files');
+  }
+
+  const ticket = await query.first(currentUser.getAuthOptions());
+  if (!ticket) {
+    ctx.throw(404);
+    return;
+  }
+  if (params.includeCategoryPath) {
+    await ticket.loadCategoryPath();
+  }
+
+  // TODO: Sentry
+  ticket.resetUnreadCount(currentUser).catch(console.error);
+
+  ctx.body = new TicketResponse(ticket);
 });
 
 router.get('/:id/replies', async (ctx) => {
@@ -295,6 +272,22 @@ router.post('/:id/replies', async (ctx) => {
   });
 
   ctx.body = new ReplyResponse(reply);
+});
+
+const operateSchema = yup.object({
+  action: yup
+    .string()
+    .oneOf(['replyWithNoContent', 'replySoon', 'resolve', 'close', 'reopen'])
+    .required(),
+});
+
+router.post('/:id/operate', async (ctx) => {
+  const currentUser = ctx.state.currentUser as User;
+  const ticket = ctx.state.ticket as Ticket;
+  const { action } = operateSchema.validateSync(ctx.request.body);
+  const isCustomerService = await isCustomerServiceInTicket(currentUser, ticket);
+  await ticket.operate(action as any, currentUser, isCustomerService);
+  ctx.body = {};
 });
 
 async function isCustomerServiceInTicket(user: User, ticket: Ticket): Promise<boolean> {
