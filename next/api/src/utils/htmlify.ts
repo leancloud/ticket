@@ -1,10 +1,10 @@
 import { Remarkable } from 'remarkable';
+import { linkify } from 'remarkable/linkify';
 import hljs from 'highlight.js';
 
 const md = new Remarkable({
   html: true,
   breaks: true,
-  linkify: true,
   typographer: false,
   highlight: (str, lang) => {
     if (lang && hljs.getLanguage(lang)) {
@@ -17,7 +17,7 @@ const md = new Remarkable({
     } catch {} // ignore
     return ''; // use external default escaping
   },
-});
+}).use(linkify);
 
 export default function htmlify(content: string): string {
   return md.render(content);
