@@ -1,5 +1,6 @@
 import _ from 'lodash';
 
+import { config } from '../config';
 import {
   ACLBuilder,
   Model,
@@ -215,6 +216,10 @@ export class Ticket extends Model {
     return ticket;
   }
 
+  getUrl(): string {
+    return `${config.host}/tickets/${this.nid}`;
+  }
+
   async loadCategoryPath(): Promise<Category[]> {
     if (!this.categoryPath) {
       this.categoryPath = await CategoryManager.getCategoryPath(this.categoryId);
@@ -280,8 +285,8 @@ export class Ticket extends Model {
       authOptions,
       onQuery: (query) => query.where('user', '==', user.toPointer()),
     });
-    if (notification) {
-      await notification.update({ unreadCount: 0 }, authOptions);
+    if (notification?.unreadCount) {
+      await notification.update({ unreadCount: 0 }, { currentUser: user });
     }
   }
 
@@ -319,15 +324,6 @@ Ticket.beforeCreate(({ options }) => {
   options.ignoreAfterHook = true;
 });
 
-async function getVacationerIds(): Promise<string[]> {
-  const now = new Date();
-  const vacations = await Vacation.queryBuilder()
-    .where('startDate', '<', now)
-    .where('endDate', '>', now)
-    .find({ useMasterKey: true });
-  return vacations.map((v) => v.vacationerId);
-}
-
 async function selectAssignee(
   category: Category,
   customerServices?: User[]
@@ -335,7 +331,7 @@ async function selectAssignee(
   if (!customerServices) {
     const [csRole, vacationerIds] = await Promise.all([
       Role.getCustomerServiceRole(),
-      getVacationerIds(),
+      Vacation.getVacationerIds(),
     ]);
     customerServices = await User.queryBuilder()
       .relatedTo(csRole, 'users')

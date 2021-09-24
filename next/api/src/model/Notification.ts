@@ -3,7 +3,7 @@ import { Ticket } from './Ticket';
 import { User } from './User';
 
 export class Notification extends Model {
-  static readonly className = 'notification';
+  protected static className = 'notification';
 
   @pointerId(() => User)
   userId!: string;

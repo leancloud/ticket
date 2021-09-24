@@ -56,9 +56,11 @@ export interface TinyUserInfo {
 }
 
 export class User extends Model {
-  static readonly className = '_User';
+  protected static className = '_User';
 
-  static readonly avObjectConstructor = AV.User;
+  protected static avObjectFactory = (className: string, id?: string) => {
+    return id ? AV.User.createWithoutData(className, id) : new AV.User(id);
+  };
 
   @field()
   authData?: Record<string, any>;
@@ -72,21 +74,6 @@ export class User extends Model {
   @field()
   email?: string;
 
-  @field({
-    encode: false,
-    decode: false,
-    onEncode: (user: User, avUser) => {
-      if (user.sessionToken) {
-        (avUser as any)._sessionToken = user.sessionToken;
-      }
-    },
-    onDecode: (user: User, avUser) => {
-      const sessionToken = (avUser as AV.User).getSessionToken();
-      if (sessionToken) {
-        user.sessionToken = sessionToken;
-      }
-    },
-  })
   sessionToken?: string;
 
   @field({
@@ -186,7 +173,15 @@ export class User extends Model {
       email: this.email,
     };
   }
+
+  getDisplayName(): string {
+    return this.name ?? this.username;
+  }
 }
+
+User.onDecode(({ avObject, instance }) => {
+  instance.sessionToken = (avObject as any)._sessionToken;
+});
 
 class SystemUser extends User {
   constructor() {

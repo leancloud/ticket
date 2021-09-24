@@ -1,7 +1,7 @@
 import { field, Model } from '../orm';
 
 export class File extends Model {
-  static readonly className = '_File';
+  protected static className = '_File';
 
   @field()
   name!: string;
