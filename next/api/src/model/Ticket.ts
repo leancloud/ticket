@@ -280,9 +280,8 @@ export class Ticket extends Model {
   }
 
   async resetUnreadCount(this: Ticket, user: User) {
-    const authOptions = user.getAuthOptions();
     const notification = await this.load('notification', {
-      authOptions,
+      sessionToken: user.sessionToken,
       onQuery: (query) => query.where('user', '==', user.toPointer()),
     });
     if (notification?.unreadCount) {
@@ -360,7 +359,7 @@ async function selectAssignee(
 
 async function selectGroup(category: Category): Promise<Group | undefined> {
   if (category.groupId) {
-    return category.load('group', { authOptions: { useMasterKey: true } });
+    return category.load('group', { useMasterKey: true });
   }
   if (category.parentId) {
     const parent = await category.load('parent');

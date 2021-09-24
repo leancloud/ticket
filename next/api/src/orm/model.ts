@@ -10,9 +10,9 @@ import { TypeCommands } from './command';
 
 type RelationKey<T> = Extract<KeysOfType<T, Model | Model[] | undefined>, string>;
 
-export interface ReloadOptions<M extends Model, K extends RelationKey<M> = RelationKey<M>> {
+export interface ReloadOptions<M extends Model, K extends RelationKey<M> = RelationKey<M>>
+  extends AuthOptions {
   data?: Flat<NonNullable<M[K][]>>;
-  authOptions?: AuthOptions;
   onQuery?: (query: QueryBuilder<any>) => void;
 }
 
@@ -91,9 +91,8 @@ interface IgnoreHookOptions {
   ignoreAfterHook?: boolean;
 }
 
-export interface ModifyOptions extends IgnoreHookOptions {
+export interface ModifyOptions extends IgnoreHookOptions, AuthOptions {
   currentUser?: CurrentUser;
-  useMasterKey?: boolean;
 }
 
 export type AVObjectFactory = (className: string, objectId?: string) => AV.Object;
@@ -303,7 +302,7 @@ export abstract class Model {
       preloader.data = options.data;
       preloader.queryModifier = options.onQuery;
     }
-    await preloader.load([this], options?.authOptions);
+    await preloader.load([this], options);
     return this[key as keyof M] as M[K];
   }
 
