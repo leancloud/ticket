@@ -4,9 +4,7 @@ import { Model, field, hasManyThroughRelation } from '../orm';
 import { User } from './User';
 
 export class Role extends Model {
-  static readonly className = '_Role';
-
-  static readonly avObjectConstructor = AV.Role as any;
+  protected static className = '_Role';
 
   private static getCustomerServiceRoleTask?: Promise<Role>;
 

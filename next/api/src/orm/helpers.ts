@@ -13,23 +13,9 @@ import {
 export type DefineFieldOptions = Partial<Field> & Pick<Field, 'localKey'>;
 
 function defineField(model: typeof Model, options: DefineFieldOptions) {
-  const {
-    localKey,
-    avObjectKey = localKey,
-    encode = _.identity,
-    decode = _.identity,
-    onEncode,
-    onDecode,
-  } = options;
+  const { localKey, avObjectKey = localKey, encode = _.identity, decode = _.identity } = options;
 
-  model.setField({
-    localKey,
-    avObjectKey,
-    encode,
-    decode,
-    onEncode,
-    onDecode,
-  });
+  model.setField({ localKey, avObjectKey, encode, decode });
 }
 
 export function field(config?: string | Partial<Field>) {

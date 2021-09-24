@@ -10,43 +10,36 @@ import { TypeCommands } from './command';
 
 type RelationKey<T> = Extract<KeysOfType<T, Model | Model[] | undefined>, string>;
 
-export interface ReloadOptions<M extends Model, K extends RelationKey<M> = RelationKey<M>> {
+export interface ReloadOptions<M extends Model, K extends RelationKey<M> = RelationKey<M>>
+  extends AuthOptions {
   data?: Flat<NonNullable<M[K][]>>;
-  authOptions?: AuthOptions;
   onQuery?: (query: QueryBuilder<any>) => void;
 }
-
-export type FieldEncoder = (data: any) => any;
-
-export type FieldDecoder = (data: any) => any;
-
-export type OnDecodeField = (instance: any, object: AV.Object) => void;
-
-export type OnEncodeField = (instance: any, object: AV.Object) => void;
 
 export interface Field {
   localKey: string;
   avObjectKey: string;
-  encode: FieldEncoder | false;
-  decode: FieldDecoder | false;
-  onEncode?: OnEncodeField;
-  onDecode?: OnDecodeField;
+  encode: ((data: any) => any) | false;
+  decode: ((data: any) => any) | false;
 }
-
-export type SerializedFieldEncoder = (data: any) => any;
-
-export type SerializedFieldDecoder = (data: any) => any;
 
 export interface SerializedField {
   key: string;
-  encode: SerializedFieldEncoder;
-  decode: SerializedFieldDecoder;
+  encode: (data: any) => any;
+  decode: (data: any) => any;
 }
 
 export interface CurrentUser {
   id: string;
   getAuthOptions(): AuthOptions;
 }
+
+export interface OnDecodeContext<M extends typeof Model> {
+  avObject: AV.Object;
+  instance: InstanceType<M>;
+}
+
+export type OnDecodeHook<M extends typeof Model> = (ctx: OnDecodeContext<M>) => void;
 
 export interface BeforeCreateContext<M extends typeof Model> {
   data: CreateData<M>;
@@ -64,6 +57,14 @@ export interface AfterCreateContext<M extends typeof Model> {
 }
 
 export type AfterCreateHook<M extends typeof Model> = (context: AfterCreateContext<M>) => void;
+
+export interface AfterUpdateContext<M extends typeof Model> {
+  instance: InstanceType<M>;
+  data: UpdateData<M>;
+  options: ModifyOptions;
+}
+
+export type AfterUpdateHook<M extends typeof Model> = (ctx: AfterUpdateContext<M>) => void;
 
 type _CreateData<T> = Partial<
   Omit<T, 'id' | 'createdAt' | 'updatedAt' | KeysOfType<T, Function | Model | Model[]>>
@@ -90,15 +91,18 @@ interface IgnoreHookOptions {
   ignoreAfterHook?: boolean;
 }
 
-export interface ModifyOptions extends IgnoreHookOptions {
+export interface ModifyOptions extends IgnoreHookOptions, AuthOptions {
   currentUser?: CurrentUser;
-  useMasterKey?: boolean;
 }
 
-export abstract class Model {
-  static readonly className: string;
+export type AVObjectFactory = (className: string, objectId?: string) => AV.Object;
 
-  static readonly avObjectConstructor = AV.Object;
+export abstract class Model {
+  protected static className: string;
+
+  protected static avObjectFactory: AVObjectFactory = (className, id) => {
+    return id ? AV.Object.createWithoutData(className, id) : new AV.Object(className);
+  };
 
   private static fields: Record<string, Field>;
 
@@ -106,9 +110,13 @@ export abstract class Model {
 
   private static relations: Record<string, Relation>;
 
+  private static onDecodeHooks: OnDecodeHook<any>[];
+
   private static beforeCreateHooks: BeforeCreateHook<any>[];
 
   private static afterCreateHooks: AfterCreateHook<any>[];
+
+  private static afterUpdateHooks: AfterUpdateHook<any>[];
 
   id!: string;
 
@@ -145,6 +153,11 @@ export abstract class Model {
     return this.relations?.[name];
   }
 
+  static onDecode<M extends typeof Model>(this: M, hook: OnDecodeHook<M>) {
+    this.onDecodeHooks ??= [];
+    this.onDecodeHooks.push(hook);
+  }
+
   static beforeCreate<M extends typeof Model>(this: M, hook: BeforeCreateHook<M>) {
     this.beforeCreateHooks ??= [];
     this.beforeCreateHooks.push(hook);
@@ -155,6 +168,11 @@ export abstract class Model {
     this.afterCreateHooks.push(hook);
   }
 
+  static afterUpdate<M extends typeof Model>(this: M, hook: AfterUpdateHook<M>) {
+    this.afterUpdateHooks ??= [];
+    this.afterUpdateHooks.push(hook);
+  }
+
   static newInstance<M extends typeof Model>(this: M, data?: InstanceData<M>): InstanceType<M> {
     // @ts-ignore
     const instance = new this();
@@ -162,6 +180,38 @@ export abstract class Model {
       Object.entries(data).forEach(([key, value]) => (instance[key] = value));
     }
     return instance;
+  }
+
+  private static newAVObject<M extends typeof Model>(
+    this: M,
+    data: UpdateData<M>,
+    id?: string
+  ): AV.Object {
+    const object = this.avObjectFactory(this.getClassName(), id);
+    if (this.fields) {
+      Object.values(this.fields).forEach(({ localKey, avObjectKey, encode }) => {
+        if (!encode) {
+          return;
+        }
+        const value = (data as any)[localKey];
+        if (value === undefined) {
+          return;
+        }
+        if (value === null) {
+          object.unset(avObjectKey);
+          return;
+        }
+        if (value.__op) {
+          object.set(avObjectKey, value);
+          return;
+        }
+        const encodedValue = encode(value);
+        if (encodedValue) {
+          object.set(avObjectKey, encodedValue);
+        }
+      });
+    }
+    return object;
   }
 
   static fromJSON<M extends typeof Model>(this: M, data: any): InstanceType<M> {
@@ -181,24 +231,11 @@ export abstract class Model {
   }
 
   static fromAVObject<M extends typeof Model>(this: M, object: AV.Object): InstanceType<M> {
-    const instance = this.newInstance();
-    instance.id = object.id!;
-    if (this.fields) {
-      Object.entries(this.fields).forEach(([key, { avObjectKey, decode, onDecode }]) => {
-        if (decode) {
-          const value = object.get(avObjectKey);
-          if (value !== undefined) {
-            const decodedValue = decode(value);
-            if (decodedValue !== undefined) {
-              instance[key as keyof InstanceType<M>] = decodedValue;
-            }
-          }
-        }
-        onDecode?.(instance, object);
-      });
+    if (!object.id) {
+      throw new Error('Cannot construct instance from an unsaved AVObject');
     }
-    instance.createdAt = object.createdAt!;
-    instance.updatedAt = object.updatedAt!;
+    const instance = this.newInstance();
+    instance.applyAVObject(object);
     return instance;
   }
 
@@ -228,6 +265,33 @@ export abstract class Model {
     return this.fromAVObject(object);
   }
 
+  private applyAVObject(object: AV.Object) {
+    const model = this.constructor as typeof Model;
+    if (object.id) {
+      this.id = object.id;
+    }
+    if (model.fields) {
+      Object.values(model.fields).forEach(({ localKey, avObjectKey, decode }) => {
+        if (decode) {
+          const value = object.get(avObjectKey);
+          if (value !== undefined) {
+            (this as any)[localKey] = decode(value);
+          }
+        }
+      });
+    }
+    if (object.createdAt) {
+      this.createdAt = object.createdAt;
+    }
+    if (object.updatedAt) {
+      this.updatedAt = object.updatedAt;
+    }
+    if (model.onDecodeHooks) {
+      const ctx = { avObject: object, instance: this };
+      model.onDecodeHooks.forEach((h) => h(ctx));
+    }
+  }
+
   async reload<M extends Model, K extends RelationKey<M>>(
     this: M,
     key: K,
@@ -238,7 +302,7 @@ export abstract class Model {
       preloader.data = options.data;
       preloader.queryModifier = options.onQuery;
     }
-    await preloader.load([this], options?.authOptions);
+    await preloader.load([this], options);
     return this[key as keyof M] as M[K];
   }
 
@@ -271,18 +335,18 @@ export abstract class Model {
 
     if (this.beforeCreateHooks) {
       const ctx = { data, options };
-      await Promise.all(this.beforeCreateHooks.map((hook) => hook(ctx)));
+      await Promise.all(this.beforeCreateHooks.map((h) => h(ctx)));
     }
 
-    const avObject = this.newInstance(data).toAVObject();
+    const avObject = this.newAVObject(data);
     await saveAVObject(avObject, options);
     const instance = this.fromAVObject(avObject);
 
     if (this.afterCreateHooks) {
       const ctx = { instance, data, options };
-      this.afterCreateHooks.forEach((hook) => {
+      this.afterCreateHooks.forEach((h) => {
         try {
-          hook(ctx);
+          h(ctx);
         } catch {}
       });
     }
@@ -308,21 +372,21 @@ export abstract class Model {
     if (this.beforeCreateHooks) {
       const tasks = datas.map((data) => {
         const ctx = { data, options: options! };
-        return Promise.all(this.beforeCreateHooks.map((hook) => hook(ctx)));
+        return Promise.all(this.beforeCreateHooks.map((h) => h(ctx)));
       });
       await Promise.all(tasks);
     }
 
-    const avObjects = datas.map((data) => this.newInstance(data).toAVObject());
-    await saveAVObjects(avObjects, options);
-    const instances = avObjects.map((o) => this.fromAVObject(o));
+    const objects = datas.map((data) => this.newAVObject(data));
+    await saveAVObjects(objects, options);
+    const instances = objects.map((o) => this.fromAVObject(o));
 
     if (this.afterCreateHooks) {
       instances.forEach((instance, i) => {
         const ctx = { instance, data: datas[i], options: options! };
-        this.afterCreateHooks.forEach((hook) => {
+        this.afterCreateHooks.forEach((h) => {
           try {
-            hook(ctx);
+            h(ctx);
           } catch {}
         });
       });
@@ -332,25 +396,31 @@ export abstract class Model {
   }
 
   async update<M extends Model>(this: M, data: UpdateData<M>, options?: ModifyOptions): Promise<M> {
+    data = { ...data };
+    options = { ...options };
+
     const model = this.constructor as typeof Model;
-    const instance = model.newInstance(data) as M;
-    instance.id = this.id;
+    const object = model.newAVObject(data, this.id);
+    await saveAVObject(object, options);
 
-    const avObject = instance.toAVObject();
-    await saveAVObject(avObject, options);
-    const newInstance = model.fromAVObject(avObject) as M;
-
-    Object.values(model.fields).forEach(({ localKey }) => {
-      // @ts-ignore
-      const value = instance[localKey] ?? this[localKey] ?? undefined;
-      if (value !== undefined) {
-        // @ts-ignore
-        newInstance[localKey] ??= value;
+    const instance = model.fromAVObject(object) as M;
+    Object.getOwnPropertyNames(this).forEach((name) => {
+      const updateValue = (data as any)[name];
+      if (updateValue !== null) {
+        (instance as any)[name] ??= updateValue ?? (this as any)[name];
       }
     });
-    newInstance.createdAt = this.createdAt;
 
-    return newInstance;
+    if (model.afterUpdateHooks) {
+      const ctx = { instance, data, options };
+      model.afterUpdateHooks.forEach((hook) => {
+        try {
+          hook(ctx);
+        } catch {}
+      });
+    }
+
+    return instance;
   }
 
   async delete(options: ModifyOptions = {}) {
@@ -382,44 +452,6 @@ export abstract class Model {
     }
 
     return data;
-  }
-
-  toAVObject(): AV.Object {
-    const model = this.constructor as typeof Model;
-    const className = model.getClassName();
-    const AVObject = model.avObjectConstructor;
-
-    const avObject = this.id
-      ? AVObject.createWithoutData(className, this.id)
-      : new AVObject(className);
-
-    if (this.ACL) {
-      avObject.set('ACL', this.ACL instanceof ACLBuilder ? this.ACL.toJSON() : this.ACL);
-    }
-
-    Object.values(model.fields).forEach(({ localKey, avObjectKey, encode, onEncode }) => {
-      if (encode) {
-        // @ts-ignore
-        const value = this[localKey];
-        if (value === undefined) {
-          return;
-        }
-        if (value === null) {
-          avObject.unset(avObjectKey);
-          return;
-        }
-        if (value.__op) {
-          avObject.set(avObjectKey, value);
-          return;
-        }
-        const encodedValue = encode(value);
-        if (encodedValue !== undefined) {
-          avObject.set(avObjectKey, encodedValue);
-        }
-      }
-      onEncode?.(this, avObject);
-    });
-    return avObject;
   }
 }
 

@@ -40,6 +40,7 @@ app.use(
         }
       : undefined,
     keepHeadersOnError: true,
-  }))
+  })
+);
 
 app.use(api.routes()).use(api.allowedMethods());

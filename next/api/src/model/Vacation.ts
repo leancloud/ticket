@@ -19,4 +19,13 @@ export class Vacation extends Model {
 
   @pointTo(() => User)
   vacationer!: User;
+
+  static async getVacationerIds(): Promise<string[]> {
+    const now = new Date();
+    const vacations = await Vacation.queryBuilder()
+      .where('startDate', '<', now)
+      .where('endDate', '>', now)
+      .find({ useMasterKey: true });
+    return vacations.map((v) => v.vacationerId);
+  }
 }
