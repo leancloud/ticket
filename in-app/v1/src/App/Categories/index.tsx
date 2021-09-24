@@ -1,5 +1,5 @@
-import { MouseEventHandler, useEffect, useMemo, useState } from 'react';
-import { useHistory, useParams } from 'react-router-dom';
+import { MouseEventHandler, useMemo } from 'react';
+import { Link, useHistory, useParams } from 'react-router-dom';
 import { useQuery, UseQueryResult } from 'react-query';
 import { useTranslation } from 'react-i18next';
 import { ChevronRightIcon } from '@heroicons/react/solid';
@@ -9,6 +9,9 @@ import { QueryWrapper } from 'components/QueryWrapper';
 import { http } from 'leancloud';
 import { Category } from 'types';
 import styles from './index.module.css';
+import { APIError } from 'components/APIError';
+import { NotFoundContent } from '../NotFound';
+import { Button } from 'components/Button';
 
 interface CategoryItemProps {
   name: string;
@@ -72,31 +75,20 @@ export default function Categories() {
   const { id } = useParams<{ id: string }>();
   const history = useHistory();
   const result = useCategories();
-  const [categories, setCateogries] = useState<Category[]>([]);
   const { t } = useTranslation();
-  const [title, setTitle] = useState(t('general.loading') + '...');
 
-  useEffect(() => {
-    if (result.data) {
-      const categories: Category[] = [];
-      result.data.forEach((category) => {
-        if (category.id === id) {
-          setTitle(category.name);
-        }
-        if (category.parentId === id) {
-          categories.push(category);
-        }
-      });
-      if (categories.length) {
-        categories.sort((a, b) => a.position - b.position);
-        setCateogries(categories);
-      } else {
-        history.push('/404');
-      }
-    } else {
-      setTitle(t('general.loading') + '...');
-    }
-  }, [t, result.data, id, history]);
+  const currentCategory = useMemo(() => result.data?.find((category) => category.id === id), [
+    result.data,
+    id,
+  ]);
+
+  const categories = useMemo(
+    () =>
+      result.data
+        ?.filter((category) => category.parentId === id)
+        .sort((a, b) => a.position - b.position),
+    [result.data, id]
+  );
 
   const handleClick = ({ id }: Category) => {
     if (!result.data) {
@@ -110,13 +102,30 @@ export default function Categories() {
     }
   };
 
+  const title = result.isLoading ? t('general.loading') + '...' : currentCategory?.name;
+  const content = (() => {
+    if (result.error) return <APIError />;
+    if (!currentCategory) return <NotFoundContent />;
+    if (categories) {
+      if (categories.length === 0)
+        return (
+          <div className="px-5 py-10 text-center">
+            <p>该问题类型没有子分类</p>
+            <p className="mt-2">
+              <Button as={Link} to={`/tickets/new?category_id=${id}`} className="inline-block">
+                提交问题
+              </Button>
+            </p>
+          </div>
+        );
+      return <CategoryList categories={categories} onClick={handleClick} />;
+    }
+  })();
   return (
     <>
       <PageHeader>{title}</PageHeader>
       <PageContent>
-        <QueryWrapper result={result}>
-          <CategoryList categories={categories} onClick={handleClick} />
-        </QueryWrapper>
+        <QueryWrapper result={result}>{content}</QueryWrapper>
       </PageContent>
     </>
   );

@@ -128,10 +128,9 @@ const Routes = () => {
       <PrivateRoute path="/" exact>
         <Home />
       </PrivateRoute>
-      <Route path="/404">
+      <Route path="/">
         <NotFound />
       </Route>
-      <Redirect to="/404" />
     </Switch>
   );
 };
