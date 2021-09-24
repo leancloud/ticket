@@ -1,11 +1,11 @@
 import { ReactNode } from 'react';
 import { UseQueryResult } from 'react-query';
-import { Redirect } from 'react-router-dom';
 import axios from 'axios';
 
 import { Loading } from 'components/Loading';
 import { APIError } from 'components/APIError';
 import { NoData } from 'components/NoData';
+import NotFound from '../../App/NotFound';
 
 export interface QueryWrapperProps<TData, TError> {
   result: UseQueryResult<TData, TError>;
@@ -25,7 +25,7 @@ export function QueryWrapper<TData, TError>({
   }
   if (result.error) {
     if (axios.isAxiosError(result.error) && result.error.response?.status === 404) {
-      return <Redirect to="/404" />;
+      return <NotFound />;
     }
     return <APIError onRetry={result.refetch} />;
   }

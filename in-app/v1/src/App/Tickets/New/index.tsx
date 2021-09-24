@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link, Redirect } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery } from 'react-query';
 import i18next from 'i18next';
@@ -15,6 +15,7 @@ import { useCategory } from '../../Categories';
 import { FieldTemplate, useForm } from './Form';
 import { http } from 'leancloud';
 import { useTicketInfo } from '../..';
+import NotFound from '../../NotFound';
 
 const presetFieldCreators: Record<string, (() => FieldTemplate) | undefined> = {
   title: () => ({
@@ -162,7 +163,7 @@ export function NewTicket() {
 
   if (!result.data && !result.isLoading && !result.error) {
     // Category is not exists :badbad:
-    return <Redirect to="/404" />;
+    return <NotFound />;
   }
   return (
     <>

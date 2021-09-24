@@ -13,7 +13,11 @@ import _ from 'lodash';
 const router = new Router();
 
 router.param('id', async (id, ctx, next) => {
-  ctx.state.article = await getArticle(id);
+  const article = await getArticle(id);
+  if (!article) {
+    ctx.throw(404, 'Not Found');
+  }
+  ctx.state.article = article;
   return next();
 });
 
