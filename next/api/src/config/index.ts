@@ -1,4 +1,4 @@
-import AV from 'leancloud-storage';
+import { Config } from '../model/Config';
 
 const host = (() => {
   switch (process.env.LEANCLOUD_APP_ENV) {
@@ -15,18 +15,17 @@ export const config = {
   host,
   gravatarURL: 'https://www.gravatar.com/avatar',
   enableLeanCloudIntegration: !!process.env.ENABLE_LEANCLOUD_INTEGRATION,
+  sla: 120,
 };
 
-export async function getConfig(key: string): Promise<any> {
-  const query = new AV.Query('Config');
-  query.select('value').equalTo('key', key);
-  const object = await query.first({ useMasterKey: true });
-  if (!object) {
-    return null;
+Config.get('gravatar_url').then((value) => {
+  if (value) {
+    config.gravatarURL = value;
   }
-  return object.get('value');
-}
+});
 
-getConfig('gravatar_url').then((value) => {
-  if (value) config.gravatarURL = value;
+Config.get('SLA_in_mimutes').then((sla) => {
+  if (sla) {
+    config.sla = sla;
+  }
 });
