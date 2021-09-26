@@ -149,9 +149,11 @@ class ReplyTimeStats {
       return
     }
     if (avObj.className === 'OpsLog' && avObj.get('action') === 'changeAssignee' && !this.isReply) {
-      const customerServiceTime = this.getCustomerServiceTime(this.lastCustomerService)
-      customerServiceTime.replyCount++
-      customerServiceTime.replyTime += avObj.createdAt - this.cursor
+      if (this.lastCustomerService) {
+        const customerServiceTime = this.getCustomerServiceTime(this.lastCustomerService)
+        customerServiceTime.replyCount++
+        customerServiceTime.replyTime += avObj.createdAt - this.cursor
+      }
       this.cursor = avObj.createdAt
       this.lastCustomerService = avObj.get('data').assignee
       return
@@ -161,9 +163,11 @@ class ReplyTimeStats {
       (avObj.get('action') === 'replyWithNoContent' || avObj.get('action') === 'replySoon') &&
       !this.isReply
     ) {
-      const customerServiceTime = this.getCustomerServiceTime(this.lastCustomerService)
-      customerServiceTime.replyCount++
-      customerServiceTime.replyTime += avObj.createdAt - this.cursor
+      if (this.lastCustomerService) {
+        const customerServiceTime = this.getCustomerServiceTime(this.lastCustomerService)
+        customerServiceTime.replyCount++
+        customerServiceTime.replyTime += avObj.createdAt - this.cursor
+      }
       this.cursor = avObj.createdAt
       this.isReply = true
       this.lastCustomerService = avObj.get('data').operator
@@ -190,7 +194,8 @@ class ReplyTimeStats {
         (this.ticket.get('status') === TICKET_STATUS.WAITING_CUSTOMER_SERVICE &&
           this.lastAction &&
           this.lastAction.className === 'OpsLog' &&
-          this.lastAction.get('action') !== 'replySoon'))
+          this.lastAction.get('action') !== 'replySoon')) &&
+      this.lastCustomerService
     ) {
       const customerServiceTime = this.getCustomerServiceTime(this.lastCustomerService)
       customerServiceTime.replyTime += new Date() - this.cursor
