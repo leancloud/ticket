@@ -92,7 +92,9 @@ class FirstReplyStats {
     }
     if (avObj.className === 'OpsLog' && avObj.get('action') === 'changeAssignee') {
       this.firstReplyAt = avObj.createdAt
-      this.userId = this.customerService.objectId
+      if (this.customerService) {
+        this.userId = this.customerService.objectId
+      }
       return
     }
   }
