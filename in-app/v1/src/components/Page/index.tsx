@@ -10,23 +10,25 @@ export function PageHeader(props: ComponentPropsWithoutRef<'div'>) {
   const { t } = useTranslation();
 
   return (
-    <div
-      id="page-header"
-      className={cx(
-        styles.header,
-        'flex-shrink-0 z-10 top-0 px-[10px] sm:px-[108px] pt-[52px] sm:pt-[10px] bg-[#E5E5E5]',
-        props.className
-      )}
-    >
-      <ControlButton className="absolute z-20 top-3 sm:top-[10px] left-[10px] sm:left-[22px]" />
-      <div className="overflow-hidden">
+    <>
+      <div
+        id="page-header"
+        className={cx(
+          styles.header,
+          'flex-shrink-0 z-20 top-0 px-[10px] sm:px-[108px] pt-[52px] sm:pt-[10px]',
+          props.className
+        )}
+      >
+        <ControlButton className="absolute top-3 sm:top-[10px] left-[10px] sm:left-[22px]" />
+      </div>
+      <div className="z-10 overflow-hidden">
         <h1
-          className={`bg-white rounded-t-lg py-2 px-5 text-center font-semibold border-b border-gray-100`}
+          className={`bg-white rounded-t-lg py-2 px-5  mx-[10px] sm:mx-[108px] text-center font-semibold border-b border-gray-100`}
         >
           {props.children ?? t('general.call_center')}
         </h1>
       </div>
-    </div>
+    </>
   );
 }
 
