@@ -345,6 +345,11 @@ Ticket.afterCreate(async ({ instance: ticket }) => {
   notification.emit('newTicket', { ticket, from: author!, to: assignee });
 });
 
+Ticket.beforeUpdate(({ options }) => {
+  options.ignoreBeforeHook = true;
+  options.ignoreAfterHook = true;
+});
+
 Ticket.afterUpdate(async ({ instance: ticket, data, options }) => {
   const currentUser = (options.currentUser as User) ?? systemUser;
   const opsLogCreator = new OpsLogCreator(ticket);

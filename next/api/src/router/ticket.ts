@@ -279,7 +279,7 @@ const updateTicketSchema = yup.object({
   organizationId: yup.string().nullable(),
   tags: yup.array(ticketTagSchema.required()),
   privateTags: yup.array(ticketTagSchema.required()),
-  evaluation: ticketEvaluationSchema,
+  evaluation: ticketEvaluationSchema.default(undefined),
 });
 
 router.patch('/:id', async (ctx) => {

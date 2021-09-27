@@ -58,11 +58,17 @@ export interface AfterCreateContext<M extends typeof Model> {
 
 export type AfterCreateHook<M extends typeof Model> = (context: AfterCreateContext<M>) => void;
 
-export interface AfterUpdateContext<M extends typeof Model> {
+export interface BeforeUpdateContext<M extends typeof Model> {
   instance: InstanceType<M>;
   data: UpdateData<M>;
   options: ModifyOptions;
 }
+
+export type BeforeUpdateHook<M extends typeof Model> = (
+  ctx: BeforeUpdateContext<M>
+) => void | Promise<void>;
+
+export interface AfterUpdateContext<M extends typeof Model> extends BeforeUpdateContext<M> {}
 
 export type AfterUpdateHook<M extends typeof Model> = (ctx: AfterUpdateContext<M>) => void;
 
@@ -116,6 +122,8 @@ export abstract class Model {
 
   private static afterCreateHooks: AfterCreateHook<any>[];
 
+  private static beforeUpdateHooks: BeforeUpdateHook<any>[];
+
   private static afterUpdateHooks: AfterUpdateHook<any>[];
 
   id!: string;
@@ -168,6 +176,11 @@ export abstract class Model {
   static afterCreate<M extends typeof Model>(this: M, hook: AfterCreateHook<M>) {
     this.afterCreateHooks ??= [];
     this.afterCreateHooks.push(hook);
+  }
+
+  static beforeUpdate<M extends typeof Model>(this: M, hook: BeforeUpdateHook<M>) {
+    this.beforeUpdateHooks ??= [];
+    this.beforeUpdateHooks.push(hook);
   }
 
   static afterUpdate<M extends typeof Model>(this: M, hook: AfterUpdateHook<M>) {
@@ -393,11 +406,12 @@ export abstract class Model {
     options = { ...options };
 
     if (this.beforeCreateHooks) {
-      const tasks = datas.map((data) => {
-        const ctx = { data, options: options! };
-        return Promise.all(this.beforeCreateHooks.map((h) => h(ctx)));
-      });
-      await Promise.all(tasks);
+      await Promise.all(
+        datas.map((data) => {
+          const ctx = { data, options: options! };
+          return Promise.all(this.beforeCreateHooks.map((h) => h(ctx)));
+        })
+      );
     }
 
     const objects = datas.map((data) => this.newAVObject(data));
@@ -439,6 +453,15 @@ export abstract class Model {
     const datas = pairs.map(([, data]) => ({ ...data }));
     options = { ...options };
 
+    if (this.beforeUpdateHooks) {
+      await Promise.all(
+        datas.map((data, i) => {
+          const ctx = { instance: pairs[i][0], data, options: options! };
+          return Promise.all(this.beforeUpdateHooks.map((h) => h(ctx)));
+        })
+      );
+    }
+
     const objects = datas.map((data, i) => this.newAVObject(data, pairs[i][0].id));
     await saveAVObjects(objects, options);
 
@@ -472,6 +495,12 @@ export abstract class Model {
     options = { ...options };
 
     const model = this.constructor as typeof Model;
+
+    if (model.beforeUpdateHooks) {
+      const ctx = { instance: this, data, options: options! };
+      await Promise.all(model.beforeUpdateHooks.map((h) => h(ctx)));
+    }
+
     const object = model.newAVObject(data, this.id);
     await saveAVObject(object, options);
 

@@ -10,6 +10,7 @@ export type Action =
   | 'selectAssignee'
   | 'changeAssignee'
   | 'changeGroup'
+  | 'changeCategory'
   | 'changeFields'
   | OperateAction;
 
@@ -105,6 +106,8 @@ export class OpsLogCreator {
   changeCategory(category: Category, operator: User): this {
     this.datas.push({
       ACL: this.publicACL,
+      ticketId: this.ticket.id,
+      action: 'changeCategory',
       data: {
         category: category.getTinyInfo(),
         operator: operator.getTinyInfo(),
