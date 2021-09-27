@@ -82,6 +82,7 @@
     "react-notification-system": "^0.2.14",
     "react-query": "^3.16.0",
     "react-router-dom": "^5.2.0",
+    "react-select-search": "^3.0.8",
     "react-use": "^17.2.4",
     "remarkable": "^1.7.2",
     "request": "^2.87.0",

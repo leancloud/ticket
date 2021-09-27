@@ -46,7 +46,7 @@ class Categories extends Component {
       <thead>
         <tr>
           <th>objectId</th>
-          <th>Question (and answer)</th>
+          <th>Title (click to preview the content)</th>
           {VIEWS.map((view) => (
             <th key={view}>
               <OverlayTrigger overlay={<Tooltip id="tooltip">{t('viewHint')}</Tooltip>}>
@@ -132,7 +132,7 @@ class Categories extends Component {
       <div>
         <p>
           <Button as={Link} variant="light" to="/settings/faqs/_new">
-            {t('newFAQ')}
+            {t('newArticle')}
           </Button>
           {VIEWS.length > 0 && (
             <Form inline className="float-right">

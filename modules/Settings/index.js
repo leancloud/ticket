@@ -78,8 +78,8 @@ export default function Settings(props) {
               <ListGroup.Item as={NavLink} to="/settings/quick-replies">
                 {t('quickReply')}
               </ListGroup.Item>
-              <ListGroup.Item as={NavLink} to="/settings/faqs">
-                {t('FAQ')}
+              <ListGroup.Item as={NavLink} to="/settings/articles">
+                {t('kb')} / {t('FAQ')}
               </ListGroup.Item>
               <ListGroup.Item as={NavLink} to="/settings/dynamicContent">
                 {t('dynamicContent')}
@@ -123,10 +123,10 @@ export default function Settings(props) {
           <Route path={`${path}/groups`}>
             <Groups {...childrenProps} />
           </Route>
-          <Route path={`${path}/faqs`} exact>
+          <Route path={`${path}/articles`} exact>
             <FAQs {...childrenProps} />
           </Route>
-          <Route path={`${path}/faqs/:id`}>
+          <Route path={`${path}/articles/:id`}>
             <FAQ {...childrenProps} />
           </Route>
           <Route path={`${path}/categories`} exact>
