@@ -1,17 +1,20 @@
 import Router from '@koa/router';
 import _ from 'lodash';
 
+import { config } from '../config';
 import * as yup from '../utils/yup';
 import { SortItem, auth, include, parseRange, sort } from '../middleware';
-import { Model, QueryBuilder } from '../orm';
+import { CreateData, Model, QueryBuilder, UpdateData } from '../orm';
 import { Category, CategoryManager } from '../model/Category';
 import { Group } from '../model/Group';
 import { Organization } from '../model/Organization';
 import { Reply } from '../model/Reply';
 import { Ticket } from '../model/Ticket';
+import { TicketFieldValue } from '../model/TicketFieldValue';
 import { User } from '../model/User';
 import { TicketResponse, TicketListItemResponse } from '../response/ticket';
 import { ReplyResponse } from '../response/reply';
+import { Vacation } from '../model/Vacation';
 
 const router = new Router().use(auth);
 
@@ -172,21 +175,41 @@ router.post('/', async (ctx) => {
   }
 
   const data = ticketDataSchema.validateSync(ctx.request.body);
-  const [category, organization] = await Promise.all([
-    Category.findOrFail(data.categoryId),
-    data.organizationId ? Organization.findOrFail(data.organizationId) : undefined,
-  ]);
-
-  const ticket = await Ticket.createTicket({
+  const createData: CreateData<Ticket> = {
+    author: currentUser, // 避免后续重复获取
+    authorId: currentUser.id,
     title: data.title,
     content: data.content,
-    author: currentUser,
-    category,
-    organization,
     fileIds: data.fileIds,
     metaData: data.metaData,
-    customFields: data.customFields,
-  });
+  };
+
+  const category = await Category.find(data.categoryId);
+  if (!category) {
+    ctx.throw(400, `Category(${data.categoryId}) is not exists`);
+  }
+  createData.category = category;
+
+  if (data.organizationId) {
+    const organization = await Organization.find(data.organizationId, currentUser);
+    if (!organization) {
+      ctx.throw(400, `Organization(${data.organizationId}) is not exists`);
+    }
+    createData.organizationId = organization!.id;
+  }
+
+  const ticket = await Ticket.create(createData, { currentUser });
+
+  if (data.customFields) {
+    await TicketFieldValue.create(
+      {
+        ACL: {},
+        ticketId: ticket.id,
+        values: data.customFields,
+      },
+      { useMasterKey: true }
+    );
+  }
 
   ctx.body = { id: ticket.id };
 });
@@ -235,6 +258,126 @@ router.get('/:id', include, async (ctx) => {
   ctx.body = new TicketResponse(ticket);
 });
 
+const ticketTagSchema = yup
+  .object({
+    key: yup.string().required(),
+    value: yup.string().required(),
+  })
+  .noUnknown();
+
+const ticketEvaluationSchema = yup
+  .object({
+    star: yup.number().oneOf([0, 1]).required(),
+    content: yup.string().default(''),
+  })
+  .noUnknown();
+
+const updateTicketSchema = yup.object({
+  assigneeId: yup.string().nullable(),
+  groupId: yup.string().nullable(),
+  categoryId: yup.string(),
+  organizationId: yup.string().nullable(),
+  tags: yup.array(ticketTagSchema.required()),
+  privateTags: yup.array(ticketTagSchema.required()),
+  evaluation: ticketEvaluationSchema,
+});
+
+router.patch('/:id', async (ctx) => {
+  const currentUser = ctx.state.currentUser as User;
+  const ticket = ctx.state.ticket as Ticket;
+  const data = updateTicketSchema.validateSync(ctx.request.body);
+  const isCustomerService = await isCustomerServiceInTicket(currentUser, ticket);
+
+  const updateData: UpdateData<Ticket> = {};
+
+  if (data.assigneeId !== undefined) {
+    if (!isCustomerService) {
+      ctx.throw(403);
+    }
+    if (data.assigneeId) {
+      const vacationerIds = await Vacation.getVacationerIds();
+      if (vacationerIds.includes(data.assigneeId)) {
+        ctx.throw(400, 'Sorry, this customer service is in vacation.');
+      }
+      const assignee = await User.find(data.assigneeId, { useMasterKey: true });
+      if (!assignee) {
+        ctx.throw(400, `User(${data.assigneeId}) is not exists`);
+      }
+      updateData.assignee = assignee;
+    }
+    updateData.assigneeId = data.assigneeId;
+  }
+
+  if (data.groupId !== undefined) {
+    if (!isCustomerService) {
+      ctx.throw(403);
+    }
+    if (data.groupId) {
+      const group = await Group.find(data.groupId, { useMasterKey: true });
+      if (!group) {
+        ctx.throw(400, `Group(${data.groupId}) is not exists`);
+      }
+      updateData.group = group;
+    }
+    updateData.groupId = data.groupId;
+  }
+
+  if (data.categoryId) {
+    if (!isCustomerService) {
+      ctx.throw(403);
+    }
+    const category = await Category.find(data.categoryId);
+    if (!category) {
+      ctx.throw(400, `Category(${data.categoryId}) is not exists`);
+    }
+    updateData.category = category;
+  }
+
+  if (data.organizationId !== undefined) {
+    if (data.organizationId) {
+      const organization = await Organization.find(
+        data.organizationId,
+        isCustomerService ? { useMasterKey: true } : currentUser
+      );
+      if (!organization) {
+        ctx.throw(400, `Organization(${data.organizationId}) is not exists`);
+      }
+    }
+    updateData.organizationId = data.organizationId;
+  }
+
+  if (data.tags) {
+    // XXX: tags 本来是用户填写的，但从未设置过公开 tag，且已上线自定义字段，就仅开放给客服使用了
+    if (!isCustomerService) {
+      ctx.throw(403);
+    }
+    updateData.tags = data.tags;
+  }
+
+  if (data.privateTags) {
+    if (!isCustomerService) {
+      ctx.throw(403);
+    }
+    updateData.privateTags = data.privateTags;
+  }
+
+  if (data.evaluation) {
+    if (currentUser.id !== ticket.authorId) {
+      ctx.throw(403, 'Only ticket author can submit evaluation');
+    }
+    if (!config.allowModifyEvaluation && ticket.evaluation) {
+      ctx.throw(409, 'Evaluation already exists');
+    }
+    updateData.evaluation = data.evaluation;
+  }
+
+  if (!_.isEmpty(updateData)) {
+    await ticket.update(updateData, { currentUser });
+  }
+
+  ctx.body = {};
+});
+
 router.get('/:id/replies', async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   const ticket = ctx.state.ticket as Ticket;
@@ -264,8 +407,8 @@ router.post('/:id/replies', async (ctx) => {
   }
 
   const reply = await ticket.reply({
-    content: data.content,
     author: currentUser,
+    content: data.content,
     isCustomerService,
     fileIds: data.fileIds,
     internal: data.internal,

@@ -16,6 +16,7 @@ export const config = {
   gravatarURL: 'https://www.gravatar.com/avatar',
   enableLeanCloudIntegration: !!process.env.ENABLE_LEANCLOUD_INTEGRATION,
   sla: 120,
+  allowModifyEvaluation: !!process.env.ALLOW_MUTATE_EVALUATION,
 };
 
 Config.get('gravatar_url').then((value) => {

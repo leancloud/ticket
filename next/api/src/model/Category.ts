@@ -8,6 +8,11 @@ import { FAQ } from './FAQ';
 import { Group } from './Group';
 import { TicketForm } from './TicketForm';
 
+export interface TinyCategoryInfo {
+  objectId: string;
+  name: string;
+}
+
 export class Category extends Model {
   @field()
   @serialize()
@@ -53,6 +58,13 @@ export class Category extends Model {
   @field()
   @serialize(SERIALIZE.DATE)
   deletedAt?: Date;
+
+  getTinyInfo(): TinyCategoryInfo {
+    return {
+      objectId: this.id,
+      name: this.name,
+    };
+  }
 }
 
 class RedisCache {
