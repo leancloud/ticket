@@ -19,9 +19,9 @@ module.exports = {
         },
       },
       fontSize: {
-        xs: ['10px', '14px'],
-        sm: ['12px', '16px'],
-        base: ['14px', '20px'],
+        xs: ['10px', '15px'],
+        sm: ['12px', '18px'],
+        base: ['14px', '21px'],
       },
     },
   },

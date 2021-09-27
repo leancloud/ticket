@@ -15,6 +15,7 @@
     "@heroicons/react": "^1.0.4",
     "axios": "^0.21.2",
     "classnames": "^2.3.1",
+    "github-markdown-css": "^4.0.0",
     "i18next": "^20.4.0",
     "i18next-browser-languagedetector": "^6.1.2",
     "immer": "^9.0.6",

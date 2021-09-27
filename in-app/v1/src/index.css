@@ -14,14 +14,32 @@ body {
   @apply flex flex-col flex-grow;
 }
 
-button:focus, input:focus, textarea:focus, select:focus {
+button:focus,
+input:focus,
+textarea:focus,
+select:focus {
   outline: none;
 }
 
-input, textarea, select {
+input,
+textarea,
+select {
   appearance: none;
 }
 
 textarea {
   resize: none;
+}
+
+.markdown-body {
+  @apply text-base;
+}
+.markdown-body ul {
+  list-style: disc;
+}
+.markdown-body ol {
+  list-style: decimal;
+}
+.markdown-body a {
+  @apply text-tapBlue;
 }

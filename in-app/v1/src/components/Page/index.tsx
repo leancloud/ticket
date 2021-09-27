@@ -21,7 +21,7 @@ export function PageHeader(props: ComponentPropsWithoutRef<'div'>) {
       <ControlButton className="absolute z-20 top-3 sm:top-[10px] left-[10px] sm:left-[22px]" />
       <div className="overflow-hidden">
         <h1
-          className={`bg-white rounded-t-lg leading-[38px] text-center font-semibold border-b border-gray-100`}
+          className={`bg-white rounded-t-lg py-2 px-5 text-center font-semibold border-b border-gray-100`}
         >
           {props.children ?? t('general.call_center')}
         </h1>

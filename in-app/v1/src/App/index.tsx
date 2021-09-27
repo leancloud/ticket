@@ -13,6 +13,7 @@ import Home from './Home';
 import Categories from './Categories';
 import Tickets from './Tickets';
 import NotFound from './NotFound';
+import Articles from './Articles';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -122,9 +123,9 @@ const Routes = () => {
       <PrivateRoute path="/categories/:id">
         <Categories />
       </PrivateRoute>
-      <PrivateRoute path="/tickets">
-        <Tickets />
-      </PrivateRoute>
+      <Route path="/articles">
+        <Articles />
+      </Route>
       <PrivateRoute path="/" exact>
         <Home />
       </PrivateRoute>
