@@ -120,15 +120,12 @@ function TicketAttributes({ ticket }: { ticket: Ticket }) {
   return (
     <div className="flex-shrink-0 bg-[#FAFAFA] border-b border-gray-100 text-sm px-4 pt-4">
       <div className={`${styles.dataGrid} gap-x-4 ${expand ? 'gap-y-2' : 'gap-y-1'}`}>
-        {expand && <TicketAttribute title={t('general.number')}>#{ticket.nid}</TicketAttribute>}
+        <TicketAttribute title={t('general.number')}>#{ticket.nid}</TicketAttribute>
         {expand && (
           <TicketAttribute title={t('general.status')}>
             <TicketStatus status={ticket.status} />
           </TicketAttribute>
         )}
-        <TicketAttribute title={t('general.title')}>
-          <div className={cx({ truncate: !expand })}>{ticket.title}</div>
-        </TicketAttribute>
         <TicketAttribute title={t('general.description')}>
           <div className={cx({ truncate: !expand })}>{ticket.content}</div>
         </TicketAttribute>
@@ -263,7 +260,7 @@ export default function TicketDetail() {
 
   return (
     <>
-      <PageHeader>{t('ticket.detail')}</PageHeader>
+      <PageHeader>{ticket?.title ?? t('general.loading')}</PageHeader>
       <PageContent className={cx({ 'mb-0 rounded-b-none': !ticketIsClosed })}>
         <QueryWrapper result={result}>
           <QueryWrapper result={repliesResult}>
