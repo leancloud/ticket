@@ -6,6 +6,7 @@ import throat from 'throat';
 import './leancloud';
 import { config } from './config';
 import api from './router';
+import { router as integrationRouter } from './integration';
 import notification from './notification';
 import { OpsLog } from './model/OpsLog';
 import { Ticket } from './model/Ticket';
@@ -49,10 +50,11 @@ app.use(
 );
 
 app.use(api.routes());
+app.use(integrationRouter.routes());
 
 // Next 内部还不能定义云函数，临时搞个方法给 Legacy 用
 export async function tickDelayNotify() {
-  const deadline = new Date(Date.now() - config.sla * 60 * 1000);
+  const deadline = new Date(Date.now() - config.sla * 1000 * 60);
   const tickets = await Ticket.queryBuilder()
     .where('status', 'in', [Ticket.STATUS.NEW, Ticket.STATUS.WAITING_CUSTOMER_SERVICE])
     .where('updatedAt', '<=', deadline)

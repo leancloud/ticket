@@ -26,7 +26,7 @@ Raven.config(config.sentryDSN).install()
 const app = express()
 
 if (process.env.MAINTENANCE_MODE) {
-  app.get('*',  (req, res) => res.sendFile(path.join(__dirname, 'public/maintenance-mode.html')))
+  app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public/maintenance-mode.html')))
 } else {
   // in-app pages
   app.use('/in-app/v1', express.static(path.join(__dirname, 'in-app/v1/dist')))
@@ -35,13 +35,13 @@ if (process.env.MAINTENANCE_MODE) {
 
   // next api
   require('./next/server')
-  app.use(
-    '/api/2',
-    createProxyMiddleware({
-      target: 'http://127.0.0.1:4000',
-      changeOrigin: true,
-    })
-  )
+  const nextApiProxy = createProxyMiddleware({
+    target: 'http://127.0.0.1:4000',
+    changeOrigin: true,
+  })
+  app.use('/api/2', nextApiProxy)
+  // 目前只有 mailgun 用到了
+  app.use('/webhooks', nextApiProxy)
 
   // next pages
   app.use('/next', express.static(path.join(__dirname, 'next/web/dist')))
