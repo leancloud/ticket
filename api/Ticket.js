@@ -243,7 +243,7 @@ async function tickAutomation() {
 
     for (const ticket of tickets) {
       const ctx = { ticket: new Ticket(ticket) }
-      automations.exec(ctx)
+      await automations.exec(ctx)
       if (ctx.ticket.isUpdated()) {
         run(() => ctx.ticket.save())
         count++
