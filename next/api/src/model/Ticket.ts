@@ -1,4 +1,4 @@
-import AV from 'leancloud-storage';
+import AV from 'leanengine';
 import _ from 'lodash';
 
 import { config } from '../config';
@@ -179,7 +179,7 @@ export class Ticket extends Model {
         .allowCustomerService('read')
         .allowStaff('read');
       if (this.organizationId) {
-        ACL.allow(this.organizationId, 'read');
+        ACL.allowOrgMember(this.organizationId, 'read');
       }
     }
 
@@ -392,7 +392,8 @@ Ticket.afterUpdate(async ({ instance: ticket, data, options }) => {
   }
 
   if (data.status && ticket.isClosed()) {
-    AV.Cloud.run('statsTicket', { ticketId: ticket.id });
+    // TODO: next 支持定义云函数后改回本地调用
+    AV.Cloud.run('statsTicket', { ticketId: ticket.id }, { remote: true });
   }
 
   // TODO: Sentry
