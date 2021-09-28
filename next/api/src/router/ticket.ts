@@ -286,7 +286,7 @@ router.patch('/:id', async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   const ticket = ctx.state.ticket as Ticket;
   const data = updateTicketSchema.validateSync(ctx.request.body);
-  const isCustomerService = await isCustomerServiceInTicket(currentUser, ticket);
+  const isCustomerService = await ticket.isCustomerService(currentUser);
 
   const updateData: UpdateData<Ticket> = {};
 
@@ -400,7 +400,7 @@ router.post('/:id/replies', async (ctx) => {
   const ticket = ctx.state.ticket as Ticket;
 
   const data = replyDataSchema.validateSync(ctx.request.body);
-  const isCustomerService = await isCustomerServiceInTicket(currentUser, ticket);
+  const isCustomerService = await ticket.isCustomerService(currentUser);
 
   if (data.internal && !isCustomerService) {
     ctx.throw(403);
@@ -409,7 +409,6 @@ router.post('/:id/replies', async (ctx) => {
   const reply = await ticket.reply({
     author: currentUser,
     content: data.content,
-    isCustomerService,
     fileIds: data.fileIds,
     internal: data.internal,
   });
@@ -428,16 +427,8 @@ router.post('/:id/operate', async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   const ticket = ctx.state.ticket as Ticket;
   const { action } = operateSchema.validateSync(ctx.request.body);
-  const isCustomerService = await isCustomerServiceInTicket(currentUser, ticket);
-  await ticket.operate(action as any, currentUser, isCustomerService);
+  await ticket.operate(action as any, currentUser);
   ctx.body = {};
 });
-
-async function isCustomerServiceInTicket(user: User, ticket: Ticket): Promise<boolean> {
-  if (user.id === ticket.authorId) {
-    return false;
-  }
-  return user.isCustomerService();
-}
 
 export default router;

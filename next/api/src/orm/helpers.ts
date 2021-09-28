@@ -18,7 +18,7 @@ function defineField(model: typeof Model, options: DefineFieldOptions) {
   model.setField({ localKey, avObjectKey, encode, decode });
 }
 
-export function field(config?: string | Partial<Field>) {
+export function field(config?: string | Partial<Omit<Field, 'localKey'>>) {
   return (target: Model, localKey: string) => {
     const model = target.constructor as typeof Model;
     if (typeof config === 'string') {

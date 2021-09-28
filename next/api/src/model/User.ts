@@ -97,6 +97,12 @@ export class User extends Model {
     }
   }
 
+  static async findWithSessionToken(id: string): Promise<User | undefined> {
+    const avUser = AV.User.createWithoutData('_User', id);
+    await avUser.fetch({}, { useMasterKey: true });
+    return this.fromAVObject(avUser);
+  }
+
   static async getCustomerServices(): Promise<User[]> {
     const customerService = await Role.getCustomerServiceRole();
     const query = User.queryBuilder().relatedTo(customerService, 'users');

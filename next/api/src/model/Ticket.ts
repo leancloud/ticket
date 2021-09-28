@@ -59,7 +59,6 @@ export interface Tag {
 export interface CreateReplyData {
   author: User;
   content: string;
-  isCustomerService: boolean;
   fileIds?: string[];
   internal?: boolean;
 }
@@ -169,7 +168,13 @@ export class Ticket extends Model {
     return this.categoryPath;
   }
 
+  async isCustomerService(user: User): Promise<boolean> {
+    return user.id !== this.authorId && user.isCustomerService();
+  }
+
   async reply(this: Ticket, data: CreateReplyData): Promise<Reply> {
+    const isCustomerService = await this.isCustomerService(data.author);
+
     const ACL = new ACLBuilder();
     if (data.internal) {
       ACL.allowCustomerService('read', 'write').allowStaff('read');
@@ -191,7 +196,7 @@ export class Ticket extends Model {
         ticketId: this.id,
         author: data.author, // 避免后续重复获取
         authorId: data.author.id,
-        isCustomerService: data.isCustomerService,
+        isCustomerService,
         fileIds: data.fileIds,
         internal: data.internal || undefined,
       },
@@ -205,18 +210,18 @@ export class Ticket extends Model {
         latestReply: reply.getTinyInfo(),
         replyCount: commands.inc(),
       };
-      if (data.isCustomerService && data.author !== systemUser) {
+      if (isCustomerService && data.author !== systemUser) {
         updateData.joinedCustomerServices = commands.pushUniq(data.author.getTinyInfo());
       }
       if (this.status < STATUS.FULFILLED) {
-        updateData.status = data.isCustomerService
+        updateData.status = isCustomerService
           ? STATUS.WAITING_CUSTOMER
           : STATUS.WAITING_CUSTOMER_SERVICE;
       }
 
       await this.update(updateData, { currentUser: data.author });
 
-      this.load(data.isCustomerService ? 'author' : 'assignee', { useMasterKey: true })
+      this.load(isCustomerService ? 'author' : 'assignee', { useMasterKey: true })
         .then((to) => {
           notification.emit('replyTicket', {
             ticket: this,
@@ -241,7 +246,8 @@ export class Ticket extends Model {
     }
   }
 
-  async operate(action: OperateAction, operator: User, isCustomerService: boolean) {
+  async operate(action: OperateAction, operator: User) {
+    const isCustomerService = await this.isCustomerService(operator);
     const status = getActionStatus(action, isCustomerService);
     const data: UpdateData<Ticket> = { status };
     if (isCustomerService && operator !== systemUser) {
