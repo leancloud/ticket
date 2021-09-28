@@ -78,7 +78,7 @@ class Categories extends Component {
               <td key={view}>{faq.get(`priority_${view}`)}</td>
             ))}
             <td>
-              <Button as={Link} variant="light" size="sm" to={'/settings/faqs/' + faq.id}>
+              <Button as={Link} variant="light" size="sm" to={'/settings/articles/' + faq.id}>
                 {t('edit')}
               </Button>{' '}
               <Button
@@ -109,7 +109,7 @@ class Categories extends Component {
               <FAQ faq={faq} />
             </td>
             <td>
-              <Button as={Link} variant="light" size="sm" to={'/settings/faqs/' + faq.id}>
+              <Button as={Link} variant="light" size="sm" to={'/settings/articles/' + faq.id}>
                 {t('edit')}
               </Button>{' '}
               <Button
@@ -131,7 +131,7 @@ class Categories extends Component {
     return (
       <div>
         <p>
-          <Button as={Link} variant="light" to="/settings/faqs/_new">
+          <Button as={Link} variant="light" to="/settings/articles/_new">
             {t('newArticle')}
           </Button>
           {VIEWS.length > 0 && (

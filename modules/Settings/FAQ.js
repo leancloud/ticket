@@ -91,7 +91,7 @@ class FAQ extends React.Component {
       })
       .then(() => {
         this.setState({ isSubmitting: false })
-        this.props.history.push('/settings/faqs')
+        this.props.history.push('/settings/articles')
         return
       })
       .then(this.context.addNotification)
@@ -141,7 +141,7 @@ class FAQ extends React.Component {
         <Button type="submit" disabled={this.state.isSubmitting} variant="success">
           {t('save')}
         </Button>{' '}
-        <Button variant="light" onClick={() => this.props.history.push('/settings/faqs')}>
+        <Button variant="light" onClick={() => this.props.history.push('/settings/articles')}>
           {t('return')}
         </Button>
       </Form>
