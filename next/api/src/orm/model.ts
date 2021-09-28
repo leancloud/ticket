@@ -58,11 +58,17 @@ export interface AfterCreateContext<M extends typeof Model> {
 
 export type AfterCreateHook<M extends typeof Model> = (context: AfterCreateContext<M>) => void;
 
-export interface AfterUpdateContext<M extends typeof Model> {
+export interface BeforeUpdateContext<M extends typeof Model> {
   instance: InstanceType<M>;
   data: UpdateData<M>;
   options: ModifyOptions;
 }
+
+export type BeforeUpdateHook<M extends typeof Model> = (
+  ctx: BeforeUpdateContext<M>
+) => void | Promise<void>;
+
+export interface AfterUpdateContext<M extends typeof Model> extends BeforeUpdateContext<M> {}
 
 export type AfterUpdateHook<M extends typeof Model> = (ctx: AfterUpdateContext<M>) => void;
 
@@ -116,6 +122,8 @@ export abstract class Model {
 
   private static afterCreateHooks: AfterCreateHook<any>[];
 
+  private static beforeUpdateHooks: BeforeUpdateHook<any>[];
+
   private static afterUpdateHooks: AfterUpdateHook<any>[];
 
   id!: string;
@@ -125,6 +133,8 @@ export abstract class Model {
   createdAt!: Date;
 
   updatedAt!: Date;
+
+  private reloadTasks: Record<string, Promise<any>> = {};
 
   get className() {
     return (this.constructor as typeof Model).getClassName();
@@ -168,6 +178,11 @@ export abstract class Model {
     this.afterCreateHooks.push(hook);
   }
 
+  static beforeUpdate<M extends typeof Model>(this: M, hook: BeforeUpdateHook<M>) {
+    this.beforeUpdateHooks ??= [];
+    this.beforeUpdateHooks.push(hook);
+  }
+
   static afterUpdate<M extends typeof Model>(this: M, hook: AfterUpdateHook<M>) {
     this.afterUpdateHooks ??= [];
     this.afterUpdateHooks.push(hook);
@@ -188,6 +203,13 @@ export abstract class Model {
     id?: string
   ): AV.Object {
     const object = this.avObjectFactory(this.getClassName(), id);
+    if (data.ACL) {
+      if (data.ACL instanceof ACLBuilder) {
+        object.set('ACL', data.ACL.toJSON());
+      } else {
+        object.set('ACL', data.ACL);
+      }
+    }
     if (this.fields) {
       Object.values(this.fields).forEach(({ localKey, avObjectKey, encode }) => {
         if (!encode) {
@@ -198,15 +220,19 @@ export abstract class Model {
           return;
         }
         if (value === null) {
-          object.unset(avObjectKey);
+          if (object.id) {
+            object.unset(avObjectKey);
+          }
           return;
         }
         if (value.__op) {
-          object.set(avObjectKey, value);
+          if (object.id) {
+            object.set(avObjectKey, value);
+          }
           return;
         }
         const encodedValue = encode(value);
-        if (encodedValue) {
+        if (encodedValue !== undefined) {
           object.set(avObjectKey, encodedValue);
         }
       });
@@ -292,18 +318,27 @@ export abstract class Model {
     }
   }
 
-  async reload<M extends Model, K extends RelationKey<M>>(
+  reload<M extends Model, K extends RelationKey<M>>(
     this: M,
     key: K,
     options?: ReloadOptions<M, K>
   ): Promise<M[K]> {
-    const preloader = preloaderFactory(this.constructor as any, key);
-    if (options) {
-      preloader.data = options.data;
-      preloader.queryModifier = options.onQuery;
+    if (!this.reloadTasks[key]) {
+      this.reloadTasks[key] = (async () => {
+        try {
+          const preloader = preloaderFactory(this.constructor as any, key);
+          if (options) {
+            preloader.data = options.data;
+            preloader.queryModifier = options.onQuery;
+          }
+          await preloader.load([this], options);
+          return this[key];
+        } finally {
+          delete this.reloadTasks[key];
+        }
+      })();
     }
-    await preloader.load([this], options);
-    return this[key as keyof M] as M[K];
+    return this.reloadTasks[key];
   }
 
   load<M extends Model, K extends RelationKey<M>>(
@@ -311,8 +346,8 @@ export abstract class Model {
     key: K,
     options?: ReloadOptions<M, K>
   ): Promise<M[K]> {
-    if (this[key as keyof M] !== undefined) {
-      return this[key as keyof M] as M[K];
+    if (this[key] !== undefined) {
+      return this[key];
     }
     return this.reload(key, options);
   }
@@ -340,7 +375,8 @@ export abstract class Model {
 
     const avObject = this.newAVObject(data);
     await saveAVObject(avObject, options);
-    const instance = this.fromAVObject(avObject);
+    const instance = this.newInstance(data);
+    instance.applyAVObject(avObject);
 
     if (this.afterCreateHooks) {
       const ctx = { instance, data, options };
@@ -370,16 +406,75 @@ export abstract class Model {
     options = { ...options };
 
     if (this.beforeCreateHooks) {
-      const tasks = datas.map((data) => {
-        const ctx = { data, options: options! };
-        return Promise.all(this.beforeCreateHooks.map((h) => h(ctx)));
-      });
-      await Promise.all(tasks);
+      await Promise.all(
+        datas.map((data) => {
+          const ctx = { data, options: options! };
+          return Promise.all(this.beforeCreateHooks.map((h) => h(ctx)));
+        })
+      );
     }
 
     const objects = datas.map((data) => this.newAVObject(data));
     await saveAVObjects(objects, options);
-    const instances = objects.map((o) => this.fromAVObject(o));
+    const instances = objects.map((object, i) => {
+      const data = datas[i];
+      const instance = this.newInstance(data);
+      instance.applyAVObject(object);
+      return instance;
+    });
+
+    if (this.afterCreateHooks) {
+      instances.forEach((instance, i) => {
+        const ctx = { instance, data: datas[i], options: options! };
+        this.afterCreateHooks.forEach((h) => {
+          try {
+            h(ctx);
+          } catch {}
+        });
+      });
+    }
+
+    return instances;
+  }
+
+  static async updateSome<M extends typeof Model>(
+    this: M,
+    pairs: [InstanceType<M>, UpdateData<M>][],
+    options?: ModifyOptions
+  ): Promise<InstanceType<M>[]> {
+    if (pairs.length === 0) {
+      return [];
+    }
+    if (pairs.length === 1) {
+      const [instance, data] = pairs[0];
+      return [await instance.update(data as any, options)];
+    }
+
+    const datas = pairs.map(([, data]) => ({ ...data }));
+    options = { ...options };
+
+    if (this.beforeUpdateHooks) {
+      await Promise.all(
+        datas.map((data, i) => {
+          const ctx = { instance: pairs[i][0], data, options: options! };
+          return Promise.all(this.beforeUpdateHooks.map((h) => h(ctx)));
+        })
+      );
+    }
+
+    const objects = datas.map((data, i) => this.newAVObject(data, pairs[i][0].id));
+    await saveAVObjects(objects, options);
+
+    const instances = objects.map((object, i) => {
+      const data = datas[i];
+      const instance = this.newInstance(_.omitBy(data as any, _.isNull));
+      instance.applyAVObject(object);
+      const preInstance = pairs[i][0];
+      Object.getOwnPropertyNames(preInstance).forEach((name) => {
+        (instance as any)[name] ??= (preInstance as any)[name];
+      });
+      return instance;
+    });
 
     if (this.afterCreateHooks) {
       instances.forEach((instance, i) => {
@@ -400,15 +495,19 @@ export abstract class Model {
     options = { ...options };
 
     const model = this.constructor as typeof Model;
+
+    if (model.beforeUpdateHooks) {
+      const ctx = { instance: this, data, options: options! };
+      await Promise.all(model.beforeUpdateHooks.map((h) => h(ctx)));
+    }
+
     const object = model.newAVObject(data, this.id);
     await saveAVObject(object, options);
 
-    const instance = model.fromAVObject(object) as M;
+    const instance = model.newInstance(_.omitBy(data, _.isNull));
+    instance.applyAVObject(object);
     Object.getOwnPropertyNames(this).forEach((name) => {
-      const updateValue = (data as any)[name];
-      if (updateValue !== null) {
-        (instance as any)[name] ??= updateValue ?? (this as any)[name];
-      }
+      (instance as any)[name] ??= (this as any)[name];
     });
 
     if (model.afterUpdateHooks) {
@@ -420,7 +519,7 @@ export abstract class Model {
       });
     }
 
-    return instance;
+    return instance as M;
   }
 
   async delete(options: ModifyOptions = {}) {

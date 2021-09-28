@@ -1,12 +1,16 @@
-import { CreateData, Model, field, pointerId, pointTo } from '../orm';
+import { ACLBuilder, CreateData, Model, RawACL, field, pointerId, pointTo } from '../orm';
+import { Category } from './Category';
 import { Group } from './Group';
-import { OperateAction, Ticket } from './Ticket';
+import { Ticket } from './Ticket';
 import { User } from './User';
+
+export type OperateAction = 'replyWithNoContent' | 'replySoon' | 'resolve' | 'close' | 'reopen';
 
 export type Action =
   | 'selectAssignee'
   | 'changeAssignee'
   | 'changeGroup'
+  | 'changeCategory'
   | 'changeFields'
   | OperateAction;
 
@@ -34,14 +38,36 @@ OpsLog.beforeCreate(({ options }) => {
 
 export class OpsLogCreator {
   private datas: CreateData<OpsLog>[] = [];
+  private publicACL: RawACL;
+  private internalACL = new ACLBuilder().allowCustomerService('read').allowStaff('read').toJSON();
 
-  selectAssignee(ticket: Ticket, assignee: User): this {
+  constructor(readonly ticket: Ticket) {
+    const publicACL = new ACLBuilder()
+      .allow(ticket.authorId, 'read')
+      .allowCustomerService('read')
+      .allowStaff('read');
+    if (ticket.organizationId) {
+      publicACL.allowOrgMember(ticket.organizationId, 'read');
+    }
+    this.publicACL = publicACL.toJSON();
+  }
+
+  operate(action: OperateAction, operator: User): this {
     this.datas.push({
-      ACL: {
-        [ticket.authorId]: { read: true },
-        'role:customerService': { read: true },
+      ACL: this.publicACL,
+      ticketId: this.ticket.id,
+      action,
+      data: {
+        operator: operator.getTinyInfo(),
       },
-      ticketId: ticket.id,
+    });
+    return this;
+  }
+
+  selectAssignee(assignee: User): this {
+    this.datas.push({
+      ACL: this.publicACL,
+      ticketId: this.ticket.id,
       action: 'selectAssignee',
       data: {
         assignee: assignee.getTinyInfo(),
@@ -50,12 +76,23 @@ export class OpsLogCreator {
     return this;
   }
 
-  changeGroup(ticket: Ticket, group: Group | null, operator: User): this {
+  changeAssignee(assignee: User | null, operator: User): this {
     this.datas.push({
-      ACL: {
-        'role:customerService': { read: true },
+      ACL: this.publicACL,
+      ticketId: this.ticket.id,
+      action: 'changeAssignee',
+      data: {
+        assignee: assignee ? assignee.getTinyInfo() : null,
+        operator: operator.getTinyInfo(),
       },
-      ticketId: ticket.id,
+    });
+    return this;
+  }
+
+  changeGroup(group: Group | null, operator: User): this {
+    this.datas.push({
+      ACL: this.internalACL,
+      ticketId: this.ticket.id,
       action: 'changeGroup',
       data: {
         group: group ? group.getTinyInfo() : null,
@@ -66,10 +103,22 @@ export class OpsLogCreator {
     return this;
   }
 
-  create() {
+  changeCategory(category: Category, operator: User): this {
+    this.datas.push({
+      ACL: this.publicACL,
+      ticketId: this.ticket.id,
+      action: 'changeCategory',
+      data: {
+        category: category.getTinyInfo(),
+        operator: operator.getTinyInfo(),
+      },
+    });
+    return this;
+  }
+
+  async create() {
     if (this.datas.length) {
-      // TODO: Sentry
-      OpsLog.createSome(this.datas).catch(console.error);
+      await OpsLog.createSome(this.datas);
       this.datas = [];
     }
   }

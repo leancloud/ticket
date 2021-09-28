@@ -1,4 +1,7 @@
+import _ from 'lodash';
+
 import { Model, field, pointerId, pointTo, pointerIds, hasManyThroughPointerArray } from '../orm';
+import htmlify from '../utils/htmlify';
 import { File } from './File';
 import { Ticket } from './Ticket';
 import { TinyUserInfo, User } from './User';
@@ -61,7 +64,11 @@ export class Reply extends Model {
   }
 }
 
-Reply.beforeCreate(({ options }) => {
+Reply.beforeCreate(({ data, options }) => {
+  if (!data.content) {
+    throw new Error('The content is required');
+  }
+  data.contentHTML = htmlify(data.content);
   options.ignoreBeforeHook = true;
   options.ignoreAfterHook = true;
 });
