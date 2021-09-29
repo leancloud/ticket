@@ -126,7 +126,6 @@ ${(ticket.get('latestReply') && ticket.get('latestReply').content) || '<暂无>'
   }
 
   router.post('/catchall', function (req, res, next) {
-    console.log('[Mailgun] Incoming webhook:', req.body)
     Promise.all([getFromUser(req.body), getTicket(req.body)])
       .spread((fromUser, ticket) => {
         return new AV.Object('Reply').save(
