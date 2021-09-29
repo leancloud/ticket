@@ -163,7 +163,7 @@ const ticketDataSchema = yup.object({
   content: yup.string().trim().required(),
   categoryId: yup.string().required(),
   organizationId: yup.string(),
-  fileIds: yup.array(yup.string().required()).min(1),
+  fileIds: yup.array(yup.string().required()),
   metaData: yup.object(),
   customFields: yup.array(customFieldSchema.required()),
 });
@@ -180,7 +180,7 @@ router.post('/', async (ctx) => {
     authorId: currentUser.id,
     title: data.title,
     content: data.content,
-    fileIds: data.fileIds,
+    fileIds: data.fileIds?.length ? data.fileIds : undefined,
     metaData: data.metaData,
   };
 
@@ -391,7 +391,7 @@ router.get('/:id/replies', async (ctx) => {
 
 const replyDataSchema = yup.object({
   content: yup.string().trim().required(),
-  fileIds: yup.array(yup.string().required()).min(1),
+  fileIds: yup.array(yup.string().required()),
   internal: yup.bool(),
 });
 
@@ -409,7 +409,7 @@ router.post('/:id/replies', async (ctx) => {
   const reply = await ticket.reply({
     author: currentUser,
     content: data.content,
-    fileIds: data.fileIds,
+    fileIds: data.fileIds?.length ? data.fileIds : undefined,
     internal: data.internal,
   });
 
