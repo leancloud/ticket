@@ -68,7 +68,7 @@ class ChangeAssigneeMessage extends Message {
 class ReplyTicketMessage extends Message {
   constructor(ticket: Ticket, reply: Reply, author: User) {
     super(
-      `:left_speech_bubble: ${author.getDisplayName()} 回复工单 ${getTicketLink(ticket)}`,
+      `:speech_balloon: ${author.getDisplayName()} 回复工单 ${getTicketLink(ticket)}`,
       ticket.title + '\n\n' + reply.content
     );
   }
