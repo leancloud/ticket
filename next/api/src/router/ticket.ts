@@ -200,7 +200,8 @@ router.post('/', async (ctx) => {
 
   const ticket = await Ticket.create(createData, { currentUser });
 
-  if (data.customFields) {
+  if (data.customFields?.length) {
+    // TODO: 验证 field 是否存在
     await TicketFieldValue.create(
       {
         ACL: {},
