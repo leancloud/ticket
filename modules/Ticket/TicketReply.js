@@ -22,7 +22,7 @@ export function TicketReply({ ticketId, onReply }) {
     try {
       const data = { content }
       if (files.length) {
-        data.file_ids = (await uploadFiles(files)).map((file) => file.id)
+        data.fileIds = (await uploadFiles(files)).map((file) => file.id)
       }
       await onReply(data)
       setContent('')

@@ -21,7 +21,6 @@ function RecentTickets({ authorId, excludeNid }) {
           author_id: authorId,
           page_size: excludeNid ? 11 : 10,
           q: 'sort:created_at-desc',
-          // created_at_lt: ticket.created_at,
         },
       }),
     enabled: !!authorId,

@@ -33,7 +33,7 @@ export function Evaluation({ ticket }) {
   const queryClient = useQueryClient()
   const { mutate, isLoading } = useMutation({
     mutationFn: (evaluation) =>
-      fetch(`/api/1/tickets/${ticket.id}`, {
+      fetch(`/api/2/tickets/${ticket.id}`, {
         method: 'PATCH',
         body: { evaluation },
       }),

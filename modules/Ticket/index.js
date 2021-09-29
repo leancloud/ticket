@@ -326,11 +326,7 @@ export default function Ticket() {
 
   useTitle(ticket?.title)
   const { mutateAsync: operateTicket } = useMutation({
-    mutationFn: (action) =>
-      fetch(`/api/1/tickets/${ticket.id}/operate`, {
-        method: 'POST',
-        body: { action },
-      }),
+    mutationFn: (action) => http.post(`/api/2/tickets/${ticket.id}/operate`, { action }),
     onSuccess: () => {
       refetchTicket()
       loadMoreOpsLogs()
@@ -339,7 +335,7 @@ export default function Ticket() {
   })
 
   const { mutateAsync: replyTicket } = useMutation({
-    mutationFn: (data) => http.post(`/api/1/tickets/${ticket.id}/replies`, data),
+    mutationFn: (data) => http.post(`/api/2/tickets/${ticket.id}/replies`, data),
     onSuccess: () => loadMoreReplies(),
     onError: (error) => addNotification(error),
   })

@@ -67,7 +67,7 @@ export function CSReplyEditor({ ticketId, onReply, onOperate }) {
     }
     setCommitting(true)
     try {
-      await onReply({ content, file_ids: fileIds, internal: replyType === 'internal' })
+      await onReply({ content, fileIds, internal: replyType === 'internal' })
       setContent('')
       clear()
     } finally {
