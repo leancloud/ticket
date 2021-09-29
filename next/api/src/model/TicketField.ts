@@ -27,14 +27,14 @@ title.required = true;
 title.createdAt = new Date(0);
 title.updatedAt = new Date(0);
 
-const descroiption = new TicketField();
-descroiption.id = 'description';
-descroiption.title = 'description';
-descroiption.type = 'multi-line';
-descroiption.defaultLocale = 'en';
-descroiption.active = true;
-descroiption.required = true;
-descroiption.createdAt = new Date(0);
-descroiption.updatedAt = new Date(0);
+const description = new TicketField();
+description.id = 'description';
+description.title = 'description';
+description.type = 'multi-line';
+description.defaultLocale = 'en';
+description.active = true;
+description.required = true;
+description.createdAt = new Date(0);
+description.updatedAt = new Date(0);
 
-export const presetTicketFields = [title, descroiption];
+export const presetTicketFields = [title, description];
