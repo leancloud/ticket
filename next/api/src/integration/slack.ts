@@ -180,6 +180,9 @@ class SlackIntegration {
   };
 
   sendReplyTicket = ({ ticket, reply, from, to }: ReplyTicketContext) => {
+    if (reply.isCustomerService) {
+      return;
+    }
     const message = new ReplyTicketMessage(ticket, reply, from);
     if (to?.email) {
       this.sendToUser(to.email, message);
