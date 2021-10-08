@@ -20,10 +20,7 @@ import CustomField, { CustomFieldDisplay } from '../components/CustomField'
 import styles from './index.css'
 
 function updateTicket(id, data) {
-  return fetch(`/api/1/tickets/${id}`, {
-    method: 'PATCH',
-    body: data,
-  })
+  return http.patch(`/api/2/tickets/${id}`, data)
 }
 
 function GroupSection({ ticket }) {
@@ -34,7 +31,7 @@ function GroupSection({ ticket }) {
   const { addNotification } = useContext(AppContext)
   const queryClient = useQueryClient()
   const { mutate: updateGroup, isLoading: updating } = useMutation({
-    mutationFn: (group_id) => updateTicket(ticket.id, { group_id }),
+    mutationFn: (groupId) => updateTicket(ticket.id, { groupId }),
     onSuccess: () => {
       queryClient.invalidateQueries(['ticket', ticket.id])
       setEditingGroup(false)
@@ -98,7 +95,7 @@ function AssigneeSection({ ticket, isCustomerService }) {
   const queryClient = useQueryClient()
 
   const { mutate: updateAssignee, isLoading: updating } = useMutation({
-    mutationFn: (assignee_id) => updateTicket(ticket.id, { assignee_id }),
+    mutationFn: (assigneeId) => updateTicket(ticket.id, { assigneeId }),
     onSuccess: () => {
       queryClient.invalidateQueries(['ticket', ticket.id])
       setEditingAssignee(false)
@@ -119,9 +116,8 @@ function AssigneeSection({ ticket, isCustomerService }) {
       .queryUser()
       .where('objectId', '==', ticket.assignee.id)
       .count({ abortSignal: ac.signal })
-      .then((count) => {
-        setgGroupIncludesAssignee(count === 0)
-      })
+      .then((count) => setgGroupIncludesAssignee(count === 0))
+      .catch(console.error)
     return ac.abort.bind(ac)
   }, [ticket.assignee, ticket.group])
 
@@ -201,7 +197,7 @@ function CategorySection({ ticket, isCustomerService }) {
   const queryClient = useQueryClient()
 
   const { mutate: updateCategory, isLoading: updating } = useMutation({
-    mutationFn: (category_id) => updateTicket(ticket.id, { category_id }),
+    mutationFn: (categoryId) => updateTicket(ticket.id, { categoryId }),
     onSuccess: () => {
       queryClient.invalidateQueries(['ticket', ticket.id])
       setEditingCategory(false)

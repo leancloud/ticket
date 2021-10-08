@@ -295,20 +295,15 @@ const NewTicket = memo((props) => {
         const files = Array.from(fileInput.current.files)
         fileIds = await uploadFiles(files).then((data) => data.map((file) => file.id))
       }
-      const ticket = await http.post('/api/1/tickets', {
+      const ticket = await http.post('/api/2/tickets', {
         title,
         content,
-        file_ids: fileIds,
-        category_id: category.id,
-        organization_id: selectedOrgId,
-        form_values: _.isEmpty(formValues)
+        fileIds,
+        categoryId: category.id,
+        organizationId: selectedOrgId,
+        customFields: _.isEmpty(formValues)
           ? undefined
-          : Object.keys(formValues).map((field) => {
-              return {
-                field,
-                value: formValues[field],
-              }
-            }),
+          : Object.entries(formValues).map(([field, value]) => ({ field, value })),
       })
       // ENABLE_LEANCLOUD_INTEGRATION && loggedIn && appId
       if (appId) {
