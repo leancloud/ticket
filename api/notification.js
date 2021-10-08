@@ -2,6 +2,7 @@ const _ = require('lodash')
 const Promise = require('bluebird')
 const AV = require('leanengine')
 
+const { tickDelayNotify } = require('../next/api/dist')
 const { TICKET_STATUS } = require('../lib/common')
 const errorHandler = require('./errorHandler')
 const captureException = (err) => errorHandler.captureException(err)
@@ -170,6 +171,8 @@ getConfigValue('SLA_in_mimutes')
   })
   .catch(console.error)
 
+// XXX: 先不删，留作参考
+// eslint-disable-next-line no-unused-vars
 const delayNotify = () => {
   const deadline = new Date(Date.now() - SLA * 60 * 1000)
   return (
@@ -212,5 +215,6 @@ const delayNotify = () => {
 }
 
 AV.Cloud.define('delayNotify', () => {
-  delayNotify()
+  // XXX: 由于还不能在 next 里定义云函数，先通过 legacy 的云函数调用 next 里的方法来发送 delay notification
+  tickDelayNotify()
 })
