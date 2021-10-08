@@ -296,7 +296,7 @@ function TagSection({ ticket, isCustomerService }) {
           tags.splice(index, 1)
         }
       }
-      return mutateAsync({ [isPrivate ? 'private_tags' : 'tags']: tags })
+      return mutateAsync({ [isPrivate ? 'privateTags' : 'tags']: tags })
     },
     [ticket, mutateAsync]
   )
