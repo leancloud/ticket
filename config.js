@@ -58,14 +58,9 @@ module.exports = {
 
 const integrations = []
 
-const mailgun = require('./integrations/mailgun/server')
 const zulip = require('./integrations/zulip/server')
 const wechat = require('./integrations/wechat/server')
-const slack = require('./integrations/slack/server')
 
-if (process.env.MAILGUN_KEY && process.env.MAILGUN_DOMAIN) {
-  integrations.push(mailgun(process.env.MAILGUN_KEY, process.env.MAILGUN_DOMAIN))
-}
 if (process.env.ZULIP_API_KEY) {
   const zulipConfig = {
     username: process.env.ZULIP_USERNAME,
@@ -85,14 +80,6 @@ if (process.env.WECHAT_TOKEN) {
     encodingAESKey: process.env.WECHAT_ENCODING_AES_KEY,
   }
   integrations.push(wechat(wechatConfig))
-}
-if (process.env.SLACK_TOKEN) {
-  integrations.push(
-    slack({
-      token: process.env.SLACK_TOKEN,
-      broadcastChannel: process.env.SLACK_CHANNEL,
-    })
-  )
 }
 
 module.exports.integrations = integrations
