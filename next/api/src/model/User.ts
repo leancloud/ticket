@@ -62,6 +62,7 @@ export class User extends Model {
     return id ? AV.User.createWithoutData(className, id) : new AV.User(id);
   };
 
+  // XXX: authData 在 class schema 里设置成了客户端不可见，需要使用 masterKey 获取
   @field()
   authData?: Record<string, any>;
 
@@ -139,6 +140,13 @@ export class User extends Model {
     return { sessionToken: this.sessionToken };
   }
 
+  private async fetchAuthData(): Promise<Record<string, any> | undefined> {
+    const avObj = AV.User.createWithoutData('_User', this.id);
+    await avObj.fetch({ keys: ['authData'] }, { useMasterKey: true });
+    this.authData = avObj.get('authData');
+    return this.authData;
+  }
+
   async getLeanCloudAccounts(): Promise<LeanCloudAccount[]> {
     if (!this.authData) {
       throw new Error('user has no authData');
@@ -164,11 +172,11 @@ export class User extends Model {
     if (await this.isCustomerService()) {
       return true;
     }
-    if (this.authData) {
-      const accounts = await this.getLeanCloudAccounts();
-      return accounts.some((account) => !!account.current_support_service);
+    if (!(await this.fetchAuthData())) {
+      return false;
     }
-    return false;
+    const accounts = await this.getLeanCloudAccounts();
+    return accounts.some((account) => !!account.current_support_service);
   }
 
   getTinyInfo(): TinyUserInfo {
