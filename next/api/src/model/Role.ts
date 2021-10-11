@@ -1,5 +1,3 @@
-import AV from 'leancloud-storage';
-
 import { Model, field, hasManyThroughRelation } from '../orm';
 import { User } from './User';
 

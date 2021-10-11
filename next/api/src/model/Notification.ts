@@ -35,6 +35,8 @@ export class Notification extends Model {
   latestAction!: LatestAction;
 
   static async upsert(ticketId: string, userIds: string[], latestAction: LatestAction) {
+    userIds = _.uniq(userIds);
+
     const notifications = await this.queryBuilder()
       .where('ticket', '==', Ticket.ptr(ticketId))
       .where(
@@ -52,6 +54,9 @@ export class Notification extends Model {
     await Promise.all([
       this.createSome(
         unsavedUserIds.map((userId) => ({
+          ACL: {
+            [userId]: { read: true, write: true },
+          },
           ticketId,
           userId,
           latestAction,
@@ -72,15 +77,6 @@ export class Notification extends Model {
     ]);
   }
 }
-
-Notification.beforeCreate(({ data }) => {
-  if (!data.userId) {
-    throw new Error('The userId is required');
-  }
-  data.ACL = {
-    [data.userId]: { read: true, write: true },
-  };
-});
 
 notification.on('newTicket', ({ ticket }) => {
   if (ticket.assigneeId) {
@@ -104,7 +100,7 @@ notification.on('replyTicket', async ({ ticket, from, to }) => {
   }
 
   // TODO: Sentry
-  Notification.upsert(ticket.id, _.uniq(userIds), 'reply').catch(console.log);
+  Notification.upsert(ticket.id, userIds, 'reply').catch(console.log);
 });
 
 notification.on('changeAssignee', ({ ticket, to }) => {

@@ -31,11 +31,6 @@ export class OpsLog extends Model {
   ticket?: Ticket;
 }
 
-OpsLog.beforeCreate(({ options }) => {
-  // XXX: 旧版在 beforeSave 中设置 OpsLog 的 ACL
-  options.ignoreBeforeHook = true;
-});
-
 export class OpsLogCreator {
   private datas: CreateData<OpsLog>[] = [];
   private publicACL: RawACL;
@@ -118,7 +113,9 @@ export class OpsLogCreator {
 
   async create() {
     if (this.datas.length) {
-      await OpsLog.createSome(this.datas);
+      await OpsLog.createSome(this.datas, {
+        ignoreBeforeHook: true,
+      });
       this.datas = [];
     }
   }

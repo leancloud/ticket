@@ -4,17 +4,17 @@ import _ from 'lodash';
 import { config } from '../config';
 import * as yup from '../utils/yup';
 import { SortItem, auth, include, parseRange, sort } from '../middleware';
-import { CreateData, Model, QueryBuilder, UpdateData } from '../orm';
+import { Model, QueryBuilder } from '../orm';
 import { Category, CategoryManager } from '../model/Category';
 import { Group } from '../model/Group';
 import { Organization } from '../model/Organization';
 import { Reply } from '../model/Reply';
 import { Ticket } from '../model/Ticket';
-import { TicketFieldValue } from '../model/TicketFieldValue';
 import { User } from '../model/User';
 import { TicketResponse, TicketListItemResponse } from '../response/ticket';
 import { ReplyResponse } from '../response/reply';
 import { Vacation } from '../model/Vacation';
+import { TicketCreator, TicketUpdater } from '../ticket';
 
 const router = new Router().use(auth);
 
@@ -171,46 +171,41 @@ const ticketDataSchema = yup.object({
 router.post('/', async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   if (!(await currentUser.canCreateTicket())) {
-    ctx.throw(403, 'Your account is not qualified to create ticket.');
+    return ctx.throw(403, 'This account is not qualified to create ticket');
   }
 
   const data = ticketDataSchema.validateSync(ctx.request.body);
-  const createData: CreateData<Ticket> = {
-    author: currentUser, // 避免后续重复获取
-    authorId: currentUser.id,
-    title: data.title,
-    content: data.content,
-    fileIds: data.fileIds?.length ? data.fileIds : undefined,
-    metaData: data.metaData,
-  };
+  const creator = new TicketCreator()
+    .setAuthor(currentUser)
+    .setTitle(data.title)
+    .setContent(data.content);
 
   const category = await Category.find(data.categoryId);
   if (!category) {
-    ctx.throw(400, `Category(${data.categoryId}) is not exists`);
+    return ctx.throw(400, `Category ${data.categoryId} is not exists`);
   }
-  createData.category = category;
+  creator.setCategory(category);
 
   if (data.organizationId) {
-    const organization = await Organization.find(data.organizationId, currentUser);
+    const organization = await Organization.find(data.organizationId, currentUser.getAuthOptions());
     if (!organization) {
-      ctx.throw(400, `Organization(${data.organizationId}) is not exists`);
+      return ctx.throw(400, `Organization ${data.organizationId} is not exists`);
     }
-    createData.organizationId = organization!.id;
+    creator.setOrganization(organization);
   }
 
-  const ticket = await Ticket.create(createData, { currentUser });
-
-  if (data.customFields?.length) {
+  if (data.fileIds) {
+    creator.setFileIds(data.fileIds);
+  }
+  if (data.metaData) {
+    creator.setMetaData(data.metaData);
+  }
+  if (data.customFields) {
     // TODO: 验证 field 是否存在
-    await TicketFieldValue.create(
-      {
-        ACL: {},
-        ticketId: ticket.id,
-        values: data.customFields,
-      },
-      { useMasterKey: true }
-    );
+    creator.setCustomFields(data.customFields);
   }
+
+  const ticket = await creator.create(currentUser);
 
   ctx.body = { id: ticket.id };
 });
@@ -289,92 +284,84 @@ router.patch('/:id', async (ctx) => {
   const data = updateTicketSchema.validateSync(ctx.request.body);
   const isCustomerService = await ticket.isCustomerService(currentUser);
 
-  const updateData: UpdateData<Ticket> = {};
+  const updater = new TicketUpdater(ticket);
 
   if (data.assigneeId !== undefined) {
-    if (!isCustomerService) {
-      ctx.throw(403);
-    }
+    if (!isCustomerService) return ctx.throw(403);
     if (data.assigneeId) {
       const vacationerIds = await Vacation.getVacationerIds();
       if (vacationerIds.includes(data.assigneeId)) {
-        ctx.throw(400, 'Sorry, this customer service is in vacation.');
+        return ctx.throw(400, 'This customer service is in vacation');
       }
       const assignee = await User.find(data.assigneeId, { useMasterKey: true });
       if (!assignee) {
-        ctx.throw(400, `User(${data.assigneeId}) is not exists`);
+        return ctx.throw(400, `User ${data.assigneeId} is not exists`);
       }
-      updateData.assignee = assignee;
+      updater.setAssignee(assignee);
+    } else {
+      updater.setAssignee(null);
     }
-    updateData.assigneeId = data.assigneeId;
   }
 
   if (data.groupId !== undefined) {
-    if (!isCustomerService) {
-      ctx.throw(403);
-    }
+    if (!isCustomerService) return ctx.throw(403);
     if (data.groupId) {
       const group = await Group.find(data.groupId, { useMasterKey: true });
       if (!group) {
-        ctx.throw(400, `Group(${data.groupId}) is not exists`);
+        return ctx.throw(400, `Group ${data.groupId} is not exists`);
       }
-      updateData.group = group;
+      updater.setGroup(group);
+    } else {
+      updater.setGroup(null);
     }
-    updateData.groupId = data.groupId;
   }
 
   if (data.categoryId) {
-    if (!isCustomerService) {
-      ctx.throw(403);
-    }
+    if (!isCustomerService) return ctx.throw(403);
     const category = await Category.find(data.categoryId);
     if (!category) {
-      ctx.throw(400, `Category(${data.categoryId}) is not exists`);
+      return ctx.throw(400, `Category ${data.categoryId} is not exists`);
     }
-    updateData.category = category;
+    updater.setCategory(category);
   }
 
-  if (data.organizationId !== undefined) {
+  if (data.organizationId) {
     if (data.organizationId) {
-      const organization = await Organization.find(
-        data.organizationId,
-        isCustomerService ? { useMasterKey: true } : currentUser
-      );
+      const organization = await Organization.find(data.organizationId, {
+        ...currentUser.getAuthOptions(),
+        useMasterKey: isCustomerService,
+      });
       if (!organization) {
-        ctx.throw(400, `Organization(${data.organizationId}) is not exists`);
+        return ctx.throw(400, `Organization ${data.organizationId} is not exists`);
       }
+      updater.setOrganization(organization);
+    } else {
+      updater.setOrganization(null);
     }
-    updateData.organizationId = data.organizationId;
   }
 
   if (data.tags) {
     // XXX: tags 本来是用户填写的，但从未设置过公开 tag，且已上线自定义字段，就仅开放给客服使用了
-    if (!isCustomerService) {
-      ctx.throw(403);
-    }
-    updateData.tags = data.tags;
+    if (!isCustomerService) return ctx.throw(403);
+    updater.setTags(data.tags);
   }
 
   if (data.privateTags) {
-    if (!isCustomerService) {
-      ctx.throw(403);
-    }
-    updateData.privateTags = data.privateTags;
+    if (!isCustomerService) return ctx.throw(403);
+    updater.setPrivateTags(data.privateTags);
   }
 
   if (data.evaluation) {
     if (currentUser.id !== ticket.authorId) {
-      ctx.throw(403, 'Only ticket author can submit evaluation');
+      return ctx.throw(403, 'Only ticket author can submit evaluation');
     }
     if (!config.allowModifyEvaluation && ticket.evaluation) {
-      ctx.throw(409, 'Evaluation already exists');
+      return ctx.throw(409, 'Ticket is already evaluated');
     }
-    updateData.evaluation = data.evaluation;
+    updater.setEvaluation(data.evaluation);
   }
 
-  if (!_.isEmpty(updateData)) {
-    await ticket.update(updateData, { currentUser });
-  }
+  await updater.update(currentUser);
 
   ctx.body = {};
 });

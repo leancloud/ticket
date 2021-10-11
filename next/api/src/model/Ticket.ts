@@ -1,4 +1,3 @@
-import AV from 'leanengine';
 import _ from 'lodash';
 
 import { config } from '../config';
@@ -16,17 +15,16 @@ import {
   hasManyThroughPointerArray,
   hasOne,
 } from '../orm';
+import { TicketUpdater } from '../ticket/TicketUpdater';
 import htmlify from '../utils/htmlify';
 import { Category, CategoryManager } from './Category';
 import { File } from './File';
 import { Group } from './Group';
-import { Notification } from './Notification';
-import { OperateAction, OpsLogCreator } from './OpsLog';
+import { LatestAction, Notification } from './Notification';
+import { OperateAction } from './OpsLog';
 import { Organization } from './Organization';
 import { Reply, TinyReplyInfo } from './Reply';
-import { Role } from './Role';
 import { TinyUserInfo, User, systemUser } from './User';
-import { Vacation } from './Vacation';
 import { Watch } from './Watch';
 
 export enum STATUS {
@@ -116,6 +114,9 @@ export class Ticket extends Model {
   @pointerId(() => Organization)
   organizationId?: string;
 
+  @pointTo(() => Organization)
+  organization?: Organization;
+
   @pointerIds(() => File)
   fileIds?: string[];
 
@@ -130,6 +131,9 @@ export class Ticket extends Model {
 
   @field()
   replyCount?: number;
+
+  @field()
+  unreadCount?: number;
 
   // XXX: 这里有个深坑，latestReply.createdAt 和 latestReply.updated 存的是 Date 类型
   // 但由于字段名的原因，API 返回的类型是 string 。存的时候还是要按 Date 来存，不然查询起来就太难受拉
@@ -192,6 +196,7 @@ export class Ticket extends Model {
       {
         ACL,
         content: data.content,
+        contentHTML: htmlify(data.content),
         ticket: this, // 避免后续重复获取
         ticketId: this.id,
         author: data.author, // 避免后续重复获取
@@ -201,7 +206,9 @@ export class Ticket extends Model {
         internal: data.internal || undefined,
       },
       {
-        currentUser: data.author,
+        ...data.author.getAuthOptions(),
+        ignoreBeforeHook: true,
+        ignoreAfterHook: true,
       }
     );
 
@@ -219,7 +226,7 @@ export class Ticket extends Model {
           : STATUS.WAITING_CUSTOMER_SERVICE;
       }
 
-      await this.update(updateData, { currentUser: data.author });
+      await this.update(updateData, data.author.getAuthOptions());
 
       this.load(isCustomerService ? 'author' : 'assignee', { useMasterKey: true })
         .then((to) => {
@@ -236,43 +243,38 @@ export class Ticket extends Model {
     return reply;
   }
 
-  async resetUnreadCount(this: Ticket, user: User) {
+  async increaseUnreadCount(this: Ticket, latestAction: LatestAction, operator: User) {
+    const watches = await Watch.queryBuilder()
+      .where('ticket', '==', this.toPointer())
+      .find({ useMasterKey: true });
+    let userIds = [...watches.map((w) => w.userId), this.authorId];
+    if (this.assigneeId) {
+      userIds.push(this.assigneeId);
+    }
+    userIds = userIds.filter((id) => id !== operator.id);
+    await Notification.upsert(this.id, userIds, latestAction);
+    if (this.authorId !== operator.id) {
+      await this.update({ unreadCount: commands.inc() }, operator.getAuthOptions());
+    }
+  }
+
+  async resetUnreadCount(this: Ticket, user: User, force = false) {
     const notification = await Notification.queryBuilder()
       .where('ticket', '==', this.toPointer())
       .where('user', '==', user.toPointer())
       .first(user);
     if (notification?.unreadCount) {
-      await notification.update({ unreadCount: 0 }, { currentUser: user });
+      await notification.update({ unreadCount: 0 }, user.getAuthOptions());
+    }
+    if ((this.authorId === user.id && this.unreadCount) || force) {
+      await this.update({ unreadCount: 0 });
     }
   }
 
-  async operate(action: OperateAction, operator: User) {
-    const isCustomerService = await this.isCustomerService(operator);
-    const status = getActionStatus(action, isCustomerService);
-    const data: UpdateData<Ticket> = { status };
-    if (isCustomerService && operator !== systemUser) {
-      data.joinedCustomerServices = commands.pushUniq(operator.getTinyInfo());
-    }
-    const ticket = await this.update(data, { currentUser: operator });
-
-    if (isCustomerService && this.isClosed() !== ticket.isClosed()) {
-      Watch.queryBuilder()
-        .where('ticket', '==', ticket.toPointer())
-        .find({ useMasterKey: true })
-        .then((watches) => {
-          let userIds = watches.map((w) => w.userId).concat(ticket.authorId);
-          if (ticket.assigneeId) {
-            userIds.push(ticket.assigneeId);
-          }
-          userIds = _.uniq(userIds).filter((id) => id !== operator.id);
-          return Notification.upsert(ticket.id, userIds, 'changeStatus');
-        })
-        .catch(console.error); // TODO: Sentry
-    }
-
-    new OpsLogCreator(this).operate(action, operator).create();
-
-    return ticket;
+  operate(action: OperateAction, operator: User): Promise<Ticket> {
+    const updater = new TicketUpdater(this);
+    updater.operate(action);
+    return updater.update(operator);
   }
 
   isClosed(): boolean {
@@ -281,188 +283,5 @@ export class Ticket extends Model {
       this.status === STATUS.FULFILLED ||
       this.status === STATUS.CLOSED
     );
-  }
-}
-
-Ticket.beforeCreate(async ({ data, options }) => {
-  if (!data.authorId) {
-    throw new Error('The authorId is required');
-  }
-  if (!data.category) {
-    throw new Error('The category is required');
-  }
-  if (!data.content) {
-    throw new Error('The content is required');
-  }
-
-  await Promise.all([
-    (async () => {
-      if (!data.assigneeId) {
-        const assignee = await selectAssignee(data.category!);
-        if (assignee) {
-          data.assignee = assignee; // 避免后续重复获取
-          data.assigneeId = assignee.id;
-        }
-      }
-    })(),
-    (async () => {
-      if (!data.groupId) {
-        const group = await selectGroup(data.category!);
-        if (group) {
-          data.group = group; // 避免后续重复获取
-          data.groupId = group.id;
-        }
-      }
-    })(),
-  ]);
-
-  const ACL = new ACLBuilder().allowCustomerService('read', 'write').allowStaff('read');
-  if (data.authorId) {
-    ACL.allow(data.authorId, 'read', 'write');
-  }
-  if (data.organizationId) {
-    ACL.allowOrgMember(data.organizationId, 'read', 'write');
-  }
-  data.ACL = ACL;
-  data.status = Ticket.STATUS.NEW;
-  data.contentHTML = htmlify(data.content);
-
-  options.ignoreBeforeHook = true;
-  options.ignoreAfterHook = true;
-});
-
-Ticket.afterCreate(async ({ instance: ticket }) => {
-  const [author, assignee, group] = await Promise.all([
-    ticket.load('author', { useMasterKey: true }),
-    ticket.assigneeId ? ticket.load('assignee', { useMasterKey: true }) : undefined,
-    ticket.groupId ? ticket.load('group', { useMasterKey: true }) : undefined,
-  ]);
-
-  const opsLogCreator = new OpsLogCreator(ticket);
-  if (assignee) {
-    opsLogCreator.selectAssignee(assignee);
-  }
-  if (group) {
-    opsLogCreator.changeGroup(group, systemUser);
-  }
-  // TODO: Sentry
-  opsLogCreator.create().catch(console.error);
-
-  notification.emit('newTicket', { ticket, from: author!, to: assignee });
-});
-
-Ticket.beforeUpdate(({ options }) => {
-  options.ignoreBeforeHook = true;
-  options.ignoreAfterHook = true;
-});
-
-Ticket.afterUpdate(async ({ instance: ticket, data, options }) => {
-  const currentUser = (options.currentUser as User) ?? systemUser;
-  const opsLogCreator = new OpsLogCreator(ticket);
-
-  if (data.assigneeId !== undefined) {
-    if (data.assigneeId) {
-      const assignee = await ticket.load('assignee', { useMasterKey: true });
-      if (assignee) {
-        opsLogCreator.changeAssignee(assignee, currentUser);
-      }
-      notification.emit('changeAssignee', { ticket, from: currentUser, to: assignee });
-    } else {
-      opsLogCreator.changeAssignee(null, currentUser);
-      notification.emit('changeAssignee', { ticket, from: currentUser });
-    }
-  }
-
-  if (data.groupId !== undefined) {
-    if (data.groupId) {
-      const group = await ticket.load('group', { useMasterKey: true });
-      if (group) {
-        opsLogCreator.changeGroup(group, currentUser);
-      }
-    } else {
-      opsLogCreator.changeGroup(null, currentUser);
-    }
-  }
-
-  if (data.category) {
-    opsLogCreator.changeCategory(data.category, currentUser);
-  }
-
-  if (data.evaluation) {
-    if (ticket.assigneeId) {
-      const assignee = await ticket.load('assignee', { useMasterKey: true });
-      notification.emit('ticketEvaluation', { ticket, from: currentUser, to: assignee });
-    } else {
-      notification.emit('ticketEvaluation', { ticket, from: currentUser });
-    }
-  }
-
-  if (data.status && ticket.isClosed()) {
-    // TODO: next 支持定义云函数后改回本地调用
-    AV.Cloud.run('statsTicket', { ticketId: ticket.id }, { remote: true });
-  }
-
-  // TODO: Sentry
-  opsLogCreator.create().catch(console.error);
-});
-
-async function selectAssignee(
-  category: Category,
-  customerServices?: User[]
-): Promise<User | undefined> {
-  if (!customerServices) {
-    const [csRole, vacationerIds] = await Promise.all([
-      Role.getCustomerServiceRole(),
-      Vacation.getVacationerIds(),
-    ]);
-    customerServices = await User.queryBuilder()
-      .relatedTo(csRole, 'users')
-      .where('objectId', 'not-in', vacationerIds)
-      .find({ useMasterKey: true });
-  }
-
-  const candidates = customerServices.filter((user) => {
-    if (!user.categoryIds) {
-      return false;
-    }
-    return user.categoryIds.includes(category.id);
-  });
-
-  if (candidates.length) {
-    return _.sample(candidates);
-  }
-
-  if (category.parentId) {
-    const parent = await category.load('parent');
-    if (parent) {
-      return selectAssignee(parent, customerServices);
-    }
-  }
-}
-
-async function selectGroup(category: Category): Promise<Group | undefined> {
-  if (category.groupId) {
-    return category.load('group', { useMasterKey: true });
-  }
-  if (category.parentId) {
-    const parent = await category.load('parent');
-    if (parent) {
-      return selectGroup(parent);
-    }
-  }
-}
-
-function getActionStatus(action: OperateAction, isCustomerService: boolean): STATUS {
-  switch (action) {
-    case 'replyWithNoContent':
-      return STATUS.WAITING_CUSTOMER;
-    case 'replySoon':
-      return STATUS.WAITING_CUSTOMER_SERVICE;
-    case 'resolve':
-      return isCustomerService ? STATUS.PRE_FULFILLED : STATUS.FULFILLED;
-    case 'close':
-      return STATUS.CLOSED;
-    case 'reopen':
-      return STATUS.WAITING_CUSTOMER;
   }
 }

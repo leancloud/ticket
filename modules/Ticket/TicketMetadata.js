@@ -170,7 +170,7 @@ function AssigneeSection({ ticket, isCustomerService }) {
       {isCustomerService && ticket.assignee && ticket.group && groupIncludesAssignee && (
         <Alert variant="warning" className={styles.metaAlert}>
           {ticket.assignee.name} is not a member of {ticket.group.name}{' '}
-          <Button variant="light" size="sm" onClick={() => updateAssignee('')}>
+          <Button variant="light" size="sm" onClick={() => updateAssignee(null)}>
             Unassign {ticket.assignee.name}
           </Button>
         </Alert>
