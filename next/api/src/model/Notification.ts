@@ -35,6 +35,8 @@ export class Notification extends Model {
   latestAction!: LatestAction;
 
   static async upsert(ticketId: string, userIds: string[], latestAction: LatestAction) {
+    userIds = _.uniq(userIds);
+
     const notifications = await this.queryBuilder()
       .where('ticket', '==', Ticket.ptr(ticketId))
       .where(
@@ -98,7 +100,7 @@ notification.on('replyTicket', async ({ ticket, from, to }) => {
   }
 
   // TODO: Sentry
-  Notification.upsert(ticket.id, _.uniq(userIds), 'reply').catch(console.log);
+  Notification.upsert(ticket.id, userIds, 'reply').catch(console.log);
 });
 
 notification.on('changeAssignee', ({ ticket, to }) => {

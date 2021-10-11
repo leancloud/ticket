@@ -174,14 +174,18 @@ export class TicketUpdater {
     this.sendNotification(ticket, operator);
 
     if (this.ticket.isClosed() !== ticket.isClosed()) {
-      const isCustomerService = await ticket.isCustomerService(operator);
-      if (isCustomerService) {
-        // 客服关闭或重新打开工单时增加 unreadCount
-        ticket.increaseUnreadCount('changeStatus', operator.id).catch((error) => {
+      // 客服关闭或重新打开工单时增加 unreadCount
+      this.ticket
+        .isCustomerService(operator)
+        .then((isCustomerService) => {
+          if (isCustomerService) {
+            return ticket.increaseUnreadCount('changeStatus', operator);
+          }
+        })
+        .catch((error) => {
           // TODO: Sentry
           console.error('[ERROR] increase unread count failed, error:', error);
         });
-      }
     }
 
     if (this.data.status && ticket.isClosed()) {

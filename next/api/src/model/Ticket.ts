@@ -243,30 +243,31 @@ export class Ticket extends Model {
     return reply;
   }
 
-  async increaseUnreadCount(this: Ticket, latestAction: LatestAction, excludeId?: string) {
+  async increaseUnreadCount(this: Ticket, latestAction: LatestAction, operator: User) {
     const watches = await Watch.queryBuilder()
       .where('ticket', '==', this.toPointer())
       .find({ useMasterKey: true });
-    let userIds = watches.map((w) => w.userId).concat(this.authorId);
+    let userIds = [...watches.map((w) => w.userId), this.authorId];
     if (this.assigneeId) {
       userIds.push(this.assigneeId);
     }
-    if (excludeId !== undefined) {
-      userIds = userIds.filter((id) => id !== excludeId);
+    userIds = userIds.filter((id) => id !== operator.id);
+    await Notification.upsert(this.id, userIds, latestAction);
+    if (this.authorId !== operator.id) {
+      await this.update({ unreadCount: commands.inc() });
     }
-    await Promise.all([
-      Notification.upsert(this.id, _.uniq(userIds), latestAction),
-      this.update({ unreadCount: commands.inc() }),
-    ]);
   }
 
-  async resetUnreadCount(this: Ticket, user: User) {
+  async resetUnreadCount(this: Ticket, user: User, force = false) {
     const notification = await Notification.queryBuilder()
       .where('ticket', '==', this.toPointer())
       .where('user', '==', user.toPointer())
       .first(user);
     if (notification?.unreadCount) {
       await notification.update({ unreadCount: 0 }, user.getAuthOptions());
+    }
+    if ((this.authorId === user.id && this.unreadCount) || force) {
+      await this.update({ unreadCount: 0 });
     }
   }
 

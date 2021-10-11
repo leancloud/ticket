@@ -20,7 +20,9 @@ export interface DelayNotifyContext extends NewTicketContext {}
 
 export interface TicketEvaluationContext extends NewTicketContext {}
 
-export interface ChangeStatusContext extends NewTicketContext {}
+export interface ChangeStatusContext extends NewTicketContext {
+  // TODO: 还未使用
+}
 
 export interface EventHandler {
   newTicket: (ctx: NewTicketContext) => void;
