@@ -29,11 +29,6 @@ export interface SerializedField {
   decode: (data: any) => any;
 }
 
-export interface CurrentUser {
-  id: string;
-  getAuthOptions(): AuthOptions;
-}
-
 export interface OnDecodeContext<M extends typeof Model> {
   avObject: AV.Object;
   instance: InstanceType<M>;
@@ -97,9 +92,7 @@ interface IgnoreHookOptions {
   ignoreAfterHook?: boolean;
 }
 
-export interface ModifyOptions extends IgnoreHookOptions, AuthOptions {
-  currentUser?: CurrentUser;
-}
+export interface ModifyOptions extends IgnoreHookOptions, AuthOptions {}
 
 export type AVObjectFactory = (className: string, objectId?: string) => AV.Object;
 
@@ -554,13 +547,8 @@ export abstract class Model {
   }
 }
 
-function getAuthOptions(options: ModifyOptions): AuthOptions | undefined {
-  if (options.useMasterKey) {
-    return { useMasterKey: true };
-  }
-  if (options.currentUser) {
-    return options.currentUser.getAuthOptions();
-  }
+function getAuthOptions(options: ModifyOptions): AuthOptions {
+  return _.pick(options, ['useMasterKey', 'sessionToken']);
 }
 
 function applyIgnoreHookOptions(object: AV.Object, options: IgnoreHookOptions) {
