@@ -7,6 +7,7 @@ import { config } from '../config';
 import { RedisCache } from '../cache';
 import { AuthOptions, Model, field } from '../orm';
 import { Role } from './Role';
+import { Vacation } from './Vacation';
 
 function encodeAVUser(user: AV.User): string {
   const json = user.toFullJSON();
@@ -105,9 +106,19 @@ export class User extends Model {
   }
 
   static async getCustomerServices(): Promise<User[]> {
-    const customerService = await Role.getCustomerServiceRole();
-    const query = User.queryBuilder().relatedTo(customerService, 'users');
-    return query.find({ useMasterKey: true });
+    const csRole = await Role.getCustomerServiceRole();
+    return User.queryBuilder().relatedTo(csRole, 'users').find({ useMasterKey: true });
+  }
+
+  static async getCustomerServicesOnDuty(): Promise<User[]> {
+    const [csRole, vacationerIds] = await Promise.all([
+      Role.getCustomerServiceRole(),
+      Vacation.getVacationerIds(),
+    ]);
+    return User.queryBuilder()
+      .relatedTo(csRole, 'users')
+      .where('objectId', 'not-in', vacationerIds)
+      .find({ useMasterKey: true });
   }
 
   static async isCustomerService(user: string | { id: string }): Promise<boolean> {
