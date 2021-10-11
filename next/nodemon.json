@@ -1,5 +1,0 @@
-{
-  "watch": ["api/src"],
-  "ext": "ts,json",
-  "exec": "npm run build:api && node server.js"
-}

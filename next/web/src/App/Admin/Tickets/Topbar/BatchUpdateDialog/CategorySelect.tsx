@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { keyBy } from 'lodash';
+import { keyBy } from 'lodash-es';
 
 import { CategorySchema, useCategories } from 'api/category';
 import { Select } from 'components/Select';

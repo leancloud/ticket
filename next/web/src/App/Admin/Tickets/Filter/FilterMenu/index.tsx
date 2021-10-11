@@ -5,7 +5,7 @@ import { HiCheck, HiMenuAlt2, HiX } from 'react-icons/hi';
 import { FiEdit, FiTrash2 } from 'react-icons/fi';
 import { Dialog, Transition } from '@headlessui/react';
 import { StringParam, useQueryParam } from 'use-query-params';
-import { isEmpty, isNull, omitBy } from 'lodash';
+import { isEmpty, isNull, omitBy } from 'lodash-es';
 import { produce } from 'immer';
 
 import { auth } from 'leancloud';

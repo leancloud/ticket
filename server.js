@@ -34,7 +34,7 @@ if (process.env.MAINTENANCE_MODE) {
   app.get('/in-app/v1/*', (req, res) => res.sendFile(inAppIndexPage))
 
   // next api
-  require('./next/server')
+  require('./next/api/server')
   const nextApiProxy = createProxyMiddleware({
     target: 'http://127.0.0.1:4000',
     changeOrigin: true,

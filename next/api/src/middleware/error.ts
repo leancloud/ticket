@@ -15,7 +15,7 @@ export const catchYupError: Middleware = async (ctx, next) => {
 export const catchLCError: Middleware = async (ctx, next) => {
   try {
     await next();
-  } catch (error) {
+  } catch (error: any) {
     switch (error.code) {
       case 101:
       case 211:

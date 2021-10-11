@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Route, Switch, useRouteMatch } from 'react-router-dom';
 import { StringParam, useQueryParam } from 'use-query-params';
-import { isEqual, isNull, omitBy } from 'lodash';
+import { isEqual, isNull, omitBy } from 'lodash-es';
 
 import { useTickets } from 'api/ticket';
 import { usePage } from 'utils/usePage';

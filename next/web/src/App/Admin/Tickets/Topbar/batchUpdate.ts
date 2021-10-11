@@ -1,5 +1,5 @@
 import throat from 'throat';
-import { isEmpty } from 'lodash';
+import { isEmpty } from 'lodash-es';
 import { AxiosError } from 'axios';
 
 import { http } from 'leancloud';
