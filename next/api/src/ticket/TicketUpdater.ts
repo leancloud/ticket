@@ -184,7 +184,7 @@ export class TicketUpdater {
         })
         .catch((error) => {
           // TODO: Sentry
-          console.error('[ERROR] increase unread count failed, error:', error);
+          console.error('[ERROR] increase unread count failed:', error);
         });
     }
 

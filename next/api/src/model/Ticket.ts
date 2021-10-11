@@ -254,7 +254,7 @@ export class Ticket extends Model {
     userIds = userIds.filter((id) => id !== operator.id);
     await Notification.upsert(this.id, userIds, latestAction);
     if (this.authorId !== operator.id) {
-      await this.update({ unreadCount: commands.inc() });
+      await this.update({ unreadCount: commands.inc() }, operator.getAuthOptions());
     }
   }
 
