@@ -1,4 +1,4 @@
-import * as xss from "xss"
+import * as xss from 'xss';
 
 // get a copy of default whiteList
 const whiteList = xss.getDefaultWhiteList();
