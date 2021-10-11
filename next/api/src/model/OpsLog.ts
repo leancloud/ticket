@@ -1,4 +1,4 @@
-import { ACLBuilder, CreateData, Model, RawACL, field, pointerId, pointTo } from '../orm';
+import { ACLBuilder, CreateData, Model, RawACL, field, pointerId, pointTo } from '@/orm';
 import { Category } from './Category';
 import { Group } from './Group';
 import { Ticket } from './Ticket';

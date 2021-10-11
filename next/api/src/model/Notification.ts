@@ -1,7 +1,7 @@
 import _ from 'lodash';
 
-import notification from '../notification';
-import { commands, field, Model, pointerId, pointTo } from '../orm';
+import notification from '@/notification';
+import { commands, field, Model, pointerId, pointTo } from '@/orm';
 import { Ticket } from './Ticket';
 import { User } from './User';
 import { Watch } from './Watch';

@@ -1,4 +1,4 @@
-import { Config } from '../model/Config';
+import { Config } from '@/model/Config';
 
 export const config = {
   allowModifyEvaluation: boolean(process.env.ALLOW_MUTATE_EVALUATION),

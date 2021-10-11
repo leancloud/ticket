@@ -1,4 +1,4 @@
-import { TicketFilter } from '../model/TicketFilter';
+import { TicketFilter } from '@/model/TicketFilter';
 
 export class TicketFilterResponse {
   constructor(readonly ticketFilter: TicketFilter) {}

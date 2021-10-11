@@ -1,4 +1,4 @@
-import { Model, field } from '../orm';
+import { Model, field } from '@/orm';
 
 export interface Filters {
   assigneeIds?: string[];

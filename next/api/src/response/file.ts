@@ -1,4 +1,4 @@
-import { File } from '../model/File';
+import { File } from '@/model/File';
 
 export class FileResponse {
   constructor(readonly file: File) {}

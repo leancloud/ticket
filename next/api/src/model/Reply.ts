@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-import { Model, field, pointerId, pointTo, pointerIds, hasManyThroughPointerArray } from '../orm';
+import { Model, field, pointerId, pointTo, pointerIds, hasManyThroughPointerArray } from '@/orm';
 import { File } from './File';
 import { Ticket } from './Ticket';
 import { TinyUserInfo, User } from './User';

@@ -1,4 +1,4 @@
-import { Model, field, hasManyThroughRelation } from '../orm';
+import { Model, field, hasManyThroughRelation } from '@/orm';
 import { User } from './User';
 
 export class Role extends Model {

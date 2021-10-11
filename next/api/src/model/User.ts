@@ -2,10 +2,10 @@ import AV from 'leancloud-storage';
 import axios from 'axios';
 import _ from 'lodash';
 
-import { regions } from '../leancloud';
-import { config } from '../config';
-import { RedisCache } from '../cache';
-import { AuthOptions, Model, field } from '../orm';
+import { regions } from '@/leancloud';
+import { config } from '@/config';
+import { RedisCache } from '@/cache';
+import { AuthOptions, Model, field } from '@/orm';
 import { Role } from './Role';
 import { Vacation } from './Vacation';
 

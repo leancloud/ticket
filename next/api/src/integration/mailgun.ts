@@ -9,9 +9,9 @@ import notification, {
   DelayNotifyContext,
   NewTicketContext,
   ReplyTicketContext,
-} from '../notification';
-import { Ticket } from '../model/Ticket';
-import { User } from '../model/User';
+} from '@/notification';
+import { Ticket } from '@/model/Ticket';
+import { User } from '@/model/User';
 
 const mailgun = new Mailgun(formData);
 const payloadStringKeys = ['Subject', 'To', 'stripped-text', 'timestamp', 'token', 'signature'];

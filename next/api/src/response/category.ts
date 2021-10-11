@@ -1,5 +1,5 @@
-import { Category } from '../model/Category';
-import { TicketFieldVariant } from '../model/TicketFieldVariant';
+import { Category } from '@/model/Category';
+import { TicketFieldVariant } from '@/model/TicketFieldVariant';
 
 export class CategoryResponse {
   constructor(readonly category: Category) {}

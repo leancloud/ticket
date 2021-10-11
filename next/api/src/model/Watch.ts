@@ -1,4 +1,4 @@
-import { Model, pointerId } from '../orm';
+import { Model, pointerId } from '@/orm';
 import { Ticket } from './Ticket';
 import { User } from './User';
 
