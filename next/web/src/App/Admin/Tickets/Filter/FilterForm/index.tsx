@@ -1,6 +1,6 @@
 import { PropsWithChildren, useCallback, useEffect, useState } from 'react';
 import cx from 'classnames';
-import { isUndefined, omitBy } from 'lodash';
+import { isUndefined, omitBy } from 'lodash-es';
 
 import Form from 'components/Form';
 import Button from 'components/Button';

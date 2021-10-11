@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { QueryParamConfig, StringParam, useQueryParams } from 'use-query-params';
-import { compact, isUndefined, omitBy } from 'lodash';
+import { compact, isUndefined, omitBy } from 'lodash-es';
 
 export * from './FilterForm';
 export { FilterMenuTriggerPortal as FilterMenu } from './FilterMenu';

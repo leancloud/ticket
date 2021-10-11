@@ -2,7 +2,7 @@ import { ComponentPropsWithoutRef, memo, useMemo } from 'react';
 import { BsPersonPlus } from 'react-icons/bs';
 import cx from 'classnames';
 import moment from 'moment';
-import { keyBy } from 'lodash';
+import { keyBy } from 'lodash-es';
 
 import { TicketSchema } from 'api/ticket';
 import { CategorySchema, useCategories } from 'api/category';

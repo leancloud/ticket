@@ -6,7 +6,7 @@ import {
   useQuery,
   useQueryClient,
 } from 'react-query';
-import { castArray } from 'lodash';
+import { castArray } from 'lodash-es';
 
 import { http } from 'leancloud';
 
@@ -56,7 +56,7 @@ export type CreateTicketFilterData = Pick<
 export async function createTicketFilter(
   filter: CreateTicketFilterData
 ): Promise<TicketFilterSchema> {
-  const { data } = await http.post('/api/2/ticket-filters', filter);
+  const { data } = await http.post<any>('/api/2/ticket-filters', filter);
   return data;
 }
 
