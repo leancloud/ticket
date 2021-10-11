@@ -1,0 +1,49 @@
+{
+  "name": "tapdesk-api",
+  "private": true,
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "clean": "rm -rf dist",
+    "compile": "tsc -p tsconfig.json",
+    "build": "npm run clean && npm run compile",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dev": "NODE_ENV=development nodemon"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@koa/cors": "^3.1.0",
+    "@koa/router": "^10.1.1",
+    "@slack/web-api": "^6.4.0",
+    "axios": "^0.22.0",
+    "eventemitter3": "^4.0.7",
+    "form-data": "^4.0.0",
+    "highlight.js": "^11.2.0",
+    "ioredis": "^4.27.11",
+    "koa": "^2.13.3",
+    "koa-bodyparser": "^4.3.0",
+    "leancloud-storage": "^4.12.0",
+    "leanengine": "^3.8.0",
+    "lodash": "^4.17.21",
+    "mailgun.js": "^3.5.9",
+    "mem": "^8.1.1",
+    "quick-lru": "^5.1.1",
+    "remarkable": "^2.0.1",
+    "throat": "^6.0.1",
+    "yup": "^0.32.9"
+  },
+  "devDependencies": {
+    "@types/axios": "^0.14.0",
+    "@types/ioredis": "^4.27.6",
+    "@types/koa": "^2.13.4",
+    "@types/koa__cors": "^3.0.3",
+    "@types/koa__router": "^8.0.8",
+    "@types/koa-bodyparser": "^4.3.3",
+    "@types/lodash": "^4.14.175",
+    "@types/remarkable": "^2.0.3",
+    "nodemon": "^2.0.13",
+    "typescript": "^4.4.3"
+  }
+}

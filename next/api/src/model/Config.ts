@@ -13,7 +13,7 @@ export class Config extends Model {
         .where('key', '==', key)
         .first({ useMasterKey: true });
       if (config) {
-        console.log(`[Config] ${key}=${config.value}`);
+        console.log(`[Config] ${key} = ${config.value}`);
       }
       return config?.value;
     } catch (error) {
