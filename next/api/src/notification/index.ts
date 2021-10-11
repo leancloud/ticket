@@ -1,3 +1,5 @@
+import EventEmitter from 'eventemitter3';
+
 import type { Reply } from '../model/Reply';
 import type { Ticket } from '../model/Ticket';
 import type { User } from '../model/User';
@@ -29,30 +31,11 @@ export interface EventHandler {
   changeStatus: (ctx: ChangeStatusContext) => void;
 }
 
-export type EventType = keyof EventHandler;
+class Notification extends EventEmitter<EventHandler> {}
 
-const handlers: Record<string, ((ctx: any) => void)[]> = {};
+const notification = new Notification();
 
-function on<E extends EventType>(event: E, handler: EventHandler[E]) {
-  handlers[event] ??= [];
-  handlers[event]!.push(handler);
-}
-
-function emit<E extends EventType>(event: E, ctx: Parameters<EventHandler[E]>[0]) {
-  const errors: Error[] = [];
-  handlers[event]?.forEach((h) => {
-    try {
-      h(ctx);
-    } catch (error) {
-      errors.push(error as Error);
-    }
-  });
-  if (errors.length) {
-    const error = new Error(errors.map((e) => e.message).join('; '));
-    (error as any).errors = errors;
-    throw error;
-  }
-}
+export default notification;
 
 async function tryToGetTicketAssignee(ticket: Ticket): Promise<User | undefined> {
   if (ticket.assigneeId) {
@@ -71,7 +54,7 @@ export function notifyNewTicket(ticket: Ticket) {
       throw new Error(`Author ${ticket.authorId} is not exists`);
     }
     const assignee = await tryToGetTicketAssignee(ticket);
-    emit('newTicket', { ticket, from: author, to: assignee });
+    notification.emit('newTicket', { ticket, from: author, to: assignee });
   };
   task().catch((error) => {
     // TODO: Sentry
@@ -82,7 +65,7 @@ export function notifyNewTicket(ticket: Ticket) {
 export function notifyChangeAssignee(ticket: Ticket, from: User) {
   const task = async () => {
     const assignee = await tryToGetTicketAssignee(ticket);
-    emit('changeAssignee', { ticket, from, to: assignee });
+    notification.emit('changeAssignee', { ticket, from, to: assignee });
   };
   task().catch((error) => {
     // TODO: Sentry
@@ -93,12 +76,10 @@ export function notifyChangeAssignee(ticket: Ticket, from: User) {
 export function notifyTicketEvaluation(ticket: Ticket, from: User) {
   const task = async () => {
     const assignee = await tryToGetTicketAssignee(ticket);
-    emit('ticketEvaluation', { ticket, from, to: assignee });
+    notification.emit('ticketEvaluation', { ticket, from, to: assignee });
   };
   task().catch((error) => {
     // TODO: Sentry
     console.error(`[ERROR] Send ticket evaluation notification failed, error:`, error);
   });
 }
-
-export default { on, emit };
