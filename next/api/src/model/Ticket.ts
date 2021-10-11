@@ -192,6 +192,7 @@ export class Ticket extends Model {
       {
         ACL,
         content: data.content,
+        contentHTML: htmlify(data.content),
         ticket: this, // 避免后续重复获取
         ticketId: this.id,
         author: data.author, // 避免后续重复获取
@@ -201,7 +202,9 @@ export class Ticket extends Model {
         internal: data.internal || undefined,
       },
       {
-        currentUser: data.author,
+        ...data.author.getAuthOptions(),
+        ignoreBeforeHook: true,
+        ignoreAfterHook: true,
       }
     );
 

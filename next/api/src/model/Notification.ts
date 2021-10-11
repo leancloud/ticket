@@ -52,6 +52,9 @@ export class Notification extends Model {
     await Promise.all([
       this.createSome(
         unsavedUserIds.map((userId) => ({
+          ACL: {
+            [userId]: { read: true, write: true },
+          },
           ticketId,
           userId,
           latestAction,
@@ -72,15 +75,6 @@ export class Notification extends Model {
     ]);
   }
 }
-
-Notification.beforeCreate(({ data }) => {
-  if (!data.userId) {
-    throw new Error('The userId is required');
-  }
-  data.ACL = {
-    [data.userId]: { read: true, write: true },
-  };
-});
 
 notification.on('newTicket', ({ ticket }) => {
   if (ticket.assigneeId) {
