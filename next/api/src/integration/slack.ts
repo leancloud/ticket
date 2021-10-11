@@ -6,10 +6,10 @@ import notification, {
   NewTicketContext,
   ReplyTicketContext,
   TicketEvaluationContext,
-} from '../notification';
-import type { Reply } from '../model/Reply';
-import type { Ticket } from '../model/Ticket';
-import type { User } from '../model/User';
+} from '@/notification';
+import type { Reply } from '@/model/Reply';
+import type { Ticket } from '@/model/Ticket';
+import type { User } from '@/model/User';
 
 const token = process.env.SLACK_TOKEN;
 const channel = process.env.SLACK_CHANNEL; // broadcast target

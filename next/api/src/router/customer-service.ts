@@ -1,11 +1,11 @@
 import Router from '@koa/router';
 
-import { auth, customerServiceOnly } from '../middleware/auth';
-import { Group } from '../model/Group';
-import { Role } from '../model/Role';
-import { User } from '../model/User';
-import { GroupResponse } from '../response/group';
-import { UserResponse } from '../response/user';
+import { auth, customerServiceOnly } from '@/middleware/auth';
+import { Group } from '@/model/Group';
+import { Role } from '@/model/Role';
+import { User } from '@/model/User';
+import { GroupResponse } from '@/response/group';
+import { UserResponse } from '@/response/user';
 
 const router = new Router().use(auth, customerServiceOnly);
 

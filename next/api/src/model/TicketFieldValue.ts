@@ -1,4 +1,4 @@
-import { Model, field, pointerId, pointTo } from '../orm';
+import { Model, field, pointerId, pointTo } from '@/orm';
 import { Ticket } from './Ticket';
 
 export interface FieldValue {

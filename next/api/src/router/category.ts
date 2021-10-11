@@ -1,11 +1,11 @@
 import { Context } from 'koa';
 import Router from '@koa/router';
 
-import * as yup from '../utils/yup';
-import { auth } from '../middleware/auth';
-import { Category, CategoryManager } from '../model/Category';
-import { TicketForm } from '../model/TicketForm';
-import { CategoryResponse, CategoryFieldResponse } from '../response/category';
+import * as yup from '@/utils/yup';
+import { auth } from '@/middleware/auth';
+import { Category, CategoryManager } from '@/model/Category';
+import { TicketForm } from '@/model/TicketForm';
+import { CategoryResponse, CategoryFieldResponse } from '@/response/category';
 
 const router = new Router().use(auth);
 

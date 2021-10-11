@@ -1,4 +1,4 @@
-import { Model, field, pointTo, pointerId } from '../orm';
+import { Model, field, pointTo, pointerId } from '@/orm';
 import { User } from './User';
 
 export class Vacation extends Model {

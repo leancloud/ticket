@@ -1,5 +1,5 @@
-import xss from '../utils/xss';
-import { Ticket } from '../model/Ticket';
+import xss from '@/utils/xss';
+import { Ticket } from '@/model/Ticket';
 import { FileResponse } from './file';
 import { GroupResponse } from './group';
 import { UserResponse } from './user';

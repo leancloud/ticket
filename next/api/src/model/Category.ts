@@ -2,8 +2,8 @@ import mem from 'mem';
 import _ from 'lodash';
 import QuickLRU from 'quick-lru';
 
-import { redis } from '../cache';
-import { Model, field, pointerIds, pointerId, pointTo, serialize, SERIALIZE } from '../orm';
+import { redis } from '@/cache';
+import { Model, field, pointerIds, pointerId, pointTo, serialize, SERIALIZE } from '@/orm';
 import { FAQ } from './FAQ';
 import { Group } from './Group';
 import { TicketForm } from './TicketForm';

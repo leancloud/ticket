@@ -1,10 +1,10 @@
 import Router from '@koa/router';
-import { TicketFilterResponse } from '../response/ticket-filter';
 
-import { auth, customerServiceOnly } from '../middleware';
-import * as yup from '../utils/yup';
-import { QueryBuilder } from '../orm';
-import { TicketFilter } from '../model/TicketFilter';
+import { auth, customerServiceOnly } from '@/middleware';
+import * as yup from '@/utils/yup';
+import { QueryBuilder } from '@/orm';
+import { TicketFilter } from '@/model/TicketFilter';
+import { TicketFilterResponse } from '@/response/ticket-filter';
 
 const router = new Router().use(auth, customerServiceOnly);
 

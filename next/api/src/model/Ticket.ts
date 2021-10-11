@@ -1,7 +1,7 @@
 import _ from 'lodash';
 
-import { config } from '../config';
-import notification from '../notification';
+import { config } from '@/config';
+import notification from '@/notification';
 import {
   ACLBuilder,
   Model,
@@ -14,9 +14,9 @@ import {
   pointTo,
   hasManyThroughPointerArray,
   hasOne,
-} from '../orm';
-import { TicketUpdater } from '../ticket/TicketUpdater';
-import htmlify from '../utils/htmlify';
+} from '@/orm';
+import { TicketUpdater } from '@/ticket/TicketUpdater';
+import htmlify from '@/utils/htmlify';
 import { Category, CategoryManager } from './Category';
 import { File } from './File';
 import { Group } from './Group';

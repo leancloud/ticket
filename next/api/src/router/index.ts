@@ -1,6 +1,6 @@
 import Router from '@koa/router';
 
-import { catchLCError, catchYupError } from '../middleware/error';
+import { catchLCError, catchYupError } from '@/middleware/error';
 import ticket from './ticket';
 import category from './category';
 import group from './group';

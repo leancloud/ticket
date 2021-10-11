@@ -1,4 +1,4 @@
-import { field, Model } from '../orm';
+import { field, Model } from '@/orm';
 
 export class File extends Model {
   protected static className = '_File';

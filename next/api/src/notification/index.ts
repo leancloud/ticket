@@ -1,8 +1,8 @@
 import EventEmitter from 'eventemitter3';
 
-import type { Reply } from '../model/Reply';
-import type { Ticket } from '../model/Ticket';
-import type { User } from '../model/User';
+import type { Reply } from '@/model/Reply';
+import type { Ticket } from '@/model/Ticket';
+import type { User } from '@/model/User';
 
 export interface NewTicketContext {
   ticket: Ticket;

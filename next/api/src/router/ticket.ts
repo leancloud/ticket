@@ -1,20 +1,20 @@
 import Router from '@koa/router';
 import _ from 'lodash';
 
-import { config } from '../config';
-import * as yup from '../utils/yup';
-import { SortItem, auth, include, parseRange, sort } from '../middleware';
-import { Model, QueryBuilder } from '../orm';
-import { Category, CategoryManager } from '../model/Category';
-import { Group } from '../model/Group';
-import { Organization } from '../model/Organization';
-import { Reply } from '../model/Reply';
-import { Ticket } from '../model/Ticket';
-import { User } from '../model/User';
-import { TicketResponse, TicketListItemResponse } from '../response/ticket';
-import { ReplyResponse } from '../response/reply';
-import { Vacation } from '../model/Vacation';
-import { TicketCreator, TicketUpdater } from '../ticket';
+import { config } from '@/config';
+import * as yup from '@/utils/yup';
+import { SortItem, auth, include, parseRange, sort } from '@/middleware';
+import { Model, QueryBuilder } from '@/orm';
+import { Category, CategoryManager } from '@/model/Category';
+import { Group } from '@/model/Group';
+import { Organization } from '@/model/Organization';
+import { Reply } from '@/model/Reply';
+import { Ticket } from '@/model/Ticket';
+import { User } from '@/model/User';
+import { TicketResponse, TicketListItemResponse } from '@/response/ticket';
+import { ReplyResponse } from '@/response/reply';
+import { Vacation } from '@/model/Vacation';
+import { TicketCreator, TicketUpdater } from '@/ticket';
 
 const router = new Router().use(auth);
 

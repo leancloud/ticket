@@ -1,15 +1,15 @@
 import _ from 'lodash';
 
-import { Category } from '../model/Category';
-import { Group } from '../model/Group';
-import { OpsLogCreator } from '../model/OpsLog';
-import { Organization } from '../model/Organization';
-import { Ticket } from '../model/Ticket';
-import { FieldValue, TicketFieldValue } from '../model/TicketFieldValue';
-import { User, systemUser } from '../model/User';
-import { notifyNewTicket } from '../notification';
-import { ACLBuilder } from '../orm';
-import htmlify from '../utils/htmlify';
+import { Category } from '@/model/Category';
+import { Group } from '@/model/Group';
+import { OpsLogCreator } from '@/model/OpsLog';
+import { Organization } from '@/model/Organization';
+import { Ticket } from '@/model/Ticket';
+import { FieldValue, TicketFieldValue } from '@/model/TicketFieldValue';
+import { User, systemUser } from '@/model/User';
+import { notifyNewTicket } from '@/notification';
+import { ACLBuilder } from '@/orm';
+import htmlify from '@/utils/htmlify';
 
 export class TicketCreator {
   private author?: User;

@@ -1,4 +1,4 @@
-import { Model, field, pointerId, pointTo } from '../orm';
+import { Model, field, pointerId, pointTo } from '@/orm';
 import { TicketField, presetTicketFields } from './TicketField';
 
 export interface Option {

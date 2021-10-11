@@ -1,14 +1,14 @@
 import AV from 'leanengine';
 import _ from 'lodash';
 
-import { Category } from '../model/Category';
-import { Group } from '../model/Group';
-import { OperateAction, OpsLogCreator } from '../model/OpsLog';
-import { Organization } from '../model/Organization';
-import { Evaluation, STATUS, Tag, Ticket } from '../model/Ticket';
-import { systemUser, User } from '../model/User';
-import { notifyChangeAssignee, notifyTicketEvaluation } from '../notification';
-import { commands, UpdateData } from '../orm';
+import { Category } from '@/model/Category';
+import { Group } from '@/model/Group';
+import { OperateAction, OpsLogCreator } from '@/model/OpsLog';
+import { Organization } from '@/model/Organization';
+import { Evaluation, STATUS, Tag, Ticket } from '@/model/Ticket';
+import { systemUser, User } from '@/model/User';
+import { notifyChangeAssignee, notifyTicketEvaluation } from '@/notification';
+import { commands, UpdateData } from '@/orm';
 
 export class TicketUpdater {
   private organization?: Organization | null;

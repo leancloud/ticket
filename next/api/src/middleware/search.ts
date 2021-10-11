@@ -1,6 +1,6 @@
 import { Middleware } from 'koa';
 
-import { Field, parse as parseQ } from '../utils/search';
+import { Field, parse as parseQ } from '@/utils/search';
 
 export interface Searching {
   text: string[];

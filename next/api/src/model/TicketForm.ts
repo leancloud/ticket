@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-import { Model, field, hasManyThroughIdArray } from '../orm';
+import { Model, field, hasManyThroughIdArray } from '@/orm';
 import { TicketField, presetTicketFields } from './TicketField';
 import { TicketFieldVariant, presetTicketFieldVariants } from './TicketFieldVariant';
 

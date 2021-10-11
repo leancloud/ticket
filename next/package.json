@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "",
   "scripts": {
-    "postinstall": "npm run build:api",
+    "postinstall": "npm run build",
     "build:api": "cd api && npm ci && npm run build",
     "build:web": "cd web && npm ci && npm run build",
     "build": "npm run build:api && npm run build:web"

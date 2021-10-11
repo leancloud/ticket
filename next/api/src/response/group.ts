@@ -1,4 +1,4 @@
-import { Group } from '../model/Group';
+import { Group } from '@/model/Group';
 
 export class GroupResponse {
   constructor(readonly group: Group) {}
