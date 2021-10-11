@@ -15,7 +15,7 @@
       "components/*": ["src/components/*"],
       "utils/*": ["src/utils/*"]
     },
-    "typeRoots": ["../node_modules/@types"],
+    "typeRoots": ["./node_modules/@types"],
     "skipLibCheck": true,
     "resolveJsonModule": true
   },
