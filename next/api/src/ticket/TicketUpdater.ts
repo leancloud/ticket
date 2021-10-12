@@ -7,7 +7,7 @@ import { OperateAction, OpsLogCreator } from '@/model/OpsLog';
 import { Organization } from '@/model/Organization';
 import { Evaluation, STATUS, Tag, Ticket } from '@/model/Ticket';
 import { systemUser, User } from '@/model/User';
-import { notifyChangeAssignee, notifyTicketEvaluation } from '@/notification';
+import events from '@/events';
 import { commands, UpdateData } from '@/orm';
 
 export class TicketUpdater {
@@ -142,15 +142,6 @@ export class TicketUpdater {
     await this.opsLogCreator.create();
   }
 
-  private sendNotification(ticket: Ticket, operator: User) {
-    if (this.data.assigneeId !== undefined) {
-      notifyChangeAssignee(ticket, operator);
-    }
-    if (this.data.evaluation) {
-      notifyTicketEvaluation(ticket, operator);
-    }
-  }
-
   async update(operator: User): Promise<Ticket> {
     if (!this.isUpdated()) {
       return this.ticket;
@@ -171,7 +162,31 @@ export class TicketUpdater {
       console.error('[ERROR] Create OpsLog failed, error:', error);
     });
 
-    this.sendNotification(ticket, operator);
+    events.emit('ticket:updated', {
+      originalTicket: {
+        id: this.ticket.id,
+        nid: this.ticket.nid,
+        categoryId: this.ticket.categoryId,
+        authorId: this.ticket.authorId,
+        organizationId: this.ticket.organizationId,
+        assigneeId: this.ticket.assigneeId,
+        groupId: this.ticket.groupId,
+        title: this.ticket.title,
+        content: this.ticket.content,
+        status: this.ticket.status,
+        createdAt: this.ticket.createdAt.toISOString(),
+        updatedAt: this.ticket.updatedAt.toISOString(),
+      },
+      data: {
+        categoryId: this.data.categoryId ?? undefined,
+        organizationId: this.data.organizationId,
+        assigneeId: this.data.assigneeId,
+        groupId: this.data.groupId,
+        evaluation: this.data.evaluation ?? undefined,
+        status: this.data.status as number | undefined,
+      },
+      currentUserId: operator.id,
+    });
 
     if (this.ticket.isClosed() !== ticket.isClosed()) {
       // 客服关闭或重新打开工单时增加 unreadCount

@@ -1,7 +1,7 @@
 import _ from 'lodash';
 
 import { config } from '@/config';
-import notification from '@/notification';
+import events from '@/events';
 import {
   ACLBuilder,
   Model,
@@ -228,16 +228,19 @@ export class Ticket extends Model {
 
       await this.update(updateData, data.author.getAuthOptions());
 
-      this.load(isCustomerService ? 'author' : 'assignee', { useMasterKey: true })
-        .then((to) => {
-          notification.emit('replyTicket', {
-            ticket: this,
-            reply,
-            from: data.author,
-            to,
-          });
-        })
-        .catch(console.error); // TODO: Sentry
+      events.emit('reply:created', {
+        reply: {
+          id: reply.id,
+          ticketId: this.id,
+          authorId: reply.authorId,
+          content: reply.content,
+          isCustomerService: reply.isCustomerService,
+          internal: !!reply.internal,
+          createdAt: reply.createdAt.toISOString(),
+          updatedAt: reply.updatedAt.toISOString(),
+        },
+        currentUserId: data.author.id,
+      });
     }
 
     return reply;
@@ -254,7 +257,7 @@ export class Ticket extends Model {
     userIds = userIds.filter((id) => id !== operator.id);
     await Notification.upsert(this.id, userIds, latestAction);
     if (this.authorId !== operator.id) {
-      await this.update({ unreadCount: commands.inc() }, operator.getAuthOptions());
+      await this.update({ unreadCount: commands.inc() }, { useMasterKey: true });
     }
   }
 

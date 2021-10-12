@@ -1,10 +1,8 @@
 import _ from 'lodash';
 
-import notification from '@/notification';
 import { commands, field, Model, pointerId, pointTo } from '@/orm';
 import { Ticket } from './Ticket';
 import { User } from './User';
-import { Watch } from './Watch';
 
 export type LatestAction =
   | 'newTicket'
@@ -77,42 +75,3 @@ export class Notification extends Model {
     ]);
   }
 }
-
-notification.on('newTicket', ({ ticket }) => {
-  if (ticket.assigneeId) {
-    Notification.create({
-      latestAction: 'newTicket',
-      ticketId: ticket.id,
-      userId: ticket.assigneeId,
-      unreadCount: 1,
-    }).catch(console.error); // TODO: Sentry
-  }
-});
-
-notification.on('replyTicket', async ({ ticket, from, to }) => {
-  const watches = await Watch.queryBuilder()
-    .where('ticket', '==', ticket.toPointer())
-    .find({ useMasterKey: true });
-
-  const userIds = watches.map((w) => w.userId).filter((id) => id !== from.id);
-  if (to) {
-    userIds.push(to.id);
-  }
-
-  // TODO: Sentry
-  Notification.upsert(ticket.id, userIds, 'reply').catch(console.log);
-});
-
-notification.on('changeAssignee', ({ ticket, to }) => {
-  if (to) {
-    // TODO: Sentry
-    Notification.upsert(ticket.id, [to.id], 'changeAssignee').catch(console.error);
-  }
-});
-
-notification.on('ticketEvaluation', ({ ticket, to }) => {
-  if (to) {
-    // TODO: Sentry
-    Notification.upsert(ticket.id, [to.id], 'ticketEvaluation').catch(console.error);
-  }
-});

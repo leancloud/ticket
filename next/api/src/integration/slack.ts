@@ -1,7 +1,7 @@
 import { WebClient } from '@slack/web-api';
 
 import notification, {
-  ChangeStatusContext,
+  ChangeAssigneeContext,
   DelayNotifyContext,
   NewTicketContext,
   ReplyTicketContext,
@@ -171,7 +171,7 @@ class SlackIntegration {
     this.broadcast(message);
   };
 
-  sendChangeAssignee = ({ ticket, from, to }: ChangeStatusContext) => {
+  sendChangeAssignee = ({ ticket, from, to }: ChangeAssigneeContext) => {
     const message = new ChangeAssigneeMessage(ticket, from, to);
     if (to?.email) {
       this.sendToUser(to.email, message);

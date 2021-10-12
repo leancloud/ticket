@@ -10,7 +10,6 @@ import { router as integrationRouter } from './integration';
 import notification from './notification';
 import { OpsLog } from './model/OpsLog';
 import { Ticket } from './model/Ticket';
-import { systemUser } from './model/User';
 
 export const app = new Koa();
 
@@ -59,7 +58,6 @@ export async function tickDelayNotify() {
     .where('status', 'in', [Ticket.STATUS.NEW, Ticket.STATUS.WAITING_CUSTOMER_SERVICE])
     .where('updatedAt', '<=', deadline)
     .where('assignee', 'exists')
-    .preload('assignee')
     .find({ useMasterKey: true });
 
   const run = throat(5);
@@ -75,7 +73,7 @@ export async function tickDelayNotify() {
       ) {
         return;
       }
-      notification.emit('delayNotify', { ticket, from: systemUser, to: ticket.assignee });
+      notification.notifyDelayNotify({ ticketId: ticket.id });
     });
   }
 }
