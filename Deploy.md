@@ -74,3 +74,9 @@
 > lean cache
 > del categories
 ```
+
+## 2021-10-12
+
+### `60a95c84d057f2d68f1f437f0ca7020fe517eba9`
+
+创建一个名为 `QUEUE` 的 Redis 实例，数据删除策略选择 `noeviction`。
