@@ -216,6 +216,8 @@ export class Ticket extends Model {
       const updateData: UpdateData<Ticket> = {
         latestReply: reply.getTinyInfo(),
         replyCount: commands.inc(),
+        // XXX: 适配加速器的使用场景
+        unreadCount: commands.inc(),
       };
       if (isCustomerService && data.author !== systemUser) {
         updateData.joinedCustomerServices = commands.pushUniq(data.author.getTinyInfo());
@@ -256,21 +258,15 @@ export class Ticket extends Model {
     }
     userIds = userIds.filter((id) => id !== operator.id);
     await Notification.upsert(this.id, userIds, latestAction);
-    if (this.authorId !== operator.id) {
-      await this.update({ unreadCount: commands.inc() }, { useMasterKey: true });
-    }
   }
 
-  async resetUnreadCount(this: Ticket, user: User, force = false) {
+  async resetUnreadCount(this: Ticket, user: User) {
     const notification = await Notification.queryBuilder()
       .where('ticket', '==', this.toPointer())
       .where('user', '==', user.toPointer())
       .first(user);
     if (notification?.unreadCount) {
       await notification.update({ unreadCount: 0 }, user.getAuthOptions());
-    }
-    if ((this.authorId === user.id && this.unreadCount) || force) {
-      await this.update({ unreadCount: 0 });
     }
   }
 

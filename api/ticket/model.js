@@ -4,7 +4,6 @@ const { ticketStatus, TICKET_STATUS } = require('../../lib/common')
 const { getTinyCategoryInfo } = require('../category/utils')
 const { htmlify } = require('../common')
 const { saveWithoutHooks } = require('../utils/object')
-const notification = require('../notification')
 const { getTinyGroupInfo } = require('../group/utils')
 const { systemUser, makeTinyUserInfo, getTinyUserInfo } = require('../user/utils')
 const { captureException } = require('../errorHandler')
@@ -170,6 +169,11 @@ class Ticket {
     /**
      * @private
      */
+    this._unreadCountIncrement = 0
+
+    /**
+     * @private
+     */
     this._customerServicesToJoin = undefined
 
     /**
@@ -260,8 +264,6 @@ class Ticket {
     if (fired) {
       await ticket.save()
     }
-
-    notification.newTicket(obj, data.author, assignee)
 
     invokeWebhooks('ticket.create', { ticket: obj.toJSON() })
 
@@ -420,6 +422,10 @@ class Ticket {
     this._replyCountIncrement += amount
   }
 
+  increaseUnreadCount(amount = 1) {
+    this._unreadCountIncrement += amount
+  }
+
   joinCustomerService(user) {
     if (this._customerServicesToJoin) {
       throw new Error('Has unsaved joined customer service')
@@ -457,7 +463,9 @@ class Ticket {
     }
 
     if (this.isUpdated('organization_id')) {
-      if (this.organization_id) {
+      if (this.organization_id === '') {
+        object.unset('organization')
+      } else {
         object.set(
           'organization',
           AV.Object.createWithoutData('Organization', this.organization_id)
@@ -488,6 +496,10 @@ class Ticket {
 
     if (this._replyCountIncrement) {
       object.increment('replyCount', this._replyCountIncrement)
+    }
+
+    if (this._unreadCountIncrement) {
+      object.increment('unreadCount', this._unreadCountIncrement)
     }
 
     if (this._customerServicesToJoin) {
@@ -548,40 +560,6 @@ class Ticket {
         assignee: assigneeInfo,
         operator: operatorInfo,
       })
-      if (operator.id !== 'system') {
-        // 适配 notification 使用的数据结构
-        const ticket = AV.Object.createWithoutData('Ticket', this.id)
-        ticket.attributes = {
-          nid: this.nid,
-          title: this.title,
-          content: this.content,
-          latestReply: this.latest_reply,
-        }
-        if (!this.assignee_id) {
-          notification.changeAssignee(ticket, operator, undefined)
-        } else {
-          const assignee = AV.Object.createWithoutData('_User', this.assignee_id)
-          assignee.attributes = assigneeInfo
-          notification.changeAssignee(ticket, operator, assignee)
-        }
-      }
-    }
-
-    if (this.isUpdated('evaluation')) {
-      this.getAssigneeInfo()
-        .then((assigneeInfo) => {
-          // 适配 notification 使用的数据结构
-          const ticket = AV.Object.createWithoutData('Ticket', this.id)
-          ticket.attributes = {
-            nid: this.nid,
-            title: this.title,
-            evaluation: this.evaluation,
-          }
-          const assignee = AV.Object.createWithoutData('_User', this.assignee_id)
-          assignee.attributes = assigneeInfo
-          return notification.ticketEvaluation(ticket, operator, assignee)
-        })
-        .catch(captureException)
     }
 
     if (this.isUpdated('status') && ticketStatus.isClosed(this.status)) {
@@ -688,6 +666,8 @@ class Ticket {
 
       if (data.isCustomerService) {
         this.joinCustomerService(replyAuthorInfo)
+        // XXX: 适配加速器的使用场景
+        this.increaseUnreadCount(1)
       }
       if (this.status < TICKET_STATUS.FULFILLED) {
         this.status = data.isCustomerService
@@ -696,22 +676,6 @@ class Ticket {
       }
 
       this.save({ operator: data.author }).catch(captureException)
-
-      Promise.all([this.getAuthorInfo(), this.getAssigneeInfo()])
-        .then(([authorInfo, assigneeInfo]) => {
-          // 适配 notification 使用的数据结构
-          const author = AV.Object.createWithoutData('_User', this.author_id)
-          author.attributes = authorInfo
-          let assignee = undefined
-          if (this.assignee_id) {
-            assignee = AV.Object.createWithoutData('_User', this.assignee_id)
-            assignee.attributes = assigneeInfo
-          }
-          const ticket = AV.Object.createWithoutData('Ticket', this.id)
-          ticket.attributes = { author, assignee, nid: this.nid, title: this.title }
-          return notification.replyTicket(ticket, reply, data.author)
-        })
-        .catch(console.error)
     }
 
     return reply
@@ -748,17 +712,8 @@ class Ticket {
       if (operator.id !== 'system') {
         this.joinCustomerService(operatorInfo)
       }
-      if (ticketStatus.isOpened(status) !== ticketStatus.isOpened(this.status)) {
-        // 适配 notification 使用的数据结构
-        const author = AV.Object.createWithoutData('_User', this.author_id)
-        let assignee = undefined
-        if (this.assignee_id) {
-          assignee = AV.Object.createWithoutData('_User', this.assignee_id)
-        }
-        const ticket = AV.Object.createWithoutData('Ticket', this.id)
-        ticket.attributes = { author, assignee, nid: this.nid, title: this.title }
-        notification.changeStatus(ticket, operator).catch(console.error)
-      }
+      // XXX: 适配加速器的使用场景
+      this.increaseUnreadCount(1)
     }
 
     this.status = status
