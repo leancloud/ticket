@@ -2,9 +2,9 @@ const _ = require('lodash')
 const AV = require('leanengine')
 const throat = require('throat').default
 
+const events = require('../next/api/dist/events').default
 const { getTinyUserInfo, htmlify, getTinyReplyInfo, isCustomerService } = require('./common')
 const { checkPermission } = require('../oauth/lc')
-const notification = require('./notification')
 const {
   TICKET_ACTION,
   TICKET_STATUS,
@@ -47,6 +47,53 @@ AV.Cloud.beforeSave('Ticket', async (req) => {
   }
 })
 
+/**
+ * @param {AV.Object} ticket
+ */
+function ticketObjectToEventTicket(ticket) {
+  return {
+    id: ticket.id,
+    nid: ticket.get('nid'),
+    categoryId: ticket.get('category').objectId,
+    authorId: ticket.get('author').id,
+    organizationId: ticket.get('organization')?.id,
+    assigneeId: ticket.get('assignee')?.id,
+    groupId: ticket.get('group')?.id,
+    title: ticket.get('title'),
+    content: ticket.get('content'),
+    status: ticket.get('status'),
+    createdAt: ticket.createdAt.toISOString(),
+    updatedAt: ticket.updatedAt.toISOString(),
+  }
+}
+
+/**
+ * @param {AV.Object} ticket
+ * @param {string[]} updatedKeys
+ */
+function getUpdateEventData(ticket, updatedKeys) {
+  const data = {}
+  if (updatedKeys.includes('category')) {
+    data.categoryId = ticket.get('category').objectId
+  }
+  if (updatedKeys.includes('organization')) {
+    data.organizationId = ticket.get('organization')?.id ?? null
+  }
+  if (updatedKeys.includes('assignee')) {
+    data.assigneeId = ticket.get('assignee')?.id ?? null
+  }
+  if (updatedKeys.includes('group')) {
+    data.groupId = ticket.get('group')?.id ?? null
+  }
+  if (updatedKeys.includes('evaluation')) {
+    data.evaluation = ticket.get('evaluation')
+  }
+  if (updatedKeys.includes('status')) {
+    data.status = ticket.get('status')
+  }
+  return data
+}
+
 AV.Cloud.afterSave('Ticket', async (req) => {
   const ticket = req.object
   if (ticket.get('assignee')) {
@@ -59,12 +106,20 @@ AV.Cloud.afterSave('Ticket', async (req) => {
       .save(null, { useMasterKey: true })
       .catch(errorHandler.captureException)
   }
-  notification.newTicket(ticket, req.currentUser, ticket.get('assignee'))
+
   invokeWebhooks('ticket.create', { ticket: ticket.toJSON() })
+
+  events.emit('ticket:created', {
+    ticket: ticketObjectToEventTicket(ticket),
+    currentUserId: req.currentUser.id,
+  })
 })
 
 AV.Cloud.beforeUpdate('Ticket', async (req) => {
   const ticket = req.object
+  const originalTicket = AV.Object.createWithoutData('Ticket', ticket.id)
+  await originalTicket.fetch({}, { useMasterKey: true })
+
   if (ticket.updatedKeys.includes('assignee')) {
     if (ticket.get('assignee')) {
       const vacationerIds = await getVacationerIds()
@@ -73,6 +128,12 @@ AV.Cloud.beforeUpdate('Ticket', async (req) => {
       }
     }
   }
+
+  events.emit('ticket:updated', {
+    originalTicket: ticketObjectToEventTicket(originalTicket),
+    data: getUpdateEventData(ticket, ticket.updatedKeys),
+    currentUserId: req.currentUser.id,
+  })
 })
 
 AV.Cloud.afterUpdate('Ticket', async (req) => {
@@ -92,13 +153,6 @@ AV.Cloud.afterUpdate('Ticket', async (req) => {
   if (updatedKeys.has('assignee')) {
     const assigneeInfo = await getTinyUserInfo(ticket.get('assignee'))
     addOpsLog('changeAssignee', { assignee: assigneeInfo })
-    notification.changeAssignee(ticket, req.currentUser, ticket.get('assignee'))
-  }
-
-  if (updatedKeys.has('evaluation')) {
-    // use side effect
-    await getTinyUserInfo(ticket.get('assignee'))
-    notification.ticketEvaluation(ticket, req.currentUser, ticket.get('assignee'))
   }
 
   if (updatedKeys.has('status') && ticketStatus.isClosed(ticket.get('status'))) {
@@ -192,6 +246,20 @@ AV.Cloud.define('resetTicketUnreadCount', async (req) => {
 })
 
 exports.replyTicket = (ticket, reply, replyAuthor) => {
+  events.emit('reply:created', {
+    reply: {
+      id: reply.id,
+      ticketId: ticket.id,
+      authorId: reply.get('author').id,
+      content: reply.get('content'),
+      isCustomerService: reply.get('isCustomerService'),
+      internal: false,
+      createdAt: reply.createdAt.toISOString(),
+      updatedAt: reply.updatedAt.toISOString(),
+    },
+    currentUserId: replyAuthor.id,
+  })
+
   return Promise.all([
     ticket.fetch({ include: 'author,assignee' }, { user: replyAuthor }),
     getTinyReplyInfo(reply),
@@ -207,12 +275,6 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
         ticket.set('status', TICKET_STATUS.WAITING_CUSTOMER_SERVICE)
       }
       return ticket.save(null, { user: replyAuthor })
-    })
-    .then((ticket) => {
-      return notification.replyTicket(ticket, reply, replyAuthor)
-    })
-    .then(() => {
-      return ticket
     })
     .catch(errorHandler.captureException)
 }

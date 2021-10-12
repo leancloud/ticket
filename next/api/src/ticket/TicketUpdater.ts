@@ -102,8 +102,12 @@ export class TicketUpdater {
         break;
     }
 
-    if (isCustomerService && operator !== systemUser) {
-      this.data.joinedCustomerServices = commands.pushUniq(operator.getTinyInfo());
+    if (isCustomerService) {
+      if (operator !== systemUser) {
+        this.data.joinedCustomerServices = commands.pushUniq(operator.getTinyInfo());
+      }
+      // XXX: 适配加速器的使用场景
+      this.data.unreadCount = commands.inc();
     }
     this.opsLogCreator.operate(action, operator);
 

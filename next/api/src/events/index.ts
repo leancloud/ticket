@@ -57,4 +57,12 @@ export interface EventTypes {
   'reply:created': (ctx: ReplyCreatedCtx) => void;
 }
 
-export default new EventEmitter<EventTypes>();
+const events = new EventEmitter<EventTypes>();
+
+if (process.env.NODE_ENV !== 'production') {
+  events.on('ticket:created', (ctx) => console.log('[Events] ticket:created', ctx));
+  events.on('ticket:updated', (ctx) => console.log('[Events] ticket:updated', ctx));
+  events.on('reply:created', (ctx) => console.log('[Events] reply:created', ctx));
+}
+
+export default events;

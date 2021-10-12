@@ -2,6 +2,8 @@ const _ = require('lodash')
 const AV = require('leanengine')
 const { Router } = require('express')
 const { check, query } = require('express-validator')
+
+const events = require('../../next/api/dist/events').default
 const { captureException } = require('../errorHandler')
 const { checkPermission } = require('../../oauth/lc')
 const { requireAuth, catchError, parseSearchingQ, customerServiceOnly } = require('../middleware')
@@ -58,6 +60,26 @@ async function isCSInTicket(user, author) {
   return userId !== authorId && (await isCustomerService(userId))
 }
 
+/**
+ * @param {Ticket} ticket
+ */
+function getEventTicket(ticket) {
+  return {
+    id: ticket.id,
+    nid: ticket.nid,
+    categoryId: ticket.category_id,
+    authorId: ticket.author_id,
+    organizationId: ticket.organization_id,
+    assigneeId: ticket._assigneeId,
+    groupId: ticket._groupId,
+    title: ticket.title,
+    content: ticket.content,
+    status: ticket.status,
+    createdAt: ticket.created_at.toISOString(),
+    updatedAt: ticket.updated_at.toISOString(),
+  }
+}
+
 router.post(
   '/',
   check('title').isString().trim().isLength({ min: 1 }),
@@ -96,6 +118,12 @@ router.post(
     if (form_values) {
       await ticket.saveFormValues(form_values)
     }
+
+    events.emit('ticket:created', {
+      ticket: getEventTicket(ticket),
+      currentUserId: req.user.id,
+    })
+
     res.json({ id: ticket.id })
   })
 )
@@ -426,6 +454,21 @@ router.post(
       internal,
       isCustomerService,
     })
+
+    events.emit('reply:created', {
+      reply: {
+        id: reply.id,
+        ticketId: ticket.id,
+        authorId: author.id,
+        content: content,
+        isCustomerService: isCustomerService,
+        internal: !!internal,
+        createdAt: reply.createdAt.toISOString(),
+        updatedAt: reply.updatedAt.toISOString(),
+      },
+      currentUserId: req.user.id,
+    })
+
     res.json(encodeReplyObject(reply))
   })
 )
@@ -496,7 +539,7 @@ router.get(
 
 router.patch(
   '/:id',
-  check('group_id').isString().optional({ nullable: true }),
+  check('group_id').isString().optional(),
   check('assignee_id').isString().optional(),
   check('category_id').isString().optional(),
   check('organization_id').isString().optional(),
@@ -529,6 +572,7 @@ router.patch(
       subscribed,
     } = req.body
     const ticket = new Ticket(req.ticket)
+    const originalTicket = getEventTicket(ticket)
 
     const isCS = await isCSInTicket(req.user, ticket.author_id)
 
@@ -621,6 +665,18 @@ router.patch(
 
     await ticket.save({ operator: req.user })
 
+    events.emit('ticket:updated', {
+      originalTicket,
+      data: {
+        categoryId: category_id,
+        organizationId: organization_id === '' ? null : organization_id,
+        assigneeId: assignee_id === '' ? null : assignee_id,
+        groupId: group_id === '' ? null : group_id,
+        evaluation: evaluation,
+      },
+      currentUserId: req.user.id,
+    })
+
     res.json({})
   })
 )
@@ -632,11 +688,22 @@ router.post(
     .custom((action) => Object.values(TICKET_ACTION).includes(action)),
   catchError(async (req, res) => {
     const ticket = new Ticket(req.ticket)
+    const originalTicket = getEventTicket(ticket)
+
     ticket.operate(req.body.action, {
       isCustomerService: await isCSInTicket(req.user, ticket.author_id),
       operator: req.user,
     })
     await ticket.save({ operator: req.user })
+
+    events.emit('ticket:updated', {
+      originalTicket,
+      data: {
+        status: ticket.status,
+      },
+      currentUserId: req.user.id,
+    })
+
     res.json({})
   })
 )
