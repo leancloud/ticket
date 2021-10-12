@@ -82,7 +82,7 @@ function getUpdateEventData(ticket, updatedKeys) {
   if (updatedKeys.includes('assignee')) {
     data.assigneeId = ticket.get('assignee')?.id ?? null
   }
-  if (updatedKeys.include('group')) {
+  if (updatedKeys.includes('group')) {
     data.groupId = ticket.get('group')?.id ?? null
   }
   if (updatedKeys.includes('evaluation')) {
@@ -117,6 +117,9 @@ AV.Cloud.afterSave('Ticket', async (req) => {
 
 AV.Cloud.beforeUpdate('Ticket', async (req) => {
   const ticket = req.object
+  const originalTicket = AV.Object.createWithoutData('Ticket', ticket.id)
+  await originalTicket.fetch({}, { useMasterKey: true })
+
   if (ticket.updatedKeys.includes('assignee')) {
     if (ticket.get('assignee')) {
       const vacationerIds = await getVacationerIds()
@@ -126,17 +129,11 @@ AV.Cloud.beforeUpdate('Ticket', async (req) => {
     }
   }
 
-  AV.Object.createWithoutData('Ticket', ticket.id)
-    .fetch({}, { useMasterKey: true })
-    .then((originalTicket) => {
-      events.emit('ticket:updated', {
-        originalTicket: ticketObjectToEventTicket(originalTicket),
-        data: getUpdateEventData(ticket, ticket.updatedKeys),
-        currentUserId: req.currentUser.id,
-      })
-      return
-    })
-    .catch(console.error)
+  events.emit('ticket:updated', {
+    originalTicket: ticketObjectToEventTicket(originalTicket),
+    data: getUpdateEventData(ticket, ticket.updatedKeys),
+    currentUserId: req.currentUser.id,
+  })
 })
 
 AV.Cloud.afterUpdate('Ticket', async (req) => {
@@ -249,6 +246,20 @@ AV.Cloud.define('resetTicketUnreadCount', async (req) => {
 })
 
 exports.replyTicket = (ticket, reply, replyAuthor) => {
+  events.emit('reply:created', {
+    reply: {
+      id: reply.id,
+      ticketId: ticket.id,
+      authorId: reply.get('author').id,
+      content: reply.get('content'),
+      isCustomerService: reply.get('isCustomerService'),
+      internal: false,
+      createdAt: reply.createdAt.toISOString(),
+      updatedAt: reply.updatedAt.toISOString(),
+    },
+    currentUserId: replyAuthor.id,
+  })
+
   return Promise.all([
     ticket.fetch({ include: 'author,assignee' }, { user: replyAuthor }),
     getTinyReplyInfo(reply),
