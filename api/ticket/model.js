@@ -9,7 +9,6 @@ const { systemUser, makeTinyUserInfo, getTinyUserInfo } = require('../user/utils
 const { captureException } = require('../errorHandler')
 const { invokeWebhooks } = require('../webhook')
 const { selectAssignee, getActionStatus, selectGroup } = require('./utils')
-const { Triggers } = require('../rule/trigger')
 const { fetchCategoryMap } = require('../category/utils')
 
 const KEY_MAP = {
@@ -254,16 +253,6 @@ class Ticket {
       )
     }
     ticket.saveOpsLogs().catch(captureException)
-
-    const triggers = await Triggers.get()
-    const fired = await triggers.exec({
-      ticket,
-      update_type: 'create',
-      operator_id: data.author.id,
-    })
-    if (fired) {
-      await ticket.save()
-    }
 
     invokeWebhooks('ticket.create', { ticket: obj.toJSON() })
 
@@ -588,22 +577,6 @@ class Ticket {
     this._replyCountIncrement = 0
     this._customerServicesToJoin = undefined
     this._operatorId = undefined
-
-    if (!options?.skipTriggers) {
-      // Triggers do not run or fire on tickets after they are closed.
-      // However, triggers can fire when a ticket is being set to closed.
-      if (ticketStatus.isOpened(this.status) || this.isUpdated('status')) {
-        const triggers = await Triggers.get()
-        const fired = await triggers.exec({
-          ticket: this,
-          update_type: 'update',
-          operator_id: operator.id,
-        })
-        if (fired) {
-          await this.save({ skipTriggers: true })
-        }
-      }
-    }
 
     this._updatedKeys.clear()
   }
