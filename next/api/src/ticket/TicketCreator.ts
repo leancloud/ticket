@@ -1,5 +1,6 @@
 import _ from 'lodash';
 
+import events from '@/events';
 import { Category } from '@/model/Category';
 import { Group } from '@/model/Group';
 import { OpsLogCreator } from '@/model/OpsLog';
@@ -7,7 +8,6 @@ import { Organization } from '@/model/Organization';
 import { Ticket } from '@/model/Ticket';
 import { FieldValue, TicketFieldValue } from '@/model/TicketFieldValue';
 import { User, systemUser } from '@/model/User';
-import { notifyNewTicket } from '@/notification';
 import { ACLBuilder } from '@/orm';
 import htmlify from '@/utils/htmlify';
 
@@ -128,7 +128,7 @@ export class TicketCreator {
 
     while (category) {
       if (category.groupId) {
-        const group = await category.load('group');
+        const group = await category.load('group', { useMasterKey: true });
         if (group) {
           this.setGroup(group);
         }
@@ -227,7 +227,23 @@ export class TicketCreator {
       console.error('[ERROR] save OpsLog failed, error:', error);
     });
 
-    notifyNewTicket(ticket);
+    events.emit('ticket:created', {
+      ticket: {
+        id: ticket.id,
+        nid: ticket.nid,
+        categoryId: ticket.categoryId,
+        authorId: ticket.authorId,
+        organizationId: ticket.organizationId,
+        assigneeId: ticket.assigneeId,
+        groupId: ticket.groupId,
+        title: ticket.title,
+        content: ticket.content,
+        status: ticket.status,
+        createdAt: ticket.createdAt.toISOString(),
+        updatedAt: ticket.updatedAt.toISOString(),
+      },
+      currentUserId: operator.id,
+    });
 
     return ticket;
   }

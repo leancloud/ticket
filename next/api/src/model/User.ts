@@ -87,6 +87,13 @@ export class User extends Model {
 
   private isCustomerServiceTask?: Promise<boolean>;
 
+  static async findById(id: string): Promise<User | undefined> {
+    if (id === systemUser.id) {
+      return systemUser;
+    }
+    return this.find(id, { useMasterKey: true });
+  }
+
   static async findBySessionToken(sessionToken: string): Promise<User> {
     const avUser = await userCache.get(sessionToken);
     return this.fromAVObject(avUser);
