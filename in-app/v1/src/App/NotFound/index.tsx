@@ -100,17 +100,23 @@ function PaperPlaneIcon(props: SVGProps<SVGSVGElement>) {
 }
 
 export default function NotFound() {
-  const { t } = useTranslation();
-
   return (
     <>
       <PageHeader>Not Found</PageHeader>
       <PageContent>
-        <div className="mt-24 sm:m-auto text-center">
-          <PaperPlaneIcon className="mx-auto" />
-          <div className="mt-2 text-[#BFBFBF]">{t('general.content_deleted')}</div>
-        </div>
+        <NotFoundContent />
       </PageContent>
     </>
   );
 }
+
+export const NotFoundContent = () => {
+  const { t } = useTranslation();
+
+  return (
+    <div className="mt-24 sm:m-auto text-center">
+      <PaperPlaneIcon className="mx-auto" />
+      <div className="mt-2 text-[#BFBFBF]">{t('general.content_deleted')}</div>
+    </div>
+  );
+};

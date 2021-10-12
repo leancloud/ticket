@@ -46,7 +46,7 @@ class Categories extends Component {
       <thead>
         <tr>
           <th>objectId</th>
-          <th>Question (and answer)</th>
+          <th>Title (click to preview the content)</th>
           {VIEWS.map((view) => (
             <th key={view}>
               <OverlayTrigger overlay={<Tooltip id="tooltip">{t('viewHint')}</Tooltip>}>
@@ -78,7 +78,7 @@ class Categories extends Component {
               <td key={view}>{faq.get(`priority_${view}`)}</td>
             ))}
             <td>
-              <Button as={Link} variant="light" size="sm" to={'/settings/faqs/' + faq.id}>
+              <Button as={Link} variant="light" size="sm" to={'/settings/articles/' + faq.id}>
                 {t('edit')}
               </Button>{' '}
               <Button
@@ -109,7 +109,7 @@ class Categories extends Component {
               <FAQ faq={faq} />
             </td>
             <td>
-              <Button as={Link} variant="light" size="sm" to={'/settings/faqs/' + faq.id}>
+              <Button as={Link} variant="light" size="sm" to={'/settings/articles/' + faq.id}>
                 {t('edit')}
               </Button>{' '}
               <Button
@@ -131,8 +131,8 @@ class Categories extends Component {
     return (
       <div>
         <p>
-          <Button as={Link} variant="light" to="/settings/faqs/_new">
-            {t('newFAQ')}
+          <Button as={Link} variant="light" to="/settings/articles/_new">
+            {t('newArticle')}
           </Button>
           {VIEWS.length > 0 && (
             <Form inline className="float-right">

@@ -1,13 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Link, useHistory } from 'react-router-dom';
+import { useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-import { auth, db, http } from 'leancloud';
-import { Category } from 'types';
+import { http } from 'leancloud';
 import { PageContent, PageHeader } from 'components/Page';
 import { QueryWrapper } from 'components/QueryWrapper';
-import { useIsMounted } from 'utils/useIsMounted';
-import { CategoryList, useCategories } from '../Categories';
+import { ArticleLink, CategoryList, useCategories, useFAQs } from '../Categories';
 import { useRootCategory } from '../../App';
 import { useQuery } from 'react-query';
 
@@ -37,7 +35,6 @@ function useHasUnreadTickets() {
 }
 
 export default function Home() {
-  const history = useHistory();
   const { t } = useTranslation();
   const result = useCategories();
   const categories = result.data;
@@ -52,28 +49,29 @@ export default function Home() {
   }, [categories]);
   const { data: hasUnreadTickets } = useHasUnreadTickets();
 
-  const handleClick = ({ id }: Category) => {
-    if (!categories) {
-      return;
-    }
-    const hasChildren = categories.findIndex((c) => c.parentId === id) !== -1;
-    if (hasChildren) {
-      history.push(`/categories/${id}`);
-    } else {
-      history.push(`/tickets/new?category_id=${id}`);
-    }
-  };
+  const { data: FAQs } = useFAQs(rootCategory);
 
   return (
     <>
       <PageHeader />
       <PageContent>
+        {FAQs && FAQs.length > 0 && (
+          <div className="px-2">
+            {FAQs.map((FAQ) => (
+              <ArticleLink
+                article={FAQ}
+                key={FAQ.id}
+                className="block mt-2 px-3 py-2.5 rounded-sm bg-yellow-100"
+              />
+            ))}
+          </div>
+        )}
         <div className="flex items-center h-[46px] px-5">
           <h2 className="flex-grow font-bold">{t('category.select_hint')}</h2>
           <TicketsLink badge={hasUnreadTickets} />
         </div>
         <QueryWrapper result={result}>
-          <CategoryList marker categories={topCategories} onClick={handleClick} />
+          <CategoryList marker categories={topCategories} />
         </QueryWrapper>
       </PageContent>
     </>

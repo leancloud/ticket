@@ -1,8 +1,10 @@
 import React, { memo, useMemo } from 'react'
 import { Button, Form, Breadcrumb } from 'react-bootstrap'
+import SelectSearch, { fuzzySearch } from 'react-select-search'
 import { withTranslation } from 'react-i18next'
 import { withRouter, Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
+import classnames from 'classnames'
 
 import { db } from '../../lib/leancloud'
 import { depthFirstSearchFind } from '../../lib/common'
@@ -12,6 +14,9 @@ import { GroupSelect } from '../components/Group'
 import Select from 'modules/components/Select'
 import { useTicketFormList } from './TicketForm'
 import { useAppContext } from 'modules/context'
+
+import styles from './Category.module.scss'
+
 // 应该用 seaach select 这里不搞这个了
 const FormSelect = memo(({ value, onChange }) => {
   const { addNotification } = useAppContext()
@@ -24,6 +29,14 @@ const FormSelect = memo(({ value, onChange }) => {
   return <Select value={value} options={options} onChange={onChange} placeholder="" />
 })
 
+function renderFAQ(props, option, snapshot, className) {
+  return (
+    <button {...props} className={className} type="button">
+      <span>{option.fullName}</span>
+    </button>
+  )
+}
+
 class Category extends React.Component {
   constructor() {
     super()
@@ -31,7 +44,7 @@ class Category extends React.Component {
       name: '',
       description: '',
       qTemplate: '',
-      FAQs: '',
+      FAQs: [],
       assignedGroupId: '',
       category: undefined,
       parentCategory: undefined,
@@ -39,31 +52,41 @@ class Category extends React.Component {
       isSubmitting: false,
       isLoading: true,
       form: undefined,
+      allFAQs: [],
     }
   }
 
   componentDidMount() {
-    return getCategoriesTree().then((categoriesTree) => {
-      this.setState({ categoriesTree, isLoading: false })
+    getCategoriesTree()
+      .then((categoriesTree) => {
+        this.setState({ categoriesTree, isLoading: false })
 
-      const categoryId = this.props.match.params.id
-      if (categoryId == '_new') {
+        const categoryId = this.props.match.params.id
+        if (categoryId == '_new') {
+          return
+        }
+        const category = depthFirstSearchFind(categoriesTree, (c) => c.id == categoryId)
+
+        this.setState({
+          category,
+          name: category.get('name'),
+          description: category.get('description'),
+          qTemplate: category.get('qTemplate'),
+          assignedGroupId: category.get('group')?.id,
+          parentCategory: category.get('parent'),
+          FAQs: (category.get('FAQs') || []).map((FAQ) => FAQ.id),
+          form: category.get('form') ? category.get('form').id : undefined,
+        })
         return
-      }
-      const category = depthFirstSearchFind(categoriesTree, (c) => c.id == categoryId)
-
-      this.setState({
-        category,
-        name: category.get('name'),
-        description: category.get('description'),
-        qTemplate: category.get('qTemplate'),
-        assignedGroupId: category.get('group')?.id,
-        parentCategory: category.get('parent'),
-        FAQs: (category.get('FAQs') || []).map((FAQ) => FAQ.id).join(','),
-        form: category.get('form') ? category.get('form').id : undefined,
       })
-      return
-    })
+      .catch(this.context.addNotification)
+    db.class('FAQ')
+      .find()
+      .then((FAQs) => {
+        this.setState({ allFAQs: FAQs })
+        return
+      })
+      .catch(this.context.addNotification)
   }
 
   handleNameChange(e) {
@@ -72,8 +95,8 @@ class Category extends React.Component {
   handleDescriptionChange(e) {
     this.setState({ description: e.target.value })
   }
-  handleFAQsChange(e) {
-    this.setState({ FAQs: e.target.value })
+  handleFAQsChange(selectedFAQIds) {
+    this.setState({ FAQs: selectedFAQIds })
   }
 
   handleParentChange(t, e) {
@@ -112,9 +135,7 @@ class Category extends React.Component {
     e.preventDefault()
     this.setState({ isSubmitting: true })
     const category = this.state.category
-    const FAQs = this.state.FAQs.split(',')
-      .filter((id) => id)
-      .map((id) => db.class('FAQ').object(id))
+    const FAQs = this.state.FAQs.map((id) => db.class('FAQ').object(id))
 
     let promise
 
@@ -193,6 +214,15 @@ class Category extends React.Component {
       return <div>{t('loading')}……</div>
     }
 
+    const FAQOptions = this.state.allFAQs.map((FAQ) => ({
+      value: FAQ.id,
+      name: `${FAQ.get('archived') ? '（已归档）' : ''}${FAQ.get('question').slice(0, 12)}${
+        FAQ.get('question').length > 12 ? '...' : ''
+      }`,
+      fullName: `${FAQ.get('archived') ? '（已归档）' : ''}${FAQ.get('question')}`,
+    }))
+    console.log(FAQOptions)
+
     return (
       <Form onSubmit={this.handleSubmit.bind(this)}>
         <Breadcrumb>
@@ -234,11 +264,23 @@ class Category extends React.Component {
               {t('FAQ')}
               {t('optional')}
             </Form.Label>
-            <Form.Control
+            <SelectSearch
+              className={classnames('select-search', styles.formSelect)}
+              closeOnSelect={false}
+              printOptions="on-focus"
+              multiple
+              placeholder="Select your items"
+              value={this.state.FAQs}
+              onChange={this.handleFAQsChange.bind(this)}
+              options={FAQOptions}
+              renderOption={renderFAQ}
+              filterOptions={fuzzySearch}
+            />
+            {/* <Form.Control
               value={this.state.FAQs}
               onChange={this.handleFAQsChange.bind(this)}
               placeholder="objectId1,objectId2"
-            />
+            /> */}
             <Form.Text>{t('FAQInfo')}</Form.Text>
           </Form.Group>
         )}
