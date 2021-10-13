@@ -10,8 +10,8 @@ router.get('/', async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   const unreadNotification = await Notification.query()
     .where('user', '==', currentUser.toPointer())
-    .where('unreadCount', '>=', 0)
-    .first({ useMasterKey: true });
+    .where('unreadCount', '>', 0)
+    .first({ sessionToken: currentUser.sessionToken });
 
   const unread = !!unreadNotification;
 
