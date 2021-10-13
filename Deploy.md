@@ -80,3 +80,7 @@
 ### `60a95c84d057f2d68f1f437f0ca7020fe517eba9`
 
 创建一个名为 `QUEUE` 的 Redis 实例，数据删除策略选择 `noeviction`。
+
+## 2021-10-13
+
+OpsLog 没有索引，在自用的 LeanTicket 上 40000+ 的数据量已经出现查询超时了，慢查询条件为 `where('ticket', '==', ptr).orderBy('createdAt')`。给 ticket 列加个索引，避免扫全表即可。
