@@ -28,6 +28,13 @@
             "hidden": false,
             "read_only": false
         },
+        "latestActionAt": {
+            "type": "Date",
+            "v": 2,
+            "required": false,
+            "hidden": false,
+            "read_only": false
+        },
         "latestAction": {
             "type": "String",
             "v": 2,
@@ -73,6 +80,17 @@
                 "ticket.$id": 1
             },
             "name": "-user-user.$id_1_ticket.$id_1",
+            "ns": "_.notification",
+            "background": true
+        },
+        {
+            "v": 2,
+            "unique": false,
+            "key": {
+                "user.$id": 1,
+                "latestActionAt": -1
+            },
+            "name": "-user-user.$id_1_latestActionAt_-1",
             "ns": "_.notification",
             "background": true
         }

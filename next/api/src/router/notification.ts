@@ -5,6 +5,8 @@ import { Notification } from '@/model/Notification';
 import { User } from '@/model/User';
 import { NotificationResponse } from '@/response/notification';
 
+const NOTIFICATIONS_PER_PAGE = 25;
+
 const router = new Router().use(auth);
 
 router.get('/', async (ctx) => {
@@ -12,7 +14,14 @@ router.get('/', async (ctx) => {
   let query = Notification.query()
     .where('user', '==', currentUser.toPointer())
     .preload('ticket')
-    .orderBy('updatedAt');
+    .orderBy('latestActionAt')
+    .limit(NOTIFICATIONS_PER_PAGE);
+
+  const beforeParam = ctx.request.query['before'];
+  if (typeof beforeParam === 'string') {
+    const before = new Date(beforeParam);
+    query = query.where('latestActionAt', '<', before);
+  }
 
   if (ctx.request.query['unread']) {
     query = query.where('unreadCount', '>', 0);

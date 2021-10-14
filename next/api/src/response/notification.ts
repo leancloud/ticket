@@ -10,8 +10,9 @@ export class NotificationResponse {
       ticket: this.notification.ticket
         ? new TicketListItemResponse(this.notification.ticket)
         : undefined,
-      latestAction: this.notification.latestAction,
       unreadCount: this.notification.unreadCount,
+      latestAction: this.notification.latestAction,
+      latestActionAt: this.notification.latestActionAt?.toISOString(),
       createdAt: this.notification.createdAt.toISOString(),
       updatedAt: this.notification.updatedAt.toISOString(),
     };
