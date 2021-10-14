@@ -34,7 +34,8 @@
     "remarkable": "^2.0.1",
     "throat": "^6.0.1",
     "xss": "^1.0.10",
-    "yup": "^0.32.9"
+    "yup": "^0.32.9",
+    "zod": "^3.9.8"
   },
   "devDependencies": {
     "@types/bull": "^3.15.5",
