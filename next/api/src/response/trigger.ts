@@ -10,7 +10,7 @@ export class TriggerResponse {
       description: this.trigger.description ?? '',
       conditions: this.trigger.conditions,
       actions: this.trigger.actions,
-      position: this.trigger.position ?? this.trigger.createdAt.getTime(),
+      position: this.trigger.getPosition(),
       active: this.trigger.active,
     };
   }

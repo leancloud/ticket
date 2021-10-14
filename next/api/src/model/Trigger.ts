@@ -21,4 +21,8 @@ export class Trigger extends Model {
 
   @field()
   position?: number;
+
+  getPosition(): number {
+    return this.position ?? this.createdAt.getTime();
+  }
 }
