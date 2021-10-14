@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
-import { Context } from '@/ticket/automation';
-import { ActionFactory } from './common';
+import { Context } from '..';
 
 import updateAssigneeId from './updateAssigneeId';
 import updateCategoryId from './updateCategoryId';
@@ -11,6 +10,8 @@ import closeTicket from './closeTicket';
 export interface Action {
   exec(ctx: Context): void | Promise<void>;
 }
+
+export type ActionFactory<T = any> = (options: T) => Action;
 
 const actionFactories: Record<string, ActionFactory> = {
   updateAssigneeId,

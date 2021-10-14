@@ -1,10 +1,6 @@
 import { Schema } from 'zod';
 
-import { Condition, Context } from '@/ticket/automation';
-
-export type Getter<T> = (ctx: Context) => T;
-
-export type ConditionFactory<T = any> = (options: T) => Condition;
+import { ConditionFactory } from '..';
 
 export function not(factory: ConditionFactory): ConditionFactory {
   return (options) => {

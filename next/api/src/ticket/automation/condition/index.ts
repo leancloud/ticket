@@ -1,8 +1,7 @@
 import _ from 'lodash';
 import { z } from 'zod';
 
-import { Context } from '@/ticket/automation';
-import { ConditionFactory } from './common';
+import { Context } from '..';
 
 import title from './title';
 import content from './content';
@@ -15,6 +14,8 @@ import status from './status';
 export interface Condition {
   test(ctx: Context): boolean | Promise<boolean>;
 }
+
+export type ConditionFactory<T = any> = (options: T) => Condition;
 
 const conditionTypes: Record<string, Record<string, ConditionFactory>> = {
   title,

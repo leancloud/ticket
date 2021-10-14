@@ -1,4 +1,4 @@
-import { ActionFactory } from './common';
+import { ActionFactory } from '.';
 
 const closeTicket: ActionFactory = () => ({
   exec: ({ updater }) => {

@@ -1,6 +1,9 @@
 import { z } from 'zod';
 
-import { ConditionFactory, Getter } from '.';
+import { Context } from '../..';
+import { ConditionFactory } from '..';
+
+type Getter<T> = (ctx: Context) => T;
 
 const stringSchema = z.object({
   value: z.string(),
