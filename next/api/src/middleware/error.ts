@@ -2,7 +2,7 @@ import type { Middleware } from 'koa';
 import { ValidationError } from 'yup';
 import { ZodError } from 'zod';
 
-import { getMessage as getZodErrorMessage } from '@/utils/zod';
+import { getZodErrorMessage } from '@/utils/zod';
 
 export const catchYupError: Middleware = async (ctx, next) => {
   try {

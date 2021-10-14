@@ -1,7 +1,6 @@
 import _ from 'lodash';
 import { z } from 'zod';
 
-import { parse } from '@/utils/zod';
 import { Context } from '@/ticket/automation';
 import { ConditionFactory } from './common';
 
@@ -33,7 +32,7 @@ const conditionSchema = z.object({
 });
 
 export function condition(options: any): Condition {
-  const { type, op } = parse(conditionSchema, options);
+  const { type, op } = conditionSchema.parse(options);
 
   const factoryByOp = conditionTypes[type as keyof typeof conditionTypes];
   if (!factoryByOp) {

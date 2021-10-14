@@ -1,6 +1,5 @@
 import { z } from 'zod';
 
-import { parse } from '@/utils/zod';
 import { ConditionFactory, Getter } from '.';
 
 const stringSchema = z.object({
@@ -10,7 +9,7 @@ const stringSchema = z.object({
 
 export function eq(getter: Getter<any>): ConditionFactory {
   return (options) => {
-    let { value, ignoreCase } = parse(stringSchema, options);
+    let { value, ignoreCase } = stringSchema.parse(options);
     return {
       options,
       test: (ctx) => {
@@ -30,7 +29,7 @@ export function eq(getter: Getter<any>): ConditionFactory {
 
 export function includes(getter: Getter<any>): ConditionFactory {
   return (options) => {
-    let { value, ignoreCase } = parse(stringSchema, options);
+    let { value, ignoreCase } = stringSchema.parse(options);
     return {
       options,
       test: (ctx) => {
@@ -55,7 +54,7 @@ const stringArraySchema = z.object({
 
 export function eqAny(getter: Getter<any>): ConditionFactory {
   return (options) => {
-    let { value, ignoreCase } = parse(stringArraySchema, options);
+    let { value, ignoreCase } = stringArraySchema.parse(options);
     return {
       options,
       test: (ctx) => {
@@ -75,7 +74,7 @@ export function eqAny(getter: Getter<any>): ConditionFactory {
 
 export function includesAny(getter: Getter<any>): ConditionFactory {
   return (options) => {
-    let { value, ignoreCase } = parse(stringArraySchema, options);
+    let { value, ignoreCase } = stringArraySchema.parse(options);
     return {
       options,
       test: (ctx) => {
@@ -95,7 +94,7 @@ export function includesAny(getter: Getter<any>): ConditionFactory {
 
 export function includesAll(getter: Getter<any>): ConditionFactory {
   return (options) => {
-    let { value, ignoreCase } = parse(stringArraySchema, options);
+    let { value, ignoreCase } = stringArraySchema.parse(options);
     return {
       options,
       test: (ctx) => {

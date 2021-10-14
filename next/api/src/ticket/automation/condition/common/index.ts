@@ -1,6 +1,5 @@
 import { Schema } from 'zod';
 
-import { parse } from '@/utils/zod';
 import { Condition, Context } from '@/ticket/automation';
 
 export type Getter<T> = (ctx: Context) => T;
@@ -18,7 +17,7 @@ export function not(factory: ConditionFactory): ConditionFactory {
 }
 
 export function check<T>(schema: Schema<T>, factory: ConditionFactory<T>): ConditionFactory<T> {
-  return (options) => factory(parse(schema, options));
+  return (options) => factory(schema.parse(options));
 }
 
 export * as string from './string';

@@ -1,10 +1,10 @@
-import { z } from 'zod';
+import { z, ZodError } from 'zod';
 
-import { parse } from '@/utils/zod';
+import { getZodErrorMessage } from '@/utils/zod';
+import { systemUser } from '@/model/User';
 import { Action, Condition, Context } from '..';
 import { any, all, condition } from '../condition';
 import { action } from '../action';
-import { systemUser } from '@/model/User';
 
 export class Trigger {
   constructor(private condition: Condition, private actions: Action[]) {}
@@ -28,8 +28,15 @@ const triggerSchema = z.object({
   actions: z.array(z.any()),
 });
 
+function getErrorMessage(error: Error): string {
+  if (error instanceof ZodError) {
+    return getZodErrorMessage(error);
+  }
+  return error.message;
+}
+
 export function trigger(options: any): Trigger {
-  const parsedOptions = parse(triggerSchema, options);
+  const parsedOptions = triggerSchema.parse(options);
   const anyConditions: Condition[] = [];
   const allConditions: Condition[] = [];
   const actions: Action[] = [];
@@ -38,14 +45,14 @@ export function trigger(options: any): Trigger {
     try {
       anyConditions.push(condition(options));
     } catch (error) {
-      throw new Error(`conditions.any.${i}: ` + (error as Error).message);
+      throw new Error(`conditions.any.${i}: ` + getErrorMessage(error as Error));
     }
   });
   parsedOptions.conditions.all.forEach((options, i) => {
     try {
       allConditions.push(condition(options));
     } catch (error) {
-      throw new Error(`conditions.all.${i}: ` + (error as Error).message);
+      throw new Error(`conditions.all.${i}: ` + getErrorMessage(error as Error));
     }
   });
 
@@ -53,7 +60,7 @@ export function trigger(options: any): Trigger {
     try {
       actions.push(action(options));
     } catch (error) {
-      throw new Error(`actions.${i}: ` + (error as Error).message);
+      throw new Error(`actions.${i}: ` + getErrorMessage(error as Error));
     }
   });
 

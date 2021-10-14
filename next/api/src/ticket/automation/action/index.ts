@@ -1,6 +1,5 @@
 import { z } from 'zod';
 
-import { parse } from '@/utils/zod';
 import { Context } from '@/ticket/automation';
 import { ActionFactory } from './common';
 
@@ -25,7 +24,7 @@ const actionSchema = z.object({
 });
 
 export function action(options: any): Action {
-  const { type } = parse(actionSchema, options);
+  const { type } = actionSchema.parse(options);
   const factory = actionFactories[type];
   if (!factory) {
     throw new Error('unknown type:' + type);
