@@ -159,7 +159,7 @@ class HasOnePreloader {
   }
 }
 
-class HasManyThrouchIdArrayPreloader {
+class HasManyThroughIdArrayPreloader {
   data?: Item[];
   queryModifier?: (query: QueryBuilder<any>) => void;
 
@@ -201,7 +201,7 @@ class HasManyThrouchIdArrayPreloader {
   }
 }
 
-class HasManyThrouchPointerArrayPreloader {
+class HasManyThroughPointerArrayPreloader {
   queryModifier?: (query: QueryBuilder<any>) => void;
 
   private objects?: AV.Object[];
@@ -230,8 +230,8 @@ class HasManyThrouchPointerArrayPreloader {
         }
       });
     } else {
-      // 退化成 HasManyThrouchIdArrayPreloader
-      const preloader = new HasManyThrouchIdArrayPreloader({
+      // 退化成 HasManyThroughIdArrayPreloader
+      const preloader = new HasManyThroughIdArrayPreloader({
         ...this.relation,
         type: 'hasManyThroughIdArray',
       });
@@ -241,7 +241,7 @@ class HasManyThrouchPointerArrayPreloader {
   }
 }
 
-class HasManyThrouchRelationPreloader {
+class HasManyThroughRelationPreloader {
   queryModifier?: (query: QueryBuilder<any>) => void;
 
   constructor(private relation: HasManyThroughRelation) {}
@@ -281,10 +281,10 @@ export function preloaderFactory<M extends typeof Model, N extends RelationName<
     case 'hasOne':
       return new HasOnePreloader(relation);
     case 'hasManyThroughIdArray':
-      return new HasManyThrouchIdArrayPreloader(relation);
+      return new HasManyThroughIdArrayPreloader(relation);
     case 'hasManyThroughPointerArray':
-      return new HasManyThrouchPointerArrayPreloader(relation);
+      return new HasManyThroughPointerArrayPreloader(relation);
     case 'hasManyThroughRelation':
-      return new HasManyThrouchRelationPreloader(relation);
+      return new HasManyThroughRelationPreloader(relation);
   }
 }
