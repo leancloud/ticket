@@ -82,7 +82,7 @@ export async function fetchTickets({
     }
   }
 
-  const { headers, data } = await http.get('/api/2/tickets', { params });
+  const { headers, data } = await http.get<TicketSchema[]>('/api/2/tickets', { params });
   return { tickets: data, totalCount: parseInt(headers['x-total-count']) };
 }
 

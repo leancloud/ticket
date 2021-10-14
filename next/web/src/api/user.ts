@@ -11,8 +11,8 @@ export interface UserSchema {
   avatarUrl: string;
 }
 
-export async function fetchCustomerServices(): Promise<UserSchema[]> {
-  const { data } = await http.get('/api/2/customer-services');
+export async function fetchCustomerServices() {
+  const { data } = await http.get<UserSchema[]>('/api/2/customer-services');
   return data;
 }
 
@@ -27,8 +27,8 @@ export function useCustomerServices(options?: UseCustomerServicesOptions) {
   });
 }
 
-export async function fetchCustomerService(id: string): Promise<UserSchema> {
-  const { data } = await http.get('/api/2/customer-services/' + id);
+export async function fetchCustomerService(id: string) {
+  const { data } = await http.get<UserSchema>('/api/2/customer-services/' + id);
   return data;
 }
 
@@ -42,8 +42,8 @@ export function useCustomerService(id: string, options?: UseCustomerServiceOptio
   });
 }
 
-export async function fetchCustomerServiceGroups(id: string): Promise<GroupSchema[]> {
-  const { data } = await http.get(`/api/2/customer-services/${id}/groups`);
+export async function fetchCustomerServiceGroups(id: string) {
+  const { data } = await http.get<GroupSchema[]>(`/api/2/customer-services/${id}/groups`);
   return data;
 }
 

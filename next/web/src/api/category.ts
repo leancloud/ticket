@@ -12,8 +12,8 @@ export interface CategorySchema {
   active: boolean;
 }
 
-export async function fetchCategories(active?: boolean): Promise<CategorySchema[]> {
-  const { data } = await http.get('/api/2/categories', {
+export async function fetchCategories(active?: boolean) {
+  const { data } = await http.get<CategorySchema[]>('/api/2/categories', {
     params: { active },
   });
   return data;

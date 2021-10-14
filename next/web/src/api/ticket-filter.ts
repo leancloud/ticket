@@ -29,9 +29,7 @@ export interface FetchTicketFiltersOptions {
   groupId?: string | string[];
 }
 
-export async function fetchTicketFilters(
-  options?: FetchTicketFiltersOptions
-): Promise<TicketFilterSchema[]> {
+export async function fetchTicketFilters(options?: FetchTicketFiltersOptions) {
   const params: any = {};
   if (options?.userId) {
     params.userId = castArray(options.userId).join(',');
@@ -39,12 +37,12 @@ export async function fetchTicketFilters(
   if (options?.groupId) {
     params.groupId = castArray(options.groupId).join(',');
   }
-  const { data } = await http.get('/api/2/ticket-filters', { params });
+  const { data } = await http.get<TicketFilterSchema[]>('/api/2/ticket-filters', { params });
   return data;
 }
 
-export async function fetchTicketFilter(id: string): Promise<TicketFilterSchema> {
-  const { data } = await http.get('/api/2/ticket-filters/' + id);
+export async function fetchTicketFilter(id: string) {
+  const { data } = await http.get<TicketFilterSchema>('/api/2/ticket-filters/' + id);
   return data;
 }
 

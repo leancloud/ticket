@@ -8,8 +8,8 @@ export interface GroupSchema {
   name: string;
 }
 
-export async function fetchGroups(): Promise<GroupSchema[]> {
-  const { data } = await http.get('/api/2/groups');
+export async function fetchGroups() {
+  const { data } = await http.get<GroupSchema[]>('/api/2/groups');
   return data;
 }
 
