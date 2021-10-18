@@ -95,6 +95,12 @@ function useTicket(nid) {
     }
   }, [nid, loadingTickets, ticketId])
 
+  const queryClient = useQueryClient()
+
+  useEffect(() => {
+    queryClient.invalidateQueries('unread')
+  }, [queryClient, ticket])
+
   return {
     ticket,
     refetchTicket,

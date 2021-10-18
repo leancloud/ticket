@@ -2,7 +2,7 @@ import React, { useCallback, useContext } from 'react'
 import { Button, FormGroup, Table } from 'react-bootstrap'
 import EmptyBadge from './components/EmptyBadge'
 import { http } from '../lib/leancloud'
-import { useQuery } from 'react-query'
+import { useQuery, useQueryClient } from 'react-query'
 import { Link } from 'react-router-dom'
 import { TicketStatusLabel } from './components/TicketStatusLabel'
 import moment from 'moment'
@@ -51,6 +51,7 @@ const Notification = ({ notification }) => {
 
 export const Notifications = () => {
   const { addNotification } = useContext(AppContext)
+  const queryClient = useQueryClient()
 
   const { data: notifications, refetch } = useQuery({
     queryKey: 'notifications',
@@ -58,8 +59,15 @@ export const Notifications = () => {
   })
 
   const markAllReaded = useCallback(() => {
-    http.post('/api/2/notifications/read-all').then(refetch).catch(addNotification)
-  }, [refetch])
+    http
+      .post('/api/2/notifications/read-all')
+      .then(() => {
+        refetch()
+        queryClient.invalidateQueries('unread')
+        return
+      })
+      .catch(addNotification)
+  }, [addNotification, queryClient, refetch])
 
   return (
     <div>
