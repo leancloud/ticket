@@ -7,11 +7,17 @@
   border-bottom: none;
 }
 
+.notification td {
+  vertical-align: middle;
+}
+.unread {
+  background-color: rgba(37, 16, 16, 0.03);
+}
+
 .ticket {
   padding: 10px 0 12px;
   align-items: center;
 }
-
 
 .ticketSelectCheckbox {
   line-height: 0;
@@ -35,6 +41,9 @@
   font-weight: 500;
   color: #444;
 }
+.read .title {
+  font-weight: normal;
+}
 
 .title:hover {
   color: #3090e4;
@@ -42,14 +51,14 @@
 
 .nid {
   color: #afafaf;
-  margin-right: .5em;
+  margin-right: 0.5em;
 }
 
 .category,
 .satisfaction {
   display: inline-block;
   color: #afafaf;
-  margin-left: .5em;
+  margin-left: 0.5em;
   border: 1px solid #d6d6d6;
   font-size: 13px;
   padding: 3px 5px;
@@ -108,7 +117,7 @@
 }
 
 .status {
-  margin-right: .5em;
+  margin-right: 0.5em;
 }
 
 .creator a {
@@ -117,7 +126,7 @@
 }
 
 .assignee {
-  margin-right: .5em;
+  margin-right: 0.5em;
 }
 
 .assignee a {
@@ -137,7 +146,7 @@
 .contributors > span {
   display: inline-block;
   margin-right: -10px;
-  transition: margin .2s ease;
+  transition: margin 0.2s ease;
 }
 
 .contributors:hover > span {

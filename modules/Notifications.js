@@ -1,41 +1,81 @@
-import React, { useCallback, useMemo } from 'react'
-import { Tabs, Tab } from 'react-bootstrap'
-import { useHistory, useLocation } from 'react-router-dom'
-import Messages from './Messages'
-import Subscriptions from './Subscriptions'
+import React, { useCallback, useContext } from 'react'
+import { Button, FormGroup, Table } from 'react-bootstrap'
+import EmptyBadge from './components/EmptyBadge'
+import { http } from '../lib/leancloud'
+import { useQuery } from 'react-query'
+import { Link } from 'react-router-dom'
+import { TicketStatusLabel } from './components/TicketStatusLabel'
+import moment from 'moment'
+import classNames from 'classnames'
 
-import _ from 'lodash'
+import css from './CustomerServiceTickets.css'
+import { AppContext } from './context'
 
-const NOTIFICATIONS_PATHNAME_MAP = {
-  Messages: '/notifications',
-  Subscriptions: '/notifications/subscriptions',
+const renderLastAction = (action) => {
+  return (
+    {
+      newTicket: '新建工单',
+      reply: '新的回复',
+      changeAssignee: '转移给你',
+      ticketEvaluation: '新的评价',
+      changeStatus: '状态更新',
+    }[action] ?? ''
+  )
 }
 
-export default function Notifications() {
-  const history = useHistory()
-  const { pathname } = useLocation()
-
-  const handleSelect = useCallback(
-    (key) => {
-      history.push(NOTIFICATIONS_PATHNAME_MAP[key])
-    },
-    [history]
+const Notification = ({ notification }) => {
+  const unread = notification.unreadCount > 0
+  return (
+    <tr className={classNames([css.notification, unread ? css.unread : css.read])}>
+      <td>{unread && <EmptyBadge />}</td>
+      <td>
+        <div className={css.heading}>
+          <Link to={'/tickets/' + notification.ticket.nid} className={css.title}>
+            {notification.ticket.title}
+          </Link>
+        </div>
+        <div className={css.meta}>
+          <span className={css.nid}>#{notification.ticket.nid}</span>
+          <span className={css.status}>
+            <TicketStatusLabel status={notification.ticket.status} />
+          </span>
+        </div>
+      </td>
+      <td>{renderLastAction(notification.latestAction)}</td>
+      <td className="text-muted">
+        {notification.latestActionAt && moment(notification.latestActionAt).fromNow()}
+      </td>
+    </tr>
   )
+}
 
-  const activeKey = useMemo(() => {
-    return _.invert(NOTIFICATIONS_PATHNAME_MAP)[pathname]
-  }, [pathname])
+export const Notifications = () => {
+  const { addNotification } = useContext(AppContext)
+
+  const { data: notifications, refetch } = useQuery({
+    queryKey: 'notifications',
+    queryFn: () => http.get('/api/2/notifications'),
+  })
+
+  const markAllReaded = useCallback(() => {
+    http.post('/api/2/notifications/read-all').then(refetch).catch(addNotification)
+  }, [refetch])
 
   return (
-    <Tabs mountOnEnter id="tabs-notifications" activeKey={activeKey} onSelect={handleSelect}>
-      <Tab eventKey="Messages" title="消息">
-        <div style={{ marginTop: 20 }}>
-          <Messages />
-        </div>
-      </Tab>
-      <Tab eventKey="Subscriptions" title="订阅工单">
-        <Subscriptions />
-      </Tab>
-    </Tabs>
+    <div>
+      <FormGroup>
+        <Button variant="light" onClick={markAllReaded}>
+          全部标记为已读
+        </Button>
+      </FormGroup>
+      <Table>
+        <tbody>
+          {notifications &&
+            notifications.map((notification) => (
+              <Notification notification={notification} key={notification.id} />
+            ))}
+        </tbody>
+      </Table>
+    </div>
   )
 }

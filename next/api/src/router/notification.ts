@@ -14,7 +14,7 @@ router.get('/', async (ctx) => {
   let query = Notification.query()
     .where('user', '==', currentUser.toPointer())
     .preload('ticket')
-    .orderBy('latestActionAt')
+    .orderBy('latestActionAt', 'desc')
     .limit(NOTIFICATIONS_PER_PAGE);
 
   const beforeParam = ctx.request.query['before'];
@@ -29,6 +29,21 @@ router.get('/', async (ctx) => {
 
   const notifications = await query.find({ sessionToken: currentUser.sessionToken });
   ctx.body = notifications.map((notification) => new NotificationResponse(notification));
+});
+
+router.post('/read-all', async (ctx) => {
+  const currentUser = ctx.state.currentUser as User;
+  let query = Notification.query()
+    .where('user', '==', currentUser.toPointer())
+    .where('unreadCount', '>', 0);
+  const notifications = await query.find({ sessionToken: currentUser.sessionToken });
+
+  await Notification.updateSome(
+    notifications.map((n) => [n, { unreadCount: 0 }]),
+    { useMasterKey: true }
+  );
+
+  ctx.body = {};
 });
 
 export default router;
