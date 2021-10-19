@@ -1,0 +1,99 @@
+@import './general/variables';
+
+// common
+@primary-color: @Primary6; // 全局主色
+@success-color: @Success6; // 成功色
+@info-color: @NoEmotion6; // 无情绪色
+@warning-color: @Warning6; // 警告色
+@error-color: @Danger6; // 错误色
+
+@text-color: @Neutral6;
+@disabled-color: @Neutral5;
+
+@font-size-base: 14px; // 主字号
+@line-height-base: (22/14); // 覆盖默认行高
+
+@font-size-lg: 14px;
+@font-size-sm: 12px;
+
+@box-shadow-base: @SD3;
+
+// border
+@border-radius-base: 4px;
+@border-color-base: @Neutral3;
+@border-color-split: @Neutral2;
+
+// Disabled states
+@disabled-color: @Neutral5;
+@disabled-bg: @Neutral1;
+
+// input(mixin 需要覆盖，这里不覆盖全局 input 设置)
+@input-height-base: @InputSizeDefault;
+@input-height-lg: @InputSizeLarge;
+@input-height-sm: @InputSizeSmall;
+@input-placeholder-color: @Neutral4;
+@input-padding-vertical-lg: 9px;
+@input-padding-horizontal-lg: 12px;
+//@input-padding-vertical-sm: 12px;
+//@input-padding-horizontal-sm: 12px;
+
+// Menu
+@menu-collapsed-width: 64px;
+@menu-item-height: 48px;
+@menu-inline-toplevel-item-height: 48px;
+@menu-highlight-color: inherit;
+@menu-item-active-bg: @Primary1;
+
+// Select
+@select-background: @BasicWhite;
+@select-dropdown-bg: @BasicWhite;
+@select-dropdown-vertical-padding: 3px;
+@select-item-active-bg: @Primary1;
+@select-item-selected-bg: @BasicWhite;
+@select-item-selected-color: @Primary6;
+@select-item-selected-background-color: @Primary1;
+@select-item-selected-font-weight: @FontRegular;
+
+// alert
+@alert-success-border-color: @Success3;
+@alert-success-bg-color: @Success1;
+@alert-success-icon-color: @Success6;
+@alert-info-border-color: @NoEmotion3;
+@alert-info-bg-color: @NoEmotion1;
+@alert-info-icon-color: @NoEmotion6;
+@alert-warning-border-color: @Warning3;
+@alert-warning-bg-color: @Warning1;
+@alert-warning-icon-color: @Warning6;
+@alert-error-border-color: @Danger3;
+@alert-error-bg-color: @Danger1;
+@alert-error-icon-color: @Danger6;
+
+// button
+@btn-height-base: @ButtonSizeDefault;
+@btn-height-lg: @ButtonSizeLarge;
+@btn-height-sm: @ButtonSizeSmall;
+
+// table
+@table-header-bg: @Neutral0;
+@table-header-color: @Neutral6;
+@table-header-sort-bg: @Neutral0;
+@table-row-hover-bg: @Neutral0;
+@table-padding-vertical: 13px;
+@table-padding-horizontal: 13px;
+
+// switch
+@switch-height: 20px;
+
+// form
+@form-item-margin-bottom: 33px;
+
+// tooltips
+@tooltip-distance: 4px;
+@tooltip-bg: rgba(0, 0, 0, 0.8);
+
+// picker
+@time-picker-selected-bg: @Neutral0;
+
+// steps
+@wait-icon-color: @Neutral4;
+@wait-title-color: @Neutral5;
