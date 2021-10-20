@@ -1,1 +1,27 @@
 exposeEnvironmentsOnBuild: true
+install: 
+  - use: default
+  - require:
+    - ./package.json
+    - ./package-lock.json
+    - ./in-app/v1/package.json
+    - ./in-app/v1/package-lock.json
+    - ./next/api/package.json
+    - ./next/api/package-lock.json
+    - ./next/web/package.json
+    - ./next/web/package-lock.json
+  - npm ci
+  - cd in-app/v1/
+  - npm ci
+  - cd ../../next/api
+  - npm ci
+  - cd ../web
+  - npm ci
+build:
+  - npm build
+  - cd in-app/v1/
+  - npm run build
+  - cd ../../next/api
+  - npm run build
+  - cd ../web
+  - npm run build

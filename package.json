@@ -10,9 +10,6 @@
     "dev:client": "eval $(lean env) && NODE_ENV=development webpack serve",
     "dev:in-app:v1": "cd in-app/v1 && npm run dev:client",
     "dev": "WEBPACK_DEV_SERVER=http://localhost:8080 nodemon --ignore modules server.js",
-    "install:in-app": "cd ./in-app/v1 && npm ci",
-    "install:next": "cd next && npm ci",
-    "postinstall": "npm run build && npm run install:in-app && npm run install:next",
     "migrate": "eval $(lean env) && migrate up --store=./migration-store",
     "fmt": "prettier -w */**/*.js",
     "prepare": "husky install"
