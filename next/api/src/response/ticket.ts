@@ -1,13 +1,18 @@
+import _ from 'lodash';
 import xss from '@/utils/xss';
 import { Ticket } from '@/model/Ticket';
 import { FileResponse } from './file';
 import { GroupResponse } from './group';
 import { UserResponse } from './user';
 
+export interface TicketResponseOptions {
+  includeMetaKeys?: string[];
+}
+
 class BaseTicketResponse {
   constructor(readonly ticket: Ticket) {}
 
-  toJSON() {
+  toJSON({ includeMetaKeys = [] }: TicketResponseOptions = {}) {
     return {
       id: this.ticket.id,
       nid: this.ticket.nid,
@@ -24,6 +29,7 @@ class BaseTicketResponse {
       status: this.ticket.status,
       evaluation: this.ticket.evaluation,
       replyCount: this.ticket.replyCount,
+      metaData: this.ticket.metaData ? _.pick(this.ticket.metaData, includeMetaKeys) : undefined,
       createdAt: this.ticket.createdAt.toISOString(),
       updatedAt: this.ticket.updatedAt.toISOString(),
     };
@@ -31,9 +37,9 @@ class BaseTicketResponse {
 }
 
 export class TicketListItemResponse extends BaseTicketResponse {
-  toJSON() {
+  toJSON(options?: TicketResponseOptions) {
     return {
-      ...super.toJSON(),
+      ...super.toJSON(options),
       unreadCount: this.ticket.notification ? this.ticket.notification.unreadCount : undefined,
     };
   }

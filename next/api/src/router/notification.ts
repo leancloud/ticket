@@ -4,6 +4,7 @@ import { auth } from '@/middleware/auth';
 import { Notification } from '@/model/Notification';
 import { User } from '@/model/User';
 import { NotificationResponse } from '@/response/notification';
+import _ from 'lodash';
 
 const NOTIFICATIONS_PER_PAGE = 25;
 
@@ -27,8 +28,15 @@ router.get('/', async (ctx) => {
     query = query.where('unreadCount', '>', 0);
   }
 
+  const includeTicketMetaKeys = _.castArray(ctx.request.query['includeTicketMetaKeys'])
+    .join(',')
+    .split(',');
   const notifications = await query.find({ sessionToken: currentUser.sessionToken });
-  ctx.body = notifications.map((notification) => new NotificationResponse(notification));
+  ctx.body = notifications.map((notification) =>
+    new NotificationResponse(notification).toJSON({
+      includeTicketMetaKeys,
+    })
+  );
 });
 
 router.post('/read-all', async (ctx) => {

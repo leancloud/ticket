@@ -4,11 +4,17 @@ import { TicketListItemResponse } from './ticket';
 export class NotificationResponse {
   constructor(readonly notification: Notification) {}
 
-  toJSON() {
+  toJSON(
+    options: {
+      includeTicketMetaKeys?: string[];
+    } = {}
+  ) {
     return {
       id: this.notification.id,
       ticket: this.notification.ticket
-        ? new TicketListItemResponse(this.notification.ticket)
+        ? new TicketListItemResponse(this.notification.ticket).toJSON({
+            includeMetaKeys: options.includeTicketMetaKeys,
+          })
         : undefined,
       unreadCount: this.notification.unreadCount,
       latestAction: this.notification.latestAction,
