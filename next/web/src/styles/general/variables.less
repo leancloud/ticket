@@ -1,0 +1,215 @@
+// copy for ui-kit
+
+// ==================== 颜色 ====================
+
+// 颜色注意请依照 主色 黑+12，白+20, +61, +76, +90, +93, +98 规律生成
+// 品牌主色
+@Primary6: #15C5CE;
+@Primary7: mix(black, @Primary6, 12);
+@Primary5: mix(white, @Primary6, 20);
+@Primary4: mix(white, @Primary6, 61);
+@Primary3: mix(white, @Primary6, 76);
+@Primary2: mix(white, @Primary6, 90);
+@Primary1: mix(white, @Primary6, 93);
+@Primary0: mix(white, @Primary6, 98);
+@PrimaryColorList: @Primary0, @Primary1, @Primary2, @Primary3, @Primary4, @Primary5, @Primary6, @Primary7;
+
+// 以下变量为历史遗留问题，请勿使用
+@Tap6: @Primary6;
+@Tap7: @Primary7;
+@Tap5: @Primary5;
+@Tap4: @Primary4;
+@Tap3: @Primary3;
+@Tap2: @Primary2;
+@Tap1: @Primary1;
+@Tap0: @Primary0;
+@TapColorList: @Tap0, @Tap1, @Tap2, @Tap3, @Tap4, @Tap5, @Tap6, @Tap7;
+
+// Amber-品牌辅色
+@Auxiliary6: #FF8156;
+@Auxiliary7: mix(black, @Auxiliary6, 12);
+@Auxiliary5: mix(white, @Auxiliary6, 20);
+@Auxiliary4: mix(white, @Auxiliary6, 61);
+@Auxiliary3: mix(white, @Auxiliary6, 76);
+@Auxiliary2: mix(white, @Auxiliary6, 90);
+@Auxiliary1: mix(white, @Auxiliary6, 93);
+@Auxiliary0: mix(white, @Auxiliary6, 98);
+@AuxiliaryColorList: @Auxiliary0, @Auxiliary1, @Auxiliary2, @Auxiliary3, @Auxiliary4, @Auxiliary5, @Auxiliary6, @Auxiliary7;
+
+// 以下变量为历史遗留问题，请勿使用
+@Amber6: @Auxiliary6;
+@Amber7: @Auxiliary7;
+@Amber5: @Auxiliary5;
+@Amber4: @Auxiliary4;
+@Amber3: @Auxiliary3;
+@Amber2: @Auxiliary2;
+@Amber1: @Auxiliary1;
+@Amber0: @Auxiliary0;
+@AmberColorList: @Amber0, @Amber1, @Amber2, @Amber3, @Amber4, @Amber5, @Amber6, @Amber7;
+
+// Blue-无情绪
+@NoEmotion6: #155BD4;
+@NoEmotion7: mix(black, @NoEmotion6, 12);
+@NoEmotion5: mix(white, @NoEmotion6, 20);
+@NoEmotion4: mix(white, @NoEmotion6, 61);
+@NoEmotion3: mix(white, @NoEmotion6, 76);
+@NoEmotion2: mix(white, @NoEmotion6, 90);
+@NoEmotion1: mix(white, @NoEmotion6, 93);
+@NoEmotion0: mix(white, @NoEmotion6, 98);
+@NoEmotionColorList: @NoEmotion0, @NoEmotion1, @NoEmotion2, @NoEmotion3, @NoEmotion4, @NoEmotion5, @NoEmotion6, @NoEmotion7;
+
+// 以下变量为历史遗留问题，请勿使用
+@Blue6: @NoEmotion6;
+@Blue7: @NoEmotion7;
+@Blue5: @NoEmotion5;
+@Blue4: @NoEmotion4;
+@Blue3: @NoEmotion3;
+@Blue2: @NoEmotion2;
+@Blue1: @NoEmotion1;
+@Blue0: @NoEmotion0;
+@BlueColorList: @Blue0, @Blue1, @Blue2, @Blue3, @Blue4, @Blue5, @Blue6, @Blue7;
+
+// Red-危险、错误、被驳回
+@Danger6: #F64C4C;
+@Danger7: mix(black, @Danger6, 12);
+@Danger5: mix(white, @Danger6, 20);
+@Danger4: mix(white, @Danger6, 61);
+@Danger3: mix(white, @Danger6, 76);
+@Danger2: mix(white, @Danger6, 90);
+@Danger1: mix(white, @Danger6, 93);
+@Danger0: mix(white, @Danger6, 98);
+@DangerColorList: @Danger0, @Danger1, @Danger2, @Danger3, @Danger4, @Danger5, @Danger6, @Danger7;
+
+// 以下变量为历史遗留问题，请勿使用
+@Red6: @Danger6;
+@Red7: @Danger7;
+@Red5: @Danger5;
+@Red4: @Danger4;
+@Red3: @Danger3;
+@Red2: @Danger2;
+@Red1: @Danger1;
+@Red0: @Danger0;
+@RedColorList: @Red0, @Red1, @Red2, @Red3, @Red4, @Red5, @Red6, @Red7;
+
+// Yellow-警告、进行中
+@Warning6: #FFAD0D;
+@Warning7: mix(black, @Warning6, 12);
+@Warning5: mix(white, @Warning6, 20);
+@Warning4: mix(white, @Warning6, 61);
+@Warning3: mix(white, @Warning6, 76);
+@Warning2: mix(white, @Warning6, 90);
+@Warning1: mix(white, @Warning6, 93);
+@Warning0: mix(white, @Warning6, 98);
+@WarningColorList: @Warning0, @Warning1, @Warning2, @Warning3, @Warning4, @Warning5, @Warning6, @Warning7;
+
+// 以下变量为历史遗留问题，请勿使用
+@Yellow6: @Warning6;
+@Yellow7: @Warning7;
+@Yellow5: @Warning5;
+@Yellow4: @Warning4;
+@Yellow3: @Warning3;
+@Yellow2: @Warning2;
+@Yellow1: @Warning1;
+@Yellow0: @Warning0;
+@YellowColorList: @Yellow0, @Yellow1, @Yellow2, @Yellow3, @Yellow4, @Yellow5, @Yellow6, @Yellow7;
+
+// Green-成功、正确、通过
+@Success6: #47B881;
+@Success7: mix(black, @Success6, 12);
+@Success5: mix(white, @Success6, 20);
+@Success4: mix(white, @Success6, 61);
+@Success3: mix(white, @Success6, 76);
+@Success2: mix(white, @Success6, 90);
+@Success1: mix(white, @Success6, 93);
+@Success0: mix(white, @Success6, 98);
+@SuccessColorList: @Success0, @Success1, @Success2, @Success3, @Success4, @Success5, @Success6, @Success7;
+
+// 以下变量为历史遗留问题，请勿使用
+@Green6: @Success6;
+@Green7: @Success7;
+@Green5: @Success5;
+@Green4: @Success4;
+@Green3: @Success3;
+@Green2: @Success2;
+@Green1: @Success1;
+@Green0: @Success0;
+@GreenColorList: @Green0, @Green1, @Green2, @Green3, @Green4, @Green5, @Green6, @Green7;
+
+// 中性色
+// Basic
+@BasicBlack: #000000;
+@BasicWhite: #FFFFFF;
+
+// Grey 灰色为固定色，无规律
+
+@Neutral7: #1D2127;
+@Neutral6: #52575D;
+@Neutral5: #868C92;
+@Neutral4: #B9BEC1;
+@Neutral3: #D2D7D9;
+@Neutral2: #EBEFF0;
+@Neutral1: #F5F5F5;
+@Neutral0: #FAFAFA;
+@NeutralColorList: @Neutral0, @Neutral1, @Neutral2, @Neutral3, @Neutral4, @Neutral5, @Neutral6, @Neutral7;
+
+// 以下变量为历史遗留问题，请勿使用
+@Grey7: @Neutral7;
+@Grey6: @Neutral6;
+@Grey5: @Neutral5;
+@Grey4: @Neutral4;
+@Grey3: @Neutral3;
+@Grey2: @Neutral2;
+@Grey1: @Neutral1;
+@Grey0: @Neutral0;
+@GreyColorList: @Grey0, @Grey1, @Grey2, @Grey3, @Grey4, @Grey5, @Grey6, @Grey7;
+
+// Retention - 可视化色板使用
+@Retention5: #45A4FD;
+@Retention4: #77BCFD;
+@Retention3: #B5DBFE;
+@Retention2: #CDE7FE;
+@Retention1: #E6F3FF;
+@Retention0: #FFFFFF;
+@RetentionColorList: @Retention0, @Retention1, @Retention2, @Retention3, @Retention4, @Retention5;
+
+// ==================== 字体 ====================
+@font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', SimSun, sans-serif;
+
+@font10: 10px, 14px;
+@font12: 12px, 18px;
+@font14: 14px, 22px;
+@font16: 16px, 24px;
+@font18: 18px, 26px;
+@font20: 20px, 28px;
+@font24: 24px, 32px;
+@font28: 28px, 32px;
+@font30: 30px, 38px;
+@font32: 32px, 40px;
+@font40: 40px, 40px;
+@font48: 48px, 56px;
+@font72: 72px, 80px;
+
+@FontRegular: 400;
+@FontMedium: 600;
+@FontMediumMac: 500;
+
+// ==================== 阴影 ====================
+
+@SD1: 0px 1px 5px rgba(45, 47, 51, 0.1);
+@SD2: 0px 3px 14px rgba(45, 47, 51, 0.12);
+@SD3: 0px 6px 18px rgba(45, 47, 51, 0.14);
+@SD4: 0px 12px 42px rgba(45, 47, 51, 0.24);
+
+// ==================== 大小 ====================
+
+@SelectSizeLarge: 40px;
+@SelectSizeDefault: 36px;
+@SelectSizeSmall: 32px;
+
+@ButtonSizeSmall: 28px;
+@ButtonSizeDefault: 36px;
+@ButtonSizeLarge: 40px;
+
+@InputSizeDefault: 36px;
+@InputSizeLarge: 40px;
+@InputSizeSmall: 32px;
