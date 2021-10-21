@@ -13,7 +13,8 @@
       "api/*": ["src/api/*"],
       "leancloud": ["src/leancloud"],
       "components/*": ["src/components/*"],
-      "utils/*": ["src/utils/*"]
+      "utils/*": ["src/utils/*"],
+      "@/*": ["src/*"]
     },
     "typeRoots": ["./node_modules/@types"],
     "skipLibCheck": true,

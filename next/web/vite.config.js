@@ -20,7 +20,7 @@ export default defineConfig({
       leancloud: path.resolve('./src/leancloud'),
       utils: path.resolve('./src/utils'),
       components: path.resolve('./src/components'),
-      styles: path.resolve('./src/styles'),
+      '@': path.resolve('./src'),
     },
   },
   build: {
