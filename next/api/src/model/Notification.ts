@@ -32,6 +32,9 @@ export class Notification extends Model {
   @field()
   latestAction!: LatestAction;
 
+  @field()
+  latestActionAt?: Date;
+
   static async upsert(ticketId: string, userIds: string[], latestAction: LatestAction) {
     userIds = _.uniq(userIds);
 
@@ -58,6 +61,7 @@ export class Notification extends Model {
           ticketId,
           userId,
           latestAction,
+          latestActionAt: new Date(),
           unreadCount: 1,
         })),
         { useMasterKey: true }
@@ -67,6 +71,7 @@ export class Notification extends Model {
           n,
           {
             latestAction,
+            latestActionAt: new Date(),
             unreadCount: commands.inc(),
           },
         ]),

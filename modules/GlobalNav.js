@@ -8,6 +8,9 @@ import * as Icon from 'react-bootstrap-icons'
 import { getUserDisplayName } from '../lib/common'
 import { getConfig } from './config'
 import { AppContext } from './context'
+import { http } from '../lib/leancloud'
+import { useQuery } from 'react-query'
+import EmptyBadge from './components/EmptyBadge'
 
 export default function GlobalNav({ user, onLogout }) {
   const { t } = useTranslation()
@@ -16,6 +19,12 @@ export default function GlobalNav({ user, onLogout }) {
   const handleChangeLanguage = (lang) => {
     i18next.changeLanguage(lang)
   }
+
+  const { data: unread } = useQuery({
+    queryKey: 'unread',
+    queryFn: () => http.get('/api/2/unread'),
+    staleTime: 300_000,
+  })
 
   return (
     <Navbar bg="light" expand="md" fixed="top">
@@ -55,11 +64,10 @@ export default function GlobalNav({ user, onLogout }) {
                 {t('newTicket')}
               </Button>
             )}
-            {isCustomerService && (
-              <Nav.Link as={Link} to="/notifications">
-                <Icon.BellFill />
-              </Nav.Link>
-            )}
+            <Nav.Link as={Link} to="/notifications">
+              <Icon.BellFill />
+              {unread > 0 && <EmptyBadge />}
+            </Nav.Link>
             {/* eslint-disable i18n/no-chinese-character */}
             <NavDropdown className="mx-2" title="EN/中">
               <NavDropdown.Item onClick={() => handleChangeLanguage('en')}>

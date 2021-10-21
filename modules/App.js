@@ -24,9 +24,8 @@ import About from './About'
 import Login from './Login'
 import NewTicket from './NewTicket'
 import Ticket from './Ticket'
-import Messages from './Messages'
 import NotFound from './NotFound'
-import Notifications from './Notifications'
+import Notification from './Notification'
 import CustomerService from './CustomerService'
 import ErrorPage from './Error'
 import User from './User'
@@ -221,11 +220,8 @@ class App extends Component {
                 <AuthRoute path="/tickets/:nid">
                   <Ticket {...props} />
                 </AuthRoute>
-                <AuthRoute path="/messages">
-                  <Messages {...props} />
-                </AuthRoute>
                 <AuthRoute path="/notifications">
-                  <Notifications {...props} />
+                  <Notification {...props} />
                 </AuthRoute>
                 <StaffRoute path="/customerService">
                   <CustomerService />
@@ -267,12 +263,12 @@ class ServerNotification extends Component {
   constructor(props) {
     super(props)
     let permission = 'denied'
-    if (window.Notification && Notification.permission === 'granted') {
+    if (window.Notification && window.Notification.permission === 'granted') {
       permission = 'granted'
-    } else if (window.Notification && Notification.permission !== 'denied') {
-      Notification.requestPermission((status) => {
-        if (Notification.permission !== status) {
-          Notification.permission = status
+    } else if (window.Notification && window.Notification.permission !== 'denied') {
+      window.Notification.requestPermission((status) => {
+        if (window.Notification.permission !== status) {
+          window.Notification.permission = status
         }
         this.setState({ permission: status })
       })
