@@ -18,7 +18,7 @@ install:
   - cd ../web
   - npm ci
 build:
-  - npm build
+  - npm run build
   - cd in-app/v1/
   - npm run build
   - cd ../../next/api
