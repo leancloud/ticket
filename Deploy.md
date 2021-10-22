@@ -84,3 +84,9 @@
 ## 2021-10-13
 
 OpsLog 没有索引，在自用的 LeanTicket 上 40000+ 的数据量已经出现查询超时了，慢查询条件为 `where('ticket', '==', ptr).orderBy('createdAt')`。给 ticket 列加个索引，避免扫全表即可。
+
+## 2021-10-21
+
+### `f400cdc73c0328bb74bf934a17c370c127b4000e`
+
+重新导入 notification.json 。并确保 notification 表有这个索引： user.$id_1_latestActionAt_-1
