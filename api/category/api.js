@@ -16,6 +16,7 @@ router.get(
   catchError(async (req, res) => {
     const { active, id, parent_id } = req.query
     const categoryQuery = new AV.Query('Category')
+    categoryQuery.limit(1000)
     categoryQuery.addDescending('createdAt')
     if (active === 'true') {
       categoryQuery.doesNotExist('deletedAt')
