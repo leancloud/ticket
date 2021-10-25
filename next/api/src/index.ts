@@ -36,9 +36,6 @@ app.use(async (ctx, next) => {
     const status = error.status || 500;
     ctx.status = status;
     ctx.body = { message: error.message };
-    if (status >= 500) {
-      console.error(error);
-    }
   }
 });
 

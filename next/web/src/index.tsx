@@ -16,11 +16,11 @@ Sentry.init({
   // release: `` ,
   // environment: '', // 环境指代 发布的应用
   enabled: !import.meta.env.DEV,
-  // initialScope:{
-  //   // tags: {
-  //   //     [key: string]: Primitive;
-  //   // };
-  // }
+  initialScope: {
+    tags: {
+      type: 'frontend',
+    },
+  },
 });
 
 render(
