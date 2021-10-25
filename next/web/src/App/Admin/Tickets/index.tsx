@@ -66,7 +66,7 @@ function TicketsPage() {
         }}
       />
 
-      <div className="flex flex-grow bg-[#ebeff3] overflow-hidden">
+      <div className="flex flex-grow overflow-hidden">
         <div className="flex flex-grow flex-col p-[10px] gap-2 overflow-auto">
           {isLoading ? (
             'Loading...'
