@@ -1,0 +1,27 @@
+.fieldGroup {
+  .deleteButton {
+    visibility: hidden;
+  }
+
+  &:hover {
+    .deleteButton {
+      visibility: visible;
+    }
+  }
+
+  :global(.ant-form-item) {
+    margin: 0 !important;
+  }
+}
+
+.beforeLine::before {
+  content: " ";
+  height: 25px;
+  border-left: 1px dashed #acb6be;
+}
+
+.afterLine::after {
+  content: " ";
+  height: 25px;
+  border-left: 1px dashed #acb6be;
+}

@@ -30,6 +30,7 @@
     "use-query-params": "^1.2.3"
   },
   "devDependencies": {
+    "@hookform/devtools": "^4.0.1",
     "@tailwindcss/forms": "^0.3.4",
     "@types/lodash-es": "^4.17.5",
     "@types/react": "^17.0.29",
