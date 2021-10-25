@@ -2,6 +2,7 @@ import Koa from 'koa';
 import bodyParser from 'koa-bodyparser';
 import cors from '@koa/cors';
 import throat from 'throat';
+import * as Sentry from "@sentry/node";
 
 import './leancloud';
 import { config } from './config';
@@ -13,10 +14,25 @@ import { Ticket } from './model/Ticket';
 
 export const app = new Koa();
 
+Sentry.init({
+  dsn: config.sentryDNS,
+  initialScope: {
+    tags: {
+      type: 'backend'
+    }
+  }
+});
+
 app.use(async (ctx, next) => {
   try {
     await next();
   } catch (error: any) {
+    Sentry.withScope(function (scope) {
+      scope.addEventProcessor(function (event) {
+        return Sentry.Handlers.parseRequest(event, ctx.request);
+      });
+      Sentry.captureException(error);
+    });
     const status = error.status || 500;
     ctx.status = status;
     ctx.body = { message: error.message };
@@ -35,14 +51,14 @@ app.use(
   cors({
     origin: allowedOrigins
       ? (ctx) => {
-          if (
-            ctx.request.header.origin &&
-            allowedOrigins.indexOf(ctx.request.header.origin) !== -1
-          ) {
-            return ctx.request.header.origin;
-          }
-          return '';
+        if (
+          ctx.request.header.origin &&
+          allowedOrigins.indexOf(ctx.request.header.origin) !== -1
+        ) {
+          return ctx.request.header.origin;
         }
+        return '';
+      }
       : undefined,
     keepHeadersOnError: true,
   })
