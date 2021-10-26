@@ -1,4 +1,3 @@
-import { AxiosError } from 'axios';
 import { useMemo } from 'react';
 import { UseQueryOptions, useQuery } from 'react-query';
 
@@ -21,7 +20,7 @@ export async function fetchCategories(active?: boolean) {
 
 export interface UseCategoriesOptions {
   active?: boolean;
-  queryOptions?: UseQueryOptions<CategorySchema[], AxiosError<CategorySchema[]>>;
+  queryOptions?: UseQueryOptions<CategorySchema[], Error>;
 }
 
 export function useCategories({ active, queryOptions }: UseCategoriesOptions = {}) {

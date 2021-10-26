@@ -1,8 +1,6 @@
-import { Schema } from 'zod';
-
 import { ConditionFactory } from '..';
 
-export function not(factory: ConditionFactory): ConditionFactory {
+export function not<T>(factory: ConditionFactory<T>): ConditionFactory<T> {
   return (options) => {
     const condition = factory(options);
     return {
@@ -12,10 +10,4 @@ export function not(factory: ConditionFactory): ConditionFactory {
   };
 }
 
-export function check<T>(schema: Schema<T>, factory: ConditionFactory<T>): ConditionFactory<T> {
-  return (options) => factory(schema.parse(options));
-}
-
 export * as string from './string';
-
-export * as mixed from './mixed';

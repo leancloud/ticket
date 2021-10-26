@@ -252,15 +252,15 @@ export function ConditionFields({ path, config, min = 0, onEmpty }: ConditionFie
 }
 
 export interface ConditionsFieldProps {
-  path: string;
+  name: string;
   config: Config;
 }
 
-export function ConditionsField({ path, config }: ConditionsFieldProps) {
+export function ConditionsField({ name, config }: ConditionsFieldProps) {
   const { control } = useFormContext();
   const { fields, append, remove } = useFieldArray({
     control,
-    name: `${path}.conditions`,
+    name: `${name}.conditions`,
   });
 
   return (
@@ -270,12 +270,13 @@ export function ConditionsField({ path, config }: ConditionsFieldProps) {
           {i > 0 && (
             <Controller
               control={control}
-              name={`${path}.type`}
+              name={`${name}.type`}
+              defaultValue="any"
               render={({ field }) => <TypeSwitch type={field.value} onChange={field.onChange} />}
             />
           )}
           <ConditionFields
-            path={`${path}.conditions.${i}`}
+            path={`${name}.conditions.${i}`}
             config={config}
             min={fields.length > 1 ? 0 : 1}
             onEmpty={() => remove(i)}

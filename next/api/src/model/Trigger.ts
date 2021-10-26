@@ -9,8 +9,8 @@ export class Trigger extends Model {
 
   @field()
   conditions!: {
-    any: Record<string, any>[];
-    all: Record<string, any>[];
+    [key: string]: any;
+    type: string;
   };
 
   @field()

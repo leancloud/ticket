@@ -1,13 +1,15 @@
 import { z } from 'zod';
 
 import { User } from '@/model/User';
-import { check } from './common';
+import { Action } from '.';
 
-export default check(
-  z.object({
-    value: z.string().nullable(),
-  }),
-  ({ value }) => ({
+const schema = z.object({
+  value: z.string().nullable(),
+});
+
+export default function (options: unknown): Action {
+  const { value } = schema.parse(options);
+  return {
     exec: async ({ updater }) => {
       if (value === null) {
         updater.setAssignee(null);
@@ -18,5 +20,5 @@ export default check(
         updater.setAssignee(assignee);
       }
     },
-  })
-);
+  };
+}

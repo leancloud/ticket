@@ -1,20 +1,29 @@
 import { Context } from 'koa';
 import Router from '@koa/router';
-import { z } from 'zod';
+import { z, ZodError } from 'zod';
+import _ from 'lodash';
 
+import { getZodErrorMessage } from '@/utils/zod';
 import { auth, customerServiceOnly } from '@/middleware/auth';
-import { trigger as triggerFactory } from '@/ticket/automation';
+import { condition, action } from '@/ticket/automation';
 import { Trigger } from '@/model/Trigger';
 import { TriggerResponse } from '@/response/trigger';
 
 const router = new Router().use(auth, customerServiceOnly);
 
-const conditionsSchema = z.object({
-  all: z.array(z.any()).default([]),
-  any: z.array(z.any()).default([]),
-});
+const conditionsSchema = z
+  .object({
+    type: z.string(),
+  })
+  .passthrough();
 
-const actionsSchema = z.array(z.any());
+const actionsSchema = z.array(
+  z
+    .object({
+      type: z.string(),
+    })
+    .passthrough()
+);
 
 const createDataSchema = z.object({
   title: z.string(),
@@ -23,17 +32,35 @@ const createDataSchema = z.object({
   actions: actionsSchema,
 });
 
-function validate(ctx: Context, data: any): void | never {
-  try {
-    triggerFactory(data);
-  } catch (error) {
-    ctx.throw(400, (error as Error).message);
+function getErrorMessage(error: Error) {
+  if (error instanceof ZodError) {
+    return getZodErrorMessage(error);
   }
+  return error.message;
+}
+
+function validateConditions(ctx: Context, data: unknown): void | never {
+  try {
+    condition(data);
+  } catch (error) {
+    ctx.throw(400, getErrorMessage(error as Error));
+  }
+}
+
+function validateActions(ctx: Context, data: unknown[]): void | never {
+  data.forEach((item, i) => {
+    try {
+      action(item);
+    } catch (error) {
+      ctx.throw(400, `actions.${i}: ` + getErrorMessage(error as Error));
+    }
+  });
 }
 
 router.post('/', async (ctx) => {
   const data = createDataSchema.parse(ctx.request.body);
-  validate(ctx, data);
+  validateConditions(ctx, data.conditions);
+  validateActions(ctx, data.actions);
 
   const trigger = await Trigger.create(
     {
@@ -77,7 +104,13 @@ const updateDataSchema = z.object({
 router.patch('/:id', async (ctx) => {
   const trigger = ctx.state.trigger as Trigger;
   const data = updateDataSchema.parse(ctx.request.body);
-  validate(ctx, data);
+
+  if (data.conditions) {
+    validateConditions(ctx, data.conditions);
+  }
+  if (data.actions) {
+    validateActions(ctx, data.actions);
+  }
 
   await trigger.update(
     {
@@ -98,6 +131,38 @@ router.patch('/:id', async (ctx) => {
 router.delete('/:id', async (ctx) => {
   const trigger = ctx.state.trigger as Trigger;
   await trigger.delete({ useMasterKey: true });
+  ctx.body = {};
+});
+
+const reorderDataSchema = z.object({
+  ids: z.array(z.string()),
+});
+
+router.post('/reorder', async (ctx) => {
+  const { ids } = reorderDataSchema.parse(ctx.request.body);
+  if (ids.length) {
+    const triggers = await Trigger.query().find({ useMasterKey: true });
+    const triggerMap = _.keyBy(triggers, 'id');
+
+    const front: Trigger[] = [];
+    ids.forEach((id) => {
+      if (id in triggerMap) {
+        front.push(triggerMap[id]);
+        delete triggerMap[id];
+      }
+    });
+    const tail = Object.values(triggerMap);
+
+    await Trigger.updateSome(
+      [
+        ...front.map((t, i) => [t, { position: i }]),
+        ...tail.map((t) => [t, { position: null }]),
+      ] as [Trigger, { position: number | null }][],
+      {
+        useMasterKey: true,
+      }
+    );
+  }
   ctx.body = {};
 });
 

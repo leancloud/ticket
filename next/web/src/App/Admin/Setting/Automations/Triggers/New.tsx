@@ -1,36 +1,45 @@
-import { Button, Divider, Form, Input, Typography } from 'antd';
+import { Button, Divider, Form, Input, Typography, message, notification } from 'antd';
 import { useHistory } from 'react-router-dom';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
-import { DevTool } from '@hookform/devtools';
+import { useMutation } from 'react-query';
 
+import { Condition, CreateTriggerData, createTrigger } from '@/api/trigger';
 import { ConditionsField, ActionFields } from '../CustomFields';
 import conditions from './conditions';
 import actions from './actions';
 
 const { Title } = Typography;
 
-interface TriggerFormProps {
-  onSubmit: (data: any) => void;
+export interface TriggerFormProps {
+  onSubmit: (data: CreateTriggerData) => void;
   onCancel: () => void;
+  loading?: boolean;
+  defaultValue?: any;
+  submitButtonTitle?: string;
 }
 
-function TriggerForm({ onSubmit, onCancel }: TriggerFormProps) {
-  const methods = useForm<any>({
-    shouldUnregister: true,
-    defaultValues: {
-      title: 'temp title',
-      content: '',
-      conditions: {
+const DEFAULT_VALUE = {
+  conditions: {
+    type: 'any',
+    conditions: [
+      {
         type: 'any',
-        conditions: [
-          {
-            type: 'any',
-            conditions: [{}],
-          },
-        ],
+        conditions: [{}],
       },
-      actions: [{}],
-    },
+    ],
+  },
+  actions: [{}],
+};
+
+export function TriggerForm({
+  onSubmit,
+  onCancel,
+  loading,
+  defaultValue = DEFAULT_VALUE,
+  submitButtonTitle = '保存',
+}: TriggerFormProps) {
+  const methods = useForm<any>({
+    defaultValues: defaultValue,
   });
 
   const {
@@ -42,11 +51,6 @@ function TriggerForm({ onSubmit, onCancel }: TriggerFormProps) {
   return (
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <div>
-          <p className="text-sm text-[#6F7C87]">新规则：</p>
-          <Title level={3}>流转触发器</Title>
-        </div>
-
         <Form.Item className="mt-6" validateStatus={errors.title ? 'error' : undefined}>
           <div className="text-lg font-bold pb-2">规则名称</div>
           <Controller
@@ -61,14 +65,14 @@ function TriggerForm({ onSubmit, onCancel }: TriggerFormProps) {
           <div className="text-lg font-bold pb-2">规则描述</div>
           <Controller
             control={control}
-            name="content"
+            name="description"
             render={({ field }) => <Input {...field} placeholder="输入规则描述（可空）" />}
           />
         </Form.Item>
 
         <div className="mt-6">
           <div className="text-lg font-bold pb-2">满足以下条件时执行：</div>
-          <ConditionsField path="conditions" config={conditions} />
+          <ConditionsField name="conditions" config={conditions} />
         </div>
 
         <div className="mt-6">
@@ -78,27 +82,63 @@ function TriggerForm({ onSubmit, onCancel }: TriggerFormProps) {
 
         <Divider />
         <div>
-          <Button type="primary" htmlType="submit">
-            保存
+          <Button type="primary" htmlType="submit" loading={loading}>
+            {submitButtonTitle}
           </Button>
-          <Button className="ml-2" onClick={onCancel}>
+          <Button className="ml-2" onClick={onCancel} disabled={loading}>
             取消
           </Button>
         </div>
       </form>
-
-      <DevTool control={methods.control} />
     </FormProvider>
   );
+}
+
+function encodeCondition(condition: Condition): Condition {
+  if (condition.type === 'any' || condition.type === 'all') {
+    if (condition.conditions.length === 1) {
+      return encodeCondition(condition.conditions[0]);
+    } else {
+      return {
+        ...condition,
+        conditions: condition.conditions.map(encodeCondition),
+      };
+    }
+  }
+  return condition;
 }
 
 export default function NewTrigger() {
   const history = useHistory();
 
+  const { mutate, isLoading } = useMutation({
+    mutationFn: (data: CreateTriggerData) =>
+      createTrigger({
+        title: data.title,
+        description: data.description,
+        conditions: encodeCondition(data.conditions),
+        actions: data.actions,
+      }),
+    onSuccess: () => {
+      message.success('保存成功');
+      history.push('.');
+    },
+    onError: (error: Error) => {
+      console.error(error);
+      notification.error({
+        message: '创建失败',
+        description: error.message,
+      });
+    },
+  });
+
   return (
-    <TriggerForm
-      onSubmit={(data) => console.log(JSON.stringify(data, null, 2))}
-      onCancel={() => history.push('.')}
-    />
+    <div>
+      <div>
+        <p className="text-sm text-[#6F7C87]">新规则：</p>
+        <Title level={3}>流转触发器</Title>
+      </div>
+      <TriggerForm onSubmit={mutate} onCancel={() => history.push('.')} loading={isLoading} />
+    </div>
   );
 }

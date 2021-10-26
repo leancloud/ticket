@@ -1,26 +1,38 @@
 import { z } from 'zod';
 
-import { check, not } from './common';
+import { ConditionFactory } from '.';
+import { not } from './common';
 import { getAssigneeId } from './assigneeId';
 
-const V_TICKET_ASSIGNEE = '(ticketAssignee)';
-
-const is = check(
-  z.object({
-    value: z.string(),
-  }),
-  ({ value }) => ({
+const is: ConditionFactory<string> = (value) => {
+  return {
     test: (ctx) => {
       const authorId = ctx.ticket.authorId;
-      if (value === V_TICKET_ASSIGNEE) {
+      if (value === '__currentUser') {
+        return authorId === ctx.currentUserId;
+      }
+      if (value === '__assignee') {
         return authorId === getAssigneeId(ctx);
       }
       return authorId === value;
     },
-  })
-);
+  };
+};
 
-export default {
+const conditionFactories: Record<string, ConditionFactory> = {
   is,
   isNot: not(is),
 };
+
+const schema = z.object({
+  op: z.string(),
+  value: z.string(),
+});
+
+export default function (options: unknown) {
+  const { op, value } = schema.parse(options);
+  if (op in conditionFactories) {
+    return conditionFactories[op](value);
+  }
+  throw new Error('Unknown op: ' + op);
+}

@@ -44,6 +44,5 @@ export interface Context {
   updater: TicketUpdater;
 }
 
-export { Condition } from './condition';
-export { Action } from './action';
-export { trigger } from './trigger';
+export { Condition, condition } from './condition';
+export { Action, action } from './action';

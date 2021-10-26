@@ -10,6 +10,7 @@ import { Menu, Typography } from 'antd';
 
 import Triggers from './Triggers';
 import NewTrigger from './Triggers/New';
+import TriggerDetail from './Triggers/Detail';
 import TimeTriggers from './TimeTriggers';
 import NewTimeTrigger from './TimeTriggers/New';
 
@@ -52,6 +53,7 @@ export default function Automations({ match: { path } }: RouteComponentProps) {
     <div className="p-14">
       <Switch>
         <Route path={`${path}/triggers/new`} component={NewTrigger} />
+        <Route path={`${path}/triggers/:id`} component={TriggerDetail} />
         <Route path={`${path}/time-triggers/new`} component={NewTimeTrigger} />
         <Route path={path} component={TriggerMenu} />
       </Switch>

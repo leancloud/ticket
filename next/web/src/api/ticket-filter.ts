@@ -1,4 +1,3 @@
-import { AxiosError } from 'axios';
 import {
   UseMutationOptions,
   UseQueryOptions,
@@ -74,7 +73,7 @@ export async function deleteTicketFilter(id: string): Promise<void> {
 }
 
 export interface UseTicketFiltersOptions extends FetchTicketFiltersOptions {
-  queryOptions?: UseQueryOptions<TicketFilterSchema[], AxiosError>;
+  queryOptions?: UseQueryOptions<TicketFilterSchema[], Error>;
 }
 
 export function useTicketFilters({ queryOptions, ...options }: UseTicketFiltersOptions = {}) {
@@ -91,7 +90,7 @@ export function useTicketFilters({ queryOptions, ...options }: UseTicketFiltersO
 }
 
 export interface UseTicketFilterOptions {
-  queryOptions?: UseQueryOptions<TicketFilterSchema, AxiosError>;
+  queryOptions?: UseQueryOptions<TicketFilterSchema, Error>;
 }
 
 export function useTicketFilter(id: string, { queryOptions }: UseTicketFilterOptions = {}) {
@@ -103,7 +102,7 @@ export function useTicketFilter(id: string, { queryOptions }: UseTicketFilterOpt
 }
 
 export function useCreateTicketFilter(
-  options?: UseMutationOptions<TicketFilterSchema, AxiosError, CreateTicketFilterData>
+  options?: UseMutationOptions<TicketFilterSchema, Error, CreateTicketFilterData>
 ) {
   return useMutation({
     mutationFn: createTicketFilter,
@@ -112,7 +111,7 @@ export function useCreateTicketFilter(
 }
 
 export function useUpdateTicketFilter(
-  options?: UseMutationOptions<void, AxiosError, UpdateTicketFilterData & { id: string }>
+  options?: UseMutationOptions<void, Error, UpdateTicketFilterData & { id: string }>
 ) {
   return useMutation({
     mutationFn: ({ id, ...data }) => updateTicketFilter(id, data),
@@ -120,7 +119,7 @@ export function useUpdateTicketFilter(
   });
 }
 
-export function useDeleteTicketFilter(options?: UseMutationOptions<void, AxiosError, string>) {
+export function useDeleteTicketFilter(options?: UseMutationOptions<void, Error, string>) {
   return useMutation({
     mutationFn: deleteTicketFilter,
     ...options,
