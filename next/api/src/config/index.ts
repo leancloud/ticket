@@ -6,7 +6,7 @@ export const config = {
   gravatarURL: 'https://www.gravatar.com/avatar',
   host: getHost(),
   sla: 120,
-  sentryDNS: 'https://95f6f57c70b0443e9f640b5b8412fcee@o1045487.ingest.sentry.io/6025204',
+  sentryDSN: process.env.SENTRY_API_DSN,
 };
 
 function boolean(value: any): boolean {

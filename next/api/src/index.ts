@@ -14,14 +14,17 @@ import { Ticket } from './model/Ticket';
 
 export const app = new Koa();
 
-Sentry.init({
-  dsn: config.sentryDNS,
-  initialScope: {
-    tags: {
-      type: 'backend'
+if (config.sentryDSN) {
+  Sentry.init({
+    dsn: config.sentryDSN,
+    initialScope: {
+      tags: {
+        type: 'api'
+      }
     }
-  }
-});
+  });
+}
+
 
 app.use(async (ctx, next) => {
   try {
