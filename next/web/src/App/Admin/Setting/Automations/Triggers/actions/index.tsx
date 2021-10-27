@@ -15,4 +15,7 @@ export default {
     label: '将客服组更新为',
     component: UpdateGroupId,
   },
+  closeTicket: {
+    label: '关闭工单',
+  },
 };

@@ -4,14 +4,14 @@ import { Context } from '@/ticket/automation';
 import { ConditionFactory } from '.';
 import { not, string } from './common';
 
-const getTicketTitle = (ctx: Context) => ctx.ticket.title;
+const getTitle = (ctx: Context) => ctx.ticket.title;
 
-const is = string.eq(getTicketTitle);
-const includes = string.includes(getTicketTitle);
-const includesAny = string.includesAny(getTicketTitle);
-const includesAll = string.includesAll(getTicketTitle);
-const startsWith = string.startsWith(getTicketTitle);
-const endsWith = string.endsWith(getTicketTitle);
+const is = string.eq(getTitle, 'title');
+const includes = string.includes(getTitle, 'title');
+const includesAny = string.includesAny(getTitle, 'title');
+const includesAll = string.includesAll(getTitle, 'title');
+const startsWith = string.startsWith(getTitle, 'title');
+const endsWith = string.endsWith(getTitle, 'title');
 
 const conditionFactories: Record<string, ConditionFactory> = {
   is,
@@ -30,7 +30,7 @@ const schema = z.object({
   op: z.string(),
 });
 
-export default function title(options: unknown) {
+export function title(options: unknown) {
   const { op } = schema.parse(options);
   if (op in conditionFactories) {
     return conditionFactories[op](options);

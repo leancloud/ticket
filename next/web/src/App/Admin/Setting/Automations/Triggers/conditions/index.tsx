@@ -4,6 +4,8 @@ import { CategoryId } from './CategoryId';
 import { AuthorId } from './AuthorId';
 import { AssigneeId } from './AssigneeId';
 import { GroupId } from './GroupId';
+import { Status } from './Status';
+import { CurrentUserId } from './CurrentUserId';
 
 export default {
   ticket: {
@@ -33,5 +35,13 @@ export default {
   groupId: {
     label: '客服组',
     component: GroupId,
+  },
+  status: {
+    label: '状态',
+    component: Status,
+  },
+  currentUserId: {
+    label: '当前用户',
+    component: CurrentUserId,
   },
 };

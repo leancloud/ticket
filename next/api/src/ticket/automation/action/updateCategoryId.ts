@@ -7,7 +7,7 @@ const schema = z.object({
   value: z.string(),
 });
 
-export default function (options: unknown): Action {
+export function updateCategoryId(options: unknown): Action {
   const { value } = schema.parse(options);
   return {
     exec: async ({ updater }) => {

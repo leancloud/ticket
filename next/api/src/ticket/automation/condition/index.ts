@@ -3,16 +3,18 @@ import { z } from 'zod';
 
 import { Context } from '..';
 
-import ticket from './ticket';
-import title from './title';
-import content from './content';
-import categoryId from './categoryId';
-import authorId from './authorId';
-import assigneeId from './assigneeId';
-import groupId from './groupId';
-import status from './status';
+import { ticket } from './ticket';
+import { title } from './title';
+import { content } from './content';
+import { categoryId } from './categoryId';
+import { authorId } from './authorId';
+import { assigneeId } from './assigneeId';
+import { groupId } from './groupId';
+import { status } from './status';
+import { currentUserId } from './currentUserId';
 
 export interface Condition {
+  name?: string; // 方便 debug
   test(ctx: Context): boolean | Promise<boolean>;
 }
 
@@ -31,6 +33,7 @@ const all: ConditionFactory = (options) => {
   }
   const conditionObjects = conditions.map(condition);
   return {
+    name: `all(${conditionObjects.map((c) => c.name).join(', ')})`,
     test: async (ctx) => {
       for (const condition of conditionObjects) {
         if (!(await condition.test(ctx))) {
@@ -49,6 +52,7 @@ const any: ConditionFactory = (options) => {
   }
   const conditionObjects = conditions.map(condition);
   return {
+    name: `any(${conditionObjects.map((c) => c.name).join(', ')})`,
     test: async (ctx) => {
       for (const condition of conditionObjects) {
         if (await condition.test(ctx)) {
@@ -69,6 +73,7 @@ const conditionTypes: Record<string, ConditionFactory> = {
   assigneeId,
   groupId,
   status,
+  currentUserId,
   any,
   all,
 };

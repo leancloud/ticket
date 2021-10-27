@@ -10,6 +10,7 @@ function getCategoryId({ ticket, updatedData }: Context): string {
 
 const is: ConditionFactory<string> = (value) => {
   return {
+    name: `category is ${value}`,
     test: (ctx) => {
       return getCategoryId(ctx) === value;
     },
@@ -26,7 +27,7 @@ const schema = z.object({
   value: z.string(),
 });
 
-export default function (options: unknown) {
+export function categoryId(options: unknown) {
   const { op, value } = schema.parse(options);
   if (op in conditionFactories) {
     return conditionFactories[op](value);

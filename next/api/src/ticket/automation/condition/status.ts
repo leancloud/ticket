@@ -10,6 +10,7 @@ function getStatus({ ticket, updatedData }: Context): number {
 
 const is: ConditionFactory<number> = (value) => {
   return {
+    name: `status is ${value}`,
     test: (ctx) => getStatus(ctx) === value,
   };
 };
@@ -24,7 +25,7 @@ const schema = z.object({
   value: z.number(),
 });
 
-export default function (options: unknown) {
+export function status(options: unknown) {
   const { op, value } = schema.parse(options);
   if (op in conditionFactories) {
     return conditionFactories[op](value);

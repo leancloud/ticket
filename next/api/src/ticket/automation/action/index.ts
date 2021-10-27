@@ -2,10 +2,10 @@ import { z } from 'zod';
 
 import { Context } from '..';
 
-import updateAssigneeId from './updateAssigneeId';
-import updateCategoryId from './updateCategoryId';
-import updateGroupId from './updateGroupId';
-import closeTicket from './closeTicket';
+import { updateAssigneeId } from './updateAssigneeId';
+import { updateCategoryId } from './updateCategoryId';
+import { updateGroupId } from './updateGroupId';
+import { closeTicket } from './closeTicket';
 
 export interface Action {
   exec(ctx: Context): void | Promise<void>;

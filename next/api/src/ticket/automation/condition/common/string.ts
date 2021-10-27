@@ -10,11 +10,11 @@ const stringSchema = z.object({
   caseSensitive: z.boolean().optional(),
 });
 
-export function eq(getter: Getter<any>): ConditionFactory {
+export function eq(getter: Getter<any>, name?: string): ConditionFactory {
   return (options) => {
     let { value, caseSensitive } = stringSchema.parse(options);
     return {
-      options,
+      name: `${name} is ${value}${caseSensitive ? ' (case sensitive)' : ''}`,
       test: (ctx) => {
         let source = getter(ctx);
         if (typeof source !== 'string') {
@@ -30,11 +30,11 @@ export function eq(getter: Getter<any>): ConditionFactory {
   };
 }
 
-export function includes(getter: Getter<any>): ConditionFactory {
+export function includes(getter: Getter<any>, name?: string): ConditionFactory {
   return (options) => {
     let { value, caseSensitive } = stringSchema.parse(options);
     return {
-      options,
+      name: `${name} includes ${value}${caseSensitive ? ' (case sensitive)' : ''}`,
       test: (ctx) => {
         let source = getter(ctx);
         if (typeof source !== 'string') {
@@ -50,11 +50,11 @@ export function includes(getter: Getter<any>): ConditionFactory {
   };
 }
 
-export function startsWith(getter: Getter<any>): ConditionFactory {
+export function startsWith(getter: Getter<any>, name?: string): ConditionFactory {
   return (options) => {
     let { value, caseSensitive } = stringSchema.parse(options);
     return {
-      options,
+      name: `${name} starts with ${value}${caseSensitive ? ' (case sensitive)' : ''}`,
       test: (ctx) => {
         let source: string = getter(ctx);
         if (typeof source !== 'string') {
@@ -70,11 +70,11 @@ export function startsWith(getter: Getter<any>): ConditionFactory {
   };
 }
 
-export function endsWith(getter: Getter<any>): ConditionFactory {
+export function endsWith(getter: Getter<any>, name?: string): ConditionFactory {
   return (options) => {
     let { value, caseSensitive } = stringSchema.parse(options);
     return {
-      options,
+      name: `${name} ends with ${value}${caseSensitive ? ' (case sensitive)' : ''}`,
       test: (ctx) => {
         let source: string = getter(ctx);
         if (typeof source !== 'string') {
@@ -95,11 +95,11 @@ const stringArraySchema = z.object({
   caseSensitive: z.boolean().optional(),
 });
 
-export function eqAny(getter: Getter<any>): ConditionFactory {
+export function eqAny(getter: Getter<any>, name?: string): ConditionFactory {
   return (options) => {
     let { value, caseSensitive } = stringArraySchema.parse(options);
     return {
-      options,
+      name: `${name} is any of [${value.join(', ')}]${caseSensitive ? ' (case sensitive)' : ''}`,
       test: (ctx) => {
         let source = getter(ctx);
         if (typeof source !== 'string') {
@@ -115,11 +115,13 @@ export function eqAny(getter: Getter<any>): ConditionFactory {
   };
 }
 
-export function includesAny(getter: Getter<any>): ConditionFactory {
+export function includesAny(getter: Getter<any>, name?: string): ConditionFactory {
   return (options) => {
     let { value, caseSensitive } = stringArraySchema.parse(options);
     return {
-      options,
+      name: `${name} includes any of [${value.join(', ')}]${
+        caseSensitive ? ' (case sensitive)' : ''
+      }`,
       test: (ctx) => {
         let source = getter(ctx);
         if (typeof source !== 'string') {
@@ -135,11 +137,13 @@ export function includesAny(getter: Getter<any>): ConditionFactory {
   };
 }
 
-export function includesAll(getter: Getter<any>): ConditionFactory {
+export function includesAll(getter: Getter<any>, name?: string): ConditionFactory {
   return (options) => {
     let { value, caseSensitive } = stringArraySchema.parse(options);
     return {
-      options,
+      name: `${name} includes all of [${value.join(', ')}]${
+        caseSensitive ? ' (case sensitive)' : ''
+      }`,
       test: (ctx) => {
         let source = getter(ctx);
         if (typeof source !== 'string') {

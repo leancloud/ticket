@@ -13,6 +13,7 @@ function getGroupId({ ticket, updatedData }: Context): string | null {
 
 const is: ConditionFactory<string | null> = (value) => {
   return {
+    name: `group is ${value}`,
     test: (ctx) => {
       const groupId = getGroupId(ctx);
       return groupId === value;
@@ -30,7 +31,7 @@ const schema = z.object({
   value: z.string().nullable(),
 });
 
-export default function (options: unknown) {
+export function groupId(options: unknown) {
   const { op, value } = schema.parse(options);
   if (op in conditionFactories) {
     return conditionFactories[op](value);
