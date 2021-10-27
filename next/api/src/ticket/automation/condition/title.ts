@@ -1,27 +1,39 @@
+import { z } from 'zod';
+
 import { Context } from '@/ticket/automation';
+import { ConditionFactory } from '.';
 import { not, string } from './common';
 
-const getTicketTitle = (ctx: Context) => ctx.ticket.title;
+const getTitle = (ctx: Context) => ctx.ticket.title;
 
-const is = string.eq(getTicketTitle);
-const isNot = not(is);
+const is = string.eq(getTitle, 'title');
+const includes = string.includes(getTitle, 'title');
+const includesAny = string.includesAny(getTitle, 'title');
+const includesAll = string.includesAll(getTitle, 'title');
+const startsWith = string.startsWith(getTitle, 'title');
+const endsWith = string.endsWith(getTitle, 'title');
 
-const includes = string.includes(getTicketTitle);
-const notIncludes = not(includes);
-
-const includesAny = string.includesAny(getTicketTitle);
-const notIncludesAny = not(includesAny);
-
-const includesAll = string.includesAll(getTicketTitle);
-const notIncludesAll = not(includesAll);
-
-export default {
+const conditionFactories: Record<string, ConditionFactory> = {
   is,
-  isNot,
+  isNot: not(is),
   includes,
-  notIncludes,
+  notIncludes: not(includes),
   includesAny,
-  notIncludesAny,
+  notIncludesAny: not(includesAny),
   includesAll,
-  notIncludesAll,
+  notIncludesAll: not(includesAll),
+  startsWith,
+  endsWith,
 };
+
+const schema = z.object({
+  op: z.string(),
+});
+
+export function title(options: unknown) {
+  const { op } = schema.parse(options);
+  if (op in conditionFactories) {
+    return conditionFactories[op](options);
+  }
+  throw new Error('Unknown op: ' + op);
+}

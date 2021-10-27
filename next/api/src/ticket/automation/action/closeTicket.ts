@@ -1,9 +1,11 @@
-import { ActionFactory } from '.';
+import { Action } from '.';
 
-const closeTicket: ActionFactory = () => ({
+const closeTicketSingleton: Action = {
   exec: ({ updater }) => {
     updater.operate('close');
   },
-});
+};
 
-export default closeTicket;
+export function closeTicket() {
+  return closeTicketSingleton;
+}

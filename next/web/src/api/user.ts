@@ -1,4 +1,3 @@
-import { AxiosError } from 'axios';
 import { UseQueryOptions, useQuery } from 'react-query';
 
 import { http } from 'leancloud';
@@ -16,7 +15,7 @@ export async function fetchCustomerServices() {
   return data;
 }
 
-export interface UseCustomerServicesOptions extends UseQueryOptions<UserSchema[], AxiosError> {}
+export interface UseCustomerServicesOptions extends UseQueryOptions<UserSchema[], Error> {}
 
 export function useCustomerServices(options?: UseCustomerServicesOptions) {
   return useQuery({
@@ -32,7 +31,7 @@ export async function fetchCustomerService(id: string) {
   return data;
 }
 
-export interface UseCustomerServiceOptions extends UseQueryOptions<UserSchema, AxiosError> {}
+export interface UseCustomerServiceOptions extends UseQueryOptions<UserSchema, Error> {}
 
 export function useCustomerService(id: string, options?: UseCustomerServiceOptions) {
   return useQuery({
@@ -49,7 +48,7 @@ export async function fetchCustomerServiceGroups(id: string) {
 
 export function useCustomerServiceGroups(
   id: string,
-  options?: UseQueryOptions<GroupSchema[], AxiosError>
+  options?: UseQueryOptions<GroupSchema[], Error>
 ) {
   return useQuery({
     queryKey: ['customerServiceGroups', id],

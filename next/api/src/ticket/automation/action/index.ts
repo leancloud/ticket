@@ -2,10 +2,10 @@ import { z } from 'zod';
 
 import { Context } from '..';
 
-import updateAssigneeId from './updateAssigneeId';
-import updateCategoryId from './updateCategoryId';
-import updateGroupId from './updateGroupId';
-import closeTicket from './closeTicket';
+import { updateAssigneeId } from './updateAssigneeId';
+import { updateCategoryId } from './updateCategoryId';
+import { updateGroupId } from './updateGroupId';
+import { closeTicket } from './closeTicket';
 
 export interface Action {
   exec(ctx: Context): void | Promise<void>;
@@ -24,11 +24,10 @@ const actionSchema = z.object({
   type: z.string(),
 });
 
-export function action(options: any): Action {
+export function action(options: unknown): Action {
   const { type } = actionSchema.parse(options);
-  const factory = actionFactories[type];
-  if (!factory) {
-    throw new Error('unknown type:' + type);
+  if (type in actionFactories) {
+    return actionFactories[type](options);
   }
-  return factory(options);
+  throw new Error('Unknown type: ' + type);
 }

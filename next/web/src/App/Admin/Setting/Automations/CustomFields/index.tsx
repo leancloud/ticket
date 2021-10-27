@@ -111,7 +111,7 @@ export function FieldGroup({
 export interface Config {
   [key: string]: {
     label?: string;
-    component: JSXElementConstructor<{ path: string }>;
+    component?: JSXElementConstructor<{ path: string }>;
   };
 }
 
@@ -168,9 +168,7 @@ function CustomField({ config, path }: CustomFieldProps) {
 
   if (type && type in config) {
     const { component } = config[type];
-    if (Array.isArray(component)) {
-      return <>{component.map((c, i) => createElement(c, { key: `${type}.${i}`, path }))}</>;
-    } else {
+    if (component) {
       return createElement(component, { key: type, path });
     }
   }
@@ -252,15 +250,15 @@ export function ConditionFields({ path, config, min = 0, onEmpty }: ConditionFie
 }
 
 export interface ConditionsFieldProps {
-  path: string;
+  name: string;
   config: Config;
 }
 
-export function ConditionsField({ path, config }: ConditionsFieldProps) {
+export function ConditionsField({ name, config }: ConditionsFieldProps) {
   const { control } = useFormContext();
   const { fields, append, remove } = useFieldArray({
     control,
-    name: `${path}.conditions`,
+    name: `${name}.conditions`,
   });
 
   return (
@@ -270,12 +268,13 @@ export function ConditionsField({ path, config }: ConditionsFieldProps) {
           {i > 0 && (
             <Controller
               control={control}
-              name={`${path}.type`}
+              name={`${name}.type`}
+              defaultValue="any"
               render={({ field }) => <TypeSwitch type={field.value} onChange={field.onChange} />}
             />
           )}
           <ConditionFields
-            path={`${path}.conditions.${i}`}
+            path={`${name}.conditions.${i}`}
             config={config}
             min={fields.length > 1 ? 0 : 1}
             onEmpty={() => remove(i)}
@@ -306,15 +305,18 @@ export function ActionFields({ config, name }: ActionFieldsProps) {
   const { control } = useFormContext();
   const { fields, append, remove } = useFieldArray({ control, name });
 
+  const removeable = fields.length > 1;
   return (
     <div className="border border-[#ebeff3] rounded shadow-sm">
       <div className="bg-[#f5f7f9]">
         {fields.map(({ id }, i) => (
           <Fragment key={id}>
+            {i > 0 && <div className="h-px border-[#cfd7df] border-t" />}
             <FieldGroup
               path={`${name}.${i}`}
               config={config}
               typeSelectPlaceholder="选择操作"
+              removeable={removeable}
               onRemove={() => remove(i)}
             />
           </Fragment>

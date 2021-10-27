@@ -1,4 +1,3 @@
-import { AxiosError } from 'axios';
 import { UseQueryOptions, useQuery } from 'react-query';
 
 import { http } from 'leancloud';
@@ -87,7 +86,7 @@ export async function fetchTickets({
 }
 
 export interface UseTicketsOptions extends FetchTicketsOptions {
-  queryOptions?: UseQueryOptions<FetchTicketsResult, AxiosError>;
+  queryOptions?: UseQueryOptions<FetchTicketsResult, Error>;
 }
 
 export function useTickets({ queryOptions, ...options }: UseTicketsOptions = {}) {
