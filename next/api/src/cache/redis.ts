@@ -1,5 +1,4 @@
 import Redis from 'ioredis';
-import { Fetcher } from './types';
 
 export const redis = new Redis(process.env.REDIS_URL_CACHE);
 
@@ -7,6 +6,8 @@ redis.on('error', (error) => {
   // TODO(sdjdd): Sentry
   console.error('[Redis] Error:', error);
 });
+
+export type Fetcher<T> = (id: string) => Promise<T>;
 
 export class RedisCache<T> {
   constructor(
