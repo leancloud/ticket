@@ -228,7 +228,11 @@ export class Ticket extends Model {
           : STATUS.WAITING_CUSTOMER_SERVICE;
       }
 
-      await this.update(updateData, data.author.getAuthOptions());
+      await this.update(updateData, {
+        ...data.author.getAuthOptions(),
+        ignoreBeforeHook: true,
+        ignoreAfterHook: true,
+      });
 
       events.emit('reply:created', {
         reply: {
