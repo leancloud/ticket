@@ -18,6 +18,10 @@ require('./stats')
 require('./Vacation')
 require('./FAQ')
 
+// 加载 next shim
+// TODO(sdjdd): 之后移除
+require('./next-shim')
+
 const apiRouter = Router().use(cors({ origin: config.corsOrigin }))
 apiRouter.use('/files', require('./file/api'))
 apiRouter.use('/dynamic-contents', require('./DynamicContent'))
