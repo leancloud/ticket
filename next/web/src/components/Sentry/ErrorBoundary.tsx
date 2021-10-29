@@ -19,17 +19,4 @@ const ErrorBoundary: React.FunctionComponent<{ module: string }> = ({ module, ch
   );
 };
 
-// type ComponentType = Parameters<typeof Sentry.withErrorBoundary>[0];
-// const withErrorBoundary = (WrappedComponent: ComponentType, name: string) => {
-//   return Sentry.withErrorBoundary(WrappedComponent, {
-//     fallback: ExceptionPage,
-//     beforeCapture: (scope) => {
-//       scope.setExtras({
-//         module: name,
-//       });
-//     },
-//   });
-// };
-
-
 export default  ErrorBoundary
