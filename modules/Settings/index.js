@@ -84,11 +84,8 @@ export default function Settings(props) {
               <ListGroup.Item as={NavLink} to="/settings/dynamicContent">
                 {t('dynamicContent')}
               </ListGroup.Item>
-              <ListGroup.Item as={NavLink} to="/settings/triggers">
-                Trigger
-              </ListGroup.Item>
-              <ListGroup.Item as={NavLink} to="/settings/automations">
-                Automation
+              <ListGroup.Item as="a" href="/next/admin/setting/automations">
+                Automation Rules
               </ListGroup.Item>
             </ListGroup>
           </section>
