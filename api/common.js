@@ -107,6 +107,7 @@ exports.forEachAVObject = (query, fn, authOptions) => {
 exports.getCategoriesTree = (authOptions) => {
   return new AV.Query('Category')
     .descending('createdAt')
+    .limit(1000)
     .find(authOptions)
     .then((categories) => {
       return exports.makeTree(categories)
