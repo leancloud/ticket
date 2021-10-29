@@ -3,6 +3,7 @@ import { Route, Switch, useRouteMatch } from 'react-router-dom';
 import { StringParam, useQueryParam } from 'use-query-params';
 import { isEqual, isNull, omitBy } from 'lodash-es';
 
+import { SentryRoute } from 'components/Sentry';
 import { useTickets } from 'api/ticket';
 import { usePage } from 'utils/usePage';
 import { Topbar, useOrderBy } from './Topbar';
@@ -105,9 +106,9 @@ export default function TicketRoutes() {
   const { path } = useRouteMatch();
   return (
     <Switch>
-      <Route path={path}>
+      <SentryRoute path={path}>
         <TicketsPage />
-      </Route>
+      </SentryRoute>
     </Switch>
   );
 }

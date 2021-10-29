@@ -1,5 +1,5 @@
-import { Redirect, Route, Switch, useRouteMatch } from 'react-router-dom';
-
+import { Redirect, Switch, useRouteMatch } from 'react-router-dom';
+import { SentryRoute } from 'components/Sentry';
 import { useCategories } from 'api/category';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
@@ -10,12 +10,12 @@ function Routes() {
   const { path } = useRouteMatch();
   return (
     <Switch>
-      <Route path={`${path}/tickets`}>
+      <SentryRoute path={`${path}/tickets`}>
         <Tickets />
-      </Route>
-      <Route path={`${path}/setting`}>
+      </SentryRoute>
+      <SentryRoute path={`${path}/setting`}>
         <Setting />
-      </Route>
+      </SentryRoute>
       <Redirect to={`${path}/tickets`} />
     </Switch>
   );
@@ -27,7 +27,6 @@ export default function AdminPage() {
       cacheTime: Infinity,
     },
   });
-
   if (isLoading) {
     return <>Loading...</>;
   }
