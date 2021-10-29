@@ -7,7 +7,7 @@ LeanCloud 应用准备
 1. 创建 LeanCloud 应用。
 2. 调整应用选项：
    - 存储 -> 设置 -> 勾选「启用 LiveQuery」
-3. 初始化数据表：将 `./resources/schema` 目录下表结构导入到存储服务中。然后在 Ticket 表新建一列，名为 `nid`，类型选择 `Number`，勾选「自增」。
+3. 初始化数据表：将 `./resources/schema` 目录下表结构导入到存储服务中。
 4. 绑定云引擎域名：设置 -> 域名绑定 -> 云引擎、ClientEngine 域名（在国内节点部署需要申请 [独立 IP](https://leancloud.cn/docs/custom-api-domain-guide.html#hash-1958256555)）
 5. （国际版跳过此步）绑定 API 域名：设置 -> 域名绑定 -> API 访问域名，绑定成功后，添加云引擎环境变量 `LEANCLOUD_API_HOST`，值为 `https://your-api-domain.example.com`
 6. （可选）添加云引擎环境变量 `HELP_EMAIL`，值为邮箱地址，报错页面等处会显示该邮箱。
