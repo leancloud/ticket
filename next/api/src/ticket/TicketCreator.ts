@@ -1,6 +1,8 @@
 import _ from 'lodash';
 
 import events from '@/events';
+import { ACLBuilder } from '@/orm';
+import htmlify from '@/utils/htmlify';
 import { Category } from '@/model/Category';
 import { Group } from '@/model/Group';
 import { OpsLogCreator } from '@/model/OpsLog';
@@ -8,8 +10,6 @@ import { Organization } from '@/model/Organization';
 import { Ticket } from '@/model/Ticket';
 import { FieldValue, TicketFieldValue } from '@/model/TicketFieldValue';
 import { User, systemUser } from '@/model/User';
-import { ACLBuilder } from '@/orm';
-import htmlify from '@/utils/htmlify';
 
 export class TicketCreator {
   private author?: User;
@@ -228,20 +228,7 @@ export class TicketCreator {
     });
 
     events.emit('ticket:created', {
-      ticket: {
-        id: ticket.id,
-        nid: ticket.nid,
-        categoryId: ticket.categoryId,
-        authorId: ticket.authorId,
-        organizationId: ticket.organizationId,
-        assigneeId: ticket.assigneeId,
-        groupId: ticket.groupId,
-        title: ticket.title,
-        content: ticket.content,
-        status: ticket.status,
-        createdAt: ticket.createdAt.toISOString(),
-        updatedAt: ticket.updatedAt.toISOString(),
-      },
+      ticket: ticket.toJSON(),
       currentUserId: operator.id,
     });
 

@@ -1,27 +1,19 @@
 import { z } from 'zod';
 
-import { Context } from '@/ticket/automation';
 import { Condition, ConditionFactory } from '.';
 import { not } from './common';
-
-export function getAssigneeId({ ticket, updatedData }: Context): string | null {
-  if (updatedData?.assigneeId !== undefined) {
-    return updatedData.assigneeId;
-  }
-  return ticket.assigneeId ?? null;
-}
 
 const isCurrentUser: Condition = {
   name: 'assignee is current user',
   test: (ctx) => {
-    return getAssigneeId(ctx) === ctx.currentUserId;
+    return ctx.getAssigneeId() === ctx.currentUserId;
   },
 };
 
 const isAuthor: Condition = {
   name: 'assignee is author',
   test: (ctx) => {
-    return getAssigneeId(ctx) === ctx.ticket.authorId;
+    return ctx.getAssigneeId() === ctx.getAuthorId();
   },
 };
 
@@ -35,12 +27,12 @@ const is: ConditionFactory<string | null> = (value) => {
   return {
     name: `current user is ${value}`,
     test: (ctx) => {
-      return getAssigneeId(ctx) === value;
+      return ctx.getAssigneeId() === value;
     },
   };
 };
 
-const conditionFactories: Record<string, ConditionFactory<string | null>> = {
+const factories: Record<string, ConditionFactory> = {
   is,
   isNot: not(is),
 };
@@ -52,8 +44,9 @@ const schema = z.object({
 
 export function assigneeId(options: unknown) {
   const { op, value } = schema.parse(options);
-  if (op in conditionFactories) {
-    return conditionFactories[op](value);
+  const factory = factories[op];
+  if (!factory) {
+    throw new Error('Unknown op: ' + op);
   }
-  throw new Error('Unknown op: ' + op);
+  return factory(value);
 }

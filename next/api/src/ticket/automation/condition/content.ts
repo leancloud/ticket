@@ -1,10 +1,10 @@
 import { z } from 'zod';
 
-import { Context } from '@/ticket/automation';
+import { Context } from '../context';
 import { ConditionFactory } from '.';
 import { not, string } from './common';
 
-const getContent = (ctx: Context) => ctx.ticket.content;
+const getContent = (ctx: Context) => ctx.getContent();
 
 const is = string.eq(getContent, 'content');
 const includes = string.includes(getContent, 'content');
@@ -13,7 +13,7 @@ const includesAll = string.includesAll(getContent, 'content');
 const startsWith = string.startsWith(getContent, 'content');
 const endsWith = string.endsWith(getContent, 'content');
 
-const conditionFactories: Record<string, ConditionFactory> = {
+const factories: Record<string, ConditionFactory> = {
   is,
   isNot: not(is),
   includes,
@@ -32,8 +32,9 @@ const schema = z.object({
 
 export function content(options: unknown) {
   const { op } = schema.parse(options);
-  if (op in conditionFactories) {
-    return conditionFactories[op](options);
+  const factory = factories[op];
+  if (!factory) {
+    throw new Error('Unknown op: ' + op);
   }
-  throw new Error('Unknown op: ' + op);
+  return factory(options);
 }

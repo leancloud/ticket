@@ -10,6 +10,7 @@ import { router as integrationRouter } from './integration';
 import notification from './notification';
 import { OpsLog } from './model/OpsLog';
 import { Ticket } from './model/Ticket';
+import { getTriggers } from './ticket/automation/trigger';
 
 export const app = new Koa();
 
@@ -77,3 +78,7 @@ export async function tickDelayNotify() {
     });
   }
 }
+
+getTriggers().then((triggers) => {
+  console.log(`[Trigger] ${triggers?.length} triggers validated`);
+});

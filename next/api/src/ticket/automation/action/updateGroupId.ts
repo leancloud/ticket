@@ -1,6 +1,5 @@
 import { z } from 'zod';
 
-import { Group } from '@/model/Group';
 import { Action } from '.';
 
 const schema = z.object({
@@ -9,7 +8,7 @@ const schema = z.object({
 
 const unsetGroup: Action = {
   exec: (ctx) => {
-    ctx.updater.setGroup(null);
+    return ctx.setGroupId(null);
   },
 };
 
@@ -19,11 +18,8 @@ export function updateGroupId(options: unknown): Action {
     return unsetGroup;
   }
   return {
-    exec: async ({ updater }) => {
-      const group = await Group.find(value, { useMasterKey: true });
-      if (group) {
-        updater.setGroup(group);
-      }
+    exec: (ctx) => {
+      return ctx.setGroupId(value);
     },
   };
 }

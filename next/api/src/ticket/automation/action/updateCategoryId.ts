@@ -1,6 +1,5 @@
 import { z } from 'zod';
 
-import { Category } from '@/model/Category';
 import { Action } from '.';
 
 const schema = z.object({
@@ -10,11 +9,8 @@ const schema = z.object({
 export function updateCategoryId(options: unknown): Action {
   const { value } = schema.parse(options);
   return {
-    exec: async ({ updater }) => {
-      const category = await Category.find(value);
-      if (category) {
-        updater.setCategory(category);
-      }
+    exec: (ctx) => {
+      return ctx.setCategoryId(value);
     },
   };
 }

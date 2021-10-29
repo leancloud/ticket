@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { Context } from '..';
+import { Context } from '../context';
 
 import { updateAssigneeId } from './updateAssigneeId';
 import { updateCategoryId } from './updateCategoryId';

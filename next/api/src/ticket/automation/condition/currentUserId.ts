@@ -35,8 +35,9 @@ const schema = z.object({
 
 export function currentUserId(options: unknown) {
   const { op, value } = schema.parse(options);
-  if (op in factories) {
-    return factories[op](value);
+  const factory = factories[op];
+  if (!factory) {
+    throw new Error('Unknown op: ' + op);
   }
-  throw new Error('Unknown op: ' + op);
+  return factory(value);
 }
