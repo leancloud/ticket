@@ -1,6 +1,6 @@
 import EventEmitter from 'eventemitter3';
-import Queue from 'bull';
 
+import { createQueue } from '@/queue';
 import events from '@/events';
 import { Notification as NotificationModel } from '@/model/Notification';
 import { Reply } from '@/model/Reply';
@@ -270,8 +270,7 @@ notification.register({
   },
 });
 
-const QUEUE_URL = process.env.REDIS_URL_QUEUE ?? 'redis://127.0.0.1:6379';
-const queue = new Queue<JobData>('notification', QUEUE_URL, {
+const queue = createQueue<JobData>('notification', {
   limiter: {
     max: 100,
     duration: 5000,
@@ -284,23 +283,17 @@ const queue = new Queue<JobData>('notification', QUEUE_URL, {
 queue.process((job) => {
   switch (job.data.type) {
     case 'newTicket':
-      notification.processNewTicket(job.data.data);
-      break;
+      return notification.processNewTicket(job.data.data);
     case 'replyTicket':
-      notification.processReplyTicket(job.data.data);
-      break;
+      return notification.processReplyTicket(job.data.data);
     case 'changeAssignee':
-      notification.processChangeAssignee(job.data.data);
-      break;
+      return notification.processChangeAssignee(job.data.data);
     case 'delayNotify':
-      notification.processDelayNotify(job.data.data);
-      break;
+      return notification.processDelayNotify(job.data.data);
     case 'ticketEvaluation':
-      notification.processTicketEvaluation(job.data.data);
-      break;
+      return notification.processTicketEvaluation(job.data.data);
     case 'changeStatus':
-      notification.processChangeStatus(job.data.data);
-      break;
+      return notification.processChangeStatus(job.data.data);
   }
 });
 

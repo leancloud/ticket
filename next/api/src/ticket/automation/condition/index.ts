@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import { z } from 'zod';
 
-import { Context } from '..';
+import { Context } from '../context';
 
 import { ticket } from './ticket';
 import { title } from './title';

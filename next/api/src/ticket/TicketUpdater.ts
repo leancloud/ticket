@@ -1,14 +1,20 @@
 import AV from 'leanengine';
 import _ from 'lodash';
 
+import events from '@/events';
+import { commands, UpdateData } from '@/orm';
 import { Category } from '@/model/Category';
 import { Group } from '@/model/Group';
 import { OperateAction, OpsLogCreator } from '@/model/OpsLog';
 import { Organization } from '@/model/Organization';
 import { Evaluation, STATUS, Tag, Ticket } from '@/model/Ticket';
-import { systemUser, User } from '@/model/User';
-import events from '@/events';
-import { commands, UpdateData } from '@/orm';
+import { systemUser, TinyUserInfo, User } from '@/model/User';
+
+import { TinyReplyInfo } from '@/model/Reply';
+
+export interface UpdateOptions {
+  ignoreTrigger?: boolean;
+}
 
 export class TicketUpdater {
   private organization?: Organization | null;
@@ -16,8 +22,11 @@ export class TicketUpdater {
   private group?: Group | null;
 
   private data: UpdateData<Ticket> = {};
-
+  private replyCountIncrement = 0;
+  private unreadCountIncrement = 0;
+  private joinedCustomerServices: TinyUserInfo[] = [];
   private operateAction?: OperateAction;
+
   private opsLogCreator: OpsLogCreator;
 
   constructor(private ticket: Ticket) {
@@ -77,7 +86,36 @@ export class TicketUpdater {
     return this;
   }
 
+  setLatestReply(reply: TinyReplyInfo) {
+    this.data.latestReply = reply;
+    return this;
+  }
+
+  increaseReplyCount(amount = 1) {
+    this.replyCountIncrement += amount;
+    return this;
+  }
+
+  increaseUnreadCount(amount = 1) {
+    this.unreadCountIncrement += amount;
+    return this;
+  }
+
+  addJoinedCustomerService(user: TinyUserInfo) {
+    this.joinedCustomerServices.push(user);
+    return this;
+  }
+
+  setStatus(status: number) {
+    if (this.ticket.status !== status) {
+      this.data.status = status;
+    }
+  }
+
   operate(action: OperateAction): this {
+    if (this.data.status) {
+      throw new Error('Cannot operate ticket after change status');
+    }
     this.operateAction = action;
     return this;
   }
@@ -107,7 +145,7 @@ export class TicketUpdater {
         this.data.joinedCustomerServices = commands.pushUniq(operator.getTinyInfo());
       }
       // XXX: 适配加速器的使用场景
-      this.data.unreadCount = commands.inc();
+      this.increaseUnreadCount();
     }
     this.opsLogCreator.operate(action, operator);
 
@@ -115,7 +153,13 @@ export class TicketUpdater {
   }
 
   isUpdated(): boolean {
-    return !_.isEmpty(this.data) || !!this.operateAction;
+    return (
+      !_.isEmpty(this.data) ||
+      this.replyCountIncrement > 0 ||
+      this.unreadCountIncrement > 0 ||
+      this.joinedCustomerServices.length > 0 ||
+      this.operateAction !== undefined
+    );
   }
 
   private assignRelatedInstance(ticket: Ticket) {
@@ -146,7 +190,7 @@ export class TicketUpdater {
     await this.opsLogCreator.create();
   }
 
-  async update(operator: User): Promise<Ticket> {
+  async update(operator: User, options?: UpdateOptions): Promise<Ticket> {
     if (!this.isUpdated()) {
       return this.ticket;
     }
@@ -154,6 +198,16 @@ export class TicketUpdater {
     if (this.operateAction) {
       await this.applyOperation(this.operateAction, operator);
     }
+    if (this.replyCountIncrement) {
+      this.data.replyCount = commands.inc(this.replyCountIncrement);
+    }
+    if (this.unreadCountIncrement) {
+      this.data.unreadCount = commands.inc(this.unreadCountIncrement);
+    }
+    if (this.joinedCustomerServices.length) {
+      this.data.joinedCustomerServices = commands.pushUniq(...this.joinedCustomerServices);
+    }
+
     const ticket = await this.ticket.update(this.data, {
       ...operator.getAuthOptions(),
       ignoreBeforeHook: true,
@@ -167,20 +221,7 @@ export class TicketUpdater {
     });
 
     events.emit('ticket:updated', {
-      originalTicket: {
-        id: this.ticket.id,
-        nid: this.ticket.nid,
-        categoryId: this.ticket.categoryId,
-        authorId: this.ticket.authorId,
-        organizationId: this.ticket.organizationId,
-        assigneeId: this.ticket.assigneeId,
-        groupId: this.ticket.groupId,
-        title: this.ticket.title,
-        content: this.ticket.content,
-        status: this.ticket.status,
-        createdAt: this.ticket.createdAt.toISOString(),
-        updatedAt: this.ticket.updatedAt.toISOString(),
-      },
+      originalTicket: this.ticket.toJSON(),
       data: {
         categoryId: this.data.categoryId ?? undefined,
         organizationId: this.data.organizationId,
@@ -190,6 +231,7 @@ export class TicketUpdater {
         status: this.data.status as number | undefined,
       },
       currentUserId: operator.id,
+      ignoreTrigger: options?.ignoreTrigger,
     });
 
     if (this.ticket.isClosed() !== ticket.isClosed()) {

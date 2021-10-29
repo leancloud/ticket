@@ -1,23 +1,18 @@
 import { z } from 'zod';
 
-import { Context } from '@/ticket/automation';
 import { ConditionFactory } from '.';
 import { not } from './common';
-
-function getCategoryId({ ticket, updatedData }: Context): string {
-  return updatedData?.categoryId ?? ticket.categoryId;
-}
 
 const is: ConditionFactory<string> = (value) => {
   return {
     name: `category is ${value}`,
     test: (ctx) => {
-      return getCategoryId(ctx) === value;
+      return ctx.getCategoryId() === value;
     },
   };
 };
 
-const conditionFactories: Record<string, ConditionFactory> = {
+const factories: Record<string, ConditionFactory> = {
   is,
   isNot: not(is),
 };
@@ -29,8 +24,9 @@ const schema = z.object({
 
 export function categoryId(options: unknown) {
   const { op, value } = schema.parse(options);
-  if (op in conditionFactories) {
-    return conditionFactories[op](value);
+  const factory = factories[op];
+  if (!factory) {
+    throw new Error('Unknown op: ' + op);
   }
-  throw new Error('Unknown op: ' + op);
+  return factory(value);
 }

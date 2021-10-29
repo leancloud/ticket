@@ -44,6 +44,7 @@ export interface TicketUpdatedCtx {
   originalTicket: Ticket;
   data: UpdateData;
   currentUserId: string;
+  ignoreTrigger?: boolean;
 }
 
 export interface ReplyCreatedCtx {

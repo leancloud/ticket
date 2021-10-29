@@ -5,15 +5,14 @@ import events from '@/events';
 import {
   ACLBuilder,
   Model,
-  UpdateData,
   belongsTo,
-  commands,
   field,
   pointerId,
   pointerIds,
   pointTo,
   hasManyThroughPointerArray,
   hasOne,
+  serialize,
 } from '@/orm';
 import { TicketUpdater } from '@/ticket/TicketUpdater';
 import htmlify from '@/utils/htmlify';
@@ -65,12 +64,15 @@ export class Ticket extends Model {
   static readonly STATUS = STATUS;
 
   @field()
+  @serialize()
   nid!: number;
 
   @field()
+  @serialize()
   title!: string;
 
   @field()
+  @serialize()
   content!: string;
 
   @field('content_HTML')
@@ -82,6 +84,7 @@ export class Ticket extends Model {
     encode: false,
     decode: (category) => category.objectId,
   })
+  @serialize()
   categoryId!: string;
 
   categoryPath?: Category[];
@@ -94,24 +97,28 @@ export class Ticket extends Model {
   category?: Category;
 
   @pointerId(() => User)
+  @serialize()
   authorId!: string;
 
   @pointTo(() => User)
   author?: User;
 
   @pointerId(() => User)
+  @serialize()
   assigneeId?: string;
 
   @pointTo(() => User)
   assignee?: User;
 
   @pointerId(() => Group)
+  @serialize()
   groupId?: string;
 
   @pointTo(() => Group)
   group?: Group;
 
   @pointerId(() => Organization)
+  @serialize()
   organizationId?: string;
 
   @pointTo(() => Organization)
@@ -124,6 +131,7 @@ export class Ticket extends Model {
   files?: File[];
 
   @field()
+  @serialize()
   status!: number;
 
   @field()
@@ -213,26 +221,23 @@ export class Ticket extends Model {
     );
 
     if (!data.internal) {
-      const updateData: UpdateData<Ticket> = {
-        latestReply: reply.getTinyInfo(),
-        replyCount: commands.inc(),
+      const updater = new TicketUpdater(this);
+      updater.setLatestReply(reply.getTinyInfo());
+      updater.increaseReplyCount();
+      if (isCustomerService) {
+        if (data.author !== systemUser) {
+          updater.addJoinedCustomerService(data.author.getTinyInfo());
+        }
         // XXX: 适配加速器的使用场景
-        unreadCount: commands.inc(),
-      };
-      if (isCustomerService && data.author !== systemUser) {
-        updateData.joinedCustomerServices = commands.pushUniq(data.author.getTinyInfo());
+        updater.increaseUnreadCount();
       }
       if (this.status < STATUS.FULFILLED) {
-        updateData.status = isCustomerService
-          ? STATUS.WAITING_CUSTOMER
-          : STATUS.WAITING_CUSTOMER_SERVICE;
+        updater.setStatus(
+          isCustomerService ? STATUS.WAITING_CUSTOMER : STATUS.WAITING_CUSTOMER_SERVICE
+        );
       }
 
-      await this.update(updateData, {
-        ...data.author.getAuthOptions(),
-        ignoreBeforeHook: true,
-        ignoreAfterHook: true,
-      });
+      await updater.update(data.author);
 
       events.emit('reply:created', {
         reply: {
