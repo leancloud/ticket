@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
-import { ConditionFactory } from '.';
-import { not } from './common';
+import { Condition, ConditionFactory, not } from '.';
 
 const is: ConditionFactory<string | null> = (value) => {
   return {
@@ -22,7 +21,7 @@ const schema = z.object({
   value: z.string().nullable(),
 });
 
-export function groupId(options: unknown) {
+export default function (options: unknown): Condition {
   const { op, value } = schema.parse(options);
   const factory = factories[op];
   if (!factory) {

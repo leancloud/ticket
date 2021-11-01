@@ -10,32 +10,12 @@ import { Trigger as TriggerModel } from '@/model/Trigger';
 import { Action, Condition } from '..';
 import { condition as conditionFactory } from './condition';
 import { action as actionFactory } from './action';
-import { Context, UpdatedData } from '../context';
-
-class TicketCreatedContext extends Context {
-  constructor(ticketSnapshot: any, currentUserId: string) {
-    super('created', Ticket.fromJSON(ticketSnapshot), currentUserId);
-  }
-}
-
-class TicketUpdatedContext extends Context {
-  constructor(ticketSnapshot: any, currentUserId: string, updatedData: UpdatedData) {
-    super('updated', Ticket.fromJSON(ticketSnapshot), currentUserId);
-    this.updatedData = updatedData;
-  }
-}
-
-class TicketRepliedContext extends Context {
-  constructor(ticket: Ticket, currentUserId: string, replySnapshot: any) {
-    super('replied', ticket, currentUserId);
-    this.reply = Reply.fromJSON(replySnapshot);
-  }
-}
+import { TriggerContext, UpdatedData } from './context';
 
 export class Trigger {
   constructor(private condition: Condition, private actions: Action[]) {}
 
-  async exec(ctx: Context) {
+  async exec(ctx: TriggerContext) {
     if (await this.condition.test(ctx)) {
       for (const action of this.actions) {
         await action.exec(ctx);
@@ -84,7 +64,7 @@ export const getTriggers = mem(
   }
 );
 
-async function runTriggers(ctx: Context) {
+async function runTriggers(ctx: TriggerContext) {
   const triggers = await getTriggers();
   for (const trigger of triggers) {
     await trigger.exec(ctx);
@@ -167,11 +147,22 @@ queue.process((job) => {
 });
 
 async function processTicketCreated(job: TicketCreatedJob) {
-  await runTriggers(new TicketCreatedContext(job.ticket, job.currentUserId));
+  const ctx = new TriggerContext({
+    event: 'created',
+    ticket: Ticket.fromJSON(job.ticket),
+    currentUserId: job.currentUserId,
+  });
+  await runTriggers(ctx);
 }
 
 async function processTicketUpdated(job: TicketUpdatedJob) {
-  await runTriggers(new TicketUpdatedContext(job.ticket, job.currentUserId, job.updateData));
+  const ctx = new TriggerContext({
+    event: 'updated',
+    ticket: Ticket.fromJSON(job.ticket),
+    currentUserId: job.currentUserId,
+    updatedData: job.updateData,
+  });
+  await runTriggers(ctx);
 }
 
 async function processTicketReplied(job: TicketRepliedJob) {
@@ -179,5 +170,11 @@ async function processTicketReplied(job: TicketRepliedJob) {
   if (!ticket || ticket.status === Ticket.STATUS.CLOSED) {
     return;
   }
-  await runTriggers(new TicketRepliedContext(ticket, job.currentUserId, job.reply));
+  const ctx = new TriggerContext({
+    event: 'replied',
+    ticket,
+    currentUserId: job.currentUserId,
+    reply: Reply.fromJSON(job.reply),
+  });
+  await runTriggers(ctx);
 }

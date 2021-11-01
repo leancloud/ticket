@@ -1,10 +1,10 @@
 import { z } from 'zod';
 
 import { User } from '@/model/User';
-import { Condition, ConditionFactory } from '.';
-import { not } from './common';
+import { Condition, ConditionFactory, not } from '../../condition';
+import { TriggerContext } from '../context';
 
-const isCurrentUser: Condition = {
+const isCurrentUser: Condition<TriggerContext> = {
   name: 'author is current user',
   test: (ctx) => {
     return ctx.getAuthorId() === ctx.currentUserId;
@@ -25,7 +25,7 @@ const isCustomerService: Condition = {
   },
 };
 
-const is: ConditionFactory<string> = (value) => {
+const is: ConditionFactory<string, TriggerContext> = (value) => {
   if (value === '__currentUser') {
     return isCurrentUser;
   }
@@ -43,7 +43,7 @@ const is: ConditionFactory<string> = (value) => {
   };
 };
 
-const factories: Record<string, ConditionFactory> = {
+const factories: Record<string, ConditionFactory<string, TriggerContext>> = {
   is,
   isNot: not(is),
 };
@@ -53,7 +53,7 @@ const schema = z.object({
   value: z.string(),
 });
 
-export function authorId(options: unknown) {
+export default function (options: unknown): Condition<TriggerContext> {
   const { op, value } = schema.parse(options);
   const factory = factories[op];
   if (!factory) {

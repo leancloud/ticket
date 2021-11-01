@@ -1,8 +1,7 @@
 import { z } from 'zod';
 
 import { Context } from '../context';
-import { ConditionFactory } from '.';
-import { not, string } from './common';
+import { Condition, ConditionFactory, not, string } from '.';
 
 const getTitle = (ctx: Context) => ctx.getTitle();
 
@@ -30,7 +29,7 @@ const schema = z.object({
   op: z.string(),
 });
 
-export function title(options: unknown) {
+export default function (options: unknown): Condition {
   const { op } = schema.parse(options);
   const factory = factories[op];
   if (!factory) {

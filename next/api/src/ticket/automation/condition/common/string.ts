@@ -3,18 +3,21 @@ import { z } from 'zod';
 import { Context } from '../../context';
 import { ConditionFactory } from '..';
 
-type Getter<T> = (ctx: Context) => T;
+type Getter<Ctx extends Context = Context> = (ctx: Ctx) => any;
 
 const stringSchema = z.object({
   value: z.string(),
   caseSensitive: z.boolean().optional(),
 });
 
-export function eq(getter: Getter<any>, name?: string): ConditionFactory {
+export function eq<Ctx extends Context = Context>(
+  getter: Getter<Ctx>,
+  name?: string
+): ConditionFactory<any, Ctx> {
   return (options) => {
     let { value, caseSensitive } = stringSchema.parse(options);
     return {
-      name: `${name} is ${value}${caseSensitive ? ' (case sensitive)' : ''}`,
+      name: `${name} == ${value}${caseSensitive ? ' (case sensitive)' : ''}`,
       test: (ctx) => {
         let source = getter(ctx);
         if (typeof source !== 'string') {
@@ -30,7 +33,10 @@ export function eq(getter: Getter<any>, name?: string): ConditionFactory {
   };
 }
 
-export function includes(getter: Getter<any>, name?: string): ConditionFactory {
+export function includes<Ctx extends Context = Context>(
+  getter: Getter<Ctx>,
+  name?: string
+): ConditionFactory<any, Ctx> {
   return (options) => {
     let { value, caseSensitive } = stringSchema.parse(options);
     return {
@@ -50,7 +56,10 @@ export function includes(getter: Getter<any>, name?: string): ConditionFactory {
   };
 }
 
-export function startsWith(getter: Getter<any>, name?: string): ConditionFactory {
+export function startsWith<Ctx extends Context = Context>(
+  getter: Getter<Ctx>,
+  name?: string
+): ConditionFactory<any, Ctx> {
   return (options) => {
     let { value, caseSensitive } = stringSchema.parse(options);
     return {
@@ -70,7 +79,10 @@ export function startsWith(getter: Getter<any>, name?: string): ConditionFactory
   };
 }
 
-export function endsWith(getter: Getter<any>, name?: string): ConditionFactory {
+export function endsWith<Ctx extends Context = Context>(
+  getter: Getter<Ctx>,
+  name?: string
+): ConditionFactory<any, Ctx> {
   return (options) => {
     let { value, caseSensitive } = stringSchema.parse(options);
     return {
@@ -95,7 +107,10 @@ const stringArraySchema = z.object({
   caseSensitive: z.boolean().optional(),
 });
 
-export function eqAny(getter: Getter<any>, name?: string): ConditionFactory {
+export function eqAny<Ctx extends Context = Context>(
+  getter: Getter<Ctx>,
+  name?: string
+): ConditionFactory<any, Ctx> {
   return (options) => {
     let { value, caseSensitive } = stringArraySchema.parse(options);
     return {
@@ -115,7 +130,10 @@ export function eqAny(getter: Getter<any>, name?: string): ConditionFactory {
   };
 }
 
-export function includesAny(getter: Getter<any>, name?: string): ConditionFactory {
+export function includesAny<Ctx extends Context = Context>(
+  getter: Getter<Ctx>,
+  name?: string
+): ConditionFactory<any, Ctx> {
   return (options) => {
     let { value, caseSensitive } = stringArraySchema.parse(options);
     return {
@@ -137,7 +155,10 @@ export function includesAny(getter: Getter<any>, name?: string): ConditionFactor
   };
 }
 
-export function includesAll(getter: Getter<any>, name?: string): ConditionFactory {
+export function includesAll<Ctx extends Context = Context>(
+  getter: Getter<Ctx>,
+  name?: string
+): ConditionFactory<any, Ctx> {
   return (options) => {
     let { value, caseSensitive } = stringArraySchema.parse(options);
     return {

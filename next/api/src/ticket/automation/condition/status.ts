@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
-import { ConditionFactory } from '.';
-import { not } from './common';
+import { Condition, ConditionFactory, not } from '.';
 
 const is: ConditionFactory<number> = (value) => {
   return {
@@ -20,7 +19,7 @@ const schema = z.object({
   value: z.number(),
 });
 
-export function status(options: unknown) {
+export default function (options: unknown): Condition {
   const { op, value } = schema.parse(options);
   const factory = factories[op];
   if (!factory) {

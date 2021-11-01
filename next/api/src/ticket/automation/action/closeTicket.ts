@@ -6,6 +6,6 @@ const closeTicketSingleton: Action = {
   },
 };
 
-export function closeTicket() {
+export default function () {
   return closeTicketSingleton;
 }
