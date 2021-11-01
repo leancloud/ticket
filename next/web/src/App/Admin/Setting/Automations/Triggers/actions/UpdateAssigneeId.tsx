@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
-import { Form, Select } from 'antd';
 import { get } from 'lodash-es';
 
+import { Form, Select } from '@/components/antd';
 import { useCustomerServices } from '@/api/user';
 
 export function UpdateAssigneeId({ path }: { path: string }) {

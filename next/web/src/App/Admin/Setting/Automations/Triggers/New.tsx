@@ -1,8 +1,8 @@
-import { Button, Divider, Form, Input, Typography, message, notification } from 'antd';
 import { useHistory } from 'react-router-dom';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { useMutation } from 'react-query';
 
+import { Button, Divider, Form, Input, Typography, message, notification } from '@/components/antd';
 import { Condition, CreateTriggerData, createTrigger } from '@/api/trigger';
 import { ConditionsField, ActionFields } from '../CustomFields';
 import conditions from './conditions';

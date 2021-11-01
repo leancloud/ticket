@@ -1,5 +1,6 @@
 import { Controller, useFormContext } from 'react-hook-form';
-import { Select } from 'antd';
+
+import { Select } from '@/components/antd';
 
 const OPS = [
   { label: '被创建', value: 'created' },

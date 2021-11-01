@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Button, Dropdown, Menu, Modal, Spin, Switch, message, notification } from 'antd';
 import { Link, RouteComponentProps, useRouteMatch } from 'react-router-dom';
 import { useQueryClient, useMutation } from 'react-query';
 import { AiOutlineSetting } from 'react-icons/ai';
@@ -13,6 +12,16 @@ import {
 import { FiMoreVertical } from 'react-icons/fi';
 import { produce } from 'immer';
 
+import {
+  Button,
+  Dropdown,
+  Menu,
+  Modal,
+  Spin,
+  Switch,
+  message,
+  notification,
+} from '@/components/antd';
 import {
   deleteTrigger,
   reorderTriggers,

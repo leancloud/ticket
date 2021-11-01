@@ -6,8 +6,8 @@ import {
   Route,
   useRouteMatch,
 } from 'react-router-dom';
-import { Menu, Typography } from 'antd';
 
+import { Menu, Typography } from '@/components/antd';
 import Triggers from './Triggers';
 import NewTrigger from './Triggers/New';
 import TriggerDetail from './Triggers/Detail';

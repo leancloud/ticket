@@ -1,7 +1,7 @@
 import { Controller, useFormContext } from 'react-hook-form';
-import { Form, Select } from 'antd';
 import { get } from 'lodash-es';
 
+import { Form, Select } from '@/components/antd';
 import { CategorySelect } from '../../components/CategorySelect';
 
 const { Option } = Select;

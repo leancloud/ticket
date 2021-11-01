@@ -1,6 +1,7 @@
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
-import { Form, Input, Select, Switch } from 'antd';
 import { get } from 'lodash-es';
+
+import { Form, Input, Select, Switch } from '@/components/antd';
 
 const OPS = [
   { label: '是', value: 'is' },

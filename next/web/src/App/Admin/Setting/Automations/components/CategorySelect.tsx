@@ -1,6 +1,6 @@
 import { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
-import { Cascader } from 'antd';
 
+import { Cascader } from '@/components/antd';
 import { CategoryTreeNode, useCategoryTree } from '@/api/category';
 
 const FIELD_NAMES = { label: 'name', value: 'id' };

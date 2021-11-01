@@ -1,7 +1,7 @@
 import { Controller, useFormContext } from 'react-hook-form';
-import { Form } from 'antd';
 import { get } from 'lodash-es';
 
+import { Form } from '@/components/antd';
 import { CategorySelect } from '../../components/CategorySelect';
 
 export function UpdateCategoryId({ path }: { path: string }) {

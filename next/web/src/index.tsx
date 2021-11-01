@@ -4,7 +4,6 @@ import { render } from 'react-dom';
 import * as Sentry from '@sentry/react';
 import { Integrations } from '@sentry/tracing';
 
-import 'components/antd/index.less';
 import './index.css';
 import App from './App';
 

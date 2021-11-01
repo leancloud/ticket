@@ -1,6 +1,7 @@
-import { Button } from 'antd';
 import { AiOutlineSetting } from 'react-icons/ai';
 import { Link, RouteComponentProps } from 'react-router-dom';
+
+import { Button } from '@/components/antd';
 
 export default function CreateTimeTriggers({ match: { path } }: RouteComponentProps) {
   return (

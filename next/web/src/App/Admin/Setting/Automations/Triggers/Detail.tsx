@@ -1,6 +1,6 @@
-import { Spin, message, notification } from 'antd';
 import { RouteComponentProps, useHistory } from 'react-router-dom';
 
+import { Spin, message, notification } from '@/components/antd';
 import { Condition, UpdateTriggerData, updateTrigger, useTrigger } from '@/api/trigger';
 import { TriggerForm } from './New';
 import { useMemo } from 'react';
