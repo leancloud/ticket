@@ -5,9 +5,10 @@ import _ from 'lodash';
 
 import { getZodErrorMessage } from '@/utils/zod';
 import { auth, customerServiceOnly } from '@/middleware/auth';
-import { condition, action } from '@/ticket/automation';
 import { Trigger } from '@/model/Trigger';
 import { TriggerResponse } from '@/response/trigger';
+import { condition } from '@/ticket/automation/trigger/condition';
+import { action } from '@/ticket/automation/trigger/action';
 
 const router = new Router().use(auth, customerServiceOnly);
 

@@ -7,7 +7,9 @@ import { Reply } from '@/model/Reply';
 import { Ticket } from '@/model/Ticket';
 import { Trigger as TriggerModel } from '@/model/Trigger';
 
-import { Action, Condition, condition as conditionFactory, action as actionFactory } from '..';
+import { Action, Condition } from '..';
+import { condition as conditionFactory } from './condition';
+import { action as actionFactory } from './action';
 import { Context, UpdatedData } from '../context';
 
 class TicketCreatedContext extends Context {
