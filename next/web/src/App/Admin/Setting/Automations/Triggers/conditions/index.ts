@@ -1,10 +1,11 @@
+import { StringValue } from '../../conditions/StringValue';
+import { CategoryId } from '../../conditions/CategoryId';
+import { GroupId } from '../../conditions/GroupId';
+import { Status } from '../../conditions/Status';
+
 import { Ticket } from './Ticket';
-import { StringValue } from './StringValue';
-import { CategoryId } from './CategoryId';
 import { AuthorId } from './AuthorId';
 import { AssigneeId } from './AssigneeId';
-import { GroupId } from './GroupId';
-import { Status } from './Status';
 import { CurrentUserId } from './CurrentUserId';
 
 export default {

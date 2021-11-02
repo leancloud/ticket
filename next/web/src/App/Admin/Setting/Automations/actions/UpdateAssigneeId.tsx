@@ -2,8 +2,8 @@ import { useMemo } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 import { get } from 'lodash-es';
 
-import { Form, Select } from '@/components/antd';
 import { useCustomerServices } from '@/api/user';
+import { Form, Select } from '@/components/antd';
 
 const NULL_STRING = '';
 
@@ -15,7 +15,6 @@ export function UpdateAssigneeId({ path }: { path: string }) {
   const options = useMemo(() => {
     return [
       { label: '(未设置)', value: NULL_STRING },
-      { label: '(当前用户)', value: '__currentUser' },
       ...(assignees?.map((u) => ({ label: u.nickname, value: u.id })) ?? []),
     ];
   }, [assignees]);

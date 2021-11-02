@@ -7,6 +7,8 @@ import { useGroups } from '@/api/group';
 
 const { Option } = Select;
 
+const NULL_STRING = '';
+
 export function GroupId({ path }: { path: string }) {
   const { control, formState } = useFormContext();
   const errors = get(formState.errors, path);
@@ -14,7 +16,7 @@ export function GroupId({ path }: { path: string }) {
   const { data: groups } = useGroups();
   const options = useMemo(() => {
     return [
-      { label: '(未设置)', value: '' },
+      { label: '(未设置)', value: NULL_STRING },
       ...(groups?.map((g) => ({ label: g.name, value: g.id })) ?? []),
     ];
   }, [groups]);
@@ -34,6 +36,7 @@ export function GroupId({ path }: { path: string }) {
           )}
         />
       </Form.Item>
+
       <Form.Item validateStatus={errors?.value ? 'error' : undefined}>
         <Controller
           control={control}
@@ -44,11 +47,11 @@ export function GroupId({ path }: { path: string }) {
           render={({ field }) => (
             <Select
               {...field}
-              value={field.value === null ? '' : field.value}
-              onChange={(value) => field.onChange(value === '' ? null : value)}
               showSearch
               options={options}
               placeholder="请选择"
+              value={field.value === null ? NULL_STRING : field.value}
+              onChange={(value) => field.onChange(value === NULL_STRING ? null : value)}
               optionFilterProp="label"
               style={{ width: 200 }}
             />

@@ -7,17 +7,18 @@ import { useCustomerServices } from '@/api/user';
 
 const { Option } = Select;
 
-export function CurrentUserId({ path }: { path: string }) {
+export function AuthorId({ path }: { path: string }) {
   const { control, formState } = useFormContext();
   const errors = get(formState.errors, path);
 
-  const { data: assignees } = useCustomerServices();
+  const { data: users } = useCustomerServices();
   const options = useMemo(() => {
     return [
+      { label: '(负责人)', value: '__assignee' },
       { label: '(客服)', value: '__customerService' },
-      ...(assignees?.map((a) => ({ label: a.nickname, value: a.id })) ?? []),
+      ...(users?.map((u) => ({ label: u.nickname, value: u.id })) ?? []),
     ];
-  }, [assignees]);
+  }, [users]);
 
   return (
     <>
@@ -25,7 +26,6 @@ export function CurrentUserId({ path }: { path: string }) {
         <Controller
           control={control}
           name={`${path}.op`}
-          rules={{ required: true }}
           defaultValue="is"
           render={({ field }) => (
             <Select {...field} style={{ width: 160 }}>
@@ -40,7 +40,7 @@ export function CurrentUserId({ path }: { path: string }) {
         <Controller
           control={control}
           name={`${path}.value`}
-          rules={{ validate: (value) => value !== undefined }}
+          rules={{ required: true }}
           render={({ field }) => (
             <Select
               {...field}

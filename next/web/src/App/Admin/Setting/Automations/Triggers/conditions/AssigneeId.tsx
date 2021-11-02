@@ -7,6 +7,8 @@ import { useCustomerServices } from '@/api/user';
 
 const { Option } = Select;
 
+const NULL_STRING = '';
+
 export function AssigneeId({ path }: { path: string }) {
   const { control, formState } = useFormContext();
   const errors = get(formState.errors, path);
@@ -14,7 +16,7 @@ export function AssigneeId({ path }: { path: string }) {
   const { data: assignees } = useCustomerServices();
   const options = useMemo(() => {
     return [
-      { label: '(未设置)', value: '' },
+      { label: '(未设置)', value: NULL_STRING },
       { label: '(当前用户)', value: '__currentUser' },
       { label: '(创建者)', value: '__author' },
       ...(assignees?.map((a) => ({ label: a.nickname, value: a.id })) ?? []),
@@ -47,11 +49,11 @@ export function AssigneeId({ path }: { path: string }) {
           render={({ field }) => (
             <Select
               {...field}
-              value={field.value === null ? '' : field.value}
-              onChange={(value) => field.onChange(value === '' ? null : value)}
               showSearch
               options={options}
               placeholder="请选择"
+              value={field.value === null ? NULL_STRING : field.value}
+              onChange={(value) => field.onChange(value === NULL_STRING ? null : value)}
               optionFilterProp="label"
               style={{ width: 200 }}
             />

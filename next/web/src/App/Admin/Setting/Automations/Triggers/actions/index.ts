@@ -1,6 +1,7 @@
-import { UpdateCategoryId } from './UpdateCategoryId';
+import { UpdateCategoryId } from '../../actions/UpdateCategoryId';
+import { UpdateGroupId } from '../../actions/UpdateGroupId';
+
 import { UpdateAssigneeId } from './UpdateAssigneeId';
-import { UpdateGroupId } from './UpdateGroupId';
 
 export default {
   updateAssigneeId: {

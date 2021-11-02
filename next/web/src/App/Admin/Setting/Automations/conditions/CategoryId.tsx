@@ -1,23 +1,14 @@
-import { useMemo } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 import { get } from 'lodash-es';
 
 import { Form, Select } from '@/components/antd';
-import { useCustomerServices } from '@/api/user';
+import { CategorySelect } from '../components/CategorySelect';
 
 const { Option } = Select;
 
-export function CurrentUserId({ path }: { path: string }) {
+export function CategoryId({ path }: { path: string }) {
   const { control, formState } = useFormContext();
   const errors = get(formState.errors, path);
-
-  const { data: assignees } = useCustomerServices();
-  const options = useMemo(() => {
-    return [
-      { label: '(客服)', value: '__customerService' },
-      ...(assignees?.map((a) => ({ label: a.nickname, value: a.id })) ?? []),
-    ];
-  }, [assignees]);
 
   return (
     <>
@@ -40,17 +31,8 @@ export function CurrentUserId({ path }: { path: string }) {
         <Controller
           control={control}
           name={`${path}.value`}
-          rules={{ validate: (value) => value !== undefined }}
-          render={({ field }) => (
-            <Select
-              {...field}
-              showSearch
-              options={options}
-              placeholder="请选择"
-              optionFilterProp="label"
-              style={{ width: 200 }}
-            />
-          )}
+          rules={{ required: true }}
+          render={({ field }) => <CategorySelect {...field} initValue={field.value} />}
         />
       </Form.Item>
     </>

@@ -1,4 +1,3 @@
-import { AxiosError } from 'axios';
 import { UseQueryOptions, useQuery } from 'react-query';
 
 import { http } from '@/leancloud';
@@ -45,7 +44,7 @@ export async function fetchTriggers() {
 }
 
 export interface UseTriggersOptions {
-  queryOptions?: UseQueryOptions<TriggerData[], AxiosError>;
+  queryOptions?: UseQueryOptions<TriggerData[], Error>;
 }
 
 export function useTriggers({ queryOptions }: UseTriggersOptions = {}) {
@@ -61,7 +60,7 @@ export async function fetchTrigger(id: string) {
   return res.data;
 }
 
-export function useTrigger(id: string, options?: UseQueryOptions<TriggerData, AxiosError>) {
+export function useTrigger(id: string, options?: UseQueryOptions<TriggerData, Error>) {
   return useQuery({
     queryKey: ['trigger', id],
     queryFn: () => fetchTrigger(id),

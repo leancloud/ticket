@@ -5,10 +5,10 @@ import _ from 'lodash';
 
 import { getZodErrorMessage } from '@/utils/zod';
 import { auth, customerServiceOnly } from '@/middleware/auth';
-import { Trigger } from '@/model/Trigger';
-import { TriggerResponse } from '@/response/trigger';
-import { condition } from '@/ticket/automation/trigger/condition';
-import { action } from '@/ticket/automation/trigger/action';
+import { Automation } from '@/model/Automation';
+import { AutomationResponse } from '@/response/automation';
+import { condition } from '@/ticket/automation/time-trigger/condition';
+import { action } from '@/ticket/automation/time-trigger/action';
 
 const router = new Router().use(auth, customerServiceOnly);
 
@@ -63,7 +63,7 @@ router.post('/', async (ctx) => {
   validateConditions(ctx, data.conditions);
   validateActions(ctx, data.actions);
 
-  const trigger = await Trigger.create(
+  const automation = await Automation.create(
     {
       ACL: {},
       title: data.title,
@@ -78,22 +78,22 @@ router.post('/', async (ctx) => {
   );
 
   ctx.body = {
-    id: trigger.id,
+    id: automation.id,
   };
 });
 
 router.get('/', async (ctx) => {
-  const triggers = await Trigger.query().find({ useMasterKey: true });
-  ctx.body = triggers.map((t) => new TriggerResponse(t));
+  const automations = await Automation.query().find({ useMasterKey: true });
+  ctx.body = automations.map((a) => new AutomationResponse(a));
 });
 
 router.param('id', async (id, ctx, next) => {
-  ctx.state.trigger = await Trigger.findOrFail(id, { useMasterKey: true });
+  ctx.state.automation = await Automation.findOrFail(id, { useMasterKey: true });
   return next();
 });
 
 router.get('/:id', (ctx) => {
-  ctx.body = new TriggerResponse(ctx.state.trigger);
+  ctx.body = new AutomationResponse(ctx.state.automation);
 });
 
 const updateDataSchema = z.object({
@@ -105,7 +105,7 @@ const updateDataSchema = z.object({
 });
 
 router.patch('/:id', async (ctx) => {
-  const trigger = ctx.state.trigger as Trigger;
+  const automation = ctx.state.automation as Automation;
   const data = updateDataSchema.parse(ctx.request.body);
 
   if (data.conditions) {
@@ -115,10 +115,9 @@ router.patch('/:id', async (ctx) => {
     validateActions(ctx, data.actions);
   }
 
-  await trigger.update(
+  await automation.update(
     {
       title: data.title,
-      description: data.description,
       conditions: data.conditions,
       actions: data.actions,
       active: data.active,
@@ -132,8 +131,8 @@ router.patch('/:id', async (ctx) => {
 });
 
 router.delete('/:id', async (ctx) => {
-  const trigger = ctx.state.trigger as Trigger;
-  await trigger.delete({ useMasterKey: true });
+  const automation = ctx.state.automation as Automation;
+  await automation.delete({ useMasterKey: true });
   ctx.body = {};
 });
 
@@ -141,30 +140,31 @@ const reorderDataSchema = z.object({
   ids: z.array(z.string()),
 });
 
+async function reorderAutomations(ids: string[]) {
+  const automations = await Automation.query().find({ useMasterKey: true });
+  const automationMap = _.keyBy(automations, 'id');
+
+  const ordered: Automation[] = [];
+  ids.forEach((id) => {
+    const automation = automationMap[id];
+    if (automation) {
+      ordered.push(automation);
+      delete automationMap[id];
+    }
+  });
+  const rest = Object.values(automationMap);
+
+  const data = [
+    ...ordered.map((a, i) => [a, { position: i }]),
+    ...rest.map((a) => [a, { position: null }]),
+  ] as [Automation, { position: number | null }][];
+  await Automation.updateSome(data, { useMasterKey: true });
+}
+
 router.post('/reorder', async (ctx) => {
   const { ids } = reorderDataSchema.parse(ctx.request.body);
   if (ids.length) {
-    const triggers = await Trigger.query().find({ useMasterKey: true });
-    const triggerMap = _.keyBy(triggers, 'id');
-
-    const front: Trigger[] = [];
-    ids.forEach((id) => {
-      if (id in triggerMap) {
-        front.push(triggerMap[id]);
-        delete triggerMap[id];
-      }
-    });
-    const tail = Object.values(triggerMap);
-
-    await Trigger.updateSome(
-      [
-        ...front.map((t, i) => [t, { position: i }]),
-        ...tail.map((t) => [t, { position: null }]),
-      ] as [Trigger, { position: number | null }][],
-      {
-        useMasterKey: true,
-      }
-    );
+    await reorderAutomations(ids);
   }
   ctx.body = {};
 });

@@ -3,17 +3,17 @@ import { RouteComponentProps, useHistory } from 'react-router-dom';
 import { useMutation } from 'react-query';
 
 import { Spin, message, notification } from '@/components/antd';
-import { UpdateTriggerData, updateTrigger, useTrigger } from '@/api/trigger';
+import { UpdateAutomationData, useAutomation, updateAutomation } from '@/api/automation';
 import { TriggerForm } from '../components/TriggerForm';
 import { decodeCondition } from '../utils';
 import conditions from './conditions';
 import actions from './actions';
 
-export default function TriggerDetail({ match }: RouteComponentProps<{ id: string }>) {
+export default function TimeTriggerDetail({ match }: RouteComponentProps<{ id: string }>) {
   const id = match.params.id;
   const history = useHistory();
-  const { data, isLoading } = useTrigger(id, { cacheTime: 0 });
-  const trigger = useMemo(() => {
+  const { data, isLoading } = useAutomation(id, { cacheTime: 0 });
+  const automation = useMemo(() => {
     if (data) {
       return {
         title: data.title,
@@ -25,7 +25,7 @@ export default function TriggerDetail({ match }: RouteComponentProps<{ id: strin
   }, [data]);
 
   const { mutate } = useMutation({
-    mutationFn: (data: UpdateTriggerData) => updateTrigger(id, data),
+    mutationFn: (data: UpdateAutomationData) => updateAutomation(id, data),
     onSuccess: () => {
       message.success('更新成功');
       history.push('.');
@@ -50,7 +50,7 @@ export default function TriggerDetail({ match }: RouteComponentProps<{ id: strin
     <TriggerForm
       conditions={conditions}
       actions={actions}
-      defaultValues={trigger}
+      defaultValues={automation}
       onSubmit={mutate}
       onCancel={() => history.push('.')}
       submitButtonText="更新"
