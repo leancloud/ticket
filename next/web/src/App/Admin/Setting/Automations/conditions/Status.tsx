@@ -2,11 +2,19 @@ import { Controller, useFormContext } from 'react-hook-form';
 import { get } from 'lodash-es';
 
 import { Form, Select } from '@/components/antd';
-import { CategorySelect } from '../../components/CategorySelect';
 
 const { Option } = Select;
 
-export function CategoryId({ path }: { path: string }) {
+const options = [
+  { value: 50, label: '新工单' },
+  { value: 120, label: '等待客服回复' },
+  { value: 160, label: '已回复用户' },
+  { value: 220, label: '待用户确认' },
+  { value: 250, label: '已解决' },
+  { value: 280, label: '已关闭' },
+];
+
+export function Status({ path }: { path: string }) {
   const { control, formState } = useFormContext();
   const errors = get(formState.errors, path);
 
@@ -26,14 +34,14 @@ export function CategoryId({ path }: { path: string }) {
           )}
         />
       </Form.Item>
+
       <Form.Item validateStatus={errors?.value ? 'error' : undefined}>
         <Controller
           control={control}
           name={`${path}.value`}
           rules={{ required: true }}
-          render={({ field }) => (
-            <CategorySelect {...field} initValue={field.value} onChange={field.onChange} />
-          )}
+          defaultValue={50}
+          render={({ field }) => <Select {...field} options={options} style={{ width: 160 }} />}
         />
       </Form.Item>
     </>

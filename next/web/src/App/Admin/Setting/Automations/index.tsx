@@ -13,6 +13,7 @@ import NewTrigger from './Triggers/New';
 import TriggerDetail from './Triggers/Detail';
 import TimeTriggers from './TimeTriggers';
 import NewTimeTrigger from './TimeTriggers/New';
+import TimeTriggerDetail from './TimeTriggers/Detail';
 
 const { Title } = Typography;
 
@@ -35,7 +36,7 @@ function TriggerMenu({ match: { path } }: RouteComponentProps) {
           <Link to={`${path}/triggers`}>流转触发器</Link>
         </Menu.Item>
         <Menu.Item key="time-triggers">
-          <Link to={`${path}/time-triggers`}>时间触发器</Link>
+          <Link to={`${path}/time-triggers`}>定时触发器</Link>
         </Menu.Item>
       </Menu>
 
@@ -55,6 +56,7 @@ export default function Automations({ match: { path } }: RouteComponentProps) {
         <Route path={`${path}/triggers/new`} component={NewTrigger} />
         <Route path={`${path}/triggers/:id`} component={TriggerDetail} />
         <Route path={`${path}/time-triggers/new`} component={NewTimeTrigger} />
+        <Route path={`${path}/time-triggers/:id`} component={TimeTriggerDetail} />
         <Route path={path} component={TriggerMenu} />
       </Switch>
     </div>

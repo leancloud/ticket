@@ -1,22 +1,26 @@
+import { useMemo } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 import { get } from 'lodash-es';
 
 import { Form, Select } from '@/components/antd';
+import { useCustomerServices } from '@/api/user';
 
 const { Option } = Select;
 
-const statusOptions = [
-  { value: 50, label: '新工单' },
-  { value: 120, label: '等待客服回复' },
-  { value: 160, label: '已回复用户' },
-  { value: 220, label: '待用户确认' },
-  { value: 250, label: '已解决' },
-  { value: 280, label: '已关闭' },
-];
+const NULL_STRING = '';
 
-export function Status({ path }: { path: string }) {
+export function AssigneeId({ path }: { path: string }) {
   const { control, formState } = useFormContext();
   const errors = get(formState.errors, path);
+
+  const { data: assignees } = useCustomerServices();
+  const options = useMemo(() => {
+    return [
+      { label: '(未设置)', value: NULL_STRING },
+      { label: '(创建者)', value: '__author' },
+      ...(assignees?.map((a) => ({ label: a.nickname, value: a.id })) ?? []),
+    ];
+  }, [assignees]);
 
   return (
     <>
@@ -38,10 +42,20 @@ export function Status({ path }: { path: string }) {
         <Controller
           control={control}
           name={`${path}.value`}
-          rules={{ required: true }}
-          defaultValue={50}
+          rules={{
+            validate: (value) => value !== undefined,
+          }}
           render={({ field }) => (
-            <Select {...field} options={statusOptions} style={{ width: 160 }} />
+            <Select
+              {...field}
+              showSearch
+              options={options}
+              placeholder="请选择"
+              value={field.value === null ? NULL_STRING : field.value}
+              onChange={(value) => field.onChange(value === NULL_STRING ? null : value)}
+              optionFilterProp="label"
+              style={{ width: 200 }}
+            />
           )}
         />
       </Form.Item>

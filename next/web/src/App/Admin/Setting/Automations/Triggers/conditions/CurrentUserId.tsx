@@ -35,18 +35,15 @@ export function CurrentUserId({ path }: { path: string }) {
           )}
         />
       </Form.Item>
+
       <Form.Item validateStatus={errors?.value ? 'error' : undefined}>
         <Controller
           control={control}
           name={`${path}.value`}
-          rules={{
-            validate: (value) => value !== undefined,
-          }}
+          rules={{ validate: (value) => value !== undefined }}
           render={({ field }) => (
             <Select
               {...field}
-              value={field.value === null ? '' : field.value}
-              onChange={(value) => field.onChange(value === '' ? null : value)}
               showSearch
               options={options}
               placeholder="请选择"

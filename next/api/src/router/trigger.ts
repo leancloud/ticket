@@ -1,36 +1,16 @@
 import { Context } from 'koa';
 import Router from '@koa/router';
-import { z, ZodError } from 'zod';
+import { ZodError, z } from 'zod';
 import _ from 'lodash';
 
 import { getZodErrorMessage } from '@/utils/zod';
 import { auth, customerServiceOnly } from '@/middleware/auth';
-import { condition, action } from '@/ticket/automation';
 import { Trigger } from '@/model/Trigger';
 import { TriggerResponse } from '@/response/trigger';
+import { condition } from '@/ticket/automation/trigger/condition';
+import { action } from '@/ticket/automation/trigger/action';
 
 const router = new Router().use(auth, customerServiceOnly);
-
-const conditionsSchema = z
-  .object({
-    type: z.string(),
-  })
-  .passthrough();
-
-const actionsSchema = z.array(
-  z
-    .object({
-      type: z.string(),
-    })
-    .passthrough()
-);
-
-const createDataSchema = z.object({
-  title: z.string(),
-  description: z.string().optional(),
-  conditions: conditionsSchema,
-  actions: actionsSchema,
-});
 
 function getErrorMessage(error: Error) {
   if (error instanceof ZodError) {
@@ -57,6 +37,27 @@ function validateActions(ctx: Context, data: unknown[]): void | never {
   });
 }
 
+const conditionsSchema = z
+  .object({
+    type: z.string(),
+  })
+  .passthrough();
+
+const actionsSchema = z.array(
+  z
+    .object({
+      type: z.string(),
+    })
+    .passthrough()
+);
+
+const createDataSchema = z.object({
+  title: z.string(),
+  description: z.string().optional(),
+  conditions: conditionsSchema,
+  actions: actionsSchema,
+});
+
 router.post('/', async (ctx) => {
   const data = createDataSchema.parse(ctx.request.body);
   validateConditions(ctx, data.conditions);
@@ -76,7 +77,9 @@ router.post('/', async (ctx) => {
     }
   );
 
-  ctx.body = { id: trigger.id };
+  ctx.body = {
+    id: trigger.id,
+  };
 });
 
 router.get('/', async (ctx) => {

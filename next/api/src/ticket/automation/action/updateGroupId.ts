@@ -12,7 +12,7 @@ const unsetGroup: Action = {
   },
 };
 
-export function updateGroupId(options: unknown): Action {
+export default function (options: unknown): Action {
   const { value } = schema.parse(options);
   if (value === null) {
     return unsetGroup;

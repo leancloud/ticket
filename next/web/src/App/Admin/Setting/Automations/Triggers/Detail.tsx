@@ -1,53 +1,18 @@
-import { RouteComponentProps, useHistory } from 'react-router-dom';
-
-import { Spin, message, notification } from '@/components/antd';
-import { Condition, UpdateTriggerData, updateTrigger, useTrigger } from '@/api/trigger';
-import { TriggerForm } from './New';
 import { useMemo } from 'react';
+import { RouteComponentProps, useHistory } from 'react-router-dom';
 import { useMutation } from 'react-query';
 
-function decodeCondition(condition: Condition): Condition {
-  if (condition.type !== 'all' && condition.type !== 'any') {
-    return {
-      type: 'any',
-      conditions: [
-        {
-          type: 'any',
-          conditions: [condition],
-        },
-      ],
-    };
-  }
-  if (condition.conditions.length) {
-    const hasGroupCondition = condition.conditions.some(
-      (c) => c.type === 'all' || c.type === 'any'
-    );
-    if (hasGroupCondition) {
-      return {
-        ...condition,
-        conditions: condition.conditions.map((c) => {
-          if (c.type === 'all' || c.type === 'any') {
-            return c;
-          }
-          return {
-            type: 'any',
-            conditions: [c],
-          };
-        }),
-      };
-    }
-    return {
-      type: 'any',
-      conditions: [condition],
-    };
-  }
-  return condition;
-}
+import { Spin, message, notification } from '@/components/antd';
+import { UpdateTriggerData, updateTrigger, useTrigger } from '@/api/trigger';
+import { TriggerForm } from '../components/TriggerForm';
+import { decodeCondition } from '../utils';
+import conditions from './conditions';
+import actions from './actions';
 
 export default function TriggerDetail({ match }: RouteComponentProps<{ id: string }>) {
   const id = match.params.id;
   const history = useHistory();
-  const { data, isLoading } = useTrigger(id);
+  const { data, isLoading } = useTrigger(id, { cacheTime: 0 });
   const trigger = useMemo(() => {
     if (data) {
       return {
@@ -59,7 +24,7 @@ export default function TriggerDetail({ match }: RouteComponentProps<{ id: strin
     }
   }, [data]);
 
-  const { mutate, isLoading: isUpdating } = useMutation({
+  const { mutate } = useMutation({
     mutationFn: (data: UpdateTriggerData) => updateTrigger(id, data),
     onSuccess: () => {
       message.success('更新成功');
@@ -83,11 +48,12 @@ export default function TriggerDetail({ match }: RouteComponentProps<{ id: strin
   }
   return (
     <TriggerForm
-      defaultValue={trigger}
-      loading={isUpdating}
+      conditions={conditions}
+      actions={actions}
+      defaultValues={trigger}
       onSubmit={mutate}
       onCancel={() => history.push('.')}
-      submitButtonTitle="更新"
+      submitButtonText="更新"
     />
   );
 }

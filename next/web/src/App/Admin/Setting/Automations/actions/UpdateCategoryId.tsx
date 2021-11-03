@@ -2,7 +2,7 @@ import { Controller, useFormContext } from 'react-hook-form';
 import { get } from 'lodash-es';
 
 import { Form } from '@/components/antd';
-import { CategorySelect } from '../../components/CategorySelect';
+import { CategorySelect } from '../components/CategorySelect';
 
 export function UpdateCategoryId({ path }: { path: string }) {
   const { control, formState } = useFormContext();

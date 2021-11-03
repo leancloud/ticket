@@ -2,37 +2,23 @@ import _ from 'lodash';
 
 import { Category } from '@/model/Category';
 import { Group } from '@/model/Group';
-import { Reply } from '@/model/Reply';
 import { Ticket } from '@/model/Ticket';
 import { User, systemUser } from '@/model/User';
 import { TicketUpdater } from '@/ticket';
 
-export type TicketEvent = 'created' | 'updated' | 'replied';
-
-export interface UpdatedData {
+export interface DirtyData {
   categoryId?: string;
-  organizationId?: string | null;
   assigneeId?: string | null;
   groupId?: string | null;
-  evaluation?: { star: number; content: string };
   status?: number;
 }
 
 export class Context {
-  protected updatedData?: UpdatedData;
-  protected reply?: Reply;
+  protected dirtyData: DirtyData = {};
   protected updater: TicketUpdater;
 
-  constructor(readonly event: TicketEvent, private ticket: Ticket, readonly currentUserId: string) {
+  constructor(protected ticket: Ticket) {
     this.updater = new TicketUpdater(ticket);
-  }
-
-  private setUpdatedData<K extends keyof UpdatedData>(key: K, value: Required<UpdatedData>[K]) {
-    if (this.updatedData) {
-      this.updatedData[key] = value;
-    } else {
-      this.updatedData = { [key]: value };
-    }
   }
 
   getTitle(): string {
@@ -44,7 +30,7 @@ export class Context {
   }
 
   getCategoryId(): string {
-    return this.updatedData?.categoryId ?? this.ticket.categoryId;
+    return this.dirtyData.categoryId ?? this.ticket.categoryId;
   }
 
   async setCategoryId(id: string) {
@@ -53,7 +39,7 @@ export class Context {
       return;
     }
 
-    this.setUpdatedData('categoryId', id);
+    this.dirtyData.categoryId = id;
     this.updater.setCategory(category);
   }
 
@@ -62,15 +48,15 @@ export class Context {
   }
 
   getAssigneeId(): string | null {
-    if (this.updatedData?.assigneeId !== undefined) {
-      return this.updatedData.assigneeId;
+    if (this.dirtyData.assigneeId !== undefined) {
+      return this.dirtyData.assigneeId;
     }
     return this.ticket.assigneeId ?? null;
   }
 
   async setAssigneeId(id: string | null) {
     if (id === null) {
-      this.setUpdatedData('assigneeId', id);
+      this.dirtyData.assigneeId = null;
       this.updater.setAssignee(null);
       return;
     }
@@ -85,20 +71,20 @@ export class Context {
       return;
     }
 
-    this.setUpdatedData('assigneeId', id);
+    this.dirtyData.assigneeId = id;
     this.updater.setAssignee(user);
   }
 
   getGroupId(): string | null {
-    if (this.updatedData?.groupId !== undefined) {
-      return this.updatedData.groupId;
+    if (this.dirtyData.groupId !== undefined) {
+      return this.dirtyData.groupId;
     }
     return this.ticket.groupId ?? null;
   }
 
   async setGroupId(id: string | null) {
     if (id === null) {
-      this.setUpdatedData('groupId', null);
+      this.dirtyData.groupId = null;
       this.updater.setGroup(null);
       return;
     }
@@ -108,16 +94,16 @@ export class Context {
       return;
     }
 
-    this.setUpdatedData('groupId', id);
+    this.dirtyData.groupId = id;
     this.updater.setGroup(group);
   }
 
   getStatus(): number {
-    return this.updatedData?.status ?? this.ticket.status;
+    return this.dirtyData.status ?? this.ticket.status;
   }
 
   closeTicket() {
-    this.setUpdatedData('status', Ticket.STATUS.CLOSED);
+    this.dirtyData.status = Ticket.STATUS.CLOSED;
     this.updater.operate('close');
   }
 
