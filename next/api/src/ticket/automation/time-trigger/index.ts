@@ -1,4 +1,5 @@
 import throat from 'throat';
+import _ from 'lodash';
 
 import { OpsLog } from '@/model/OpsLog';
 import { Ticket } from '@/model/Ticket';
@@ -12,7 +13,6 @@ import { action as actionFactory } from './action';
 
 export class TimeTrigger {
   id: string;
-  fired = false;
 
   private condition: Condition;
   private actions: Action[];
@@ -23,22 +23,26 @@ export class TimeTrigger {
     this.actions = data.actions.map(actionFactory);
   }
 
-  async exec(ctx: TimeTriggerContext) {
+  async exec(ctx: TimeTriggerContext): Promise<boolean> {
     if (await this.condition.test(ctx)) {
       for (const action of this.actions) {
         await action.exec(ctx);
       }
-      this.fired = true;
+      return true;
     }
+    return false;
   }
 }
 
-function getOpenTickets(): Promise<Ticket[]> {
-  return Ticket.queryBuilder()
+function getOpenTickets(cursor?: string): Promise<Ticket[]> {
+  const query = Ticket.queryBuilder()
     .where('status', '<', Ticket.STATUS.FULFILLED)
     .orderBy('objectId', 'asc')
-    .limit(1000)
-    .find({ useMasterKey: true });
+    .limit(1000);
+  if (cursor) {
+    query.where('objectId', '>', cursor);
+  }
+  return query.find({ useMasterKey: true });
 }
 
 async function getTimeTriggerDatas(): Promise<TimeTriggerModel[]> {
@@ -76,26 +80,38 @@ export interface Report {
 }
 
 export async function execTimeTriggers(): Promise<Report> {
-  const [tickets, triggers] = await Promise.all([getOpenTickets(), getTimeTriggers()]);
+  const triggers = await getTimeTriggers();
   const report: Report = {
     timeTriggerIds: triggers.map((t) => t.id),
     firedTicketIds: [],
     skipTicketIds: [],
   };
 
+  let firedCount = 0;
   const task = async (ticket: Ticket) => {
     const ctx = await createTimeTriggerContext(ticket);
     for (const trigger of triggers) {
-      await trigger.exec(ctx);
-      if (trigger.fired) {
+      const fired = await trigger.exec(ctx);
+      if (fired) {
+        firedCount++;
         report.firedTicketIds.push(ticket.id);
       } else {
         report.skipTicketIds.push(ticket.id);
       }
     }
+    await ctx.finish();
   };
-  const exec = throat(2);
-  await Promise.allSettled(tickets.map((ticket) => exec(() => task(ticket))));
+  const exec = throat(3);
+
+  let cursor: string | undefined;
+  while (firedCount < 1000) {
+    const tickets = await getOpenTickets(cursor);
+    if (tickets.length === 0) {
+      break;
+    }
+    cursor = _.last(tickets)?.id;
+    await Promise.allSettled(tickets.map((ticket) => exec(() => task(ticket))));
+  }
 
   return report;
 }
