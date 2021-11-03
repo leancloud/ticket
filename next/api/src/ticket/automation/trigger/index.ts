@@ -115,7 +115,7 @@ events.on('ticket:updated', (ctx) => {
   if (ctx.ignoreTrigger) {
     return;
   }
-  if (ctx.originalTicket.status === Ticket.STATUS.CLOSED && ctx.data.status === undefined) {
+  if (isClosed(ctx.originalTicket.status) && ctx.data.status === undefined) {
     // 已关闭的工单不会触发触发器，但在被关闭时仍会触发触发器
     return;
   }
@@ -167,7 +167,7 @@ async function processTicketUpdated(job: TicketUpdatedJob) {
 
 async function processTicketReplied(job: TicketRepliedJob) {
   const ticket = await Ticket.find(job.reply.ticketId, { useMasterKey: true });
-  if (!ticket || ticket.status === Ticket.STATUS.CLOSED) {
+  if (!ticket || isClosed(ticket.status)) {
     return;
   }
   const ctx = new TriggerContext({
@@ -177,4 +177,8 @@ async function processTicketReplied(job: TicketRepliedJob) {
     reply: Reply.fromJSON(job.reply),
   });
   await runTriggers(ctx);
+}
+
+function isClosed(status: number): boolean {
+  return status !== Ticket.STATUS.FULFILLED && status !== Ticket.STATUS.CLOSED;
 }

@@ -1,6 +1,6 @@
 import { Model, field } from '@/orm';
 
-export class Automation extends Model {
+export class TimeTrigger extends Model {
   @field()
   title!: string;
 

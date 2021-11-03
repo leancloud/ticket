@@ -2,7 +2,7 @@ import Koa from 'koa';
 import bodyParser from 'koa-bodyparser';
 import cors from '@koa/cors';
 import throat from 'throat';
-import * as Sentry from "@sentry/node";
+import * as Sentry from '@sentry/node';
 
 import './leancloud';
 import { config } from './config';
@@ -11,7 +11,7 @@ import { router as integrationRouter } from './integration';
 import notification from './notification';
 import { OpsLog } from './model/OpsLog';
 import { Ticket } from './model/Ticket';
-import { getTriggers } from './ticket/automation/trigger';
+import { getTriggers, getTimeTriggers } from './ticket/automation';
 
 export const app = new Koa();
 
@@ -20,12 +20,11 @@ if (config.sentryDSN) {
     dsn: config.sentryDSN,
     initialScope: {
       tags: {
-        type: 'api'
-      }
-    }
+        type: 'api',
+      },
+    },
   });
 }
-
 
 app.use(async (ctx, next) => {
   try {
@@ -52,14 +51,14 @@ app.use(
   cors({
     origin: allowedOrigins
       ? (ctx) => {
-        if (
-          ctx.request.header.origin &&
-          allowedOrigins.indexOf(ctx.request.header.origin) !== -1
-        ) {
-          return ctx.request.header.origin;
+          if (
+            ctx.request.header.origin &&
+            allowedOrigins.indexOf(ctx.request.header.origin) !== -1
+          ) {
+            return ctx.request.header.origin;
+          }
+          return '';
         }
-        return '';
-      }
       : undefined,
     keepHeadersOnError: true,
   })
@@ -97,4 +96,7 @@ export async function tickDelayNotify() {
 
 getTriggers().then((triggers) => {
   console.log(`[Trigger] ${triggers?.length} triggers validated`);
+});
+getTimeTriggers().then((timeTriggers) => {
+  console.log(`[TimeTrigger] ${timeTriggers?.length} triggers validated`);
 });

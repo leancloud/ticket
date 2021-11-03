@@ -5,8 +5,8 @@ import _ from 'lodash';
 
 import { getZodErrorMessage } from '@/utils/zod';
 import { auth, customerServiceOnly } from '@/middleware/auth';
-import { Automation } from '@/model/Automation';
-import { AutomationResponse } from '@/response/automation';
+import { TimeTrigger } from '@/model/TimeTrigger';
+import { TimeTriggerResponse } from '@/response/time-trigger';
 import { condition } from '@/ticket/automation/time-trigger/condition';
 import { action } from '@/ticket/automation/time-trigger/action';
 
@@ -63,7 +63,7 @@ router.post('/', async (ctx) => {
   validateConditions(ctx, data.conditions);
   validateActions(ctx, data.actions);
 
-  const automation = await Automation.create(
+  const timeTrigger = await TimeTrigger.create(
     {
       ACL: {},
       title: data.title,
@@ -78,22 +78,22 @@ router.post('/', async (ctx) => {
   );
 
   ctx.body = {
-    id: automation.id,
+    id: timeTrigger.id,
   };
 });
 
 router.get('/', async (ctx) => {
-  const automations = await Automation.query().find({ useMasterKey: true });
-  ctx.body = automations.map((a) => new AutomationResponse(a));
+  const timeTrigger = await TimeTrigger.query().find({ useMasterKey: true });
+  ctx.body = timeTrigger.map((a) => new TimeTriggerResponse(a));
 });
 
 router.param('id', async (id, ctx, next) => {
-  ctx.state.automation = await Automation.findOrFail(id, { useMasterKey: true });
+  ctx.state.timeTrigger = await TimeTrigger.findOrFail(id, { useMasterKey: true });
   return next();
 });
 
 router.get('/:id', (ctx) => {
-  ctx.body = new AutomationResponse(ctx.state.automation);
+  ctx.body = new TimeTriggerResponse(ctx.state.timeTrigger);
 });
 
 const updateDataSchema = z.object({
@@ -105,7 +105,7 @@ const updateDataSchema = z.object({
 });
 
 router.patch('/:id', async (ctx) => {
-  const automation = ctx.state.automation as Automation;
+  const timeTrigger = ctx.state.timeTrigger as TimeTrigger;
   const data = updateDataSchema.parse(ctx.request.body);
 
   if (data.conditions) {
@@ -115,7 +115,7 @@ router.patch('/:id', async (ctx) => {
     validateActions(ctx, data.actions);
   }
 
-  await automation.update(
+  await timeTrigger.update(
     {
       title: data.title,
       conditions: data.conditions,
@@ -131,8 +131,8 @@ router.patch('/:id', async (ctx) => {
 });
 
 router.delete('/:id', async (ctx) => {
-  const automation = ctx.state.automation as Automation;
-  await automation.delete({ useMasterKey: true });
+  const timeTrigger = ctx.state.timeTrigger as TimeTrigger;
+  await timeTrigger.delete({ useMasterKey: true });
   ctx.body = {};
 });
 
@@ -140,31 +140,31 @@ const reorderDataSchema = z.object({
   ids: z.array(z.string()),
 });
 
-async function reorderAutomations(ids: string[]) {
-  const automations = await Automation.query().find({ useMasterKey: true });
-  const automationMap = _.keyBy(automations, 'id');
+async function reorderTimeTriggers(ids: string[]) {
+  const timeTriggers = await TimeTrigger.query().find({ useMasterKey: true });
+  const timeTriggerMap = _.keyBy(timeTriggers, 'id');
 
-  const ordered: Automation[] = [];
+  const ordered: TimeTrigger[] = [];
   ids.forEach((id) => {
-    const automation = automationMap[id];
-    if (automation) {
-      ordered.push(automation);
-      delete automationMap[id];
+    const timeTrigger = timeTriggerMap[id];
+    if (timeTrigger) {
+      ordered.push(timeTrigger);
+      delete timeTriggerMap[id];
     }
   });
-  const rest = Object.values(automationMap);
+  const rest = Object.values(timeTriggerMap);
 
   const data = [
     ...ordered.map((a, i) => [a, { position: i }]),
     ...rest.map((a) => [a, { position: null }]),
-  ] as [Automation, { position: number | null }][];
-  await Automation.updateSome(data, { useMasterKey: true });
+  ] as [TimeTrigger, { position: number | null }][];
+  await TimeTrigger.updateSome(data, { useMasterKey: true });
 }
 
 router.post('/reorder', async (ctx) => {
   const { ids } = reorderDataSchema.parse(ctx.request.body);
   if (ids.length) {
-    await reorderAutomations(ids);
+    await reorderTimeTriggers(ids);
   }
   ctx.body = {};
 });

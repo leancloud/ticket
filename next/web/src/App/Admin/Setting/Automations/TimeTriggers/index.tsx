@@ -24,16 +24,16 @@ import {
   notification,
 } from '@/components/antd';
 import {
-  AutomationSchema,
-  updateAutomation,
-  deleteAutomation,
-  useAutomations,
-  reorderAutomations,
-} from '@/api/automation';
+  TimeTriggerSchema,
+  updateTimeTrigger,
+  deleteTimeTrigger,
+  useTimeTriggers,
+  reorderTimeTrigger,
+} from '@/api/time-trigger';
 import style from './index.module.css';
 
 interface TimeTriggerItemProps {
-  data: AutomationSchema;
+  data: TimeTriggerSchema;
   number: number;
   onDelete: () => void;
 }
@@ -44,7 +44,7 @@ function TimeTriggerItem({ data, number, onDelete }: TimeTriggerItemProps) {
 
   const updateActive = useCallback(
     (triggerId: string, active: boolean) => {
-      queryClient.setQueryData<AutomationSchema[] | undefined>('automations', (data) => {
+      queryClient.setQueryData<TimeTriggerSchema[] | undefined>('time-triggers', (data) => {
         if (data) {
           return produce(data, (draft) => {
             const target = draft.find((t) => t.id === triggerId);
@@ -59,7 +59,7 @@ function TimeTriggerItem({ data, number, onDelete }: TimeTriggerItemProps) {
   );
 
   const { mutate, isLoading } = useMutation({
-    mutationFn: (active: boolean) => updateAutomation(data.id, { active }),
+    mutationFn: (active: boolean) => updateTimeTrigger(data.id, { active }),
     onSuccess: (_, active) => updateActive(data.id, active),
   });
 
@@ -100,12 +100,12 @@ function TimeTriggerItem({ data, number, onDelete }: TimeTriggerItemProps) {
   );
 }
 
-function TimeTriggerList({ data }: { data: AutomationSchema[] }) {
+function TimeTriggerList({ data }: { data: TimeTriggerSchema[] }) {
   const queryClient = useQueryClient();
   const { mutate: remove } = useMutation({
-    mutationFn: deleteAutomation,
+    mutationFn: deleteTimeTrigger,
     onSuccess: () => {
-      message.success('删除成功'), queryClient.invalidateQueries('automations');
+      message.success('删除成功'), queryClient.invalidateQueries('time-triggers');
     },
     onError: (error: Error) => {
       console.error(error);
@@ -130,20 +130,15 @@ function TimeTriggerList({ data }: { data: AutomationSchema[] }) {
 
   return (
     <div>
-      {data.map((automation, i) => (
-        <TimeTriggerItem
-          key={automation.id}
-          data={automation}
-          number={i + 1}
-          onDelete={() => handleDelete(automation.id)}
-        />
+      {data.map((t, i) => (
+        <TimeTriggerItem key={t.id} data={t} number={i + 1} onDelete={() => handleDelete(t.id)} />
       ))}
     </div>
   );
 }
 
 interface ReorderProps {
-  data: AutomationSchema[];
+  data: TimeTriggerSchema[];
   onChange: (ids: string[]) => void;
 }
 
@@ -243,25 +238,25 @@ export default function TimeTriggers({ match: { path } }: RouteComponentProps) {
   const [reordering, setReordering] = useState(false);
   const [order, setOrder] = useState<string[]>();
 
-  const { data: automations, isLoading } = useAutomations();
-  const sortedAutomations = useMemo(() => {
-    return automations?.sort((a, b) => {
+  const { data: timeTriggers, isLoading } = useTimeTriggers();
+  const sortedTimeTriggers = useMemo(() => {
+    return timeTriggers?.sort((a, b) => {
       if (a.active !== b.active) {
         return a.active ? -1 : 1;
       }
       return a.position - b.position;
     });
-  }, [automations]);
+  }, [timeTriggers]);
 
-  const activeAutomations = useMemo(() => {
-    return sortedAutomations?.filter((a) => a.active);
-  }, [sortedAutomations]);
+  const activeTimeTriggers = useMemo(() => {
+    return sortedTimeTriggers?.filter((a) => a.active);
+  }, [sortedTimeTriggers]);
 
   const queryClient = useQueryClient();
   const { mutate: saveOrder, isLoading: isSavingOrder } = useMutation({
-    mutationFn: reorderAutomations,
+    mutationFn: reorderTimeTrigger,
     onSuccess: () => {
-      queryClient.invalidateQueries('automations');
+      queryClient.invalidateQueries('time-triggers');
       message.success('保存成功');
       setReordering(false);
     },
@@ -294,7 +289,7 @@ export default function TimeTriggers({ match: { path } }: RouteComponentProps) {
 
         {!reordering && (
           <>
-            {activeAutomations && activeAutomations.length > 1 && (
+            {activeTimeTriggers && activeTimeTriggers.length > 1 && (
               <Button
                 className="mr-2"
                 onClick={() => {
@@ -334,15 +329,17 @@ export default function TimeTriggers({ match: { path } }: RouteComponentProps) {
         </div>
       )}
 
-      {automations?.length === 0 && (
+      {timeTriggers?.length === 0 && (
         <div className="flex justify-center items-center h-80">
           <Empty />
         </div>
       )}
 
-      {!reordering && sortedAutomations && <TimeTriggerList data={sortedAutomations} />}
+      {!reordering && sortedTimeTriggers && <TimeTriggerList data={sortedTimeTriggers} />}
 
-      {reordering && activeAutomations && <Reorder data={activeAutomations} onChange={setOrder} />}
+      {reordering && activeTimeTriggers && (
+        <Reorder data={activeTimeTriggers} onChange={setOrder} />
+      )}
     </>
   );
 }

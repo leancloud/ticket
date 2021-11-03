@@ -1,7 +1,7 @@
-import { Automation } from '@/model/Automation';
+import { TimeTrigger } from '@/model/TimeTrigger';
 
-export class AutomationResponse {
-  constructor(readonly automation: Automation) {}
+export class TimeTriggerResponse {
+  constructor(readonly automation: TimeTrigger) {}
 
   toJSON() {
     return {
