@@ -13,7 +13,7 @@ export interface TimeTriggerContextConfig {
 export class TimeTriggerContext extends Context {
   readonly opsLogs: OpsLog[];
 
-  constructor(config: TimeTriggerContext) {
+  constructor(config: TimeTriggerContextConfig) {
     super(config.ticket);
     this.opsLogs = config.opsLogs.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
   }

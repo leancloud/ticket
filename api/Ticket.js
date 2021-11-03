@@ -313,4 +313,3 @@ async function tickAutomation() {
     }
   }
 }
-AV.Cloud.define('tickAutomation', { fetchUser: false, internal: true }, tickAutomation)

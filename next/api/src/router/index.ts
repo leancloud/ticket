@@ -10,7 +10,7 @@ import notification from './notification';
 import ticketFilter from './ticket-filter';
 import article from './article';
 import trigger from './trigger';
-import automation from './automation';
+import timeTrigger from './time-trigger';
 
 const router = new Router({ prefix: '/api/2' }).use(catchYupError, catchLCError, catchZodError);
 
@@ -23,6 +23,6 @@ router.use('/notifications', notification.routes());
 router.use('/ticket-filters', ticketFilter.routes());
 router.use('/articles', article.routes());
 router.use('/triggers', trigger.routes());
-router.use('/automations', automation.routes());
+router.use('/time-triggers', timeTrigger.routes());
 
 export default router;

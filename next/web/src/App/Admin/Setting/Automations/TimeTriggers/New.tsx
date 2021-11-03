@@ -2,7 +2,7 @@ import { useHistory } from 'react-router-dom';
 import { useMutation } from 'react-query';
 
 import { Typography, message, notification } from '@/components/antd';
-import { CreateAutomationData, createAutomation } from '@/api/automation';
+import { CreateTimeTriggerData, createTimeTrigger } from 'api/time-trigger';
 import { TriggerForm } from '../components/TriggerForm';
 import { encodeCondition } from '../utils';
 import conditions from './conditions';
@@ -14,8 +14,8 @@ export default function NewTimeTrigger() {
   const history = useHistory();
 
   const { mutateAsync } = useMutation({
-    mutationFn: (data: CreateAutomationData) =>
-      createAutomation({
+    mutationFn: (data: CreateTimeTriggerData) =>
+      createTimeTrigger({
         title: data.title,
         description: data.description,
         conditions: encodeCondition(data.conditions),
