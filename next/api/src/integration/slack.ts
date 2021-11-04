@@ -11,9 +11,6 @@ import type { Reply } from '@/model/Reply';
 import type { Ticket } from '@/model/Ticket';
 import type { User } from '@/model/User';
 
-const token = process.env.SLACK_TOKEN;
-const channel = process.env.SLACK_CHANNEL; // broadcast target
-
 class Message {
   constructor(readonly summary: string, readonly content: string) {}
 
@@ -207,9 +204,14 @@ class SlackIntegration {
   };
 }
 
-export const enabled = !!token;
+export default function (install: Function) {
+  const token = process.env.SLACK_TOKEN;
+  const channel = process.env.SLACK_CHANNEL; // broadcast target
+  if (!token) {
+    return;
+  }
 
-if (token) {
   new SlackIntegration(token, channel);
-  console.log('[Slack] Enabled');
+
+  install('Slack', {});
 }
