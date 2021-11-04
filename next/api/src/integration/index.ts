@@ -19,8 +19,6 @@ fs.readdirSync(__dirname).forEach((file) => {
   if (file === 'index.js') {
     return;
   }
-  const callback = require(path.join(__dirname, file));
-  if (typeof callback === 'function') {
-    callback(install);
-  }
+  const integration = require(path.join(__dirname, file));
+  integration.default(install);
 });
