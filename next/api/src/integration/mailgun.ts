@@ -16,9 +16,6 @@ import { User } from '@/model/User';
 const mailgun = new Mailgun(formData);
 const payloadStringKeys = ['Subject', 'To', 'stripped-text', 'timestamp', 'token', 'signature'];
 
-const key = process.env.MAILGUN_KEY;
-const domain = process.env.MAILGUN_DOMAIN;
-
 interface SendOptions {
   from: string;
   to: string;
@@ -155,12 +152,16 @@ function getUserId(to: string): string | undefined {
   }
 }
 
-export const router = new Router();
+export default function (install: Function) {
+  const key = process.env.MAILGUN_KEY;
+  const domain = process.env.MAILGUN_DOMAIN;
+  if (!key || !domain) {
+    return;
+  }
 
-export const enabled = key && domain;
+  const mailgunClient = new MailgunClient(key, domain);
 
-if (enabled) {
-  const mailgunClient = new MailgunClient(key!, domain!);
+  const router = new Router();
 
   router.post('/webhooks/mailgun/catchall', mailgunClient.verifyWebhook, async (ctx) => {
     const { Subject, To } = ctx.request.body;
@@ -187,5 +188,5 @@ if (enabled) {
     ctx.status = 200;
   });
 
-  console.log('[Maingun] Enabled');
+  install('Mailgun', { router });
 }
