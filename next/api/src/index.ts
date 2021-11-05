@@ -12,11 +12,11 @@ import notification from './notification';
 import { OpsLog } from './model/OpsLog';
 import { Ticket } from './model/Ticket';
 import { getTriggers, getTimeTriggers } from './ticket/automation';
-
 export const app = new Koa();
 
 if (config.sentryDSN) {
   Sentry.init({
+    enabled: process.env.NODE_ENV === 'production',
     dsn: config.sentryDSN,
     initialScope: {
       tags: {
@@ -51,14 +51,14 @@ app.use(
   cors({
     origin: allowedOrigins
       ? (ctx) => {
-          if (
-            ctx.request.header.origin &&
-            allowedOrigins.indexOf(ctx.request.header.origin) !== -1
-          ) {
-            return ctx.request.header.origin;
-          }
-          return '';
+        if (
+          ctx.request.header.origin &&
+          allowedOrigins.indexOf(ctx.request.header.origin) !== -1
+        ) {
+          return ctx.request.header.origin;
         }
+        return '';
+      }
       : undefined,
     keepHeadersOnError: true,
   })
