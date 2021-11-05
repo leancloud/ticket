@@ -6,6 +6,7 @@ const AV = require('leanengine')
 const forEachAVObject = require('./common').forEachAVObject
 
 const { TICKET_STATUS, TICKET_OPENED_STATUSES } = require('../lib/common')
+const { isCustomerService } = require('./common')
 
 AV.Cloud.define('statsOpenedTicket', (req, res) => {
   res.success()
@@ -266,7 +267,10 @@ const sumProperty = (obj, other, property) => {
   return _.mergeWith(obj[property], other.get(property), (a = 0, b) => a + b)
 }
 
-AV.Cloud.define('getStats', (req) => {
+AV.Cloud.define('getStats', async (req) => {
+  if (!(await isCustomerService(req.currentUser))) {
+    throw new AV.Cloud.Error('Forbidden', { status: 403 })
+  }
   let { start, end, timeUnit } = req.params
   if (typeof start === 'string') {
     start = new Date(start)
@@ -274,14 +278,11 @@ AV.Cloud.define('getStats', (req) => {
   if (typeof end === 'string') {
     end = new Date(end)
   }
-  const authOptions = { user: req.currentUser }
   const dateRanges = getDateRanges(start, end, timeUnit)
   return Promise.map(dateRanges, async ({ start, end }) => {
-    const { dailyStatses, ticketStatses, tags } = await getDailyAndTicketStatses(
-      start,
-      end,
-      authOptions
-    )
+    const { dailyStatses, ticketStatses, tags } = await getDailyAndTicketStatses(start, end, {
+      useMasterKey: true,
+    })
 
     const result = _.reduce(
       dailyStatses,
