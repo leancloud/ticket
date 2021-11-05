@@ -92,7 +92,7 @@ class RedisCache {
       return cached;
     }
 
-    const categories = await Category.query().find();
+    const categories = await Category.queryBuilder().limit(1000).find();
     RedisCache.set(categories).catch((error) => {
       // TODO(sdjdd): Sentry
       console.error(`[Cache] Set ${RedisCache.CACHE_KEY} failed:`, error);
