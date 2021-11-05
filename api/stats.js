@@ -212,6 +212,7 @@ const getTicketAndTimeline = (ticketObjectId, authOptions) => {
     ticket.fetch({}, authOptions),
     new AV.Query('Reply')
       .equalTo('ticket', ticket)
+      .notEqualTo('internal', true)
       .limit(1000)
       .ascending('createdAt')
       .find(authOptions),
@@ -487,6 +488,7 @@ const removeDailyStats = (date, authOptions) => {
 
 const getActiveTicket = (start, end, authOptions) => {
   const query = new AV.Query('Reply')
+    .notEqualTo('internal', true)
     .greaterThanOrEqualTo('createdAt', start)
     .lessThan('createdAt', end)
     .include('ticket')
