@@ -5,11 +5,13 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
     "clean": "rm -rf dist",
     "compile": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
     "build": "npm run clean && npm run compile",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "dev": "NODE_ENV=development nodemon"
+    "build:watch": "tsc -w & tsc-alias -w ",
+    "serve": "NODE_ENV=development nodemon",
+    "dev": "concurrently 'npm run build:watch'  'npm run serve'"
   },
   "author": "",
   "license": "MIT",
@@ -48,6 +50,7 @@
     "@types/lodash": "^4.14.175",
     "@types/node": "^16.10.3",
     "@types/remarkable": "^2.0.3",
+    "concurrently": "^6.3.0",
     "nodemon": "^2.0.13",
     "tsc-alias": "^1.3.10",
     "typescript": "^4.4.3"
