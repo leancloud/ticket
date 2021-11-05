@@ -18,7 +18,6 @@ AV.setProduction(process.env.NODE_ENV === 'production')
 const config = require('./config')
 const { clientGlobalVars } = require('./clientGlobalVar')
 const { refreshWebhooks } = require('./api/webhook')
-const { Automation, Automations } = require('./api/rule/automation')
 
 Raven.config(config.sentryDSN).install()
 
@@ -133,20 +132,3 @@ app.listen(PORT, function () {
 })
 
 refreshWebhooks()
-
-Automations.fetchRaw(true)
-  .then((objects) => {
-    let succeeded = 0
-    let failed = 0
-    objects.forEach((object) => {
-      try {
-        new Automation(object.toJSON())
-        succeeded++
-      } catch {
-        failed++
-      }
-    })
-    console.log(`[Automation]: automations validated (${succeeded} succeeded, ${failed} failed)`)
-    return
-  })
-  .catch(console.error)
