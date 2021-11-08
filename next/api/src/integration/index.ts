@@ -2,7 +2,9 @@ import fs from 'fs';
 import path from 'path';
 import Router from '@koa/router';
 
-export const router = new Router();
+import { catchLCError, catchZodError } from '@/middleware';
+
+export const router = new Router().use(catchLCError, catchZodError);
 
 export interface Integration {
   router?: Router;

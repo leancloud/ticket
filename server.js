@@ -40,6 +40,7 @@ if (process.env.MAINTENANCE_MODE) {
   app.use('/api/2', nextApiProxy)
   // 目前只有 mailgun 用到了
   app.use('/webhooks', nextApiProxy)
+  app.use('/integrations', nextApiProxy)
 
   // next pages
   app.use('/next', express.static(path.join(__dirname, 'next/web/dist')))
