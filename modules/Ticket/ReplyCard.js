@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Badge, Card, Dropdown } from 'react-bootstrap'
 import * as Icon from 'react-bootstrap-icons'
@@ -132,6 +132,34 @@ const MenuIcon = React.forwardRef(({ onClick }, ref) => (
   <Icon.ThreeDots className={`${css.replyMenuIcon} d-block`} ref={ref} onClick={onClick} />
 ))
 
+function useShowCover() {
+  const containerRef = useRef(null)
+  const [show, setShow] = useState(false)
+
+  useLayoutEffect(() => {
+    /**
+     * @type {HTMLDivElement}
+     */
+    const container = containerRef.current
+    if (!container) {
+      return
+    }
+    if (container.scrollHeight > container.clientHeight) {
+      setShow(true)
+      const onScroll = () => {
+        container.removeEventListener('scroll', onScroll)
+        setShow(false)
+      }
+      container.addEventListener('scroll', onScroll)
+      return () => {
+        container.removeEventListener('scroll', onScroll)
+      }
+    }
+  }, [])
+
+  return [containerRef, show]
+}
+
 export function ReplyCard({ data, onDeleted, ticketId }) {
   const { t } = useTranslation()
   const { isCustomerService, currentUser, addNotification } = useContext(AppContext)
@@ -155,6 +183,9 @@ export function ReplyCard({ data, onDeleted, ticketId }) {
     onSuccess: () => onDeleted(data.id),
     onError: (error) => addNotification(error),
   })
+
+  const [$cardBody, showCover] = useShowCover()
+
   return (
     <Card
       id={data.id}
@@ -205,7 +236,7 @@ export function ReplyCard({ data, onDeleted, ticketId }) {
           )}
         </div>
       </Card.Header>
-      <Card.Body className={css.content}>
+      <Card.Body ref={$cardBody} className={css.content}>
         <BaiduTranslate enabled={translationEnabled}>
           <div
             className="markdown-body"
@@ -221,7 +252,7 @@ export function ReplyCard({ data, onDeleted, ticketId }) {
             ))}
           </div>
         )}
-        {/* {isCustomerService && getFlag('Translation') && <TranslateContent text={data.content} />} */}
+        {showCover && <div className={css.cover} />}
       </Card.Body>
       {otherFiles.length > 0 && (
         <Card.Footer>
