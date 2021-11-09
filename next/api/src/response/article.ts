@@ -1,5 +1,5 @@
-import xss from '../utils/xss';
-import { Article } from '../model/Article';
+import xss from '@/utils/xss';
+import { Article } from '@/model/Article';
 
 export class ArticleResponse {
   constructor(readonly article: Article) {}

@@ -1,7 +1,7 @@
 import Router from '@koa/router';
 
-import { Article, getArticle } from '../model/Article';
-import { ArticleResponse } from '../response/article';
+import { Article, getArticle } from '@/model/Article';
+import { ArticleResponse } from '@/response/article';
 import _ from 'lodash';
 
 const router = new Router();
