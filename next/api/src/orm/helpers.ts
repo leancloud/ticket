@@ -10,45 +10,22 @@ import {
   PointTo,
 } from './relation';
 
-export type DefineFieldOptions = Partial<Field> & Pick<Field, 'localKey'>;
-
-function defineField(model: typeof Model, options: DefineFieldOptions) {
-  const { localKey, avObjectKey = localKey, encode = _.identity, decode = _.identity } = options;
-
-  model.setField({ localKey, avObjectKey, encode, decode });
-}
-
 export function field(config?: string | Partial<Omit<Field, 'localKey'>>) {
   return (target: Model, localKey: string) => {
     const model = target.constructor as typeof Model;
     if (typeof config === 'string') {
-      defineField(model, { localKey, avObjectKey: config });
+      model.setField(localKey, { avObjectKey: config });
     } else {
-      defineField(model, { ...config, localKey });
+      model.setField(localKey, config);
     }
-  };
-}
-
-export type DefineSerializedFieldOptions = Partial<SerializedField> & Pick<SerializedField, 'key'>;
-
-function defineSerializedField(model: typeof Model, options: DefineSerializedFieldOptions) {
-  const { key, encode = _.identity, decode = _.identity } = options;
-
-  model.setSerializedField(key, { key, encode, decode });
-}
-
-export function serialize(config?: Omit<DefineSerializedFieldOptions, 'key'>) {
-  return (target: Model, key: string) => {
-    const model = target.constructor as typeof Model;
-    defineSerializedField(model, { ...config, key });
   };
 }
 
 export function pointerId(getPointedModel: ModelGetter, avObjectKey?: string) {
   return (target: Model, localKey: string) => {
     avObjectKey ??= localKey.endsWith('Id') ? localKey.slice(0, -2) : localKey;
-    defineField(target.constructor as typeof Model, {
-      localKey,
+    const model = target.constructor as typeof Model;
+    model.setField(localKey, {
       avObjectKey,
       encode: (id: string) => {
         const className = getPointedModel().getClassName();
@@ -62,8 +39,8 @@ export function pointerId(getPointedModel: ModelGetter, avObjectKey?: string) {
 export function pointerIds(getPointerModel: ModelGetter, avObjectKey?: string) {
   return (target: Model, localKey: string) => {
     avObjectKey ??= localKey.endsWith('Ids') ? localKey.slice(0, -3) + 's' : localKey;
-    defineField(target.constructor as typeof Model, {
-      localKey,
+    const model = target.constructor as typeof Model;
+    model.setField(localKey, {
       avObjectKey,
       encode: (ids: string[]) => {
         const className = getPointerModel().getClassName();
@@ -199,9 +176,20 @@ export function hasManyThroughRelation(getRelatedModel: ModelGetter, relatedKey?
   };
 }
 
-export const SERIALIZE = {
-  DATE: {
-    encode: (data: Date) => data?.toISOString(),
-    decode: (data?: string) => (data ? new Date(data) : undefined),
+function serializeDecoratorFactory(config?: Partial<Omit<SerializedField, 'key'>>) {
+  return (target: Model, key: string) => {
+    const model = target.constructor as typeof Model;
+    model.setSerializedField(key, config);
+  };
+}
+
+const SERIALIZE = {
+  Date: () => {
+    return serializeDecoratorFactory({
+      encode: (data: Date) => data?.toISOString(),
+      decode: (data?: string) => (data ? new Date(data) : undefined),
+    });
   },
 };
+
+export const serialize = Object.assign(serializeDecoratorFactory, SERIALIZE);

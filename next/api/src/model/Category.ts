@@ -3,7 +3,7 @@ import _ from 'lodash';
 import QuickLRU from 'quick-lru';
 
 import { redis } from '@/cache';
-import { Model, field, pointerIds, pointerId, pointTo, serialize, SERIALIZE } from '@/orm';
+import { Model, field, pointerIds, pointerId, pointTo, serialize } from '@/orm';
 import { Article } from './Article';
 import { Group } from './Group';
 import { TicketForm } from './TicketForm';
@@ -56,7 +56,7 @@ export class Category extends Model {
   form?: TicketForm;
 
   @field()
-  @serialize(SERIALIZE.DATE)
+  @serialize.Date()
   deletedAt?: Date;
 
   getTinyInfo(): TinyCategoryInfo {
