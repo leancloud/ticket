@@ -30,7 +30,7 @@
     "@leancloud/use-resource": "^1.1.0",
     "@slack/web-api": "^6.0.0",
     "@uiw/react-md-editor": "^3.3.6",
-    "axios": "^0.21.1",
+    "axios": "^0.21.2",
     "babel-loader": "^8.2.2",
     "bluebird": "^3.4.7",
     "blueimp-md5": "^2.18.0",
