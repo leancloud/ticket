@@ -105,3 +105,9 @@ OpsLog 没有索引，在自用的 LeanTicket 上 40000+ 的数据量已经出�
 ### `e0170388f9ad807a790368ed4be13e9529b4f5cc`
 
 导入 TimeTrigger.json，重新配置逻辑相同的定时触发器，删除 Automation class。
+
+## 2021-11-09
+
+### `95ed45e1a08976f8821f1a11fbffebb14d31a33e`
+
+Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Config 里 Jira 相关的配置移到 Config class 里。新的配置格式是一个大的 Object（有别于 HS_Config 命名空间风格的配置），具体可参考开发环境。
