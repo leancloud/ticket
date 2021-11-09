@@ -1,5 +1,7 @@
 import { Config } from '@/model/Config';
 
+export { Config };
+
 export const config = {
   allowModifyEvaluation: boolean(process.env.ALLOW_MUTATE_EVALUATION),
   enableLeanCloudIntegration: boolean(process.env.ENABLE_LEANCLOUD_INTEGRATION),
