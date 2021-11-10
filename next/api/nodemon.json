@@ -1,8 +1,5 @@
 {
-  "watch": [
-    "dist"
-  ],
-  "ext": "js",
-  "exec": "node server.js",
-  "delay": "200"
+  "watch": ["src"],
+  "ext": "ts",
+  "exec": "npm run compile:dev && node server.js"
 }
