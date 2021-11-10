@@ -60,7 +60,7 @@ export class User extends Model {
   protected static className = '_User';
 
   protected static avObjectFactory = (className: string, id?: string) => {
-    return id ? AV.User.createWithoutData(className, id) : new AV.User(id);
+    return id ? AV.User.createWithoutData(className, id) : new AV.User();
   };
 
   // XXX: authData 在 class schema 里设置成了客户端不可见，需要使用 masterKey 获取
@@ -94,6 +94,9 @@ export class User extends Model {
     return this.find(id, { useMasterKey: true });
   }
 
+  /**
+   * @deprecated
+   */
   static async findBySessionToken(sessionToken: string): Promise<User> {
     const avUser = await userCache.get(sessionToken);
     return this.fromAVObject(avUser);
@@ -208,6 +211,15 @@ export class User extends Model {
 
   getDisplayName(): string {
     return this.name ?? this.username;
+  }
+
+  async loadSessionToken(): Promise<string> {
+    if (!this.sessionToken) {
+      const avUser = AV.User.createWithoutData('_User', this.id) as AV.User;
+      await avUser.fetch({ keys: ['sessionToken'] }, { useMasterKey: true });
+      this.sessionToken = avUser.getSessionToken();
+    }
+    return this.sessionToken;
   }
 }
 
