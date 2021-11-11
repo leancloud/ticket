@@ -378,7 +378,7 @@ router.get('/:id/replies', async (ctx) => {
 });
 
 const replyDataSchema = yup.object({
-  content: yup.string().trim().required(),
+  content: yup.string().trim().defined(),
   fileIds: yup.array(yup.string().required()),
   internal: yup.bool(),
 });
@@ -392,6 +392,9 @@ router.post('/:id/replies', async (ctx) => {
 
   if (data.internal && !isCustomerService) {
     ctx.throw(403);
+  }
+  if (!data.content && (!data.fileIds || data.fileIds.length === 0)) {
+    ctx.throw(400, 'content and fileIds cannot be empty at the same time');
   }
 
   const reply = await ticket.reply({
