@@ -137,14 +137,23 @@ export abstract class Model {
     return this.className ?? this.name;
   }
 
-  static setField(field: Field) {
+  static setField(localKey: string, options?: Partial<Omit<Field, 'localKey'>>) {
     this.fields ??= {};
-    this.fields[field.localKey] = field;
+    this.fields[localKey] = {
+      localKey,
+      avObjectKey: options?.avObjectKey ?? localKey,
+      encode: options?.encode ?? _.identity,
+      decode: options?.decode ?? _.identity,
+    };
   }
 
-  static setSerializedField(name: string, field: SerializedField) {
+  static setSerializedField(key: string, options?: Partial<Omit<SerializedField, 'key'>>) {
     this.serializedFields ??= {};
-    this.serializedFields[name] = field;
+    this.serializedFields[key] = {
+      key,
+      encode: options?.encode ?? _.identity,
+      decode: options?.decode ?? _.identity,
+    };
   }
 
   static setRelation(relation: Relation) {

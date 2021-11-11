@@ -1,9 +1,10 @@
 import mem from 'mem';
 import QuickLRU from 'quick-lru';
-import { field, Model, serialize } from '../orm';
+
+import { field, Model, serialize } from '@/orm';
 
 export class Article extends Model {
-  static className = 'FAQ';
+  protected static className = 'FAQ';
 
   @field('question')
   @serialize()
