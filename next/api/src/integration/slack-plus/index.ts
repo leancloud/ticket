@@ -14,6 +14,11 @@ import { message } from './message';
 
 const EMPTY_ASSIGNEE_NAME = '<无>';
 
+interface NotifyUpdateTicketOptions {
+  assigneeUpdated?: boolean;
+  jiraIssueCreated?: boolean;
+}
+
 class SlackIntegration {
   private client: WebClient;
   private userIdByEmail = new QuickLRU<string, string>({ maxSize: 500 });
@@ -89,7 +94,7 @@ class SlackIntegration {
     await this.createNotificationObject(ts!, ticket, assigneeName);
   }
 
-  async notifyUpdateAssignee(ticket: Ticket, assigneeUpdated = false) {
+  async notifyUpdateTicket(ticket: Ticket, options?: NotifyUpdateTicketOptions) {
     const notification = await this.getNotificationObject(ticket.id);
     if (!notification) {
       return;
@@ -97,7 +102,7 @@ class SlackIntegration {
 
     let assigneeName = notification.assignee.displayName;
 
-    if (assigneeUpdated) {
+    if (options?.assigneeUpdated) {
       assigneeName = ticket.assigneeId
         ? await this.getAssigneeDisplayName(ticket.assigneeId)
         : EMPTY_ASSIGNEE_NAME;
@@ -116,7 +121,7 @@ class SlackIntegration {
     await this.client.chat.update({
       channel: notification.channel,
       ts: notification.ts,
-      ...message(ticket, assigneeName),
+      ...message(ticket, assigneeName, options?.jiraIssueCreated),
     });
   }
 
@@ -212,25 +217,30 @@ export default async function (install: Function) {
 
   const slack = new SlackIntegration(config.token, config.channel);
 
+  const catchFunc = (error: Error) => {
+    // TODO: Sentry
+    console.error('[SlackPlus] Failed to notify,', error);
+  };
+
   notification.register({
     newTicket: ({ ticket }) => {
-      slack.notifyNewTicket(ticket).catch((error) => {
-        // TODO: Sentry
-        console.error('[SlackPlus] Failed to notify,', error);
-      });
+      slack.notifyNewTicket(ticket).catch(catchFunc);
     },
     changeAssignee: ({ ticket }) => {
-      slack.notifyUpdateAssignee(ticket, true).catch((error) => {
-        // TODO: Sentry
-        console.error('[SlackPlus] Failed to notify,', error);
-      });
+      slack.notifyUpdateTicket(ticket, { assigneeUpdated: true }).catch(catchFunc);
     },
-    changeStatus: ({ ticket }) => {
-      slack.notifyUpdateAssignee(ticket).catch((error) => {
-        // TODO: Sentry
-        console.error('[SlackPlus] Failed to notify,', error);
-      });
+    changeStatus: ({ ticket, originalStatus, status }) => {
+      if (originalStatus !== status) {
+        slack.notifyUpdateTicket(ticket).catch(catchFunc);
+      }
     },
+    replyTicket: ({ ticket }) => {
+      slack.notifyUpdateTicket(ticket).catch(catchFunc);
+    },
+  });
+
+  events.on('jira/issue:created', ({ ticket }) => {
+    slack.notifyUpdateTicket(ticket, { jiraIssueCreated: true }).catch(catchFunc);
   });
 
   const router = new Router({ prefix: '/integrations/slack-plus' });

@@ -177,7 +177,7 @@ export default async function (install: Function) {
   const issueFiltersSchema = z.object({
     ticketId: z.string().optional(),
   });
-  router.get('/integrations/jira/issues', async (ctx) => {
+  router.get('/issues', async (ctx) => {
     const filters = issueFiltersSchema.parse(ctx.query);
     const query = JiraIssue.queryBuilder();
 
