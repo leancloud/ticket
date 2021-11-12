@@ -2,34 +2,39 @@ import { WebClient } from '@slack/web-api';
 
 import notification, {
   ChangeAssigneeContext,
+  ChangeStatusContext,
   DelayNotifyContext,
   NewTicketContext,
   ReplyTicketContext,
   TicketEvaluationContext,
 } from '@/notification';
 import type { Reply } from '@/model/Reply';
-import type { Ticket } from '@/model/Ticket';
+import { Ticket } from '@/model/Ticket';
 import type { User } from '@/model/User';
 
 class Message {
-  constructor(readonly summary: string, readonly content: string) {}
+  readonly content: string;
+
+  constructor(readonly summary: string, content: string) {
+    if (content.length > 1000) {
+      content = content.slice(0, 1000) + '...';
+    }
+    this.content = content;
+  }
 
   toJSON() {
+    const blocks = [
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: this.content,
+        },
+      },
+    ];
     return {
       text: this.summary,
-      attachments: [
-        {
-          blocks: [
-            {
-              type: 'section',
-              text: {
-                type: 'mrkdwn',
-                text: this.content,
-              },
-            },
-          ],
-        },
-      ],
+      attachments: [{ blocks }],
     };
   }
 }
@@ -71,6 +76,24 @@ class ReplyTicketMessage extends Message {
   }
 }
 
+class CloseTicketMessage extends Message {
+  constructor(ticket: Ticket, operator: User) {
+    super(
+      `:red_circle: ${operator.getDisplayName()} 关闭了工单 ${getTicketLink(ticket)}`,
+      ticket.title
+    );
+  }
+}
+
+class ResolveTicketMessage extends Message {
+  constructor(ticket: Ticket, operator: User) {
+    super(
+      `:white_check_mark: ${operator.getDisplayName()} 认为工单 ${getTicketLink(ticket)} 已解决`,
+      ticket.title
+    );
+  }
+}
+
 class EvaluateTicketMessage extends Message {
   constructor(ticket: Ticket, operator: User) {
     const { star, content } = ticket.evaluation!;
@@ -103,6 +126,7 @@ class SlackIntegration {
     notification.on('newTicket', this.sendNewTicket);
     notification.on('changeAssignee', this.sendChangeAssignee);
     notification.on('replyTicket', this.sendReplyTicket);
+    notification.on('changeStatus', this.sendChangeStatus);
     notification.on('ticketEvaluation', this.sendEvaluation);
     notification.on('delayNotify', this.sendDelayNotify);
   }
@@ -185,6 +209,24 @@ class SlackIntegration {
       this.sendToUser(to.email, message);
     }
     this.broadcast(message);
+  };
+
+  sendChangeStatus = ({ ticket, from, to, status }: ChangeStatusContext) => {
+    if (!to || !to.email) {
+      return;
+    }
+
+    if (status === Ticket.Status.CLOSED) {
+      const message = new CloseTicketMessage(ticket, from);
+      this.sendToUser(to.email, message);
+      return;
+    }
+
+    if (status === Ticket.Status.FULFILLED) {
+      const message = new ResolveTicketMessage(ticket, from);
+      this.sendToUser(to.email, message);
+      return;
+    }
   };
 
   sendEvaluation = ({ ticket, from, to }: TicketEvaluationContext) => {
