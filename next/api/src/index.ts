@@ -36,7 +36,12 @@ app.use(async (ctx, next) => {
       });
       Sentry.captureException(error);
     });
+
     const status = error.status || 500;
+    if (status >= 500) {
+      console.error(error);
+    }
+
     ctx.status = status;
     ctx.body = { message: error.message };
   }
@@ -51,14 +56,14 @@ app.use(
   cors({
     origin: allowedOrigins
       ? (ctx) => {
-        if (
-          ctx.request.header.origin &&
-          allowedOrigins.indexOf(ctx.request.header.origin) !== -1
-        ) {
-          return ctx.request.header.origin;
+          if (
+            ctx.request.header.origin &&
+            allowedOrigins.indexOf(ctx.request.header.origin) !== -1
+          ) {
+            return ctx.request.header.origin;
+          }
+          return '';
         }
-        return '';
-      }
       : undefined,
     keepHeadersOnError: true,
   })

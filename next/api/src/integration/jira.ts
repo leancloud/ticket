@@ -172,12 +172,12 @@ export default async function (install: Function) {
   }
 
   const jira = new JiraIntegration(jiraConfig);
-  const router = new Router().use(auth, customerServiceOnly);
+  const router = new Router({ prefix: '/integrations/jira' }).use(auth, customerServiceOnly);
 
   const issueFiltersSchema = z.object({
     ticketId: z.string().optional(),
   });
-  router.get('/integrations/jira/issues', async (ctx) => {
+  router.get('/issues', async (ctx) => {
     const filters = issueFiltersSchema.parse(ctx.query);
     const query = JiraIssue.queryBuilder();
 
@@ -196,7 +196,7 @@ export default async function (install: Function) {
   const createIssueSchema = z.object({
     ticketId: z.string(),
   });
-  router.post('/integrations/jira/issues', async (ctx) => {
+  router.post('/issues', async (ctx) => {
     const { ticketId } = createIssueSchema.parse(ctx.request.body);
 
     const _issue = await JiraIssue.queryBuilder()

@@ -161,9 +161,9 @@ export default function (install: Function) {
 
   const mailgunClient = new MailgunClient(key, domain);
 
-  const router = new Router();
+  const router = new Router({ prefix: '/webhooks/mailgun' });
 
-  router.post('/webhooks/mailgun/catchall', mailgunClient.verifyWebhook, async (ctx) => {
+  router.post('/catchall', mailgunClient.verifyWebhook, async (ctx) => {
     const { Subject, To } = ctx.request.body;
     const ticketNid = getTicketNid(Subject);
     const userId = getUserId(To);

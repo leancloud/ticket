@@ -1,0 +1,78 @@
+{
+  "schema": {
+    "updatedAt": {
+      "type": "Date"
+    },
+    "ACL": {
+      "type": "ACL"
+    },
+    "objectId": {
+      "type": "String"
+    },
+    "createdAt": {
+      "type": "Date"
+    },
+    "channel": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false
+    },
+    "ts": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false
+    },
+    "ticket": {
+      "type": "Object",
+      "v": 2,
+      "required": false,
+      "hidden": false
+    },
+    "assignee": {
+      "type": "Object",
+      "v": 2,
+      "required": false,
+      "hidden": false
+    }
+  },
+  "permissions": {
+    "create": {
+      "roles": [],
+      "users": []
+    },
+    "find": {
+      "roles": [],
+      "users": []
+    },
+    "get": {
+      "roles": [],
+      "users": []
+    },
+    "update": {
+      "roles": [],
+      "users": []
+    },
+    "delete": {
+      "roles": [],
+      "users": []
+    },
+    "add_fields": {
+      "roles": [],
+      "users": []
+    }
+  },
+  "indexes": [
+    {
+      "v": 2,
+      "unique": true,
+      "key": {
+        "ticket.objectId": 1
+      },
+      "name": "-user-ticket.objectId_1",
+      "ns": "02AXSPNhJaEqgBfHftLpIsj2-gzGzoHsz.SlackNotification",
+      "background": true
+    }
+  ]
+}

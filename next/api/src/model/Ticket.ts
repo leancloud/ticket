@@ -14,7 +14,7 @@ import {
   hasOne,
   serialize,
 } from '@/orm';
-import { TicketUpdater } from '@/ticket/TicketUpdater';
+import { TicketUpdater, UpdateOptions } from '@/ticket/TicketUpdater';
 import htmlify from '@/utils/htmlify';
 import { Category, CategoryManager } from './Category';
 import { File } from './File';
@@ -279,10 +279,10 @@ export class Ticket extends Model {
     }
   }
 
-  operate(action: OperateAction, operator: User): Promise<Ticket> {
+  operate(action: OperateAction, operator: User, options?: UpdateOptions): Promise<Ticket> {
     const updater = new TicketUpdater(this);
     updater.operate(action);
-    return updater.update(operator);
+    return updater.update(operator, options);
   }
 
   isClosed(): boolean {

@@ -2,7 +2,7 @@ import AV from 'leanengine';
 import _ from 'lodash';
 
 import events from '@/events';
-import { commands, UpdateData } from '@/orm';
+import { ModifyOptions, UpdateData, commands } from '@/orm';
 import { Category } from '@/model/Category';
 import { Group } from '@/model/Group';
 import { OperateAction, OpsLogCreator } from '@/model/OpsLog';
@@ -13,6 +13,7 @@ import { systemUser, TinyUserInfo, User } from '@/model/User';
 import { TinyReplyInfo } from '@/model/Reply';
 
 export interface UpdateOptions {
+  useMasterKey?: boolean;
   ignoreTrigger?: boolean;
 }
 
@@ -190,6 +191,19 @@ export class TicketUpdater {
     await this.opsLogCreator.create();
   }
 
+  private getModifyOptions(operator: User, useMasterKey = false): ModifyOptions {
+    const modifyOptions: ModifyOptions = {
+      ignoreBeforeHook: true,
+      ignoreAfterHook: true,
+    };
+    if (useMasterKey) {
+      modifyOptions.useMasterKey = true;
+    } else {
+      Object.assign(modifyOptions, operator.getAuthOptions());
+    }
+    return modifyOptions;
+  }
+
   async update(operator: User, options?: UpdateOptions): Promise<Ticket> {
     if (!this.isUpdated()) {
       return this.ticket;
@@ -208,11 +222,10 @@ export class TicketUpdater {
       this.data.joinedCustomerServices = commands.pushUniq(...this.joinedCustomerServices);
     }
 
-    const ticket = await this.ticket.update(this.data, {
-      ...operator.getAuthOptions(),
-      ignoreBeforeHook: true,
-      ignoreAfterHook: true,
-    });
+    const ticket = await this.ticket.update(
+      this.data,
+      this.getModifyOptions(operator, options?.useMasterKey)
+    );
     this.assignRelatedInstance(ticket);
 
     this.saveOpsLogs(operator).catch((error) => {
