@@ -7,7 +7,7 @@ import { Category } from '@/model/Category';
 import { Group } from '@/model/Group';
 import { OperateAction, OpsLogCreator } from '@/model/OpsLog';
 import { Organization } from '@/model/Organization';
-import { Evaluation, STATUS, Tag, Ticket } from '@/model/Ticket';
+import { Evaluation, Status, Tag, Ticket } from '@/model/Ticket';
 import { systemUser, TinyUserInfo, User } from '@/model/User';
 
 import { TinyReplyInfo } from '@/model/Reply';
@@ -125,19 +125,19 @@ export class TicketUpdater {
     const isCustomerService = await this.ticket.isCustomerService(operator);
     switch (action) {
       case 'replyWithNoContent':
-        this.data.status = STATUS.WAITING_CUSTOMER;
+        this.data.status = Status.WAITING_CUSTOMER;
         break;
       case 'replySoon':
-        this.data.status = STATUS.WAITING_CUSTOMER_SERVICE;
+        this.data.status = Status.WAITING_CUSTOMER_SERVICE;
         break;
       case 'resolve':
-        this.data.status = isCustomerService ? STATUS.PRE_FULFILLED : STATUS.FULFILLED;
+        this.data.status = isCustomerService ? Status.PRE_FULFILLED : Status.FULFILLED;
         break;
       case 'close':
-        this.data.status = STATUS.CLOSED;
+        this.data.status = Status.CLOSED;
         break;
       case 'reopen':
-        this.data.status = STATUS.WAITING_CUSTOMER;
+        this.data.status = Status.WAITING_CUSTOMER;
         break;
     }
 

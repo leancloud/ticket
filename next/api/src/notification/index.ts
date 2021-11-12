@@ -38,32 +38,38 @@ export interface EventHandler {
 }
 
 export interface NewTicketJobData {
+  type: 'newTicket';
   ticketId: string;
   // ticket.assigneeId 可能会被修改，这里要记录 ticket 创建时的 assigneeId
   assigneeId?: string;
 }
 
 export interface ReplyTicketJobData {
+  type: 'replyTicket';
   replyId: string;
 }
 
 export interface ChangeAssigneeJobData {
+  type: 'changeAssignee';
   ticketId: string;
   operatorId: string;
   assigneeId: string | null;
 }
 
 export interface DelayNotifyJobData {
+  type: 'delayNotify';
   ticketId: string;
 }
 
 export interface TicketEvaluationJobData {
+  type: 'ticketEvaluation';
   ticketId: string;
   operatorId: string;
   evaluation: Evaluation;
 }
 
 export interface ChangeStatusJobData {
+  type: 'changeStatus';
   ticketId: string;
   operatorId: string;
   originalStatus: number;
@@ -71,40 +77,40 @@ export interface ChangeStatusJobData {
 }
 
 type JobData =
-  | { type: 'newTicket'; data: NewTicketJobData }
-  | { type: 'replyTicket'; data: ReplyTicketJobData }
-  | { type: 'changeAssignee'; data: ChangeAssigneeJobData }
-  | { type: 'delayNotify'; data: DelayNotifyJobData }
-  | { type: 'ticketEvaluation'; data: TicketEvaluationJobData }
-  | { type: 'changeStatus'; data: ChangeStatusJobData };
+  | NewTicketJobData
+  | ReplyTicketJobData
+  | ChangeAssigneeJobData
+  | DelayNotifyJobData
+  | TicketEvaluationJobData
+  | ChangeStatusJobData;
 
 class Notification extends EventEmitter<EventHandler> {
   register(channel: Partial<EventHandler>) {
     Object.entries(channel).forEach(([e, h]) => this.on(e as any, h));
   }
 
-  notifyNewTicket(data: NewTicketJobData) {
-    queue.add({ type: 'newTicket', data });
+  notifyNewTicket(data: Omit<NewTicketJobData, 'type'>) {
+    queue.add({ type: 'newTicket', ...data });
   }
 
-  notifyReplyTicket(data: ReplyTicketJobData) {
-    queue.add({ type: 'replyTicket', data });
+  notifyReplyTicket(data: Omit<ReplyTicketJobData, 'type'>) {
+    queue.add({ type: 'replyTicket', ...data });
   }
 
-  notifyChangeAssignee(data: ChangeAssigneeJobData) {
-    queue.add({ type: 'changeAssignee', data });
+  notifyChangeAssignee(data: Omit<ChangeAssigneeJobData, 'type'>) {
+    queue.add({ type: 'changeAssignee', ...data });
   }
 
-  notifyDelayNotify(data: DelayNotifyJobData) {
-    queue.add({ type: 'delayNotify', data });
+  notifyDelayNotify(data: Omit<DelayNotifyJobData, 'type'>) {
+    queue.add({ type: 'delayNotify', ...data });
   }
 
-  notifyTicketEvaluation(data: TicketEvaluationJobData) {
-    queue.add({ type: 'ticketEvaluation', data });
+  notifyTicketEvaluation(data: Omit<TicketEvaluationJobData, 'type'>) {
+    queue.add({ type: 'ticketEvaluation', ...data });
   }
 
-  notifyChangeStatus(data: ChangeStatusJobData) {
-    queue.add({ type: 'changeStatus', data });
+  notifyChangeStatus(data: Omit<ChangeStatusJobData, 'type'>) {
+    queue.add({ type: 'changeStatus', ...data });
   }
 
   async processNewTicket({ ticketId, assigneeId }: NewTicketJobData) {
@@ -283,17 +289,17 @@ const queue = createQueue<JobData>('notification', {
 queue.process((job) => {
   switch (job.data.type) {
     case 'newTicket':
-      return notification.processNewTicket(job.data.data);
+      return notification.processNewTicket(job.data);
     case 'replyTicket':
-      return notification.processReplyTicket(job.data.data);
+      return notification.processReplyTicket(job.data);
     case 'changeAssignee':
-      return notification.processChangeAssignee(job.data.data);
+      return notification.processChangeAssignee(job.data);
     case 'delayNotify':
-      return notification.processDelayNotify(job.data.data);
+      return notification.processDelayNotify(job.data);
     case 'ticketEvaluation':
-      return notification.processTicketEvaluation(job.data.data);
+      return notification.processTicketEvaluation(job.data);
     case 'changeStatus':
-      return notification.processChangeStatus(job.data.data);
+      return notification.processChangeStatus(job.data);
   }
 });
 

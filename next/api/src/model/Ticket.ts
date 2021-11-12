@@ -26,16 +26,32 @@ import { Reply, TinyReplyInfo } from './Reply';
 import { TinyUserInfo, User, systemUser } from './User';
 import { Watch } from './Watch';
 
-export enum STATUS {
+export class Status {
   // 0~99 未开始处理
-  NEW = 50, // 新工单，还没有技术支持人员回复
+  static readonly NEW = 50; // 新工单，还没有技术支持人员回复
+
   // 100~199 处理中
-  WAITING_CUSTOMER_SERVICE = 120,
-  WAITING_CUSTOMER = 160,
+  static readonly WAITING_CUSTOMER_SERVICE = 120;
+  static readonly WAITING_CUSTOMER = 160;
+
   // 200~299 处理完成
-  PRE_FULFILLED = 220, // 技术支持人员点击“解决”时会设置该状态，用户确认后状态变更为 FULFILLED
-  FULFILLED = 250, // 已解决
-  CLOSED = 280, // 已关闭
+  static readonly PRE_FULFILLED = 220; // 技术支持人员点击“解决”时会设置该状态，用户确认后状态变更为 FULFILLED
+  static readonly FULFILLED = 250; // 已解决
+  static readonly CLOSED = 280; // 已关闭
+
+  private static openStatuses = [
+    Status.NEW,
+    Status.WAITING_CUSTOMER,
+    Status.WAITING_CUSTOMER_SERVICE,
+  ];
+
+  static isOpen(status: number): boolean {
+    return Status.openStatuses.includes(status);
+  }
+
+  static isClosed(status: number): boolean {
+    return !Status.isOpen(status);
+  }
 }
 
 export interface Evaluation {
@@ -61,7 +77,7 @@ export interface CreateReplyData {
 }
 
 export class Ticket extends Model {
-  static readonly STATUS = STATUS;
+  static readonly Status = Status;
 
   @field()
   @serialize()
@@ -231,9 +247,9 @@ export class Ticket extends Model {
         // XXX: 适配加速器的使用场景
         updater.increaseUnreadCount();
       }
-      if (this.status < STATUS.FULFILLED) {
+      if (this.status < Status.FULFILLED) {
         updater.setStatus(
-          isCustomerService ? STATUS.WAITING_CUSTOMER : STATUS.WAITING_CUSTOMER_SERVICE
+          isCustomerService ? Status.WAITING_CUSTOMER : Status.WAITING_CUSTOMER_SERVICE
         );
       }
 
@@ -286,10 +302,6 @@ export class Ticket extends Model {
   }
 
   isClosed(): boolean {
-    return (
-      this.status === STATUS.PRE_FULFILLED ||
-      this.status === STATUS.FULFILLED ||
-      this.status === STATUS.CLOSED
-    );
+    return Status.isClosed(this.status);
   }
 }

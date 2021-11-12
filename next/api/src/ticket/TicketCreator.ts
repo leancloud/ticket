@@ -204,7 +204,7 @@ export class TicketCreator {
         metaData: this.metaData,
         assigneeId: this.assignee?.id,
         groupId: this.group?.id,
-        status: Ticket.STATUS.NEW,
+        status: Ticket.Status.NEW,
       },
       {
         ...operator.getAuthOptions(),
