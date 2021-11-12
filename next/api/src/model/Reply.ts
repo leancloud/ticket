@@ -1,6 +1,14 @@
 import _ from 'lodash';
 
-import { Model, field, pointerId, pointTo, pointerIds, hasManyThroughPointerArray } from '@/orm';
+import {
+  Model,
+  field,
+  pointerId,
+  pointTo,
+  pointerIds,
+  hasManyThroughPointerArray,
+  serialize,
+} from '@/orm';
 import { File } from './File';
 import { Ticket } from './Ticket';
 import { TinyUserInfo, User } from './User';
@@ -16,18 +24,21 @@ export interface TinyReplyInfo {
 
 export class Reply extends Model {
   @field()
+  @serialize()
   content!: string;
 
   @field('content_HTML')
   contentHTML!: string;
 
   @pointerId(() => User)
+  @serialize()
   authorId!: string;
 
   @pointTo(() => User)
   author?: User;
 
   @field()
+  @serialize()
   isCustomerService!: boolean;
 
   @pointerIds(() => File)
@@ -37,9 +48,11 @@ export class Reply extends Model {
   files?: File[];
 
   @field()
+  @serialize()
   internal?: boolean;
 
   @pointerId(() => Ticket)
+  @serialize()
   ticketId!: string;
 
   @pointTo(() => Ticket)

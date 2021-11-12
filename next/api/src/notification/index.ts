@@ -17,6 +17,8 @@ export interface ReplyTicketContext extends NewTicketContext {
   reply: Reply;
 }
 
+export interface InternalReplyContext extends ReplyTicketContext {}
+
 export interface ChangeAssigneeContext extends NewTicketContext {}
 
 export interface DelayNotifyContext extends NewTicketContext {}
@@ -31,6 +33,7 @@ export interface ChangeStatusContext extends NewTicketContext {
 export interface EventHandler {
   newTicket: (ctx: NewTicketContext) => void;
   replyTicket: (ctx: ReplyTicketContext) => void;
+  internalReply: (ctx: InternalReplyContext) => void;
   changeAssignee: (ctx: ChangeAssigneeContext) => void;
   delayNotify: (ctx: DelayNotifyContext) => void;
   ticketEvaluation: (ctx: TicketEvaluationContext) => void;
@@ -46,6 +49,11 @@ export interface NewTicketJobData {
 
 export interface ReplyTicketJobData {
   type: 'replyTicket';
+  replyId: string;
+}
+
+export interface InternalReplyJobData {
+  type: 'internalReply';
   replyId: string;
 }
 
@@ -79,6 +87,7 @@ export interface ChangeStatusJobData {
 type JobData =
   | NewTicketJobData
   | ReplyTicketJobData
+  | InternalReplyJobData
   | ChangeAssigneeJobData
   | DelayNotifyJobData
   | TicketEvaluationJobData
@@ -95,6 +104,10 @@ class Notification extends EventEmitter<EventHandler> {
 
   notifyReplyTicket(data: Omit<ReplyTicketJobData, 'type'>) {
     queue.add({ type: 'replyTicket', ...data });
+  }
+
+  notifyInternalReply(data: Omit<InternalReplyJobData, 'type'>) {
+    queue.add({ type: 'internalReply', ...data });
   }
 
   notifyChangeAssignee(data: Omit<ChangeAssigneeJobData, 'type'>) {
@@ -146,6 +159,24 @@ class Notification extends EventEmitter<EventHandler> {
     }
 
     this.emit('replyTicket', { ticket, reply, from: author, to });
+  }
+
+  async processInternalReply({ replyId }: InternalReplyJobData) {
+    const reply = await Reply.find(replyId, { useMasterKey: true });
+    if (!reply) return;
+
+    const author = await reply.load('author', { useMasterKey: true });
+    if (!author) return;
+
+    const ticket = await reply.load('ticket', { useMasterKey: true });
+    if (!ticket) return;
+
+    let to: User | undefined;
+    if (ticket.assigneeId) {
+      to = await ticket.load('assignee', { useMasterKey: true });
+    }
+
+    this.emit('internalReply', { ticket, reply, from: author, to });
   }
 
   async processChangeAssignee({ ticketId, operatorId, assigneeId }: ChangeAssigneeJobData) {
@@ -292,6 +323,8 @@ queue.process((job) => {
       return notification.processNewTicket(job.data);
     case 'replyTicket':
       return notification.processReplyTicket(job.data);
+    case 'internalReply':
+      return notification.processInternalReply(job.data);
     case 'changeAssignee':
       return notification.processChangeAssignee(job.data);
     case 'delayNotify':
@@ -338,5 +371,9 @@ events.on('ticket:updated', ({ originalTicket, data, currentUserId }) => {
 });
 
 events.on('reply:created', ({ reply }) => {
-  notification.notifyReplyTicket({ replyId: reply.id });
+  if (reply.internal) {
+    notification.notifyInternalReply({ replyId: reply.id });
+  } else {
+    notification.notifyReplyTicket({ replyId: reply.id });
+  }
 });

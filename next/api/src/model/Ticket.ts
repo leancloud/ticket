@@ -254,21 +254,12 @@ export class Ticket extends Model {
       }
 
       await updater.update(data.author);
-
-      events.emit('reply:created', {
-        reply: {
-          id: reply.id,
-          ticketId: this.id,
-          authorId: reply.authorId,
-          content: reply.content,
-          isCustomerService: reply.isCustomerService,
-          internal: !!reply.internal,
-          createdAt: reply.createdAt.toISOString(),
-          updatedAt: reply.updatedAt.toISOString(),
-        },
-        currentUserId: data.author.id,
-      });
     }
+
+    events.emit('reply:created', {
+      reply: reply.toJSON(),
+      currentUserId: data.author.id,
+    });
 
     return reply;
   }

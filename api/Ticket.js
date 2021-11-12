@@ -253,7 +253,6 @@ exports.replyTicket = (ticket, reply, replyAuthor) => {
       authorId: reply.get('author').id,
       content: reply.get('content'),
       isCustomerService: reply.get('isCustomerService'),
-      internal: false,
       createdAt: reply.createdAt.toISOString(),
       updatedAt: reply.updatedAt.toISOString(),
     },

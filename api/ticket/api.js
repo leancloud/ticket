@@ -462,7 +462,7 @@ router.post(
         authorId: author.id,
         content: content,
         isCustomerService: isCustomerService,
-        internal: !!internal,
+        internal: internal,
         createdAt: reply.createdAt.toISOString(),
         updatedAt: reply.updatedAt.toISOString(),
       },
