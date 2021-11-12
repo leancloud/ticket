@@ -111,3 +111,11 @@ OpsLog 没有索引，在自用的 LeanTicket 上 40000+ 的数据量已经出�
 ### `95ed45e1a08976f8821f1a11fbffebb14d31a33e`
 
 Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Config 里 Jira 相关的配置移到 Config class 里。新的配置格式是一个大的 Object（有别于 HS_Config 命名空间风格的配置），具体可参考开发环境。
+
+## 2021-11-12
+
+### `218eafd61c258e2f9f5fda1c698db2e4889a824e`
+
+交互式的 Slack 通知现已内置，可按需开启。之前未使用的应用需要导入 SlackNotification.json。
+
+已使用的应用需要将环境变量中的配置移到 Config class 中（格式可参考开发环境），并重新设置 Slack App 的 interactive endpint。
