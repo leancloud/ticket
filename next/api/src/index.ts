@@ -76,7 +76,7 @@ app.use(integrationRouter.routes());
 export async function tickDelayNotify() {
   const deadline = new Date(Date.now() - config.sla * 1000 * 60);
   const tickets = await Ticket.queryBuilder()
-    .where('status', 'in', [Ticket.STATUS.NEW, Ticket.STATUS.WAITING_CUSTOMER_SERVICE])
+    .where('status', 'in', [Ticket.Status.NEW, Ticket.Status.WAITING_CUSTOMER_SERVICE])
     .where('updatedAt', '<=', deadline)
     .where('assignee', 'exists')
     .find({ useMasterKey: true });

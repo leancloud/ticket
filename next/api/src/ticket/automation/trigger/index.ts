@@ -179,6 +179,7 @@ async function processTicketReplied(job: TicketRepliedJob) {
   await runTriggers(ctx);
 }
 
+// XXX: 这里还是排除了 PRE_FULFILLED
 function isClosed(status: number): boolean {
-  return status !== Ticket.STATUS.FULFILLED && status !== Ticket.STATUS.CLOSED;
+  return status === Ticket.Status.FULFILLED || status === Ticket.Status.CLOSED;
 }

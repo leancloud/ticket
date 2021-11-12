@@ -30,7 +30,7 @@ export interface Reply {
   authorId: string;
   content: string;
   isCustomerService: boolean;
-  internal: boolean;
+  internal?: boolean;
   createdAt: string;
   updatedAt: string;
 }

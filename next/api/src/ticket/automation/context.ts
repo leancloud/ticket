@@ -103,7 +103,7 @@ export class Context {
   }
 
   closeTicket() {
-    this.dirtyData.status = Ticket.STATUS.CLOSED;
+    this.dirtyData.status = Ticket.Status.CLOSED;
     this.updater.operate('close');
   }
 

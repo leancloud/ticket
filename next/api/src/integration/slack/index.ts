@@ -2,96 +2,25 @@ import { WebClient } from '@slack/web-api';
 
 import notification, {
   ChangeAssigneeContext,
+  ChangeStatusContext,
   DelayNotifyContext,
+  InternalReplyContext,
   NewTicketContext,
   ReplyTicketContext,
   TicketEvaluationContext,
 } from '@/notification';
-import type { Reply } from '@/model/Reply';
-import type { Ticket } from '@/model/Ticket';
-import type { User } from '@/model/User';
-
-class Message {
-  constructor(readonly summary: string, readonly content: string) {}
-
-  toJSON() {
-    return {
-      text: this.summary,
-      attachments: [
-        {
-          blocks: [
-            {
-              type: 'section',
-              text: {
-                type: 'mrkdwn',
-                text: this.content,
-              },
-            },
-          ],
-        },
-      ],
-    };
-  }
-}
-
-function getTicketLink(ticket: Ticket): string {
-  return `<${ticket.getUrl()}|#${ticket.nid}>`;
-}
-
-class NewTicketMessage extends Message {
-  constructor(ticket: Ticket, author: User, assignee?: User) {
-    let summary = `:envelope: ${author.getDisplayName()} 提交工单 ${getTicketLink(ticket)}`;
-    if (assignee) {
-      summary += ` 给 ${assignee.getDisplayName()}`;
-    }
-    super(summary, ticket.title + '\n\n' + ticket.content);
-  }
-}
-
-class ChangeAssigneeMessage extends Message {
-  constructor(ticket: Ticket, operator: User, assignee?: User) {
-    const assigneeName = assignee ? assignee.getDisplayName() : '<未分配>';
-    const summary = `:arrows_counterclockwise: ${operator.getDisplayName()} 转移工单 ${getTicketLink(
-      ticket
-    )} 给 ${assigneeName}`;
-    let content = ticket.title;
-    if (ticket.latestReply) {
-      content += '\n\n' + ticket.latestReply.content;
-    }
-    super(summary, content);
-  }
-}
-
-class ReplyTicketMessage extends Message {
-  constructor(ticket: Ticket, reply: Reply, author: User) {
-    super(
-      `:speech_balloon: ${author.getDisplayName()} 回复工单 ${getTicketLink(ticket)}`,
-      ticket.title + '\n\n' + reply.content
-    );
-  }
-}
-
-class EvaluateTicketMessage extends Message {
-  constructor(ticket: Ticket, operator: User) {
-    const { star, content } = ticket.evaluation!;
-    const emoji = star ? ':thumbsup:' : ':thumbsdown:';
-    super(
-      `${emoji} ${operator.getDisplayName()} 评价工单 ${getTicketLink(ticket)}`,
-      ticket.title + '\n\n' + content
-    );
-  }
-}
-
-class DelayNotifyMessage extends Message {
-  constructor(ticket: Ticket, assignee?: User) {
-    const assigneeName = assignee ? assignee.getDisplayName() : '<未分配>';
-    let content = ticket.title;
-    if (ticket.latestReply) {
-      content += '\n\n' + ticket.latestReply.content;
-    }
-    super(`:alarm_clock: 提醒 ${assigneeName} 回复工单 ${getTicketLink(ticket)}`, content);
-  }
-}
+import { Ticket } from '@/model/Ticket';
+import {
+  Message,
+  NewTicketMessage,
+  ChangeAssigneeMessage,
+  ReplyTicketMessage,
+  InternalReplyMessage,
+  ResolveTicketMessage,
+  CloseTicketMessage,
+  EvaluateTicketMessage,
+  DelayNotifyMessage,
+} from './message';
 
 class SlackIntegration {
   private client: WebClient;
@@ -103,6 +32,8 @@ class SlackIntegration {
     notification.on('newTicket', this.sendNewTicket);
     notification.on('changeAssignee', this.sendChangeAssignee);
     notification.on('replyTicket', this.sendReplyTicket);
+    notification.on('internalReply', this.sendInternalReply);
+    notification.on('changeStatus', this.sendChangeStatus);
     notification.on('ticketEvaluation', this.sendEvaluation);
     notification.on('delayNotify', this.sendDelayNotify);
   }
@@ -185,6 +116,32 @@ class SlackIntegration {
       this.sendToUser(to.email, message);
     }
     this.broadcast(message);
+  };
+
+  sendInternalReply = ({ ticket, reply, from, to }: InternalReplyContext) => {
+    const message = new InternalReplyMessage(ticket, reply, from);
+    if (to && from.id !== to.id && to.email) {
+      this.sendToUser(to.email, message);
+    }
+    this.broadcast(message);
+  };
+
+  sendChangeStatus = ({ ticket, from, to, status }: ChangeStatusContext) => {
+    if (!to || !to.email) {
+      return;
+    }
+
+    if (status === Ticket.Status.CLOSED) {
+      const message = new CloseTicketMessage(ticket, from);
+      this.sendToUser(to.email, message);
+      return;
+    }
+
+    if (status === Ticket.Status.FULFILLED) {
+      const message = new ResolveTicketMessage(ticket, from);
+      this.sendToUser(to.email, message);
+      return;
+    }
   };
 
   sendEvaluation = ({ ticket, from, to }: TicketEvaluationContext) => {
