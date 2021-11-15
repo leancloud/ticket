@@ -1,6 +1,8 @@
 import AV from 'leancloud-storage';
 import _ from 'lodash';
+import throat from 'throat';
 
+import { config } from '@/config';
 import { ACLBuilder, RawACL } from './acl';
 import { AuthOptions, Query, QueryBuilder } from './query';
 import { Flat, KeysOfType } from './utils';
@@ -303,7 +305,7 @@ export abstract class Model {
         if (decode) {
           const value = object.get(avObjectKey);
           if (value === null) {
-            warnNullValue(object, avObjectKey);
+            fixNullValue(object.className, object.id!, avObjectKey);
             return;
           }
           if (value !== undefined) {
@@ -560,10 +562,20 @@ export abstract class Model {
   }
 }
 
-function warnNullValue(avObject: AV.Object, key: string) {
-  console.warn(
-    `[WARN] ${avObject.className}(${avObject.id}).${key} is null, this may caused by wrong usage. Please update this field with non-null value to fix it`
-  );
+const runFixNullValue = throat(1);
+function fixNullValue(className: string, id: string, key: string) {
+  if (!config.fixNullValue) {
+    return;
+  }
+  const task = async () => {
+    const obj = AV.Object.createWithoutData(className, id);
+    obj.unset(key);
+    obj.disableBeforeHook();
+    obj.disableAfterHook();
+    await obj.save(null, { useMasterKey: true });
+    console.log(`[INFO] [Null value fixer] Unset ${className}(${id}).${key}`);
+  };
+  runFixNullValue(task);
 }
 
 function getAuthOptions(options: ModifyOptions): AuthOptions {

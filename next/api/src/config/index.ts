@@ -9,6 +9,7 @@ export const config = {
   host: getHost(),
   sla: 120,
   sentryDSN: process.env.SENTRY_API_DSN,
+  fixNullValue: boolean(process.env.FIX_NULL_VALUE),
 };
 
 function boolean(value: any): boolean {
