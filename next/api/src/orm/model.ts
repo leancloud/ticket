@@ -302,6 +302,10 @@ export abstract class Model {
       Object.values(model.fields).forEach(({ localKey, avObjectKey, decode }) => {
         if (decode) {
           const value = object.get(avObjectKey);
+          if (value === null) {
+            warnNullValue(object, avObjectKey);
+            return;
+          }
           if (value !== undefined) {
             (this as any)[localKey] = decode(value);
           }
@@ -554,6 +558,12 @@ export abstract class Model {
 
     return data;
   }
+}
+
+function warnNullValue(avObject: AV.Object, key: string) {
+  console.warn(
+    `[WARN] ${avObject.className}(${avObject.id}).${key} is null, this may caused by wrong usage. Please update this field with non-null value to fix it`
+  );
 }
 
 function getAuthOptions(options: ModifyOptions): AuthOptions {
