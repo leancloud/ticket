@@ -5,22 +5,25 @@ import { Notification } from '@/model/Notification';
 import { User } from '@/model/User';
 import { NotificationResponse } from '@/response/notification';
 import _ from 'lodash';
+import { parseDateParam } from '@/utils';
 
-const NOTIFICATIONS_PER_PAGE = 25;
+const DEFAULT_NOTIFICATIONS_PER_PAGE = 25;
 
 const router = new Router().use(auth);
 
 router.get('/', async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
+  const limit = Number(ctx.request.query['limit'] || DEFAULT_NOTIFICATIONS_PER_PAGE)
+
   let query = Notification.query()
     .where('user', '==', currentUser.toPointer())
     .preload('ticket')
     .orderBy('latestActionAt', 'desc')
-    .limit(NOTIFICATIONS_PER_PAGE);
+    .limit(limit);
 
   const beforeParam = ctx.request.query['before'];
   if (typeof beforeParam === 'string') {
-    const before = new Date(beforeParam);
+    let before = parseDateParam(beforeParam);
     query = query.where('latestActionAt', '<', before);
   }
 

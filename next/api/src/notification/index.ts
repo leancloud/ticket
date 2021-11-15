@@ -259,6 +259,7 @@ notification.register({
           [ticket.assigneeId]: { read: true, write: true },
         },
         latestAction: 'newTicket',
+        latestActionAt: new Date(),
         ticketId: ticket.id,
         userId: ticket.assigneeId,
         unreadCount: 1,
