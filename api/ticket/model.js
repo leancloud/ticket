@@ -7,20 +7,8 @@ const { saveWithoutHooks } = require('../utils/object')
 const { getTinyGroupInfo } = require('../group/utils')
 const { systemUser, makeTinyUserInfo, getTinyUserInfo } = require('../user/utils')
 const { captureException } = require('../errorHandler')
-const { invokeWebhooks } = require('../webhook')
 const { selectAssignee, getActionStatus, selectGroup } = require('./utils')
 const { fetchCategoryMap } = require('../category/utils')
-
-const KEY_MAP = {
-  assignee_id: 'assignee',
-  category_id: 'category',
-  organization_id: 'organization',
-  tags: 'tags',
-  private_tags: 'privateTags',
-  evaluation: 'evaluation',
-  status: 'status',
-  latest_reply: 'latestReply',
-}
 
 const ATTRIBUTES = ['nid', 'title', 'category', 'author', 'content', 'status']
 
@@ -253,8 +241,6 @@ class Ticket {
       )
     }
     ticket.saveOpsLogs().catch(captureException)
-
-    invokeWebhooks('ticket.create', { ticket: obj.toJSON() })
 
     return ticket
   }
@@ -554,23 +540,6 @@ class Ticket {
     if (this.isUpdated('status') && ticketStatus.isClosed(this.status)) {
       AV.Cloud.run('statsTicket', { ticketId: this.id })
     }
-
-    invokeWebhooks('ticket.update', {
-      ticket: {
-        objectId: this.id,
-        nid: this.nid,
-        title: this.title,
-        category: this._category,
-        content: this.content,
-        author: await this.getAuthorInfo(),
-        assignee: await this.getAssigneeInfo(),
-        latestReply: this.latest_reply,
-        status: this.status,
-        createdAt: this.created_at,
-        updatedAt: this.updated_at,
-      },
-      updatedKeys: Array.from(this._updatedKeys).map((key) => KEY_MAP[key] || key),
-    })
 
     this.saveOpsLogs().catch(captureException)
 

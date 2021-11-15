@@ -17,7 +17,6 @@ AV.setProduction(process.env.NODE_ENV === 'production')
 
 const config = require('./config')
 const { clientGlobalVars } = require('./clientGlobalVar')
-const { refreshWebhooks } = require('./api/webhook')
 
 Raven.config(config.sentryDSN).install()
 
@@ -131,5 +130,3 @@ const PORT = parseInt(process.env.LEANCLOUD_APP_PORT || process.env.PORT || 8080
 app.listen(PORT, function () {
   console.log('LeanTicket server running on:' + PORT)
 })
-
-refreshWebhooks()

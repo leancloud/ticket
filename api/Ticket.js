@@ -15,7 +15,6 @@ const {
 const errorHandler = require('./errorHandler')
 const { Automations } = require('./rule/automation')
 const { getVacationerIds, selectAssignee, getActionStatus, selectGroup } = require('./ticket/utils')
-const { invokeWebhooks } = require('./webhook')
 const Ticket = require('./ticket/model')
 
 AV.Cloud.beforeSave('Ticket', async (req) => {
@@ -107,8 +106,6 @@ AV.Cloud.afterSave('Ticket', async (req) => {
       .catch(errorHandler.captureException)
   }
 
-  invokeWebhooks('ticket.create', { ticket: ticket.toJSON() })
-
   events.emit('ticket:created', {
     ticket: ticketObjectToEventTicket(ticket),
     currentUserId: req.currentUser.id,
@@ -165,11 +162,6 @@ AV.Cloud.afterUpdate('Ticket', async (req) => {
   if (opsLogs.length > 1) {
     AV.Object.saveAll(opsLogs, { useMasterKey: true }).catch(errorHandler.captureException)
   }
-
-  invokeWebhooks('ticket.update', {
-    ticket: ticket.toJSON(),
-    updatedKeys: ticket.updatedKeys,
-  })
 })
 
 AV.Cloud.define('operateTicket', async (req) => {
