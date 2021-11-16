@@ -126,7 +126,13 @@ app.use(function (err, req, res, _next) {
   res.status(statusCode).json({ message: err.message })
 })
 
-const PORT = parseInt(process.env.LEANCLOUD_APP_PORT || process.env.PORT || 8080)
-app.listen(PORT, function () {
-  console.log('LeanTicket server running on:' + PORT)
-})
+require('./api/launch')
+  .ready()
+  .then(() => {
+    const PORT = parseInt(process.env.LEANCLOUD_APP_PORT || process.env.PORT || '3000')
+    app.listen(PORT, () => {
+      console.log('[TapDesk] Server running on:', PORT)
+    })
+    return
+  })
+  .catch((error) => console.error(`[ERROR] Failed to launch server:`, error))

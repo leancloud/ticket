@@ -1,34 +1,45 @@
 const AV = require('leanengine')
 
 const { getTinyUserInfo } = require('./common')
-const errorHandler = require('./errorHandler')
+const { addTask } = require('./launch')
 
-let newApp
-
-const isNewApp = () => {
-  return new AV.Query('_User')
-    .limit(1)
-    .find({ useMasterKey: true })
-    .then((users) => {
-      if (users.length === 0) {
-        console.log('新应用启动，注册的第一个用户将成为管理员。')
-        return true
-      } else {
-        return false
-      }
-    })
+/**
+ * @param {AV.Object} adminUser
+ */
+async function initialize(adminUser) {
+  const admin = await addRole('admin', getRoleACL('admin'), adminUser)
+  const customerService = await addRole(
+    'customerService',
+    getRoleACL('customerService'),
+    adminUser,
+    admin
+  )
+  await addRole('staff', getRoleACL('customerService'), undefined, customerService)
 }
 
-setTimeout(() => {
-  isNewApp()
-    .then((result) => {
-      newApp = result
+async function defineUserHook() {
+  let initialized = false
+  AV.Cloud.afterSave('_User', async (req) => {
+    if (initialized) {
       return
-    })
-    .catch((err) => {
-      errorHandler.captureException(err)
-    })
-}, 3000)
+    }
+    await initialize(req.object)
+    initialized = true
+  })
+}
+
+async function isNewApp() {
+  const query = new AV.Query('_User').limit(1)
+  const users = await query.find({ useMasterKey: true })
+  return users.length === 0
+}
+
+addTask(async () => {
+  if (await isNewApp()) {
+    console.log('新应用启动，注册的第一个用户将成为管理员。')
+    defineUserHook()
+  }
+})
 
 AV.Cloud.define('getUserInfo', async (req) => {
   const username = req.params.username
@@ -57,22 +68,6 @@ AV.Cloud.define('getUserId', async (req) => {
   }
   return user ? user.id : null
 })
-
-if (newApp) {
-  AV.Cloud.afterSave('_User', async (req) => {
-    if (newApp) {
-      newApp = false
-      const admin = await addRole('admin', getRoleACL('admin'), req.object)
-      const customerService = await addRole(
-        'customerService',
-        getRoleACL('customerService'),
-        req.object,
-        admin
-      )
-      await addRole('staff', getRoleACL('customerService'), undefined, customerService)
-    }
-  })
-}
 
 const getRoleACL = (writableRole) => {
   const acl = new AV.ACL()
