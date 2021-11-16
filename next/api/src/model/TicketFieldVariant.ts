@@ -17,6 +17,9 @@ export class TicketFieldVariant extends Model {
   title!: string;
 
   @field()
+  description?: string;
+
+  @field()
   locale!: string;
 
   @field({
