@@ -1,8 +1,41 @@
 import _ from 'lodash';
 
 import { Model, field, hasManyThroughIdArray } from '@/orm';
-import { TicketField, presetTicketFields } from './TicketField';
-import { TicketFieldVariant, presetTicketFieldVariants } from './TicketFieldVariant';
+import { TicketField } from './TicketField';
+import { TicketFieldVariant } from './TicketFieldVariant';
+
+const title = new TicketField();
+title.id = 'title';
+title.title = 'title';
+title.type = 'text';
+title.defaultLocale = 'en';
+title.active = true;
+title.required = true;
+title.createdAt = new Date(0);
+title.updatedAt = new Date(0);
+
+const description = new TicketField();
+description.id = 'description';
+description.title = 'description';
+description.type = 'multi-line';
+description.defaultLocale = 'en';
+description.active = true;
+description.required = true;
+description.createdAt = new Date(0);
+description.updatedAt = new Date(0);
+
+const presetTicketFields = [title, description];
+const presetTicketFieldVariants = presetTicketFields.map((field) => {
+  const variant = new TicketFieldVariant();
+  variant.id = field.id;
+  variant.fieldId = field.id;
+  variant.field = field;
+  variant.title = field.title;
+  variant.locale = field.defaultLocale;
+  variant.createdAt = field.createdAt;
+  variant.updatedAt = field.updatedAt;
+  return variant;
+});
 
 export class TicketForm extends Model {
   @field()
