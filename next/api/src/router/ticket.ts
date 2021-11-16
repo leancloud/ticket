@@ -140,7 +140,6 @@ router.get(
       const result = await query.findAndCount(currentUser.getAuthOptions());
       tickets = result[0];
       ctx.set('X-Total-Count', result[1].toString());
-      ctx.set('Access-Control-Expose-Headers', 'X-Total-Count');
     } else {
       tickets = await query.find(currentUser.getAuthOptions());
     }
