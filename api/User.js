@@ -18,13 +18,19 @@ async function initialize(adminUser) {
 }
 
 async function defineUserHook() {
+  let initializing = false
   let initialized = false
   AV.Cloud.afterSave('_User', async (req) => {
-    if (initialized) {
+    if (initializing || initialized) {
       return
     }
-    await initialize(req.object)
-    initialized = true
+    initializing = true
+    try {
+      await initialize(req.object)
+      initialized = true
+    } finally {
+      initializing = false
+    }
   })
 }
 
