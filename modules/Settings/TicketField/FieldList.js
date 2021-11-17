@@ -20,7 +20,7 @@ const FieldRow = memo(({ data, onDeleted }) => {
   const { title, type, required, id, system } = data
   const { mutateAsync, isLoading } = useMutation({
     mutationFn: () =>
-      http.patch(`/api/1/ticket-fields/${id}`, {
+      http.patch(`/api/2/ticket-fields/${id}`, {
         active: false,
       }),
     onSuccess: () => {
@@ -85,18 +85,20 @@ const FieldList = memo(() => {
   const { t } = useTranslation()
   const match = useRouteMatch()
   const { addNotification } = useAppContext()
-  const { skip, pageSize } = usePagination()
+  const { page, pageSize } = usePagination()
   const {
     data: [fields, count],
     isFetching,
     refetch,
   } = useQuery({
-    queryKey: ['setting/fields', skip, pageSize],
+    queryKey: ['ticketFields', { page, pageSize }],
     queryFn: () =>
-      httpWithLimitation.get(`/api/1/ticket-fields`, {
+      httpWithLimitation.get(`/api/2/ticket-fields`, {
         params: {
-          size: pageSize,
-          skip,
+          page,
+          pageSize,
+          count: 1,
+          orderBy: 'updatedAt-desc',
         },
       }),
     keepPreviousData: true,
@@ -122,7 +124,7 @@ const FieldList = memo(() => {
             </tr>
           </thead>
           <tbody>
-            {skip === 0 &&
+            {page === 1 &&
               systemFieldData.map((fieldData) => (
                 <FieldRow data={fieldData} key={fieldData.id} onDeleted={refetch} />
               ))}

@@ -21,7 +21,7 @@ export default function TicketFields() {
 export const systemFieldData = [
   {
     active: true,
-    default_locale: 'zh-cn',
+    defaultLocale: 'en',
     id: 'title',
     required: true,
     title: 'Title',
@@ -30,7 +30,7 @@ export const systemFieldData = [
   },
   {
     active: true,
-    default_locale: 'zh-cn',
+    defaultLocale: 'en',
     id: 'description',
     required: true,
     title: 'Description',

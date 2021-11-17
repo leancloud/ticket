@@ -18,13 +18,17 @@ import { http } from 'lib/leancloud'
 import { useFieldId } from '.'
 import styles from './index.module.scss'
 
-const defaultOptions = [['', '']]
+const defaultOption = {
+  title: '',
+  value: '',
+}
+const defaultOptions = [defaultOption]
 const DropdownOptions = memo(({ options = defaultOptions, onChange }) => {
   const { t } = useTranslation()
   const sameTagIndexes = useMemo(() => {
     const result = []
     const map = new Map()
-    options.forEach(([, title], index) => {
+    options.forEach(({ title }, index) => {
       if (title !== '') {
         if (map.has(title)) {
           result.push(map.get(title))
@@ -41,8 +45,8 @@ const DropdownOptions = memo(({ options = defaultOptions, onChange }) => {
     if (options.length === 0) {
       return defaultOptions
     } else {
-      if (options[options.length - 1][0] !== '') {
-        return [...options, ['', '']]
+      if (_.last(options).value !== '') {
+        return [...options, defaultOption]
       }
       return options
     }
@@ -55,7 +59,7 @@ const DropdownOptions = memo(({ options = defaultOptions, onChange }) => {
         const duplicateTag = sameTagIndexes.includes(index)
         const isLast = index === reOptions.length - 1
         const required = reOptions.length === 1 ? true : !isLast
-        const [value, title] = option
+        const { value, title } = option
         return (
           <Form.Row key={index}>
             <Form.Group as={Col}>
@@ -67,7 +71,10 @@ const DropdownOptions = memo(({ options = defaultOptions, onChange }) => {
                 onChange={(e) => {
                   const inputValue = e.target.value
                   const tmp = [...options]
-                  tmp[index] = [inputValue, title === value ? inputValue : title]
+                  tmp[index] = {
+                    title: title === value ? inputValue : title,
+                    value: inputValue,
+                  }
                   onChange(tmp)
                 }}
               />
@@ -79,9 +86,11 @@ const DropdownOptions = memo(({ options = defaultOptions, onChange }) => {
                 value={title || ''}
                 required={!!value || required}
                 onChange={(e) => {
-                  const inputValue = e.target.value
                   const tmp = [...options]
-                  tmp[index] = [value, inputValue]
+                  tmp[index] = {
+                    title: e.target.value,
+                    value,
+                  }
                   onChange(tmp)
                 }}
                 isInvalid={duplicateTag}
@@ -212,15 +221,10 @@ const FieldForm = memo(({ onSubmit, initData, submitting }) => {
               title,
               type,
               required,
-              default_locale: defaultLocale,
-              variants: Object.entries(variants).map(([key, value]) => {
-                const { title, options } = value
-                return {
-                  title,
-                  locale: key,
-                  options: includeOptionsType.includes(type) ? options : undefined,
-                }
-              }),
+              defaultLocale,
+              variants: includeOptionsType.includes(type)
+                ? variants
+                : _.mapValues(variants, (v) => _.omit(v, 'options')),
             })
           } else {
             addNotification({
@@ -414,7 +418,7 @@ const AddField = memo(() => {
   const history = useHistory()
   const { addNotification } = useAppContext()
   const { mutateAsync, isLoading } = useMutation({
-    mutationFn: (data) => http.post('/api/1/ticket-fields', data),
+    mutationFn: (data) => http.post('/api/2/ticket-fields', data),
     onSuccess: () => {
       addNotification({
         message: t('ticketField.success'),
@@ -443,24 +447,13 @@ const EditorField = memo(() => {
   const { addNotification } = useAppContext()
   const fieldId = useFieldId()
   const { data } = useQuery({
-    queryKey: ['setting/forms', fieldId],
-    queryFn: () => http.get(`/api/1/ticket-fields/${fieldId}`),
+    queryKey: ['ticketField', fieldId],
+    queryFn: () => http.get(`/api/2/ticket-fields/${fieldId}`),
     onError: (err) => addNotification(err),
-    select: (field) => {
-      const { variants } = field
-      return {
-        ...field,
-        variants: variants.reduce((pre, current) => {
-          const { locale, ...rest } = current
-          pre[locale] = rest
-          return pre
-        }, {}),
-      }
-    },
   })
 
   const { mutateAsync, isLoading } = useMutation({
-    mutationFn: (data) => http.patch(`/api/1/ticket-fields/${fieldId}`, data),
+    mutationFn: (data) => http.patch(`/api/2/ticket-fields/${fieldId}`, data),
     onSuccess: () => {
       addNotification({
         message: t('ticketField.success'),

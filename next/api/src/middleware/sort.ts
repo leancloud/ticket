@@ -1,4 +1,4 @@
-import { Middleware } from 'koa';
+import type { Context, Middleware } from 'koa';
 
 export interface SortItem {
   key: string;
@@ -16,7 +16,7 @@ function parseSort(key: string): SortItem {
   return { key, order };
 }
 
-export function sort(queryKey: string, fields?: string[]): Middleware {
+function sortMiddlewareFactory(queryKey: string, fields?: string[]): Middleware {
   return (ctx, next) => {
     const data = ctx.query[queryKey];
     if (data) {
@@ -33,3 +33,11 @@ export function sort(queryKey: string, fields?: string[]): Middleware {
     return next();
   };
 }
+
+function getSortItems(ctx: Context): SortItem[] | undefined {
+  return ctx.state.sort;
+}
+
+export const sort = Object.assign(sortMiddlewareFactory, {
+  get: getSortItems,
+});
