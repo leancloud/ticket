@@ -358,6 +358,17 @@ const FieldForm = memo(({ onSubmit, initData, submitting }) => {
             }}
           />
         </Form.Group>
+        <Form.Group>
+          <Form.Label htmlFor="fieldDesc">{t('description')}</Form.Label>
+          <Form.Control
+            required
+            id="fieldDesc"
+            name="fieldDesc"
+            type="text"
+            value={_.get(variants, `${activeLocale}.description`, '')}
+            onChange={(e) => updateVariant({ description: e.target.value })}
+          />
+        </Form.Group>
         {includeOptionsType.includes(type) && (
           <DropdownOptions
             options={variants[activeLocale] ? variants[activeLocale].options : undefined}
