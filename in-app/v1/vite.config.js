@@ -15,6 +15,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      '@': path.resolve('./src'),
       components: path.resolve('./src/components/'),
       utils: path.resolve('./src/utils/'),
       leancloud: path.resolve('./src/leancloud'),
