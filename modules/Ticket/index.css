@@ -38,9 +38,7 @@
     demo: http://localhost:3000/tickets/13164
   */
   overflow-wrap: break-word;
-  overflow-y: auto;
-  max-height: 500px;
-  position: relative;
+  overflow-y: hidden;
 }
 
 .content img {
@@ -52,12 +50,19 @@
 }
 
 .content .cover {
-  height: 50%;
-  background-image: linear-gradient(transparent, #fff);
+  background-image: linear-gradient(transparent 50%, #fff);
   position: absolute;
   left: 0;
-  bottom: 0;
+  top: 0;
   width: 100%;
+  height: 100%;
+}
+
+.content .cover .expand {
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  transform: translateX(-50%);
 }
 
 .sidebar {
