@@ -150,7 +150,7 @@ router.patch('/:id', customerServiceOnly, async (ctx) => {
       ? Object.keys(data.variants)
       : (await field.getVariants()).map((v) => v.locale);
     if (!locales.includes(data.defaultLocale)) {
-      ctx.throw(400, 'No such variant for defaultLocale');
+      ctx.throw(400, 'Variant for default locale is not defined');
     }
   }
 
