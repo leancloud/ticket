@@ -92,7 +92,7 @@ export default function App() {
   }, []);
 
   if (!pathname.startsWith(ROOT_URL)) {
-    return 'Not Found';
+    return <>'Not Found'</>;
   }
   return (
     <BrowserRouter basename={`${ROOT_URL}/${paths[4]}`}>

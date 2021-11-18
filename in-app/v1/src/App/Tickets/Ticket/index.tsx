@@ -42,9 +42,9 @@ async function fetchTicket(id: string): Promise<Ticket> {
 
 export function useTicket(id: string, options?: UseQueryOptions<Ticket>) {
   return useQuery({
-    ...options,
     queryKey: ['ticket', id],
     queryFn: () => fetchTicket(id),
+    ...options,
   });
 }
 
