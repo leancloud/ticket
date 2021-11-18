@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "preinstall": "bash ./script/check_npm_version.sh",
     "dev:client": "vite",
     "build": "node ./script/generate_env.js && vite build"
   },
