@@ -1,6 +1,6 @@
-import type { Middleware } from 'koa';
+import type { Context, Middleware } from 'koa';
 
-export function pagination(defaultPageSize = 10, maxPageSize = 1000): Middleware {
+function factory(defaultPageSize = 10, maxPageSize = 1000): Middleware {
   return (ctx, next) => {
     ctx.state.page = 1;
     ctx.state.pageSize = defaultPageSize;
@@ -22,3 +22,12 @@ export function pagination(defaultPageSize = 10, maxPageSize = 1000): Middleware
     return next();
   };
 }
+
+function get(ctx: Context): { page: number; pageSize: number } {
+  return {
+    page: ctx.state.page,
+    pageSize: ctx.state.pageSize,
+  };
+}
+
+export const pagination = Object.assign(factory, { get });

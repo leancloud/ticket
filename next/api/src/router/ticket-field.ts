@@ -35,8 +35,7 @@ const localeSchema = z.string().refine(isValidLocale, {
 
 router.get('/', sort('orderBy', ['createdAt', 'updatedAt']), pagination(), async (ctx) => {
   const sortItems = sort.get(ctx);
-  const page = ctx.state.page as number;
-  const pageSize = ctx.state.pageSize as number;
+  const { page, pageSize } = pagination.get(ctx);
 
   const query = TicketField.queryBuilder()
     .skip((page - 1) * pageSize)
