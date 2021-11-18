@@ -132,21 +132,8 @@ const MenuIcon = React.forwardRef(({ onClick }, ref) => (
   <Icon.ThreeDots className={`${css.replyMenuIcon} d-block`} ref={ref} onClick={onClick} />
 ))
 
-function Cover({ onExpand }) {
-  return (
-    <div className={css.cover}>
-      <Button className={css.expand} variant="link" onClick={onExpand}>
-        Click to expand
-      </Button>
-    </div>
-  )
-}
-Cover.propTypes = {
-  onExpand: PropTypes.func,
-}
-
 function useTruncateReply() {
-  const containerRef = useRef(null)
+  const $container = useRef(null)
   const [showCover, setShowCover] = useState(false)
   const $onExpand = useRef()
 
@@ -154,23 +141,28 @@ function useTruncateReply() {
     /**
      * @type {HTMLDivElement}
      */
-    const container = containerRef.current
-    if (!container) {
+    const container = $container.current
+    if (!container || container.clientHeight <= 1000) {
       return
     }
-    if (container.clientHeight > 1000) {
-      setShowCover(true)
-      container.style.maxHeight = '500px'
-      $onExpand.current = () => {
-        setShowCover(false)
-        container.style.maxHeight = null
-      }
+
+    setShowCover(true)
+    container.style.maxHeight = '380px'
+    $onExpand.current = () => {
+      setShowCover(false)
+      container.style.maxHeight = null
     }
   }, [])
 
   return {
-    containerRef,
-    cover: showCover ? <Cover onExpand={$onExpand.current} /> : undefined,
+    containerRef: $container,
+    cover: showCover ? (
+      <div className={css.cover} onMouseDown={$onExpand.current}>
+        <Button className={css.expand} variant="link" onClick={$onExpand.current}>
+          Click to expand
+        </Button>
+      </div>
+    ) : undefined,
   }
 }
 

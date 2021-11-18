@@ -39,7 +39,6 @@
   */
   overflow-wrap: break-word;
   overflow-y: hidden;
-  position: relative;
 }
 
 .content img {
@@ -51,12 +50,12 @@
 }
 
 .content .cover {
-  height: 50%;
-  background-image: linear-gradient(transparent, #fff);
+  background-image: linear-gradient(transparent 50%, #fff);
   position: absolute;
   left: 0;
-  bottom: 0;
+  top: 0;
   width: 100%;
+  height: 100%;
 }
 
 .content .cover .expand {
