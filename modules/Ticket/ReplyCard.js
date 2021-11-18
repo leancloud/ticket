@@ -1,6 +1,6 @@
-import React, { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Badge, Card, Dropdown } from 'react-bootstrap'
+import { Badge, Button, Card, Dropdown } from 'react-bootstrap'
 import * as Icon from 'react-bootstrap-icons'
 import PropTypes from 'prop-types'
 import classNames from 'classnames'
@@ -132,11 +132,25 @@ const MenuIcon = React.forwardRef(({ onClick }, ref) => (
   <Icon.ThreeDots className={`${css.replyMenuIcon} d-block`} ref={ref} onClick={onClick} />
 ))
 
-function useShowCover() {
-  const containerRef = useRef(null)
-  const [show, setShow] = useState(false)
+function Cover({ onExpand }) {
+  return (
+    <div className={css.cover}>
+      <Button className={css.expand} variant="link" onClick={onExpand}>
+        Click to expand
+      </Button>
+    </div>
+  )
+}
+Cover.propTypes = {
+  onExpand: PropTypes.func,
+}
 
-  useLayoutEffect(() => {
+function useCutLongReply() {
+  const containerRef = useRef(null)
+  const [showCover, setShowCover] = useState(false)
+  const $onExpand = useRef()
+
+  useEffect(() => {
     /**
      * @type {HTMLDivElement}
      */
@@ -144,20 +158,20 @@ function useShowCover() {
     if (!container) {
       return
     }
-    if (container.scrollHeight > container.clientHeight) {
-      setShow(true)
-      const onScroll = () => {
-        container.removeEventListener('scroll', onScroll)
-        setShow(false)
-      }
-      container.addEventListener('scroll', onScroll)
-      return () => {
-        container.removeEventListener('scroll', onScroll)
+    if (container.clientHeight > 1000) {
+      setShowCover(true)
+      container.style.maxHeight = '500px'
+      $onExpand.current = () => {
+        setShowCover(false)
+        container.style.maxHeight = null
       }
     }
   }, [])
 
-  return [containerRef, show]
+  return {
+    containerRef,
+    cover: showCover ? <Cover onExpand={$onExpand.current} /> : undefined,
+  }
 }
 
 export function ReplyCard({ data, onDeleted, ticketId }) {
@@ -184,7 +198,7 @@ export function ReplyCard({ data, onDeleted, ticketId }) {
     onError: (error) => addNotification(error),
   })
 
-  const [$cardBody, showCover] = useShowCover()
+  const { containerRef, cover } = useCutLongReply()
 
   return (
     <Card
@@ -236,7 +250,7 @@ export function ReplyCard({ data, onDeleted, ticketId }) {
           )}
         </div>
       </Card.Header>
-      <Card.Body ref={$cardBody} className={css.content}>
+      <Card.Body ref={containerRef} className={css.content}>
         <BaiduTranslate enabled={translationEnabled}>
           <div
             className="markdown-body"
@@ -252,7 +266,7 @@ export function ReplyCard({ data, onDeleted, ticketId }) {
             ))}
           </div>
         )}
-        {showCover && <div className={css.cover} />}
+        {cover}
       </Card.Body>
       {otherFiles.length > 0 && (
         <Card.Footer>

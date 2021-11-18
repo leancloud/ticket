@@ -38,8 +38,7 @@
     demo: http://localhost:3000/tickets/13164
   */
   overflow-wrap: break-word;
-  overflow-y: auto;
-  max-height: 500px;
+  overflow-y: hidden;
   position: relative;
 }
 
@@ -58,6 +57,13 @@
   left: 0;
   bottom: 0;
   width: 100%;
+}
+
+.content .cover .expand {
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  transform: translateX(-50%);
 }
 
 .sidebar {
