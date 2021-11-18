@@ -145,7 +145,7 @@ Cover.propTypes = {
   onExpand: PropTypes.func,
 }
 
-function useCutLongReply() {
+function useTruncateReply() {
   const containerRef = useRef(null)
   const [showCover, setShowCover] = useState(false)
   const $onExpand = useRef()
@@ -198,7 +198,7 @@ export function ReplyCard({ data, onDeleted, ticketId }) {
     onError: (error) => addNotification(error),
   })
 
-  const { containerRef, cover } = useCutLongReply()
+  const { containerRef, cover } = useTruncateReply()
 
   return (
     <Card
