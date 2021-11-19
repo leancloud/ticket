@@ -154,9 +154,9 @@ function useTruncateReply() {
     // 搜索关键词时会触发滚动，这时自动展开
     const onScroll = () => {
       container.removeEventListener('scroll', onScroll)
-      const bodyHeight = document.body.clientHeight
+      const height = container.clientHeight
       onExpand()
-      window.scrollTo({ top: window.scrollY + (document.body.clientHeight - bodyHeight) })
+      window.scrollTo({ top: window.scrollY + (container.clientHeight - height) })
     }
 
     setShowCover(true)
