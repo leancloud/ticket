@@ -38,7 +38,13 @@
     demo: http://localhost:3000/tickets/13164
   */
   overflow-wrap: break-word;
-  overflow-y: hidden;
+  overflow-y: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.content::-webkit-scrollbar {
+  display: none;
 }
 
 .content img {

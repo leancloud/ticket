@@ -146,12 +146,23 @@ function useTruncateReply() {
       return
     }
 
-    setShowCover(true)
-    container.style.maxHeight = '380px'
-    $onExpand.current = () => {
+    const onExpand = () => {
       setShowCover(false)
       container.style.maxHeight = null
     }
+
+    // 搜索关键词时会触发滚动，这时自动展开
+    const onScroll = () => {
+      container.removeEventListener('scroll', onScroll)
+      const bodyHeight = document.body.clientHeight
+      onExpand()
+      window.scrollTo({ top: window.scrollY + (document.body.clientHeight - bodyHeight) })
+    }
+
+    setShowCover(true)
+    $onExpand.current = onExpand
+    container.style.maxHeight = '380px'
+    container.addEventListener('scroll', onScroll)
   }, [])
 
   return {
