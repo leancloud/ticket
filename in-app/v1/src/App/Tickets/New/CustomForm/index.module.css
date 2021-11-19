@@ -1,0 +1,9 @@
+.required {
+  &::after {
+    content: '*';
+    color: #F64C4C;
+    position: absolute;
+    line-height: 18px;
+    padding-left: 2px;
+  }
+}

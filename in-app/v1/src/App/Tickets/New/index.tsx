@@ -1,123 +1,85 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useMutation, useQuery } from 'react-query';
-import i18next from 'i18next';
+import { useMutation } from 'react-query';
 
-import { Field } from 'types';
+import { CategoryFieldSchema, useCategoryFields } from '@/api/category';
 import { useSearchParams } from 'utils/url';
 import { PageContent, PageHeader } from 'components/Page';
 import { Button } from 'components/Button';
 import { QueryWrapper } from 'components/QueryWrapper';
-import { SpaceChinese } from 'components/SpaceChinese';
 import CheckIcon from 'icons/Check';
 import { useCategory } from '../../Categories';
-import { FieldTemplate, useForm } from './Form';
 import { http } from 'leancloud';
 import { useTicketInfo } from '../..';
 import NotFound from '../../NotFound';
+import { CustomForm } from './CustomForm';
 
-const presetFieldCreators: Record<string, (() => FieldTemplate) | undefined> = {
-  title: () => ({
-    name: 'title',
-    title: i18next.t('general.title'),
+const presetFields: CategoryFieldSchema[] = [
+  {
+    id: 'title',
     type: 'text',
+    title: 'title',
     required: true,
-  }),
-  description: () => ({
-    name: 'content',
-    title: i18next.t('general.description'),
+  },
+  {
+    id: 'description',
     type: 'multi-line',
-    rows: 4,
-    maxLength: 100,
+    title: 'description',
     required: true,
-  }),
-};
-
-async function fetchCategoryFields(categoryId: string): Promise<FieldTemplate[]> {
-  const { data } = await http.get<Field[]>(`/api/2/categories/${categoryId}/fields`);
-  return data.map((field) => ({ ...field, name: field.id }));
-}
-
-function useCategoryFields(categoryId: string) {
-  return useQuery({
-    queryKey: ['fields', { categoryId }],
-    queryFn: () => fetchCategoryFields(categoryId),
-    staleTime: 1000 * 60 * 5,
-  });
-}
+  },
+];
 
 interface NewTicketData {
   category_id: string;
   title: string;
   content: string;
   file_ids?: string[];
+  form_values?: {
+    field: string;
+    value: string | string[];
+  }[];
+  tags?: {
+    key: string;
+    value: string;
+  }[];
+  metadata?: Record<string, any>;
 }
 
 interface TicketFormProps {
   categoryId: string;
-  onCommit: (data: NewTicketData) => any | Promise<any>;
+  onSubmit: (data: NewTicketData) => void;
+  submitting?: boolean;
 }
 
-function TicketForm({ categoryId, onCommit }: TicketFormProps) {
-  const { t } = useTranslation();
-  const [isCommitting, setIsCommitting] = useState(false);
-  const { meta, tags } = useTicketInfo();
-
+function TicketForm({ categoryId, onSubmit, submitting }: TicketFormProps) {
+  const { meta } = useTicketInfo();
   const result = useCategoryFields(categoryId);
-  const { data: fields } = result;
-
-  const formFields = useMemo(() => {
-    if (!fields) {
+  const fields = useMemo(() => {
+    if (!result.data) {
       return [];
     }
-    if (fields.length === 0) {
-      // 没有为当期分类配置表单时, 展示 title & description.
-      return Object.values(presetFieldCreators).map((creator) => creator!());
+    if (result.data.length === 0) {
+      // 没有为当前分类配置自定义表单时展示预设字段
+      return presetFields;
     }
-    return fields.map((field) => {
-      if (field.name in presetFieldCreators) {
-        return presetFieldCreators[field.name]!();
-      } else {
-        return field;
-      }
-    });
-  }, [fields]);
-  const { element: formElement, validate, data: formData } = useForm(formFields);
+    return result.data;
+  }, [result.data]);
 
-  const handleCommit = async () => {
-    if (!validate()) {
-      return;
-    }
-    const { title, content, ...fieldValues } = formData;
-    const data = {
+  const handleSubmit = (data: Record<string, any>) => {
+    const { title, description, ...fieldValues } = data;
+    onSubmit({
       category_id: categoryId,
-      title: title as string,
-      content: content as string,
+      title: title,
+      content: description,
       form_values: Object.entries(fieldValues).map(([id, value]) => ({ field: id, value })),
-      metadata: meta,
-      tags,
-    };
-    try {
-      setIsCommitting(true);
-      await onCommit(data);
-    } finally {
-      setIsCommitting(false);
-    }
+      metadata: meta ?? undefined,
+    });
   };
 
   return (
     <QueryWrapper result={result}>
-      <div className="px-5 sm:px-10 py-7">
-        {formElement}
-        <Button
-          className="sm:ml-20 w-full sm:max-w-max sm:px-11"
-          disabled={isCommitting}
-          onClick={handleCommit}
-        >
-          <SpaceChinese>{t('general.commit')}</SpaceChinese>
-        </Button>
-      </div>
+      <CustomForm fields={fields} onSubmit={handleSubmit} submitting={submitting} />
     </QueryWrapper>
   );
 }
@@ -155,7 +117,7 @@ export function NewTicket() {
   const result = useCategory(category_id);
   const [ticketId, setTicketId] = useState<string>();
 
-  const { mutateAsync: commit } = useMutation({
+  const { mutateAsync: submit, isLoading: submitting } = useMutation({
     mutationFn: commitTicket,
     onSuccess: setTicketId,
     onError: (error: Error) => alert(error.message),
@@ -173,7 +135,7 @@ export function NewTicket() {
           {ticketId ? (
             <Success ticketId={ticketId} />
           ) : (
-            <TicketForm categoryId={category_id} onCommit={commit} />
+            <TicketForm categoryId={category_id} onSubmit={submit} submitting={submitting} />
           )}
         </QueryWrapper>
       </PageContent>
