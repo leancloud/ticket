@@ -85,7 +85,7 @@ module.exports = {
     alias: {
       modules: path.resolve(__dirname, 'modules/'),
       lib: path.resolve(__dirname, 'lib/'),
-      extensions: ['.js', '.jsx'],
     },
+    extensions: ['.js', '.jsx'],
   },
 }
