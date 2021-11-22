@@ -37,35 +37,14 @@ function encodeCategoryObject(category) {
 }
 
 /**
- * @returns {Promise<Category[]>}
- */
-async function fetchCategories() {
-  const query = new AV.Query('Category')
-  const categories = await query.find({ useMasterKey: true })
-  return categories.map(encodeCategoryObject)
-}
-
-/**
- * @returns {Promise<{[key: string]: Category}>}
- */
-async function fetchCategoryMap() {
-  return (await fetchCategories()).reduce((map, category) => {
-    map[category.id] = category
-    return map
-  }, {})
-}
-
-/**
  * @param {string} categoryId
  * @returns {Promise<{ objectId: string; name: string; }>}
  */
-async function getTinyCategoryInfo(categoryId, categories) {
-  const category = categories
-    ? categories[categoryId]
-    : encodeCategoryObject(await new AV.Query('Category').get(categoryId))
+async function getTinyCategoryInfo(categoryId) {
+  const category = await new AV.Query('Category').get(categoryId)
   return {
     objectId: category.id,
-    name: category.name,
+    name: category.get('name'),
   }
 }
 
@@ -81,8 +60,6 @@ function getCategoryPath(categoryId, categoryById) {
 
 module.exports = {
   encodeCategoryObject,
-  fetchCategories,
-  fetchCategoryMap,
   getTinyCategoryInfo,
   getCategoryPath,
 }
