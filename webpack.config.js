@@ -65,22 +65,6 @@ module.exports = {
           'sass-loader',
         ],
       },
-      {
-        test: /\.css$/,
-        include: [
-          __dirname + '/node_modules/@uiw/react-markdown-preview',
-          __dirname + '/node_modules/@uiw/react-md-editor',
-        ],
-        use: [
-          MiniCssExtractPlugin.loader,
-          {
-            loader: 'css-loader',
-            options: {
-              modules: false,
-            },
-          },
-        ],
-      },
     ],
   },
   plugins: [
@@ -101,7 +85,7 @@ module.exports = {
     alias: {
       modules: path.resolve(__dirname, 'modules/'),
       lib: path.resolve(__dirname, 'lib/'),
-      extensions: ['.js', '.jsx'],
     },
+    extensions: ['.js', '.jsx'],
   },
 }

@@ -5,10 +5,10 @@ import PropTypes from 'prop-types'
 import classNames from 'classnames'
 
 import { storage } from '../../../lib/leancloud'
-import MarkdownEditor from '../../components/MarkdownEditor'
 import { useUploader } from '../../utils/useUploader'
 import { useAutoSave } from '../../utils/useAutoSave'
 import styles from './index.module.scss'
+import { MarkdownEditor } from './MarkdownEditor'
 import { QuickReplySelector } from './QuickReplySelector'
 
 function ReplyType({ value, onChange }) {
