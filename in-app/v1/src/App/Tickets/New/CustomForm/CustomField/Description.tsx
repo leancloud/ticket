@@ -8,7 +8,7 @@ export interface DescriptionProps extends ComponentPropsWithoutRef<'div'> {
 }
 
 export function Description({ children, className, error, ...props }: DescriptionProps) {
-  if (!children) {
+  if (!children && !error) {
     return null;
   }
   return (
