@@ -47,9 +47,10 @@ export function Uploader<Key extends FileKey>({
     <div className="w-full">
       <div
         className={cx(
-          'w-full h-12 p-4 border rounded flex justify-center items-center active:border active:border-tapBlue hover:border-tapBlue cursor-pointer',
+          'w-full h-12 p-4 border border-dashed rounded flex justify-center items-center cursor-pointer',
           {
-            'border-dashed border-[#D9D9D9]': !error,
+            'active:border active:border-tapBlue hover:border-tapBlue': !error,
+            'border-[#D9D9D9]': !error,
             'border-red-500': error,
           }
         )}

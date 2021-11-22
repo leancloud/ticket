@@ -49,10 +49,12 @@ export const db = app.database();
 export const storage = app.storage();
 
 export const http = axios.create();
-http.interceptors.request.use((config) => ({
-  ...config,
-  headers: {
-    ...config.headers,
-    'X-LC-Session': auth.currentUser?.sessionToken,
-  },
-}));
+http.interceptors.request.use((config) => {
+  if (auth.currentUser) {
+    if (!config.headers) {
+      config.headers = {};
+    }
+    config.headers['X-LC-Session'] = auth.currentUser.sessionToken;
+  }
+  return config;
+});
