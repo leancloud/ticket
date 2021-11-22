@@ -6,9 +6,9 @@ import { Uploader as _Uploader } from '@/components/Uploader';
 import { useAlert } from '@/utils/useAlert';
 import { useUpload } from '@/utils/useUpload';
 import { CustomFieldProps } from '..';
-import { ErrorMessage } from '../ErrorMessage';
+import { Description } from '../Description';
 
-export function Uploader({ id, required }: CustomFieldProps) {
+export function Uploader({ id, description, required }: CustomFieldProps) {
   const { t } = useTranslation();
   const { element: alertElement, alert } = useAlert();
 
@@ -60,7 +60,9 @@ export function Uploader({ id, required }: CustomFieldProps) {
         onDelete={(file) => remove(file.key)}
         error={!!error}
       />
-      {error && <ErrorMessage className="mt-1">{error.message}</ErrorMessage>}
+      <Description className="mt-1" error={error}>
+        {description}
+      </Description>
     </div>
   );
 }

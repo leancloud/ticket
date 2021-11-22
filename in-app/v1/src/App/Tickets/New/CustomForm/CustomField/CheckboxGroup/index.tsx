@@ -4,9 +4,9 @@ import { useController, useFormContext } from 'react-hook-form';
 
 import { Checkbox } from '@/components/Form';
 import { CustomFieldProps } from '..';
-import { ErrorMessage } from '../ErrorMessage';
+import { Description } from '../Description';
 
-export function CheckboxGroup({ id, required, options }: CustomFieldProps) {
+export function CheckboxGroup({ id, description, options, required }: CustomFieldProps) {
   const { t } = useTranslation();
   const { control } = useFormContext();
   const {
@@ -54,7 +54,9 @@ export function CheckboxGroup({ id, required, options }: CustomFieldProps) {
           </div>
         ))}
       </div>
-      {error && <ErrorMessage className="mt-3">{error.message}</ErrorMessage>}
+      <Description className="mt-3" error={error}>
+        {description}
+      </Description>
     </div>
   );
 }
