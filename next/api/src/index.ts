@@ -66,6 +66,7 @@ app.use(
         }
       : undefined,
     keepHeadersOnError: true,
+    exposeHeaders: ['X-Total-Count'],
   })
 );
 

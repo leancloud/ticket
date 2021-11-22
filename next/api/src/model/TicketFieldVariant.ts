@@ -1,5 +1,5 @@
 import { Model, field, pointerId, pointTo } from '@/orm';
-import { TicketField, presetTicketFields } from './TicketField';
+import { TicketField } from './TicketField';
 
 export interface Option {
   title: string;
@@ -17,6 +17,9 @@ export class TicketFieldVariant extends Model {
   title!: string;
 
   @field()
+  description?: string;
+
+  @field()
   locale!: string;
 
   @field({
@@ -25,15 +28,3 @@ export class TicketFieldVariant extends Model {
   })
   options?: Option[];
 }
-
-export const presetTicketFieldVariants = presetTicketFields.map((field) => {
-  const variant = new TicketFieldVariant();
-  variant.id = field.id;
-  variant.fieldId = field.id;
-  variant.field = field;
-  variant.title = field.title;
-  variant.locale = field.defaultLocale;
-  variant.createdAt = field.createdAt;
-  variant.updatedAt = field.updatedAt;
-  return variant;
-});
