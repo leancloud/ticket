@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useMutation } from 'react-query';
+import { pick } from 'lodash-es';
 
 import { CategoryFieldSchema, useCategoryFields } from '@/api/category';
 import { useSearchParams } from 'utils/url';
@@ -14,6 +15,7 @@ import { http } from 'leancloud';
 import { useTicketInfo } from '../..';
 import NotFound from '../../NotFound';
 import { CustomForm } from './CustomForm';
+import { usePersistFormData } from './usePersistFormData';
 
 const presetFields: CategoryFieldSchema[] = [
   {
@@ -55,6 +57,7 @@ interface TicketFormProps {
 function TicketForm({ categoryId, onSubmit, submitting }: TicketFormProps) {
   const { meta } = useTicketInfo();
   const result = useCategoryFields(categoryId);
+
   const fields = useMemo(() => {
     if (!result.data) {
       return [];
@@ -66,6 +69,17 @@ function TicketForm({ categoryId, onSubmit, submitting }: TicketFormProps) {
     return result.data;
   }, [result.data]);
 
+  const { initData, onChange, clear } = usePersistFormData(categoryId);
+
+  const defaultValues = useMemo(() => {
+    if (initData && fields) {
+      return pick(
+        initData,
+        fields.filter((f) => f.type !== 'file').map((f) => f.id)
+      );
+    }
+  }, [initData, fields]);
+
   const handleSubmit = (data: Record<string, any>) => {
     const { title, description, ...fieldValues } = data;
     onSubmit({
@@ -75,11 +89,18 @@ function TicketForm({ categoryId, onSubmit, submitting }: TicketFormProps) {
       form_values: Object.entries(fieldValues).map(([id, value]) => ({ field: id, value })),
       metadata: meta ?? undefined,
     });
+    clear();
   };
 
   return (
     <QueryWrapper result={result}>
-      <CustomForm fields={fields} onSubmit={handleSubmit} submitting={submitting} />
+      <CustomForm
+        fields={fields}
+        defaultValues={defaultValues}
+        onChange={onChange}
+        onSubmit={handleSubmit}
+        submitting={submitting}
+      />
     </QueryWrapper>
   );
 }
