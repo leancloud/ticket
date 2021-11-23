@@ -50,7 +50,7 @@ interface NewTicketData {
 
 interface TicketFormProps {
   categoryId: string;
-  onSubmit: (data: NewTicketData) => void;
+  onSubmit: (data: NewTicketData) => Promise<any>;
   submitting?: boolean;
 }
 
@@ -88,8 +88,7 @@ function TicketForm({ categoryId, onSubmit, submitting }: TicketFormProps) {
       content: description,
       form_values: Object.entries(fieldValues).map(([id, value]) => ({ field: id, value })),
       metadata: meta ?? undefined,
-    });
-    clear();
+    }).then(clear);
   };
 
   return (
