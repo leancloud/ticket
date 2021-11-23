@@ -43,33 +43,37 @@ function RecentTickets({ authorId, excludeNid }) {
     <>
       <div className={styles.title}>{t('ticket.recently')}</div>
       <ul className={styles.recentList}>
-        {tickets.map((ticketItem) => {
-          return (
-            <li key={ticketItem.nid}>
-              <div className={styles.ticketInfo}>
-                <Link
-                  to={`/tickets/${ticketItem.nid}`}
-                  title={ticketItem.title}
-                  className={styles.link}
-                >
-                  <span className={styles.nid}>#{ticketItem.nid}</span>
-                  {ticketItem.title}
-                </Link>
-                <TicketStatusLabel status={ticketItem.status} />
-                <span
-                  className={styles.creator}
-                  title={moment(ticketItem.created_at).format('YYYY-MM-DD HH:MM')}
-                >
-                  {t('createdAt')} {moment(ticketItem.created_at).fromNow()}
-                </span>
-              </div>
+        {tickets.map((ticketItem) => (
+          <li key={ticketItem.nid}>
+            <Link
+              to={`/tickets/${ticketItem.nid}`}
+              title={ticketItem.title}
+              className={styles.link}
+            >
+              <span className={styles.nid}>#{ticketItem.nid}</span>
+              {ticketItem.title}
+            </Link>
 
-              <span>
-                {ticketItem.assignee ? <UserLabel user={ticketItem.assignee} /> : '<unassigned>'}
-              </span>
-            </li>
-          )
-        })}
+            <span>
+              <TicketStatusLabel status={ticketItem.status} />
+            </span>
+
+            <span
+              className={styles.timestamp}
+              title={moment(ticketItem.created_at).format('YYYY-MM-DD HH:MM')}
+            >
+              {t('createdAt')} {moment(ticketItem.created_at).fromNow()}
+            </span>
+
+            <span>
+              {ticketItem.assignee ? (
+                <UserLabel user={ticketItem.assignee} />
+              ) : (
+                `<${t('unassigned')}>`
+              )}
+            </span>
+          </li>
+        ))}
       </ul>
     </>
   )
