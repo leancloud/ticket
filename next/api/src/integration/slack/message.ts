@@ -32,26 +32,28 @@ export class Message {
 }
 
 function getTicketLink(ticket: Ticket): string {
-  return `<${ticket.getUrl()}|#${ticket.nid}>`;
+  let title = ticket.title;
+  if (title.length > 50) {
+    title = title.slice(0, 47) + '...';
+  }
+  return `<${ticket.getUrl()}|*#${ticket.nid}: ${title}*>`;
 }
 
 export class NewTicketMessage extends Message {
   constructor(ticket: Ticket, author: User, assignee?: User) {
-    let summary = `:envelope: ${author.getDisplayName()} 提交工单 ${getTicketLink(ticket)}`;
+    let summary = `:envelope: ${author.getDisplayName()} 提交工单`;
     if (assignee) {
-      summary += ` 给 ${assignee.getDisplayName()}`;
+      summary += `给 ${assignee.getDisplayName()}`;
     }
-    super(summary, ticket.title + '\n\n' + ticket.content);
+    super(summary, `${getTicketLink(ticket)}\n\n${ticket.content}`);
   }
 }
 
 export class ChangeAssigneeMessage extends Message {
   constructor(ticket: Ticket, operator: User, assignee?: User) {
     const assigneeName = assignee ? assignee.getDisplayName() : '<未分配>';
-    const summary = `:arrows_counterclockwise: ${operator.getDisplayName()} 转移工单 ${getTicketLink(
-      ticket
-    )} 给 ${assigneeName}`;
-    let content = ticket.title;
+    const summary = `:arrows_counterclockwise: ${operator.getDisplayName()} 将工单转移给 ${assigneeName}`;
+    let content = getTicketLink(ticket);
     if (ticket.latestReply) {
       content += '\n\n' + ticket.latestReply.content;
     }
@@ -62,8 +64,8 @@ export class ChangeAssigneeMessage extends Message {
 export class ReplyTicketMessage extends Message {
   constructor(ticket: Ticket, reply: Reply, author: User) {
     super(
-      `:speech_balloon: ${author.getDisplayName()} 回复工单 ${getTicketLink(ticket)}`,
-      ticket.title + '\n\n' + reply.content
+      `:speech_balloon: ${author.getDisplayName()} 回复工单`,
+      `${getTicketLink(ticket)}\n\n${reply.content}`
     );
   }
 }
@@ -71,8 +73,8 @@ export class ReplyTicketMessage extends Message {
 export class InternalReplyMessage extends Message {
   constructor(ticket: Ticket, reply: Reply, author: User) {
     super(
-      `:shushing_face: ${author.getDisplayName()} 为工单 ${getTicketLink(ticket)} 添加内部回复`,
-      ticket.title + '\n\n' + reply.content
+      `:shushing_face: ${author.getDisplayName()} 提交内部回复`,
+      `${getTicketLink(ticket)}\n\n${reply.content}`
     );
     this.color = '#f2c744';
   }
@@ -80,19 +82,13 @@ export class InternalReplyMessage extends Message {
 
 export class CloseTicketMessage extends Message {
   constructor(ticket: Ticket, operator: User) {
-    super(
-      `:red_circle: ${operator.getDisplayName()} 关闭了工单 ${getTicketLink(ticket)}`,
-      ticket.title
-    );
+    super(`:red_circle: ${operator.getDisplayName()} 关闭工单`, getTicketLink(ticket));
   }
 }
 
 export class ResolveTicketMessage extends Message {
   constructor(ticket: Ticket, operator: User) {
-    super(
-      `:white_check_mark: ${operator.getDisplayName()} 认为工单 ${getTicketLink(ticket)} 已解决`,
-      ticket.title
-    );
+    super(`:white_check_mark: ${operator.getDisplayName()} 认为工单已解决`, getTicketLink(ticket));
   }
 }
 
@@ -101,8 +97,8 @@ export class EvaluateTicketMessage extends Message {
     const { star, content } = ticket.evaluation!;
     const emoji = star ? ':thumbsup:' : ':thumbsdown:';
     super(
-      `${emoji} ${operator.getDisplayName()} 评价工单 ${getTicketLink(ticket)}`,
-      ticket.title + '\n\n' + content
+      `${emoji} ${operator.getDisplayName()} 评价工单`,
+      `${getTicketLink(ticket)}\n\n${content}`
     );
   }
 }
@@ -110,10 +106,10 @@ export class EvaluateTicketMessage extends Message {
 export class DelayNotifyMessage extends Message {
   constructor(ticket: Ticket, assignee?: User) {
     const assigneeName = assignee ? assignee.getDisplayName() : '<未分配>';
-    let content = ticket.title;
+    let content = getTicketLink(ticket);
     if (ticket.latestReply) {
       content += '\n\n' + ticket.latestReply.content;
     }
-    super(`:alarm_clock: 提醒 ${assigneeName} 回复工单 ${getTicketLink(ticket)}`, content);
+    super(`:alarm_clock: 提醒 ${assigneeName} 回复工单`, content);
   }
 }
