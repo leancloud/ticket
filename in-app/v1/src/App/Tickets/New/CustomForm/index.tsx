@@ -44,13 +44,25 @@ export function Group({ title, required, children, labelAtTop }: GroupProps) {
 
 export interface CustomFormProps {
   fields: CategoryFieldSchema[];
+  defaultValues?: Record<string, any>;
+  onChange?: (data: Record<string, any>) => void;
   onSubmit: (data: Record<string, any>) => void;
   submitting?: boolean;
 }
 
-export function CustomForm({ fields, onSubmit, submitting }: CustomFormProps) {
+export function CustomForm({
+  fields,
+  defaultValues,
+  onChange,
+  onSubmit,
+  submitting,
+}: CustomFormProps) {
   const { t } = useTranslation();
-  const methods = useForm();
+  const methods = useForm({ defaultValues });
+
+  if (onChange) {
+    methods.watch(onChange);
+  }
 
   const getFieldTitle = useCallback(
     ({ id, title }: CategoryFieldSchema) => {
