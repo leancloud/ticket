@@ -8,6 +8,7 @@ import { http } from 'leancloud';
 import { Reply } from 'types';
 import { Time } from 'components/Time';
 import { FileInfoWithKey, FileItems } from 'components/FileItem';
+import style from './index.module.css';
 
 interface ReplyItemProps {
   data: Reply;
@@ -48,7 +49,10 @@ function ReplyItem({ data, isLast }: ReplyItemProps) {
           })}
         >
           {data.content.length > 0 && (
-            <div className="m-2 whitespace-pre-line break-all">{data.content}</div>
+            <div
+              className={`${style.content} markdown-body`}
+              dangerouslySetInnerHTML={{ __html: data.content_HTML }}
+            />
           )}
           {files.length > 0 && <FileItems className="ml-2 mt-2" files={files} />}
         </div>
@@ -66,6 +70,7 @@ async function fetchReplies(ticketId: string, cursor?: string): Promise<Reply[]>
   return data.map((reply) => ({
     id: reply.id,
     content: reply.content,
+    content_HTML: reply.content_HTML,
     isStaff: reply.is_customer_service,
     files: reply.files,
     createdAt: new Date(reply.created_at),

@@ -41,6 +41,7 @@ export interface Ticket {
 export interface Reply {
   id: string;
   content: string;
+  content_HTML: string;
   isStaff: boolean;
   files: File[];
   createdAt: Date;
