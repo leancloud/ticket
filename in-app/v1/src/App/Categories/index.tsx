@@ -82,7 +82,7 @@ export function CategoryList({ categories, marker, ...props }: CategoryListProps
 
 export default function Categories() {
   const { id } = useParams();
-  const nevigate = useNavigate();
+  const navigate = useNavigate();
   const result = useCategories();
   const { data: categories, isLoading: categoriesIsLoading, error } = result;
   const { t } = useTranslation();
