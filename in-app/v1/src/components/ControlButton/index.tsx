@@ -1,5 +1,5 @@
 import { ComponentPropsWithoutRef, useCallback } from 'react';
-import { useHistory, useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import cx from 'classnames';
 
 import BackIcon from 'icons/Back';
@@ -7,9 +7,9 @@ import HomeIcon from 'icons/Home';
 import styles from './index.module.css';
 
 export function ControlButton(props: ComponentPropsWithoutRef<'div'>) {
-  const history = useHistory();
-  const goBack = useCallback(() => history.goBack(), [history]);
-  const goHome = useCallback(() => history.push('/'), [history]);
+  const navigate = useNavigate();
+  const goBack = useCallback(() => navigate(-1), [history]);
+  const goHome = useCallback(() => navigate('/'), [history]);
 
   const { pathname } = useLocation();
 

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Link, Route, Switch, useRouteMatch } from 'react-router-dom';
+import { Link, Route, Routes } from 'react-router-dom';
 import { useInfiniteQuery } from 'react-query';
 import { useTranslation } from 'react-i18next';
 import { InView } from 'react-intersection-observer';
@@ -122,19 +122,11 @@ export function TicketList() {
 }
 
 export default function Tickets() {
-  const { path } = useRouteMatch();
-
   return (
-    <Switch>
-      <Route path={path} exact>
-        <TicketList />
-      </Route>
-      <Route path={`${path}/new`}>
-        <NewTicket />
-      </Route>
-      <Route path={`${path}/:id`}>
-        <TicketDetail />
-      </Route>
-    </Switch>
+    <Routes>
+      <Route index element={<TicketList />} />
+      <Route path="new" element={<NewTicket />} />
+      <Route path=":id" element={<TicketDetail />} />
+    </Routes>
   );
 }

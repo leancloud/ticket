@@ -202,7 +202,8 @@ function useWatchReply(
 }
 
 export default function TicketDetail() {
-  const { id } = useParams<{ id: string }>();
+  const params = useParams();
+  const id = params.id!;
   const { t } = useTranslation();
   const clearLocalUnreadCount = useClearLocalUnreadCount();
   useEffect(() => clearLocalUnreadCount(id), [id]);

@@ -1,5 +1,5 @@
 import { useQuery } from 'react-query';
-import { Route, Switch, useParams, useRouteMatch } from 'react-router-dom';
+import { Route, Routes, useParams } from 'react-router-dom';
 import { Article } from 'types';
 import { http } from 'leancloud';
 import { PageContent, PageHeader } from 'components/Page';
@@ -18,9 +18,9 @@ function useArticle(id: string) {
 }
 
 function ArticleDetail() {
-  const { id } = useParams<{ id: string }>();
-  const result = useArticle(id);
-  const { data: article, isLoading, error } = result;
+  const { id } = useParams();
+  const result = useArticle(id!);
+  const { data: article } = result;
 
   return (
     <QueryWrapper result={result}>
@@ -29,20 +29,16 @@ function ArticleDetail() {
         <div
           className="px-5 py-3 markdown-body"
           dangerouslySetInnerHTML={{ __html: article?.contentSafeHTML ?? '' }}
-        ></div>
+        />
       </PageContent>
     </QueryWrapper>
   );
 }
 
 export default function Articles() {
-  const { path } = useRouteMatch();
-
   return (
-    <Switch>
-      <Route path={`${path}/:id`}>
-        <ArticleDetail />
-      </Route>
-    </Switch>
+    <Routes>
+      <Route path=":id" element={<ArticleDetail />} />
+    </Routes>
   );
 }

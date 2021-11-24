@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { Link, useHistory, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQuery, UseQueryResult } from 'react-query';
 import { useTranslation } from 'react-i18next';
 import { ChevronRightIcon } from '@heroicons/react/solid';
@@ -81,8 +81,8 @@ export function CategoryList({ categories, marker, ...props }: CategoryListProps
 }
 
 export default function Categories() {
-  const { id } = useParams<{ id: string }>();
-  const history = useHistory();
+  const { id } = useParams();
+  const nevigate = useNavigate();
   const result = useCategories();
   const { data: categories, isLoading: categoriesIsLoading, error } = result;
   const { t } = useTranslation();
@@ -103,9 +103,9 @@ export default function Categories() {
   const redirectToNewTicket = noSubCategories && noFAQs;
   useEffect(() => {
     if (redirectToNewTicket) {
-      history.replace(`/tickets/new?category_id=${id}`);
+      nevigate(`/tickets/new?category_id=${id}`, { replace: true });
     }
-  }, [redirectToNewTicket, history, id]);
+  }, [redirectToNewTicket, nevigate, id]);
 
   const isLoading = categoriesIsLoading || FAQsIsLoading;
   const title = isLoading ? t('general.loading') + '...' : currentCategory?.name;

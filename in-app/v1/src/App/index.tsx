@@ -1,5 +1,5 @@
-import { createContext, PropsWithChildren, useContext, useEffect, useMemo, useState } from 'react';
-import { BrowserRouter, Redirect, Route, Switch } from 'react-router-dom';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { ArrayParam, decodeQueryParams, JsonParam, StringParam } from 'serialize-query-params';
 import { parse } from 'query-string';
@@ -24,7 +24,7 @@ const queryClient = new QueryClient({
   },
 });
 
-function PrivateRoute(props: PropsWithChildren<{ path: string; exact?: boolean }>) {
+function RequireAuth({ children }: { children: JSX.Element }) {
   const [auth, loading, error] = useAuth();
   if (loading) {
     return <Loading />;
@@ -33,9 +33,9 @@ function PrivateRoute(props: PropsWithChildren<{ path: string; exact?: boolean }
     return <APIError onRetry={() => location.reload()} />;
   }
   if (!auth) {
-    return <Redirect to="/login" />;
+    return <Navigate to="/login" />;
   }
-  return <Route {...props} />;
+  return children;
 }
 
 const RootCategoryContext = createContext<string | undefined>(undefined);
@@ -101,7 +101,7 @@ export default function App() {
           <RootCategoryContext.Provider value={rootCategory}>
             <AuthContext.Provider value={auth}>
               <TicketInfoContext.Provider value={ticketInfo}>
-                <Routes />
+                <AppRoutes />
               </TicketInfoContext.Provider>
             </AuthContext.Provider>
           </RootCategoryContext.Provider>
@@ -111,27 +111,36 @@ export default function App() {
   );
 }
 
-const Routes = () => {
+const AppRoutes = () => {
   return (
-    <Switch>
-      <Route path="/login">
-        <LogIn />
-      </Route>
-      <PrivateRoute path="/tickets">
-        <Tickets />
-      </PrivateRoute>
-      <PrivateRoute path="/categories/:id">
-        <Categories />
-      </PrivateRoute>
-      <Route path="/articles">
-        <Articles />
-      </Route>
-      <PrivateRoute path="/" exact>
-        <Home />
-      </PrivateRoute>
-      <Route path="/">
-        <NotFound />
-      </Route>
-    </Switch>
+    <Routes>
+      <Route path="/login" element={<LogIn />} />
+      <Route
+        path="/"
+        element={
+          <RequireAuth>
+            <Home />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/tickets/*"
+        element={
+          <RequireAuth>
+            <Tickets />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/categories/:id"
+        element={
+          <RequireAuth>
+            <Categories />
+          </RequireAuth>
+        }
+      />
+      <Route path="/articles/*" element={<Articles />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 };
