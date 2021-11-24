@@ -13,6 +13,7 @@ export interface CategoryFieldSchema {
   id: string;
   type: FieldType;
   title: string;
+  description: string;
   required: boolean;
   options?: FieldOption[];
 }

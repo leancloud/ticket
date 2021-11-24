@@ -4,9 +4,9 @@ import { useController, useFormContext } from 'react-hook-form';
 
 import { Radio } from '@/components/Form';
 import { CustomFieldProps } from '..';
-import { ErrorMessage } from '../ErrorMessage';
+import { Description } from '../Description';
 
-export function RadioGroup({ id, required, options }: CustomFieldProps) {
+export function RadioGroup({ id, description, options, required }: CustomFieldProps) {
   const { t } = useTranslation();
   const { control } = useFormContext();
   const {
@@ -39,7 +39,9 @@ export function RadioGroup({ id, required, options }: CustomFieldProps) {
           </div>
         ))}
       </div>
-      {error && <ErrorMessage className="mt-3">{error.message}</ErrorMessage>}
+      <Description className="mt-3" error={error}>
+        {description}
+      </Description>
     </div>
   );
 }

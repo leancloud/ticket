@@ -3,9 +3,9 @@ import { useFormContext } from 'react-hook-form';
 import cx from 'classnames';
 
 import { CustomFieldProps } from '..';
-import { ErrorMessage } from '../ErrorMessage';
+import { Description } from '../Description';
 
-export function Input({ id, required }: CustomFieldProps) {
+export function Input({ id, description, required }: CustomFieldProps) {
   const { t } = useTranslation();
   const { register, formState } = useFormContext();
   const error = formState.errors[id];
@@ -26,7 +26,9 @@ export function Input({ id, required }: CustomFieldProps) {
         })}
         type="text"
       />
-      {error && <ErrorMessage className="mt-1">{error.message}</ErrorMessage>}
+      <Description className="mt-1" error={error}>
+        {description}
+      </Description>
     </div>
   );
 }

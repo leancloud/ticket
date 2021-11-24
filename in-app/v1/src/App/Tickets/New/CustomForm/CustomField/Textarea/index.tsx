@@ -3,11 +3,11 @@ import { useFormContext } from 'react-hook-form';
 import cx from 'classnames';
 
 import { CustomFieldProps } from '..';
-import { ErrorMessage } from '../ErrorMessage';
+import { Description } from '../Description';
 
 const DEFAULT_ROWS = 3;
 
-export function Textarea({ id, required }: CustomFieldProps) {
+export function Textarea({ id, description, required }: CustomFieldProps) {
   const { t } = useTranslation();
   const { register, formState } = useFormContext();
   const error = formState.errors[id];
@@ -28,7 +28,7 @@ export function Textarea({ id, required }: CustomFieldProps) {
         })}
         rows={DEFAULT_ROWS}
       />
-      {error && <ErrorMessage className="mt-0.5">{error.message}</ErrorMessage>}
+      <Description error={error}>{description}</Description>
     </div>
   );
 }

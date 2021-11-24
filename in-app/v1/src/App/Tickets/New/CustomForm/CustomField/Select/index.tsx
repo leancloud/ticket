@@ -4,9 +4,9 @@ import { ChevronDownIcon } from '@heroicons/react/solid';
 import cx from 'classnames';
 
 import { CustomFieldProps } from '..';
-import { ErrorMessage } from '../ErrorMessage';
+import { Description } from '../Description';
 
-export function Select({ id, required, options }: CustomFieldProps) {
+export function Select({ id, description, options, required }: CustomFieldProps) {
   const { t } = useTranslation();
   const { register, formState, control } = useFormContext();
   const value = useWatch({ control, name: id });
@@ -42,7 +42,9 @@ export function Select({ id, required, options }: CustomFieldProps) {
         <ChevronDownIcon className="w-4 h-4 absolute right-2 text-[#BFBFBF] pointer-events-none" />
       </div>
 
-      {error && <ErrorMessage className="mt-1">{error.message}</ErrorMessage>}
+      <Description className="mt-1" error={error}>
+        {description}
+      </Description>
     </div>
   );
 }
