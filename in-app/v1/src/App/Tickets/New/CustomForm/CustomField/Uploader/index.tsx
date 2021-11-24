@@ -8,7 +8,7 @@ import { useUpload } from '@/utils/useUpload';
 import { CustomFieldProps } from '..';
 import { Description } from '../Description';
 
-export function Uploader({ id, description, required }: CustomFieldProps) {
+export function Uploader({ id, description, required, htmlId }: CustomFieldProps) {
   const { t } = useTranslation();
   const { element: alertElement, alert } = useAlert();
 
@@ -55,6 +55,7 @@ export function Uploader({ id, description, required }: CustomFieldProps) {
     <div ref={$container}>
       {alertElement}
       <_Uploader
+        id={htmlId}
         files={files}
         onUpload={(files) => upload(files[0])}
         onDelete={(file) => remove(file.key)}

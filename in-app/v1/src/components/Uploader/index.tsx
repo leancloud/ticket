@@ -16,6 +16,7 @@ export interface FileInfo<Key extends FileKey> {
 }
 
 export interface UploaderProps<Key extends FileKey> {
+  id?: string;
   files?: FileInfo<Key>[];
   onUpload?: (files: FileList) => void;
   onDelete?: (file: FileInfo<Key>) => void;
@@ -23,6 +24,7 @@ export interface UploaderProps<Key extends FileKey> {
 }
 
 export function Uploader<Key extends FileKey>({
+  id,
   files,
   onUpload,
   onDelete,
@@ -56,7 +58,7 @@ export function Uploader<Key extends FileKey>({
         )}
         onClick={handleClick}
       >
-        <input className="hidden" type="file" ref={$input} onChange={handleChange} />
+        <input id={id} className="hidden" type="file" ref={$input} onChange={handleChange} />
         <div className="flex items-center select-none">
           <PlusIcon className="w-4 h-4 text-tapBlue" />
           <span className="ml-1 text-[#666] text-sm">{t('general.click_to_upload')}</span>

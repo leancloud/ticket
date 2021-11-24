@@ -7,7 +7,7 @@ import { Description } from '../Description';
 
 const DEFAULT_ROWS = 3;
 
-export function Textarea({ id, description, required }: CustomFieldProps) {
+export function Textarea({ id, description, required, htmlId }: CustomFieldProps) {
   const { t } = useTranslation();
   const { register, formState } = useFormContext();
   const error = formState.errors[id];
@@ -21,6 +21,7 @@ export function Textarea({ id, description, required }: CustomFieldProps) {
             message: t('validation.required'),
           },
         })}
+        id={htmlId}
         className={cx('w-full px-3 py-1.5 border rounded text-sm', {
           'border-red-500': error,
           'border-[rgba(0,0,0,0.08)]': !error,

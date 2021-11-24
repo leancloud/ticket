@@ -6,7 +6,7 @@ import cx from 'classnames';
 import { CustomFieldProps } from '..';
 import { Description } from '../Description';
 
-export function Select({ id, description, options, required }: CustomFieldProps) {
+export function Select({ id, description, options, required, htmlId }: CustomFieldProps) {
   const { t } = useTranslation();
   const { register, formState, control } = useFormContext();
   const value = useWatch({ control, name: id });
@@ -22,6 +22,7 @@ export function Select({ id, description, options, required }: CustomFieldProps)
               message: t('validation.required'),
             },
           })}
+          id={htmlId}
           className={cx('w-full px-3 py-2 border rounded text-sm', {
             'text-[#BFBFBF]': !value,
             'focus:border-tapBlue focus:ring-1 focus:ring-tapBlue': !error,
