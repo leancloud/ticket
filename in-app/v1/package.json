@@ -20,7 +20,7 @@
     "i18next-browser-languagedetector": "^6.1.2",
     "immer": "^9.0.6",
     "lodash-es": "^4.17.21",
-    "open-leancloud-storage": "0.0.37",
+    "open-leancloud-storage": "0.0.35",
     "query-string": "^7.0.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
