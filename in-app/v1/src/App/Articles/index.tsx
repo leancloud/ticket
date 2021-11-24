@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { useQuery } from 'react-query';
 import { Route, Switch, useParams, useRouteMatch } from 'react-router-dom';
 import { Article } from 'types';
@@ -17,6 +16,7 @@ function useArticle(id: string) {
     staleTime: 60_000,
   });
 }
+
 function ArticleDetail() {
   const { id } = useParams<{ id: string }>();
   const result = useArticle(id);
