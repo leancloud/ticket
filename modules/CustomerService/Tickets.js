@@ -662,6 +662,14 @@ BatchOperationMenu.propTypes = {
   onBatchOperate: PropTypes.func.isRequired,
 }
 
+function getGroupRoles() {
+  return auth
+    .queryRole()
+    .where('name', 'starts-with', 'group_')
+    .where('users', '==', auth.currentUser)
+    .find()
+}
+
 async function getQuery(filters) {
   const {
     timeRange,
@@ -697,11 +705,7 @@ async function getQuery(filters) {
     if (groupId === 'unset') {
       query = query.where('group', 'not-exists')
     } else if (groupId === 'mine') {
-      const groupRoles = await auth
-        .queryRole()
-        .where('name', 'starts-with', 'group_')
-        .where('users', '==', auth.currentUser)
-        .find()
+      const groupRoles = await getGroupRoles()
       query = query.where(
         'group',
         'in',
@@ -735,6 +739,90 @@ async function getQuery(filters) {
   return query
 }
 
+async function getSearch(filters, tagMetaDatas) {
+  const {
+    searchString,
+    tagKey,
+    tagValue,
+    timeRange,
+    stage,
+    status,
+    groupId,
+    assignee,
+    authorId,
+    categoryId,
+    isOnlyUnlike,
+  } = filters
+  const search = db.search('Ticket')
+  let conditions = []
+
+  if (searchString?.trim()) {
+    conditions.push(`(title:${searchString} OR content:${searchString} OR nid:${searchString})`)
+  }
+  if (timeRange && timeRange in TIME_RANGE_MAP) {
+    const { starts, ends } = TIME_RANGE_MAP[timeRange]
+    conditions.push(`createdAt:[${starts.toISOString()} TO ${ends.toISOString()}]`)
+  }
+
+  if (stage === 'todo') {
+    search.orderBy('status')
+    conditions.push(`status:<=${TICKET_STATUS.WAITING_CUSTOMER_SERVICE}`)
+  } else if (stage === 'in-progress') {
+    conditions.push(
+      `status:{${TICKET_STATUS.WAITING_CUSTOMER_SERVICE} TO ${TICKET_STATUS.FULFILLED}}`
+    )
+  } else if (stage === 'done') {
+    conditions.push(`status:>=${TICKET_STATUS.FULFILLED}`)
+  } else if (status) {
+    conditions.push(`status:${parseInt(status)}`)
+  }
+
+  if (groupId) {
+    if (groupId === 'unset') {
+      conditions.push(`_missing_:group`)
+    } else if (groupId === 'mine') {
+      const groupRoles = await getGroupRoles()
+      const ids = groupRoles.map((group) => group.data.name.slice(6))
+      conditions.push(`group.objectId:(${ids.join(' OR ')})`)
+    } else {
+      conditions.push(`group.objectId:${groupId}`)
+    }
+  }
+
+  if (assignee) {
+    if (assignee === 'unset') {
+      conditions.push(`_missing_:assignee`)
+    } else {
+      const assigneeId = assignee === 'me' ? auth.currentUser?.id : assignee
+      conditions.push(`assignee.objectId:${assigneeId}`)
+    }
+  }
+
+  if (authorId) {
+    conditions.push(`author.objectId:${authorId}`)
+  }
+  if (categoryId) {
+    conditions.push(`category.objectId:${categoryId}`)
+  }
+  if (isOnlyUnlike === 'true') {
+    conditions.push(`evaluation.star:0`)
+  }
+
+  if (tagKey) {
+    const tagMetadata = tagMetaDatas.find((m) => m.data.key === tagKey)
+    if (tagMetadata) {
+      const columnName = tagMetadata.data.isPrivate ? 'privateTags' : 'tags'
+      conditions.push(`${columnName}.key:${tagKey}`)
+      if (tagValue) {
+        conditions.push(`${columnName}.value:${tagValue}`)
+      }
+    }
+  }
+
+  search.queryString(conditions.join(' AND '))
+  return search
+}
+
 /**
  * @param {object} filter
  * @param {Array} [filter.statuses]
@@ -747,49 +835,55 @@ export function useTickets() {
   const { tagMetadatas } = useContext(AppContext)
   const { filters } = useTicketFilters()
 
-  const findTickets = useCallback(async (filters = {}) => {
-    const { page = '0', searchString, tagKey, tagValue } = filters
+  const findTickets = useCallback(
+    async (filters = {}) => {
+      const { page = '0', searchString, tagKey, tagValue, stage } = filters
 
-    let query = await getQuery(filters)
+      const trimmedSearchString = searchString?.trim()
 
-    const trimedSearchString = searchString?.trim()
-    if (trimedSearchString) {
-      const { data: tickets } = await db
-        .search('Ticket')
-        .queryString(`title:${searchString} OR content:${searchString}`)
-        .orderBy('latestReply.updatedAt', 'desc')
-        .limit(1000)
-        .find()
-      const searchMatchedTicketIds = tickets.map((t) => t.id)
-      if (searchMatchedTicketIds.length === 0) {
-        setTickets([])
+      if (trimmedSearchString) {
+        const search = await getSearch(filters, tagMetadatas)
+        if (stage === 'todo') {
+          search.orderBy('status')
+        }
+        const { data: tickets, hits } = await search
+          .include('author', 'assignee')
+          .limit(PAGE_SIZE)
+          .skip(parseInt(page) * PAGE_SIZE)
+          .orderBy('latestReply.updatedAt', 'desc')
+          .orderBy('updatedAt', 'desc')
+          .find()
+        setTickets(tickets.map((item) => item.toJSON()))
+        setTotalCount(hits)
         return
       }
-      query = query.where('objectId', 'in', searchMatchedTicketIds)
-    }
 
-    if (tagKey) {
-      const tagMetadata = tagMetadatas.find((m) => m.data.key === tagKey)
-      if (tagMetadata) {
-        const columnName = tagMetadata.data.isPrivate ? 'privateTags' : 'tags'
-        if (tagValue) {
-          query = query.where(columnName, '==', { key: tagKey, value: tagValue })
-        } else {
-          query = query.where(columnName + '.key', '==', tagKey)
+      let query = await getQuery(filters)
+
+      if (tagKey) {
+        const tagMetadata = tagMetadatas.find((m) => m.data.key === tagKey)
+        if (tagMetadata) {
+          const columnName = tagMetadata.data.isPrivate ? 'privateTags' : 'tags'
+          if (tagValue) {
+            query = query.where(columnName, '==', { key: tagKey, value: tagValue })
+          } else {
+            query = query.where(columnName + '.key', '==', tagKey)
+          }
         }
       }
-    }
 
-    const [ticketObjects, count] = await query
-      .include('author', 'assignee')
-      .limit(PAGE_SIZE)
-      .skip(parseInt(page) * PAGE_SIZE)
-      .orderBy('latestReply.updatedAt', 'desc')
-      .orderBy('updatedAt', 'desc')
-      .findAndCount()
-    setTickets(ticketObjects.map((t) => t.toJSON()))
-    setTotalCount(count)
-  }, [])
+      const [ticketObjects, count] = await query
+        .include('author', 'assignee')
+        .limit(PAGE_SIZE)
+        .skip(parseInt(page) * PAGE_SIZE)
+        .orderBy('latestReply.updatedAt', 'desc')
+        .orderBy('updatedAt', 'desc')
+        .findAndCount()
+      setTickets(ticketObjects.map((t) => t.toJSON()))
+      setTotalCount(count)
+    },
+    [tagMetadatas]
+  )
 
   useEffect(() => {
     findTickets(filters)
