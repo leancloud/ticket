@@ -23,7 +23,7 @@ export class TicketFieldResponse {
         _.keyBy(this.variants, (v) => v.locale),
         (v) => ({
           title: v.title,
-          description: v.description ?? '',
+          description: v.description,
           options: v.options,
         })
       );
