@@ -1,5 +1,5 @@
 import { FormEvent, useMemo, useState } from 'react';
-import { Redirect, useHistory } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 import { auth } from 'leancloud';
@@ -8,7 +8,6 @@ import { Input } from 'components/Form';
 import { Button } from 'components/Button';
 
 function LogInForm() {
-  const history = useHistory();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
@@ -50,7 +49,7 @@ export default function LogIn() {
   }, []);
 
   if (auth.currentUser) {
-    return <Redirect to="/" />;
+    return <Navigate to="/" />;
   }
   return (
     <>
