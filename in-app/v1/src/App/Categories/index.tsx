@@ -103,9 +103,9 @@ export default function Categories() {
   const redirectToNewTicket = noSubCategories && noFAQs;
   useEffect(() => {
     if (redirectToNewTicket) {
-      nevigate(`/tickets/new?category_id=${id}`, { replace: true });
+      navigate(`/tickets/new?category_id=${id}`, { replace: true });
     }
-  }, [redirectToNewTicket, nevigate, id]);
+  }, [redirectToNewTicket, navigate, id]);
 
   const isLoading = categoriesIsLoading || FAQsIsLoading;
   const title = isLoading ? t('general.loading') + '...' : currentCategory?.name;
