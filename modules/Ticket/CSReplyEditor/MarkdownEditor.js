@@ -38,6 +38,9 @@ function resize(element) {
 function useAutoResize() {
   const $height = useRef()
   const callbackRef = useCallback((element) => {
+    if (!element) {
+      return
+    }
     $height.current = resize(element)
     element.addEventListener('input', (e) => {
       $height.current = resize(e.target)

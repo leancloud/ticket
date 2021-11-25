@@ -159,6 +159,9 @@
 .recentList li > span {
   flex-shrink: 0;
 }
+.recentList li > span:nth-last-child(2) {
+  flex-grow: 1;
+}
 .recentList .link {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -167,9 +170,29 @@
 }
 .recentList .timestamp {
   color: #777;
-  flex-grow: 1;
 }
 .nid {
   color: #afafaf;
   margin-right: .5em;
+}
+
+@media (max-width: 500px) {
+  .recentList li > span:nth-last-child(2) {
+    display: none;
+  }
+  .recentList li > span:nth-last-child(3) {
+    flex-grow: 1;
+  }
+}
+
+@media (max-width: 400px) {
+  .recentList li > span:nth-last-child(1) {
+    display: none;
+  }
+  .recentList li > span:nth-last-child(3) {
+    flex-grow: unset;
+  }
+  .recentList li > a {
+    flex-grow: 1;
+  }
 }
