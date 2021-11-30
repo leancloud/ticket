@@ -119,3 +119,9 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 交互式的 Slack 通知现已内置，可按需开启。之前未使用的应用需要导入 SlackNotification.json。
 
 已使用的应用需要将环境变量中的配置移到 Config class 中（格式可参考开发环境），并重新设置 Slack App 的 interactive endpint。
+
+## 2021-11-29
+
+### `bd02da4a2a7f9d9ccc83a1aaa351ca4602756cfc`
+
+重写了关键词搜索功能。在「全文搜索」中为 Ticket class 的 content、author、category、title、status、group、assignee、evaluation、tags、nid 列添加索引。
