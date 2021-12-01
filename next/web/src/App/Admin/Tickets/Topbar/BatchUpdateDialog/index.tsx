@@ -2,8 +2,7 @@ import { Fragment, PropsWithChildren, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import cx from 'classnames';
 
-import { Button } from '@/components/antd';
-import { Label, Textarea } from 'components/Form';
+import { Button, Input } from '@/components/antd';
 import { BatchUpdateData } from '../batchUpdate';
 import { AssigneeSelect } from './AssigneeSelect';
 import { GroupSelect } from './GroupSelect';
@@ -12,7 +11,7 @@ import { CategorySelect } from './CategorySelect';
 function Field({ title, children }: PropsWithChildren<{ title: string }>) {
   return (
     <div className="mt-4">
-      <Label className="block pb-1.5">{title}</Label>
+      <label className="block pb-1.5 text-[#475867] text-sm font-medium">{title}</label>
       {children}
     </div>
   );
@@ -60,8 +59,7 @@ function BatchUpdateForm({ className, onCancel, onSubmit }: BatchUpdateFormProps
     <div id="batchUpdateForm" className={cx('flex flex-col', className)}>
       <div className="flex-grow px-8 py-4 overflow-x-auto">
         <Field title="批量回复">
-          <Textarea
-            className="w-full"
+          <Input.TextArea
             rows={5}
             value={replyContent}
             onChange={(e) => setReplyContent(e.target.value)}

@@ -3,7 +3,6 @@ import cx from 'classnames';
 import { isUndefined, omitBy } from 'lodash-es';
 
 import { Button } from '@/components/antd';
-import Form from 'components/Form';
 import { AssigneeSelect } from './AssigneeSelect';
 import { GroupSelect } from './GroupSelect';
 import { CreatedAtSelect } from './CreatedAtSelect';
@@ -14,7 +13,7 @@ import { FilterMap } from '..';
 function Field({ title, children }: PropsWithChildren<{ title: string }>) {
   return (
     <div className="mt-4">
-      <Form.Label className="block pb-1.5">{title}</Form.Label>
+      <label className="block pb-1.5 text-[#475867] text-sm font-medium">{title}</label>
       {children}
     </div>
   );

@@ -2,8 +2,7 @@ import { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import cx from 'classnames';
 
-import { Button } from '@/components/antd';
-import Form from 'components/Form';
+import { Button, Input, Radio } from '@/components/antd';
 
 export interface SaveData {
   name: string;
@@ -46,39 +45,29 @@ export function SaveDialog({
       >
         <div className="p-4">
           <div>
-            <Form.Label required>将视图保存为</Form.Label>
-            <Form.Input
-              className="w-full mt-2"
+            <label className="block mb-2 text-[#475867] text-sm font-medium">
+              将视图保存为
+              <span className="relative top-0.5 ml-0.5 text-[#d72d30] text-base font-bold">*</span>
+            </label>
+            <Input
               value={data.name}
               onChange={(e) => onChange({ ...data, name: e.target.value })}
             />
           </div>
+
           <div className="mt-4">
-            <Form.Label>显示对象</Form.Label>
-            <div>
-              <Form.Label className="flex items-center mt-2">
-                <Form.Radio
-                  checked={data.privilege === 'private'}
-                  onChange={() => onChange({ ...data, privilege: 'private' })}
-                />
-                <span className="ml-1.5">只有我</span>
-              </Form.Label>
-
-              <Form.Label className="flex items-center mt-2">
-                <Form.Radio
-                  checked={data.privilege === 'group'}
-                  onChange={() => onChange({ ...data, privilege: 'group' })}
-                />
-                <span className="ml-1.5">同组客服</span>
-              </Form.Label>
-
-              <Form.Label className="flex items-center mt-2">
-                <Form.Radio
-                  checked={data.privilege === 'public'}
-                  onChange={() => onChange({ ...data, privilege: 'public' })}
-                />
-                <span className="ml-1.5">所有客服</span>
-              </Form.Label>
+            <label className="text-[#475867] text-sm font-medium">显示对象</label>
+            <div className="mt-2">
+              <Radio.Group
+                value={data.privilege}
+                onChange={(e) => onChange({ ...data, privilege: e.target.value })}
+              >
+                <div className="flex flex-col gap-1">
+                  <Radio value="private">只有我</Radio>
+                  <Radio value="group">同组客服</Radio>
+                  <Radio value="public">所有客服</Radio>
+                </div>
+              </Radio.Group>
             </div>
           </div>
         </div>
