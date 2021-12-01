@@ -4,9 +4,9 @@ import cx from 'classnames';
 import moment from 'moment';
 import { keyBy } from 'lodash-es';
 
-import { TicketSchema } from 'api/ticket';
-import { CategorySchema, useCategories } from 'api/category';
-import { Checkbox } from 'components/Form/Checkbox';
+import { TicketSchema } from '@/api/ticket';
+import { CategorySchema, useCategories } from '@/api/category';
+import { Checkbox } from '@/components/antd';
 import Status from './TicketStatus';
 import styles from './index.module.css';
 

@@ -18,10 +18,10 @@ import { Menu as HLMenu, Transition } from '@headlessui/react';
 import { useQueryClient } from 'react-query';
 import cx from 'classnames';
 
-import { Checkbox } from 'components/Form/Checkbox';
-import Menu from 'components/Menu';
-import { usePage } from 'utils/usePage';
-import { useOrderBy as _useOrderBy } from 'utils/useOrderBy';
+import { Checkbox } from '@/components/antd';
+import Menu from '@/components/Menu';
+import { usePage } from '@/utils/usePage';
+import { useOrderBy as _useOrderBy } from '@/utils/useOrderBy';
 import styles from './index.module.css';
 import { BatchUpdateDialog } from './BatchUpdateDialog';
 import { BatchOperationMenu } from './BatchOperateMenu';
@@ -268,21 +268,22 @@ export function Topbar({
     >
       <div className="flex flex-grow items-center">
         <Checkbox
-          className="mr-4"
           indeterminate={indeterminate}
           disabled={isLoading}
           checked={!!(checkedTicketIds && count && checkedTicketIds.length === count)}
           onChange={(e) => onCheckedChange(e.target.checked)}
         />
-        {!checkedTicketIds || checkedTicketIds.length === 0 ? (
-          <SortDropdown disabled={isLoading} />
-        ) : (
-          <BatchOperations
-            checkedTicketIds={checkedTicketIds}
-            disabled={isLoading}
-            onSuccess={() => onCheckedChange(false)}
-          />
-        )}
+        <span className="ml-4">
+          {!checkedTicketIds || checkedTicketIds.length === 0 ? (
+            <SortDropdown disabled={isLoading} />
+          ) : (
+            <BatchOperations
+              checkedTicketIds={checkedTicketIds}
+              disabled={isLoading}
+              onSuccess={() => onCheckedChange(false)}
+            />
+          )}
+        </span>
       </div>
 
       <Pagination pageSize={pageSize} count={count} totalCount={totalCount} isLoading={isLoading} />
