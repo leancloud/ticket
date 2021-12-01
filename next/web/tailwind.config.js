@@ -5,17 +5,17 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#2C97E8',
-          50: '#FBFDFF',
-          100: '#E4F2FC',
-          200: '#B6DBF7',
-          300: '#88C4F2',
-          400: '#5AAEED',
-          500: '#2C97E8',
-          600: '#167DCB',
-          700: '#11619D',
-          800: '#0C446F',
-          900: '#072841',
+          DEFAULT: '#15c5ce',
+          50: '#fafefe',
+          100: '#fafefe',
+          200: '#fafefe',
+          300: '#effbfc',
+          400: '#e8f9fa',
+          500: '#c7f1f3',
+          600: '#a4e8ec',
+          700: '#44d1d8',
+          800: '#15c5ce',
+          900: '#12adb5',
         },
       },
       fontSize: {
