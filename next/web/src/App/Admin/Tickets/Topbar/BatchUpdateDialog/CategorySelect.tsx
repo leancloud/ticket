@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { keyBy } from 'lodash-es';
 
-import { CategorySchema, useCategories } from 'api/category';
-import { Select } from 'components/Select';
+import { CategorySchema, useCategories } from '@/api/category';
+import { Select } from '@/components/antd';
 
 interface SubCategorySelectProps {
   categories: CategorySchema[];
@@ -21,10 +21,10 @@ function SubCategorySelect({
 }: SubCategorySelectProps) {
   const options = useMemo(() => {
     return [
-      { key: '', text: '-- ' },
+      { label: '-- ', value: '' },
       ...categories
         .filter((c) => c.parentId === parentId)
-        .map((c) => ({ key: c.id, text: c.name })),
+        .map((c) => ({ label: c.name, value: c.id })),
     ];
   }, [categories, parentId, depth]);
 
@@ -36,10 +36,10 @@ function SubCategorySelect({
   return (
     <>
       <Select
-        closeOnChange
+        getPopupContainer={() => document.getElementById('batchUpdateForm')!}
         options={options}
-        selected={value ?? ''}
-        onSelect={(id) => onChange(id || path[depth - 1])}
+        value={value ?? ''}
+        onChange={(id) => onChange(id || path[depth - 1])}
       />
       {value && (
         <SubCategorySelect
@@ -87,7 +87,7 @@ export function CategorySelect({ value, onChange }: CategorySelectProps) {
   }, [categoryMap, value]);
 
   if (isLoading) {
-    return <Select placeholder="Loading..." />;
+    return <Select loading placeholder="Loading..." />;
   }
   return (
     <div className="flex flex-col gap-1.5">

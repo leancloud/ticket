@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
 
-import { useGroups } from 'api/group';
-import { Select } from 'components/Select';
+import { useGroups } from '@/api/group';
+import { Select } from '@/components/antd';
 
-const unassignedOption = { key: 'null', text: '未指派' };
+const unassignedOption = { label: '未指派', value: 'null' };
 
 export interface GroupSelectProps {
   value?: string[] | null;
@@ -15,42 +15,19 @@ export function GroupSelect({ value, onChange }: GroupSelectProps) {
   // TODO: handle api error
 
   const options = useMemo(() => {
-    if (groups) {
-      return [unassignedOption].concat(
-        groups.map((g) => ({
-          key: g.id,
-          text: g.name,
-        }))
-      );
-    }
+    return [unassignedOption, ...(groups ?? []).map((g) => ({ label: g.name, value: g.id }))];
   }, [groups]);
-
-  const handleSelect = (id: string) => {
-    if (value) {
-      onChange(value.concat(id));
-    } else {
-      onChange([id]);
-    }
-  };
-
-  const handleDeselect = (id: string) => {
-    if (value) {
-      const filtered = value.filter((v) => v !== id);
-      if (filtered.length) {
-        onChange(filtered);
-      } else {
-        onChange(null);
-      }
-    }
-  };
 
   return (
     <Select
+      className="w-full"
+      mode="multiple"
+      showArrow
       placeholder={isLoading ? 'Loading...' : '任何'}
+      loading={isLoading}
       options={options}
-      selected={value}
-      onSelect={handleSelect}
-      onDeselect={handleDeselect}
+      value={value ?? undefined}
+      onChange={(value) => onChange(value.length ? value : null)}
     />
   );
 }

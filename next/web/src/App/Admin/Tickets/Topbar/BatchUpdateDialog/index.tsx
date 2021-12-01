@@ -57,7 +57,7 @@ function BatchUpdateForm({ className, onCancel, onSubmit }: BatchUpdateFormProps
   };
 
   return (
-    <div className={cx('flex flex-col', className)}>
+    <div id="batchUpdateForm" className={cx('flex flex-col', className)}>
       <div className="flex-grow px-8 py-4 overflow-x-auto">
         <Field title="批量回复">
           <Textarea
