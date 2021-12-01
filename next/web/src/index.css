@@ -6,12 +6,6 @@ html, body, #app {
   height: 100%;
 }
 
-@layer base {
-  svg {
-    vertical-align: baseline;
-  }
-}
-
 body{
   @apply text-base text-[#183247];
 }

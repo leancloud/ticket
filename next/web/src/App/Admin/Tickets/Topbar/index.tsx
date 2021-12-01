@@ -11,7 +11,6 @@ import { Menu as HLMenu, Transition } from '@headlessui/react';
 import { useQueryClient } from 'react-query';
 import cx from 'classnames';
 
-import { Button } from 'components/Button';
 import { Checkbox } from 'components/Form/Checkbox';
 import Menu from 'components/Menu';
 import { usePage } from 'utils/usePage';
@@ -20,6 +19,25 @@ import styles from './index.module.css';
 import { BatchUpdateDialog } from './BatchUpdateDialog';
 import { BatchOperationMenu } from './BatchOperateMenu';
 import { BatchUpdateData, BatchUpdateError, batchUpdate } from './batchUpdate';
+
+interface NavButtonProps extends ComponentPropsWithoutRef<'button'> {
+  active?: boolean;
+}
+
+function NavButton({ active, ...props }: NavButtonProps) {
+  return (
+    <button
+      {...props}
+      className={cx(
+        'border border-gray-300 rounded px-3 py-1.5 transition-colors text-gray-600 hover:bg-gray-200 disabled:hover:bg-transparent disabled:cursor-default disabled:opacity-40',
+        {
+          'shadow-inner bg-gray-200': active,
+        },
+        props.className
+      )}
+    />
+  );
+}
 
 export const useOrderBy = () =>
   _useOrderBy({
@@ -123,22 +141,22 @@ function BatchOperations({ checkedTicketIds, disabled, onSuccess }: BatchOperati
 
   return (
     <>
-      <Button
+      <NavButton
         className="px-2 py-1"
         disabled={disabled || isLoading}
         onClick={() => setBatchUpdateOpen(!batchUpdateOpen)}
       >
         <HiOutlineRefresh className="inline w-[14px] h-[14px] mb-px mr-1" />
         批量更新
-      </Button>
+      </NavButton>
 
       <BatchOperationMenu
         className="ml-1"
         trigger={
-          <Button className="px-2 py-1" disabled={disabled || isLoading}>
+          <NavButton className="px-2 py-1" disabled={disabled || isLoading}>
             <HiAdjustments className="inline w-[14px] h-[14px] mb-px mr-1" />
             批量操作
-          </Button>
+          </NavButton>
         }
         onOperate={(operation) => handleSubmit({ operation })}
       />
@@ -182,20 +200,20 @@ function Pagination({ pageSize, count, totalCount, isLoading }: PaginationProps)
   return (
     <>
       <span className="text-[#6f7c87]">{text || 'Loading...'}</span>
-      <Button
+      <NavButton
         className="ml-2.5 px-[7px] py-[7px] rounded-r-none"
         disabled={isLoading || page === 1}
         onClick={() => (overflow ? setPage(1) : setPage(page - 1))}
       >
         <HiChevronLeft className="w-4 h-4" />
-      </Button>
-      <Button
+      </NavButton>
+      <NavButton
         className="px-[7px] py-[7px] rounded-l-none"
         disabled={isLoading || noMorePages || overflow}
         onClick={() => setPage(page + 1)}
       >
         <HiChevronRight className="w-4 h-4" />
-      </Button>
+      </NavButton>
     </>
   );
 }
@@ -261,13 +279,13 @@ export function Topbar({
 
       <Pagination pageSize={pageSize} count={count} totalCount={totalCount} isLoading={isLoading} />
 
-      <Button
+      <NavButton
         className="ml-2 px-[7px] py-[7px]"
         active={showFilter}
         onClick={() => onChangeShowFilter?.(!showFilter)}
       >
         <BsLayoutSidebarReverse className="w-4 h-4" />
-      </Button>
+      </NavButton>
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { Fragment, PropsWithChildren, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import cx from 'classnames';
 
-import Button from 'components/Button';
+import { Button } from '@/components/antd';
 import { Label, Textarea } from 'components/Form';
 import { BatchUpdateData } from '../batchUpdate';
 import { AssigneeSelect } from './AssigneeSelect';
@@ -83,12 +83,7 @@ function BatchUpdateForm({ className, onCancel, onSubmit }: BatchUpdateFormProps
         <p className="mt-4 text-sm text-gray-400">留空的条目将保持不变</p>
       </div>
       <div className="flex flex-row-reverse flex-shrink-0 px-6 py-3 bg-[#f8f9fa] border-t border-[#cfd7df]">
-        <Button
-          variant="primary"
-          className="min-w-[80px]"
-          disabled={isLoading}
-          onClick={handleSubmit}
-        >
+        <Button type="primary" className="min-w-[80px]" disabled={isLoading} onClick={handleSubmit}>
           保存
         </Button>
         <Button className="mr-2 min-w-[80px]" disabled={isLoading} onClick={onCancel}>

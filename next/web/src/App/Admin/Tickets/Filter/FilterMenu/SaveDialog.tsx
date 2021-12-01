@@ -2,8 +2,8 @@ import { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import cx from 'classnames';
 
+import { Button } from '@/components/antd';
 import Form from 'components/Form';
-import Button from 'components/Button';
 
 export interface SaveData {
   name: string;
@@ -85,13 +85,14 @@ export function SaveDialog({
 
         <div className="bg-[#f8f9fa] flex flex-row-reverse p-2">
           <Button
-            variant="primary"
+            type="primary"
+            size="small"
             disabled={disabled || !data.name || !data.privilege}
             onClick={onSave}
           >
             保存
           </Button>
-          <Button className="mr-1" disabled={disabled} onClick={onClose}>
+          <Button className="mr-1" size="small" disabled={disabled} onClick={onClose}>
             取消
           </Button>
         </div>
