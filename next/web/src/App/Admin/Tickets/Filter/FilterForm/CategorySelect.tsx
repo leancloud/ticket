@@ -1,8 +1,8 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { last, noop, keyBy } from 'lodash-es';
 
-import { CategorySchema, useCategories } from 'api/category';
-import { Select } from 'components/Select';
+import { CategorySchema, useCategories } from '@/api/category';
+import { Select } from '@/components/antd';
 
 const CategorySelectContext = createContext<{
   categories: CategorySchema[];
@@ -14,7 +14,7 @@ const CategorySelectContext = createContext<{
   setValue: noop,
 });
 
-const anyCategoryOption = { key: '', text: '任何' };
+const anyCategoryOption = { label: '任何', value: '' };
 
 interface SubCategorySelectProps {
   parentId?: string;
@@ -32,12 +32,13 @@ function SubCategorySelect({ parentId, depth }: SubCategorySelectProps) {
   }, [categories, parentId]);
 
   const options = useMemo(() => {
-    return [anyCategoryOption].concat(
-      currentLevel.map((c) => ({
-        key: c.id,
-        text: c.name + (c.active ? '' : '（停用）'),
-      }))
-    );
+    return [
+      anyCategoryOption,
+      ...currentLevel.map((c) => ({
+        label: `${c.name}${c.active ? '' : '（停用）'}`,
+        value: c.id,
+      })),
+    ];
   }, [currentLevel]);
 
   if (currentLevel.length === 0) {
@@ -46,10 +47,9 @@ function SubCategorySelect({ parentId, depth }: SubCategorySelectProps) {
   return (
     <>
       <Select
-        closeOnChange
         options={options}
-        selected={value ?? anyCategoryOption.key}
-        onSelect={(key) => setValue(depth, key || undefined)}
+        value={value ?? anyCategoryOption.value}
+        onChange={(key) => setValue(depth, key || undefined)}
       />
       {value && <SubCategorySelect parentId={value} depth={depth + 1} />}
     </>

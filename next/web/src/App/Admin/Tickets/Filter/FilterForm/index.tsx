@@ -2,8 +2,7 @@ import { PropsWithChildren, useCallback, useEffect, useState } from 'react';
 import cx from 'classnames';
 import { isUndefined, omitBy } from 'lodash-es';
 
-import Form from 'components/Form';
-import Button from 'components/Button';
+import { Button } from '@/components/antd';
 import { AssigneeSelect } from './AssigneeSelect';
 import { GroupSelect } from './GroupSelect';
 import { CreatedAtSelect } from './CreatedAtSelect';
@@ -14,7 +13,7 @@ import { FilterMap } from '..';
 function Field({ title, children }: PropsWithChildren<{ title: string }>) {
   return (
     <div className="mt-4">
-      <Form.Label className="block pb-1.5">{title}</Form.Label>
+      <label className="block pb-1.5 text-[#475867] text-sm font-medium">{title}</label>
       {children}
     </div>
   );
@@ -86,7 +85,7 @@ export function FilterForm({ filters, onChange, className }: FilterFormProps) {
 
       <div className="sticky bottom-0 px-4 pb-2 bg-[#f5f7f9]">
         <div className="pt-4 border-t border-[#ebeff3]">
-          <Button className="w-full" variant="primary" disabled={!isDirty} onClick={handleChange}>
+          <Button className="w-full" type="primary" disabled={!isDirty} onClick={handleChange}>
             应用
           </Button>
         </div>

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 
-import { useCustomerServices } from 'api/user';
-import { Select } from 'components/Select';
+import { useCustomerServices } from '@/api/user';
+import { Select } from '@/components/antd';
 
 export interface AssigneeSelectProps {
   value?: string;
@@ -12,18 +12,21 @@ export function AssigneeSelect({ value, onChange }: AssigneeSelectProps) {
   const { data: assignees, isLoading } = useCustomerServices();
 
   const options = useMemo(() => {
-    if (assignees) {
-      return [{ key: '', text: '--' }, ...assignees.map((a) => ({ key: a.id, text: a.nickname }))];
-    }
+    return [
+      { label: '--', value: '' },
+      ...(assignees ?? []).map((a) => ({ label: a.nickname, value: a.id })),
+    ];
   }, [assignees]);
 
   return (
     <Select
-      closeOnChange
+      className="w-full"
+      getPopupContainer={() => document.getElementById('batchUpdateForm')!}
       options={options}
       placeholder={isLoading ? 'Loading...' : undefined}
-      selected={value ?? ''}
-      onSelect={(id) => onChange(id || undefined)}
+      loading={isLoading}
+      value={value ?? ''}
+      onChange={(id) => onChange(id || undefined)}
     />
   );
 }

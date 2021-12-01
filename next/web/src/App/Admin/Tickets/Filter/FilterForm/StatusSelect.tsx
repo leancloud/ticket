@@ -1,12 +1,12 @@
-import { Select } from 'components/Select';
+import { Select } from '@/components/antd';
 
 const options = [
-  { key: 50, text: '新工单' },
-  { key: 120, text: '等待客服回复' },
-  { key: 160, text: '已回复用户' },
-  { key: 220, text: '待用户确认' },
-  { key: 250, text: '已解决' },
-  { key: 280, text: '已关闭' },
+  { value: 50, label: '新工单' },
+  { value: 120, label: '等待客服回复' },
+  { value: 160, label: '已回复用户' },
+  { value: 220, label: '待用户确认' },
+  { value: 250, label: '已解决' },
+  { value: 280, label: '已关闭' },
 ];
 
 export interface StatusSelectProps {
@@ -15,32 +15,15 @@ export interface StatusSelectProps {
 }
 
 export function StatusSelect({ value, onChange }: StatusSelectProps) {
-  const handleSelect = (status: number) => {
-    if (value) {
-      onChange(value.concat(status));
-    } else {
-      onChange([status]);
-    }
-  };
-
-  const handleDeselete = (status: number) => {
-    if (value) {
-      const filtered = value.filter((v) => v !== status);
-      if (filtered.length) {
-        onChange(filtered);
-      } else {
-        onChange(null);
-      }
-    }
-  };
-
   return (
     <Select
+      className="w-full"
+      mode="multiple"
+      showArrow
       placeholder="任何"
       options={options}
-      selected={value}
-      onSelect={handleSelect}
-      onDeselect={handleDeselete}
+      value={value ?? undefined}
+      onChange={(value) => onChange(value.length ? value : null)}
     />
   );
 }

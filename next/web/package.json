@@ -15,7 +15,7 @@
     "@headlessui/react": "^1.4.1",
     "@sentry/react": "^6.13.3",
     "@sentry/tracing": "^6.13.3",
-    "antd": "^4.16.13",
+    "antd": "^4.17.2",
     "axios": "^0.23.0",
     "classnames": "^2.3.1",
     "immer": "^9.0.6",

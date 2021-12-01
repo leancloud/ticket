@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
 
-import { useCustomerServices } from 'api/user';
-import { Select } from 'components/Select';
+import { useCustomerServices } from '@/api/user';
+import { Select } from '@/components/antd';
 
-const unassignedOption = { key: 'null', text: '未指派' };
+const unassignedOption = { label: '未指派', value: 'null' };
 
 export interface AssigneeSelectProps {
   value?: string[] | null;
@@ -15,42 +15,22 @@ export function AssigneeSelect({ value, onChange }: AssigneeSelectProps) {
   // TODO: handle api error
 
   const options = useMemo(() => {
-    if (assignees) {
-      return [unassignedOption].concat(
-        assignees.map((a) => ({
-          key: a.id,
-          text: a.nickname,
-        }))
-      );
-    }
+    return [
+      unassignedOption,
+      ...(assignees ?? []).map((a) => ({ label: a.nickname, value: a.id })),
+    ];
   }, [assignees]);
-
-  const handleSelect = (id: string) => {
-    if (value) {
-      onChange(value.concat(id));
-    } else {
-      onChange([id]);
-    }
-  };
-
-  const handleDeselete = (id: string) => {
-    if (value) {
-      const filtered = value.filter((v) => v !== id);
-      if (filtered.length) {
-        onChange(filtered);
-      } else {
-        onChange(null);
-      }
-    }
-  };
 
   return (
     <Select
+      className="w-full"
+      mode="multiple"
+      showArrow
       placeholder={isLoading ? 'Loading...' : '任何'}
+      loading={isLoading}
       options={options}
-      selected={value}
-      onSelect={handleSelect}
-      onDeselect={handleDeselete}
+      value={value ?? undefined}
+      onChange={(value) => onChange(value.length ? value : null)}
     />
   );
 }

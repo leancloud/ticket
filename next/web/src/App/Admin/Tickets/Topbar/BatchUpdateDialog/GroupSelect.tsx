@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 
-import { useGroups } from 'api/group';
-import { Select } from 'components/Select';
+import { useGroups } from '@/api/group';
+import { Select } from '@/components/antd';
 
 export interface GroupSelectProps {
   value?: string;
@@ -12,18 +12,21 @@ export function GroupSelect({ value, onChange }: GroupSelectProps) {
   const { data: groups, isLoading } = useGroups();
 
   const options = useMemo(() => {
-    if (groups) {
-      return [{ key: '', text: '--' }, ...groups.map((g) => ({ key: g.id, text: g.name }))];
-    }
+    return [
+      { label: '--', value: '' },
+      ...(groups ?? []).map((g) => ({ label: g.name, value: g.id })),
+    ];
   }, [groups]);
 
   return (
     <Select
-      closeOnChange
+      className="w-full"
+      getPopupContainer={() => document.getElementById('batchUpdateForm')!}
       options={options}
       placeholder={isLoading ? 'Loading...' : undefined}
-      selected={value ?? ''}
-      onSelect={(id) => onChange(id || undefined)}
+      loading={isLoading}
+      value={value ?? ''}
+      onChange={(id) => onChange(id || undefined)}
     />
   );
 }

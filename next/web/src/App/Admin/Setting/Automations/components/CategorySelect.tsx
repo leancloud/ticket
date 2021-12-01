@@ -1,4 +1,5 @@
 import { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
+import type { CascaderRef } from 'antd/lib/cascader';
 
 import { Cascader } from '@/components/antd';
 import { CategoryTreeNode, useCategoryTree } from '@/api/category';
@@ -38,7 +39,7 @@ export interface CategorySelectProps {
   onChange: (id: string) => void;
 }
 
-export const CategorySelect = forwardRef<Cascader, CategorySelectProps>(
+export const CategorySelect = forwardRef<CascaderRef, CategorySelectProps>(
   ({ initValue, onChange }, ref) => {
     const $initValue = useRef(initValue);
     const [path, setPath] = useState<string[]>();
@@ -66,7 +67,7 @@ export const CategorySelect = forwardRef<Cascader, CategorySelectProps>(
       <Cascader
         ref={ref}
         showSearch
-        options={categoryTree}
+        options={categoryTree as any}
         fieldNames={FIELD_NAMES}
         value={path}
         onChange={handleChange as any}

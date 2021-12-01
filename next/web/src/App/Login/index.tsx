@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Redirect } from 'react-router-dom';
 
-import { auth } from 'leancloud';
-import Button from 'components/Button';
+import { auth } from '@/leancloud';
+import { Button } from '@/components/antd';
 
 interface LoginFormData {
   username: string;
@@ -52,7 +52,7 @@ export default function Login() {
             />
           </div>
 
-          <Button className="w-full mt-4" type="submit" variant="primary" disabled={loading}>
+          <Button className="w-full mt-4" type="primary" htmlType="submit" disabled={loading}>
             Sign in
           </Button>
         </form>
