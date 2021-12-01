@@ -1,4 +1,11 @@
-import { ComponentPropsWithoutRef, useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  ComponentPropsWithoutRef,
+  forwardRef,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { BsLayoutSidebarReverse } from 'react-icons/bs';
 import {
   HiAdjustments,
@@ -24,10 +31,11 @@ interface NavButtonProps extends ComponentPropsWithoutRef<'button'> {
   active?: boolean;
 }
 
-function NavButton({ active, ...props }: NavButtonProps) {
+const NavButton = forwardRef<HTMLButtonElement, NavButtonProps>(({ active, ...props }, ref) => {
   return (
     <button
       {...props}
+      ref={ref}
       className={cx(
         'border border-gray-300 rounded px-3 py-1.5 transition-colors text-gray-600 hover:bg-gray-200 disabled:hover:bg-transparent disabled:cursor-default disabled:opacity-40',
         {
@@ -37,7 +45,7 @@ function NavButton({ active, ...props }: NavButtonProps) {
       )}
     />
   );
-}
+});
 
 export const useOrderBy = () =>
   _useOrderBy({
