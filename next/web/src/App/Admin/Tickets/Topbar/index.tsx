@@ -37,7 +37,7 @@ const NavButton = forwardRef<HTMLButtonElement, NavButtonProps>(({ active, ...pr
       {...props}
       ref={ref}
       className={cx(
-        'border border-gray-300 rounded px-3 py-1.5 transition-colors text-gray-600 hover:bg-gray-200 disabled:hover:bg-transparent disabled:cursor-default disabled:opacity-40',
+        'border border-gray-300 rounded transition-colors text-gray-600 hover:bg-gray-200 disabled:hover:bg-transparent disabled:cursor-default disabled:opacity-40',
         {
           'shadow-inner bg-gray-200': active,
         },
@@ -150,19 +150,22 @@ function BatchOperations({ checkedTicketIds, disabled, onSuccess }: BatchOperati
   return (
     <>
       <NavButton
-        className="px-2 py-1"
+        className="inline-flex items-center px-2 py-1"
         disabled={disabled || isLoading}
         onClick={() => setBatchUpdateOpen(!batchUpdateOpen)}
       >
-        <HiOutlineRefresh className="inline w-[14px] h-[14px] mb-px mr-1" />
+        <HiOutlineRefresh className="inline w-[14px] h-[14px] mr-1" />
         批量更新
       </NavButton>
 
       <BatchOperationMenu
         className="ml-1"
         trigger={
-          <NavButton className="px-2 py-1" disabled={disabled || isLoading}>
-            <HiAdjustments className="inline w-[14px] h-[14px] mb-px mr-1" />
+          <NavButton
+            className="inline-flex items-center px-2 py-1"
+            disabled={disabled || isLoading}
+          >
+            <HiAdjustments className="inline w-[14px] h-[14px] mr-1" />
             批量操作
           </NavButton>
         }
