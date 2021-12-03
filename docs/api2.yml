@@ -101,6 +101,27 @@ components:
     Status:
       type: integer
       enum: [50, 120, 160, 220, 250, 280]
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+        ticket: 
+          $ref: '#/components/schemas/Ticket'
+        unreadCount:
+          type: number
+        latestAction:
+          type: string
+          enum: [ 'newTicket', 'reply', 'changeAssignee', 'ticketEvaluation', 'changeStatus']
+        latestActionAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
 security:
   - Session token: []
 paths:
@@ -217,3 +238,56 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Ticket'
+  /api/2/unread:
+    get:
+      tags: ['notification']
+      summary: 获取当前用户是否有未读的通知
+      description: 通常用于判断是否要显示小红点
+      responses:
+        '200':
+          description: 返回 true / false
+          content:
+            application/json:
+              schema:
+                type: boolean
+  /api/2/notifications:
+    get:
+      tags: ['notification']
+      summary: 获取当前用户工单更新通知
+      parameters:
+        - name: unread
+          in: query
+          schema:
+            type: string
+          description: 如该参数出现（值可以任意指定），则仅返回未读的通知
+        - name: before
+          in: query
+          schema:
+            type: string
+            description: ISO 时间戳，配合返回值中的 latestActionAt 翻页 
+        - name: limit
+          in: query
+          schema:
+            type: number
+            description: 每页条数，默认 25，最大 999 
+        - name: includeTicketMetaKeys
+          in: query
+          schema:
+            type: string
+            description: 在返回结果的 ticket 包含的 metaData 字段列表，多个值用 `,` 分隔
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+  /api/2/notifications/read-all:
+    post:
+      tags: ['notification']
+      summary: 批量将所有未读通知标为已读
+      responses:
+        '200':
+          description: Done
