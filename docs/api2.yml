@@ -112,7 +112,7 @@ components:
           type: number
         latestAction:
           type: string
-          enum: [ 'newTicket', 'reply', 'changeAssignee', 'ticketEvaluation', 'changeStatus']
+          enum: ['newTicket', 'reply', 'changeAssignee', 'ticketEvaluation', 'changeStatus']
         latestActionAt:
           type: string
           format: date-time
