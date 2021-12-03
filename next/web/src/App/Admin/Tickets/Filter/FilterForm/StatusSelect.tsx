@@ -10,8 +10,8 @@ const options = [
 ];
 
 export interface StatusSelectProps {
-  value?: number[] | null;
-  onChange: (value: number[] | null) => void;
+  value?: number[];
+  onChange: (value: number[] | undefined) => void;
 }
 
 export function StatusSelect({ value, onChange }: StatusSelectProps) {
@@ -22,8 +22,9 @@ export function StatusSelect({ value, onChange }: StatusSelectProps) {
       showArrow
       placeholder="任何"
       options={options}
+      optionFilterProp="label"
       value={value ?? undefined}
-      onChange={(value) => onChange(value.length ? value : null)}
+      onChange={(value) => onChange(value.length ? value : undefined)}
     />
   );
 }

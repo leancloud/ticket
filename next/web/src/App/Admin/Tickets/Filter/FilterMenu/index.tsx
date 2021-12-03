@@ -4,26 +4,26 @@ import { useQueryClient } from 'react-query';
 import { HiCheck, HiMenuAlt2, HiX } from 'react-icons/hi';
 import { FiEdit, FiTrash2 } from 'react-icons/fi';
 import { Dialog, Transition } from '@headlessui/react';
-import { StringParam, useQueryParam } from 'use-query-params';
 import { isEmpty, isNull, omitBy } from 'lodash-es';
 import { produce } from 'immer';
 
-import { auth } from 'leancloud';
+import { auth } from '@/leancloud';
 import {
   useCreateTicketFilter,
   useDeleteTicketFilter,
   useTicketFilters,
   useUpdateTicketFilter,
-} from 'api/ticket-filter';
-import { useCustomerServiceGroups } from 'api/user';
-import Menu from 'components/Menu';
-import { usePage } from 'utils/usePage';
+} from '@/api/ticket-filter';
+import { useCustomerServiceGroups } from '@/api/user';
+import Menu from '@/components/Menu';
+import { usePage } from '@/utils/usePage';
+import { useSearchParam } from '@/utils/useSearchParams';
 import styles from './index.module.css';
 import { FilterSearch } from './FilterSearch';
 import { SaveData, SaveDialog } from './SaveDialog';
 import { presetFilters } from '../prest-filters';
 import { useTicketFilter } from '../../useTicketFilter';
-import { useTempFilters } from '..';
+import { useLocalFilters } from '../../useTicketFilter';
 
 function getPrivilege(filter: { userIds?: string[]; groupIds?: string[] }): SaveData['privilege'] {
   return filter.userIds ? 'private' : filter.groupIds ? 'group' : 'public';
@@ -57,7 +57,7 @@ interface FilterMenusProps {
 function FilterMenus({ open, onClose, selected, onSelect }: FilterMenusProps) {
   const $input = useRef<HTMLInputElement>(null!);
   const [keyword, setKeyword] = useState('');
-  const [, setPage] = usePage();
+  const [, { set: setPage }] = usePage();
 
   const { data: groups } = useCustomerServiceGroups('me', {
     enabled: !!open,
@@ -161,9 +161,9 @@ function FilterMenuTrigger() {
   const toggleMenus = useCallback(() => setMenusOpen((v) => !v), []);
 
   const queryClient = useQueryClient();
-  const [filterId, setFilterId] = useQueryParam('filterId', StringParam);
+  const [filterId, setFilterId] = useSearchParam('filterId');
   const { filter, isPresetFilter } = useTicketFilter(filterId);
-  const [tempFilters, setTempFilters] = useTempFilters();
+  const [localFilters, setLocalFilters] = useLocalFilters();
 
   const $mode = useRef<'save' | 'saveAs'>('save');
   const [data, setData] = useState<SaveData>({
@@ -198,7 +198,7 @@ function FilterMenuTrigger() {
       queryClient.setQueryData(['ticketFilter', id], data);
       queryClient.invalidateQueries('ticketFilters');
       setFilterId(id);
-      setTempFilters(undefined);
+      setLocalFilters({});
       setSaveDialogOpen(false);
     },
   });
@@ -208,7 +208,7 @@ function FilterMenuTrigger() {
       name: data.name,
       userIds: data.privilege === 'private' ? [auth.currentUser!.id] : undefined,
       groupIds: data.privilege === 'group' ? groups?.map((g) => g.id) : undefined,
-      filters: omitBy({ ...filter?.filters, ...tempFilters }, isNull),
+      filters: omitBy({ ...filter?.filters, ...localFilters }, isNull),
     });
   };
 
@@ -226,13 +226,13 @@ function FilterMenuTrigger() {
       queryClient.invalidateQueries(['ticketFilter', data.id]);
       queryClient.invalidateQueries('ticketFilters');
       setSaveDialogOpen(false);
-      setTempFilters(undefined);
+      setLocalFilters({});
     },
   });
 
   const handleUpdateFilters = () => {
     if (!filter) return;
-    const filters = omitBy({ ...filter.filters, ...tempFilters }, isNull);
+    const filters = omitBy({ ...filter.filters, ...localFilters }, isNull);
     updateFilter({ id: filter.id, filters });
   };
 
@@ -260,7 +260,7 @@ function FilterMenuTrigger() {
   }, [filter]);
 
   const disabled = updating || deleting || isLoadingGroups;
-  const isDirty = !isEmpty(tempFilters);
+  const isDirty = !isEmpty(localFilters);
 
   return (
     <div className="flex items-center">
@@ -290,7 +290,7 @@ function FilterMenuTrigger() {
       )}
 
       {isDirty && (
-        <button className="ml-3" title="丢弃更改" onClick={() => setTempFilters(undefined)}>
+        <button className="ml-3" title="丢弃更改" onClick={() => setLocalFilters({})}>
           <HiX className="w-[21px] h-[21px]" />
         </button>
       )}
@@ -313,7 +313,7 @@ function FilterMenuTrigger() {
         onClose={() => setMenusOpen(false)}
         onSelect={(filterId) => {
           setFilterId(filterId);
-          setTempFilters(undefined);
+          setLocalFilters({});
         }}
       />
 

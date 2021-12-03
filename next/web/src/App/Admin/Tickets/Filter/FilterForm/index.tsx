@@ -1,14 +1,13 @@
 import { PropsWithChildren, useCallback, useEffect, useState } from 'react';
 import cx from 'classnames';
-import { isUndefined, omitBy } from 'lodash-es';
 
 import { Button } from '@/components/antd';
+import { Filters } from '../../useTicketFilter';
 import { AssigneeSelect } from './AssigneeSelect';
 import { GroupSelect } from './GroupSelect';
 import { CreatedAtSelect } from './CreatedAtSelect';
 import { CategorySelect } from './CategorySelect';
 import { StatusSelect } from './StatusSelect';
-import { FilterMap } from '..';
 
 function Field({ title, children }: PropsWithChildren<{ title: string }>) {
   return (
@@ -19,29 +18,56 @@ function Field({ title, children }: PropsWithChildren<{ title: string }>) {
   );
 }
 
-export interface FilterFormProps {
-  filters: FilterMap;
-  onChange: (filters: FilterMap) => void;
-  className?: string;
+interface TempFilters extends Filters {
+  assigneeId?: string[];
+  groupId?: string[];
 }
 
-export function FilterForm({ filters, onChange, className }: FilterFormProps) {
-  const [tempFilters, setTempFilters] = useState(filters);
+type NewFilters = { [K in keyof Required<Filters>]: Filters[K] };
+
+function decodeTempFilters(filters: Filters): TempFilters {
+  return {
+    ...filters,
+    assigneeId: filters.assigneeId?.map((id) => (id === null ? '' : id)),
+    groupId: filters.groupId?.map((id) => (id === null ? '' : id)),
+  };
+}
+
+function encodeTempFilters(tempFilters: TempFilters): NewFilters {
+  return {
+    assigneeId: tempFilters.assigneeId?.map((id) => (id === '' ? null : id)),
+    groupId: tempFilters.groupId?.map((id) => (id === '' ? null : id)),
+    createdAt: tempFilters.createdAt,
+    rootCategoryId: tempFilters.rootCategoryId,
+    status: tempFilters.status,
+  };
+}
+
+export interface FilterFormProps {
+  className?: string;
+  filters: Filters;
+  onChange: (filters: NewFilters) => void;
+}
+
+export function FilterForm({ className, filters, onChange }: FilterFormProps) {
+  const [tempFilters, setTempFilters] = useState<TempFilters>({});
   const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
-    setTempFilters(filters);
+    setTempFilters(decodeTempFilters(filters));
     setIsDirty(false);
   }, [filters]);
 
-  const merge = useCallback((data: typeof tempFilters) => {
-    setTempFilters((prev) => ({ ...prev, ...data }));
+  const merge = useCallback((filters: TempFilters) => {
+    setTempFilters((prev) => ({ ...prev, ...filters }));
     setIsDirty(true);
   }, []);
 
   const handleChange = () => {
-    onChange(omitBy({ ...filters, ...tempFilters }, isUndefined));
+    onChange(encodeTempFilters(tempFilters));
   };
+
+  const { assigneeId, groupId, createdAt, rootCategoryId, status } = tempFilters;
 
   return (
     <div
@@ -54,32 +80,26 @@ export function FilterForm({ filters, onChange, className }: FilterFormProps) {
         <div className="h-7 text-sm font-medium">过滤</div>
 
         <Field title="客服">
-          <AssigneeSelect
-            value={tempFilters.assigneeIds}
-            onChange={(assigneeIds) => merge({ assigneeIds })}
-          />
+          <AssigneeSelect value={assigneeId} onChange={(assigneeId) => merge({ assigneeId })} />
         </Field>
 
         <Field title="客服组">
-          <GroupSelect value={tempFilters.groupIds} onChange={(groupIds) => merge({ groupIds })} />
+          <GroupSelect value={groupId} onChange={(groupId) => merge({ groupId })} />
         </Field>
 
         <Field title="创建时间">
-          <CreatedAtSelect
-            value={tempFilters.createdAt}
-            onChange={(createdAt) => merge({ createdAt })}
-          />
+          <CreatedAtSelect value={createdAt} onChange={(createdAt) => merge({ createdAt })} />
         </Field>
 
         <Field title="分类">
           <CategorySelect
-            value={tempFilters.rootCategoryId}
+            value={rootCategoryId}
             onChange={(rootCategoryId) => merge({ rootCategoryId })}
           />
         </Field>
 
         <Field title="状态">
-          <StatusSelect value={tempFilters.statuses} onChange={(statuses) => merge({ statuses })} />
+          <StatusSelect value={status} onChange={(status) => merge({ status })} />
         </Field>
       </div>
 

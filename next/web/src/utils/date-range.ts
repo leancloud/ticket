@@ -22,6 +22,10 @@ const relativeDateGetters: Record<string, () => DateRange> = {
     from: moment().startOf('month').toDate(),
     to: moment().endOf('month').toDate(),
   }),
+  lastMonth: () => ({
+    from: moment().startOf('month').subtract(1, 'month').toDate(),
+    to: moment().endOf('month').subtract(1, 'month').toDate(),
+  }),
 };
 
 const relativeDateCreators: Record<string, (count: number) => DateRange> = {

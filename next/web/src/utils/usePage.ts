@@ -1,32 +1,41 @@
-import { QueryParamConfig, useQueryParam } from 'use-query-params';
+import { useCallback, useMemo } from 'react';
 
-const PageParam: QueryParamConfig<number> = {
-  encode: (data) => {
-    if (!data || data === 1) {
-      return undefined;
-    }
-    return data.toString();
-  },
-  decode: (data) => {
-    if (Array.isArray(data)) {
-      const last = data[data.length - 1];
-      return last ? parseInt(last) : 1;
-    }
-    return data ? parseInt(data) : 1;
-  },
-};
+import { useSearchParams } from './useSearchParams';
 
 export interface UsePageOptions {
   key?: string;
-  min?: number;
-  max?: number;
 }
 
-export function usePage({ key = 'page', min = 1, max }: UsePageOptions = {}) {
-  const result = useQueryParam(key, PageParam);
-  result[0] = Math.max(result[0], min);
-  if (max !== undefined) {
-    result[0] = Math.min(result[0], max);
-  }
-  return result;
+export function usePage({ key = 'page' }: UsePageOptions = {}) {
+  const [params, { merge }] = useSearchParams();
+  const pageParam = params[key];
+
+  const page = useMemo(() => {
+    if (pageParam === undefined) {
+      return 1;
+    }
+    const page = parseInt(pageParam);
+    if (Number.isNaN(page)) {
+      return 1;
+    }
+    if (page < 1) {
+      return 1;
+    }
+    return page;
+  }, [pageParam]);
+
+  const set = useCallback(
+    (newPage: number) => {
+      if (newPage > 0) {
+        merge({ [key]: newPage.toString() });
+      }
+    },
+    [key, merge]
+  );
+
+  const prev = useCallback(() => set(page - 1), [page, set]);
+
+  const next = useCallback(() => set(page + 1), [page, set]);
+
+  return [page, { set, prev, next }] as const;
 }

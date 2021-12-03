@@ -3,19 +3,19 @@ import { useMemo } from 'react';
 import { useGroups } from '@/api/group';
 import { Select } from '@/components/antd';
 
-const unassignedOption = { label: '未指派', value: 'null' };
-
 export interface GroupSelectProps {
-  value?: string[] | null;
-  onChange: (value: string[] | null) => void;
+  value?: string[];
+  onChange: (value: string[] | undefined) => void;
 }
 
 export function GroupSelect({ value, onChange }: GroupSelectProps) {
   const { data: groups, isLoading } = useGroups();
-  // TODO: handle api error
 
   const options = useMemo(() => {
-    return [unassignedOption, ...(groups ?? []).map((g) => ({ label: g.name, value: g.id }))];
+    return [
+      { label: '未指派', value: '' },
+      ...(groups ?? []).map((g) => ({ label: g.name, value: g.id })),
+    ];
   }, [groups]);
 
   return (
@@ -26,8 +26,9 @@ export function GroupSelect({ value, onChange }: GroupSelectProps) {
       placeholder={isLoading ? 'Loading...' : '任何'}
       loading={isLoading}
       options={options}
+      optionFilterProp="label"
       value={value ?? undefined}
-      onChange={(value) => onChange(value.length ? value : null)}
+      onChange={(value) => onChange(value.length ? value : undefined)}
     />
   );
 }

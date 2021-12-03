@@ -1,49 +1,62 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Route, Switch, useRouteMatch } from 'react-router-dom';
-import { StringParam, useQueryParam } from 'use-query-params';
-import { isEqual, isNull, omitBy } from 'lodash-es';
 
-import { SentryRoute } from 'components/Sentry';
-import { useTickets } from 'api/ticket';
-import { usePage } from 'utils/usePage';
+import { useTickets } from '@/api/ticket';
+import { usePage } from '@/utils/usePage';
 import { Topbar, useOrderBy } from './Topbar';
-import { FilterForm, FilterMap, FilterMenu, useTempFilters } from './Filter';
-import { useTicketFilter } from './useTicketFilter';
+import { FilterForm, FilterMenu } from './Filter';
+import { useTicketFilter, useLocalFilters } from './useTicketFilter';
 import { TicketList } from './TicketList';
+import { useSearchParam } from 'utils/useSearchParams';
 
 const pageSize = 20;
 
-function TicketsPage() {
-  const [showFilter, setShowFilter] = useState(false);
-  const [page = 1, setPage] = usePage();
+function TicketListView() {
+  const [page] = usePage();
   const { orderKey, orderType } = useOrderBy();
-  const [filterId] = useQueryParam('filterId', StringParam);
+  const [showFilterForm, setShowFilterForm] = useState(false);
 
-  const { filter, isLoading: isLoadingFilters } = useTicketFilter(filterId);
+  const [filterId] = useSearchParam('filterId');
+  const { filter, isLoading: isLoadingFilter } = useTicketFilter(filterId);
+  const [localFilters, setLocalFilters] = useLocalFilters(filter?.filters);
+  const filters = useMemo(() => {
+    return { ...filter?.filters, ...localFilters };
+  }, [filter, localFilters]);
 
-  const [tempFilters, setTempFilters] = useTempFilters();
-
-  const combinedFilters = useMemo(() => {
-    return omitBy({ ...filter?.filters, ...tempFilters }, isNull);
-  }, [filter, tempFilters]);
-
-  const { data, isLoading, isFetching } = useTickets({
-    pageSize,
+  const { data: tickets, totalCount, isLoading, isFetching } = useTickets({
     page,
     orderKey,
     orderType,
-    filters: combinedFilters,
+    filters,
     queryOptions: {
-      enabled: !isLoadingFilters,
+      enabled: !isLoadingFilter,
       keepPreviousData: true,
     },
   });
 
   const [checkedIds, setCheckedIds] = useState<string[]>([]);
-  useEffect(() => setCheckedIds([]), [data]);
+  useEffect(() => setCheckedIds([]), [tickets]);
 
-  const tickets = data?.tickets;
-  const totalCount = data?.totalCount;
+  const handleCheckTicket = useCallback((id: string, checked: boolean) => {
+    if (checked) {
+      setCheckedIds((prev) => [...prev, id]);
+    } else {
+      setCheckedIds((prev) => prev.filter((_id) => _id !== id));
+    }
+  }, []);
+
+  const handleCheckAll = useCallback(
+    (checked: boolean) => {
+      if (tickets) {
+        if (checked) {
+          setCheckedIds(tickets.map((t) => t.id));
+        } else {
+          setCheckedIds([]);
+        }
+      }
+    },
+    [tickets]
+  );
 
   return (
     <div className="flex flex-col h-full">
@@ -51,51 +64,31 @@ function TicketsPage() {
 
       <Topbar
         className="flex-shrink-0 z-0"
-        showFilter={showFilter}
-        onChangeShowFilter={setShowFilter}
+        showFilter={showFilterForm}
+        onChangeShowFilter={setShowFilterForm}
         pageSize={pageSize}
         count={tickets?.length}
         totalCount={totalCount}
         isLoading={isLoading || isFetching}
         checkedTicketIds={checkedIds}
-        onCheckedChange={(checked) => {
-          if (checked) {
-            tickets && setCheckedIds(tickets.map((t) => t.id));
-          } else {
-            setCheckedIds([]);
-          }
-        }}
+        onCheckedChange={handleCheckAll}
       />
 
       <div className="flex flex-grow overflow-hidden">
         <div className="flex flex-grow flex-col p-[10px] gap-2 overflow-auto">
-          {isLoading ? (
-            'Loading...'
-          ) : tickets && tickets.length > 0 ? (
+          {isLoading && 'Loading...'}
+          {tickets && tickets.length === 0 && 'No data'}
+          {tickets && tickets.length > 0 && (
             <TicketList
               tickets={tickets}
               checkedIds={checkedIds}
-              onCheckedIdsChange={setCheckedIds}
+              onClickCheckbox={handleCheckTicket}
             />
-          ) : (
-            'No data'
           )}
         </div>
 
-        {showFilter && (
-          <FilterForm
-            className="flex-shrink-0"
-            filters={combinedFilters}
-            onChange={(data) => {
-              if (filter && filterId) {
-                data = omitBy(data, (v, k) => isEqual(v, filter.filters[k as keyof FilterMap]));
-              } else {
-                data = omitBy(data, isNull);
-              }
-              setPage(1);
-              setTempFilters(data);
-            }}
-          />
+        {showFilterForm && (
+          <FilterForm className="flex-shrink-0" filters={filters} onChange={setLocalFilters} />
         )}
       </div>
     </div>
@@ -106,9 +99,7 @@ export default function TicketRoutes() {
   const { path } = useRouteMatch();
   return (
     <Switch>
-      <SentryRoute path={path}>
-        <TicketsPage />
-      </SentryRoute>
+      <Route path={path} children={<TicketListView />} />
     </Switch>
   );
 }

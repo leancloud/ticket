@@ -78,7 +78,7 @@ function SortDropdown({ disabled }: { disabled?: boolean }) {
       <HLMenu.Button disabled={disabled}>
         <span className="text-[#6f7c87]">排序方式:</span>
         <span className="ml-2 text-[13px] font-medium">
-          {orderKeys[orderKey]} <HiChevronDown className="inline" />
+          {orderKeys[orderKey]} <HiChevronDown className="inline relative top-0.5" />
         </span>
       </HLMenu.Button>
 
@@ -189,7 +189,7 @@ interface PaginationProps {
 }
 
 function Pagination({ pageSize, count, totalCount, isLoading }: PaginationProps) {
-  const [page = 1, setPage] = usePage();
+  const [page, { set: setPage }] = usePage();
   const [text, setText] = useState('');
   const [noMorePages, setNoMorePages] = useState(false);
   const [overflow, setOverflow] = useState(false);
@@ -270,23 +270,24 @@ export function Topbar({
       )}
     >
       <div className="flex flex-grow items-center">
-        <Checkbox
-          indeterminate={indeterminate}
-          disabled={isLoading}
-          checked={!!(checkedTicketIds && count && checkedTicketIds.length === count)}
-          onChange={(e) => onCheckedChange(e.target.checked)}
-        />
-        <span className="ml-4">
-          {!checkedTicketIds || checkedTicketIds.length === 0 ? (
-            <SortDropdown disabled={isLoading} />
-          ) : (
-            <BatchOperations
-              checkedTicketIds={checkedTicketIds}
-              disabled={isLoading}
-              onSuccess={() => onCheckedChange(false)}
-            />
-          )}
+        <span className="mr-4">
+          <Checkbox
+            indeterminate={indeterminate}
+            disabled={isLoading}
+            checked={!!(checkedTicketIds && count && checkedTicketIds.length === count)}
+            onChange={(e) => onCheckedChange(e.target.checked)}
+          />
         </span>
+
+        {!checkedTicketIds || checkedTicketIds.length === 0 ? (
+          <SortDropdown disabled={isLoading} />
+        ) : (
+          <BatchOperations
+            checkedTicketIds={checkedTicketIds}
+            disabled={isLoading}
+            onSuccess={() => onCheckedChange(false)}
+          />
+        )}
       </div>
 
       <Pagination pageSize={pageSize} count={count} totalCount={totalCount} isLoading={isLoading} />

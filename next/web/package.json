@@ -28,8 +28,7 @@
     "react-query": "^3.26.0",
     "react-router-dom": "^5.3.0",
     "recoil": "^0.4.1",
-    "throat": "^6.0.1",
-    "use-query-params": "^1.2.3"
+    "throat": "^6.0.1"
   },
   "devDependencies": {
     "@hookform/devtools": "^4.0.1",
