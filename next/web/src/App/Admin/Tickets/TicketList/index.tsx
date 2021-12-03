@@ -141,24 +141,16 @@ function makeCategoryPathGetter(categories: CategorySchema[]) {
 export interface TicketListProps {
   tickets: TicketSchema[];
   checkedIds?: string[];
-  onCheckedIdsChange?: (ids: string[]) => void;
+  onClickCheckbox?: (id: string, checked: boolean) => void;
 }
 
-export function TicketList({ tickets, checkedIds, onCheckedIdsChange }: TicketListProps) {
+export function TicketList({ tickets, checkedIds, onClickCheckbox }: TicketListProps) {
   const { data: categories } = useCategories();
   const getCategoryPath = useMemo(() => makeCategoryPathGetter(categories ?? []), [categories]);
   const checkedIdSet = useMemo(() => new Set(checkedIds), [checkedIds]);
 
   const handleCheckTicket = (ticket: TicketSchema, checked: boolean) => {
-    if (onCheckedIdsChange) {
-      const nextSet = new Set(checkedIdSet);
-      if (checked) {
-        nextSet.add(ticket.id);
-      } else {
-        nextSet.delete(ticket.id);
-      }
-      onCheckedIdsChange(Array.from(nextSet));
-    }
+    onClickCheckbox?.(ticket.id, checked);
   };
 
   return (

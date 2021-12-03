@@ -1,10 +1,11 @@
 import { QueryClientProvider } from 'react-query';
 import { RecoilRoot } from 'recoil';
 import { BrowserRouter, Redirect, RouteProps, Switch } from 'react-router-dom';
-import { QueryParamProvider } from 'use-query-params';
-import { SentryRoute } from 'components/Sentry';
-import { auth } from 'leancloud';
-import { queryClient } from 'api/query-client';
+
+import { auth } from '@/leancloud';
+import { queryClient } from '@/api/query-client';
+import { SearchParamsProvicer } from '@/utils/useSearchParams';
+import { SentryRoute } from '@/components/Sentry';
 import Admin from './Admin';
 import Login from './Login';
 
@@ -34,9 +35,9 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <RecoilRoot>
         <BrowserRouter basename="/next">
-          <QueryParamProvider ReactRouterRoute={SentryRoute}>
+          <SearchParamsProvicer>
             <Routes />
-          </QueryParamProvider>
+          </SearchParamsProvicer>
         </BrowserRouter>
       </RecoilRoot>
     </QueryClientProvider>

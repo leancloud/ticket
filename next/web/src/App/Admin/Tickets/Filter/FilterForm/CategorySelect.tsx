@@ -4,6 +4,8 @@ import { last, noop, keyBy } from 'lodash-es';
 import { CategorySchema, useCategories } from '@/api/category';
 import { Select } from '@/components/antd';
 
+const anyCategoryOption = { label: '任何', value: '' };
+
 const CategorySelectContext = createContext<{
   categories: CategorySchema[];
   getValue: (depth: number) => string | undefined;
@@ -13,8 +15,6 @@ const CategorySelectContext = createContext<{
   getValue: noop as any,
   setValue: noop,
 });
-
-const anyCategoryOption = { label: '任何', value: '' };
 
 interface SubCategorySelectProps {
   parentId?: string;
@@ -57,8 +57,8 @@ function SubCategorySelect({ parentId, depth }: SubCategorySelectProps) {
 }
 
 export interface CategorySelectProps {
-  value?: string | null;
-  onChange: (value: string | null) => void;
+  value?: string;
+  onChange: (value: string | undefined) => void;
 }
 
 export function CategorySelect({ value, onChange }: CategorySelectProps) {
@@ -89,7 +89,7 @@ export function CategorySelect({ value, onChange }: CategorySelectProps) {
       next.push(value);
     }
     setValues(next);
-    onChange(last(next) ?? null);
+    onChange(last(next) ?? undefined);
   };
 
   const getValue = (depth: number) => {
@@ -99,7 +99,7 @@ export function CategorySelect({ value, onChange }: CategorySelectProps) {
   };
 
   if (!categories) {
-    return <Select placeholder="Loading..." />;
+    return <Select loading placeholder="Loading..." />;
   }
   return (
     <CategorySelectContext.Provider value={{ categories, getValue, setValue }}>

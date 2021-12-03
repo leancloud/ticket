@@ -1,7 +1,8 @@
 import { UseQueryOptions, useQuery } from 'react-query';
+import { castArray } from 'lodash-es';
 
-import { http } from 'leancloud';
-import { decodeDateRange } from 'utils/date-range';
+import { http } from '@/leancloud';
+import { decodeDateRange } from '@/utils/date-range';
 
 export interface TicketSchema {
   id: string;
@@ -31,11 +32,11 @@ export interface FetchTicketsOptions {
   orderKey?: string;
   orderType?: 'asc' | 'desc';
   filters?: {
-    assigneeIds?: string[];
-    groupIds?: string[];
+    assigneeId?: string | null | (string | null)[];
+    groupId?: string | null | (string | null)[];
     createdAt?: string;
     rootCategoryId?: string;
-    statuses?: number[];
+    status?: number | number[];
   };
 }
 
@@ -60,24 +61,31 @@ export async function fetchTickets({
   };
 
   if (filters) {
-    if (filters.assigneeIds) {
-      params.assigneeId = filters.assigneeIds.join(',');
+    if (filters.assigneeId) {
+      params.assigneeId = castArray(filters.assigneeId)
+        .map((v) => (v === null ? 'null' : v))
+        .join(',');
     }
-    if (filters.groupIds) {
-      params.groupId = filters.groupIds.join(',');
+    if (filters.groupId) {
+      params.groupId = castArray(filters.groupId)
+        .map((v) => (v === null ? 'null' : v))
+        .join(',');
     }
     if (filters.createdAt) {
       const dateRange = decodeDateRange(filters.createdAt);
       if (dateRange && (dateRange.from || dateRange.to)) {
         // "2021-08-01..2021-08-31", "2021-08-01..*", etc.
-        params.createdAt = [dateRange.from ?? '*', dateRange.to ?? '*'].join('..');
+        params.createdAt = [
+          dateRange.from?.toISOString() ?? '*',
+          dateRange.to?.toISOString() ?? '*',
+        ].join('..');
       }
     }
     if (filters.rootCategoryId) {
       params.rootCategoryId = filters.rootCategoryId;
     }
-    if (filters.statuses) {
-      params.status = filters.statuses.join(',');
+    if (filters.status) {
+      params.status = castArray(filters.status).join(',');
     }
   }
 
@@ -90,9 +98,15 @@ export interface UseTicketsOptions extends FetchTicketsOptions {
 }
 
 export function useTickets({ queryOptions, ...options }: UseTicketsOptions = {}) {
-  return useQuery({
+  const { data, ...rest } = useQuery({
     queryKey: ['tickets', options],
     queryFn: () => fetchTickets(options),
     ...queryOptions,
   });
+
+  return {
+    ...rest,
+    data: data?.tickets,
+    totalCount: data?.totalCount,
+  };
 }

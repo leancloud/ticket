@@ -7,7 +7,7 @@ import {
 } from 'react-query';
 import { castArray } from 'lodash-es';
 
-import { http } from 'leancloud';
+import { http } from '@/leancloud';
 
 export interface TicketFilterSchema {
   id: string;
@@ -15,11 +15,11 @@ export interface TicketFilterSchema {
   userIds?: string[];
   groupIds?: string[];
   filters: {
-    assigneeIds?: string[];
-    groupIds?: string[];
+    assigneeId?: (string | null)[];
+    groupId?: (string | null)[];
     createdAt?: string;
     rootCategoryId?: string;
-    statuses?: number[];
+    status?: number[];
   };
 }
 

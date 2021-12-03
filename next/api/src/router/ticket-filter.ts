@@ -40,13 +40,8 @@ router.get('/', async (ctx) => {
   ctx.body = filters.map((filter) => new TicketFilterResponse(filter));
 });
 
-const filtersFieldSchema = yup.object({
-  assigneeIds: yup.array(yup.string().required()),
-  groupIds: yup.array(yup.string().required()),
-  createdAt: yup.string(),
-  rootCategoryId: yup.string(),
-  statuses: yup.array(yup.number().required()),
-});
+// TODO: 换成 zod 后再做验证
+const filtersFieldSchema = yup.object();
 
 const createSchema = yup.object({
   name: yup.string().trim().min(1).max(20).required(),

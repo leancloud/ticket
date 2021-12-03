@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react';
-import { StringParam, useQueryParam } from 'use-query-params';
+
+import { useSearchParam } from './useSearchParams';
 
 export type OrderType = 'asc' | 'desc';
 
@@ -14,7 +15,7 @@ export function useOrderBy({
   defaultOrderKey,
   defaultOrderType,
 }: UseOrderByOptions) {
-  const [orderBy, setOrderBy] = useQueryParam(key, StringParam);
+  const [orderBy, setOrderBy] = useSearchParam(key);
 
   const [orderKey, orderType] = useMemo<[string, OrderType]>(() => {
     if (!orderBy) {
