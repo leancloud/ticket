@@ -1,9 +1,7 @@
 import * as Sentry from '@sentry/react';
-import { Route } from 'react-router-dom';
 import { Severity } from '@sentry/react';
 import ErrorBoundary from './ErrorBoundary';
 const withProfiler = Sentry.withProfiler;
-const SentryRoute = Sentry.withSentryRouting(Route);
 
 const captureException = (
   error: Error,
@@ -28,4 +26,4 @@ const captureException = (
 
 const captureMessage = (msg: string, level = Severity.Info) => Sentry.captureMessage(msg, level);
 
-export { SentryRoute, captureException, withProfiler, captureMessage, Severity, ErrorBoundary };
+export { captureException, withProfiler, captureMessage, Severity, ErrorBoundary };

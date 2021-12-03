@@ -19,8 +19,14 @@ export function Sidebar(props: ComponentPropsWithoutRef<'aside'>) {
 
       <section className="p-3 text-[rgba(255,255,255,0.72)]">
         <NavLink
-          className="flex w-[40px] h-[40px] rounded transition-colors hover:bg-[rgba(255,255,255,0.16)] hover:text-white"
-          activeClassName="bg-[rgba(255,255,255,0.16)] text-white"
+          className={({ isActive }) =>
+            cx(
+              'flex w-[40px] h-[40px] rounded transition-colors hover:bg-[rgba(255,255,255,0.16)] hover:text-white',
+              {
+                'bg-[rgba(255,255,255,0.16)] text-white': isActive,
+              }
+            )
+          }
           to="/admin/tickets"
         >
           <HiOutlineTicket className="m-auto w-[20px] h-[20px]" />

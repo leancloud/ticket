@@ -1,22 +1,19 @@
-import React from 'react';
-import * as Sentry from '@sentry/react';
-import { Scope } from '@sentry/react';
-import { ExceptionPage } from 'components/ErrorPage';
+import { PropsWithChildren, useCallback } from 'react';
+import { ErrorBoundary, Scope } from '@sentry/react';
 
-const ErrorBoundary: React.FunctionComponent<{ module: string }> = ({ module, children }) => {
-  const beforeCapture = React.useCallback(
+import { ExceptionPage } from '@/components/ErrorPage';
+
+export default function ({ module, children }: PropsWithChildren<{ module: string }>) {
+  const beforeCapture = useCallback(
     (scope: Scope) => {
-      scope.setExtras({
-        module,
-      });
+      scope.setExtras({ module });
     },
     [module]
   );
-  return (
-    <Sentry.ErrorBoundary fallback={()=><ExceptionPage />} beforeCapture={beforeCapture}>
-      {children}
-    </Sentry.ErrorBoundary>
-  );
-};
 
-export default  ErrorBoundary
+  return (
+    <ErrorBoundary fallback={<ExceptionPage />} beforeCapture={beforeCapture}>
+      {children}
+    </ErrorBoundary>
+  );
+}

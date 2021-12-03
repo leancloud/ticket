@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Route, Switch, useRouteMatch } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 
 import { useTickets } from '@/api/ticket';
 import { usePage } from '@/utils/usePage';
@@ -96,10 +96,9 @@ function TicketListView() {
 }
 
 export default function TicketRoutes() {
-  const { path } = useRouteMatch();
   return (
-    <Switch>
-      <Route path={path} children={<TicketListView />} />
-    </Switch>
+    <Routes>
+      <Route path="/" element={<TicketListView />} />
+    </Routes>
   );
 }

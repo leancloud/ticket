@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { RouteComponentProps, useHistory } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation } from 'react-query';
 
 import { Spin, message, notification } from '@/components/antd';
@@ -9,9 +9,10 @@ import { decodeCondition } from '../utils';
 import conditions from './conditions';
 import actions from './actions';
 
-export default function TriggerDetail({ match }: RouteComponentProps<{ id: string }>) {
-  const id = match.params.id;
-  const history = useHistory();
+export default function TriggerDetail() {
+  const params = useParams();
+  const id = params.id!;
+  const navigate = useNavigate();
   const { data, isLoading } = useTrigger(id, { cacheTime: 0 });
   const trigger = useMemo(() => {
     if (data) {
@@ -28,7 +29,7 @@ export default function TriggerDetail({ match }: RouteComponentProps<{ id: strin
     mutationFn: (data: UpdateTriggerData) => updateTrigger(id, data),
     onSuccess: () => {
       message.success('更新成功');
-      history.push('.');
+      navigate('..');
     },
     onError: (error: Error) => {
       console.error(error);
@@ -52,7 +53,7 @@ export default function TriggerDetail({ match }: RouteComponentProps<{ id: strin
       actions={actions}
       defaultValues={trigger}
       onSubmit={mutate}
-      onCancel={() => history.push('.')}
+      onCancel={() => navigate('..')}
       submitButtonText="更新"
     />
   );

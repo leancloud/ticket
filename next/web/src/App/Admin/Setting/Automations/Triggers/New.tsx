@@ -1,4 +1,4 @@
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useMutation } from 'react-query';
 
 import { Typography, message, notification } from '@/components/antd';
@@ -11,7 +11,7 @@ import actions from './actions';
 const { Title } = Typography;
 
 export default function NewTrigger() {
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const { mutateAsync } = useMutation({
     mutationFn: (data: CreateTriggerData) =>
@@ -23,7 +23,7 @@ export default function NewTrigger() {
       }),
     onSuccess: () => {
       message.success('保存成功');
-      history.push('.');
+      navigate('..');
     },
     onError: (error: Error) => {
       console.error(error);
@@ -44,7 +44,7 @@ export default function NewTrigger() {
         conditions={conditions}
         actions={actions}
         onSubmit={mutateAsync}
-        onCancel={() => history.push('.')}
+        onCancel={() => navigate('..')}
       />
     </div>
   );

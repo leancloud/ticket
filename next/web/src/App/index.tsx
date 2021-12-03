@@ -1,32 +1,27 @@
 import { QueryClientProvider } from 'react-query';
 import { RecoilRoot } from 'recoil';
-import { BrowserRouter, Redirect, RouteProps, Switch } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
 import { auth } from '@/leancloud';
 import { queryClient } from '@/api/query-client';
 import { SearchParamsProvicer } from '@/utils/useSearchParams';
-import { SentryRoute } from '@/components/Sentry';
 import Admin from './Admin';
 import Login from './Login';
 
-function AuthRoute(props: RouteProps) {
+function RequireAuth({ children }: { children: JSX.Element }) {
   if (!auth.currentUser) {
-    return <Redirect to="/login" />;
+    return <Navigate to="/login" />;
   }
-  return <SentryRoute {...props} />;
+  return children;
 }
 
-function Routes() {
+function AppRoutes() {
   return (
-    <Switch>
-      <AuthRoute path="/admin">
-        <Admin />
-      </AuthRoute>
-      <SentryRoute path="/login">
-        <Login />
-      </SentryRoute>
-      <Redirect to="/admin" />
-    </Switch>
+    <Routes>
+      <Route path="/admin/*" element={<RequireAuth children={<Admin />} />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="*" element={<Navigate to="/admin" replace />} />
+    </Routes>
   );
 }
 
@@ -36,7 +31,7 @@ export default function App() {
       <RecoilRoot>
         <BrowserRouter basename="/next">
           <SearchParamsProvicer>
-            <Routes />
+            <AppRoutes />
           </SearchParamsProvicer>
         </BrowserRouter>
       </RecoilRoot>

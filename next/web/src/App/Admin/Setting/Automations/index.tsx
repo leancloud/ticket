@@ -1,13 +1,7 @@
-import {
-  Link,
-  Redirect,
-  RouteComponentProps,
-  Switch,
-  Route,
-  useRouteMatch,
-} from 'react-router-dom';
+import { useMemo } from 'react';
+import { Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 
-import { Menu, Typography } from '@/components/antd';
+import { Tabs, Typography } from '@/components/antd';
 import Triggers from './Triggers';
 import NewTrigger from './Triggers/New';
 import TriggerDetail from './Triggers/Detail';
@@ -17,48 +11,44 @@ import TimeTriggerDetail from './TimeTriggers/Detail';
 
 const { Title } = Typography;
 
-function useSelectedKeys(path: string): string[] | undefined {
-  const match = useRouteMatch<{ key: string }>(path + '/:key');
-  if (match?.params.key) {
-    return [match.params.key];
-  }
-}
-
-function TriggerMenu({ match: { path } }: RouteComponentProps) {
-  const selectedKeys = useSelectedKeys(path);
+function TriggerPage() {
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const activeKey = useMemo(() => {
+    const i = pathname.lastIndexOf('/');
+    if (i >= 0) {
+      return pathname.slice(i + 1);
+    }
+  }, [pathname]);
 
   return (
     <>
       <Title level={4}>规则运行于：</Title>
 
-      <Menu selectedKeys={selectedKeys} mode="horizontal">
-        <Menu.Item key="triggers">
-          <Link to={`${path}/triggers`}>流转触发器</Link>
-        </Menu.Item>
-        <Menu.Item key="time-triggers">
-          <Link to={`${path}/time-triggers`}>定时触发器</Link>
-        </Menu.Item>
-      </Menu>
+      <Tabs activeKey={activeKey} onChange={navigate}>
+        <Tabs.TabPane key="triggers" tab="流转触发器" />
+        <Tabs.TabPane key="time-triggers" tab="定时触发器" />
+      </Tabs>
 
-      <Switch>
-        <Route path={`${path}/triggers`} component={Triggers} />
-        <Route path={`${path}/time-triggers`} component={TimeTriggers} />
-        <Redirect to={`${path}/triggers`} />
-      </Switch>
+      <Outlet />
     </>
   );
 }
 
-export default function Automations({ match: { path } }: RouteComponentProps) {
+export default function Automations() {
   return (
     <div className="p-14">
-      <Switch>
-        <Route path={`${path}/triggers/new`} component={NewTrigger} />
-        <Route path={`${path}/triggers/:id`} component={TriggerDetail} />
-        <Route path={`${path}/time-triggers/new`} component={NewTimeTrigger} />
-        <Route path={`${path}/time-triggers/:id`} component={TimeTriggerDetail} />
-        <Route path={path} component={TriggerMenu} />
-      </Switch>
+      <Routes>
+        <Route path="/*" element={<TriggerPage />}>
+          <Route path="triggers" element={<Triggers />} />
+          <Route path="time-triggers" element={<TimeTriggers />} />
+          <Route path="*" element={<Navigate to="triggers" replace />} />
+        </Route>
+        <Route path="/triggers/new" element={<NewTrigger />} />
+        <Route path="/triggers/:id" element={<TriggerDetail />} />
+        <Route path="/time-triggers/new" element={<NewTimeTrigger />} />
+        <Route path="/time-triggers/:id" element={<TimeTriggerDetail />} />
+      </Routes>
     </div>
   );
 }
