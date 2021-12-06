@@ -19,7 +19,7 @@ import { BatchUpdateDialog } from './BatchUpdateDialog';
 import { BatchOperationMenu } from './BatchOperateMenu';
 import { BatchUpdateData, BatchUpdateError, batchUpdate } from './batchUpdate';
 import { SortDropdown } from './SortDropdown';
-import { LayoutDropdown } from './LayoutDropdown';
+import { Layout, LayoutDropdown } from './LayoutDropdown';
 
 export { useOrderBy } from './SortDropdown';
 
@@ -167,6 +167,8 @@ export interface TopbarProps extends ComponentPropsWithoutRef<'div'> {
   isLoading?: boolean;
   checkedTicketIds?: string[];
   onCheckedChange: (checked: boolean) => void;
+  layout: Layout;
+  onChangeLayout: (value: Layout) => void;
 }
 
 export function Topbar({
@@ -178,6 +180,8 @@ export function Topbar({
   isLoading,
   checkedTicketIds,
   onCheckedChange,
+  layout,
+  onChangeLayout,
   ...props
 }: TopbarProps) {
   const indeterminate = useMemo(() => {
@@ -219,7 +223,7 @@ export function Topbar({
         )}
       </div>
 
-      {/* <LayoutDropdown value="card" onChange={console.log} /> */}
+      <LayoutDropdown value={layout} onChange={onChangeLayout} />
 
       <Pagination
         className="ml-4"

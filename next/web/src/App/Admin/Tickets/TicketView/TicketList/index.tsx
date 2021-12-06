@@ -21,7 +21,7 @@ interface CategoryPathProps extends ComponentPropsWithoutRef<'span'> {
   path: string[];
 }
 
-function CategoryPath({ path, ...props }: CategoryPathProps) {
+export function CategoryPath({ path, ...props }: CategoryPathProps) {
   return (
     <span
       {...props}
@@ -62,6 +62,11 @@ function makeCategoryPathGetter(categories: CategorySchema[]) {
   return get;
 }
 
+export function useGetCategoryPath() {
+  const { data: categories } = useCategories();
+  return useMemo(() => makeCategoryPathGetter(categories ?? []), [categories]);
+}
+
 export interface TicketListProps {
   tickets: TicketSchema[];
   checkedIds: string[];
@@ -70,8 +75,7 @@ export interface TicketListProps {
 
 export const TicketList = memo(({ tickets, checkedIds, onChangeChecked }: TicketListProps) => {
   const checkedIdSet = useMemo(() => new Set(checkedIds), [checkedIds]);
-  const { data: categories } = useCategories();
-  const getCategoryPath = useMemo(() => makeCategoryPathGetter(categories ?? []), [categories]);
+  const getCategoryPath = useGetCategoryPath();
 
   return (
     <>

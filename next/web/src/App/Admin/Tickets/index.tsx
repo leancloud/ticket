@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
+import { useLocalStorage } from 'react-use';
 
 import { useTickets } from '@/api/ticket';
 import { useSearchParam } from '@/utils/useSearchParams';
@@ -11,10 +12,22 @@ import { TicketView } from './TicketView';
 
 const pageSize = 20;
 
+function useLayout() {
+  const [layout = 'card', ...rest] = useLocalStorage<'card' | 'table'>(
+    'TapDesk:ticketLayout',
+    undefined,
+    {
+      raw: true,
+    }
+  );
+  return [layout, ...rest] as const;
+}
+
 function TicketListView() {
   const [page] = usePage();
   const { orderKey, orderType } = useOrderBy();
   const [showFilterForm, setShowFilterForm] = useState(false);
+  const [layout, setLayout] = useLayout();
 
   const [filterId] = useSearchParam('filterId');
   const { filter, isLoading: isLoadingFilter } = useTicketFilter(filterId);
@@ -25,6 +38,7 @@ function TicketListView() {
 
   const { data: tickets, totalCount, isLoading, isFetching } = useTickets({
     page,
+    pageSize,
     orderKey,
     orderType,
     filters,
@@ -63,7 +77,7 @@ function TicketListView() {
       <FilterMenu />
 
       <Topbar
-        className="flex-shrink-0 z-0"
+        className="flex-shrink-0 z-10"
         showFilter={showFilterForm}
         onChangeShowFilter={setShowFilterForm}
         pageSize={pageSize}
@@ -72,6 +86,8 @@ function TicketListView() {
         isLoading={isLoading || isFetching}
         checkedTicketIds={checkedIds}
         onCheckedChange={handleCheckAll}
+        layout={layout}
+        onChangeLayout={setLayout}
       />
 
       <div className="flex flex-grow overflow-hidden">
@@ -80,6 +96,7 @@ function TicketListView() {
           {tickets && tickets.length === 0 && 'No data'}
           {tickets && tickets.length > 0 && (
             <TicketView
+              layout={layout}
               tickets={tickets}
               checkedIds={checkedIds}
               onChangeChecked={handleCheckTicket}

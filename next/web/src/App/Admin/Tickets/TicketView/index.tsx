@@ -1,23 +1,23 @@
-import { useState } from 'react';
-
 import { TicketSchema } from '@/api/ticket';
 import { TicketList } from './TicketList';
+import { TicketTable } from './TicketTable';
 
 export interface TicketViewProps {
+  layout: 'card' | 'table';
   tickets: TicketSchema[];
   checkedIds: string[];
   onChangeChecked: (id: string, checked: boolean) => void;
 }
 
-export function TicketView({ tickets, checkedIds, onChangeChecked }: TicketViewProps) {
-  const [layout, setLayout] = useState<'list' | 'table'>('list');
-
+export function TicketView({ layout, tickets, checkedIds, onChangeChecked }: TicketViewProps) {
   return (
     <>
-      {layout === 'list' && (
+      {layout === 'card' && (
         <TicketList tickets={tickets} checkedIds={checkedIds} onChangeChecked={onChangeChecked} />
       )}
-      {layout === 'table' && <div>table</div>}
+      {layout === 'table' && (
+        <TicketTable tickets={tickets} checkedIds={checkedIds} onChangeChecked={onChangeChecked} />
+      )}
     </>
   );
 }

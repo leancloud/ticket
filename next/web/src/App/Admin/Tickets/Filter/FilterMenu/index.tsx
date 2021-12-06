@@ -114,7 +114,7 @@ function FilterMenus({ open, onClose, selected, onSelect }: FilterMenusProps) {
       leaveTo="opacity-0 -translate-x-4"
     >
       <Dialog
-        className={`${styles.menu} fixed left-16 inset-y-0 flex flex-col w-[280px] h-full bg-[#ebeff3]`}
+        className={`${styles.menu} fixed left-16 inset-y-0 flex flex-col w-[280px] h-full bg-[#ebeff3] z-20`}
         initialFocus={$input}
         onClose={onClose}
       >
