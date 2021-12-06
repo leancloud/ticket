@@ -2,12 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
 import { useTickets } from '@/api/ticket';
+import { useSearchParam } from '@/utils/useSearchParams';
 import { usePage } from '@/utils/usePage';
 import { Topbar, useOrderBy } from './Topbar';
 import { FilterForm, FilterMenu } from './Filter';
 import { useTicketFilter, useLocalFilters } from './useTicketFilter';
-import { TicketList } from './TicketList';
-import { useSearchParam } from 'utils/useSearchParams';
+import { TicketView } from './TicketView';
 
 const pageSize = 20;
 
@@ -79,10 +79,10 @@ function TicketListView() {
           {isLoading && 'Loading...'}
           {tickets && tickets.length === 0 && 'No data'}
           {tickets && tickets.length > 0 && (
-            <TicketList
+            <TicketView
               tickets={tickets}
               checkedIds={checkedIds}
-              onClickCheckbox={handleCheckTicket}
+              onChangeChecked={handleCheckTicket}
             />
           )}
         </div>
