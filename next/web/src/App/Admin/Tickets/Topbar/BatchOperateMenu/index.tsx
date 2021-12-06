@@ -2,7 +2,7 @@ import { Fragment } from 'react';
 import { Menu as HLMenu, Transition } from '@headlessui/react';
 import cx from 'classnames';
 
-import Menu from 'components/Menu';
+import Menu from '@/components/Menu';
 import { Operation } from '../batchUpdate';
 
 export interface BatchOperationMenuProps {
