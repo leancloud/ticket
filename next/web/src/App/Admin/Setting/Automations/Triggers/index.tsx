@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Link, RouteComponentProps, useRouteMatch } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useQueryClient, useMutation } from 'react-query';
 import { AiOutlineSetting } from 'react-icons/ai';
 import {
@@ -38,7 +38,6 @@ interface TriggerItemProps {
 }
 
 function TriggerItem({ trigger, number, onDelete }: TriggerItemProps) {
-  const { path } = useRouteMatch();
   const queryClient = useQueryClient();
 
   const updateActive = useCallback(
@@ -68,7 +67,7 @@ function TriggerItem({ trigger, number, onDelete }: TriggerItemProps) {
         <div className="relative flex-grow overflow-hidden">
           <div className="absolute w-9 text-right font-medium">{number}.</div>
           <div className="pl-10 font-medium">
-            <Link to={`${path}/${trigger.id}`}>{trigger.title}</Link>
+            <Link to={trigger.id}>{trigger.title}</Link>
           </div>
           <div className="mt-1 pl-10 text-sm text-[#475867]">{trigger.description}</div>
         </div>
@@ -238,7 +237,7 @@ function Reorder({ triggers, onChange }: ReorderProps) {
   );
 }
 
-export default function Triggers({ match: { path } }: RouteComponentProps) {
+export default function Triggers() {
   const [reordering, setReordering] = useState(false);
   const [order, setOrder] = useState<string[]>();
 
@@ -304,7 +303,7 @@ export default function Triggers({ match: { path } }: RouteComponentProps) {
                 重新排序
               </Button>
             )}
-            <Link to={`${path}/new`}>
+            <Link to="new">
               <Button type="primary">新规则</Button>
             </Link>
           </>

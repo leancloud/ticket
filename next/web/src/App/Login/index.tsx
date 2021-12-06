@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Redirect } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 
 import { auth } from '@/leancloud';
 import { Button } from '@/components/antd';
@@ -28,7 +28,7 @@ export default function Login() {
   });
 
   if (auth.currentUser) {
-    return <Redirect to="/" />;
+    return <Navigate to="/" />;
   }
 
   return (

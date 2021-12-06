@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Link, RouteComponentProps, useRouteMatch } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useMutation, useQueryClient } from 'react-query';
 import { AiOutlineSetting } from 'react-icons/ai';
 import {
@@ -39,7 +39,6 @@ interface TimeTriggerItemProps {
 }
 
 function TimeTriggerItem({ data, number, onDelete }: TimeTriggerItemProps) {
-  const { path } = useRouteMatch();
   const queryClient = useQueryClient();
 
   const updateActive = useCallback(
@@ -69,7 +68,7 @@ function TimeTriggerItem({ data, number, onDelete }: TimeTriggerItemProps) {
         <div className="relative flex-grow overflow-hidden">
           <div className="absolute w-9 text-right font-medium">{number}.</div>
           <div className="pl-10 font-medium">
-            <Link to={`${path}/${data.id}`}>{data.title}</Link>
+            <Link to={data.id}>{data.title}</Link>
           </div>
           <div className="mt-1 pl-10 text-sm text-[#475867]">{data.description}</div>
         </div>
@@ -234,7 +233,7 @@ function Reorder({ data, onChange }: ReorderProps) {
   );
 }
 
-export default function TimeTriggers({ match: { path } }: RouteComponentProps) {
+export default function TimeTriggers() {
   const [reordering, setReordering] = useState(false);
   const [order, setOrder] = useState<string[]>();
 
@@ -300,7 +299,7 @@ export default function TimeTriggers({ match: { path } }: RouteComponentProps) {
                 重新排序
               </Button>
             )}
-            <Link to={`${path}/new`}>
+            <Link to="new">
               <Button type="primary">新规则</Button>
             </Link>
           </>

@@ -7,7 +7,7 @@ import {
   useRef,
   useEffect,
 } from 'react';
-import { useHistory, useLocation } from 'react-router';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { noop } from 'lodash-es';
 
 export const SearchParamsContext = createContext({
@@ -17,7 +17,7 @@ export const SearchParamsContext = createContext({
 });
 
 export function SearchParamsProvicer({ children }: { children: ReactNode }) {
-  const history = useHistory();
+  const navigate = useNavigate();
   const { search } = useLocation();
 
   const $dirtyParams = useRef<Record<string, string | undefined>>();
@@ -39,9 +39,9 @@ export function SearchParamsProvicer({ children }: { children: ReactNode }) {
           searchParams.set(key, value);
         }
       });
-      history.push({ search: searchParams.toString() });
+      navigate({ search: searchParams.toString() });
     },
-    [history]
+    [navigate]
   );
 
   const merge = useCallback(
