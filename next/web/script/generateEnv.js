@@ -1,17 +1,24 @@
 const fs = require('fs');
 const path = require('path');
 
-if (process.env.LEANCLOUD_APP_ID) {
-  let content = `VITE_LC_APP_ID=${process.env.LEANCLOUD_APP_ID}
-VITE_LC_APP_KEY=${process.env.LEANCLOUD_APP_KEY}
-VITE_LC_API_SERVER=${process.env.LEANCLOUD_API_HOST}`;
-  content = process.env.SENTRY_WEB_DSN
-    ? `${content}
-VITE_SENTRY_DSN=${process.env.SENTRY_WEB_DSN}`
-    : content;
+const keys = [
+  'LC_APP_ID',
+  'LC_APP_KEY',
+  'LC_API_SERVER',
+  'SENTRY_WEB_DSN',
+  'ENABLE_LEANCLOUD_INTEGRATION',
+];
 
+function generate() {
+  const firstMissingKey = keys.find((key) => !process.env[key]);
+  if (firstMissingKey) {
+    console.warn(`缺少环境变量 "${firstMissingKey}"，是不是忘记 $(lean env) 了？`);
+    return;
+  }
+
+  const content = keys.map((key) => `VITE_${key}=${process.env[key]}`).join('\n');
   const filePath = path.resolve(__dirname, '../.env.local');
   fs.writeFileSync(filePath, content);
-} else {
-  console.warn('没有环境变量！是不是忘记 $(lean env) 了？');
 }
+
+generate();
