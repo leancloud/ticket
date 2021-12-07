@@ -27,6 +27,7 @@ const includeSchema = {
   includeGroup: yup.bool(),
   includeFiles: yup.bool(),
   includeCategoryPath: yup.bool(),
+  includeUnreadCount: yup.bool(),
 };
 
 const findTicketsSchema = yup.object({
@@ -127,13 +128,15 @@ router.get(
     if (params.includeFiles) {
       query.preload('files');
     }
+    if (params.includeUnreadCount) {
+      query.preload('notification', {
+        onQuery: (query) => {
+          return query.where('user', '==', currentUser.toPointer());
+        },
+      });
+    }
 
-    query
-      .preload('notification', {
-        onQuery: (query) => query.where('user', '==', currentUser.toPointer()),
-      })
-      .skip((params.page - 1) * params.pageSize)
-      .limit(params.pageSize);
+    query.skip((params.page - 1) * params.pageSize).limit(params.pageSize);
 
     let tickets: Ticket[];
     if (params.count) {
