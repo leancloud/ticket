@@ -98,10 +98,13 @@ export type QueryBunch<M extends typeof Model> = (query: Query<M>) => Query<M>;
 
 export type OrderType = 'asc' | 'desc';
 
-export interface PreloadOptions<M extends typeof Model, K extends RelationName<M> = RelationName<M>>
-  extends AuthOptions {
+export interface PreloadOptions<
+  M extends typeof Model,
+  K extends RelationName<M> = RelationName<M>
+> {
   data?: Flat<NonNullable<InstanceType<M>[K]>>[];
   onQuery?: (query: QueryBuilder<any>) => void;
+  authOptions?: AuthOptions;
 }
 
 interface QueryPreloader {
@@ -209,11 +212,13 @@ export class Query<M extends typeof Model> {
     if (options) {
       preloader.data = options.data as Model[];
       preloader.queryModifier = options.onQuery;
+      query.preloaders[key] = {
+        preloader,
+        authOptions: options.authOptions,
+      };
+    } else {
+      query.preloaders[key] = { preloader };
     }
-    query.preloaders[key] = {
-      preloader,
-      authOptions: options,
-    };
 
     return query;
   }
