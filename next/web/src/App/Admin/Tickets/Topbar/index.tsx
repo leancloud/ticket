@@ -7,25 +7,21 @@ import {
   useState,
 } from 'react';
 import { BsLayoutSidebarReverse } from 'react-icons/bs';
-import {
-  HiAdjustments,
-  HiChevronDown,
-  HiChevronLeft,
-  HiChevronRight,
-  HiOutlineRefresh,
-} from 'react-icons/hi';
-import { Menu as HLMenu, Transition } from '@headlessui/react';
+import { HiAdjustments, HiChevronLeft, HiChevronRight, HiOutlineRefresh } from 'react-icons/hi';
 import { useQueryClient } from 'react-query';
 import cx from 'classnames';
 
 import { Checkbox } from '@/components/antd';
-import Menu from '@/components/Menu';
 import { usePage } from '@/utils/usePage';
 import { useOrderBy as _useOrderBy } from '@/utils/useOrderBy';
 import styles from './index.module.css';
 import { BatchUpdateDialog } from './BatchUpdateDialog';
 import { BatchOperationMenu } from './BatchOperateMenu';
 import { BatchUpdateData, BatchUpdateError, batchUpdate } from './batchUpdate';
+import { SortDropdown } from './SortDropdown';
+import { Layout, LayoutDropdown } from './LayoutDropdown';
+
+export { useOrderBy } from './SortDropdown';
 
 interface NavButtonProps extends ComponentPropsWithoutRef<'button'> {
   active?: boolean;
@@ -46,74 +42,6 @@ const NavButton = forwardRef<HTMLButtonElement, NavButtonProps>(({ active, ...pr
     />
   );
 });
-
-export const useOrderBy = () =>
-  _useOrderBy({
-    defaultOrderKey: 'createdAt',
-    defaultOrderType: 'desc',
-  });
-
-const orderKeys: Record<string, string> = {
-  createdAt: '创建日期',
-  updatedAt: '最后修改时间',
-  status: '状态',
-};
-
-function SortDropdown({ disabled }: { disabled?: boolean }) {
-  const { orderKey, orderType, setOrderKey, setOrderType } = useOrderBy();
-
-  const handleSelect = useCallback(
-    (eventKey: string) => {
-      if (eventKey === 'asc' || eventKey === 'desc') {
-        setOrderType(eventKey);
-      } else {
-        setOrderKey(eventKey);
-      }
-    },
-    [setOrderKey, setOrderType]
-  );
-
-  return (
-    <HLMenu as="span" className="relative">
-      <HLMenu.Button disabled={disabled}>
-        <span className="text-[#6f7c87]">排序方式:</span>
-        <span className="ml-2 text-[13px] font-medium">
-          {orderKeys[orderKey]} <HiChevronDown className="inline relative top-0.5" />
-        </span>
-      </HLMenu.Button>
-
-      <Transition
-        enter="transition"
-        enterFrom="opacity-0 -translate-y-4"
-        leave="transition"
-        leaveTo="opacity-0"
-      >
-        <HLMenu.Items
-          as={Menu}
-          className="absolute mt-1 border border-gray-300 rounded shadow-md"
-          onSelect={handleSelect}
-        >
-          <HLMenu.Item as={Menu.Item} eventKey="createdAt" active={orderKey === 'createdAt'}>
-            {orderKeys.createdAt}
-          </HLMenu.Item>
-          <HLMenu.Item as={Menu.Item} eventKey="updatedAt" active={orderKey === 'updatedAt'}>
-            {orderKeys.updatedAt}
-          </HLMenu.Item>
-          <HLMenu.Item as={Menu.Item} eventKey="status" active={orderKey === 'status'}>
-            {orderKeys.status}
-          </HLMenu.Item>
-          <Menu.Divider />
-          <HLMenu.Item as={Menu.Item} eventKey="asc" active={orderType === 'asc'}>
-            升序
-          </HLMenu.Item>
-          <HLMenu.Item as={Menu.Item} eventKey="desc" active={orderType === 'desc'}>
-            降序
-          </HLMenu.Item>
-        </HLMenu.Items>
-      </Transition>
-    </HLMenu>
-  );
-}
 
 interface BatchOperationsProps {
   checkedTicketIds: string[];
@@ -182,13 +110,14 @@ function BatchOperations({ checkedTicketIds, disabled, onSuccess }: BatchOperati
 }
 
 interface PaginationProps {
+  className?: string;
   pageSize: number;
   count?: number;
   totalCount?: number;
   isLoading?: boolean;
 }
 
-function Pagination({ pageSize, count, totalCount, isLoading }: PaginationProps) {
+function Pagination({ className, pageSize, count, totalCount, isLoading }: PaginationProps) {
   const [page, { set: setPage }] = usePage();
   const [text, setText] = useState('');
   const [noMorePages, setNoMorePages] = useState(false);
@@ -209,7 +138,7 @@ function Pagination({ pageSize, count, totalCount, isLoading }: PaginationProps)
   }, [page, pageSize, count, totalCount, isLoading]);
 
   return (
-    <>
+    <div className={cx('flex items-center', className)}>
       <span className="text-[#6f7c87]">{text || 'Loading...'}</span>
       <NavButton
         className="ml-2.5 px-[7px] py-[7px] rounded-r-none"
@@ -225,7 +154,7 @@ function Pagination({ pageSize, count, totalCount, isLoading }: PaginationProps)
       >
         <HiChevronRight className="w-4 h-4" />
       </NavButton>
-    </>
+    </div>
   );
 }
 
@@ -238,6 +167,8 @@ export interface TopbarProps extends ComponentPropsWithoutRef<'div'> {
   isLoading?: boolean;
   checkedTicketIds?: string[];
   onCheckedChange: (checked: boolean) => void;
+  layout: Layout;
+  onChangeLayout: (value: Layout) => void;
 }
 
 export function Topbar({
@@ -249,6 +180,8 @@ export function Topbar({
   isLoading,
   checkedTicketIds,
   onCheckedChange,
+  layout,
+  onChangeLayout,
   ...props
 }: TopbarProps) {
   const indeterminate = useMemo(() => {
@@ -290,7 +223,15 @@ export function Topbar({
         )}
       </div>
 
-      <Pagination pageSize={pageSize} count={count} totalCount={totalCount} isLoading={isLoading} />
+      <LayoutDropdown value={layout} onChange={onChangeLayout} />
+
+      <Pagination
+        className="ml-4"
+        pageSize={pageSize}
+        count={count}
+        totalCount={totalCount}
+        isLoading={isLoading}
+      />
 
       <NavButton
         className="ml-2 px-[7px] py-[7px]"
