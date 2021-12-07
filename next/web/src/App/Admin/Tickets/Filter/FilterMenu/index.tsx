@@ -21,9 +21,7 @@ import { useSearchParam } from '@/utils/useSearchParams';
 import styles from './index.module.css';
 import { FilterSearch } from './FilterSearch';
 import { SaveData, SaveDialog } from './SaveDialog';
-import { presetFilters } from '../prest-filters';
-import { useTicketFilter } from '../../useTicketFilter';
-import { useLocalFilters } from '../../useTicketFilter';
+import { presetFilters, useLocalFilters, useTicketFilter } from '../../useTicketFilter';
 
 function getPrivilege(filter: { userIds?: string[]; groupIds?: string[] }): SaveData['privilege'] {
   return filter.userIds ? 'private' : filter.groupIds ? 'group' : 'public';
