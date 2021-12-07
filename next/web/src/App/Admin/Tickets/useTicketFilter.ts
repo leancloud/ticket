@@ -4,7 +4,7 @@ import { mapValues } from 'lodash';
 import { TicketFilterSchema, useTicketFilter as _useTicketFilter } from '@/api/ticket-filter';
 import { useSearchParams } from '@/utils/useSearchParams';
 
-const presetFilters: TicketFilterSchema[] = [
+export const presetFilters: TicketFilterSchema[] = [
   {
     id: '',
     name: '所有工单',
