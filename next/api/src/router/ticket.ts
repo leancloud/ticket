@@ -131,7 +131,7 @@ router.get(
     if (params.includeUnreadCount) {
       query.preload('notification', {
         onQuery: (query) => {
-          return query.where('user', '==', currentUser.toPointer()).where('unreadCount', '>', 0);
+          return query.where('user', '==', currentUser.toPointer());
         },
       });
     }
