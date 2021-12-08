@@ -65,6 +65,7 @@ export const getCategoriesTree = (hiddenDisable = true) => {
   })
   return query
     .orderBy('createdAt', 'desc')
+    .limit(1000)
     .find()
     .then((categories) => {
       return makeTree(categories)
