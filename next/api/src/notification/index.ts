@@ -242,14 +242,6 @@ const notification = new Notification();
 
 export default notification;
 
-function ticketClosed(originalStatus: number, status: number): boolean {
-  return originalStatus < 200 && status >= 200;
-}
-
-function ticketReopened(originalStatus: number, status: number): boolean {
-  return originalStatus >= 200 && status < 200;
-}
-
 // 内置的通知逻辑
 notification.register({
   newTicket: ({ ticket }) => {
@@ -290,21 +282,6 @@ notification.register({
         console.error(error);
       });
     }
-  },
-  changeStatus: ({ ticket, from, originalStatus, status }) => {
-    const task = async () => {
-      // 客服关闭或重新打开工单时增加 unreadCount
-      if (ticketClosed(originalStatus, status) || ticketReopened(originalStatus, status)) {
-        const isCustomerService = await ticket.isCustomerService(from);
-        if (isCustomerService) {
-          await ticket.increaseUnreadCount('changeStatus', from);
-        }
-      }
-    };
-    task().catch((error) => {
-      // TODO: Sentry
-      console.error('[ERROR] Increase unread count failed:', error);
-    });
   },
 });
 
