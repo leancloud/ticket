@@ -97,7 +97,7 @@ export class TicketUpdater {
     return this;
   }
 
-  increaseUnreadCount(amount = 1) {
+  ONLY_FOR_TGB_increaseUnreadCount(amount = 1) {
     this.unreadCountIncrement += amount;
     return this;
   }
@@ -145,8 +145,10 @@ export class TicketUpdater {
       if (operator !== systemUser) {
         this.data.joinedCustomerServices = commands.pushUniq(operator.getTinyInfo());
       }
-      // XXX: 适配加速器的使用场景
-      this.increaseUnreadCount();
+      if (this.ticket.isClosed() !== Ticket.Status.isClosed(this.data.status)) {
+        // XXX: 适配加速器的使用场景
+        this.ONLY_FOR_TGB_increaseUnreadCount();
+      }
     }
     this.opsLogCreator.operate(action, operator);
 

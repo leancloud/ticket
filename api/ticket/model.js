@@ -651,8 +651,10 @@ class Ticket {
       if (operator.id !== 'system') {
         this.joinCustomerService(operatorInfo)
       }
-      // XXX: 适配加速器的使用场景
-      this.increaseUnreadCount(1)
+      if (ticketStatus.isOpened(status) !== ticketStatus.isOpened(this.status)) {
+        // XXX: 适配加速器的使用场景
+        this.increaseUnreadCount(1)
+      }
     }
 
     this.status = status

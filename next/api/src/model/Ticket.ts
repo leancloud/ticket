@@ -245,7 +245,7 @@ export class Ticket extends Model {
           updater.addJoinedCustomerService(data.author.getTinyInfo());
         }
         // XXX: 适配加速器的使用场景
-        updater.increaseUnreadCount();
+        updater.ONLY_FOR_TGB_increaseUnreadCount();
       }
       if (this.status < Status.FULFILLED) {
         updater.setStatus(
