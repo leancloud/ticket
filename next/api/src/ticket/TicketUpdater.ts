@@ -92,6 +92,16 @@ export class TicketUpdater {
     return this;
   }
 
+  setlatestCustomerServiceReplyAt(time: Date) {
+    this.data.latestCustomerServiceReplyAt = time;
+    return this;
+  }
+
+  setfirstCustomerServiceReplyAt(time: Date) {
+    this.data.firstCustomerServiceReplyAt = time;
+    return this;
+  }
+
   increaseReplyCount(amount = 1) {
     this.replyCountIncrement += amount;
     return this;

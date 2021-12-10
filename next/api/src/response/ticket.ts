@@ -30,6 +30,8 @@ class BaseTicketResponse {
       evaluation: this.ticket.evaluation,
       replyCount: this.ticket.replyCount,
       metaData: this.ticket.metaData ? _.pick(this.ticket.metaData, includeMetaKeys) : undefined,
+      firstCustomerServiceReplyAt: this.ticket.firstCustomerServiceReplyAt,
+      latestCustomerServiceReplyAt: this.ticket.latestCustomerServiceReplyAt,
       createdAt: this.ticket.createdAt.toISOString(),
       updatedAt: this.ticket.updatedAt.toISOString(),
     };
@@ -40,7 +42,7 @@ export class TicketListItemResponse extends BaseTicketResponse {
   toJSON(options?: TicketResponseOptions) {
     return {
       ...super.toJSON(options),
-      unreadCount: this.ticket.notification ? this.ticket.notification.unreadCount : undefined,
+      unreadCount: this.ticket.notification?.unreadCount,
     };
   }
 }

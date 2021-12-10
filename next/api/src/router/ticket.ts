@@ -44,6 +44,7 @@ const findTicketsSchema = yup.object({
   page: yup.number().min(1).default(1),
   pageSize: yup.number().min(0).max(100).default(10),
   count: yup.bool().default(false),
+  includeMetaKeys: yup.csv(yup.string()),
   ...includeSchema,
 });
 
@@ -67,7 +68,7 @@ function addPointersCondition(
 
 router.get(
   '/',
-  sort('orderBy', ['status', 'createdAt', 'updatedAt']),
+  sort('orderBy', ['status', 'createdAt', 'updatedAt', 'latestCustomerServiceReplyAt']),
   parseRange('createdAt'),
   include,
   async (ctx) => {
@@ -151,7 +152,11 @@ router.get(
       await Promise.all(tickets.map((ticket) => ticket.loadCategoryPath()));
     }
 
-    ctx.body = tickets.map((ticket) => new TicketListItemResponse(ticket).toJSON());
+    ctx.body = tickets.map((ticket) =>
+      new TicketListItemResponse(ticket).toJSON({
+        includeMetaKeys: _.compact(params.includeMetaKeys),
+      })
+    );
   }
 );
 

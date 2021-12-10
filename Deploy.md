@@ -125,3 +125,9 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 ### `bd02da4a2a7f9d9ccc83a1aaa351ca4602756cfc`
 
 重写了关键词搜索功能。在「全文搜索」中为 Ticket class 的 content、author、category、title、status、group、assignee、evaluation、tags、nid 列添加索引。
+
+## 2021-12-10
+
+### TBD
+
+重新导入 Ticket（为 Ticket 增加 latestCustomerServiceReplyAt 与 firstCustomerServiceReplyAt，创建索引 latestCustomerServiceReplyAt_-1）
