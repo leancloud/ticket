@@ -189,6 +189,7 @@ const FAQs = memo(({ categoryId }) => {
         .include('FAQs')
         .where('objectId', '==', categoryId)
         .select(['FAQs'])
+        .limit(1000)
         .find(),
     select: (data) => {
       if (!data) {

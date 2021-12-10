@@ -121,6 +121,7 @@ export function useCategories() {
   const [categories, setCategories] = useState(EMPTY_CATEGORIES)
   useEffect(() => {
     db.class('Category')
+      .limit(1000)
       .find()
       .then((objects) => setCategories(new CategoryManager(objects.map((o) => o.toJSON()))))
       .catch(console.error)
