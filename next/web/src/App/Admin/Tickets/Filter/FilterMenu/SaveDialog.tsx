@@ -40,7 +40,7 @@ export function SaveDialog({
       leaveTo="opacity-0"
     >
       <Dialog
-        className={cx('w-[300px] bg-white rounded-b shadow-lg overflow-hidden', className)}
+        className={cx('w-[300px] bg-white rounded-b shadow-lg overflow-hidden z-10', className)}
         onClose={onClose}
       >
         <div className="p-4">
