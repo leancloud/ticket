@@ -1,4 +1,4 @@
-import { ComponentPropsWithoutRef } from 'react';
+import { ComponentPropsWithoutRef, ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 import { AiOutlineSetting } from 'react-icons/ai';
 import { HiOutlineTicket } from 'react-icons/hi';
@@ -12,31 +12,36 @@ function Logo() {
   );
 }
 
+function Path({ to, children }: { to: string; children: ReactNode }) {
+  return (
+    <NavLink
+      className={({ isActive }) =>
+        cx(
+          'flex mb-2 w-[40px] h-[40px] rounded transition-colors hover:bg-[rgba(255,255,255,0.16)] hover:text-white',
+          {
+            'bg-[rgba(255,255,255,0.16)] text-white': isActive,
+          }
+        )
+      }
+      to={to}
+    >
+      {children}
+    </NavLink>
+  );
+}
+
 export function Sidebar(props: ComponentPropsWithoutRef<'aside'>) {
   return (
     <aside {...props} className={cx('w-16 bg-[#12344d]', props.className)}>
       <Logo />
 
       <section className="p-3 text-[rgba(255,255,255,0.72)]">
-        <NavLink
-          className={({ isActive }) =>
-            cx(
-              'flex w-[40px] h-[40px] rounded transition-colors hover:bg-[rgba(255,255,255,0.16)] hover:text-white',
-              {
-                'bg-[rgba(255,255,255,0.16)] text-white': isActive,
-              }
-            )
-          }
-          to="/admin/tickets"
-        >
+        <Path to="/admin/tickets">
           <HiOutlineTicket className="m-auto w-[20px] h-[20px]" />
-        </NavLink>
-        <a
-          className="flex w-[40px] h-[40px] rounded transition-colors hover:bg-[rgba(255,255,255,0.16)] hover:text-white mt-3"
-          href="/settings"
-        >
+        </Path>
+        <Path to="/admin/settings">
           <AiOutlineSetting className="m-auto w-[20px] h-[20px]" />
-        </a>
+        </Path>
       </section>
     </aside>
   );

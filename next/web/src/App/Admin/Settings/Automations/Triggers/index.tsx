@@ -19,6 +19,7 @@ import {
   Modal,
   Spin,
   Switch,
+  Typography,
   message,
   notification,
 } from '@/components/antd';
@@ -30,6 +31,8 @@ import {
   useTriggers,
 } from '@/api/trigger';
 import style from './index.module.css';
+
+const { Title } = Typography;
 
 interface TriggerItemProps {
   trigger: TriggerData;
@@ -282,6 +285,8 @@ export default function Triggers() {
 
   return (
     <>
+      <Title level={4}>流转触发器</Title>
+
       <div className="flex my-4">
         <div className="flex-grow leading-8 text-[#475867]">
           <button className="inline-flex items-center">
