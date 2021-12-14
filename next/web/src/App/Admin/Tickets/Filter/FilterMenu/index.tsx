@@ -118,12 +118,12 @@ function FilterMenus({ open, onClose, selected, onSelect }: FilterMenusProps) {
       >
         <FilterSearch
           ref={$input}
-          className="flex-shrink-0 shadow-sm"
+          className="shrink-0 shadow-sm"
           value={keyword}
           onChange={setKeyword}
         />
 
-        <div className="flex flex-grow flex-col gap-2 overflow-y-auto p-2">
+        <div className="flex grow flex-col gap-2 overflow-y-auto p-2">
           {filteredFilters.length > 0 && (
             <FilterMenu filters={filteredFilters} selected={selected} onSelect={handleSelect} />
           )}

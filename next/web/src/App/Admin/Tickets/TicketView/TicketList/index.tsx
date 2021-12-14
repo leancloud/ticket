@@ -89,20 +89,20 @@ export const TicketList = memo(({ tickets, checkedIds, onChangeChecked }: Ticket
             key={ticket.id}
             className={cx(
               style.ticket,
-              'flex flex-shrink-0 min-w-[460px] h-[102px] bg-white rounded-sm shadow cursor-default',
+              'flex shrink-0 min-w-[460px] h-[102px] bg-white rounded-sm shadow cursor-default',
               {
                 [style.closed]: isClosed,
               }
             )}
           >
-            <div className="flex flex-shrink-0 items-center p-4">
+            <div className="flex shrink-0 items-center p-4">
               <Checkbox
                 checked={checkedIdSet.has(ticket.id)}
                 onChange={(e) => onChangeChecked(ticket.id, e.target.checked)}
               />
             </div>
 
-            <div className="grid grid-cols-4 flex-grow">
+            <div className="grid grid-cols-4 grow">
               <div className="col-span-3 flex flex-col justify-center items-start py-4 overflow-hidden">
                 <div>
                   <Status status={ticket.status} />
@@ -113,10 +113,8 @@ export const TicketList = memo(({ tickets, checkedIds, onChangeChecked }: Ticket
                   title={ticket.title}
                   href={`/tickets/${ticket.nid}`}
                 >
-                  <span className="flex-shrink truncate">{ticket.title}</span>
-                  <span className={`${style.nid} flex-shrink-0 ml-1 text-[#6f7c87]`}>
-                    #{ticket.nid}
-                  </span>
+                  <span className="shrink truncate">{ticket.title}</span>
+                  <span className={`${style.nid} shrink-0 ml-1 text-[#6f7c87]`}>#{ticket.nid}</span>
                 </a>
                 <div className="flex items-center mt-1">
                   <Name>{ticket.author.nickname}</Name>

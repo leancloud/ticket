@@ -26,8 +26,8 @@ export function Topbar(props: ComponentPropsWithoutRef<'header'>) {
       {...props}
       className={cx('flex items-center h-16 border-b px-4 bg-white', props.className)}
     >
-      <section id="custom-section" className="flex-grow"></section>
-      <CurrentUserSection className="flex-shrink-0" />
+      <section id="custom-section" className="grow"></section>
+      <CurrentUserSection className="shrink-0" />
     </header>
   );
 }

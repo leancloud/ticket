@@ -77,7 +77,7 @@ function TicketListView() {
       <FilterMenu />
 
       <Topbar
-        className="flex-shrink-0 z-10"
+        className="shrink-0 z-10"
         showFilter={showFilterForm}
         onChangeShowFilter={setShowFilterForm}
         pageSize={pageSize}
@@ -90,8 +90,8 @@ function TicketListView() {
         onChangeLayout={setLayout}
       />
 
-      <div className="flex flex-grow overflow-hidden">
-        <div className="flex flex-grow flex-col p-[10px] gap-2 overflow-auto">
+      <div className="flex grow overflow-hidden">
+        <div className="flex grow flex-col p-[10px] gap-2 overflow-auto">
           {isLoading && 'Loading...'}
           {tickets && tickets.length === 0 && 'No data'}
           {tickets && tickets.length > 0 && (
@@ -105,7 +105,7 @@ function TicketListView() {
         </div>
 
         {showFilterForm && (
-          <FilterForm className="flex-shrink-0" filters={filters} onChange={setLocalFilters} />
+          <FilterForm className="shrink-0" filters={filters} onChange={setLocalFilters} />
         )}
       </div>
     </div>

@@ -45,7 +45,7 @@ function ConditionsTypeSwitch({ type, onChange }: ConditionsTypeRadioGroupProps)
         <div
           className={cx(
             'absolute left-[2px] top-[2px] w-16 h-8 border border-primary rounded-full bg-white',
-            'font-bold transition-transform duration-300 flex justify-center items-center',
+            'font-bold duration-300 flex justify-center items-center',
             {
               'translate-x-12': type === 'any',
             }

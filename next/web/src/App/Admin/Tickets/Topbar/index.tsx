@@ -202,7 +202,7 @@ export function Topbar({
         props.className
       )}
     >
-      <div className="flex flex-grow items-center">
+      <div className="flex grow items-center">
         <span className="mr-4">
           <Checkbox
             indeterminate={indeterminate}

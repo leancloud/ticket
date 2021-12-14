@@ -26,8 +26,8 @@ const SettingRoutes = () => (
 export default function Setting() {
   return (
     <div className="h-full bg-white flex">
-      <SettingMenu className="w-[330px] bg-[#F8F9F9] flex-shrink-0" />
-      <div className="flex-grow overflow-auto">
+      <SettingMenu className="w-[330px] bg-[#F8F9F9] shrink-0" />
+      <div className="grow overflow-auto">
         <div className="min-w-[770px] p-10">
           <SettingRoutes />
         </div>
