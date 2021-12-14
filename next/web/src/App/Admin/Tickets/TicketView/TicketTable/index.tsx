@@ -28,8 +28,8 @@ function TicketLink({ ticket }: { ticket: TicketSchema }) {
       title={ticket.title}
       href={`/tickets/${ticket.nid}`}
     >
-      <span className="flex-shrink truncate">{ticket.title}</span>
-      <span className="flex-shrink-0 ml-1 text-[#6f7c87]">#{ticket.nid}</span>
+      <span className="shrink truncate">{ticket.title}</span>
+      <span className="shrink-0 ml-1 text-[#6f7c87]">#{ticket.nid}</span>
     </a>
   );
 }

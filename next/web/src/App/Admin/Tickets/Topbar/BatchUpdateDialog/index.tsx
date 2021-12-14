@@ -57,7 +57,7 @@ function BatchUpdateForm({ className, onCancel, onSubmit }: BatchUpdateFormProps
 
   return (
     <div id="batchUpdateForm" className={cx('flex flex-col', className)}>
-      <div className="flex-grow px-8 py-4 overflow-x-auto">
+      <div className="grow px-8 py-4 overflow-x-auto">
         <Field title="批量回复">
           <Input.TextArea
             rows={5}
@@ -80,7 +80,7 @@ function BatchUpdateForm({ className, onCancel, onSubmit }: BatchUpdateFormProps
 
         <p className="mt-4 text-sm text-gray-400">留空的条目将保持不变</p>
       </div>
-      <div className="flex flex-row-reverse flex-shrink-0 px-6 py-3 bg-[#f8f9fa] border-t border-[#cfd7df]">
+      <div className="flex flex-row-reverse shrink-0 px-6 py-3 bg-[#f8f9fa] border-t border-[#cfd7df]">
         <Button type="primary" className="min-w-[80px]" disabled={isLoading} onClick={handleSubmit}>
           保存
         </Button>

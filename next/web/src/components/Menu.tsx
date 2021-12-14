@@ -28,7 +28,7 @@ export function MenuItem({ eventKey, active, ...props }: MenuItemProps) {
         props.onClick?.(e);
       }}
     >
-      <span className="flex-grow truncate">{props.children}</span>
+      <span className="grow truncate">{props.children}</span>
       <HiCheck className={`ml-2 ${active ? 'visible' : 'invisible'}`} />
     </button>
   );

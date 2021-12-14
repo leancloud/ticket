@@ -67,7 +67,7 @@ export function SettingMenu(props: SettingMenuProps) {
         </div>
       ))}
 
-      <div className="flex-grow" />
+      <div className="grow" />
       <a className="block text-center leading-8 hover:bg-[#f0f0f0]" href="/settings">
         前往旧版配置页
       </a>

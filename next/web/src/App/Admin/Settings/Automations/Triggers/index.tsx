@@ -67,14 +67,14 @@ function TriggerItem({ trigger, number, onDelete }: TriggerItemProps) {
   return (
     <div className={`${style.triggerItem} rounded mb-5`}>
       <div className="flex pr-5 py-[18px] h-20">
-        <div className="relative flex-grow overflow-hidden">
+        <div className="relative grow overflow-hidden">
           <div className="absolute w-9 text-right font-medium">{number}.</div>
           <div className="pl-10 font-medium">
             <Link to={trigger.id}>{trigger.title}</Link>
           </div>
           <div className="mt-1 pl-10 text-sm text-[#475867]">{trigger.description}</div>
         </div>
-        <div className="flex flex-shrink-0 items-center">
+        <div className="flex shrink-0 items-center">
           <Switch
             disabled={isLoading}
             checked={trigger.active}
@@ -198,12 +198,12 @@ function Reorder({ triggers, onChange }: ReorderProps) {
       {tempTriggers.map((trigger, i) => (
         <div key={trigger.id} className={`${style.triggerItem} rounded mb-5`}>
           <div className="flex px-3 pr-5 py-[18px] h-20">
-            <div className="flex flex-grow items-center overflow-hidden">
+            <div className="flex grow items-center overflow-hidden">
               <div className="font-medium">
                 <span className="inline-block w-6 text-right">{i + 1}.</span> {trigger.title}
               </div>
             </div>
-            <div className="flex flex-shrink-0 items-center">
+            <div className="flex shrink-0 items-center">
               <Button
                 className="flex"
                 size="middle"
@@ -288,7 +288,7 @@ export default function Triggers() {
       <Title level={4}>流转触发器</Title>
 
       <div className="flex my-4">
-        <div className="flex-grow leading-8 text-[#475867]">
+        <div className="grow leading-8 text-[#475867]">
           <button className="inline-flex items-center">
             正在执行 所有匹配的规则
             <AiOutlineSetting className="inline-block w-4 h-4 ml-1" />

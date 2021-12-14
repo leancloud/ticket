@@ -76,7 +76,7 @@ export function FilterForm({ className, filters, onChange }: FilterFormProps) {
         className
       )}
     >
-      <div className="flex-grow p-4">
+      <div className="grow p-4">
         <div className="h-7 text-sm font-medium">过滤</div>
 
         <Field title="客服">

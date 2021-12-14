@@ -15,7 +15,7 @@ export const FilterSearch = forwardRef<HTMLInputElement, FilterSearchProps>(
         <HiOutlineSearch className={`w-4 h-4 m-2 ${value ? 'invisible' : 'visible'}`} />
         <input
           ref={ref}
-          className="outline-none flex-grow py-1 leading-[46px]"
+          className="outline-none grow py-1 leading-[46px]"
           placeholder="搜索视图"
           value={value}
           onChange={(e) => onChange(e.target.value)}
