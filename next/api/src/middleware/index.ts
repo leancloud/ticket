@@ -4,3 +4,4 @@ export * from './sort';
 export * from './pagination';
 export * from './parseRange';
 export * from './include';
+export * from './boolean';
