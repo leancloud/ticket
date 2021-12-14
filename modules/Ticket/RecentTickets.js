@@ -41,7 +41,13 @@ function RecentTickets({ authorId, excludeNid }) {
   }
   return (
     <>
-      <div className={styles.title}>{t('ticket.recently')}</div>
+      <div className={styles.recentTitle}>
+        {t('ticket.recently')}
+        <span className={styles.allTickets}>
+          {' '}
+          (<Link to={`/customerService/tickets?authorId=${authorId}`}>{t('allTickets')}</Link>)
+        </span>
+      </div>
       <ul className={styles.recentList}>
         {tickets.map((ticketItem) => (
           <li key={ticketItem.nid}>

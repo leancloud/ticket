@@ -139,8 +139,11 @@
   margin-bottom: 0;
 }
 
-.title {
-  margin-bottom: 10px;
+.recentTitle {
+  margin-bottom: 12px;
+}
+.recentTitle .allTickets {
+  font-size: 90%;
 }
 .recentList {
   list-style-type :none;
@@ -154,7 +157,7 @@
   align-items: center;
 }
 .recentList li + li {
-  margin-top: 8px;
+  margin-top: 12px;
 }
 .recentList li > span {
   flex-shrink: 0;
