@@ -48,13 +48,15 @@ export default function TimeTriggerDetail() {
     );
   }
   return (
-    <TriggerForm
-      conditions={conditions}
-      actions={actions}
-      defaultValues={timeTrigger}
-      onSubmit={mutate}
-      onCancel={() => navigate('..')}
-      submitButtonText="更新"
-    />
+    <div className="p-10 pb-4">
+      <TriggerForm
+        conditions={conditions}
+        actions={actions}
+        defaultValues={timeTrigger}
+        onSubmit={mutate}
+        onCancel={() => navigate('..')}
+        submitButtonText="更新"
+      />
+    </div>
   );
 }

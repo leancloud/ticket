@@ -35,7 +35,7 @@ export default function NewTrigger() {
   });
 
   return (
-    <div>
+    <div className="p-10 pb-4">
       <div>
         <p className="text-sm text-[#6F7C87]">新规则：</p>
         <Title level={3}>流转触发器</Title>

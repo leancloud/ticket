@@ -280,7 +280,7 @@ export default function TimeTriggers() {
   };
 
   return (
-    <>
+    <div className="p-10 pb-4">
       <Title level={4}>时间触发器</Title>
 
       <div className="flex my-4">
@@ -344,6 +344,6 @@ export default function TimeTriggers() {
       {reordering && activeTimeTriggers && (
         <Reorder data={activeTimeTriggers} onChange={setOrder} />
       )}
-    </>
+    </div>
   );
 }
