@@ -1,0 +1,11 @@
+.ticketForm {
+  :global {
+    .ant-form-item {
+      margin-bottom: 1rem;
+    }
+
+    .ant-form-item-explain {
+      min-height: 0px;
+    }
+  }
+}
