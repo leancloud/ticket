@@ -20,6 +20,7 @@ import {
   Modal,
   Spin,
   Switch,
+  Typography,
   message,
   notification,
 } from '@/components/antd';
@@ -31,6 +32,8 @@ import {
   reorderTimeTrigger,
 } from '@/api/time-trigger';
 import style from './index.module.css';
+
+const { Title } = Typography;
 
 interface TimeTriggerItemProps {
   data: TimeTriggerSchema;
@@ -278,6 +281,8 @@ export default function TimeTriggers() {
 
   return (
     <>
+      <Title level={4}>时间触发器</Title>
+
       <div className="flex my-4">
         <div className="flex-grow leading-8 text-[#475867]">
           <button className="inline-flex items-center">
