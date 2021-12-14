@@ -63,13 +63,6 @@ class User extends Component {
                 <UserTags user={this.state.user} className={css.tags} />
               )}
             </h2>
-            <p>
-              <Link
-                to={`/customerService/tickets?authorId=${this.state.user.objectId}&page=0&size=10`}
-              >
-                {t('ticketList')}
-              </Link>
-            </p>
             {this.state.leancloudUsers && (
               <div className={css.userTable}>
                 <table className="table table-bordered table-striped">
