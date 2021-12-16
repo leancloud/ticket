@@ -157,7 +157,6 @@ export function NewTicketField() {
 
   return (
     <TicketFieldForm
-      className="h-full"
       initData={{
         defaultLocale: 'zh-cn',
         variants: [

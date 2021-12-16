@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Controller,
   FieldErrors,
@@ -23,7 +23,16 @@ import cx from 'classnames';
 import { omit } from 'lodash-es';
 
 import { TicketFieldSchema } from '@/api/ticket-field';
-import { Button, Checkbox, Form, Input, Modal, Select, Tabs } from '@/components/antd';
+import {
+  Button,
+  Checkbox,
+  Form,
+  FormInstance,
+  Input,
+  Modal,
+  Select,
+  Tabs,
+} from '@/components/antd';
 import { TicketFieldType } from './TicketFieldType';
 import style from './index.module.css';
 
@@ -340,31 +349,7 @@ interface TicketFieldData {
   }[];
 }
 
-function getDuplicatedOptionsNames(variants: Required<TicketFieldData>['variants']) {
-  const names: string[] = [];
-  for (const [vi, variant] of variants.entries()) {
-    if (variant.options) {
-      const map = new Map<string, number[]>();
-      variant.options.forEach(({ title }, oi) => {
-        const indexes = map.get(title);
-        if (indexes) {
-          indexes.push(oi);
-        } else {
-          map.set(title, [oi]);
-        }
-      });
-      for (const indexes of map.values()) {
-        if (indexes.length > 1) {
-          indexes.forEach((i) => names.push(`variants.${vi}.options.${i}.title`));
-        }
-      }
-    }
-  }
-  return names;
-}
-
 export interface TicketFieldFormProps {
-  className?: string;
   initData?: TicketFieldData;
   submitting?: boolean;
   onSubmit: (data: TicketFieldData) => void;
@@ -373,7 +358,6 @@ export interface TicketFieldFormProps {
 }
 
 export function TicketFieldForm({
-  className,
   initData,
   submitting,
   onSubmit,
@@ -404,15 +388,18 @@ export function TicketFieldForm({
     }
   };
 
+  const $form = useRef<FormInstance>(null!);
+
   return (
-    <FormProvider {...methods}>
-      <Form
-        className={cx(style.fieldForm, className, 'relative')}
-        layout="vertical"
-        onSubmitCapture={handleSubmit(_handleSubmit, handleSubmitError)}
-      >
-        <div className="flex flex-col h-full">
-          <div className="grow overflow-auto px-10 pt-10">
+    <div className="h-full flex flex-col">
+      <div className="grow overflow-y-auto px-10 pt-10">
+        <FormProvider {...methods}>
+          <Form
+            ref={$form}
+            className={style.fieldForm}
+            layout="vertical"
+            onFinish={handleSubmit(_handleSubmit, handleSubmitError)}
+          >
             <Controller
               control={control}
               name="title"
@@ -460,18 +447,23 @@ export function TicketFieldForm({
                 </Form.Item>
               </>
             )}
-          </div>
+          </Form>
+        </FormProvider>
+      </div>
 
-          <div className="flex flex-row-reverse px-10 py-4 border-t border-[#D8DCDE]">
-            <Button type="primary" htmlType="submit" disabled={!type} loading={submitting}>
-              保存
-            </Button>
-            <Button className="mr-4" type="link" disabled={submitting} onClick={onCancel}>
-              取消
-            </Button>
-          </div>
-        </div>
-      </Form>
-    </FormProvider>
+      <div className="flex flex-row-reverse px-10 py-4 border-t border-[#D8DCDE]">
+        <Button
+          type="primary"
+          disabled={!type}
+          loading={submitting}
+          onClick={() => $form.current.submit()}
+        >
+          保存
+        </Button>
+        <Button className="mr-4" type="link" disabled={submitting} onClick={onCancel}>
+          取消
+        </Button>
+      </div>
+    </div>
   );
 }

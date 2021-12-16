@@ -35,11 +35,17 @@ export interface FetchTicketFieldsResult {
   totalCount?: number;
 }
 
-export async function fetchTicketFields(options: FetchTicketFieldsOptions) {
+export async function fetchTicketFields(
+  options: FetchTicketFieldsOptions
+): Promise<FetchTicketFieldsResult> {
   const { data, headers } = await http.get<TicketFieldSchema[]>('/api/2/ticket-fields', {
     params: options,
   });
-  return { data, totalCount: parseInt(headers['x-total-count']) };
+  const totalCount = headers['x-total-count'];
+  return {
+    data,
+    totalCount: totalCount ? parseInt(totalCount) : undefined,
+  };
 }
 
 export interface UseTicketFieldsOptions extends FetchTicketFieldsOptions {
