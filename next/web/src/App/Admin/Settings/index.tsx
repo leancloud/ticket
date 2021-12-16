@@ -1,6 +1,9 @@
 import { Route, Routes } from 'react-router-dom';
 
 import { SettingMenu } from './Menu';
+
+import { TicketFieldList, NewTicketField, TicketFieldDetail } from './TicketFields';
+
 import Triggers from './Automations/Triggers';
 import NewTrigger from './Automations/Triggers/New';
 import TriggerDetail from './Automations/Triggers/Detail';
@@ -10,6 +13,11 @@ import TimeTriggerDetail from './Automations/TimeTriggers/Detail';
 
 const SettingRoutes = () => (
   <Routes>
+    <Route path="/ticket-fields">
+      <Route index element={<TicketFieldList />} />
+      <Route path="new" element={<NewTicketField />} />
+      <Route path=":id" element={<TicketFieldDetail />} />
+    </Route>
     <Route path="/triggers">
       <Route index element={<Triggers />} />
       <Route path="new" element={<NewTrigger />} />

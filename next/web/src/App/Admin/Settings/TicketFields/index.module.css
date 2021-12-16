@@ -1,0 +1,30 @@
+.typeButton {
+  @apply w-24 h-24 border border-gray-300 rounded text-center;
+
+  &.readonly {
+    @apply bg-gray-200;
+  }
+
+  &:not(.readonly) {
+    @apply cursor-pointer transition-colors duration-300 hover:border-primary hover:bg-primary-500;
+  }
+
+  &.active {
+    @apply bg-primary text-white;
+
+    &:not(.readonly) {
+      @apply hover:bg-primary-900;
+    }
+  }
+}
+
+.fieldForm {
+  :global {
+    .ant-form-item {
+      margin-bottom: 12px;
+    }
+    .ant-form-item-explain {
+      min-height: 0px;
+    }
+  }
+}
