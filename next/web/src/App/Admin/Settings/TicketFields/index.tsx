@@ -17,6 +17,8 @@ import { useSearchParam } from '@/utils/useSearchParams';
 import { TicketFieldType } from './TicketFieldType';
 import { TicketFieldForm } from './TicketFieldForm';
 
+export * from './TicketFieldIcon';
+
 const { Column } = Table;
 const { TabPane } = Tabs;
 

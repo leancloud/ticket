@@ -8,17 +8,8 @@ import {
   useFormContext,
   useWatch,
 } from 'react-hook-form';
-import { IconType } from 'react-icons';
 import { AiOutlinePlus } from 'react-icons/ai';
-import {
-  BsUiChecksGrid,
-  BsCaretDownSquare,
-  BsFileEarmarkArrowUp,
-  BsInputCursorText,
-  BsUiRadiosGrid,
-  BsTextareaResize,
-  BsXCircle,
-} from 'react-icons/bs';
+import { BsXCircle } from 'react-icons/bs';
 import cx from 'classnames';
 import { omit } from 'lodash-es';
 
@@ -34,35 +25,17 @@ import {
   Tabs,
 } from '@/components/antd';
 import { TicketFieldType } from './TicketFieldType';
+import { TicketFieldIcon } from './TicketFieldIcon';
 import style from './index.module.css';
 
-const fieldTypes: { type: TicketFieldSchema['type']; icon: IconType }[] = [
-  {
-    type: 'text',
-    icon: BsInputCursorText,
-  },
-  {
-    type: 'multi-line',
-    icon: BsTextareaResize,
-  },
-  {
-    type: 'dropdown',
-    icon: BsCaretDownSquare,
-  },
-  {
-    type: 'multi-select',
-    icon: BsUiChecksGrid,
-  },
-  {
-    type: 'radios',
-    icon: BsUiRadiosGrid,
-  },
-  {
-    type: 'file',
-    icon: BsFileEarmarkArrowUp,
-  },
+const fieldTypes: TicketFieldSchema['type'][] = [
+  'text',
+  'multi-line',
+  'dropdown',
+  'multi-select',
+  'radios',
+  'file',
 ];
-
 const optionsFieldTypes: TicketFieldSchema['type'][] = ['dropdown', 'multi-select', 'radios'];
 
 interface FieldTypeRadioGroupProps {
@@ -74,7 +47,7 @@ interface FieldTypeRadioGroupProps {
 function FieldTypeRadioGroup({ value, onChange, readonly }: FieldTypeRadioGroupProps) {
   return (
     <div className="flex gap-2">
-      {fieldTypes.map(({ type, icon: Icon }) => (
+      {fieldTypes.map((type) => (
         <button
           key={type}
           className={cx(style.typeButton, {
@@ -85,7 +58,7 @@ function FieldTypeRadioGroup({ value, onChange, readonly }: FieldTypeRadioGroupP
           disabled={readonly}
           onClick={() => onChange(type)}
         >
-          <Icon className="inline-block w-8 h-8" />
+          <TicketFieldIcon className="inline-block w-8 h-8" type={type} />
           <TicketFieldType className="block" type={type} />
         </button>
       ))}
