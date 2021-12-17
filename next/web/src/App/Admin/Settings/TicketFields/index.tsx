@@ -81,7 +81,7 @@ function TicketFieldTable(props: TableProps<TicketFieldSchema>) {
 export function TicketFieldList() {
   const [active = 'true', setActive] = useSearchParam('active');
   const [page, { set: setPage }] = usePage();
-  const [pageSize, setPageSize] = usePageSize({ defaultValue: 20 });
+  const [pageSize = 20, setPageSize] = usePageSize();
   const { data, totalCount, isLoading } = useTicketFields({
     page,
     pageSize,
