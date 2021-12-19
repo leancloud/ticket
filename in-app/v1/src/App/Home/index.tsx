@@ -5,9 +5,12 @@ import { useTranslation } from 'react-i18next';
 import { http } from 'leancloud';
 import { PageContent, PageHeader } from 'components/Page';
 import { QueryWrapper } from 'components/QueryWrapper';
-import { ArticleLink, CategoryList, useCategories, useFAQs } from '../Categories';
+import { CategoryList, useCategories } from '../Categories';
 import { useRootCategory } from '../../App';
 import { useQuery } from 'react-query';
+import { useFAQs, ArticleLink } from '../Articles/utils';
+import SpeakerIcon from '@/icons/Speaker';
+import { ChevronRightIcon } from '@heroicons/react/solid';
 
 interface TicketsLinkProps {
   badge?: boolean;
@@ -56,13 +59,17 @@ export default function Home() {
       <PageHeader />
       <PageContent>
         {FAQs && FAQs.length > 0 && (
-          <div className="px-2">
+          <div className="px-4 mt-1 text-sm">
             {FAQs.map((FAQ) => (
               <ArticleLink
                 article={FAQ}
                 key={FAQ.id}
-                className="block mt-2 px-3 py-2.5 rounded-sm bg-yellow-100"
-              />
+                className="mt-2 px-2.5 py-2 rounded-sm flex items-center bg-tapBlue bg-opacity-5 active:bg-tapBlue-50"
+              >
+                <SpeakerIcon/>
+                <span className='flex-grow truncate ml-2 mr-1'>{FAQ.title}</span>
+                <ChevronRightIcon className="flex-shrink-0 h-4 w-4 text-tapBlue" />
+              </ArticleLink>
             ))}
           </div>
         )}

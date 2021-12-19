@@ -7,12 +7,13 @@ import { ChevronRightIcon } from '@heroicons/react/solid';
 import { PageContent, PageHeader } from 'components/Page';
 import { QueryWrapper } from 'components/QueryWrapper';
 import { http } from 'leancloud';
-import { Article, Category } from 'types';
+import { Category } from 'types';
 import styles from './index.module.css';
 import { APIError } from 'components/APIError';
 import { NotFoundContent } from '../NotFound';
 import { Button } from 'components/Button';
 import { Loading } from 'components/Loading';
+import { ArticleLink, useFAQs } from '../Articles/utils';
 
 interface CategoryItemProps {
   id: string;
@@ -49,20 +50,6 @@ export function useCategory(id: string) {
   const { data: categories, ...rest } = useCategories();
   const category = useMemo(() => categories?.find((c) => c.id === id), [categories, id]);
   return { data: category, ...rest } as UseQueryResult<Category>;
-}
-
-async function fetchFAQs(categoryId?: string): Promise<Article[]> {
-  if (!categoryId) return [];
-  const { data } = await http.get<Article[]>(`/api/2/categories/${categoryId}/faqs`);
-  return data;
-}
-
-export function useFAQs(categoryId?: string) {
-  return useQuery({
-    queryKey: ['category-faqs', categoryId],
-    queryFn: () => fetchFAQs(categoryId),
-    staleTime: 1000 * 60,
-  });
 }
 
 export type CategoryListProps = JSX.IntrinsicElements['div'] & {
@@ -119,7 +106,12 @@ export default function Categories() {
           <div className="mb-2">
             <h2 className="px-5 py-3 font-bold">常见问题</h2>
             {FAQs.map((FAQ) => (
-              <ArticleLink article={FAQ} key={FAQ.id} className="block px-5 py-1.5 text-tapBlue" />
+              <ArticleLink
+                article={FAQ}
+                fromCategory={id}
+                key={FAQ.id}
+                className="block px-5 py-1.5 text-tapBlue"
+              />
             ))}
           </div>
         )}
@@ -153,11 +145,3 @@ export default function Categories() {
     </>
   );
 }
-
-export const ArticleLink = ({ article, className }: { article: Article; className?: string }) => {
-  return (
-    <Link to={`/articles/${article.id}`} className={className}>
-      {article.title}
-    </Link>
-  );
-};
