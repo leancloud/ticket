@@ -216,12 +216,12 @@ class Category extends React.Component {
 
     const FAQOptions = this.state.allFAQs.map((FAQ) => ({
       value: FAQ.id,
-      name: `${FAQ.get('archived') ? '（已归档）' : ''}${FAQ.get('question').slice(0, 12)}${
+      name: `${FAQ.get('archived') ? '（未发布）' : ''}${FAQ.get('question').slice(0, 12)}${
         FAQ.get('question').length > 12 ? '...' : ''
       }`,
-      fullName: `${FAQ.get('archived') ? '（已归档）' : ''}${FAQ.get('question')}`,
+      fullName: `${FAQ.get('archived') ? '（未发布）' : ''}${FAQ.get('question')}`,
     }))
-    console.log(FAQOptions)
+    const isLeafNode = !this.state.category?.children?.length
 
     return (
       <Form onSubmit={this.handleSubmit.bind(this)}>
@@ -276,12 +276,9 @@ class Category extends React.Component {
               renderOption={renderFAQ}
               filterOptions={fuzzySearch}
             />
-            {/* <Form.Control
-              value={this.state.FAQs}
-              onChange={this.handleFAQsChange.bind(this)}
-              placeholder="objectId1,objectId2"
-            /> */}
-            <Form.Text>{t('FAQInfo')}</Form.Text>
+            <Form.Text className="text-muted">
+              {isLeafNode ? t('FAQInfo') : '当前工单存在子分类，此处配置的常见问题将不显示。'}
+            </Form.Text>
           </Form.Group>
         )}
         {process.env.ENABLE_BUILTIN_DESCRIPTION_TEMPLATE && (
@@ -296,7 +293,7 @@ class Category extends React.Component {
               value={this.state.qTemplate}
               onChange={this.handleQTemplateChange.bind(this)}
             />
-            <Form.Text>{t('ticket.templateInfo')}</Form.Text>
+            <Form.Text className="text-muted">{t('ticket.templateInfo')}</Form.Text>
           </Form.Group>
         )}
         <Form.Group controlId="groupSelect">
