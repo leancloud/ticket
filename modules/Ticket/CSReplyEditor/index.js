@@ -20,7 +20,6 @@ function ReplyType({ value, onChange }) {
         inline
         type="radio"
         id="reply-type-public"
-        // label="Public"
         label={t('replyType.public')}
         value="public"
         checked={value === 'public'}
@@ -30,7 +29,6 @@ function ReplyType({ value, onChange }) {
         inline
         type="radio"
         id="reply-type-internal"
-        // label="Internal"
         label={t('replyType.internal')}
         value="internal"
         checked={value === 'internal'}
@@ -44,7 +42,7 @@ ReplyType.propTypes = {
   onChange: PropTypes.func.isRequired,
 }
 
-async function uploadFile(file) {
+export async function uploadFile(file) {
   const LCFile = await storage.upload(file.name, file)
   return LCFile.url
 }

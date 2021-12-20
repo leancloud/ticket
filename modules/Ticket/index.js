@@ -26,6 +26,7 @@ import { Evaluation } from './Evaluation'
 import { LeanCloudApp } from './LeanCloudApp'
 import { CSReplyEditor } from './CSReplyEditor'
 import { RecentTickets } from './RecentTickets'
+import { EditReplyModal } from './EditReplyModal'
 
 function updateTicket(id, data) {
   return fetch(`/api/1/tickets/${id}`, {
@@ -144,6 +145,23 @@ function useReplies(ticketId) {
     setReplies((pre) => pre.filter((reply) => reply.id !== id))
   }, [])
 
+  const reloadReplies = useCallback(async () => {
+    if (!$ticketId.current || $isLoading.current) {
+      return
+    }
+    $isLoading.current = true
+    $cursor.current = undefined
+    try {
+      const newReplies = await fetchReplies($ticketId.current)
+      setReplies(newReplies)
+    } catch (error) {
+      addNotification(error)
+    } finally {
+      $isLoading.current = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   useEffect(() => {
     if (!ticketId) {
       return
@@ -155,11 +173,11 @@ function useReplies(ticketId) {
       .subscribe()
       .then((subscription) => {
         subscription.on('update', (reply) => {
-          // delete
           if (reply.data.deletedAt) {
             deleteReply(reply.id)
+          } else {
+            reloadReplies()
           }
-          // update
         })
         subscription.on('create', (reply) => {
           if (!$cursor.current || new Date($cursor.current) < reply.createdAt) {
@@ -175,7 +193,7 @@ function useReplies(ticketId) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ticketId])
 
-  return { replies, loadMoreReplies, deleteReply, loading: $isLoading.current }
+  return { replies, loadMoreReplies, deleteReply, reloadReplies, loading: $isLoading.current }
 }
 
 /**
@@ -299,18 +317,26 @@ TicketInfo.propTypes = {
   isCustomerService: PropTypes.bool,
 }
 
-function Timeline({ data, onReplyDeleted, ticketId }) {
+function Timeline({ data, onReplyDeleted, ticketId, onEditReply }) {
   switch (data.type) {
     case 'opsLog':
       return <OpsLog data={data} />
     case 'reply':
-      return <ReplyCard data={data} ticketId={ticketId} onDeleted={onReplyDeleted} />
+      return (
+        <ReplyCard
+          data={data}
+          ticketId={ticketId}
+          onDeleted={onReplyDeleted}
+          onEdit={onEditReply}
+        />
+      )
   }
 }
 Timeline.propTypes = {
   data: PropTypes.object.isRequired,
   onReplyDeleted: PropTypes.func,
   ticketId: PropTypes.string.isRequired,
+  onEditReply: PropTypes.func,
 }
 
 export default function Ticket() {
@@ -321,7 +347,9 @@ export default function Ticket() {
   const appContextValue = useContext(AppContext)
   const { addNotification, currentUser, isCustomerService } = appContextValue
   const { ticket, isLoading: loadingTicket, refetchTicket, error } = useTicket(nid)
-  const { replies, loadMoreReplies, deleteReply, replyLoading } = useReplies(ticket?.id)
+  const { replies, loadMoreReplies, deleteReply, reloadReplies, replyLoading } = useReplies(
+    ticket?.id
+  )
   const { opsLogs, loadMoreOpsLogs } = useOpsLogs(ticket?.id)
   const timeline = useMemo(() => {
     return [
@@ -346,6 +374,15 @@ export default function Ticket() {
     onError: (error) => addNotification(error),
   })
 
+  const { mutate: updateReply, isLoading: updatingReply } = useMutation({
+    mutationFn: ({ id, ...data }) => http.patch(`/api/2/replies/${id}`, data),
+    onSuccess: () => {
+      editModalRef.current.hide()
+      reloadReplies()
+    },
+    onError: (error) => addNotification(error),
+  })
+
   const showRecentTickets = useMemo(() => {
     if (!ticket || replyLoading || !isCustomerService) {
       return false
@@ -357,6 +394,8 @@ export default function Ticket() {
     return staffReplies.length === 0
   }, [ticket, replyLoading, replies, isCustomerService])
 
+  const editModalRef = useRef(null)
+
   const isCsInThisTicket = isCustomerService && ticket?.author_id !== currentUser.id
   if (loadingTicket) {
     return <div>{t('loading') + '...'}</div>
@@ -367,6 +406,8 @@ export default function Ticket() {
   }
   return (
     <AppContext.Provider value={{ ...appContextValue, isCustomerService: isCsInThisTicket }}>
+      <EditReplyModal ref={editModalRef} isSaving={updatingReply} onSave={updateReply} />
+
       <div className="mt-3">
         {!isCsInThisTicket && <WeekendWarning />}
         <h1>{ticket.title}</h1>
@@ -384,6 +425,7 @@ export default function Ticket() {
                 data={data}
                 ticketId={ticket.id}
                 onReplyDeleted={deleteReply}
+                onEditReply={editModalRef.current.show}
               />
             ))}
           </div>

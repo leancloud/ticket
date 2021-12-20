@@ -14,6 +14,7 @@ import ticketFilter from './ticket-filter';
 import article from './article';
 import trigger from './trigger';
 import timeTrigger from './time-trigger';
+import reply from './reply';
 
 const router = new Router({ prefix: '/api/2' }).use(catchYupError, catchLCError, catchZodError);
 
@@ -30,5 +31,6 @@ router.use('/ticket-filters', ticketFilter.routes());
 router.use('/articles', article.routes());
 router.use('/triggers', trigger.routes());
 router.use('/time-triggers', timeTrigger.routes());
+router.use('/replies', reply.routes());
 
 export default router;

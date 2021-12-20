@@ -36,7 +36,7 @@ function resize(element) {
 }
 
 function useAutoResize() {
-  const $height = useRef()
+  const $height = useRef(0)
   const callbackRef = useCallback((element) => {
     if (!element) {
       return
@@ -93,7 +93,7 @@ export function MarkdownEditor({ value, onChange, onPasteFile, onKeyDown }) {
       <Tab eventKey="preview" title="Preview">
         <div
           className={`${style.preview} markdown-body`}
-          style={{ minHeight: height }}
+          style={{ minHeight: Math.max(height, 200) + 6 }}
           dangerouslySetInnerHTML={{ __html: html || 'Nothing to preview' }}
         />
       </Tab>
