@@ -28,7 +28,7 @@ export interface TicketFieldIconProps {
 export const TicketFieldIcon = memo(({ type, className }: TicketFieldIconProps) => {
   const Icon = icons[type];
   if (!Icon) {
-    throw new Error(`[TicketFieldIcon] Unknown type: ${type}`);
+    return null;
   }
   return <Icon className={className} />;
 });

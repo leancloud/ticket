@@ -4,6 +4,8 @@ import { SettingMenu } from './Menu';
 
 import { TicketFieldList, NewTicketField, TicketFieldDetail } from './TicketFields';
 
+import { TicketFormList, NewTicketForm, TicketFormDetail } from './TicketForms';
+
 import Triggers from './Automations/Triggers';
 import NewTrigger from './Automations/Triggers/New';
 import TriggerDetail from './Automations/Triggers/Detail';
@@ -17,6 +19,11 @@ const SettingRoutes = () => (
       <Route index element={<TicketFieldList />} />
       <Route path="new" element={<NewTicketField />} />
       <Route path=":id" element={<TicketFieldDetail />} />
+    </Route>
+    <Route path="/ticket-forms">
+      <Route index element={<TicketFormList />} />
+      <Route path="new" element={<NewTicketForm />} />
+      <Route path=":id" element={<TicketFormDetail />} />
     </Route>
     <Route path="/triggers">
       <Route index element={<Triggers />} />
@@ -35,8 +42,8 @@ export default function Setting() {
   return (
     <div className="h-full bg-white flex">
       <SettingMenu className="w-[330px] bg-[#F8F9F9] shrink-0" />
-      <div className="grow overflow-y-auto border-l border-l-[#D8DCDE]">
-        <div className="h-full min-w-[770px] overflow-x-auto">
+      <div className="grow overflow-auto border-l border-l-[#D8DCDE]">
+        <div className="h-full min-w-[770px]">
           <SettingRoutes />
         </div>
       </div>
