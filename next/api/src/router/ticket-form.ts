@@ -3,12 +3,14 @@ import { z } from 'zod';
 import _ from 'lodash';
 
 import { auth, customerServiceOnly, pagination, sort } from '@/middleware';
-import { TicketForm } from '@/model/TicketForm';
+import { TicketForm, presetTicketFields } from '@/model/TicketForm';
 import { TicketFormResponse } from '@/response/ticket-form';
 import { TicketField } from '@/model/TicketField';
 import { Category } from '@/model/Category';
 
 const router = new Router().use(auth);
+
+const presetTicketFieldIds = presetTicketFields.map((field) => field.id);
 
 router.get('/', pagination(), sort('orderBy', ['updatedAt']), async (ctx) => {
   const { page, pageSize } = pagination.get(ctx);
@@ -38,18 +40,21 @@ const createFormDataSchema = z.object({
 router.post('/', customerServiceOnly, async (ctx) => {
   const { title, fieldIds } = createFormDataSchema.parse(ctx.request.body);
 
-  const fields = await TicketField.queryBuilder()
-    .where('objectId', 'in', fieldIds)
-    .find({ useMasterKey: true });
-  const missingIds = _.difference(
-    fieldIds,
-    fields.map((f) => f.id)
-  );
-  if (missingIds.length) {
-    ctx.throw(400, `TicketField ${missingIds[0]} is not exists`);
+  const customFieldIds = _.difference(fieldIds, presetTicketFieldIds);
+  if (customFieldIds.length) {
+    const fields = await TicketField.queryBuilder()
+      .where('objectId', 'in', customFieldIds)
+      .find({ useMasterKey: true });
+    const missingIds = _.difference(
+      customFieldIds,
+      fields.map((f) => f.id)
+    );
+    if (missingIds.length) {
+      ctx.throw(400, `TicketField ${missingIds[0]} is not exists`);
+    }
   }
 
-  const form = await TicketForm.create({ title, fieldIds });
+  const form = await TicketForm.create({ title, fieldIds }, { useMasterKey: true });
 
   ctx.body = { id: form.id };
 });
@@ -75,22 +80,25 @@ const updateFormDataSchema = z.object({
 
 router.patch('/:id', customerServiceOnly, async (ctx) => {
   const form = ctx.state.form as TicketForm;
-  const data = updateFormDataSchema.parse(ctx);
+  const data = updateFormDataSchema.parse(ctx.request.body);
 
   if (data.fieldIds) {
-    const fields = await TicketField.queryBuilder()
-      .where('objectId', 'in', data.fieldIds)
-      .find({ useMasterKey: true });
-    const missingIds = _.difference(
-      data.fieldIds,
-      fields.map((f) => f.id)
-    );
-    if (missingIds.length) {
-      ctx.throw(400, `TicketField ${missingIds[0]} is not exists`);
+    const customFieldIds = _.difference(data.fieldIds!, presetTicketFieldIds);
+    if (customFieldIds.length) {
+      const fields = await TicketField.queryBuilder()
+        .where('objectId', 'in', customFieldIds)
+        .find({ useMasterKey: true });
+      const missingIds = _.difference(
+        customFieldIds,
+        fields.map((f) => f.id)
+      );
+      if (missingIds.length) {
+        ctx.throw(400, `TicketField ${missingIds[0]} is not exists`);
+      }
     }
   }
 
-  await form.update(data);
+  await form.update(data, { useMasterKey: true });
   ctx.body = {};
 });
 
