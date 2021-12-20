@@ -1,36 +1,46 @@
 import { useCallback, useMemo } from 'react';
 
-import { useSearchParams } from './useSearchParams';
+import { useSearchParam } from './useSearchParams';
 
-export interface UsePageOptions {
-  key?: string;
+function useIntSearchParam(key: string) {
+  const [param, setParam] = useSearchParam(key);
+
+  const intParam = useMemo(() => {
+    if (param !== undefined) {
+      const intParam = parseInt(param);
+      if (!Number.isNaN(intParam)) {
+        return intParam;
+      }
+    }
+  }, [param]);
+
+  const set = useCallback(
+    (value: number) => {
+      setParam(Math.floor(value).toString());
+    },
+    [setParam]
+  );
+
+  return [intParam, set] as const;
 }
 
-export function usePage({ key = 'page' }: UsePageOptions = {}) {
-  const [params, { merge }] = useSearchParams();
-  const pageParam = params[key];
+export function usePage() {
+  const [_page, _setPage] = useIntSearchParam('page');
 
   const page = useMemo(() => {
-    if (pageParam === undefined) {
+    if (_page === undefined || _page < 1) {
       return 1;
     }
-    const page = parseInt(pageParam);
-    if (Number.isNaN(page)) {
-      return 1;
-    }
-    if (page < 1) {
-      return 1;
-    }
-    return page;
-  }, [pageParam]);
+    return _page;
+  }, [_page]);
 
   const set = useCallback(
     (newPage: number) => {
       if (newPage > 0) {
-        merge({ [key]: newPage.toString() });
+        _setPage(newPage);
       }
     },
-    [key, merge]
+    [_setPage]
   );
 
   const prev = useCallback(() => set(page - 1), [page, set]);
@@ -38,4 +48,25 @@ export function usePage({ key = 'page' }: UsePageOptions = {}) {
   const next = useCallback(() => set(page + 1), [page, set]);
 
   return [page, { set, prev, next }] as const;
+}
+
+export function usePageSize() {
+  const [_pageSize, _setPageSize] = useIntSearchParam('pageSize');
+
+  const pageSize = useMemo(() => {
+    if (_pageSize !== undefined && _pageSize > 0) {
+      return _pageSize;
+    }
+  }, [_pageSize]);
+
+  const set = useCallback(
+    (value: number) => {
+      if (value > 0) {
+        _setPageSize(value);
+      }
+    },
+    [_setPageSize]
+  );
+
+  return [pageSize, set] as const;
 }

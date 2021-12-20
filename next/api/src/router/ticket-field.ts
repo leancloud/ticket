@@ -2,7 +2,7 @@ import Router from '@koa/router';
 import { z } from 'zod';
 import _ from 'lodash';
 
-import { auth, customerServiceOnly, pagination, sort } from '@/middleware';
+import { auth, boolean, customerServiceOnly, pagination, sort } from '@/middleware';
 import { FIELD_TYPES, OPTION_TYPES, TicketField } from '@/model/TicketField';
 import { TicketFieldResponse } from '@/response/ticket-field';
 
@@ -33,25 +33,36 @@ const localeSchema = z.string().refine(isValidLocale, {
   message: 'Unknown locale',
 });
 
-router.get('/', sort('orderBy', ['createdAt', 'updatedAt']), pagination(), async (ctx) => {
-  const sortItems = sort.get(ctx);
-  const { page, pageSize } = pagination.get(ctx);
+router.get(
+  '/',
+  sort('orderBy', ['createdAt', 'updatedAt']),
+  pagination(),
+  boolean('active'),
+  async (ctx) => {
+    const sortItems = sort.get(ctx);
+    const { page, pageSize } = pagination.get(ctx);
+    const { active } = boolean.get(ctx);
 
-  const query = TicketField.queryBuilder()
-    .skip((page - 1) * pageSize)
-    .limit(pageSize);
+    const query = TicketField.queryBuilder()
+      .skip((page - 1) * pageSize)
+      .limit(pageSize);
 
-  sortItems?.forEach(({ key, order }) => query.orderBy(key, order));
+    if (active !== undefined) {
+      query.where('active', '==', active);
+    }
 
-  const fields = ctx.query.count
-    ? await query.findAndCount({ useMasterKey: true }).then(([fields, count]) => {
-        ctx.set('X-Total-Count', count.toString());
-        return fields;
-      })
-    : await query.find({ useMasterKey: true });
+    sortItems?.forEach(({ key, order }) => query.orderBy(key, order));
 
-  ctx.body = fields.map((field) => new TicketFieldResponse(field));
-});
+    const fields = ctx.query.count
+      ? await query.findAndCount({ useMasterKey: true }).then(([fields, count]) => {
+          ctx.set('X-Total-Count', count.toString());
+          return fields;
+        })
+      : await query.find({ useMasterKey: true });
+
+    ctx.body = fields.map((field) => new TicketFieldResponse(field));
+  }
+);
 
 const variantOptionSchema = z.object({
   title: z.string(),
@@ -72,7 +83,7 @@ const createFieldDataSchema = z.object({
   type: z.enum(FIELD_TYPES),
   title: z.string(),
   defaultLocale: localeSchema,
-  required: z.boolean(),
+  required: z.boolean().optional(),
   variants: variantsSchema,
 });
 
@@ -106,7 +117,7 @@ router.post('/', customerServiceOnly, async (ctx) => {
       type: data.type,
       title: data.title,
       defaultLocale: data.defaultLocale,
-      required: data.required,
+      required: !!data.required,
     },
     { useMasterKey: true }
   );

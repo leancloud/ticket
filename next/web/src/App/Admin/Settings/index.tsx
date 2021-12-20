@@ -1,6 +1,11 @@
 import { Route, Routes } from 'react-router-dom';
 
 import { SettingMenu } from './Menu';
+
+import { TicketFieldList, NewTicketField, TicketFieldDetail } from './TicketFields';
+
+import { TicketFormList, NewTicketForm, TicketFormDetail } from './TicketForms';
+
 import Triggers from './Automations/Triggers';
 import NewTrigger from './Automations/Triggers/New';
 import TriggerDetail from './Automations/Triggers/Detail';
@@ -10,6 +15,16 @@ import TimeTriggerDetail from './Automations/TimeTriggers/Detail';
 
 const SettingRoutes = () => (
   <Routes>
+    <Route path="/ticket-fields">
+      <Route index element={<TicketFieldList />} />
+      <Route path="new" element={<NewTicketField />} />
+      <Route path=":id" element={<TicketFieldDetail />} />
+    </Route>
+    <Route path="/ticket-forms">
+      <Route index element={<TicketFormList />} />
+      <Route path="new" element={<NewTicketForm />} />
+      <Route path=":id" element={<TicketFormDetail />} />
+    </Route>
     <Route path="/triggers">
       <Route index element={<Triggers />} />
       <Route path="new" element={<NewTrigger />} />
@@ -27,8 +42,8 @@ export default function Setting() {
   return (
     <div className="h-full bg-white flex">
       <SettingMenu className="w-[330px] bg-[#F8F9F9] shrink-0" />
-      <div className="grow overflow-auto">
-        <div className="min-w-[770px] p-10">
+      <div className="grow overflow-auto border-l border-l-[#D8DCDE]">
+        <div className="h-full min-w-[770px]">
           <SettingRoutes />
         </div>
       </div>

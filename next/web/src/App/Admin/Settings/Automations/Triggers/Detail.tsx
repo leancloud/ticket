@@ -48,13 +48,15 @@ export default function TriggerDetail() {
     );
   }
   return (
-    <TriggerForm
-      conditions={conditions}
-      actions={actions}
-      defaultValues={trigger}
-      onSubmit={mutate}
-      onCancel={() => navigate('..')}
-      submitButtonText="更新"
-    />
+    <div className="p-10 pb-4">
+      <TriggerForm
+        conditions={conditions}
+        actions={actions}
+        defaultValues={trigger}
+        onSubmit={mutate}
+        onCancel={() => navigate('..')}
+        submitButtonText="更新"
+      />
+    </div>
   );
 }

@@ -284,7 +284,7 @@ export default function Triggers() {
   };
 
   return (
-    <>
+    <div className="p-10 pb-4">
       <Title level={4}>流转触发器</Title>
 
       <div className="flex my-4">
@@ -340,6 +340,6 @@ export default function Triggers() {
       {!reordering && sortedTriggers && <TriggerList triggers={sortedTriggers} />}
 
       {reordering && activeTriggers && <Reorder triggers={activeTriggers} onChange={setOrder} />}
-    </>
+    </div>
   );
 }

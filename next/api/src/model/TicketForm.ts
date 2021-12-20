@@ -24,7 +24,7 @@ description.required = true;
 description.createdAt = new Date(0);
 description.updatedAt = new Date(0);
 
-const presetTicketFields = [title, description];
+export const presetTicketFields = [title, description];
 const presetTicketFieldVariants = presetTicketFields.map((field) => {
   const variant = new TicketFieldVariant();
   variant.id = field.id;

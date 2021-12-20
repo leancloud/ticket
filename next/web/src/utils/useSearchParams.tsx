@@ -16,7 +16,7 @@ export const SearchParamsContext = createContext({
   merge: noop as (params: Record<string, string | undefined>) => void,
 });
 
-export function SearchParamsProvicer({ children }: { children: ReactNode }) {
+export function SearchParamsProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const { search } = useLocation();
 

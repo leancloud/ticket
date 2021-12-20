@@ -4,7 +4,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
 import { auth } from '@/leancloud';
 import { queryClient } from '@/api/query-client';
-import { SearchParamsProvicer } from '@/utils/useSearchParams';
+import { SearchParamsProvider } from '@/utils/useSearchParams';
 import Tickets from './Tickets';
 import Admin from './Admin';
 import Login from './Login';
@@ -32,9 +32,9 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <RecoilRoot>
         <BrowserRouter basename="/next">
-          <SearchParamsProvicer>
+          <SearchParamsProvider>
             <AppRoutes />
-          </SearchParamsProvicer>
+          </SearchParamsProvider>
         </BrowserRouter>
       </RecoilRoot>
     </QueryClientProvider>
