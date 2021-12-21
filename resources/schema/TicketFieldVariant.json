@@ -7,6 +7,13 @@
       "hidden": false,
       "read_only": false
     },
+    "titleForCustomerService": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
     "updatedAt": {
       "type": "Date"
     },
