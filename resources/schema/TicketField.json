@@ -6,13 +6,6 @@
     "ACL": {
       "type": "ACL"
     },
-    "title": {
-      "type": "String",
-      "v": 2,
-      "required": true,
-      "hidden": false,
-      "read_only": false
-    },
     "objectId": {
       "type": "String"
     },
@@ -33,6 +26,14 @@
       "hidden": false,
       "read_only": false
     },
+    "title": {
+      "type": "String",
+      "v": 2,
+      "required": true,
+      "hidden": false,
+      "read_only": false,
+      "comment": ""
+    },
     "active": {
       "type": "Boolean",
       "v": 2,
@@ -40,6 +41,13 @@
       "hidden": false,
       "read_only": false,
       "comment": ""
+    },
+    "visible": {
+      "type": "Boolean",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
     },
     "required": {
       "type": "Boolean",
