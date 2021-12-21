@@ -19,11 +19,7 @@ import Categories from './Categories'
 import Category from './Category'
 import CategorySort from './CategorySort'
 import DynamicContent from './DynamicContent'
-import Trigger from './Rule/Trigger'
-import Automation from './Rule/Automation'
 import QuickReplies from './QuickReply'
-import TicketField from './TicketField'
-import TicketForm from './TicketForm'
 
 export default function Settings(props) {
   const { path } = useRouteMatch()
@@ -63,10 +59,10 @@ export default function Settings(props) {
               <ListGroup.Item as={NavLink} to="/settings/groups">
                 {t('group')}
               </ListGroup.Item>
-              <ListGroup.Item as={NavLink} to="/settings/ticketField">
+              <ListGroup.Item as="a" href="/next/admin/settings/ticket-fields">
                 {t('ticketField')}
               </ListGroup.Item>
-              <ListGroup.Item as={NavLink} to="/settings/ticketTemplate">
+              <ListGroup.Item as="a" href="/next/admin/settings/ticket-forms">
                 {t('ticketTemplate')}
               </ListGroup.Item>
               <ListGroup.Item as={NavLink} to="/settings/categories">
@@ -84,8 +80,11 @@ export default function Settings(props) {
               <ListGroup.Item as={NavLink} to="/settings/dynamicContent">
                 {t('dynamicContent')}
               </ListGroup.Item>
-              <ListGroup.Item as="a" href="/next/admin/setting/automations">
-                Automation Rules
+              <ListGroup.Item as="a" href="/next/admin/settings/triggers">
+                Triggers
+              </ListGroup.Item>
+              <ListGroup.Item as="a" href="/next/admin/settings/time-triggers">
+                Time triggers
               </ListGroup.Item>
             </ListGroup>
           </section>
@@ -138,14 +137,6 @@ export default function Settings(props) {
           <Route path={`${path}/dynamicContent`}>
             <DynamicContent />
           </Route>
-          <Route path={`${path}/triggers`}>
-            <Trigger />
-          </Route>
-          <Route path={`${path}/automations`}>
-            <Automation />
-          </Route>
-          <Route path={`${path}/ticketField`} component={TicketField} />
-          <Route path={`${path}/ticketTemplate`} component={TicketForm} />
           <Route path={`${path}/quick-replies`}>
             <QuickReplies />
           </Route>
