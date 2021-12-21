@@ -7,15 +7,15 @@ import { Integrations } from '@sentry/tracing';
 import './index.css';
 import App from './App';
 
-if (import.meta.env.VITE_SENTRY_DSN) {
+if (import.meta.env.VITE_SENTRY_WEB_DSN) {
   Sentry.init({
-    dsn: import.meta.env.VITE_SENTRY_DSN,
+    dsn: import.meta.env.VITE_SENTRY_WEB_DSN,
     integrations: [new Integrations.BrowserTracing()],
     tracesSampleRate: 1.0,
     ignoreErrors: [],
     // release: `` ,
     // environment: '', // 环境指代 发布的应用
-    enabled: !import.meta.env.DEV,
+    enabled: import.meta.env.PROD,
     initialScope: {
       tags: {
         type: 'web',
