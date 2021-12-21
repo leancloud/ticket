@@ -8,7 +8,7 @@ const OPTIONAL_ENV_KEYS = ['SENTRY_WEB_DSN', 'ENABLE_LEANCLOUD_INTEGRATION'];
 function generate() {
   const firstMissingKey = REQUIRED_ENV_KEYS.find((key) => process.env[key] === undefined);
   if (firstMissingKey) {
-    console.warn(`缺少环境变量 "${firstMissingKey}"，是不是忘记 $(lean env) 了？`);
+    console.error(`缺少环境变量 "${firstMissingKey}"，是不是忘记 $(lean env) 了？`);
     process.exit(1);
   }
 
