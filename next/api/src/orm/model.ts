@@ -5,16 +5,15 @@ import throat from 'throat';
 import { config } from '@/config';
 import { ACLBuilder, RawACL } from './acl';
 import { AuthOptions, Query, QueryBuilder } from './query';
-import { Flat, KeysOfType } from './utils';
+import { KeysOfType } from './utils';
 import { Relation } from './relation';
 import { preloaderFactory } from './preloader';
 import { TypeCommands } from './command';
 
-type RelationKey<T> = Extract<KeysOfType<T, Model | Model[] | undefined>, string>;
+type RelationKey<T> = Extract<KeysOfType<Required<T>, Model | Model[]>, string>;
 
-export interface ReloadOptions<M extends Model, K extends RelationKey<M> = RelationKey<M>>
-  extends AuthOptions {
-  data?: Flat<NonNullable<M[K][]>>;
+export interface ReloadOptions<M extends Model, K extends RelationKey<M>> extends AuthOptions {
+  data?: M[K];
   onQuery?: (query: QueryBuilder<any>) => void;
 }
 
@@ -336,7 +335,9 @@ export abstract class Model {
         try {
           const preloader = preloaderFactory(this.constructor as any, key);
           if (options) {
-            preloader.data = options.data;
+            if (options.data) {
+              preloader.data = [options.data as any];
+            }
             preloader.queryModifier = options.onQuery;
           }
           await preloader.load([this], options);
@@ -355,7 +356,7 @@ export abstract class Model {
     options?: ReloadOptions<M, K>
   ): Promise<M[K]> {
     if (this[key] !== undefined) {
-      return this[key];
+      return Promise.resolve(this[key]);
     }
     return this.reload(key, options);
   }
