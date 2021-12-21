@@ -177,7 +177,7 @@ function useTruncateReply() {
   }
 }
 
-export function ReplyCard({ data, onDeleted, ticketId }) {
+export function ReplyCard({ data, onDeleted, ticketId, onEdit }) {
   const { t } = useTranslation()
   const { isCustomerService, currentUser, addNotification } = useContext(AppContext)
   const [imageFiles, otherFiles] = useMemo(() => {
@@ -186,12 +186,12 @@ export function ReplyCard({ data, onDeleted, ticketId }) {
   const [translationEnabled, setTranslationEnabled] = useState(false)
 
   const actions = useMemo(() => {
-    const isReplay = data.type === 'reply'
+    const isReply = data.type === 'reply'
     const isAuthor = currentUser && currentUser.id === data.author.id
     const tmpActions = {
       translation: isCustomerService,
-      // edit: false,
-      delete: isCustomerService && isReplay && isAuthor,
+      edit: isCustomerService && isReply && isAuthor,
+      delete: isCustomerService && isReply && isAuthor,
     }
     return Object.values(tmpActions).some((v) => v) ? tmpActions : undefined
   }, [isCustomerService, data, currentUser])
@@ -235,6 +235,7 @@ export function ReplyCard({ data, onDeleted, ticketId }) {
                     Translate
                   </Dropdown.Item>
                 )}
+                {actions.edit && <Dropdown.Item onClick={() => onEdit(data)}>Edit</Dropdown.Item>}
                 {actions.delete && (
                   <Confirm
                     danger
@@ -295,4 +296,5 @@ ReplyCard.propTypes = {
   }),
   onDeleted: PropTypes.func,
   ticketId: PropTypes.string.isRequired,
+  onEdit: PropTypes.func,
 }

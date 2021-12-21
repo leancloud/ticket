@@ -4,12 +4,6 @@
   margin-top: 20px;
   margin-bottom: 10px;
 
-  &.internal {
-    :global(.w-md-editor-content) {
-      background-color: $internal-reply-background;
-    }
-  }
-
   :global(.tab-content) {
     border: 1px #dee2e6 solid;
     border-top: none;
@@ -18,24 +12,21 @@
     padding: 6px 6px 0;
   }
 
-  .editor {
-    outline: none;
-    appearance: none;
-    border: 1px solid #dee2e6;
-    border-radius: 0.25rem;
-    width: 100%;
-    min-height: 200px;
-    font-size: 14px;
-    padding: 8px;
-  }
-
   &.internal .editor {
     background-color: $internal-reply-background;
   }
+}
 
-  .preview {
-    min-height: 200px;
-  }
+.editor {
+  outline: none;
+  appearance: none;
+  border: 1px solid #dee2e6;
+  border-radius: 0.25rem;
+  width: 100%;
+  min-height: 200px;
+  max-height: 500px;
+  font-size: 14px;
+  padding: 8px;
 }
 
 .submit {
