@@ -10,6 +10,7 @@ export class ArticleResponse {
       title: this.article.title,
       content: this.article.content,
       contentSafeHTML: xss.process(this.article.contentHTML),
+      private: !!this.article.private,
       createdAt: this.article.createdAt.toISOString(),
       updatedAt: this.article.updatedAt.toISOString(),
     };

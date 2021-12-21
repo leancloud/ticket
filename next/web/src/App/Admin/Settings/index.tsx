@@ -3,8 +3,8 @@ import { Route, Routes } from 'react-router-dom';
 import { SettingMenu } from './Menu';
 
 import { TicketFieldList, NewTicketField, TicketFieldDetail } from './TicketFields';
-
 import { TicketFormList, NewTicketForm, TicketFormDetail } from './TicketForms';
+import {ArticleDetail, Articles, EditArticle, NewArticle} from './Articles';
 
 import Triggers from './Automations/Triggers';
 import NewTrigger from './Automations/Triggers/New';
@@ -34,6 +34,15 @@ const SettingRoutes = () => (
       <Route index element={<TimeTriggers />} />
       <Route path="new" element={<NewTimeTrigger />} />
       <Route path=":id" element={<TimeTriggerDetail />} />
+    </Route>
+    <Route path="/articles">
+      <Route index element={<Articles />} />
+      <Route path="new" element={<NewArticle />} />
+      <Route path=":id">
+        <Route index element={<ArticleDetail />} />
+        <Route path="edit" element={<EditArticle />} />
+        {/* <Route path="revisions" element={<ArticleRevisions />} /> */}
+      </Route>
     </Route>
   </Routes>
 );

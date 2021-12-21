@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQuery, UseQueryResult } from 'react-query';
 import { useTranslation } from 'react-i18next';
 import { ChevronRightIcon } from '@heroicons/react/solid';
+import classNames from 'classnames';
 
 import { PageContent, PageHeader } from 'components/Page';
 import { QueryWrapper } from 'components/QueryWrapper';
@@ -11,22 +12,28 @@ import { Category } from 'types';
 import styles from './index.module.css';
 import { APIError } from 'components/APIError';
 import { NotFoundContent } from '../NotFound';
-import { Button } from 'components/Button';
 import { Loading } from 'components/Loading';
-import { ArticleLink, useFAQs } from '../Articles/utils';
+import { ArticleListItem, useFAQs } from '../Articles/utils';
+import { NewTicketButton } from '@/components/NewTicketButton';
 
-interface CategoryItemProps {
-  id: string;
-  name: string;
+interface ListItemProps {
+  to: string;
+  content: React.ReactNode;
   marker?: boolean;
+  className?: string;
 }
 
-function CategoryItem({ id, name, marker }: CategoryItemProps) {
+export function ListItem({ to, content, marker, className }: ListItemProps) {
   return (
-    <Link to={`/categories/${id}`} className="block px-5 active:bg-gray-50">
-      <div className="h-11 flex items-center text-[#666] border-b border-gray-100">
+    <Link to={to} className='block px-5 active:bg-gray-50'>
+      <div
+        className={classNames(
+          'h-11 flex items-center text-[#666] border-b border-gray-100',
+          className
+        )}
+      >
         {marker && <div className={styles.marker} />}
-        <div className="flex-grow truncate">{name}</div>
+        <div className="flex-grow truncate">{content}</div>
         <ChevronRightIcon className="flex-shrink-0 h-4 w-4" />
       </div>
     </Link>
@@ -61,7 +68,12 @@ export function CategoryList({ categories, marker, ...props }: CategoryListProps
   return (
     <div {...props}>
       {categories.map((category) => (
-        <CategoryItem key={category.id} id={category.id} marker={marker} name={category.name} />
+        <ListItem
+          key={category.id}
+          to={`/categories/${category.id}`}
+          marker={marker}
+          content={category.name}
+        />
       ))}
     </div>
   );
@@ -106,32 +118,25 @@ export default function Categories() {
           <div className="mb-2">
             <h2 className="px-5 py-3 font-bold">常见问题</h2>
             {FAQs.map((FAQ) => (
-              <ArticleLink
-                article={FAQ}
-                fromCategory={id}
-                key={FAQ.id}
-                className="block px-5 py-1.5 text-tapBlue"
-              />
+              <ArticleListItem article={FAQ} fromCategory={id} key={FAQ.id} />
             ))}
           </div>
         )}
         {!noSubCategories && (
           <>
             {!noFAQs && (
-              <h2 className="px-5 py-3 font-bold">仍然需要帮助？请从下列选项中选择一个类别</h2>
+              <h2 className="px-5 py-3 font-bold">
+                若以上内容没有帮助到你，请选择一个问题类别继续
+              </h2>
             )}
             <CategoryList categories={subCategories!} />
           </>
         )}
         {noSubCategories && !noFAQs && (
-          <div>
-            <h2 className="px-5 py-3 font-bold">仍然需要帮助？</h2>
-            <p className="mt-2 px-5">
-              <Button as={Link} to={`/tickets/new?category_id=${id}`} className="inline-block">
-                联系客服
-              </Button>
-            </p>
-          </div>
+          <p className="mt-6 px-4 text-center">
+            <span className="block mb-2 text-sm">若以上内容没有帮助到你</span>
+            <NewTicketButton categoryId={id!} />
+          </p>
         )}
       </>
     );

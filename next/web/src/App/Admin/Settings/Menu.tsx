@@ -15,6 +15,14 @@ const routeGroups = [
         path: 'ticket-forms',
       },
     ],
+  },{
+    name: '知识库',
+    paths: [
+      {
+        name: '文章',
+        path: 'articles',
+      },
+    ],
   },
   {
     name: '业务规则',

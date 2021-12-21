@@ -1,12 +1,18 @@
+import { useState } from 'react';
 import { useQuery } from 'react-query';
 import { Link, Route, Routes, useParams, useSearchParams } from 'react-router-dom';
 import { Article } from 'types';
 import { http } from 'leancloud';
 import { PageContent, PageHeader } from 'components/Page';
 import { QueryWrapper } from 'components/QueryWrapper';
-import { ArticleLink, useFAQs } from './utils';
+import { ArticleListItem, useFAQs } from './utils';
 import { useAuth } from '..';
 import { Button } from '@/components/Button';
+import { NewTicketButton } from '@/components/NewTicketButton';
+import { useTranslation } from 'react-i18next';
+import CheckIcon from 'icons/Check';
+import ThumbDownIcon from 'icons/ThumbDown';
+import ThumbUpIcon from 'icons/ThumbUp';
 
 async function getArticle(id: string) {
   return (await http.get<Article>(`/api/2/articles/${id}`)).data;
@@ -30,16 +36,45 @@ function RelatedFAQs({ categoryId, articleId }: { categoryId: string; articleId:
     return null;
   }
   return (
-    <div className="m-4 pb-2 bg-gray-50">
+    <div className="pt-6 pb-2">
       <h2 className="px-5 py-3 font-bold">类似问题</h2>
       {relatedFAQs.map((FAQ) => (
-        <ArticleLink
-          article={FAQ}
-          fromCategory={categoryId}
-          key={FAQ.id}
-          className="block px-5 py-1.5 text-tapBlue"
-        />
+        <ArticleListItem article={FAQ} fromCategory={categoryId} key={FAQ.id} />
       ))}
+    </div>
+  );
+}
+
+function Feedback({ articleId }: { articleId: string }) {
+  const { t } = useTranslation();
+  const [voted, setVoted] = useState(false);
+  const vote = (score: -1 | 1) => setVoted(true);
+
+  return (
+    <div className="mt-8 text-gray-600 flex items-center text-sm h-6">
+      {voted ? (
+        <>
+          <div className="flex w-4 h-4 bg-tapBlue rounded-full mr-2">
+            <CheckIcon className="w-1.5 h-1.5 m-auto text-white" />
+          </div>
+          {t('evaluation.created_text')}
+        </>
+      ) : (
+        <>
+          <Button onClick={() => vote(1)} secondary className="!leading-6 !px-3">
+            <ThumbUpIcon className="w-[14px] h-[14px] inline-block mr-1" />
+            {t('evaluation.useful')}
+          </Button>
+          <Button
+            onClick={() => vote(-1)}
+            secondary
+            className="!leading-6 !px-3 ml-3 hover:!text-red-500 hover:!border-red-500 active:!text-red-500 active:!border-red-500"
+          >
+            <ThumbDownIcon className="w-[14px] h-[14px] inline-block mr-1" />
+            {t('evaluation.useless')}
+          </Button>
+        </>
+      )}
     </div>
   );
 }
@@ -58,23 +93,20 @@ function ArticleDetail() {
     <QueryWrapper result={result}>
       <PageHeader>{article?.title}</PageHeader>
       <PageContent>
-        <div
-          className="p-4 bg-gray-50 border-b border-gray-100 markdown-body"
-          dangerouslySetInnerHTML={{ __html: article?.contentSafeHTML ?? '' }}
-        />
+        <div className="p-4 bg-gray-50 border-b border-gray-100 ">
+          <div
+            className="text-[13px] markdown-body"
+            dangerouslySetInnerHTML={{ __html: article?.contentSafeHTML ?? '' }}
+          />
+          {article && <Feedback articleId={article.id} />}
+        </div>
         {categoryId && auth && (
-          <p className="mt-4 px-4">
-            仍然需要帮助？{' '}
-            <Button
-              as={Link}
-              to={`/tickets/new?category_id=${categoryId}`}
-              className="inline-block"
-            >
-              联系客服
-            </Button>
+          <p className="mt-6 px-4 text-center">
+            <span className="block mb-2 text-sm">若以上内容没有帮助到你</span>
+            <NewTicketButton categoryId={categoryId} />
           </p>
         )}
-        {categoryId && id && <RelatedFAQs categoryId={categoryId} articleId={id} />}
+        {/* {categoryId && id && <RelatedFAQs categoryId={categoryId} articleId={id} />} */}
       </PageContent>
     </QueryWrapper>
   );
