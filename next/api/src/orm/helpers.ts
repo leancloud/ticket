@@ -8,6 +8,7 @@ import {
   HasManyThroughPointerArray,
   ModelGetter,
   PointTo,
+  RelationType,
 } from './relation';
 
 export function field(config?: string | Partial<Omit<Field, 'localKey'>>) {
@@ -65,8 +66,8 @@ export function belongsTo(
     }
     const model = target.constructor as typeof Model;
     model.setRelation({
+      type: RelationType.BelongsTo,
       name,
-      type: 'belongsTo',
       model,
       getRelatedModel,
       getRelatedId,
@@ -81,8 +82,8 @@ export function hasOne(getRelatedModel: ModelGetter, pointerKey?: string) {
       pointerKey = model.getClassName().toLowerCase();
     }
     model.setRelation({
+      type: RelationType.HasOne,
       name,
-      type: 'hasOne',
       model,
       getRelatedModel,
       pointerKey,
@@ -105,8 +106,8 @@ export function pointTo(
     }
     const model = target.constructor as typeof Model;
     model.setRelation({
+      type: RelationType.PointTo,
       name,
-      type: 'pointTo',
       model,
       getRelatedModel,
       getRelatedId,
@@ -129,8 +130,8 @@ export function hasManyThroughIdArray(
     }
     const model = target.constructor as typeof Model;
     model.setRelation({
+      type: RelationType.HasManyThroughIdArray,
       name,
-      type: 'hasManyThroughIdArray',
       model,
       getRelatedModel,
       getRelatedIds,
@@ -153,8 +154,8 @@ export function hasManyThroughPointerArray(
     }
     const model = target.constructor as typeof Model;
     model.setRelation({
+      type: RelationType.HasManyThroughPointerArray,
       name,
-      type: 'hasManyThroughPointerArray',
       model,
       getRelatedModel,
       getRelatedIds,
@@ -167,8 +168,8 @@ export function hasManyThroughRelation(getRelatedModel: ModelGetter, relatedKey?
   return (target: Model, name: string) => {
     const model = target.constructor as typeof Model;
     model.setRelation({
+      type: RelationType.HasManyThroughRelation,
       name,
-      type: 'hasManyThroughRelation',
       model,
       getRelatedModel,
       relatedKey: relatedKey ?? name,

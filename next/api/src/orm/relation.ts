@@ -3,28 +3,37 @@ import { Model } from './model';
 import { KeysOfType } from './utils';
 
 export type RelationName<M extends typeof Model> = Extract<
-  KeysOfType<InstanceType<M>, Model | Model[] | undefined>,
+  KeysOfType<Required<InstanceType<M>>, Model | Model[]>,
   string
 >;
 
 export type ModelGetter = () => typeof Model;
 
+export enum RelationType {
+  BelongsTo,
+  PointTo,
+  HasOne,
+  HasManyThroughIdArray,
+  HasManyThroughPointerArray,
+  HasManyThroughRelation,
+}
+
 export interface BelongsTo {
   name: string;
-  type: 'belongsTo';
+  type: RelationType.BelongsTo;
   model: typeof Model;
   getRelatedModel: ModelGetter;
   getRelatedId: (instance: any) => string | undefined;
 }
 
 export interface PointTo extends Omit<BelongsTo, 'type'> {
-  type: 'pointTo';
+  type: RelationType.PointTo;
   includeKey: string;
 }
 
 export interface HasOne {
   name: string;
-  type: 'hasOne';
+  type: RelationType.HasOne;
   model: typeof Model;
   getRelatedModel: ModelGetter;
   pointerKey: string;
@@ -32,20 +41,20 @@ export interface HasOne {
 
 export interface HasManyThroughIdArray {
   name: string;
-  type: 'hasManyThroughIdArray';
+  type: RelationType.HasManyThroughIdArray;
   model: typeof Model;
   getRelatedModel: ModelGetter;
   getRelatedIds: (instance: any) => string[] | undefined;
 }
 
 export interface HasManyThroughPointerArray extends Omit<HasManyThroughIdArray, 'type'> {
-  type: 'hasManyThroughPointerArray';
+  type: RelationType.HasManyThroughPointerArray;
   includeKey: string;
 }
 
 export interface HasManyThroughRelation {
   name: string;
-  type: 'hasManyThroughRelation';
+  type: RelationType.HasManyThroughRelation;
   model: typeof Model;
   getRelatedModel: ModelGetter;
   relatedKey: string;
