@@ -14,7 +14,7 @@ import {
 } from './relation';
 import { AuthOptions, AVQuery, QueryBuilder } from './query';
 
-export interface BeforeQueryConntext {
+export interface BeforeQueryContext {
   avQuery: AVQuery;
 }
 
@@ -29,7 +29,7 @@ export interface Item extends Record<string, any> {
 export interface Preloader {
   data?: Item[];
   queryModifier?: (query: QueryBuilder<any>) => void;
-  beforeQuery?: (ctx: BeforeQueryConntext) => void | Promise<void>;
+  beforeQuery?: (ctx: BeforeQueryContext) => void | Promise<void>;
   afterQuery?: (ctx: AfterQueryContext) => void | Promise<void>;
   load: (items: Item[], options?: AuthOptions) => Promise<void>;
 }
@@ -85,7 +85,7 @@ class PointToPreloader {
 
   constructor(private relation: PointTo) {}
 
-  beforeQuery({ avQuery }: BeforeQueryConntext) {
+  beforeQuery({ avQuery }: BeforeQueryContext) {
     avQuery.include(this.relation.includeKey);
   }
 
@@ -209,7 +209,7 @@ class HasManyThroughPointerArrayPreloader {
 
   constructor(private relation: HasManyThroughPointerArray) {}
 
-  beforeQuery({ avQuery }: BeforeQueryConntext) {
+  beforeQuery({ avQuery }: BeforeQueryContext) {
     avQuery.include(this.relation.includeKey);
   }
 
