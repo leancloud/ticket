@@ -10,10 +10,11 @@ import {
   HasOne,
   PointTo,
   RelationName,
+  RelationType,
 } from './relation';
 import { AuthOptions, AVQuery, QueryBuilder } from './query';
 
-export interface BeforeQueryConntext {
+export interface BeforeQueryContext {
   avQuery: AVQuery;
 }
 
@@ -28,7 +29,7 @@ export interface Item extends Record<string, any> {
 export interface Preloader {
   data?: Item[];
   queryModifier?: (query: QueryBuilder<any>) => void;
-  beforeQuery?: (ctx: BeforeQueryConntext) => void | Promise<void>;
+  beforeQuery?: (ctx: BeforeQueryContext) => void | Promise<void>;
   afterQuery?: (ctx: AfterQueryContext) => void | Promise<void>;
   load: (items: Item[], options?: AuthOptions) => Promise<void>;
 }
@@ -84,7 +85,7 @@ class PointToPreloader {
 
   constructor(private relation: PointTo) {}
 
-  beforeQuery({ avQuery }: BeforeQueryConntext) {
+  beforeQuery({ avQuery }: BeforeQueryContext) {
     avQuery.include(this.relation.includeKey);
   }
 
@@ -107,7 +108,7 @@ class PointToPreloader {
       });
     } else {
       // 退化成 BelongsToPreloader
-      const preloader = new BelongsToPreloader({ ...this.relation, type: 'belongsTo' });
+      const preloader = new BelongsToPreloader({ ...this.relation, type: RelationType.BelongsTo });
       preloader.queryModifier = this.queryModifier;
       await preloader.load(items, options);
     }
@@ -208,7 +209,7 @@ class HasManyThroughPointerArrayPreloader {
 
   constructor(private relation: HasManyThroughPointerArray) {}
 
-  beforeQuery({ avQuery }: BeforeQueryConntext) {
+  beforeQuery({ avQuery }: BeforeQueryContext) {
     avQuery.include(this.relation.includeKey);
   }
 
@@ -233,7 +234,7 @@ class HasManyThroughPointerArrayPreloader {
       // 退化成 HasManyThroughIdArrayPreloader
       const preloader = new HasManyThroughIdArrayPreloader({
         ...this.relation,
-        type: 'hasManyThroughIdArray',
+        type: RelationType.HasManyThroughIdArray,
       });
       preloader.queryModifier = this.queryModifier;
       await preloader.load(items, options);
@@ -274,17 +275,17 @@ export function preloaderFactory<M extends typeof Model, N extends RelationName<
     throw new Error(`Cannot create preloader, relation ${name} is not exists`);
   }
   switch (relation.type) {
-    case 'belongsTo':
+    case RelationType.BelongsTo:
       return new BelongsToPreloader(relation);
-    case 'pointTo':
+    case RelationType.PointTo:
       return new PointToPreloader(relation);
-    case 'hasOne':
+    case RelationType.HasOne:
       return new HasOnePreloader(relation);
-    case 'hasManyThroughIdArray':
+    case RelationType.HasManyThroughIdArray:
       return new HasManyThroughIdArrayPreloader(relation);
-    case 'hasManyThroughPointerArray':
+    case RelationType.HasManyThroughPointerArray:
       return new HasManyThroughPointerArrayPreloader(relation);
-    case 'hasManyThroughRelation':
+    case RelationType.HasManyThroughRelation:
       return new HasManyThroughRelationPreloader(relation);
   }
 }
