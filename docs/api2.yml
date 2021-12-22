@@ -201,6 +201,8 @@ paths:
               - createdAt-desc
               - updatedAt
               - updatedAt-desc
+              - latestCustomerServiceReplyAt
+              - latestCustomerServiceReplyAt-desc
               - status
               - status-desc
           description: 排序字段，默认为升序，`-desc` 后缀表示降序
@@ -216,8 +218,14 @@ paths:
             - categoryPath
             - group（仅客服可用）
             - files
+            - unreadCount
 
             多个值可用 `,` 分隔
+        - name: includeMetaKeys
+          in: query
+          schema:
+            type: string
+          description: 将指定 metaData 字段包含进查询结果中，多个值可用 `,` 分隔。
         - name: where
           in: query
           schema:
@@ -238,6 +246,72 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Ticket'
+  /api/2/tickets/{id}/replies:
+    parameters:
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
+    post:
+      tags: [ticket]
+      summary: 创建回复
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                fileIds:
+                  type: array
+                  items:
+                    type: string
+                internal:
+                  type: boolean
+                  description: 创建为内部回复（仅客服可见，该参数仅客服有效）
+              required: [content]
+            examples:
+              创建普通回复:
+                value:
+                  content: '你们给我搞的这个客服系统啊——Excited!'
+              创建带附件的回复:
+                value:
+                  content: '如图所示'
+                  fileIds: ['uploaded-file-id']
+              创建仅客服可见的回复:
+                value:
+                  content: '这个用户老是提一些莫名其妙的问题 😑'
+                  internal: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  content:
+                    type: string
+                  contentSafeHTML:
+                    type: string
+                  author:
+                    $ref: '#/components/schemas/User'
+                  isCustomerService:
+                    type: boolean
+                  files:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/File'
+                  createdAt:
+                    type: string
+                    format: date-time
+                  updatedAt:
+                    type: string
+                    format: date-time
   /api/2/unread:
     get:
       tags: ['notification']

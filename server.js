@@ -68,8 +68,10 @@ if (process.env.MAINTENANCE_MODE) {
   app.use(require('./api'))
 
   // api document
-  app.use('/docs/1', swaggerUi.serve, swaggerUi.setup(YAML.load('./docs/api1.yml')))
-  app.use('/docs/2', swaggerUi.serve, swaggerUi.setup(YAML.load('./docs/api2.yml')))
+  const APIV1 = YAML.load('./docs/api1.yml')
+  const APIV2 = YAML.load('./docs/api2.yml')
+  app.use('/docs/1', swaggerUi.serveFiles(APIV1), swaggerUi.setup(APIV1))
+  app.use('/docs/2', swaggerUi.serveFiles(APIV2), swaggerUi.setup(APIV2))
 
   const { orgName } = require('./oauth/lc')
 

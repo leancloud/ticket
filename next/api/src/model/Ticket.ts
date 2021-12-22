@@ -171,6 +171,12 @@ export class Ticket extends Model {
   latestReply?: LatestReply;
 
   @field()
+  latestCustomerServiceReplyAt?: Date;
+
+  @field()
+  firstCustomerServiceReplyAt?: Date;
+
+  @field()
   joinedCustomerServices?: TinyUserInfo[];
 
   @field()
@@ -243,6 +249,10 @@ export class Ticket extends Model {
       if (isCustomerService) {
         if (data.author !== systemUser) {
           updater.addJoinedCustomerService(data.author.getTinyInfo());
+          updater.setlatestCustomerServiceReplyAt(reply.createdAt);
+          if (!this.firstCustomerServiceReplyAt) {
+            updater.setfirstCustomerServiceReplyAt(reply.createdAt);
+          }
         }
         // XXX: 适配加速器的使用场景
         updater.ONLY_FOR_TGB_increaseUnreadCount();

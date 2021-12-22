@@ -57,6 +57,12 @@
     "latestReply": {
       "type": "Object"
     },
+    "latestCustomerServiceReplyAt": {
+      "type": "Date"
+    },
+    "firstCustomerServiceReplyAt": {
+      "type": "Date"
+    },
     "joinedCustomerServices": {
       "type": "Array"
     },
@@ -111,5 +117,26 @@
       "*": true
     }
   },
-  "indexes": []
+  "indexes": [
+    {
+        "v": 2,
+        "unique": true,
+        "key": {
+            "nid": 1
+        },
+        "name": "-user-nid_1",
+        "ns": "_.Ticket",
+        "background": true
+    },
+    {
+        "v": 2,
+        "unique": false,
+        "key": {
+            "latestCustomerServiceReplyAt": -1
+        },
+        "name": "-user-latestCustomerServiceReplyAt_-1",
+        "ns": "_.Ticket",
+        "background": true
+    }
+]
 }
