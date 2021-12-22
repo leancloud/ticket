@@ -7,13 +7,13 @@ import {
   useRef,
   useEffect,
 } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { NavigateOptions, useLocation, useNavigate } from 'react-router-dom';
 import { noop } from 'lodash-es';
 
 export const SearchParamsContext = createContext({
   params: {} as Record<string, string | undefined>,
-  set: noop as (params: Record<string, string | undefined>) => void,
-  merge: noop as (params: Record<string, string | undefined>) => void,
+  set: noop as (params: Record<string, string | undefined>, options?: NavigateOptions) => void,
+  merge: noop as (params: Record<string, string | undefined>, options?: NavigateOptions) => void,
 });
 
 export function SearchParamsProvider({ children }: { children: ReactNode }) {
@@ -32,22 +32,22 @@ export function SearchParamsProvider({ children }: { children: ReactNode }) {
   }, [search]);
 
   const set = useCallback(
-    (newParams: Record<string, string | undefined>) => {
+    (newParams: Record<string, string | undefined>, options?: NavigateOptions) => {
       const searchParams = new URLSearchParams();
       Object.entries(newParams).forEach(([key, value]) => {
         if (value !== undefined) {
           searchParams.set(key, value);
         }
       });
-      navigate({ search: searchParams.toString() });
+      navigate({ search: searchParams.toString() }, options);
     },
     [navigate]
   );
 
   const merge = useCallback(
-    (newParams: Record<string, string | undefined>) => {
+    (newParams: Record<string, string | undefined>, options?: NavigateOptions) => {
       $dirtyParams.current = { ...params, ...$dirtyParams.current, ...newParams };
-      set($dirtyParams.current);
+      set($dirtyParams.current, options);
     },
     [params, set]
   );
@@ -68,8 +68,8 @@ export function useSearchParam(key: string) {
   const [params, { merge }] = useSearchParams();
   const param = useMemo(() => params[key], [params, key]);
   const set = useCallback(
-    (value: string | undefined) => {
-      merge({ [key]: value });
+    (value: string | undefined, options?: NavigateOptions) => {
+      merge({ [key]: value }, options);
     },
     [merge, key]
   );

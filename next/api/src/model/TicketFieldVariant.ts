@@ -17,6 +17,9 @@ export class TicketFieldVariant extends Model {
   title!: string;
 
   @field()
+  titleForCustomerService!: string;
+
+  @field()
   description?: string;
 
   @field()

@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { useMutation, useQueryClient } from 'react-query';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import cx from 'classnames';
@@ -98,7 +97,7 @@ export function TicketFieldList() {
 
   const handleChangeActive = (value: string) => {
     setPage(1);
-    setActive(value);
+    setActive(value, { replace: true });
   };
 
   return (
@@ -114,11 +113,11 @@ export function TicketFieldList() {
       </div>
 
       <Tabs
-        activeKey={active === 'true' ? '1' : '2'}
-        onChange={(key) => handleChangeActive(key === '1' ? 'true' : 'false')}
+        activeKey={active === 'true' ? 'active' : 'inactive'}
+        onChange={(key) => handleChangeActive(key === 'active' ? 'true' : 'false')}
       >
-        <TabPane tab="启用" key="1" />
-        <TabPane tab="停用" key="2" />
+        <TabPane tab="启用" key="active" />
+        <TabPane tab="停用" key="inactive" />
       </Tabs>
 
       {isLoading && <div className="h-80 my-40 text-center" children={<Spin />} />}
@@ -164,23 +163,24 @@ export function NewTicketField() {
         variants: [
           {
             locale: 'zh-cn',
+            title: '',
+            titleForCustomerService: '',
+            description: '',
           },
         ],
       }}
       onCancel={() => navigate('..')}
       submitting={isLoading}
-      onSubmit={(data) =>
+      onSubmit={(data) => {
         mutate({
-          type: data.type!,
-          title: data.title!,
-          defaultLocale: data.defaultLocale!,
+          type: data.type,
+          title: data.title,
+          visible: data.visible,
           required: data.required,
-          variants: data.variants!.reduce((map, { locale, ...variant }) => {
-            map[locale] = variant;
-            return map;
-          }, {} as any),
-        })
-      }
+          defaultLocale: data.defaultLocale,
+          variants: data.variants,
+        });
+      }}
     />
   );
 }
@@ -189,18 +189,6 @@ export function TicketFieldDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data, isLoading } = useTicketField(id!);
-  const parsedData = useMemo(() => {
-    if (!data) {
-      return undefined;
-    }
-    return {
-      ...data,
-      variants: Object.entries(data.variants!).map(([locale, variant]) => ({
-        ...variant,
-        locale,
-      })),
-    };
-  }, [data]);
 
   const queryClient = useQueryClient();
   const { mutate, isLoading: isSaving } = useMutation({
@@ -224,20 +212,18 @@ export function TicketFieldDetail() {
   return (
     <TicketFieldForm
       disableType
-      initData={parsedData}
+      initData={data}
       onCancel={() => navigate('..')}
       submitting={isSaving}
-      onSubmit={(data) =>
+      onSubmit={(data) => {
         mutate({
           title: data.title,
-          defaultLocale: data.defaultLocale,
+          visible: data.visible,
           required: data.required,
-          variants: data.variants!.reduce((map, { locale, ...variant }) => {
-            map[locale] = variant;
-            return map;
-          }, {} as any),
-        })
-      }
+          defaultLocale: data.defaultLocale,
+          variants: data.variants!,
+        });
+      }}
     />
   );
 }

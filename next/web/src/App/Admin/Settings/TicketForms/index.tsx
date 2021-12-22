@@ -146,11 +146,13 @@ export function NewTicketForm() {
       }}
       submitting={isLoading}
       onSubmit={mutate}
+      onCancel={() => navigate('..')}
     />
   );
 }
 
 export function TicketFormDetail() {
+  const navigate = useNavigate();
   const { id } = useParams();
   const { data, isLoading } = useTicketForm(id!, {
     staleTime: 1000 * 60 * 5,
@@ -183,12 +185,8 @@ export function TicketFormDetail() {
     <EditTicketForm
       initData={data}
       submitting={isUpdating}
-      onSubmit={(data) =>
-        mutate({
-          title: data.title,
-          fieldIds: data.fieldIds,
-        })
-      }
+      onSubmit={mutate}
+      onCancel={() => navigate('..')}
     />
   );
 }

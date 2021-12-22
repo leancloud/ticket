@@ -4,9 +4,9 @@ import _ from 'lodash';
 import { Model, CreateData, field } from '@/orm';
 import { TicketFieldVariant } from './TicketFieldVariant';
 
-type VariantsData = Record<
-  string,
-  Pick<CreateData<TicketFieldVariant>, 'title' | 'description' | 'options'>
+type VariantData = Pick<
+  CreateData<TicketFieldVariant>,
+  'locale' | 'title' | 'titleForCustomerService' | 'description' | 'options'
 >;
 
 export const FIELD_TYPES = [
@@ -36,23 +36,28 @@ export class TicketField extends Model {
   active!: boolean;
 
   @field()
+  visible!: boolean;
+
+  @field()
   required!: boolean;
 
   getVariants(): Promise<TicketFieldVariant[]> {
     return TicketFieldVariant.queryBuilder()
       .where('field', '==', this.toPointer())
+      .orderBy('createdAt', 'asc')
       .find({ useMasterKey: true });
   }
 
-  async appendVariants(variants: VariantsData) {
+  async appendVariants(variants: VariantData[]) {
     const ACL = {};
     const fieldId = this.id;
     await TicketFieldVariant.createSome(
-      Object.entries(variants).map(([locale, variant]) => ({
+      variants.map((variant) => ({
         ACL,
         fieldId,
-        locale,
+        locale: variant.locale,
         title: variant.title,
+        titleForCustomerService: variant.titleForCustomerService,
         description: variant.description,
         options: variant.options,
       })),
@@ -69,7 +74,7 @@ export class TicketField extends Model {
     await AV.Object.destroyAll(objects, { useMasterKey: true });
   }
 
-  async replaceVariants(variants: VariantsData) {
+  async replaceVariants(variants: VariantData[]) {
     await this.removeVariants();
     await this.appendVariants(variants);
   }
