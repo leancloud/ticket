@@ -163,6 +163,7 @@ router.get('/:id', async (ctx) => {
 const modifyFieldDataSchema = z.object({
   title: z.string().optional(),
   defaultLocale: localeSchema.optional(),
+  visible: z.boolean().optional(),
   required: z.boolean().optional(),
   active: z.boolean().optional(),
   variants: variantsSchema.optional(),
@@ -174,7 +175,7 @@ router.patch('/:id', customerServiceOnly, async (ctx) => {
 
   if (data.defaultLocale) {
     const locales = data.variants
-      ? Object.keys(data.variants)
+      ? data.variants.map((v) => v.locale)
       : (await field.getVariants()).map((v) => v.locale);
     if (!locales.includes(data.defaultLocale)) {
       ctx.throw(400, 'Variant for default locale is not defined');
@@ -197,6 +198,7 @@ router.patch('/:id', customerServiceOnly, async (ctx) => {
     {
       title: data.title,
       defaultLocale: data.defaultLocale,
+      visible: data.visible,
       required: data.required,
       active: data.active,
     },

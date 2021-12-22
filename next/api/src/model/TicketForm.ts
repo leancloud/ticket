@@ -58,6 +58,8 @@ export class TicketForm extends Model {
           presetTicketFields.map((f) => f.id)
         )
       )
+      .where('active', '==', true)
+      .where('visible', '==', true)
       .find({ useMasterKey: true });
     const fieldMap = _.keyBy(presetTicketFields.concat(fields), 'id');
 
