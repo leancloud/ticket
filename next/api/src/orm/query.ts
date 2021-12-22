@@ -242,11 +242,12 @@ export class Query<M extends typeof Model> {
     return avQuery;
   }
 
-  private async _find(avQuery: AVQuery, options?: AuthOptions): Promise<InstanceType<M>[]> {
+  async find(options?: AuthOptions): Promise<InstanceType<M>[]> {
     if (this.limitCount === 0) {
       return [];
     }
 
+    const avQuery = this.buildAVQuery();
     const preloaders = Object.values(this.preloaders);
 
     await Promise.all(preloaders.map(({ preloader }) => preloader.beforeQuery?.({ avQuery })));
@@ -261,10 +262,6 @@ export class Query<M extends typeof Model> {
     return items;
   }
 
-  find(options?: AuthOptions): Promise<InstanceType<M>[]> {
-    return this._find(this.buildAVQuery(), options);
-  }
-
   async first(options?: AuthOptions): Promise<InstanceType<M> | undefined> {
     const items = await this.limit(1).find(options);
     return items[0];
@@ -275,8 +272,23 @@ export class Query<M extends typeof Model> {
   }
 
   async findAndCount(options?: AuthOptions): Promise<[InstanceType<M>[], number]> {
+    if (this.limitCount === 0) {
+      return [[], 0];
+    }
+
     const avQuery = this.buildAVQuery();
-    return Promise.all([this._find(avQuery, options), avQuery.count(options)]);
+    const preloaders = Object.values(this.preloaders);
+
+    await Promise.all(preloaders.map(({ preloader }) => preloader.beforeQuery?.({ avQuery })));
+    const [objects, count] = await avQuery.findAndCount(options);
+    await Promise.all(preloaders.map(({ preloader }) => preloader.afterQuery?.({ objects })));
+
+    const items = objects.map((o) => this.model.fromAVObject(o));
+    await Promise.all(
+      preloaders.map(({ preloader, authOptions }) => preloader.load(items, authOptions ?? options))
+    );
+
+    return [items, count];
   }
 }
 
