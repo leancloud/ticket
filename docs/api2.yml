@@ -32,6 +32,21 @@ components:
           type: string
         name:
           type: string
+    Category:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        parentId: 
+          type: string
+        position:
+          type: number
+        active: 
+          type: boolean
+        template:
+          type: string
     File:
       type: object
       properties:
@@ -493,3 +508,22 @@ paths:
             application/json:
               schema:
                 type: object
+  /api/2/articles/{id}/categories:
+    parameters:
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
+    get:
+      tags: ['Knowladge base']
+      summary: 获取关联了该文章为常见问题的分类
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'

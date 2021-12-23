@@ -9,6 +9,7 @@ import { ACLBuilder, CreateData, UpdateData } from '@/orm';
 import htmlify from '@/utils/htmlify';
 import { User } from '@/model/User';
 import { Category } from '@/model/Category';
+import { CategoryResponse } from '@/response/category';
 
 const router = new Router();
 
@@ -80,10 +81,19 @@ router.param('id', async (id, ctx, next) => {
   }
 
   if (!article) {
-    ctx.throw(404, 'Not Found');
+    ctx.throw(404, 'Article not found');
   }
   ctx.state.article = article;
   return next();
+});
+
+router.get('/:id/categories', auth, customerServiceOnly, async (ctx) => {
+  const currentUser = ctx.state.currentUser as User;
+  const article = ctx.state.article as Article;
+  const associatedCategories = await Category.query()
+    .where('FAQs', '==', article.toPointer())
+    .find(currentUser.getAuthOptions());
+  ctx.body = associatedCategories.map((category) => new CategoryResponse(category));
 });
 
 router.get('/:id', async (ctx) => {
