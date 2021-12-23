@@ -12,6 +12,8 @@ export type ModelGetter = () => typeof Model;
 export enum RelationType {
   BelongsTo,
   BelongsToThroughPointer,
+  HasMany,
+  HasManyThroughPointer,
   HasManyThroughIdArray,
   HasManyThroughPointerArray,
   HasManyThroughRelation,
@@ -32,6 +34,24 @@ export interface BelongsToThroughPointer {
   getRelatedModel: ModelGetter;
   pointerKey: string;
   relatedIdField: string;
+}
+
+export interface HasMany {
+  type: RelationType.HasMany;
+  model: typeof Model;
+  field: string;
+  getRelatedModel: ModelGetter;
+  foreignKey: string;
+  foreignKeyField: string;
+}
+
+export interface HasManyThroughPointer {
+  type: RelationType.HasManyThroughPointer;
+  model: typeof Model;
+  field: string;
+  getRelatedModel: ModelGetter;
+  foreignPointerKey: string;
+  foreignKeyField: string;
 }
 
 export interface HasManyThroughIdArray {
@@ -62,6 +82,8 @@ export interface HasManyThroughRelation {
 export type Relation =
   | BelongsTo
   | BelongsToThroughPointer
+  | HasMany
+  | HasManyThroughPointer
   | HasManyThroughIdArray
   | HasManyThroughPointerArray
   | HasManyThroughRelation;

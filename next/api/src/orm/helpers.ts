@@ -4,6 +4,13 @@ import _ from 'lodash';
 import { Field, Model, SerializedField } from './model';
 import { ModelGetter, RelationType } from './relation';
 
+function lowercaseFirstChar(str: string): string {
+  if (str.length) {
+    return str.slice(0, 1).toLowerCase() + str.slice(1);
+  }
+  return '';
+}
+
 export function field(config?: string | Partial<Omit<Field, 'localKey'>>) {
   return (target: Model, localKey: string) => {
     const model = target.constructor as typeof Model;
@@ -81,6 +88,44 @@ export const pointTo = belongsToThroughPointer;
 
 export function hasOne(...args: any[]): any {
   throw new Error('not implemented');
+}
+
+export function hasMany(
+  getRelatedModel: ModelGetter,
+  foreignKey?: string,
+  foreignKeyField?: string
+) {
+  return (target: Model, field: string) => {
+    const model = target.constructor as typeof Model;
+    foreignKey ??= lowercaseFirstChar(model.getClassName()) + 'Id';
+    model.setRelation({
+      type: RelationType.HasMany,
+      model,
+      field,
+      getRelatedModel,
+      foreignKey,
+      foreignKeyField: foreignKeyField ?? foreignKey,
+    });
+  };
+}
+
+export function hasManyThroughPointer(
+  getRelatedModel: ModelGetter,
+  foreignPointerKey?: string,
+  foreignKeyField?: string
+) {
+  return (target: Model, field: string) => {
+    const model = target.constructor as typeof Model;
+    foreignPointerKey ??= lowercaseFirstChar(model.getClassName());
+    model.setRelation({
+      type: RelationType.HasManyThroughPointer,
+      model,
+      field,
+      getRelatedModel,
+      foreignPointerKey,
+      foreignKeyField: foreignKeyField ?? foreignPointerKey + 'Id',
+    });
+  };
 }
 
 export function hasManyThroughIdArray(getRelatedModel: ModelGetter, idArrayField?: string) {

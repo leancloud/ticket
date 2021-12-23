@@ -5,7 +5,9 @@ import { Model } from './model';
 import {
   BelongsTo,
   BelongsToThroughPointer,
+  HasMany,
   HasManyThroughIdArray,
+  HasManyThroughPointer,
   HasManyThroughPointerArray,
   HasManyThroughRelation,
   RelationName,
@@ -101,6 +103,58 @@ class BelongsToThroughPointerPreloader {
       preloader.queryModifier = this.queryModifier;
       await preloader.load(items, options);
     }
+  }
+}
+
+class HasManyPreloader {
+  queryModifier?: (query: QueryBuilder<any>) => void;
+
+  constructor(private relation: HasMany) {}
+
+  async load(items: Item[], options?: AuthOptions) {
+    if (items.length === 0) {
+      return;
+    }
+
+    const { field, getRelatedModel, foreignKey, foreignKeyField } = this.relation;
+
+    const query = getRelatedModel().queryBuilder();
+    this.queryModifier?.(query);
+    const ids = items.map((item) => item.id);
+    query.where(foreignKey, 'in', ids);
+    const relatedItems = await query.find(options);
+
+    const relatedItemGroups = _.groupBy(relatedItems, foreignKeyField);
+
+    items.forEach((item) => {
+      item[field] = relatedItemGroups[item.id];
+    });
+  }
+}
+
+class HasManyThroughPointerPreloader {
+  queryModifier?: (query: QueryBuilder<any>) => void;
+
+  constructor(private relation: HasManyThroughPointer) {}
+
+  async load(items: Item[], options?: AuthOptions) {
+    if (items.length === 0) {
+      return;
+    }
+
+    const { model, field, getRelatedModel, foreignPointerKey, foreignKeyField } = this.relation;
+
+    const query = getRelatedModel().queryBuilder();
+    this.queryModifier?.(query);
+    const pointers = items.map((item) => model.ptr(item.id));
+    query.where(foreignPointerKey, 'in', pointers);
+    const relatedItems = await query.find(options);
+
+    const relatedItemGroups = _.groupBy(relatedItems, foreignKeyField);
+
+    items.forEach((item) => {
+      item[field] = relatedItemGroups[item.id];
+    });
   }
 }
 
@@ -217,6 +271,10 @@ export function preloaderFactory<M extends typeof Model, N extends RelationName<
       return new BelongsToPreloader(relation);
     case RelationType.BelongsToThroughPointer:
       return new BelongsToThroughPointerPreloader(relation);
+    case RelationType.HasMany:
+      return new HasManyPreloader(relation);
+    case RelationType.HasManyThroughPointer:
+      return new HasManyThroughPointerPreloader(relation);
     case RelationType.HasManyThroughIdArray:
       return new HasManyThroughIdArrayPreloader(relation);
     case RelationType.HasManyThroughPointerArray:
