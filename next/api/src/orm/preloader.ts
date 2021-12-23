@@ -4,10 +4,10 @@ import _ from 'lodash';
 import { Model } from './model';
 import {
   BelongsTo,
+  BelongsToThroughPointer,
   HasManyThroughIdArray,
   HasManyThroughPointerArray,
   HasManyThroughRelation,
-  PointTo,
   RelationName,
   RelationType,
 } from './relation';
@@ -18,7 +18,7 @@ export interface BeforeQueryContext {
 }
 
 export interface AfterQueryContext {
-  objects: AV.Object[];
+  avObjects: AV.Object[];
 }
 
 export interface Item extends Record<string, any> {
@@ -26,7 +26,6 @@ export interface Item extends Record<string, any> {
 }
 
 export interface Preloader {
-  data?: Item[];
   queryModifier?: (query: QueryBuilder<any>) => void;
   beforeQuery?: (ctx: BeforeQueryContext) => void | Promise<void>;
   afterQuery?: (ctx: AfterQueryContext) => void | Promise<void>;
@@ -34,7 +33,6 @@ export interface Preloader {
 }
 
 class BelongsToPreloader {
-  data?: Item[];
   queryModifier?: (query: QueryBuilder<any>) => void;
 
   constructor(private relation: BelongsTo) {}
@@ -44,65 +42,57 @@ class BelongsToPreloader {
       return;
     }
 
-    const { name, getRelatedModel, getRelatedId } = this.relation;
+    const { field, getRelatedModel, relatedIdField } = this.relation;
 
-    const relatedItems = this.data ?? [];
+    items = items.filter((item) => item[relatedIdField]);
+    const ids: string[] = items.map((item) => item[relatedIdField]);
 
-    const ids = _(items)
-      .map(getRelatedId)
-      .compact()
-      .uniq()
-      .difference(relatedItems.map((item) => item.id))
-      .value();
+    const query = getRelatedModel().queryBuilder();
+    this.queryModifier?.(query);
+    query.where('objectId', 'in', ids);
+    const relatedItems = await query.find(options);
 
-    if (ids.length) {
-      const query = getRelatedModel().queryBuilder();
-      this.queryModifier?.(query);
-      query.where('objectId', 'in', ids);
-      const fetchedItems = await query.find(options);
-      fetchedItems.forEach((item) => relatedItems.push(item));
-    }
-
-    const relatedItemMap = _.keyBy(relatedItems, (t) => t.id);
+    const relatedItemMap = _.keyBy(relatedItems, 'id');
 
     items.forEach((item) => {
-      const relatedId = getRelatedId(item);
-      if (relatedId) {
-        const relatedItem = relatedItemMap[relatedId];
-        if (relatedItem) {
-          item[name] = relatedItem;
-        }
-      }
+      const relatedId: string = item[relatedIdField];
+      item[field] = relatedItemMap[relatedId];
     });
   }
 }
 
-class PointToPreloader {
+class BelongsToThroughPointerPreloader {
   queryModifier?: (query: QueryBuilder<any>) => void;
 
-  private objects?: AV.Object[];
+  private avObjects?: AV.Object[];
 
-  constructor(private relation: PointTo) {}
+  constructor(private relation: BelongsToThroughPointer) {}
 
   beforeQuery({ avQuery }: BeforeQueryContext) {
-    avQuery.include(this.relation.includeKey);
+    avQuery.include(this.relation.pointerKey);
   }
 
-  afterQuery({ objects }: AfterQueryContext) {
-    this.objects = objects;
+  afterQuery({ avObjects }: AfterQueryContext) {
+    this.avObjects = avObjects;
   }
 
   async load(items: Item[], options?: AuthOptions) {
-    if (this.objects) {
-      const { name, getRelatedModel, includeKey } = this.relation;
+    if (items.length === 0) {
+      return;
+    }
+
+    if (this.avObjects) {
+      const { field, getRelatedModel, pointerKey } = this.relation;
       const relatedModel = getRelatedModel();
-      const objectMap = _.keyBy(this.objects, (o) => o.id!);
+
+      const avObjectMap = _.keyBy(this.avObjects, 'id');
       items.forEach((item) => {
-        const object = objectMap[item.id];
-        const subObject = object.get(includeKey) as AV.Object | undefined;
-        if (subObject) {
-          const data = relatedModel.fromAVObject(subObject);
-          item[name] = data;
+        const avObject = avObjectMap[item.id];
+        if (avObject) {
+          const relatedAVObject = avObject.get(pointerKey) as AV.Object | undefined;
+          if (relatedAVObject) {
+            item[field] = relatedModel.fromAVObject(relatedAVObject);
+          }
         }
       });
     } else {
@@ -115,7 +105,6 @@ class PointToPreloader {
 }
 
 class HasManyThroughIdArrayPreloader {
-  data?: Item[];
   queryModifier?: (query: QueryBuilder<any>) => void;
 
   constructor(private relation: HasManyThroughIdArray) {}
@@ -125,33 +114,22 @@ class HasManyThroughIdArrayPreloader {
       return;
     }
 
-    const { name, getRelatedModel, getRelatedIds } = this.relation;
+    const { field, idArrayField, getRelatedModel } = this.relation;
 
-    const relatedItems = this.data ?? [];
+    items = items.filter((item) => item[idArrayField]);
+    const idArrays: string[][] = items.map((item) => item[idArrayField]);
 
-    const ids = _(items)
-      .map(getRelatedIds)
-      .compact()
-      .flatten()
-      .uniq()
-      .difference(relatedItems.map((item) => item.id))
-      .value();
+    const query = getRelatedModel().queryBuilder();
+    this.queryModifier?.(query);
+    query.where('objectId', 'in', idArrays.flat());
+    const relatedItems = await query.find(options);
 
-    if (ids.length) {
-      const query = getRelatedModel().queryBuilder();
-      this.queryModifier?.(query);
-      query.where('objectId', 'in', ids);
-      const fetchedItems = await query.find(options);
-      fetchedItems.forEach((item) => relatedItems.push(item));
-    }
+    const relatedItemMap = _.keyBy(relatedItems, 'id');
 
-    const relatedItemMap = _.keyBy(relatedItems, (t) => t.id);
     items.forEach((item) => {
-      const relatedIds = getRelatedIds(item);
-      if (relatedIds) {
-        const relatedItems = relatedIds.map((id) => relatedItemMap[id]);
-        item[name] = _.compact(relatedItems);
-      }
+      const relatedIds: string[] = item[idArrayField];
+      const relatedItems = relatedIds.map((id) => relatedItemMap[id]);
+      item[field] = _.compact(relatedItems);
     });
   }
 }
@@ -159,29 +137,35 @@ class HasManyThroughIdArrayPreloader {
 class HasManyThroughPointerArrayPreloader {
   queryModifier?: (query: QueryBuilder<any>) => void;
 
-  private objects?: AV.Object[];
+  private avObjects?: AV.Object[];
 
   constructor(private relation: HasManyThroughPointerArray) {}
 
   beforeQuery({ avQuery }: BeforeQueryContext) {
-    avQuery.include(this.relation.includeKey);
+    avQuery.include(this.relation.pointerArrayKey);
   }
 
-  afterQuery({ objects }: AfterQueryContext) {
-    this.objects = objects;
+  afterQuery({ avObjects }: AfterQueryContext) {
+    this.avObjects = avObjects;
   }
 
   async load(items: Item[], options?: AuthOptions) {
-    if (this.objects) {
-      const { name, getRelatedModel, includeKey } = this.relation;
+    if (items.length === 0) {
+      return;
+    }
+
+    if (this.avObjects) {
+      const { field, pointerArrayKey, getRelatedModel } = this.relation;
       const relatedModel = getRelatedModel();
-      const objectMap = _.keyBy(this.objects, (o) => o.id!);
+
+      const avObjectMap = _.keyBy(this.avObjects, 'id');
       items.forEach((item) => {
-        const object = objectMap[item.id];
-        const subObjects = object.get(includeKey) as AV.Object[] | undefined;
-        if (subObjects) {
-          const data = subObjects.map((o) => relatedModel.fromAVObject(o));
-          item[name] = data;
+        const avObject = avObjectMap[item.id];
+        if (avObject) {
+          const relatedAVObjects = avObject.get(pointerArrayKey) as AV.Object[] | undefined;
+          if (relatedAVObjects) {
+            item[field] = relatedAVObjects.map((obj) => relatedModel.fromAVObject(obj));
+          }
         }
       });
     } else {
@@ -206,14 +190,14 @@ class HasManyThroughRelationPreloader {
       return;
     }
 
-    const { name, model, getRelatedModel, relatedKey } = this.relation;
+    const { field, model, getRelatedModel, relatedKey } = this.relation;
     const relatedModel = getRelatedModel();
 
     const tasks = items.map(async (item) => {
       const query = relatedModel.queryBuilder();
       this.queryModifier?.(query);
       query.relatedTo(model, relatedKey, item.id);
-      item[name] = await query.find(options);
+      item[field] = await query.find(options);
     });
 
     await Promise.all(tasks);
@@ -231,8 +215,8 @@ export function preloaderFactory<M extends typeof Model, N extends RelationName<
   switch (relation.type) {
     case RelationType.BelongsTo:
       return new BelongsToPreloader(relation);
-    case RelationType.PointTo:
-      return new PointToPreloader(relation);
+    case RelationType.BelongsToThroughPointer:
+      return new BelongsToThroughPointerPreloader(relation);
     case RelationType.HasManyThroughIdArray:
       return new HasManyThroughIdArrayPreloader(relation);
     case RelationType.HasManyThroughPointerArray:

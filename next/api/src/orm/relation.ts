@@ -11,49 +11,57 @@ export type ModelGetter = () => typeof Model;
 
 export enum RelationType {
   BelongsTo,
-  PointTo,
+  BelongsToThroughPointer,
   HasManyThroughIdArray,
   HasManyThroughPointerArray,
   HasManyThroughRelation,
 }
 
 export interface BelongsTo {
-  name: string;
   type: RelationType.BelongsTo;
   model: typeof Model;
+  field: string;
   getRelatedModel: ModelGetter;
-  getRelatedId: (instance: any) => string | undefined;
+  relatedIdField: string;
 }
 
-export interface PointTo extends Omit<BelongsTo, 'type'> {
-  type: RelationType.PointTo;
-  includeKey: string;
+export interface BelongsToThroughPointer {
+  type: RelationType.BelongsToThroughPointer;
+  model: typeof Model;
+  field: string;
+  getRelatedModel: ModelGetter;
+  pointerKey: string;
+  relatedIdField: string;
 }
 
 export interface HasManyThroughIdArray {
-  name: string;
   type: RelationType.HasManyThroughIdArray;
   model: typeof Model;
+  field: string;
+  idArrayField: string;
   getRelatedModel: ModelGetter;
-  getRelatedIds: (instance: any) => string[] | undefined;
 }
 
-export interface HasManyThroughPointerArray extends Omit<HasManyThroughIdArray, 'type'> {
+export interface HasManyThroughPointerArray {
   type: RelationType.HasManyThroughPointerArray;
-  includeKey: string;
+  model: typeof Model;
+  field: string;
+  pointerArrayKey: string;
+  getRelatedModel: ModelGetter;
+  idArrayField: string;
 }
 
 export interface HasManyThroughRelation {
-  name: string;
   type: RelationType.HasManyThroughRelation;
   model: typeof Model;
+  field: string;
   getRelatedModel: ModelGetter;
   relatedKey: string;
 }
 
 export type Relation =
   | BelongsTo
-  | PointTo
+  | BelongsToThroughPointer
   | HasManyThroughIdArray
   | HasManyThroughPointerArray
   | HasManyThroughRelation;

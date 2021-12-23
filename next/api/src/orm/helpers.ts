@@ -2,14 +2,7 @@ import AV from 'leancloud-storage';
 import _ from 'lodash';
 
 import { Field, Model, SerializedField } from './model';
-import {
-  BelongsTo,
-  HasManyThroughIdArray,
-  HasManyThroughPointerArray,
-  ModelGetter,
-  PointTo,
-  RelationType,
-} from './relation';
+import { ModelGetter, RelationType } from './relation';
 
 export function field(config?: string | Partial<Omit<Field, 'localKey'>>) {
   return (target: Model, localKey: string) => {
@@ -52,115 +45,84 @@ export function pointerIds(getPointerModel: ModelGetter, avObjectKey?: string) {
   };
 }
 
-export function belongsTo(
-  getRelatedModel: ModelGetter,
-  getRelatedId?: string | BelongsTo['getRelatedId']
-) {
-  return (target: Model, name: string) => {
-    if (getRelatedId === undefined) {
-      getRelatedId = name + 'Id';
-    }
-    if (typeof getRelatedId === 'string') {
-      const idKey = getRelatedId;
-      getRelatedId = (o) => o[idKey];
-    }
+export function belongsTo(getRelatedModel: ModelGetter, relatedIdField?: string) {
+  return (target: Model, field: string) => {
     const model = target.constructor as typeof Model;
     model.setRelation({
       type: RelationType.BelongsTo,
-      name,
+      field,
       model,
       getRelatedModel,
-      getRelatedId,
+      relatedIdField: relatedIdField ?? field + 'Id',
     });
   };
 }
+
+export function belongsToThroughPointer(
+  getRelatedModel: ModelGetter,
+  pointerKey?: string,
+  relatedIdField?: string
+) {
+  return (target: Model, field: string) => {
+    const model = target.constructor as typeof Model;
+    model.setRelation({
+      type: RelationType.BelongsToThroughPointer,
+      field,
+      model,
+      getRelatedModel,
+      pointerKey: pointerKey ?? field,
+      relatedIdField: relatedIdField ?? field + 'Id',
+    });
+  };
+}
+
+// alias
+export const pointTo = belongsToThroughPointer;
 
 export function hasOne(...args: any[]): any {
   throw new Error('not implemented');
 }
 
-export function pointTo(
-  getRelatedModel: ModelGetter,
-  includeKey?: string,
-  getRelatedId?: string | PointTo['getRelatedId']
-) {
-  return (target: Model, name: string) => {
-    if (getRelatedId === undefined) {
-      getRelatedId = name + 'Id';
-    }
-    if (typeof getRelatedId === 'string') {
-      const key = getRelatedId;
-      getRelatedId = (o) => o[key];
-    }
-    const model = target.constructor as typeof Model;
-    model.setRelation({
-      type: RelationType.PointTo,
-      name,
-      model,
-      getRelatedModel,
-      getRelatedId,
-      includeKey: includeKey ?? name,
-    });
-  };
-}
-
-export function hasManyThroughIdArray(
-  getRelatedModel: ModelGetter,
-  getRelatedIds?: string | HasManyThroughIdArray['getRelatedIds']
-) {
-  return (target: Model, name: string) => {
-    if (getRelatedIds === undefined) {
-      getRelatedIds = (name.endsWith('s') ? name.slice(0, -1) : name) + 'Ids';
-    }
-    if (typeof getRelatedIds === 'string') {
-      const key = getRelatedIds;
-      getRelatedIds = (o) => o[key];
-    }
+export function hasManyThroughIdArray(getRelatedModel: ModelGetter, idArrayField?: string) {
+  return (target: Model, field: string) => {
     const model = target.constructor as typeof Model;
     model.setRelation({
       type: RelationType.HasManyThroughIdArray,
-      name,
       model,
+      field,
+      idArrayField: idArrayField ?? (field.endsWith('s') ? field.slice(0, -1) : field) + 'Ids',
       getRelatedModel,
-      getRelatedIds,
     });
   };
 }
 
 export function hasManyThroughPointerArray(
   getRelatedModel: ModelGetter,
-  includeKey?: string,
-  getRelatedIds?: string | HasManyThroughPointerArray['getRelatedIds']
+  pointerArrayKey?: string,
+  idArrayField?: string
 ) {
-  return (target: Model, name: string) => {
-    if (getRelatedIds === undefined) {
-      getRelatedIds = (name.endsWith('s') ? name.slice(0, -1) : name) + 'Ids';
-    }
-    if (typeof getRelatedIds === 'string') {
-      const key = getRelatedIds;
-      getRelatedIds = (o) => o[key];
-    }
+  return (target: Model, field: string) => {
     const model = target.constructor as typeof Model;
     model.setRelation({
       type: RelationType.HasManyThroughPointerArray,
-      name,
       model,
+      field,
+      pointerArrayKey: pointerArrayKey ?? field,
       getRelatedModel,
-      getRelatedIds,
-      includeKey: includeKey ?? name,
+      idArrayField: idArrayField ?? (field.endsWith('s') ? field.slice(0, -1) : field) + 'Ids',
     });
   };
 }
 
 export function hasManyThroughRelation(getRelatedModel: ModelGetter, relatedKey?: string) {
-  return (target: Model, name: string) => {
+  return (target: Model, field: string) => {
     const model = target.constructor as typeof Model;
     model.setRelation({
       type: RelationType.HasManyThroughRelation,
-      name,
       model,
+      field,
       getRelatedModel,
-      relatedKey: relatedKey ?? name,
+      relatedKey: relatedKey ?? field,
     });
   };
 }
