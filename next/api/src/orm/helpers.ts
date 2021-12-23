@@ -75,20 +75,8 @@ export function belongsTo(
   };
 }
 
-export function hasOne(getRelatedModel: ModelGetter, pointerKey?: string) {
-  return (target: Model, name: string) => {
-    const model = target.constructor as typeof Model;
-    if (pointerKey === undefined) {
-      pointerKey = model.getClassName().toLowerCase();
-    }
-    model.setRelation({
-      type: RelationType.HasOne,
-      name,
-      model,
-      getRelatedModel,
-      pointerKey,
-    });
-  };
+export function hasOne(...args: any[]): any {
+  throw new Error('not implemented');
 }
 
 export function pointTo(

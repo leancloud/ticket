@@ -7,7 +7,6 @@ import {
   HasManyThroughIdArray,
   HasManyThroughPointerArray,
   HasManyThroughRelation,
-  HasOne,
   PointTo,
   RelationName,
   RelationType,
@@ -112,51 +111,6 @@ class PointToPreloader {
       preloader.queryModifier = this.queryModifier;
       await preloader.load(items, options);
     }
-  }
-}
-
-class HasOnePreloader {
-  data?: Item[];
-  queryModifier?: (query: QueryBuilder<any>) => void;
-
-  constructor(private relation: HasOne) {}
-
-  async load(items: Item[], options?: AuthOptions) {
-    if (items.length === 0) {
-      return;
-    }
-
-    const { name, model, getRelatedModel, pointerKey } = this.relation;
-
-    const relatedItems = this.data ?? [];
-
-    const pointers = _(items)
-      .map('id')
-      .uniq()
-      .difference(relatedItems.map((item) => item.id))
-      .map((id) => model.ptr(id))
-      .value();
-
-    if (pointers.length) {
-      const query = getRelatedModel().queryBuilder();
-      this.queryModifier?.(query);
-      query.where(pointerKey, 'in', pointers);
-      const fetchedItems = await query.find(options);
-      fetchedItems.forEach((item) => relatedItems.push(item));
-    }
-
-    const itemMap = _.keyBy(items, 'id');
-    const idKey = pointerKey + 'Id';
-
-    relatedItems.forEach((relatedItem) => {
-      const id = relatedItem[idKey];
-      if (id) {
-        const item = itemMap[id];
-        if (item) {
-          item[name] = relatedItem;
-        }
-      }
-    });
   }
 }
 
@@ -279,8 +233,6 @@ export function preloaderFactory<M extends typeof Model, N extends RelationName<
       return new BelongsToPreloader(relation);
     case RelationType.PointTo:
       return new PointToPreloader(relation);
-    case RelationType.HasOne:
-      return new HasOnePreloader(relation);
     case RelationType.HasManyThroughIdArray:
       return new HasManyThroughIdArrayPreloader(relation);
     case RelationType.HasManyThroughPointerArray:

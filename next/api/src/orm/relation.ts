@@ -12,7 +12,6 @@ export type ModelGetter = () => typeof Model;
 export enum RelationType {
   BelongsTo,
   PointTo,
-  HasOne,
   HasManyThroughIdArray,
   HasManyThroughPointerArray,
   HasManyThroughRelation,
@@ -29,14 +28,6 @@ export interface BelongsTo {
 export interface PointTo extends Omit<BelongsTo, 'type'> {
   type: RelationType.PointTo;
   includeKey: string;
-}
-
-export interface HasOne {
-  name: string;
-  type: RelationType.HasOne;
-  model: typeof Model;
-  getRelatedModel: ModelGetter;
-  pointerKey: string;
 }
 
 export interface HasManyThroughIdArray {
@@ -63,7 +54,6 @@ export interface HasManyThroughRelation {
 export type Relation =
   | BelongsTo
   | PointTo
-  | HasOne
   | HasManyThroughIdArray
   | HasManyThroughPointerArray
   | HasManyThroughRelation;
