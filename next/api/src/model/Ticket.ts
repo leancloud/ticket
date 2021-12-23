@@ -10,8 +10,8 @@ import {
   pointerId,
   pointerIds,
   pointTo,
+  hasManyThroughPointer,
   hasManyThroughPointerArray,
-  hasOne,
   serialize,
 } from '@/orm';
 import { TicketUpdater, UpdateOptions } from '@/ticket/TicketUpdater';
@@ -188,8 +188,8 @@ export class Ticket extends Model {
   @field()
   privateTags?: Tag[];
 
-  @hasOne(() => Notification)
-  notification?: Notification;
+  @hasManyThroughPointer(() => Notification)
+  notifications?: Notification[];
 
   getUrl(): string {
     return `${config.host}/tickets/${this.nid}`;

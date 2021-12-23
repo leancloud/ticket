@@ -86,10 +86,6 @@ export function belongsToThroughPointer(
 // alias
 export const pointTo = belongsToThroughPointer;
 
-export function hasOne(...args: any[]): any {
-  throw new Error('not implemented');
-}
-
 export function hasMany(
   getRelatedModel: ModelGetter,
   foreignKey?: string,

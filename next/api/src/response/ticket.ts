@@ -42,7 +42,7 @@ export class TicketListItemResponse extends BaseTicketResponse {
   toJSON(options?: TicketResponseOptions) {
     return {
       ...super.toJSON(options),
-      unreadCount: this.ticket.notification?.unreadCount,
+      unreadCount: this.ticket.notifications?.reduce((acc, cur) => acc + cur.unreadCount, 0),
     };
   }
 }
