@@ -27,7 +27,7 @@ export function CategoryPath({ path, ...props }: CategoryPathProps) {
       {...props}
       className={cx(
         style.categoryPath,
-        'text-sm px-1 border rounded border-[#6f7c87]',
+        'p-1 border rounded border-[#6f7c87]',
         props.className
       )}
     >

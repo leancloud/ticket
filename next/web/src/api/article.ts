@@ -1,6 +1,7 @@
 import { UseQueryOptions, useQuery } from 'react-query';
 
 import { http } from '@/leancloud';
+import { CategorySchema } from './category';
 
 export interface Article {
   id: string;
@@ -84,4 +85,16 @@ export async function updateArticle(id: string, data: UpdateArticleData) {
 
 export async function deleteArticle(id: string) {
   await http.delete(`/api/2/articles/${id}`);
+}
+
+async function fetchRelatedCategories(articleId: string) {
+  const { data } = await http.get<CategorySchema[]>(`/api/2/articles/${articleId}/categories`);
+  return data;
+}
+
+export function useRelatedCategories(articleId: string) {
+  return useQuery({
+    queryKey: ['article/categories', articleId],
+    queryFn: () => fetchRelatedCategories(articleId),
+  });
 }

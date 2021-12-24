@@ -70,7 +70,7 @@ export const TicketTable = memo(({ tickets, checkedIds, onChangeChecked }: Ticke
         dataIndex="categoryId"
         title="分类"
         render={(id: string) => (
-          <CategoryPath className="whitespace-nowrap" path={getCategoryPath(id)} />
+          <CategoryPath className="whitespace-nowrap text-sm" path={getCategoryPath(id)} />
         )}
       />
       <Column dataIndex={['author', 'nickname']} title="创建人" />

@@ -24,9 +24,13 @@ import {
   UpdateArticleData,
   useArticle,
   useArticles,
+  useRelatedCategories,
 } from 'api/article';
 import { useMutation, useQueryClient } from 'react-query';
 import { EditArticleForm } from './EditArticleForm';
+// We should move them to @component
+import { CategoryPath, useGetCategoryPath } from '../../Tickets/TicketView/TicketList';
+import { CategorySchema } from 'api/category';
 
 const { Column } = Table;
 const { Option } = Select;
@@ -220,6 +224,17 @@ export function EditArticle() {
   );
 }
 
+function CategoryList({ categories }: { categories: CategorySchema[] }) {
+  const getCategoryPath = useGetCategoryPath();
+  return (
+    <>
+      {categories.map((category) => (
+        <CategoryPath path={getCategoryPath(category.id)} className="mr-1" />
+      ))}
+    </>
+  );
+}
+
 export function ArticleDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -241,6 +256,8 @@ export function ArticleDetail() {
       message.error(`删除失败：${error.message}`);
     },
   });
+
+  const { data: relatedCategories } = useRelatedCategories(id!);
 
   if (isLoading) {
     return <div className="h-80 my-40 text-center" children={<Spin />} />;
@@ -283,13 +300,23 @@ export function ArticleDetail() {
         </div>
       </div>
       <Title level={2}>{article.title}</Title>
-      <div className="mb-4">
+      {!!relatedCategories?.length && (
+        <div className="mb-4 p-4 bg-gray-50">
+          正在使用该文章的分类： <CategoryList categories={relatedCategories} />
+        </div>
+      )}
+      {article && (
+        <div
+          className="markdown-body"
+          dangerouslySetInnerHTML={{ __html: article.contentSafeHTML }}
+        />
+      )}
+      <div className=" mt-7">
         <span className="text-gray-400">
           创建于 {new Date(article.createdAt).toLocaleString()} 更新于{' '}
           {new Date(article.updatedAt).toLocaleString()}
         </span>
       </div>
-      {article && <div className='markdown-body' dangerouslySetInnerHTML={{ __html: article.contentSafeHTML }} />}
     </div>
   );
 }
