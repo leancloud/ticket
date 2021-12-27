@@ -4,6 +4,9 @@
       "syntax": "typescript",
       "decorators": true
     },
+    "transform": {
+      "decoratorMetadata": true
+    },
     "target": "es2020",
     "keepClassNames": true,
     "baseUrl": ".",
