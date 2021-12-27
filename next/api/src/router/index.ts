@@ -1,5 +1,7 @@
 import Router from '@koa/router';
 
+import { getControllers, applyController } from '@/common';
+import '@/controller';
 import { catchLCError, catchYupError, catchZodError } from '@/middleware/error';
 import ticket from './ticket';
 import category from './category';
@@ -32,5 +34,9 @@ router.use('/articles', article.routes());
 router.use('/triggers', trigger.routes());
 router.use('/time-triggers', timeTrigger.routes());
 router.use('/replies', reply.routes());
+
+getControllers().forEach((controller) => {
+  applyController(router, controller);
+});
 
 export default router;
