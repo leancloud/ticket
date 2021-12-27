@@ -34,6 +34,7 @@
     "mailgun.js": "^4.1.2",
     "mem": "^8.1.1",
     "quick-lru": "^5.1.1",
+    "reflect-metadata": "^0.1.13",
     "remarkable": "^2.0.1",
     "throat": "^6.0.1",
     "xss": "^1.0.10",
