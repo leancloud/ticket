@@ -16,7 +16,7 @@ export function GroupLabel(props: ComponentPropsWithoutRef<'label'>) {
   return (
     <label
       {...props}
-      className={cx('break-words sm:w-[60px] sm:mr-4 mb-2 sm:mb-0', props.className, {
+      className={cx('break-words  sm:w-[72px] sm:mr-2 mb-2 sm:mb-0', props.className, {
         [styles.required]: required,
       })}
       htmlFor={props.htmlFor ?? controlId}
@@ -38,7 +38,7 @@ export interface GroupProps {
 export function Group({ title, required, children, labelAtTop }: GroupProps) {
   return (
     <div className="flex flex-col sm:flex-row mb-5 last:mb-0">
-      <div className="flex-shrink-0 mb-2 sm:mb-0 sm:w-[60px] sm:mr-4">
+      <div className="flex-shrink-0 mb-2 sm:mb-0 sm:w-[72px] sm:mr-2">
         {title && (
           <label
             className={cx('relative break-words', {
