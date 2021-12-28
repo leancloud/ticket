@@ -72,7 +72,6 @@ export function applyController(router: Router, controller: any) {
 
     const h = createKoaHandler(controller, handler);
 
-    console.log(handler.httpMethod, path);
     // @ts-ignore
     router[handler.httpMethod].apply(router, [
       path,
