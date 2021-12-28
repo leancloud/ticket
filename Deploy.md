@@ -131,3 +131,11 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 ### TBD
 
 重新导入 Ticket（为 Ticket 增加 latestCustomerServiceReplyAt 与 firstCustomerServiceReplyAt，创建索引 latestCustomerServiceReplyAt_-1）
+
+## 2021-12-28
+
+### `445d77981b1414926713a2d8ca5476c7731cfa64`
+
+重新导入 TicketField.json，并将已有数据的 visible 设置为 true。
+
+重新导入 TicketFieldVariant.json，并将已有数据的 titleForCustomerService 设置为和 title 相同。
