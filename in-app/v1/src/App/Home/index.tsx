@@ -63,10 +63,11 @@ export default function Home() {
             {FAQs.map((FAQ) => (
               <ArticleLink
                 article={FAQ}
+                fromCategory={rootCategory}
                 key={FAQ.id}
-                className="mt-2 px-2.5 py-2 rounded-sm flex items-center bg-tapBlue bg-opacity-5 active:bg-tapBlue-50"
+                className="mt-1.5 px-2.5 py-2 rounded flex items-center bg-tapBlue bg-opacity-5 active:bg-tapBlue-50"
               >
-                <SpeakerIcon className='text-tapBlue'/>
+                <SpeakerIcon className='text-tapBlue flex-shrink-0'/>
                 <span className='flex-grow truncate ml-2 mr-1'>{FAQ.title}</span>
                 <ChevronRightIcon className="flex-shrink-0 h-4 w-4 text-tapBlue" />
               </ArticleLink>

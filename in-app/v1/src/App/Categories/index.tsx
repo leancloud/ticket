@@ -133,7 +133,7 @@ export default function Categories() {
           </>
         )}
         {noSubCategories && !noFAQs && (
-          <p className="mt-6 px-4 text-center">
+          <p className="my-6 px-4 text-center">
             <span className="block mb-2 text-sm">若以上内容没有帮助到你</span>
             <NewTicketButton categoryId={id!} />
           </p>

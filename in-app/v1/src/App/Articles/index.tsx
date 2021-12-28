@@ -61,17 +61,19 @@ function Feedback({ articleId }: { articleId: string }) {
         </>
       ) : (
         <>
-          <Button onClick={() => vote(1)} secondary className="!leading-6 !px-3">
-            <ThumbUpIcon className="w-[14px] h-[14px] inline-block mr-1" />
-            {t('evaluation.useful')}
+          <Button
+            onClick={() => vote(1)}
+            secondary
+            className="flex flex-row items-center h-[28px] bg-white text-[#888]"
+          >
+            <ThumbUpIcon className="w-[14px] h-[14px] inline-block align-middle" />
           </Button>
           <Button
             onClick={() => vote(-1)}
             secondary
-            className="!leading-6 !px-3 ml-3 hover:!text-red-500 hover:!border-red-500 active:!text-red-500 active:!border-red-500"
+            className="flex items-center h-[28px] bg-white ml-3 text-[#888] hover:!text-red-500 hover:!border-red-500 active:!text-red-500 active:!border-red-500"
           >
-            <ThumbDownIcon className="w-[14px] h-[14px] inline-block mr-1" />
-            {t('evaluation.useless')}
+            <ThumbDownIcon className="w-[14px] h-[14px] inline-block align-middle" />
           </Button>
         </>
       )}
@@ -93,7 +95,7 @@ function ArticleDetail() {
     <QueryWrapper result={result}>
       <PageHeader>{article?.title}</PageHeader>
       <PageContent>
-        <div className="p-4 bg-gray-50 border-b border-gray-100 ">
+        <div className="p-4 bg-black bg-opacity-[0.02] border-b border-gray-100 ">
           <div
             className="text-[13px] markdown-body"
             dangerouslySetInnerHTML={{ __html: article?.contentSafeHTML ?? '' }}
@@ -101,7 +103,7 @@ function ArticleDetail() {
           {article && <Feedback articleId={article.id} />}
         </div>
         {categoryId && auth && (
-          <p className="mt-6 px-4 text-center">
+          <p className="my-6 px-4 text-center">
             <span className="block mb-2 text-sm">若以上内容没有帮助到你</span>
             <NewTicketButton categoryId={categoryId} />
           </p>

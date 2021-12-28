@@ -52,7 +52,7 @@ function SelectedFieldItem({
 
           <div className="ml-3 h-full grow flex flex-col justify-center items-start overflow-hidden">
             <div
-              className="text-[16px] leading-[16px] text-[#49545c] font-semibold truncate"
+              className="text-[16px] leading-[16px] text-[#49545c] font-bold truncate"
               title={title}
             >
               {title ?? id}
@@ -197,7 +197,7 @@ function FieldsBuilder({ value, onChange }: FieldsBuilderProps) {
       </DragDropContext>
 
       <div className="min-h-[500px] col-span-4 p-5 border border-[#d8dcde] rounded bg-gray-50">
-        <div className="text-lg font-semibold">可用工单字段</div>
+        <div className="text-lg font-bold">可用工单字段</div>
         <div className="text-gray-400 mb-3">从此处新增字段至工单表单</div>
         <Input
           prefix={<AiOutlineSearch className="w-4 h-4" />}

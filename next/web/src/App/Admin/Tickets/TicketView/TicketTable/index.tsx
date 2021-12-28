@@ -24,7 +24,7 @@ function TicketCheckbox({ id }: { id: string }) {
 function TicketLink({ ticket }: { ticket: TicketSchema }) {
   return (
     <a
-      className="flex mt-1.5 font-semibold max-w-full"
+      className="flex mt-1.5 font-bold max-w-full"
       title={ticket.title}
       href={`/tickets/${ticket.nid}`}
     >

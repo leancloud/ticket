@@ -109,7 +109,7 @@ export const TicketList = memo(({ tickets, checkedIds, onChangeChecked }: Ticket
                   <CategoryPath className="ml-1" path={getCategoryPath(ticket.categoryId)} />
                 </div>
                 <a
-                  className="flex mt-1.5 font-semibold max-w-full"
+                  className="flex mt-1.5 font-bold max-w-full"
                   title={ticket.title}
                   href={`/tickets/${ticket.nid}`}
                 >

@@ -32,6 +32,7 @@ textarea {
 }
 
 .markdown-body {
+  @apply text-[#666];
   @apply bg-transparent;
 }
 .markdown-body ul {
