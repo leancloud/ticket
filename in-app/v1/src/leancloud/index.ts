@@ -9,34 +9,37 @@ export type { User } from 'open-leancloud-storage/auth';
 use(authModule);
 use(storageModule);
 use(liveQueryModule);
-if (import.meta.env.PROD) {
-  use({
-    name: 'do-not-persist-current-user',
-    onLoad: ({ adapters }) => {
-      if (!adapters.storage) {
-        throw new Error('No storage adapter, you should set adapters first.');
-      }
-      const storage = adapters.storage;
-      adapters.storage = {
-        async: storage.async as any,
-        getItem: ((key: string) => {
-          if (key.endsWith('current_user')) {
-            return null;
-          }
-          return storage.getItem(key);
-        }) as any,
-        removeItem: storage.removeItem.bind(storage),
-        clear: storage.clear.bind(storage),
-        setItem: (key, value) => {
-          if (key.endsWith('current_user')) {
-            return;
-          }
-          return storage.setItem(key, value);
-        },
-      };
-    },
-  });
-}
+use({
+  name: 'do-not-persist-current-user',
+  onLoad: ({ adapters }) => {
+    if (!adapters.storage) {
+      throw new Error('No storage adapter, you should set adapters first.');
+    }
+    const storage = adapters.storage;
+    adapters.storage = {
+      async: storage.async as any,
+      getItem: ((key: string) => {
+        if (key.endsWith('current_user')) {
+          return sessionStorage.getItem(key);
+        }
+        return storage.getItem(key);
+      }) as any,
+      removeItem: (key: string) => {
+        if (key.endsWith('current_user')) {
+          return sessionStorage.removeItem(key);
+        }
+        return storage.removeItem(key);
+      },
+      clear: storage.clear.bind(storage),
+      setItem: (key, value) => {
+        if (key.endsWith('current_user')) {
+          return sessionStorage.setItem(key, value);
+        }
+        return storage.setItem(key, value);
+      },
+    };
+  },
+});
 
 export const app = init({
   appId: import.meta.env.VITE_LC_APP_ID,
