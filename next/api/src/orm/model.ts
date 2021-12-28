@@ -12,8 +12,7 @@ import { TypeCommands } from './command';
 
 type RelationKey<T> = Extract<KeysOfType<Required<T>, Model | Model[]>, string>;
 
-export interface ReloadOptions<M extends Model, K extends RelationKey<M>> extends AuthOptions {
-  data?: M[K];
+export interface ReloadOptions extends AuthOptions {
   onQuery?: (query: QueryBuilder<any>) => void;
 }
 
@@ -159,7 +158,7 @@ export abstract class Model {
 
   static setRelation(relation: Relation) {
     this.relations ??= {};
-    this.relations[relation.name] = relation;
+    this.relations[relation.field] = relation;
   }
 
   static getRelation(name: string): Relation | undefined {
@@ -328,16 +327,13 @@ export abstract class Model {
   reload<M extends Model, K extends RelationKey<M>>(
     this: M,
     key: K,
-    options?: ReloadOptions<M, K>
+    options?: ReloadOptions
   ): Promise<M[K]> {
     if (!this.reloadTasks[key]) {
       this.reloadTasks[key] = (async () => {
         try {
           const preloader = preloaderFactory(this.constructor as any, key);
           if (options) {
-            if (options.data) {
-              preloader.data = [options.data as any];
-            }
             preloader.queryModifier = options.onQuery;
           }
           await preloader.load([this], options);
@@ -353,7 +349,7 @@ export abstract class Model {
   load<M extends Model, K extends RelationKey<M>>(
     this: M,
     key: K,
-    options?: ReloadOptions<M, K>
+    options?: ReloadOptions
   ): Promise<M[K]> {
     if (this[key] !== undefined) {
       return Promise.resolve(this[key]);

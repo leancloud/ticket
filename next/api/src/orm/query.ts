@@ -4,7 +4,6 @@ import _ from 'lodash';
 import { Model } from './model';
 import { Preloader, preloaderFactory } from './preloader';
 import { RelationName } from './relation';
-import { Flat } from './utils';
 
 export interface AuthOptions {
   sessionToken?: string;
@@ -98,11 +97,7 @@ export type QueryBunch<M extends typeof Model> = (query: Query<M>) => Query<M>;
 
 export type OrderType = 'asc' | 'desc';
 
-export interface PreloadOptions<
-  M extends typeof Model,
-  K extends RelationName<M> = RelationName<M>
-> {
-  data?: Flat<NonNullable<InstanceType<M>[K]>>[];
+export interface PreloadOptions {
   onQuery?: (query: QueryBuilder<any>) => void;
   authOptions?: AuthOptions;
 }
@@ -205,12 +200,11 @@ export class Query<M extends typeof Model> {
     return query;
   }
 
-  preload<K extends RelationName<M>>(key: K, options?: PreloadOptions<M, K>): Query<M> {
+  preload<K extends RelationName<M>>(key: K, options?: PreloadOptions): Query<M> {
     const query = this.clone();
 
     const preloader = preloaderFactory(this.model, key);
     if (options) {
-      preloader.data = options.data as Model[];
       preloader.queryModifier = options.onQuery;
       query.preloaders[key] = {
         preloader,
@@ -251,10 +245,10 @@ export class Query<M extends typeof Model> {
     const preloaders = Object.values(this.preloaders);
 
     await Promise.all(preloaders.map(({ preloader }) => preloader.beforeQuery?.({ avQuery })));
-    const objects = await avQuery.find(options);
-    await Promise.all(preloaders.map(({ preloader }) => preloader.afterQuery?.({ objects })));
+    const avObjects = await avQuery.find(options);
+    await Promise.all(preloaders.map(({ preloader }) => preloader.afterQuery?.({ avObjects })));
 
-    const items = objects.map((o) => this.model.fromAVObject(o));
+    const items = avObjects.map((o) => this.model.fromAVObject(o));
     await Promise.all(
       preloaders.map(({ preloader, authOptions }) => preloader.load(items, authOptions ?? options))
     );
@@ -280,10 +274,10 @@ export class Query<M extends typeof Model> {
     const preloaders = Object.values(this.preloaders);
 
     await Promise.all(preloaders.map(({ preloader }) => preloader.beforeQuery?.({ avQuery })));
-    const [objects, count] = await avQuery.findAndCount(options);
-    await Promise.all(preloaders.map(({ preloader }) => preloader.afterQuery?.({ objects })));
+    const [avObjects, count] = await avQuery.findAndCount(options);
+    await Promise.all(preloaders.map(({ preloader }) => preloader.afterQuery?.({ avObjects })));
 
-    const items = objects.map((o) => this.model.fromAVObject(o));
+    const items = avObjects.map((o) => this.model.fromAVObject(o));
     await Promise.all(
       preloaders.map(({ preloader, authOptions }) => preloader.load(items, authOptions ?? options))
     );
