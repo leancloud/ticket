@@ -17,10 +17,13 @@ import { TicketFieldSchema } from '@/api/ticket-field';
 import {
   Button,
   Checkbox,
+  Col,
   Form,
   FormInstance,
   Input,
   Modal,
+  Radio,
+  Row,
   Select,
   Tabs,
 } from '@/components/antd';
@@ -38,13 +41,13 @@ const fieldTypes: TicketFieldSchema['type'][] = [
 ];
 const optionsFieldTypes: TicketFieldSchema['type'][] = ['dropdown', 'multi-select', 'radios'];
 
-interface FieldTypeRadioGroupProps {
+interface FieldTypeProps {
   value?: TicketFieldSchema['type'];
   onChange: (value: TicketFieldSchema['type']) => void;
   readonly?: boolean;
 }
 
-function FieldTypeRadioGroup({ value, onChange, readonly }: FieldTypeRadioGroupProps) {
+function FieldType({ value, onChange, readonly }: FieldTypeProps) {
   return (
     <div className="flex gap-2">
       {fieldTypes.map((type) => (
@@ -114,7 +117,7 @@ interface FieldOptions {
 }
 
 function FieldOptions({ name }: FieldOptions) {
-  const { control, getValues, setError, clearErrors } = useFormContext<TicketFieldData>();
+  const { control } = useFormContext<TicketFieldData>();
   const { fields, append, remove } = useFieldArray({ control, name });
   const options = useWatch({ control, name });
   const titleCount = useMemo(() => {
@@ -143,7 +146,6 @@ function FieldOptions({ name }: FieldOptions) {
       {fields.map(({ id }, i) => (
         <div key={id} className={cx('flex gap-2 mb-2', { 'mr-7': !deleteable })}>
           <Controller
-            control={control}
             name={`${name}.${i}.value`}
             rules={{ required: '请填写此字段' }}
             render={({ field, fieldState: { error } }) => (
@@ -158,7 +160,6 @@ function FieldOptions({ name }: FieldOptions) {
             )}
           />
           <Controller
-            control={control}
             name={`${name}.${i}.title`}
             rules={{
               required: '请填写此字段',
@@ -205,7 +206,6 @@ interface FieldVariantsProps {
 function FieldVariants({ activeLocale, onChangeActiveLocale }: FieldVariantsProps) {
   const { control, setValue } = useFormContext<TicketFieldData>();
   const { fields, append, remove } = useFieldArray({ control, name: 'variants' });
-  const defaultLocale = useWatch({ control, name: 'defaultLocale' });
 
   const [showModal, setShowModal] = useState(false);
 
@@ -230,7 +230,10 @@ function FieldVariants({ activeLocale, onChangeActiveLocale }: FieldVariantsProp
     }
   };
 
-  const type = useWatch({ control, name: 'type' });
+  const [type, visible, defaultLocale] = useWatch({
+    control,
+    name: ['type', 'visible', 'defaultLocale'],
+  });
   const hasOptions = useMemo(() => type && optionsFieldTypes.includes(type), [type]);
 
   return (
@@ -256,31 +259,57 @@ function FieldVariants({ activeLocale, onChangeActiveLocale }: FieldVariantsProp
                 </Button>
               </div>
 
-              <Controller
-                control={control}
-                name={`variants.${index}.title`}
-                rules={{ required: '请填写此字段' }}
-                render={({ field, fieldState: { error } }) => (
-                  <Form.Item
-                    required
-                    label="向用户展示的标题"
-                    validateStatus={error ? 'error' : undefined}
-                    help={error?.message}
-                  >
-                    <Input {...field} />
-                  </Form.Item>
-                )}
-              />
+              <Row gutter={[16, 0]}>
+                <Col span={12}>
+                  <Controller
+                    name={`variants.${index}.titleForCustomerService`}
+                    rules={{ required: '请填写此字段' }}
+                    defaultValue=""
+                    render={({ field, fieldState: { error } }) => (
+                      <Form.Item
+                        required
+                        label="向客服显示的标题"
+                        validateStatus={error ? 'error' : undefined}
+                        help={error?.message}
+                      >
+                        <Input {...field} />
+                      </Form.Item>
+                    )}
+                  />
+                </Col>
+                <Col span={12}>
+                  <Controller
+                    name={`variants.${index}.title`}
+                    rules={{
+                      required: {
+                        value: visible,
+                        message: '请填写此字段',
+                      },
+                    }}
+                    defaultValue=""
+                    render={({ field, fieldState: { error } }) => (
+                      <Form.Item
+                        required={visible}
+                        label="向用户显示的标题"
+                        validateStatus={error ? 'error' : undefined}
+                        help={error?.message}
+                      >
+                        <Input {...field} disabled={!visible} />
+                      </Form.Item>
+                    )}
+                  />
 
-              <Controller
-                control={control}
-                name={`variants.${index}.description`}
-                render={({ field }) => (
-                  <Form.Item label="向用户展示的描述">
-                    <Input.TextArea {...field} />
-                  </Form.Item>
-                )}
-              />
+                  <Controller
+                    name={`variants.${index}.description`}
+                    defaultValue=""
+                    render={({ field }) => (
+                      <Form.Item label="向用户展示的描述">
+                        <Input.TextArea {...field} disabled={!visible} />
+                      </Form.Item>
+                    )}
+                  />
+                </Col>
+              </Row>
 
               {hasOptions && (
                 <>
@@ -310,20 +339,22 @@ function FieldVariants({ activeLocale, onChangeActiveLocale }: FieldVariantsProp
 }
 
 interface TicketFieldData {
-  title?: string;
-  type?: TicketFieldSchema['type'];
-  required?: boolean;
-  defaultLocale?: string;
-  variants?: {
+  title: string;
+  type: TicketFieldSchema['type'];
+  visible: boolean;
+  required: boolean;
+  defaultLocale: string;
+  variants: {
     locale: string;
-    title?: string;
-    description?: string;
+    title: string;
+    titleForCustomerService: string;
+    description: string;
     options?: { title: string; value: string }[];
   }[];
 }
 
 export interface TicketFieldFormProps {
-  initData?: TicketFieldData;
+  initData?: Partial<TicketFieldData>;
   submitting?: boolean;
   onSubmit: (data: TicketFieldData) => void;
   onCancel: () => void;
@@ -343,15 +374,20 @@ export function TicketFieldForm({
   const type = useWatch({ control, name: 'type' });
 
   const _handleSubmit = (data: TicketFieldData) => {
-    const hasOptions = optionsFieldTypes.includes(data.type!);
+    const hasOptions = optionsFieldTypes.includes(data.type);
     if (!hasOptions) {
-      onSubmit({
+      data = {
         ...data,
-        variants: data.variants!.map((variants) => omit(variants, 'options')),
-      });
-    } else {
-      onSubmit(data);
+        variants: data.variants.map((v) => omit(v, 'options')),
+      };
     }
+    if (!data.visible) {
+      data = {
+        ...data,
+        variants: data.variants.map((v) => ({ ...v, title: v.titleForCustomerService })),
+      };
+    }
+    onSubmit(data);
   };
 
   const handleSubmitError = (errors: FieldErrors<TicketFieldData>) => {
@@ -374,9 +410,9 @@ export function TicketFieldForm({
             onFinish={handleSubmit(_handleSubmit, handleSubmitError)}
           >
             <Controller
-              control={control}
               name="title"
               rules={{ required: '请填写此字段' }}
+              defaultValue=""
               render={({ field, fieldState: { error } }) => (
                 <Form.Item
                   required
@@ -390,11 +426,10 @@ export function TicketFieldForm({
             />
 
             <Controller
-              control={control}
               name="type"
               render={({ field: { value, onChange } }) => (
                 <Form.Item label="字段类型">
-                  <FieldTypeRadioGroup value={value} onChange={onChange} readonly={disableType} />
+                  <FieldType value={value} onChange={onChange} readonly={disableType} />
                 </Form.Item>
               )}
             />
@@ -402,12 +437,25 @@ export function TicketFieldForm({
             {type && (
               <>
                 <hr className="my-4" />
+                <Form.Item label="权限">
+                  <Controller
+                    name="visible"
+                    defaultValue={false}
+                    render={({ field: { value, onChange } }) => (
+                      <Radio.Group value={value} onChange={onChange}>
+                        <Radio value={false}>仅限客服</Radio>
+                        <Radio value={true}>用户可编辑</Radio>
+                      </Radio.Group>
+                    )}
+                  />
+                </Form.Item>
+
                 <Form.Item>
                   <Controller
-                    control={control}
                     name="required"
+                    defaultValue={false}
                     render={({ field: { value, onChange } }) => (
-                      <Checkbox checked={value} onChange={onChange} children="必填" />
+                      <Checkbox checked={value} onChange={onChange} children="提交工单时必填" />
                     )}
                   />
                 </Form.Item>

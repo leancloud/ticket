@@ -1,3 +1,4 @@
+import { Context } from 'koa';
 import Router from '@koa/router';
 import { z } from 'zod';
 import _ from 'lodash';
@@ -32,6 +33,29 @@ function isValidLocale(locale: string): boolean {
 const localeSchema = z.string().refine(isValidLocale, {
   message: 'Unknown locale',
 });
+
+function assertNoDuplicatedLocale(ctx: Context, locales: string[]) {
+  const localeSet = new Set<string>();
+  for (const locale of locales) {
+    if (localeSet.has(locale)) {
+      ctx.throw(400, `variants: locale "${locale}" is duplicated`);
+    }
+    localeSet.add(locale);
+  }
+}
+
+function assertAllVariantsHasOptions(ctx: Context, variants: { options?: any[] }[]) {
+  const index = variants.findIndex((v) => v.options === undefined);
+  ctx.assert(index === -1, 400, `variants[${index}].options is undefined`);
+}
+
+function assertHasDefaultLocale(ctx: Context, locales: string[], defaultLocale: string) {
+  ctx.assert(
+    locales.includes(defaultLocale),
+    400,
+    `The defaultLocale "${defaultLocale}" is missing in variants`
+  );
+}
 
 router.get(
   '/',
@@ -70,19 +94,20 @@ const variantOptionSchema = z.object({
 });
 
 const variantSchema = z.object({
+  locale: localeSchema,
   title: z.string(),
+  titleForCustomerService: z.string(),
   description: z.string().optional(),
   options: z.array(variantOptionSchema).optional(),
 });
 
-const variantsSchema = z.record(variantSchema).refine(_.negate(_.isEmpty), {
-  message: 'The variants cannot be empty',
-});
+const variantsSchema = z.array(variantSchema).min(1);
 
 const createFieldDataSchema = z.object({
   type: z.enum(FIELD_TYPES),
   title: z.string(),
   defaultLocale: localeSchema,
+  visible: z.boolean().optional(),
   required: z.boolean().optional(),
   variants: variantsSchema,
 });
@@ -91,24 +116,14 @@ router.post('/', customerServiceOnly, async (ctx) => {
   const data = createFieldDataSchema.parse(ctx.request.body);
 
   if (OPTION_TYPES.includes(data.type)) {
-    Object.entries(data.variants).forEach(([locale, variant]) => {
-      if (!variant.options) {
-        ctx.throw(400, `The variants.${locale}.options is undefined`);
-      }
-    });
+    assertAllVariantsHasOptions(ctx, data.variants);
   } else {
-    Object.values(data.variants).forEach((variant) => delete variant.options);
+    data.variants.forEach((variant) => delete variant.options);
   }
 
-  Object.keys(data.variants).forEach((locale) => {
-    if (!isValidLocale(locale)) {
-      ctx.throw(400, `variants.${locale}: Unknown locale`);
-    }
-  });
-
-  if (!data.variants[data.defaultLocale]) {
-    ctx.throw(400, 'The defaultLocale is missing in variants');
-  }
+  const locales = data.variants.map((v) => v.locale);
+  assertNoDuplicatedLocale(ctx, locales);
+  assertHasDefaultLocale(ctx, locales, data.defaultLocale);
 
   const field = await TicketField.create(
     {
@@ -117,7 +132,8 @@ router.post('/', customerServiceOnly, async (ctx) => {
       type: data.type,
       title: data.title,
       defaultLocale: data.defaultLocale,
-      required: !!data.required,
+      visible: data.visible ?? true,
+      required: data.required ?? false,
     },
     { useMasterKey: true }
   );
@@ -147,6 +163,7 @@ router.get('/:id', async (ctx) => {
 const modifyFieldDataSchema = z.object({
   title: z.string().optional(),
   defaultLocale: localeSchema.optional(),
+  visible: z.boolean().optional(),
   required: z.boolean().optional(),
   active: z.boolean().optional(),
   variants: variantsSchema.optional(),
@@ -158,7 +175,7 @@ router.patch('/:id', customerServiceOnly, async (ctx) => {
 
   if (data.defaultLocale) {
     const locales = data.variants
-      ? Object.keys(data.variants)
+      ? data.variants.map((v) => v.locale)
       : (await field.getVariants()).map((v) => v.locale);
     if (!locales.includes(data.defaultLocale)) {
       ctx.throw(400, 'Variant for default locale is not defined');
@@ -167,23 +184,12 @@ router.patch('/:id', customerServiceOnly, async (ctx) => {
 
   if (data.variants) {
     if (OPTION_TYPES.includes(field.type)) {
-      Object.entries(data.variants).forEach(([locale, variant]) => {
-        if (!variant.options) {
-          ctx.throw(400, `The variants.${locale}.options is undefined`);
-        }
-      });
+      assertAllVariantsHasOptions(ctx, data.variants);
     }
 
-    Object.keys(data.variants).forEach((locale) => {
-      if (!isValidLocale(locale)) {
-        ctx.throw(400, `variants.${locale}: Unknown locale`);
-      }
-    });
-
+    const locales = data.variants.map((v) => v.locale);
     const defaultLocale = data.defaultLocale ?? field.defaultLocale;
-    if (!data.variants[defaultLocale]) {
-      ctx.throw(400, 'The defaultLocale is missing in variants');
-    }
+    assertHasDefaultLocale(ctx, locales, defaultLocale);
 
     await field.replaceVariants(data.variants);
   }
@@ -192,6 +198,7 @@ router.patch('/:id', customerServiceOnly, async (ctx) => {
     {
       title: data.title,
       defaultLocale: data.defaultLocale,
+      visible: data.visible,
       required: data.required,
       active: data.active,
     },

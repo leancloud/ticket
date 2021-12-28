@@ -5,7 +5,9 @@ import { http } from '@/leancloud';
 type TicketFieldType = 'text' | 'multi-line' | 'dropdown' | 'multi-select' | 'radios' | 'file';
 
 export interface TicketFieldVariantSchema {
+  locale: string;
   title: string;
+  titleForCustomerService: string;
   description: string;
   options?: { title: string; value: string }[];
 }
@@ -16,8 +18,9 @@ export interface TicketFieldSchema {
   title: string;
   defaultLocale: string;
   active: boolean;
+  visible: boolean;
   required: boolean;
-  variants?: Record<string, TicketFieldVariantSchema>;
+  variants?: TicketFieldVariantSchema[];
   createdAt: string;
   updatedAt: string;
 }
@@ -83,20 +86,17 @@ export interface CreateTicketFieldData {
   type: TicketFieldType;
   title: string;
   defaultLocale: string;
-  required?: boolean;
-  variants: Record<string, TicketFieldVariantSchema>;
+  required: boolean;
+  visible: boolean;
+  variants: TicketFieldVariantSchema[];
 }
 
 export async function createTicketField(data: CreateTicketFieldData) {
   await http.post('/api/2/ticket-fields', data);
 }
 
-export interface UpdateTicketFieldData {
-  title?: string;
-  defaultLocale?: string;
-  required?: boolean;
+export interface UpdateTicketFieldData extends Partial<Omit<CreateTicketFieldData, 'type'>> {
   active?: boolean;
-  variants?: Record<string, TicketFieldVariantSchema>;
 }
 
 export async function updateTicketField(fieldId: string, data: UpdateTicketFieldData) {
