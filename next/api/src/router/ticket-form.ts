@@ -50,7 +50,7 @@ router.post('/', customerServiceOnly, async (ctx) => {
       fields.map((f) => f.id)
     );
     if (missingIds.length) {
-      ctx.throw(400, `TicketField ${missingIds[0]} is not exists`);
+      ctx.throw(400, `TicketField ${missingIds[0]} does not exist`);
     }
   }
 
@@ -62,7 +62,7 @@ router.post('/', customerServiceOnly, async (ctx) => {
 router.param('id', async (id, ctx, next) => {
   const form = await TicketForm.find(id, { useMasterKey: true });
   if (!form) {
-    ctx.throw(404, `TicketForm ${id} is not exists`);
+    ctx.throw(404, `TicketForm ${id} does not exist`);
   }
   ctx.state.form = form;
   return next();
@@ -93,7 +93,7 @@ router.patch('/:id', customerServiceOnly, async (ctx) => {
         fields.map((f) => f.id)
       );
       if (missingIds.length) {
-        ctx.throw(400, `TicketField ${missingIds[0]} is not exists`);
+        ctx.throw(400, `TicketField ${missingIds[0]} does not exist`);
       }
     }
   }

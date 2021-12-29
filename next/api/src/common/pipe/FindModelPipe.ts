@@ -12,7 +12,7 @@ export class FindModelPipe<M extends typeof Model> {
 
     const instance = await this.model.find(id, this.authOptions ?? currentUser?.getAuthOptions());
     if (!instance) {
-      throw new HttpError(404, `${this.model.getClassName()} "${id}" is not exists`);
+      throw new HttpError(404, `${this.model.getClassName()} "${id}" does not exist`);
     }
 
     return instance;

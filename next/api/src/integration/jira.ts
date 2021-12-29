@@ -203,12 +203,12 @@ export default async function (install: Function) {
       .where('ticket.objectId', '==', ticketId)
       .first({ useMasterKey: true });
     if (_issue) {
-      return ctx.throw(409, `Issue for ticket ${ticketId} is already exists`);
+      return ctx.throw(409, `Issue for ticket ${ticketId} already exists`);
     }
 
     const ticket = await Ticket.find(ticketId, { useMasterKey: true });
     if (!ticket) {
-      return ctx.throw(400, `Ticket ${ticketId} is not exists`);
+      return ctx.throw(400, `Ticket ${ticketId} does not exist`);
     }
 
     const issue = await jira.createIssue(ticket);
