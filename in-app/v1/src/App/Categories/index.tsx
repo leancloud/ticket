@@ -92,12 +92,12 @@ export default function Categories() {
     () => categories?.filter((c) => c.parentId === id).sort((a, b) => a.position - b.position),
     [categories, id]
   );
-  const noSubCategories = subCategories && subCategories.length === 0;
 
   const { data: FAQs, isLoading: FAQsIsLoading, isSuccess: FAQsIsReady } = useFAQs(
-    noSubCategories ? currentCategory?.id : undefined
+    currentCategory?.id
   );
 
+  const noSubCategories = subCategories && subCategories.length === 0;
   const noFAQs = FAQsIsReady && FAQs?.length === 0;
   const redirectToNewTicket = noSubCategories && noFAQs;
   useEffect(() => {
