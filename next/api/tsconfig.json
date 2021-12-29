@@ -7,12 +7,14 @@
     "module": "CommonJS",
     "esModuleInterop": true,
     "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "moduleResolution": "Node",
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
-    }
+    },
+    "types": ["reflect-metadata"]
   },
   "include": ["src"]
 }
