@@ -37,7 +37,7 @@ function RelatedFAQs({ categoryId, articleId }: { categoryId: string; articleId:
   }
   return (
     <div className="pt-6 pb-2">
-      <h2 className="px-5 py-3 font-bold">类似问题</h2>
+      <h2 className="px-4 py-3 font-bold">类似问题</h2>
       {relatedFAQs.map((FAQ) => (
         <ArticleListItem article={FAQ} fromCategory={categoryId} key={FAQ.id} />
       ))}

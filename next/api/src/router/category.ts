@@ -85,4 +85,18 @@ router.get('/:id/faqs', async (ctx) => {
     .map((article) => new ArticleResponse(article!));
 });
 
+router.get('/:id/notices', async (ctx) => {
+  const { noticeIds: articleIds } = ctx.state.category as Category;
+
+  if (!articleIds) {
+    ctx.body = [];
+    return;
+  }
+
+  const articles = await Promise.all(articleIds.map(getPublicArticle));
+  ctx.body = articles
+    .filter((article) => article && !article.private)
+    .map((article) => new ArticleResponse(article!));
+});
+
 export default router;

@@ -25,7 +25,7 @@ interface ListItemProps {
 
 export function ListItem({ to, content, marker, className }: ListItemProps) {
   return (
-    <Link to={to} className='block px-5 active:bg-gray-50'>
+    <Link to={to} className='block px-4 active:bg-gray-50'>
       <div
         className={classNames(
           'h-11 flex items-center text-[#666] border-b border-gray-100',
@@ -116,7 +116,7 @@ export default function Categories() {
       <>
         {FAQs && FAQs.length > 0 && (
           <div className="mb-2">
-            <h2 className="px-5 py-3 font-bold">常见问题</h2>
+            <h2 className="px-4 py-3 mt-1 font-bold">常见问题</h2>
             {FAQs.map((FAQ) => (
               <ArticleListItem article={FAQ} fromCategory={id} key={FAQ.id} />
             ))}
@@ -125,8 +125,8 @@ export default function Categories() {
         {!noSubCategories && (
           <>
             {!noFAQs && (
-              <h2 className="px-5 py-3 font-bold">
-                若以上内容没有帮助到你，请选择一个问题类别继续
+              <h2 className="px-4 py-3 mt-1 font-bold">
+                若以上内容没能帮到你，请选择合适的类别以继续
               </h2>
             )}
             <CategoryList categories={subCategories!} />

@@ -229,7 +229,7 @@ function CategoryList({ categories }: { categories: CategorySchema[] }) {
   return (
     <>
       {categories.map((category) => (
-        <CategoryPath path={getCategoryPath(category.id)} className="mr-1" />
+        <CategoryPath path={getCategoryPath(category.id)} className="mr-1 inline-block" key={category.id} />
       ))}
     </>
   );

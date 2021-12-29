@@ -92,6 +92,7 @@ router.get('/:id/categories', auth, customerServiceOnly, async (ctx) => {
   const article = ctx.state.article as Article;
   const associatedCategories = await Category.query()
     .where('FAQs', '==', article.toPointer())
+    .orWhere('notices', '==', article.toPointer())
     .find(currentUser.getAuthOptions());
   ctx.body = associatedCategories.map((category) => new CategoryResponse(category));
 });

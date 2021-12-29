@@ -19,6 +19,20 @@ export function useFAQs(categoryId?: string) {
   });
 }
 
+async function fetchNotices(categoryId?: string): Promise<Article[]> {
+  if (!categoryId) return [];
+  const { data } = await http.get<Article[]>(`/api/2/categories/${categoryId}/notices`);
+  return data;
+}
+
+export function useNotices(categoryId?: string) {
+  return useQuery({
+    queryKey: ['category-notices', categoryId],
+    queryFn: () => fetchNotices(categoryId),
+    staleTime: 1000 * 60,
+  });
+}
+
 export const ArticleLink = ({
   article,
   className,
@@ -56,7 +70,7 @@ export const ArticleListItem = ({
       key={article.id}
       to={`/articles/${article.id}${fromCategory ? `?from-category=${fromCategory}` : ''}`}
       content={children}
-      className={classNames('text-[13px] h-[38px]', className)}
+      className={classNames('text-[13px] !h-[38px]', className)}
     />
   );
 };

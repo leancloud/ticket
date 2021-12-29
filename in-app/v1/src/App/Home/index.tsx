@@ -8,7 +8,7 @@ import { QueryWrapper } from 'components/QueryWrapper';
 import { CategoryList, useCategories } from '../Categories';
 import { useRootCategory } from '../../App';
 import { useQuery } from 'react-query';
-import { useFAQs, ArticleLink } from '../Articles/utils';
+import { useNotices, ArticleLink } from '../Articles/utils';
 import SpeakerIcon from '@/icons/Speaker';
 import { ChevronRightIcon } from '@heroicons/react/solid';
 
@@ -19,7 +19,7 @@ interface TicketsLinkProps {
 function TicketsLink({ badge }: TicketsLinkProps) {
   const { t } = useTranslation();
   return (
-    <Link className="relative p-1.5 text-sm leading-none text-tapBlue" to="/tickets">
+    <Link className="relative p-3 -mr-3 text-[13px] leading-none text-tapBlue" to="/tickets">
       {t('ticket.record')}
       {badge && <div className="h-1.5 w-1.5 bg-red-500 rounded-full absolute top-0 right-0" />}
     </Link>
@@ -52,29 +52,29 @@ export default function Home() {
   }, [categories]);
   const { data: hasUnreadTickets } = useHasUnreadTickets();
 
-  const { data: FAQs } = useFAQs(rootCategory);
+  const { data: notices } = useNotices(rootCategory);
 
   return (
     <>
       <PageHeader />
       <PageContent>
-        {FAQs && FAQs.length > 0 && (
-          <div className="px-4 mt-1 text-sm">
-            {FAQs.map((FAQ) => (
+        {notices && notices.length > 0 && (
+          <div className="px-3 mt-1 text-sm">
+            {notices.map((notice) => (
               <ArticleLink
-                article={FAQ}
+                article={notice}
                 fromCategory={rootCategory}
-                key={FAQ.id}
-                className="mt-1.5 px-2.5 py-2 rounded flex items-center bg-tapBlue bg-opacity-5 active:bg-tapBlue-50"
+                key={notice.id}
+                className="my-1 px-2.5 py-2 rounded flex items-center bg-tapBlue bg-opacity-5 active:bg-tapBlue-50"
               >
                 <SpeakerIcon className='text-tapBlue flex-shrink-0'/>
-                <span className='flex-grow truncate ml-2 mr-1'>{FAQ.title}</span>
+                <span className='flex-grow truncate ml-2 mr-1'>{notice.title}</span>
                 <ChevronRightIcon className="flex-shrink-0 h-4 w-4 text-tapBlue" />
               </ArticleLink>
             ))}
           </div>
         )}
-        <div className="flex items-center h-[46px] px-5">
+        <div className="flex items-center h-[46px] px-4 mt-1">
           <h2 className="flex-grow font-bold">{t('category.select_hint')}</h2>
           <TicketsLink badge={hasUnreadTickets} />
         </div>

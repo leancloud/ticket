@@ -23,7 +23,7 @@ export function PageHeader(props: ComponentPropsWithoutRef<'div'>) {
       </div>
       <div className="z-10 overflow-hidden">
         <h1
-          className={`bg-white rounded-t-lg py-2 px-5  mx-[10px] sm:mx-[108px] text-center font-bold border-b border-gray-100`}
+          className={`bg-white rounded-t-lg py-2 px-4  mx-[10px] sm:mx-[108px] text-center font-bold border-b border-gray-100`}
         >
           {props.children ?? t('general.call_center')}
         </h1>

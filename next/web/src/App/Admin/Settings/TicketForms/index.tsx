@@ -165,7 +165,6 @@ export function TicketFormDetail() {
     },
   });
 
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { mutate, isLoading: isUpdating } = useMutation({
     mutationFn: (data: UpdateTicketFormData) => updateTicketForm(id!, data),

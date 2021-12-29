@@ -517,7 +517,7 @@ paths:
         required: true
     get:
       tags: ['Knowladge base']
-      summary: 获取关联了该文章为常见问题的分类
+      summary: 获取关联了该文章为常见问题或公告的分类
       responses:
         '200':
           description: OK

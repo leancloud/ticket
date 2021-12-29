@@ -25,11 +25,7 @@ export function CategoryPath({ path, ...props }: CategoryPathProps) {
   return (
     <span
       {...props}
-      className={cx(
-        style.categoryPath,
-        'p-1 border rounded border-[#6f7c87]',
-        props.className
-      )}
+      className={cx(style.categoryPath, 'p-1 border rounded border-[#6f7c87]', props.className)}
     >
       {path.join(' / ')}
     </span>
@@ -50,7 +46,7 @@ function makeCategoryPathGetter(categories: CategorySchema[]) {
     }
 
     if (category.parentId) {
-      const path = [category.name, ...get(category.parentId)];
+      const path = [...get(category.parentId), category.name];
       paths[id] = path;
       return path;
     } else {
@@ -106,7 +102,10 @@ export const TicketList = memo(({ tickets, checkedIds, onChangeChecked }: Ticket
               <div className="col-span-3 flex flex-col justify-center items-start py-4 overflow-hidden">
                 <div>
                   <Status status={ticket.status} />
-                  <CategoryPath className="ml-1" path={getCategoryPath(ticket.categoryId)} />
+                  <CategoryPath
+                    className="ml-1 text-sm"
+                    path={getCategoryPath(ticket.categoryId)}
+                  />
                 </div>
                 <a
                   className="flex mt-1.5 font-bold max-w-full"

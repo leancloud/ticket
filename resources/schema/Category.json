@@ -43,6 +43,13 @@
             "comment": "常见问题，关联 FAQ 表",
             "hidden": false
         },
+        "notices": {
+            "type": "Array",
+            "v": 2,
+            "required": false,
+            "comment": "公告，关联 FAQ 表",
+            "hidden": false
+        },
         "qTemplate": {
             "type": "String"
         },
