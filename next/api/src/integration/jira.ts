@@ -17,6 +17,7 @@ interface JiraConfig {
   issueTypeId: string;
   customFields?: Record<string, any>;
   componentIds?: string[];
+  categoryAssignees?: Record<string, any>;
 }
 
 interface Field {
@@ -90,9 +91,10 @@ class JiraIntegration {
   }
 
   private async getIssueFields(ticket: Ticket): Promise<IssueFields> {
-    const { projectId, issueTypeId, customFields, componentIds } = this.config;
+    const { projectId, issueTypeId, customFields, componentIds, categoryAssignees } = this.config;
     const categoryName = await this.getCategoryName(ticket);
     const description = this.getIssueDescription(ticket);
+    const assignee = categoryAssignees?.[ticket.categoryId];
     return {
       ...customFields,
       project: { id: projectId },
@@ -102,6 +104,7 @@ class JiraIntegration {
       // XXX: Jira 标签不能包含空白
       labels: [categoryName.replace(/\s/g, '')],
       components: componentIds?.map((id) => ({ id })),
+      assignee,
     };
   }
 
