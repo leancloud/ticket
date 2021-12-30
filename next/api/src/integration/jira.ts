@@ -17,6 +17,7 @@ interface JiraConfig {
   issueTypeId: string;
   customFields?: Record<string, any>;
   componentIds?: string[];
+  categoryAssignees?: Record<string, any>;
 }
 
 interface Field {
@@ -90,10 +91,11 @@ class JiraIntegration {
   }
 
   private async getIssueFields(ticket: Ticket): Promise<IssueFields> {
-    const { projectId, issueTypeId, customFields, componentIds } = this.config;
+    const { projectId, issueTypeId, customFields, componentIds, categoryAssignees } = this.config;
     const categoryName = await this.getCategoryName(ticket);
     const description = this.getIssueDescription(ticket);
-    return {
+
+    const fields: IssueFields = {
       ...customFields,
       project: { id: projectId },
       issuetype: { id: issueTypeId },
@@ -103,6 +105,13 @@ class JiraIntegration {
       labels: [categoryName.replace(/\s/g, '')],
       components: componentIds?.map((id) => ({ id })),
     };
+
+    const assignee = categoryAssignees?.[ticket.categoryId];
+    if (assignee) {
+      fields.assignee = assignee;
+    }
+
+    return fields;
   }
 
   private async getFileUrls(ticket: Ticket): Promise<string[] | undefined> {
