@@ -224,6 +224,7 @@ class Category extends React.Component {
       }`,
       fullName: `${article.get('archived') ? '（未发布）' : ''}${article.get('question')}`,
     }))
+    const isLeafNode = !this.state.category?.children?.length
 
     return (
       <Form onSubmit={this.handleSubmit.bind(this)}>
@@ -303,7 +304,9 @@ class Category extends React.Component {
               renderOption={renderArticle}
               filterOptions={fuzzySearch}
             />
-            <Form.Text>{t('FAQInfo')}</Form.Text>
+            <Form.Text className="text-muted">
+              {isLeafNode ? t('FAQInfo') : '当前工单存在子分类，此处配置的常见问题将不显示。'}
+            </Form.Text>
           </Form.Group>
         )}
         {process.env.ENABLE_BUILTIN_DESCRIPTION_TEMPLATE && (
