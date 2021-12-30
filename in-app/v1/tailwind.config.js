@@ -17,6 +17,9 @@ module.exports = {
           800: '#0E8389',
           900: '#0C6C71',
         },
+        red: {
+          DEFAULT: '#F64C4C',
+        },
       },
       fontSize: {
         xs: ['12px', '15px'],

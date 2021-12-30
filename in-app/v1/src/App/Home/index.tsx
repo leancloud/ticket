@@ -21,7 +21,7 @@ function TicketsLink({ badge }: TicketsLinkProps) {
   return (
     <Link className="relative p-3 -mr-3 text-[13px] leading-none text-tapBlue" to="/tickets">
       {t('ticket.record')}
-      {badge && <div className="h-1.5 w-1.5 bg-red-500 rounded-full absolute top-0 right-0" />}
+      {badge && <div className="h-1.5 w-1.5 bg-red rounded-full absolute top-0 right-0" />}
     </Link>
   );
 }

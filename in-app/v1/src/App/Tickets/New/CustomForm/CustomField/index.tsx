@@ -31,7 +31,7 @@ const components: Record<FieldType, JSXElementConstructor<CustomFieldProps>> = {
 };
 
 function Unknown({ type }: { type: string }) {
-  return <div className="text-red-500">Unsupported component: {type}</div>;
+  return <div className="text-red">Unsupported component: {type}</div>;
 }
 
 export function CustomField(props: CustomFieldProps) {

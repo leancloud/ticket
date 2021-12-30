@@ -16,7 +16,7 @@ export function Description({ children, className, error, ...props }: Descriptio
       {...props}
       className={classNames(className, 'text-xs', {
         'text-[rgba(0,0,0,0.45)]': !error,
-        'text-red-500': error,
+        'text-red': error,
       })}
     >
       {error?.message ?? children}

@@ -64,14 +64,14 @@ function Feedback({ articleId }: { articleId: string }) {
           <Button
             onClick={() => vote(1)}
             secondary
-            className="flex flex-row items-center h-[28px] bg-white text-[#888]"
+            className="flex flex-row items-center min-w-[32px] h-[22px] bg-white text-[#888]"
           >
             <ThumbUpIcon className="w-[14px] h-[14px] inline-block align-middle" />
           </Button>
           <Button
             onClick={() => vote(-1)}
             secondary
-            className="flex items-center h-[28px] bg-white ml-3 text-[#888] hover:!text-red-500 hover:!border-red-500 active:!text-red-500 active:!border-red-500"
+            className="flex items-center min-w-[32px] h-[22px] bg-white ml-4 text-[#888] hover:!text-red hover:!border-red focus:!text-red focus:!border-red"
           >
             <ThumbDownIcon className="w-[14px] h-[14px] inline-block align-middle" />
           </Button>

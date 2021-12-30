@@ -51,7 +51,7 @@ export const Dropdown = forwardRef<ControlRef, DropdownProps>(
               'text-[#BFBFBF]': !value,
               'focus:border-tapBlue focus:ring-1 focus:ring-tapBlue': !error,
               'border-[rgba(0,0,0,0.08)]': !error,
-              'border-red-500': error,
+              'border-red': error,
             })}
             value={value}
             onChange={handleChange}

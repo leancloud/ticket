@@ -31,7 +31,7 @@ const COMPONENTS: Record<string, ExoticComponent<any> | undefined> = {
 };
 
 function Unknown({ type }: { type: string }) {
-  return <div className="text-red-500">Unsupported component: {type}</div>;
+  return <div className="text-red">Unsupported component: {type}</div>;
 }
 
 export const Field = forwardRef<ControlRef, FieldProps>(({ type, ...props }, ref) => {

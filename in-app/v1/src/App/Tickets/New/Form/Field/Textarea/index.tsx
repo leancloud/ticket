@@ -49,7 +49,7 @@ export const Textarea = forwardRef<ControlRef, TextareaProps>(
           ref={$textarea}
           className={`w-full px-3 py-1.5 border rounded text-sm ${
             error
-              ? 'border-red-500'
+              ? 'border-red'
               : 'focus:border-tapBlue focus:ring-1 focus:ring-tapBlue border-[rgba(0,0,0,0.08)]'
           }`}
           rows={rows}
