@@ -279,10 +279,13 @@ class Category extends React.Component {
               renderOption={renderArticle}
               filterOptions={fuzzySearch}
             />
+            {this.state.notices.length > 3 && (
+              <Form.Text className="text-danger">超过最大数量限制</Form.Text>
+            )}
             <Form.Text className="text-muted">
-              公告会在用户落地到该分类时展示在页面顶部。
+              公告会在用户落地到该分类时展示在页面顶部，数量最大为三条。
               <br />
-              未发布的文章不会展示，建议同时展示的公告数量不要超过三条。
+              未发布的文章不会展示。
             </Form.Text>
           </Form.Group>
         )}
@@ -304,9 +307,14 @@ class Category extends React.Component {
               renderOption={renderArticle}
               filterOptions={fuzzySearch}
             />
-            <Form.Text className="text-muted">
-              {isLeafNode ? t('FAQInfo') : '当前工单存在子分类，此处配置的常见问题将不显示。'}
-            </Form.Text>
+
+            {isLeafNode ? (
+              <Form.Text className="text-muted">{t('FAQInfo')}</Form.Text>
+            ) : (
+              <Form.Text className="text-warning">
+                当前工单存在子分类，此处配置的常见问题将不显示。
+              </Form.Text>
+            )}
           </Form.Group>
         )}
         {process.env.ENABLE_BUILTIN_DESCRIPTION_TEMPLATE && (
@@ -341,7 +349,11 @@ class Category extends React.Component {
           </Form.Label>
           <FormSelect value={this.state.form} onChange={this.handleFromIdChange.bind(this)} />
         </Form.Group>
-        <Button type="submit" disabled={this.state.isSubmitting} variant="success">
+        <Button
+          type="submit"
+          disabled={this.state.isSubmitting || this.state.notices.length > 3}
+          variant="success"
+        >
           {t('save')}
         </Button>{' '}
         {this.state.category && (
