@@ -36,7 +36,7 @@ export function usePersistFormData(categoryId: string) {
       clearTimeout($timerId.current);
       $timerId.current = setTimeout(() => {
         persistFormData({ categoryId, data });
-      }, 1000) as any;
+      }, 100) as any;
     },
     [categoryId]
   );
