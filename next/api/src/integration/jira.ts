@@ -94,8 +94,8 @@ class JiraIntegration {
     const { projectId, issueTypeId, customFields, componentIds, categoryAssignees } = this.config;
     const categoryName = await this.getCategoryName(ticket);
     const description = this.getIssueDescription(ticket);
-    const assignee = categoryAssignees?.[ticket.categoryId];
-    return {
+
+    const fields: IssueFields = {
       ...customFields,
       project: { id: projectId },
       issuetype: { id: issueTypeId },
@@ -104,8 +104,14 @@ class JiraIntegration {
       // XXX: Jira 标签不能包含空白
       labels: [categoryName.replace(/\s/g, '')],
       components: componentIds?.map((id) => ({ id })),
-      assignee,
     };
+
+    const assignee = categoryAssignees?.[ticket.categoryId];
+    if (assignee) {
+      fields.assignee = assignee;
+    }
+
+    return fields;
   }
 
   private async getFileUrls(ticket: Ticket): Promise<string[] | undefined> {
