@@ -1,38 +1,38 @@
 import { forwardRef, useMemo } from 'react';
 import { RefSelectProps } from 'antd/lib/select';
 
-import { useCustomerServices } from '@/api/user';
+import { useGroups } from '@/api/group';
 import { Select, SelectProps } from '@/components/antd';
 import { Retry } from './Retry';
 
-export interface AssigneeSelectProps extends SelectProps<string | string[]> {
+export interface GroupSelectProps extends SelectProps<string | string[]> {
   includeUnsetOption?: boolean;
-  includeUnsetLabel?: string;
-  includeUnsetValue?: string;
+  unsetOptionLabel?: string;
+  unsetOptionValue?: string;
   errorMessage?: string;
 }
 
-export const AssigneeSelect = forwardRef<RefSelectProps, AssigneeSelectProps>(
+export const GroupSelect = forwardRef<RefSelectProps, GroupSelectProps>(
   (
     {
       includeUnsetOption = false,
-      includeUnsetLabel = '(未设置)',
-      includeUnsetValue = '',
-      errorMessage = '获取负责人失败',
+      unsetOptionLabel = '(未设置)',
+      unsetOptionValue = '',
+      errorMessage = '获取客服组失败',
       ...props
     },
     ref
   ) => {
-    const { data, isLoading, error, refetch } = useCustomerServices();
+    const { data, isLoading, error, refetch } = useGroups();
     const options = useMemo(() => {
       if (data) {
-        const options = data.map((u) => ({ label: u.nickname, value: u.id }));
+        const options = data.map((g) => ({ label: g.name, value: g.id }));
         if (includeUnsetOption) {
-          options.unshift({ label: includeUnsetLabel, value: includeUnsetValue });
+          options.unshift({ label: unsetOptionLabel, value: unsetOptionValue });
         }
         return options;
       }
-    }, [data, includeUnsetOption, includeUnsetLabel, includeUnsetValue]);
+    }, [data, includeUnsetOption, unsetOptionLabel, unsetOptionValue]);
 
     if (error) {
       return <Retry error={error} message={errorMessage} onRetry={refetch} />;
