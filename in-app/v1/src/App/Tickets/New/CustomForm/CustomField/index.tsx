@@ -31,7 +31,7 @@ const components: Record<FieldType, JSXElementConstructor<CustomFieldProps>> = {
 };
 
 function Unknown({ type }: { type: string }) {
-  return <div className="text-red-500">Unsupported component: {type}</div>;
+  return <div className="text-red">Unsupported component: {type}</div>;
 }
 
 export function CustomField(props: CustomFieldProps) {
@@ -51,7 +51,7 @@ export function CustomField(props: CustomFieldProps) {
   }
   return (
     <div className="flex flex-col sm:flex-row mb-5 last:mb-0">
-      <div className="flex-shrink-0 mb-2 sm:mb-0 sm:w-[60px] sm:mr-4">
+      <div className="flex-shrink-0 mb-2 sm:mb-0 sm:w-[72px] sm:mr-2">
         <label
           className={cx('relative break-words', {
             [style.required]: required,

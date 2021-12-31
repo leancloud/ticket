@@ -29,7 +29,7 @@ export const Input = forwardRef<ControlRef, InputProps>(({ onChange, placeholder
         className={classNames('w-full px-3 py-2 border rounded text-sm', {
           'focus:border-tapBlue focus:ring-1 focus:ring-tapBlue': !error,
           'border-[rgba(0,0,0,0.08)]': !error,
-          'border-red-500': error,
+          'border-red': error,
         })}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value || undefined)}

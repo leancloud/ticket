@@ -30,7 +30,7 @@ export function CustomForm({
 
   return (
     <FormProvider {...methods}>
-      <form className="px-5 sm:px-10 py-7" onSubmit={methods.handleSubmit(onSubmit)}>
+      <form className="px-4 sm:px-8 py-7" onSubmit={methods.handleSubmit(onSubmit)}>
         {fields.map((field) => (
           <CustomField key={field.id} {...field} />
         ))}

@@ -15,3 +15,16 @@ html, body, #app {
 body{
   @apply text-base text-[#183247];
 }
+
+.markdown-body {
+  @apply text-base;
+}
+.markdown-body ul {
+  list-style: disc;
+}
+.markdown-body ol {
+  list-style: decimal;
+}
+.markdown-body a {
+  @apply text-primary;
+}

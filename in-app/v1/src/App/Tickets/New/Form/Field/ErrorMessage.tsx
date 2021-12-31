@@ -8,7 +8,7 @@ export function ErrorMessage({ className, children, ...props }: ErrorMessageProp
     return null;
   }
   return (
-    <div {...props} className={classNames(className, 'text-xs text-red-500')}>
+    <div {...props} className={classNames(className, 'text-xs text-red')}>
       {children}
     </div>
   );

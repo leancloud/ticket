@@ -29,7 +29,7 @@ const FormSelect = memo(({ value, onChange }) => {
   return <Select value={value} options={options} onChange={onChange} placeholder="" />
 })
 
-function renderFAQ(props, option, snapshot, className) {
+function renderArticle(props, option, snapshot, className) {
   return (
     <button {...props} className={className} type="button">
       <span>{option.fullName}</span>
@@ -45,6 +45,7 @@ class Category extends React.Component {
       description: '',
       qTemplate: '',
       FAQs: [],
+      notices: [],
       assignedGroupId: '',
       category: undefined,
       parentCategory: undefined,
@@ -52,14 +53,17 @@ class Category extends React.Component {
       isSubmitting: false,
       isLoading: true,
       form: undefined,
-      allFAQs: [],
+      allAiticles: [],
     }
   }
 
   componentDidMount() {
-    getCategoriesTree()
-      .then((categoriesTree) => {
-        this.setState({ categoriesTree, isLoading: false })
+    Promise.all([
+      getCategoriesTree(),
+      db.class('FAQ').where('deletedAt', 'not-exists').select(['question', 'archived']).find(),
+    ])
+      .then(([categoriesTree, articles]) => {
+        this.setState({ categoriesTree, allAiticles: articles, isLoading: false })
 
         const categoryId = this.props.match.params.id
         if (categoryId == '_new') {
@@ -75,15 +79,9 @@ class Category extends React.Component {
           assignedGroupId: category.get('group')?.id,
           parentCategory: category.get('parent'),
           FAQs: (category.get('FAQs') || []).map((FAQ) => FAQ.id),
+          notices: (category.get('notices') || []).map((notice) => notice.id),
           form: category.get('form') ? category.get('form').id : undefined,
         })
-        return
-      })
-      .catch(this.context.addNotification)
-    db.class('FAQ')
-      .find()
-      .then((FAQs) => {
-        this.setState({ allFAQs: FAQs })
         return
       })
       .catch(this.context.addNotification)
@@ -97,6 +95,9 @@ class Category extends React.Component {
   }
   handleFAQsChange(selectedFAQIds) {
     this.setState({ FAQs: selectedFAQIds })
+  }
+  handleNoticesChange(selectedNoticeIds) {
+    this.setState({ notices: selectedNoticeIds })
   }
 
   handleParentChange(t, e) {
@@ -136,6 +137,7 @@ class Category extends React.Component {
     this.setState({ isSubmitting: true })
     const category = this.state.category
     const FAQs = this.state.FAQs.map((id) => db.class('FAQ').object(id))
+    const notices = this.state.notices.map((id) => db.class('FAQ').object(id))
 
     let promise
 
@@ -146,10 +148,11 @@ class Category extends React.Component {
         parent: this.state.parentCategory,
         qTemplate: this.state.qTemplate,
         FAQs,
+        notices,
         form: this.state.form ? db.class('TicketForm').object(this.state.form) : undefined,
       })
     } else {
-      const data = { qTemplate: this.state.qTemplate, FAQs }
+      const data = { qTemplate: this.state.qTemplate, FAQs, notices }
 
       if (this.state.parentCategory != category.parent) {
         if (!this.state.parentCategory) {
@@ -214,14 +217,14 @@ class Category extends React.Component {
       return <div>{t('loading')}……</div>
     }
 
-    const FAQOptions = this.state.allFAQs.map((FAQ) => ({
-      value: FAQ.id,
-      name: `${FAQ.get('archived') ? '（已归档）' : ''}${FAQ.get('question').slice(0, 12)}${
-        FAQ.get('question').length > 12 ? '...' : ''
+    const articleOptions = this.state.allAiticles.map((article) => ({
+      value: article.id,
+      name: `${article.get('archived') ? '（未发布）' : ''}${article.get('question').slice(0, 12)}${
+        article.get('question').length > 12 ? '...' : ''
       }`,
-      fullName: `${FAQ.get('archived') ? '（已归档）' : ''}${FAQ.get('question')}`,
+      fullName: `${article.get('archived') ? '（未发布）' : ''}${article.get('question')}`,
     }))
-    console.log(FAQOptions)
+    const isLeafNode = !this.state.category?.children?.length
 
     return (
       <Form onSubmit={this.handleSubmit.bind(this)}>
@@ -261,6 +264,34 @@ class Category extends React.Component {
         {process.env.ENABLE_FAQ && (
           <Form.Group controlId="FAQsText">
             <Form.Label>
+              公告
+              {t('optional')}
+            </Form.Label>
+            <SelectSearch
+              className={classnames('select-search', styles.formSelect)}
+              closeOnSelect={false}
+              printOptions="on-focus"
+              multiple
+              placeholder="Select articles"
+              value={this.state.notices}
+              onChange={this.handleNoticesChange.bind(this)}
+              options={articleOptions}
+              renderOption={renderArticle}
+              filterOptions={fuzzySearch}
+            />
+            {this.state.notices.length > 3 && (
+              <Form.Text className="text-danger">超过最大数量限制</Form.Text>
+            )}
+            <Form.Text className="text-muted">
+              公告会在用户落地到该分类时展示在页面顶部，数量最大为三条。
+              <br />
+              未发布的文章不会展示。
+            </Form.Text>
+          </Form.Group>
+        )}
+        {process.env.ENABLE_FAQ && (
+          <Form.Group controlId="FAQsText">
+            <Form.Label>
               {t('FAQ')}
               {t('optional')}
             </Form.Label>
@@ -269,19 +300,21 @@ class Category extends React.Component {
               closeOnSelect={false}
               printOptions="on-focus"
               multiple
-              placeholder="Select your items"
+              placeholder="Select articles"
               value={this.state.FAQs}
               onChange={this.handleFAQsChange.bind(this)}
-              options={FAQOptions}
-              renderOption={renderFAQ}
+              options={articleOptions}
+              renderOption={renderArticle}
               filterOptions={fuzzySearch}
             />
-            {/* <Form.Control
-              value={this.state.FAQs}
-              onChange={this.handleFAQsChange.bind(this)}
-              placeholder="objectId1,objectId2"
-            /> */}
-            <Form.Text>{t('FAQInfo')}</Form.Text>
+
+            {isLeafNode ? (
+              <Form.Text className="text-muted">{t('FAQInfo')}</Form.Text>
+            ) : (
+              <Form.Text className="text-warning">
+                当前工单存在子分类，此处配置的常见问题将不显示。
+              </Form.Text>
+            )}
           </Form.Group>
         )}
         {process.env.ENABLE_BUILTIN_DESCRIPTION_TEMPLATE && (
@@ -296,7 +329,7 @@ class Category extends React.Component {
               value={this.state.qTemplate}
               onChange={this.handleQTemplateChange.bind(this)}
             />
-            <Form.Text>{t('ticket.templateInfo')}</Form.Text>
+            <Form.Text className="text-muted">{t('ticket.templateInfo')}</Form.Text>
           </Form.Group>
         )}
         <Form.Group controlId="groupSelect">
@@ -316,7 +349,11 @@ class Category extends React.Component {
           </Form.Label>
           <FormSelect value={this.state.form} onChange={this.handleFromIdChange.bind(this)} />
         </Form.Group>
-        <Button type="submit" disabled={this.state.isSubmitting} variant="success">
+        <Button
+          type="submit"
+          disabled={this.state.isSubmitting || this.state.notices.length > 3}
+          variant="success"
+        >
           {t('save')}
         </Button>{' '}
         {this.state.category && (

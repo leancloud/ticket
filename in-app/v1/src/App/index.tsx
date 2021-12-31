@@ -33,7 +33,7 @@ function RequireAuth({ children }: { children: JSX.Element }) {
     return <APIError onRetry={() => location.reload()} />;
   }
   if (!auth) {
-    return <Navigate to="/login" />;
+    return <LogIn />;
   }
   return children;
 }

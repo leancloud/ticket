@@ -1,12 +1,14 @@
 .button {
-  box-shadow: inset 0px -3px 0px rgba(0, 0, 0, 0.1);
-
-  &:active:enabled {
-    box-shadow: none;
-  }
-
   &:disabled {
     cursor: default;
     opacity: 0.6;
+  }
+
+  &.primary {
+    box-shadow: inset 0px -3px 0px rgba(0, 0, 0, 0.1);
+
+    &:active:enabled {
+      box-shadow: none;
+    }
   }
 }

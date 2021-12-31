@@ -41,6 +41,10 @@ export class Category extends Model {
   @serialize()
   FAQIds?: string[];
 
+  @pointerIds(() => Article)
+  @serialize()
+  noticeIds?: string[];
+
   @pointerId(() => Group)
   @serialize()
   groupId?: string;

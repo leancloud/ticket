@@ -4,6 +4,7 @@ import { render } from 'react-dom';
 import * as Sentry from '@sentry/react';
 import { Integrations } from '@sentry/tracing';
 
+import 'github-markdown-css/github-markdown-light.css';
 import './index.css';
 import App from './App';
 

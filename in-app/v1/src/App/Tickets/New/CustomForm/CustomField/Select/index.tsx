@@ -27,7 +27,7 @@ export function Select({ id, description, options, required, htmlId }: CustomFie
             'text-[#BFBFBF]': !value,
             'focus:border-tapBlue focus:ring-1 focus:ring-tapBlue': !error,
             'border-[rgba(0,0,0,0.08)]': !error,
-            'border-red-500': error,
+            'border-red': error,
           })}
         >
           <option value="" hidden>

@@ -24,7 +24,7 @@ function TicketCheckbox({ id }: { id: string }) {
 function TicketLink({ ticket }: { ticket: TicketSchema }) {
   return (
     <a
-      className="flex mt-1.5 font-semibold max-w-full"
+      className="flex mt-1.5 font-bold max-w-full"
       title={ticket.title}
       href={`/tickets/${ticket.nid}`}
     >
@@ -70,7 +70,7 @@ export const TicketTable = memo(({ tickets, checkedIds, onChangeChecked }: Ticke
         dataIndex="categoryId"
         title="分类"
         render={(id: string) => (
-          <CategoryPath className="whitespace-nowrap" path={getCategoryPath(id)} />
+          <CategoryPath className="whitespace-nowrap text-sm" path={getCategoryPath(id)} />
         )}
       />
       <Column dataIndex={['author', 'nickname']} title="创建人" />

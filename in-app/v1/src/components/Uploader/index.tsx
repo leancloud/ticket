@@ -53,7 +53,7 @@ export function Uploader<Key extends FileKey>({
           {
             'active:border active:border-tapBlue hover:border-tapBlue': !error,
             'border-[#D9D9D9]': !error,
-            'border-red-500': error,
+            'border-red': error,
           }
         )}
         onClick={handleClick}

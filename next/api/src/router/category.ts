@@ -2,15 +2,14 @@ import { Context } from 'koa';
 import Router from '@koa/router';
 
 import * as yup from '@/utils/yup';
-import { auth } from '@/middleware/auth';
 import { Category, CategoryManager } from '@/model/Category';
 import { TicketForm } from '@/model/TicketForm';
 import { CategoryResponse, CategoryFieldResponse } from '@/response/category';
-import { getArticle } from '@/model/Article';
+import { getPublicArticle } from '@/model/Article';
 import { ArticleResponse } from '@/response/article';
 import _ from 'lodash';
 
-const router = new Router().use(auth);
+const router = new Router();
 
 const getCategoriesSchema = yup.object({
   active: yup.bool(),
@@ -80,9 +79,23 @@ router.get('/:id/faqs', async (ctx) => {
     return;
   }
 
-  const articles = await Promise.all(articleIds.map(getArticle));
+  const articles = await Promise.all(articleIds.map(getPublicArticle));
   ctx.body = articles
-    .filter((article) => !article?.archived)
+    .filter((article) => article && !article.private)
+    .map((article) => new ArticleResponse(article!));
+});
+
+router.get('/:id/notices', async (ctx) => {
+  const { noticeIds: articleIds } = ctx.state.category as Category;
+
+  if (!articleIds) {
+    ctx.body = [];
+    return;
+  }
+
+  const articles = await Promise.all(articleIds.map(getPublicArticle));
+  ctx.body = articles
+    .filter((article) => article && !article.private)
     .map((article) => new ArticleResponse(article!));
 });
 

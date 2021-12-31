@@ -18,6 +18,7 @@
     "antd": "^4.17.2",
     "axios": "^0.24.0",
     "classnames": "^2.3.1",
+    "github-markdown-css": "^5.1.0",
     "immer": "^9.0.6",
     "lodash-es": "^4.17.21",
     "moment": "^2.29.1",

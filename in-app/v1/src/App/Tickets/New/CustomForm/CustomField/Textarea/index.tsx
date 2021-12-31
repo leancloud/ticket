@@ -23,7 +23,7 @@ export function Textarea({ id, description, required, htmlId }: CustomFieldProps
         })}
         id={htmlId}
         className={cx('w-full px-3 py-1.5 border rounded text-sm', {
-          'border-red-500': error,
+          'border-red': error,
           'border-[rgba(0,0,0,0.08)]': !error,
           'focus:border-tapBlue focus:ring-1 focus:ring-tapBlue': !error,
         })}

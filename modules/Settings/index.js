@@ -74,7 +74,7 @@ export default function Settings(props) {
               <ListGroup.Item as={NavLink} to="/settings/quick-replies">
                 {t('quickReply')}
               </ListGroup.Item>
-              <ListGroup.Item as={NavLink} to="/settings/articles">
+              <ListGroup.Item as="a" href="/next/admin/settings/articles">
                 {t('kb')} / {t('FAQ')}
               </ListGroup.Item>
               <ListGroup.Item as={NavLink} to="/settings/dynamicContent">

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useMutation } from 'react-query';
 import { pick } from 'lodash-es';
@@ -135,15 +135,16 @@ export function NewTicket() {
   const { t } = useTranslation();
   const { category_id } = useSearchParams();
   const result = useCategory(category_id);
-  const [ticketId, setTicketId] = useState<string>();
+  const { state: ticketId } = useLocation();
+  const navigate = useNavigate();
 
   const { mutateAsync: submit, isLoading: submitting } = useMutation({
     mutationFn: commitTicket,
-    onSuccess: setTicketId,
+    onSuccess: (ticketId: string) => navigate('', { replace: false, state: ticketId }),
     onError: (error: Error) => alert(error.message),
   });
 
-  if (!result.data && !result.isLoading && !result.error) {
+  if (!ticketId && !result.data && !result.isLoading && !result.error) {
     // Category is not exists :badbad:
     return <NotFound />;
   }
@@ -151,13 +152,13 @@ export function NewTicket() {
     <>
       <PageHeader>{result.data?.name ?? t('general.loading') + '...'}</PageHeader>
       <PageContent>
-        <QueryWrapper result={result}>
-          {ticketId ? (
-            <Success ticketId={ticketId} />
-          ) : (
+        {ticketId ? (
+          <Success ticketId={ticketId} />
+        ) : (
+          <QueryWrapper result={result}>
             <TicketForm categoryId={category_id} onSubmit={submit} submitting={submitting} />
-          )}
-        </QueryWrapper>
+          </QueryWrapper>
+        )}
       </PageContent>
     </>
   );

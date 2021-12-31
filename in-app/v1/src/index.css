@@ -32,7 +32,8 @@ textarea {
 }
 
 .markdown-body {
-  @apply text-base;
+  @apply text-[#666];
+  @apply bg-transparent;
 }
 .markdown-body ul {
   list-style: disc;

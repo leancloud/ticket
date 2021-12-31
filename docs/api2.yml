@@ -32,6 +32,21 @@ components:
           type: string
         name:
           type: string
+    Category:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        parentId: 
+          type: string
+        position:
+          type: number
+        active: 
+          type: boolean
+        template:
+          type: string
     File:
       type: object
       properties:
@@ -106,7 +121,7 @@ components:
       properties:
         id:
           type: string
-        ticket: 
+        ticket:
           $ref: '#/components/schemas/Ticket'
         unreadCount:
           type: number
@@ -122,12 +137,31 @@ components:
         updatedAt:
           type: string
           format: date-time
+    Article:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        content:
+          type: string
+        contentSafeHTML:
+          type: string
+        private:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
 security:
   - Session token: []
 paths:
   /api/2/tickets:
     get:
-      tags: [ticket]
+      tags: [Ticket]
       summary: 查询工单
       parameters:
         - name: page
@@ -314,7 +348,7 @@ paths:
                     format: date-time
   /api/2/unread:
     get:
-      tags: ['notification']
+      tags: ['Notification']
       summary: 获取当前用户是否有未读的通知
       description: 通常用于判断是否要显示小红点
       responses:
@@ -326,7 +360,7 @@ paths:
                 type: boolean
   /api/2/notifications:
     get:
-      tags: ['notification']
+      tags: ['Notification']
       summary: 获取当前用户工单更新通知
       parameters:
         - name: unread
@@ -338,12 +372,12 @@ paths:
           in: query
           schema:
             type: string
-            description: ISO 时间戳，配合返回值中的 latestActionAt 翻页 
+            description: ISO 时间戳，配合返回值中的 latestActionAt 翻页
         - name: limit
           in: query
           schema:
             type: number
-            description: 每页条数，默认 25，最大 999 
+            description: 每页条数，默认 25，最大 999
         - name: includeTicketMetaKeys
           in: query
           schema:
@@ -360,8 +394,136 @@ paths:
                   $ref: '#/components/schemas/Notification'
   /api/2/notifications/read-all:
     post:
-      tags: ['notification']
+      tags: ['Notification']
       summary: 批量将所有未读通知标为已读
       responses:
         '200':
           description: Done
+
+  /api/2/articles:
+    get:
+      tags: ['Knowladge base']
+      summary: 查询文章
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+          description: 页数，范围：[1, Infinity)
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+          description: 每页数量，范围：[0, 100]，默认为 20
+        - name: private
+          in: query
+          schema:
+            type: boolean
+          description: 指定仅返回 private / public 的文章，仅对客服账号生效（用户仅能看到 public 的文章）
+        - name: count
+          in: query
+          schema:
+            type: boolean
+          description: 为 `true` 时通过 x-total-count 返回符合条件的工单数量
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Article'
+    post:
+      tags: ['Knowladge base']
+      summary: 创建文章
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                content:
+                  type: string
+                private:
+                  type: boolean
+              required: [title, content]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/Article'
+
+  /api/2/articles/{id}:
+    parameters:
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
+    get:
+      tags: ['Knowladge base']
+      summary: 获取文章
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+    patch:
+      tags: ['Knowladge base']
+      summary: 更新文章
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                content:
+                  type: string
+                private:
+                  type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      tags: ['Knowladge base']
+      summary: 删除文章
+      description: 已上线（public）的文章不可删除，使用中（有关联的分类）的文章不可删除。
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /api/2/articles/{id}/categories:
+    parameters:
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
+    get:
+      tags: ['Knowladge base']
+      summary: 获取关联了该文章为常见问题或公告的分类
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
