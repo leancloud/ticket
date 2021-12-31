@@ -139,3 +139,9 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 重新导入 TicketField.json，并将已有数据的 visible 设置为 true。
 
 重新导入 TicketFieldVariant.json，并将已有数据的 titleForCustomerService 设置为和 title 相同。
+
+## 2021-12-31
+
+### `6c989e6a9038f6943126ab995379d66ddc257b31`
+
+重新导入 Category.json（增加 notices 列）
