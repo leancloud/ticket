@@ -24,7 +24,7 @@ class SlackIntegration {
   private userIdByEmail = new LRU<string, string>({ max: 500 });
 
   constructor(token: string, private channel: string) {
-    this.client = new WebClient(token, { logLevel: LogLevel.ERROR });
+    this.client = new WebClient(token, { logLevel: LogLevel.INFO });
   }
 
   private async getSlackDisplayName(email: string): Promise<string | undefined> {

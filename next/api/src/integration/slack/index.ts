@@ -1,4 +1,4 @@
-import { WebClient } from '@slack/web-api';
+import { WebClient, LogLevel } from '@slack/web-api';
 import _ from 'lodash';
 
 import notification, {
@@ -42,7 +42,7 @@ class SlackIntegration {
   private categoryChannels: Record<string, string[]>;
 
   constructor(config: SlackConfig) {
-    this.client = new WebClient(config.token);
+    this.client = new WebClient(config.token, { logLevel: LogLevel.INFO });
     this.broadcastChannel = config.channel;
     this.categoryChannels = _.mapValues(config.categoryChannels, (channels) => {
       return channels.filter((channel) => channel !== this.broadcastChannel);
