@@ -120,6 +120,12 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 
 已使用的应用需要将环境变量中的配置移到 Config class 中（格式可参考开发环境），并重新设置 Slack App 的 interactive endpint。
 
+## 2021-11-22
+
+### `41cae1d2154b21447787a76b3116f6f2e5e46d4a`
+
+导入 TicketFieldVariant.json（添加 description 列）。
+
 ## 2021-11-29
 
 ### `bd02da4a2a7f9d9ccc83a1aaa351ca4602756cfc`
