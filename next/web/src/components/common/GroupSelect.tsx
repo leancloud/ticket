@@ -6,33 +6,18 @@ import { Select, SelectProps } from '@/components/antd';
 import { Retry } from './Retry';
 
 export interface GroupSelectProps extends SelectProps<string | string[]> {
-  includeUnsetOption?: boolean;
-  unsetOptionLabel?: string;
-  unsetOptionValue?: string;
   errorMessage?: string;
 }
 
 export const GroupSelect = forwardRef<RefSelectProps, GroupSelectProps>(
-  (
-    {
-      includeUnsetOption = false,
-      unsetOptionLabel = '(未设置)',
-      unsetOptionValue = '',
-      errorMessage = '获取客服组失败',
-      ...props
-    },
-    ref
-  ) => {
+  ({ options: extraOptions, errorMessage = '获取客服组失败', ...props }, ref) => {
     const { data, isLoading, error, refetch } = useGroups();
     const options = useMemo(() => {
-      if (data) {
-        const options = data.map((g) => ({ label: g.name, value: g.id }));
-        if (includeUnsetOption) {
-          options.unshift({ label: unsetOptionLabel, value: unsetOptionValue });
-        }
-        return options;
-      }
-    }, [data, includeUnsetOption, unsetOptionLabel, unsetOptionValue]);
+      return [
+        ...(extraOptions ?? []),
+        ...(data?.map((g) => ({ label: g.name, value: g.id })) ?? []),
+      ];
+    }, [data, extraOptions]);
 
     if (error) {
       return <Retry error={error} message={errorMessage} onRetry={refetch} />;
