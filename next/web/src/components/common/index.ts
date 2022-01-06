@@ -1,3 +1,4 @@
+export * from './CategorySelect';
 export * from './CustomerServiceSelect';
 export * from './GroupSelect';
 export * from './Retry';

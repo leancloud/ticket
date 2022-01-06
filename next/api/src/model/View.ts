@@ -24,4 +24,7 @@ export class View extends Model {
 
   @field()
   sortOrder?: 'asc' | 'desc';
+
+  @field()
+  position?: number;
 }

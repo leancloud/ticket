@@ -13,6 +13,7 @@ export class ViewResponse {
       fields: this.view.fields,
       sortBy: this.view.sortBy,
       sortOrder: this.view.sortOrder,
+      position: this.view.position ?? this.view.createdAt.getTime(),
       createdAt: this.view.createdAt.toISOString(),
       updatedAt: this.view.updatedAt.toISOString(),
     };
