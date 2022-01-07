@@ -250,7 +250,7 @@ const columns = [
   { label: '更新时间', value: 'updatedAt' },
 ];
 
-const columnLabels = columns.reduce((map, col) => {
+export const columnLabels = columns.reduce((map, col) => {
   map[col.value] = col.label;
   return map;
 }, {} as Record<string, string>);

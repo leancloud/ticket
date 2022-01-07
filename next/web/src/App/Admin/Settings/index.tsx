@@ -47,7 +47,6 @@ const SettingRoutes = () => (
       <Route path=":id">
         <Route index element={<ArticleDetail />} />
         <Route path="edit" element={<EditArticle />} />
-        {/* <Route path="revisions" element={<ArticleRevisions />} /> */}
       </Route>
     </Route>
   </Routes>

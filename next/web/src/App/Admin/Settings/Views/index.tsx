@@ -211,7 +211,7 @@ export function ViewList() {
   const [visibility, setVisibility] = useState('shared');
 
   const { data: views, isLoading, isFetching } = useViews({
-    userIds: visibility === 'personal' ? [currentUser!.id] : undefined,
+    userIds: visibility === 'personal' ? [currentUser!.id] : ['null'],
     groupIds: visibility !== 'shared' && visibility !== 'personal' ? [visibility] : undefined,
   });
 

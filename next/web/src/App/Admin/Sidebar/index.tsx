@@ -1,6 +1,6 @@
 import { ComponentPropsWithoutRef, ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
-import { AiOutlineSetting } from 'react-icons/ai';
+import { AiOutlineContainer, AiOutlineSetting } from 'react-icons/ai';
 import { HiOutlineTicket } from 'react-icons/hi';
 import cx from 'classnames';
 
@@ -12,7 +12,7 @@ function Logo() {
   );
 }
 
-function Path({ to, children }: { to: string; children: ReactNode }) {
+function Path({ to, children, title }: { to: string; children: ReactNode; title?: string }) {
   return (
     <NavLink
       className={({ isActive }) =>
@@ -24,6 +24,7 @@ function Path({ to, children }: { to: string; children: ReactNode }) {
         )
       }
       to={to}
+      title={title}
     >
       {children}
     </NavLink>
@@ -36,10 +37,13 @@ export function Sidebar(props: ComponentPropsWithoutRef<'aside'>) {
       <Logo />
 
       <section className="p-3 text-[rgba(255,255,255,0.72)]">
-        <Path to="/admin/tickets">
+        <Path to="/admin/tickets" title="工单">
           <HiOutlineTicket className="m-auto w-[20px] h-[20px]" />
         </Path>
-        <Path to="/admin/settings">
+        <Path to="/admin/views" title="视图">
+          <AiOutlineContainer className="m-auto w-[20px] h-[20px]" />
+        </Path>
+        <Path to="/admin/settings" title="设置">
           <AiOutlineSetting className="m-auto w-[20px] h-[20px]" />
         </Path>
       </section>

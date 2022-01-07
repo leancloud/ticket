@@ -122,6 +122,7 @@ export function useView(id: string, options?: UseQueryOptions<ViewSchema>) {
   return useQuery({
     queryKey: ['view', id],
     queryFn: () => fetchView(id),
+    staleTime: Infinity,
     ...options,
   });
 }
