@@ -93,7 +93,7 @@ export type QueryCommand = keyof typeof queryModifiers;
 
 type ValuesType<T> = T extends (where: any, key: string, ...values: infer V) => void ? V : never;
 
-export type QueryBunch<M extends typeof Model> = (query: Query<M>) => Query<M>;
+export type QueryBunch<M extends typeof Model> = (query: Query<M>) => void;
 
 export type OrderType = 'asc' | 'desc';
 
@@ -144,8 +144,9 @@ export class Query<M extends typeof Model> {
       const modifier = queryModifiers[command as QueryCommand];
       modifier(query.condition, key, values[0]);
     } else {
-      const newQuery = key(new Query(this.model)) as Query<M>;
-      query.condition = and(query.condition, newQuery.condition);
+      const queryBuilder = new QueryBuilder(this.model);
+      key(queryBuilder);
+      query.condition = and(query.condition, queryBuilder.condition);
     }
     return query;
   }
