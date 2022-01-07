@@ -70,13 +70,26 @@ export class ViewController {
   ) {
     const query = View.queryBuilder();
 
+    const applyIdsCondition = (field: string, ids: string[]) => {
+      const hasNull = ids.includes('null');
+      if (hasNull) {
+        ids = ids.filter((id) => id !== 'null');
+      }
+      query.where((query) => {
+        if (ids.length) {
+          query.where(field, 'in', ids);
+        }
+        if (hasNull) {
+          query.orWhere(field, 'not-exists');
+        }
+      });
+    };
+
     if (userIds) {
-      query.where('userIds', 'in', userIds);
-    } else {
-      query.where('userIds', 'not-exists');
+      applyIdsCondition('userIds', userIds);
     }
     if (groupIds) {
-      query.where('groupIds', 'in', groupIds);
+      applyIdsCondition('groupIds', groupIds);
     }
 
     const views = await query.limit(1000).find({ useMasterKey: true });
