@@ -10,6 +10,9 @@ import htmlify from '@/utils/htmlify';
 import { User } from '@/model/User';
 import { Category } from '@/model/Category';
 import { CategoryResponse } from '@/response/category';
+import { ArticleRevision } from '@/model/ArticleRevision';
+
+import { ArticleRevisionListItemResponse } from '@/response/article-revision';
 
 const router = new Router();
 
@@ -57,6 +60,7 @@ router.post('/', auth, customerServiceOnly, async (ctx) => {
     data.ACL = getACL(prvt);
   }
   const article = await Article.create(data, currentUser.getAuthOptions());
+  await article.createRevision(currentUser, title, content);
   ctx.body = new ArticleResponse(article);
 });
 
@@ -97,6 +101,40 @@ router.get('/:id/categories', auth, customerServiceOnly, async (ctx) => {
   ctx.body = associatedCategories.map((category) => new CategoryResponse(category));
 });
 
+// router.use('/revisions', revisionRouter.routes);
+
+router.get('/:id/revisions', auth, customerServiceOnly, pagination(100), async (ctx) => {
+  const article = ctx.state.article as Article;
+
+  const { page, pageSize } = pagination.get(ctx);
+
+  const revisions = await ArticleRevision.queryBuilder()
+    .where('FAQ', '==', article.toPointer())
+    .orderBy('createdAt', 'desc')
+    .skip((page - 1) * pageSize)
+    .limit(pageSize)
+    .preload('author')
+    .findAndCount({ useMasterKey: true })
+    .then(([data, count]) => {
+      ctx.set('x-total-count', count.toString());
+      return data;
+    });
+
+  ctx.body = revisions.map((revision) => new ArticleRevisionListItemResponse(revision));
+});
+
+router.param('rid', async (rid, ctx, next) => {
+  ctx.state.revision = await ArticleRevision.find(rid, {
+    useMasterKey: true,
+  });
+  return next();
+});
+
+router.get('/:id/revisions/:rid', auth, customerServiceOnly, pagination(100), async (ctx) => {
+  const revision = ctx.state.revision as ArticleRevision;
+  ctx.body = revision;
+});
+
 router.get('/:id', async (ctx) => {
   const article = ctx.state.article as Article;
   ctx.body = new ArticleResponse(article);
@@ -132,6 +170,10 @@ router.patch('/:id', auth, customerServiceOnly, async (ctx) => {
 
   if (!_.isEmpty(updateData)) {
     await article.update(updateData, currentUser.getAuthOptions());
+  }
+
+  if (content !== article.content || title !== article.title) {
+    await article.createRevision(currentUser, title ?? article.title, content ?? article.content);
   }
 
   ctx.body = new ArticleResponse(article);

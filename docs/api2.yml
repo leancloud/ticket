@@ -527,3 +527,23 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Category'
+
+  /api/2/articles/{id}/revisions:
+    parameters:
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
+    get:
+      tags: ['Knowladge base']
+      summary: 获取文章修改记录
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
