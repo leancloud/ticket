@@ -92,7 +92,5 @@ export function createViewCondition(data: any): ViewCondition<any> {
   if (!constructor) {
     throw new Error(`unknown op: ${op}`);
   }
-  const condition = new constructor(parsedData);
-  condition.assertDataIsValid();
-  return condition;
+  return new constructor(parsedData);
 }

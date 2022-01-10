@@ -1,9 +1,11 @@
+import { Context } from 'koa';
 import { z } from 'zod';
 import _ from 'lodash';
 
 import {
   Body,
   Controller,
+  Ctx,
   Delete,
   Get,
   HttpError,
@@ -13,13 +15,22 @@ import {
   Query,
   UseMiddlewares,
 } from '@/common/http';
-import { FindModelPipe, ParseCsvPipe, ZodValidationPipe } from '@/common/pipe';
-import { auth } from '@/middleware';
+import {
+  FindModelPipe,
+  ParseBoolPipe,
+  ParseCsvPipe,
+  ParseIntPipe,
+  ZodValidationPipe,
+} from '@/common/pipe';
+import { auth, customerServiceOnly } from '@/middleware';
 import { User } from '@/model/User';
 import { View } from '@/model/View';
 import { Group } from '@/model/Group';
 import { GroupResponse } from '@/response/group';
 import { ViewResponse } from '@/response/view';
+import { Ticket } from '@/model/Ticket';
+import { TicketListItemResponse } from '@/response/ticket';
+import { createViewCondition } from '@/ticket/view';
 
 const conditionSchema = z.object({
   type: z.string(),
@@ -61,7 +72,7 @@ type UpdateData = z.infer<typeof updateDataSchema>;
 const idsSchema = z.array(z.string()).min(1);
 
 @Controller('views')
-@UseMiddlewares(auth)
+@UseMiddlewares(auth, customerServiceOnly)
 export class ViewController {
   @Get()
   async findAll(
@@ -121,6 +132,7 @@ export class ViewController {
     if (data.groupIds) {
       await this.assertGroupExist(data.groupIds);
     }
+    this.assertConditionIsValid(data.conditions);
 
     const view = await View.create(
       {
@@ -150,6 +162,9 @@ export class ViewController {
     }
     if (data.groupIds) {
       await this.assertGroupExist(data.groupIds);
+    }
+    if (data.conditions) {
+      this.assertConditionIsValid(data.conditions);
     }
 
     await view.update(
@@ -197,6 +212,44 @@ export class ViewController {
     return {};
   }
 
+  @Get(':id/tickets')
+  async getTickets(
+    @Ctx() ctx: Context,
+    @Param('id', new FindModelPipe(View, { useMasterKey: true })) view: View,
+    @Query('page', new ParseIntPipe({ min: 1 })) page = 1,
+    @Query('pageSize', new ParseIntPipe({ min: 0, max: 1000 })) pageSize = 10,
+    @Query('count', ParseBoolPipe) count?: boolean
+  ) {
+    let condition: any = {};
+    if (view.conditions.all.length) {
+      condition.$and = view.conditions.all.map((cond) => {
+        return createViewCondition(cond).getCondition();
+      });
+    }
+    if (view.conditions.any.length) {
+      condition.$or = view.conditions.any.map((cond) => {
+        return createViewCondition(cond).getCondition();
+      });
+    }
+
+    const query = Ticket.queryBuilder()
+      .setRawCondition(condition)
+      .skip((page - 1) * pageSize)
+      .limit(pageSize);
+
+    const currentUser = ctx.state.currentUser as User;
+    const authOptions = currentUser.getAuthOptions();
+
+    const tickets = count
+      ? await query.findAndCount(authOptions).then(([tickets, count]) => {
+          ctx.set('X-Total-Count', count.toString());
+          return tickets;
+        })
+      : await query.find(authOptions);
+
+    return tickets.map((t) => new TicketListItemResponse(t));
+  }
+
   async assertUserExist(userIds: string[]) {
     const users = await User.queryBuilder()
       .where('objectId', 'in', userIds)
@@ -221,5 +274,19 @@ export class ViewController {
       );
       throw new HttpError(400, `body.groupId: Group "${missingIds[0]}" does not exist`);
     }
+  }
+
+  async assertConditionIsValid(conditions: z.infer<typeof conditionsSchema>) {
+    const validate = (path: string, cond: any) => {
+      const vc = createViewCondition(cond);
+      const error = vc.validate();
+      if (error) {
+        const issue = error.issues[0];
+        throw new HttpError(400, `${[path, ...issue.path].join('.')}: ${issue.message}`);
+      }
+    };
+
+    conditions.all.forEach((cond) => validate('conditions.all', cond));
+    conditions.any.forEach((cond) => validate('conditions.any', cond));
   }
 }
