@@ -22,6 +22,18 @@ export class ArticleRevision extends Model {
   @serialize()
   content?: string;
 
+  @field('archived')
+  @serialize()
+  private?: boolean;
+
+  @field()
+  @serialize()
+  meta?: boolean;
+
+  @field()
+  @serialize()
+  comment?: string;
+
   @pointerId(() => User)
   @serialize()
   authorId!: string;

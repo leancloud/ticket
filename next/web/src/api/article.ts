@@ -67,17 +67,19 @@ export function useArticle(id: string, options?: UseQueryOptions<Article, Error>
   });
 }
 
-export interface CreateArticleData {
+export interface UpsertArticleData {
   title: string;
   content: string;
   private?: boolean;
 }
 
-export async function createArticle(data: CreateArticleData) {
+export async function createArticle(data: UpsertArticleData) {
   await http.post('/api/2/articles', data);
 }
 
-export type UpdateArticleData = Partial<CreateArticleData>;
+export interface UpdateArticleData extends Partial<UpsertArticleData> {
+  comment?: string;
+}
 
 export async function updateArticle(id: string, data: UpdateArticleData) {
   await http.patch(`/api/2/articles/${id}`, data);

@@ -12,7 +12,10 @@ import { Category } from '@/model/Category';
 import { CategoryResponse } from '@/response/category';
 import { ArticleRevision } from '@/model/ArticleRevision';
 
-import { ArticleRevisionListItemResponse } from '@/response/article-revision';
+import {
+  ArticleRevisionListItemResponse,
+  ArticleRevisionResponse,
+} from '@/response/article-revision';
 
 const router = new Router();
 
@@ -60,7 +63,7 @@ router.post('/', auth, customerServiceOnly, async (ctx) => {
     data.ACL = getACL(prvt);
   }
   const article = await Article.create(data, currentUser.getAuthOptions());
-  await article.createRevision(currentUser, title, content);
+  await article.createRevision(currentUser, article);
   ctx.body = new ArticleResponse(article);
 });
 
@@ -132,7 +135,7 @@ router.param('rid', async (rid, ctx, next) => {
 
 router.get('/:id/revisions/:rid', auth, customerServiceOnly, pagination(100), async (ctx) => {
   const revision = ctx.state.revision as ArticleRevision;
-  ctx.body = revision;
+  ctx.body = new ArticleRevisionResponse(revision);
 });
 
 router.get('/:id', async (ctx) => {
@@ -153,11 +156,14 @@ const updateArticalSchema = z.object({
   title: z.string().optional(),
   content: z.string().optional(),
   private: z.boolean().optional(),
+  comment: z.string().optional(),
 });
 router.patch('/:id', auth, customerServiceOnly, async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   const article = ctx.state.article as Article;
-  const { title, content, ['private']: prvt } = updateArticalSchema.parse(ctx.request.body);
+  const { title, content, ['private']: prvt, comment } = updateArticalSchema.parse(
+    ctx.request.body
+  );
   const updateData: UpdateData<Article> = { title };
   if (content !== undefined) {
     updateData.content = content;
@@ -168,15 +174,16 @@ router.patch('/:id', auth, customerServiceOnly, async (ctx) => {
     updateData.ACL = getACL(prvt);
   }
 
-  if (!_.isEmpty(updateData)) {
-    await article.update(updateData, currentUser.getAuthOptions());
+  const updated = !_.isEmpty(updateData);
+  const updatedArticle = updated
+    ? await article.update(updateData, currentUser.getAuthOptions())
+    : article;
+
+  if (updated) {
+    await article.createRevision(currentUser, updatedArticle, article, comment);
   }
 
-  if (content !== article.content || title !== article.title) {
-    await article.createRevision(currentUser, title ?? article.title, content ?? article.content);
-  }
-
-  ctx.body = new ArticleResponse(article);
+  ctx.body = new ArticleResponse(updatedArticle);
 });
 router.delete('/:id', auth, customerServiceOnly, async (ctx) => {
   const currentUser = ctx.state.currentUser as User;

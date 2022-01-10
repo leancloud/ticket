@@ -35,19 +35,46 @@ export class Article extends Model {
     );
   }
 
-  async createRevision(author: User, newTitle: string, newContent?: string) {
-    return ArticleRevision.create(
-      {
-        content: newContent,
-        title: newTitle,
-        authorId: author.id,
-        articleId: this.id,
-        ACL: new ACLBuilder().allowStaff('read'),
-      },
-      {
-        useMasterKey: true,
-      }
-    );
+  async createRevision(
+    author: User,
+    updatedArticle: Article,
+    previousArticle?: Article,
+    comment?: string
+  ) {
+    const doCreateRevision = async (data: Partial<ArticleRevision>) => {
+      return ArticleRevision.create(
+        {
+          ...data,
+          authorId: author.id,
+          articleId: this.id,
+          comment,
+          ACL: new ACLBuilder().allowStaff('read'),
+        },
+        {
+          useMasterKey: true,
+        }
+      );
+    };
+
+    const contentChanged =
+      updatedArticle.content !== previousArticle?.content ||
+      updatedArticle.title !== previousArticle?.title;
+    if (contentChanged) {
+      await doCreateRevision({
+        content: updatedArticle.content,
+        title: updatedArticle.title,
+      });
+    }
+
+    const metaChanged =
+      updatedArticle.private !== previousArticle?.private ||
+      (previousArticle === undefined && updatedArticle.private);
+    if (metaChanged) {
+      await doCreateRevision({
+        meta: true,
+        private: updatedArticle.private,
+      });
+    }
   }
 }
 

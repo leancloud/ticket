@@ -100,7 +100,7 @@ export function Articles() {
           <Column
             title="状态"
             dataIndex="private"
-            render={(title, article: Article) => <ArticleStatus article={article} />}
+            render={(_, article: Article) => <ArticleStatus article={article} />}
           />
           <Column
             title="创建日期"
@@ -186,6 +186,7 @@ export function NewArticle() {
       submitting={isLoading}
       onSubmit={mutate}
       onCancel={() => navigate('..')}
+      acceptComment={false}
     />
   );
 }
@@ -283,25 +284,27 @@ export function ArticleDetail() {
         </Breadcrumb>
         <div>
           <TogglePrivateButton size="small" article={article} />{' '}
-          {article.private ? (
-            <Dropdown.Button
-              size="small"
-              onClick={() => navigate('edit')}
-              overlay={
-                <Menu>
-                  <Menu.Item key="1" danger onClick={() => deleteAtcl(id!)}>
-                    删除
-                  </Menu.Item>
-                </Menu>
-              }
-            >
-              编辑
-            </Dropdown.Button>
-          ) : (
-            <Button size="small" onClick={() => navigate('edit')}>
-              编辑
-            </Button>
-          )}
+          <Dropdown.Button
+            size="small"
+            onClick={() => navigate('edit')}
+            overlay={
+              <Menu>
+                <Menu.Item key="0">
+                  <Link to="./revisions">历史</Link>
+                </Menu.Item>
+                {article.private && (
+                  <>
+                    <Menu.Divider />
+                    <Menu.Item key="1" danger onClick={() => deleteAtcl(id!)}>
+                      删除
+                    </Menu.Item>
+                  </>
+                )}
+              </Menu>
+            }
+          >
+            编辑
+          </Dropdown.Button>
         </div>
       </div>
       <Title level={2}>{article.title}</Title>

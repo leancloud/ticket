@@ -16,6 +16,7 @@ import TriggerDetail from './Automations/Triggers/Detail';
 import TimeTriggers from './Automations/TimeTriggers';
 import NewTimeTrigger from './Automations/TimeTriggers/New';
 import TimeTriggerDetail from './Automations/TimeTriggers/Detail';
+import { ArticleRevisionDetail, ArticleRevisions } from './Articles/Revision';
 
 const SettingRoutes = () => (
   <Routes>
@@ -57,6 +58,10 @@ const SettingRoutes = () => (
       <Route path=":id">
         <Route index element={<ArticleDetail />} />
         <Route path="edit" element={<EditArticle />} />
+        <Route path="revisions">
+          <Route index element={<ArticleRevisions />} />
+          <Route path=":rid" element={<ArticleRevisionDetail />} />
+        </Route>
       </Route>
     </Route>
   </Routes>
