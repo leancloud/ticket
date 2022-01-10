@@ -249,6 +249,10 @@ export class ViewController {
       .skip((page - 1) * pageSize)
       .limit(pageSize);
 
+    if (view.sortBy) {
+      query.orderBy(view.sortBy, view.sortOrder === 'desc' ? 'desc' : 'asc');
+    }
+
     if (ctx.query.includeAuthor) {
       query.preload('author');
     }
