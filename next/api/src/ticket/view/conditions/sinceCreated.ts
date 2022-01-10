@@ -13,8 +13,10 @@ export class SinceCreatedIs extends ViewCondition<{ value: number }> {
 
   getCondition(): any {
     const { value } = this.data;
-    const starts = moment().subtract(value + 1, 'hours');
-    const ends = moment().subtract(value, 'hours');
+
+    const now = moment();
+    const starts = moment(now).subtract(value + 1, 'hours');
+    const ends = moment(now).subtract(value, 'hours');
 
     return {
       createdAt: {
