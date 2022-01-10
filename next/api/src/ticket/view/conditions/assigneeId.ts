@@ -1,34 +1,39 @@
+import { z } from 'zod';
+
 import { User } from '@/model/User';
+import { ViewCondition } from './ViewCondition';
 
-export class AssigneeIdIs {
-  protected value: string | null;
-
-  constructor({ value }: { value: string | null }) {
-    this.value = value;
-  }
-
+export class AssigneeIdIs extends ViewCondition<{ value: string | null }> {
   getCondition(): any {
+    const { value } = this.data;
     return {
       assignee:
-        this.value === null
+        value === null
           ? {
               $exists: false,
             }
-          : User.ptr(this.value),
+          : User.ptr(value),
     };
+  }
+
+  getZodSchema() {
+    return z.object({
+      value: z.string().nullable(),
+    });
   }
 }
 
 export class AssigneeIdIsNot extends AssigneeIdIs {
   getCondition(): any {
+    const { value } = this.data;
     return {
       assignee:
-        this.value === null
+        value === null
           ? {
               $exists: true,
             }
           : {
-              $ne: User.ptr(this.value),
+              $ne: User.ptr(value),
             },
     };
   }
