@@ -19,6 +19,7 @@ import {
   SinceWaitingCustomerServiceGt,
   SinceWaitingCustomerServiceLt,
 } from './sinceWaitingCustomerService';
+import { StatusIs, StatusIsNot } from './status';
 
 interface ViewConditionConstructor<T> {
   new (data: T): ViewCondition<T>;
@@ -71,6 +72,10 @@ const viewConditionTypes: Record<string, Record<string, ViewConditionConstructor
     is: SinceWaitingCustomerServiceIs,
     gt: SinceWaitingCustomerServiceGt,
     lt: SinceWaitingCustomerServiceLt,
+  },
+  status: {
+    is: StatusIs,
+    isNot: StatusIsNot,
   },
 };
 

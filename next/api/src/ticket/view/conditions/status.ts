@@ -1,14 +1,18 @@
-export class StatusIs {
-  protected value: number;
+import { z } from 'zod';
 
-  constructor({ value }: { value: number }) {
-    this.value = value;
-  }
+import { ViewCondition } from './ViewCondition';
 
+export class StatusIs extends ViewCondition<{ value: number }> {
   getCondition(): any {
     return {
-      status: this.value,
+      status: this.data.value,
     };
+  }
+
+  getZodSchema() {
+    return z.object({
+      value: z.number(),
+    });
   }
 }
 
@@ -16,7 +20,7 @@ export class StatusIsNot extends StatusIs {
   getCondition(): any {
     return {
       status: {
-        $ne: this.value,
+        $ne: this.data.value,
       },
     };
   }
