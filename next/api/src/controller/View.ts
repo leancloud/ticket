@@ -119,6 +119,29 @@ export class ViewController {
     return groups.map((g) => new GroupResponse(g));
   }
 
+  @Get('count')
+  async getTicketCount(@Ctx() ctx: Context, @Query('ids', ParseCsvPipe) ids?: string[]) {
+    if (!ids || ids.length === 0) {
+      throw new HttpError(400, 'invalid ids');
+    }
+
+    const views = await View.queryBuilder()
+      .where('objectId', 'in', ids)
+      .find({ useMasterKey: true });
+
+    const currentUser = ctx.state.currentUser as User;
+    const authOptions = currentUser.getAuthOptions();
+
+    const tasks = views.map(async (view) => {
+      const ticketCount = await Ticket.queryBuilder()
+        .setRawCondition(view.getRawCondition())
+        .count(authOptions);
+      return { viewId: view.id, ticketCount };
+    });
+
+    return Promise.all(tasks);
+  }
+
   @Get(':id')
   async find(@Param('id', new FindModelPipe(View, { useMasterKey: true })) view: View) {
     return new ViewResponse(view);
@@ -221,20 +244,8 @@ export class ViewController {
     @Query('pageSize', new ParseIntPipe({ min: 0, max: 1000 })) pageSize = 10,
     @Query('count', ParseBoolPipe) count?: boolean
   ) {
-    let condition: any = {};
-    if (view.conditions.all.length) {
-      condition.$and = view.conditions.all.map((cond) => {
-        return createViewCondition(cond).getCondition();
-      });
-    }
-    if (view.conditions.any.length) {
-      condition.$or = view.conditions.any.map((cond) => {
-        return createViewCondition(cond).getCondition();
-      });
-    }
-
     const query = Ticket.queryBuilder()
-      .setRawCondition(condition)
+      .setRawCondition(view.getRawCondition())
       .skip((page - 1) * pageSize)
       .limit(pageSize);
 
