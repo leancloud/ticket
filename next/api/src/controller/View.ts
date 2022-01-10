@@ -22,7 +22,7 @@ import {
   ParseIntPipe,
   ZodValidationPipe,
 } from '@/common/pipe';
-import { auth, customerServiceOnly } from '@/middleware';
+import { auth, customerServiceOnly, include } from '@/middleware';
 import { User } from '@/model/User';
 import { View } from '@/model/View';
 import { Group } from '@/model/Group';
@@ -213,6 +213,7 @@ export class ViewController {
   }
 
   @Get(':id/tickets')
+  @UseMiddlewares(include)
   async getTickets(
     @Ctx() ctx: Context,
     @Param('id', new FindModelPipe(View, { useMasterKey: true })) view: View,
@@ -236,6 +237,16 @@ export class ViewController {
       .setRawCondition(condition)
       .skip((page - 1) * pageSize)
       .limit(pageSize);
+
+    if (ctx.query.includeAuthor) {
+      query.preload('author');
+    }
+    if (ctx.query.includeAssignee) {
+      query.preload('assignee');
+    }
+    if (ctx.query.includeGroup) {
+      query.preload('group');
+    }
 
     const currentUser = ctx.state.currentUser as User;
     const authOptions = currentUser.getAuthOptions();
