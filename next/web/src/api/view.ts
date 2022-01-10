@@ -2,6 +2,7 @@ import { useQuery, UseQueryOptions } from 'react-query';
 
 import { http } from '@/leancloud';
 import { GroupSchema } from './group';
+import { TicketSchema } from './ticket';
 
 interface ConditionSchema {
   type: string;
@@ -82,6 +83,48 @@ async function fetchView(id: string): Promise<ViewSchema> {
   return data;
 }
 
+interface FetchViewTicketsOptions {
+  page?: number;
+  pageSize?: number;
+  count?: string | boolean | number;
+  include?: string;
+}
+
+interface FetchViewTicketsResult {
+  tickets: TicketSchema[];
+  totalCount?: number;
+}
+
+async function fetchViewTickets(
+  id: string,
+  options: FetchViewTicketsOptions = {}
+): Promise<FetchViewTicketsResult> {
+  const { data, headers } = await http.get(`/api/2/views/${id}/tickets`, {
+    params: options,
+  });
+
+  let totalCount: number | undefined;
+  if (headers['x-total-count']) {
+    totalCount = parseInt(headers['x-total-count']);
+  }
+
+  return { tickets: data, totalCount };
+}
+
+interface ViewTicketCountResult {
+  viewId: string;
+  ticketCount: number;
+}
+
+async function fetchViewTicketCounts(viewIds: string[]): Promise<ViewTicketCountResult[]> {
+  const { data } = await http.get('/api/2/views/count', {
+    params: {
+      ids: viewIds.join(','),
+    },
+  });
+  return data;
+}
+
 function viewSortFunction(a: ViewSchema, b: ViewSchema): number {
   if (a.position === b.position) {
     return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
@@ -99,7 +142,7 @@ export function useViews({ queryOptions, ...options }: UseViewsOptions = {}) {
     queryFn: () => fetchViews(options),
     staleTime: Infinity,
     select: (views) => {
-      const sorted = views.sort(viewSortFunction);
+      const sorted = views.slice().sort(viewSortFunction);
       if (queryOptions?.select) {
         return queryOptions.select(sorted);
       }
@@ -122,6 +165,38 @@ export function useView(id: string, options?: UseQueryOptions<ViewSchema>) {
   return useQuery({
     queryKey: ['view', id],
     queryFn: () => fetchView(id),
+    staleTime: Infinity,
+    ...options,
+  });
+}
+
+interface UseViewTicketsOptions extends FetchViewTicketsOptions {
+  queryOptions?: UseQueryOptions<FetchViewTicketsResult, Error>;
+}
+
+export function useViewTickets(
+  id: string,
+  { queryOptions, ...options }: UseViewTicketsOptions = {}
+) {
+  const { data, ...result } = useQuery({
+    queryKey: ['viewTickets', id, options],
+    queryFn: () => fetchViewTickets(id, options),
+    ...queryOptions,
+  });
+  return {
+    ...result,
+    data: data?.tickets,
+    totalCount: data?.totalCount,
+  };
+}
+
+export function useViewTicketCounts(
+  viewIds: string[],
+  options?: UseQueryOptions<ViewTicketCountResult[]>
+) {
+  return useQuery({
+    queryKey: ['viewTicketCounts', viewIds],
+    queryFn: () => fetchViewTicketCounts(viewIds),
     staleTime: Infinity,
     ...options,
   });

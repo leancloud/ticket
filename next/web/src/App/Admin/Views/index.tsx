@@ -5,32 +5,32 @@ import { AiOutlineLeft, AiOutlineReload } from 'react-icons/ai';
 import cx from 'classnames';
 
 import { useCurrentUser } from '@/leancloud';
+import { GroupSchema } from '@/api/group';
 import { useCustomerServiceGroups, UserSchema } from '@/api/user';
-import { ViewSchema, useView, useViews } from '@/api/view';
-import { useTickets } from '@/api/ticket';
+import { ViewSchema, useView, useViews, useViewTickets, useViewTicketCounts } from '@/api/view';
 import { Table } from '@/components/antd';
 import { columnLabels } from '@/App/Admin/Settings/Views/EditView';
-import { GroupSchema } from 'api/group';
 
 interface ViewMenuItemsProps {
   items: ViewSchema[];
+  viewTicketCounts?: Record<string, number>;
   currentViewId?: string;
   onChange: (id: string) => void;
 }
 
-function ViewMenuItems({ items, currentViewId, onChange }: ViewMenuItemsProps) {
+function ViewMenuItems({ items, viewTicketCounts, currentViewId, onChange }: ViewMenuItemsProps) {
   return (
     <div className="p-4">
       {items.map(({ id, title }) => {
         const active = id === currentViewId;
-        const count = 114514;
-        const dark = count || active;
+        const count = viewTicketCounts?.[id];
+        const bold = count || active;
         return (
           <button
             key={id}
             className={cx('flex w-full h-9 text-left leading-9 px-4 rounded hover:bg-primary-400', {
-              'text-[#68737D] hover:text-[#68737D]': !dark,
-              'text-[#2f3941] hover:text-[#2f3941]': dark,
+              'text-[#68737D] hover:text-[#68737D]': !bold,
+              'text-[#2f3941] hover:text-[#2f3941]': bold,
               'bg-primary-600 hover:bg-primary-600 font-semibold': active,
             })}
             onClick={() => onChange(id)}
@@ -50,6 +50,7 @@ interface ViewMenu {
   onToggleExpand: () => void;
   sharedViews?: ViewSchema[];
   personalViews?: ViewSchema[];
+  viewTicketCounts?: Record<string, number>;
   currentViewId?: string;
   onChange: (id: string) => void;
 }
@@ -60,6 +61,7 @@ function ViewMenu({
   onToggleExpand,
   sharedViews,
   personalViews,
+  viewTicketCounts,
   currentViewId,
   onChange,
 }: ViewMenu) {
@@ -94,7 +96,12 @@ function ViewMenu({
         })}
       >
         {sharedViews && (
-          <ViewMenuItems items={sharedViews} currentViewId={currentViewId} onChange={onChange} />
+          <ViewMenuItems
+            items={sharedViews}
+            viewTicketCounts={viewTicketCounts}
+            currentViewId={currentViewId}
+            onChange={onChange}
+          />
         )}
 
         {personalViews && (
@@ -102,6 +109,7 @@ function ViewMenu({
             <div className="px-8 pt-3 font-semibold text-[#2f3941]">您的视图</div>
             <ViewMenuItems
               items={personalViews}
+              viewTicketCounts={viewTicketCounts}
               currentViewId={currentViewId}
               onChange={onChange}
             />
@@ -147,7 +155,25 @@ export function ViewTickets() {
 
   const { data: view, isLoading } = useView(id!);
 
-  const { data: tickets } = useTickets();
+  const include = useMemo(() => {
+    if (view) {
+      const include: string[] = [];
+      ['author', 'assignee', 'group'].forEach((field) => {
+        if (view.fields.includes(field)) {
+          include.push(field);
+        }
+      });
+      return include.length ? include.join(',') : undefined;
+    }
+  }, [view]);
+
+  const { data: tickets, isLoading: isLoadingTickets } = useViewTickets(id!, {
+    include,
+    count: true,
+    queryOptions: {
+      enabled: view !== undefined,
+    },
+  });
 
   const columns = useMemo(() => {
     return view?.fields.map((field) => {
@@ -178,6 +204,7 @@ export function ViewTickets() {
         onRow={(record) => ({
           onClick: () => window.open(`/tickets/${record.nid}`),
         })}
+        loading={isLoadingTickets}
       />
     </div>
   );
@@ -198,13 +225,30 @@ export function Views() {
     groupIds,
     userIds: ['null'],
     queryOptions: {
-      enabled: groupIds !== undefined && groupIds.length > 0,
+      enabled: userGroups !== undefined && userGroups.length > 0,
     },
   });
 
   const { data: personalViews } = useViews({
     userIds: [currentUser!.id],
   });
+
+  const viewIds = useMemo(() => {
+    if (sharedViews && personalViews) {
+      return sharedViews.concat(personalViews).map((v) => v.id);
+    }
+  }, [sharedViews, personalViews]);
+
+  const { data: viewTicketCounts } = useViewTicketCounts(viewIds!, {
+    enabled: viewIds !== undefined,
+  });
+
+  const viewTicketCountMap = useMemo(() => {
+    return viewTicketCounts?.reduce((map, cur) => {
+      map[cur.viewId] = cur.ticketCount;
+      return map;
+    }, {} as Record<string, number>);
+  }, [viewTicketCounts]);
 
   const findView = useCallback(
     (id: string) => {
@@ -250,6 +294,7 @@ export function Views() {
           onToggleExpand={() => setExpandViewMenu(!expandViewMenu)}
           sharedViews={sharedViews}
           personalViews={personalViews}
+          viewTicketCounts={viewTicketCountMap}
           currentViewId={id}
           onChange={handleChangeView}
         />
