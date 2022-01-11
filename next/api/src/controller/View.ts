@@ -31,6 +31,7 @@ import { ViewResponse } from '@/response/view';
 import { Ticket } from '@/model/Ticket';
 import { TicketListItemResponse } from '@/response/ticket';
 import { createViewCondition } from '@/ticket/view';
+import { ViewConditionContext } from '@/ticket/view/conditions/ViewCondition';
 
 const conditionSchema = z.object({
   type: z.string(),
@@ -131,10 +132,11 @@ export class ViewController {
 
     const currentUser = ctx.state.currentUser as User;
     const authOptions = currentUser.getAuthOptions();
+    const context = new ViewConditionContext(currentUser);
 
     const tasks = views.map(async (view) => {
       const ticketCount = await Ticket.queryBuilder()
-        .setRawCondition(view.getRawCondition())
+        .setRawCondition(await view.getRawCondition(context))
         .count(authOptions);
       return { viewId: view.id, ticketCount };
     });
@@ -244,8 +246,11 @@ export class ViewController {
     @Query('pageSize', new ParseIntPipe({ min: 0, max: 1000 })) pageSize = 10,
     @Query('count', ParseBoolPipe) count?: boolean
   ) {
+    const currentUser = ctx.state.currentUser as User;
+
+    const context = new ViewConditionContext(currentUser);
     const query = Ticket.queryBuilder()
-      .setRawCondition(view.getRawCondition())
+      .setRawCondition(await view.getRawCondition(context))
       .skip((page - 1) * pageSize)
       .limit(pageSize);
 
@@ -263,9 +268,7 @@ export class ViewController {
       query.preload('group');
     }
 
-    const currentUser = ctx.state.currentUser as User;
     const authOptions = currentUser.getAuthOptions();
-
     const tickets = count
       ? await query.findAndCount(authOptions).then(([tickets, count]) => {
           ctx.set('X-Total-Count', count.toString());

@@ -1,18 +1,26 @@
 import { z } from 'zod';
 
 import { User } from '@/model/User';
-import { ViewCondition } from './ViewCondition';
+import { ViewCondition, ViewConditionContext } from './ViewCondition';
 
 export class AssigneeIdIs extends ViewCondition<{ value: string | null }> {
-  getCondition(): any {
+  getCondition(ctx: ViewConditionContext): any {
     const { value } = this.data;
+
+    if (value === null) {
+      return {
+        assignee: { $exists: false },
+      };
+    }
+
+    if (value === '__currentUser') {
+      return {
+        assignee: ctx.currentUser.toPointer(),
+      };
+    }
+
     return {
-      assignee:
-        value === null
-          ? {
-              $exists: false,
-            }
-          : User.ptr(value),
+      assignee: User.ptr(value),
     };
   }
 
@@ -24,17 +32,23 @@ export class AssigneeIdIs extends ViewCondition<{ value: string | null }> {
 }
 
 export class AssigneeIdIsNot extends AssigneeIdIs {
-  getCondition(): any {
+  getCondition(ctx: ViewConditionContext): any {
     const { value } = this.data;
+
+    if (value === null) {
+      return {
+        assignee: { $exists: true },
+      };
+    }
+
+    if (value === '__currentUser') {
+      return {
+        assignee: { $ne: ctx.currentUser.toPointer() },
+      };
+    }
+
     return {
-      assignee:
-        value === null
-          ? {
-              $exists: true,
-            }
-          : {
-              $ne: User.ptr(value),
-            },
+      assignee: { $ne: User.ptr(value) },
     };
   }
 }

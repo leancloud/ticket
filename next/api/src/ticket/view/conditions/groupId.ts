@@ -1,18 +1,27 @@
 import { z } from 'zod';
 
 import { Group } from '@/model/Group';
-import { ViewCondition } from './ViewCondition';
+import { ViewCondition, ViewConditionContext } from './ViewCondition';
 
 export class GroupIdIs extends ViewCondition<{ value: string | null }> {
-  getCondition(): any {
+  async getCondition(ctx: ViewConditionContext): Promise<any> {
     const { value } = this.data;
+
+    if (value === null) {
+      return {
+        group: { $exists: false },
+      };
+    }
+
+    if (value === '__groupsOfCurrentUser') {
+      const groups = await ctx.getGroupsOfCurrentUser();
+      return {
+        group: { $in: groups.map((g) => g.toPointer()) },
+      };
+    }
+
     return {
-      group:
-        value === null
-          ? {
-              $exists: false,
-            }
-          : Group.ptr(value),
+      group: Group.ptr(value),
     };
   }
 
@@ -24,17 +33,24 @@ export class GroupIdIs extends ViewCondition<{ value: string | null }> {
 }
 
 export class GroupIdIsNot extends GroupIdIs {
-  getCondition(): any {
+  async getCondition(ctx: ViewConditionContext): Promise<any> {
     const { value } = this.data;
+
+    if (value === null) {
+      return {
+        group: { $exists: true },
+      };
+    }
+
+    if (value === '__groupsOfCurrentUser') {
+      const groups = await ctx.getGroupsOfCurrentUser();
+      return {
+        group: { $nin: groups.map((g) => g.toPointer()) },
+      };
+    }
+
     return {
-      group:
-        value === null
-          ? {
-              $exists: true,
-            }
-          : {
-              $ne: Group.ptr(value),
-            },
+      group: { $ne: Group.ptr(value) },
     };
   }
 }

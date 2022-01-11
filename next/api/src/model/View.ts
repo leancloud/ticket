@@ -1,5 +1,6 @@
 import { Model, field } from '@/orm';
 import { createViewCondition } from '@/ticket/view';
+import { ViewConditionContext } from '@/ticket/view/conditions/ViewCondition';
 
 export class View extends Model {
   @field()
@@ -29,17 +30,21 @@ export class View extends Model {
   @field()
   position?: number;
 
-  getRawCondition(): any {
+  async getRawCondition(context: ViewConditionContext): Promise<any> {
     const condition: any = {};
     if (this.conditions.all.length) {
-      condition.$and = this.conditions.all.map((cond) => {
-        return createViewCondition(cond).getCondition();
-      });
+      condition.$and = await Promise.all(
+        this.conditions.all.map((cond) => {
+          return createViewCondition(cond).getCondition(context);
+        })
+      );
     }
     if (this.conditions.any.length) {
-      condition.$or = this.conditions.any.map((cond) => {
-        return createViewCondition(cond).getCondition();
-      });
+      condition.$or = await Promise.all(
+        this.conditions.any.map((cond) => {
+          return createViewCondition(cond).getCondition(context);
+        })
+      );
     }
     return condition;
   }
