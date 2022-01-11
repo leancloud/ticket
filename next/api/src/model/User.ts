@@ -8,6 +8,7 @@ import { RedisCache } from '@/cache';
 import { AuthOptions, Model, field } from '@/orm';
 import { Role } from './Role';
 import { Vacation } from './Vacation';
+import { Group } from './Group';
 
 function encodeAVUser(user: AV.User): string {
   const json = user.toFullJSON();
@@ -220,6 +221,20 @@ export class User extends Model {
       this.sessionToken = avUser.getSessionToken();
     }
     return this.sessionToken;
+  }
+
+  async getGroups(): Promise<Group[]> {
+    const roles = await Role.queryBuilder()
+      .where('name', 'starts-with', 'group_')
+      .where('users', '==', this.toPointer())
+      .find({ useMasterKey: true });
+    return Group.queryBuilder()
+      .where(
+        'role',
+        'in',
+        roles.map((r) => r.toPointer())
+      )
+      .find({ useMasterKey: true });
   }
 }
 
