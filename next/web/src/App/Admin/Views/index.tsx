@@ -169,11 +169,16 @@ function ViewMenu({
 }
 
 interface ColumnConfig {
+  className?: string;
   dataIndex?: string;
   render?: (...args: any[]) => JSX.Element;
 }
 
 const columnConfigs: Record<string, ColumnConfig> = {
+  title: {
+    className: 'max-w-[250px]',
+    render: (title: string) => <div className="truncate" title={title} children={title} />,
+  },
   author: {
     render: (u: UserSchema) => <div>{u.nickname}</div>,
   },
@@ -258,9 +263,9 @@ export function ViewTickets() {
     return view?.fields.map((field) => {
       const cfg = columnConfigs[field];
       return {
+        ...cfg,
         title: columnLabels[field] ?? field,
         dataIndex: cfg?.dataIndex ?? field,
-        render: cfg?.render,
       };
     });
   }, [view]);
