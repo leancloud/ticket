@@ -44,6 +44,16 @@ const numberOps: Op[] = [
   },
 ];
 
+const currentUserOption = {
+  label: '（当前用户）',
+  value: '__currentUser',
+};
+
+const groupsOfCurrentUserOption = {
+  label: '（当前用户的组）',
+  value: '__groupsOfCurrentUser',
+};
+
 export const conditions: Condition[] = [
   {
     label: '分类',
@@ -69,11 +79,17 @@ export const conditions: Condition[] = [
         label: '是',
         value: 'is',
         component: CustomerServiceSelect,
+        componentProps: {
+          options: [currentUserOption],
+        },
       },
       {
         label: '不是',
         value: 'isNot',
         component: CustomerServiceSelect,
+        componentProps: {
+          options: [currentUserOption],
+        },
       },
     ],
   },
@@ -85,11 +101,17 @@ export const conditions: Condition[] = [
         label: '是',
         value: 'is',
         component: GroupSelect,
+        componentProps: {
+          options: [groupsOfCurrentUserOption],
+        },
       },
       {
         label: '不是',
         value: 'isNot',
         component: GroupSelect,
+        componentProps: {
+          options: [groupsOfCurrentUserOption],
+        },
       },
     ],
   },

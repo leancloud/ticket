@@ -115,10 +115,14 @@ function Condition({ name, deleteable, onDelete }: ConditionProps) {
     return ops?.map((o) => pick(o, ['label', 'value']));
   }, [ops]);
 
-  const ValueComponent = useMemo(() => {
+  const [ValueComponent, valueComponentProps] = useMemo(() => {
     if (ops && op) {
-      return ops.find((t) => t.value === op)?.component;
+      const opConfig = ops.find((t) => t.value === op);
+      if (opConfig) {
+        return [opConfig.component, opConfig.componentProps] as const;
+      }
     }
+    return [undefined, undefined];
   }, [ops, op]);
 
   return (
@@ -171,7 +175,7 @@ function Condition({ name, deleteable, onDelete }: ConditionProps) {
             rules={{ required: '请填写此字段' }}
             render={({ field, fieldState: { error } }) => (
               <Form.Item validateStatus={error ? 'error' : undefined} help={error?.message}>
-                <ValueComponent {...field} />
+                <ValueComponent {...field} {...valueComponentProps} />
               </Form.Item>
             )}
           />
