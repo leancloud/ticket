@@ -151,3 +151,9 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 ### `6c989e6a9038f6943126ab995379d66ddc257b31`
 
 重新导入 Category.json（增加 notices 列）
+
+## 2022-01-11
+
+### `13e0d717eca091b4ca7b5088b1689138b4792ad5`
+
+导入 View 表结构（resources/schema/View.json），导入内置视图的数据（resources/data/View.jsonl）。
