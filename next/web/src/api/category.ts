@@ -35,8 +35,8 @@ export function useCategories({ active, queryOptions }: UseCategoriesOptions = {
 
 export interface CategoryTreeNode extends CategorySchema {
   parent?: CategoryTreeNode;
-  prevSibiling?: CategoryTreeNode;
-  nextSibiling?: CategoryTreeNode;
+  prevSibling?: CategoryTreeNode;
+  nextSibling?: CategoryTreeNode;
   children?: CategoryTreeNode[];
 }
 
@@ -49,8 +49,8 @@ function makeCategoryTree(categories: CategorySchema[]): CategoryTreeNode[] {
     currentLevel.forEach((category, index) => {
       if (index) {
         const prev = currentLevel[index - 1];
-        category.prevSibiling = prev;
-        prev.nextSibiling = category;
+        category.prevSibling = prev;
+        prev.nextSibling = category;
       }
       const children = dfs(category.id);
       children.forEach((child) => (child.parent = category));

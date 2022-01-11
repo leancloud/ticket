@@ -4,6 +4,7 @@ import { useCategories } from '@/api/category';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 import Tickets from './Tickets';
+import { Views, ViewTickets } from './Views';
 import Settings from './Settings';
 
 export default function AdminPage() {
@@ -23,6 +24,10 @@ export default function AdminPage() {
         <div className="grow overflow-hidden">
           <Routes>
             <Route path="/tickets/*" element={<Tickets />} />
+            <Route path="/views" element={<Views />}>
+              <Route index element={null} />
+              <Route path=":id" element={<ViewTickets />} />
+            </Route>
             <Route path="/settings/*" element={<Settings />} />
             <Route path="*" element={<Navigate to="tickets" replace />} />
           </Routes>

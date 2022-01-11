@@ -7,8 +7,8 @@ import cx from 'classnames';
 
 import { TicketFieldSchema, useTicketFields } from '@/api/ticket-field';
 import { Button, Form, FormInstance, Input } from '@/components/antd';
+import DragIcon from '@/icons/DragIcon';
 import { TicketFieldIcon } from '../TicketFields';
-import DragIcon from './DragIcon';
 
 interface SelectedFieldItemProps {
   index: number;

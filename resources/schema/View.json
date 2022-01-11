@@ -1,0 +1,101 @@
+{
+  "schema": {
+    "updatedAt": {
+      "type": "Date"
+    },
+    "sortBy": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false,
+      "comment": ""
+    },
+    "ACL": {
+      "type": "ACL"
+    },
+    "objectId": {
+      "type": "String"
+    },
+    "fields": {
+      "type": "Array",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "createdAt": {
+      "type": "Date"
+    },
+    "groupIds": {
+      "type": "Array",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "title": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "conditions": {
+      "type": "Object",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "sortOrder": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "position": {
+      "type": "Number",
+      "v": 2,
+      "required": false,
+      "auto_increment": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "userIds": {
+      "type": "Array",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    }
+  },
+  "permissions": {
+    "create": {
+      "roles": [],
+      "users": []
+    },
+    "find": {
+      "roles": [],
+      "users": []
+    },
+    "get": {
+      "roles": [],
+      "users": []
+    },
+    "update": {
+      "roles": [],
+      "users": []
+    },
+    "delete": {
+      "roles": [],
+      "users": []
+    },
+    "add_fields": {
+      "roles": [],
+      "users": []
+    }
+  },
+  "indexes": []
+}

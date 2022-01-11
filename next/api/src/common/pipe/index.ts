@@ -7,6 +7,7 @@ export interface Pipe<TInput, TOutput> {
 }
 
 export * from './ParseBoolPipe';
+export * from './ParseCsvPipe';
 export * from './ParseIntPipe';
 export * from './ParseOrderPipe';
 export * from './ValidationPipe';

@@ -1,0 +1,15 @@
+.conditionGroup {
+  :global {
+    .ant-form-item {
+      margin-bottom: 0;
+    }
+
+    .ant-form-item-explain {
+      min-height: 0;
+    }
+
+    .ant-input-number {
+      width: 100%;
+    }
+  }
+}

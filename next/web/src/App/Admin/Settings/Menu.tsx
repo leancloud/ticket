@@ -7,6 +7,10 @@ const routeGroups = [
     name: '管理',
     paths: [
       {
+        name: '视图',
+        path: 'views',
+      },
+      {
         name: '工单字段',
         path: 'ticket-fields',
       },
@@ -15,7 +19,8 @@ const routeGroups = [
         path: 'ticket-forms',
       },
     ],
-  },{
+  },
+  {
     name: '知识库',
     paths: [
       {
