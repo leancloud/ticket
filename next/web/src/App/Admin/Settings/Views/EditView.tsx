@@ -196,7 +196,7 @@ function Conditions({ name }: { name: string }) {
         <Condition
           key={field.id}
           name={`${name}.${index}`}
-          deleteable={fields.length > 1}
+          deleteable
           onDelete={() => remove(index)}
         />
       ))}

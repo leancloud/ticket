@@ -2,7 +2,12 @@ import { ComponentPropsWithoutRef, FC } from 'react';
 import cx from 'classnames';
 
 function Base(props: ComponentPropsWithoutRef<'span'>) {
-  return <span {...props} className={cx('p-1 text-sm border rounded', props.className)} />;
+  return (
+    <span
+      {...props}
+      className={cx('p-1 text-sm border rounded whitespace-nowrap', props.className)}
+    />
+  );
 }
 
 function New() {

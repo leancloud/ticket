@@ -25,7 +25,7 @@ export default function AdminPage() {
           <Routes>
             <Route path="/tickets/*" element={<Tickets />} />
             <Route path="/views" element={<Views />}>
-              <Route index />
+              <Route index element={null} />
               <Route path=":id" element={<ViewTickets />} />
             </Route>
             <Route path="/settings/*" element={<Settings />} />

@@ -111,7 +111,7 @@ async function fetchViewTickets(
   return { tickets: data, totalCount };
 }
 
-interface ViewTicketCountResult {
+export interface ViewTicketCountResult {
   viewId: string;
   ticketCount: number;
 }

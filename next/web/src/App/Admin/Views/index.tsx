@@ -1,15 +1,35 @@
-import { useCallback, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from 'react-query';
 import { Link, Outlet, useNavigate, useParams } from 'react-router-dom';
 import { AiOutlineLeft, AiOutlineReload } from 'react-icons/ai';
 import cx from 'classnames';
+import { produce } from 'immer';
 
 import { useCurrentUser } from '@/leancloud';
+import { CategorySchema, useCategories } from '@/api/category';
 import { GroupSchema } from '@/api/group';
 import { useCustomerServiceGroups, UserSchema } from '@/api/user';
-import { ViewSchema, useView, useViews, useViewTickets, useViewTicketCounts } from '@/api/view';
-import { Table } from '@/components/antd';
+import {
+  ViewSchema,
+  ViewTicketCountResult,
+  useView,
+  useViews,
+  useViewTickets,
+  useViewTicketCounts,
+} from '@/api/view';
+import { Empty, Spin, Table } from '@/components/antd';
 import { columnLabels } from '@/App/Admin/Settings/Views/EditView';
+import TicketStatus from '@/App/Admin/Tickets/TicketView/TicketStatus';
+import { useGetCategoryPath } from '@/utils/useGetCategoryPath';
+import { usePage } from '@/utils/usePage';
+
+const CategoryPathContext = createContext<{
+  getCategoryPath: (id: string) => CategorySchema[];
+}>({
+  getCategoryPath: () => [],
+});
+
+const PAGE_SIZE = 20;
 
 interface ViewMenuItemsProps {
   items: ViewSchema[];
@@ -48,6 +68,8 @@ interface ViewMenu {
   className?: string;
   expand?: boolean;
   onToggleExpand: () => void;
+  onRefresh: () => void;
+  loading?: boolean;
   sharedViews?: ViewSchema[];
   personalViews?: ViewSchema[];
   viewTicketCounts?: Record<string, number>;
@@ -59,6 +81,8 @@ function ViewMenu({
   className,
   expand,
   onToggleExpand,
+  onRefresh,
+  loading,
   sharedViews,
   personalViews,
   viewTicketCounts,
@@ -69,7 +93,12 @@ function ViewMenu({
     <div className={cx(className, 'w-[330px] flex flex-col')}>
       <div className="flex shrink-0 items-center mx-4 mt-10 h-10 border-b border-[#d8dcde]">
         <div className="grow font-semibold ml-4">视图</div>
-        <button className="flex w-8 h-8 rounded hover:bg-gray-100" title="刷新">
+        <button
+          className="flex w-8 h-8 rounded hover:bg-gray-100 disabled:opacity-30"
+          title="刷新"
+          disabled={loading}
+          onClick={() => onRefresh()}
+        >
           <AiOutlineReload className="m-auto w-4 h-4" />
         </button>
         <button
@@ -80,7 +109,7 @@ function ViewMenu({
             }
           )}
           title="隐藏"
-          onClick={onToggleExpand}
+          onClick={() => onToggleExpand()}
         >
           <AiOutlineLeft
             className={cx('m-auto w-4 h-4 transition-transform duration-300', {
@@ -95,26 +124,41 @@ function ViewMenu({
           'opacity-0': !expand,
         })}
       >
-        {sharedViews && (
-          <ViewMenuItems
-            items={sharedViews}
-            viewTicketCounts={viewTicketCounts}
-            currentViewId={currentViewId}
-            onChange={onChange}
-          />
-        )}
+        <div className="relative">
+          {loading && (
+            <div className="flex items-center justify-center absolute inset-0 bg-[#ffffffcc]">
+              <Spin />
+            </div>
+          )}
 
-        {personalViews && (
-          <>
-            <div className="px-8 pt-3 font-semibold text-[#2f3941]">您的视图</div>
+          {(!sharedViews || sharedViews.length === 0) &&
+            (!personalViews || personalViews.length === 0) && (
+              <div className="my-10">
+                <Empty />
+              </div>
+            )}
+
+          {sharedViews && sharedViews.length > 0 && (
             <ViewMenuItems
-              items={personalViews}
+              items={sharedViews}
               viewTicketCounts={viewTicketCounts}
               currentViewId={currentViewId}
               onChange={onChange}
             />
-          </>
-        )}
+          )}
+
+          {personalViews && personalViews.length > 0 && (
+            <>
+              <div className="px-8 pt-3 font-semibold text-[#2f3941]">您的视图</div>
+              <ViewMenuItems
+                items={personalViews}
+                viewTicketCounts={viewTicketCounts}
+                currentViewId={currentViewId}
+                onChange={onChange}
+              />
+            </>
+          )}
+        </div>
 
         <div className="px-8 pt-3 pb-6">
           <Link to="/admin/settings/views">管理视图</Link>
@@ -141,17 +185,31 @@ const columnConfigs: Record<string, ColumnConfig> = {
   },
   category: {
     dataIndex: 'categoryId',
+    render: (id: string) => {
+      const { getCategoryPath } = useContext(CategoryPathContext);
+      return (
+        <div className="whitespace-nowrap">
+          {getCategoryPath(id)
+            .map((c) => c.name)
+            .join(' / ')}
+        </div>
+      );
+    },
   },
   createdAt: {
-    render: (str: string) => <div>{str.slice(0, 10)}</div>,
+    render: (t: string) => <div title={t}>{t.slice(0, 10)}</div>,
   },
   updatedAt: {
-    render: (str: string) => <div>{str.slice(0, 10)}</div>,
+    render: (t: string) => <div title={t}>{t.slice(0, 10)}</div>,
+  },
+  status: {
+    render: (status: number) => <TicketStatus status={status} />,
   },
 };
 
 export function ViewTickets() {
   const { id } = useParams();
+  const [page, { set: setPage }] = usePage();
 
   const { data: view, isLoading } = useView(id!);
 
@@ -167,11 +225,32 @@ export function ViewTickets() {
     }
   }, [view]);
 
-  const { data: tickets, isLoading: isLoadingTickets } = useViewTickets(id!, {
+  const queryClient = useQueryClient();
+  const { data: tickets, totalCount, isLoading: isLoadingTickets } = useViewTickets(id!, {
+    page,
+    pageSize: PAGE_SIZE,
     include,
     count: true,
     queryOptions: {
       enabled: view !== undefined,
+      onSuccess: ({ totalCount }) => {
+        if (totalCount !== undefined) {
+          queryClient
+            .getQueriesData<ViewTicketCountResult[] | undefined>('viewTicketCounts')
+            ?.forEach(([key, data]) => {
+              if (data) {
+                const index = data.findIndex((t) => t.viewId === id);
+                if (index >= 0) {
+                  queryClient.setQueryData(key, (data) => {
+                    return produce(data as ViewTicketCountResult[], (draft) => {
+                      draft[index].ticketCount = totalCount;
+                    });
+                  });
+                }
+              }
+            });
+        }
+      },
     },
   });
 
@@ -186,6 +265,9 @@ export function ViewTickets() {
     });
   }, [view]);
 
+  const { data: categories } = useCategories();
+  const getCategoryPath = useGetCategoryPath(categories);
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -194,18 +276,28 @@ export function ViewTickets() {
     <div className="p-10">
       <div className="mb-5">
         <div className="text-[26px] text-[#2F3941]">{view!.title}</div>
+        {totalCount !== undefined && <div>{totalCount} 张工单</div>}
       </div>
 
-      <Table
-        columns={columns}
-        dataSource={tickets}
-        rowKey="id"
-        rowClassName="cursor-pointer"
-        onRow={(record) => ({
-          onClick: () => window.open(`/tickets/${record.nid}`),
-        })}
-        loading={isLoadingTickets}
-      />
+      <CategoryPathContext.Provider value={{ getCategoryPath }}>
+        <Table
+          columns={columns}
+          dataSource={tickets}
+          rowKey="id"
+          rowClassName="cursor-pointer"
+          onRow={(record) => ({
+            onClick: () => window.open(`/tickets/${record.nid}`),
+          })}
+          loading={isLoadingTickets}
+          pagination={{
+            current: page,
+            pageSize: PAGE_SIZE,
+            onChange: setPage,
+            total: totalCount,
+            showSizeChanger: false,
+          }}
+        />
+      </CategoryPathContext.Provider>
     </div>
   );
 }
@@ -221,7 +313,7 @@ export function Views() {
     return ['null', ...(userGroups?.map((g) => g.id) ?? [])];
   }, [userGroups]);
 
-  const { data: sharedViews } = useViews({
+  const { data: sharedViews, isFetching: loadingSharedViews } = useViews({
     groupIds,
     userIds: ['null'],
     queryOptions: {
@@ -229,7 +321,7 @@ export function Views() {
     },
   });
 
-  const { data: personalViews } = useViews({
+  const { data: personalViews, isFetching: loadingPersonalViews } = useViews({
     userIds: [currentUser!.id],
   });
 
@@ -239,8 +331,17 @@ export function Views() {
     }
   }, [sharedViews, personalViews]);
 
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!id && viewIds?.length) {
+      navigate(viewIds[0]);
+    }
+  }, [viewIds, id]);
+
   const { data: viewTicketCounts } = useViewTicketCounts(viewIds!, {
-    enabled: viewIds !== undefined,
+    enabled: viewIds !== undefined && viewIds.length > 0,
+    keepPreviousData: true,
   });
 
   const viewTicketCountMap = useMemo(() => {
@@ -268,8 +369,8 @@ export function Views() {
     [sharedViews, personalViews]
   );
 
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
+
   const handleChangeView = (id: string) => {
     const view = findView(id);
     if (view) {
@@ -277,6 +378,11 @@ export function Views() {
       navigate(id);
     }
   };
+
+  const handleRefresh = useCallback(() => {
+    queryClient.invalidateQueries('views');
+    queryClient.invalidateQueries('viewTicketCounts');
+  }, [queryClient]);
 
   return (
     <div className="flex h-full bg-white">
@@ -292,6 +398,8 @@ export function Views() {
         <ViewMenu
           expand={expandViewMenu}
           onToggleExpand={() => setExpandViewMenu(!expandViewMenu)}
+          onRefresh={handleRefresh}
+          loading={loadingSharedViews || loadingPersonalViews}
           sharedViews={sharedViews}
           personalViews={personalViews}
           viewTicketCounts={viewTicketCountMap}
@@ -299,7 +407,8 @@ export function Views() {
           onChange={handleChangeView}
         />
       </div>
-      <div className="grow">
+
+      <div className="grow overflow-y-auto">
         <Outlet />
       </div>
     </div>
