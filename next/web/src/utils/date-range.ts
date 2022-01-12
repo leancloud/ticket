@@ -28,27 +28,16 @@ const relativeDateGetters: Record<string, () => DateRange> = {
   }),
 };
 
-const relativeDateCreators: Record<string, (count: number) => DateRange> = {
-  d: (cnt) => ({
-    from: moment().startOf('day').subtract(cnt, 'day').toDate(),
-    to: moment().endOf('day').subtract(cnt, 'day').toDate(),
-  }),
-};
-
-const relativeDateUnits = Object.keys(relativeDateCreators);
-
-const dateRangeRegExp = new RegExp(`(\\d+)([${relativeDateUnits.join('')}])`);
-
 export function decodeDateRange(value: string): DateRange | undefined {
   const getter = relativeDateGetters[value];
   if (getter) {
     return getter();
   }
-
-  const match = value.match(dateRangeRegExp);
-  if (match) {
-    const [, count, unit] = match;
-    const creator = relativeDateCreators[unit];
-    return creator?.(parseInt(count));
+  if (value.includes('..')) {
+    const [from, to] = value.split('..');
+    return {
+      from: from === undefined ? undefined : new Date(from),
+      to: to === undefined ? undefined : new Date(to),
+    };
   }
 }
