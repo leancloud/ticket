@@ -22,7 +22,7 @@ export function CreatedAtSelect({ value, onChange }: CreatedAtSelectProps) {
       className="w-full"
       options={options}
       value={value ?? EMPTY_VALUE}
-      onSelect={(key) => onChange(key === EMPTY_VALUE ? undefined : key)}
+      onSelect={(key: string) => onChange(key === EMPTY_VALUE ? undefined : key)}
     />
   );
 }
