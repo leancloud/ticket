@@ -10,8 +10,7 @@ import {
   Empty,
   Menu,
   message,
-  Popover,
-  Select,
+  Radio,
   Spin,
   Table,
   Tag,
@@ -32,19 +31,19 @@ import { CategorySchema } from '@/api/category';
 import { EditArticleForm } from './EditArticleForm';
 // We should move them to @component
 import { CategoryPath, useGetCategoryPath } from '../../Tickets/TicketView/TicketList';
+import { useSearchParam } from '@/utils/useSearchParams';
 
 const { Column } = Table;
-const { Option } = Select;
 const { Title } = Typography;
 
-const PrivateQueryValue = {
+const PrivateQueryValue: { [key: string]: boolean| undefined } = {
   true: true,
   false: false,
   unset: undefined,
 };
 
 export function Articles() {
-  const [filter, setFilter] = useState<'true' | 'false' | 'unset'>('unset');
+  const [filter = 'unset', setFilter] = useSearchParam('status');
   const [page, { set: setPage }] = usePage();
   const [pageSize = 20, setPageSize] = usePageSize();
   const { data: articles, totalCount, isLoading } = useArticles({
@@ -60,17 +59,17 @@ export function Articles() {
   return (
     <div className="px-10 pt-10">
       <h1 className="text-[#2f3941] text-[26px] font-normal">文章</h1>
-      <div className="flex flex-row mb-4">
+      <div className="flex flex-row items-center mb-4">
         <div className="grow">
-          <Select value={filter} onChange={setFilter}>
-            <Option value="unset">全部</Option>
-            <Option value="true">未发布</Option>
-            <Option value="false">已发布</Option>
-          </Select>
+          <Radio.Group value={filter} onChange={(e) => setFilter(e.target.value)} size="small">
+            <Radio.Button value="unset">全部</Radio.Button>
+            <Radio.Button value="true">未发布</Radio.Button>
+            <Radio.Button value="false">已发布</Radio.Button>
+          </Radio.Group>
         </div>
         <Link to="new">
           <Button type="primary" ghost>
-            新增文章
+            创建文章
           </Button>
         </Link>
       </div>

@@ -2,7 +2,7 @@ import Router from '@koa/router';
 
 import { Article, getPublicArticle } from '@/model/Article';
 import { ArticleResponse } from '@/response/article';
-import { z } from 'zod';
+import * as yup from '@/utils/yup';
 import _ from 'lodash';
 import { auth, boolean, customerServiceOnly, pagination } from '@/middleware';
 import { ACLBuilder, CreateData, UpdateData } from '@/orm';
@@ -47,17 +47,19 @@ router.get('/', pagination(20), boolean('private'), async (ctx) => {
   ctx.body = articles.map((article) => new ArticleResponse(article));
 });
 
-const createArticalSchema = z.object({
-  title: z.string(),
-  content: z.string(),
-  private: z.boolean().optional(),
+const createArticalSchema = yup.object({
+  title: yup.string(),
+  content: yup.string(),
+  private: yup.boolean().optional(),
 });
 router.post('/', auth, customerServiceOnly, async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
-  const { title, content, ['private']: prvt } = createArticalSchema.parse(ctx.request.body);
+  const { title, content, ['private']: prvt } = createArticalSchema.validateSync(ctx.request.body);
   const data: CreateData<Article> = { title };
-  data.content = content;
-  data.contentHTML = htmlify(content);
+  if (content) {
+    data.content = content;
+    data.contentHTML = htmlify(content);
+  }
   if (prvt !== undefined) {
     data.private = prvt;
     data.ACL = getACL(prvt);
@@ -104,24 +106,30 @@ router.get('/:id/categories', auth, customerServiceOnly, async (ctx) => {
   ctx.body = associatedCategories.map((category) => new CategoryResponse(category));
 });
 
-// router.use('/revisions', revisionRouter.routes);
-
+const getRevisionsSchema = yup.object({
+  meta: yup.boolean().optional(),
+});
 router.get('/:id/revisions', auth, customerServiceOnly, pagination(100), async (ctx) => {
   const article = ctx.state.article as Article;
+  const { meta } = getRevisionsSchema.validateSync(ctx.query);
 
   const { page, pageSize } = pagination.get(ctx);
 
-  const revisions = await ArticleRevision.queryBuilder()
+  const query = ArticleRevision.queryBuilder()
     .where('FAQ', '==', article.toPointer())
     .orderBy('createdAt', 'desc')
     .skip((page - 1) * pageSize)
     .limit(pageSize)
-    .preload('author')
-    .findAndCount({ useMasterKey: true })
-    .then(([data, count]) => {
-      ctx.set('x-total-count', count.toString());
-      return data;
-    });
+    .preload('author');
+
+  if (meta !== undefined) {
+    query.where('meta', meta ? '==' : '!=', true);
+  }
+
+  const revisions = await query.findAndCount({ useMasterKey: true }).then(([data, count]) => {
+    ctx.set('x-total-count', count.toString());
+    return data;
+  });
 
   ctx.body = revisions.map((revision) => new ArticleRevisionListItemResponse(revision));
 });
@@ -152,16 +160,16 @@ const getACL = (prvt: boolean) => {
   return ACL;
 };
 
-const updateArticalSchema = z.object({
-  title: z.string().optional(),
-  content: z.string().optional(),
-  private: z.boolean().optional(),
-  comment: z.string().optional(),
+const updateArticalSchema = yup.object({
+  title: yup.string().optional(),
+  content: yup.string().optional(),
+  private: yup.boolean().optional(),
+  comment: yup.string().optional(),
 });
 router.patch('/:id', auth, customerServiceOnly, async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   const article = ctx.state.article as Article;
-  const { title, content, ['private']: prvt, comment } = updateArticalSchema.parse(
+  const { title, content, ['private']: prvt, comment } = updateArticalSchema.validateSync(
     ctx.request.body
   );
   const updateData: UpdateData<Article> = { title };

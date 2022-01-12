@@ -1,4 +1,4 @@
-import { Breadcrumb, Spin, Table, Tag, Typography } from 'antd';
+import { Breadcrumb, Radio, Spin, Table, Tag, Typography } from 'antd';
 import {
   ArticleRevisionListItem,
   useArticleRevision,
@@ -7,19 +7,28 @@ import {
 import { useParams } from 'react-router';
 import { Link } from 'react-router-dom';
 import { usePage, usePageSize } from '@/utils/usePage';
+import { useSearchParam } from '@/utils/useSearchParams';
 
 const { Column } = Table;
 const { Title } = Typography;
+
+const MetaQueryValue: { [key: string]: boolean | undefined } = {
+  true: true,
+  false: false,
+  unset: undefined,
+};
 
 export function ArticleRevisions() {
   const { id: articleId } = useParams();
   const [page, { set: setPage }] = usePage();
   const [pageSize = 20, setPageSize] = usePageSize();
+  const [metaFilter = 'unset', setMetaFilter] = useSearchParam('meta');
 
   const { data: revisions, totalCount, isLoading } = useArticleRevisions(articleId!, {
     page,
     pageSize,
     count: 1,
+    meta: MetaQueryValue[metaFilter],
     queryOptions: {
       keepPreviousData: true,
     },
@@ -39,6 +48,20 @@ export function ArticleRevisions() {
         </Breadcrumb>
       </div>
       <Title level={2}>历史</Title>
+
+      <div className="flex flex-row mb-4">
+        <div className="grow">
+          <Radio.Group
+            value={metaFilter}
+            onChange={(e) => setMetaFilter(e.target.value)}
+            size="small"
+          >
+            <Radio.Button value="unset">全部</Radio.Button>
+            <Radio.Button value="false">内容变更</Radio.Button>
+            <Radio.Button value="true">发布记录</Radio.Button>
+          </Radio.Group>
+        </div>
+      </div>
 
       {isLoading && <div className="h-80 my-40 text-center" children={<Spin />} />}
 

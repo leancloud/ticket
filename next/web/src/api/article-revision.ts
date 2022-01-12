@@ -16,6 +16,7 @@ export interface ArticleRevisionListItem {
 export interface FetchArticleRevisionsOptions {
   page?: number;
   pageSize?: number;
+  meta?: boolean;
   count?: any;
 }
 
@@ -50,7 +51,7 @@ export function useArticleRevisions(
   { queryOptions, ...options }: UseArticleRevisionsOptions = {}
 ) {
   const { data, ...results } = useQuery({
-    queryKey: ['articles', id, 'revisions'],
+    queryKey: ['articles', id, 'revisions', options],
     queryFn: () => fetchArticleRevisions(id, options),
     ...queryOptions,
   });
