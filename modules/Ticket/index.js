@@ -425,7 +425,7 @@ export default function Ticket() {
                 data={data}
                 ticketId={ticket.id}
                 onReplyDeleted={deleteReply}
-                onEditReply={editModalRef.current.show}
+                onEditReply={editModalRef.current?.show}
               />
             ))}
           </div>
