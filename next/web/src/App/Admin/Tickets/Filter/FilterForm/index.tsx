@@ -2,7 +2,7 @@ import { PropsWithChildren, useCallback, useEffect, useState } from 'react';
 import cx from 'classnames';
 
 import { Button } from '@/components/antd';
-import { Filters } from '../../useTicketFilter';
+import { Filters } from '../useTicketFilter';
 import { AssigneeSelect } from './AssigneeSelect';
 import { GroupSelect } from './GroupSelect';
 import { CreatedAtSelect } from './CreatedAtSelect';

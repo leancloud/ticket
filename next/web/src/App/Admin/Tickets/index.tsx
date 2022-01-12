@@ -1,13 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { useLocalStorage } from 'react-use';
 
 import { useTickets } from '@/api/ticket';
-import { useSearchParam } from '@/utils/useSearchParams';
 import { usePage } from '@/utils/usePage';
 import { Topbar, useOrderBy } from './Topbar';
-import { FilterForm, FilterMenu } from './Filter';
-import { useTicketFilter, useLocalFilters } from './useTicketFilter';
+import { FilterForm, useLocalFilters } from './Filter';
 import { TicketView } from './TicketView';
 
 const pageSize = 20;
@@ -29,21 +27,15 @@ function TicketListView() {
   const [showFilterForm, setShowFilterForm] = useState(false);
   const [layout, setLayout] = useLayout();
 
-  const [filterId] = useSearchParam('filterId');
-  const { filter, isLoading: isLoadingFilter } = useTicketFilter(filterId);
-  const [localFilters, setLocalFilters] = useLocalFilters(filter?.filters);
-  const filters = useMemo(() => {
-    return { ...filter?.filters, ...localFilters };
-  }, [filter, localFilters]);
+  const [localFilters, setLocalFilters] = useLocalFilters();
 
   const { data: tickets, totalCount, isLoading, isFetching } = useTickets({
     page,
     pageSize,
     orderKey,
     orderType,
-    filters,
+    filters: localFilters,
     queryOptions: {
-      enabled: !isLoadingFilter,
       keepPreviousData: true,
     },
   });
@@ -74,8 +66,6 @@ function TicketListView() {
 
   return (
     <div className="flex flex-col h-full">
-      <FilterMenu />
-
       <Topbar
         className="shrink-0 z-10"
         showFilter={showFilterForm}
@@ -105,7 +95,7 @@ function TicketListView() {
         </div>
 
         {showFilterForm && (
-          <FilterForm className="shrink-0" filters={filters} onChange={setLocalFilters} />
+          <FilterForm className="shrink-0" filters={localFilters} onChange={setLocalFilters} />
         )}
       </div>
     </div>
