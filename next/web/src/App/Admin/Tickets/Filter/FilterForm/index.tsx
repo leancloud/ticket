@@ -18,53 +18,28 @@ function Field({ title, children }: PropsWithChildren<{ title: string }>) {
   );
 }
 
-interface TempFilters extends Filters {
-  assigneeId?: string[];
-  groupId?: string[];
-}
-
-type NewFilters = { [K in keyof Required<Filters>]: Filters[K] };
-
-function decodeTempFilters(filters: Filters): TempFilters {
-  return {
-    ...filters,
-    assigneeId: filters.assigneeId?.map((id) => (id === null ? '' : id)),
-    groupId: filters.groupId?.map((id) => (id === null ? '' : id)),
-  };
-}
-
-function encodeTempFilters(tempFilters: TempFilters): NewFilters {
-  return {
-    assigneeId: tempFilters.assigneeId?.map((id) => (id === '' ? null : id)),
-    groupId: tempFilters.groupId?.map((id) => (id === '' ? null : id)),
-    createdAt: tempFilters.createdAt,
-    rootCategoryId: tempFilters.rootCategoryId,
-    status: tempFilters.status,
-  };
-}
-
 export interface FilterFormProps {
   className?: string;
   filters: Filters;
-  onChange: (filters: NewFilters) => void;
+  onChange: (filters: Filters) => void;
 }
 
 export function FilterForm({ className, filters, onChange }: FilterFormProps) {
-  const [tempFilters, setTempFilters] = useState<TempFilters>({});
+  const [tempFilters, setTempFilters] = useState(filters);
   const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
-    setTempFilters(decodeTempFilters(filters));
+    setTempFilters(filters);
     setIsDirty(false);
   }, [filters]);
 
-  const merge = useCallback((filters: TempFilters) => {
+  const merge = useCallback((filters: Filters) => {
     setTempFilters((prev) => ({ ...prev, ...filters }));
     setIsDirty(true);
   }, []);
 
   const handleChange = () => {
-    onChange(encodeTempFilters(tempFilters));
+    onChange(tempFilters);
   };
 
   const { assigneeId, groupId, createdAt, rootCategoryId, status } = tempFilters;

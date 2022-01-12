@@ -3,8 +3,8 @@ import { useCallback, useMemo } from 'react';
 import { useSearchParams } from '@/utils/useSearchParams';
 
 export interface Filters {
-  assigneeId?: (string | null)[];
-  groupId?: (string | null)[];
+  assigneeId?: string[];
+  groupId?: string[];
   createdAt?: string;
   rootCategoryId?: string;
   status?: number[];
@@ -17,11 +17,11 @@ export function useLocalFilters() {
     const filters: Filters = {};
 
     if (assigneeId) {
-      filters.assigneeId = assigneeId.split(',').map((id) => (id === 'null' ? null : id));
+      filters.assigneeId = assigneeId.split(',');
     }
 
     if (groupId) {
-      filters.groupId = groupId.split(',').map((id) => (id === 'null' ? null : id));
+      filters.groupId = groupId.split(',');
     }
 
     if (createdAt) {

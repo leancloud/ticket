@@ -13,7 +13,7 @@ export function GroupSelect({ value, onChange }: GroupSelectProps) {
 
   const options = useMemo(() => {
     return [
-      { label: '未指派', value: '' },
+      { label: '未指派', value: 'null' },
       ...(groups ?? []).map((g) => ({ label: g.name, value: g.id })),
     ];
   }, [groups]);

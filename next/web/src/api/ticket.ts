@@ -32,8 +32,8 @@ export interface FetchTicketsOptions {
   orderKey?: string;
   orderType?: 'asc' | 'desc';
   filters?: {
-    assigneeId?: string | null | (string | null)[];
-    groupId?: string | null | (string | null)[];
+    assigneeId?: string | string[];
+    groupId?: string | string[];
     createdAt?: string;
     rootCategoryId?: string;
     status?: number | number[];
@@ -62,14 +62,10 @@ export async function fetchTickets({
 
   if (filters) {
     if (filters.assigneeId) {
-      params.assigneeId = castArray(filters.assigneeId)
-        .map((v) => (v === null ? 'null' : v))
-        .join(',');
+      params.assigneeId = castArray(filters.assigneeId).join(',');
     }
     if (filters.groupId) {
-      params.groupId = castArray(filters.groupId)
-        .map((v) => (v === null ? 'null' : v))
-        .join(',');
+      params.groupId = castArray(filters.groupId).join(',');
     }
     if (filters.createdAt) {
       const dateRange = decodeDateRange(filters.createdAt);
