@@ -157,3 +157,9 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 ### `13e0d717eca091b4ca7b5088b1689138b4792ad5`
 
 导入 View 表结构（resources/schema/View.json），导入内置视图的数据（resources/data/View.jsonl）。
+
+## 2022-01-12
+
+### `bc6fdb6d7f69e937425dd68c369e2690829e86b0`
+
+已删除 ticket filter 功能，可以删除 TicketFilter class。
