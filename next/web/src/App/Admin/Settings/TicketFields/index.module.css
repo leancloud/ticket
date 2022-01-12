@@ -6,14 +6,14 @@
   }
 
   &:not(.readonly) {
-    @apply cursor-pointer transition-colors duration-300 hover:border-primary hover:bg-primary-500;
+    @apply cursor-pointer transition-colors duration-300 hover:border-primary hover:bg-primary-4;
   }
 
   &.active {
     @apply bg-primary text-white;
 
     &:not(.readonly) {
-      @apply hover:bg-primary-900;
+      @apply hover:bg-primary-8;
     }
   }
 }
