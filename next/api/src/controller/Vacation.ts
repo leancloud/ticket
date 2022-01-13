@@ -61,11 +61,11 @@ export class VacationController {
 
     if (vacationerId?.length) {
       const pointers = vacationerId.map((id) => User.ptr(id));
-      query.where('vacationer', 'in', pointers);
+      query.orWhere('vacationer', 'in', pointers);
     }
     if (operatorId?.length) {
       const pointers = operatorId.map((id) => User.ptr(id));
-      query.where('operator', 'in', pointers);
+      query.orWhere('operator', 'in', pointers);
     }
 
     const [vacations, totalCount] = await query.findAndCount(currentUser.getAuthOptions());
