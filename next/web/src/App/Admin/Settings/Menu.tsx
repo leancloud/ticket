@@ -4,6 +4,15 @@ import cx from 'classnames';
 
 const routeGroups = [
   {
+    name: '个人设置',
+    paths: [
+      {
+        name: '假期',
+        path: 'vacations',
+      },
+    ],
+  },
+  {
     name: '管理',
     paths: [
       {
