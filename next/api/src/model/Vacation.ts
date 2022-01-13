@@ -12,13 +12,13 @@ export class Vacation extends Model {
   operatorId!: string;
 
   @pointTo(() => User)
-  operator!: User;
+  operator?: User;
 
   @pointerId(() => User)
   vacationerId!: string;
 
   @pointTo(() => User)
-  vacationer!: User;
+  vacationer?: User;
 
   static async getVacationerIds(): Promise<string[]> {
     const now = new Date();
