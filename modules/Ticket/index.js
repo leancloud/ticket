@@ -166,6 +166,7 @@ function useReplies(ticketId) {
     if (!ticketId) {
       return
     }
+    $cursor.current = undefined
     setReplies([])
     loadMoreReplies()
     const query = db.class('Reply').where('ticket', '==', db.class('Ticket').object(ticketId))
@@ -231,6 +232,7 @@ function useOpsLogs(ticketId) {
     if (!ticketId) {
       return
     }
+    $cursor.current = undefined
     setOpsLogs([])
     loadMoreOpsLogs()
     const query = db.class('OpsLog').where('ticket', '==', db.class('Ticket').object(ticketId))
