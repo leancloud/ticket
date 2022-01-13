@@ -13,6 +13,7 @@ export class VacationResponse {
       vacationer: vacationer ? new UserResponse(vacationer) : undefined,
       startDate: this.vacation.startDate.toISOString(),
       endDate: this.vacation.endDate.toISOString(),
+      createdAt: this.vacation.createdAt.toISOString(),
     };
   }
 }
