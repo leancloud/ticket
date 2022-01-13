@@ -15,7 +15,6 @@ require('./Category')
 require('./Organization')
 require('./Role')
 require('./stats')
-require('./Vacation')
 require('./FAQ')
 
 // 加载 next shim
