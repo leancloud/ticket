@@ -2,7 +2,7 @@ import { Alert, Button } from '@/components/antd';
 
 export interface RetryProps {
   message: string;
-  error?: Error | string;
+  error?: Error | string | null;
   onRetry: () => void;
 }
 
