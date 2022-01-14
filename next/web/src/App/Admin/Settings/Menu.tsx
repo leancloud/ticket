@@ -7,7 +7,7 @@ const routeGroups = [
     name: '个人设置',
     paths: [
       {
-        name: '假期',
+        name: '请假',
         path: 'vacations',
       },
     ],

@@ -146,7 +146,7 @@ export function Vacations() {
 
   return (
     <div className="p-10">
-      <h1 className="text-[#2f3941] text-[26px] font-normal">假期</h1>
+      <h1 className="text-[#2f3941] text-[26px] font-normal">请假</h1>
 
       <div className="flex flex-row-reverse mb-5">
         <Button type="primary" onClick={() => setShowModal(true)}>
