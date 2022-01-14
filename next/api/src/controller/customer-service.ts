@@ -18,7 +18,7 @@ import { ZodValidationPipe } from '@/common/pipe';
 import { auth, customerServiceOnly } from '@/middleware';
 import { Role } from '@/model/Role';
 import { User } from '@/model/User';
-import { UserResponse } from '@/response/user';
+import { CustomerServiceResponse } from '@/response/customer-service';
 import { GroupResponse } from '@/response/group';
 
 class FindCustomerServicePipe {
@@ -42,13 +42,13 @@ type CreateCustomerServiceData = z.infer<typeof createCustomerServiceSchema>;
 @UseMiddlewares(auth, customerServiceOnly)
 export class CustomerServiceController {
   @Get()
-  @ResponseBody(UserResponse)
+  @ResponseBody(CustomerServiceResponse)
   findAll() {
     return User.getCustomerServices();
   }
 
   @Get(':id')
-  @ResponseBody(UserResponse)
+  @ResponseBody(CustomerServiceResponse)
   findOne(@Param('id', FindCustomerServicePipe) user: User) {
     return user;
   }
