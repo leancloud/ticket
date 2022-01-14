@@ -2,7 +2,6 @@ import 'reflect-metadata';
 import { Middleware } from 'koa';
 import Router from '@koa/router';
 import _ from 'lodash';
-import mem from 'mem';
 
 import { createKoaHandler, getHandlers } from './handler';
 import { HttpError } from './error';
@@ -16,14 +15,27 @@ const KEY_MIDDLEWARES = Symbol('middlewares');
 const globalMiddlewares: Middleware[] = [HttpError.catchHttpError];
 const controllers: any[] = [];
 
+export interface ControllerConstructor {
+  new (): any;
+}
+
 export function Controller(path: string) {
-  return (target: any) => {
+  return (target: ControllerConstructor) => {
     Reflect.defineMetadata(KEY_PATH, path, target);
-    controllers.push(target);
+    controllers.push(Reflect.construct(target, []));
   };
 }
 
-function getMiddlewares(controller: any): [string | undefined, Middleware][] {
+export function getControllers() {
+  return controllers.slice();
+}
+
+interface MiddlewareConfig {
+  middleware: Middleware;
+  controllerMethod?: string;
+}
+
+function getMiddlewares(controller: any): MiddlewareConfig[] {
   if (!Reflect.hasMetadata(KEY_MIDDLEWARES, controller)) {
     Reflect.defineMetadata(KEY_MIDDLEWARES, [], controller);
   }
@@ -31,9 +43,14 @@ function getMiddlewares(controller: any): [string | undefined, Middleware][] {
 }
 
 export function UseMiddlewares(...middlewares: Middleware[]) {
-  return (target: any, handlerName?: string) => {
+  return (target: any, controllerMethod?: string) => {
     const _middlewares = getMiddlewares(target.prototype ?? target);
-    middlewares.forEach((m) => _middlewares.push([handlerName, m]));
+    middlewares.forEach((middleware) => {
+      _middlewares.push({
+        middleware,
+        controllerMethod,
+      });
+    });
   };
 }
 
@@ -44,9 +61,22 @@ export function StatusCode(status: number) {
   });
 }
 
-export const getControllers = mem(() => {
-  return controllers.map((controller) => new controller());
-});
+interface ResponseClass {
+  new (data: any): any;
+}
+
+export function ResponseBody(responseClass: ResponseClass) {
+  return UseMiddlewares(async (ctx, next) => {
+    await next();
+    if (ctx.body) {
+      if (Array.isArray(ctx.body)) {
+        ctx.body = ctx.body.map((data) => new responseClass(data));
+      } else {
+        ctx.body = new responseClass(ctx.body);
+      }
+    }
+  });
+}
 
 function joinPaths(paths: string[]) {
   return '/' + paths.map((path) => _.trim(path, '/')).join('/');
@@ -58,8 +88,8 @@ export function applyController(router: Router, controller: any) {
   const middlewares = getMiddlewares(controller);
 
   const controllerMiddlewares = middlewares
-    .filter(([name]) => name === undefined)
-    .map(([, middleware]) => middleware);
+    .filter((c) => c.controllerMethod === undefined)
+    .map((c) => c.middleware);
 
   const handlers = getHandlers(controller);
 
@@ -67,8 +97,8 @@ export function applyController(router: Router, controller: any) {
     const path = handler.path ? joinPaths([basePath, handler.path]) : joinPaths([basePath]);
 
     const handlerMiddlewares = middlewares
-      .filter(([name]) => name === handler.controllerMethod)
-      .map(([, middleware]) => middleware);
+      .filter((c) => c.controllerMethod === handler.controllerMethod)
+      .map((c) => c.middleware);
 
     const h = createKoaHandler(controller, handler);
 

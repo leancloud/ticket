@@ -7,7 +7,7 @@ const METADATA_KEY = Symbol('params');
 
 export interface HandlerParam {
   controllerMethod: string | symbol;
-  position?: 'query' | 'body';
+  position?: 'query' | 'body'; // 帮助 validation pipe 提供更友好的错误提示
   index: number;
   getData: (ctx: Context) => any;
   pipes?: Pipe<any, any>[];
@@ -44,6 +44,7 @@ export function getArguments(ctx: Context, params: HandlerParam[]): Promise<any[
 export * from './url-param';
 export * from './query';
 export * from './body';
+export * from './pagination';
 
 export function Ctx(): ParameterDecorator {
   return (target, controllerMethod, index) => {
