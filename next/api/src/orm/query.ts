@@ -195,6 +195,10 @@ export class Query<M extends typeof Model> {
     return query;
   }
 
+  paginate(page: number, pageSize: number): Query<M> {
+    return this.skip((page - 1) * pageSize).limit(pageSize);
+  }
+
   orderBy(key: string, orderType: OrderType = 'asc'): Query<M> {
     const query = this.clone();
     query.orderKeys[key] = orderType;

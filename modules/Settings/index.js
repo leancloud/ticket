@@ -10,7 +10,6 @@ import Organizations from './Organizations'
 import OrganizationNew from './OrganizationNew'
 import Tags from './Tags'
 import Tag from './Tag'
-import SettingsCSProfile from './CustomerServiceProfile'
 import Members from './Members'
 import Groups from './Groups'
 import FAQs from './FAQs'
@@ -50,8 +49,8 @@ export default function Settings(props) {
           <section className="mb-4">
             <h6>{t('staffSettings')}</h6>
             <ListGroup>
-              <ListGroup.Item as={NavLink} to="/settings/customerServiceProfile">
-                {t('personalSettings')}
+              <ListGroup.Item as="a" href="/next/admin/settings/vacations">
+                {t('vacation')}
               </ListGroup.Item>
               <ListGroup.Item as={NavLink} to="/settings/members">
                 {t('member')}
@@ -109,9 +108,6 @@ export default function Settings(props) {
           </Route>
           <Route path={`${path}/tags/:id`}>
             <Tag {...childrenProps} />
-          </Route>
-          <Route path={`${path}/customerServiceProfile`}>
-            <SettingsCSProfile {...childrenProps} />
           </Route>
           <Route path={`${path}/members`}>
             <Members {...childrenProps} />
