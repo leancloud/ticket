@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation } from 'react-query';
 
 import { Typography, message, notification } from '@/components/antd';
-import { CreateTimeTriggerData, createTimeTrigger } from 'api/time-trigger';
+import { CreateTimeTriggerData, createTimeTrigger } from '@/api/time-trigger';
 import { TriggerForm } from '../components/TriggerForm';
 import { encodeCondition } from '../utils';
 import conditions from './conditions';

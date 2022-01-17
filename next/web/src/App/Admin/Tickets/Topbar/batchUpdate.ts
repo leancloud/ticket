@@ -2,7 +2,7 @@ import throat from 'throat';
 import { isEmpty } from 'lodash-es';
 import { AxiosError } from 'axios';
 
-import { http } from 'leancloud';
+import { http } from '@/leancloud';
 
 export interface BatchReply {
   content: string;

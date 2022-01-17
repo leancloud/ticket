@@ -1,8 +1,9 @@
-import { Button, Checkbox, Form, FormInstance, Input, Popover } from 'antd';
-import { CreateArticleData } from 'api/article';
 import { useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { SiMarkdown } from 'react-icons/si';
+
+import { CreateArticleData } from '@/api/article';
+import { Button, Checkbox, Form, FormInstance, Input, Popover } from '@/components/antd';
 
 export interface EditArticleProps {
   initData?: CreateArticleData;
@@ -15,12 +16,7 @@ interface FormData extends Omit<CreateArticleData, 'private'> {
   public: boolean;
 }
 
-export function EditArticleForm({
-  initData,
-  submitting,
-  onSubmit,
-  onCancel,
-}: EditArticleProps) {
+export function EditArticleForm({ initData, submitting, onSubmit, onCancel }: EditArticleProps) {
   const { control, handleSubmit } = useForm<FormData>({
     defaultValues: { ...initData, public: !initData?.private },
   });

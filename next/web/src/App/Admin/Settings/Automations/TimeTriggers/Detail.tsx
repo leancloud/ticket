@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation } from 'react-query';
 
 import { Spin, message, notification } from '@/components/antd';
-import { UpdateTimeTriggerData, useTimeTrigger, updateTimeTrigger } from 'api/time-trigger';
+import { UpdateTimeTriggerData, useTimeTrigger, updateTimeTrigger } from '@/api/time-trigger';
 import { TriggerForm } from '../components/TriggerForm';
 import { decodeCondition } from '../utils';
 import conditions from './conditions';
