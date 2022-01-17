@@ -4,10 +4,14 @@ import cx from 'classnames';
 
 const routeGroups = [
   {
-    name: '个人设置',
+    name: '客服设置',
     paths: [
       {
-        name: '假期',
+        name: '成员',
+        path: 'members',
+      },
+      {
+        name: '请假',
         path: 'vacations',
       },
     ],

@@ -34,3 +34,12 @@ export class UserResponse {
     };
   }
 }
+
+export class UserSearchResult extends UserResponse {
+  toJSON() {
+    return {
+      ...super.toJSON(),
+      email: this.user.email,
+    };
+  }
+}

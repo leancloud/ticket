@@ -45,6 +45,7 @@ export * from './url-param';
 export * from './query';
 export * from './body';
 export * from './pagination';
+export * from './current-user';
 
 export function Ctx(): ParameterDecorator {
   return (target, controllerMethod, index) => {
