@@ -12,3 +12,4 @@ export * from './ParseIntPipe';
 export * from './ParseOrderPipe';
 export * from './ValidationPipe';
 export * from './FindModelPipe';
+export * from './TrimPipe';

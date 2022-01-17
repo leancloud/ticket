@@ -7,6 +7,7 @@ import {
   ResponseBody,
   UseMiddlewares,
 } from '@/common/http';
+import { TrimPipe } from '@/common/pipe';
 import { auth, customerServiceOnly } from '@/middleware';
 import { User } from '@/model/User';
 import { UserResponse } from '@/response/user';
@@ -19,7 +20,7 @@ export class UserController {
   findAll(
     @CurrentUser() currentUser: User,
     @Pagination() [page, pageSize]: [number, number],
-    @Query('q') q?: string
+    @Query('q', TrimPipe) q?: string
   ) {
     const query = User.queryBuilder().paginate(page, pageSize);
 
