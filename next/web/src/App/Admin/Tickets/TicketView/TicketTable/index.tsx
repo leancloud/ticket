@@ -45,7 +45,7 @@ export const TicketTable = memo(({ tickets, checkedIds, onChangeChecked }: Ticke
   const getCategoryPath = useGetCategoryPath();
 
   return (
-    <Table className="min-w-[1000px]" dataSource={tickets} pagination={false}>
+    <Table className="min-w-[1000px]" rowKey="id" dataSource={tickets} pagination={false}>
       <Column
         className="w-0"
         dataIndex="id"
