@@ -16,10 +16,6 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      api: path.resolve('./src/api'),
-      leancloud: path.resolve('./src/leancloud'),
-      utils: path.resolve('./src/utils'),
-      components: path.resolve('./src/components'),
       '@': path.resolve('./src'),
     },
   },
