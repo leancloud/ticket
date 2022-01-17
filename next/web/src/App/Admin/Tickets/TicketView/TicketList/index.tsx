@@ -3,11 +3,11 @@ import { BsPersonPlus } from 'react-icons/bs';
 import cx from 'classnames';
 import moment from 'moment';
 
+import { CategorySchema, useCategories } from '@/api/category';
 import { TicketSchema } from '@/api/ticket';
 import { Checkbox } from '@/components/antd';
 import Status from '../TicketStatus';
 import style from './index.module.css';
-import { CategorySchema, useCategories } from 'api/category';
 
 function Name({ children }: { children?: string }) {
   return (

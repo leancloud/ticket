@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useMutation, useQueryClient } from 'react-query';
+
 import {
   Breadcrumb,
   Button,
@@ -13,9 +16,8 @@ import {
   Table,
   Tag,
   Typography,
-} from 'antd';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { usePage, usePageSize } from 'utils/usePage';
+} from '@/components/antd';
+import { usePage, usePageSize } from '@/utils/usePage';
 import {
   Article,
   createArticle,
@@ -25,12 +27,11 @@ import {
   useArticle,
   useArticles,
   useRelatedCategories,
-} from 'api/article';
-import { useMutation, useQueryClient } from 'react-query';
+} from '@/api/article';
+import { CategorySchema } from '@/api/category';
 import { EditArticleForm } from './EditArticleForm';
 // We should move them to @component
 import { CategoryPath, useGetCategoryPath } from '../../Tickets/TicketView/TicketList';
-import { CategorySchema } from 'api/category';
 
 const { Column } = Table;
 const { Option } = Select;
@@ -229,7 +230,11 @@ function CategoryList({ categories }: { categories: CategorySchema[] }) {
   return (
     <>
       {categories.map((category) => (
-        <CategoryPath path={getCategoryPath(category.id)} className="mr-1 inline-block" key={category.id} />
+        <CategoryPath
+          key={category.id}
+          className="mr-1 inline-block"
+          path={getCategoryPath(category.id)}
+        />
       ))}
     </>
   );

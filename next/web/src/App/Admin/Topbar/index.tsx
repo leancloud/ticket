@@ -1,7 +1,7 @@
 import { ComponentPropsWithoutRef } from 'react';
 import cx from 'classnames';
 
-import { useCustomerService } from 'api/user';
+import { useCustomerService } from '@/api/user';
 
 function CurrentUserSection(props: ComponentPropsWithoutRef<'section'>) {
   const { data, isLoading } = useCustomerService('me', {
