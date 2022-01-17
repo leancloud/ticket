@@ -85,11 +85,20 @@ function AddUserModal({ visible, onHide }: AddUserModalProps) {
   );
 }
 
+function UserLabel({ nickname, avatarUrl }: CustomerServiceSchema) {
+  return (
+    <div className="flex items-center">
+      <img className="w-4 h-4" src={avatarUrl} />
+      <div className="ml-1">{nickname}</div>
+    </div>
+  );
+}
+
 const columns: TableProps<CustomerServiceSchema>['columns'] = [
   {
     key: 'customerService',
     title: '客服',
-    render: (user: CustomerServiceSchema) => user.nickname,
+    render: UserLabel,
   },
   {
     dataIndex: 'categoryIds',
