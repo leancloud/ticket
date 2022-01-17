@@ -10,13 +10,13 @@ import {
 import { TrimPipe } from '@/common/pipe';
 import { auth, customerServiceOnly } from '@/middleware';
 import { User } from '@/model/User';
-import { UserResponse } from '@/response/user';
+import { UserSearchResult } from '@/response/user';
 
 @Controller('users')
 @UseMiddlewares(auth, customerServiceOnly)
 export class UserController {
   @Get()
-  @ResponseBody(UserResponse)
+  @ResponseBody(UserSearchResult)
   findAll(
     @CurrentUser() currentUser: User,
     @Pagination() [page, pageSize]: [number, number],
