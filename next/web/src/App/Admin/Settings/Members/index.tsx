@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useQueryClient } from 'react-query';
 
 import { useCategories } from '@/api/category';
@@ -9,7 +9,7 @@ import {
   useDeleteCustomerService,
 } from '@/api/customer-service';
 import { Button, Modal, Table, TableProps, message } from '@/components/antd';
-import { Category, CategoryProvider, Retry } from '@/components/common';
+import { Category, CategoryProvider, Retry, UserSelect } from '@/components/common';
 
 function MemberActions({ id, nickname }: CustomerServiceSchema) {
   const queryClient = useQueryClient();
@@ -42,6 +42,49 @@ function MemberActions({ id, nickname }: CustomerServiceSchema) {
   );
 }
 
+interface AddUserModalProps {
+  visible: boolean;
+  onHide: () => void;
+}
+
+function AddUserModal({ visible, onHide }: AddUserModalProps) {
+  const [userId, setUserId] = useState<string | undefined>();
+
+  useEffect(() => {
+    setUserId(undefined);
+  }, [visible]);
+
+  const queryClient = useQueryClient();
+  const { mutate, isLoading } = useAddCustomerService({
+    onSuccess: () => {
+      message.success('添加成功');
+      queryClient.invalidateQueries('customerServices');
+      onHide();
+    },
+    onError: (error) => {
+      message.error(error.message);
+    },
+  });
+
+  const handleAdd = useCallback(() => {
+    mutate(userId!);
+  }, [userId, mutate]);
+
+  return (
+    <Modal
+      visible={visible}
+      title="添加客服"
+      onOk={handleAdd}
+      confirmLoading={isLoading}
+      okButtonProps={{ disabled: isLoading || !userId }}
+      onCancel={() => onHide()}
+      cancelButtonProps={{ disabled: isLoading }}
+    >
+      <UserSelect className="w-full" autoFocus value={userId} onChange={setUserId as any} />
+    </Modal>
+  );
+}
+
 const columns: TableProps<CustomerServiceSchema>['columns'] = [
   {
     key: 'customerService',
@@ -71,9 +114,19 @@ export function Members() {
   const customerServiceResult = useCustomerServices();
   const categoriesResult = useCategories();
 
+  const [addUserModalVisible, setAddUserModalVisible] = useState(false);
+
   return (
     <div className="p-10">
       <h1 className="text-[#2f3941] text-[26px] font-normal">成员</h1>
+
+      <div className="flex flex-row-reverse">
+        <Button type="primary" onClick={() => setAddUserModalVisible(true)}>
+          添加
+        </Button>
+      </div>
+
+      <AddUserModal visible={addUserModalVisible} onHide={() => setAddUserModalVisible(false)} />
 
       {customerServiceResult.error && (
         <Retry
