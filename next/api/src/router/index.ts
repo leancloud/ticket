@@ -6,7 +6,6 @@ import { catchLCError, catchYupError, catchZodError } from '@/middleware/error';
 import ticket from './ticket';
 import category from './category';
 import organization from './organization';
-import group from './group';
 import unread from './unread';
 import notification from './notification';
 import ticketForm from './ticket-form';
@@ -20,7 +19,6 @@ const router = new Router({ prefix: '/api/2' }).use(catchYupError, catchLCError,
 router.use('/tickets', ticket.routes());
 router.use('/categories', category.routes());
 router.use('/organizations', organization.routes());
-router.use('/groups', group.routes());
 router.use('/unread', unread.routes());
 router.use('/notifications', notification.routes());
 router.use('/ticket-forms', ticketForm.routes());

@@ -10,3 +10,16 @@ export class GroupResponse {
     };
   }
 }
+
+export class GroupDetailResponse extends GroupResponse {
+  constructor(group: Group, readonly userIds: string[] = []) {
+    super(group);
+  }
+
+  toJSON() {
+    return {
+      ...super.toJSON(),
+      userIds: this.userIds,
+    };
+  }
+}
