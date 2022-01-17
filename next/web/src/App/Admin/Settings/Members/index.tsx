@@ -88,7 +88,7 @@ function AddUserModal({ visible, onHide }: AddUserModalProps) {
 function UserLabel({ nickname, avatarUrl }: CustomerServiceSchema) {
   return (
     <div className="flex items-center">
-      <img className="w-4 h-4" src={avatarUrl} />
+      <img className="w-4 h-4 rounded-sm" src={avatarUrl} />
       <div className="ml-1">{nickname}</div>
     </div>
   );
