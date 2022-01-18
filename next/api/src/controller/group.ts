@@ -22,7 +22,6 @@ import { Group } from '@/model/Group';
 import { User } from '@/model/User';
 import { GroupDetailResponse, GroupResponse } from '@/response/group';
 import { FindModelPipe, ZodValidationPipe } from '@/common/pipe';
-import { Role } from '@/model/Role';
 
 const createGroupSchema = z.object({
   name: z.string(),
@@ -155,7 +154,7 @@ export class GroupController {
   }
 
   private async findGroupRole(group: Group, authOptions: AV.AuthOptions): Promise<AV.Role> {
-    const query = new AV.Query(AV.Role).equalTo('objectId', group.id);
+    const query = new AV.Query(AV.Role).equalTo('objectId', group.roleId);
     const role = await query.first(authOptions);
     if (!role) {
       throw new HttpError(500, `Role of group ${group.id} is missing`);
