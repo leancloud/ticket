@@ -1,0 +1,124 @@
+{
+  "schema": {
+    "archived": {
+      "type": "Boolean"
+    },
+    "updatedAt": {
+      "type": "Date"
+    },
+    "meta": {
+      "type": "Boolean"
+    },
+    "private": {
+      "type": "Boolean"
+    },
+    "ACL": {
+      "type": "ACL",
+      "default": {
+        "*": {
+          "read": true,
+          "write": true
+        }
+      }
+    },
+    "FAQ": {
+      "type": "Pointer",
+      "v": 2,
+      "className": "FAQ",
+      "required": true,
+      "hidden": false,
+      "read_only": false
+    },
+    "objectId": {
+      "type": "String"
+    },
+    "question": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false,
+      "comment": ""
+    },
+    "createdAt": {
+      "type": "Date"
+    },
+    "author": {
+      "type": "Pointer",
+      "v": 2,
+      "className": "_User",
+      "required": true,
+      "hidden": false,
+      "read_only": false,
+      "comment": ""
+    },
+    "answer": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "comment": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "archive": {
+      "type": "Boolean",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    }
+  },
+  "permissions": {
+    "create": {
+      "roles": [],
+      "users": []
+    },
+    "find": {
+      "*": true
+    },
+    "get": {
+      "*": true
+    },
+    "update": {
+      "roles": [],
+      "users": []
+    },
+    "delete": {
+      "roles": [],
+      "users": []
+    },
+    "add_fields": {
+      "roles": [],
+      "users": []
+    }
+  },
+  "indexes": [
+    {
+      "v": 2,
+      "key": {
+        "FAQ.$id": -1,
+        "createdAt": -1
+      },
+      "name": "-user-FAQ.$id_-1_createdAt_-1",
+      "ns": "-.FAQRevision",
+      "background": true
+    },
+    {
+      "v": 2,
+      "key": {
+        "FAQ.$id": -1,
+        "meta": -1,
+        "createdAt": -1
+      },
+      "name": "-user-FAQ.$id_-1_meta_-1_createdAt_-1",
+      "ns": "-.FAQRevision",
+      "background": true
+    }
+  ]
+}
