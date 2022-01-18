@@ -129,7 +129,7 @@ export class GroupController {
         userRelation.add(user);
       });
 
-      await role.save(authOptions);
+      await role.save(null, authOptions);
     }
 
     return {};
