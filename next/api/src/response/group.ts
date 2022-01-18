@@ -7,6 +7,7 @@ export class GroupResponse {
     return {
       id: this.group.id,
       name: this.group.name,
+      description: this.group.description,
     };
   }
 }
