@@ -19,11 +19,13 @@ function ResultCover<T>({ result, errorMessage, children }: ResultCoverProps<T>)
   }
 
   if (result.error) {
-    <Retry
-      message={errorMessage || 'Something went wrong'}
-      error={result.error}
-      onRetry={result.refetch}
-    />;
+    return (
+      <Retry
+        message={errorMessage || 'Something went wrong'}
+        error={result.error}
+        onRetry={result.refetch}
+      />
+    );
   }
 
   if (typeof children === 'function') {
