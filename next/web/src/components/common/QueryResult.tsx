@@ -6,7 +6,7 @@ import { Retry } from './Retry';
 interface ResultCoverProps<T> {
   result: UseQueryResult<T, Error>;
   errorMessage?: string;
-  children: (result: UseQueryResult<T, Error> & { data: T }) => JSX.Element | JSX.Element;
+  children: ((result: UseQueryResult<T, Error> & { data: T }) => JSX.Element) | JSX.Element;
 }
 
 function ResultCover<T>({ result, errorMessage, children }: ResultCoverProps<T>) {
