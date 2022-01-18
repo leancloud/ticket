@@ -23,7 +23,6 @@ require('./next-shim')
 
 const apiRouter = Router().use(cors({ origin: config.corsOrigin }))
 apiRouter.use('/files', require('./file/api'))
-apiRouter.use('/dynamic-contents', require('./DynamicContent'))
 apiRouter.use('/triggers', require('./rule/trigger/api'))
 apiRouter.use('/automations', require('./rule/automation/api'))
 apiRouter.use('/ticket-fields', require('./ticketField'))
