@@ -50,20 +50,28 @@ export class GroupController {
 
   @Post()
   @StatusCode(201)
-  async create(@Body(new ZodValidationPipe(createGroupSchema)) data: CreateGroupData) {
+  async create(
+    @CurrentUser() currentUser: User,
+    @Body(new ZodValidationPipe(createGroupSchema)) data: CreateGroupData
+  ) {
     if (data.userIds?.length) {
       await this.assertUsersIsCustomerService(data.userIds);
     }
 
+    const authOptions = currentUser.getAuthOptions();
+
     const groupACL = new ACLBuilder().allowCustomerService('read', 'write');
-    const group = await Group.create({
-      ACL: groupACL,
-      name: data.name,
-      description: data.description,
-    });
+    const group = await Group.create(
+      {
+        ACL: groupACL,
+        name: data.name,
+        description: data.description,
+      },
+      authOptions
+    );
 
     const role = await this.createGroupRole(group.id, data.userIds);
-    await group.update({ roleId: role.id });
+    await group.update({ roleId: role.id }, authOptions);
 
     return {
       id: group.id,
@@ -92,15 +100,19 @@ export class GroupController {
       await this.assertUsersIsCustomerService(data.userIds);
     }
 
+    const authOptions = currentUser.getAuthOptions();
+
     if (data.name || data.description) {
-      await group.update({
-        name: data.name,
-        description: data.description,
-      });
+      await group.update(
+        {
+          name: data.name,
+          description: data.description,
+        },
+        authOptions
+      );
     }
 
     if (data.userIds) {
-      const authOptions = currentUser.getAuthOptions();
       const role = await this.findGroupRole(group, authOptions);
 
       const users = await role.getUsers().query().find(authOptions);
