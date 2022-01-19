@@ -20,29 +20,6 @@ function merge(where: any, modifier: (query: AVQuery) => void) {
   (staticQuery as any)._where = {};
 }
 
-function and(where1: any, where2: any): any {
-  const empty1 = _.isEmpty(where1);
-  const empty2 = _.isEmpty(where2);
-  if (empty1 && empty2) {
-    return {};
-  } else if (empty1) {
-    return { ...where2 };
-  } else if (empty2) {
-    return { ...where1 };
-  } else {
-    return { $and: [where1, where2] };
-  }
-}
-
-function or(where1: any, where2: any): any {
-  const where = and(where1, where2);
-  if (where.$and) {
-    where.$or = where.$and;
-    delete where.$and;
-  }
-  return where;
-}
-
 const queryModifiers = {
   '==': (where: any, key: string, value: any) => {
     merge(where, (q) => q.equalTo(key, value));
@@ -108,27 +85,88 @@ interface QueryPreloader {
 }
 
 export class Query<M extends typeof Model> {
+  private orConditions: any[] = [];
+  private andConditions: any[] = [];
   private condition: any = {};
+
   private skipCount?: number;
   private limitCount?: number;
   private orderKeys: Record<string, OrderType> = {};
+
   private preloaders: Record<string, QueryPreloader> = {};
 
   constructor(protected model: M) {}
 
+  private appendAndCondition(condition?: any) {
+    if (!_.isEmpty(this.condition)) {
+      this.andConditions.push(this.condition);
+      this.condition = {};
+    }
+    if (!_.isEmpty(condition)) {
+      this.andConditions.push(condition);
+    }
+  }
+
+  private getAndCondition() {
+    if (this.andConditions.length === 0) {
+      return {};
+    }
+    if (this.andConditions.length === 1) {
+      return this.andConditions[0];
+    }
+    return {
+      $and: this.andConditions,
+    };
+  }
+
+  private appendOrCondition(condition?: any) {
+    this.appendAndCondition();
+    const andCondition = this.getAndCondition();
+    if (!_.isEmpty(andCondition)) {
+      this.orConditions.push(andCondition);
+      this.andConditions = [];
+    }
+    if (!_.isEmpty(condition)) {
+      this.orConditions.push(condition);
+    }
+  }
+
+  private getOrCondition() {
+    if (this.orConditions.length === 0) {
+      return {};
+    }
+    if (this.orConditions.length === 1) {
+      return this.orConditions[0];
+    }
+    return {
+      $or: this.orConditions,
+    };
+  }
+
+  getRawCondition() {
+    this.appendOrCondition();
+    return this.getOrCondition();
+  }
+
   clone(): Query<M> {
     const query = new Query(this.model);
+
+    query.orConditions = this.orConditions.slice();
+    query.andConditions = this.andConditions.slice();
     query.condition = { ...this.condition };
+
     query.skipCount = this.skipCount;
     query.limitCount = this.limitCount;
     query.orderKeys = { ...this.orderKeys };
+
     query.preloaders = { ...this.preloaders };
+
     return query;
   }
 
   setRawCondition(condition: any): Query<M> {
     const query = this.clone();
-    query.condition = condition;
+    query.appendAndCondition(condition);
     return query;
   }
 
@@ -146,7 +184,7 @@ export class Query<M extends typeof Model> {
     } else {
       const queryBuilder = new QueryBuilder(this.model);
       key(queryBuilder);
-      query.condition = and(query.condition, queryBuilder.condition);
+      query.appendAndCondition(queryBuilder.getRawCondition());
     }
     return query;
   }
@@ -159,14 +197,14 @@ export class Query<M extends typeof Model> {
   orWhere(bunch: QueryBunch<M>): Query<M>;
   orWhere(key: any, command?: any, ...values: any[]) {
     const query = this.clone();
+    query.appendOrCondition();
     if (typeof key === 'string') {
       const modifier = queryModifiers[command as QueryCommand];
-      const newCondition = {};
-      modifier(newCondition, key, values[0]);
-      query.condition = or(query.condition, newCondition);
+      modifier(query.condition, key, values[0]);
     } else {
-      const newQuery = key(new Query(this.model)) as Query<M>;
-      query.condition = or(query.condition, newQuery.condition);
+      const queryBuilder = new QueryBuilder(this.model);
+      key(queryBuilder);
+      query.appendAndCondition(queryBuilder.getRawCondition());
     }
     return query;
   }
@@ -224,7 +262,7 @@ export class Query<M extends typeof Model> {
 
   private buildAVQuery(): AVQuery {
     const avQuery = new AV.Query<AV.Object>(this.model.getClassName());
-    (avQuery as any)._where = this.condition;
+    (avQuery as any)._where = this.getRawCondition();
     if (this.skipCount !== undefined) {
       avQuery.skip(this.skipCount);
     }
