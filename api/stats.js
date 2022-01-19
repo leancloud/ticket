@@ -2,6 +2,7 @@ const Promise = require('bluebird')
 const _ = require('lodash')
 const moment = require('moment')
 const AV = require('leanengine')
+const throat = require('throat').default
 
 const forEachAVObject = require('./common').forEachAVObject
 
@@ -380,15 +381,19 @@ const getDailyAndTicketStatses = (start, end, authOptions) => {
 }
 
 const getTicketStats = async (ticketIds, authOptions) => {
+  const run = throat(2)
   const ticketStatsesChunk = await Promise.all(
     _.map(_.chunk(ticketIds, 50), (ids) => {
-      return new AV.Query('StatsTicket')
-        .containedIn(
-          'ticket',
-          ids.map((id) => new AV.Object.createWithoutData('Ticket', id))
-        )
-        .include('ticket')
-        .find(authOptions)
+      const task = () => {
+        return new AV.Query('StatsTicket')
+          .containedIn(
+            'ticket',
+            ids.map((id) => new AV.Object.createWithoutData('Ticket', id))
+          )
+          .include('ticket')
+          .find(authOptions)
+      }
+      return run(task)
     })
   )
   return _.flatten(ticketStatsesChunk).filter((ticketStats) => {
@@ -398,12 +403,16 @@ const getTicketStats = async (ticketIds, authOptions) => {
 }
 
 const getTagStats = (ticketIds, authOptions) => {
+  const run = throat(2)
   return Promise.all(
     _.map(_.chunk(ticketIds, 50), (ids) => {
-      return new AV.Query('Ticket')
-        .select(['privateTags', 'tags'])
-        .containedIn('objectId', ids)
-        .find(authOptions)
+      const task = () => {
+        return new AV.Query('Ticket')
+          .select(['privateTags', 'tags'])
+          .containedIn('objectId', ids)
+          .find(authOptions)
+      }
+      return run(task)
     })
   )
     .then(_.flatten)
