@@ -48,9 +48,9 @@ router.get('/', pagination(20), boolean('private'), async (ctx) => {
 });
 
 const createArticalSchema = yup.object({
-  title: yup.string(),
-  content: yup.string(),
-  private: yup.boolean().optional(),
+  title: yup.string().required(),
+  content: yup.string().required(),
+  private: yup.boolean(),
 });
 router.post('/', auth, customerServiceOnly, async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
@@ -107,7 +107,7 @@ router.get('/:id/categories', auth, customerServiceOnly, async (ctx) => {
 });
 
 const getRevisionsSchema = yup.object({
-  meta: yup.boolean().optional(),
+  meta: yup.boolean(),
 });
 router.get('/:id/revisions', auth, customerServiceOnly, pagination(100), async (ctx) => {
   const article = ctx.state.article as Article;
@@ -118,7 +118,7 @@ router.get('/:id/revisions', auth, customerServiceOnly, pagination(100), async (
   const query = ArticleRevision.queryBuilder()
     .where('FAQ', '==', article.toPointer())
     .orderBy('createdAt', 'desc')
-    .skip((page - 1) * pageSize)
+    .paginate(page, pageSize)
     .limit(pageSize)
     .preload('author');
 
@@ -161,10 +161,10 @@ const getACL = (prvt: boolean) => {
 };
 
 const updateArticalSchema = yup.object({
-  title: yup.string().optional(),
-  content: yup.string().optional(),
-  private: yup.boolean().optional(),
-  comment: yup.string().optional(),
+  title: yup.string(),
+  content: yup.string(),
+  private: yup.boolean(),
+  comment: yup.string(),
 });
 router.patch('/:id', auth, customerServiceOnly, async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
