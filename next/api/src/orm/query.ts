@@ -20,29 +20,6 @@ function merge(where: any, modifier: (query: AVQuery) => void) {
   (staticQuery as any)._where = {};
 }
 
-function and(where1: any, where2: any): any {
-  const empty1 = _.isEmpty(where1);
-  const empty2 = _.isEmpty(where2);
-  if (empty1 && empty2) {
-    return {};
-  } else if (empty1) {
-    return { ...where2 };
-  } else if (empty2) {
-    return { ...where1 };
-  } else {
-    return { $and: [where1, where2] };
-  }
-}
-
-function or(where1: any, where2: any): any {
-  const where = and(where1, where2);
-  if (where.$and) {
-    where.$or = where.$and;
-    delete where.$and;
-  }
-  return where;
-}
-
 const queryModifiers = {
   '==': (where: any, key: string, value: any) => {
     merge(where, (q) => q.equalTo(key, value));
