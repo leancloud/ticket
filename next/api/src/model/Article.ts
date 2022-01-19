@@ -2,7 +2,7 @@ import mem from 'mem';
 import QuickLRU from 'quick-lru';
 
 import { ACLBuilder, field, Model, ModifyOptions, serialize } from '@/orm';
-import { User } from '@sentry/node';
+import { User } from './User';
 import { ArticleRevision } from './ArticleRevision';
 
 export class Article extends Model {
