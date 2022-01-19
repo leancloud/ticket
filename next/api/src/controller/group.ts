@@ -60,7 +60,7 @@ export class GroupController {
 
     const authOptions = currentUser.getAuthOptions();
 
-    const groupACL = new ACLBuilder().allowCustomerService('read', 'write');
+    const groupACL = new ACLBuilder().allowCustomerService('read', 'write').allowStaff('read');
     const group = await Group.create(
       {
         ACL: groupACL,
