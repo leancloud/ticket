@@ -5,3 +5,4 @@ export * from './GroupSelect';
 export * from './Retry';
 export * from './StatusSelect';
 export * from './UserSelect';
+export * from './QueryResult';

@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router-dom';
 import { SettingMenu } from './Menu';
 
 import { Members } from './Members';
+import { GroupList, NewGroup, GroupDetail } from './Groups';
 import { Vacations } from './Vacations';
 import { ViewList, NewView, ViewDetail } from './Views';
 import { TicketFieldList, NewTicketField, TicketFieldDetail } from './TicketFields';
@@ -19,6 +20,11 @@ import TimeTriggerDetail from './Automations/TimeTriggers/Detail';
 const SettingRoutes = () => (
   <Routes>
     <Route path="/members" element={<Members />} />
+    <Route path="/groups">
+      <Route index element={<GroupList />} />
+      <Route path="new" element={<NewGroup />} />
+      <Route path=":id" element={<GroupDetail />} />
+    </Route>
     <Route path="/vacations" element={<Vacations />} />
     <Route path="/views">
       <Route index element={<ViewList />} />

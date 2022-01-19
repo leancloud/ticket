@@ -11,6 +11,10 @@ const routeGroups = [
         path: 'members',
       },
       {
+        name: '客服组',
+        path: 'groups',
+      },
+      {
         name: '请假',
         path: 'vacations',
       },

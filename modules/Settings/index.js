@@ -10,7 +10,6 @@ import Organizations from './Organizations'
 import OrganizationNew from './OrganizationNew'
 import Tags from './Tags'
 import Tag from './Tag'
-import Groups from './Groups'
 import FAQs from './FAQs'
 import FAQ from './FAQ'
 import Categories from './Categories'
@@ -53,7 +52,7 @@ export default function Settings(props) {
               <ListGroup.Item as="a" href="/next/admin/settings/members">
                 {t('member')}
               </ListGroup.Item>
-              <ListGroup.Item as={NavLink} to="/settings/groups">
+              <ListGroup.Item as="a" href="/next/admin/settings/groups">
                 {t('group')}
               </ListGroup.Item>
               <ListGroup.Item as="a" href="/next/admin/settings/ticket-fields">
@@ -103,9 +102,6 @@ export default function Settings(props) {
           </Route>
           <Route path={`${path}/tags/:id`}>
             <Tag {...childrenProps} />
-          </Route>
-          <Route path={`${path}/groups`}>
-            <Groups {...childrenProps} />
           </Route>
           <Route path={`${path}/articles`} exact>
             <FAQs {...childrenProps} />
