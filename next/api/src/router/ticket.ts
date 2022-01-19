@@ -55,15 +55,17 @@ function addPointersCondition(
   pointedModel: typeof Model
 ) {
   const createPointer = pointedModel.ptr.bind(pointedModel);
-  if (ids.includes('null')) {
-    query.where(key, 'not-exists');
-    ids = ids.filter((id) => id !== 'null');
-    if (ids.length) {
-      query.orWhere(key, 'in', ids.map(createPointer));
+  query.where((query) => {
+    if (ids.includes('null')) {
+      query.where(key, 'not-exists');
+      ids = ids.filter((id) => id !== 'null');
+      if (ids.length) {
+        query.orWhere(key, 'in', ids.map(createPointer));
+      }
+    } else {
+      query.where(key, 'in', ids.map(createPointer));
     }
-  } else {
-    query.where(key, 'in', ids.map(createPointer));
-  }
+  });
 }
 
 router.get(

@@ -13,9 +13,9 @@ const router = new Router().use(auth);
 
 router.get('/', async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
-  const limit = Number(ctx.request.query['limit'] || DEFAULT_NOTIFICATIONS_PER_PAGE)
+  const limit = Number(ctx.request.query['limit'] || DEFAULT_NOTIFICATIONS_PER_PAGE);
 
-  let query = Notification.query()
+  const query = Notification.queryBuilder()
     .where('user', '==', currentUser.toPointer())
     .preload('ticket')
     .orderBy('latestActionAt', 'desc')
@@ -24,11 +24,11 @@ router.get('/', async (ctx) => {
   const beforeParam = ctx.request.query['before'];
   if (typeof beforeParam === 'string') {
     let before = parseDateParam(beforeParam);
-    query = query.where('latestActionAt', '<', before);
+    query.where('latestActionAt', '<', before);
   }
 
   if (ctx.request.query['unread']) {
-    query = query.where('unreadCount', '>', 0);
+    query.where('unreadCount', '>', 0);
   }
 
   const includeTicketMetaKeys = _.castArray(ctx.request.query['includeTicketMetaKeys'])
