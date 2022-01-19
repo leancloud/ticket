@@ -16,7 +16,6 @@ import FAQ from './FAQ'
 import Categories from './Categories'
 import Category from './Category'
 import CategorySort from './CategorySort'
-import DynamicContent from './DynamicContent'
 import QuickReplies from './QuickReply'
 
 export default function Settings(props) {
@@ -75,9 +74,6 @@ export default function Settings(props) {
               <ListGroup.Item as="a" href="/next/admin/settings/articles">
                 {t('kb')} / {t('FAQ')}
               </ListGroup.Item>
-              <ListGroup.Item as={NavLink} to="/settings/dynamicContent">
-                {t('dynamicContent')}
-              </ListGroup.Item>
               <ListGroup.Item as="a" href="/next/admin/settings/triggers">
                 Triggers
               </ListGroup.Item>
@@ -125,9 +121,6 @@ export default function Settings(props) {
           </Route>
           <Route path={`${path}/categorySort`}>
             <CategorySort {...childrenProps} />
-          </Route>
-          <Route path={`${path}/dynamicContent`}>
-            <DynamicContent />
           </Route>
           <Route path={`${path}/quick-replies`}>
             <QuickReplies />
