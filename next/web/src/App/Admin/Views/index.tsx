@@ -340,7 +340,7 @@ export function Views() {
 
   useEffect(() => {
     if (!id && viewIds?.length) {
-      navigate(viewIds[0]);
+      navigate(viewIds[0], { replace: true });
     }
   }, [viewIds, id]);
 
