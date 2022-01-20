@@ -156,6 +156,27 @@ components:
         updatedAt:
           type: string
           format: date-time
+    Revision:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        comment:
+          type: string
+        meta:
+          type: boolean
+        private:
+          type: boolean
+        author:
+          $ref: '#/components/schemas/User'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
 security:
   - Session token: []
 paths:
@@ -535,6 +556,26 @@ paths:
         schema:
           type: string
         required: true
+      - name: page
+        in: query
+        schema:
+          type: integer
+        description: 页数，范围：[1, Infinity)
+      - name: pageSize
+        in: query
+        schema:
+          type: integer
+        description: 每页数量，范围：[0, 100]，默认为 20
+      - name: meta
+        in: query
+        schema:
+          type: boolean
+        description: 为真时仅返回发布、撤销发布记录，为假时仅返回内容修改记录
+      - name: count
+        in: query
+        schema:
+          type: boolean
+        description: 为 `true` 时通过 x-total-count 返回符合条件的工单数量
     get:
       tags: ['Knowladge base']
       summary: 获取文章修改记录
@@ -546,4 +587,4 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Category'
+                  $ref: '#/components/schemas/Revision'
