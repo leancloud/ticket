@@ -119,15 +119,16 @@ export interface TicketData {
 }
 
 export interface TicketFormProps {
+  loading?: boolean;
+  disabled?: boolean;
   onSubmit: (data: TicketData) => void;
 }
 
-export function TicketForm({ onSubmit }: TicketFormProps) {
+export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
   const methods = useForm<RawTicketData>({ shouldUnregister: true });
   const { control, getValues, setValue } = methods;
   const orgs = useOrganizations();
 
-  const fileIds = useWatch({ control, name: 'fileIds' });
   const categoryPath = useWatch({ control, name: 'categoryPath' });
   const categoryId = useMemo(() => last(categoryPath), [categoryPath]);
 
@@ -245,16 +246,10 @@ export function TicketForm({ onSubmit }: TicketFormProps) {
 
           <Controller
             name="content"
-            rules={{
-              required: {
-                value: !fileIds,
-                message: '请填写此字段',
-              },
-            }}
+            rules={{ required: '请填写此字段' }}
             render={({ field, fieldState: { error } }) => (
               <Form.Item
                 label="描述"
-                required={!fileIds}
                 htmlFor="ticket_content"
                 validateStatus={error ? 'error' : undefined}
                 help={error?.message}
@@ -272,7 +267,12 @@ export function TicketForm({ onSubmit }: TicketFormProps) {
           <Upload label="附件" name="fileIds" multiple />
 
           <Form.Item>
-            <Button type="primary" htmlType="submit" loading={loadingFields}>
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={loadingFields || loading}
+              disabled={disabled}
+            >
               提交
             </Button>
           </Form.Item>
