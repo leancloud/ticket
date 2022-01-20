@@ -8,6 +8,7 @@ import { useParams } from 'react-router';
 import { Link } from 'react-router-dom';
 import { usePage, usePageSize } from '@/utils/usePage';
 import { useSearchParam } from '@/utils/useSearchParams';
+import { QueryResult } from '@/components/common';
 
 const { Column } = Table;
 const { Title } = Typography;
@@ -132,39 +133,39 @@ export function ArticleRevisions() {
 export function ArticleRevisionDetail() {
   const { id: articleId, rid: revisionId } = useParams();
 
-  const { data: revision, isLoading } = useArticleRevision(articleId!, revisionId!);
-
-  {
-    isLoading && <div className="h-80 my-40 text-center" children={<Spin />} />;
-  }
+  const result = useArticleRevision(articleId!, revisionId!);
 
   return (
-    <div className="p-10">
-      <div className="flex justify-center mb-1">
-        <Breadcrumb className="grow">
-          <Breadcrumb.Item>
-            <Link to="../../..">文章</Link>
-          </Breadcrumb.Item>
-          <Breadcrumb.Item>
-            <Link to="../..">{articleId}</Link>
-          </Breadcrumb.Item>
-          <Breadcrumb.Item>
-            <Link to="..">历史</Link>
-          </Breadcrumb.Item>
-          <Breadcrumb.Item className="text-gray-300">{revisionId}</Breadcrumb.Item>
-        </Breadcrumb>
-      </div>
-      <Title level={2}>{revision?.title}</Title>
-      {revision && (
+    <QueryResult className="p-10" result={result}>
+      {({ data: revision }) => (
         <>
-          {revision.contentSafeHTML && (
-            <div
-              className="markdown-body"
-              dangerouslySetInnerHTML={{ __html: revision.contentSafeHTML }}
-            />
+          <div className="flex justify-center mb-1">
+            <Breadcrumb className="grow">
+              <Breadcrumb.Item>
+                <Link to="../../..">文章</Link>
+              </Breadcrumb.Item>
+              <Breadcrumb.Item>
+                <Link to="../..">{articleId}</Link>
+              </Breadcrumb.Item>
+              <Breadcrumb.Item>
+                <Link to="..">历史</Link>
+              </Breadcrumb.Item>
+              <Breadcrumb.Item className="text-gray-300">{revisionId}</Breadcrumb.Item>
+            </Breadcrumb>
+          </div>
+          <Title level={2}>{revision?.title}</Title>
+          {revision && (
+            <>
+              {revision.contentSafeHTML && (
+                <div
+                  className="markdown-body"
+                  dangerouslySetInnerHTML={{ __html: revision.contentSafeHTML }}
+                />
+              )}
+            </>
           )}
         </>
       )}
-    </div>
+    </QueryResult>
   );
 }
