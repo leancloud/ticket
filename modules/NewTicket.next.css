@@ -1,0 +1,8 @@
+:global(html), :global(body) {
+  height: 100%;
+}
+
+:global(#app) {
+  height: 100%;
+  display: flex;
+}
