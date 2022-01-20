@@ -9,6 +9,7 @@ import { Category, CategoryManager } from '@/model/Category';
 import { Group } from '@/model/Group';
 import { Organization } from '@/model/Organization';
 import { Reply } from '@/model/Reply';
+import { Tag } from '@/model/Tag';
 import { Ticket } from '@/model/Ticket';
 import { User } from '@/model/User';
 import { TicketResponse, TicketListItemResponse } from '@/response/ticket';
@@ -175,6 +176,7 @@ const ticketDataSchema = yup.object({
   fileIds: yup.array(yup.string().required()),
   metaData: yup.object(),
   customFields: yup.array(customFieldSchema.required()),
+  appId: yup.string(), // LeanCloud app id
 });
 
 router.post('/', async (ctx) => {
@@ -215,6 +217,16 @@ router.post('/', async (ctx) => {
   }
 
   const ticket = await creator.create(currentUser);
+
+  if (config.enableLeanCloudIntegration && data.appId) {
+    await Tag.create({
+      ACL: creator.getRawACL(),
+      authorId: currentUser.id,
+      ticketId: ticket.id,
+      key: 'appId',
+      value: data.appId,
+    });
+  }
 
   ctx.body = { id: ticket.id };
 });
