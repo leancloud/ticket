@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { useController, useFormContext } from 'react-hook-form';
+import { useController } from 'react-hook-form';
 
 import { Form, Input as AntInput } from '@/components/antd';
 
@@ -11,12 +11,10 @@ export interface InputProps {
 }
 
 export const Input = memo(({ name, label, description, required }: InputProps) => {
-  const { control } = useFormContext();
   const {
     field,
     fieldState: { error },
   } = useController({
-    control,
     name,
     rules: {
       required: {

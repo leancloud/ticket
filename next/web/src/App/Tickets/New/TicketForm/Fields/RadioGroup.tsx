@@ -1,5 +1,5 @@
 import { useImperativeHandle, useRef } from 'react';
-import { useController, useFormContext } from 'react-hook-form';
+import { useController } from 'react-hook-form';
 
 import { Col, Form, Radio, Row } from '@/components/antd';
 
@@ -12,12 +12,10 @@ export interface RadioGroupProps {
 }
 
 export function RadioGroup({ name, label, description, options, required }: RadioGroupProps) {
-  const { control } = useFormContext();
   const {
     field: { ref, value, onChange },
     fieldState: { error },
   } = useController({
-    control,
     name,
     rules: {
       required: {

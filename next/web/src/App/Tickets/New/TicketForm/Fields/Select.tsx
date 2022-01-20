@@ -1,4 +1,4 @@
-import { useController, useFormContext } from 'react-hook-form';
+import { useController } from 'react-hook-form';
 
 import { Form, Select as AntSelect } from '@/components/antd';
 
@@ -21,12 +21,10 @@ const fieldNames = {
 };
 
 export function Select({ name, label, description, options, required }: SelectProps) {
-  const { control } = useFormContext();
   const {
     field,
     fieldState: { error },
   } = useController({
-    control,
     name,
     rules: {
       required: {

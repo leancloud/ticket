@@ -1,5 +1,5 @@
 import { memo, useCallback, useState } from 'react';
-import { useController, useFormContext } from 'react-hook-form';
+import { useController } from 'react-hook-form';
 import { UploadChangeParam } from 'antd/lib/upload';
 
 import { storage } from '@/leancloud';
@@ -41,12 +41,10 @@ export interface UploadProps {
 
 export const Upload = memo(({ name, label, description, required, multiple }: UploadProps) => {
   const [uploadState, setUploadState] = useState<UploadState>();
-  const { control } = useFormContext();
   const {
     field,
     fieldState: { error },
   } = useController({
-    control,
     name,
     rules: {
       required: {
