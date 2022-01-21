@@ -1,7 +1,9 @@
 import mem from 'mem';
 import QuickLRU from 'quick-lru';
 
-import { field, Model, ModifyOptions, serialize } from '@/orm';
+import { ACLBuilder, field, Model, ModifyOptions, serialize } from '@/orm';
+import { User } from './User';
+import { ArticleRevision } from './ArticleRevision';
 
 export class Article extends Model {
   protected static className = 'FAQ';
@@ -11,7 +13,7 @@ export class Article extends Model {
   title!: string;
 
   @field('answer')
-  content!: string;
+  content?: string;
 
   @field('answer_HTML')
   contentHTML!: string;
@@ -31,6 +33,48 @@ export class Article extends Model {
       },
       { ...options, ignoreAfterHook: true, ignoreBeforeHook: true }
     );
+  }
+
+  async createRevision(
+    author: User,
+    updatedArticle: Article,
+    previousArticle?: Article,
+    comment?: string
+  ) {
+    const doCreateRevision = async (data: Partial<ArticleRevision>) => {
+      return ArticleRevision.create(
+        {
+          ...data,
+          authorId: author.id,
+          articleId: this.id,
+          comment,
+          ACL: new ACLBuilder().allowStaff('read'),
+        },
+        {
+          useMasterKey: true,
+        }
+      );
+    };
+
+    const contentChanged =
+      updatedArticle.content !== previousArticle?.content ||
+      updatedArticle.title !== previousArticle?.title;
+    if (contentChanged) {
+      await doCreateRevision({
+        content: updatedArticle.content,
+        title: updatedArticle.title,
+      });
+    }
+
+    const metaChanged =
+      updatedArticle.private !== previousArticle?.private ||
+      (previousArticle === undefined && updatedArticle.private);
+    if (metaChanged) {
+      await doCreateRevision({
+        meta: true,
+        private: updatedArticle.private,
+      });
+    }
   }
 }
 

@@ -1,27 +1,35 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { SiMarkdown } from 'react-icons/si';
 
-import { CreateArticleData } from '@/api/article';
+import { UpsertArticleData } from '@/api/article';
 import { Button, Checkbox, Form, FormInstance, Input, Popover } from '@/components/antd';
 
 export interface EditArticleProps {
-  initData?: CreateArticleData;
+  initData?: UpsertArticleData;
   submitting?: boolean;
-  onSubmit: (data: CreateArticleData) => void;
+  onSubmit: (data: UpsertArticleData) => void;
   onCancel?: () => void;
+  acceptComment?: boolean;
 }
 
-interface FormData extends Omit<CreateArticleData, 'private'> {
+interface FormData extends Omit<UpsertArticleData, 'private'> {
   public: boolean;
 }
 
-export function EditArticleForm({ initData, submitting, onSubmit, onCancel }: EditArticleProps) {
+export function EditArticleForm({
+  initData,
+  submitting,
+  onSubmit,
+  onCancel,
+  acceptComment = true,
+}: EditArticleProps) {
   const { control, handleSubmit } = useForm<FormData>({
     defaultValues: { ...initData, public: !initData?.private },
   });
 
   const $antForm = useRef<FormInstance>(null!);
+  const [comment, setComment] = useState('');
 
   return (
     <div className="flex flex-col h-full">
@@ -30,7 +38,7 @@ export function EditArticleForm({ initData, submitting, onSubmit, onCancel }: Ed
           ref={$antForm}
           layout="vertical"
           onFinish={handleSubmit(({ ['public']: pblc, ...data }) =>
-            onSubmit({ ...data, private: !pblc })
+            onSubmit({ ...data, private: !pblc, comment })
           )}
         >
           <Controller
@@ -87,6 +95,14 @@ export function EditArticleForm({ initData, submitting, onSubmit, onCancel }: Ed
         <Button className="mr-4" disabled={submitting} type="link" onClick={onCancel}>
           取消
         </Button>
+        {acceptComment && (
+          <Input
+            className="!mr-6"
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="为此次改动添加注释"
+          />
+        )}
       </div>
     </div>
   );

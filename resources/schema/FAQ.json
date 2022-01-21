@@ -33,22 +33,15 @@
       "required": true,
       "hidden": false
     },
-    "priority_ios": {
-      "type": "Number",
-      "v": 2,
-      "required": false,
-      "auto_increment": false,
-      "hidden": false
-    },
     "createdAt": {
       "type": "Date"
     },
-    "priority_android": {
-      "type": "Number",
+    "deletedAt": {
+      "type": "Date",
       "v": 2,
       "required": false,
-      "auto_increment": false,
-      "hidden": false
+      "hidden": false,
+      "read_only": false
     },
     "answer": {
       "type": "String",
@@ -56,5 +49,26 @@
       "required": false,
       "hidden": false
     }
-  }
+  },
+  "permissions": {
+    "create": {
+      "*": true
+    },
+    "find": {
+      "*": true
+    },
+    "get": {
+      "*": true
+    },
+    "update": {
+      "*": true
+    },
+    "delete": {
+      "*": true
+    },
+    "add_fields": {
+      "*": true
+    }
+  },
+  "indexes": []
 }

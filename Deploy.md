@@ -70,6 +70,7 @@
 ### `0a3eaddba44500c70bcc19afc655106a217c82ae`
 
 修改了 Redis 中 Category 的格式，部署后需要清除 Category 的缓存：
+
 ```sh
 > lean cache
 > del categories
@@ -89,8 +90,9 @@ OpsLog 没有索引，在自用的 LeanTicket 上 40000+ 的数据量已经出�
 
 ### `f400cdc73c0328bb74bf934a17c370c127b4000e`
 
-重新导入 notification.json 。并确保 notification 表有这个索引： user.$id_1_latestActionAt_-1
+重新导入 notification.json 。并确保 notification 表有这个索引： 
 
+- user（正序）联合 latestActionAt（倒序）
 
 ## 2021-10-29
 
@@ -136,7 +138,8 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 
 ### `a862e9fb042178ba2e3304aecdb2ec647f913ac7`
 
-重新导入 Ticket（为 Ticket 增加 latestCustomerServiceReplyAt 与 firstCustomerServiceReplyAt，创建索引 latestCustomerServiceReplyAt_-1）
+重新导入 Ticket（为 Ticket 增加 latestCustomerServiceReplyAt 与 firstCustomerServiceReplyAt）。
+为 Ticket 创建索引 latestCustomerServiceReplyAt （倒序）
 
 ## 2021-12-28
 
@@ -163,3 +166,12 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 ### `bc6fdb6d7f69e937425dd68c369e2690829e86b0`
 
 已删除 ticket filter 功能，可以删除 TicketFilter class。
+
+## 2022-01-18
+
+### `TBD`
+
+导入 FAQ.json FAQRevision.jaon，确保 FAQRevision 有以下两个索引：
+
+- FAQ（倒序）createdAt（倒序）
+- FAQ（倒序）meta（倒序）createdAt（倒序）

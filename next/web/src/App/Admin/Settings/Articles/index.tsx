@@ -10,8 +10,7 @@ import {
   Empty,
   Menu,
   message,
-  Popover,
-  Select,
+  Radio,
   Spin,
   Table,
   Tag,
@@ -32,19 +31,19 @@ import { CategorySchema } from '@/api/category';
 import { EditArticleForm } from './EditArticleForm';
 // We should move them to @component
 import { CategoryPath, useGetCategoryPath } from '../../Tickets/TicketView/TicketList';
+import { useSearchParam } from '@/utils/useSearchParams';
 
 const { Column } = Table;
-const { Option } = Select;
 const { Title } = Typography;
 
-const PrivateQueryValue = {
+const PrivateQueryValue: { [key: string]: boolean| undefined } = {
   true: true,
   false: false,
   unset: undefined,
 };
 
 export function Articles() {
-  const [filter, setFilter] = useState<'true' | 'false' | 'unset'>('unset');
+  const [filter = 'unset', setFilter] = useSearchParam('status');
   const [page, { set: setPage }] = usePage();
   const [pageSize = 20, setPageSize] = usePageSize();
   const { data: articles, totalCount, isLoading } = useArticles({
@@ -60,17 +59,17 @@ export function Articles() {
   return (
     <div className="px-10 pt-10">
       <h1 className="text-[#2f3941] text-[26px] font-normal">文章</h1>
-      <div className="flex flex-row mb-4">
+      <div className="flex flex-row items-center mb-4">
         <div className="grow">
-          <Select value={filter} onChange={setFilter}>
-            <Option value="unset">全部</Option>
-            <Option value="true">未发布</Option>
-            <Option value="false">已发布</Option>
-          </Select>
+          <Radio.Group value={filter} onChange={(e) => setFilter(e.target.value)} size="small">
+            <Radio.Button value="unset">全部</Radio.Button>
+            <Radio.Button value="true">未发布</Radio.Button>
+            <Radio.Button value="false">已发布</Radio.Button>
+          </Radio.Group>
         </div>
         <Link to="new">
           <Button type="primary" ghost>
-            新增文章
+            创建文章
           </Button>
         </Link>
       </div>
@@ -100,7 +99,7 @@ export function Articles() {
           <Column
             title="状态"
             dataIndex="private"
-            render={(title, article: Article) => <ArticleStatus article={article} />}
+            render={(_, article: Article) => <ArticleStatus article={article} />}
           />
           <Column
             title="创建日期"
@@ -186,6 +185,7 @@ export function NewArticle() {
       submitting={isLoading}
       onSubmit={mutate}
       onCancel={() => navigate('..')}
+      acceptComment={false}
     />
   );
 }
@@ -283,25 +283,27 @@ export function ArticleDetail() {
         </Breadcrumb>
         <div>
           <TogglePrivateButton size="small" article={article} />{' '}
-          {article.private ? (
-            <Dropdown.Button
-              size="small"
-              onClick={() => navigate('edit')}
-              overlay={
-                <Menu>
-                  <Menu.Item key="1" danger onClick={() => deleteAtcl(id!)}>
-                    删除
-                  </Menu.Item>
-                </Menu>
-              }
-            >
-              编辑
-            </Dropdown.Button>
-          ) : (
-            <Button size="small" onClick={() => navigate('edit')}>
-              编辑
-            </Button>
-          )}
+          <Dropdown.Button
+            size="small"
+            onClick={() => navigate('edit')}
+            overlay={
+              <Menu>
+                <Menu.Item key="0">
+                  <Link to="./revisions">历史</Link>
+                </Menu.Item>
+                {article.private && (
+                  <>
+                    <Menu.Divider />
+                    <Menu.Item key="1" danger onClick={() => deleteAtcl(id!)}>
+                      删除
+                    </Menu.Item>
+                  </>
+                )}
+              </Menu>
+            }
+          >
+            编辑
+          </Dropdown.Button>
         </div>
       </div>
       <Title level={2}>{article.title}</Title>
