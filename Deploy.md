@@ -175,3 +175,9 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 
 - FAQ（倒序）createdAt（倒序）
 - FAQ（倒序）meta（倒序）createdAt（倒序）
+
+## 2022-01-19
+
+### `950b952e5e8a2d310fa7419dfa9c8e936569c734`
+
+已删除「动态内容」功能，可以删除 DynamicContent class。
