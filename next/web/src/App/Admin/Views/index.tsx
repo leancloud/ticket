@@ -313,7 +313,7 @@ export function Views() {
 
   const currentUser = useCurrentUser();
 
-  const { data: userGroups } = useCustomerServiceGroups(currentUser!.id);
+  const { data: userGroups, isLoading: loadingGroups } = useCustomerServiceGroups(currentUser!.id);
   const groupIds = useMemo(() => {
     return ['null', ...(userGroups?.map((g) => g.id) ?? [])];
   }, [userGroups]);
@@ -322,7 +322,7 @@ export function Views() {
     groupIds,
     userIds: ['null'],
     queryOptions: {
-      enabled: userGroups !== undefined && userGroups.length > 0,
+      enabled: !loadingGroups,
     },
   });
 
