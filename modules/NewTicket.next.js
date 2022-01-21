@@ -10,7 +10,7 @@ export default function NewTicket() {
   useEffect(() => {
     const h = ({ data }) => {
       if (data === 'ticketCreated') {
-        history.current.push('/tickets')
+        setTimeout(() => history.current.push('/tickets'), 1000)
       }
     }
     frame.current.contentWindow.addEventListener('message', h)
