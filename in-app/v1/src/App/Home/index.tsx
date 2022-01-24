@@ -1,16 +1,16 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-
-import { http } from 'leancloud';
-import { PageContent, PageHeader } from 'components/Page';
-import { QueryWrapper } from 'components/QueryWrapper';
-import { CategoryList, useCategories } from '../Categories';
-import { useRootCategory } from '../../App';
 import { useQuery } from 'react-query';
-import { useNotices, ArticleLink } from '../Articles/utils';
-import SpeakerIcon from '@/icons/Speaker';
 import { ChevronRightIcon } from '@heroicons/react/solid';
+
+import { http } from '@/leancloud';
+import { PageContent, PageHeader } from '@/components/Page';
+import { QueryWrapper } from '@/components/QueryWrapper';
+import SpeakerIcon from '@/icons/Speaker';
+import { useRootCategory } from '@/App';
+import { CategoryList, useCategories } from '@/App/Categories';
+import { useNotices, ArticleLink } from '@/App/Articles/utils';
 
 interface TicketsLinkProps {
   badge?: boolean;

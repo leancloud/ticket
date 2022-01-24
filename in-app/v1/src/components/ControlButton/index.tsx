@@ -2,8 +2,8 @@ import { ComponentPropsWithoutRef, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import cx from 'classnames';
 
-import BackIcon from 'icons/Back';
-import HomeIcon from 'icons/Home';
+import BackIcon from '@/icons/Back';
+import HomeIcon from '@/icons/Home';
 import styles from './index.module.css';
 
 export function ControlButton(props: ComponentPropsWithoutRef<'div'>) {

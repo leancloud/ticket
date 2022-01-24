@@ -1,6 +1,6 @@
 import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react';
 
-import { Checkbox } from 'components/Form';
+import { Checkbox } from '@/components/Form';
 import { ErrorMessage } from '../ErrorMessage';
 import { ControlRef } from '..';
 

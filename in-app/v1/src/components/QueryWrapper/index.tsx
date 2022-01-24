@@ -2,9 +2,9 @@ import { ReactNode } from 'react';
 import { UseQueryResult } from 'react-query';
 import axios from 'axios';
 
-import { Loading } from 'components/Loading';
-import { APIError } from 'components/APIError';
-import { NoData } from 'components/NoData';
+import { Loading } from '@/components/Loading';
+import { APIError } from '@/components/APIError';
+import { NoData } from '@/components/NoData';
 import NotFound from '../../App/NotFound';
 
 export interface QueryWrapperProps<TData, TError> {

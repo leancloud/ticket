@@ -2,7 +2,7 @@ import { ComponentPropsWithoutRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import cx from 'classnames';
 
-import { ControlButton } from 'components/ControlButton';
+import { ControlButton } from '@/components/ControlButton';
 import { ErrorBoundary } from '../ErrorBoundary';
 import styles from './index.module.css';
 

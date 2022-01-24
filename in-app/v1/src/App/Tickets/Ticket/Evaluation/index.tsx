@@ -2,13 +2,13 @@ import { useState } from 'react';
 import { useMutation, useQueryClient } from 'react-query';
 import { useTranslation } from 'react-i18next';
 
-import { Radio } from 'components/Form';
-import { Button } from 'components/Button';
-import CheckIcon from 'icons/Check';
-import ThumbDownIcon from 'icons/ThumbDown';
-import ThumbUpIcon from 'icons/ThumbUp';
-import { http } from 'leancloud';
-import { Ticket } from 'types';
+import { http } from '@/leancloud';
+import { Ticket } from '@/types';
+import { Radio } from '@/components/Form';
+import { Button } from '@/components/Button';
+import CheckIcon from '@/icons/Check';
+import ThumbDownIcon from '@/icons/ThumbDown';
+import ThumbUpIcon from '@/icons/ThumbUp';
 
 export function Evaluated() {
   const { t } = useTranslation();

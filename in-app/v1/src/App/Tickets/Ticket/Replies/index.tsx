@@ -4,10 +4,10 @@ import { useTranslation } from 'react-i18next';
 import cx from 'classnames';
 import { flatten, last } from 'lodash-es';
 
-import { http } from 'leancloud';
-import { Reply } from 'types';
-import { Time } from 'components/Time';
-import { FileInfoWithKey, FileItems } from 'components/FileItem';
+import { http } from '@/leancloud';
+import { Reply } from '@/types';
+import { Time } from '@/components/Time';
+import { FileInfoWithKey, FileItems } from '@/components/FileItem';
 import style from './index.module.css';
 
 interface ReplyItemProps {

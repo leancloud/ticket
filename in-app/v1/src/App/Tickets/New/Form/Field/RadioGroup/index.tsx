@@ -1,8 +1,8 @@
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 
-import { Radio } from 'components/Form/Radio';
-import { ErrorMessage } from '../ErrorMessage';
+import { Radio } from '@/components/Form/Radio';
 import { ControlRef } from '..';
+import { ErrorMessage } from '../ErrorMessage';
 
 export interface RadioOption {
   title: string;

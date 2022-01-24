@@ -3,11 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { Dialog } from '@headlessui/react';
 import cx from 'classnames';
 
-import { Button } from 'components/Button';
-import { FileInfoWithKey, FileItems } from 'components/FileItem';
-import { useAlert } from 'utils/useAlert';
-import { useUpload } from 'utils/useUpload';
-import ClipIcon from 'icons/Clip';
+import { Button } from '@/components/Button';
+import { FileInfoWithKey, FileItems } from '@/components/FileItem';
+import { useAlert } from '@/utils/useAlert';
+import { useUpload } from '@/utils/useUpload';
+import ClipIcon from '@/icons/Clip';
 
 export interface ReplyData {
   content: string;

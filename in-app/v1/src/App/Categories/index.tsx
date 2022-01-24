@@ -5,16 +5,16 @@ import { useTranslation } from 'react-i18next';
 import { ChevronRightIcon } from '@heroicons/react/solid';
 import classNames from 'classnames';
 
-import { PageContent, PageHeader } from 'components/Page';
-import { QueryWrapper } from 'components/QueryWrapper';
-import { http } from 'leancloud';
-import { Category } from 'types';
-import styles from './index.module.css';
-import { APIError } from 'components/APIError';
-import { NotFoundContent } from '../NotFound';
-import { Loading } from 'components/Loading';
-import { ArticleListItem, useFAQs } from '../Articles/utils';
+import { http } from '@/leancloud';
+import { Category } from '@/types';
+import { PageContent, PageHeader } from '@/components/Page';
+import { QueryWrapper } from '@/components/QueryWrapper';
+import { APIError } from '@/components/APIError';
+import { Loading } from '@/components/Loading';
 import { NewTicketButton } from '@/components/NewTicketButton';
+import { ArticleListItem, useFAQs } from '@/App/Articles/utils';
+import styles from './index.module.css';
+import { NotFoundContent } from '../NotFound';
 
 interface ListItemProps {
   to: string;

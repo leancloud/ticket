@@ -2,10 +2,10 @@ import { FormEvent, useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-import { auth } from 'leancloud';
-import { PageContent, PageHeader } from 'components/Page';
-import { Input } from 'components/Form';
-import { Button } from 'components/Button';
+import { auth } from '@/leancloud';
+import { PageContent, PageHeader } from '@/components/Page';
+import { Input } from '@/components/Form';
+import { Button } from '@/components/Button';
 
 function LogInForm() {
   const [username, setUsername] = useState('');

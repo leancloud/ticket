@@ -2,7 +2,7 @@ import { ChangeEventHandler, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import cx from 'classnames';
 
-import PlusIcon from 'icons/Plus';
+import PlusIcon from '@/icons/Plus';
 import { FileItems } from '../FileItem';
 
 type FileKey = string | number;

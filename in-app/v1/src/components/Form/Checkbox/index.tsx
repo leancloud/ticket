@@ -1,7 +1,7 @@
 import { PropsWithChildren, useCallback, useRef } from 'react';
 import cx from 'classnames';
 
-import CheckIcon from 'icons/Check';
+import CheckIcon from '@/icons/Check';
 
 export interface CheckboxProps {
   checked?: boolean;

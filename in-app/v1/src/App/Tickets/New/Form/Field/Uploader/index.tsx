@@ -1,9 +1,9 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Uploader as Uploader_ } from 'components/Uploader';
-import { useAlert } from 'utils/useAlert';
-import { useUpload } from 'utils/useUpload';
+import { Uploader as Uploader_ } from '@/components/Uploader';
+import { useAlert } from '@/utils/useAlert';
+import { useUpload } from '@/utils/useUpload';
 import { ControlRef } from '..';
 import { ErrorMessage } from '../ErrorMessage';
 

@@ -1,10 +1,10 @@
 import { ComponentPropsWithoutRef, Key, useMemo } from 'react';
 import cx from 'classnames';
 
-import { usePreview } from 'utils/usePreview';
-import XIcon from 'icons/X';
-import ClipIcon from 'icons/Clip';
-import FileVideoIcon from 'icons/FileVideo';
+import { usePreview } from '@/utils/usePreview';
+import XIcon from '@/icons/X';
+import ClipIcon from '@/icons/Clip';
+import FileVideoIcon from '@/icons/FileVideo';
 import styles from './index.module.css';
 
 function FileIcon({ mime, url }: { mime?: string; url?: string }) {

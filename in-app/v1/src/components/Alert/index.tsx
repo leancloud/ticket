@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { Dialog, Transition } from '@headlessui/react';
 import { XIcon } from '@heroicons/react/solid';
 
-import { Button } from 'components/Button';
-import { SpaceChinese } from 'components/SpaceChinese';
+import { Button } from '@/components/Button';
+import { SpaceChinese } from '@/components/SpaceChinese';
 
 export interface AlertProps {
   title: string;
