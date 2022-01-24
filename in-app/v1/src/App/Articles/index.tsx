@@ -1,18 +1,19 @@
 import { useState } from 'react';
 import { useQuery } from 'react-query';
-import { Link, Route, Routes, useParams, useSearchParams } from 'react-router-dom';
-import { Article } from 'types';
-import { http } from 'leancloud';
-import { PageContent, PageHeader } from 'components/Page';
-import { QueryWrapper } from 'components/QueryWrapper';
-import { ArticleListItem, useFAQs } from './utils';
-import { useAuth } from '..';
+import { useTranslation } from 'react-i18next';
+import { Route, Routes, useParams, useSearchParams } from 'react-router-dom';
+
+import { Article } from '@/types';
+import { http } from '@/leancloud';
+import { PageContent, PageHeader } from '@/components/Page';
+import { QueryWrapper } from '@/components/QueryWrapper';
 import { Button } from '@/components/Button';
 import { NewTicketButton } from '@/components/NewTicketButton';
-import { useTranslation } from 'react-i18next';
-import CheckIcon from 'icons/Check';
-import ThumbDownIcon from 'icons/ThumbDown';
-import ThumbUpIcon from 'icons/ThumbUp';
+import CheckIcon from '@/icons/Check';
+import ThumbDownIcon from '@/icons/ThumbDown';
+import ThumbUpIcon from '@/icons/ThumbUp';
+import { useAuth } from '..';
+import { ArticleListItem, useFAQs } from './utils';
 
 async function getArticle(id: string) {
   return (await http.get<Article>(`/api/2/articles/${id}`)).data;

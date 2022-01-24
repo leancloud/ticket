@@ -5,16 +5,16 @@ import { useTranslation } from 'react-i18next';
 import { ChevronRightIcon } from '@heroicons/react/solid';
 import classNames from 'classnames';
 
-import { PageContent, PageHeader } from 'components/Page';
-import { QueryWrapper } from 'components/QueryWrapper';
-import { http } from 'leancloud';
-import { Category } from 'types';
-import styles from './index.module.css';
-import { APIError } from 'components/APIError';
-import { NotFoundContent } from '../NotFound';
-import { Loading } from 'components/Loading';
-import { ArticleListItem, useFAQs } from '../Articles/utils';
+import { http } from '@/leancloud';
+import { Category } from '@/types';
+import { PageContent, PageHeader } from '@/components/Page';
+import { QueryWrapper } from '@/components/QueryWrapper';
+import { APIError } from '@/components/APIError';
+import { Loading } from '@/components/Loading';
 import { NewTicketButton } from '@/components/NewTicketButton';
+import { ArticleListItem, useFAQs } from '@/App/Articles/utils';
+import styles from './index.module.css';
+import { NotFoundContent } from '../NotFound';
 
 interface ListItemProps {
   to: string;
@@ -25,7 +25,7 @@ interface ListItemProps {
 
 export function ListItem({ to, content, marker, className }: ListItemProps) {
   return (
-    <Link to={to} className='block px-4 active:bg-gray-50'>
+    <Link to={to} className="block px-4 active:bg-gray-50">
       <div
         className={classNames(
           'h-11 flex items-center text-[#666] border-b border-gray-100',
@@ -33,8 +33,8 @@ export function ListItem({ to, content, marker, className }: ListItemProps) {
         )}
       >
         {marker && <div className={styles.marker} />}
-        <div className="flex-grow truncate">{content}</div>
-        <ChevronRightIcon className="flex-shrink-0 h-4 w-4" />
+        <div className="grow truncate">{content}</div>
+        <ChevronRightIcon className="shrink-0 h-4 w-4" />
       </div>
     </Link>
   );

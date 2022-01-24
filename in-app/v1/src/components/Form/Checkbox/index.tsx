@@ -1,7 +1,7 @@
 import { PropsWithChildren, useCallback, useRef } from 'react';
 import cx from 'classnames';
 
-import CheckIcon from 'icons/Check';
+import CheckIcon from '@/icons/Check';
 
 export interface CheckboxProps {
   checked?: boolean;
@@ -15,9 +15,7 @@ export function Checkbox({ checked, onChange, fluid, children }: PropsWithChildr
 
   return (
     <span className={cx('inline-flex items-center', { 'w-full': fluid })}>
-      <span
-        className={`flex-shrink-0 inline-flex justify-center items-center w-[14px] h-[14px] relative`}
-      >
+      <span className="shrink-0 inline-flex justify-center items-center w-[14px] h-[14px] relative">
         <input
           ref={$input}
           type="checkbox"
@@ -31,7 +29,7 @@ export function Checkbox({ checked, onChange, fluid, children }: PropsWithChildr
           <CheckIcon className="absolute w-[11px] h-[11px] text-white pointer-events-none" />
         )}
       </span>
-      <label className="flex-grow ml-2 text-[#666]" onClick={handleClick}>
+      <label className="grow ml-2 text-[#666]" onClick={handleClick}>
         {children}
       </label>
     </span>

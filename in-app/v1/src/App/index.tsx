@@ -4,10 +4,10 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 import { ArrayParam, decodeQueryParams, JsonParam, StringParam } from 'serialize-query-params';
 import { parse } from 'query-string';
 
-import { User, auth as lcAuth } from 'leancloud';
-import { APIError } from 'components/APIError';
-import { ErrorBoundary } from 'components/ErrorBoundary';
-import { Loading } from 'components/Loading';
+import { User, auth as lcAuth } from '@/leancloud';
+import { APIError } from '@/components/APIError';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { Loading } from '@/components/Loading';
 import LogIn from './LogIn';
 import Home from './Home';
 import Categories from './Categories';

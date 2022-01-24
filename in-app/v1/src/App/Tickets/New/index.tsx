@@ -1,17 +1,17 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useMutation } from 'react-query';
 import { pick } from 'lodash-es';
 
+import { http } from '@/leancloud';
 import { CategoryFieldSchema, useCategoryFields } from '@/api/category';
-import { useSearchParams } from 'utils/url';
-import { PageContent, PageHeader } from 'components/Page';
-import { Button } from 'components/Button';
-import { QueryWrapper } from 'components/QueryWrapper';
-import CheckIcon from 'icons/Check';
+import { useSearchParams } from '@/utils/url';
+import { PageContent, PageHeader } from '@/components/Page';
+import { Button } from '@/components/Button';
+import { QueryWrapper } from '@/components/QueryWrapper';
+import CheckIcon from '@/icons/Check';
 import { useCategory } from '../../Categories';
-import { http } from 'leancloud';
 import { useTicketInfo } from '../..';
 import NotFound from '../../NotFound';
 import { CustomForm } from './CustomForm';
@@ -153,7 +153,7 @@ export function NewTicket() {
       <PageHeader>{result.data?.name ?? t('general.loading') + '...'}</PageHeader>
       <PageContent>
         {ticketId ? (
-          <Success ticketId={ticketId} />
+          <Success ticketId={ticketId as string} />
         ) : (
           <QueryWrapper result={result}>
             <TicketForm categoryId={category_id} onSubmit={submit} submitting={submitting} />

@@ -5,14 +5,14 @@ import { useTranslation } from 'react-i18next';
 import { InView } from 'react-intersection-observer';
 import { flatten } from 'lodash-es';
 
-import { QueryWrapper } from 'components/QueryWrapper';
-import { PageContent, PageHeader } from 'components/Page';
-import { Time } from 'components/Time';
-import { LoadingHint } from 'components/Loading';
+import { auth, http } from '@/leancloud';
+import { Ticket } from '@/types';
+import { QueryWrapper } from '@/components/QueryWrapper';
+import { PageContent, PageHeader } from '@/components/Page';
+import { Time } from '@/components/Time';
+import { LoadingHint } from '@/components/Loading';
 import TicketDetail, { TicketStatus } from './Ticket';
 import { NewTicket } from './New';
-import { auth, http } from 'leancloud';
-import { Ticket } from 'types';
 import { useRootCategory } from '../../App';
 
 const TICKETS_PAGE_SIZE = 20;
@@ -80,7 +80,7 @@ function TicketItem({ ticket }: TicketItemProps) {
         <div className="mt-1.5 truncate text-[13px]">{ticket.title}</div>
       </div>
       {ticket.unreadCount > 0 && (
-        <div className="flex-shrink-0 ml-2 w-[18px] leading-[18px] px-1 min-w-min bg-red rounded-full text-white text-xs text-center">
+        <div className="shrink-0 ml-2 w-[18px] leading-[18px] px-1 min-w-min bg-red rounded-full text-white text-xs text-center">
           {ticket.unreadCount}
         </div>
       )}

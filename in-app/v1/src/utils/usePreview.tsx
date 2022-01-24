@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 
-import { Preview, PreviewProps } from 'components/Preview';
+import { Preview, PreviewProps } from '@/components/Preview';
 
 function getFileType(mime: string): PreviewProps['type'] | 'unknown' {
   if (mime.startsWith('image')) {

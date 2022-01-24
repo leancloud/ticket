@@ -15,13 +15,13 @@ import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/solid';
 import { flatten, last } from 'lodash-es';
 import { produce } from 'immer';
 
-import { PageContent, PageHeader } from 'components/Page';
-import { QueryWrapper } from 'components/QueryWrapper';
+import { auth, db, http } from '@/leancloud';
+import { Reply, Ticket } from '@/types';
+import { PageContent, PageHeader } from '@/components/Page';
+import { QueryWrapper } from '@/components/QueryWrapper';
 import styles from './index.module.css';
 import { Replies, useReplies } from './Replies';
 import { Evaluated, NewEvaluation } from './Evaluation';
-import { auth, db, http } from 'leancloud';
-import { Reply, Ticket } from 'types';
 import { ReplyData, ReplyInput } from './ReplyInput';
 
 async function fetchTicket(id: string): Promise<Ticket> {
@@ -118,7 +118,7 @@ function TicketAttributes({ ticket }: { ticket: Ticket }) {
   const [expand, setExpand] = useState(false);
 
   return (
-    <div className="flex-shrink-0 bg-[#FAFAFA] border-b border-gray-100 text-sm px-4 pt-4">
+    <div className="shrink-0 bg-[#FAFAFA] border-b border-gray-100 text-sm px-4 pt-4">
       <div className={`${styles.dataGrid} gap-x-4 ${expand ? 'gap-y-2' : 'gap-y-1'}`}>
         <TicketAttribute title={t('general.number')}>#{ticket.nid}</TicketAttribute>
         {expand && (
@@ -267,7 +267,7 @@ export default function TicketDetail() {
           <QueryWrapper result={repliesResult}>
             {ticket && <TicketAttributes ticket={ticket} />}
 
-            <Replies className="flex-grow px-4 pt-4" replies={replies} />
+            <Replies className="grow px-4 pt-4" replies={replies} />
 
             {ticket &&
               (ticketIsClosed ? (

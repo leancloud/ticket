@@ -1,9 +1,10 @@
-import { Article } from 'types';
-import { http } from 'leancloud';
 import { useQuery } from 'react-query';
 import { Link } from 'react-router-dom';
-import { ListItem } from '../Categories';
 import classNames from 'classnames';
+
+import { Article } from '@/types';
+import { http } from '@/leancloud';
+import { ListItem } from '../Categories';
 
 async function fetchFAQs(categoryId?: string): Promise<Article[]> {
   if (!categoryId) return [];

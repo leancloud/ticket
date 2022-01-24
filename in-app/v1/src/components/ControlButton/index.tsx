@@ -2,8 +2,8 @@ import { ComponentPropsWithoutRef, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import cx from 'classnames';
 
-import BackIcon from 'icons/Back';
-import HomeIcon from 'icons/Home';
+import BackIcon from '@/icons/Back';
+import HomeIcon from '@/icons/Home';
 import styles from './index.module.css';
 
 export function ControlButton(props: ComponentPropsWithoutRef<'div'>) {
@@ -26,14 +26,14 @@ export function ControlButton(props: ComponentPropsWithoutRef<'div'>) {
       )}
     >
       <button
-        className="flex-grow h-full flex justify-center items-center active:bg-gray-200"
+        className="grow h-full flex justify-center items-center active:bg-gray-200"
         onClick={goBack}
       >
         <BackIcon />
       </button>
       <div className="bg-gray-200 h-4 w-px" />
       <button
-        className="flex-grow h-full flex justify-center items-center active:bg-gray-200"
+        className="grow h-full flex justify-center items-center active:bg-gray-200"
         onClick={goHome}
       >
         <HomeIcon />

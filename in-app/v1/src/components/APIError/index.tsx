@@ -83,7 +83,7 @@ export function APIError({ onRetry }: APIErrorProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="h-full flex flex-grow">
+    <div className="h-full flex grow">
       <div className="mx-auto mt-24 sm:my-auto text-center">
         <RadarIcon className="mx-auto" />
         <div className="mt-2 h-6 text-[#BFBFBF]">{t('network_error')}</div>

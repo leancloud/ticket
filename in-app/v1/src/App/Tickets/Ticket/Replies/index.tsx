@@ -4,10 +4,10 @@ import { useTranslation } from 'react-i18next';
 import cx from 'classnames';
 import { flatten, last } from 'lodash-es';
 
-import { http } from 'leancloud';
-import { Reply } from 'types';
-import { Time } from 'components/Time';
-import { FileInfoWithKey, FileItems } from 'components/FileItem';
+import { http } from '@/leancloud';
+import { Reply } from '@/types';
+import { Time } from '@/components/Time';
+import { FileInfoWithKey, FileItems } from '@/components/FileItem';
 import style from './index.module.css';
 
 interface ReplyItemProps {
@@ -23,19 +23,19 @@ function ReplyItem({ data, isLast }: ReplyItemProps) {
 
   return (
     <div className="flex">
-      <div className="flex-shrink-0 flex flex-col">
+      <div className="shrink-0 flex flex-col">
         <div
-          className={cx('flex-shrink-0 flex w-[12px] h-[12px] rounded-full left-[-6px]', {
+          className={cx('shrink-0 flex w-[12px] h-[12px] rounded-full left-[-6px]', {
             'bg-tapBlue': data.isStaff,
             'bg-[#D9D9D9]': !data.isStaff,
           })}
         >
           <div className="m-auto bg-white w-[4px] h-[4px] rounded-full" />
         </div>
-        {!isLast && <div className="flex-grow mx-auto w-px bg-gray-100" />}
+        {!isLast && <div className="grow mx-auto w-px bg-gray-100" />}
       </div>
 
-      <div className="flex-grow ml-2 pb-8 text-[#666]">
+      <div className="grow ml-2 pb-8 text-[#666]">
         <div className="text-xs leading-[12px]">
           <span className="mr-2">
             {data.isStaff ? t('reply.staff_title') : t('reply.my_title')}

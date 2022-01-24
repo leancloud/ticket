@@ -1,8 +1,8 @@
 import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { storage } from 'leancloud';
-import { FileInfo } from 'components/Uploader';
+import { storage } from '@/leancloud';
+import { FileInfo } from '@/components/Uploader';
 
 const MAX_FILE_SIZE = 1024 * 1024 * 1024; // 1 GB
 

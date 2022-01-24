@@ -2,7 +2,7 @@ import { ComponentPropsWithoutRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import cx from 'classnames';
 
-import { ControlButton } from 'components/ControlButton';
+import { ControlButton } from '@/components/ControlButton';
 import { ErrorBoundary } from '../ErrorBoundary';
 import styles from './index.module.css';
 
@@ -15,7 +15,7 @@ export function PageHeader(props: ComponentPropsWithoutRef<'div'>) {
         id="page-header"
         className={cx(
           styles.header,
-          'flex-shrink-0 z-20 top-0 px-[10px] sm:px-[108px] pt-[52px] sm:pt-[10px]',
+          'shrink-0 z-20 top-0 px-[10px] sm:px-[108px] pt-[52px] sm:pt-[10px]',
           props.className
         )}
       >
@@ -37,7 +37,7 @@ export function PageContent({ children, ...props }: ComponentPropsWithoutRef<'di
     <div
       {...props}
       className={cx(
-        'page flex flex-col flex-grow bg-white rounded-b-lg mx-[10px] sm:mx-[108px] mb-[10px]',
+        'page flex flex-col grow bg-white rounded-b-lg mx-[10px] sm:mx-[108px] mb-[10px]',
         styles.content,
         props.className
       )}

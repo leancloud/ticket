@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 html {
-  height: 100%;
+  @apply h-full;
 }
 
 body {
@@ -11,7 +11,7 @@ body {
 }
 
 #root {
-  @apply flex flex-col flex-grow;
+  @apply flex flex-col grow;
 }
 
 button:focus,
@@ -24,22 +24,21 @@ select:focus {
 input,
 textarea,
 select {
-  appearance: none;
+  @apply appearance-none;
 }
 
 textarea {
-  resize: none;
+  @apply resize-none;
 }
 
 .markdown-body {
-  @apply text-[#666];
-  @apply bg-transparent;
+  @apply text-[#666] bg-transparent;
 }
 .markdown-body ul {
-  list-style: disc;
+  @apply list-disc;
 }
 .markdown-body ol {
-  list-style: decimal;
+  @apply list-decimal;
 }
 .markdown-body a {
   @apply text-tapBlue;

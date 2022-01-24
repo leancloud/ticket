@@ -1,7 +1,7 @@
 import { SVGProps } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { PageContent, PageHeader } from 'components/Page';
+import { PageContent, PageHeader } from '@/components/Page';
 
 function PaperPlaneIcon(props: SVGProps<SVGSVGElement>) {
   return (
