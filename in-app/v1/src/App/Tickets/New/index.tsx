@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useMutation } from 'react-query';
@@ -153,7 +153,7 @@ export function NewTicket() {
       <PageHeader>{result.data?.name ?? t('general.loading') + '...'}</PageHeader>
       <PageContent>
         {ticketId ? (
-          <Success ticketId={ticketId} />
+          <Success ticketId={ticketId as string} />
         ) : (
           <QueryWrapper result={result}>
             <TicketForm categoryId={category_id} onSubmit={submit} submitting={submitting} />

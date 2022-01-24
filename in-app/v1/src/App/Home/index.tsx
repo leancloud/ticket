@@ -67,15 +67,15 @@ export default function Home() {
                 key={notice.id}
                 className="my-1 px-2.5 py-2 rounded flex items-center bg-tapBlue bg-opacity-5 active:bg-tapBlue-50"
               >
-                <SpeakerIcon className='text-tapBlue flex-shrink-0'/>
-                <span className='flex-grow truncate ml-2 mr-1'>{notice.title}</span>
-                <ChevronRightIcon className="flex-shrink-0 h-4 w-4 text-tapBlue" />
+                <SpeakerIcon className="text-tapBlue shrink-0" />
+                <span className="grow truncate ml-2 mr-1">{notice.title}</span>
+                <ChevronRightIcon className="shrink-0 h-4 w-4 text-tapBlue" />
               </ArticleLink>
             ))}
           </div>
         )}
         <div className="flex items-center h-[46px] px-4 mt-1">
-          <h2 className="flex-grow font-bold">{t('category.select_hint')}</h2>
+          <h2 className="grow font-bold">{t('category.select_hint')}</h2>
           <TicketsLink badge={hasUnreadTickets} />
         </div>
         <QueryWrapper result={result}>

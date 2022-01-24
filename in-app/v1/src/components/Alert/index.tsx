@@ -36,11 +36,11 @@ export function Alert({ title, content, buttonTitle, show, onClose }: AlertProps
         <Transition.Child
           className="bg-white rounded-lg w-80 p-4 shadow-lg relative"
           enter="duration-100 ease-out"
-          enterFrom="transform scale-90 opacity-0"
-          enterTo="transform scale-100 opacity-100"
+          enterFrom="scale-90 opacity-0"
+          enterTo="scale-100 opacity-100"
           leave="duration-75 ease-out"
-          leaveFrom="transform scale-100 opacity-100"
-          leaveTo="transform scale-90 opacity-0"
+          leaveFrom="scale-100 opacity-100"
+          leaveTo="scale-90 opacity-0"
         >
           <button className="absolute top-0 right-0 p-1" onClick={onClose}>
             <XIcon className="w-6 h-6 text-gray-300" />

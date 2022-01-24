@@ -20,7 +20,7 @@ export function Radio({ checked, onChange, fluid, children }: PropsWithChildren<
         type="radio"
         className={cx(
           styles.radio,
-          'flex-shrink-0 w-[14px] h-[14px] rounded-full border-2 border-[#D9D9D9]',
+          'shrink-0 w-[14px] h-[14px] rounded-full border-2 border-[#D9D9D9]',
           {
             'border-tapBlue': checked,
           }
@@ -28,7 +28,7 @@ export function Radio({ checked, onChange, fluid, children }: PropsWithChildren<
         checked={checked}
         onChange={onChange}
       />
-      <label className="inline-flex flex-grow items-center ml-2 text-[#666]" onClick={handleClick}>
+      <label className="inline-flex grow items-center ml-2 text-[#666]" onClick={handleClick}>
         {children}
       </label>
     </span>

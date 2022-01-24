@@ -25,7 +25,7 @@ export function GroupLabel(props: ComponentPropsWithoutRef<'label'>) {
 }
 
 export function GroupField(props: ComponentPropsWithoutRef<'div'>) {
-  return <div {...props} className={cx('flex-grow', props.className)} />;
+  return <div {...props} className={cx('grow', props.className)} />;
 }
 
 export interface GroupProps {
@@ -38,7 +38,7 @@ export interface GroupProps {
 export function Group({ title, required, children, labelAtTop }: GroupProps) {
   return (
     <div className="flex flex-col sm:flex-row mb-5 last:mb-0">
-      <div className="flex-shrink-0 mb-2 sm:mb-0 sm:w-[72px] sm:mr-2">
+      <div className="shrink-0 mb-2 sm:mb-0 sm:w-[72px] sm:mr-2">
         {title && (
           <label
             className={cx('relative break-words', {
@@ -50,7 +50,7 @@ export function Group({ title, required, children, labelAtTop }: GroupProps) {
           </label>
         )}
       </div>
-      <div className="flex-grow">{children}</div>
+      <div className="grow">{children}</div>
     </div>
   );
 }

@@ -72,7 +72,7 @@ export function NewEvaluation({ ticketId }: NewEvaluationProps) {
 
       <div className="flex items-center">
         <input
-          className="flex-grow leading-[16px] border rounded-full placeholder-[#BFBFBF] px-3 py-[7px]"
+          className="grow leading-[16px] border rounded-full placeholder-[#BFBFBF] px-3 py-[7px]"
           placeholder={t('evaluation.content_hint')}
           value={content}
           onChange={(e) => setContent(e.target.value)}

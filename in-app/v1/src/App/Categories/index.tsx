@@ -25,7 +25,7 @@ interface ListItemProps {
 
 export function ListItem({ to, content, marker, className }: ListItemProps) {
   return (
-    <Link to={to} className='block px-4 active:bg-gray-50'>
+    <Link to={to} className="block px-4 active:bg-gray-50">
       <div
         className={classNames(
           'h-11 flex items-center text-[#666] border-b border-gray-100',
@@ -33,8 +33,8 @@ export function ListItem({ to, content, marker, className }: ListItemProps) {
         )}
       >
         {marker && <div className={styles.marker} />}
-        <div className="flex-grow truncate">{content}</div>
-        <ChevronRightIcon className="flex-shrink-0 h-4 w-4" />
+        <div className="grow truncate">{content}</div>
+        <ChevronRightIcon className="shrink-0 h-4 w-4" />
       </div>
     </Link>
   );
