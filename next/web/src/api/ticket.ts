@@ -1,4 +1,4 @@
-import { UseQueryOptions, useQuery } from 'react-query';
+import { UseMutationOptions, UseQueryOptions, useMutation, useQuery } from 'react-query';
 import { castArray } from 'lodash-es';
 
 import { http } from '@/leancloud';
@@ -89,6 +89,20 @@ export async function fetchTickets({
   return { tickets: data, totalCount: parseInt(headers['x-total-count']) };
 }
 
+export interface CreateTicketData {
+  appId?: string;
+  categoryId: string;
+  organizationId?: string;
+  title: string;
+  content: string;
+  fileIds?: string[];
+  customFields?: { field: string; value: unknown }[];
+}
+
+async function createTicket(data: CreateTicketData) {
+  await http.post('/api/2/tickets', data);
+}
+
 export interface UseTicketsOptions extends FetchTicketsOptions {
   queryOptions?: UseQueryOptions<FetchTicketsResult, Error>;
 }
@@ -105,4 +119,11 @@ export function useTickets({ queryOptions, ...options }: UseTicketsOptions = {})
     data: data?.tickets,
     totalCount: data?.totalCount,
   };
+}
+
+export function useCreateTicket(options?: UseMutationOptions<void, Error, CreateTicketData>) {
+  return useMutation({
+    mutationFn: createTicket,
+    ...options,
+  });
 }

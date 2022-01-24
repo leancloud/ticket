@@ -5,19 +5,14 @@ import { SiMarkdown } from 'react-icons/si';
 import { last } from 'lodash-es';
 
 import { ENABLE_LEANCLOUD_INTEGRATION } from '@/leancloud';
-import { CategorySchema, useCategoryFaqs, useCategoryTree } from '@/api/category';
-import { useOrganizations } from '@/api/organization';
 import {
-  Alert,
-  Button,
-  Cascader,
-  CascaderProps,
-  Collapse,
-  Form,
-  Input,
-  Popover,
-  Select,
-} from '@/components/antd';
+  CategorySchema,
+  useCategoryFaqs,
+  useCategoryFields,
+  useCategoryTree,
+} from '@/api/category';
+import { useOrganizations } from '@/api/organization';
+import { Alert, Button, Cascader, CascaderProps, Collapse, Form, Input } from '@/components/antd';
 import style from './index.module.css';
 import { OrganizationSelect } from './OrganizationSelect';
 import { LeanCloudAppSelect } from './LeanCloudAppSelect';
@@ -26,7 +21,8 @@ import { Upload } from './Fields/Upload';
 import { CustomFields } from './CustomFields';
 
 const { Panel } = Collapse;
-const { Option, OptGroup } = Select;
+
+const presetFieldIds = ['title', 'description'];
 
 interface RetryProps {
   message?: string;
@@ -123,34 +119,32 @@ export interface TicketData {
 }
 
 export interface TicketFormProps {
+  loading?: boolean;
+  disabled?: boolean;
   onSubmit: (data: TicketData) => void;
 }
 
-export function TicketForm({ onSubmit }: TicketFormProps) {
-  const methods = useForm<RawTicketData>();
-  const { control, formState, getValues, setValue } = methods;
+export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
+  const methods = useForm<RawTicketData>({ shouldUnregister: true });
+  const { control, getValues, setValue } = methods;
   const orgs = useOrganizations();
 
-  const fileIds = useWatch({ control, name: 'fileIds' });
   const categoryPath = useWatch({ control, name: 'categoryPath' });
   const categoryId = useMemo(() => last(categoryPath), [categoryPath]);
 
-  const validateStatus = useCallback(
-    (name: string) => {
-      return {
-        validateStatus: formState.errors[name] ? 'error' : undefined,
-        help: formState.errors[name]?.message,
-      } as const;
-    },
-    [formState.errors]
-  );
+  const { data: fields, isLoading: loadingFields } = useCategoryFields(categoryId!, {
+    enabled: !!categoryId,
+    staleTime: 1000 * 60 * 5,
+    select: (fields) => fields.filter((f) => !presetFieldIds.includes(f.id)),
+  });
 
   const overwriteContent = useCallback(
     (newContent: string) => {
       const { content } = getValues();
-      if (content && confirm('是否使用所选分类的模板覆盖当前描述')) {
-        setValue('content', newContent);
+      if (content && !confirm('是否使用所选分类的模板覆盖当前描述')) {
+        return;
       }
+      setValue('content', newContent);
     },
     [getValues, setValue]
   );
@@ -160,7 +154,7 @@ export function TicketForm({ onSubmit }: TicketFormProps) {
       if (categoryPath.length === 0) {
         return;
       }
-      const category = categoryPath[categoryPath.length - 1];
+      const category = last(categoryPath)!;
       if (category.template) {
         overwriteContent(category.template);
       }
@@ -191,7 +185,6 @@ export function TicketForm({ onSubmit }: TicketFormProps) {
                 <Retry message="获取组织失败" error={orgs.error} onRetry={orgs.refetch} />
               ) : (
                 <Controller
-                  control={control}
                   name="organizationId"
                   render={({ field }) => (
                     <OrganizationSelect
@@ -209,26 +202,32 @@ export function TicketForm({ onSubmit }: TicketFormProps) {
           <MyInput name="title" label="标题" required />
 
           {ENABLE_LEANCLOUD_INTEGRATION && (
-            <Form.Item label="相关应用" htmlFor="ticket_app">
+            <Form.Item
+              label="相关应用"
+              htmlFor="ticket_app"
+              tooltip={{
+                title: '如需显示其他节点应用，请到帐号设置页面关联帐号',
+                placement: 'right',
+              }}
+            >
               <Controller
-                control={control}
                 name="appId"
                 render={({ field }) => <LeanCloudAppSelect {...field} id="ticket_app" />}
               />
             </Form.Item>
           )}
 
-          <Form.Item
-            required
-            label="分类"
-            htmlFor="ticket_category"
-            {...validateStatus('categoryPath')}
-          >
-            <Controller
-              control={control}
-              name="categoryPath"
-              rules={{ required: '请填写此字段' }}
-              render={({ field }) => (
+          <Controller
+            name="categoryPath"
+            rules={{ required: '请填写此字段' }}
+            render={({ field, fieldState: { error } }) => (
+              <Form.Item
+                required
+                label="分类"
+                htmlFor="ticket_category"
+                validateStatus={error ? 'error' : undefined}
+                help={error?.message}
+              >
                 <CategorySelect
                   {...field}
                   id="ticket_category"
@@ -237,44 +236,43 @@ export function TicketForm({ onSubmit }: TicketFormProps) {
                     handleChangeCategory(categoryPath);
                   }}
                 />
-              )}
-            />
-          </Form.Item>
+              </Form.Item>
+            )}
+          />
 
           <FaqsItem />
 
-          <CustomFields categoryId={categoryId} />
+          {fields && fields.length > 0 && <CustomFields fields={fields} />}
 
-          <Form.Item
-            label={
-              <span className="inline-flex items-center">
-                描述
-                <Popover placement="right" content="支持 Markdown 语法">
-                  <SiMarkdown className="ml-1 w-4 h-4" />
-                </Popover>
-              </span>
-            }
-            {...validateStatus('content')}
-            required={!fileIds}
-            htmlFor="ticket_content"
-          >
-            <Controller
-              control={control}
-              name="content"
-              rules={{
-                required: {
-                  value: !fileIds,
-                  message: '请填写此字段',
-                },
-              }}
-              render={({ field }) => <Input.TextArea {...field} id="ticket_content" rows={8} />}
-            />
-          </Form.Item>
+          <Controller
+            name="content"
+            rules={{ required: '请填写此字段' }}
+            render={({ field, fieldState: { error } }) => (
+              <Form.Item
+                label="描述"
+                htmlFor="ticket_content"
+                validateStatus={error ? 'error' : undefined}
+                help={error?.message}
+                tooltip={{
+                  icon: <SiMarkdown style={{ width: 18, height: 18 }} />,
+                  title: '支持 Markdown 语法',
+                  placement: 'right',
+                }}
+              >
+                <Input.TextArea {...field} id="ticket_content" rows={8} />
+              </Form.Item>
+            )}
+          />
 
           <Upload label="附件" name="fileIds" multiple />
 
           <Form.Item>
-            <Button type="primary" htmlType="submit">
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={loadingFields || loading}
+              disabled={disabled}
+            >
               提交
             </Button>
           </Form.Item>

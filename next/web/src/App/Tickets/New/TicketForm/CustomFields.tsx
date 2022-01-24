@@ -1,6 +1,6 @@
-import { JSXElementConstructor } from 'react';
+import { JSXElementConstructor, memo } from 'react';
 
-import { CategoryFieldSchema, useCategoryFields } from '@/api/category';
+import { CategoryFieldSchema } from '@/api/category';
 import { Input } from './Fields/Input';
 import { Textarea } from './Fields/Textarea';
 import { Select } from './Fields/Select';
@@ -42,23 +42,15 @@ function Field(props: CategoryFieldSchema) {
 }
 
 export interface CustomFieldsProps {
-  categoryId?: string;
+  fields: CategoryFieldSchema[];
 }
 
-const presetFieldIds = ['title', 'description'];
-
-export function CustomFields({ categoryId }: CustomFieldsProps) {
-  const { data: fields } = useCategoryFields(categoryId!, {
-    enabled: !!categoryId,
-    staleTime: 1000 * 60 * 5,
-    select: (fields) => fields.filter((f) => !presetFieldIds.includes(f.id)),
-  });
-
+export const CustomFields = memo(({ fields }: CustomFieldsProps) => {
   return (
     <>
-      {fields?.map((field) => (
+      {fields.map((field) => (
         <Field key={field.id} {...field} />
       ))}
     </>
   );
-}
+});

@@ -1,5 +1,36 @@
-import { TicketForm } from './TicketForm';
+import { useCallback } from 'react';
+
+import { useCreateTicket } from '@/api/ticket';
+import { message } from '@/components/antd';
+import { TicketData, TicketForm } from './TicketForm';
 
 export function NewTicket() {
-  return <TicketForm onSubmit={(data) => console.log(data)} />;
+  const { mutate, isLoading, isSuccess } = useCreateTicket({
+    onSuccess: () => {
+      message.success('创建成功');
+      window.postMessage('ticketCreated');
+    },
+    onError: (error) => {
+      message.error(error.message);
+    },
+  });
+
+  const handleSubmit = useCallback(
+    (data: TicketData) => {
+      mutate({
+        appId: data.appId,
+        organizationId: data.organizationId,
+        categoryId: data.categoryId,
+        title: data.title,
+        content: data.content,
+        fileIds: data.fileIds,
+        customFields: data.customFields
+          ? Object.entries(data.customFields).map(([field, value]) => ({ field, value }))
+          : undefined,
+      });
+    },
+    [mutate]
+  );
+
+  return <TicketForm loading={isLoading} disabled={isSuccess} onSubmit={handleSubmit} />;
 }

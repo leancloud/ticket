@@ -30,6 +30,10 @@ export class TicketCreator {
     this.aclBuilder = new ACLBuilder().allowCustomerService('read', 'write').allowStaff('read');
   }
 
+  getRawACL() {
+    return this.aclBuilder.toJSON();
+  }
+
   setAuthor(author: User): this {
     this.author = author;
     this.aclBuilder.allow(author, 'read', 'write');
@@ -193,7 +197,7 @@ export class TicketCreator {
 
     const ticket = await Ticket.create(
       {
-        ACL: this.aclBuilder.toJSON(),
+        ACL: this.getRawACL(),
         authorId: this.author!.id,
         organizationId: this.organization?.id,
         category: this.category,

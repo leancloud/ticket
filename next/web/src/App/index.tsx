@@ -1,3 +1,4 @@
+import { Suspense, lazy } from 'react';
 import { QueryClientProvider } from 'react-query';
 import { RecoilRoot } from 'recoil';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
@@ -5,9 +6,11 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { auth } from '@/leancloud';
 import { queryClient } from '@/api/query-client';
 import { SearchParamsProvider } from '@/utils/useSearchParams';
-import Tickets from './Tickets';
-import Admin from './Admin';
-import Login from './Login';
+import { Spin } from '@/components/antd';
+
+const Tickets = lazy(() => import('./Tickets'));
+const Admin = lazy(() => import('./Admin'));
+const Login = lazy(() => import('./Login'));
 
 function RequireAuth({ children }: { children: JSX.Element }) {
   if (!auth.currentUser) {
@@ -18,12 +21,20 @@ function RequireAuth({ children }: { children: JSX.Element }) {
 
 function AppRoutes() {
   return (
-    <Routes>
-      <Route path="/tickets/*" element={<RequireAuth children={<Tickets />} />} />
-      <Route path="/admin/*" element={<RequireAuth children={<Admin />} />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="*" element={<Navigate to="/admin" replace />} />
-    </Routes>
+    <Suspense
+      fallback={
+        <div className="flex justify-center items-center h-full">
+          <Spin />
+        </div>
+      }
+    >
+      <Routes>
+        <Route path="/tickets/*" element={<RequireAuth children={<Tickets />} />} />
+        <Route path="/admin/*" element={<RequireAuth children={<Admin />} />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="*" element={<Navigate to="/admin" replace />} />
+      </Routes>
+    </Suspense>
   );
 }
 

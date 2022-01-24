@@ -1,5 +1,5 @@
 import { useImperativeHandle, useRef } from 'react';
-import { useController, useFormContext } from 'react-hook-form';
+import { useController } from 'react-hook-form';
 
 import { Checkbox, Col, Form, Row } from '@/components/antd';
 
@@ -12,12 +12,10 @@ export interface CheckboxGroupProps {
 }
 
 export function CheckboxGroup({ name, label, description, options, required }: CheckboxGroupProps) {
-  const { control } = useFormContext();
   const {
     field: { ref, value, onChange },
     fieldState: { error },
   } = useController({
-    control,
     name,
     rules: {
       required: {
