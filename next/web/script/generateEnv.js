@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const REQUIRED_ENV_KEYS = ['LC_APP_ID', 'LC_APP_KEY', 'LC_API_SERVER'];
+const REQUIRED_ENV_KEYS = ['LC_APP_ID', 'LC_APP_KEY', 'LEANCLOUD_API_HOST'];
 
 const OPTIONAL_ENV_KEYS = ['SENTRY_WEB_DSN', 'ENABLE_LEANCLOUD_INTEGRATION'];
 

@@ -12,12 +12,12 @@ LC.use(storageModule);
 
 export const ENABLE_LEANCLOUD_INTEGRATION = import.meta.env.VITE_ENABLE_LEANCLOUD_INTEGRATION;
 
-const { VITE_LC_APP_ID, VITE_LC_APP_KEY, VITE_LC_API_SERVER } = import.meta.env;
+const { VITE_LC_APP_ID, VITE_LC_APP_KEY, VITE_LEANCLOUD_API_HOST } = import.meta.env;
 
 export const app = LC.init({
   appId: VITE_LC_APP_ID,
   appKey: VITE_LC_APP_KEY,
-  serverURL: VITE_LC_API_SERVER,
+  serverURL: VITE_LEANCLOUD_API_HOST,
 });
 
 export const auth = app.auth();
