@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { useController } from 'react-hook-form';
 
 import { Form, Input as AntInput } from '@/components/antd';
+import { Help } from './Help';
 
 export interface InputProps {
   name: string;
@@ -31,7 +32,7 @@ export const Input = memo(({ name, label, description, required }: InputProps) =
       label={label}
       htmlFor={id}
       required={required}
-      help={error?.message || description}
+      help={error?.message || <Help content={description} />}
       validateStatus={error ? 'error' : undefined}
     >
       <AntInput {...field} id={id} />

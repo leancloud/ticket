@@ -66,7 +66,10 @@ function FaqsItem() {
         <Collapse>
           {data.map(({ id, title, contentSafeHTML }) => (
             <Panel key={id} header={title}>
-              <p dangerouslySetInnerHTML={{ __html: contentSafeHTML }} />
+              <div
+                className="markdown-body"
+                dangerouslySetInnerHTML={{ __html: contentSafeHTML }}
+              />
             </Panel>
           ))}
         </Collapse>

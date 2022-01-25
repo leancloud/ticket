@@ -1,6 +1,7 @@
 import { useController } from 'react-hook-form';
 
 import { Form, Select as AntSelect } from '@/components/antd';
+import { Help } from './Help';
 
 export interface Option {
   title: string;
@@ -41,7 +42,7 @@ export function Select({ name, label, description, options, required }: SelectPr
       label={label}
       required={required}
       htmlFor={id}
-      help={error?.message || description}
+      help={error?.message || <Help content={description} />}
       validateStatus={error ? 'error' : undefined}
     >
       <AntSelect

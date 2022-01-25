@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { useController } from 'react-hook-form';
 
 import { Form, Input } from '@/components/antd';
+import { Help } from './Help';
 
 export interface TextareaProps {
   name: string;
@@ -31,7 +32,7 @@ export const Textarea = memo(({ name, label, description, required }: TextareaPr
       label={label}
       htmlFor={id}
       required={required}
-      help={error?.message || description}
+      help={error?.message || <Help content={description} />}
       validateStatus={error ? 'error' : undefined}
     >
       <Input.TextArea {...field} id={id} />
