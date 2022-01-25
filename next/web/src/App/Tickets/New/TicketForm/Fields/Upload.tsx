@@ -4,6 +4,7 @@ import { UploadChangeParam } from 'antd/lib/upload';
 
 import { storage } from '@/leancloud';
 import { Button, Form, Upload as AntUpload } from '@/components/antd';
+import { Help } from './Help';
 
 function uploadFileToLeanCloud({ file, onError, onProgress, onSuccess }: any) {
   return storage.upload(file.name, file, { onProgress }).then(onSuccess).catch(onError);
@@ -81,7 +82,7 @@ export const Upload = memo(({ name, label, description, required, multiple }: Up
       htmlFor={id}
       required={required}
       validateStatus={error ? 'error' : undefined}
-      help={error?.message || description}
+      help={error?.message || <Help content={description} />}
     >
       <AntUpload
         ref={ref}

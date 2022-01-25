@@ -2,6 +2,7 @@ import { useImperativeHandle, useRef } from 'react';
 import { useController } from 'react-hook-form';
 
 import { Col, Form, Radio, Row } from '@/components/antd';
+import { Help } from './Help';
 
 export interface RadioGroupProps {
   name: string;
@@ -35,7 +36,7 @@ export function RadioGroup({ name, label, description, options, required }: Radi
     <Form.Item
       label={label}
       required={required}
-      help={error?.message || description}
+      help={error?.message || <Help content={description} />}
       validateStatus={error ? 'error' : undefined}
     >
       <Radio.Group ref={$group} className="w-full" value={value} onChange={onChange}>

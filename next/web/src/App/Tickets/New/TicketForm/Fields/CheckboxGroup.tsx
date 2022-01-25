@@ -2,6 +2,7 @@ import { useImperativeHandle, useRef } from 'react';
 import { useController } from 'react-hook-form';
 
 import { Checkbox, Col, Form, Row } from '@/components/antd';
+import { Help } from './Help';
 
 export interface CheckboxGroupProps {
   name: string;
@@ -35,7 +36,7 @@ export function CheckboxGroup({ name, label, description, options, required }: C
     <Form.Item
       label={label}
       required={required}
-      help={error?.message || description}
+      help={error?.message || <Help content={description} />}
       validateStatus={error ? 'error' : undefined}
     >
       <Checkbox.Group
