@@ -737,6 +737,7 @@ router.patch(
       res.json({
         updatedAt: obj.get('updatedAt'),
       })
+      return
     }
     obj.set('values', form_values)
     const result = await obj.save(null, { useMasterKey: true })
