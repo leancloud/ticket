@@ -40,8 +40,8 @@ export function RadioGroup({ name, label, description, options, required }: Radi
     >
       <Radio.Group ref={$group} className="w-full" value={value} onChange={onChange}>
         <Row gutter={[0, 6]}>
-          {options?.map(({ title, value }) => (
-            <Col xs={24} sm={12}>
+          {options?.map(({ title, value }, index) => (
+            <Col key={index} xs={24} sm={12}>
               <Radio value={value}>{title}</Radio>
             </Col>
           ))}

@@ -45,8 +45,8 @@ export function CheckboxGroup({ name, label, description, options, required }: C
         onChange={(value) => onChange(value.length ? value : undefined)}
       >
         <Row gutter={[0, 6]}>
-          {options?.map(({ title, value }) => (
-            <Col xs={24} sm={12}>
+          {options?.map(({ title, value }, index) => (
+            <Col key={index} xs={24} sm={12}>
               <Checkbox value={value}>{title}</Checkbox>
             </Col>
           ))}
