@@ -1,9 +1,13 @@
 import { useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { SiMarkdown } from 'react-icons/si';
+import '@toast-ui/editor/dist/toastui-editor.css';
+import { Editor } from '@toast-ui/react-editor';
+import { useLocalStorage } from 'react-use';
 
 import { UpsertArticleData } from '@/api/article';
 import { Button, Checkbox, Form, FormInstance, Input, Popover } from '@/components/antd';
+import { useMarkdownEditor } from '@/components/MarkdownEditor';
 
 export interface EditArticleProps {
   initData?: UpsertArticleData;
@@ -31,6 +35,8 @@ export function EditArticleForm({
   const $antForm = useRef<FormInstance>(null!);
   const [comment, setComment] = useState('');
 
+  const [editor, getValue] = useMarkdownEditor(initData?.content ?? '');
+
   return (
     <div className="flex flex-col h-full">
       <div className="grow p-10 overflow-y-auto">
@@ -38,7 +44,12 @@ export function EditArticleForm({
           ref={$antForm}
           layout="vertical"
           onFinish={handleSubmit(({ ['public']: pblc, ...data }) =>
-            onSubmit({ ...data, private: !pblc, comment })
+            onSubmit({
+              ...data,
+              content: getValue() ?? '',
+              private: !pblc,
+              comment,
+            })
           )}
         >
           <Controller
@@ -48,35 +59,16 @@ export function EditArticleForm({
             defaultValue=""
             render={({ field, fieldState: { error } }) => (
               <Form.Item
-                label="标题"
-                htmlFor="title"
                 validateStatus={error ? 'error' : undefined}
                 help={error?.message}
                 style={{ marginBottom: 16 }}
               >
-                <Input {...field} id="title" autoFocus />
+                <Input {...field} id="title" autoFocus placeholder="标题" />
               </Form.Item>
             )}
           />
-          <Form.Item
-            label={
-              <span className="inline-flex items-center">
-                描述
-                <Popover placement="right" content="支持 Markdown 语法">
-                  <SiMarkdown className="ml-1 w-4 h-4" />
-                </Popover>
-              </span>
-            }
-            htmlFor="content"
-            style={{ marginBottom: 16 }}
-          >
-            <Controller
-              control={control}
-              name="content"
-              render={({ field }) => <Input.TextArea {...field} id="content" rows={8} />}
-            />
-          </Form.Item>
-          <Form.Item>
+          <Form.Item style={{ marginBottom: 16 }}>{editor}</Form.Item>
+          <Form.Item style={{ marginBottom: 0 }}>
             <Controller
               control={control}
               name="public"

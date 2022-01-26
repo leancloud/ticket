@@ -71,6 +71,7 @@ export interface UpsertArticleData {
   title: string;
   content: string;
   private?: boolean;
+  comment?: string;
 }
 
 export async function createArticle(data: UpsertArticleData) {
