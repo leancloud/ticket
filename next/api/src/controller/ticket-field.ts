@@ -13,6 +13,7 @@ import {
   StatusCode,
   Param,
   Patch,
+  ResponseBody,
 } from '@/common/http';
 import {
   ParseBoolPipe,
@@ -96,8 +97,10 @@ type UpdateData = z.infer<typeof updateDataSchema>;
 @UseMiddlewares(auth)
 export class TicketFieldController {
   @Get()
+  @ResponseBody(TicketFieldResponse)
   async findAll(
     @Ctx() ctx: Context,
+    @Query('includeVariants', ParseBoolPipe) includeVariants: boolean,
     @Query('active', new ParseBoolPipe({ keepUndefined: true })) active?: boolean,
     @Query('orderBy', new ParseOrderPipe(['createdAt', 'updatedAt'])) orderBy?: Order[],
     @Query('page', new ParseIntPipe({ min: 1 })) page = 1,
@@ -107,6 +110,14 @@ export class TicketFieldController {
     const query = TicketField.queryBuilder()
       .skip((page - 1) * pageSize)
       .limit(pageSize);
+
+    if (includeVariants) {
+      query.preload('variants', {
+        onQuery: (query) => {
+          query.limit(1000).orderBy('createdAt', 'asc');
+        },
+      });
+    }
 
     if (active !== undefined) {
       query.where('active', '==', active);
@@ -121,7 +132,7 @@ export class TicketFieldController {
         })
       : await query.find({ useMasterKey: true });
 
-    return fields.map((field) => new TicketFieldResponse(field));
+    return fields;
   }
 
   @Post()

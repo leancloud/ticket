@@ -29,8 +29,9 @@ export class TicketFieldResponse {
       updatedAt: this.field.updatedAt,
     };
 
-    if (this.variants) {
-      data.variants = this.variants.map((v) => this.encodeVariant(v));
+    const variants = this.field.variants ?? this.variants;
+    if (variants) {
+      data.variants = variants.map((v) => this.encodeVariant(v));
     }
 
     return data;

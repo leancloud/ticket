@@ -31,6 +31,7 @@ export interface FetchTicketFieldsOptions {
   active?: boolean;
   orderBy?: string;
   count?: number | boolean | string;
+  includeVariants?: boolean;
 }
 
 export interface FetchTicketFieldsResult {
