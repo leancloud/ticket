@@ -187,16 +187,8 @@ export class User extends Model {
     return responses.map((res) => res.data);
   }
 
-  async canCreateTicket(): Promise<boolean> {
-    if (!config.enableLeanCloudIntegration) {
-      return true;
-    }
-    if (await this.isCustomerService()) {
-      return true;
-    }
-    if (!(await this.fetchAuthData())) {
-      return false;
-    }
+  async hasBizLeanCloudApp(): Promise<boolean> {
+    await this.fetchAuthData();
     const accounts = await this.getLeanCloudAccounts();
     return accounts.some((account) => !!account.current_support_service);
   }

@@ -4,6 +4,8 @@ export { Config };
 
 export const config = {
   allowModifyEvaluation: boolean(process.env.ALLOW_MUTATE_EVALUATION),
+  categoriesAllowDevUserSubmitTicket:
+    process.env.CATEGORIES_ALLOW_DEV_USER_SUBMIT_TICKET?.split('\n') || [],
   enableLeanCloudIntegration: boolean(process.env.ENABLE_LEANCLOUD_INTEGRATION),
   gravatarURL: 'https://www.gravatar.com/avatar',
   host: getHost(),

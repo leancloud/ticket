@@ -179,13 +179,33 @@ const ticketDataSchema = yup.object({
   appId: yup.string(), // LeanCloud app id
 });
 
+async function canCreateTicket(
+  user: User,
+  data: yup.InferType<typeof ticketDataSchema>
+): Promise<boolean> {
+  if (!config.enableLeanCloudIntegration) {
+    return true;
+  }
+  if (config.categoriesAllowDevUserSubmitTicket.includes(data.categoryId)) {
+    return true;
+  }
+  if (await user.hasBizLeanCloudApp()) {
+    return true;
+  }
+  if (await user.isCustomerService()) {
+    return true;
+  }
+  return false;
+}
+
 router.post('/', async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
-  if (!(await currentUser.canCreateTicket())) {
+  const data = ticketDataSchema.validateSync(ctx.request.body);
+
+  if (!(await canCreateTicket(currentUser, data))) {
     return ctx.throw(403, 'This account is not qualified to create ticket');
   }
 
-  const data = ticketDataSchema.validateSync(ctx.request.body);
   const creator = new TicketCreator()
     .setAuthor(currentUser)
     .setTitle(data.title)
