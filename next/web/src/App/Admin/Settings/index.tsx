@@ -70,7 +70,7 @@ const SettingRoutes = () => (
 export default function Setting() {
   return (
     <div className="h-full bg-white flex">
-      <SettingMenu className="w-[330px] bg-[#F8F9F9] shrink-0" />
+      <SettingMenu className="w-[300px] bg-[#F8F9F9] shrink-0" />
       <div className="grow overflow-auto border-l border-l-[#D8DCDE]">
         <div className="h-full min-w-[770px]">
           <SettingRoutes />
