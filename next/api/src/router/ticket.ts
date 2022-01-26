@@ -189,7 +189,7 @@ async function canCreateTicket(
   if (config.categoriesAllowDevUserSubmitTicket.includes(data.categoryId)) {
     return true;
   }
-  if (await user.hasDizLeanCloudApp()) {
+  if (await user.hasBizLeanCloudApp()) {
     return true;
   }
   if (await user.isCustomerService()) {
