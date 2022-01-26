@@ -1,13 +1,14 @@
 import { forwardRef, useCallback, useMemo } from 'react';
+import { useQueries } from 'react-query';
 import { Controller, FormProvider, useForm, useFormContext, useWatch } from 'react-hook-form';
 import { CascaderRef } from 'antd/lib/cascader';
 import { SiMarkdown } from 'react-icons/si';
-import { last } from 'lodash-es';
+import { compact, last, uniqBy } from 'lodash-es';
 
 import { ENABLE_LEANCLOUD_INTEGRATION } from '@/leancloud';
 import {
   CategorySchema,
-  useCategoryFaqs,
+  fetchCategoryFaqs,
   useCategoryFields,
   useCategoryTree,
 } from '@/api/category';
@@ -48,11 +49,41 @@ function Retry({ message = '获取数据失败', error, onRetry }: RetryProps) {
   );
 }
 
+function useCategoriesFaqs(categoryIds: string[]) {
+  const results = useQueries(
+    categoryIds.map((id) => ({
+      queryKey: ['categoryFaqs', id],
+      queryFn: () => fetchCategoryFaqs(id),
+      staleTime: 1000 * 60 * 5,
+    }))
+  );
+
+  const data = useMemo(() => {
+    const faqs = compact(results.map((result) => result.data)).flat();
+    return uniqBy(faqs, 'id');
+  }, [results]);
+
+  const errors = useMemo(() => results.map((result) => result.error), [results]);
+
+  const retry = useCallback(() => {
+    results.forEach((result) => {
+      if (result.error) {
+        result.refetch();
+      }
+    });
+  }, [results]);
+
+  return {
+    data,
+    error: errors[0] as Error | undefined,
+    retry,
+  };
+}
+
 function FaqsItem() {
-  const { control } = useFormContext<{ categoryPath: string[] }>();
+  const { control } = useFormContext<{ categoryPath?: string[] }>();
   const categoryPath = useWatch({ control, name: 'categoryPath' });
-  const categoryId = useMemo(() => last(categoryPath), [categoryPath]);
-  const { data, error, refetch } = useCategoryFaqs(categoryId!, { enabled: !!categoryId });
+  const { data, error, retry } = useCategoriesFaqs(categoryPath ?? []);
 
   if (!data || data.length === 0) {
     return null;
@@ -61,7 +92,7 @@ function FaqsItem() {
   return (
     <Form.Item label="常见问题">
       {error ? (
-        <Retry error={error} onRetry={refetch} />
+        <Retry error={error} onRetry={retry} />
       ) : (
         <Collapse>
           {data.map(({ id, title, contentSafeHTML }) => (
