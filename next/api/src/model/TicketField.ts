@@ -1,7 +1,7 @@
 import AV from 'leancloud-storage';
 import _ from 'lodash';
 
-import { Model, CreateData, field } from '@/orm';
+import { Model, CreateData, field, hasManyThroughPointer } from '@/orm';
 import { TicketFieldVariant } from './TicketFieldVariant';
 
 type VariantData = Pick<
@@ -41,6 +41,16 @@ export class TicketField extends Model {
   @field()
   required!: boolean;
 
+  @hasManyThroughPointer(() => TicketFieldVariant, 'field')
+  variants?: TicketFieldVariant[];
+
+  /**
+   * @deprecated
+   * 推荐使用
+   * ```ts
+   * field.load('variants');
+   * ```
+   */
   getVariants(): Promise<TicketFieldVariant[]> {
     return TicketFieldVariant.queryBuilder()
       .where('field', '==', this.toPointer())

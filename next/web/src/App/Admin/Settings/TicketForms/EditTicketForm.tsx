@@ -1,13 +1,16 @@
-import { useMemo, useRef, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { AiOutlinePlus, AiOutlineSearch } from 'react-icons/ai';
 import { BsX } from 'react-icons/bs';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import cx from 'classnames';
+import { compact, keyBy } from 'lodash-es';
 
 import { TicketFieldSchema, useTicketFields } from '@/api/ticket-field';
-import { Button, Form, FormInstance, Input } from '@/components/antd';
+import { Button, Form, FormInstance, Input, Modal } from '@/components/antd';
 import DragIcon from '@/icons/DragIcon';
+import { CustomFields, CustomFieldsProps } from '@/App/Tickets/New/TicketForm/CustomFields';
+import ticketFormStyle from '@/App/Tickets/New/TicketForm/index.module.css';
 import { TicketFieldIcon } from '../TicketFields';
 
 interface SelectedFieldItemProps {
@@ -124,19 +127,12 @@ export const systemFields: SelectedFieldSchema[] = [
 ];
 
 interface FieldsBuilderProps {
+  fields?: TicketFieldSchema[];
   value?: string[];
   onChange: (ids: string[]) => void;
 }
 
-function FieldsBuilder({ value, onChange }: FieldsBuilderProps) {
-  const { data: fields } = useTicketFields({
-    pageSize: 1000,
-    orderBy: 'updatedAt-desc',
-    queryOptions: {
-      staleTime: 1000 * 60,
-    },
-  });
-
+function FieldsBuilder({ fields, value, onChange }: FieldsBuilderProps) {
   const fieldMap = useMemo(() => {
     const map: Record<string, SelectedFieldSchema | undefined> = {};
     fields?.forEach((f) => (map[f.id] = f));
@@ -220,6 +216,26 @@ function FieldsBuilder({ value, onChange }: FieldsBuilderProps) {
   );
 }
 
+interface PreviewFormModalProps {
+  visible: boolean;
+  onHide: () => void;
+  fields?: CustomFieldsProps['fields'];
+}
+
+function PreviewFormModal({ visible, onHide, fields }: PreviewFormModalProps) {
+  const methods = useForm();
+
+  return (
+    <Modal title="预览表单" visible={visible} onCancel={onHide} footer={false}>
+      <FormProvider {...methods}>
+        <Form className={ticketFormStyle.ticketForm} layout="vertical">
+          {fields && <CustomFields fields={fields} />}
+        </Form>
+      </FormProvider>
+    </Modal>
+  );
+}
+
 export interface TicketFormData {
   title: string;
   fieldIds: string[];
@@ -233,9 +249,40 @@ export interface EditTicketFormProps {
 }
 
 export function EditTicketForm({ initData, submitting, onSubmit, onCancel }: EditTicketFormProps) {
-  const { control, handleSubmit } = useForm<TicketFormData>({ defaultValues: initData });
+  const { control, handleSubmit, getValues } = useForm<TicketFormData>({ defaultValues: initData });
 
   const $antForm = useRef<FormInstance>(null!);
+
+  const [inPreview, setInPreview] = useState(false);
+
+  const { data: fields } = useTicketFields({
+    pageSize: 1000,
+    orderBy: 'updatedAt-desc',
+    includeVariants: true,
+    queryOptions: {
+      staleTime: 1000 * 60,
+    },
+  });
+
+  const fieldById = useMemo(() => keyBy(fields, 'id'), [fields]);
+
+  const [currentFields, setCurrentFields] = useState<PreviewFormModalProps['fields']>([]);
+  const handlePreview = useCallback(() => {
+    const fieldIds = getValues('fieldIds');
+    const currentFields = compact(fieldIds.map((id) => fieldById[id]));
+    setCurrentFields(
+      currentFields.map((field) => {
+        const defaultVariant = field.variants!.find((v) => v.locale === field.defaultLocale);
+        return {
+          ...field,
+          title: defaultVariant!.title,
+          description: defaultVariant!.description,
+          options: defaultVariant!.options,
+        };
+      })
+    );
+    setInPreview(true);
+  }, [getValues, fieldById]);
 
   return (
     <div className="flex flex-col h-full">
@@ -264,18 +311,27 @@ export function EditTicketForm({ initData, submitting, onSubmit, onCancel }: Edi
             name="fieldIds"
             defaultValue={[]}
             render={({ field: { value, onChange } }) => (
-              <FieldsBuilder value={value} onChange={onChange} />
+              <FieldsBuilder fields={fields} value={value} onChange={onChange} />
             )}
           />
         </Form>
       </div>
 
-      <div className="flex flex-row-reverse px-10 py-4 border-t border-[#D8DCDE]">
-        <Button type="primary" loading={submitting} onClick={() => $antForm.current.submit()}>
-          保存
-        </Button>
+      <PreviewFormModal
+        visible={inPreview}
+        onHide={() => setInPreview(false)}
+        fields={currentFields}
+      />
+
+      <div className="flex px-10 py-4 border-t border-[#D8DCDE]">
+        <div className="grow">
+          <Button onClick={handlePreview}>预览</Button>
+        </div>
         <Button className="mr-4" disabled={submitting} type="link" onClick={onCancel}>
           取消
+        </Button>
+        <Button type="primary" loading={submitting} onClick={() => $antForm.current.submit()}>
+          保存
         </Button>
       </div>
     </div>
