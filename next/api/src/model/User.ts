@@ -187,7 +187,7 @@ export class User extends Model {
     return responses.map((res) => res.data);
   }
 
-  async hasDizLeanCloudApp(): Promise<boolean> {
+  async hasBizLeanCloudApp(): Promise<boolean> {
     await this.fetchAuthData();
     const accounts = await this.getLeanCloudAccounts();
     return accounts.some((account) => !!account.current_support_service);
