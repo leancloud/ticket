@@ -33,15 +33,16 @@ export function useMarkdownEditor(initialValue: string, props: MarkdownEditorPro
   );
 
   const {
-    height = 'calc(100vh - 180px)',
+    height = '500px',
     initialEditType = editorMode,
     previewStyle = 'vertical',
+    autofocus = false,
     ...rest
   } = props;
 
   const editor = (
     <Editor
-      {...props}
+      {...rest}
       ref={$editorRef}
       initialValue={initialValue}
       height={height}
@@ -52,6 +53,7 @@ export function useMarkdownEditor(initialValue: string, props: MarkdownEditorPro
       hooks={hooks}
       toolbarItems={toolbarItems}
       language="zh-CN"
+      autofocus={autofocus}
     />
   );
 

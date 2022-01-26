@@ -35,11 +35,13 @@ export function EditArticleForm({
   const $antForm = useRef<FormInstance>(null!);
   const [comment, setComment] = useState('');
 
-  const [editor, getValue] = useMarkdownEditor(initData?.content ?? '');
+  const [editor, getValue] = useMarkdownEditor(initData?.content ?? '', {
+    height: 'calc(100vh - 220px)',
+  });
 
   return (
     <div className="flex flex-col h-full">
-      <div className="grow p-10 overflow-y-auto">
+      <div className="grow py-6 px-10 overflow-y-auto">
         <Form
           ref={$antForm}
           layout="vertical"
