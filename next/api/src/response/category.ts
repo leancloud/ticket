@@ -12,6 +12,7 @@ export class CategoryResponse {
       position: this.category.order ?? this.category.createdAt.getTime(),
       active: !this.category.deletedAt,
       template: this.category.qTemplate,
+      articleIds: this.category.FAQIds,
     };
   }
 }
