@@ -85,6 +85,7 @@ function FaqsItem({ ids }: { ids: string[] }) {
   const { data, error, refetch } = useArticles({
     id: ids,
     private: false,
+    pageSize: ids.length,
     queryOptions: {
       staleTime: Infinity,
     },
