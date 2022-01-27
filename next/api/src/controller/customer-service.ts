@@ -8,6 +8,7 @@ import {
   CurrentUser,
   Delete,
   Get,
+  HttpError,
   Param,
   Post,
   ResponseBody,
@@ -16,6 +17,7 @@ import {
 } from '@/common/http';
 import { ZodValidationPipe } from '@/common/pipe';
 import { auth, customerServiceOnly } from '@/middleware';
+import { Category } from '@/model/Category';
 import { Role } from '@/model/Role';
 import { User } from '@/model/User';
 import { CustomerServiceResponse } from '@/response/customer-service';
@@ -36,7 +38,13 @@ const createCustomerServiceSchema = z.object({
   userId: z.string(),
 });
 
+const addCategorySchema = z.object({
+  id: z.string(),
+});
+
 type CreateCustomerServiceData = z.infer<typeof createCustomerServiceSchema>;
+
+type AddCategoryData = z.infer<typeof addCategorySchema>;
 
 @Controller('customer-services')
 @UseMiddlewares(auth, customerServiceOnly)
@@ -81,6 +89,58 @@ export class CustomerServiceController {
     const avUser = AV.User.createWithoutData('_User', user.id);
     avRole.relation('users').remove(avUser);
     await avRole.save(null, currentUser.getAuthOptions());
+
+    return {};
+  }
+
+  @Post(':id/categories')
+  async addCategory(
+    @CurrentUser() currentUser: User,
+    @Param('id', FindCustomerServicePipe) customerService: User,
+    @Body(new ZodValidationPipe(addCategorySchema)) data: AddCategoryData
+  ) {
+    const category = await Category.find(data.id);
+    if (!category) {
+      throw new HttpError(400, `Category ${data.id} does not exist`);
+    }
+
+    const categories = customerService.categories ?? [];
+    if (!categories.some((c) => c.objectId === category.id)) {
+      await customerService.update(
+        {
+          categories: [
+            ...categories,
+            {
+              objectId: category.id,
+              name: category.name,
+            },
+          ],
+        },
+        currentUser.getAuthOptions()
+      );
+    }
+
+    return {};
+  }
+
+  @Delete(':id/categories/:categoryId')
+  async deleteCategory(
+    @CurrentUser() currentUser: User,
+    @Param('id', FindCustomerServicePipe) customerService: User,
+    @Param('categoryId') categoryId: string
+  ) {
+    const { categories } = customerService;
+    if (categories?.length) {
+      const newCategories = categories.filter((c) => c.objectId !== categoryId);
+      if (categories.length !== newCategories.length) {
+        await customerService.update(
+          {
+            categories: newCategories,
+          },
+          currentUser.getAuthOptions()
+        );
+      }
+    }
 
     return {};
   }
