@@ -1,20 +1,14 @@
-import { forwardRef, useCallback, useMemo, useState } from 'react';
-import { useQueries } from 'react-query';
+import { useCallback, useMemo, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
-import { CascaderRef } from 'antd/lib/cascader';
 import { SiMarkdown } from 'react-icons/si';
-import { compact, last, uniqBy } from 'lodash-es';
+import { compact, keyBy, last, uniq } from 'lodash-es';
 
 import { ENABLE_LEANCLOUD_INTEGRATION } from '@/leancloud';
 import { useArticles } from '@/api/article';
-import {
-  CategorySchema,
-  fetchCategoryFaqs,
-  useCategoryFields,
-  useCategoryTree,
-} from '@/api/category';
+import { CategorySchema, useCategoryFields } from '@/api/category';
 import { useOrganizations } from '@/api/organization';
-import { Alert, Button, Cascader, CascaderProps, Collapse, Form, Input } from '@/components/antd';
+import { Button, Collapse, Form, Input } from '@/components/antd';
+import { CategorySelect, Retry } from '@/components/common';
 import style from './index.module.css';
 import { OrganizationSelect } from './OrganizationSelect';
 import { LeanCloudAppSelect } from './LeanCloudAppSelect';
@@ -26,63 +20,8 @@ const { Panel } = Collapse;
 
 const presetFieldIds = ['title', 'description'];
 
-interface RetryProps {
-  message?: string;
-  error: Error;
-  onRetry: () => void;
-}
-
-function Retry({ message = '获取数据失败', error, onRetry }: RetryProps) {
-  return (
-    <div className="mb-4">
-      <Alert
-        showIcon
-        type="error"
-        message={message}
-        description={error.message}
-        action={
-          <Button size="small" danger onClick={onRetry}>
-            重试
-          </Button>
-        }
-      />
-    </div>
-  );
-}
-
-function useCategoriesFaqs(categoryIds: string[]) {
-  const results = useQueries(
-    categoryIds.map((id) => ({
-      queryKey: ['categoryFaqs', id],
-      queryFn: () => fetchCategoryFaqs(id),
-      staleTime: 1000 * 60 * 5,
-    }))
-  );
-
-  const data = useMemo(() => {
-    const faqs = compact(results.map((result) => result.data)).flat();
-    return uniqBy(faqs, 'id');
-  }, [results]);
-
-  const errors = useMemo(() => results.map((result) => result.error), [results]);
-
-  const retry = useCallback(() => {
-    results.forEach((result) => {
-      if (result.error) {
-        result.refetch();
-      }
-    });
-  }, [results]);
-
-  return {
-    data,
-    error: errors[0] as Error | undefined,
-    retry,
-  };
-}
-
 function FaqsItem({ ids }: { ids: string[] }) {
-  const { data, error, refetch } = useArticles({
+  const { data: articles, error, refetch } = useArticles({
     id: ids,
     private: false,
     pageSize: ids.length,
@@ -91,7 +30,13 @@ function FaqsItem({ ids }: { ids: string[] }) {
     },
   });
 
-  if (!data || data.length === 0) {
+  const articleMap = useMemo(() => keyBy(articles, 'id'), [articles]);
+
+  const sortedArticles = useMemo(() => {
+    return compact(ids.map((id) => articleMap[id]));
+  }, [ids, articleMap]);
+
+  if (!articles || articles.length === 0) {
     return null;
   }
 
@@ -101,7 +46,7 @@ function FaqsItem({ ids }: { ids: string[] }) {
         <Retry error={error} onRetry={refetch} />
       ) : (
         <Collapse>
-          {data.map(({ id, title, contentSafeHTML }) => (
+          {sortedArticles.map(({ id, title, contentSafeHTML }) => (
             <Panel key={id} header={title}>
               <div
                 className="markdown-body"
@@ -115,34 +60,11 @@ function FaqsItem({ ids }: { ids: string[] }) {
   );
 }
 
-interface CategorySelectProps extends Omit<CascaderProps<string[]>, 'value' | 'onChange'> {
-  value?: string[];
-  onChange: (idPath?: string[], categoryPath?: CategorySchema[]) => void;
-}
-
-const CategorySelect = forwardRef<CascaderRef, CategorySelectProps>((props, ref) => {
-  const { data, isLoading, error, refetch } = useCategoryTree({ active: true });
-
-  if (error) {
-    return <Retry error={error} onRetry={refetch} />;
-  }
-
-  return (
-    <Cascader
-      {...(props as any)}
-      ref={ref}
-      loading={isLoading}
-      fieldNames={{ label: 'name', value: 'id' }}
-      options={data as any}
-    />
-  );
-});
-
 interface RawTicketData {
   organizationId?: string;
   title: string;
   appId?: string;
-  categoryPath: string[];
+  categoryId?: string;
   fileIds?: string[];
   content: string;
   [key: string]: any;
@@ -169,8 +91,7 @@ export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
   const { control, getValues, setValue } = methods;
   const orgs = useOrganizations();
 
-  const categoryPath = useWatch({ control, name: 'categoryPath' });
-  const categoryId = useMemo(() => last(categoryPath), [categoryPath]);
+  const categoryId = useWatch({ control, name: 'categoryId' });
 
   const { data: fields, isLoading: loadingFields } = useCategoryFields(categoryId!, {
     enabled: !!categoryId,
@@ -193,19 +114,28 @@ export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
 
   const handleChangeCategory = useCallback(
     (categoryPath?: CategorySchema[]) => {
-      setArticleIds(categoryPath?.map((c) => c.articleIds || []).flat());
+      setArticleIds(undefined);
       if (categoryPath?.length) {
         const category = last(categoryPath)!;
         if (category.template) {
           overwriteContent(category.template);
         }
+        setArticleIds(
+          uniq(
+            categoryPath
+              .slice()
+              .reverse()
+              .map((c) => c.articleIds || [])
+              .flat()
+          )
+        );
       }
     },
     [overwriteContent]
   );
 
   const handleSubmit = methods.handleSubmit((data) => {
-    const { organizationId, title, appId, categoryPath, fileIds, content, ...customFields } = data;
+    const { organizationId, title, appId, categoryId, fileIds, content, ...customFields } = data;
     onSubmit({
       organizationId,
       title,
@@ -213,7 +143,7 @@ export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
       fileIds,
       content,
       customFields,
-      categoryId: last(categoryPath)!,
+      categoryId: categoryId!,
     });
   });
 
@@ -260,7 +190,7 @@ export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
           )}
 
           <Controller
-            name="categoryPath"
+            name="categoryId"
             rules={{ required: '请填写此字段' }}
             render={({ field, fieldState: { error } }) => (
               <Form.Item
@@ -273,8 +203,9 @@ export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
                 <CategorySelect
                   {...field}
                   id="ticket_category"
-                  onChange={(idPath, categoryPath) => {
-                    field.onChange(idPath);
+                  categoryActive
+                  onChange={(categoryId, categoryPath) => {
+                    field.onChange(categoryId);
                     handleChangeCategory(categoryPath);
                   }}
                 />

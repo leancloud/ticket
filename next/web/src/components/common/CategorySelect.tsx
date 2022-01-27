@@ -28,13 +28,16 @@ function getCategoryIdPath(category: CategoryTreeNode): string[] {
 export interface CategorySelectProps
   extends Omit<CascaderProps<CategoryTreeNode>, 'value' | 'onChange'> {
   value?: string;
-  onChange?: (id: string) => void;
+  onChange?: (id?: string, categoryPath?: CategoryTreeNode[]) => void;
   errorMessage?: string;
+  categoryActive?: boolean;
 }
 
 export const CategorySelect = forwardRef<CascaderRef, CategorySelectProps>(
-  ({ errorMessage = '获取分类失败', value, onChange, ...props }, ref) => {
-    const { data, isLoading, error, refetch } = useCategoryTree();
+  ({ errorMessage = '获取分类失败', value, onChange, categoryActive, ...props }, ref) => {
+    const { data, isLoading, error, refetch } = useCategoryTree({
+      active: categoryActive,
+    });
 
     const path = useMemo(() => {
       if (!data || !value) {
@@ -48,8 +51,11 @@ export const CategorySelect = forwardRef<CascaderRef, CategorySelectProps>(
     }, [data, value]);
 
     const handleChange = useCallback(
-      (path: string) => {
-        onChange?.(path[path.length - 1]);
+      (ids?: string[], categoryPath?: CategoryTreeNode[]) => {
+        if (onChange) {
+          const id = ids?.length ? ids[ids.length - 1] : undefined;
+          onChange(id, categoryPath);
+        }
       },
       [onChange]
     );
