@@ -20,6 +20,10 @@ const { Panel } = Collapse;
 
 const presetFieldIds = ['title', 'description'];
 
+function openLinkInNewTab(el: HTMLElement | null) {
+  el?.querySelectorAll('a').forEach((a) => (a.target = '_blank'));
+}
+
 function FaqsItem({ ids }: { ids: string[] }) {
   const { data: articles, error, refetch } = useArticles({
     id: ids,
@@ -49,6 +53,7 @@ function FaqsItem({ ids }: { ids: string[] }) {
           {sortedArticles.map(({ id, title, contentSafeHTML }) => (
             <Panel key={id} header={title}>
               <div
+                ref={openLinkInNewTab}
                 className="markdown-body"
                 dangerouslySetInnerHTML={{ __html: contentSafeHTML }}
               />
