@@ -10,6 +10,7 @@ export interface CategorySchema {
   position: number;
   active: boolean;
   template?: string;
+  articleIds?: string[];
 }
 
 export async function fetchCategories(active?: boolean) {

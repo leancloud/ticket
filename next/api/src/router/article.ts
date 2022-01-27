@@ -4,7 +4,7 @@ import { Article, getPublicArticle } from '@/model/Article';
 import { ArticleResponse } from '@/response/article';
 import * as yup from '@/utils/yup';
 import _ from 'lodash';
-import { auth, boolean, customerServiceOnly, pagination } from '@/middleware';
+import { auth, customerServiceOnly, pagination } from '@/middleware';
 import { ACLBuilder, CreateData, UpdateData } from '@/orm';
 import htmlify from '@/utils/htmlify';
 import { User } from '@/model/User';
@@ -19,18 +19,28 @@ import {
 
 const router = new Router();
 
-router.get('/', pagination(20), boolean('private'), async (ctx) => {
+const findArticlesOptionSchema = yup.object({
+  private: yup.boolean(),
+  id: yup.csv(yup.string().required()),
+});
+
+router.get('/', pagination(20), async (ctx) => {
   const { page, pageSize } = pagination.get(ctx);
-  const { ['private']: prvt } = boolean.get(ctx);
+  const { ['private']: prvt, id } = findArticlesOptionSchema.validateSync(ctx.request.query);
 
   const sessionToken = ctx.get('X-LC-Session');
   const query = Article.queryBuilder()
     .orderBy('createdAt', 'desc')
     .skip((page - 1) * pageSize)
     .limit(pageSize);
+
   if (prvt !== undefined) {
     query.where('archived', prvt ? '==' : '!=', true);
   }
+  if (id !== undefined) {
+    query.where('objectId', 'in', id);
+  }
+
   const articles = ctx.query.count
     ? await query
         .findAndCount({
@@ -52,6 +62,7 @@ const createArticalSchema = yup.object({
   content: yup.string().required(),
   private: yup.boolean(),
 });
+
 router.post('/', auth, customerServiceOnly, async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   const { title, content, ['private']: prvt } = createArticalSchema.validateSync(ctx.request.body);
@@ -109,6 +120,7 @@ router.get('/:id/categories', auth, customerServiceOnly, async (ctx) => {
 const getRevisionsSchema = yup.object({
   meta: yup.boolean(),
 });
+
 router.get('/:id/revisions', auth, customerServiceOnly, pagination(100), async (ctx) => {
   const article = ctx.state.article as Article;
   const { meta } = getRevisionsSchema.validateSync(ctx.query);
@@ -166,6 +178,7 @@ const updateArticalSchema = yup.object({
   private: yup.boolean(),
   comment: yup.string(),
 });
+
 router.patch('/:id', auth, customerServiceOnly, async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   const article = ctx.state.article as Article;
@@ -193,6 +206,7 @@ router.patch('/:id', auth, customerServiceOnly, async (ctx) => {
 
   ctx.body = new ArticleResponse(updatedArticle);
 });
+
 router.delete('/:id', auth, customerServiceOnly, async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   const article = ctx.state.article as Article;
