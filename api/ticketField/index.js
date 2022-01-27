@@ -54,7 +54,6 @@ router.get(
       locale = locale.toLowerCase()
       return locale === 'zh' ? 'zh-cn' : locale
     })
-    .custom((value) => value === 'default' || LOCALES.includes(value))
     .optional(),
   catchError(async (req, res) => {
     let { size, skip, search, ids, includeVariant, locale } = req.query
