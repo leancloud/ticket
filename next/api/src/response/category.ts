@@ -17,6 +17,15 @@ export class CategoryResponse {
   }
 }
 
+export class CategoryResponseForCS extends CategoryResponse {
+  toJSON() {
+    return {
+      ...super.toJSON(),
+      groupId: this.category.groupId,
+    };
+  }
+}
+
 export class CategoryFieldResponse {
   constructor(readonly variant: TicketFieldVariant) {}
 

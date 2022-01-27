@@ -1,12 +1,26 @@
 import { Context } from 'koa';
 
-import { Controller, Ctx, Get, HttpError, Param, Query, ResponseBody } from '@/common/http';
+import {
+  Controller,
+  Ctx,
+  Get,
+  HttpError,
+  Param,
+  Query,
+  ResponseBody,
+  UseMiddlewares,
+} from '@/common/http';
 import { ParseBoolPipe } from '@/common/pipe';
+import { auth, customerServiceOnly } from '@/middleware';
 import { getPublicArticle } from '@/model/Article';
 import { Category, CategoryManager } from '@/model/Category';
 import { TicketForm } from '@/model/TicketForm';
 import { ArticleResponse } from '@/response/article';
-import { CategoryResponse, CategoryFieldResponse } from '@/response/category';
+import {
+  CategoryResponse,
+  CategoryFieldResponse,
+  CategoryResponseForCS,
+} from '@/response/category';
 
 class FindCategoryPipe {
   static async transform(id: string): Promise<Category> {
@@ -32,8 +46,21 @@ export class CategoryController {
     return categories;
   }
 
+  @Get('groups')
+  @UseMiddlewares(auth, customerServiceOnly)
+  async findGroups() {
+    const categories = await CategoryManager.get();
+    return categories
+      .filter((c) => c.groupId)
+      .map((c) => ({
+        id: c.groupId,
+        categoryId: c.id,
+      }));
+  }
+
   @Get(':id')
-  @ResponseBody(CategoryResponse)
+  @UseMiddlewares(auth, customerServiceOnly)
+  @ResponseBody(CategoryResponseForCS)
   findOne(@Param('id', FindCategoryPipe) category: Category) {
     return category;
   }
