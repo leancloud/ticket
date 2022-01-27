@@ -18,6 +18,7 @@ export interface FetchArticlesOptions {
   pageSize?: number;
   private?: boolean;
   count?: any;
+  id?: string[];
 }
 
 export interface FetchArticlesResult {
@@ -27,7 +28,10 @@ export interface FetchArticlesResult {
 
 export async function fetchArticles(options: FetchArticlesOptions): Promise<FetchArticlesResult> {
   const { data, headers } = await http.get<Article[]>('/api/2/articles', {
-    params: options,
+    params: {
+      ...options,
+      id: options.id?.join(','),
+    },
   });
   const totalCount = headers['x-total-count'];
   return {
@@ -47,11 +51,7 @@ export function useArticles({ queryOptions, ...options }: UseArticlesOptions = {
     ...queryOptions,
   });
 
-  return {
-    ...results,
-    data: data?.data,
-    totalCount: data?.totalCount,
-  };
+  return { ...results, ...data };
 }
 
 export async function fetchArticle(id: string) {

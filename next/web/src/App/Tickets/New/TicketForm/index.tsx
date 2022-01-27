@@ -1,11 +1,12 @@
-import { forwardRef, useCallback, useMemo } from 'react';
+import { forwardRef, useCallback, useMemo, useState } from 'react';
 import { useQueries } from 'react-query';
-import { Controller, FormProvider, useForm, useFormContext, useWatch } from 'react-hook-form';
+import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { CascaderRef } from 'antd/lib/cascader';
 import { SiMarkdown } from 'react-icons/si';
 import { compact, last, uniqBy } from 'lodash-es';
 
 import { ENABLE_LEANCLOUD_INTEGRATION } from '@/leancloud';
+import { useArticles } from '@/api/article';
 import {
   CategorySchema,
   fetchCategoryFaqs,
@@ -80,10 +81,14 @@ function useCategoriesFaqs(categoryIds: string[]) {
   };
 }
 
-function FaqsItem() {
-  const { control } = useFormContext<{ categoryPath?: string[] }>();
-  const categoryPath = useWatch({ control, name: 'categoryPath' });
-  const { data, error, retry } = useCategoriesFaqs(categoryPath ?? []);
+function FaqsItem({ ids }: { ids: string[] }) {
+  const { data, error, refetch } = useArticles({
+    id: ids,
+    private: false,
+    queryOptions: {
+      staleTime: Infinity,
+    },
+  });
 
   if (!data || data.length === 0) {
     return null;
@@ -92,7 +97,7 @@ function FaqsItem() {
   return (
     <Form.Item label="常见问题">
       {error ? (
-        <Retry error={error} onRetry={retry} />
+        <Retry error={error} onRetry={refetch} />
       ) : (
         <Collapse>
           {data.map(({ id, title, contentSafeHTML }) => (
@@ -111,7 +116,7 @@ function FaqsItem() {
 
 interface CategorySelectProps extends Omit<CascaderProps<string[]>, 'value' | 'onChange'> {
   value?: string[];
-  onChange: (idPath: string[], categoryPath: CategorySchema[]) => void;
+  onChange: (idPath?: string[], categoryPath?: CategorySchema[]) => void;
 }
 
 const CategorySelect = forwardRef<CascaderRef, CategorySelectProps>((props, ref) => {
@@ -183,14 +188,16 @@ export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
     [getValues, setValue]
   );
 
+  const [articleIds, setArticleIds] = useState<string[]>();
+
   const handleChangeCategory = useCallback(
-    (categoryPath: CategorySchema[]) => {
-      if (categoryPath.length === 0) {
-        return;
-      }
-      const category = last(categoryPath)!;
-      if (category.template) {
-        overwriteContent(category.template);
+    (categoryPath?: CategorySchema[]) => {
+      setArticleIds(categoryPath?.map((c) => c.articleIds || []).flat());
+      if (categoryPath?.length) {
+        const category = last(categoryPath)!;
+        if (category.template) {
+          overwriteContent(category.template);
+        }
       }
     },
     [overwriteContent]
@@ -274,7 +281,7 @@ export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
             )}
           />
 
-          <FaqsItem />
+          {articleIds && articleIds.length > 0 && <FaqsItem ids={articleIds} />}
 
           {fields && fields.length > 0 && <CustomFields fields={fields} />}
 
