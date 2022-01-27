@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useMemo } from 'react'
+import React, { memo, useCallback, useMemo } from 'react'
 import { Table } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
