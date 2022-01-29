@@ -224,7 +224,6 @@ export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
 
           <Controller
             name="content"
-            rules={{ required: '请填写此字段' }}
             render={({ field, fieldState: { error } }) => (
               <Form.Item
                 label="描述"

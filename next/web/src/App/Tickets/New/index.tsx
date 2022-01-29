@@ -25,7 +25,9 @@ export function NewTicket() {
         content: data.content,
         fileIds: data.fileIds,
         customFields: data.customFields
-          ? Object.entries(data.customFields).map(([field, value]) => ({ field, value }))
+          ? Object.entries(data.customFields)
+              .filter(([_, value]) => value !== undefined)
+              .map(([field, value]) => ({ field, value }))
           : undefined,
       });
     },

@@ -170,7 +170,7 @@ const customFieldSchema = yup.object({
 
 const ticketDataSchema = yup.object({
   title: yup.string().trim().max(100).required(),
-  content: yup.string().trim().required(),
+  content: yup.string().trim().default(''),
   categoryId: yup.string().required(),
   organizationId: yup.string(),
   fileIds: yup.array(yup.string().required()),
