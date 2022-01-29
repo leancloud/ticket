@@ -92,7 +92,13 @@ export class TicketCreator {
   }
 
   check(): boolean {
-    return !!(this.author && this.category && this.title && this.content && this.contentHTML);
+    return (
+      this.author !== undefined &&
+      this.category !== undefined &&
+      this.title !== undefined &&
+      this.content !== undefined &&
+      this.contentHTML !== undefined
+    );
   }
 
   private async selectAssignee() {
