@@ -9,9 +9,6 @@
     "meta": {
       "type": "Boolean"
     },
-    "private": {
-      "type": "Boolean"
-    },
     "ACL": {
       "type": "ACL",
       "default": {
@@ -61,13 +58,6 @@
     },
     "comment": {
       "type": "String",
-      "v": 2,
-      "required": false,
-      "hidden": false,
-      "read_only": false
-    },
-    "archive": {
-      "type": "Boolean",
       "v": 2,
       "required": false,
       "hidden": false,
