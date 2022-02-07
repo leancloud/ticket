@@ -5,7 +5,6 @@ import { AiOutlineLeft, AiOutlineReload } from 'react-icons/ai';
 import cx from 'classnames';
 import { produce } from 'immer';
 
-import { useCurrentUser } from '@/leancloud';
 import { CategorySchema, useCategories } from '@/api/category';
 import { GroupSchema } from '@/api/group';
 import { useCustomerServiceGroups, UserSchema } from '@/api/user';
@@ -18,6 +17,7 @@ import {
   useViewTicketCounts,
 } from '@/api/view';
 import { Empty, Spin, Table } from '@/components/antd';
+import { useAppContext } from '@/App';
 import { columnLabels } from '@/App/Admin/Settings/Views/EditView';
 import TicketStatus from '@/App/Admin/Tickets/TicketView/TicketStatus';
 import { useGetCategoryPath } from '@/utils/useGetCategoryPath';
@@ -311,7 +311,7 @@ export function Views() {
   const { id } = useParams();
   const [expandViewMenu, setExpandViewMenu] = useState(true);
 
-  const currentUser = useCurrentUser();
+  const { currentUser } = useAppContext();
 
   const { data: userGroups, isLoading: loadingGroups } = useCustomerServiceGroups(currentUser!.id);
   const groupIds = useMemo(() => {

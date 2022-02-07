@@ -4,7 +4,6 @@ import { useQueryClient } from 'react-query';
 import { groupBy, keyBy } from 'lodash-es';
 import { produce } from 'immer';
 
-import { useCurrentUser } from '@/leancloud';
 import { CategorySchema, useCategories, useCategoryGroups } from '@/api/category';
 import {
   CustomerServiceSchema,
@@ -15,6 +14,7 @@ import {
 import { GroupSchema, useGroups } from '@/api/group';
 import { Checkbox, Tabs, Table, message } from '@/components/antd';
 import { useSearchParam } from '@/utils/useSearchParams';
+import { useAppContext } from '@/App';
 import { UserLabel } from '@/App/Admin/components';
 
 const { Column } = Table;
@@ -117,7 +117,7 @@ export function CategoryList() {
       : orderedCategories.filter((c) => !c.active);
   }, [orderedCategories, active]);
 
-  const currentUser = useCurrentUser();
+  const { currentUser } = useAppContext();
 
   const { data: customerServices, isLoading: loadingCSs } = useCustomerServices();
 

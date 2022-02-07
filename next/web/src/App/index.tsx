@@ -1,9 +1,10 @@
-import { Suspense, lazy } from 'react';
+import { ReactNode, Suspense, lazy, createContext, useContext, useState } from 'react';
 import { QueryClientProvider } from 'react-query';
 import { RecoilRoot } from 'recoil';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { noop } from 'lodash-es';
 
-import { auth } from '@/leancloud';
+import { CurrentUser, getCurrentUser } from '@/leancloud';
 import { queryClient } from '@/api/query-client';
 import { SearchParamsProvider } from '@/utils/useSearchParams';
 import { Spin } from '@/components/antd';
@@ -12,8 +13,35 @@ const Tickets = lazy(() => import('./Tickets'));
 const Admin = lazy(() => import('./Admin'));
 const Login = lazy(() => import('./Login'));
 
+export interface IAppContext {
+  currentUser?: CurrentUser;
+  setCurrentUser: (user: CurrentUser) => void;
+}
+
+const AppContext = createContext<IAppContext>({
+  setCurrentUser: noop,
+});
+
+function AppProvider({ children }: { children: ReactNode }) {
+  const [currentUser, setCurrentUser] = useState(getCurrentUser());
+
+  return (
+    <AppContext.Provider
+      value={{
+        currentUser,
+        setCurrentUser,
+      }}
+    >
+      {children}
+    </AppContext.Provider>
+  );
+}
+
+export const useAppContext = () => useContext(AppContext);
+
 function RequireAuth({ children }: { children: JSX.Element }) {
-  if (!auth.currentUser) {
+  const { currentUser } = useAppContext();
+  if (!currentUser) {
     return <Navigate to="/login" />;
   }
   return children;
@@ -44,7 +72,9 @@ export default function App() {
       <RecoilRoot>
         <BrowserRouter basename="/next">
           <SearchParamsProvider>
-            <AppRoutes />
+            <AppProvider>
+              <AppRoutes />
+            </AppProvider>
           </SearchParamsProvider>
         </BrowserRouter>
       </RecoilRoot>

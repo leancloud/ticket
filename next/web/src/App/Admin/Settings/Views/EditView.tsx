@@ -14,10 +14,10 @@ import { Link } from 'react-router-dom';
 import cx from 'classnames';
 import { pick } from 'lodash-es';
 
-import { useCurrentUser } from '@/leancloud';
 import { Button, Form, FormInstance, Input, Radio, Select } from '@/components/antd';
 import { GroupSelect } from '@/components/common';
 import DragIcon from '@/icons/DragIcon';
+import { useAppContext } from '@/App';
 import { conditions } from './conditions';
 import style from './index.module.css';
 
@@ -55,7 +55,7 @@ function ViewPrivilege() {
     return 'all';
   }, [userIds, groupIds]);
 
-  const currentUser = useCurrentUser();
+  const { currentUser } = useAppContext();
 
   const handleChangeVisibility = (visibility: string) => {
     if (visibility === 'all') {

@@ -1,9 +1,9 @@
 import { forwardRef } from 'react';
 import { RefSelectProps } from 'antd/lib/select';
 
-import { useCurrentUser } from '@/leancloud';
 import { OrganizationSchema } from '@/api/organization';
 import { Select, SelectProps } from '@/components/antd';
+import { useAppContext } from '@/App';
 
 const { OptGroup, Option } = Select;
 
@@ -13,7 +13,7 @@ export interface OrganizationSelectProps extends Omit<SelectProps<string | undef
 
 export const OrganizationSelect = forwardRef<RefSelectProps, OrganizationSelectProps>(
   ({ options, value, onChange, ...props }, ref) => {
-    const currentUser = useCurrentUser();
+    const { currentUser } = useAppContext();
 
     return (
       <Select

@@ -3,7 +3,6 @@ import { authModule } from 'open-leancloud-storage/auth';
 import { cloudModule } from 'open-leancloud-storage/cloud';
 import { storageModule } from 'open-leancloud-storage/storage';
 import axios, { AxiosError } from 'axios';
-import { useRef } from 'react';
 import { useQuery } from 'react-query';
 
 LC.use(authModule);
@@ -59,10 +58,6 @@ export function getCurrentUser(): CurrentUser | undefined {
       displayName: user.data.name || user.data.username,
     };
   }
-}
-
-export function useCurrentUser(): CurrentUser | undefined {
-  return useRef(getCurrentUser()).current;
 }
 
 export type LeanCloudRegion = 'cn-n1' | 'cn-e1' | 'us-w1';
