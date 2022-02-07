@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { UseQueryOptions, useQuery } from 'react-query';
 
-import { http } from '../leancloud';
+import { http } from '@/leancloud';
 
 export interface CategorySchema {
   id: string;
@@ -13,11 +13,21 @@ export interface CategorySchema {
   articleIds?: string[];
 }
 
-export async function fetchCategories(active?: boolean) {
-  const { data } = await http.get<CategorySchema[]>('/api/2/categories', {
+async function fetchCategories(active?: boolean): Promise<CategorySchema[]> {
+  const { data } = await http.get('/api/2/categories', {
     params: { active },
   });
   return data;
+}
+
+export interface CategoryGroupSchema {
+  id: string;
+  categoryId: string;
+}
+
+async function fetchCategoryGroups(): Promise<CategoryGroupSchema[]> {
+  const res = await http.get('/api/2/categories/groups');
+  return res.data;
 }
 
 export interface UseCategoriesOptions {
@@ -80,7 +90,7 @@ export interface FaqSchema {
   updatedAt: string;
 }
 
-export async function fetchCategoryFaqs(categoryId: string) {
+async function fetchCategoryFaqs(categoryId: string) {
   const { data } = await http.get<FaqSchema[]>(`/api/2/categories/${categoryId}/faqs`);
   return data;
 }
@@ -105,7 +115,7 @@ export interface CategoryFieldSchema {
   options?: { title: string; value: string }[];
 }
 
-export async function fetchCatgoryFields(categoryId: string) {
+async function fetchCatgoryFields(categoryId: string) {
   const { data } = await http.get<CategoryFieldSchema[]>(`/api/2/categories/${categoryId}/fields`);
   return data;
 }
@@ -116,6 +126,15 @@ export function useCategoryFields(categoryId: string, options?: UseCategoryField
   return useQuery({
     queryKey: ['categoryFields', categoryId],
     queryFn: () => fetchCatgoryFields(categoryId),
+    ...options,
+  });
+}
+
+export function useCategoryGroups(options?: UseQueryOptions<CategoryGroupSchema[], Error>) {
+  return useQuery({
+    queryKey: ['categoryGroups'],
+    queryFn: fetchCategoryGroups,
+    staleTime: Infinity,
     ...options,
   });
 }

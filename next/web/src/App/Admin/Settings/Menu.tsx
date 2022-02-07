@@ -24,6 +24,10 @@ const routeGroups = [
     name: '管理',
     paths: [
       {
+        name: '分类',
+        path: 'categories',
+      },
+      {
         name: '视图',
         path: 'views',
       },

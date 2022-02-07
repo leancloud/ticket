@@ -10,6 +10,7 @@ import {
 } from '@/api/customer-service';
 import { Button, Modal, Table, TableProps, message } from '@/components/antd';
 import { Category, CategoryProvider, Retry, UserSelect } from '@/components/common';
+import { UserLabel } from '@/App/Admin/components';
 
 function MemberActions({ id, nickname }: CustomerServiceSchema) {
   const queryClient = useQueryClient();
@@ -85,20 +86,11 @@ function AddUserModal({ visible, onHide }: AddUserModalProps) {
   );
 }
 
-function UserLabel({ nickname, avatarUrl }: CustomerServiceSchema) {
-  return (
-    <div className="flex items-center">
-      <img className="w-4 h-4 rounded-sm" src={avatarUrl} />
-      <div className="ml-1">{nickname}</div>
-    </div>
-  );
-}
-
 const columns: TableProps<CustomerServiceSchema>['columns'] = [
   {
     key: 'customerService',
     title: '客服',
-    render: UserLabel,
+    render: (user) => <UserLabel user={user} />,
   },
   {
     dataIndex: 'categoryIds',

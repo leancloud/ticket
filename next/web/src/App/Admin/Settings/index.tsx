@@ -5,6 +5,7 @@ import { SettingMenu } from './Menu';
 import { Members } from './Members';
 import { GroupList, NewGroup, GroupDetail } from './Groups';
 import { Vacations } from './Vacations';
+import { CategoryList } from './Categories';
 import { ViewList, NewView, ViewDetail } from './Views';
 import { TicketFieldList, NewTicketField, TicketFieldDetail } from './TicketFields';
 import { TicketFormList, NewTicketForm, TicketFormDetail } from './TicketForms';
@@ -27,6 +28,9 @@ const SettingRoutes = () => (
       <Route path=":id" element={<GroupDetail />} />
     </Route>
     <Route path="/vacations" element={<Vacations />} />
+    <Route path="/categories">
+      <Route index element={<CategoryList />} />
+    </Route>
     <Route path="/views">
       <Route index element={<ViewList />} />
       <Route path="new" element={<NewView />} />

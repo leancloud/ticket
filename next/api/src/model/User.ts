@@ -79,12 +79,15 @@ export class User extends Model {
 
   sessionToken?: string;
 
-  @field({
-    avObjectKey: 'categories',
-    encode: false,
-    decode: (data: { objectId: string }[]) => data.map((item) => item.objectId),
-  })
-  categoryIds?: string[];
+  @field()
+  categories?: {
+    objectId: string;
+    name: string;
+  }[];
+
+  get categoryIds() {
+    return this.categories?.map((c) => c.objectId);
+  }
 
   private isCustomerServiceTask?: Promise<boolean>;
 

@@ -15,8 +15,12 @@ function useIntSearchParam(key: string) {
   }, [param]);
 
   const set = useCallback(
-    (value: number) => {
-      setParam(Math.floor(value).toString());
+    (value: number | undefined) => {
+      if (value === undefined) {
+        setParam(undefined);
+      } else {
+        setParam(Math.floor(value).toString());
+      }
     },
     [setParam]
   );
@@ -37,7 +41,7 @@ export function usePage() {
   const set = useCallback(
     (newPage: number) => {
       if (newPage > 0) {
-        _setPage(newPage);
+        _setPage(newPage === 1 ? undefined : newPage);
       }
     },
     [_setPage]
