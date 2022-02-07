@@ -31,6 +31,16 @@ async function deleteCustomerService(id: string) {
   await http.delete(`/api/2/customer-services/${id}`);
 }
 
+async function addCustomerServiceCategory(customerServiceId: string, categoryId: string) {
+  await http.post(`/api/2/customer-services/${customerServiceId}/categories`, {
+    id: categoryId,
+  });
+}
+
+async function deleteCustomerServiceCategory(customerServiceId: string, categoryId: string) {
+  await http.delete(`/api/2/customer-services/${customerServiceId}/categories/${categoryId}`);
+}
+
 export function useCustomerServices(options?: UseQueryOptions<CustomerServiceSchema[], Error>) {
   return useQuery({
     queryKey: ['customerServices'],
@@ -72,6 +82,33 @@ export function useAddCustomerService(options?: UseMutationOptions<void, Error, 
 export function useDeleteCustomerService(options?: UseMutationOptions<void, Error, string>) {
   return useMutation({
     mutationFn: deleteCustomerService,
+    ...options,
+  });
+}
+
+export interface MutateCustomerServiceCategoryData {
+  customerServiceId: string;
+  categoryId: string;
+}
+
+export function useAddCustomerServiceCategory(
+  options?: UseMutationOptions<void, Error, MutateCustomerServiceCategoryData>
+) {
+  return useMutation({
+    mutationFn: ({ customerServiceId, categoryId }) => {
+      return addCustomerServiceCategory(customerServiceId, categoryId);
+    },
+    ...options,
+  });
+}
+
+export function useDeleteCustomerServiceCategory(
+  options?: UseMutationOptions<void, Error, MutateCustomerServiceCategoryData>
+) {
+  return useMutation({
+    mutationFn: ({ customerServiceId, categoryId }) => {
+      return deleteCustomerServiceCategory(customerServiceId, categoryId);
+    },
     ...options,
   });
 }

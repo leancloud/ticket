@@ -1,76 +1,53 @@
-import { memo, useMemo } from 'react';
+import { useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import { useQueryClient } from 'react-query';
 import { groupBy, keyBy } from 'lodash-es';
+import { produce } from 'immer';
 
+import { useCurrentUser } from '@/leancloud';
 import { CategorySchema, useCategories, useCategoryGroups } from '@/api/category';
-import { CustomerServiceSchema, useCustomerServices } from '@/api/customer-service';
+import {
+  CustomerServiceSchema,
+  useCustomerServices,
+  useAddCustomerServiceCategory,
+  useDeleteCustomerServiceCategory,
+} from '@/api/customer-service';
 import { GroupSchema, useGroups } from '@/api/group';
-import { Checkbox, Tabs, Table, TableProps } from '@/components/antd';
+import { Checkbox, Tabs, Table, message } from '@/components/antd';
 import { useSearchParam } from '@/utils/useSearchParams';
 import { UserLabel } from '@/App/Admin/components';
-import { Link } from 'react-router-dom';
-import { useCurrentUser } from '@/leancloud';
 
-interface CategoryRow extends CategorySchema {
-  depth: number;
-  group?: GroupSchema;
-  assignees?: CustomerServiceSchema[];
-  joined?: boolean;
-}
+const { Column } = Table;
 
-function getCategoryRows(categories: CategorySchema[]): CategoryRow[] {
-  const categoryGroup = groupBy(categories, 'parentId');
-  Object.values(categoryGroup).forEach((children) =>
-    children.sort((a, b) => a.position - b.position)
-  );
-
-  const rows: CategoryRow[] = [];
-  const rangeCategories = (categories: CategorySchema[] | undefined, depth: number) => {
-    if (categories === undefined) {
-      return;
+function NameCell({ category, depth }: { category: CategorySchema; depth: number }) {
+  const prefix = useMemo(() => {
+    if (depth === 0) {
+      return null;
     }
+    return <span>{'\u3000'.repeat(depth) + '\u2514 '}</span>;
+  }, [depth]);
 
-    categories.forEach((category) => {
-      rows.push({ ...category, depth });
-      rangeCategories(categoryGroup[category.id], depth + 1);
-    });
-  };
-
-  rangeCategories(categoryGroup['undefined'], 0);
-
-  return rows;
-}
-
-function getCustomerServicesByCategoryId(customerServices: CustomerServiceSchema[]) {
-  const customerServicesByCategoryId: Record<string, CustomerServiceSchema[]> = {};
-  customerServices.forEach((customerService) => {
-    customerService.categoryIds.forEach((categoryId) => {
-      customerServicesByCategoryId[categoryId] ??= [];
-      customerServicesByCategoryId[categoryId].push(customerService);
-    });
-  });
-  return customerServicesByCategoryId;
-}
-
-const CategoryNamePrefix = memo(({ depth }: { depth: number }) => {
-  if (depth === 0) {
-    return null;
-  }
-  return <span>{'\u3000'.repeat(depth) + '\u2514'}</span>;
-});
-
-function CategoryName(row: CategoryRow) {
   return (
-    <div className="whitespace-pre">
-      <CategoryNamePrefix depth={row.depth} /> <Link to={row.id}>{row.name}</Link>
-    </div>
+    <>
+      {prefix}
+      <Link to={category.id}>{category.name}</Link>
+    </>
   );
 }
 
-function Assignees({ assignees }: CategoryRow) {
-  if (!assignees || assignees.length === 0) {
-    return '-';
+function AssigneesCell({
+  loading,
+  assignees,
+}: {
+  loading?: boolean;
+  assignees?: CustomerServiceSchema[];
+}) {
+  if (loading) {
+    return <div>Loading...</div>;
   }
-
+  if (!assignees || assignees.length === 0) {
+    return <div>-</div>;
+  }
   return (
     <div className="flex flex-wrap gap-2">
       {assignees.map((assignee) => (
@@ -80,89 +57,151 @@ function Assignees({ assignees }: CategoryRow) {
   );
 }
 
-const columns: TableProps<CategoryRow>['columns'] = [
-  {
-    key: 'name',
-    title: '名称',
-    render: CategoryName,
-  },
-  {
-    key: 'inCharge',
-    title: '我是否负责',
-    render: ({ joined }: CategoryRow) => <Checkbox checked={!!joined} />,
-  },
-  {
-    key: 'assignees',
-    title: '自动分配给（随机）',
-    render: Assignees,
-  },
-  {
-    key: 'groups',
-    title: '自动关联客服组',
-    render: ({ group }: CategoryRow) => {
-      if (group) {
-        return <Link to={`/admin/settings/groups/${group.id}`}>{group.name}</Link>;
-      }
-      return '-';
-    },
-  },
-];
-
-function useCategoryRows(active: boolean) {
-  const {
-    data: categories,
-    isLoading: loadingCategories,
-    isFetching: fetchingCategories,
-  } = useCategories({
-    queryOptions: {
-      select: (categories) => categories.filter((c) => c.active === active),
-    },
-  });
-
-  const { data: groups, isLoading: loadingGroups } = useGroups();
-
-  const { data: categoryGroups, isLoading: loadingCategoryGroups } = useCategoryGroups();
-
-  const { data: customerServices, isLoading: loadingCustomerServices } = useCustomerServices();
-
-  const currentUser = useCurrentUser();
-  const currentCustomerService = useMemo(() => {
-    if (currentUser && customerServices) {
-      return customerServices.find((cs) => cs.id === currentUser.id);
-    }
-  }, [currentUser, customerServices]);
-
-  const rows = useMemo(() => {
-    if (categories && groups && categoryGroups && customerServices && currentCustomerService) {
-      const groupById = keyBy(groups, 'id');
-      const categoryGroupByCategoryId = keyBy(categoryGroups, 'categoryId');
-      const rows = getCategoryRows(categories);
-      const customerServicesByCategoryId = getCustomerServicesByCategoryId(customerServices);
-      const currentCustomerServiceJoinedCategoryIds = new Set(currentCustomerService.categoryIds);
-      rows.forEach((row) => {
-        const cg = categoryGroupByCategoryId[row.id];
-        if (cg) {
-          row.group = groupById[cg.id];
-        }
-        row.assignees = customerServicesByCategoryId[row.id];
-        row.joined = currentCustomerServiceJoinedCategoryIds.has(row.id);
-      });
-      return rows;
-    }
-  }, [categories, groups, categoryGroups, customerServices, currentCustomerService]);
-
-  return {
-    data: rows,
-    isLoading:
-      loadingCategories || loadingGroups || loadingCategoryGroups || loadingCustomerServices,
-    isFetching: fetchingCategories,
-  };
+function GroupCell({ loading, group }: { loading?: boolean; group?: GroupSchema }) {
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+  if (!group) {
+    return <span>-</span>;
+  }
+  return <Link to={`/admin/settings/groups/${group.id}`}>{group.name}</Link>;
 }
 
 export function CategoryList() {
   const [active = 'true', setActive] = useSearchParam('active');
 
-  const { data, isLoading, isFetching } = useCategoryRows(active === 'true');
+  const { data: categories } = useCategories();
+
+  const categoryDepth = useMemo<Record<string, number>>(() => {
+    if (!categories) {
+      return {};
+    }
+    const categoryById = keyBy(categories, 'id');
+    const getDepth = (id: string): number => {
+      const target = categoryById[id];
+      if (target.parentId) {
+        return getDepth(target.parentId) + 1;
+      }
+      return 0;
+    };
+    return categories.reduce<Record<string, number>>((map, cur) => {
+      map[cur.id] = getDepth(cur.id);
+      return map;
+    }, {});
+  }, [categories]);
+
+  const orderedCategories = useMemo<CategorySchema[]>(() => {
+    if (!categories) {
+      return [];
+    }
+    const orderedCategories: CategorySchema[] = [];
+    const categorysByParentId = groupBy(categories, 'parentId');
+    const sortFn = (a: CategorySchema, b: CategorySchema) => a.position - b.position;
+    const pushFn = (id: string) => {
+      const categories = categorysByParentId[id];
+      if (categories) {
+        categories.sort(sortFn);
+        categories.forEach((category) => {
+          orderedCategories.push(category);
+          pushFn(category.id);
+        });
+      }
+    };
+    pushFn('undefined');
+    return orderedCategories;
+  }, [categories]);
+
+  const filteredCategories = useMemo(() => {
+    return active === 'true'
+      ? orderedCategories.filter((c) => c.active)
+      : orderedCategories.filter((c) => !c.active);
+  }, [orderedCategories, active]);
+
+  const currentUser = useCurrentUser();
+
+  const { data: customerServices, isLoading: loadingCSs } = useCustomerServices();
+
+  const me = useMemo(() => {
+    if (currentUser && customerServices) {
+      return customerServices.find((cs) => cs.id === currentUser.id);
+    }
+  }, [currentUser, customerServices]);
+
+  const myCategoryIds = useMemo(() => new Set(me?.categoryIds), [me]);
+
+  const assigneesByCategoryId = useMemo<Record<string, CustomerServiceSchema[]>>(() => {
+    if (!categories || !customerServices) {
+      return {};
+    }
+    const assigneesByCategoryId: Record<string, CustomerServiceSchema[]> = {};
+    customerServices.forEach((cs) => {
+      cs.categoryIds.forEach((categoryId) => {
+        assigneesByCategoryId[categoryId] ??= [];
+        assigneesByCategoryId[categoryId].push(cs);
+      });
+    });
+    return assigneesByCategoryId;
+  }, [categories, customerServices]);
+
+  const { data: groups, isLoading: loadingGroups } = useGroups();
+
+  const { data: categoryGroups, isLoading: loadingCategoryGroups } = useCategoryGroups();
+
+  const groupByCategoryId = useMemo<Record<string, GroupSchema>>(() => {
+    if (groups && categoryGroups) {
+      const groupById = keyBy(groups, 'id');
+      return categoryGroups.reduce<Record<string, GroupSchema>>((map, cur) => {
+        map[cur.categoryId] = groupById[cur.id];
+        return map;
+      }, {});
+    }
+    return {};
+  }, [groups, categoryGroups]);
+
+  const queryClient = useQueryClient();
+
+  const { mutate: addCSCategory, isLoading: addingCSCategory } = useAddCustomerServiceCategory({
+    onSuccess: (_, { categoryId, customerServiceId }) => {
+      message.success('添加负责分类成功');
+      queryClient.setQueryData<CustomerServiceSchema[] | undefined>(
+        ['customerServices'],
+        (data) => {
+          if (data) {
+            return produce(data, (draft) => {
+              draft.find((cs) => cs.id === customerServiceId)?.categoryIds.push(categoryId);
+            });
+          }
+        }
+      );
+    },
+    onError: (error) => {
+      message.error(error.message);
+    },
+  });
+
+  const { mutate: delCSCategory, isLoading: deletingCSCategory } = useDeleteCustomerServiceCategory(
+    {
+      onSuccess: (_, { categoryId, customerServiceId }) => {
+        message.success('删除负责分类成功');
+        queryClient.setQueryData<CustomerServiceSchema[] | undefined>(
+          ['customerServices'],
+          (data) => {
+            if (data) {
+              return produce(data, (draft) => {
+                const cs = draft.find((cs) => cs.id === customerServiceId);
+                if (cs) {
+                  cs.categoryIds = cs.categoryIds.filter((id) => id !== categoryId);
+                }
+              });
+            }
+          }
+        );
+      },
+      onError: (error) => {
+        message.error(error.message);
+      },
+    }
+  );
 
   return (
     <div className="px-10 pt-10">
@@ -177,11 +216,57 @@ export function CategoryList() {
       <Table
         rowKey="id"
         size="small"
-        columns={columns}
-        loading={isLoading || isFetching}
-        dataSource={data}
+        loading={undefined}
+        dataSource={filteredCategories}
         pagination={false}
-      />
+      >
+        <Column
+          key="name"
+          title="名称"
+          render={(category) => <NameCell category={category} depth={categoryDepth[category.id]} />}
+        />
+        <Column
+          key="inCharge"
+          dataIndex="id"
+          title="我是否负责"
+          render={(id: string) => (
+            <Checkbox
+              disabled={addingCSCategory || deletingCSCategory}
+              checked={myCategoryIds.has(id)}
+              onChange={(e) => {
+                const data = {
+                  categoryId: id,
+                  customerServiceId: me!.id,
+                };
+                if (e.target.checked) {
+                  addCSCategory(data);
+                } else {
+                  delCSCategory(data);
+                }
+              }}
+            />
+          )}
+        />
+        <Column
+          key="assignees"
+          dataIndex="id"
+          title="自动分配给（随机）"
+          render={(id: string) => (
+            <AssigneesCell loading={loadingCSs} assignees={assigneesByCategoryId[id]} />
+          )}
+        />
+        <Column
+          key="groups"
+          dataIndex="id"
+          title="自动关联客服组"
+          render={(id: string) => (
+            <GroupCell
+              loading={loadingGroups || loadingCategoryGroups}
+              group={groupByCategoryId[id]}
+            />
+          )}
+        />
+      </Table>
     </div>
   );
 }
