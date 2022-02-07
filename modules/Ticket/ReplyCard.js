@@ -177,6 +177,20 @@ function useTruncateReply() {
   }
 }
 
+function ReplyContent({ children }) {
+  if (!children) {
+    return (
+      <p className="text-muted">
+        <em>No description provided.</em>
+      </p>
+    )
+  }
+  return <div className="markdown-body" dangerouslySetInnerHTML={{ __html: children }} />
+}
+ReplyContent.propTypes = {
+  children: PropTypes.string,
+}
+
 export function ReplyCard({ data, onDeleted, ticketId, onEdit }) {
   const { t } = useTranslation()
   const { isCustomerService, currentUser, addNotification } = useContext(AppContext)
@@ -256,10 +270,7 @@ export function ReplyCard({ data, onDeleted, ticketId, onEdit }) {
       </Card.Header>
       <Card.Body ref={containerRef} className={css.content}>
         <BaiduTranslate enabled={translationEnabled}>
-          <div
-            className="markdown-body"
-            dangerouslySetInnerHTML={{ __html: myxss.process(data.content_HTML) }}
-          />
+          <ReplyContent>{myxss.process(data.content_HTML)}</ReplyContent>
         </BaiduTranslate>
         {imageFiles.length > 0 && (
           <div>
