@@ -8,6 +8,7 @@ import moment from 'moment';
 import cx from 'classnames';
 import { keyBy } from 'lodash-es';
 
+import { useCurrentUser } from '@/leancloud';
 import { useGroups } from '@/api/group';
 import {
   ViewSchema,
@@ -21,7 +22,6 @@ import {
   reorderViews,
 } from '@/api/view';
 import { Button, Input, Modal, Select, Spin, Table, message } from '@/components/antd';
-import { useAppContext } from '@/App';
 
 import { EditView } from './EditView';
 
@@ -207,7 +207,7 @@ function MoveViewDialog({ open, onClose, onMove, views, currentViewId }: MoveVie
 }
 
 export function ViewList() {
-  const { currentUser } = useAppContext();
+  const currentUser = useCurrentUser();
   const [visibility, setVisibility] = useState('shared');
 
   const { data: views, isLoading, isFetching } = useViews({

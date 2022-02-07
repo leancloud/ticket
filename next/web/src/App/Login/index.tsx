@@ -2,9 +2,8 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Navigate, useNavigate } from 'react-router-dom';
 
-import { auth, getCurrentUser } from '@/leancloud';
+import { auth, useCurrentUser, useRefreshCurrentUser } from '@/leancloud';
 import { Button } from '@/components/antd';
-import { useAppContext } from '@/App';
 
 interface LoginFormData {
   username: string;
@@ -15,7 +14,8 @@ export default function Login() {
   const { register, handleSubmit } = useForm<LoginFormData>();
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const { currentUser, setCurrentUser } = useAppContext();
+  const currentUser = useCurrentUser();
+  const refreshCurrentUser = useRefreshCurrentUser();
   const navigate = useNavigate();
 
   const onSubmit = handleSubmit((data) => {
@@ -23,7 +23,7 @@ export default function Login() {
     auth
       .login(data.username, data.password)
       .then(() => {
-        setCurrentUser(getCurrentUser()!);
+        refreshCurrentUser();
         navigate('/');
       })
       .catch((error) => {

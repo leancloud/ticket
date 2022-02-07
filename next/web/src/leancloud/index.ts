@@ -4,6 +4,7 @@ import { cloudModule } from 'open-leancloud-storage/cloud';
 import { storageModule } from 'open-leancloud-storage/storage';
 import axios, { AxiosError } from 'axios';
 import { useQuery } from 'react-query';
+import { atom, useRecoilValue, useSetRecoilState } from 'recoil';
 
 LC.use(authModule);
 LC.use(cloudModule);
@@ -50,7 +51,7 @@ export interface CurrentUser {
   displayName: string;
 }
 
-export function getCurrentUser(): CurrentUser | undefined {
+function getCurrentUser(): CurrentUser | undefined {
   const user = auth.currentUser;
   if (user) {
     return {
@@ -59,6 +60,18 @@ export function getCurrentUser(): CurrentUser | undefined {
     };
   }
 }
+
+const currentUserState = atom({
+  key: 'currentUser',
+  default: getCurrentUser(),
+});
+
+export const useCurrentUser = () => useRecoilValue(currentUserState);
+
+export const useRefreshCurrentUser = () => {
+  const setCurrentUser = useSetRecoilState(currentUserState);
+  return () => setCurrentUser(getCurrentUser());
+};
 
 export type LeanCloudRegion = 'cn-n1' | 'cn-e1' | 'us-w1';
 

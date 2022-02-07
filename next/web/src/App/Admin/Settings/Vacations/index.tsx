@@ -2,11 +2,11 @@ import { useCallback, useState } from 'react';
 import { useQueryClient } from 'react-query';
 import moment, { Moment } from 'moment';
 
+import { useCurrentUser } from '@/leancloud';
 import { VacationSchema, useDeleteVacation, useVacations, useCreateVacation } from '@/api/vacation';
 import { Button, DatePicker, Form, Modal, Table, TableProps, message } from '@/components/antd';
 import { CustomerServiceSelect } from '@/components/common';
 import { usePage } from '@/utils/usePage';
-import { useAppContext } from '@/App';
 
 const PAGE_SIZE = 20;
 
@@ -132,7 +132,7 @@ const columns: TableProps<VacationSchema>['columns'] = [
 ];
 
 export function Vacations() {
-  const { currentUser } = useAppContext();
+  const currentUser = useCurrentUser();
   const [page, { set: setPage }] = usePage();
   const [showModal, setShowModal] = useState(false);
 
