@@ -4,6 +4,7 @@ import QuickLRU from 'quick-lru';
 import { ACLBuilder, field, Model, ModifyOptions, serialize } from '@/orm';
 import { User } from './User';
 import { ArticleRevision } from './ArticleRevision';
+import { ArticleFeedback, FeedbackType } from './ArticleFeedback';
 
 export class Article extends Model {
   protected static className = 'FAQ';
@@ -74,6 +75,51 @@ export class Article extends Model {
         meta: true,
         private: updatedArticle.private,
       });
+    }
+  }
+
+  private async getLatestRevision() {
+    const revision = await ArticleRevision.query()
+      .where('FAQ', '==', this.toPointer())
+      .where('meta', '!=', true)
+      .orderBy('createdAt')
+      .first({ useMasterKey: true });
+    if (!revision) {
+      throw new Error('Revision not found');
+    }
+    return revision;
+  }
+  async feedback(type: FeedbackType, author: User) {
+    const revision = await this.getLatestRevision();
+    try {
+      return await ArticleFeedback.create(
+        {
+          type,
+          revisionId: revision.id,
+          articleId: this.id,
+          authorId: author.id,
+        },
+        { useMasterKey: true }
+      );
+    } catch (error) {
+      if (error instanceof Error) {
+        if ((error as any).code === 137) {
+          const feedback = await ArticleFeedback.query()
+            .where('revision', '==', revision.toPointer())
+            .where('author', '==', author.toPointer())
+            .first({ useMasterKey: true });
+          if (!feedback) {
+            throw new Error('Deplucated value detected but no matched feedback.');
+          }
+          return await feedback.update(
+            {
+              type,
+            },
+            { useMasterKey: true }
+          );
+        }
+      }
+      throw error;
     }
   }
 }

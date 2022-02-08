@@ -39,11 +39,11 @@ components:
           type: string
         name:
           type: string
-        parentId: 
+        parentId:
           type: string
         position:
           type: number
-        active: 
+        active:
           type: boolean
         template:
           type: string
@@ -476,7 +476,7 @@ paths:
           description: OK
           content:
             application/json:
-              schema: 
+              schema:
                 $ref: '#/components/schemas/Article'
 
   /api/2/articles/{id}:
@@ -548,6 +548,33 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Category'
+
+  /api/2/articles/{id}/feedback:
+    parameters:
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
+    post:
+      tags: ['Knowladge base']
+      summary: 提交文章反馈
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type:
+                  type: integer
+                  enum: [-1, 1]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
 
   /api/2/articles/{id}/revisions:
     parameters:

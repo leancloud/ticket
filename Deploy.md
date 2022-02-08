@@ -182,3 +182,13 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 
 - FAQ（倒序）createdAt（倒序）
 - FAQ（倒序）meta（倒序）createdAt（倒序）
+
+
+## 2022-02-08
+
+### `TBD`
+
+导入 FAQFeedback.jaon，确保 FAQFeedback 有以下两个索引：
+
+- revision（倒序）author（倒序），唯一
+- FAQ（倒序）updatedAt（倒序）

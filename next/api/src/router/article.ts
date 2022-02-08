@@ -16,6 +16,7 @@ import {
   ArticleRevisionListItemResponse,
   ArticleRevisionResponse,
 } from '@/response/article-revision';
+import { FeedbackType } from '@/model/ArticleFeedback';
 
 const router = new Router();
 
@@ -220,6 +221,17 @@ router.delete('/:id', auth, customerServiceOnly, async (ctx) => {
     ctx.throw(400, 'Article is in use');
   }
   await article.delete(currentUser.getAuthOptions());
+  ctx.body = {};
+});
+
+const feedbackSchema = yup.object({
+  type: yup.mixed().oneOf([FeedbackType.Upvote, FeedbackType.Downvote]).required(),
+});
+router.post('/:id/feedback', auth, async (ctx) => {
+  const currentUser = ctx.state.currentUser as User;
+  const article = ctx.state.article as Article;
+  const { type } = feedbackSchema.validateSync(ctx.request.body);
+  await article.feedback(type, currentUser);
   ctx.body = {};
 });
 
