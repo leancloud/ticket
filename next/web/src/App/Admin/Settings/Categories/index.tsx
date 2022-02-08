@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useQueryClient } from 'react-query';
+import { AiOutlineLoading } from 'react-icons/ai';
 import { groupBy, keyBy } from 'lodash-es';
 import { produce } from 'immer';
 
@@ -13,11 +14,15 @@ import {
   useDeleteCustomerServiceCategory,
 } from '@/api/customer-service';
 import { GroupSchema, useGroups } from '@/api/group';
-import { Checkbox, Tabs, Table, message } from '@/components/antd';
+import { Checkbox, Popover, Tabs, Table, message } from '@/components/antd';
 import { useSearchParam } from '@/utils/useSearchParams';
 import { UserLabel } from '@/App/Admin/components';
 
 const { Column } = Table;
+
+function Loading() {
+  return <AiOutlineLoading className="animate-spin w-5 h-5 text-primary" />;
+}
 
 function NameCell({ category, depth }: { category: CategorySchema; depth: number }) {
   const prefix = useMemo(() => {
@@ -43,23 +48,29 @@ function AssigneesCell({
   assignees?: CustomerServiceSchema[];
 }) {
   if (loading) {
-    return <div>Loading...</div>;
+    return <Loading />;
   }
   if (!assignees || assignees.length === 0) {
     return <div>-</div>;
   }
   return (
-    <div className="flex flex-wrap gap-2">
-      {assignees.map((assignee) => (
-        <UserLabel key={assignee.id} user={assignee} />
-      ))}
-    </div>
+    <Popover
+      content={
+        <div className="flex flex-wrap gap-2">
+          {assignees.map((assignee) => (
+            <UserLabel key={assignee.id} user={assignee} />
+          ))}
+        </div>
+      }
+    >
+      <a>{assignees.length} 位客服</a>
+    </Popover>
   );
 }
 
 function GroupCell({ loading, group }: { loading?: boolean; group?: GroupSchema }) {
   if (loading) {
-    return <div>Loading...</div>;
+    return <Loading />;
   }
   if (!group) {
     return <span>-</span>;
@@ -226,26 +237,31 @@ export function CategoryList() {
           render={(category) => <NameCell category={category} depth={categoryDepth[category.id]} />}
         />
         <Column
-          key="inCharge"
+          key="checked"
           dataIndex="id"
           title="我是否负责"
-          render={(id: string) => (
-            <Checkbox
-              disabled={addingCSCategory || deletingCSCategory}
-              checked={myCategoryIds.has(id)}
-              onChange={(e) => {
-                const data = {
-                  categoryId: id,
-                  customerServiceId: me!.id,
-                };
-                if (e.target.checked) {
-                  addCSCategory(data);
-                } else {
-                  delCSCategory(data);
-                }
-              }}
-            />
-          )}
+          render={(id: string) => {
+            if (loadingCSs) {
+              return <Loading />;
+            }
+            return (
+              <Checkbox
+                disabled={addingCSCategory || deletingCSCategory}
+                checked={myCategoryIds.has(id)}
+                onChange={(e) => {
+                  const data = {
+                    categoryId: id,
+                    customerServiceId: me!.id,
+                  };
+                  if (e.target.checked) {
+                    addCSCategory(data);
+                  } else {
+                    delCSCategory(data);
+                  }
+                }}
+              />
+            );
+          }}
         />
         <Column
           key="assignees"
