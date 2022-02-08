@@ -5,6 +5,7 @@ import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 import Tickets from './Tickets';
 import { Views, ViewTickets } from './Views';
+import { SearchTicket } from './Search';
 import Settings from './Settings';
 
 export default function AdminPage() {
@@ -28,6 +29,7 @@ export default function AdminPage() {
               <Route index element={null} />
               <Route path=":id" element={<ViewTickets />} />
             </Route>
+            <Route path="/search" element={<SearchTicket />} />
             <Route path="/settings/*" element={<Settings />} />
             <Route path="*" element={<Navigate to="tickets" replace />} />
           </Routes>
