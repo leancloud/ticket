@@ -215,7 +215,7 @@ export function CategoryList() {
   );
 
   return (
-    <div className="px-10 pt-10">
+    <div className="p-10">
       <Tabs
         activeKey={active === 'true' ? '1' : '2'}
         onChange={(key) => setActive(key === '1' ? undefined : 'false')}
