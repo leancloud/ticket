@@ -72,9 +72,9 @@ export class CategoryService {
 
     while (parentIds.length) {
       const parentId = parentIds.shift()!;
-      categoriesByParentId[parentId]?.forEach((child) => {
-        parentIds.push(child.id);
-        subCategories.push(child);
+      categoriesByParentId[parentId]?.forEach((category) => {
+        parentIds.push(category.id);
+        subCategories.push(category);
       });
     }
 
