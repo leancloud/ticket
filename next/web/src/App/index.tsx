@@ -3,7 +3,7 @@ import { QueryClientProvider } from 'react-query';
 import { RecoilRoot } from 'recoil';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
-import { auth } from '@/leancloud';
+import { useCurrentUser } from '@/leancloud';
 import { queryClient } from '@/api/query-client';
 import { SearchParamsProvider } from '@/utils/useSearchParams';
 import { Spin } from '@/components/antd';
@@ -13,7 +13,8 @@ const Admin = lazy(() => import('./Admin'));
 const Login = lazy(() => import('./Login'));
 
 function RequireAuth({ children }: { children: JSX.Element }) {
-  if (!auth.currentUser) {
+  const currentUser = useCurrentUser();
+  if (!currentUser) {
     return <Navigate to="/login" />;
   }
   return children;
