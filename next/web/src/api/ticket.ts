@@ -127,3 +127,21 @@ export function useCreateTicket(options?: UseMutationOptions<void, Error, Create
     ...options,
   });
 }
+
+export type SearchTicketResult = Omit<TicketSchema, 'author' | 'assignee' | 'group'>;
+
+async function searchTicketCustomField(keyword: string): Promise<SearchTicketResult[]> {
+  const { data } = await http.post('/api/2/tickets/search-custom-field', { keyword });
+  return data;
+}
+
+export function useSearchTicketCustomField(
+  keyword: string,
+  options?: UseQueryOptions<SearchTicketResult[], Error>
+) {
+  return useQuery({
+    queryKey: ['searchTicketCustomField', keyword],
+    queryFn: () => searchTicketCustomField(keyword),
+    ...options,
+  });
+}

@@ -1,6 +1,6 @@
 import { ComponentPropsWithoutRef, ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
-import { AiOutlineContainer, AiOutlineSetting } from 'react-icons/ai';
+import { AiOutlineContainer, AiOutlineSetting, AiOutlineSearch } from 'react-icons/ai';
 import { HiOutlineTicket } from 'react-icons/hi';
 import cx from 'classnames';
 
@@ -42,6 +42,9 @@ export function Sidebar(props: ComponentPropsWithoutRef<'aside'>) {
         </Path>
         <Path to="/admin/views" title="视图">
           <AiOutlineContainer className="m-auto w-[20px] h-[20px]" />
+        </Path>
+        <Path to="/admin/search" title="搜索">
+          <AiOutlineSearch className="m-auto w-[20px] h-[20px]" />
         </Path>
         <Path to="/admin/settings" title="设置">
           <AiOutlineSetting className="m-auto w-[20px] h-[20px]" />
