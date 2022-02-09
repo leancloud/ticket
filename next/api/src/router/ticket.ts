@@ -6,7 +6,7 @@ import { config } from '@/config';
 import * as yup from '@/utils/yup';
 import { SortItem, auth, customerServiceOnly, include, parseRange, sort } from '@/middleware';
 import { Model, QueryBuilder } from '@/orm';
-import { Category, CategoryManager } from '@/model/Category';
+import { Category } from '@/model/Category';
 import { Group } from '@/model/Group';
 import { Organization } from '@/model/Organization';
 import { Reply } from '@/model/Reply';
@@ -17,6 +17,7 @@ import { TicketResponse, TicketListItemResponse } from '@/response/ticket';
 import { ReplyResponse } from '@/response/reply';
 import { Vacation } from '@/model/Vacation';
 import { TicketCreator, TicketUpdater } from '@/ticket';
+import { CategoryService } from '@/service/category';
 
 const router = new Router().use(auth);
 
@@ -83,7 +84,7 @@ router.get(
     const categoryIds = new Set(params.categoryId);
     if (params.rootCategoryId) {
       categoryIds.add(params.rootCategoryId);
-      const subCategories = await CategoryManager.getSubCategories(params.rootCategoryId);
+      const subCategories = await CategoryService.getSubCategories(params.rootCategoryId);
       subCategories.forEach((c) => categoryIds.add(c.id));
     }
 
@@ -153,7 +154,7 @@ router.get(
     }
 
     if (params.includeCategoryPath) {
-      await Promise.all(tickets.map((ticket) => ticket.loadCategoryPath()));
+      await Ticket.fillCategoryPath(tickets);
     }
 
     ctx.body = tickets.map((ticket) =>
