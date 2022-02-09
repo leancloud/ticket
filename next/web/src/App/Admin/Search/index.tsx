@@ -16,6 +16,7 @@ export function SearchTicket() {
   return (
     <div className="bg-white h-full p-10 overflow-auto">
       <Search
+        autoFocus
         size="large"
         placeholder="根据自定义字段搜索工单"
         onSearch={(value) => setKeyword(value.trim())}
@@ -32,7 +33,11 @@ export function SearchTicket() {
           <Column
             key="title"
             title="标题"
-            render={({ nid, title }) => <a href={`/tickets/${nid}`}>{title}</a>}
+            render={({ nid, title }) => (
+              <a href={`/tickets/${nid}`} target="_blank">
+                {title}
+              </a>
+            )}
           />
           <Column
             dataIndex="createdAt"

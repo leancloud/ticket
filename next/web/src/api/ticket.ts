@@ -130,18 +130,18 @@ export function useCreateTicket(options?: UseMutationOptions<void, Error, Create
 
 export type SearchTicketResult = Omit<TicketSchema, 'author' | 'assignee' | 'group'>;
 
-async function searchTicketCustomField(keyword: string): Promise<SearchTicketResult[]> {
-  const { data } = await http.post('/api/2/tickets/search-custom-field', { keyword });
+async function searchTicketCustomField(q: string): Promise<SearchTicketResult[]> {
+  const { data } = await http.post('/api/2/tickets/search-custom-field', { q });
   return data;
 }
 
 export function useSearchTicketCustomField(
-  keyword: string,
+  q: string,
   options?: UseQueryOptions<SearchTicketResult[], Error>
 ) {
   return useQuery({
-    queryKey: ['searchTicketCustomField', keyword],
-    queryFn: () => searchTicketCustomField(keyword),
+    queryKey: ['searchTicketCustomField', q],
+    queryFn: () => searchTicketCustomField(q),
     ...options,
   });
 }
