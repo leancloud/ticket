@@ -1,9 +1,10 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQueryClient } from 'react-query';
 import { AiOutlineLoading } from 'react-icons/ai';
 import { groupBy, keyBy } from 'lodash-es';
 import { produce } from 'immer';
+import cx from 'classnames';
 
 import { useCurrentUser } from '@/leancloud';
 import { CategorySchema, useCategories, useCategoryGroups } from '@/api/category';
@@ -14,17 +15,64 @@ import {
   useDeleteCustomerServiceCategory,
 } from '@/api/customer-service';
 import { GroupSchema, useGroups } from '@/api/group';
-import { Checkbox, Popover, Tabs, Table, message } from '@/components/antd';
-import { useSearchParam } from '@/utils/useSearchParams';
+import { Button, Checkbox, Popover, Table, message } from '@/components/antd';
 import { UserLabel } from '@/App/Admin/components';
 
 const { Column } = Table;
+
+interface CategoryRow extends CategorySchema {
+  depth: number;
+}
+
+function useCategoryRows(categories?: CategorySchema[]): CategoryRow[] | undefined {
+  return useMemo(() => {
+    if (!categories) {
+      return undefined;
+    }
+    const categoryById = keyBy(categories, 'id');
+    const depthById: Record<string, number> = {};
+    const getDepth = (id: string): number => {
+      if (id in depthById) {
+        return depthById[id];
+      }
+      const category = categoryById[id];
+      const depth = category.parentId ? getDepth(category.parentId) + 1 : 0;
+      depthById[id] = depth;
+      return depth;
+    };
+    return categories.map((c) => ({ ...c, depth: getDepth(c.id) }));
+  }, [categories]);
+}
+
+function useSortedCategories(categories?: CategorySchema[]): CategorySchema[] | undefined {
+  return useMemo(() => {
+    if (!categories) {
+      return undefined;
+    }
+    const sorted: CategorySchema[] = [];
+    const categorysByParentId = groupBy(categories, 'parentId');
+    const sortFn = (a: CategorySchema, b: CategorySchema) => a.position - b.position;
+    const pushFn = (id: string) => {
+      const categories = categorysByParentId[id];
+      if (categories) {
+        categories.sort(sortFn);
+        categories.forEach((category) => {
+          sorted.push(category);
+          pushFn(category.id);
+        });
+      }
+    };
+    pushFn('undefined');
+    return sorted;
+  }, [categories]);
+}
 
 function Loading() {
   return <AiOutlineLoading className="animate-spin w-5 h-5 text-primary" />;
 }
 
-function NameCell({ category, depth }: { category: CategorySchema; depth: number }) {
+function NameCell({ category }: { category: CategoryRow }) {
+  const { id, name, active, depth } = category;
   const prefix = useMemo(() => {
     if (depth === 0) {
       return null;
@@ -35,7 +83,10 @@ function NameCell({ category, depth }: { category: CategorySchema; depth: number
   return (
     <>
       {prefix}
-      <Link to={category.id}>{category.name}</Link>
+      <Link className={cx({ 'opacity-60': !active })} to={id}>
+        {name}
+        {!active && ' (停用)'}
+      </Link>
     </>
   );
 }
@@ -56,7 +107,7 @@ function AssigneesCell({
   return (
     <Popover
       content={
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 max-w-[300px]">
           {assignees.map((assignee) => (
             <UserLabel key={assignee.id} user={assignee} />
           ))}
@@ -78,56 +129,12 @@ function GroupCell({ loading, group }: { loading?: boolean; group?: GroupSchema 
   return <Link to={`/admin/settings/groups/${group.id}`}>{group.name}</Link>;
 }
 
-export function CategoryList() {
-  const [active = 'true', setActive] = useSearchParam('active');
+interface CategoryTableProps {
+  categories?: CategoryRow[];
+  loading?: boolean;
+}
 
-  const { data: categories } = useCategories();
-
-  const categoryDepth = useMemo<Record<string, number>>(() => {
-    if (!categories) {
-      return {};
-    }
-    const categoryById = keyBy(categories, 'id');
-    const getDepth = (id: string): number => {
-      const target = categoryById[id];
-      if (target.parentId) {
-        return getDepth(target.parentId) + 1;
-      }
-      return 0;
-    };
-    return categories.reduce<Record<string, number>>((map, cur) => {
-      map[cur.id] = getDepth(cur.id);
-      return map;
-    }, {});
-  }, [categories]);
-
-  const orderedCategories = useMemo<CategorySchema[]>(() => {
-    if (!categories) {
-      return [];
-    }
-    const orderedCategories: CategorySchema[] = [];
-    const categorysByParentId = groupBy(categories, 'parentId');
-    const sortFn = (a: CategorySchema, b: CategorySchema) => a.position - b.position;
-    const pushFn = (id: string) => {
-      const categories = categorysByParentId[id];
-      if (categories) {
-        categories.sort(sortFn);
-        categories.forEach((category) => {
-          orderedCategories.push(category);
-          pushFn(category.id);
-        });
-      }
-    };
-    pushFn('undefined');
-    return orderedCategories;
-  }, [categories]);
-
-  const filteredCategories = useMemo(() => {
-    return active === 'true'
-      ? orderedCategories.filter((c) => c.active)
-      : orderedCategories.filter((c) => !c.active);
-  }, [orderedCategories, active]);
-
+function CategoryTable({ categories, loading }: CategoryTableProps) {
   const currentUser = useCurrentUser();
 
   const { data: customerServices, isLoading: loadingCSs } = useCustomerServices();
@@ -215,74 +222,106 @@ export function CategoryList() {
   );
 
   return (
-    <div className="p-10">
-      <Tabs
-        activeKey={active === 'true' ? '1' : '2'}
-        onChange={(key) => setActive(key === '1' ? undefined : 'false')}
-      >
-        <Tabs.TabPane key="1" tab="启用" />
-        <Tabs.TabPane key="2" tab="停用" />
-      </Tabs>
-
-      <Table
-        rowKey="id"
-        size="small"
-        loading={undefined}
-        dataSource={filteredCategories}
-        pagination={false}
-      >
-        <Column
-          key="name"
-          title="名称"
-          render={(category) => <NameCell category={category} depth={categoryDepth[category.id]} />}
-        />
-        <Column
-          key="checked"
-          dataIndex="id"
-          title="我是否负责"
-          render={(id: string) => {
-            if (loadingCSs) {
-              return <Loading />;
-            }
-            return (
-              <Checkbox
-                disabled={addingCSCategory || deletingCSCategory}
-                checked={myCategoryIds.has(id)}
-                onChange={(e) => {
-                  const data = {
-                    categoryId: id,
-                    customerServiceId: me!.id,
-                  };
-                  if (e.target.checked) {
-                    addCSCategory(data);
-                  } else {
-                    delCSCategory(data);
-                  }
-                }}
-              />
-            );
-          }}
-        />
-        <Column
-          key="assignees"
-          dataIndex="id"
-          title="自动分配给（随机）"
-          render={(id: string) => (
-            <AssigneesCell loading={loadingCSs} assignees={assigneesByCategoryId[id]} />
-          )}
-        />
-        <Column
-          key="groups"
-          dataIndex="id"
-          title="自动关联客服组"
-          render={(id: string) => (
-            <GroupCell
-              loading={loadingGroups || loadingCategoryGroups}
-              group={groupByCategoryId[id]}
+    <Table rowKey="id" size="small" loading={loading} dataSource={categories} pagination={false}>
+      <Column key="name" title="名称" render={(category) => <NameCell category={category} />} />
+      <Column
+        key="checked"
+        dataIndex="id"
+        title="我是否负责"
+        render={(id: string) => {
+          if (loadingCSs) {
+            return <Loading />;
+          }
+          return (
+            <Checkbox
+              disabled={addingCSCategory || deletingCSCategory}
+              checked={myCategoryIds.has(id)}
+              onChange={(e) => {
+                const data = {
+                  categoryId: id,
+                  customerServiceId: me!.id,
+                };
+                if (e.target.checked) {
+                  addCSCategory(data);
+                } else {
+                  delCSCategory(data);
+                }
+              }}
             />
+          );
+        }}
+      />
+      <Column
+        key="assignees"
+        dataIndex="id"
+        title="随机分配给"
+        render={(id: string) => (
+          <AssigneesCell loading={loadingCSs} assignees={assigneesByCategoryId[id]} />
+        )}
+      />
+      <Column
+        key="groups"
+        dataIndex="id"
+        title="关联客服组"
+        render={(id: string) => (
+          <GroupCell
+            loading={loadingGroups || loadingCategoryGroups}
+            group={groupByCategoryId[id]}
+          />
+        )}
+      />
+    </Table>
+  );
+}
+
+export function CategoryList() {
+  const [showInactive, setShowInactive] = useState(false);
+  const [ordering, setOrdering] = useState(false);
+  const includeInactive = ordering || showInactive;
+
+  const { data: categories, isLoading } = useCategories();
+
+  const categoryRows = useCategoryRows(useSortedCategories(categories));
+
+  const filteredCategories = useMemo(() => {
+    if (categoryRows) {
+      if (includeInactive) {
+        return categoryRows;
+      }
+      return categoryRows.filter((c) => c.active);
+    }
+  }, [categoryRows, includeInactive]);
+
+  return (
+    <div className="p-10">
+      <div className="mb-5 flex items-center">
+        <div className="grow">
+          <Checkbox
+            checked={includeInactive}
+            disabled={isLoading || ordering}
+            onChange={(e) => setShowInactive(e.target.checked)}
+          >
+            显示已停用的分类
+          </Checkbox>
+        </div>
+        <div>
+          {!ordering && (
+            <Button disabled={isLoading} onClick={() => setOrdering(true)}>
+              调整顺序
+            </Button>
           )}
-        />
-      </Table>
+          {ordering && (
+            <>
+              <Button type="primary">保存</Button>
+              <Button className="ml-2" onClick={() => setOrdering(false)}>
+                取消
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
+
+      <CategoryTable categories={filteredCategories} loading={isLoading} />
     </div>
   );
 }
