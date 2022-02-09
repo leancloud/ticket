@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from 'react-query';
+import { useMutation, useQuery } from 'react-query';
 import { useTranslation } from 'react-i18next';
 import { Route, Routes, useParams, useSearchParams } from 'react-router-dom';
 
@@ -45,11 +45,24 @@ function RelatedFAQs({ categoryId, articleId }: { categoryId: string; articleId:
     </div>
   );
 }
+enum FeedbackType {
+  Upvote = 1,
+  Downvote = -1,
+}
+async function feedback(articleId: string, type: FeedbackType) {
+  return await http.post(`/api/2/articles/${articleId}/feedback`, {
+    type,
+  });
+}
 
 function Feedback({ articleId }: { articleId: string }) {
   const { t } = useTranslation();
   const [voted, setVoted] = useState(false);
-  const vote = (score: -1 | 1) => setVoted(true);
+  const { mutateAsync: vote, isLoading } = useMutation({
+    mutationFn: (type: FeedbackType) => feedback(articleId, type),
+    onSuccess: () => setVoted(true),
+    onError: (error: Error) => alert(error.message),
+  });
 
   return (
     <div className="mt-8 text-gray-600 flex items-center text-sm h-6">
@@ -66,6 +79,7 @@ function Feedback({ articleId }: { articleId: string }) {
             onClick={() => vote(1)}
             secondary
             className="flex flex-row items-center min-w-[32px] h-[22px] bg-white text-[#888]"
+            disabled={isLoading}
           >
             <ThumbUpIcon className="w-[14px] h-[14px] inline-block align-middle" />
           </Button>
@@ -73,6 +87,7 @@ function Feedback({ articleId }: { articleId: string }) {
             onClick={() => vote(-1)}
             secondary
             className="flex items-center min-w-[32px] h-[22px] bg-white ml-4 text-[#888] hover:!text-red hover:!border-red focus:!text-red focus:!border-red"
+            disabled={isLoading}
           >
             <ThumbDownIcon className="w-[14px] h-[14px] inline-block align-middle" />
           </Button>
@@ -101,7 +116,7 @@ function ArticleDetail() {
             className="text-[13px] markdown-body"
             dangerouslySetInnerHTML={{ __html: article?.contentSafeHTML ?? '' }}
           />
-          {article && <Feedback articleId={article.id} />}
+          {article && auth && <Feedback articleId={article.id} />}
         </div>
         {categoryId && auth && (
           <p className="my-6 px-4 text-center">

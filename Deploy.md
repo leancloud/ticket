@@ -189,3 +189,12 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 
 临时支持通过自定义字段的值搜索工单，需要为 TicketFieldValue 的 values 字段创建全文搜索索引。
 由于这是一个临时功能，未使用的应用可以不添加该索引。
+
+## 2022-02-09
+
+### `TBD`
+
+导入 FAQFeedback.json，确保 FAQFeedback 有以下两个索引：
+
+- revision（倒序）author（倒序），唯一
+- FAQ（倒序）updatedAt（倒序）
