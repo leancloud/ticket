@@ -466,13 +466,13 @@ router.post('/:id/operate', async (ctx) => {
 });
 
 const searchCustomFieldSchema = yup.object({
-  keyword: yup.string().trim().required(),
+  q: yup.string().trim().required(),
 });
 
 router.post('/search-custom-field', customerServiceOnly, async (ctx) => {
-  const { keyword } = searchCustomFieldSchema.validateSync(ctx.request.body);
+  const { q } = searchCustomFieldSchema.validateSync(ctx.request.body);
   const searchQuery = new AV.SearchQuery('TicketFieldValue');
-  searchQuery.queryString(`"${keyword}"`);
+  searchQuery.queryString(q);
   const results = await searchQuery.limit(1000).find({ useMasterKey: true });
   if (results.length === 0) {
     ctx.body = [];
