@@ -13,9 +13,10 @@ import {
 import { ParseBoolPipe } from '@/common/pipe';
 import { auth, customerServiceOnly } from '@/middleware';
 import { getPublicArticle } from '@/model/Article';
-import { Category, CategoryManager } from '@/model/Category';
+import { Category } from '@/model/Category';
 import { TicketForm } from '@/model/TicketForm';
 import { ArticleResponse } from '@/response/article';
+import { CategoryService } from '@/service/category';
 import {
   CategoryResponse,
   CategoryFieldResponse,
@@ -24,7 +25,7 @@ import {
 
 class FindCategoryPipe {
   static async transform(id: string): Promise<Category> {
-    const category = await CategoryManager.find(id);
+    const category = await CategoryService.get(id);
     if (!category) {
       throw new HttpError(404, `Category ${id} is not exist`);
     }
@@ -37,7 +38,7 @@ export class CategoryController {
   @Get()
   @ResponseBody(CategoryResponse)
   async findAll(@Query('active', new ParseBoolPipe({ keepUndefined: true })) active?: boolean) {
-    const categories = await CategoryManager.get();
+    const categories = await CategoryService.getAll();
     if (active !== undefined) {
       return active
         ? categories.filter((c) => c.deletedAt === undefined)
@@ -49,7 +50,7 @@ export class CategoryController {
   @Get('groups')
   @UseMiddlewares(auth, customerServiceOnly)
   async findGroups() {
-    const categories = await CategoryManager.get();
+    const categories = await CategoryService.getAll();
     return categories
       .filter((c) => c.groupId)
       .map((c) => ({

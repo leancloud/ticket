@@ -16,7 +16,8 @@ import {
 } from '@/orm';
 import { TicketUpdater, UpdateOptions } from '@/ticket/TicketUpdater';
 import htmlify from '@/utils/htmlify';
-import { Category, CategoryManager } from './Category';
+import { CategoryService } from '@/service/category';
+import { Category } from './Category';
 import { File } from './File';
 import { Group } from './Group';
 import { LatestAction, Notification } from './Notification';
@@ -195,11 +196,35 @@ export class Ticket extends Model {
     return `${config.host}/tickets/${this.nid}`;
   }
 
+  static async fillCategoryPath(tickets: Ticket[]) {
+    const categories = await CategoryService.getAll();
+    const categoryById = _.keyBy(categories, 'id');
+    const pathById: Record<string, Category[]> = {};
+    const getPath = (id: string): Category[] => {
+      if (id in pathById) {
+        return pathById[id];
+      }
+
+      const category = categoryById[id];
+      if (!category) {
+        return [];
+      }
+
+      const path = category.parentId ? getPath(category.parentId).concat(category) : [category];
+      pathById[id] = path;
+      return path;
+    };
+
+    tickets.forEach((ticket) => {
+      ticket.categoryPath = getPath(ticket.categoryId);
+    });
+  }
+
   async loadCategoryPath(): Promise<Category[]> {
     if (!this.categoryPath) {
-      this.categoryPath = await CategoryManager.getCategoryPath(this.categoryId);
+      await Ticket.fillCategoryPath([this]);
     }
-    return this.categoryPath;
+    return this.categoryPath!;
   }
 
   async isCustomerService(user: User): Promise<boolean> {
