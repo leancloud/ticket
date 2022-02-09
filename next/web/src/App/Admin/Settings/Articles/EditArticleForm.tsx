@@ -1,12 +1,8 @@
 import { useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { SiMarkdown } from 'react-icons/si';
-import '@toast-ui/editor/dist/toastui-editor.css';
-import { Editor } from '@toast-ui/react-editor';
-import { useLocalStorage } from 'react-use';
 
 import { UpsertArticleData } from '@/api/article';
-import { Button, Checkbox, Form, FormInstance, Input, Popover } from '@/components/antd';
+import { Button, Checkbox, Form, FormInstance, Input } from '@/components/antd';
 import { useMarkdownEditor } from '@/components/MarkdownEditor';
 
 export interface EditArticleProps {

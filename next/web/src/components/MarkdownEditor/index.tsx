@@ -1,6 +1,9 @@
-import { useCallback, useRef } from 'react';
+import { RefCallback, useCallback, useRef } from 'react';
 import { Editor, EditorProps } from '@toast-ui/react-editor';
+import type ToastuiEditor from '@toast-ui/editor';
+
 import '@toast-ui/editor/dist/i18n/zh-cn';
+import '@toast-ui/editor/dist/toastui-editor.css';
 import { useLocalStorage } from 'react-use';
 import { storage } from '@/leancloud';
 
@@ -25,12 +28,24 @@ const hooks: EditorProps['hooks'] = {
 };
 
 export function useMarkdownEditor(initialValue: string, props: MarkdownEditorProps = {}) {
-  const $editorRef = useRef<Editor>(null);
-  const getValue = useCallback(() => $editorRef.current?.getInstance().getMarkdown(), []);
-  // 本想记住用户的选择的，发现少事件
+  const $editorRef = useRef<{ TUIEditor: ToastuiEditor | null }>({ TUIEditor: null });
+  const getValue = useCallback(() => $editorRef.current.TUIEditor?.getMarkdown(), []);
   const [editorMode = 'markdown', setEditorMode] = useLocalStorage<'markdown' | 'wysiwyg'>(
     'TapDesk:editorMode'
   );
+
+  const onEditorInit = useCallback((editor: ToastuiEditor) => {
+    editor.on('changeMode', setEditorMode);
+  }, []);
+
+  const ref: RefCallback<Editor> = (editor) => {
+    if (editor) {
+      const TUIEditor = editor.getInstance();
+      if ($editorRef.current.TUIEditor === TUIEditor) return;
+      onEditorInit(TUIEditor);
+      $editorRef.current.TUIEditor = TUIEditor;
+    }
+  };
 
   const {
     height = '500px',
@@ -43,7 +58,7 @@ export function useMarkdownEditor(initialValue: string, props: MarkdownEditorPro
   const editor = (
     <Editor
       {...rest}
-      ref={$editorRef}
+      ref={ref}
       initialValue={initialValue}
       height={height}
       initialEditType={initialEditType}
