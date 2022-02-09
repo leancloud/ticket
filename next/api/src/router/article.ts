@@ -225,7 +225,7 @@ router.delete('/:id', auth, customerServiceOnly, async (ctx) => {
 });
 
 const feedbackSchema = yup.object({
-  type: yup.mixed().oneOf([FeedbackType.Upvote, FeedbackType.Downvote]).required(),
+  type: yup.number().oneOf([FeedbackType.Upvote, FeedbackType.Downvote]).required(),
 });
 router.post('/:id/feedback', auth, async (ctx) => {
   const currentUser = ctx.state.currentUser as User;

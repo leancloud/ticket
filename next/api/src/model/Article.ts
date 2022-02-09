@@ -79,7 +79,7 @@ export class Article extends Model {
   }
 
   private async getLatestRevision() {
-    const revision = await ArticleRevision.query()
+    const revision = await ArticleRevision.queryBuilder()
       .where('FAQ', '==', this.toPointer())
       .where('meta', '!=', true)
       .orderBy('createdAt')
@@ -89,6 +89,7 @@ export class Article extends Model {
     }
     return revision;
   }
+
   async feedback(type: FeedbackType, author: User) {
     const revision = await this.getLatestRevision();
     try {
@@ -104,7 +105,7 @@ export class Article extends Model {
     } catch (error) {
       if (error instanceof Error) {
         if ((error as any).code === 137) {
-          const feedback = await ArticleFeedback.query()
+          const feedback = await ArticleFeedback.queryBuilder()
             .where('revision', '==', revision.toPointer())
             .where('author', '==', author.toPointer())
             .first({ useMasterKey: true });
