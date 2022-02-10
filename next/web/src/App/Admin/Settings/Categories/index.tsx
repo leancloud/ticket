@@ -1,13 +1,13 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQueryClient } from 'react-query';
-import { AiOutlineLoading } from 'react-icons/ai';
-import { groupBy, keyBy } from 'lodash-es';
+import { AiOutlineLoading, AiOutlineDown, AiOutlineUp } from 'react-icons/ai';
+import { keyBy } from 'lodash-es';
 import { produce } from 'immer';
 import cx from 'classnames';
 
 import { useCurrentUser } from '@/leancloud';
-import { CategorySchema, useCategories, useCategoryGroups } from '@/api/category';
+import { CategorySchema, useCategories, useCategoryTree, useCategoryGroups } from '@/api/category';
 import {
   CustomerServiceSchema,
   useCustomerServices,
@@ -22,67 +22,18 @@ const { Column } = Table;
 
 interface CategoryRow extends CategorySchema {
   depth: number;
-}
-
-function useCategoryRows(categories?: CategorySchema[]): CategoryRow[] | undefined {
-  return useMemo(() => {
-    if (!categories) {
-      return undefined;
-    }
-    const categoryById = keyBy(categories, 'id');
-    const depthById: Record<string, number> = {};
-    const getDepth = (id: string): number => {
-      if (id in depthById) {
-        return depthById[id];
-      }
-      const category = categoryById[id];
-      const depth = category.parentId ? getDepth(category.parentId) + 1 : 0;
-      depthById[id] = depth;
-      return depth;
-    };
-    return categories.map((c) => ({ ...c, depth: getDepth(c.id) }));
-  }, [categories]);
-}
-
-function useSortedCategories(categories?: CategorySchema[]): CategorySchema[] | undefined {
-  return useMemo(() => {
-    if (!categories) {
-      return undefined;
-    }
-    const sorted: CategorySchema[] = [];
-    const categorysByParentId = groupBy(categories, 'parentId');
-    const sortFn = (a: CategorySchema, b: CategorySchema) => a.position - b.position;
-    const pushFn = (id: string) => {
-      const categories = categorysByParentId[id];
-      if (categories) {
-        categories.sort(sortFn);
-        categories.forEach((category) => {
-          sorted.push(category);
-          pushFn(category.id);
-        });
-      }
-    };
-    pushFn('undefined');
-    return sorted;
-  }, [categories]);
+  isFirst: boolean;
+  isLast: boolean;
 }
 
 function Loading() {
   return <AiOutlineLoading className="animate-spin w-5 h-5 text-primary" />;
 }
 
-function NameCell({ category }: { category: CategoryRow }) {
-  const { id, name, active, depth } = category;
-  const prefix = useMemo(() => {
-    if (depth === 0) {
-      return null;
-    }
-    return <span>{'\u3000'.repeat(depth) + '\u2514 '}</span>;
-  }, [depth]);
-
+function NameCell({ category }: { category: CategorySchema }) {
+  const { id, name, active } = category;
   return (
     <>
-      {prefix}
       <Link className={cx({ 'opacity-60': !active })} to={id}>
         {name}
         {!active && ' (停用)'}
@@ -130,11 +81,20 @@ function GroupCell({ loading, group }: { loading?: boolean; group?: GroupSchema 
 }
 
 interface CategoryTableProps {
-  categories?: CategoryRow[];
+  categories?: CategorySchema[];
   loading?: boolean;
+  expandedRowKeys?: string[];
+  onExpandedRowsChange?: (keys: string[]) => void;
 }
 
-function CategoryTable({ categories, loading }: CategoryTableProps) {
+function CategoryTable({
+  categories,
+  loading,
+  expandedRowKeys,
+  onExpandedRowsChange,
+}: CategoryTableProps) {
+  const categoryTree = useCategoryTree(categories);
+
   const currentUser = useCurrentUser();
 
   const { data: customerServices, isLoading: loadingCSs } = useCustomerServices();
@@ -222,7 +182,17 @@ function CategoryTable({ categories, loading }: CategoryTableProps) {
   );
 
   return (
-    <Table rowKey="id" size="small" loading={loading} dataSource={categories} pagination={false}>
+    <Table
+      rowKey="id"
+      size="small"
+      loading={loading}
+      dataSource={categoryTree}
+      pagination={false}
+      expandable={{
+        expandedRowKeys,
+        onExpandedRowsChange: onExpandedRowsChange as any,
+      }}
+    >
       <Column key="name" title="名称" render={(category) => <NameCell category={category} />} />
       <Column
         key="checked"
@@ -274,54 +244,147 @@ function CategoryTable({ categories, loading }: CategoryTableProps) {
   );
 }
 
+interface CategorySortProps {
+  categories: CategoryRow[];
+}
+
+function CategorySort({ categories }: CategorySortProps) {
+  const [tempCategories, setTempCategories] = useState(categories);
+
+  const findDepthIndex = (startIndex: number, depth: number, step: 1 | -1) => {
+    while (startIndex >= 0 && startIndex < tempCategories.length) {
+      if (tempCategories[startIndex].depth === depth) {
+        return startIndex;
+      }
+      startIndex += step;
+    }
+    return -1;
+  };
+
+  const getSubCount = (index: number) => {
+    const category = tempCategories[index];
+    let count = 0;
+    for (let i = index + 1; i < tempCategories.length; ++i) {
+      if (tempCategories[i].depth <= category.depth) {
+        break;
+      }
+      ++count;
+    }
+    return count;
+  };
+
+  const handleMoveUp = (index: number) => {
+    const category = tempCategories[index];
+    const i = findDepthIndex(index - 1, category.depth, -1);
+    const count = getSubCount(index);
+    const j = index + count + 1;
+    setTempCategories([
+      ...tempCategories.slice(0, i),
+      ...tempCategories.slice(index, j),
+      ...tempCategories.slice(i, index),
+      ...tempCategories.slice(j),
+    ]);
+  };
+
+  const handleMoveDown = (index: number) => {
+    const category = tempCategories[index];
+    const nextSiblingIndex = findDepthIndex(index + 1, category.depth, 1);
+    const count = getSubCount(nextSiblingIndex);
+    const j = nextSiblingIndex + count + 1;
+    setTempCategories([
+      ...tempCategories.slice(0, index),
+      ...tempCategories.slice(nextSiblingIndex, j),
+      ...tempCategories.slice(index, nextSiblingIndex),
+      ...tempCategories.slice(j),
+    ]);
+  };
+
+  return (
+    <Table rowKey="id" size="small" dataSource={tempCategories} pagination={false}>
+      <Column key="name" title="名称" render={(category) => <NameCell category={category} />} />
+      <Column
+        key="actions"
+        render={({ isFirst, isLast }, _, i) => (
+          <>
+            <Button
+              className="flex"
+              size="small"
+              icon={<AiOutlineUp className="m-auto" />}
+              disabled={isFirst}
+              onClick={() => handleMoveUp(i)}
+              style={{ padding: 0, height: 20 }}
+            />
+            <Button
+              className="flex ml-1"
+              size="small"
+              icon={<AiOutlineDown className="m-auto" />}
+              disabled={isLast}
+              onClick={() => handleMoveDown(i)}
+              style={{ padding: 0, height: 20 }}
+            />
+          </>
+        )}
+      />
+    </Table>
+  );
+}
+
 export function CategoryList() {
   const [showInactive, setShowInactive] = useState(false);
-  const [ordering, setOrdering] = useState(false);
-  const includeInactive = ordering || showInactive;
+  const [expendedRowKeys, setExpendedRowKeys] = useState<string[]>();
 
-  const { data: categories, isLoading } = useCategories();
+  const { data: categories, isFetching } = useCategories();
 
-  const categoryRows = useCategoryRows(useSortedCategories(categories));
+  const expandAll = useCallback(() => {
+    if (categories) {
+      setExpendedRowKeys(categories.map((c) => c.id));
+    }
+  }, [categories]);
+
+  useEffect(() => {
+    if (categories && !expendedRowKeys) {
+      expandAll();
+    }
+  }, [categories, expendedRowKeys, expandAll]);
 
   const filteredCategories = useMemo(() => {
-    if (categoryRows) {
-      if (includeInactive) {
-        return categoryRows;
-      }
-      return categoryRows.filter((c) => c.active);
+    if (categories) {
+      return showInactive ? categories : categories.filter((c) => c.active);
     }
-  }, [categoryRows, includeInactive]);
+  }, [categories, showInactive]);
 
   return (
     <div className="p-10">
       <div className="mb-5 flex items-center">
         <div className="grow">
+          <Button className="mr-1" size="small" onClick={expandAll}>
+            全部展开
+          </Button>
+          <Button className="mr-2" size="small" onClick={() => setExpendedRowKeys([])}>
+            全部折叠
+          </Button>
           <Checkbox
-            checked={includeInactive}
-            disabled={isLoading || ordering}
+            checked={showInactive}
+            disabled={isFetching}
             onChange={(e) => setShowInactive(e.target.checked)}
           >
             显示已停用的分类
           </Checkbox>
         </div>
         <div>
-          {!ordering && (
-            <Button disabled={isLoading} onClick={() => setOrdering(true)}>
-              调整顺序
-            </Button>
-          )}
-          {ordering && (
-            <>
-              <Button type="primary">保存</Button>
-              <Button className="ml-2" onClick={() => setOrdering(false)}>
-                取消
-              </Button>
-            </>
-          )}
+          <Button disabled={isFetching}>调整顺序</Button>
+          <Button className="ml-2" type="primary" disabled>
+            创建分类
+          </Button>
         </div>
       </div>
 
-      <CategoryTable categories={filteredCategories} loading={isLoading} />
+      <CategoryTable
+        loading={isFetching}
+        categories={filteredCategories}
+        expandedRowKeys={expendedRowKeys}
+        onExpandedRowsChange={setExpendedRowKeys}
+      />
     </div>
   );
 }
