@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { UseQueryOptions, useQuery } from 'react-query';
+import { groupBy } from 'lodash-es';
 
 import { http } from '@/leancloud';
 
@@ -46,33 +47,36 @@ export function useCategories({ active, queryOptions }: UseCategoriesOptions = {
 
 export interface CategoryTreeNode extends CategorySchema {
   parent?: CategoryTreeNode;
-  prevSibling?: CategoryTreeNode;
-  nextSibling?: CategoryTreeNode;
   children?: CategoryTreeNode[];
 }
 
 function makeCategoryTree(categories: CategorySchema[]): CategoryTreeNode[] {
-  const sortFn = (a: CategoryTreeNode, b: CategoryTreeNode) => a.position - b.position;
+  const categoriesByParentId = groupBy(categories, 'parentId');
 
-  const dfs = (parentId?: string) => {
-    const currentLevel: CategoryTreeNode[] = categories.filter((c) => c.parentId === parentId);
+  const sortFn = (a: CategoryTreeNode, b: CategoryTreeNode) => {
+    if (a.active === b.active) {
+      return a.position - b.position;
+    }
+    return a.active ? -1 : 1;
+  };
+
+  const dfs = (parentId: string | undefined) => {
+    const currentLevel: CategoryTreeNode[] = categoriesByParentId[parentId + ''];
+    if (!currentLevel) {
+      return [];
+    }
     currentLevel.sort(sortFn);
-    currentLevel.forEach((category, index) => {
-      if (index) {
-        const prev = currentLevel[index - 1];
-        category.prevSibling = prev;
-        prev.nextSibling = category;
-      }
+    currentLevel.forEach((category) => {
       const children = dfs(category.id);
-      children.forEach((child) => (child.parent = category));
       if (children.length) {
+        children.forEach((child) => (child.parent = category));
         category.children = children;
       }
     });
     return currentLevel;
   };
 
-  return dfs();
+  return dfs(undefined);
 }
 
 export function useCategoryTree(options?: UseCategoriesOptions) {
