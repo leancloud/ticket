@@ -127,7 +127,11 @@ export class CategoryController {
     @CurrentUser() currentUser: User,
     @Body(new ZodValidationPipe(batchUpdateSchema)) datas: BatchUpdateData
   ) {
-    await CategoryService.batchUpdate(datas, currentUser.getAuthOptions());
+    const mappedDatas = datas.map((data) => ({
+      ...data,
+      order: data.position,
+    }));
+    await CategoryService.batchUpdate(mappedDatas, currentUser.getAuthOptions());
     return {};
   }
 
