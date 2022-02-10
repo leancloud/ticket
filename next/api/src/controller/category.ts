@@ -38,12 +38,12 @@ class FindCategoryPipe {
   }
 }
 
-const updateSchema = z.object({
+const updateCategorySchema = z.object({
   position: z.number().optional(),
 });
 
 const batchUpdateSchema = z.array(
-  updateSchema.extend({
+  updateCategorySchema.extend({
     id: z.string(),
   })
 );
@@ -127,11 +127,7 @@ export class CategoryController {
     @CurrentUser() currentUser: User,
     @Body(new ZodValidationPipe(batchUpdateSchema)) datas: BatchUpdateData
   ) {
-    const mappedDatas = datas.map((data) => ({
-      ...data,
-      order: data.position,
-    }));
-    await CategoryService.batchUpdate(mappedDatas, currentUser.getAuthOptions());
+    await CategoryService.batchUpdate(datas, currentUser.getAuthOptions());
     return {};
   }
 
