@@ -79,10 +79,8 @@ function makeCategoryTree(categories: CategorySchema[]): CategoryTreeNode[] {
   return dfs(undefined);
 }
 
-export function useCategoryTree(options?: UseCategoriesOptions) {
-  const { data, ...result } = useCategories(options);
-  const categoryTree = useMemo(() => data && makeCategoryTree(data), [data]);
-  return { ...result, data: categoryTree, categories: data };
+export function useCategoryTree(categories?: CategorySchema[]): CategoryTreeNode[] | undefined {
+  return useMemo(() => categories && makeCategoryTree(categories), [categories]);
 }
 
 export interface FaqSchema {
