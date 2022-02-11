@@ -30,16 +30,15 @@ app.use(async (ctx, next) => {
   try {
     await next();
   } catch (error: any) {
-    Sentry.withScope(function (scope) {
-      scope.addEventProcessor(function (event) {
-        return Sentry.Handlers.parseRequest(event, ctx.request);
-      });
-      Sentry.captureException(error);
-    });
-
     const status = error.status || 500;
     if (status >= 500) {
       console.error(error);
+      Sentry.withScope(function (scope) {
+        scope.addEventProcessor(function (event) {
+          return Sentry.Handlers.parseRequest(event, ctx.request);
+        });
+        Sentry.captureException(error);
+      });
     }
 
     ctx.status = status;
