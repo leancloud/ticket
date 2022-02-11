@@ -32,11 +32,12 @@ import { EditArticleForm } from './EditArticleForm';
 // We should move them to @component
 import { CategoryPath, useGetCategoryPath } from '../../Tickets/TicketView/TicketList';
 import { useSearchParam } from '@/utils/useSearchParams';
+import { FeedbackSummary } from './FeedbackSummary';
 
 const { Column } = Table;
 const { Title } = Typography;
 
-const PrivateQueryValue: { [key: string]: boolean| undefined } = {
+const PrivateQueryValue: { [key: string]: boolean | undefined } = {
   true: true,
   false: false,
   unset: undefined,
@@ -110,6 +111,13 @@ export function Articles() {
             title="修改日期"
             dataIndex="updatedAt"
             render={(value) => new Date(value).toLocaleString()}
+          />
+          <Column
+            title="最新版本评价"
+            dataIndex="id"
+            render={(_, article: Article) =>
+              article.revision ? <FeedbackSummary revision={article.revision} /> : null
+            }
           />
         </Table>
       )}

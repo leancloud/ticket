@@ -11,6 +11,12 @@ export class ArticleResponse {
       content: this.article.content,
       contentSafeHTML: xss.process(this.article.contentHTML),
       private: !!this.article.private,
+      revision: this.article.revision
+        ? {
+            upvote: this.article.revision?.upvote,
+            downvote: this.article.revision?.downvote,
+          }
+        : undefined,
       createdAt: this.article.createdAt.toISOString(),
       updatedAt: this.article.updatedAt.toISOString(),
     };

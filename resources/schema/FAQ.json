@@ -43,6 +43,15 @@
       "hidden": false,
       "read_only": false
     },
+    "revision": {
+      "type": "Pointer",
+      "v": 2,
+      "className": "FAQRevision",
+      "required": false,
+      "hidden": false,
+      "read_only": false,
+      "comment": "最近一次有内容的修改记录"
+    },
     "answer": {
       "type": "String",
       "v": 2,

@@ -2,7 +2,12 @@ import { http } from '@/leancloud';
 import { UseQueryOptions, useQuery } from 'react-query';
 import { UserSchema } from './user';
 
-export interface ArticleRevisionListItem {
+export interface ArticleRevisionFeedbackSummary {
+  upvote?: number;
+  downvote?: number;
+}
+
+export interface ArticleRevisionListItem extends ArticleRevisionFeedbackSummary {
   id: string;
   meta?: boolean;
   private?: boolean;

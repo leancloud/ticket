@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom';
 import { usePage, usePageSize } from '@/utils/usePage';
 import { useSearchParam } from '@/utils/useSearchParams';
 import { QueryResult } from '@/components/common';
+import { FeedbackSummary } from './FeedbackSummary';
 
 const { Column } = Table;
 const { Title } = Typography;
@@ -118,6 +119,13 @@ export function ArticleRevisions() {
             title="修改时间"
             dataIndex="createdAt"
             render={(value) => new Date(value).toLocaleString()}
+          />
+          <Column
+            title="反馈"
+            dataIndex="id"
+            render={(id, revision: ArticleRevisionListItem) => (
+              <FeedbackSummary revision={revision} />
+            )}
           />
           {/* <Column
             title="操作"

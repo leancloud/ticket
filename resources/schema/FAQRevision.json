@@ -56,6 +56,20 @@
       "hidden": false,
       "read_only": false
     },
+    "upvote": {
+      "type": "Number",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "downvote": {
+      "type": "Number",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
     "comment": {
       "type": "String",
       "v": 2,

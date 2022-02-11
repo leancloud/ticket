@@ -1,6 +1,7 @@
 import AV from 'leancloud-storage';
 import _ from 'lodash';
 import throat from 'throat';
+import { Error as LCError } from 'leancloud-storage';
 
 import { config } from '@/config';
 import { ACLBuilder, RawACL } from './acl';
@@ -525,6 +526,31 @@ export abstract class Model {
     }
 
     return instance as M;
+  }
+
+  static async upsert<M extends typeof Model>(
+    this: M,
+    data: CreateData<M>,
+    queryModifier: (query: Query<M>) => any,
+    updateData: UpdateData<InstanceType<M>>,
+    options: ModifyOptions & {} = {}
+  ) {
+    try {
+      return await this.create(data, options);
+    } catch (error) {
+      if (error instanceof Error) {
+        if (((error as any) as LCError).code === LCError.DUPLICATE_VALUE) {
+          const queryBuilder = this.queryBuilder();
+          queryModifier(queryBuilder);
+          const object = await queryBuilder.first({ useMasterKey: true });
+          if (!object) {
+            throw new Error('Deplucated value detected but no matched object.');
+          }
+          return await object.update(updateData, options);
+        }
+      }
+      throw error;
+    }
   }
 
   async delete(options: ModifyOptions = {}) {

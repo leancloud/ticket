@@ -2,6 +2,7 @@ const AV = require('leanengine')
 
 const { tickDelayNotify } = require('../next/api/dist')
 const { execTimeTriggers } = require('../next/api/dist/ticket/automation/time-trigger')
+const { analyzeArticles } = require('../next/api/dist/article/stats')
 const events = require('../next/api/dist/events').default
 
 AV.Cloud.define('delayNotify', () => {
@@ -12,5 +13,7 @@ AV.Cloud.define('delayNotify', () => {
 AV.Cloud.define('tickAutomation', { fetchUser: false, internal: true }, () => {
   execTimeTriggers()
 })
+
+AV.Cloud.define('analyzeArticles', { fetchUser: false, internal: true }, analyzeArticles)
 
 module.exports = { events }

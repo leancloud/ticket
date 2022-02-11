@@ -308,7 +308,7 @@ export class Ticket extends Model {
       userIds.push(this.assigneeId);
     }
     userIds = userIds.filter((id) => id !== operator.id);
-    await Notification.upsert(this.id, userIds, latestAction);
+    await Notification.upsertSome(this.id, userIds, latestAction);
   }
 
   async resetUnreadCount(this: Ticket, user: User) {

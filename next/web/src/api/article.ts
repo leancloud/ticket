@@ -9,6 +9,10 @@ export interface Article {
   content: string;
   contentSafeHTML: string;
   private: boolean;
+  revision?: {
+    upvote?: number;
+    downvote?: number;
+  };
   createdAt: string;
   updatedAt: string;
 }
