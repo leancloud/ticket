@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Link } from 'react-router-dom';
 import { useQueryClient } from 'react-query';
 import { AiOutlineLoading, AiOutlineDown, AiOutlineUp } from 'react-icons/ai';
@@ -7,7 +15,15 @@ import { produce } from 'immer';
 import cx from 'classnames';
 
 import { useCurrentUser } from '@/leancloud';
-import { CategorySchema, useCategories, useCategoryTree, useCategoryGroups } from '@/api/category';
+import {
+  CategorySchema,
+  CategoryTreeNode,
+  useCategories,
+  useCategoryTree,
+  useCategoryGroups,
+  makeCategoryTree,
+  useBatchUpdateCategory,
+} from '@/api/category';
 import {
   CustomerServiceSchema,
   useCustomerServices,
@@ -15,16 +31,10 @@ import {
   useDeleteCustomerServiceCategory,
 } from '@/api/customer-service';
 import { GroupSchema, useGroups } from '@/api/group';
-import { Button, Checkbox, Popover, Table, message } from '@/components/antd';
+import { Button, Checkbox, Modal, Popover, Table, message } from '@/components/antd';
 import { UserLabel } from '@/App/Admin/components';
 
 const { Column } = Table;
-
-interface CategoryRow extends CategorySchema {
-  depth: number;
-  isFirst: boolean;
-  isLast: boolean;
-}
 
 function Loading() {
   return <AiOutlineLoading className="animate-spin w-5 h-5 text-primary" />;
@@ -244,94 +254,102 @@ function CategoryTable({
   );
 }
 
-interface CategorySortProps {
-  categories: CategoryRow[];
+interface SortCategoryTableRef {
+  getData: () => { id: string; position: number }[];
 }
 
-function CategorySort({ categories }: CategorySortProps) {
-  const [tempCategories, setTempCategories] = useState(categories);
+interface SortCategoryTableProps {
+  categories: CategorySchema[];
+  ref?: SortCategoryTableRef;
+}
 
-  const findDepthIndex = (startIndex: number, depth: number, step: 1 | -1) => {
-    while (startIndex >= 0 && startIndex < tempCategories.length) {
-      if (tempCategories[startIndex].depth === depth) {
-        return startIndex;
-      }
-      startIndex += step;
-    }
-    return -1;
-  };
+const SortCategoryTable = forwardRef<SortCategoryTableRef, SortCategoryTableProps>(
+  ({ categories }, ref) => {
+    const [categoryTree, setCategoryTree] = useState(() => {
+      const activeCategories = categories.filter((c) => c.active);
+      return makeCategoryTree(activeCategories);
+    });
 
-  const getSubCount = (index: number) => {
-    const category = tempCategories[index];
-    let count = 0;
-    for (let i = index + 1; i < tempCategories.length; ++i) {
-      if (tempCategories[i].depth <= category.depth) {
-        break;
-      }
-      ++count;
-    }
-    return count;
-  };
+    const [changed, setChanged] = useState<Record<string, number>>({});
 
-  const handleMoveUp = (index: number) => {
-    const category = tempCategories[index];
-    const i = findDepthIndex(index - 1, category.depth, -1);
-    const count = getSubCount(index);
-    const j = index + count + 1;
-    setTempCategories([
-      ...tempCategories.slice(0, i),
-      ...tempCategories.slice(index, j),
-      ...tempCategories.slice(i, index),
-      ...tempCategories.slice(j),
-    ]);
-  };
+    const handleMove = (node: CategoryTreeNode, from: number, to: number) => {
+      const categories = node.parent ? node.parent.children! : categoryTree;
+      categories.splice(from, 1);
+      categories.splice(to, 0, node);
+      setChanged((prev) => {
+        const next = { ...prev };
+        categories.forEach(({ id }, position) => (next[id] = position));
+        return next;
+      });
+      setCategoryTree([...categoryTree]);
+    };
 
-  const handleMoveDown = (index: number) => {
-    const category = tempCategories[index];
-    const nextSiblingIndex = findDepthIndex(index + 1, category.depth, 1);
-    const count = getSubCount(nextSiblingIndex);
-    const j = nextSiblingIndex + count + 1;
-    setTempCategories([
-      ...tempCategories.slice(0, index),
-      ...tempCategories.slice(nextSiblingIndex, j),
-      ...tempCategories.slice(index, nextSiblingIndex),
-      ...tempCategories.slice(j),
-    ]);
-  };
+    useImperativeHandle(ref, () => ({
+      getData: () => Object.entries(changed).map(([id, position]) => ({ id, position })),
+    }));
+
+    return (
+      <Table dataSource={categoryTree} rowKey="id" size="small" pagination={false}>
+        <Column key="name" title="名称" render={(category) => <NameCell category={category} />} />
+        <Column
+          key="actions"
+          render={(node: CategoryTreeNode, _, i) => {
+            const length = node.parent ? node.parent.children!.length : categoryTree.length;
+            return (
+              <>
+                <Button
+                  className="flex"
+                  size="small"
+                  icon={<AiOutlineUp className="m-auto" />}
+                  disabled={i === 0}
+                  onClick={() => handleMove(node, i, i - 1)}
+                  style={{ padding: 0, height: 20 }}
+                />
+                <Button
+                  className="flex ml-1"
+                  size="small"
+                  icon={<AiOutlineDown className="m-auto" />}
+                  disabled={i === length - 1}
+                  onClick={() => handleMove(node, i, i + 1)}
+                  style={{ padding: 0, height: 20 }}
+                />
+              </>
+            );
+          }}
+        />
+      </Table>
+    );
+  }
+);
+
+interface SortCategoryModalProps extends SortCategoryTableProps {
+  visible: boolean;
+  loading?: boolean;
+  onCancel: () => void;
+  onOk: (datas: ReturnType<SortCategoryTableRef['getData']>) => void;
+}
+
+function SortCategoryModal({ visible, loading, onCancel, onOk, ...props }: SortCategoryModalProps) {
+  const $sortTable = useRef<SortCategoryTableRef>(null!);
 
   return (
-    <Table rowKey="id" size="small" dataSource={tempCategories} pagination={false}>
-      <Column key="name" title="名称" render={(category) => <NameCell category={category} />} />
-      <Column
-        key="actions"
-        render={({ isFirst, isLast }, _, i) => (
-          <>
-            <Button
-              className="flex"
-              size="small"
-              icon={<AiOutlineUp className="m-auto" />}
-              disabled={isFirst}
-              onClick={() => handleMoveUp(i)}
-              style={{ padding: 0, height: 20 }}
-            />
-            <Button
-              className="flex ml-1"
-              size="small"
-              icon={<AiOutlineDown className="m-auto" />}
-              disabled={isLast}
-              onClick={() => handleMoveDown(i)}
-              style={{ padding: 0, height: 20 }}
-            />
-          </>
-        )}
-      />
-    </Table>
+    <Modal
+      destroyOnClose
+      title="调整顺序"
+      visible={visible}
+      onCancel={onCancel}
+      okButtonProps={{ loading }}
+      onOk={() => onOk($sortTable.current.getData())}
+    >
+      <SortCategoryTable {...props} ref={$sortTable} />
+    </Modal>
   );
 }
 
 export function CategoryList() {
   const [showInactive, setShowInactive] = useState(false);
   const [expendedRowKeys, setExpendedRowKeys] = useState<string[]>();
+  const [sorting, setSorting] = useState(false);
 
   const { data: categories, isFetching } = useCategories();
 
@@ -353,6 +371,19 @@ export function CategoryList() {
     }
   }, [categories, showInactive]);
 
+  const queryClient = useQueryClient();
+
+  const { mutate, isLoading: updating } = useBatchUpdateCategory({
+    onSuccess: () => {
+      message.success('更新顺序成功');
+      queryClient.invalidateQueries('categories');
+      setSorting(false);
+    },
+    onError: (error) => {
+      message.error(error.message);
+    },
+  });
+
   return (
     <div className="p-10">
       <div className="mb-5 flex items-center">
@@ -372,12 +403,22 @@ export function CategoryList() {
           </Checkbox>
         </div>
         <div>
-          <Button disabled={isFetching}>调整顺序</Button>
+          <Button disabled={isFetching} onClick={() => setSorting(true)}>
+            调整顺序
+          </Button>
           <Button className="ml-2" type="primary" disabled>
             创建分类
           </Button>
         </div>
       </div>
+
+      <SortCategoryModal
+        categories={categories!}
+        visible={sorting}
+        loading={updating}
+        onCancel={() => setSorting(false)}
+        onOk={mutate}
+      />
 
       <CategoryTable
         loading={isFetching}

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { UseQueryOptions, useQuery } from 'react-query';
+import { UseQueryOptions, useQuery, UseMutationOptions, useMutation } from 'react-query';
 import { groupBy } from 'lodash-es';
 
 import { http } from '@/leancloud';
@@ -50,7 +50,7 @@ export interface CategoryTreeNode extends CategorySchema {
   children?: CategoryTreeNode[];
 }
 
-function makeCategoryTree(categories: CategorySchema[]): CategoryTreeNode[] {
+export function makeCategoryTree(categories: CategorySchema[]): CategoryTreeNode[] {
   const categoriesByParentId = groupBy(categories, 'parentId');
 
   const sortFn = (a: CategoryTreeNode, b: CategoryTreeNode) => {
@@ -140,3 +140,22 @@ export function useCategoryGroups(options?: UseQueryOptions<CategoryGroupSchema[
     ...options,
   });
 }
+
+export interface UpdateCategoryData {
+  position?: number;
+}
+
+export type BatchUpdateCategoryData = (UpdateCategoryData & { id: string })[];
+
+async function batchUpdateCategory(data: BatchUpdateCategoryData) {
+  const res = await http.post('/api/2/categories/batch-update', data);
+  return res.data;
+}
+
+export const useBatchUpdateCategory = (
+  options?: UseMutationOptions<void, Error, BatchUpdateCategoryData>
+) =>
+  useMutation({
+    mutationFn: batchUpdateCategory,
+    ...options,
+  });
