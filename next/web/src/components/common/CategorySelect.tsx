@@ -1,7 +1,7 @@
 import { forwardRef, useCallback, useMemo } from 'react';
 import { CascaderRef } from 'antd/lib/cascader';
 
-import { CategoryTreeNode, useCategoryTree } from '@/api/category';
+import { CategoryTreeNode, useCategories, useCategoryTree } from '@/api/category';
 import { Cascader, CascaderProps } from '@/components/antd';
 import { Retry } from './Retry';
 
@@ -35,9 +35,10 @@ export interface CategorySelectProps
 
 export const CategorySelect = forwardRef<CascaderRef, CategorySelectProps>(
   ({ errorMessage = '获取分类失败', value, onChange, categoryActive, ...props }, ref) => {
-    const { data, isLoading, error, refetch } = useCategoryTree({
+    const { data, isLoading, error, refetch } = useCategories({
       active: categoryActive,
     });
+    const categoryTree = useCategoryTree(data);
 
     const path = useMemo(() => {
       if (!data || !value) {
@@ -69,7 +70,7 @@ export const CategorySelect = forwardRef<CascaderRef, CategorySelectProps>(
         {...props}
         ref={ref}
         loading={isLoading}
-        options={data as any}
+        options={categoryTree as any}
         fieldNames={{ label: 'name', value: 'id' }}
         value={path}
         onChange={handleChange as any}

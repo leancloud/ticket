@@ -1,20 +1,25 @@
 import { Context } from 'koa';
+import { z } from 'zod';
 
 import {
+  Body,
   Controller,
   Ctx,
+  CurrentUser,
   Get,
   HttpError,
   Param,
+  Post,
   Query,
   ResponseBody,
   UseMiddlewares,
 } from '@/common/http';
-import { ParseBoolPipe } from '@/common/pipe';
+import { ParseBoolPipe, ZodValidationPipe } from '@/common/pipe';
 import { auth, customerServiceOnly } from '@/middleware';
 import { getPublicArticle } from '@/model/Article';
 import { Category } from '@/model/Category';
 import { TicketForm } from '@/model/TicketForm';
+import { User } from '@/model/User';
 import { ArticleResponse } from '@/response/article';
 import { CategoryService } from '@/service/category';
 import {
@@ -32,6 +37,18 @@ class FindCategoryPipe {
     return category;
   }
 }
+
+const updateCategorySchema = z.object({
+  position: z.number().optional(),
+});
+
+const batchUpdateSchema = z.array(
+  updateCategorySchema.extend({
+    id: z.string(),
+  })
+);
+
+type BatchUpdateData = z.infer<typeof batchUpdateSchema>;
 
 @Controller('categories')
 export class CategoryController {
@@ -102,6 +119,16 @@ export class CategoryController {
 
     const articles = await Promise.all(category.noticeIds.map(getPublicArticle));
     return articles.filter((article) => article && !article.private);
+  }
+
+  @Post('batch-update')
+  @UseMiddlewares(auth, customerServiceOnly)
+  async batchUpdate(
+    @CurrentUser() currentUser: User,
+    @Body(new ZodValidationPipe(batchUpdateSchema)) datas: BatchUpdateData
+  ) {
+    await CategoryService.batchUpdate(datas, currentUser.getAuthOptions());
+    return {};
   }
 
   private getPreferedLocale(ctx: Context): string {

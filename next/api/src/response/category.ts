@@ -9,7 +9,7 @@ export class CategoryResponse {
       id: this.category.id,
       name: this.category.name,
       parentId: this.category.parentId,
-      position: this.category.order ?? this.category.createdAt.getTime(),
+      position: this.category.position ?? this.category.createdAt.getTime(),
       active: !this.category.deletedAt,
       template: this.category.qTemplate,
       articleIds: this.category.FAQIds,

@@ -1,12 +1,29 @@
-import { useMemo } from 'react';
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Link } from 'react-router-dom';
 import { useQueryClient } from 'react-query';
-import { AiOutlineLoading } from 'react-icons/ai';
-import { groupBy, keyBy } from 'lodash-es';
+import { AiOutlineLoading, AiOutlineDown, AiOutlineUp } from 'react-icons/ai';
+import { keyBy } from 'lodash-es';
 import { produce } from 'immer';
+import cx from 'classnames';
 
 import { useCurrentUser } from '@/leancloud';
-import { CategorySchema, useCategories, useCategoryGroups } from '@/api/category';
+import {
+  CategorySchema,
+  CategoryTreeNode,
+  useCategories,
+  useCategoryTree,
+  useCategoryGroups,
+  makeCategoryTree,
+  useBatchUpdateCategory,
+} from '@/api/category';
 import {
   CustomerServiceSchema,
   useCustomerServices,
@@ -14,8 +31,7 @@ import {
   useDeleteCustomerServiceCategory,
 } from '@/api/customer-service';
 import { GroupSchema, useGroups } from '@/api/group';
-import { Checkbox, Popover, Tabs, Table, message } from '@/components/antd';
-import { useSearchParam } from '@/utils/useSearchParams';
+import { Button, Checkbox, Modal, Popover, Table, message } from '@/components/antd';
 import { UserLabel } from '@/App/Admin/components';
 
 const { Column } = Table;
@@ -24,18 +40,14 @@ function Loading() {
   return <AiOutlineLoading className="animate-spin w-5 h-5 text-primary" />;
 }
 
-function NameCell({ category, depth }: { category: CategorySchema; depth: number }) {
-  const prefix = useMemo(() => {
-    if (depth === 0) {
-      return null;
-    }
-    return <span>{'\u3000'.repeat(depth) + '\u2514 '}</span>;
-  }, [depth]);
-
+function NameCell({ category }: { category: CategorySchema }) {
+  const { id, name, active } = category;
   return (
     <>
-      {prefix}
-      <Link to={category.id}>{category.name}</Link>
+      <Link className={cx({ 'opacity-60': !active })} to={id}>
+        {name}
+        {!active && ' (停用)'}
+      </Link>
     </>
   );
 }
@@ -56,7 +68,7 @@ function AssigneesCell({
   return (
     <Popover
       content={
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 max-w-[300px]">
           {assignees.map((assignee) => (
             <UserLabel key={assignee.id} user={assignee} />
           ))}
@@ -78,55 +90,20 @@ function GroupCell({ loading, group }: { loading?: boolean; group?: GroupSchema 
   return <Link to={`/admin/settings/groups/${group.id}`}>{group.name}</Link>;
 }
 
-export function CategoryList() {
-  const [active = 'true', setActive] = useSearchParam('active');
+interface CategoryTableProps {
+  categories?: CategorySchema[];
+  loading?: boolean;
+  expandedRowKeys?: string[];
+  onExpandedRowsChange?: (keys: string[]) => void;
+}
 
-  const { data: categories } = useCategories();
-
-  const categoryDepth = useMemo<Record<string, number>>(() => {
-    if (!categories) {
-      return {};
-    }
-    const categoryById = keyBy(categories, 'id');
-    const getDepth = (id: string): number => {
-      const target = categoryById[id];
-      if (target.parentId) {
-        return getDepth(target.parentId) + 1;
-      }
-      return 0;
-    };
-    return categories.reduce<Record<string, number>>((map, cur) => {
-      map[cur.id] = getDepth(cur.id);
-      return map;
-    }, {});
-  }, [categories]);
-
-  const orderedCategories = useMemo<CategorySchema[]>(() => {
-    if (!categories) {
-      return [];
-    }
-    const orderedCategories: CategorySchema[] = [];
-    const categorysByParentId = groupBy(categories, 'parentId');
-    const sortFn = (a: CategorySchema, b: CategorySchema) => a.position - b.position;
-    const pushFn = (id: string) => {
-      const categories = categorysByParentId[id];
-      if (categories) {
-        categories.sort(sortFn);
-        categories.forEach((category) => {
-          orderedCategories.push(category);
-          pushFn(category.id);
-        });
-      }
-    };
-    pushFn('undefined');
-    return orderedCategories;
-  }, [categories]);
-
-  const filteredCategories = useMemo(() => {
-    return active === 'true'
-      ? orderedCategories.filter((c) => c.active)
-      : orderedCategories.filter((c) => !c.active);
-  }, [orderedCategories, active]);
+function CategoryTable({
+  categories,
+  loading,
+  expandedRowKeys,
+  onExpandedRowsChange,
+}: CategoryTableProps) {
+  const categoryTree = useCategoryTree(categories);
 
   const currentUser = useCurrentUser();
 
@@ -215,74 +192,240 @@ export function CategoryList() {
   );
 
   return (
-    <div className="p-10">
-      <Tabs
-        activeKey={active === 'true' ? '1' : '2'}
-        onChange={(key) => setActive(key === '1' ? undefined : 'false')}
-      >
-        <Tabs.TabPane key="1" tab="启用" />
-        <Tabs.TabPane key="2" tab="停用" />
-      </Tabs>
+    <Table
+      rowKey="id"
+      size="small"
+      loading={loading}
+      dataSource={categoryTree}
+      pagination={false}
+      expandable={{
+        expandedRowKeys,
+        onExpandedRowsChange: onExpandedRowsChange as any,
+      }}
+    >
+      <Column key="name" title="名称" render={(category) => <NameCell category={category} />} />
+      <Column
+        key="checked"
+        dataIndex="id"
+        title="我是否负责"
+        render={(id: string) => {
+          if (loadingCSs) {
+            return <Loading />;
+          }
+          return (
+            <Checkbox
+              disabled={addingCSCategory || deletingCSCategory}
+              checked={myCategoryIds.has(id)}
+              onChange={(e) => {
+                const data = {
+                  categoryId: id,
+                  customerServiceId: me!.id,
+                };
+                if (e.target.checked) {
+                  addCSCategory(data);
+                } else {
+                  delCSCategory(data);
+                }
+              }}
+            />
+          );
+        }}
+      />
+      <Column
+        key="assignees"
+        dataIndex="id"
+        title="随机分配给"
+        render={(id: string) => (
+          <AssigneesCell loading={loadingCSs} assignees={assigneesByCategoryId[id]} />
+        )}
+      />
+      <Column
+        key="groups"
+        dataIndex="id"
+        title="关联客服组"
+        render={(id: string) => (
+          <GroupCell
+            loading={loadingGroups || loadingCategoryGroups}
+            group={groupByCategoryId[id]}
+          />
+        )}
+      />
+    </Table>
+  );
+}
 
-      <Table
-        rowKey="id"
-        size="small"
-        loading={undefined}
-        dataSource={filteredCategories}
-        pagination={false}
-      >
+interface SortCategoryTableRef {
+  getData: () => { id: string; position: number }[];
+}
+
+interface SortCategoryTableProps {
+  categories: CategorySchema[];
+  ref?: SortCategoryTableRef;
+}
+
+const SortCategoryTable = forwardRef<SortCategoryTableRef, SortCategoryTableProps>(
+  ({ categories }, ref) => {
+    const [categoryTree, setCategoryTree] = useState(() => {
+      const activeCategories = categories.filter((c) => c.active);
+      return makeCategoryTree(activeCategories);
+    });
+
+    const [changed, setChanged] = useState<Record<string, number>>({});
+
+    const handleMove = (node: CategoryTreeNode, from: number, to: number) => {
+      const categories = node.parent ? node.parent.children! : categoryTree;
+      categories.splice(from, 1);
+      categories.splice(to, 0, node);
+      setChanged((prev) => {
+        const next = { ...prev };
+        categories.forEach(({ id }, position) => (next[id] = position));
+        return next;
+      });
+      setCategoryTree([...categoryTree]);
+    };
+
+    useImperativeHandle(ref, () => ({
+      getData: () => Object.entries(changed).map(([id, position]) => ({ id, position })),
+    }));
+
+    return (
+      <Table dataSource={categoryTree} rowKey="id" size="small" pagination={false}>
+        <Column key="name" title="名称" render={(category) => <NameCell category={category} />} />
         <Column
-          key="name"
-          title="名称"
-          render={(category) => <NameCell category={category} depth={categoryDepth[category.id]} />}
-        />
-        <Column
-          key="checked"
-          dataIndex="id"
-          title="我是否负责"
-          render={(id: string) => {
-            if (loadingCSs) {
-              return <Loading />;
-            }
+          key="actions"
+          render={(node: CategoryTreeNode, _, i) => {
+            const length = node.parent ? node.parent.children!.length : categoryTree.length;
             return (
-              <Checkbox
-                disabled={addingCSCategory || deletingCSCategory}
-                checked={myCategoryIds.has(id)}
-                onChange={(e) => {
-                  const data = {
-                    categoryId: id,
-                    customerServiceId: me!.id,
-                  };
-                  if (e.target.checked) {
-                    addCSCategory(data);
-                  } else {
-                    delCSCategory(data);
-                  }
-                }}
-              />
+              <>
+                <Button
+                  className="flex"
+                  size="small"
+                  icon={<AiOutlineUp className="m-auto" />}
+                  disabled={i === 0}
+                  onClick={() => handleMove(node, i, i - 1)}
+                  style={{ padding: 0, height: 20 }}
+                />
+                <Button
+                  className="flex ml-1"
+                  size="small"
+                  icon={<AiOutlineDown className="m-auto" />}
+                  disabled={i === length - 1}
+                  onClick={() => handleMove(node, i, i + 1)}
+                  style={{ padding: 0, height: 20 }}
+                />
+              </>
             );
           }}
         />
-        <Column
-          key="assignees"
-          dataIndex="id"
-          title="自动分配给（随机）"
-          render={(id: string) => (
-            <AssigneesCell loading={loadingCSs} assignees={assigneesByCategoryId[id]} />
-          )}
-        />
-        <Column
-          key="groups"
-          dataIndex="id"
-          title="自动关联客服组"
-          render={(id: string) => (
-            <GroupCell
-              loading={loadingGroups || loadingCategoryGroups}
-              group={groupByCategoryId[id]}
-            />
-          )}
-        />
       </Table>
+    );
+  }
+);
+
+interface SortCategoryModalProps extends SortCategoryTableProps {
+  visible: boolean;
+  loading?: boolean;
+  onCancel: () => void;
+  onOk: (datas: ReturnType<SortCategoryTableRef['getData']>) => void;
+}
+
+function SortCategoryModal({ visible, loading, onCancel, onOk, ...props }: SortCategoryModalProps) {
+  const $sortTable = useRef<SortCategoryTableRef>(null!);
+
+  return (
+    <Modal
+      destroyOnClose
+      title="调整顺序"
+      visible={visible}
+      onCancel={onCancel}
+      okButtonProps={{ loading }}
+      onOk={() => onOk($sortTable.current.getData())}
+    >
+      <SortCategoryTable {...props} ref={$sortTable} />
+    </Modal>
+  );
+}
+
+export function CategoryList() {
+  const [showInactive, setShowInactive] = useState(false);
+  const [expendedRowKeys, setExpendedRowKeys] = useState<string[]>();
+  const [sorting, setSorting] = useState(false);
+
+  const { data: categories, isFetching } = useCategories();
+
+  const expandAll = useCallback(() => {
+    if (categories) {
+      setExpendedRowKeys(categories.map((c) => c.id));
+    }
+  }, [categories]);
+
+  useEffect(() => {
+    if (categories && !expendedRowKeys) {
+      expandAll();
+    }
+  }, [categories, expendedRowKeys, expandAll]);
+
+  const filteredCategories = useMemo(() => {
+    if (categories) {
+      return showInactive ? categories : categories.filter((c) => c.active);
+    }
+  }, [categories, showInactive]);
+
+  const queryClient = useQueryClient();
+
+  const { mutate, isLoading: updating } = useBatchUpdateCategory({
+    onSuccess: () => {
+      message.success('更新顺序成功');
+      queryClient.invalidateQueries('categories');
+      setSorting(false);
+    },
+    onError: (error) => {
+      message.error(error.message);
+    },
+  });
+
+  return (
+    <div className="p-10">
+      <div className="mb-5 flex items-center">
+        <div className="grow">
+          <Button className="mr-1" size="small" onClick={expandAll}>
+            全部展开
+          </Button>
+          <Button className="mr-2" size="small" onClick={() => setExpendedRowKeys([])}>
+            全部折叠
+          </Button>
+          <Checkbox
+            checked={showInactive}
+            disabled={isFetching}
+            onChange={(e) => setShowInactive(e.target.checked)}
+          >
+            显示已停用的分类
+          </Checkbox>
+        </div>
+        <div>
+          <Button disabled={isFetching} onClick={() => setSorting(true)}>
+            调整顺序
+          </Button>
+          <Button className="ml-2" type="primary" disabled>
+            创建分类
+          </Button>
+        </div>
+      </div>
+
+      <SortCategoryModal
+        categories={categories!}
+        visible={sorting}
+        loading={updating}
+        onCancel={() => setSorting(false)}
+        onOk={mutate}
+      />
+
+      <CategoryTable
+        loading={isFetching}
+        categories={filteredCategories}
+        expandedRowKeys={expendedRowKeys}
+        onExpandedRowsChange={setExpendedRowKeys}
+      />
     </div>
   );
 }

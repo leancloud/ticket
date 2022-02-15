@@ -2,7 +2,7 @@ import { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
 import type { CascaderRef } from 'antd/lib/cascader';
 
 import { Cascader } from '@/components/antd';
-import { CategoryTreeNode, useCategoryTree } from '@/api/category';
+import { CategoryTreeNode, useCategories, useCategoryTree } from '@/api/category';
 
 const FIELD_NAMES = { label: 'name', value: 'id' };
 
@@ -43,7 +43,8 @@ export const CategorySelect = forwardRef<CascaderRef, CategorySelectProps>(
   ({ initValue, onChange }, ref) => {
     const $initValue = useRef(initValue);
     const [path, setPath] = useState<string[]>();
-    const { data: categoryTree } = useCategoryTree();
+    const { data } = useCategories();
+    const categoryTree = useCategoryTree(data);
 
     useEffect(() => {
       if (categoryTree && $initValue.current) {

@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { UseQueryOptions, useQuery } from 'react-query';
+import { UseQueryOptions, useQuery, UseMutationOptions, useMutation } from 'react-query';
+import { groupBy } from 'lodash-es';
 
 import { http } from '@/leancloud';
 
@@ -46,39 +47,40 @@ export function useCategories({ active, queryOptions }: UseCategoriesOptions = {
 
 export interface CategoryTreeNode extends CategorySchema {
   parent?: CategoryTreeNode;
-  prevSibling?: CategoryTreeNode;
-  nextSibling?: CategoryTreeNode;
   children?: CategoryTreeNode[];
 }
 
-function makeCategoryTree(categories: CategorySchema[]): CategoryTreeNode[] {
-  const sortFn = (a: CategoryTreeNode, b: CategoryTreeNode) => a.position - b.position;
+export function makeCategoryTree(categories: CategorySchema[]): CategoryTreeNode[] {
+  const categoriesByParentId = groupBy(categories, 'parentId');
 
-  const dfs = (parentId?: string) => {
-    const currentLevel: CategoryTreeNode[] = categories.filter((c) => c.parentId === parentId);
+  const sortFn = (a: CategoryTreeNode, b: CategoryTreeNode) => {
+    if (a.active === b.active) {
+      return a.position - b.position;
+    }
+    return a.active ? -1 : 1;
+  };
+
+  const dfs = (parentId: string | undefined) => {
+    const currentLevel: CategoryTreeNode[] = categoriesByParentId[parentId + ''];
+    if (!currentLevel) {
+      return [];
+    }
     currentLevel.sort(sortFn);
-    currentLevel.forEach((category, index) => {
-      if (index) {
-        const prev = currentLevel[index - 1];
-        category.prevSibling = prev;
-        prev.nextSibling = category;
-      }
+    currentLevel.forEach((category) => {
       const children = dfs(category.id);
-      children.forEach((child) => (child.parent = category));
       if (children.length) {
+        children.forEach((child) => (child.parent = category));
         category.children = children;
       }
     });
     return currentLevel;
   };
 
-  return dfs();
+  return dfs(undefined);
 }
 
-export function useCategoryTree(options?: UseCategoriesOptions) {
-  const { data, ...result } = useCategories(options);
-  const categoryTree = useMemo(() => data && makeCategoryTree(data), [data]);
-  return { ...result, data: categoryTree, categories: data };
+export function useCategoryTree(categories?: CategorySchema[]): CategoryTreeNode[] | undefined {
+  return useMemo(() => categories && makeCategoryTree(categories), [categories]);
 }
 
 export interface FaqSchema {
@@ -138,3 +140,22 @@ export function useCategoryGroups(options?: UseQueryOptions<CategoryGroupSchema[
     ...options,
   });
 }
+
+export interface UpdateCategoryData {
+  position?: number;
+}
+
+export type BatchUpdateCategoryData = (UpdateCategoryData & { id: string })[];
+
+async function batchUpdateCategory(data: BatchUpdateCategoryData) {
+  const res = await http.post('/api/2/categories/batch-update', data);
+  return res.data;
+}
+
+export const useBatchUpdateCategory = (
+  options?: UseMutationOptions<void, Error, BatchUpdateCategoryData>
+) =>
+  useMutation({
+    mutationFn: batchUpdateCategory,
+    ...options,
+  });

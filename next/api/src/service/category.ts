@@ -1,4 +1,6 @@
 import { redis } from '@/cache';
+import { HttpError } from '@/common/http';
+import { AuthOptions, UpdateData } from '@/orm';
 import { Category } from '@/model/Category';
 import _ from 'lodash';
 
@@ -34,10 +36,12 @@ class CategoryCache {
 }
 
 export class CategoryService {
-  static async getAll(): Promise<Category[]> {
-    const cached = await CategoryCache.getAll();
-    if (cached) {
-      return cached;
+  static async getAll(useCache = true): Promise<Category[]> {
+    if (useCache) {
+      const cached = await CategoryCache.getAll();
+      if (cached) {
+        return cached;
+      }
     }
 
     const categories = await Category.queryBuilder().limit(1000).find();
@@ -79,5 +83,29 @@ export class CategoryService {
     }
 
     return subCategories;
+  }
+
+  static async batchUpdate(
+    datas: (UpdateData<Category> & { id: string })[],
+    options?: AuthOptions
+  ) {
+    if (datas.length === 0) {
+      return;
+    }
+
+    const categories = await CategoryService.getAll(false);
+    const categoryById = _.keyBy(categories, 'id');
+
+    const pairs: [Category, UpdateData<Category>][] = [];
+    datas.forEach(({ id, ...data }) => {
+      const category = categoryById[id];
+      if (!category) {
+        throw new HttpError(404, `Category ${id} does not exist`);
+      }
+      pairs.push([category, data]);
+    });
+
+    await Category.updateSome(pairs, options);
+    await CategoryCache.clear();
   }
 }
