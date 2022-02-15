@@ -23,7 +23,6 @@ import {
   useCreateCategory,
   useCategories,
   useCategoryTree,
-  useCategoryGroups,
   useUpdateCategory,
 } from '@/api/category';
 import {
@@ -145,18 +144,7 @@ function CategoryTable({
 
   const { data: groups, isLoading: loadingGroups } = useGroups();
 
-  const { data: categoryGroups, isLoading: loadingCategoryGroups } = useCategoryGroups();
-
-  const groupByCategoryId = useMemo<Record<string, GroupSchema>>(() => {
-    if (groups && categoryGroups) {
-      const groupById = keyBy(groups, 'id');
-      return categoryGroups.reduce<Record<string, GroupSchema>>((map, cur) => {
-        map[cur.categoryId] = groupById[cur.id];
-        return map;
-      }, {});
-    }
-    return {};
-  }, [groups, categoryGroups]);
+  const groupById = useMemo(() => keyBy(groups, 'id'), [groups]);
 
   const queryClient = useQueryClient();
 
@@ -253,13 +241,9 @@ function CategoryTable({
       />
       <Column
         key="groups"
-        dataIndex="id"
         title="关联客服组"
-        render={(id: string) => (
-          <GroupCell
-            loading={loadingGroups || loadingCategoryGroups}
-            group={groupByCategoryId[id]}
-          />
+        render={({ groupId }: CategoryTreeNode) => (
+          <GroupCell loading={loadingGroups} group={groupId ? groupById[groupId] : undefined} />
         )}
       />
     </Table>

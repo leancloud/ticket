@@ -88,18 +88,6 @@ export class CategoryController {
     return categories;
   }
 
-  @Get('groups')
-  @UseMiddlewares(auth, customerServiceOnly)
-  async findGroups() {
-    const categories = await CategoryService.getAll();
-    return categories
-      .filter((c) => c.groupId)
-      .map((c) => ({
-        id: c.groupId,
-        categoryId: c.id,
-      }));
-  }
-
   @Post('batch-update')
   @UseMiddlewares(auth, customerServiceOnly)
   async batchUpdate(

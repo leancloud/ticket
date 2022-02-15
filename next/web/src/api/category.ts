@@ -25,16 +25,6 @@ async function fetchCategories(active?: boolean): Promise<CategorySchema[]> {
   return data;
 }
 
-export interface CategoryGroupSchema {
-  id: string;
-  categoryId: string;
-}
-
-async function fetchCategoryGroups(): Promise<CategoryGroupSchema[]> {
-  const res = await http.get('/api/2/categories/groups');
-  return res.data;
-}
-
 export interface UseCategoriesOptions {
   active?: boolean;
   queryOptions?: UseQueryOptions<CategorySchema[], Error>;
@@ -132,15 +122,6 @@ export function useCategoryFields(categoryId: string, options?: UseCategoryField
   return useQuery({
     queryKey: ['categoryFields', categoryId],
     queryFn: () => fetchCatgoryFields(categoryId),
-    ...options,
-  });
-}
-
-export function useCategoryGroups(options?: UseQueryOptions<CategoryGroupSchema[], Error>) {
-  return useQuery({
-    queryKey: ['categoryGroups'],
-    queryFn: fetchCategoryGroups,
-    staleTime: Infinity,
     ...options,
   });
 }
