@@ -30,9 +30,9 @@ export class Category extends Model {
   @pointTo(() => Category)
   parent?: Category;
 
-  @field('order')
+  @field()
   @serialize()
-  position?: number;
+  order?: number;
 
   @pointerIds(() => Article)
   @serialize()

@@ -15,6 +15,7 @@ import {
   UseMiddlewares,
 } from '@/common/http';
 import { ParseBoolPipe, ZodValidationPipe } from '@/common/pipe';
+import { UpdateData } from '@/orm';
 import { auth, customerServiceOnly } from '@/middleware';
 import { getPublicArticle } from '@/model/Article';
 import { Category } from '@/model/Category';
@@ -38,8 +39,26 @@ class FindCategoryPipe {
   }
 }
 
+const createCategorySchema = z.object({
+  name: z.string(),
+  description: z.string().optional(),
+  parentId: z.string().optional(),
+  noticeIds: z.array(z.string()).optional(),
+  faqIds: z.array(z.string()).optional(),
+  groupId: z.string().optional(),
+  formId: z.string().optional(),
+});
+
 const updateCategorySchema = z.object({
+  name: z.string().optional(),
+  description: z.string().optional(),
+  parentId: z.string().optional(),
+  noticeIds: z.array(z.string()).optional(),
+  faqIds: z.array(z.string()).optional(),
+  groupId: z.string().optional(),
+  formId: z.string().optional(),
   position: z.number().optional(),
+  active: z.boolean().optional(),
 });
 
 const batchUpdateSchema = z.array(
@@ -47,6 +66,10 @@ const batchUpdateSchema = z.array(
     id: z.string(),
   })
 );
+
+type CreateCategoryData = z.infer<typeof createCategorySchema>;
+
+type UpdateCategoryData = z.infer<typeof updateCategorySchema>;
 
 type BatchUpdateData = z.infer<typeof batchUpdateSchema>;
 
@@ -76,11 +99,48 @@ export class CategoryController {
       }));
   }
 
+  @Post()
+  @UseMiddlewares(auth, customerServiceOnly)
+  async create(
+    @CurrentUser() currentUser: User,
+    @Body(new ZodValidationPipe(createCategorySchema)) data: CreateCategoryData
+  ) {
+    const category = await CategoryService.create(
+      {
+        name: data.name,
+        description: data.description,
+        parentId: data.parentId,
+        FAQIds: data.faqIds?.length === 0 ? undefined : data.faqIds,
+        noticeIds: data.noticeIds?.length === 0 ? undefined : data.noticeIds,
+        groupId: data.groupId,
+        formId: data.formId,
+      },
+      currentUser.getAuthOptions()
+    );
+
+    return {
+      id: category.id,
+    };
+  }
+
   @Get(':id')
   @UseMiddlewares(auth, customerServiceOnly)
   @ResponseBody(CategoryResponseForCS)
   findOne(@Param('id', FindCategoryPipe) category: Category) {
     return category;
+  }
+
+  @Post(':id')
+  async update(
+    @CurrentUser() currentUser: User,
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(createCategorySchema)) data: CreateCategoryData
+  ) {
+    await CategoryService.batchUpdate(
+      [{ ...this.convertUpdateData(data), id }],
+      currentUser.getAuthOptions()
+    );
+    return {};
   }
 
   @Get(':id/fields')
@@ -127,8 +187,25 @@ export class CategoryController {
     @CurrentUser() currentUser: User,
     @Body(new ZodValidationPipe(batchUpdateSchema)) datas: BatchUpdateData
   ) {
-    await CategoryService.batchUpdate(datas, currentUser.getAuthOptions());
+    await CategoryService.batchUpdate(
+      datas.map((data) => ({ ...this.convertUpdateData(data), id: data.id })),
+      currentUser.getAuthOptions()
+    );
     return {};
+  }
+
+  private convertUpdateData(data: UpdateCategoryData): UpdateData<Category> {
+    return {
+      name: data.name,
+      description: data.description,
+      parentId: data.parentId,
+      noticeIds: data.noticeIds?.length === 0 ? null : data.noticeIds,
+      FAQIds: data.faqIds?.length === 0 ? null : data.faqIds,
+      groupId: data.groupId,
+      formId: data.formId,
+      order: data.position ?? (data.active === false ? Date.now() : undefined),
+      deletedAt: data.active === false ? new Date() : undefined,
+    };
   }
 
   private getPreferedLocale(ctx: Context): string {
