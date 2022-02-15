@@ -87,14 +87,7 @@ export class CategoryService {
 
   static async create(data: CreateData<Category>, options?: AuthOptions) {
     const ACL = new ACLBuilder().allow('*', 'read').allowCustomerService('write');
-    const category = await Category.create(
-      { ...data, ACL },
-      {
-        ...options,
-        ignoreBeforeHook: true,
-        ignoreAfterHook: true,
-      }
-    );
+    const category = await Category.create({ ...data, ACL }, options);
     await CategoryCache.clear();
     return category;
   }
@@ -137,17 +130,9 @@ export class CategoryService {
 
     if (pairs.length === 1) {
       const [category, data] = pairs[0];
-      await category.update(data, {
-        ...options,
-        ignoreBeforeHook: true,
-        ignoreAfterHook: true,
-      });
+      await category.update(data, options);
     } else {
-      await Category.updateSome(pairs, {
-        ...options,
-        ignoreBeforeHook: true,
-        ignoreAfterHook: true,
-      });
+      await Category.updateSome(pairs, options);
     }
 
     await CategoryCache.clear();
