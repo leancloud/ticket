@@ -99,6 +99,33 @@ export class CategoryController {
       }));
   }
 
+  @Post('batch-update')
+  @UseMiddlewares(auth, customerServiceOnly)
+  async batchUpdate(
+    @CurrentUser() currentUser: User,
+    @Body(new ZodValidationPipe(batchUpdateSchema)) datas: BatchUpdateData
+  ) {
+    await CategoryService.batchUpdate(
+      datas.map((data) => ({ ...this.convertUpdateData(data), id: data.id })),
+      currentUser.getAuthOptions()
+    );
+    return {};
+  }
+
+  private convertUpdateData(data: UpdateCategoryData): UpdateData<Category> {
+    return {
+      name: data.name,
+      description: data.description,
+      parentId: data.parentId,
+      noticeIds: data.noticeIds?.length === 0 ? null : data.noticeIds,
+      FAQIds: data.faqIds?.length === 0 ? null : data.faqIds,
+      groupId: data.groupId,
+      formId: data.formId,
+      order: data.position ?? (data.active === false ? Date.now() : undefined),
+      deletedAt: data.active === false ? new Date() : undefined,
+    };
+  }
+
   @Post()
   @UseMiddlewares(auth, customerServiceOnly)
   async create(
@@ -131,6 +158,7 @@ export class CategoryController {
   }
 
   @Post(':id')
+  @UseMiddlewares(auth, customerServiceOnly)
   async update(
     @CurrentUser() currentUser: User,
     @Param('id') id: string,
@@ -179,33 +207,6 @@ export class CategoryController {
 
     const articles = await Promise.all(category.noticeIds.map(getPublicArticle));
     return articles.filter((article) => article && !article.private);
-  }
-
-  @Post('batch-update')
-  @UseMiddlewares(auth, customerServiceOnly)
-  async batchUpdate(
-    @CurrentUser() currentUser: User,
-    @Body(new ZodValidationPipe(batchUpdateSchema)) datas: BatchUpdateData
-  ) {
-    await CategoryService.batchUpdate(
-      datas.map((data) => ({ ...this.convertUpdateData(data), id: data.id })),
-      currentUser.getAuthOptions()
-    );
-    return {};
-  }
-
-  private convertUpdateData(data: UpdateCategoryData): UpdateData<Category> {
-    return {
-      name: data.name,
-      description: data.description,
-      parentId: data.parentId,
-      noticeIds: data.noticeIds?.length === 0 ? null : data.noticeIds,
-      FAQIds: data.faqIds?.length === 0 ? null : data.faqIds,
-      groupId: data.groupId,
-      formId: data.formId,
-      order: data.position ?? (data.active === false ? Date.now() : undefined),
-      deletedAt: data.active === false ? new Date() : undefined,
-    };
   }
 
   private getPreferedLocale(ctx: Context): string {
