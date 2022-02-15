@@ -55,7 +55,9 @@ export function makeCategoryTree(categories: CategorySchema[]): CategoryTreeNode
   };
 
   const dfs = (parentId: string | undefined) => {
-    const currentLevel: CategoryTreeNode[] = categoriesByParentId[parentId + ''];
+    const currentLevel: CategoryTreeNode[] = categoriesByParentId[parentId + '']?.map((c) => ({
+      ...c,
+    }));
     if (!currentLevel) {
       return [];
     }
