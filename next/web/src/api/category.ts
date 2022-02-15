@@ -7,11 +7,15 @@ import { http } from '@/leancloud';
 export interface CategorySchema {
   id: string;
   name: string;
+  description?: string;
   parentId?: string;
   position: number;
   active: boolean;
   template?: string;
   articleIds?: string[];
+  noticeIds?: string[];
+  formId?: string;
+  groupId?: string;
 }
 
 async function fetchCategories(active?: boolean): Promise<CategorySchema[]> {
@@ -146,7 +150,7 @@ export interface CreateCategoryData {
   description?: string;
   parentId?: string;
   noticeIds?: string[];
-  faqIds?: string[];
+  articleIds?: string[];
   groupId?: string;
   formId?: string;
 }
@@ -161,9 +165,22 @@ export const useCreateCategory = (options?: UseMutationOptions<void, Error, Crea
     ...options,
   });
 
-export interface UpdateCategoryData {
+export interface UpdateCategoryData extends Partial<CreateCategoryData> {
   position?: number;
+  active?: boolean;
 }
+
+async function updateCategory(id: string, data: UpdateCategoryData) {
+  await http.patch(`/api/2/categories/${id}`, data);
+}
+
+export const useUpdateCategory = (
+  options?: UseMutationOptions<void, Error, UpdateCategoryData & { id: string }>
+) =>
+  useMutation({
+    mutationFn: ({ id, ...data }) => updateCategory(id, data),
+    ...options,
+  });
 
 export type BatchUpdateCategoryData = (UpdateCategoryData & { id: string })[];
 

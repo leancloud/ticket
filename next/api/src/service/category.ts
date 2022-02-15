@@ -87,7 +87,14 @@ export class CategoryService {
 
   static async create(data: CreateData<Category>, options?: AuthOptions) {
     const ACL = new ACLBuilder().allow('*', 'read').allowCustomerService('write');
-    const category = await Category.create({ ...data, ACL }, options);
+    const category = await Category.create(
+      { ...data, ACL },
+      {
+        ...options,
+        ignoreBeforeHook: true,
+        ignoreAfterHook: true,
+      }
+    );
     await CategoryCache.clear();
     return category;
   }
@@ -105,7 +112,7 @@ export class CategoryService {
     const childrenById = _.groupBy(categories, 'parentId');
 
     const hasActiveChildren = mem((category: Category) => {
-      const children = childrenById[category.parentId + ''];
+      const children = childrenById[category.id];
       if (children) {
         for (const child of children) {
           if (child.deletedAt === undefined || hasActiveChildren(child)) {
@@ -130,9 +137,17 @@ export class CategoryService {
 
     if (pairs.length === 1) {
       const [category, data] = pairs[0];
-      await category.update(data, options);
+      await category.update(data, {
+        ...options,
+        ignoreBeforeHook: true,
+        ignoreAfterHook: true,
+      });
     } else {
-      await Category.updateSome(pairs, options);
+      await Category.updateSome(pairs, {
+        ...options,
+        ignoreBeforeHook: true,
+        ignoreAfterHook: true,
+      });
     }
 
     await CategoryCache.clear();

@@ -7,10 +7,10 @@ import {
   useRef,
   useState,
 } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { useQueryClient } from 'react-query';
 import { AiOutlineLoading, AiOutlineDown, AiOutlineUp } from 'react-icons/ai';
-import { keyBy } from 'lodash-es';
+import { keyBy, pick } from 'lodash-es';
 import { produce } from 'immer';
 import cx from 'classnames';
 
@@ -18,12 +18,13 @@ import { useCurrentUser } from '@/leancloud';
 import {
   CategorySchema,
   CategoryTreeNode,
+  makeCategoryTree,
+  useBatchUpdateCategory,
   useCreateCategory,
   useCategories,
   useCategoryTree,
   useCategoryGroups,
-  makeCategoryTree,
-  useBatchUpdateCategory,
+  useUpdateCategory,
 } from '@/api/category';
 import {
   CustomerServiceSchema,
@@ -32,7 +33,16 @@ import {
   useDeleteCustomerServiceCategory,
 } from '@/api/customer-service';
 import { GroupSchema, useGroups } from '@/api/group';
-import { Breadcrumb, Button, Checkbox, Modal, Popover, Table, message } from '@/components/antd';
+import {
+  Breadcrumb,
+  Button,
+  Checkbox,
+  Modal,
+  Popover,
+  Spin,
+  Table,
+  message,
+} from '@/components/antd';
 import { UserLabel } from '@/App/Admin/components';
 import { CategoryForm } from './CategoryForm';
 
@@ -458,6 +468,69 @@ export function NewCategory() {
       </Breadcrumb>
 
       <CategoryForm loading={isLoading} onSubmit={mutate} />
+    </div>
+  );
+}
+
+export function CategoryDetail() {
+  const { id } = useParams<'id'>();
+  const { data: categories, isLoading: loadingCategories } = useCategories();
+
+  const category = useMemo(() => {
+    return categories?.find((c) => c.id === id);
+  }, [categories, id]);
+
+  const initData = useMemo(() => {
+    return pick(category, [
+      'name',
+      'description',
+      'parentId',
+      'noticeIds',
+      'articleIds',
+      'groupId',
+      'formId',
+    ]);
+  }, [category]);
+
+  const queryClient = useQueryClient();
+  const { mutate, isLoading } = useUpdateCategory({
+    onSuccess: () => {
+      queryClient.invalidateQueries('categories');
+      message.success('更新成功');
+    },
+    onError: (error) => {
+      message.error(error.message);
+    },
+  });
+
+  if (loadingCategories) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <Spin />
+      </div>
+    );
+  }
+
+  if (!category) {
+    return <Navigate to=".." />;
+  }
+
+  return (
+    <div className="p-10">
+      <Breadcrumb style={{ marginBottom: 16 }}>
+        <Breadcrumb.Item>
+          <Link to="..">分类</Link>
+        </Breadcrumb.Item>
+        <Breadcrumb.Item>{id}</Breadcrumb.Item>
+      </Breadcrumb>
+
+      <CategoryForm
+        initData={initData}
+        loading={isLoading}
+        categoryActive={category.active}
+        onSubmit={(data) => mutate({ ...data, id: id! })}
+        onChangeCategoryActive={(active) => mutate({ active, id: id! })}
+      />
     </div>
   );
 }

@@ -80,7 +80,7 @@ export interface CategoryFormData {
   description?: string;
   parentId?: string;
   noticeIds?: string[];
-  faqIds?: string[];
+  articleIds?: string[];
   groupId?: string;
   formId?: string;
 }
@@ -210,7 +210,7 @@ export function CategoryForm({
 
       <Controller
         control={control}
-        name="faqIds"
+        name="articleIds"
         render={({ field }) => (
           <Form.Item
             label="常见问题"

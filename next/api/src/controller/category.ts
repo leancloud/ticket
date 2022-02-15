@@ -9,6 +9,7 @@ import {
   Get,
   HttpError,
   Param,
+  Patch,
   Post,
   Query,
   ResponseBody,
@@ -44,7 +45,7 @@ const createCategorySchema = z.object({
   description: z.string().optional(),
   parentId: z.string().optional(),
   noticeIds: z.array(z.string()).optional(),
-  faqIds: z.array(z.string()).optional(),
+  articleIds: z.array(z.string()).optional(),
   groupId: z.string().optional(),
   formId: z.string().optional(),
 });
@@ -54,7 +55,7 @@ const updateCategorySchema = z.object({
   description: z.string().optional(),
   parentId: z.string().optional(),
   noticeIds: z.array(z.string()).optional(),
-  faqIds: z.array(z.string()).optional(),
+  articleIds: z.array(z.string()).optional(),
   groupId: z.string().optional(),
   formId: z.string().optional(),
   position: z.number().optional(),
@@ -112,20 +113,6 @@ export class CategoryController {
     return {};
   }
 
-  private convertUpdateData(data: UpdateCategoryData): UpdateData<Category> {
-    return {
-      name: data.name,
-      description: data.description,
-      parentId: data.parentId,
-      noticeIds: data.noticeIds?.length === 0 ? null : data.noticeIds,
-      FAQIds: data.faqIds?.length === 0 ? null : data.faqIds,
-      groupId: data.groupId,
-      formId: data.formId,
-      order: data.position ?? (data.active === false ? Date.now() : undefined),
-      deletedAt: data.active === false ? new Date() : undefined,
-    };
-  }
-
   @Post()
   @UseMiddlewares(auth, customerServiceOnly)
   async create(
@@ -137,7 +124,7 @@ export class CategoryController {
         name: data.name,
         description: data.description,
         parentId: data.parentId,
-        FAQIds: data.faqIds?.length === 0 ? undefined : data.faqIds,
+        FAQIds: data.articleIds?.length === 0 ? undefined : data.articleIds,
         noticeIds: data.noticeIds?.length === 0 ? undefined : data.noticeIds,
         groupId: data.groupId,
         formId: data.formId,
@@ -157,12 +144,12 @@ export class CategoryController {
     return category;
   }
 
-  @Post(':id')
+  @Patch(':id')
   @UseMiddlewares(auth, customerServiceOnly)
   async update(
     @CurrentUser() currentUser: User,
     @Param('id') id: string,
-    @Body(new ZodValidationPipe(createCategorySchema)) data: CreateCategoryData
+    @Body(new ZodValidationPipe(updateCategorySchema)) data: CreateCategoryData
   ) {
     await CategoryService.batchUpdate(
       [{ ...this.convertUpdateData(data), id }],
@@ -207,6 +194,29 @@ export class CategoryController {
 
     const articles = await Promise.all(category.noticeIds.map(getPublicArticle));
     return articles.filter((article) => article && !article.private);
+  }
+
+  private convertUpdateData(data: UpdateCategoryData): UpdateData<Category> {
+    let deletedAt: Date | null | undefined = undefined;
+    if (data.active !== undefined) {
+      if (data.active) {
+        deletedAt = null;
+      } else {
+        deletedAt = new Date();
+      }
+    }
+
+    return {
+      name: data.name,
+      description: data.description,
+      parentId: data.parentId,
+      noticeIds: data.noticeIds?.length === 0 ? null : data.noticeIds,
+      FAQIds: data.articleIds?.length === 0 ? null : data.articleIds,
+      groupId: data.groupId,
+      formId: data.formId,
+      order: data.position ?? deletedAt?.getTime(),
+      deletedAt,
+    };
   }
 
   private getPreferedLocale(ctx: Context): string {
