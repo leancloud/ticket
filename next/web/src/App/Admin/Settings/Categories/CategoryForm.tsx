@@ -79,10 +79,10 @@ export interface CategoryFormData {
   name: string;
   description?: string;
   parentId?: string;
-  articleIds?: string[];
+  noticeIds?: string[];
   faqIds?: string[];
   groupId?: string;
-  ticketFormId?: string;
+  formId?: string;
 }
 
 export interface CategoryFormProps {
@@ -90,6 +90,7 @@ export interface CategoryFormProps {
   categoryActive?: boolean;
   onChangeCategoryActive?: (active: boolean) => void;
   initData?: Partial<CategoryFormData>;
+  loading?: boolean;
   onSubmit: (data: CategoryFormData) => void;
 }
 
@@ -98,6 +99,7 @@ export function CategoryForm({
   categoryActive,
   onChangeCategoryActive,
   initData,
+  loading,
   onSubmit,
 }: CategoryFormProps) {
   const { control, handleSubmit } = useForm({ defaultValues: initData });
@@ -189,7 +191,7 @@ export function CategoryForm({
 
       <Controller
         control={control}
-        name="articleIds"
+        name="noticeIds"
         render={({ field }) => (
           <Form.Item
             label="公告"
@@ -232,7 +234,7 @@ export function CategoryForm({
 
       <Controller
         control={control}
-        name="ticketFormId"
+        name="formId"
         render={({ field }) => (
           <Form.Item label="关联工单表单" style={FORM_ITEM_STYLE}>
             <TicketFormSelect {...field} />
@@ -242,20 +244,22 @@ export function CategoryForm({
 
       <div className="mt-6 flex">
         <div className="grow">
-          <Button type="primary" htmlType="submit" disabled={loadingCategories}>
+          <Button type="primary" htmlType="submit" disabled={loadingCategories} loading={loading}>
             保存
           </Button>
           <Link className="ml-2" to="..">
-            <Button>返回</Button>
+            <Button disabled={loading}>返回</Button>
           </Link>
         </div>
         {categoryActive === true && (
-          <Button danger onClick={() => onChangeCategoryActive?.(false)}>
+          <Button danger disabled={loading} onClick={() => onChangeCategoryActive?.(false)}>
             停用
           </Button>
         )}
         {categoryActive === false && (
-          <Button onClick={() => onChangeCategoryActive?.(true)}>启用</Button>
+          <Button disabled={loading} onClick={() => onChangeCategoryActive?.(true)}>
+            启用
+          </Button>
         )}
       </div>
     </Form>

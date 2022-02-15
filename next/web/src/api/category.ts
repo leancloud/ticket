@@ -141,6 +141,26 @@ export function useCategoryGroups(options?: UseQueryOptions<CategoryGroupSchema[
   });
 }
 
+export interface CreateCategoryData {
+  name: string;
+  description?: string;
+  parentId?: string;
+  noticeIds?: string[];
+  faqIds?: string[];
+  groupId?: string;
+  formId?: string;
+}
+
+async function createCategory(data: CreateCategoryData) {
+  await http.post('/api/2/categories', data);
+}
+
+export const useCreateCategory = (options?: UseMutationOptions<void, Error, CreateCategoryData>) =>
+  useMutation({
+    mutationFn: createCategory,
+    ...options,
+  });
+
 export interface UpdateCategoryData {
   position?: number;
 }
