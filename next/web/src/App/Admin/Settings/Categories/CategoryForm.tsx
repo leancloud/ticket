@@ -184,7 +184,7 @@ export function CategoryForm({
             help={error?.message}
             style={FORM_ITEM_STYLE}
           >
-            <CategorySelect {...field} categoryActive allowClear changeOnSelect />
+            <CategorySelect {...field} allowClear changeOnSelect />
           </Form.Item>
         )}
       />
