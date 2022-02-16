@@ -333,8 +333,10 @@ function SortCategoryModal({ visible, loading, onCancel, onOk, ...props }: SortC
       destroyOnClose
       title="调整顺序"
       visible={visible}
-      onCancel={onCancel}
+      cancelButtonProps={{ disabled: loading }}
+      onCancel={loading ? undefined : onCancel}
       okButtonProps={{ loading }}
+      okText="Save"
       onOk={() => onOk($sortTable.current.getData())}
     >
       <SortCategoryTable {...props} ref={$sortTable} />
