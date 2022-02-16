@@ -8,7 +8,7 @@ import { ArticleRevision } from './ArticleRevision';
 import { ArticleFeedback, FeedbackType } from './ArticleFeedback';
 
 export class Article extends Model {
-  public static className = 'FAQ';
+  static readonly className = 'FAQ';
 
   @field('question')
   @serialize()
@@ -96,7 +96,6 @@ export class Article extends Model {
   }
 
   async feedback(type: FeedbackType, author: User) {
-    console.log(this);
     const { revisionId } = this;
     if (!revisionId) {
       throw new Error('Revision not found');

@@ -14,7 +14,7 @@ export const analyzeArticles = async () => {
       const revision = ArticleRevision.fromAVObject(article.get('revision'));
       const [upvote, downvote] = await Promise.all(
         [1, -1].map((type) =>
-          ArticleFeedback.query()
+          ArticleFeedback.queryBuilder()
             .where('revision', '==', revision.toPointer())
             .where('type', '==', type)
             .count({ useMasterKey: true })
