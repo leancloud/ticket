@@ -7,18 +7,13 @@ import { useArticles } from '@/api/article';
 import { useCategories, useCategoryTree } from '@/api/category';
 import { useTicketForms } from '@/api/ticket-form';
 import { CategorySelect, GroupSelect } from '@/components/common';
-import { Button, Form, Input, Select } from '@/components/antd';
+import { Button, Form, Input, Select, SelectProps } from '@/components/antd';
 
 const { TextArea } = Input;
 
 const FORM_ITEM_STYLE = { marginBottom: 16 };
 
-interface ArticleSelectProps {
-  value?: string[];
-  onChange: (value: string[]) => void;
-}
-
-const ArticleSelect = forwardRef<RefSelectProps, ArticleSelectProps>(({ value, onChange }, ref) => {
+const ArticleSelect = forwardRef<RefSelectProps, SelectProps<string[]>>((props, ref) => {
   const { data, isLoading } = useArticles();
   const options = useMemo(() => {
     return data?.map((article) => ({
@@ -29,6 +24,7 @@ const ArticleSelect = forwardRef<RefSelectProps, ArticleSelectProps>(({ value, o
 
   return (
     <Select
+      {...props}
       ref={ref}
       className="w-full"
       loading={isLoading}
@@ -38,42 +34,32 @@ const ArticleSelect = forwardRef<RefSelectProps, ArticleSelectProps>(({ value, o
       options={options}
       optionFilterProp="label"
       maxTagTextLength={12}
-      value={value}
-      onChange={onChange}
     />
   );
 });
 
-interface TicketFormSelectProps {
-  value?: string;
-  onChange: (value: string | undefined) => void;
-}
+const TicketFormSelect = forwardRef<RefSelectProps, SelectProps<string>>((props, ref) => {
+  const { data, isLoading } = useTicketForms();
+  const options = useMemo(() => {
+    return data?.map((form) => ({
+      label: form.title,
+      value: form.id,
+    }));
+  }, [data]);
 
-const TicketFormSelect = forwardRef<RefSelectProps, TicketFormSelectProps>(
-  ({ value, onChange }, ref) => {
-    const { data, isLoading } = useTicketForms();
-    const options = useMemo(() => {
-      return data?.map((form) => ({
-        label: form.title,
-        value: form.id,
-      }));
-    }, [data]);
-
-    return (
-      <Select
-        ref={ref}
-        className="w-full"
-        loading={isLoading}
-        options={options}
-        showSearch
-        allowClear
-        optionFilterProp="label"
-        value={value}
-        onChange={onChange}
-      />
-    );
-  }
-);
+  return (
+    <Select
+      {...props}
+      ref={ref}
+      className="w-full"
+      loading={isLoading}
+      options={options}
+      showSearch
+      allowClear
+      optionFilterProp="label"
+    />
+  );
+});
 
 export interface CategoryFormData {
   name: string;
@@ -154,11 +140,12 @@ export function CategoryForm({
           <Form.Item
             required
             label="名称"
+            htmlFor="category_form_name"
             validateStatus={error ? 'error' : undefined}
             help={error?.message}
             style={FORM_ITEM_STYLE}
           >
-            <Input {...field} autoFocus />
+            <Input {...field} autoFocus id="category_form_name" />
           </Form.Item>
         )}
       />
@@ -167,8 +154,8 @@ export function CategoryForm({
         control={control}
         name="description"
         render={({ field }) => (
-          <Form.Item label="描述" style={FORM_ITEM_STYLE}>
-            <TextArea {...field} />
+          <Form.Item label="描述" htmlFor="category_form_desc" style={FORM_ITEM_STYLE}>
+            <TextArea {...field} id="category_form_desc" />
           </Form.Item>
         )}
       />
@@ -180,11 +167,12 @@ export function CategoryForm({
         render={({ field, fieldState: { error } }) => (
           <Form.Item
             label="父分类"
+            htmlFor="category_form_parent_id"
             validateStatus={error ? 'error' : undefined}
             help={error?.message}
             style={FORM_ITEM_STYLE}
           >
-            <CategorySelect {...field} allowClear changeOnSelect />
+            <CategorySelect {...field} allowClear changeOnSelect id="category_form_parent_id" />
           </Form.Item>
         )}
       />
@@ -195,6 +183,7 @@ export function CategoryForm({
         render={({ field }) => (
           <Form.Item
             label="公告"
+            htmlFor="category_form_notice_ids"
             help={
               <>
                 <div>公告会在用户落地到该分类时展示在页面顶部，数量最大为三条。</div>
@@ -203,7 +192,11 @@ export function CategoryForm({
             }
             style={FORM_ITEM_STYLE}
           >
-            <ArticleSelect {...field} onChange={(value) => field.onChange(value.slice(0, 3))} />
+            <ArticleSelect
+              {...field}
+              id="category_form_notice_ids"
+              onChange={(value) => field.onChange(value.slice(0, 3))}
+            />
           </Form.Item>
         )}
       />
@@ -214,10 +207,11 @@ export function CategoryForm({
         render={({ field }) => (
           <Form.Item
             label="常见问题"
+            htmlFor="category_form_article_ids"
             help="新建工单时，选中该分类将展示的常见问题。"
             style={FORM_ITEM_STYLE}
           >
-            <ArticleSelect {...field} />
+            <ArticleSelect {...field} id="category_form_article_ids" />
           </Form.Item>
         )}
       />
@@ -226,8 +220,12 @@ export function CategoryForm({
         control={control}
         name="groupId"
         render={({ field }) => (
-          <Form.Item label="自动关联客服组" style={FORM_ITEM_STYLE}>
-            <GroupSelect {...field} allowClear />
+          <Form.Item
+            label="自动关联客服组"
+            htmlFor="category_form_group_id"
+            style={FORM_ITEM_STYLE}
+          >
+            <GroupSelect {...field} allowClear id="category_form_group_id" />
           </Form.Item>
         )}
       />
@@ -236,8 +234,8 @@ export function CategoryForm({
         control={control}
         name="formId"
         render={({ field }) => (
-          <Form.Item label="关联工单表单" style={FORM_ITEM_STYLE}>
-            <TicketFormSelect {...field} />
+          <Form.Item label="关联工单表单" htmlFor="category_form_form_id" style={FORM_ITEM_STYLE}>
+            <TicketFormSelect {...field} id="category_form_form_id" />
           </Form.Item>
         )}
       />
