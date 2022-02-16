@@ -17,9 +17,11 @@ setConfig('ticket.metadata.customMetadata.comments', {
 })
 /* eslint-enable i18n/no-chinese-character */
 
+const domain = process.env.TAPTAP_STORE_DOMAIN
+
 setConfig('ticket.metadata.customMetadata.valueRenderers', {
-  game: (id) => <a href={`https://www.taptap.com/app/${id}`}>{id}</a>,
-  developerId: (id) => <a href={`https://www.taptap.com/developer/${id}`}>{id}</a>,
+  game: (id) => <a href={`https://${domain}/app/${id}`}>{id}</a>,
+  developerId: (id) => <a href={`https://${domain}/developer/${id}`}>{id}</a>,
 })
 
 setConfig('nav.customerServiceTickets.href', '/customerService/tickets?isOpen=true')
