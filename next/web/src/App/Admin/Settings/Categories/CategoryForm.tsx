@@ -6,12 +6,37 @@ import { RefSelectProps } from 'antd/lib/select';
 import { useArticles } from '@/api/article';
 import { useCategories, useCategoryTree } from '@/api/category';
 import { useTicketForms } from '@/api/ticket-form';
-import { CategorySelect, GroupSelect } from '@/components/common';
-import { Button, Form, Input, Select, SelectProps } from '@/components/antd';
+import { GroupSelect } from '@/components/common';
+import {
+  Button,
+  Form,
+  Input,
+  Select,
+  SelectProps,
+  TreeSelect,
+  TreeSelectProps,
+} from '@/components/antd';
 
 const { TextArea } = Input;
 
 const FORM_ITEM_STYLE = { marginBottom: 16 };
+
+const CategoryTreeSelect = forwardRef<RefSelectProps, TreeSelectProps<string>>((props, ref) => {
+  const { data: categories, isLoading } = useCategories();
+  const categoryTree = useCategoryTree(categories);
+
+  return (
+    <TreeSelect
+      {...props}
+      ref={ref}
+      showSearch
+      treeNodeFilterProp="name"
+      loading={isLoading}
+      treeData={categoryTree}
+      fieldNames={{ label: 'name', value: 'id' }}
+    />
+  );
+});
 
 const ArticleSelect = forwardRef<RefSelectProps, SelectProps<string[]>>((props, ref) => {
   const { data, isLoading } = useArticles();
@@ -172,7 +197,7 @@ export function CategoryForm({
             help={error?.message}
             style={FORM_ITEM_STYLE}
           >
-            <CategorySelect {...field} allowClear changeOnSelect id="category_form_parent_id" />
+            <CategoryTreeSelect {...field} allowClear id="category_form_parent_id" />
           </Form.Item>
         )}
       />
