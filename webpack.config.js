@@ -74,6 +74,7 @@ module.exports = {
         NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'production'),
         ENABLE_BUILTIN_DESCRIPTION_TEMPLATE: process.env.ENABLE_BUILTIN_DESCRIPTION_TEMPLATE,
         ENABLE_FAQ: process.env.ENABLE_FAQ,
+        TAPTAP_STORE_DOMAIN: JSON.stringify(process.env.TAPTAP_STORE_DOMAIN),
       },
     }),
     new MiniCssExtractPlugin({ filename: 'app.css' }),
