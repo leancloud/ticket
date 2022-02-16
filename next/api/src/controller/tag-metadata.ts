@@ -5,6 +5,7 @@ import {
   Body,
   Controller,
   CurrentUser,
+  Delete,
   Get,
   Param,
   Patch,
@@ -85,12 +86,25 @@ export class TagMetadataController {
 
     const type = data.type ?? tagMetadata.type;
 
-    await tagMetadata.update({
-      ACL,
-      key: data.key,
-      type: data.type,
-      values: type === 'text' ? null : data.values,
-      isPrivate: data.private,
-    });
+    await tagMetadata.update(
+      {
+        ACL,
+        key: data.key,
+        type: data.type,
+        values: type === 'text' ? null : data.values,
+        isPrivate: data.private,
+      },
+      currentUser.getAuthOptions()
+    );
+  }
+
+  @Delete(':id')
+  @UseMiddlewares(customerServiceOnly)
+  async delete(
+    @CurrentUser() currentUser: User,
+    @Param('id', new FindModelPipe(TagMetadata)) tagMetadata: TagMetadata
+  ) {
+    await tagMetadata.delete(currentUser.getAuthOptions());
+    return {};
   }
 }
