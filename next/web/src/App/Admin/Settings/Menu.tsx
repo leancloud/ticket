@@ -28,6 +28,10 @@ const routeGroups = [
         path: 'categories',
       },
       {
+        name: '标签',
+        path: 'tags',
+      },
+      {
         name: '视图',
         path: 'views',
       },

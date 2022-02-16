@@ -1,0 +1,16 @@
+.tagForm {
+  :global {
+    .ant-form-item {
+      @apply mb-4;
+    }
+    .ant-form-item-explain {
+      @apply min-h-0;
+    }
+  }
+
+  .privilege {
+    :global(.ant-form-item-control-input-content) {
+      @apply flex items-center;
+    }
+  }
+}
