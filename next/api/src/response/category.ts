@@ -8,11 +8,15 @@ export class CategoryResponse {
     return {
       id: this.category.id,
       name: this.category.name,
+      description: this.category.description,
       parentId: this.category.parentId,
-      position: this.category.position ?? this.category.createdAt.getTime(),
+      position: this.category.order ?? this.category.createdAt.getTime(),
       active: !this.category.deletedAt,
       template: this.category.qTemplate,
       articleIds: this.category.FAQIds,
+      noticeIds: this.category.noticeIds,
+      formId: this.category.formId,
+      groupId: this.category.groupId,
     };
   }
 }

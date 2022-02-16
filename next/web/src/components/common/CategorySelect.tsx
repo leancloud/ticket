@@ -41,15 +41,15 @@ export const CategorySelect = forwardRef<CascaderRef, CategorySelectProps>(
     const categoryTree = useCategoryTree(data);
 
     const path = useMemo(() => {
-      if (!data || !value) {
+      if (!categoryTree || !value) {
         return [];
       }
-      const category = findCategory(data, value);
+      const category = findCategory(categoryTree, value);
       if (!category) {
         return [value];
       }
       return getCategoryIdPath(category);
-    }, [data, value]);
+    }, [categoryTree, value]);
 
     const handleChange = useCallback(
       (ids?: string[], categoryPath?: CategoryTreeNode[]) => {

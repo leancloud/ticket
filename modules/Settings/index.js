@@ -12,8 +12,6 @@ import Tags from './Tags'
 import Tag from './Tag'
 import FAQs from './FAQs'
 import FAQ from './FAQ'
-import Categories from './Categories'
-import Category from './Category'
 import CategorySort from './CategorySort'
 import QuickReplies from './QuickReply'
 
@@ -61,7 +59,7 @@ export default function Settings(props) {
               <ListGroup.Item as="a" href="/next/admin/settings/ticket-forms">
                 {t('ticketTemplate')}
               </ListGroup.Item>
-              <ListGroup.Item as={NavLink} to="/settings/categories">
+              <ListGroup.Item as="a" href="/next/admin/settings/categories">
                 {t('category')}
               </ListGroup.Item>
               <ListGroup.Item as={NavLink} to="/settings/tags">
@@ -108,12 +106,6 @@ export default function Settings(props) {
           </Route>
           <Route path={`${path}/articles/:id`}>
             <FAQ {...childrenProps} />
-          </Route>
-          <Route path={`${path}/categories`} exact>
-            <Categories {...childrenProps} />
-          </Route>
-          <Route path={`${path}/categories/:id`}>
-            <Category {...childrenProps} />
           </Route>
           <Route path={`${path}/categorySort`}>
             <CategorySort {...childrenProps} />

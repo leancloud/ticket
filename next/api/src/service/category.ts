@@ -1,8 +1,10 @@
+import _ from 'lodash';
+import mem from 'mem';
+
 import { redis } from '@/cache';
 import { HttpError } from '@/common/http';
-import { AuthOptions, UpdateData } from '@/orm';
+import { AuthOptions, ACLBuilder, CreateData, UpdateData } from '@/orm';
 import { Category } from '@/model/Category';
-import _ from 'lodash';
 
 class CategoryCache {
   static readonly CACHE_KEY = 'categories';
@@ -36,12 +38,10 @@ class CategoryCache {
 }
 
 export class CategoryService {
-  static async getAll(useCache = true): Promise<Category[]> {
-    if (useCache) {
-      const cached = await CategoryCache.getAll();
-      if (cached) {
-        return cached;
-      }
+  static async getAll(): Promise<Category[]> {
+    const cached = await CategoryCache.getAll();
+    if (cached) {
+      return cached;
     }
 
     const categories = await Category.queryBuilder().limit(1000).find();
@@ -85,6 +85,13 @@ export class CategoryService {
     return subCategories;
   }
 
+  static async create(data: CreateData<Category>, options?: AuthOptions) {
+    const ACL = new ACLBuilder().allow('*', 'read').allowCustomerService('write');
+    const category = await Category.create({ ...data, ACL }, options);
+    await CategoryCache.clear();
+    return category;
+  }
+
   static async batchUpdate(
     datas: (UpdateData<Category> & { id: string })[],
     options?: AuthOptions
@@ -93,8 +100,21 @@ export class CategoryService {
       return;
     }
 
-    const categories = await CategoryService.getAll(false);
+    const categories = await Category.queryBuilder().limit(1000).find();
     const categoryById = _.keyBy(categories, 'id');
+    const childrenById = _.groupBy(categories, 'parentId');
+
+    const hasActiveChildren = mem((category: Category) => {
+      const children = childrenById[category.id];
+      if (children) {
+        for (const child of children) {
+          if (child.deletedAt === undefined || hasActiveChildren(child)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    });
 
     const pairs: [Category, UpdateData<Category>][] = [];
     datas.forEach(({ id, ...data }) => {
@@ -102,10 +122,19 @@ export class CategoryService {
       if (!category) {
         throw new HttpError(404, `Category ${id} does not exist`);
       }
+      if (data.deletedAt !== undefined && hasActiveChildren(category)) {
+        throw new HttpError(400, `Category ${id} has active subcategories`);
+      }
       pairs.push([category, data]);
     });
 
-    await Category.updateSome(pairs, options);
+    if (pairs.length === 1) {
+      const [category, data] = pairs[0];
+      await category.update(data, options);
+    } else {
+      await Category.updateSome(pairs, options);
+    }
+
     await CategoryCache.clear();
   }
 }

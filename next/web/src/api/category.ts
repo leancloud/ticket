@@ -7,11 +7,15 @@ import { http } from '@/leancloud';
 export interface CategorySchema {
   id: string;
   name: string;
+  description?: string;
   parentId?: string;
   position: number;
   active: boolean;
   template?: string;
   articleIds?: string[];
+  noticeIds?: string[];
+  formId?: string;
+  groupId?: string;
 }
 
 async function fetchCategories(active?: boolean): Promise<CategorySchema[]> {
@@ -19,16 +23,6 @@ async function fetchCategories(active?: boolean): Promise<CategorySchema[]> {
     params: { active },
   });
   return data;
-}
-
-export interface CategoryGroupSchema {
-  id: string;
-  categoryId: string;
-}
-
-async function fetchCategoryGroups(): Promise<CategoryGroupSchema[]> {
-  const res = await http.get('/api/2/categories/groups');
-  return res.data;
 }
 
 export interface UseCategoriesOptions {
@@ -61,7 +55,9 @@ export function makeCategoryTree(categories: CategorySchema[]): CategoryTreeNode
   };
 
   const dfs = (parentId: string | undefined) => {
-    const currentLevel: CategoryTreeNode[] = categoriesByParentId[parentId + ''];
+    const currentLevel: CategoryTreeNode[] = categoriesByParentId[parentId + '']?.map((c) => ({
+      ...c,
+    }));
     if (!currentLevel) {
       return [];
     }
@@ -132,18 +128,42 @@ export function useCategoryFields(categoryId: string, options?: UseCategoryField
   });
 }
 
-export function useCategoryGroups(options?: UseQueryOptions<CategoryGroupSchema[], Error>) {
-  return useQuery({
-    queryKey: ['categoryGroups'],
-    queryFn: fetchCategoryGroups,
-    staleTime: Infinity,
-    ...options,
-  });
+export interface CreateCategoryData {
+  name: string;
+  description?: string;
+  parentId?: string;
+  noticeIds?: string[];
+  articleIds?: string[];
+  groupId?: string;
+  formId?: string;
 }
 
-export interface UpdateCategoryData {
-  position?: number;
+async function createCategory(data: CreateCategoryData) {
+  await http.post('/api/2/categories', data);
 }
+
+export const useCreateCategory = (options?: UseMutationOptions<void, Error, CreateCategoryData>) =>
+  useMutation({
+    mutationFn: createCategory,
+    ...options,
+  });
+
+export interface UpdateCategoryData extends Partial<CreateCategoryData> {
+  position?: number;
+  active?: boolean;
+}
+
+async function updateCategory(id: string, data: UpdateCategoryData) {
+  await http.patch(`/api/2/categories/${id}`, data);
+}
+
+export const useUpdateCategory = (
+  options?: UseMutationOptions<void, Error, UpdateCategoryData & { id: string }>
+) =>
+  useMutation({
+    mutationFn: ({ id, ...data }) => updateCategory(id, data),
+    ...options,
+  });
 
 export type BatchUpdateCategoryData = (UpdateCategoryData & { id: string })[];
 

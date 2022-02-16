@@ -9,12 +9,14 @@ import {
   Get,
   HttpError,
   Param,
+  Patch,
   Post,
   Query,
   ResponseBody,
   UseMiddlewares,
 } from '@/common/http';
 import { ParseBoolPipe, ZodValidationPipe } from '@/common/pipe';
+import { UpdateData } from '@/orm';
 import { auth, customerServiceOnly } from '@/middleware';
 import { getPublicArticle } from '@/model/Article';
 import { Category } from '@/model/Category';
@@ -38,8 +40,26 @@ class FindCategoryPipe {
   }
 }
 
+const createCategorySchema = z.object({
+  name: z.string(),
+  description: z.string().optional(),
+  parentId: z.string().optional(),
+  noticeIds: z.array(z.string()).optional(),
+  articleIds: z.array(z.string()).optional(),
+  groupId: z.string().optional(),
+  formId: z.string().optional(),
+});
+
 const updateCategorySchema = z.object({
+  name: z.string().optional(),
+  description: z.string().optional(),
+  parentId: z.string().optional(),
+  noticeIds: z.array(z.string()).optional(),
+  articleIds: z.array(z.string()).optional(),
+  groupId: z.string().optional(),
+  formId: z.string().optional(),
   position: z.number().optional(),
+  active: z.boolean().optional(),
 });
 
 const batchUpdateSchema = z.array(
@@ -47,6 +67,10 @@ const batchUpdateSchema = z.array(
     id: z.string(),
   })
 );
+
+type CreateCategoryData = z.infer<typeof createCategorySchema>;
+
+type UpdateCategoryData = z.infer<typeof updateCategorySchema>;
 
 type BatchUpdateData = z.infer<typeof batchUpdateSchema>;
 
@@ -64,16 +88,41 @@ export class CategoryController {
     return categories;
   }
 
-  @Get('groups')
+  @Post('batch-update')
   @UseMiddlewares(auth, customerServiceOnly)
-  async findGroups() {
-    const categories = await CategoryService.getAll();
-    return categories
-      .filter((c) => c.groupId)
-      .map((c) => ({
-        id: c.groupId,
-        categoryId: c.id,
-      }));
+  async batchUpdate(
+    @CurrentUser() currentUser: User,
+    @Body(new ZodValidationPipe(batchUpdateSchema)) datas: BatchUpdateData
+  ) {
+    await CategoryService.batchUpdate(
+      datas.map((data) => ({ ...this.convertUpdateData(data), id: data.id })),
+      currentUser.getAuthOptions()
+    );
+    return {};
+  }
+
+  @Post()
+  @UseMiddlewares(auth, customerServiceOnly)
+  async create(
+    @CurrentUser() currentUser: User,
+    @Body(new ZodValidationPipe(createCategorySchema)) data: CreateCategoryData
+  ) {
+    const category = await CategoryService.create(
+      {
+        name: data.name,
+        description: data.description,
+        parentId: data.parentId,
+        FAQIds: data.articleIds?.length === 0 ? undefined : data.articleIds,
+        noticeIds: data.noticeIds?.length === 0 ? undefined : data.noticeIds,
+        groupId: data.groupId,
+        formId: data.formId,
+      },
+      currentUser.getAuthOptions()
+    );
+
+    return {
+      id: category.id,
+    };
   }
 
   @Get(':id')
@@ -81,6 +130,20 @@ export class CategoryController {
   @ResponseBody(CategoryResponseForCS)
   findOne(@Param('id', FindCategoryPipe) category: Category) {
     return category;
+  }
+
+  @Patch(':id')
+  @UseMiddlewares(auth, customerServiceOnly)
+  async update(
+    @CurrentUser() currentUser: User,
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(updateCategorySchema)) data: CreateCategoryData
+  ) {
+    await CategoryService.batchUpdate(
+      [{ ...this.convertUpdateData(data), id }],
+      currentUser.getAuthOptions()
+    );
+    return {};
   }
 
   @Get(':id/fields')
@@ -121,14 +184,27 @@ export class CategoryController {
     return articles.filter((article) => article && !article.private);
   }
 
-  @Post('batch-update')
-  @UseMiddlewares(auth, customerServiceOnly)
-  async batchUpdate(
-    @CurrentUser() currentUser: User,
-    @Body(new ZodValidationPipe(batchUpdateSchema)) datas: BatchUpdateData
-  ) {
-    await CategoryService.batchUpdate(datas, currentUser.getAuthOptions());
-    return {};
+  private convertUpdateData(data: UpdateCategoryData): UpdateData<Category> {
+    let deletedAt: Date | null | undefined = undefined;
+    if (data.active !== undefined) {
+      if (data.active) {
+        deletedAt = null;
+      } else {
+        deletedAt = new Date();
+      }
+    }
+
+    return {
+      name: data.name,
+      description: data.description,
+      parentId: data.parentId,
+      noticeIds: data.noticeIds?.length === 0 ? null : data.noticeIds,
+      FAQIds: data.articleIds?.length === 0 ? null : data.articleIds,
+      groupId: data.groupId,
+      formId: data.formId,
+      order: data.position ?? deletedAt?.getTime(),
+      deletedAt,
+    };
   }
 
   private getPreferedLocale(ctx: Context): string {

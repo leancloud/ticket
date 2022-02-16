@@ -7,10 +7,10 @@ import {
   useRef,
   useState,
 } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { useQueryClient } from 'react-query';
 import { AiOutlineLoading, AiOutlineDown, AiOutlineUp } from 'react-icons/ai';
-import { keyBy } from 'lodash-es';
+import { keyBy, pick } from 'lodash-es';
 import { produce } from 'immer';
 import cx from 'classnames';
 
@@ -18,11 +18,12 @@ import { useCurrentUser } from '@/leancloud';
 import {
   CategorySchema,
   CategoryTreeNode,
-  useCategories,
-  useCategoryTree,
-  useCategoryGroups,
   makeCategoryTree,
   useBatchUpdateCategory,
+  useCreateCategory,
+  useCategories,
+  useCategoryTree,
+  useUpdateCategory,
 } from '@/api/category';
 import {
   CustomerServiceSchema,
@@ -31,8 +32,18 @@ import {
   useDeleteCustomerServiceCategory,
 } from '@/api/customer-service';
 import { GroupSchema, useGroups } from '@/api/group';
-import { Button, Checkbox, Modal, Popover, Table, message } from '@/components/antd';
+import {
+  Breadcrumb,
+  Button,
+  Checkbox,
+  Modal,
+  Popover,
+  Spin,
+  Table,
+  message,
+} from '@/components/antd';
 import { UserLabel } from '@/App/Admin/components';
+import { CategoryForm } from './CategoryForm';
 
 const { Column } = Table;
 
@@ -133,18 +144,7 @@ function CategoryTable({
 
   const { data: groups, isLoading: loadingGroups } = useGroups();
 
-  const { data: categoryGroups, isLoading: loadingCategoryGroups } = useCategoryGroups();
-
-  const groupByCategoryId = useMemo<Record<string, GroupSchema>>(() => {
-    if (groups && categoryGroups) {
-      const groupById = keyBy(groups, 'id');
-      return categoryGroups.reduce<Record<string, GroupSchema>>((map, cur) => {
-        map[cur.categoryId] = groupById[cur.id];
-        return map;
-      }, {});
-    }
-    return {};
-  }, [groups, categoryGroups]);
+  const groupById = useMemo(() => keyBy(groups, 'id'), [groups]);
 
   const queryClient = useQueryClient();
 
@@ -241,13 +241,9 @@ function CategoryTable({
       />
       <Column
         key="groups"
-        dataIndex="id"
         title="关联客服组"
-        render={(id: string) => (
-          <GroupCell
-            loading={loadingGroups || loadingCategoryGroups}
-            group={groupByCategoryId[id]}
-          />
+        render={({ groupId }: CategoryTreeNode) => (
+          <GroupCell loading={loadingGroups} group={groupId ? groupById[groupId] : undefined} />
         )}
       />
     </Table>
@@ -337,8 +333,10 @@ function SortCategoryModal({ visible, loading, onCancel, onOk, ...props }: SortC
       destroyOnClose
       title="调整顺序"
       visible={visible}
-      onCancel={onCancel}
+      cancelButtonProps={{ disabled: loading }}
+      onCancel={loading ? undefined : onCancel}
       okButtonProps={{ loading }}
+      okText="Save"
       onOk={() => onOk($sortTable.current.getData())}
     >
       <SortCategoryTable {...props} ref={$sortTable} />
@@ -406,9 +404,11 @@ export function CategoryList() {
           <Button disabled={isFetching} onClick={() => setSorting(true)}>
             调整顺序
           </Button>
-          <Button className="ml-2" type="primary" disabled>
-            创建分类
-          </Button>
+          <Link to="new">
+            <Button className="ml-2" type="primary">
+              创建分类
+            </Button>
+          </Link>
         </div>
       </div>
 
@@ -425,6 +425,97 @@ export function CategoryList() {
         categories={filteredCategories}
         expandedRowKeys={expendedRowKeys}
         onExpandedRowsChange={setExpendedRowKeys}
+      />
+    </div>
+  );
+}
+
+export function NewCategory() {
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const { mutate, isLoading } = useCreateCategory({
+    onSuccess: () => {
+      queryClient.invalidateQueries('categories');
+      message.success('创建成功');
+      navigate('..');
+    },
+    onError: (error) => {
+      message.error(error.message);
+    },
+  });
+
+  return (
+    <div className="p-10">
+      <Breadcrumb style={{ marginBottom: 16 }}>
+        <Breadcrumb.Item>
+          <Link to="..">分类</Link>
+        </Breadcrumb.Item>
+        <Breadcrumb.Item>添加</Breadcrumb.Item>
+      </Breadcrumb>
+
+      <CategoryForm loading={isLoading} onSubmit={mutate} />
+    </div>
+  );
+}
+
+export function CategoryDetail() {
+  const { id } = useParams<'id'>();
+  const { data: categories, isLoading: loadingCategories } = useCategories();
+
+  const category = useMemo(() => {
+    return categories?.find((c) => c.id === id);
+  }, [categories, id]);
+
+  const initData = useMemo(() => {
+    return pick(category, [
+      'name',
+      'description',
+      'parentId',
+      'noticeIds',
+      'articleIds',
+      'groupId',
+      'formId',
+    ]);
+  }, [category]);
+
+  const queryClient = useQueryClient();
+  const { mutate, isLoading } = useUpdateCategory({
+    onSuccess: () => {
+      queryClient.invalidateQueries('categories');
+      message.success('更新成功');
+    },
+    onError: (error) => {
+      message.error(error.message);
+    },
+  });
+
+  if (loadingCategories) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <Spin />
+      </div>
+    );
+  }
+
+  if (!category) {
+    return <Navigate to=".." />;
+  }
+
+  return (
+    <div className="p-10">
+      <Breadcrumb style={{ marginBottom: 16 }}>
+        <Breadcrumb.Item>
+          <Link to="..">分类</Link>
+        </Breadcrumb.Item>
+        <Breadcrumb.Item>{id}</Breadcrumb.Item>
+      </Breadcrumb>
+
+      <CategoryForm
+        initData={initData}
+        loading={isLoading}
+        categoryActive={category.active}
+        onSubmit={(data) => mutate({ ...data, id: id! })}
+        onChangeCategoryActive={(active) => mutate({ active, id: id! })}
       />
     </div>
   );
