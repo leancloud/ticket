@@ -1,4 +1,4 @@
-import xss from '@/utils/xss';
+import { sanitize } from '@/utils/xss';
 import { Article } from '@/model/Article';
 
 export class ArticleResponse {
@@ -9,7 +9,7 @@ export class ArticleResponse {
       id: this.article.id,
       title: this.article.title,
       content: this.article.content,
-      contentSafeHTML: xss.process(this.article.contentHTML),
+      contentSafeHTML: sanitize(this.article.contentHTML),
       private: !!this.article.private,
       revision: this.article.revision
         ? {

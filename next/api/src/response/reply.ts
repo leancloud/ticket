@@ -1,4 +1,4 @@
-import xss from '@/utils/xss';
+import { sanitize } from '@/utils/xss';
 import { Reply } from '@/model/Reply';
 import { FileResponse } from './file';
 import { UserResponse } from './user';
@@ -10,7 +10,7 @@ export class ReplyResponse {
     return {
       id: this.reply.id,
       content: this.reply.content,
-      contentSafeHTML: xss.process(this.reply.contentHTML),
+      contentSafeHTML: sanitize(this.reply.contentHTML),
       author: this.reply.author ? new UserResponse(this.reply.author) : undefined,
       isCustomerService: this.reply.isCustomerService,
       files: this.reply.files?.map((file) => new FileResponse(file)),

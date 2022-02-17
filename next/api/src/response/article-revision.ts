@@ -1,7 +1,7 @@
 import { ArticleRevision } from '@/model/ArticleRevision';
 import { User } from '@/model/User';
 import htmlify from '@/utils/htmlify';
-import xss from '@/utils/xss';
+import { sanitize } from '@/utils/xss';
 import { UserResponse } from './user';
 
 export class ArticleRevisionListItemResponse {
@@ -28,9 +28,7 @@ export class ArticleRevisionResponse extends ArticleRevisionListItemResponse {
     return {
       ...super.toJSON(),
       content: this.revision.content,
-      contentSafeHTML: this.revision.content
-        ? xss.process(htmlify(this.revision.content))
-        : undefined,
+      contentSafeHTML: this.revision.content ? sanitize(htmlify(this.revision.content)) : undefined,
     };
   }
 }

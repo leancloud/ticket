@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import xss from '@/utils/xss';
+import { sanitize } from '@/utils/xss';
 import { Ticket } from '@/model/Ticket';
 import { FileResponse } from './file';
 import { GroupResponse } from './group';
@@ -53,7 +53,7 @@ export class TicketResponse extends BaseTicketResponse {
     return {
       ...super.toJSON(),
       metaData: this.ticket.metaData,
-      contentSafeHTML: xss.process(this.ticket.contentHTML),
+      contentSafeHTML: sanitize(this.ticket.contentHTML),
     };
   }
 }

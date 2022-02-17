@@ -4,7 +4,7 @@ import { Badge, Button, Card, Dropdown } from 'react-bootstrap'
 import * as Icon from 'react-bootstrap-icons'
 import PropTypes from 'prop-types'
 import classNames from 'classnames'
-import xss from 'xss'
+import DOMPurify from 'dompurify'
 import _ from 'lodash'
 import { useMutation } from 'react-query'
 import { http } from 'lib/leancloud'
@@ -15,19 +15,6 @@ import css from './index.css'
 import { UserLabel } from '../UserLabel'
 import { Time } from './Time'
 import { InternalBadge } from '../components/InternalBadge'
-
-// get a copy of default whiteList
-const whiteList = xss.getDefaultWhiteList()
-
-// allow class attribute for span and code tag
-whiteList.span.push('class')
-whiteList.code.push('class')
-
-// specified you custom whiteList
-const myxss = new xss.FilterXSS({
-  whiteList,
-  css: false,
-})
 
 const IMAGE_FILE_MIMES = ['image/png', 'image/jpeg', 'image/gif']
 
@@ -270,7 +257,7 @@ export function ReplyCard({ data, onDeleted, ticketId, onEdit }) {
       </Card.Header>
       <Card.Body ref={containerRef} className={css.content}>
         <BaiduTranslate enabled={translationEnabled}>
-          <ReplyContent>{myxss.process(data.content_HTML)}</ReplyContent>
+          <ReplyContent>{DOMPurify.sanitize(data.content_HTML)}</ReplyContent>
         </BaiduTranslate>
         {imageFiles.length > 0 && (
           <div>
