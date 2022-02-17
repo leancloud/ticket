@@ -69,7 +69,7 @@ export class QuickReplyController {
         query.where('owner', '==', User.ptr(userId));
       }
     }
-    return query.find(currentUser.getAuthOptions());
+    return query.limit(1000).find(currentUser.getAuthOptions());
   }
 
   @Get(':id')
