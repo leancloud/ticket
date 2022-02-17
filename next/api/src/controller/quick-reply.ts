@@ -11,6 +11,7 @@ import {
   Post,
   Query,
   ResponseBody,
+  StatusCode,
   UseMiddlewares,
 } from '@/common/http';
 import { FindModelPipe, ParseCsvPipe, ZodValidationPipe } from '@/common/pipe';
@@ -41,6 +42,7 @@ type UpdateQuickReplyData = z.infer<typeof updateQuickReplySchema>;
 @UseMiddlewares(auth, customerServiceOnly)
 export class QuickReplyController {
   @Post()
+  @StatusCode(201)
   async create(
     @CurrentUser() currentUser: User,
     @Body(new ZodValidationPipe(createQuickReplySchema)) data: CreateQuickReplyData
