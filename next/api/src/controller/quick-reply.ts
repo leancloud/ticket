@@ -24,7 +24,7 @@ const createQuickReplySchema = z.object({
   name: z.string(),
   content: z.string(),
   fileIds: z.array(z.string()).optional(),
-  userId: z.string(),
+  userId: z.string().optional(),
 });
 
 const updateQuickReplySchema = createQuickReplySchema
