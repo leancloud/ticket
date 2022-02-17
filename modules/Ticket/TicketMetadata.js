@@ -28,7 +28,7 @@ function GroupSection({ ticket }) {
   const [editingGroup, setEditingGroup] = useState(false)
   const { data: groups, isLoading } = useGroups()
 
-  const { addNotification } = useContext(AppContext)
+  const { addNotification, isCustomerService } = useContext(AppContext)
   const queryClient = useQueryClient()
   const { mutate: updateGroup, isLoading: updating } = useMutation({
     mutationFn: (groupId) => updateTicket(ticket.id, { groupId }),
@@ -68,9 +68,11 @@ function GroupSection({ ticket }) {
       ) : (
         <div className="d-flex align-items-center">
           <GroupLabel groupId={ticket.group?.id} />
-          <Button variant="link" onClick={() => setEditingGroup(true)}>
-            <Icon.PencilFill />
-          </Button>
+          {isCustomerService && (
+            <Button variant="link" onClick={() => setEditingGroup(true)}>
+              <Icon.PencilFill />
+            </Button>
+          )}
         </div>
       )}
     </Form.Group>
@@ -83,9 +85,9 @@ GroupSection.propTypes = {
   }),
 }
 
-function AssigneeSection({ ticket, isCustomerService }) {
+function AssigneeSection({ ticket }) {
   const { t } = useTranslation()
-  const { addNotification } = useContext(AppContext)
+  const { addNotification, isCustomerService } = useContext(AppContext)
   const [editingAssignee, setEditingAssignee] = useState(false)
   const { data: customerServices, isLoading } = useQuery({
     queryKey: 'customerServices',
@@ -183,12 +185,11 @@ AssigneeSection.propTypes = {
     id: PropTypes.string.isRequired,
     assignee: PropTypes.object,
   }),
-  isCustomerService: PropTypes.bool,
 }
 
-function CategorySection({ ticket, isCustomerService }) {
+function CategorySection({ ticket }) {
   const { t } = useTranslation()
-  const { addNotification } = useContext(AppContext)
+  const { addNotification, isCustomerService } = useContext(AppContext)
   const [editingCategory, setEditingCategory] = useState(false)
   const { data: categories, isLoading } = useQuery({
     queryKey: ['categories', { active: true }],
@@ -234,7 +235,6 @@ CategorySection.propTypes = {
     id: PropTypes.string.isRequired,
     category_id: PropTypes.string.isRequired,
   }),
-  isCustomerService: PropTypes.bool,
 }
 
 const tryToCall = (fn, ...params) => {
@@ -272,8 +272,8 @@ CustomMetadata.propTypes = {
   metadata: PropTypes.object.isRequired,
 }
 
-function TagSection({ ticket, isCustomerService }) {
-  const { addNotification, tagMetadatas } = useContext(AppContext)
+function TagSection({ ticket }) {
+  const { addNotification, tagMetadatas, isCustomerService } = useContext(AppContext)
   const queryClient = useQueryClient()
   const { mutateAsync, isLoading } = useMutation((data) => updateTicket(ticket.id, data), {
     onSuccess: () => queryClient.invalidateQueries(['ticket', ticket.id]),
@@ -554,27 +554,27 @@ const TicketFormValues = memo(({ ticket, loadMoreOpsLogs }) => {
   )
 })
 
-export function TicketMetadata({ ticket, isCustomerService, loadMoreOpsLogs }) {
+export function TicketMetadata({ ticket, loadMoreOpsLogs }) {
+  const { isUser, isCustomerService } = useContext(AppContext)
   return (
     <>
-      {isCustomerService && <GroupSection ticket={ticket} isCustomerService={isCustomerService} />}
+      {!isUser && <GroupSection ticket={ticket} />}
 
-      <AssigneeSection ticket={ticket} isCustomerService={isCustomerService} />
+      <AssigneeSection ticket={ticket} />
 
-      <CategorySection ticket={ticket} isCustomerService={isCustomerService} />
+      <CategorySection ticket={ticket} />
 
       <TicketFormValues ticket={ticket} loadMoreOpsLogs={loadMoreOpsLogs} />
 
-      {isCustomerService && <CustomMetadata metadata={ticket.metadata} />}
+      {!isUser && <CustomMetadata metadata={ticket.metadata} />}
 
       <MountCustomElement point="ticket.metadata" props={{ ticket, isCustomerService }} />
 
-      <TagSection ticket={ticket} isCustomerService={isCustomerService} />
+      <TagSection ticket={ticket} />
     </>
   )
 }
 TicketMetadata.propTypes = {
   ticket: PropTypes.object.isRequired,
-  isCustomerService: PropTypes.bool,
   loadMoreOpsLogs: PropTypes.func,
 }

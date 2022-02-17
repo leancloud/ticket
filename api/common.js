@@ -58,6 +58,22 @@ exports.isCustomerService = (user, ticketAuthor) => {
     .then((role) => !!role)
 }
 
+exports.isStaff = (user, ticketAuthor) => {
+  if (!user) {
+    return Promise.resolve(false)
+  }
+  if (ticketAuthor && ticketAuthor.id === user.id) {
+    // 如果是客服自己提交工单，则当前客服在该工单中认为是用户，
+    // 这时为了方便工单作为内部工作协调使用。
+    return Promise.resolve(false)
+  }
+  return new AV.Query(AV.Role)
+    .equalTo('name', 'staff')
+    .equalTo('users', user)
+    .first()
+    .then((role) => !!role)
+}
+
 exports.getTicketUrl = (ticket) => {
   return `${config.host}/tickets/${ticket.get('nid')}`
 }

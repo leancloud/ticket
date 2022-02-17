@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useContext } from 'react'
 import { Button, Form, OverlayTrigger, Tooltip } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
@@ -10,6 +10,7 @@ import { useAutoSave } from '../../utils/useAutoSave'
 import styles from './index.module.scss'
 import { MarkdownEditor } from './MarkdownEditor'
 import { QuickReplySelector } from './QuickReplySelector'
+import { AppContext } from '../../context'
 
 function ReplyType({ value, onChange }) {
   const { t } = useTranslation()
@@ -49,7 +50,10 @@ export async function uploadFile(file) {
 
 export function CSReplyEditor({ ticketId, onReply, onOperate }) {
   const { t } = useTranslation()
-  const [replyType, setReplyType] = useState('public')
+  const appContextValue = useContext(AppContext)
+  const { isStaff } = appContextValue
+  console.log(appContextValue)
+  const [replyType, setReplyType] = useState(isStaff ? 'internal' : 'public')
   const [content, setContent] = useAutoSave(`ticket:${ticketId}:reply`)
   const [operating, setOperating] = useState(false)
   const [committing, setCommitting] = useState(false)

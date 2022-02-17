@@ -108,5 +108,4 @@ Evaluation.propTypes = {
     id: PropTypes.string.isRequired,
     evaluation: PropTypes.object,
   }).isRequired,
-  isCustomerService: PropTypes.bool,
 }

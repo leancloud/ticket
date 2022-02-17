@@ -432,12 +432,17 @@ router.post('/:id/replies', async (ctx) => {
 
   const data = replyDataSchema.validateSync(ctx.request.body);
   const isCustomerService = await ticket.isCustomerService(currentUser);
+  const isStaff = await currentUser.isStaff();
+  const isUser = !isCustomerService && !isStaff
 
-  if (data.internal && !isCustomerService) {
-    ctx.throw(403);
+  if (data.internal && isUser) {
+    ctx.throw(403, 'Not internal');
+  }
+  if (!data.internal && isStaff) {
+    ctx.throw(403, 'Public reply not allowed')
   }
   if (!data.content && (!data.fileIds || data.fileIds.length === 0)) {
-    ctx.throw(400, 'content and fileIds cannot be empty at the same time');
+    ctx.throw(400, 'Content and fileIds cannot be empty at the same time');
   }
 
   const reply = await ticket.reply({

@@ -90,6 +90,7 @@ export class User extends Model {
   }
 
   private isCustomerServiceTask?: Promise<boolean>;
+  private isStaffTask?: Promise<boolean>;
 
   static async findById(id: string): Promise<User | undefined> {
     if (id === systemUser.id) {
@@ -143,6 +144,14 @@ export class User extends Model {
       .where('objectId', '==', userId);
     return !!(await query.first({ useMasterKey: true }));
   }
+  static async isStaff(user: string | { id: string }): Promise<boolean> {
+    const userId = typeof user === 'string' ? user : user.id;
+    const csRole = await Role.getStaffRole();
+    const query = User.queryBuilder()
+      .relatedTo(Role, 'users', csRole.id)
+      .where('objectId', '==', userId);
+    return !!(await query.first({ useMasterKey: true }));
+  }
 
   isCustomerService(): Promise<boolean> {
     if (!this.isCustomerServiceTask) {
@@ -156,6 +165,19 @@ export class User extends Model {
       })();
     }
     return this.isCustomerServiceTask;
+  }
+  isStaff(): Promise<boolean> {
+    if (!this.isStaffTask) {
+      this.isStaffTask = (async () => {
+        try {
+          return User.isStaff(this);
+        } catch (error) {
+          delete this.isStaffTask;
+          throw error;
+        }
+      })();
+    }
+    return this.isStaffTask;
   }
 
   getAuthOptions(): AuthOptions {

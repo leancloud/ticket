@@ -16,6 +16,7 @@ const { encodeUserObject, makeTinyUserInfo } = require('../user/utils')
 const { isCustomerService } = require('../customerService/utils')
 const config = require('../../config')
 const Ticket = require('./model')
+const { isStaff } = require('../common')
 
 const TICKET_SORT_KEY_MAP = {
   created_at: 'createdAt',
@@ -58,6 +59,11 @@ async function isCSInTicket(user, author) {
   const userId = typeof user === 'string' ? user : user.id
   const authorId = typeof author === 'string' ? author : author.id
   return userId !== authorId && (await isCustomerService(userId))
+}
+async function isStaffInTicket(user, author) {
+  const userId = typeof user === 'string' ? user : user.id
+  const authorId = typeof author === 'string' ? author : author.id
+  return userId !== authorId && (await isStaff(user))
 }
 
 /**
@@ -396,13 +402,15 @@ router.get(
   catchError(async (req, res) => {
     const { created_at_gt } = req.query
     const isCS = await isCSInTicket(req.user, req.ticket.get('author'))
+    const isStaff = await isStaffInTicket(req.user, req.ticket.get('author'))
+    const isUser = !isCS && !isStaff
 
     let query = new AV.Query('Reply').equalTo('ticket', req.ticket)
     query.doesNotExist('deletedAt')
     if (created_at_gt) {
       query.greaterThan('createdAt', new Date(created_at_gt))
     }
-    if (!isCS) {
+    if (isUser) {
       const nonInternalQuery = AV.Query.or(
         new AV.Query('Reply').doesNotExist('internal'),
         new AV.Query('Reply').equalTo('internal', false)
@@ -422,7 +430,7 @@ router.get(
           ...encodeReplyObject(reply),
           author: encodeUserObject(reply.get('author')),
           files: reply.get('files')?.map(encodeFileObject) || [],
-          internal: isCS ? !!reply.get('internal') : undefined,
+          internal: !isUser ? !!reply.get('internal') : undefined,
         }
       })
     )

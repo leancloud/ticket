@@ -8,7 +8,7 @@ const randomstring = require('randomstring')
 const AV = require('leanengine')
 
 const config = require('../config')
-const { isCustomerService } = require('../api/common')
+const { isStaff } = require('../api/common')
 const {
   getGravatarHash,
   defaultLeanCloudRegion,
@@ -111,7 +111,7 @@ const getStateData = (state) => {
  * 判断该用户是否有权限提交工单
  */
 exports.checkPermission = async (user) => {
-  if (!config.enableLeanCloudIntegration || (await isCustomerService(user))) {
+  if (!config.enableLeanCloudIntegration || (await isStaff(user))) {
     return true
   }
   const userObj = await getUser(user.get('username'))

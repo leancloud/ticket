@@ -196,6 +196,7 @@ class App extends Component {
               currentUser: this.state.currentUser,
               isStaff: props.isStaff,
               isCustomerService: props.isCustomerService,
+              isUser: !props.isStaff && !props.isCustomerService,
               tagMetadatas: props.tagMetadatas,
               addNotification: this.getChildContext().addNotification,
               setCurrentUser: this.setCurrentUser.bind(this),
@@ -205,7 +206,7 @@ class App extends Component {
             <Container className={`${css.main} py-2`}>
               <Switch>
                 <Route path="/" exact>
-                  <Home {...props} />
+                  <Home />
                 </Route>
                 <Route path="/about" component={About} />
                 <Route path="/login">

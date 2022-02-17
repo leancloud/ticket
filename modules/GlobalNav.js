@@ -14,7 +14,7 @@ import EmptyBadge from './components/EmptyBadge'
 
 export default function GlobalNav({ user, onLogout }) {
   const { t } = useTranslation()
-  const { isCustomerService } = useContext(AppContext)
+  const { isUser } = useContext(AppContext)
 
   const handleChangeLanguage = (lang) => {
     i18next.changeLanguage(lang)
@@ -37,7 +37,7 @@ export default function GlobalNav({ user, onLogout }) {
 
         <Navbar.Collapse>
           <Nav className="mr-auto">
-            {isCustomerService ? (
+            {!isUser ? (
               <>
                 <Nav.Link
                   as={Link}

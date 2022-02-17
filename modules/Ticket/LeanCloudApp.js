@@ -6,9 +6,9 @@ import PropTypes from 'prop-types'
 import { cloud, db } from '../../lib/leancloud'
 import { AppContext } from '../context'
 
-export function LeanCloudApp({ ticketId, authorUserame, isCustomerService }) {
+export function LeanCloudApp({ ticketId, authorUserame }) {
   const { t } = useTranslation()
-  const { addNotification } = useContext(AppContext)
+  const { addNotification, isUser } = useContext(AppContext)
   const [appId, setAppId] = useState('')
   const [appName, setAppName] = useState('')
   const [appURL, setAppURL] = useState('')
@@ -37,7 +37,7 @@ export function LeanCloudApp({ ticketId, authorUserame, isCustomerService }) {
         username: authorUserame,
       })
       setAppName(app.app_name)
-      if (isCustomerService) {
+      if (!isUser) {
         const url = await cloud.run('getLeanCloudAppUrl', {
           appId,
           region: app.region,
@@ -47,7 +47,7 @@ export function LeanCloudApp({ ticketId, authorUserame, isCustomerService }) {
         }
       }
     })()
-  }, [appId, authorUserame, isCustomerService])
+  }, [appId, authorUserame, isUser])
 
   if (!appId) {
     return null
@@ -67,5 +67,4 @@ export function LeanCloudApp({ ticketId, authorUserame, isCustomerService }) {
 LeanCloudApp.propTypes = {
   ticketId: PropTypes.string.isRequired,
   authorUserame: PropTypes.string.isRequired,
-  isCustomerService: PropTypes.bool,
 }

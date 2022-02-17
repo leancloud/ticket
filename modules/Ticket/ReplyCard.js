@@ -231,12 +231,8 @@ export function ReplyCard({ data, onDeleted, ticketId, onEdit }) {
           <Time value={data.created_at} href={'#' + data.id} />
         </div>
         <div className="d-flex align-items-center">
-          {data.is_customer_service &&
-            (data.internal ? (
-              <InternalBadge className={css.badge} />
-            ) : (
-              <Badge className={css.badge}>{t('staff')}</Badge>
-            ))}
+          {data.is_customer_service && <Badge className={css.badge}>{t('staff')}</Badge>}
+          {data.internal && <InternalBadge className={css.badge} />}
           {actions && (
             <Dropdown className="ml-2">
               <Dropdown.Toggle className="d-flex" as={MenuIcon} />

@@ -5,6 +5,7 @@ export class Role extends Model {
   protected static className = '_Role';
 
   private static getCustomerServiceRoleTask?: Promise<Role>;
+  private static getStaffRoleTask?: Promise<Role>;
 
   @field()
   name!: string;
@@ -32,5 +33,24 @@ export class Role extends Model {
       })();
     }
     return this.getCustomerServiceRoleTask;
+  }
+
+  static getStaffRole(): Promise<Role> {
+    if (!this.getStaffRoleTask) {
+      this.getStaffRoleTask = (async () => {
+        try {
+          const query = this.queryBuilder().where('name', '==', 'staff');
+          const role = await query.first({ useMasterKey: true });
+          if (!role) {
+            throw new Error('The staff role does not exist');
+          }
+          return role;
+        } catch (error) {
+          delete this.getStaffRoleTask;
+          throw error;
+        }
+      })();
+    }
+    return this.getStaffRoleTask;
   }
 }
