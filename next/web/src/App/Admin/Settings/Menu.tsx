@@ -32,6 +32,10 @@ const routeGroups = [
         path: 'tags',
       },
       {
+        name: '快捷回复',
+        path: 'quick-replies',
+      },
+      {
         name: '视图',
         path: 'views',
       },

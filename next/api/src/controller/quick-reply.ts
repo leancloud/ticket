@@ -13,7 +13,7 @@ import {
   ResponseBody,
   UseMiddlewares,
 } from '@/common/http';
-import { FindModelPipe, ZodValidationPipe } from '@/common/pipe';
+import { FindModelPipe, ParseCsvPipe, ZodValidationPipe } from '@/common/pipe';
 import { auth, customerServiceOnly } from '@/middleware';
 import { ACLBuilder } from '@/orm';
 import { User } from '@/model/User';
@@ -60,13 +60,16 @@ export class QuickReplyController {
 
   @Get()
   @ResponseBody(QuickReplyResponse)
-  findSome(@CurrentUser() currentUser: User, @Query('userId') userId: string | undefined) {
+  findSome(@CurrentUser() currentUser: User, @Query('userId', ParseCsvPipe) userIds?: string[]) {
     const query = QuickReply.queryBuilder();
-    if (userId) {
-      if (userId === 'null') {
-        query.where('owner', 'not-exists');
-      } else {
-        query.where('owner', '==', User.ptr(userId));
+    if (userIds) {
+      if (userIds.includes('null')) {
+        query.orWhere('owner', 'not-exists');
+        userIds = userIds.filter((id) => id !== 'null');
+      }
+      if (userIds.length) {
+        const pointers = userIds.map((id) => User.ptr(id));
+        query.orWhere('owner', 'in', pointers);
       }
     }
     return query.limit(1000).find(currentUser.getAuthOptions());
