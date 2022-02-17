@@ -60,7 +60,7 @@ export default function Settings(props) {
               <ListGroup.Item as="a" href="/next/admin/settings/categories">
                 {t('category')}
               </ListGroup.Item>
-              <ListGroup.Item as="a" to="/next/admin/settings/tags">
+              <ListGroup.Item as="a" href="/next/admin/settings/tags">
                 {t('tag')}
               </ListGroup.Item>
               <ListGroup.Item as={NavLink} to="/settings/quick-replies">
