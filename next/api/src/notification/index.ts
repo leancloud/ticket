@@ -269,7 +269,7 @@ notification.register({
   },
   changeAssignee: ({ ticket, to }) => {
     if (to) {
-      NotificationModel.upsert(ticket.id, [to.id], 'changeAssignee').catch((error) => {
+      NotificationModel.upsertSome(ticket.id, [to.id], 'changeAssignee').catch((error) => {
         // TODO: Sentry
         console.error(error);
       });
@@ -277,7 +277,7 @@ notification.register({
   },
   ticketEvaluation: ({ ticket, to }) => {
     if (to) {
-      NotificationModel.upsert(ticket.id, [to.id], 'ticketEvaluation').catch((error) => {
+      NotificationModel.upsertSome(ticket.id, [to.id], 'ticketEvaluation').catch((error) => {
         // TODO: Sentry
         console.error(error);
       });

@@ -34,6 +34,14 @@ export class ArticleRevision extends Model {
   @serialize()
   comment?: string;
 
+  @field()
+  @serialize()
+  upvote?: number;
+
+  @field()
+  @serialize()
+  downvote?: number;
+
   @pointerId(() => User)
   @serialize()
   authorId!: string;

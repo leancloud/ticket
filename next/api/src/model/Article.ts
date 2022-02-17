@@ -1,13 +1,14 @@
 import mem from 'mem';
 import QuickLRU from 'quick-lru';
+import { Error as LCError } from 'leancloud-storage';
 
-import { ACLBuilder, field, Model, ModifyOptions, serialize } from '@/orm';
+import { ACLBuilder, field, Model, ModifyOptions, pointerId, pointTo, serialize } from '@/orm';
 import { User } from './User';
 import { ArticleRevision } from './ArticleRevision';
 import { ArticleFeedback, FeedbackType } from './ArticleFeedback';
 
 export class Article extends Model {
-  protected static className = 'FAQ';
+  static readonly className = 'FAQ';
 
   @field('question')
   @serialize()
@@ -25,6 +26,13 @@ export class Article extends Model {
   @field()
   deletedAt?: Date;
 
+  @pointerId(() => ArticleRevision)
+  @serialize()
+  revisionId?: string;
+
+  @pointTo(() => ArticleRevision)
+  revision?: ArticleRevision;
+
   async delete(this: Article, options?: ModifyOptions) {
     await this.update(
       {
@@ -37,6 +45,7 @@ export class Article extends Model {
   }
 
   async createRevision(
+    this: Article,
     author: User,
     updatedArticle: Article,
     previousArticle?: Article,
@@ -61,10 +70,18 @@ export class Article extends Model {
       updatedArticle.content !== previousArticle?.content ||
       updatedArticle.title !== previousArticle?.title;
     if (contentChanged) {
-      await doCreateRevision({
+      const revision = await doCreateRevision({
         content: updatedArticle.content,
         title: updatedArticle.title,
       });
+      this.update(
+        {
+          revisionId: revision.id,
+        },
+        {
+          useMasterKey: true,
+        }
+      );
     }
 
     const metaChanged =
@@ -78,50 +95,27 @@ export class Article extends Model {
     }
   }
 
-  private async getLatestRevision() {
-    const revision = await ArticleRevision.queryBuilder()
-      .where('FAQ', '==', this.toPointer())
-      .where('meta', '!=', true)
-      .orderBy('createdAt')
-      .first({ useMasterKey: true });
-    if (!revision) {
+  async feedback(type: FeedbackType, author: User) {
+    const { revisionId } = this;
+    if (!revisionId) {
       throw new Error('Revision not found');
     }
-    return revision;
-  }
-
-  async feedback(type: FeedbackType, author: User) {
-    const revision = await this.getLatestRevision();
-    try {
-      return await ArticleFeedback.create(
-        {
-          type,
-          revisionId: revision.id,
-          articleId: this.id,
-          authorId: author.id,
-        },
-        { useMasterKey: true }
-      );
-    } catch (error) {
-      if (error instanceof Error) {
-        if ((error as any).code === 137) {
-          const feedback = await ArticleFeedback.queryBuilder()
-            .where('revision', '==', revision.toPointer())
-            .where('author', '==', author.toPointer())
-            .first({ useMasterKey: true });
-          if (!feedback) {
-            throw new Error('Deplucated value detected but no matched feedback.');
-          }
-          return await feedback.update(
-            {
-              type,
-            },
-            { useMasterKey: true }
-          );
-        }
-      }
-      throw error;
-    }
+    await ArticleFeedback.upsert(
+      {
+        type,
+        revisionId,
+        articleId: this.id,
+        authorId: author.id,
+      },
+      (queryBuilder) =>
+        queryBuilder
+          .where('revision', '==', ArticleRevision.ptr(revisionId))
+          .where('author', '==', author.toPointer()),
+      {
+        type,
+      },
+      { useMasterKey: true }
+    );
   }
 }
 

@@ -90,7 +90,7 @@ OpsLog 没有索引，在自用的 LeanTicket 上 40000+ 的数据量已经出�
 
 ### `f400cdc73c0328bb74bf934a17c370c127b4000e`
 
-重新导入 notification.json 。并确保 notification 表有这个索引： 
+重新导入 notification.json 。并确保 notification 表有这个索引：
 
 - user（正序）联合 latestActionAt（倒序）
 
@@ -173,7 +173,6 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 
 已删除「动态内容」功能，可以删除 DynamicContent class。
 
-
 ## 2022-01-21
 
 ### `994965592e35bddb846b894876888aef9577a6f9`
@@ -194,7 +193,15 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 
 ### `TBD`
 
+重新导入 FAQ.json，FAQRevision.json。
+
 导入 FAQFeedback.json，确保 FAQFeedback 有以下两个索引：
 
-- revision（倒序）author（倒序），唯一
-- FAQ（倒序）updatedAt（倒序）
+- revision（倒序）author（倒序），唯一，不允许为空
+- revision（倒序）type（倒序）
+
+## 2022-02-15
+
+### `TBD`
+
+创建定时任务 analyzeArticles `58 * * * *`

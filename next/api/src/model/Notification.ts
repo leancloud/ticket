@@ -35,7 +35,7 @@ export class Notification extends Model {
   @field()
   latestActionAt?: Date;
 
-  static async upsert(ticketId: string, userIds: string[], latestAction: LatestAction) {
+  static async upsertSome(ticketId: string, userIds: string[], latestAction: LatestAction) {
     userIds = _.uniq(userIds);
 
     const notifications = await this.queryBuilder()

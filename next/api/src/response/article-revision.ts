@@ -1,10 +1,11 @@
 import { ArticleRevision } from '@/model/ArticleRevision';
+import { User } from '@/model/User';
 import htmlify from '@/utils/htmlify';
 import xss from '@/utils/xss';
 import { UserResponse } from './user';
 
 export class ArticleRevisionListItemResponse {
-  constructor(readonly revision: ArticleRevision) {}
+  constructor(readonly revision: ArticleRevision, readonly includeRating = false) {}
 
   toJSON() {
     return {
@@ -14,6 +15,8 @@ export class ArticleRevisionListItemResponse {
       title: this.revision.title,
       author: this.revision.author ? new UserResponse(this.revision.author) : undefined,
       comment: this.revision.comment,
+      upvote: this.includeRating ? this.revision.upvote : undefined,
+      downvote: this.includeRating ? this.revision.downvote : undefined,
       createdAt: this.revision.createdAt.toISOString(),
       updatedAt: this.revision.updatedAt.toISOString(),
     };

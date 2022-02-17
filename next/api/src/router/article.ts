@@ -42,6 +42,9 @@ router.get('/', pagination(20), async (ctx) => {
     query.where('objectId', 'in', id);
   }
 
+  // guard by Revision ACL
+  query.preload('revision');
+
   const articles = ctx.query.count
     ? await query
         .findAndCount({
@@ -123,6 +126,7 @@ const getRevisionsSchema = yup.object({
 });
 
 router.get('/:id/revisions', auth, customerServiceOnly, pagination(100), async (ctx) => {
+  const currentUser = ctx.state.currentUser as User;
   const article = ctx.state.article as Article;
   const { meta } = getRevisionsSchema.validateSync(ctx.query);
 
@@ -144,7 +148,10 @@ router.get('/:id/revisions', auth, customerServiceOnly, pagination(100), async (
     return data;
   });
 
-  ctx.body = revisions.map((revision) => new ArticleRevisionListItemResponse(revision));
+  const includeRating = await currentUser.isCustomerService();
+  ctx.body = revisions.map(
+    (revision) => new ArticleRevisionListItemResponse(revision, includeRating)
+  );
 });
 
 router.param('rid', async (rid, ctx, next) => {
