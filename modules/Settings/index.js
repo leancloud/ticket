@@ -8,8 +8,6 @@ import Profile from './Profile'
 import Organization from './Organization'
 import Organizations from './Organizations'
 import OrganizationNew from './OrganizationNew'
-import Tags from './Tags'
-import Tag from './Tag'
 import FAQs from './FAQs'
 import FAQ from './FAQ'
 import CategorySort from './CategorySort'
@@ -62,7 +60,7 @@ export default function Settings(props) {
               <ListGroup.Item as="a" href="/next/admin/settings/categories">
                 {t('category')}
               </ListGroup.Item>
-              <ListGroup.Item as={NavLink} to="/settings/tags">
+              <ListGroup.Item as="a" href="/next/admin/settings/tags">
                 {t('tag')}
               </ListGroup.Item>
               <ListGroup.Item as={NavLink} to="/settings/quick-replies">
@@ -94,12 +92,6 @@ export default function Settings(props) {
           </Route>
           <Route path={`${path}/organizations/:id`}>
             <Organization {...childrenProps} />
-          </Route>
-          <Route path={`${path}/tags`} exact>
-            <Tags {...childrenProps} />
-          </Route>
-          <Route path={`${path}/tags/:id`}>
-            <Tag {...childrenProps} />
           </Route>
           <Route path={`${path}/articles`} exact>
             <FAQs {...childrenProps} />
