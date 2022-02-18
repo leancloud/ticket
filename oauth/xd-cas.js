@@ -44,12 +44,12 @@ module.exports = (router) => {
                   .first({ useMasterKey: true })
                 if (emailMatchedUser) {
                   // fetch to get the sessionToken
-                  await emailMatchedUser.fetch({ keys: 'sessionToken' }, { useMasterKey: true })
                   emailMatchedUser
                     .set('password', randomstring.generate())
                     .set('name', realname)
                     .set('authData', { xd_cas: { uid: userId, access_token: accessToken } })
                   await emailMatchedUser.save(undefined, { useMasterKey: true })
+                  await emailMatchedUser.fetch({ keys: 'sessionToken' }, { useMasterKey: true })
                   console.log('email matched', emailMatchedUser.id)
                   return done(undefined, emailMatchedUser)
                 }
