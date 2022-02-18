@@ -144,6 +144,7 @@ export class User extends Model {
       .where('objectId', '==', userId);
     return !!(await query.first({ useMasterKey: true }));
   }
+
   static async isStaff(user: string | { id: string }): Promise<boolean> {
     const userId = typeof user === 'string' ? user : user.id;
     const csRole = await Role.getStaffRole();
@@ -166,6 +167,7 @@ export class User extends Model {
     }
     return this.isCustomerServiceTask;
   }
+
   isStaff(): Promise<boolean> {
     if (!this.isStaffTask) {
       this.isStaffTask = (async () => {

@@ -52,7 +52,6 @@ export function CSReplyEditor({ ticketId, onReply, onOperate }) {
   const { t } = useTranslation()
   const appContextValue = useContext(AppContext)
   const { isStaff } = appContextValue
-  console.log(appContextValue)
   const [replyType, setReplyType] = useState(isStaff ? 'internal' : 'public')
   const [content, setContent] = useAutoSave(`ticket:${ticketId}:reply`)
   const [operating, setOperating] = useState(false)
