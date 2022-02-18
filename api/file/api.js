@@ -15,7 +15,7 @@ router.get(
     const { id } = req.query
     const query = new AV.Query('_File')
     query.containedIn('objectId', id.split(','))
-    const files = await query.find()
+    const files = await query.find({ useMasterKey: true })
     res.json(files.map(encodeFileObject))
   })
 )

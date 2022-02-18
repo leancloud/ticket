@@ -8,10 +8,6 @@ import Profile from './Profile'
 import Organization from './Organization'
 import Organizations from './Organizations'
 import OrganizationNew from './OrganizationNew'
-import FAQs from './FAQs'
-import FAQ from './FAQ'
-import CategorySort from './CategorySort'
-import QuickReplies from './QuickReply'
 
 export default function Settings(props) {
   const { path } = useRouteMatch()
@@ -63,7 +59,7 @@ export default function Settings(props) {
               <ListGroup.Item as="a" href="/next/admin/settings/tags">
                 {t('tag')}
               </ListGroup.Item>
-              <ListGroup.Item as={NavLink} to="/settings/quick-replies">
+              <ListGroup.Item as="a" href="/next/admin/settings/quick-replies">
                 {t('quickReply')}
               </ListGroup.Item>
               <ListGroup.Item as="a" href="/next/admin/settings/articles">
@@ -92,18 +88,6 @@ export default function Settings(props) {
           </Route>
           <Route path={`${path}/organizations/:id`}>
             <Organization {...childrenProps} />
-          </Route>
-          <Route path={`${path}/articles`} exact>
-            <FAQs {...childrenProps} />
-          </Route>
-          <Route path={`${path}/articles/:id`}>
-            <FAQ {...childrenProps} />
-          </Route>
-          <Route path={`${path}/categorySort`}>
-            <CategorySort {...childrenProps} />
-          </Route>
-          <Route path={`${path}/quick-replies`}>
-            <QuickReplies />
           </Route>
           <Redirect exact from={path} to={`${path}/profile`} />
         </Switch>
