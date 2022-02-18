@@ -1,13 +1,15 @@
-import React, { useState } from 'react'
+import React, { useState, useContext } from 'react'
 import { Alert, Button, Form } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 
 import { TICKET_STATUS, ticketStatus } from '../../lib/common'
+import { AppContext } from '../context'
 
-export function TicketOperation({ ticket, isCustomerService, onOperate }) {
+export function TicketOperation({ ticket, onOperate }) {
   const { t } = useTranslation()
   const [operating, setOperating] = useState(false)
+  const { isUser } = useContext(AppContext)
 
   const operate = async (action) => {
     setOperating(true)
@@ -35,7 +37,7 @@ export function TicketOperation({ ticket, isCustomerService, onOperate }) {
       </Form.Group>
     )
   }
-  if (!isCustomerService && ticket.status === TICKET_STATUS.PRE_FULFILLED) {
+  if (isUser && ticket.status === TICKET_STATUS.PRE_FULFILLED) {
     return (
       <Alert variant="warning">
         <Form.Label>{t('confirmResolved')}</Form.Label>
@@ -65,5 +67,4 @@ export function TicketOperation({ ticket, isCustomerService, onOperate }) {
 TicketOperation.propTypes = {
   ticket: PropTypes.object.isRequired,
   onOperate: PropTypes.func.isRequired,
-  isCustomerService: PropTypes.bool,
 }

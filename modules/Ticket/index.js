@@ -256,9 +256,9 @@ function useOpsLogs(ticketId) {
   return { opsLogs, loadMoreOpsLogs }
 }
 
-function TicketInfo({ ticket, isCustomerService }) {
+function TicketInfo({ ticket }) {
   const { t } = useTranslation()
-  const { addNotification } = useContext(AppContext)
+  const { addNotification, isUser } = useContext(AppContext)
   const createdAt = useMemo(() => moment(ticket.created_at), [ticket.created_at])
   const updatedAt = useMemo(() => moment(ticket.updated_at), [ticket.updated_at])
   const queryClient = useQueryClient()
@@ -276,7 +276,7 @@ function TicketInfo({ ticket, isCustomerService }) {
       <span className={csCss.nid}>#{ticket.nid}</span>
       <TicketStatusLabel status={ticket.status} />
       <span className="ml-2">
-        <UserLabel user={ticket.author} displayTags={isCustomerService} /> {t('createdAt')}{' '}
+        <UserLabel user={ticket.author} displayTags={!isUser} /> {t('createdAt')}{' '}
         <span title={createdAt.format()}>{createdAt.fromNow()}</span>
         {createdAt.fromNow() !== updatedAt.fromNow() && (
           <>
@@ -285,7 +285,7 @@ function TicketInfo({ ticket, isCustomerService }) {
           </>
         )}
       </span>
-      {isCustomerService && (
+      {!isUser && (
         <OverlayTrigger
           placement="right"
           overlay={
@@ -316,7 +316,6 @@ TicketInfo.propTypes = {
     created_at: PropTypes.string.isRequired,
     updated_at: PropTypes.string.isRequired,
   }),
-  isCustomerService: PropTypes.bool,
 }
 
 function Timeline({ data, onReplyDeleted, ticketId, onEditReply }) {
@@ -347,7 +346,7 @@ export default function Ticket() {
   } = useRouteMatch()
   const { t } = useTranslation()
   const appContextValue = useContext(AppContext)
-  const { addNotification, currentUser, isCustomerService } = appContextValue
+  const { addNotification, currentUser, isStaff, isCustomerService, isUser } = appContextValue
   const { ticket, isLoading: loadingTicket, refetchTicket, error } = useTicket(nid)
   const { replies, loadMoreReplies, deleteReply, reloadReplies, replyLoading } = useReplies(
     ticket?.id
@@ -386,7 +385,7 @@ export default function Ticket() {
   })
 
   const showRecentTickets = useMemo(() => {
-    if (!ticket || replyLoading || !isCustomerService) {
+    if (!ticket || replyLoading || isUser) {
       return false
     }
     if (ticketStatus.isClosed(ticket.status)) {
@@ -394,11 +393,11 @@ export default function Ticket() {
     }
     const staffReplies = replies.filter((reply) => reply.is_customer_service)
     return staffReplies.length === 0
-  }, [ticket, replyLoading, replies, isCustomerService])
+  }, [ticket, replyLoading, replies, isUser])
 
   const editModalRef = useRef(null)
 
-  const isCsInThisTicket = isCustomerService && ticket?.author_id !== currentUser.id
+  const isUserInThisTicket = isUser || ticket?.author_id === currentUser.id
   if (loadingTicket) {
     return <div>{t('loading') + '...'}</div>
   }
@@ -407,13 +406,13 @@ export default function Ticket() {
     return error.message
   }
   return (
-    <AppContext.Provider value={{ ...appContextValue, isCustomerService: isCsInThisTicket }}>
+    <AppContext.Provider value={{ ...appContextValue, isUser: isUserInThisTicket }}>
       <EditReplyModal ref={editModalRef} isSaving={updatingReply} onSave={updateReply} />
 
       <div className="mt-3">
-        {!isCsInThisTicket && <WeekendWarning />}
+        {isUser && <WeekendWarning />}
         <h1>{ticket.title}</h1>
-        <TicketInfo ticket={ticket} isCustomerService={isCsInThisTicket} />
+        <TicketInfo ticket={ticket} />
         <hr />
       </div>
 
@@ -439,11 +438,11 @@ export default function Ticket() {
           )}
           <hr />
           <div>
-            {isCsInThisTicket ? (
+            {!isUser ? (
               <>
                 {ticket.evaluation && (
                   <>
-                    <Evaluation ticket={ticket} isCustomerService={true} />
+                    <Evaluation ticket={ticket} />
                     <hr />
                   </>
                 )}
@@ -457,31 +456,21 @@ export default function Ticket() {
             ) : ticketStatus.isOpened(ticket.status) ? (
               <TicketReply ticketId={ticket.id} onReply={replyTicket} />
             ) : (
-              <Evaluation ticket={ticket} isCustomerService={false} />
+              <Evaluation ticket={ticket} />
             )}
           </div>
         </Col>
 
         <Col className={css.sidebar} sm={4}>
           {window.ENABLE_LEANCLOUD_INTEGRATION && (
-            <LeanCloudApp
-              ticketId={ticket.id}
-              authorUserame={ticket.author.username}
-              isCustomerService={isCsInThisTicket}
-            />
+            <LeanCloudApp ticketId={ticket.id} authorUserame={ticket.author.username} />
           )}
 
-          <TicketMetadata
-            ticket={ticket}
-            isCustomerService={isCsInThisTicket}
-            loadMoreOpsLogs={loadMoreOpsLogs}
-          />
+          <TicketMetadata ticket={ticket} loadMoreOpsLogs={loadMoreOpsLogs} />
 
-          <TicketOperation
-            ticket={ticket}
-            isCustomerService={isCsInThisTicket}
-            onOperate={operateTicket}
-          />
+          {(!isStaff || isCustomerService) && (
+            <TicketOperation ticket={ticket} onOperate={operateTicket} />
+          )}
         </Col>
       </Row>
     </AppContext.Provider>

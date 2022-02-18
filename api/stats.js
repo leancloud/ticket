@@ -7,7 +7,7 @@ const throat = require('throat').default
 const forEachAVObject = require('./common').forEachAVObject
 
 const { TICKET_STATUS, TICKET_OPENED_STATUSES } = require('../lib/common')
-const { isCustomerService } = require('./common')
+const { isStaff } = require('./common')
 
 AV.Cloud.define('statsOpenedTicket', (req, res) => {
   res.success()
@@ -269,7 +269,7 @@ const sumProperty = (obj, other, property) => {
 }
 
 AV.Cloud.define('getStats', async (req) => {
-  if (!(await isCustomerService(req.currentUser))) {
+  if (!(await isStaff(req.currentUser))) {
     throw new AV.Cloud.Error('Forbidden', { status: 403 })
   }
   let { start, end, timeUnit } = req.params

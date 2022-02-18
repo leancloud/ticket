@@ -54,13 +54,13 @@
     },
     "find": {
       "roles": [
-        "customerService"
+        "staff"
       ],
       "users": []
     },
     "get": {
       "roles": [
-        "customerService"
+        "staff"
       ],
       "users": []
     },

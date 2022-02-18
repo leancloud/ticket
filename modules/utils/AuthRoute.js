@@ -1,11 +1,11 @@
 /* eslint-disable promise/always-return */
 /* eslint-disable react/prop-types */
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useContext } from 'react'
 import { Route, useHistory, useLocation } from 'react-router-dom'
 import { auth } from '../../lib/leancloud'
-import { isCustomerService } from '../common'
 import Login from '../Login'
+import { AppContext } from '../context'
 
 function BasicAuthWrapper({ children }) {
   const history = useHistory()
@@ -31,27 +31,22 @@ function BasicAuthWrapper({ children }) {
 }
 
 function CSAuthWrapper({ children }) {
-  const history = useHistory()
   const [pass, setPass] = useState(false)
   const [error, setError] = useState()
+
+  const { isUser } = useContext(AppContext)
 
   useEffect(() => {
     setPass(false)
     setError()
-    isCustomerService(auth.currentUser)
-      .then((isCS) => {
-        if (isCS) {
-          setPass(true)
-        } else {
-          const err = new Error()
-          err.code = 'requireCustomerServiceAuth'
-          setError(err)
-        }
-      })
-      .catch((err) => {
-        setError(err)
-      })
-  }, [history])
+    if (!isUser) {
+      setPass(true)
+    } else {
+      const err = new Error()
+      err.code = 'requireCustomerServiceAuth'
+      setError(err)
+    }
+  }, [isUser])
 
   if (pass) {
     return children
