@@ -5,16 +5,33 @@ import { useSearchParams } from '@/utils/useSearchParams';
 export interface Filters {
   assigneeId?: string[];
   groupId?: string[];
+  tagKey?: string;
+  tagValue?: string;
+  privateTagKey?: string;
+  privateTagValue?: string;
   createdAt?: string;
   rootCategoryId?: string;
   status?: number[];
 }
 
 export function useLocalFilters() {
-  const [{ assigneeId, groupId, createdAt, rootCategoryId, status }, { merge }] = useSearchParams();
+  const [
+    {
+      assigneeId,
+      groupId,
+      tagKey,
+      tagValue,
+      privateTagKey,
+      privateTagValue,
+      createdAt,
+      rootCategoryId,
+      status,
+    },
+    { merge },
+  ] = useSearchParams();
 
   const filters = useMemo(() => {
-    const filters: Filters = {};
+    const filters: Filters = { tagKey, tagValue, privateTagKey, privateTagValue };
 
     if (assigneeId) {
       filters.assigneeId = assigneeId.split(',');
@@ -40,11 +57,22 @@ export function useLocalFilters() {
     }
 
     return filters;
-  }, [assigneeId, groupId, createdAt, rootCategoryId, status]);
+  }, [
+    assigneeId,
+    groupId,
+    tagKey,
+    tagValue,
+    privateTagKey,
+    privateTagValue,
+    createdAt,
+    rootCategoryId,
+    status,
+  ]);
 
   const set = useCallback(
     (filters: Filters) => {
-      let params = {
+      const params: Record<string, string | undefined> = {
+        ...filters,
         assigneeId: filters.assigneeId?.map((id) => (id === null ? 'null' : id)).join(','),
         groupId: filters.groupId?.map((id) => (id === null ? 'null' : id)).join(','),
         createdAt: filters.createdAt,
