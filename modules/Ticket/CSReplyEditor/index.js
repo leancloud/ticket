@@ -51,7 +51,7 @@ export async function uploadFile(file) {
 export function CSReplyEditor({ ticketId, onReply, onOperate }) {
   const { t } = useTranslation()
   const appContextValue = useContext(AppContext)
-  const { isStaff } = appContextValue
+  const { isStaff, isCustomerService } = appContextValue
   const [replyType, setReplyType] = useState(isStaff ? 'internal' : 'public')
   const [content, setContent] = useAutoSave(`ticket:${ticketId}:reply`)
   const [operating, setOperating] = useState(false)
@@ -112,44 +112,54 @@ export function CSReplyEditor({ ticketId, onReply, onOperate }) {
 
       <div className="d-flex justify-content-between my-2">
         <div>
-          <QuickReplySelector
-            onChange={({ content, fileIds }) => {
-              setContent(content)
-              clear()
-              setDefaultFileIds(fileIds)
-            }}
-          />
+          {isCustomerService && (
+            <QuickReplySelector
+              onChange={({ content, fileIds }) => {
+                setContent(content)
+                clear()
+                setDefaultFileIds(fileIds)
+              }}
+            />
+          )}
         </div>
 
         <div>
-          <OverlayTrigger
-            placement="top"
-            overlay={
-              <Tooltip>
-                {t('changedTicketStatusTo')} {t('statusWaitingCustomer')}
-              </Tooltip>
-            }
-          >
-            <Button
-              variant="light"
-              disabled={operating}
-              onClick={() => handleOperate('replyWithNoContent')}
-            >
-              {t('noNeedToReply')}
-            </Button>
-          </OverlayTrigger>{' '}
-          <OverlayTrigger
-            placement="top"
-            overlay={
-              <Tooltip>
-                {t('changedTicketStatusTo')} {t('statusWaitingCustomerService')}
-              </Tooltip>
-            }
-          >
-            <Button variant="light" disabled={operating} onClick={() => handleOperate('replySoon')}>
-              {t('replyLater')}
-            </Button>
-          </OverlayTrigger>{' '}
+          {isCustomerService && (
+            <>
+              <OverlayTrigger
+                placement="top"
+                overlay={
+                  <Tooltip>
+                    {t('changedTicketStatusTo')} {t('statusWaitingCustomer')}
+                  </Tooltip>
+                }
+              >
+                <Button
+                  variant="light"
+                  disabled={operating}
+                  onClick={() => handleOperate('replyWithNoContent')}
+                >
+                  {t('noNeedToReply')}
+                </Button>
+              </OverlayTrigger>{' '}
+              <OverlayTrigger
+                placement="top"
+                overlay={
+                  <Tooltip>
+                    {t('changedTicketStatusTo')} {t('statusWaitingCustomerService')}
+                  </Tooltip>
+                }
+              >
+                <Button
+                  variant="light"
+                  disabled={operating}
+                  onClick={() => handleOperate('replySoon')}
+                >
+                  {t('replyLater')}
+                </Button>
+              </OverlayTrigger>{' '}
+            </>
+          )}
           <Button
             className={styles.submit}
             variant="success"
