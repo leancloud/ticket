@@ -45,7 +45,7 @@ export interface FetchTicketsResult {
   totalCount: number;
 }
 
-export async function fetchTickets({
+async function fetchTickets({
   page = 1,
   pageSize = 10,
   orderKey = 'createdAt',
@@ -56,7 +56,6 @@ export async function fetchTickets({
     page,
     pageSize,
     count: 1,
-    include: 'author,assignee,group',
     orderBy: `${orderKey}-${orderType}`,
   };
 
