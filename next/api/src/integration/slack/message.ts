@@ -3,24 +3,21 @@ import type { Ticket } from '@/model/Ticket';
 import type { User } from '@/model/User';
 
 export class Message {
-  readonly content: string;
-
   protected color?: string;
 
-  constructor(readonly summary: string, content: string) {
-    if (content.length > 1000) {
-      content = content.slice(0, 1000) + '...';
-    }
-    this.content = content;
-  }
+  constructor(readonly summary: string, protected content: string, protected details?: string) {}
 
-  toJSON() {
+  toJSON(detailed = true) {
+    let text = [this.content].concat(detailed && this.details ? [this.details] : []).join('\n\n');
+    if (text.length > 1000) {
+      text = text.slice(0, 1000) + '...';
+    }
     const blocks = [
       {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: this.content,
+          text,
         },
       },
     ];
@@ -45,7 +42,7 @@ export class NewTicketMessage extends Message {
     if (assignee) {
       summary += `给 ${assignee.getDisplayName()}`;
     }
-    super(summary, `${getTicketLink(ticket)}\n\n${ticket.content}`);
+    super(summary, getTicketLink(ticket), ticket.content);
   }
 }
 
@@ -54,10 +51,7 @@ export class ChangeAssigneeMessage extends Message {
     const assigneeName = assignee ? assignee.getDisplayName() : '<未分配>';
     const summary = `:arrows_counterclockwise: ${operator.getDisplayName()} 将工单转移给 ${assigneeName}`;
     let content = getTicketLink(ticket);
-    if (ticket.latestReply) {
-      content += '\n\n' + ticket.latestReply.content;
-    }
-    super(summary, content);
+    super(summary, content, ticket.latestReply?.content);
   }
 }
 
@@ -65,7 +59,8 @@ export class ReplyTicketMessage extends Message {
   constructor(ticket: Ticket, reply: Reply, author: User) {
     super(
       `:speech_balloon: ${author.getDisplayName()} 回复工单`,
-      `${getTicketLink(ticket)}\n\n${reply.content}`
+      getTicketLink(ticket),
+      reply.content
     );
   }
 }
@@ -74,7 +69,8 @@ export class InternalReplyMessage extends Message {
   constructor(ticket: Ticket, reply: Reply, author: User) {
     super(
       `:shushing_face: ${author.getDisplayName()} 提交内部回复`,
-      `${getTicketLink(ticket)}\n\n${reply.content}`
+      getTicketLink(ticket),
+      reply.content
     );
     this.color = '#f2c744';
   }
@@ -107,9 +103,6 @@ export class DelayNotifyMessage extends Message {
   constructor(ticket: Ticket, assignee?: User) {
     const assigneeName = assignee ? assignee.getDisplayName() : '<未分配>';
     let content = getTicketLink(ticket);
-    if (ticket.latestReply) {
-      content += '\n\n' + ticket.latestReply.content;
-    }
-    super(`:alarm_clock: 提醒 ${assigneeName} 回复工单`, content);
+    super(`:alarm_clock: 提醒 ${assigneeName} 回复工单`, content, ticket.latestReply?.content);
   }
 }

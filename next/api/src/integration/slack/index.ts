@@ -66,13 +66,13 @@ class SlackIntegration {
     return channel.id;
   }
 
-  send(channel: string, message: Message) {
-    return this.client.chat.postMessage({ ...message.toJSON(), channel });
+  send(channel: string, message: Message, detailed = true) {
+    return this.client.chat.postMessage({ ...message.toJSON(detailed), channel });
   }
 
   broadcast(message: Message) {
     if (this.broadcastChannelId) {
-      return this.send(this.broadcastChannelId, message);
+      return this.send(this.broadcastChannelId, message, false);
     }
   }
 
