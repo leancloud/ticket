@@ -9,18 +9,9 @@ export interface TicketSchema {
   nid: number;
   title: string;
   categoryId: string;
-  author: {
-    id: string;
-    nickname: string;
-  };
-  assignee?: {
-    id: string;
-    nickname: string;
-  };
-  group?: {
-    id: string;
-    name: string;
-  };
+  authorId: string;
+  assigneeId?: string;
+  groupId?: string;
   status: number;
   createdAt: string;
   updatedAt: string;
