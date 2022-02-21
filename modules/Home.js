@@ -5,19 +5,21 @@ import { AppContext } from './context'
 
 export default function Home() {
   const history = useHistory()
-  const { isUser } = useContext(AppContext)
+  const { isStaff, isCustomerService } = useContext(AppContext)
 
   useEffect(() => {
     if (!auth.currentUser) {
       history.replace('/login')
       return
     }
-    if (!isUser) {
-      history.replace('/customerService/tickets?assignee=me&stage=todo')
-    } else {
-      history.replace('/tickets')
+    if (isCustomerService) {
+      return history.replace('/customerService/tickets?assignee=me&stage=todo')
     }
-  }, [history, isUser])
+    if (isStaff) {
+      return history.replace('/customerService/tickets')
+    }
+    history.replace('/tickets')
+  }, [history, isCustomerService, isStaff])
 
   return <div>Home</div>
 }
