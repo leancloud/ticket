@@ -130,7 +130,7 @@ router.get(
       query.preload('assignee');
     }
     if (params.includeGroup) {
-      if (!(await currentUser.isCustomerService())) {
+      if (!(await currentUser.isStaff())) {
         ctx.throw(403);
       }
       query.preload('group');

@@ -339,12 +339,12 @@ router.get(
       getWatchObject(req.user, ticket),
     ])
 
-    const keys = ['author', 'assignee', 'files', 'group']
+    const keys = ['author', 'assignee', 'files', 'group', 'ACL']
     const include = ['author', 'assignee', 'files', 'group']
     if (isCS) {
       keys.push('privateTags')
     }
-    await ticket.fetch({ keys, include }, { user: req.user, useMasterKey: isCS })
+    await ticket.fetch({ keys, include, includeACL: true }, { user: req.user, useMasterKey: isCS })
 
     res.json({
       id: ticket.id,
@@ -373,6 +373,7 @@ router.get(
       reply_count: ticket.get('replyCount') || 0,
       latest_reply: encodeLatestReply(ticket.get('latestReply')),
       subscribed: !!watch,
+      private: ticket.getACL() ? !ticket.getACL().getRoleReadAccess('staff') : undefined,
     })
 
     resetUnreadCount(ticket, req.user)
@@ -568,6 +569,7 @@ router.patch(
       )
     }),
   check('subscribed').isBoolean().optional(),
+  check('private').isBoolean().optional(),
   catchError(async (req, res) => {
     const {
       group_id,
@@ -578,11 +580,13 @@ router.patch(
       private_tags,
       evaluation,
       subscribed,
+      private: prvt,
     } = req.body
+    const isCS = await isCSInTicket(req.user, req.ticket.get('author').id)
+    await req.ticket.fetch({ includeACL: true }, { useMasterKey: true })
+
     const ticket = new Ticket(req.ticket)
     const originalTicket = getEventTicket(ticket)
-
-    const isCS = await isCSInTicket(req.user, ticket.author_id)
 
     if (group_id || group_id === '') {
       if (!isCS) {
@@ -669,6 +673,10 @@ router.patch(
       if (!subscribed && watch) {
         await watch.destroy({ user: req.user })
       }
+    }
+
+    if (prvt !== undefined) {
+      ticket.prvt = prvt
     }
 
     await ticket.save({ operator: req.user })
