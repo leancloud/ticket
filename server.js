@@ -55,7 +55,7 @@ if (process.env.MAINTENANCE_MODE) {
 
   app.disable('x-powered-by')
   app.enable('trust proxy')
-  app.use(AV.Cloud.HttpsRedirect())
+
 
   app.use(express.static(path.join(__dirname, 'public')))
   app.use(express.json())
