@@ -1,18 +1,22 @@
-import { ComponentPropsWithoutRef, memo, useMemo } from 'react';
+import { ComponentPropsWithoutRef, useMemo } from 'react';
 import { BsPersonPlus } from 'react-icons/bs';
 import cx from 'classnames';
 import moment from 'moment';
+import { keyBy, uniq } from 'lodash-es';
 
 import { CategorySchema, useCategories } from '@/api/category';
+import { useCustomerServices } from '@/api/customer-service';
+import { useGroups } from '@/api/group';
 import { TicketSchema } from '@/api/ticket';
+import { useUsers } from '@/api/user';
 import { Checkbox } from '@/components/antd';
 import Status from '../TicketStatus';
 import style from './index.module.css';
 
-function Name({ children }: { children?: string }) {
+function Name({ children, loading }: { children: string; loading?: boolean }) {
   return (
     <div className="max-w-[86px] truncate" title={children}>
-      {children ?? '--'}
+      {loading ? 'Loading...' : children}
     </div>
   );
 }
@@ -69,9 +73,26 @@ export interface TicketListProps {
   onChangeChecked: (id: string, checked: boolean) => void;
 }
 
-export const TicketList = memo(({ tickets, checkedIds, onChangeChecked }: TicketListProps) => {
+export function TicketList({ tickets, checkedIds, onChangeChecked }: TicketListProps) {
   const checkedIdSet = useMemo(() => new Set(checkedIds), [checkedIds]);
+
+  const userIds = useMemo(() => uniq(tickets.map((t) => t.authorId)), [tickets]);
+  const { data: users, isLoading: loadingUsers } = useUsers({
+    id: userIds,
+    queryOptions: {
+      enabled: userIds.length > 0,
+      staleTime: 1000 * 60,
+    },
+  });
+  const userById = useMemo(() => keyBy(users, 'id'), [users]);
+
   const getCategoryPath = useGetCategoryPath();
+
+  const { data: groups, isLoading: loadingGroups } = useGroups();
+  const groupById = useMemo(() => keyBy(groups, 'id'), [groups]);
+
+  const { data: assignees, isLoading: loadingAssignees } = useCustomerServices();
+  const assigneeById = useMemo(() => keyBy(assignees, 'id'), [assignees]);
 
   return (
     <>
@@ -116,7 +137,7 @@ export const TicketList = memo(({ tickets, checkedIds, onChangeChecked }: Ticket
                   <span className={`${style.nid} shrink-0 ml-1 text-[#6f7c87]`}>#{ticket.nid}</span>
                 </a>
                 <div className="flex items-center mt-1">
-                  <Name>{ticket.author.nickname}</Name>
+                  <Name loading={loadingUsers}>{userById[ticket.authorId]?.nickname ?? '--'}</Name>
                   <div
                     className={`${style.time} text-[#6f7c87] whitespace-nowrap`}
                     title={ticket.createdAt}
@@ -137,9 +158,15 @@ export const TicketList = memo(({ tickets, checkedIds, onChangeChecked }: Ticket
               <div className="col-span-1 flex flex-col justify-center items-start p-4 overflow-hidden">
                 <div className="flex items-center">
                   <BsPersonPlus className="mr-1.5" />
-                  <Name>{ticket.group?.name}</Name>
+                  <Name loading={loadingGroups}>
+                    {ticket.groupId ? groupById[ticket.groupId]?.name ?? 'unknown' : '--'}
+                  </Name>
                   <div className="px-1.5">/</div>
-                  <Name>{ticket.assignee?.nickname}</Name>
+                  <Name loading={loadingAssignees}>
+                    {ticket.assigneeId
+                      ? assigneeById[ticket.assigneeId]?.nickname ?? 'unknown'
+                      : '--'}
+                  </Name>
                 </div>
               </div>
             </div>
@@ -148,4 +175,4 @@ export const TicketList = memo(({ tickets, checkedIds, onChangeChecked }: Ticket
       })}
     </>
   );
-});
+}

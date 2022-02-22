@@ -48,6 +48,10 @@ const findTicketsSchema = yup.object({
   pageSize: yup.number().min(0).max(100).default(10),
   count: yup.bool().default(false),
   includeMetaKeys: yup.csv(yup.string()),
+  tagKey: yup.string(),
+  tagValue: yup.string(),
+  privateTagKey: yup.string(),
+  privateTagValue: yup.string(),
   ...includeSchema,
 });
 
@@ -140,6 +144,24 @@ router.get(
           return query.where('user', '==', currentUser.toPointer());
         },
       });
+    }
+    if (params.tagKey) {
+      query.where('tags.key', '==', params.tagKey);
+    }
+    if (params.tagValue) {
+      query.where('tags.value', '==', params.tagValue);
+    }
+    if (params.privateTagKey) {
+      if (!(await currentUser.isCustomerService())) {
+        ctx.throw(403);
+      }
+      query.where('privateTags.key', '==', params.privateTagKey);
+    }
+    if (params.privateTagValue) {
+      if (!(await currentUser.isCustomerService())) {
+        ctx.throw(403);
+      }
+      query.where('privateTags.value', '==', params.privateTagValue);
     }
 
     query.skip((params.page - 1) * params.pageSize).limit(params.pageSize);
@@ -433,13 +455,13 @@ router.post('/:id/replies', async (ctx) => {
   const data = replyDataSchema.validateSync(ctx.request.body);
   const isCustomerService = await ticket.isCustomerService(currentUser);
   const isStaff = await currentUser.isStaff();
-  const isUser = !isCustomerService && !isStaff
+  const isUser = !isCustomerService && !isStaff;
 
   if (data.internal && isUser) {
     ctx.throw(403, 'Not internal');
   }
   if (!data.internal && isStaff) {
-    ctx.throw(403, 'Public reply not allowed')
+    ctx.throw(403, 'Public reply not allowed');
   }
   if (!data.content && (!data.fileIds || data.fileIds.length === 0)) {
     ctx.throw(400, 'Content and fileIds cannot be empty at the same time');

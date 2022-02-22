@@ -7,7 +7,7 @@ import {
   ResponseBody,
   UseMiddlewares,
 } from '@/common/http';
-import { TrimPipe } from '@/common/pipe';
+import { ParseCsvPipe, TrimPipe } from '@/common/pipe';
 import { auth, customerServiceOnly } from '@/middleware';
 import { User } from '@/model/User';
 import { UserSearchResult } from '@/response/user';
@@ -20,9 +20,14 @@ export class UserController {
   findAll(
     @CurrentUser() currentUser: User,
     @Pagination() [page, pageSize]: [number, number],
-    @Query('q', TrimPipe) q?: string
+    @Query('id', ParseCsvPipe) ids: string[] | undefined,
+    @Query('q', TrimPipe) q: string | undefined
   ) {
     const query = User.queryBuilder().paginate(page, pageSize);
+
+    if (ids && ids.length) {
+      query.where('objectId', 'in', ids);
+    }
 
     if (q) {
       query.where((query) => {

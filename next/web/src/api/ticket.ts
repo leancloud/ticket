@@ -9,18 +9,9 @@ export interface TicketSchema {
   nid: number;
   title: string;
   categoryId: string;
-  author: {
-    id: string;
-    nickname: string;
-  };
-  assignee?: {
-    id: string;
-    nickname: string;
-  };
-  group?: {
-    id: string;
-    name: string;
-  };
+  authorId: string;
+  assigneeId?: string;
+  groupId?: string;
   status: number;
   createdAt: string;
   updatedAt: string;
@@ -37,6 +28,10 @@ export interface FetchTicketsOptions {
     createdAt?: string;
     rootCategoryId?: string;
     status?: number | number[];
+    tagKey?: string;
+    tagValue?: string;
+    privateTagKey?: string;
+    privateTagValue?: string;
   };
 }
 
@@ -45,44 +40,43 @@ export interface FetchTicketsResult {
   totalCount: number;
 }
 
-export async function fetchTickets({
+async function fetchTickets({
   page = 1,
   pageSize = 10,
   orderKey = 'createdAt',
   orderType = 'desc',
-  filters,
+  filters = {},
 }: FetchTicketsOptions = {}): Promise<FetchTicketsResult> {
   const params: any = {
     page,
     pageSize,
     count: 1,
-    include: 'author,assignee,group',
     orderBy: `${orderKey}-${orderType}`,
+    rootCategoryId: filters.rootCategoryId,
+    tagKey: filters.tagKey,
+    tagValue: filters.tagValue,
+    privateTagKey: filters.privateTagKey,
+    privateTagValue: filters.privateTagValue,
   };
 
-  if (filters) {
-    if (filters.assigneeId) {
-      params.assigneeId = castArray(filters.assigneeId).join(',');
+  if (filters.assigneeId) {
+    params.assigneeId = castArray(filters.assigneeId).join(',');
+  }
+  if (filters.groupId) {
+    params.groupId = castArray(filters.groupId).join(',');
+  }
+  if (filters.createdAt) {
+    const dateRange = decodeDateRange(filters.createdAt);
+    if (dateRange && (dateRange.from || dateRange.to)) {
+      // "2021-08-01..2021-08-31", "2021-08-01..*", etc.
+      params.createdAt = [
+        dateRange.from?.toISOString() ?? '*',
+        dateRange.to?.toISOString() ?? '*',
+      ].join('..');
     }
-    if (filters.groupId) {
-      params.groupId = castArray(filters.groupId).join(',');
-    }
-    if (filters.createdAt) {
-      const dateRange = decodeDateRange(filters.createdAt);
-      if (dateRange && (dateRange.from || dateRange.to)) {
-        // "2021-08-01..2021-08-31", "2021-08-01..*", etc.
-        params.createdAt = [
-          dateRange.from?.toISOString() ?? '*',
-          dateRange.to?.toISOString() ?? '*',
-        ].join('..');
-      }
-    }
-    if (filters.rootCategoryId) {
-      params.rootCategoryId = filters.rootCategoryId;
-    }
-    if (filters.status) {
-      params.status = castArray(filters.status).join(',');
-    }
+  }
+  if (filters.status) {
+    params.status = castArray(filters.status).join(',');
   }
 
   const { headers, data } = await http.get<TicketSchema[]>('/api/2/tickets', { params });

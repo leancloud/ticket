@@ -1,25 +1,16 @@
-import { memo, createContext, useMemo, useCallback, useContext } from 'react';
+import { useMemo } from 'react';
 import moment from 'moment';
-import { noop } from 'lodash-es';
+import { keyBy, uniq } from 'lodash-es';
 
-import { GroupSchema } from '@/api/group';
+import { useCustomerServices } from '@/api/customer-service';
+import { useGroups } from '@/api/group';
 import { TicketSchema } from '@/api/ticket';
-import { UserSchema } from '@/api/user';
+import { useUsers } from '@/api/user';
 import { Checkbox, Table } from '@/components/antd';
 import Status from '../TicketStatus';
 import { CategoryPath, useGetCategoryPath } from '../TicketList';
 
 const { Column } = Table;
-
-const CheckedContext = createContext({
-  getChecked: (() => false) as (id: string) => boolean,
-  setChecked: noop as (id: string, checked: boolean) => void,
-});
-
-function TicketCheckbox({ id }: { id: string }) {
-  const { getChecked, setChecked } = useContext(CheckedContext);
-  return <Checkbox checked={getChecked(id)} onChange={(e) => setChecked(id, e.target.checked)} />;
-}
 
 function TicketLink({ ticket }: { ticket: TicketSchema }) {
   return (
@@ -40,9 +31,26 @@ export interface TicketTableProps {
   onChangeChecked: (id: string, checked: boolean) => void;
 }
 
-export const TicketTable = memo(({ tickets, checkedIds, onChangeChecked }: TicketTableProps) => {
+export function TicketTable({ tickets, checkedIds, onChangeChecked }: TicketTableProps) {
   const checkedIdSet = useMemo(() => new Set(checkedIds), [checkedIds]);
+
+  const userIds = useMemo(() => uniq(tickets.map((t) => t.authorId)), [tickets]);
+  const { data: users, isLoading: loadingUsers } = useUsers({
+    id: userIds,
+    queryOptions: {
+      enabled: userIds.length > 0,
+      staleTime: 1000 * 60,
+    },
+  });
+  const userById = useMemo(() => keyBy(users, 'id'), [users]);
+
   const getCategoryPath = useGetCategoryPath();
+
+  const { data: groups, isLoading: loadingGroups } = useGroups();
+  const groupById = useMemo(() => keyBy(groups, 'id'), [groups]);
+
+  const { data: assignees, isLoading: loadingAssignees } = useCustomerServices();
+  const assigneeById = useMemo(() => keyBy(assignees, 'id'), [assignees]);
 
   return (
     <Table className="min-w-[1000px]" rowKey="id" dataSource={tickets} pagination={false}>
@@ -56,16 +64,19 @@ export const TicketTable = memo(({ tickets, checkedIds, onChangeChecked }: Ticke
           />
         )}
       />
+
       <Column
         dataIndex="status"
         title="状态"
         render={(status: number) => <Status status={status} />}
       />
+
       <Column
-        dataIndex="title"
+        key="title"
         title="标题"
-        render={(title: string, ticket: TicketSchema) => <TicketLink ticket={ticket} />}
+        render={(ticket: TicketSchema) => <TicketLink ticket={ticket} />}
       />
+
       <Column
         dataIndex="categoryId"
         title="分类"
@@ -73,13 +84,35 @@ export const TicketTable = memo(({ tickets, checkedIds, onChangeChecked }: Ticke
           <CategoryPath className="whitespace-nowrap text-sm" path={getCategoryPath(id)} />
         )}
       />
-      <Column dataIndex={['author', 'nickname']} title="创建人" />
-      <Column dataIndex="group" title="组" render={(group?: GroupSchema) => group?.name ?? '--'} />
+
       <Column
-        dataIndex="assignee"
-        title="客服"
-        render={(assignee?: UserSchema) => assignee?.nickname ?? '--'}
+        dataIndex="authorId"
+        title="创建人"
+        render={(authorId: string) =>
+          loadingUsers ? 'Loading' : userById[authorId]?.nickname ?? 'unknown'
+        }
       />
+
+      <Column
+        dataIndex="groupId"
+        title="组"
+        render={(groupId?: string) =>
+          groupId ? (loadingGroups ? 'Loading...' : groupById[groupId]?.name ?? 'unknown') : '--'
+        }
+      />
+
+      <Column
+        dataIndex="assigneeId"
+        title="客服"
+        render={(assigneeId?: string) =>
+          assigneeId
+            ? loadingAssignees
+              ? 'Loading...'
+              : assigneeById[assigneeId]?.nickname ?? 'unknown'
+            : '--'
+        }
+      />
+
       <Column
         title="创建时间"
         dataIndex="createdAt"
@@ -89,4 +122,4 @@ export const TicketTable = memo(({ tickets, checkedIds, onChangeChecked }: Ticke
       />
     </Table>
   );
-});
+}

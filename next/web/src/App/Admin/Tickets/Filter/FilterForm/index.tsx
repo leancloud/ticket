@@ -5,6 +5,7 @@ import { Button } from '@/components/antd';
 import { Filters } from '../useTicketFilter';
 import { AssigneeSelect } from './AssigneeSelect';
 import { GroupSelect } from './GroupSelect';
+import { TagSelect } from './TagSelect';
 import { CreatedAtSelect } from './CreatedAtSelect';
 import { CategorySelect } from './CategorySelect';
 import { StatusSelect } from './StatusSelect';
@@ -42,7 +43,17 @@ export function FilterForm({ className, filters, onChange }: FilterFormProps) {
     onChange(tempFilters);
   };
 
-  const { assigneeId, groupId, createdAt, rootCategoryId, status } = tempFilters;
+  const {
+    assigneeId,
+    groupId,
+    tagKey,
+    tagValue,
+    privateTagKey,
+    privateTagValue,
+    createdAt,
+    rootCategoryId,
+    status,
+  } = tempFilters;
 
   return (
     <div
@@ -60,6 +71,13 @@ export function FilterForm({ className, filters, onChange }: FilterFormProps) {
 
         <Field title="客服组">
           <GroupSelect value={groupId} onChange={(groupId) => merge({ groupId })} />
+        </Field>
+
+        <Field title="标签">
+          <TagSelect
+            value={{ tagKey, tagValue, privateTagKey, privateTagValue }}
+            onChange={merge}
+          />
         </Field>
 
         <Field title="创建时间">
