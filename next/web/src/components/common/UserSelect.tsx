@@ -2,7 +2,7 @@ import { forwardRef, useMemo, useState } from 'react';
 import { useDebounce } from 'react-use';
 import { RefSelectProps } from 'antd/lib/select';
 
-import { useSearchUser } from '@/api/user';
+import { useUsers } from '@/api/user';
 import { Select, SelectProps, Spin } from '@/components/antd';
 import { Retry } from './Retry';
 
@@ -17,17 +17,23 @@ export const UserSelect = forwardRef<RefSelectProps, UserSelectProps>(
     useDebounce(() => setDebouncedKeyword(keyword), 500, [keyword]);
 
     const q = useMemo(() => debouncedKeyword.trim(), [debouncedKeyword]);
-    const { data, isLoading, error, refetch } = useSearchUser(q, {
-      enabled: q !== '',
+    const userId = props.value ?? undefined;
+    const { data, isLoading, error, refetch } = useUsers({
+      q,
+      id: q ? undefined : userId,
+      queryOptions: {
+        enabled: q !== '' || userId !== undefined,
+        staleTime: 1000 * 60,
+      },
     });
 
     const options = useMemo(() => {
       return [
         ...(extraOptions ?? []),
-        ...(data?.map((u) => ({
+        ...(data ?? []).map((u) => ({
           label: `${u.nickname}${u.email ? ` (${u.email})` : ''}`,
           value: u.id,
-        })) ?? []),
+        })),
       ];
     }, [data, extraOptions]);
 
