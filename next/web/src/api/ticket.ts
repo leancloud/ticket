@@ -17,48 +17,30 @@ export interface TicketSchema {
   updatedAt: string;
 }
 
-export interface FetchTicketsOptions {
-  page?: number;
-  pageSize?: number;
-  orderKey?: string;
-  orderType?: 'asc' | 'desc';
-  filters?: {
-    assigneeId?: string | string[];
-    groupId?: string | string[];
-    createdAt?: string;
-    rootCategoryId?: string;
-    status?: number | number[];
-    tagKey?: string;
-    tagValue?: string;
-    privateTagKey?: string;
-    privateTagValue?: string;
-  };
+interface FetchTicketFilters {
+  authorId?: string;
+  assigneeId?: string | string[];
+  groupId?: string | string[];
+  rootCategoryId?: string;
+  star?: number;
+  createdAt?: string;
+  status?: number | number[];
+  tagKey?: string;
+  tagValue?: string;
+  privateTagKey?: string;
+  privateTagValue?: string;
 }
 
-export interface FetchTicketsResult {
-  tickets: TicketSchema[];
-  totalCount: number;
-}
-
-async function fetchTickets({
-  page = 1,
-  pageSize = 10,
-  orderKey = 'createdAt',
-  orderType = 'desc',
-  filters = {},
-}: FetchTicketsOptions = {}): Promise<FetchTicketsResult> {
+function encodeTicketFilters(filters: FetchTicketFilters) {
   const params: any = {
-    page,
-    pageSize,
-    count: 1,
-    orderBy: `${orderKey}-${orderType}`,
+    authorId: filters.authorId,
     rootCategoryId: filters.rootCategoryId,
+    'evaluation.star': filters.star,
     tagKey: filters.tagKey,
     tagValue: filters.tagValue,
     privateTagKey: filters.privateTagKey,
     privateTagValue: filters.privateTagValue,
   };
-
   if (filters.assigneeId) {
     params.assigneeId = castArray(filters.assigneeId).join(',');
   }
@@ -78,8 +60,60 @@ async function fetchTickets({
   if (filters.status) {
     params.status = castArray(filters.status).join(',');
   }
+  return params;
+}
 
-  const { headers, data } = await http.get<TicketSchema[]>('/api/2/tickets', { params });
+interface FetchTicketsOptions {
+  page?: number;
+  pageSize?: number;
+  orderKey?: string;
+  orderType?: 'asc' | 'desc';
+  filters?: FetchTicketFilters;
+}
+
+interface FetchTicketsResult {
+  tickets: TicketSchema[];
+  totalCount: number;
+}
+
+async function fetchTickets({
+  page = 1,
+  pageSize = 10,
+  orderKey = 'createdAt',
+  orderType = 'desc',
+  filters = {},
+}: FetchTicketsOptions = {}): Promise<FetchTicketsResult> {
+  const params: any = {
+    ...encodeTicketFilters(filters),
+    page,
+    pageSize,
+    count: 1,
+    orderBy: `${orderKey}-${orderType}`,
+  };
+
+  const { headers, data } = await http.get('/api/2/tickets', { params });
+  return { tickets: data, totalCount: parseInt(headers['x-total-count']) };
+}
+
+async function searchTickets(
+  keyword: string,
+  {
+    page = 1,
+    pageSize = 10,
+    orderKey = 'createdAt',
+    orderType = 'desc',
+    filters = {},
+  }: FetchTicketsOptions = {}
+) {
+  const params: any = {
+    ...encodeTicketFilters(filters),
+    keyword,
+    page,
+    pageSize,
+    orderBy: `${orderKey}-${orderType}`,
+  };
+
+  const { headers, data } = await http.get('/api/2/tickets/search', { params });
   return { tickets: data, totalCount: parseInt(headers['x-total-count']) };
 }
 
@@ -105,6 +139,23 @@ export function useTickets({ queryOptions, ...options }: UseTicketsOptions = {})
   const { data, ...rest } = useQuery({
     queryKey: ['tickets', options],
     queryFn: () => fetchTickets(options),
+    ...queryOptions,
+  });
+
+  return {
+    ...rest,
+    data: data?.tickets,
+    totalCount: data?.totalCount,
+  };
+}
+
+export function useSearchTickets(
+  keyword: string,
+  { queryOptions, ...options }: UseTicketsOptions = {}
+) {
+  const { data, ...rest } = useQuery({
+    queryKey: ['searchTicketsResult', keyword, options],
+    queryFn: () => searchTickets(keyword, options),
     ...queryOptions,
   });
 

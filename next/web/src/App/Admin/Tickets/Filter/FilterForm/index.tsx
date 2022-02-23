@@ -1,7 +1,8 @@
 import { PropsWithChildren, useCallback, useEffect, useState } from 'react';
 import cx from 'classnames';
 
-import { Button } from '@/components/antd';
+import { Button, Input } from '@/components/antd';
+import { UserSelect } from '@/components/common';
 import { Filters } from '../useTicketFilter';
 import { AssigneeSelect } from './AssigneeSelect';
 import { GroupSelect } from './GroupSelect';
@@ -9,6 +10,7 @@ import { TagSelect } from './TagSelect';
 import { CreatedAtSelect } from './CreatedAtSelect';
 import { CategorySelect } from './CategorySelect';
 import { StatusSelect } from './StatusSelect';
+import { EvaluationStarSelect } from './EvaluationStarSelect';
 
 function Field({ title, children }: PropsWithChildren<{ title: string }>) {
   return (
@@ -44,6 +46,8 @@ export function FilterForm({ className, filters, onChange }: FilterFormProps) {
   };
 
   const {
+    keyword,
+    authorId,
     assigneeId,
     groupId,
     tagKey,
@@ -53,6 +57,7 @@ export function FilterForm({ className, filters, onChange }: FilterFormProps) {
     createdAt,
     rootCategoryId,
     status,
+    star,
   } = tempFilters;
 
   return (
@@ -64,6 +69,24 @@ export function FilterForm({ className, filters, onChange }: FilterFormProps) {
     >
       <div className="grow p-4">
         <div className="h-7 text-sm font-medium">过滤</div>
+
+        <Field title="关键词">
+          <Input
+            autoFocus
+            value={keyword}
+            onChange={(e) => merge({ keyword: e.target.value || undefined })}
+            onKeyDown={(e) => e.key === 'Enter' && handleChange()}
+          />
+        </Field>
+
+        <Field title="用户">
+          <UserSelect
+            allowClear
+            className="w-full"
+            value={authorId}
+            onChange={(authorId) => merge({ authorId: authorId as string })}
+          />
+        </Field>
 
         <Field title="客服">
           <AssigneeSelect value={assigneeId} onChange={(assigneeId) => merge({ assigneeId })} />
@@ -93,6 +116,10 @@ export function FilterForm({ className, filters, onChange }: FilterFormProps) {
 
         <Field title="状态">
           <StatusSelect value={status} onChange={(status) => merge({ status })} />
+        </Field>
+
+        <Field title="评价">
+          <EvaluationStarSelect value={star} onChange={(star) => merge({ star })} />
         </Field>
       </div>
 
