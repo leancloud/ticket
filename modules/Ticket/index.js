@@ -93,7 +93,7 @@ function useTicket(nid) {
 
   const noTicketError = useMemo(() => {
     if (!loadingTickets && !ticketId) {
-      return new Error(`Ticket ${nid} not exists`)
+      return new Error(`Ticket ${nid} does not exists or you do not have permissions.`)
     }
   }, [nid, loadingTickets, ticketId])
 
