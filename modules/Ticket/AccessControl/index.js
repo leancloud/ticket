@@ -12,10 +12,13 @@ export const AccessControl = ({ ticket }) => {
   const { addNotification } = useContext(AppContext)
 
   const queryClient = useQueryClient()
-  const { mutate, isLoading } = useMutation((prvt) => updateTicket(ticket.id, { private: prvt }), {
-    onSuccess: () => queryClient.invalidateQueries(['ticket', ticket.id]),
-    onError: (error) => addNotification(error),
-  })
+  const { mutate, isLoading } = useMutation(
+    (isPrivate) => updateTicket(ticket.id, { private: isPrivate }),
+    {
+      onSuccess: () => queryClient.invalidateQueries(['ticket', ticket.id]),
+      onError: (error) => addNotification(error),
+    }
+  )
 
   return (
     <DropdownButton

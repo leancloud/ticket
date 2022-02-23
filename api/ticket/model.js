@@ -328,10 +328,10 @@ class Ticket {
     this._updatedKeys.add('status')
   }
 
-  get prvt() {
+  get isPrivate() {
     return this._private
   }
-  set prvt(v) {
+  set isPrivate(v) {
     this._private = v
     this._updatedKeys.add('private')
   }
@@ -348,7 +348,7 @@ class Ticket {
     const rawACL = {
       [this.author_id]: { read: true, write: true },
       'role:customerService': { read: true, write: true },
-      'role:staff': { read: !this.prvt },
+      'role:staff': { read: !this.isPrivate },
     }
     if (this.organization_id) {
       rawACL[this.organization_id + '_member'] = { read: true, write: true }

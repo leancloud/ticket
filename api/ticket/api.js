@@ -580,7 +580,7 @@ router.patch(
       private_tags,
       evaluation,
       subscribed,
-      private: prvt,
+      private: isPrivate,
     } = req.body
     const isCS = await isCSInTicket(req.user, req.ticket.get('author').id)
     await req.ticket.fetch({ includeACL: true }, { useMasterKey: true })
@@ -675,8 +675,8 @@ router.patch(
       }
     }
 
-    if (prvt !== undefined) {
-      ticket.prvt = prvt
+    if (isPrivate !== undefined) {
+      ticket.isPrivate = isPrivate
     }
 
     await ticket.save({ operator: req.user })
