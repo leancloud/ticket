@@ -198,7 +198,7 @@ const searchTicketParamsSchema = ticketFiltersSchema.shape({
 
 router.get(
   '/search',
-  sort('orderBy', ['status', 'createdAt', 'updatedAt', 'latestCustomerServiceReplyAt']),
+  sort('orderBy', ['status', 'createdAt', 'updatedAt']),
   parseRange('createdAt'),
   async (ctx) => {
     const currentUser = ctx.state.currentUser as User;
