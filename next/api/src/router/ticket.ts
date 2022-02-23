@@ -280,7 +280,6 @@ router.get(
     }
 
     const queryString = conditions.join(' AND ');
-    console.log(queryString);
 
     const searchQuery = new AV.SearchQuery('Ticket');
     searchQuery.queryString(queryString);
