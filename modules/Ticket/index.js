@@ -27,8 +27,9 @@ import { LeanCloudApp } from './LeanCloudApp'
 import { CSReplyEditor } from './CSReplyEditor'
 import { RecentTickets } from './RecentTickets'
 import { EditReplyModal } from './EditReplyModal'
+import { AccessControl } from './AccessControl'
 
-function updateTicket(id, data) {
+export function updateTicket(id, data) {
   return fetch(`/api/1/tickets/${id}`, {
     method: 'PATCH',
     body: data,
@@ -92,7 +93,7 @@ function useTicket(nid) {
 
   const noTicketError = useMemo(() => {
     if (!loadingTickets && !ticketId) {
-      return new Error(`Ticket ${nid} not exists`)
+      return new Error(`Ticket ${nid} does not exists or you do not have permissions.`)
     }
   }, [nid, loadingTickets, ticketId])
 
@@ -258,7 +259,7 @@ function useOpsLogs(ticketId) {
 
 function TicketInfo({ ticket }) {
   const { t } = useTranslation()
-  const { addNotification, isUser } = useContext(AppContext)
+  const { addNotification, isUser, isCustomerService } = useContext(AppContext)
   const createdAt = useMemo(() => moment(ticket.created_at), [ticket.created_at])
   const updatedAt = useMemo(() => moment(ticket.updated_at), [ticket.updated_at])
   const queryClient = useQueryClient()
@@ -275,7 +276,7 @@ function TicketInfo({ ticket }) {
     <div className={`${css.meta} d-flex align-items-center`}>
       <span className={csCss.nid}>#{ticket.nid}</span>
       <TicketStatusLabel status={ticket.status} />
-      <span className="ml-2">
+      <span className="mx-2">
         <UserLabel user={ticket.author} displayTags={!isUser} /> {t('createdAt')}{' '}
         <span title={createdAt.format()}>{createdAt.fromNow()}</span>
         {createdAt.fromNow() !== updatedAt.fromNow() && (
@@ -285,6 +286,7 @@ function TicketInfo({ ticket }) {
           </>
         )}
       </span>
+      {isCustomerService && <AccessControl ticket={ticket} />}
       {!isUser && (
         <OverlayTrigger
           placement="right"

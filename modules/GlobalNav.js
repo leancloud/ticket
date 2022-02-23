@@ -11,10 +11,11 @@ import { AppContext } from './context'
 import { http } from '../lib/leancloud'
 import { useQuery } from 'react-query'
 import EmptyBadge from './components/EmptyBadge'
+import { Avatar } from './Avatar'
 
 export default function GlobalNav({ user, onLogout }) {
   const { t } = useTranslation()
-  const { isUser } = useContext(AppContext)
+  const { isUser, isStaff, isCustomerService } = useContext(AppContext)
 
   const handleChangeLanguage = (lang) => {
     i18next.changeLanguage(lang)
@@ -78,7 +79,18 @@ export default function GlobalNav({ user, onLogout }) {
             </NavDropdown>
             {/* eslint-enable i18n/no-chinese-character */}
             {user ? (
-              <NavDropdown title={getUserDisplayName(user)}>
+              <NavDropdown
+                title={
+                  <span>
+                    <Avatar user={user} width={20} height={20} />
+                    <span className="ml-1">{getUserDisplayName(user)}</span>
+                    {isStaff && <Icon.PersonBadgeFill title="Staff" className="ml-1" />}
+                    {isCustomerService && (
+                      <Icon.Headset title="Customer Service" className="ml-1" />
+                    )}
+                  </span>
+                }
+              >
                 <NavDropdown.Item as={Link} to="/settings">
                   {t('settings')}
                 </NavDropdown.Item>

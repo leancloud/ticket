@@ -27,7 +27,7 @@ const findArticlesOptionSchema = yup.object({
 
 router.get('/', pagination(20), async (ctx) => {
   const { page, pageSize } = pagination.get(ctx);
-  const { ['private']: prvt, id } = findArticlesOptionSchema.validateSync(ctx.request.query);
+  const { ['private']: isPrivate, id } = findArticlesOptionSchema.validateSync(ctx.request.query);
 
   const sessionToken = ctx.get('X-LC-Session');
   const query = Article.queryBuilder()
@@ -35,8 +35,8 @@ router.get('/', pagination(20), async (ctx) => {
     .skip((page - 1) * pageSize)
     .limit(pageSize);
 
-  if (prvt !== undefined) {
-    query.where('archived', prvt ? '==' : '!=', true);
+  if (isPrivate !== undefined) {
+    query.where('archived', isPrivate ? '==' : '!=', true);
   }
   if (id !== undefined) {
     query.where('objectId', 'in', id);
@@ -69,15 +69,15 @@ const createArticalSchema = yup.object({
 
 router.post('/', auth, customerServiceOnly, async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
-  const { title, content, ['private']: prvt } = createArticalSchema.validateSync(ctx.request.body);
+  const { title, content, ['private']: isPrivate } = createArticalSchema.validateSync(ctx.request.body);
   const data: CreateData<Article> = { title };
   if (content) {
     data.content = content;
     data.contentHTML = htmlify(content);
   }
-  if (prvt !== undefined) {
-    data.private = prvt;
-    data.ACL = getACL(prvt);
+  if (isPrivate !== undefined) {
+    data.private = isPrivate;
+    data.ACL = getACL(isPrivate);
   }
   const article = await Article.create(data, currentUser.getAuthOptions());
   await article.createRevision(currentUser, article);
@@ -171,10 +171,10 @@ router.get('/:id', async (ctx) => {
   ctx.body = new ArticleResponse(article);
 });
 
-const getACL = (prvt: boolean) => {
+const getACL = (isPrivate: boolean) => {
   const ACL = new ACLBuilder();
   ACL.allowCustomerService('read', 'write').allowStaff('read');
-  if (!prvt) {
+  if (!isPrivate) {
     ACL.allow('*', 'read');
   }
   return ACL;
@@ -190,7 +190,7 @@ const updateArticalSchema = yup.object({
 router.patch('/:id', auth, customerServiceOnly, async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   const article = ctx.state.article as Article;
-  const { title, content, ['private']: prvt, comment } = updateArticalSchema.validateSync(
+  const { title, content, ['private']: isPrivate, comment } = updateArticalSchema.validateSync(
     ctx.request.body
   );
   const updateData: UpdateData<Article> = { title };
@@ -198,9 +198,9 @@ router.patch('/:id', auth, customerServiceOnly, async (ctx) => {
     updateData.content = content;
     updateData.contentHTML = htmlify(content);
   }
-  if (prvt !== undefined) {
-    updateData.private = prvt;
-    updateData.ACL = getACL(prvt);
+  if (isPrivate !== undefined) {
+    updateData.private = isPrivate;
+    updateData.ACL = getACL(isPrivate);
   }
 
   const updated = !_.isEmpty(updateData);

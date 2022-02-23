@@ -166,6 +166,11 @@ class Ticket {
      * @private
      */
     this._operatorId = undefined
+
+    /**
+     * @private
+     */
+    this._private = object.getACL() ? !object.getACL().getRoleReadAccess('staff') : undefined
   }
 
   /**
@@ -323,6 +328,14 @@ class Ticket {
     this._updatedKeys.add('status')
   }
 
+  get isPrivate() {
+    return this._private
+  }
+  set isPrivate(v) {
+    this._private = v
+    this._updatedKeys.add('private')
+  }
+
   get latest_reply() {
     return this._latestReply
   }
@@ -335,7 +348,7 @@ class Ticket {
     const rawACL = {
       [this.author_id]: { read: true, write: true },
       'role:customerService': { read: true, write: true },
-      'role:staff': { read: true },
+      'role:staff': { read: !this.isPrivate },
     }
     if (this.organization_id) {
       rawACL[this.organization_id + '_member'] = { read: true, write: true }
@@ -444,7 +457,7 @@ class Ticket {
           AV.Object.createWithoutData('Organization', this.organization_id)
         )
       }
-      object.setACL(this.getACL())
+      object.setACL(Ticket.getACL())
     }
 
     if (this.isUpdated('tags')) {
@@ -461,6 +474,10 @@ class Ticket {
 
     if (this.isUpdated('status')) {
       object.set('status', this.status)
+    }
+
+    if (this.isUpdated('private')) {
+      object.setACL(this.getACL())
     }
 
     if (this.isUpdated('latest_reply')) {
