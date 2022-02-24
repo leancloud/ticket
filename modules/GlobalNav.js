@@ -84,10 +84,11 @@ export default function GlobalNav({ user, onLogout }) {
                   <span>
                     <Avatar user={user} width={20} height={20} />
                     <span className="ml-1">{getUserDisplayName(user)}</span>
-                    {isStaff && <Icon.PersonBadgeFill title="Staff" className="ml-1" />}
-                    {isCustomerService && (
+                    {isCustomerService ? (
                       <Icon.Headset title="Customer Service" className="ml-1" />
-                    )}
+                    ) : isStaff ? (
+                      <Icon.PersonBadgeFill title="Staff" className="ml-1" />
+                    ) : null}
                   </span>
                 }
               >

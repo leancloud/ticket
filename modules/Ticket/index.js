@@ -348,7 +348,7 @@ export default function Ticket() {
   } = useRouteMatch()
   const { t } = useTranslation()
   const appContextValue = useContext(AppContext)
-  const { addNotification, currentUser, isStaff, isCustomerService, isUser } = appContextValue
+  const { addNotification, currentUser, isCustomerService, isUser } = appContextValue
   const { ticket, isLoading: loadingTicket, refetchTicket, error } = useTicket(nid)
   const { replies, loadMoreReplies, deleteReply, reloadReplies, replyLoading } = useReplies(
     ticket?.id
@@ -470,7 +470,7 @@ export default function Ticket() {
 
           <TicketMetadata ticket={ticket} loadMoreOpsLogs={loadMoreOpsLogs} />
 
-          {(!isStaff || isCustomerService) && (
+          {(isUserInThisTicket || isCustomerService) && (
             <TicketOperation ticket={ticket} onOperate={operateTicket} />
           )}
         </Col>

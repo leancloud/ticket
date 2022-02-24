@@ -21,6 +21,6 @@ export function Avatar({ user, height = 16, width = 16 }) {
 Avatar.displayName = 'Avatar'
 Avatar.propTypes = {
   user: PropTypes.object.isRequired,
-  height: PropTypes.string,
-  width: PropTypes.string,
+  height: PropTypes.number,
+  width: PropTypes.number,
 }
