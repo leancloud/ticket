@@ -135,8 +135,8 @@ if (config.enableLeanCloudIntegration) {
   })
 
   AV.Cloud.define('getLeanCloudUserInfosByUsername', (req) => {
-    return isCustomerService(req.currentUser).then((isCustomerService) => {
-      if (!isCustomerService) {
+    return isStaff(req.currentUser).then((isStaff) => {
+      if (!isStaff) {
         throw new AV.Cloud.Error('unauthorized', { status: 401 })
       }
       return getUser(req.params.username).then((user) => {
@@ -146,8 +146,8 @@ if (config.enableLeanCloudIntegration) {
   })
 
   AV.Cloud.define('getLeanCloudAppsByUsername', (req) => {
-    return isCustomerService(req.currentUser).then((isCustomerService) => {
-      if (!isCustomerService) {
+    return isStaff(req.currentUser).then((isStaff) => {
+      if (!isStaff) {
         throw new AV.Cloud.Error('unauthorized', { status: 401 })
       }
       return getUser(req.params.username).then((user) => {
@@ -173,8 +173,8 @@ if (config.enableLeanCloudIntegration) {
       return getApp(req.currentUser, appId)
     }
 
-    return isCustomerService(req.currentUser).then((isCustomerService) => {
-      if (!isCustomerService) {
+    return isStaff(req.currentUser).then((isStaff) => {
+      if (!isStaff) {
         throw new AV.Cloud.Error('unauthorized', { status: 401 })
       }
       return getUser(username).then((user) => {
@@ -184,8 +184,8 @@ if (config.enableLeanCloudIntegration) {
   })
 
   AV.Cloud.define('getLeanCloudAppUrl', (req) => {
-    return isCustomerService(req.currentUser).then((isCustomerService) => {
-      if (!isCustomerService) {
+    return isStaff(req.currentUser).then((isStaff) => {
+      if (!isStaff) {
         throw new AV.Cloud.Error('unauthorized', { status: 401 })
       }
       if (!config.leancloudAppUrl) {
