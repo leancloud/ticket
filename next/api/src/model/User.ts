@@ -1,6 +1,7 @@
 import AV from 'leancloud-storage';
 import axios from 'axios';
 import _ from 'lodash';
+import mem from 'p-memoize';
 
 import { regions } from '@/leancloud';
 import { config } from '@/config';
@@ -57,6 +58,17 @@ export interface TinyUserInfo {
   email?: string;
 }
 
+const getRoles = mem(
+  async (user: User) => {
+    const roles = await Role.queryBuilder()
+      .where('users', '==', user.toPointer())
+      .where('name', 'in', ['staff', 'customerService', 'admin'])
+      .find();
+    return roles.map((role) => role.name);
+  },
+  { maxAge: 10_000 }
+);
+
 export class User extends Model {
   protected static className = '_User';
 
@@ -88,9 +100,6 @@ export class User extends Model {
   get categoryIds() {
     return this.categories?.map((c) => c.objectId);
   }
-
-  private isCustomerServiceTask?: Promise<boolean>;
-  private isStaffTask?: Promise<boolean>;
 
   static async findById(id: string): Promise<User | undefined> {
     if (id === systemUser.id) {
@@ -154,32 +163,14 @@ export class User extends Model {
     return !!(await query.first({ useMasterKey: true }));
   }
 
-  isCustomerService(): Promise<boolean> {
-    if (!this.isCustomerServiceTask) {
-      this.isCustomerServiceTask = (async () => {
-        try {
-          return User.isCustomerService(this);
-        } catch (error) {
-          delete this.isCustomerServiceTask;
-          throw error;
-        }
-      })();
-    }
-    return this.isCustomerServiceTask;
+  async isCustomerService(): Promise<boolean> {
+    const roles = await getRoles(this);
+    return roles.includes('customerService') || roles.includes('admin');
   }
 
-  isStaff(): Promise<boolean> {
-    if (!this.isStaffTask) {
-      this.isStaffTask = (async () => {
-        try {
-          return User.isStaff(this);
-        } catch (error) {
-          delete this.isStaffTask;
-          throw error;
-        }
-      })();
-    }
-    return this.isStaffTask;
+  async isStaff(): Promise<boolean> {
+    const roles = await getRoles(this);
+    return roles.includes('staff') || roles.includes('customerService') || roles.includes('admin');
   }
 
   getAuthOptions(): AuthOptions {

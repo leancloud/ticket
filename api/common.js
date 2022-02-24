@@ -3,6 +3,7 @@ const _ = require('lodash')
 const Remarkable = require('remarkable')
 const hljs = require('highlight.js')
 const AV = require('leanengine')
+const mem = require('p-memoize')
 
 const config = require('../config')
 
@@ -42,7 +43,17 @@ exports.getTinyReplyInfo = (reply) => {
   })
 }
 
-exports.isCustomerService = (user, ticketAuthor) => {
+const getRoles = mem(
+  (user) =>
+    new AV.Query(AV.Role)
+      .equalTo('users', user)
+      .containedIn('name', ['staff', 'customerService', 'admin'])
+      .find()
+      .then((roles) => roles.map((role) => role.get('name'))),
+  { maxAge: 10_000 }
+)
+
+exports.isCustomerService = async (user, ticketAuthor) => {
   if (!user) {
     return Promise.resolve(false)
   }
@@ -51,14 +62,11 @@ exports.isCustomerService = (user, ticketAuthor) => {
     // 这时为了方便工单作为内部工作协调使用。
     return Promise.resolve(false)
   }
-  return new AV.Query(AV.Role)
-    .equalTo('name', 'customerService')
-    .equalTo('users', user)
-    .first()
-    .then((role) => !!role)
+  const roles = await getRoles(user)
+  return roles.includes('customerService') || roles.includes('admin')
 }
 
-exports.isStaff = (user, ticketAuthor) => {
+exports.isStaff = async (user, ticketAuthor) => {
   if (!user) {
     return Promise.resolve(false)
   }
@@ -67,11 +75,8 @@ exports.isStaff = (user, ticketAuthor) => {
     // 这时为了方便工单作为内部工作协调使用。
     return Promise.resolve(false)
   }
-  return new AV.Query(AV.Role)
-    .equalTo('name', 'staff')
-    .equalTo('users', user)
-    .first()
-    .then((role) => !!role)
+  const roles = await getRoles(user)
+  return roles.includes('staff') || roles.includes('customerService') || roles.includes('admin')
 }
 
 exports.getTicketUrl = (ticket) => {
