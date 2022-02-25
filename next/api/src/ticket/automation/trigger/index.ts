@@ -1,4 +1,4 @@
-import mem from 'mem';
+import mem from 'p-memoize';
 import QuickLRU from 'quick-lru';
 
 import { createQueue } from '@/queue';

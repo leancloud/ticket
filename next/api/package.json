@@ -34,6 +34,7 @@
     "lodash": "^4.17.21",
     "mailgun.js": "^4.1.4",
     "mem": "^8.1.1",
+    "p-memoize": "^4.0.4",
     "quick-lru": "^5.1.1",
     "reflect-metadata": "^0.1.13",
     "remarkable": "^2.0.1",

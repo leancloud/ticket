@@ -218,7 +218,7 @@ export function ReplyCard({ data, onDeleted, ticketId, onEdit }) {
           <Time value={data.created_at} href={'#' + data.id} />
         </div>
         <div className="d-flex align-items-center">
-          {data.is_customer_service && <Badge className={css.badge}>{t('staff')}</Badge>}
+          {data.is_customer_service && <Badge className={css.badge}>{t('customerService')}</Badge>}
           {data.internal && <InternalBadge className={css.badge} />}
           {actions && (
             <Dropdown className="ml-2">

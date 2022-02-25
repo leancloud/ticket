@@ -7,7 +7,7 @@ import App from './modules/App'
 import './config.webapp'
 
 if (process.env.NODE_ENV !== 'production') {
-  window.ENABLE_LEANCLOUD_INTEGRATION = false
+  // window.ENABLE_LEANCLOUD_INTEGRATION = false
   window.USE_LC_OAUTH = false
 }
 

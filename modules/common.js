@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import i18next from 'i18next'
+import mem from 'p-memoize'
 import { auth, db, storage } from '../lib/leancloud'
 import { depthFirstSearchFind, makeTree } from '../lib/common'
 
@@ -20,29 +21,29 @@ export const getCustomerServices = () => {
     .then((role) => role.queryUser().orderBy('username').find())
 }
 
-export const isCustomerService = (user) => {
-  if (!user) {
-    return Promise.resolve(false)
-  }
-  return auth
-    .queryRole()
-    .where('name', '==', 'customerService')
-    .where('users', '==', user)
-    .first()
-    .then((role) => !!role)
-}
+const getRoles = mem(
+  (user) => {
+    if (!user) {
+      return Promise.resolve([])
+    }
+    return auth
+      .queryRole()
+      .where('name', 'in', ['customerService', 'staff', 'admin'])
+      .where('users', '==', user)
+      .find()
+      .then((roles) => roles.map((role) => role.name))
+  },
+  { maxAge: 10_000 }
+)
 
-export const isStaff = (user) => {
-  if (!user) {
-    return Promise.resolve(false)
-  }
-  return auth
-    .queryRole()
-    .where('name', '==', 'staff')
-    .where('users', '==', user)
-    .first()
-    .then((role) => !!role)
-}
+export const isCustomerService = (user) =>
+  getRoles(user).then((roles) => roles.includes('customerService') || roles.includes('admin'))
+
+export const isStaff = (user) =>
+  getRoles(user).then(
+    (roles) =>
+      roles.includes('staff') || roles.includes('customerService') || roles.includes('admin')
+  )
 
 /**
  * @param {Array<File>} files

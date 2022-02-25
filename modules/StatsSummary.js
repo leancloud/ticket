@@ -287,7 +287,9 @@ class StatsSummary extends React.Component {
         const user = _.find(this.state.users, (c) => c.id === row[0])
         return [row[0], row.index, (user && getUserDisplayName(user)) || row[0], row[1]]
       })
-      return <SummaryTable header={[t('rank'), t('staff'), t('activeTicket')]} body={body} />
+      return (
+        <SummaryTable header={[t('rank'), t('customerService'), t('activeTicket')]} body={body} />
+      )
     })
 
     const activeTicketCountByAuthorDoms = this.state.statsDatas.map((data) => {
@@ -329,7 +331,7 @@ class StatsSummary extends React.Component {
       })
       return (
         <SummaryTable
-          header={[t('rank'), t('staff'), t('averageReplyTime'), t('replyCount')]}
+          header={[t('rank'), t('customerService'), t('averageReplyTime'), t('replyCount')]}
           body={body}
         />
       )
@@ -352,7 +354,7 @@ class StatsSummary extends React.Component {
       })
       return (
         <SummaryTable
-          header={[t('rank'), t('staff'), t('averageReplyTime'), t('replyCount')]}
+          header={[t('rank'), t('customerService'), t('averageReplyTime'), t('replyCount')]}
           body={body}
         />
       )

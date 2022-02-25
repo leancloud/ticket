@@ -51,8 +51,8 @@ export async function uploadFile(file) {
 export function CSReplyEditor({ ticketId, onReply, onOperate }) {
   const { t } = useTranslation()
   const appContextValue = useContext(AppContext)
-  const { isStaff, isCustomerService } = appContextValue
-  const [replyType, setReplyType] = useState(isStaff ? 'internal' : 'public')
+  const { isCustomerService } = appContextValue
+  const [replyType, setReplyType] = useState(isCustomerService ? 'public' : 'internal')
   const [content, setContent] = useAutoSave(`ticket:${ticketId}:reply`)
   const [operating, setOperating] = useState(false)
   const [committing, setCommitting] = useState(false)

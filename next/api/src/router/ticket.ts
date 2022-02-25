@@ -460,7 +460,7 @@ router.post('/:id/replies', async (ctx) => {
   if (data.internal && isUser) {
     ctx.throw(403, 'Not internal');
   }
-  if (!data.internal && isStaff) {
+  if (!data.internal && !isCustomerService) {
     ctx.throw(403, 'Public reply not allowed');
   }
   if (!data.content && (!data.fileIds || data.fileIds.length === 0)) {
