@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { useLocalStorage } from 'react-use';
 
-import { useTickets } from '@/api/ticket';
+import { useSearchTickets, useTickets, UseTicketsOptions } from '@/api/ticket';
 import { usePage } from '@/utils/usePage';
 import { Topbar, useOrderBy } from './Topbar';
 import { FilterForm, useLocalFilters } from './Filter';
@@ -21,6 +21,30 @@ function useLayout() {
   return [layout, ...rest] as const;
 }
 
+interface UseSmartFetchTicketsOptions extends UseTicketsOptions {
+  keyword?: string;
+}
+
+function useSmartSearchTickets({ keyword, queryOptions, ...options }: UseSmartFetchTicketsOptions) {
+  const useTicketResult = useTickets({
+    ...options,
+    queryOptions: {
+      ...queryOptions,
+      enabled: !keyword,
+    },
+  });
+
+  const useSearchTicketsResult = useSearchTickets(keyword!, {
+    ...options,
+    queryOptions: {
+      ...queryOptions,
+      enabled: !!keyword,
+    },
+  });
+
+  return keyword ? useSearchTicketsResult : useTicketResult;
+}
+
 function TicketListView() {
   const [page] = usePage();
   const { orderKey, orderType } = useOrderBy();
@@ -29,12 +53,13 @@ function TicketListView() {
 
   const [localFilters, setLocalFilters] = useLocalFilters();
 
-  const { data: tickets, totalCount, isLoading, isFetching } = useTickets({
+  const { data: tickets, totalCount, isLoading, isFetching } = useSmartSearchTickets({
     page,
     pageSize,
     orderKey,
     orderType,
     filters: localFilters,
+    keyword: localFilters.keyword,
     queryOptions: {
       keepPreviousData: true,
     },

@@ -22,16 +22,19 @@ export function TagSelect({ value, onChange }: TagSelectProps) {
   const options = useMemo(
     () => [
       { label: '任何', value: EMPTY_VALUE },
-      ...(data
-        ?.filter((t) => t.type === 'select')
-        .map((t) => ({ label: t.key, value: t.key, private: t.private })) ?? []),
+      ...(data ?? [])
+        .filter((t) => t.type === 'select')
+        .map((t) => ({
+          label: t.key,
+          value: t.key,
+        })),
     ],
     [data]
   );
 
   const isPrivate = !!(value && (value.privateTagKey || value.privateTagValue));
   const tagKey = isPrivate ? value?.privateTagKey : value?.tagKey;
-  const tagValue = isPrivate ? value?.privateTagValue : value?.privateTagKey;
+  const tagValue = isPrivate ? value?.privateTagValue : value?.tagValue;
 
   const tag = useMemo(() => {
     return data?.find((t) => t.key === tagKey);
@@ -61,9 +64,10 @@ export function TagSelect({ value, onChange }: TagSelectProps) {
         loading={isLoading}
         options={options}
         value={tagKey ?? EMPTY_VALUE}
-        onChange={(key, option: any) =>
-          handleChange(key === EMPTY_VALUE ? undefined : key, undefined, option.private)
-        }
+        onChange={(key) => {
+          const tag = data?.find((t) => t.key === key);
+          handleChange(key === EMPTY_VALUE ? undefined : key, undefined, tag?.private);
+        }}
       />
       {tag && (
         <div className="pl-2 border-l border-gray-300 border-dashed">

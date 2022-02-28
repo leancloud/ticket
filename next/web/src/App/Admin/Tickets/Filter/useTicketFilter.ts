@@ -3,6 +3,8 @@ import { useCallback, useMemo } from 'react';
 import { useSearchParams } from '@/utils/useSearchParams';
 
 export interface Filters {
+  keyword?: string;
+  authorId?: string;
   assigneeId?: string[];
   groupId?: string[];
   tagKey?: string;
@@ -12,11 +14,14 @@ export interface Filters {
   createdAt?: string;
   rootCategoryId?: string;
   status?: number[];
+  star?: number;
 }
 
 export function useLocalFilters() {
   const [
     {
+      keyword,
+      authorId,
       assigneeId,
       groupId,
       tagKey,
@@ -26,12 +31,20 @@ export function useLocalFilters() {
       createdAt,
       rootCategoryId,
       status,
+      star,
     },
     { merge },
   ] = useSearchParams();
 
   const filters = useMemo(() => {
-    const filters: Filters = { tagKey, tagValue, privateTagKey, privateTagValue };
+    const filters: Filters = {
+      keyword,
+      authorId,
+      tagKey,
+      tagValue,
+      privateTagKey,
+      privateTagValue,
+    };
 
     if (assigneeId) {
       filters.assigneeId = assigneeId.split(',');
@@ -56,8 +69,17 @@ export function useLocalFilters() {
         .filter((n) => !Number.isNaN(n));
     }
 
+    if (star) {
+      const starNum = parseInt(star);
+      if (!Number.isNaN(starNum)) {
+        filters.star = starNum;
+      }
+    }
+
     return filters;
   }, [
+    keyword,
+    authorId,
     assigneeId,
     groupId,
     tagKey,
@@ -67,6 +89,7 @@ export function useLocalFilters() {
     createdAt,
     rootCategoryId,
     status,
+    star,
   ]);
 
   const set = useCallback(
@@ -78,6 +101,7 @@ export function useLocalFilters() {
         createdAt: filters.createdAt,
         rootCategoryId: filters.rootCategoryId,
         status: filters.status?.join(','),
+        star: filters.star?.toString(),
       };
       merge(params);
     },

@@ -11,12 +11,17 @@ export interface UserSchema {
   avatarUrl: string;
 }
 
-interface FetchUserOptions {
-  id?: string | string[];
+export interface UserSearchResult extends UserSchema {
+  email?: string;
 }
 
-async function fetchUsers({ id }: FetchUserOptions = {}): Promise<UserSchema[]> {
-  const params: Record<string, string> = {};
+interface FetchUserOptions {
+  id?: string | string[];
+  q?: string;
+}
+
+async function fetchUsers({ id, q }: FetchUserOptions = {}): Promise<UserSearchResult[]> {
+  const params: Record<string, string | undefined> = { q };
   if (id) {
     if (Array.isArray(id)) {
       params.id = id.join(',');
@@ -28,17 +33,8 @@ async function fetchUsers({ id }: FetchUserOptions = {}): Promise<UserSchema[]> 
   return data;
 }
 
-export interface UserSearchResult extends UserSchema {
-  email?: string;
-}
-
-async function searchUser(q: string): Promise<UserSchema[]> {
-  const { data } = await http.get('/api/2/users', { params: { q } });
-  return data;
-}
-
 export interface UseUsersOptions extends FetchUserOptions {
-  queryOptions?: UseQueryOptions<UserSchema[], Error>;
+  queryOptions?: UseQueryOptions<UserSearchResult[], Error>;
 }
 
 export const useUsers = ({ queryOptions, ...options }: UseUsersOptions = {}) =>
@@ -47,11 +43,3 @@ export const useUsers = ({ queryOptions, ...options }: UseUsersOptions = {}) =>
     queryFn: () => fetchUsers(options),
     ...queryOptions,
   });
-
-export function useSearchUser(q: string, options?: UseQueryOptions<UserSearchResult[], Error>) {
-  return useQuery({
-    queryKey: ['searchUserResult', q],
-    queryFn: () => searchUser(q),
-    ...options,
-  });
-}

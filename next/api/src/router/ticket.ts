@@ -23,7 +23,7 @@ const router = new Router().use(auth);
 
 const statuses = [50, 120, 160, 220, 250, 280];
 
-const includeSchema = {
+const includeSchema = yup.object({
   includeAuthor: yup.bool(),
   includeAssignee: yup.bool(),
   includeCategory: yup.bool(), // TODO
@@ -31,10 +31,9 @@ const includeSchema = {
   includeFiles: yup.bool(),
   includeCategoryPath: yup.bool(),
   includeUnreadCount: yup.bool(),
-};
+});
 
-const findTicketsSchema = yup.object({
-  where: yup.object(),
+const ticketFiltersSchema = yup.object({
   authorId: yup.string(),
   assigneeId: yup.csv(yup.string().required()),
   categoryId: yup.csv(yup.string().required()),
@@ -44,15 +43,20 @@ const findTicketsSchema = yup.object({
   'evaluation.star': yup.number().oneOf([0, 1]),
   createdAtFrom: yup.date(),
   createdAtTo: yup.date(),
-  page: yup.number().min(1).default(1),
-  pageSize: yup.number().min(0).max(100).default(10),
-  count: yup.bool().default(false),
-  includeMetaKeys: yup.csv(yup.string()),
   tagKey: yup.string(),
   tagValue: yup.string(),
   privateTagKey: yup.string(),
   privateTagValue: yup.string(),
-  ...includeSchema,
+
+  // pagination
+  page: yup.number().min(1).default(1),
+  pageSize: yup.number().min(0).max(100).default(10),
+});
+
+const findTicketsSchema = includeSchema.concat(ticketFiltersSchema).shape({
+  where: yup.object(),
+  count: yup.bool().default(false),
+  includeMetaKeys: yup.csv(yup.string().required()),
 });
 
 function addPointersCondition(
@@ -111,7 +115,7 @@ router.get(
     if (params.status) {
       query.where('status', 'in', params.status);
     }
-    if (params['evaluation.star']) {
+    if (params['evaluation.star'] !== undefined) {
       query.where('evaluation.star', '==', params['evaluation.star']);
     }
     if (params.createdAtFrom) {
@@ -120,6 +124,25 @@ router.get(
     if (params.createdAtTo) {
       query.where('createdAt', '<=', params.createdAtTo);
     }
+    if (params.tagKey) {
+      query.where('tags.key', '==', params.tagKey);
+    }
+    if (params.tagValue) {
+      query.where('tags.value', '==', params.tagValue);
+    }
+    if (params.privateTagKey) {
+      if (!(await currentUser.isCustomerService())) {
+        ctx.throw(403);
+      }
+      query.where('privateTags.key', '==', params.privateTagKey);
+    }
+    if (params.privateTagValue) {
+      if (!(await currentUser.isCustomerService())) {
+        ctx.throw(403);
+      }
+      query.where('privateTags.value', '==', params.privateTagValue);
+    }
+
     if (sort) {
       sort.forEach(({ key, order }) => query.orderBy(key, order));
     }
@@ -145,24 +168,6 @@ router.get(
         },
       });
     }
-    if (params.tagKey) {
-      query.where('tags.key', '==', params.tagKey);
-    }
-    if (params.tagValue) {
-      query.where('tags.value', '==', params.tagValue);
-    }
-    if (params.privateTagKey) {
-      if (!(await currentUser.isCustomerService())) {
-        ctx.throw(403);
-      }
-      query.where('privateTags.key', '==', params.privateTagKey);
-    }
-    if (params.privateTagValue) {
-      if (!(await currentUser.isCustomerService())) {
-        ctx.throw(403);
-      }
-      query.where('privateTags.value', '==', params.privateTagValue);
-    }
 
     query.skip((params.page - 1) * params.pageSize).limit(params.pageSize);
 
@@ -181,9 +186,117 @@ router.get(
 
     ctx.body = tickets.map((ticket) =>
       new TicketListItemResponse(ticket).toJSON({
-        includeMetaKeys: _.compact(params.includeMetaKeys),
+        includeMetaKeys: params.includeMetaKeys,
       })
     );
+  }
+);
+
+const searchTicketParamsSchema = ticketFiltersSchema.shape({
+  keyword: yup.string().required(),
+});
+
+router.get(
+  '/search',
+  sort('orderBy', ['status', 'createdAt', 'updatedAt']),
+  parseRange('createdAt'),
+  async (ctx) => {
+    const currentUser = ctx.state.currentUser as User;
+    const params = searchTicketParamsSchema.validateSync(ctx.query);
+    const sortFields = sort.get(ctx);
+
+    const categoryIds = new Set(params.categoryId);
+    if (params.rootCategoryId) {
+      categoryIds.add(params.rootCategoryId);
+      const subCategories = await CategoryService.getSubCategories(params.rootCategoryId);
+      subCategories.forEach((c) => categoryIds.add(c.id));
+    }
+
+    const conditions = [`(title:${params.keyword} OR content:${params.keyword})`];
+
+    const addEqCondition = (field: string, value: string | number | (string | number)[]) => {
+      if (Array.isArray(value)) {
+        if (value.includes('null')) {
+          const nonNullValue = value.filter((v) => v !== 'null');
+          if (nonNullValue.length) {
+            if (nonNullValue.length === 1) {
+              conditions.push(`(_missing_:${field} OR ${field}:${nonNullValue[0]})`);
+            } else {
+              conditions.push(`(_missing_:${field} OR ${field}:(${nonNullValue.join(' OR ')}))`);
+            }
+          } else {
+            conditions.push(`_missing_:${field}`);
+          }
+        } else {
+          if (value.length === 1) {
+            conditions.push(`${field}:${value[0]}`);
+          } else {
+            conditions.push(`${field}:(${value.join(' OR ')})`);
+          }
+        }
+      } else {
+        if (value === 'null') {
+          conditions.push(`_missing_:${field}`);
+        } else {
+          conditions.push(`${field}:${value}`);
+        }
+      }
+    };
+
+    if (params.authorId) {
+      addEqCondition('author.objectId', params.authorId);
+    }
+    if (params.assigneeId) {
+      addEqCondition('assignee.objectId', params.assigneeId);
+    }
+    if (params.groupId) {
+      addEqCondition('group.objectId', params.groupId);
+    }
+    if (categoryIds.size) {
+      addEqCondition('category.objectId', Array.from(categoryIds));
+    }
+    if (params.status) {
+      addEqCondition('status', params.status);
+    }
+    if (params['evaluation.star'] !== undefined) {
+      addEqCondition('evaluation.star', params['evaluation.star']);
+    }
+    if (params.createdAtFrom || params.createdAtTo) {
+      const from = params.createdAtFrom?.toISOString() ?? '*';
+      const to = params.createdAtTo?.toISOString() ?? '*';
+      conditions.push(`createdAt:[${from} TO ${to}]`);
+    }
+    if (params.tagKey) {
+      addEqCondition('tags.key', params.tagKey);
+    }
+    if (params.tagValue) {
+      addEqCondition('tags.value', params.tagValue);
+    }
+    if (params.privateTagKey) {
+      addEqCondition('privateTags.key', params.privateTagKey);
+    }
+    if (params.privateTagValue) {
+      addEqCondition('privateTags.value', params.privateTagValue);
+    }
+
+    const queryString = conditions.join(' AND ');
+
+    const searchQuery = new AV.SearchQuery('Ticket');
+    searchQuery.queryString(queryString);
+    sortFields?.forEach(({ key, order }) => {
+      if (order === 'asc') {
+        searchQuery.addAscending(key);
+      } else {
+        searchQuery.addDescending(key);
+      }
+    });
+    searchQuery.skip((params.page - 1) * params.pageSize).limit(params.pageSize);
+
+    const ticketObjects = await searchQuery.find(currentUser.getAuthOptions());
+    const tickets = ticketObjects.map((o) => Ticket.fromAVObject(o as AV.Object));
+
+    ctx.set('X-Total-Count', searchQuery.hits().toString());
+    ctx.body = tickets.map((t) => new TicketListItemResponse(t));
   }
 );
 
@@ -281,7 +394,7 @@ router.param('id', async (id, ctx, next) => {
   return next();
 });
 
-const getTicketSchema = yup.object({ ...includeSchema });
+const getTicketSchema = includeSchema;
 
 router.get('/:id', include, async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
