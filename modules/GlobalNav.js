@@ -15,7 +15,7 @@ import { Avatar } from './Avatar'
 
 export default function GlobalNav({ user, onLogout }) {
   const { t } = useTranslation()
-  const { isUser, isStaff, isCustomerService } = useContext(AppContext)
+  const { currentUser, isUser, isStaff, isCustomerService } = useContext(AppContext)
 
   const handleChangeLanguage = (lang) => {
     i18next.changeLanguage(lang)
@@ -25,6 +25,7 @@ export default function GlobalNav({ user, onLogout }) {
     queryKey: 'unread',
     queryFn: () => http.get('/api/2/unread'),
     staleTime: 300_000,
+    enabled: !!currentUser,
   })
 
   return (
