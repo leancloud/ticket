@@ -86,5 +86,15 @@
       "onlySignInUsers": true
     }
   },
-  "indexes": []
+  "indexes": [
+    {
+      "v": 2,
+      "key": {
+        "ticket.$id": -1
+      },
+      "name": "-user-ticket.$id_-1",
+      "ns": "-.Reply",
+      "background": true
+    }
+  ]
 }
