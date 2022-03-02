@@ -23,6 +23,7 @@ import {
   ZodValidationPipe,
 } from '@/common/pipe';
 import { auth, customerServiceOnly, include } from '@/middleware';
+import { ACLBuilder } from '@/orm';
 import { User } from '@/model/User';
 import { View } from '@/model/View';
 import { Group } from '@/model/Group';
@@ -159,8 +160,11 @@ export class ViewController {
     }
     this.assertConditionIsValid(data.conditions);
 
+    const ACL = new ACLBuilder().allowCustomerService('read', 'write');
+
     const view = await View.create(
       {
+        ACL,
         title: data.title,
         userIds: data.userIds,
         groupIds: data.groupIds,
