@@ -9,8 +9,8 @@ import { readdir } from 'fs/promises'
 import { createReadStream } from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { step } from './utils.mjs'
-import { task } from './utils.mjs'
+import { step, task } from './utils.mjs'
+
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
@@ -203,9 +203,28 @@ try {
     })
   )
 
-  step('Config LeanEngine')
+  step('Config Storage')
+  await task('Initialize Ticket nid', async () => {
+    return http.put(`/data/${appId}/classes/Ticket/columns/nid/increment`, { value: 1 })
+  })
 
-  //
+  step('Config LeanEngine')
+  await task('Set git repo', async () => {
+    return http.patch(`/engine/groups/web`, {
+      repository: 'https://github.com/leancloud/ticket.git',
+    })
+  })
+  await task('Deploy', async () => {
+    return http.post(`/engine/groups/web/production/version`, {
+      async: true,
+      gitTag: 'master',
+      noDependenciesCache: false,
+      overwriteFunctions: false,
+      smoothly: true,
+      printBuildLogs: true,
+    })
+  })
+
   console.log()
   console.log('======================')
   if (domain === 'SKIP') {
