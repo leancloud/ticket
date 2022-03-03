@@ -3,6 +3,15 @@
     "objectId": {
       "type": "String"
     },
+    "ACL": {
+      "type": "ACL"
+    },
+    "createdAt": {
+      "type": "Date"
+    },
+    "updatedAt": {
+      "type": "Date"
+    },
     "ticket": {
       "className": "Ticket",
       "type": "Pointer"
@@ -12,15 +21,6 @@
     },
     "data": {
       "type": "Object"
-    },
-    "createdAt": {
-      "type": "Date"
-    },
-    "updatedAt": {
-      "type": "Date"
-    },
-    "ACL": {
-      "type": "ACL"
     },
     "internal": {
       "type": "Boolean",
@@ -50,5 +50,15 @@
       "*": true
     }
   },
-  "indexes": []
+  "indexes": [
+    {
+      "v": 2,
+      "key": {
+        "ticket.$id": 1
+      },
+      "name": "-user-ticket.$id_1",
+      "ns": "-.OpsLog",
+      "background": true
+    }
+  ]
 }

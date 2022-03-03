@@ -2,39 +2,14 @@
 
 ### 部署应用
 
-LeanCloud 应用准备
-
 1. 创建 LeanCloud 应用。
-2. 调整应用选项：
-   - 存储 -> 设置 -> 勾选「启用 LiveQuery」
-3. 初始化数据表：将 `./resources/schema` 目录下表结构导入到存储服务中。然后在 Ticket 表新建一列，名为 `nid`，类型选择 `Number`，勾选「自增」。
-4. 绑定云引擎域名：设置 -> 域名绑定 -> 云引擎、ClientEngine 域名（在国内节点部署需要申请 [独立 IP](https://leancloud.cn/docs/custom-api-domain-guide.html#hash-1958256555)）
-5. （国际版跳过此步）绑定 API 域名：设置 -> 域名绑定 -> API 访问域名，绑定成功后，添加云引擎环境变量 `LEANCLOUD_API_HOST`，值为 `https://your-api-domain.example.com`
-6. （可选）添加云引擎环境变量 `HELP_EMAIL`，值为邮箱地址，报错页面等处会显示该邮箱。
+2. 创建一个 Access Token（账户 - Access Token）。
+3. （国际版跳过此步）准备一个已备案的域名。
+4. 创建两个 Redis 实例，一个名为 `QUEUE` 数据删除策略选择 `noeviction`，一个名为 `CACHE`。
+5. 运行 `./deploy/index.mjs` 并按照提示提供信息。（如果要部署到华东节点或者国际版，需要设置 `CONSOLE_API_SERVER` 环境变量。
+6. 根据提示配置 DNS 完成域名绑定（也可在应用的设置 - 域名绑定页中查看或修改配置）。
 
-
-获取应用源码：
-
-```
-git clone https://github.com/leancloud/ticket.git
-cd ticket
-```
-
-使用 [命令行工具](https://leancloud.cn/docs/leanengine_cli.html) 关联代码到 LeanCloud 应用：
-
-```
-lean switch
-```
-
-根据提示选择刚才创建的 LeanCloud 应用。
-
-然后部署：
-
-```
-lean deploy
-```
-
-部署完成后，访问 `https://<刚才绑定的自定义云引擎域名>` 即可访问。
+绑定成功后，访问 `https://<绑定的自定义云引擎域名>` 即可访问。
 
 ### 开始使用
 
