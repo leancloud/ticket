@@ -183,6 +183,7 @@ export function Ticket() {
                       dangerouslySetInnerHTML={{ __html: reply.contentSafeHTML }}
                     />
                   }
+                  files={reply.files}
                 />
               ))}
 
