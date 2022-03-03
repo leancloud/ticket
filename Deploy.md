@@ -84,15 +84,15 @@
 
 ## 2021-10-13
 
-OpsLog 没有索引，在自用的 LeanTicket 上 40000+ 的数据量已经出现查询超时了，慢查询条件为 `where('ticket', '==', ptr).orderBy('createdAt')`。给 ticket 列加个索引，避免扫全表即可。
+重新导入 OpsLog（增加 ticket 索引）~~OpsLog 没有索引，在自用的 LeanTicket 上 40000+ 的数据量已经出现查询超时了，慢查询条件为 `where('ticket', '==', ptr).orderBy('createdAt')`。给 ticket 列加个索引，避免扫全表即可。~~
 
 ## 2021-10-21
 
 ### `f400cdc73c0328bb74bf934a17c370c127b4000e`
 
-重新导入 notification.json 。并确保 notification 表有这个索引：
+重新导入 notification.json 。~~并确保 notification 表有这个索引：~~
 
-- user（正序）联合 latestActionAt（倒序）
+- ~~user（正序）联合 latestActionAt（倒序）~~
 
 ## 2021-10-29
 
@@ -139,7 +139,7 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 ### `a862e9fb042178ba2e3304aecdb2ec647f913ac7`
 
 重新导入 Ticket（为 Ticket 增加 latestCustomerServiceReplyAt 与 firstCustomerServiceReplyAt）。
-为 Ticket 创建索引 latestCustomerServiceReplyAt （倒序）
+~~为 Ticket 创建索引 latestCustomerServiceReplyAt （倒序）~~
 
 ## 2021-12-28
 
@@ -177,10 +177,10 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 
 ### `994965592e35bddb846b894876888aef9577a6f9`
 
-导入 FAQ.json FAQRevision.jaon，确保 FAQRevision 有以下两个索引：
+导入 FAQ.json FAQRevision.jaon，~~确保 FAQRevision 有以下两个索引：~~
 
-- FAQ（倒序）createdAt（倒序）
-- FAQ（倒序）meta（倒序）createdAt（倒序）
+- ~~FAQ（倒序）createdAt（倒序）~~
+- ~~FAQ（倒序）meta（倒序）createdAt（倒序）~~
 
 ## 2022-02-08
 
@@ -195,10 +195,10 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 
 重新导入 FAQ.json，FAQRevision.json。
 
-导入 FAQFeedback.json，确保 FAQFeedback 有以下两个索引：
+导入 FAQFeedback.json~~，确保 FAQFeedback 有以下两个索引：~~
 
-- revision（倒序）author（倒序），唯一，不允许为空
-- revision（倒序）type（倒序）
+- ~~revision（倒序）author（倒序），唯一，不允许为空~~
+- ~~revision（倒序）type（倒序）~~
 
 ## 2022-02-15
 
