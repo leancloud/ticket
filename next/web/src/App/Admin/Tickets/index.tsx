@@ -7,6 +7,7 @@ import { usePage } from '@/utils/usePage';
 import { Topbar, useOrderBy } from './Topbar';
 import { FilterForm, useLocalFilters } from './Filter';
 import { TicketView } from './TicketView';
+import { Ticket } from './Ticket';
 
 const pageSize = 20;
 
@@ -130,7 +131,8 @@ function TicketListView() {
 export default function TicketRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<TicketListView />} />
+      <Route index element={<TicketListView />} />
+      <Route path=":id" element={<Ticket />} />
     </Routes>
   );
 }

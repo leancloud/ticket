@@ -544,13 +544,23 @@ router.patch('/:id', async (ctx) => {
   ctx.body = {};
 });
 
+const fetchRepliesParamsSchema = yup.object({
+  cursor: yup.date(),
+});
+
 router.get('/:id/replies', async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   const ticket = ctx.state.ticket as Ticket;
+  const { cursor } = fetchRepliesParamsSchema.validateSync(ctx.query);
+
   const query = Reply.queryBuilder()
     .where('ticket', '==', ticket.toPointer())
     .preload('author')
     .preload('files');
+  if (cursor) {
+    query.where('createdAt', '>', cursor);
+  }
+
   const replies = await query.find(currentUser.getAuthOptions());
   ctx.body = replies.map((reply) => new ReplyResponse(reply));
 });

@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import moment from 'moment';
 import { keyBy, uniq } from 'lodash-es';
 
@@ -14,14 +15,10 @@ const { Column } = Table;
 
 function TicketLink({ ticket }: { ticket: TicketSchema }) {
   return (
-    <a
-      className="flex mt-1.5 font-bold max-w-full"
-      title={ticket.title}
-      href={`/tickets/${ticket.nid}`}
-    >
+    <Link className="flex mt-1.5 font-bold max-w-full" title={ticket.title} to={ticket.id}>
       <span className="shrink truncate">{ticket.title}</span>
       <span className="shrink-0 ml-1 text-[#6f7c87]">#{ticket.nid}</span>
-    </a>
+    </Link>
   );
 }
 
