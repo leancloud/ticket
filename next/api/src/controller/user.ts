@@ -3,11 +3,12 @@ import {
   CurrentUser,
   Get,
   Pagination,
+  Param,
   Query,
   ResponseBody,
   UseMiddlewares,
 } from '@/common/http';
-import { ParseCsvPipe, TrimPipe } from '@/common/pipe';
+import { FindModelPipe, ParseCsvPipe, TrimPipe } from '@/common/pipe';
 import { auth, customerServiceOnly } from '@/middleware';
 import { User } from '@/model/User';
 import { UserSearchResult } from '@/response/user';
@@ -17,7 +18,7 @@ import { UserSearchResult } from '@/response/user';
 export class UserController {
   @Get()
   @ResponseBody(UserSearchResult)
-  findAll(
+  find(
     @CurrentUser() currentUser: User,
     @Pagination() [page, pageSize]: [number, number],
     @Query('id', ParseCsvPipe) ids: string[] | undefined,
@@ -38,5 +39,11 @@ export class UserController {
     }
 
     return query.find(currentUser.getAuthOptions());
+  }
+
+  @Get(':id')
+  @ResponseBody(UserSearchResult)
+  findOne(@Param('id', new FindModelPipe(User)) user: User) {
+    return user;
   }
 }
