@@ -1,0 +1,152 @@
+{
+    "schema": {
+        "objectId": {
+            "type": "String"
+        },
+        "ACL": {
+            "type": "ACL"
+        },
+        "updatedAt": {
+            "type": "Date"
+        },
+        "createdAt": {
+            "type": "Date"
+        },
+        "date": {
+            "type": "Date"
+        },
+        "category": {
+            "type": "Pointer",
+            "className": "Category",
+            "v": 2
+        },
+        "customerService": {
+            "type": "Pointer",
+            "className": "_User",
+            "v": 2
+        },
+        "created": {
+            "type": "Number",
+            "v": 2,
+            "required": false,
+            "auto_increment": false,
+            "hidden": false,
+            "read_only": false
+        },
+        "closed": {
+            "type": "Number",
+            "v": 2,
+            "required": false,
+            "auto_increment": false,
+            "hidden": false,
+            "read_only": false
+        },
+        "reopened": {
+            "type": "Number",
+            "v": 2,
+            "required": false,
+            "auto_increment": false,
+            "hidden": false,
+            "read_only": false
+        },
+        "conversion": {
+            "type": "Number",
+            "v": 2,
+            "required": false,
+            "auto_increment": false,
+            "hidden": false,
+            "read_only": false
+        },
+        "internalConversion": {
+            "type": "Number",
+            "v": 2,
+            "required": false,
+            "auto_increment": false,
+            "hidden": false,
+            "read_only": false
+        },
+        "externalConversion": {
+            "type": "Number",
+            "v": 2,
+            "required": false,
+            "auto_increment": false,
+            "hidden": false,
+            "read_only": false
+        },
+        "replyTime": {
+            "type": "Number",
+            "v": 2,
+            "required": false,
+            "auto_increment": false,
+            "hidden": false,
+            "read_only": false
+        },
+        "replyTimeCount": {
+            "type": "Number",
+            "v": 2,
+            "required": false,
+            "auto_increment": false,
+            "hidden": false,
+            "read_only": false
+        },
+        "replyCount": {
+            "type": "Number",
+            "v": 2,
+            "required": false,
+            "auto_increment": false,
+            "hidden": false,
+            "read_only": false
+        },
+        "firstReplyTime": {
+            "type": "Number",
+            "v": 2,
+            "required": false,
+            "auto_increment": false,
+            "hidden": false,
+            "read_only": false
+        },
+        "firstReplyCount": {
+            "type": "Number",
+            "v": 2,
+            "required": false,
+            "auto_increment": false,
+            "hidden": false,
+            "read_only": false
+        },
+        "internalReplyCount": {
+            "type": "Number",
+            "v": 2,
+            "required": false,
+            "auto_increment": false,
+            "hidden": false,
+            "read_only": false
+        }
+    },
+    "permissions": {
+        "create": {
+            "roles": [],
+            "users": []
+        },
+        "find": {
+            "roles": [],
+            "users": []
+        },
+        "get": {
+            "roles": [],
+            "users": []
+        },
+        "update": {
+            "roles": [],
+            "users": []
+        },
+        "delete": {
+            "roles": [],
+            "users": []
+        },
+        "add_fields": {
+            "roles": [],
+            "users": []
+        }
+    },
+    "indexes": []
+}
