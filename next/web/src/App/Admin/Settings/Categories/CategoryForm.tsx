@@ -94,6 +94,7 @@ export interface CategoryFormData {
   articleIds?: string[];
   groupId?: string;
   formId?: string;
+  template?: string;
 }
 
 export interface CategoryFormProps {
@@ -261,6 +262,16 @@ export function CategoryForm({
         render={({ field }) => (
           <Form.Item label="关联工单表单" htmlFor="category_form_form_id" style={FORM_ITEM_STYLE}>
             <TicketFormSelect {...field} id="category_form_form_id" />
+          </Form.Item>
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="template"
+        render={({ field }) => (
+          <Form.Item label="问题描述模板" htmlFor="category_form_template" style={FORM_ITEM_STYLE}>
+            <TextArea {...field} id="category_form_template" rows={5} />
           </Form.Item>
         )}
       />
