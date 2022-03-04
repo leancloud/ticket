@@ -48,16 +48,10 @@ const createCategorySchema = z.object({
   articleIds: z.array(z.string()).optional(),
   groupId: z.string().optional(),
   formId: z.string().optional(),
+  template: z.string().optional(),
 });
 
-const updateCategorySchema = z.object({
-  name: z.string().optional(),
-  description: z.string().optional(),
-  parentId: z.string().optional(),
-  noticeIds: z.array(z.string()).optional(),
-  articleIds: z.array(z.string()).optional(),
-  groupId: z.string().optional(),
-  formId: z.string().optional(),
+const updateCategorySchema = createCategorySchema.partial().extend({
   position: z.number().optional(),
   active: z.boolean().optional(),
 });
@@ -116,6 +110,7 @@ export class CategoryController {
         noticeIds: data.noticeIds?.length === 0 ? undefined : data.noticeIds,
         groupId: data.groupId,
         formId: data.formId,
+        qTemplate: data.template,
       },
       currentUser.getAuthOptions()
     );
@@ -202,6 +197,7 @@ export class CategoryController {
       FAQIds: data.articleIds?.length === 0 ? null : data.articleIds,
       groupId: data.groupId,
       formId: data.formId,
+      qTemplate: data.template,
       order: data.position ?? deletedAt?.getTime(),
       deletedAt,
     };
