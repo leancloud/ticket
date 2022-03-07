@@ -36,7 +36,7 @@ const RESPONSE_ACTIONS: LogAction[] = [
   'resolve',
   'close',
 ];
-
+const SEPARATOR = '__';
 // 受理中	某时间段内分配到该客服的受理中的工单数	
 // 1、可以用「视图」解决
 // 2、结束时间点之前工单的状态
@@ -74,6 +74,9 @@ interface StatResult {
   category: {
     [key in string]: StatData
   };
+  customerServiceCategory: {
+    [key in string]: StatData
+  }
 }
 interface CurrentStatus {
   accepted: Array<[string | undefined, string]>,
@@ -111,19 +114,22 @@ const getWeekdayDate = (value: Date) => {
   return value;
 }
 const customizer = (objValue?: number, srcValue = 0) => objValue === undefined ? srcValue : objValue + srcValue
-const mergeStatData = (target: StatResult, source: Omit<StatResult, 'category'> & { categoryId: string }) => ({
-  ticket: _.mergeWith(target.ticket, source.ticket, customizer),
-  customerService: _.mergeWith(target.customerService, source.customerService, (objValue, srcValue) => {
-    if (objValue) {
-      return _.mergeWith(objValue, srcValue, customizer)
-    }
-    return srcValue
-  }),
-  category: {
-    ...target.category,
-    [source.categoryId]: _.mergeWith(target.category[source.categoryId], source.ticket, customizer)
+const mergeStatData = (target: StatResult, source: Pick<StatResult, 'customerService' | 'ticket'> & { categoryId: string }) => {
+  const newCustomerServiceCategory = Object.keys(source.customerService).reduce((pre, curr) => {
+    const key = [curr, source.categoryId].join(SEPARATOR);
+    pre[key] = source.customerService[curr];
+    return pre
+  }, {} as StatResult['customerServiceCategory'])
+  return {
+    ticket: _.mergeWith(target.ticket, source.ticket, customizer),
+    customerService: _.mergeWith(target.customerService, source.customerService, (objValue, srcValue) => objValue ? _.mergeWith(objValue, srcValue, customizer) : srcValue),
+    category: {
+      ...target.category,
+      [source.categoryId]: _.mergeWith(target.category[source.categoryId], source.ticket, customizer)
+    },
+    customerServiceCategory: _.mergeWith(target.customerServiceCategory, newCustomerServiceCategory, customizer)
   }
-})
+}
 
 const _getNewTicketIds = async (from: Date, to: Date, limit = 100, skip = 0): Promise<string[]> => {
   try {
@@ -316,7 +322,6 @@ const _isFirstReplyFunc = (beforeTimeLine: TimeLine, ticket: Ticket) => {
     }
   }
 }
-// _getReplyDetails 只包含 replies 以及 指定负责任人的logs
 const _getTicketStatById = async (id: string, from: Date, to: Date) => {
   const ticket = await Ticket.find(id, AUTH_OPTIONS);
   if (!ticket) {
@@ -373,7 +378,8 @@ const _getTicketStatById = async (id: string, from: Date, to: Date) => {
   })
   const assigneeIds = _getAssigneeIds(assigneeLogs, from);
   const logTimeLine = allLogTimeline.filter(v => !isBefore(v.createdAt, from));
-  const closedLogs = logTimeLine.filter(v => v.action === 'close')
+  // 客服用户 closed 的日志为关闭，客服认为已解决的算关闭
+  const closedLogs = logTimeLine.filter(v => v.action === 'close' || (v.action === 'resolve' && v.authorId === ticket.authorId))
   const reopenedLogs = logTimeLine.filter(v => v.action === 'reopen')
   const repliesTimeLine = _.orderBy([...replies, ...assigneeLogs], 'createdAt')
   const replyDetails = _getReplyDetails(repliesTimeLine, from, ticket);
@@ -400,9 +406,11 @@ const _getTicketStatById = async (id: string, from: Date, to: Date) => {
     pre[curr] = {
       created: 0, //客服不需要统计创建数
       closed: closedLogs.filter(log => {
+        // 客服关闭
         if (log.authorId === curr) {
           return true
         }
+        // 用户关闭 或已解决
         if (curr === currentAssigneeId) {
           return log.authorId === ticket.authorId
         }
@@ -424,7 +432,6 @@ const _getTicketStatById = async (id: string, from: Date, to: Date) => {
   }, {} as {
     [key in string]: StatData
   })
-
   return {
     ticket: ticketStat,
     customerService: customerServiceStats,
@@ -458,7 +465,8 @@ const _getTicketStat = async (from: Date, to: Date) => {
   const run = throat(2);
   let statResult: StatResult = {
     customerService: {},
-    category: {}
+    category: {},
+    customerServiceCategory: {}
   };
   await Promise.all(ids.map((id) => run(() => _getTicketStatById(id, from, to).then(value => {
     if (!value) {
@@ -472,7 +480,6 @@ const _getTicketStat = async (from: Date, to: Date) => {
   return statResult
 }
 
-
 // 正常调用不需要传递时间，云函数调用永远统计的是当前时间上一个小时的数据。
 export async function hourlyTicketStats(date?: Date) {
   date = date ? date : subHours(new Date(), 1)
@@ -485,7 +492,6 @@ export async function hourlyTicketStats(date?: Date) {
       date: from,
       ...currentStatus,
     }, AUTH_OPTIONS)
-
     const statResult = await _getTicketStat(from, to)
     if (!statResult) {
       return;
@@ -499,7 +505,15 @@ export async function hourlyTicketStats(date?: Date) {
       ...Object.entries(statResult.customerService).map(([customerServiceId, statData]) => ({
         ...statData,
         customerServiceId,
-      }))
+      })),
+      ...Object.entries(statResult.customerServiceCategory).map(([customerServiceCategory, statData]) => {
+        const [customerServiceId, categoryId] = customerServiceCategory.split(SEPARATOR)
+        return {
+          ...statData,
+          categoryId,
+          customerServiceId,
+        }
+      })
     ].map(v => {
       return {
         ...v,
@@ -507,7 +521,10 @@ export async function hourlyTicketStats(date?: Date) {
         date: from
       }
     })
-    await TicketStats.createSome(ticketStats, AUTH_OPTIONS)
+    const batchNumber = Math.ceil(ticketStats.length / 50)
+    for (let index = 0; index < batchNumber; index++) {
+      await TicketStats.createSome(ticketStats.slice(index * 50, (index + 1) * 50), AUTH_OPTIONS)
+    }
     console.log('[completed] :', format(from, 'yyyy-MM-dd HH'))
   } catch (error) {
     console.log('[ticketStat error]', `${format(from, 'yyyy-MM-dd HH')} to  ${format(to, 'yyyy-MM-dd HH')} error`, error)
