@@ -136,6 +136,7 @@ export interface CreateCategoryData {
   articleIds?: string[];
   groupId?: string;
   formId?: string;
+  template?: string;
 }
 
 async function createCategory(data: CreateCategoryData) {

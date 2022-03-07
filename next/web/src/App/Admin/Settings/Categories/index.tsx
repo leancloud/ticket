@@ -475,6 +475,7 @@ export function CategoryDetail() {
       'articleIds',
       'groupId',
       'formId',
+      'template',
     ]);
   }, [category]);
 
