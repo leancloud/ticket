@@ -82,6 +82,16 @@ export class TicketUpdater {
     return this;
   }
 
+  addTag(tag: Tag): this {
+    this.data.tags = commands.pushUniq(tag);
+    return this;
+  }
+
+  addPrivateTag(tag: Tag): this {
+    this.data.privateTags = commands.pushUniq(tag);
+    return this;
+  }
+
   setEvaluation(evaluation: Evaluation): this {
     this.data.evaluation = evaluation;
     return this;

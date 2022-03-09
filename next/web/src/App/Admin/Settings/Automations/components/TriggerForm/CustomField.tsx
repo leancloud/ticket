@@ -1,6 +1,6 @@
 import { JSXElementConstructor, createElement, useMemo } from 'react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
-import { get } from 'lodash-es';
+import { get, set } from 'lodash-es';
 
 import { Form, Select } from '@/components/antd';
 
@@ -24,7 +24,7 @@ export function CustomField({
   typeSelectPlaceholder,
   typeSelectWidth = 180,
 }: CustomFieldProps) {
-  const { control, formState, setValue } = useFormContext();
+  const { control, formState, getValues, reset } = useFormContext();
   const typeName = `${path}.type`;
   const typeValue = useWatch({ control, name: typeName });
   const typeError = get(formState.errors, typeName);
@@ -45,7 +45,11 @@ export function CustomField({
           <Select
             {...field}
             options={options}
-            onChange={(type) => setValue(path, { type })}
+            onChange={(type) => {
+              const values = getValues();
+              set(values, path, { type });
+              reset(values);
+            }}
             placeholder={typeSelectPlaceholder}
             style={{ width: typeSelectWidth }}
           />

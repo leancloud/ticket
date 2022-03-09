@@ -4,6 +4,7 @@ import { Action, ActionFactory } from '../../action';
 import updateCategoryId from '../../action/updateCategoryId';
 import updateGroupId from '../../action/updateGroupId';
 import closeTicket from '../../action/closeTicket';
+import addTag from '../../action/addTag';
 
 import { TriggerContext } from '../context';
 import updateAssigneeId from './updateAssigneeId';
@@ -13,6 +14,7 @@ const factories: Record<string, ActionFactory<unknown, TriggerContext>> = {
   updateCategoryId,
   updateGroupId,
   closeTicket,
+  addTag,
 };
 
 const schema = z.object({
