@@ -26,7 +26,7 @@
     "react": "^17.0.2",
     "react-beautiful-dnd": "^13.1.0",
     "react-dom": "^17.0.2",
-    "react-hook-form": "^7.22.5",
+    "react-hook-form": "^7.27.1",
     "react-icons": "^4.3.1",
     "react-markdown": "^8.0.0",
     "react-query": "^3.34.7",
@@ -36,7 +36,7 @@
     "throat": "^6.0.1"
   },
   "devDependencies": {
-    "@hookform/devtools": "^4.0.1",
+    "@hookform/devtools": "^4.0.2",
     "@tailwindcss/forms": "^0.4.0",
     "@types/lodash-es": "^4.17.5",
     "@types/react": "^17.0.38",
