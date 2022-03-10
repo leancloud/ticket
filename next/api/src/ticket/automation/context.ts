@@ -2,7 +2,7 @@ import _ from 'lodash';
 
 import { Category } from '@/model/Category';
 import { Group } from '@/model/Group';
-import { Ticket } from '@/model/Ticket';
+import { Tag, Ticket } from '@/model/Ticket';
 import { User, systemUser } from '@/model/User';
 import { TicketUpdater } from '@/ticket';
 
@@ -105,6 +105,14 @@ export class Context {
   closeTicket() {
     this.dirtyData.status = Ticket.Status.CLOSED;
     this.updater.operate('close');
+  }
+
+  addTag(tag: Tag) {
+    this.updater.addTag(tag);
+  }
+
+  addPrivateTag(tag: Tag) {
+    this.updater.addPrivateTag(tag);
   }
 
   async finish() {
