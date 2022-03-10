@@ -126,7 +126,7 @@ export const StatsLine: FunctionComponent<LineProps> = ({
   tooltipFormatter,
   legendFormatter,
 }) => {
-  const types = useMemo(() => (data ? Object.keys(data[0][1]) : []), [data]);
+  const types = useMemo(() => (data && data[0] ? Object.keys(data[0][1]) : []), [data]);
   const chartData = useMemo(
     () =>
       _(data || [])
