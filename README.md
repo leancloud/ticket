@@ -6,8 +6,9 @@
 2. 创建一个 Access Token（账户 - Access Token）。
 3. （国际版跳过此步）准备一个已备案的域名。
 4. 创建两个 Redis 实例，一个名为 `QUEUE` 数据删除策略选择 `noeviction`，一个名为 `CACHE`。
-5. 运行 `./deploy/index.mjs` 并按照提示提供信息。（如果要部署到华东节点或者国际版，需要设置 `CONSOLE_API_SERVER` 环境变量。
+5. 运行 `./deploy/index.mjs` 并按照提示提供信息。
 6. 根据提示配置 DNS 完成域名绑定（也可在应用的设置 - 域名绑定页中查看或修改配置）。
+7. 在 「LeanCloud 控制台 > 云引擎 > 你的云引擎分组 > 设置 > 自定义环境变量」添加 `LEANCLOUD_API_HOST` 环境变量，值为「LeanCloud 控制台 > 应用凭证 > 服务器地址 > REST API 服务器地址」显示的地址。
 
 绑定成功后，访问 `https://<绑定的自定义云引擎域名>` 即可访问。
 
