@@ -6,14 +6,14 @@ const CHART_VALUE = '$$_chart_value_$$';
 const CHART_KEY = '$$_chart_key_$$';
 const CHART_TYPE = '$$_chart_TYPE_$$';
 interface ChartProps {
-  data?: [number | string | Date, number][];
+  data?: [string, number][];
   loading?: boolean;
   names?: (value: string) => string;
   formatters?: {
-    xAxisDisplay?: (value: string) => string;
-    yAxisDisplay?: (value: string, item: any, index: number) => string;
-    yAxisTick?: (value: string, item: any, index: number) => string;
-    xAxisTick?: (value: string, item: any, index: number) => string;
+    xAxisDisplay?: (value: number) => string;
+    yAxisDisplay?: (value: number) => string;
+    yAxisTick?: (value: string) => string;
+    xAxisTick?: (value: string) => string;
   };
 }
 interface ColumnProps extends ChartProps {
@@ -22,11 +22,11 @@ interface ColumnProps extends ChartProps {
 interface PieProps extends Omit<ChartProps, 'formatters'> {
   formatters?: {
     valueDisplay?: (value: number) => string;
-    keyDisplay?: (value: string, item: any, index: number) => string;
+    keyDisplay?: (value: string) => string;
   };
 }
 interface LineProps extends Omit<ChartProps, 'data'> {
-  data?: [number | string | Date, Record<string, number>][];
+  data?: [string, Record<string, number>][];
 }
 
 const convertChartData = (data: ChartProps['data']) => {
@@ -53,6 +53,12 @@ export const StatsPie: FunctionComponent<PieProps> = ({ loading, data, names, fo
       data={chartData}
       label={{
         type: 'outer',
+        content: ({ percent, ...rest }) => {
+          if (percent < 0.015) {
+            return '';
+          }
+          return rest[CHART_VALUE];
+        },
       }}
       interactions={[
         {
@@ -98,22 +104,23 @@ export const StatsColumn: FunctionComponent<ColumnProps> = ({
       yAxis={{
         tickInterval: tickInterval,
         label: {
-          autoRotate: false,
           formatter: formatters?.yAxisTick,
         },
       }}
       xAxis={{
         label: {
-          autoHide: false,
+          // autoHide: ,
           formatter: formatters?.xAxisTick,
         },
       }}
       tooltip={{
-        title: (value) => (formatters?.xAxisDisplay ? formatters.xAxisDisplay(value) : value),
+        title: (value) => (formatters?.xAxisTick ? formatters.xAxisTick(value) : value),
         formatter: (datum) => {
           return {
             name: names ? names(datum[CHART_KEY]) : datum[CHART_KEY],
-            value: datum[CHART_VALUE],
+            value: formatters?.xAxisDisplay
+              ? formatters.xAxisDisplay(datum[CHART_VALUE])
+              : datum[CHART_VALUE],
           };
         },
       }}
@@ -154,8 +161,9 @@ export const StatsLine: FunctionComponent<LineProps> = ({ loading, data, names, 
         return Colors[types.indexOf(params[CHART_TYPE])];
       }}
       xAxis={{
+        // tickCount: 10,
         label: {
-          autoHide: false,
+          // autoHide: false,
           formatter: formatters?.xAxisTick,
         },
       }}

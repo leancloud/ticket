@@ -129,7 +129,7 @@ export class TicketStats extends Model {
     const pickData = data.map((v) => _.pick(v, [...params.fields, 'date', 'customerServiceId', 'categoryId'])).filter(v => {
       return params.fields.some(field => v[field as keyof TicketStats])
     })
-    if (pickData.length === limit) {
+    if (data.length === limit) {
       const nextData = await TicketStats.fetchTicketFieldStats(params, limit, limit + skip);
       return [...pickData, ...nextData]
     }

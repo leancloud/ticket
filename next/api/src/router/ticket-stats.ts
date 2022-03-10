@@ -5,7 +5,6 @@ import { TicketStats } from '@/model/TicketStats';
 import { CategoryService } from '@/service/category';
 import { TicketStatusStats } from '@/model/TicketStatusStats';
 import { TicketStatusStatsResponse } from '@/response/ticket-stats';
-import { startOfHour, subHours } from 'date-fns';
 const router = new Router().use(auth, customerServiceOnly);
 
 const statsSchema = yup.object({

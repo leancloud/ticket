@@ -1,13 +1,12 @@
 import { useSearchParams } from '@/utils/useSearchParams';
 import moment from 'moment';
 import { useMemo } from 'react';
-import classnames from 'classnames';
-import _, { values } from 'lodash';
+import _ from 'lodash';
 
 import { TicketStats, useTicketFieldStats, useTicketStatus } from '@/api/ticket-stats';
 import { useCategories } from '@/api/category';
 import { useCustomerServices } from '@/api/customer-service';
-import { defaultDateRange, StatsField, STATS_FIELD_LOCALE, STATUS_FIELD, STATUS_LOCALE } from '.';
+import { defaultDateRange, StatsField, STATS_FIELD_LOCALE, STATUS_LOCALE } from '.';
 import { StatsPie, StatsColumn, StatsLine } from './StatsChart';
 import { Divider } from '@/components/antd';
 
@@ -88,16 +87,9 @@ const TicketStatsColumn: React.FunctionComponent<{ field: StatsField }> = ({ fie
     const avgField = avgFieldMap[field];
     return chartData.map((v) => {
       const value = avgField ? (v[avgField[0]] || 0) / (v[avgField[1]] || 1) : v[field];
-      return [v.date, value] as [Date, number];
+      return [moment(v.date).toISOString(), value] as [string, number];
     });
   }, [data, rollup]);
-
-  const tooltipFormatter = (value: number | string) => {
-    return {
-      name: STATS_FIELD_LOCALE[field],
-      value: timeField.includes(field) ? timeFormatter(Number(value)) : value,
-    };
-  };
   return (
     <StatsColumn
       loading={isFetching || isLoading}
@@ -111,7 +103,7 @@ const TicketStatsColumn: React.FunctionComponent<{ field: StatsField }> = ({ fie
           }
           return value;
         },
-        xAxisTick: (value, item, index) => {
+        xAxisTick: (value) => {
           if (rollup === 'day') {
             return moment(value).format('YYYY-MM-DD');
           }
@@ -120,10 +112,7 @@ const TicketStatsColumn: React.FunctionComponent<{ field: StatsField }> = ({ fie
           // return date.format(date.isSame(preDate, 'day') ? 'HH:mm' : 'YYYY-MM-DD HH:mm');
           return date.format('HH:mm');
         },
-        xAxisDisplay: (value) => {
-          console.log(value);
-          return moment(value).format('YYYY-MM-DD HH:mm');
-        },
+        xAxisDisplay: timeField.includes(field) ? timeFormatter : undefined,
       }}
       names={(value) => STATS_FIELD_LOCALE[field]}
     />
@@ -166,16 +155,14 @@ const CategoryStats: React.FunctionComponent<{ field: StatsField }> = ({ field }
     return null;
   }
   return (
-    <div className="basis-1/2 flex-grow max-w-[650px]">
-      <StatsPie
-        data={chartData}
-        loading={isLoading || isFetching}
-        names={categoryFormat}
-        formatters={{
-          valueDisplay,
-        }}
-      />
-    </div>
+    <StatsPie
+      data={chartData}
+      loading={isLoading || isFetching}
+      names={categoryFormat}
+      formatters={{
+        valueDisplay,
+      }}
+    />
   );
 };
 
@@ -217,24 +204,22 @@ const CustomerServiceStats: React.FunctionComponent<{ field: StatsField }> = ({ 
     return null;
   }
   return (
-    <div className="basis-1/2 flex-grow max-w-[650px]">
-      <StatsPie
-        data={chartData}
-        loading={isLoading || isFetching}
-        names={customerServiceFormat}
-        formatters={{
-          valueDisplay,
-        }}
-      />
-    </div>
+    <StatsPie
+      data={chartData}
+      loading={isLoading || isFetching}
+      names={customerServiceFormat}
+      formatters={{
+        valueDisplay,
+      }}
+    />
   );
 };
 
-const current = moment().subtract(2, 'day');
 const StatusStats = () => {
+  const [{ from = defaultDateRange.from, to = defaultDateRange.to }] = useSearchParams();
   const { data, isFetching, isLoading } = useTicketStatus({
-    from: moment(current).subtract(24, 'hour').toDate(),
-    to: current.toDate(),
+    from: moment(from).toDate(),
+    to: moment(to).toDate(),
   });
   const chartData = useMemo(() => {
     if (!data) {
@@ -244,22 +229,21 @@ const StatusStats = () => {
       .orderBy('date')
       .map((v) => {
         const { date, id, ...rest } = v;
-        return ([date, rest] as unknown) as [Date, Record<string, number>];
+        return ([moment(date).toISOString(), rest] as unknown) as [string, Record<string, number>];
       })
       .valueOf();
   }, [data]);
+  const rollup = useMemo(() => getRollUp(from, to), [from, to]);
   return (
-    <div className="relative h-[400px]">
-      <StatsLine
-        loading={isFetching || isLoading}
-        data={chartData}
-        names={(text: string) => STATUS_LOCALE[text as 'waiting' | 'accepted']}
-        formatters={{
-          xAxisTick: (value) => moment(value).format('HH:mm'),
-          xAxisDisplay: (value) => moment(value).format('YYYY-MM-DD HH:mm'),
-        }}
-      />
-    </div>
+    <StatsLine
+      loading={isFetching || isLoading}
+      data={chartData}
+      names={(text: string) => STATUS_LOCALE[text as 'waiting' | 'accepted']}
+      formatters={{
+        xAxisTick: (value) => moment(value).format(rollup === 'day' ? 'YYYY-MM-DD HH:mm' : 'HH:mm'),
+        xAxisDisplay: (value) => moment(value).format('YYYY-MM-DD HH:mm'),
+      }}
+    />
   );
 };
 
@@ -268,22 +252,28 @@ export function StatsDetails({ field }: { field: StatsField }) {
   return (
     <div>
       <h2>{STATS_FIELD_LOCALE[field]}</h2>
-      <div className="relative h-[400px]">
+      <div className="w-full relative">
         <TicketStatsColumn field={field} />
       </div>
       {!timeField.includes(field) && (
-        <div className="relative flex mt-4">
-          {!customerService && field !== 'created' && <CustomerServiceStats field={field} />}
+        <div className="relative flex basis-1/2 mt-4">
+          {!customerService && field !== 'created' && (
+            <div className=" basis-1/2">
+              <CustomerServiceStats field={field} />
+            </div>
+          )}
           {!category && (
-            <div className="basis-1/2 flex-grow  max-w-[650px] ">
+            <div className=" basis-1/2">
               <CategoryStats field={field} />
             </div>
           )}
         </div>
       )}
       <Divider />
-      <h2>最近工单状态</h2>
-      <StatusStats />
+      <h2>工单状态</h2>
+      <div className="w-full relative">
+        <StatusStats />
+      </div>
     </div>
   );
 }
