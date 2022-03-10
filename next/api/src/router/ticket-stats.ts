@@ -63,12 +63,9 @@ const statusSchema = yup.object({
 });
 router.get('/status', async (ctx) => {
   const { from, to } = statusSchema.validateSync(ctx.query);
-  // const current = new Date();
-  // const from =subHours( startOfHour(current),24)
   const data = await TicketStatusStats.queryBuilder().where('date', '>=', from)
     .where('date', '<=', to)
     .find({ useMasterKey: true })
-  console.log(data, from, to)
   ctx.body = data.map(data => new TicketStatusStatsResponse(data));
 })
 
