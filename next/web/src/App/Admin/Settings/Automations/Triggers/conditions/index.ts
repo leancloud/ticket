@@ -2,6 +2,7 @@ import { StringValue } from '../../conditions/StringValue';
 import { CategoryId } from '../../conditions/CategoryId';
 import { GroupId } from '../../conditions/GroupId';
 import { Status } from '../../conditions/Status';
+import { MetaData } from '../../conditions/MetaData';
 
 import { Ticket } from './Ticket';
 import { AuthorId } from './AuthorId';
@@ -44,5 +45,9 @@ export default {
   currentUserId: {
     label: '当前用户',
     component: CurrentUserId,
+  },
+  metaData: {
+    label: 'metaData',
+    component: MetaData,
   },
 };

@@ -5,6 +5,7 @@ import { AssigneeId } from '../../conditions/AssigneeId';
 import { GroupId } from '../../conditions/GroupId';
 import { Status } from '../../conditions/Status';
 import { NumberValue } from '../../conditions/NumberValue';
+import { MetaData } from '../../conditions/MetaData'
 
 export default {
   title: {
@@ -46,5 +47,9 @@ export default {
   sinceAssigned: {
     label: '小时数-自工单被分配负责人开始',
     component: NumberValue,
+  },
+  metaData: {
+    label: 'metaData',
+    component: MetaData,
   },
 };

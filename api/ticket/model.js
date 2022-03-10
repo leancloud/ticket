@@ -43,6 +43,12 @@ class Ticket {
 
     /**
      * @readonly
+     * @type {object}
+     */
+    this.metaData = object.get('metaData')
+
+    /**
+     * @readonly
      */
     this.created_at = object.createdAt
 

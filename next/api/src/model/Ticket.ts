@@ -181,6 +181,7 @@ export class Ticket extends Model {
   joinedCustomerServices?: TinyUserInfo[];
 
   @field()
+  @serialize()
   metaData?: Record<string, any>;
 
   @field()
