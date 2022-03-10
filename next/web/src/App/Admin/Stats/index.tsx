@@ -137,6 +137,12 @@ export const STATS_FIELD_LOCALE = {
   replyCount: '对外回复数',
   internalReplyCount: '对内回复数',
 };
+
+export const STATUS_LOCALE = {
+  accepted: '受理中',
+  waiting: '等待回复',
+};
+
 const defaultActiveField = STATS_FIELD[0];
 const timeProps = {
   formatter: (value: number | string) => (Number(value) / 3600).toFixed(2),

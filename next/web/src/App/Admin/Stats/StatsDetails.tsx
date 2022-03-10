@@ -7,7 +7,7 @@ import _ from 'lodash';
 import { TicketStats, useTicketFieldStats, useTicketStatus } from '@/api/ticket-stats';
 import { useCategories } from '@/api/category';
 import { useCustomerServices } from '@/api/customer-service';
-import { defaultDateRange, StatsField, STATS_FIELD_LOCALE } from '.';
+import { defaultDateRange, StatsField, STATS_FIELD_LOCALE, STATUS_FIELD, STATUS_LOCALE } from '.';
 import { StatsPie, StatsColumn, StatsLine } from './StatsChart';
 import { Divider } from '@/components/antd';
 
@@ -212,7 +212,7 @@ const CustomerServiceStats: React.FunctionComponent<{ field: StatsField }> = ({ 
   );
 };
 
-const current = moment().subtract(1, 'day');
+const current = moment().subtract(2, 'day');
 const StatusStats = () => {
   const { data, isFetching, isLoading } = useTicketStatus({
     from: moment(current).subtract(24, 'hour').toDate(),
@@ -222,20 +222,41 @@ const StatusStats = () => {
     if (!data) {
       return;
     }
-    return data.map((v) => {
-      const dateStr = moment(v.date).format('YYYY-MM-DD hh:mm');
-      return [
-        dateStr,
-        {
-          accepted: v.accepted,
-          waiting: v.waiting,
-        },
-      ];
-    });
+    let tmpDate = moment();
+    return _(data)
+      .orderBy('date')
+      .map((v) => {
+        const date = moment(v.date);
+        let format = 'HH:mm';
+        if (!date.isSame(tmpDate, 'day')) {
+          format = 'YYYY-MM-DD HH:mm';
+          tmpDate = date;
+        }
+        return [
+          date.format(format),
+          {
+            accepted: v.accepted,
+            waiting: v.waiting,
+          },
+        ] as [string, Record<string, number>];
+      })
+      .valueOf();
   }, [data]);
+  const tooltipFormatter = (value: number | string, key: string, type?: string) => {
+    return {
+      name: type ? STATUS_LOCALE[type as 'waiting' | 'accepted'] : key,
+      value: value,
+    };
+  };
+  const legendFormatter = (text: string) => STATUS_LOCALE[text as 'waiting' | 'accepted'];
   return (
     <div className="relative h-[400px]">
-      <StatsLine loading={isFetching || isLoading} data={chartData as any} />
+      <StatsLine
+        loading={isFetching || isLoading}
+        data={chartData}
+        tooltipFormatter={tooltipFormatter}
+        legendFormatter={legendFormatter}
+      />
     </div>
   );
 };
@@ -263,6 +284,7 @@ export function StatsDetails({ field }: { field: StatsField }) {
         </div>
       )}
       <Divider />
+      <h2>最近工单状态</h2>
       <StatusStats />
     </div>
   );

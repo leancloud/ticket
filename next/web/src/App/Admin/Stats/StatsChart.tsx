@@ -10,25 +10,26 @@ interface ChartProps {
   loading?: boolean;
   tooltipFormatter?: (
     value: number | string,
-    key: string
+    key: string,
+    type?: string
   ) => {
     name: string;
     value: string | number;
   };
 }
 
-interface PieProps extends ChartProps {
-  legendFormatter?: (text: string) => string;
-}
 interface ColumnProps extends ChartProps {
   yAxis?: {
     tickInterval?: number;
     formatter?: (value: string) => string;
   };
 }
-
+interface PieProps extends ChartProps {
+  legendFormatter?: (text: string) => string;
+}
 interface LineProps extends Omit<ChartProps, 'data'> {
   data?: [string, Record<string, number>][];
+  legendFormatter?: (text: string) => string;
 }
 
 const convertChartData = (data: ChartProps['data']) => {
@@ -119,7 +120,12 @@ export const StatsColumn: FunctionComponent<ColumnProps> = ({
 };
 
 const Colors = ['#15c5ce', '#155bd4'];
-export const StatsLine: FunctionComponent<LineProps> = ({ loading, data }) => {
+export const StatsLine: FunctionComponent<LineProps> = ({
+  loading,
+  data,
+  tooltipFormatter,
+  legendFormatter,
+}) => {
   const types = useMemo(() => (data ? Object.keys(data[0][1]) : []), [data]);
   const chartData = useMemo(
     () =>
@@ -135,7 +141,6 @@ export const StatsLine: FunctionComponent<LineProps> = ({ loading, data }) => {
           });
         })
         .flatten()
-        .orderBy(CHART_KEY)
         .valueOf(),
     [data]
   );
@@ -151,8 +156,19 @@ export const StatsLine: FunctionComponent<LineProps> = ({ loading, data }) => {
       color={(params) => {
         return Colors[types.indexOf(params[CHART_TYPE])];
       }}
+      tooltip={{
+        formatter: tooltipFormatter
+          ? (datum) => {
+              console.log(datum);
+              return tooltipFormatter(datum[CHART_VALUE], datum[CHART_KEY], datum[CHART_TYPE]);
+            }
+          : undefined,
+      }}
       legend={{
-        position: 'bottom',
+        position: 'top-right',
+        itemName: {
+          formatter: legendFormatter,
+        },
       }}
     />
   );
