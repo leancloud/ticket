@@ -212,13 +212,12 @@ const CustomerServiceStats: React.FunctionComponent<{ field: StatsField }> = ({ 
   );
 };
 
+const current = moment().subtract(1, 'day');
 const StatusStats = () => {
-  const [{ from = defaultDateRange.from, to = defaultDateRange.to }] = useSearchParams();
   const { data, isFetching, isLoading } = useTicketStatus({
-    from: moment(from).toDate(),
-    to: moment(to).toDate(),
+    from: moment(current).subtract(24, 'hour').toDate(),
+    to: current.toDate(),
   });
-
   const chartData = useMemo(() => {
     if (!data) {
       return;
@@ -234,9 +233,8 @@ const StatusStats = () => {
       ];
     });
   }, [data]);
-  console.log(data);
   return (
-    <div className="h-[400px]">
+    <div className="relative h-[400px]">
       <StatsLine loading={isFetching || isLoading} data={chartData as any} />
     </div>
   );
@@ -245,13 +243,13 @@ const StatusStats = () => {
 export function StatsDetails({ field }: { field: StatsField }) {
   const [{ category, customerService }] = useSearchParams();
   return (
-    <>
+    <div>
       <h2>{STATS_FIELD_LOCALE[field]}</h2>
-      <div className="h-[400px]">
+      <div className="relative h-[400px]">
         <TicketStatsColumn field={field} />
       </div>
       {!timeField.includes(field) && (
-        <div className="flex">
+        <div className="relative flex">
           {!customerService && field !== 'created' && (
             <div className="basis-1/2 flex-grow ">
               <CustomerServiceStats field={field} />
@@ -266,6 +264,6 @@ export function StatsDetails({ field }: { field: StatsField }) {
       )}
       <Divider />
       <StatusStats />
-    </>
+    </div>
   );
 }

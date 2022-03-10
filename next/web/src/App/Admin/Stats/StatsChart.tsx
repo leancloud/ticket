@@ -139,7 +139,6 @@ export const StatsLine: FunctionComponent<LineProps> = ({ loading, data }) => {
         .valueOf(),
     [data]
   );
-  console.log('types', types);
   return (
     <Line
       data={chartData}
@@ -152,7 +151,9 @@ export const StatsLine: FunctionComponent<LineProps> = ({ loading, data }) => {
       color={(params) => {
         return Colors[types.indexOf(params[CHART_TYPE])];
       }}
+      legend={{
+        position: 'bottom',
+      }}
     />
   );
 };
-
