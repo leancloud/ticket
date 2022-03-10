@@ -115,6 +115,10 @@ export class Context {
     this.updater.addPrivateTag(tag);
   }
 
+  getMetaData() {
+    return this.ticket.metaData;
+  }
+
   async finish() {
     await this.updater.update(systemUser, { ignoreTrigger: true });
   }

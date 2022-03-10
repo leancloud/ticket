@@ -61,6 +61,7 @@ function ticketObjectToEventTicket(ticket) {
     title: ticket.get('title'),
     content: ticket.get('content'),
     status: ticket.get('status'),
+    metaData: ticket.get('metaData'),
     createdAt: ticket.createdAt.toISOString(),
     updatedAt: ticket.updatedAt.toISOString(),
   }
