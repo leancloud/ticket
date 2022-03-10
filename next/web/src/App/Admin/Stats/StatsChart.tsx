@@ -10,6 +10,7 @@ interface ChartProps {
   loading?: boolean;
   names?: (value: string) => string;
   formatters?: {
+    titleDisplay?: (value: string) => string;
     xAxisDisplay?: (value: number) => string;
     yAxisDisplay?: (value: number) => string;
     yAxisTick?: (value: string) => string;
@@ -114,7 +115,7 @@ export const StatsColumn: FunctionComponent<ColumnProps> = ({
         },
       }}
       tooltip={{
-        title: (value) => (formatters?.xAxisTick ? formatters.xAxisTick(value) : value),
+        title: (value) => (formatters?.titleDisplay ? formatters.titleDisplay(value) : value),
         formatter: (datum) => {
           return {
             name: names ? names(datum[CHART_KEY]) : datum[CHART_KEY],
@@ -161,14 +162,13 @@ export const StatsLine: FunctionComponent<LineProps> = ({ loading, data, names, 
         return Colors[types.indexOf(params[CHART_TYPE])];
       }}
       xAxis={{
-        // tickCount: 10,
         label: {
           // autoHide: false,
           formatter: formatters?.xAxisTick,
         },
       }}
       tooltip={{
-        title: (value) => (formatters?.xAxisDisplay ? formatters.xAxisDisplay(value) : value),
+        title: (value) => (formatters?.titleDisplay ? formatters.titleDisplay(value) : value),
         formatter: (datum) => {
           const type = datum[CHART_TYPE];
           return {

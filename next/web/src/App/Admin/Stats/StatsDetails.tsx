@@ -109,10 +109,11 @@ const TicketStatsColumn: React.FunctionComponent<{ field: StatsField }> = ({ fie
           }
           // const preDate = chartData ? chartData[index - 1][0] : undefined;
           const date = moment(value);
-          // return date.format(date.isSame(preDate, 'day') ? 'HH:mm' : 'YYYY-MM-DD HH:mm');
           return date.format('HH:mm');
         },
         xAxisDisplay: timeField.includes(field) ? timeFormatter : undefined,
+        titleDisplay: (value) =>
+          moment(value).format(rollup === 'day' ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm'),
       }}
       names={(value) => STATS_FIELD_LOCALE[field]}
     />
@@ -240,8 +241,8 @@ const StatusStats = () => {
       data={chartData}
       names={(text: string) => STATUS_LOCALE[text as 'waiting' | 'accepted']}
       formatters={{
+        titleDisplay: (value) => moment(value).format('YYYY-MM-DD HH:mm'),
         xAxisTick: (value) => moment(value).format(rollup === 'day' ? 'YYYY-MM-DD HH:mm' : 'HH:mm'),
-        xAxisDisplay: (value) => moment(value).format('YYYY-MM-DD HH:mm'),
       }}
     />
   );
