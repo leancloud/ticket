@@ -5,6 +5,7 @@ import { TicketStats } from '@/model/TicketStats';
 import { CategoryService } from '@/service/category';
 import { TicketStatusStats } from '@/model/TicketStatusStats';
 import { TicketStatusStatsResponse } from '@/response/ticket-stats';
+import { startOfHour, subHours } from 'date-fns';
 const router = new Router().use(auth, customerServiceOnly);
 
 const statsSchema = yup.object({
@@ -36,17 +37,23 @@ router.get('/',
   }
 );
 
-router.get('/:fields', async (ctx) => {
-  const fields = ctx.params.fields.split(',');
-  const { category, customerService, ...rest } = statsSchema.validateSync(ctx.query);
+
+const fieldStatsSchema = yup.object({
+  from: yup.date().required(),
+  to: yup.date().required(),
+  category: yup.string().optional(),
+  customerService: yup.string().optional(),
+  fields: yup.string().required(),
+});
+router.get('/fields', async (ctx) => {
+  const { category, customerService, fields, ...rest } = fieldStatsSchema.validateSync(ctx.query);
   const categoryIds = category === '*' ? '*' : await getCategoryIds(category)
   const data = await TicketStats.fetchTicketFieldStats({
     ...rest,
     customerServiceId: customerService,
     categoryIds,
-    fields
+    fields: fields.split(',')
   })
-
   ctx.body = data;
 })
 
@@ -56,10 +63,17 @@ const statusSchema = yup.object({
 });
 router.get('/status', async (ctx) => {
   const { from, to } = statusSchema.validateSync(ctx.query);
+  // const current = new Date();
+  // const from =subHours( startOfHour(current),24)
   const data = await TicketStatusStats.queryBuilder().where('date', '>=', from)
     .where('date', '<=', to)
     .find({ useMasterKey: true })
+  console.log(data, from, to)
   ctx.body = data.map(data => new TicketStatusStatsResponse(data));
 })
+
+
+
+
 
 export default router;

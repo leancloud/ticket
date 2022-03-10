@@ -7,6 +7,7 @@ import Tickets from './Tickets';
 import { Views, ViewTickets } from './Views';
 import { SearchTicket } from './Search';
 import Settings from './Settings';
+import Stats from './Stats'
 
 export default function AdminPage() {
   const { isLoading } = useCategories({
@@ -31,6 +32,7 @@ export default function AdminPage() {
             </Route>
             <Route path="/search" element={<SearchTicket />} />
             <Route path="/settings/*" element={<Settings />} />
+            <Route path="/stats/*" element={<Stats />} />
             <Route path="*" element={<Navigate to="tickets" replace />} />
           </Routes>
         </div>
