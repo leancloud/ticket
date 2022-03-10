@@ -82,6 +82,7 @@ interface TicketStatusOptions {
   to: Date
 }
 export interface TicketStatus {
+  id: string,
   date: Date,
   accepted: number,
   waiting: number

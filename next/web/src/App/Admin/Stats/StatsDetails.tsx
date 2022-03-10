@@ -2,7 +2,7 @@ import { useSearchParams } from '@/utils/useSearchParams';
 import moment from 'moment';
 import { useMemo } from 'react';
 import classnames from 'classnames';
-import _ from 'lodash';
+import _, { values } from 'lodash';
 
 import { TicketStats, useTicketFieldStats, useTicketStatus } from '@/api/ticket-stats';
 import { useCategories } from '@/api/category';
@@ -88,12 +88,10 @@ const TicketStatsColumn: React.FunctionComponent<{ field: StatsField }> = ({ fie
     const avgField = avgFieldMap[field];
     return chartData.map((v) => {
       const value = avgField ? (v[avgField[0]] || 0) / (v[avgField[1]] || 1) : v[field];
-      return [
-        moment(v.date).format(rollup === 'day' ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH-mm'),
-        value,
-      ] as [string, number];
+      return [v.date, value] as [Date, number];
     });
   }, [data, rollup]);
+
   const tooltipFormatter = (value: number | string) => {
     return {
       name: STATS_FIELD_LOCALE[field],
@@ -104,17 +102,30 @@ const TicketStatsColumn: React.FunctionComponent<{ field: StatsField }> = ({ fie
     <StatsColumn
       loading={isFetching || isLoading}
       data={chartData}
-      tooltipFormatter={tooltipFormatter}
-      yAxis={{
-        tickInterval: timeField.includes(field) ? 3600 : undefined,
-        formatter: (value) => {
+      tickInterval={timeField.includes(field) ? 3600 : undefined}
+      formatters={{
+        yAxisTick: (value) => {
           if (timeField.includes(field)) {
             const displayValue = Number(value) / 3600;
             return `${displayValue} h`;
           }
           return value;
         },
+        xAxisTick: (value, item, index) => {
+          if (rollup === 'day') {
+            return moment(value).format('YYYY-MM-DD');
+          }
+          // const preDate = chartData ? chartData[index - 1][0] : undefined;
+          const date = moment(value);
+          // return date.format(date.isSame(preDate, 'day') ? 'HH:mm' : 'YYYY-MM-DD HH:mm');
+          return date.format('HH:mm');
+        },
+        xAxisDisplay: (value) => {
+          console.log(value);
+          return moment(value).format('YYYY-MM-DD HH:mm');
+        },
       }}
+      names={(value) => STATS_FIELD_LOCALE[field]}
     />
   );
 };
@@ -144,24 +155,27 @@ const CategoryStats: React.FunctionComponent<{ field: StatsField }> = ({ field }
   }, [data]);
   const categoryFormat = useMemo(() => {
     const categoryMap = _.mapValues(_.keyBy(categories || [], 'id'), 'name');
-    console.log(categoryMap);
-    return (value?: string | number | null) => (value ? categoryMap[value] : 'none');
+    return (value?: string) => (value ? categoryMap[value] : 'none');
   }, [categories]);
   const total = useMemo(() => (data ? _.sumBy(data, field) : 0), [data]);
-  const tooltipFormatter = (value: number | string, key: string) => {
+  const valueDisplay = (value: number) => {
     const percent = ((Number(value) / total) * 100).toFixed(2) + '%';
-    return {
-      name: categoryFormat(key) || key,
-      value: `${value} （${percent}）`,
-    };
+    return `${value} （${percent}）`;
   };
+  if (!data || data.length === 0) {
+    return null;
+  }
   return (
-    <StatsPie
-      data={chartData}
-      loading={isLoading || isFetching}
-      tooltipFormatter={tooltipFormatter}
-      legendFormatter={categoryFormat}
-    />
+    <div className="basis-1/2 flex-grow max-w-[650px]">
+      <StatsPie
+        data={chartData}
+        loading={isLoading || isFetching}
+        names={categoryFormat}
+        formatters={{
+          valueDisplay,
+        }}
+      />
+    </div>
   );
 };
 
@@ -195,20 +209,24 @@ const CustomerServiceStats: React.FunctionComponent<{ field: StatsField }> = ({ 
     return (value?: string | number | null) => (value ? customerServiceMap[value] : 'none');
   }, [customerServices]);
   const total = useMemo(() => (data ? _.sumBy(data, field) : 0), [data]);
-  const tooltipFormatter = (value: number | string, key: string) => {
+  const valueDisplay = (value: number) => {
     const percent = ((Number(value) / total) * 100).toFixed(2) + '%';
-    return {
-      name: customerServiceFormat(key) || key,
-      value: `${value} （${percent}）`,
-    };
+    return `${value} （${percent}）`;
   };
+  if (!data || data.length === 0) {
+    return null;
+  }
   return (
-    <StatsPie
-      data={chartData}
-      loading={isLoading || isFetching}
-      tooltipFormatter={tooltipFormatter}
-      legendFormatter={customerServiceFormat}
-    />
+    <div className="basis-1/2 flex-grow max-w-[650px]">
+      <StatsPie
+        data={chartData}
+        loading={isLoading || isFetching}
+        names={customerServiceFormat}
+        formatters={{
+          valueDisplay,
+        }}
+      />
+    </div>
   );
 };
 
@@ -222,40 +240,24 @@ const StatusStats = () => {
     if (!data) {
       return;
     }
-    let tmpDate = moment();
     return _(data)
       .orderBy('date')
       .map((v) => {
-        const date = moment(v.date);
-        let format = 'HH:mm';
-        if (!date.isSame(tmpDate, 'day')) {
-          format = 'YYYY-MM-DD HH:mm';
-          tmpDate = date;
-        }
-        return [
-          date.format(format),
-          {
-            accepted: v.accepted,
-            waiting: v.waiting,
-          },
-        ] as [string, Record<string, number>];
+        const { date, id, ...rest } = v;
+        return ([date, rest] as unknown) as [Date, Record<string, number>];
       })
       .valueOf();
   }, [data]);
-  const tooltipFormatter = (value: number | string, key: string, type?: string) => {
-    return {
-      name: type ? STATUS_LOCALE[type as 'waiting' | 'accepted'] : key,
-      value: value,
-    };
-  };
-  const legendFormatter = (text: string) => STATUS_LOCALE[text as 'waiting' | 'accepted'];
   return (
     <div className="relative h-[400px]">
       <StatsLine
         loading={isFetching || isLoading}
         data={chartData}
-        tooltipFormatter={tooltipFormatter}
-        legendFormatter={legendFormatter}
+        names={(text: string) => STATUS_LOCALE[text as 'waiting' | 'accepted']}
+        formatters={{
+          xAxisTick: (value) => moment(value).format('HH:mm'),
+          xAxisDisplay: (value) => moment(value).format('YYYY-MM-DD HH:mm'),
+        }}
       />
     </div>
   );
@@ -270,14 +272,10 @@ export function StatsDetails({ field }: { field: StatsField }) {
         <TicketStatsColumn field={field} />
       </div>
       {!timeField.includes(field) && (
-        <div className="relative flex">
-          {!customerService && field !== 'created' && (
-            <div className="basis-1/2 flex-grow ">
-              <CustomerServiceStats field={field} />
-            </div>
-          )}
+        <div className="relative flex mt-4">
+          {!customerService && field !== 'created' && <CustomerServiceStats field={field} />}
           {!category && (
-            <div className="basis-1/2 flex-grow ">
+            <div className="basis-1/2 flex-grow  max-w-[650px] ">
               <CategoryStats field={field} />
             </div>
           )}

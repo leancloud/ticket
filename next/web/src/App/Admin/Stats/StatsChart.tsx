@@ -1,35 +1,32 @@
 import { FunctionComponent, useMemo } from 'react';
-import { Pie, Column, Line } from '@ant-design/plots';
+import { Pie, Column, Line, ColumnConfig } from '@ant-design/plots';
 import _ from 'lodash';
 
 const CHART_VALUE = '$$_chart_value_$$';
 const CHART_KEY = '$$_chart_key_$$';
 const CHART_TYPE = '$$_chart_TYPE_$$';
 interface ChartProps {
-  data?: [string, number][];
+  data?: [number | string | Date, number][];
   loading?: boolean;
-  tooltipFormatter?: (
-    value: number | string,
-    key: string,
-    type?: string
-  ) => {
-    name: string;
-    value: string | number;
+  names?: (value: string) => string;
+  formatters?: {
+    xAxisDisplay?: (value: string) => string;
+    yAxisDisplay?: (value: string, item: any, index: number) => string;
+    yAxisTick?: (value: string, item: any, index: number) => string;
+    xAxisTick?: (value: string, item: any, index: number) => string;
   };
 }
-
 interface ColumnProps extends ChartProps {
-  yAxis?: {
-    tickInterval?: number;
-    formatter?: (value: string) => string;
-  };
+  tickInterval?: number;
 }
-interface PieProps extends ChartProps {
-  legendFormatter?: (text: string) => string;
+interface PieProps extends Omit<ChartProps, 'formatters'> {
+  formatters?: {
+    valueDisplay?: (value: number) => string;
+    keyDisplay?: (value: string, item: any, index: number) => string;
+  };
 }
 interface LineProps extends Omit<ChartProps, 'data'> {
-  data?: [string, Record<string, number>][];
-  legendFormatter?: (text: string) => string;
+  data?: [number | string | Date, Record<string, number>][];
 }
 
 const convertChartData = (data: ChartProps['data']) => {
@@ -43,14 +40,8 @@ const convertChartData = (data: ChartProps['data']) => {
     };
   });
 };
-
-export const StatsPie: FunctionComponent<PieProps> = ({
-  loading,
-  data,
-  tooltipFormatter,
-  legendFormatter,
-}) => {
-  const chartData = useMemo(() => convertChartData(data), [data]);
+export const StatsPie: FunctionComponent<PieProps> = ({ loading, data, names, formatters }) => {
+  const chartData = useMemo(() => _.orderBy(convertChartData(data), CHART_VALUE, 'desc'), [data]);
   return (
     <Pie
       loading={loading}
@@ -69,15 +60,18 @@ export const StatsPie: FunctionComponent<PieProps> = ({
         },
       ]}
       tooltip={{
-        formatter: tooltipFormatter
-          ? (datum) => {
-              return tooltipFormatter(datum[CHART_VALUE], datum[CHART_KEY]);
-            }
-          : undefined,
+        formatter: (datum) => {
+          return {
+            name: names ? names(datum[CHART_KEY]) : datum[CHART_KEY],
+            value: formatters?.valueDisplay
+              ? formatters.valueDisplay(datum[CHART_VALUE])
+              : datum[CHART_VALUE],
+          };
+        },
       }}
       legend={{
         itemName: {
-          formatter: legendFormatter,
+          formatter: (text) => (names ? names(text) : text),
         },
       }}
     />
@@ -87,8 +81,9 @@ export const StatsPie: FunctionComponent<PieProps> = ({
 export const StatsColumn: FunctionComponent<ColumnProps> = ({
   data,
   loading,
-  yAxis,
-  tooltipFormatter,
+  tickInterval,
+  formatters,
+  names,
 }) => {
   const chartData = useMemo(() => convertChartData(data), [data]);
   return (
@@ -101,31 +96,33 @@ export const StatsColumn: FunctionComponent<ColumnProps> = ({
       yField={CHART_VALUE}
       maxColumnWidth={15}
       yAxis={{
-        tickInterval: yAxis?.tickInterval,
-        // grid: null,
+        tickInterval: tickInterval,
         label: {
           autoRotate: false,
-          formatter: yAxis?.formatter,
+          formatter: formatters?.yAxisTick,
+        },
+      }}
+      xAxis={{
+        label: {
+          autoHide: false,
+          formatter: formatters?.xAxisTick,
         },
       }}
       tooltip={{
-        formatter: tooltipFormatter
-          ? (datum) => {
-              return tooltipFormatter(datum[CHART_VALUE], datum[CHART_KEY]);
-            }
-          : undefined,
+        title: (value) => (formatters?.xAxisDisplay ? formatters.xAxisDisplay(value) : value),
+        formatter: (datum) => {
+          return {
+            name: names ? names(datum[CHART_KEY]) : datum[CHART_KEY],
+            value: datum[CHART_VALUE],
+          };
+        },
       }}
     />
   );
 };
 
 const Colors = ['#15c5ce', '#155bd4'];
-export const StatsLine: FunctionComponent<LineProps> = ({
-  loading,
-  data,
-  tooltipFormatter,
-  legendFormatter,
-}) => {
+export const StatsLine: FunctionComponent<LineProps> = ({ loading, data, names, formatters }) => {
   const types = useMemo(() => (data && data[0] ? Object.keys(data[0][1]) : []), [data]);
   const chartData = useMemo(
     () =>
@@ -156,18 +153,26 @@ export const StatsLine: FunctionComponent<LineProps> = ({
       color={(params) => {
         return Colors[types.indexOf(params[CHART_TYPE])];
       }}
+      xAxis={{
+        label: {
+          autoHide: false,
+          formatter: formatters?.xAxisTick,
+        },
+      }}
       tooltip={{
-        formatter: tooltipFormatter
-          ? (datum) => {
-              console.log(datum);
-              return tooltipFormatter(datum[CHART_VALUE], datum[CHART_KEY], datum[CHART_TYPE]);
-            }
-          : undefined,
+        title: (value) => (formatters?.xAxisDisplay ? formatters.xAxisDisplay(value) : value),
+        formatter: (datum) => {
+          const type = datum[CHART_TYPE];
+          return {
+            name: names ? names(type) : type,
+            value: datum[CHART_VALUE],
+          };
+        },
       }}
       legend={{
         position: 'top-right',
         itemName: {
-          formatter: legendFormatter,
+          formatter: (text) => (names ? names(text) : text),
         },
       }}
     />
