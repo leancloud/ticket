@@ -5,7 +5,7 @@
  */
 import _ from 'lodash';
 import throat from 'throat';
-import { isBefore, differenceInSeconds, nextDay, set, isWithinInterval, format, isAfter, getDay, Day, startOfHour, endOfHour, subHours } from 'date-fns';
+import { isBefore, differenceInSeconds, nextDay, set, isWithinInterval, format, isAfter, getDay, Day, startOfHour, endOfHour, subHours, differenceInHours, addDays } from 'date-fns';
 import { CreateData } from '@/orm';
 import { Status, Ticket } from '@/model/Ticket';
 import { Reply } from '@/model/Reply';
@@ -95,7 +95,7 @@ const getReplyOrOpsLogType = (replyOrOpsLog: OpsLog | Reply, ticketAuthorId: str
     return replyOrOpsLog.authorId === ticketAuthorId ? 'staff' : 'customerService'
   }
 }
-const getWeekdayDate = (value: Date) => {
+const fixAskDate = (value: Date) => {
   const day = getDay(value);
   const endDate = set(value, DEFAULT_WEEKDAY_RANGE_DATE.end);
   if (!DEFAULT_WEEKDAY.includes(day) || isBefore(endDate, value)) {
@@ -113,6 +113,16 @@ const getWeekdayDate = (value: Date) => {
   }
   return value;
 }
+const getRelyTime = (replyDate: Date, askDate: Date) => {
+  const workTime = differenceInSeconds(set(new Date(),
+    DEFAULT_WEEKDAY_RANGE_DATE.end
+  ), set(new Date(),
+    DEFAULT_WEEKDAY_RANGE_DATE.start
+  )) + 1
+  askDate = fixAskDate(askDate);
+  const days = Math.ceil(differenceInHours(replyDate, askDate) / 24)
+  return workTime * days + differenceInSeconds(replyDate, addDays(askDate, days))
+}
 const customizer = (objValue?: number, srcValue = 0) => objValue === undefined ? srcValue : objValue + srcValue
 const mergeStatData = (target: StatResult, source: Pick<StatResult, 'customerService' | 'ticket'> & { categoryId: string }) => {
   const newCustomerServiceCategory = Object.keys(source.customerService).reduce((pre, curr) => {
@@ -121,13 +131,23 @@ const mergeStatData = (target: StatResult, source: Pick<StatResult, 'customerSer
     return pre
   }, {} as StatResult['customerServiceCategory'])
   return {
-    ticket: _.mergeWith(target.ticket, source.ticket, customizer),
-    customerService: _.mergeWith(target.customerService, source.customerService, (objValue, srcValue) => objValue ? _.mergeWith(objValue, srcValue, customizer) : srcValue),
+    ticket: _.mergeWith({ ...target.ticket }, source.ticket, customizer),
+    customerService: _.mergeWith({ ...target.customerService }, source.customerService, (objValue, srcValue) => {
+      if (!objValue) {
+        return srcValue
+      }
+      return _.mergeWith({ ...objValue }, srcValue, customizer)
+    }),
     category: {
       ...target.category,
-      [source.categoryId]: _.mergeWith(target.category[source.categoryId], source.ticket, customizer)
+      [source.categoryId]: _.mergeWith({ ...target.category[source.categoryId] }, source.ticket, customizer)
     },
-    customerServiceCategory: _.mergeWith(target.customerServiceCategory, newCustomerServiceCategory, customizer)
+    customerServiceCategory: _.mergeWith({ ...target.customerServiceCategory }, newCustomerServiceCategory, (objValue, srcValue) => {
+      if (!objValue) {
+        return srcValue
+      }
+      return _.mergeWith({ ...objValue }, srcValue, customizer)
+    })
   }
 }
 
@@ -276,10 +296,11 @@ const _getReplyDetails = (allTimeLine: TimeLine, from: Date, ticket: Ticket) => 
         })
         return;
       }
-      const replyTime = differenceInSeconds(replyOrOpsLog.createdAt, getWeekdayDate(cursor.lastStaffReplyDate));
+      const replyTime = getRelyTime(replyOrOpsLog.createdAt, cursor.lastStaffReplyDate)
+      //  differenceInSeconds(replyOrOpsLog.createdAt, getWeekdayDate(cursor.lastStaffReplyDate));
       let authorReplyTime = replyTime;
       if (cursor.lastAssigneeDate && cursor.lastAssigneeId === replyOrOpsLog.authorId && isAfter(cursor.lastAssigneeDate, cursor.lastStaffReplyDate)) {
-        authorReplyTime = differenceInSeconds(replyOrOpsLog.createdAt, getWeekdayDate(cursor.lastAssigneeDate));
+        getRelyTime(replyOrOpsLog.createdAt, cursor.lastAssigneeDate)
       }
       details.push({
         replyTime: replyTime > 0 ? replyTime : 0,
@@ -345,7 +366,7 @@ const _getTicketStatById = async (id: string, from: Date, to: Date) => {
       case 'replyWithNoContent':
         replies.push({
           id: log.id,
-          authorId: log.data?.assignee?.objectId,
+          authorId: log.data?.operator?.objectId,
           createdAt: log.createdAt,
           internal: !!log.internal,
         } as Reply)
@@ -357,7 +378,7 @@ const _getTicketStatById = async (id: string, from: Date, to: Date) => {
       case 'close':
         if (!lastLog || lastLog.action === 'reopen') {
           allLogTimeline.push({
-            authorId: log.data?.assignee?.objectId,
+            authorId: log.data?.operator?.objectId,
             createdAt: log.createdAt,
             action: 'close',
           })
@@ -366,7 +387,7 @@ const _getTicketStatById = async (id: string, from: Date, to: Date) => {
       case 'reopen':
         if (lastLog && lastLog.action === 'close') {
           allLogTimeline.push({
-            authorId: log.data?.assignee?.objectId,
+            authorId: log.data?.operator?.objectId,
             createdAt: log.createdAt,
             action: log.action,
           })
@@ -459,6 +480,7 @@ const _getTicketStat = async (from: Date, to: Date) => {
     _getResponseTicketIds(from, to)
   ])
   const ids = _(results).flatten().uniq().valueOf()
+
   if (ids.length === 0) {
     return;
   }

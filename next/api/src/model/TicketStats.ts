@@ -60,24 +60,25 @@ export class TicketStats extends Model {
   firstReplyCount?: number;
   @field()
   internalReplyCount?: number;
+
   static async fetchTicketStats(params: {
     from: Date;
     to: Date;
-    customerService?: string;
-    category?: string;
+    customerServiceId?: string;
+    categoryIds?: string[];
   }, limit = 100, skip = 0): Promise<SumTicketStat | undefined> {
     const query = TicketStats.queryBuilder()
       .where('date', '>=', params.from)
       .where('date', '<=', params.to)
       .limit(limit)
       .skip(skip)
-    if (params.category) {
-      query.where('category', '==', Category.ptr(params.category))
+    if (params.categoryIds) {
+      query.where('category', 'in', params.categoryIds.map(id => Category.ptr(id)))
     } else {
       query.where('category', 'not-exists')
     }
-    if (params.customerService) {
-      query.where('customerService', '==', User.ptr(params.customerService))
+    if (params.customerServiceId) {
+      query.where('customerService', '==', User.ptr(params.customerServiceId))
     } else {
       query.where('customerService', 'not-exists')
     }
@@ -97,23 +98,33 @@ export class TicketStats extends Model {
     fields: string[],
     from: Date;
     to: Date;
-    customerService?: string;
-    category?: string;
+    customerServiceId?: string | '*';
+    categoryIds?: string[] | '*';
   }, limit = 100, skip = 0): Promise<Partial<TicketStats>[]> {
     const query = TicketStats.queryBuilder()
       .where('date', '>=', params.from)
       .where('date', '<=', params.to)
       .limit(limit)
       .skip(skip)
-    params.fields.forEach((field) => {
-      query.where(field, ">", 0)
-    })
-    if (params.category) {
-      query.where('category', '==', Category.ptr(params.category))
+    if (params.categoryIds) {
+      if (params.categoryIds === '*') {
+        query.where('category', 'exists')
+      } else {
+        query.where('category', 'in', params.categoryIds.map(id => Category.ptr(id)))
+      }
+    } else {
+      query.where('category', 'not-exists')
     }
-    if (params.customerService) {
-      query.where('customerService', '==', User.ptr(params.customerService))
+    if (params.customerServiceId) {
+      if (params.customerServiceId === '*') {
+        query.where('customerService', 'exists')
+      } else {
+        query.where('customerService', '==', User.ptr(params.customerServiceId))
+      }
+    } else {
+      query.where('customerService', 'not-exists')
     }
+
     const data = await query.find({ useMasterKey: true })
     const pickData = data.map((v) => _.pick(v, [...params.fields, 'date', 'customerServiceId', 'categoryId'])).filter(v => {
       return params.fields.some(field => v[field as keyof TicketStats])
