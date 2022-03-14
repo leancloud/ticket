@@ -26,23 +26,7 @@ import {
 import { auth, customerServiceOnly } from '@/middleware';
 import { FIELD_TYPES, OPTION_TYPES, TicketField } from '@/model/TicketField';
 import { TicketFieldResponse } from '@/response/ticket-field';
-
-const LOCALES = [
-  'zh-cn',
-  'zh-tw',
-  'zh-hk',
-  'en',
-  'ja',
-  'ko',
-  'id',
-  'th',
-  'de',
-  'fr',
-  'ru',
-  'es',
-  'pt',
-  'tr',
-];
+import { LOCALES } from '@/i18n/locales';
 
 const localeSchema = z
   .string()
