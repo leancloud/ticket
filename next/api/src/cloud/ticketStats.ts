@@ -281,8 +281,22 @@ const _getReplyDetails = (allTimeLine: TimeLine, from: Date, ticket: Ticket) => 
   const isFirst = _isFirstReplyFunc(beforeTimeLine, ticket)
   timeLine.forEach((replyOrOpsLog) => {
     if (isOpsLog(replyOrOpsLog)) {
-      cursor.lastAssigneeId = replyOrOpsLog.data?.assignee?.objectId;
-      cursor.lastAssigneeDate = replyOrOpsLog.createdAt;
+      switch (replyOrOpsLog.action) {
+        case 'selectAssignee':
+        case 'changeAssignee':
+          cursor.lastAssigneeId = replyOrOpsLog.data?.assignee?.objectId;
+          cursor.lastAssigneeDate = replyOrOpsLog.createdAt;
+          break;
+        // 算作回复
+        case 'reopen':
+          if (getReplyOrOpsLogType(replyOrOpsLog, ticket.authorId) === 'staff') {
+            cursor.lastReplyType = 'staff';
+            cursor.lastStaffReplyDate = replyOrOpsLog.createdAt;
+          }
+          break;
+        default:
+          break;
+      }
       return;
     }
     const type = getReplyOrOpsLogType(replyOrOpsLog, ticket.authorId);
@@ -320,17 +334,40 @@ const _getReplyDetails = (allTimeLine: TimeLine, from: Date, ticket: Ticket) => 
 }
 
 const _getCursor = (timeLine: TimeLine, ticket: Ticket) => {
-  const replies = timeLine.filter(replyOrOpsLog => !isOpsLog(replyOrOpsLog)) as Reply[];
-  const lastStaffReply = _.findLast(replies, reply => getReplyOrOpsLogType(reply, ticket.authorId) === 'staff')
-  const lastAssigneeLog = timeLine.find(replyOrOpsLog => isOpsLog(replyOrOpsLog) && ['selectAssignee', 'changeAssignee'].includes(replyOrOpsLog.action))
-  const lastReply = _.last(replies);
-  const lastReplyType = lastReply ? getReplyOrOpsLogType(lastReply, ticket.authorId) : 'staff'
-  return {
-    lastAssigneeId: (lastAssigneeLog ? (lastAssigneeLog as OpsLog).data?.assignee?.objectId : ticket.assigneeId) as string,
-    lastAssigneeDate: lastAssigneeLog?.createdAt,
-    lastStaffReplyDate: lastStaffReply?.createdAt || ticket.createdAt,
-    lastReplyType: lastReplyType as 'staff' | 'customerService',
+  const cursor = {
+    lastAssigneeId: ticket.assigneeId,
+    lastAssigneeDate: ticket.createdAt,
+    lastStaffReplyDate: ticket.createdAt,
+    lastReplyType: 'staff'
   }
+  timeLine.forEach(v => {
+    if (isOpsLog(v)) {
+      switch (v.action) {
+        case 'selectAssignee':
+        case 'changeAssignee':
+          cursor.lastAssigneeId = v.data?.assignee?.objectId;
+          cursor.lastAssigneeDate = v.createdAt;
+          break;
+        // 算作回复
+        case 'reopen':
+          if (getReplyOrOpsLogType(v, ticket.authorId) === 'staff') {
+            cursor.lastReplyType = 'staff';
+            cursor.lastStaffReplyDate = v.createdAt;
+          }
+          break;
+        default:
+          break;
+      }
+    } else {
+      if (getReplyOrOpsLogType(v, ticket.authorId) === 'staff') {
+        cursor.lastReplyType = 'staff';
+        cursor.lastStaffReplyDate = v.createdAt;
+      } else {
+        cursor.lastReplyType = 'customerService'
+      }
+    }
+  })
+  return cursor
 }
 const _isFirstReplyFunc = (beforeTimeLine: TimeLine, ticket: Ticket) => {
   let isHasReply = beforeTimeLine.some(replyOrOpsLog => getReplyOrOpsLogType(replyOrOpsLog, ticket.authorId) === 'customerService')
@@ -349,14 +386,10 @@ const _getTicketStatById = async (id: string, from: Date, to: Date) => {
     return;
   }
   const [replies, opsLogs] = await _getTicketReliesAndLogs(id, to);
-  const allLogTimeline: Array<{
-    authorId: string;
-    createdAt: Date,
-    action: LogAction
-  }> = []
   const assigneeLogs: OpsLog[] = [];
+  const allLogTimeline: OpsLog[] = []
   _.orderBy(opsLogs, 'createdAt').forEach(log => {
-    const lastLog = _.last(opsLogs);
+    const lastTimeLog = _.last(allLogTimeline);
     switch (log.action) {
       case 'selectAssignee':
       case 'changeAssignee':
@@ -376,33 +409,27 @@ const _getTicketStatById = async (id: string, from: Date, to: Date) => {
       // 其中 close 可能是 close resolve 以不同身份连续出现，但无论如何都会只取第一个
       case 'resolve':
       case 'close':
-        if (!lastLog || lastLog.action === 'reopen') {
-          allLogTimeline.push({
-            authorId: log.data?.operator?.objectId,
-            createdAt: log.createdAt,
-            action: 'close',
-          })
+        if (!lastTimeLog || lastTimeLog.action === 'reopen') {
+          allLogTimeline.push(log)
         }
         break;
       case 'reopen':
-        if (lastLog && lastLog.action === 'close') {
-          allLogTimeline.push({
-            authorId: log.data?.operator?.objectId,
-            createdAt: log.createdAt,
-            action: log.action,
-          })
+        if (lastTimeLog && lastTimeLog.action === 'close') {
+          allLogTimeline.push(log)
         }
         break;
       default:
         break;
     }
   })
+
   const assigneeIds = _getAssigneeIds(assigneeLogs, from);
   const logTimeLine = allLogTimeline.filter(v => !isBefore(v.createdAt, from));
   // 客服用户 closed 的日志为关闭，客服认为已解决的算关闭
-  const closedLogs = logTimeLine.filter(v => v.action === 'close' || (v.action === 'resolve' && v.authorId === ticket.authorId))
+  const closedLogs = logTimeLine.filter(v => v.action === 'close' || (v.action === 'resolve' && v.data?.operator?.objectId === ticket.authorId))
   const reopenedLogs = logTimeLine.filter(v => v.action === 'reopen')
-  const repliesTimeLine = _.orderBy([...replies, ...assigneeLogs], 'createdAt')
+
+  const repliesTimeLine = _.orderBy([...replies, ...opsLogs], 'createdAt')
   const replyDetails = _getReplyDetails(repliesTimeLine, from, ticket);
   const created = isWithinInterval(ticket.createdAt, {
     start: from,
@@ -428,21 +455,21 @@ const _getTicketStatById = async (id: string, from: Date, to: Date) => {
       created: 0, //客服不需要统计创建数
       closed: closedLogs.filter(log => {
         // 客服关闭
-        if (log.authorId === curr) {
+        if (log.data?.operator?.objectId === curr) {
           return true
         }
         // 用户关闭 或已解决
         if (curr === currentAssigneeId) {
-          return log.authorId === ticket.authorId
+          return log.data?.operator?.objectId === ticket.authorId
         }
         return false;
       }).length,
       reopened: reopenedLogs.filter(log => {
-        if (log.authorId === curr) {
+        if (log.data?.operator?.objectId === curr) {
           return true
         }
         if (curr === currentAssigneeId) {
-          return log.authorId === ticket.authorId
+          return log.data?.operator?.objectId === ticket.authorId
         }
         return false;
       }).length,
