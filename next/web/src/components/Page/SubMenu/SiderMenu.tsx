@@ -14,14 +14,8 @@ interface Props {
   menus: MenuDataItem[];
   collapsed?: boolean;
   onCollapse?: (value: boolean) => void;
-  theme?: 'light' | 'dark';
 }
-export const SiderMenu: React.FunctionComponent<Props> = ({
-  menus,
-  collapsed,
-  onCollapse,
-  theme = 'light',
-}) => {
+export const SiderMenu: React.FunctionComponent<Props> = ({ menus, collapsed, onCollapse }) => {
   return (
     <Sider
       collapsible
@@ -30,7 +24,7 @@ export const SiderMenu: React.FunctionComponent<Props> = ({
       breakpoint="lg"
       collapsedWidth={SIDER_MENU_MIN}
       width={SIDER_MENU_MAX}
-      theme={theme}
+      theme="light"
     >
       <BaseMenu data={menus} />
     </Sider>
