@@ -23,7 +23,7 @@ export default function AdminPage() {
       <Sidebar className="z-40" />
       <div className="flex grow flex-col overflow-hidden">
         <Topbar className="shrink-0" />
-        <div className="grow overflow-hidden">
+        <div className="grow overflow-hidden h-full">
           <Routes>
             <Route path="/tickets/*" element={<Tickets />} />
             <Route path="/views" element={<Views />}>

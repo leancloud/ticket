@@ -3,12 +3,11 @@ import moment from 'moment';
 import { useMemo } from 'react';
 import _ from 'lodash';
 
-import { TicketStats, useTicketFieldStats, useTicketStatus } from '@/api/ticket-stats';
+import { TicketStats, useTicketFieldStats } from '@/api/ticket-stats';
 import { useCategories } from '@/api/category';
 import { useCustomerServices } from '@/api/customer-service';
-import { defaultDateRange, StatsField, STATS_FIELD_LOCALE, STATUS_LOCALE } from '.';
-import { StatsPie, StatsColumn, StatsLine } from './StatsChart';
-import { Divider } from '@/components/antd';
+import { defaultDateRange, StatsField, STATS_FIELD_LOCALE, getRollUp } from './utils';
+import { StatsPie, StatsColumn } from './StatsChart';
 
 const avgFieldMap: {
   [key in StatsField]?: Array<keyof TicketStats>;
@@ -18,16 +17,6 @@ const avgFieldMap: {
 };
 const timeField = ['firstReplyTimeAVG', 'replyTimeAVG'];
 
-const getRollUp = (from?: Date | string, to?: Date | string) => {
-  if (!from || !to) {
-    return 'hour';
-  }
-  const milliseconds = moment(to).toDate().getTime() - moment(from).toDate().getTime();
-  if (milliseconds > 2 * 24 * 60 * 60 * 1000) {
-    return 'day';
-  }
-  return 'hour';
-};
 const timeFormatter = (value: number) => {
   const hours = value / 3600;
   if (hours < 1) {
@@ -216,38 +205,6 @@ const CustomerServiceStats: React.FunctionComponent<{ field: StatsField }> = ({ 
   );
 };
 
-const StatusStats = () => {
-  const [{ from = defaultDateRange.from, to = defaultDateRange.to }] = useSearchParams();
-  const { data, isFetching, isLoading } = useTicketStatus({
-    from: moment(from).toDate(),
-    to: moment(to).toDate(),
-  });
-  const chartData = useMemo(() => {
-    if (!data) {
-      return;
-    }
-    return _(data)
-      .orderBy('date')
-      .map((v) => {
-        const { date, id, ...rest } = v;
-        return ([moment(date).toISOString(), rest] as unknown) as [string, Record<string, number>];
-      })
-      .valueOf();
-  }, [data]);
-  const rollup = useMemo(() => getRollUp(from, to), [from, to]);
-  return (
-    <StatsLine
-      loading={isFetching || isLoading}
-      data={chartData}
-      names={(text: string) => STATUS_LOCALE[text as 'waiting' | 'accepted']}
-      formatters={{
-        titleDisplay: (value) => moment(value).format('YYYY-MM-DD HH:mm'),
-        xAxisTick: (value) => moment(value).format(rollup === 'day' ? 'YYYY-MM-DD HH:mm' : 'HH:mm'),
-      }}
-    />
-  );
-};
-
 export function StatsDetails({ field }: { field: StatsField }) {
   const [{ category, customerService }] = useSearchParams();
   return (
@@ -270,11 +227,6 @@ export function StatsDetails({ field }: { field: StatsField }) {
           )}
         </div>
       )}
-      <Divider />
-      <h2>工单状态</h2>
-      <div className="w-full relative">
-        <StatusStats />
-      </div>
     </div>
   );
 }

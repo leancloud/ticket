@@ -178,7 +178,7 @@ export const StatsLine: FunctionComponent<LineProps> = ({ loading, data, names, 
         },
       }}
       legend={{
-        position: 'top-right',
+        position: 'bottom',
         itemName: {
           formatter: (text) => (names ? names(text) : text),
         },

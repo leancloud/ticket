@@ -3,24 +3,26 @@ import classnames from 'classnames';
 import { Statistic, Card, Divider, DatePicker, Radio, StatisticProps } from '@/components/antd';
 import { CategorySelect, CustomerServiceSelect } from '@/components/common';
 import { useSearchParams, useSearchParam } from '@/utils/useSearchParams';
-import { relativeDateGetters } from '@/utils/date-range';
 import moment from 'moment';
 import { useTicketStats } from '@/api/ticket-stats';
 import { StatsDetails } from './StatsDetails';
+import { SubMenu } from '@/components/Page';
+import { Route, Routes } from 'react-router-dom';
+import { MenuDataItem } from '@/components/Page/SubMenu';
+import { StatusPage } from './StatusPage';
+import {
+  defaultDateRange,
+  StatsField,
+  STATS_FIELD,
+  STATS_FIELD_LOCALE,
+  useRangeDateOptions,
+} from './utils';
 
 enum FILTER_TYPE {
   all = 'all',
   customerService = 'customerService',
   category = 'category',
 }
-const RANGE_DATE = ['lastWeek', 'week', 'month', 'lastMonth'] as const;
-const RANGE_DATE_LOCALE = {
-  lastWeek: '上周',
-  week: '本周',
-  month: '本月',
-  lastMonth: '上个月',
-};
-export const defaultDateRange = relativeDateGetters['week']();
 
 const ToolBar: FunctionComponent<{
   className?: string;
@@ -36,19 +38,7 @@ const ToolBar: FunctionComponent<{
     }
     return FILTER_TYPE.all;
   });
-  const rangeDates = useMemo(() => {
-    return RANGE_DATE.reduce(
-      (pre, curr) => {
-        const key = RANGE_DATE_LOCALE[curr];
-        const dateRange = relativeDateGetters[curr]();
-        pre[key] = [moment(dateRange.from), moment(dateRange.to)];
-        return pre;
-      },
-      {} as {
-        [key: string]: [moment.Moment, moment.Moment];
-      }
-    );
-  }, []);
+  const rangeDates = useRangeDateOptions();
   const radioOptions = useMemo(() => {
     return [
       { label: '全部', value: FILTER_TYPE.all },
@@ -112,43 +102,11 @@ const ToolBar: FunctionComponent<{
   );
 };
 
-const STATS_FIELD = [
-  'created',
-  'closed',
-  'reopened',
-  'conversion',
-  // 'internalConversion',
-  // 'externalConversion',
-  'firstReplyTimeAVG',
-  'replyTimeAVG',
-  'replyCount',
-  'internalReplyCount',
-] as const;
-export type StatsField = typeof STATS_FIELD[number];
-export const STATS_FIELD_LOCALE = {
-  created: '新建工单',
-  closed: '关单数',
-  reopened: '激活工单数',
-  conversion: '流转数',
-  // internalConversion: '内部流转数',
-  // externalConversion: '外部流转数',
-  firstReplyTimeAVG: '平均首次回复时间',
-  replyTimeAVG: '平均回复时间',
-  replyCount: '对外回复数',
-  internalReplyCount: '对内回复数',
-};
-
-export const STATUS_LOCALE = {
-  accepted: '受理中',
-  waiting: '等待回复',
-};
-
 const defaultActiveField = STATS_FIELD[0];
 const timeProps = {
   formatter: (value: number | string) => (Number(value) / 3600).toFixed(2),
   suffix: '小时',
 };
-
 const timeFieldProps: {
   [key in StatsField]?: StatisticProps;
 } = {
@@ -201,16 +159,37 @@ const StatCards = () => {
   );
 };
 
-const Stats = () => {
+const StatsPage = () => {
   const [field = defaultActiveField] = useSearchParam('active');
   return (
-    <div className="h-full overflow-auto p-4 ">
+    <>
       <ToolBar className="mb-4" />
       <StatCards />
       <Divider />
       <StatsDetails field={field as StatsField} />
-    </div>
+    </>
   );
 };
 
-export default Stats;
+const menus: MenuDataItem[] = [
+  {
+    name: '统计',
+    path: './',
+    key: 'stats',
+  },
+  {
+    name: '状态',
+    key: 'status',
+    path: './status',
+  },
+];
+export default function Stats() {
+  return (
+    <SubMenu menus={menus}>
+      <Routes>
+        <Route path="/status" element={<StatusPage />} />
+        <Route path="/" element={<StatsPage />} />
+      </Routes>
+    </SubMenu>
+  );
+}
