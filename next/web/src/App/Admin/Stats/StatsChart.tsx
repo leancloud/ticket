@@ -26,7 +26,7 @@ interface PieProps extends Omit<ChartProps, 'formatters'> {
     keyDisplay?: (value: string) => string;
   };
 }
-interface LineProps extends Omit<ChartProps, 'data'> {
+interface AreaProps extends Omit<ChartProps, 'data'> {
   data?: [string, Record<string, number>][];
 }
 
@@ -130,12 +130,7 @@ export const StatsColumn: FunctionComponent<ColumnProps> = ({
 };
 
 const Colors = ['#15c5ce', '#155bd4'];
-export const StatsAreaLine: FunctionComponent<LineProps> = ({
-  loading,
-  data,
-  names,
-  formatters,
-}) => {
+export const StatsArea: FunctionComponent<AreaProps> = ({ loading, data, names, formatters }) => {
   const types = useMemo(() => (data && data[0] ? Object.keys(data[0][1]) : []), [data]);
   const chartData = useMemo(
     () =>

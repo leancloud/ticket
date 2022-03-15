@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 import { useTicketStatus } from '@/api/ticket-stats';
 import { defaultDateRange, STATUS_LOCALE, getRollUp, useRangeDateOptions } from './utils';
-import { StatsAreaLine } from './StatsChart';
+import { StatsArea } from './StatsChart';
 import { DatePicker } from '@/components/antd';
 
 const StatusStats = () => {
@@ -28,7 +28,7 @@ const StatusStats = () => {
   }, [data]);
   const rollup = useMemo(() => getRollUp(from, to), [from, to]);
   return (
-    <StatsAreaLine
+    <StatsArea
       loading={isFetching || isLoading}
       data={chartData}
       names={(text: string) => STATUS_LOCALE[text as 'waiting' | 'accepted']}
