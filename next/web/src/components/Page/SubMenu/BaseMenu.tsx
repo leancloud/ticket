@@ -1,9 +1,7 @@
 import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
-import { Menu } from '@/components/antd';
+import { NavLink } from 'react-router-dom';
 import { MenuDataItem } from '.';
 import cx from 'classnames';
-// import styles from './index.module.less';
 
 const BaseMenu: React.FC<{
   data: MenuDataItem[];

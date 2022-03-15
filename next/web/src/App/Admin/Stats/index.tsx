@@ -173,12 +173,12 @@ const StatsPage = () => {
 
 const menus: MenuDataItem[] = [
   {
-    name: '统计',
+    name: '工单统计',
     path: './',
     key: 'stats',
   },
   {
-    name: '状态',
+    name: '工单状态',
     key: 'status',
     path: './status',
   },
