@@ -129,6 +129,9 @@ export class DynamicContentController {
       if (!dcv) {
         throw new HttpError(422, `variant with locale ${data.defaultLocale} does not exist`);
       }
+      if (!dcv.active) {
+        throw new HttpError(422, `variant ${dcv.locale} is inactive`);
+      }
     }
     await dc.update(data, authOptions);
     return {};
