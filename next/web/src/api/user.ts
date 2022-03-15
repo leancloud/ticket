@@ -33,6 +33,11 @@ async function fetchUsers({ id, q }: FetchUserOptions = {}): Promise<UserSearchR
   return data;
 }
 
+async function fetchUser(id: string): Promise<UserSearchResult> {
+  const { data } = await http.get(`/api/2/users/${id}`);
+  return data;
+}
+
 export interface UseUsersOptions extends FetchUserOptions {
   queryOptions?: UseQueryOptions<UserSearchResult[], Error>;
 }
@@ -42,4 +47,11 @@ export const useUsers = ({ queryOptions, ...options }: UseUsersOptions = {}) =>
     queryKey: ['users', options],
     queryFn: () => fetchUsers(options),
     ...queryOptions,
+  });
+
+export const useUser = (id: string, options?: UseQueryOptions<UserSearchResult, Error>) =>
+  useQuery({
+    queryKey: ['user', id],
+    queryFn: () => fetchUser(id),
+    ...options,
   });

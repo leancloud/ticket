@@ -1,5 +1,7 @@
 import { StrictMode } from 'react';
 import { render } from 'react-dom';
+import moment from 'moment';
+import 'moment/locale/zh-cn';
 
 import * as Sentry from '@sentry/react';
 import { Integrations } from '@sentry/tracing';
@@ -7,6 +9,8 @@ import { Integrations } from '@sentry/tracing';
 import 'github-markdown-css/github-markdown-light.css';
 import './index.css';
 import App from './App';
+
+moment.locale('zh-cn');
 
 if (import.meta.env.VITE_SENTRY_WEB_DSN) {
   Sentry.init({
