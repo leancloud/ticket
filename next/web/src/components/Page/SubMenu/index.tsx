@@ -1,16 +1,19 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Layout } from '@/components/antd';
 import { SiderMenu } from './SiderMenu';
+import './index.less'
+
 export type MenuDataItem = {
   children?: MenuDataItem[];
-  name?: React.ReactNode;
+  name: React.ReactNode;
   path?: string;
   key?: string;
 };
 
 const SubMenu: React.FunctionComponent<{
   menus: MenuDataItem[];
-}> = ({ children, menus }) => {
+  footer?: React.ReactNode;
+}> = ({ children, ...rest }) => {
   const [collapsed, setCollapsed] = useState<boolean>(false);
   return (
     <Layout
@@ -19,7 +22,7 @@ const SubMenu: React.FunctionComponent<{
         backgroundColor: '#FFF',
       }}
     >
-      <SiderMenu menus={menus} collapsed={collapsed} onCollapse={setCollapsed} />
+      <SiderMenu {...rest} collapsed={collapsed} onCollapse={setCollapsed} />
       <Layout.Content className="h-full relative overflow-auto p-4">{children}</Layout.Content>
     </Layout>
   );
