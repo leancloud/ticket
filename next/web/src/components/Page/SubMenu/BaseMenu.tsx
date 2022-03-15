@@ -23,11 +23,11 @@ function getSubMenuOrItem(item: MenuDataItem, isChildren: boolean) {
     return (
       <li key={item.key || item.path}>
         <div className="pb-4 mb-2 border-b text-sm">{item.name}</div>
-        <ul> {getNavMenuItems(item.children, true)}</ul>
+        <ul>{getNavMenuItems(item.children, true)}</ul>
       </li>
     );
   }
-  return <li>{getMenuItemPath(item)}</li>;
+  return <li key={item.key || item.path}>{getMenuItemPath(item)}</li>;
 }
 
 function getMenuItemPath(item: MenuDataItem) {
