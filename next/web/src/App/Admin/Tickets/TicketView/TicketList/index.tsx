@@ -1,5 +1,4 @@
 import { ComponentPropsWithoutRef, useMemo } from 'react';
-import { Link } from 'react-router-dom';
 import { BsPersonPlus } from 'react-icons/bs';
 import cx from 'classnames';
 import moment from 'moment';
@@ -129,14 +128,14 @@ export function TicketList({ tickets, checkedIds, onChangeChecked }: TicketListP
                     path={getCategoryPath(ticket.categoryId)}
                   />
                 </div>
-                <Link
+                <a
                   className="flex mt-1.5 font-bold max-w-full"
                   title={ticket.title}
-                  to={ticket.id}
+                  href={`/tickets/${ticket.nid}`}
                 >
                   <span className="shrink truncate">{ticket.title}</span>
                   <span className={`${style.nid} shrink-0 ml-1 text-[#6f7c87]`}>#{ticket.nid}</span>
-                </Link>
+                </a>
                 <div className="flex items-center mt-1">
                   <Name loading={loadingUsers}>{userById[ticket.authorId]?.nickname ?? '--'}</Name>
                   <div
