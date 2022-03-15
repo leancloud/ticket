@@ -44,6 +44,7 @@ const localeSchema = z
 
 const variantSchema = z.object({
   locale: localeSchema,
+  active: z.boolean().optional(),
   content: z.string(),
 });
 
@@ -59,10 +60,11 @@ const updateDynamicContentSchema = createDynamicContentSchema
   })
   .partial();
 
-const updateVariantSchema = z.object({
-  content: z.string().optional(),
-  active: z.boolean().optional(),
-});
+const updateVariantSchema = variantSchema
+  .omit({
+    locale: true,
+  })
+  .partial();
 
 type CreateDynamicContentData = z.infer<typeof createDynamicContentSchema>;
 
@@ -193,7 +195,7 @@ export class DynamicContentController {
       ...data,
       ACL,
       dynamicContentId: dc.id,
-      active: true,
+      active: data.active ?? true,
     });
 
     return {
