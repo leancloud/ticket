@@ -136,6 +136,10 @@ const routeGroups: MenuDataItem[] = [
         name: '工单表单',
         path: 'ticket-forms',
       },
+      {
+        name: '动态内容',
+        path: 'dynamic-contents',
+      },
     ],
   },
   {
