@@ -1,5 +1,5 @@
 import { FunctionComponent, useMemo } from 'react';
-import { Pie, Column, Line, ColumnConfig } from '@ant-design/plots';
+import { Pie, Column, Area } from '@ant-design/plots';
 import _ from 'lodash';
 
 const CHART_VALUE = '$$_chart_value_$$';
@@ -130,7 +130,12 @@ export const StatsColumn: FunctionComponent<ColumnProps> = ({
 };
 
 const Colors = ['#15c5ce', '#155bd4'];
-export const StatsLine: FunctionComponent<LineProps> = ({ loading, data, names, formatters }) => {
+export const StatsAreaLine: FunctionComponent<LineProps> = ({
+  loading,
+  data,
+  names,
+  formatters,
+}) => {
   const types = useMemo(() => (data && data[0] ? Object.keys(data[0][1]) : []), [data]);
   const chartData = useMemo(
     () =>
@@ -150,7 +155,7 @@ export const StatsLine: FunctionComponent<LineProps> = ({ loading, data, names, 
     [data]
   );
   return (
-    <Line
+    <Area
       data={chartData}
       loading={loading}
       appendPadding={10}

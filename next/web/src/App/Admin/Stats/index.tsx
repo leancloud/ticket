@@ -179,8 +179,8 @@ const menus: MenuDataItem[] = [
   },
   {
     name: '工单状态',
-    key: 'status',
     path: './status',
+    key: 'status',
   },
 ];
 export default function Stats() {
