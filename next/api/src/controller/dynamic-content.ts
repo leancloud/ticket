@@ -204,24 +204,24 @@ export class DynamicContentController {
   }
 
   @Get(':id/variants')
-  async findVariants(
+  @ResponseBody(DynamicContentVariantResponse)
+  findVariants(
     @CurrentUser() currentUser: User,
     @Param('id', new FindModelPipe(DynamicContent)) dc: DynamicContent
   ) {
-    const variants = await DynamicContentVariant.queryBuilder()
+    return DynamicContentVariant.queryBuilder()
       .where('dynamicContent', '==', dc.toPointer())
       .find(currentUser.getAuthOptions());
-    return variants.map((v) => new DynamicContentVariantResponse(dc, v));
   }
 
   @Get(':id/variants/:vid')
-  async findVariant(
+  @ResponseBody(DynamicContentVariantResponse)
+  findVariant(
     @CurrentUser() currentUser: User,
     @Param('id', new FindModelPipe(DynamicContent)) dc: DynamicContent,
     @Param('vid') vid: string
   ) {
-    const variant = await this.findVariantOrFail(dc.id, vid, currentUser.getAuthOptions());
-    return new DynamicContentVariantResponse(dc, variant);
+    return this.findVariantOrFail(dc.id, vid, currentUser.getAuthOptions());
   }
 
   @Patch(':id/variants/:vid')
