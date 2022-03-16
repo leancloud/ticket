@@ -1,0 +1,63 @@
+{
+  "schema": {
+    "objectId": {
+      "type": "String"
+    },
+    "ACL": {
+      "type": "ACL"
+    },
+    "createdAt": {
+      "type": "Date"
+    },
+    "updatedAt": {
+      "type": "Date"
+    },
+    "name": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "defaultLocale": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    }
+  },
+  "permissions": {
+    "create": {
+      "*": true
+    },
+    "find": {
+      "*": true
+    },
+    "get": {
+      "*": true
+    },
+    "update": {
+      "*": true
+    },
+    "delete": {
+      "*": true
+    },
+    "add_fields": {
+      "roles": [],
+      "users": []
+    }
+  },
+  "indexes": [
+    {
+      "v": 2,
+      "unique": true,
+      "key": {
+        "name": 1
+      },
+      "name": "-user-name_1",
+      "ns": "02AXSPNhJaEqgBfHftLpIsj2-gzGzoHsz.DynamicContent",
+      "background": true
+    }
+  ]
+}

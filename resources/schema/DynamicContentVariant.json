@@ -1,0 +1,79 @@
+{
+  "schema": {
+    "updatedAt": {
+      "type": "Date"
+    },
+    "ACL": {
+      "type": "ACL"
+    },
+    "locale": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "content": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "objectId": {
+      "type": "String"
+    },
+    "createdAt": {
+      "type": "Date"
+    },
+    "dynamicContent": {
+      "type": "Pointer",
+      "v": 2,
+      "className": "DynamicContent",
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "active": {
+      "type": "Boolean",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    }
+  },
+  "permissions": {
+    "create": {
+      "*": true
+    },
+    "find": {
+      "*": true
+    },
+    "get": {
+      "*": true
+    },
+    "update": {
+      "*": true
+    },
+    "delete": {
+      "*": true
+    },
+    "add_fields": {
+      "roles": [],
+      "users": []
+    }
+  },
+  "indexes": [
+    {
+      "v": 2,
+      "unique": true,
+      "key": {
+        "dynamicContent.$id": 1,
+        "locale": 1
+      },
+      "name": "-user-dynamicContent.$id_1_locale_1",
+      "ns": "02AXSPNhJaEqgBfHftLpIsj2-gzGzoHsz.DynamicContentVariant",
+      "background": true
+    }
+  ]
+}
