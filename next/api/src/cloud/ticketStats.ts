@@ -5,7 +5,7 @@
  */
 import _ from 'lodash';
 import throat from 'throat';
-import { isBefore, differenceInSeconds, nextDay, set, isWithinInterval, format, isAfter, getDay, Day, startOfHour, endOfHour, subHours, differenceInHours, addDays } from 'date-fns';
+import { isBefore, differenceInSeconds, set, isWithinInterval, format, isAfter, getDay, Day, startOfHour, endOfHour, subHours, addDays, isSameDay } from 'date-fns';
 import { CreateData } from '@/orm';
 import { Status, Ticket } from '@/model/Ticket';
 import { Reply } from '@/model/Reply';
@@ -16,17 +16,22 @@ import { TicketStatusStats } from '@/model/TicketStatusStats';
 
 const DEFAULT_WEEKDAY: Day[] = [1, 2, 3, 4, 5]// 工作日 0: 周日
 const DEFAULT_WEEKDAY_RANGE_DATE = {
-  start: {
+  from: {
     hours: 10,
     minutes: 0,
     seconds: 0
   },
-  end: {
+  to: {
     hours: 19,
     minutes: 0,
     seconds: 0
   }
 };
+const WORK_TIME = differenceInSeconds(set(new Date(),
+  DEFAULT_WEEKDAY_RANGE_DATE.to
+), set(new Date(),
+  DEFAULT_WEEKDAY_RANGE_DATE.from
+))
 const AUTH_OPTIONS = { useMasterKey: true };
 const RESPONSE_ACTIONS: LogAction[] = [
   'replyWithNoContent', // 视为一个 reply
@@ -95,33 +100,27 @@ const getReplyOrOpsLogType = (replyOrOpsLog: OpsLog | Reply, ticketAuthorId: str
     return replyOrOpsLog.authorId === ticketAuthorId ? 'staff' : 'customerService'
   }
 }
-const fixAskDate = (value: Date) => {
-  const day = getDay(value);
-  const endDate = set(value, DEFAULT_WEEKDAY_RANGE_DATE.end);
-  if (!DEFAULT_WEEKDAY.includes(day) || isBefore(endDate, value)) {
-    let tmp = (day + 1) % 7;
-    while (!DEFAULT_WEEKDAY.includes(tmp as Day)) {
-      tmp = (tmp + 1) % 7;
-    }
-    return set(nextDay(value, tmp as Day),
-      DEFAULT_WEEKDAY_RANGE_DATE.start
-    )
-  }
-  const startDate = set(value, DEFAULT_WEEKDAY_RANGE_DATE.start);
-  if (isBefore(value, startDate)) {
-    return startDate
-  }
-  return value;
-}
 const getRelyTime = (replyDate: Date, askDate: Date) => {
-  const workTime = differenceInSeconds(set(new Date(),
-    DEFAULT_WEEKDAY_RANGE_DATE.end
-  ), set(new Date(),
-    DEFAULT_WEEKDAY_RANGE_DATE.start
-  )) + 1
-  askDate = fixAskDate(askDate);
-  const days = Math.ceil(differenceInHours(replyDate, askDate) / 24)
-  return workTime * days + differenceInSeconds(replyDate, addDays(askDate, days))
+  let time = 0;
+  if (DEFAULT_WEEKDAY.includes(getDay(askDate))) {
+    const from = set(askDate, DEFAULT_WEEKDAY_RANGE_DATE.from)
+    const to = set(askDate, DEFAULT_WEEKDAY_RANGE_DATE.to)
+    if (isBefore(askDate, from)) {
+      time = WORK_TIME;
+    } else if (isAfter(askDate, to)) {
+      time = 0;
+    } else {
+      time = differenceInSeconds(to, askDate)
+    }
+  }
+  while (!isSameDay(replyDate, askDate)) {
+    askDate = addDays(askDate, 1)
+    if (DEFAULT_WEEKDAY.includes(getDay(askDate))) {
+      time = time + WORK_TIME
+    }
+  }
+  const replyDiff = differenceInSeconds(set(replyDate, DEFAULT_WEEKDAY_RANGE_DATE.to), replyDate)
+  return time - (replyDiff > 0 ? replyDiff : 0)
 }
 const customizer = (objValue?: number, srcValue = 0) => objValue === undefined ? srcValue : objValue + srcValue
 const mergeStatData = (target: StatResult, source: Pick<StatResult, 'customerService' | 'ticket'> & { categoryId: string }) => {
@@ -507,7 +506,6 @@ const _getTicketStat = async (from: Date, to: Date) => {
     _getResponseTicketIds(from, to)
   ])
   const ids = _(results).flatten().uniq().valueOf()
-
   if (ids.length === 0) {
     return;
   }
