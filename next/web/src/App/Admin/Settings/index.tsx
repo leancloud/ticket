@@ -11,6 +11,7 @@ import { QuickReplyList, NewQuickReply, QuickReplyDetail } from './QuickReplies'
 import { ViewList, NewView, ViewDetail } from './Views';
 import { TicketFieldList, NewTicketField, TicketFieldDetail } from './TicketFields';
 import { TicketFormList, NewTicketForm, TicketFormDetail } from './TicketForms';
+import { DynamicContentList, NewDynamicContent, DynamicContentDetail } from './DynamicContents';
 import { ArticleDetail, Articles, EditArticle, NewArticle } from './Articles';
 
 import Triggers from './Automations/Triggers';
@@ -59,6 +60,11 @@ const SettingRoutes = () => (
       <Route index element={<TicketFormList />} />
       <Route path="new" element={<NewTicketForm />} />
       <Route path=":id" element={<TicketFormDetail />} />
+    </Route>
+    <Route path="/dynamic-contents">
+      <Route index element={<DynamicContentList />} />
+      <Route path="new" element={<NewDynamicContent />} />
+      <Route path=":id" element={<DynamicContentDetail />} />
     </Route>
     <Route path="/triggers">
       <Route index element={<Triggers />} />
