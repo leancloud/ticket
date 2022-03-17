@@ -205,3 +205,10 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 ### `TBD`
 
 创建定时任务 analyzeArticles `58 * * * *`
+
+## 2022-03-16
+
+### `6896eeaf74c767f4b9a629b1ef79a52099f04ea5`
+
+导入 DynamicContent.json。
+导入 DynamicContentVariant.json。
