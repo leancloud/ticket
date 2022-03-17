@@ -21,6 +21,7 @@ import TimeTriggers from './Automations/TimeTriggers';
 import NewTimeTrigger from './Automations/TimeTriggers/New';
 import TimeTriggerDetail from './Automations/TimeTriggers/Detail';
 import { ArticleRevisionDetail, ArticleRevisions } from './Articles/Revision';
+import { Weekday } from './Others';
 
 const SettingRoutes = () => (
   <Routes>
@@ -88,12 +89,14 @@ const SettingRoutes = () => (
         </Route>
       </Route>
     </Route>
+    <Route path="/weekday" element={<Weekday />} />
   </Routes>
 );
 
 const routeGroups: MenuDataItem[] = [
   {
     name: '客服设置',
+    key: 'customerService',
     children: [
       {
         name: '成员',
@@ -111,6 +114,7 @@ const routeGroups: MenuDataItem[] = [
   },
   {
     name: '管理',
+    key: 'manage',
     children: [
       {
         name: '分类',
@@ -144,6 +148,7 @@ const routeGroups: MenuDataItem[] = [
   },
   {
     name: '知识库',
+    key: 'knowledge-base',
     children: [
       {
         name: '文章',
@@ -153,6 +158,7 @@ const routeGroups: MenuDataItem[] = [
   },
   {
     name: '业务规则',
+    key: 'rule',
     children: [
       {
         name: '流转触发器',
@@ -161,6 +167,16 @@ const routeGroups: MenuDataItem[] = [
       {
         name: '定时触发器',
         path: 'time-triggers',
+      },
+    ],
+  },
+  {
+    name: '其他设置',
+    key: 'other',
+    children: [
+      {
+        name: '工作时间',
+        path: 'weekday',
       },
     ],
   },
@@ -173,6 +189,7 @@ const OldSettingLink = () => {
     </a>
   );
 };
+
 export default function Setting() {
   return (
     <SubMenu menus={routeGroups} footer={<OldSettingLink />}>
