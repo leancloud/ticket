@@ -12,26 +12,22 @@ import { Reply } from '@/model/Reply';
 import { OpsLog, Action as LogAction } from '@/model/OpsLog';
 import { TicketStats } from '@/model/TicketStats';
 import { TicketStatusStats } from '@/model/TicketStatusStats';
-
-
-const DEFAULT_WEEKDAY: Day[] = [1, 2, 3, 4, 5]// 工作日 0: 周日
-const DEFAULT_WEEKDAY_RANGE_DATE = {
+import { Config } from '@/config';
+type WeekdayDuration = Record<'hours' | 'minutes' | 'seconds', number>;
+const WEEKDAY_CONFIG = {
+  workTime: 0,
+  days: [] as Day[],
   from: {
-    hours: 10,
+    hours: 0,
     minutes: 0,
     seconds: 0
-  },
+  } as WeekdayDuration,
   to: {
     hours: 19,
-    minutes: 0,
-    seconds: 0
-  }
-};
-const WORK_TIME = differenceInSeconds(set(new Date(),
-  DEFAULT_WEEKDAY_RANGE_DATE.to
-), set(new Date(),
-  DEFAULT_WEEKDAY_RANGE_DATE.from
-))
+    minutes: 59,
+    seconds: 59
+  } as WeekdayDuration
+}
 const AUTH_OPTIONS = { useMasterKey: true };
 const RESPONSE_ACTIONS: LogAction[] = [
   'replyWithNoContent', // 视为一个 reply
@@ -102,11 +98,11 @@ const getReplyOrOpsLogType = (replyOrOpsLog: OpsLog | Reply, ticketAuthorId: str
 }
 const getRelyTime = (replyDate: Date, askDate: Date) => {
   let time = 0;
-  if (DEFAULT_WEEKDAY.includes(getDay(askDate))) {
-    const from = set(askDate, DEFAULT_WEEKDAY_RANGE_DATE.from)
-    const to = set(askDate, DEFAULT_WEEKDAY_RANGE_DATE.to)
+  if (WEEKDAY_CONFIG.days.includes(getDay(askDate))) {
+    const from = set(askDate, WEEKDAY_CONFIG.from)
+    const to = set(askDate, WEEKDAY_CONFIG.to)
     if (isBefore(askDate, from)) {
-      time = WORK_TIME;
+      time = WEEKDAY_CONFIG.workTime;
     } else if (isAfter(askDate, to)) {
       time = 0;
     } else {
@@ -115,11 +111,11 @@ const getRelyTime = (replyDate: Date, askDate: Date) => {
   }
   while (!isSameDay(replyDate, askDate)) {
     askDate = addDays(askDate, 1)
-    if (DEFAULT_WEEKDAY.includes(getDay(askDate))) {
-      time = time + WORK_TIME
+    if (WEEKDAY_CONFIG.days.includes(getDay(askDate))) {
+      time = time + WEEKDAY_CONFIG.workTime
     }
   }
-  const replyDiff = differenceInSeconds(set(replyDate, DEFAULT_WEEKDAY_RANGE_DATE.to), replyDate)
+  const replyDiff = differenceInSeconds(set(replyDate, WEEKDAY_CONFIG.to), replyDate)
   return time - (replyDiff > 0 ? replyDiff : 0)
 }
 const customizer = (objValue?: number, srcValue = 0) => objValue === undefined ? srcValue : objValue + srcValue
@@ -527,12 +523,33 @@ const _getTicketStat = async (from: Date, to: Date) => {
   return statResult
 }
 
+const _refreshWeekdayConfig = async () => {
+  const weekday: Day[] | undefined = await Config.get('weekday');
+  if (!weekday) {
+    throw new Error('未设置工作日，请先设置工作日后再进行统计。')
+  }
+  WEEKDAY_CONFIG.days = weekday;
+  const weekdayDateRange: Record<'from' | 'to', WeekdayDuration> | undefined = await Config.get('weekday_date_range');
+  if (!weekdayDateRange) {
+    throw new Error('未设置工作时间范围，请先设置工作时间范围后再进行统计。')
+  }
+  WEEKDAY_CONFIG.from = weekdayDateRange.from;
+  WEEKDAY_CONFIG.to = weekdayDateRange.to;
+  const tmpDate = new Date()
+  WEEKDAY_CONFIG.workTime = differenceInSeconds(set(tmpDate,
+    WEEKDAY_CONFIG.to
+  ), set(tmpDate,
+    WEEKDAY_CONFIG.from
+  ))
+}
+
 // 正常调用不需要传递时间，云函数调用永远统计的是当前时间上一个小时的数据。
 export async function hourlyTicketStats(date?: Date) {
   date = date ? date : subHours(new Date(), 1)
   const from = startOfHour(date)
   const to = endOfHour(date)
   try {
+    await _refreshWeekdayConfig();
     const currentStatus = await _getTicketCurrentStatus();
     TicketStatusStats.create({
       ACL: {},
