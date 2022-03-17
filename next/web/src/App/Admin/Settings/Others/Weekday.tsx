@@ -10,9 +10,6 @@ import {
 import moment, { Moment } from 'moment';
 import { useState } from 'react';
 
-const plainOptions = ['Apple', 'Pear', 'Orange'];
-const defaultCheckedList = ['Apple', 'Orange'];
-
 const Days = [1, 2, 3, 4, 5, 6, 0];
 const DAY_LOCALE: Record<string, string> = {
   '1': '星期一',
