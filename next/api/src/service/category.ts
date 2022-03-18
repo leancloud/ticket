@@ -13,7 +13,13 @@ class CategoryCache {
   static async setAll(categories: Category[]) {
     const pl = redis.pipeline();
     pl.del(CategoryCache.CACHE_KEY);
-    categories.forEach((c) => pl.hset(CategoryCache.CACHE_KEY, c.id, JSON.stringify(c)));
+    categories.forEach((c) => {
+      const value = JSON.stringify(c);
+      pl.hset(CategoryCache.CACHE_KEY, c.id, value);
+      if (c.alias) {
+        pl.hset(CategoryCache.CACHE_KEY, c.alias, value);
+      }
+    });
     pl.expire(CategoryCache.CACHE_KEY, CategoryCache.CACHE_TTL);
     await pl.exec();
   }

@@ -182,10 +182,10 @@ export class CategoryController {
   @Get(':id/categories')
   @ResponseBody(CategoryResponse)
   async getSubCategories(
-    @Param('id') categoryId: string,
+    @Param('id', FindCategoryPipe) category: Category,
     @Query('active', new ParseBoolPipe({ keepUndefined: true })) active?: boolean
   ) {
-    const categories = await CategoryService.getSubCategories(categoryId);
+    const categories = await CategoryService.getSubCategories(category.id);
     if (active !== undefined) {
       return active
         ? categories.filter((c) => c.deletedAt === undefined)

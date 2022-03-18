@@ -276,12 +276,16 @@ export abstract class Model {
     return new QueryBuilder(this);
   }
 
-  static find<M extends typeof Model>(
+  static async find<M extends typeof Model>(
     this: M,
     id: string,
     options?: AuthOptions
   ): Promise<InstanceType<M> | undefined> {
-    return this.query().where('objectId', '==', id).first(options);
+    const idMatch = await this.query().where('objectId', '==', id).first(options);
+    if (idMatch) {
+      return idMatch;
+    }
+    return await this.query().where('alias', '==', id).first(options);
   }
 
   static async findOrFail<M extends typeof Model>(

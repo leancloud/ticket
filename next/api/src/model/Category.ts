@@ -21,6 +21,10 @@ export class Category extends Model {
 
   @field()
   @serialize()
+  alias?: string;
+
+  @field()
+  @serialize()
   qTemplate?: string;
 
   @pointerId(() => Category)

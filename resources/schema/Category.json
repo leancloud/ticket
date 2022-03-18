@@ -30,6 +30,10 @@
         "objectId": {
             "type": "String"
         },
+        "alias": {
+            "type": "String",
+            "comment": "用于 URL 的 ID"
+        },
         "createdAt": {
             "type": "Date"
         },
@@ -87,5 +91,17 @@
             "roles": []
         }
     },
-    "indexes": []
+    "indexes": [
+        {
+            "v": 2,
+            "unique": true,
+            "key": {
+                "alias": 1
+            },
+            "name": "-user-alias_1",
+            "ns": "-.Category",
+            "background": true,
+            "sparse": true
+        }
+    ]
 }
