@@ -68,7 +68,7 @@ type UpdateCategoryData = z.infer<typeof updateCategorySchema>;
 
 type BatchUpdateData = z.infer<typeof batchUpdateSchema>;
 
-@Controller('categories')
+@Controller(['categories', 'products'])
 export class CategoryController {
   @Get()
   @ResponseBody(CategoryResponse)
@@ -177,6 +177,21 @@ export class CategoryController {
 
     const articles = await Promise.all(category.noticeIds.map(getPublicArticle));
     return articles.filter((article) => article && !article.private);
+  }
+
+  @Get(':id/categories')
+  @ResponseBody(CategoryResponse)
+  async getSubCategories(
+    @Param('id') categoryId: string,
+    @Query('active', new ParseBoolPipe({ keepUndefined: true })) active?: boolean
+  ) {
+    const categories = await CategoryService.getSubCategories(categoryId);
+    if (active !== undefined) {
+      return active
+        ? categories.filter((c) => c.deletedAt === undefined)
+        : categories.filter((c) => c.deletedAt !== undefined);
+    }
+    return categories;
   }
 
   private convertUpdateData(data: UpdateCategoryData): UpdateData<Category> {
