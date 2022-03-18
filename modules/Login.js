@@ -146,6 +146,3 @@ export default function Login() {
     </div>
   )
 }
-Login.propTypes = {
-  onLogin: PropTypes.func.isRequired,
-}

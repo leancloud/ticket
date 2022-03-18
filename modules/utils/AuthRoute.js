@@ -6,6 +6,7 @@ import { Route, useHistory, useLocation } from 'react-router-dom'
 import { auth } from '../../lib/leancloud'
 import Login from '../Login'
 import { AppContext } from '../context'
+import ErrorMessage from '../Error'
 
 function BasicAuthWrapper({ children }) {
   const history = useHistory()
@@ -52,7 +53,7 @@ function CSAuthWrapper({ children }) {
     return children
   }
   if (error) {
-    return <Error error={error} />
+    return <ErrorMessage error={error} />
   }
   return null
 }
