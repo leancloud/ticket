@@ -9,6 +9,7 @@ export class CategoryResponse {
       id: this.category.id,
       name: this.category.name,
       description: this.category.description,
+      alias: this.category.alias,
       parentId: this.category.parentId,
       position: this.category.order ?? this.category.createdAt.getTime(),
       active: !this.category.deletedAt,

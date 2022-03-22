@@ -6,6 +6,7 @@ import { http } from '@/leancloud';
 
 export interface CategorySchema {
   id: string;
+  alias?: string;
   name: string;
   description?: string;
   parentId?: string;

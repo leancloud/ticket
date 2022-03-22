@@ -43,6 +43,7 @@ class FindCategoryPipe {
 const createCategorySchema = z.object({
   name: z.string(),
   description: z.string().optional(),
+  alias: z.string().optional(),
   parentId: z.string().optional(),
   noticeIds: z.array(z.string()).optional(),
   articleIds: z.array(z.string()).optional(),
@@ -207,6 +208,7 @@ export class CategoryController {
     return {
       name: data.name,
       description: data.description,
+      alias: data.alias,
       parentId: data.parentId,
       noticeIds: data.noticeIds?.length === 0 ? null : data.noticeIds,
       FAQIds: data.articleIds?.length === 0 ? null : data.articleIds,
