@@ -529,7 +529,7 @@ const _refreshWeekdayConfig = async () => {
     throw new Error('未设置工作日，请先设置工作日后再进行统计。')
   }
   WEEKDAY_CONFIG.days = weekday;
-  const weekdayDateRange: Record<'from' | 'to', WeekdayDuration> | undefined = await Config.get('weekday_date_range');
+  const weekdayDateRange: Record<'from' | 'to', WeekdayDuration> | undefined = await Config.get('work_time');
   if (!weekdayDateRange) {
     throw new Error('未设置工作时间范围，请先设置工作时间范围后再进行统计。')
   }
