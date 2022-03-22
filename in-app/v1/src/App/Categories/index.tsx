@@ -15,6 +15,7 @@ import { NewTicketButton } from '@/components/NewTicketButton';
 import { ArticleListItem, useFAQs } from '@/App/Articles/utils';
 import styles from './index.module.css';
 import { NotFoundContent } from '../NotFound';
+import { useRootCategory } from '..';
 
 interface ListItemProps {
   to: string;
@@ -40,15 +41,21 @@ export function ListItem({ to, content, marker, className }: ListItemProps) {
   );
 }
 
-async function fetchCategories(): Promise<Category[]> {
-  const { data } = await http.get<Category[]>('/api/2/categories?active=true');
+async function fetchCategories(rootCategoryId?: string): Promise<Category[]> {
+  if (rootCategoryId === undefined) {
+    return [];
+  }
+  const { data } = await http.get<Category[]>(
+    `/api/2/products/${rootCategoryId}/categories?active=true`
+  );
   return data;
 }
 
 export function useCategories() {
+  const rootId = useRootCategory();
   return useQuery({
     queryKey: 'categories',
-    queryFn: fetchCategories,
+    queryFn: () => fetchCategories(rootId),
     staleTime: 1000 * 60 * 5,
   });
 }

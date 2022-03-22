@@ -25,17 +25,19 @@ export interface Evaluation {
   content: string;
 }
 
-export interface Ticket {
+export interface TicketListItem {
   id: string;
   nid: number;
   title: string;
-  content: string;
   status: number;
   files: File[];
   evaluation: Evaluation | null;
   unreadCount: number;
   createdAt: Date;
   updatedAt: Date;
+}
+export interface Ticket extends TicketListItem {
+  content: string;
 }
 
 export interface Reply {

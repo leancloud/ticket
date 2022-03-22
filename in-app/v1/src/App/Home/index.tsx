@@ -11,6 +11,7 @@ import SpeakerIcon from '@/icons/Speaker';
 import { useRootCategory } from '@/App';
 import { CategoryList, useCategories } from '@/App/Categories';
 import { useNotices, ArticleLink } from '@/App/Articles/utils';
+import _ from 'lodash';
 
 interface TicketsLinkProps {
   badge?: boolean;
@@ -46,8 +47,9 @@ export default function Home() {
     if (!categories) {
       return [];
     }
+    const map = _.keyBy(categories, 'id');
     return categories
-      .filter((c) => (rootCategory ? c.parentId === rootCategory : !c.parentId))
+      .filter((c) => c.parentId && map[c.parentId])
       .sort((a, b) => a.position - b.position);
   }, [categories]);
   const { data: hasUnreadTickets } = useHasUnreadTickets();
