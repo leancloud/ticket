@@ -1,6 +1,6 @@
 import { Route, Routes } from 'react-router-dom';
 
-import { SettingMenu } from './Menu';
+import { SubMenu, MenuDataItem } from '@/components/Page';
 
 import { Members } from './Members';
 import { GroupList, NewGroup, GroupDetail } from './Groups';
@@ -21,6 +21,7 @@ import TimeTriggers from './Automations/TimeTriggers';
 import NewTimeTrigger from './Automations/TimeTriggers/New';
 import TimeTriggerDetail from './Automations/TimeTriggers/Detail';
 import { ArticleRevisionDetail, ArticleRevisions } from './Articles/Revision';
+import { Weekday } from './Others';
 
 const SettingRoutes = () => (
   <Routes>
@@ -88,18 +89,111 @@ const SettingRoutes = () => (
         </Route>
       </Route>
     </Route>
+    <Route path="/weekday" element={<Weekday />} />
   </Routes>
 );
 
+const routeGroups: MenuDataItem[] = [
+  {
+    name: '客服设置',
+    key: 'customerService',
+    children: [
+      {
+        name: '成员',
+        path: 'members',
+      },
+      {
+        name: '客服组',
+        path: 'groups',
+      },
+      {
+        name: '请假',
+        path: 'vacations',
+      },
+    ],
+  },
+  {
+    name: '管理',
+    key: 'manage',
+    children: [
+      {
+        name: '分类',
+        path: 'categories',
+      },
+      {
+        name: '标签',
+        path: 'tags',
+      },
+      {
+        name: '快捷回复',
+        path: 'quick-replies',
+      },
+      {
+        name: '视图',
+        path: 'views',
+      },
+      {
+        name: '工单字段',
+        path: 'ticket-fields',
+      },
+      {
+        name: '工单表单',
+        path: 'ticket-forms',
+      },
+      {
+        name: '动态内容',
+        path: 'dynamic-contents',
+      },
+    ],
+  },
+  {
+    name: '知识库',
+    key: 'knowledge-base',
+    children: [
+      {
+        name: '文章',
+        path: 'articles',
+      },
+    ],
+  },
+  {
+    name: '业务规则',
+    key: 'rule',
+    children: [
+      {
+        name: '流转触发器',
+        path: 'triggers',
+      },
+      {
+        name: '定时触发器',
+        path: 'time-triggers',
+      },
+    ],
+  },
+  {
+    name: '其他设置',
+    key: 'other',
+    children: [
+      {
+        name: '工作时间',
+        path: 'weekday',
+      },
+    ],
+  },
+];
+
+const OldSettingLink = () => {
+  return (
+    <a className="block text-center leading-8 hover:bg-[#f0f0f0]" href="/settings">
+      前往旧版配置页
+    </a>
+  );
+};
+
 export default function Setting() {
   return (
-    <div className="h-full bg-white flex">
-      <SettingMenu className="w-[300px] bg-[#F8F9F9] shrink-0" />
-      <div className="grow overflow-auto border-l border-l-[#D8DCDE]">
-        <div className="h-full min-w-[770px]">
-          <SettingRoutes />
-        </div>
-      </div>
-    </div>
+    <SubMenu menus={routeGroups} footer={<OldSettingLink />}>
+      <SettingRoutes />
+    </SubMenu>
   );
 }

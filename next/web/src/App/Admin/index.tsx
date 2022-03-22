@@ -7,6 +7,7 @@ import Tickets from './Tickets';
 import { Views, ViewTickets } from './Views';
 import { SearchTicket } from './Search';
 import Settings from './Settings';
+import Stats from './Stats'
 
 export default function AdminPage() {
   const { isLoading } = useCategories({
@@ -22,7 +23,7 @@ export default function AdminPage() {
       <Sidebar className="z-40" />
       <div className="flex grow flex-col overflow-hidden">
         <Topbar className="shrink-0" />
-        <div className="grow overflow-hidden">
+        <div className="grow overflow-hidden h-full">
           <Routes>
             <Route path="/tickets/*" element={<Tickets />} />
             <Route path="/views" element={<Views />}>
@@ -31,6 +32,7 @@ export default function AdminPage() {
             </Route>
             <Route path="/search" element={<SearchTicket />} />
             <Route path="/settings/*" element={<Settings />} />
+            <Route path="/stats/*" element={<Stats />} />
             <Route path="*" element={<Navigate to="tickets" replace />} />
           </Routes>
         </div>

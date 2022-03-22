@@ -12,6 +12,8 @@ import article from './article';
 import trigger from './trigger';
 import timeTrigger from './time-trigger';
 import reply from './reply';
+import ticketStats from './ticket-stats';
+import config from './config';
 
 const router = new Router({ prefix: '/api/2' }).use(catchYupError, catchLCError, catchZodError);
 
@@ -24,6 +26,8 @@ router.use('/articles', article.routes());
 router.use('/triggers', trigger.routes());
 router.use('/time-triggers', timeTrigger.routes());
 router.use('/replies', reply.routes());
+router.use('/ticket-stats', ticketStats.routes());
+router.use('/config', config.routes());
 
 getControllers().forEach((controller) => {
   applyController(router, controller);

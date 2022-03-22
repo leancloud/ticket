@@ -5,7 +5,7 @@ export interface DateRange {
   to?: Date;
 }
 
-const relativeDateGetters: Record<string, () => DateRange> = {
+export const relativeDateGetters: Record<string, () => DateRange> = {
   today: () => ({
     from: moment().startOf('day').toDate(),
     to: moment().endOf('day').toDate(),
@@ -13,6 +13,10 @@ const relativeDateGetters: Record<string, () => DateRange> = {
   yesterday: () => ({
     from: moment().subtract(1, 'day').startOf('day').toDate(),
     to: moment().subtract(1, 'day').endOf('day').toDate(),
+  }),
+  lastWeek: () => ({
+    from: moment().startOf('week').subtract(1, 'week').toDate(),
+    to: moment().endOf('week').subtract(1, 'week').toDate(),
   }),
   week: () => ({
     from: moment().weekday(1).startOf('day').toDate(),
