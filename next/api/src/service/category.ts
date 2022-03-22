@@ -27,7 +27,10 @@ class CategoryCache {
   static async getAll(): Promise<Category[] | undefined> {
     const datas = await redis.hvals(CategoryCache.CACHE_KEY);
     if (datas.length) {
-      return datas.map((data) => Category.fromJSON(JSON.parse(data)));
+      return _.uniqBy(
+        datas.map((data) => Category.fromJSON(JSON.parse(data))),
+        'id'
+      );
     }
   }
 
