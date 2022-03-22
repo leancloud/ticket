@@ -57,7 +57,7 @@ export default function Home() {
   const { data: notices } = useNotices(rootCategory);
 
   return (
-    <>
+    <QueryWrapper result={result}>
       <PageHeader />
       <PageContent>
         {notices && notices.length > 0 && (
@@ -80,10 +80,8 @@ export default function Home() {
           <h2 className="grow font-bold">{t('category.select_hint')}</h2>
           <TicketsLink badge={hasUnreadTickets} />
         </div>
-        <QueryWrapper result={result}>
-          <CategoryList marker categories={topCategories} />
-        </QueryWrapper>
+        <CategoryList marker categories={topCategories} />
       </PageContent>
-    </>
+    </QueryWrapper>
   );
 }
