@@ -80,7 +80,7 @@ export function CategoryList({ categories, marker, ...props }: CategoryListProps
       {categories.map((category) => (
         <ListItem
           key={category.id}
-          to={`/categories/${category.id}`}
+          to={`/categories/${category.alias ?? category.id}`}
           marker={marker}
           content={category.name}
         />
@@ -90,13 +90,17 @@ export function CategoryList({ categories, marker, ...props }: CategoryListProps
 }
 
 export default function Categories() {
-  const { id } = useParams();
+  const { id: rawId } = useParams();
   const navigate = useNavigate();
   const result = useCategories();
   const { data: categories, isLoading: categoriesIsLoading, error } = result;
   const { t } = useTranslation();
 
-  const currentCategory = useMemo(() => categories?.find((c) => c.id === id), [categories, id]);
+  const currentCategory = useMemo(
+    () => categories?.find((c) => c.id === rawId || c.alias === rawId),
+    [categories, rawId]
+  );
+  const id = currentCategory?.id;
 
   const subCategories = useMemo(
     () => categories?.filter((c) => c.parentId === id).sort((a, b) => a.position - b.position),
