@@ -116,7 +116,7 @@ export const NotFoundContent = () => {
   return (
     <div className="mt-24 sm:m-auto text-center">
       <PaperPlaneIcon className="mx-auto" />
-      <div className="mt-2 text-[#BFBFBF]">{t('general.content_deleted')}</div>
+      <div className="mt-2 text-[#BFBFBF]">{t('general.not_found')}</div>
     </div>
   );
 };

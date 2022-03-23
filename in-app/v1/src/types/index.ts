@@ -9,6 +9,7 @@ export interface Article {
 export interface Category {
   id: string;
   name: string;
+  alias?: string;
   parentId?: string;
   position: number;
 }

@@ -62,7 +62,10 @@ export function useCategories() {
 
 export function useCategory(id: string) {
   const { data: categories, ...rest } = useCategories();
-  const category = useMemo(() => categories?.find((c) => c.id === id), [categories, id]);
+  const category = useMemo(() => categories?.find((c) => c.id === id || c.alias === id), [
+    categories,
+    id,
+  ]);
   return { data: category, ...rest } as UseQueryResult<Category>;
 }
 

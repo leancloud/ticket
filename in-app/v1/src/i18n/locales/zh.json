@@ -15,7 +15,8 @@
     "no_data": "暂无数据",
     "call_center": "客服中心",
     "click_to_upload": "点击上传",
-    "content_deleted": "该内容已被删除"
+    "content_deleted": "该内容已被删除",
+    "not_found": "该内容不存在"
   },
   "auth": {
     "not_logged_in_text": "检测到你未登录账号，请登录后重试"

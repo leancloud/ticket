@@ -49,7 +49,7 @@ export default function Home() {
     }
     const map = _.keyBy(categories, 'id');
     return categories
-      .filter((c) => c.parentId && map[c.parentId])
+      .filter((c) => c.parentId && !map[c.parentId])
       .sort((a, b) => a.position - b.position);
   }, [categories]);
   const { data: hasUnreadTickets } = useHasUnreadTickets();
@@ -65,7 +65,6 @@ export default function Home() {
             {notices.map((notice) => (
               <ArticleLink
                 article={notice}
-                fromCategory={rootCategory}
                 key={notice.id}
                 className="my-1 px-2.5 py-2 rounded flex items-center bg-tapBlue bg-opacity-5 active:bg-tapBlue-50"
               >
