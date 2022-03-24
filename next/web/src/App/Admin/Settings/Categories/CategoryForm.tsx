@@ -87,6 +87,7 @@ const TicketFormSelect = forwardRef<RefSelectProps, SelectProps<string>>((props,
 });
 
 export interface CategoryFormData {
+  alias?: string;
   name: string;
   description?: string;
   parentId?: string;
@@ -182,6 +183,16 @@ export function CategoryForm({
         render={({ field }) => (
           <Form.Item label="描述" htmlFor="category_form_desc" style={FORM_ITEM_STYLE}>
             <TextArea {...field} id="category_form_desc" />
+          </Form.Item>
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="alias"
+        render={({ field }) => (
+          <Form.Item label="资源 ID（别名）" htmlFor="category_form_alias" style={FORM_ITEM_STYLE}>
+            <Input {...field} id="category_form_alias" />
           </Form.Item>
         )}
       />

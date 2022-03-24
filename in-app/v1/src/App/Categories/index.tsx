@@ -15,6 +15,7 @@ import { NewTicketButton } from '@/components/NewTicketButton';
 import { ArticleListItem, useFAQs } from '@/App/Articles/utils';
 import styles from './index.module.css';
 import { NotFoundContent } from '../NotFound';
+import { useRootCategory } from '..';
 
 interface ListItemProps {
   to: string;
@@ -40,22 +41,31 @@ export function ListItem({ to, content, marker, className }: ListItemProps) {
   );
 }
 
-async function fetchCategories(): Promise<Category[]> {
-  const { data } = await http.get<Category[]>('/api/2/categories?active=true');
+async function fetchCategories(rootCategoryId?: string): Promise<Category[]> {
+  if (rootCategoryId === undefined) {
+    return [];
+  }
+  const { data } = await http.get<Category[]>(
+    `/api/2/products/${rootCategoryId}/categories?active=true`
+  );
   return data;
 }
 
 export function useCategories() {
+  const rootId = useRootCategory();
   return useQuery({
     queryKey: 'categories',
-    queryFn: fetchCategories,
+    queryFn: () => fetchCategories(rootId),
     staleTime: 1000 * 60 * 5,
   });
 }
 
 export function useCategory(id: string) {
   const { data: categories, ...rest } = useCategories();
-  const category = useMemo(() => categories?.find((c) => c.id === id), [categories, id]);
+  const category = useMemo(() => categories?.find((c) => c.id === id || c.alias === id), [
+    categories,
+    id,
+  ]);
   return { data: category, ...rest } as UseQueryResult<Category>;
 }
 
@@ -70,7 +80,7 @@ export function CategoryList({ categories, marker, ...props }: CategoryListProps
       {categories.map((category) => (
         <ListItem
           key={category.id}
-          to={`/categories/${category.id}`}
+          to={`/categories/${category.alias ?? category.id}`}
           marker={marker}
           content={category.name}
         />
@@ -80,13 +90,17 @@ export function CategoryList({ categories, marker, ...props }: CategoryListProps
 }
 
 export default function Categories() {
-  const { id } = useParams();
+  const { id: rawId } = useParams();
   const navigate = useNavigate();
   const result = useCategories();
   const { data: categories, isLoading: categoriesIsLoading, error } = result;
   const { t } = useTranslation();
 
-  const currentCategory = useMemo(() => categories?.find((c) => c.id === id), [categories, id]);
+  const currentCategory = useMemo(
+    () => categories?.find((c) => c.id === rawId || c.alias === rawId),
+    [categories, rawId]
+  );
+  const id = currentCategory?.id;
 
   const subCategories = useMemo(
     () => categories?.filter((c) => c.parentId === id).sort((a, b) => a.position - b.position),

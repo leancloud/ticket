@@ -11,6 +11,7 @@ import SpeakerIcon from '@/icons/Speaker';
 import { useRootCategory } from '@/App';
 import { CategoryList, useCategories } from '@/App/Categories';
 import { useNotices, ArticleLink } from '@/App/Articles/utils';
+import { keyBy } from 'lodash-es';
 
 interface TicketsLinkProps {
   badge?: boolean;
@@ -46,8 +47,9 @@ export default function Home() {
     if (!categories) {
       return [];
     }
+    const map = keyBy(categories, 'id');
     return categories
-      .filter((c) => (rootCategory ? c.parentId === rootCategory : !c.parentId))
+      .filter((c) => c.parentId && !map[c.parentId])
       .sort((a, b) => a.position - b.position);
   }, [categories]);
   const { data: hasUnreadTickets } = useHasUnreadTickets();
@@ -55,7 +57,7 @@ export default function Home() {
   const { data: notices } = useNotices(rootCategory);
 
   return (
-    <>
+    <QueryWrapper result={result}>
       <PageHeader />
       <PageContent>
         {notices && notices.length > 0 && (
@@ -63,7 +65,6 @@ export default function Home() {
             {notices.map((notice) => (
               <ArticleLink
                 article={notice}
-                fromCategory={rootCategory}
                 key={notice.id}
                 className="my-1 px-2.5 py-2 rounded flex items-center bg-tapBlue bg-opacity-5 active:bg-tapBlue-50"
               >
@@ -78,10 +79,8 @@ export default function Home() {
           <h2 className="grow font-bold">{t('category.select_hint')}</h2>
           <TicketsLink badge={hasUnreadTickets} />
         </div>
-        <QueryWrapper result={result}>
-          <CategoryList marker categories={topCategories} />
-        </QueryWrapper>
+        <CategoryList marker categories={topCategories} />
       </PageContent>
-    </>
+    </QueryWrapper>
   );
 }

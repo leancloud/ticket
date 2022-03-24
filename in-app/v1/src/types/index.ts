@@ -9,6 +9,7 @@ export interface Article {
 export interface Category {
   id: string;
   name: string;
+  alias?: string;
   parentId?: string;
   position: number;
 }
@@ -25,17 +26,19 @@ export interface Evaluation {
   content: string;
 }
 
-export interface Ticket {
+export interface TicketListItem {
   id: string;
   nid: number;
   title: string;
-  content: string;
   status: number;
   files: File[];
   evaluation: Evaluation | null;
   unreadCount: number;
   createdAt: Date;
   updatedAt: Date;
+}
+export interface Ticket extends TicketListItem {
+  content: string;
 }
 
 export interface Reply {

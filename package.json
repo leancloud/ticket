@@ -8,7 +8,7 @@
     "build": "webpack",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
     "dev:client": "eval $(lean env) && NODE_ENV=development webpack serve",
-    "dev:in-app:v1": "cd in-app/v1 && npm run dev:client",
+    "dev:in-app:v1": "cd in-app/v1 && npm run dev",
     "dev": "WEBPACK_DEV_SERVER=http://localhost:8080 nodemon --ignore modules server.js",
     "migrate": "eval $(lean env) && migrate up --store=./migration-store",
     "fmt": "prettier -w */**/*.js",

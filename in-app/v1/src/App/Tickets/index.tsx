@@ -6,7 +6,7 @@ import { InView } from 'react-intersection-observer';
 import { flatten } from 'lodash-es';
 
 import { auth, http } from '@/leancloud';
-import { Ticket } from '@/types';
+import { TicketListItem } from '@/types';
 import { QueryWrapper } from '@/components/QueryWrapper';
 import { PageContent, PageHeader } from '@/components/Page';
 import { Time } from '@/components/Time';
@@ -23,34 +23,32 @@ async function fetchTickets({
 }: {
   categoryId?: string;
   page?: number;
-}): Promise<Ticket[]> {
-  const { data } = await http.get<any[]>('/api/1/tickets', {
+}): Promise<TicketListItem[]> {
+  const { data } = await http.get<any[]>('/api/2/tickets', {
     params: {
-      author_id: auth.currentUser?.id,
-      // TODO: waiting for support in v2 API
-      root_category_id: categoryId,
+      authorId: auth.currentUser?.id,
+      rootCategoryId: categoryId,
       page,
-      page_size: TICKETS_PAGE_SIZE,
-      q: 'sort:updated_at-desc',
+      pageSize: TICKETS_PAGE_SIZE,
+      orderBy: 'latestCustomerServiceReplyAt',
     },
   });
   return data.map((ticket) => ({
     id: ticket.id,
     nid: ticket.nid,
     title: ticket.title,
-    content: ticket.content,
     status: ticket.status,
-    unreadCount: ticket.unread_count,
+    unreadCount: ticket.unreadCount,
     files: ticket.files,
     evaluation: ticket.evaluation,
-    createdAt: new Date(ticket.created_at),
-    updatedAt: new Date(ticket.updated_at),
+    createdAt: new Date(ticket.createdAt),
+    updatedAt: new Date(ticket.updatedAt),
   }));
 }
 
 export function useTickets() {
   const categoryId = useRootCategory();
-  return useInfiniteQuery<Ticket[], Error>({
+  return useInfiniteQuery<TicketListItem[], Error>({
     queryKey: 'tickets',
     queryFn: ({ pageParam = 1 }) => fetchTickets({ categoryId, page: pageParam }),
     getNextPageParam: (lastPage, allPages) => {
@@ -62,7 +60,7 @@ export function useTickets() {
 }
 
 interface TicketItemProps {
-  ticket: Ticket;
+  ticket: TicketListItem;
 }
 
 function TicketItem({ ticket }: TicketItemProps) {

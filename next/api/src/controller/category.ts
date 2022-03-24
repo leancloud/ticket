@@ -43,6 +43,7 @@ class FindCategoryPipe {
 const createCategorySchema = z.object({
   name: z.string(),
   description: z.string().optional(),
+  alias: z.string().optional(),
   parentId: z.string().optional(),
   noticeIds: z.array(z.string()).optional(),
   articleIds: z.array(z.string()).optional(),
@@ -68,7 +69,7 @@ type UpdateCategoryData = z.infer<typeof updateCategorySchema>;
 
 type BatchUpdateData = z.infer<typeof batchUpdateSchema>;
 
-@Controller('categories')
+@Controller(['categories', 'products'])
 export class CategoryController {
   @Get()
   @ResponseBody(CategoryResponse)
@@ -179,6 +180,21 @@ export class CategoryController {
     return articles.filter((article) => article && !article.private);
   }
 
+  @Get(':id/categories')
+  @ResponseBody(CategoryResponse)
+  async getSubCategories(
+    @Param('id', FindCategoryPipe) category: Category,
+    @Query('active', new ParseBoolPipe({ keepUndefined: true })) active?: boolean
+  ) {
+    const categories = await CategoryService.getSubCategories(category.id);
+    if (active !== undefined) {
+      return active
+        ? categories.filter((c) => c.deletedAt === undefined)
+        : categories.filter((c) => c.deletedAt !== undefined);
+    }
+    return categories;
+  }
+
   private convertUpdateData(data: UpdateCategoryData): UpdateData<Category> {
     let deletedAt: Date | null | undefined = undefined;
     if (data.active !== undefined) {
@@ -192,6 +208,7 @@ export class CategoryController {
     return {
       name: data.name,
       description: data.description,
+      alias: data.alias === '' ? null : data.alias,
       parentId: data.parentId,
       noticeIds: data.noticeIds?.length === 0 ? null : data.noticeIds,
       FAQIds: data.articleIds?.length === 0 ? null : data.articleIds,

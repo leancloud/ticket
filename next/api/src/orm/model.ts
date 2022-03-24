@@ -10,6 +10,7 @@ import { KeysOfType } from './utils';
 import { Relation } from './relation';
 import { preloaderFactory } from './preloader';
 import { TypeCommands } from './command';
+import { field, serialize } from './helpers';
 
 type RelationKey<T> = Extract<KeysOfType<Required<T>, Model | Model[]>, string>;
 
@@ -276,12 +277,12 @@ export abstract class Model {
     return new QueryBuilder(this);
   }
 
-  static find<M extends typeof Model>(
+  static async find<M extends typeof Model>(
     this: M,
     id: string,
     options?: AuthOptions
   ): Promise<InstanceType<M> | undefined> {
-    return this.query().where('objectId', '==', id).first(options);
+    return await this.query().where('objectId', '==', id).first(options);
   }
 
   static async findOrFail<M extends typeof Model>(
@@ -582,6 +583,24 @@ export abstract class Model {
     }
 
     return data;
+  }
+}
+
+export abstract class AliasModel extends Model {
+  @field()
+  @serialize()
+  alias?: string;
+
+  static async find<M extends typeof AliasModel>(
+    this: M,
+    id: string,
+    options?: AuthOptions
+  ): Promise<InstanceType<M> | undefined> {
+    const idMatch = await this.query().where('objectId', '==', id).first(options);
+    if (idMatch) {
+      return idMatch;
+    }
+    return await this.query().where('alias', '==', id).first(options);
   }
 }
 

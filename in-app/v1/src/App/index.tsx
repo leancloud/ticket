@@ -41,7 +41,7 @@ function RequireAuth({ children }: { children: JSX.Element }) {
 const RootCategoryContext = createContext<string | undefined>(undefined);
 export const useRootCategory = () => useContext(RootCategoryContext);
 
-const ROOT_URL = '/in-app/v1/categories';
+const ROOT_URLS = ['/in-app/v1/categories', '/in-app/v1/products'];
 
 const TicketInfoContext = createContext<{
   meta?: Record<string, unknown> | null;
@@ -56,7 +56,7 @@ export const useAuth = () => useContext(AuthContext);
 export default function App() {
   const pathname = window.location.pathname;
   const paths = pathname.split('/');
-  const rootCategory = paths[4] === '-' ? undefined : paths[4];
+  const rootCategory = paths[4];
 
   const params = useMemo(
     () =>
@@ -91,11 +91,12 @@ export default function App() {
     }
   }, []);
 
-  if (!pathname.startsWith(ROOT_URL)) {
-    return <>'Not Found'</>;
+  const rootURL = ROOT_URLS.find((URL) => pathname.startsWith(URL));
+  if (!rootURL) {
+    return <p>Not Found</p>;
   }
   return (
-    <BrowserRouter basename={`${ROOT_URL}/${paths[4]}`}>
+    <BrowserRouter basename={`${rootURL}/${paths[4]}`}>
       <QueryClientProvider client={queryClient}>
         <ErrorBoundary>
           <RootCategoryContext.Provider value={rootCategory}>

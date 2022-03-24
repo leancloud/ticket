@@ -470,6 +470,7 @@ export function CategoryDetail() {
     return pick(category, [
       'name',
       'description',
+      'alias',
       'parentId',
       'noticeIds',
       'articleIds',

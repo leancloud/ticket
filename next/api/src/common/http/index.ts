@@ -19,9 +19,9 @@ export interface ControllerConstructor {
   new (): any;
 }
 
-export function Controller(path: string) {
+export function Controller(path: string | string[]) {
   return (target: ControllerConstructor) => {
-    Reflect.defineMetadata(KEY_PATH, path, target);
+    Reflect.defineMetadata(KEY_PATH, [path].flat(), target);
     controllers.push(Reflect.construct(target, []));
   };
 }
@@ -83,7 +83,7 @@ function joinPaths(paths: string[]) {
 }
 
 export function applyController(router: Router, controller: any) {
-  const basePath = Reflect.getMetadata(KEY_PATH, controller.constructor);
+  const basePaths = Reflect.getMetadata(KEY_PATH, controller.constructor) as string[];
 
   const middlewares = getMiddlewares(controller);
 
@@ -93,22 +93,24 @@ export function applyController(router: Router, controller: any) {
 
   const handlers = getHandlers(controller);
 
-  handlers.forEach((handler) => {
-    const path = handler.path ? joinPaths([basePath, handler.path]) : joinPaths([basePath]);
+  basePaths.map((basePath) =>
+    handlers.forEach((handler) => {
+      const path = handler.path ? joinPaths([basePath, handler.path]) : joinPaths([basePath]);
 
-    const handlerMiddlewares = middlewares
-      .filter((c) => c.controllerMethod === handler.controllerMethod)
-      .map((c) => c.middleware);
+      const handlerMiddlewares = middlewares
+        .filter((c) => c.controllerMethod === handler.controllerMethod)
+        .map((c) => c.middleware);
 
-    const h = createKoaHandler(controller, handler);
+      const h = createKoaHandler(controller, handler);
 
-    // @ts-ignore
-    router[handler.httpMethod].apply(router, [
-      path,
-      ...globalMiddlewares,
-      ...controllerMiddlewares,
-      ...handlerMiddlewares,
-      h,
-    ]);
-  });
+      // @ts-ignore
+      router[handler.httpMethod].apply(router, [
+        path,
+        ...globalMiddlewares,
+        ...controllerMiddlewares,
+        ...handlerMiddlewares,
+        h,
+      ]);
+    })
+  );
 }
