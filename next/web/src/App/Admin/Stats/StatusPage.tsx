@@ -4,9 +4,8 @@ import { useMemo } from 'react';
 import _ from 'lodash';
 
 import { useTicketStatus } from '@/api/ticket-stats';
-import { defaultDateRange, STATUS_LOCALE, getRollUp, useRangeDateOptions } from './utils';
-import { StatsArea } from './StatsChart';
-import { DatePicker } from '@/components/antd';
+import { defaultDateRange, STATUS_LOCALE, getRollUp, RangePicker } from './utils';
+import { StatsArea } from './Chart';
 
 const StatusStats = () => {
   const [{ from = defaultDateRange.from, to = defaultDateRange.to }] = useSearchParams();
@@ -39,20 +38,21 @@ const StatusStats = () => {
     />
   );
 };
+
 export function StatusPage() {
-  const rangeDates = useRangeDateOptions();
   const [{ from, to }, { set }] = useSearchParams();
   return (
-    <div>
+    <>
       <div className="mb-4">
-        <DatePicker.RangePicker
-          value={[moment(from || defaultDateRange.from), moment(to || defaultDateRange.to)]}
-          ranges={rangeDates}
-          allowClear
-          onChange={(dates: [moment.Moment, moment.Moment]) => {
+        <RangePicker
+          values={[
+            moment(from || defaultDateRange.from).toDate(),
+            moment(to || defaultDateRange.to).toDate(),
+          ]}
+          onChange={([from, to]) => {
             set({
-              from: dates[0].startOf('day').toISOString(),
-              to: dates[1].endOf('day').toISOString(),
+              from: moment(from).startOf('day').toISOString(),
+              to: moment(to).endOf('day').toISOString(),
             });
           }}
         />
@@ -60,6 +60,6 @@ export function StatusPage() {
       <div className="w-full relative">
         <StatusStats />
       </div>
-    </div>
+    </>
   );
 }

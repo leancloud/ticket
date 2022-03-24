@@ -47,6 +47,7 @@ type TimeLine = Array<Reply | OpsLog>
 interface ReplyDetail {
   replyTime?: number; // 工单角度回复时间
   authorReplyTime?: number;  // 客服角度回复时间
+  naturalReplyTime?: number; // 用户角度回复时间
   first?: boolean;
   internal: boolean;
   authorId: string;
@@ -62,6 +63,8 @@ interface StatData {
   replyTime: number;
   replyTimeCount: number; // 有回复时间的回复
   replyCount: number; // 
+  naturalReplyTime: number;
+  naturalReplyCount: number;
   firstReplyTime: number;
   firstReplyCount: number;
   internalReplyCount: number;
@@ -115,8 +118,19 @@ const getRelyTime = (replyDate: Date, askDate: Date) => {
       time = time + WEEKDAY_CONFIG.workTime
     }
   }
-  const replyDiff = differenceInSeconds(set(replyDate, WEEKDAY_CONFIG.to), replyDate)
-  return time - (replyDiff > 0 ? replyDiff : 0)
+
+  if (WEEKDAY_CONFIG.days.includes(getDay(replyDate))) {
+    const replyFrom = set(replyDate, WEEKDAY_CONFIG.from)
+    const replyTo = set(replyDate, WEEKDAY_CONFIG.to)
+    if (isBefore(replyDate, replyFrom)) {
+      time = time - WEEKDAY_CONFIG.workTime;
+    } else {
+      if (isBefore(replyDate, replyTo)) {
+        time = time - differenceInSeconds(replyTo, replyDate)
+      }
+    }
+  }
+  return time
 }
 const customizer = (objValue?: number, srcValue = 0) => objValue === undefined ? srcValue : objValue + srcValue
 const mergeStatData = (target: StatResult, source: Pick<StatResult, 'customerService' | 'ticket'> & { categoryId: string }) => {
@@ -238,11 +252,14 @@ const _getReplyStat = (replies: ReplyDetail[], authorId?: string) => {
     })) : replies;
   const hasReplyTimeReplies = replies.filter(v => v.replyTime && v.replyTime > 0)
   const firstReplies = replies.filter(v => v.first && v.replyTime && v.replyTime > 0)
+  const userReplies = replies.filter(v => v.naturalReplyTime && v.naturalReplyTime > 0)
   const internalReplyCount = replies.filter(v => v.internal).length
   return {
     replyTime: _.sumBy(hasReplyTimeReplies, 'replyTime'),
     replyTimeCount: hasReplyTimeReplies.length, // 有回复时间的回复
     replyCount: replies.length - internalReplyCount,
+    naturalReplyTime: _.sumBy(userReplies, 'naturalReplyTime'),
+    naturalReplyCount: userReplies.length,
     firstReplyTime: _.sumBy(firstReplies, 'replyTime'),
     firstReplyCount: firstReplies.length,
     internalReplyCount,
@@ -312,8 +329,9 @@ const _getReplyDetails = (allTimeLine: TimeLine, from: Date, ticket: Ticket) => 
         getRelyTime(replyOrOpsLog.createdAt, cursor.lastAssigneeDate)
       }
       details.push({
-        replyTime: replyTime > 0 ? replyTime : 0,
-        authorReplyTime: authorReplyTime > 0 ? authorReplyTime : 0,
+        replyTime,
+        naturalReplyTime: differenceInSeconds(replyOrOpsLog.createdAt, cursor.lastStaffReplyDate),
+        authorReplyTime,
         internal,
         authorId: replyOrOpsLog.authorId,
         first: isFirst()

@@ -20,6 +20,8 @@ interface SumTicketStat {
   weekdayReplyTimeCount?: number;
   weekdayReplyCount?: number;
   internalReplyCount?: number;
+  naturalReplyTime?: number;
+  naturalReplyCount?: number;
 }
 
 export class TicketStats extends Model {
@@ -60,6 +62,10 @@ export class TicketStats extends Model {
   firstReplyCount?: number;
   @field()
   internalReplyCount?: number;
+  @field()
+  naturalReplyTime?: number;
+  @field()
+  naturalReplyCount?: number;
 
   static async fetchTicketStats(params: {
     from: Date;

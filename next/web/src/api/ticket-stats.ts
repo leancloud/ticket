@@ -22,6 +22,8 @@ export interface TicketStats {
   replyTime: number;
   replyTimeCount: number;
   replyCount: number;
+  naturalReplyTime: number;
+  naturalReplyCount: number;
 }
 
 

@@ -18,7 +18,9 @@ export class TicketStatsResponse {
       replyCount: this.ticketStats.replyCount || 0,
       firstReplyTime: this.ticketStats.firstReplyTime || 0,
       firstReplyCount: this.ticketStats.firstReplyCount || 0,
-      internalReplyCount: this.ticketStats.internalReplyCount || 0
+      internalReplyCount: this.ticketStats.internalReplyCount || 0,
+      naturalReplyTime: this.ticketStats.naturalReplyTime || 0,
+      naturalReplyCount: this.ticketStats.naturalReplyCount || 0
     };
   }
 }

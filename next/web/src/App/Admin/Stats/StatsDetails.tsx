@@ -1,30 +1,30 @@
 import { useSearchParams } from '@/utils/useSearchParams';
 import moment from 'moment';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import _ from 'lodash';
+import { TableOutlined, PieChartOutlined } from '@ant-design/icons';
 
-import { TicketStats, useTicketFieldStats } from '@/api/ticket-stats';
+import { TicketFieldStat, TicketStats, useTicketFieldStats } from '@/api/ticket-stats';
 import { useCategories } from '@/api/category';
 import { useCustomerServices } from '@/api/customer-service';
 import { defaultDateRange, StatsField, STATS_FIELD_LOCALE, getRollUp } from './utils';
-import { StatsPie, StatsColumn } from './StatsChart';
+import { StatsPie, StatsColumn } from './Chart';
+import { Button, Popover, Radio, Table } from '@/components/antd';
+import { useActiveField } from './StatsPage';
 
+type displayMode = 'pieChart' | 'table';
+
+const timeField = ['naturalReplyTimeAVG', 'replyTimeAVG', 'firstReplyTimeAVG'];
 const avgFieldMap: {
   [key in StatsField]?: Array<keyof TicketStats>;
 } = {
+  naturalReplyTimeAVG: ['naturalReplyTime', 'naturalReplyCount'],
   replyTimeAVG: ['replyTime', 'replyTimeCount'],
   firstReplyTimeAVG: ['firstReplyTime', 'firstReplyCount'],
 };
-const timeField = ['firstReplyTimeAVG', 'replyTimeAVG'];
 
-const timeFormatter = (value: number) => {
-  const hours = value / 3600;
-  if (hours < 1) {
-    return `${hours.toFixed(2)} 小时`;
-  }
-  return `${hours.toFixed(2)} 小时`;
-};
-const TicketStatsColumn: React.FunctionComponent<{ field: StatsField }> = ({ field }) => {
+const TicketStatsColumn = () => {
+  const [field] = useActiveField();
   const [
     { from = defaultDateRange.from, to = defaultDateRange.to, category, customerService },
   ] = useSearchParams();
@@ -79,6 +79,20 @@ const TicketStatsColumn: React.FunctionComponent<{ field: StatsField }> = ({ fie
       return [moment(v.date).toISOString(), value] as [string, number];
     });
   }, [data, rollup]);
+
+  const xAxisDisplay = useMemo(() => {
+    if (timeField.includes(field)) {
+      return (value: number) => {
+        const hours = value / 3600;
+        if (hours < 1) {
+          return `${hours.toFixed(2)} 小时`;
+        }
+        return `${hours.toFixed(2)} 小时`;
+      };
+    }
+    return;
+  }, [field]);
+
   return (
     <StatsColumn
       loading={isFetching || isLoading}
@@ -100,7 +114,7 @@ const TicketStatsColumn: React.FunctionComponent<{ field: StatsField }> = ({ fie
           const date = moment(value);
           return date.format('HH:mm');
         },
-        xAxisDisplay: timeField.includes(field) ? timeFormatter : undefined,
+        xAxisDisplay,
         titleDisplay: (value) =>
           moment(value).format(rollup === 'day' ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm'),
       }}
@@ -109,7 +123,70 @@ const TicketStatsColumn: React.FunctionComponent<{ field: StatsField }> = ({ fie
   );
 };
 
-const CategoryStats: React.FunctionComponent<{ field: StatsField }> = ({ field }) => {
+const getPercentaget = (value: number | string, total = 1) => {
+  if (total < 0) {
+    total = 1;
+  }
+  value = Number(value);
+  return ((value / total) * 100).toFixed(2) + '%';
+};
+
+const formatTime = (value: number | string) => {
+  value = Number(value);
+  return (value / 3600).toFixed(2) + ' 小时';
+};
+
+const useChartData = (groupByKey: string, data?: TicketFieldStat[]) => {
+  const [field] = useActiveField();
+  return useMemo(() => {
+    if (!data || timeField.includes(field)) {
+      return [];
+    }
+    return _(data)
+      .groupBy(groupByKey)
+      .map((values, key) => {
+        return [key, _.sumBy(values, field)] as [string, number];
+      })
+      .valueOf();
+  }, [data, groupByKey, field]);
+};
+
+const useTableData = (groupByKey: string, data?: TicketFieldStat[]) => {
+  const [field] = useActiveField();
+  return useMemo(() => {
+    return _(data)
+      .groupBy(groupByKey)
+      .map((values, key) => {
+        switch (field) {
+          case 'firstReplyTimeAVG':
+            return {
+              [groupByKey]: key,
+              value: _.sumBy(values, 'firstReplyTime') / _.sumBy(values, 'firstReplyCount'),
+            };
+          case 'replyTimeAVG':
+            return {
+              [groupByKey]: key,
+              value: _.sumBy(values, 'replyTime') / _.sumBy(values, 'replyTimeCount'),
+            };
+          case 'naturalReplyTimeAVG':
+            return {
+              [groupByKey]: key,
+              value: _.sumBy(values, 'naturalReplyTime') / _.sumBy(values, 'naturalReplyCount'),
+            };
+          default:
+            return {
+              [groupByKey]: key,
+              value: _.sumBy(values, field),
+            };
+        }
+      })
+      .orderBy(['value'], 'desc')
+      .valueOf();
+  }, [groupByKey, data, field]);
+};
+
+const CategoryStats: React.FunctionComponent<{ displayMode: displayMode }> = ({ displayMode }) => {
+  const [field] = useActiveField();
   const [
     { from = defaultDateRange.from, to = defaultDateRange.to, customerService },
   ] = useSearchParams();
@@ -121,28 +198,42 @@ const CategoryStats: React.FunctionComponent<{ field: StatsField }> = ({ field }
     category: '*',
     customerService: customerService,
   });
-  const chartData = useMemo(() => {
-    if (!data) {
-      return [];
-    }
-    return _(data)
-      .groupBy('categoryId')
-      .map((values, key) => {
-        return [key, _.sumBy(values, field)] as [string, number];
-      })
-      .valueOf();
-  }, [data]);
   const categoryFormat = useMemo(() => {
     const categoryMap = _.mapValues(_.keyBy(categories || [], 'id'), 'name');
     return (value?: string) => (value ? categoryMap[value] : 'none');
   }, [categories]);
-  const total = useMemo(() => (data ? _.sumBy(data, field) : 0), [data]);
-  const valueDisplay = (value: number) => {
-    const percent = ((Number(value) / total) * 100).toFixed(2) + '%';
-    return `${value} （${percent}）`;
-  };
-  if (!data || data.length === 0) {
-    return null;
+  const total = useMemo(() => (data ? _.sumBy(data, field) : 1), [data]);
+  const tableData = useTableData('categoryId', data);
+  const chartData = useChartData('categoryId', data);
+  if (displayMode === 'table') {
+    return (
+      <Table
+        className="w-full p-4"
+        loading={isLoading || isFetching}
+        columns={[
+          {
+            title: '排名',
+            dataIndex: 'value',
+            key: 'index',
+            render: (v, obj, index) => index + 1,
+          },
+          {
+            title: '分类',
+            dataIndex: 'categoryId',
+            key: 'categoryId',
+            render: (value) => categoryFormat(value),
+          },
+          {
+            title: STATS_FIELD_LOCALE[field],
+            dataIndex: 'value',
+            key: 'value',
+            render: (value) =>
+              timeField.includes(field) ? formatTime(value) : getPercentaget(value, total),
+          },
+        ]}
+        dataSource={tableData}
+      />
+    );
   }
   return (
     <StatsPie
@@ -150,13 +241,16 @@ const CategoryStats: React.FunctionComponent<{ field: StatsField }> = ({ field }
       loading={isLoading || isFetching}
       names={categoryFormat}
       formatters={{
-        valueDisplay,
+        valueDisplay: (num) => getPercentaget(num, total),
       }}
     />
   );
 };
 
-const CustomerServiceStats: React.FunctionComponent<{ field: StatsField }> = ({ field }) => {
+const CustomerServiceStats: React.FunctionComponent<{ displayMode: displayMode }> = ({
+  displayMode,
+}) => {
+  const [field] = useActiveField();
   const [{ from = defaultDateRange.from, to = defaultDateRange.to, category }] = useSearchParams();
   const { data: customerServices } = useCustomerServices();
   const { data, isFetching, isLoading } = useTicketFieldStats({
@@ -166,18 +260,6 @@ const CustomerServiceStats: React.FunctionComponent<{ field: StatsField }> = ({ 
     category,
     customerService: '*',
   });
-  const chartData = useMemo(() => {
-    if (!data) {
-      return [];
-    }
-    return _(data)
-      .groupBy('customerServiceId')
-      .map((values, key) => {
-        return [key, _.sumBy(values, field)] as [string, number];
-      })
-      .valueOf();
-  }, [data]);
-
   const customerServiceFormat = useMemo(() => {
     const customerServiceMap = _.mapValues(
       _.keyBy(customerServices || [], 'id'),
@@ -186,12 +268,37 @@ const CustomerServiceStats: React.FunctionComponent<{ field: StatsField }> = ({ 
     return (value?: string | number | null) => (value ? customerServiceMap[value] : 'none');
   }, [customerServices]);
   const total = useMemo(() => (data ? _.sumBy(data, field) : 0), [data]);
-  const valueDisplay = (value: number) => {
-    const percent = ((Number(value) / total) * 100).toFixed(2) + '%';
-    return `${value} （${percent}）`;
-  };
-  if (!data || data.length === 0) {
-    return null;
+  const tableData = useTableData('customerServiceId', data);
+  const chartData = useChartData('customerServiceId', data);
+  if (displayMode === 'table') {
+    return (
+      <Table
+        className="p-4 w-full"
+        loading={isLoading || isFetching}
+        columns={[
+          {
+            title: '排名',
+            dataIndex: 'value',
+            key: 'index',
+            render: (v, obj, index) => index + 1,
+          },
+          {
+            title: '客服',
+            dataIndex: 'customerServiceId',
+            key: 'customerServiceId',
+            render: (value) => customerServiceFormat(value),
+          },
+          {
+            title: STATS_FIELD_LOCALE[field],
+            dataIndex: 'value',
+            key: 'value',
+            render: (value) =>
+              timeField.includes(field) ? formatTime(value) : getPercentaget(value, total),
+          },
+        ]}
+        dataSource={tableData}
+      />
+    );
   }
   return (
     <StatsPie
@@ -199,34 +306,66 @@ const CustomerServiceStats: React.FunctionComponent<{ field: StatsField }> = ({ 
       loading={isLoading || isFetching}
       names={customerServiceFormat}
       formatters={{
-        valueDisplay,
+        valueDisplay: (value) => getPercentaget(value, total),
       }}
     />
   );
 };
 
-export function StatsDetails({ field }: { field: StatsField }) {
+const Details = () => {
+  const [field] = useActiveField();
   const [{ category, customerService }] = useSearchParams();
+  const [displayMode, setDisplayMode] = useState<displayMode>('pieChart');
+  const onlyTable = useMemo(() => timeField.includes(field), [field]);
+  useEffect(() => {
+    if (onlyTable) {
+      setDisplayMode('table');
+    }
+  }, [onlyTable]);
   return (
-    <div>
+    <div className="mt-4">
+      <Radio.Group
+        onChange={(e) => setDisplayMode(e.target.value)}
+        value={displayMode}
+        optionType="button"
+      >
+        <Popover content="组成">
+          <Radio.Button value="pieChart" disabled={onlyTable}>
+            <PieChartOutlined />
+          </Radio.Button>
+        </Popover>
+        <Popover content="排名">
+          <Radio.Button value="table">
+            <TableOutlined />
+          </Radio.Button>
+        </Popover>
+      </Radio.Group>
+
+      <div className="relative flex basis-1/2 flex-wrap min-h-[400px] ">
+        {!customerService && field !== 'created' && (
+          <div className="basis-1/2 min-w-[600px] flex-grow">
+            <CustomerServiceStats displayMode={displayMode} />
+          </div>
+        )}
+        {!category && (
+          <div className=" basis-1/2 min-w-[600px] flex-grow">
+            <CategoryStats displayMode={displayMode} />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export function StatsDetails() {
+  const [field] = useActiveField();
+  return (
+    <div className="w-full">
       <h2>{STATS_FIELD_LOCALE[field]}</h2>
       <div className="w-full relative">
-        <TicketStatsColumn field={field} />
+        <TicketStatsColumn />
       </div>
-      {!timeField.includes(field) && (
-        <div className="relative flex basis-1/2 mt-4">
-          {!customerService && field !== 'created' && (
-            <div className=" basis-1/2">
-              <CustomerServiceStats field={field} />
-            </div>
-          )}
-          {!category && (
-            <div className=" basis-1/2">
-              <CategoryStats field={field} />
-            </div>
-          )}
-        </div>
-      )}
+      <Details />
     </div>
   );
 }

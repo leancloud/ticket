@@ -1,6 +1,7 @@
 import moment from 'moment';
 import { relativeDateGetters } from '@/utils/date-range';
 import { useMemo } from 'react';
+import { DatePicker } from '@/components/antd';
 
 export const getRollUp = (from?: Date | string, to?: Date | string) => {
   if (!from || !to) {
@@ -13,7 +14,6 @@ export const getRollUp = (from?: Date | string, to?: Date | string) => {
   return 'hour';
 };
 
-
 export const STATS_FIELD = [
   'created',
   'closed',
@@ -23,6 +23,7 @@ export const STATS_FIELD = [
   // 'externalConversion',
   'firstReplyTimeAVG',
   'replyTimeAVG',
+  'naturalReplyTimeAVG',
   'replyCount',
   'internalReplyCount',
 ] as const;
@@ -36,6 +37,7 @@ export const STATS_FIELD_LOCALE = {
   // externalConversion: '外部流转数',
   firstReplyTimeAVG: '平均首次回复时间',
   replyTimeAVG: '平均回复时间',
+  naturalReplyTimeAVG: '平均回复自然时间',
   replyCount: '对外回复数',
   internalReplyCount: '对内回复数',
 };
@@ -51,8 +53,15 @@ const RANGE_DATE_LOCALE = {
   month: '本月',
   lastMonth: '上个月',
 };
-export const useRangeDateOptions = () => {
-  return useMemo(() => {
+export const defaultDateRange = relativeDateGetters['week']();
+export const RangePicker = ({
+  values,
+  onChange,
+}: {
+  values: [Date, Date];
+  onChange?: (values: [Date, Date]) => void;
+}) => {
+  const rangeDates = useMemo(() => {
     return RANGE_DATE.reduce(
       (pre, curr) => {
         const key = RANGE_DATE_LOCALE[curr];
@@ -65,5 +74,14 @@ export const useRangeDateOptions = () => {
       }
     );
   }, []);
+  return (
+    <DatePicker.RangePicker
+      value={[moment(values[0]), moment(values[1])]}
+      ranges={rangeDates}
+      allowClear
+      onChange={(dates: [moment.Moment, moment.Moment]) => {
+        onChange && onChange([dates[0].toDate(), dates[1].toDate()]);
+      }}
+    />
+  );
 };
-export const defaultDateRange = relativeDateGetters['week']();
