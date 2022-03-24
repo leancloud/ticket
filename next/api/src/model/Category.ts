@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-import { Model, field, pointerIds, pointerId, pointTo, serialize } from '@/orm';
+import { AliasModel, field, pointerIds, pointerId, pointTo, serialize } from '@/orm';
 import { Article } from './Article';
 import { Group } from './Group';
 import { TicketForm } from './TicketForm';
@@ -10,7 +10,7 @@ export interface TinyCategoryInfo {
   name: string;
 }
 
-export class Category extends Model {
+export class Category extends AliasModel {
   @field()
   @serialize()
   name!: string;
@@ -18,10 +18,6 @@ export class Category extends Model {
   @field()
   @serialize()
   description?: string;
-
-  @field()
-  @serialize()
-  alias?: string;
 
   @field()
   @serialize()

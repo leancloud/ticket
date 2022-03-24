@@ -208,7 +208,7 @@ export class CategoryController {
     return {
       name: data.name,
       description: data.description,
-      alias: data.alias,
+      alias: data.alias === '' ? null : data.alias,
       parentId: data.parentId,
       noticeIds: data.noticeIds?.length === 0 ? null : data.noticeIds,
       FAQIds: data.articleIds?.length === 0 ? null : data.articleIds,
