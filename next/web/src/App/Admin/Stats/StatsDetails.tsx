@@ -227,8 +227,7 @@ const CategoryStats: React.FunctionComponent<{ displayMode: displayMode }> = ({ 
             title: STATS_FIELD_LOCALE[field],
             dataIndex: 'value',
             key: 'value',
-            render: (value) =>
-              timeField.includes(field) ? formatTime(value) : getPercentaget(value, total),
+            render: (value) => (timeField.includes(field) ? formatTime(value) : `${value}`),
           },
         ]}
         dataSource={tableData}
@@ -241,7 +240,7 @@ const CategoryStats: React.FunctionComponent<{ displayMode: displayMode }> = ({ 
       loading={isLoading || isFetching}
       names={categoryFormat}
       formatters={{
-        valueDisplay: (num) => getPercentaget(num, total),
+        valueDisplay: (value) => `${value} (${getPercentaget(value, total)})`,
       }}
     />
   );
@@ -292,8 +291,7 @@ const CustomerServiceStats: React.FunctionComponent<{ displayMode: displayMode }
             title: STATS_FIELD_LOCALE[field],
             dataIndex: 'value',
             key: 'value',
-            render: (value) =>
-              timeField.includes(field) ? formatTime(value) : getPercentaget(value, total),
+            render: (value) => (timeField.includes(field) ? formatTime(value) : value),
           },
         ]}
         dataSource={tableData}
@@ -306,7 +304,7 @@ const CustomerServiceStats: React.FunctionComponent<{ displayMode: displayMode }
       loading={isLoading || isFetching}
       names={customerServiceFormat}
       formatters={{
-        valueDisplay: (value) => getPercentaget(value, total),
+        valueDisplay: (value) => `${value} (${getPercentaget(value, total)})`,
       }}
     />
   );
