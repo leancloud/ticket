@@ -341,14 +341,14 @@ const Details = () => {
         </Popover>
       </Radio.Group>
 
-      <div className="relative flex basis-1/2 flex-wrap min-h-[400px] ">
+      <div className="relative flex basis-1/2 flex-wrap min-h-[400px] justify-around">
         {!customerService && field !== 'created' && (
-          <div className="basis-1/2 min-w-[600px] flex-grow">
+          <div className="w-1/2 min-w-[300px] flex-grow ">
             <CustomerServiceStats displayMode={displayMode} />
           </div>
         )}
         {!category && (
-          <div className=" basis-1/2 min-w-[600px] flex-grow">
+          <div className="w-1/2 min-w-[300px] flex-grow ">
             <CategoryStats displayMode={displayMode} />
           </div>
         )}
