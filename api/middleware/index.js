@@ -7,14 +7,14 @@ const { parse } = require('../utils/search')
 exports.requireAuth = async (req, res, next) => {
   const sessionToken = req.get('X-LC-Session')
   if (!sessionToken) {
-    return res.sendStatus(401)
+    return next(createError(401, 'Unauthorized'))
   }
   try {
     req.user = await AV.User.become(sessionToken)
     next()
   } catch (error) {
     if (error.code === 211) {
-      return res.sendStatus(403)
+      return next(createError(401, 'Unauthorized'))
     }
     next(error)
   }
@@ -28,17 +28,21 @@ exports.customerServiceOnly = async (req, res, next) => {
     if (await isCustomerService(req.user)) {
       next()
     } else {
-      res.sendStatus(403)
+      throwError(403, 'Permission required')
     }
   } catch (error) {
     next(error)
   }
 }
 
-function throwError(status = 500, message = 'Internal Error') {
+function createError(status = 500, message = 'Internal Error') {
   const error = new Error(message)
   error.status = status
-  throw error
+  return error
+}
+
+function throwError(status, message) {
+  throw createError(status, message)
 }
 
 const errorFormatter = ({ location, msg, param }) => `${location}[${param}]: ${msg}`
