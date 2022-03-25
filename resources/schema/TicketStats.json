@@ -120,6 +120,22 @@
             "auto_increment": false,
             "hidden": false,
             "read_only": false
+        },
+        "naturalReplyTime": {
+            "type": "Number",
+            "v": 2,
+            "required": false,
+            "auto_increment": false,
+            "hidden": false,
+            "read_only": false
+        },
+        "naturalReplyCount": {
+            "type": "Number",
+            "v": 2,
+            "required": false,
+            "auto_increment": false,
+            "hidden": false,
+            "read_only": false
         }
     },
     "permissions": {
