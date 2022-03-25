@@ -1,6 +1,6 @@
 import { useSearchParams } from '@/utils/useSearchParams';
 import moment from 'moment';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import _ from 'lodash';
 import { TableOutlined, PieChartOutlined } from '@ant-design/icons';
 
@@ -185,6 +185,19 @@ const useTableData = (groupByKey: string, data?: TicketFieldStat[]) => {
   }, [groupByKey, data, field]);
 };
 
+const usePagination = () => {
+  const [pageSize, setPageSize] = useState(10);
+  const [current, setCurrent] = useState(1);
+  const onChange = useCallback((page: number, pageSize: number) => {
+    setCurrent(page), setPageSize(pageSize);
+  }, []);
+  return {
+    pageSize,
+    current,
+    onChange,
+  };
+};
+
 const CategoryStats: React.FunctionComponent<{ displayMode: displayMode }> = ({ displayMode }) => {
   const [field] = useActiveField();
   const [
@@ -198,6 +211,7 @@ const CategoryStats: React.FunctionComponent<{ displayMode: displayMode }> = ({ 
     category: '*',
     customerService: customerService,
   });
+  const pagination = usePagination();
   const categoryFormat = useMemo(() => {
     const categoryMap = _.mapValues(_.keyBy(categories || [], 'id'), 'name');
     return (value?: string) => (value ? categoryMap[value] : 'none');
@@ -210,12 +224,14 @@ const CategoryStats: React.FunctionComponent<{ displayMode: displayMode }> = ({ 
       <Table
         className="w-full p-4"
         loading={isLoading || isFetching}
+        rowKey={(v) => v.categoryId}
+        pagination={pagination}
         columns={[
           {
             title: '排名',
-            dataIndex: 'value',
+            dataIndex: 'index',
             key: 'index',
-            render: (v, obj, index) => index + 1,
+            render: (v, obj, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
           },
           {
             title: '分类',
@@ -259,6 +275,7 @@ const CustomerServiceStats: React.FunctionComponent<{ displayMode: displayMode }
     category,
     customerService: '*',
   });
+  const pagination = usePagination();
   const customerServiceFormat = useMemo(() => {
     const customerServiceMap = _.mapValues(
       _.keyBy(customerServices || [], 'id'),
@@ -273,24 +290,23 @@ const CustomerServiceStats: React.FunctionComponent<{ displayMode: displayMode }
     return (
       <Table
         className="p-4 w-full"
+        pagination={pagination}
         loading={isLoading || isFetching}
+        rowKey={(v) => v.customerServiceId}
         columns={[
           {
             title: '排名',
-            dataIndex: 'value',
-            key: 'index',
-            render: (v, obj, index) => index + 1,
+            dataIndex: 'customerServiceId',
+            render: (v, obj, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
           },
           {
             title: '客服',
             dataIndex: 'customerServiceId',
-            key: 'customerServiceId',
             render: (value) => customerServiceFormat(value),
           },
           {
             title: STATS_FIELD_LOCALE[field],
             dataIndex: 'value',
-            key: 'value',
             render: (value) => (timeField.includes(field) ? formatTime(value) : value),
           },
         ]}
