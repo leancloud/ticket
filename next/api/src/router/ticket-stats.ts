@@ -62,14 +62,11 @@ const statusSchema = yup.object({
 });
 router.get('/status', async (ctx) => {
   const { from, to } = statusSchema.validateSync(ctx.query);
-  const data = await TicketStatusStats.queryBuilder().where('date', '>=', from)
-    .where('date', '<=', to)
-    .find({ useMasterKey: true })
-  ctx.body = data.map(data => new TicketStatusStatsResponse(data));
+  const data = await TicketStatusStats.fetchTicketStatus({
+    from,
+    to
+  })
+  ctx.body = data.map(value => new TicketStatusStatsResponse(value));
 })
-
-
-
-
 
 export default router;
