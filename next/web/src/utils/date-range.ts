@@ -30,6 +30,10 @@ export const relativeDateGetters: Record<string, () => DateRange> = {
     from: moment().startOf('month').subtract(1, 'month').toDate(),
     to: moment().endOf('month').subtract(1, 'month').toDate(),
   }),
+  lastSevenDays: () => ({
+    from: moment().subtract(6, 'day').startOf('day').toDate(),
+    to: moment().endOf('day').toDate(),
+  }),
 };
 
 export function decodeDateRange(value: string): DateRange | undefined {

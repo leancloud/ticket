@@ -7,9 +7,9 @@ import { TableOutlined, PieChartOutlined } from '@ant-design/icons';
 import { TicketFieldStat, TicketStats, useTicketFieldStats } from '@/api/ticket-stats';
 import { useCategories } from '@/api/category';
 import { useCustomerServices } from '@/api/customer-service';
-import { defaultDateRange, StatsField, STATS_FIELD_LOCALE, getRollUp } from './utils';
+import { StatsField, STATS_FIELD_LOCALE, getRollUp, useRangePicker } from './utils';
 import { StatsPie, StatsColumn } from './Chart';
-import { Button, Popover, Radio, Table } from '@/components/antd';
+import { Popover, Radio, Table } from '@/components/antd';
 import { useActiveField } from './StatsPage';
 
 type displayMode = 'pieChart' | 'table';
@@ -24,15 +24,14 @@ const avgFieldMap: {
 };
 
 const TicketStatsColumn = () => {
+  const [{ from, to }] = useRangePicker();
   const [field] = useActiveField();
-  const [
-    { from = defaultDateRange.from, to = defaultDateRange.to, category, customerService },
-  ] = useSearchParams();
+  const [{ category, customerService }] = useSearchParams();
   const params = useMemo(() => {
     const fields = avgFieldMap[field];
     return {
-      from: moment(from).toDate(),
-      to: moment(to).toDate(),
+      from,
+      to,
       fields: fields || [field],
       category,
       customerService,
@@ -189,7 +188,8 @@ const usePagination = () => {
   const [pageSize, setPageSize] = useState(10);
   const [current, setCurrent] = useState(1);
   const onChange = useCallback((page: number, pageSize: number) => {
-    setCurrent(page), setPageSize(pageSize);
+    setCurrent(page);
+    setPageSize(pageSize);
   }, []);
   return {
     pageSize,
@@ -200,13 +200,12 @@ const usePagination = () => {
 
 const CategoryStats: React.FunctionComponent<{ displayMode: displayMode }> = ({ displayMode }) => {
   const [field] = useActiveField();
-  const [
-    { from = defaultDateRange.from, to = defaultDateRange.to, customerService },
-  ] = useSearchParams();
+  const [{ from, to }] = useRangePicker();
+  const [{ customerService }] = useSearchParams();
   const { data: categories } = useCategories();
   const { data, isFetching, isLoading } = useTicketFieldStats({
-    from: moment(from).toDate(),
-    to: moment(to).toDate(),
+    from,
+    to,
     fields: avgFieldMap[field] || [field],
     category: '*',
     customerService: customerService,
@@ -266,11 +265,12 @@ const CustomerServiceStats: React.FunctionComponent<{ displayMode: displayMode }
   displayMode,
 }) => {
   const [field] = useActiveField();
-  const [{ from = defaultDateRange.from, to = defaultDateRange.to, category }] = useSearchParams();
+  const [{ from, to }] = useRangePicker();
+  const [{ category }] = useSearchParams();
   const { data: customerServices } = useCustomerServices();
   const { data, isFetching, isLoading } = useTicketFieldStats({
-    from: moment(from).toDate(),
-    to: moment(to).toDate(),
+    from,
+    to,
     fields: avgFieldMap[field] || [field],
     category,
     customerService: '*',

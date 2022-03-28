@@ -1,7 +1,7 @@
+import { useMemo } from 'react';
 import moment from 'moment';
 import { relativeDateGetters } from '@/utils/date-range';
-import { useMemo } from 'react';
-import { DatePicker } from '@/components/antd';
+import { useSearchParams } from '@/utils/useSearchParams';
 
 export const getRollUp = (from?: Date | string, to?: Date | string) => {
   if (!from || !to) {
@@ -46,21 +46,17 @@ export const STATUS_LOCALE = {
   waiting: '等待回复',
 };
 
-const RANGE_DATE = ['lastWeek', 'week', 'month', 'lastMonth'] as const;
+const RANGE_DATE = ['lastSevenDays', 'lastWeek', 'week', 'month', 'lastMonth'] as const;
 const RANGE_DATE_LOCALE = {
+  lastSevenDays: '最近 7 天',
   lastWeek: '上周',
   week: '本周',
   month: '本月',
   lastMonth: '上个月',
 };
-export const defaultDateRange = relativeDateGetters['week']();
-export const RangePicker = ({
-  values,
-  onChange,
-}: {
-  values: [Date, Date];
-  onChange?: (values: [Date, Date]) => void;
-}) => {
+const defaultDateRange = relativeDateGetters['lastSevenDays']();
+export const useRangePicker = (fmt = 'YYYY-MM-DD') => {
+  const [{ from, to, ...rest }, { set }] = useSearchParams();
   const rangeDates = useMemo(() => {
     return RANGE_DATE.reduce(
       (pre, curr) => {
@@ -74,14 +70,28 @@ export const RangePicker = ({
       }
     );
   }, []);
-  return (
-    <DatePicker.RangePicker
-      value={[moment(values[0]), moment(values[1])]}
-      ranges={rangeDates}
-      allowClear
-      onChange={(dates: [moment.Moment, moment.Moment]) => {
-        onChange && onChange([dates[0].toDate(), dates[1].toDate()]);
-      }}
-    />
-  );
+
+  const values = useMemo(() => {
+    return {
+      from: from ? moment(from).startOf('day').toDate() : moment(defaultDateRange.from).toDate(),
+      to: to ? moment(to).endOf('day').toDate() : moment(defaultDateRange.to).toDate(),
+    };
+  }, [from, to]);
+
+  const options = useMemo(() => {
+    return {
+      value: [moment(values.from), moment(values.to)] as [moment.Moment, moment.Moment],
+      ranges: rangeDates,
+      allowClear: true,
+      format: fmt,
+      onChange: (dates: [moment.Moment | null, moment.Moment | null] | null) => {
+        set({
+          ...rest,
+          from: moment(dates ? dates[0] : undefined).format(fmt),
+          to: moment(dates ? dates[1] : undefined).format(fmt),
+        });
+      },
+    };
+  }, [values, rangeDates, fmt]);
+  return [values, options] as const;
 };

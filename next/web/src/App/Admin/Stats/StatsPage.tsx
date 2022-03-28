@@ -1,18 +1,11 @@
 import { FunctionComponent, useCallback, useMemo, useState } from 'react';
 import classnames from 'classnames';
-import { Statistic, Card, Divider, Radio } from '@/components/antd';
+import { Statistic, Card, Divider, Radio, DatePicker } from '@/components/antd';
 import { CategorySelect, CustomerServiceSelect } from '@/components/common';
 import { useSearchParams, useSearchParam } from '@/utils/useSearchParams';
-import moment from 'moment';
 import { useTicketStats } from '@/api/ticket-stats';
 import { StatsDetails } from './StatsDetails';
-import {
-  defaultDateRange,
-  RangePicker,
-  StatsField,
-  STATS_FIELD,
-  STATS_FIELD_LOCALE,
-} from './utils';
+import { StatsField, STATS_FIELD, STATS_FIELD_LOCALE, useRangePicker } from './utils';
 
 enum FILTER_TYPE {
   all = 'all',
@@ -22,6 +15,7 @@ enum FILTER_TYPE {
 const ToolBar: FunctionComponent<{
   className?: string;
 }> = ({ className }) => {
+  const [, rangePickerOptions] = useRangePicker();
   const [{ customerService, category, ...rest }, { set }] = useSearchParams();
   const [tmpCategory, setTmpCategory] = useState(category);
   const [filterType, setFilterType] = useState<FILTER_TYPE>(() => {
@@ -77,21 +71,7 @@ const ToolBar: FunctionComponent<{
         />
       )}
       <Divider type="vertical" />
-      <RangePicker
-        values={[
-          moment(rest.from || defaultDateRange.from).toDate(),
-          moment(rest.to || defaultDateRange.to).toDate(),
-        ]}
-        onChange={([from, to]) => {
-          set({
-            ...rest,
-            customerService,
-            category,
-            from: moment(from).startOf('day').toISOString(),
-            to: moment(to).startOf('day').toISOString(),
-          });
-        }}
-      />
+      <DatePicker.RangePicker {...rangePickerOptions} />
     </div>
   );
 };
@@ -103,12 +83,13 @@ export const useActiveField = (defaultValue = STATS_FIELD[0]) => {
 
 const StatCards = () => {
   const [parmas] = useSearchParams();
+  const [{ from, to }] = useRangePicker();
   const [active, setActive] = useActiveField();
   const { data, isFetching, isLoading } = useTicketStats({
     category: parmas.category,
     customerService: parmas.customerService,
-    from: moment(parmas.from || defaultDateRange.from).toDate(),
-    to: moment(parmas.to || defaultDateRange.to).toDate(),
+    from,
+    to,
   });
   const averageData = useMemo(() => {
     if (!data) {
