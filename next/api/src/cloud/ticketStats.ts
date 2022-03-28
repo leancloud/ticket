@@ -500,17 +500,26 @@ const _getTicketStatById = async (id: string, from: Date, to: Date) => {
   }
 }
 
+
 const _getTicketCurrentStatus = async () => {
-  const waiting = await Ticket.queryBuilder().where('status', '==', Status.WAITING_CUSTOMER_SERVICE).count(AUTH_OPTIONS);
-  const accepted = await Ticket.queryBuilder().where('status', 'in', [
+  return Promise.all([
     Status.NEW,
     Status.WAITING_CUSTOMER,
-    Status.PRE_FULFILLED,// 用户未确认的 仍然算是受理中
-  ]).count(AUTH_OPTIONS);
-  return {
-    waiting,
-    accepted: waiting + accepted
-  }
+    Status.WAITING_CUSTOMER_SERVICE,
+    Status.PRE_FULFILLED,
+    Status.FULFILLED,
+    Status.CLOSED
+  ].map(status => Ticket.queryBuilder().where('status', '==', status).count(AUTH_OPTIONS))
+  ).then(values => {
+    return {
+      notProcessed: values[0],
+      waitingCustomer: values[1],
+      waitingCustomerService: values[2],
+      preFulfilled: values[3],
+      fulfilled: values[4],
+      closed: values[5],
+    }
+  })
 }
 
 const _getTicketStat = async (from: Date, to: Date) => {

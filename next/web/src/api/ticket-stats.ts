@@ -52,6 +52,7 @@ export type TicketFieldStat = Partial<TicketStats> & {
   customerServiceId?: string;
   replyTimeAVG?: number;
   firstReplyTimeAVG?: number;
+  naturalReplyTimeAVG?: number;
 }
 
 interface TicketFieldStatsOptions extends FetchTicketStatsOptions {
@@ -86,8 +87,12 @@ interface TicketStatusOptions {
 export interface TicketStatus {
   id: string,
   date: Date,
-  accepted: number,
-  waiting: number
+  notProcessed: number;
+  waitingCustomer: number;
+  waitingCustomerService: number;
+  preFulfilled: number;
+  fulfilled: number;
+  closed: number;
 }
 async function fetchTicketStatus(params: TicketStatusOptions) {
   const { data } = await http.get<TicketStatus[]>(`/api/2/ticket-stats/status`, {

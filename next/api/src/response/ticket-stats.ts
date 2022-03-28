@@ -31,8 +31,12 @@ export class TicketStatusStatsResponse {
     return {
       id: this.ticketStats.id,
       date: this.ticketStats.date,
-      accepted: this.ticketStats.accepted || 0,
-      waiting: this.ticketStats.waiting || 0,
+      notProcessed: this.ticketStats.notProcessed || 0,
+      waitingCustomer: this.ticketStats.waitingCustomer || 0,
+      waitingCustomerService: this.ticketStats.waitingCustomerService || 0,
+      preFulfilled: this.ticketStats.preFulfilled || 0,
+      fulfilled: this.ticketStats.fulfilled || 0,
+      closed: this.ticketStats.closed || 0,
     };
   }
 }

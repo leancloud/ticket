@@ -15,7 +15,7 @@
     "date": {
       "type": "Date"
     },
-    "accepted": {
+    "notProcessed": {
       "type": "Number",
       "v": 2,
       "required": false,
@@ -23,7 +23,39 @@
       "hidden": false,
       "read_only": false
     },
-    "waiting": {
+    "waitingCustomer": {
+      "type": "Number",
+      "v": 2,
+      "required": false,
+      "auto_increment": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "waitingCustomerService": {
+      "type": "Number",
+      "v": 2,
+      "required": false,
+      "auto_increment": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "preFulfilled": {
+      "type": "Number",
+      "v": 2,
+      "required": false,
+      "auto_increment": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "fulfilled": {
+      "type": "Number",
+      "v": 2,
+      "required": false,
+      "auto_increment": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "closed": {
       "type": "Number",
       "v": 2,
       "required": false,
