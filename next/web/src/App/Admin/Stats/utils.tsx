@@ -41,9 +41,13 @@ export const STATS_FIELD_LOCALE = {
   replyCount: '对外回复数',
   internalReplyCount: '对内回复数',
 };
-export const STATUS_LOCALE = {
-  accepted: '受理中',
-  waiting: '等待回复',
+export const STATUS_LOCALE: Record<string, string> = {
+  notProcessed: '未处理',
+  waitingCustomer: '等待用户回复',
+  waitingCustomerService: '等待客服回复',
+  preFulfilled: '待用户确认解决',
+  fulfilled: '已解决',
+  closed: '已关闭',
 };
 
 const RANGE_DATE = ['lastSevenDays', 'lastWeek', 'week', 'month', 'lastMonth'] as const;

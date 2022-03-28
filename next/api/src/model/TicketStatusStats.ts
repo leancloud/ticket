@@ -5,9 +5,17 @@ export class TicketStatusStats extends Model {
   @field()
   date?: Date;
   @field()
-  accepted?: number;
+  notProcessed?: number;
   @field()
-  waiting?: number;
+  waitingCustomer?: number;
+  @field()
+  waitingCustomerService?: number;
+  @field()
+  preFulfilled?: number;
+  @field()
+  fulfilled?: number;
+  @field()
+  closed?: number;
 }
 
 

@@ -28,6 +28,7 @@ interface PieProps extends Omit<ChartProps, 'formatters'> {
 }
 interface AreaProps extends Omit<ChartProps, 'data'> {
   data?: [string, Record<string, number>][];
+  isStack?: boolean;
 }
 
 const convertChartData = (data: ChartProps['data']) => {
@@ -129,9 +130,13 @@ export const StatsColumn: FunctionComponent<ColumnProps> = ({
   );
 };
 
-const Colors = ['#15c5ce', '#155bd4'];
-export const StatsArea: FunctionComponent<AreaProps> = ({ loading, data, names, formatters }) => {
-  const types = useMemo(() => (data && data[0] ? Object.keys(data[0][1]) : []), [data]);
+export const StatsArea: FunctionComponent<AreaProps> = ({
+  loading,
+  data,
+  names,
+  formatters,
+  isStack,
+}) => {
   const chartData = useMemo(
     () =>
       _(data || [])
@@ -155,11 +160,12 @@ export const StatsArea: FunctionComponent<AreaProps> = ({ loading, data, names, 
       loading={loading}
       appendPadding={10}
       autoFit
+      isStack={isStack}
       seriesField={CHART_TYPE}
       xField={CHART_KEY}
       yField={CHART_VALUE}
-      color={(params) => {
-        return Colors[types.indexOf(params[CHART_TYPE])];
+      yAxis={{
+        min: 1,
       }}
       xAxis={{
         label: {

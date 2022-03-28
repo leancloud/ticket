@@ -1,6 +1,5 @@
-import { useSearchParams } from '@/utils/useSearchParams';
-import moment from 'moment';
 import { useMemo } from 'react';
+import moment from 'moment';
 import _ from 'lodash';
 
 import { useTicketStatus } from '@/api/ticket-stats';
@@ -29,9 +28,10 @@ const StatusStats = () => {
   const rollup = useMemo(() => getRollUp(from, to), [from, to]);
   return (
     <StatsArea
+      isStack
       loading={isFetching || isLoading}
       data={chartData}
-      names={(text: string) => STATUS_LOCALE[text as 'waiting' | 'accepted']}
+      names={(text: string) => STATUS_LOCALE[text]}
       formatters={{
         titleDisplay: (value) => moment(value).format('YYYY-MM-DD HH:mm'),
         xAxisTick: (value) => moment(value).format(rollup === 'day' ? 'YYYY-MM-DD HH:mm' : 'HH:mm'),
