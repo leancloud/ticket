@@ -52,6 +52,7 @@ export type TicketFieldStat = Partial<TicketStats> & {
   customerServiceId?: string;
   replyTimeAVG?: number;
   firstReplyTimeAVG?: number;
+  naturalReplyTimeAVG ?: number;
 }
 
 interface TicketFieldStatsOptions extends FetchTicketStatsOptions {
