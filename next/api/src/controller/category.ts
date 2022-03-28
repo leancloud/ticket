@@ -55,6 +55,9 @@ const createCategorySchema = z.object({
 const updateCategorySchema = createCategorySchema.partial().extend({
   position: z.number().optional(),
   active: z.boolean().optional(),
+  parentId: z.string().nullable().optional(),
+  groupId: z.string().nullable().optional(),
+  formId: z.string().nullable().optional(),
 });
 
 const batchUpdateSchema = z.array(
