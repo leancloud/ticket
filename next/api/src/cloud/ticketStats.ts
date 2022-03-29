@@ -510,14 +510,14 @@ const _getTicketCurrentStatus = async () => {
     Status.FULFILLED,
     Status.CLOSED
   ].map(status => Ticket.queryBuilder().where('status', '==', status).count(AUTH_OPTIONS))
-  ).then(values => {
+  ).then(([notProcessed, waitingCustomer, waitingCustomerService, preFulfilled, fulfilled, closed]) => {
     return {
-      notProcessed: values[0],
-      waitingCustomer: values[1],
-      waitingCustomerService: values[2],
-      preFulfilled: values[3],
-      fulfilled: values[4],
-      closed: values[5],
+      notProcessed,
+      waitingCustomer,
+      waitingCustomerService,
+      preFulfilled,
+      fulfilled,
+      closed,
     }
   })
 }
