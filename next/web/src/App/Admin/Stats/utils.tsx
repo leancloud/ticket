@@ -5,7 +5,7 @@ import { useSearchParams } from '@/utils/useSearchParams';
 
 export const getRollUp = (from?: Date | string, to?: Date | string) => {
   if (!from || !to) {
-    return 'hour';
+    return 'day';
   }
   const milliseconds = moment(to).toDate().getTime() - moment(from).toDate().getTime();
   if (milliseconds > 2 * 24 * 60 * 60 * 1000) {
@@ -28,7 +28,7 @@ export const STATS_FIELD = [
   'internalReplyCount',
 ] as const;
 export type StatsField = typeof STATS_FIELD[number];
-export const STATS_FIELD_LOCALE = {
+export const STATS_FIELD_LOCALE: Record<string, string> = {
   created: '新建工单',
   closed: '关单数',
   reopened: '激活工单数',

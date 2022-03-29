@@ -1,13 +1,13 @@
-import { useSearchParams } from '@/utils/useSearchParams';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import moment from 'moment';
-import { useCallback, useEffect, useMemo, useState } from 'react';
 import _ from 'lodash';
-import { TableOutlined, PieChartOutlined } from '@ant-design/icons';
 
+import { useSearchParams } from '@/utils/useSearchParams';
+import { TableOutlined, PieChartOutlined } from '@ant-design/icons';
 import { TicketFieldStat, TicketStats, useTicketFieldStats } from '@/api/ticket-stats';
 import { useCategories } from '@/api/category';
 import { useCustomerServices } from '@/api/customer-service';
-import { StatsField, STATS_FIELD_LOCALE, getRollUp, useRangePicker } from './utils';
+import { StatsField, STATS_FIELD_LOCALE, useRangePicker, getRollUp } from './utils';
 import { StatsPie, StatsColumn } from './Chart';
 import { Popover, Radio, Table } from '@/components/antd';
 import { useActiveField } from './StatsPage';
@@ -23,29 +23,33 @@ const avgFieldMap: {
   firstReplyTimeAVG: ['firstReplyTime', 'firstReplyCount'],
 };
 
-const TicketStatsColumn = () => {
-  const [{ from, to }] = useRangePicker();
-  const [field] = useActiveField();
-  const [{ category, customerService }] = useSearchParams();
-  const params = useMemo(() => {
-    const fields = avgFieldMap[field];
-    return {
-      from,
-      to,
-      fields: fields || [field],
-      category,
-      customerService,
-    };
-  }, [field, from, to, category, customerService]);
-  const { data, isFetching, isLoading } = useTicketFieldStats(params);
-  const rollup = useMemo(() => getRollUp(from, to), [from, to]);
-  const chartData = useMemo(() => {
-    if (!data) {
-      return;
+const useFilterChartData = (
+  tranform: (v: TicketFieldStat) => Record<string, number>,
+  data: TicketFieldStat[] = []
+) => {
+  const $rollup = useRef('day');
+  const $transform = useRef(tranform);
+  const [filter, setFilter] = useState<{ from?: string | Date; to?: string | Date }>({});
+  const filteredData = useMemo(() => {
+    if (filter.from && filter.to) {
+      return data.filter((v) => {
+        return (
+          moment(v.date).isSameOrAfter(moment(filter.from)) &&
+          moment(v.date).isSameOrBefore(moment(filter.to))
+        );
+      });
     }
-    let chartData = data;
-    if (rollup === 'day') {
-      chartData = _(chartData)
+    return data;
+  }, [data, filter]);
+
+  const rollup = useMemo(() => getRollUp(_.first(filteredData)?.date, _.last(filteredData)?.date), [
+    filteredData,
+  ]);
+  $rollup.current = rollup;
+
+  const chartData = useMemo(() => {
+    if ($rollup.current === 'day') {
+      return _(filteredData)
         .groupBy((v) => {
           return moment(v.date).format('YYYY-MM-DD');
         })
@@ -70,15 +74,78 @@ const TicketStatsColumn = () => {
           };
         })
         .orderBy('date')
+        .map(
+          (v) =>
+            [moment(v.date).toISOString(), $transform.current(v)] as [
+              string,
+              Record<string, number>
+            ]
+        )
         .valueOf();
     }
-    const avgField = avgFieldMap[field];
-    return chartData.map((v) => {
-      const value = avgField ? (v[avgField[0]] || 0) / (v[avgField[1]] || 1) : v[field];
-      return [moment(v.date).toISOString(), value] as [string, number];
+    return filteredData.map((v) => {
+      return [moment(v.date).toISOString(), $transform.current(v)] as [
+        string,
+        Record<string, number>
+      ];
     });
-  }, [data, rollup]);
+  }, [filteredData]);
 
+  const changeFilter = useCallback((from?: string | Date, to?: string | Date) => {
+    if (!from || !to) {
+      setFilter((v) => {
+        if (v.from || v.to) {
+          return {};
+        }
+        return v;
+      });
+    } else {
+      if (from === to) {
+        if ($rollup.current === 'day') {
+          setFilter({
+            from: moment(from).startOf('day').toDate(),
+            to: moment(from).endOf('day').toDate(),
+          });
+        }
+      } else {
+        setFilter({
+          from,
+          to,
+        });
+      }
+    }
+  }, []);
+  return [
+    chartData,
+    {
+      rollup,
+      changeFilter,
+    },
+  ] as const;
+};
+
+const TicketStatsColumn = () => {
+  const [{ from, to }] = useRangePicker();
+  const [field] = useActiveField();
+  const [{ category, customerService }] = useSearchParams();
+  const params = useMemo(() => {
+    const fields = avgFieldMap[field];
+    return {
+      from,
+      to,
+      fields: fields || [field],
+      category,
+      customerService,
+    };
+  }, [field, from, to, category, customerService]);
+  const { data, isFetching, isLoading } = useTicketFieldStats(params);
+  const [chartData, { rollup, changeFilter }] = useFilterChartData((v) => {
+    const avgField = avgFieldMap[field];
+    const value = avgField ? (v[avgField[0]] || 0) / (v[avgField[1]] || 1) : v[field];
+    return {
+      [field]: value!,
+    };
+  }, data);
   const xAxisDisplay = useMemo(() => {
     if (timeField.includes(field)) {
       return (value: number) => {
@@ -91,7 +158,6 @@ const TicketStatsColumn = () => {
     }
     return;
   }, [field]);
-
   return (
     <StatsColumn
       loading={isFetching || isLoading}
@@ -109,7 +175,6 @@ const TicketStatsColumn = () => {
           if (rollup === 'day') {
             return moment(value).format('YYYY-MM-DD');
           }
-          // const preDate = chartData ? chartData[index - 1][0] : undefined;
           const date = moment(value);
           return date.format('HH:mm');
         },
@@ -117,7 +182,9 @@ const TicketStatsColumn = () => {
         titleDisplay: (value) =>
           moment(value).format(rollup === 'day' ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm'),
       }}
-      names={(value) => STATS_FIELD_LOCALE[field]}
+      onFilter={changeFilter}
+      onRest={changeFilter}
+      names={(value) => STATS_FIELD_LOCALE[value]}
     />
   );
 };
@@ -135,7 +202,7 @@ const formatTime = (value: number | string) => {
   return (value / 3600).toFixed(2) + ' 小时';
 };
 
-const useChartData = (groupByKey: string, data?: TicketFieldStat[]) => {
+const usePieChartData = (groupByKey: string, data?: TicketFieldStat[]) => {
   const [field] = useActiveField();
   return useMemo(() => {
     if (!data || timeField.includes(field)) {
@@ -217,7 +284,7 @@ const CategoryStats: React.FunctionComponent<{ displayMode: displayMode }> = ({ 
   }, [categories]);
   const total = useMemo(() => (data ? _.sumBy(data, field) : 1), [data]);
   const tableData = useTableData('categoryId', data);
-  const chartData = useChartData('categoryId', data);
+  const chartData = usePieChartData('categoryId', data);
   if (displayMode === 'table') {
     return (
       <Table
@@ -285,7 +352,7 @@ const CustomerServiceStats: React.FunctionComponent<{ displayMode: displayMode }
   }, [customerServices]);
   const total = useMemo(() => (data ? _.sumBy(data, field) : 0), [data]);
   const tableData = useTableData('customerServiceId', data);
-  const chartData = useChartData('customerServiceId', data);
+  const chartData = usePieChartData('customerServiceId', data);
   if (displayMode === 'table') {
     return (
       <Table

@@ -1,12 +1,12 @@
-import { FunctionComponent, useMemo } from 'react';
-import { Pie, Column, Area } from '@ant-design/plots';
+import { FunctionComponent, useMemo, useRef } from 'react';
+import { Pie, Column, Area, G2 } from '@ant-design/plots';
 import _ from 'lodash';
 
 const CHART_VALUE = '$$_chart_value_$$';
 const CHART_KEY = '$$_chart_key_$$';
 const CHART_TYPE = '$$_chart_TYPE_$$';
 interface ChartProps {
-  data?: [string, number][];
+  data?: [string, Record<string, number>][];
   loading?: boolean;
   names?: (value: string) => string;
   formatters?: {
@@ -17,33 +17,40 @@ interface ChartProps {
     xAxisTick?: (value: string) => string;
   };
 }
-interface ColumnProps extends ChartProps {
+export interface ColumnProps extends ChartProps {
   tickInterval?: number;
+  onFilter?: (from: string, to: string) => void;
+  onRest?: () => void;
 }
-interface PieProps extends Omit<ChartProps, 'formatters'> {
+interface PieProps extends Omit<ChartProps, 'formatters' | 'data'> {
+  data?: [string, number][];
   formatters?: {
     valueDisplay?: (value: number) => string;
     keyDisplay?: (value: string) => string;
   };
 }
-interface AreaProps extends Omit<ChartProps, 'data'> {
-  data?: [string, Record<string, number>][];
+interface AreaProps extends ChartProps {
   isStack?: boolean;
 }
 
-const convertChartData = (data: ChartProps['data']) => {
-  if (!data || data.length === 0) {
-    return [];
-  }
-  return data.map(([key, value]) => {
-    return {
-      [CHART_VALUE]: value,
-      [CHART_KEY]: key,
-    };
-  });
+const convertChartData = (data: ColumnProps['data']) => {
+  return _(data || [])
+    .map((v) => {
+      const [key, values] = v;
+      return Object.keys(values).map((valueKey) => {
+        return {
+          [CHART_VALUE]: values[valueKey],
+          [CHART_KEY]: key,
+          [CHART_TYPE]: valueKey,
+        };
+      });
+    })
+    .flatten()
+    .valueOf();
 };
+
 export const StatsPie: FunctionComponent<PieProps> = ({ loading, data, names, formatters }) => {
-  const chartData = useMemo(() => _.orderBy(convertChartData(data), CHART_VALUE, 'desc'), [data]);
+  const chartData = useMemo(() => _.orderBy(convertChartData([]), CHART_VALUE, 'desc'), [data]);
   return (
     <Pie
       loading={loading}
@@ -92,14 +99,19 @@ export const StatsColumn: FunctionComponent<ColumnProps> = ({
   tickInterval,
   formatters,
   names,
+  onFilter,
+  onRest,
 }) => {
   const chartData = useMemo(() => convertChartData(data), [data]);
+  const $onFilter = useRef(onFilter);
+  const $onRest = useRef(onRest);
   return (
     <Column
       loading={loading}
       data={chartData}
       appendPadding={10}
       autoFit
+      seriesField={CHART_TYPE}
       xField={CHART_KEY}
       yField={CHART_VALUE}
       maxColumnWidth={15}
@@ -115,17 +127,36 @@ export const StatsColumn: FunctionComponent<ColumnProps> = ({
           formatter: formatters?.xAxisTick,
         },
       }}
+      brush={{
+        enabled: true,
+        type: 'x-rect',
+      }}
+      // interactions={[{ type: 'zoom-in-chart' }]}
       tooltip={{
         title: (value) => (formatters?.titleDisplay ? formatters.titleDisplay(value) : value),
         formatter: (datum) => {
           return {
-            name: names ? names(datum[CHART_KEY]) : datum[CHART_KEY],
+            name: names ? names(datum[CHART_TYPE]) : datum[CHART_TYPE],
             value: formatters?.xAxisDisplay
               ? formatters.xAxisDisplay(datum[CHART_VALUE])
               : datum[CHART_VALUE],
           };
         },
       }}
+      onEvent={(chart, event) => {
+        if (event.type === G2.BRUSH_FILTER_EVENTS.AFTER_FILTER) {
+          if ($onFilter.current) {
+            const xValues = event.view.getXScale().values;
+            if (Array.isArray(xValues)) {
+              $onFilter.current(_.first(xValues), _.last(xValues));
+            }
+          }
+        }
+        if (event.type === G2.BRUSH_FILTER_EVENTS.BEFORE_RESET) {
+          $onRest.current && $onRest.current();
+        }
+      }}
+      legend={false}
     />
   );
 };
