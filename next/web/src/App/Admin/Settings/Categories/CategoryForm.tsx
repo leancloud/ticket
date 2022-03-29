@@ -21,22 +21,24 @@ const { TextArea } = Input;
 
 const FORM_ITEM_STYLE = { marginBottom: 16 };
 
-const CategoryTreeSelect = forwardRef<RefSelectProps, TreeSelectProps<string>>((props, ref) => {
-  const { data: categories, isLoading } = useCategories();
-  const categoryTree = useCategoryTree(categories);
+const CategoryTreeSelect = forwardRef<RefSelectProps, TreeSelectProps<string | undefined>>(
+  (props, ref) => {
+    const { data: categories, isLoading } = useCategories();
+    const categoryTree = useCategoryTree(categories);
 
-  return (
-    <TreeSelect
-      {...props}
-      ref={ref}
-      showSearch
-      treeNodeFilterProp="name"
-      loading={isLoading}
-      treeData={categoryTree}
-      fieldNames={{ label: 'name', value: 'id' }}
-    />
-  );
-});
+    return (
+      <TreeSelect
+        {...props}
+        ref={ref}
+        showSearch
+        treeNodeFilterProp="name"
+        loading={isLoading}
+        treeData={categoryTree}
+        fieldNames={{ label: 'name', value: 'id' }}
+      />
+    );
+  }
+);
 
 const ArticleSelect = forwardRef<RefSelectProps, SelectProps<string[]>>((props, ref) => {
   const { data, isLoading } = useArticles();
@@ -201,7 +203,7 @@ export function CategoryForm({
         control={control}
         name="parentId"
         rules={{ validate: validateParentId }}
-        render={({ field, fieldState: { error } }) => (
+        render={({ field, field: { onChange }, fieldState: { error } }) => (
           <Form.Item
             label="父分类"
             htmlFor="category_form_parent_id"
@@ -209,7 +211,12 @@ export function CategoryForm({
             help={error?.message}
             style={FORM_ITEM_STYLE}
           >
-            <CategoryTreeSelect {...field} allowClear id="category_form_parent_id" />
+            <CategoryTreeSelect
+              {...field}
+              onChange={(value, ...params) => onChange(value ?? null, ...params)}
+              allowClear
+              id="category_form_parent_id"
+            />
           </Form.Item>
         )}
       />
@@ -256,13 +263,18 @@ export function CategoryForm({
       <Controller
         control={control}
         name="groupId"
-        render={({ field }) => (
+        render={({ field, field: { onChange } }) => (
           <Form.Item
             label="自动关联客服组"
             htmlFor="category_form_group_id"
             style={FORM_ITEM_STYLE}
           >
-            <GroupSelect {...field} allowClear id="category_form_group_id" />
+            <GroupSelect
+              {...field}
+              onChange={(value, ...params) => onChange(value ?? null, ...params)}
+              allowClear
+              id="category_form_group_id"
+            />
           </Form.Item>
         )}
       />
@@ -270,9 +282,13 @@ export function CategoryForm({
       <Controller
         control={control}
         name="formId"
-        render={({ field }) => (
+        render={({ field, field: { onChange } }) => (
           <Form.Item label="关联工单表单" htmlFor="category_form_form_id" style={FORM_ITEM_STYLE}>
-            <TicketFormSelect {...field} id="category_form_form_id" />
+            <TicketFormSelect
+              {...field}
+              onChange={(value, ...params) => onChange(value ?? null, ...params)}
+              id="category_form_form_id"
+            />
           </Form.Item>
         )}
       />
