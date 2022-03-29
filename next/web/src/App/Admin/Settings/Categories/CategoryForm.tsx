@@ -213,9 +213,7 @@ export function CategoryForm({
           >
             <CategoryTreeSelect
               {...field}
-              onChange={(value, ...params) =>
-                onChange(value === undefined ? null : value, ...params)
-              }
+              onChange={(value, ...params) => onChange(value ?? null, ...params)}
               allowClear
               id="category_form_parent_id"
             />
@@ -273,9 +271,7 @@ export function CategoryForm({
           >
             <GroupSelect
               {...field}
-              onChange={(value, ...params) =>
-                onChange(value === undefined ? null : value, ...params)
-              }
+              onChange={(value, ...params) => onChange(value ?? null, ...params)}
               allowClear
               id="category_form_group_id"
             />
@@ -290,9 +286,7 @@ export function CategoryForm({
           <Form.Item label="关联工单表单" htmlFor="category_form_form_id" style={FORM_ITEM_STYLE}>
             <TicketFormSelect
               {...field}
-              onChange={(value, ...params) =>
-                onChange(value === undefined ? null : value, ...params)
-              }
+              onChange={(value, ...params) => onChange(value ?? null, ...params)}
               id="category_form_form_id"
             />
           </Form.Item>
