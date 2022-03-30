@@ -27,9 +27,37 @@ const useFilterChartData = (
   tranform: (v: TicketFieldStat) => Record<string, number>,
   data: TicketFieldStat[] = []
 ) => {
-  const $rollup = useRef('day');
   const $transform = useRef(tranform);
+  $transform.current = tranform;
   const [filter, setFilter] = useState<{ from?: string | Date; to?: string | Date }>({});
+
+  useEffect(() => {
+    if (data.length > 0) {
+      setFilter((v) => {
+        if (v.from || v.to) {
+          return {};
+        }
+        return v;
+      });
+    }
+  }, [data]);
+
+  const changeFilter = useCallback((from?: string | Date, to?: string | Date) => {
+    if (!from || !to) {
+      setFilter((v) => {
+        if (v.from || v.to) {
+          return {};
+        }
+        return v;
+      });
+    } else {
+      setFilter({
+        from,
+        to,
+      });
+    }
+  }, []);
+
   const filteredData = useMemo(() => {
     if (filter.from && filter.to) {
       return data.filter((v) => {
@@ -45,10 +73,9 @@ const useFilterChartData = (
   const rollup = useMemo(() => getRollUp(_.first(filteredData)?.date, _.last(filteredData)?.date), [
     filteredData,
   ]);
-  $rollup.current = rollup;
 
   const chartData = useMemo(() => {
-    if ($rollup.current === 'day') {
+    if (rollup === 'day') {
       return _(filteredData)
         .groupBy((v) => {
           return moment(v.date).format('YYYY-MM-DD');
@@ -89,32 +116,8 @@ const useFilterChartData = (
         Record<string, number>
       ];
     });
-  }, [filteredData]);
+  }, [filteredData, rollup]);
 
-  const changeFilter = useCallback((from?: string | Date, to?: string | Date) => {
-    if (!from || !to) {
-      setFilter((v) => {
-        if (v.from || v.to) {
-          return {};
-        }
-        return v;
-      });
-    } else {
-      if (from === to) {
-        if ($rollup.current === 'day') {
-          setFilter({
-            from: moment(from).startOf('day').toDate(),
-            to: moment(from).endOf('day').toDate(),
-          });
-        }
-      } else {
-        setFilter({
-          from,
-          to,
-        });
-      }
-    }
-  }, []);
   return [
     chartData,
     {
@@ -146,6 +149,7 @@ const TicketStatsColumn = () => {
       [field]: value!,
     };
   }, data);
+
   const xAxisDisplay = useMemo(() => {
     if (timeField.includes(field)) {
       return (value: number) => {
@@ -158,6 +162,7 @@ const TicketStatsColumn = () => {
     }
     return;
   }, [field]);
+
   return (
     <StatsColumn
       loading={isFetching || isLoading}
@@ -182,8 +187,21 @@ const TicketStatsColumn = () => {
         titleDisplay: (value) =>
           moment(value).format(rollup === 'day' ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm'),
       }}
-      onFilter={changeFilter}
-      onRest={changeFilter}
+      onSelected={(xAxisValues) => {
+        if (xAxisValues === undefined) {
+          changeFilter();
+        } else {
+          const from = _.first(xAxisValues);
+          const to = _.last(xAxisValues);
+          if (from === to) {
+            if (rollup === 'day') {
+              changeFilter(moment(from).startOf('day').toDate(), moment(to).endOf('day').toDate());
+            }
+          } else {
+            changeFilter(from, to);
+          }
+        }
+      }}
       names={(value) => STATS_FIELD_LOCALE[value]}
     />
   );

@@ -19,8 +19,7 @@ interface ChartProps {
 }
 export interface ColumnProps extends ChartProps {
   tickInterval?: number;
-  onFilter?: (from: string, to: string) => void;
-  onRest?: () => void;
+  onSelected?: (xAxisValues?: string[]) => void;
 }
 interface PieProps extends Omit<ChartProps, 'formatters' | 'data'> {
   data?: [string, number][];
@@ -99,12 +98,11 @@ export const StatsColumn: FunctionComponent<ColumnProps> = ({
   tickInterval,
   formatters,
   names,
-  onFilter,
-  onRest,
+  onSelected,
 }) => {
+  const $onSelected = useRef(onSelected);
+  $onSelected.current = onSelected;
   const chartData = useMemo(() => convertChartData(data), [data]);
-  const $onFilter = useRef(onFilter);
-  const $onRest = useRef(onRest);
   return (
     <Column
       loading={loading}
@@ -145,15 +143,13 @@ export const StatsColumn: FunctionComponent<ColumnProps> = ({
       }}
       onEvent={(chart, event) => {
         if (event.type === G2.BRUSH_FILTER_EVENTS.AFTER_FILTER) {
-          if ($onFilter.current) {
+          if ($onSelected.current) {
             const xValues = event.view.getXScale().values;
-            if (Array.isArray(xValues)) {
-              $onFilter.current(_.first(xValues), _.last(xValues));
-            }
+            $onSelected.current(xValues);
           }
         }
         if (event.type === G2.BRUSH_FILTER_EVENTS.BEFORE_RESET) {
-          $onRest.current && $onRest.current();
+          $onSelected.current && $onSelected.current();
         }
       }}
       legend={false}
