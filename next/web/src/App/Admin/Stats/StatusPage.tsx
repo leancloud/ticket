@@ -51,7 +51,21 @@ const StatusStats = () => {
       }}
       formatters={{
         titleDisplay: (value) => moment(value).format('YYYY-MM-DD HH:mm'),
-        xAxisTick: (value) => moment(value).format(rollup === 'day' ? 'YYYY-MM-DD HH:mm' : 'HH:mm'),
+        xAxisTick: (value, item, index) => {
+          if (rollup === 'day') {
+            return moment(value).format('MM-DD HH:mm');
+          }
+          const date = moment(value);
+          if (index < 1) {
+            return date.format('MM-DD HH:mm');
+          }
+          const preDate = moment(chartData[index - 1][0]);
+          if (preDate.isSame(date, 'day')) {
+            return date.format('HH:mm');
+          } else {
+            return date.format('MM-DD HH:mm');
+          }
+        },
       }}
     />
   );

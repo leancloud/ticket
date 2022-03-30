@@ -65,7 +65,10 @@ const TicketStatsColumn = () => {
         .orderBy('date')
         .map((v: Record<string, number>) => {
           const value = avgField ? (v[avgField[0]] || 0) / (v[avgField[1]] || 1) : v[field];
-          return [moment(v.date).toISOString(), { [field]: value }];
+          return [moment(v.date).toISOString(), { [field]: value }] as [
+            string,
+            Record<string, number>
+          ];
         })
         .valueOf() as unknown) as [string, Record<string, number>][];
     }
@@ -101,12 +104,20 @@ const TicketStatsColumn = () => {
           }
           return value;
         },
-        xAxisTick: (value) => {
+        xAxisTick: (value, item, index) => {
           if (rollup === 'day') {
-            return moment(value).format('YYYY-MM-DD');
+            return moment(value).format('MM-DD');
           }
           const date = moment(value);
-          return date.format('HH:mm');
+          if (index < 1) {
+            return date.format('MM-DD HH:mm');
+          }
+          const preDate = moment(chartData[index - 1][0]);
+          if (preDate.isSame(date, 'day')) {
+            return date.format('HH:mm');
+          } else {
+            return date.format('MM-DD HH:mm');
+          }
         },
         xAxisDisplay,
         titleDisplay: (value) =>

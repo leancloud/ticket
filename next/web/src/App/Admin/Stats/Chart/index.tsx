@@ -17,7 +17,7 @@ interface ChartProps {
     xAxisDisplay?: (value: number) => string;
     yAxisDisplay?: (value: number) => string;
     yAxisTick?: (value: string) => string;
-    xAxisTick?: (value: string) => string;
+    xAxisTick?: (value: string, item: object, index: number) => string;
   };
 }
 export interface ColumnProps extends ChartProps {
