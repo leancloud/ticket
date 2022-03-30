@@ -9,7 +9,6 @@ export interface FetchTicketStatsOptions {
 }
 
 export interface TicketStats {
-  active: number;
   closed: number;
   conversion: number;
   created: number;

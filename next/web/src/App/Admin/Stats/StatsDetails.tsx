@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import moment from 'moment';
 import _ from 'lodash';
 
@@ -7,7 +7,7 @@ import { TableOutlined, PieChartOutlined } from '@ant-design/icons';
 import { TicketFieldStat, TicketStats, useTicketFieldStats } from '@/api/ticket-stats';
 import { useCategories } from '@/api/category';
 import { useCustomerServices } from '@/api/customer-service';
-import { StatsField, STATS_FIELD_LOCALE, useRangePicker, getRollUp } from './utils';
+import { StatsField, STATS_FIELD_LOCALE, useRangePicker, useFilterData } from './utils';
 import { StatsPie, StatsColumn } from './Chart';
 import { Popover, Radio, Table } from '@/components/antd';
 import { useActiveField } from './StatsPage';
@@ -21,110 +21,6 @@ const avgFieldMap: {
   naturalReplyTimeAVG: ['naturalReplyTime', 'naturalReplyCount'],
   replyTimeAVG: ['replyTime', 'replyTimeCount'],
   firstReplyTimeAVG: ['firstReplyTime', 'firstReplyCount'],
-};
-
-const useFilterChartData = (
-  tranform: (v: TicketFieldStat) => Record<string, number>,
-  data: TicketFieldStat[] = []
-) => {
-  const $transform = useRef(tranform);
-  $transform.current = tranform;
-  const [filter, setFilter] = useState<{ from?: string | Date; to?: string | Date }>({});
-
-  useEffect(() => {
-    if (data.length > 0) {
-      setFilter((v) => {
-        if (v.from || v.to) {
-          return {};
-        }
-        return v;
-      });
-    }
-  }, [data]);
-
-  const changeFilter = useCallback((from?: string | Date, to?: string | Date) => {
-    if (!from || !to) {
-      setFilter((v) => {
-        if (v.from || v.to) {
-          return {};
-        }
-        return v;
-      });
-    } else {
-      setFilter({
-        from,
-        to,
-      });
-    }
-  }, []);
-
-  const filteredData = useMemo(() => {
-    if (filter.from && filter.to) {
-      return data.filter((v) => {
-        return (
-          moment(v.date).isSameOrAfter(moment(filter.from)) &&
-          moment(v.date).isSameOrBefore(moment(filter.to))
-        );
-      });
-    }
-    return data;
-  }, [data, filter]);
-
-  const rollup = useMemo(() => getRollUp(_.first(filteredData)?.date, _.last(filteredData)?.date), [
-    filteredData,
-  ]);
-
-  const chartData = useMemo(() => {
-    if (rollup === 'day') {
-      return _(filteredData)
-        .groupBy((v) => {
-          return moment(v.date).format('YYYY-MM-DD');
-        })
-        .mapValues((value, key) => {
-          return Object.keys(value[0]).reduce(
-            (pre, curr) => {
-              if (curr !== 'date') {
-                pre[curr as StatsField] = _.sumBy(value, curr);
-              }
-              return pre;
-            },
-            {} as {
-              [key in StatsField]: number;
-            }
-          );
-        })
-        .toPairs()
-        .map(([date, values]) => {
-          return {
-            date: moment(date).toDate(),
-            ...values,
-          };
-        })
-        .orderBy('date')
-        .map(
-          (v) =>
-            [moment(v.date).toISOString(), $transform.current(v)] as [
-              string,
-              Record<string, number>
-            ]
-        )
-        .valueOf();
-    }
-    return filteredData.map((v) => {
-      return [moment(v.date).toISOString(), $transform.current(v)] as [
-        string,
-        Record<string, number>
-      ];
-    });
-  }, [filteredData, rollup]);
-
-  return [
-    chartData,
-    {
-      rollup,
-      changeFilter,
-    },
-  ] as const;
 };
 
 const TicketStatsColumn = () => {
@@ -142,13 +38,42 @@ const TicketStatsColumn = () => {
     };
   }, [field, from, to, category, customerService]);
   const { data, isFetching, isLoading } = useTicketFieldStats(params);
-  const [chartData, { rollup, changeFilter }] = useFilterChartData((v) => {
+  const [filteredData, { rollup, changeFilter }] = useFilterData(data);
+
+  const chartData = useMemo(() => {
     const avgField = avgFieldMap[field];
-    const value = avgField ? (v[avgField[0]] || 0) / (v[avgField[1]] || 1) : v[field];
-    return {
-      [field]: value!,
-    };
-  }, data);
+    if (rollup === 'day') {
+      return (_(filteredData)
+        .groupBy((v) => {
+          return moment(v.date).format('YYYY-MM-DD');
+        })
+        .mapValues((value, key) => {
+          return Object.keys(value[0]).reduce((pre, curr) => {
+            if (curr !== 'date') {
+              pre[curr] = _.sumBy(value, curr);
+            }
+            return pre;
+          }, {} as Record<string, number>);
+        })
+        .toPairs()
+        .map(([date, values]) => {
+          return {
+            date: moment(date).toDate(),
+            ...values,
+          };
+        })
+        .orderBy('date')
+        .map((v: Record<string, number>) => {
+          const value = avgField ? (v[avgField[0]] || 0) / (v[avgField[1]] || 1) : v[field];
+          return [moment(v.date).toISOString(), { [field]: value }];
+        })
+        .valueOf() as unknown) as [string, Record<string, number>][];
+    }
+    return filteredData.map((v) => {
+      const value = avgField ? (v[avgField[0]] || 0) / (v[avgField[1]] || 1) : v[field];
+      return [moment(v.date).toISOString(), { [field]: value }] as [string, Record<string, number>];
+    });
+  }, [filteredData, rollup]);
 
   const xAxisDisplay = useMemo(() => {
     if (timeField.includes(field)) {

@@ -1,18 +1,9 @@
-import { useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import moment from 'moment';
+import _ from 'lodash';
+
 import { relativeDateGetters } from '@/utils/date-range';
 import { useSearchParams } from '@/utils/useSearchParams';
-
-export const getRollUp = (from?: Date | string, to?: Date | string) => {
-  if (!from || !to) {
-    return 'day';
-  }
-  const milliseconds = moment(to).toDate().getTime() - moment(from).toDate().getTime();
-  if (milliseconds > 2 * 24 * 60 * 60 * 1000) {
-    return 'day';
-  }
-  return 'hour';
-};
 
 export const STATS_FIELD = [
   'created',
@@ -98,4 +89,68 @@ export const useRangePicker = (fmt = 'YYYY-MM-DD') => {
     };
   }, [values, rangeDates, fmt]);
   return [values, options] as const;
+};
+
+export const getRollUp = (from?: Date | string, to?: Date | string) => {
+  if (!from || !to) {
+    return 'day';
+  }
+  const milliseconds = moment(to).toDate().getTime() - moment(from).toDate().getTime();
+  if (milliseconds > 2 * 24 * 60 * 60 * 1000) {
+    return 'day';
+  }
+  return 'hour';
+};
+
+export const useFilterData = <T extends { date: string | Date }>(data: T[] = []) => {
+  const [filter, setFilter] = useState<{ from?: string | Date; to?: string | Date }>({});
+  useEffect(() => {
+    if (data.length > 0) {
+      setFilter((v) => {
+        if (v.from || v.to) {
+          return {};
+        }
+        return v;
+      });
+    }
+  }, [data]);
+  const changeFilter = useCallback((from?: string | Date, to?: string | Date) => {
+    if (!from || !to) {
+      setFilter((v) => {
+        if (v.from || v.to) {
+          return {};
+        }
+        return v;
+      });
+    } else {
+      setFilter({
+        from,
+        to,
+      });
+    }
+  }, []);
+
+  const filteredData = useMemo(() => {
+    if (filter.from && filter.to) {
+      return data.filter((v) => {
+        return (
+          moment(v.date).isSameOrAfter(moment(filter.from)) &&
+          moment(v.date).isSameOrBefore(moment(filter.to))
+        );
+      });
+    }
+    return data;
+  }, [data, filter]);
+
+  const rollup = useMemo(() => getRollUp(_.first(filteredData)?.date, _.last(filteredData)?.date), [
+    filteredData,
+  ]);
+
+  return [
+    filteredData,
+    {
+      rollup,
+      changeFilter,
+    },
+  ] as const;
 };

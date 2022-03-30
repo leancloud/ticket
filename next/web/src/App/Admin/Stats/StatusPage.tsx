@@ -3,7 +3,7 @@ import moment from 'moment';
 import _ from 'lodash';
 
 import { useTicketStatus } from '@/api/ticket-stats';
-import { STATUS_LOCALE, getRollUp, useRangePicker } from './utils';
+import { STATUS_LOCALE, useRangePicker, useFilterData } from './utils';
 import { StatsArea } from './Chart';
 import { DatePicker } from '@/components/antd';
 
@@ -13,19 +13,21 @@ const StatusStats = () => {
     from,
     to,
   });
-  const chartData = useMemo(() => {
-    if (!data) {
-      return;
-    }
-    return _(data)
-      .orderBy('date')
-      .map((v) => {
-        const { date, id, ...rest } = v;
-        return ([moment(date).toISOString(), rest] as unknown) as [string, Record<string, number>];
-      })
-      .valueOf();
-  }, [data]);
-  const rollup = useMemo(() => getRollUp(from, to), [from, to]);
+  const [filteredData, { rollup, changeFilter }] = useFilterData(data);
+  const chartData = useMemo(
+    () =>
+      _(filteredData)
+        .orderBy('date')
+        .map((v) => {
+          const { date, id, ...rest } = v;
+          return ([moment(date).toISOString(), rest] as unknown) as [
+            string,
+            Record<string, number>
+          ];
+        })
+        .valueOf(),
+    [filteredData]
+  );
   return (
     <StatsArea
       isStack
@@ -35,6 +37,17 @@ const StatusStats = () => {
       initLegend={{
         closed: false,
         fulfilled: false,
+      }}
+      onSelected={(xAxisValues) => {
+        if (xAxisValues === undefined) {
+          changeFilter();
+        } else {
+          const from = _.first(xAxisValues);
+          const to = _.last(xAxisValues);
+          if (from !== to) {
+            changeFilter(from, to);
+          }
+        }
       }}
       formatters={{
         titleDisplay: (value) => moment(value).format('YYYY-MM-DD HH:mm'),

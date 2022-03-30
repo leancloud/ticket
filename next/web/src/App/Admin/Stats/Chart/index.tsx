@@ -1,6 +1,9 @@
-import { FunctionComponent, useMemo, useRef } from 'react';
+import { FunctionComponent, useCallback, useMemo, useRef } from 'react';
 import { Pie, Column, Area, G2 } from '@ant-design/plots';
 import _ from 'lodash';
+import { zoomInChartInteraction } from './Interactions';
+
+G2.registerInteraction(zoomInChartInteraction.name, zoomInChartInteraction.content);
 
 const CHART_VALUE = '$$_chart_value_$$';
 const CHART_KEY = '$$_chart_key_$$';
@@ -31,6 +34,7 @@ interface PieProps extends Omit<ChartProps, 'formatters' | 'data'> {
 interface AreaProps extends ChartProps {
   isStack?: boolean;
   initLegend?: Record<string, boolean>;
+  onSelected?: (xAxisValues?: string[]) => void;
 }
 
 export const StatsPie: FunctionComponent<PieProps> = ({ loading, data, names, formatters }) => {
@@ -176,7 +180,10 @@ export const StatsArea: FunctionComponent<AreaProps> = ({
   formatters,
   isStack,
   initLegend,
+  onSelected,
 }) => {
+  const $onSelected = useRef(onSelected);
+  $onSelected.current = onSelected;
   const chartData = useMemo(() => convertChartData(data), [data]);
   return (
     <Area
@@ -197,6 +204,17 @@ export const StatsArea: FunctionComponent<AreaProps> = ({
           formatter: formatters?.xAxisTick,
         },
       }}
+      onEvent={(chart, event) => {
+        if (event.type === G2.BRUSH_FILTER_EVENTS.AFTER_FILTER) {
+          if ($onSelected.current) {
+            const xValues = event.view.getXScale().values;
+            $onSelected.current(xValues);
+          }
+        }
+        if (event.type === G2.BRUSH_FILTER_EVENTS.BEFORE_RESET) {
+          $onSelected.current && $onSelected.current();
+        }
+      }}
       tooltip={{
         title: (value) => (formatters?.titleDisplay ? formatters.titleDisplay(value) : value),
         formatter: (datum) => {
@@ -207,6 +225,11 @@ export const StatsArea: FunctionComponent<AreaProps> = ({
           };
         },
       }}
+      interactions={[
+        {
+          type: zoomInChartInteraction.name,
+        },
+      ]}
       legend={{
         position: 'bottom',
         selected: initLegend,
