@@ -32,24 +32,19 @@ interface AreaProps extends ChartProps {
   isStack?: boolean;
 }
 
-const convertChartData = (data: ColumnProps['data']) => {
-  return _(data || [])
-    .map((v) => {
-      const [key, values] = v;
-      return Object.keys(values).map((valueKey) => {
-        return {
-          [CHART_VALUE]: values[valueKey],
-          [CHART_KEY]: key,
-          [CHART_TYPE]: valueKey,
-        };
-      });
-    })
-    .flatten()
-    .valueOf();
-};
-
 export const StatsPie: FunctionComponent<PieProps> = ({ loading, data, names, formatters }) => {
-  const chartData = useMemo(() => _.orderBy(convertChartData([]), CHART_VALUE, 'desc'), [data]);
+  const chartData = useMemo(() => {
+    if (!data || data.length === 0) {
+      return [];
+    }
+    return _(data)
+      .map(([key, value]) => ({
+        [CHART_VALUE]: value,
+        [CHART_KEY]: key,
+      }))
+      .orderBy(CHART_VALUE, 'desc')
+      .valueOf();
+  }, [data]);
   return (
     <Pie
       loading={loading}
@@ -90,6 +85,22 @@ export const StatsPie: FunctionComponent<PieProps> = ({ loading, data, names, fo
       }}
     />
   );
+};
+
+const convertChartData = (data: ColumnProps['data']) => {
+  return _(data || [])
+    .map((v) => {
+      const [key, values] = v;
+      return Object.keys(values).map((valueKey) => {
+        return {
+          [CHART_VALUE]: values[valueKey],
+          [CHART_KEY]: key,
+          [CHART_TYPE]: valueKey,
+        };
+      });
+    })
+    .flatten()
+    .valueOf();
 };
 
 export const StatsColumn: FunctionComponent<ColumnProps> = ({
@@ -164,23 +175,7 @@ export const StatsArea: FunctionComponent<AreaProps> = ({
   formatters,
   isStack,
 }) => {
-  const chartData = useMemo(
-    () =>
-      _(data || [])
-        .map((v) => {
-          const [key, values] = v;
-          return Object.keys(values).map((valueKey) => {
-            return {
-              [CHART_VALUE]: values[valueKey],
-              [CHART_KEY]: key,
-              [CHART_TYPE]: valueKey,
-            };
-          });
-        })
-        .flatten()
-        .valueOf(),
-    [data]
-  );
+  const chartData = useMemo(() => convertChartData(data), [data]);
   return (
     <Area
       data={chartData}
