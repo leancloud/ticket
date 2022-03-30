@@ -32,6 +32,10 @@ const StatusStats = () => {
       loading={isFetching || isLoading}
       data={chartData}
       names={(text: string) => STATUS_LOCALE[text]}
+      initLegend={{
+        closed: false,
+        fulfilled: false,
+      }}
       formatters={{
         titleDisplay: (value) => moment(value).format('YYYY-MM-DD HH:mm'),
         xAxisTick: (value) => moment(value).format(rollup === 'day' ? 'YYYY-MM-DD HH:mm' : 'HH:mm'),

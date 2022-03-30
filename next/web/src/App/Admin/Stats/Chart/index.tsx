@@ -30,6 +30,7 @@ interface PieProps extends Omit<ChartProps, 'formatters' | 'data'> {
 }
 interface AreaProps extends ChartProps {
   isStack?: boolean;
+  initLegend?: Record<string, boolean>;
 }
 
 export const StatsPie: FunctionComponent<PieProps> = ({ loading, data, names, formatters }) => {
@@ -174,6 +175,7 @@ export const StatsArea: FunctionComponent<AreaProps> = ({
   names,
   formatters,
   isStack,
+  initLegend,
 }) => {
   const chartData = useMemo(() => convertChartData(data), [data]);
   return (
@@ -207,6 +209,7 @@ export const StatsArea: FunctionComponent<AreaProps> = ({
       }}
       legend={{
         position: 'bottom',
+        selected: initLegend,
         itemName: {
           formatter: (text) => (names ? names(text) : text),
         },

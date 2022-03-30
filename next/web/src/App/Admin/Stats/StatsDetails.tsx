@@ -193,12 +193,12 @@ const TicketStatsColumn = () => {
         } else {
           const from = _.first(xAxisValues);
           const to = _.last(xAxisValues);
-          if (from === to) {
-            if (rollup === 'day') {
-              changeFilter(moment(from).startOf('day').toDate(), moment(to).endOf('day').toDate());
-            }
+          if (rollup === 'day') {
+            changeFilter(moment(from).startOf('day').toDate(), moment(to).endOf('day').toDate());
           } else {
-            changeFilter(from, to);
+            if (from !== to) {
+              changeFilter(from, to);
+            }
           }
         }
       }}
