@@ -427,7 +427,7 @@ const _getTicketStatById = async (id: string, from: Date, to: Date) => {
         }
         break;
       case 'reopen':
-        if (lastTimeLog && lastTimeLog.action === 'close') {
+        if (lastTimeLog && (lastTimeLog.action === 'close' || lastTimeLog.action === 'resolve')) {
           allLogTimeline.push(log)
         }
         break;
@@ -510,14 +510,14 @@ const _getTicketCurrentStatus = async () => {
     Status.FULFILLED,
     Status.CLOSED
   ].map(status => Ticket.queryBuilder().where('status', '==', status).count(AUTH_OPTIONS))
-  ).then(values => {
+  ).then(([notProcessed, waitingCustomer, waitingCustomerService, preFulfilled, fulfilled, closed]) => {
     return {
-      notProcessed: values[0],
-      waitingCustomer: values[1],
-      waitingCustomerService: values[2],
-      preFulfilled: values[3],
-      fulfilled: values[4],
-      closed: values[5],
+      notProcessed,
+      waitingCustomer,
+      waitingCustomerService,
+      preFulfilled,
+      fulfilled,
+      closed,
     }
   })
 }
@@ -576,13 +576,13 @@ export async function hourlyTicketStats(date?: Date) {
   const from = startOfHour(date)
   const to = endOfHour(date)
   try {
-    await _refreshWeekdayConfig();
-    const currentStatus = await _getTicketCurrentStatus();
-    TicketStatusStats.create({
-      ACL: {},
-      date: from,
-      ...currentStatus,
-    }, AUTH_OPTIONS)
+    // await _refreshWeekdayConfig();
+    // const currentStatus = await _getTicketCurrentStatus();
+    // TicketStatusStats.create({
+    //   ACL: {},
+    //   date: from,
+    //   ...currentStatus,
+    // }, AUTH_OPTIONS)
     const statResult = await _getTicketStat(from, to)
     if (!statResult) {
       return;

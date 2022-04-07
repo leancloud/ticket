@@ -28,7 +28,7 @@ export const SiderMenu: React.FunctionComponent<Props> = ({
       collapsedWidth={SIDER_MENU_MIN}
       width={SIDER_MENU_MAX}
       theme="light"
-      className="p-5"
+      className="p-5 overflow-auto"
     >
       <BaseMenu data={menus} />
       {footer && <div className="w-full">{footer}</div>}

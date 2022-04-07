@@ -1,13 +1,13 @@
-import { useSearchParams } from '@/utils/useSearchParams';
-import moment from 'moment';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import _ from 'lodash';
-import { TableOutlined, PieChartOutlined } from '@ant-design/icons';
+import moment from 'moment';
+import _, { omit } from 'lodash';
 
+import { useSearchParams } from '@/utils/useSearchParams';
+import { TableOutlined, PieChartOutlined } from '@ant-design/icons';
 import { TicketFieldStat, TicketStats, useTicketFieldStats } from '@/api/ticket-stats';
 import { useCategories } from '@/api/category';
 import { useCustomerServices } from '@/api/customer-service';
-import { StatsField, STATS_FIELD_LOCALE, getRollUp, useRangePicker } from './utils';
+import { StatsField, STATS_FIELD_LOCALE, useRangePicker, useFilterData } from './utils';
 import { StatsPie, StatsColumn } from './Chart';
 import { Popover, Radio, Table } from '@/components/antd';
 import { useActiveField } from './StatsPage';
@@ -21,6 +21,13 @@ const avgFieldMap: {
   naturalReplyTimeAVG: ['naturalReplyTime', 'naturalReplyCount'],
   replyTimeAVG: ['replyTime', 'replyTimeCount'],
   firstReplyTimeAVG: ['firstReplyTime', 'firstReplyCount'],
+};
+
+const valueTransform = (value: [string | Date, Record<string, number>], field: StatsField) => {
+  const avgField = avgFieldMap[field];
+  const [date, obj] = value;
+  const v = avgField ? (obj[avgField[0]] || 0) / (obj[avgField[1]] || 1) : obj[field];
+  return [moment(date).toISOString(), { [field]: v }] as [string, Record<string, number>];
 };
 
 const TicketStatsColumn = () => {
@@ -38,46 +45,59 @@ const TicketStatsColumn = () => {
     };
   }, [field, from, to, category, customerService]);
   const { data, isFetching, isLoading } = useTicketFieldStats(params);
-  const rollup = useMemo(() => getRollUp(from, to), [from, to]);
+  const [filteredData, { rollup, changeFilter }] = useFilterData(data);
+
   const chartData = useMemo(() => {
-    if (!data) {
-      return;
-    }
-    let chartData = data;
     if (rollup === 'day') {
-      chartData = _(chartData)
+      return _(filteredData)
         .groupBy((v) => {
           return moment(v.date).format('YYYY-MM-DD');
         })
-        .mapValues((value, key) => {
-          return Object.keys(value[0]).reduce(
-            (pre, curr) => {
-              if (curr !== 'date') {
-                pre[curr as StatsField] = _.sumBy(value, curr);
-              }
-              return pre;
-            },
-            {} as {
-              [key in StatsField]: number;
+        .mapValues((value) => {
+          return Object.keys(value[0]).reduce((pre, curr) => {
+            if (curr !== 'date') {
+              pre[curr] = _.sumBy(value, curr);
             }
-          );
+            return pre;
+          }, {} as Record<string, number>);
         })
         .toPairs()
-        .map(([date, values]) => {
-          return {
-            date: moment(date).toDate(),
-            ...values,
-          };
-        })
-        .orderBy('date')
+        .map((value) => valueTransform(value, field))
         .valueOf();
     }
-    const avgField = avgFieldMap[field];
-    return chartData.map((v) => {
-      const value = avgField ? (v[avgField[0]] || 0) / (v[avgField[1]] || 1) : v[field];
-      return [moment(v.date).toISOString(), value] as [string, number];
-    });
-  }, [data, rollup]);
+    return filteredData
+      .map((v) => {
+        const { date, categoryId, customerServiceId, ...rest } = v;
+        return valueTransform([date, rest as Record<string, number>], field);
+      })
+      .reduce((pre, curr, index) => {
+        if (index === 0) {
+          pre.push(curr);
+        } else {
+          const lastDate = moment(_.last(pre)![0]);
+          const hours = moment(curr[0]).diff(lastDate, 'hour');
+          if (hours > 1) {
+            pre = [
+              ...pre,
+              ...new Array(hours - 1).fill(0).map((v, index) => {
+                return [
+                  moment(lastDate)
+                    .add(index + 1, 'hour')
+                    .toISOString(),
+                  {
+                    [field]: 0,
+                  },
+                ] as [string, Record<string, number>];
+              }),
+            ];
+          }
+          pre.push(curr);
+        }
+        return pre;
+      }, [] as Array<[string, Record<string, number>]>);
+  }, [filteredData, rollup]);
+
+  console.log('chartData', chartData);
 
   const xAxisDisplay = useMemo(() => {
     if (timeField.includes(field)) {
@@ -105,19 +125,41 @@ const TicketStatsColumn = () => {
           }
           return value;
         },
-        xAxisTick: (value) => {
+        xAxisTick: (value, item, index) => {
           if (rollup === 'day') {
-            return moment(value).format('YYYY-MM-DD');
+            return moment(value).format('MM-DD');
           }
-          // const preDate = chartData ? chartData[index - 1][0] : undefined;
           const date = moment(value);
-          return date.format('HH:mm');
+          if (index < 1) {
+            return date.format('MM-DD HH:mm');
+          }
+          const preDate = moment(chartData[index - 1][0]);
+          if (preDate.isSame(date, 'day')) {
+            return date.format('HH:mm');
+          } else {
+            return date.format('MM-DD HH:mm');
+          }
         },
         xAxisDisplay,
         titleDisplay: (value) =>
           moment(value).format(rollup === 'day' ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm'),
       }}
-      names={(value) => STATS_FIELD_LOCALE[field]}
+      onSelected={(xAxisValues) => {
+        if (xAxisValues === undefined) {
+          changeFilter();
+        } else {
+          const from = _.first(xAxisValues);
+          const to = _.last(xAxisValues);
+          if (rollup === 'day') {
+            changeFilter(moment(from).startOf('day').toDate(), moment(to).endOf('day').toDate());
+          } else {
+            if (from !== to) {
+              changeFilter(from, to);
+            }
+          }
+        }
+      }}
+      names={(value) => STATS_FIELD_LOCALE[value]}
     />
   );
 };
@@ -135,7 +177,7 @@ const formatTime = (value: number | string) => {
   return (value / 3600).toFixed(2) + ' 小时';
 };
 
-const useChartData = (groupByKey: string, data?: TicketFieldStat[]) => {
+const usePieChartData = (groupByKey: string, data?: TicketFieldStat[]) => {
   const [field] = useActiveField();
   return useMemo(() => {
     if (!data || timeField.includes(field)) {
@@ -217,7 +259,7 @@ const CategoryStats: React.FunctionComponent<{ displayMode: displayMode }> = ({ 
   }, [categories]);
   const total = useMemo(() => (data ? _.sumBy(data, field) : 1), [data]);
   const tableData = useTableData('categoryId', data);
-  const chartData = useChartData('categoryId', data);
+  const chartData = usePieChartData('categoryId', data);
   if (displayMode === 'table') {
     return (
       <Table
@@ -285,7 +327,7 @@ const CustomerServiceStats: React.FunctionComponent<{ displayMode: displayMode }
   }, [customerServices]);
   const total = useMemo(() => (data ? _.sumBy(data, field) : 0), [data]);
   const tableData = useTableData('customerServiceId', data);
-  const chartData = useChartData('customerServiceId', data);
+  const chartData = usePieChartData('customerServiceId', data);
   if (displayMode === 'table') {
     return (
       <Table
