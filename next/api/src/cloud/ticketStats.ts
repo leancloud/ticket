@@ -576,13 +576,13 @@ export async function hourlyTicketStats(date?: Date) {
   const from = startOfHour(date)
   const to = endOfHour(date)
   try {
-    // await _refreshWeekdayConfig();
-    // const currentStatus = await _getTicketCurrentStatus();
-    // TicketStatusStats.create({
-    //   ACL: {},
-    //   date: from,
-    //   ...currentStatus,
-    // }, AUTH_OPTIONS)
+    await _refreshWeekdayConfig();
+    const currentStatus = await _getTicketCurrentStatus();
+    TicketStatusStats.create({
+      ACL: {},
+      date: from,
+      ...currentStatus,
+    }, AUTH_OPTIONS)
     const statResult = await _getTicketStat(from, to)
     if (!statResult) {
       return;
