@@ -20,6 +20,7 @@ import { UpdateData } from '@/orm';
 import { auth, customerServiceOnly } from '@/middleware';
 import { getPublicArticle } from '@/model/Article';
 import { Category } from '@/model/Category';
+import { Notification } from '@/model/Notification';
 import { TicketForm } from '@/model/TicketForm';
 import { User } from '@/model/User';
 import { ArticleResponse } from '@/response/article';
@@ -189,13 +190,27 @@ export class CategoryController {
     @Param('id', FindCategoryPipe) category: Category,
     @Query('active', new ParseBoolPipe({ keepUndefined: true })) active?: boolean
   ) {
-    const categories = await CategoryService.getSubCategories(category.id);
-    if (active !== undefined) {
-      return active
-        ? categories.filter((c) => c.deletedAt === undefined)
-        : categories.filter((c) => c.deletedAt !== undefined);
-    }
-    return categories;
+    return await CategoryService.getSubCategories(category.id, active);
+  }
+
+  @Get(':id/unread')
+  @UseMiddlewares(auth)
+  @ResponseBody(Boolean)
+  async getUnread(
+    @CurrentUser() currentUser: User,
+    @Param('id', FindCategoryPipe) category: Category
+  ) {
+    const categories = await CategoryService.getSubCategories(category.id, true);
+    const unreadNotification = await Notification.queryBuilder()
+      .where('user', '==', currentUser.toPointer())
+      .where('unreadCount', '>', 0)
+      .where(
+        'category',
+        'in',
+        categories.map((category) => category.toPointer())
+      )
+      .first({ sessionToken: currentUser.sessionToken });
+    return !!unreadNotification;
   }
 
   private convertUpdateData(data: UpdateCategoryData): UpdateData<Category> {

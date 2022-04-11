@@ -77,7 +77,7 @@ export class CategoryService {
     }
   }
 
-  static async getSubCategories(id: string | string[]): Promise<Category[]> {
+  static async getSubCategories(id: string | string[], active?: boolean): Promise<Category[]> {
     const parentIds = _.castArray(id);
     const categories = await CategoryService.getAll();
     const categoriesByParentId = _.groupBy(categories, 'parentId');
@@ -91,6 +91,11 @@ export class CategoryService {
       });
     }
 
+    if (active !== undefined) {
+      return active
+        ? subCategories.filter((c) => c.deletedAt === undefined)
+        : subCategories.filter((c) => c.deletedAt !== undefined);
+    }
     return subCategories;
   }
 

@@ -269,18 +269,22 @@ notification.register({
   },
   changeAssignee: ({ ticket, to }) => {
     if (to) {
-      NotificationModel.upsertSome(ticket.id, [to.id], 'changeAssignee').catch((error) => {
-        // TODO: Sentry
-        console.error(error);
-      });
+      NotificationModel.upsertSome(ticket.id, [to.id], ticket.categoryId, 'changeAssignee').catch(
+        (error) => {
+          // TODO: Sentry
+          console.error(error);
+        }
+      );
     }
   },
   ticketEvaluation: ({ ticket, to }) => {
     if (to) {
-      NotificationModel.upsertSome(ticket.id, [to.id], 'ticketEvaluation').catch((error) => {
-        // TODO: Sentry
-        console.error(error);
-      });
+      NotificationModel.upsertSome(ticket.id, [to.id], ticket.categoryId, 'ticketEvaluation').catch(
+        (error) => {
+          // TODO: Sentry
+          console.error(error);
+        }
+      );
     }
   },
 });

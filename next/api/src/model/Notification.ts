@@ -3,6 +3,7 @@ import _ from 'lodash';
 import { commands, field, Model, pointerId, pointTo } from '@/orm';
 import { Ticket } from './Ticket';
 import { User } from './User';
+import { Category } from './Category';
 
 export type LatestAction =
   | 'newTicket'
@@ -26,6 +27,12 @@ export class Notification extends Model {
   @pointTo(() => Ticket)
   ticket?: Ticket;
 
+  @pointerId(() => Category)
+  categoryId!: string;
+
+  @pointTo(() => Category)
+  category?: Category;
+
   @field()
   unreadCount!: number;
 
@@ -35,7 +42,12 @@ export class Notification extends Model {
   @field()
   latestActionAt?: Date;
 
-  static async upsertSome(ticketId: string, userIds: string[], latestAction: LatestAction) {
+  static async upsertSome(
+    ticketId: string,
+    userIds: string[],
+    categoryId: string,
+    latestAction: LatestAction
+  ) {
     userIds = _.uniq(userIds);
 
     const notifications = await this.queryBuilder()
@@ -60,6 +72,7 @@ export class Notification extends Model {
           },
           ticketId,
           userId,
+          categoryId,
           latestAction,
           latestActionAt: new Date(),
           unreadCount: 1,
@@ -73,6 +86,7 @@ export class Notification extends Model {
             latestAction,
             latestActionAt: new Date(),
             unreadCount: commands.inc(),
+            categoryId,
           },
         ]),
         { useMasterKey: true }

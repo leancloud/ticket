@@ -28,6 +28,14 @@
             "hidden": false,
             "read_only": false
         },
+        "category": {
+            "type": "Pointer",
+            "v": 2,
+            "className": "Category",
+            "required": false,
+            "hidden": false,
+            "read_only": false
+        },
         "latestActionAt": {
             "type": "Date",
             "v": 2,
@@ -80,6 +88,17 @@
                 "ticket.$id": 1
             },
             "name": "-user-user.$id_1_ticket.$id_1",
+            "ns": "_.notification",
+            "background": true
+        },
+        {
+            "v": 2,
+            "unique": true,
+            "key": {
+                "user.$id": 1,
+                "category.$id": 1
+            },
+            "name": "-user-user.$id_1_category.$id_1",
             "ns": "_.notification",
             "background": true
         },

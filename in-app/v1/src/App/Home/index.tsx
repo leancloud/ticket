@@ -26,15 +26,17 @@ function TicketsLink({ badge }: TicketsLinkProps) {
     </Link>
   );
 }
-async function fetchUnread() {
-  const { data } = await http.get<boolean>('/api/2/unread');
+async function fetchUnread(categoryId?: string) {
+  const { data } = await http.get<boolean>(
+    categoryId ? `/api/2/products/${categoryId}/unread` : '/api/2/unread'
+  );
   return data;
 }
 
-function useHasUnreadTickets() {
+function useHasUnreadTickets(categoryId?: string) {
   return useQuery({
-    queryKey: 'unread',
-    queryFn: fetchUnread,
+    queryKey: ['unread', categoryId],
+    queryFn: () => fetchUnread(categoryId),
   });
 }
 
@@ -52,7 +54,7 @@ export default function Home() {
       .filter((c) => c.parentId && !map[c.parentId])
       .sort((a, b) => a.position - b.position);
   }, [categories]);
-  const { data: hasUnreadTickets } = useHasUnreadTickets();
+  const { data: hasUnreadTickets } = useHasUnreadTickets(rootCategory);
 
   const { data: notices } = useNotices(rootCategory);
 
