@@ -66,7 +66,7 @@ const ArticleSelect = forwardRef<RefSelectProps, SelectProps<string[]>>((props, 
 });
 
 const TicketFormSelect = forwardRef<RefSelectProps, SelectProps<string>>((props, ref) => {
-  const { data, isLoading } = useTicketForms();
+  const { data, isLoading } = useTicketForms({ pageSize: 1000 });
   const options = useMemo(() => {
     return data?.map((form) => ({
       label: form.title,
@@ -160,7 +160,7 @@ export function CategoryForm({
   );
 
   return (
-    <Form layout="vertical" onFinish={handleSubmit(onSubmit)}>
+    <Form layout="vertical" onFinish={handleSubmit(onSubmit as any)}>
       <Controller
         control={control}
         name="name"
