@@ -9,7 +9,9 @@ export const auth: Middleware = async (ctx, next) => {
       ctx.state.currentUser = await User.findBySessionToken(sessionToken);
     } catch (error: any) {
       if (error.code === 211) {
-        ctx.throw(403);
+        ctx.throw(401, '无效的用户凭证，请重新登录。', {
+          code: 'INVALID_SESSION_TOKEN',
+        });
       }
       throw error;
     }
@@ -21,13 +23,15 @@ export const auth: Middleware = async (ctx, next) => {
     const user = await User.findByAnonymousId(anonymousId);
     if (!user) {
       console.log('x-anonymous-id user not found');
-      ctx.throw(403);
+      ctx.throw(401, '未找到该 Anonymous ID 对应的用户，该用户可能从未使用过客服功能。', {
+        code: 'INVALID_ANONYMOUS_ID',
+      });
     }
     ctx.state.currentUser = user;
     return next();
   }
 
-  ctx.throw(401);
+  ctx.throw(401, '缺少用户凭证。', { code: 'CREDENTIAL_REQUIRED' });
 };
 
 export const customerServiceOnly: Middleware = async (ctx, next) => {

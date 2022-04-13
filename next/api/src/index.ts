@@ -42,7 +42,7 @@ app.use(async (ctx, next) => {
     }
 
     ctx.status = status;
-    ctx.body = { message: error.message };
+    ctx.body = { message: error.message, code: error.code };
   }
 });
 
