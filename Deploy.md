@@ -212,3 +212,12 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 
 导入 DynamicContent.json。
 导入 DynamicContentVariant.json。
+
+## 2022-04-14
+
+### `4627080ad5a85f72bd4391bad27175fe54c3da89`
+
+导入 TicketStats.json。
+导入 TicketStatusStats.json。
+
+创建定时任务 statsHour `0 * * * *`
