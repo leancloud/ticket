@@ -136,6 +136,13 @@
             "auto_increment": false,
             "hidden": false,
             "read_only": false
+        },
+        "replyDetails": {
+            "type": "Array",
+            "v": 2,
+            "required": false,
+            "hidden": false,
+            "read_only": false
         }
     },
     "permissions": {
@@ -164,5 +171,18 @@
             "users": []
         }
     },
-    "indexes": []
+    "indexes": [
+        {
+            "v": 2,
+            "unique": true,
+            "background": true,
+            "sparse": true,
+            "name": "-user-date_1_category.$id_1_customerService.$id_1",
+            "key": {
+                "date": 1,
+                "category.$id": 1,
+                "customerService.$id": 1
+            }
+        }
+    ]
 }

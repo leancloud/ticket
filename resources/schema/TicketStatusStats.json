@@ -90,5 +90,15 @@
       "users": []
     }
   },
-  "indexes": []
+  "indexes": [
+    {
+      "v": 2,
+      "unique": true,
+      "background": true,
+      "name": "-user-date_1",
+      "key": {
+        "date": 1
+      }
+    }
+  ]
 }
