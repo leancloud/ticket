@@ -77,7 +77,7 @@ const getRelyTimeFuc = (config: ReplyConfig) => (replyDate: Date, askDate: Date)
       }
     }
   }
-  return time
+  return time > 0 ? time : 0
 }
 
 export function getTicketCurrentStatus() {
