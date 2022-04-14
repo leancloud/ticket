@@ -67,6 +67,15 @@ export class TicketStats extends Model {
   @field()
   naturalReplyCount?: number;
 
+  @field()
+  replyDetails?: {
+    "id": string,
+    "nid": number,
+    "replyTime": number,
+    "naturalReplyTime": number,
+    "authorReplyTime": number
+  }[]
+
   static async fetchTicketStats(params: {
     from: Date;
     to: Date;
@@ -149,7 +158,7 @@ function sumTicketStats(data: TicketStats[]) {
   }
   const result: SumTicketStat = {}
   data
-    .map(v => _.omit(new TicketStatsResponse(v).toJSON(), ['date', 'id']))
+    .map(v => _.omit(new TicketStatsResponse(v).toJSON(), ['date', 'id', 'replyDetails']))
     .forEach((value) => {
       _.mergeWith(result, value, (obj = 0, src = 0) => obj + src);
     })
