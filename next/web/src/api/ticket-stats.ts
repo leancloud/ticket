@@ -111,3 +111,37 @@ export function useTicketStatus({
     ...queryOptions,
   });
 }
+
+interface ReplyDetailsOptions {
+  from: Date;
+  to: Date;
+  field: string;
+  category?: string;
+  customerService?: string;
+}
+interface ReplyDetail {
+  replyTime: number;
+  id: string;
+  nid: number;
+}
+
+async function fetchReplyDetails(params: ReplyDetailsOptions) {
+  const { data } = await http.get<ReplyDetail[]>(`/api/2/ticket-stats/details`, {
+    params,
+  });
+  return data
+}
+
+export interface UseReplyDetailsOptions extends ReplyDetailsOptions {
+  queryOptions?: UseQueryOptions<ReplyDetail[], Error>;
+}
+export function useReplyDetails({
+  queryOptions, ...options
+}: UseReplyDetailsOptions) {
+  return useQuery({
+    queryKey: ['replyDetails', options],
+    queryFn: () => fetchReplyDetails(options),
+    ...queryOptions,
+  });
+}
+
