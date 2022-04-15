@@ -149,7 +149,9 @@ export const getTicketDataById = async (id: string, endDate: Date) => {
             internal: !!replyOrOpsLog.internal,
             authorId: replyOrOpsLog.data?.operator?.objectId,
             createdAt: replyOrOpsLog.createdAt,
-            cursor: !!replyOrOpsLog.internal || cursor.lastReplyType === 'customerService' ? undefined : cursor
+            cursor: !!replyOrOpsLog.internal || cursor.lastReplyType === 'customerService' ? undefined : {
+              ...cursor
+            }
           })
           cursor.lastReplyType = 'customerService'
           break;
@@ -183,7 +185,9 @@ export const getTicketDataById = async (id: string, endDate: Date) => {
           internal: !!replyOrOpsLog.internal,
           authorId: replyOrOpsLog.authorId,
           createdAt: replyOrOpsLog.createdAt,
-          cursor: !!replyOrOpsLog.internal || cursor.lastReplyType === 'customerService' ? undefined : cursor
+          cursor: !!replyOrOpsLog.internal || cursor.lastReplyType === 'customerService' ? undefined : {
+            ...cursor
+          }
         })
         cursor.lastReplyType = 'customerService'
       }
@@ -355,9 +359,10 @@ export const parseTicketData = (data: TicketData, start: Date, getRelyTime: (rep
     categoryId: ticket.categoryId,
     details: replyDetails.filter(v => v.replyTime !== undefined).map((v) => {
       return {
-        id: ticket.id,
         nid: ticket.nid,
+        id: v.id,
         categoryId: ticket.categoryId,
+        first: v.first,
         replyTime: v.replyTime || 0,
         naturalReplyTime: v.naturalReplyTime || 0,
         authorReplyTime: v.authorReplyTime || 0,

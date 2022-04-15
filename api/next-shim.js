@@ -17,6 +17,6 @@ AV.Cloud.define('tickAutomation', { fetchUser: false, internal: true }, () => {
 })
 
 AV.Cloud.define('analyzeArticles', { fetchUser: false, internal: true }, analyzeArticles)
-AV.Cloud.define('statsHour', hourlyTicketStats)
+AV.Cloud.define('statsHour', () => hourlyTicketStats())
 
 module.exports = { events }
