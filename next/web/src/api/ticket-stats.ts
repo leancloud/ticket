@@ -145,3 +145,26 @@ export function useReplyDetails({
   });
 }
 
+interface TicketCountOptions {
+  from: Date;
+  to: Date;
+}
+async function fetchTicketCount(params: TicketCountOptions) {
+  const { data } = await http.get<number>(`/api/2/ticket-stats/count`, {
+    params,
+  });
+  return data
+}
+interface UseTicketCountOptions extends TicketCountOptions {
+  queryOptions?: UseQueryOptions<number, Error>;
+}
+export function useTicketCount({
+  queryOptions, ...options
+}: UseTicketCountOptions) {
+  return useQuery({
+    queryKey: ['TicketCount', options],
+    queryFn: () => fetchTicketCount(options),
+    ...queryOptions,
+  });
+}
+

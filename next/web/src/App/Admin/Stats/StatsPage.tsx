@@ -1,9 +1,9 @@
 import { FunctionComponent, useCallback, useMemo, useState } from 'react';
 import classnames from 'classnames';
-import { Statistic, Card, Divider, Radio, DatePicker } from '@/components/antd';
+import { Statistic, Card, Divider, Radio, DatePicker, Badge, Avatar } from '@/components/antd';
 import { CategorySelect, CustomerServiceSelect } from '@/components/common';
 import { useSearchParams, useSearchParam } from '@/utils/useSearchParams';
-import { useTicketStats } from '@/api/ticket-stats';
+import { useTicketCount, useTicketStats } from '@/api/ticket-stats';
 import { StatsDetails } from './StatsDetails';
 import { StatsField, STATS_FIELD, STATS_FIELD_LOCALE, useRangePicker } from './utils';
 
@@ -91,6 +91,10 @@ const StatCards = () => {
     from,
     to,
   });
+  const { data: count, isFetching: countFetching, isLoading: countLoading } = useTicketCount({
+    from,
+    to,
+  });
   const averageData = useMemo(() => {
     if (!data) {
       return;
@@ -102,10 +106,9 @@ const StatCards = () => {
       replyTimeCount,
       naturalReplyTime,
       naturalReplyCount,
-      ...rest
     } = data;
     return {
-      ...rest,
+      ...data,
       replyTimeAVG: Math.ceil(replyTime / (replyTimeCount || 1)),
       firstReplyTimeAVG: Math.ceil(firstReplyTime / (firstReplyCount || 1)),
       naturalReplyTimeAVG: Math.ceil(naturalReplyTime / (naturalReplyCount || 1)),
@@ -127,6 +130,7 @@ const StatCards = () => {
       {STATS_FIELD.map((type) => {
         return (
           <Card
+            loading={isFetching || isLoading}
             key={type}
             className={classnames('!m-1 basis-52 grow-0 shrink-0 cursor-pointer', {
               '!border-primary': type === active,
@@ -142,6 +146,13 @@ const StatCards = () => {
           </Card>
         );
       })}
+
+      <Card
+        loading={countFetching || countLoading}
+        className={classnames('!m-1 basis-52 grow-0 shrink-0 cursor-pointer')}
+      >
+        <Statistic loading={isFetching || isLoading} title="回复工单数" value={count} />
+      </Card>
     </div>
   );
 };

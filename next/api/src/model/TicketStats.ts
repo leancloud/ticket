@@ -175,7 +175,11 @@ export class TicketStats extends Model {
       query.doesNotExist('category')
     }
     if (params.customerServiceId) {
-      query.equalTo('customerService', User.ptr(params.customerServiceId))
+      if (params.customerServiceId === '*') {
+        query.exists('customerService')
+      } else {
+        query.equalTo('customerService', User.ptr(params.customerServiceId))
+      }
     } else {
       query.doesNotExist('customerService')
     }
@@ -195,7 +199,7 @@ export class TicketStats extends Model {
           nid,
           replyTime
         }
-      })
+      }).filter(v => v.replyTime > 0)
     }).flatMap().valueOf()
     if (data.length === limit) {
       const nextData = await TicketStats.fetchReplyDetails(params, limit, limit + skip);
