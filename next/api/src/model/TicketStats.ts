@@ -1,8 +1,10 @@
+import AV from 'leancloud-storage';
+import _ from 'lodash';
+
 import { Model, pointTo, pointerId, field } from '@/orm';
+import { TicketStatsResponse } from '@/response/ticket-stats'
 import { User } from './User';
 import { Category } from './Category';
-import { TicketStatsResponse } from '@/response/ticket-stats'
-import _ from 'lodash';
 
 interface SumTicketStat {
   created?: number;
@@ -22,6 +24,15 @@ interface SumTicketStat {
   internalReplyCount?: number;
   naturalReplyTime?: number;
   naturalReplyCount?: number;
+}
+
+interface ReplyDetail {
+  id: string;
+  nid: number;
+  first?: boolean;
+  replyTime: number;
+  naturalReplyTime: number;
+  authorReplyTime: number;
 }
 
 export class TicketStats extends Model {
@@ -68,13 +79,7 @@ export class TicketStats extends Model {
   naturalReplyCount?: number;
 
   @field()
-  replyDetails?: {
-    "id": string,
-    "nid": number,
-    "replyTime": number,
-    "naturalReplyTime": number,
-    "authorReplyTime": number
-  }[]
+  replyDetails?: ReplyDetail[]
 
   static async fetchTicketStats(params: {
     from: Date;
@@ -149,6 +154,57 @@ export class TicketStats extends Model {
       return [...pickData, ...nextData]
     }
     return pickData;
+  }
+
+  static async fetchReplyDetails(params: {
+    from: Date;
+    to: Date;
+    field: string,
+    customerServiceId?: string;
+    categoryId?: string;
+  }, limit = 100, skip = 0): Promise<Pick<ReplyDetail, 'id' | 'nid' | 'replyTime'>[]> {
+    const query = new AV.Query(this.className)
+      .select('replyDetails')
+      .greaterThanOrEqualTo('date', params.from)
+      .lessThanOrEqualTo('date', params.to)
+      .limit(limit)
+      .skip(skip)
+    if (params.categoryId) {
+      query.equalTo('category', Category.ptr(params.categoryId))
+    } else {
+      query.doesNotExist('category')
+    }
+    if (params.customerServiceId) {
+      query.equalTo('customerService', User.ptr(params.customerServiceId))
+    } else {
+      query.doesNotExist('customerService')
+    }
+    const data = await query.find({ useMasterKey: true })
+    const details = _(data).map(v => {
+      let replyDetails: ReplyDetail[] = v.get('replyDetails')
+      if (params.field === 'firstReplyTime') {
+        replyDetails = replyDetails.filter(v => v.first)
+      }
+      return replyDetails.map(({ id, nid, ...rest }) => {
+        let replyTime = params.customerServiceId ? rest.authorReplyTime : rest.replyTime;
+        if (params.field === 'naturalReplyTime') {
+          replyTime = rest.naturalReplyTime
+        }
+        return {
+          id,
+          nid,
+          replyTime
+        }
+      })
+    }).flatMap().valueOf()
+    if (data.length === limit) {
+      const nextData = await TicketStats.fetchReplyDetails(params, limit, limit + skip);
+      if (!nextData) {
+        return details;
+      }
+      return [...details, ...nextData]
+    }
+    return details;
   }
 }
 

@@ -1,4 +1,6 @@
 import Router from '@koa/router';
+import _ from 'lodash';
+
 import * as yup from '@/utils/yup';
 import { auth, customerServiceOnly } from '@/middleware';
 import { TicketStats } from '@/model/TicketStats';
@@ -7,13 +9,13 @@ import { TicketStatusStats } from '@/model/TicketStatusStats';
 import { TicketStatusStatsResponse } from '@/response/ticket-stats';
 const router = new Router().use(auth, customerServiceOnly);
 
-const statsSchema = yup.object({
+const BaseSchema = {
   from: yup.date().required(),
   to: yup.date().required(),
   category: yup.string().optional(),
   customerService: yup.string().optional(),
-});
-
+}
+const statsSchema = yup.object().shape(BaseSchema)
 const getCategoryIds = (categoryId?: string) => {
   if (!categoryId) {
     return;
@@ -37,11 +39,8 @@ router.get('/',
 );
 
 
-const fieldStatsSchema = yup.object({
-  from: yup.date().required(),
-  to: yup.date().required(),
-  category: yup.string().optional(),
-  customerService: yup.string().optional(),
+const fieldStatsSchema = yup.object().shape({
+  ...BaseSchema,
   fields: yup.string().required(),
 });
 router.get('/fields', async (ctx) => {
@@ -56,10 +55,7 @@ router.get('/fields', async (ctx) => {
   ctx.body = data;
 })
 
-const statusSchema = yup.object({
-  from: yup.date().required(),
-  to: yup.date().required()
-});
+const statusSchema = yup.object(_.pick(BaseSchema, 'from', 'to'));
 router.get('/status', async (ctx) => {
   const { from, to } = statusSchema.validateSync(ctx.query);
   const data = await TicketStatusStats.fetchTicketStatus({
@@ -67,6 +63,21 @@ router.get('/status', async (ctx) => {
     to
   })
   ctx.body = data.map(value => new TicketStatusStatsResponse(value));
+})
+
+
+const detailSchema = yup.object().shape({
+  ...BaseSchema,
+  field: yup.string().required(),
+});
+router.get('/details', async (ctx) => {
+  const { category, customerService, ...rest } = detailSchema.validateSync(ctx.query);
+  const data = await TicketStats.fetchReplyDetails({
+    ...rest,
+    customerServiceId: customerService,
+    categoryId: category
+  })
+  ctx.body = data || [];
 })
 
 export default router;

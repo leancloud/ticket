@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import moment from 'moment';
-import _, { omit } from 'lodash';
+import _ from 'lodash';
 
 import { useSearchParams } from '@/utils/useSearchParams';
 import { TableOutlined, PieChartOutlined } from '@ant-design/icons';
@@ -9,8 +9,9 @@ import { useCategories } from '@/api/category';
 import { useCustomerServices } from '@/api/customer-service';
 import { StatsField, STATS_FIELD_LOCALE, useRangePicker, useFilterData } from './utils';
 import { StatsPie, StatsColumn } from './Chart';
-import { Popover, Radio, Table } from '@/components/antd';
+import { Button, Popover, Radio, Table, TableProps } from '@/components/antd';
 import { useActiveField } from './StatsPage';
+import ReplyDetails, { ModalRef } from './ReplyDetails';
 
 type displayMode = 'pieChart' | 'table';
 
@@ -21,6 +22,11 @@ const avgFieldMap: {
   naturalReplyTimeAVG: ['naturalReplyTime', 'naturalReplyCount'],
   replyTimeAVG: ['replyTime', 'replyTimeCount'],
   firstReplyTimeAVG: ['firstReplyTime', 'firstReplyCount'],
+};
+
+export const formatTime = (value: number | string) => {
+  value = Number(value);
+  return `${value === 0 ? 0 : (value / 3600).toFixed(2)}  小时`;
 };
 
 const valueTransform = (value: [string | Date, Record<string, number>], field: StatsField) => {
@@ -97,29 +103,15 @@ const TicketStatsColumn = () => {
       }, [] as Array<[string, Record<string, number>]>);
   }, [filteredData, rollup]);
 
-  console.log('chartData', chartData);
-
-  const xAxisDisplay = useMemo(() => {
-    if (timeField.includes(field)) {
-      return (value: number) => {
-        const hours = value / 3600;
-        if (hours < 1) {
-          return `${hours.toFixed(2)} 小时`;
-        }
-        return `${hours.toFixed(2)} 小时`;
-      };
-    }
-    return;
-  }, [field]);
-
+  const isTimeField = timeField.includes(field);
   return (
     <StatsColumn
       loading={isFetching || isLoading}
       data={chartData}
-      tickInterval={timeField.includes(field) ? 3600 : undefined}
+      tickInterval={isTimeField ? 3600 : undefined}
       formatters={{
         yAxisTick: (value) => {
-          if (timeField.includes(field)) {
+          if (isTimeField) {
             const displayValue = Number(value) / 3600;
             return `${displayValue} h`;
           }
@@ -140,7 +132,7 @@ const TicketStatsColumn = () => {
             return date.format('MM-DD HH:mm');
           }
         },
-        xAxisDisplay,
+        xAxisDisplay: isTimeField ? formatTime : undefined,
         titleDisplay: (value) =>
           moment(value).format(rollup === 'day' ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm'),
       }}
@@ -172,11 +164,6 @@ const getPercentaget = (value: number | string, total = 1) => {
   return ((value / total) * 100).toFixed(2) + '%';
 };
 
-const formatTime = (value: number | string) => {
-  value = Number(value);
-  return (value / 3600).toFixed(2) + ' 小时';
-};
-
 const usePieChartData = (groupByKey: string, data?: TicketFieldStat[]) => {
   const [field] = useActiveField();
   return useMemo(() => {
@@ -200,19 +187,25 @@ const useTableData = (groupByKey: string, data?: TicketFieldStat[]) => {
       .map((values, key) => {
         switch (field) {
           case 'firstReplyTimeAVG':
+            const firstReplyCount = _.sumBy(values, 'firstReplyCount');
             return {
               [groupByKey]: key,
-              value: _.sumBy(values, 'firstReplyTime') / _.sumBy(values, 'firstReplyCount'),
+              value: _.sumBy(values, 'firstReplyTime') / firstReplyCount,
+              count: firstReplyCount,
             };
           case 'replyTimeAVG':
+            const replyTimeCount = _.sumBy(values, 'replyTimeCount');
             return {
               [groupByKey]: key,
-              value: _.sumBy(values, 'replyTime') / _.sumBy(values, 'replyTimeCount'),
+              value: _.sumBy(values, 'replyTime') / replyTimeCount,
+              count: replyTimeCount,
             };
           case 'naturalReplyTimeAVG':
+            const naturalReplyCount = _.sumBy(values, 'naturalReplyCount');
             return {
               [groupByKey]: key,
-              value: _.sumBy(values, 'naturalReplyTime') / _.sumBy(values, 'naturalReplyCount'),
+              value: _.sumBy(values, 'naturalReplyTime') / naturalReplyCount,
+              count: naturalReplyCount,
             };
           default:
             return {
@@ -221,7 +214,13 @@ const useTableData = (groupByKey: string, data?: TicketFieldStat[]) => {
             };
         }
       })
-      .orderBy(['value'], 'desc')
+      .orderBy(['value'], timeField.includes(field) ? 'asc' : 'desc')
+      .map((v) => {
+        return {
+          ...v,
+          id: v[groupByKey],
+        };
+      })
       .valueOf();
   }, [groupByKey, data, field]);
 };
@@ -240,6 +239,97 @@ const usePagination = () => {
   };
 };
 
+const TableView = ({
+  data,
+  loading,
+  groupKey,
+  names,
+}: {
+  data?: TicketFieldStat[];
+  loading: boolean;
+  groupKey: 'categoryId' | 'customerServiceId';
+  names: (v?: string) => string;
+}) => {
+  const [field] = useActiveField();
+  const tableData = useTableData(groupKey, data);
+  const pagination = usePagination();
+  const isTimeField = useMemo(() => timeField.includes(field), [field]);
+  const modalRef = useRef<ModalRef>(null);
+
+  const columns = useMemo(() => {
+    const _columns: TableProps<{
+      id: string | number;
+      value: number;
+      count?: number;
+      customerServiceId?: string;
+      categoryId?: string;
+    }>['columns'] = [
+      {
+        title: '排名',
+        dataIndex: 'index',
+        key: 'index',
+        render: (v, obj, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
+      },
+      {
+        title: groupKey === 'categoryId' ? '分类' : '客服',
+        dataIndex: groupKey,
+        key: groupKey,
+        render: (value) => names(value),
+      },
+      {
+        title: STATS_FIELD_LOCALE[field],
+        dataIndex: 'value',
+        key: 'value',
+        render: (value) => (isTimeField ? formatTime(value) : `${value}`),
+        sorter: (a, b) => a.value - b.value,
+      },
+    ];
+    if (isTimeField) {
+      _columns.push({
+        title: '回复数',
+        dataIndex: 'count',
+        key: 'count',
+        defaultSortOrder: 'descend',
+        render: (value, rowData) => {
+          return (
+            <>
+              <span className="inline-block min-w-[30px]">{value}</span>
+              <Button
+                size="small"
+                className="ml-4"
+                onClick={() =>
+                  modalRef.current?.show({
+                    categoryId: rowData.categoryId,
+                    customerServiceId: rowData.customerServiceId,
+                  })
+                }
+              >
+                查看详情
+              </Button>
+            </>
+          );
+        },
+        sorter: (a, b) => a.count! - b.count!,
+      });
+    }
+    return _columns;
+  }, [pagination, names, isTimeField]);
+
+  return (
+    <>
+      <Table
+        className="w-full p-4"
+        loading={loading}
+        rowKey={(v) => v.id}
+        pagination={tableData.length < 10 ? false : pagination}
+        columns={columns}
+        dataSource={tableData}
+      />
+      <ReplyDetails ref={modalRef} />
+    </>
+  );
+};
+
 const CategoryStats: React.FunctionComponent<{ displayMode: displayMode }> = ({ displayMode }) => {
   const [field] = useActiveField();
   const [{ from, to }] = useRangePicker();
@@ -252,42 +342,19 @@ const CategoryStats: React.FunctionComponent<{ displayMode: displayMode }> = ({ 
     category: '*',
     customerService: customerService,
   });
-  const pagination = usePagination();
   const categoryFormat = useMemo(() => {
     const categoryMap = _.mapValues(_.keyBy(categories || [], 'id'), 'name');
     return (value?: string) => (value ? categoryMap[value] : 'none');
   }, [categories]);
   const total = useMemo(() => (data ? _.sumBy(data, field) : 1), [data]);
-  const tableData = useTableData('categoryId', data);
   const chartData = usePieChartData('categoryId', data);
   if (displayMode === 'table') {
     return (
-      <Table
-        className="w-full p-4"
-        loading={isLoading || isFetching}
-        rowKey={(v) => v.categoryId}
-        pagination={pagination}
-        columns={[
-          {
-            title: '排名',
-            dataIndex: 'index',
-            key: 'index',
-            render: (v, obj, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
-          },
-          {
-            title: '分类',
-            dataIndex: 'categoryId',
-            key: 'categoryId',
-            render: (value) => categoryFormat(value),
-          },
-          {
-            title: STATS_FIELD_LOCALE[field],
-            dataIndex: 'value',
-            key: 'value',
-            render: (value) => (timeField.includes(field) ? formatTime(value) : `${value}`),
-          },
-        ]}
-        dataSource={tableData}
+      <TableView
+        loading={isFetching || isLoading}
+        data={data}
+        names={categoryFormat}
+        groupKey="categoryId"
       />
     );
   }
@@ -317,7 +384,6 @@ const CustomerServiceStats: React.FunctionComponent<{ displayMode: displayMode }
     category,
     customerService: '*',
   });
-  const pagination = usePagination();
   const customerServiceFormat = useMemo(() => {
     const customerServiceMap = _.mapValues(
       _.keyBy(customerServices || [], 'id'),
@@ -326,33 +392,14 @@ const CustomerServiceStats: React.FunctionComponent<{ displayMode: displayMode }
     return (value?: string | number | null) => (value ? customerServiceMap[value] : 'none');
   }, [customerServices]);
   const total = useMemo(() => (data ? _.sumBy(data, field) : 0), [data]);
-  const tableData = useTableData('customerServiceId', data);
   const chartData = usePieChartData('customerServiceId', data);
   if (displayMode === 'table') {
     return (
-      <Table
-        className="p-4 w-full"
-        pagination={pagination}
-        loading={isLoading || isFetching}
-        rowKey={(v) => v.customerServiceId}
-        columns={[
-          {
-            title: '排名',
-            dataIndex: 'customerServiceId',
-            render: (v, obj, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
-          },
-          {
-            title: '客服',
-            dataIndex: 'customerServiceId',
-            render: (value) => customerServiceFormat(value),
-          },
-          {
-            title: STATS_FIELD_LOCALE[field],
-            dataIndex: 'value',
-            render: (value) => (timeField.includes(field) ? formatTime(value) : value),
-          },
-        ]}
-        dataSource={tableData}
+      <TableView
+        loading={isFetching || isLoading}
+        data={data}
+        names={customerServiceFormat}
+        groupKey="customerServiceId"
       />
     );
   }
