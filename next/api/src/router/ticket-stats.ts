@@ -7,6 +7,7 @@ import { TicketStats } from '@/model/TicketStats';
 import { CategoryService } from '@/service/category';
 import { TicketStatusStats } from '@/model/TicketStatusStats';
 import { TicketStatusStatsResponse } from '@/response/ticket-stats';
+import { Reply } from '@/model/Reply';
 const router = new Router().use(auth, customerServiceOnly);
 
 const BaseSchema = {
@@ -80,4 +81,17 @@ router.get('/details', async (ctx) => {
   ctx.body = data || [];
 })
 
+const activeTicketCountSchema = yup.object().shape({
+  from: yup.date().required(),
+  to: yup.date().required(),
+});
+router.get('/count', async (ctx) => {
+  const params = activeTicketCountSchema.validateSync(ctx.query);
+  const data = await TicketStats.fetchReplyDetails({
+    ...params,
+    field: 'naturalReplyTime',
+    customerServiceId: '*',
+  })
+  ctx.body = _(data).groupBy('nid').keys().valueOf().length;
+})
 export default router;
