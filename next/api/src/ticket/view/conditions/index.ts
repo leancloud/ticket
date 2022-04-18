@@ -20,6 +20,7 @@ import {
   SinceWaitingCustomerServiceLt,
 } from './sinceWaitingCustomerService';
 import { StatusIs, StatusIsNot } from './status';
+import { TagsContains } from './tags';
 
 interface ViewConditionConstructor<T> {
   new (data: T): ViewCondition<T>;
@@ -76,6 +77,9 @@ const viewConditionTypes: Record<string, Record<string, ViewConditionConstructor
   status: {
     is: StatusIs,
     isNot: StatusIsNot,
+  },
+  tags: {
+    contains: TagsContains,
   },
 };
 

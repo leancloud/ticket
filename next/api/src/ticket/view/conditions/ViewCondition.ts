@@ -26,18 +26,7 @@ export abstract class ViewCondition<T> {
 
   abstract getZodSchema(): Schema<T>;
 
-  validate(): ZodError<T> | undefined {
-    const schema = this.getZodSchema();
-    const result = schema.safeParse(this.data);
-    if (!result.success) {
-      return result.error;
-    }
-  }
-
-  assertDataIsValid() {
-    const error = this.validate();
-    if (error) {
-      throw error;
-    }
+  safeParse() {
+    return this.getZodSchema().safeParse(this.data);
   }
 }
