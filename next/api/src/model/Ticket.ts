@@ -185,9 +185,11 @@ export class Ticket extends Model {
   metaData?: Record<string, any>;
 
   @field()
+  @serialize()
   tags?: Tag[];
 
   @field()
+  @serialize()
   privateTags?: Tag[];
 
   @hasManyThroughPointer(() => Notification)
