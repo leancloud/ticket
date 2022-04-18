@@ -149,9 +149,9 @@ const StatCards = () => {
 
       <Card
         loading={countFetching || countLoading}
-        className={classnames('!m-1 basis-52 grow-0 shrink-0 cursor-pointer')}
+        className="!m-1 basis-52 grow-0 shrink-0 cursor-not-allowed"
       >
-        <Statistic loading={isFetching || isLoading} title="回复工单数" value={count} />
+        <Statistic loading={countFetching || countLoading} title="活跃工单数" value={count} />
       </Card>
     </div>
   );
