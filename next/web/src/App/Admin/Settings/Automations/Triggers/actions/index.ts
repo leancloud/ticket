@@ -1,6 +1,6 @@
-import { AddTag } from '../../actions/AddTag';
 import { UpdateCategoryId } from '../../actions/UpdateCategoryId';
 import { UpdateGroupId } from '../../actions/UpdateGroupId';
+import { TagSelect } from '../../components/TagSelect';
 
 import { UpdateAssigneeId } from './UpdateAssigneeId';
 
@@ -22,6 +22,6 @@ export default {
   },
   addTag: {
     label: '添加标签',
-    component: AddTag,
+    component: TagSelect,
   },
 };

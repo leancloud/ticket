@@ -3,7 +3,7 @@ import { Controller, useFormContext, useWatch } from 'react-hook-form';
 import { useTagMetadatas } from '@/api/tag-metadata';
 import { Form, Select } from '@/components/antd';
 
-export function AddTag({ path }: { path: string }) {
+export function TagSelect({ path }: { path: string }) {
   const { setValue, register } = useFormContext();
 
   useEffect(() => {
