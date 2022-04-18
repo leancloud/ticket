@@ -1,8 +1,8 @@
-import { useState, useImperativeHandle, forwardRef, useMemo, useCallback, useRef } from 'react';
-import { Button, Modal, Table, TableProps } from '@/components/antd';
+import { useState, useImperativeHandle, forwardRef, useMemo, useCallback } from 'react';
+import { Button, Modal, Table } from '@/components/antd';
 
 import { useSearchParams } from '@/utils/useSearchParams';
-import { useReplyDetails } from '@/api/ticket-stats';
+import { ReplyDetail, useReplyDetails } from '@/api/ticket-stats';
 
 import { useActiveField } from './StatsPage';
 import { useRangePicker } from './utils';
@@ -20,7 +20,7 @@ const fieldMap: Record<string, string> = {
 
 const ReplyDetails = forwardRef<ModalRef>((props, ref) => {
   const [open, setOpen] = useState(false);
-  const [expandedRows, setExpandedRows] = useState<string[]>([]);
+  const [rows, setRows] = useState<string[]>([]);
   const [queryParams, setQueryParams] = useState<{
     categoryId?: string;
     customerServiceId?: string;
@@ -65,15 +65,27 @@ const ReplyDetails = forwardRef<ModalRef>((props, ref) => {
       .groupBy('nid')
       .entries()
       .map((v) => {
-        return {
-          id: v[0],
-          replyTime: _.sumBy(v[1], 'replyTime') / v[1].length,
-          children: _.orderBy(v[1], 'replyTime', 'desc'),
-        };
+        if (v[1].length > 1) {
+          return {
+            isMaster: true,
+            nid: v[0],
+            id: v[0],
+            replyTime: _.sumBy(v[1], 'replyTime') / v[1].length,
+            children: _.orderBy(v[1], 'replyTime', 'desc'),
+          };
+        } else {
+          return {
+            isMaster: true,
+            nid: v[0],
+            id: v[1][0].id,
+            replyTime: v[1][0].replyTime,
+          };
+        }
       })
       .orderBy('replyTime', 'desc')
       .valueOf();
   }, [data]);
+
   return (
     <Modal
       title="回复详情"
@@ -94,7 +106,7 @@ const ReplyDetails = forwardRef<ModalRef>((props, ref) => {
         dataSource={displayData}
         expandable={{
           expandRowByClick: true,
-          onExpandedRowsChange: (rows) => setExpandedRows(rows as string[]),
+          onExpandedRowsChange: (values) => setRows(values as string[]),
         }}
         columns={[
           {
@@ -103,23 +115,20 @@ const ReplyDetails = forwardRef<ModalRef>((props, ref) => {
             key: 'id',
             ellipsis: true,
             render: (
-              value: string,
+              value,
               obj: {
                 id: string;
-                nid?: string;
+                nid: string;
                 replyTime: number;
+                isMaster?: boolean;
               }
             ) => {
-              if (obj.nid !== undefined) {
-                return (
-                  <a href={`/tickets/${obj.nid}#${value}`} target={'_blank'}>
-                    {obj.nid}#{value.substring(0, 6)}...
-                  </a>
-                );
-              }
+              const link =
+                obj.nid === obj.id ? `/tickets/${obj.nid}` : `/tickets/${obj.nid}#${obj.id}`;
+              const title = obj.isMaster ? obj.nid : `${obj.nid}#${obj.id.slice(0, 6)}`;
               return (
-                <a href={`/tickets/${value}`} target={'_blank'}>
-                  {value}
+                <a href={link} title={link} target={'_blank'}>
+                  {title}
                 </a>
               );
             },
@@ -129,11 +138,10 @@ const ReplyDetails = forwardRef<ModalRef>((props, ref) => {
             dataIndex: 'replyTime',
             key: 'replyTime',
             render: (value, obj) => {
-              if (obj.nid !== undefined) {
-                return formatTime(value);
-              } else {
-                return expandedRows.includes(obj.id) ? null : formatTime(value);
+              if (obj.id === obj.nid && rows.includes(obj.nid)) {
+                return null;
               }
+              return formatTime(value);
             },
           },
         ]}
