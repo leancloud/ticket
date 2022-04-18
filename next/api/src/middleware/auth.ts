@@ -22,7 +22,6 @@ export const auth: Middleware = async (ctx, next) => {
   if (anonymousId) {
     const user = await User.findByAnonymousId(anonymousId);
     if (!user) {
-      console.log('x-anonymous-id user not found');
       ctx.throw(401, '未找到该 Anonymous ID 对应的用户，该用户可能从未使用过客服功能。', {
         code: 'INVALID_ANONYMOUS_ID',
       });
