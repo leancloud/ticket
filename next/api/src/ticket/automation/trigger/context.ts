@@ -1,4 +1,4 @@
-import { Ticket } from '@/model/Ticket';
+import { Tag, Ticket } from '@/model/Ticket';
 import { Reply } from '@/model/Reply';
 
 import { Context } from '../context';
@@ -12,6 +12,8 @@ export interface UpdatedData {
   groupId?: string | null;
   evaluation?: { star: number; content: string };
   status?: number;
+  tags?: Tag[];
+  privateTags?: Tag[];
 }
 
 export interface TriggerContextConfig {
@@ -67,5 +69,13 @@ export class TriggerContext extends Context {
 
   getStatus(): number {
     return this.dirtyData.status ?? this.updatedData?.status ?? this.ticket.status;
+  }
+
+  getTags(): Tag[] | undefined {
+    return this.dirtyData.tags ?? this.updatedData?.tags ?? this.ticket.tags;
+  }
+
+  getPrivateTags(): Tag[] | undefined {
+    return this.dirtyData.privateTags ?? this.updatedData?.privateTags ?? this.ticket.privateTags;
   }
 }

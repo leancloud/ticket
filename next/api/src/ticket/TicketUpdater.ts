@@ -264,6 +264,8 @@ export class TicketUpdater {
         groupId: this.data.groupId,
         evaluation: this.data.evaluation ?? undefined,
         status: this.data.status as number | undefined,
+        tags: Array.isArray(this.data.tags) ? this.data.tags : undefined,
+        privateTags: Array.isArray(this.data.privateTags) ? this.data.privateTags : undefined,
       },
       currentUserId: operator.id,
       ignoreTrigger: options?.ignoreTrigger,
