@@ -12,7 +12,7 @@ import { BsX } from 'react-icons/bs';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { Link } from 'react-router-dom';
 import cx from 'classnames';
-import { pick } from 'lodash-es';
+import { pick, set } from 'lodash-es';
 
 import { useCurrentUser } from '@/leancloud';
 import { Button, Form, FormInstance, Input, Radio, Select } from '@/components/antd';
@@ -102,8 +102,8 @@ interface ConditionProps {
 }
 
 function Condition({ name, deleteable, onDelete }: ConditionProps) {
-  const { control, setValue } = useFormContext();
-  const [type, op] = useWatch({ control, name: [`${name}.type`, `${name}.op`] });
+  const { getValues, reset } = useFormContext();
+  const [type, op] = useWatch({ name: [`${name}.type`, `${name}.op`] });
 
   const ops = useMemo(() => {
     if (type) {
@@ -125,13 +125,19 @@ function Condition({ name, deleteable, onDelete }: ConditionProps) {
     return [undefined, undefined];
   }, [ops, op]);
 
+  const HookComponent = useMemo(() => {
+    if (ops && op) {
+      return ops.find((t) => t.value === op)?.hookComponent;
+    }
+  }, [ops, op]);
+
   return (
     <div
       className={cx('flex mb-4', {
         'pr-8': !deleteable,
       })}
     >
-      <div className={cx(style.conditionGroup, 'grow grid grid-cols-3 gap-2')}>
+      <div className={cx(style.conditionGroup, 'grow grid grid-cols-4 gap-2')}>
         <Controller
           name={`${name}.type`}
           rules={{ required: '请填写此字段' }}
@@ -142,9 +148,9 @@ function Condition({ name, deleteable, onDelete }: ConditionProps) {
                 placeholder="请选择字段"
                 options={typeOptions}
                 onChange={(type) => {
-                  field.onChange(type);
-                  setValue(`${name}.op`, undefined);
-                  setValue(`${name}.value`, undefined);
+                  const values = getValues();
+                  const nextValues = set(values, name, { type });
+                  reset(nextValues);
                 }}
               />
             </Form.Item>
@@ -160,8 +166,9 @@ function Condition({ name, deleteable, onDelete }: ConditionProps) {
                   {...field}
                   options={opOptions}
                   onChange={(op) => {
-                    field.onChange(op);
-                    setValue(`${name}.value`, undefined);
+                    const values = getValues();
+                    const nextValues = set(values, name, { type, op });
+                    reset(nextValues);
                   }}
                 />
               </Form.Item>
@@ -170,7 +177,6 @@ function Condition({ name, deleteable, onDelete }: ConditionProps) {
         )}
         {ValueComponent && (
           <Controller
-            key={`${type}.${op}`}
             name={`${name}.value`}
             rules={{ required: '请填写此字段' }}
             render={({ field, fieldState: { error } }) => (
@@ -180,6 +186,7 @@ function Condition({ name, deleteable, onDelete }: ConditionProps) {
             )}
           />
         )}
+        {HookComponent && <HookComponent name={name} />}
       </div>
       {deleteable && (
         <button className="ml-2 mt-2 w-5 h-5" type="button" onClick={onDelete}>
