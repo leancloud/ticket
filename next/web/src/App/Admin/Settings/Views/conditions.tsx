@@ -7,20 +7,22 @@ import {
   GroupSelect,
   StatusSelect,
 } from '@/components/common';
+import { TagSelect } from './components/TagSelect';
 
 interface ValueComponentProps {
   value: any;
   onChange: (value: any) => void;
 }
 
-export interface Op {
+interface Op {
   label: string;
   value: string;
-  component: JSXElementConstructor<ValueComponentProps>;
+  component?: JSXElementConstructor<ValueComponentProps>;
   componentProps?: Record<string, any>;
+  hookComponent?: JSXElementConstructor<{ name: string }>;
 }
 
-export interface Condition {
+interface Condition {
   label: string;
   value: string;
   ops: Op[];
@@ -128,6 +130,17 @@ export const conditions: Condition[] = [
         label: '不是',
         value: 'isNot',
         component: StatusSelect,
+      },
+    ],
+  },
+  {
+    label: '标签',
+    value: 'tags',
+    ops: [
+      {
+        label: '包含',
+        value: 'contains',
+        hookComponent: TagSelect,
       },
     ],
   },

@@ -3,14 +3,13 @@ import QuickLRU from 'quick-lru';
 
 import { createQueue } from '@/queue';
 import events from '@/events';
-import { Reply } from '@/model/Reply';
 import { Ticket } from '@/model/Ticket';
 import { Trigger as TriggerModel } from '@/model/Trigger';
 
 import { Action, Condition } from '..';
 import { condition as conditionFactory } from './condition';
 import { action as actionFactory } from './action';
-import { TriggerContext, UpdatedData } from './context';
+import { TriggerContext } from './context';
 
 export class Trigger {
   constructor(private condition: Condition, private actions: Action[]) {}
@@ -75,25 +74,25 @@ async function runTriggers(ctx: TriggerContext) {
 interface TicketCreatedJob {
   event: 'created';
   currentUserId: string;
-  ticket: any;
+  ticketId: string;
 }
 
 interface TicketUpdatedJob {
   event: 'updated';
   currentUserId: string;
-  ticket: any;
-  updateData: UpdatedData;
+  ticketId: string;
 }
 
 interface TicketRepliedJob {
   event: 'replied';
   currentUserId: string;
-  reply: any;
+  ticketId: string;
+  replyId: string;
 }
 
 type JobData = TicketCreatedJob | TicketUpdatedJob | TicketRepliedJob;
 
-const queue = createQueue<JobData>('trigger', {
+const queue = createQueue<JobData>('trigger:v2', {
   limiter: {
     max: 100,
     duration: 5000,
@@ -107,7 +106,7 @@ events.on('ticket:created', (ctx) => {
   queue.add({
     event: 'created',
     currentUserId: ctx.currentUserId,
-    ticket: ctx.ticket,
+    ticketId: ctx.ticket.id,
   });
 });
 
@@ -122,8 +121,7 @@ events.on('ticket:updated', (ctx) => {
   queue.add({
     event: 'updated',
     currentUserId: ctx.currentUserId,
-    ticket: ctx.originalTicket,
-    updateData: ctx.data,
+    ticketId: ctx.originalTicket.id,
   });
 });
 
@@ -131,7 +129,8 @@ events.on('reply:created', (ctx) => {
   queue.add({
     event: 'replied',
     currentUserId: ctx.currentUserId,
-    reply: ctx.reply,
+    ticketId: ctx.reply.ticketId,
+    replyId: ctx.reply.id,
   });
 });
 
@@ -147,26 +146,33 @@ queue.process((job) => {
 });
 
 async function processTicketCreated(job: TicketCreatedJob) {
+  const ticket = await Ticket.find(job.ticketId, { useMasterKey: true });
+  if (!ticket) {
+    return;
+  }
   const ctx = new TriggerContext({
     event: 'created',
-    ticket: Ticket.fromJSON(job.ticket),
+    ticket,
     currentUserId: job.currentUserId,
   });
   await runTriggers(ctx);
 }
 
 async function processTicketUpdated(job: TicketUpdatedJob) {
+  const ticket = await Ticket.find(job.ticketId, { useMasterKey: true });
+  if (!ticket) {
+    return;
+  }
   const ctx = new TriggerContext({
     event: 'updated',
-    ticket: Ticket.fromJSON(job.ticket),
+    ticket,
     currentUserId: job.currentUserId,
-    updatedData: job.updateData,
   });
   await runTriggers(ctx);
 }
 
 async function processTicketReplied(job: TicketRepliedJob) {
-  const ticket = await Ticket.find(job.reply.ticketId, { useMasterKey: true });
+  const ticket = await Ticket.find(job.ticketId, { useMasterKey: true });
   if (!ticket || isClosed(ticket.status)) {
     return;
   }
@@ -174,7 +180,6 @@ async function processTicketReplied(job: TicketRepliedJob) {
     event: 'replied',
     ticket,
     currentUserId: job.currentUserId,
-    reply: Reply.fromJSON(job.reply),
   });
   await runTriggers(ctx);
 }

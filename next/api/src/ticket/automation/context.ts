@@ -11,6 +11,8 @@ export interface DirtyData {
   assigneeId?: string | null;
   groupId?: string | null;
   status?: number;
+  tags?: Tag[];
+  privateTags?: Tag[];
 }
 
 export class Context {
@@ -107,11 +109,27 @@ export class Context {
     this.updater.operate('close');
   }
 
+  getTags() {
+    return this.dirtyData.tags ?? this.ticket.tags;
+  }
+
   addTag(tag: Tag) {
+    if (!this.dirtyData.tags) {
+      this.dirtyData.tags = this.ticket.tags?.slice() ?? [];
+    }
+    this.dirtyData.tags.push(tag);
     this.updater.addTag(tag);
   }
 
+  getPrivateTags() {
+    return this.dirtyData.privateTags ?? this.ticket.privateTags;
+  }
+
   addPrivateTag(tag: Tag) {
+    if (!this.dirtyData.privateTags) {
+      this.dirtyData.privateTags = this.ticket.privateTags?.slice() ?? [];
+    }
+    this.dirtyData.privateTags.push(tag);
     this.updater.addPrivateTag(tag);
   }
 

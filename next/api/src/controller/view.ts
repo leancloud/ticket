@@ -34,11 +34,12 @@ import { TicketListItemResponse } from '@/response/ticket';
 import { createViewCondition } from '@/ticket/view';
 import { ViewConditionContext } from '@/ticket/view/conditions/ViewCondition';
 
-const conditionSchema = z.object({
-  type: z.string(),
-  op: z.string(),
-  value: z.any(),
-});
+const conditionSchema = z
+  .object({
+    type: z.string(),
+    op: z.string(),
+  })
+  .passthrough();
 
 const conditionsSchema = z.object({
   all: z.array(conditionSchema),
@@ -309,17 +310,23 @@ export class ViewController {
     }
   }
 
-  async assertConditionIsValid(conditions: z.infer<typeof conditionsSchema>) {
+  assertConditionIsValid(conditions: z.infer<typeof conditionsSchema>) {
     const validate = (path: string, cond: any) => {
       const vc = createViewCondition(cond);
-      const error = vc.validate();
-      if (error) {
-        const issue = error.issues[0];
+      const result = vc.safeParse();
+      if (result.success) {
+        return {
+          ...result.data,
+          type: cond.type,
+          op: cond.op,
+        };
+      } else {
+        const issue = result.error.issues[0];
         throw new HttpError(400, `${[path, ...issue.path].join('.')}: ${issue.message}`);
       }
     };
 
-    conditions.all.forEach((cond) => validate('conditions.all', cond));
-    conditions.any.forEach((cond) => validate('conditions.any', cond));
+    conditions.all = conditions.all.map((cond, i) => validate(`conditions.all.${i}`, cond));
+    conditions.any = conditions.any.map((cond, i) => validate(`conditions.any.${i}`, cond));
   }
 }

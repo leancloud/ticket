@@ -3,6 +3,7 @@ import { CategoryId } from '../../conditions/CategoryId';
 import { GroupId } from '../../conditions/GroupId';
 import { Status } from '../../conditions/Status';
 import { MetaData } from '../../conditions/MetaData';
+import { Tags } from '../../conditions/Tags';
 
 import { Ticket } from './Ticket';
 import { AuthorId } from './AuthorId';
@@ -49,5 +50,9 @@ export default {
   metaData: {
     label: 'metaData',
     component: MetaData,
+  },
+  tags: {
+    label: '标签',
+    component: Tags,
   },
 };

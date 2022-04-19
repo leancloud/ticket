@@ -1,20 +1,20 @@
 import { useEffect, useMemo } from 'react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
-import { useTagMetadatas } from '@/api/tag-metadata';
 import { Form, Select } from '@/components/antd';
+import { useTagMetadatas } from '@/api/tag-metadata';
 
-export function AddTag({ path }: { path: string }) {
-  const { setValue, register } = useFormContext();
+export function TagSelect({ name }: { name: string }) {
+  const { register, setValue } = useFormContext();
 
   useEffect(() => {
-    register(`${path}.private`);
+    register(`${name}.private`);
   }, []);
 
-  const tagKey = useWatch({ name: `${path}.key` });
+  const tagKey = useWatch({ name: `${name}.key` });
 
   const { data } = useTagMetadatas();
 
-  const tagKeyoptions = useMemo(() => {
+  const tagKeyOptions = useMemo(() => {
     return data?.filter((t) => t.type === 'select').map(({ key }) => ({ label: key, value: key }));
   }, [data]);
 
@@ -29,21 +29,20 @@ export function AddTag({ path }: { path: string }) {
   return (
     <>
       <Controller
-        name={`${path}.key`}
-        rules={{ required: true }}
+        name={`${name}.key`}
+        rules={{ required: '请填写此字段' }}
         render={({ field, fieldState: { error } }) => (
-          <Form.Item validateStatus={error ? 'error' : undefined}>
+          <Form.Item validateStatus={error ? 'error' : undefined} help={error?.message}>
             <Select
               {...field}
               placeholder="标签"
-              options={tagKeyoptions}
+              options={tagKeyOptions}
               onChange={(key) => {
                 field.onChange(key);
-                setValue(`${path}.value`, undefined);
                 const tag = data!.find((t) => t.key === key);
-                setValue(`${path}.private`, tag!.private);
+                setValue(`${name}.private`, tag!.private);
+                setValue(`${name}.value`, undefined);
               }}
-              style={{ width: 200 }}
             />
           </Form.Item>
         )}
@@ -51,16 +50,11 @@ export function AddTag({ path }: { path: string }) {
 
       {currentTag && (
         <Controller
-          name={`${path}.value`}
-          rules={{ required: true }}
+          name={`${name}.value`}
+          rules={{ required: '请填写此字段' }}
           render={({ field, fieldState: { error } }) => (
             <Form.Item validateStatus={error ? 'error' : undefined}>
-              <Select
-                {...field}
-                placeholder="值"
-                options={tagValueOptions}
-                style={{ width: 200 }}
-              />
+              <Select {...field} placeholder="值" options={tagValueOptions} />
             </Form.Item>
           )}
         />
