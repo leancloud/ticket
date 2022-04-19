@@ -1,4 +1,3 @@
-import { Tag } from '@/model/Ticket';
 import EventEmitter from 'eventemitter3';
 
 export interface Ticket {
@@ -23,8 +22,6 @@ export interface UpdateData {
   groupId?: string | null;
   evaluation?: { star: number; content: string };
   status?: number;
-  tags?: Tag[];
-  privateTags?: Tag[];
 }
 
 export interface Reply {
