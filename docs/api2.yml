@@ -39,14 +39,41 @@ components:
           type: string
         name:
           type: string
+        description:
+          type: string
         parentId:
           type: string
+          description: 父分类 ID，可以通过该属性构建一颗树
         position:
           type: number
+          description: 同一个父分类下的序号
         active:
           type: boolean
         template:
           type: string
+    TicketField:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum:
+            - text
+            - multi-line
+            - dropdown
+            - multi-select
+            - radios
+            - file
+        title:
+          type: string
+          description: 字段名称
+        description:
+          type: string
+          description: 字段补充解释
+        required:
+          type: boolean
+          description: 是否必填
     File:
       type: object
       properties:
@@ -70,8 +97,11 @@ components:
       properties:
         id:
           type: string
+          example: 5ff4324896ba311a0a411392
         nid:
           type: integer
+          description: 自增 ID
+          example: 21430
         title:
           type: string
         categoryId:
@@ -107,12 +137,25 @@ components:
           $ref: '#/components/schemas/Evaluation'
         replyCount:
           type: integer
+        firstCustomerServiceReplyAt:
+          type: string
+          format: date-time
+        latestCustomerServiceReplyAt:
+          type: string
+          format: date-time
         createdAt:
           type: string
           format: date-time
         updatedAt:
           type: string
           format: date-time
+          deprecated: true
+        contentSafeHTML:
+          type: string
+          description: 详细描述（安全的 HTML，已 XSS 过滤）（仅在非列表中出现)
+        unreadCount:
+          type: integer
+          description: 当前用户未读数（仅在列表中出现）
     Status:
       type: integer
       enum: [50, 120, 160, 220, 250, 280]
@@ -180,6 +223,72 @@ components:
 security:
   - Session token: []
 paths:
+  /api/2/products/{pid}/categories:
+    parameters:
+      - name: pid
+        in: path
+        schema:
+          type: string
+        required: true
+    get:
+      tags: ['Category']
+      summary: 获取分类列表
+      parameters: 
+        - name: active
+          in: query
+          schema:
+            type: boolean
+          description: 是否只返回已启用的分类
+          example: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+
+  /api/2/categories/{cid}/fields:
+    parameters:
+      - name: cid
+        in: path
+        schema:
+          type: string
+        required: true
+    get:
+      tags: ['Category']
+      summary: 获取某个分类关联的表单描述
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TicketField'
+  /api/2/categories/{cid}/faqs:
+    parameters:
+      - name: cid
+        in: path
+        schema:
+          type: string
+        required: true
+    get:
+      tags: ['Category', 'Knowladge base']
+      summary: 获取与某个分类关联的常见问题
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Article'
+
   /api/2/tickets:
     get:
       tags: [Ticket]
@@ -285,7 +394,7 @@ paths:
           in: query
           schema:
             type: string
-          description: 底层查询条件，格式为 JSON 字符串。详见 [LeanCloud REST API 文档](https://leancloud.cn/docs/rest_api.html)
+          description: （谨慎使用）底层查询条件，格式为 JSON 字符串。详见 [LeanCloud REST API 文档](https://leancloud.cn/docs/rest_api.html)
       responses:
         '200':
           description: OK
@@ -301,6 +410,57 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Ticket'
+    post:
+      tags: [Ticket]
+      summary: 创建工单
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: 标题，最大长度 100 字符
+                content:
+                  type: string
+                  description: 内容，支持 Markdown
+                categoryId:
+                  type: string
+                fileIds:
+                  type: array
+                  items:
+                    type: string
+                  description: 附件文件 ID 列表
+                fileURLs:
+                  type: array
+                  items:
+                    type: string
+                  description: 附件文件 URL 列表，适用于附件上传到外部存储后直接提供 URL 的用法
+                customFields:
+                  type: array
+                  description: 自定义字段
+                  items:
+                    type: object
+                    properties:
+                      field:
+                        type: string
+                        description: 自定义字段 ID
+                      value:
+                        type: mixed
+                        description: 自定义字段值
+              required: [title, categoryId]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+
   /api/2/tickets/{id}/replies:
     parameters:
       - name: id
@@ -309,7 +469,7 @@ paths:
           type: string
         required: true
     post:
-      tags: [ticket]
+      tags: [Ticket]
       summary: 创建回复
       requestBody:
         content:
@@ -632,3 +792,23 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Revision'
+
+  /api/2/products/{pid}/notices:
+    parameters:
+      - name: pid
+        in: path
+        schema:
+          type: string
+        required: true
+    get:
+      tags: ['Knowladge base']
+      summary: 获取公告
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
