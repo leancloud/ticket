@@ -1,15 +1,14 @@
 import { z } from 'zod';
+import moment from 'moment';
 
 import { Condition, ConditionFactory, number } from '../../condition';
 import { TimeTriggerContext } from '../context';
 
 function getSinceAssignedHours(ctx: TimeTriggerContext): number | undefined {
-  const date = ctx.getLastAssignDate();
-  if (!date) {
-    return undefined;
+  const assignedAt = ctx.getLastAssignDate();
+  if (assignedAt) {
+    return moment().diff(assignedAt, 'hour');
   }
-  const ms = Date.now() - date.getTime();
-  return ms / 1000 / 60 / 60;
 }
 
 const factories: Record<string, ConditionFactory<any, TimeTriggerContext>> = {
