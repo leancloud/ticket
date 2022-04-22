@@ -81,14 +81,17 @@ export class CategoryService {
     const parentIds = _.castArray(id);
     const categories = await CategoryService.getAll();
     const categoriesByParentId = _.groupBy(categories, 'parentId');
+    const categoriesByAlias = _.groupBy(categories, 'alias');
     const subCategories: Category[] = [];
 
     while (parentIds.length) {
       const parentId = parentIds.shift()!;
-      categoriesByParentId[parentId]?.forEach((category) => {
+      const addToList = (category: Category) => {
         parentIds.push(category.id);
         subCategories.push(category);
-      });
+      }
+      categoriesByParentId[parentId]?.forEach(addToList);
+      categoriesByAlias[parentId]?.forEach(addToList);
     }
 
     if (active !== undefined) {
