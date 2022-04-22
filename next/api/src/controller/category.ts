@@ -110,6 +110,7 @@ export class CategoryController {
       {
         name: data.name,
         description: data.description,
+        alias: data.alias,
         parentId: data.parentId,
         FAQIds: data.articleIds?.length === 0 ? undefined : data.articleIds,
         noticeIds: data.noticeIds?.length === 0 ? undefined : data.noticeIds,
