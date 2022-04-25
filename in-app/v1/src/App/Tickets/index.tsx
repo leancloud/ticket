@@ -27,10 +27,11 @@ async function fetchTickets({
   const { data } = await http.get<any[]>('/api/2/tickets', {
     params: {
       authorId: auth.currentUser?.id,
-      rootCategoryId: categoryId,
+      product: categoryId,
       page,
       pageSize: TICKETS_PAGE_SIZE,
-      orderBy: 'latestCustomerServiceReplyAt',
+      orderBy: 'latestCustomerServiceReplyAt-desc',
+      include: 'unreadCount',
     },
   });
   return data.map((ticket) => ({

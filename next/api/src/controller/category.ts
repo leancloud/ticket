@@ -194,26 +194,6 @@ export class CategoryController {
     return await CategoryService.getSubCategories(category.id, active);
   }
 
-  @Get(':id/unread')
-  @UseMiddlewares(auth)
-  @ResponseBody(Boolean)
-  async getUnread(
-    @CurrentUser() currentUser: User,
-    @Param('id', FindCategoryPipe) category: Category
-  ) {
-    const categories = await CategoryService.getSubCategories(category.id, true);
-    const unreadNotification = await Notification.queryBuilder()
-      .where('user', '==', currentUser.toPointer())
-      .where('unreadCount', '>', 0)
-      .where(
-        'category',
-        'in',
-        categories.map((category) => category.toPointer())
-      )
-      .first({ sessionToken: currentUser.sessionToken });
-    return !!unreadNotification;
-  }
-
   private convertUpdateData(data: UpdateCategoryData): UpdateData<Category> {
     let deletedAt: Date | null | undefined = undefined;
     if (data.active !== undefined) {

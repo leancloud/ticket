@@ -220,11 +220,11 @@ paths:
           schema:
             type: string
           description: 分类 ID，多个值可用 `,` 分隔
-        - name: rootCategoryId
+        - name: product
           in: query
           schema:
             type: string
-          description: 根分类 ID，等同于将 categoryId 设置为 rootCategoryId + 其下所有子分类的 ID
+          description: 根分类 ID，等同于将 categoryId 设置为 product + 其下所有子分类的 ID
         - name: status
           in: query
           schema:
