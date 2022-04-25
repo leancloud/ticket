@@ -38,6 +38,7 @@ const ticketFiltersSchema = yup.object({
   assigneeId: yup.csv(yup.string().required()),
   categoryId: yup.csv(yup.string().required()),
   rootCategoryId: yup.string(),
+  product: yup.string(),
   groupId: yup.csv(yup.string().required()),
   status: yup.csv(yup.number().oneOf(statuses).required()),
   'evaluation.star': yup.number().oneOf([0, 1]),
@@ -90,9 +91,10 @@ router.get(
     const sort = ctx.state.sort as SortItem[] | undefined;
 
     const categoryIds = new Set(params.categoryId);
-    if (params.rootCategoryId) {
-      categoryIds.add(params.rootCategoryId);
-      const subCategories = await CategoryService.getSubCategories(params.rootCategoryId);
+    const rootId = params.product || params.rootCategoryId;
+    if (rootId) {
+      categoryIds.add(rootId);
+      const subCategories = await CategoryService.getSubCategories(rootId);
       subCategories.forEach((c) => categoryIds.add(c.id));
     }
 

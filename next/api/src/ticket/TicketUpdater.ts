@@ -258,7 +258,7 @@ export class TicketUpdater {
     events.emit('ticket:updated', {
       originalTicket: this.ticket.toJSON(),
       data: {
-        categoryId: this.data.categoryId ?? undefined,
+        categoryId: this.data.category?.id ?? undefined,
         organizationId: this.data.organizationId,
         assigneeId: this.data.assigneeId,
         groupId: this.data.groupId,

@@ -6,6 +6,7 @@ import { User } from '@/model/User';
 import { NotificationResponse } from '@/response/notification';
 import _ from 'lodash';
 import { parseDateParam } from '@/utils';
+import { CategoryService } from '@/service/category';
 
 const DEFAULT_NOTIFICATIONS_PER_PAGE = 25;
 
@@ -31,6 +32,16 @@ router.get('/', async (ctx) => {
     query.where('unreadCount', '>', 0);
   }
 
+  const product = ctx.request.query['product'];
+  if (product) {
+    const categories = await CategoryService.getSubCategories(product, true);
+    query.where(
+      'category',
+      'in',
+      categories.map((category) => category.toPointer())
+    );
+  }
+
   const includeTicketMetaKeys = _.castArray(ctx.request.query['includeTicketMetaKeys'])
     .join(',')
     .split(',');
@@ -44,9 +55,18 @@ router.get('/', async (ctx) => {
 
 router.post('/read-all', async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
-  let query = Notification.query()
+  let query = Notification.queryBuilder()
     .where('user', '==', currentUser.toPointer())
     .where('unreadCount', '>', 0);
+  const product = ctx.request.query['product'];
+  if (product) {
+    const categories = await CategoryService.getSubCategories(product, true);
+    query.where(
+      'category',
+      'in',
+      categories.map((category) => category.toPointer())
+    );
+  }
   const notifications = await query.find({ sessionToken: currentUser.sessionToken });
 
   await Notification.updateSome(

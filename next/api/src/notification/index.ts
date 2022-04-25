@@ -2,10 +2,11 @@ import EventEmitter from 'eventemitter3';
 
 import { createQueue } from '@/queue';
 import events from '@/events';
-import { Notification as NotificationModel } from '@/model/Notification';
+import { Notification, Notification as NotificationModel } from '@/model/Notification';
 import { Reply } from '@/model/Reply';
 import { Evaluation, Ticket } from '@/model/Ticket';
 import { User, systemUser } from '@/model/User';
+import categoryId from '@/ticket/automation/condition/categoryId';
 
 export interface NewTicketContext {
   ticket: Ticket;
@@ -93,7 +94,7 @@ type JobData =
   | TicketEvaluationJobData
   | ChangeStatusJobData;
 
-class Notification extends EventEmitter<EventHandler> {
+class NotificationEE extends EventEmitter<EventHandler> {
   register(channel: Partial<EventHandler>) {
     Object.entries(channel).forEach(([e, h]) => this.on(e as any, h));
   }
@@ -238,7 +239,7 @@ class Notification extends EventEmitter<EventHandler> {
   }
 }
 
-const notification = new Notification();
+const notification = new NotificationEE();
 
 export default notification;
 
@@ -269,18 +270,22 @@ notification.register({
   },
   changeAssignee: ({ ticket, to }) => {
     if (to) {
-      NotificationModel.upsertSome(ticket.id, [to.id], 'changeAssignee').catch((error) => {
-        // TODO: Sentry
-        console.error(error);
-      });
+      NotificationModel.upsertSome(ticket.id, [to.id], ticket.categoryId, 'changeAssignee').catch(
+        (error) => {
+          // TODO: Sentry
+          console.error(error);
+        }
+      );
     }
   },
   ticketEvaluation: ({ ticket, to }) => {
     if (to) {
-      NotificationModel.upsertSome(ticket.id, [to.id], 'ticketEvaluation').catch((error) => {
-        // TODO: Sentry
-        console.error(error);
-      });
+      NotificationModel.upsertSome(ticket.id, [to.id], ticket.categoryId, 'ticketEvaluation').catch(
+        (error) => {
+          // TODO: Sentry
+          console.error(error);
+        }
+      );
     }
   },
 });
@@ -322,6 +327,13 @@ events.on('ticket:created', ({ ticket }) => {
 });
 
 events.on('ticket:updated', ({ originalTicket, data, currentUserId }) => {
+  if (data.categoryId) {
+    Notification.updateCategory(originalTicket.id, data.categoryId).catch((error) => {
+      // TODO: Sentry
+      console.error(`[Notification] update category failed:`, error);
+    });
+  }
+
   if (data.assigneeId !== undefined) {
     notification.notifyChangeAssignee({
       ticketId: originalTicket.id,

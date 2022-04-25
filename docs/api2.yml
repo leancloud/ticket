@@ -220,11 +220,11 @@ paths:
           schema:
             type: string
           description: 分类 ID，多个值可用 `,` 分隔
-        - name: rootCategoryId
+        - name: product
           in: query
           schema:
             type: string
-          description: 根分类 ID，等同于将 categoryId 设置为 rootCategoryId + 其下所有子分类的 ID
+          description: 根分类 ID，等同于将 categoryId 设置为 product + 其下所有子分类的 ID
         - name: status
           in: query
           schema:
@@ -379,11 +379,22 @@ paths:
             application/json:
               schema:
                 type: boolean
+      parameters:
+        - name: product
+          in: query
+          schema:
+            type: string
+          description: 只返回属于指定 product 下的分类的工单的未读情况
   /api/2/notifications:
     get:
       tags: ['Notification']
       summary: 获取当前用户工单更新通知
       parameters:
+        - name: product
+          in: query
+          schema:
+            type: string
+          description: 只返回属于指定 product 下的分类的工单更新通知
         - name: unread
           in: query
           schema:
@@ -417,6 +428,12 @@ paths:
     post:
       tags: ['Notification']
       summary: 批量将所有未读通知标为已读
+      parameters:
+        - name: product
+          in: query
+          schema:
+            type: string
+          description: 只标记指定 product 下的分类的工单已读
       responses:
         '200':
           description: Done

@@ -20,6 +20,7 @@ import { UpdateData } from '@/orm';
 import { auth, customerServiceOnly } from '@/middleware';
 import { getPublicArticle } from '@/model/Article';
 import { Category } from '@/model/Category';
+import { Notification } from '@/model/Notification';
 import { TicketForm } from '@/model/TicketForm';
 import { User } from '@/model/User';
 import { ArticleResponse } from '@/response/article';
@@ -109,6 +110,7 @@ export class CategoryController {
       {
         name: data.name,
         description: data.description,
+        alias: data.alias,
         parentId: data.parentId,
         FAQIds: data.articleIds?.length === 0 ? undefined : data.articleIds,
         noticeIds: data.noticeIds?.length === 0 ? undefined : data.noticeIds,
@@ -189,13 +191,7 @@ export class CategoryController {
     @Param('id', FindCategoryPipe) category: Category,
     @Query('active', new ParseBoolPipe({ keepUndefined: true })) active?: boolean
   ) {
-    const categories = await CategoryService.getSubCategories(category.id);
-    if (active !== undefined) {
-      return active
-        ? categories.filter((c) => c.deletedAt === undefined)
-        : categories.filter((c) => c.deletedAt !== undefined);
-    }
-    return categories;
+    return await CategoryService.getSubCategories(category.id, active);
   }
 
   private convertUpdateData(data: UpdateCategoryData): UpdateData<Category> {
