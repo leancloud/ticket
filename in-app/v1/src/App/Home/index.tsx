@@ -28,11 +28,9 @@ function TicketsLink({ badge }: TicketsLinkProps) {
 }
 async function fetchUnread(categoryId?: string) {
   const { data } = await http.get<boolean>(`/api/2/unread`, {
-    params: categoryId
-      ? {
-          product: categoryId,
-        }
-      : undefined,
+    params: {
+      product: categoryId,
+    },
   });
   return data;
 }
