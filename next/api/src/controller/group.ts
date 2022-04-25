@@ -119,17 +119,23 @@ export class GroupController {
       const userIds = users.map((u) => u.id!);
       const userRelation = role.getUsers();
 
-      _.difference(userIds, data.userIds).forEach((userId) => {
-        const user = AV.User.createWithoutData('_User', userId) as AV.User;
-        userRelation.remove(user);
-      });
+      const userIdsToAdd = _.difference(userIds, data.userIds);
+      if (userIdsToAdd.length) {
+        userIdsToAdd.forEach((userId) => {
+          const user = AV.User.createWithoutData('_User', userId) as AV.User;
+          userRelation.remove(user);
+        });
+        await role.save(null, authOptions);
+      }
 
-      _.difference(data.userIds, userIds).forEach((userId) => {
-        const user = AV.User.createWithoutData('_User', userId) as AV.User;
-        userRelation.add(user);
-      });
-
-      await role.save(null, authOptions);
+      const userIdsToRemove = _.difference(data.userIds, userIds);
+      if (userIdsToRemove.length) {
+        userIdsToRemove.forEach((userId) => {
+          const user = AV.User.createWithoutData('_User', userId) as AV.User;
+          userRelation.add(user);
+        });
+        await role.save(null, authOptions);
+      }
     }
 
     return {};
