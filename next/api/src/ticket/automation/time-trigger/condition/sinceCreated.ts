@@ -1,12 +1,11 @@
 import { z } from 'zod';
+import moment from 'moment';
 
 import { Condition, ConditionFactory, number } from '../../condition';
 import { TimeTriggerContext } from '../context';
 
 function getSinceCreatedHours(ctx: TimeTriggerContext): number {
-  const createdAt = ctx.getCreateDate();
-  const ms = Date.now() - createdAt.getTime();
-  return ms / 1000 / 60 / 60;
+  return moment().diff(ctx.getCreateDate(), 'hour');
 }
 
 const factories: Record<string, ConditionFactory<any, TimeTriggerContext>> = {
