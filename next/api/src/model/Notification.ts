@@ -57,6 +57,7 @@ export class Notification extends Model {
         'in',
         userIds.map((id) => User.ptr(id))
       )
+      .limit(1000)
       .find({ useMasterKey: true });
 
     const unsavedUserIds = _.differenceWith(
@@ -92,5 +93,21 @@ export class Notification extends Model {
         { useMasterKey: true }
       ),
     ]);
+  }
+
+  static async updateCategory(ticketId: string, categoryId: string) {
+    const notifications = await this.queryBuilder()
+      .where('ticket', '==', Ticket.ptr(ticketId))
+      .limit(1000)
+      .find({ useMasterKey: true });
+    this.updateSome(
+      notifications.map((n) => [
+        n,
+        {
+          categoryId,
+        },
+      ]),
+      { useMasterKey: true }
+    );
   }
 }
