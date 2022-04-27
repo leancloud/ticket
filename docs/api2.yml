@@ -223,6 +223,34 @@ components:
 security:
   - Session token: []
 paths:
+  /api/2/users:
+    post: 
+      tags: [User]
+      summary: 登录
+      desciption: request body 中提供的不同字段对应不同的登录方式，详细用法参见使用文档。
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                jwt:
+                  type: string
+                anonymousId: 
+                  type: string
+                name: 
+                  type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessionToken:
+                    type: string
+               
   /api/2/products/{pid}/categories:
     parameters:
       - name: pid

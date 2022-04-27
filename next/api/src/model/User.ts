@@ -4,12 +4,12 @@ import _ from 'lodash';
 import mem from 'p-memoize';
 
 import { regions } from '@/leancloud';
-import { config } from '@/config';
 import { RedisCache } from '@/cache';
 import { AuthOptions, Model, field } from '@/orm';
 import { Role } from './Role';
 import { Vacation } from './Vacation';
 import { Group } from './Group';
+import { getVerifiedPayload, JsonWebTokenError } from '@/utils/jwt';
 
 function encodeAVUser(user: AV.User): string {
   const json = user.toFullJSON();
@@ -69,6 +69,14 @@ const getRoles = mem(
   { maxAge: 10_000 }
 );
 
+export class InvalidLoginCredentialError extends Error {
+  public inner?: Error;
+  constructor(message: string, innerError?: Error) {
+    super(message);
+    this.inner = innerError;
+  }
+}
+
 export class User extends Model {
   protected static className = '_User';
 
@@ -127,6 +135,51 @@ export class User extends Model {
     const avUser = AV.User.createWithoutData('_User', id);
     await avUser.fetch({}, { useMasterKey: true });
     return this.fromAVObject(avUser);
+  }
+
+  static async findByUsername(username: string) {
+    return this.query().where('username', '==', username).first({ useMasterKey: true });
+  }
+
+  static async loginWithJWT(token: string): Promise<{ sessionToken: string }> {
+    let payload;
+    try {
+      payload = getVerifiedPayload(token);
+    } catch (error) {
+      if (error instanceof JsonWebTokenError) {
+        throw new InvalidLoginCredentialError(error.message, error);
+      }
+      throw error;
+    }
+    const { sub, name } = payload;
+    if (sub === undefined) {
+      throw new InvalidLoginCredentialError('sub field is required');
+    }
+    const username = sub;
+    const findAndUpdate = async () => {
+      const user = await this.findByUsername(username);
+      if (user) {
+        if (name) {
+          user.update({ name }, { useMasterKey: true }).catch(console.error);
+        }
+        return user.loadSessionToken();
+      }
+    };
+    const sessionToken = await findAndUpdate();
+    if (sessionToken) return { sessionToken };
+    try {
+      const newUser = await AV.User.signUp(username, Math.random().toString(), { name });
+      return { sessionToken: await newUser.getSessionToken() };
+    } catch (error) {
+      if (error instanceof AV.Error && error.code === AV.ErrorCode.USERNAME_TAKEN) {
+        return { sessionToken: (await findAndUpdate())! };
+      }
+      throw error;
+    }
+  }
+
+  static async loginWithAnonymousId(id: string, name?: string) {
+    throw new Error('Not implemented')
   }
 
   static async getCustomerServices(): Promise<User[]> {
