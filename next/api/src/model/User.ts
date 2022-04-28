@@ -138,7 +138,7 @@ export class User extends Model {
   }
 
   static async findByUsername(username: string) {
-    return this.query().where('username', '==', username).first({ useMasterKey: true });
+    return this.queryBuilder().where('username', '==', username).first({ useMasterKey: true });
   }
 
   static async loginWithJWT(token: string): Promise<{ sessionToken: string }> {
@@ -159,7 +159,7 @@ export class User extends Model {
     const findAndUpdate = async () => {
       const user = await this.findByUsername(username);
       if (user) {
-        if (name) {
+        if (name && name !== user.name) {
           user.update({ name }, { useMasterKey: true }).catch(console.error);
         }
         return user.loadSessionToken();
