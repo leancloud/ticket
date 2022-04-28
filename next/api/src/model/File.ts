@@ -11,4 +11,7 @@ export class File extends Model {
 
   @field()
   url!: string;
+
+  @field()
+  metaData?: object
 }

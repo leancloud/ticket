@@ -1,6 +1,6 @@
 openapi: '3.0.0'
 info:
-  title: TapDesk REST API
+  title: TapSupport REST API
   version: '2.0'
 servers:
   - url: /
@@ -227,7 +227,7 @@ paths:
     post: 
       tags: [User]
       summary: 登录
-      desciption: request body 中提供的不同字段对应不同的登录方式，详细用法参见使用文档。
+      description: request body 中提供的不同字段对应不同的登录方式，详细用法参见使用文档。
       requestBody:
         content:
           application/json:
@@ -460,11 +460,6 @@ paths:
                   items:
                     type: string
                   description: 附件文件 ID 列表
-                fileURLs:
-                  type: array
-                  items:
-                    type: string
-                  description: 附件文件 URL 列表，适用于附件上传到外部存储后直接提供 URL 的用法
                 customFields:
                   type: array
                   description: 自定义字段
@@ -840,3 +835,37 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Category'
+
+  /api/2/external-files:
+    post: 
+      tags: [File]
+      summary: 注册外部文件
+      description: 支持提交文件的接口使用文件 ID 作为参数，外部文件需要先通过此接口注册以获取文件 ID。
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    required: true
+                  name:
+                    type: string
+                    description: 用户文件展示时的名字。如不指定则使用 URL 中的最后一级路径。
+                  metaData: 
+                    type: object
+                    description: KV 接口的的元数据，可用于筛选。
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  description:  文件 ID
+                
