@@ -1,22 +1,40 @@
 import {
+  Body,
   Controller,
   CurrentUser,
   Get,
   Pagination,
   Param,
+  Post,
   Query,
   ResponseBody,
   UseMiddlewares,
 } from '@/common/http';
-import { FindModelPipe, ParseCsvPipe, TrimPipe } from '@/common/pipe';
+import { FindModelPipe, ParseCsvPipe, TrimPipe, ZodValidationPipe } from '@/common/pipe';
 import { auth, customerServiceOnly } from '@/middleware';
 import { User } from '@/model/User';
 import { UserSearchResult } from '@/response/user';
+import { z } from 'zod';
+
+const JWTAuthSchema = z.object({
+  jwt: z.string(),
+});
+type JWTAuthData = z.infer<typeof JWTAuthSchema>;
+const anonymouseAuthSchema = z.object({
+  anonymousId: z.string().min(16),
+  name: z.string().optional(),
+});
+const authSchema = JWTAuthSchema.or(anonymouseAuthSchema);
+type AuthData = z.infer<typeof authSchema>;
+
+function isJWT(data: any): data is JWTAuthData {
+  return typeof data.jwt === 'string';
+}
 
 @Controller('users')
-@UseMiddlewares(auth, customerServiceOnly)
 export class UserController {
   @Get()
+  @UseMiddlewares(auth, customerServiceOnly)
   @ResponseBody(UserSearchResult)
   find(
     @CurrentUser() currentUser: User,
@@ -42,8 +60,17 @@ export class UserController {
   }
 
   @Get(':id')
+  @UseMiddlewares(auth, customerServiceOnly)
   @ResponseBody(UserSearchResult)
   findOne(@Param('id', new FindModelPipe(User)) user: User) {
     return user;
+  }
+
+  @Post()
+  login(@Body(new ZodValidationPipe(authSchema)) authData: AuthData) {
+    if (isJWT(authData)) {
+      return User.loginWithJWT(authData.jwt);
+    }
+    return User.loginWithAnonymousId(authData.anonymousId, authData.name);
   }
 }
