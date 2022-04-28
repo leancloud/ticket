@@ -20,10 +20,17 @@ const StatusStats = () => {
         .orderBy('date')
         .map((v) => {
           const { date, id, ...rest } = v;
-          return ([moment(date).toISOString(), rest] as unknown) as [
-            string,
-            Record<string, number>
-          ];
+          return ([
+            moment(date).toISOString(),
+            {
+              notProcessed: rest.notProcessed,
+              waitingCustomerService: rest.waitingCustomerService,
+              waitingCustomer: rest.waitingCustomer,
+              preFulfilled: rest.preFulfilled,
+              fulfilled: rest.fulfilled,
+              closed: rest.closed,
+            },
+          ] as unknown) as [string, Record<string, number>];
         })
         .valueOf(),
     [filteredData]
@@ -34,30 +41,12 @@ const StatusStats = () => {
       loading={isFetching || isLoading}
       data={chartData}
       names={(text: string) => STATUS_LOCALE[text]}
-      legends={[
-        {
-          name: 'notProcessed',
-        },
-        {
-          name: 'waitingCustomerService',
-        },
-        {
-          name: 'waitingCustomer',
-          unchecked: true,
-        },
-        {
-          name: 'preFulfilled',
-          unchecked: true,
-        },
-        {
-          name: 'fulfilled',
-          unchecked: true,
-        },
-        {
-          name: 'closed',
-          unchecked: true,
-        },
-      ]}
+      initLegend={{
+        closed: false,
+        fulfilled: false,
+        preFulfilled: false,
+        waitingCustomer: false,
+      }}
       onSelected={(xAxisValues) => {
         if (xAxisValues === undefined) {
           changeFilter();

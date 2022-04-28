@@ -33,10 +33,7 @@ interface PieProps extends Omit<ChartProps, 'formatters' | 'data'> {
 }
 interface AreaProps extends ChartProps {
   isStack?: boolean;
-  legends?: Array<{
-    name: string;
-    unchecked?: boolean;
-  }>;
+  initLegend?: Record<string, boolean>;
   onSelected?: (xAxisValues?: string[]) => void;
 }
 
@@ -182,7 +179,7 @@ export const StatsArea: FunctionComponent<AreaProps> = ({
   names,
   formatters,
   isStack,
-  legends,
+  initLegend,
   onSelected,
 }) => {
   const $onSelected = useRef(onSelected);
@@ -235,16 +232,7 @@ export const StatsArea: FunctionComponent<AreaProps> = ({
       ]}
       legend={{
         position: 'bottom',
-        items: legends
-          ? legends.map(({ name, unchecked }) => {
-              return {
-                id: name,
-                value: name,
-                name,
-                unchecked,
-              };
-            })
-          : undefined,
+        selected: initLegend,
         itemName: {
           formatter: (text) => (names ? names(text) : text),
         },
