@@ -34,10 +34,30 @@ const StatusStats = () => {
       loading={isFetching || isLoading}
       data={chartData}
       names={(text: string) => STATUS_LOCALE[text]}
-      initLegend={{
-        closed: false,
-        fulfilled: false,
-      }}
+      legends={[
+        {
+          name: 'notProcessed',
+        },
+        {
+          name: 'waitingCustomerService',
+        },
+        {
+          name: 'waitingCustomer',
+          unchecked: true,
+        },
+        {
+          name: 'preFulfilled',
+          unchecked: true,
+        },
+        {
+          name: 'fulfilled',
+          unchecked: true,
+        },
+        {
+          name: 'closed',
+          unchecked: true,
+        },
+      ]}
       onSelected={(xAxisValues) => {
         if (xAxisValues === undefined) {
           changeFilter();
