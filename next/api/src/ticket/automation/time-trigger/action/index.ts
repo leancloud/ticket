@@ -6,6 +6,7 @@ import updateAssigneeId from '../../action/updateAssigneeId';
 import updateGroupId from '../../action/updateGroupId';
 import closeTicket from '../../action/closeTicket';
 import addTag from '../../action/addTag';
+import removeTag from '../../action/removeTag';
 
 const factories: Record<string, ActionFactory<unknown>> = {
   updateAssigneeId,
@@ -13,6 +14,7 @@ const factories: Record<string, ActionFactory<unknown>> = {
   updateGroupId,
   closeTicket,
   addTag,
+  removeTag,
 };
 
 const schema = z.object({

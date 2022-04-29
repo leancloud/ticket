@@ -121,6 +121,16 @@ export class Context {
     this.updater.addTag(tag);
   }
 
+  removeTag(tag: Tag) {
+    if (!this.dirtyData.tags) {
+      this.dirtyData.tags = this.ticket.tags?.slice() ?? [];
+    }
+    this.dirtyData.tags = this.dirtyData.tags.filter(
+      (t) => t.key !== tag.key || t.value !== tag.value
+    );
+    this.updater.removeTag(tag);
+  }
+
   getPrivateTags() {
     return this.dirtyData.privateTags ?? this.ticket.privateTags;
   }
@@ -131,6 +141,16 @@ export class Context {
     }
     this.dirtyData.privateTags.push(tag);
     this.updater.addPrivateTag(tag);
+  }
+
+  removePrivateTag(tag: Tag) {
+    if (!this.dirtyData.privateTags) {
+      this.dirtyData.privateTags = this.ticket.privateTags?.slice() ?? [];
+    }
+    this.dirtyData.privateTags = this.dirtyData.privateTags.filter(
+      (t) => t.key !== tag.key || t.value !== tag.value
+    );
+    this.updater.removePrivateTag(tag);
   }
 
   getMetaData() {
