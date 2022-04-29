@@ -23,4 +23,8 @@ export default {
     label: '添加标签',
     component: TagSelect,
   },
+  removeTag: {
+    label: '删除标签',
+    component: TagSelect,
+  },
 };
