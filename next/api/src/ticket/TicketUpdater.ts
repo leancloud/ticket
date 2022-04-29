@@ -121,7 +121,8 @@ export class TicketUpdater {
     if (this.ticket.tags) {
       const i = this.ticket.tags.findIndex((t) => isTagEqual(t, tag));
       if (i !== -1) {
-        this.data.tags = this.ticket.tags.slice().splice(i, 1);
+        this.data.tags = this.ticket.tags.slice();
+        this.data.tags.splice(i, 1);
       }
     }
     return this;
@@ -134,7 +135,8 @@ export class TicketUpdater {
     if (this.ticket.privateTags) {
       const i = this.ticket.privateTags.findIndex((t) => isTagEqual(t, tag));
       if (i !== -1) {
-        this.data.privateTags = this.ticket.privateTags.slice().splice(i, 1);
+        this.data.privateTags = this.ticket.privateTags.slice();
+        this.data.privateTags.splice(i, 1);
       }
     }
     return this;
