@@ -90,12 +90,16 @@ export class TicketUpdater {
    * NOTE: ONLY FOR TRIGGER ACTION
    */
   addTag(tag: Tag): this {
-    if (this.ticket.tags) {
-      if (!this.ticket.tags.some((t) => isTagEqual(t, tag))) {
-        this.data.tags = [...this.ticket.tags, tag];
+    if (!this.data.tags) {
+      this.data.tags = this.ticket.tags?.slice() ?? [];
+    }
+    if (Array.isArray(this.data.tags)) {
+      const i = this.data.tags.findIndex((t) => t.key === tag.key);
+      if (i === -1) {
+        this.data.tags.push(tag);
+      } else {
+        this.data.tags[i].value = tag.value;
       }
-    } else {
-      this.data.tags = [tag];
     }
     return this;
   }
@@ -104,39 +108,15 @@ export class TicketUpdater {
    * NOTE: ONLY FOR TRIGGER ACTION
    */
   addPrivateTag(tag: Tag): this {
-    if (this.ticket.privateTags) {
-      if (!this.ticket.privateTags.some((t) => isTagEqual(t, tag))) {
-        this.data.privateTags = [...this.ticket.privateTags, tag];
-      }
-    } else {
-      this.data.privateTags = [tag];
+    if (!this.data.privateTags) {
+      this.data.privateTags = this.ticket.privateTags?.slice() ?? [];
     }
-    return this;
-  }
-
-  /**
-   * NOTE: ONLY FOR TRIGGER ACTION
-   */
-  removeTag(tag: Tag): this {
-    if (this.ticket.tags) {
-      const i = this.ticket.tags.findIndex((t) => isTagEqual(t, tag));
-      if (i !== -1) {
-        this.data.tags = this.ticket.tags.slice();
-        this.data.tags.splice(i, 1);
-      }
-    }
-    return this;
-  }
-
-  /**
-   * NOTE: ONLY FOR TRIGGER ACTION
-   */
-  removePrivateTag(tag: Tag): this {
-    if (this.ticket.privateTags) {
-      const i = this.ticket.privateTags.findIndex((t) => isTagEqual(t, tag));
-      if (i !== -1) {
-        this.data.privateTags = this.ticket.privateTags.slice();
-        this.data.privateTags.splice(i, 1);
+    if (Array.isArray(this.data.privateTags)) {
+      const i = this.data.privateTags.findIndex((t) => t.key === tag.key);
+      if (i === -1) {
+        this.data.privateTags.push(tag);
+      } else {
+        this.data.privateTags[i].value = tag.value;
       }
     }
     return this;

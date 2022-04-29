@@ -20,11 +20,7 @@ export default {
     label: '关闭工单',
   },
   addTag: {
-    label: '添加标签',
-    component: TagSelect,
-  },
-  removeTag: {
-    label: '删除标签',
+    label: '设置标签',
     component: TagSelect,
   },
 };
