@@ -17,6 +17,10 @@ export interface UpdateOptions {
   ignoreTrigger?: boolean;
 }
 
+const isTagEqual = (a: Tag, b: Tag) => {
+  return a.key === b.key && a.value === b.value;
+};
+
 export class TicketUpdater {
   private organization?: Organization | null;
   private assignee?: User | null;
@@ -82,13 +86,39 @@ export class TicketUpdater {
     return this;
   }
 
+  /**
+   * NOTE: ONLY FOR TRIGGER ACTION
+   */
   addTag(tag: Tag): this {
-    this.data.tags = commands.pushUniq(tag);
+    if (!this.data.tags) {
+      this.data.tags = this.ticket.tags?.slice() ?? [];
+    }
+    if (Array.isArray(this.data.tags)) {
+      const i = this.data.tags.findIndex((t) => t.key === tag.key);
+      if (i === -1) {
+        this.data.tags.push(tag);
+      } else {
+        this.data.tags[i].value = tag.value;
+      }
+    }
     return this;
   }
 
+  /**
+   * NOTE: ONLY FOR TRIGGER ACTION
+   */
   addPrivateTag(tag: Tag): this {
-    this.data.privateTags = commands.pushUniq(tag);
+    if (!this.data.privateTags) {
+      this.data.privateTags = this.ticket.privateTags?.slice() ?? [];
+    }
+    if (Array.isArray(this.data.privateTags)) {
+      const i = this.data.privateTags.findIndex((t) => t.key === tag.key);
+      if (i === -1) {
+        this.data.privateTags.push(tag);
+      } else {
+        this.data.privateTags[i].value = tag.value;
+      }
+    }
     return this;
   }
 
