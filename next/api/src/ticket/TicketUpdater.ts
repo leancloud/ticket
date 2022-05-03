@@ -17,10 +17,6 @@ export interface UpdateOptions {
   ignoreTrigger?: boolean;
 }
 
-const isTagEqual = (a: Tag, b: Tag) => {
-  return a.key === b.key && a.value === b.value;
-};
-
 export class TicketUpdater {
   private organization?: Organization | null;
   private assignee?: User | null;
