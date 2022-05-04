@@ -34,6 +34,12 @@
       "read_only": false,
       "comment": ""
     },
+    "meta": {
+      "type": "Object",
+      "v": 2,
+      "read_only": false,
+      "comment": ""
+    },
     "active": {
       "type": "Boolean",
       "v": 2,

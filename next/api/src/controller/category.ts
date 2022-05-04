@@ -50,6 +50,7 @@ const createCategorySchema = z.object({
   articleIds: z.array(z.string()).optional(),
   groupId: z.string().optional(),
   formId: z.string().optional(),
+  meta: z.record(z.any()).optional(),
   template: z.string().optional(),
 });
 
@@ -59,6 +60,7 @@ const updateCategorySchema = createCategorySchema.partial().extend({
   parentId: z.string().nullable().optional(),
   groupId: z.string().nullable().optional(),
   formId: z.string().nullable().optional(),
+  meta: z.record(z.any()).optional().nullable(),
 });
 
 const batchUpdateSchema = z.array(
@@ -117,6 +119,7 @@ export class CategoryController {
         groupId: data.groupId,
         formId: data.formId,
         qTemplate: data.template,
+        meta: data.meta,
       },
       currentUser.getAuthOptions()
     );
@@ -214,6 +217,7 @@ export class CategoryController {
       groupId: data.groupId,
       formId: data.formId,
       qTemplate: data.template,
+      meta: data.meta,
       order: data.position ?? deletedAt?.getTime(),
       deletedAt,
     };

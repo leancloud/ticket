@@ -31,6 +31,7 @@ import {
 import { TicketFieldType } from './TicketFieldType';
 import { TicketFieldIcon } from './TicketFieldIcon';
 import style from './index.module.css';
+import { JSONTextarea } from '@/App/Admin/components/JSONTextarea';
 
 const fieldTypes: TicketFieldSchema['type'][] = [
   'text',
@@ -297,7 +298,6 @@ function FieldVariants({ activeLocale, onChangeActiveLocale }: FieldVariantsProp
 
               {hasOptions && (
                 <>
-                  <hr className="my-4" />
                   <Form.Item label="字段值">
                     <FieldOptions name={`variants.${index}.options`} />
                   </Form.Item>
@@ -328,6 +328,7 @@ interface TicketFieldData {
   visible: boolean;
   required: boolean;
   defaultLocale: string;
+  meta: Record<string, any>;
   variants: {
     locale: string;
     title: string;
@@ -409,6 +410,30 @@ export function TicketFieldForm({
               )}
             />
 
+            <Form.Item label="权限" required>
+              <Controller
+                name="visible"
+                defaultValue={false}
+                render={({ field: { value, onChange } }) => (
+                  <Radio.Group value={value} onChange={onChange}>
+                    <Radio value={false}>仅限客服</Radio>
+                    <Radio value={true}>用户可编辑</Radio>
+                  </Radio.Group>
+                )}
+              />
+            </Form.Item>
+
+            <Form.Item>
+              <Controller
+                name="required"
+                defaultValue={false}
+                render={({ field: { value, onChange } }) => (
+                  <Checkbox checked={value} onChange={onChange} children="提交工单时必填" />
+                )}
+              />
+            </Form.Item>
+
+            <hr className="my-4" />
             <Controller
               name="type"
               render={({ field: { value, onChange } }) => (
@@ -420,30 +445,6 @@ export function TicketFieldForm({
 
             {type && (
               <>
-                <hr className="my-4" />
-                <Form.Item label="权限">
-                  <Controller
-                    name="visible"
-                    defaultValue={false}
-                    render={({ field: { value, onChange } }) => (
-                      <Radio.Group value={value} onChange={onChange}>
-                        <Radio value={false}>仅限客服</Radio>
-                        <Radio value={true}>用户可编辑</Radio>
-                      </Radio.Group>
-                    )}
-                  />
-                </Form.Item>
-
-                <Form.Item>
-                  <Controller
-                    name="required"
-                    defaultValue={false}
-                    render={({ field: { value, onChange } }) => (
-                      <Checkbox checked={value} onChange={onChange} children="提交工单时必填" />
-                    )}
-                  />
-                </Form.Item>
-
                 <Form.Item label="语言管理">
                   <FieldVariants
                     activeLocale={activeLocale}
@@ -452,6 +453,16 @@ export function TicketFieldForm({
                 </Form.Item>
               </>
             )}
+            <hr className="my-4" />
+
+            <Controller
+              name="meta"
+              render={({ field: { value, onChange } }) => (
+                <Form.Item label="Meta" htmlFor="meta" help="面向开发者的扩展属性">
+                  <JSONTextarea value={value} onChange={onChange} id="meta" />
+                </Form.Item>
+              )}
+            />
           </Form>
         </FormProvider>
       </div>

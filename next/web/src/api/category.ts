@@ -13,6 +13,7 @@ export interface CategorySchema {
   position: number;
   active: boolean;
   template?: string;
+  meta?: Record<string, any>;
   articleIds?: string[];
   noticeIds?: string[];
   formId?: string;
@@ -138,6 +139,7 @@ export interface CreateCategoryData {
   groupId?: string;
   formId?: string;
   template?: string;
+  meta?: Record<string, any>;
 }
 
 async function createCategory(data: CreateCategoryData) {
@@ -150,9 +152,10 @@ export const useCreateCategory = (options?: UseMutationOptions<void, Error, Crea
     ...options,
   });
 
-export interface UpdateCategoryData extends Partial<CreateCategoryData> {
+export interface UpdateCategoryData extends Partial<Omit<CreateCategoryData, 'meta'>> {
   position?: number;
   active?: boolean;
+  meta?: Record<string, any> | null;
 }
 
 async function updateCategory(id: string, data: UpdateCategoryData) {

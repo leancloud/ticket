@@ -57,6 +57,12 @@
         "qTemplate": {
             "type": "String"
         },
+        "meta": {
+            "type": "Object",
+            "v": 2,
+            "read_only": false,
+            "comment": ""
+        },
         "order": {
             "type": "Number"
         }
