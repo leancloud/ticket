@@ -477,6 +477,7 @@ export function CategoryDetail() {
       'groupId',
       'formId',
       'template',
+      'meta',
     ]);
   }, [category]);
 
@@ -516,7 +517,7 @@ export function CategoryDetail() {
         initData={initData}
         loading={isLoading}
         categoryActive={category.active}
-        onSubmit={(data) => mutate({ ...data, id: id! })}
+        onSubmit={(data) => mutate({ ...data, id: id!, meta: data.meta ?? null })}
         onChangeCategoryActive={(active) => mutate({ active, id: id! })}
       />
     </div>

@@ -16,6 +16,7 @@ import {
   TreeSelect,
   TreeSelectProps,
 } from '@/components/antd';
+import { JSONTextarea } from '@/App/Admin/components/JSONTextarea';
 
 const { TextArea } = Input;
 
@@ -98,6 +99,7 @@ export interface CategoryFormData {
   groupId?: string;
   formId?: string;
   template?: string;
+  meta?: Record<string, any>;
 }
 
 export interface CategoryFormProps {
@@ -299,6 +301,21 @@ export function CategoryForm({
         render={({ field }) => (
           <Form.Item label="问题描述模板" htmlFor="category_form_template" style={FORM_ITEM_STYLE}>
             <TextArea {...field} id="category_form_template" rows={5} />
+          </Form.Item>
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="meta"
+        render={({ field }) => (
+          <Form.Item
+            label="Meta"
+            htmlFor="meta"
+            help="面向开发者的扩展属性"
+            style={FORM_ITEM_STYLE}
+          >
+            <JSONTextarea {...field} id="meta" />
           </Form.Item>
         )}
       />

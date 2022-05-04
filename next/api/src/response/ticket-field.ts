@@ -22,6 +22,7 @@ export class TicketFieldResponse {
       type: this.field.type,
       title: this.field.title,
       defaultLocale: this.field.defaultLocale,
+      meta: this.field.meta,
       active: this.field.active,
       visible: this.field.visible,
       required: this.field.required,

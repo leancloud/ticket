@@ -59,6 +59,7 @@ const createDataSchema = z.object({
   type: z.enum(FIELD_TYPES),
   title: z.string(),
   defaultLocale: localeSchema,
+  meta: z.record(z.any()).optional(),
   visible: z.boolean().optional(),
   required: z.boolean().optional(),
   variants: variantsSchema,
@@ -67,6 +68,7 @@ const createDataSchema = z.object({
 const updateDataSchema = z.object({
   title: z.string().optional(),
   defaultLocale: localeSchema.optional(),
+  meta: z.record(z.any()).optional().nullable(),
   visible: z.boolean().optional(),
   required: z.boolean().optional(),
   active: z.boolean().optional(),
@@ -140,6 +142,7 @@ export class TicketFieldController {
         type: data.type,
         title: data.title,
         defaultLocale: data.defaultLocale,
+        meta: data.meta,
         visible: data.visible ?? true,
         required: data.required ?? false,
       },
@@ -188,6 +191,7 @@ export class TicketFieldController {
       {
         title: data.title,
         defaultLocale: data.defaultLocale,
+        meta: data.meta,
         visible: data.visible,
         required: data.required,
         active: data.active,

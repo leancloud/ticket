@@ -32,6 +32,10 @@ export class Category extends AliasModel {
 
   @field()
   @serialize()
+  meta?: Record<string, any>;
+
+  @field()
+  @serialize()
   order?: number;
 
   @pointerIds(() => Article)

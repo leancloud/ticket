@@ -17,6 +17,7 @@ export interface TicketFieldSchema {
   type: TicketFieldType;
   title: string;
   defaultLocale: string;
+  meta?: Record<string, any>;
   active: boolean;
   visible: boolean;
   required: boolean;
@@ -87,6 +88,7 @@ export interface CreateTicketFieldData {
   type: TicketFieldType;
   title: string;
   defaultLocale: string;
+  meta?: Record<string, any>;
   required: boolean;
   visible: boolean;
   variants: TicketFieldVariantSchema[];

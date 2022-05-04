@@ -41,6 +41,9 @@ export class TicketField extends Model {
   @field()
   required!: boolean;
 
+  @field()
+  meta?: Record<string, any>;
+
   @hasManyThroughPointer(() => TicketFieldVariant, 'field')
   variants?: TicketFieldVariant[];
 
