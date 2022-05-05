@@ -10,6 +10,7 @@ import { Role } from './Role';
 import { Vacation } from './Vacation';
 import { Group } from './Group';
 import { getVerifiedPayload, JsonWebTokenError } from '@/utils/jwt';
+import { HttpError } from '@/common/http';
 
 function encodeAVUser(user: AV.User): string {
   const json = user.toFullJSON();
@@ -69,10 +70,12 @@ const getRoles = mem(
   { maxAge: 10_000 }
 );
 
-export class InvalidLoginCredentialError extends Error {
+export class InvalidLoginCredentialError extends HttpError {
+  static httpCode = 401;
+  static code = 'IVALID_LOGIN_CREDENTIAL';
   public inner?: Error;
   constructor(message: string, innerError?: Error) {
-    super(message);
+    super(InvalidLoginCredentialError.httpCode, message, InvalidLoginCredentialError.code);
     this.inner = innerError;
   }
 }
@@ -179,7 +182,7 @@ export class User extends Model {
   }
 
   static async loginWithAnonymousId(id: string, name?: string) {
-    throw new Error('Not implemented')
+    throw new Error('Not implemented');
   }
 
   static async getCustomerServices(): Promise<User[]> {
