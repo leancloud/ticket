@@ -25,11 +25,8 @@ import { TicketForm } from '@/model/TicketForm';
 import { User } from '@/model/User';
 import { ArticleResponse } from '@/response/article';
 import { CategoryService } from '@/service/category';
-import {
-  CategoryResponse,
-  CategoryFieldResponse,
-  CategoryResponseForCS,
-} from '@/response/category';
+import { CategoryResponse, CategoryResponseForCS } from '@/response/category';
+import { CategoryFieldResponse } from '@/response/ticket-field';
 
 class FindCategoryPipe {
   static async transform(id: string): Promise<Category> {

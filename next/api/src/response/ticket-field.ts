@@ -38,3 +38,19 @@ export class TicketFieldResponse {
     return data;
   }
 }
+
+export class CategoryFieldResponse {
+  constructor(readonly variant: TicketFieldVariant) {}
+
+  toJSON() {
+    return {
+      id: this.variant.fieldId,
+      title: this.variant.title,
+      description: this.variant.description ?? '',
+      type: this.variant.field!.type,
+      required: this.variant.field!.required,
+      options: this.variant.options,
+      meta: this.variant.field?.meta,
+    };
+  }
+}

@@ -5,7 +5,7 @@ import _ from 'lodash';
 import { config } from '@/config';
 import * as yup from '@/utils/yup';
 import { SortItem, auth, customerServiceOnly, include, parseRange, sort } from '@/middleware';
-import { Model, QueryBuilder } from '@/orm';
+import { field, Model, QueryBuilder } from '@/orm';
 import { Category } from '@/model/Category';
 import { Group } from '@/model/Group';
 import { Organization } from '@/model/Organization';
@@ -308,8 +308,8 @@ const customFieldSchema = yup.object({
 });
 
 const ticketDataSchema = yup.object({
-  title: yup.string().trim().max(100).required(),
-  content: yup.string().trim().default(''),
+  title: yup.string().trim().max(100),
+  content: yup.string().trim(),
   categoryId: yup.string().required(),
   organizationId: yup.string(),
   fileIds: yup.array(yup.string().required()),
@@ -318,10 +318,9 @@ const ticketDataSchema = yup.object({
   appId: yup.string(), // LeanCloud app id
 });
 
-async function canCreateTicket(
-  user: User,
-  data: yup.InferType<typeof ticketDataSchema>
-): Promise<boolean> {
+type TicketDataSchema = yup.InferType<typeof ticketDataSchema>;
+
+async function canCreateTicket(user: User, data: TicketDataSchema): Promise<boolean> {
   if (!config.enableLeanCloudIntegration) {
     return true;
   }
@@ -337,6 +336,25 @@ async function canCreateTicket(
   return false;
 }
 
+const extractSystemFields = (
+  fields?: TicketDataSchema['customFields']
+): {
+  title?: string;
+  details?: string;
+  attachments?: string[];
+  customFields?: TicketDataSchema['customFields'];
+} => {
+  if (!fields) return {};
+  return {
+    title: fields.find((field) => field.field === 'title')?.value,
+    details: fields.find((field) => field.field === 'details')?.value,
+    attachments: fields.find((field) => field.field === 'attachments')?.value,
+    customFields: fields.filter(
+      (field) => !['title', 'details', 'attachments'].includes(field.field)
+    ),
+  };
+};
+
 router.post('/', async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   const data = ticketDataSchema.validateSync(ctx.request.body);
@@ -345,15 +363,21 @@ router.post('/', async (ctx) => {
     return ctx.throw(403, 'This account is not qualified to create ticket');
   }
 
-  const creator = new TicketCreator()
-    .setAuthor(currentUser)
-    .setTitle(data.title)
-    .setContent(data.content);
-
   const category = await Category.find(data.categoryId);
   if (!category) {
     return ctx.throw(400, `Category ${data.categoryId} is not exists`);
   }
+
+  const { title: fieldTitle, details, attachments, customFields } = extractSystemFields(
+    data.customFields
+  );
+  const content = (data.content || details || '').trim();
+  const title =
+    data.title || fieldTitle || (content ? content.split('\n')[0].slice(0, 50) : category.name);
+  const fileIds = data.fileIds ?? attachments;
+
+  const creator = new TicketCreator().setAuthor(currentUser).setTitle(title).setContent(content);
+
   creator.setCategory(category);
 
   if (data.organizationId) {
@@ -364,15 +388,15 @@ router.post('/', async (ctx) => {
     creator.setOrganization(organization);
   }
 
-  if (data.fileIds) {
-    creator.setFileIds(data.fileIds);
+  if (fileIds) {
+    creator.setFileIds(fileIds);
   }
   if (data.metaData) {
     creator.setMetaData(data.metaData);
   }
-  if (data.customFields) {
+  if (customFields) {
     // TODO: 验证 field 是否存在
-    creator.setCustomFields(data.customFields);
+    creator.setCustomFields(customFields);
   }
 
   const ticket = await creator.create(currentUser);

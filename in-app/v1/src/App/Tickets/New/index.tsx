@@ -33,11 +33,11 @@ const presetFields: CategoryFieldSchema[] = [
 ];
 
 interface NewTicketData {
-  category_id: string;
+  categoryId: string;
   title: string;
   content: string;
-  file_ids?: string[];
-  form_values?: {
+  fileIds?: string[];
+  customFields?: {
     field: string;
     value: string | string[];
   }[];
@@ -83,10 +83,10 @@ function TicketForm({ categoryId, onSubmit, submitting }: TicketFormProps) {
   const handleSubmit = (data: Record<string, any>) => {
     const { title, description, ...fieldValues } = data;
     onSubmit({
-      category_id: categoryId,
+      categoryId,
       title: title,
       content: description,
-      form_values: Object.entries(fieldValues).map(([id, value]) => ({ field: id, value })),
+      customFields: Object.entries(fieldValues).map(([id, value]) => ({ field: id, value })),
       metadata: meta ?? undefined,
     }).then(clear);
   };
@@ -127,7 +127,7 @@ function Success({ ticketId }: SuccessProps) {
 async function commitTicket(data: NewTicketData): Promise<string> {
   const {
     data: { id },
-  } = await http.post<{ id: string }>('/api/1/tickets', data);
+  } = await http.post<{ id: string }>('/api/2/tickets', data);
   return id;
 }
 

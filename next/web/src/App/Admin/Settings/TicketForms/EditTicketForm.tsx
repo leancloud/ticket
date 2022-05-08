@@ -19,7 +19,8 @@ interface SelectedFieldItemProps {
   type: TicketFieldSchema['type'];
   title: string;
   active: boolean;
-  system?: boolean;
+  visible: boolean;
+  required: boolean;
   onRemove?: () => void;
 }
 
@@ -29,7 +30,8 @@ function SelectedFieldItem({
   type,
   title,
   active,
-  system,
+  visible,
+  required,
   onRemove,
 }: SelectedFieldItemProps) {
   return (
@@ -48,31 +50,31 @@ function SelectedFieldItem({
           <div {...provided.dragHandleProps} className="w-8 h-full cursor-grab flex shrink-0">
             <DragIcon className="w-4 h-4 m-auto" />
           </div>
-
           <div className="w-8 h-full flex shrink-0">
             {type && <TicketFieldIcon className="w-5 h-5 m-auto" type={type} />}
           </div>
-
           <div className="ml-3 h-full grow flex flex-col justify-center items-start overflow-hidden">
             <div
               className="text-[16px] leading-[16px] text-[#49545c] font-bold truncate"
               title={title}
             >
               {title ?? id}
+              {required && <span className="text-red-600"> *</span>}
             </div>
-            {system && <div className="text-sm text-[#87929d] leading-3 mt-1">系统字段</div>}
             {!active && <div className="text-sm text-[#87929d] leading-3 mt-1">未激活</div>}
+            {systemFieldIds.includes(id) && (
+              <div className="text-sm text-[#87929d] leading-3 mt-1">系统字段</div>
+            )}
+            {!visible && <div className="text-sm text-[#87929d] leading-3 mt-1">仅客服可见</div>}
           </div>
 
-          {!system && (
-            <button
-              className="absolute right-0 top-0 text-[#87929d]"
-              type="button"
-              onClick={onRemove}
-            >
-              <BsX className="w-5 h-5" />
-            </button>
-          )}
+          <button
+            className="absolute right-0 top-0 text-[#87929d]"
+            type="button"
+            onClick={onRemove}
+          >
+            <BsX className="w-5 h-5" />
+          </button>
         </div>
       )}
     </Draggable>
@@ -106,25 +108,11 @@ interface SelectedFieldSchema {
   type: TicketFieldSchema['type'];
   title: string;
   active: boolean;
-  system?: true;
+  visible: boolean;
+  required: boolean;
 }
 
-export const systemFields: SelectedFieldSchema[] = [
-  {
-    id: 'title',
-    type: 'text',
-    title: '标题',
-    active: true,
-    system: true,
-  },
-  {
-    id: 'description',
-    type: 'multi-line',
-    title: '描述',
-    active: true,
-    system: true,
-  },
-];
+export const systemFieldIds = ['title', 'details', 'attachments'];
 
 interface FieldsBuilderProps {
   fields?: TicketFieldSchema[];
@@ -136,7 +124,6 @@ function FieldsBuilder({ fields, value, onChange }: FieldsBuilderProps) {
   const fieldMap = useMemo(() => {
     const map: Record<string, SelectedFieldSchema | undefined> = {};
     fields?.forEach((f) => (map[f.id] = f));
-    systemFields.forEach((f) => (map[f.id] = f));
     return map;
   }, [fields]);
 

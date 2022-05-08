@@ -1,0 +1,4 @@
+#filetype:JSON-streaming{"type":"Class","class":"TicketFieldVariant"}
+{"description":"","titleForCustomerService":"标题","ACL":{},"locale":"zh-cn","field":{"__type":"Pointer","className":"TicketField","objectId":"title"},"title":"标题"}
+{"description":"","titleForCustomerService":"详细描述","ACL":{},"locale":"zh-cn","field":{"__type":"Pointer","className":"TicketField","objectId":"details"},"title":"详细描述"}
+{"description":"","titleForCustomerService":"附件","ACL":{},"locale":"zh-cn","field":{"__type":"Pointer","className":"TicketField","objectId":"attachments"},"title":"附件"}

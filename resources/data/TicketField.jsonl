@@ -1,0 +1,4 @@
+#filetype:JSON-streaming {"type":"Class","class":"TicketField"}
+{"ACL":{},"objectId":"title","defaultLocale":"zh-cn","type":"text","title":"标题","active":true,"visible":true,"required":true}
+{"ACL":{},"objectId":"details","defaultLocale":"zh-cn","type":"multi-line","title":"详细描述","active":true,"visible":true,"required":false}
+{"ACL":{},"objectId":"attachments","defaultLocale":"zh-cn","type":"file","title":"附件","active":true,"visible":true,"required":false}
