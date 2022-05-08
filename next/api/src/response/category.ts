@@ -43,6 +43,7 @@ export class CategoryFieldResponse {
       type: this.variant.field!.type,
       required: this.variant.field!.required,
       options: this.variant.options,
+      meta: this.variant.field?.meta,
     };
   }
 }
