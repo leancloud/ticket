@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQueryClient } from 'react-query';
-import { difference } from 'lodash-es';
 import cx from 'classnames';
 
 import {
@@ -15,7 +14,7 @@ import {
 } from '@/api/ticket-form';
 import { Button, Modal, Spin, Table, message } from '@/components/antd';
 import { usePage, usePageSize } from '@/utils/usePage';
-import { EditTicketForm, systemFieldIds } from './EditTicketForm';
+import { EditTicketForm } from './EditTicketForm';
 
 const { Column } = Table;
 
