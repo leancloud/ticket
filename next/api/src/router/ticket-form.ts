@@ -80,18 +80,16 @@ router.patch('/:id', customerServiceOnly, async (ctx) => {
   const data = updateFormDataSchema.parse(ctx.request.body);
   const { fieldIds } = data;
 
-  if (fieldIds) {
-    if (fieldIds.length) {
-      const fields = await TicketField.queryBuilder()
-        .where('objectId', 'in', fieldIds)
-        .find({ useMasterKey: true });
-      const missingIds = _.difference(
-        fieldIds,
-        fields.map((f) => f.id)
-      );
-      if (missingIds.length) {
-        ctx.throw(400, `TicketField ${missingIds[0]} does not exist`);
-      }
+  if (fieldIds?.length) {
+    const fields = await TicketField.queryBuilder()
+      .where('objectId', 'in', fieldIds)
+      .find({ useMasterKey: true });
+    const missingIds = _.difference(
+      fieldIds,
+      fields.map((f) => f.id)
+    );
+    if (missingIds.length) {
+      ctx.throw(400, `TicketField ${missingIds[0]} does not exist`);
     }
   }
 
