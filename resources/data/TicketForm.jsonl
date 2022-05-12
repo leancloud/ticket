@@ -1,0 +1,2 @@
+#filetype:JSON-streaming {"type":"Class","class":"TicketForm"}
+{"title":"默认表单","fieldIds":["title","details", "attachments"],"ACL":{"*":{"read":true,"write":true}}}

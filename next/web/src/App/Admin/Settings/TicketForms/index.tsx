@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQueryClient } from 'react-query';
-import { difference } from 'lodash-es';
 import cx from 'classnames';
 
 import {
@@ -15,11 +14,9 @@ import {
 } from '@/api/ticket-form';
 import { Button, Modal, Spin, Table, message } from '@/components/antd';
 import { usePage, usePageSize } from '@/utils/usePage';
-import { EditTicketForm, systemFields } from './EditTicketForm';
+import { EditTicketForm } from './EditTicketForm';
 
 const { Column } = Table;
-
-const systemFieldIds = systemFields.map((f) => f.id);
 
 function TicketFormActions({ form }: { form: TicketFormSchema }) {
   const queryClient = useQueryClient();
@@ -142,7 +139,7 @@ export function NewTicketForm() {
     <EditTicketForm
       initData={{
         title: '',
-        fieldIds: systemFieldIds,
+        fieldIds: [],
       }}
       submitting={isLoading}
       onSubmit={mutate}
@@ -156,13 +153,6 @@ export function TicketFormDetail() {
   const { id } = useParams();
   const { data, isLoading } = useTicketForm(id!, {
     staleTime: 1000 * 60 * 5,
-    select: (data) => {
-      const missingIds = difference(systemFieldIds, data.fieldIds);
-      if (missingIds.length) {
-        data.fieldIds = missingIds.concat(data.fieldIds);
-      }
-      return data;
-    },
   });
 
   const queryClient = useQueryClient();

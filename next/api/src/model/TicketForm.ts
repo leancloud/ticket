@@ -4,39 +4,6 @@ import { Model, field, hasManyThroughIdArray } from '@/orm';
 import { TicketField } from './TicketField';
 import { TicketFieldVariant } from './TicketFieldVariant';
 
-const title = new TicketField();
-title.id = 'title';
-title.title = 'title';
-title.type = 'text';
-title.defaultLocale = 'en';
-title.active = true;
-title.required = true;
-title.createdAt = new Date(0);
-title.updatedAt = new Date(0);
-
-const description = new TicketField();
-description.id = 'description';
-description.title = 'description';
-description.type = 'multi-line';
-description.defaultLocale = 'en';
-description.active = true;
-description.required = true;
-description.createdAt = new Date(0);
-description.updatedAt = new Date(0);
-
-export const presetTicketFields = [title, description];
-const presetTicketFieldVariants = presetTicketFields.map((field) => {
-  const variant = new TicketFieldVariant();
-  variant.id = field.id;
-  variant.fieldId = field.id;
-  variant.field = field;
-  variant.title = field.title;
-  variant.locale = field.defaultLocale;
-  variant.createdAt = field.createdAt;
-  variant.updatedAt = field.updatedAt;
-  return variant;
-});
-
 export class TicketForm extends Model {
   @field()
   title!: string;
@@ -47,32 +14,16 @@ export class TicketForm extends Model {
   @hasManyThroughIdArray(() => TicketField)
   fields!: TicketField[];
 
-  // 返回结果包含内置字段（title 、description）
   async getFields(): Promise<TicketField[]> {
     const fields = await TicketField.queryBuilder()
-      .where(
-        'objectId',
-        'in',
-        _.difference(
-          this.fieldIds,
-          presetTicketFields.map((f) => f.id)
-        )
-      )
+      .where('objectId', 'in', this.fieldIds)
       .where('active', '==', true)
       .where('visible', '==', true)
       .find({ useMasterKey: true });
-    const fieldMap = _.keyBy(presetTicketFields.concat(fields), 'id');
-
-    const fieldIds = [...this.fieldIds];
-    if (!fieldIds.includes('title')) {
-      fieldIds.unshift('title');
-    }
-    if (!fieldIds.includes('description')) {
-      fieldIds.push('description');
-    }
+    const fieldMap = _.keyBy(fields, 'id');
 
     const result: TicketField[] = [];
-    for (const fieldId of fieldIds) {
+    for (const fieldId of this.fieldIds) {
       const field = fieldMap[fieldId];
       if (field) {
         result.push(field);
@@ -92,7 +43,7 @@ export class TicketForm extends Model {
       )
       .where('locale', 'in', _.uniq(locales))
       .find({ useMasterKey: true });
-    const variantsByFieldId = _.groupBy(presetTicketFieldVariants.concat(variants), 'fieldId');
+    const variantsByFieldId = _.groupBy(variants, 'fieldId');
 
     const result: TicketFieldVariant[] = [];
 
