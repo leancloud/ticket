@@ -54,6 +54,9 @@
             "comment": "公告，关联 FAQ 表",
             "hidden": false
         },
+        "topicIds": {
+            "type": "Array"
+        },
         "qTemplate": {
             "type": "String"
         },

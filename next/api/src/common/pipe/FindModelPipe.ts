@@ -1,6 +1,6 @@
 import { Context } from 'koa';
 
-import { HttpError } from '@/common/http';
+import { NotFoundError } from '@/common/http';
 import { AuthOptions, Model } from '@/orm';
 import { User } from '@/model/User';
 
@@ -12,7 +12,7 @@ export class FindModelPipe<M extends typeof Model> {
 
     const instance = await this.model.find(id, this.authOptions ?? currentUser?.getAuthOptions());
     if (!instance) {
-      throw new HttpError(404, `${this.model.getClassName()} "${id}" does not exist`);
+      throw new NotFoundError(`${this.model.getClassName()} "${id}"`);
     }
 
     return instance;

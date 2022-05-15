@@ -474,6 +474,7 @@ export function CategoryDetail() {
       'parentId',
       'noticeIds',
       'articleIds',
+      'topicIds',
       'groupId',
       'formId',
       'template',

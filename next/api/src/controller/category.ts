@@ -20,13 +20,14 @@ import { UpdateData } from '@/orm';
 import { auth, customerServiceOnly } from '@/middleware';
 import { getPublicArticle } from '@/model/Article';
 import { Category } from '@/model/Category';
-import { Notification } from '@/model/Notification';
 import { TicketForm } from '@/model/TicketForm';
 import { User } from '@/model/User';
-import { ArticleResponse } from '@/response/article';
+import { ArticleAbstractResponse } from '@/response/article';
 import { CategoryService } from '@/service/category';
 import { CategoryResponse, CategoryResponseForCS } from '@/response/category';
 import { CategoryFieldResponse } from '@/response/ticket-field';
+import { ArticleTopicFullResponse } from '@/response/article-topic';
+import { getTopic } from '@/model/ArticleTopic';
 
 class FindCategoryPipe {
   static async transform(id: string): Promise<Category> {
@@ -45,6 +46,7 @@ const createCategorySchema = z.object({
   parentId: z.string().optional(),
   noticeIds: z.array(z.string()).optional(),
   articleIds: z.array(z.string()).optional(),
+  topicIds: z.array(z.string()).optional(),
   groupId: z.string().optional(),
   formId: z.string().optional(),
   meta: z.record(z.any()).optional(),
@@ -113,6 +115,7 @@ export class CategoryController {
         parentId: data.parentId,
         FAQIds: data.articleIds?.length === 0 ? undefined : data.articleIds,
         noticeIds: data.noticeIds?.length === 0 ? undefined : data.noticeIds,
+        topicIds: data.topicIds?.length === 0 ? undefined : data.topicIds,
         groupId: data.groupId,
         formId: data.formId,
         qTemplate: data.template,
@@ -164,25 +167,36 @@ export class CategoryController {
   }
 
   @Get(':id/faqs')
-  @ResponseBody(ArticleResponse)
+  @ResponseBody(ArticleAbstractResponse)
   async getFAQs(@Param('id', FindCategoryPipe) category: Category) {
     if (!category.FAQIds) {
       return [];
     }
 
     const articles = await Promise.all(category.FAQIds.map(getPublicArticle));
-    return articles.filter((article) => article && !article.private);
+    return articles;
   }
 
   @Get(':id/notices')
-  @ResponseBody(ArticleResponse)
+  @ResponseBody(ArticleAbstractResponse)
   async getNotices(@Param('id', FindCategoryPipe) category: Category) {
     if (!category.noticeIds) {
       return [];
     }
 
     const articles = await Promise.all(category.noticeIds.map(getPublicArticle));
-    return articles.filter((article) => article && !article.private);
+    return articles;
+  }
+
+  @Get(':id/topics')
+  @ResponseBody(ArticleTopicFullResponse)
+  async getTopics(@Param('id', FindCategoryPipe) category: Category) {
+    if (!category.topicIds) {
+      return [];
+    }
+
+    const topics = await Promise.all(category.topicIds.map(getTopic));
+    return topics;
   }
 
   @Get(':id/categories')
@@ -211,6 +225,7 @@ export class CategoryController {
       parentId: data.parentId,
       noticeIds: data.noticeIds?.length === 0 ? null : data.noticeIds,
       FAQIds: data.articleIds?.length === 0 ? null : data.articleIds,
+      topicIds: data.topicIds?.length === 0 ? null : data.topicIds,
       groupId: data.groupId,
       formId: data.formId,
       qTemplate: data.template,

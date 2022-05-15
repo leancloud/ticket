@@ -8,3 +8,5 @@ export const parseDateParam = (param?: string) => {
   }
   return new Date(param);
 };
+
+export const isTruthy = <T>(value: T | false | undefined | null | 0): value is T => !!value;

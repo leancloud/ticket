@@ -1,0 +1,70 @@
+{
+  "schema": {
+    "updatedAt": {
+      "type": "Date"
+    },
+    "ACL": {
+      "type": "ACL",
+      "default": {
+        "*": {
+          "read": true,
+          "write": true
+        }
+      }
+    },
+    "objectId": {
+      "type": "String"
+    },
+    "createdAt": {
+      "type": "Date"
+    },
+    "FAQIds": {
+      "type": "Array",
+      "required": true
+    },
+    "name": {
+      "type": "String",
+      "required": true
+    },
+    "meta": {
+      "type": "Object"
+    },
+    "deletedAt": {
+      "type": "Date"
+    }
+  },
+  "permissions": {
+    "create": {
+      "roles": [],
+      "users": []
+    },
+    "find": {
+      "*": true
+    },
+    "get": {
+      "*": true
+    },
+    "update": {
+      "roles": [],
+      "users": []
+    },
+    "delete": {
+      "roles": [],
+      "users": []
+    },
+    "add_fields": {
+      "roles": [],
+      "users": []
+    }
+  },
+  "indexes": [
+    {
+      "v": 2,
+      "key": {
+        "FAQIds": -1
+      },
+      "name": "-user-FAQIds-1",
+      "background": true
+    }
+  ]
+}

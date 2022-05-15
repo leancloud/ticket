@@ -1,15 +1,13 @@
 import { sanitize } from '@/utils/xss';
 import { Article } from '@/model/Article';
 
-export class ArticleResponse {
+export class ArticleAbstractResponse {
   constructor(readonly article: Article) {}
 
   toJSON() {
     return {
       id: this.article.id,
       title: this.article.title,
-      content: this.article.content,
-      contentSafeHTML: sanitize(this.article.contentHTML),
       private: !!this.article.private,
       revision: this.article.revision
         ? {
@@ -19,6 +17,20 @@ export class ArticleResponse {
         : undefined,
       createdAt: this.article.createdAt.toISOString(),
       updatedAt: this.article.updatedAt.toISOString(),
+    };
+  }
+}
+
+export class ArticleResponse extends ArticleAbstractResponse {
+  constructor(readonly article: Article) {
+    super(article);
+  }
+
+  toJSON() {
+    return {
+      ...super.toJSON(),
+      content: this.article.content,
+      contentSafeHTML: sanitize(this.article.contentHTML),
     };
   }
 }

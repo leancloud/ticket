@@ -18,3 +18,9 @@ export class HttpError extends Error {
     }
   }
 }
+
+export class NotFoundError extends HttpError {
+  constructor(target: string) {
+    super(404, `${target} does not exist`, 'NOT_FOUND');
+  }
+}

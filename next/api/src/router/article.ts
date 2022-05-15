@@ -69,7 +69,9 @@ const createArticalSchema = yup.object({
 
 router.post('/', auth, customerServiceOnly, async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
-  const { title, content, ['private']: isPrivate } = createArticalSchema.validateSync(ctx.request.body);
+  const { title, content, ['private']: isPrivate } = createArticalSchema.validateSync(
+    ctx.request.body
+  );
   const data: CreateData<Article> = { title };
   if (content) {
     data.content = content;
@@ -223,7 +225,7 @@ router.delete('/:id', auth, customerServiceOnly, async (ctx) => {
   }
   const associatedCategoryCount = await Category.query()
     .where('FAQs', '==', article.toPointer())
-    .count(currentUser.getAuthOptions());
+    .count({ useMasterKey: true });
   if (associatedCategoryCount > 0) {
     ctx.throw(400, 'Article is in use');
   }

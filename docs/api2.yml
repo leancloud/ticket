@@ -51,6 +51,8 @@ components:
           type: boolean
         template:
           type: string
+          deprecated: true
+          description: 问题模板（已被表单替代）
     TicketField:
       type: object
       properties:
@@ -199,6 +201,30 @@ components:
         updatedAt:
           type: string
           format: date-time
+    Topic:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        meta:
+          type: object
+        articleIds:
+          type: array
+          items:
+            type: string
+        articles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Article'
+          description: 仅在部分参数下返回值包含该字段
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
     Revision:
       type: object
       properties:
@@ -224,7 +250,7 @@ security:
   - Session token: []
 paths:
   /api/2/users:
-    post: 
+    post:
       tags: [User]
       summary: 登录
       description: request body 中提供的不同字段对应不同的登录方式，详细用法参见使用文档。
@@ -236,9 +262,9 @@ paths:
               properties:
                 jwt:
                   type: string
-                anonymousId: 
+                anonymousId:
                   type: string
-                name: 
+                name:
                   type: string
       responses:
         '200':
@@ -250,7 +276,7 @@ paths:
                 properties:
                   sessionToken:
                     type: string
-               
+
   /api/2/products/{pid}/categories:
     parameters:
       - name: pid
@@ -261,7 +287,7 @@ paths:
     get:
       tags: ['Category']
       summary: 获取分类列表
-      parameters: 
+      parameters:
         - name: active
           in: query
           schema:
@@ -316,6 +342,25 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Article'
+  /api/2/products/{cid}/topics:
+    parameters:
+      - name: cid
+        in: path
+        schema:
+          type: string
+        required: true
+    get:
+      tags: ['Category', 'Knowladge base']
+      summary: 获取与某个分类关联的 Topics
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Topic'
 
   /api/2/tickets:
     get:
@@ -447,31 +492,34 @@ paths:
             schema:
               type: object
               properties:
-                title:
-                  type: string
-                  description: 标题，最大长度 100 字符
-                content:
-                  type: string
-                  description: 内容，支持 Markdown
                 categoryId:
                   type: string
+                title:
+                  type: string
+                  description: 标题，最大长度 100 字符（已被表单系统字段代替）
+                  deprecated: true
+                content:
+                  type: string
+                  description: 内容，支持 Markdown（已被表单系统字段代替）
+                  deprecated: true
                 fileIds:
                   type: array
                   items:
                     type: string
-                  description: 附件文件 ID 列表
+                  description: 附件文件 ID 列表（已被表单系统字段代替）
+                  deprecated: true
                 customFields:
                   type: array
-                  description: 自定义字段
+                  description: 工单字段
                   items:
                     type: object
                     properties:
                       field:
                         type: string
-                        description: 自定义字段 ID
+                        description: 工单字段 ID
                       value:
                         type: mixed
-                        description: 自定义字段值
+                        description: 工单字段值
               required: [title, categoryId]
       responses:
         '200':
@@ -645,7 +693,7 @@ paths:
           in: query
           schema:
             type: boolean
-          description: 为 `true` 时通过 x-total-count 返回符合条件的工单数量
+          description: 为 `true` 时通过 x-total-count 返回符合条件的文章数量
       responses:
         '200':
           description: OK
@@ -802,7 +850,7 @@ paths:
         in: query
         schema:
           type: boolean
-        description: 为 `true` 时通过 x-total-count 返回符合条件的工单数量
+        description: 为 `true` 时通过 x-total-count 返回符合条件的记录数量
     get:
       tags: ['Knowladge base']
       summary: 获取文章修改记录
@@ -836,8 +884,116 @@ paths:
                 items:
                   $ref: '#/components/schemas/Category'
 
+  /api/2/topics:
+    get:
+      tags: ['Knowladge base']
+      summary: 查询 Topic
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+          description: 页数，范围：[1, Infinity)
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+          description: 每页数量，范围：[0, 100]，默认为 10
+        - name: count
+          in: query
+          schema:
+            type: boolean
+          description: 为 `true` 时通过 x-total-count 返回符合条件的 topic 数量
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Topic'
+    post:
+      tags: ['Knowladge base']
+      summary: 创建 Topic
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                articleIds:
+                  type: array
+                  items:
+                    type: string
+                meta:
+                  type: object
+              required: [name, articleIds]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Topic'
+
+  /api/2/topics/{id}:
+    parameters:
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
+    get:
+      tags: ['Knowladge base']
+      summary: 获取 Topic
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Topic'
+    patch:
+      tags: ['Knowladge base']
+      summary: 更新 Topic
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                articleIds:
+                  type: array
+                  items:
+                    type: string
+                meta:
+                  type: object
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      tags: ['Knowladge base']
+      summary: 删除 Topic
+      description: 使用中（有关联的分类）的文章不可删除。
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+
   /api/2/external-files:
-    post: 
+    post:
       tags: [File]
       summary: 注册外部文件
       description: 支持提交文件的接口使用文件 ID 作为参数，外部文件需要先通过此接口注册以获取文件 ID。
@@ -855,7 +1011,7 @@ paths:
                   name:
                     type: string
                     description: 用户文件展示时的名字。如不指定则使用 URL 中的最后一级路径。
-                  metaData: 
+                  metaData:
                     type: object
                     description: KV 接口的的元数据，可用于筛选。
       responses:
@@ -867,5 +1023,4 @@ paths:
                 type: array
                 items:
                   type: string
-                  description:  文件 ID
-                
+                  description: 文件 ID
