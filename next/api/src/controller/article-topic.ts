@@ -17,7 +17,7 @@ import {
   Ctx,
   NotFoundError,
 } from '@/common/http';
-import { FindModelPipe, ParseBoolPipe, ZodValidationPipe } from '@/common/pipe';
+import { FindModelWithoutDeleteFlagPipe, ParseBoolPipe, ZodValidationPipe } from '@/common/pipe';
 import { auth, customerServiceOnly } from '@/middleware';
 import { ArticleTopic } from '@/model/ArticleTopic';
 import { ArticleTopicResponse } from '@/response/article-topic';
@@ -73,7 +73,7 @@ export class ArticleTopicController {
 
   @Get(':id')
   @ResponseBody(ArticleTopicResponse)
-  findOne(@Param('id', new FindModelPipe(ArticleTopic)) topic: ArticleTopic) {
+  findOne(@Param('id', new FindModelWithoutDeleteFlagPipe(ArticleTopic)) topic: ArticleTopic) {
     if (topic.deletedAt) {
       throw new NotFoundError(`${ArticleTopic.getClassName()} "${topic.id}"`);
     }
@@ -82,7 +82,7 @@ export class ArticleTopicController {
 
   @Patch(':id')
   async update(
-    @Param('id', new FindModelPipe(ArticleTopic)) topic: ArticleTopic,
+    @Param('id', new FindModelWithoutDeleteFlagPipe(ArticleTopic)) topic: ArticleTopic,
     @Body(new ZodValidationPipe(updateArticleTopicSchema)) data: UpdateArticleTopicData
   ) {
     await topic.update(data, { useMasterKey: true });
@@ -90,7 +90,7 @@ export class ArticleTopicController {
   }
 
   @Delete(':id')
-  async delete(@Param('id', new FindModelPipe(ArticleTopic)) topic: ArticleTopic) {
+  async delete(@Param('id', new FindModelWithoutDeleteFlagPipe(ArticleTopic)) topic: ArticleTopic) {
     const associatedCategoryCount = await Category.query()
       .where('FAQs', '==', topic.toPointer())
       .count({ useMasterKey: true });
