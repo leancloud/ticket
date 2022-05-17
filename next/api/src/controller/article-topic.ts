@@ -74,9 +74,6 @@ export class ArticleTopicController {
   @Get(':id')
   @ResponseBody(ArticleTopicResponse)
   findOne(@Param('id', new FindModelWithoutDeleteFlagPipe(ArticleTopic)) topic: ArticleTopic) {
-    if (topic.deletedAt) {
-      throw new NotFoundError(`${ArticleTopic.getClassName()} "${topic.id}"`);
-    }
     return topic;
   }
 
