@@ -1,5 +1,4 @@
 import { ArticleRevision } from '@/model/ArticleRevision';
-import { User } from '@/model/User';
 import htmlify from '@/utils/htmlify';
 import { sanitize } from '@/utils/xss';
 import { UserResponse } from './user';

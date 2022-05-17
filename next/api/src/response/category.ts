@@ -1,5 +1,4 @@
 import { Category } from '@/model/Category';
-import { TicketFieldVariant } from '@/model/TicketFieldVariant';
 
 export class CategoryResponse {
   constructor(readonly category: Category) {}
@@ -17,6 +16,7 @@ export class CategoryResponse {
       template: this.category.qTemplate,
       articleIds: this.category.FAQIds,
       noticeIds: this.category.noticeIds,
+      topicIds: this.category.topicIds,
       formId: this.category.formId,
       groupId: this.category.groupId,
     };

@@ -1,7 +1,16 @@
 import _ from 'lodash';
 
-import { AliasModel, field, pointerIds, pointerId, pointTo, serialize } from '@/orm';
+import {
+  AliasModel,
+  field,
+  pointerIds,
+  pointerId,
+  pointTo,
+  serialize,
+  hasManyThroughIdArray,
+} from '@/orm';
 import { Article } from './Article';
+import { ArticleTopic } from './ArticleTopic';
 import { Group } from './Group';
 import { TicketForm } from './TicketForm';
 
@@ -45,6 +54,13 @@ export class Category extends AliasModel {
   @pointerIds(() => Article)
   @serialize()
   noticeIds?: string[];
+
+  @field()
+  @serialize()
+  topicIds!: string[];
+
+  @hasManyThroughIdArray(() => ArticleTopic)
+  topics!: ArticleTopic[];
 
   @pointerId(() => Group)
   @serialize()

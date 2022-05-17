@@ -16,6 +16,7 @@ export interface CategorySchema {
   meta?: Record<string, any>;
   articleIds?: string[];
   noticeIds?: string[];
+  topicIds?: string[];
   formId?: string;
   groupId?: string;
 }
@@ -136,6 +137,7 @@ export interface CreateCategoryData {
   parentId?: string;
   noticeIds?: string[];
   articleIds?: string[];
+  topicIds?: string[];
   groupId?: string;
   formId?: string;
   template?: string;

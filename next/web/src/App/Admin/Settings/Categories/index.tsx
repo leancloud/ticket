@@ -41,6 +41,7 @@ import {
   Spin,
   Table,
   message,
+  Tag,
 } from '@/components/antd';
 import { UserLabel } from '@/App/Admin/components';
 import { CategoryForm } from './CategoryForm';
@@ -52,11 +53,11 @@ function Loading() {
 }
 
 function NameCell({ category }: { category: CategorySchema }) {
-  const { id, name, active } = category;
+  const { id, name, active, alias } = category;
   return (
     <>
       <Link className={cx({ 'opacity-60': !active })} to={id}>
-        {name}
+        {name} {alias && <Tag>{alias}</Tag>}
         {!active && ' (停用)'}
       </Link>
     </>
@@ -474,6 +475,7 @@ export function CategoryDetail() {
       'parentId',
       'noticeIds',
       'articleIds',
+      'topicIds',
       'groupId',
       'formId',
       'template',

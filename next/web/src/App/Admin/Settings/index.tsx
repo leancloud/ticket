@@ -22,6 +22,7 @@ import NewTimeTrigger from './Automations/TimeTriggers/New';
 import TimeTriggerDetail from './Automations/TimeTriggers/Detail';
 import { ArticleRevisionDetail, ArticleRevisions } from './Articles/Revision';
 import { Weekday } from './Others';
+import { NewTopic, TopicDetail, TopicList } from './Topics';
 
 const SettingRoutes = () => (
   <Routes>
@@ -89,6 +90,11 @@ const SettingRoutes = () => (
         </Route>
       </Route>
     </Route>
+    <Route path="/topics">
+      <Route index element={<TopicList />} />
+      <Route path="new" element={<NewTopic />} />
+      <Route path=":id" element={<TopicDetail />} />
+    </Route>
     <Route path="/weekday" element={<Weekday />} />
   </Routes>
 );
@@ -153,6 +159,10 @@ const routeGroups: MenuDataItem[] = [
       {
         name: '文章',
         path: 'articles',
+      },
+      {
+        name: 'Topics',
+        path: 'topics',
       },
     ],
   },

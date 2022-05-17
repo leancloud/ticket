@@ -3,12 +3,13 @@ import { Controller, useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { RefSelectProps } from 'antd/lib/select';
 
-import { useArticles } from '@/api/article';
+import { useTopics } from '@/api/topic';
 import { useCategories, useCategoryTree } from '@/api/category';
 import { useTicketForms } from '@/api/ticket-form';
 import { GroupSelect } from '@/components/common';
 import {
   Button,
+  Divider,
   Form,
   Input,
   Select,
@@ -17,6 +18,7 @@ import {
   TreeSelectProps,
 } from '@/components/antd';
 import { JSONTextarea } from '@/App/Admin/components/JSONTextarea';
+import { ArticleSelect } from '../Articles/ArticleSelect';
 
 const { TextArea } = Input;
 
@@ -41,12 +43,12 @@ const CategoryTreeSelect = forwardRef<RefSelectProps, TreeSelectProps<string | u
   }
 );
 
-const ArticleSelect = forwardRef<RefSelectProps, SelectProps<string[]>>((props, ref) => {
-  const { data, isLoading } = useArticles();
+const TopicSelect = forwardRef<RefSelectProps, SelectProps<string[]>>((props, ref) => {
+  const { data, isLoading } = useTopics();
   const options = useMemo(() => {
-    return data?.map((article) => ({
-      label: (article.private ? '[未发布] ' : '') + article.title,
-      value: article.id,
+    return data?.map((topic) => ({
+      label: `${topic.name}(${topic.articleIds.length})`,
+      value: topic.id,
     }));
   }, [data]);
 
@@ -96,6 +98,7 @@ export interface CategoryFormData {
   parentId?: string;
   noticeIds?: string[];
   articleIds?: string[];
+  topicIds?: string[];
   groupId?: string;
   formId?: string;
   template?: string;
@@ -223,6 +226,36 @@ export function CategoryForm({
         )}
       />
 
+      <Divider orientation="left" orientationMargin={0}>
+        表单 / 模板
+      </Divider>
+      <Controller
+        control={control}
+        name="formId"
+        render={({ field, field: { onChange } }) => (
+          <Form.Item label="关联工单表单" htmlFor="category_form_form_id" style={FORM_ITEM_STYLE}>
+            <TicketFormSelect
+              {...field}
+              onChange={(value, ...params) => onChange(value ?? null, ...params)}
+              id="category_form_form_id"
+            />
+          </Form.Item>
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="template"
+        render={({ field }) => (
+          <Form.Item label="问题描述模板" htmlFor="category_form_template" style={FORM_ITEM_STYLE}>
+            <TextArea {...field} id="category_form_template" rows={5} />
+          </Form.Item>
+        )}
+      />
+
+      <Divider orientation="left" orientationMargin={0}>
+        知识库
+      </Divider>
       <Controller
         control={control}
         name="noticeIds"
@@ -249,6 +282,21 @@ export function CategoryForm({
 
       <Controller
         control={control}
+        name="topicIds"
+        render={({ field }) => (
+          <Form.Item
+            label="Topics"
+            htmlFor="category_form_topic_ids"
+            help="Topics 会在用户落地到该分类时展示"
+            style={FORM_ITEM_STYLE}
+          >
+            <TopicSelect {...field} id="category_form_topic_ids" />
+          </Form.Item>
+        )}
+      />
+
+      <Controller
+        control={control}
         name="articleIds"
         render={({ field }) => (
           <Form.Item
@@ -262,6 +310,9 @@ export function CategoryForm({
         )}
       />
 
+      <Divider orientation="left" orientationMargin={0}>
+        自动化
+      </Divider>
       <Controller
         control={control}
         name="groupId"
@@ -281,30 +332,9 @@ export function CategoryForm({
         )}
       />
 
-      <Controller
-        control={control}
-        name="formId"
-        render={({ field, field: { onChange } }) => (
-          <Form.Item label="关联工单表单" htmlFor="category_form_form_id" style={FORM_ITEM_STYLE}>
-            <TicketFormSelect
-              {...field}
-              onChange={(value, ...params) => onChange(value ?? null, ...params)}
-              id="category_form_form_id"
-            />
-          </Form.Item>
-        )}
-      />
-
-      <Controller
-        control={control}
-        name="template"
-        render={({ field }) => (
-          <Form.Item label="问题描述模板" htmlFor="category_form_template" style={FORM_ITEM_STYLE}>
-            <TextArea {...field} id="category_form_template" rows={5} />
-          </Form.Item>
-        )}
-      />
-
+      <Divider orientation="left" orientationMargin={0}>
+        开发者选项
+      </Divider>
       <Controller
         control={control}
         name="meta"
