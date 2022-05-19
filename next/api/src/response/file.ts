@@ -41,6 +41,7 @@ export class FileResponse {
       id,
       name,
       mime,
+      metaData,
       url: signExternalFileEnabled && metaData?.external ? sign(url) : url,
     };
   }
