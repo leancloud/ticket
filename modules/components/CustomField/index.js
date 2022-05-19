@@ -4,6 +4,8 @@ import { Form, Button, Badge } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import throat from 'throat'
 import _ from 'lodash'
+import { useQuery } from 'react-query'
+import { http } from '../../../lib/leancloud'
 import { storage } from 'lib/leancloud'
 import Select, { MultiSelect } from 'modules/components/Select'
 import { RadioGroup, NativeRadio } from 'modules/components/Radio'
@@ -381,12 +383,64 @@ CustomField.propTypes = {
 }
 export default CustomField
 
+const IMAGE_FILE_MIMES = ['image/png', 'image/jpeg', 'image/gif']
+const FilePreview = ({ id }) => {
+  const { data: file } = useQuery({
+    queryKey: ['files', id],
+    queryFn: () => http.get(`/api/2/files/${id}`),
+  })
+  if (file) {
+    const { name, url, mime } = file
+    if (IMAGE_FILE_MIMES.includes(mime)) {
+      return (
+        <a href={url} target="_blank">
+          <img src={url} alt={name} />
+        </a>
+      )
+    }
+    return (
+      <a href={url} target="_blank">
+        {name}
+      </a>
+    )
+  }
+  return 'Loading...'
+}
+FilePreview.propTypes = {
+  id: PropTypes.string,
+}
+const Files = ({ ids }) => {
+  const [folded, setFolded] = useState(true)
+  const unfold = useCallback(() => setFolded(false), [])
+  return (
+    <>
+      <p>
+        {ids.length} 份附件{' '}
+        {folded && (
+          <Button variant="light" size="sm" onClick={unfold}>
+            展开
+          </Button>
+        )}
+      </p>
+      {!folded && (
+        <ul className={styles.fileList}>
+          {ids.map((id) => (
+            <li key={id}>
+              <FilePreview id={id} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
+  )
+}
+
 function CustomFieldDisplay({ type, value, label, className, options }) {
   const { t } = useTranslation()
   const NoneNode = (
     <Form.Group className={className}>
       <Form.Label>{label}</Form.Label>
-      <p>{t('none')} </p>
+      <p className="text-muted">{t('none')} </p>
     </Form.Group>
   )
   switch (type) {
@@ -397,17 +451,7 @@ function CustomFieldDisplay({ type, value, label, className, options }) {
       return (
         <Form.Group className={className}>
           <Form.Label>{label}</Form.Label>
-          <ul className={styles.fileList}>
-            {value.map((id) => {
-              return (
-                <li key={id}>
-                  <a href={`/api/1/files/${id}/redirection`} target="_blank">
-                    {id}
-                  </a>
-                </li>
-              )
-            })}
-          </ul>
+          <Files ids={value} />
         </Form.Group>
       )
     case 'text':

@@ -60,7 +60,7 @@ export class ExternalFileController {
       externalFiles.map(({ url, name, metaData }) => ({
         url,
         name: name ?? getFileNameFromURL(url),
-        metaData: { ...metaData, owner: currentUser.id },
+        metaData: { ...metaData, owner: currentUser.id, external: true },
       }))
     );
     return files.map((file) => file.id);

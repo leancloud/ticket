@@ -28,6 +28,7 @@ import { CategoryResponse, CategoryResponseForCS } from '@/response/category';
 import { CategoryFieldResponse } from '@/response/ticket-field';
 import { ArticleTopicFullResponse } from '@/response/article-topic';
 import { getTopic } from '@/model/ArticleTopic';
+import { isTruthy } from '@/utils';
 
 class FindCategoryPipe {
   static async transform(id: string): Promise<Category> {
@@ -173,7 +174,7 @@ export class CategoryController {
       return [];
     }
 
-    const articles = await Promise.all(category.FAQIds.map(getPublicArticle));
+    const articles = (await Promise.all(category.FAQIds.map(getPublicArticle))).filter(isTruthy);
     return articles;
   }
 
@@ -184,7 +185,7 @@ export class CategoryController {
       return [];
     }
 
-    const articles = await Promise.all(category.noticeIds.map(getPublicArticle));
+    const articles = (await Promise.all(category.noticeIds.map(getPublicArticle))).filter(isTruthy);
     return articles;
   }
 
