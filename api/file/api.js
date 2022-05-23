@@ -28,12 +28,8 @@ router.param(
   })
 )
 
-router.get('/:id', (req, res) => {
+router.get('/:id', requireAuth, (req, res) => {
   res.json(encodeFileObject(req.file))
-})
-
-router.get('/:id/redirection', (req, res) => {
-  res.redirect(req.file.get('url'))
 })
 
 router.delete(

@@ -2,7 +2,7 @@ import { field, hasManyThroughIdArray, Model, ModifyOptions, pointerIds, seriali
 import { Article, getPublicArticle } from './Article';
 import mem from 'p-memoize';
 import QuickLRU from 'quick-lru';
-import { isTruthy } from '@/utils';
+import _ from 'lodash';
 
 export class ArticleTopic extends Model {
   protected static className = 'FAQTopic';
@@ -43,7 +43,7 @@ const getRawTopic = mem((id: string) => ArticleTopic.find(id), {
 export const getTopic = async (id: string) => {
   const topic = await getRawTopic(id);
   if (topic) {
-    topic.articles = (await Promise.all(topic.articleIds.map(getPublicArticle))).filter(isTruthy);
+    topic.articles = _.compact(await Promise.all(topic.articleIds.map(getPublicArticle)));
   }
   return topic;
 };

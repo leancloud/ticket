@@ -44,6 +44,7 @@ const externalFileschema = z.array(
     url: z.string(),
     name: z.string().optional(),
     metaData: z.record(z.any()).optional(),
+    type: z.string().optional(),
   })
 );
 type ExternalFilesSchema = z.infer<typeof externalFileschema>;
@@ -57,10 +58,11 @@ export class ExternalFileController {
     @Body(new ZodValidationPipe(externalFileschema)) externalFiles: ExternalFilesSchema
   ) {
     const files = await File.createSome(
-      externalFiles.map(({ url, name, metaData }) => ({
+      externalFiles.map(({ url, name, metaData, type }) => ({
         url,
         name: name ?? getFileNameFromURL(url),
-        metaData: { ...metaData, owner: currentUser.id },
+        mime: type,
+        metaData: { ...metaData, owner: currentUser.id, external: true },
       }))
     );
     return files.map((file) => file.id);

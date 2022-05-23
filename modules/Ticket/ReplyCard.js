@@ -257,6 +257,7 @@ export function ReplyCard({ data, onDeleted, ticketId, onEdit }) {
         </BaiduTranslate>
         {imageFiles.length > 0 && (
           <div>
+            <hr />
             {imageFiles.map(({ id, name, url }) => (
               <a key={id} href={url} target="_blank">
                 <img src={url} alt={name} />
@@ -270,7 +271,7 @@ export function ReplyCard({ data, onDeleted, ticketId, onEdit }) {
         <Card.Footer>
           {otherFiles.map(({ id, name, url }) => (
             <div key={id}>
-              <a href={url + '?attname=' + encodeURIComponent(name)} target="_blank">
+              <a href={url} target="_blank">
                 <Icon.Paperclip /> {name}
               </a>
             </div>

@@ -1011,6 +1011,9 @@ paths:
                   name:
                     type: string
                     description: 用户文件展示时的名字。如不指定则使用 URL 中的最后一级路径。
+                  type:
+                    type: string
+                    description: MIME type
                   metaData:
                     type: object
                     description: KV 接口的的元数据，可用于筛选。

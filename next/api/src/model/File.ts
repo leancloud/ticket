@@ -13,5 +13,9 @@ export class File extends Model {
   url!: string;
 
   @field()
-  metaData?: object
+  metaData?: {
+    [key: string]: any;
+    owner?: string;
+    external?: boolean;
+  };
 }
