@@ -4,7 +4,7 @@ import _ from 'lodash';
 
 import { config } from '@/config';
 import * as yup from '@/utils/yup';
-import { SortItem, auth, customerServiceOnly, include, parseRange, sort } from '@/middleware';
+import { auth, customerServiceOnly, include, parseRange, sort } from '@/middleware';
 import { Model, QueryBuilder } from '@/orm';
 import { Category } from '@/model/Category';
 import { Group } from '@/model/Group';
@@ -88,7 +88,7 @@ router.get(
   async (ctx) => {
     const currentUser = ctx.state.currentUser as User;
     const params = findTicketsSchema.validateSync(ctx.query);
-    const sort = ctx.state.sort as SortItem[] | undefined;
+    const sortItems = sort.get(ctx);
 
     const categoryIds = new Set(params.categoryId);
     const rootId = params.product || params.rootCategoryId;
@@ -144,10 +144,6 @@ router.get(
       }
       query.where('privateTags.value', '==', params.privateTagValue);
     }
-
-    if (sort) {
-      sort.forEach(({ key, order }) => query.orderBy(key, order));
-    }
     if (params.includeAuthor) {
       query.preload('author');
     }
@@ -172,6 +168,7 @@ router.get(
     }
 
     query.skip((params.page - 1) * params.pageSize).limit(params.pageSize);
+    sortItems?.forEach(({ key, order }) => query.orderBy(key, order));
 
     let tickets: Ticket[];
     if (params.count) {
@@ -582,8 +579,8 @@ router.get('/:id/replies', sort('orderBy', ['createdAt']), async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   const ticket = ctx.state.ticket as Ticket;
   const { cursor, page, pageSize, count } = fetchRepliesParamsSchema.validateSync(ctx.query);
-  const sort = ctx.state.sort as SortItem[] | undefined;
-  const createdAtOrder = sort?.[0];
+  const sortItems = sort.get(ctx);
+  const createdAtOrder = sortItems?.[0];
   const asc = createdAtOrder?.order !== 'desc';
 
   const query = Reply.queryBuilder()
@@ -596,9 +593,7 @@ router.get('/:id/replies', sort('orderBy', ['createdAt']), async (ctx) => {
     query.skip((page - 1) * pageSize);
   }
   query.limit(pageSize);
-  if (sort) {
-    sort.forEach(({ key, order }) => query.orderBy(key, order));
-  }
+  sortItems?.forEach(({ key, order }) => query.orderBy(key, order));
 
   let replies: Reply[];
   if (count) {
