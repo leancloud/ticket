@@ -5,7 +5,7 @@ import _ from 'lodash';
 import { config } from '@/config';
 import * as yup from '@/utils/yup';
 import { SortItem, auth, customerServiceOnly, include, parseRange, sort } from '@/middleware';
-import { field, Model, QueryBuilder } from '@/orm';
+import { Model, QueryBuilder } from '@/orm';
 import { Category } from '@/model/Category';
 import { Group } from '@/model/Group';
 import { Organization } from '@/model/Organization';
