@@ -50,8 +50,8 @@ const ticketFiltersSchema = yup.object({
   privateTagValue: yup.string(),
 
   // pagination
-  page: yup.number().min(1).default(1),
-  pageSize: yup.number().min(0).max(100).default(10),
+  page: yup.number().integer().min(1).default(1),
+  pageSize: yup.number().integer().min(0).max(100).default(10),
 });
 
 const findTicketsSchema = includeSchema.concat(ticketFiltersSchema).shape({
@@ -573,8 +573,8 @@ router.patch('/:id', async (ctx) => {
 const fetchRepliesParamsSchema = yup.object({
   cursor: yup.date(),
   // pagination
-  page: yup.number().min(1).default(1),
-  pageSize: yup.number().min(0).max(1000).default(100),
+  page: yup.number().integer().min(1).default(1),
+  pageSize: yup.number().integer().min(0).max(1000).default(100),
   count: yup.bool().default(false),
 });
 
