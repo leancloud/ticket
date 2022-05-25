@@ -572,22 +572,42 @@ router.patch('/:id', async (ctx) => {
 
 const fetchRepliesParamsSchema = yup.object({
   cursor: yup.date(),
+  // pagination
+  page: yup.number().min(1).default(1),
+  pageSize: yup.number().min(0).max(1000).default(100),
+  count: yup.bool().default(false),
 });
 
-router.get('/:id/replies', async (ctx) => {
+router.get('/:id/replies', sort('orderBy', ['createdAt']), async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   const ticket = ctx.state.ticket as Ticket;
-  const { cursor } = fetchRepliesParamsSchema.validateSync(ctx.query);
+  const { cursor, page, pageSize, count } = fetchRepliesParamsSchema.validateSync(ctx.query);
+  const sort = ctx.state.sort as SortItem[] | undefined;
+  const createdAtOrder = sort?.[0];
+  const asc = createdAtOrder?.order !== 'desc';
 
   const query = Reply.queryBuilder()
     .where('ticket', '==', ticket.toPointer())
     .preload('author')
     .preload('files');
   if (cursor) {
-    query.where('createdAt', '>', cursor);
+    query.where('createdAt', asc ? '>' : '<', cursor);
+  } else {
+    query.skip((page - 1) * pageSize);
+  }
+  query.limit(pageSize);
+  if (sort) {
+    sort.forEach(({ key, order }) => query.orderBy(key, order));
   }
 
-  const replies = await query.find(currentUser.getAuthOptions());
+  let replies: Reply[];
+  if (count) {
+    const result = await query.findAndCount(currentUser.getAuthOptions());
+    replies = result[0];
+    ctx.set('X-Total-Count', result[1].toString());
+  } else {
+    replies = await query.find(currentUser.getAuthOptions());
+  }
   ctx.body = replies.map((reply) => new ReplyResponse(reply));
 });
 
