@@ -4,8 +4,8 @@ import _ from 'lodash';
 
 import { config } from '@/config';
 import * as yup from '@/utils/yup';
-import { SortItem, auth, customerServiceOnly, include, parseRange, sort } from '@/middleware';
-import { field, Model, QueryBuilder } from '@/orm';
+import { auth, customerServiceOnly, include, parseRange, sort } from '@/middleware';
+import { Model, QueryBuilder } from '@/orm';
 import { Category } from '@/model/Category';
 import { Group } from '@/model/Group';
 import { Organization } from '@/model/Organization';
@@ -50,8 +50,8 @@ const ticketFiltersSchema = yup.object({
   privateTagValue: yup.string(),
 
   // pagination
-  page: yup.number().min(1).default(1),
-  pageSize: yup.number().min(0).max(100).default(10),
+  page: yup.number().integer().min(1).default(1),
+  pageSize: yup.number().integer().min(0).max(100).default(10),
 });
 
 const findTicketsSchema = includeSchema.concat(ticketFiltersSchema).shape({
@@ -88,7 +88,7 @@ router.get(
   async (ctx) => {
     const currentUser = ctx.state.currentUser as User;
     const params = findTicketsSchema.validateSync(ctx.query);
-    const sort = ctx.state.sort as SortItem[] | undefined;
+    const sortItems = sort.get(ctx);
 
     const categoryIds = new Set(params.categoryId);
     const rootId = params.product || params.rootCategoryId;
@@ -144,10 +144,6 @@ router.get(
       }
       query.where('privateTags.value', '==', params.privateTagValue);
     }
-
-    if (sort) {
-      sort.forEach(({ key, order }) => query.orderBy(key, order));
-    }
     if (params.includeAuthor) {
       query.preload('author');
     }
@@ -172,6 +168,7 @@ router.get(
     }
 
     query.skip((params.page - 1) * params.pageSize).limit(params.pageSize);
+    sortItems?.forEach(({ key, order }) => query.orderBy(key, order));
 
     let tickets: Ticket[];
     if (params.count) {
@@ -572,22 +569,40 @@ router.patch('/:id', async (ctx) => {
 
 const fetchRepliesParamsSchema = yup.object({
   cursor: yup.date(),
+  // pagination
+  page: yup.number().integer().min(1).default(1),
+  pageSize: yup.number().integer().min(0).max(1000).default(100),
+  count: yup.bool().default(false),
 });
 
-router.get('/:id/replies', async (ctx) => {
+router.get('/:id/replies', sort('orderBy', ['createdAt']), async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   const ticket = ctx.state.ticket as Ticket;
-  const { cursor } = fetchRepliesParamsSchema.validateSync(ctx.query);
+  const { cursor, page, pageSize, count } = fetchRepliesParamsSchema.validateSync(ctx.query);
+  const sortItems = sort.get(ctx);
+  const createdAtOrder = sortItems?.[0];
+  const asc = createdAtOrder?.order !== 'desc';
 
   const query = Reply.queryBuilder()
     .where('ticket', '==', ticket.toPointer())
     .preload('author')
     .preload('files');
   if (cursor) {
-    query.where('createdAt', '>', cursor);
+    query.where('createdAt', asc ? '>' : '<', cursor);
+  } else {
+    query.skip((page - 1) * pageSize);
   }
+  query.limit(pageSize);
+  sortItems?.forEach(({ key, order }) => query.orderBy(key, order));
 
-  const replies = await query.find(currentUser.getAuthOptions());
+  let replies: Reply[];
+  if (count) {
+    const result = await query.findAndCount(currentUser.getAuthOptions());
+    replies = result[0];
+    ctx.set('X-Total-Count', result[1].toString());
+  } else {
+    replies = await query.find(currentUser.getAuthOptions());
+  }
   ctx.body = replies.map((reply) => new ReplyResponse(reply));
 });
 

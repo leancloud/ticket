@@ -161,6 +161,30 @@ components:
     Status:
       type: integer
       enum: [50, 120, 160, 220, 250, 280]
+    Reply:
+      type: object
+      properties:
+        id:
+          type: string
+        content:
+          type: string
+        contentSafeHTML:
+          type: string
+          description: 安全的 HTML，已 XSS 过滤
+        author:
+          $ref: '#/components/schemas/User'
+        isCustomerService:
+          type: boolean
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/File'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
     Notification:
       type: object
       properties:
@@ -476,7 +500,7 @@ paths:
               schema:
                 type: string
                 format: integer
-              description: 符合条件的工单数量
+              description: 符合条件的工单数量（仅当指定 count 参数时返回）
           content:
             application/json:
               schema:
@@ -536,9 +560,57 @@ paths:
     parameters:
       - name: id
         in: path
+        description: 工单 ID
         schema:
           type: string
         required: true
+    get:
+      tags: [Ticket]
+      summary: 获取回复
+      parameters:
+        - name: orderBy
+          in: query
+          schema:
+            type: string
+            enum:
+              - createdAt
+              - createdAt-desc
+          description: 排序字段，默认为升序，`-desc` 后缀表示降序
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+          description: 每页数量，范围：[0, 1000]，默认为 100
+        - name: page
+          in: query
+          schema:
+            type: integer
+          description: 页数，范围：[1, Infinity)
+        - name: cursor
+          in: query
+          schema:
+            type: string
+          description: 以返回结果的 createdAt 作为游标加载更多。如果指定 cursor，page 参数将被忽略。
+        - name: count
+          in: query
+          schema:
+            type: boolean
+          description: 为 `true` 时通过 x-total-count 返回符合条件的工单数量。多数情况下可以使用 Ticket 的 replyCount 属性代替。
+      responses:
+        '200':
+          description: OK
+          headers:
+            x-total-count:
+              schema:
+                type: string
+                format: integer
+              description: 符合条件的回复数量（仅当指定 count 参数时返回）
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Reply'
     post:
       tags: [Ticket]
       summary: 创建回复
