@@ -87,6 +87,8 @@ components:
           type: string
         url:
           type: string
+        thumbnailUrl:
+          type: string
     Evaluation:
       type: object
       properties:
