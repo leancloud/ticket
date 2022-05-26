@@ -25,24 +25,32 @@ const hmacSha1 = (source: string) =>
   crypto.createHmac('sha1', EXTERNAL_QINIU_SK!).update(source).digest('base64');
 const sign = (originalURL: string) => {
   const url = new URL(originalURL);
-  url.searchParams.set('e', (Math.floor(Date.now() / 1000) + SIGNATURE_TTL).toString());
-  const urlWithTS = url.toString();
+  const hasParams = url.search.length > 0;
+  const expiredAt = (Math.floor(Date.now() / 1000) + SIGNATURE_TTL).toString();
+  const urlWithTS = `${url}${hasParams ? '&' : '?'}e=${expiredAt}`;
   const signature = hmacSha1(urlWithTS);
   const urlSafeSign = signature.replace(/\//g, '_').replace(/\+/g, '-');
   var token = `${EXTERNAL_QINIU_AK}:${urlSafeSign}`;
   return `${urlWithTS}&token=${token}`;
 };
+
+const getThumbnailURL = (originalURL: string) =>
+  `${originalURL}?imageView2/0/w/1080/h/9999/interlace/1/ignore-error/1`;
+
 export class FileResponse {
   constructor(readonly file: File) {}
 
   toJSON() {
     const { id, name, mime, url, metaData } = this.file;
+    const needSignature = signExternalFileEnabled && metaData?.external;
+    const thumbnailURL = getThumbnailURL(url);
     return {
       id,
       name,
       mime,
       metaData,
-      url: signExternalFileEnabled && metaData?.external ? sign(url) : url,
+      url: needSignature ? sign(url) : url,
+      thumbnailUrl: needSignature ? sign(thumbnailURL) : thumbnailURL,
     };
   }
 }
