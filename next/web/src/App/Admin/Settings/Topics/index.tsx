@@ -135,7 +135,7 @@ function EditTopic({ initData, loading, onSave }: EditTopicProps) {
         render={({ field }) => (
           <Form.Item label="文章" htmlFor="articles">
             <ArticleSelect {...field} id="articles" />
-            {articles && (
+            {articles && field.value && (
               <div className="mt-2">
                 <div>预览：</div>
                 <ul>
