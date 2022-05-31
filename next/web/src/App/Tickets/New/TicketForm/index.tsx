@@ -1,7 +1,10 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { SiMarkdown } from 'react-icons/si';
 import { compact, keyBy, last, uniq } from 'lodash-es';
+import docsearch from 'docsearch.js';
+import 'docsearch.js/dist/cdn/docsearch.css';
+import './docsearch-override.css';
 
 import { ENABLE_LEANCLOUD_INTEGRATION } from '@/leancloud';
 import { useArticles } from '@/api/article';
@@ -151,6 +154,18 @@ export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
       categoryId: categoryId!,
     });
   });
+
+  useEffect(() => {
+    const ALGOLIA_API_KEY = import.meta.env.VITE_ALGOLIA_API_KEY;
+    if (ALGOLIA_API_KEY) {
+      docsearch({
+        apiKey: ALGOLIA_API_KEY,
+        indexName: 'leancloud',
+        inputSelector: '#ticket_title',
+        debug: false,
+      });
+    }
+  }, []);
 
   return (
     <div className="p-2">

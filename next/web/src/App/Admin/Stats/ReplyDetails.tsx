@@ -2,7 +2,7 @@ import { useState, useImperativeHandle, forwardRef, useMemo, useCallback } from 
 import { Button, Modal, Table } from '@/components/antd';
 
 import { useSearchParams } from '@/utils/useSearchParams';
-import { ReplyDetail, useReplyDetails } from '@/api/ticket-stats';
+import { useReplyDetails } from '@/api/ticket-stats';
 
 import { useActiveField } from './StatsPage';
 import { useRangePicker } from './utils';

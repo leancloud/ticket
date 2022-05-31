@@ -3,7 +3,7 @@ const path = require('path');
 
 const REQUIRED_ENV_KEYS = ['LC_APP_ID', 'LC_APP_KEY', 'LEANCLOUD_API_HOST'];
 
-const OPTIONAL_ENV_KEYS = ['SENTRY_WEB_DSN', 'ENABLE_LEANCLOUD_INTEGRATION'];
+const OPTIONAL_ENV_KEYS = ['SENTRY_WEB_DSN', 'ENABLE_LEANCLOUD_INTEGRATION', 'ALGOLIA_API_KEY'];
 
 function generate() {
   const firstMissingKey = REQUIRED_ENV_KEYS.find((key) => process.env[key] === undefined);

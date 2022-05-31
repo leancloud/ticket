@@ -2,11 +2,17 @@ import { defineConfig } from 'vite';
 import reactRefresh from '@vitejs/plugin-react-refresh';
 import reactJSX from 'vite-react-jsx';
 import path from 'path';
-// import analyze from 'rollup-plugin-analyzer';
+import replace from '@rollup/plugin-replace';
+
+const replaceForDocsearchDotJs = replace({
+  'process.env.RESET_APP_DATA_TIMER': false,
+  'global.MutationObserver': 'window.MutationObserver',
+  'global.queueMicrotask': 'window.queueMicrotask',
+});
 
 export default defineConfig({
   base: '/next/',
-  plugins: [reactRefresh(), reactJSX()],
+  plugins: [reactRefresh(), reactJSX(), replaceForDocsearchDotJs],
   server: {
     port: 8081,
     proxy: {
@@ -19,15 +25,9 @@ export default defineConfig({
       '@': path.resolve('./src'),
     },
   },
-  // build: {
-  //   rollupOptions: {
-  //     plugins: [analyze()],
-  //   },
-  // },
   css: {
     preprocessorOptions: {
       less: {
-        // 支持内联 JavaScript
         javascriptEnabled: true,
       },
     },
