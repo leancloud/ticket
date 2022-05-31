@@ -2,7 +2,6 @@ import { defineConfig } from 'vite';
 import reactRefresh from '@vitejs/plugin-react-refresh';
 import reactJSX from 'vite-react-jsx';
 import path from 'path';
-// import analyze from 'rollup-plugin-analyzer';
 
 export default defineConfig({
   base: '/next/',
@@ -19,15 +18,9 @@ export default defineConfig({
       '@': path.resolve('./src'),
     },
   },
-  // build: {
-  //   rollupOptions: {
-  //     plugins: [analyze()],
-  //   },
-  // },
   css: {
     preprocessorOptions: {
       less: {
-        // 支持内联 JavaScript
         javascriptEnabled: true,
       },
     },

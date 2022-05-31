@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { SiMarkdown } from 'react-icons/si';
 import { compact, keyBy, last, uniq } from 'lodash-es';
@@ -151,6 +151,18 @@ export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
       categoryId: categoryId!,
     });
   });
+
+  useEffect(() => {
+    const ALGOLIA_API_KEY = import.meta.env.VITE_ALGOLIA_API_KEY;
+    if (ALGOLIA_API_KEY) {
+      docsearch({
+        apiKey: ALGOLIA_API_KEY,
+        indexName: 'leancloud',
+        inputSelector: '#ticket_title',
+        debug: false,
+      });
+    }
+  }, []);
 
   return (
     <div className="p-2">

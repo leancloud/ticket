@@ -1,0 +1,7 @@
+span.algolia-autocomplete {
+  display: block!important;
+}
+.algolia-autocomplete .ds-dropdown-menu {
+  max-width: 100%;
+  min-width: 100%;
+}
