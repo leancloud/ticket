@@ -221,3 +221,17 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 导入 TicketStatusStats.json。
 
 创建定时任务 statsHour `0 * * * *`
+
+## 2022-05-30
+
+导入以下文件：
+
+- schema
+  - Category.json
+  - FAQTopic.json
+  - TicketField.json
+  - notification.json
+- data
+  - TicketField.jsonl
+  - TicketFieldVariant.jsonl
+  - TicketForm.jsonl
