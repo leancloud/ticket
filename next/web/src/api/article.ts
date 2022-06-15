@@ -33,6 +33,7 @@ export interface FetchArticlesResult {
 export async function fetchArticles(options: FetchArticlesOptions): Promise<FetchArticlesResult> {
   const { data, headers } = await http.get<Article[]>('/api/2/articles', {
     params: {
+      pageSize: 1000,
       ...options,
       id: options.id?.join(','),
     },
