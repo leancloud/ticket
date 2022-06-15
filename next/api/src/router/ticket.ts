@@ -370,7 +370,7 @@ router.post('/', async (ctx) => {
   );
   const content = (data.content || details || '').trim();
   const title =
-    data.title || fieldTitle || (content ? content.split('\n')[0].slice(0, 50) : category.name);
+    data.title || fieldTitle || (content ? content.split('\n')[0].slice(0, 100) : category.name);
   const fileIds = data.fileIds ?? attachments;
 
   const creator = new TicketCreator().setAuthor(currentUser).setTitle(title).setContent(content);
