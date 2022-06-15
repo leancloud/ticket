@@ -45,7 +45,7 @@ interface NewTicketData {
     key: string;
     value: string;
   }[];
-  metadata?: Record<string, any>;
+  metaData?: Record<string, any>;
 }
 
 interface TicketFormProps {
@@ -87,7 +87,7 @@ function TicketForm({ categoryId, onSubmit, submitting }: TicketFormProps) {
       title: title,
       content: description,
       customFields: Object.entries(fieldValues).map(([id, value]) => ({ field: id, value })),
-      metadata: meta ?? undefined,
+      metaData: meta ?? undefined,
     }).then(clear);
   };
 
