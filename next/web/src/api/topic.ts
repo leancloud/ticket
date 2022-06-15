@@ -24,7 +24,10 @@ export interface FetchTopicsResult {
 
 export async function fetchTopics(options: FetchTopicsOptions): Promise<FetchTopicsResult> {
   const { data, headers } = await http.get<Topic[]>('/api/2/topics', {
-    params: options,
+    params: {
+      pageSize: 1000,
+      ...options,
+    },
   });
   const totalCount = headers['x-total-count'];
   return {
