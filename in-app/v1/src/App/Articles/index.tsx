@@ -110,7 +110,14 @@ function ArticleDetail() {
 
   return (
     <QueryWrapper result={result}>
-      <Helmet>{article?.title && <title>{article.title}</title>}</Helmet>
+      {article && (
+        <Helmet>
+          <title>{article.title}</title>
+          <meta property="og:type" content="article" />
+          <meta property="og:title" content={article.title} />
+          <meta property="og:description" content={article.content.split('\n')[0]} />
+        </Helmet>
+      )}
       <PageHeader>{article?.title}</PageHeader>
       <PageContent>
         <div className="p-4 bg-black bg-opacity-[0.02] border-b border-gray-100 ">
