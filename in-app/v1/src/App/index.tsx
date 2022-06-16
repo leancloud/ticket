@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { ArrayParam, decodeQueryParams, JsonParam, StringParam } from 'serialize-query-params';
 import { parse } from 'query-string';
+import { Helmet, HelmetProvider } from 'react-helmet-async';
 
 import { User, auth as lcAuth } from '@/leancloud';
 import { APIError } from '@/components/APIError';
@@ -14,6 +15,7 @@ import Categories from './Categories';
 import Tickets from './Tickets';
 import NotFound from './NotFound';
 import Articles from './Articles';
+import { useTranslation } from 'react-i18next';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -54,6 +56,8 @@ const AuthContext = createContext<[User | null, boolean, any]>([null, true, null
 export const useAuth = () => useContext(AuthContext);
 
 export default function App() {
+  const { t } = useTranslation();
+
   const pathname = window.location.pathname;
   const paths = pathname.split('/');
   const rootCategory = paths[4];
@@ -96,19 +100,24 @@ export default function App() {
     return <p>Not Found</p>;
   }
   return (
-    <BrowserRouter basename={`${rootURL}/${paths[4]}`}>
-      <QueryClientProvider client={queryClient}>
-        <ErrorBoundary>
-          <RootCategoryContext.Provider value={rootCategory}>
-            <AuthContext.Provider value={auth}>
-              <TicketInfoContext.Provider value={ticketInfo}>
-                <AppRoutes />
-              </TicketInfoContext.Provider>
-            </AuthContext.Provider>
-          </RootCategoryContext.Provider>
-        </ErrorBoundary>
-      </QueryClientProvider>
-    </BrowserRouter>
+    <HelmetProvider>
+      <Helmet>
+        <title>{t('general.call_center')}</title>
+      </Helmet>
+      <BrowserRouter basename={`${rootURL}/${paths[4]}`}>
+        <QueryClientProvider client={queryClient}>
+          <ErrorBoundary>
+            <RootCategoryContext.Provider value={rootCategory}>
+              <AuthContext.Provider value={auth}>
+                <TicketInfoContext.Provider value={ticketInfo}>
+                  <AppRoutes />
+                </TicketInfoContext.Provider>
+              </AuthContext.Provider>
+            </RootCategoryContext.Provider>
+          </ErrorBoundary>
+        </QueryClientProvider>
+      </BrowserRouter>
+    </HelmetProvider>
   );
 }
 
