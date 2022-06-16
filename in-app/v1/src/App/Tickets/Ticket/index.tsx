@@ -14,6 +14,7 @@ import cx from 'classnames';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/solid';
 import { flatten, last } from 'lodash-es';
 import { produce } from 'immer';
+import { Helmet } from 'react-helmet-async';
 
 import { auth, db, http } from '@/leancloud';
 import { Reply, Ticket } from '@/types';
@@ -261,6 +262,7 @@ export default function TicketDetail() {
 
   return (
     <>
+      <Helmet>{ticket?.title && <title>{ticket.title}</title>}</Helmet>
       <PageHeader>{ticket?.title ?? t('general.loading')}</PageHeader>
       <PageContent className={cx({ 'mb-0 rounded-b-none': !ticketIsClosed })}>
         <QueryWrapper result={result}>

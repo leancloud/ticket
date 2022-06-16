@@ -14,6 +14,7 @@ import ThumbDownIcon from '@/icons/ThumbDown';
 import ThumbUpIcon from '@/icons/ThumbUp';
 import { useAuth } from '..';
 import { ArticleListItem, useFAQs } from './utils';
+import { Helmet } from 'react-helmet-async';
 
 async function getArticle(id: string) {
   return (await http.get<Article>(`/api/2/articles/${id}`)).data;
@@ -109,6 +110,7 @@ function ArticleDetail() {
 
   return (
     <QueryWrapper result={result}>
+      <Helmet>{article?.title && <title>{article.title}</title>}</Helmet>
       <PageHeader>{article?.title}</PageHeader>
       <PageContent>
         <div className="p-4 bg-black bg-opacity-[0.02] border-b border-gray-100 ">

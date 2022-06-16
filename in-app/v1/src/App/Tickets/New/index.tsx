@@ -16,6 +16,7 @@ import { useTicketInfo } from '../..';
 import NotFound from '../../NotFound';
 import { CustomForm } from './CustomForm';
 import { usePersistFormData } from './usePersistFormData';
+import { Helmet } from 'react-helmet-async';
 
 const presetFields: CategoryFieldSchema[] = [
   {
@@ -150,6 +151,7 @@ export function NewTicket() {
   }
   return (
     <>
+      <Helmet>{result.data?.name && <title>{result.data.name}</title>}</Helmet>
       <PageHeader>{result.data?.name ?? t('general.loading') + '...'}</PageHeader>
       <PageContent>
         {ticketId ? (

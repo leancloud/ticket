@@ -16,6 +16,7 @@ import { ArticleListItem, useFAQs } from '@/App/Articles/utils';
 import styles from './index.module.css';
 import { NotFoundContent } from '../NotFound';
 import { useRootCategory } from '..';
+import { Helmet } from 'react-helmet-async';
 
 interface ListItemProps {
   to: string;
@@ -157,6 +158,9 @@ export default function Categories() {
   })();
   return (
     <>
+      <Helmet>
+        <title>{title}</title>
+      </Helmet>
       <PageHeader>{title}</PageHeader>
       <PageContent>
         <QueryWrapper result={result}>{content}</QueryWrapper>

@@ -4,6 +4,7 @@ import { useInfiniteQuery } from 'react-query';
 import { useTranslation } from 'react-i18next';
 import { InView } from 'react-intersection-observer';
 import { flatten } from 'lodash-es';
+import { Helmet } from 'react-helmet-async';
 
 import { auth, http } from '@/leancloud';
 import { TicketListItem } from '@/types';
@@ -96,6 +97,9 @@ export function TicketList() {
 
   return (
     <>
+      <Helmet>
+        <title>{t('ticket.record')}</title>
+      </Helmet>
       <PageHeader>{t('ticket.record')}</PageHeader>
       <PageContent>
         <QueryWrapper result={result} noData={noData} noDataMessage={t('ticket.no_record')}>
