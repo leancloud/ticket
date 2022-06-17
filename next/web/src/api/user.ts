@@ -25,6 +25,7 @@ async function fetchUsers({ id, q }: FetchUserOptions = {}): Promise<UserSearchR
   if (id) {
     if (Array.isArray(id)) {
       params.id = id.join(',');
+      params.pageSize = id.length.toString();
     } else {
       params.id = id;
     }
