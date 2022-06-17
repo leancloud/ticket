@@ -15,11 +15,11 @@ const { Column } = Table;
 function TicketLink({ ticket }: { ticket: TicketSchema }) {
   return (
     <a
-      className="flex mt-1.5 font-bold max-w-full"
+      className="mt-1.5 font-bold max-w-full"
       title={ticket.title}
       href={`/tickets/${ticket.nid}`}
     >
-      <span className="shrink truncate">{ticket.title}</span>
+      <span className="shrink">{ticket.title}</span>
       <span className="shrink-0 ml-1 text-[#6f7c87]">#{ticket.nid}</span>
     </a>
   );
