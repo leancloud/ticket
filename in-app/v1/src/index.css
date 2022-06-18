@@ -11,7 +11,7 @@ body {
 }
 
 #root {
-  @apply flex flex-col grow;
+  @apply flex flex-col grow w-full max-w-3xl mx-auto;
 }
 
 button:focus,
