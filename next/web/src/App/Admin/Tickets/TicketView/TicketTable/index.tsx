@@ -19,8 +19,8 @@ function TicketLink({ ticket }: { ticket: TicketSchema }) {
       title={ticket.title}
       href={`/tickets/${ticket.nid}`}
     >
-      <span className="shrink">{ticket.title}</span>
-      <span className="shrink-0 ml-1 text-[#6f7c87]">#{ticket.nid}</span>
+      <span>{ticket.title}</span>
+      <span className="ml-1 text-[#6f7c87]">#{ticket.nid}</span>
     </a>
   );
 }
