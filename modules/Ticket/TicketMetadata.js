@@ -510,14 +510,11 @@ const TicketFormValues = memo(({ ticket, loadMoreOpsLogs }) => {
         </Button>
       </Form.Label>
       {formFields.map((field) => {
-        const variant = field.variants[0] || {}
         return (
           <CustomFieldDisplay
             key={field.id}
-            type={field.type}
-            label={variant.title}
+            field={field}
             value={matchFormValues[field.id]}
-            options={variant.options}
             className={styles.field}
           />
         )
@@ -526,14 +523,11 @@ const TicketFormValues = memo(({ ticket, loadMoreOpsLogs }) => {
         <>
           <hr />
           {otherFields.map((field) => {
-            const variant = field.variants[0] || {}
             return (
               <CustomFieldDisplay
                 key={field.id}
-                type={field.type}
-                label={variant.title}
+                field={field}
                 value={formValues ? formValues[field.id] : undefined}
-                options={variant.options}
                 className={styles.field}
               />
             )

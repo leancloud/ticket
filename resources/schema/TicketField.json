@@ -34,6 +34,9 @@
       "read_only": false,
       "comment": ""
     },
+    "previewTemplate": {
+      "type": "String"
+    },
     "meta": {
       "type": "Object",
       "v": 2,

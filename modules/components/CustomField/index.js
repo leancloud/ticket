@@ -4,6 +4,9 @@ import { Form, Button, Badge } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import throat from 'throat'
 import _ from 'lodash'
+import Handlebars from 'handlebars'
+import DOMPurify from 'dompurify'
+
 import { useQuery } from 'react-query'
 import { http } from '../../../lib/leancloud'
 import { storage } from 'lib/leancloud'
@@ -435,14 +438,42 @@ const Files = ({ ids }) => {
   )
 }
 
-function CustomFieldDisplay({ type, value, label, className, options }) {
+function CustomFieldDisplay({
+  field: { type, variants, preview_template: previewTemplate },
+  value,
+  className,
+}) {
   const { t } = useTranslation()
+  const { title: label, options } = variants[0] || {}
   const NoneNode = (
     <Form.Group className={className}>
       <Form.Label>{label}</Form.Label>
       <p className="text-muted">{t('none')} </p>
     </Form.Group>
   )
+  const template = useMemo(
+    () => (previewTemplate ? Handlebars.compile(previewTemplate) : undefined),
+    [previewTemplate]
+  )
+  const previewHTML = useMemo(() => {
+    let parsedValue = value
+    try {
+      parsedValue = JSON.parse(value)
+    } catch (error) {
+      // ignore the error
+    }
+    return template && value !== undefined
+      ? DOMPurify.sanitize(template({ value: parsedValue }), { ADD_TAGS: ['iframe'] })
+      : undefined
+  }, [template, value])
+  if (previewTemplate && value !== undefined) {
+    return (
+      <Form.Group className={className}>
+        <Form.Label>{label}</Form.Label>
+        <p className={styles.preview} dangerouslySetInnerHTML={{ __html: previewHTML }} />
+      </Form.Group>
+    )
+  }
   switch (type) {
     case 'file':
       if (value === undefined || !Array.isArray(value) || value.length === 0) {
@@ -509,8 +540,11 @@ function CustomFieldDisplay({ type, value, label, className, options }) {
 }
 
 CustomFieldDisplay.propTypes = {
-  type: PropTypes.oneOf(fieldType),
-  label: PropTypes.node,
+  field: PropTypes.shape({
+    type: PropTypes.oneOf(fieldType),
+    variant: PropTypes.any,
+    previewTemplate: PropTypes.string,
+  }),
   value: PropTypes.any,
   options: PropTypes.any,
   className: PropTypes.string,
