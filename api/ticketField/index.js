@@ -2,6 +2,7 @@ const { Router } = require('express')
 const { check, query } = require('express-validator')
 const { requireAuth, catchError, customerServiceOnly } = require('../middleware')
 const { responseAppendCount } = require('../utils')
+const { isStaff } = require('../common')
 const { LOCALES, TYPES, REQUIRE_OPTIONS } = require('./constant')
 const fieldService = require('./fieldService').service
 const variantService = require('./variantService').service
@@ -63,13 +64,17 @@ router.get(
       search,
       ids,
     }
-    const list = await fieldService.list(queryOptions)
+    const asStaff = await isStaff(req.user)
+    const list = await fieldService.list(queryOptions, asStaff)
     if (size !== undefined || skip !== undefined) {
       const count = await fieldService.count(queryOptions)
       res = responseAppendCount(res, count)
     }
     if (includeVariant) {
-      const variants = await variantService.list(list.map((field) => field.id))
+      const variants = await variantService.list(
+        list.map((field) => field.id),
+        asStaff
+      )
       const variantMap = variants.reduce((pre, curr) => {
         const key = curr.field_id
         pre[key] = pre[key] ? pre[key].concat([curr]) : [curr]
@@ -143,7 +148,7 @@ router.get(
     const { id } = req.params
     const locale = req.query.locale
     const field = await fieldService.get(id)
-    const variants = await variantService.list([id])
+    const variants = await variantService.list([id], await isStaff(req.user))
     res.json(merge(field, variants, locale))
   })
 )

@@ -4,11 +4,11 @@ const className = 'TicketFieldVariant'
 const toPointer = (id) => AV.Object.createWithoutData(className, id)
 
 class VariantService {
-  async list(fieldIds) {
+  async list(fieldIds, asStaff) {
     const query = new AV.Query(className)
     query.containedIn('field', fieldIds.map(ticketFieldToPointer))
     const list = await query.find({ useMasterKey: true })
-    return list.map(this.pick)
+    return list.map((variant) => this.pick(variant, asStaff))
   }
   async add(fieldId, variants) {
     if (!Array.isArray(variants)) {
@@ -38,11 +38,11 @@ class VariantService {
     await this.delete(fieldId)
     return this.add(fieldId, variants)
   }
-  pick(obj) {
+  pick(obj, asStaff) {
     return {
       id: obj.id,
       locale: obj.get('locale'),
-      title: obj.get('title'),
+      title: asStaff ? obj.get('titleForCustomerService') ?? obj.get('title') : obj.get('title'),
       options: obj.get('options'),
       field_id: obj.get('field').id,
     }

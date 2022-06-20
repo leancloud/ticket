@@ -22,9 +22,9 @@ class FieldService {
     query.addDescending('updatedAt')
     return query
   }
-  async list(options) {
+  async list(options, asStaff) {
     const list = await this.createQuery(options).find({ useMasterKey: true })
-    return list.map(this.pick)
+    return list.map((field) => this.pick(field, asStaff))
   }
   count(options) {
     return this.createQuery(options).count({
@@ -67,7 +67,7 @@ class FieldService {
       ...fieldData,
     }
   }
-  pick(obj) {
+  pick(obj, asStaff) {
     return {
       id: obj.id,
       title: obj.get('title'),
@@ -77,6 +77,7 @@ class FieldService {
       required: !!obj.get('required'),
       updatedAt: obj.get('updatedAt'),
       createAt: obj.get('createAt'),
+      preview_template: asStaff ? obj.get('previewTemplate') : undefined,
     }
   }
 }
