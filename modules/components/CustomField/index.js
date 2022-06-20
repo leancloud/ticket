@@ -14,6 +14,7 @@ import Select, { MultiSelect } from 'modules/components/Select'
 import { RadioGroup, NativeRadio } from 'modules/components/Radio'
 import { useAppContext } from 'modules/context'
 import styles from './index.module.scss'
+import { ErrorBoundary } from '../ErrorBoundary'
 
 export const includeOptionsType = ['dropdown', 'multi-select', 'radios']
 export const fieldType = [
@@ -438,19 +439,7 @@ const Files = ({ ids }) => {
   )
 }
 
-function CustomFieldDisplay({
-  field: { type, variants, preview_template: previewTemplate },
-  value,
-  className,
-}) {
-  const { t } = useTranslation()
-  const { title: label, options } = variants[0] || {}
-  const NoneNode = (
-    <Form.Group className={className}>
-      <Form.Label>{label}</Form.Label>
-      <p className="text-muted">{t('none')} </p>
-    </Form.Group>
-  )
+function CustomFieldPreview({ previewTemplate, value }) {
   const template = useMemo(
     () => (previewTemplate ? Handlebars.compile(previewTemplate) : undefined),
     [previewTemplate]
@@ -466,11 +455,30 @@ function CustomFieldDisplay({
       ? DOMPurify.sanitize(template({ value: parsedValue }), { ADD_TAGS: ['iframe'] })
       : undefined
   }, [template, value])
+  return <p className={styles.preview} dangerouslySetInnerHTML={{ __html: previewHTML }} />
+}
+
+function CustomFieldDisplay({
+  field: { type, variants, preview_template: previewTemplate },
+  value,
+  className,
+}) {
+  const { t } = useTranslation()
+  const { title: label, options } = variants[0] || {}
+  const NoneNode = (
+    <Form.Group className={className}>
+      <Form.Label>{label}</Form.Label>
+      <p className="text-muted">{t('none')} </p>
+    </Form.Group>
+  )
+
   if (previewTemplate && value !== undefined) {
     return (
       <Form.Group className={className}>
         <Form.Label>{label}</Form.Label>
-        <p className={styles.preview} dangerouslySetInnerHTML={{ __html: previewHTML }} />
+        <ErrorBoundary>
+          <CustomFieldPreview previewTemplate={previewTemplate} value={value} />
+        </ErrorBoundary>
       </Form.Group>
     )
   }
