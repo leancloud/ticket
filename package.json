@@ -48,6 +48,7 @@
     "express-session": "^1.17.2",
     "express-validator": "^6.10.0",
     "form-data": "^4.0.0",
+    "handlebars": "^4.7.7",
     "highlight.js": "^9.10.0",
     "http-proxy-middleware": "^2.0.1",
     "i18next": "^19.8.9",

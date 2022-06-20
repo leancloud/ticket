@@ -1,5 +1,4 @@
 const AV = require('leancloud-storage')
-const { object } = require('prop-types')
 const className = 'TicketField'
 const toPointer = (id) => AV.Object.createWithoutData(className, id)
 
