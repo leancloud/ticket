@@ -284,9 +284,13 @@ export class Ticket extends Model {
         updater.ONLY_FOR_TGB_increaseUnreadCount();
       }
       if (this.status < Status.FULFILLED) {
-        updater.setStatus(
-          isCustomerService ? Status.WAITING_CUSTOMER : Status.WAITING_CUSTOMER_SERVICE
-        );
+        if (isCustomerService) {
+          updater.setStatus(Status.WAITING_CUSTOMER);
+        } else {
+          if (this.status !== Status.NEW) {
+            updater.setStatus(Status.WAITING_CUSTOMER_SERVICE);
+          }
+        }
       }
 
       await updater.update(data.author);
