@@ -277,7 +277,7 @@ function TicketInfo({ ticket }) {
       <span className={csCss.nid}>#{ticket.nid}</span>
       <TicketStatusLabel status={ticket.status} />
       <span className="mx-2">
-        <UserLabel user={ticket.author} displayTags={!isUser} /> {t('createdAt')}{' '}
+        <UserLabel user={ticket.author} displayTags={!isUser} displayId /> {t('createdAt')}{' '}
         <span title={createdAt.format()}>{createdAt.fromNow()}</span>
         {createdAt.fromNow() !== updatedAt.fromNow() && (
           <>
