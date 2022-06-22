@@ -74,6 +74,7 @@ UserTags.propTypes = {
   className: PropTypes.string,
 }
 
+const isGenaratedName = (name) => /^[0-9a-z]{25}$/.test(name)
 export function UserLabel({ user, simple, displayTags, displayId }) {
   const name = getUserDisplayName(user)
   if (simple) {
@@ -87,7 +88,9 @@ export function UserLabel({ user, simple, displayTags, displayId }) {
       <Link to={'/users/' + user.username} className="username">
         {name}
       </Link>
-      {displayId && <span className="text-muted"> ({user.username})</span>}
+      {displayId && name !== user.username && !isGenaratedName(user.username) && (
+        <span className="text-muted"> ({user.username})</span>
+      )}
       {displayTags && <UserTags user={user} />}
     </span>
   )

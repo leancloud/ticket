@@ -58,7 +58,8 @@ class User extends Component {
           </div>
           <div className={css.info}>
             <h2 className={css.userInfo}>
-              {this.state.user.username}{' '}
+              {this.state.user.name}{' '}
+              <span className="text-muted">({this.state.user.username})</span>{' '}
               {this.props.isCustomerService && (
                 <UserTags user={this.state.user} className={css.tags} />
               )}
