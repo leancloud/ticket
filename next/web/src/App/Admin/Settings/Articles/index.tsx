@@ -280,6 +280,8 @@ export function ArticleDetail() {
     return <Empty description="没有找到该文章" />;
   }
 
+  const articleURL = `/in-app/v1/products/-/articles/${article.slug}?nav=0`;
+
   return (
     <div className="p-10">
       <div className="flex justify-center mb-1">
@@ -315,6 +317,13 @@ export function ArticleDetail() {
         </div>
       </div>
       <Title level={2}>{article.title}</Title>
+      <div className="mb-4 text-gray-400">
+        URL:{' '}
+        <a href={articleURL}>
+          {document.location.origin}
+          {articleURL}
+        </a>
+      </div>
       {!!relatedCategories?.length && (
         <div className="mb-4 p-4 bg-gray-50">
           正在使用该文章的分类： <CategoryList categories={relatedCategories} />

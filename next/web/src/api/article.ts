@@ -6,6 +6,7 @@ import { CategorySchema } from './category';
 export interface Article {
   id: string;
   title: string;
+  slug: string;
   content: string;
   contentSafeHTML: string;
   private: boolean;
