@@ -315,6 +315,9 @@ export function ArticleDetail() {
         </div>
       </div>
       <Title level={2}>{article.title}</Title>
+      <div className="mb-4 text-gray-400">
+        URL: <a href={article.url}>{article.url}</a>
+      </div>
       {!!relatedCategories?.length && (
         <div className="mb-4 p-4 bg-gray-50">
           正在使用该文章的分类： <CategoryList categories={relatedCategories} />

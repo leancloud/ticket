@@ -100,7 +100,8 @@ function Feedback({ articleId }: { articleId: string }) {
 
 function ArticleDetail() {
   const { id } = useParams();
-  const result = useArticle(id!);
+  const articleId = id?.split('-').shift();
+  const result = useArticle(articleId!);
   const { data: article } = result;
 
   const [search] = useSearchParams();

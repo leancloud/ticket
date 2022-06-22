@@ -1,13 +1,18 @@
 import { sanitize } from '@/utils/xss';
+import sluggo from 'sluggo';
 import { Article } from '@/model/Article';
+import { config } from '@/config';
 
 export class ArticleAbstractResponse {
   constructor(readonly article: Article) {}
 
   toJSON() {
+    const slug = `${this.article.id}-${sluggo(this.article.title)}`;
     return {
       id: this.article.id,
       title: this.article.title,
+      slug,
+      url: `${config.host}/in-app/v1/products/-/articles/${slug}?nav=0`,
       private: !!this.article.private,
       revision: this.article.revision
         ? {

@@ -47,7 +47,7 @@ export const ArticleLink = ({
 }) => {
   return (
     <Link
-      to={`/articles/${article.id}${fromCategory ? `?from-category=${fromCategory}` : ''}`}
+      to={`/articles/${article.slug}${fromCategory ? `?from-category=${fromCategory}` : ''}`}
       className={className}
     >
       {children}

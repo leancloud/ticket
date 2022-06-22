@@ -1,6 +1,8 @@
 export interface Article {
   id: string;
   title: string;
+  slug: string;
+  url: string;
   content: string;
   contentSafeHTML: string;
   createdAt: Date;
