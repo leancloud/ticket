@@ -93,7 +93,7 @@
         },
         {
             "v": 2,
-            "unique": true,
+            "unique": false,
             "key": {
                 "user.$id": 1,
                 "category.$id": 1

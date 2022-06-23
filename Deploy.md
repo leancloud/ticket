@@ -235,3 +235,9 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
   - TicketField.jsonl
   - TicketFieldVariant.jsonl
   - TicketForm.jsonl
+
+部署后运行云函数 migrateNotifications
+
+## 2022-06-22
+
+导入 TicketField.json
