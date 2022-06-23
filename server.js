@@ -1,10 +1,10 @@
+const http = require('http')
 const express = require('express')
 const favicon = require('serve-favicon')
 const path = require('path')
 const compression = require('compression')
 const Raven = require('raven')
 const AV = require('leanengine')
-const { createProxyMiddleware } = require('http-proxy-middleware')
 const swaggerUi = require('swagger-ui-express')
 const YAML = require('yamljs')
 
@@ -29,17 +29,6 @@ if (process.env.MAINTENANCE_MODE) {
   app.use('/in-app/v1', express.static(path.join(__dirname, 'in-app/v1/dist')))
   const inAppIndexPage = path.join(__dirname, 'in-app/v1/dist/index.html')
   app.get('/in-app/v1/*', (req, res) => res.sendFile(inAppIndexPage))
-
-  // next api
-  require('./next/api/server')
-  const nextApiProxy = createProxyMiddleware({
-    target: 'http://127.0.0.1:4000',
-    changeOrigin: true,
-  })
-  app.use('/api/2', nextApiProxy)
-  // 目前只有 mailgun 用到了
-  app.use('/webhooks', nextApiProxy)
-  app.use('/integrations', nextApiProxy)
 
   // next pages
   app.use('/next', express.static(path.join(__dirname, 'next/web/dist')))
@@ -132,8 +121,22 @@ app.use(function (err, req, res, _next) {
 require('./api/launch')
   .ready()
   .then(() => {
+    const sendToNextApp = (req) =>
+      ['/api/2', '/webhooks', '/integrations'].some((path) => req.url.startsWith(path))
+
+    const nextApp = require('./next/api/dist').app
+    const nextAppHandler = nextApp.callback()
+
+    const server = http.createServer((req, res) => {
+      if (sendToNextApp(req)) {
+        nextAppHandler(req, res)
+      } else {
+        app(req, res)
+      }
+    })
+
     const PORT = parseInt(process.env.LEANCLOUD_APP_PORT || process.env.PORT || '3000')
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log('[TapDesk] Server running on:', PORT)
     })
     return
