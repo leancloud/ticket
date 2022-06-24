@@ -49,7 +49,6 @@
     "express-validator": "^6.10.0",
     "form-data": "^4.0.0",
     "highlight.js": "^9.10.0",
-    "http-proxy-middleware": "^2.0.1",
     "i18next": "^19.8.9",
     "i18next-browser-languagedetector": "^6.1.2",
     "ioredis": "^4.27.7",
