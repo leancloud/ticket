@@ -172,9 +172,12 @@ export class User extends Model {
     if (sessionToken) return { sessionToken };
     try {
       const newUser = await AV.User.signUp(username, Math.random().toString(), { name });
-      return { sessionToken: await newUser.getSessionToken() };
+      return { sessionToken: newUser.getSessionToken() };
     } catch (error) {
-      if (error instanceof AV.Error && error.code === AV.ErrorCode.USERNAME_TAKEN) {
+      if (
+        error instanceof AV.Error &&
+        (error.code === AV.Error.USERNAME_TAKEN || error.code === AV.Error.DUPLICATE_VALUE)
+      ) {
         return { sessionToken: (await findAndUpdate())! };
       }
       throw error;
