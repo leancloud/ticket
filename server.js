@@ -121,17 +121,23 @@ app.use(function (err, req, res, _next) {
 require('./api/launch')
   .ready()
   .then(() => {
-    const sendToNextApp = (req) =>
-      ['/api/2', '/webhooks', '/integrations'].some((path) => req.url.startsWith(path))
+    const nextPaths = [
+      '/api/2',
+      // used by mailgun
+      '/webhooks',
+      // used by slack-plus, jira
+      '/integrations',
+    ]
+    const shouldHandledByNextApp = (req) => nextPaths.some((path) => req.url.startsWith(path))
 
     const nextApp = require('./next/api/dist').app
     const nextAppHandler = nextApp.callback()
 
     const server = http.createServer((req, res) => {
-      if (sendToNextApp(req)) {
+      if (shouldHandledByNextApp(req)) {
         nextAppHandler(req, res)
       } else {
-        app(req, res)
+        app.handle(req, res)
       }
     })
 
