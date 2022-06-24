@@ -31,7 +31,7 @@
     "jsonwebtoken": "^8.5.1",
     "koa": "^2.13.4",
     "koa-bodyparser": "^4.3.0",
-    "leancloud-storage": "^4.12.2",
+    "leancloud-storage": "^4.12.3",
     "leanengine": "^3.8.0",
     "lodash": "^4.17.21",
     "mailgun.js": "^4.1.4",
