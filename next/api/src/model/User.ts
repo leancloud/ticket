@@ -175,8 +175,8 @@ export class User extends Model {
       return { sessionToken: newUser.getSessionToken() };
     } catch (error) {
       if (
-        error instanceof AV.Error &&
-        (error.code === AV.Error.USERNAME_TAKEN || error.code === AV.Error.DUPLICATE_VALUE)
+        (error as AV.Error).code === AV.Error.USERNAME_TAKEN ||
+        (error as AV.Error).code === AV.Error.DUPLICATE_VALUE
       ) {
         return { sessionToken: (await findAndUpdate())! };
       }
