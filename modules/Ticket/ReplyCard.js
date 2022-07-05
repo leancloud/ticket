@@ -253,7 +253,12 @@ export function ReplyCard({ data, onDeleted, ticketId, onEdit }) {
       </Card.Header>
       <Card.Body ref={containerRef} className={css.content}>
         <BaiduTranslate enabled={translationEnabled}>
-          <ReplyContent>{DOMPurify.sanitize(data.content_HTML)}</ReplyContent>
+          <ReplyContent>
+            {DOMPurify.sanitize(data.content_HTML, {
+              FORBID_TAGS: ['style'],
+              FORBID_ATTR: ['style'],
+            })}
+          </ReplyContent>
         </BaiduTranslate>
         {imageFiles.length > 0 && (
           <div>
