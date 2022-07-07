@@ -3,9 +3,18 @@ import moment from 'moment';
 import _ from 'lodash';
 
 import { useTicketStatus } from '@/api/ticket-stats';
-import { STATUS_LOCALE, useRangePicker, useFilterData } from './utils';
+import { useRangePicker, useFilterData } from './utils';
 import { StatsArea } from './Chart';
 import { DatePicker } from '@/components/antd';
+
+const STATUS_LOCALE: Record<string, string> = {
+  notProcessed: '未处理',
+  waitingCustomer: '等待用户回复',
+  waitingCustomerService: '等待客服回复',
+  preFulfilled: '待用户确认解决',
+  fulfilled: '已解决',
+  closed: '已关闭',
+};
 
 const StatusStats = () => {
   const [{ from, to }] = useRangePicker();
