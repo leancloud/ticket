@@ -2,12 +2,10 @@ import { useMemo } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 import { get } from 'lodash-es';
 
-import { Form, Select } from '@/components/antd';
+import { Form, NULL_STRING, Select } from '@/components/antd';
 import { useGroups } from '@/api/group';
 
 const { Option } = Select;
-
-const NULL_STRING = '';
 
 export function GroupId({ path }: { path: string }) {
   const { control, formState } = useFormContext();

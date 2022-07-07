@@ -178,7 +178,8 @@ function Condition({ name, deleteable, onDelete }: ConditionProps) {
         {ValueComponent && (
           <Controller
             name={`${name}.value`}
-            rules={{ required: '请填写此字段' }}
+            // might be null
+            rules={{ validate: (value) => value !== undefined }}
             render={({ field, fieldState: { error } }) => (
               <Form.Item validateStatus={error ? 'error' : undefined} help={error?.message}>
                 <ValueComponent {...field} {...valueComponentProps} />
