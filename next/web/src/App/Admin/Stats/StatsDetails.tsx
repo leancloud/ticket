@@ -7,10 +7,10 @@ import { TableOutlined, PieChartOutlined } from '@ant-design/icons';
 import { TicketFieldStat, TicketStats, useTicketFieldStats } from '@/api/ticket-stats';
 import { useCategories } from '@/api/category';
 import { useCustomerServices } from '@/api/customer-service';
-import { StatsField, STATS_FIELD_LOCALE, useRangePicker, useFilterData } from './utils';
+import { useRangePicker, useFilterData } from './utils';
 import { StatsPie, StatsColumn } from './Chart';
 import { Button, Popover, Radio, Table, TableProps } from '@/components/antd';
-import { useActiveField } from './StatsPage';
+import { StatsField, STATS_FIELD_LOCALE, useActiveField } from './StatsPage';
 import ReplyDetails, { ModalRef } from './ReplyDetails';
 
 type displayMode = 'pieChart' | 'table';
@@ -151,7 +151,7 @@ const TicketStatsColumn = () => {
           }
         }
       }}
-      names={(value) => STATS_FIELD_LOCALE[value]}
+      names={(value) => STATS_FIELD_LOCALE[value as StatsField]}
     />
   );
 };

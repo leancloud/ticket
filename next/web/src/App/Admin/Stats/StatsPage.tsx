@@ -5,7 +5,35 @@ import { CategorySelect, CustomerServiceSelect } from '@/components/common';
 import { useSearchParams, useSearchParam } from '@/utils/useSearchParams';
 import { useTicketCount, useTicketStats } from '@/api/ticket-stats';
 import { StatsDetails } from './StatsDetails';
-import { StatsField, STATS_FIELD, STATS_FIELD_LOCALE, useRangePicker } from './utils';
+import { useRangePicker } from './utils';
+
+export const STATS_FIELD = [
+  'created',
+  'closed',
+  'reopened',
+  'conversion',
+  // 'internalConversion',
+  // 'externalConversion',
+  'firstReplyTimeAVG',
+  'replyTimeAVG',
+  'naturalReplyTimeAVG',
+  'replyCount',
+  'internalReplyCount',
+] as const;
+export type StatsField = typeof STATS_FIELD[number];
+export const STATS_FIELD_LOCALE: Record<StatsField, string> = {
+  created: '新建工单',
+  closed: '关单数',
+  reopened: '激活工单数',
+  conversion: '流转数',
+  // internalConversion: '内部流转数',
+  // externalConversion: '外部流转数',
+  firstReplyTimeAVG: '平均首次回复时间',
+  replyTimeAVG: '平均回复时间',
+  naturalReplyTimeAVG: '平均回复自然时间',
+  replyCount: '对外回复数',
+  internalReplyCount: '对内回复数',
+};
 
 enum FILTER_TYPE {
   all = 'all',
