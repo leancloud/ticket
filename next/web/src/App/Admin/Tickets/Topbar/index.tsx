@@ -6,7 +6,7 @@ import {
   useMemo,
   useState,
 } from 'react';
-import { BsLayoutSidebarReverse } from 'react-icons/bs';
+import { BsFunnel } from 'react-icons/bs';
 import { HiAdjustments, HiChevronLeft, HiChevronRight, HiOutlineRefresh } from 'react-icons/hi';
 import { useQueryClient } from 'react-query';
 import cx from 'classnames';
@@ -238,7 +238,7 @@ export function Topbar({
         active={showFilter}
         onClick={() => onChangeShowFilter?.(!showFilter)}
       >
-        <BsLayoutSidebarReverse className="w-4 h-4" />
+        <BsFunnel className="w-4 h-4" />
       </NavButton>
     </div>
   );

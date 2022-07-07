@@ -68,8 +68,6 @@ export function FilterForm({ className, filters, onChange }: FilterFormProps) {
       )}
     >
       <div className="grow p-4">
-        <div className="h-7 text-sm font-medium">过滤</div>
-
         <Field title="关键词">
           <Input
             autoFocus
