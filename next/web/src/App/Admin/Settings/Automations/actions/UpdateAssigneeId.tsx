@@ -3,9 +3,7 @@ import { Controller, useFormContext } from 'react-hook-form';
 import { get } from 'lodash-es';
 
 import { useCustomerServices } from '@/api/user';
-import { Form, Select } from '@/components/antd';
-
-const NULL_STRING = '';
+import { Form, NULL_STRING, Select } from '@/components/antd';
 
 export function UpdateAssigneeId({ path }: { path: string }) {
   const { control, formState } = useFormContext();

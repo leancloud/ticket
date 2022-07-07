@@ -13,7 +13,7 @@ export function AssigneeSelect({ value, onChange }: AssigneeSelectProps) {
 
   const options = useMemo(() => {
     return [
-      { label: '未指派', value: 'null' },
+      { label: '（未分配）', value: 'null' },
       ...(assignees ?? []).map((a) => ({ label: a.nickname, value: a.id })),
     ];
   }, [assignees]);

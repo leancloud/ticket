@@ -3,8 +3,8 @@ import { JSXElementConstructor } from 'react';
 import { InputNumber } from '@/components/antd';
 import {
   CategorySelect,
-  CustomerServiceSelect,
-  GroupSelect,
+  SingleCustomerServiceSelect,
+  SingleGroupSelect,
   StatusSelect,
 } from '@/components/common';
 import { TagSelect } from './components/TagSelect';
@@ -80,17 +80,19 @@ export const conditions: Condition[] = [
       {
         label: '是',
         value: 'is',
-        component: CustomerServiceSelect,
+        component: SingleCustomerServiceSelect,
         componentProps: {
           options: [currentUserOption],
+          includeNull: true,
         },
       },
       {
         label: '不是',
         value: 'isNot',
-        component: CustomerServiceSelect,
+        component: SingleCustomerServiceSelect,
         componentProps: {
           options: [currentUserOption],
+          includeNull: true,
         },
       },
     ],
@@ -102,17 +104,19 @@ export const conditions: Condition[] = [
       {
         label: '是',
         value: 'is',
-        component: GroupSelect,
+        component: SingleGroupSelect,
         componentProps: {
           options: [groupsOfCurrentUserOption],
+          includeNull: true,
         },
       },
       {
         label: '不是',
         value: 'isNot',
-        component: GroupSelect,
+        component: SingleGroupSelect,
         componentProps: {
           options: [groupsOfCurrentUserOption],
+          includeNull: true,
         },
       },
     ],
