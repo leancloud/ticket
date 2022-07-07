@@ -12,7 +12,7 @@ import { Ticket } from './Ticket';
 const pageSize = 20;
 
 function useLayout() {
-  const [layout = 'card', ...rest] = useLocalStorage<'card' | 'table'>(
+  const [layout = 'table', ...rest] = useLocalStorage<'card' | 'table'>(
     'TapDesk:ticketLayout',
     undefined,
     {
