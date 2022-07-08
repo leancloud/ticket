@@ -20,16 +20,9 @@ export function SearchParamsProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const { search } = useLocation();
 
-  const $dirtyParams = useRef<Record<string, string | undefined>>();
-  useEffect(() => () => ($dirtyParams.current = undefined));
-
-  const params = useMemo(() => {
-    const params: Record<string, string> = {};
-    new URLSearchParams(search).forEach((value, key) => {
-      params[key] = value;
-    });
-    return params;
-  }, [search]);
+  const $currentParams = useRef<Record<string, string | undefined>>();
+  const params = useMemo(() => Object.fromEntries(new URLSearchParams(search)), [search]);
+  $currentParams.current = params;
 
   const set = useCallback(
     (newParams: Record<string, string | undefined>, options?: NavigateOptions) => {
@@ -46,10 +39,15 @@ export function SearchParamsProvider({ children }: { children: ReactNode }) {
 
   const merge = useCallback(
     (newParams: Record<string, string | undefined>, options?: NavigateOptions) => {
-      $dirtyParams.current = { ...params, ...$dirtyParams.current, ...newParams };
-      set($dirtyParams.current, options);
+      set(
+        {
+          ...$currentParams.current,
+          ...newParams,
+        },
+        options
+      );
     },
-    [params, set]
+    [set]
   );
 
   return (

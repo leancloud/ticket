@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import moment from 'moment';
 import _ from 'lodash';
 
@@ -17,7 +17,8 @@ export const useRangePicker = (
   fmt = 'YYYY-MM-DD',
   defaultDateRange = relativeDateGetters['lastSevenDays']()
 ) => {
-  const [{ from, to, ...rest }, { set }] = useSearchParams();
+  const [{ from, to }, { merge }] = useSearchParams();
+
   const rangeDates = useMemo(() => {
     return RANGE_DATE.reduce(
       (pre, curr) => {
@@ -46,14 +47,13 @@ export const useRangePicker = (
       allowClear: true,
       format: fmt,
       onChange: (dates: [moment.Moment | null, moment.Moment | null] | null) => {
-        set({
-          ...rest,
+        merge({
           from: moment(dates ? dates[0] : undefined).format(fmt),
           to: moment(dates ? dates[1] : undefined).format(fmt),
         });
       },
     };
-  }, [values, rangeDates, fmt]);
+  }, [values, rangeDates, fmt, merge]);
   return [values, options] as const;
 };
 
