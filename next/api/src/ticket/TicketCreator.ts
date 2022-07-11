@@ -10,6 +10,7 @@ import { Organization } from '@/model/Organization';
 import { Ticket } from '@/model/Ticket';
 import { FieldValue, TicketFieldValue } from '@/model/TicketFieldValue';
 import { User, systemUser } from '@/model/User';
+import { TicketLog } from '@/model/TicketLog';
 
 export class TicketCreator {
   private author?: User;
@@ -235,6 +236,10 @@ export class TicketCreator {
     this.createOpsLogs(ticket).catch((error) => {
       // TODO: Sentry
       console.error('[ERROR] save OpsLog failed, error:', error);
+    });
+
+    TicketLog.createByTicket(ticket).catch((error) => {
+      console.error('[ERROR] save TicketLog failed, error:', error);
     });
 
     events.emit('ticket:created', {
