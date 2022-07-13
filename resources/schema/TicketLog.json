@@ -65,9 +65,6 @@
     },
     "organizationId": {
       "type": "String"
-    },
-    "unreadCount": {
-      "type": "Number"
     }
   },
   "permissions": {

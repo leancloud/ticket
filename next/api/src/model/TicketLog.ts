@@ -58,9 +58,6 @@ export class TicketLog extends Model {
   @field()
   title!: string;
 
-  @field()
-  unreadCount?: number;
-
   static async createByTicket(ticket: Ticket, options?: ModifyOptions) {
     return TicketLog.create(
       {
@@ -84,8 +81,7 @@ export class TicketLog extends Model {
           'tags',
           'metaData',
           'title',
-          'organizationId',
-          'unreadCount'
+          'organizationId'
         ),
       },
       options || {
