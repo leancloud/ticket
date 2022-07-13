@@ -58,11 +58,15 @@ export class TicketLog extends Model {
   @field()
   title!: string;
 
+  @field()
+  ticketCreatedAt!: Date;
+
   static async createByTicket(ticket: Ticket, options?: ModifyOptions) {
     return TicketLog.create(
       {
         ACL: {},
         ticketId: ticket.id,
+        ticketCreatedAt: ticket.createdAt,
         ..._.pick(
           ticket,
           'assigneeId',

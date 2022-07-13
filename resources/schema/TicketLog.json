@@ -65,6 +65,9 @@
     },
     "organizationId": {
       "type": "String"
+    },
+    "ticketCreatedAt": {
+      "type": "Date"
     }
   },
   "permissions": {
