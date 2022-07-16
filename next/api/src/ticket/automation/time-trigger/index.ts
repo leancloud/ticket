@@ -36,7 +36,7 @@ export class TimeTrigger {
 
 function getOpenTickets(cursor?: string): Promise<Ticket[]> {
   const query = Ticket.queryBuilder()
-    .where('status', '<', Ticket.Status.FULFILLED)
+    .where('status', '<', Ticket.Status.PRE_FULFILLED)
     .orderBy('objectId', 'asc')
     .limit(1000);
   if (cursor) {

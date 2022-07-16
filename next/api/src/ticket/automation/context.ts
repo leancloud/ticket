@@ -5,6 +5,7 @@ import { Group } from '@/model/Group';
 import { Tag, Ticket } from '@/model/Ticket';
 import { User, systemUser } from '@/model/User';
 import { TicketUpdater } from '@/ticket';
+import { OperateAction } from '@/model/OpsLog';
 
 export interface DirtyData {
   categoryId?: string;
@@ -104,9 +105,29 @@ export class Context {
     return this.dirtyData.status ?? this.ticket.status;
   }
 
+  changeStatus(action: OperateAction) {
+    switch (action) {
+      case 'replyWithNoContent':
+        this.dirtyData.status = Ticket.Status.WAITING_CUSTOMER;
+        break;
+      case 'replySoon':
+        this.dirtyData.status = Ticket.Status.WAITING_CUSTOMER_SERVICE;
+        break;
+      case 'resolve':
+        this.dirtyData.status = Ticket.Status.PRE_FULFILLED;
+        break;
+      case 'close':
+        this.dirtyData.status = Ticket.Status.CLOSED;
+        break;
+      case 'reopen':
+        this.dirtyData.status = Ticket.Status.WAITING_CUSTOMER;
+        break;
+    }
+    this.updater.operate(action);
+  }
+
   closeTicket() {
-    this.dirtyData.status = Ticket.Status.CLOSED;
-    this.updater.operate('close');
+    return this.changeStatus('close');
   }
 
   getTags() {

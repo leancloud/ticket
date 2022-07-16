@@ -2,6 +2,7 @@ import { UpdateCategoryId } from '../../actions/UpdateCategoryId';
 import { UpdateAssigneeId } from '../../actions/UpdateAssigneeId';
 import { UpdateGroupId } from '../../actions/UpdateGroupId';
 import { TagSelect } from '../../components/TagSelect';
+import { ChangeStatus } from '../../actions/ChangeStatus';
 
 export default {
   updateAssigneeId: {
@@ -16,8 +17,12 @@ export default {
     label: '将客服组更新为',
     component: UpdateGroupId,
   },
+  changeStatus: {
+    label: '变更状态',
+    component: ChangeStatus,
+  },
   closeTicket: {
-    label: '关闭工单',
+    label: '关闭工单（已废弃）',
   },
   addTag: {
     label: '设置标签',
