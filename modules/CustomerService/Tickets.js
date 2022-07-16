@@ -373,8 +373,8 @@ function TicketMenu({ customerServices, categories }) {
   let statusTitle
   if (status) {
     statusTitle = t(TICKET_STATUS_MSG[status])
-  } else if (stage === 'todp') {
-    statusTitle = t('todp')
+  } else if (stage === 'todo') {
+    statusTitle = t('todo')
   } else if (stage === 'in-progress') {
     statusTitle = t('in-progress')
   } else if (stage === 'done') {
@@ -458,12 +458,7 @@ function TicketMenu({ customerServices, categories }) {
             </Button>
           </OverlayTrigger>
           <OverlayTrigger
-            overlay={
-              <Tooltip>
-                {t(TICKET_STATUS_MSG[TICKET_STATUS.WAITING_CUSTOMER])} /{' '}
-                {t(TICKET_STATUS_MSG[TICKET_STATUS.PRE_FULFILLED])}
-              </Tooltip>
-            }
+            overlay={<Tooltip>{t(TICKET_STATUS_MSG[TICKET_STATUS.WAITING_CUSTOMER])}</Tooltip>}
           >
             <Button
               variant="light"
@@ -476,6 +471,7 @@ function TicketMenu({ customerServices, categories }) {
           <OverlayTrigger
             overlay={
               <Tooltip>
+                {t(TICKET_STATUS_MSG[TICKET_STATUS.PRE_FULFILLED])} /{' '}
                 {t(TICKET_STATUS_MSG[TICKET_STATUS.FULFILLED])} /{' '}
                 {t(TICKET_STATUS_MSG[TICKET_STATUS.CLOSED])}
               </Tooltip>
@@ -694,9 +690,9 @@ async function getQuery(filters) {
   } else if (stage === 'in-progress') {
     query = query
       .where('status', '>', TICKET_STATUS.WAITING_CUSTOMER_SERVICE)
-      .where('status', '<', TICKET_STATUS.FULFILLED)
+      .where('status', '<', TICKET_STATUS.PRE_FULFILLED)
   } else if (stage === 'done') {
-    query = query.where('status', '>=', TICKET_STATUS.FULFILLED)
+    query = query.where('status', '>=', TICKET_STATUS.PRE_FULFILLED)
   } else if (status) {
     query = query.where('status', '==', parseInt(status))
   }

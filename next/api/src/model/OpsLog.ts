@@ -4,7 +4,8 @@ import { Group } from './Group';
 import { Ticket } from './Ticket';
 import { User } from './User';
 
-export type OperateAction = 'replyWithNoContent' | 'replySoon' | 'resolve' | 'close' | 'reopen';
+export const actions = ['replyWithNoContent', 'replySoon', 'resolve', 'close', 'reopen'] as const;
+export type OperateAction = typeof actions[number];
 
 export type Action =
   | 'selectAssignee'
