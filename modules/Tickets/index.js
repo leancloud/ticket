@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next'
 import { Link, useHistory, useLocation } from 'react-router-dom'
 import { useMutation, useQuery } from 'react-query'
 import PropTypes from 'prop-types'
-import _ from 'lodash'
 import qs from 'query-string'
 import { auth, db } from '../../lib/leancloud'
 import css from '../CustomerServiceTickets.css'
@@ -94,8 +93,7 @@ function Tickets({ organizations, selectedOrgId, handleOrgChange }) {
 
   const setSearchParams = useCallback(
     (params) => {
-      const newParams = { ...searchParams, ..._.omitBy(params, _.isNull) }
-      history.push({ search: `?${qs.stringify(newParams)}` })
+      history.push({ search: `?${qs.stringify({ ...searchParams, ...params })}` })
     },
     [history, searchParams]
   )
@@ -180,7 +178,7 @@ function Tickets({ organizations, selectedOrgId, handleOrgChange }) {
                 className="ml-2"
                 categoriesTree={categoriesTree}
                 value={categoryId}
-                onChange={(categoryId) => setSearchParams({ categoryId })}
+                onChange={(categoryId) => setSearchParams({ categoryId: categoryId ?? undefined })}
               />
               <Button
                 className="ml-2"
