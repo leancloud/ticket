@@ -1,5 +1,10 @@
 import { FunctionComponent, useMemo, useRef } from 'react';
-import { Pie, Column, Area, G2 } from '@ant-design/plots';
+import {
+  Pie as OriginPie,
+  Column as OriginColumn,
+  Area as OriginArea,
+  G2,
+} from '@ant-design/plots';
 import _ from 'lodash';
 import { zoomInChartInteraction } from './Interactions';
 
@@ -37,7 +42,7 @@ interface AreaProps extends ChartProps {
   onSelected?: (xAxisValues?: string[]) => void;
 }
 
-export const StatsPie: FunctionComponent<PieProps> = ({ loading, data, names, formatters }) => {
+export const Pie: FunctionComponent<PieProps> = ({ loading, data, names, formatters }) => {
   const chartData = useMemo(() => {
     if (!data || data.length === 0) {
       return [];
@@ -51,7 +56,7 @@ export const StatsPie: FunctionComponent<PieProps> = ({ loading, data, names, fo
       .valueOf();
   }, [data]);
   return (
-    <Pie
+    <OriginPie
       loading={loading}
       appendPadding={10}
       autoFit
@@ -108,7 +113,7 @@ const convertChartData = (data: ColumnProps['data']) => {
     .valueOf();
 };
 
-export const StatsColumn: FunctionComponent<ColumnProps> = ({
+export const Column: FunctionComponent<ColumnProps> = ({
   data,
   loading,
   tickInterval,
@@ -120,7 +125,7 @@ export const StatsColumn: FunctionComponent<ColumnProps> = ({
   $onSelected.current = onSelected;
   const chartData = useMemo(() => convertChartData(data), [data]);
   return (
-    <Column
+    <OriginColumn
       loading={loading}
       data={chartData}
       appendPadding={10}
@@ -173,7 +178,7 @@ export const StatsColumn: FunctionComponent<ColumnProps> = ({
   );
 };
 
-export const StatsArea: FunctionComponent<AreaProps> = ({
+export const Area: FunctionComponent<AreaProps> = ({
   loading,
   data,
   names,
@@ -186,7 +191,7 @@ export const StatsArea: FunctionComponent<AreaProps> = ({
   $onSelected.current = onSelected;
   const chartData = useMemo(() => convertChartData(data), [data]);
   return (
-    <Area
+    <OriginArea
       data={chartData}
       loading={loading}
       appendPadding={10}

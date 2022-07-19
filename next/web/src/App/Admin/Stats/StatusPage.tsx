@@ -4,7 +4,7 @@ import _ from 'lodash';
 
 import { useTicketStatus } from '@/api/ticket-stats';
 import { useRangePicker, useFilterData } from './utils';
-import { StatsArea } from '@/components/Chart';
+import { Area } from '@/components/Chart';
 import { DatePicker } from '@/components/antd';
 
 const STATUS_LOCALE: Record<string, string> = {
@@ -45,7 +45,7 @@ const StatusStats = () => {
     [filteredData]
   );
   return (
-    <StatsArea
+    <Area
       isStack
       loading={isFetching || isLoading}
       data={chartData}
