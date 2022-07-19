@@ -5,7 +5,7 @@ import { useLocalStorage } from 'react-use';
 import { useSearchTickets, useTickets, UseTicketsOptions } from '@/api/ticket';
 import { usePage } from '@/utils/usePage';
 import { Topbar, useOrderBy } from './Topbar';
-import { FilterForm, useLocalFilters } from './Filter';
+import { FilterForm, LocalFiltersProvider, useLocalFilters } from './Filter';
 import { TicketView } from './TicketView';
 import { Ticket } from './Ticket';
 
@@ -131,7 +131,14 @@ function TicketListView() {
 export default function TicketRoutes() {
   return (
     <Routes>
-      <Route index element={<TicketListView />} />
+      <Route
+        index
+        element={
+          <LocalFiltersProvider>
+            <TicketListView />
+          </LocalFiltersProvider>
+        }
+      />
       <Route path=":id" element={<Ticket />} />
     </Routes>
   );

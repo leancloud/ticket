@@ -1,5 +1,5 @@
-import { useCallback, useMemo } from 'react';
-
+import { createContext, ReactNode, useCallback, useContext, useMemo } from 'react';
+import _ from 'lodash';
 import { useSearchParams } from '@/utils/useSearchParams';
 
 export interface Filters {
@@ -16,8 +16,9 @@ export interface Filters {
   status?: number[];
   star?: number;
 }
+const FiltersContext = createContext<[Filters, (filters: Filters) => void]>([{}, _.noop]);
 
-export function useLocalFilters() {
+export function LocalFiltersProvider({ children }: { children: ReactNode }) {
   const [
     {
       keyword,
@@ -45,7 +46,7 @@ export function useLocalFilters() {
       privateTagKey,
       privateTagValue,
     };
-
+    console.log('fiolter pasrs')
     if (assigneeId) {
       filters.assigneeId = assigneeId.split(',');
     }
@@ -108,5 +109,7 @@ export function useLocalFilters() {
     [merge]
   );
 
-  return [filters, set] as const;
+  return <FiltersContext.Provider value={[filters, set]}>{children}</FiltersContext.Provider>;
 }
+
+export const useLocalFilters = () => useContext(FiltersContext);
