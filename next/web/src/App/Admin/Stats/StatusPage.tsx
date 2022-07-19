@@ -4,7 +4,7 @@ import _ from 'lodash';
 
 import { useTicketStatus } from '@/api/ticket-stats';
 import { useRangePicker, useFilterData } from './utils';
-import { StatsArea } from './Chart';
+import { StatsArea } from '@/components/Chart';
 import { DatePicker } from '@/components/antd';
 
 const STATUS_LOCALE: Record<string, string> = {

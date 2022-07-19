@@ -1,4 +1,4 @@
-import { FunctionComponent, useCallback, useMemo, useRef } from 'react';
+import { FunctionComponent, useMemo, useRef } from 'react';
 import { Pie, Column, Area, G2 } from '@ant-design/plots';
 import _ from 'lodash';
 import { zoomInChartInteraction } from './Interactions';

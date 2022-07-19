@@ -8,7 +8,7 @@ import { TicketFieldStat, TicketStats, useTicketFieldStats } from '@/api/ticket-
 import { useCategories } from '@/api/category';
 import { useCustomerServices } from '@/api/customer-service';
 import { useRangePicker, useFilterData } from './utils';
-import { StatsPie, StatsColumn } from './Chart';
+import { StatsPie, StatsColumn } from '@/components/Chart';
 import { Button, Popover, Radio, Table, TableProps } from '@/components/antd';
 import { StatsField, STATS_FIELD_LOCALE, useActiveField } from './StatsPage';
 import ReplyDetails, { ModalRef } from './ReplyDetails';
