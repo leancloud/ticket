@@ -4,6 +4,7 @@ import {
   Column as OriginColumn,
   Area as OriginArea,
   G2,
+  Sunburst,
 } from '@ant-design/plots';
 import _ from 'lodash';
 import { zoomInChartInteraction } from './Interactions';
@@ -29,20 +30,35 @@ export interface ColumnProps extends ChartProps {
   tickInterval?: number;
   onSelected?: (xAxisValues?: string[]) => void;
 }
-interface PieProps extends Omit<ChartProps, 'formatters' | 'data'> {
+export interface PieProps extends Omit<ChartProps, 'formatters' | 'data'> {
+  innerRadius?: number;
   data?: [string, number][];
   formatters?: {
     valueDisplay?: (value: number) => string;
-    keyDisplay?: (value: string) => string;
+    labelDisplay?: (value: string) => string;
   };
 }
-interface AreaProps extends ChartProps {
+export interface AreaProps extends ChartProps {
   isStack?: boolean;
   initLegend?: Record<string, boolean>;
   onSelected?: (xAxisValues?: string[]) => void;
 }
 
-export const Pie: FunctionComponent<PieProps> = ({ loading, data, names, formatters }) => {
+export type MultiPieNode = { name: string; value?: number; children?: MultiPieNode[] };
+export interface MultiPieProps extends Omit<PieProps, 'formatters' | 'data' | 'names'> {
+  data?: MultiPieNode[];
+  formatters?: {
+    valueDisplay?: (value: number) => string;
+  };
+}
+
+export const Pie: FunctionComponent<PieProps> = ({
+  loading,
+  data,
+  names,
+  formatters,
+  innerRadius,
+}) => {
   const chartData = useMemo(() => {
     if (!data || data.length === 0) {
       return [];
@@ -57,12 +73,14 @@ export const Pie: FunctionComponent<PieProps> = ({ loading, data, names, formatt
   }, [data]);
   return (
     <OriginPie
+      locale="zh-CN"
       loading={loading}
       appendPadding={10}
       autoFit
       colorField={CHART_KEY}
       angleField={CHART_VALUE}
       radius={0.8}
+      innerRadius={innerRadius}
       data={chartData}
       label={{
         type: 'outer',
@@ -126,6 +144,7 @@ export const Column: FunctionComponent<ColumnProps> = ({
   const chartData = useMemo(() => convertChartData(data), [data]);
   return (
     <OriginColumn
+      locale="zh-CN"
       loading={loading}
       data={chartData}
       appendPadding={10}
@@ -192,6 +211,7 @@ export const Area: FunctionComponent<AreaProps> = ({
   const chartData = useMemo(() => convertChartData(data), [data]);
   return (
     <OriginArea
+      locale="zh-CN"
       data={chartData}
       loading={loading}
       appendPadding={10}
@@ -240,6 +260,77 @@ export const Area: FunctionComponent<AreaProps> = ({
         selected: initLegend,
         itemName: {
           formatter: (text) => (names ? names(text) : text),
+        },
+      }}
+    />
+  );
+};
+export const MultiPie: FunctionComponent<MultiPieProps> = ({
+  loading,
+  data: chartData,
+  formatters,
+  innerRadius,
+}) => {
+  return (
+    <Sunburst
+      locale="zh-CN"
+      data={{
+        name: 'root',
+        children: chartData || [],
+      }}
+      drilldown={{
+        breadCrumb: {
+          rootText: '起始',
+        },
+      }}
+      loading={loading}
+      appendPadding={10}
+      autoFit
+      radius={1}
+      innerRadius={innerRadius || 0.5}
+      interactions={[
+        {
+          type: 'element-active',
+        },
+      ]}
+      label={{
+        layout: [
+          {
+            type: 'limit-in-shape',
+          },
+        ],
+      }}
+      tooltip={{
+        customContent: (title, data) => {
+          const background = data[0] ? data[0].color : 'transparent';
+          // const paths = data[0] ? data[0].data.path.split(' / ') : [];
+          const value = data[0]
+            ? formatters?.valueDisplay
+              ? formatters.valueDisplay(data[0].value)
+              : data[0]?.value
+            : undefined;
+          return `
+              <div class="g2-tooltip-title" style="margin-bottom: 12px; margin-top: 12px;"></div>
+              <ul class="g2-tooltip-list" style="margin: 0px; list-style-type: none; padding: 0px;">
+                <li
+                  class="g2-tooltip-list-item"
+                  data-index=""
+                  style="list-style-type: none; padding: 0px; margin: 12px 0px;"
+                >
+                  <span
+                    class="g2-tooltip-marker"
+                    style="background: ${background}; width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 8px;"
+                  ></span>
+                  <span class="g2-tooltip-name">${data[0]?.name}</span>:
+                  <span
+                    class="g2-tooltip-value"
+                    style="display: inline-block; float: right; margin-left: 30px;"
+                  >
+                    ${value}
+                  </span>
+                </li>
+              </ul>
+          `;
         },
       }}
     />

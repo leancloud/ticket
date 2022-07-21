@@ -42,12 +42,13 @@ export function useCategories({ active, queryOptions }: UseCategoriesOptions = {
   });
 }
 
-export interface CategoryTreeNode extends CategorySchema {
-  parent?: CategoryTreeNode;
-  children?: CategoryTreeNode[];
-}
+export type CategoryTreeNode<T = {}> = {
+  parent?: CategoryTreeNode<T>;
+  children?: CategoryTreeNode<T>[];
+} & CategorySchema &
+  T;
 
-export function makeCategoryTree(categories: CategorySchema[]): CategoryTreeNode[] {
+export function makeCategoryTree<T = {}>(categories: CategorySchema[]): CategoryTreeNode<T>[] {
   const categoriesByParentId = groupBy(categories, 'parentId');
 
   const sortFn = (a: CategoryTreeNode, b: CategoryTreeNode) => {
@@ -58,9 +59,9 @@ export function makeCategoryTree(categories: CategorySchema[]): CategoryTreeNode
   };
 
   const dfs = (parentId: string | undefined) => {
-    const currentLevel: CategoryTreeNode[] = categoriesByParentId[parentId + '']?.map((c) => ({
+    const currentLevel = categoriesByParentId[parentId + '']?.map((c) => ({
       ...c,
-    }));
+    })) as CategoryTreeNode<T>[];
     if (!currentLevel) {
       return [];
     }

@@ -38,7 +38,7 @@ export interface TicketDetailSchema extends TicketSchema {
   files?: FileSchema[];
 }
 
-interface FetchTicketFilters {
+export interface FetchTicketFilters {
   authorId?: string;
   assigneeId?: string | string[];
   groupId?: string | string[];
@@ -52,7 +52,7 @@ interface FetchTicketFilters {
   privateTagValue?: string;
 }
 
-function encodeTicketFilters(filters: FetchTicketFilters) {
+export function encodeTicketFilters(filters: FetchTicketFilters) {
   const params: any = {
     authorId: filters.authorId,
     rootCategoryId: filters.rootCategoryId,

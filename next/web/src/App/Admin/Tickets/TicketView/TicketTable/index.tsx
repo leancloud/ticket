@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import moment from 'moment';
 import { keyBy, uniq } from 'lodash-es';
-
+import { PieChartOutlined } from '@ant-design/icons';
 import { useCustomerServices } from '@/api/customer-service';
 import { useGroups } from '@/api/group';
 import { TicketSchema } from '@/api/ticket';
@@ -9,15 +9,16 @@ import { useUsers } from '@/api/user';
 import { Checkbox, Table } from '@/components/antd';
 import Status from '../TicketStatus';
 import { CategoryPath, useGetCategoryPath } from '../TicketList';
+import { StatsPopover } from '../TicketStats';
 
 const { Column } = Table;
 
 function TicketLink({ ticket }: { ticket: TicketSchema }) {
   return (
     <a
-      className="mt-1.5 font-bold max-w-full"
-      title={ticket.title}
-      href={`/tickets/${ticket.nid}`}
+    className="mt-1.5 font-bold max-w-full"
+    title={ticket.title}
+    href={`/tickets/${ticket.nid}`}
     >
       <span>{ticket.title}</span>
       <span className="ml-1 text-[#6f7c87]">#{ticket.nid}</span>
@@ -33,7 +34,7 @@ export interface TicketTableProps {
 
 export function TicketTable({ tickets, checkedIds, onChangeChecked }: TicketTableProps) {
   const checkedIdSet = useMemo(() => new Set(checkedIds), [checkedIds]);
-
+  
   const userIds = useMemo(() => uniq(tickets.map((t) => t.authorId)), [tickets]);
   const { data: users, isLoading: loadingUsers } = useUsers({
     id: userIds,
@@ -67,7 +68,12 @@ export function TicketTable({ tickets, checkedIds, onChangeChecked }: TicketTabl
 
       <Column
         dataIndex="status"
-        title="状态"
+        title={
+          <>
+            <span className="mr-1">状态</span>
+            <StatsPopover type="status" />
+          </>
+        }
         render={(status: number) => <Status status={status} />}
       />
 
@@ -79,23 +85,25 @@ export function TicketTable({ tickets, checkedIds, onChangeChecked }: TicketTabl
 
       <Column
         dataIndex="categoryId"
-        title="分类"
+        title={
+          <>
+            <span className="mr-1">分类</span>
+            <StatsPopover type="category" />
+          </>
+        }
         render={(id: string) => (
           <CategoryPath className="whitespace-nowrap text-sm" path={getCategoryPath(id)} />
         )}
       />
-
-      <Column
-        dataIndex="authorId"
-        title="创建人"
-        render={(authorId: string) =>
-          loadingUsers ? 'Loading' : userById[authorId]?.nickname ?? 'unknown'
-        }
-      />
-
+      
       <Column
         dataIndex="groupId"
-        title="组"
+        title={
+          <>
+            <span className="mr-1">组</span>
+            <StatsPopover type="group" />
+          </>
+        }
         render={(groupId?: string) =>
           groupId ? (loadingGroups ? 'Loading...' : groupById[groupId]?.name ?? 'unknown') : '--'
         }
@@ -103,13 +111,26 @@ export function TicketTable({ tickets, checkedIds, onChangeChecked }: TicketTabl
 
       <Column
         dataIndex="assigneeId"
-        title="客服"
+        title={
+          <>
+            <span className="mr-1">客服</span>
+            <StatsPopover type="assignee" />
+          </>
+        }
         render={(assigneeId?: string) =>
           assigneeId
             ? loadingAssignees
               ? 'Loading...'
               : assigneeById[assigneeId]?.nickname ?? 'unknown'
             : '--'
+        }
+      />
+
+      <Column
+        dataIndex="authorId"
+        title="创建人"
+        render={(authorId: string) =>
+          loadingUsers ? 'Loading' : userById[authorId]?.nickname ?? 'unknown'
         }
       />
 
