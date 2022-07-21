@@ -2,11 +2,13 @@ import Router from '@koa/router';
 import _ from 'lodash';
 
 import * as yup from '@/utils/yup';
-import { auth, customerServiceOnly } from '@/middleware';
+import { auth, customerServiceOnly, parseRange } from '@/middleware';
 import { TicketStats } from '@/model/TicketStats';
 import { CategoryService } from '@/service/category';
 import { TicketStatusStats } from '@/model/TicketStatusStats';
 import { TicketStatusStatsResponse } from '@/response/ticket-stats';
+import { ticketFiltersSchema } from './ticket';
+import { ClickHouse, FunctionColumn } from '@/orm/clickhouse';
 
 const router = new Router().use(auth, customerServiceOnly);
 
@@ -77,6 +79,72 @@ router.get('/count', async (ctx) => {
   });
   ctx.body = _(data).groupBy('nid').keys().valueOf().length;
 });
+
+const realtimeSchema = ticketFiltersSchema.omit(['page', 'pageSize', 'tagKey', 'tagValue']).shape({
+  type: yup.string().oneOf(['status', 'category', 'group', 'assignee']).required(),
+});
+router.get('/realtime', parseRange('createdAt'), async (ctx) => {
+  const params = realtimeSchema.validateSync(ctx.query);
+  const categoryIds = await getCategoryIds(params.product || params.rootCategoryId);
+  let selectList: string[] = [];
+  let groupBy: string[] = [];
+  switch (params.type) {
+    case 'status':
+      selectList = [
+        'countIf(status = 280) as closed',
+        'countIf(status = 250) as fulfilled',
+        'countIf(status = 220) as preFulfilled',
+        'countIf(status = 160) as waitingCustomer',
+        'countIf(status = 120) as waitingCustomerService',
+        'countIf(status = 50) as notProcessed',
+      ];
+      break;
+    case 'category':
+      selectList = ['categoryId', 'count() as count'];
+      groupBy = ['categoryId'];
+      break;
+    case 'group':
+      selectList = ['groupId', 'count() as count'];
+      groupBy = ['groupId'];
+      break;
+    case 'assignee':
+      selectList = ['assigneeId', 'count() as count'];
+      groupBy = ['assigneeId'];
+      break;
+  }
+  let privateTagCondition = [];
+  if (params['privateTagKey']) {
+    privateTagCondition.push(`tupleElement(v, 1) = '${params['privateTagKey']}'`);
+  }
+  if (params['privateTagValue']) {
+    privateTagCondition.push(`tupleElement(v, 2) = '${params['privateTagValue']}'`);
+  }
+  const data = await new ClickHouse()
+    .from('TicketLog_latest')
+    .select(...selectList)
+    .where('authorId', params['authorId'])
+    .where('assigneeId', params['assigneeId'])
+    .where('groupId', params['groupId'])
+    .where('status', params['status'])
+    .where('categoryId', categoryIds, 'in')
+    .where('ticketCreatedAt', params.createdAtFrom, '>')
+    .where('ticketCreatedAt', params.createdAtTo, '<')
+    .where(new FunctionColumn(`JSONExtractInt(evaluation,'star')`), params['evaluation.star'])
+    .where(
+      new FunctionColumn(
+        `arrayExists( v ->${privateTagCondition.join(' and ')},
+            arrayMap( (v) -> (
+                JSONExtractString(v, 'key'),
+                JSONExtractString(v, 'value')
+            ),privateTags))`
+      ),
+      privateTagCondition.length > 0 ? 1 : undefined
+    )
+    .groupBy(...groupBy)
+    .query();
+  ctx.body = data;
+});
+
 export default router;
 
 async function getCategoryIds(categoryId?: string) {
