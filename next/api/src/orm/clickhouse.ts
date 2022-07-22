@@ -1,7 +1,6 @@
 import axios from 'axios';
 import { format } from 'date-fns';
 import _ from 'lodash';
-
 import { QueryCommand } from './query';
 
 interface QueryData {
@@ -172,6 +171,20 @@ export class ClickHouse {
     const parts = ['select', select_list, from, where, groupby].filter((v) => v != '');
     return parts.join(' ');
   }
+
+  // async createView(name: string) {
+  //   try {
+  //      await http.post('/query', {
+  //       data: {
+  //         sql: `create view ${name} as ${this.toSqlString()}`,
+  //       },
+  //     });
+  //     return;
+  //   } catch (error) {
+  //     console.log(`[clickhouse create view error]: ${(error as AxiosError).message}`);
+  //     throw error;
+  //   }
+  // }
 
   async find() {
     const sql = this.toSqlString();
