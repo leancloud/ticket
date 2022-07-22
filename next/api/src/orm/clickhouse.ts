@@ -11,15 +11,51 @@ interface QueryData {
 }
 type ConditionValue = string | Date | number | Array<string | number>;
 
-const quoteColumn = (term: string) => '`' + term + '`';
-const quoteValue = (value: ConditionValue): string | number => {
-  if (_.isArray(value)) {
-    return `(${value.map((v) => quoteValue(v)).join(',')})`;
-  }
+const http = axios.create({
+  baseURL: `${process.env.LEANCLOUD_API_HOST}/datalake/v1`,
+  headers: {
+    'x-lc-key': `${process.env.LEANCLOUD_APP_MASTER_KEY},master`,
+    'x-lc-id': `${process.env.LEANCLOUD_APP_ID}`,
+  },
+});
+
+const escapeStr = (v: string) =>
+  v
+    .replace(/[\0\n\r\b\t\\\x1a]/g, (code) => {
+      switch (code) {
+        case '\0':
+          return '\\0';
+        case '\n':
+          return '\\n';
+        case '\b':
+          return '\\b';
+        case '\r':
+          return '\\r';
+        case '\t':
+          return '\\t';
+        case '\\':
+          return '\\\\';
+        case '\x1a':
+          return '\\Z';
+        default:
+          console.error('uncovered case in replacer:', code);
+          return ''; //logic error
+      }
+    })
+    .replace(/'/g, "''");
+
+export const quoteColumn = (value: string) => '`' + escapeStr(value) + '`';
+export const quoteValue = (value: ConditionValue): string | number => {
   if (_.isDate(value)) {
     value = format(value, 'yyyy-MM-dd HH:mm:ss');
   }
-  return _.isString(value) ? `'${value}'` : value;
+  if (typeof value === 'string') {
+    return "'" + escapeStr(value) + "'";
+  }
+  if (_.isArray(value)) {
+    return `(${value.map((v) => quoteValue(v)).join(',')})`;
+  }
+  return value + '';
 };
 
 export class FunctionColumn {
@@ -137,22 +173,14 @@ export class ClickHouse {
     return parts.join(' ');
   }
 
-  async query() {
+  async find() {
     const sql = this.toSqlString();
-    console.log('query sql', sql);
     try {
-      const { data } = await axios.get<QueryData>(
-        `${process.env.LEANCLOUD_API_HOST}/datalake/v1/query`,
-        {
-          params: {
-            sql,
-          },
-          headers: {
-            'x-lc-key': `${process.env.LEANCLOUD_APP_MASTER_KEY},master`,
-            'x-lc-id': `${process.env.LEANCLOUD_APP_ID}`,
-          },
-        }
-      );
+      const { data } = await http.get<QueryData>('/query', {
+        params: {
+          sql,
+        },
+      });
       return data.results;
     } catch (error) {
       console.log(`[clickhouse query error, sql: ${sql}`);
