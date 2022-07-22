@@ -8,7 +8,7 @@ import { CategoryService } from '@/service/category';
 import { TicketStatusStats } from '@/model/TicketStatusStats';
 import { TicketStatusStatsResponse } from '@/response/ticket-stats';
 import { ticketFiltersSchema } from './ticket';
-import { ClickHouse, FunctionColumn } from '@/orm/clickhouse';
+import { ClickHouse, FunctionColumn, quoteValue } from '@/orm/clickhouse';
 
 const router = new Router().use(auth, customerServiceOnly);
 
@@ -114,10 +114,10 @@ router.get('/realtime', parseRange('createdAt'), async (ctx) => {
   }
   let privateTagCondition = [];
   if (params['privateTagKey']) {
-    privateTagCondition.push(`tupleElement(v, 1) = '${params['privateTagKey']}'`);
+    privateTagCondition.push(params['privateTagKey']);
   }
   if (params['privateTagValue']) {
-    privateTagCondition.push(`tupleElement(v, 2) = '${params['privateTagValue']}'`);
+    privateTagCondition.push(params['privateTagValue']);
   }
   const data = await new ClickHouse()
     .from('TicketLog_latest')
@@ -132,7 +132,9 @@ router.get('/realtime', parseRange('createdAt'), async (ctx) => {
     .where(new FunctionColumn(`JSONExtractInt(evaluation,'star')`), params['evaluation.star'])
     .where(
       new FunctionColumn(
-        `arrayExists( v ->${privateTagCondition.join(' and ')},
+        `arrayExists( v ->${privateTagCondition
+          .map((v, i) => `tupleElement(v, ${i + 1}) = ${quoteValue(v)}`)
+          .join(' and ')},
             arrayMap( (v) -> (
                 JSONExtractString(v, 'key'),
                 JSONExtractString(v, 'value')
@@ -141,7 +143,7 @@ router.get('/realtime', parseRange('createdAt'), async (ctx) => {
       privateTagCondition.length > 0 ? 1 : undefined
     )
     .groupBy(...groupBy)
-    .query();
+    .find();
   ctx.body = data;
 });
 
