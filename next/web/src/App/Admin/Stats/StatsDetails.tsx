@@ -404,7 +404,7 @@ const CustomerServiceStats: React.FunctionComponent<{ displayMode: displayMode }
     );
   }
   return (
-    <StatsPie
+    <Pie
       data={chartData}
       loading={isLoading || isFetching}
       names={customerServiceFormat}
