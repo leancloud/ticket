@@ -1,4 +1,5 @@
 import { WebClient } from '@slack/web-api';
+import _ from 'lodash';
 
 import notification, {
   ChangeAssigneeContext,
@@ -9,7 +10,9 @@ import notification, {
   ReplyTicketContext,
   TicketEvaluationContext,
 } from '@/notification';
+import { Config } from '@/config';
 import { Ticket } from '@/model/Ticket';
+import { CategoryService } from '@/service/category';
 import {
   Message,
   NewTicketMessage,
@@ -22,13 +25,28 @@ import {
   DelayNotifyMessage,
 } from './message';
 
+interface SlackConfig {
+  token: string;
+  // broadcast channel
+  channel?: string;
+  categoryChannels: Record<string, string[]>;
+}
+
 class SlackIntegration {
   private client: WebClient;
   private userIdMap: Map<string, string> = new Map();
   private channelIdMap: Map<string, string> = new Map();
 
-  constructor(token: string, readonly broadcastChannelId?: string) {
-    this.client = new WebClient(token);
+  private broadcastChannel?: string;
+  private categoryChannels: Record<string, string[]>;
+
+  constructor(config: SlackConfig) {
+    this.client = new WebClient(config.token);
+    this.broadcastChannel = config.channel;
+    this.categoryChannels = _.mapValues(config.categoryChannels, (channels) => {
+      return channels.filter((channel) => channel !== this.broadcastChannel);
+    });
+
     notification.on('newTicket', this.sendNewTicket);
     notification.on('changeAssignee', this.sendChangeAssignee);
     notification.on('replyTicket', this.sendReplyTicket);
@@ -70,9 +88,12 @@ class SlackIntegration {
     return this.client.chat.postMessage({ ...message.toJSON(), channel });
   }
 
-  broadcast(message: Message) {
-    if (this.broadcastChannelId) {
-      return this.send(this.broadcastChannelId, message);
+  broadcast(message: Message, categoryId?: string) {
+    if (this.broadcastChannel) {
+      this.send(this.broadcastChannel, message);
+    }
+    if (categoryId) {
+      this.sendToCategoryChannel(categoryId, message);
     }
   }
 
@@ -91,12 +112,27 @@ class SlackIntegration {
     return this.send(channelId, message);
   }
 
+  async sendToCategoryChannel(categoryId: string, message: Message) {
+    const parents = await CategoryService.getParentCategories(categoryId);
+    const categoryIds = [...parents.map((c) => c.id), categoryId];
+    const sended = new Set<string>();
+    categoryIds.forEach((cid) => {
+      this.categoryChannels[cid]?.forEach((channel) => {
+        if (sended.has(channel)) {
+          return;
+        }
+        this.send(channel, message);
+        sended.add(channel);
+      });
+    });
+  }
+
   sendNewTicket = ({ ticket, from, to }: NewTicketContext) => {
     const message = new NewTicketMessage(ticket, from, to);
     if (to?.email) {
       this.sendToUser(to.email, message);
     }
-    this.broadcast(message);
+    this.broadcast(message, ticket.categoryId);
   };
 
   sendChangeAssignee = ({ ticket, from, to }: ChangeAssigneeContext) => {
@@ -104,7 +140,7 @@ class SlackIntegration {
     if (to?.email) {
       this.sendToUser(to.email, message);
     }
-    this.broadcast(message);
+    this.broadcast(message, ticket.categoryId);
   };
 
   sendReplyTicket = ({ ticket, reply, from, to }: ReplyTicketContext) => {
@@ -115,7 +151,7 @@ class SlackIntegration {
     if (to?.email) {
       this.sendToUser(to.email, message);
     }
-    this.broadcast(message);
+    this.broadcast(message, ticket.categoryId);
   };
 
   sendInternalReply = ({ ticket, reply, from, to }: InternalReplyContext) => {
@@ -123,7 +159,7 @@ class SlackIntegration {
     if (to && from.id !== to.id && to.email) {
       this.sendToUser(to.email, message);
     }
-    this.broadcast(message);
+    this.broadcast(message, ticket.categoryId);
   };
 
   sendChangeStatus = ({ ticket, from, to, status }: ChangeStatusContext) => {
@@ -149,7 +185,7 @@ class SlackIntegration {
     if (to?.email) {
       this.sendToUser(to.email, message);
     }
-    this.broadcast(message);
+    this.broadcast(message, ticket.categoryId);
   };
 
   sendDelayNotify = ({ ticket, to }: DelayNotifyContext) => {
@@ -157,18 +193,29 @@ class SlackIntegration {
     if (to?.email) {
       this.sendToUser(to.email, message);
     }
-    this.broadcast(message);
+    this.broadcast(message, ticket.categoryId);
   };
 }
 
-export default function (install: Function) {
-  const token = process.env.SLACK_TOKEN;
-  const channel = process.env.SLACK_CHANNEL; // broadcast target
-  if (!token) {
-    return;
+async function getConfig() {
+  const config: Partial<SlackConfig> = {
+    token: process.env.SLACK_TOKEN,
+    channel: process.env.SLACK_CHANNEL,
+    categoryChannels: {},
+  };
+
+  const configObj = await Config.get('slack');
+  Object.assign(config, configObj);
+
+  if (config.token) {
+    return config as SlackConfig;
   }
+}
 
-  new SlackIntegration(token, channel);
-
-  install('Slack', {});
+export default async function (install: Function) {
+  const config = await getConfig();
+  if (config) {
+    new SlackIntegration(config);
+    install('Slack', {});
+  }
 }

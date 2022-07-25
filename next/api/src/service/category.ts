@@ -89,7 +89,7 @@ export class CategoryService {
       const addToList = (category: Category) => {
         parentIds.push(category.id);
         subCategories.push(category);
-      }
+      };
       categoriesByParentId[parentId]?.forEach(addToList);
       categoriesByAlias[parentId]?.forEach(addToList);
     }
@@ -100,6 +100,22 @@ export class CategoryService {
         : subCategories.filter((c) => c.deletedAt !== undefined);
     }
     return subCategories;
+  }
+
+  static async getParentCategories(id: string) {
+    const categories = await CategoryService.getAll();
+    const categoriesById = _.keyBy(categories, (c) => c.id);
+    const parents: Category[] = [];
+    let target = categoriesById[id];
+    while (target) {
+      parents.push(target);
+      if (target.parentId) {
+        target = categoriesById[target.parentId];
+      } else {
+        break;
+      }
+    }
+    return parents.slice(1);
   }
 
   static async create(data: CreateData<Category>, options?: AuthOptions) {
