@@ -12,6 +12,7 @@ import notification, {
 } from '@/notification';
 import { Config } from '@/config';
 import { Ticket } from '@/model/Ticket';
+import { CategoryService } from '@/service/category';
 import {
   Message,
   NewTicketMessage,
@@ -111,9 +112,19 @@ class SlackIntegration {
     return this.send(channelId, message);
   }
 
-  sendToCategoryChannel(categoryId: string, message: Message) {
-    const channels = this.categoryChannels[categoryId];
-    channels?.forEach((channel) => this.send(channel, message));
+  async sendToCategoryChannel(categoryId: string, message: Message) {
+    const parents = await CategoryService.getParentCategories(categoryId);
+    const categoryIds = [...parents.map((c) => c.id), categoryId];
+    const sended = new Set<string>();
+    categoryIds.forEach((cid) => {
+      this.categoryChannels[cid]?.forEach((channel) => {
+        if (sended.has(channel)) {
+          return;
+        }
+        this.send(channel, message);
+        sended.add(channel);
+      });
+    });
   }
 
   sendNewTicket = ({ ticket, from, to }: NewTicketContext) => {
