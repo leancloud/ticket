@@ -178,7 +178,7 @@ async function getConfig(): Promise<SlackPlusConfig | undefined> {
   const requiredKeys: (keyof SlackPlusConfig)[] = ['token', 'channel', 'signingSecret'];
   const missingKeys = requiredKeys.filter((key) => config[key] === undefined);
   if (missingKeys.length) {
-    console.warn('[JiraPlus] Missing config:', missingKeys.join(', '));
+    console.warn('[SlackPlus] Missing config:', missingKeys.join(', '));
     return;
   }
   return config as SlackPlusConfig;
