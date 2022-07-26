@@ -47,7 +47,7 @@ export interface AreaProps extends ChartProps {
 
 export type MultiPieNode = { name: string; value?: number; children?: MultiPieNode[] };
 export interface MultiPieProps extends Omit<PieProps, 'formatters' | 'data' | 'names'> {
-  data?: MultiPieNode[];
+  data?: MultiPieNode;
   formatters?: {
     valueDisplay?: (value: number) => string;
   };
@@ -285,25 +285,20 @@ export const MultiPie: FunctionComponent<MultiPieProps> = ({
   return (
     <Sunburst
       locale="zh-CN"
-      data={{
-        name: 'root',
-        children: chartData || [],
-      }}
+      loading={loading}
+      data={chartData}
       padding={'auto'}
+      radius={0.75}
+      autoFit
+      innerRadius={innerRadius || 0.3}
+ 
       drilldown={{
         breadCrumb: {
-          rootText: '起始',
+          textStyle: {
+            fill: '#15c5ce',
+          },
         },
       }}
-      loading={loading}
-      autoFit
-      radius={1}
-      innerRadius={innerRadius || 0.45}
-      interactions={[
-        {
-          type: 'element-active',
-        },
-      ]}
       label={{
         layout: [
           {

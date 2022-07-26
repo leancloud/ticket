@@ -26,7 +26,7 @@ const StatsCard = ({
 };
 
 const StatusCards = () => {
-  const { data, isLoading, isFetching } = useStatsData('status', true);
+  const { data, isLoading, isFetching } = useStatsData('status');
   const {
     closed,
     fulfilled,
@@ -55,13 +55,12 @@ const StatusCards = () => {
 
 const PieContainer: React.FunctionComponent<{ title: string }> = ({ children, title }) => {
   return (
-    <div className="w-[350px] h-[350px] relative mr-8">
-      <p className="text-center font-bold -mb-6">{title}</p>
+    <div className="w-[400px] h-[400px] relative mr-8">
+      <p className="text-center font-bold -mb-4">{title}</p>
       {children}
     </div>
   );
 };
-
 
 export function StatsPanel() {
   return (

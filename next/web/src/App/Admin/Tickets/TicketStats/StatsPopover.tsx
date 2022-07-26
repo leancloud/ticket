@@ -13,6 +13,8 @@ type Props = {
   showLegend?: boolean;
 };
 
+const innerRadius = 0.5;
+
 export function StatusStatsPie() {
   const { data, isLoading, isFetching } = useStatsData('status');
   const chartData = useMemo(
@@ -26,7 +28,7 @@ export function StatusStatsPie() {
     <Pie
       data={chartData}
       loading={isLoading || isFetching}
-      innerRadius={0.5}
+      innerRadius={innerRadius}
       names={(name) => STATUS_LOCALE[name]}
     />
   );
@@ -50,7 +52,7 @@ export function AssigneeStatsPie({ showLegend }: Props) {
       showLegend={showLegend}
       data={chartData}
       loading={isLoading || isFetching}
-      innerRadius={0.5}
+      innerRadius={innerRadius}
       names={(name) => (assigneeMap ? assigneeMap[name] : name)}
     />
   );
@@ -75,7 +77,7 @@ export function GroupStatsPie({ showLegend }: Props) {
     <Pie
       showLegend={showLegend}
       data={chartData}
-      innerRadius={0.5}
+      innerRadius={innerRadius}
       loading={isLoading || isFetching}
       names={(name) => (groupMap ? groupMap[name] : name)}
     />
@@ -84,7 +86,9 @@ export function GroupStatsPie({ showLegend }: Props) {
 
 export function CategoryStatsMultiPie() {
   const { data, isLoading, isFetching } = useStatsData('category');
-  const { data: categories } = useCategories();
+  const { data: categories } = useCategories({
+    active: true,
+  });
   const chartData = useMemo(() => {
     if (!data || !categories) {
       return;
@@ -124,17 +128,26 @@ export function CategoryStatsMultiPie() {
     };
     const pickTree = (treeNode: CategoryTreeNode<{ value?: number }>): MultiPieNode => {
       const { name, value, children } = treeNode;
+      if (children && children.length > 0) {
+        return {
+          name,
+          value,
+          children: children.map((v) => pickTree(v)),
+        };
+      }
       return {
         name,
         value,
-        children: children && children.length > 0 ? children.map((v) => pickTree(v)) : undefined,
       };
     };
     const treeData = makeCategoryTree<{ value?: number }>(mergeData).map((v) => sumTree(v));
-    return filterTree(treeData).map((v) => pickTree(v));
+    return {
+      name: '分类',
+      children: filterTree(treeData).map((v) => pickTree(v)),
+    };
   }, [data, categories]);
 
-  return <MultiPie loading={isLoading || isFetching} data={chartData} />;
+  return <MultiPie loading={isLoading || isFetching} data={chartData} innerRadius={innerRadius} />;
 }
 
 const ContentMap = {
