@@ -1,13 +1,19 @@
 import {
   ComponentPropsWithoutRef,
   forwardRef,
-  useCallback,
   useEffect,
   useMemo,
   useState,
 } from 'react';
 import { BsFunnel } from 'react-icons/bs';
-import { HiAdjustments, HiChevronLeft, HiChevronRight, HiOutlineRefresh } from 'react-icons/hi';
+import {
+  HiAdjustments,
+  HiChevronLeft,
+  HiChevronRight,
+  HiChartSquareBar,
+  HiChartPie,
+  HiOutlineRefresh,
+} from 'react-icons/hi';
 import { useQueryClient } from 'react-query';
 import cx from 'classnames';
 
@@ -161,6 +167,8 @@ function Pagination({ className, pageSize, count, totalCount, isLoading }: Pagin
 export interface TopbarProps extends ComponentPropsWithoutRef<'div'> {
   showFilter?: boolean;
   onChangeShowFilter?: (value: boolean) => void;
+  showStatsPanel?: boolean;
+  onChangeShowStatsPanel?: (value: boolean) => void;
   pageSize: number;
   count?: number;
   totalCount?: number;
@@ -182,6 +190,8 @@ export function Topbar({
   onCheckedChange,
   layout,
   onChangeLayout,
+  showStatsPanel,
+  onChangeShowStatsPanel,
   ...props
 }: TopbarProps) {
   const indeterminate = useMemo(() => {
@@ -232,6 +242,15 @@ export function Topbar({
         totalCount={totalCount}
         isLoading={isLoading}
       />
+
+      <NavButton
+        className="ml-2 px-[7px] py-[7px]"
+        disabled={count === 0}
+        active={showStatsPanel}
+        onClick={() => onChangeShowStatsPanel?.(!showStatsPanel)}
+      >
+        <HiChartPie className="w-4 h-4" />
+      </NavButton>
 
       <NavButton
         className="ml-2 px-[7px] py-[7px]"

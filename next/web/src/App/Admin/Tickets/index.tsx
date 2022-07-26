@@ -8,6 +8,7 @@ import { Topbar, useOrderBy } from './Topbar';
 import { FilterForm, LocalFiltersProvider, useLocalFilters } from './Filter';
 import { TicketView } from './TicketView';
 import { Ticket } from './Ticket';
+import { StatsPanel } from './TicketStats';
 
 const pageSize = 20;
 
@@ -50,8 +51,8 @@ function TicketListView() {
   const [page] = usePage();
   const { orderKey, orderType } = useOrderBy();
   const [showFilterForm, setShowFilterForm] = useState(false);
+  const [showStatsPanel, setShowStatsPanel] = useState(false);
   const [layout, setLayout] = useLayout();
-
   const [localFilters, setLocalFilters] = useLocalFilters();
 
   const { data: tickets, totalCount, isLoading, isFetching } = useSmartSearchTickets({
@@ -96,6 +97,8 @@ function TicketListView() {
         className="shrink-0 z-10"
         showFilter={showFilterForm}
         onChangeShowFilter={setShowFilterForm}
+        showStatsPanel={showStatsPanel}
+        onChangeShowStatsPanel={setShowStatsPanel}
         pageSize={pageSize}
         count={tickets?.length}
         totalCount={totalCount}
@@ -107,19 +110,21 @@ function TicketListView() {
       />
 
       <div className="flex grow overflow-hidden">
-        <div className="flex grow flex-col p-[10px] gap-2 overflow-auto">
-          {isLoading && 'Loading...'}
-          {tickets && tickets.length === 0 && 'No data'}
-          {tickets && tickets.length > 0 && (
-            <TicketView
-              layout={layout}
-              tickets={tickets}
-              checkedIds={checkedIds}
-              onChangeChecked={handleCheckTicket}
-            />
-          )}
+        <div className="flex grow flex-col p-[10px]  overflow-auto">
+          {showStatsPanel && <StatsPanel />}
+          <div className="flex grow flex-col gap-2">
+            {isLoading && 'Loading...'}
+            {tickets && tickets.length === 0 && 'No data'}
+            {tickets && tickets.length > 0 && (
+              <TicketView
+                layout={layout}
+                tickets={tickets}
+                checkedIds={checkedIds}
+                onChangeChecked={handleCheckTicket}
+              />
+            )}
+          </div>
         </div>
-
         {showFilterForm && (
           <FilterForm className="shrink-0" filters={localFilters} onChange={setLocalFilters} />
         )}

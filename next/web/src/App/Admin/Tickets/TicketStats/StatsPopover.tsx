@@ -1,38 +1,20 @@
 import { useMemo, useState } from 'react';
 import { Popover } from '@/components/antd';
-import _, { pick } from 'lodash';
-import { TicketStatsRealtimeParams, useTicketStatsRealtime } from '@/api/ticket-stats';
+import _ from 'lodash';
+import { TicketStatsRealtimeParams } from '@/api/ticket-stats';
 import { PieChartOutlined } from '@ant-design/icons';
 import { Pie, MultiPie, MultiPieNode } from '@/components/Chart';
-import { useLocalFilters } from '../../Filter';
 import { useCustomerServices } from '@/api/customer-service';
 import { useGroups } from '@/api/group';
-import { useCategories, makeCategoryTree, CategorySchema, CategoryTreeNode } from '@/api/category';
+import { useCategories, makeCategoryTree, CategoryTreeNode } from '@/api/category';
+import { STATUS_LOCALE, useStatsData } from './utills';
 
-const useStatsData = (type: TicketStatsRealtimeParams['type'], enabled: boolean) => {
-  const [localFilters] = useLocalFilters();
-  return useTicketStatsRealtime({
-    ...localFilters,
-    type,
-    queryOptions: {
-      enabled,
-      staleTime: 1000 * 60 * 5,
-    },
-  });
-};
 type Props = {
-  enabled: boolean;
+  showLegend?: boolean;
 };
-const STATUS_LOCALE: Record<string, string> = {
-  notProcessed: '未处理',
-  waitingCustomer: '等待用户回复',
-  waitingCustomerService: '等待客服回复',
-  preFulfilled: '待用户确认解决',
-  fulfilled: '已解决',
-  closed: '已关闭',
-};
-function StatusStatsPie({ enabled }: Props) {
-  const { data, isLoading, isFetching } = useStatsData('status', enabled);
+
+export function StatusStatsPie() {
+  const { data, isLoading, isFetching } = useStatsData('status');
   const chartData = useMemo(
     () =>
       data
@@ -42,16 +24,16 @@ function StatusStatsPie({ enabled }: Props) {
   );
   return (
     <Pie
-      innerRadius={0.6}
       data={chartData}
       loading={isLoading || isFetching}
+      innerRadius={0.5}
       names={(name) => STATUS_LOCALE[name]}
     />
   );
 }
 
-function AssigneeStatsPie({ enabled }: Props) {
-  const { data, isLoading, isFetching } = useStatsData('assignee', enabled);
+export function AssigneeStatsPie({ showLegend }: Props) {
+  const { data, isLoading, isFetching } = useStatsData('assignee');
   const { data: assignees } = useCustomerServices();
   const assigneeMap = useMemo(() => {
     return assignees?.reduce((pre, curr) => {
@@ -65,18 +47,18 @@ function AssigneeStatsPie({ enabled }: Props) {
   );
   return (
     <Pie
-      innerRadius={0.6}
+      showLegend={showLegend}
       data={chartData}
       loading={isLoading || isFetching}
+      innerRadius={0.5}
       names={(name) => (assigneeMap ? assigneeMap[name] : name)}
     />
   );
 }
 
-function GroupStatsPie({ enabled }: Props) {
-  const { data, isLoading, isFetching } = useStatsData('group', enabled);
+export function GroupStatsPie({ showLegend }: Props) {
+  const { data, isLoading, isFetching } = useStatsData('group');
   const { data: groups } = useGroups();
-
   const groupMap = useMemo(() => {
     return groups?.reduce((pre, curr) => {
       pre[curr.id] = curr.name;
@@ -91,16 +73,17 @@ function GroupStatsPie({ enabled }: Props) {
 
   return (
     <Pie
-      innerRadius={0.6}
+      showLegend={showLegend}
       data={chartData}
+      innerRadius={0.5}
       loading={isLoading || isFetching}
       names={(name) => (groupMap ? groupMap[name] : name)}
     />
   );
 }
 
-function CategoryStatsPie({ enabled }: Props) {
-  const { data, isLoading, isFetching } = useStatsData('category', enabled);
+export function CategoryStatsMultiPie() {
+  const { data, isLoading, isFetching } = useStatsData('category');
   const { data: categories } = useCategories();
   const chartData = useMemo(() => {
     if (!data || !categories) {
@@ -158,7 +141,7 @@ const ContentMap = {
   status: StatusStatsPie,
   assignee: AssigneeStatsPie,
   group: GroupStatsPie,
-  category: CategoryStatsPie,
+  category: CategoryStatsMultiPie,
 };
 
 export function StatsPopover({ type }: { type: TicketStatsRealtimeParams['type'] }) {
@@ -169,7 +152,7 @@ export function StatsPopover({ type }: { type: TicketStatsRealtimeParams['type']
       onVisibleChange={(v) => setVisible(v)}
       placement="leftBottom"
       title={null}
-      content={<Component enabled={visible} />}
+      content={visible ? <Component /> : null}
       trigger="hover"
     >
       <PieChartOutlined className=" hover:text-primary" />

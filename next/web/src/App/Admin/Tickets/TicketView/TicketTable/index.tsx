@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import moment from 'moment';
 import { keyBy, uniq } from 'lodash-es';
-import { PieChartOutlined } from '@ant-design/icons';
 import { useCustomerServices } from '@/api/customer-service';
 import { useGroups } from '@/api/group';
 import { TicketSchema } from '@/api/ticket';
@@ -9,7 +8,7 @@ import { useUsers } from '@/api/user';
 import { Checkbox, Table } from '@/components/antd';
 import Status from '../TicketStatus';
 import { CategoryPath, useGetCategoryPath } from '../TicketList';
-import { StatsPopover } from '../TicketStats';
+import { StatsPopover } from '../../TicketStats';
 
 const { Column } = Table;
 

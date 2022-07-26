@@ -33,6 +33,7 @@ export interface ColumnProps extends ChartProps {
 export interface PieProps extends Omit<ChartProps, 'formatters' | 'data'> {
   innerRadius?: number;
   data?: [string, number][];
+  showLegend?: boolean;
   formatters?: {
     valueDisplay?: (value: number) => string;
     labelDisplay?: (value: string) => string;
@@ -58,6 +59,7 @@ export const Pie: FunctionComponent<PieProps> = ({
   names,
   formatters,
   innerRadius,
+  showLegend = true,
 }) => {
   const chartData = useMemo(() => {
     if (!data || data.length === 0) {
@@ -75,12 +77,16 @@ export const Pie: FunctionComponent<PieProps> = ({
     <OriginPie
       locale="zh-CN"
       loading={loading}
-      appendPadding={10}
+      padding={'auto'}
       autoFit
+      radius={0.75}
       colorField={CHART_KEY}
       angleField={CHART_VALUE}
-      radius={0.8}
       innerRadius={innerRadius}
+      statistic={{
+        title: false,
+        content: false,
+      }}
       data={chartData}
       label={{
         type: 'outer',
@@ -88,7 +94,7 @@ export const Pie: FunctionComponent<PieProps> = ({
           if (percent < 0.015) {
             return '';
           }
-          return rest[CHART_VALUE];
+          return names ? names(rest[CHART_KEY]) : rest[CHART_KEY];
         },
       }}
       interactions={[
@@ -106,11 +112,15 @@ export const Pie: FunctionComponent<PieProps> = ({
           };
         },
       }}
-      legend={{
-        itemName: {
-          formatter: (text) => (names ? names(text) : text),
-        },
-      }}
+      legend={
+        showLegend
+          ? {
+              itemName: {
+                formatter: (text) => (names ? names(text) : text),
+              },
+            }
+          : false
+      }
     />
   );
 };
@@ -265,6 +275,7 @@ export const Area: FunctionComponent<AreaProps> = ({
     />
   );
 };
+
 export const MultiPie: FunctionComponent<MultiPieProps> = ({
   loading,
   data: chartData,
@@ -278,16 +289,16 @@ export const MultiPie: FunctionComponent<MultiPieProps> = ({
         name: 'root',
         children: chartData || [],
       }}
+      padding={'auto'}
       drilldown={{
         breadCrumb: {
           rootText: '起始',
         },
       }}
       loading={loading}
-      appendPadding={10}
       autoFit
       radius={1}
-      innerRadius={innerRadius || 0.5}
+      innerRadius={innerRadius || 0.45}
       interactions={[
         {
           type: 'element-active',
