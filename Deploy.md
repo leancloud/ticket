@@ -241,7 +241,3 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 ## 2022-06-22
 
 导入 TicketField.json
-
-## 2022-07-08
-
-导入 TicketLog.json
