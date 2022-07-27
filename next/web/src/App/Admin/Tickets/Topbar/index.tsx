@@ -1,23 +1,16 @@
-import {
-  ComponentPropsWithoutRef,
-  forwardRef,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { ComponentPropsWithoutRef, forwardRef, useEffect, useMemo, useState } from 'react';
 import { BsFunnel } from 'react-icons/bs';
 import {
   HiAdjustments,
   HiChevronLeft,
   HiChevronRight,
-  HiChartSquareBar,
   HiChartPie,
   HiOutlineRefresh,
 } from 'react-icons/hi';
 import { useQueryClient } from 'react-query';
 import cx from 'classnames';
 
-import { Checkbox } from '@/components/antd';
+import { Checkbox, Tooltip } from '@/components/antd';
 import { usePage } from '@/utils/usePage';
 import { useOrderBy as _useOrderBy } from '@/utils/useOrderBy';
 import styles from './index.module.css';
@@ -243,14 +236,16 @@ export function Topbar({
         isLoading={isLoading}
       />
 
-      <NavButton
-        className="ml-2 px-[7px] py-[7px]"
-        disabled={count === 0}
-        active={showStatsPanel}
-        onClick={() => onChangeShowStatsPanel?.(!showStatsPanel)}
-      >
-        <HiChartPie className="w-4 h-4" />
-      </NavButton>
+      <Tooltip title="实时统计">
+        <NavButton
+          className="ml-2 px-[7px] py-[7px]"
+          disabled={count === 0}
+          active={showStatsPanel}
+          onClick={() => onChangeShowStatsPanel?.(!showStatsPanel)}
+        >
+          <HiChartPie className="w-4 h-4" />
+        </NavButton>
+      </Tooltip>
 
       <NavButton
         className="ml-2 px-[7px] py-[7px]"

@@ -1,8 +1,8 @@
 import { Card } from '@/components/antd';
 import _ from 'lodash';
 import React, { useMemo } from 'react';
-import { AssigneeStatsPie, CategoryStatsMultiPie, GroupStatsPie } from './StatsPopover';
 import { useStatsData } from './utills';
+import { AssigneeStatsPie, CategoryStatsMultiPie, GroupStatsPie } from './StatsPie';
 
 const StatsCard = ({
   title,
@@ -55,7 +55,7 @@ const StatusCards = () => {
 
 const PieContainer: React.FunctionComponent<{ title: string }> = ({ children, title }) => {
   return (
-    <div className="w-[400px] h-[400px] relative mr-8">
+    <div className="relative w-1/3 max-w-[420px] px-2">
       <p className="text-center font-bold -mb-4">{title}</p>
       {children}
     </div>
@@ -66,7 +66,7 @@ export function StatsPanel() {
   return (
     <div className="mb-2 bg-white p-2">
       <StatusCards />
-      <div className="mt-4 flex flex-grow relative">
+      <div className="mt-4 flex flex-grow relative max-w-full">
         <PieContainer title="分类">
           <CategoryStatsMultiPie />
         </PieContainer>

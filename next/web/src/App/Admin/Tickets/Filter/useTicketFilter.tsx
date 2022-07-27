@@ -46,7 +46,7 @@ export function LocalFiltersProvider({ children }: { children: ReactNode }) {
       privateTagKey,
       privateTagValue,
     };
-    console.log('fiolter pasrs')
+
     if (assigneeId) {
       filters.assigneeId = assigneeId.split(',');
     }

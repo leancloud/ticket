@@ -286,12 +286,11 @@ export const MultiPie: FunctionComponent<MultiPieProps> = ({
     <Sunburst
       locale="zh-CN"
       loading={loading}
-      data={chartData}
+      data={chartData || {}}
       padding={'auto'}
       radius={0.75}
       autoFit
       innerRadius={innerRadius || 0.3}
- 
       drilldown={{
         breadCrumb: {
           textStyle: {

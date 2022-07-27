@@ -1,8 +1,9 @@
-import { PropsWithChildren, useCallback, useEffect, useState } from 'react';
+import React, { PropsWithChildren, useCallback, useEffect, useState } from 'react';
 import cx from 'classnames';
 
-import { Button, Input } from '@/components/antd';
+import { Button, Input, Tooltip } from '@/components/antd';
 import { UserSelect } from '@/components/common';
+import { QuestionCircleOutlined } from '@ant-design/icons';
 import { Filters } from '../useTicketFilter';
 import { AssigneeSelect } from './AssigneeSelect';
 import { GroupSelect } from './GroupSelect';
@@ -12,7 +13,7 @@ import { CategorySelect } from './CategorySelect';
 import { StatusSelect } from './StatusSelect';
 import { EvaluationStarSelect } from './EvaluationStarSelect';
 
-function Field({ title, children }: PropsWithChildren<{ title: string }>) {
+function Field({ title, children }: PropsWithChildren<{ title: React.ReactNode }>) {
   return (
     <div className="mt-4">
       <label className="block pb-1.5 text-[#475867] text-sm font-medium">{title}</label>
@@ -68,7 +69,16 @@ export function FilterForm({ className, filters, onChange }: FilterFormProps) {
       )}
     >
       <div className="grow p-4">
-        <Field title="关键词">
+        <Field
+          title={
+            <>
+              <span className="mr-1">关键词</span>
+              <Tooltip title="实时统计忽略此字段">
+                <QuestionCircleOutlined />
+              </Tooltip>
+            </>
+          }
+        >
           <Input
             autoFocus
             value={keyword}
