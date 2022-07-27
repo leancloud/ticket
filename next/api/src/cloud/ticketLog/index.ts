@@ -31,6 +31,7 @@ export async function syncTicketLog(from?: Date, limit = 100, skip = 0) {
       )
     )
   );
+  console.log(`ticket: ${limit}, ${skip} insert success`);
   if (tickets.length === limit) {
     await syncTicketLog(from, limit, limit + skip);
   }
