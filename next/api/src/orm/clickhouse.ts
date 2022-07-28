@@ -8,7 +8,7 @@ interface QueryData {
   fields: Array<{ name: string; type: string }>;
   results: Array<Record<string, string>>;
 }
-type ConditionValue = string | Date | number | Array<string | number>;
+type ConditionValue = string | Date | number | Array<string | number> | null;
 
 const http = axios.create({
   baseURL: `${process.env.LEANCLOUD_API_HOST}/datalake/v1`,
@@ -45,6 +45,9 @@ const escapeStr = (v: string) =>
 
 export const quoteColumn = (value: string) => '`' + escapeStr(value) + '`';
 export const quoteValue = (value: ConditionValue): string | number => {
+  if (value === null || value === 'null') {
+    return `''`;
+  }
   if (_.isDate(value)) {
     value = format(value, 'yyyy-MM-dd HH:mm:ss');
   }

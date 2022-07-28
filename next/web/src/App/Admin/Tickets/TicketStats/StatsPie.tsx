@@ -50,7 +50,15 @@ export function AssigneeStatsPie({ showLegend }: Props) {
       data={chartData}
       loading={isLoading || isFetching}
       innerRadius={innerRadius}
-      names={(name) => (assigneeMap ? assigneeMap[name] : name)}
+      names={(name) => {
+        if (name === '') {
+          return '未分配';
+        }
+        if (!assigneeMap) {
+          return name;
+        }
+        return assigneeMap[name] || name;
+      }}
     />
   );
 }
@@ -76,7 +84,12 @@ export function GroupStatsPie({ showLegend }: Props) {
       data={chartData}
       innerRadius={innerRadius}
       loading={isLoading || isFetching}
-      names={(name) => (groupMap ? groupMap[name] : name)}
+      names={(name) => {
+        if (name === '') {
+          return '未分配';
+        }
+        return groupMap ? groupMap[name] : name;
+      }}
     />
   );
 }
