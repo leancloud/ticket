@@ -4,7 +4,7 @@ import {
   HiAdjustments,
   HiChevronLeft,
   HiChevronRight,
-  HiChartPie,
+  HiOutlineChartPie,
   HiOutlineRefresh,
 } from 'react-icons/hi';
 import { useQueryClient } from 'react-query';
@@ -236,14 +236,14 @@ export function Topbar({
         isLoading={isLoading}
       />
 
-      <Tooltip title="实时统计">
+      <Tooltip title="分析">
         <NavButton
           className="ml-2 px-[7px] py-[7px]"
           disabled={count === 0}
           active={showStatsPanel}
           onClick={() => onChangeShowStatsPanel?.(!showStatsPanel)}
         >
-          <HiChartPie className="w-4 h-4" />
+          <HiOutlineChartPie className="w-4 h-4" />
         </NavButton>
       </Tooltip>
 

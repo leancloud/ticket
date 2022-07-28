@@ -8,7 +8,6 @@ import { useUsers } from '@/api/user';
 import { Checkbox, Table } from '@/components/antd';
 import Status from '../TicketStatus';
 import { CategoryPath, useGetCategoryPath } from '../TicketList';
-import { StatsPopover } from '../../TicketStats';
 
 const { Column } = Table;
 
@@ -67,12 +66,7 @@ export function TicketTable({ tickets, checkedIds, onChangeChecked }: TicketTabl
 
       <Column
         dataIndex="status"
-        title={
-          <>
-            <span className="mr-1">状态</span>
-            <StatsPopover type="status" />
-          </>
-        }
+        title="状态"
         render={(status: number) => <Status status={status} />}
       />
 
@@ -84,12 +78,7 @@ export function TicketTable({ tickets, checkedIds, onChangeChecked }: TicketTabl
 
       <Column
         dataIndex="categoryId"
-        title={
-          <>
-            <span className="mr-1">分类</span>
-            <StatsPopover type="category" />
-          </>
-        }
+        title="分类"
         render={(id: string) => (
           <CategoryPath className="whitespace-nowrap text-sm" path={getCategoryPath(id)} />
         )}
@@ -97,12 +86,7 @@ export function TicketTable({ tickets, checkedIds, onChangeChecked }: TicketTabl
       
       <Column
         dataIndex="groupId"
-        title={
-          <>
-            <span className="mr-1">组</span>
-            <StatsPopover type="group" />
-          </>
-        }
+        title="组"
         render={(groupId?: string) =>
           groupId ? (loadingGroups ? 'Loading...' : groupById[groupId]?.name ?? 'unknown') : '--'
         }
@@ -110,12 +94,7 @@ export function TicketTable({ tickets, checkedIds, onChangeChecked }: TicketTabl
 
       <Column
         dataIndex="assigneeId"
-        title={
-          <>
-            <span className="mr-1">客服</span>
-            <StatsPopover type="assignee" />
-          </>
-        }
+        title="客服"
         render={(assigneeId?: string) =>
           assigneeId
             ? loadingAssignees

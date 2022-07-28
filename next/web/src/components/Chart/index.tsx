@@ -288,7 +288,7 @@ export const MultiPie: FunctionComponent<MultiPieProps> = ({
       loading={loading}
       data={chartData || {}}
       padding={'auto'}
-      radius={0.75}
+      radius={0.8}
       autoFit
       innerRadius={innerRadius || 0.3}
       drilldown={{
