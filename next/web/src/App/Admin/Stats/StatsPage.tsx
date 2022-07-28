@@ -1,6 +1,6 @@
 import { FunctionComponent, useCallback, useMemo, useState } from 'react';
 import classnames from 'classnames';
-import { Statistic, Card, Divider, Radio, DatePicker, Badge, Avatar } from '@/components/antd';
+import { Statistic, Card, Divider, Radio, DatePicker } from '@/components/antd';
 import { CategorySelect, CustomerServiceSelect } from '@/components/common';
 import { useSearchParams, useSearchParam } from '@/utils/useSearchParams';
 import { useTicketCount, useTicketStats } from '@/api/ticket-stats';

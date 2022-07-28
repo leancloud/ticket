@@ -11,6 +11,7 @@ import { Evaluation, Status, Tag, Ticket } from '@/model/Ticket';
 import { systemUser, TinyUserInfo, User } from '@/model/User';
 
 import { TinyReplyInfo } from '@/model/Reply';
+import { TicketLog } from '@/model/TicketLog';
 
 export interface UpdateOptions {
   useMasterKey?: boolean;
@@ -279,6 +280,10 @@ export class TicketUpdater {
     this.saveOpsLogs(operator).catch((error) => {
       // TODO: Sentry
       console.error('[ERROR] Create OpsLog failed, error:', error);
+    });
+
+    TicketLog.createByTicket(ticket).catch((error) => {
+      console.error('[ERROR] save TicketLog failed, error:', error);
     });
 
     events.emit('ticket:updated', {

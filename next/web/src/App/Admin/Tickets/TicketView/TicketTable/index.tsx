@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import moment from 'moment';
 import { keyBy, uniq } from 'lodash-es';
-
 import { useCustomerServices } from '@/api/customer-service';
 import { useGroups } from '@/api/group';
 import { TicketSchema } from '@/api/ticket';
@@ -15,9 +14,9 @@ const { Column } = Table;
 function TicketLink({ ticket }: { ticket: TicketSchema }) {
   return (
     <a
-      className="mt-1.5 font-bold max-w-full"
-      title={ticket.title}
-      href={`/tickets/${ticket.nid}`}
+    className="mt-1.5 font-bold max-w-full"
+    title={ticket.title}
+    href={`/tickets/${ticket.nid}`}
     >
       <span>{ticket.title}</span>
       <span className="ml-1 text-[#6f7c87]">#{ticket.nid}</span>
@@ -33,7 +32,7 @@ export interface TicketTableProps {
 
 export function TicketTable({ tickets, checkedIds, onChangeChecked }: TicketTableProps) {
   const checkedIdSet = useMemo(() => new Set(checkedIds), [checkedIds]);
-
+  
   const userIds = useMemo(() => uniq(tickets.map((t) => t.authorId)), [tickets]);
   const { data: users, isLoading: loadingUsers } = useUsers({
     id: userIds,
@@ -84,15 +83,7 @@ export function TicketTable({ tickets, checkedIds, onChangeChecked }: TicketTabl
           <CategoryPath className="whitespace-nowrap text-sm" path={getCategoryPath(id)} />
         )}
       />
-
-      <Column
-        dataIndex="authorId"
-        title="创建人"
-        render={(authorId: string) =>
-          loadingUsers ? 'Loading' : userById[authorId]?.nickname ?? 'unknown'
-        }
-      />
-
+      
       <Column
         dataIndex="groupId"
         title="组"
@@ -110,6 +101,14 @@ export function TicketTable({ tickets, checkedIds, onChangeChecked }: TicketTabl
               ? 'Loading...'
               : assigneeById[assigneeId]?.nickname ?? 'unknown'
             : '--'
+        }
+      />
+
+      <Column
+        dataIndex="authorId"
+        title="创建人"
+        render={(authorId: string) =>
+          loadingUsers ? 'Loading' : userById[authorId]?.nickname ?? 'unknown'
         }
       />
 

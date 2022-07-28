@@ -1,17 +1,16 @@
-import {
-  ComponentPropsWithoutRef,
-  forwardRef,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { ComponentPropsWithoutRef, forwardRef, useEffect, useMemo, useState } from 'react';
 import { BsFunnel } from 'react-icons/bs';
-import { HiAdjustments, HiChevronLeft, HiChevronRight, HiOutlineRefresh } from 'react-icons/hi';
+import {
+  HiAdjustments,
+  HiChevronLeft,
+  HiChevronRight,
+  HiOutlineChartPie,
+  HiOutlineRefresh,
+} from 'react-icons/hi';
 import { useQueryClient } from 'react-query';
 import cx from 'classnames';
 
-import { Checkbox } from '@/components/antd';
+import { Checkbox, Tooltip } from '@/components/antd';
 import { usePage } from '@/utils/usePage';
 import { useOrderBy as _useOrderBy } from '@/utils/useOrderBy';
 import styles from './index.module.css';
@@ -161,6 +160,8 @@ function Pagination({ className, pageSize, count, totalCount, isLoading }: Pagin
 export interface TopbarProps extends ComponentPropsWithoutRef<'div'> {
   showFilter?: boolean;
   onChangeShowFilter?: (value: boolean) => void;
+  showStatsPanel?: boolean;
+  onChangeShowStatsPanel?: (value: boolean) => void;
   pageSize: number;
   count?: number;
   totalCount?: number;
@@ -182,6 +183,8 @@ export function Topbar({
   onCheckedChange,
   layout,
   onChangeLayout,
+  showStatsPanel,
+  onChangeShowStatsPanel,
   ...props
 }: TopbarProps) {
   const indeterminate = useMemo(() => {
@@ -232,6 +235,17 @@ export function Topbar({
         totalCount={totalCount}
         isLoading={isLoading}
       />
+
+      <Tooltip title="分析">
+        <NavButton
+          className="ml-2 px-[7px] py-[7px]"
+          disabled={count === 0}
+          active={showStatsPanel}
+          onClick={() => onChangeShowStatsPanel?.(!showStatsPanel)}
+        >
+          <HiOutlineChartPie className="w-4 h-4" />
+        </NavButton>
+      </Tooltip>
 
       <NavButton
         className="ml-2 px-[7px] py-[7px]"

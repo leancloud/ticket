@@ -33,7 +33,7 @@ const includeSchema = yup.object({
   includeUnreadCount: yup.bool(),
 });
 
-const ticketFiltersSchema = yup.object({
+export const ticketFiltersSchema = yup.object({
   authorId: yup.string(),
   assigneeId: yup.csv(yup.string().required()),
   categoryId: yup.csv(yup.string().required()),

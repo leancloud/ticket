@@ -1,11 +1,12 @@
 import { UseQueryOptions, useQuery } from 'react-query';
 import { http } from '@/leancloud';
+import { FetchTicketFilters, encodeTicketFilters } from './ticket';
 
 export interface FetchTicketStatsOptions {
-  customerService?: string,
-  category?: string,
-  from: Date,
-  to: Date
+  customerService?: string;
+  category?: string;
+  from: Date;
+  to: Date;
 }
 
 export interface TicketStats {
@@ -25,19 +26,18 @@ export interface TicketStats {
   naturalReplyCount: number;
 }
 
-
 async function fetchTicketStats(options?: FetchTicketStatsOptions) {
   const { data } = await http.get<TicketStats>('/api/2/ticket-stats', {
     params: options,
   });
-  return data
+  return data;
 }
+
 export interface UseTicketStatsOptions extends FetchTicketStatsOptions {
   queryOptions?: UseQueryOptions<TicketStats, Error>;
 }
-export function useTicketStats({
-  queryOptions, ...options
-}: UseTicketStatsOptions) {
+
+export function useTicketStats({ queryOptions, ...options }: UseTicketStatsOptions) {
   return useQuery({
     queryKey: ['ticketStats', options],
     queryFn: () => fetchTicketStats(options),
@@ -52,26 +52,27 @@ export type TicketFieldStat = Partial<TicketStats> & {
   replyTimeAVG?: number;
   firstReplyTimeAVG?: number;
   naturalReplyTimeAVG?: number;
-}
+};
 
 interface TicketFieldStatsOptions extends FetchTicketStatsOptions {
   fields: string[];
 }
+
 async function fetchTicketFieldStats({ fields, ...rest }: TicketFieldStatsOptions) {
   const { data } = await http.get<TicketFieldStat[]>(`/api/2/ticket-stats/fields`, {
     params: {
       ...rest,
-      fields: fields.join(',')
+      fields: fields.join(','),
     },
   });
-  return data
+  return data;
 }
+
 export interface UseTicketFieldStatsOptions extends TicketFieldStatsOptions {
   queryOptions?: UseQueryOptions<TicketFieldStat[], Error>;
 }
-export function useTicketFieldStats({
-  queryOptions, ...options
-}: UseTicketFieldStatsOptions) {
+
+export function useTicketFieldStats({ queryOptions, ...options }: UseTicketFieldStatsOptions) {
   return useQuery({
     queryKey: ['ticketFiledStats', options],
     queryFn: () => fetchTicketFieldStats(options),
@@ -80,12 +81,13 @@ export function useTicketFieldStats({
 }
 
 interface TicketStatusOptions {
-  from: Date,
-  to: Date
+  from: Date;
+  to: Date;
 }
+
 export interface TicketStatus {
-  id: string,
-  date: Date,
+  id: string;
+  date: Date;
   notProcessed: number;
   waitingCustomer: number;
   waitingCustomerService: number;
@@ -93,18 +95,19 @@ export interface TicketStatus {
   fulfilled: number;
   closed: number;
 }
+
 async function fetchTicketStatus(params: TicketStatusOptions) {
   const { data } = await http.get<TicketStatus[]>(`/api/2/ticket-stats/status`, {
     params,
   });
-  return data
+  return data;
 }
+
 export interface UseTicketTicketStatusOptions extends TicketStatusOptions {
   queryOptions?: UseQueryOptions<TicketStatus[], Error>;
 }
-export function useTicketStatus({
-  queryOptions, ...options
-}: UseTicketTicketStatusOptions) {
+
+export function useTicketStatus({ queryOptions, ...options }: UseTicketTicketStatusOptions) {
   return useQuery({
     queryKey: ['ticketStatus', options],
     queryFn: () => fetchTicketStatus(options),
@@ -119,6 +122,7 @@ interface ReplyDetailsOptions {
   category?: string;
   customerService?: string;
 }
+
 interface ReplyDetail {
   replyTime: number;
   id: string;
@@ -129,15 +133,14 @@ async function fetchReplyDetails(params: ReplyDetailsOptions) {
   const { data } = await http.get<ReplyDetail[]>(`/api/2/ticket-stats/details`, {
     params,
   });
-  return data
+  return data;
 }
 
 export interface UseReplyDetailsOptions extends ReplyDetailsOptions {
   queryOptions?: UseQueryOptions<ReplyDetail[], Error>;
 }
-export function useReplyDetails({
-  queryOptions, ...options
-}: UseReplyDetailsOptions) {
+
+export function useReplyDetails({ queryOptions, ...options }: UseReplyDetailsOptions) {
   return useQuery({
     queryKey: ['replyDetails', options],
     queryFn: () => fetchReplyDetails(options),
@@ -149,18 +152,19 @@ interface TicketCountOptions {
   from: Date;
   to: Date;
 }
+
 async function fetchTicketCount(params: TicketCountOptions) {
   const { data } = await http.get<number>(`/api/2/ticket-stats/count`, {
     params,
   });
-  return data
+  return data;
 }
+
 interface UseTicketCountOptions extends TicketCountOptions {
   queryOptions?: UseQueryOptions<number, Error>;
 }
-export function useTicketCount({
-  queryOptions, ...options
-}: UseTicketCountOptions) {
+
+export function useTicketCount({ queryOptions, ...options }: UseTicketCountOptions) {
   return useQuery({
     queryKey: ['TicketCount', options],
     queryFn: () => fetchTicketCount(options),
@@ -168,3 +172,30 @@ export function useTicketCount({
   });
 }
 
+export type TicketStatsRealtimeData = Array<Record<string, string>>;
+
+export type TicketStatsRealtimeParams = FetchTicketFilters & {
+  type: 'status' | 'category' | 'group' | 'assignee';
+};
+
+async function fetchTicketStatsRealtime({ type, ...rest }: TicketStatsRealtimeParams) {
+  const { data } = await http.get<TicketStatsRealtimeData>(`/api/2/ticket-stats/realtime`, {
+    params: {
+      ...encodeTicketFilters(rest),
+      type,
+    },
+  });
+  return data;
+}
+
+interface UseTicketStatsRealtime extends TicketStatsRealtimeParams {
+  queryOptions?: UseQueryOptions<TicketStatsRealtimeData, Error>;
+}
+
+export function useTicketStatsRealtime({ queryOptions, ...options }: UseTicketStatsRealtime) {
+  return useQuery({
+    queryKey: [`ticketStatsRealtime-${options.type}`, options],
+    queryFn: () => fetchTicketStatsRealtime(options),
+    ...queryOptions,
+  });
+}

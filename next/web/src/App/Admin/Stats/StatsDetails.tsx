@@ -8,7 +8,7 @@ import { TicketFieldStat, TicketStats, useTicketFieldStats } from '@/api/ticket-
 import { useCategories } from '@/api/category';
 import { useCustomerServices } from '@/api/customer-service';
 import { useRangePicker, useFilterData } from './utils';
-import { StatsPie, StatsColumn } from './Chart';
+import { Pie, Column } from '@/components/Chart';
 import { Button, Popover, Radio, Table, TableProps } from '@/components/antd';
 import { StatsField, STATS_FIELD_LOCALE, useActiveField } from './StatsPage';
 import ReplyDetails, { ModalRef } from './ReplyDetails';
@@ -105,7 +105,7 @@ const TicketStatsColumn = () => {
 
   const isTimeField = timeField.includes(field);
   return (
-    <StatsColumn
+    <Column
       loading={isFetching || isLoading}
       data={chartData}
       tickInterval={isTimeField ? 3600 : undefined}
@@ -359,7 +359,7 @@ const CategoryStats: React.FunctionComponent<{ displayMode: displayMode }> = ({ 
     );
   }
   return (
-    <StatsPie
+    <Pie
       data={chartData}
       loading={isLoading || isFetching}
       names={categoryFormat}
@@ -404,7 +404,7 @@ const CustomerServiceStats: React.FunctionComponent<{ displayMode: displayMode }
     );
   }
   return (
-    <StatsPie
+    <Pie
       data={chartData}
       loading={isLoading || isFetching}
       names={customerServiceFormat}

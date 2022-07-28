@@ -1,0 +1,99 @@
+{
+  "schema": {
+    "createdAt": {
+      "type": "Date"
+    },
+    "updatedAt": {
+      "type": "Date"
+    },
+    "ACL": {
+      "type": "ACL"
+    },
+    "objectId": {
+      "type": "String"
+    },
+    "ticketId": {
+      "type": "String"
+    },
+    "assigneeId": {
+      "type": "String"
+    },
+    "authorId": {
+      "type": "String"
+    },
+    "categoryId": {
+      "type": "String"
+    },
+    "evaluation": {
+      "type": "Object"
+    },
+    "firstCustomerServiceReplyAt": {
+      "type": "Date"
+    },
+    "groupId": {
+      "type": "String"
+    },
+    "joinedCustomerServices": {
+      "type": "Array"
+    },
+    "latestCustomerServiceReplyAt": {
+      "type": "Date"
+    },
+    "latestReply": {
+      "type": "Object"
+    },
+    "nid": {
+      "type": "Number"
+    },
+    "privateTags": {
+      "type": "Array"
+    },
+    "replyCount": {
+      "type": "Number"
+    },
+    "status": {
+      "type": "Number"
+    },
+    "tags": {
+      "type": "Array"
+    },
+    "metaData": {
+      "type": "Object"
+    },
+    "title": {
+      "type": "String"
+    },
+    "organizationId": {
+      "type": "String"
+    },
+    "ticketCreatedAt": {
+      "type": "Date"
+    }
+  },
+  "permissions": {
+    "create": {
+      "roles": [],
+      "users": []
+    },
+    "find": {
+      "roles": [],
+      "users": []
+    },
+    "get": {
+      "roles": [],
+      "users": []
+    },
+    "update": {
+      "roles": [],
+      "users": []
+    },
+    "delete": {
+      "roles": [],
+      "users": []
+    },
+    "add_fields": {
+      "roles": [],
+      "users": []
+    }
+  }
+}

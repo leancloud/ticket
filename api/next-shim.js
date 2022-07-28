@@ -4,7 +4,7 @@ const { tickDelayNotify } = require('../next/api/dist')
 const { execTimeTriggers } = require('../next/api/dist/ticket/automation/time-trigger')
 const { analyzeArticles } = require('../next/api/dist/article/stats')
 const { migrateNotifications } = require('../next/api/dist/notification/migrate')
-const { hourlyTicketStats } = require('../next/api/dist/cloud/index.js')
+const { hourlyTicketStats, syncTicketLog } = require('../next/api/dist/cloud/index.js')
 
 const events = require('../next/api/dist/events').default
 
@@ -20,5 +20,6 @@ AV.Cloud.define('tickAutomation', { fetchUser: false, internal: true }, () => {
 AV.Cloud.define('analyzeArticles', { fetchUser: false, internal: true }, analyzeArticles)
 AV.Cloud.define('migrateNotifications', { fetchUser: false, internal: true }, migrateNotifications)
 AV.Cloud.define('statsHour', () => hourlyTicketStats())
+AV.Cloud.define('syncTicketLog', () => syncTicketLog())
 
 module.exports = { events }
