@@ -4,11 +4,16 @@ import reactJSX from 'vite-react-jsx';
 import legacy from '@vitejs/plugin-legacy';
 import path from 'path';
 
-const additionalLegacyPolyfills = ['intersection-observer'];
-
 export default defineConfig({
   base: '/in-app/v1/',
-  plugins: [reactRefresh(), reactJSX(), legacy({ additionalLegacyPolyfills })],
+  plugins: [
+    reactRefresh(),
+    reactJSX(),
+    legacy({
+      polyfills: ['es.global-this'],
+      additionalLegacyPolyfills: ['intersection-observer'],
+    }),
+  ],
   server: {
     port: 8081,
     proxy: {
