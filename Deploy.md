@@ -241,3 +241,7 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 ## 2022-06-22
 
 导入 TicketField.json
+
+## 2022-08-08
+
+控制台创建 TicketLog 日志表。运行云函数 `syncTicketLog` 同步工单数据到 `TicketLog`
