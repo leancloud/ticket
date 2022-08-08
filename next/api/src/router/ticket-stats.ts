@@ -119,8 +119,25 @@ router.get('/realtime', parseRange('createdAt'), async (ctx) => {
   if (params['privateTagValue']) {
     privateTagCondition.push(params['privateTagValue']);
   }
+
+  const ticketLogLatest = new ClickHouse()
+    .from('TicketLog')
+    .select(
+      'argMax(authorId, updatedAt) as authorId',
+      'argMax(assigneeId, updatedAt) as assigneeId',
+      'argMax(groupId, updatedAt) as groupId',
+      'argMax(status, updatedAt) as status',
+      'argMax(categoryId, updatedAt) as categoryId',
+      'argMax(ticketCreatedAt, updatedAt) as ticketCreatedAt',
+      'argMax(evaluation, updatedAt) as evaluation',
+      'argMax(privateTags, updatedAt) as privateTags',
+      'ticketId',
+      'nid'
+    )
+    .groupBy('ticketId', 'nid');
+
   const data = await new ClickHouse()
-    .from('TicketLog_latest')
+    .from(ticketLogLatest)
     .select(...selectList)
     .where('authorId', params['authorId'])
     .where('assigneeId', params['assigneeId'], 'in')

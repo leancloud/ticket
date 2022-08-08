@@ -127,8 +127,12 @@ export class ClickHouse {
     this.orderExpressions = [];
     this.limitNumber = undefined;
   }
-  from(tableName: string) {
-    this.tableName = tableName;
+  from(table: string | ClickHouse) {
+    if (table instanceof ClickHouse) {
+      this.tableName = '(' + table.toSqlString() + ')';
+    } else {
+      this.tableName = table;
+    }
     return this;
   }
 
