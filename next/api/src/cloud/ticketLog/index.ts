@@ -7,15 +7,20 @@ import { ClickHouse } from '@/orm/clickhouse';
 const run = throat(2);
 
 const getFromDate = async () => {
-  const lastTicketLog = await new ClickHouse()
-    .from('TicketLog')
-    .select('ticketCreatedAt')
-    .orderBy(['ticketCreatedAt', 'desc'])
-    .limit(1)
-    .find();
-  if (lastTicketLog && lastTicketLog.length > 0) {
-    return new Date(lastTicketLog[0].ticketCreatedAt);
+  try {
+    const lastTicketLog = await new ClickHouse()
+      .from('TicketLog')
+      .select('ticketCreatedAt')
+      .orderBy(['ticketCreatedAt', 'desc'])
+      .limit(1)
+      .find();
+    if (lastTicketLog && lastTicketLog.length > 0) {
+      return new Date(lastTicketLog[0].ticketCreatedAt);
+    }
+  } catch (error) {
+    console.log('ticketLog no data', error);
   }
+
   const firstTicket = await Ticket.queryBuilder().orderBy('createdAt', 'asc').first({
     useMasterKey: true,
   });
