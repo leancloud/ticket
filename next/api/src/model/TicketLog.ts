@@ -67,6 +67,7 @@ export class TicketLog extends Model {
         ACL: {},
         ticketId: ticket.id,
         ticketCreatedAt: ticket.createdAt,
+        privateTags: ticket.privateTags || [],
         ..._.pick(
           ticket,
           'assigneeId',
@@ -79,7 +80,6 @@ export class TicketLog extends Model {
           'latestCustomerServiceReplyAt',
           'latestReply',
           'nid',
-          'privateTags',
           'replyCount',
           'status',
           'tags',

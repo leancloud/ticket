@@ -117,14 +117,22 @@ export class ClickHouse {
   private selectList: string[];
   private aggregations: string[];
   private conditions: Conjunction;
+  private orderExpressions: Array<string | [string, 'desc' | 'asc']>;
+  private limitNumber: number | undefined;
   constructor() {
     this.tableName = undefined;
     this.selectList = [];
     this.conditions = new Conjunction();
     this.aggregations = [];
+    this.orderExpressions = [];
+    this.limitNumber = undefined;
   }
-  from(tableName: string) {
-    this.tableName = tableName;
+  from(table: string | ClickHouse) {
+    if (table instanceof ClickHouse) {
+      this.tableName = '(' + table.toSqlString() + ')';
+    } else {
+      this.tableName = table;
+    }
     return this;
   }
 
@@ -156,6 +164,16 @@ export class ClickHouse {
     return this;
   }
 
+  orderBy(...expressions: Array<string | [string, 'desc' | 'asc']>) {
+    expressions.forEach((e) => this.orderExpressions.push(e));
+    return this;
+  }
+
+  limit(number: number) {
+    this.limitNumber = number;
+    return this;
+  }
+
   toSqlString() {
     if (!this.tableName) {
       throw new Error('table name is required');
@@ -168,26 +186,22 @@ export class ClickHouse {
     }
     const from = `from ${this.tableName}`;
     const where = this.conditions.length ? 'where ' + this.conditions : '';
-    const groupby = this.aggregations.length
+    const groupBy = this.aggregations.length
       ? 'group by ' + this.aggregations.map((c) => quoteColumn(c)).join()
       : '';
-    const parts = ['select', select_list, from, where, groupby].filter((v) => v != '');
+    const orderBy = this.orderExpressions.length
+      ? 'order by ' +
+        this.orderExpressions
+          .map((e) => (Array.isArray(e) ? quoteColumn(e[0]) + ' ' + e[1] : quoteColumn(e)))
+          .join()
+      : '';
+    const limit = this.limitNumber ? `limit ${this.limitNumber}` : '';
+
+    const parts = ['select', select_list, from, where, groupBy, orderBy, limit].filter(
+      (v) => v != ''
+    );
     return parts.join(' ');
   }
-
-  // async createView(name: string) {
-  //   try {
-  //      await http.post('/query', {
-  //       data: {
-  //         sql: `create view ${name} as ${this.toSqlString()}`,
-  //       },
-  //     });
-  //     return;
-  //   } catch (error) {
-  //     console.log(`[clickhouse create view error]: ${(error as AxiosError).message}`);
-  //     throw error;
-  //   }
-  // }
 
   async find() {
     const sql = this.toSqlString();
