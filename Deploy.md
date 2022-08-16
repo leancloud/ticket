@@ -238,6 +238,8 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 
 部署后运行云函数 migrateNotifications
 
+如果 TicketForm 中有 fieldIds 列包含 `description` 的数据，要把 `description` 改成 `details`。**此过程无法做到平滑**。
+
 ## 2022-06-22
 
 导入 TicketField.json
