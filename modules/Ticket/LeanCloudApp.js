@@ -38,6 +38,7 @@ export function LeanCloudApp({ ticketId, authorUserame }) {
       })
       setAppName(app.app_name)
       if (!isUser) {
+        setAppName(`${app.app_name}(${app.region})`)
         const url = await cloud.run('getLeanCloudAppUrl', {
           appId,
           region: app.region,
