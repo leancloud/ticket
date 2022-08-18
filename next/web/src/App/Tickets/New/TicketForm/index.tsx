@@ -18,7 +18,7 @@ import { CustomFields } from './CustomFields';
 
 const { Panel } = Collapse;
 
-const presetFieldIds = ['title', 'description'];
+const presetFieldIds = ['title', 'description', 'details', 'attachments'];
 
 function openLinkInNewTab(el: HTMLElement | null) {
   el?.querySelectorAll('a').forEach((a) => (a.target = '_blank'));
