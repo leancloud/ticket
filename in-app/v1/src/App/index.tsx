@@ -16,6 +16,7 @@ import Tickets from './Tickets';
 import NotFound from './NotFound';
 import Articles from './Articles';
 import TopCategories from './TopCategories';
+import Test from './Test';
 import { useTranslation } from 'react-i18next';
 import { AppStateProvider } from './context';
 
@@ -143,6 +144,7 @@ export default function App() {
 const AppRoutes = () => {
   return (
     <Routes>
+      <Route path="/test" element={<Test />} />
       <Route path="/login" element={<LogIn />} />
       <Route
         path="/"
