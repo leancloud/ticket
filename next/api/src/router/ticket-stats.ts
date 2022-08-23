@@ -123,14 +123,14 @@ router.get('/realtime', parseRange('createdAt'), async (ctx) => {
   const ticketLogLatest = new ClickHouse()
     .from('TicketLog')
     .select(
-      'argMax(authorId, updatedAt) as authorId',
-      'argMax(assigneeId, updatedAt) as assigneeId',
-      'argMax(groupId, updatedAt) as groupId',
-      'argMax(status, updatedAt) as status',
-      'argMax(categoryId, updatedAt) as categoryId',
-      'argMax(ticketCreatedAt, updatedAt) as ticketCreatedAt',
-      'argMax(evaluation, updatedAt) as evaluation',
-      'argMax(privateTags, updatedAt) as privateTags',
+      'argMax(authorId, ticketUpdatedAt) as authorId',
+      'argMax(assigneeId, ticketUpdatedAt) as assigneeId',
+      'argMax(groupId, ticketUpdatedAt) as groupId',
+      'argMax(status, ticketUpdatedAt) as status',
+      'argMax(categoryId, ticketUpdatedAt) as categoryId',
+      'argMax(ticketCreatedAt, ticketUpdatedAt) as ticketCreatedAt',
+      'argMax(evaluation, ticketUpdatedAt) as evaluation',
+      'argMax(privateTags, ticketUpdatedAt) as privateTags',
       'ticketId',
       'nid'
     )
