@@ -9,6 +9,7 @@ import { PageContent, PageHeader } from '@/components/Page';
 import { QueryWrapper } from '@/components/QueryWrapper';
 import { Button } from '@/components/Button';
 import { NewTicketButton } from '@/components/NewTicketButton';
+import OpenInBrowser from '@/components/OpenInBrowser';
 import CheckIcon from '@/icons/Check';
 import ThumbDownIcon from '@/icons/ThumbDown';
 import ThumbUpIcon from '@/icons/ThumbUp';
@@ -122,7 +123,7 @@ function ArticleDetail() {
       <PageHeader>{article?.title}</PageHeader>
       <PageContent>
         <div className="p-4 bg-black bg-opacity-[0.02] border-b border-gray-100 ">
-          <div
+          <OpenInBrowser.Content
             className="text-[13px] markdown-body"
             dangerouslySetInnerHTML={{ __html: article?.contentSafeHTML ?? '' }}
           />

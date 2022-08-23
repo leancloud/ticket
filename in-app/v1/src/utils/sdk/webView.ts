@@ -340,7 +340,9 @@ export const registerHandler: RegisterHandler = function (name, registerCallback
         // 尝试转json
         try {
           data = JSON.parse(data);
-        } catch (e) {}
+        } catch (e) {
+          console.log(e);
+        }
       }
       registerCallback(data);
     });

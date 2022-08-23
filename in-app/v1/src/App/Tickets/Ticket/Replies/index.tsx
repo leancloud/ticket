@@ -3,7 +3,7 @@ import { UseInfiniteQueryOptions, useInfiniteQuery } from 'react-query';
 import { useTranslation } from 'react-i18next';
 import cx from 'classnames';
 import { flatten, last } from 'lodash-es';
-
+import OpenInBrowser from '@/components/OpenInBrowser';
 import { http } from '@/leancloud';
 import { Reply } from '@/types';
 import { Time } from '@/components/Time';
@@ -49,7 +49,7 @@ function ReplyItem({ data, isLast }: ReplyItemProps) {
           })}
         >
           {data.content.length > 0 && (
-            <div
+            <OpenInBrowser.Content
               className={`${style.content} markdown-body`}
               dangerouslySetInnerHTML={{ __html: data.content_HTML }}
             />

@@ -4,18 +4,17 @@ import { Input } from '@/components/Form';
 import { PageContent, PageHeader } from '@/components/Page';
 import { callHandler } from '@/utils/sdk';
 
-const isInit = window.webViewJavascriptInterface;
+const isInit = !!window.webViewJavascriptInterface;
 
 export default () => {
   const [name, setName] = useState('');
   const [data, setData] = useState('');
   const [url, setUrl] = useState('');
-
   return (
     <>
       <PageHeader>test</PageHeader>
       <PageContent className="px-3">
-        <div>isInit:{isInit}</div>
+        <div>isInit:{isInit ? 'true' : 'false'}</div>
         <p>
           <Input placeholder="handleName" value={name} onChange={(e) => setName(e.target.value)} />
           <Input placeholder="data" value={data} onChange={(e) => setData(e.target.value)} />
