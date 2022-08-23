@@ -91,6 +91,12 @@ function TicketListView() {
     [tickets]
   );
 
+  useEffect(() => {
+    if (localFilters.keyword) {
+      setShowStatsPanel(false);
+    }
+  }, [localFilters.keyword]);
+
   return (
     <div className="flex flex-col h-full">
       <Topbar

@@ -73,9 +73,7 @@ export function FilterForm({ className, filters, onChange }: FilterFormProps) {
           title={
             <>
               <span className="mr-1">关键词</span>
-              <Tooltip title="分析忽略此字段">
-                <QuestionCircleOutlined />
-              </Tooltip>
+              <QuestionCircleOutlined />
             </>
           }
         >
