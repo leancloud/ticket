@@ -62,7 +62,7 @@ export class TicketLog extends Model {
   ticketCreatedAt!: Date;
   
   @field()
-  ticketUpdatedAt!: number;
+  ticketUpdatedTime!: number;
 
   static async createByTicket(ticket: Ticket, options?: ModifyOptions) {
     return TicketLog.create(
@@ -70,7 +70,7 @@ export class TicketLog extends Model {
         ACL: {},
         ticketId: ticket.id,
         ticketCreatedAt: ticket.createdAt,
-        ticketUpdatedAt: ticket.updatedAt.getTime(),
+        ticketUpdatedTime: ticket.updatedAt.getTime(),
         privateTags: ticket.privateTags || [],
         ..._.pick(
           ticket,
