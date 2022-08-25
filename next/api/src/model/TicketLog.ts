@@ -3,6 +3,35 @@ import { Model, field, ModifyOptions } from '@/orm';
 import { TinyUserInfo } from './User';
 import { Evaluation, LatestReply, Tag, Ticket } from './Ticket';
 
+export function getLogDataByTicket(ticket: Ticket) {
+  return {
+    ACL: {},
+    ticketId: ticket.id,
+    ticketCreatedAt: ticket.createdAt,
+    ticketUpdatedTime: ticket.updatedAt.getTime(),
+    privateTags: ticket.privateTags || [],
+    ..._.pick(
+      ticket,
+      'assigneeId',
+      'authorId',
+      'categoryId',
+      'evaluation',
+      'firstCustomerServiceReplyAt',
+      'groupId',
+      'joinedCustomerServices',
+      'latestCustomerServiceReplyAt',
+      'latestReply',
+      'nid',
+      'replyCount',
+      'status',
+      'tags',
+      'metaData',
+      'title',
+      'organizationId'
+    ),
+  };
+}
+
 export class TicketLog extends Model {
   @field()
   ticketId!: string;
@@ -60,38 +89,13 @@ export class TicketLog extends Model {
 
   @field()
   ticketCreatedAt!: Date;
-  
+
   @field()
   ticketUpdatedTime!: number;
 
   static async createByTicket(ticket: Ticket, options?: ModifyOptions) {
     return TicketLog.create(
-      {
-        ACL: {},
-        ticketId: ticket.id,
-        ticketCreatedAt: ticket.createdAt,
-        ticketUpdatedTime: ticket.updatedAt.getTime(),
-        privateTags: ticket.privateTags || [],
-        ..._.pick(
-          ticket,
-          'assigneeId',
-          'authorId',
-          'categoryId',
-          'evaluation',
-          'firstCustomerServiceReplyAt',
-          'groupId',
-          'joinedCustomerServices',
-          'latestCustomerServiceReplyAt',
-          'latestReply',
-          'nid',
-          'replyCount',
-          'status',
-          'tags',
-          'metaData',
-          'title',
-          'organizationId'
-        ),
-      },
+      getLogDataByTicket(ticket),
       options || {
         useMasterKey: true,
       }

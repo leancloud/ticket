@@ -1,10 +1,8 @@
-import throat from 'throat';
 import { Ticket } from '@/model/Ticket';
-import { TicketLog } from '@/model/TicketLog';
+import _ from 'lodash';
+import { TicketLog, getLogDataByTicket } from '@/model/TicketLog';
 import { retry } from '../utils';
 import { ClickHouse } from '@/orm/clickhouse';
-
-const run = throat(2);
 
 const getFromDate = async () => {
   try {
@@ -18,7 +16,7 @@ const getFromDate = async () => {
       return new Date(lastTicketLog[0].ticketCreatedAt);
     }
   } catch (error) {
-    console.log('ticketLog no data', error);
+    console.log('ticketLog no data');
   }
 
   const firstTicket = await Ticket.queryBuilder().orderBy('createdAt', 'asc').first({
@@ -30,7 +28,7 @@ const getFromDate = async () => {
   return;
 };
 
-async function syncTicketLogToClickHouse(from?: Date, limit = 100, skip = 0) {
+async function syncTicketLogToClickHouse(from?: Date, limit = 50, skip = 0) {
   if (!from) {
     console.log('no ticket insert ticket log');
     return;
@@ -39,17 +37,12 @@ async function syncTicketLogToClickHouse(from?: Date, limit = 100, skip = 0) {
   const tickets = await query.find({
     useMasterKey: true,
   });
-  await Promise.all(
-    tickets.map((ticket) =>
-      run(() =>
-        retry(() =>
-          TicketLog.createByTicket(ticket).catch((err) => {
-            console.log(`ticket insert error: ${ticket.id} ${ticket.nid}`);
-          })
-        )
-      )
-    )
-  );
+  const logs = tickets.map((ticket) => getLogDataByTicket(ticket));
+  retry(() => {
+    return TicketLog.createSome(logs, {
+      useMasterKey: true,
+    });
+  });
   console.log(`ticket: ${skip} - ${skip + limit} insert success`);
   if (tickets.length === limit) {
     await syncTicketLogToClickHouse(from, limit, limit + skip);
