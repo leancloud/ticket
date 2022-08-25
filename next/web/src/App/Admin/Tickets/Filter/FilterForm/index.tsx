@@ -69,16 +69,7 @@ export function FilterForm({ className, filters, onChange }: FilterFormProps) {
       )}
     >
       <div className="grow p-4">
-        <Field
-          title={
-            <>
-              <span className="mr-1">关键词</span>
-              <Tooltip title="分析忽略此字段">
-                <QuestionCircleOutlined />
-              </Tooltip>
-            </>
-          }
-        >
+        <Field title="关键词">
           <Input
             autoFocus
             value={keyword}

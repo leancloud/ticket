@@ -19,6 +19,7 @@ import { BatchOperationMenu } from './BatchOperateMenu';
 import { BatchUpdateData, BatchUpdateError, batchUpdate } from './batchUpdate';
 import { SortDropdown } from './SortDropdown';
 import { Layout, LayoutDropdown } from './LayoutDropdown';
+import { useLocalFilters } from '../Filter';
 
 export { useOrderBy } from './SortDropdown';
 
@@ -187,6 +188,7 @@ export function Topbar({
   onChangeShowStatsPanel,
   ...props
 }: TopbarProps) {
+  const [localFilters] = useLocalFilters();
   const indeterminate = useMemo(() => {
     if (checkedTicketIds !== undefined && count !== undefined) {
       if (checkedTicketIds.length > 0 && checkedTicketIds.length !== count) {
@@ -239,7 +241,7 @@ export function Topbar({
       <Tooltip title="分析">
         <NavButton
           className="ml-2 px-[7px] py-[7px]"
-          disabled={count === 0}
+          disabled={count === 0 || !!localFilters.keyword}
           active={showStatsPanel}
           onClick={() => onChangeShowStatsPanel?.(!showStatsPanel)}
         >
