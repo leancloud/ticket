@@ -8,7 +8,6 @@ const isInit = !!window.webViewJavascriptInterface;
 
 export default () => {
   const [name, setName] = useState('');
-  const [data, setData] = useState('');
   const [url, setUrl] = useState('');
   return (
     <>
@@ -17,24 +16,20 @@ export default () => {
         <div>isInit:{isInit ? 'true' : 'false'}</div>
         <p>
           <Input placeholder="handleName" value={name} onChange={(e) => setName(e.target.value)} />
-          <Input placeholder="data" value={data} onChange={(e) => setData(e.target.value)} />
-          <Button
+          <button
             onClick={() => {
-              const res = callHandler(
-                '_hasNativeMethod',
-                { handleName: name, data },
-                (params: any) => {
-                  console.log(params);
-                }
-              );
+              const res = callHandler('_hasNativeMethod', name, (params: any) => {
+                console.log(params);
+              });
               console.log(res);
             }}
           >
             _hasNativeMethod
-          </Button>
+          </button>
         </p>
         <p className="mt-4">
           <Input
+            placeholder="url"
             value={url}
             onChange={(e) => {
               setUrl(e.target.value);
