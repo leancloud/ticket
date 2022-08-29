@@ -1,12 +1,11 @@
 import { z } from 'zod';
 
-import { Category } from '@/model/Category';
 import { ViewCondition } from './ViewCondition';
 
 export class CategoryIdIs extends ViewCondition<{ value: string }> {
   getCondition(): any {
     return {
-      category: Category.ptr(this.data.value),
+      'category.objectId': this.data.value,
     };
   }
 
@@ -20,8 +19,8 @@ export class CategoryIdIs extends ViewCondition<{ value: string }> {
 export class CategoryIdIsNot extends CategoryIdIs {
   getCondition() {
     return {
-      category: {
-        $ne: Category.ptr(this.data.value),
+      'category.objectId': {
+        $ne: this.data.value,
       },
     };
   }
