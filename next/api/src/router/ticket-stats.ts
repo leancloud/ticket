@@ -6,6 +6,9 @@ import { auth, customerServiceOnly, parseRange } from '@/middleware';
 import { TicketStats } from '@/model/TicketStats';
 import { CategoryService } from '@/service/category';
 import { TicketStatusStats } from '@/model/TicketStatusStats';
+import { Group } from '@/model/Group';
+import { User } from '@/model/User';
+import { Role } from '@/model/Role';
 import { TicketStatusStatsResponse } from '@/response/ticket-stats';
 import { ticketFiltersSchema } from './ticket';
 import { ClickHouse, FunctionColumn, quoteValue } from '@/orm/clickhouse';
@@ -23,9 +26,10 @@ const statsSchema = yup.object().shape(BaseSchema);
 router.get('/', async (ctx) => {
   const { category, customerService, ...rest } = statsSchema.validateSync(ctx.query);
   const categoryIds = await getCategoryIds(category);
+  const customerServiceIds = await getCustomerServiceIds(customerService);
   const data = await TicketStats.fetchTicketStats({
     ...rest,
-    customerServiceId: customerService,
+    customerServiceIds,
     categoryIds,
   });
   ctx.body = data || {};
@@ -37,9 +41,11 @@ const fieldStatsSchema = yup.object(BaseSchema).shape({
 router.get('/fields', async (ctx) => {
   const { category, customerService, fields, ...rest } = fieldStatsSchema.validateSync(ctx.query);
   const categoryIds = category === '*' ? '*' : await getCategoryIds(category);
+  const customerServiceIds =
+    customerService === '*' ? '*' : await getCustomerServiceIds(customerService);
   const data = await TicketStats.fetchTicketFieldStats({
     ...rest,
-    customerServiceId: customerService,
+    customerServiceIds,
     categoryIds,
     fields: fields.split(','),
   });
@@ -61,10 +67,13 @@ const detailSchema = yup.object(BaseSchema).shape({
 });
 router.get('/details', async (ctx) => {
   const { category, customerService, ...rest } = detailSchema.validateSync(ctx.query);
+  const categoryIds = category === '*' ? '*' : await getCategoryIds(category);
+  const customerServiceIds =
+    customerService === '*' ? '*' : await getCustomerServiceIds(customerService);
   const data = await TicketStats.fetchReplyDetails({
     ...rest,
-    customerServiceId: customerService,
-    categoryId: category,
+    customerServiceIds,
+    categoryIds,
   });
   ctx.body = data || [];
 });
@@ -75,7 +84,7 @@ router.get('/count', async (ctx) => {
   const data = await TicketStats.fetchReplyDetails({
     ...params,
     field: 'naturalReplyTime',
-    customerServiceId: '*',
+    customerServiceIds: '*',
   });
   ctx.body = _(data).groupBy('nid').keys().valueOf().length;
 });
@@ -172,4 +181,20 @@ async function getCategoryIds(categoryId?: string) {
   }
   const categories = await CategoryService.getSubCategories(categoryId);
   return [categoryId, ...categories.map((v) => v.id)];
+}
+
+async function getCustomerServiceIds(id?: string) {
+  if (!id) {
+    return;
+  }
+  const group = await Group.find(id, {
+    useMasterKey: true,
+  });
+  if (!group) {
+    return [id];
+  }
+  const users = await User.queryBuilder().relatedTo(Role, 'users', group.roleId).find({
+    useMasterKey: true,
+  });
+  return users.map((user) => user.id);
 }

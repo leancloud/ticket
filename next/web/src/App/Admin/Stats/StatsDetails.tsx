@@ -375,14 +375,14 @@ const CustomerServiceStats: React.FunctionComponent<{ displayMode: displayMode }
 }) => {
   const [field] = useActiveField();
   const [{ from, to }] = useRangePicker();
-  const [{ category }] = useSearchParams();
+  const [{ category, customerService }] = useSearchParams();
   const { data: customerServices } = useCustomerServices();
   const { data, isFetching, isLoading } = useTicketFieldStats({
     from,
     to,
     fields: avgFieldMap[field] || [field],
     category,
-    customerService: '*',
+    customerService: customerService || '*',
   });
   const customerServiceFormat = useMemo(() => {
     const customerServiceMap = _.mapValues(
@@ -445,7 +445,7 @@ const Details = () => {
       </Radio.Group>
 
       <div className="relative flex basis-1/2 flex-wrap min-h-[400px] justify-around">
-        {!customerService && field !== 'created' && (
+        {field !== 'created' && (
           <div className="w-1/2 min-w-[300px] flex-grow ">
             <CustomerServiceStats displayMode={displayMode} />
           </div>

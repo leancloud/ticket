@@ -2,7 +2,7 @@ import AV from 'leancloud-storage';
 import _ from 'lodash';
 
 import { Model, pointTo, pointerId, field } from '@/orm';
-import { TicketStatsResponse } from '@/response/ticket-stats'
+import { TicketStatsResponse } from '@/response/ticket-stats';
 import { User } from './User';
 import { Category } from './Category';
 
@@ -79,134 +79,179 @@ export class TicketStats extends Model {
   naturalReplyCount?: number;
 
   @field()
-  replyDetails?: ReplyDetail[]
+  replyDetails?: ReplyDetail[];
 
-  static async fetchTicketStats(params: {
-    from: Date;
-    to: Date;
-    customerServiceId?: string;
-    categoryIds?: string[];
-  }, limit = 100, skip = 0): Promise<SumTicketStat | undefined> {
+  static async fetchTicketStats(
+    params: {
+      from: Date;
+      to: Date;
+      customerServiceIds?: string[];
+      categoryIds?: string[];
+    },
+    limit = 100,
+    skip = 0
+  ): Promise<SumTicketStat | undefined> {
     const query = TicketStats.queryBuilder()
       .where('date', '>=', params.from)
       .where('date', '<=', params.to)
       .limit(limit)
-      .skip(skip)
+      .skip(skip);
     if (params.categoryIds) {
-      query.where('category', 'in', params.categoryIds.map(id => Category.ptr(id)))
+      query.where(
+        'category',
+        'in',
+        params.categoryIds.map((id) => Category.ptr(id))
+      );
     } else {
-      query.where('category', 'not-exists')
+      query.where('category', 'not-exists');
     }
-    if (params.customerServiceId) {
-      query.where('customerService', '==', User.ptr(params.customerServiceId))
+    if (params.customerServiceIds) {
+      query.where(
+        'customerService',
+        'in',
+        params.customerServiceIds.map((id) => User.ptr(id))
+      );
     } else {
-      query.where('customerService', 'not-exists')
+      query.where('customerService', 'not-exists');
     }
-    const data = await query.find({ useMasterKey: true })
-    const sum = sumTicketStats(data)
+    const data = await query.find({ useMasterKey: true });
+    const sum = sumTicketStats(data);
     if (data.length === limit) {
       const nextData = await TicketStats.fetchTicketStats(params, limit, limit + skip);
       if (!nextData) {
         return sum;
       }
-      return _.mergeWith(sum, nextData, (obj = 0, src = 0) => obj + src)
+      return _.mergeWith(sum, nextData, (obj = 0, src = 0) => obj + src);
     }
     return sum;
   }
 
-  static async fetchTicketFieldStats(params: {
-    fields: string[],
-    from: Date;
-    to: Date;
-    customerServiceId?: string | '*';
-    categoryIds?: string[] | '*';
-  }, limit = 100, skip = 0): Promise<Partial<TicketStats>[]> {
+  static async fetchTicketFieldStats(
+    params: {
+      fields: string[];
+      from: Date;
+      to: Date;
+      customerServiceIds?: string[] | '*';
+      categoryIds?: string[] | '*';
+    },
+    limit = 100,
+    skip = 0
+  ): Promise<Partial<TicketStats>[]> {
     const query = TicketStats.queryBuilder()
       .where('date', '>=', params.from)
       .where('date', '<=', params.to)
       .limit(limit)
-      .skip(skip)
+      .skip(skip);
     if (params.categoryIds) {
       if (params.categoryIds === '*') {
-        query.where('category', 'exists')
+        query.where('category', 'exists');
       } else {
-        query.where('category', 'in', params.categoryIds.map(id => Category.ptr(id)))
+        query.where(
+          'category',
+          'in',
+          params.categoryIds.map((id) => Category.ptr(id))
+        );
       }
     } else {
-      query.where('category', 'not-exists')
+      query.where('category', 'not-exists');
     }
-    if (params.customerServiceId) {
-      if (params.customerServiceId === '*') {
-        query.where('customerService', 'exists')
+    if (params.customerServiceIds) {
+      if (params.customerServiceIds === '*') {
+        query.where('customerService', 'exists');
       } else {
-        query.where('customerService', '==', User.ptr(params.customerServiceId))
+        query.where(
+          'customerService',
+          'in',
+          params.customerServiceIds.map((id) => User.ptr(id))
+        );
       }
     } else {
-      query.where('customerService', 'not-exists')
+      query.where('customerService', 'not-exists');
     }
 
-    const data = await query.find({ useMasterKey: true })
-    const pickData = data.map((v) => _.pick(v, [...params.fields, 'date', 'customerServiceId', 'categoryId'])).filter(v => {
-      return params.fields.some(field => v[field as keyof TicketStats])
-    })
+    const data = await query.find({ useMasterKey: true });
+    const pickData = data
+      .map((v) => _.pick(v, [...params.fields, 'date', 'customerServiceId', 'categoryId']))
+      .filter((v) => {
+        return params.fields.some((field) => v[field as keyof TicketStats]);
+      });
     if (data.length === limit) {
       const nextData = await TicketStats.fetchTicketFieldStats(params, limit, limit + skip);
-      return [...pickData, ...nextData]
+      return [...pickData, ...nextData];
     }
     return pickData;
   }
 
-  static async fetchReplyDetails(params: {
-    from: Date;
-    to: Date;
-    field: string,
-    customerServiceId?: string;
-    categoryId?: string;
-  }, limit = 100, skip = 0): Promise<Pick<ReplyDetail, 'id' | 'nid' | 'replyTime'>[]> {
+  static async fetchReplyDetails(
+    params: {
+      from: Date;
+      to: Date;
+      field: string;
+      customerServiceIds?: string[] | '*';
+      categoryIds?: string[] | '*';
+    },
+    limit = 100,
+    skip = 0
+  ): Promise<Pick<ReplyDetail, 'id' | 'nid' | 'replyTime'>[]> {
     const query = new AV.Query(this.className)
       .select('replyDetails')
       .greaterThanOrEqualTo('date', params.from)
       .lessThanOrEqualTo('date', params.to)
       .limit(limit)
-      .skip(skip)
-    if (params.categoryId) {
-      query.equalTo('category', Category.ptr(params.categoryId))
-    } else {
-      query.doesNotExist('category')
-    }
-    if (params.customerServiceId) {
-      if (params.customerServiceId === '*') {
-        query.exists('customerService')
+      .skip(skip);
+    if (params.categoryIds) {
+      if (params.categoryIds === '*') {
+        query.exists('category');
       } else {
-        query.equalTo('customerService', User.ptr(params.customerServiceId))
+        query.containedIn(
+          'category',
+          params.categoryIds.map((id) => Category.ptr(id))
+        );
       }
     } else {
-      query.doesNotExist('customerService')
+      query.doesNotExist('category');
     }
-    const data = await query.find({ useMasterKey: true })
-    const details = _(data).map(v => {
-      let replyDetails: ReplyDetail[] = v.get('replyDetails')
-      if (params.field === 'firstReplyTime') {
-        replyDetails = replyDetails.filter(v => v.first)
+    if (params.customerServiceIds) {
+      if (params.customerServiceIds === '*') {
+        query.exists('customerService');
+      } else {
+        query.containedIn(
+          'customerService',
+          params.customerServiceIds.map((id) => User.ptr(id))
+        );
       }
-      return replyDetails.map(({ id, nid, ...rest }) => {
-        let replyTime = params.customerServiceId ? rest.authorReplyTime : rest.replyTime;
-        if (params.field === 'naturalReplyTime') {
-          replyTime = rest.naturalReplyTime
+    } else {
+      query.doesNotExist('customerService');
+    }
+    const data = await query.find({ useMasterKey: true });
+    const details = _(data)
+      .map((v) => {
+        let replyDetails: ReplyDetail[] = v.get('replyDetails');
+        if (params.field === 'firstReplyTime') {
+          replyDetails = replyDetails.filter((v) => v.first);
         }
-        return {
-          id,
-          nid,
-          replyTime
-        }
-      }).filter(v => v.replyTime > 0)
-    }).flatMap().valueOf()
+        return replyDetails
+          .map(({ id, nid, ...rest }) => {
+            let replyTime = params.customerServiceIds ? rest.authorReplyTime : rest.replyTime;
+            if (params.field === 'naturalReplyTime') {
+              replyTime = rest.naturalReplyTime;
+            }
+            return {
+              id,
+              nid,
+              replyTime,
+            };
+          })
+          .filter((v) => v.replyTime > 0);
+      })
+      .flatMap()
+      .valueOf();
     if (data.length === limit) {
       const nextData = await TicketStats.fetchReplyDetails(params, limit, limit + skip);
       if (!nextData) {
         return details;
       }
-      return [...details, ...nextData]
+      return [...details, ...nextData];
     }
     return details;
   }
@@ -216,11 +261,11 @@ function sumTicketStats(data: TicketStats[]) {
   if (data.length === 0) {
     return;
   }
-  const result: SumTicketStat = {}
+  const result: SumTicketStat = {};
   data
-    .map(v => _.omit(new TicketStatsResponse(v).toJSON(), ['date', 'id', 'replyDetails']))
+    .map((v) => _.omit(new TicketStatsResponse(v).toJSON(), ['date', 'id', 'replyDetails']))
     .forEach((value) => {
       _.mergeWith(result, value, (obj = 0, src = 0) => obj + src);
-    })
-  return result
+    });
+  return result;
 }

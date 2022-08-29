@@ -4,6 +4,9 @@ import _ from 'lodash';
 
 import { relativeDateGetters } from '@/utils/date-range';
 import { useSearchParams } from '@/utils/useSearchParams';
+import { useCustomerServices } from '@/api/user';
+import { Select, SelectProps } from '@/components/antd';
+import { useGroups } from '@/api/group';
 
 const RANGE_DATE = ['lastSevenDays', 'lastWeek', 'week', 'month', 'lastMonth'] as const;
 const RANGE_DATE_LOCALE = {
@@ -119,4 +122,49 @@ export const useFilterData = <T extends { date: string | Date }>(data: T[] = [])
       changeFilter,
     },
   ] as const;
+};
+
+export const CustomerServiceSelect = (props: SelectProps) => {
+  const { data: groups, isLoading: groupLoading } = useGroups();
+  const { data: customerServices, isLoading: customerServiceLoading } = useCustomerServices();
+  const customerServiceOptions = useMemo(() => {
+    if (!customerServices) {
+      return;
+    }
+    return customerServices.map((u) => ({ label: u.nickname, value: u.id }));
+  }, [customerServices]);
+
+  const groupOptions = useMemo(() => {
+    if (!groups) {
+      return;
+    }
+    return groups.map((g) => ({ label: g.name, value: g.id }));
+  }, [groups]);
+
+  const options = useMemo(() => {
+    const options = [];
+    if (groupOptions) {
+      options.push({
+        label: '客服组',
+        options: groupOptions,
+      });
+    }
+    if (customerServiceOptions) {
+      options.push({
+        label: '客服',
+        options: customerServiceOptions,
+      });
+    }
+    return options;
+  }, [groupOptions, customerServiceOptions]);
+
+  return (
+    <Select
+      showSearch
+      optionFilterProp="label"
+      {...props}
+      loading={customerServiceLoading || groupLoading}
+      options={options}
+    />
+  );
 };

@@ -1,11 +1,11 @@
 import { FunctionComponent, useCallback, useMemo, useState } from 'react';
 import classnames from 'classnames';
 import { Statistic, Card, Divider, Radio, DatePicker } from '@/components/antd';
-import { CategorySelect, CustomerServiceSelect } from '@/components/common';
+import { CategorySelect } from '@/components/common';
 import { useSearchParams, useSearchParam } from '@/utils/useSearchParams';
 import { useTicketCount, useTicketStats } from '@/api/ticket-stats';
 import { StatsDetails } from './StatsDetails';
-import { useRangePicker } from './utils';
+import { CustomerServiceSelect, useRangePicker } from './utils';
 
 export const STATS_FIELD = [
   'created',
@@ -110,12 +110,12 @@ export const useActiveField = (defaultValue = STATS_FIELD[0]) => {
 };
 
 const StatCards = () => {
-  const [parmas] = useSearchParams();
+  const [params] = useSearchParams();
   const [{ from, to }] = useRangePicker();
   const [active, setActive] = useActiveField();
   const { data, isFetching, isLoading } = useTicketStats({
-    category: parmas.category,
-    customerService: parmas.customerService,
+    category: params.category,
+    customerService: params.customerService,
     from,
     to,
   });
