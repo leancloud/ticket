@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { openBrowser } from '@/utils/sdk';
+import { openInBrowser } from '@/utils/sdk';
 
 const ORIGIN = window.location.origin;
 
@@ -22,10 +22,12 @@ export const Content: FC<React.HTMLAttributes<HTMLDivElement>> = (props) => {
     const $a = e.target as HTMLAnchorElement;
     const { target, href } = $a;
 
-    if (window.webViewJavascriptInterface && isExternalLink(href)) {
+    if (isExternalLink(href)) {
       e.preventDefault();
-      openBrowser(href);
-      // window.open(href, target || '_self');
+      openInBrowser(href).catch(() => {
+        window.open(href, target || '_self');
+      });
+      return;
     }
   };
 

@@ -2,7 +2,14 @@ import React, { useState } from 'react';
 import { Button } from '@/components/Button';
 import { Input } from '@/components/Form';
 import { PageContent, PageHeader } from '@/components/Page';
-import { callHandler } from '@/utils/sdk';
+import {
+  callHandler,
+  closePage,
+  openInBrowser,
+  showCloseButton,
+  hideCloseButton,
+  loadComplete,
+} from '@/utils/sdk';
 
 const isInit = !!window.webViewJavascriptInterface;
 
@@ -37,7 +44,7 @@ export default () => {
           />
           <Button
             onClick={() => {
-              callHandler('openBrowser', url);
+              openInBrowser(url);
             }}
           >
             openBrowser
@@ -46,14 +53,14 @@ export default () => {
         <p className="mt-4">
           <Button
             onClick={() => {
-              callHandler('_closePage');
+              closePage();
             }}
           >
-            _closePage
+            closePage
           </Button>
           <Button
             onClick={() => {
-              callHandler('loadComplete');
+              loadComplete();
             }}
           >
             loadComplete
@@ -62,14 +69,14 @@ export default () => {
         <p className="mt-4">
           <Button
             onClick={() => {
-              callHandler('showCloseButton');
+              showCloseButton();
             }}
           >
             showCloseButton
           </Button>
           <Button
             onClick={() => {
-              callHandler('hideCloseButton');
+              hideCloseButton();
             }}
           >
             hideCloseButton
