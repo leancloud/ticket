@@ -20,13 +20,14 @@ const BaseSchema = {
   to: yup.date().required(),
   category: yup.string().optional(),
   customerService: yup.string().optional(),
+  group: yup.string().optional(),
 };
 
 const statsSchema = yup.object().shape(BaseSchema);
 router.get('/', async (ctx) => {
-  const { category, customerService, ...rest } = statsSchema.validateSync(ctx.query);
+  const { category, customerService, group, ...rest } = statsSchema.validateSync(ctx.query);
   const categoryIds = await getCategoryIds(category);
-  const customerServiceIds = await getCustomerServiceIds(customerService);
+  const customerServiceIds = await getCustomerServiceIds(customerService, group);
   const data = await TicketStats.fetchTicketStats({
     ...rest,
     customerServiceIds,
@@ -39,10 +40,11 @@ const fieldStatsSchema = yup.object(BaseSchema).shape({
   fields: yup.string().required(),
 });
 router.get('/fields', async (ctx) => {
-  const { category, customerService, fields, ...rest } = fieldStatsSchema.validateSync(ctx.query);
-  const categoryIds = category === '*' ? '*' : await getCategoryIds(category);
-  const customerServiceIds =
-    customerService === '*' ? '*' : await getCustomerServiceIds(customerService);
+  const { category, customerService, fields, group, ...rest } = fieldStatsSchema.validateSync(
+    ctx.query
+  );
+  const categoryIds = await getCategoryIds(category);
+  const customerServiceIds = await getCustomerServiceIds(customerService, group);
   const data = await TicketStats.fetchTicketFieldStats({
     ...rest,
     customerServiceIds,
@@ -66,10 +68,9 @@ const detailSchema = yup.object(BaseSchema).shape({
   field: yup.string().required(),
 });
 router.get('/details', async (ctx) => {
-  const { category, customerService, ...rest } = detailSchema.validateSync(ctx.query);
-  const categoryIds = category === '*' ? '*' : await getCategoryIds(category);
-  const customerServiceIds =
-    customerService === '*' ? '*' : await getCustomerServiceIds(customerService);
+  const { category, customerService, group, ...rest } = detailSchema.validateSync(ctx.query);
+  const categoryIds = await getCategoryIds(category);
+  const customerServiceIds = await getCustomerServiceIds(customerService, group);
   const data = await TicketStats.fetchReplyDetails({
     ...rest,
     customerServiceIds,
@@ -179,22 +180,32 @@ async function getCategoryIds(categoryId?: string) {
   if (!categoryId) {
     return;
   }
+  if (categoryId === '*') {
+    return '*';
+  }
   const categories = await CategoryService.getSubCategories(categoryId);
   return [categoryId, ...categories.map((v) => v.id)];
 }
 
-async function getCustomerServiceIds(id?: string) {
-  if (!id) {
+async function getCustomerServiceIds(customerServiceId?: string, groupId?: string) {
+  if (!customerServiceId && !groupId) {
     return;
   }
-  const group = await Group.find(id, {
-    useMasterKey: true,
-  });
-  if (!group) {
-    return [id];
+  if (customerServiceId === '*') {
+    return '*';
   }
-  const users = await User.queryBuilder().relatedTo(Role, 'users', group.roleId).find({
-    useMasterKey: true,
-  });
-  return users.map((user) => user.id);
+  let result = customerServiceId ? [customerServiceId] : [];
+  if (groupId) {
+    const group = await Group.find(groupId, {
+      useMasterKey: true,
+    });
+    if (group) {
+      const users = await User.queryBuilder().relatedTo(Role, 'users', group.roleId).find({
+        useMasterKey: true,
+      });
+      const ids = users.map((user) => user.id);
+      result = result.concat(ids);
+    }
+  }
+  return result.length === 0 ? undefined : result;
 }

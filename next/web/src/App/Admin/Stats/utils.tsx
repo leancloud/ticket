@@ -124,21 +124,46 @@ export const useFilterData = <T extends { date: string | Date }>(data: T[] = [])
   ] as const;
 };
 
-export const CustomerServiceSelect = (props: SelectProps) => {
+export const useStatsParams = () => {
+  const [{ category, customerService, group }] = useSearchParams();
+  const [{ from, to }] = useRangePicker();
+  return {
+    from,
+    to,
+    customerService,
+    category,
+    group,
+  };
+};
+
+interface Props extends Omit<SelectProps, 'loading' | 'options' | 'onChange' | 'mode'> {
+  onGroupChange?: (value: string) => void;
+  onCustomerServiceChange?: (value: string) => void;
+}
+
+export const CustomerServiceSelect = ({
+  onGroupChange,
+  onCustomerServiceChange,
+  ...rest
+}: Props) => {
   const { data: groups, isLoading: groupLoading } = useGroups();
   const { data: customerServices, isLoading: customerServiceLoading } = useCustomerServices();
   const customerServiceOptions = useMemo(() => {
     if (!customerServices) {
       return;
     }
-    return customerServices.map((u) => ({ label: u.nickname, value: u.id }));
+    return customerServices.map((u) => ({
+      label: u.nickname,
+      value: u.id,
+      type: 'customerService',
+    }));
   }, [customerServices]);
 
   const groupOptions = useMemo(() => {
     if (!groups) {
       return;
     }
-    return groups.map((g) => ({ label: g.name, value: g.id }));
+    return groups.map((g) => ({ label: g.name, value: g.id, type: 'group' }));
   }, [groups]);
 
   const options = useMemo(() => {
@@ -162,7 +187,18 @@ export const CustomerServiceSelect = (props: SelectProps) => {
     <Select
       showSearch
       optionFilterProp="label"
-      {...props}
+      onChange={(value, item) => {
+        if (value) {
+          const type = (item as { type?: 'group' | 'customerService' }).type;
+          if (type === 'customerService') {
+            onCustomerServiceChange && onCustomerServiceChange(value);
+          }
+          if (type === 'group') {
+            onGroupChange && onGroupChange(value);
+          }
+        }
+      }}
+      {...rest}
       loading={customerServiceLoading || groupLoading}
       options={options}
     />

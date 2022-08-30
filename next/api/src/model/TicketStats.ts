@@ -1,7 +1,7 @@
 import AV from 'leancloud-storage';
 import _ from 'lodash';
 
-import { Model, pointTo, pointerId, field } from '@/orm';
+import { Model, pointTo, pointerId, field, Query } from '@/orm';
 import { TicketStatsResponse } from '@/response/ticket-stats';
 import { User } from './User';
 import { Category } from './Category';
@@ -85,8 +85,8 @@ export class TicketStats extends Model {
     params: {
       from: Date;
       to: Date;
-      customerServiceIds?: string[];
-      categoryIds?: string[];
+      customerServiceIds?: string[] | '*';
+      categoryIds?: string[] | '*';
     },
     limit = 100,
     skip = 0
@@ -96,24 +96,8 @@ export class TicketStats extends Model {
       .where('date', '<=', params.to)
       .limit(limit)
       .skip(skip);
-    if (params.categoryIds) {
-      query.where(
-        'category',
-        'in',
-        params.categoryIds.map((id) => Category.ptr(id))
-      );
-    } else {
-      query.where('category', 'not-exists');
-    }
-    if (params.customerServiceIds) {
-      query.where(
-        'customerService',
-        'in',
-        params.customerServiceIds.map((id) => User.ptr(id))
-      );
-    } else {
-      query.where('customerService', 'not-exists');
-    }
+    applyCategoryCondition(query, params.categoryIds);
+    applyCustomerServiceCondition(query, params.customerServiceIds);
     const data = await query.find({ useMasterKey: true });
     const sum = sumTicketStats(data);
     if (data.length === limit) {
@@ -268,4 +252,43 @@ function sumTicketStats(data: TicketStats[]) {
       _.mergeWith(result, value, (obj = 0, src = 0) => obj + src);
     });
   return result;
+}
+
+function applyCategoryCondition(query: Query<typeof TicketStats>, categoryIds?: '*' | string[]) {
+  if (!categoryIds) {
+    query.where('category', 'not-exists');
+    return;
+  }
+  if (categoryIds === '*') {
+    query.where('category', 'exists');
+    return;
+  }
+  if (categoryIds.length > 0) {
+    query.where(
+      'category',
+      'in',
+      categoryIds.map((id) => Category.ptr(id))
+    );
+  }
+}
+
+function applyCustomerServiceCondition(
+  query: Query<typeof TicketStats>,
+  customerServiceIds?: '*' | string[]
+) {
+  if (!customerServiceIds) {
+    query.where('customerService', 'not-exists');
+    return;
+  }
+  if (customerServiceIds === '*') {
+    query.where('customerService', 'exists');
+    return;
+  }
+  if (customerServiceIds.length > 0) {
+    query.where(
+      'customerService',
+      'in',
+      customerServiceIds.map((id) => User.ptr(id))
+    );
+  }
 }

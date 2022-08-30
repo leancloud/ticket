@@ -2,12 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import moment from 'moment';
 import _ from 'lodash';
 
-import { useSearchParams } from '@/utils/useSearchParams';
 import { TableOutlined, PieChartOutlined } from '@ant-design/icons';
 import { TicketFieldStat, TicketStats, useTicketFieldStats } from '@/api/ticket-stats';
 import { useCategories } from '@/api/category';
 import { useCustomerServices } from '@/api/customer-service';
-import { useRangePicker, useFilterData } from './utils';
+import { useFilterData, useStatsParams } from './utils';
 import { Pie, Column } from '@/components/Chart';
 import { Button, Popover, Radio, Table, TableProps } from '@/components/antd';
 import { StatsField, STATS_FIELD_LOCALE, useActiveField } from './StatsPage';
@@ -37,20 +36,12 @@ const valueTransform = (value: [string | Date, Record<string, number>], field: S
 };
 
 const TicketStatsColumn = () => {
-  const [{ from, to }] = useRangePicker();
+  const params = useStatsParams();
   const [field] = useActiveField();
-  const [{ category, customerService }] = useSearchParams();
-  const params = useMemo(() => {
-    const fields = avgFieldMap[field];
-    return {
-      from,
-      to,
-      fields: fields || [field],
-      category,
-      customerService,
-    };
-  }, [field, from, to, category, customerService]);
-  const { data, isFetching, isLoading } = useTicketFieldStats(params);
+  const { data, isFetching, isLoading } = useTicketFieldStats({
+    fields: avgFieldMap[field] || [field],
+    ...params,
+  });
   const [filteredData, { rollup, changeFilter }] = useFilterData(data);
 
   const chartData = useMemo(() => {
@@ -332,15 +323,12 @@ const TableView = ({
 
 const CategoryStats: React.FunctionComponent<{ displayMode: displayMode }> = ({ displayMode }) => {
   const [field] = useActiveField();
-  const [{ from, to }] = useRangePicker();
-  const [{ customerService }] = useSearchParams();
+  const params = useStatsParams();
   const { data: categories } = useCategories();
   const { data, isFetching, isLoading } = useTicketFieldStats({
-    from,
-    to,
+    ...params,
     fields: avgFieldMap[field] || [field],
     category: '*',
-    customerService: customerService,
   });
   const categoryFormat = useMemo(() => {
     const categoryMap = _.mapValues(_.keyBy(categories || [], 'id'), 'name');
@@ -374,15 +362,16 @@ const CustomerServiceStats: React.FunctionComponent<{ displayMode: displayMode }
   displayMode,
 }) => {
   const [field] = useActiveField();
-  const [{ from, to }] = useRangePicker();
-  const [{ category, customerService }] = useSearchParams();
+  const params = useStatsParams();
   const { data: customerServices } = useCustomerServices();
   const { data, isFetching, isLoading } = useTicketFieldStats({
-    from,
-    to,
+    ...params,
     fields: avgFieldMap[field] || [field],
-    category,
-    customerService: customerService || '*',
+    customerService: params.customerService
+      ? params.customerService
+      : params.group
+      ? undefined
+      : '*',
   });
   const customerServiceFormat = useMemo(() => {
     const customerServiceMap = _.mapValues(
@@ -417,7 +406,7 @@ const CustomerServiceStats: React.FunctionComponent<{ displayMode: displayMode }
 
 const Details = () => {
   const [field] = useActiveField();
-  const [{ category, customerService }] = useSearchParams();
+  const { category } = useStatsParams();
   const [displayMode, setDisplayMode] = useState<displayMode>('pieChart');
   const onlyTable = useMemo(() => timeField.includes(field), [field]);
   useEffect(() => {
