@@ -2,10 +2,11 @@ import Router from '@koa/router';
 import * as yup from '@/utils/yup';
 
 import { auth } from '@/middleware/auth';
-import { Notification } from '@/model/Notification';
 import { User } from '@/model/User';
 import { categoryService } from '@/category';
 import { withAsyncSpan, withSpan } from '@/utils/trace';
+import { Notification } from '@/model/Notification';
+// import { UnreadService } from '@/service/unread';
 
 const router = new Router().use(auth);
 
@@ -46,6 +47,7 @@ router.get(
     const unread = !!unreadNotification;
 
     ctx.body = unread;
+    // ctx.body = await UnreadService.getUnread(currentUser, product);
   }, 'controller')
 );
 
