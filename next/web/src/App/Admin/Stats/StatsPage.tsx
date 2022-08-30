@@ -1,11 +1,11 @@
 import { FunctionComponent, useCallback, useMemo, useState } from 'react';
 import classnames from 'classnames';
 import { Statistic, Card, Divider, Radio, DatePicker } from '@/components/antd';
-import { CategorySelect, CustomerServiceSelect } from '@/components/common';
+import { CategorySelect } from '@/components/common';
 import { useSearchParams, useSearchParam } from '@/utils/useSearchParams';
 import { useTicketCount, useTicketStats } from '@/api/ticket-stats';
 import { StatsDetails } from './StatsDetails';
-import { useRangePicker } from './utils';
+import { CustomerServiceSelect, useRangePicker, useStatsParams } from './utils';
 
 export const STATS_FIELD = [
   'created',
@@ -44,13 +44,13 @@ const ToolBar: FunctionComponent<{
   className?: string;
 }> = ({ className }) => {
   const [, rangePickerOptions] = useRangePicker();
-  const [{ customerService, category, ...rest }, { set }] = useSearchParams();
+  const [{ customerService, category, group, ...rest }, { set }] = useSearchParams();
   const [tmpCategory, setTmpCategory] = useState(category);
   const [filterType, setFilterType] = useState<FILTER_TYPE>(() => {
     if (category) {
       return FILTER_TYPE.category;
     }
-    if (customerService) {
+    if (customerService || group) {
       return FILTER_TYPE.customerService;
     }
     return FILTER_TYPE.all;
@@ -81,8 +81,16 @@ const ToolBar: FunctionComponent<{
           allowClear
           placeholder="请选择客服"
           className="min-w-[184px]"
-          value={customerService}
-          onChange={(value) => set({ customerService: value as string, ...rest })}
+          value={customerService || group}
+          onClear={() => {
+            set({ customerService: undefined, group: undefined, ...rest });
+          }}
+          onCustomerServiceChange={(value) =>
+            set({ customerService: value, ...rest, group: undefined })
+          }
+          onGroupChange={(value) => {
+            set({ group: value, ...rest, customerService: undefined });
+          }}
         />
       )}
       {filterType === FILTER_TYPE.category && (
@@ -110,18 +118,12 @@ export const useActiveField = (defaultValue = STATS_FIELD[0]) => {
 };
 
 const StatCards = () => {
-  const [parmas] = useSearchParams();
-  const [{ from, to }] = useRangePicker();
+  const params = useStatsParams();
   const [active, setActive] = useActiveField();
-  const { data, isFetching, isLoading } = useTicketStats({
-    category: parmas.category,
-    customerService: parmas.customerService,
-    from,
-    to,
-  });
+  const { data, isFetching, isLoading } = useTicketStats(params);
   const { data: count, isFetching: countFetching, isLoading: countLoading } = useTicketCount({
-    from,
-    to,
+    from: params.from,
+    to: params.to,
   });
   const averageData = useMemo(() => {
     if (!data) {

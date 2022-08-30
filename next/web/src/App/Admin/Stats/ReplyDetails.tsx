@@ -1,11 +1,10 @@
 import { useState, useImperativeHandle, forwardRef, useMemo, useCallback } from 'react';
 import { Button, Modal, Table } from '@/components/antd';
 
-import { useSearchParams } from '@/utils/useSearchParams';
 import { useReplyDetails } from '@/api/ticket-stats';
 
 import { useActiveField } from './StatsPage';
-import { useRangePicker } from './utils';
+import { useStatsParams } from './utils';
 import _ from 'lodash';
 import { formatTime } from './StatsDetails';
 
@@ -26,14 +25,12 @@ const ReplyDetails = forwardRef<ModalRef>((props, ref) => {
     customerServiceId?: string;
   }>({});
   const [field] = useActiveField();
-  const [{ from, to }] = useRangePicker();
-  const [{ category, customerService }] = useSearchParams();
+  const params = useStatsParams();
   const { data, isFetching, isLoading } = useReplyDetails({
-    from,
-    to,
+    ...params,
     field: fieldMap[field],
-    category: queryParams.categoryId || category,
-    customerService: queryParams.customerServiceId || customerService,
+    category: queryParams.categoryId || params.category,
+    customerService: queryParams.customerServiceId || params.customerService,
     queryOptions: {
       enabled: open && fieldMap[field] !== undefined,
     },

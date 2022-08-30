@@ -5,6 +5,7 @@ import { FetchTicketFilters, encodeTicketFilters } from './ticket';
 export interface FetchTicketStatsOptions {
   customerService?: string;
   category?: string;
+  group?: string;
   from: Date;
   to: Date;
 }
@@ -115,12 +116,8 @@ export function useTicketStatus({ queryOptions, ...options }: UseTicketTicketSta
   });
 }
 
-interface ReplyDetailsOptions {
-  from: Date;
-  to: Date;
+interface ReplyDetailsOptions extends FetchTicketStatsOptions {
   field: string;
-  category?: string;
-  customerService?: string;
 }
 
 interface ReplyDetail {

@@ -88,6 +88,7 @@ export class Query<M extends typeof Model> {
   private orConditions: any[] = [];
   private andConditions: any[] = [];
   private condition: any = {};
+  private selectList: string[] = [];
 
   private skipCount?: number;
   private limitCount?: number;
@@ -243,6 +244,12 @@ export class Query<M extends typeof Model> {
     return query;
   }
 
+  select(...list: string[]) {
+    const query = this.clone();
+    list.forEach((col) => query.selectList.push(col));
+    return query;
+  }
+
   preload<K extends RelationName<M>>(key: K, options?: PreloadOptions): Query<M> {
     const query = this.clone();
 
@@ -268,6 +275,9 @@ export class Query<M extends typeof Model> {
     }
     if (this.limitCount !== undefined) {
       avQuery.limit(this.limitCount);
+    }
+    if (this.selectList.length > 0) {
+      avQuery.select(...this.selectList);
     }
     Object.entries(this.orderKeys).forEach(([key, type]) => {
       if (type === 'asc') {

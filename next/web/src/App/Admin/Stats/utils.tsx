@@ -4,6 +4,9 @@ import _ from 'lodash';
 
 import { relativeDateGetters } from '@/utils/date-range';
 import { useSearchParams } from '@/utils/useSearchParams';
+import { useCustomerServices } from '@/api/user';
+import { Select, SelectProps } from '@/components/antd';
+import { useGroups } from '@/api/group';
 
 const RANGE_DATE = ['lastSevenDays', 'lastWeek', 'week', 'month', 'lastMonth'] as const;
 const RANGE_DATE_LOCALE = {
@@ -119,4 +122,85 @@ export const useFilterData = <T extends { date: string | Date }>(data: T[] = [])
       changeFilter,
     },
   ] as const;
+};
+
+export const useStatsParams = () => {
+  const [{ category, customerService, group }] = useSearchParams();
+  const [{ from, to }] = useRangePicker();
+  return {
+    from,
+    to,
+    customerService,
+    category,
+    group,
+  };
+};
+
+interface Props extends Omit<SelectProps, 'loading' | 'options' | 'onChange' | 'mode'> {
+  onGroupChange?: (value: string) => void;
+  onCustomerServiceChange?: (value: string) => void;
+}
+
+export const CustomerServiceSelect = ({
+  onGroupChange,
+  onCustomerServiceChange,
+  ...rest
+}: Props) => {
+  const { data: groups, isLoading: groupLoading } = useGroups();
+  const { data: customerServices, isLoading: customerServiceLoading } = useCustomerServices();
+  const customerServiceOptions = useMemo(() => {
+    if (!customerServices) {
+      return;
+    }
+    return customerServices.map((u) => ({
+      label: u.nickname,
+      value: u.id,
+      type: 'customerService',
+    }));
+  }, [customerServices]);
+
+  const groupOptions = useMemo(() => {
+    if (!groups) {
+      return;
+    }
+    return groups.map((g) => ({ label: g.name, value: g.id, type: 'group' }));
+  }, [groups]);
+
+  const options = useMemo(() => {
+    const options = [];
+    if (groupOptions) {
+      options.push({
+        label: '客服组',
+        options: groupOptions,
+      });
+    }
+    if (customerServiceOptions) {
+      options.push({
+        label: '客服',
+        options: customerServiceOptions,
+      });
+    }
+    return options;
+  }, [groupOptions, customerServiceOptions]);
+
+  return (
+    <Select
+      showSearch
+      optionFilterProp="label"
+      onChange={(value, item) => {
+        if (value) {
+          const type = (item as { type?: 'group' | 'customerService' }).type;
+          if (type === 'customerService') {
+            onCustomerServiceChange && onCustomerServiceChange(value);
+          }
+          if (type === 'group') {
+            onGroupChange && onGroupChange(value);
+          }
+        }
+      }}
+      {...rest}
+      loading={customerServiceLoading || groupLoading}
+      options={options}
+    />
+  );
 };
