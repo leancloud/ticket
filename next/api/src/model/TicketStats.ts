@@ -1,4 +1,3 @@
-import AV from 'leancloud-storage';
 import _ from 'lodash';
 
 import { Model, pointTo, pointerId, field, Query } from '@/orm';
@@ -126,33 +125,9 @@ export class TicketStats extends Model {
       .where('date', '<=', params.to)
       .limit(limit)
       .skip(skip);
-    if (params.categoryIds) {
-      if (params.categoryIds === '*') {
-        query.where('category', 'exists');
-      } else {
-        query.where(
-          'category',
-          'in',
-          params.categoryIds.map((id) => Category.ptr(id))
-        );
-      }
-    } else {
-      query.where('category', 'not-exists');
-    }
-    if (params.customerServiceIds) {
-      if (params.customerServiceIds === '*') {
-        query.where('customerService', 'exists');
-      } else {
-        query.where(
-          'customerService',
-          'in',
-          params.customerServiceIds.map((id) => User.ptr(id))
-        );
-      }
-    } else {
-      query.where('customerService', 'not-exists');
-    }
 
+    applyCategoryCondition(query, params.categoryIds);
+    applyCustomerServiceCondition(query, params.customerServiceIds);
     const data = await query.find({ useMasterKey: true });
     const pickData = data
       .map((v) => _.pick(v, [...params.fields, 'date', 'customerServiceId', 'categoryId']))
@@ -177,40 +152,18 @@ export class TicketStats extends Model {
     limit = 100,
     skip = 0
   ): Promise<Pick<ReplyDetail, 'id' | 'nid' | 'replyTime'>[]> {
-    const query = new AV.Query(this.className)
+    const query = TicketStats.queryBuilder()
       .select('replyDetails')
-      .greaterThanOrEqualTo('date', params.from)
-      .lessThanOrEqualTo('date', params.to)
+      .where('date', '>=', params.from)
+      .where('date', '<=', params.to)
       .limit(limit)
       .skip(skip);
-    if (params.categoryIds) {
-      if (params.categoryIds === '*') {
-        query.exists('category');
-      } else {
-        query.containedIn(
-          'category',
-          params.categoryIds.map((id) => Category.ptr(id))
-        );
-      }
-    } else {
-      query.doesNotExist('category');
-    }
-    if (params.customerServiceIds) {
-      if (params.customerServiceIds === '*') {
-        query.exists('customerService');
-      } else {
-        query.containedIn(
-          'customerService',
-          params.customerServiceIds.map((id) => User.ptr(id))
-        );
-      }
-    } else {
-      query.doesNotExist('customerService');
-    }
+    applyCategoryCondition(query, params.categoryIds);
+    applyCustomerServiceCondition(query, params.customerServiceIds);
     const data = await query.find({ useMasterKey: true });
     const details = _(data)
       .map((v) => {
-        let replyDetails: ReplyDetail[] = v.get('replyDetails');
+        let replyDetails: ReplyDetail[] = v.replyDetails || [];
         if (params.field === 'firstReplyTime') {
           replyDetails = replyDetails.filter((v) => v.first);
         }
