@@ -216,13 +216,11 @@ function applyCategoryCondition(query: Query<typeof TicketStats>, categoryIds?: 
     query.where('category', 'exists');
     return;
   }
-  if (categoryIds.length > 0) {
-    query.where(
-      'category',
-      'in',
-      categoryIds.map((id) => Category.ptr(id))
-    );
-  }
+  query.where(
+    'category',
+    'in',
+    categoryIds.map((id) => Category.ptr(id))
+  );
 }
 
 function applyCustomerServiceCondition(
@@ -237,11 +235,9 @@ function applyCustomerServiceCondition(
     query.where('customerService', 'exists');
     return;
   }
-  if (customerServiceIds.length > 0) {
-    query.where(
-      'customerService',
-      'in',
-      customerServiceIds.map((id) => User.ptr(id))
-    );
-  }
+  query.where(
+    'customerService',
+    'in',
+    customerServiceIds.map((id) => User.ptr(id))
+  );
 }

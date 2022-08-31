@@ -207,5 +207,5 @@ async function getCustomerServiceIds(customerServiceId?: string, groupId?: strin
       result = result.concat(ids);
     }
   }
-  return result.length === 0 ? undefined : result;
+  return result;
 }
