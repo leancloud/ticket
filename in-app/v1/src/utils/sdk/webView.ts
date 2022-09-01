@@ -16,7 +16,7 @@ type RegisterHandler = (
 type CallHandler = (
   name: string,
   params?: object | string | boolean,
-  callback?: (data: { [key: string]: any }) => void
+  callback?: (data: any) => void
 ) => void;
 
 type Bridge = AndroidBridge | IOSBridge | BridgeHandler;

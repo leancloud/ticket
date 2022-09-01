@@ -11,9 +11,9 @@ export async function checkSupport(name: string): Promise<Boolean> {
   return new Promise((resolve, reject) => {
     try {
       callHandler('_hasNativeMethod', name, function (res) {
-        supportMethods[name] = !!res.responseData;
+        supportMethods[name] = res;
+        resolve(res);
       });
-      resolve(supportMethods[name]);
     } catch (error) {
       supportMethods[name] = false;
       reject(error);
@@ -28,8 +28,7 @@ export async function callHandlerPromise<Response = void, Payload = any>(
   return new Promise<Response>(async (resolve, reject) => {
     const isSupport = await checkSupport(name);
     if (!isSupport) {
-      console.log(`${name} is not support`);
-      reject(new Error(`${name} is not support`));
+      return reject(new Error(`${name} is not support`));
     }
     try {
       callHandler(name, payload ?? {}, function (res) {

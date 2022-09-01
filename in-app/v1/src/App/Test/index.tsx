@@ -9,9 +9,8 @@ import {
   showCloseButton,
   hideCloseButton,
   loadComplete,
+  isInit,
 } from '@/utils/sdk';
-
-const isInit = !!window.webViewJavascriptInterface;
 
 export default () => {
   const [name, setName] = useState('');
@@ -25,10 +24,9 @@ export default () => {
           <Input placeholder="handleName" value={name} onChange={(e) => setName(e.target.value)} />
           <button
             onClick={() => {
-              const res = callHandler('_hasNativeMethod', name, (params: any) => {
+              callHandler('_hasNativeMethod', name, (params: any) => {
                 console.log(params);
               });
-              console.log(res);
             }}
           >
             _hasNativeMethod

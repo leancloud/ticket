@@ -19,6 +19,7 @@ import TopCategories from './TopCategories';
 import Test from './Test';
 import { useTranslation } from 'react-i18next';
 import { AppStateProvider } from './context';
+import { initSDK } from '@/utils/sdk';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -89,6 +90,8 @@ export default function App() {
 
   const [auth, setAuth] = useState<[User | null, boolean, any]>([null, true, null]);
   useEffect(() => {
+    initSDK();
+
     if (params['anonymous-id']) {
       lcAuth
         .loginWithAuthData('anonymous', { id: params['anonymous-id'] })
