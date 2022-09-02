@@ -6,6 +6,7 @@ import * as Sentry from '@sentry/node';
 
 import './leancloud';
 import { config } from './config';
+import { localeMiddleware } from './middleware/locale';
 import api from './router';
 import { router as integrationRouter } from './integration';
 import notification from './notification';
@@ -46,6 +47,7 @@ app.use(async (ctx, next) => {
   }
 });
 
+app.use(localeMiddleware);
 app.use(bodyParser());
 
 // The CORS middleware must be applied to the app
