@@ -58,8 +58,6 @@ export class AsyncDeepRenderer {
       }
 
       templates.forEach((tmpl) => tmpl.render(values));
-
-      console.log({ i, values, names: Array.from(varNameSet), varNamesByNs });
     }
   }
 }
