@@ -7,6 +7,7 @@ export class CategoryResponse {
     return {
       id: this.category.id,
       name: this.category.name,
+      rawName: this.category.rawName,
       description: this.category.description,
       alias: this.category.alias,
       parentId: this.category.parentId,
@@ -18,15 +19,6 @@ export class CategoryResponse {
       noticeIds: this.category.noticeIds,
       topicIds: this.category.topicIds,
       formId: this.category.formId,
-      groupId: this.category.groupId,
-    };
-  }
-}
-
-export class CategoryResponseForCS extends CategoryResponse {
-  toJSON() {
-    return {
-      ...super.toJSON(),
       groupId: this.category.groupId,
     };
   }

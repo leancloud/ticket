@@ -20,7 +20,7 @@ import { TicketResponse, TicketListItemResponse } from '@/response/ticket';
 import { ReplyResponse } from '@/response/reply';
 import { Vacation } from '@/model/Vacation';
 import { TicketCreator, TicketUpdater, createTicketExportJob } from '@/ticket';
-import { CategoryService } from '@/service/category';
+import { categoryService } from '@/category';
 
 const router = new Router().use(auth);
 
@@ -97,7 +97,7 @@ router.get(
     const rootId = params.product || params.rootCategoryId;
     if (rootId) {
       categoryIds.add(rootId);
-      const subCategories = await CategoryService.getSubCategories(rootId);
+      const subCategories = await categoryService.getSubCategories(rootId);
       subCategories.forEach((c) => categoryIds.add(c.id));
     }
 
@@ -210,7 +210,7 @@ router.get(
     const categoryIds = new Set(params.categoryId);
     if (params.rootCategoryId) {
       categoryIds.add(params.rootCategoryId);
-      const subCategories = await CategoryService.getSubCategories(params.rootCategoryId);
+      const subCategories = await categoryService.getSubCategories(params.rootCategoryId);
       subCategories.forEach((c) => categoryIds.add(c.id));
     }
 

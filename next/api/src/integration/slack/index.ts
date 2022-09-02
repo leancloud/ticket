@@ -12,7 +12,7 @@ import notification, {
 } from '@/notification';
 import { Config } from '@/config';
 import { Ticket } from '@/model/Ticket';
-import { CategoryService } from '@/service/category';
+import { categoryService } from '@/category';
 import {
   Message,
   NewTicketMessage,
@@ -113,7 +113,7 @@ class SlackIntegration {
   }
 
   async sendToCategoryChannel(categoryId: string, message: Message) {
-    const parents = await CategoryService.getParentCategories(categoryId);
+    const parents = await categoryService.getParentCategories(categoryId);
     const categoryIds = [...parents.map((c) => c.id), categoryId];
     const sended = new Set<string>();
     categoryIds.forEach((cid) => {

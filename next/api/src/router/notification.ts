@@ -6,7 +6,7 @@ import { User } from '@/model/User';
 import { NotificationResponse } from '@/response/notification';
 import _ from 'lodash';
 import { parseDateParam } from '@/utils';
-import { CategoryService } from '@/service/category';
+import { categoryService } from '@/category';
 
 const DEFAULT_NOTIFICATIONS_PER_PAGE = 25;
 
@@ -34,7 +34,7 @@ router.get('/', async (ctx) => {
 
   const product = ctx.request.query['product'];
   if (product) {
-    const categories = await CategoryService.getSubCategories(product, true);
+    const categories = await categoryService.getSubCategories(product, true);
     query.where(
       'category',
       'in',
@@ -60,7 +60,7 @@ router.post('/read-all', async (ctx) => {
     .where('unreadCount', '>', 0);
   const product = ctx.request.query['product'];
   if (product) {
-    const categories = await CategoryService.getSubCategories(product, true);
+    const categories = await categoryService.getSubCategories(product, true);
     query.where(
       'category',
       'in',

@@ -24,6 +24,9 @@ export class Category extends AliasModel {
   @serialize()
   name!: string;
 
+  @serialize()
+  rawName?: string;
+
   @field()
   @serialize()
   description?: string;

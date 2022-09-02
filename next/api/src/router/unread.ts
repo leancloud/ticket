@@ -4,7 +4,7 @@ import * as yup from '@/utils/yup';
 import { auth } from '@/middleware/auth';
 import { Notification } from '@/model/Notification';
 import { User } from '@/model/User';
-import { CategoryService } from '@/service/category';
+import { categoryService } from '@/category';
 
 const router = new Router().use(auth);
 
@@ -21,7 +21,7 @@ router.get('/', async (ctx) => {
     .where('unreadCount', '>', 0);
 
   if (product) {
-    const categories = await CategoryService.getSubCategories(product, true);
+    const categories = await categoryService.getSubCategories(product, true);
     query.where(
       'category',
       'in',
