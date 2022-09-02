@@ -13,10 +13,10 @@ export class AsyncDeepRenderer {
 
   async render() {
     const values: Values = {};
-    const varNameSet = new Set<string>();
     let templates = [...this.templates];
 
     for (let i = 0; i < this.maxDepth; ++i) {
+      const varNameSet = new Set<string>();
       templates = templates.filter((tmpl) => tmpl.parse());
 
       if (templates.length === 0) {
@@ -58,6 +58,8 @@ export class AsyncDeepRenderer {
       }
 
       templates.forEach((tmpl) => tmpl.render(values));
+
+      console.log({ i, values, names: Array.from(varNameSet), varNamesByNs });
     }
   }
 }
