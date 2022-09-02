@@ -9,8 +9,9 @@ import {
   showCloseButton,
   hideCloseButton,
   loadComplete,
-} from '@/utils/sdk';
-import { useSDKInfo } from '@/App/SDKContext';
+  getDeviceInfo,
+} from '@/components/SDK';
+import { useSDKInfo } from '@/components/SDK';
 
 export default () => {
   const [name, setName] = useState('');
@@ -81,14 +82,27 @@ export default () => {
             hideCloseButton
           </Button>
         </p>
-        <p>
-          <details>
-            <summary>DeviceInfo</summary>
-            <pre>
-              <code>{JSON.stringify(deviceInfo, null, 2)}</code>
-            </pre>
-          </details>
+        <p className="mt-4">
+          <Button
+            onClick={() => {
+              getDeviceInfo()
+                .then((res) => {
+                  alert(JSON.stringify(res));
+                })
+                .catch((error) => {
+                  console.log(error);
+                });
+            }}
+          >
+            getDeviceInfo
+          </Button>
         </p>
+        <details>
+          <summary>DeviceInfo</summary>
+          <pre>
+            <code>{JSON.stringify(deviceInfo, null, 2)}</code>
+          </pre>
+        </details>
       </PageContent>
     </>
   );

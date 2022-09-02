@@ -1,32 +1,31 @@
 import { FC } from 'react';
-import { openInBrowser } from '@/utils/sdk';
+import { openInBrowser, useSDKInfo } from '@/components/SDK';
 
-const ORIGIN = window.location.origin;
+const ORIGIN = import.meta.env.VITE_LC_TICKET_HOST || window.location.origin;
 
-const isExternalLink = (link: string) => {
+const isExternalLink = (href: string) => {
   let origin = '';
   try {
-    origin = new URL(link).origin;
+    origin = new URL(href).origin;
   } catch (error) {
     console.log(error);
   }
-  return origin === ORIGIN;
+  return origin !== ORIGIN;
 };
 
 export const Content: FC<React.HTMLAttributes<HTMLDivElement>> = (props) => {
+  const [info] = useSDKInfo();
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if ((e.target as HTMLElement).tagName !== 'A') {
       return;
     }
 
     const $a = e.target as HTMLAnchorElement;
-    const { target, href } = $a;
+    const { href } = $a;
 
-    if (isExternalLink(href)) {
+    if (info.isInit && isExternalLink(href)) {
       e.preventDefault();
-      openInBrowser(href).catch(() => {
-        window.open(href, target || '_self');
-      });
+      openInBrowser(href);
       return;
     }
   };

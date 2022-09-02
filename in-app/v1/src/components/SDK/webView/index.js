@@ -1,70 +1,35 @@
-declare global {
-  interface Window {
-    WVJBCallbacks?: any[];
-    WebViewJavascriptBridge?: Bridge;
-    webViewJavascriptInterface?: {
-      notice: (message: string) => void;
-    };
-  }
-}
-
-type RegisterHandler = (
-  name: string,
-  handler: (name: string, callback?: () => void) => void
-) => void;
-type CallHandler = (
-  name: string,
-  params?: object | string | boolean,
-  callback?: (data: any) => void
-) => void;
-
-type Bridge = AndroidBridge | IOSBridge | BridgeHandler;
-
-interface BridgeHandler {
-  registerHandler: RegisterHandler;
-  callHandler: CallHandler;
-}
-
-interface AndroidBridge extends BridgeHandler {
-  disableJavascriptAlertBoxSafetyTimeout: (disable: boolean) => void;
-  _handleMessageFromJava: (message: { [key: string]: any }) => void;
-  hasNativeMethod: (name: string, callBack: Parameters<CallHandler>[2]) => void;
-}
-
-interface IOSBridge extends BridgeHandler {
-  disableJavscriptAlertBoxSafetyTimeout: () => void;
-  _handleMessageFromObjC: (message: string) => void;
-  _fetchQueue: () => void;
-}
-
-const bridgeConfig = {
-  callHandle: {}, // bridge android / ios
-  silent: false,
-};
-
-let $bridge: Bridge = {
-  registerHandler: function (name: string) {
-    if (bridgeConfig.silent) {
-      console.error(name, ' register handler failure');
-    }
-  },
-  callHandler: function (name: string) {
-    if (bridgeConfig.silent) {
-      console.error(name, ' call handler webView failure');
-    }
-  },
-};
+/**
+ * Vue Bridge Webview v1.0
+ * https://github.com/cmp-cc/vue-bridge-webview
+ *
+ * Copyright 2016, cmp-cc
+ * Released under the MIT license
+ */
+/* eslint-disable */
 
 function createWebViewJavascriptBridge() {
-  const messageHandlers: { [key: string]: Parameters<RegisterHandler>[1] } = {};
-  const responseCallbacks: { [key: string]: any } = {};
-  let uniqueId = 1;
+  var messageHandlers = {};
+  var responseCallbacks = {};
+  var uniqueId = 1;
+  var dispatchMessagesWithTimeoutSafety = true;
+  var random = 1;
 
-  const bridge: AndroidBridge = {
-    registerHandler: (handlerName, handler) => {
+  function _doSend(message, responseCallback) {
+    if (responseCallback) {
+      var callbackId = 'cb_' + uniqueId++ + '_' + new Date().getTime();
+      responseCallbacks[callbackId] = responseCallback;
+      message['callbackId'] = callbackId;
+      // reportInfo(['SDKVendor', 'call', 'android'], JSON.stringify(message || {}));
+    }
+    window.webViewJavascriptInterface?.notice?.(JSON.stringify(message || {}));
+  }
+
+  var bridge = {
+    registerHandler: function (handlerName, handler) {
       messageHandlers[handlerName] = handler;
     },
-    callHandler: function (handlerName: string, data?: any, responseCallback?: any) {
+
+    callHandler: function (handlerName, data, responseCallback) {
       if (arguments.length == 2 && typeof data == 'function') {
         responseCallback = data;
         data = null;
@@ -77,30 +42,36 @@ function createWebViewJavascriptBridge() {
         responseCallback
       );
     },
-    disableJavascriptAlertBoxSafetyTimeout: function (disable: boolean) {
+    disableJavascriptAlertBoxSafetyTimeout: function (disable) {
       this.callHandler('_disableJavascriptAlertBoxSafetyTimeout', disable !== false);
     },
-    _handleMessageFromJava: function (message) {
-      _dispatchMessageFromJava(message);
+    _handleMessageFromJava: function (messageJSON) {
+      _dispatchMessageFromJava(messageJSON);
     },
     hasNativeMethod: function (name, responseCallback) {
       this.callHandler('_hasNativeMethod', name, responseCallback);
     },
   };
 
-  function _dispatchMessageFromJava(message: { [key: string]: any }) {
-    let responseCallback;
+  bridge.registerHandler('_hasJavascriptMethod', function (data, responseCallback) {
+    responseCallback(!!messageHandlers[data]);
+  });
+
+  function _dispatchMessageFromJava(message) {
+    var messageHandler;
+    var responseCallback;
     if (message.responseId) {
       responseCallback = responseCallbacks[message.responseId];
       if (!responseCallback) {
+        console.log(`callback not exist`, JSON.stringify(message));
         return;
       }
       responseCallback(message.responseData);
       delete responseCallbacks[message.responseId];
     } else {
       if (message.callbackId) {
-        const callbackResponseId = message.callbackId;
-        responseCallback = (responseData: any) => {
+        var callbackResponseId = message.callbackId;
+        responseCallback = function (responseData) {
           _doSend({
             handlerName: message.handlerName,
             responseId: callbackResponseId,
@@ -108,23 +79,19 @@ function createWebViewJavascriptBridge() {
           });
         };
       }
+      var handler = messageHandlers[message.handlerName];
+      if (!handler) {
+        console.error(
+          'WebViewJavascriptBridge: WARNING: no handler for message from java',
+          message
+        );
+      } else {
+        handler(message.data, responseCallback);
+      }
     }
   }
 
-  function _doSend(message: { [key: string]: any }, responseCallBack?: any) {
-    if (responseCallBack) {
-      const callbackId = `cb_${uniqueId++}_${Date.now()}`;
-      responseCallbacks[callbackId] = responseCallBack;
-      message['callbackId'] = callbackId;
-    }
-    window.webViewJavascriptInterface?.notice?.(JSON.stringify(message || {}));
-  }
-
-  bridge.registerHandler('_hasJavascriptMethod', function (data: any, responseCallback: any) {
-    responseCallback(!!messageHandlers[data]);
-  });
-
-  const callbacks = window.WVJBCallbacks;
+  var callbacks = window.WVJBCallbacks;
   delete window.WVJBCallbacks;
   if (callbacks) {
     for (var i = 0; i < callbacks.length; i++) {
@@ -132,6 +99,10 @@ function createWebViewJavascriptBridge() {
     }
   }
   window.WebViewJavascriptBridge = bridge;
+
+  window.close = function () {
+    bridge.callHandler('_closePage');
+  };
 }
 
 function createIosWebViewJavascriptBridge() {
@@ -139,44 +110,35 @@ function createIosWebViewJavascriptBridge() {
     return;
   }
 
-  let sendMessageQueue: any[] = [];
-  let uniqueId = 1;
-  let dispatchMessagesWithTimeoutSafety = true;
-
-  const messageHandlers: { [key: string]: any } = {};
-  const CUSTOM_PROTOCOL_SCHEME = 'https';
-  const QUEUE_HAS_MESSAGE = '__wvjb_queue_message__';
-  const responseCallbacks: { [key: string]: any } = {};
-
-  const messagingIframe = document.createElement('iframe');
-  messagingIframe.style.display = 'none';
-  messagingIframe.src = CUSTOM_PROTOCOL_SCHEME + '://' + QUEUE_HAS_MESSAGE;
-  document.documentElement.appendChild(messagingIframe);
-
-  setTimeout(_callWVJBCallbacks, 0);
-
-  function _callWVJBCallbacks() {
-    var callbacks = window.WVJBCallbacks;
-    delete window.WVJBCallbacks;
-    if (!callbacks) {
-      return;
-    }
-    for (var i = 0; i < callbacks.length; i++) {
-      callbacks[i](window.WebViewJavascriptBridge);
-    }
+  if (!window.onerror) {
+    window.onerror = function (msg, url, line) {
+      console.error(`WebViewJavascriptBridge: ERROR:${msg}@${url}:${line}`);
+    };
   }
-
-  const registerHandler: RegisterHandler = (handlerName, handler) => {
-    messageHandlers[handlerName] = handler;
+  window.WebViewJavascriptBridge = {
+    registerHandler: registerHandler,
+    callHandler: callHandler,
+    disableJavscriptAlertBoxSafetyTimeout: disableJavscriptAlertBoxSafetyTimeout,
+    _fetchQueue: _fetchQueue,
+    _handleMessageFromObjC: _handleMessageFromObjC,
   };
 
-  registerHandler('_disableJavascriptAlertBoxSafetyTimeout', disableJavscriptAlertBoxSafetyTimeout);
+  var messagingIframe;
+  var sendMessageQueue = [];
+  var messageHandlers = {};
 
-  function _handleMessageFromObjC(messageJSON: string) {
-    _dispatchMessageFromObjC(messageJSON);
+  var CUSTOM_PROTOCOL_SCHEME = 'https';
+  var QUEUE_HAS_MESSAGE = '__wvjb_queue_message__';
+
+  var responseCallbacks = {};
+  var uniqueId = 1;
+  var dispatchMessagesWithTimeoutSafety = true;
+
+  function registerHandler(handlerName, handler) {
+    messageHandlers[handlerName] = handler;
   }
 
-  function callHandler(handlerName: string, data?: any, responseCallback?: any) {
+  function callHandler(handlerName, data, responseCallback) {
     if (arguments.length == 2 && typeof data == 'function') {
       responseCallback = data;
       data = null;
@@ -188,9 +150,9 @@ function createIosWebViewJavascriptBridge() {
     dispatchMessagesWithTimeoutSafety = false;
   }
 
-  function _doSend(message: { [key: string]: any }, responseCallback?: any) {
+  function _doSend(message, responseCallback) {
     if (responseCallback) {
-      const callbackId = `cb_${uniqueId++}_${Date.now()}`;
+      var callbackId = 'cb_' + uniqueId++ + '_' + new Date().getTime();
       responseCallbacks[callbackId] = responseCallback;
       message['callbackId'] = callbackId;
       // reportInfo(['SDKVendor', 'call', 'ios'], JSON.stringify(message || {}));
@@ -205,7 +167,7 @@ function createIosWebViewJavascriptBridge() {
     return messageQueueString;
   }
 
-  function _dispatchMessageFromObjC(messageJSON: string) {
+  function _dispatchMessageFromObjC(messageJSON) {
     if (dispatchMessagesWithTimeoutSafety) {
       setTimeout(_doDispatchMessageFromObjC);
     } else {
@@ -213,12 +175,14 @@ function createIosWebViewJavascriptBridge() {
     }
 
     function _doDispatchMessageFromObjC() {
-      const message = JSON.parse(messageJSON);
-      let responseCallback;
+      var message = JSON.parse(messageJSON);
+      var messageHandler;
+      var responseCallback;
 
       if (message.responseId) {
         responseCallback = responseCallbacks[message.responseId];
         if (!responseCallback) {
+          console.log(`callback not exist`, JSON.stringify(message));
           return;
         }
         responseCallback(message.responseData);
@@ -226,7 +190,7 @@ function createIosWebViewJavascriptBridge() {
       } else {
         if (message.callbackId) {
           var callbackResponseId = message.callbackId;
-          responseCallback = function (responseData: any) {
+          responseCallback = function (responseData) {
             _doSend({
               handlerName: message.handlerName,
               responseId: callbackResponseId,
@@ -248,31 +212,64 @@ function createIosWebViewJavascriptBridge() {
     }
   }
 
-  const bridge: IOSBridge = {
-    registerHandler,
-    callHandler,
-    disableJavscriptAlertBoxSafetyTimeout,
-    _fetchQueue,
-    _handleMessageFromObjC,
-  };
+  function _handleMessageFromObjC(messageJSON) {
+    _dispatchMessageFromObjC(messageJSON);
+  }
 
-  window.WebViewJavascriptBridge = bridge;
+  messagingIframe = document.createElement('iframe');
+  messagingIframe.style.display = 'none';
+  messagingIframe.src = CUSTOM_PROTOCOL_SCHEME + '://' + QUEUE_HAS_MESSAGE;
+  document.documentElement.appendChild(messagingIframe);
+
+  registerHandler('_disableJavascriptAlertBoxSafetyTimeout', disableJavscriptAlertBoxSafetyTimeout);
+
+  setTimeout(_callWVJBCallbacks, 0);
+
+  function _callWVJBCallbacks() {
+    var callbacks = window.WVJBCallbacks;
+    delete window.WVJBCallbacks;
+    for (var i = 0; i < callbacks.length; i++) {
+      callbacks[i](WebViewJavascriptBridge);
+    }
+  }
 }
 
+/**
+ *  vue-bridge-webview config
+ */
+var bridgeConfig = {
+  callHandle: {}, // bridge android / ios
+  silent: false,
+};
+
+var $bridge = {
+  registerHandler: function (name, callback) {
+    if (bridgeConfig.silent) {
+      console.error(name, ' register handler failure');
+    }
+  },
+  callHandler: function (name, params, callback) {
+    if (bridgeConfig.silent) {
+      console.error(name, ' call handler webView failure');
+    }
+  },
+};
+
 // ============ device init operation start ===========
+
 /* setup WebView Javascript Bridge for ios , ios 初始化 */
-function setupWebViewJavascriptBridge(callback: (b: Bridge) => void) {
+function setupWebViewJavascriptBridge(callback) {
   if (window.WebViewJavascriptBridge) {
-    return callback(window.WebViewJavascriptBridge);
+    return callback(WebViewJavascriptBridge);
   } else {
     createIosWebViewJavascriptBridge();
-    callback(window.WebViewJavascriptBridge!);
+    callback(WebViewJavascriptBridge);
   }
   if (window.WVJBCallbacks) {
     return window.WVJBCallbacks.push(callback);
   }
   window.WVJBCallbacks = [callback];
-  const WVJBIframe = document.createElement('iframe');
+  var WVJBIframe = document.createElement('iframe');
   WVJBIframe.style.display = 'none';
   WVJBIframe.src = 'wvjbscheme://__BRIDGE_LOADED__';
   document.documentElement.appendChild(WVJBIframe);
@@ -282,16 +279,16 @@ function setupWebViewJavascriptBridge(callback: (b: Bridge) => void) {
 }
 
 /* 用于创建桥接对象的函数 , android 初始化 */
-function connectWebViewJavascriptBridge(callback: (b: Bridge) => void) {
+function connectWebViewJavascriptBridge(callback) {
   //如果桥接对象已存在，则直接调用callback函数
   if (window.WebViewJavascriptBridge) {
-    callback(window.WebViewJavascriptBridge);
+    callback(WebViewJavascriptBridge);
   }
   //否则添加一个监听器来执行callback函数
   else {
     //改为自己创建
     createWebViewJavascriptBridge();
-    callback(window.WebViewJavascriptBridge!);
+    callback(WebViewJavascriptBridge);
     // document.addEventListener('WebViewJavascriptBridgeReady', function () {
     //   callback(WebViewJavascriptBridge)
     // }, false)
@@ -301,9 +298,7 @@ function connectWebViewJavascriptBridge(callback: (b: Bridge) => void) {
 /* device detect for ios/android */
 
 try {
-  var ua =
-    'userAgentData' in navigator ? (navigator as any).userAgentData.platform : navigator.userAgent;
-
+  var ua = 'userAgentData' in navigator ? navigator.userAgentData.platform : navigator.userAgent;
   if (/(iPhone|iPad|iPod|iOS)/i.test(ua)) {
     setupWebViewJavascriptBridge(function (bridge) {
       $bridge = bridge;
@@ -312,38 +307,39 @@ try {
     connectWebViewJavascriptBridge(function (bridge) {
       $bridge = bridge;
     });
+  } else {
+    setupWebViewJavascriptBridge(function (bridge) {
+      $bridge = bridge;
+    });
   }
-  // else {
-  //   setupWebViewJavascriptBridge(function (bridge: any) {
-  //     $bridge = bridge;
-  //   });
-  // }
 } catch (e) {
-  console.log(e);
+  console.log(`init webView failed`);
 }
+// ==============device init operation end ============
 
 /**
  * Android / IOS 调用JS,需要明确调用的`function名称` .
  * @param name `function name`
  * @param registerCallback 回调的响应事件
  */
-export const registerHandler = function (name: string, registerCallback: (data: any) => void) {
+export function registerHandler(name, registerCallback) {
   if ($bridge['registerHandler']) {
-    $bridge.registerHandler(name, function (data: any) {
+    $bridge.registerHandler(name, function (data) {
       if (typeof data === 'string') {
         // 尝试转json
         try {
           data = JSON.parse(data);
         } catch (e) {
-          console.log(e);
+          console.log(`parse registerHandler ${name} data failed`);
         }
       }
       registerCallback(data);
     });
   } else {
     console.error("Don't built-in WebView invoking ", name, '{registerHandler}');
+    console.log(`invoke registerHandler ${name} failed`);
   }
-};
+}
 
 /**
  *  JS 调用 Android / IOS
@@ -355,7 +351,7 @@ export const registerHandler = function (name: string, registerCallback: (data: 
  *  eg: this.$bridge.callHandler('getUserInfo',{'userId':1},function(data){...})
  *
  */
-export const callHandler: CallHandler = function (name, params, callback) {
+export function callHandler(name, params, callback) {
   if ($bridge['callHandler']) {
     $bridge.callHandler(name, params, function (data) {
       if (typeof callback == 'function') {
@@ -364,7 +360,7 @@ export const callHandler: CallHandler = function (name, params, callback) {
           try {
             data = JSON.parse(data);
           } catch (e) {
-            console.log(e);
+            console.log(`parse registerHandler ${name} data failed`);
           }
         }
         callback(data);
@@ -373,4 +369,4 @@ export const callHandler: CallHandler = function (name, params, callback) {
   } else {
     console.error("Don't built-in WebView invoking ", name, '{callHandler}');
   }
-};
+}

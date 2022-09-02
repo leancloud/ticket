@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "node ./script/generate_env.js && vite build",
     "typecheck": "tsc --noEmit"
   },

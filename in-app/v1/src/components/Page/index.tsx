@@ -7,15 +7,13 @@ import { ErrorBoundary } from '../ErrorBoundary';
 import styles from './index.module.css';
 import { useSearchParams } from 'react-router-dom';
 import classNames from 'classnames';
-import { useSDKInfo } from '@/App/SDKContext';
+import { useSDKInfo } from '@/components/SDK';
 
 const NotchGap = () => {
   const [{ ORIENTATION, NOTCH }] = useSDKInfo();
-  const isShow = NOTCH && ORIENTATION === 2;
-  if (!isShow) {
-    return null;
-  }
-  return <div className="pt-[40px]" />;
+  const show = NOTCH && ORIENTATION === 1;
+
+  return <div className={classNames('sticky', { ['pt-[40px]']: show })} />;
 };
 
 export function PageHeader(props: ComponentPropsWithoutRef<'div'>) {
