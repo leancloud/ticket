@@ -2,12 +2,12 @@ import { Template } from './types';
 
 type Values = Record<string, string>;
 
-type VariableGetter = (names: string[]) => Values | Promise<Values>;
+type ValuesGetter = (names: string[]) => Values | Promise<Values>;
 
 export class AsyncDeepRenderer {
   constructor(
     private templates: Template<any>[],
-    private variablesGetters: Record<string, VariableGetter>,
+    private valuesGetters: Record<string, ValuesGetter>,
     private maxDepth = 5
   ) {}
 
@@ -38,7 +38,7 @@ export class AsyncDeepRenderer {
 
       for (const name of varNameSet) {
         const ns = getNamespace(name);
-        if (ns && this.variablesGetters[ns]) {
+        if (ns && this.valuesGetters[ns]) {
           const nameWithoutNs = name.slice(ns.length + 1);
           const vars = varNamesByNs[ns];
           if (vars) {
@@ -50,7 +50,7 @@ export class AsyncDeepRenderer {
       }
 
       for (const [ns, names] of Object.entries(varNamesByNs)) {
-        const getter = this.variablesGetters[ns];
+        const getter = this.valuesGetters[ns];
         const _values = await getter(names);
         Object.entries(_values).forEach(([name, value]) => {
           values[`${ns}.${name}`] = value;

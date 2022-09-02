@@ -7,11 +7,11 @@ declare module 'koa' {
 }
 
 export const localeMiddleware: Middleware = (ctx, next) => {
-  ctx.locales = getLocaleFromQuery(ctx) || getLocaleFromHeader(ctx);
+  ctx.locales = getLocalesFromQuery(ctx) || getLocalesFromHeader(ctx);
   return next();
 };
 
-function getLocaleFromQuery(ctx: Context) {
+function getLocalesFromQuery(ctx: Context) {
   const locale = ctx.query['locale'];
   if (locale !== undefined) {
     if (typeof locale === 'string') {
@@ -23,7 +23,7 @@ function getLocaleFromQuery(ctx: Context) {
 
 const HEADER_LOCALE_PATTERN = /(?:^|,\s*)([a-zA-Z-]+)(?:;q=(\d+(?:\.\d+)?))?/g;
 
-function getLocaleFromHeader(ctx: Context) {
+function getLocalesFromHeader(ctx: Context) {
   const locale = ctx.get('accept-language');
   if (locale) {
     const matchResult = locale.matchAll(HEADER_LOCALE_PATTERN);
