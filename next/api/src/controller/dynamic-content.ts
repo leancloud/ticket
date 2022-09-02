@@ -28,7 +28,7 @@ import { DynamicContentVariant } from '@/model/DynamicContentVariant';
 import { DynamicContentResponse } from '@/response/dynamic-content';
 import { DynamicContentVariantResponse } from '@/response/dynamic-content-variant';
 
-const dynamicContentNameSchema = z.string().regex(/^[a-zA-Z0-9_]+$/);
+const dynamicContentNameSchema = z.string().regex(/^[a-zA-Z_][a-zA-Z0-9_]*$/);
 
 const localeSchema = z
   .string()
@@ -45,7 +45,7 @@ const localeSchema = z
 const variantSchema = z.object({
   locale: localeSchema,
   active: z.boolean().optional(),
-  content: z.string(),
+  content: z.string().max(1000),
 });
 
 const createDynamicContentSchema = z.object({
@@ -92,6 +92,7 @@ export class DynamicContentController {
         ACL,
         name: data.name,
         defaultLocale: data.defaultLocale,
+        defaultContent: data.content,
       },
       authOptions
     );
@@ -117,10 +118,14 @@ export class DynamicContentController {
     @Param('id', new FindModelPipe(DynamicContent)) dc: DynamicContent,
     @Body(new ZodValidationPipe(updateDynamicContentSchema)) data: UpdateDynamicContentData
   ) {
+    const updateData: Partial<DynamicContent> = {};
     const authOptions = currentUser.getAuthOptions();
+
     if (data.name && data.name !== dc.name) {
       await this.assertNoNameConflict(data.name, authOptions);
+      updateData.name = data.name;
     }
+
     if (data.defaultLocale) {
       const dcv = await DynamicContentVariant.queryBuilder()
         .where('dynamicContent', '==', dc.toPointer())
@@ -132,8 +137,12 @@ export class DynamicContentController {
       if (!dcv.active) {
         throw new HttpError(422, `variant ${dcv.locale} is inactive`);
       }
+      updateData.defaultLocale = data.defaultLocale;
+      updateData.defaultContent = dcv.content;
     }
-    await dc.update(data, authOptions);
+
+    await dc.update(updateData, authOptions);
+
     return {};
   }
 
@@ -236,8 +245,13 @@ export class DynamicContentController {
   ) {
     const authOptions = currentUser.getAuthOptions();
     const variant = await this.findVariantOrFail(dc.id, vid, authOptions);
-    if (data.active === false && variant.locale === dc.defaultLocale) {
-      throw new HttpError(400, 'cannot inactive default variant');
+    if (variant.locale === dc.defaultLocale) {
+      if (data.active === false) {
+        throw new HttpError(400, 'cannot inactive default variant');
+      }
+      if (data.content !== undefined) {
+        await dc.update({ defaultContent: data.content }, authOptions);
+      }
     }
     await variant.update(data, authOptions);
     return {};

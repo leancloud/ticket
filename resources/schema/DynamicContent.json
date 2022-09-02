@@ -25,6 +25,13 @@
       "required": false,
       "hidden": false,
       "read_only": false
+    },
+    "defaultContent": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
     }
   },
   "permissions": {
