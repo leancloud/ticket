@@ -67,6 +67,7 @@ export class RedisStore implements CacheStore {
   }
 
   async del(key: string | string[]) {
+    key = typeof key === 'string' ? this.encodeKey(key) : key.map((k) => this.encodeKey(k));
     await redis.del(key);
   }
 
