@@ -35,6 +35,7 @@
     "leancloud-storage": "^4.12.3",
     "leanengine": "^3.8.0",
     "lodash": "^4.17.21",
+    "lru-cache": "^7.14.0",
     "mailgun.js": "^4.1.4",
     "mem": "^8.1.1",
     "p-memoize": "^4.0.4",
