@@ -20,6 +20,7 @@ import Test from './Test';
 import { useTranslation } from 'react-i18next';
 import { AppStateProvider } from './context';
 import { initSDK } from '@/utils/sdk';
+import { SDKProvider } from './SDKContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -131,9 +132,11 @@ export default function App() {
             <RootCategoryContext.Provider value={rootCategory}>
               <AuthContext.Provider value={auth}>
                 <TicketInfoContext.Provider value={ticketInfo}>
-                  <AppStateProvider>
-                    <AppRoutes />
-                  </AppStateProvider>
+                  <SDKProvider>
+                    <AppStateProvider>
+                      <AppRoutes />
+                    </AppStateProvider>
+                  </SDKProvider>
                 </TicketInfoContext.Provider>
               </AuthContext.Provider>
             </RootCategoryContext.Provider>

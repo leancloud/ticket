@@ -9,17 +9,18 @@ import {
   showCloseButton,
   hideCloseButton,
   loadComplete,
-  isInit,
 } from '@/utils/sdk';
+import { useSDKInfo } from '@/App/SDKContext';
 
 export default () => {
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
+  const [deviceInfo] = useSDKInfo();
+
   return (
     <>
       <PageHeader>test</PageHeader>
       <PageContent className="px-3">
-        <div>isInit:{isInit ? 'true' : 'false'}</div>
         <p>
           <Input placeholder="handleName" value={name} onChange={(e) => setName(e.target.value)} />
           <button
@@ -79,6 +80,14 @@ export default () => {
           >
             hideCloseButton
           </Button>
+        </p>
+        <p>
+          <details>
+            <summary>DeviceInfo</summary>
+            <pre>
+              <code>{JSON.stringify(deviceInfo, null, 2)}</code>
+            </pre>
+          </details>
         </p>
       </PageContent>
     </>

@@ -2,9 +2,7 @@ import { callHandler, registerHandler } from '../webView';
 
 const supportMethods: { [key: string]: boolean } = {};
 
-export const _hasNativeMethod = (name: string) => callHandlerPromise('_hasNativeMethod', name);
-
-export async function checkSupport(name: string): Promise<Boolean> {
+async function checkSupport(name: string): Promise<Boolean> {
   if (supportMethods[name] !== undefined) {
     return Promise.resolve(supportMethods[name]);
   }

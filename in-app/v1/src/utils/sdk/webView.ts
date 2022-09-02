@@ -2,7 +2,6 @@ declare global {
   interface Window {
     WVJBCallbacks?: any[];
     WebViewJavascriptBridge?: Bridge;
-    closePage?: () => void;
     webViewJavascriptInterface?: {
       notice: (message: string) => void;
     };
@@ -133,11 +132,6 @@ function createWebViewJavascriptBridge() {
     }
   }
   window.WebViewJavascriptBridge = bridge;
-
-  // TODO
-  window.closePage = function () {
-    bridge.callHandler('_closePage');
-  };
 }
 
 function createIosWebViewJavascriptBridge() {
@@ -333,7 +327,7 @@ try {
  * @param name `function name`
  * @param registerCallback 回调的响应事件
  */
-export const registerHandler: RegisterHandler = function (name, registerCallback) {
+export const registerHandler = function (name: string, registerCallback: (data: any) => void) {
   if ($bridge['registerHandler']) {
     $bridge.registerHandler(name, function (data: any) {
       if (typeof data === 'string') {

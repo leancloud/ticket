@@ -7,6 +7,16 @@ import { ErrorBoundary } from '../ErrorBoundary';
 import styles from './index.module.css';
 import { useSearchParams } from 'react-router-dom';
 import classNames from 'classnames';
+import { useSDKInfo } from '@/App/SDKContext';
+
+const NotchGap = () => {
+  const [{ ORIENTATION, NOTCH }] = useSDKInfo();
+  const isShow = NOTCH && ORIENTATION === 2;
+  if (!isShow) {
+    return null;
+  }
+  return <div className="pt-[40px]" />;
+};
 
 export function PageHeader(props: ComponentPropsWithoutRef<'div'>) {
   const { t } = useTranslation();
@@ -15,6 +25,7 @@ export function PageHeader(props: ComponentPropsWithoutRef<'div'>) {
 
   return (
     <>
+      <NotchGap />
       {showNav && (
         <div
           id="page-header"
