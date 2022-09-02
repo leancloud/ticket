@@ -8,6 +8,7 @@ export interface CategorySchema {
   id: string;
   alias?: string;
   name: string;
+  rawName: string;
   description?: string;
   parentId?: string;
   position: number;
