@@ -328,11 +328,13 @@ const TicketFormModal = memo(({ fields, values, onUpdated, close, ticketId }) =>
     }
   }, [values])
 
-  const { mutateAsync, isLoading } = useMutation({
-    mutationFn: (form_values) =>
-      http.patch(`/api/1/tickets/${ticketId}/form-values`, {
-        form_values,
-      }),
+  const { mutate, isLoading } = useMutation({
+    mutationFn: (data) => http.put(`/api/2/tickets/${ticketId}/custom-fields`, data),
+    onSuccess: (data, variables) => {
+      onUpdated(variables)
+      close()
+    },
+    onError: addNotification,
   })
 
   return (
@@ -346,19 +348,10 @@ const TicketFormModal = memo(({ fields, values, onUpdated, close, ticketId }) =>
           onSubmit={(e) => {
             e.preventDefault()
             e.stopPropagation()
-            const newValues = Object.keys(formValues).map((field) => {
-              return {
-                field,
-                value: formValues[field],
-              }
-            })
-            mutateAsync(newValues)
-              .then(() => {
-                onUpdated(newValues)
-                close()
-                return
-              })
-              .catch(addNotification)
+            const newValues = Object.entries(formValues)
+              .filter(([, value]) => !_.isEmpty(value))
+              .map(([field, value]) => ({ field, value }))
+            mutate(newValues)
           }}
         >
           {fields.map((field) => {
@@ -417,15 +410,13 @@ const TicketFormValues = memo(({ ticket, loadMoreOpsLogs }) => {
 
   const { data: formValues } = useQuery({
     queryKey: ['meta/formValues', ticket ? ticket.id : ''],
-    queryFn: () => http.get(`/api/1/tickets/${ticket.id}/form-values`),
+    queryFn: () => http.get(`/api/2/tickets/${ticket.id}/custom-fields`),
     enabled: !!ticket,
     select: (data) =>
-      Array.isArray(data)
-        ? data.reduce((pre, cur) => {
-            pre[cur.field] = cur.value
-            return pre
-          }, {})
-        : {},
+      data.reduce((map, item) => {
+        map[item.field] = item.value
+        return map
+      }, {}),
     onError: (err) => addNotification(err),
   })
 
