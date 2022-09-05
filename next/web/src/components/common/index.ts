@@ -2,6 +2,7 @@ export * from './Category';
 export * from './CategorySelect';
 export * from './CustomerServiceSelect';
 export * from './GroupSelect';
+export * from './LoadingCover';
 export * from './Retry';
 export * from './StatusSelect';
 export * from './UserSelect';

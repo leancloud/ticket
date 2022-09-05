@@ -13,11 +13,7 @@ const { Column } = Table;
 
 function TicketLink({ ticket }: { ticket: TicketSchema }) {
   return (
-    <a
-    className="mt-1.5 font-bold max-w-full"
-    title={ticket.title}
-    href={`/tickets/${ticket.nid}`}
-    >
+    <a className="mt-1.5 font-bold max-w-full" title={ticket.title} href={`/tickets/${ticket.nid}`}>
       <span>{ticket.title}</span>
       <span className="ml-1 text-[#6f7c87]">#{ticket.nid}</span>
     </a>
@@ -25,15 +21,16 @@ function TicketLink({ ticket }: { ticket: TicketSchema }) {
 }
 
 export interface TicketTableProps {
-  tickets: TicketSchema[];
+  loading?: boolean;
+  tickets?: TicketSchema[];
   checkedIds: string[];
   onChangeChecked: (id: string, checked: boolean) => void;
 }
 
-export function TicketTable({ tickets, checkedIds, onChangeChecked }: TicketTableProps) {
+export function TicketTable({ loading, tickets, checkedIds, onChangeChecked }: TicketTableProps) {
   const checkedIdSet = useMemo(() => new Set(checkedIds), [checkedIds]);
-  
-  const userIds = useMemo(() => uniq(tickets.map((t) => t.authorId)), [tickets]);
+
+  const userIds = useMemo(() => (tickets ? uniq(tickets.map((t) => t.authorId)) : []), [tickets]);
   const { data: users, isLoading: loadingUsers } = useUsers({
     id: userIds,
     queryOptions: {
@@ -52,7 +49,13 @@ export function TicketTable({ tickets, checkedIds, onChangeChecked }: TicketTabl
   const assigneeById = useMemo(() => keyBy(assignees, 'id'), [assignees]);
 
   return (
-    <Table className="min-w-[1000px]" rowKey="id" dataSource={tickets} pagination={false}>
+    <Table
+      className="min-w-[1000px]"
+      rowKey="id"
+      loading={loading}
+      dataSource={tickets}
+      pagination={false}
+    >
       <Column
         className="w-0"
         dataIndex="id"
@@ -83,7 +86,7 @@ export function TicketTable({ tickets, checkedIds, onChangeChecked }: TicketTabl
           <CategoryPath className="whitespace-nowrap text-sm" path={getCategoryPath(id)} />
         )}
       />
-      
+
       <Column
         dataIndex="groupId"
         title="组"

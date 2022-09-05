@@ -10,6 +10,7 @@ import { useGroups } from '@/api/group';
 import { TicketSchema } from '@/api/ticket';
 import { useUsers } from '@/api/user';
 import { Checkbox } from '@/components/antd';
+import { LoadingCover } from '@/components/common';
 import Status from '../TicketStatus';
 import style from './index.module.css';
 
@@ -68,15 +69,16 @@ export function useGetCategoryPath() {
 }
 
 export interface TicketListProps {
-  tickets: TicketSchema[];
+  loading?: boolean;
+  tickets?: TicketSchema[];
   checkedIds: string[];
   onChangeChecked: (id: string, checked: boolean) => void;
 }
 
-export function TicketList({ tickets, checkedIds, onChangeChecked }: TicketListProps) {
+export function TicketList({ loading, tickets, checkedIds, onChangeChecked }: TicketListProps) {
   const checkedIdSet = useMemo(() => new Set(checkedIds), [checkedIds]);
 
-  const userIds = useMemo(() => uniq(tickets.map((t) => t.authorId)), [tickets]);
+  const userIds = useMemo(() => (tickets ? uniq(tickets.map((t) => t.authorId)) : []), [tickets]);
   const { data: users, isLoading: loadingUsers } = useUsers({
     id: userIds,
     queryOptions: {
@@ -95,8 +97,13 @@ export function TicketList({ tickets, checkedIds, onChangeChecked }: TicketListP
   const assigneeById = useMemo(() => keyBy(assignees, 'id'), [assignees]);
 
   return (
-    <>
-      {tickets.map((ticket) => {
+    <div
+      className={cx('flex grow flex-col gap-2 relative', {
+        'overflow-hidden': loading,
+      })}
+    >
+      {loading && <LoadingCover />}
+      {tickets?.map((ticket) => {
         const isClosed = ticket.status >= 250;
         const createdAtFromNow = moment(ticket.createdAt).fromNow();
         const updatedAtFromNow = moment(ticket.updatedAt).fromNow();
@@ -173,6 +180,6 @@ export function TicketList({ tickets, checkedIds, onChangeChecked }: TicketListP
           </div>
         );
       })}
-    </>
+    </div>
   );
 }

@@ -4,20 +4,17 @@ import { TicketTable } from './TicketTable';
 
 export interface TicketViewProps {
   layout: 'card' | 'table';
-  tickets: TicketSchema[];
+  loading?: boolean;
+  tickets?: TicketSchema[];
   checkedIds: string[];
   onChangeChecked: (id: string, checked: boolean) => void;
 }
 
-export function TicketView({ layout, tickets, checkedIds, onChangeChecked }: TicketViewProps) {
+export function TicketView({ layout, ...props }: TicketViewProps) {
   return (
     <>
-      {layout === 'card' && (
-        <TicketList tickets={tickets} checkedIds={checkedIds} onChangeChecked={onChangeChecked} />
-      )}
-      {layout === 'table' && (
-        <TicketTable tickets={tickets} checkedIds={checkedIds} onChangeChecked={onChangeChecked} />
-      )}
+      {layout === 'card' && <TicketList {...props} />}
+      {layout === 'table' && <TicketTable {...props} />}
     </>
   );
 }
