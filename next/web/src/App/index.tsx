@@ -2,6 +2,8 @@ import { Suspense, lazy } from 'react';
 import { QueryClientProvider } from 'react-query';
 import { RecoilRoot } from 'recoil';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { ConfigProvider } from 'antd';
+import zhCN from 'antd/lib/locale/zh_CN';
 
 import { useCurrentUser } from '@/leancloud';
 import { queryClient } from '@/api/query-client';
@@ -45,7 +47,9 @@ export default function App() {
       <RecoilRoot>
         <BrowserRouter basename="/next">
           <SearchParamsProvider>
-            <AppRoutes />
+            <ConfigProvider locale={zhCN}>
+              <AppRoutes />
+            </ConfigProvider>
           </SearchParamsProvider>
         </BrowserRouter>
       </RecoilRoot>
