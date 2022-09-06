@@ -20,6 +20,7 @@ export default function Login() {
   const { addNotification, setCurrentUser } = useContext(AppContext)
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [passwordLoginEnabled, setPasswordLoginEnabled] = useState(false)
 
   const redirect = useCallback(() => {
     const nextPathname = sessionStorage.getItem(KEY_PATHNAME)
@@ -88,29 +89,33 @@ export default function Login() {
   if (!USE_LC_OAUTH) {
     return (
       <div className={css.wrap}>
-        <h1>{t('loginOrSignup')}</h1>
+        <h1 onDoubleClick={() => setPasswordLoginEnabled(true)}>{t('login')}</h1>
         {staffOAuth}
-        <hr />
-        <Form onSubmit={handleLogin}>
-          <Form.Group>
-            <Form.Label>{t('username')}</Form.Label>
-            <Form.Control value={username} onChange={(e) => setUsername(e.target.value)} />
-          </Form.Group>
-          <Form.Group>
-            <Form.Label>{t('password')}</Form.Label>
-            <Form.Control
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </Form.Group>
-          <Form.Group>
-            <Button type="submit">{t('login')}</Button>{' '}
-            <Button variant="light" onClick={handleSignup}>
-              {t('signup')}
-            </Button>
-          </Form.Group>
-        </Form>
+        {passwordLoginEnabled && (
+          <>
+            <hr />
+            <Form onSubmit={handleLogin}>
+              <Form.Group>
+                <Form.Label>Email</Form.Label>
+                <Form.Control value={username} onChange={(e) => setUsername(e.target.value)} />
+              </Form.Group>
+              <Form.Group>
+                <Form.Label>{t('password')}</Form.Label>
+                <Form.Control
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </Form.Group>
+              <Form.Group>
+                <Button type="submit">{t('login')}</Button>{' '}
+                <Button variant="light" onClick={handleSignup}>
+                  {t('signup')}
+                </Button>
+              </Form.Group>
+            </Form>
+          </>
+        )}
       </div>
     )
   }
