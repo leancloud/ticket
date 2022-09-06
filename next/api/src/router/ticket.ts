@@ -8,10 +8,12 @@ import { auth, customerServiceOnly, include, parseRange, sort } from '@/middlewa
 import { Model, QueryBuilder } from '@/orm';
 import { Category } from '@/model/Category';
 import { Group } from '@/model/Group';
+import { OpsLogCreator } from '@/model/OpsLog';
 import { Organization } from '@/model/Organization';
 import { Reply } from '@/model/Reply';
 import { Tag } from '@/model/Tag';
 import { Ticket } from '@/model/Ticket';
+import { TicketFieldValue } from '@/model/TicketFieldValue';
 import { User } from '@/model/User';
 import { TicketResponse, TicketListItemResponse } from '@/response/ticket';
 import { ReplyResponse } from '@/response/reply';
@@ -654,6 +656,43 @@ router.post('/:id/operate', async (ctx) => {
   const { action } = operateSchema.validateSync(ctx.request.body);
   await ticket.operate(action as any, currentUser);
   ctx.body = {};
+});
+
+const setCustomFieldsSchema = yup.array(customFieldSchema.required()).required();
+
+router.put('/:id/custom-fields', async (ctx) => {
+  const currentUser = ctx.state.currentUser as User;
+  const ticket = ctx.state.ticket as Ticket;
+  const values = setCustomFieldsSchema.validateSync(ctx.request.body);
+  const opsLogCreator = new OpsLogCreator(ticket);
+
+  const ticketFieldValue = await TicketFieldValue.queryBuilder()
+    .where('ticket', '==', ticket.toPointer())
+    .first({ useMasterKey: true });
+
+  if (ticketFieldValue) {
+    opsLogCreator.changeFields(ticketFieldValue.values, values, currentUser);
+    await ticketFieldValue.update({ values }, { useMasterKey: true });
+    await opsLogCreator.create();
+  } else {
+    opsLogCreator.changeFields([], values, currentUser);
+    await TicketFieldValue.create({
+      ACL: {},
+      ticketId: ticket.id,
+      values,
+    });
+    await opsLogCreator.create();
+  }
+
+  ctx.body = {};
+});
+
+router.get('/:id/custom-fields', async (ctx) => {
+  const ticket = ctx.state.ticket as Ticket;
+  const ticketFieldValue = await TicketFieldValue.queryBuilder()
+    .where('ticket', '==', ticket.toPointer())
+    .first({ useMasterKey: true });
+  ctx.body = ticketFieldValue ? ticketFieldValue.values : [];
 });
 
 const searchCustomFieldSchema = yup.object({

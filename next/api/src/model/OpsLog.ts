@@ -1,8 +1,10 @@
+import _ from 'lodash';
 import { ACLBuilder, CreateData, Model, RawACL, field, pointerId, pointTo } from '@/orm';
 import { Category } from './Category';
 import { Group } from './Group';
 import { Ticket } from './Ticket';
 import { User } from './User';
+import { FieldValue } from './TicketFieldValue';
 
 export const actions = ['replyWithNoContent', 'replySoon', 'resolve', 'close', 'reopen'] as const;
 export type OperateAction = typeof actions[number];
@@ -110,6 +112,30 @@ export class OpsLogCreator {
       },
     });
     return this;
+  }
+
+  changeFields(from: FieldValue[], to: FieldValue[], operator: User) {
+    const prevValueByFieldId = _.keyBy(from, (v) => v.field);
+    const changes: { fieldId: string; from: unknown; to: unknown }[] = [];
+
+    to.forEach(({ field, value }) => {
+      const prevValue = prevValueByFieldId[field];
+      if (!_.isEqual(prevValue, value)) {
+        changes.push({ fieldId: field, from: prevValue, to: value });
+      }
+    });
+
+    if (changes.length) {
+      this.datas.push({
+        ACL: this.publicACL,
+        ticketId: this.ticket.id,
+        action: 'changeFields',
+        data: {
+          changes,
+          operator: operator.getTinyInfo(),
+        },
+      });
+    }
   }
 
   async create() {
