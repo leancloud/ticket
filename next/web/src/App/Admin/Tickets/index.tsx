@@ -55,7 +55,7 @@ function TicketListView() {
   const [layout, setLayout] = useLayout();
   const [localFilters, setLocalFilters] = useLocalFilters();
 
-  const { data: tickets, totalCount, isLoading, isFetching } = useSmartSearchTickets({
+  const { data: tickets, totalCount, isFetching } = useSmartSearchTickets({
     page,
     pageSize,
     orderKey,
@@ -108,7 +108,7 @@ function TicketListView() {
         pageSize={pageSize}
         count={tickets?.length}
         totalCount={totalCount}
-        isLoading={isLoading || isFetching}
+        isLoading={isFetching}
         checkedTicketIds={checkedIds}
         onCheckedChange={handleCheckAll}
         layout={layout}
@@ -116,20 +116,15 @@ function TicketListView() {
       />
 
       <div className="flex grow overflow-hidden">
-        <div className="flex grow flex-col p-[10px]  overflow-auto">
+        <div className="flex grow flex-col p-[10px] overflow-auto">
           {showStatsPanel && <StatsPanel />}
-          <div className="flex grow flex-col gap-2">
-            {isLoading && 'Loading...'}
-            {tickets && tickets.length === 0 && 'No data'}
-            {tickets && tickets.length > 0 && (
-              <TicketView
-                layout={layout}
-                tickets={tickets}
-                checkedIds={checkedIds}
-                onChangeChecked={handleCheckTicket}
-              />
-            )}
-          </div>
+          <TicketView
+            layout={layout}
+            loading={isFetching}
+            tickets={tickets}
+            checkedIds={checkedIds}
+            onChangeChecked={handleCheckTicket}
+          />
         </div>
         {showFilterForm && (
           <FilterForm className="shrink-0" filters={localFilters} onChange={setLocalFilters} />

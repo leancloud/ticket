@@ -37,7 +37,6 @@ function TicketFormActions({ form }: { form: TicketFormSchema }) {
       title: '该操作不可恢复',
       okText: '删除',
       okButtonProps: { danger: true },
-      cancelText: '取消',
       maskClosable: true,
       onOk: () => mutate(form.id),
     });

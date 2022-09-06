@@ -51,7 +51,7 @@ export function CreatedAtSelect({ value, onChange }: CreatedAtSelectProps) {
         return;
       }
       const [starts, ends] = range;
-      onChange(`${starts.startOf('day').toISOString()}..${ends.endOf('day').toISOString()}`);
+      onChange(`${starts.toISOString()}..${ends.toISOString()}`);
     },
     [onChange]
   );
@@ -72,6 +72,9 @@ export function CreatedAtSelect({ value, onChange }: CreatedAtSelectProps) {
             className="w-full"
             value={rangeValue as any}
             onChange={handleChangeRange as any}
+            showTime={{
+              defaultValue: [moment('00:00:00', 'HH:mm:ss'), moment('23:59:59', 'HH:mm:ss')],
+            }}
           />
         </div>
       )}
