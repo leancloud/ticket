@@ -258,3 +258,23 @@ export function useSearchTicketCustomField(
     ...options,
   });
 }
+type exportType = 'json' | 'csv';
+interface ExportParams extends FetchTicketsOptions {
+  type: exportType;
+}
+async function exportTickets({ type, orderKey, orderType, filters = {} }: ExportParams) {
+  const params = {
+    ...encodeTicketFilters(filters),
+    orderBy: `${orderKey}-${orderType}`,
+    type,
+  };
+  await http.get('/api/2/tickets/export', { params });
+  return;
+}
+
+export function useExportTickets(options?: UseMutationOptions<void, Error, ExportParams>) {
+  return useMutation({
+    mutationFn: (params: ExportParams) => exportTickets(params),
+    ...options,
+  });
+}

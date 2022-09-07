@@ -6,6 +6,7 @@ import {
   HiChevronRight,
   HiOutlineChartPie,
   HiOutlineRefresh,
+  HiOutlineDownload,
 } from 'react-icons/hi';
 import { useQueryClient } from 'react-query';
 import cx from 'classnames';
@@ -20,6 +21,7 @@ import { BatchUpdateData, BatchUpdateError, batchUpdate } from './batchUpdate';
 import { SortDropdown } from './SortDropdown';
 import { Layout, LayoutDropdown } from './LayoutDropdown';
 import { useLocalFilters } from '../Filter';
+import { Exporter } from './Exporter';
 
 export { useOrderBy } from './SortDropdown';
 
@@ -248,6 +250,17 @@ export function Topbar({
           <HiOutlineChartPie className="w-4 h-4" />
         </NavButton>
       </Tooltip>
+
+      <Exporter
+        trigger={
+          <NavButton
+            className="ml-2 px-[7px] py-[7px]"
+            disabled={totalCount === 0 || !!localFilters.keyword}
+          >
+            <HiOutlineDownload className="w-4 h-4" />
+          </NavButton>
+        }
+      />
 
       <NavButton
         className="ml-2 px-[7px] py-[7px]"
