@@ -3,7 +3,6 @@ import { format } from 'date-fns';
 import { Category } from '@/model/Category';
 import { User } from '@/model/User';
 import { UserSearchResult } from '@/response/user';
-import { TicketResponse } from '@/response/ticket';
 import { Group } from '@/model/Group';
 import { GroupResponse } from '@/response/group';
 import { Reply } from '@/model/Reply';
@@ -104,20 +103,18 @@ const createTicketQuery = async (params: FilterOptions, sortItems?: SortItem[]) 
   return query;
 };
 
-const getCategory = async (id: string, authOptions?: AuthOptions) => {
-  const category = await Category.find(id, authOptions);
-  if (!category) {
-    return { id };
-  }
-  const { name, description, meta, deletedAt, formId } = category;
-  return {
-    id,
-    active: !deletedAt,
-    name,
-    description,
-    meta,
-    formId,
-  };
+const getCategories = async (authOptions?: AuthOptions) => {
+  const categories = await Category.query().find(authOptions);
+  return _(categories)
+    .map(({ id, name, description, meta, formId }) => ({
+      id,
+      name,
+      description,
+      meta,
+      formId,
+    }))
+    .keyBy('id')
+    .valueOf();
 };
 
 const getCustomerServices = async () => {
@@ -136,87 +133,105 @@ const getGroups = async (authOptions?: AuthOptions) => {
     .valueOf();
 };
 
-const getReplies = async (ticketId: string, authOptions?: AuthOptions) => {
-  const query = Reply.queryBuilder().where('ticket', '==', Ticket.ptr(ticketId));
-  query.limit(100);
+const getReplies = async (ticketIds: string[], authOptions?: AuthOptions) => {
+  const query = Reply.queryBuilder().where(
+    'ticket',
+    'in',
+    ticketIds.map((id) => Ticket.ptr(id))
+  );
   const replies = await query.find(authOptions);
-  return replies.map((reply) => {
-    const { id, content, authorId, isCustomerService, createdAt } = reply;
-    return { id, content, authorId, isCustomerService, createdAt: createdAt.toISOString() };
-  });
+  return _(replies)
+    .map((reply) => {
+      return {
+        id: reply.id,
+        ticketId: reply.ticketId,
+        content: reply.content,
+        authorId: reply.authorId,
+        isCustomerService: reply.isCustomerService,
+        createdAt: reply.createdAt.toISOString(),
+      };
+    })
+    .groupBy('ticketId')
+    .valueOf();
 };
 
-const getCustomFormFieldsFun = (authOptions?: AuthOptions) => {
-  const formCacheMap = new Map<string, string[]>();
+const getCustomFormFieldsFunc = (authOptions?: AuthOptions) => {
+  const formCacheMap = new Map<
+    string,
+    {
+      title?: string;
+      fieldIds?: string[];
+    }
+  >();
   const formFieldCacheMap = new Map<string, string | undefined>();
-  const getFormFieldIds = async (fromId: string) => {
-    const cacheForm = formCacheMap.get(fromId);
-    if (cacheForm) {
-      return cacheForm;
+  return async (fromIds: string[]) => {
+    const filterFromIds = fromIds.filter((id) => !formCacheMap.has(id));
+    if (filterFromIds.length > 0) {
+      const forms = await TicketForm.query()
+        .where('objectId', 'in', filterFromIds)
+        .find(authOptions);
+      const formMap = _.keyBy(forms, 'id');
+      filterFromIds.forEach((id) => {
+        const form = formMap[id];
+        formCacheMap.set(id, {
+          title: form?.title,
+          fieldIds: form?.fieldIds,
+        });
+      });
     }
-    const form = await TicketForm.find(fromId, authOptions);
-    if (!form) {
-      return;
-    }
-    const { fieldIds } = form;
-    formCacheMap.set(fromId, fieldIds);
-    return fieldIds;
-  };
-
-  const getFormFields = async (fieldIds: string[]) => {
-    const reqIds = fieldIds.filter((id) => !formFieldCacheMap.get(id));
-    if (reqIds.length > 0) {
+    const fieldIds = _(fromIds)
+      .map((id) => formCacheMap.get(id)?.fieldIds)
+      .filter((v) => v !== undefined && v.length > 0)
+      .flatten()
+      .uniq()
+      .valueOf();
+    const filterFieldIds = (fieldIds as string[]).filter((id) => !formFieldCacheMap.has(id));
+    if (filterFieldIds.length > 0) {
       const fields = await TicketField.queryBuilder()
-        .where('objectId', 'in', fieldIds)
+        .where('objectId', 'in', filterFieldIds)
         .find({ useMasterKey: true });
       fields.forEach((field) => {
         formFieldCacheMap.set(field.id, field.title);
       });
     }
-    return fieldIds.map((id) => ({
-      id,
-      title: formFieldCacheMap.get(id),
-    }));
-  };
-
-  return async (fromId?: string) => {
-    if (!fromId) {
-      return;
-    }
-    const ids = await getFormFieldIds(fromId);
-    if (!ids || ids.length === 0) {
-      return;
-    }
-    return getFormFields(ids.filter((id) => id !== 'title'));
+    return {
+      formCacheMap,
+      formFieldCacheMap,
+    };
   };
 };
 
-const getCustomFormValues = async (
-  ticketId: string,
-  authOptions?: AuthOptions
-): Promise<Record<string, any>> => {
+const getCustomFormValues = async (ticketIds: string[], authOptions?: AuthOptions) => {
   const results = await TicketFieldValue.queryBuilder()
-    .where('ticket', '==', Ticket.ptr(ticketId))
+    .where(
+      'ticket',
+      'in',
+      ticketIds.map((id) => Ticket.ptr(id))
+    )
     .find(authOptions);
   return _(results)
-    .map((data) => data.values)
-    .flatten()
-    .keyBy('field')
-    .mapValues('value')
+    .map((data) => {
+      return {
+        ticketId: data.ticketId,
+        values: data.values || [],
+      };
+    })
+    .keyBy('ticketId')
     .valueOf();
 };
 
 const authOptions = { useMasterKey: true };
-const limit = 100;
+const limit = 20;
 export default async function exportTicket({ params, sortItems, date }: JobData) {
   const { type: fileType, ...rest } = params;
   const fileName = `ticket_${format(new Date(date), 'yyMMdd_HHmmss')}.${fileType || 'json'}`;
   const exportFileManager = new ExportFileManager(fileName);
   const query = await createTicketQuery(rest, sortItems);
   const count = await query.count(authOptions);
-  const getCustomFormFields = getCustomFormFieldsFun(authOptions);
-  const customerServices = await getCustomerServices();
-  const groups = await getGroups(authOptions);
+  const categoryMap = await getCategories();
+  const customerServiceMap = await getCustomerServices();
+  const groupMap = await getGroups(authOptions);
+  const getCustomFormFields = getCustomFormFieldsFunc(authOptions);
 
   for (let index = 0; index < count; index += limit) {
     const tickets = await query
@@ -224,50 +239,98 @@ export default async function exportTicket({ params, sortItems, date }: JobData)
       .limit(limit)
       .skip(index)
       .find(authOptions);
+    const ticketIds = tickets.map((ticket) => ticket.id);
+    const replyMap = await getReplies(ticketIds, authOptions);
+    const formIds = tickets
+      .map((ticket) =>
+        categoryMap[ticket.categoryId] ? categoryMap[ticket.categoryId].formId : undefined
+      )
+      .filter((id) => id !== undefined);
+    const { formCacheMap, formFieldCacheMap } = await getCustomFormFields(formIds as string[]);
+    const formValuesMap = await getCustomFormValues(ticketIds, authOptions);
     for (let ticketIndex = 0; ticketIndex < tickets.length; ticketIndex++) {
       const ticket = tickets[ticketIndex];
-      const ticketResponse = new TicketResponse(ticket).toJSON();
-      const {
-        assigneeId,
-        assignee,
-        authorId,
-        author,
-        categoryId,
-        categoryPath,
-        groupId,
-        group,
-        files,
-        contentSafeHTML,
-        ...rest
-      } = ticketResponse;
-      const category = await getCategory(categoryId, authOptions);
-      const replies = await getReplies(ticket.id, authOptions);
-      const formFields = await getCustomFormFields(category.formId);
-      const formValues = await getCustomFormValues(ticket.id, authOptions);
+      const assignee = ticket.assigneeId ? customerServiceMap[ticket.assigneeId] : undefined;
+      const author = ticket.author;
+      const category = categoryMap[ticket.categoryId];
+      const group = ticket.groupId ? groupMap[ticket.groupId] : undefined;
+      let customFrom = {};
+      if (category && category.formId) {
+        const form = formCacheMap.get(category.formId);
+        const formValues =
+          formValuesMap[ticket.id] && formValuesMap[ticket.id].values
+            ? _.keyBy(formValuesMap[ticket.id].values, 'field')
+            : {};
+
+        customFrom = {
+          title: form?.title,
+          fields: form?.fieldIds?.map((id) => {
+            return {
+              id,
+              title: formFieldCacheMap.get(id),
+              value: formValues[id]?.value,
+            };
+          }),
+        };
+      }
       const data = {
-        ...rest,
-        author: author?.toJSON(),
-        assignee: assigneeId
-          ? customerServices[assigneeId] || {
-              id: assigneeId,
-            }
-          : undefined,
-        category: _.omit(category, 'formId'),
+        id: ticket.id,
+        nid: ticket.nid,
+        title: ticket.title,
+        status: ticket.status,
+        assignee: {
+          id: assignee?.id,
+          username: assignee?.username,
+          nickname: assignee?.nickname,
+          email: assignee?.email,
+        },
+        author: {
+          id: author?.id,
+          username: author?.username,
+          nickname: author?.name,
+        },
+        category: {
+          id: category?.id,
+          name: category?.name,
+          description: category?.description,
+          meta: category?.meta,
+        },
         content: ticket.content,
-        group: groupId
-          ? groups[groupId] || {
-              id: groupId,
-            }
-          : undefined,
-        metaData: ticket.metaData,
-        replies,
-        customFields: formFields?.map((field) => ({
-          ...field,
-          value: formValues[field.id],
-        })),
+        evaluation: {
+          star: ticket.evaluation?.star,
+          content: ticket.evaluation?.content,
+        },
+        firstCustomerServiceReplyAt: ticket.firstCustomerServiceReplyAt,
+        latestCustomerServiceReplyAt: ticket.latestCustomerServiceReplyAt,
+        group: {
+          id: group?.id,
+          name: group?.name,
+          description: group?.description,
+        },
+        metaData:
+          ticket.metaData && fileType === 'csv' ? JSON.stringify(ticket.metaData) : ticket.metaData,
+        privateTags: ticket.privateTags,
+        customFrom,
+        replies: (replyMap[ticket.id] || []).map((v) => _.omit(v, 'ticketId')),
+        createdAt: ticket.createdAt,
+        updatedAt: ticket.updatedAt,
       };
       await exportFileManager.append(data);
     }
   }
-  return exportFileManager.done();
+  await exportFileManager.done();
 }
+
+function printMemoryUsage() {
+  const info = process.memoryUsage();
+  const mb = (v: number) => (v / 1024 / 1024).toFixed(2) + ' MB';
+  console.log(
+    'rss=%s,heapTotal=%s,heapUsed=%s',
+    mb(info.rss),
+    mb(info.heapTotal),
+    mb(info.heapUsed)
+  );
+}
+
+setInterval(printMemoryUsage, 1000);
+// 489.573ms

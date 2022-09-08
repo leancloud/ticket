@@ -35,7 +35,7 @@ function ExporterContent({ close }: ContentProps) {
   const { orderKey, orderType } = useOrderBy();
   const { mutate, isLoading } = useExportTickets({
     onSuccess: () => {
-      message.success('导出任务进行中，导出成功后将发送邮件进行通知，请注意查收邮件进行下载。');
+      message.success('导出任务进行中，导出成功后将发送邮件进行通知，请注意查收邮件进行下载。', 5);
       close && close();
     },
     onError: (error) => {
