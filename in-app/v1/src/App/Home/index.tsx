@@ -12,6 +12,7 @@ import { useRootCategory } from '@/App';
 import { CategoryList, useCategories } from '@/App/Categories';
 import { useNotices, ArticleLink } from '@/App/Articles/utils';
 import { keyBy } from 'lodash-es';
+import Topics from './Topics';
 
 interface TicketsLinkProps {
   badge?: boolean;
@@ -84,6 +85,8 @@ export default function Home() {
           <TicketsLink badge={hasUnreadTickets} />
         </div>
         <CategoryList marker categories={topCategories} />
+
+        <Topics />
       </PageContent>
     </QueryWrapper>
   );
