@@ -103,6 +103,13 @@ const createTicketQuery = async (params: FilterOptions, sortItems?: SortItem[]) 
   return query;
 };
 
+const formatDate = (date?: Date) => {
+  if (!date) {
+    return '';
+  }
+  return date.toISOString();
+};
+
 const getCategories = async (authOptions?: AuthOptions) => {
   const categories = await Category.query().find(authOptions);
   return _(categories)
@@ -148,7 +155,7 @@ const getReplies = async (ticketIds: string[], authOptions?: AuthOptions) => {
         content: reply.content,
         authorId: reply.authorId,
         isCustomerService: reply.isCustomerService,
-        createdAt: reply.createdAt.toISOString(),
+        createdAt: formatDate(reply.createdAt),
       };
     })
     .groupBy('ticketId')
@@ -254,14 +261,19 @@ export default async function exportTicket({ params, sortItems, date }: JobData)
       const author = ticket.author;
       const category = categoryMap[ticket.categoryId];
       const group = ticket.groupId ? groupMap[ticket.groupId] : undefined;
-      let customFrom = {};
+      let customFrom: {
+        title?: string;
+        fields?: Array<{ id: string; title?: string; value: string | string[] }>;
+      } = {
+        title: undefined,
+        fields: undefined,
+      };
       if (category && category.formId) {
         const form = formCacheMap.get(category.formId);
         const formValues =
           formValuesMap[ticket.id] && formValuesMap[ticket.id].values
             ? _.keyBy(formValuesMap[ticket.id].values, 'field')
             : {};
-
         customFrom = {
           title: form?.title,
           fields: form?.fieldIds?.map((id) => {
@@ -300,8 +312,8 @@ export default async function exportTicket({ params, sortItems, date }: JobData)
           star: ticket.evaluation?.star,
           content: ticket.evaluation?.content,
         },
-        firstCustomerServiceReplyAt: ticket.firstCustomerServiceReplyAt,
-        latestCustomerServiceReplyAt: ticket.latestCustomerServiceReplyAt,
+        firstCustomerServiceReplyAt: formatDate(ticket.firstCustomerServiceReplyAt),
+        latestCustomerServiceReplyAt: formatDate(ticket.latestCustomerServiceReplyAt),
         group: {
           id: group?.id,
           name: group?.name,
@@ -312,8 +324,8 @@ export default async function exportTicket({ params, sortItems, date }: JobData)
         privateTags: ticket.privateTags,
         customFrom,
         replies: (replyMap[ticket.id] || []).map((v) => _.omit(v, 'ticketId')),
-        createdAt: ticket.createdAt,
-        updatedAt: ticket.updatedAt,
+        createdAt: formatDate(ticket.createdAt),
+        updatedAt: formatDate(ticket.updatedAt),
       };
       await exportFileManager.append(data);
     }
