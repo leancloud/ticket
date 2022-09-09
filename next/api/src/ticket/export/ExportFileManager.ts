@@ -77,14 +77,17 @@ export class ExportFileManager {
   }
 
   async append(data: Record<string, any>) {
-    const prependHeader = this.isFirst;
+    let prependHeader = false;
+    let jsonSep = ',';
     if (this.isFirst) {
       this.prepend();
       this.isFirst = false;
+      jsonSep = '';
+      prependHeader = true;
     }
     try {
       if (this.ext === '.json') {
-        this.appendData(`${this.isFirst ? '' : ','}${JSON.stringify(data)}`);
+        this.appendData(`${jsonSep}${JSON.stringify(data)}`);
       }
       if (this.ext === '.csv') {
         const csvData = await json2csvAsync([data], {
