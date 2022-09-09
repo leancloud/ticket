@@ -320,17 +320,3 @@ export default async function exportTicket({ params, sortItems, date }: JobData)
   }
   await exportFileManager.done();
 }
-
-function printMemoryUsage() {
-  const info = process.memoryUsage();
-  const mb = (v: number) => (v / 1024 / 1024).toFixed(2) + ' MB';
-  console.log(
-    'rss=%s,heapTotal=%s,heapUsed=%s',
-    mb(info.rss),
-    mb(info.heapTotal),
-    mb(info.heapUsed)
-  );
-}
-
-setInterval(printMemoryUsage, 1000);
-// 489.573ms
