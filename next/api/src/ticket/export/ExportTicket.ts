@@ -318,5 +318,5 @@ export default async function exportTicket({ params, sortItems, date }: JobData)
       await exportFileManager.append(data);
     }
   }
-  await exportFileManager.done();
+  return exportFileManager.done();
 }

@@ -107,7 +107,7 @@ export class ExportFileManager {
       const file = new AV.File(path.parse(this.file).base, readStream);
       const res = await file.save({ useMasterKey: true });
       fs.unlink(this.file, (err) => {});
-      return res.url();
+      return res.get('url');
     } catch (error) {
       console.error('[export ticket]: upload', error);
     }
