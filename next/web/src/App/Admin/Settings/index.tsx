@@ -41,6 +41,8 @@ import { MergeUser } from './Users/MergeUser';
 import { ExportTicketTask } from './ExportTicket/Tasks';
 import { EmailNotification } from './EmailNotification';
 
+import { IDVerify } from './Others/IdVerify';
+
 const SettingRoutes = () => (
   <Routes>
     <Route path="/users">
@@ -161,6 +163,7 @@ const AdminSettingRoutes = () => (
       <Route path="tasks" element={<ExportTicketTask />} />
     </Route>
     <Route path="/evaluation" element={<EvaluationConfig />} />
+    <Route path="/id-verify" element={<IDVerify />} />
   </Routes>
 );
 
@@ -297,6 +300,10 @@ const routeGroups: MenuItem[] = [
       {
         name: '评价',
         path: 'evaluation',
+      },
+      {
+        name: '实名认证',
+        path: 'id-verify',
       },
     ],
   },
