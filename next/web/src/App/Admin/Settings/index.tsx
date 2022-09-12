@@ -37,6 +37,7 @@ import { EditSupportEmail, NewSupportEmail, SupportEmailList } from './SupportEm
 import { useCurrentUserIsAdmin } from '@/leancloud';
 import { Result } from '@/components/antd';
 import { EvaluationConfig } from './Evaluation';
+import { IDVerify } from './Others/IdVerify';
 
 const SettingRoutes = () => (
   <Routes>
@@ -137,6 +138,7 @@ const SettingRoutes = () => (
       <Route path=":id" element={<EditSupportEmail />} />
     </Route>
     <Route path="/evaluation" element={<EvaluationConfig />} />
+    <Route path="/id-verify" element={<IDVerify />} />
   </Routes>
 );
 
@@ -248,6 +250,10 @@ const routeGroups: MenuDataItem[] = [
       {
         name: '评价',
         path: 'evaluation',
+      },
+      {
+        name: '实名认证',
+        path: 'id-verify',
       },
     ],
   },
