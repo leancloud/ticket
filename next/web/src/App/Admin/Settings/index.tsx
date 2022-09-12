@@ -40,6 +40,8 @@ import { EvaluationConfig } from './Evaluation';
 import { MergeUser } from './Users/MergeUser';
 import { ExportTicketTask } from './ExportTicket/Tasks';
 
+import { IDVerify } from './Others/IdVerify';
+
 const SettingRoutes = () => (
   <Routes>
     <Route path="/users">
@@ -143,6 +145,7 @@ const SettingRoutes = () => (
       <Route path="tasks" element={<ExportTicketTask />} />
     </Route>
     <Route path="/evaluation" element={<EvaluationConfig />} />
+    <Route path="/id-verify" element={<IDVerify />} />
   </Routes>
 );
 
@@ -262,6 +265,10 @@ const routeGroups: MenuDataItem[] = [
       {
         name: '评价',
         path: 'evaluation',
+      },
+      {
+        name: '实名认证',
+        path: 'id-verify',
       },
     ],
   },
