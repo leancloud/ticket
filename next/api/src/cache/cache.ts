@@ -86,8 +86,8 @@ export class Cache {
 
     if (missedKeys.length) {
       const baseValues = await this.mgetFrom(level + 1, missedKeys);
-      const items = missedKeys.reduce<MultipleSetItem<string, string>[]>((items, key, i) => {
-        const value = baseValues[i];
+      const items = missedKeys.reduce<MultipleSetItem<string, string>[]>((items, key) => {
+        const value = baseValues[key];
         if (value !== undefined) {
           items.push({ key, value });
         }
