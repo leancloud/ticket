@@ -15,7 +15,9 @@ import Categories from './Categories';
 import Tickets from './Tickets';
 import NotFound from './NotFound';
 import Articles from './Articles';
+import TopCategories from './TopCategories';
 import { useTranslation } from 'react-i18next';
+import { AppStateProvider } from './context';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -110,7 +112,9 @@ export default function App() {
             <RootCategoryContext.Provider value={rootCategory}>
               <AuthContext.Provider value={auth}>
                 <TicketInfoContext.Provider value={ticketInfo}>
-                  <AppRoutes />
+                  <AppStateProvider>
+                    <AppRoutes />
+                  </AppStateProvider>
                 </TicketInfoContext.Provider>
               </AuthContext.Provider>
             </RootCategoryContext.Provider>
@@ -149,6 +153,7 @@ const AppRoutes = () => {
           </RequireAuth>
         }
       />
+      <Route path="/topCategories" element={<TopCategories />} />
       <Route path="/articles/*" element={<Articles />} />
       <Route path="*" element={<NotFound />} />
     </Routes>

@@ -1,5 +1,7 @@
 import { UseQueryOptions, useQuery } from 'react-query';
 
+import { useRootCategory } from '@/App';
+
 import { http } from '@/leancloud';
 
 import { Article } from '@/types';
@@ -52,13 +54,11 @@ export function useCategoryFields(
   });
 }
 
-export function useCategoryTopics(
-  categoryId?: string,
-  options?: UseQueryOptions<CategoryTopics[]>
-) {
+export function useCategoryTopics(options?: UseQueryOptions<CategoryTopics[]>) {
+  const rootId = useRootCategory();
   return useQuery({
-    queryKey: ['categoryTopic', categoryId],
-    queryFn: () => fetchCategoryTopic(categoryId),
+    queryKey: ['categoryTopic', rootId],
+    queryFn: () => fetchCategoryTopic(rootId),
     staleTime: Infinity,
     ...options,
   });
