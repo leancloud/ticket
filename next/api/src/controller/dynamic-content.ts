@@ -110,7 +110,6 @@ export class DynamicContentController {
         ACL,
         name: data.name,
         defaultLocale: data.defaultLocale,
-        defaultContent: data.content,
       },
       authOptions
     );
@@ -136,14 +135,10 @@ export class DynamicContentController {
     @Param('id', new FindModelPipe(DynamicContent)) dc: DynamicContent,
     @Body(new ZodValidationPipe(updateDynamicContentSchema)) data: UpdateDynamicContentData
   ) {
-    const updateData: Partial<DynamicContent> = {};
     const authOptions = currentUser.getAuthOptions();
-
     if (data.name && data.name !== dc.name) {
       await this.assertNoNameConflict(data.name, authOptions);
-      updateData.name = data.name;
     }
-
     if (data.defaultLocale) {
       const dcv = await DynamicContentVariant.queryBuilder()
         .where('dynamicContent', '==', dc.toPointer())
@@ -155,12 +150,8 @@ export class DynamicContentController {
       if (!dcv.active) {
         throw new HttpError(422, `variant ${dcv.locale} is inactive`);
       }
-      updateData.defaultLocale = data.defaultLocale;
-      updateData.defaultContent = dcv.content;
     }
-
-    await dc.update(updateData, authOptions);
-
+    await dc.update(data, authOptions);
     return {};
   }
 
@@ -263,13 +254,8 @@ export class DynamicContentController {
   ) {
     const authOptions = currentUser.getAuthOptions();
     const variant = await this.findVariantOrFail(dc.id, vid, authOptions);
-    if (variant.locale === dc.defaultLocale) {
-      if (data.active === false) {
-        throw new HttpError(400, 'cannot inactive default variant');
-      }
-      if (data.content !== undefined) {
-        await dc.update({ defaultContent: data.content }, authOptions);
-      }
+    if (data.active === false && variant.locale === dc.defaultLocale) {
+      throw new HttpError(400, 'cannot inactive default variant');
     }
     await variant.update(data, authOptions);
     return {};

@@ -8,9 +8,6 @@ export class DynamicContent extends Model {
   @field()
   defaultLocale!: string;
 
-  @field()
-  defaultContent!: string;
-
   @hasManyThroughPointer(() => DynamicContentVariant)
   variants?: DynamicContentVariant[];
 }
