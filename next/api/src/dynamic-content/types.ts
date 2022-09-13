@@ -1,6 +1,5 @@
-export interface LiteVariant {
-  dcId: string;
+export interface FullContent {
   name: string;
-  locale: string;
-  value: string;
+  defaultLocale: string;
+  contentByLocale: Record<string, string>;
 }

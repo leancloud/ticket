@@ -7,7 +7,10 @@ declare module 'koa' {
 }
 
 export const localeMiddleware: Middleware = (ctx, next) => {
-  ctx.locales = getLocalesFromQuery(ctx) || getLocalesFromHeader(ctx);
+  const locales = getLocalesFromQuery(ctx) || getLocalesFromHeader(ctx);
+  if (locales) {
+    ctx.locales = withFallbackLocale(locales);
+  }
   return next();
 };
 
@@ -35,4 +38,16 @@ function getLocalesFromHeader(ctx: Context) {
     pairs.sort((a, b) => b[1] - a[1]);
     return pairs.map((p) => p[0].toLowerCase());
   }
+}
+
+function withFallbackLocale(locales: string[]): string[] {
+  const newLocales: string[] = [];
+  locales.forEach((locale) => {
+    newLocales.push(locale);
+    const dashIndex = locale.indexOf('-');
+    if (dashIndex !== -1) {
+      newLocales.push(locale.slice(0, dashIndex));
+    }
+  });
+  return newLocales;
 }

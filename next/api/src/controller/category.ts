@@ -73,7 +73,7 @@ export class CategoryController {
     @Query('active', new ParseBoolPipe({ keepUndefined: true })) active: boolean | undefined
   ) {
     const categories = await categoryService.find({ active });
-    await categoryService.renderCategories(categories, ctx.locales?.[0]);
+    await categoryService.renderCategories(categories, ctx.locales);
     return categories;
   }
 
@@ -122,7 +122,7 @@ export class CategoryController {
   @UseMiddlewares(auth, customerServiceOnly)
   @ResponseBody(CategoryResponse)
   async findOne(@Ctx() ctx: Context, @Param('id', FindCategoryPipe) category: Category) {
-    await categoryService.renderCategories([category], ctx.locales?.[0]);
+    await categoryService.renderCategories([category], ctx.locales);
     return category;
   }
 

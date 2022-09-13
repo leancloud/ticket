@@ -60,7 +60,7 @@ export class CategoryService {
     return category;
   }
 
-  async renderCategories(categories: Category[], locale?: string) {
+  async renderCategories(categories: Category[], locales?: string[]) {
     if (categories.length === 0) {
       return;
     }
@@ -78,7 +78,7 @@ export class CategoryService {
     });
 
     const renderer = new AsyncDeepRenderer(templates, {
-      dc: (names) => dynamicContentService.getLiteVariants(names, locale),
+      dc: (names) => dynamicContentService.getContentMap(names, locales),
     });
 
     await renderer.render();

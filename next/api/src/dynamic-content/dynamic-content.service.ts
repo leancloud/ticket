@@ -1,109 +1,108 @@
 import _ from 'lodash';
 import { Cache, LRUCacheStore, RedisStore } from '@/cache';
+import { AsyncDeepRenderer, StringTemplate } from '@/common/template';
 import { DynamicContent } from '@/model/DynamicContent';
 import { DynamicContentVariant } from '@/model/DynamicContentVariant';
-import { LiteVariant } from './types';
-import { AsyncDeepRenderer, StringTemplate } from '@/common/template';
+import { FullContent } from './types';
 
 class DynamicContentService {
-  private variantCache: Cache;
+  private fullContentCache: Cache;
 
   constructor() {
-    const lruCacheStore = new LRUCacheStore({
-      max: 1000,
-      ttl: 1000 * 60, // 1 min
-    });
-    const redisStore = new RedisStore({
-      prefix: 'cache:dc',
-      ttl: 60 * 5, // 5 mins
-    });
-    this.variantCache = new Cache([lruCacheStore, redisStore]);
+    this.fullContentCache = new Cache([
+      new LRUCacheStore({ max: 1000, ttl: 1000 * 60 }),
+      new RedisStore({ prefix: 'cache:dc', ttl: 60 * 5 }),
+    ]);
   }
 
-  async render(content: string, locale?: string) {
+  async render(content: string, locales?: string[]) {
     const template = new StringTemplate(content);
     const renderer = new AsyncDeepRenderer([template], {
-      dc: (names) => this.getLiteVariants(names, locale),
+      dc: (names) => this.getContentMap(names, locales),
     });
     await renderer.render();
     return template.source;
   }
 
-  async getLiteVariants(names: string[], locale?: string) {
-    const cacheKeys = names.map((name) => ({ name, locale }));
-    const cachedVariants = await this.variantCache.mget<LiteVariant | null>(cacheKeys);
+  async getContentMap(names: string[], locales?: string[]) {
+    const fullContents = await this.getFullContents(names);
 
-    const values: Record<string, string> = {};
-    const missedNames: string[] = [];
+    const contentMap: Record<string, string> = {};
 
-    names.forEach((name, i) => {
-      const variant = cachedVariants[i];
-      if (variant === undefined) {
-        missedNames.push(name);
-      } else if (variant !== null) {
-        values[variant.name] = variant.value;
+    fullContents.forEach((fullContent) => {
+      let content: string | undefined;
+      if (locales) {
+        for (const locale of locales) {
+          content ??= fullContent.contentByLocale[locale];
+          if (content !== undefined) {
+            break;
+          }
+        }
       }
+      if (content === undefined) {
+        content = fullContent.contentByLocale[fullContent.defaultLocale];
+      }
+      contentMap[fullContent.name] = content;
     });
 
-    if (missedNames.length) {
-      const variants = await this.getLiteVariantsFromDB(missedNames, locale);
-      const variantByName = _.keyBy(variants, (v) => v.name);
-      const items = missedNames.map((name) => {
-        const variant = variantByName[name];
-        return {
-          key: { name, locale },
-          value: variant ?? null, // 回种空值
-        };
-      });
-      await this.variantCache.mset(items);
-      variants.forEach((v) => (values[v.name] = v.value));
-    }
-
-    return values;
+    return contentMap;
   }
 
-  async getLiteVariantsFromDB(names: string[], locale?: string) {
-    const dynamicContents = await DynamicContent.queryBuilder()
+  private async getFullContents(names: string[]) {
+    const cachedFullContents = await this.fullContentCache.mget<FullContent | null>(names);
+
+    const missedNames = names.filter((_, i) => cachedFullContents[i] === undefined);
+
+    if (missedNames.length) {
+      const fullContents = await this.getFullContentsFromDB(missedNames);
+      const fullContentByName = _.keyBy(fullContents, (c) => c.name);
+      const cacheItems = missedNames.map((name) => {
+        const fullContent = fullContentByName[name];
+        return {
+          key: name,
+          value: fullContent ?? null, // 回种空值
+        };
+      });
+      await this.fullContentCache.mset(cacheItems);
+      return _.compact(cachedFullContents).concat(fullContents);
+    }
+
+    return _.compact(cachedFullContents);
+  }
+
+  private async getFullContentsFromDB(names: string[]) {
+    const contents = await DynamicContent.queryBuilder()
       .where('name', 'in', names)
       .find({ useMasterKey: true });
 
-    if (!locale) {
-      return dynamicContents.map<LiteVariant>((dc) => ({
-        dcId: dc.id,
-        name: dc.name,
-        locale: dc.defaultLocale,
-        value: dc.defaultContent,
-      }));
-    }
-
-    const dcPointers = dynamicContents.map((dc) => dc.toPointer());
-
+    const contentPointers = contents.map((c) => c.toPointer());
     const variants = await DynamicContentVariant.queryBuilder()
-      .where('dynamicContent', 'in', dcPointers)
-      .where('locale', '==', locale)
+      .where('dynamicContent', 'in', contentPointers)
       .where('active', '==', true)
       .find({ useMasterKey: true });
 
-    const variantByDcId = _.keyBy(variants, (v) => v.dynamicContentId);
+    const contentByName = _.keyBy(contents, (c) => c.name);
+    const variantsByContentId = _.groupBy(variants, (v) => v.dynamicContentId);
 
-    return dynamicContents.map<LiteVariant>((dc) => {
-      const variant = variantByDcId[dc.id];
-      if (variant) {
-        return {
-          dcId: dc.id,
-          name: dc.name,
-          locale: variant.locale,
-          value: variant.content,
-        };
-      } else {
-        return {
-          dcId: dc.id,
-          name: dc.name,
-          locale: dc.defaultLocale,
-          value: dc.defaultContent,
-        };
+    const fullContents: FullContent[] = [];
+
+    names.forEach((name) => {
+      const content = contentByName[name];
+      if (content) {
+        const variants = variantsByContentId[content.id];
+        const contentByLocale = variants.reduce<Record<string, string>>((map, variant) => {
+          map[variant.locale] = variant.content;
+          return map;
+        }, {});
+        fullContents.push({
+          name,
+          defaultLocale: content.defaultLocale,
+          contentByLocale,
+        });
       }
     });
+
+    return fullContents;
   }
 }
 
