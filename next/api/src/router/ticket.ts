@@ -13,6 +13,7 @@ import { Organization } from '@/model/Organization';
 import { Reply } from '@/model/Reply';
 import { Tag } from '@/model/Tag';
 import { Ticket } from '@/model/Ticket';
+import { TicketField } from '@/model/TicketField';
 import { TicketFieldValue } from '@/model/TicketFieldValue';
 import { User } from '@/model/User';
 import { TicketResponse, TicketListItemResponse } from '@/response/ticket';
@@ -692,7 +693,45 @@ router.get('/:id/custom-fields', async (ctx) => {
   const ticketFieldValue = await TicketFieldValue.queryBuilder()
     .where('ticket', '==', ticket.toPointer())
     .first({ useMasterKey: true });
-  ctx.body = ticketFieldValue ? ticketFieldValue.values : [];
+
+  if (!ticketFieldValue) {
+    ctx.body = [];
+    return;
+  }
+
+  const values = ticketFieldValue.values;
+
+  const fieldIds = values.map((v) => v.field);
+  const fileFields = await TicketField.queryBuilder()
+    .where('objectId', 'in', fieldIds)
+    .where('type', '==', 'file')
+    .find({ useMasterKey: true });
+
+  const fieldValueByFieldId = _.keyBy(values, (v) => v.field);
+  const fileIds = fileFields
+    .map((field) => fieldValueByFieldId[field.id])
+    .map((v) => v.value as string[])
+    .flat();
+  const files = await new AV.Query('_File')
+    .containedIn('objectId', fileIds)
+    .find({ useMasterKey: true });
+  const fileById = _.keyBy(files, (f) => f.id!);
+
+  fileFields.forEach((field) => {
+    const fieldValue = fieldValueByFieldId[field.id];
+    const files = (fieldValue.value as string[])
+      .map((id) => fileById[id])
+      .filter((file) => file !== undefined)
+      .map((file) => ({
+        id: file.id,
+        name: file.get('name'),
+        mime: file.get('mime_type'),
+        url: file.get('url'),
+      }));
+    (fieldValue as any).files = files;
+  });
+
+  ctx.body = values;
 });
 
 const searchCustomFieldSchema = yup.object({
