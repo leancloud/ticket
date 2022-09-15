@@ -31,10 +31,13 @@ class MailgunClient {
 
   constructor(private key: string, private domain: string) {
     this.client = mailgun.client({ username: 'api', key });
-    notification.on('newTicket', this.sendNewTicket);
-    notification.on('replyTicket', this.sendReplyTicket);
-    notification.on('changeAssignee', this.sendChangeAssignee);
-    notification.on('delayNotify', this.sendDelayNotify);
+    const enabled = Boolean(process.env.NOTIFICATION_MAIL_TICKET_ENABLED);
+    if (enabled) {
+      notification.on('newTicket', this.sendNewTicket);
+      notification.on('replyTicket', this.sendReplyTicket);
+      notification.on('changeAssignee', this.sendChangeAssignee);
+      notification.on('delayNotify', this.sendDelayNotify);
+    }
     notification.on('ticketExported', this.sendTicketExported);
   }
 
