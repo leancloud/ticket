@@ -19,7 +19,7 @@ import { User } from '@/model/User';
 import { TicketResponse, TicketListItemResponse } from '@/response/ticket';
 import { ReplyResponse } from '@/response/reply';
 import { Vacation } from '@/model/Vacation';
-import { TicketCreator, TicketUpdater } from '@/ticket';
+import { TicketCreator, TicketUpdater, createTicketExportJob } from '@/ticket';
 import { CategoryService } from '@/service/category';
 
 const router = new Router().use(auth);
@@ -299,6 +299,30 @@ router.get(
 
     ctx.set('X-Total-Count', searchQuery.hits().toString());
     ctx.body = tickets.map((t) => new TicketListItemResponse(t));
+  }
+);
+
+const exportTicketParamsSchema = ticketFiltersSchema.shape({
+  type: yup.string().oneOf(['json', 'csv']).required(),
+});
+router.get(
+  '/export',
+  customerServiceOnly,
+  sort('orderBy', ['status', 'createdAt', 'updatedAt']),
+  parseRange('createdAt'),
+  async (ctx) => {
+    const currentUser = ctx.state.currentUser as User;
+    if (!currentUser.email) {
+      throw new Error('Email is not set');
+    }
+    const { page, pageSize, ...rest } = exportTicketParamsSchema.validateSync(ctx.query);
+    const sortItems = sort.get(ctx);
+    createTicketExportJob({
+      userId: currentUser.id,
+      params: rest,
+      sortItems,
+    });
+    ctx.body = {};
   }
 );
 
