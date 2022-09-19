@@ -31,7 +31,7 @@ class MailgunClient {
 
   constructor(private key: string, private domain: string) {
     this.client = mailgun.client({ username: 'api', key });
-    const enabled = Boolean(process.env.NOTIFICATION_MAIL_TICKET_ENABLED);
+    const enabled = process.env.NOTIFICATION_MAIL_TICKET_ENABLED === 'true';
     if (enabled) {
       notification.on('newTicket', this.sendNewTicket);
       notification.on('replyTicket', this.sendReplyTicket);
