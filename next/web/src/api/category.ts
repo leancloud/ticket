@@ -60,20 +60,33 @@ export interface CategoryFieldStatsSchema {
   }[];
 }
 
-const fetchCategoryFieldStats = async (id: string): Promise<CategoryFieldStatsSchema[]> => {
-  const { data } = await http.get<CategoryFieldStatsSchema[]>(`/api/2/categories/count/${id}`);
+export interface FetchCategoryFieldStatsOptions {
+  from: Date;
+  to: Date;
+  id: string;
+}
+
+const fetchCategoryFieldStats = async ({
+  id,
+  ...restOptions
+}: FetchCategoryFieldStatsOptions): Promise<CategoryFieldStatsSchema[]> => {
+  const { data } = await http.get<CategoryFieldStatsSchema[]>(`/api/2/categories/count/${id}`, {
+    params: restOptions,
+  });
   return data;
 };
 
-export interface UseCategoryFieldStatsOptions {
-  id: string;
+export interface UseCategoryFieldStatsOptions extends FetchCategoryFieldStatsOptions {
   queryOptions?: UseQueryOptions<CategoryFieldStatsSchema[], Error>;
 }
 
-export const useCategoryFieldStats = ({ id, queryOptions }: UseCategoryFieldStatsOptions) => {
+export const useCategoryFieldStats = ({
+  queryOptions,
+  ...restOptions
+}: UseCategoryFieldStatsOptions) => {
   return useQuery({
-    queryKey: ['categoryFieldStats', id],
-    queryFn: () => fetchCategoryFieldStats(id),
+    queryKey: ['categoryFieldStats', restOptions],
+    queryFn: () => fetchCategoryFieldStats(restOptions),
     ...queryOptions,
   });
 };

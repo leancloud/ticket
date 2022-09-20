@@ -1,10 +1,11 @@
 import { useParams, Link } from 'react-router-dom';
+import { Table, Breadcrumb, Tooltip, DatePicker } from 'antd';
 
 import { CategoryFieldStatsSchema, useCategoryFieldStats } from '@/api/category';
-import { Table, Breadcrumb, Tooltip } from 'antd';
 import { TicketFieldSchema } from '@/api/ticket-field';
 import { TicketFieldType } from '../TicketFields/TicketFieldType';
 import { LOCALES } from '@/i18n/locales';
+import { useRangePicker } from '../../Stats/utils';
 
 type ArrayType<T extends unknown[] | ReadonlyArray<unknown>> = T extends
   | Array<infer R>
@@ -14,7 +15,8 @@ type ArrayType<T extends unknown[] | ReadonlyArray<unknown>> = T extends
 
 export const CategoryFieldStats = () => {
   const { id } = useParams<'id'>();
-  const { data, isLoading } = useCategoryFieldStats({ id: id as string });
+  const [range, rangePickerOptions] = useRangePicker();
+  const { data, isLoading } = useCategoryFieldStats({ id: id as string, ...range });
 
   const sorter = (key: keyof ArrayType<CategoryFieldStatsSchema['options']>['count']) => (
     a: ArrayType<CategoryFieldStatsSchema['options']>,
@@ -23,7 +25,7 @@ export const CategoryFieldStats = () => {
 
   return (
     <div className="p-10">
-      <div className="flex flex-row justify-between">
+      <div className="flex flex-row justify-between items-end">
         <Breadcrumb style={{ marginBottom: 16 }}>
           <Breadcrumb.Item>
             <Link to="..">分类</Link>
@@ -31,7 +33,10 @@ export const CategoryFieldStats = () => {
           <Breadcrumb.Item>{id}</Breadcrumb.Item>
         </Breadcrumb>
 
-        <span style={{ color: 'rgba(0, 0, 0, 0.45)' }}>*统计数据每日凌晨一点更新</span>
+        <div className="flex flex-col items-end space-y-1 mb-1">
+          <span style={{ color: 'rgba(0, 0, 0, 0.45)' }}>*统计数据每日凌晨两点更新</span>
+          <DatePicker.RangePicker {...rangePickerOptions} />
+        </div>
       </div>
 
       <Table

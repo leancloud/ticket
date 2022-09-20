@@ -205,7 +205,11 @@ export class CategoryController {
 
   @Get('count/:id')
   @UseMiddlewares(auth, customerServiceOnly)
-  async getFieldCounts(@Param('id', FindCategoryPipe) category: Category) {
+  async getFieldCounts(
+    @Param('id', FindCategoryPipe) category: Category,
+    @Query('from') from?: string,
+    @Query('to') to?: string
+  ) {
     const optionFields = await (await category.load('form', { useMasterKey: true }))?.load(
       'fields',
       { useMasterKey: true }
@@ -258,7 +262,11 @@ export class CategoryController {
                     )}, JSONExtract(x, 'value', 'Array(String)'))
                 ),
                 v.values
-            ) AND visitParamExtractString(t.category, 'objectId') = ${escape(categoryId)}
+            )
+            AND
+            visitParamExtractString(t.category, 'objectId') = ${escape(categoryId)}
+            ${(from && `AND t.createdAt >= parseDateTimeBestEffortOrNull(${escape(from)})`) || ''}
+            ${(to && `AND t.createdAt <= parseDateTimeBestEffortOrNull(${escape(to)})`) || ''}
             GROUP BY t.status
           `;
 
