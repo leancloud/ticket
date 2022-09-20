@@ -23,12 +23,16 @@ export const CategoryFieldStats = () => {
 
   return (
     <div className="p-10">
-      <Breadcrumb style={{ marginBottom: 16 }}>
-        <Breadcrumb.Item>
-          <Link to="..">分类</Link>
-        </Breadcrumb.Item>
-        <Breadcrumb.Item>{id}</Breadcrumb.Item>
-      </Breadcrumb>
+      <div className="flex flex-row justify-between">
+        <Breadcrumb style={{ marginBottom: 16 }}>
+          <Breadcrumb.Item>
+            <Link to="..">分类</Link>
+          </Breadcrumb.Item>
+          <Breadcrumb.Item>{id}</Breadcrumb.Item>
+        </Breadcrumb>
+
+        <span style={{ color: 'rgba(0, 0, 0, 0.45)' }}>*统计数据每日凌晨一点更新</span>
+      </div>
 
       <Table
         loading={isLoading}
