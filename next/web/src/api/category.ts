@@ -3,6 +3,7 @@ import { UseQueryOptions, useQuery, UseMutationOptions, useMutation } from 'reac
 import { groupBy } from 'lodash-es';
 
 import { http } from '@/leancloud';
+import { TicketFieldSchema } from './ticket-field';
 
 export interface CategorySchema {
   id: string;
@@ -42,6 +43,40 @@ export function useCategories({ active, queryOptions }: UseCategoriesOptions = {
     ...queryOptions,
   });
 }
+
+export interface CategoryFieldStatsSchema {
+  title: string;
+  id: string;
+  type: TicketFieldSchema['type'];
+  options: {
+    title: string;
+    displayLocale: string;
+    value: string;
+    count: {
+      open: number;
+      close: number;
+      total: number;
+    };
+  }[];
+}
+
+const fetchCategoryFieldStats = async (id: string): Promise<CategoryFieldStatsSchema[]> => {
+  const { data } = await http.get<CategoryFieldStatsSchema[]>(`/api/2/categories/count/${id}`);
+  return data;
+};
+
+export interface UseCategoryFieldStatsOptions {
+  id: string;
+  queryOptions?: UseQueryOptions<CategoryFieldStatsSchema[], Error>;
+}
+
+export const useCategoryFieldStats = ({ id, queryOptions }: UseCategoryFieldStatsOptions) => {
+  return useQuery({
+    queryKey: ['categoryFieldStats', id],
+    queryFn: () => fetchCategoryFieldStats(id),
+    ...queryOptions,
+  });
+};
 
 export type CategoryTreeNode<T = {}> = {
   parent?: CategoryTreeNode<T>;
