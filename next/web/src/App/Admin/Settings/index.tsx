@@ -23,6 +23,7 @@ import TimeTriggerDetail from './Automations/TimeTriggers/Detail';
 import { ArticleRevisionDetail, ArticleRevisions } from './Articles/Revision';
 import { Weekday } from './Others';
 import { NewTopic, TopicDetail, TopicList } from './Topics';
+import { CategoryFieldStats } from './Categories/CategoryFieldStats';
 
 const SettingRoutes = () => (
   <Routes>
@@ -36,6 +37,7 @@ const SettingRoutes = () => (
     <Route path="/categories">
       <Route index element={<CategoryList />} />
       <Route path="new" element={<NewCategory />} />
+      <Route path="count/:id" element={<CategoryFieldStats />} />
       <Route path=":id" element={<CategoryDetail />} />
     </Route>
     <Route path="/tags">
