@@ -1,5 +1,7 @@
 import { Context } from 'koa';
 import { z } from 'zod';
+import axios from 'axios';
+import { escape } from 'sqlstring';
 
 import {
   Body,
@@ -7,6 +9,7 @@ import {
   Ctx,
   CurrentUser,
   Get,
+  InternalServerError,
   Param,
   Patch,
   Post,
@@ -22,11 +25,13 @@ import { Category } from '@/model/Category';
 import { TicketForm } from '@/model/TicketForm';
 import { User } from '@/model/User';
 import { ArticleAbstractResponse } from '@/response/article';
-import { CategoryResponse } from '@/response/category';
+import { CategoryFieldStatsResponse, CategoryResponse } from '@/response/category';
 import { CategoryFieldResponse } from '@/response/ticket-field';
 import { ArticleTopicFullResponse } from '@/response/article-topic';
 import { getTopic } from '@/model/ArticleTopic';
 import _ from 'lodash';
+import { OPTION_TYPES } from '@/model/TicketField';
+import { Status } from '@/model/Ticket';
 import { FindCategoryPipe, categoryService } from '@/category';
 
 const createCategorySchema = z.object({
@@ -196,6 +201,121 @@ export class CategoryController {
     @Query('active', new ParseBoolPipe({ keepUndefined: true })) active?: boolean
   ) {
     return await categoryService.getSubCategories(category.id, active);
+  }
+
+  @Get('count/:id')
+  @UseMiddlewares(auth, customerServiceOnly)
+  async getFieldCounts(@Param('id', FindCategoryPipe) category: Category) {
+    const optionFields = await (await category.load('form', { useMasterKey: true }))?.load(
+      'fields',
+      { useMasterKey: true }
+    );
+
+    if (!optionFields) {
+      return [];
+    }
+
+    const skipSerialize = Symbol('skipSerialize');
+
+    return (
+      await Promise.allSettled(
+        optionFields.map(async (optionField) => {
+          const variants = await optionField.load('variants', { useMasterKey: true });
+
+          // skip process if variant is not option type or doesn't exist
+          if (!variants || !OPTION_TYPES.includes(optionField.type)) {
+            return Promise.reject(skipSerialize);
+          }
+
+          const fieldValues = [
+            ...variants.reduce<Map<string, [string, string]>>((pre, variant) => {
+              variant.options?.forEach((option) => {
+                // TODO: use `getPreferedLocale` instead?
+                if (pre.has(option.value)) {
+                  if (variant.locale === optionField.defaultLocale) {
+                    pre.set(option.value, [option.title, variant.locale]);
+                  }
+                  return;
+                }
+                pre.set(option.value, [option.title, variant.locale]);
+              });
+              return pre;
+            }, new Map()),
+          ];
+
+          const getSql = (fieldId: string, fieldValue: string, categoryId: string) => `
+            SELECT count(t.objectId) AS count, t.status
+            FROM Ticket AS t
+            LEFT JOIN TicketFieldValue AS v
+            ON t.objectId = v.\`ticket.objectId\`
+            WHERE arrayExists(
+                x -> visitParamExtractString(x, 'field') = ${escape(fieldId)}
+                AND (
+                    visitParamExtractString(x, 'value') = ${escape(fieldValue)}
+                    OR
+                    arrayExists(x -> x = ${escape(
+                      fieldValue
+                    )}, JSONExtract(x, 'value', 'Array(String)'))
+                ),
+                v.values
+            ) AND visitParamExtractString(t.category, 'objectId') = ${escape(categoryId)}
+            GROUP BY t.status
+          `;
+
+          const options = await Promise.all(
+            fieldValues.map(async ([fieldValue, [fieldTitle, titleLocale]]) => {
+              const res = await axios.get<{
+                results: { count: number; status: number }[];
+              }>(`${process.env.LC_API_SERVER as string}/datalake/v1/query`, {
+                params: { sql: getSql(optionField.id, fieldValue, category.id) },
+                headers: {
+                  'X-LC-ID': process.env.LC_APP_ID as string,
+                  'X-LC-Key': (process.env.LC_APP_MASTER_KEY as string) + ',master',
+                },
+              });
+
+              return {
+                title: fieldTitle,
+                displayLocale: titleLocale,
+                value: fieldValue,
+                count: res.data.results.reduce(
+                  (acc, { count, status }) =>
+                    Status.isOpen(status)
+                      ? { ...acc, open: acc.open + Number(count), total: acc.total + Number(count) }
+                      : {
+                          ...acc,
+                          close: acc.close + Number(count),
+                          total: acc.total + Number(count),
+                        },
+                  { open: 0, close: 0, total: 0 }
+                ),
+              };
+            }, [])
+          );
+          return {
+            id: optionField.id,
+            title: optionField.title,
+            type: optionField.type,
+            options: options.sort(
+              ({ count: { total: totalA } }, { count: { total: totalB } }) => totalB - totalA
+            ),
+          };
+        })
+      )
+    )
+      .reduce<CategoryFieldStatsResponse>((acc, field) => {
+        if (field.status === 'fulfilled') {
+          return [...acc, field.value];
+        }
+        // remove skipped fields from this array
+        if (field.reason !== skipSerialize) {
+          throw new InternalServerError(field.reason as string);
+        }
+        return acc;
+      }, [])
+      .sort(({ title: titleA }, { title: titleB }) =>
+        titleA < titleB ? -1 : titleA === titleB ? 0 : 1
+      );
   }
 
   private convertUpdateData(data: UpdateCategoryData): UpdateData<Category> {

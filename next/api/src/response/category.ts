@@ -1,4 +1,5 @@
 import { Category } from '@/model/Category';
+import { FieldType } from '@/model/TicketField';
 
 export class CategoryResponse {
   constructor(readonly category: Category) {}
@@ -23,3 +24,30 @@ export class CategoryResponse {
     };
   }
 }
+
+export class CategoryResponseForCS extends CategoryResponse {
+  toJSON() {
+    return {
+      ...super.toJSON(),
+      groupId: this.category.groupId,
+    };
+  }
+}
+
+export interface CategoryFieldStats {
+  title: string;
+  id: string;
+  type: FieldType;
+  options: {
+    title: string;
+    displayLocale: string;
+    value: string;
+    count: {
+      open: number;
+      close: number;
+      total: number;
+    };
+  }[];
+}
+
+export type CategoryFieldStatsResponse = CategoryFieldStats[];
