@@ -27,8 +27,9 @@ import { DynamicContent } from '@/model/DynamicContent';
 import { DynamicContentVariant } from '@/model/DynamicContentVariant';
 import { DynamicContentResponse } from '@/response/dynamic-content';
 import { DynamicContentVariantResponse } from '@/response/dynamic-content-variant';
+import { dynamicContentService } from '@/dynamic-content/dynamic-content.service';
 
-const dynamicContentNameSchema = z.string().regex(/^[a-zA-Z0-9_]+$/);
+const dynamicContentNameSchema = z.string().regex(/^[a-zA-Z_][a-zA-Z0-9_]*$/);
 
 const localeSchema = z
   .string()
@@ -45,7 +46,7 @@ const localeSchema = z
 const variantSchema = z.object({
   locale: localeSchema,
   active: z.boolean().optional(),
-  content: z.string(),
+  content: z.string().max(1000),
 });
 
 const createDynamicContentSchema = z.object({
@@ -66,6 +67,10 @@ const updateVariantSchema = variantSchema
   })
   .partial();
 
+const renderSchema = z.object({
+  content: z.string().max(1000),
+});
+
 type CreateDynamicContentData = z.infer<typeof createDynamicContentSchema>;
 
 type UpdateDynamicContentData = z.infer<typeof updateDynamicContentSchema>;
@@ -74,9 +79,22 @@ type CreateVariantData = z.infer<typeof variantSchema>;
 
 type UpdateVariantData = z.infer<typeof updateVariantSchema>;
 
+type RenderData = z.infer<typeof renderSchema>;
+
 @Controller('dynamic-contents')
 @UseMiddlewares(auth, customerServiceOnly)
 export class DynamicContentController {
+  @Post('/render')
+  async render(
+    @Ctx() ctx: Context,
+    @Body(new ZodValidationPipe(renderSchema)) { content }: RenderData
+  ) {
+    const result = await dynamicContentService.render(content, ctx.locales);
+    return {
+      content: result,
+    };
+  }
+
   @Post()
   @StatusCode(201)
   async create(

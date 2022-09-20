@@ -11,7 +11,7 @@ import { TicketForm } from '@/model/TicketForm';
 import { TicketFieldValue } from '@/model/TicketFieldValue';
 import { TicketField } from '@/model/TicketField';
 import { AuthOptions, Model, QueryBuilder } from '@/orm';
-import { CategoryService } from '@/service/category';
+import { categoryService } from '@/category';
 import { ExportFileManager } from './ExportFileManager';
 import { JobData } from '.';
 import { SortItem } from '@/middleware';
@@ -59,7 +59,7 @@ const createTicketQuery = async (params: FilterOptions, sortItems?: SortItem[]) 
   const rootId = params.product || params.rootCategoryId;
   if (rootId) {
     categoryIds.add(rootId);
-    const subCategories = await CategoryService.getSubCategories(rootId);
+    const subCategories = await categoryService.getSubCategories(rootId);
     subCategories.forEach((c) => categoryIds.add(c.id));
   }
   const query = Ticket.queryBuilder();

@@ -16,7 +16,7 @@ import {
 } from '@/orm';
 import { TicketUpdater, UpdateOptions } from '@/ticket/TicketUpdater';
 import htmlify from '@/utils/htmlify';
-import { CategoryService } from '@/service/category';
+import { categoryService } from '@/category';
 import { Category } from './Category';
 import { File } from './File';
 import { Group } from './Group';
@@ -198,7 +198,7 @@ export class Ticket extends Model {
   }
 
   static async fillCategoryPath(tickets: Ticket[]) {
-    const categories = await CategoryService.getAll();
+    const categories = await categoryService.find();
     const categoryById = _.keyBy(categories, 'id');
     const pathById: Record<string, Category[]> = {};
     const getPath = (id: string): Category[] => {

@@ -7,7 +7,6 @@ import {
   Ctx,
   CurrentUser,
   Get,
-  HttpError,
   Param,
   Patch,
   Post,
@@ -23,22 +22,12 @@ import { Category } from '@/model/Category';
 import { TicketForm } from '@/model/TicketForm';
 import { User } from '@/model/User';
 import { ArticleAbstractResponse } from '@/response/article';
-import { CategoryService } from '@/service/category';
-import { CategoryResponse, CategoryResponseForCS } from '@/response/category';
+import { CategoryResponse } from '@/response/category';
 import { CategoryFieldResponse } from '@/response/ticket-field';
 import { ArticleTopicFullResponse } from '@/response/article-topic';
 import { getTopic } from '@/model/ArticleTopic';
 import _ from 'lodash';
-
-class FindCategoryPipe {
-  static async transform(id: string): Promise<Category> {
-    const category = await CategoryService.get(id);
-    if (!category) {
-      throw new HttpError(404, `Category ${id} is not exist`);
-    }
-    return category;
-  }
-}
+import { FindCategoryPipe, categoryService } from '@/category';
 
 const createCategorySchema = z.object({
   name: z.string(),
@@ -79,13 +68,12 @@ type BatchUpdateData = z.infer<typeof batchUpdateSchema>;
 export class CategoryController {
   @Get()
   @ResponseBody(CategoryResponse)
-  async findAll(@Query('active', new ParseBoolPipe({ keepUndefined: true })) active?: boolean) {
-    const categories = await CategoryService.getAll();
-    if (active !== undefined) {
-      return active
-        ? categories.filter((c) => c.deletedAt === undefined)
-        : categories.filter((c) => c.deletedAt !== undefined);
-    }
+  async findAll(
+    @Ctx() ctx: Context,
+    @Query('active', new ParseBoolPipe({ keepUndefined: true })) active: boolean | undefined
+  ) {
+    const categories = await categoryService.find({ active });
+    await categoryService.renderCategories(categories, ctx.locales);
     return categories;
   }
 
@@ -95,7 +83,7 @@ export class CategoryController {
     @CurrentUser() currentUser: User,
     @Body(new ZodValidationPipe(batchUpdateSchema)) datas: BatchUpdateData
   ) {
-    await CategoryService.batchUpdate(
+    await categoryService.batchUpdate(
       datas.map((data) => ({ ...this.convertUpdateData(data), id: data.id })),
       currentUser.getAuthOptions()
     );
@@ -108,7 +96,7 @@ export class CategoryController {
     @CurrentUser() currentUser: User,
     @Body(new ZodValidationPipe(createCategorySchema)) data: CreateCategoryData
   ) {
-    const category = await CategoryService.create(
+    const category = await categoryService.create(
       {
         name: data.name,
         description: data.description,
@@ -132,8 +120,9 @@ export class CategoryController {
 
   @Get(':id')
   @UseMiddlewares(auth, customerServiceOnly)
-  @ResponseBody(CategoryResponseForCS)
-  findOne(@Param('id', FindCategoryPipe) category: Category) {
+  @ResponseBody(CategoryResponse)
+  async findOne(@Ctx() ctx: Context, @Param('id', FindCategoryPipe) category: Category) {
+    await categoryService.renderCategories([category], ctx.locales);
     return category;
   }
 
@@ -144,7 +133,7 @@ export class CategoryController {
     @Param('id') id: string,
     @Body(new ZodValidationPipe(updateCategorySchema)) data: CreateCategoryData
   ) {
-    await CategoryService.batchUpdate(
+    await categoryService.batchUpdate(
       [{ ...this.convertUpdateData(data), id }],
       currentUser.getAuthOptions()
     );
@@ -163,7 +152,7 @@ export class CategoryController {
       return [];
     }
 
-    const locale = this.getPreferedLocale(ctx);
+    const locale = ctx.locales?.[0] ?? 'en';
     return form.getFieldVariants(locale);
   }
 
@@ -206,7 +195,7 @@ export class CategoryController {
     @Param('id', FindCategoryPipe) category: Category,
     @Query('active', new ParseBoolPipe({ keepUndefined: true })) active?: boolean
   ) {
-    return await CategoryService.getSubCategories(category.id, active);
+    return await categoryService.getSubCategories(category.id, active);
   }
 
   private convertUpdateData(data: UpdateCategoryData): UpdateData<Category> {
@@ -234,12 +223,5 @@ export class CategoryController {
       order: data.position ?? deletedAt?.getTime(),
       deletedAt,
     };
-  }
-
-  private getPreferedLocale(ctx: Context): string {
-    if (ctx.query.locale && typeof ctx.query.locale === 'string') {
-      return ctx.query.locale;
-    }
-    return ctx.get('accept-language')?.toLowerCase() || 'en';
   }
 }

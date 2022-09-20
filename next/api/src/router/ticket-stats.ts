@@ -4,7 +4,7 @@ import _ from 'lodash';
 import * as yup from '@/utils/yup';
 import { auth, customerServiceOnly, parseRange } from '@/middleware';
 import { TicketStats } from '@/model/TicketStats';
-import { CategoryService } from '@/service/category';
+import { categoryService } from '@/category';
 import { TicketStatusStats } from '@/model/TicketStatusStats';
 import { Group } from '@/model/Group';
 import { User } from '@/model/User';
@@ -183,7 +183,7 @@ async function getCategoryIds(categoryId?: string) {
   if (categoryId === '*') {
     return '*';
   }
-  const categories = await CategoryService.getSubCategories(categoryId);
+  const categories = await categoryService.getSubCategories(categoryId);
   return [categoryId, ...categories.map((v) => v.id)];
 }
 

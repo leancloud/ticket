@@ -44,7 +44,7 @@ import {
   Tag,
 } from '@/components/antd';
 import { UserLabel } from '@/App/Admin/components';
-import { CategoryForm } from './CategoryForm';
+import { CategoryForm, CategoryFormData } from './CategoryForm';
 
 const { Column } = Table;
 
@@ -468,19 +468,22 @@ export function CategoryDetail() {
   }, [categories, id]);
 
   const initData = useMemo(() => {
-    return pick(category, [
-      'name',
-      'description',
-      'alias',
-      'parentId',
-      'noticeIds',
-      'articleIds',
-      'topicIds',
-      'groupId',
-      'formId',
-      'template',
-      'meta',
-    ]);
+    if (category) {
+      const initData: Partial<CategoryFormData> = pick(category, [
+        'description',
+        'alias',
+        'parentId',
+        'noticeIds',
+        'articleIds',
+        'topicIds',
+        'groupId',
+        'formId',
+        'template',
+        'meta',
+      ]);
+      initData.name = category.rawName;
+      return initData;
+    }
   }, [category]);
 
   const queryClient = useQueryClient();
