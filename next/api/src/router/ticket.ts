@@ -313,7 +313,7 @@ router.get(
   async (ctx) => {
     const currentUser = ctx.state.currentUser as User;
     if (!currentUser.email) {
-      throw new Error('Email is not set');
+      ctx.throw(400, 'Email is required');
     }
     const { page, pageSize, ...rest } = exportTicketParamsSchema.validateSync(ctx.query);
     const sortItems = sort.get(ctx);
