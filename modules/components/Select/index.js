@@ -86,7 +86,7 @@ export const MultiSelect = memo(
               value={value}
               onInvalid={(e) => {
                 // i18n ?
-                e.target.setCustomValidity('You must check at least one')
+                e.target.setCustomValidity('You must check at least one option.')
               }}
               onChange={(e) => {
                 const checked = e.target.checked
