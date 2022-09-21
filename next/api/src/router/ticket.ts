@@ -313,7 +313,7 @@ router.get(
   async (ctx) => {
     const currentUser = ctx.state.currentUser as User;
     if (!currentUser.email) {
-      ctx.throw(400, 'Email is required');
+      ctx.throw(400, '邮箱未设置，请前往个人设置页面进行设置');
     }
     const { page, pageSize, ...rest } = exportTicketParamsSchema.validateSync(ctx.query);
     const sortItems = sort.get(ctx);
