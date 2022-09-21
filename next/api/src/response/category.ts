@@ -44,7 +44,7 @@ export interface CategoryFieldStats {
     value: string;
     count: {
       open: number;
-      close: number;
+      closed: number;
       total: number;
     };
   }[];

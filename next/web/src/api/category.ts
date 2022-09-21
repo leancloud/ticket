@@ -54,7 +54,7 @@ export interface CategoryFieldStatsSchema {
     value: string;
     count: {
       open: number;
-      close: number;
+      closed: number;
       total: number;
     };
   }[];
@@ -70,7 +70,7 @@ const fetchCategoryFieldStats = async ({
   id,
   ...restOptions
 }: FetchCategoryFieldStatsOptions): Promise<CategoryFieldStatsSchema[]> => {
-  const { data } = await http.get<CategoryFieldStatsSchema[]>(`/api/2/categories/count/${id}`, {
+  const { data } = await http.get<CategoryFieldStatsSchema[]>(`/api/2/categories/${id}/count`, {
     params: restOptions,
   });
   return data;

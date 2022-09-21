@@ -71,9 +71,9 @@ export const CategoryFieldStats = () => {
                 width="10%"
               />
               <Table.Column
-                dataIndex={['count', 'close']}
+                dataIndex={['count', 'closed']}
                 title="关闭数量"
-                sorter={sorter('close')}
+                sorter={sorter('closed')}
                 width="10%"
               />
               <Table.Column

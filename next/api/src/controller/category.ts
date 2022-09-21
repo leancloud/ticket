@@ -203,7 +203,7 @@ export class CategoryController {
     return await categoryService.getSubCategories(category.id, active);
   }
 
-  @Get('count/:id')
+  @Get(':id/count')
   @UseMiddlewares(auth, customerServiceOnly)
   async getFieldCounts(
     @Param('id', FindCategoryPipe) category: Category,
@@ -234,7 +234,6 @@ export class CategoryController {
           const fieldValues = [
             ...variants.reduce<Map<string, [string, string]>>((pre, variant) => {
               variant.options?.forEach((option) => {
-                // TODO: use `getPreferedLocale` instead?
                 if (pre.has(option.value)) {
                   if (variant.locale === optionField.defaultLocale) {
                     pre.set(option.value, [option.title, variant.locale]);
@@ -292,10 +291,10 @@ export class CategoryController {
                       ? { ...acc, open: acc.open + Number(count), total: acc.total + Number(count) }
                       : {
                           ...acc,
-                          close: acc.close + Number(count),
+                          closed: acc.closed + Number(count),
                           total: acc.total + Number(count),
                         },
-                  { open: 0, close: 0, total: 0 }
+                  { open: 0, closed: 0, total: 0 }
                 ),
               };
             }, [])
