@@ -29,7 +29,8 @@ module.exports = {
   rules: {
     'linebreak-style': ['error', 'unix'],
     'no-console': 0,
-    'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    'no-unused-vars': 'off',
+    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     'promise/no-nesting': 0,
     'promise/no-callback-in-promise': 0,
     'i18n/no-chinese-character': 1,
