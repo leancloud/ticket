@@ -207,6 +207,7 @@ export class CategoryController {
   @UseMiddlewares(auth, customerServiceOnly)
   async getFieldCounts(
     @Param('id', FindCategoryPipe) category: Category,
+    @Ctx() ctx: Context,
     @Query('from') from?: string,
     @Query('to') to?: string
   ) {
@@ -214,6 +215,8 @@ export class CategoryController {
       'fields',
       { useMasterKey: true }
     );
+
+    const localesMap = new Map(ctx.locales?.map((locale, index) => [locale, index + 1]));
 
     if (!optionFields) {
       return [];
@@ -234,12 +237,29 @@ export class CategoryController {
           const fieldValues = [
             ...variants.reduce<Map<string, [string, string]>>((pre, variant) => {
               variant.options?.forEach((option) => {
-                if (pre.has(option.value)) {
-                  if (variant.locale === optionField.defaultLocale) {
+                const optionInStore = pre.get(option.value);
+
+                if (optionInStore) {
+                  const [, locale] = optionInStore;
+                  const curOptionPriority = localesMap.get(variant.locale);
+                  const optionInStorePriority = localesMap.get(locale);
+
+                  if (
+                    // override if cur option has priority but stored is not
+                    (!optionInStorePriority && curOptionPriority) ||
+                    // override if cur option has higher priority
+                    (curOptionPriority &&
+                      optionInStorePriority &&
+                      curOptionPriority < optionInStorePriority) ||
+                    // override if stored option has no priority and cur option's locale is default
+                    (!optionInStorePriority && variant.locale === optionField.defaultLocale)
+                  ) {
                     pre.set(option.value, [option.title, variant.locale]);
                   }
+
                   return;
                 }
+
                 pre.set(option.value, [option.title, variant.locale]);
               });
               return pre;
