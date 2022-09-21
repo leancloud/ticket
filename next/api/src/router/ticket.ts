@@ -701,11 +701,14 @@ router.put('/:id/custom-fields', async (ctx) => {
     await opsLogCreator.create();
   } else {
     opsLogCreator.changeFields([], values, currentUser);
-    await TicketFieldValue.create({
-      ACL: {},
-      ticketId: ticket.id,
-      values,
-    });
+    await TicketFieldValue.create(
+      {
+        ACL: {},
+        ticketId: ticket.id,
+        values,
+      },
+      { useMasterKey: true }
+    );
     await opsLogCreator.create();
   }
 
