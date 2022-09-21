@@ -68,9 +68,10 @@ Select.propTypes = {
 
 export const MultiSelect = memo(
   ({ id = _.uniqueId('multiSelect'), values, required, onChange, options, className }) => {
+    const hasSelected = values && _.isArray(values) && values.length > 0
     return (
       <div className={styles.groupContainer}>
-        {options.map(({ value, label, disabled }) => {
+        {options.map(({ value, label, disabled }, index) => {
           const checked = values && _.isArray(values) && values.includes(value)
           return (
             <Form.Check
@@ -81,8 +82,12 @@ export const MultiSelect = memo(
               className={classnames(styles.container, className)}
               type="checkbox"
               label={label}
-              required={required}
+              required={required && index === 0 && !hasSelected}
               value={value}
+              onInvalid={(e) => {
+                // i18n ?
+                e.target.setCustomValidity('You must check at least one')
+              }}
               onChange={(e) => {
                 const checked = e.target.checked
                 if (checked) {
