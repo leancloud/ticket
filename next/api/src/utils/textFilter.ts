@@ -1,3 +1,4 @@
+import { retry } from '@/cloud/utils';
 import axios from 'axios';
 import { createHash } from 'node:crypto';
 
@@ -25,35 +26,42 @@ export const filterText: FilterText = async (input, { escape = true, requestOpti
 
   const hash = createHash('sha1');
   hash.update(input);
-  const res = await axios.post<{
-    hint: { hit_words: { positions: { start_index: number; end_index: number } }[] };
-  }>(
-    `${TDS_TEXT_FILTER_HOST as string}/v2/text/check`,
-    {
-      scene: TDS_TEXT_FILTER_SCENE as string,
-      data: {
-        ...requestOptions,
-        user_id: `ticket-${requestOptions.user_id}`,
-        text: input,
-        data_id: hash.digest('hex'),
-      },
-    },
-    {
-      headers: {
-        'X-Client-ID': TDS_CLIENT_ID as string,
-        'X-Server-Secret': TDS_SERVER_SECRET as string,
-        'Content-Type': 'application/json',
-      },
-    }
-  );
-  const [filteredText, lastEnd] = res.data.hint.hit_words.reduce<[string, number]>(
-    ([res, lastEnd], { positions: { start_index, end_index } }) => [
-      `${res}${input.slice(lastEnd, start_index)}${(escape ? '\\*' : '*').repeat(
-        end_index - start_index
-      )}`,
-      end_index,
-    ],
-    ['', 0]
-  );
-  return filteredText + input.slice(lastEnd);
+  try {
+    return await retry(async () => {
+      const res = await axios.post<{
+        hint: { hit_words: { positions: { start_index: number; end_index: number } }[] };
+      }>(
+        `${TDS_TEXT_FILTER_HOST as string}/v2/text/check`,
+        {
+          scene: TDS_TEXT_FILTER_SCENE as string,
+          data: {
+            ...requestOptions,
+            user_id: `ticket-${requestOptions.user_id}`,
+            text: input,
+            data_id: hash.digest('hex'),
+          },
+        },
+        {
+          headers: {
+            'X-Client-ID': TDS_CLIENT_ID as string,
+            'X-Server-Secret': TDS_SERVER_SECRET as string,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      const [filteredText, lastEnd] = res.data.hint.hit_words.reduce<[string, number]>(
+        ([res, lastEnd], { positions: { start_index, end_index } }) => [
+          `${res}${input.slice(lastEnd, start_index)}${(escape ? '\\*' : '*').repeat(
+            end_index - start_index
+          )}`,
+          end_index,
+        ],
+        ['', 0]
+      );
+      return filteredText + input.slice(lastEnd);
+    }, 10);
+  } catch (err) {
+    console.error(err);
+    return input;
+  }
 };
