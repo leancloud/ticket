@@ -1,8 +1,9 @@
-import React from 'react'
+import React, { useState, useMemo, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { OverlayTrigger, Tooltip } from 'react-bootstrap'
+import { Overlay, OverlayTrigger, Popover as BootstrapPopover, Tooltip } from 'react-bootstrap'
 import PropTypes from 'prop-types'
 import moment from 'moment'
+import { throttle } from 'lodash'
 
 import css from './UserLabel.css'
 import { Avatar } from './Avatar'
@@ -74,20 +75,85 @@ UserTags.propTypes = {
   className: PropTypes.string,
 }
 
+const Popover = ({ children, overlay, placement = 'bottom', ...props }) => {
+  const [show, setShow] = useState(false)
+  const target = useRef(null)
+
+  const throttledSetShow = useMemo(() => throttle(setShow, 250, { leading: false }), [])
+
+  const handleMouseOver = (event) => {
+    !show && (target.current = event.target)
+    throttledSetShow(true)
+  }
+
+  const handleMouseLeave = () => {
+    throttledSetShow(false)
+  }
+
+  const handleOverlayMouseEnter = () => {
+    throttledSetShow(true)
+  }
+
+  const handleOverlayMouseLeave = () => {
+    throttledSetShow(false)
+  }
+
+  return (
+    <>
+      <span onMouseOver={handleMouseOver} onMouseLeave={handleMouseLeave} ref={target} {...props}>
+        {children}
+      </span>
+      <Overlay
+        target={target.current}
+        show={show}
+        placement={placement}
+        flip={true}
+        transition={false}
+      >
+        {(props) => (
+          <BootstrapPopover
+            onMouseEnter={handleOverlayMouseEnter}
+            onMouseLeave={handleOverlayMouseLeave}
+            {...props}
+          >
+            <BootstrapPopover.Content>{overlay}</BootstrapPopover.Content>
+          </BootstrapPopover>
+        )}
+      </Overlay>
+    </>
+  )
+}
+Popover.propTypes = {
+  placement: PropTypes.string,
+  overlay: PropTypes.node.isRequired,
+  children: PropTypes.node.isRequired,
+}
+
 const isGenaratedName = (name) => /^[0-9a-z]{25}$/.test(name)
 export function UserLabel({ user, simple, displayTags, displayId }) {
   const name = getUserDisplayName(user)
+
   if (simple) {
     return <span>{name}</span>
   }
+
   return (
     <span>
-      <Link to={'/users/' + user.username} className="avatar">
-        <Avatar user={user} />
-      </Link>
-      <Link to={'/users/' + user.username} className="username">
-        {name}
-      </Link>
+      <Popover
+        overlay={
+          <a href={`https://www.taptap.com/admin/user/edit/${user.username}`} target="__blank">
+            TapTap 用户信息
+          </a>
+        }
+        placement="bottom"
+      >
+        <Link to={'/users/' + user.username} className="avatar">
+          <Avatar user={user} />
+        </Link>
+        <Link to={'/users/' + user.username} className="username">
+          {name}
+        </Link>
+      </Popover>
       {displayId && name !== user.username && !isGenaratedName(user.username) && (
         <span className="text-muted"> ({user.username})</span>
       )}
