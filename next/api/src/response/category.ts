@@ -33,21 +33,3 @@ export class CategoryResponseForCS extends CategoryResponse {
     };
   }
 }
-
-export interface CategoryFieldStats {
-  title: string;
-  id: string;
-  type: FieldType;
-  options: {
-    title: string;
-    displayLocale: string;
-    value: string;
-    count: {
-      open: number;
-      closed: number;
-      total: number;
-    };
-  }[];
-}
-
-export type CategoryFieldStatsResponse = CategoryFieldStats[];

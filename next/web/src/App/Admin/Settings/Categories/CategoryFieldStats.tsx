@@ -1,11 +1,11 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, Navigate } from 'react-router-dom';
 import { Table, Breadcrumb, Tooltip, DatePicker } from 'antd';
 
-import { CategoryFieldStatsSchema, useCategoryFieldStats } from '@/api/category';
 import { TicketFieldSchema } from '@/api/ticket-field';
 import { TicketFieldType } from '../TicketFields/TicketFieldType';
 import { LOCALES } from '@/i18n/locales';
 import { useRangePicker } from '../../Stats/utils';
+import { useTicketFieldCount, TicketFieldCountSchema } from '@/api/ticket-field';
 
 type ArrayType<T extends unknown[] | ReadonlyArray<unknown>> = T extends
   | Array<infer R>
@@ -13,14 +13,18 @@ type ArrayType<T extends unknown[] | ReadonlyArray<unknown>> = T extends
   ? R
   : never;
 
-export const CategoryFieldStats = () => {
+export const CategoryFieldCount = () => {
   const { id } = useParams<'id'>();
   const [range, rangePickerOptions] = useRangePicker();
-  const { data, isLoading } = useCategoryFieldStats({ id: id as string, ...range });
+  const { data, isLoading } = useTicketFieldCount({ categoryId: id, ...range });
 
-  const sorter = (key: keyof ArrayType<CategoryFieldStatsSchema['options']>['count']) => (
-    a: ArrayType<CategoryFieldStatsSchema['options']>,
-    b: ArrayType<CategoryFieldStatsSchema['options']>
+  if (!id) {
+    return <Navigate to=".." />;
+  }
+
+  const sorter = (key: keyof ArrayType<TicketFieldCountSchema['options']>['count']) => (
+    a: ArrayType<TicketFieldCountSchema['options']>,
+    b: ArrayType<TicketFieldCountSchema['options']>
   ) => b.count[key] - a.count[key];
 
   return (
@@ -46,7 +50,7 @@ export const CategoryFieldStats = () => {
         dataSource={data}
         pagination={false}
         expandable={{
-          expandedRowRender: ({ options }: CategoryFieldStatsSchema) => (
+          expandedRowRender: ({ options }: TicketFieldCountSchema) => (
             <Table
               dataSource={options}
               rowKey="value"
@@ -58,7 +62,7 @@ export const CategoryFieldStats = () => {
               <Table.Column
                 dataIndex="title"
                 title="选项名"
-                render={(value: string, record: ArrayType<CategoryFieldStatsSchema['options']>) => (
+                render={(value: string, record: ArrayType<TicketFieldCountSchema['options']>) => (
                   <Tooltip title={`选项名显示地区: ${LOCALES[record.displayLocale]}`}>
                     {value}
                   </Tooltip>

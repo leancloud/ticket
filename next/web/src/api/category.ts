@@ -44,53 +44,6 @@ export function useCategories({ active, queryOptions }: UseCategoriesOptions = {
   });
 }
 
-export interface CategoryFieldStatsSchema {
-  title: string;
-  id: string;
-  type: TicketFieldSchema['type'];
-  options: {
-    title: string;
-    displayLocale: string;
-    value: string;
-    count: {
-      open: number;
-      closed: number;
-      total: number;
-    };
-  }[];
-}
-
-export interface FetchCategoryFieldStatsOptions {
-  from: Date;
-  to: Date;
-  id: string;
-}
-
-const fetchCategoryFieldStats = async ({
-  id,
-  ...restOptions
-}: FetchCategoryFieldStatsOptions): Promise<CategoryFieldStatsSchema[]> => {
-  const { data } = await http.get<CategoryFieldStatsSchema[]>(`/api/2/categories/${id}/count`, {
-    params: restOptions,
-  });
-  return data;
-};
-
-export interface UseCategoryFieldStatsOptions extends FetchCategoryFieldStatsOptions {
-  queryOptions?: UseQueryOptions<CategoryFieldStatsSchema[], Error>;
-}
-
-export const useCategoryFieldStats = ({
-  queryOptions,
-  ...restOptions
-}: UseCategoryFieldStatsOptions) => {
-  return useQuery({
-    queryKey: ['categoryFieldStats', restOptions],
-    queryFn: () => fetchCategoryFieldStats(restOptions),
-    ...queryOptions,
-  });
-};
-
 export type CategoryTreeNode<T = {}> = {
   parent?: CategoryTreeNode<T>;
   children?: CategoryTreeNode<T>[];

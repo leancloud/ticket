@@ -105,3 +105,52 @@ export interface UpdateTicketFieldData extends Partial<Omit<CreateTicketFieldDat
 export async function updateTicketField(fieldId: string, data: UpdateTicketFieldData) {
   await http.patch(`/api/2/ticket-fields/${fieldId}`, data);
 }
+
+export interface TicketFieldCountSchema {
+  title: string;
+  id: string;
+  type: TicketFieldSchema['type'];
+  options: {
+    title: string;
+    displayLocale: string;
+    value: string;
+    count: {
+      open: number;
+      closed: number;
+      total: number;
+    };
+  }[];
+}
+
+export interface FetchTicketFieldCountOptions {
+  categoryId?: string;
+  fieldId?: string;
+  pageSize?: number;
+  page?: number;
+  from?: Date;
+  to?: Date;
+}
+
+const fetchTicketFieldCount = async (
+  options: FetchTicketFieldCountOptions
+): Promise<TicketFieldCountSchema[]> => {
+  const { data } = await http.get<TicketFieldCountSchema[]>(`/api/2/ticket-fields/count`, {
+    params: options,
+  });
+  return data;
+};
+
+export interface UseTicketFieldCountOptions extends FetchTicketFieldCountOptions {
+  queryOptions?: UseQueryOptions<TicketFieldCountSchema[], Error>;
+}
+
+export const useTicketFieldCount = ({
+  queryOptions,
+  ...restOptions
+}: UseTicketFieldCountOptions) => {
+  return useQuery({
+    queryKey: ['ticketFieldCount', restOptions],
+    queryFn: () => fetchTicketFieldCount(restOptions),
+    ...queryOptions,
+  });
+};
