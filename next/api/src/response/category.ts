@@ -1,4 +1,5 @@
 import { Category } from '@/model/Category';
+import { FieldType } from '@/model/TicketField';
 
 export class CategoryResponse {
   constructor(readonly category: Category) {}
@@ -19,6 +20,15 @@ export class CategoryResponse {
       noticeIds: this.category.noticeIds,
       topicIds: this.category.topicIds,
       formId: this.category.formId,
+      groupId: this.category.groupId,
+    };
+  }
+}
+
+export class CategoryResponseForCS extends CategoryResponse {
+  toJSON() {
+    return {
+      ...super.toJSON(),
       groupId: this.category.groupId,
     };
   }

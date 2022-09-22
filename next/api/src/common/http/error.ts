@@ -24,3 +24,9 @@ export class NotFoundError extends HttpError {
     super(404, `${target} does not exist`, 'NOT_FOUND');
   }
 }
+
+export class InternalServerError extends HttpError {
+  constructor(target: string) {
+    super(500, target, 'INTERNAL_SERVER_ERROR');
+  }
+}

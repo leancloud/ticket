@@ -3,6 +3,7 @@ import { UseQueryOptions, useQuery, UseMutationOptions, useMutation } from 'reac
 import { groupBy } from 'lodash-es';
 
 import { http } from '@/leancloud';
+import { TicketFieldSchema } from './ticket-field';
 
 export interface CategorySchema {
   id: string;

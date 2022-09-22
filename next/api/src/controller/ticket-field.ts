@@ -1,5 +1,7 @@
 import { Context } from 'koa';
 import { z } from 'zod';
+import { escape } from 'sqlstring';
+import axios from 'axios';
 
 import {
   Controller,
@@ -14,6 +16,7 @@ import {
   Param,
   Patch,
   ResponseBody,
+  InternalServerError,
 } from '@/common/http';
 import {
   ParseBoolPipe,
@@ -22,11 +25,14 @@ import {
   ZodValidationPipe,
   Order,
   FindModelPipe,
+  FindModelOptionalPipe,
 } from '@/common/pipe';
 import { auth, customerServiceOnly } from '@/middleware';
 import { FIELD_TYPES, OPTION_TYPES, TicketField } from '@/model/TicketField';
-import { TicketFieldResponse } from '@/response/ticket-field';
+import { TicketFieldResponse, TicketFieldStatsResponse } from '@/response/ticket-field';
 import { LOCALES } from '@/i18n/locales';
+import { Status } from '@/model/Ticket';
+import { Category } from '@/model/Category';
 
 const localeSchema = z
   .string()
@@ -153,6 +159,159 @@ export class TicketFieldController {
     return {
       id: field.id,
     };
+  }
+
+  @Get('count')
+  @UseMiddlewares(customerServiceOnly)
+  async count(
+    @Ctx() ctx: Context,
+    @Query('categoryId', new FindModelOptionalPipe(Category, { useMasterKey: true }))
+    category?: Category,
+    @Query('fieldId', new FindModelOptionalPipe(TicketField, { useMasterKey: true }))
+    field?: TicketField,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('pageSize', new ParseIntPipe({ min: 0, max: 1000 })) pageSize = 100,
+    @Query('page', new ParseIntPipe({ min: 1 })) page = 1
+  ) {
+    const optionFields = field
+      ? [field]
+      : category
+      ? await (await category?.load('form', { useMasterKey: true }))?.load('fields', {
+          useMasterKey: true,
+        })
+      : await this.findAll(ctx, false, undefined, undefined, page, pageSize);
+
+    if (!optionFields || optionFields.length === 0) {
+      return [];
+    }
+
+    const localesMap = new Map(ctx.locales?.map((locale, index) => [locale, index + 1]));
+
+    const skipSerialize = Symbol('skipSerialize');
+
+    return (
+      await Promise.allSettled(
+        optionFields.map(async (optionField) => {
+          const variants = await optionField.load('variants', { useMasterKey: true });
+
+          // skip process if variant is not option type or doesn't exist
+          if (!variants || !OPTION_TYPES.includes(optionField.type)) {
+            return Promise.reject(skipSerialize);
+          }
+
+          const fieldValues = [
+            ...variants.reduce<Map<string, [string, string]>>((pre, variant) => {
+              variant.options?.forEach((option) => {
+                const optionInStore = pre.get(option.value);
+
+                if (optionInStore) {
+                  const [, locale] = optionInStore;
+                  const curOptionPriority = localesMap.get(variant.locale);
+                  const optionInStorePriority = localesMap.get(locale);
+
+                  if (
+                    // override if cur option has priority but stored is not
+                    (!optionInStorePriority && curOptionPriority) ||
+                    // override if cur option has higher priority
+                    (curOptionPriority &&
+                      optionInStorePriority &&
+                      curOptionPriority < optionInStorePriority) ||
+                    // override if stored option has no priority and cur option's locale is default
+                    (!optionInStorePriority && variant.locale === optionField.defaultLocale)
+                  ) {
+                    pre.set(option.value, [option.title, variant.locale]);
+                  }
+
+                  return;
+                }
+
+                pre.set(option.value, [option.title, variant.locale]);
+              });
+              return pre;
+            }, new Map()),
+          ];
+
+          const getSql = (fieldId: string, fieldValue: string, categoryId?: string) => `
+            SELECT count(t.objectId) AS count, t.status
+            FROM Ticket AS t
+            LEFT JOIN TicketFieldValue AS v
+            ON t.objectId = v.\`ticket.objectId\`
+            WHERE arrayExists(
+                x -> visitParamExtractString(x, 'field') = ${escape(fieldId)}
+                AND (
+                    visitParamExtractString(x, 'value') = ${escape(fieldValue)}
+                    OR
+                    arrayExists(x -> x = ${escape(
+                      fieldValue
+                    )}, JSONExtract(x, 'value', 'Array(String)'))
+                ),
+                v.values
+            )
+            ${
+              (categoryId &&
+                `AND visitParamExtractString(t.category, 'objectId') = ${escape(categoryId)}`) ||
+              ''
+            }
+            ${(from && `AND t.createdAt >= parseDateTimeBestEffortOrNull(${escape(from)})`) || ''}
+            ${(to && `AND t.createdAt <= parseDateTimeBestEffortOrNull(${escape(to)})`) || ''}
+            GROUP BY t.status
+          `;
+
+          const options = await Promise.all(
+            fieldValues.map(async ([fieldValue, [fieldTitle, titleLocale]]) => {
+              const res = await axios.get<{
+                results: { count: number; status: number }[];
+              }>(`${process.env.LC_API_SERVER as string}/datalake/v1/query`, {
+                params: { sql: getSql(optionField.id, fieldValue, category?.id) },
+                headers: {
+                  'X-LC-ID': process.env.LC_APP_ID as string,
+                  'X-LC-Key': (process.env.LC_APP_MASTER_KEY as string) + ',master',
+                },
+              });
+
+              return {
+                title: fieldTitle,
+                displayLocale: titleLocale,
+                value: fieldValue,
+                count: res.data.results.reduce(
+                  (acc, { count, status }) =>
+                    Status.isOpen(status)
+                      ? { ...acc, open: acc.open + Number(count), total: acc.total + Number(count) }
+                      : {
+                          ...acc,
+                          closed: acc.closed + Number(count),
+                          total: acc.total + Number(count),
+                        },
+                  { open: 0, closed: 0, total: 0 }
+                ),
+              };
+            }, [])
+          );
+          return {
+            id: optionField.id,
+            title: optionField.title,
+            type: optionField.type,
+            options: options.sort(
+              ({ count: { total: totalA } }, { count: { total: totalB } }) => totalB - totalA
+            ),
+          };
+        })
+      )
+    )
+      .reduce<TicketFieldStatsResponse>((acc, field) => {
+        if (field.status === 'fulfilled') {
+          return [...acc, field.value];
+        }
+        // remove skipped fields from this array
+        if (field.reason !== skipSerialize) {
+          throw new InternalServerError(field.reason as string);
+        }
+        return acc;
+      }, [])
+      .sort(({ title: titleA }, { title: titleB }) =>
+        titleA < titleB ? -1 : titleA === titleB ? 0 : 1
+      );
   }
 
   @Get(':id')

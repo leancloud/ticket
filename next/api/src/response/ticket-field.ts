@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-import type { TicketField } from '@/model/TicketField';
+import type { FieldType, TicketField } from '@/model/TicketField';
 import type { TicketFieldVariant } from '@/model/TicketFieldVariant';
 
 export class TicketFieldResponse {
@@ -54,3 +54,21 @@ export class CategoryFieldResponse {
     };
   }
 }
+
+export interface TicketFieldStats {
+  title: string;
+  id: string;
+  type: FieldType;
+  options: {
+    title: string;
+    displayLocale: string;
+    value: string;
+    count: {
+      open: number;
+      closed: number;
+      total: number;
+    };
+  }[];
+}
+
+export type TicketFieldStatsResponse = TicketFieldStats[];

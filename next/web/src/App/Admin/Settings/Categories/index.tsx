@@ -1,4 +1,5 @@
 import {
+  FC,
   forwardRef,
   useCallback,
   useEffect,
@@ -101,6 +102,10 @@ function GroupCell({ loading, group }: { loading?: boolean; group?: GroupSchema 
   }
   return <Link to={`/admin/settings/groups/${group.id}`}>{group.name}</Link>;
 }
+
+const ActionCell: FC<{ id: string }> = ({ id }) => {
+  return <Link to={`count/${id}`}>字段统计</Link>;
+};
 
 interface CategoryTableProps {
   categories?: CategorySchema[];
@@ -246,6 +251,12 @@ function CategoryTable({
         render={({ groupId }: CategoryTreeNode) => (
           <GroupCell loading={loadingGroups} group={groupId ? groupById[groupId] : undefined} />
         )}
+      />
+      <Column
+        key="actions"
+        title="操作"
+        dataIndex="id"
+        render={(id: string) => <ActionCell id={id} />}
       />
     </Table>
   );
