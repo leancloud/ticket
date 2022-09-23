@@ -21,6 +21,7 @@ import { ReplyResponse } from '@/response/reply';
 import { Vacation } from '@/model/Vacation';
 import { TicketCreator, TicketUpdater, createTicketExportJob } from '@/ticket';
 import { categoryService } from '@/category';
+import { filterText } from '@/utils/textFilter';
 
 const router = new Router().use(auth);
 
@@ -395,9 +396,17 @@ router.post('/', async (ctx) => {
   const { title: fieldTitle, details, attachments, customFields } = extractSystemFields(
     data.customFields
   );
-  const content = (data.content || details || '').trim();
+
+  const requestOptions: Parameters<typeof filterText>[1]['requestOptions'] = {
+    user_id: currentUser.username,
+    nickname: currentUser.name,
+    ip: ctx.ip,
+  };
+
+  const content = await filterText((data.content || details || '').trim(), { requestOptions });
   const title =
-    data.title || fieldTitle || (content ? content.split('\n')[0].slice(0, 100) : category.name);
+    (await filterText(data.title || fieldTitle || '', { escape: false, requestOptions })) ||
+    (content ? content.split('\n')[0].slice(0, 100) : category.name);
   const fileIds = data.fileIds ?? attachments;
 
   const creator = new TicketCreator().setAuthor(currentUser).setTitle(title).setContent(content);
@@ -420,7 +429,14 @@ router.post('/', async (ctx) => {
   }
   if (customFields) {
     // TODO: 验证 field 是否存在
-    creator.setCustomFields(customFields);
+    const _customFields = await Promise.all(
+      customFields.map(async (field) =>
+        typeof field.value === 'string'
+          ? { ...field, value: await filterText(field.value, { escape: false, requestOptions }) }
+          : field
+      )
+    );
+    creator.setCustomFields(_customFields);
   }
 
   const ticket = await creator.create(currentUser);
@@ -660,7 +676,11 @@ router.post('/:id/replies', async (ctx) => {
 
   const reply = await ticket.reply({
     author: currentUser,
-    content: data.content,
+    content: isCustomerService
+      ? data.content
+      : await filterText(data.content, {
+          requestOptions: { user_id: currentUser.username, ip: ctx.ip, nickname: currentUser.name },
+        }),
     fileIds: data.fileIds?.length ? data.fileIds : undefined,
     internal: data.internal,
   });
@@ -688,7 +708,25 @@ const setCustomFieldsSchema = yup.array(customFieldSchema.required()).required()
 router.put('/:id/custom-fields', async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   const ticket = ctx.state.ticket as Ticket;
-  const values = setCustomFieldsSchema.validateSync(ctx.request.body);
+  const values = await Promise.all(
+    setCustomFieldsSchema
+      .validateSync(ctx.request.body)
+      .map(async (field) =>
+        typeof field.value === 'string'
+          ? {
+              ...field,
+              value: await filterText(field.value, {
+                escape: false,
+                requestOptions: {
+                  user_id: currentUser.username,
+                  nickname: currentUser.name,
+                  ip: ctx.ip,
+                },
+              }),
+            }
+          : field
+      )
+  );
   const opsLogCreator = new OpsLogCreator(ticket);
 
   const ticketFieldValue = await TicketFieldValue.queryBuilder()
