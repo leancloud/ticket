@@ -1,14 +1,17 @@
-export async function retry<T extends () => any>(fn: T, num = 3): Promise<Awaited<ReturnType<T>>> {
-  return new Promise<Awaited<ReturnType<T>>>(async (resolve, reject) => {
-    while (num > 0) {
-      try {
-        const res = await fn();
-        resolve(res as Awaited<ReturnType<T>>);
-        num = 0;
-      } catch (e) {
-        if (!num) reject(e);
-      }
-      num--;
+export async function retry<T extends () => unknown>(
+  fn: T,
+  num = 3
+): Promise<Awaited<ReturnType<T>>> {
+  let retryCount = 0;
+  while (retryCount <= num) {
+    try {
+      const res = await fn();
+      return res as Awaited<ReturnType<T>>;
+    } catch (err) {
+      retryCount += 1;
+      if (retryCount > num) throw err;
+      console.info(`${String(err)}, retry ${retryCount}`);
     }
-  });
+  }
+  throw 'retry: should not reach here';
 }
