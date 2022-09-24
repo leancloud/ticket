@@ -24,8 +24,8 @@ export const filterText: FilterText = async (input, { escape = true, requestOpti
     TDS_SERVER_SECRET,
   } = process.env;
 
-  const hash = createHash('sha1');
-  hash.update(input);
+  const sha1 = createHash('sha1').update(input).digest('hex');
+
   try {
     return await retry(async () => {
       const res = await axios.post<{
@@ -38,7 +38,7 @@ export const filterText: FilterText = async (input, { escape = true, requestOpti
             ...requestOptions,
             user_id: `ticket-${requestOptions.user_id}`,
             text: input,
-            data_id: hash.digest('hex'),
+            data_id: sha1,
           },
         },
         {
@@ -47,6 +47,7 @@ export const filterText: FilterText = async (input, { escape = true, requestOpti
             'X-Server-Secret': TDS_SERVER_SECRET as string,
             'Content-Type': 'application/json',
           },
+          timeout: 1000,
         }
       );
       const [filteredText, lastEnd] = res.data.hint.hit_words.reduce<[string, number]>(
@@ -59,9 +60,9 @@ export const filterText: FilterText = async (input, { escape = true, requestOpti
         ['', 0]
       );
       return filteredText + input.slice(lastEnd);
-    }, 10);
+    }, Number(process.env.TEXT_FILTER_MAX_RETRY) || 3);
   } catch (err) {
-    console.error(err);
+    console.warn(String(err));
     return input;
   }
 };
