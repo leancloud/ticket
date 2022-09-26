@@ -1,16 +1,16 @@
 import AV from 'leancloud-storage';
 import axios from 'axios';
 import _ from 'lodash';
-import mem from 'p-memoize';
 
 import { regions } from '@/leancloud';
+import { HttpError } from '@/common/http';
 import { RedisCache } from '@/cache';
 import { AuthOptions, Model, field } from '@/orm';
+import { getVerifiedPayload, JsonWebTokenError } from '@/utils/jwt';
+import mem from '@/utils/mem-promise';
 import { Role } from './Role';
 import { Vacation } from './Vacation';
 import { Group } from './Group';
-import { getVerifiedPayload, JsonWebTokenError } from '@/utils/jwt';
-import { HttpError } from '@/common/http';
 
 function encodeAVUser(user: AV.User): string {
   const json = user.toFullJSON();
@@ -60,14 +60,14 @@ export interface TinyUserInfo {
 }
 
 const getRoles = mem(
-  async (user: User) => {
+  async (userId: string) => {
     const roles = await Role.queryBuilder()
-      .where('users', '==', user.toPointer())
+      .where('users', '==', User.ptr(userId))
       .where('name', 'in', ['staff', 'customerService', 'admin'])
       .find();
     return roles.map((role) => role.name);
   },
-  { maxAge: 10_000 }
+  { max: 10_000, ttl: 10_000 }
 );
 
 export class InvalidLoginCredentialError extends HttpError {
@@ -223,12 +223,12 @@ export class User extends Model {
   }
 
   async isCustomerService(): Promise<boolean> {
-    const roles = await getRoles(this);
+    const roles = await getRoles(this.id);
     return roles.includes('customerService') || roles.includes('admin');
   }
 
   async isStaff(): Promise<boolean> {
-    const roles = await getRoles(this);
+    const roles = await getRoles(this.id);
     return roles.includes('staff') || roles.includes('customerService') || roles.includes('admin');
   }
 

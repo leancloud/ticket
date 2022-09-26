@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import { Context, Middleware } from 'koa';
 import { LogLevel, WebClient } from '@slack/web-api';
 import Router from '@koa/router';
-import QuickLRU from 'quick-lru';
+import LRU from 'lru-cache';
 
 import events from '@/events';
 import notification from '@/notification';
@@ -21,7 +21,7 @@ interface NotifyUpdateTicketOptions {
 
 class SlackIntegration {
   private client: WebClient;
-  private userIdByEmail = new QuickLRU<string, string>({ maxSize: 500 });
+  private userIdByEmail = new LRU<string, string>({ max: 500 });
 
   constructor(token: string, private channel: string) {
     this.client = new WebClient(token, { logLevel: LogLevel.ERROR });
