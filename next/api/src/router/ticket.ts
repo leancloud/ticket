@@ -13,7 +13,7 @@ import { Organization } from '@/model/Organization';
 import { Reply } from '@/model/Reply';
 import { Tag } from '@/model/Tag';
 import { Ticket } from '@/model/Ticket';
-import { OPTION_TYPES, TicketField } from '@/model/TicketField';
+import { TEXT_TYPES, TicketField } from '@/model/TicketField';
 import { TicketFieldValue } from '@/model/TicketFieldValue';
 import { User } from '@/model/User';
 import { TicketResponse, TicketListItemResponse } from '@/response/ticket';
@@ -437,7 +437,7 @@ router.post('/', async (ctx) => {
         customFields.map(async (field) => {
           const ticketField = await TicketField.find(field.field, { useMasterKey: true });
           if (!ticketField) return undefined;
-          return !OPTION_TYPES.includes(ticketField.type) && typeof field.value === 'string'
+          return TEXT_TYPES.includes(ticketField.type) && typeof field.value === 'string'
             ? {
                 ...field,
                 value: await textFilterService.filter(field.value, {
@@ -727,7 +727,7 @@ router.put('/:id/custom-fields', async (ctx) => {
       setCustomFieldsSchema.validateSync(ctx.request.body).map(async (field) => {
         const ticketField = await TicketField.find(field.field, { useMasterKey: true });
         if (!ticketField) return undefined;
-        return !OPTION_TYPES.includes(ticketField.type) && typeof field.value === 'string'
+        return TEXT_TYPES.includes(ticketField.type) && typeof field.value === 'string'
           ? {
               ...field,
               value: await textFilterService.filter(field.value, {

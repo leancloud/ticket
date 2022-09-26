@@ -21,6 +21,7 @@ export const FIELD_TYPES = [
 export type FieldType = typeof FIELD_TYPES[number];
 
 export const OPTION_TYPES: FieldType[] = ['dropdown', 'multi-select', 'radios'];
+export const TEXT_TYPES: FieldType[] = ['text', 'multi-line'];
 
 export class TicketField extends Model {
   @field()
