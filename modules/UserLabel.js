@@ -8,6 +8,7 @@ import { throttle } from 'lodash'
 import css from './UserLabel.css'
 import { Avatar } from './Avatar'
 import { getUserDisplayName } from '../lib/common'
+import { getConfig } from './config'
 
 const USER_TAG = {
   new: {
@@ -110,15 +111,17 @@ const Popover = ({ children, overlay, placement = 'bottom', ...props }) => {
         flip={true}
         transition={false}
       >
-        {(props) => (
-          <BootstrapPopover
-            onMouseEnter={handleOverlayMouseEnter}
-            onMouseLeave={handleOverlayMouseLeave}
-            {...props}
-          >
-            <BootstrapPopover.Content>{overlay}</BootstrapPopover.Content>
-          </BootstrapPopover>
-        )}
+        {(props) =>
+          overlay && (
+            <BootstrapPopover
+              onMouseEnter={handleOverlayMouseEnter}
+              onMouseLeave={handleOverlayMouseLeave}
+              {...props}
+            >
+              <BootstrapPopover.Content>{overlay}</BootstrapPopover.Content>
+            </BootstrapPopover>
+          )
+        }
       </Overlay>
     </>
   )
@@ -132,6 +135,8 @@ Popover.propTypes = {
 const isGenaratedName = (name) => /^[0-9a-z]{25}$/.test(name)
 export function UserLabel({ user, simple, displayTags, displayId }) {
   const name = getUserDisplayName(user)
+  const { overlay: UserLabelOverlay } =
+    getConfig('ticket.metadata.customMetadata.userLabelOverlay') ?? {}
 
   if (simple) {
     return <span>{name}</span>
@@ -140,7 +145,7 @@ export function UserLabel({ user, simple, displayTags, displayId }) {
   return (
     <span>
       <Popover
-        overlay={false /** Replace with your overlay */}
+        overlay={UserLabelOverlay ? <UserLabelOverlay user={user} /> : false}
         placement="bottom"
         id={`popover-${name}`}
       >
