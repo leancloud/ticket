@@ -140,12 +140,9 @@ export function UserLabel({ user, simple, displayTags, displayId }) {
   return (
     <span>
       <Popover
-        overlay={
-          <a href={`https://www.taptap.com/admin/user/edit/${user.username}`} target="__blank">
-            TapTap 用户信息
-          </a>
-        }
+        overlay={false /** Replace with your overlay */}
         placement="bottom"
+        id={`popover-${name}`}
       >
         <Link to={'/users/' + user.username} className="avatar">
           <Avatar user={user} />
