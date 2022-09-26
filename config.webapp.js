@@ -1,3 +1,5 @@
+import React from 'react'
+
 import { setConfig } from './modules/config'
 
 // Used in CustomerServiceStats.
@@ -5,3 +7,11 @@ import { setConfig } from './modules/config'
 setConfig('stats.offsetDays', 0)
 
 setConfig('weekendWarning.enabled', true)
+
+setConfig('ticket.metadata.customMetadata.userLabelOverlay', {
+  overlay: ({ user }) => (
+    <a href={`https://www.taptap.com/admin/user/edit/${user.username}`} target="__blank">
+      TapTap 用户信息
+    </a>
+  ),
+})
