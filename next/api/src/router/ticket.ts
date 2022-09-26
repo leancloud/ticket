@@ -13,7 +13,7 @@ import { Organization } from '@/model/Organization';
 import { Reply } from '@/model/Reply';
 import { Tag } from '@/model/Tag';
 import { Ticket } from '@/model/Ticket';
-import { TicketField } from '@/model/TicketField';
+import { OPTION_TYPES, TicketField } from '@/model/TicketField';
 import { TicketFieldValue } from '@/model/TicketFieldValue';
 import { User } from '@/model/User';
 import { TicketResponse, TicketListItemResponse } from '@/response/ticket';
@@ -21,7 +21,7 @@ import { ReplyResponse } from '@/response/reply';
 import { Vacation } from '@/model/Vacation';
 import { TicketCreator, TicketUpdater, createTicketExportJob } from '@/ticket';
 import { categoryService } from '@/category';
-import { filterText } from '@/utils/textFilter';
+import { FilterOptions, textFilterService } from '@/utils/textFilter';
 
 const router = new Router().use(auth);
 
@@ -397,16 +397,20 @@ router.post('/', async (ctx) => {
     data.customFields
   );
 
-  const requestOptions: Parameters<typeof filterText>[1]['requestOptions'] = {
+  const requestOptions: FilterOptions['requestOptions'] = {
     user_id: currentUser.username,
     nickname: currentUser.name,
     ip: ctx.ip,
   };
 
-  const content = await filterText((data.content || details || '').trim(), { requestOptions });
+  const content = await textFilterService.filter((data.content || details || '').trim(), {
+    requestOptions,
+  });
   const title =
-    (await filterText(data.title || fieldTitle || '', { escape: false, requestOptions })) ||
-    (content ? content.split('\n')[0].slice(0, 100) : category.name);
+    (await textFilterService.filter(data.title || fieldTitle || '', {
+      escape: false,
+      requestOptions,
+    })) || (content ? content.split('\n')[0].slice(0, 100) : category.name);
   const fileIds = data.fileIds ?? attachments;
 
   const creator = new TicketCreator().setAuthor(currentUser).setTitle(title).setContent(content);
@@ -428,14 +432,24 @@ router.post('/', async (ctx) => {
     creator.setMetaData(data.metaData);
   }
   if (customFields) {
-    // TODO: 验证 field 是否存在
-    const _customFields = await Promise.all(
-      customFields.map(async (field) =>
-        typeof field.value === 'string'
-          ? { ...field, value: await filterText(field.value, { escape: false, requestOptions }) }
-          : field
+    const _customFields = (
+      await Promise.all(
+        customFields.map(async (field) => {
+          const ticketField = await TicketField.find(field.field, { useMasterKey: true });
+          if (!ticketField) return undefined;
+          return !OPTION_TYPES.includes(ticketField.type) && typeof field.value === 'string'
+            ? {
+                ...field,
+                value: await textFilterService.filter(field.value, {
+                  escape: false,
+                  requestOptions,
+                }),
+              }
+            : field;
+        })
       )
-    );
+    ).filter(<T>(field: T | undefined): field is T => !!field);
+
     creator.setCustomFields(_customFields);
   }
 
@@ -678,7 +692,7 @@ router.post('/:id/replies', async (ctx) => {
     author: currentUser,
     content: isCustomerService
       ? data.content
-      : await filterText(data.content, {
+      : await textFilterService.filter(data.content, {
           requestOptions: { user_id: currentUser.username, ip: ctx.ip, nickname: currentUser.name },
         }),
     fileIds: data.fileIds?.length ? data.fileIds : undefined,
@@ -708,14 +722,15 @@ const setCustomFieldsSchema = yup.array(customFieldSchema.required()).required()
 router.put('/:id/custom-fields', async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   const ticket = ctx.state.ticket as Ticket;
-  const values = await Promise.all(
-    setCustomFieldsSchema
-      .validateSync(ctx.request.body)
-      .map(async (field) =>
-        typeof field.value === 'string'
+  const values = (
+    await Promise.all(
+      setCustomFieldsSchema.validateSync(ctx.request.body).map(async (field) => {
+        const ticketField = await TicketField.find(field.field, { useMasterKey: true });
+        if (!ticketField) return undefined;
+        return !OPTION_TYPES.includes(ticketField.type) && typeof field.value === 'string'
           ? {
               ...field,
-              value: await filterText(field.value, {
+              value: await textFilterService.filter(field.value, {
                 escape: false,
                 requestOptions: {
                   user_id: currentUser.username,
@@ -724,9 +739,11 @@ router.put('/:id/custom-fields', async (ctx) => {
                 },
               }),
             }
-          : field
-      )
-  );
+          : field;
+      })
+    )
+  ).filter(<T>(field: T | undefined): field is T => !!field);
+
   const opsLogCreator = new OpsLogCreator(ticket);
 
   const ticketFieldValue = await TicketFieldValue.queryBuilder()
