@@ -332,6 +332,10 @@ const customFieldSchema = yup.object({
   value: yup.mixed().required(), // TODO(lyw): 更严格的验证
 });
 
+const customFieldsSchema = yup
+  .array(customFieldSchema.required())
+  .transform((items: { value: any }[]) => items.filter((item) => !_.isEmpty(item.value)));
+
 const ticketDataSchema = yup.object({
   title: yup.string().trim().max(100),
   content: yup.string().trim(),
@@ -339,9 +343,7 @@ const ticketDataSchema = yup.object({
   organizationId: yup.string(),
   fileIds: yup.array(yup.string().required()),
   metaData: yup.object(),
-  customFields: yup
-    .array(customFieldSchema.required())
-    .transform((items: { value: any }[]) => items.filter((item) => !_.isEmpty(item.value))),
+  customFields: customFieldsSchema,
   appId: yup.string(), // LeanCloud app id
 });
 
@@ -721,32 +723,40 @@ router.post('/:id/operate', async (ctx) => {
   ctx.body = {};
 });
 
-const setCustomFieldsSchema = yup.array(customFieldSchema.required()).required();
+const setCustomFieldsSchema = customFieldsSchema.required();
 
 router.put('/:id/custom-fields', async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   const ticket = ctx.state.ticket as Ticket;
-  const values = (
-    await Promise.all(
-      setCustomFieldsSchema.validateSync(ctx.request.body).map(async (field) => {
-        const ticketField = await TicketField.find(field.field, { useMasterKey: true });
-        if (!ticketField) return undefined;
-        return !OPTION_TYPES.includes(ticketField.type) && typeof field.value === 'string'
-          ? {
-              ...field,
-              value: await textFilterService.filter(field.value, {
-                escape: false,
-                requestOptions: {
-                  user_id: currentUser.username,
-                  nickname: currentUser.name,
-                  ip: ctx.ip,
-                },
-              }),
-            }
-          : field;
-      })
-    )
-  ).filter(<T>(field: T | undefined): field is T => !!field);
+
+  let values = setCustomFieldsSchema.validateSync(ctx.request.body);
+  if (values.length) {
+    const ticketFieldIds = values.map((field) => field.field);
+    // TODO(sdjdd): Cache result
+    const ticketFields = await TicketField.queryBuilder()
+      .where('objectId', 'in', ticketFieldIds)
+      .find({ useMasterKey: true });
+    const ticketFieldById = _.keyBy(ticketFields, (field) => field.id);
+    values = values.filter((field) => ticketFieldById[field.field]);
+    if (values.length) {
+      const requestOptions = {
+        user_id: currentUser.username,
+        nickname: currentUser.name,
+        ip: ctx.ip,
+      };
+      values = await Promise.all(
+        values.map(async (field) => {
+          if (typeof field.value === 'string') {
+            field.value = await textFilterService.filter(field.value, {
+              escape: false,
+              requestOptions,
+            });
+          }
+          return field;
+        })
+      );
+    }
+  }
 
   const opsLogCreator = new OpsLogCreator(ticket);
 
