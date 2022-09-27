@@ -34,8 +34,20 @@ const sign = (originalURL: string) => {
   return `${urlWithTS}&token=${token}`;
 };
 
-const getThumbnailURL = (originalURL: string) =>
+const getImageThumbnailURL = (originalURL: string) =>
   `${originalURL}?imageView2/0/w/1080/h/9999/interlace/1/ignore-error/1`;
+const getVideoThumbnailURL = (originalURL: string) => `${originalURL}?vframe/jpg/offset/1`;
+
+const getThumbnailURL = (file: File) => {
+  const { mime, url } = file;
+  if (mime.startsWith('image/')) {
+    return getImageThumbnailURL(url);
+  }
+  if (mime.startsWith('video/')) {
+    return getVideoThumbnailURL(url);
+  }
+  return url;
+};
 
 export class FileResponse {
   constructor(readonly file: File) {}
@@ -43,7 +55,7 @@ export class FileResponse {
   toJSON() {
     const { id, name, mime, url, metaData } = this.file;
     const needSignature = signExternalFileEnabled && metaData?.external;
-    const thumbnailURL = getThumbnailURL(url);
+    const thumbnailURL = getThumbnailURL(this.file);
     return {
       id,
       name,
