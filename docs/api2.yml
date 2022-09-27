@@ -628,7 +628,8 @@ paths:
         - name: cursor
           in: query
           schema:
-            type: date-time
+            type: string
+            format: date-time
           description: 以返回结果的 createdAt 作为游标加载更多。如果指定 cursor，page 参数将被忽略。
         - name: count
           in: query
@@ -743,7 +744,8 @@ paths:
         - name: cursor
           in: query
           schema:
-            type: date-time
+            type: string
+            format: date-time
           description: 以返回结果的 createdAt 作为游标加载更多。如果指定 cursor，page 参数将被忽略。
         - name: count
           in: query
