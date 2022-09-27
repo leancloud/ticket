@@ -91,12 +91,15 @@ export class TextFilterService {
           }
         );
         const [filteredText, lastEnd] = res.data.hint.hit_words.reduce<[string, number]>(
-          ([res, lastEnd], { positions: { start_index, end_index } }) => [
-            `${res}${input.slice(lastEnd, start_index)}${(escape ? '\\*' : '*').repeat(
-              end_index - start_index
-            )}`,
-            end_index,
-          ],
+          ([res, lastEnd], { positions: { start_index, end_index } }) =>
+            end_index > lastEnd
+              ? [
+                  `${res}${input.slice(lastEnd, start_index)}${(escape ? '\\*' : '*').repeat(
+                    end_index - Math.max(start_index, lastEnd)
+                  )}`,
+                  end_index,
+                ]
+              : [res, lastEnd],
           ['', 0]
         );
         return filteredText + input.slice(lastEnd);
