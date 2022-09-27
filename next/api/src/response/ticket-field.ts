@@ -55,20 +55,22 @@ export class CategoryFieldResponse {
   }
 }
 
+export interface TicketFieldStatsOptions {
+  title: string;
+  displayLocale: string;
+  value: string;
+  count: {
+    open: number;
+    closed: number;
+    total: number;
+  };
+}
+
 export interface TicketFieldStats {
   title: string;
   id: string;
   type: FieldType;
-  options: {
-    title: string;
-    displayLocale: string;
-    value: string;
-    count: {
-      open: number;
-      closed: number;
-      total: number;
-    };
-  }[];
+  options: TicketFieldStatsOptions[];
 }
 
 export type TicketFieldStatsResponse = TicketFieldStats[];
