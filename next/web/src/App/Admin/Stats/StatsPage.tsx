@@ -1,4 +1,4 @@
-import { FunctionComponent, useCallback, useMemo, useState } from 'react';
+import { FunctionComponent, useCallback, useMemo, useRef, useState } from 'react';
 import classnames from 'classnames';
 import { Statistic, Card, Divider, Radio, DatePicker } from '@/components/antd';
 import { CategorySelect } from '@/components/common';
@@ -43,6 +43,7 @@ enum FILTER_TYPE {
 const ToolBar: FunctionComponent<{
   className?: string;
 }> = ({ className }) => {
+  const $categoryRef = useRef<string>();
   const [, rangePickerOptions] = useRangePicker();
   const [{ customerService, category, group, ...rest }, { set }] = useSearchParams();
   const [tmpCategory, setTmpCategory] = useState(category);
@@ -62,6 +63,7 @@ const ToolBar: FunctionComponent<{
       { label: '按分类筛选', value: FILTER_TYPE.category },
     ];
   }, []);
+
   return (
     <div className={className}>
       <Radio.Group
@@ -96,14 +98,18 @@ const ToolBar: FunctionComponent<{
       {filterType === FILTER_TYPE.category && (
         <CategorySelect
           changeOnSelect
+          categoryActive={true}
           placeholder="请选择分类"
           value={tmpCategory}
           onDropdownVisibleChange={(visible) => {
             if (!visible) {
-              set({ category: tmpCategory, ...rest });
+              set({ category: $categoryRef.current, ...rest });
             }
           }}
-          onChange={(value) => setTmpCategory(value)}
+          onChange={(value) => {
+            setTmpCategory(value);
+            $categoryRef.current = value;
+          }}
         />
       )}
       <Divider type="vertical" />
