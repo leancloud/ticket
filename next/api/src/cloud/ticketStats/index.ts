@@ -11,6 +11,7 @@ import {
   startOfHour,
   endOfHour,
   subHours,
+  addHours,
 } from 'date-fns';
 import _ from 'lodash';
 
@@ -28,7 +29,6 @@ import {
 } from './utils';
 
 const AUTH_OPTIONS = { useMasterKey: true };
-
 type WeekdayDuration = Record<'hours' | 'minutes' | 'seconds', number>;
 const getReplyTimeConfig = async () => {
   const config = {
@@ -223,4 +223,34 @@ export async function hourlyTicketStats(date?: Date) {
       error
     );
   }
+}
+
+const getFromDate = async () => {
+  const firstTicket = await Ticket.queryBuilder().orderBy('createdAt', 'asc').first({
+    useMasterKey: true,
+  });
+  if (firstTicket) {
+    return firstTicket.createdAt;
+  }
+  return;
+};
+
+const run = async (fromDate: Date) => {
+  const currentDate = new Date();
+  for (let next = fromDate; isBefore(next, currentDate); next = addHours(next, 1)) {
+    await hourlyTicketStats(next);
+  }
+};
+
+export async function syncTicketStats(fromDate?: Date) {
+  if (!fromDate) {
+    fromDate = await getFromDate();
+  }
+  if (!fromDate) {
+    console.log('no from date');
+    return;
+  }
+  run(fromDate).catch((err) => {
+    console.log('syncTicketStats', err);
+  });
 }
