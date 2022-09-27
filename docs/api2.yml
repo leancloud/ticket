@@ -619,7 +619,7 @@ paths:
           in: query
           schema:
             type: integer
-          description: 每页数量，范围：[0, 1000]，默认为 100
+          description: 每页数量，范围：[1, 1000]，默认为 100
         - name: page
           in: query
           schema:
@@ -628,7 +628,7 @@ paths:
         - name: cursor
           in: query
           schema:
-            type: string
+            type: date-time
           description: 以返回结果的 createdAt 作为游标加载更多。如果指定 cursor，page 参数将被忽略。
         - name: count
           in: query
@@ -734,7 +734,7 @@ paths:
           in: query
           schema:
             type: integer
-          description: 每页数量，范围：[0, 1000]，默认为 100
+          description: 每页数量，范围：[1, 1000]，默认为 100
         - name: page
           in: query
           schema:
@@ -743,7 +743,7 @@ paths:
         - name: cursor
           in: query
           schema:
-            type: string
+            type: date-time
           description: 以返回结果的 createdAt 作为游标加载更多。如果指定 cursor，page 参数将被忽略。
         - name: count
           in: query
@@ -758,7 +758,7 @@ paths:
               schema:
                 type: string
                 format: integer
-              description: 符合条件的回复数量（仅当指定 count 参数时返回）
+              description: 符合条件的日志数量（仅当指定 count 参数时返回）
           content:
             application/json:
               schema:
