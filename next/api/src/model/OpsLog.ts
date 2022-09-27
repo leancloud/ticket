@@ -3,7 +3,7 @@ import { ACLBuilder, CreateData, Model, RawACL, field, pointerId, pointTo } from
 import { Category } from './Category';
 import { Group } from './Group';
 import { Ticket } from './Ticket';
-import { User } from './User';
+import { systemUser, User } from './User';
 import { FieldValue } from './TicketFieldValue';
 
 export const actions = ['replyWithNoContent', 'replySoon', 'resolve', 'close', 'reopen'] as const;
@@ -69,6 +69,7 @@ export class OpsLogCreator {
       action: 'selectAssignee',
       data: {
         assignee: assignee.getTinyInfo(),
+        operator: systemUser.getTinyInfo(),
       },
     });
     return this;

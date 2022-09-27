@@ -187,6 +187,43 @@ components:
         updatedAt:
           type: string
           format: date-time
+    OpsLog:
+      type: object
+      properties:
+        id:
+          type: string
+        action:
+          type: string
+          enum:
+            [
+              'replyWithNoContent',
+              'replySoon',
+              'resolve',
+              'close',
+              'reopen',
+              'selectAssignee',
+              'changeAssignee',
+              'changeGroup',
+              'changeCategory',
+              'changeFields',
+            ]
+          description: |
+            |action|描述|附加字段|internal|
+            |----|----|----|----|
+            |replyWithNoContent|客服认为无需回复（并将状态改为等待用户回复）|
+            |replySoon|客服认为需要一些时间处理，会稍后回复|
+            |resolve|客服认为或用户确认工单已解决|
+            |close|工单被关闭|
+            |reopen|工单被重新打开|
+            |changeGroup|系统或某客服修改了工单客服组|groupId|✔️
+            |selectAssignee|系统将工单分配给了某客服|assigneeId
+            |changeAssignee|系统或某客服将工单交给了某客服|assigneeId
+            |changeCategory|系统或某客服修改了工单分类|categoryId
+            |changeFields|用户或客服修改了工单字段|changes
+        operatorId:
+          type: string
+          description: 操作者 ID。ID 为 `system` 代表该操作由系统自动触发。
+
     Notification:
       type: object
       properties:
@@ -582,7 +619,7 @@ paths:
           in: query
           schema:
             type: integer
-          description: 每页数量，范围：[0, 1000]，默认为 100
+          description: 每页数量，范围：[1, 1000]，默认为 100
         - name: page
           in: query
           schema:
@@ -591,13 +628,13 @@ paths:
         - name: cursor
           in: query
           schema:
-            type: string
+            type: date-time
           description: 以返回结果的 createdAt 作为游标加载更多。如果指定 cursor，page 参数将被忽略。
         - name: count
           in: query
           schema:
             type: boolean
-          description: 为 `true` 时通过 x-total-count 返回符合条件的工单数量。多数情况下可以使用 Ticket 的 replyCount 属性代替。
+          description: 为 `true` 时通过 x-total-count 返回符合条件的回复数量。
       responses:
         '200':
           description: OK
@@ -672,6 +709,63 @@ paths:
                   updatedAt:
                     type: string
                     format: date-time
+
+  /api/2/tickets/{id}/ops-logs:
+    parameters:
+      - name: id
+        in: path
+        description: 工单 ID
+        schema:
+          type: string
+        required: true
+    get:
+      tags: [Ticket]
+      summary: 获取操作日志
+      parameters:
+        - name: orderBy
+          in: query
+          schema:
+            type: string
+            enum:
+              - createdAt
+              - createdAt-desc
+          description: 排序字段，默认为升序，`-desc` 后缀表示降序
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+          description: 每页数量，范围：[1, 1000]，默认为 100
+        - name: page
+          in: query
+          schema:
+            type: integer
+          description: 页数，范围：[1, Infinity)
+        - name: cursor
+          in: query
+          schema:
+            type: date-time
+          description: 以返回结果的 createdAt 作为游标加载更多。如果指定 cursor，page 参数将被忽略。
+        - name: count
+          in: query
+          schema:
+            type: boolean
+          description: 为 `true` 时通过 x-total-count 返回符合条件的日志数量。
+      responses:
+        '200':
+          description: OK
+          headers:
+            x-total-count:
+              schema:
+                type: string
+                format: integer
+              description: 符合条件的日志数量（仅当指定 count 参数时返回）
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OpsLog'
+
   /api/2/unread:
     get:
       tags: ['Notification']

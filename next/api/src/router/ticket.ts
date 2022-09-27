@@ -8,7 +8,7 @@ import { auth, customerServiceOnly, include, parseRange, sort } from '@/middlewa
 import { Model, QueryBuilder } from '@/orm';
 import { Category } from '@/model/Category';
 import { Group } from '@/model/Group';
-import { OpsLogCreator } from '@/model/OpsLog';
+import { OpsLog, OpsLogCreator } from '@/model/OpsLog';
 import { Organization } from '@/model/Organization';
 import { Reply } from '@/model/Reply';
 import { Tag } from '@/model/Tag';
@@ -22,6 +22,7 @@ import { Vacation } from '@/model/Vacation';
 import { TicketCreator, TicketUpdater, createTicketExportJob } from '@/ticket';
 import { categoryService } from '@/category';
 import { FilterOptions, textFilterService } from '@/utils/textFilter';
+import { OpsLogResponse } from '@/response/ops-log';
 
 const router = new Router().use(auth);
 
@@ -706,6 +707,42 @@ router.post('/:id/replies', async (ctx) => {
   });
 
   ctx.body = new ReplyResponse(reply);
+});
+
+const fetchOpsLogsParamsSchema = yup.object({
+  cursor: yup.date(),
+  // pagination
+  page: yup.number().integer().min(1).default(1),
+  pageSize: yup.number().integer().min(0).max(1000).default(100),
+  count: yup.bool().default(false),
+});
+
+router.get('/:id/ops-logs', sort('orderBy', ['createdAt']), async (ctx) => {
+  const currentUser = ctx.state.currentUser as User;
+  const ticket = ctx.state.ticket as Ticket;
+  const { cursor, page, pageSize, count } = fetchOpsLogsParamsSchema.validateSync(ctx.query);
+  const sortItems = sort.get(ctx);
+  const createdAtOrder = sortItems?.[0];
+  const asc = createdAtOrder?.order !== 'desc';
+
+  const query = OpsLog.queryBuilder().where('ticket', '==', ticket.toPointer());
+  if (cursor) {
+    query.where('createdAt', asc ? '>' : '<', cursor);
+  } else {
+    query.skip((page - 1) * pageSize);
+  }
+  query.limit(pageSize);
+  sortItems?.forEach(({ key, order }) => query.orderBy(key, order));
+
+  let logs: OpsLog[];
+  if (count) {
+    const result = await query.findAndCount(currentUser.getAuthOptions());
+    logs = result[0];
+    ctx.set('X-Total-Count', result[1].toString());
+  } else {
+    logs = await query.find(currentUser.getAuthOptions());
+  }
+  ctx.body = logs.map((log) => new OpsLogResponse(log));
 });
 
 const operateSchema = yup.object({
