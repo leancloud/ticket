@@ -1,8 +1,6 @@
-import mem from 'p-memoize';
-import QuickLRU from 'quick-lru';
-
 import { createQueue } from '@/queue';
 import events from '@/events';
+import mem from '@/utils/mem-promise';
 import { Ticket } from '@/model/Ticket';
 import { Trigger as TriggerModel } from '@/model/Trigger';
 
@@ -46,25 +44,10 @@ async function fetchTriggers(): Promise<Trigger[]> {
   return triggers;
 }
 
-const cache = new QuickLRU<string, any>({ maxSize: 1 });
-
-export const getTriggers = mem(
-  async () => {
-    try {
-      return await fetchTriggers();
-    } catch (error) {
-      cache.clear();
-      throw error;
-    }
-  },
-  {
-    cache,
-    maxAge: 1000 * 60,
-  }
-);
+export const getTriggers = mem(fetchTriggers, { max: 1, ttl: 1000 * 60 });
 
 async function runTriggers(ctx: TriggerContext) {
-  const triggers = await getTriggers();
+  const triggers = await getTriggers(undefined);
   for (const trigger of triggers) {
     await trigger.exec(ctx);
   }

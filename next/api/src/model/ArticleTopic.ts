@@ -1,8 +1,7 @@
-import { field, hasManyThroughIdArray, Model, ModifyOptions, pointerIds, serialize } from '@/orm';
-import { Article, getPublicArticle } from './Article';
-import mem from 'p-memoize';
-import QuickLRU from 'quick-lru';
 import _ from 'lodash';
+import mem from '@/utils/mem-promise';
+import { field, hasManyThroughIdArray, Model, ModifyOptions, serialize } from '@/orm';
+import { Article, getPublicArticle } from './Article';
 
 export class ArticleTopic extends Model {
   protected static className = 'FAQTopic';
@@ -35,10 +34,7 @@ export class ArticleTopic extends Model {
   }
 }
 
-const getRawTopic = mem((id: string) => ArticleTopic.find(id), {
-  cache: new QuickLRU({ maxSize: 500 }),
-  maxAge: 60_000,
-});
+const getRawTopic = mem((id: string) => ArticleTopic.find(id), { max: 500, ttl: 60_000 });
 
 export const getTopic = async (id: string) => {
   const topic = await getRawTopic(id);

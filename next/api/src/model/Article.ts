@@ -1,6 +1,4 @@
-import mem from 'p-memoize';
-import QuickLRU from 'quick-lru';
-
+import mem from '@/utils/mem-promise';
 import { ACLBuilder, field, Model, ModifyOptions, pointerId, pointTo, serialize } from '@/orm';
 import { User } from './User';
 import { ArticleRevision } from './ArticleRevision';
@@ -120,8 +118,5 @@ export class Article extends Model {
 
 export const getPublicArticle = mem(
   (id: string) => Article.find(id).then((article) => (article?.private ? undefined : article)),
-  {
-    cache: new QuickLRU({ maxSize: 500 }),
-    maxAge: 60_000,
-  }
+  { max: 500, ttl: 60_000 }
 );
