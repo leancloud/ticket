@@ -1,16 +1,16 @@
 import { PromiseCache } from './promise-cache';
 
-type AsyncFn<Arg, Ret> = (arg: Arg) => Promise<Ret>;
-
 interface MemPromiseOptions {
   max: number;
   ttl?: number;
 }
 
-export default function pmem<T, U>(fn: AsyncFn<T, U>, options: MemPromiseOptions): AsyncFn<T, U> {
-  const promiseCache = new PromiseCache<T, U>(options);
+function pmem<T>(fn: () => Promise<T>, options: MemPromiseOptions): () => Promise<T>;
+function pmem<T, U>(fn: (arg: U) => Promise<T>, options: MemPromiseOptions): (arg: U) => Promise<T>;
+function pmem(fn: (arg?: unknown) => Promise<unknown>, options: MemPromiseOptions) {
+  const promiseCache = new PromiseCache(options);
 
-  return async (arg: T) => {
+  return async (arg?: unknown) => {
     if (promiseCache.has(arg)) {
       return promiseCache.get(arg)!;
     }
@@ -19,3 +19,5 @@ export default function pmem<T, U>(fn: AsyncFn<T, U>, options: MemPromiseOptions
     return promise;
   };
 }
+
+export default pmem;

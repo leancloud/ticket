@@ -47,7 +47,7 @@ async function fetchTriggers(): Promise<Trigger[]> {
 export const getTriggers = mem(fetchTriggers, { max: 1, ttl: 1000 * 60 });
 
 async function runTriggers(ctx: TriggerContext) {
-  const triggers = await getTriggers(undefined);
+  const triggers = await getTriggers();
   for (const trigger of triggers) {
     await trigger.exec(ctx);
   }
