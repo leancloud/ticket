@@ -187,7 +187,7 @@ export class TicketFieldController {
         })
       : await TicketField.queryBuilder()
           .where('type', 'in', OPTION_TYPES)
-          .orderBy('createdAt', 'desc')
+          .orderBy('createdAt', 'asc')
           .limit(pageSize)
           .skip(page - 1)
           .find({ useMasterKey: true });
@@ -271,7 +271,7 @@ export class TicketFieldController {
                     category
                       ? ''
                       : `
-                  ORDER BY createdAt DESC
+                  ORDER BY createdAt ASC
                   LIMIT ${escape(pageSize)}
                   OFFSET ${escape(pageSize * (page - 1))}
                   `
