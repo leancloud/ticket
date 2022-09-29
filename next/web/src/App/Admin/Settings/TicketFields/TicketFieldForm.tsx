@@ -458,7 +458,11 @@ export function TicketFieldForm({
             <Controller
               name="meta"
               render={({ field: { value, onChange } }) => (
-                <Form.Item label="Meta" htmlFor="meta" help="面向开发者的扩展属性">
+                <Form.Item
+                  label="Meta"
+                  htmlFor="meta"
+                  help="面向开发者的扩展属性, 将 disableFilter 字段设为 true 来取消对输入的过滤"
+                >
                   <JSONTextarea value={value} onChange={onChange} id="meta" />
                 </Form.Item>
               )}
