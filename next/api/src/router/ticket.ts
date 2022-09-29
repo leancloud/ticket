@@ -447,6 +447,8 @@ router.post('/', async (ctx) => {
     if (filteredCustomFields.length) {
       filteredCustomFields = await Promise.all(
         filteredCustomFields.map(async (field) => {
+          const ticketField = ticketFieldById[field.field];
+          if (ticketField.meta?.disableFilter === true) return field;
           if (typeof field.value === 'string') {
             field.value = await textFilterService.filter(field.value, {
               escape: false,
@@ -783,6 +785,8 @@ router.put('/:id/custom-fields', async (ctx) => {
       };
       values = await Promise.all(
         values.map(async (field) => {
+          const ticketField = ticketFieldById[field.field];
+          if (ticketField.meta?.disableFilter === true) return field;
           if (typeof field.value === 'string') {
             field.value = await textFilterService.filter(field.value, {
               escape: false,
