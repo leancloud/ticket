@@ -15,6 +15,7 @@ import { FindModelPipe, ParseCsvPipe, TrimPipe, ZodValidationPipe } from '@/comm
 import { auth, customerServiceOnly } from '@/middleware';
 import { User } from '@/model/User';
 import { UserSearchResult } from '@/response/user';
+import { withAsyncSpan } from '@/utils/trace';
 import { Context } from 'koa';
 import { z } from 'zod';
 
@@ -70,16 +71,9 @@ export class UserController {
 
   @Post()
   async login(@Ctx() ctx: Context, @Body(new ZodValidationPipe(authSchema)) authData: AuthData) {
-    const span = ctx.__sentry_transaction.startChild({
-      op: 'controller',
-    });
-    let result;
     if (isJWT(authData)) {
-      result = await User.loginWithJWT(authData.jwt);
-    } else {
-      result = await User.loginWithAnonymousId(authData.anonymousId, authData.name);
+      return withAsyncSpan(() => User.loginWithJWT(authData.jwt), ctx, 'model', 'User.loginWithJWT');
     }
-    span.finish();
-    return result;
+    return User.loginWithAnonymousId(authData.anonymousId, authData.name);
   }
 }
