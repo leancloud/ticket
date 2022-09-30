@@ -267,13 +267,13 @@ async function getEvaluationStats(
   const sql = `
     SELECT
       count(DISTINCT t.objectId) AS count,
-      option,
+      selection,
       ${categoryIds ? 'categoryId,' : ''}
       ${customerServiceIds ? 'customerServiceId,' : ''}
       visitParamExtractUInt(t.evaluation, 'star') AS star
     FROM Ticket AS t
     LEFT ARRAY JOIN
-      JSONExtract(t.evaluation, 'options', 'Array(String)') AS option
+      JSONExtract(t.evaluation, 'selections', 'Array(String)') AS selection
     WHERE t.evaluation != ''
     ${
       categoryIds && Array.isArray(categoryIds)
@@ -292,7 +292,7 @@ async function getEvaluationStats(
     ${from ? `AND t.createdAt >= parseDateTimeBestEffortOrNull(${escape(from)})` : ''}
     ${to ? `AND t.createdAt <= parseDateTimeBestEffortOrNull(${escape(to)})` : ''}
     GROUP BY
-      option,
+      selection,
       ${categoryIds ? "visitParamExtractString(t.category, 'objectId') AS categoryId," : ''}
       ${customerServiceIds ? 't.`assignee.objectId` AS customerServiceId,' : ''}
       star
@@ -301,7 +301,7 @@ async function getEvaluationStats(
   const res = await ClickHouse.findWithSqlStr<{
     results: {
       count: string;
-      option: string;
+      selection: string;
       categoryId?: string;
       customerServiceId?: string;
       star: string;
@@ -327,19 +327,20 @@ async function getEvaluationStats(
 
   return _(res)
     .groupBy(
-      ({ categoryId, customerServiceId, option }) => `${option}-${categoryId}-${customerServiceId}`
+      ({ categoryId, customerServiceId, selection }) =>
+        `${selection}-${categoryId}-${customerServiceId}`
     )
     .mapValues((counts) =>
       counts.reduce<Omit<EvaluationStats, 'dislikeRate' | 'likeRate'>>(
-        (acc, { count, categoryId, customerServiceId, star, option }) => ({
+        (acc, { count, categoryId, customerServiceId, star, selection }) => ({
           ...acc,
           categoryId,
           customerServiceId,
-          option,
+          selection,
           [EvaluationFields[Number(star)] as 'dislikeCount' | 'likeCount']:
             (acc[EvaluationFields[Number(star)]] as number) + Number(count),
         }),
-        { likeCount: 0, dislikeCount: 0, option: '' }
+        { likeCount: 0, dislikeCount: 0, selection: '' }
       )
     )
     .values()

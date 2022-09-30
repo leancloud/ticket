@@ -52,7 +52,7 @@ export function useTicketStats({ queryOptions, ...options }: UseTicketStatsOptio
 
 export type TicketFieldStat = Partial<Omit<TicketStats, 'likeRate' | 'dislikeRate'>> & {
   date?: Date;
-  option?: string;
+  selection?: string;
   categoryId?: string;
   customerServiceId?: string;
   replyTimeAVG?: number;

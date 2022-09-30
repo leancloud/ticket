@@ -21,11 +21,13 @@ export const STATS_FIELD = [
   'internalReplyCount',
   'likeCount',
   'dislikeCount',
-  'likeRate',
-  'dislikeRate',
 ] as const;
+export const NO_DETAIL_STATS_FIELD = ['likeRate', 'dislikeRate'] as const;
 export type StatsField = typeof STATS_FIELD[number];
-export const STATS_FIELD_LOCALE: Record<StatsField, string> = {
+export const STATS_FIELD_LOCALE: Record<
+  StatsField | typeof NO_DETAIL_STATS_FIELD[number],
+  string
+> = {
   created: '新建工单',
   closed: '关单数',
   reopened: '激活工单数',

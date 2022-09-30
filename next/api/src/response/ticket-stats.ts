@@ -11,7 +11,7 @@ export interface EvaluationCounts {
 export interface EvaluationStats extends Omit<EvaluationCounts, 'likeRate' | 'dislikeRate'> {
   categoryId?: string;
   customerServiceId?: string;
-  option: string;
+  selection: string;
 }
 
 export class TicketStatsResponse {

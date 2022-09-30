@@ -163,7 +163,7 @@ const TicketStatsDateColumn = () => {
   );
 };
 
-const TicketStatsOptionColumn = () => {
+const TicketStatsSelectionColumn = () => {
   const params = useStatsParams();
   const [field] = useActiveField();
   const { data, isFetching, isLoading } = useTicketFieldStats({
@@ -175,8 +175,8 @@ const TicketStatsOptionColumn = () => {
     if (!data) return [];
     return data
       .filter((v) => v[field])
-      .map(({ option, categoryId, customerServiceId, date, ...rest }) =>
-        valueTransformImpl([option || '其他', rest], field)
+      .map(({ selection, categoryId, customerServiceId, date, ...rest }) =>
+        valueTransformImpl([selection || '其他', rest], field)
       );
   }, [data]);
 
@@ -524,7 +524,11 @@ export function StatsDetails() {
     <div className="w-full">
       <h2>{STATS_FIELD_LOCALE[field]}</h2>
       <div className="w-full relative">
-        {EvaluationFields.includes(field) ? <TicketStatsOptionColumn /> : <TicketStatsDateColumn />}
+        {EvaluationFields.includes(field) ? (
+          <TicketStatsSelectionColumn />
+        ) : (
+          <TicketStatsDateColumn />
+        )}
       </div>
       <Details />
     </div>
