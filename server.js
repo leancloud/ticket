@@ -3,7 +3,6 @@ const express = require('express')
 const favicon = require('serve-favicon')
 const path = require('path')
 const compression = require('compression')
-const Raven = require('raven')
 const AV = require('leanengine')
 const swaggerUi = require('swagger-ui-express')
 const YAML = require('yamljs')
@@ -18,9 +17,31 @@ AV.setProduction(process.env.NODE_ENV === 'production')
 const config = require('./config')
 const { clientGlobalVars } = require('./clientGlobalVar')
 
-Raven.config(config.sentryDSN).install()
-
 const app = express()
+const apiRouter = require('./api')
+
+const { Sentry, Tracing } = require('./next/api/dist/sentry')
+if (config.sentryDSN) {
+  Sentry.init({
+    enabled: process.env.NODE_ENV === 'production',
+    dsn: config.sentryDSN,
+    environment: process.env.TICKET_HOST,
+    initialScope: {
+      tags: {
+        type: 'api',
+      },
+    },
+    integrations: [
+      // enable HTTP calls tracing
+      new Sentry.Integrations.Http({ tracing: true, breadcrumbs: false }),
+      new Tracing.Integrations.Express({
+        // specify the routes you want to trace:
+        router: apiRouter,
+      }),
+    ],
+    tracesSampleRate: Number(process.env.SENTRY_SAMPLE_RATE ?? 0.05),
+  })
+}
 
 if (process.env.MAINTENANCE_MODE) {
   app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public/maintenance-mode.html')))
@@ -37,7 +58,7 @@ if (process.env.MAINTENANCE_MODE) {
 
   app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')))
   app.use(compression())
-  app.use(Raven.requestHandler())
+  app.use(Sentry.Handlers.requestHandler())
 
   // 加载云引擎中间件
   app.use(AV.express())
@@ -53,14 +74,15 @@ if (process.env.MAINTENANCE_MODE) {
   // oauth
   app.use(require('./oauth'))
 
-  // legacy api
-  app.use(require('./api'))
-
   // api document
   const APIV1 = YAML.load('./docs/api1.yml')
   const APIV2 = YAML.load('./docs/api2.yml')
   app.use('/docs/1', swaggerUi.serveFiles(APIV1), swaggerUi.setup(APIV1))
   app.use('/docs/2', swaggerUi.serveFiles(APIV2), swaggerUi.setup(APIV2))
+
+  // legacy api
+  app.use(Sentry.Handlers.tracingHandler())
+  app.use(apiRouter)
 
   const { orgName } = require('./oauth/lc')
 
@@ -107,7 +129,7 @@ if (process.env.MAINTENANCE_MODE) {
   })
 }
 
-app.use(Raven.errorHandler())
+app.use(Sentry.Handlers.errorHandler())
 
 // error handlers
 app.use(function (err, req, res, _next) {

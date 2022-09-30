@@ -2,7 +2,7 @@ import Koa from 'koa';
 import bodyParser from 'koa-bodyparser';
 import cors from '@koa/cors';
 import throat from 'throat';
-import * as Sentry from '@sentry/node';
+import { Sentry } from './sentry';
 import { extractTraceparentData, stripUrlQueryAndFragment } from '@sentry/tracing';
 
 import './leancloud';
@@ -15,23 +15,6 @@ import { OpsLog } from './model/OpsLog';
 import { Ticket } from './model/Ticket';
 import { getTriggers, getTimeTriggers } from './ticket/automation';
 export const app = new Koa();
-
-if (config.sentryDSN) {
-  Sentry.init({
-    enabled: process.env.NODE_ENV === 'production',
-    dsn: config.sentryDSN,
-    initialScope: {
-      tags: {
-        type: 'api',
-      },
-    },
-    integrations: [
-      // enable HTTP calls tracing
-      new Sentry.Integrations.Http({ tracing: true }),
-    ],
-    tracesSampleRate: Number(process.env.SENTRY_SAMPLE_RATE ?? 0.05),
-  });
-}
 
 // this tracing middleware creates a transaction per request
 const tracingMiddleWare: Koa.Middleware = async (ctx, next) => {

@@ -46,7 +46,7 @@ router.get(
     const unread = !!unreadNotification;
 
     ctx.body = unread;
-  }, 'controllet')
+  }, 'controller')
 );
 
 export default router;
