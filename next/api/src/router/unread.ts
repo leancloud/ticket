@@ -13,6 +13,11 @@ const getUnreadSchema = yup.object({
 });
 
 router.get('/', async (ctx) => {
+  const transaction = ctx.__sentry_transaction;
+  const span = transaction.startChild({
+    op: 'controller',
+  });
+
   const currentUser = ctx.state.currentUser as User;
   const { product } = getUnreadSchema.validateSync(ctx.request.query);
 
@@ -33,6 +38,7 @@ router.get('/', async (ctx) => {
   const unread = !!unreadNotification;
 
   ctx.body = unread;
+  span.finish();
 });
 
 export default router;
