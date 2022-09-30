@@ -1,8 +1,21 @@
-
 import { TicketStats } from '@/model/TicketStats';
 import { TicketStatusStats } from '@/model/TicketStatusStats';
+
+export interface EvaluationCounts {
+  likeCount: number;
+  dislikeCount: number;
+  likeRate: number;
+  dislikeRate: number;
+}
+
+export interface EvaluationStats extends Omit<EvaluationCounts, 'likeRate' | 'dislikeRate'> {
+  categoryId?: string;
+  customerServiceId?: string;
+  option: string;
+}
+
 export class TicketStatsResponse {
-  constructor(readonly ticketStats: TicketStats) { }
+  constructor(readonly ticketStats: TicketStats) {}
   toJSON() {
     return {
       id: this.ticketStats.id,
@@ -20,13 +33,13 @@ export class TicketStatsResponse {
       firstReplyCount: this.ticketStats.firstReplyCount || 0,
       internalReplyCount: this.ticketStats.internalReplyCount || 0,
       naturalReplyTime: this.ticketStats.naturalReplyTime || 0,
-      naturalReplyCount: this.ticketStats.naturalReplyCount || 0
+      naturalReplyCount: this.ticketStats.naturalReplyCount || 0,
     };
   }
 }
 
 export class TicketStatusStatsResponse {
-  constructor(readonly ticketStats: TicketStatusStats) { }
+  constructor(readonly ticketStats: TicketStatusStats) {}
   toJSON() {
     return {
       id: this.ticketStats.id,

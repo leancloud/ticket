@@ -19,6 +19,10 @@ export const STATS_FIELD = [
   'naturalReplyTimeAVG',
   'replyCount',
   'internalReplyCount',
+  'likeCount',
+  'dislikeCount',
+  'likeRate',
+  'dislikeRate',
 ] as const;
 export type StatsField = typeof STATS_FIELD[number];
 export const STATS_FIELD_LOCALE: Record<StatsField, string> = {
@@ -33,7 +37,14 @@ export const STATS_FIELD_LOCALE: Record<StatsField, string> = {
   naturalReplyTimeAVG: '平均回复自然时间',
   replyCount: '对外回复数',
   internalReplyCount: '对内回复数',
+  likeCount: '好评数',
+  dislikeCount: '差评数',
+  likeRate: '好评率',
+  dislikeRate: '差评率',
 };
+export const EvaluationFields = ['dislikeCount', 'likeCount'];
+export const EvaluationRateFields = ['dislikeRate', 'likeRate'];
+export const NoDetailFields = [...EvaluationRateFields];
 
 enum FILTER_TYPE {
   all = 'all',
@@ -152,6 +163,12 @@ const StatCards = () => {
         suffix: '小时',
       };
     }
+    if (EvaluationRateFields.includes(field)) {
+      return {
+        formatter: (value: number | string) => (Number(value) * 100).toFixed(1),
+        suffix: '%',
+      };
+    }
     return {};
   }, []);
 
@@ -164,8 +181,11 @@ const StatCards = () => {
             key={type}
             className={classnames('!m-1 basis-52 grow-0 shrink-0 cursor-pointer', {
               '!border-primary': type === active,
+              'cursor-not-allowed': NoDetailFields.includes(type),
             })}
-            onClick={() => active !== type && setActive(type)}
+            onClick={
+              NoDetailFields.includes(type) ? undefined : () => active !== type && setActive(type)
+            }
           >
             <Statistic
               loading={isFetching || isLoading}

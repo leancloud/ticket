@@ -1,5 +1,6 @@
 import Router from '@koa/router';
 import _ from 'lodash';
+import { escape } from 'sqlstring';
 
 import * as yup from '@/utils/yup';
 import { auth, customerServiceOnly, parseRange } from '@/middleware';
@@ -9,9 +10,15 @@ import { TicketStatusStats } from '@/model/TicketStatusStats';
 import { Group } from '@/model/Group';
 import { User } from '@/model/User';
 import { Role } from '@/model/Role';
-import { TicketStatusStatsResponse } from '@/response/ticket-stats';
+import {
+  EvaluationCounts,
+  EvaluationStats,
+  TicketStatusStatsResponse,
+} from '@/response/ticket-stats';
 import { ticketFiltersSchema } from './ticket';
 import { ClickHouse, FunctionColumn, quoteValue } from '@/orm/clickhouse';
+
+const EvaluationFields = ['dislikeCount', 'likeCount'] as const;
 
 const router = new Router().use(auth, customerServiceOnly);
 
@@ -33,7 +40,15 @@ router.get('/', async (ctx) => {
     customerServiceIds,
     categoryIds,
   });
-  ctx.body = data || {};
+
+  const evaluationStats = await getEvaluationStats({
+    categoryIds,
+    customerServiceIds,
+    count: true,
+    ...rest,
+  });
+
+  ctx.body = { ...(data || {}), ...evaluationStats };
 });
 
 const fieldStatsSchema = yup.object(BaseSchema).shape({
@@ -43,15 +58,30 @@ router.get('/fields', async (ctx) => {
   const { category, customerService, fields, group, ...rest } = fieldStatsSchema.validateSync(
     ctx.query
   );
+
+  const fieldArr = fields.split(',');
+
+  const intersectionWithEvaluation = _.intersection(fieldArr, EvaluationFields);
+
+  if (intersectionWithEvaluation.length && _.difference(fieldArr, EvaluationFields).length) {
+    ctx.throw(400, "Evaluation fields and other fields can't both exist.");
+    return;
+  }
+
   const categoryIds = await getCategoryIds(category);
   const customerServiceIds = await getCustomerServiceIds(customerService, group);
-  const data = await TicketStats.fetchTicketFieldStats({
-    ...rest,
-    customerServiceIds,
-    categoryIds,
-    fields: fields.split(','),
-  });
-  ctx.body = data;
+
+  if (intersectionWithEvaluation.length === 0) {
+    const data = await TicketStats.fetchTicketFieldStats({
+      ...rest,
+      customerServiceIds,
+      categoryIds,
+      fields: fields.split(','),
+    });
+    ctx.body = data;
+  } else {
+    ctx.body = await getEvaluationStats({ categoryIds, customerServiceIds, ...rest });
+  }
 });
 
 const statusSchema = yup.object(BaseSchema).pick(['from', 'to']);
@@ -208,4 +238,110 @@ async function getCustomerServiceIds(customerServiceId?: string, groupId?: strin
     }
   }
   return result;
+}
+
+interface GetEvaluationStatsBase {
+  categoryIds?: Awaited<ReturnType<typeof getCategoryIds>>;
+  customerServiceIds?: Awaited<ReturnType<typeof getCustomerServiceIds>>;
+  from?: Date;
+  to?: Date;
+}
+
+async function getEvaluationStats(
+  options: GetEvaluationStatsBase & {
+    count: true;
+  }
+): Promise<EvaluationCounts>;
+async function getEvaluationStats(
+  options: GetEvaluationStatsBase & {
+    count?: false;
+  }
+): Promise<EvaluationStats[]>;
+async function getEvaluationStats(
+  options: GetEvaluationStatsBase & {
+    count?: boolean;
+  } = {}
+): Promise<EvaluationCounts | EvaluationStats[]> {
+  const { categoryIds, count, customerServiceIds, from, to } = options;
+
+  const sql = `
+    SELECT
+      count(DISTINCT t.objectId) AS count,
+      option,
+      ${categoryIds ? 'categoryId,' : ''}
+      ${customerServiceIds ? 'customerServiceId,' : ''}
+      visitParamExtractUInt(t.evaluation, 'star') AS star
+    FROM Ticket AS t
+    LEFT ARRAY JOIN
+      JSONExtract(t.evaluation, 'options', 'Array(String)') AS option
+    WHERE t.evaluation != ''
+    ${
+      categoryIds && Array.isArray(categoryIds)
+        ? `AND arrayExists(x -> x = visitParamExtractString(t.category, 'objectId'), [${categoryIds
+            .map((id) => escape(id))
+            .join(',')}])`
+        : ''
+    }
+    ${
+      customerServiceIds && Array.isArray(customerServiceIds)
+        ? `AND arrayExists(x -> x = t.\`assignee.objectId\`, [${customerServiceIds
+            .map((id) => escape(id))
+            .join(',')}])`
+        : ''
+    }
+    ${from ? `AND t.createdAt >= parseDateTimeBestEffortOrNull(${escape(from)})` : ''}
+    ${to ? `AND t.createdAt <= parseDateTimeBestEffortOrNull(${escape(to)})` : ''}
+    GROUP BY
+      option,
+      ${categoryIds ? "visitParamExtractString(t.category, 'objectId') AS categoryId," : ''}
+      ${customerServiceIds ? 't.`assignee.objectId` AS customerServiceId,' : ''}
+      star
+  `;
+
+  const res = await ClickHouse.findWithSqlStr<{
+    results: {
+      count: string;
+      option: string;
+      categoryId?: string;
+      customerServiceId?: string;
+      star: string;
+    }[];
+  }>(sql);
+
+  if (count) {
+    const processed = {
+      likeCount: 0,
+      dislikeCount: 0,
+      ..._(res)
+        .groupBy(({ star }) => EvaluationFields[Number(star)])
+        .mapValues((counts) => counts.reduce((acc, { count }) => acc + (Number(count) || 0), 0))
+        .value(),
+    };
+
+    return {
+      ...processed,
+      likeRate: processed.likeCount / (processed.dislikeCount + processed.likeCount) || 0,
+      dislikeRate: processed.dislikeCount / (processed.dislikeCount + processed.likeCount) || 0,
+    };
+  }
+
+  return _(res)
+    .groupBy(
+      ({ categoryId, customerServiceId, option }) => `${option}-${categoryId}-${customerServiceId}`
+    )
+    .mapValues((counts) =>
+      counts.reduce<Omit<EvaluationStats, 'dislikeRate' | 'likeRate'>>(
+        (acc, { count, categoryId, customerServiceId, star, option }) => ({
+          ...acc,
+          categoryId,
+          customerServiceId,
+          option,
+          [EvaluationFields[Number(star)] as 'dislikeCount' | 'likeCount']:
+            (acc[EvaluationFields[Number(star)]] as number) + Number(count),
+        }),
+        { likeCount: 0, dislikeCount: 0, option: '' }
+      )
+    )
+    .values()
+    .value();
 }

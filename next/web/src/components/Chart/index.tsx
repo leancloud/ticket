@@ -28,7 +28,7 @@ interface ChartProps {
 }
 export interface ColumnProps extends ChartProps {
   tickInterval?: number;
-  onSelected?: (xAxisValues?: string[]) => void;
+  onSelected?: ((xAxisValues?: string[]) => void) | false;
 }
 export interface PieProps extends Omit<ChartProps, 'formatters' | 'data'> {
   innerRadius?: number;
@@ -176,7 +176,7 @@ export const Column: FunctionComponent<ColumnProps> = ({
         },
       }}
       brush={{
-        enabled: true,
+        enabled: onSelected === false ? false : true,
         type: 'x-rect',
       }}
       // interactions={[{ type: 'zoom-in-chart' }]}

@@ -532,6 +532,7 @@ const ticketEvaluationSchema = yup
   .object({
     star: yup.number().oneOf([0, 1]).required(),
     content: yup.string().default(''),
+    options: yup.array().of(yup.string()).default([]),
   })
   .noUnknown();
 
