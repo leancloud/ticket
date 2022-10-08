@@ -46,7 +46,6 @@ export const STATS_FIELD_LOCALE: Record<
 };
 export const EvaluationFields = ['dislikeCount', 'likeCount'];
 export const EvaluationRateFields = ['dislikeRate', 'likeRate'];
-export const NoDetailFields = [...EvaluationRateFields];
 
 enum FILTER_TYPE {
   all = 'all',
@@ -158,7 +157,7 @@ const StatCards = () => {
     };
   }, [data]);
 
-  const getExtraProps = useCallback((field: StatsField) => {
+  const getExtraProps = useCallback((field: StatsField | typeof NO_DETAIL_STATS_FIELD[number]) => {
     if (['replyTimeAVG', 'firstReplyTimeAVG', 'naturalReplyTimeAVG'].includes(field)) {
       return {
         formatter: (value: number | string) => (Number(value) / 3600).toFixed(2),
@@ -176,17 +175,19 @@ const StatCards = () => {
 
   return (
     <div className="flex flex-wrap -m-1">
-      {STATS_FIELD.map((type) => {
+      {[...STATS_FIELD, ...NO_DETAIL_STATS_FIELD].map((type) => {
         return (
           <Card
             loading={isFetching || isLoading}
             key={type}
             className={classnames('!m-1 basis-52 grow-0 shrink-0 cursor-pointer', {
               '!border-primary': type === active,
-              'cursor-not-allowed': NoDetailFields.includes(type),
+              'cursor-not-allowed': (NO_DETAIL_STATS_FIELD as readonly string[]).includes(type),
             })}
             onClick={
-              NoDetailFields.includes(type) ? undefined : () => active !== type && setActive(type)
+              (NO_DETAIL_STATS_FIELD as readonly string[]).includes(type)
+                ? undefined
+                : () => active !== type && setActive(type)
             }
           >
             <Statistic
