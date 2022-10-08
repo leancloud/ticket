@@ -2,7 +2,9 @@ import Koa from 'koa';
 import bodyParser from 'koa-bodyparser';
 import cors from '@koa/cors';
 import throat from 'throat';
-import * as Sentry from '@sentry/node';
+import domain from 'domain';
+import { Sentry } from './sentry';
+import { extractTraceparentData, stripUrlQueryAndFragment } from '@sentry/tracing';
 
 import './leancloud';
 import { config } from './config';
@@ -15,17 +17,75 @@ import { Ticket } from './model/Ticket';
 import { getTriggers, getTimeTriggers } from './ticket/automation';
 export const app = new Koa();
 
-if (config.sentryDSN) {
-  Sentry.init({
-    enabled: process.env.NODE_ENV === 'production',
-    dsn: config.sentryDSN,
-    initialScope: {
-      tags: {
-        type: 'api',
-      },
-    },
+// not mandatory, but adding domains does help a lot with breadcrumbs
+const requestHandler: Koa.Middleware = (ctx, next) => {
+  return new Promise((resolve, reject) => {
+    const local = domain.create();
+    local.add(ctx as any);
+    local.on('error', (err) => {
+      ctx.status = err.status || 500;
+      ctx.body = err.message;
+      ctx.app.emit('error', err, ctx);
+      reject(err);
+    });
+    local.run(async () => {
+      Sentry.getCurrentHub().configureScope((scope) =>
+        scope.addEventProcessor((event) =>
+          Sentry.addRequestDataToEvent(event, ctx.request, {
+            include: {
+              user: false,
+            },
+          })
+        )
+      );
+      await next();
+      resolve(undefined);
+    });
   });
-}
+};
+
+// this tracing middleware creates a transaction per request
+const tracingMiddleWare: Koa.Middleware = async (ctx, next) => {
+  const reqMethod = (ctx.method || '').toUpperCase();
+  const reqUrl = ctx.url && stripUrlQueryAndFragment(ctx.url);
+
+  // connect to trace of upstream app
+  let traceparentData;
+  if (ctx.request.get('sentry-trace')) {
+    traceparentData = extractTraceparentData(ctx.request.get('sentry-trace'));
+  }
+
+  const transaction = Sentry.startTransaction({
+    name: `${reqMethod} ${reqUrl}`,
+    op: 'http.server',
+    ...traceparentData,
+  });
+
+  ctx.__sentry_transaction = transaction;
+
+  // We put the transaction on the scope so users can attach children to it
+  Sentry.getCurrentHub().configureScope((scope) => {
+    scope.setSpan(transaction);
+  });
+
+  ctx.res.on('finish', () => {
+    // Push `transaction.finish` to the next event loop so open spans have a chance to finish before the transaction closes
+    setImmediate(() => {
+      // if using koa router, a nicer way to capture transaction using the matched route
+      if (ctx._matchedRoute) {
+        const mountPath = ctx.mountPath || '';
+        transaction.setName(`${reqMethod} ${mountPath}${ctx._matchedRoute}`);
+      }
+      transaction.setHttpStatus(ctx.status);
+      transaction.finish();
+    });
+  });
+
+  await next();
+};
+
+app.use(requestHandler);
+app.use(tracingMiddleWare);
 
 app.use(async (ctx, next) => {
   try {
@@ -36,7 +96,7 @@ app.use(async (ctx, next) => {
       console.error(error);
       Sentry.withScope(function (scope) {
         scope.addEventProcessor(function (event) {
-          return Sentry.Handlers.parseRequest(event, ctx.request);
+          return Sentry.addRequestDataToEvent(event, ctx.request);
         });
         Sentry.captureException(error);
       });

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Ctx,
   CurrentUser,
   Get,
   Pagination,
@@ -14,6 +15,8 @@ import { FindModelPipe, ParseCsvPipe, TrimPipe, ZodValidationPipe } from '@/comm
 import { auth, customerServiceOnly } from '@/middleware';
 import { User } from '@/model/User';
 import { UserSearchResult } from '@/response/user';
+import { withAsyncSpan } from '@/utils/trace';
+import { Context } from 'koa';
 import { z } from 'zod';
 
 const JWTAuthSchema = z.object({
@@ -67,9 +70,9 @@ export class UserController {
   }
 
   @Post()
-  login(@Body(new ZodValidationPipe(authSchema)) authData: AuthData) {
+  async login(@Ctx() ctx: Context, @Body(new ZodValidationPipe(authSchema)) authData: AuthData) {
     if (isJWT(authData)) {
-      return User.loginWithJWT(authData.jwt);
+      return withAsyncSpan(() => User.loginWithJWT(authData.jwt), ctx, 'model', 'User.loginWithJWT');
     }
     return User.loginWithAnonymousId(authData.anonymousId, authData.name);
   }

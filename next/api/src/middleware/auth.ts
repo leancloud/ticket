@@ -1,12 +1,18 @@
 import type { Middleware } from 'koa';
 
 import { User } from '@/model/User';
+import { withAsyncSpan, withSpan } from '@/utils/trace';
 
-export const auth: Middleware = async (ctx, next) => {
+export const auth: Middleware = withSpan(async (ctx, next) => {
   const sessionToken = ctx.get('X-LC-Session');
   if (sessionToken) {
     try {
-      ctx.state.currentUser = await User.findBySessionToken(sessionToken);
+      ctx.state.currentUser = await withAsyncSpan(
+        () => User.findBySessionToken(sessionToken),
+        ctx,
+        'model',
+        `User.findBySessionToken(${sessionToken})`,
+        );
     } catch (error: any) {
       if (error.code === 211) {
         ctx.throw(401, '无效的用户凭证，请重新登录。', {
@@ -20,7 +26,12 @@ export const auth: Middleware = async (ctx, next) => {
 
   const anonymousId = ctx.get('X-Anonymous-ID');
   if (anonymousId) {
-    const user = await User.findByAnonymousId(anonymousId);
+    const user = await withAsyncSpan(
+      () => User.findByAnonymousId(anonymousId),
+      ctx,
+      'model',
+      `User.findByAnonymousId(${anonymousId})`,
+    );
     if (!user) {
       ctx.throw(401, '未找到该 Anonymous ID 对应的用户，该用户可能从未使用过客服功能。', {
         code: 'INVALID_ANONYMOUS_ID',
@@ -31,9 +42,9 @@ export const auth: Middleware = async (ctx, next) => {
   }
 
   ctx.throw(401, '缺少用户凭证。', { code: 'CREDENTIAL_REQUIRED' });
-};
+}, 'auth');
 
-export const customerServiceOnly: Middleware = async (ctx, next) => {
+export const customerServiceOnly: Middleware = withSpan(async (ctx, next) => {
   const currentUser = ctx.state.currentUser as User;
   if (!currentUser) {
     ctx.throw(401);
@@ -42,9 +53,9 @@ export const customerServiceOnly: Middleware = async (ctx, next) => {
     ctx.throw(403);
   }
   return next();
-};
+}, 'customerServiceOnly');
 
-export const staffOnly: Middleware = async (ctx, next) => {
+export const staffOnly: Middleware = withSpan(async (ctx, next) => {
   const currentUser = ctx.state.currentUser as User;
   if (!currentUser) {
     ctx.throw(401);
@@ -56,4 +67,4 @@ export const staffOnly: Middleware = async (ctx, next) => {
     return next();
   }
   return ctx.throw(403);
-};
+}, 'staffOnly');
