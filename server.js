@@ -25,7 +25,7 @@ if (config.sentryDSN) {
   Sentry.init({
     enabled: process.env.NODE_ENV === 'production',
     dsn: config.sentryDSN,
-    environment: process.env.TICKET_HOST,
+    environment: process.env.TICKET_HOST?.replace('https://', '')?.replace('/', ''),
     initialScope: {
       tags: {
         type: 'api',
@@ -39,7 +39,15 @@ if (config.sentryDSN) {
         router: apiRouter,
       }),
     ],
-    tracesSampleRate: Number(process.env.SENTRY_SAMPLE_RATE ?? 0.05),
+    tracesSampler: (samplingContext) => {
+      if ('GET /' === samplingContext?.transactionContext?.name) {
+        // Drop this transaction, by setting its sample rate to 0%
+        return 0
+      } else {
+        // Default sample rate for all others (replaces tracesSampleRate)
+        return Number(process.env.SENTRY_SAMPLE_RATE ?? 0.05)
+      }
+    },
   })
 }
 

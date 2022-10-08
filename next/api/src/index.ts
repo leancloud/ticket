@@ -2,6 +2,7 @@ import Koa from 'koa';
 import bodyParser from 'koa-bodyparser';
 import cors from '@koa/cors';
 import throat from 'throat';
+import domain from 'domain';
 import { Sentry } from './sentry';
 import { extractTraceparentData, stripUrlQueryAndFragment } from '@sentry/tracing';
 
@@ -15,6 +16,33 @@ import { OpsLog } from './model/OpsLog';
 import { Ticket } from './model/Ticket';
 import { getTriggers, getTimeTriggers } from './ticket/automation';
 export const app = new Koa();
+
+// not mandatory, but adding domains does help a lot with breadcrumbs
+const requestHandler: Koa.Middleware = (ctx, next) => {
+  return new Promise((resolve, reject) => {
+    const local = domain.create();
+    local.add(ctx as any);
+    local.on('error', (err) => {
+      ctx.status = err.status || 500;
+      ctx.body = err.message;
+      ctx.app.emit('error', err, ctx);
+      reject(err);
+    });
+    local.run(async () => {
+      Sentry.getCurrentHub().configureScope((scope) =>
+        scope.addEventProcessor((event) =>
+          Sentry.addRequestDataToEvent(event, ctx.request, {
+            include: {
+              user: false,
+            },
+          })
+        )
+      );
+      await next();
+      resolve(undefined);
+    });
+  });
+};
 
 // this tracing middleware creates a transaction per request
 const tracingMiddleWare: Koa.Middleware = async (ctx, next) => {
@@ -56,6 +84,7 @@ const tracingMiddleWare: Koa.Middleware = async (ctx, next) => {
   await next();
 };
 
+app.use(requestHandler);
 app.use(tracingMiddleWare);
 
 app.use(async (ctx, next) => {
