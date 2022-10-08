@@ -19,9 +19,15 @@ export const STATS_FIELD = [
   'naturalReplyTimeAVG',
   'replyCount',
   'internalReplyCount',
+  'likeCount',
+  'dislikeCount',
 ] as const;
+export const NO_DETAIL_STATS_FIELD = ['likeRate', 'dislikeRate'] as const;
 export type StatsField = typeof STATS_FIELD[number];
-export const STATS_FIELD_LOCALE: Record<StatsField, string> = {
+export const STATS_FIELD_LOCALE: Record<
+  StatsField | typeof NO_DETAIL_STATS_FIELD[number],
+  string
+> = {
   created: '新建工单',
   closed: '关单数',
   reopened: '激活工单数',
@@ -33,7 +39,13 @@ export const STATS_FIELD_LOCALE: Record<StatsField, string> = {
   naturalReplyTimeAVG: '平均回复自然时间',
   replyCount: '对外回复数',
   internalReplyCount: '对内回复数',
+  likeCount: '好评数',
+  dislikeCount: '差评数',
+  likeRate: '好评率',
+  dislikeRate: '差评率',
 };
+export const EvaluationFields = ['dislikeCount', 'likeCount'];
+export const EvaluationRateFields = ['dislikeRate', 'likeRate'];
 
 enum FILTER_TYPE {
   all = 'all',
@@ -145,11 +157,17 @@ const StatCards = () => {
     };
   }, [data]);
 
-  const getExtraProps = useCallback((field: StatsField) => {
+  const getExtraProps = useCallback((field: StatsField | typeof NO_DETAIL_STATS_FIELD[number]) => {
     if (['replyTimeAVG', 'firstReplyTimeAVG', 'naturalReplyTimeAVG'].includes(field)) {
       return {
         formatter: (value: number | string) => (Number(value) / 3600).toFixed(2),
         suffix: '小时',
+      };
+    }
+    if (EvaluationRateFields.includes(field)) {
+      return {
+        formatter: (value: number | string) => (Number(value) * 100).toFixed(1),
+        suffix: '%',
       };
     }
     return {};
@@ -157,15 +175,20 @@ const StatCards = () => {
 
   return (
     <div className="flex flex-wrap -m-1">
-      {STATS_FIELD.map((type) => {
+      {[...STATS_FIELD, ...NO_DETAIL_STATS_FIELD].map((type) => {
         return (
           <Card
             loading={isFetching || isLoading}
             key={type}
             className={classnames('!m-1 basis-52 grow-0 shrink-0 cursor-pointer', {
               '!border-primary': type === active,
+              'cursor-not-allowed': (NO_DETAIL_STATS_FIELD as readonly string[]).includes(type),
             })}
-            onClick={() => active !== type && setActive(type)}
+            onClick={
+              (NO_DETAIL_STATS_FIELD as readonly string[]).includes(type)
+                ? undefined
+                : () => active !== type && setActive(type)
+            }
           >
             <Statistic
               loading={isFetching || isLoading}

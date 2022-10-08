@@ -25,6 +25,10 @@ export interface TicketStats {
   replyCount: number;
   naturalReplyTime: number;
   naturalReplyCount: number;
+  likeCount: number;
+  dislikeCount: number;
+  likeRate: number;
+  dislikeRate: number;
 }
 
 async function fetchTicketStats(options?: FetchTicketStatsOptions) {
@@ -46,8 +50,9 @@ export function useTicketStats({ queryOptions, ...options }: UseTicketStatsOptio
   });
 }
 
-export type TicketFieldStat = Partial<TicketStats> & {
-  date: Date;
+export type TicketFieldStat = Partial<Omit<TicketStats, 'likeRate' | 'dislikeRate'>> & {
+  date?: Date;
+  selection?: string;
   categoryId?: string;
   customerServiceId?: string;
   replyTimeAVG?: number;

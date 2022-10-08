@@ -9,10 +9,12 @@ import { useCustomerServices } from '@/api/customer-service';
 import { useFilterData, useStatsParams } from './utils';
 import { Pie, Column } from '@/components/Chart';
 import { Button, Popover, Radio, Table, TableProps } from '@/components/antd';
-import { StatsField, STATS_FIELD_LOCALE, useActiveField } from './StatsPage';
+import { EvaluationFields, StatsField, STATS_FIELD_LOCALE, useActiveField } from './StatsPage';
 import ReplyDetails, { ModalRef } from './ReplyDetails';
 
 type displayMode = 'pieChart' | 'table';
+
+type RequiredKV<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
 
 const timeField = ['naturalReplyTimeAVG', 'replyTimeAVG', 'firstReplyTimeAVG'];
 const avgFieldMap: {
@@ -22,27 +24,41 @@ const avgFieldMap: {
   replyTimeAVG: ['replyTime', 'replyTimeCount'],
   firstReplyTimeAVG: ['firstReplyTime', 'firstReplyCount'],
 };
+const rateField = ['likeCount', 'dislikeCount'];
+const rateFieldMap: {
+  [key in StatsField]?: keyof TicketStats;
+} = {
+  likeCount: 'likeRate',
+  dislikeCount: 'dislikeRate',
+};
 
 export const formatTime = (value: number | string) => {
   value = Number(value);
   return `${value === 0 ? 0 : (value / 3600).toFixed(2)}  小时`;
 };
 
-const valueTransform = (value: [string | Date, Record<string, number>], field: StatsField) => {
+const valueTransformImpl = (value: [string, Record<string, number>], field: StatsField) => {
   const avgField = avgFieldMap[field];
-  const [date, obj] = value;
+  const [key, obj] = value;
   const v = avgField ? (obj[avgField[0]] || 0) / (obj[avgField[1]] || 1) : obj[field];
-  return [moment(date).toISOString(), { [field]: v }] as [string, Record<string, number>];
+  return [key, { [field]: v }] as [string, Record<string, number>];
 };
 
-const TicketStatsColumn = () => {
+const valueTransform = (value: [string | Date, Record<string, number>], field: StatsField) => {
+  const [date, obj] = value;
+  return valueTransformImpl([moment(date).toISOString(), obj], field);
+};
+
+const TicketStatsDateColumn = () => {
   const params = useStatsParams();
   const [field] = useActiveField();
   const { data, isFetching, isLoading } = useTicketFieldStats({
     fields: avgFieldMap[field] || [field],
     ...params,
   });
-  const [filteredData, { rollup, changeFilter }] = useFilterData(data);
+  const [filteredData, { rollup, changeFilter }] = useFilterData(
+    data as RequiredKV<TicketFieldStat, 'date'>[] | undefined
+  );
 
   const chartData = useMemo(() => {
     if (rollup === 'day') {
@@ -147,6 +163,33 @@ const TicketStatsColumn = () => {
   );
 };
 
+const TicketStatsSelectionColumn = () => {
+  const params = useStatsParams();
+  const [field] = useActiveField();
+  const { data, isFetching, isLoading } = useTicketFieldStats({
+    fields: avgFieldMap[field] || [field],
+    ...params,
+  });
+
+  const chartData = useMemo(() => {
+    if (!data) return [];
+    return data
+      .filter((v) => v[field])
+      .map(({ selection, categoryId, customerServiceId, date, ...rest }) =>
+        valueTransformImpl([selection || '其他', rest], field)
+      );
+  }, [data]);
+
+  return (
+    <Column
+      loading={isFetching || isLoading}
+      data={chartData}
+      onSelected={false}
+      names={(value) => STATS_FIELD_LOCALE[value as StatsField]}
+    />
+  );
+};
+
 const getPercentaget = (value: number | string, total = 1) => {
   if (total < 0) {
     total = 1;
@@ -198,6 +241,20 @@ const useTableData = (groupByKey: string, data?: TicketFieldStat[]) => {
               value: _.sumBy(values, 'naturalReplyTime') / naturalReplyCount,
               count: naturalReplyCount,
             };
+          case 'likeCount':
+            const likeCount = _.sumBy(values, 'likeCount');
+            return {
+              [groupByKey]: key,
+              value: likeCount,
+              rate: likeCount / (_.sumBy(values, 'dislikeCount') + likeCount) || 0,
+            };
+          case 'dislikeCount':
+            const dislikeCount = _.sumBy(values, 'dislikeCount');
+            return {
+              [groupByKey]: key,
+              value: dislikeCount,
+              rate: dislikeCount / (_.sumBy(values, 'likeCount') + dislikeCount) || 0,
+            };
           default:
             return {
               [groupByKey]: key,
@@ -206,7 +263,7 @@ const useTableData = (groupByKey: string, data?: TicketFieldStat[]) => {
         }
       })
       .orderBy(['value'], timeField.includes(field) ? 'asc' : 'desc')
-      .map((v) => {
+      .map<{ id: string | number; value: number; count?: number; rate?: number }>((v) => {
         return {
           ...v,
           id: v[groupByKey],
@@ -245,6 +302,7 @@ const TableView = ({
   const tableData = useTableData(groupKey, data);
   const pagination = usePagination();
   const isTimeField = useMemo(() => timeField.includes(field), [field]);
+  const isRateField = useMemo(() => rateField.includes(field), [field]);
   const modalRef = useRef<ModalRef>(null);
 
   const columns = useMemo(() => {
@@ -252,6 +310,7 @@ const TableView = ({
       id: string | number;
       value: number;
       count?: number;
+      rate?: number;
       customerServiceId?: string;
       categoryId?: string;
     }>['columns'] = [
@@ -301,6 +360,16 @@ const TableView = ({
           );
         },
         sorter: (a, b) => a.count! - b.count!,
+      });
+    }
+    if (isRateField) {
+      _columns.push({
+        title: STATS_FIELD_LOCALE[rateFieldMap[field] as 'dislikeRate' | 'likeRate'],
+        dataIndex: 'rate',
+        key: 'rate',
+        defaultSortOrder: 'descend',
+        render: (value) => `${(value * 100).toFixed(1)} %`,
+        sorter: (a, b) => a.rate! - b.rate!,
       });
     }
     return _columns;
@@ -455,7 +524,11 @@ export function StatsDetails() {
     <div className="w-full">
       <h2>{STATS_FIELD_LOCALE[field]}</h2>
       <div className="w-full relative">
-        <TicketStatsColumn />
+        {EvaluationFields.includes(field) ? (
+          <TicketStatsSelectionColumn />
+        ) : (
+          <TicketStatsDateColumn />
+        )}
       </div>
       <Details />
     </div>

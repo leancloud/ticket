@@ -205,13 +205,17 @@ export class ClickHouse {
 
   async find() {
     const sql = this.toSqlString();
+    return await ClickHouse.findWithSqlStr<QueryData>(sql);
+  }
+
+  static async findWithSqlStr<T extends { results: unknown }>(sql: string) {
     try {
-      const { data } = await http.get<QueryData>('/query', {
+      const { data } = await http.get<T>('/query', {
         params: {
           sql,
         },
       });
-      return data.results;
+      return data.results as T['results'];
     } catch (error) {
       console.log(`[clickhouse query error, sql: ${sql}`);
       throw error;
