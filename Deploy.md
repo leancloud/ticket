@@ -278,3 +278,12 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 - `TDS_CLIENT_ID`: TDS 的 Client ID
 - `TDS_SERVER_SECRET`: TDS 的 Server Secret
 - `TEXT_FILTER_MAX_RETRY`: 文本过滤失败时重试次数，默认为 3
+
+## 2022-10-08
+
+数据仓库创建以下同步
+
+- Ticket
+  - evaluation
+  - category
+  - assignee
