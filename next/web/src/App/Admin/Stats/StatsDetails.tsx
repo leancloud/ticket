@@ -398,6 +398,7 @@ const CategoryStats: React.FunctionComponent<{ displayMode: displayMode }> = ({ 
     ...params,
     fields: avgFieldMap[field] || [field],
     category: '*',
+    bySelection: false,
   });
   const categoryFormat = useMemo(() => {
     const categoryMap = _.mapValues(_.keyBy(categories || [], 'id'), 'name');
@@ -441,6 +442,7 @@ const CustomerServiceStats: React.FunctionComponent<{ displayMode: displayMode }
       : params.group
       ? undefined
       : '*',
+    bySelection: false,
   });
   const customerServiceFormat = useMemo(() => {
     const customerServiceMap = _.mapValues(

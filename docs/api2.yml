@@ -8,12 +8,53 @@ servers:
   - url: http://127.0.0.1:4000
     description: 开发环境
 components:
+  parameters:
+    dateFrom:
+      name: from
+      in: query
+      required: true
+      schema:
+        type: string
+        format: date-time
+    dateTo:
+      name: to
+      in: query
+      required: true
+      schema:
+        type: string
+        format: date-time
+    category:
+      name: category
+      in: query
+      schema:
+        type: string
+      description: Category ID
+    customerService:
+      name: customerService
+      in: query
+      schema:
+        type: string
+      description: 客服 ID
+    group:
+      name: group
+      in: query
+      schema:
+        type: string
+      description: 客服组 ID
   securitySchemes:
     Session token:
       type: apiKey
       in: header
       name: x-lc-session
   schemas:
+    Tag:
+      type: object
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+      required: [key, value]
     User:
       type: object
       properties:
@@ -94,8 +135,15 @@ components:
       properties:
         star:
           type: integer
+          enum: [0, 1]
         content:
           type: string
+        selections:
+          type: array
+          description: 评价的选项
+          items:
+            type: string
+      required: [star]
     Ticket:
       type: object
       properties:
@@ -595,6 +643,87 @@ paths:
                   id:
                     type: string
 
+  /api/2/ticket/{id}:
+    parameters:
+      - name: id
+        in: path
+        description: 工单 ID
+        schema:
+          type: string
+        required: true
+    get:
+      tags: [Ticket]
+      summary: 获取工单详情
+      parameters:
+        - name: includeAuthor
+          in: query
+          schema:
+            type: boolean
+        - name: includeAssignee
+          in: query
+          schema:
+            type: boolean
+        - name: includeCategory
+          in: query
+          schema:
+            type: boolean
+        - name: includeGroup
+          in: query
+          schema:
+            type: boolean
+        - name: includeFiles
+          in: query
+          schema:
+            type: boolean
+        - name: includeCategoryPath
+          in: query
+          schema:
+            type: boolean
+        - name: includeUnreadCount
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+    patch:
+      tags: [Ticket]
+      summary: 更新工单信息
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                assigneeId:
+                  type: string
+                  nullable: true
+                groupId:
+                  type: string
+                  nullable: true
+                categoryId:
+                  type: string
+                organizationId:
+                  type: string
+                  nullable: true
+                tags:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Tag'
+                privateTags:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Tag'
+                evaluation:
+                  $ref: '#/components/schemas/Evaluation'
+      responses:
+        '200':
+          description: OK
+
   /api/2/tickets/{id}/replies:
     parameters:
       - name: id
@@ -767,6 +896,243 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/OpsLog'
+
+  /api/2/ticket-stats:
+    get:
+      tags: [TicketStats]
+      summary: 获取基本的统计信息
+      description: 包含工单数量、回复时间等
+      parameters:
+        - $ref: '#/components/parameters/dateTo'
+        - $ref: '#/components/parameters/dateFrom'
+        - $ref: '#/components/parameters/category'
+        - $ref: '#/components/parameters/customerService'
+        - $ref: '#/components/parameters/group'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  created:
+                    type: integer
+                    description: 新建工单数量
+                  closed:
+                    type: integer
+                    description: 关闭工单数量
+                  reopened:
+                    type: integer
+                    description: 激活工单数量
+                  conversion:
+                    type: integer
+                    description: 流转数
+                  internalConversion:
+                    type: integer
+                  externalConversion:
+                    type: integer
+                  replyTime:
+                    type: integer
+                  replyTimeCount:
+                    type: integer
+                  replyCount:
+                    type: integer
+                  firstReplyTime:
+                    type: integer
+                  firstReplyCount:
+                    type: integer
+                  weekdayReplyTime:
+                    type: integer
+                  weekdayReplyTimeCount:
+                    type: integer
+                  weekdayReplyCount:
+                    type: integer
+                  internalReplyCount:
+                    type: integer
+                  naturalReplyTime:
+                    type: integer
+                  naturalReplyCount:
+                    type: integer
+                  likeCount:
+                    type: integer
+                  dislikeCount:
+                    type: integer
+                  likeRate:
+                    type: number
+                  dislikeRate:
+                    type: number
+                required: [likeCount, dislikeCount, likeRate, dislikeRate]
+
+  /api/2/ticket-stats/fields:
+    get:
+      tags: [TicketStats]
+      summary: 获取某个 field 的详细统计
+      parameters:
+        - $ref: '#/components/parameters/dateTo'
+        - $ref: '#/components/parameters/dateFrom'
+        - $ref: '#/components/parameters/category'
+        - $ref: '#/components/parameters/customerService'
+        - $ref: '#/components/parameters/group'
+        - name: fields
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+        - name: bySelection
+          in: query
+          description: |
+            控制评价统计是否以 selection 来分
+            只对 likeCount 和 dislikeCount 的 field 有效
+            为 false 时返回体里不会出现 selection 字段
+          schema:
+            type: boolean
+            default: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: array
+                    items:
+                      type: object
+                      properties:
+                        likeCount:
+                          type: integer
+                        dislikeCount:
+                          type: integer
+                        categoryId:
+                          type: string
+                        customerServiceId:
+                          type: string
+                        selection:
+                          type: string
+                  - type: array
+                    items:
+                      type: object
+                      properties:
+                        date:
+                          type: string
+                          format: date-time
+                        created:
+                          type: integer
+                        closed:
+                          type: integer
+                        reopened:
+                          type: integer
+                        conversion:
+                          type: integer
+                        firstReplyTime:
+                          type: integer
+                        firstReplyCount:
+                          type: integer
+                        replyTime:
+                          type: integer
+                        replyTimeCount:
+                          type: integer
+                        naturalReplyTime:
+                          type: integer
+                        naturalReplyCount:
+                          type: integer
+                        replyCount:
+                          type: integer
+                        internalReplyCount:
+                          type: integer
+                        categoryId:
+                          type: string
+                        customerServiceId:
+                          type: string
+
+  /api/2/ticket-stats/status:
+    get:
+      tags: [TicketStats]
+      parameters:
+        - $ref: '#/components/parameters/dateTo'
+        - $ref: '#/components/parameters/dateFrom'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    date:
+                      type: string
+                      format: date-time
+                    notProcessed:
+                      type: integer
+                    waitingCustomer:
+                      type: integer
+                    waitingCustomerService:
+                      type: integer
+                    preFulfilled:
+                      type: integer
+                    fulfilled:
+                      type: integer
+                    closed:
+                      type: integer
+
+  /api/2/ticket-stats/details:
+    get:
+      tags: [TicketStats]
+      parameters:
+        - $ref: '#/components/parameters/dateTo'
+        - $ref: '#/components/parameters/dateFrom'
+        - $ref: '#/components/parameters/category'
+        - $ref: '#/components/parameters/customerService'
+        - $ref: '#/components/parameters/group'
+        - name: field
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    nid:
+                      type: integer
+                    replyTime:
+                      type: integer
+
+  /api/2/ticket-stats/count:
+    get:
+      tags: [TicketStats]
+      parameters:
+        - $ref: '#/components/parameters/dateTo'
+        - $ref: '#/components/parameters/dateFrom'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: integer
+
+  /api/2/ticket-stats/realtime:
+    get:
+      tags: [TicketStats]
+      description: 待补全
+      responses:
+        '200':
+          description: OK
 
   /api/2/unread:
     get:

@@ -62,6 +62,7 @@ export type TicketFieldStat = Partial<Omit<TicketStats, 'likeRate' | 'dislikeRat
 
 interface TicketFieldStatsOptions extends FetchTicketStatsOptions {
   fields: string[];
+  bySelection?: boolean;
 }
 
 async function fetchTicketFieldStats({ fields, ...rest }: TicketFieldStatsOptions) {
