@@ -408,14 +408,19 @@ router.post('/', async (ctx) => {
     ip: ctx.ip,
   };
 
-  const content = await textFilterService.filter((data.content || details || '').trim(), {
-    requestOptions,
-  });
+  const [content, contentWithoutEscape] = await textFilterService.filter(
+    (data.content || details || '').trim(),
+    {
+      requestOptions,
+      both: true,
+    }
+  );
   const title =
     (await textFilterService.filter(data.title || fieldTitle || '', {
       escape: false,
       requestOptions,
-    })) || (content ? content.split('\n')[0].slice(0, 100) : category.name);
+    })) ||
+    (contentWithoutEscape ? contentWithoutEscape.split('\n')[0].slice(0, 100) : category.name);
   const fileIds = data.fileIds ?? attachments;
 
   const creator = new TicketCreator().setAuthor(currentUser).setTitle(title).setContent(content);

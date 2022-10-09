@@ -60,7 +60,28 @@ export class TextFilterService {
     }, this.serverRecoveryTimeout);
   }
 
-  async filter(input: string, { escape = true, requestOptions }: FilterOptions) {
+  /**
+   *
+   * @param input
+   * @param filterOptions if both is true, returning both escaped and unescaped
+   *
+   * ## Example
+   *
+   * ```typescript
+   * const [escaped, unescaped] = await filter(..., { ..., both: true });
+   * escaped === '\\*\\*' // true
+   * unescaped === '**' // true
+   * ```
+   */
+  async filter(input: string, filterOptions: FilterOptions & { both?: false }): Promise<string>;
+  async filter(
+    input: string,
+    filterOptions: FilterOptions & { both: true }
+  ): Promise<[string, string]>;
+  async filter(
+    input: string,
+    { escape = true, requestOptions, both }: FilterOptions & { both?: boolean }
+  ): Promise<string | [string, string]> {
     if (!input || this.isServerDown || this.disable) return input;
 
     const sha1 = createHash('sha1').update(input).digest('hex');
@@ -90,19 +111,31 @@ export class TextFilterService {
             timeout: 1000,
           }
         );
-        const [filteredText, lastEnd] = res.data.hint.hit_words.reduce<[string, number]>(
-          ([res, lastEnd], { positions: { start_index, end_index } }) =>
+        const [
+          filteredTextWithEscape,
+          filteredTextWithoutEscape,
+          lastEnd,
+        ] = res.data.hint.hit_words.reduce<[string, string, number]>(
+          ([resWithEscape, resWithoutEscape, lastEnd], { positions: { start_index, end_index } }) =>
             end_index > lastEnd
               ? [
-                  `${res}${input.slice(lastEnd, start_index)}${(escape ? '\\*' : '*').repeat(
+                  `${resWithEscape}${input.slice(lastEnd, start_index)}${'\\*'.repeat(
+                    end_index - Math.max(start_index, lastEnd)
+                  )}`,
+                  `${resWithoutEscape}${input.slice(lastEnd, start_index)}${'*'.repeat(
                     end_index - Math.max(start_index, lastEnd)
                   )}`,
                   end_index,
                 ]
-              : [res, lastEnd],
-          ['', 0]
+              : [resWithEscape, resWithoutEscape, lastEnd],
+          ['', '', 0]
         );
-        return filteredText + input.slice(lastEnd);
+        return both
+          ? ([
+              filteredTextWithEscape + input.slice(lastEnd),
+              filteredTextWithoutEscape + input.slice(lastEnd),
+            ] as [string, string])
+          : (escape ? filteredTextWithEscape : filteredTextWithoutEscape) + input.slice(lastEnd);
       }, this.maxRetries);
     } catch (err) {
       console.warn(String(err));
