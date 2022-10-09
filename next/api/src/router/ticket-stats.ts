@@ -53,11 +53,17 @@ router.get('/', async (ctx) => {
 
 const fieldStatsSchema = yup.object(BaseSchema).shape({
   fields: yup.string().required(),
+  bySelection: yup.boolean().default(true),
 });
 router.get('/fields', async (ctx) => {
-  const { category, customerService, fields, group, ...rest } = fieldStatsSchema.validateSync(
-    ctx.query
-  );
+  const {
+    category,
+    customerService,
+    fields,
+    group,
+    bySelection,
+    ...rest
+  } = fieldStatsSchema.validateSync(ctx.query);
 
   const fieldArr = fields.split(',');
 
@@ -80,7 +86,7 @@ router.get('/fields', async (ctx) => {
     });
     ctx.body = data;
   } else {
-    ctx.body = await getEvaluationStats({ categoryIds, customerServiceIds, ...rest });
+    ctx.body = await getEvaluationStats({ categoryIds, customerServiceIds, bySelection, ...rest });
   }
 });
 
@@ -245,6 +251,7 @@ interface GetEvaluationStatsBase {
   customerServiceIds?: Awaited<ReturnType<typeof getCustomerServiceIds>>;
   from?: Date;
   to?: Date;
+  bySelection?: boolean;
 }
 
 async function getEvaluationStats(
@@ -262,18 +269,22 @@ async function getEvaluationStats(
     count?: boolean;
   } = {}
 ): Promise<EvaluationCounts | EvaluationStats[]> {
-  const { categoryIds, count, customerServiceIds, from, to } = options;
+  const { categoryIds, count, customerServiceIds, from, to, bySelection } = options;
 
   const sql = `
     SELECT
       count(DISTINCT t.objectId) AS count,
-      selection,
+      ${!count && bySelection ? 'selection,' : ''}
       ${categoryIds ? 'categoryId,' : ''}
       ${customerServiceIds ? 'customerServiceId,' : ''}
       visitParamExtractUInt(t.evaluation, 'star') AS star
     FROM Ticket AS t
-    LEFT ARRAY JOIN
-      JSONExtract(t.evaluation, 'selections', 'Array(String)') AS selection
+    ${
+      !count && bySelection
+        ? `LEFT ARRAY JOIN
+      JSONExtract(t.evaluation, 'selections', 'Array(String)') AS selection`
+        : ''
+    }
     WHERE t.evaluation != ''
     ${
       categoryIds && Array.isArray(categoryIds)
@@ -292,7 +303,7 @@ async function getEvaluationStats(
     ${from ? `AND t.createdAt >= parseDateTimeBestEffortOrNull(${escape(from)})` : ''}
     ${to ? `AND t.createdAt <= parseDateTimeBestEffortOrNull(${escape(to)})` : ''}
     GROUP BY
-      selection,
+      ${!count && bySelection ? 'selection,' : ''}
       ${categoryIds ? "visitParamExtractString(t.category, 'objectId') AS categoryId," : ''}
       ${customerServiceIds ? 't.`assignee.objectId` AS customerServiceId,' : ''}
       star
@@ -301,7 +312,7 @@ async function getEvaluationStats(
   const res = await ClickHouse.findWithSqlStr<{
     results: {
       count: string;
-      selection: string;
+      selection?: string;
       categoryId?: string;
       customerServiceId?: string;
       star: string;
@@ -340,7 +351,7 @@ async function getEvaluationStats(
           [EvaluationFields[Number(star)] as 'dislikeCount' | 'likeCount']:
             (acc[EvaluationFields[Number(star)]] as number) + Number(count),
         }),
-        { likeCount: 0, dislikeCount: 0, selection: '' }
+        { likeCount: 0, dislikeCount: 0 }
       )
     )
     .values()
