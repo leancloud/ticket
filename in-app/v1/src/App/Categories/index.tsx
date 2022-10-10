@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { useQuery, UseQueryResult } from 'react-query';
+import { useQuery, UseQueryResult, UseQueryOptions } from 'react-query';
 import { useTranslation } from 'react-i18next';
 import { ChevronRightIcon } from '@heroicons/react/solid';
 import classNames from 'classnames';
@@ -27,10 +27,10 @@ interface ListItemProps {
 
 export function ListItem({ to, content, marker, className }: ListItemProps) {
   return (
-    <Link to={to} className="block px-4 active:bg-gray-50">
+    <Link to={to} className={`block px-4 active:bg-gray-50 ${styles.item}`}>
       <div
         className={classNames(
-          'h-11 flex items-center text-[#666] border-b border-gray-100',
+          `h-11 flex items-center text-[#666] border-b border-gray-100`,
           className
         )}
       >
@@ -52,12 +52,13 @@ async function fetchCategories(rootCategoryId?: string): Promise<Category[]> {
   return data;
 }
 
-export function useCategories() {
+export function useCategories(options?: UseQueryOptions<Category[]>) {
   const rootId = useRootCategory();
   return useQuery({
     queryKey: 'categories',
     queryFn: () => fetchCategories(rootId),
     staleTime: 1000 * 60 * 5,
+    ...options,
   });
 }
 

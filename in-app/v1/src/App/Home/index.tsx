@@ -1,67 +1,46 @@
-import { useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from 'react-query';
 import { ChevronRightIcon } from '@heroicons/react/solid';
-
-import { http } from '@/leancloud';
 import { PageContent, PageHeader } from '@/components/Page';
-import { QueryWrapper } from '@/components/QueryWrapper';
 import SpeakerIcon from '@/icons/Speaker';
 import { useRootCategory } from '@/App';
-import { CategoryList, useCategories } from '@/App/Categories';
+import { useCategories } from '@/App/Categories';
+import { useCategoryTopics } from '@/api/category';
 import { useNotices, ArticleLink } from '@/App/Articles/utils';
-import { keyBy } from 'lodash-es';
+import { Loading } from '@/components/Loading';
+import { QueryWrapper } from '@/components/QueryWrapper';
+import Topics from './Topics';
+import TicketsLink from './TicketsLink';
+import { TopCategoryList } from '../TopCategories';
 
-interface TicketsLinkProps {
-  badge?: boolean;
-}
-
-function TicketsLink({ badge }: TicketsLinkProps) {
-  const { t } = useTranslation();
+const Categories: FC = () => {
+  const result = useCategories();
   return (
-    <Link className="relative p-3 -mr-3 text-[13px] leading-none text-tapBlue" to="/tickets">
-      {t('ticket.record')}
-      {badge && <div className="h-1.5 w-1.5 bg-red rounded-full absolute top-0 right-0" />}
-    </Link>
+    <QueryWrapper result={result}>
+      <TopCategoryList marker />
+    </QueryWrapper>
   );
-}
-async function fetchUnread(categoryId?: string) {
-  const { data } = await http.get<boolean>(`/api/2/unread`, {
-    params: {
-      product: categoryId,
-    },
-  });
-  return data;
-}
-
-function useHasUnreadTickets(categoryId?: string) {
-  return useQuery({
-    queryKey: ['unread', categoryId],
-    queryFn: () => fetchUnread(categoryId),
-  });
-}
+};
 
 export default function Home() {
   const { t } = useTranslation();
-  const result = useCategories();
-  const categories = result.data;
-  const rootCategory = useRootCategory();
-  const topCategories = useMemo(() => {
-    if (!categories) {
-      return [];
-    }
-    const map = keyBy(categories, 'id');
-    return categories
-      .filter((c) => c.parentId && !map[c.parentId])
-      .sort((a, b) => a.position - b.position);
-  }, [categories]);
-  const { data: hasUnreadTickets } = useHasUnreadTickets(rootCategory);
 
+  const rootCategory = useRootCategory();
   const { data: notices } = useNotices(rootCategory);
+  const { data: topics, isLoading: isTopicsLoading } = useCategoryTopics();
+  const enableCategories = !isTopicsLoading && topics?.length === 0;
+  const { isLoading: isCategoriesLoading } = useCategories({
+    enabled: enableCategories,
+  });
+  const isLoading = isTopicsLoading && isCategoriesLoading;
+  const title = !isLoading ? t(enableCategories ? 'category.select_hint' : 'topic.title') : '';
+
+  if (isLoading) {
+    return <Loading />;
+  }
 
   return (
-    <QueryWrapper result={result}>
+    <>
       <PageHeader />
       <PageContent>
         {notices && notices.length > 0 && (
@@ -79,12 +58,14 @@ export default function Home() {
             ))}
           </div>
         )}
+
         <div className="flex items-center h-[46px] px-4 mt-1">
-          <h2 className="grow font-bold">{t('category.select_hint')}</h2>
-          <TicketsLink badge={hasUnreadTickets} />
+          <h2 className="grow font-bold">{title}</h2>
+          <TicketsLink />
         </div>
-        <CategoryList marker categories={topCategories} />
+        {!enableCategories && <Topics />}
+        {enableCategories && <Categories />}
       </PageContent>
-    </QueryWrapper>
+    </>
   );
 }
