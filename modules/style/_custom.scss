@@ -3,3 +3,18 @@ $green: #21ba45;
 $primary: #2c97e8;
 
 $internal-reply-background: #ffc10733;
+
+$grid-breakpoints: (
+  xs: 0,
+  sm: 480px,
+  md: 768px,
+  lg: 1024px,
+  xl: 1420px
+);
+
+$container-max-widths: (
+  sm: 420px,
+  md: 720px,
+  lg: 960px,
+  xl: 1360px
+);
