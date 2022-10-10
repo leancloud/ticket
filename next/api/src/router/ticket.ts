@@ -402,20 +402,19 @@ router.post('/', async (ctx) => {
     data.customFields
   );
 
-  const requestOptions: FilterOptions['requestOptions'] = {
+  const filterOptions: FilterOptions = {
     user_id: currentUser.username,
     nickname: currentUser.name,
     ip: ctx.ip,
   };
 
-  const content = await textFilterService.filter((data.content || details || '').trim(), {
-    requestOptions,
-  });
+  const { escape: content, unescape: contentWithoutEscape } = await textFilterService.filter(
+    (data.content || details || '').trim(),
+    filterOptions
+  );
   const title =
-    (await textFilterService.filter(data.title || fieldTitle || '', {
-      escape: false,
-      requestOptions,
-    })) || (content ? content.split('\n')[0].slice(0, 100) : category.name);
+    (await textFilterService.filter(data.title || fieldTitle || '', filterOptions)).unescape ||
+    (contentWithoutEscape ? contentWithoutEscape.split('\n')[0].slice(0, 100) : category.name);
   const fileIds = data.fileIds ?? attachments;
 
   const creator = new TicketCreator().setAuthor(currentUser).setTitle(title).setContent(content);
@@ -450,10 +449,7 @@ router.post('/', async (ctx) => {
           const ticketField = ticketFieldById[field.field];
           if (ticketField.meta?.disableFilter === true) return field;
           if (typeof field.value === 'string') {
-            field.value = await textFilterService.filter(field.value, {
-              escape: false,
-              requestOptions,
-            });
+            field.value = (await textFilterService.filter(field.value, filterOptions)).unescape;
           }
           return field;
         })
@@ -702,9 +698,13 @@ router.post('/:id/replies', async (ctx) => {
     author: currentUser,
     content: isCustomerService
       ? data.content
-      : await textFilterService.filter(data.content, {
-          requestOptions: { user_id: currentUser.username, ip: ctx.ip, nickname: currentUser.name },
-        }),
+      : (
+          await textFilterService.filter(data.content, {
+            user_id: currentUser.username,
+            ip: ctx.ip,
+            nickname: currentUser.name,
+          })
+        ).escape,
     fileIds: data.fileIds?.length ? data.fileIds : undefined,
     internal: data.internal,
   });
@@ -789,10 +789,7 @@ router.put('/:id/custom-fields', async (ctx) => {
           const ticketField = ticketFieldById[field.field];
           if (ticketField.meta?.disableFilter === true) return field;
           if (typeof field.value === 'string') {
-            field.value = await textFilterService.filter(field.value, {
-              escape: false,
-              requestOptions,
-            });
+            field.value = (await textFilterService.filter(field.value, requestOptions)).unescape;
           }
           return field;
         })
