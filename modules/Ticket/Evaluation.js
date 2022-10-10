@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useState } from 'react'
-import { Alert, Button, Form } from 'react-bootstrap'
+import { Alert, Badge, Button, Form } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQueryClient } from 'react-query'
 import PropTypes from 'prop-types'
@@ -84,6 +84,20 @@ export function Evaluation({ ticket }) {
           </Button>
         )}
       </Form.Group>
+      {!editing && ticket.evaluation?.selections?.length > 0 && (
+        <>
+          <div className="mb-1" style={{ fontSize: '1rem' }}>
+            {t('evaluation.selections')}
+          </div>
+          <div className="d-flex flex-wrap mb-4" style={{ fontSize: '1.25rem' }}>
+            {ticket.evaluation.selections.map((selection) => (
+              <Badge variant="info" className="mr-1" key={selection}>
+                {selection}
+              </Badge>
+            ))}
+          </div>
+        </>
+      )}
       <Form.Group>
         <Form.Control
           as="textarea"
