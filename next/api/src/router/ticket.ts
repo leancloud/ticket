@@ -622,7 +622,16 @@ router.patch('/:id', async (ctx) => {
     if (!config.allowModifyEvaluation && ticket.evaluation) {
       return ctx.throw(409, 'Ticket is already evaluated');
     }
-    updater.setEvaluation(data.evaluation);
+    updater.setEvaluation({
+      ...data.evaluation,
+      content: (
+        await textFilterService.filter(data.evaluation.content, {
+          user_id: currentUser.username,
+          ip: ctx.ip,
+          nickname: currentUser.name,
+        })
+      ).unescape,
+    });
   }
 
   await updater.update(currentUser);
