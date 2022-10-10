@@ -1,0 +1,23 @@
+.topicItem{
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  text-decoration: none;
+  @apply rounded mr-2 whitespace-nowrap focus:outline-none px-2 py-1 text-sm;
+}
+
+.topicItem::after{
+  content: attr(data-text);
+  content: attr(data-text) / "";
+  height: 0;
+  visibility: hidden;
+  overflow: hidden;
+  user-select: none;
+  pointer-events: none;
+  @apply font-bold;
+
+  @media speech {
+    display: none;
+  }
+}

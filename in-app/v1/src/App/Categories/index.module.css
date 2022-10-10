@@ -6,11 +6,3 @@
 
   @apply flex shrink-0 w-6 h-6 mr-2;
 }
-
-
-.item:last-child {
-
-  > div {
-    @apply border-0;
-  }
-}

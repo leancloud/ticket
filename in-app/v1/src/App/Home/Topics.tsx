@@ -1,12 +1,12 @@
-import { FC } from 'react';
+import { FC, Fragment } from 'react';
 import { Link } from 'react-router-dom';
 import { Tab } from '@headlessui/react';
 import { useCategoryTopics } from '@/api/category';
-import { useRootCategory } from '@/App';
 import { QueryWrapper } from '@/components/QueryWrapper';
 import { ArticleListItem } from '@/App/Articles/utils';
-import { useTranslation } from 'react-i18next';
 import { useAppState } from '@/App/context';
+import classNames from 'classnames';
+import styles from './index.module.css';
 
 const Feedback: FC = () => {
   return (
@@ -30,19 +30,22 @@ const Topics: FC<{}> = () => {
 
   return (
     <QueryWrapper result={result}>
-      <div className="border-b border-gray-100">
+      <div>
         <Tab.Group selectedIndex={topicIndex} onChange={(topicIndex) => update({ topicIndex })}>
           <Tab.List className="flex px-4 py-3 overflow-x-auto">
             {data?.map((item) => (
-              <Tab
-                key={item.id}
-                className={({ selected }) =>
-                  `rounded mr-2 whitespace-nowrap focus:outline-none px-2 py-1 text-sm ${
-                    selected ? 'bg-tapBlue text-white font-bold' : 'bg-[#F5F7F8] text-[#868C92]'
-                  }`
-                }
-              >
-                {item.name}
+              <Tab as={Fragment} key={item.id}>
+                {({ selected }) => (
+                  <button
+                    data-text={item.name}
+                    className={classNames(
+                      selected ? 'bg-tapBlue text-white font-bold' : 'bg-[#F5F7F8] text-[#868C92]',
+                      styles.topicItem
+                    )}
+                  >
+                    {item.name}
+                  </button>
+                )}
               </Tab>
             ))}
           </Tab.List>
