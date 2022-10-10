@@ -3,12 +3,14 @@ import axios from 'axios';
 import { createHash } from 'node:crypto';
 
 export interface FilterOptions {
-  requestOptions: {
-    user_id: string;
-    nickname?: string;
-    ip?: string;
-  };
-  escape?: boolean;
+  user_id: string;
+  nickname?: string;
+  ip?: string;
+}
+
+export interface FilterResult {
+  escape: string;
+  unescape: string;
 }
 
 type ExtractArrayType<T extends ArrayLike<unknown>> = T extends ArrayLike<infer Res> ? Res : never;
@@ -45,12 +47,14 @@ export class TextFilterService {
           .join(', ')}, text filter disable.`
       );
       this.disable = true;
+      return;
     }
 
     this.host = envVars['TDS_TEXT_FILTER_HOST'] as string;
     this.clientId = envVars['TDS_CLIENT_ID'] as string;
     this.scene = envVars['TDS_TEXT_FILTER_SCENE'] as string;
     this.serverSecret = envVars['TDS_SERVER_SECRET'] as string;
+    this.serverRecoveryTimeout = (Number(process.env.TEXT_FILTER_RECOVERY_TIMEOUT) || 60) * 1000;
   }
 
   private setServerDown() {
@@ -63,26 +67,19 @@ export class TextFilterService {
   /**
    *
    * @param input
-   * @param filterOptions if both is true, returning both escaped and unescaped
+   * @param {FilterOptions} filterOptions
+   * @returns {FilterResult}
    *
    * ## Example
    *
    * ```typescript
-   * const [escaped, unescaped] = await filter(..., { ..., both: true });
-   * escaped === '\\*\\*' // true
-   * unescaped === '**' // true
+   * const { escape, unescape } = await filter(...);
+   * escape === '\\*\\*' // true
+   * unescape === '**' // true
    * ```
    */
-  async filter(input: string, filterOptions: FilterOptions & { both?: false }): Promise<string>;
-  async filter(
-    input: string,
-    filterOptions: FilterOptions & { both: true }
-  ): Promise<[string, string]>;
-  async filter(
-    input: string,
-    { escape = true, requestOptions, both }: FilterOptions & { both?: boolean }
-  ): Promise<string | [string, string]> {
-    if (!input || this.isServerDown || this.disable) return input;
+  async filter(input: string, filterOptions: FilterOptions): Promise<FilterResult> {
+    if (!input || this.isServerDown || this.disable) return { escape: input, unescape: input };
 
     const sha1 = createHash('sha1').update(input).digest('hex');
 
@@ -95,8 +92,8 @@ export class TextFilterService {
           {
             scene: this.scene,
             data: {
-              ...requestOptions,
-              user_id: `ticket-${requestOptions.user_id}`,
+              ...filterOptions,
+              user_id: `ticket-${filterOptions.user_id}`,
               text: input,
               data_id: sha1,
             },
@@ -130,12 +127,10 @@ export class TextFilterService {
               : [resWithEscape, resWithoutEscape, lastEnd],
           ['', '', 0]
         );
-        return both
-          ? ([
-              filteredTextWithEscape + input.slice(lastEnd),
-              filteredTextWithoutEscape + input.slice(lastEnd),
-            ] as [string, string])
-          : (escape ? filteredTextWithEscape : filteredTextWithoutEscape) + input.slice(lastEnd);
+        return {
+          escape: filteredTextWithEscape + input.slice(lastEnd),
+          unescape: filteredTextWithoutEscape + input.slice(lastEnd),
+        };
       }, this.maxRetries);
     } catch (err) {
       console.warn(String(err));
@@ -143,7 +138,7 @@ export class TextFilterService {
       console.warn(
         `Text filter server is down, skip filtering for ${this.serverRecoveryTimeout} ms.`
       );
-      return input;
+      return { escape: input, unescape: input };
     }
   }
 }
