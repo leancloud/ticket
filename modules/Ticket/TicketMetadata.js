@@ -253,7 +253,7 @@ function CustomMetadata({ metadata }) {
   return (
     Object.entries(metadata).length > 0 && (
       <Form.Group>
-        <Form.Label>{t('details')}</Form.Label>
+        <hr />
         {Object.entries(metadata).map(([key, value]) => (
           <div className={css.customMetadata} key={key}>
             <span className={css.key}>{comments[key] || key}: </span>
@@ -494,12 +494,7 @@ const TicketFormValues = memo(({ ticket, loadMoreOpsLogs }) => {
 
   return (
     <Form>
-      <Form.Label>
-        {t('otherInfo')}{' '}
-        <Button variant="light" size="sm" onClick={() => setEdit(true)} className="align-baseline">
-          {t('edit')}
-        </Button>
-      </Form.Label>
+      <hr />
       {formFields.map((field) => {
         return (
           <CustomFieldDisplay
@@ -510,6 +505,11 @@ const TicketFormValues = memo(({ ticket, loadMoreOpsLogs }) => {
           />
         )
       })}
+      <Form.Label>
+        <Button variant="light" size="sm" onClick={() => setEdit(true)} className="align-baseline">
+          {t('edit')}
+        </Button>
+      </Form.Label>
       {otherFields.length > 0 && (
         <>
           <hr />
@@ -539,19 +539,30 @@ const TicketFormValues = memo(({ ticket, loadMoreOpsLogs }) => {
   )
 })
 
-export function TicketMetadata({ ticket, loadMoreOpsLogs }) {
+export function Fields({ ticket, loadMoreOpsLogs }) {
+  const { isUser } = useContext(AppContext)
+  return (
+    <>
+      <CategorySection ticket={ticket} />
+
+      <TicketFormValues ticket={ticket} loadMoreOpsLogs={loadMoreOpsLogs} />
+
+      {!isUser && <CustomMetadata metadata={ticket.metadata} />}
+    </>
+  )
+}
+TicketMetadata.propTypes = {
+  ticket: PropTypes.object.isRequired,
+  loadMoreOpsLogs: PropTypes.func,
+}
+
+export function TicketMetadata({ ticket }) {
   const { isUser, isCustomerService } = useContext(AppContext)
   return (
     <>
       {!isUser && <GroupSection ticket={ticket} />}
 
       <AssigneeSection ticket={ticket} />
-
-      <CategorySection ticket={ticket} />
-
-      <TicketFormValues ticket={ticket} loadMoreOpsLogs={loadMoreOpsLogs} />
-
-      {!isUser && <CustomMetadata metadata={ticket.metadata} />}
 
       <MountCustomElement point="ticket.metadata" props={{ ticket, isCustomerService }} />
 
@@ -561,5 +572,4 @@ export function TicketMetadata({ ticket, loadMoreOpsLogs }) {
 }
 TicketMetadata.propTypes = {
   ticket: PropTypes.object.isRequired,
-  loadMoreOpsLogs: PropTypes.func,
 }

@@ -30,7 +30,7 @@ export default function GlobalNav({ user, onLogout }) {
 
   return (
     <Navbar bg="light" expand="md" fixed="top">
-      <Container>
+      <Container fluid="xl">
         <Navbar.Brand className="font-logo" as={Link} to="/">
           {getConfig('nav.home.title', 'LeanTicket')}
         </Navbar.Brand>

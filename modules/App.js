@@ -203,7 +203,7 @@ class App extends Component {
             }}
           >
             <GlobalNav user={this.state.currentUser?.toJSON()} onLogout={this.logout.bind(this)} />
-            <Container className={`${css.main} py-2`}>
+            <Container className={`${css.main} py-2`} fluid="xl">
               <Switch>
                 <Route path="/" exact>
                   <Home />

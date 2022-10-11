@@ -18,7 +18,7 @@ import { TicketStatusLabel } from '../components/TicketStatusLabel'
 import { UserLabel } from '../UserLabel'
 import { ReplyCard } from './ReplyCard'
 import { OpsLog } from './OpsLog'
-import { TicketMetadata } from './TicketMetadata'
+import { TicketMetadata, Fields } from './TicketMetadata'
 import { TicketOperation } from './TicketOperation'
 import { ticketStatus } from '../../lib/common'
 import { TicketReply } from './TicketReply'
@@ -419,7 +419,13 @@ export default function Ticket() {
       </div>
 
       <Row>
-        <Col sm={8}>
+        <Col md={3}>
+          {window.ENABLE_LEANCLOUD_INTEGRATION && (
+            <LeanCloudApp ticketId={ticket.id} authorUserame={ticket.author.username} />
+          )}
+          <Fields ticket={ticket} loadMoreOpsLogs={loadMoreOpsLogs} />
+        </Col>
+        <Col md={6}>
           <div className="tickets">
             <ReplyCard data={ticket} ticketId={ticket.id} />
             {timeline.map((data) => (
@@ -463,12 +469,8 @@ export default function Ticket() {
           </div>
         </Col>
 
-        <Col className={css.sidebar} sm={4}>
-          {window.ENABLE_LEANCLOUD_INTEGRATION && (
-            <LeanCloudApp ticketId={ticket.id} authorUserame={ticket.author.username} />
-          )}
-
-          <TicketMetadata ticket={ticket} loadMoreOpsLogs={loadMoreOpsLogs} />
+        <Col className={css.sidebar} md={3}>
+          <TicketMetadata ticket={ticket} />
 
           {(isUserInThisTicket || isCustomerService) && (
             <TicketOperation ticket={ticket} onOperate={operateTicket} />

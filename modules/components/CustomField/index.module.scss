@@ -28,5 +28,7 @@
 .preview {
   iframe {
     border: none;
+    overflow: scroll;
+    max-width: 100%;
   }
 }
