@@ -27,9 +27,9 @@ export const LeanCloudAppSelect = forwardRef<RefSelectProps, LeanCloudAppSelectP
         }
         return (
           <OptGroup key={region} label={regionName}>
-            {apps.map(({ app_id, app_name }) => (
-              <Option key={app_id} value={app_id}>
-                {app_name}
+            {apps.map(({ appId, appName }) => (
+              <Option key={appId} value={appId}>
+                {appName}
               </Option>
             ))}
           </OptGroup>

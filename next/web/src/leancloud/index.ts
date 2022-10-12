@@ -76,8 +76,8 @@ export const useRefreshCurrentUser = () => {
 export type LeanCloudRegion = 'cn-n1' | 'cn-e1' | 'us-w1';
 
 export interface LeanCloudApp {
-  app_id: string;
-  app_name: string;
+  appId: string;
+  appName: string;
   region: LeanCloudRegion;
 }
 

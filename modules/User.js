@@ -37,9 +37,7 @@ class User extends Component {
       this.setState({
         user,
         leancloudUsers,
-        leancloudApps: leancloudApps
-          ? leancloudApps.sort((a, b) => b.month_reqs - a.month_reqs)
-          : [],
+        leancloudApps: leancloudApps || [],
       })
       return
     })
@@ -118,14 +116,9 @@ const LeanCloudApps = (props) => {
     return (
       <tr key={app.id}>
         <td>{app.region}</td>
-        <td>{app.id}</td>
-        <td>{app.app_name}</td>
-        <td>{app.app_id}</td>
-        <td>{app.biz_type}</td>
-        <td>{app.total_user_count}</td>
-        <td>{app.yesterday_reqs}</td>
-        <td>{app.month_reqs}</td>
-        <td>{app.app_relation}</td>
+        <td>{app.appName}</td>
+        <td>{app.appId}</td>
+        <td>{app.bizType}</td>
       </tr>
     )
   })
@@ -136,14 +129,9 @@ const LeanCloudApps = (props) => {
         <thead>
           <tr>
             <th>region</th>
-            <th>id</th>
-            <th>app_name</th>
-            <th>app_id</th>
-            <th>biz_type</th>
-            <th>total_user_count</th>
-            <th>yesterday_reqs</th>
-            <th>month_reqs</th>
-            <th>app_relation</th>
+            <th>appName</th>
+            <th>appId</th>
+            <th>bizType</th>
           </tr>
         </thead>
         <tbody>{apps}</tbody>

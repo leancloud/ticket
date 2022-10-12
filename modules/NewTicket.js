@@ -43,8 +43,8 @@ const AssociatedApplication = memo(({ value, onChange }) => {
     () =>
       apps.map((app) =>
         defaultLeanCloudRegion === app.region
-          ? [app.app_id, app.app_name]
-          : [app.app_id, `${app.app_name} (${getLeanCloudRegionText(app.region)})`]
+          ? [app.appId, app.appName]
+          : [app.appId, `${app.appName} (${getLeanCloudRegionText(app.region)})`]
       ),
     [apps]
   )
