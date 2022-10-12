@@ -469,12 +469,14 @@ export default function Ticket() {
           </div>
         </Col>
 
-        <Col className={css.sidebar} md={3}>
-          <TicketMetadata ticket={ticket} />
+        <Col md={3}>
+          <div className={css.sidebar}>
+            <TicketMetadata ticket={ticket} />
 
-          {(isUserInThisTicket || isCustomerService) && (
-            <TicketOperation ticket={ticket} onOperate={operateTicket} />
-          )}
+            {(isUserInThisTicket || isCustomerService) && (
+              <TicketOperation ticket={ticket} onOperate={operateTicket} />
+            )}
+          </div>
         </Col>
       </Row>
     </AppContext.Provider>
