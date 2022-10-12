@@ -32,7 +32,7 @@ exports.login = (callbackUrl) => {
       .then((state) => {
         const loginUrl =
           getLeanCloudServerDomain(region) +
-          '/1.1/authorize?' +
+          '/client-center/2/oauth2/authorize?' +
           qs.stringify({
             client_id: config.oauthKey,
             response_type: 'code',
@@ -218,7 +218,7 @@ const getUser = (username) => {
 const getAccessToken = (region, code, callbackUrl) => {
   const url =
     getLeanCloudServerDomain(region) +
-    '/1.1/token?' +
+    '/client-center/2/oauth2/token?' +
     qs.stringify({
       grant_type: 'authorization_code',
       client_id: config.oauthKey,
@@ -246,7 +246,7 @@ const initUserInfo = (region, user) => {
 const getClientInfos = (user) => {
   return mapAuthDatas(user, (region, authData) => {
     return requestLeanCloud(
-      `${getLeanCloudServerDomain(region)}/1.1/open/clients/self`,
+      `${getLeanCloudServerDomain(region)}/client-center/2/oauth2/open/clients/self`,
       authData
     ).then((obj) => {
       obj.region = region
@@ -259,7 +259,7 @@ const getClientInfo = (region, user) => {
   return mapAuthDatas(user, (r, authData) => {
     if (region === r) {
       return requestLeanCloud(
-        `${getLeanCloudServerDomain(region)}/1.1/open/clients/self`,
+        `${getLeanCloudServerDomain(region)}/client-center/2/oauth2/open/clients/self`,
         authData
       ).then((obj) => {
         obj.region = region
@@ -279,7 +279,9 @@ const getClientInfo = (region, user) => {
 const getApps = (user) => {
   return mapAuthDatas(user, (region, authData) => {
     return requestLeanCloud(
-      `${getLeanCloudServerDomain(region)}/1.1/open/clients/${authData.uid}/apps`,
+      `${getLeanCloudServerDomain(region)}/client-center/2/oauth2/open/clients/${
+        authData.uid
+      }/apps`,
       authData
     ).then((objs) => {
       objs.forEach((obj) => {
@@ -293,7 +295,9 @@ const getApps = (user) => {
 const getApp = (user, appId) => {
   return mapAuthDatas(user, (region, authData) => {
     return requestLeanCloud(
-      `${getLeanCloudServerDomain(region)}/1.1/open/clients/${authData.uid}/apps/${appId}`,
+      `${getLeanCloudServerDomain(region)}/client-center/2/oauth2/open/clients/${
+        authData.uid
+      }/apps/${appId}`,
       authData
     )
       .then((obj) => {
@@ -319,7 +323,9 @@ const getApp = (user, appId) => {
 const getAccounts = (user) => {
   return mapAuthDatas(user, (region, authData) => {
     return requestLeanCloud(
-      `${getLeanCloudServerDomain(region)}/1.1/open/clients/${authData.uid}/account`,
+      `${getLeanCloudServerDomain(region)}/client-center/2/oauth2/open/clients/${
+        authData.uid
+      }/account`,
       authData
     ).then((obj) => {
       obj.region = region
