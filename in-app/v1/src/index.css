@@ -35,6 +35,14 @@ textarea {
   @apply resize-none;
 }
 
+input,
+textarea,
+button,
+select,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
 .markdown-body {
   @apply text-[#666] bg-transparent;
 }
