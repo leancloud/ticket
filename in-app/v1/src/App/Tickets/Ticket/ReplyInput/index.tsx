@@ -61,7 +61,7 @@ export function ReplyInput({ onCommit }: ReplyInputProps) {
           placeholder={t('reply.input_content_hint')}
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          onFocus={() => setShow(true)}
+          onClick={() => setShow(true)}
         />
         <Button
           className="shrink-0 ml-2 w-16 leading-[30px] text-[13px]"

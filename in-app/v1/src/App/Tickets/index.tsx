@@ -1,11 +1,12 @@
-import { useMemo } from 'react';
+import { useMemo, Fragment } from 'react';
 import { Link, Route, Routes } from 'react-router-dom';
 import { useInfiniteQuery } from 'react-query';
 import { useTranslation } from 'react-i18next';
 import { InView } from 'react-intersection-observer';
 import { flatten } from 'lodash-es';
 import { Helmet } from 'react-helmet-async';
-
+import { Tab } from '@headlessui/react';
+import classNames from 'classnames';
 import { auth, http } from '@/leancloud';
 import { useRootCategory } from '@/states/root-category';
 import { TicketListItem } from '@/types';
@@ -13,17 +14,21 @@ import { QueryWrapper } from '@/components/QueryWrapper';
 import { PageContent, PageHeader } from '@/components/Page';
 import { Time } from '@/components/Time';
 import { LoadingHint } from '@/components/Loading';
-import TicketDetail, { TicketStatus } from './Ticket';
+import { useAppState } from '@/states/app';
+import TicketDetail, { TicketStatus, TicketResolvedStatus } from './Ticket';
 import { NewTicket } from './New';
+import styles from './index.module.css';
 
 const TICKETS_PAGE_SIZE = 20;
 
 async function fetchTickets({
   categoryId,
   page,
+  status,
 }: {
   categoryId?: string;
   page?: number;
+  status?: TicketResolvedStatus;
 }): Promise<TicketListItem[]> {
   const { data } = await http.get<any[]>('/api/2/tickets', {
     params: {
@@ -33,6 +38,7 @@ async function fetchTickets({
       pageSize: TICKETS_PAGE_SIZE,
       orderBy: 'latestCustomerServiceReplyAt-desc',
       include: 'unreadCount',
+      status,
     },
   });
   return data.map((ticket) => ({
@@ -48,11 +54,12 @@ async function fetchTickets({
   }));
 }
 
-export function useTickets() {
-  const rootCategory = useRootCategory();
+export function useTickets(status: TicketResolvedStatus) {
+  const category = useRootCategory();
   return useInfiniteQuery<TicketListItem[], Error>({
-    queryKey: 'tickets',
-    queryFn: ({ pageParam = 1 }) => fetchTickets({ categoryId: rootCategory.id, page: pageParam }),
+    queryKey: `tickets_${status}`,
+    queryFn: ({ pageParam = 1 }) =>
+      fetchTickets({ categoryId: category.id, page: pageParam, status }),
     getNextPageParam: (lastPage, allPages) => {
       if (lastPage.length === TICKETS_PAGE_SIZE) {
         return allPages.length + 1;
@@ -88,12 +95,34 @@ function TicketItem({ ticket }: TicketItemProps) {
   );
 }
 
-export function TicketList() {
+const TicketResults = ({ status }: { status: TicketResolvedStatus }) => {
   const { t } = useTranslation();
-  const result = useTickets();
+  const result = useTickets(status);
   const { data, hasNextPage, fetchNextPage } = result;
   const noData = useMemo(() => !data?.pages[0]?.length, [data]);
   const tickets = useMemo(() => flatten(data?.pages), [data]);
+  return (
+    <QueryWrapper result={result} noData={noData}>
+      <div className="-my-3">
+        {tickets.map((ticket) => (
+          <Link key={ticket.id} className="block active:bg-gray-50" to={`/tickets/${ticket.id}`}>
+            <TicketItem ticket={ticket} />
+          </Link>
+        ))}
+        <InView
+          className="flex justify-center items-center w-full h-12 text-[#BFBFBF] text-[13px]"
+          onChange={(inView) => inView && fetchNextPage()}
+        >
+          {hasNextPage ? <LoadingHint /> : t('ticket.no_more_record')}
+        </InView>
+      </div>
+    </QueryWrapper>
+  );
+};
+
+export function TicketList() {
+  const { t } = useTranslation();
+  const [{ historyIndex }, setAppState] = useAppState();
 
   return (
     <>
@@ -101,24 +130,35 @@ export function TicketList() {
         <title>{t('ticket.record')}</title>
       </Helmet>
       <PageHeader>{t('ticket.record')}</PageHeader>
-      <PageContent>
-        <QueryWrapper result={result} noData={noData} noDataMessage={t('ticket.no_record')}>
-          {tickets.map((ticket) => (
-            <Link
-              key={ticket.id}
-              className="block px-4 active:bg-gray-50"
-              to={`/tickets/${ticket.id}`}
-            >
-              <TicketItem ticket={ticket} />
-            </Link>
-          ))}
-          <InView
-            className="flex justify-center items-center w-full h-12 text-[#BFBFBF] text-[13px]"
-            onChange={(inView) => inView && fetchNextPage()}
-          >
-            {hasNextPage ? <LoadingHint /> : t('ticket.no_more_record')}
-          </InView>
-        </QueryWrapper>
+      <PageContent shadow>
+        <Tab.Group
+          selectedIndex={historyIndex}
+          onChange={(historyIndex) => setAppState((p) => ({ ...p, historyIndex }))}
+        >
+          <Tab.List className="flex -mx-4 px-4 border-b border-gray-100 text-base text-[#888]">
+            <Tab as={Fragment}>
+              {({ selected }) => (
+                <button className={classNames(styles.tab, selected && styles.active)}>
+                  {t('ticket.unResolved')}
+                </button>
+              )}
+            </Tab>
+            <Tab as={Fragment}>
+              {({ selected }) => (
+                <button className={classNames(styles.tab, selected && styles.active)}>
+                  {t('ticket.resolved')}
+                </button>
+              )}
+            </Tab>
+          </Tab.List>
+          <div className="mt-3">
+            <TicketResults
+              status={
+                historyIndex === 0 ? TicketResolvedStatus.unResolved : TicketResolvedStatus.resolved
+              }
+            />
+          </div>
+        </Tab.Group>
       </PageContent>
     </>
   );

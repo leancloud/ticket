@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next';
 import { useFormContext, useWatch } from 'react-hook-form';
-import { ChevronDownIcon } from '@heroicons/react/solid';
 import cx from 'classnames';
 
 import { CustomFieldProps } from '..';
@@ -13,7 +12,7 @@ export function Select({ id, description, options, required, htmlId }: CustomFie
   const error = formState.errors[id];
 
   return (
-    <div>
+    <>
       <div className="relative flex items-center">
         <select
           {...register(id, {
@@ -23,14 +22,11 @@ export function Select({ id, description, options, required, htmlId }: CustomFie
             },
           })}
           id={htmlId}
-          className={cx('w-full px-3 py-2 border rounded text-sm', {
+          className={cx('w-full py-2 rounded bg-white', {
             'text-[#BFBFBF]': !value,
-            'focus:border-tapBlue focus:ring-1 focus:ring-tapBlue': !error,
-            'border-[rgba(0,0,0,0.08)]': !error,
-            'border-red': error,
           })}
         >
-          <option value="" hidden>
+          <option value="" hidden className="text-[#D2D7D9]">
             {t('general.select_hint')}
           </option>
           {options?.map(({ title, value }, index) => (
@@ -39,13 +35,9 @@ export function Select({ id, description, options, required, htmlId }: CustomFie
             </option>
           ))}
         </select>
-
-        <ChevronDownIcon className="w-4 h-4 absolute right-2 text-[#BFBFBF] pointer-events-none" />
       </div>
 
-      <Description className="mt-1" error={error}>
-        {description}
-      </Description>
-    </div>
+      <Description error={error}>{description}</Description>
+    </>
   );
 }

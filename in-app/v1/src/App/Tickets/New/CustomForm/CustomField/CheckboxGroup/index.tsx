@@ -1,7 +1,8 @@
 import { useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useController, useFormContext } from 'react-hook-form';
-
+import classNames from 'classnames';
+import CheckIcon from '@/icons/Check';
 import { Checkbox } from '@/components/Form';
 import { CustomFieldProps } from '..';
 import { Description } from '../Description';
@@ -40,23 +41,35 @@ export function CheckboxGroup({ id, description, options, required }: CustomFiel
   });
 
   return (
-    <div ref={$container}>
-      <div className="grid sm:grid-cols-2 gap-3">
-        {options?.map((option) => (
-          <div key={option.value} className="flex items-center break-all">
-            <Checkbox
-              fluid
-              checked={values.has(option.value)}
-              onChange={(checked) => handleCheck(checked, option.value)}
+    <>
+      <div className="flex flex-col text-base" ref={$container}>
+        {options?.map((option) => {
+          const checked = values.has(option.value);
+          return (
+            <button
+              key={option.value}
+              className="flex items-center justify-between py-3 text-left"
+              onClick={(e) => {
+                e.preventDefault();
+                handleCheck(!checked, option.value);
+              }}
             >
-              {option.title}
-            </Checkbox>
-          </div>
-        ))}
+              <span>
+                <div
+                  className={classNames(
+                    'flex w-4 h-4 rounded-full',
+                    checked ? 'bg-tapBlue' : 'border border-color-[#B9BEC1]'
+                  )}
+                >
+                  <CheckIcon className="w-2 h-2 m-auto text-white" />
+                </div>
+              </span>
+              <span className="ml-2 flex-1">{option.title}</span>
+            </button>
+          );
+        })}
       </div>
-      <Description className="mt-3" error={error}>
-        {description}
-      </Description>
-    </div>
+      <Description error={error}>{description}</Description>
+    </>
   );
 }

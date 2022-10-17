@@ -1,0 +1,23 @@
+.tab {
+  @apply mr-5 pb-3 relative;
+
+  &.active {
+    @apply text-[#222] font-bold;
+    &::after {
+      content:'';
+    }
+  }
+
+  &::after {
+    
+    position: absolute;
+    display:block;
+    bottom: 0;
+    left: 50%;
+    transform:translate(-50%);
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 2px;
+    @apply bg-tapBlue w-[24px] h-[3px];
+  }
+}
+

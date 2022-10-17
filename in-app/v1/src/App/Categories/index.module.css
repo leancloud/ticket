@@ -1,8 +1,8 @@
 .marker {
   &:before {
     content: ' ';
-    @apply block m-auto bg-tapBlue w-1 h-1;
+    @apply block m-auto bg-[#222] w-1 h-1 rounded-full;
   }
 
-  @apply flex shrink-0 w-6 h-6 mr-2;
+  @apply flex shrink-0 w-6 h-6 mr-1;
 }

@@ -67,6 +67,13 @@ const STATUS_TEXT: Record<number, string> = {
   280: 'status.resolved',
 };
 
+export const RESOLVED_STATUS = [220, 250, 280];
+export const UNRESOLVED_STATUS = [50, 120, 160];
+export enum TicketResolvedStatus {
+  resolved = '220,250,280',
+  unResolved = '50,120,160',
+}
+
 export interface TicketStatusProps extends Omit<ComponentPropsWithoutRef<'span'>, 'children'> {
   status: number;
 }
@@ -119,19 +126,22 @@ function TicketAttributes({ ticket }: { ticket: Ticket }) {
   const [expand, setExpand] = useState(false);
 
   return (
-    <div className="shrink-0 bg-[#FAFAFA] border-b border-gray-100 text-sm px-4 pt-4">
-      <div className={`${styles.dataGrid} gap-x-4 ${expand ? 'gap-y-2' : 'gap-y-1'}`}>
-        <TicketAttribute title={t('general.number')}>#{ticket.nid}</TicketAttribute>
+    <div className="shrink-0 text-sm bg-[#fafafa] py-3 px-4">
+      <div className={`${styles.dataGrid} gap-x-6 ${expand ? 'gap-y-2' : 'gap-y-1'}`}>
+        <TicketAttribute title={t('general.title')}>{ticket.title}</TicketAttribute>
         {expand && (
-          <TicketAttribute title={t('general.status')}>
-            <TicketStatus status={ticket.status} />
-          </TicketAttribute>
+          <>
+            <TicketAttribute title={t('general.status')}>
+              <TicketStatus status={ticket.status} />
+            </TicketAttribute>
+            <TicketAttribute title={t('general.number')}>#{ticket.nid}</TicketAttribute>
+          </>
         )}
         <TicketAttribute title={t('general.description')}>
           <div className={cx({ truncate: !expand })}>{ticket.content}</div>
         </TicketAttribute>
       </div>
-      <div className="text-center mt-4 mb-1">
+      <div className="text-center mt-3 ">
         <ExpandButton expand={expand} onClick={() => setExpand(!expand)} />
       </div>
     </div>
@@ -263,24 +273,24 @@ export default function TicketDetail() {
   return (
     <>
       <Helmet>{ticket?.title && <title>{ticket.title}</title>}</Helmet>
-      <PageHeader>{ticket?.title ?? t('general.loading')}</PageHeader>
-      <PageContent className={cx({ 'mb-0 rounded-b-none': !ticketIsClosed })}>
+      <PageHeader>{t('ticket.record')}</PageHeader>
+      <PageContent shadow className={cx('px-0 pt-0 mb-0')}>
         <QueryWrapper result={result}>
           <QueryWrapper result={repliesResult}>
             {ticket && <TicketAttributes ticket={ticket} />}
-
-            <Replies className="grow px-4 pt-4" replies={replies} />
-
-            {ticket &&
-              (ticketIsClosed ? (
-                ticket.evaluation ? (
-                  <Evaluated />
+            <Replies className="grow px-4 pt-3" replies={replies} />
+            <div className="-mb-3">
+              {ticket &&
+                (ticketIsClosed ? (
+                  ticket.evaluation ? (
+                    <Evaluated />
+                  ) : (
+                    <NewEvaluation ticketId={id} />
+                  )
                 ) : (
-                  <NewEvaluation ticketId={id} />
-                )
-              ) : (
-                <ReplyInput onCommit={reply} />
-              ))}
+                  <ReplyInput onCommit={reply} />
+                ))}
+            </div>
           </QueryWrapper>
         </QueryWrapper>
       </PageContent>
