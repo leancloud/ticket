@@ -27,7 +27,7 @@ interface ListItemProps {
 
 export function ListItem({ to, content, marker, className }: ListItemProps) {
   return (
-    <Link to={to} className={`block px-4 active:bg-gray-50 ${styles.item}`}>
+    <Link to={to} className={`block active:bg-gray-50 ${styles.item}`}>
       <div
         className={classNames(
           `h-11 flex items-center text-[#666] border-b border-gray-100`,

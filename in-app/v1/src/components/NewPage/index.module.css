@@ -1,0 +1,9 @@
+.header {
+  position: -webkit-sticky;
+  position: sticky;
+
+}
+
+.contentShadow {
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.08), inset 0px -2px 0px #F2F2F2;
+}

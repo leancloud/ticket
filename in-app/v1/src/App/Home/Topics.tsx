@@ -8,21 +8,6 @@ import { useAppState } from '@/App/context';
 import classNames from 'classnames';
 import styles from './index.module.css';
 
-const Feedback: FC = () => {
-  return (
-    <div className="my-[20px] text-center">
-      <p className="mb-2 text-sm text-[#666] leading-[16px]">若以上内容没有帮助到你</p>
-
-      <Link
-        className="inline-block py-[7px] px-[36px] text-[14px] text-tapBlue leading-[22px] font-bold border rounded-full"
-        to="/topCategories"
-      >
-        提交反馈
-      </Link>
-    </div>
-  );
-};
-
 const Topics: FC<{}> = () => {
   const result = useCategoryTopics();
   const { data } = result;
@@ -32,7 +17,7 @@ const Topics: FC<{}> = () => {
     <QueryWrapper result={result}>
       <div>
         <Tab.Group selectedIndex={topicIndex} onChange={(topicIndex) => update({ topicIndex })}>
-          <Tab.List className="flex px-4 py-3 overflow-x-auto">
+          <Tab.List className="flex overflow-x-auto mt-[14px] mb-3">
             {data?.map((item) => (
               <Tab as={Fragment} key={item.id}>
                 {({ selected }) => (
@@ -53,14 +38,17 @@ const Topics: FC<{}> = () => {
             {data?.map(({ id, articles }) => (
               <Tab.Panel key={id}>
                 {articles.map((item) => (
-                  <ArticleListItem key={item.id} article={item} className="!h-[42px]" />
+                  <ArticleListItem
+                    key={item.id}
+                    article={item}
+                    className="!h-[42px] text-[#666] text-[13px]"
+                  />
                 ))}
               </Tab.Panel>
             ))}
           </Tab.Panels>
         </Tab.Group>
       </div>
-      <Feedback />
     </QueryWrapper>
   );
 };

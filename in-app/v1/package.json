@@ -11,10 +11,12 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@headlessui/react": "^1.4.3",
+    "@headlessui/react": "^1.7.3",
     "@heroicons/react": "^1.0.5",
     "axios": "^0.25.0",
     "classnames": "^2.3.1",
+    "embla-carousel-autoplay": "^7.0.3",
+    "embla-carousel-react": "^7.0.3",
     "github-markdown-css": "^5.1.0",
     "i18next": "^21.6.7",
     "i18next-browser-languagedetector": "^6.1.2",

@@ -1,17 +1,14 @@
 import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronRightIcon } from '@heroicons/react/solid';
-import { PageContent, PageHeader } from '@/components/Page';
-import SpeakerIcon from '@/icons/Speaker';
-import { useRootCategory } from '@/App';
+import { PageContent, PageHeader } from '@/components/NewPage';
 import { useCategories } from '@/App/Categories';
 import { useCategoryTopics } from '@/api/category';
-import { useNotices, ArticleLink } from '@/App/Articles/utils';
 import { Loading } from '@/components/Loading';
 import { QueryWrapper } from '@/components/QueryWrapper';
 import Topics from './Topics';
-import TicketsLink from './TicketsLink';
 import { TopCategoryList } from '../TopCategories';
+import Help from './Help';
+import Notices from './Notices';
 
 const Categories: FC = () => {
   const result = useCategories();
@@ -25,8 +22,6 @@ const Categories: FC = () => {
 export default function Home() {
   const { t } = useTranslation();
 
-  const rootCategory = useRootCategory();
-  const { data: notices } = useNotices(rootCategory);
   const { data: topics, isLoading: isTopicsLoading } = useCategoryTopics();
   const enableCategories = !isTopicsLoading && topics?.length === 0;
   const { isLoading: isCategoriesLoading } = useCategories({
@@ -42,30 +37,15 @@ export default function Home() {
   return (
     <>
       <PageHeader />
-      <PageContent>
-        {notices && notices.length > 0 && (
-          <div className="px-3 mt-1 text-sm">
-            {notices.map((notice) => (
-              <ArticleLink
-                article={notice}
-                key={notice.id}
-                className="my-1 px-2.5 py-2 rounded flex items-center bg-tapBlue bg-opacity-5 active:bg-tapBlue-50"
-              >
-                <SpeakerIcon className="text-tapBlue shrink-0" />
-                <span className="grow truncate ml-2 mr-1">{notice.title}</span>
-                <ChevronRightIcon className="shrink-0 h-4 w-4 text-tapBlue" />
-              </ArticleLink>
-            ))}
-          </div>
-        )}
-
-        <div className="flex items-center h-[46px] px-4 mt-1">
-          <h2 className="grow font-bold">{title}</h2>
-          <TicketsLink />
-        </div>
+      <Notices />
+      <PageContent shadow title={title} className="pb-0">
         {!enableCategories && <Topics />}
         {enableCategories && <Categories />}
       </PageContent>
+      {!enableCategories && (
+        <div className="text-center text-[#BFBFBF] mt-6">{t('topic.hint')}</div>
+      )}
+      <Help feedback={!enableCategories} />
     </>
   );
 }
