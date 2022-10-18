@@ -1,6 +1,5 @@
 exposeEnvironmentsOnBuild: true
-install: 
-  - use: default
+install:
   - require:
     - ./package.json
     - ./package-lock.json
@@ -10,6 +9,7 @@ install:
     - ./next/api/package-lock.json
     - ./next/web/package.json
     - ./next/web/package-lock.json
+  - npm ci --force
   - cd in-app/v1/
   - npm ci
   - cd ../../next/api
