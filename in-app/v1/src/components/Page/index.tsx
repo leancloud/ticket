@@ -43,7 +43,7 @@ export function PageHeader(props: ComponentPropsWithoutRef<'div'>) {
         }
       >
         <h1
-          className={`bg-white rounded-t-lg py-2 px-4  mx-[10px] sm:mx-[108px] text-center font-bold border-b border-gray-100`}
+          className={`bg-white rounded-t-lg py-2 px-4  mx-[10px] sm:mx-[108px] text-center font-bold border-b border-gray-100 break-words`}
         >
           {props.children ?? t('general.call_center')}
         </h1>
