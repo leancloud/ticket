@@ -5,7 +5,7 @@ import { decodeQueryParams, JsonParam, StringParam } from 'serialize-query-param
 import { parse } from 'query-string';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 
-import { User, auth as lcAuth } from '@/leancloud';
+import { User, auth as lcAuth, http } from '@/leancloud';
 import { APIError } from '@/components/APIError';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Loading } from '@/components/Loading';
@@ -29,14 +29,14 @@ const queryClient = new QueryClient({
 });
 
 function RequireAuth({ children }: { children: JSX.Element }) {
-  const [auth, loading, error] = useAuth();
+  const [user, loading, error] = useAuth();
   if (loading) {
     return <Loading />;
   }
   if (error) {
     return <APIError error={error} onRetry={() => location.reload()} />;
   }
-  if (!auth) {
+  if (!user) {
     return <LogIn />;
   }
   return children;
@@ -85,8 +85,15 @@ export default function App() {
         .then((user) => setAuth([user, false, null]))
         .catch((error) => setAuth([null, false, error]));
     } else if (params['xd-access-token']) {
-      lcAuth
-        .loginWithAuthData('xd-legacy', { uid: 'placeholder', token: params['xd-access-token'] })
+      http
+        .post('/api/2/users', { XDAccessToken: params['xd-access-token'] })
+        .catch((error) => {
+          if (error?.['response']?.['data']?.['message']) {
+            throw new Error(error['response']['data']['message']);
+          }
+          throw error;
+        })
+        .then((response) => lcAuth.loginWithSessionToken(response.data.sessionToken))
         .then((user) => setAuth([user, false, null]))
         .catch((error) => setAuth([null, false, error]));
     } else if (lcAuth.currentUser) {

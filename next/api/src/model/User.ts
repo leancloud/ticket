@@ -91,6 +91,9 @@ export class User extends Model {
   @field()
   authData?: Record<string, any>;
 
+  @field('XDAT')
+  XDAccessToken?: string;
+
   @field()
   username!: string;
 
@@ -144,26 +147,14 @@ export class User extends Model {
     return this.queryBuilder().where('username', '==', username).first({ useMasterKey: true });
   }
 
-  static async loginWithJWT(token: string): Promise<{ sessionToken: string }> {
-    let payload;
-    try {
-      payload = getVerifiedPayload(token);
-    } catch (error) {
-      if (error instanceof JsonWebTokenError) {
-        throw new InvalidLoginCredentialError(error.message, error);
-      }
-      throw error;
-    }
-    const { sub, name } = payload;
-    if (sub === undefined) {
-      throw new InvalidLoginCredentialError('sub field is required');
-    }
-    const username = sub;
+  static async upsertByUsername(username: string, name?: string, XDAccessToken?: string) {
     const findAndUpdate = async () => {
       const user = await this.findByUsername(username);
       if (user) {
-        if (name && name !== user.name) {
-          user.update({ name }, { useMasterKey: true }).catch(console.error);
+        const updateName = name && name !== user.name;
+        const updateXDAT = XDAccessToken && XDAccessToken !== user.XDAccessToken;
+        if (updateName || updateXDAT) {
+          user.update({ name, XDAccessToken }, { useMasterKey: true }).catch(console.error);
         }
         return user.loadSessionToken();
       }
@@ -182,6 +173,51 @@ export class User extends Model {
       }
       throw error;
     }
+  }
+
+  static async loginWithJWT(token: string): Promise<{ sessionToken: string }> {
+    let payload;
+    try {
+      payload = getVerifiedPayload(token);
+    } catch (error) {
+      if (error instanceof JsonWebTokenError) {
+        throw new InvalidLoginCredentialError(error.message, error);
+      }
+      throw error;
+    }
+    const { sub, name } = payload;
+    if (sub === undefined) {
+      throw new InvalidLoginCredentialError('sub field is required');
+    }
+    return this.upsertByUsername(sub, name);
+  }
+
+  static async loginWithLegacyXDAccessToken(
+    XDAccessToken: string
+  ): Promise<{ sessionToken: string }> {
+    let response;
+    try {
+      response = await axios.get<{
+        id: string;
+        friendly_name?: string;
+      }>('https://api.xd.com/v1/user', {
+        params: { access_token: XDAccessToken },
+      });
+    } catch (error) {
+      if (error instanceof Error && 'response' in error) {
+        if ('data' in error['response']) {
+          throw new HttpError(
+            error['response']['status'],
+            error['response']['data']['error_description'] ??
+              error['response']['data']['error'] ??
+              'Unknown xd.com error'
+          );
+        }
+      }
+      throw error;
+    }
+    const { id, friendly_name } = response.data;
+    return this.upsertByUsername(`XD.${id}`, friendly_name, XDAccessToken);
   }
 
   static async loginWithAnonymousId(id: string, name?: string) {

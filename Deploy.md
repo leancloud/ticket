@@ -293,3 +293,7 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 新增环境变量
 
 - `TEXT_FILTER_RECOVERY_TIMEOUT`: 文本过滤每次失败后恢复的延迟，单位为秒，默认60秒
+
+## 2022-10-19
+
+导入 `_User`

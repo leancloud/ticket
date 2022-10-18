@@ -107,7 +107,7 @@ function ArticleDetail() {
   const [search] = useSearchParams();
   const categoryId = search.get('from-category');
 
-  const [auth, loading, error] = useAuth();
+  const [user, loading, error] = useAuth();
 
   return (
     <QueryWrapper result={result}>
@@ -126,9 +126,9 @@ function ArticleDetail() {
             className="text-[13px] markdown-body"
             dangerouslySetInnerHTML={{ __html: article?.contentSafeHTML ?? '' }}
           />
-          {article && auth && <Feedback articleId={article.id} />}
+          {article && user && <Feedback articleId={article.id} />}
         </div>
-        {categoryId && auth && (
+        {categoryId && user && (
           <p className="my-6 px-4 text-center">
             <span className="block mb-2 text-sm">若以上内容没有帮助到你</span>
             <NewTicketButton categoryId={categoryId} />

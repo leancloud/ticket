@@ -32,6 +32,10 @@
       "hidden": true,
       "type": "Object"
     },
+    "XDAT": {
+      "hidden": true,
+      "type": "String"
+    },
     "mobilePhoneVerified": {
       "type": "Boolean"
     },
