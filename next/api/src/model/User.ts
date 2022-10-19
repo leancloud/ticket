@@ -91,8 +91,8 @@ export class User extends Model {
   @field()
   authData?: Record<string, any>;
 
-  @field('XDAT')
-  XDAccessToken?: string;
+  @field()
+  thirdPartyData?: Record<string, any>;
 
   @field()
   username!: string;
@@ -147,14 +147,22 @@ export class User extends Model {
     return this.queryBuilder().where('username', '==', username).first({ useMasterKey: true });
   }
 
-  static async upsertByUsername(username: string, name?: string, XDAccessToken?: string) {
+  static async upsertByUsername(
+    username: string,
+    name?: string,
+    thirdPartyData?: Record<string, any>
+  ) {
     const findAndUpdate = async () => {
       const user = await this.findByUsername(username);
       if (user) {
         const updateName = name && name !== user.name;
-        const updateXDAT = XDAccessToken && XDAccessToken !== user.XDAccessToken;
-        if (updateName || updateXDAT) {
-          user.update({ name, XDAccessToken }, { useMasterKey: true }).catch(console.error);
+        if (updateName || thirdPartyData) {
+          user
+            .update(
+              { name, thirdPartyData: { ...thirdPartyData, _updated_at: Date.now() } },
+              { useMasterKey: true }
+            )
+            .catch(console.error);
         }
         return user.loadSessionToken();
       }
@@ -200,7 +208,13 @@ export class User extends Model {
       response = await axios.get<{
         id: string;
         friendly_name?: string;
-      }>('https://api.xd.com/v1/user', {
+        created: string;
+        last_login: string;
+        site: string;
+        adult_type: number;
+        taptap_id: string;
+        phone: string;
+      }>('https://api.xd.com/v2/user', {
         params: { access_token: XDAccessToken },
       });
     } catch (error) {
@@ -217,7 +231,20 @@ export class User extends Model {
       throw error;
     }
     const { id, friendly_name } = response.data;
-    return this.upsertByUsername(`XD.${id}`, friendly_name, XDAccessToken);
+    return this.upsertByUsername(
+      `XD.${id}`,
+      friendly_name,
+      _.pick(response.data, [
+        'id',
+        'friendly_name',
+        'created',
+        'last_login',
+        'site',
+        'adult_type',
+        'taptap_id',
+        'phone',
+      ])
+    );
   }
 
   static async loginWithAnonymousId(id: string, name?: string) {

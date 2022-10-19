@@ -31,7 +31,7 @@ const anonymouseAuthSchema = z.object({
   anonymousId: z.string().min(16),
   name: z.string().optional(),
 });
-const authSchema = JWTAuthSchema.or(anonymouseAuthSchema).or(LegacyXDAuthSchema);
+const authSchema = z.union([JWTAuthSchema, anonymouseAuthSchema, LegacyXDAuthSchema]);
 type AuthData = z.infer<typeof authSchema>;
 
 function isJWT(data: AuthData): data is JWTAuthData {

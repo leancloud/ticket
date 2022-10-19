@@ -32,9 +32,9 @@
       "hidden": true,
       "type": "Object"
     },
-    "XDAT": {
+    "thirdPartyData": {
       "hidden": true,
-      "type": "String"
+      "type": "Object"
     },
     "mobilePhoneVerified": {
       "type": "Boolean"
