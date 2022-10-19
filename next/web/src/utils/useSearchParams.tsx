@@ -1,12 +1,4 @@
-import {
-  ReactNode,
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useRef,
-  useEffect,
-} from 'react';
+import { ReactNode, createContext, useCallback, useContext, useMemo, useRef } from 'react';
 import { NavigateOptions, useLocation, useNavigate } from 'react-router-dom';
 import { noop } from 'lodash-es';
 

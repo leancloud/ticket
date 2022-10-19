@@ -74,9 +74,7 @@ export function TicketFormList() {
       <h1 className="text-[#2f3941] text-[26px] font-normal">工单表单</h1>
       <div className="flex flex-row-reverse mb-4">
         <Link to="new">
-          <Button type="primary" ghost>
-            新增表单
-          </Button>
+          <Button type="primary">新增表单</Button>
         </Link>
       </div>
 
