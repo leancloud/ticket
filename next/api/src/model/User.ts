@@ -214,6 +214,7 @@ export class User extends Model {
         adult_type: number;
         taptap_id: string;
         phone: string;
+        authoriz_state: number;
       }>('https://api.xd.com/v2/user', {
         params: { access_token: XDAccessToken },
       });
@@ -243,6 +244,7 @@ export class User extends Model {
         'adult_type',
         'taptap_id',
         'phone',
+        'authoriz_state',
       ])
     );
   }
