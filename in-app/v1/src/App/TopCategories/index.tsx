@@ -4,7 +4,7 @@ import { keyBy } from 'lodash-es';
 import { useTranslation } from 'react-i18next';
 import { QueryWrapper } from '@/components/QueryWrapper';
 import { Helmet } from 'react-helmet-async';
-import { PageContent, PageHeader } from '@/components/Page';
+import { PageContent, PageHeader } from '@/components/NewPage';
 
 export const TopCategoryList: FC<{ marker: boolean }> = ({ marker }) => {
   const result = useCategories();
@@ -37,9 +37,9 @@ export default function TopCategories() {
       <Helmet>
         <title>{title}</title>
       </Helmet>
-      <PageHeader>{title}</PageHeader>
-      <PageContent>
-        <TopCategoryList marker={false} />
+      <PageHeader>{t('feedback.submit')}</PageHeader>
+      <PageContent shadow className="pb-0" title={t('category.select_hint')}>
+        <TopCategoryList marker />
       </PageContent>
     </>
   );

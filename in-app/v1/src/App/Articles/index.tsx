@@ -137,7 +137,7 @@ function ArticleDetail() {
             <p>{t('notice.hint')}</p>
             <Link to="/topCategories">
               <Button secondary className="px-8 text-base mt-2 text-tapBlue font-bold">
-                {t('notice.submit')}
+                {t('feedback.submit')}
               </Button>
             </Link>
           </div>

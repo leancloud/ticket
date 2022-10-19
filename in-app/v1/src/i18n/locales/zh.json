@@ -20,19 +20,24 @@
     "cancel": "取消"
   },
   "feedback": {
+    "suffix": "反馈",
     "action": "我要反馈",
-    "record": "反馈记录"
+    "record": "反馈记录",
+    "submit": "提交反馈"
+  },
+  "faqs": {
+    "showAll": "查看全部"
   },
   "notice": {
     "title": "公告",
-    "hint": "若以上内容没有帮助到你",
-    "submit": "提交反馈"
+    "hint": "若以上内容没有帮助到你"
   },
   "auth": {
     "not_logged_in_text": "检测到你未登录账号，请登录后重试"
   },
   "category": {
-    "select_hint": "请选择你遇到的问题"
+    "select_hint": "请选择你遇到的问题",
+    "faqs": "相关问题解答"
   },
   "topic": {
     "title": "常见问题",

@@ -1,17 +1,16 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState, FC } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQuery, UseQueryResult, UseQueryOptions } from 'react-query';
 import { useTranslation } from 'react-i18next';
-import { ChevronRightIcon } from '@heroicons/react/solid';
+import { ChevronRightIcon, ChevronDownIcon } from '@heroicons/react/solid';
 import classNames from 'classnames';
 
 import { http } from '@/leancloud';
-import { Category } from '@/types';
-import { PageContent, PageHeader } from '@/components/Page';
+import { Category, Article } from '@/types';
+import { PageContent, PageHeader } from '@/components/NewPage';
 import { QueryWrapper } from '@/components/QueryWrapper';
 import { APIError } from '@/components/APIError';
 import { Loading } from '@/components/Loading';
-import { NewTicketButton } from '@/components/NewTicketButton';
 import { ArticleListItem, useFAQs } from '@/App/Articles/utils';
 import styles from './index.module.css';
 import { NotFoundContent } from '../NotFound';
@@ -91,6 +90,41 @@ export function CategoryList({ categories, marker, ...props }: CategoryListProps
   );
 }
 
+export const FAQ: FC<{ faqs?: Article[]; showAll?: boolean }> = ({ faqs, showAll = true }) => {
+  const [expended, setExpended] = useState(showAll);
+  const [t] = useTranslation();
+
+  useEffect(() => {
+    setExpended(showAll);
+  }, [showAll]);
+
+  if (!faqs || !faqs.length) {
+    return null;
+  }
+
+  const data = expended ? faqs : faqs.slice(0, 3);
+
+  return (
+    <PageContent shadow className="pb-0 mt-6" title={t('category.faqs')}>
+      {data.map((FAQ, i) => (
+        <ArticleListItem
+          article={FAQ}
+          key={FAQ.id}
+          className={classNames(data.length - 1 === i && 'border-b-0')}
+        />
+      ))}
+      {faqs.length > 3 && !expended && (
+        <button
+          className="flex items-center text-[#BFBFBF] mt-1 mb-3"
+          onClick={() => setExpended(true)}
+        >
+          {t('faqs.showAll')} <ChevronDownIcon className="h-4 w-4" />
+        </button>
+      )}
+    </PageContent>
+  );
+};
+
 export default function Categories() {
   const { id: rawId } = useParams();
   const navigate = useNavigate();
@@ -110,12 +144,13 @@ export default function Categories() {
   );
   const noSubCategories = subCategories && subCategories.length === 0;
 
-  const { data: FAQs, isLoading: FAQsIsLoading, isSuccess: FAQsIsReady } = useFAQs(
-    noSubCategories ? currentCategory?.id : undefined
+  const { data: faqs, isLoading: FAQsIsLoading, isSuccess: FAQsIsReady } = useFAQs(
+    noSubCategories ? undefined : id
   );
 
-  const noFAQs = FAQsIsReady && FAQs?.length === 0;
-  const redirectToNewTicket = noSubCategories && noFAQs;
+  const redirectToNewTicket = noSubCategories;
+  const noData = categories?.length === 0 && faqs?.length === 0;
+
   useEffect(() => {
     if (redirectToNewTicket) {
       navigate(`/tickets/new?category_id=${id}`, { replace: true });
@@ -124,48 +159,34 @@ export default function Categories() {
 
   const isLoading = categoriesIsLoading || FAQsIsLoading;
   const title = isLoading ? t('general.loading') + '...' : currentCategory?.name;
+
   const content = (() => {
     if (error) return <APIError />;
     if (isLoading) return <Loading />;
     if (!currentCategory) return <NotFoundContent />;
+    if (noSubCategories) {
+      return null;
+    }
     return (
-      <>
-        {FAQs && FAQs.length > 0 && (
-          <div className="mb-2">
-            <h2 className="px-4 py-3 mt-1 font-bold">常见问题</h2>
-            {FAQs.map((FAQ) => (
-              <ArticleListItem article={FAQ} fromCategory={id} key={FAQ.id} />
-            ))}
-          </div>
-        )}
-        {!noSubCategories && (
-          <>
-            {!noFAQs && (
-              <h2 className="px-4 py-3 mt-1 font-bold">
-                若以上内容没能帮到你，请选择合适的类别以继续
-              </h2>
-            )}
-            <CategoryList categories={subCategories!} />
-          </>
-        )}
-        {noSubCategories && !noFAQs && (
-          <p className="my-6 px-4 text-center">
-            <span className="block mb-2 text-sm">若以上内容没有帮助到你</span>
-            <NewTicketButton categoryId={id!} />
-          </p>
-        )}
-      </>
+      <PageContent shadow className="pb-0" title={t('category.select_hint')}>
+        {!noSubCategories && <CategoryList categories={subCategories!} />}
+      </PageContent>
     );
   })();
+
   return (
     <>
       <Helmet>
         <title>{title}</title>
       </Helmet>
-      <PageHeader>{title}</PageHeader>
-      <PageContent>
-        <QueryWrapper result={result}>{content}</QueryWrapper>
-      </PageContent>
+      <PageHeader>
+        {title}
+        {t('feedback.suffix')}
+      </PageHeader>
+      <QueryWrapper result={result} noData={noData}>
+        {content}
+        <FAQ faqs={faqs} />
+      </QueryWrapper>
     </>
   );
 }
