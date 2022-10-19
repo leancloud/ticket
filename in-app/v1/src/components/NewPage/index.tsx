@@ -48,7 +48,7 @@ export function PageContent({
     <div
       {...props}
       className={cx(
-        'page flex flex-col shrink-0  overflow-hidden bg-white rounded-lg mx-[10px] sm:mx-[119px] last:mb-[10px] px-4 py-3',
+        'page flex flex-col shrink-0  overflow-hidden bg-white rounded-lg mx-[10px] sm:mx-[119px] last:mb-4 px-4 py-3',
         shadow && styles.contentShadow,
         className
       )}

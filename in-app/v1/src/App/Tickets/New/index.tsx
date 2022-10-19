@@ -7,7 +7,7 @@ import { pick } from 'lodash-es';
 import { http } from '@/leancloud';
 import { CategoryFieldSchema, useCategoryFields } from '@/api/category';
 import { useSearchParams } from '@/utils/url';
-import { PageContent, PageHeader } from '@/components/Page';
+import { PageContent, PageHeader } from '@/components/NewPage';
 import { Button } from '@/components/Button';
 import { QueryWrapper } from '@/components/QueryWrapper';
 import CheckIcon from '@/icons/Check';
@@ -17,6 +17,8 @@ import NotFound from '../../NotFound';
 import { CustomForm } from './CustomForm';
 import { usePersistFormData } from './usePersistFormData';
 import { Helmet } from 'react-helmet-async';
+import { useFAQs } from '@/App/Articles/utils';
+import { FAQs } from '@/App/Categories';
 
 const presetFields: CategoryFieldSchema[] = [
   {
@@ -113,15 +115,17 @@ function Success({ ticketId }: SuccessProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="text-center mt-12 sm:m-auto">
-      <div className="flex w-9 h-9 mx-auto rounded-full bg-tapBlue">
-        <CheckIcon className="w-4 h-4 m-auto text-white" />
+    <PageContent className="pt-10 flex-1" shadow>
+      <div className="text-center">
+        <div className="flex w-9 h-9 mx-auto rounded-full bg-tapBlue">
+          <CheckIcon className="w-4 h-4 m-auto text-white" />
+        </div>
+        <div className="text-[#666] mt-10">{t('ticket.create.success_text')}</div>
+        <Button className="inline-block w-32 mt-4" as={Link} to={`/tickets/${ticketId}`}>
+          {t('ticket.detail')}
+        </Button>
       </div>
-      <div className="text-[#666] mt-10">{t('ticket.create.success_text')}</div>
-      <Button className="inline-block w-32 mt-4" as={Link} to={`/tickets/${ticketId}`}>
-        {t('ticket.detail')}
-      </Button>
-    </div>
+    </PageContent>
   );
 }
 
@@ -145,6 +149,8 @@ export function NewTicket() {
     onError: (error: Error) => alert(error.message),
   });
 
+  const { data: faqs, isLoading: FAQsIsLoading, isSuccess: FAQsIsReady } = useFAQs(category_id);
+
   if (!ticketId && !result.data && !result.isLoading && !result.error) {
     // Category is not exists :badbad:
     return <NotFound />;
@@ -153,15 +159,17 @@ export function NewTicket() {
     <>
       <Helmet>{result.data?.name && <title>{result.data.name}</title>}</Helmet>
       <PageHeader>{result.data?.name ?? t('general.loading') + '...'}</PageHeader>
-      <PageContent>
-        {ticketId ? (
-          <Success ticketId={ticketId as string} />
-        ) : (
-          <QueryWrapper result={result}>
-            <TicketForm categoryId={category_id} onSubmit={submit} submitting={submitting} />
-          </QueryWrapper>
-        )}
-      </PageContent>
+      {ticketId ? (
+        <Success ticketId={ticketId as string} />
+      ) : (
+        <QueryWrapper result={result}>
+          <FAQs className="mb-6" faqs={faqs} showAll={false} />
+          {faqs && faqs.length && (
+            <PageContent className="bg-transparent mb-3 py-0" title={t('feedback.submit')} />
+          )}
+          <TicketForm categoryId={category_id} onSubmit={submit} submitting={submitting} />
+        </QueryWrapper>
+      )}
     </>
   );
 }

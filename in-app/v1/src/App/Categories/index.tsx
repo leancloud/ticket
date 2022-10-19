@@ -90,7 +90,11 @@ export function CategoryList({ categories, marker, ...props }: CategoryListProps
   );
 }
 
-export const FAQ: FC<{ faqs?: Article[]; showAll?: boolean }> = ({ faqs, showAll = true }) => {
+export const FAQs: FC<{ faqs?: Article[]; showAll?: boolean; className?: string }> = ({
+  faqs,
+  showAll = false,
+  className,
+}) => {
   const [expended, setExpended] = useState(showAll);
   const [t] = useTranslation();
 
@@ -105,7 +109,7 @@ export const FAQ: FC<{ faqs?: Article[]; showAll?: boolean }> = ({ faqs, showAll
   const data = expended ? faqs : faqs.slice(0, 3);
 
   return (
-    <PageContent shadow className="pb-0 mt-6" title={t('category.faqs')}>
+    <PageContent shadow className={classNames('pb-0', className)} title={t('category.faqs')}>
       {data.map((FAQ, i) => (
         <ArticleListItem
           article={FAQ}
@@ -185,7 +189,7 @@ export default function Categories() {
       </PageHeader>
       <QueryWrapper result={result} noData={noData}>
         {content}
-        <FAQ faqs={faqs} />
+        <FAQs faqs={faqs} className="mt-6" />
       </QueryWrapper>
     </>
   );

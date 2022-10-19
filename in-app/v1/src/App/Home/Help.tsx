@@ -34,9 +34,8 @@ const Modal: FC<{
   const { t } = useTranslation();
 
   return (
-    <Dialog open={open} onClose={() => onClose} className="relative z-50">
+    <Dialog open={open} onClose={onClose} className="relative z-50">
       <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-      hasUnreadTickets
       <div className="fixed inset-0 flex items-end justify-center">
         <Dialog.Panel className="text-[#222222] flex flex-col bg-white w-[100%] sm:w-[375px] py-2 rounded-t-lg">
           {feedback && (

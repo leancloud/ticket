@@ -48,7 +48,7 @@ export function NewEvaluation({ ticketId }: NewEvaluationProps) {
   };
 
   return (
-    <div className="p-6 border-t border-dashed border-gray-300 text-sm">
+    <div className="p-5 border-t border-dashed border-gray-300 text-sm">
       <div className="text-gray-600">{t('evaluation.title')}</div>
 
       <div className="py-6">
