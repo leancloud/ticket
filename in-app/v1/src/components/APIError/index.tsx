@@ -76,17 +76,18 @@ function RadarIcon(props: SVGProps<SVGSVGElement>) {
 }
 
 export interface APIErrorProps {
+  error?: Error | null;
   onRetry?: () => void;
 }
 
-export function APIError({ onRetry }: APIErrorProps) {
+export function APIError({ error, onRetry }: APIErrorProps) {
   const { t } = useTranslation();
 
   return (
     <div className="h-full flex grow">
       <div className="mx-auto mt-24 sm:my-auto text-center">
         <RadarIcon className="mx-auto" />
-        <div className="mt-2 h-6 text-[#BFBFBF]">{t('network_error')}</div>
+        <div className="mt-2 h-6 text-[#BFBFBF]">{error?.message ?? t('network_error')}</div>
         <button
           className="mt-3 px-3 h-8 box-border rounded-full border border-[rgba(0,0,0,0.06)] text-tapBlue text-sm"
           onClick={onRetry}

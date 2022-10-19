@@ -32,6 +32,10 @@
       "hidden": true,
       "type": "Object"
     },
+    "thirdPartyData": {
+      "hidden": true,
+      "type": "Object"
+    },
     "mobilePhoneVerified": {
       "type": "Boolean"
     },

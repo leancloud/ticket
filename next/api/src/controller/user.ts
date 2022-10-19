@@ -19,6 +19,10 @@ import { withAsyncSpan } from '@/utils/trace';
 import { Context } from 'koa';
 import { z } from 'zod';
 
+const LegacyXDAuthSchema = z.object({
+  XDAccessToken: z.string(),
+});
+type LegacyXDAuthData = z.infer<typeof LegacyXDAuthSchema>;
 const JWTAuthSchema = z.object({
   jwt: z.string(),
 });
@@ -27,11 +31,15 @@ const anonymouseAuthSchema = z.object({
   anonymousId: z.string().min(16),
   name: z.string().optional(),
 });
-const authSchema = JWTAuthSchema.or(anonymouseAuthSchema);
+const authSchema = z.union([JWTAuthSchema, anonymouseAuthSchema, LegacyXDAuthSchema]);
 type AuthData = z.infer<typeof authSchema>;
 
-function isJWT(data: any): data is JWTAuthData {
-  return typeof data.jwt === 'string';
+function isJWT(data: AuthData): data is JWTAuthData {
+  return 'jwt' in data && typeof data.jwt === 'string';
+}
+
+function isLegacyXD(data: AuthData): data is LegacyXDAuthData {
+  return 'XDAccessToken' in data && typeof data.XDAccessToken === 'string';
 }
 
 @Controller('users')
@@ -72,7 +80,19 @@ export class UserController {
   @Post()
   async login(@Ctx() ctx: Context, @Body(new ZodValidationPipe(authSchema)) authData: AuthData) {
     if (isJWT(authData)) {
-      return withAsyncSpan(() => User.loginWithJWT(authData.jwt), ctx, 'model', 'User.loginWithJWT');
+      return withAsyncSpan(
+        () => User.loginWithJWT(authData.jwt),
+        ctx,
+        'model',
+        'User.loginWithJWT'
+      );
+    } else if (isLegacyXD(authData)) {
+      return withAsyncSpan(
+        () => User.loginWithLegacyXDAccessToken(authData.XDAccessToken),
+        ctx,
+        'model',
+        'User.loginWithLegacyXDAccessToken'
+      );
     }
     return User.loginWithAnonymousId(authData.anonymousId, authData.name);
   }
