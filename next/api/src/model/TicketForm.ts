@@ -1,6 +1,7 @@
 import _ from 'lodash';
 
 import { Model, field, hasManyThroughIdArray } from '@/orm';
+import { TicketFormItem } from '@/ticket-form/types';
 import { TicketField } from './TicketField';
 import { TicketFieldVariant } from './TicketFieldVariant';
 
@@ -13,6 +14,9 @@ export class TicketForm extends Model {
 
   @hasManyThroughIdArray(() => TicketField)
   fields!: TicketField[];
+
+  @field()
+  items?: TicketFormItem[];
 
   async getFields(): Promise<TicketField[]> {
     const fields = await TicketField.queryBuilder()

@@ -57,6 +57,10 @@ class TicketFormNoteService {
     return TicketFormNote.find(id, { useMasterKey: true });
   }
 
+  getSome(ids: string[]) {
+    return TicketFormNote.queryBuilder().where('objectId', 'in', ids).find({ useMasterKey: true });
+  }
+
   async mustGet(id: string) {
     const note = await this.get(id);
     if (!note) {
