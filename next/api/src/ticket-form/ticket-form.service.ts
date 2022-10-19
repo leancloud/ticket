@@ -134,7 +134,14 @@ class TicketFormService {
     if (noteIds.length === 0) {
       return;
     }
+
     const notes = await ticketFormNoteService.getSome(noteIds);
+
+    const inactiveNote = notes.find((note) => !note.active);
+    if (inactiveNote) {
+      throw new HttpError(400, `ticket form note ${inactiveNote.id} is inactive`);
+    }
+
     const noteById = _.keyBy(notes, (note) => note.id);
     const missingId = noteIds.find((id) => !noteById[id]);
     if (missingId) {

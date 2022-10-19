@@ -87,6 +87,10 @@ export class TicketForm extends Model {
 
     return result;
   }
+
+  getItems(): TicketFormItem[] {
+    return this.items ?? this.fieldIds.map((id) => ({ type: 'field', id }));
+  }
 }
 
 function getAvailableLocales(locale: string): string[] {

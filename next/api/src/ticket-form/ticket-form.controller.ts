@@ -1,4 +1,5 @@
 import { Context } from 'koa';
+import _ from 'lodash';
 import {
   Body,
   Controller,
@@ -17,7 +18,9 @@ import {
 import { Order, ParseIntPipe, ParseOrderPipe, ZodValidationPipe } from '@/common/pipe';
 import { auth, customerServiceOnly } from '@/middleware';
 import { TicketFormResponse } from '@/response/ticket-form';
+import { TicketFieldVariantResponse } from '@/response/ticket-field';
 import service from './ticket-form.service';
+import ticketFormNoteService from './ticket-form-note/ticket-form-note.service';
 import { createTicketFormSchema, updateTicketFormSchema } from './schemas';
 import { CreateTicketFormData, UpdateTicketFormData } from './types';
 
@@ -75,5 +78,44 @@ export class TicketFormController {
   @StatusCode(204)
   async delete(@Param('id') id: string) {
     await service.delete(id);
+  }
+
+  @Get(':id/items')
+  async getItems(@Ctx() ctx: Context, @Param('id') id: string) {
+    const form = await service.mustGet(id);
+    const items = form.getItems();
+
+    const noteIds = items.filter((item) => item.type === 'note').map((item) => item.id);
+    const notes = await ticketFormNoteService.getSome(noteIds);
+    const noteById = _.keyBy(notes, (note) => note.id);
+
+    const fieldVariants = await form.getFieldVariants(ctx.locales?.[0] ?? 'en');
+    const fieldVariantByFieldId = _.keyBy(fieldVariants, (v) => v.fieldId);
+
+    const result: any[] = [];
+    for (const item of items) {
+      if (item.type === 'field') {
+        const fieldVariant = fieldVariantByFieldId[item.id];
+        if (fieldVariant) {
+          result.push({
+            type: 'field',
+            data: new TicketFieldVariantResponse(fieldVariant),
+          });
+        }
+      } else if (item.type === 'note') {
+        const note = noteById[item.id];
+        if (note && note.active) {
+          result.push({
+            type: 'note',
+            data: {
+              title: note.title,
+              content: note.content,
+            },
+          });
+        }
+      }
+    }
+
+    return result;
   }
 }

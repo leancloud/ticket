@@ -10,13 +10,11 @@ export class TicketFormResponse {
       ? form.items.filter((item) => item.type === 'field').map((item) => item.id)
       : form.fieldIds;
 
-    const items = form.items ?? form.fieldIds.map((fieldId) => ({ type: 'field', id: fieldId }));
-
     return {
       id: form.id,
       title: form.title,
       fieldIds,
-      items,
+      items: form.getItems(),
       createdAt: this.form.createdAt,
       updatedAt: this.form.updatedAt,
     };
