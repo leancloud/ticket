@@ -105,7 +105,7 @@ function ArticleDetail() {
 
   const [search] = useSearchParams();
   const categoryId = search.get('from-category');
-  const isNotice = !!search.get('isNotice');
+  const isNotice = !!search.get('from-notice');
 
   const [auth, loading, error] = useAuth();
   const title = !!isNotice ? t('notice.title') : t('ticket.detail');

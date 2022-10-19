@@ -14,10 +14,9 @@ export default function Notices() {
     Autoplay({ delay: 3000, stopOnInteraction: false }),
   ]);
 
-  if (!notices) {
+  if (!notices || !notices.length) {
     return null;
   }
-
   return (
     <PageContent shadow className="mb-2">
       <div className="overflow-hidden " ref={emblaRef}>

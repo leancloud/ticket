@@ -67,34 +67,6 @@ export function useTickets(status: TicketResolvedStatus) {
   });
 }
 
-export function useResolvedTickets() {
-  const categoryId = useRootCategory();
-  return useInfiniteQuery<TicketListItem[], Error>({
-    queryKey: 'tickets',
-    queryFn: ({ pageParam = 1 }) =>
-      fetchTickets({ categoryId, page: pageParam, status: TicketResolvedStatus.resolved }),
-    getNextPageParam: (lastPage, allPages) => {
-      if (lastPage.length === TICKETS_PAGE_SIZE) {
-        return allPages.length + 1;
-      }
-    },
-  });
-}
-
-export function useUnResolvedTickets() {
-  const categoryId = useRootCategory();
-  return useInfiniteQuery<TicketListItem[], Error>({
-    queryKey: 'tickets',
-    queryFn: ({ pageParam = 1 }) =>
-      fetchTickets({ categoryId, page: pageParam, status: TicketResolvedStatus.unResolved }),
-    getNextPageParam: (lastPage, allPages) => {
-      if (lastPage.length === TICKETS_PAGE_SIZE) {
-        return allPages.length + 1;
-      }
-    },
-  });
-}
-
 interface TicketItemProps {
   ticket: TicketListItem;
 }

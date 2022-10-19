@@ -164,7 +164,7 @@ export function NewTicket() {
       ) : (
         <QueryWrapper result={result}>
           <FAQs className="mb-6" faqs={faqs} showAll={false} />
-          {faqs && faqs.length && (
+          {faqs && faqs.length > 0 && (
             <PageContent className="bg-transparent mb-3 py-0" title={t('feedback.submit')} />
           )}
           <TicketForm categoryId={category_id} onSubmit={submit} submitting={submitting} />

@@ -23,7 +23,7 @@ export function CustomForm({
   submitting,
 }: CustomFormProps) {
   const { t } = useTranslation();
-  const methods = useForm({ defaultValues, mode: 'onChange' });
+  const methods = useForm({ defaultValues, mode: 'onTouched' });
   const {
     formState: { isValid },
   } = methods;

@@ -5,6 +5,8 @@ import { useCategories } from '@/App/Categories';
 import { useCategoryTopics } from '@/api/category';
 import { Loading } from '@/components/Loading';
 import { QueryWrapper } from '@/components/QueryWrapper';
+import { useNotices } from '@/App/Articles/utils';
+import { useRootCategory } from '@/App';
 import Topics from './Topics';
 import { TopCategoryList } from '../TopCategories';
 import Help from './Help';
@@ -21,14 +23,15 @@ const Categories: FC = () => {
 
 export default function Home() {
   const { t } = useTranslation();
-
+  const rootCategory = useRootCategory();
+  const { isLoading: isNoticesLoading } = useNotices(rootCategory);
   const { data: topics, isLoading: isTopicsLoading } = useCategoryTopics();
   const enableCategories = !isTopicsLoading && topics?.length === 0;
   const { isLoading: isCategoriesLoading } = useCategories({
     enabled: enableCategories,
   });
-  const isLoading = isTopicsLoading && isCategoriesLoading;
-  const title = !isLoading ? t(enableCategories ? 'category.select_hint' : 'topic.title') : '';
+  const isLoading = isNoticesLoading && isTopicsLoading && isCategoriesLoading;
+  const title = !isLoading ? t(enableCategories ? 'category.select_hint_home' : 'topic.title') : '';
 
   if (isLoading) {
     return <Loading />;
@@ -43,7 +46,7 @@ export default function Home() {
         {enableCategories && <Categories />}
       </PageContent>
       {!enableCategories && (
-        <div className="text-center text-[#BFBFBF] mt-6">{t('topic.hint')}</div>
+        <div className="text-center text-[#BFBFBF] mt-6 mb-3">{t('topic.hint')}</div>
       )}
       <Help feedback={!enableCategories} />
     </>

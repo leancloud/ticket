@@ -38,7 +38,7 @@ export default function TopCategories() {
         <title>{title}</title>
       </Helmet>
       <PageHeader>{t('feedback.submit')}</PageHeader>
-      <PageContent shadow className="pb-0" title={t('category.select_hint')}>
+      <PageContent shadow className="pb-0" title={t('category.select_hint_home')}>
         <TopCategoryList marker />
       </PageContent>
     </>
