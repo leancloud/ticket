@@ -12,7 +12,7 @@ import {
   UseMiddlewares,
 } from '@/common/http';
 import { FindModelPipe, ParseCsvPipe, TrimPipe, ZodValidationPipe } from '@/common/pipe';
-import { auth, customerServiceOnly } from '@/middleware';
+import { auth, staffOnly } from '@/middleware';
 import { User } from '@/model/User';
 import { UserSearchResult } from '@/response/user';
 import { withAsyncSpan } from '@/utils/trace';
@@ -45,7 +45,7 @@ function isLegacyXD(data: AuthData): data is LegacyXDAuthData {
 @Controller('users')
 export class UserController {
   @Get()
-  @UseMiddlewares(auth, customerServiceOnly)
+  @UseMiddlewares(auth, staffOnly)
   @ResponseBody(UserSearchResult)
   find(
     @CurrentUser() currentUser: User,
@@ -70,8 +70,14 @@ export class UserController {
     return query.find(currentUser.getAuthOptions());
   }
 
+  @Get(':id/third-party-data')
+  @UseMiddlewares(auth, staffOnly)
+  getThirdPartyData(@Param('id', new FindModelPipe(User, { useMasterKey: true })) user: User) {
+    return user.thirdPartyData;
+  }
+
   @Get(':id')
-  @UseMiddlewares(auth, customerServiceOnly)
+  @UseMiddlewares(auth, staffOnly)
   @ResponseBody(UserSearchResult)
   findOne(@Param('id', new FindModelPipe(User)) user: User) {
     return user;
