@@ -193,7 +193,7 @@ function CategorySection({ ticket }) {
   const [editingCategory, setEditingCategory] = useState(false)
   const { data: categories, isLoading } = useQuery({
     queryKey: ['categories', { active: true }],
-    queryFn: () => fetch('/api/1/categories?active=true'),
+    queryFn: () => fetch('/api/2/categories?active=true'),
   })
   const queryClient = useQueryClient()
 

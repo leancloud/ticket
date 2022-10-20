@@ -10,14 +10,14 @@ import { fetch } from '../../../lib/leancloud'
 
 function AsyncCategory({ block, categoryId }) {
   const { t } = useTranslation()
-  const { data: categories, isLoading } = useQuery('categories', () => fetch('/api/1/categories'))
+  const { data: categories, isLoading } = useQuery('categories', () => fetch('/api/2/categories'))
   const categoryPath = useMemo(() => {
     if (!categories) {
       return []
     }
     const path = [categories.find((c) => c.id === categoryId)]
-    while (path[0]?.parent_id) {
-      path.unshift(categories.find((c) => c.id === path[0].parent_id))
+    while (path[0]?.parentId) {
+      path.unshift(categories.find((c) => c.id === path[0].parentId))
     }
     return path.map((c) => c.name)
   }, [categories, categoryId])
@@ -60,8 +60,8 @@ function makeCategoryTree(categories) {
   }, {})
   const parents = []
   Object.values(categoryById).forEach((category) => {
-    if (category.parent_id) {
-      const parent = categoryById[category.parent_id]
+    if (category.parentId) {
+      const parent = categoryById[category.parentId]
       if (!parent.children) {
         parent.children = []
       }
