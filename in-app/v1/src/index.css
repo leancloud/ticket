@@ -8,6 +8,10 @@ html {
 
 body {
   @apply flex flex-col min-h-full text-base bg-[#E5E5E5] text-[#222];
+
+  &.rnd {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='100px' width='100px'><text transform='translate(20, 60) rotate(-45)' fill='rgba(0,0,0,.08)' font-size='16' font-family='sans-serif'>测试版</text></svg>");
+  }
 }
 
 #root {
