@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { AiOutlinePlus, AiOutlineSearch } from 'react-icons/ai';
 import { BsX } from 'react-icons/bs';
@@ -229,14 +229,15 @@ export interface TicketFormData {
 }
 
 export interface EditTicketFormProps {
-  initData?: TicketFormData;
+  data?: Partial<TicketFormData>;
   submitting?: boolean;
   onSubmit: (data: TicketFormData) => void;
   onCancel?: () => void;
 }
 
-export function EditTicketForm({ initData, submitting, onSubmit, onCancel }: EditTicketFormProps) {
-  const { control, handleSubmit, getValues } = useForm<TicketFormData>({ defaultValues: initData });
+export function EditTicketForm({ data, submitting, onSubmit, onCancel }: EditTicketFormProps) {
+  const { control, handleSubmit, getValues, reset } = useForm<TicketFormData>();
+  useEffect(() => reset(data), [data]);
 
   const $antForm = useRef<FormInstance>(null!);
 
@@ -244,7 +245,6 @@ export function EditTicketForm({ initData, submitting, onSubmit, onCancel }: Edi
 
   const { data: fields } = useTicketFields({
     pageSize: 1000,
-    orderBy: 'updatedAt-desc',
     includeVariants: true,
     queryOptions: {
       staleTime: 1000 * 60,
@@ -311,9 +311,8 @@ export function EditTicketForm({ initData, submitting, onSubmit, onCancel }: Edi
       />
 
       <div className="flex px-10 py-4 border-t border-[#D8DCDE]">
-        <div className="grow">
-          <Button onClick={handlePreview}>预览</Button>
-        </div>
+        <Button onClick={handlePreview}>预览</Button>
+        <div className="grow" />
         <Button className="mr-4" disabled={submitting} type="link" onClick={onCancel}>
           取消
         </Button>

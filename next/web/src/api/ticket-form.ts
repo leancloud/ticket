@@ -1,38 +1,66 @@
-import { UseQueryOptions, useQuery } from 'react-query';
-
+import { UseQueryOptions, useQuery, UseMutationOptions, useMutation } from 'react-query';
 import { http } from '@/leancloud';
+
+interface TicketFormItem {
+  type: 'field' | 'note';
+  id: string;
+}
 
 export interface TicketFormSchema {
   id: string;
   title: string;
   fieldIds: string[];
+  items: TicketFormItem[];
   createdAt: string;
   updatedAt: string;
 }
 
-export interface FetchTicketFormsOptions {
+interface FetchTicketFormsOptions {
   page?: number;
   pageSize?: number;
   orderBy?: string;
-  count?: any;
 }
 
-export interface FetchTicketFormsResult {
-  data: TicketFormSchema[];
-  totalCount?: number;
+interface FetchTicketFormsResult {
+  items: TicketFormSchema[];
+  totalCount: number;
 }
 
-export async function fetchTicketForms(
-  options: FetchTicketFormsOptions
-): Promise<FetchTicketFormsResult> {
+async function fetchTicketForms(options: FetchTicketFormsOptions) {
   const { data, headers } = await http.get<TicketFormSchema[]>('/api/2/ticket-forms', {
     params: options,
   });
-  const totalCount = headers['x-total-count'];
   return {
-    data,
-    totalCount: totalCount ? parseInt(totalCount) : undefined,
+    items: data,
+    totalCount: parseInt(headers['x-total-count']),
   };
+}
+
+async function fetchTicketForm(id: string) {
+  const { data } = await http.get<TicketFormSchema>(`/api/2/ticket-forms/${id}`);
+  return data;
+}
+
+interface CreateTicketFormData {
+  title: string;
+  fieldIds?: string[];
+  items?: TicketFormItem[];
+}
+
+async function createTicketForm(data: CreateTicketFormData) {
+  const res = await http.post<TicketFormSchema>('/api/2/ticket-forms', data);
+  return res.data;
+}
+
+type UpdateTicketFormData = Partial<CreateTicketFormData>;
+
+export async function updateTicketForm(id: string, data: UpdateTicketFormData) {
+  const res = await http.patch<TicketFormSchema>(`/api/2/ticket-forms/${id}`, data);
+  return res.data;
+}
+
+async function deleteTicketForm(id: string) {
+  await http.delete(`/api/2/ticket-forms/${id}`);
 }
 
 export interface UseTicketFormsOptions extends FetchTicketFormsOptions {
@@ -40,22 +68,11 @@ export interface UseTicketFormsOptions extends FetchTicketFormsOptions {
 }
 
 export function useTicketForms({ queryOptions, ...options }: UseTicketFormsOptions = {}) {
-  const { data, ...results } = useQuery({
+  return useQuery({
     queryKey: ['ticketForms', options],
     queryFn: () => fetchTicketForms(options),
     ...queryOptions,
   });
-
-  return {
-    ...results,
-    data: data?.data,
-    totalCount: data?.totalCount,
-  };
-}
-
-export async function fetchTicketForm(id: string) {
-  const { data } = await http.get<TicketFormSchema>(`/api/2/ticket-forms/${id}`);
-  return data;
 }
 
 export function useTicketForm(id: string, options?: UseQueryOptions<TicketFormSchema, Error>) {
@@ -66,21 +83,27 @@ export function useTicketForm(id: string, options?: UseQueryOptions<TicketFormSc
   });
 }
 
-export interface CreateTicketFormData {
-  title: string;
-  fieldIds: string[];
+export function useCreateTicketForm(
+  options?: UseMutationOptions<TicketFormSchema, Error, CreateTicketFormData>
+) {
+  return useMutation({
+    mutationFn: createTicketForm,
+    ...options,
+  });
 }
 
-export async function createTicketForm(data: CreateTicketFormData) {
-  await http.post('/api/2/ticket-forms', data);
+export function useUpdateTicketForm(
+  options?: UseMutationOptions<TicketFormSchema, Error, Parameters<typeof updateTicketForm>>
+) {
+  return useMutation({
+    mutationFn: (args) => updateTicketForm.apply(null, args),
+    ...options,
+  });
 }
 
-export type UpdateTicketFormData = Partial<CreateTicketFormData>;
-
-export async function updateTicketForm(id: string, data: UpdateTicketFormData) {
-  await http.patch(`/api/2/ticket-forms/${id}`, data);
-}
-
-export async function deleteTicketForm(id: string) {
-  await http.delete(`/api/2/ticket-forms/${id}`);
+export function useDeleteTicketForm(options?: UseMutationOptions<void, Error, string>) {
+  return useMutation({
+    mutationFn: deleteTicketForm,
+    ...options,
+  });
 }
