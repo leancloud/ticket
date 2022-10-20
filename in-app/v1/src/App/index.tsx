@@ -59,6 +59,15 @@ export const useAuth = () => useContext(AuthContext);
 export default function App() {
   const { t } = useTranslation();
 
+  useEffect(() => {
+    const isRND =
+      window.location.hostname.indexOf('rnd') !== -1 ||
+      window.location.hostname.indexOf('stg') !== -1;
+    if (isRND) {
+      document.body.classList.add('rnd');
+    }
+  }, []);
+
   const pathname = window.location.pathname;
   const paths = pathname.split('/');
   const rootCategory = paths[4];
