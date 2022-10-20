@@ -192,10 +192,13 @@ export class CategoryController {
   @Get(':id/categories')
   @ResponseBody(CategoryResponse)
   async getSubCategories(
+    @Ctx() ctx: Context,
     @Param('id', FindCategoryPipe) category: Category,
     @Query('active', new ParseBoolPipe({ keepUndefined: true })) active?: boolean
   ) {
-    return await categoryService.getSubCategories(category.id, active);
+    const categories = await categoryService.getSubCategories(category.id, active);
+    await categoryService.renderCategories(categories, ctx.locales);
+    return categories;
   }
 
   private convertUpdateData(data: UpdateCategoryData): UpdateData<Category> {
