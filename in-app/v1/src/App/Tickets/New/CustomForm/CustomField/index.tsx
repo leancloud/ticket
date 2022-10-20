@@ -50,12 +50,11 @@ export function CustomField(props: CustomFieldProps) {
     return <Unknown type={props.type} />;
   }
   return (
-    <div className="flex flex-col sm:flex-row mb-5 last:mb-0">
-      <div className="shrink-0 mb-2 sm:mb-0 sm:w-[72px] sm:mr-2">
+    <div className="flex flex-col">
+      <div className="shrink-0 mb-2">
         <label
           className={cx('relative break-words', {
             [style.required]: required,
-            'sm:top-[7px]': !alignTop,
           })}
           htmlFor={`field_${id}`}
         >
