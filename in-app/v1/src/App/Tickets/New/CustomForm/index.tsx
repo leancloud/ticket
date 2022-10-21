@@ -1,13 +1,25 @@
 import { useTranslation } from 'react-i18next';
 import { FormProvider, useForm } from 'react-hook-form';
 
-import { CategoryFieldSchema } from '@/api/category';
 import { Button } from '@/components/Button';
 import { SpaceChinese } from '@/components/SpaceChinese';
-import { CustomField } from './CustomField';
+import { CustomField, CustomFieldConfig } from './CustomField';
+import { FormNote, FormNoteProps } from './FormNote';
+
+export type { CustomFieldConfig } from './CustomField';
+
+export type CustomFormItem =
+  | {
+      type: 'field';
+      data: CustomFieldConfig;
+    }
+  | {
+      type: 'note';
+      data: FormNoteProps & { id: string };
+    };
 
 export interface CustomFormProps {
-  fields: CategoryFieldSchema[];
+  items: CustomFormItem[];
   defaultValues?: Record<string, any>;
   onChange?: (data: Record<string, any>) => void;
   onSubmit: (data: Record<string, any>) => void;
@@ -15,7 +27,7 @@ export interface CustomFormProps {
 }
 
 export function CustomForm({
-  fields,
+  items,
   defaultValues,
   onChange,
   onSubmit,
@@ -31,9 +43,14 @@ export function CustomForm({
   return (
     <FormProvider {...methods}>
       <form className="px-4 sm:px-8 py-7" onSubmit={methods.handleSubmit(onSubmit)}>
-        {fields.map((field) => (
-          <CustomField key={field.id} {...field} />
-        ))}
+        {items.map(({ type, data }) => {
+          switch (type) {
+            case 'field':
+              return <CustomField key={data.id} {...data} />;
+            case 'note':
+              return <FormNote key={data.id} {...data} />;
+          }
+        })}
 
         <Button
           className="sm:ml-20 w-full sm:max-w-max sm:px-11"

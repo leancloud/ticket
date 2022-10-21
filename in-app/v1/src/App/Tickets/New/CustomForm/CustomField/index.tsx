@@ -2,7 +2,6 @@ import { JSXElementConstructor, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import cx from 'classnames';
 
-import { CategoryFieldSchema, FieldType } from '@/api/category';
 import style from './index.module.css';
 import { Input } from './Input';
 import { Textarea } from './Textarea';
@@ -11,13 +10,25 @@ import { CheckboxGroup } from './CheckboxGroup';
 import { RadioGroup } from './RadioGroup';
 import { Uploader } from './Uploader';
 
+type FieldType = 'text' | 'multi-line' | 'dropdown' | 'multi-select' | 'radios' | 'file';
+
 const TOP_LABEL_TYPES: FieldType[] = ['multi-select', 'radios'];
+
 const I18N_KEY_BY_ID: Record<string, string | undefined> = {
   title: 'general.title',
   description: 'general.description',
 };
 
-export interface CustomFieldProps extends CategoryFieldSchema {
+export interface CustomFieldConfig {
+  id: string;
+  type: FieldType;
+  title: string;
+  description?: string;
+  required: boolean;
+  options?: { title: string; value: string }[];
+}
+
+export interface CustomFieldProps extends CustomFieldConfig {
   htmlId?: string;
 }
 
@@ -45,9 +56,9 @@ export function CustomField(props: CustomFieldProps) {
     return i18nKey ? t(i18nKey) : title;
   }, [id, title, t]);
 
-  const Component = components[props.type];
+  const Component = components[type];
   if (!Component) {
-    return <Unknown type={props.type} />;
+    return <Unknown type={type} />;
   }
   return (
     <div className="flex flex-col sm:flex-row mb-5 last:mb-0">

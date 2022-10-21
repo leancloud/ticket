@@ -7,12 +7,14 @@ export interface Article {
   createdAt: Date;
   updatedAt: Date;
 }
+
 export interface Category {
   id: string;
   name: string;
   alias?: string;
   parentId?: string;
   position: number;
+  formId?: string;
 }
 
 export interface File {

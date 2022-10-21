@@ -2,23 +2,25 @@ import { useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useMutation } from 'react-query';
+import { Helmet } from 'react-helmet-async';
 import { pick } from 'lodash-es';
 
 import { http } from '@/leancloud';
-import { CategoryFieldSchema, useCategoryFields } from '@/api/category';
+import { FieldItem, useTicketFormItems } from '@/api/ticket-form';
 import { useSearchParams } from '@/utils/url';
 import { PageContent, PageHeader } from '@/components/Page';
 import { Button } from '@/components/Button';
 import { QueryWrapper } from '@/components/QueryWrapper';
+import { Loading } from '@/components/Loading';
 import CheckIcon from '@/icons/Check';
+import { Category } from '@/types';
 import { useCategory } from '../../Categories';
 import { useTicketInfo } from '../..';
 import NotFound from '../../NotFound';
-import { CustomForm } from './CustomForm';
+import { CustomForm, CustomFieldConfig, CustomFormItem } from './CustomForm';
 import { usePersistFormData } from './usePersistFormData';
-import { Helmet } from 'react-helmet-async';
 
-const presetFields: CategoryFieldSchema[] = [
+const DEFAULT_FIELDS: CustomFieldConfig[] = [
   {
     id: 'title',
     type: 'text',
@@ -50,27 +52,32 @@ interface NewTicketData {
 }
 
 interface TicketFormProps {
-  categoryId: string;
+  category: Category;
   onSubmit: (data: NewTicketData) => Promise<any>;
   submitting?: boolean;
 }
 
-function TicketForm({ categoryId, onSubmit, submitting }: TicketFormProps) {
+function TicketForm({ category, onSubmit, submitting }: TicketFormProps) {
   const { meta } = useTicketInfo();
-  const result = useCategoryFields(categoryId);
+
+  const { data: formItems, isLoading: loadingFormItems } = useTicketFormItems(category.formId!, {
+    enabled: category.formId !== undefined,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const _items = useMemo<CustomFormItem[]>(() => {
+    if (!category.formId) {
+      return DEFAULT_FIELDS.map((field) => ({ type: 'field', data: field }));
+    }
+    return formItems ?? [];
+  }, [category.formId, formItems]);
 
   const fields = useMemo(() => {
-    if (!result.data) {
-      return [];
-    }
-    if (result.data.length === 0) {
-      // 没有为当前分类配置自定义表单时展示预设字段
-      return presetFields;
-    }
-    return result.data;
-  }, [result.data]);
+    const fieldItems = _items.filter((item) => item.type === 'field') as FieldItem[];
+    return fieldItems.map((item) => item.data);
+  }, [_items]);
 
-  const { initData, onChange, clear } = usePersistFormData(categoryId);
+  const { initData, onChange, clear } = usePersistFormData(category.id);
 
   const defaultValues = useMemo(() => {
     if (initData && fields) {
@@ -84,7 +91,7 @@ function TicketForm({ categoryId, onSubmit, submitting }: TicketFormProps) {
   const handleSubmit = (data: Record<string, any>) => {
     const { title, description, ...fieldValues } = data;
     onSubmit({
-      categoryId,
+      categoryId: category.id,
       title: title,
       content: description,
       customFields: Object.entries(fieldValues).map(([id, value]) => ({ field: id, value })),
@@ -92,16 +99,18 @@ function TicketForm({ categoryId, onSubmit, submitting }: TicketFormProps) {
     }).then(clear);
   };
 
+  if (loadingFormItems) {
+    return <Loading />;
+  }
+
   return (
-    <QueryWrapper result={result}>
-      <CustomForm
-        fields={fields}
-        defaultValues={defaultValues}
-        onChange={onChange}
-        onSubmit={handleSubmit}
-        submitting={submitting}
-      />
-    </QueryWrapper>
+    <CustomForm
+      items={_items}
+      defaultValues={defaultValues}
+      onChange={onChange}
+      onSubmit={handleSubmit}
+      submitting={submitting}
+    />
   );
 }
 
@@ -158,7 +167,9 @@ export function NewTicket() {
           <Success ticketId={ticketId as string} />
         ) : (
           <QueryWrapper result={result}>
-            <TicketForm categoryId={category_id} onSubmit={submit} submitting={submitting} />
+            {(category) => (
+              <TicketForm category={category} onSubmit={submit} submitting={submitting} />
+            )}
           </QueryWrapper>
         )}
       </PageContent>
