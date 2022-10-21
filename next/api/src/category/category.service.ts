@@ -53,8 +53,9 @@ export class CategoryService {
       category = Category.fromJSON(cacheValue);
     } else {
       category = await Category.find(id);
-
-      await this.categoryCache.set({ id }, category);
+      if (category) {
+        await this.categoryCache.set({ id }, category);
+      }
     }
 
     return category;
