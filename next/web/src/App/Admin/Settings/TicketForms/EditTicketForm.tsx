@@ -1,17 +1,63 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { PropsWithChildren, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
-import { AiOutlinePlus, AiOutlineSearch } from 'react-icons/ai';
+import { AiOutlinePlus, AiOutlineSearch, AiOutlineFileText } from 'react-icons/ai';
 import { BsX } from 'react-icons/bs';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import cx from 'classnames';
-import { compact, keyBy } from 'lodash-es';
+import { keyBy } from 'lodash-es';
 
+import { TicketFormItem } from '@/api/ticket-form';
 import { TicketFieldSchema, useTicketFields } from '@/api/ticket-field';
-import { Button, Form, FormInstance, Input, Modal } from '@/components/antd';
+import { TicketFormNoteSchema, useTicketFormNotes } from '@/api/ticket-form-note';
+import { Alert, Button, Form, FormInstance, Input, Modal, Tabs } from '@/components/antd';
 import DragIcon from '@/icons/DragIcon';
-import { CustomFields, CustomFieldsProps } from '@/App/Tickets/New/TicketForm/CustomFields';
+import { FormItems } from '@/App/Tickets/New/TicketForm/FormItems';
 import ticketFormStyle from '@/App/Tickets/New/TicketForm/index.module.css';
 import { TicketFieldIcon } from '../TicketFields';
+
+const SYSTEM_FIELD_IDS = ['title', 'details', 'attachments'];
+
+interface SelectedItemProps {
+  index: number;
+  id: string;
+  active: boolean;
+  onRemove: () => void;
+}
+
+function SelectedItem({
+  index,
+  id,
+  active,
+  onRemove,
+  children,
+}: PropsWithChildren<SelectedItemProps>) {
+  return (
+    <Draggable draggableId={id} index={index}>
+      {(provided) => (
+        <div
+          ref={provided.innerRef}
+          {...provided.draggableProps}
+          className={cx(
+            'h-16 grid grid-cols-[32px_1fr_20px] bg-white border border-[#c2c8cc] rounded shadow select-none mb-2',
+            {
+              'bg-gray-100': !active,
+            }
+          )}
+        >
+          <div {...provided.dragHandleProps} className="w-8 h-full cursor-grab flex">
+            <DragIcon className="w-4 h-4 m-auto" />
+          </div>
+          <div>{children}</div>
+          <div>
+            <button className="text-[#87929d]" type="button" onClick={onRemove}>
+              <BsX className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
+    </Draggable>
+  );
+}
 
 interface SelectedFieldItemProps {
   index: number;
@@ -21,7 +67,7 @@ interface SelectedFieldItemProps {
   active: boolean;
   visible: boolean;
   required: boolean;
-  onRemove?: () => void;
+  onRemove: () => void;
 }
 
 function SelectedFieldItem({
@@ -35,116 +81,168 @@ function SelectedFieldItem({
   onRemove,
 }: SelectedFieldItemProps) {
   return (
-    <Draggable draggableId={id} index={index}>
-      {(provided) => (
-        <div
-          ref={provided.innerRef}
-          {...provided.draggableProps}
-          className={cx(
-            'relative h-16 flex bg-white border border-[#c2c8cc] rounded shadow transition-shadow select-none mb-2',
-            {
-              'bg-gray-100': !active,
-            }
-          )}
-        >
-          <div {...provided.dragHandleProps} className="w-8 h-full cursor-grab flex shrink-0">
-            <DragIcon className="w-4 h-4 m-auto" />
-          </div>
-          <div className="w-8 h-full flex shrink-0">
-            {type && <TicketFieldIcon className="w-5 h-5 m-auto" type={type} />}
-          </div>
-          <div className="ml-3 h-full grow flex flex-col justify-center items-start overflow-hidden">
-            <div
-              className="text-[16px] leading-[16px] text-[#49545c] font-bold truncate"
-              title={title}
-            >
-              {title ?? id}
-              {required && <span className="text-red-600"> *</span>}
-            </div>
-            {!active && <div className="text-sm text-[#87929d] leading-3 mt-1">未激活</div>}
-            {systemFieldIds.includes(id) && (
-              <div className="text-sm text-[#87929d] leading-3 mt-1">系统字段</div>
-            )}
-            {!visible && <div className="text-sm text-[#87929d] leading-3 mt-1">仅客服可见</div>}
-          </div>
-
-          <button
-            className="absolute right-0 top-0 text-[#87929d]"
-            type="button"
-            onClick={onRemove}
+    <SelectedItem id={id} index={index} active={active} onRemove={onRemove}>
+      <div className="h-full grid grid-cols-[32px_1fr]">
+        {type && <TicketFieldIcon className="w-5 h-5 m-auto" type={type} />}
+        <div className="pl-3 flex flex-col justify-center items-start overflow-hidden">
+          <div
+            className="text-[16px] leading-[16px] text-[#49545c] font-bold max-w-full truncate"
+            title={title}
           >
-            <BsX className="w-5 h-5" />
-          </button>
+            {title ?? id}
+            {required && <span className="text-red-600"> *</span>}
+          </div>
+          {!active && <div className="text-sm text-[#87929d] leading-3 mt-1">未激活</div>}
+          {SYSTEM_FIELD_IDS.includes(id) && (
+            <div className="text-sm text-[#87929d] leading-3 mt-1">系统字段</div>
+          )}
+          {!visible && <div className="text-sm text-[#87929d] leading-3 mt-1">仅客服可见</div>}
         </div>
-      )}
-    </Draggable>
+      </div>
+    </SelectedItem>
+  );
+}
+
+interface SelectedNoteItemProps {
+  index: number;
+  id: string;
+  title: string;
+  content: string;
+  active: boolean;
+  onRemove: () => void;
+}
+
+function SelectedNoteItem({ index, id, title, content, active, onRemove }: SelectedNoteItemProps) {
+  return (
+    <SelectedItem id={id} index={index} active={active} onRemove={onRemove}>
+      <div className="h-full  grid grid-cols-[32px_1fr]">
+        <AiOutlineFileText className="w-5 h-5 m-auto" />
+        <div className="pl-3 h-full grow flex flex-col justify-center items-start overflow-hidden">
+          <div
+            className="text-[16px] leading-[16px] text-[#49545c] font-bold truncate max-w-full"
+            title={title}
+          >
+            {title}
+          </div>
+          <div className="max-w-full truncate" title={content}>
+            {content}
+          </div>
+        </div>
+      </div>
+    </SelectedItem>
   );
 }
 
 interface AvailableFieldItemProps {
   type: TicketFieldSchema['type'];
   title: string;
-  onAdd?: () => void;
+  onAdd: () => void;
 }
 
 function AvailableFieldItem({ type, title, onAdd }: AvailableFieldItemProps) {
   return (
-    <div className="h-8 flex border border-[#d8dcde] rounded cursor-default bg-white select-none">
-      <div className="w-8 h-8 shrink-0 p-2">
-        <TicketFieldIcon className="w-full h-full" type={type} />
-      </div>
+    <div className="h-8 grid grid-cols-[32px_1fr_32px] border border-[#d8dcde] rounded cursor-default bg-white select-none">
+      <TicketFieldIcon className="m-auto" type={type} />
       <div className="leading-8 text-sm grow truncate" title={title}>
         {title}
       </div>
-      <button className="w-8 shrink-0" type="button" onClick={onAdd}>
+      <button type="button" onClick={onAdd}>
         <AiOutlinePlus className="m-auto" />
       </button>
     </div>
   );
 }
 
-interface SelectedFieldSchema {
-  id: string;
-  type: TicketFieldSchema['type'];
+interface AvailableNoteItemProps {
   title: string;
-  active: boolean;
-  visible: boolean;
-  required: boolean;
+  onAdd: () => void;
 }
 
-export const systemFieldIds = ['title', 'details', 'attachments'];
+function AvailableNoteItem({ title, onAdd }: AvailableNoteItemProps) {
+  return (
+    <div className="h-8 grid grid-cols-[32px_1fr_32px] border border-[#d8dcde] rounded cursor-default bg-white select-none">
+      <AiOutlineFileText className="m-auto" />
+      <div className="leading-8 text-sm grow truncate" title={title}>
+        {title}
+      </div>
+      <button type="button" onClick={onAdd}>
+        <AiOutlinePlus className="m-auto" />
+      </button>
+    </div>
+  );
+}
 
-interface FieldsBuilderProps {
+interface FormItemsBuilderProps {
   fields?: TicketFieldSchema[];
-  value?: string[];
-  onChange: (ids: string[]) => void;
+  notes?: TicketFormNoteSchema[];
+  value?: TicketFormData['items'];
+  error?: string;
+  onChange: (value: TicketFormData['items']) => void;
 }
 
-function FieldsBuilder({ fields, value, onChange }: FieldsBuilderProps) {
-  const fieldMap = useMemo(() => {
-    const map: Record<string, SelectedFieldSchema | undefined> = {};
-    fields?.forEach((f) => (map[f.id] = f));
-    return map;
-  }, [fields]);
-
-  const activeFields = useMemo(() => fields?.filter((f) => f.active), [fields]);
-
-  const availableFields = useMemo(() => {
-    if (activeFields && value) {
-      return activeFields.filter((f) => !value.includes(f.id));
-    }
-  }, [activeFields, value]);
-
+function FormItemsBuilder({ fields, notes, value, error, onChange }: FormItemsBuilderProps) {
+  const [activeTab, setActiveTab] = useState('field');
   const [keyword, setKeyword] = useState('');
+
+  const fieldById = useMemo(() => keyBy(fields, (field) => field.id), [fields]);
+  const activeFields = useMemo(() => fields?.filter((f) => f.active), [fields]);
+  const selectedFieldIdSet = useMemo(() => {
+    if (value) {
+      const ids = value.filter((v) => v.type === 'field').map((v) => v.id);
+      return new Set(ids);
+    }
+  }, [value]);
+  const availableFields = useMemo(() => {
+    if (activeFields && selectedFieldIdSet) {
+      return activeFields.filter((f) => !selectedFieldIdSet.has(f.id));
+    }
+    return activeFields;
+  }, [activeFields, selectedFieldIdSet]);
   const filteredFields = useMemo(() => {
-    return availableFields?.filter((f) => f.title.includes(keyword));
-  }, [availableFields, keyword]);
+    if (activeTab === 'field' && availableFields) {
+      return availableFields.filter((f) => f.title.includes(keyword));
+    }
+  }, [availableFields, keyword, activeTab]);
+
+  const noteById = useMemo(() => keyBy(notes, (note) => note.id), [notes]);
+  const activeNotes = useMemo(() => notes?.filter((n) => n.active), [notes]);
+  const selectedNoteIdSet = useMemo(() => {
+    if (value) {
+      const ids = value.filter((v) => v.type === 'note').map((v) => v.id);
+      return new Set(ids);
+    }
+  }, [value]);
+  const availableNotes = useMemo(() => {
+    if (activeNotes && selectedNoteIdSet) {
+      return activeNotes.filter((note) => !selectedNoteIdSet.has(note.id));
+    }
+    return activeNotes;
+  }, [activeNotes, selectedNoteIdSet]);
+  const filteredNotes = useMemo(() => {
+    if (activeTab === 'note' && availableNotes) {
+      return availableNotes.filter((f) => f.title.includes(keyword));
+    }
+  }, [availableNotes, keyword, activeTab]);
 
   const handleDragEnd = ({ source, destination }: DropResult) => {
     if (destination && source.index !== destination.index) {
       const newList = value!.slice();
       newList.splice(destination.index, 0, newList.splice(source.index, 1)[0]);
       onChange(newList);
+    }
+  };
+
+  const handleAddItem = (item: TicketFormData['items'][number]) => {
+    if (value) {
+      onChange([...value, item]);
+    } else {
+      onChange([item]);
+    }
+  };
+
+  const handleRemoveItem = (id: string) => {
+    if (value) {
+      onChange(value.filter((v) => v.id !== id));
     }
   };
 
@@ -158,20 +256,37 @@ function FieldsBuilder({ fields, value, onChange }: FieldsBuilderProps) {
               ref={provided.innerRef}
               className="col-span-6 flex flex-col"
             >
-              {value?.map((id, index) => {
-                const field = fieldMap[id];
-                if (!field) {
-                  return null;
+              {error && (
+                <Alert showIcon type="error" message={error} style={{ marginBottom: 16 }} />
+              )}
+              {value?.map(({ type, id }, index) => {
+                if (type === 'field') {
+                  const field = fieldById[id];
+                  if (!field) {
+                    return null;
+                  }
+                  return (
+                    <SelectedFieldItem
+                      {...field}
+                      key={id}
+                      index={index}
+                      onRemove={() => handleRemoveItem(id)}
+                    />
+                  );
+                } else if (type === 'note') {
+                  const note = noteById[id];
+                  if (!note) {
+                    return null;
+                  }
+                  return (
+                    <SelectedNoteItem
+                      {...note}
+                      key={note.id}
+                      index={index}
+                      onRemove={() => handleRemoveItem(id)}
+                    />
+                  );
                 }
-
-                return (
-                  <SelectedFieldItem
-                    {...field}
-                    key={id}
-                    index={index}
-                    onRemove={() => onChange(value.filter((_id) => _id !== id))}
-                  />
-                );
               })}
               {provided.placeholder}
             </div>
@@ -179,25 +294,44 @@ function FieldsBuilder({ fields, value, onChange }: FieldsBuilderProps) {
         </Droppable>
       </DragDropContext>
 
-      <div className="min-h-[500px] col-span-4 p-5 border border-[#d8dcde] rounded bg-gray-50">
-        <div className="text-lg font-bold">可用工单字段</div>
-        <div className="text-gray-400 mb-3">从此处新增字段至工单表单</div>
-        <Input
-          prefix={<AiOutlineSearch className="w-4 h-4" />}
-          placeholder="搜索工单字段"
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
-        />
-        <div className="mt-4 flex flex-col gap-2">
-          {filteredFields?.map(({ id, type, title }) => (
-            <AvailableFieldItem
-              key={id}
-              type={type}
-              title={title}
-              onAdd={() => onChange(value ? [...value, id] : [id])}
+      <div className="col-span-4 p-5 pt-2 border border-[#d8dcde] rounded bg-gray-50">
+        <Tabs activeKey={activeTab} onChange={setActiveTab}>
+          <Tabs.TabPane tab="可用字段" key="field">
+            <Input
+              prefix={<AiOutlineSearch className="w-4 h-4" />}
+              placeholder="搜索"
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
             />
-          ))}
-        </div>
+            <div className="mt-4 flex flex-col gap-2">
+              {filteredFields?.map(({ id, type, title }) => (
+                <AvailableFieldItem
+                  key={id}
+                  type={type}
+                  title={title}
+                  onAdd={() => handleAddItem({ type: 'field', id })}
+                />
+              ))}
+            </div>
+          </Tabs.TabPane>
+          <Tabs.TabPane tab="可用说明" key="note">
+            <Input
+              prefix={<AiOutlineSearch className="w-4 h-4" />}
+              placeholder="搜索"
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+            />
+            <div className="mt-4 flex flex-col gap-2">
+              {filteredNotes?.map(({ id, title }) => (
+                <AvailableNoteItem
+                  key={id}
+                  title={title}
+                  onAdd={() => handleAddItem({ type: 'note', id })}
+                />
+              ))}
+            </div>
+          </Tabs.TabPane>
+        </Tabs>
       </div>
     </div>
   );
@@ -206,17 +340,23 @@ function FieldsBuilder({ fields, value, onChange }: FieldsBuilderProps) {
 interface PreviewFormModalProps {
   visible: boolean;
   onHide: () => void;
-  fields?: CustomFieldsProps['fields'];
+  items?: TicketFormItem[];
 }
 
-function PreviewFormModal({ visible, onHide, fields }: PreviewFormModalProps) {
+function PreviewFormModal({ visible, onHide, items }: PreviewFormModalProps) {
   const methods = useForm();
 
   return (
-    <Modal title="预览表单" visible={visible} onCancel={onHide} footer={false}>
+    <Modal
+      title="预览表单"
+      visible={visible}
+      onCancel={onHide}
+      footer={false}
+      bodyStyle={{ maxHeight: 'calc(100vh - 255px)', overflow: 'auto' }}
+    >
       <FormProvider {...methods}>
         <Form className={ticketFormStyle.ticketForm} layout="vertical">
-          {fields && <CustomFields fields={fields} />}
+          {items && <FormItems items={items} />}
         </Form>
       </FormProvider>
     </Modal>
@@ -225,7 +365,10 @@ function PreviewFormModal({ visible, onHide, fields }: PreviewFormModalProps) {
 
 export interface TicketFormData {
   title: string;
-  fieldIds: string[];
+  items: {
+    type: 'field' | 'note';
+    id: string;
+  }[];
 }
 
 export interface EditTicketFormProps {
@@ -251,25 +394,49 @@ export function EditTicketForm({ data, submitting, onSubmit, onCancel }: EditTic
     },
   });
 
-  const fieldById = useMemo(() => keyBy(fields, 'id'), [fields]);
+  const { data: notes } = useTicketFormNotes({
+    pageSize: 1000,
+    queryOptions: {
+      staleTime: 1000 * 60,
+    },
+  });
 
-  const [currentFields, setCurrentFields] = useState<PreviewFormModalProps['fields']>([]);
+  const fieldById = useMemo(() => keyBy(fields, (field) => field.id), [fields]);
+  const noteById = useMemo(() => keyBy(notes?.data, (note) => note.id), [notes?.data]);
+
+  const [currentItems, setCurrentItems] = useState<TicketFormItem[]>([]);
+
   const handlePreview = useCallback(() => {
-    const fieldIds = getValues('fieldIds');
-    const currentFields = compact(fieldIds.map((id) => fieldById[id]));
-    setCurrentFields(
-      currentFields.map((field) => {
-        const defaultVariant = field.variants!.find((v) => v.locale === field.defaultLocale);
-        return {
-          ...field,
-          title: defaultVariant!.title,
-          description: defaultVariant!.description,
-          options: defaultVariant!.options,
-        };
-      })
-    );
+    const items = getValues('items');
+    const currentItems: TicketFormItem[] = [];
+    items.forEach((item) => {
+      if (item.type === 'field') {
+        const field = fieldById[item.id];
+        if (field) {
+          const defaultVariant = field.variants!.find((v) => v.locale === field.defaultLocale);
+          currentItems.push({
+            type: 'field',
+            data: {
+              ...field,
+              title: defaultVariant!.title,
+              description: defaultVariant!.description,
+              options: defaultVariant!.options,
+            },
+          });
+        }
+      } else if (item.type === 'note') {
+        const note = noteById[item.id];
+        if (note) {
+          currentItems.push({
+            type: 'note',
+            data: note,
+          });
+        }
+      }
+    });
+    setCurrentItems(currentItems);
     setInPreview(true);
-  }, [getValues, fieldById]);
+  }, [getValues, fieldById, noteById]);
 
   return (
     <div className="flex flex-col h-full">
@@ -295,10 +462,17 @@ export function EditTicketForm({ data, submitting, onSubmit, onCancel }: EditTic
 
           <Controller
             control={control}
-            name="fieldIds"
+            name="items"
             defaultValue={[]}
-            render={({ field: { value, onChange } }) => (
-              <FieldsBuilder fields={fields} value={value} onChange={onChange} />
+            rules={{ validate }}
+            render={({ field: { value, onChange }, fieldState: { error } }) => (
+              <FormItemsBuilder
+                fields={fields}
+                notes={notes?.data}
+                value={value}
+                error={error?.message}
+                onChange={onChange}
+              />
             )}
           />
         </Form>
@@ -307,7 +481,7 @@ export function EditTicketForm({ data, submitting, onSubmit, onCancel }: EditTic
       <PreviewFormModal
         visible={inPreview}
         onHide={() => setInPreview(false)}
-        fields={currentFields}
+        items={currentItems}
       />
 
       <div className="flex px-10 py-4 border-t border-[#D8DCDE]">
@@ -322,4 +496,10 @@ export function EditTicketForm({ data, submitting, onSubmit, onCancel }: EditTic
       </div>
     </div>
   );
+}
+
+function validate(items: TicketFormData['items']) {
+  if (items.length === 0 || items.findIndex((item) => item.type === 'field') < 0) {
+    return '请添加至少一个字段';
+  }
 }

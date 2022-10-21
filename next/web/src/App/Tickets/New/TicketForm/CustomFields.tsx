@@ -1,6 +1,5 @@
-import { JSXElementConstructor, memo } from 'react';
+import { JSXElementConstructor } from 'react';
 
-import { CategoryFieldSchema } from '@/api/category';
 import { Input } from './Fields/Input';
 import { Textarea } from './Fields/Textarea';
 import { Select } from './Fields/Select';
@@ -8,15 +7,24 @@ import { Upload, UploadProps } from './Fields/Upload';
 import { CheckboxGroup } from './Fields/CheckboxGroup';
 import { RadioGroup } from './Fields/RadioGroup';
 
+export interface FieldConfig {
+  id: string;
+  type: 'text' | 'multi-line' | 'dropdown' | 'multi-select' | 'radios' | 'file';
+  title: string;
+  description: string;
+  required: boolean;
+  options?: { title: string; value: string }[];
+}
+
 interface FieldProps {
   name: string;
   label: string;
   description?: string;
   required?: boolean;
-  options?: { title: string; value: string }[];
+  options?: FieldConfig['options'];
 }
 
-const components: Record<CategoryFieldSchema['type'], JSXElementConstructor<FieldProps>> = {
+const components: Record<FieldConfig['type'], JSXElementConstructor<FieldProps>> = {
   text: Input,
   'multi-line': Textarea,
   dropdown: Select,
@@ -25,7 +33,7 @@ const components: Record<CategoryFieldSchema['type'], JSXElementConstructor<Fiel
   radios: RadioGroup,
 };
 
-function Field(props: CategoryFieldSchema) {
+export function Field(props: FieldConfig) {
   const Component = components[props.type];
   if (!Component) {
     return <div className="text-red-500">Unknown field type: {props.type}</div>;
@@ -40,17 +48,3 @@ function Field(props: CategoryFieldSchema) {
     />
   );
 }
-
-export interface CustomFieldsProps {
-  fields: CategoryFieldSchema[];
-}
-
-export const CustomFields = memo(({ fields }: CustomFieldsProps) => {
-  return (
-    <>
-      {fields.map((field) => (
-        <Field key={field.id} {...field} />
-      ))}
-    </>
-  );
-});

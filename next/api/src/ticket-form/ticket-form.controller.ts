@@ -108,6 +108,7 @@ export class TicketFormController {
           result.push({
             type: 'note',
             data: {
+              id: note.id,
               title: note.title,
               content: note.content,
             },

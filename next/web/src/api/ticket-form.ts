@@ -1,16 +1,14 @@
 import { UseQueryOptions, useQuery, UseMutationOptions, useMutation } from 'react-query';
 import { http } from '@/leancloud';
 
-interface TicketFormItem {
-  type: 'field' | 'note';
-  id: string;
-}
-
 export interface TicketFormSchema {
   id: string;
   title: string;
   fieldIds: string[];
-  items: TicketFormItem[];
+  items: {
+    type: 'field' | 'note';
+    id: string;
+  }[];
   createdAt: string;
   updatedAt: string;
 }
@@ -44,7 +42,7 @@ async function fetchTicketForm(id: string) {
 interface CreateTicketFormData {
   title: string;
   fieldIds?: string[];
-  items?: TicketFormItem[];
+  items?: TicketFormSchema['items'];
 }
 
 async function createTicketForm(data: CreateTicketFormData) {
@@ -61,6 +59,34 @@ export async function updateTicketForm(id: string, data: UpdateTicketFormData) {
 
 async function deleteTicketForm(id: string) {
   await http.delete(`/api/2/ticket-forms/${id}`);
+}
+
+interface FieldItem {
+  type: 'field';
+  data: {
+    id: string;
+    type: 'text' | 'multi-line' | 'dropdown' | 'multi-select' | 'radios' | 'file';
+    title: string;
+    description: string;
+    required: boolean;
+    options?: { title: string; value: string }[];
+  };
+}
+
+interface NoteItem {
+  type: 'note';
+  data: {
+    id: string;
+    title: string;
+    content: string;
+  };
+}
+
+export type TicketFormItem = FieldItem | NoteItem;
+
+async function fetchTicketFormItems(id: string) {
+  const res = await http.get<TicketFormItem[]>(`/api/2/ticket-forms/${id}/items`);
+  return res.data;
 }
 
 export interface UseTicketFormsOptions extends FetchTicketFormsOptions {
@@ -104,6 +130,14 @@ export function useUpdateTicketForm(
 export function useDeleteTicketForm(options?: UseMutationOptions<void, Error, string>) {
   return useMutation({
     mutationFn: deleteTicketForm,
+    ...options,
+  });
+}
+
+export function useTicketFormItems(id: string, options?: UseQueryOptions<TicketFormItem[], Error>) {
+  return useQuery({
+    queryKey: ['ticketFormItems', id],
+    queryFn: () => fetchTicketFormItems(id),
     ...options,
   });
 }

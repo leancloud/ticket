@@ -152,7 +152,7 @@ export function TicketFormDetail() {
     },
   });
 
-  const formData = useMemo(() => pick(data, ['title', 'fieldIds']), [data]);
+  const formData = useMemo(() => pick(data, ['title', 'items']), [data]);
 
   if (isLoading) {
     return <LoadingCover />;
