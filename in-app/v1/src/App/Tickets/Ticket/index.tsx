@@ -18,7 +18,7 @@ import { Helmet } from 'react-helmet-async';
 
 import { auth, db, http } from '@/leancloud';
 import { Reply, Ticket } from '@/types';
-import { PageContent, PageHeader } from '@/components/NewPage';
+import { PageContent, PageHeader } from '@/components/Page';
 import { QueryWrapper } from '@/components/QueryWrapper';
 import styles from './index.module.css';
 import { Replies, useReplies } from './Replies';
@@ -274,21 +274,23 @@ export default function TicketDetail() {
     <>
       <Helmet>{ticket?.title && <title>{ticket.title}</title>}</Helmet>
       <PageHeader>{t('ticket.record')}</PageHeader>
-      <PageContent shadow className={cx({ 'px-0 py-0 mb-0': !ticketIsClosed })}>
+      <PageContent shadow className={cx('px-0 pt-0 mb-0')}>
         <QueryWrapper result={result}>
           <QueryWrapper result={repliesResult}>
             {ticket && <TicketAttributes ticket={ticket} />}
             <Replies className="grow px-4 pt-3" replies={replies} />
-            {ticket &&
-              (ticketIsClosed ? (
-                ticket.evaluation ? (
-                  <Evaluated />
+            <div className="-mb-3">
+              {ticket &&
+                (ticketIsClosed ? (
+                  ticket.evaluation ? (
+                    <Evaluated />
+                  ) : (
+                    <NewEvaluation ticketId={id} />
+                  )
                 ) : (
-                  <NewEvaluation ticketId={id} />
-                )
-              ) : (
-                <ReplyInput onCommit={reply} />
-              ))}
+                  <ReplyInput onCommit={reply} />
+                ))}
+            </div>
           </QueryWrapper>
         </QueryWrapper>
       </PageContent>

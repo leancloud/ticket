@@ -7,7 +7,7 @@ import classNames from 'classnames';
 
 import { http } from '@/leancloud';
 import { Category, Article } from '@/types';
-import { PageContent, PageHeader } from '@/components/NewPage';
+import { PageContent, PageHeader } from '@/components/Page';
 import { QueryWrapper } from '@/components/QueryWrapper';
 import { APIError } from '@/components/APIError';
 import { Loading } from '@/components/Loading';
@@ -109,22 +109,24 @@ export const FAQs: FC<{ faqs?: Article[]; showAll?: boolean; className?: string 
   const data = expended ? faqs : faqs.slice(0, 3);
 
   return (
-    <PageContent shadow className={classNames('pb-0', className)} title={t('category.faqs')}>
-      {data.map((FAQ, i) => (
-        <ArticleListItem
-          article={FAQ}
-          key={FAQ.id}
-          className={classNames(data.length - 1 === i && 'border-b-0')}
-        />
-      ))}
-      {faqs.length > 3 && !expended && (
-        <button
-          className="flex items-center text-[#BFBFBF] mt-1 mb-3"
-          onClick={() => setExpended(true)}
-        >
-          {t('faqs.showAll')} <ChevronDownIcon className="h-4 w-4" />
-        </button>
-      )}
+    <PageContent shadow className={classNames(className)} title={t('category.faqs')}>
+      <div className="-mb-3">
+        {data.map((FAQ, i) => (
+          <ArticleListItem
+            article={FAQ}
+            key={FAQ.id}
+            className={classNames(data.length - 1 === i && 'border-b-0')}
+          />
+        ))}
+        {faqs.length > 3 && !expended && (
+          <button
+            className="flex items-center text-[#BFBFBF] mt-1 mb-3"
+            onClick={() => setExpended(true)}
+          >
+            {t('faqs.showAll')} <ChevronDownIcon className="h-4 w-4" />
+          </button>
+        )}
+      </div>
     </PageContent>
   );
 };
@@ -172,8 +174,12 @@ export default function Categories() {
       return null;
     }
     return (
-      <PageContent shadow className="pb-0" title={t('category.select_hint')}>
-        {!noSubCategories && <CategoryList categories={subCategories!} />}
+      <PageContent shadow title={t('category.select_hint')}>
+        {!noSubCategories && (
+          <div className="-mb-3">
+            <CategoryList categories={subCategories!} />
+          </div>
+        )}
       </PageContent>
     );
   })();

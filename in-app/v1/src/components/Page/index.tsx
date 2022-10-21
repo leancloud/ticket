@@ -1,4 +1,4 @@
-import { ComponentPropsWithoutRef } from 'react';
+import { ComponentPropsWithoutRef, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import cx from 'classnames';
 
@@ -6,7 +6,6 @@ import { ControlButton } from '@/components/ControlButton';
 import { ErrorBoundary } from '../ErrorBoundary';
 import styles from './index.module.css';
 import { useSearchParams } from 'react-router-dom';
-import classNames from 'classnames';
 
 export function PageHeader(props: ComponentPropsWithoutRef<'div'>) {
   const { t } = useTranslation();
@@ -20,16 +19,16 @@ export function PageHeader(props: ComponentPropsWithoutRef<'div'>) {
           id="page-header"
           className={cx(
             styles.header,
-            'shrink-0 z-20 top-0 px-[10px] sm:px-[108px] pt-[52px] sm:pt-[10px]',
+            'shrink-0 z-20 top-0 px-[10px] sm:px-[119px] ',
             props.className
           )}
         >
           <ControlButton className="absolute top-3 sm:top-[10px] left-[10px] sm:left-[22px]" />
         </div>
       )}
-      <div className={classNames('z-10 overflow-hidden', { ['pt-[10px]']: !showNav })}>
+      <div className={cx('z-10 overflow-hidden')}>
         <h1
-          className={`bg-white rounded-t-lg py-2 px-4  mx-[10px] sm:mx-[108px] text-center font-bold border-b border-gray-100`}
+          className={`py-4 text-[16px] leading-[1.5] mx-[10px] sm:mx-[119px] text-center font-bold`}
         >
           {props.children ?? t('general.call_center')}
         </h1>
@@ -38,17 +37,26 @@ export function PageHeader(props: ComponentPropsWithoutRef<'div'>) {
   );
 }
 
-export function PageContent({ children, ...props }: ComponentPropsWithoutRef<'div'>) {
+export function PageContent({
+  children,
+  className,
+  shadow,
+  title,
+  ...props
+}: ComponentPropsWithoutRef<'div'> & { title?: ReactNode; shadow?: boolean }) {
   return (
     <div
       {...props}
       className={cx(
-        'page flex flex-col grow overflow-hidden bg-white rounded-b-lg mx-[10px] sm:mx-[108px] mb-[10px]',
-        styles.content,
-        props.className
+        'page flex flex-col shrink-0  overflow-hidden bg-white rounded-lg mx-[10px] sm:mx-[119px] last:mb-4 px-4 py-3',
+        shadow && styles.contentShadow,
+        className
       )}
     >
-      <ErrorBoundary>{children}</ErrorBoundary>
+      <ErrorBoundary>
+        {title && <h2 className={'font-bold'}>{title}</h2>}
+        {children}
+      </ErrorBoundary>
     </div>
   );
 }

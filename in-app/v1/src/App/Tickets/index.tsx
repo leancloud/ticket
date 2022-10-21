@@ -10,7 +10,7 @@ import classNames from 'classnames';
 import { auth, http } from '@/leancloud';
 import { TicketListItem } from '@/types';
 import { QueryWrapper } from '@/components/QueryWrapper';
-import { PageContent, PageHeader } from '@/components/NewPage';
+import { PageContent, PageHeader } from '@/components/Page';
 import { useAppState } from '@/App/context';
 import { Time } from '@/components/Time';
 import { LoadingHint } from '@/components/Loading';
@@ -101,18 +101,20 @@ const TicketResults = ({ status }: { status: TicketResolvedStatus }) => {
   const noData = useMemo(() => !data?.pages[0]?.length, [data]);
   const tickets = useMemo(() => flatten(data?.pages), [data]);
   return (
-    <QueryWrapper result={result} noData={noData} noDataMessage={t('ticket.no_record')}>
-      {tickets.map((ticket) => (
-        <Link key={ticket.id} className="block px-4 active:bg-gray-50" to={`/tickets/${ticket.id}`}>
-          <TicketItem ticket={ticket} />
-        </Link>
-      ))}
-      <InView
-        className="flex justify-center items-center w-full h-12 text-[#BFBFBF] text-[13px]"
-        onChange={(inView) => inView && fetchNextPage()}
-      >
-        {hasNextPage ? <LoadingHint /> : t('ticket.no_more_record')}
-      </InView>
+    <QueryWrapper result={result} noData={noData}>
+      <div className="-my-3">
+        {tickets.map((ticket) => (
+          <Link key={ticket.id} className="block active:bg-gray-50" to={`/tickets/${ticket.id}`}>
+            <TicketItem ticket={ticket} />
+          </Link>
+        ))}
+        <InView
+          className="flex justify-center items-center w-full h-12 text-[#BFBFBF] text-[13px]"
+          onChange={(inView) => inView && fetchNextPage()}
+        >
+          {hasNextPage ? <LoadingHint /> : t('ticket.no_more_record')}
+        </InView>
+      </div>
     </QueryWrapper>
   );
 };
@@ -127,7 +129,7 @@ export function TicketList() {
         <title>{t('ticket.record')}</title>
       </Helmet>
       <PageHeader>{t('ticket.record')}</PageHeader>
-      <PageContent shadow className="pb-0">
+      <PageContent shadow>
         <Tab.Group
           selectedIndex={ticketsIndex}
           onChange={(ticketsIndex) => update({ ticketsIndex })}
@@ -136,23 +138,25 @@ export function TicketList() {
             <Tab as={Fragment}>
               {({ selected }) => (
                 <button className={classNames(styles.tab, selected && styles.active)}>
-                  处理中
+                  {t('ticket.unResolved')}
                 </button>
               )}
             </Tab>
             <Tab as={Fragment}>
               {({ selected }) => (
                 <button className={classNames(styles.tab, selected && styles.active)}>
-                  已处理
+                  {t('ticket.resolved')}
                 </button>
               )}
             </Tab>
           </Tab.List>
-          <TicketResults
-            status={
-              ticketsIndex === 0 ? TicketResolvedStatus.unResolved : TicketResolvedStatus.resolved
-            }
-          />
+          <div className="mt-3">
+            <TicketResults
+              status={
+                ticketsIndex === 0 ? TicketResolvedStatus.unResolved : TicketResolvedStatus.resolved
+              }
+            />
+          </div>
         </Tab.Group>
       </PageContent>
     </>

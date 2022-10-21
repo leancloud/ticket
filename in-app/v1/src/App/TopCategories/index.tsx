@@ -4,7 +4,7 @@ import { keyBy } from 'lodash-es';
 import { useTranslation } from 'react-i18next';
 import { QueryWrapper } from '@/components/QueryWrapper';
 import { Helmet } from 'react-helmet-async';
-import { PageContent, PageHeader } from '@/components/NewPage';
+import { PageContent, PageHeader } from '@/components/Page';
 
 export const TopCategoryList: FC<{ marker: boolean }> = ({ marker }) => {
   const result = useCategories();
@@ -21,7 +21,9 @@ export const TopCategoryList: FC<{ marker: boolean }> = ({ marker }) => {
   }, [categories]);
   return (
     <QueryWrapper result={result}>
-      <CategoryList marker={marker} categories={topCategories} />
+      <div className="-mb-3">
+        <CategoryList marker={marker} categories={topCategories} />
+      </div>
     </QueryWrapper>
   );
 };
@@ -38,7 +40,7 @@ export default function TopCategories() {
         <title>{title}</title>
       </Helmet>
       <PageHeader>{t('feedback.submit')}</PageHeader>
-      <PageContent shadow className="pb-0" title={t('category.select_hint_home')}>
+      <PageContent shadow title={t('category.select_hint_home')}>
         <TopCategoryList marker />
       </PageContent>
     </>

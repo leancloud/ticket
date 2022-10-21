@@ -1,5 +1,5 @@
 import { FC, Fragment } from 'react';
-import { Link } from 'react-router-dom';
+import { NoData } from '@/components/NoData';
 import { Tab } from '@headlessui/react';
 import { useCategoryTopics } from '@/api/category';
 import { QueryWrapper } from '@/components/QueryWrapper';
@@ -37,13 +37,16 @@ const Topics: FC<{}> = () => {
           <Tab.Panels>
             {data?.map(({ id, articles }) => (
               <Tab.Panel key={id}>
-                {articles.map((item) => (
-                  <ArticleListItem
-                    key={item.id}
-                    article={item}
-                    className="!h-[42px] text-[#666] text-[13px]"
-                  />
-                ))}
+                <div className="-my-3">
+                  {articles.map((item) => (
+                    <ArticleListItem
+                      key={item.id}
+                      article={item}
+                      className="!h-[42px] text-[#666] text-[13px]"
+                    />
+                  ))}
+                </div>
+                {articles.length === 0 && <NoData />}
               </Tab.Panel>
             ))}
           </Tab.Panels>

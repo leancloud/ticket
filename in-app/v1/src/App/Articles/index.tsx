@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Route, Routes, useParams, useSearchParams, Link } from 'react-router-dom';
 import { Article } from '@/types';
 import { http } from '@/leancloud';
-import { PageContent, PageHeader } from '@/components/NewPage';
+import { PageContent, PageHeader } from '@/components/Page';
 import { QueryWrapper } from '@/components/QueryWrapper';
 import { Button } from '@/components/Button';
 import CheckIcon from '@/icons/Check';

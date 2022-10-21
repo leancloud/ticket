@@ -1,25 +1,14 @@
-import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PageContent, PageHeader } from '@/components/NewPage';
+import { PageContent, PageHeader } from '@/components/Page';
 import { useCategories } from '@/App/Categories';
 import { useCategoryTopics } from '@/api/category';
 import { Loading } from '@/components/Loading';
-import { QueryWrapper } from '@/components/QueryWrapper';
 import { useNotices } from '@/App/Articles/utils';
 import { useRootCategory } from '@/App';
 import Topics from './Topics';
 import { TopCategoryList } from '../TopCategories';
 import Help from './Help';
 import Notices from './Notices';
-
-const Categories: FC = () => {
-  const result = useCategories();
-  return (
-    <QueryWrapper result={result}>
-      <TopCategoryList marker />
-    </QueryWrapper>
-  );
-};
 
 export default function Home() {
   const { t } = useTranslation();
@@ -41,9 +30,9 @@ export default function Home() {
     <>
       <PageHeader />
       <Notices />
-      <PageContent shadow title={title} className="pb-0">
+      <PageContent shadow title={title}>
         {!enableCategories && <Topics />}
-        {enableCategories && <Categories />}
+        {enableCategories && <TopCategoryList marker />}
       </PageContent>
       {!enableCategories && (
         <div className="text-center text-[#BFBFBF] mt-6 mb-3">{t('topic.hint')}</div>

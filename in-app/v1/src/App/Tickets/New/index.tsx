@@ -7,7 +7,7 @@ import { pick } from 'lodash-es';
 import { http } from '@/leancloud';
 import { CategoryFieldSchema, useCategoryFields } from '@/api/category';
 import { useSearchParams } from '@/utils/url';
-import { PageContent, PageHeader } from '@/components/NewPage';
+import { PageContent, PageHeader } from '@/components/Page';
 import { Button } from '@/components/Button';
 import { QueryWrapper } from '@/components/QueryWrapper';
 import CheckIcon from '@/icons/Check';
@@ -57,7 +57,13 @@ interface TicketFormProps {
   submitting?: boolean;
 }
 
-function TicketForm({ categoryId, onSubmit, submitting }: TicketFormProps) {
+function TicketForm({
+  categoryId,
+  onSubmit,
+  submitting,
+  showTitle,
+}: TicketFormProps & { showTitle?: boolean }) {
+  const { t } = useTranslation();
   const { meta } = useTicketInfo();
   const result = useCategoryFields(categoryId);
 
@@ -96,6 +102,9 @@ function TicketForm({ categoryId, onSubmit, submitting }: TicketFormProps) {
 
   return (
     <QueryWrapper result={result}>
+      {showTitle && (
+        <PageContent className="bg-transparent mb-3 py-0" title={t('feedback.submit')} />
+      )}
       <CustomForm
         fields={fields}
         defaultValues={defaultValues}
@@ -164,10 +173,12 @@ export function NewTicket() {
       ) : (
         <QueryWrapper result={result}>
           <FAQs className="mb-6" faqs={faqs} showAll={false} />
-          {faqs && faqs.length > 0 && (
-            <PageContent className="bg-transparent mb-3 py-0" title={t('feedback.submit')} />
-          )}
-          <TicketForm categoryId={category_id} onSubmit={submit} submitting={submitting} />
+          <TicketForm
+            categoryId={category_id}
+            onSubmit={submit}
+            submitting={submitting}
+            showTitle={!!faqs?.length}
+          />
         </QueryWrapper>
       )}
     </>

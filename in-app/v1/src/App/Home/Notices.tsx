@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react';
 import { useRootCategory } from '@/App';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import { useNotices, NoticeLink } from '@/App/Articles/utils';
-import { PageContent } from '@/components/NewPage';
+import { PageContent } from '@/components/Page';
 import SpeakerIcon from '@/icons/Speaker';
 import { ChevronRightIcon } from '@heroicons/react/solid';
 

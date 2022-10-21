@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { FormProvider, useForm } from 'react-hook-form';
-import { PageContent } from '@/components/NewPage';
+import { PageContent } from '@/components/Page';
 import { CategoryFieldSchema } from '@/api/category';
 import { Button } from '@/components/Button';
 import { SpaceChinese } from '@/components/SpaceChinese';
