@@ -1,33 +1,33 @@
 {
   "schema": {
-    "objectId": {
-      "type": "String"
+    "updatedAt": {
+      "type": "Date"
     },
     "ACL": {
       "type": "ACL"
     },
-    "updatedAt": {
-      "type": "Date"
+    "content": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "objectId": {
+      "type": "String"
     },
     "createdAt": {
       "type": "Date"
     },
-    "fieldIds": {
-      "type": "Array",
-      "v": 2,
-      "required": true,
-      "hidden": false,
-      "read_only": false
-    },
     "title": {
       "type": "String",
       "v": 2,
-      "required": true,
+      "required": false,
       "hidden": false,
       "read_only": false
     },
-    "items": {
-      "type": "Array",
+    "active": {
+      "type": "Boolean",
       "v": 2,
       "required": false,
       "hidden": false,
