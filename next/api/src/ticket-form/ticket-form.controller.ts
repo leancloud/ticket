@@ -109,7 +109,6 @@ export class TicketFormController {
             type: 'note',
             data: {
               id: note.id,
-              title: note.title,
               content: note.content,
             },
           });

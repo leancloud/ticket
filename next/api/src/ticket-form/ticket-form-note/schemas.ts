@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const createTicketFormNoteSchema = z.object({
-  title: z.string(),
+  name: z.string(),
   content: z.string(),
 });
 

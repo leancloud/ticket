@@ -3,7 +3,7 @@ import { Model, field, serialize } from '@/orm';
 export class TicketFormNote extends Model {
   @field()
   @serialize()
-  title!: string;
+  name!: string;
 
   @field()
   @serialize()

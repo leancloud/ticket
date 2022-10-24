@@ -19,7 +19,7 @@
     "createdAt": {
       "type": "Date"
     },
-    "title": {
+    "name": {
       "type": "String",
       "v": 2,
       "required": false,

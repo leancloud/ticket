@@ -5,7 +5,7 @@ export interface ListTicketFormNoteOptions {
 }
 
 export interface CreateTicketFormNoteData {
-  title: string;
+  name: string;
   content: string;
 }
 
