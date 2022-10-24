@@ -17,7 +17,6 @@ interface NoteItem {
   type: 'note';
   data: {
     id: string;
-    title: string;
     content: string;
   };
 }
