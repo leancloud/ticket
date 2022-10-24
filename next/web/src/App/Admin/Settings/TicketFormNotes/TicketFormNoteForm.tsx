@@ -5,7 +5,7 @@ import { Button, Form, Input } from '@/components/antd';
 import { useMarkdownEditor } from '@/components/MarkdownEditor';
 
 interface TicketFormNoteFormData {
-  title: string;
+  name: string;
   content: string;
 }
 
@@ -35,13 +35,13 @@ export function TicketFormNoteForm({
   } = useForm<TicketFormNoteFormData>();
 
   const {
-    field: titleField,
-    fieldState: { error: titleError },
+    field: nameField,
+    fieldState: { error: nameError },
   } = useController({
     control,
-    name: 'title',
+    name: 'name',
     defaultValue: '',
-    rules: { required: '请填写标题' },
+    rules: { required: '请填写名称' },
   });
 
   const contentField = register('content', { required: '请填写内容' });
@@ -63,11 +63,11 @@ export function TicketFormNoteForm({
       }}
     >
       <Form.Item
-        label="标题"
-        validateStatus={titleError ? 'error' : undefined}
-        help={titleError?.message}
+        label="名称"
+        validateStatus={nameError ? 'error' : undefined}
+        help={nameError?.message}
       >
-        <Input {...titleField} autoFocus />
+        <Input {...nameField} autoFocus />
       </Form.Item>
 
       <Form.Item

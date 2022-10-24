@@ -1,7 +1,8 @@
-import { Link } from 'react-router-dom';
-import { Button, Table } from '@/components/antd';
-import { TicketFormNoteSchema, useTicketFormNotes } from '@/api/ticket-form-note';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { AiOutlineCheck } from 'react-icons/ai';
+import { TicketFormNoteSchema, useTicketFormNotes } from '@/api/ticket-form-note';
+import { Button, Table } from '@/components/antd';
 
 const { Column } = Table;
 
@@ -38,10 +39,15 @@ export function TicketFormNoteList() {
       >
         <Column
           key="title"
-          title="标题"
-          render={(note: TicketFormNoteSchema) => <Link to={note.id}>{note.title}</Link>}
+          title="名称"
+          render={(note: TicketFormNoteSchema) => <Link to={note.id}>{note.name}</Link>}
         />
         <Column dataIndex="content" title="内容" ellipsis />
+        <Column
+          dataIndex="active"
+          title="已激活"
+          render={(active) => active && <AiOutlineCheck />}
+        />
       </Table>
     </div>
   );

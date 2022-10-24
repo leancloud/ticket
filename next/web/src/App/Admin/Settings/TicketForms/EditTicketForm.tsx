@@ -106,13 +106,13 @@ function SelectedFieldItem({
 interface SelectedNoteItemProps {
   index: number;
   id: string;
-  title: string;
+  name: string;
   content: string;
   active: boolean;
   onRemove: () => void;
 }
 
-function SelectedNoteItem({ index, id, title, content, active, onRemove }: SelectedNoteItemProps) {
+function SelectedNoteItem({ index, id, name, content, active, onRemove }: SelectedNoteItemProps) {
   return (
     <SelectedItem id={id} index={index} active={active} onRemove={onRemove}>
       <div className="h-full  grid grid-cols-[32px_1fr]">
@@ -120,9 +120,9 @@ function SelectedNoteItem({ index, id, title, content, active, onRemove }: Selec
         <div className="pl-3 h-full grow flex flex-col justify-center items-start overflow-hidden">
           <div
             className="text-[16px] leading-[16px] text-[#49545c] font-bold truncate max-w-full"
-            title={title}
+            title={name}
           >
-            {title}
+            {name}
           </div>
           <div className="max-w-full truncate" title={content}>
             {content}
@@ -154,16 +154,16 @@ function AvailableFieldItem({ type, title, onAdd }: AvailableFieldItemProps) {
 }
 
 interface AvailableNoteItemProps {
-  title: string;
+  name: string;
   onAdd: () => void;
 }
 
-function AvailableNoteItem({ title, onAdd }: AvailableNoteItemProps) {
+function AvailableNoteItem({ name, onAdd }: AvailableNoteItemProps) {
   return (
     <div className="h-8 grid grid-cols-[32px_1fr_32px] border border-[#d8dcde] rounded cursor-default bg-white select-none">
       <AiOutlineFileText className="m-auto" />
-      <div className="leading-8 text-sm grow truncate" title={title}>
-        {title}
+      <div className="leading-8 text-sm grow truncate" title={name}>
+        {name}
       </div>
       <button type="button" onClick={onAdd}>
         <AiOutlinePlus className="m-auto" />
@@ -220,7 +220,7 @@ function FormItemsBuilder({ fields, notes, value, error, onChange }: FormItemsBu
   }, [activeNotes, selectedNoteIdSet]);
   const filteredNotes = useMemo(() => {
     if (activeTab === 'note' && availableNotes) {
-      return availableNotes.filter((f) => f.title.includes(keyword));
+      return availableNotes.filter((f) => f.name.includes(keyword));
     }
   }, [availableNotes, keyword, activeTab]);
 
@@ -322,10 +322,10 @@ function FormItemsBuilder({ fields, notes, value, error, onChange }: FormItemsBu
               onChange={(e) => setKeyword(e.target.value)}
             />
             <div className="mt-4 flex flex-col gap-2">
-              {filteredNotes?.map(({ id, title }) => (
+              {filteredNotes?.map(({ id, name }) => (
                 <AvailableNoteItem
                   key={id}
-                  title={title}
+                  name={name}
                   onAdd={() => handleAddItem({ type: 'note', id })}
                 />
               ))}

@@ -3,7 +3,7 @@ import { http } from '@/leancloud';
 
 export interface TicketFormNoteSchema {
   id: string;
-  title: string;
+  name: string;
   content: string;
   active: boolean;
   createdAt: string;
@@ -32,7 +32,7 @@ async function fetchTicketFormNote(id: string) {
 }
 
 interface CreateTicketFormNoteData {
-  title: string;
+  name: string;
   content: string;
 }
 
@@ -42,7 +42,7 @@ async function createTicketFormNote(data: CreateTicketFormNoteData) {
 }
 
 interface UpdateTicketFormNoteData {
-  title?: string;
+  name?: string;
   content?: string;
   active?: boolean;
 }
