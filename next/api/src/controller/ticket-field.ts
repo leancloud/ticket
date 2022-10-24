@@ -31,7 +31,6 @@ import { auth, customerServiceOnly, staffOnly } from '@/middleware';
 import { FIELD_TYPES, OPTION_TYPES, TicketField } from '@/model/TicketField';
 import {
   TicketFieldResponse,
-  TicketFieldStats,
   TicketFieldStatsOptions,
   TicketFieldStatsResponse,
 } from '@/response/ticket-field';

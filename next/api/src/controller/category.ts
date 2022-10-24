@@ -23,7 +23,7 @@ import { TicketForm } from '@/model/TicketForm';
 import { User } from '@/model/User';
 import { ArticleAbstractResponse } from '@/response/article';
 import { CategoryResponse } from '@/response/category';
-import { CategoryFieldResponse } from '@/response/ticket-field';
+import { TicketFieldVariantResponse } from '@/response/ticket-field';
 import { ArticleTopicFullResponse } from '@/response/article-topic';
 import { getTopic } from '@/model/ArticleTopic';
 import _ from 'lodash';
@@ -141,7 +141,7 @@ export class CategoryController {
   }
 
   @Get(':id/fields')
-  @ResponseBody(CategoryFieldResponse)
+  @ResponseBody(TicketFieldVariantResponse)
   async getFields(@Ctx() ctx: Context, @Param('id', FindCategoryPipe) category: Category) {
     if (!category.formId) {
       return [];

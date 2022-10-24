@@ -5,8 +5,9 @@ import { compact, keyBy, last, uniq } from 'lodash-es';
 
 import { ENABLE_LEANCLOUD_INTEGRATION } from '@/leancloud';
 import { useArticles } from '@/api/article';
-import { CategorySchema, useCategoryFields } from '@/api/category';
+import { CategorySchema, useCategories } from '@/api/category';
 import { useOrganizations } from '@/api/organization';
+import { useTicketFormItems } from '@/api/ticket-form';
 import { Button, Collapse, Form, Input } from '@/components/antd';
 import { CategorySelect, Retry } from '@/components/common';
 import style from './index.module.css';
@@ -14,7 +15,7 @@ import { OrganizationSelect } from './OrganizationSelect';
 import { LeanCloudAppSelect } from './LeanCloudAppSelect';
 import { Input as MyInput } from './Fields/Input';
 import { Upload } from './Fields/Upload';
-import { CustomFields } from './CustomFields';
+import { FormItems } from './FormItems';
 
 const { Panel } = Collapse;
 
@@ -98,11 +99,30 @@ export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
 
   const categoryId = useWatch({ control, name: 'categoryId' });
 
-  const { data: fields, isLoading: loadingFields } = useCategoryFields(categoryId!, {
-    enabled: !!categoryId,
-    staleTime: 1000 * 60 * 5,
-    select: (fields) => fields.filter((f) => !presetFieldIds.includes(f.id)),
-  });
+  const { data: categories } = useCategories({ active: true });
+
+  const currentCategory = useMemo(() => {
+    if (categories && categoryId) {
+      return categories.find((c) => c.id === categoryId);
+    }
+  }, [categories, categoryId]);
+
+  const { data: formItems, isLoading: loadingFormItems } = useTicketFormItems(
+    currentCategory?.formId!,
+    {
+      enabled: currentCategory !== undefined,
+      staleTime: 1000 * 60 * 5,
+    }
+  );
+
+  const filteredFormItems = useMemo(() => {
+    return formItems?.filter((item) => {
+      if (item.type === 'field') {
+        return !presetFieldIds.includes(item.data.id);
+      }
+      return true;
+    });
+  }, [formItems]);
 
   const overwriteContent = useCallback(
     (newContent: string) => {
@@ -232,7 +252,9 @@ export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
 
           {articleIds && articleIds.length > 0 && <FaqsItem ids={articleIds} />}
 
-          {fields && fields.length > 0 && <CustomFields fields={fields} />}
+          {filteredFormItems && filteredFormItems.length > 0 && (
+            <FormItems items={filteredFormItems} />
+          )}
 
           <Controller
             name="content"
@@ -259,7 +281,7 @@ export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
             <Button
               type="primary"
               htmlType="submit"
-              loading={loadingFields || loading}
+              loading={loadingFormItems || loading}
               disabled={disabled}
             >
               提交

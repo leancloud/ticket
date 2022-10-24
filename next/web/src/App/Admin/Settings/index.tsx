@@ -11,6 +11,7 @@ import { QuickReplyList, NewQuickReply, QuickReplyDetail } from './QuickReplies'
 import { ViewList, NewView, ViewDetail } from './Views';
 import { TicketFieldList, NewTicketField, TicketFieldDetail } from './TicketFields';
 import { TicketFormList, NewTicketForm, TicketFormDetail } from './TicketForms';
+import { TicketFormNoteList, NewTicketFormNote, TicketFormNoteDetail } from './TicketFormNotes';
 import { DynamicContentList, NewDynamicContent, DynamicContentDetail } from './DynamicContents';
 import { ArticleDetail, Articles, EditArticle, NewArticle } from './Articles';
 
@@ -64,6 +65,11 @@ const SettingRoutes = () => (
       <Route index element={<TicketFormList />} />
       <Route path="new" element={<NewTicketForm />} />
       <Route path=":id" element={<TicketFormDetail />} />
+    </Route>
+    <Route path="/ticket-form-notes">
+      <Route index element={<TicketFormNoteList />} />
+      <Route path="new" element={<NewTicketFormNote />} />
+      <Route path=":id" element={<TicketFormNoteDetail />} />
     </Route>
     <Route path="/dynamic-contents">
       <Route index element={<DynamicContentList />} />
@@ -147,6 +153,10 @@ const routeGroups: MenuDataItem[] = [
       {
         name: '工单表单',
         path: 'ticket-forms',
+      },
+      {
+        name: '表单说明',
+        path: 'ticket-form-notes',
       },
       {
         name: '动态内容',

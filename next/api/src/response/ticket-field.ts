@@ -39,7 +39,7 @@ export class TicketFieldResponse {
   }
 }
 
-export class CategoryFieldResponse {
+export class TicketFieldVariantResponse {
   constructor(readonly variant: TicketFieldVariant) {}
 
   toJSON() {

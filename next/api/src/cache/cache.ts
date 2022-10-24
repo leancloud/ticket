@@ -30,7 +30,7 @@ export class Cache {
     }
   }
 
-  get<V = any>(key: CacheKey): Promise<V> {
+  get<V = any>(key: CacheKey): Promise<V | undefined> {
     const stringKey = this.encodeCacheKey(key);
     return this.getFrom(1, stringKey);
   }

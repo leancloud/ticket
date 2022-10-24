@@ -3,7 +3,6 @@ import { UseQueryOptions, useQuery, UseMutationOptions, useMutation } from 'reac
 import { groupBy } from 'lodash-es';
 
 import { http } from '@/leancloud';
-import { TicketFieldSchema } from './ticket-field';
 
 export interface CategorySchema {
   id: string;
@@ -106,30 +105,6 @@ export function useCategoryFaqs(categoryId: string, options?: UseCategoryFaqsOpt
     queryKey: ['categoryFaqs', categoryId],
     queryFn: () => fetchCategoryFaqs(categoryId),
     staleTime: 1000 * 60 * 5,
-    ...options,
-  });
-}
-
-export interface CategoryFieldSchema {
-  id: string;
-  type: 'text' | 'multi-line' | 'dropdown' | 'multi-select' | 'radios' | 'file';
-  title: string;
-  description?: string;
-  required: boolean;
-  options?: { title: string; value: string }[];
-}
-
-async function fetchCatgoryFields(categoryId: string) {
-  const { data } = await http.get<CategoryFieldSchema[]>(`/api/2/categories/${categoryId}/fields`);
-  return data;
-}
-
-export type UseCategoryFieldsOptions = UseQueryOptions<CategoryFieldSchema[]>;
-
-export function useCategoryFields(categoryId: string, options?: UseCategoryFieldsOptions) {
-  return useQuery({
-    queryKey: ['categoryFields', categoryId],
-    queryFn: () => fetchCatgoryFields(categoryId),
     ...options,
   });
 }

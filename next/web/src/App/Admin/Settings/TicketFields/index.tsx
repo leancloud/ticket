@@ -106,9 +106,7 @@ export function TicketFieldList() {
       <div className="flex">
         <div className="grow"></div>
         <Link to="new">
-          <Button type="primary" ghost>
-            新增字段
-          </Button>
+          <Button type="primary">新增字段</Button>
         </Link>
       </div>
 

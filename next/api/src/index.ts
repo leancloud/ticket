@@ -9,12 +9,15 @@ import { extractTraceparentData, stripUrlQueryAndFragment } from '@sentry/tracin
 import './leancloud';
 import { config } from './config';
 import { localeMiddleware } from './middleware/locale';
-import api from './router';
 import { router as integrationRouter } from './integration';
 import notification from './notification';
 import { OpsLog } from './model/OpsLog';
 import { Ticket } from './model/Ticket';
 import { getTriggers, getTimeTriggers } from './ticket/automation';
+
+import './ticket-form';
+import api from './router';
+
 export const app = new Koa();
 
 // not mandatory, but adding domains does help a lot with breadcrumbs

@@ -70,8 +70,9 @@ const TopicSelect = forwardRef<RefSelectProps, SelectProps<string[]>>((props, re
 
 const TicketFormSelect = forwardRef<RefSelectProps, SelectProps<string>>((props, ref) => {
   const { data, isLoading } = useTicketForms({ pageSize: 1000 });
+
   const options = useMemo(() => {
-    return data?.map((form) => ({
+    return data?.items.map((form) => ({
       label: form.title,
       value: form.id,
     }));
