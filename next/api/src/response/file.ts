@@ -30,7 +30,7 @@ const sign = (originalURL: string) => {
   const urlWithTS = `${url}${hasParams ? '&' : '?'}e=${expiredAt}`;
   const signature = hmacSha1(urlWithTS);
   const urlSafeSign = signature.replace(/\//g, '_').replace(/\+/g, '-');
-  var token = `${EXTERNAL_QINIU_AK}:${urlSafeSign}`;
+  const token = `${EXTERNAL_QINIU_AK}:${urlSafeSign}`;
   return `${urlWithTS}&token=${token}`;
 };
 
