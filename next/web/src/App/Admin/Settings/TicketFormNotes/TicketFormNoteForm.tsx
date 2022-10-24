@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useController, useForm } from 'react-hook-form';
 import { Button, Form, Input } from '@/components/antd';
-import { Controller, useForm } from 'react-hook-form';
+import { useMarkdownEditor } from '@/components/MarkdownEditor';
 
 interface TicketFormNoteFormData {
   title: string;
@@ -24,43 +25,58 @@ export function TicketFormNoteForm({
   onChangeActive,
 }: TicketFormNoteFormProps) {
   const navigate = useNavigate();
-  const { control, handleSubmit, reset } = useForm<TicketFormNoteFormData>();
+  const {
+    control,
+    handleSubmit,
+    reset,
+    register,
+    setValue,
+    formState,
+  } = useForm<TicketFormNoteFormData>();
 
-  useEffect(() => reset(data), [data]);
+  const {
+    field: titleField,
+    fieldState: { error: titleError },
+  } = useController({
+    control,
+    name: 'title',
+    defaultValue: '',
+    rules: { required: '请填写标题' },
+  });
+
+  const contentField = register('content', { required: '请填写内容' });
+  const contentError = formState.errors.content;
+  const [contentEditor, getContent, contentEditorRef] = useMarkdownEditor('');
+  contentField.ref(contentEditorRef.current.TUIEditor);
+
+  useEffect(() => {
+    contentEditorRef.current.TUIEditor?.setMarkdown(data?.content ?? '', false);
+    reset(data);
+  }, [data]);
 
   return (
-    <Form layout="vertical" onFinish={handleSubmit(onSubmit)}>
-      <Controller
-        control={control}
-        name="title"
-        defaultValue=""
-        rules={{ required: '请填写标题' }}
-        render={({ field, fieldState: { error } }) => (
-          <Form.Item
-            label="标题"
-            validateStatus={error ? 'error' : undefined}
-            help={error?.message}
-          >
-            <Input {...field} autoFocus />
-          </Form.Item>
-        )}
-      />
+    <Form
+      layout="vertical"
+      onFinish={() => {
+        setValue('content', getContent() ?? '');
+        handleSubmit(onSubmit)();
+      }}
+    >
+      <Form.Item
+        label="标题"
+        validateStatus={titleError ? 'error' : undefined}
+        help={titleError?.message}
+      >
+        <Input {...titleField} autoFocus />
+      </Form.Item>
 
-      <Controller
-        control={control}
-        name="content"
-        defaultValue=""
-        rules={{ required: '请填写内容' }}
-        render={({ field, fieldState: { error } }) => (
-          <Form.Item
-            label="内容"
-            validateStatus={error ? 'error' : undefined}
-            help={error?.message}
-          >
-            <Input.TextArea {...field} autoSize />
-          </Form.Item>
-        )}
-      />
+      <Form.Item
+        label="内容"
+        validateStatus={contentError ? 'error' : undefined}
+        help={contentError?.message}
+      >
+        {contentEditor}
+      </Form.Item>
 
       <div className="flex">
         <Button type="primary" htmlType="submit" loading={submitting}>
