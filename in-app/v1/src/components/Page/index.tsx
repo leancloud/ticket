@@ -57,7 +57,7 @@ export function PageContent({ children, ...props }: ComponentPropsWithoutRef<'di
     <div
       {...props}
       className={cx(
-        'page flex flex-col grow overflow-hidden bg-white rounded-b-lg mx-[10px] sm:mx-[108px] mb-[34px]',
+        'page flex flex-col grow overflow-hidden bg-white rounded-b-lg mx-[10px] sm:mx-[108px] mb-[20px]',
         styles.content,
         props.className
       )}
