@@ -297,3 +297,9 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 ## 2022-10-19
 
 导入 `_User`
+
+## 2022-10-24
+
+### `b0262bad0b52a5ef3be6f42b63eb5bc9922bc1ce`
+
+导入 TicketFormNote.json 和 TicketForm.json
