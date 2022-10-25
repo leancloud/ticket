@@ -1,4 +1,4 @@
-import { ComponentPropsWithoutRef, ReactNode } from 'react';
+import { ComponentPropsWithoutRef, ReactNode, ElementType } from 'react';
 import { useTranslation } from 'react-i18next';
 import cx from 'classnames';
 
@@ -37,15 +37,25 @@ export function PageHeader(props: ComponentPropsWithoutRef<'div'>) {
   );
 }
 
-export function PageContent({
+interface PageContentProps<T extends ElementType> {
+  title?: ReactNode;
+  shadow?: boolean;
+  as?: T;
+  color?: number;
+}
+
+export function PageContent<T extends ElementType>({
   children,
   className,
   shadow,
   title,
+  as,
+  color,
   ...props
-}: ComponentPropsWithoutRef<'div'> & { title?: ReactNode; shadow?: boolean }) {
+}: PageContentProps<T> & Omit<ComponentPropsWithoutRef<T>, keyof PageContentProps<T>>) {
+  const Component = as || 'div';
   return (
-    <div
+    <Component
       {...props}
       className={cx(
         'page flex flex-col shrink-0  overflow-hidden bg-white rounded-lg mx-[10px] sm:mx-[119px] last:mb-4 px-4 py-3',
@@ -57,6 +67,6 @@ export function PageContent({
         {title && <h2 className={'font-bold'}>{title}</h2>}
         {children}
       </ErrorBoundary>
-    </div>
+    </Component>
   );
 }

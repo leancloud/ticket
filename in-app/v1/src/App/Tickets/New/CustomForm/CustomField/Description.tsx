@@ -14,8 +14,8 @@ export function Description({ children, className, error, ...props }: Descriptio
   return (
     <div
       {...props}
-      className={classNames(className, 'text-xs', {
-        'text-[rgba(0,0,0,0.45)]': !error,
+      className={classNames('mt-[10px] text-xs leading-[14px]', className, {
+        'text-[#D2D7D9]': !error,
         'text-red': error,
       })}
     >

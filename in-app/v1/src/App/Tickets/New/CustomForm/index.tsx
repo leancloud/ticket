@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { FormProvider, useForm } from 'react-hook-form';
 import { PageContent } from '@/components/Page';
-import { CategoryFieldSchema } from '@/api/category';
+import { CategoryFieldSchema, FieldType } from '@/api/category';
 import { Button } from '@/components/Button';
 import { SpaceChinese } from '@/components/SpaceChinese';
 import { CustomField } from './CustomField';
@@ -14,6 +14,8 @@ export interface CustomFormProps {
   onSubmit: (data: Record<string, any>) => void;
   submitting?: boolean;
 }
+
+const LABEL_FIELD: FieldType[] = ['text', 'multi-line', 'dropdown'];
 
 export function CustomForm({
   fields,
@@ -36,7 +38,11 @@ export function CustomForm({
     <FormProvider {...methods}>
       <form onSubmit={methods.handleSubmit(onSubmit)}>
         {fields.map((field) => (
-          <PageContent className="mb-3 last:mb-0" key={field.id}>
+          <PageContent
+            className="mb-3 last:mb-0"
+            key={field.id}
+            as={LABEL_FIELD.includes(field.type) ? 'label' : undefined}
+          >
             <CustomField key={field.id} {...field} />
           </PageContent>
         ))}

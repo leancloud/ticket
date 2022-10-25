@@ -50,10 +50,10 @@ export function CustomField(props: CustomFieldProps) {
     return <Unknown type={props.type} />;
   }
   return (
-    <div className="flex flex-col">
+    <>
       <div className="shrink-0 mb-2">
         <label
-          className={cx('relative break-words', {
+          className={cx('relative break-words leading-[22px] font-bold', {
             [style.required]: required,
           })}
           htmlFor={`field_${id}`}
@@ -61,9 +61,7 @@ export function CustomField(props: CustomFieldProps) {
           {displayTitle}
         </label>
       </div>
-      <div className="grow">
-        <Component {...props} htmlId={`field_${id}`} />
-      </div>
-    </div>
+      <Component {...props} htmlId={`field_${id}`} />
+    </>
   );
 }
