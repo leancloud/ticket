@@ -1,0 +1,5 @@
+.feedbackModal {
+  :global(.ant-modal-content) {
+    overflow: hidden;
+  }
+}
