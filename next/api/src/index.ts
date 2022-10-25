@@ -16,6 +16,7 @@ import { Ticket } from './model/Ticket';
 import { getTriggers, getTimeTriggers } from './ticket/automation';
 
 import './ticket-form';
+import './tap-support';
 import api from './router';
 
 export const app = new Koa();
