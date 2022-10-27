@@ -10,6 +10,10 @@ import styles from './index.module.css';
 export function Feedback() {
   const [modalOpen, toggleModalOpen] = useToggle(false);
 
+  if (!import.meta.env.VITE_ENABLE_TAP_SUPPORT) {
+    return null;
+  }
+
   return (
     <>
       <div className="w-full h-full flex">
