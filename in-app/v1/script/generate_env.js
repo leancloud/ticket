@@ -8,8 +8,7 @@ if (!process.env.LEANCLOUD_APP_ID) {
 
 const content = `VITE_LC_APP_ID=${process.env.LEANCLOUD_APP_ID}
 VITE_LC_APP_KEY=${process.env.LEANCLOUD_APP_KEY}
-VITE_LC_API_SERVER=${process.env.LEANCLOUD_API_HOST}
-VITE_LC_TICKET_HOST=${process.env.TICKET_HOST}`;
+VITE_LC_API_SERVER=${process.env.LEANCLOUD_API_HOST}`;
 
 const filePath = path.resolve(__dirname, '../.env.local');
 fs.writeFileSync(filePath, content);
