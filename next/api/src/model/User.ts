@@ -48,6 +48,21 @@ const anonymousUserCache = new RedisCache<AV.User | null | undefined>(
   (data) => (data === 'null' ? null : decodeAVUser(data))
 );
 
+const tdsUserCache = new RedisCache<AV.User | null | undefined>(
+  'user:tds',
+  async (token: string) => {
+    try {
+      return await User.loginOrSignUpTDSUser(token, true);
+    } catch (error: any) {
+      if (error.code === 211) return undefined;
+
+      throw error;
+    }
+  },
+  (user) => (user ? encodeAVUser(user) : 'null'),
+  (data) => (data === 'null' ? null : decodeAVUser(data))
+);
+
 export interface LeanCloudAccount {
   current_support_service?: any;
 }
@@ -77,6 +92,17 @@ export class InvalidLoginCredentialError extends HttpError {
   constructor(message: string, innerError?: Error) {
     super(InvalidLoginCredentialError.httpCode, message, InvalidLoginCredentialError.code);
     this.inner = innerError;
+  }
+}
+
+export class MissingFieldError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'MissingFieldError';
+  }
+
+  toJSON() {
+    return { name: this.name, message: this.message };
   }
 }
 
@@ -132,6 +158,13 @@ export class User extends Model {
 
   static async findByAnonymousId(aid: string): Promise<User | undefined> {
     const avUser = await anonymousUserCache.get(aid);
+    if (avUser) {
+      return this.fromAVObject(avUser);
+    }
+  }
+
+  static async findByTDSUserToken(token: string): Promise<User | undefined> {
+    const avUser = await tdsUserCache.get(token);
     if (avUser) {
       return this.fromAVObject(avUser);
     }
@@ -251,6 +284,76 @@ export class User extends Model {
 
   static async loginWithAnonymousId(id: string, name?: string) {
     throw new Error('Not implemented');
+  }
+
+  static generateTDSUserAuthData(token: string) {
+    const { sub, app_id } = getVerifiedPayload(token);
+    if (!sub || !app_id) {
+      throw new MissingFieldError(
+        `${Object.entries({ sub, app_id })
+          .filter(([, v]) => !v)
+          .map(([k]) => k)
+          .join(', ')} field is required`
+      );
+    }
+    return {
+      uid: `${app_id}-${sub}`,
+      access_token: token,
+    };
+  }
+
+  static async loginOrSignUpTDSUser(token: string, failOnNotExist = false): Promise<AV.User> {
+    try {
+      return await AV.User.loginWithAuthData({ uid: '1234', access_token: token }, 'tds-user', {
+        failOnNotExist,
+      });
+    } catch (err: any) {
+      if (err.code === 142) {
+        const error = (() => {
+          try {
+            return JSON.parse(
+              err.rawMessage.replace(
+                /^Cloud Code validation failed. Error detail : "?({.+})"?$/,
+                '$1'
+              )
+            );
+          } catch (jsonErr) {
+            throw err;
+          }
+        })();
+
+        if (error.name === 'JsonWebTokenError' || error.name === 'MissingFieldError') {
+          throw new InvalidLoginCredentialError(error.message, err);
+        }
+      }
+      throw err;
+    }
+  }
+
+  static async loginWithTDSUserToken(token: string): Promise<{ sessionToken: string }> {
+    const user = await User.loginOrSignUpTDSUser(token);
+
+    return { sessionToken: user.getSessionToken() };
+  }
+
+  static async associateAnonymousWithTDSUser(token: string, aid: string) {
+    const anonymousUser = await this.findByAnonymousId(aid);
+
+    if (anonymousUser) {
+      try {
+        return anonymousUser.update(
+          {
+            authData: { 'tds-user': this.generateTDSUserAuthData(token) },
+          },
+          { sessionToken: await anonymousUser.loadSessionToken() }
+        );
+      } catch (err) {
+        if (err instanceof JsonWebTokenError || err instanceof MissingFieldError) {
+          throw new InvalidLoginCredentialError(err.message, err);
+        }
+        throw err;
+      }
+    }
   }
 
   static async getCustomerServices(): Promise<User[]> {

@@ -11,8 +11,8 @@ export const auth: Middleware = withSpan(async (ctx, next) => {
         () => User.findBySessionToken(sessionToken),
         ctx,
         'model',
-        `User.findBySessionToken(${sessionToken})`,
-        );
+        `User.findBySessionToken(${sessionToken})`
+      );
     } catch (error: any) {
       if (error.code === 211) {
         ctx.throw(401, '无效的用户凭证，请重新登录。', {
@@ -30,13 +30,32 @@ export const auth: Middleware = withSpan(async (ctx, next) => {
       () => User.findByAnonymousId(anonymousId),
       ctx,
       'model',
-      `User.findByAnonymousId(${anonymousId})`,
+      `User.findByAnonymousId(${anonymousId})`
     );
     if (!user) {
       ctx.throw(401, '未找到该 Anonymous ID 对应的用户，该用户可能从未使用过客服功能。', {
         code: 'INVALID_ANONYMOUS_ID',
       });
     }
+    ctx.state.currentUser = user;
+    return next();
+  }
+
+  const tdsUserToken = ctx.get('X-TDS-Credential');
+  if (tdsUserToken) {
+    const user = await withAsyncSpan(
+      () => User.findByTDSUserToken(tdsUserToken),
+      ctx,
+      'model',
+      `User.findByTDSUserJWT(${tdsUserToken})`
+    );
+
+    if (!user) {
+      ctx.throw(401, '未找到该 TDS Token 对应的用户，该用户可能从未使用过客服功能。', {
+        code: 'INVALID_TDS_TOKEN',
+      });
+    }
+
     ctx.state.currentUser = user;
     return next();
   }
