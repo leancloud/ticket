@@ -79,6 +79,8 @@ export default function App() {
           meta: JsonParam,
           'anonymous-id': StringParam,
           'xd-access-token': StringParam,
+          'tds-credential': StringParam,
+          'associate-anonymous-id': StringParam,
         },
         parse(window.location.hash)
       ),
@@ -93,9 +95,18 @@ export default function App() {
         .loginWithAuthData('anonymous', { id: params['anonymous-id'] })
         .then((user) => setAuth([user, false, null]))
         .catch((error) => setAuth([null, false, error]));
-    } else if (params['xd-access-token']) {
+    } else if (params['xd-access-token'] || params['tds-credential']) {
       http
-        .post('/api/2/users', { XDAccessToken: params['xd-access-token'] })
+        .post(
+          '/api/2/users',
+          params['xd-access-token']
+            ? { XDAccessToken: params['xd-access-token'] }
+            : {
+                type: 'tds-user',
+                token: params['tds-credential'],
+                associateAnonymousId: params['associate-anonymous-id'],
+              }
+        )
         .catch((error) => {
           if (error?.['response']?.['data']?.['message']) {
             throw new Error(error['response']['data']['message']);
