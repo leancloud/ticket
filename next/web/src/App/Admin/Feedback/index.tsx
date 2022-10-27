@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { AiOutlineMessage } from 'react-icons/ai';
+import { IoClose } from 'react-icons/io5';
 import { useToggle } from 'react-use';
 import { Modal } from '@/components/antd';
 import { useTapSupportAuthToken } from '@/api/tds-support';
@@ -35,16 +36,24 @@ function FeedbackModal({ open, onHide }: FeedbackModalProps) {
   return (
     <Modal
       className={styles.feedbackModal}
-      title="反馈"
       visible={open}
       onCancel={onHide}
-      bodyStyle={{ padding: 0, position: 'relative', height: 'calc(100vh - 255px)' }}
+      centered
+      bodyStyle={{ padding: 0, position: 'relative', height: 'calc(100vh - 60px)' }}
+      title={null}
       footer={null}
+      closable={false}
       // disable animation
       transitionName=""
       maskTransitionName=""
     >
       <FeedbackForm />
+      <button
+        className="absolute top-3 right-[10px] w-[26px] h-[26px] bg-[#FAFAFA] text-[#888888] border border-gray-100 rounded-full shadow-[0_4px_4px_rgba(0,0,0,0.12)]"
+        onClick={onHide}
+      >
+        <IoClose className="w-4 h-4 m-auto stroke-[16px]" />
+      </button>
     </Modal>
   );
 }
