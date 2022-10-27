@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { AiOutlineMessage } from 'react-icons/ai';
+import { RiCustomerServiceLine } from 'react-icons/ri';
 import { IoClose } from 'react-icons/io5';
 import { useToggle } from 'react-use';
 import { Modal } from '@/components/antd';
@@ -22,7 +22,7 @@ export function Feedback() {
           title="反馈"
           onClick={toggleModalOpen}
         >
-          <AiOutlineMessage className="w-6 h-6 text-primary m-auto" />
+          <RiCustomerServiceLine className="w-6 h-6 text-primary m-auto" />
         </button>
       </div>
 
