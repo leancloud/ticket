@@ -7,7 +7,7 @@ import Tickets from './Tickets';
 import { Views, ViewTickets } from './Views';
 import { SearchTicket } from './Search';
 import Settings from './Settings';
-import Stats from './Stats'
+import Stats from './Stats';
 
 export default function AdminPage() {
   const { isLoading } = useCategories({
@@ -19,7 +19,7 @@ export default function AdminPage() {
     return <>Loading...</>;
   }
   return (
-    <div className="flex h-full bg-[#ebeff3]">
+    <div className="h-full grid grid-cols-[64px_1fr] bg-[#ebeff3]">
       <Sidebar className="z-40" />
       <div className="flex grow flex-col overflow-hidden">
         <Topbar className="shrink-0" />

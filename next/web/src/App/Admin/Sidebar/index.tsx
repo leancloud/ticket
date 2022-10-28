@@ -4,6 +4,7 @@ import { AiOutlineContainer, AiOutlineSetting, AiOutlineSearch } from 'react-ico
 import { HiOutlineTicket } from 'react-icons/hi';
 import { MdOutlineAnalytics } from 'react-icons/md';
 import cx from 'classnames';
+import { Feedback } from '../Feedback';
 
 function Logo() {
   return (
@@ -18,7 +19,7 @@ function Path({ to, children, title }: { to: string; children: ReactNode; title?
     <NavLink
       className={({ isActive }) =>
         cx(
-          'flex mb-2 w-[40px] h-[40px] rounded transition-colors hover:bg-[rgba(255,255,255,0.16)] hover:text-white',
+          'flex mb-2 w-10 h-10 rounded transition-colors hover:bg-[rgba(255,255,255,0.16)] hover:text-white',
           {
             'bg-[rgba(255,255,255,0.16)] text-white': isActive,
           }
@@ -34,25 +35,29 @@ function Path({ to, children, title }: { to: string; children: ReactNode; title?
 
 export function Sidebar(props: ComponentPropsWithoutRef<'aside'>) {
   return (
-    <aside {...props} className={cx('w-16 bg-[#12344d]', props.className)}>
+    <aside
+      {...props}
+      className={cx('grid grid-rows-[64px_1fr_64px] w-16 bg-[#12344d]', props.className)}
+    >
       <Logo />
       <section className="p-3 text-[rgba(255,255,255,0.72)]">
         <Path to="/admin/tickets" title="工单">
-          <HiOutlineTicket className="m-auto w-[20px] h-[20px]" />
+          <HiOutlineTicket className="m-auto w-5 h-5" />
         </Path>
         <Path to="/admin/views" title="视图">
-          <AiOutlineContainer className="m-auto w-[20px] h-[20px]" />
+          <AiOutlineContainer className="m-auto w-5 h-5" />
         </Path>
         <Path to="/admin/search" title="搜索">
-          <AiOutlineSearch className="m-auto w-[20px] h-[20px]" />
+          <AiOutlineSearch className="m-auto w-5 h-5" />
         </Path>
         <Path to="/admin/stats" title="统计">
-          <MdOutlineAnalytics className="m-auto w-[20px] h-[20px]" />
+          <MdOutlineAnalytics className="m-auto w-5 h-5" />
         </Path>
         <Path to="/admin/settings" title="设置">
-          <AiOutlineSetting className="m-auto w-[20px] h-[20px]" />
+          <AiOutlineSetting className="m-auto w-5 h-5" />
         </Path>
       </section>
+      <Feedback />
     </aside>
   );
 }

@@ -7,6 +7,7 @@ interface ImportMetaEnv {
   VITE_SENTRY_WEB_DSN: string;
   VITE_ENABLE_LEANCLOUD_INTEGRATION: string;
   VITE_ALGOLIA_API_KEY: string;
+  VITE_ENABLE_TAP_SUPPORT: string;
 }
 
 declare function docsearch(...args: any[]);
