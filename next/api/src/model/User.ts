@@ -304,6 +304,7 @@ export class User extends Model {
 
   static async loginOrSignUpTDSUser(token: string, failOnNotExist = false): Promise<AV.User> {
     try {
+      // FIXME: uid is placeholder
       return await AV.User.loginWithAuthData({ uid: '1234', access_token: token }, 'tds-user', {
         failOnNotExist,
       });

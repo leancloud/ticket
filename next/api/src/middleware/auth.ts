@@ -34,7 +34,7 @@ export const auth: Middleware = withSpan(async (ctx, next) => {
     );
     if (!user) {
       ctx.throw(401, '未找到该 Anonymous ID 对应的用户，该用户可能从未使用过客服功能。', {
-        code: 'INVALID_ANONYMOUS_ID',
+        code: 'USER_NOT_REGISTERED',
       });
     }
     ctx.state.currentUser = user;
@@ -52,7 +52,7 @@ export const auth: Middleware = withSpan(async (ctx, next) => {
 
     if (!user) {
       ctx.throw(401, '未找到该 TDS Token 对应的用户，该用户可能从未使用过客服功能。', {
-        code: 'INVALID_TDS_TOKEN',
+        code: 'USER_NOT_REGISTERED',
       });
     }
 
