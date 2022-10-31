@@ -75,6 +75,14 @@ export class TicketCreator {
     return this;
   }
 
+  appendMetaData(metaData: Record<string, any>): this {
+    if (this.metaData) {
+      Object.assign(this.metaData, metaData);
+      return this;
+    }
+    return this.setMetaData(metaData);
+  }
+
   setCustomFields(customFields: FieldValue[]): this {
     if (customFields.length) {
       this.customFields = customFields;
