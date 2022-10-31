@@ -330,12 +330,20 @@ router.get(
 
 const customFieldSchema = yup.object({
   field: yup.string().required(),
-  value: yup.mixed().required(), // TODO(lyw): 更严格的验证
+  value: yup.mixed().required(), // TODO: 更严格的验证
 });
 
 const customFieldsSchema = yup
   .array(customFieldSchema.required())
-  .transform((items: { value: any }[]) => items.filter((item) => !_.isEmpty(item.value)));
+  .transform((items: { value: any }[]) =>
+    items.filter((item) => {
+      if (typeof item.value === 'number') {
+        // _.isEmpty(numberValue) => true
+        return true;
+      }
+      return !_.isEmpty(item.value);
+    })
+  );
 
 const ticketDataSchema = yup.object({
   title: yup.string().trim().max(100),
@@ -388,6 +396,7 @@ const extractSystemFields = (
 router.post('/', async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   const data = ticketDataSchema.validateSync(ctx.request.body);
+  const storeUnknownField = ctx.query['storeUnknownField'];
 
   if (!(await canCreateTicket(currentUser, data))) {
     return ctx.throw(403, 'This account is not qualified to create ticket');
@@ -442,7 +451,10 @@ router.post('/', async (ctx) => {
       .where('objectId', 'in', ticketFieldIds)
       .find({ useMasterKey: true });
     const ticketFieldById = _.keyBy(ticketFields, (field) => field.id);
-    let filteredCustomFields = customFields.filter((field) => ticketFieldById[field.field]);
+    let [filteredCustomFields, unknownCustomFields] = _.partition(
+      customFields,
+      (field) => ticketFieldById[field.field]
+    );
     if (filteredCustomFields.length) {
       filteredCustomFields = await Promise.all(
         filteredCustomFields.map(async (field) => {
@@ -455,6 +467,13 @@ router.post('/', async (ctx) => {
         })
       );
       creator.setCustomFields(filteredCustomFields);
+    }
+    if (unknownCustomFields.length && storeUnknownField) {
+      const metaData = unknownCustomFields.reduce((metaData, { field, value }) => {
+        metaData[field] = value;
+        return metaData;
+      }, {} as Record<string, any>);
+      creator.appendMetaData(metaData);
     }
   }
 
