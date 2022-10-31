@@ -20,27 +20,30 @@ import { Context } from 'koa';
 import { z } from 'zod';
 
 const LegacyXDAuthSchema = z.object({
+  type: z.literal('legacy-xd').default('legacy-xd'),
   XDAccessToken: z.string(),
 });
-type LegacyXDAuthData = z.infer<typeof LegacyXDAuthSchema>;
 const JWTAuthSchema = z.object({
+  type: z.literal('jwt').default('jwt'),
   jwt: z.string(),
 });
-type JWTAuthData = z.infer<typeof JWTAuthSchema>;
 const anonymouseAuthSchema = z.object({
+  type: z.literal('anonymous').default('anonymous'),
   anonymousId: z.string().min(16),
   name: z.string().optional(),
 });
-const authSchema = z.union([JWTAuthSchema, anonymouseAuthSchema, LegacyXDAuthSchema]);
+const TDSUserSchema = z.object({
+  type: z.literal('tds-user'),
+  token: z.string(),
+  associateAnonymousId: z.string().optional(),
+});
+const authSchema = z.union([
+  JWTAuthSchema,
+  anonymouseAuthSchema,
+  LegacyXDAuthSchema,
+  TDSUserSchema,
+]);
 type AuthData = z.infer<typeof authSchema>;
-
-function isJWT(data: AuthData): data is JWTAuthData {
-  return 'jwt' in data && typeof data.jwt === 'string';
-}
-
-function isLegacyXD(data: AuthData): data is LegacyXDAuthData {
-  return 'XDAccessToken' in data && typeof data.XDAccessToken === 'string';
-}
 
 @Controller('users')
 export class UserController {
@@ -85,19 +88,43 @@ export class UserController {
 
   @Post()
   async login(@Ctx() ctx: Context, @Body(new ZodValidationPipe(authSchema)) authData: AuthData) {
-    if (isJWT(authData)) {
+    if (authData.type === 'jwt') {
       return withAsyncSpan(
         () => User.loginWithJWT(authData.jwt),
         ctx,
         'model',
         'User.loginWithJWT'
       );
-    } else if (isLegacyXD(authData)) {
+    } else if (authData.type === 'legacy-xd') {
       return withAsyncSpan(
         () => User.loginWithLegacyXDAccessToken(authData.XDAccessToken),
         ctx,
         'model',
         'User.loginWithLegacyXDAccessToken'
+      );
+    } else if (authData.type === 'tds-user') {
+      return withAsyncSpan(
+        async () => {
+          const { token, associateAnonymousId } = authData;
+
+          if (!associateAnonymousId) {
+            return User.loginWithTDSUserToken(token);
+          }
+
+          const tdsUser = await User.findByTDSUserToken(token);
+          if (tdsUser) return { sessionToken: await tdsUser.loadSessionToken() };
+
+          const user = await User.associateAnonymousWithTDSUser(token, associateAnonymousId);
+
+          if (!user) {
+            return User.loginWithTDSUserToken(token);
+          }
+
+          return { sessionToken: await user.loadSessionToken() };
+        },
+        ctx,
+        'model',
+        'User.loginWithTDSUserJWT'
       );
     }
     return User.loginWithAnonymousId(authData.anonymousId, authData.name);
