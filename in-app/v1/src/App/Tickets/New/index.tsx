@@ -145,12 +145,13 @@ export function NewTicket() {
   const { t } = useTranslation();
   const { category_id } = useSearchParams();
   const result = useCategory(category_id);
-  const { state: ticketId } = useLocation();
+  const { state: ticketId, search } = useLocation();
   const navigate = useNavigate();
 
   const { mutateAsync: submit, isLoading: submitting } = useMutation({
     mutationFn: commitTicket,
-    onSuccess: (ticketId: string) => navigate('', { replace: false, state: ticketId }),
+    onSuccess: (ticketId: string) =>
+      navigate({ pathname: '', search }, { replace: false, state: ticketId }),
     onError: (error: Error) => alert(error.message),
   });
 

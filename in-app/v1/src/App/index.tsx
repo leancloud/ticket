@@ -16,8 +16,10 @@ import Tickets from './Tickets';
 import NotFound from './NotFound';
 import Articles from './Articles';
 import TopCategories from './TopCategories';
+import Test from './Test';
 import { useTranslation } from 'react-i18next';
 import { AppStateProvider } from './context';
+import { SDKProvider } from '../components/SDK';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -89,6 +91,7 @@ export default function App() {
   const ticketInfo = useMemo(() => ({ meta: params.meta }), [params]);
 
   const [auth, setAuth] = useState<[User | null, boolean, any]>([null, true, null]);
+
   useEffect(() => {
     if (params['anonymous-id']) {
       lcAuth
@@ -138,9 +141,11 @@ export default function App() {
             <RootCategoryContext.Provider value={rootCategory}>
               <AuthContext.Provider value={auth}>
                 <TicketInfoContext.Provider value={ticketInfo}>
-                  <AppStateProvider>
-                    <AppRoutes />
-                  </AppStateProvider>
+                  <SDKProvider>
+                    <AppStateProvider>
+                      <AppRoutes />
+                    </AppStateProvider>
+                  </SDKProvider>
                 </TicketInfoContext.Provider>
               </AuthContext.Provider>
             </RootCategoryContext.Provider>
@@ -154,6 +159,7 @@ export default function App() {
 const AppRoutes = () => {
   return (
     <Routes>
+      <Route path="/test" element={<Test />} />
       <Route path="/login" element={<LogIn />} />
       <Route
         path="/"

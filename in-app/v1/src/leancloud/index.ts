@@ -63,3 +63,17 @@ http.interceptors.request.use((config) => {
   }
   return config;
 });
+
+http.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    const message = error.response?.data?.message;
+    if (message) {
+      return Promise.reject(Error(message));
+    }
+
+    return Promise.reject(error);
+  }
+);

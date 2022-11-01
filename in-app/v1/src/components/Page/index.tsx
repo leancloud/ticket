@@ -7,10 +7,14 @@ import { ErrorBoundary } from '../ErrorBoundary';
 import styles from './index.module.css';
 import { useSearchParams } from 'react-router-dom';
 import classNames from 'classnames';
+import { useSDKInfo } from '@/components/SDK';
 
 export function PageHeader(props: ComponentPropsWithoutRef<'div'>) {
   const { t } = useTranslation();
   const [search] = useSearchParams();
+  const [{ ORIENTATION, NOTCH }] = useSDKInfo();
+
+  const withNotch = NOTCH && ORIENTATION === 1;
   const showNav = search.get('nav') !== '0';
 
   return (
@@ -24,12 +28,22 @@ export function PageHeader(props: ComponentPropsWithoutRef<'div'>) {
             props.className
           )}
         >
-          <ControlButton className="absolute top-3 sm:top-[10px] left-[10px] sm:left-[22px]" />
+          <ControlButton
+            className={cx(
+              'absolute sm:top-[10px] left-[10px] sm:left-[22px]',
+              withNotch ? 'top-[52px]' : 'top-[12px]'
+            )}
+          />
         </div>
       )}
-      <div className={classNames('z-10 overflow-hidden', { ['pt-[10px]']: !showNav })}>
+      <div
+        className={
+          (classNames('z-10 overflow-hidden', { ['pt-[10px]']: !showNav }),
+          withNotch ? 'mt-[40px]' : '')
+        }
+      >
         <h1
-          className={`bg-white rounded-t-lg py-2 px-4  mx-[10px] sm:mx-[108px] text-center font-bold border-b border-gray-100`}
+          className={`bg-white rounded-t-lg py-2 px-4  mx-[10px] sm:mx-[108px] text-center font-bold border-b border-gray-100 break-words`}
         >
           {props.children ?? t('general.call_center')}
         </h1>
@@ -43,7 +57,7 @@ export function PageContent({ children, ...props }: ComponentPropsWithoutRef<'di
     <div
       {...props}
       className={cx(
-        'page flex flex-col grow overflow-hidden bg-white rounded-b-lg mx-[10px] sm:mx-[108px] mb-[10px]',
+        'page flex flex-col grow overflow-hidden bg-white rounded-b-lg mx-[10px] sm:mx-[108px] mb-[20px]',
         styles.content,
         props.className
       )}
