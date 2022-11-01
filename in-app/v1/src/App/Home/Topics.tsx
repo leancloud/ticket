@@ -4,7 +4,7 @@ import { Tab } from '@headlessui/react';
 import { useCategoryTopics } from '@/api/category';
 import { QueryWrapper } from '@/components/QueryWrapper';
 import { ArticleListItem } from '@/App/Articles/utils';
-import { useAppState } from '@/App/context';
+import { useAppState } from '@/states/app';
 import classNames from 'classnames';
 import styles from './index.module.css';
 
@@ -26,12 +26,15 @@ const Feedback: FC = () => {
 const Topics: FC<{}> = () => {
   const result = useCategoryTopics();
   const { data } = result;
-  const [{ topicIndex }, { update }] = useAppState();
+  const [{ topicIndex }, setAppState] = useAppState();
 
   return (
     <QueryWrapper result={result}>
       <div>
-        <Tab.Group selectedIndex={topicIndex} onChange={(topicIndex) => update({ topicIndex })}>
+        <Tab.Group
+          selectedIndex={topicIndex}
+          onChange={(topicIndex) => setAppState((prev) => ({ ...prev, topicIndex }))}
+        >
           <Tab.List className="flex px-4 py-3 overflow-x-auto">
             {data?.map((item) => (
               <Tab as={Fragment} key={item.id}>

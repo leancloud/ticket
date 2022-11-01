@@ -1,11 +1,16 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
+import { useTranslation } from 'react-i18next';
 import { decodeQueryParams, JsonParam, StringParam } from 'serialize-query-params';
 import { parse } from 'query-string';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 
-import { User, auth as lcAuth, http } from '@/leancloud';
+import { auth as lcAuth, http } from '@/leancloud';
+import { useAuth, useSetAuth } from '@/states/auth';
+import { useSetRootCategory } from '@/states/root-category';
+import { useSetTicketInfo } from '@/states/ticket-info';
+import { SDKProvider } from '@/components/SDK';
 import { APIError } from '@/components/APIError';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Loading } from '@/components/Loading';
@@ -17,9 +22,6 @@ import NotFound from './NotFound';
 import Articles from './Articles';
 import TopCategories from './TopCategories';
 import Test from './Test';
-import { useTranslation } from 'react-i18next';
-import { AppStateProvider } from './context';
-import { SDKProvider } from '../components/SDK';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,7 +33,7 @@ const queryClient = new QueryClient({
 });
 
 function RequireAuth({ children }: { children: JSX.Element }) {
-  const [user, loading, error] = useAuth();
+  const { user, loading, error } = useAuth();
   if (loading) {
     return <Loading />;
   }
@@ -44,19 +46,7 @@ function RequireAuth({ children }: { children: JSX.Element }) {
   return children;
 }
 
-const RootCategoryContext = createContext<string | undefined>(undefined);
-export const useRootCategory = () => useContext(RootCategoryContext);
-
 const ROOT_URLS = ['/in-app/v1/categories', '/in-app/v1/products'];
-
-const TicketInfoContext = createContext<{
-  meta?: Record<string, unknown> | null;
-  // fields
-}>({});
-export const useTicketInfo = () => useContext(TicketInfoContext);
-
-const AuthContext = createContext<[User | null, boolean, any]>([null, true, null]);
-export const useAuth = () => useContext(AuthContext);
 
 export default function App() {
   const { t } = useTranslation();
@@ -74,30 +64,27 @@ export default function App() {
   const paths = pathname.split('/');
   const rootCategory = paths[4];
 
-  const params = useMemo(
-    () =>
-      decodeQueryParams(
-        {
-          meta: JsonParam,
-          'anonymous-id': StringParam,
-          'xd-access-token': StringParam,
-          'tds-credential': StringParam,
-          'associate-anonymous-id': StringParam,
-        },
-        parse(window.location.hash)
-      ),
-    []
-  );
-  const ticketInfo = useMemo(() => ({ meta: params.meta }), [params]);
+  const setAuth = useSetAuth();
+  const setRootCategory = useSetRootCategory();
+  const setTicketInfo = useSetTicketInfo();
 
-  const [auth, setAuth] = useState<[User | null, boolean, any]>([null, true, null]);
+  const params = useHashConfiguration();
 
   useEffect(() => {
+    setRootCategory(rootCategory);
+    setTicketInfo({
+      meta: params.meta,
+      fields: params.fields,
+    });
+  }, []);
+
+  useEffect(() => {
+    setAuth({ loading: true });
     if (params['anonymous-id']) {
       lcAuth
         .loginWithAuthData('anonymous', { id: params['anonymous-id'] })
-        .then((user) => setAuth([user, false, null]))
-        .catch((error) => setAuth([null, false, error]));
+        .then((user) => setAuth({ user }))
+        .catch((error) => setAuth({ error }));
     } else if (params['xd-access-token'] || params['tds-credential']) {
       http
         .post(
@@ -117,12 +104,12 @@ export default function App() {
           throw error;
         })
         .then((response) => lcAuth.loginWithSessionToken(response.data.sessionToken))
-        .then((user) => setAuth([user, false, null]))
-        .catch((error) => setAuth([null, false, error]));
+        .then((user) => setAuth({ user }))
+        .catch((error) => setAuth({ error }));
     } else if (lcAuth.currentUser) {
-      setAuth([lcAuth.currentUser, false, null]);
+      setAuth({ user: lcAuth.currentUser });
     } else {
-      setAuth([null, false, null]);
+      setAuth({});
     }
   }, []);
 
@@ -135,20 +122,14 @@ export default function App() {
       <Helmet>
         <title>{t('general.call_center')}</title>
       </Helmet>
-      <BrowserRouter basename={`${rootURL}/${paths[4]}`}>
+      <BrowserRouter basename={`${rootURL}/${rootCategory}`}>
         <QueryClientProvider client={queryClient}>
           <ErrorBoundary>
-            <RootCategoryContext.Provider value={rootCategory}>
-              <AuthContext.Provider value={auth}>
-                <TicketInfoContext.Provider value={ticketInfo}>
-                  <SDKProvider>
-                    <AppStateProvider>
-                      <AppRoutes />
-                    </AppStateProvider>
-                  </SDKProvider>
-                </TicketInfoContext.Provider>
-              </AuthContext.Provider>
-            </RootCategoryContext.Provider>
+            <Suspense fallback={<Loading />}>
+              <SDKProvider>
+                <AppRoutes />
+              </SDKProvider>
+            </Suspense>
           </ErrorBoundary>
         </QueryClientProvider>
       </BrowserRouter>
@@ -191,3 +172,21 @@ const AppRoutes = () => {
     </Routes>
   );
 };
+
+function useHashConfiguration() {
+  return useMemo(
+    () =>
+      decodeQueryParams(
+        {
+          meta: JsonParam,
+          fields: JsonParam,
+          'anonymous-id': StringParam,
+          'xd-access-token': StringParam,
+          'tds-credential': StringParam,
+          'associate-anonymous-id': StringParam,
+        },
+        parse(window.location.hash)
+      ),
+    []
+  );
+}
