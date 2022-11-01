@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useMutation } from 'react-query';
 import { Helmet } from 'react-helmet-async';
-import { pick } from 'lodash-es';
+import { pick, cloneDeep } from 'lodash-es';
 
 import { http } from '@/leancloud';
 import { FieldItem, useTicketFormItems } from '@/api/ticket-form';
@@ -58,14 +58,14 @@ interface TicketFormProps {
 }
 
 function TicketForm({ category, onSubmit, submitting }: TicketFormProps) {
-  const { meta } = useTicketInfo();
+  const { meta, fields: presetFieldValues } = useTicketInfo();
 
   const { data: formItems, isLoading: loadingFormItems } = useTicketFormItems(category.formId!, {
     enabled: category.formId !== undefined,
     staleTime: 1000 * 60 * 5,
   });
 
-  const _items = useMemo<CustomFormItem[]>(() => {
+  const items = useMemo<CustomFormItem[]>(() => {
     if (!category.formId) {
       return DEFAULT_FIELDS.map((field) => ({ type: 'field', data: field }));
     }
@@ -73,20 +73,21 @@ function TicketForm({ category, onSubmit, submitting }: TicketFormProps) {
   }, [category.formId, formItems]);
 
   const fields = useMemo(() => {
-    const fieldItems = _items.filter((item) => item.type === 'field') as FieldItem[];
+    const fieldItems = items.filter((item) => item.type === 'field') as FieldItem[];
     return fieldItems.map((item) => item.data);
-  }, [_items]);
+  }, [items]);
 
   const { initData, onChange, clear } = usePersistFormData(category.id);
 
   const defaultValues = useMemo(() => {
+    const defaultValues = cloneDeep(presetFieldValues ?? {});
     if (initData && fields) {
-      return pick(
-        initData,
-        fields.filter((f) => f.type !== 'file').map((f) => f.id)
-      );
+      // 目前无法根据文件 id 恢复文件字段的状态, 所以排除文件字段
+      const ids = fields.filter((f) => f.type !== 'file').map((f) => f.id);
+      Object.assign(defaultValues, pick(initData, ids));
     }
-  }, [initData, fields]);
+    return defaultValues;
+  }, [presetFieldValues, initData, fields]);
 
   const handleSubmit = (data: Record<string, any>) => {
     const { title, description, ...fieldValues } = data;
@@ -105,7 +106,7 @@ function TicketForm({ category, onSubmit, submitting }: TicketFormProps) {
 
   return (
     <CustomForm
-      items={_items}
+      items={items}
       defaultValues={defaultValues}
       onChange={onChange}
       onSubmit={handleSubmit}
@@ -134,11 +135,13 @@ function Success({ ticketId }: SuccessProps) {
   );
 }
 
-async function commitTicket(data: NewTicketData): Promise<string> {
-  const {
-    data: { id },
-  } = await http.post<{ id: string }>('/api/2/tickets', data);
-  return id;
+async function createTicket(data: NewTicketData): Promise<string> {
+  const res = await http.post<{ id: string }>('/api/2/tickets', data, {
+    params: {
+      storeUnknownField: 1,
+    },
+  });
+  return res.data.id;
 }
 
 export function NewTicket() {
@@ -149,9 +152,10 @@ export function NewTicket() {
   const navigate = useNavigate();
 
   const { mutateAsync: submit, isLoading: submitting } = useMutation({
-    mutationFn: commitTicket,
-    onSuccess: (ticketId: string) =>
-      navigate({ pathname: '', search }, { replace: false, state: ticketId }),
+    mutationFn: createTicket,
+    onSuccess: (ticketId: string) => {
+      navigate({ pathname: '', search }, { replace: false, state: ticketId });
+    },
     onError: (error: Error) => alert(error.message),
   });
 
