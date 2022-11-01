@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { ChevronRightIcon } from '@heroicons/react/solid';
 import { PageContent, PageHeader } from '@/components/Page';
 import SpeakerIcon from '@/icons/Speaker';
-import { useRootCategory } from '@/App';
+import { useRootCategory } from '@/states/root-category';
 import { useCategories } from '@/App/Categories';
 import { useCategoryTopics } from '@/api/category';
 import { useNotices, ArticleLink } from '@/App/Articles/utils';

@@ -13,7 +13,7 @@ import OpenInBrowser from '@/components/OpenInBrowser';
 import CheckIcon from '@/icons/Check';
 import ThumbDownIcon from '@/icons/ThumbDown';
 import ThumbUpIcon from '@/icons/ThumbUp';
-import { useAuth } from '..';
+import { useAuth } from '@/states/auth';
 import { ArticleListItem, useFAQs } from './utils';
 import { Helmet } from 'react-helmet-async';
 
@@ -108,7 +108,7 @@ function ArticleDetail() {
   const [search] = useSearchParams();
   const categoryId = search.get('from-category');
 
-  const [user, loading, error] = useAuth();
+  const { user } = useAuth();
 
   return (
     <QueryWrapper result={result}>

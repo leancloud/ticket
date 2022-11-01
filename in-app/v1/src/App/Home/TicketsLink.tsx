@@ -2,11 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useQuery } from 'react-query';
 import { http } from '@/leancloud';
-import { useRootCategory } from '@/App';
-
-interface TicketsLinkProps {
-  badge?: boolean;
-}
+import { useRootCategory } from '@/states/root-category';
 
 async function fetchUnread(categoryId?: string) {
   const { data } = await http.get<boolean>(`/api/2/unread`, {

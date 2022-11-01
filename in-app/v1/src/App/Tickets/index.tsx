@@ -7,6 +7,7 @@ import { flatten } from 'lodash-es';
 import { Helmet } from 'react-helmet-async';
 
 import { auth, http } from '@/leancloud';
+import { useRootCategory } from '@/states/root-category';
 import { TicketListItem } from '@/types';
 import { QueryWrapper } from '@/components/QueryWrapper';
 import { PageContent, PageHeader } from '@/components/Page';
@@ -14,7 +15,6 @@ import { Time } from '@/components/Time';
 import { LoadingHint } from '@/components/Loading';
 import TicketDetail, { TicketStatus } from './Ticket';
 import { NewTicket } from './New';
-import { useRootCategory } from '../../App';
 
 const TICKETS_PAGE_SIZE = 20;
 

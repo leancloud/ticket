@@ -2,10 +2,12 @@ import { useEffect, useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQuery, UseQueryResult, UseQueryOptions } from 'react-query';
 import { useTranslation } from 'react-i18next';
+import { Helmet } from 'react-helmet-async';
 import { ChevronRightIcon } from '@heroicons/react/solid';
 import classNames from 'classnames';
 
 import { http } from '@/leancloud';
+import { useRootCategory } from '@/states/root-category';
 import { Category } from '@/types';
 import { PageContent, PageHeader } from '@/components/Page';
 import { QueryWrapper } from '@/components/QueryWrapper';
@@ -15,8 +17,6 @@ import { NewTicketButton } from '@/components/NewTicketButton';
 import { ArticleListItem, useFAQs } from '@/App/Articles/utils';
 import styles from './index.module.css';
 import { NotFoundContent } from '../NotFound';
-import { useRootCategory } from '..';
-import { Helmet } from 'react-helmet-async';
 
 interface ListItemProps {
   to: string;

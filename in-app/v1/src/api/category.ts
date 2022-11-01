@@ -1,5 +1,5 @@
 import { UseQueryOptions, useQuery } from 'react-query';
-import { useRootCategory } from '@/App';
+import { useRootCategory } from '@/states/root-category';
 import { http } from '@/leancloud';
 import { Article } from '@/types';
 

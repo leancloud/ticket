@@ -7,6 +7,7 @@ import { pick } from 'lodash-es';
 
 import { http } from '@/leancloud';
 import { FieldItem, useTicketFormItems } from '@/api/ticket-form';
+import { useTicketInfo } from '@/states/ticket-info';
 import { useSearchParams } from '@/utils/url';
 import { PageContent, PageHeader } from '@/components/Page';
 import { Button } from '@/components/Button';
@@ -15,7 +16,6 @@ import { Loading } from '@/components/Loading';
 import CheckIcon from '@/icons/Check';
 import { Category } from '@/types';
 import { useCategory } from '../../Categories';
-import { useTicketInfo } from '../..';
 import NotFound from '../../NotFound';
 import { CustomForm, CustomFieldConfig, CustomFormItem } from './CustomForm';
 import { usePersistFormData } from './usePersistFormData';
