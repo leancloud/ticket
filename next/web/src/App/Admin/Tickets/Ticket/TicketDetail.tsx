@@ -2,17 +2,30 @@ import { useNavigate, useParams } from 'react-router-dom';
 import moment from 'moment';
 import { Button, Col, Descriptions, PageHeader, Row, Select, Skeleton } from '@/components/antd';
 import { UserLabel } from '@/App/Admin/components';
+import { UpdateTicketData, useTicket, useUpdateTicket } from '@/api/ticket';
+import { CategorySelect } from '@/components/common';
 import { TicketStatus } from '../components/TicketStatus';
 import { Timeline } from './Timeline';
-import { useTicket } from '@/api/ticket';
 
 export function TicketDetail() {
   const { id } = useParams() as { id: string };
   const navigate = useNavigate();
 
-  const { data: ticket } = useTicket(id, {
+  const { data: ticket, refetch } = useTicket(id, {
     include: ['author'],
   });
+
+  const { mutate: update, isLoading: updating } = useUpdateTicket({
+    onSuccess: () => {
+      refetch();
+    },
+  });
+
+  const handleUpdate = (data: UpdateTicketData) => {
+    if (ticket) {
+      update([ticket.id, data]);
+    }
+  };
 
   return (
     <div className="h-full bg-white overflow-auto">
@@ -49,7 +62,13 @@ export function TicketDetail() {
         <Col className="px-[15px]" span={24} md={6}>
           <div className="ant-form-vertical">
             <div className="pb-2">分类</div>
-            <Select className="w-full" />
+            <CategorySelect
+              categoryActive
+              value={ticket?.categoryId}
+              disabled={updating}
+              onChange={(categoryId) => categoryId && handleUpdate({ categoryId })}
+              style={{ width: '100%' }}
+            />
           </div>
         </Col>
         <Col className="px-[15px]" span={24} md={12}>
