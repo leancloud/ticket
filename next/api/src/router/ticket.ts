@@ -492,19 +492,43 @@ router.post('/', async (ctx) => {
   ctx.body = { id: ticket.id };
 });
 
+const NUMBERS_PATTERN = /^\d+$/;
+
 router.param('id', async (id, ctx, next) => {
   const currentUser = ctx.state.currentUser as User;
-  ctx.state.ticket = await Ticket.findOrFail(id, currentUser.getAuthOptions());
+  let ticket: Ticket | undefined;
+
+  if (NUMBERS_PATTERN.test(id)) {
+    ticket = await Ticket.queryBuilder()
+      .where('nid', '==', parseInt(id))
+      .first(currentUser.getAuthOptions());
+  } else {
+    ticket = await Ticket.find(id, currentUser.getAuthOptions());
+  }
+
+  if (!ticket) {
+    ctx.throw(404, `ticket ${id} does not exist`);
+  }
+
+  ctx.state.ticket = ticket;
   return next();
 });
 
 const getTicketSchema = includeSchema;
 
-router.get('/:id', include, async (ctx) => {
+router.get('/:ticketId', include, async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   const params = getTicketSchema.validateSync(ctx.query);
+  const ticketId = ctx.params.ticketId;
 
-  const query = Ticket.queryBuilder().where('objectId', '==', ctx.params.id);
+  const query = Ticket.queryBuilder();
+
+  if (NUMBERS_PATTERN.test(ticketId)) {
+    query.where('nid', '==', parseInt(ticketId));
+  } else {
+    query.where('objectId', '==', ticketId);
+  }
+
   if (params.includeAuthor) {
     query.preload('author');
   }
@@ -523,7 +547,7 @@ router.get('/:id', include, async (ctx) => {
 
   const ticket = await query.first(currentUser.getAuthOptions());
   if (!ticket) {
-    ctx.throw(404);
+    ctx.throw(404, `ticket ${ticketId} does not exist`);
     return;
   }
   if (params.includeCategoryPath) {
