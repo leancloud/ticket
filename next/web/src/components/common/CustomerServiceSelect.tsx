@@ -6,7 +6,7 @@ import { Select, SelectProps, NULL_STRING } from '@/components/antd';
 import { Retry } from './Retry';
 
 const nullOption = {
-  label: '（未分配）',
+  label: '(未分配)',
   value: NULL_STRING,
 };
 

@@ -179,8 +179,8 @@ async function createTicket(data: CreateTicketData) {
 
 export interface UpdateTicketData {
   categoryId?: string;
-  groupId?: string;
-  assigneeId?: string;
+  groupId?: string | null;
+  assigneeId?: string | null;
 }
 
 async function updateTicket(id: string | number, data: UpdateTicketData) {

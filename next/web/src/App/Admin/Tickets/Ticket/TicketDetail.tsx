@@ -1,15 +1,30 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import moment from 'moment';
-import { Button, Col, Descriptions, PageHeader, Row, Select, Skeleton } from '@/components/antd';
+import {
+  Button,
+  Col,
+  Descriptions,
+  NULL_STRING,
+  PageHeader,
+  Row,
+  Select,
+  Skeleton,
+} from '@/components/antd';
 import { UserLabel } from '@/App/Admin/components';
 import { UpdateTicketData, useTicket, useUpdateTicket } from '@/api/ticket';
-import { CategorySelect } from '@/components/common';
+import { useCurrentUser } from '@/leancloud';
+import {
+  CategorySelect,
+  SingleCustomerServiceSelect,
+  SingleGroupSelect,
+} from '@/components/common';
 import { TicketStatus } from '../components/TicketStatus';
 import { Timeline } from './Timeline';
 
 export function TicketDetail() {
   const { id } = useParams() as { id: string };
   const navigate = useNavigate();
+  const currentUser = useCurrentUser();
 
   const { data: ticket, refetch } = useTicket(id, {
     include: ['author'],
@@ -64,9 +79,10 @@ export function TicketDetail() {
             <div className="pb-2">分类</div>
             <CategorySelect
               categoryActive
+              allowClear={false}
               value={ticket?.categoryId}
               disabled={updating}
-              onChange={(categoryId) => categoryId && handleUpdate({ categoryId })}
+              onChange={(categoryId) => handleUpdate({ categoryId })}
               style={{ width: '100%' }}
             />
           </div>
@@ -82,12 +98,32 @@ export function TicketDetail() {
                 internal
               </span>
             </div>
-            <Select className="w-full" />
+            <SingleGroupSelect
+              value={ticket?.groupId}
+              disabled={updating}
+              onChange={(groupId) => handleUpdate({ groupId })}
+              style={{ width: '100%' }}
+            />
 
             <div className="flex justify-between pb-2 mt-4">
-              负责人<button className="text-primary">分配给我</button>
+              负责人
+              {ticket && ticket.assigneeId !== currentUser!.id && (
+                <button
+                  className="text-primary disabled:text-gray-400"
+                  disabled={updating}
+                  onClick={() => handleUpdate({ assigneeId: currentUser!.id })}
+                >
+                  分配给我
+                </button>
+              )}
             </div>
-            <Select className="w-full" />
+            <SingleCustomerServiceSelect
+              includeNull
+              value={ticket?.assigneeId ?? NULL_STRING}
+              disabled={updating}
+              onChange={(assigneeId) => handleUpdate({ assigneeId })}
+              style={{ width: '100%' }}
+            />
           </div>
         </Col>
       </Row>
