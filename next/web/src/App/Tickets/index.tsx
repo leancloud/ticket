@@ -5,7 +5,7 @@ import { NewTicket } from './New';
 export default function Tickets() {
   return (
     <Routes>
-      <Route path="/new" element={<NewTicket />} />
+      <Route path="new" element={<NewTicket />} />
     </Routes>
   );
 }

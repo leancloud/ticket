@@ -6,7 +6,7 @@ import { useGroups } from '@/api/group';
 import { TicketSchema } from '@/api/ticket';
 import { useUsers } from '@/api/user';
 import { Checkbox, Table } from '@/components/antd';
-import Status from '../TicketStatus';
+import { TicketStatus } from '../../components/TicketStatus';
 import { CategoryPath, useGetCategoryPath } from '../TicketList';
 
 const { Column } = Table;
@@ -70,7 +70,7 @@ export function TicketTable({ loading, tickets, checkedIds, onChangeChecked }: T
       <Column
         dataIndex="status"
         title="状态"
-        render={(status: number) => <Status status={status} />}
+        render={(status: number) => <TicketStatus status={status} />}
       />
 
       <Column

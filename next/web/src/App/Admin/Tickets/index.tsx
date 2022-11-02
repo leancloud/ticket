@@ -7,7 +7,7 @@ import { usePage } from '@/utils/usePage';
 import { Topbar, useOrderBy } from './Topbar';
 import { FilterForm, LocalFiltersProvider, useLocalFilters } from './Filter';
 import { TicketView } from './TicketView';
-import { Ticket } from './Ticket';
+import { TicketDetail } from './Ticket/TicketDetail';
 import { StatsPanel } from './TicketStats';
 
 const pageSize = 20;
@@ -145,7 +145,7 @@ export default function TicketRoutes() {
           </LocalFiltersProvider>
         }
       />
-      <Route path=":id" element={<Ticket />} />
+      <Route path=":id" element={<TicketDetail />} />
     </Routes>
   );
 }

@@ -47,7 +47,7 @@ export interface TicketStatusProps {
   status: number;
 }
 
-export default function TicketStatus({ status }: TicketStatusProps) {
+export function TicketStatus({ status }: TicketStatusProps) {
   const Component = components[status] ?? Unknown;
   return <Component />;
 }

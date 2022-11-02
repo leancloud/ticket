@@ -11,7 +11,7 @@ import { TicketSchema } from '@/api/ticket';
 import { useUsers } from '@/api/user';
 import { Checkbox } from '@/components/antd';
 import { LoadingCover } from '@/components/common';
-import Status from '../TicketStatus';
+import { TicketStatus } from '../../components/TicketStatus';
 import style from './index.module.css';
 
 function Name({ children, loading }: { children: string; loading?: boolean }) {
@@ -129,7 +129,7 @@ export function TicketList({ loading, tickets, checkedIds, onChangeChecked }: Ti
             <div className="grid grid-cols-4 grow">
               <div className="col-span-3 flex flex-col justify-center items-start py-4 overflow-hidden">
                 <div>
-                  <Status status={ticket.status} />
+                  <TicketStatus status={ticket.status} />
                   <CategoryPath
                     className="ml-1 text-sm"
                     path={getCategoryPath(ticket.categoryId)}
