@@ -14,3 +14,20 @@
     z-index: -1;
   }
 }
+
+.imageGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+
+  & > * {
+    display: flex;
+    width: 100px;
+    height: 100px;
+
+    & > img {
+      width: unset;
+      margin: auto;
+    }
+  }
+}

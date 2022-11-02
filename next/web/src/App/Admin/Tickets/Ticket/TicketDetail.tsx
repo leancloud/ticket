@@ -28,7 +28,7 @@ export function TicketDetail() {
   const currentUser = useCurrentUser();
 
   const { data: ticket, refetch } = useTicket(id, {
-    include: ['author'],
+    include: ['author', 'files'],
   });
 
   const { mutate: update, isLoading: updating } = useUpdateTicket({
