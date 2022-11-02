@@ -78,55 +78,65 @@ export function TicketDetail() {
 
       <Row className="mt-4">
         <Col className="px-[15px]" span={24} md={6}>
-          <div className="ant-form-vertical">
-            <div className="pb-2">分类</div>
-            <CategorySelect
-              categoryActive
-              allowClear={false}
-              value={ticket?.categoryId}
-              disabled={updating}
-              onChange={(categoryId) => handleUpdate({ categoryId })}
-              style={{ width: '100%' }}
-            />
-          </div>
+          {ticket ? (
+            <div className="ant-form-vertical">
+              <div className="pb-2">分类</div>
+              <CategorySelect
+                categoryActive
+                allowClear={false}
+                value={ticket.categoryId}
+                disabled={updating}
+                onChange={(categoryId) => handleUpdate({ categoryId })}
+                style={{ width: '100%' }}
+              />
+            </div>
+          ) : (
+            <Skeleton active />
+          )}
         </Col>
         <Col className="px-[15px]" span={24} md={12}>
           {ticket ? <Timeline ticket={ticket} /> : <Skeleton active paragraph={{ rows: 10 }} />}
         </Col>
         <Col className="px-[15px]" span={24} md={6}>
           <div className="ant-form-vertical sticky top-4">
-            <div className="pb-2 inline-flex items-center">
-              客服组
-              <span className="bg-gray-500 text-white rounded-sm text-sm px-1 ml-1 font-semibold">
-                internal
-              </span>
-            </div>
-            <SingleGroupSelect
-              value={ticket?.groupId}
-              disabled={updating}
-              onChange={(groupId) => handleUpdate({ groupId })}
-              style={{ width: '100%' }}
-            />
-
-            <div className="flex justify-between pb-2 mt-4">
-              负责人
-              {ticket && ticket.assigneeId !== currentUser!.id && (
-                <button
-                  className="text-primary disabled:text-gray-400"
+            {ticket ? (
+              <>
+                <div className="pb-2 inline-flex items-center">
+                  客服组
+                  <span className="bg-gray-500 text-white rounded-sm text-sm px-1 ml-1 font-semibold">
+                    internal
+                  </span>
+                </div>
+                <SingleGroupSelect
+                  value={ticket?.groupId}
                   disabled={updating}
-                  onClick={() => handleUpdate({ assigneeId: currentUser!.id })}
-                >
-                  分配给我
-                </button>
-              )}
-            </div>
-            <SingleCustomerServiceSelect
-              includeNull
-              value={ticket?.assigneeId ?? NULL_STRING}
-              disabled={updating}
-              onChange={(assigneeId) => handleUpdate({ assigneeId })}
-              style={{ width: '100%' }}
-            />
+                  onChange={(groupId) => handleUpdate({ groupId })}
+                  style={{ width: '100%' }}
+                />
+
+                <div className="flex justify-between pb-2 mt-4">
+                  负责人
+                  {ticket && ticket.assigneeId !== currentUser!.id && (
+                    <button
+                      className="text-primary disabled:text-gray-400"
+                      disabled={updating}
+                      onClick={() => handleUpdate({ assigneeId: currentUser!.id })}
+                    >
+                      分配给我
+                    </button>
+                  )}
+                </div>
+                <SingleCustomerServiceSelect
+                  includeNull
+                  value={ticket?.assigneeId ?? NULL_STRING}
+                  disabled={updating}
+                  onChange={(assigneeId) => handleUpdate({ assigneeId })}
+                  style={{ width: '100%' }}
+                />
+              </>
+            ) : (
+              <Skeleton active />
+            )}
           </div>
         </Col>
       </Row>
