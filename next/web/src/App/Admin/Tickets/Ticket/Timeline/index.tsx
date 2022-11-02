@@ -2,6 +2,7 @@ import { ReactNode, useMemo } from 'react';
 import { AiOutlinePaperClip } from 'react-icons/ai';
 import moment from 'moment';
 import { partition } from 'lodash-es';
+import cx from 'classnames';
 import { TicketDetailSchema, useTicketReplies } from '@/api/ticket';
 import { Image, Skeleton } from '@/components/antd';
 import { UserLabel } from '@/App/Admin/components';
@@ -31,13 +32,14 @@ export function Timeline({ ticket }: TimelineProps) {
         files={ticket.files}
       />
       {loadingReplies && <Skeleton active paragraph={{ rows: 4 }} />}
-      {replyItems.map(({ id, author, createdAt, contentSafeHTML, files }) => (
+      {replyItems.map((reply) => (
         <ReplyCard
-          key={id}
-          author={<UserLabel user={author} />}
-          createTime={createdAt}
-          content={contentSafeHTML}
-          files={files}
+          key={reply.id}
+          author={<UserLabel user={reply.author} />}
+          createTime={reply.createdAt}
+          content={reply.contentSafeHTML}
+          files={reply.files}
+          isAgent={reply.isCustomerService}
         />
       ))}
     </div>
@@ -56,9 +58,10 @@ interface ReplyCardProps {
   createTime: string;
   content: string;
   files?: FileInfo[];
+  isAgent?: boolean;
 }
 
-function ReplyCard({ author, createTime, content, files }: ReplyCardProps) {
+function ReplyCard({ author, createTime, content, files, isAgent }: ReplyCardProps) {
   const [imageFiles, otherFiles] = useMemo(() => {
     if (!files) {
       return [[], []];
@@ -67,11 +70,27 @@ function ReplyCard({ author, createTime, content, files }: ReplyCardProps) {
   }, [files]);
 
   return (
-    <div className="border border-[#00000020] rounded-[3px] mb-5 bg-white">
-      <div className="flex items-center gap-1 bg-[#00000008] leading-6 px-[15px] py-[10px] border-b border-[#00000020]">
+    <div
+      className={cx('border rounded-[3px] mb-5 bg-white', {
+        'border-[#00000020]': !isAgent,
+        'border-primary-600': isAgent,
+      })}
+    >
+      <div
+        className={cx('flex items-center gap-1 leading-6 px-[15px] py-[10px] border-b', {
+          'bg-[#00000008] border-[#00000020]': !isAgent,
+          'bg-primary-400 border-primary-600': isAgent,
+        })}
+      >
         {author}
         <span>提交于</span>
         <span title={createTime}>{moment(createTime).fromNow()}</span>
+        {isAgent && (
+          <>
+            <div className="grow" />
+            <span className="border border-primary rounded px-1 text-sm text-primary">客服</span>
+          </>
+        )}
       </div>
       <div className="p-[15px]">
         <div className="markdown-body" dangerouslySetInnerHTML={{ __html: content }} />
