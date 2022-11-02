@@ -1,7 +1,7 @@
 import { StrictMode } from 'react';
 import { render } from 'react-dom';
 import moment from 'moment';
-import 'moment/locale/zh-cn';
+import 'moment/dist/locale/zh-cn';
 
 import * as Sentry from '@sentry/react';
 import { Integrations } from '@sentry/tracing';
