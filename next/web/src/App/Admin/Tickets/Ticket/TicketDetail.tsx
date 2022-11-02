@@ -1,4 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from 'react-query';
 import moment from 'moment';
 import {
   Button,
@@ -12,7 +13,7 @@ import {
 } from '@/components/antd';
 import { UserLabel } from '@/App/Admin/components';
 import { UpdateTicketData, useTicket, useUpdateTicket } from '@/api/ticket';
-import { useCurrentUser } from '@/leancloud';
+import { http, useCurrentUser } from '@/leancloud';
 import {
   CategorySelect,
   SingleCustomerServiceSelect,
@@ -54,7 +55,9 @@ export function TicketDetail() {
           )
         }
         onBack={() => navigate('..')}
-        extra={[<AccessControl key="1" />, <SubscribeTicket key="2" />]}
+        extra={
+          ticket && [<AccessControl key="1" ticketId={ticket.id} />, <SubscribeTicket key="2" />]
+        }
       >
         {ticket ? (
           <Descriptions size="small">
@@ -142,14 +145,36 @@ function TicketTitle({ title, status }: { title: string; status: number }) {
   );
 }
 
-function AccessControl() {
+function AccessControl({ ticketId }: { ticketId: string }) {
+  // TODO: switch to /api/2
+  const { data: isPrivate, isLoading } = useQuery({
+    queryKey: ['ticketPrivateAttr', ticketId],
+    queryFn: async () => {
+      const res = await http.get<{ private: boolean }>(`/api/1/tickets/${ticketId}`);
+      return res.data.private;
+    },
+  });
+
+  const queryClient = useQueryClient();
+
+  const { mutate, isLoading: updating } = useMutation({
+    mutationFn: (isPrivate: boolean) => {
+      return http.patch(`/api/1/tickets/${ticketId}`, { private: isPrivate });
+    },
+    onSuccess: (_, isPrivate) => {
+      queryClient.setQueryData(['ticketPrivateAttr', ticketId], isPrivate);
+    },
+  });
+
   return (
     <Select
+      loading={isLoading || updating}
       options={[
-        { label: <div>员工可见</div>, value: 'internal' },
+        { label: '员工可见', value: 'internal' },
         { label: '仅客服可见', value: 'private' },
       ]}
-      value={'internal'}
+      value={isPrivate ? 'private' : 'internal'}
+      onChange={(value) => mutate(value === 'private')}
     />
   );
 }
