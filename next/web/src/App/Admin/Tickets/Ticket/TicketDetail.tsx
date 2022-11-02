@@ -106,7 +106,8 @@ export function TicketDetail() {
                   </span>
                 </div>
                 <SingleGroupSelect
-                  value={ticket?.groupId}
+                  includeNull
+                  value={ticket?.groupId ?? NULL_STRING}
                   disabled={updating}
                   onChange={(groupId) => handleUpdate({ groupId })}
                   style={{ width: '100%' }}
