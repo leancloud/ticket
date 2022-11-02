@@ -55,9 +55,7 @@ export function TicketDetail() {
           )
         }
         onBack={() => navigate('..')}
-        extra={
-          ticket && [<AccessControl key="1" ticketId={ticket.id} />, <SubscribeTicket key="2" />]
-        }
+        extra={ticket && <HeaderExtra ticketId={ticket.id} />}
       >
         {ticket ? (
           <Descriptions size="small">
@@ -155,40 +153,55 @@ function TicketTitle({ title, status }: { title: string; status: number }) {
   );
 }
 
-function AccessControl({ ticketId }: { ticketId: string }) {
+function HeaderExtra({ ticketId }: { ticketId: string }) {
   // TODO: switch to /api/2
-  const { data: isPrivate, isLoading } = useQuery({
-    queryKey: ['ticketPrivateAttr', ticketId],
+  interface V1_Ticket {
+    private: boolean;
+    subscribed: boolean;
+  }
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['v1_ticket', ticketId],
     queryFn: async () => {
-      const res = await http.get<{ private: boolean }>(`/api/1/tickets/${ticketId}`);
-      return res.data.private;
+      const res = await http.get<V1_Ticket>(`/api/1/tickets/${ticketId}`);
+      return res.data;
     },
   });
 
   const queryClient = useQueryClient();
 
   const { mutate, isLoading: updating } = useMutation({
-    mutationFn: (isPrivate: boolean) => {
-      return http.patch(`/api/1/tickets/${ticketId}`, { private: isPrivate });
+    mutationFn: (data: Partial<V1_Ticket>) => {
+      return http.patch(`/api/1/tickets/${ticketId}`, data);
     },
-    onSuccess: (_, isPrivate) => {
-      queryClient.setQueryData(['ticketPrivateAttr', ticketId], isPrivate);
+    onSuccess: (_, data) => {
+      queryClient.setQueryData<V1_Ticket | undefined>(['v1_ticket', ticketId], (prev) => {
+        if (prev) {
+          return { ...prev, ...data };
+        }
+      });
     },
   });
 
   return (
-    <Select
-      loading={isLoading || updating}
-      options={[
-        { label: '员工可见', value: 'internal' },
-        { label: '仅客服可见', value: 'private' },
-      ]}
-      value={isPrivate ? 'private' : 'internal'}
-      onChange={(value) => mutate(value === 'private')}
-    />
+    <>
+      <Select
+        loading={isLoading}
+        disabled={updating}
+        options={[
+          { label: '员工可见', value: 'internal' },
+          { label: '仅客服可见', value: 'private' },
+        ]}
+        value={data?.private ? 'private' : 'internal'}
+        onChange={(value) => mutate({ private: value === 'private' })}
+      />
+      <Button
+        loading={isLoading}
+        disabled={updating}
+        onClick={() => mutate({ subscribed: !data!.subscribed })}
+      >
+        {data?.subscribed ? '取消关注' : '关注'}
+      </Button>
+    </>
   );
-}
-
-function SubscribeTicket() {
-  return <Button>关注</Button>;
 }
