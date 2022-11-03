@@ -3,7 +3,7 @@ import { useQueryClient } from 'react-query';
 import { keyBy } from 'lodash-es';
 import { TagMetadataSchema, useTagMetadatas } from '@/api/tag-metadata';
 import { useUpdateTicket } from '@/api/ticket';
-import { Button, Input, Select, Skeleton } from '@/components/antd';
+import { Button, Divider, Input, Select, Skeleton } from '@/components/antd';
 import { useTicket_v1, V1_Ticket } from './api1';
 import { FormLabel } from './components/FormLabel';
 
@@ -73,7 +73,7 @@ export function TagForm({ ticketId }: TagFormProps) {
 
   return (
     <div>
-      <hr className="my-6" />
+      <Divider />
       {tagMetadatas.map((tagMetadata) => (
         <TagField
           key={tagMetadata.id}

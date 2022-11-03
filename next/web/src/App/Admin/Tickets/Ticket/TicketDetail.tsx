@@ -6,6 +6,7 @@ import {
   Button,
   Col,
   Descriptions,
+  Divider,
   NULL_STRING,
   PageHeader,
   Row,
@@ -14,7 +15,13 @@ import {
   Tooltip,
 } from '@/components/antd';
 import { UserLabel } from '@/App/Admin/components';
-import { TicketDetailSchema, UpdateTicketData, useTicket, useUpdateTicket } from '@/api/ticket';
+import {
+  TicketDetailSchema,
+  UpdateTicketData,
+  useOperateTicket,
+  useTicket,
+  useUpdateTicket,
+} from '@/api/ticket';
 import { useGroup } from '@/api/group';
 import { useCurrentUser } from '@/leancloud';
 import {
@@ -26,6 +33,7 @@ import { TicketStatus } from '../components/TicketStatus';
 import { Timeline } from './Timeline';
 import { TagForm } from './TagForm';
 import { FormLabel } from './components/FormLabel';
+import { ReplyEditor } from './components/ReplyEditor';
 import { useTicket_v1, useUpdateTicket_v1 } from './api1';
 
 export function TicketDetail() {
@@ -45,6 +53,18 @@ export function TicketDetail() {
   const handleUpdate = (data: UpdateTicketData) => {
     if (ticket) {
       update([ticket.id, data]);
+    }
+  };
+
+  const { mutate: operate, isLoading: operating } = useOperateTicket({
+    onSuccess: () => {
+      refetch();
+    },
+  });
+
+  const handleOperate = (action: string) => {
+    if (ticket) {
+      operate([ticket.id, action]);
     }
   };
 
@@ -97,13 +117,20 @@ export function TicketDetail() {
             <Skeleton active />
           )}
         </Col>
-        <Col className="px-[15px]" span={24} md={12}>
+        <Col className="px-[15px] pb-4" span={24} md={12}>
           {ticket ? <Timeline ticket={ticket} /> : <Skeleton active paragraph={{ rows: 10 }} />}
+          <ReplyEditor onOperate={handleOperate} operating={operating} />
         </Col>
         <Col className="px-[15px]" span={24} md={6}>
           <div className="sticky top-4 pb-4">
             {ticket ? (
-              <RightSider ticket={ticket} onUpdate={handleUpdate} updating={updating} />
+              <RightSider
+                ticket={ticket}
+                onUpdate={handleUpdate}
+                updating={updating}
+                onOperate={handleOperate}
+                operating={operating}
+              />
             ) : (
               <Skeleton active />
             )}
@@ -157,9 +184,11 @@ interface RightSiderProps {
   ticket: TicketDetailSchema;
   onUpdate: (data: Partial<UpdateTicketData>) => void;
   updating?: boolean;
+  onOperate: (action: string) => void;
+  operating?: boolean;
 }
 
-function RightSider({ ticket, onUpdate, updating }: RightSiderProps) {
+function RightSider({ ticket, onUpdate, updating, onOperate, operating }: RightSiderProps) {
   const currentUser = useCurrentUser();
 
   const { data: group } = useGroup(ticket.groupId!, {
@@ -220,6 +249,42 @@ function RightSider({ ticket, onUpdate, updating }: RightSiderProps) {
       </div>
 
       <TagForm ticketId={ticket.id} />
+
+      <TicketOperations ticketStatus={ticket.status} onOperate={onOperate} operating={operating} />
     </>
+  );
+}
+
+interface TicketOperationsProps {
+  ticketStatus: number;
+  onOperate: (action: string) => void;
+  operating?: boolean;
+}
+
+function TicketOperations({ ticketStatus, operating, onOperate }: TicketOperationsProps) {
+  return (
+    <div>
+      <Divider />
+      <FormLabel>工单操作</FormLabel>
+      <div>
+        {ticketStatus < 200 && (
+          <>
+            {import.meta.env.VITE_ENABLE_USER_CONFIRMATION && (
+              <Button disabled={operating} onClick={() => onOperate('resolve')}>
+                已解决
+              </Button>
+            )}
+            <Button disabled={operating} onClick={() => onOperate('close')}>
+              关闭
+            </Button>
+          </>
+        )}
+        {ticketStatus > 200 && (
+          <Button disabled={operating} onClick={() => onOperate('reopen')}>
+            重新打开
+          </Button>
+        )}
+      </div>
+    </div>
   );
 }
