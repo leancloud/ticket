@@ -107,7 +107,7 @@ function TagField({ tagMetadata, tag, loading, onChange }: TagFieldProps) {
     return tagMetadata.values?.map((value) => ({ label: value, value }));
   }, [tagMetadata.values]);
 
-  const dirty = useMemo(() => (tag ? textValue !== tag.value : true), [tag, textValue]);
+  const dirty = useMemo(() => (tag ? textValue !== tag.value : !!textValue), [tag, textValue]);
 
   return (
     <div className="mt-4">
@@ -118,6 +118,7 @@ function TagField({ tagMetadata, tag, loading, onChange }: TagFieldProps) {
       {tagMetadata.type === 'text' && (
         <Input.Group compact style={{ display: 'flex' }}>
           <Input
+            placeholder="未设置"
             value={textValue}
             disabled={loading}
             onChange={(e) => setTextValue(e.target.value)}
