@@ -1,4 +1,6 @@
+import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { AiFillExclamationCircle } from 'react-icons/ai';
 import moment from 'moment';
 import {
   Button,
@@ -9,9 +11,11 @@ import {
   Row,
   Select,
   Skeleton,
+  Tooltip,
 } from '@/components/antd';
 import { UserLabel } from '@/App/Admin/components';
 import { TicketDetailSchema, UpdateTicketData, useTicket, useUpdateTicket } from '@/api/ticket';
+import { useGroup } from '@/api/group';
 import { useCurrentUser } from '@/leancloud';
 import {
   CategorySelect,
@@ -76,9 +80,9 @@ export function TicketDetail() {
       </PageHeader>
 
       <Row className="mt-4">
-        <Col className="px-[15px]" span={24} md={6}>
+        <Col className="px-[15px] pb-4" span={24} md={6}>
           {ticket ? (
-            <div className="ant-form-vertical">
+            <>
               <div className="pb-2">分类</div>
               <CategorySelect
                 categoryActive
@@ -88,7 +92,7 @@ export function TicketDetail() {
                 onChange={(categoryId) => handleUpdate({ categoryId })}
                 style={{ width: '100%' }}
               />
-            </div>
+            </>
           ) : (
             <Skeleton active />
           )}
@@ -158,6 +162,20 @@ interface RightSiderProps {
 function RightSider({ ticket, onUpdate, updating }: RightSiderProps) {
   const currentUser = useCurrentUser();
 
+  const { data: group } = useGroup(ticket.groupId!, {
+    enabled: ticket.groupId !== undefined,
+  });
+
+  const assigneeInGroup = useMemo(() => {
+    if (!group || !ticket.assigneeId) {
+      return;
+    }
+    if (!group.userIds) {
+      return false;
+    }
+    return group.userIds.includes(ticket.assigneeId);
+  }, [ticket.assigneeId, group]);
+
   return (
     <>
       <div>
@@ -172,16 +190,24 @@ function RightSider({ ticket, onUpdate, updating }: RightSiderProps) {
       </div>
 
       <div className="mt-4">
-        <FormLabel className="flex justify-between">
-          负责人
+        <FormLabel className="flex items-center">
+          <div>负责人</div>
+          {assigneeInGroup === false && (
+            <Tooltip title={`负责人不是客服组 ${group!.name} 的成员`}>
+              <AiFillExclamationCircle className="inline-block text-red-500 w-4 h-4" />
+            </Tooltip>
+          )}
           {ticket && ticket.assigneeId !== currentUser!.id && (
-            <button
-              className="text-primary disabled:text-gray-400"
-              disabled={updating}
-              onClick={() => onUpdate({ assigneeId: currentUser!.id })}
-            >
-              分配给我
-            </button>
+            <>
+              <div className="grow" />
+              <button
+                className="text-primary disabled:text-gray-400"
+                disabled={updating}
+                onClick={() => onUpdate({ assigneeId: currentUser!.id })}
+              >
+                分配给我
+              </button>
+            </>
           )}
         </FormLabel>
         <SingleCustomerServiceSelect
