@@ -41,7 +41,6 @@ export function TagForm({ ticketId }: TagFormProps) {
   });
 
   const handleChange = (key: string, value: string | undefined, isPrivate: boolean) => {
-    console.log(key, value, isPrivate);
     if (!ticket) {
       return;
     }
