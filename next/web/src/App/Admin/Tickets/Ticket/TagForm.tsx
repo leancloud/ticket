@@ -6,7 +6,6 @@ import { useUpdateTicket } from '@/api/ticket';
 import { Button, Input, Select, Skeleton } from '@/components/antd';
 import { useTicket_v1, V1_Ticket } from './api1';
 import { FormLabel } from './components/FormLabel';
-import { InternalBadge } from './components/InternalBadge';
 
 interface TagFormProps {
   ticketId: string;
@@ -111,10 +110,7 @@ function TagField({ tagMetadata, tag, loading, onChange }: TagFieldProps) {
 
   return (
     <div className="mt-4">
-      <FormLabel className="inline-flex items-center">
-        {tagMetadata.key}
-        {tagMetadata.private && <InternalBadge />}
-      </FormLabel>
+      <FormLabel>{tagMetadata.key}</FormLabel>
       {tagMetadata.type === 'text' && (
         <Input.Group compact style={{ display: 'flex' }}>
           <Input

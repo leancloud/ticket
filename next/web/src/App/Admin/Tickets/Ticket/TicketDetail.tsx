@@ -23,7 +23,6 @@ import { Timeline } from './Timeline';
 import { TagForm } from './TagForm';
 import { FormLabel } from './components/FormLabel';
 import { useTicket_v1, useUpdateTicket_v1 } from './api1';
-import { InternalBadge } from './components/InternalBadge';
 
 export function TicketDetail() {
   const { id } = useParams() as { id: string };
@@ -162,10 +161,7 @@ function RightSider({ ticket, onUpdate, updating }: RightSiderProps) {
   return (
     <>
       <div>
-        <FormLabel className="inline-flex items-center">
-          客服组
-          <InternalBadge />
-        </FormLabel>
+        <FormLabel>客服组</FormLabel>
         <SingleGroupSelect
           includeNull
           value={ticket?.groupId ?? NULL_STRING}
