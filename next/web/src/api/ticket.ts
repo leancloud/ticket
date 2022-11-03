@@ -181,6 +181,8 @@ export interface UpdateTicketData {
   categoryId?: string;
   groupId?: string | null;
   assigneeId?: string | null;
+  tags?: { key: string; value: string }[];
+  privateTags?: { key: string; value: string }[];
 }
 
 async function updateTicket(id: string | number, data: UpdateTicketData) {

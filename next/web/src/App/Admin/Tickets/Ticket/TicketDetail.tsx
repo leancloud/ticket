@@ -1,5 +1,4 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { useMutation, useQuery, useQueryClient } from 'react-query';
 import moment from 'moment';
 import {
   Button,
@@ -12,8 +11,8 @@ import {
   Skeleton,
 } from '@/components/antd';
 import { UserLabel } from '@/App/Admin/components';
-import { UpdateTicketData, useTicket, useUpdateTicket } from '@/api/ticket';
-import { http, useCurrentUser } from '@/leancloud';
+import { TicketDetailSchema, UpdateTicketData, useTicket, useUpdateTicket } from '@/api/ticket';
+import { useCurrentUser } from '@/leancloud';
 import {
   CategorySelect,
   SingleCustomerServiceSelect,
@@ -21,11 +20,14 @@ import {
 } from '@/components/common';
 import { TicketStatus } from '../components/TicketStatus';
 import { Timeline } from './Timeline';
+import { TagForm } from './TagForm';
+import { FormLabel } from './components/FormLabel';
+import { useTicket_v1, useUpdateTicket_v1 } from './api1';
+import { InternalBadge } from './components/InternalBadge';
 
 export function TicketDetail() {
   const { id } = useParams() as { id: string };
   const navigate = useNavigate();
-  const currentUser = useCurrentUser();
 
   const { data: ticket, refetch } = useTicket(id, {
     include: ['author', 'files'],
@@ -96,43 +98,9 @@ export function TicketDetail() {
           {ticket ? <Timeline ticket={ticket} /> : <Skeleton active paragraph={{ rows: 10 }} />}
         </Col>
         <Col className="px-[15px]" span={24} md={6}>
-          <div className="ant-form-vertical sticky top-4">
+          <div className="sticky top-4 pb-4">
             {ticket ? (
-              <>
-                <div className="pb-2 inline-flex items-center">
-                  客服组
-                  <span className="bg-gray-500 text-white rounded-sm text-sm px-1 ml-1 font-semibold">
-                    internal
-                  </span>
-                </div>
-                <SingleGroupSelect
-                  includeNull
-                  value={ticket?.groupId ?? NULL_STRING}
-                  disabled={updating}
-                  onChange={(groupId) => handleUpdate({ groupId })}
-                  style={{ width: '100%' }}
-                />
-
-                <div className="flex justify-between pb-2 mt-4">
-                  负责人
-                  {ticket && ticket.assigneeId !== currentUser!.id && (
-                    <button
-                      className="text-primary disabled:text-gray-400"
-                      disabled={updating}
-                      onClick={() => handleUpdate({ assigneeId: currentUser!.id })}
-                    >
-                      分配给我
-                    </button>
-                  )}
-                </div>
-                <SingleCustomerServiceSelect
-                  includeNull
-                  value={ticket?.assigneeId ?? NULL_STRING}
-                  disabled={updating}
-                  onChange={(assigneeId) => handleUpdate({ assigneeId })}
-                  style={{ width: '100%' }}
-                />
-              </>
+              <RightSider ticket={ticket} onUpdate={handleUpdate} updating={updating} />
             ) : (
               <Skeleton active />
             )}
@@ -155,34 +123,9 @@ function TicketTitle({ title, status }: { title: string; status: number }) {
 }
 
 function HeaderExtra({ ticketId }: { ticketId: string }) {
-  // TODO: switch to /api/2
-  interface V1_Ticket {
-    private: boolean;
-    subscribed: boolean;
-  }
+  const { data, isLoading } = useTicket_v1(ticketId);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['v1_ticket', ticketId],
-    queryFn: async () => {
-      const res = await http.get<V1_Ticket>(`/api/1/tickets/${ticketId}`);
-      return res.data;
-    },
-  });
-
-  const queryClient = useQueryClient();
-
-  const { mutate, isLoading: updating } = useMutation({
-    mutationFn: (data: Partial<V1_Ticket>) => {
-      return http.patch(`/api/1/tickets/${ticketId}`, data);
-    },
-    onSuccess: (_, data) => {
-      queryClient.setQueryData<V1_Ticket | undefined>(['v1_ticket', ticketId], (prev) => {
-        if (prev) {
-          return { ...prev, ...data };
-        }
-      });
-    },
-  });
+  const { mutate, isLoading: updating } = useUpdateTicket_v1(ticketId);
 
   return (
     <>
@@ -203,6 +146,58 @@ function HeaderExtra({ ticketId }: { ticketId: string }) {
       >
         {data?.subscribed ? '取消关注' : '关注'}
       </Button>
+    </>
+  );
+}
+
+interface RightSiderProps {
+  ticket: TicketDetailSchema;
+  onUpdate: (data: Partial<UpdateTicketData>) => void;
+  updating?: boolean;
+}
+
+function RightSider({ ticket, onUpdate, updating }: RightSiderProps) {
+  const currentUser = useCurrentUser();
+
+  return (
+    <>
+      <div>
+        <FormLabel className="inline-flex items-center">
+          客服组
+          <InternalBadge />
+        </FormLabel>
+        <SingleGroupSelect
+          includeNull
+          value={ticket?.groupId ?? NULL_STRING}
+          disabled={updating}
+          onChange={(groupId) => onUpdate({ groupId })}
+          style={{ width: '100%' }}
+        />
+      </div>
+
+      <div className="mt-4">
+        <FormLabel className="flex justify-between">
+          负责人
+          {ticket && ticket.assigneeId !== currentUser!.id && (
+            <button
+              className="text-primary disabled:text-gray-400"
+              disabled={updating}
+              onClick={() => onUpdate({ assigneeId: currentUser!.id })}
+            >
+              分配给我
+            </button>
+          )}
+        </FormLabel>
+        <SingleCustomerServiceSelect
+          includeNull
+          value={ticket?.assigneeId ?? NULL_STRING}
+          disabled={updating}
+          onChange={(assigneeId) => onUpdate({ assigneeId })}
+          style={{ width: '100%' }}
+        />
+      </div>
+
+      <TagForm ticketId={ticket.id} />
     </>
   );
 }
