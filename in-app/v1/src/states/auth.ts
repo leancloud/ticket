@@ -1,7 +1,8 @@
+import { User } from 'open-leancloud-storage/auth';
 import { atom, useRecoilValue, useSetRecoilState } from 'recoil';
 
 interface AuthState {
-  user?: unknown;
+  user?: User;
   loading?: boolean;
   error?: Error;
 }
