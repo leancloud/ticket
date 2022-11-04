@@ -177,6 +177,22 @@ async function createTicket(data: CreateTicketData) {
   await http.post('/api/2/tickets', data);
 }
 
+export interface UpdateTicketData {
+  categoryId?: string;
+  groupId?: string | null;
+  assigneeId?: string | null;
+  tags?: { key: string; value: string }[];
+  privateTags?: { key: string; value: string }[];
+}
+
+async function updateTicket(id: string | number, data: UpdateTicketData) {
+  await http.patch(`/api/2/tickets/${id}`, data);
+}
+
+async function operateTicket(id: string | number, action: string) {
+  await http.post(`/api/2/tickets/${id}/operate`, { action });
+}
+
 export interface UseTicketsOptions extends FetchTicketsOptions {
   queryOptions?: UseQueryOptions<FetchTicketsResult, Error>;
 }
@@ -237,6 +253,24 @@ export const useTicketReplies = (
 export function useCreateTicket(options?: UseMutationOptions<void, Error, CreateTicketData>) {
   return useMutation({
     mutationFn: createTicket,
+    ...options,
+  });
+}
+
+export function useUpdateTicket(
+  options?: UseMutationOptions<void, Error, Parameters<typeof updateTicket>>
+) {
+  return useMutation({
+    mutationFn: (args) => updateTicket.apply(null, args),
+    ...options,
+  });
+}
+
+export function useOperateTicket(
+  options?: UseMutationOptions<void, Error, Parameters<typeof operateTicket>>
+) {
+  return useMutation({
+    mutationFn: (args) => operateTicket.apply(null, args),
     ...options,
   });
 }

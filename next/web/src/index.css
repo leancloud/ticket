@@ -28,3 +28,7 @@ body{
 .markdown-body a {
   @apply text-primary;
 }
+
+img {
+  display: inline;
+}

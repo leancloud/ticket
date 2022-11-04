@@ -19,7 +19,7 @@ import {
 } from '@/api/view';
 import { Empty, Spin, Table } from '@/components/antd';
 import { columnLabels } from '@/App/Admin/Settings/Views/EditView';
-import TicketStatus from '@/App/Admin/Tickets/TicketView/TicketStatus';
+import { TicketStatus } from '@/App/Admin/Tickets/components/TicketStatus';
 import { useGetCategoryPath } from '@/utils/useGetCategoryPath';
 import { usePage } from '@/utils/usePage';
 
