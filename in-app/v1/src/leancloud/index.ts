@@ -54,6 +54,7 @@ export const db = app.database();
 export const storage = app.storage();
 
 export const http = axios.create();
+
 http.interceptors.request.use((config) => {
   if (auth.currentUser) {
     if (!config.headers) {

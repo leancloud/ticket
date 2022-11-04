@@ -1,6 +1,7 @@
+import { Category } from '@/api/category';
 import { atom, useRecoilValue, useSetRecoilState } from 'recoil';
 
-const rootCategoryState = atom<string>({
+const rootCategoryState = atom<Category>({
   key: 'rootCategory',
 });
 

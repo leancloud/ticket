@@ -1,6 +1,5 @@
 import { Suspense, useEffect, useMemo } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from 'react-query';
 import { useTranslation } from 'react-i18next';
 import { decodeQueryParams, JsonParam, StringParam } from 'serialize-query-params';
 import { parse } from 'query-string';
@@ -10,6 +9,7 @@ import { auth as lcAuth, http } from '@/leancloud';
 import { useAuth, useSetAuth } from '@/states/auth';
 import { useSetRootCategory } from '@/states/root-category';
 import { useSetTicketInfo } from '@/states/ticket-info';
+import { useCategory } from '@/api/category';
 import { SDKProvider } from '@/components/SDK';
 import { APIError } from '@/components/APIError';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -22,15 +22,6 @@ import NotFound from './NotFound';
 import Articles from './Articles';
 import TopCategories from './TopCategories';
 import Test from './Test';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: false,
-    },
-  },
-});
 
 function RequireAuth({ children }: { children: JSX.Element }) {
   const { user, loading, error } = useAuth();
@@ -62,7 +53,7 @@ export default function App() {
 
   const pathname = window.location.pathname;
   const paths = pathname.split('/');
-  const rootCategory = paths[4];
+  const rootCategoryId = paths[4];
 
   const setAuth = useSetAuth();
   const setRootCategory = useSetRootCategory();
@@ -71,7 +62,6 @@ export default function App() {
   const params = useHashConfiguration();
 
   useEffect(() => {
-    setRootCategory(rootCategory);
     setTicketInfo({
       meta: params.meta,
       fields: params.fields,
@@ -113,8 +103,18 @@ export default function App() {
     }
   }, []);
 
+  const { data: rootCategory, isLoading: loadingRootCategory } = useCategory(rootCategoryId, {
+    enabled: rootCategoryId !== undefined,
+  });
+  useEffect(() => {
+    if (rootCategory) {
+      setRootCategory(rootCategory);
+      http.defaults.headers.common['x-product'] = rootCategory.id;
+    }
+  }, [rootCategory]);
+
   const rootURL = ROOT_URLS.find((URL) => pathname.startsWith(URL));
-  if (!rootURL) {
+  if (!rootURL || (!loadingRootCategory && !rootCategory)) {
     return <p>Not Found</p>;
   }
   return (
@@ -122,16 +122,14 @@ export default function App() {
       <Helmet>
         <title>{t('general.call_center')}</title>
       </Helmet>
-      <BrowserRouter basename={`${rootURL}/${rootCategory}`}>
-        <QueryClientProvider client={queryClient}>
-          <ErrorBoundary>
-            <Suspense fallback={<Loading />}>
-              <SDKProvider>
-                <AppRoutes />
-              </SDKProvider>
-            </Suspense>
-          </ErrorBoundary>
-        </QueryClientProvider>
+      <BrowserRouter basename={`${rootURL}/${rootCategoryId}`}>
+        <ErrorBoundary>
+          <Suspense fallback={<Loading />}>
+            <SDKProvider>
+              <AppRoutes />
+            </SDKProvider>
+          </Suspense>
+        </ErrorBoundary>
       </BrowserRouter>
     </HelmetProvider>
   );

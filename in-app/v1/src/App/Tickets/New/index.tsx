@@ -6,6 +6,7 @@ import { Helmet } from 'react-helmet-async';
 import { pick, cloneDeep } from 'lodash-es';
 
 import { http } from '@/leancloud';
+import { Category, useCategories } from '@/api/category';
 import { FieldItem, useTicketFormItems } from '@/api/ticket-form';
 import { useTicketInfo } from '@/states/ticket-info';
 import { useSearchParams } from '@/utils/url';
@@ -14,8 +15,6 @@ import { Button } from '@/components/Button';
 import { QueryWrapper } from '@/components/QueryWrapper';
 import { Loading } from '@/components/Loading';
 import CheckIcon from '@/icons/Check';
-import { Category } from '@/types';
-import { useCategory } from '../../Categories';
 import NotFound from '../../NotFound';
 import { CustomForm, CustomFieldConfig, CustomFormItem } from './CustomForm';
 import { usePersistFormData } from './usePersistFormData';
@@ -147,9 +146,16 @@ async function createTicket(data: NewTicketData): Promise<string> {
 export function NewTicket() {
   const { t } = useTranslation();
   const { category_id } = useSearchParams();
-  const result = useCategory(category_id);
   const { state: ticketId, search } = useLocation();
   const navigate = useNavigate();
+
+  const result = useCategories();
+  const { data: categories } = result;
+  const category = useMemo(() => {
+    if (categories) {
+      return categories.find((c) => c.id === category_id || c.alias === category_id);
+    }
+  }, [categories, category_id]);
 
   const { mutateAsync: submit, isLoading: submitting } = useMutation({
     mutationFn: createTicket,
@@ -159,22 +165,19 @@ export function NewTicket() {
     onError: (error: Error) => alert(error.message),
   });
 
-  if (!ticketId && !result.data && !result.isLoading && !result.error) {
-    // Category is not exists :badbad:
+  if (categories && !category) {
     return <NotFound />;
   }
   return (
     <>
-      <Helmet>{result.data?.name && <title>{result.data.name}</title>}</Helmet>
-      <PageHeader>{result.data?.name ?? t('general.loading') + '...'}</PageHeader>
+      <Helmet>{category && <title>{category.name}</title>}</Helmet>
+      <PageHeader>{category?.name ?? t('general.loading') + '...'}</PageHeader>
       <PageContent>
         {ticketId ? (
           <Success ticketId={ticketId as string} />
         ) : (
           <QueryWrapper result={result}>
-            {(category) => (
-              <TicketForm category={category} onSubmit={submit} submitting={submitting} />
-            )}
+            <TicketForm category={category!} onSubmit={submit} submitting={submitting} />
           </QueryWrapper>
         )}
       </PageContent>
