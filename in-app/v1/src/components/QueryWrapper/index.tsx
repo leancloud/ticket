@@ -10,7 +10,7 @@ import NotFound from '../../App/NotFound';
 export interface QueryWrapperProps<TData, TError> {
   result: UseQueryResult<TData, TError>;
   noData?: boolean;
-  noDataMessage?: string;
+  noDataMessage?: string | ReactNode;
   children: ((data: TData) => ReactNode) | ReactNode;
 }
 
