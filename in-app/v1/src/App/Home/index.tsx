@@ -4,8 +4,7 @@ import { ChevronRightIcon } from '@heroicons/react/solid';
 import { PageContent, PageHeader } from '@/components/Page';
 import SpeakerIcon from '@/icons/Speaker';
 import { useRootCategory } from '@/states/root-category';
-import { useCategories } from '@/App/Categories';
-import { useCategoryTopics } from '@/api/category';
+import { useCategories, useCategoryTopics } from '@/api/category';
 import { useNotices, ArticleLink } from '@/App/Articles/utils';
 import { Loading } from '@/components/Loading';
 import { QueryWrapper } from '@/components/QueryWrapper';
@@ -26,7 +25,7 @@ export default function Home() {
   const { t } = useTranslation();
 
   const rootCategory = useRootCategory();
-  const { data: notices } = useNotices(rootCategory);
+  const { data: notices } = useNotices(rootCategory.id);
   const { data: topics, isLoading: isTopicsLoading } = useCategoryTopics();
   const enableCategories = !isTopicsLoading && topics?.length === 0;
   const { isLoading: isCategoriesLoading } = useCategories({

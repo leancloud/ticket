@@ -23,7 +23,7 @@ function useHasUnreadTickets(categoryId?: string) {
 export default function TicketsLink() {
   const rootCategory = useRootCategory();
   const { t } = useTranslation();
-  const { data: hasUnreadTickets } = useHasUnreadTickets(rootCategory);
+  const { data: hasUnreadTickets } = useHasUnreadTickets(rootCategory.id);
   return (
     <Link className="relative p-3 -mr-3 text-[13px] leading-none text-tapBlue" to="/tickets">
       {t('ticket.record')}

@@ -8,15 +8,6 @@ export interface Article {
   updatedAt: Date;
 }
 
-export interface Category {
-  id: string;
-  name: string;
-  alias?: string;
-  parentId?: string;
-  position: number;
-  formId?: string;
-}
-
 export interface File {
   id: string;
   name: string;

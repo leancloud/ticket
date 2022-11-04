@@ -1,14 +1,11 @@
 import { useEffect, useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { useQuery, UseQueryResult, UseQueryOptions } from 'react-query';
 import { useTranslation } from 'react-i18next';
 import { Helmet } from 'react-helmet-async';
 import { ChevronRightIcon } from '@heroicons/react/solid';
 import classNames from 'classnames';
 
-import { http } from '@/leancloud';
-import { useRootCategory } from '@/states/root-category';
-import { Category } from '@/types';
+import { Category, useCategories } from '@/api/category';
 import { PageContent, PageHeader } from '@/components/Page';
 import { QueryWrapper } from '@/components/QueryWrapper';
 import { APIError } from '@/components/APIError';
@@ -40,35 +37,6 @@ export function ListItem({ to, content, marker, className }: ListItemProps) {
       </div>
     </Link>
   );
-}
-
-async function fetchCategories(rootCategoryId?: string): Promise<Category[]> {
-  if (rootCategoryId === undefined) {
-    return [];
-  }
-  const { data } = await http.get<Category[]>(
-    `/api/2/products/${rootCategoryId}/categories?active=true`
-  );
-  return data;
-}
-
-export function useCategories(options?: UseQueryOptions<Category[]>) {
-  const rootId = useRootCategory();
-  return useQuery({
-    queryKey: 'categories',
-    queryFn: () => fetchCategories(rootId),
-    staleTime: 1000 * 60 * 5,
-    ...options,
-  });
-}
-
-export function useCategory(id: string) {
-  const { data: categories, ...rest } = useCategories();
-  const category = useMemo(() => categories?.find((c) => c.id === id || c.alias === id), [
-    categories,
-    id,
-  ]);
-  return { data: category, ...rest } as UseQueryResult<Category>;
 }
 
 export type CategoryListProps = JSX.IntrinsicElements['div'] & {

@@ -1,10 +1,11 @@
 import { FC, useMemo } from 'react';
-import { CategoryList, useCategories } from '@/App/Categories';
-import { keyBy } from 'lodash-es';
 import { useTranslation } from 'react-i18next';
-import { QueryWrapper } from '@/components/QueryWrapper';
 import { Helmet } from 'react-helmet-async';
+import { keyBy } from 'lodash-es';
+import { useCategories } from '@/api/category';
+import { QueryWrapper } from '@/components/QueryWrapper';
 import { PageContent, PageHeader } from '@/components/Page';
+import { CategoryList } from '@/App/Categories';
 
 export const TopCategoryList: FC<{ marker: boolean }> = ({ marker }) => {
   const result = useCategories();

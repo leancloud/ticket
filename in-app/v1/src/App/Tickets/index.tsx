@@ -49,10 +49,10 @@ async function fetchTickets({
 }
 
 export function useTickets() {
-  const categoryId = useRootCategory();
+  const rootCategory = useRootCategory();
   return useInfiniteQuery<TicketListItem[], Error>({
     queryKey: 'tickets',
-    queryFn: ({ pageParam = 1 }) => fetchTickets({ categoryId, page: pageParam }),
+    queryFn: ({ pageParam = 1 }) => fetchTickets({ categoryId: rootCategory.id, page: pageParam }),
     getNextPageParam: (lastPage, allPages) => {
       if (lastPage.length === TICKETS_PAGE_SIZE) {
         return allPages.length + 1;
