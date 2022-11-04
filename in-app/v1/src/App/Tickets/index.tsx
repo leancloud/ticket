@@ -57,7 +57,7 @@ async function fetchTickets({
 export function useTickets(status: TicketResolvedStatus) {
   const category = useRootCategory();
   return useInfiniteQuery<TicketListItem[], Error>({
-    queryKey: `tickets_${status}`,
+    queryKey: ['tickets', { status }],
     queryFn: ({ pageParam = 1 }) =>
       fetchTickets({ categoryId: category.id, page: pageParam, status }),
     getNextPageParam: (lastPage, allPages) => {
