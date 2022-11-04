@@ -84,14 +84,11 @@ export const FAQs: FC<{ faqs?: Article[]; showAll?: boolean; className?: string 
           <ArticleListItem
             article={FAQ}
             key={FAQ.id}
-            className={classNames(data.length - 1 === i && 'border-b-0')}
+            className={classNames(data.length - 1 === i && 'border-b-0', '!h-[42px]')}
           />
         ))}
         {faqs.length > 3 && !expended && (
-          <button
-            className="flex items-center text-[#BFBFBF] mt-1 mb-3"
-            onClick={() => setExpended(true)}
-          >
+          <button className="flex  text-[#BFBFBF] pt-1 h-[32px]" onClick={() => setExpended(true)}>
             {t('faqs.showAll')} <ChevronDownIcon className="h-4 w-4" />
           </button>
         )}

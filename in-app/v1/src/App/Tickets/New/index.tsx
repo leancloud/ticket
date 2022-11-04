@@ -193,21 +193,20 @@ export function NewTicket() {
     <>
       <Helmet>{category && <title>{category.name}</title>}</Helmet>
       <PageHeader>{category?.name ?? t('general.loading') + '...'}</PageHeader>
-      <PageContent>
-        {ticketId ? (
-          <Success ticketId={ticketId as string} />
-        ) : (
-          <QueryWrapper result={result}>
-            <FAQs className="mb-6" faqs={faqs} showAll={false} />
-            <TicketForm
-              category={category!}
-              onSubmit={submit}
-              submitting={submitting}
-              showTitle={!!faqs?.length}
-            />
-          </QueryWrapper>
-        )}
-      </PageContent>
+
+      {ticketId ? (
+        <Success ticketId={ticketId as string} />
+      ) : (
+        <QueryWrapper result={result}>
+          <FAQs className="mb-6" faqs={faqs} showAll={false} />
+          <TicketForm
+            category={category!}
+            onSubmit={submit}
+            submitting={submitting}
+            showTitle={!!faqs?.length}
+          />
+        </QueryWrapper>
+      )}
     </>
   );
 }
