@@ -166,7 +166,6 @@ export function NewTicket() {
   });
 
   if (categories && !category) {
-    // Category is not exists :badbad:
     return <NotFound />;
   }
   return (
