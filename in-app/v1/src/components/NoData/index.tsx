@@ -1,7 +1,8 @@
+import { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 export interface NoDataProps {
-  message?: string;
+  message?: string | ReactNode;
 }
 
 export function NoData({ message }: NoDataProps) {
