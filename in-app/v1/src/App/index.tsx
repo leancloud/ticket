@@ -109,7 +109,7 @@ export default function App() {
   useEffect(() => {
     if (rootCategory) {
       setRootCategory(rootCategory);
-      http.defaults.headers.common['x-root-category'] = rootCategory.id;
+      http.defaults.headers.common['x-product'] = rootCategory.id;
     }
   }, [rootCategory]);
 
