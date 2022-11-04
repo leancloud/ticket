@@ -119,7 +119,6 @@ export class CategoryController {
   }
 
   @Get(':id')
-  @UseMiddlewares(auth, customerServiceOnly)
   @ResponseBody(CategoryResponse)
   async findOne(@Ctx() ctx: Context, @Param('id', FindCategoryPipe) category: Category) {
     await categoryService.renderCategories([category], ctx.locales);
