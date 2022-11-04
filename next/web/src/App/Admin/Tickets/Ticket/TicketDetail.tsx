@@ -207,6 +207,9 @@ function RightSider({ ticket, onUpdate, updating, onOperate, operating }: RightS
 
   return (
     <>
+      <TicketOperations ticketStatus={ticket.status} onOperate={onOperate} operating={operating} />
+
+      <Divider />
       <div>
         <FormLabel>客服组</FormLabel>
         <SingleGroupSelect
@@ -248,9 +251,8 @@ function RightSider({ ticket, onUpdate, updating, onOperate, operating }: RightS
         />
       </div>
 
+      <Divider />
       <TagForm ticketId={ticket.id} />
-
-      <TicketOperations ticketStatus={ticket.status} onOperate={onOperate} operating={operating} />
     </>
   );
 }
@@ -264,7 +266,6 @@ interface TicketOperationsProps {
 function TicketOperations({ ticketStatus, operating, onOperate }: TicketOperationsProps) {
   return (
     <div>
-      <Divider />
       <FormLabel>工单操作</FormLabel>
       <div>
         {ticketStatus < 200 && (
