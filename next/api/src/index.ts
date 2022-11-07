@@ -18,6 +18,7 @@ import { getTriggers, getTimeTriggers } from './ticket/automation';
 import './ticket-form';
 import './tap-support';
 import api from './router';
+import { apiLogMiddleware } from './api-log';
 
 export const app = new Koa();
 
@@ -113,6 +114,10 @@ app.use(async (ctx, next) => {
 
 app.use(localeMiddleware);
 app.use(bodyParser());
+
+if (process.env.PRINT_API_LOG) {
+  app.use(apiLogMiddleware({ appId: process.env.LEANCLOUD_APP_ID }));
+}
 
 // The CORS middleware must be applied to the app
 // See https://github.com/firefox-devtools/profiler-server/pull/40
