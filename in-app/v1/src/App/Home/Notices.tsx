@@ -8,7 +8,7 @@ import { ChevronRightIcon } from '@heroicons/react/solid';
 
 export default function Notices() {
   const rootCategory = useRootCategory();
-  const { data: notices } = useNotices(rootCategory);
+  const { data: notices } = useNotices(rootCategory.id);
   const [emblaRef] = useEmblaCarousel({ axis: 'y', loop: true }, [
     Autoplay({ delay: 3000, stopOnInteraction: false }),
   ]);

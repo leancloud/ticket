@@ -22,6 +22,8 @@ interface ListItemProps {
   className?: string;
 }
 
+const FAQ_THRESHOLD = 4;
+
 export function ListItem({ to, content, marker, className }: ListItemProps) {
   return (
     <Link to={to} className={`block active:bg-gray-50`}>
@@ -58,24 +60,19 @@ export function CategoryList({ categories, marker, ...props }: CategoryListProps
     </div>
   );
 }
-
-export const FAQs: FC<{ faqs?: Article[]; showAll?: boolean; className?: string }> = ({
-  faqs,
-  showAll = false,
-  className,
-}) => {
-  const [expended, setExpended] = useState(showAll);
+export const FAQs: FC<{ faqs?: Article[]; className?: string }> = ({ faqs = [], className }) => {
+  const [showAll, setShowAll] = useState(faqs.length <= FAQ_THRESHOLD);
   const [t] = useTranslation();
 
   useEffect(() => {
-    setExpended(showAll);
-  }, [showAll]);
+    setShowAll(faqs.length <= FAQ_THRESHOLD);
+  }, [faqs]);
 
-  if (!faqs || !faqs.length) {
+  if (!faqs.length) {
     return null;
   }
 
-  const data = expended ? faqs : faqs.slice(0, 3);
+  const data = showAll ? faqs : faqs.slice(0, 3);
 
   return (
     <PageContent shadow className={classNames(className)} title={t('category.faqs')}>
@@ -87,8 +84,11 @@ export const FAQs: FC<{ faqs?: Article[]; showAll?: boolean; className?: string 
             className={classNames(data.length - 1 === i && 'border-b-0', '!h-[42px]')}
           />
         ))}
-        {faqs.length > 3 && !expended && (
-          <button className="flex  text-[#BFBFBF] pt-1 h-[32px]" onClick={() => setExpended(true)}>
+        {faqs.length > FAQ_THRESHOLD && !showAll && (
+          <button
+            className="flex items-center text-[#BFBFBF] pt-1 pb-3 text-[12px] leading-[16px]"
+            onClick={() => setShowAll(true)}
+          >
             {t('faqs.showAll')} <ChevronDownIcon className="h-4 w-4" />
           </button>
         )}

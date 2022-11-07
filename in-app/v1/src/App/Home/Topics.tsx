@@ -38,7 +38,7 @@ const Topics: FC<{}> = () => {
         <Tab.Panels>
           {data?.map(({ id, articles }) => (
             <Tab.Panel key={id}>
-              <div className="-my-3">
+              <div className="-mb-3">
                 {articles.map((item) => (
                   <ArticleListItem
                     key={item.id}

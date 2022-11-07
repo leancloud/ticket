@@ -114,7 +114,7 @@ function TicketForm({
   }
 
   return (
-    <QueryWrapper result={result}>
+    <>
       {showTitle && (
         <PageContent className="bg-transparent mb-3 py-0 px-2" title={t('feedback.submit')} />
       )}
@@ -125,7 +125,7 @@ function TicketForm({
         onSubmit={handleSubmit}
         submitting={submitting}
       />
-    </QueryWrapper>
+    </>
   );
 }
 
@@ -174,7 +174,7 @@ export function NewTicket() {
     }
   }, [categories, category_id]);
 
-  const { data: faqs, isLoading: FAQsIsLoading, isSuccess: FAQsIsReady } = useFAQs(category_id);
+  const { data: faqs, isLoading: FAQsIsLoading, isSuccess: FAQsIsReady } = useFAQs(category?.id);
 
   const { mutateAsync: submit, isLoading: submitting } = useMutation({
     mutationFn: createTicket,
@@ -198,7 +198,7 @@ export function NewTicket() {
         <Success ticketId={ticketId as string} />
       ) : (
         <QueryWrapper result={result}>
-          <FAQs className="mb-6" faqs={faqs} showAll={false} />
+          <FAQs className="mb-6" faqs={faqs} />
           <TicketForm
             category={category!}
             onSubmit={submit}
