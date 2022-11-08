@@ -19,7 +19,6 @@ const router = new Router({ prefix: '/api/2' }).use(catchYupError, catchLCError,
 router.use('/tickets', ticket.routes());
 router.use('/organizations', organization.routes());
 router.use('/unread', unread.routes());
-router.use('/products', unread.routes());
 router.use('/notifications', notification.routes());
 router.use('/articles', article.routes());
 router.use('/triggers', trigger.routes());
