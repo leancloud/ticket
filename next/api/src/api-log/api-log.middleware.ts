@@ -1,15 +1,21 @@
 import { Middleware } from 'koa';
-import { ApiLog, ApiLogMiddlewareOptions } from './types';
 import apiLogService from './api-log.service';
 
-export function apiLogMiddleware({ appId }: ApiLogMiddlewareOptions = {}): Middleware {
+export function apiLogMiddleware(): Middleware {
+  const appId = process.env.LEANCLOUD_APP_ID!;
+
   return (ctx, next) => {
     const startTime = new Date();
+
     ctx.res.on('finish', () => {
+      if (!ctx.routerPath) {
+        return;
+      }
+
       const endTime = new Date();
       const productId = ctx.header['x-product'];
 
-      const apiLog: ApiLog = {
+      apiLogService.write({
         timestamp: startTime.toISOString(),
         method: ctx.method,
         route: ctx.routerPath,
@@ -22,9 +28,7 @@ export function apiLogMiddleware({ appId }: ApiLogMiddlewareOptions = {}): Middl
         userId: ctx.state.currentUser?.id,
         userAgent: ctx.header['user-agent'],
         referer: ctx.header['referer'],
-      };
-
-      apiLogService.write(apiLog);
+      });
     });
 
     return next();

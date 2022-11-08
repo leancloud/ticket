@@ -115,8 +115,8 @@ app.use(async (ctx, next) => {
 app.use(localeMiddleware);
 app.use(bodyParser());
 
-if (process.env.PRINT_API_LOG) {
-  app.use(apiLogMiddleware({ appId: process.env.LEANCLOUD_APP_ID }));
+if (process.env.ENABLE_API_LOG) {
+  app.use(apiLogMiddleware());
 }
 
 // The CORS middleware must be applied to the app

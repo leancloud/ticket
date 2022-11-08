@@ -1,7 +1,3 @@
-export interface ApiLogMiddlewareOptions {
-  appId?: string;
-}
-
 export interface ApiLog {
   timestamp: string;
   method: string;
@@ -10,7 +6,7 @@ export interface ApiLog {
   host: string;
   statusCode: number;
   processTime: number;
-  appId?: string;
+  appId: string;
   productId?: string;
   userId?: string;
   userAgent?: string;
