@@ -25,6 +25,9 @@ class CrmService {
   }
 
   write(log: ApiLog) {
+    if (log.route.startsWith('/api/2/unread')) {
+      return;
+    }
     this.logBuffer.push({
       timestamp: log.timestamp,
       method: log.method,
