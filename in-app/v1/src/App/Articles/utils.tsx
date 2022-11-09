@@ -44,7 +44,7 @@ export const NoticeLink = ({
   children?: React.ReactNode;
 }) => {
   return (
-    <Link to={`/articles/${article.slug}?from-notice=${article.slug}`} className={className}>
+    <Link to={`/articles/${article.slug}?from-notice=true`} className={className}>
       {children}
     </Link>
   );

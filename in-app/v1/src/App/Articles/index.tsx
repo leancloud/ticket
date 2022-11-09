@@ -109,7 +109,7 @@ function ArticleDetail() {
   const isNotice = !!search.get('from-notice');
 
   const { user } = useAuth();
-  const title = !!isNotice ? t('notice.title') : t('ticket.detail');
+  const title = !!isNotice ? t('notice.title') : <span>&nbsp;</span>;
 
   return (
     <QueryWrapper result={result}>

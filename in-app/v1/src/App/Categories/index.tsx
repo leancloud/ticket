@@ -26,13 +26,8 @@ const FAQ_THRESHOLD = 4;
 
 export function ListItem({ to, content, marker, className }: ListItemProps) {
   return (
-    <Link to={to} className={`block active:bg-gray-50`}>
-      <div
-        className={classNames(
-          `h-11 flex items-center text-[#666] border-b border-gray-100`,
-          className
-        )}
-      >
+    <Link to={to} className={`block border-b border-gray-100`}>
+      <div className={classNames(`h-11 flex items-center text-[#666]`, className)}>
         {marker && <div className={styles.marker} />}
         <div className="grow truncate">{content}</div>
         <ChevronRightIcon className="shrink-0 h-4 w-4" />

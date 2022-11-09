@@ -43,6 +43,13 @@ a {
   -webkit-tap-highlight-color: transparent;
 }
 
+.page {
+  .block:last-child {
+    border-bottom: 0;
+    margin-bottom: 2px;
+  }
+}
+
 .markdown-body {
   @apply text-[#666] bg-transparent;
 }
