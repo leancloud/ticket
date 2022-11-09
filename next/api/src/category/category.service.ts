@@ -160,7 +160,7 @@ export class CategoryService {
       if (!category) {
         throw new HttpError(404, `Category ${id} does not exist`);
       }
-      if (data.deletedAt !== undefined && hasActiveChildren(category)) {
+      if (data.deletedAt && hasActiveChildren(category)) {
         throw new HttpError(400, `Category ${id} has active subcategories`);
       }
       pairs.push([category, data]);

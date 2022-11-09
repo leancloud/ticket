@@ -348,7 +348,7 @@ function SortCategoryModal({ visible, loading, onCancel, onOk, ...props }: SortC
       cancelButtonProps={{ disabled: loading }}
       onCancel={loading ? undefined : onCancel}
       okButtonProps={{ loading }}
-      okText="Save"
+      okText="保存"
       onOk={() => onOk($sortTable.current.getData())}
     >
       <SortCategoryTable {...props} ref={$sortTable} />
@@ -533,6 +533,7 @@ export function CategoryDetail() {
         initData={initData}
         loading={isLoading}
         categoryActive={category.active}
+        currentCategoryId={category.id}
         onSubmit={(data) => mutate({ ...data, id: id!, meta: data.meta ?? null })}
         onChangeCategoryActive={(active) => mutate({ active, id: id! })}
       />

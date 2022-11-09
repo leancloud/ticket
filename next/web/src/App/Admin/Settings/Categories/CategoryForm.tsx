@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useMemo } from 'react';
+import { forwardRef, useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { RefSelectProps } from 'antd/lib/select';
@@ -19,6 +19,7 @@ import {
 } from '@/components/antd';
 import { JSONTextarea } from '@/App/Admin/components/JSONTextarea';
 import { ArticleSelect } from '../Articles/ArticleSelect';
+import { findTreeNode } from './utils';
 
 const { TextArea } = Input;
 
@@ -26,17 +27,12 @@ const FORM_ITEM_STYLE = { marginBottom: 16 };
 
 const CategoryTreeSelect = forwardRef<RefSelectProps, TreeSelectProps<string | undefined>>(
   (props, ref) => {
-    const { data: categories, isLoading } = useCategories();
-    const categoryTree = useCategoryTree(categories);
-
     return (
       <TreeSelect
         {...props}
         ref={ref}
         showSearch
         treeNodeFilterProp="name"
-        loading={isLoading}
-        treeData={categoryTree}
         fieldNames={{ label: 'name', value: 'id' }}
       />
     );
@@ -126,44 +122,24 @@ export function CategoryForm({
   const { control, handleSubmit } = useForm({ defaultValues: initData });
 
   const { data: categories, isLoading: loadingCategories } = useCategories();
-  const categoryTree = useCategoryTree(categories);
 
-  const findCategoryTreeNode = useCallback(
-    (id: string) => {
-      if (categoryTree) {
-        const queue = [...categoryTree];
-        while (queue.length) {
-          const first = queue.shift()!;
-          if (first.id === id) {
-            return first;
-          }
-          first.children?.forEach((c) => queue.push(c));
-        }
-      }
-      return undefined;
-    },
-    [categoryTree]
-  );
+  const activeCategories = useMemo(() => {
+    return categories?.filter((c) => c.active);
+  }, [categories]);
 
-  const validateParentId = useCallback(
-    (parentId?: string) => {
-      if (parentId && currentCategoryId) {
-        const target = findCategoryTreeNode(currentCategoryId);
-        if (target) {
-          const queue = [target];
-          while (queue.length) {
-            const first = queue.shift()!;
-            if (first.id === parentId) {
-              return '父分类不能是分类自己或自己的子分类。';
-            }
-            first.children?.forEach((c) => queue.push(c));
-          }
-        }
+  const categoryTree = useCategoryTree(activeCategories);
+
+  useEffect(() => {
+    if (categoryTree && currentCategoryId) {
+      const current = findTreeNode(categoryTree, (node) => node.id === currentCategoryId);
+      if (current) {
+        // 摘掉当前节点
+        const container = current.parent?.children ?? categoryTree;
+        const index = container.findIndex((node) => node.id === current.id);
+        container.splice(index, 1);
       }
-      return true;
-    },
-    [findCategoryTreeNode, currentCategoryId]
-  );
+    }
+  }, [categoryTree, currentCategoryId]);
 
   return (
     <Form layout="vertical" onFinish={handleSubmit(onSubmit as any)}>
@@ -208,7 +184,6 @@ export function CategoryForm({
       <Controller
         control={control}
         name="parentId"
-        rules={{ validate: validateParentId }}
         render={({ field, field: { onChange }, fieldState: { error } }) => (
           <Form.Item
             label="父分类"
@@ -219,9 +194,11 @@ export function CategoryForm({
           >
             <CategoryTreeSelect
               {...field}
-              onChange={(value, ...params) => onChange(value ?? null, ...params)}
               allowClear
               id="category_form_parent_id"
+              treeData={categoryTree}
+              loading={loadingCategories}
+              onChange={(value, ...params) => onChange(value ?? null, ...params)}
             />
           </Form.Item>
         )}
