@@ -31,6 +31,7 @@
     "jira-client": "^8.0.0",
     "json-2-csv": "^3.17.1",
     "jsonwebtoken": "^8.5.1",
+    "kafkajs": "^2.2.2",
     "koa": "^2.13.4",
     "koa-bodyparser": "^4.3.0",
     "leancloud-storage": "^4.13.4",

@@ -1,5 +1,5 @@
 import { ApiLog } from './types';
-import crmService from './crm/crm.service';
+import { CrmService } from './crm/crm.service';
 
 class ApiLogService {
   private listeners: ((log: ApiLog) => void)[] = [];
@@ -7,7 +7,7 @@ class ApiLogService {
   constructor() {
     const { ENABLE_CRM } = process.env;
     if (ENABLE_CRM) {
-      crmService.startTimer();
+      const crmService = new CrmService();
       this.listeners.push((log) => crmService.write(log));
     }
   }

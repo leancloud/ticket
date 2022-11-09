@@ -1,3 +1,4 @@
+import { Kafka, Producer, SASLOptions, logLevel } from 'kafkajs';
 import { ApiLog } from '../types';
 import { CrmLog } from './types';
 
@@ -5,10 +6,32 @@ const TIMER_INTERVAL = 1000 * 10;
 
 const LOG_BUFFER_SIZE = 100;
 
-class CrmService {
+export class CrmService {
   private timerId?: NodeJS.Timer;
 
   private logBuffer: CrmLog[] = [];
+
+  private kafkaProducer: Producer;
+
+  private kafkaTopic: string;
+
+  constructor() {
+    try {
+      const { CRM_KAFKA_TOPIC } = process.env;
+      if (!CRM_KAFKA_TOPIC) {
+        throw new Error('CRM_KAFKA_TOPIC is not defined');
+      }
+      this.kafkaTopic = CRM_KAFKA_TOPIC;
+
+      const kafka = createKafkaClient();
+      this.kafkaProducer = kafka.producer();
+      this.kafkaProducer.connect();
+    } catch (error) {
+      console.error(`[CrmService]: ${(error as Error).message}`);
+      process.exit(1);
+    }
+    this.startTimer();
+  }
 
   startTimer() {
     if (this.timerId) {
@@ -25,7 +48,7 @@ class CrmService {
   }
 
   write(log: ApiLog) {
-    if (log.route.startsWith('/api/2/unread')) {
+    if (log.statusCode >= 400) {
       return;
     }
     this.logBuffer.push({
@@ -47,18 +70,51 @@ class CrmService {
     }
   }
 
-  flush() {
+  async flush() {
     if (this.logBuffer.length === 0) {
       return;
     }
 
-    // TODO start
-    const str = this.logBuffer.map((log) => JSON.stringify(log)).join('\n');
-    console.log(str);
-    // TODO end
-
+    const messages = this.logBuffer.map((log) => ({ value: JSON.stringify(log) }));
     this.logBuffer = [];
+
+    await this.kafkaProducer.send({
+      topic: this.kafkaTopic,
+      messages,
+    });
+    console.log(`[CrmService]: ${messages.length} logs sended`);
   }
 }
 
-export default new CrmService();
+function createKafkaClient() {
+  const {
+    LEANCLOUD_APP_ID,
+    CRM_KAFKA_BROKERS,
+    CRM_KAFKA_SASL_PLAIN_USERNAME,
+    CRM_KAFKA_SASL_PLAIN_PASSWORD,
+  } = process.env;
+
+  if (!CRM_KAFKA_BROKERS) {
+    throw new Error('CRM_KAFKA_BROKERS is not defined');
+  }
+
+  let sasl: SASLOptions | undefined;
+
+  if (CRM_KAFKA_SASL_PLAIN_USERNAME) {
+    if (!CRM_KAFKA_SASL_PLAIN_PASSWORD) {
+      throw new Error('CRM_KAFKA_SASL_PLAIN_PASSWORD is not defined');
+    }
+    sasl = {
+      mechanism: 'plain',
+      username: CRM_KAFKA_SASL_PLAIN_USERNAME,
+      password: CRM_KAFKA_SASL_PLAIN_PASSWORD,
+    };
+  }
+
+  return new Kafka({
+    clientId: `LeanTicket_${LEANCLOUD_APP_ID}`,
+    brokers: CRM_KAFKA_BROKERS.split(','),
+    sasl,
+    logLevel: logLevel.WARN,
+  });
+}
