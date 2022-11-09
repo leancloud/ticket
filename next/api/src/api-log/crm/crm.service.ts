@@ -6,6 +6,8 @@ const TIMER_INTERVAL = 1000 * 10;
 
 const LOG_BUFFER_SIZE = 100;
 
+const SERVICE = 'lean-ticket';
+
 export class CrmService {
   private timerId?: NodeJS.Timer;
 
@@ -52,6 +54,7 @@ export class CrmService {
       return;
     }
     this.logBuffer.push({
+      service: SERVICE,
       timestamp: log.timestamp,
       method: log.method,
       route: log.route,
@@ -88,7 +91,6 @@ export class CrmService {
 
 function createKafkaClient() {
   const {
-    LEANCLOUD_APP_ID,
     CRM_KAFKA_BROKERS,
     CRM_KAFKA_SASL_PLAIN_USERNAME,
     CRM_KAFKA_SASL_PLAIN_PASSWORD,
@@ -112,7 +114,7 @@ function createKafkaClient() {
   }
 
   return new Kafka({
-    clientId: `LeanTicket_${LEANCLOUD_APP_ID}`,
+    clientId: SERVICE,
     brokers: CRM_KAFKA_BROKERS.split(','),
     sasl,
     logLevel: logLevel.WARN,

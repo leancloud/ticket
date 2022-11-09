@@ -1,4 +1,5 @@
 export interface CrmLog {
+  service: 'lean-ticket';
   timestamp: string;
   method: string;
   route: string;
