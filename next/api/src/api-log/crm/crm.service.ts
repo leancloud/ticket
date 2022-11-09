@@ -118,5 +118,6 @@ function createKafkaClient() {
     brokers: CRM_KAFKA_BROKERS.split(','),
     sasl,
     logLevel: logLevel.WARN,
+    ssl: true,
   });
 }
