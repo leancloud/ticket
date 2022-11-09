@@ -62,10 +62,12 @@ function makeCategoryTree(categories) {
   Object.values(categoryById).forEach((category) => {
     if (category.parentId) {
       const parent = categoryById[category.parentId]
-      if (!parent.children) {
-        parent.children = []
+      if (parent) {
+        if (!parent.children) {
+          parent.children = []
+        }
+        parent.children.push(category)
       }
-      parent.children.push(category)
     } else {
       parents.push(category)
     }
