@@ -14,6 +14,7 @@ import DragIcon from '@/icons/DragIcon';
 import { FormItems } from '@/App/Tickets/New/TicketForm/FormItems';
 import ticketFormStyle from '@/App/Tickets/New/TicketForm/index.module.css';
 import { TicketFieldIcon } from '../TicketFields';
+import { RefreshButton } from './components/RefreshButton';
 
 const SYSTEM_FIELD_IDS = ['title', 'details', 'attachments'];
 
@@ -173,8 +174,16 @@ function AvailableNoteItem({ name, onAdd }: AvailableNoteItemProps) {
 }
 
 interface FormItemsBuilderProps {
-  fields?: TicketFieldSchema[];
-  notes?: TicketFormNoteSchema[];
+  fields: {
+    data?: TicketFieldSchema[];
+    loading?: boolean;
+    onReload: () => void;
+  };
+  notes: {
+    data?: TicketFormNoteSchema[];
+    loading?: boolean;
+    onReload: () => void;
+  };
   value?: TicketFormData['items'];
   error?: string;
   onChange: (value: TicketFormData['items']) => void;
@@ -184,8 +193,8 @@ function FormItemsBuilder({ fields, notes, value, error, onChange }: FormItemsBu
   const [activeTab, setActiveTab] = useState('field');
   const [keyword, setKeyword] = useState('');
 
-  const fieldById = useMemo(() => keyBy(fields, (field) => field.id), [fields]);
-  const activeFields = useMemo(() => fields?.filter((f) => f.active), [fields]);
+  const fieldById = useMemo(() => keyBy(fields.data, (field) => field.id), [fields.data]);
+  const activeFields = useMemo(() => fields.data?.filter((f) => f.active), [fields.data]);
   const selectedFieldIdSet = useMemo(() => {
     if (value) {
       const ids = value.filter((v) => v.type === 'field').map((v) => v.id);
@@ -204,8 +213,8 @@ function FormItemsBuilder({ fields, notes, value, error, onChange }: FormItemsBu
     }
   }, [availableFields, keyword, activeTab]);
 
-  const noteById = useMemo(() => keyBy(notes, (note) => note.id), [notes]);
-  const activeNotes = useMemo(() => notes?.filter((n) => n.active), [notes]);
+  const noteById = useMemo(() => keyBy(notes.data, (note) => note.id), [notes.data]);
+  const activeNotes = useMemo(() => notes.data?.filter((n) => n.active), [notes.data]);
   const selectedNoteIdSet = useMemo(() => {
     if (value) {
       const ids = value.filter((v) => v.type === 'note').map((v) => v.id);
@@ -297,12 +306,20 @@ function FormItemsBuilder({ fields, notes, value, error, onChange }: FormItemsBu
       <div className="col-span-4 p-5 pt-2 border border-[#d8dcde] rounded bg-gray-50">
         <Tabs activeKey={activeTab} onChange={setActiveTab}>
           <Tabs.TabPane tab="可用字段" key="field">
-            <Input
-              prefix={<AiOutlineSearch className="w-4 h-4" />}
-              placeholder="搜索"
-              value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
-            />
+            <div className="flex items-center gap-2">
+              <Input
+                size="small"
+                prefix={<AiOutlineSearch className="w-4 h-4" />}
+                placeholder="搜索"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+              />
+              <RefreshButton
+                className="shrink-0"
+                loading={fields.loading}
+                onClick={fields.onReload}
+              />
+            </div>
             <div className="mt-4 flex flex-col gap-2">
               {filteredFields?.map(({ id, type, title }) => (
                 <AvailableFieldItem
@@ -315,12 +332,20 @@ function FormItemsBuilder({ fields, notes, value, error, onChange }: FormItemsBu
             </div>
           </Tabs.TabPane>
           <Tabs.TabPane tab="可用说明" key="note">
-            <Input
-              prefix={<AiOutlineSearch className="w-4 h-4" />}
-              placeholder="搜索"
-              value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
-            />
+            <div className="flex items-center gap-2">
+              <Input
+                size="small"
+                prefix={<AiOutlineSearch className="w-4 h-4" />}
+                placeholder="搜索"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+              />
+              <RefreshButton
+                className="shrink-0"
+                loading={notes.loading}
+                onClick={notes.onReload}
+              />
+            </div>
             <div className="mt-4 flex flex-col gap-2">
               {filteredNotes?.map(({ id, name }) => (
                 <AvailableNoteItem
@@ -386,7 +411,7 @@ export function EditTicketForm({ data, submitting, onSubmit, onCancel }: EditTic
 
   const [inPreview, setInPreview] = useState(false);
 
-  const { data: fields } = useTicketFields({
+  const fields = useTicketFields({
     pageSize: 1000,
     includeVariants: true,
     queryOptions: {
@@ -394,15 +419,15 @@ export function EditTicketForm({ data, submitting, onSubmit, onCancel }: EditTic
     },
   });
 
-  const { data: notes } = useTicketFormNotes({
+  const notes = useTicketFormNotes({
     pageSize: 1000,
     queryOptions: {
       staleTime: 1000 * 60,
     },
   });
 
-  const fieldById = useMemo(() => keyBy(fields, (field) => field.id), [fields]);
-  const noteById = useMemo(() => keyBy(notes?.data, (note) => note.id), [notes?.data]);
+  const fieldById = useMemo(() => keyBy(fields.data, (field) => field.id), [fields.data]);
+  const noteById = useMemo(() => keyBy(notes.data?.data, (note) => note.id), [notes.data?.data]);
 
   const [currentItems, setCurrentItems] = useState<TicketFormItem[]>([]);
 
@@ -467,8 +492,16 @@ export function EditTicketForm({ data, submitting, onSubmit, onCancel }: EditTic
             rules={{ validate }}
             render={({ field: { value, onChange }, fieldState: { error } }) => (
               <FormItemsBuilder
-                fields={fields}
-                notes={notes?.data}
+                fields={{
+                  data: fields.data,
+                  loading: fields.isRefetching,
+                  onReload: fields.refetch,
+                }}
+                notes={{
+                  data: notes.data?.data,
+                  loading: notes.isRefetching,
+                  onReload: notes.refetch,
+                }}
                 value={value}
                 error={error?.message}
                 onChange={onChange}
