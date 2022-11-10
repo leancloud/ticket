@@ -41,7 +41,6 @@
   },
   "devDependencies": {
     "@hookform/devtools": "^4.0.2",
-    "@tailwindcss/forms": "^0.4.0",
     "@types/lodash-es": "^4.17.5",
     "@types/react": "^17.0.38",
     "@types/react-beautiful-dnd": "^13.1.2",
