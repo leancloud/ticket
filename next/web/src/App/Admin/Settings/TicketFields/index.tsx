@@ -32,7 +32,7 @@ function TicketFieldActions({ field }: TicketFieldActionsProps) {
     mutationFn: ({ id, ...data }: UpdateTicketFieldData & { id: string }) =>
       updateTicketField(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries('ticketFields');
+      queryClient.invalidateQueries(['ticketFields']);
     },
   });
 
@@ -145,7 +145,7 @@ export function NewTicketField() {
     mutationFn: createTicketField,
     onSuccess: () => {
       message.success('创建成功');
-      queryClient.invalidateQueries('ticketFields');
+      queryClient.invalidateQueries(['ticketFields']);
       navigate('..');
     },
     onError: (error: Error) => {
@@ -192,7 +192,7 @@ export function TicketFieldDetail() {
   const { mutate, isLoading: isSaving } = useMutation({
     mutationFn: (data: UpdateTicketFieldData) => updateTicketField(id!, data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['ticketField', id]);
+      queryClient.invalidateQueries(['ticketFields']);
       message.success('保存成功');
     },
     onError: (error: Error) => {

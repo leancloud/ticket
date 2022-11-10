@@ -354,9 +354,11 @@ export function TicketFieldForm({
   disableType,
 }: TicketFieldFormProps) {
   const [activeLocale, setActiveLocale] = useState<string>();
-  const methods = useForm<TicketFieldData>({ defaultValues: initData });
-  const { control, handleSubmit, getValues } = methods;
+  const methods = useForm<TicketFieldData>();
+  const { control, handleSubmit, getValues, reset } = methods;
   const type = useWatch({ control, name: 'type' });
+
+  useEffect(() => reset(initData), [initData]);
 
   const _handleSubmit = (data: TicketFieldData) => {
     const hasOptions = optionsFieldTypes.includes(data.type);
