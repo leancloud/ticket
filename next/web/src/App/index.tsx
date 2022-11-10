@@ -2,12 +2,14 @@ import { Suspense, lazy } from 'react';
 import { QueryClientProvider } from 'react-query';
 import { RecoilRoot } from 'recoil';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { QueryParamProvider } from 'use-query-params';
+import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6';
+import { parse, stringify } from 'query-string';
 import { ConfigProvider } from 'antd';
 import zhCN from 'antd/lib/locale/zh_CN';
 
 import { useCurrentUser } from '@/leancloud';
 import { queryClient } from '@/api/query-client';
-import { SearchParamsProvider } from '@/utils/useSearchParams';
 import { Spin } from '@/components/antd';
 
 const Tickets = lazy(() => import('./Tickets'));
@@ -46,11 +48,17 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <RecoilRoot>
         <BrowserRouter basename="/next">
-          <SearchParamsProvider>
+          <QueryParamProvider
+            adapter={ReactRouter6Adapter}
+            options={{
+              searchStringToObject: parse,
+              objectToSearchString: stringify,
+            }}
+          >
             <ConfigProvider locale={zhCN}>
               <AppRoutes />
             </ConfigProvider>
-          </SearchParamsProvider>
+          </QueryParamProvider>
         </BrowserRouter>
       </RecoilRoot>
     </QueryClientProvider>

@@ -25,6 +25,7 @@
     "immer": "^9.0.12",
     "lodash-es": "^4.17.21",
     "moment": "^2.29.4",
+    "query-string": "^7.1.1",
     "react": "^17.0.2",
     "react-beautiful-dnd": "^13.1.0",
     "react-dom": "^17.0.2",
@@ -35,7 +36,8 @@
     "react-router-dom": "^6.2.1",
     "react-use": "^17.3.2",
     "recoil": "^0.6.1",
-    "throat": "^6.0.1"
+    "throat": "^6.0.1",
+    "use-query-params": "^2.1.2"
   },
   "devDependencies": {
     "@hookform/devtools": "^4.0.2",

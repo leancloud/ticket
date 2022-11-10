@@ -1,67 +1,56 @@
-import { ReactNode, createContext, useCallback, useContext, useMemo, useRef } from 'react';
+import { useCallback, useMemo } from 'react';
 import { NavigateOptions, useLocation, useNavigate } from 'react-router-dom';
-import { noop } from 'lodash-es';
+import { parse, stringify } from 'query-string';
+import { StringParam, useQueryParam } from 'use-query-params';
 
-export const SearchParamsContext = createContext({
-  params: {} as Record<string, string | undefined>,
-  set: noop as (params: Record<string, string | undefined>, options?: NavigateOptions) => void,
-  merge: noop as (params: Record<string, string | undefined>, options?: NavigateOptions) => void,
-});
-
-export function SearchParamsProvider({ children }: { children: ReactNode }) {
-  const navigate = useNavigate();
+/**
+ * @deprecated
+ */
+export function useSearchParams() {
   const { search } = useLocation();
+  const navigate = useNavigate();
 
-  const $currentParams = useRef<Record<string, string | undefined>>();
-  const params = useMemo(() => Object.fromEntries(new URLSearchParams(search)), [search]);
-  $currentParams.current = params;
+  const params = useMemo<Record<string, string | undefined>>(() => {
+    const rawParams = parse(search);
+    const stringEntries = Object.entries(rawParams)
+      .map((entry) => {
+        if (Array.isArray(entry[1])) {
+          const [key, value] = entry;
+          return [key, value[value.length - 1]];
+        }
+        return entry as [string, string | null];
+      })
+      .filter(([, value]) => typeof value === 'string') as [string, string][];
+    return Object.fromEntries(stringEntries);
+  }, [search]);
 
   const set = useCallback(
-    (newParams: Record<string, string | undefined>, options?: NavigateOptions) => {
-      const searchParams = new URLSearchParams();
-      Object.entries(newParams).forEach(([key, value]) => {
-        if (value !== undefined) {
-          searchParams.set(key, value);
-        }
-      });
-      navigate({ search: searchParams.toString() }, options);
+    (newParams: Record<string, any>, options?: NavigateOptions) => {
+      navigate({ search: stringify(newParams) }, options);
     },
     [navigate]
   );
 
   const merge = useCallback(
-    (newParams: Record<string, string | undefined>, options?: NavigateOptions) => {
-      set(
-        {
-          ...$currentParams.current,
-          ...newParams,
-        },
-        options
-      );
+    (newParams: Record<string, any>, options?: NavigateOptions) => {
+      set({ ...params, ...newParams }, options);
     },
-    [set]
+    [params, set]
   );
 
-  return (
-    <SearchParamsContext.Provider value={{ params, set, merge }}>
-      {children}
-    </SearchParamsContext.Provider>
-  );
-}
-
-export function useSearchParams() {
-  const { params, set, merge } = useContext(SearchParamsContext);
   return [params, { set, merge }] as const;
 }
 
-export function useSearchParam(key: string) {
-  const [params, { merge }] = useSearchParams();
-  const param = useMemo(() => params[key], [params, key]);
+/**
+ * @deprecated
+ */
+export function useSearchParam(name: string) {
+  const [param, setParam] = useQueryParam(name, StringParam);
   const set = useCallback(
-    (value: string | undefined, options?: NavigateOptions) => {
-      merge({ [key]: value }, options);
+    (newValue?: string, options?: { replace: boolean }) => {
+      setParam(newValue, options?.replace ? 'replaceIn' : undefined);
     },
-    [merge, key]
+    [setParam]
   );
-  return [param, set] as const;
+  return [param ?? undefined, set] as const;
 }

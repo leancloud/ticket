@@ -82,12 +82,11 @@ export function Articles() {
           rowKey="id"
           pagination={{
             pageSize,
-            onShowSizeChange: (page, size) => {
+            onChange: (page, size) => {
               setPage(page);
               setPageSize(size);
             },
             current: page,
-            onChange: setPage,
             total: totalCount,
           }}
         >
