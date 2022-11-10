@@ -501,6 +501,7 @@ const TicketFormValues = memo(({ ticket, loadMoreOpsLogs }) => {
             key={field.id}
             field={field}
             value={matchFormValues[field.id]}
+            user={ticket.author}
             className={styles.field}
           />
         )
@@ -519,6 +520,7 @@ const TicketFormValues = memo(({ ticket, loadMoreOpsLogs }) => {
                 key={field.id}
                 field={field}
                 value={formValues ? formValues[field.id] : undefined}
+                user={ticket.author}
                 className={styles.field}
               />
             )

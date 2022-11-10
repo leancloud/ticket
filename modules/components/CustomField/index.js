@@ -439,7 +439,7 @@ const Files = ({ ids }) => {
   )
 }
 
-function CustomFieldPreview({ previewTemplate, value }) {
+function CustomFieldPreview({ previewTemplate, value, user }) {
   const template = useMemo(
     () => (previewTemplate ? Handlebars.compile(previewTemplate) : undefined),
     [previewTemplate]
@@ -452,87 +452,52 @@ function CustomFieldPreview({ previewTemplate, value }) {
       // ignore the error
     }
     return template && value !== undefined
-      ? DOMPurify.sanitize(template({ value: parsedValue }), { ADD_TAGS: ['iframe'] })
+      ? DOMPurify.sanitize(template({ value: parsedValue, user }), { ADD_TAGS: ['iframe'] })
       : undefined
-  }, [template, value])
+  }, [template, value, user])
   return <p className={styles.preview} dangerouslySetInnerHTML={{ __html: previewHTML }} />
 }
 
 function CustomFieldDisplay({
   field: { type, variants, preview_template: previewTemplate },
   value,
+  user,
   className,
 }) {
   const { t } = useTranslation()
   const { title: label, options } = variants[0] || {}
-  const NoneNode = (
-    <Form.Group className={className}>
-      <Form.Label>{label}</Form.Label>
-      <p className="text-muted">{t('none')} </p>
-    </Form.Group>
-  )
+  const NoneNode = <p className="text-muted">{t('none')} </p>
 
-  if (previewTemplate && value !== undefined) {
-    return (
-      <Form.Group className={className}>
-        <Form.Label>{label}</Form.Label>
-        <ErrorBoundary>
-          <CustomFieldPreview previewTemplate={previewTemplate} value={value} />
-        </ErrorBoundary>
-      </Form.Group>
-    )
-  }
-  switch (type) {
-    case 'file':
-      if (value === undefined || !Array.isArray(value) || value.length === 0) {
-        return NoneNode
-      }
-      return (
-        <Form.Group className={className}>
-          <Form.Label>{label}</Form.Label>
-          <Files ids={value} />
-        </Form.Group>
-      )
-    case 'text':
-    case 'multi-line':
-      if (value === undefined) {
-        return NoneNode
-      }
-      return (
-        <Form.Group className={className}>
-          <Form.Label>{label}</Form.Label>
-          <p>{value} </p>
-        </Form.Group>
-      )
-    case 'checkbox':
-      value = value === 'false' ? false : Boolean(value)
-      return (
-        <Form.Group className={className}>
-          <Form.Label>{label}</Form.Label>
-          <p>{value ? 'Yes' : 'No'}</p>
-        </Form.Group>
-      )
-    case 'dropdown':
-    case 'radios':
-      return (
-        <Form.Group className={className}>
-          <Form.Label>{label}</Form.Label>
-          <p>{getDisplayText(options, value) || t('none')} </p>
-        </Form.Group>
-      )
-    case 'multi-select':
-      if (!value || !Array.isArray(value)) {
-        return NoneNode
-      }
-      const selectedOptions = (options || []).filter(([v]) => {
-        return value.includes(v)
-      })
-      if (selectedOptions.length === 0) {
-        return NoneNode
-      }
-      return (
-        <Form.Group className={className}>
-          <Form.Label>{label}</Form.Label>
+  const defaultContent = (function () {
+    switch (type) {
+      case 'file':
+        if (value === undefined || !Array.isArray(value) || value.length === 0) {
+          return NoneNode
+        }
+        return <Files ids={value} />
+      case 'text':
+      case 'multi-line':
+        if (value === undefined) {
+          return NoneNode
+        }
+        return <p>{value} </p>
+      case 'checkbox':
+        value = value === 'false' ? false : Boolean(value)
+        return <p>{value ? 'Yes' : 'No'}</p>
+      case 'dropdown':
+      case 'radios':
+        return <p>{getDisplayText(options, value) || t('none')} </p>
+      case 'multi-select':
+        if (!value || !Array.isArray(value)) {
+          return NoneNode
+        }
+        const selectedOptions = (options || []).filter(([v]) => {
+          return value.includes(v)
+        })
+        if (selectedOptions.length === 0) {
+          return NoneNode
+        }
+        return (
           <p>
             {selectedOptions.map(([, text], index) => (
               <Badge pill className={styles.badge} variant="info" key={index}>
@@ -540,11 +505,37 @@ function CustomFieldDisplay({
               </Badge>
             ))}
           </p>
-        </Form.Group>
-      )
-    default:
-      return null
-  }
+        )
+      default:
+        return null
+    }
+  })()
+
+  const DEFAULT_CONTENT_PLACEHOLDER = '#DEFAULT#'
+
+  const content =
+    previewTemplate && value !== undefined ? (
+      <ErrorBoundary>
+        {previewTemplate.startsWith(DEFAULT_CONTENT_PLACEHOLDER) && defaultContent}
+        <CustomFieldPreview
+          previewTemplate={previewTemplate
+            .replace(RegExp(`^${DEFAULT_CONTENT_PLACEHOLDER}`), '')
+            .replace(RegExp(`${DEFAULT_CONTENT_PLACEHOLDER}$`), '')}
+          value={value}
+          user={user}
+        />
+        {previewTemplate.endsWith(DEFAULT_CONTENT_PLACEHOLDER) && defaultContent}
+      </ErrorBoundary>
+    ) : (
+      defaultContent
+    )
+
+  return (
+    <Form.Group className={className}>
+      <Form.Label>{label}</Form.Label>
+      {content}
+    </Form.Group>
+  )
 }
 
 CustomFieldDisplay.propTypes = {
@@ -554,6 +545,7 @@ CustomFieldDisplay.propTypes = {
     previewTemplate: PropTypes.string,
   }),
   value: PropTypes.any,
+  user: PropTypes.any,
   options: PropTypes.any,
   className: PropTypes.string,
 }
