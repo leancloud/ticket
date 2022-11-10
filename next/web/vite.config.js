@@ -1,11 +1,10 @@
 import { defineConfig } from 'vite';
-import reactRefresh from '@vitejs/plugin-react-refresh';
-import reactJSX from 'vite-react-jsx';
+import react from '@vitejs/plugin-react';
 import path from 'path';
 
 export default defineConfig({
   base: '/next/',
-  plugins: [reactRefresh(), reactJSX()],
+  plugins: [react()],
   server: {
     port: 8081,
     proxy: {
