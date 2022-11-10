@@ -54,7 +54,7 @@ export default function LogIn() {
   return (
     <>
       <PageHeader />
-      <PageContent>
+      <PageContent className="flex-1">
         {showLoginForm ? (
           <LogInForm />
         ) : (

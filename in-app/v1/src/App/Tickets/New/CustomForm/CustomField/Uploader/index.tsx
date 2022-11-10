@@ -61,9 +61,7 @@ export function Uploader({ id, description, required, htmlId }: CustomFieldProps
         onDelete={(file) => remove(file.key)}
         error={!!error}
       />
-      <Description className="mt-1" error={error}>
-        {description}
-      </Description>
+      <Description error={error}>{description}</Description>
     </div>
   );
 }

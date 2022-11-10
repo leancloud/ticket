@@ -18,6 +18,8 @@ import CheckIcon from '@/icons/Check';
 import NotFound from '../../NotFound';
 import { CustomForm, CustomFieldConfig, CustomFormItem } from './CustomForm';
 import { usePersistFormData } from './usePersistFormData';
+import { useFAQs } from '@/App/Articles/utils';
+import { FAQs } from '@/App/Categories';
 
 const DEFAULT_FIELDS: CustomFieldConfig[] = [
   {
@@ -56,13 +58,21 @@ interface TicketFormProps {
   submitting?: boolean;
 }
 
-function TicketForm({ category, onSubmit, submitting }: TicketFormProps) {
+function TicketForm({
+  category,
+  onSubmit,
+  submitting,
+  showTitle,
+}: TicketFormProps & { showTitle?: boolean }) {
+  const { t } = useTranslation();
   const { meta, fields: presetFieldValues } = useTicketInfo();
 
-  const { data: formItems, isLoading: loadingFormItems } = useTicketFormItems(category.formId!, {
+  const result = useTicketFormItems(category.formId!, {
     enabled: category.formId !== undefined,
     staleTime: 1000 * 60 * 5,
   });
+
+  const { data: formItems, isLoading: loadingFormItems } = result;
 
   const items = useMemo<CustomFormItem[]>(() => {
     if (!category.formId) {
@@ -104,13 +114,18 @@ function TicketForm({ category, onSubmit, submitting }: TicketFormProps) {
   }
 
   return (
-    <CustomForm
-      items={items}
-      defaultValues={defaultValues}
-      onChange={onChange}
-      onSubmit={handleSubmit}
-      submitting={submitting}
-    />
+    <>
+      {showTitle && (
+        <PageContent className="bg-transparent mb-3 py-0 px-2" title={t('feedback.submit')} />
+      )}
+      <CustomForm
+        items={items}
+        defaultValues={defaultValues}
+        onChange={onChange}
+        onSubmit={handleSubmit}
+        submitting={submitting}
+      />
+    </>
   );
 }
 
@@ -122,15 +137,17 @@ function Success({ ticketId }: SuccessProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="text-center mt-12 sm:m-auto">
-      <div className="flex w-9 h-9 mx-auto rounded-full bg-tapBlue">
-        <CheckIcon className="w-4 h-4 m-auto text-white" />
+    <PageContent className="pt-10 flex-1" shadow>
+      <div className="text-center">
+        <div className="flex w-9 h-9 mx-auto rounded-full bg-tapBlue">
+          <CheckIcon className="w-4 h-4 m-auto text-white" />
+        </div>
+        <div className="text-[#666] mt-10">{t('ticket.create.success_text')}</div>
+        <Button className="inline-block w-32 mt-4" as={Link} to={`/tickets/${ticketId}`}>
+          {t('ticket.detail')}
+        </Button>
       </div>
-      <div className="text-[#666] mt-10">{t('ticket.create.success_text')}</div>
-      <Button className="inline-block w-32 mt-4" as={Link} to={`/tickets/${ticketId}`}>
-        {t('ticket.detail')}
-      </Button>
-    </div>
+    </PageContent>
   );
 }
 
@@ -157,6 +174,8 @@ export function NewTicket() {
     }
   }, [categories, category_id]);
 
+  const { data: faqs, isLoading: FAQsIsLoading, isSuccess: FAQsIsReady } = useFAQs(category?.id);
+
   const { mutateAsync: submit, isLoading: submitting } = useMutation({
     mutationFn: createTicket,
     onSuccess: (ticketId: string) => {
@@ -166,21 +185,28 @@ export function NewTicket() {
   });
 
   if (categories && !category) {
+    // Category is not exists :badbad:
     return <NotFound />;
   }
+
   return (
     <>
       <Helmet>{category && <title>{category.name}</title>}</Helmet>
       <PageHeader>{category?.name ?? t('general.loading') + '...'}</PageHeader>
-      <PageContent>
-        {ticketId ? (
-          <Success ticketId={ticketId as string} />
-        ) : (
-          <QueryWrapper result={result}>
-            <TicketForm category={category!} onSubmit={submit} submitting={submitting} />
-          </QueryWrapper>
-        )}
-      </PageContent>
+
+      {ticketId ? (
+        <Success ticketId={ticketId as string} />
+      ) : (
+        <QueryWrapper result={result}>
+          <FAQs className="mb-6" faqs={faqs} />
+          <TicketForm
+            category={category!}
+            onSubmit={submit}
+            submitting={submitting}
+            showTitle={!!faqs?.length}
+          />
+        </QueryWrapper>
+      )}
     </>
   );
 }

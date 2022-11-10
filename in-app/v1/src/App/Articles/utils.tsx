@@ -34,22 +34,17 @@ export function useNotices(categoryId?: string) {
   });
 }
 
-export const ArticleLink = ({
+export const NoticeLink = ({
   article,
   className,
-  fromCategory,
   children = article.title,
 }: {
   article: Article;
   className?: string;
-  fromCategory?: string;
   children?: React.ReactNode;
 }) => {
   return (
-    <Link
-      to={`/articles/${article.slug}${fromCategory ? `?from-category=${fromCategory}` : ''}`}
-      className={className}
-    >
+    <Link to={`/articles/${article.slug}?from-notice=true`} className={className}>
       {children}
     </Link>
   );

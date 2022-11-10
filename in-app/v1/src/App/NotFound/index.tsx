@@ -99,24 +99,24 @@ function PaperPlaneIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-export default function NotFound() {
+export default function NotFound({ message }: { message?: string }) {
   return (
     <>
       <PageHeader>Not Found</PageHeader>
       <PageContent>
-        <NotFoundContent />
+        <NotFoundContent message={message} />
       </PageContent>
     </>
   );
 }
 
-export const NotFoundContent = () => {
+export const NotFoundContent = ({ message }: { message?: string }) => {
   const { t } = useTranslation();
 
   return (
     <div className="mt-24 sm:m-auto text-center">
       <PaperPlaneIcon className="mx-auto" />
-      <div className="mt-2 text-[#BFBFBF]">{t('general.not_found')}</div>
+      <div className="mt-2 text-[#BFBFBF]">{message || t('general.not_found')}</div>
     </div>
   );
 };

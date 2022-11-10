@@ -7,7 +7,7 @@ import { QueryWrapper } from '@/components/QueryWrapper';
 import { PageContent, PageHeader } from '@/components/Page';
 import { CategoryList } from '@/App/Categories';
 
-export const TopCategoryList: FC<{ marker: boolean }> = ({ marker }) => {
+export const TopCategoryList: FC = () => {
   const result = useCategories();
   const categories = result.data;
 
@@ -22,7 +22,9 @@ export const TopCategoryList: FC<{ marker: boolean }> = ({ marker }) => {
   }, [categories]);
   return (
     <QueryWrapper result={result}>
-      <CategoryList marker={marker} categories={topCategories} />
+      <div className="-mb-3">
+        <CategoryList marker={true} categories={topCategories} />
+      </div>
     </QueryWrapper>
   );
 };
@@ -38,9 +40,9 @@ export default function TopCategories() {
       <Helmet>
         <title>{title}</title>
       </Helmet>
-      <PageHeader>{title}</PageHeader>
-      <PageContent>
-        <TopCategoryList marker={false} />
+      <PageHeader>{t('feedback.submit')}</PageHeader>
+      <PageContent shadow title={t('category.select_hint_home')}>
+        <TopCategoryList />
       </PageContent>
     </>
   );

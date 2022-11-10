@@ -10,7 +10,7 @@ import { CheckboxGroup } from './CheckboxGroup';
 import { RadioGroup } from './RadioGroup';
 import { Uploader } from './Uploader';
 
-type FieldType = 'text' | 'multi-line' | 'dropdown' | 'multi-select' | 'radios' | 'file';
+export type FieldType = 'text' | 'multi-line' | 'dropdown' | 'multi-select' | 'radios' | 'file';
 
 const TOP_LABEL_TYPES: FieldType[] = ['multi-select', 'radios'];
 
@@ -61,21 +61,18 @@ export function CustomField(props: CustomFieldProps) {
     return <Unknown type={type} />;
   }
   return (
-    <div className="flex flex-col sm:flex-row mb-5 last:mb-0">
-      <div className="shrink-0 mb-2 sm:mb-0 sm:w-[72px] sm:mr-2">
+    <>
+      <div className="shrink-0 mb-2">
         <label
-          className={cx('relative break-words', {
+          className={cx('relative break-words leading-[22px] font-bold', {
             [style.required]: required,
-            'sm:top-[7px]': !alignTop,
           })}
           htmlFor={`field_${id}`}
         >
           {displayTitle}
         </label>
       </div>
-      <div className="grow">
-        <Component {...props} htmlId={`field_${id}`} />
-      </div>
-    </div>
+      <Component {...props} htmlId={`field_${id}`} />
+    </>
   );
 }

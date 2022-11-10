@@ -1,14 +1,12 @@
 import { useState } from 'react';
 import { useMutation, useQuery } from 'react-query';
 import { useTranslation } from 'react-i18next';
-import { Route, Routes, useParams, useSearchParams } from 'react-router-dom';
-
+import { Route, Routes, useParams, useSearchParams, Link } from 'react-router-dom';
 import { Article } from '@/types';
 import { http } from '@/leancloud';
 import { PageContent, PageHeader } from '@/components/Page';
 import { QueryWrapper } from '@/components/QueryWrapper';
 import { Button } from '@/components/Button';
-import { NewTicketButton } from '@/components/NewTicketButton';
 import OpenInBrowser from '@/components/OpenInBrowser';
 import CheckIcon from '@/icons/Check';
 import ThumbDownIcon from '@/icons/ThumbDown';
@@ -67,7 +65,7 @@ function Feedback({ articleId }: { articleId: string }) {
   });
 
   return (
-    <div className="mt-8 text-gray-600 flex items-center text-sm h-6">
+    <div className="mt-6 text-gray-600 flex items-center text-sm h-6">
       {voted ? (
         <>
           <div className="flex w-4 h-4 bg-tapBlue rounded-full mr-2">
@@ -100,6 +98,7 @@ function Feedback({ articleId }: { articleId: string }) {
 }
 
 function ArticleDetail() {
+  const [t] = useTranslation();
   const { id } = useParams();
   const articleId = id?.split('-').shift();
   const result = useArticle(articleId!);
@@ -107,8 +106,10 @@ function ArticleDetail() {
 
   const [search] = useSearchParams();
   const categoryId = search.get('from-category');
+  const isNotice = !!search.get('from-notice');
 
   const { user } = useAuth();
+  const title = !!isNotice ? t('notice.title') : <span>&nbsp;</span>;
 
   return (
     <QueryWrapper result={result}>
@@ -120,21 +121,34 @@ function ArticleDetail() {
           <meta property="og:description" content={article.content.split('\n')[0]} />
         </Helmet>
       )}
-      <PageHeader>{article?.title}</PageHeader>
-      <PageContent>
-        <div className="p-4 bg-black bg-opacity-[0.02] border-b border-gray-100 ">
+      <PageHeader>{title}</PageHeader>
+      <PageContent className="py-0 px-0">
+        <div className="px-4 py-3 border-b border-gray-100 text-center font-bold">
+          {article?.title}
+        </div>
+        <div className="p-4 border-b border-gray-100">
           <OpenInBrowser.Content
             className="text-[13px] markdown-body"
             dangerouslySetInnerHTML={{ __html: article?.contentSafeHTML ?? '' }}
           />
           {article && user && <Feedback articleId={article.id} />}
         </div>
-        {categoryId && user && (
+        {isNotice && (
+          <div className="px-4 py-5 text-[12px] leading-[1.5] text-[#666] text-center">
+            <p>{t('notice.hint')}</p>
+            <Link to="/topCategories">
+              <Button secondary className="px-8 text-base mt-2 text-tapBlue font-bold">
+                {t('feedback.submit')}
+              </Button>
+            </Link>
+          </div>
+        )}
+        {/* {categoryId && auth && (
           <p className="my-6 px-4 text-center">
             <span className="block mb-2 text-sm">若以上内容没有帮助到你</span>
             <NewTicketButton categoryId={categoryId} />
           </p>
-        )}
+        )} */}
         {/* {categoryId && id && <RelatedFAQs categoryId={categoryId} articleId={id} />} */}
       </PageContent>
     </QueryWrapper>

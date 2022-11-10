@@ -6,8 +6,8 @@ export interface FormNoteProps {
 
 export function FormNote({ content }: FormNoteProps) {
   return (
-    <div className="mb-5">
-      <ReactMarkdown className="markdown-body text-[rgba(0,0,0,0.45)] text-sm">
+    <div>
+      <ReactMarkdown className="markdown-body text-[rgba(0,0,0,0.45)] text-base">
         {content}
       </ReactMarkdown>
     </div>

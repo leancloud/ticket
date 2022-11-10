@@ -1,5 +1,4 @@
 import { ChangeEventHandler, useCallback, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
 import cx from 'classnames';
 
 import PlusIcon from '@/icons/Plus';
@@ -30,7 +29,6 @@ export function Uploader<Key extends FileKey>({
   onDelete,
   error,
 }: UploaderProps<Key>) {
-  const { t } = useTranslation();
   const $input = useRef<HTMLInputElement>(null!);
   const handleClick = useCallback(() => $input.current.click(), []);
   const handleChange = useCallback<ChangeEventHandler<HTMLInputElement>>(
@@ -47,26 +45,20 @@ export function Uploader<Key extends FileKey>({
 
   return (
     <div className="w-full">
-      <div
-        className={cx(
-          'w-full h-12 p-4 border border-dashed rounded flex justify-center items-center cursor-pointer',
-          {
-            'active:border active:border-tapBlue hover:border-tapBlue': !error,
-            'border-[#D9D9D9]': !error,
-            'border-red': error,
-          }
+      <div className="w-full flex flex-wrap">
+        {files && files.length > 0 && (
+          <FileItems gallery previewable={false} files={files} onDelete={onDelete} />
         )}
-        onClick={handleClick}
-      >
-        <input id={id} className="hidden" type="file" ref={$input} onChange={handleChange} />
-        <div className="flex items-center select-none">
-          <PlusIcon className="w-4 h-4 text-tapBlue" />
-          <span className="ml-1 text-[#666] text-sm">{t('general.click_to_upload')}</span>
+        <div
+          className={cx('flex items-center mb-1 p-6 bg-[#f2f2f2] rounded cursor-pointer', {
+            'border border-red': error,
+          })}
+          onClick={handleClick}
+        >
+          <PlusIcon className="w-8 h-8" />
         </div>
       </div>
-      {files && files.length > 0 && (
-        <FileItems className="mt-2" previewable={false} files={files} onDelete={onDelete} />
-      )}
+      <input id={id} className="hidden" type="file" ref={$input} onChange={handleChange} />
     </div>
   );
 }
