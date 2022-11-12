@@ -8,13 +8,15 @@ import styles from './index.module.css';
 import { useSearchParams } from 'react-router-dom';
 import { useSDKInfo } from '@/components/SDK';
 
+const isXDSDK = navigator.userAgent.indexOf('XDCustomUA') !== -1;
+
 export function PageHeader(props: ComponentPropsWithoutRef<'div'>) {
   const { t } = useTranslation();
   const [search] = useSearchParams();
   const [{ ORIENTATION, NOTCH }] = useSDKInfo();
 
   const withNotch = NOTCH && ORIENTATION === 1;
-  const showNav = search.get('nav') !== '0';
+  const showNav = !isXDSDK && search.get('nav') !== '0';
 
   return (
     <>
