@@ -6,7 +6,7 @@ class LocalStorage implements Storage {
   }
 
   clear() {
-    this.data.clear;
+    this.data.clear();
   }
 
   getItem(key: string) {
