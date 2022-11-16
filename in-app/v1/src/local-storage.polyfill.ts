@@ -1,4 +1,4 @@
-export class LocalStorage implements Storage {
+class LocalStorage implements Storage {
   readonly data = new Map<string, string>();
 
   get length() {
@@ -36,3 +36,5 @@ export class LocalStorage implements Storage {
 if (!window.localStorage) {
   window.localStorage = new LocalStorage();
 }
+
+export {};
