@@ -4,6 +4,7 @@ import { Model, field, hasManyThroughIdArray } from '@/orm';
 import { TicketFormItem } from '@/ticket-form/types';
 import { TicketField } from './TicketField';
 import { TicketFieldVariant } from './TicketFieldVariant';
+import { User } from './User';
 
 export class TicketForm extends Model {
   @field()
@@ -22,7 +23,7 @@ export class TicketForm extends Model {
     const fields = await TicketField.queryBuilder()
       .where('objectId', 'in', this.fieldIds)
       .where('active', '==', true)
-      .where('visible', '==', true)
+      // .where('visible', '==', true)
       .find({ useMasterKey: true });
     const fieldMap = _.keyBy(fields, 'id');
 
@@ -36,8 +37,13 @@ export class TicketForm extends Model {
     return result;
   }
 
-  async getFieldVariants(this: TicketForm, locale: string): Promise<TicketFieldVariant[]> {
-    const fields = await this.getFields();
+  async getFieldVariants(
+    this: TicketForm,
+    locale: string,
+    currentUser?: User
+  ): Promise<TicketFieldVariant[]> {
+    const isCS = currentUser ? await currentUser.isStaff() : false;
+    const fields = (await this.getFields()).filter((field) => field.visible || isCS);
     const locales = fields.map((f) => f.defaultLocale).concat(getAvailableLocales(locale));
     const variants = await TicketFieldVariant.queryBuilder()
       .where(

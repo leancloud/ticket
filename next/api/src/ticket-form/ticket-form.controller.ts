@@ -4,6 +4,7 @@ import {
   Body,
   Controller,
   Ctx,
+  CurrentUser,
   Delete,
   Get,
   HttpError,
@@ -23,6 +24,7 @@ import service from './ticket-form.service';
 import ticketFormNoteService from './ticket-form-note/ticket-form-note.service';
 import { createTicketFormSchema, updateTicketFormSchema } from './schemas';
 import { CreateTicketFormData, UpdateTicketFormData } from './types';
+import { User } from '@/model/User';
 
 @Controller('ticket-forms')
 @UseMiddlewares(auth)
@@ -81,7 +83,7 @@ export class TicketFormController {
   }
 
   @Get(':id/items')
-  async getItems(@Ctx() ctx: Context, @Param('id') id: string) {
+  async getItems(@Ctx() ctx: Context, @Param('id') id: string, @CurrentUser() currentUser: User) {
     const form = await service.mustGet(id);
     const items = form.getItems();
 
@@ -89,7 +91,7 @@ export class TicketFormController {
     const notes = await ticketFormNoteService.getSome(noteIds);
     const noteById = _.keyBy(notes, (note) => note.id);
 
-    const fieldVariants = await form.getFieldVariants(ctx.locales?.[0] ?? 'en');
+    const fieldVariants = await form.getFieldVariants(ctx.locales?.[0] ?? 'en', currentUser);
     const fieldVariantByFieldId = _.keyBy(fieldVariants, (v) => v.fieldId);
 
     const result: any[] = [];

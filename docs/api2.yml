@@ -424,7 +424,8 @@ paths:
         required: true
     get:
       tags: ['Category']
-      summary: 获取某个分类关联的表单描述
+      summary: 获取某个分类关联的表单描述 (已被 /ticket-forms/{id}/items 代替)
+      deprecated: true
       responses:
         '200':
           description: OK

@@ -229,7 +229,7 @@ export class Ticket extends Model {
   }
 
   async isCustomerService(user: User): Promise<boolean> {
-    return user.id !== this.authorId && user.isCustomerService();
+    return user.isCustomerService();
   }
 
   async reply(this: Ticket, data: CreateReplyData): Promise<Reply> {
