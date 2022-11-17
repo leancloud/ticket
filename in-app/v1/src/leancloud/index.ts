@@ -1,10 +1,13 @@
-import { init, use } from 'open-leancloud-storage/core';
+import { init, use, setAdapters } from 'open-leancloud-storage/core';
 import { authModule } from 'open-leancloud-storage/auth';
 import { storageModule } from 'open-leancloud-storage/storage';
 import { liveQueryModule } from 'open-leancloud-storage/live-query';
 import axios from 'axios';
+import { localStorage } from '@/env';
 
 export type { User } from 'open-leancloud-storage/auth';
+
+setAdapters({ storage: localStorage });
 
 use(authModule);
 use(storageModule);

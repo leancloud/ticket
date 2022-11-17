@@ -3,7 +3,6 @@ import { render } from 'react-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { RecoilRoot } from 'recoil';
 import 'github-markdown-css/github-markdown-light.css';
-import './local-storage.polyfill';
 import './index.css';
 import './i18n';
 import App from './App';
