@@ -185,17 +185,13 @@ export class User extends Model {
     name?: string,
     thirdPartyData?: Record<string, any>
   ) {
+    const attributes = { name, thirdPartyData: { ...thirdPartyData, _updated_at: Date.now() } };
     const findAndUpdate = async () => {
       const user = await this.findByUsername(username);
       if (user) {
         const updateName = name && name !== user.name;
         if (updateName || thirdPartyData) {
-          user
-            .update(
-              { name, thirdPartyData: { ...thirdPartyData, _updated_at: Date.now() } },
-              { useMasterKey: true }
-            )
-            .catch(console.error);
+          user.update(attributes, { useMasterKey: true }).catch(console.error);
         }
         return user.loadSessionToken();
       }
@@ -203,7 +199,7 @@ export class User extends Model {
     const sessionToken = await findAndUpdate();
     if (sessionToken) return { sessionToken };
     try {
-      const newUser = await AV.User.signUp(username, Math.random().toString(), { name });
+      const newUser = await AV.User.signUp(username, Math.random().toString(), attributes);
       return { sessionToken: newUser.getSessionToken() };
     } catch (error) {
       if (
