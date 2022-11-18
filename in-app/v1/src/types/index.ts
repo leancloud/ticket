@@ -4,8 +4,8 @@ export interface Article {
   slug: string;
   content: string;
   contentSafeHTML: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface File {
@@ -28,8 +28,8 @@ export interface TicketListItem {
   files: File[];
   evaluation: Evaluation | null;
   unreadCount: number;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
 }
 export interface Ticket extends TicketListItem {
   content: string;
@@ -41,7 +41,7 @@ export interface Reply {
   content_HTML: string;
   isStaff: boolean;
   files: File[];
-  createdAt: Date;
+  createdAt: string;
 }
 
 interface FieldOption {
