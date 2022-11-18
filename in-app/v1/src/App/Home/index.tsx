@@ -9,6 +9,7 @@ import Topics from './Topics';
 import { TopCategoryList } from '../TopCategories';
 import Help from './Help';
 import Notices from './Notices';
+import { Link } from 'react-router-dom';
 
 export default function Home() {
   const { t } = useTranslation();
@@ -47,7 +48,12 @@ export default function Home() {
       <PageHeader />
       {content}
       {!enableCategories && (
-        <div className="text-center text-[#BFBFBF] mt-6 mb-3">{t('topic.hint')}</div>
+        <div className="text-center text-gray-400 opacity-80 mt-6 mb-3">
+          {t('topic.hint')}{' '}
+          <Link to="/categories" className="text-tapBlue">
+            {t('feedback.submit')}
+          </Link>
+        </div>
       )}
       <Help feedback={!enableCategories} />
     </>
