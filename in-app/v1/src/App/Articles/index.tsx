@@ -14,6 +14,8 @@ import ThumbUpIcon from '@/icons/ThumbUp';
 import { useAuth } from '@/states/auth';
 import { ArticleListItem, useFAQs } from './utils';
 import { Helmet } from 'react-helmet-async';
+import { format } from 'date-fns';
+import { zhCN } from 'date-fns/locale';
 
 async function getArticle(id: string) {
   return (await http.get<Article>(`/api/2/articles/${id}`)).data;
@@ -128,9 +130,14 @@ function ArticleDetail() {
         </div>
         <div className="p-4 border-b border-gray-100">
           <OpenInBrowser.Content
-            className="text-[13px] markdown-body"
+            className="text-[13px] mb-6 markdown-body"
             dangerouslySetInnerHTML={{ __html: article?.contentSafeHTML ?? '' }}
           />
+          {article && (
+            <p className="text-sm text-gray-400">
+              更新日期：{format(new Date(article.updatedAt), 'PPP', { locale: zhCN })}
+            </p>
+          )}
           {article && user && <Feedback articleId={article.id} />}
         </div>
         {isNotice && (
