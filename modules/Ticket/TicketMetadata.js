@@ -146,7 +146,7 @@ function AssigneeSection({ ticket }) {
           ) : (
             <option key="" value="" />
           )}
-          <optgroup label="客服组成员">
+          <optgroup label={group?.name}>
             {members?.map((cs) => (
               <option key={cs.id} value={cs.id}>
                 {cs.name || cs.username}
