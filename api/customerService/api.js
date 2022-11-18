@@ -12,7 +12,11 @@ router.get(
     if (!role) {
       res.throw(500, 'Missing customer services role')
     }
-    const customerServices = await role.getUsers().query().find({ useMasterKey: true })
+    const customerServices = await role
+      .getUsers()
+      .query()
+      .ascending('email,username')
+      .find({ useMasterKey: true })
     res.json(
       customerServices.map((user) => {
         return {

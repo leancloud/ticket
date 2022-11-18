@@ -105,23 +105,20 @@ function AssigneeSection({ ticket }) {
     onError: (error) => addNotification(error),
   })
 
-  const [groupIncludesAssignee, setgGroupIncludesAssignee] = useState(false)
+  const { group } = ticket
+  const { data: groupMembers } = useQuery({
+    queryKey: ['groups', group?.id],
+    queryFn: () => fetch(`/api/2/groups/${group?.id}`).then((group) => group.userIds),
+    enabled: group !== undefined,
+  })
+  const groupIncludesAssignee = groupMembers?.includes(ticket.assignee?.id)
 
-  useEffect(() => {
-    if (!ticket.assignee || !ticket.group) {
-      setgGroupIncludesAssignee(false)
-      return
-    }
-    const ac = new AbortController()
-    auth
-      .role(ticket.group.role_id)
-      .queryUser()
-      .where('objectId', '==', ticket.assignee.id)
-      .count({ abortSignal: ac.signal })
-      .then((count) => setgGroupIncludesAssignee(count === 0))
-      .catch(console.error)
-    return ac.abort.bind(ac)
-  }, [ticket.assignee, ticket.group])
+  const [members, others] = useMemo(() => {
+    const members = customerServices?.filter((customerService) =>
+      groupMembers?.includes(customerService.id)
+    )
+    return [members, _.difference(customerServices, members)]
+  }, [customerServices, groupMembers])
 
   return (
     <Form.Group>
@@ -149,11 +146,20 @@ function AssigneeSection({ ticket }) {
           ) : (
             <option key="" value="" />
           )}
-          {customerServices?.map((cs) => (
-            <option key={cs.id} value={cs.id}>
-              {cs.name || cs.username}
-            </option>
-          ))}
+          <optgroup label="客服组成员">
+            {members?.map((cs) => (
+              <option key={cs.id} value={cs.id}>
+                {cs.name || cs.username}
+              </option>
+            ))}
+          </optgroup>
+          <optgroup label="其他客服">
+            {others?.map((cs) => (
+              <option key={cs.id} value={cs.id}>
+                {cs.name || cs.username}
+              </option>
+            ))}
+          </optgroup>
         </Form.Control>
       ) : (
         <div className="d-flex align-items-center">
@@ -169,7 +175,7 @@ function AssigneeSection({ ticket }) {
           )}
         </div>
       )}
-      {isCustomerService && ticket.assignee && ticket.group && groupIncludesAssignee && (
+      {isCustomerService && ticket.assignee && ticket.group && !groupIncludesAssignee && (
         <Alert variant="warning" className={styles.metaAlert}>
           {ticket.assignee.name} is not a member of {ticket.group.name}{' '}
           <Button variant="light" size="sm" onClick={() => updateAssignee(null)}>
@@ -184,6 +190,7 @@ AssigneeSection.propTypes = {
   ticket: PropTypes.shape({
     id: PropTypes.string.isRequired,
     assignee: PropTypes.object,
+    group: PropTypes.object,
   }),
 }
 
