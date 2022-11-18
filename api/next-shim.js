@@ -24,23 +24,25 @@ AV.Cloud.define('statsHour', () => hourlyTicketStats())
 AV.Cloud.define('syncTicketLog', () => syncTicketLog())
 
 // TDS User Login
-AV.Cloud.onAuthData((request) => {
-  const tdsUserData = request.authData['tds-user']
+if (process.env.ENABLE_TDS_USER_LOGIN) {
+  AV.Cloud.onAuthData((request) => {
+    const tdsUserData = request.authData['tds-user']
 
-  if (tdsUserData) {
-    const { access_token } = tdsUserData
-    console.log(access_token)
-    try {
-      return {
-        ...request.authData,
-        'tds-user': User.generateTDSUserAuthData(access_token),
+    if (tdsUserData) {
+      const { access_token } = tdsUserData
+      console.log(access_token)
+      try {
+        return {
+          ...request.authData,
+          'tds-user': User.generateTDSUserAuthData(access_token),
+        }
+      } catch (err) {
+        throw new AV.Cloud.Error(JSON.stringify(err))
       }
-    } catch (err) {
-      throw new AV.Cloud.Error(JSON.stringify(err))
     }
-  }
 
-  return request.authData
-})
+    return request.authData
+  })
+}
 
 module.exports = { events }
