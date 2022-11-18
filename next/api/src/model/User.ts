@@ -355,7 +355,10 @@ export class User extends Model {
 
   static async getCustomerServices(): Promise<User[]> {
     const csRole = await Role.getCustomerServiceRole();
-    return User.queryBuilder().relatedTo(csRole, 'users').find({ useMasterKey: true });
+    return User.queryBuilder()
+      .relatedTo(csRole, 'users')
+      .orderBy('email,username')
+      .find({ useMasterKey: true });
   }
 
   static async getCustomerServicesOnDuty(): Promise<User[]> {
