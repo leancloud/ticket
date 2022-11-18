@@ -169,7 +169,7 @@ export class TicketUpdater {
   }
 
   private async applyOperation(action: OperateAction, operator: User) {
-    const isCustomerService = await this.ticket.isCustomerService(operator);
+    const isCustomerService = await operator.isCustomerService();
     switch (action) {
       case 'replyWithNoContent':
         this.data.status = Status.WAITING_CUSTOMER;
@@ -302,8 +302,8 @@ export class TicketUpdater {
 
     if (this.ticket.isClosed() !== ticket.isClosed()) {
       // 客服关闭或重新打开工单时增加 unreadCount
-      this.ticket
-        .isCustomerService(operator)
+      operator
+        .isCustomerService()
         .then((isCustomerService) => {
           if (isCustomerService) {
             return ticket.increaseUnreadCount('changeStatus', operator);

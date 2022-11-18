@@ -589,7 +589,7 @@ router.patch('/:id', async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   const ticket = ctx.state.ticket as Ticket;
   const data = updateTicketSchema.validateSync(ctx.request.body);
-  const isCustomerService = await ticket.isCustomerService(currentUser);
+  const isCustomerService = await currentUser.isCustomerService();
 
   const updater = new TicketUpdater(ticket);
 
@@ -732,7 +732,7 @@ router.post('/:id/replies', async (ctx) => {
   const ticket = ctx.state.ticket as Ticket;
 
   const data = replyDataSchema.validateSync(ctx.request.body);
-  const isCustomerService = await ticket.isCustomerService(currentUser);
+  const isCustomerService = await currentUser.isCustomerService();
   const isStaff = await currentUser.isStaff();
   const isUser = !isCustomerService && !isStaff;
 

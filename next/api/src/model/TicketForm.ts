@@ -19,12 +19,14 @@ export class TicketForm extends Model {
   @field()
   items?: TicketFormItem[];
 
-  async getFields(): Promise<TicketField[]> {
-    const fields = await TicketField.queryBuilder()
+  async getFields(visibleOnly = false): Promise<TicketField[]> {
+    const query = TicketField.queryBuilder()
       .where('objectId', 'in', this.fieldIds)
-      .where('active', '==', true)
-      // .where('visible', '==', true)
-      .find({ useMasterKey: true });
+      .where('active', '==', true);
+    if (visibleOnly) {
+      query.where('visible', '==', true);
+    }
+    const fields = await query.find({ useMasterKey: true });
     const fieldMap = _.keyBy(fields, 'id');
 
     const result: TicketField[] = [];
@@ -42,8 +44,8 @@ export class TicketForm extends Model {
     locale: string,
     currentUser?: User
   ): Promise<TicketFieldVariant[]> {
-    const isCS = currentUser ? await currentUser.isStaff() : false;
-    const fields = (await this.getFields()).filter((field) => field.visible || isCS);
+    const isCS = currentUser ? await currentUser.isCustomerService() : false;
+    const fields = await this.getFields(!isCS);
     const locales = fields.map((f) => f.defaultLocale).concat(getAvailableLocales(locale));
     const variants = await TicketFieldVariant.queryBuilder()
       .where(
