@@ -228,12 +228,8 @@ export class Ticket extends Model {
     return this.categoryPath!;
   }
 
-  async isCustomerService(user: User): Promise<boolean> {
-    return user.id !== this.authorId && user.isCustomerService();
-  }
-
   async reply(this: Ticket, data: CreateReplyData): Promise<Reply> {
-    const isCustomerService = await this.isCustomerService(data.author);
+    const isCustomerService = await data.author.isCustomerService();
 
     const ACL = new ACLBuilder();
     if (data.internal) {

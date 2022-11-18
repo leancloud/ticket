@@ -53,17 +53,13 @@ function encodeLatestReply(latestReply) {
 
 /**
  * @param {AV.User | string} user
- * @param {AV.User | string} author
  */
-async function isCSInTicket(user, author) {
+async function isCSInTicket(user) {
   const userId = typeof user === 'string' ? user : user.id
-  const authorId = typeof author === 'string' ? author : author.id
-  return userId !== authorId && (await isCustomerService(userId))
+  return await isCustomerService(userId)
 }
-async function isStaffInTicket(user, author) {
-  const userId = typeof user === 'string' ? user : user.id
-  const authorId = typeof author === 'string' ? author : author.id
-  return userId !== authorId && (await isStaff(user))
+async function isStaffInTicket(user) {
+  return await isStaff(user)
 }
 
 /**
