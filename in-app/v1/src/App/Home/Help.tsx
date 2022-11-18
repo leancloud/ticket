@@ -59,7 +59,7 @@ const Modal: FC<{
         >
           <div className="fixed text-[#222222] flex flex-col bg-white w-[100%] sm:w-[375px] py-2 rounded-t-lg">
             {feedback && (
-              <Link className="text-left px-3 py-4 flex focus:outline-none" to="/topCategories">
+              <Link className="text-left px-3 py-4 flex focus:outline-none" to="/categories">
                 <Feedback className="mr-2" />
                 {t('feedback.action')}
               </Link>

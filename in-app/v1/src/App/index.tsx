@@ -164,7 +164,7 @@ const AppRoutes = () => {
           </RequireAuth>
         }
       />
-      <Route path="/topCategories" element={<TopCategories />} />
+      <Route path="/categories" element={<TopCategories />} />
       <Route path="/articles/*" element={<Articles />} />
       <Route path="*" element={<NotFound />} />
     </Routes>

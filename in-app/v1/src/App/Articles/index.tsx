@@ -136,7 +136,7 @@ function ArticleDetail() {
         {isNotice && (
           <div className="px-4 py-5 text-[12px] leading-[1.5] text-[#666] text-center">
             <p>{t('notice.hint')}</p>
-            <Link to="/topCategories">
+            <Link to="/categories">
               <Button secondary className="px-8 text-base mt-2 text-tapBlue font-bold">
                 {t('feedback.submit')}
               </Button>
