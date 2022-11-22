@@ -708,7 +708,7 @@ router.get('/:ticketId', include, async (ctx) => {
   }
 
   if (params.includeAuthor) {
-    query.preload('author');
+    // query.preload('author');
   }
   if (params.includeAssignee) {
     query.preload('assignee');
@@ -733,6 +733,10 @@ router.get('/:ticketId', include, async (ctx) => {
 
   // TODO: Sentry
   ticket.resetUnreadCount(currentUser).catch(console.error);
+
+  if (params.includeAuthor) {
+    await ticket.load('author', { useMasterKey: true });
+  }
 
   ctx.body = new TicketResponse(ticket).toJSON({
     includeTags: params.includeTag,
