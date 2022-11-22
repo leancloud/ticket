@@ -28,6 +28,7 @@ export class UserResponse {
   toJSON() {
     return {
       id: this.user.id,
+      xdid: this.user.thirdPartyData?.id,
       username: this.user.username,
       nickname: this.user.name ?? this.user.username,
       active: !this.user.inactive,
