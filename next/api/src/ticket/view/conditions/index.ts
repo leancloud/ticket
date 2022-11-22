@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { ViewCondition } from './ViewCondition';
 import { AssigneeIdIs, AssigneeIdIsNot } from './assigneeId';
-import { CategoryIdIs, CategoryIdIsNot } from './categoryId';
+import { CategoryIdIs, CategoryIdIsIncluded, CategoryIdIsNot } from './categoryId';
 import { GroupIdIs, GroupIdIsNot } from './groupId';
 import { SinceCreatedIs, SinceCreatedGt, SinceCreatedLt } from './sinceCreated';
 import { SinceFulfilledIs, SinceFulfilledGt, SinceFulfilledLt } from './sinceFulfilled';
@@ -34,6 +34,7 @@ const viewConditionTypes: Record<string, Record<string, ViewConditionConstructor
   categoryId: {
     is: CategoryIdIs,
     isNot: CategoryIdIsNot,
+    isIncluded: CategoryIdIsIncluded,
   },
   groupId: {
     is: GroupIdIs,

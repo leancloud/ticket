@@ -62,6 +62,14 @@ export const conditions: Condition[] = [
     value: 'categoryId',
     ops: [
       {
+        label: '归属于',
+        value: 'isIncluded',
+        component: CategorySelect,
+        componentProps: {
+          changeOnSelect: true,
+        },
+      },
+      {
         label: '是',
         value: 'is',
         component: CategorySelect,
