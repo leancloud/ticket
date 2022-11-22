@@ -11,6 +11,7 @@ systemUser.attributes.username = 'system'
 function encodeUserObject(user) {
   return {
     id: user.id,
+    xdid: user.get('thirdPartyData')?.id,
     nid: user.get('nid'),
     email: user.get('email') || '',
     username: user.get('username'),
