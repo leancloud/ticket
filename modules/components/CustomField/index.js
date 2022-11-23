@@ -439,11 +439,8 @@ const Files = ({ ids }) => {
   )
 }
 
-function CustomFieldPreview({ previewTemplate, value, user }) {
-  const template = useMemo(
-    () => (previewTemplate ? Handlebars.compile(previewTemplate) : undefined),
-    [previewTemplate]
-  )
+function CustomFieldPreview({ template, value, user }) {
+  const tpl = useMemo(() => (template ? Handlebars.compile(template) : undefined), [template])
   const previewHTML = useMemo(() => {
     let parsedValue = value
     try {
@@ -451,10 +448,10 @@ function CustomFieldPreview({ previewTemplate, value, user }) {
     } catch (error) {
       // ignore the error
     }
-    return template && value !== undefined
-      ? DOMPurify.sanitize(template({ value: parsedValue, user }), { ADD_TAGS: ['iframe'] })
+    return tpl
+      ? DOMPurify.sanitize(tpl({ value: parsedValue, user }), { ADD_TAGS: ['iframe'] })
       : undefined
-  }, [template, value, user])
+  }, [tpl, value, user])
   return <p className={styles.preview} dangerouslySetInnerHTML={{ __html: previewHTML }} />
 }
 
@@ -512,23 +509,26 @@ function CustomFieldDisplay({
   })()
 
   const DEFAULT_CONTENT_PLACEHOLDER = '#DEFAULT#'
-
-  const content =
-    previewTemplate && value !== undefined ? (
-      <ErrorBoundary>
-        {previewTemplate.startsWith(DEFAULT_CONTENT_PLACEHOLDER) && defaultContent}
-        <CustomFieldPreview
-          previewTemplate={previewTemplate
-            .replace(RegExp(`^${DEFAULT_CONTENT_PLACEHOLDER}`), '')
-            .replace(RegExp(`${DEFAULT_CONTENT_PLACEHOLDER}$`), '')}
-          value={value}
-          user={user}
-        />
-        {previewTemplate.endsWith(DEFAULT_CONTENT_PLACEHOLDER) && defaultContent}
-      </ErrorBoundary>
-    ) : (
-      defaultContent
-    )
+  let content = defaultContent
+  if (previewTemplate) {
+    const showPreviewAnyway = previewTemplate.startsWith('!')
+    if (showPreviewAnyway || value !== undefined) {
+      const template = showPreviewAnyway ? previewTemplate.slice(1) : previewTemplate
+      content = (
+        <ErrorBoundary>
+          {template.startsWith(DEFAULT_CONTENT_PLACEHOLDER) && defaultContent}
+          <CustomFieldPreview
+            template={template
+              .replace(RegExp(`^${DEFAULT_CONTENT_PLACEHOLDER}`), '')
+              .replace(RegExp(`${DEFAULT_CONTENT_PLACEHOLDER}$`), '')}
+            value={value}
+            user={user}
+          />
+          {template.endsWith(DEFAULT_CONTENT_PLACEHOLDER) && defaultContent}
+        </ErrorBoundary>
+      )
+    }
+  }
 
   return (
     <Form.Group className={className}>
