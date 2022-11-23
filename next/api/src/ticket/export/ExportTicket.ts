@@ -111,17 +111,13 @@ const formatDate = (date?: Date) => {
 };
 
 const getCategories = async (authOptions?: AuthOptions) => {
-  const categories = await Category.query().find(authOptions);
-  return _(categories)
-    .map(({ id, name, description, meta, formId }) => ({
-      id,
-      name,
-      description,
-      meta,
-      formId,
-    }))
-    .keyBy('id')
-    .valueOf();
+  const categories = await categoryService.find();
+  return _(categories).keyBy('id').valueOf();
+};
+
+const getCategoryPath = async (category: Category) => {
+  const parents = await categoryService.getParentCategories(category.id);
+  return [...parents.map((c) => c.name).reverse(), category.name].join('/');
 };
 
 const getCustomerServices = async () => {
@@ -306,6 +302,7 @@ export default async function exportTicket({ params, sortItems, date }: JobData)
           name: category?.name,
           description: category?.description,
           meta: category?.meta,
+          path: category ? await getCategoryPath(category) : undefined,
         },
         content: ticket.content,
         evaluation: {

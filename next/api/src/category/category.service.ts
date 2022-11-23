@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import mem from 'mem';
-import { Cache, RedisStore } from '@/cache';
+import { Cache, LRUCacheStore, RedisStore } from '@/cache';
 import { AsyncDeepRenderer, ObjectTemplate } from '@/common/template';
 import { dynamicContentService } from '@/dynamic-content/dynamic-content.service';
 import { Category } from '@/model/Category';
@@ -16,7 +16,11 @@ export class CategoryService {
       prefix: 'cache:category',
       ttl: 60 * 5,
     });
-    this.categoryCache = new Cache([redisStore]);
+    const memStore = new LRUCacheStore({
+      ttl: 1000 * 20,
+      max: 1000,
+    });
+    this.categoryCache = new Cache([memStore, redisStore]);
   }
 
   async find({ active }: FindCategoriesOptions = {}) {
