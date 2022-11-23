@@ -18,6 +18,7 @@ export class CategoryService {
     });
     const memStore = new LRUCacheStore({
       ttl: 1000 * 20,
+      max: 1000,
     });
     this.categoryCache = new Cache([memStore, redisStore]);
   }
