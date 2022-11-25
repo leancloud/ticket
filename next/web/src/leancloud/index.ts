@@ -1,10 +1,10 @@
 import * as LC from 'open-leancloud-storage/core';
-import { authModule } from 'open-leancloud-storage/auth';
+import { authModule, User } from 'open-leancloud-storage/auth';
 import { cloudModule } from 'open-leancloud-storage/cloud';
 import { storageModule } from 'open-leancloud-storage/storage';
 import axios, { AxiosError } from 'axios';
 import { useQuery } from 'react-query';
-import { atom, useRecoilValue, useSetRecoilState } from 'recoil';
+import { atom, selector, useRecoilValue, useSetRecoilState } from 'recoil';
 
 LC.use(authModule);
 LC.use(cloudModule);
@@ -51,27 +51,62 @@ export interface CurrentUser {
   displayName: string;
 }
 
-function getCurrentUser(): CurrentUser | undefined {
-  const user = auth.currentUser;
-  if (user) {
-    return {
-      id: user.id,
-      displayName: user.data.name || user.data.username,
-    };
-  }
-}
+const currentLCUserState = atom({
+  key: 'currentLCUser',
+  default: auth.currentUser,
+});
 
-const currentUserState = atom({
+const currentUserState = selector({
   key: 'currentUser',
-  default: getCurrentUser(),
+  get: ({ get }): CurrentUser | undefined => {
+    const user = get(currentLCUserState);
+    if (user) {
+      return {
+        id: user.id,
+        displayName: user.data.name || user.data.username,
+      };
+    }
+  },
 });
 
 export const useCurrentUser = () => useRecoilValue(currentUserState);
 
 export const useRefreshCurrentUser = () => {
-  const setCurrentUser = useSetRecoilState(currentUserState);
-  return () => setCurrentUser(getCurrentUser());
+  const setCurrentUser = useSetRecoilState(currentLCUserState);
+  return () => setCurrentUser(auth.currentUser);
 };
+
+export const currentUserRolesState = selector({
+  key: 'currentUserRoles',
+  get: async ({ get }) => {
+    const currentUser = get(currentLCUserState);
+    if (!currentUser) {
+      return [];
+    }
+    return auth
+      .queryRole()
+      .where('name', 'in', ['customerService', 'staff', 'admin'])
+      .where('users', '==', currentUser)
+      .find()
+      .then((roles) => roles.map((role) => role.name));
+  },
+});
+
+export const currentUserIsCustomerSerivceState = selector({
+  key: 'currentUserIsCS',
+  get: ({ get }) => {
+    const roles = get(currentUserRolesState);
+    return roles.includes('customerService') || roles.includes('admin');
+  },
+});
+
+export const currentUserIsStaffState = selector({
+  key: 'currentUserIsCS',
+  get: ({ get }) => {
+    const roles = get(currentUserRolesState);
+    return roles.includes('staff') || roles.includes('customerService') || roles.includes('admin');
+  },
+});
 
 export type LeanCloudRegion = 'cn-n1' | 'cn-e1' | 'us-w1';
 

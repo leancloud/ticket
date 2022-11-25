@@ -279,6 +279,12 @@ function TicketInfo({ ticket }) {
       <span className="mx-2">
         <UserLabel user={ticket.author} displayTags={!isUser} displayId /> {t('createdAt')}{' '}
         <span title={createdAt.format()}>{createdAt.fromNow()}</span>
+        {ticket.reporter && ticket.reporter.id !== ticket.author.id && (
+          <>
+            {' '}
+            via <UserLabel user={ticket.reporter} displayId />
+          </>
+        )}
         {createdAt.fromNow() !== updatedAt.fromNow() && (
           <>
             {`, ${t('updatedAt')} `}
@@ -314,6 +320,7 @@ TicketInfo.propTypes = {
     nid: PropTypes.number.isRequired,
     status: PropTypes.number.isRequired,
     author: PropTypes.object.isRequired,
+    reporter: PropTypes.object.isRequired,
     subscribed: PropTypes.bool.isRequired,
     created_at: PropTypes.string.isRequired,
     updated_at: PropTypes.string.isRequired,

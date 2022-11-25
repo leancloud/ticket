@@ -3,19 +3,24 @@ import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { SiMarkdown } from 'react-icons/si';
 import { compact, keyBy, last, uniq } from 'lodash-es';
 
-import { ENABLE_LEANCLOUD_INTEGRATION } from '@/leancloud';
+import {
+  currentUserIsCustomerSerivceState,
+  ENABLE_LEANCLOUD_INTEGRATION,
+  useCurrentUser,
+} from '@/leancloud';
 import { useArticles } from '@/api/article';
 import { CategorySchema, useCategories } from '@/api/category';
 import { useOrganizations } from '@/api/organization';
 import { useTicketFormItems } from '@/api/ticket-form';
-import { Button, Collapse, Form, Input } from '@/components/antd';
-import { CategorySelect, Retry } from '@/components/common';
+import { Button, Collapse, Form, Input, Radio, RadioChangeEvent } from '@/components/antd';
+import { CategorySelect, Retry, UserSelect } from '@/components/common';
 import style from './index.module.css';
 import { OrganizationSelect } from './OrganizationSelect';
 import { LeanCloudAppSelect } from './LeanCloudAppSelect';
 import { Input as MyInput } from './Fields/Input';
 import { Upload } from './Fields/Upload';
 import { FormItems } from './FormItems';
+import { useRecoilValue } from 'recoil';
 
 const { Panel } = Collapse;
 
@@ -67,6 +72,7 @@ function FaqsItem({ ids }: { ids: string[] }) {
 }
 
 interface RawTicketData {
+  authorId?: string;
   organizationId?: string;
   title: string;
   appId?: string;
@@ -77,6 +83,7 @@ interface RawTicketData {
 }
 
 export interface TicketData {
+  authorId?: string;
   organizationId?: string;
   title: string;
   appId?: string;
@@ -95,6 +102,10 @@ export interface TicketFormProps {
 export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
   const methods = useForm<RawTicketData>({ shouldUnregister: true });
   const { control, getValues, setValue } = methods;
+  const currentUser = useCurrentUser();
+  const isCustomerSerivce = useRecoilValue(currentUserIsCustomerSerivceState);
+  const [asAttorney, setAsAttorney] = useState(false);
+
   const orgs = useOrganizations();
 
   const categoryId = useWatch({ control, name: 'categoryId' });
@@ -160,8 +171,18 @@ export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
   );
 
   const handleSubmit = methods.handleSubmit((data) => {
-    const { organizationId, title, appId, categoryId, fileIds, content, ...customFields } = data;
+    const {
+      authorId,
+      organizationId,
+      title,
+      appId,
+      categoryId,
+      fileIds,
+      content,
+      ...customFields
+    } = data;
     onSubmit({
+      authorId,
       organizationId,
       title,
       appId,
@@ -188,28 +209,56 @@ export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
     <div className="p-2">
       <FormProvider {...methods}>
         <Form className={style.ticketForm} layout="vertical" onSubmitCapture={handleSubmit}>
-          {orgs.data && orgs.data.length > 0 && (
-            <Form.Item label="所属" htmlFor="ticket_org">
-              {orgs.error ? (
-                <Retry message="获取组织失败" error={orgs.error} onRetry={orgs.refetch} />
-              ) : (
-                <Controller
-                  name="organizationId"
-                  render={({ field }) => (
-                    <OrganizationSelect
-                      {...field}
-                      id="ticket_org"
-                      options={orgs.data}
-                      loading={orgs.isLoading}
-                    />
-                  )}
-                />
-              )}
+          {isCustomerSerivce && (
+            <Form.Item>
+              <Radio.Group
+                onChange={(e: RadioChangeEvent) => setAsAttorney(e.target.value)}
+                value={asAttorney}
+              >
+                <Radio value={false}>本人提单</Radio>
+                <Radio value={true}>代用户提单</Radio>
+              </Radio.Group>
             </Form.Item>
           )}
-
+          {asAttorney ? (
+            <Controller
+              name="authorId"
+              render={({ field, fieldState: { error } }) => (
+                <Form.Item required label="用户" htmlFor="ticket_author" help={error?.message}>
+                  <UserSelect
+                    {...field}
+                    id="ticket_author"
+                    allowClear
+                    className="w-full"
+                    onChange={(id) => field.onChange({ target: { value: id } })}
+                  />
+                </Form.Item>
+              )}
+            />
+          ) : (
+            <>
+              {orgs.data && orgs.data.length > 0 && (
+                <Form.Item label="所属" htmlFor="ticket_org">
+                  {orgs.error ? (
+                    <Retry message="获取组织失败" error={orgs.error} onRetry={orgs.refetch} />
+                  ) : (
+                    <Controller
+                      name="organizationId"
+                      render={({ field }) => (
+                        <OrganizationSelect
+                          {...field}
+                          id="ticket_org"
+                          options={orgs.data}
+                          loading={orgs.isLoading}
+                        />
+                      )}
+                    />
+                  )}
+                </Form.Item>
+              )}
+            </>
+          )}
           <MyInput name="title" label="标题" required />
-
           {ENABLE_LEANCLOUD_INTEGRATION && (
             <Form.Item
               label="相关应用"
@@ -225,7 +274,6 @@ export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
               />
             </Form.Item>
           )}
-
           <Controller
             name="categoryId"
             rules={{ required: '请填写此字段' }}
@@ -249,13 +297,10 @@ export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
               </Form.Item>
             )}
           />
-
           {articleIds && articleIds.length > 0 && <FaqsItem ids={articleIds} />}
-
           {filteredFormItems && filteredFormItems.length > 0 && (
             <FormItems items={filteredFormItems} />
           )}
-
           <Controller
             name="content"
             render={({ field, fieldState: { error } }) => (
@@ -274,9 +319,7 @@ export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
               </Form.Item>
             )}
           />
-
           <Upload label="附件" name="fileIds" multiple />
-
           <Form.Item>
             <Button
               type="primary"

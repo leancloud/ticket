@@ -19,6 +19,7 @@ export function NewTicket() {
     (data: TicketData) => {
       mutate({
         appId: data.appId,
+        authorId: data.authorId,
         organizationId: data.organizationId,
         categoryId: data.categoryId,
         title: data.title,

@@ -70,6 +70,10 @@
       "className": "_User",
       "type": "Pointer"
     },
+    "reporter": {
+      "className": "_User",
+      "type": "Pointer"
+    },
     "evaluation": {
       "type": "Object"
     },
