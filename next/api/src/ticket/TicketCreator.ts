@@ -14,6 +14,7 @@ import { TicketLog } from '@/model/TicketLog';
 
 export class TicketCreator {
   private author?: User;
+  private reporter?: User;
   private organization?: Organization;
   private category?: Category;
   private title?: string;
@@ -38,6 +39,12 @@ export class TicketCreator {
   setAuthor(author: User): this {
     this.author = author;
     this.aclBuilder.allow(author, 'read', 'write');
+    return this;
+  }
+
+  setReporter(reporter: User): this {
+    this.reporter = reporter;
+    this.aclBuilder.allow(reporter, 'read', 'write');
     return this;
   }
 
@@ -214,6 +221,7 @@ export class TicketCreator {
       {
         ACL: this.getRawACL(),
         authorId: this.author!.id,
+        reporterId: this.reporter!.id,
         organizationId: this.organization?.id,
         category: this.category,
         title: this.title,

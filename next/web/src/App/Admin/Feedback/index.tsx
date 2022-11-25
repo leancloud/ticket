@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { RiCustomerServiceLine } from 'react-icons/ri';
 import { IoClose } from 'react-icons/io5';
 import { useToggle } from 'react-use';
-import { Modal } from '@/components/antd';
+import { Modal, Tooltip } from '@/components/antd';
 import { useTapSupportAuthToken } from '@/api/tds-support';
 import { LoadingCover } from '@/components/common';
 import styles from './index.module.css';
@@ -15,19 +15,19 @@ export function Feedback() {
   }
 
   return (
-    <>
-      <div className="w-full h-full flex">
+    <Tooltip title="客服系统技术支持" placement="right">
+      <div className="flex w-10 h-10 mb-2">
         <button
           className="m-auto w-10 h-10 rounded transition-colors hover:bg-[rgba(255,255,255,0.16)] hover:text-white"
-          title="反馈"
+          
           onClick={toggleModalOpen}
         >
-          <RiCustomerServiceLine className="w-6 h-6 text-primary m-auto" />
+          <RiCustomerServiceLine className="w-5 h-5 text-primary m-auto" />
         </button>
       </div>
 
       <FeedbackModal open={modalOpen} onHide={toggleModalOpen} />
-    </>
+    </Tooltip>
   );
 }
 

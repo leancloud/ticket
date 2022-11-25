@@ -2,12 +2,12 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { useCategories } from '@/api/category';
 import { Sidebar } from './Sidebar';
-import { Topbar } from './Topbar';
 import Tickets from './Tickets';
 import { Views, ViewTickets } from './Views';
 import { SearchTicket } from './Search';
 import Settings from './Settings';
 import Stats from './Stats';
+import { NewTicket } from '../Tickets/New';
 
 export default function AdminPage() {
   const { isLoading } = useCategories({
@@ -22,9 +22,16 @@ export default function AdminPage() {
     <div className="h-full grid grid-cols-[64px_1fr] bg-[#ebeff3]">
       <Sidebar className="z-40" />
       <div className="flex grow flex-col overflow-hidden">
-        <Topbar className="shrink-0" />
         <div className="grow overflow-hidden h-full">
           <Routes>
+            <Route
+              path="/tickets/new"
+              element={
+                <div className="h-full overflow-auto bg-white px-8 py-2">
+                  <NewTicket />
+                </div>
+              }
+            />
             <Route path="/tickets/*" element={<Tickets />} />
             <Route path="/views" element={<Views />}>
               <Route index element={null} />

@@ -336,8 +336,8 @@ router.get(
       getWatchObject(req.user, ticket),
     ])
 
-    const keys = ['author', 'assignee', 'files', 'group', 'ACL']
-    const include = ['author', 'assignee', 'files', 'group']
+    const keys = ['author', 'reporter', 'assignee', 'files', 'group', 'ACL']
+    const include = ['author', 'reporter', 'assignee', 'files', 'group']
     if (isCS) {
       keys.push('privateTags')
     }
@@ -349,6 +349,8 @@ router.get(
       title: ticket.get('title'),
       author_id: ticket.get('author').id,
       author: encodeUserObject(ticket.get('author')),
+      reporter_id: ticket.get('reporter')?.id,
+      reporter: ticket.get('reporter') ? encodeUserObject(ticket.get('reporter')) : null,
       organization_id: ticket.get('organization')?.id || '',
       assignee_id: ticket.get('assignee')?.id,
       assignee: ticket.get('assignee') ? encodeUserObject(ticket.get('assignee')) : null,

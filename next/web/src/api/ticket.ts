@@ -166,6 +166,7 @@ async function fetchTicketReplies(id: string, cursor?: string): Promise<ReplySch
 export interface CreateTicketData {
   appId?: string;
   categoryId: string;
+  authorId?: string;
   organizationId?: string;
   title: string;
   content: string;

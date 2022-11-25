@@ -30,6 +30,7 @@ const statuses = [50, 120, 160, 220, 250, 280];
 
 const includeSchema = yup.object({
   includeAuthor: yup.bool(),
+  includeReporter: yup.bool(),
   includeAssignee: yup.bool(),
   includeCategory: yup.bool(), // TODO
   includeGroup: yup.bool(),
@@ -151,6 +152,9 @@ router.get(
     }
     if (params.includeAuthor) {
       query.preload('author');
+    }
+    if (params.includeReporter) {
+      query.preload('reporter');
     }
     if (params.includeAssignee) {
       query.preload('assignee');
@@ -350,6 +354,8 @@ const ticketDataSchema = yup.object({
   content: yup.string().trim(),
   categoryId: yup.string().required(),
   organizationId: yup.string(),
+  authorId: yup.string(),
+  reporterId: yup.string(),
   fileIds: yup.array(yup.string().required()),
   metaData: yup.object(),
   customFields: customFieldsSchema,
@@ -402,6 +408,12 @@ router.post('/', async (ctx) => {
     return ctx.throw(403, 'This account is not qualified to create ticket');
   }
 
+  const isCS = await currentUser.isCustomerService();
+  const author =
+    (isCS && data.authorId ? await User.findById(data.authorId) : undefined) ?? currentUser;
+  const reporter =
+    (isCS && data.reporterId ? await User.findById(data.reporterId) : undefined) ?? currentUser;
+
   const category = await Category.find(data.categoryId);
   if (!category) {
     return ctx.throw(400, `Category ${data.categoryId} is not exists`);
@@ -426,7 +438,11 @@ router.post('/', async (ctx) => {
     (contentWithoutEscape ? contentWithoutEscape.split('\n')[0].slice(0, 100) : category.name);
   const fileIds = data.fileIds ?? attachments;
 
-  const creator = new TicketCreator().setAuthor(currentUser).setTitle(title).setContent(content);
+  const creator = new TicketCreator()
+    .setAuthor(author)
+    .setReporter(reporter)
+    .setTitle(title)
+    .setContent(content);
 
   creator.setCategory(category);
 
@@ -482,7 +498,7 @@ router.post('/', async (ctx) => {
   if (config.enableLeanCloudIntegration && data.appId) {
     await Tag.create({
       ACL: creator.getRawACL(),
-      authorId: currentUser.id,
+      authorId: author.id,
       ticketId: ticket.id,
       key: 'appId',
       value: data.appId,
