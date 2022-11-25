@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { SiMarkdown } from 'react-icons/si';
 import { compact, keyBy, last, uniq } from 'lodash-es';
+import { useRecoilValue } from 'recoil';
 
 import {
   currentUserIsCustomerSerivceState,
@@ -20,7 +21,6 @@ import { LeanCloudAppSelect } from './LeanCloudAppSelect';
 import { Input as MyInput } from './Fields/Input';
 import { Upload } from './Fields/Upload';
 import { FormItems } from './FormItems';
-import { useRecoilValue } from 'recoil';
 
 const { Panel } = Collapse;
 

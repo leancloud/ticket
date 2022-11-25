@@ -101,7 +101,7 @@ export const currentUserIsCustomerSerivceState = selector({
 });
 
 export const currentUserIsStaffState = selector({
-  key: 'currentUserIsCS',
+  key: 'currentUserIsStaff',
   get: ({ get }) => {
     const roles = get(currentUserRolesState);
     return roles.includes('staff') || roles.includes('customerService') || roles.includes('admin');
