@@ -221,7 +221,7 @@ export class TicketCreator {
       {
         ACL: this.getRawACL(),
         authorId: this.author!.id,
-        reporterId: this.reporter!.id,
+        reporterId: this.reporter?.id,
         organizationId: this.organization?.id,
         category: this.category,
         title: this.title,

@@ -411,8 +411,7 @@ router.post('/', async (ctx) => {
   const isCS = await currentUser.isCustomerService();
   const author =
     (isCS && data.authorId ? await User.findById(data.authorId) : undefined) ?? currentUser;
-  const reporter =
-    (isCS && data.reporterId ? await User.findById(data.reporterId) : undefined) ?? currentUser;
+  const reporter = isCS && data.reporterId ? await User.findById(data.reporterId) : undefined;
 
   const category = await Category.find(data.categoryId);
   if (!category) {
@@ -438,11 +437,11 @@ router.post('/', async (ctx) => {
     (contentWithoutEscape ? contentWithoutEscape.split('\n')[0].slice(0, 100) : category.name);
   const fileIds = data.fileIds ?? attachments;
 
-  const creator = new TicketCreator()
-    .setAuthor(author)
-    .setReporter(reporter)
-    .setTitle(title)
-    .setContent(content);
+  const creator = new TicketCreator().setAuthor(author).setTitle(title).setContent(content);
+
+  if (reporter) {
+    creator.setReporter(reporter);
+  }
 
   creator.setCategory(category);
 
