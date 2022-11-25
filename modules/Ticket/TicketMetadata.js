@@ -85,6 +85,9 @@ GroupSection.propTypes = {
   }),
 }
 
+const prioritize = (items, check) =>
+  items?.reduce((prev, item) => (check(item) ? [item, ...prev] : [...prev, item]), [])
+
 function AssigneeSection({ ticket }) {
   const { t } = useTranslation()
   const { addNotification, isCustomerService } = useContext(AppContext)
@@ -113,12 +116,17 @@ function AssigneeSection({ ticket }) {
   })
   const groupIncludesAssignee = groupMembers?.includes(ticket.assignee?.id)
 
+  const { currentUser } = useContext(AppContext)
   const [members, others] = useMemo(() => {
     const members = customerServices?.filter((customerService) =>
       groupMembers?.includes(customerService.id)
     )
-    return [members, _.difference(customerServices, members)]
-  }, [customerServices, groupMembers])
+    const isCurrentUser = (user) => user.id === currentUser.id
+    return [
+      prioritize(members, isCurrentUser),
+      prioritize(_.difference(customerServices, members), isCurrentUser),
+    ]
+  }, [currentUser.id, customerServices, groupMembers])
 
   return (
     <Form.Group>
@@ -149,14 +157,14 @@ function AssigneeSection({ ticket }) {
           <optgroup label={group?.name}>
             {members?.map((cs) => (
               <option key={cs.id} value={cs.id}>
-                {cs.name || cs.username}
+                {cs.name || cs.username} {currentUser.id === cs.id && ' (you)'}
               </option>
             ))}
           </optgroup>
           <optgroup label="其他客服">
             {others?.map((cs) => (
               <option key={cs.id} value={cs.id}>
-                {cs.name || cs.username}
+                {cs.name || cs.username} {currentUser.id === cs.id && ' (you)'}
               </option>
             ))}
           </optgroup>
