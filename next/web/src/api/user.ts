@@ -56,3 +56,11 @@ export const useUser = (id: string, options?: UseQueryOptions<UserSearchResult, 
     queryFn: () => fetchUser(id),
     ...options,
   });
+
+export interface CreateUserData extends Partial<Pick<UserSchema, 'username'>> {
+  email?: string;
+}
+
+export const createUser = async (data: CreateUserData) => {
+  await http.post('/api/2/users/pre-create', data);
+};

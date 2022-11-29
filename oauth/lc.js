@@ -55,7 +55,7 @@ exports.loginCallback = (callbackUrl) => {
           if (!sessionToken) {
             return AV.User.loginWithAuthData(accessToken, getLeanCloudPlatform(region))
               .then((user) => {
-                if (_.isEqual(user.createdAt, user.updatedAt)) {
+                if (!user.get('gravatarHash')) {
                   // 第一次登录，从 LeanCloud 初始化用户信息
                   return initUserInfo(region, user)
                 }

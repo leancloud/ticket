@@ -129,6 +129,9 @@ export class User extends Model {
   @field()
   email?: string;
 
+  @field()
+  password?: string;
+
   sessionToken?: string;
 
   @field()

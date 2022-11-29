@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router-dom';
 
 import { SubMenu, MenuDataItem } from '@/components/Page';
 
+import { NewUser } from './Users';
 import { Members } from './Members';
 import { GroupList, NewGroup, GroupDetail } from './Groups';
 import { Vacations } from './Vacations';
@@ -28,6 +29,11 @@ import { CategoryFieldCount } from './Categories/CategoryFieldStats';
 
 const SettingRoutes = () => (
   <Routes>
+    <Route path="/users">
+      <Route index element="Under Construction" />
+      <Route path="new" element={<NewUser />} />
+      <Route path=":id" element="Under Construction" />
+    </Route>
     <Route path="/members" element={<Members />} />
     <Route path="/groups">
       <Route index element={<GroupList />} />
@@ -109,11 +115,15 @@ const SettingRoutes = () => (
 
 const routeGroups: MenuDataItem[] = [
   {
-    name: '客服设置',
-    key: 'customerService',
+    name: '用户',
+    key: 'users',
     children: [
       {
-        name: '成员',
+        name: '创建用户',
+        path: 'users/new',
+      },
+      {
+        name: '客服',
         path: 'members',
       },
       {
@@ -127,16 +137,28 @@ const routeGroups: MenuDataItem[] = [
     ],
   },
   {
-    name: '管理',
-    key: 'manage',
+    name: '工单',
+    key: 'ticket',
     children: [
       {
         name: '分类',
         path: 'categories',
       },
       {
-        name: '标签',
-        path: 'tags',
+        name: '表单',
+        path: 'ticket-forms',
+      },
+      {
+        name: '工单字段',
+        path: 'ticket-fields',
+      },
+      {
+        name: '表单说明',
+        path: 'ticket-form-notes',
+      },
+      {
+        name: '动态内容',
+        path: 'dynamic-contents',
       },
       {
         name: '快捷回复',
@@ -147,20 +169,8 @@ const routeGroups: MenuDataItem[] = [
         path: 'views',
       },
       {
-        name: '工单字段',
-        path: 'ticket-fields',
-      },
-      {
-        name: '工单表单',
-        path: 'ticket-forms',
-      },
-      {
-        name: '表单说明',
-        path: 'ticket-form-notes',
-      },
-      {
-        name: '动态内容',
-        path: 'dynamic-contents',
+        name: '标签',
+        path: 'tags',
       },
     ],
   },
