@@ -2,3 +2,8 @@
 {"ACL":{},"objectId":"title","defaultLocale":"zh-cn","type":"text","title":"标题","active":true,"visible":true,"required":true}
 {"ACL":{},"objectId":"details","defaultLocale":"zh-cn","type":"multi-line","title":"详细描述","active":true,"visible":true,"required":false}
 {"ACL":{},"objectId":"attachments","defaultLocale":"zh-cn","type":"file","title":"附件","active":true,"visible":true,"required":false}
+{"ACL":{},"objectId":"device","defaultLocale":"zh-cn","type":"text","title":"设备","active":true,"visible":false,"required":false,"meta":{"disableFilter": true},"previewTemplate":"<a href=\"https://www.gsmarena.com/res.php3?sSearch={{ value }}\">{{ value }}</a>"}
+{"ACL":{},"objectId":"device_vendor","defaultLocale":"zh-cn","type":"text","title":"设备厂商","active":true,"visible":false,"required":false,"meta":{"disableFilter": true}}
+{"ACL":{},"objectId":"os","defaultLocale":"zh-cn","type":"text","title":"操作系统","active":true,"visible":false,"required":false,"meta":{"disableFilter": true}}
+{"ACL":{},"objectId":"os_name","defaultLocale":"zh-cn","type":"text","title":"操作系统名称","active":true,"visible":false,"required":false,"meta":{"disableFilter": true}}
+{"ACL":{},"objectId":"ip","defaultLocale":"zh-cn","type":"text","title":"IP","active":true,"visible":false,"required":false,"meta":{"disableFilter": true},"previewTemplate":"<a href=\"https://nali.leanapp.cn/ip/{{ value }}\">{{ value }}</a>"}

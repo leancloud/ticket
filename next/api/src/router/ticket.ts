@@ -1,6 +1,7 @@
 import Router from '@koa/router';
 import AV from 'leancloud-storage';
 import _ from 'lodash';
+import UAParser from 'ua-parser-js';
 
 import { config } from '@/config';
 import * as yup from '@/utils/yup';
@@ -459,15 +460,36 @@ router.post('/', async (ctx) => {
   if (data.metaData) {
     creator.setMetaData(data.metaData);
   }
-  if (customFields?.length) {
-    const ticketFieldIds = customFields.map((field) => field.field);
+  let builtInFields: TicketDataSchema['customFields'] = [];
+  if (process.env.PERSIST_USERAGENT_INFO) {
+    builtInFields.push({ field: 'ip', value: ctx.ip });
+    const {
+      device: { vendor, model },
+      os: { name, version },
+    } = UAParser(ctx.header['user-agent']);
+    if (vendor || model) {
+      builtInFields.push({ field: 'device', value: [vendor, model].join(' ') });
+    }
+    if (vendor) {
+      builtInFields.push({ field: 'device_vendor', value: vendor });
+    }
+    if (name || version) {
+      builtInFields.push({ field: 'os', value: [name, version].join(' ') });
+    }
+    if (name) {
+      builtInFields.push({ field: 'os_name', value: name });
+    }
+  }
+  const fields: TicketDataSchema['customFields'] = [...builtInFields, ...(customFields ?? [])];
+  if (fields.length) {
+    const ticketFieldIds = fields.map((field) => field.field);
     // TODO(sdjdd): Cache result
     const ticketFields = await TicketField.queryBuilder()
       .where('objectId', 'in', ticketFieldIds)
       .find({ useMasterKey: true });
     const ticketFieldById = _.keyBy(ticketFields, (field) => field.id);
     let [filteredCustomFields, unknownCustomFields] = _.partition(
-      customFields,
+      fields,
       (field) => ticketFieldById[field.field]
     );
     if (filteredCustomFields.length) {

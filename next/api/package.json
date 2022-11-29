@@ -45,6 +45,7 @@
     "sluggo": "^0.3.1",
     "sqlstring": "^2.3.3",
     "throat": "^6.0.1",
+    "ua-parser-js": "^1.0.32",
     "yup": "^0.32.11",
     "zod": "^3.11.6"
   },
@@ -64,6 +65,7 @@
     "@types/node": "^17.0.8",
     "@types/remarkable": "^2.0.3",
     "@types/sqlstring": "^2.3.0",
+    "@types/ua-parser-js": "^0.7.36",
     "@typescript-eslint/eslint-plugin": "^5.37.0",
     "@typescript-eslint/parser": "^5.37.0",
     "nodemon": "^2.0.15",

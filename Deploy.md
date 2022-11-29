@@ -309,3 +309,15 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 ### 54b52f4af0ed99dfc7b8a08e93e847542101a502
 
 导入 `Ticket` (增加 reporter 列)
+
+## 2022-11-30
+
+### TBD
+
+导入 data
+
+-  `TicketField.jsonl`, `TicketFieldVariant.jsonl` ：增加内置字段
+
+新增环境变量
+
+- `PERSIST_USERAGENT_INFO`：控制提单时是否持久化设备信息到工单字段中，默认否
