@@ -574,10 +574,10 @@ TicketMetadata.propTypes = {
 }
 
 export function TicketMetadata({ ticket }) {
-  const { isUser, isCustomerService } = useContext(AppContext)
+  const { isStaff, isCustomerService } = useContext(AppContext)
   return (
     <>
-      {!isUser && <GroupSection ticket={ticket} />}
+      {isStaff && <GroupSection ticket={ticket} />}
 
       <AssigneeSection ticket={ticket} />
 
