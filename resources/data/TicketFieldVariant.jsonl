@@ -2,3 +2,8 @@
 {"description":"","titleForCustomerService":"标题","ACL":{},"locale":"zh-cn","field":{"__type":"Pointer","className":"TicketField","objectId":"title"},"title":"标题"}
 {"description":"","titleForCustomerService":"详细描述","ACL":{},"locale":"zh-cn","field":{"__type":"Pointer","className":"TicketField","objectId":"details"},"title":"详细描述"}
 {"description":"","titleForCustomerService":"附件","ACL":{},"locale":"zh-cn","field":{"__type":"Pointer","className":"TicketField","objectId":"attachments"},"title":"附件"}
+{"description":"","titleForCustomerService":"设备","ACL":{},"locale":"zh-cn","field":{"__type":"Pointer","className":"TicketField","objectId":"device"},"title":"设备"}
+{"description":"","titleForCustomerService":"设备厂商","ACL":{},"locale":"zh-cn","field":{"__type":"Pointer","className":"TicketField","objectId":"device_vendor"},"title":"设备厂商"}
+{"description":"","titleForCustomerService":"操作系统","ACL":{},"locale":"zh-cn","field":{"__type":"Pointer","className":"TicketField","objectId":"os"},"title":"操作系统"}
+{"description":"","titleForCustomerService":"操作系统名称","ACL":{},"locale":"zh-cn","field":{"__type":"Pointer","className":"TicketField","objectId":"os_name"},"title":"操作系统名称"}
+{"description":"","titleForCustomerService":"IP","ACL":{},"locale":"zh-cn","field":{"__type":"Pointer","className":"TicketField","objectId":"ip"},"title":"IP"}
