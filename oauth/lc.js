@@ -57,6 +57,7 @@ exports.loginCallback = (callbackUrl) => {
               .then((user) => {
                 if (!user.get('gravatarHash')) {
                   // 第一次登录，从 LeanCloud 初始化用户信息
+                  // 如果用户是预创建的，首次登录时 created 与 updatedAt 并不相同，这里简单用有没有 gravatarHash 判断
                   return initUserInfo(region, user)
                 }
                 return user
