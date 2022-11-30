@@ -29,7 +29,7 @@ const JWTAuthSchema = z.object({
 });
 const anonymouseAuthSchema = z.object({
   type: z.literal('anonymous').default('anonymous'),
-  anonymousId: z.string().min(16),
+  anonymousId: z.string().min(32),
   name: z.string().optional(),
 });
 const TDSUserSchema = z.object({
