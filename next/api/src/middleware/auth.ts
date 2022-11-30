@@ -26,6 +26,11 @@ export const auth: Middleware = withSpan(async (ctx, next) => {
 
   const anonymousId = ctx.get('X-Anonymous-ID');
   if (anonymousId) {
+    if (anonymousId.length < 32) {
+      ctx.throw(401, 'Anonymous ID 长度不足', {
+        code: 'WEAK_ANONYMOUS_ID',
+      });
+    }
     const user = await withAsyncSpan(
       () => User.findByAnonymousId(anonymousId),
       ctx,
