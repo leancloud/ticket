@@ -57,7 +57,8 @@ export const useUser = (id: string, options?: UseQueryOptions<UserSearchResult, 
     ...options,
   });
 
-export interface CreateUserData extends Partial<Pick<UserSchema, 'username'>> {
+export interface CreateUserData {
+  username?: string;
   email?: string;
 }
 

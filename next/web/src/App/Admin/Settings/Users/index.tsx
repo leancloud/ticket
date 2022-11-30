@@ -5,9 +5,7 @@ import { Button, Form, Input, message } from '@/components/antd';
 import { createUser, CreateUserData } from '@/api/user';
 
 export function NewUser() {
-  const { control, handleSubmit, reset } = useForm({
-    defaultValues: {} as CreateUserData,
-  });
+  const { control, handleSubmit, reset } = useForm<CreateUserData>();
 
   const { mutate, isLoading } = useMutation({
     mutationFn: createUser,
