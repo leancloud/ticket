@@ -4,13 +4,16 @@ const publicKeys = process.env.PUBLIC_KEYS?.split(',')?.map(Buffer.from);
 
 export { JsonWebTokenError };
 
-export const getVerifiedPayload = (token: string) => {
+export const getVerifiedPayload = (
+  token: string,
+  options?: jwt.VerifyOptions & { complete?: false }
+) => {
   if (publicKeys == undefined || publicKeys.length === 0) {
     throw new JsonWebTokenError('PUBLIC_KEYS not set');
   }
   for (const key of publicKeys) {
     try {
-      return jwt.verify(token, key) as JwtPayload;
+      return jwt.verify(token, key, options) as JwtPayload;
     } catch (error) {
       if (error instanceof JsonWebTokenError && error.message !== 'invalid signature') {
         throw error;

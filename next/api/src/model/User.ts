@@ -283,17 +283,22 @@ export class User extends Model {
   }
 
   static generateTDSUserAuthData(token: string) {
-    const { sub, app_id } = getVerifiedPayload(token);
-    if (!sub || !app_id) {
+    const { sub, appId } = getVerifiedPayload(token, {
+      issuer: 'tds-storage',
+      audience: 'tds-tapdesk',
+    });
+
+    if (!sub || !appId) {
       throw new MissingFieldError(
-        `${Object.entries({ sub, app_id })
+        `${Object.entries({ sub, appId })
           .filter(([, v]) => !v)
           .map(([k]) => k)
           .join(', ')} field is required`
       );
     }
+
     return {
-      uid: `${app_id}-${sub}`,
+      uid: `${appId}-${sub}`,
       access_token: token,
     };
   }
@@ -301,9 +306,13 @@ export class User extends Model {
   static async loginOrSignUpTDSUser(token: string, failOnNotExist = false): Promise<AV.User> {
     try {
       // FIXME: uid is placeholder
-      return await AV.User.loginWithAuthData({ uid: '1234', access_token: token }, 'tds-user', {
-        failOnNotExist,
-      });
+      return await AV.User.loginWithAuthData(
+        { uid: 'placeholder', access_token: token },
+        'tds-user',
+        {
+          failOnNotExist,
+        }
+      );
     } catch (err: any) {
       if (err.code === 142) {
         const error = (() => {

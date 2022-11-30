@@ -30,7 +30,6 @@ if (process.env.ENABLE_TDS_USER_LOGIN) {
 
     if (tdsUserData) {
       const { access_token } = tdsUserData
-      console.log(access_token)
       try {
         return {
           ...request.authData,
