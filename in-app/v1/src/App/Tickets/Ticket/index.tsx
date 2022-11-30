@@ -36,8 +36,8 @@ async function fetchTicket(id: string): Promise<Ticket> {
     files: data.files,
     evaluation: data.evaluation,
     unreadCount: data.unread_count,
-    createdAt: new Date(data.created_at),
-    updatedAt: new Date(data.updated_at),
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
   };
 }
 
@@ -242,7 +242,7 @@ export default function TicketDetail() {
     switch (action) {
       case 'create':
         const lastReply = last(replies);
-        if (!lastReply || reply.createdAt > lastReply.createdAt) {
+        if (!lastReply || reply.createdAt > new Date(lastReply.createdAt)) {
           fetchMoreReplies();
           clearLocalUnreadCount(id);
         }

@@ -49,8 +49,8 @@ async function fetchTickets({
     unreadCount: ticket.unreadCount,
     files: ticket.files,
     evaluation: ticket.evaluation,
-    createdAt: new Date(ticket.createdAt),
-    updatedAt: new Date(ticket.updatedAt),
+    createdAt: ticket.createdAt,
+    updatedAt: ticket.updatedAt,
   }));
 }
 
@@ -81,7 +81,7 @@ function TicketItem({ ticket }: TicketItemProps) {
         <div className="text-sm">
           <TicketStatus className="mr-3" status={ticket.status} />
           <span className="text-[#BFBFBF] whitespace-nowrap">
-            {t('ticket.updated_at')}: <Time value={ticket.updatedAt} />
+            {t('ticket.updated_at')}: <Time value={new Date(ticket.updatedAt)} />
           </span>
         </div>
         <div className="mt-1.5 truncate text-[13px]">{ticket.title}</div>

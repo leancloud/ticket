@@ -40,7 +40,7 @@ function ReplyItem({ data, isLast }: ReplyItemProps) {
           <span className="mr-2">
             {data.isStaff ? t('reply.staff_title') : t('reply.my_title')}
           </span>
-          <Time className="text-[#BFBFBF] whitespace-nowrap" value={data.createdAt} />
+          <Time className="text-[#BFBFBF] whitespace-nowrap" value={new Date(data.createdAt)} />
         </div>
         <div
           className={cx('inline-block rounded-2xl rounded-tl-none mt-2 p-1 text-sm', {
@@ -73,7 +73,7 @@ async function fetchReplies(ticketId: string, cursor?: string): Promise<Reply[]>
     content_HTML: reply.content_HTML,
     isStaff: reply.is_customer_service,
     files: reply.files,
-    createdAt: new Date(reply.created_at),
+    createdAt: reply.created_at,
   }));
 }
 
@@ -89,7 +89,7 @@ export function useReplies(ticketId: string, options?: UseRepliesOptions) {
     queryFn: ({ pageParam }) => fetchReplies(ticketId, pageParam),
     getNextPageParam: (lastPage, allPages) => {
       const lastReply = last(flatten(allPages));
-      return lastReply?.createdAt.toISOString() || '';
+      return lastReply?.createdAt || '';
     },
   });
 }
