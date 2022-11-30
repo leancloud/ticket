@@ -3,8 +3,9 @@ import { useDebounce } from 'react-use';
 import { RefSelectProps } from 'antd/lib/select';
 
 import { useUsers } from '@/api/user';
-import { Select, SelectProps, Spin } from '@/components/antd';
+import { Empty, Select, SelectProps, Spin } from '@/components/antd';
 import { Retry } from './Retry';
+import { Link } from 'react-router-dom';
 
 export interface UserSelectProps extends SelectProps<string | string[]> {
   errorMessage?: string;
@@ -31,7 +32,9 @@ export const UserSelect = forwardRef<RefSelectProps, UserSelectProps>(
       return [
         ...(extraOptions ?? []),
         ...(data ?? []).map((u) => ({
-          label: `${u.nickname}${u.email ? ` (${u.email})` : ''}`,
+          label: `${u.nickname}${
+            u.email ? ` (${u.email})` : u.nickname !== u.username ? ` [${u.username}]` : ''
+          }`,
           value: u.id,
         })),
       ];
@@ -46,7 +49,17 @@ export const UserSelect = forwardRef<RefSelectProps, UserSelectProps>(
         showSearch
         filterOption={false}
         onSearch={setKeyword}
-        notFoundContent={isLoading ? <Spin size="small" /> : undefined}
+        notFoundContent={
+          isLoading ? (
+            <Spin size="small" />
+          ) : (
+            <Empty>
+              <Link to="/admin/settings/users/new" target="_blank">
+                创建用户
+              </Link>
+            </Empty>
+          )
+        }
         placeholder="使用用户名或邮箱搜索"
         {...props}
         ref={ref}

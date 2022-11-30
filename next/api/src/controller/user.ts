@@ -4,6 +4,7 @@ import {
   Ctx,
   CurrentUser,
   Get,
+  HttpError,
   Pagination,
   Param,
   Post,
@@ -12,7 +13,7 @@ import {
   UseMiddlewares,
 } from '@/common/http';
 import { FindModelPipe, ParseCsvPipe, TrimPipe, ZodValidationPipe } from '@/common/pipe';
-import { auth, staffOnly } from '@/middleware';
+import { auth, customerServiceOnly, staffOnly } from '@/middleware';
 import { User } from '@/model/User';
 import { UserSearchResult } from '@/response/user';
 import { withAsyncSpan } from '@/utils/trace';
@@ -44,6 +45,12 @@ const authSchema = z.union([
   TDSUserSchema,
 ]);
 type AuthData = z.infer<typeof authSchema>;
+
+const preCraeteSchema = z.object({
+  email: z.string().email().optional(),
+  username: z.string().optional(),
+});
+type PreCreateUserData = z.infer<typeof preCraeteSchema>;
 
 @Controller('users')
 export class UserController {
@@ -128,5 +135,21 @@ export class UserController {
       );
     }
     return User.loginWithAnonymousId(authData.anonymousId, authData.name);
+  }
+
+  @Post('pre-create')
+  @UseMiddlewares(auth, customerServiceOnly)
+  @ResponseBody(UserSearchResult)
+  async preCreate(@Body(new ZodValidationPipe(preCraeteSchema)) data: PreCreateUserData) {
+    const { email, username } = data;
+    if (!email && !username) {
+      throw new HttpError(400, 'You must provide an email or a username');
+    }
+    return User.create({
+      // username might be `""`
+      username: username ? username : email,
+      email,
+      password: Math.random().toString(),
+    });
   }
 }
