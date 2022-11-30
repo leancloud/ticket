@@ -21,6 +21,7 @@ import api from './router';
 import { apiLogMiddleware } from './api-log';
 
 export const app = new Koa();
+app.proxy = true;
 
 // not mandatory, but adding domains does help a lot with breadcrumbs
 const requestHandler: Koa.Middleware = (ctx, next) => {
