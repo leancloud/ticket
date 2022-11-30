@@ -400,6 +400,8 @@ const extractSystemFields = (
   };
 };
 
+const { PERSIST_USERAGENT_INFO } = process.env;
+
 router.post('/', async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   const data = ticketDataSchema.validateSync(ctx.request.body);
@@ -461,7 +463,7 @@ router.post('/', async (ctx) => {
     creator.setMetaData(data.metaData);
   }
   let builtInFields: TicketDataSchema['customFields'] = [];
-  if (process.env.PERSIST_USERAGENT_INFO) {
+  if (PERSIST_USERAGENT_INFO) {
     builtInFields.push({ field: 'ip', value: ctx.ip });
     const {
       device: { vendor, model },
@@ -480,7 +482,11 @@ router.post('/', async (ctx) => {
       builtInFields.push({ field: 'os_name', value: name });
     }
   }
-  const fields: TicketDataSchema['customFields'] = [...builtInFields, ...(customFields ?? [])];
+  const fields: TicketDataSchema['customFields'] = _.uniqBy(
+    // When duplicated, the later ones will be ignored by _.uniqBy 
+    [...(customFields ?? []), ...builtInFields],
+    'field'
+  );
   if (fields.length) {
     const ticketFieldIds = fields.map((field) => field.field);
     // TODO(sdjdd): Cache result
