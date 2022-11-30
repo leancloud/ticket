@@ -86,7 +86,7 @@ const Modal: FC<{
 
 const Help: FC<{ feedback: boolean }> = ({ feedback }) => {
   const rootCategory = useRootCategory();
-  const { data: hasUnreadTickets } = useHasUnreadTickets(rootCategory);
+  const { data: hasUnreadTickets } = useHasUnreadTickets(rootCategory.id);
 
   const [isOpen, setIsOpen] = useState(false);
 
