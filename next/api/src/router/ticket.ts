@@ -24,6 +24,7 @@ import { TicketCreator, TicketUpdater, createTicketExportJob } from '@/ticket';
 import { categoryService } from '@/category';
 import { FilterOptions, textFilterService } from '@/utils/textFilter';
 import { OpsLogResponse } from '@/response/ops-log';
+import { getIP } from '@/utils';
 
 const router = new Router().use(auth);
 
@@ -428,7 +429,7 @@ router.post('/', async (ctx) => {
   const filterOptions: FilterOptions = {
     user_id: currentUser.username,
     nickname: currentUser.name,
-    ip: ctx.ip,
+    ip: getIP(ctx),
   };
 
   const { escape: content, unescape: contentWithoutEscape } = await textFilterService.filter(
@@ -464,7 +465,7 @@ router.post('/', async (ctx) => {
   }
   let builtInFields: TicketDataSchema['customFields'] = [];
   if (PERSIST_USERAGENT_INFO) {
-    builtInFields.push({ field: 'ip', value: ctx.ip });
+    builtInFields.push({ field: 'ip', value: getIP(ctx) });
     const {
       device: { vendor, model },
       os: { name, version },
@@ -483,7 +484,7 @@ router.post('/', async (ctx) => {
     }
   }
   const fields: TicketDataSchema['customFields'] = _.uniqBy(
-    // When duplicated, the later ones will be ignored by _.uniqBy 
+    // When duplicated, the later ones will be ignored by _.uniqBy
     [...(customFields ?? []), ...builtInFields],
     'field'
   );
@@ -713,7 +714,7 @@ router.patch('/:id', async (ctx) => {
       content: (
         await textFilterService.filter(data.evaluation.content, {
           user_id: currentUser.username,
-          ip: ctx.ip,
+          ip: getIP(ctx),
           nickname: currentUser.name,
         })
       ).unescape,
@@ -796,7 +797,7 @@ router.post('/:id/replies', async (ctx) => {
       : (
           await textFilterService.filter(data.content, {
             user_id: currentUser.username,
-            ip: ctx.ip,
+            ip: getIP(ctx),
             nickname: currentUser.name,
           })
         ).escape,
@@ -877,7 +878,7 @@ router.put('/:id/custom-fields', async (ctx) => {
       const requestOptions = {
         user_id: currentUser.username,
         nickname: currentUser.name,
-        ip: ctx.ip,
+        ip: getIP(ctx),
       };
       values = await Promise.all(
         values.map(async (field) => {
