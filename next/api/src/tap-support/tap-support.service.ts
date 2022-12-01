@@ -17,6 +17,7 @@ class TapSupportService {
       subject: options.customId,
       issuer: 'LeanTicket',
       audience: 'TapSupport',
+      expiresIn: '5min',
     });
   }
 }
