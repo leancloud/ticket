@@ -415,7 +415,14 @@ router.post('/', async (ctx) => {
   const isCS = await currentUser.isCustomerService();
   const author =
     (isCS && data.authorId ? await User.findById(data.authorId) : undefined) ?? currentUser;
-  const reporter = isCS && data.reporterId ? await User.findById(data.reporterId) : undefined;
+  let reporter: User | undefined;
+  if (isCS) {
+    if (data.reporterId) {
+      reporter = await User.findById(data.reporterId);
+    } else if (currentUser.id !== author.id) {
+      reporter = currentUser;
+    }
+  }
 
   const category = await Category.find(data.categoryId);
   if (!category) {
