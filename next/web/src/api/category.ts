@@ -13,6 +13,7 @@ export interface CategorySchema {
   parentId?: string;
   position: number;
   active: boolean;
+  hidden?: boolean;
   template?: string;
   meta?: Record<string, any>;
   articleIds?: string[];
@@ -120,6 +121,7 @@ export interface CreateCategoryData {
   formId?: string;
   template?: string;
   meta?: Record<string, any>;
+  hidden?: boolean;
 }
 
 async function createCategory(data: CreateCategoryData) {

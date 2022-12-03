@@ -40,6 +40,10 @@
         "deletedAt": {
             "type": "Date"
         },
+        "hidden": {
+            "type": "Boolean",
+            "comment": "对用户隐藏"
+        },
         "FAQs": {
             "type": "Array",
             "v": 2,

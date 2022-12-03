@@ -106,7 +106,11 @@ export default function Categories() {
   const id = currentCategory?.id;
 
   const subCategories = useMemo(
-    () => categories?.filter((c) => c.parentId === id).sort((a, b) => a.position - b.position),
+    () =>
+      categories
+        ?.filter((c) => !c.hidden)
+        .filter((c) => c.parentId === id)
+        .sort((a, b) => a.position - b.position),
     [categories, id]
   );
   const noSubCategories = subCategories && subCategories.length === 0;

@@ -10,6 +10,7 @@ export interface Category {
   parentId?: string;
   position: number;
   formId?: string;
+  hidden?: boolean;
 }
 
 async function fetchCategories(rootCategoryId: string): Promise<Category[]> {

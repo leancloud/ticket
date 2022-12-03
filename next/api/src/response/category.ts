@@ -1,5 +1,4 @@
 import { Category } from '@/model/Category';
-import { FieldType } from '@/model/TicketField';
 
 export class CategoryResponse {
   constructor(readonly category: Category) {}
@@ -14,6 +13,7 @@ export class CategoryResponse {
       parentId: this.category.parentId,
       position: this.category.order ?? this.category.createdAt.getTime(),
       active: !this.category.deletedAt,
+      hidden: this.category.hidden,
       meta: this.category.meta,
       template: this.category.qTemplate,
       articleIds: this.category.FAQIds,

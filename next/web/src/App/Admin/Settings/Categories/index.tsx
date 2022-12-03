@@ -10,7 +10,12 @@ import {
 } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { useQueryClient } from 'react-query';
-import { AiOutlineLoading, AiOutlineDown, AiOutlineUp } from 'react-icons/ai';
+import {
+  AiOutlineLoading,
+  AiOutlineDown,
+  AiOutlineUp,
+  AiOutlineEyeInvisible,
+} from 'react-icons/ai';
 import { keyBy, pick } from 'lodash-es';
 import { produce } from 'immer';
 import cx from 'classnames';
@@ -54,12 +59,13 @@ function Loading() {
 }
 
 function NameCell({ category }: { category: CategorySchema }) {
-  const { id, name, active, alias } = category;
+  const { id, name, active, alias, hidden } = category;
   return (
     <>
       <Link className={cx({ 'opacity-60': !active })} to={id}>
         {name} {alias && <Tag>{alias}</Tag>}
         {!active && ' (停用)'}
+        {hidden && <AiOutlineEyeInvisible className="inline" />}
       </Link>
     </>
   );
@@ -491,6 +497,7 @@ export function CategoryDetail() {
         'formId',
         'template',
         'meta',
+        'hidden',
       ]);
       initData.name = category.rawName;
       return initData;
