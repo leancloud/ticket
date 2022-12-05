@@ -286,22 +286,14 @@ export class User extends Model {
   }
 
   static generateTDSUserAuthData(token: string) {
-    const { sub, appId } = getVerifiedPayload(token, {
-      issuer: 'tds-storage',
-      audience: 'tds-tapdesk',
-    });
+    const { sub } = getVerifiedPayload(token, { issuer: 'tap-support' });
 
-    if (!sub || !appId) {
-      throw new MissingFieldError(
-        `${Object.entries({ sub, appId })
-          .filter(([, v]) => !v)
-          .map(([k]) => k)
-          .join(', ')} field is required`
-      );
+    if (!sub) {
+      throw new MissingFieldError('sub field is required');
     }
 
     return {
-      uid: `${appId}-${sub}`,
+      uid: sub,
       access_token: token,
     };
   }
@@ -341,6 +333,8 @@ export class User extends Model {
 
   static async loginWithTDSUserToken(token: string): Promise<{ sessionToken: string }> {
     const user = await User.loginOrSignUpTDSUser(token);
+
+    await tdsUserCache.del(token);
 
     return { sessionToken: user.getSessionToken() };
   }

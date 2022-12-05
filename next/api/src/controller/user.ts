@@ -14,8 +14,9 @@ import {
 } from '@/common/http';
 import { FindModelPipe, ParseCsvPipe, TrimPipe, ZodValidationPipe } from '@/common/pipe';
 import { auth, customerServiceOnly, staffOnly } from '@/middleware';
-import { User } from '@/model/User';
+import { InvalidLoginCredentialError, User } from '@/model/User';
 import { UserSearchResult } from '@/response/user';
+import { getVerifiedPayload, JsonWebTokenError, processKeys, signPayload } from '@/utils/jwt';
 import { withAsyncSpan } from '@/utils/trace';
 import { Context } from 'koa';
 import { z } from 'zod';
@@ -42,7 +43,7 @@ const authSchema = z.union([
   JWTAuthSchema,
   anonymouseAuthSchema,
   LegacyXDAuthSchema,
-  TDSUserSchema,
+  ...(process.env.ENABLE_TDS_USER_LOGIN ? [TDSUserSchema] : []),
 ]);
 type AuthData = z.infer<typeof authSchema>;
 
@@ -51,6 +52,11 @@ const preCraeteSchema = z.object({
   username: z.string().optional(),
 });
 type PreCreateUserData = z.infer<typeof preCraeteSchema>;
+
+const exchangeSchema = z.object({
+  jwt: z.string(),
+});
+type ExchangeData = z.infer<typeof exchangeSchema>;
 
 @Controller('users')
 export class UserController {
@@ -155,6 +161,38 @@ export class UserController {
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       throw new HttpError(400, message);
+    }
+  }
+
+  @Post('tds/token')
+  async exchangeJwt(@Body(new ZodValidationPipe(exchangeSchema)) data: ExchangeData) {
+    const { jwt } = data;
+    try {
+      const { appId, sub } = getVerifiedPayload(
+        jwt,
+        {
+          algorithms: ['RS256'],
+          issuer: 'tds-storage',
+          audience: 'tap-support',
+        },
+        processKeys(process.env.TDS_USER_PUBLIC_KEY)
+      );
+
+      return {
+        jwt: signPayload(
+          { sub: `${appId}:${sub}` },
+          {
+            algorithm: 'HS256',
+            expiresIn: '7d',
+            issuer: 'tap-support',
+          }
+        ),
+      };
+    } catch (err) {
+      if (err instanceof JsonWebTokenError) {
+        throw new InvalidLoginCredentialError(err.message, err);
+      }
+      throw err;
     }
   }
 }

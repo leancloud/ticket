@@ -47,7 +47,7 @@ export const auth: Middleware = withSpan(async (ctx, next) => {
   }
 
   const tdsUserToken = ctx.get('X-TDS-Credential');
-  if (tdsUserToken) {
+  if (tdsUserToken && process.env.ENABLE_TDS_USER_LOGIN) {
     const user = await withAsyncSpan(
       () => User.findByTDSUserToken(tdsUserToken),
       ctx,
