@@ -28,4 +28,10 @@ export class RedisCache<T> {
     await redis.set(key, this.serialize(freshItem), 'ex', ttl);
     return freshItem;
   }
+
+  async del(id: string) {
+    const key = `${this.namespace}:${id}`;
+    const cachedValue = await redis.getdel(key);
+    return cachedValue !== null ? this.deserialize(cachedValue) : cachedValue;
+  }
 }
