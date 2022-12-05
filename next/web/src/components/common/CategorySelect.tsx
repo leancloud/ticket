@@ -50,7 +50,10 @@ export const CategorySelect = forwardRef<CascaderRef, CategorySelectProps>(
       active: categoryActive,
     });
     const categoryTree = useCategoryTree(
-      categories?.filter((category) => !(followHidden && category.hidden))
+      useMemo(() => categories?.filter((category) => !(followHidden && category.hidden)), [
+        categories,
+        followHidden,
+      ])
     );
 
     const path = useMemo(() => {
