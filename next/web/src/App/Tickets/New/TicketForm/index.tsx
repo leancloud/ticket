@@ -284,6 +284,7 @@ export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
                   {...field}
                   id="ticket_category"
                   categoryActive
+                  followHidden={!isCustomerSerivce}
                   onChange={(categoryId, categoryPath) => {
                     field.onChange(categoryId);
                     handleChangeCategory(categoryPath);

@@ -83,6 +83,10 @@ export class Category extends AliasModel {
   @serialize.Date()
   deletedAt?: Date;
 
+  @field()
+  @serialize()
+  hidden?: boolean;
+
   getTinyInfo(): TinyCategoryInfo {
     return {
       objectId: this.id,

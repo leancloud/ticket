@@ -9,6 +9,7 @@ import { useTicketForms } from '@/api/ticket-form';
 import { GroupSelect } from '@/components/common';
 import {
   Button,
+  Checkbox,
   Divider,
   Form,
   Input,
@@ -100,6 +101,7 @@ export interface CategoryFormData {
   formId?: string;
   template?: string;
   meta?: Record<string, any>;
+  hidden?: boolean;
 }
 
 export interface CategoryFormProps {
@@ -203,6 +205,16 @@ export function CategoryForm({
           </Form.Item>
         )}
       />
+
+      <Form.Item>
+        <Controller
+          control={control}
+          name="hidden"
+          render={({ field: { value, onChange } }) => (
+            <Checkbox checked={value} onChange={onChange} children="用户提单时隐藏" />
+          )}
+        />
+      </Form.Item>
 
       <Divider orientation="left" orientationMargin={0}>
         表单 / 模板

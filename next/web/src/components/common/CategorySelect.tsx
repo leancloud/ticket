@@ -31,14 +31,30 @@ export interface CategorySelectProps
   onChange?: (id?: string, categoryPath?: CategoryTreeNode[]) => void;
   errorMessage?: string;
   categoryActive?: boolean;
+  followHidden?: boolean;
 }
 
 export const CategorySelect = forwardRef<CascaderRef, CategorySelectProps>(
-  ({ errorMessage = '获取分类失败', value, onChange, categoryActive, ...props }, ref) => {
-    const { data, isLoading, error, refetch } = useCategories({
+  (
+    {
+      errorMessage = '获取分类失败',
+      value,
+      onChange,
+      categoryActive,
+      followHidden = false,
+      ...props
+    },
+    ref
+  ) => {
+    const { data: categories, isLoading, error, refetch } = useCategories({
       active: categoryActive,
     });
-    const categoryTree = useCategoryTree(data);
+    const categoryTree = useCategoryTree(
+      useMemo(() => categories?.filter((category) => !(followHidden && category.hidden)), [
+        categories,
+        followHidden,
+      ])
+    );
 
     const path = useMemo(() => {
       if (!categoryTree || !value) {

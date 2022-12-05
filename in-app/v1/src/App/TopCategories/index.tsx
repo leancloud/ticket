@@ -17,6 +17,7 @@ export const TopCategoryList: FC = () => {
     }
     const map = keyBy(categories, 'id');
     return categories
+      .filter((c) => !c.hidden)
       .filter((c) => c.parentId && !map[c.parentId])
       .sort((a, b) => a.position - b.position);
   }, [categories]);

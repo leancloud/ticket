@@ -41,6 +41,7 @@ const createCategorySchema = z.object({
   formId: z.string().optional(),
   meta: z.record(z.any()).optional(),
   template: z.string().optional(),
+  hidden: z.boolean().optional(),
 });
 
 const updateCategorySchema = createCategorySchema.partial().extend({
@@ -109,6 +110,7 @@ export class CategoryController {
         formId: data.formId,
         qTemplate: data.template,
         meta: data.meta,
+        hidden: data.hidden,
       },
       currentUser.getAuthOptions()
     );
@@ -224,6 +226,7 @@ export class CategoryController {
       meta: data.meta,
       order: data.position ?? deletedAt?.getTime(),
       deletedAt,
+      hidden: data.hidden,
     };
   }
 }
