@@ -28,6 +28,7 @@ import { CSReplyEditor } from './CSReplyEditor'
 import { RecentTickets } from './RecentTickets'
 import { EditReplyModal } from './EditReplyModal'
 import { AccessControl } from './AccessControl'
+import { Time } from './Time'
 
 export function updateTicket(id, data) {
   return fetch(`/api/1/tickets/${id}`, {
@@ -278,17 +279,17 @@ function TicketInfo({ ticket }) {
       <TicketStatusLabel status={ticket.status} />
       <span className="mx-2">
         <UserLabel user={ticket.author} displayTags={!isUser} displayId /> {t('createdAt')}{' '}
-        <span title={createdAt.format()}>{createdAt.fromNow()}</span>
+        <Time value={createdAt} />
         {ticket.reporter && ticket.reporter.id !== ticket.author.id && (
           <>
             {' '}
             via <UserLabel user={ticket.reporter} displayId />
           </>
         )}
-        {createdAt.fromNow() !== updatedAt.fromNow() && (
+        {createdAt.unix() !== updatedAt.unix() && (
           <>
             {`, ${t('updatedAt')} `}
-            <span title={updatedAt.format()}>{updatedAt.fromNow()}</span>
+            <Time value={updatedAt} />
           </>
         )}
       </span>

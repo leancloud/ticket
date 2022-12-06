@@ -97,6 +97,6 @@ body,
   color: inherit;
 }
 
-.timestamp:hover {
+a.timestamp:hover {
   color: #3090e4;
 }
