@@ -23,7 +23,7 @@ export function Evaluated() {
 }
 
 async function commitEvaluation(ticketId: string, data: Ticket['evaluation']) {
-  await http.patch(`/api/1/tickets/${ticketId}`, { evaluation: data });
+  await http.patch(`/api/2/tickets/${ticketId}`, { evaluation: data });
 }
 
 export interface NewEvaluationProps {

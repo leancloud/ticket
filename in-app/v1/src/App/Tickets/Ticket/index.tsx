@@ -26,19 +26,8 @@ import { Evaluated, NewEvaluation } from './Evaluation';
 import { ReplyData, ReplyInput } from './ReplyInput';
 
 async function fetchTicket(id: string): Promise<Ticket> {
-  const { data } = await http.get('/api/1/tickets/' + id);
-  return {
-    id: data.id,
-    nid: data.nid,
-    title: data.title,
-    content: data.content,
-    status: data.status,
-    files: data.files,
-    evaluation: data.evaluation,
-    unreadCount: data.unread_count,
-    createdAt: data.created_at,
-    updatedAt: data.updated_at,
-  };
+  const { data } = await http.get('/api/2/tickets/' + id);
+  return data;
 }
 
 export function useTicket(id: string, options?: UseQueryOptions<Ticket>) {
@@ -137,9 +126,6 @@ function TicketAttributes({ ticket }: { ticket: Ticket }) {
             <TicketAttribute title={t('general.number')}>#{ticket.nid}</TicketAttribute>
           </>
         )}
-        <TicketAttribute title={t('general.description')}>
-          <div className={cx({ truncate: !expand })}>{ticket.content}</div>
-        </TicketAttribute>
       </div>
       <div className="text-center mt-3 ">
         <ExpandButton expand={expand} onClick={() => setExpand(!expand)} />
@@ -149,7 +135,7 @@ function TicketAttributes({ ticket }: { ticket: Ticket }) {
 }
 
 async function commitReply(ticketId: string, data: ReplyData) {
-  await http.post(`/api/1/tickets/${ticketId}/replies`, data);
+  await http.post(`/api/2/tickets/${ticketId}/replies`, data);
 }
 
 function useClearLocalUnreadCount() {
@@ -278,7 +264,7 @@ export default function TicketDetail() {
         <QueryWrapper result={result}>
           <QueryWrapper result={repliesResult}>
             {ticket && <TicketAttributes ticket={ticket} />}
-            <Replies className="grow px-4 pt-3" replies={replies} />
+            {ticket && <Replies className="grow px-4 pt-3" replies={replies} ticket={ticket} />}
             <div className="-mb-3">
               {ticket &&
                 (ticketIsClosed ? (
