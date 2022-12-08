@@ -64,7 +64,7 @@ function ReplyItem({ data, isLast }: ReplyItemProps) {
 async function fetchReplies(ticketId: string, cursor?: string): Promise<Reply[]> {
   const { data } = await http.get<any[]>(`/api/2/tickets/${ticketId}/replies`, {
     params: {
-      created_at_gt: cursor || undefined,
+      cursor: cursor || undefined,
     },
   });
   return data;
