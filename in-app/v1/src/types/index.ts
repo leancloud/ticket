@@ -25,22 +25,21 @@ export interface TicketListItem {
   nid: number;
   title: string;
   status: number;
-  files: File[];
+  files?: File[];
   evaluation: Evaluation | null;
   unreadCount: number;
   createdAt: string;
   updatedAt: string;
 }
 export interface Ticket extends TicketListItem {
-  content: string;
+  contentSafeHTML: string;
 }
 
 export interface Reply {
   id: string;
-  content: string;
-  content_HTML: string;
-  isStaff: boolean;
-  files: File[];
+  contentSafeHTML: string;
+  isCustomerService: boolean;
+  files?: File[];
   createdAt: string;
 }
 

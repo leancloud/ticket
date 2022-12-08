@@ -11,7 +11,7 @@ import ClipIcon from '@/icons/Clip';
 
 export interface ReplyData {
   content: string;
-  file_ids: string[];
+  fileIds: string[];
 }
 
 export interface ReplyInputProps {
@@ -37,7 +37,7 @@ export function ReplyInput({ onCommit }: ReplyInputProps) {
     if (onCommit) {
       setIsCommitting(true);
       try {
-        await onCommit({ content, file_ids: files.map((f) => f.id!) });
+        await onCommit({ content, fileIds: files.map((f) => f.id!) });
         setContent('');
         setShow(false);
         removeAll();
