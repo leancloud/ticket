@@ -133,10 +133,13 @@ export function useDeleteTicketForm(options?: UseMutationOptions<void, Error, st
   });
 }
 
-export function useTicketFormItems(id: string, options?: UseQueryOptions<TicketFormItem[], Error>) {
+export function useTicketFormItems(
+  id?: string,
+  options?: UseQueryOptions<TicketFormItem[], Error>
+) {
   return useQuery({
     queryKey: ['ticketFormItems', id],
-    queryFn: () => fetchTicketFormItems(id),
+    queryFn: () => fetchTicketFormItems(id!),
     ...options,
   });
 }

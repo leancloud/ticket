@@ -29,7 +29,7 @@ import {
   SingleCustomerServiceSelect,
   SingleGroupSelect,
 } from '@/components/common';
-import { TicketStatus } from '../components/TicketStatus';
+import { TicketStatus } from '../../components/TicketStatus';
 import { Timeline } from './Timeline';
 import { TagForm } from './TagForm';
 import { FormLabel } from './components/FormLabel';

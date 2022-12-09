@@ -3,6 +3,7 @@ import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { SiMarkdown } from 'react-icons/si';
 import { compact, keyBy, last, uniq } from 'lodash-es';
 import { useRecoilValue } from 'recoil';
+import { useToggle } from 'react-use';
 
 import { currentUserIsCustomerSerivceState, ENABLE_LEANCLOUD_INTEGRATION } from '@/leancloud';
 import { useArticles } from '@/api/article';
@@ -17,6 +18,7 @@ import { LeanCloudAppSelect } from './LeanCloudAppSelect';
 import { Input as MyInput } from './Fields/Input';
 import { Upload } from './Fields/Upload';
 import { FormItems } from './FormItems';
+import { RecentTickets } from '@/components/common/RecentTickets';
 
 const { Panel } = Collapse;
 
@@ -99,7 +101,7 @@ export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
   const methods = useForm<RawTicketData>({ shouldUnregister: true });
   const { control, getValues, setValue } = methods;
   const isCustomerSerivce = useRecoilValue(currentUserIsCustomerSerivceState);
-  const [asAttorney, setAsAttorney] = useState(false);
+  const [asAttorney, setAsAttorney] = useState(isCustomerSerivce);
 
   const orgs = useOrganizations();
 
@@ -114,10 +116,10 @@ export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
   }, [categories, categoryId]);
 
   const { data: formItems, isLoading: loadingFormItems } = useTicketFormItems(
-    currentCategory?.formId!,
+    currentCategory?.formId,
     {
-      enabled: currentCategory !== undefined,
       staleTime: 1000 * 60 * 5,
+      enabled: currentCategory?.formId !== undefined,
     }
   );
 
@@ -200,59 +202,88 @@ export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
     }
   }, []);
 
+  const [recentTicketCollapsed, toggleRecentTickets] = useToggle(false);
+
   return (
     <div className="p-2">
       <FormProvider {...methods}>
         <Form className={style.ticketForm} layout="vertical" onSubmitCapture={handleSubmit}>
           {isCustomerSerivce && (
-            <Form.Item>
-              <Radio.Group
-                onChange={(e: RadioChangeEvent) => setAsAttorney(e.target.value)}
-                value={asAttorney}
-              >
-                <Radio value={false}>本人提单</Radio>
-                <Radio value={true}>代用户提单</Radio>
-              </Radio.Group>
-            </Form.Item>
-          )}
-          {asAttorney ? (
-            <Controller
-              name="authorId"
-              render={({ field, fieldState: { error } }) => (
-                <Form.Item required label="用户" htmlFor="ticket_author" help={error?.message}>
-                  <UserSelect
-                    {...field}
-                    id="ticket_author"
-                    allowClear
-                    className="w-full"
-                    onChange={(id) => field.onChange({ target: { value: id } })}
-                  />
-                </Form.Item>
-              )}
-            />
-          ) : (
-            <>
-              {orgs.data && orgs.data.length > 0 && (
-                <Form.Item label="所属" htmlFor="ticket_org">
-                  {orgs.error ? (
-                    <Retry message="获取组织失败" error={orgs.error} onRetry={orgs.refetch} />
-                  ) : (
-                    <Controller
-                      name="organizationId"
-                      render={({ field }) => (
-                        <OrganizationSelect
+            <div className="px-4 pt-4 pb-[0.1px] mb-4 bg-gray-100">
+              <Form.Item>
+                <Radio.Group
+                  onChange={(e: RadioChangeEvent) => setAsAttorney(e.target.value)}
+                  value={asAttorney}
+                >
+                  <Radio value={false}>本人提单</Radio>
+                  <Radio value={true}>代用户提单</Radio>
+                </Radio.Group>
+              </Form.Item>
+              {asAttorney ? (
+                <Controller
+                  name="authorId"
+                  render={({ field, fieldState: { error } }) => (
+                    <>
+                      <Form.Item
+                        required
+                        label="用户"
+                        htmlFor="ticket_author"
+                        help={error?.message}
+                      >
+                        <UserSelect
                           {...field}
-                          id="ticket_org"
-                          options={orgs.data}
-                          loading={orgs.isLoading}
+                          id="ticket_author"
+                          allowClear
+                          className="w-full"
+                          onChange={(id) => field.onChange({ target: { value: id } })}
+                        />
+                      </Form.Item>
+                      <Form.Item
+                        label={
+                          <>
+                            最近工单{' '}
+                            <Button type="link" onClick={toggleRecentTickets}>
+                              {recentTicketCollapsed ? '展开' : '收起'}
+                            </Button>
+                          </>
+                        }
+                      >
+                        {!recentTicketCollapsed &&
+                          (field.value ? (
+                            <RecentTickets userId={field.value} />
+                          ) : (
+                            <>请先选择一个用户</>
+                          ))}
+                      </Form.Item>
+                    </>
+                  )}
+                />
+              ) : (
+                <>
+                  {orgs.data && orgs.data.length > 0 && (
+                    <Form.Item label="所属" htmlFor="ticket_org">
+                      {orgs.error ? (
+                        <Retry message="获取组织失败" error={orgs.error} onRetry={orgs.refetch} />
+                      ) : (
+                        <Controller
+                          name="organizationId"
+                          render={({ field }) => (
+                            <OrganizationSelect
+                              {...field}
+                              id="ticket_org"
+                              options={orgs.data}
+                              loading={orgs.isLoading}
+                            />
+                          )}
                         />
                       )}
-                    />
+                    </Form.Item>
                   )}
-                </Form.Item>
+                </>
               )}
-            </>
+            </div>
           )}
+
           <MyInput name="title" label="标题" required />
           {ENABLE_LEANCLOUD_INTEGRATION && (
             <Form.Item

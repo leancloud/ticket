@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useQueryClient } from 'react-query';
 
-import { useCategories } from '@/api/category';
 import {
   CustomerServiceSchema,
   useAddCustomerService,
@@ -113,7 +112,6 @@ const columns: TableProps<CustomerServiceSchema>['columns'] = [
 
 export function Members() {
   const customerServiceResult = useCustomerServices();
-  const categoriesResult = useCategories();
 
   const [addUserModalVisible, setAddUserModalVisible] = useState(false);
 
@@ -137,16 +135,14 @@ export function Members() {
         />
       )}
 
-      <CategoryProvider categories={categoriesResult.data}>
-        <Table
-          className="mt-5"
-          rowKey="id"
-          pagination={false}
-          columns={columns}
-          loading={customerServiceResult.isLoading || categoriesResult.isLoading}
-          dataSource={customerServiceResult.data}
-        />
-      </CategoryProvider>
+      <Table
+        className="mt-5"
+        rowKey="id"
+        pagination={false}
+        columns={columns}
+        loading={customerServiceResult.isLoading}
+        dataSource={customerServiceResult.data}
+      />
     </div>
   );
 }
