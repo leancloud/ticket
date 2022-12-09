@@ -6,14 +6,14 @@ import { DateTime } from '../DateTime';
 import { Category } from './Category';
 const { Column } = Table;
 
-export const RecentTickets = ({ userId, size = 8 }: { userId?: string; size?: number }) => {
+export const RecentTickets = ({ userId, size = 8 }: { userId: string; size?: number }) => {
   const { data: tickets, isLoading } = useTickets({
     filters: { authorId: userId },
     pageSize: size,
-    queryOptions: { enabled: !!userId },
   });
 
-  if (!tickets) return <>无</>;
+  if (isLoading) return <>加载中</>;
+  if (!tickets || tickets.length === 0) return <>无</>;
   return (
     <Table
       rowKey="id"

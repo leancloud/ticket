@@ -119,6 +119,7 @@ export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
     currentCategory?.formId,
     {
       staleTime: 1000 * 60 * 5,
+      enabled: currentCategory?.formId !== undefined,
     }
   );
 
@@ -247,7 +248,12 @@ export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
                           </>
                         }
                       >
-                        {!recentTicketCollapsed && <RecentTickets userId={field.value} />}
+                        {!recentTicketCollapsed &&
+                          (field.value ? (
+                            <RecentTickets userId={field.value} />
+                          ) : (
+                            <>请先选择一个用户</>
+                          ))}
                       </Form.Item>
                     </>
                   )}

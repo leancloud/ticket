@@ -9,7 +9,7 @@ export function Time({ value, href }) {
   const diff = moment().diff(value)
   const diffDays = moment().dayOfYear() - value.dayOfYear()
   const sameYear = moment().year() === value.year()
-  console.log(value, diff, diffDays, sameYear)
+
   const display =
     diff < 3600000 * 21.5
       ? value.fromNow()

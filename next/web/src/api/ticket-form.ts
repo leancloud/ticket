@@ -140,7 +140,6 @@ export function useTicketFormItems(
   return useQuery({
     queryKey: ['ticketFormItems', id],
     queryFn: () => fetchTicketFormItems(id!),
-    enabled: id !== undefined,
     ...options,
   });
 }
