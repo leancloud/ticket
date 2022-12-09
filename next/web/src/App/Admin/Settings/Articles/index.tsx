@@ -29,7 +29,7 @@ import {
 import { CategorySchema } from '@/api/category';
 import { EditArticleForm } from './EditArticleForm';
 // We should move them to @component
-import { CategoryPath, useGetCategoryPath } from '../../Tickets/TicketView/TicketList';
+import { CategoryPath, useGetCategoryPath } from '../../components/CategoryPath';
 import { useSearchParam } from '@/utils/useSearchParams';
 import { FeedbackSummary } from './FeedbackSummary';
 

@@ -4,14 +4,14 @@ import cx from 'classnames';
 import moment from 'moment';
 import { keyBy, uniq } from 'lodash-es';
 
-import { CategorySchema, useCategories } from '@/api/category';
 import { useCustomerServices } from '@/api/customer-service';
 import { useGroups } from '@/api/group';
 import { TicketSchema } from '@/api/ticket';
 import { useUsers } from '@/api/user';
 import { Checkbox } from '@/components/antd';
 import { LoadingCover } from '@/components/common';
-import { TicketStatus } from '../../components/TicketStatus';
+import { TicketStatus } from '../../../components/TicketStatus';
+import { useGetCategoryPath, CategoryPath } from '../../../components/CategoryPath';
 import style from './index.module.css';
 
 function Name({ children, loading }: { children: string; loading?: boolean }) {
@@ -22,50 +22,8 @@ function Name({ children, loading }: { children: string; loading?: boolean }) {
   );
 }
 
-interface CategoryPathProps extends ComponentPropsWithoutRef<'span'> {
+export interface CategoryPathProps extends ComponentPropsWithoutRef<'span'> {
   path: string[];
-}
-
-export function CategoryPath({ path, ...props }: CategoryPathProps) {
-  return (
-    <span
-      {...props}
-      className={cx(style.categoryPath, 'p-1 border rounded border-[#6f7c87]', props.className)}
-    >
-      {path.join(' / ')}
-    </span>
-  );
-}
-
-function makeCategoryPathGetter(categories: CategorySchema[]) {
-  const paths: Record<string, string[]> = {};
-  const get = (id: string): string[] => {
-    const cached = paths[id];
-    if (cached) {
-      return cached;
-    }
-
-    const category = categories.find((c) => c.id === id);
-    if (!category) {
-      return [];
-    }
-
-    if (category.parentId) {
-      const path = [...get(category.parentId), category.name];
-      paths[id] = path;
-      return path;
-    } else {
-      const path = [category.name];
-      paths[id] = path;
-      return path;
-    }
-  };
-  return get;
-}
-
-export function useGetCategoryPath() {
-  const { data: categories } = useCategories();
-  return useMemo(() => makeCategoryPathGetter(categories ?? []), [categories]);
 }
 
 export interface TicketListProps {

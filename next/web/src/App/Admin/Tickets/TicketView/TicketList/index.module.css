@@ -14,8 +14,5 @@
       @apply text-[#acb6be];
     }
 
-    .categoryPath {
-      @apply border-[#acb6be];
-    }
   }
 }

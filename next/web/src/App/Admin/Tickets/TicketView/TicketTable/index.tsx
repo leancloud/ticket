@@ -1,24 +1,16 @@
 import { useMemo } from 'react';
-import moment from 'moment';
 import { keyBy, uniq } from 'lodash-es';
 import { useCustomerServices } from '@/api/customer-service';
 import { useGroups } from '@/api/group';
 import { TicketSchema } from '@/api/ticket';
 import { useUsers } from '@/api/user';
 import { Checkbox, Table } from '@/components/antd';
-import { TicketStatus } from '../../components/TicketStatus';
-import { CategoryPath, useGetCategoryPath } from '../TicketList';
+import { TicketStatus } from '../../../components/TicketStatus';
+import { CategoryPath, useGetCategoryPath } from '@/App/Admin/components/CategoryPath';
+import { DateTime } from '@/components/DateTime';
+import { TicketLink } from '../../../components/TicketLink';
 
 const { Column } = Table;
-
-function TicketLink({ ticket }: { ticket: TicketSchema }) {
-  return (
-    <a className="mt-1.5 font-bold max-w-full" title={ticket.title} href={`/tickets/${ticket.nid}`}>
-      <span>{ticket.title}</span>
-      <span className="ml-1 text-[#6f7c87]">#{ticket.nid}</span>
-    </a>
-  );
-}
 
 export interface TicketTableProps {
   loading?: boolean;
@@ -118,9 +110,7 @@ export function TicketTable({ loading, tickets, checkedIds, onChangeChecked }: T
       <Column
         title="创建时间"
         dataIndex="createdAt"
-        render={(data: string) => (
-          <span title={new Date(data).toLocaleString()}>{moment(data).fromNow()}</span>
-        )}
+        render={(data: string) => <DateTime value={data} />}
       />
     </Table>
   );
