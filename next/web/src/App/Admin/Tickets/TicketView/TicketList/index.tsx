@@ -1,4 +1,4 @@
-import { ComponentPropsWithoutRef, useMemo } from 'react';
+import { useMemo } from 'react';
 import { BsPersonPlus } from 'react-icons/bs';
 import cx from 'classnames';
 import moment from 'moment';
@@ -20,10 +20,6 @@ function Name({ children, loading }: { children: string; loading?: boolean }) {
       {loading ? 'Loading...' : children}
     </div>
   );
-}
-
-export interface CategoryPathProps extends ComponentPropsWithoutRef<'span'> {
-  path: string[];
 }
 
 export interface TicketListProps {

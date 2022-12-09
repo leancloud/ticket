@@ -1,7 +1,10 @@
-import { useMemo } from 'react';
+import { ComponentPropsWithoutRef, useMemo } from 'react';
 import cx from 'classnames';
 import { CategorySchema, useCategories } from '@/api/category';
-import { CategoryPathProps } from '../Tickets/TicketView/TicketList/index';
+
+export interface CategoryPathProps extends ComponentPropsWithoutRef<'span'> {
+  path: string[];
+}
 
 export function CategoryPath({ path, ...props }: CategoryPathProps) {
   return (
