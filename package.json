@@ -44,7 +44,7 @@
     "css-minimizer-webpack-plugin": "^1.2.0",
     "docsearch.js": "^2.5.2",
     "dompurify": "^2.3.6",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "express-session": "^1.17.2",
     "express-validator": "^6.10.0",
     "form-data": "^4.0.0",
