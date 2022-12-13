@@ -9,6 +9,8 @@ const fieldTypeText: Record<TicketFieldSchema['type'], string> = {
   'multi-select': '多选框',
   radios: '单选框',
   file: '文件',
+  number: '数字',
+  date: '日期',
 };
 
 export interface TicketFieldTypeProps extends ComponentPropsWithoutRef<'span'> {

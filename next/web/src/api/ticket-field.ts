@@ -2,7 +2,15 @@ import { UseQueryOptions, useQuery } from 'react-query';
 
 import { http } from '@/leancloud';
 
-type TicketFieldType = 'text' | 'multi-line' | 'dropdown' | 'multi-select' | 'radios' | 'file';
+type TicketFieldType =
+  | 'text'
+  | 'multi-line'
+  | 'dropdown'
+  | 'multi-select'
+  | 'radios'
+  | 'file'
+  | 'number'
+  | 'date';
 
 export interface TicketFieldVariantSchema {
   locale: string;
