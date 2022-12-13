@@ -9,8 +9,18 @@ import { Select } from './Select';
 import { CheckboxGroup } from './CheckboxGroup';
 import { RadioGroup } from './RadioGroup';
 import { Uploader } from './Uploader';
+import { NumberInput } from './NumberInput';
+import { DateInput } from './Date';
 
-export type FieldType = 'text' | 'multi-line' | 'dropdown' | 'multi-select' | 'radios' | 'file';
+export type FieldType =
+  | 'text'
+  | 'multi-line'
+  | 'dropdown'
+  | 'multi-select'
+  | 'radios'
+  | 'file'
+  | 'number'
+  | 'date';
 
 const TOP_LABEL_TYPES: FieldType[] = ['multi-select', 'radios'];
 
@@ -39,6 +49,8 @@ const components: Record<FieldType, JSXElementConstructor<CustomFieldProps>> = {
   'multi-select': CheckboxGroup,
   radios: RadioGroup,
   file: Uploader,
+  number: NumberInput,
+  date: DateInput,
 };
 
 function Unknown({ type }: { type: string }) {
