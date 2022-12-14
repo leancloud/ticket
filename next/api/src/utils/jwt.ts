@@ -1,4 +1,4 @@
-import jwt, { JsonWebTokenError, JwtPayload, SignOptions } from 'jsonwebtoken';
+import jwt, { JsonWebTokenError, JwtPayload, Secret, SignOptions } from 'jsonwebtoken';
 
 export const processKeys = (originalKeys: string | undefined) =>
   originalKeys?.split(',').map(Buffer.from);
@@ -27,9 +27,13 @@ export const getVerifiedPayload = (
   throw new JsonWebTokenError('signature not matched');
 };
 
-export const signPayload = (payload: JwtPayload, options?: SignOptions) => {
-  if (publicKeys === undefined || publicKeys.length === 0) {
-    throw new JsonWebTokenError('PUBLIC_KEYS not set');
+export const signPayload = (
+  payload: JwtPayload,
+  key: Secret | undefined,
+  options?: SignOptions
+) => {
+  if (key === undefined) {
+    throw new JsonWebTokenError('signing key not set');
   }
-  return jwt.sign(payload, publicKeys[0], options);
+  return jwt.sign(payload, key, options);
 };
