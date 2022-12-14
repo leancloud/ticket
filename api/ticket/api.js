@@ -239,7 +239,6 @@ router.get(
       'assignee',
       'category',
       'content',
-      'joinedCustomerServices',
       'status',
       'evaluation',
       'unreadCount',
@@ -286,10 +285,6 @@ router.get(
 
     res.json(
       tickets.map((ticket) => {
-        const joinedCustomerServiceIds = new Set()
-        ticket.get('joinedCustomerServices')?.forEach((user) => {
-          joinedCustomerServiceIds.add(user.objectId)
-        })
         const categoryId = ticket.get('category').objectId
         return {
           id: ticket.id,
@@ -302,7 +297,8 @@ router.get(
           assignee: ticket.get('assignee') ? encodeUserObject(ticket.get('assignee')) : null,
           category_id: categoryId,
           content: ticket.get('content'),
-          joined_customer_service_ids: Array.from(joinedCustomerServiceIds),
+          // Removed in v1
+          joined_customer_service_ids: [],
           status: ticket.get('status'),
           evaluation: ticket.get('evaluation') || null,
           unread_count: notificationMap[ticket.id]?.get('unreadCount') || 0,

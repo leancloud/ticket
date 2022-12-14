@@ -37,8 +37,8 @@ export function TicketTable({ loading, tickets, checkedIds, onChangeChecked }: T
   const { data: groups, isLoading: loadingGroups } = useGroups();
   const groupById = useMemo(() => keyBy(groups, 'id'), [groups]);
 
-  const { data: assignees, isLoading: loadingAssignees } = useCustomerServices();
-  const assigneeById = useMemo(() => keyBy(assignees, 'id'), [assignees]);
+  const { data: customerServices, isLoading: loadingCustomerServices } = useCustomerServices();
+  const CSById = useMemo(() => keyBy(customerServices, 'id'), [customerServices]);
 
   return (
     <Table
@@ -94,9 +94,9 @@ export function TicketTable({ loading, tickets, checkedIds, onChangeChecked }: T
         title="负责客服"
         render={(assigneeId?: string) =>
           assigneeId
-            ? loadingAssignees
+            ? loadingCustomerServices
               ? 'Loading...'
-              : assigneeById[assigneeId]?.nickname ?? 'unknown'
+              : CSById[assigneeId]?.nickname ?? 'unknown'
             : '--'
         }
       />
@@ -104,8 +104,22 @@ export function TicketTable({ loading, tickets, checkedIds, onChangeChecked }: T
       <Column
         dataIndex="authorId"
         title="用户"
-        render={(authorId: string) =>
-          loadingUsers ? 'Loading' : userById[authorId]?.nickname ?? 'unknown'
+        render={(authorId: string, ticket: TicketSchema) =>
+          loadingUsers || loadingCustomerServices ? (
+            'Loading'
+          ) : (
+            <>
+              {userById[authorId]?.nickname ?? 'unknown'}
+              {ticket.reporterId !== undefined && (
+                <>
+                  <br />
+                  <span className="text-sm">
+                    <span className="text-gray-400">via</span> {CSById[ticket.reporterId]?.nickname}
+                  </span>
+                </>
+              )}
+            </>
+          )
         }
       />
 

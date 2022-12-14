@@ -271,13 +271,15 @@ export class Ticket extends Model {
       }
     );
 
+    const updater = new TicketUpdater(this);
+    if (isCustomerService && data.author !== systemUser) {
+      updater.addJoinedCustomerService(data.author.getTinyInfo());
+    }
     if (!data.internal) {
-      const updater = new TicketUpdater(this);
       updater.setLatestReply(reply.getTinyInfo());
       updater.increaseReplyCount();
       if (isCustomerService) {
         if (data.author !== systemUser) {
-          updater.addJoinedCustomerService(data.author.getTinyInfo());
           updater.setlatestCustomerServiceReplyAt(reply.createdAt);
           if (!this.firstCustomerServiceReplyAt) {
             updater.setfirstCustomerServiceReplyAt(reply.createdAt);
@@ -295,9 +297,8 @@ export class Ticket extends Model {
           }
         }
       }
-
-      await updater.update(data.author);
     }
+    await updater.update(data.author);
 
     events.emit('reply:created', {
       reply: reply.toJSON(),
