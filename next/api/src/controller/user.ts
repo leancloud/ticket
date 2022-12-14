@@ -58,6 +58,9 @@ const exchangeSchema = z.object({
 });
 type ExchangeData = z.infer<typeof exchangeSchema>;
 
+const TDSUserPublicKey = processKeys(process.env.TDS_USER_PUBLIC_KEY);
+const TDSUserSigningKey = process.env.TDS_USER_SIGNING_KEY;
+
 @Controller('users')
 export class UserController {
   @Get()
@@ -175,18 +178,15 @@ export class UserController {
           issuer: 'tds-storage',
           audience: 'tap-support',
         },
-        processKeys(process.env.TDS_USER_PUBLIC_KEY)
+        TDSUserPublicKey
       );
 
       return {
-        jwt: signPayload(
-          { sub: `${appId}:${sub}` },
-          {
-            algorithm: 'HS256',
-            expiresIn: '7d',
-            issuer: 'tap-support',
-          }
-        ),
+        jwt: signPayload({ sub: `${appId}:${sub}` }, TDSUserSigningKey, {
+          algorithm: 'HS256',
+          expiresIn: '7d',
+          issuer: 'tap-support',
+        }),
       };
     } catch (err) {
       if (err instanceof JsonWebTokenError) {

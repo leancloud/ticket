@@ -321,3 +321,11 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 新增环境变量
 
 - `PERSIST_USERAGENT_INFO`：控制提单时是否持久化设备信息到工单字段中，默认否
+
+## 2022-12-14
+
+新增环境变量
+
+- `TDS_USER_PUBLIC_KEY`: 验签的 public key
+- `TDS_USER_SIGNING_KEY`: 给内建用户 jwt 签名的 key
+- `ENABLE_TDS_USER_LOGIN`: 控制是否开启 TDS 内建用户登录
