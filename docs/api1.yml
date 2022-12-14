@@ -120,10 +120,6 @@ components:
           type: string
         content:
           type: string
-        joined_customer_service_ids:
-          type: array
-          items:
-            type: string
         status:
           $ref: '#/components/schemas/Status'
         evaluation:

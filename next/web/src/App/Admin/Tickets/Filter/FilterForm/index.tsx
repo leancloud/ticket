@@ -51,6 +51,8 @@ export function FilterForm({ className, filters, onChange }: FilterFormProps) {
     authorId,
     assigneeId,
     groupId,
+    reporterId,
+    participantId,
     tagKey,
     tagValue,
     privateTagKey,
@@ -78,6 +80,28 @@ export function FilterForm({ className, filters, onChange }: FilterFormProps) {
           />
         </Field>
 
+        <Field title="分类">
+          <CategorySelect
+            value={rootCategoryId}
+            onChange={(rootCategoryId) => merge({ rootCategoryId })}
+          />
+        </Field>
+
+        <Field title="客服组">
+          <GroupSelect value={groupId} onChange={(groupId) => merge({ groupId })} />
+        </Field>
+
+        <Field title="负责客服">
+          <AssigneeSelect value={assigneeId} onChange={(assigneeId) => merge({ assigneeId })} />
+        </Field>
+
+        <Field title="参与的客服">
+          <AssigneeSelect
+            value={participantId}
+            onChange={(participantId) => merge({ participantId })}
+          />
+        </Field>
+
         <Field title="用户">
           <UserSelect
             allowClear
@@ -87,30 +111,12 @@ export function FilterForm({ className, filters, onChange }: FilterFormProps) {
           />
         </Field>
 
-        <Field title="客服">
-          <AssigneeSelect value={assigneeId} onChange={(assigneeId) => merge({ assigneeId })} />
-        </Field>
-
-        <Field title="客服组">
-          <GroupSelect value={groupId} onChange={(groupId) => merge({ groupId })} />
-        </Field>
-
-        <Field title="标签">
-          <TagSelect
-            value={{ tagKey, tagValue, privateTagKey, privateTagValue }}
-            onChange={merge}
-          />
+        <Field title="代提单客服">
+          <AssigneeSelect value={reporterId} onChange={(reporterId) => merge({ reporterId })} />
         </Field>
 
         <Field title="创建时间">
           <CreatedAtSelect value={createdAt} onChange={(createdAt) => merge({ createdAt })} />
-        </Field>
-
-        <Field title="分类">
-          <CategorySelect
-            value={rootCategoryId}
-            onChange={(rootCategoryId) => merge({ rootCategoryId })}
-          />
         </Field>
 
         <Field title="状态">
@@ -119,6 +125,13 @@ export function FilterForm({ className, filters, onChange }: FilterFormProps) {
 
         <Field title="评价">
           <EvaluationStarSelect value={star} onChange={(star) => merge({ star })} />
+        </Field>
+
+        <Field title="标签">
+          <TagSelect
+            value={{ tagKey, tagValue, privateTagKey, privateTagValue }}
+            onChange={merge}
+          />
         </Field>
       </div>
 

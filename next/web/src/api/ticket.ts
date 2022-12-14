@@ -21,6 +21,7 @@ export interface TicketSchema {
   title: string;
   categoryId: string;
   authorId: string;
+  reporterId?: string;
   assigneeId?: string;
   groupId?: string;
   status: number;
@@ -42,6 +43,8 @@ export interface FetchTicketFilters {
   authorId?: string;
   assigneeId?: string | string[];
   groupId?: string | string[];
+  reporterId?: string | string[];
+  participantId?: string | string[];
   rootCategoryId?: string;
   star?: number;
   createdAt?: string;
@@ -67,6 +70,12 @@ export function encodeTicketFilters(filters: FetchTicketFilters) {
   }
   if (filters.groupId) {
     params.groupId = castArray(filters.groupId).join(',');
+  }
+  if (filters.reporterId) {
+    params.reporterId = castArray(filters.reporterId).join(',');
+  }
+  if (filters.participantId) {
+    params.participantId = castArray(filters.participantId).join(',');
   }
   if (filters.createdAt) {
     const dateRange = decodeDateRange(filters.createdAt);

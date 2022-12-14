@@ -48,6 +48,8 @@ export const ticketFiltersSchema = yup.object({
   rootCategoryId: yup.string(),
   product: yup.string(),
   groupId: yup.csv(yup.string().required()),
+  reporterId: yup.csv(yup.string().required()),
+  participantId: yup.csv(yup.string().required()),
   status: yup.csv(yup.number().oneOf(statuses).required()),
   'evaluation.star': yup.number().oneOf([0, 1]),
   createdAtFrom: yup.date(),
@@ -118,6 +120,12 @@ router.get(
     }
     if (params.groupId) {
       addPointersCondition(query, 'group', params.groupId, Group);
+    }
+    if (params.reporterId) {
+      addPointersCondition(query, 'reporter', params.reporterId, User);
+    }
+    if (params.participantId) {
+      query.where('joinedCustomerServices.objectId', 'in', params.participantId);
     }
     if (categoryIds.size) {
       query.where('category.objectId', 'in', Array.from(categoryIds));
@@ -261,6 +269,12 @@ router.get(
     }
     if (params.groupId) {
       addEqCondition('group.objectId', params.groupId);
+    }
+    if (params.reporterId) {
+      addEqCondition('reporter.objectId', params.reporterId);
+    }
+    if (params.participantId) {
+      addEqCondition('joinedCustomerServices.objectId', params.participantId);
     }
     if (categoryIds.size) {
       addEqCondition('category.objectId', Array.from(categoryIds));

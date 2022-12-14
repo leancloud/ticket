@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useCallback, useContext, useMemo } from 'react';
-import _ from 'lodash';
+import _, { filter } from 'lodash';
 import { useSearchParams } from '@/utils/useSearchParams';
 
 export interface Filters {
@@ -7,6 +7,8 @@ export interface Filters {
   authorId?: string;
   assigneeId?: string[];
   groupId?: string[];
+  reporterId?: string[];
+  participantId?: string[];
   tagKey?: string;
   tagValue?: string;
   privateTagKey?: string;
@@ -25,6 +27,8 @@ export function LocalFiltersProvider({ children }: { children: ReactNode }) {
       authorId,
       assigneeId,
       groupId,
+      reporterId,
+      participantId,
       tagKey,
       tagValue,
       privateTagKey,
@@ -55,6 +59,14 @@ export function LocalFiltersProvider({ children }: { children: ReactNode }) {
       filters.groupId = groupId.split(',');
     }
 
+    if (reporterId) {
+      filters.reporterId = reporterId.split(',');
+    }
+
+    if (participantId) {
+      filters.participantId = participantId.split(',');
+    }
+
     if (createdAt) {
       filters.createdAt = createdAt;
     }
@@ -81,12 +93,14 @@ export function LocalFiltersProvider({ children }: { children: ReactNode }) {
   }, [
     keyword,
     authorId,
-    assigneeId,
-    groupId,
     tagKey,
     tagValue,
     privateTagKey,
     privateTagValue,
+    assigneeId,
+    groupId,
+    reporterId,
+    participantId,
     createdAt,
     rootCategoryId,
     status,
@@ -99,6 +113,8 @@ export function LocalFiltersProvider({ children }: { children: ReactNode }) {
         ...filters,
         assigneeId: filters.assigneeId?.map((id) => (id === null ? 'null' : id)).join(','),
         groupId: filters.groupId?.map((id) => (id === null ? 'null' : id)).join(','),
+        reporterId: filters.reporterId?.map((id) => (id === null ? 'null' : id)).join(','),
+        participantId: filters.participantId?.map((id) => (id === null ? 'null' : id)).join(','),
         createdAt: filters.createdAt,
         rootCategoryId: filters.rootCategoryId,
         status: filters.status?.join(','),
