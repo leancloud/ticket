@@ -41,7 +41,7 @@ export const Date = memo(({ name, label, description, required }: DateProps) => 
           ...field,
           value: field.value && moment(field.value),
           onChange: (date) => {
-            field.onChange(date && date.startOf('day').toISOString(true));
+            field.onChange(date && date.format('YYYY-MM-DD'));
           },
         }}
         id={id}

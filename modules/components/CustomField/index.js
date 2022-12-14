@@ -1,12 +1,11 @@
 import React, { memo, useCallback, useMemo, useState } from 'react'
 import PropTypes from 'prop-types'
-import { Form, Button, Badge, OverlayTrigger, Tooltip } from 'react-bootstrap'
+import { Form, Button, Badge } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import throat from 'throat'
 import _ from 'lodash'
 import Handlebars from 'handlebars'
 import DOMPurify from 'dompurify'
-import moment from 'moment'
 
 import { useQuery } from 'react-query'
 import { http } from '../../../lib/leancloud'
@@ -411,12 +410,9 @@ const DateInput = memo(
           type="date"
           disabled={disabled}
           readOnly={readOnly}
-          value={value ? moment(value).format('YYYY-MM-DD') : ''}
+          value={value}
           onChange={(e) => {
-            if (onChange) {
-              const v = moment(e.target.value).toISOString(true)
-              onChange(v)
-            }
+            onChange(e.target.value)
           }}
           required={required}
         />
@@ -553,6 +549,7 @@ function CustomFieldDisplay({
       case 'text':
       case 'multi-line':
       case 'number':
+      case 'date':
         if (value === undefined) {
           return NoneNode
         }
@@ -582,24 +579,6 @@ function CustomFieldDisplay({
             ))}
           </p>
         )
-      case 'date': {
-        if (!value) {
-          return NoneNode
-        }
-
-        return (
-          <OverlayTrigger
-            placement="top"
-            overlay={
-              <Tooltip>
-                <p>{moment.parseZone(value).format('YYYY-M-D [UTC]Z')}</p>
-              </Tooltip>
-            }
-          >
-            <p>{moment.parseZone(value).local().format('YYYY-M-D [UTC]Z')}</p>
-          </OverlayTrigger>
-        )
-      }
       default:
         return null
     }
