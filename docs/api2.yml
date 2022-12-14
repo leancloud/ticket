@@ -409,6 +409,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
+  /api/2/users/tds/token:
+    post:
+      tags: [User]
+      summary: 交换 Token
+      description: 将 storage 签发的 jwt 换成客服系统签发的长期 jwt
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                jwt:
+                  type: string
+                  description: storage 签发的 jwt
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jwt:
+                    type: string
+                    description: 客服系统签发的 jwt
 
   /api/2/products/{pid}/categories:
     parameters:
