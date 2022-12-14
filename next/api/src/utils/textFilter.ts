@@ -1,6 +1,7 @@
 import { retry } from '@/cloud/utils';
 import axios from 'axios';
 import { createHash } from 'node:crypto';
+import type { ExtractArrayType } from './types';
 
 export interface FilterOptions {
   user_id: string;
@@ -12,8 +13,6 @@ export interface FilterResult {
   escape: string;
   unescape: string;
 }
-
-type ExtractArrayType<T extends ArrayLike<unknown>> = T extends ArrayLike<infer Res> ? Res : never;
 
 export class TextFilterService {
   private maxRetries = Number(process.env.TEXT_FILTER_MAX_RETRY) || 3;

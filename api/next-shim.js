@@ -4,7 +4,13 @@ const { tickDelayNotify } = require('../next/api/dist')
 const { execTimeTriggers } = require('../next/api/dist/ticket/automation/time-trigger')
 const { analyzeArticles } = require('../next/api/dist/article/stats')
 const { migrateNotifications } = require('../next/api/dist/notification/migrate')
-const { hourlyTicketStats, syncTicketLog } = require('../next/api/dist/cloud/index.js')
+const {
+  hourlyTicketStats,
+  syncTicketLog,
+  dailyPushStatsToSlack,
+  weeklyPushStatsToSlack,
+  monthlyPushStatsToSlack,
+} = require('../next/api/dist/cloud/index.js')
 const { User } = require('../next/api/dist/model/User.js')
 
 const events = require('../next/api/dist/events').default
@@ -22,6 +28,9 @@ AV.Cloud.define('analyzeArticles', { fetchUser: false, internal: true }, analyze
 AV.Cloud.define('migrateNotifications', { fetchUser: false, internal: true }, migrateNotifications)
 AV.Cloud.define('statsHour', () => hourlyTicketStats())
 AV.Cloud.define('syncTicketLog', () => syncTicketLog())
+AV.Cloud.define('dailyPushStatsToSlack', () => dailyPushStatsToSlack())
+AV.Cloud.define('weeklyPushStatsToSlack', () => weeklyPushStatsToSlack())
+AV.Cloud.define('monthlyPushStatsToSlack', () => monthlyPushStatsToSlack())
 
 // TDS User Login
 if (process.env.ENABLE_TDS_USER_LOGIN) {

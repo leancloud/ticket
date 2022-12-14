@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import { Context, Middleware } from 'koa';
-import { LogLevel, WebClient } from '@slack/web-api';
+import { Block, KnownBlock, LogLevel, WebClient } from '@slack/web-api';
 import Router from '@koa/router';
 import LRU from 'lru-cache';
 
@@ -79,6 +79,16 @@ class SlackIntegration {
     return SlackNotification.queryBuilder()
       .where('ticket.objectId', '==', ticketId)
       .first({ useMasterKey: true });
+  }
+
+  async postMessage(message: (KnownBlock | Block)[], thread_ts?: string) {
+    const { ts } = await this.client.chat.postMessage({
+      channel: this.channel,
+      blocks: message,
+      thread_ts,
+    });
+
+    return ts;
   }
 
   async notifyNewTicket(ticket: Ticket) {
@@ -209,13 +219,35 @@ function validateInteractiveRequest(signingSecret: string): Middleware {
   };
 }
 
+export class CreateSlackPlus {
+  private static slackInstance: SlackIntegration | undefined;
+  private static initializationFailed = false;
+
+  static async get<T extends SlackPlusConfig | undefined>(
+    config?: T
+  ): Promise<T extends undefined ? SlackIntegration | undefined : SlackIntegration> {
+    if (this.slackInstance) return this.slackInstance;
+
+    if (this.initializationFailed)
+      return undefined as T extends undefined ? SlackIntegration | undefined : SlackIntegration;
+
+    const _config = config ?? (await getConfig());
+
+    return _config
+      ? (this.slackInstance = new SlackIntegration(_config.token, _config.channel))
+      : (((this.initializationFailed = true), undefined) as T extends undefined
+          ? SlackIntegration | undefined
+          : SlackIntegration);
+  }
+}
+
 export default async function (install: Function) {
   const config = await getConfig();
   if (!config) {
     return;
   }
 
-  const slack = new SlackIntegration(config.token, config.channel);
+  const slack = await CreateSlackPlus.get(config);
 
   const catchFunc = (error: Error) => {
     // TODO: Sentry
