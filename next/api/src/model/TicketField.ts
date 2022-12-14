@@ -16,6 +16,8 @@ export const FIELD_TYPES = [
   'multi-select',
   'radios',
   'file',
+  'number',
+  'date',
 ] as const;
 
 export type FieldType = typeof FIELD_TYPES[number];

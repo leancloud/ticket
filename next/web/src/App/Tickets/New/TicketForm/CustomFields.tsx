@@ -6,10 +6,12 @@ import { Select } from './Fields/Select';
 import { Upload, UploadProps } from './Fields/Upload';
 import { CheckboxGroup } from './Fields/CheckboxGroup';
 import { RadioGroup } from './Fields/RadioGroup';
+import { Number as NumberInput } from './Fields/Number';
+import { Date as DateInput } from './Fields/Date';
 
 export interface FieldConfig {
   id: string;
-  type: 'text' | 'multi-line' | 'dropdown' | 'multi-select' | 'radios' | 'file';
+  type: 'text' | 'multi-line' | 'dropdown' | 'multi-select' | 'radios' | 'file' | 'number' | 'date';
   title: string;
   description: string;
   required: boolean;
@@ -31,6 +33,8 @@ const components: Record<FieldConfig['type'], JSXElementConstructor<FieldProps>>
   file: (props: UploadProps) => <Upload {...props} multiple />,
   'multi-select': CheckboxGroup,
   radios: RadioGroup,
+  number: NumberInput,
+  date: DateInput,
 };
 
 export function Field(props: FieldConfig) {

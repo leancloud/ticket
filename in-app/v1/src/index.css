@@ -62,3 +62,8 @@ a {
 .markdown-body a {
   @apply text-tapBlue;
 }
+
+
+input[type="date"]::-webkit-date-and-time-value {
+  min-height: 22px;
+}

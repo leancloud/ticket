@@ -7,7 +7,9 @@ import {
   BsInputCursorText,
   BsUiRadiosGrid,
   BsTextareaResize,
+  BsCalendarDate,
 } from 'react-icons/bs';
+import { RiNumber6 } from 'react-icons/ri';
 
 import { TicketFieldSchema } from '@/api/ticket-field';
 
@@ -18,6 +20,8 @@ const icons: Record<TicketFieldSchema['type'], IconType> = {
   'multi-select': BsUiChecksGrid,
   radios: BsUiRadiosGrid,
   file: BsFileEarmarkArrowUp,
+  date: BsCalendarDate,
+  number: RiNumber6,
 };
 
 export interface TicketFieldIconProps {

@@ -25,6 +25,8 @@ export const fieldType = [
   'multi-select',
   'radios',
   'file',
+  'number',
+  'date',
 ]
 
 const Text = memo(
@@ -351,6 +353,74 @@ const FileInput = memo(
   }
 )
 
+const NumberInput = memo(
+  ({
+    id = _.uniqueId('NumberInput'),
+    label,
+    value,
+    onChange,
+    disabled,
+    readOnly,
+    required,
+    className,
+    size,
+  }) => {
+    return (
+      <Form.Group className={className}>
+        {label && <Form.Label htmlFor={id}>{label}</Form.Label>}
+        <Form.Control
+          id={id}
+          size={size}
+          type="text"
+          disabled={disabled}
+          readOnly={readOnly}
+          pattern="\d*"
+          value={value || ''}
+          onChange={(e) => {
+            if (onChange) {
+              const v = e.target.value
+              onChange(v)
+            }
+          }}
+          required={required}
+        />
+      </Form.Group>
+    )
+  }
+)
+
+const DateInput = memo(
+  ({
+    id = _.uniqueId('Text'),
+    label,
+    value,
+    onChange,
+    disabled,
+    readOnly,
+    required,
+    className,
+    size,
+  }) => {
+    return (
+      <Form.Group className={className}>
+        {label && <Form.Label htmlFor={id}>{label}</Form.Label>}
+        <Form.Control
+          id={id}
+          size={size}
+          type="date"
+          disabled={disabled}
+          readOnly={readOnly}
+          value={value}
+          onChange={(e) => {
+            onChange(e.target.value)
+          }}
+          required={required}
+        />
+      </Form.Group>
+    )
+  }
+)
+
 function CustomField({ type, options, ...rest }) {
   switch (type) {
     case 'text':
@@ -367,6 +437,10 @@ function CustomField({ type, options, ...rest }) {
       return <Radios {...rest} options={options} />
     case 'file':
       return <FileInput {...rest} />
+    case 'number':
+      return <NumberInput {...rest} />
+    case 'date':
+      return <DateInput {...rest} />
     default:
       return null
   }
@@ -474,6 +548,8 @@ function CustomFieldDisplay({
         return <Files ids={value} />
       case 'text':
       case 'multi-line':
+      case 'number':
+      case 'date':
         if (value === undefined) {
           return NoneNode
         }

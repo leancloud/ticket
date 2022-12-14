@@ -40,6 +40,8 @@ const fieldTypes: TicketFieldSchema['type'][] = [
   'multi-select',
   'radios',
   'file',
+  'number',
+  'date',
 ];
 const optionsFieldTypes: TicketFieldSchema['type'][] = ['dropdown', 'multi-select', 'radios'];
 
