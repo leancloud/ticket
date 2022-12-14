@@ -13,10 +13,12 @@ export default function Home() {
       return
     }
     if (isCustomerService) {
-      return history.replace('/customerService/tickets?assignee=me&stage=todo')
+      return window.location.replace(
+        `/next/admin/tickets?assigneeId=${auth.currentUser.id}&status=50,120,160`
+      )
     }
     if (isStaff) {
-      return history.replace('/customerService/tickets')
+      return window.location.replace('/next/admin/tickets')
     }
     history.replace('/tickets')
   }, [history, isCustomerService, isStaff])
