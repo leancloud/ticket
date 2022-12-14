@@ -371,7 +371,7 @@ const NumberInput = memo(
         <Form.Control
           id={id}
           size={size}
-          type="number"
+          type="text"
           disabled={disabled}
           readOnly={readOnly}
           pattern="\d*"
