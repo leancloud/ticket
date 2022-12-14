@@ -143,6 +143,20 @@
             "required": false,
             "hidden": false,
             "read_only": false
+        },
+        "likeCount": {
+          "type": "Number",
+          "v": 2,
+          "required": false,
+          "hidden": false,
+          "read_only": false
+        },
+        "dislikeCount": {
+          "type": "Number",
+          "v": 2,
+          "required": false,
+          "hidden": false,
+          "read_only": false
         }
     },
     "permissions": {

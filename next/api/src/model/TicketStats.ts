@@ -5,7 +5,7 @@ import { TicketStatsResponse } from '@/response/ticket-stats';
 import { User } from './User';
 import { Category } from './Category';
 
-interface SumTicketStat {
+export interface SumTicketStat {
   created?: number;
   closed?: number;
   reopened?: number;
@@ -23,6 +23,8 @@ interface SumTicketStat {
   internalReplyCount?: number;
   naturalReplyTime?: number;
   naturalReplyCount?: number;
+  likeCount?: number;
+  dislikeCount?: number;
 }
 
 interface ReplyDetail {
@@ -76,6 +78,10 @@ export class TicketStats extends Model {
   naturalReplyTime?: number;
   @field()
   naturalReplyCount?: number;
+  @field()
+  likeCount?: number;
+  @field()
+  dislikeCount?: number;
 
   @field()
   replyDetails?: ReplyDetail[];
