@@ -42,15 +42,15 @@ export function TicketTable({ loading, tickets, checkedIds, onChangeChecked }: T
 
   return (
     <Table
-      className="min-w-[1000px]"
       rowKey="id"
       loading={loading}
       dataSource={tickets}
       pagination={false}
+      scroll={{ x: 'max-content' }}
     >
       <Column
-        className="w-0"
         dataIndex="id"
+        fixed="left"
         render={(id: string) => (
           <Checkbox
             checked={checkedIdSet.has(id)}
@@ -68,7 +68,9 @@ export function TicketTable({ loading, tickets, checkedIds, onChangeChecked }: T
       <Column
         key="title"
         title="标题"
-        render={(ticket: TicketSchema) => <TicketLink ticket={ticket} />}
+        render={(ticket: TicketSchema) => (
+          <TicketLink ticket={ticket} className="inline-block max-w-lg" />
+        )}
       />
 
       <Column
@@ -81,7 +83,7 @@ export function TicketTable({ loading, tickets, checkedIds, onChangeChecked }: T
 
       <Column
         dataIndex="groupId"
-        title="组"
+        title="客服组"
         render={(groupId?: string) =>
           groupId ? (loadingGroups ? 'Loading...' : groupById[groupId]?.name ?? 'unknown') : '--'
         }
@@ -89,7 +91,7 @@ export function TicketTable({ loading, tickets, checkedIds, onChangeChecked }: T
 
       <Column
         dataIndex="assigneeId"
-        title="客服"
+        title="负责客服"
         render={(assigneeId?: string) =>
           assigneeId
             ? loadingAssignees
@@ -101,7 +103,7 @@ export function TicketTable({ loading, tickets, checkedIds, onChangeChecked }: T
 
       <Column
         dataIndex="authorId"
-        title="创建人"
+        title="用户"
         render={(authorId: string) =>
           loadingUsers ? 'Loading' : userById[authorId]?.nickname ?? 'unknown'
         }

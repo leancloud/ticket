@@ -11,11 +11,11 @@ function Base(props: ComponentPropsWithoutRef<'span'>) {
 }
 
 function New() {
-  return <Base className="bg-[#e0f5f0] text-[#007958] border-[#b4e5d9]">新工单</Base>;
+  return <Base className="bg-red-50 text-red-500 border-red-200">新工单</Base>;
 }
 
 function WaitingOnStaffReply() {
-  return <Base className="bg-yellow-50 text-yellow-500 border-yellow-200">等待客服回复</Base>;
+  return <Base className="bg-yellow-50 text-yellow-500 border-yellow-200">待客服回复</Base>;
 }
 
 function WaitingOnCustomerReply() {
@@ -23,7 +23,7 @@ function WaitingOnCustomerReply() {
 }
 
 function PreFulfilled() {
-  return <Base className="bg-blue-50 text-blue-500 border-blue-200">待用户确认</Base>;
+  return <Base className="bg-cyan-50 text-cyan-500 border-cyan-200">待用户确认</Base>;
 }
 
 function Resolved() {
@@ -31,7 +31,7 @@ function Resolved() {
 }
 
 function Unknown() {
-  return <Base className="bg-gray-50 text-gray-500 border-gray-500">未知</Base>;
+  return <Base className="bg-zinc-50 text-zinc-500 border-zinc-200">未知</Base>;
 }
 
 const components: Record<number, FC> = {
