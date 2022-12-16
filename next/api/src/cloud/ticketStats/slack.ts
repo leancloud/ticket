@@ -19,14 +19,14 @@ import { Status, Ticket } from '@/model/Ticket';
 import { type SumTicketStat, TicketStats } from '@/model/TicketStats';
 import type { ExtractArrayType } from '@/utils/types';
 
-interface ISimplifyCategory {
+interface ISimplifiedCategory {
   id: string;
   name: string;
   subCategories: { id: string; name: string }[];
 }
 
-type ProductsWithSubCategories = (ISimplifyCategory & {
-  childCategories: ISimplifyCategory[];
+type ProductsWithSubCategories = (ISimplifiedCategory & {
+  childCategories: ISimplifiedCategory[];
 })[];
 
 const getProductsWithSubCategories = async (): Promise<ProductsWithSubCategories> => {
