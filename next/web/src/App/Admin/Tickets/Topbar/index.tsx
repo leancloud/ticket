@@ -11,7 +11,7 @@ import {
 import { useQueryClient } from 'react-query';
 import cx from 'classnames';
 
-import { Badge, Checkbox, Tooltip } from '@/components/antd';
+import { Badge, Checkbox, InputNumber, Tooltip } from '@/components/antd';
 import { usePage } from '@/utils/usePage';
 import { useOrderBy as _useOrderBy } from '@/utils/useOrderBy';
 import styles from './index.module.css';
@@ -150,6 +150,15 @@ function Pagination({ className, pageSize, count, totalCount, isLoading }: Pagin
       >
         <HiChevronLeft className="w-4 h-4" />
       </NavButton>
+      <InputNumber
+        className="!w-14 !border-x-0 !rounded-none"
+        type="number"
+        size="small"
+        min={1}
+        max={Math.ceil((totalCount ?? Number.MAX_SAFE_INTEGER) / pageSize)}
+        value={page}
+        onChange={setPage}
+      />
       <NavButton
         className="px-[7px] py-[7px] rounded-l-none"
         disabled={isLoading || noMorePages || overflow}

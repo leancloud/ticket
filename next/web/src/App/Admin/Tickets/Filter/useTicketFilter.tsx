@@ -97,6 +97,7 @@ export function LocalFiltersProvider({ children }: { children: ReactNode }) {
         rootCategoryId: filters.rootCategoryId,
         status: filters.status?.join(','),
         star: filters.star?.toString(),
+        page: undefined,
       };
       merge(params);
     },
