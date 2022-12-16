@@ -21,35 +21,28 @@ export interface Filters {
 const FiltersContext = createContext<[Filters, (filters: Filters) => void]>([{}, _.noop]);
 
 export function LocalFiltersProvider({ children }: { children: ReactNode }) {
-  const [
-    {
-      keyword,
-      authorId,
+  const [params, { merge }] = useSearchParams();
+
+  const filters = useMemo(() => {
+    const filters: Filters = _.pick(params, [
+      'keyword',
+      'authorId',
+      'tagKey',
+      'tagValue',
+      'privateTagKey',
+      'privateTagValue',
+    ]);
+
+    const {
       assigneeId,
       groupId,
       reporterId,
       participantId,
-      tagKey,
-      tagValue,
-      privateTagKey,
-      privateTagValue,
       createdAt,
       rootCategoryId,
       status,
       star,
-    },
-    { merge },
-  ] = useSearchParams();
-
-  const filters = useMemo(() => {
-    const filters: Filters = {
-      keyword,
-      authorId,
-      tagKey,
-      tagValue,
-      privateTagKey,
-      privateTagValue,
-    };
+    } = params;
 
     if (assigneeId) {
       filters.assigneeId = assigneeId.split(',');
@@ -90,22 +83,7 @@ export function LocalFiltersProvider({ children }: { children: ReactNode }) {
     }
 
     return filters;
-  }, [
-    keyword,
-    authorId,
-    tagKey,
-    tagValue,
-    privateTagKey,
-    privateTagValue,
-    assigneeId,
-    groupId,
-    reporterId,
-    participantId,
-    createdAt,
-    rootCategoryId,
-    status,
-    star,
-  ]);
+  }, [params]);
 
   const set = useCallback(
     (filters: Filters) => {
