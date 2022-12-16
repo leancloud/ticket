@@ -12,13 +12,8 @@ export default function Home() {
       history.replace('/login')
       return
     }
-    if (isCustomerService) {
-      return window.location.replace(
-        `/next/admin/tickets?assigneeId=${auth.currentUser.id}&status=50,120,160`
-      )
-    }
-    if (isStaff) {
-      return window.location.replace('/next/admin/tickets')
+    if (isCustomerService || isStaff) {
+      return window.location.replace(`/next/admin/tickets`)
     }
     history.replace('/tickets')
   }, [history, isCustomerService, isStaff])
