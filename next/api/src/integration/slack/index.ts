@@ -30,6 +30,7 @@ interface SlackConfig {
   // broadcast channel
   channel?: string;
   categoryChannels: Record<string, string[]>;
+  events: string[];
 }
 
 class SlackIntegration {
@@ -47,13 +48,31 @@ class SlackIntegration {
       return channels.filter((channel) => channel !== this.broadcastChannel);
     });
 
-    notification.on('newTicket', this.sendNewTicket);
-    notification.on('changeAssignee', this.sendChangeAssignee);
-    notification.on('replyTicket', this.sendReplyTicket);
-    notification.on('internalReply', this.sendInternalReply);
-    notification.on('changeStatus', this.sendChangeStatus);
-    notification.on('ticketEvaluation', this.sendEvaluation);
-    notification.on('delayNotify', this.sendDelayNotify);
+    config.events.forEach((event) => {
+      switch (event) {
+        case 'newTicket':
+          notification.on('newTicket', this.sendNewTicket);
+          break;
+        case 'changeAssignee':
+          notification.on('changeAssignee', this.sendChangeAssignee);
+          break;
+        case 'replyTicket':
+          notification.on('replyTicket', this.sendReplyTicket);
+          break;
+        case 'internalReply':
+          notification.on('internalReply', this.sendInternalReply);
+          break;
+        case 'changeStatus':
+          notification.on('changeStatus', this.sendChangeStatus);
+          break;
+        case 'ticketEvaluation':
+          notification.on('ticketEvaluation', this.sendEvaluation);
+          break;
+        case 'delayNotify':
+          notification.on('delayNotify', this.sendDelayNotify);
+          break;
+      }
+    });
   }
 
   async getUserId(email: string): Promise<string> {
@@ -202,6 +221,15 @@ async function getConfig() {
     token: process.env.SLACK_TOKEN,
     channel: process.env.SLACK_CHANNEL,
     categoryChannels: {},
+    events: [
+      'newTicket',
+      'changeAssignee',
+      'replyTicket',
+      'internalReply',
+      'changeStatus',
+      'ticketEvaluation',
+      'delayNotify',
+    ],
   };
 
   const configObj = await Config.get('slack');
