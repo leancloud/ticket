@@ -202,7 +202,9 @@ export class User extends Model {
     const sessionToken = await findAndUpdate();
     if (sessionToken) return { sessionToken };
     try {
-      const newUser = await AV.User.signUp(username, Math.random().toString(), attributes);
+      const newUser = await AV.User.signUp(username, Math.random().toString(), attributes, {
+        useMasterKey: true,
+      });
       return { sessionToken: newUser.getSessionToken() };
     } catch (error) {
       if (
@@ -213,6 +215,11 @@ export class User extends Model {
       }
       throw error;
     }
+  }
+
+  static async signUpWithPassword(username: string, password: string, name?: string) {
+    const user = await AV.User.signUp(username, password, { name }, { useMasterKey: true });
+    return { sessionToken: user.getSessionToken() };
   }
 
   static async loginWithJWT(token: string): Promise<{ sessionToken: string }> {
@@ -282,7 +289,13 @@ export class User extends Model {
   }
 
   static async loginWithAnonymousId(id: string, name?: string) {
-    throw new Error('Not implemented');
+    const user = await AV.User.loginWithAuthData({ id }, 'anonymous', { useMasterKey: true });
+    return { sessionToken: user.getSessionToken() };
+  }
+
+  static async loginWithPassword(username: string, password: string) {
+    const user = await AV.User.logIn(username, password);
+    return { sessionToken: user.getSessionToken() };
   }
 
   static generateTDSUserAuthData(token: string) {
@@ -306,6 +319,7 @@ export class User extends Model {
         'tds-user',
         {
           failOnNotExist,
+          useMasterKey: true,
         }
       );
     } catch (err: any) {

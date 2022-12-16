@@ -39,13 +39,25 @@ const TDSUserSchema = z.object({
   token: z.string(),
   associateAnonymousId: z.string().optional(),
 });
+const PasswordSchema = z.object({
+  type: z.literal('password'),
+  username: z.string(),
+  password: z.string(),
+});
 const authSchema = z.union([
   JWTAuthSchema,
   anonymouseAuthSchema,
   LegacyXDAuthSchema,
+  PasswordSchema,
   ...(process.env.ENABLE_TDS_USER_LOGIN ? [TDSUserSchema] : []),
 ]);
 type AuthData = z.infer<typeof authSchema>;
+
+const PasswordSignupSchema = z.object({
+  username: z.string(),
+  password: z.string(),
+  name: z.string().optional(),
+});
 
 const preCraeteSchema = z.object({
   email: z.string().email().optional(),
@@ -142,8 +154,18 @@ export class UserController {
         'model',
         'User.loginWithTDSUserJWT'
       );
+    } else if (authData.type === 'password') {
+      return User.loginWithPassword(authData.username, authData.password);
     }
     return User.loginWithAnonymousId(authData.anonymousId, authData.name);
+  }
+
+  @Post('signup')
+  async signup(
+    @Body(new ZodValidationPipe(PasswordSignupSchema))
+    signUpData: z.infer<typeof PasswordSignupSchema>
+  ) {
+    return User.signUpWithPassword(signUpData.username, signUpData.password, signUpData.name);
   }
 
   @Post('pre-create')
