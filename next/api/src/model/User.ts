@@ -217,11 +217,6 @@ export class User extends Model {
     }
   }
 
-  static async signUpWithPassword(username: string, password: string, name?: string) {
-    const user = await AV.User.signUp(username, password, { name }, { useMasterKey: true });
-    return { sessionToken: user.getSessionToken() };
-  }
-
   static async loginWithJWT(token: string): Promise<{ sessionToken: string }> {
     let payload;
     try {

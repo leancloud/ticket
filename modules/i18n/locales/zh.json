@@ -327,5 +327,8 @@
     "pagination.prePage": "上一页",
     "pagination.display": "共 <1>{{total}}</1> 条 · 每页显示 <3></3> 条",
     "noData": "暂无数据",
-    "evaluation.selections": "用户选择的评价："
+    "evaluation.selections": "用户选择的评价：",
+    "resetPassword": "重置密码",
+    "resetPasswordSent": "验证邮件已经发送到你的邮箱",
+    "resetPasswordEmptyEmail": "请填写邮箱"
 }

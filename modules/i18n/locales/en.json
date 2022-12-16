@@ -323,5 +323,8 @@
   "pagination.nextPage": "Next",
   "pagination.prePage": "Previous",
   "pagination.display": "<1>{{total}}</1> items · <3></3> items per page",
-  "noData": "No data available"
+  "noData": "No data available",
+  "resetPassword": "Reset password",
+  "resetPasswordSent": "A verification email has been sent to your mailbox",
+  "resetPasswordEmptyEmail": "Please enter your email"
 }

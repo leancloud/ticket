@@ -67,15 +67,14 @@ export default function Login() {
     }
   }
 
-  const handleSignup = async () => {
+  const handleResetPassword = async () => {
     try {
-      const { sessionToken } = await http.post(`/api/2/users/signup`, {
-        username,
-        password,
-        name: username,
-      })
-      setCurrentUser(await auth.loginWithSessionToken(sessionToken))
-      redirect()
+      if (!username) {
+        addNotification({ message: t('resetPasswordEmptyEmail'), level: 'error' })
+        return
+      }
+      await auth.requestPasswordReset(username)
+      addNotification({ message: t('resetPasswordSent') })
     } catch (error) {
       addNotification(error)
     }
@@ -113,8 +112,8 @@ export default function Login() {
               </Form.Group>
               <Form.Group>
                 <Button type="submit">{t('login')}</Button>{' '}
-                <Button variant="light" onClick={handleSignup}>
-                  {t('signup')}
+                <Button variant="light" onClick={handleResetPassword}>
+                  {t('resetPassword')}
                 </Button>
               </Form.Group>
             </Form>

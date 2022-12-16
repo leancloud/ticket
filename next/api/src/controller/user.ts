@@ -53,12 +53,6 @@ const authSchema = z.union([
 ]);
 type AuthData = z.infer<typeof authSchema>;
 
-const PasswordSignupSchema = z.object({
-  username: z.string(),
-  password: z.string(),
-  name: z.string().optional(),
-});
-
 const preCraeteSchema = z.object({
   email: z.string().email().optional(),
   username: z.string().optional(),
@@ -158,14 +152,6 @@ export class UserController {
       return User.loginWithPassword(authData.username, authData.password);
     }
     return User.loginWithAnonymousId(authData.anonymousId, authData.name);
-  }
-
-  @Post('signup')
-  async signup(
-    @Body(new ZodValidationPipe(PasswordSignupSchema))
-    signUpData: z.infer<typeof PasswordSignupSchema>
-  ) {
-    return User.signUpWithPassword(signUpData.username, signUpData.password, signUpData.name);
   }
 
   @Post('pre-create')
