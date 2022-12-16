@@ -34,7 +34,7 @@
     "kafkajs": "^2.2.2",
     "koa": "^2.13.4",
     "koa-bodyparser": "^4.3.0",
-    "leancloud-storage": "^4.13.4",
+    "leancloud-storage": "^4.14.0",
     "leanengine": "^3.8.0",
     "lodash": "^4.17.21",
     "lru-cache": "^7.14.0",
