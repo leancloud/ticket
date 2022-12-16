@@ -11,7 +11,7 @@ import {
 import { useQueryClient } from 'react-query';
 import cx from 'classnames';
 
-import { Checkbox, Tooltip } from '@/components/antd';
+import { Badge, Checkbox, Tooltip } from '@/components/antd';
 import { usePage } from '@/utils/usePage';
 import { useOrderBy as _useOrderBy } from '@/utils/useOrderBy';
 import styles from './index.module.css';
@@ -22,6 +22,7 @@ import { SortDropdown } from './SortDropdown';
 import { Layout, LayoutDropdown } from './LayoutDropdown';
 import { useLocalFilters } from '../Filter';
 import { Exporter } from './Exporter';
+import { isEmpty } from 'lodash-es';
 
 export { useOrderBy } from './SortDropdown';
 
@@ -262,13 +263,15 @@ export function Topbar({
         }
       />
 
-      <NavButton
-        className="ml-2 px-[7px] py-[7px]"
-        active={showFilter}
-        onClick={() => onChangeShowFilter?.(!showFilter)}
-      >
-        <BsFunnel className="w-4 h-4" />
-      </NavButton>
+      <Badge dot={!isEmpty(localFilters)}>
+        <NavButton
+          className="ml-2 px-[7px] py-[7px]"
+          active={showFilter}
+          onClick={() => onChangeShowFilter?.(!showFilter)}
+        >
+          <BsFunnel className="w-4 h-4" />
+        </NavButton>
+      </Badge>
     </div>
   );
 }
