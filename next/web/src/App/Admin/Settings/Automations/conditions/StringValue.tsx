@@ -1,5 +1,4 @@
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
-import { get } from 'lodash-es';
 
 import { Form, Input, Select, Switch } from '@/components/antd';
 
@@ -20,16 +19,14 @@ const tagsModeOp: Record<string, true | undefined> = {
 };
 
 export function StringValue({ path }: { path: string }) {
-  const { control, formState, setValue } = useFormContext();
-  const op = useWatch({ control, name: `${path}.op` });
+  const { setValue } = useFormContext();
+  const op = useWatch({ name: `${path}.op` });
 
   const isTagsMode = tagsModeOp[op];
-  const errors = get(formState.errors, path);
 
   return (
     <>
       <Controller
-        control={control}
         name={`${path}.op`}
         defaultValue="is"
         render={({ field }) => (
@@ -45,36 +42,34 @@ export function StringValue({ path }: { path: string }) {
         )}
       />
 
-      <Form.Item className="w-full" validateStatus={errors?.value ? 'error' : undefined}>
-        <Controller
-          control={control}
-          name={`${path}.value`}
-          rules={{ required: true }}
-          render={({ field }) =>
-            isTagsMode ? (
+      <Controller
+        name={`${path}.value`}
+        rules={{ required: true }}
+        render={({ field, fieldState: { error } }) => (
+          <Form.Item className="w-full" validateStatus={error ? 'error' : undefined}>
+            {isTagsMode ? (
               <Select {...field} mode="tags" placeholder="输入一个或多个值!" />
             ) : (
               <Input {...field} placeholder="在此输入文本" />
-            )
-          }
-        />
-
-        <label className="mt-1 flex items-center">
-          <Controller
-            control={control}
-            name={`${path}.caseSensitive`}
-            defaultValue={undefined}
-            render={({ field }) => (
-              <Switch
-                size="small"
-                checked={field.value}
-                onChange={(checked) => field.onChange(checked || undefined)}
-              />
             )}
-          />
-          <span className="ml-1">匹配大小写</span>
-        </label>
-      </Form.Item>
+
+            <label className="mt-1 flex items-center">
+              <Controller
+                name={`${path}.caseSensitive`}
+                defaultValue={undefined}
+                render={({ field }) => (
+                  <Switch
+                    size="small"
+                    checked={field.value}
+                    onChange={(checked) => field.onChange(checked || undefined)}
+                  />
+                )}
+              />
+              <span className="ml-1">匹配大小写</span>
+            </label>
+          </Form.Item>
+        )}
+      />
     </>
   );
 }

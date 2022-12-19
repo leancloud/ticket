@@ -1,5 +1,4 @@
-import { Controller, useFormContext } from 'react-hook-form';
-import { get } from 'lodash-es';
+import { Controller } from 'react-hook-form';
 
 import { Form, Select } from '@/components/antd';
 import { CategorySelect } from '@/components/common';
@@ -7,34 +6,31 @@ import { CategorySelect } from '@/components/common';
 const { Option } = Select;
 
 export function CategoryId({ path }: { path: string }) {
-  const { control, formState } = useFormContext();
-  const errors = get(formState.errors, path);
-
   return (
     <>
-      <Form.Item>
-        <Controller
-          control={control}
-          name={`${path}.op`}
-          rules={{ required: true }}
-          defaultValue="is"
-          render={({ field }) => (
+      <Controller
+        name={`${path}.op`}
+        rules={{ required: true }}
+        defaultValue="is"
+        render={({ field }) => (
+          <Form.Item>
             <Select {...field} style={{ width: 160 }}>
               <Option value="is">是</Option>
               <Option value="isNot">不是</Option>
             </Select>
-          )}
-        />
-      </Form.Item>
+          </Form.Item>
+        )}
+      />
 
-      <Form.Item validateStatus={errors?.value ? 'error' : undefined}>
-        <Controller
-          control={control}
-          name={`${path}.value`}
-          rules={{ required: true }}
-          render={({ field }) => <CategorySelect {...field} style={{ width: 260 }} />}
-        />
-      </Form.Item>
+      <Controller
+        name={`${path}.value`}
+        rules={{ required: true }}
+        render={({ field, fieldState: { error } }) => (
+          <Form.Item validateStatus={error ? 'error' : undefined}>
+            <CategorySelect {...field} style={{ width: 260 }} />
+          </Form.Item>
+        )}
+      />
     </>
   );
 }

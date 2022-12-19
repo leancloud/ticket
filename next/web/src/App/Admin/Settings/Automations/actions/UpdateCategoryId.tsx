@@ -1,21 +1,18 @@
-import { Controller, useFormContext } from 'react-hook-form';
-import { get } from 'lodash-es';
+import { Controller } from 'react-hook-form';
 
 import { Form } from '@/components/antd';
 import { CategorySelect } from '@/components/common';
 
 export function UpdateCategoryId({ path }: { path: string }) {
-  const { control, formState } = useFormContext();
-  const errors = get(formState.errors, path);
-
   return (
-    <Form.Item validateStatus={errors?.value ? 'error' : undefined}>
-      <Controller
-        control={control}
-        name={`${path}.value`}
-        rules={{ required: true }}
-        render={({ field }) => <CategorySelect {...field} style={{ width: 260 }} />}
-      />
-    </Form.Item>
+    <Controller
+      name={`${path}.value`}
+      rules={{ required: true }}
+      render={({ field, fieldState: { error } }) => (
+        <Form.Item validateStatus={error ? 'error' : undefined}>
+          <CategorySelect {...field} style={{ width: 260 }} />
+        </Form.Item>
+      )}
+    />
   );
 }
