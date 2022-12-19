@@ -5,7 +5,7 @@ import { Button, Form } from 'react-bootstrap'
 import { useHistory, useLocation } from 'react-router'
 import PropTypes from 'prop-types'
 import qs from 'query-string'
-import { auth } from '../lib/leancloud'
+import { auth, http } from '../lib/leancloud'
 import { isCN } from './common'
 import css from './Login.css'
 import { AppContext } from './context'
@@ -55,23 +55,26 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault()
     try {
-      const user = await auth.login(username, password)
-      setCurrentUser(user)
+      const { sessionToken } = await http.post('/api/2/users', {
+        type: 'password',
+        username,
+        password,
+      })
+      setCurrentUser(await auth.loginWithSessionToken(sessionToken))
       redirect()
     } catch (error) {
       addNotification(error)
     }
   }
 
-  const handleSignup = async () => {
+  const handleResetPassword = async () => {
     try {
-      const user = await auth.signUp({
-        username,
-        password,
-        name: username,
-      })
-      setCurrentUser(user)
-      redirect()
+      if (!username) {
+        addNotification({ message: t('resetPasswordEmptyEmail'), level: 'error' })
+        return
+      }
+      await auth.requestPasswordReset(username)
+      addNotification({ message: t('resetPasswordSent') })
     } catch (error) {
       addNotification(error)
     }
@@ -109,8 +112,8 @@ export default function Login() {
               </Form.Group>
               <Form.Group>
                 <Button type="submit">{t('login')}</Button>{' '}
-                <Button variant="light" onClick={handleSignup}>
-                  {t('signup')}
+                <Button variant="light" onClick={handleResetPassword}>
+                  {t('resetPassword')}
                 </Button>
               </Form.Group>
             </Form>

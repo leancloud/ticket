@@ -70,16 +70,13 @@ export default function App() {
 
   useEffect(() => {
     setAuth({ loading: true });
-    if (params['anonymous-id']) {
-      lcAuth
-        .loginWithAuthData('anonymous', { id: params['anonymous-id'] })
-        .then((user) => setAuth({ user }))
-        .catch((error) => setAuth({ error }));
-    } else if (params['xd-access-token'] || params['tds-credential']) {
+    if (params['anonymous-id'] || params['xd-access-token'] || params['tds-credential']) {
       http
         .post(
           '/api/2/users',
-          params['xd-access-token']
+          params['anonymous-id']
+            ? { type: 'anonymous', anonymousId: params['anonymous-id'] }
+            : params['xd-access-token']
             ? { XDAccessToken: params['xd-access-token'] }
             : {
                 type: 'tds-user',

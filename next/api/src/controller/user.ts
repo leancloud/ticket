@@ -39,10 +39,16 @@ const TDSUserSchema = z.object({
   token: z.string(),
   associateAnonymousId: z.string().optional(),
 });
+const PasswordSchema = z.object({
+  type: z.literal('password'),
+  username: z.string(),
+  password: z.string(),
+});
 const authSchema = z.union([
   JWTAuthSchema,
   anonymouseAuthSchema,
   LegacyXDAuthSchema,
+  PasswordSchema,
   ...(process.env.ENABLE_TDS_USER_LOGIN ? [TDSUserSchema] : []),
 ]);
 type AuthData = z.infer<typeof authSchema>;
@@ -142,6 +148,8 @@ export class UserController {
         'model',
         'User.loginWithTDSUserJWT'
       );
+    } else if (authData.type === 'password') {
+      return User.loginWithPassword(authData.username, authData.password);
     }
     return User.loginWithAnonymousId(authData.anonymousId, authData.name);
   }

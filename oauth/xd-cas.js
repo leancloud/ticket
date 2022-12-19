@@ -55,7 +55,9 @@ module.exports = (router) => {
                 }
                 const user = new AV.User()
                 user.set('email', email).set('name', realname)
-                await user.loginWithAuthData({ uid: userId, access_token: accessToken }, 'xd_cas')
+                await user.loginWithAuthData({ uid: userId, access_token: accessToken }, 'xd_cas', {
+                  useMasterKey: true,
+                })
                 console.log('new user created', user.id)
                 if (process.env.AUTO_ASSIGN_XD_STAFF_ROLE) {
                   const staff = await new AV.Query(AV.Role).equalTo('name', 'staff').first()

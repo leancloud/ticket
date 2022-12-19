@@ -53,7 +53,9 @@ exports.loginCallback = (callbackUrl) => {
         return getAccessToken(region, req.query.code, callbackUrl).then((accessToken) => {
           accessToken.uid = '' + accessToken.uid
           if (!sessionToken) {
-            return AV.User.loginWithAuthData(accessToken, getLeanCloudPlatform(region))
+            return AV.User.loginWithAuthData(accessToken, getLeanCloudPlatform(region), {
+              useMasterKey: true,
+            })
               .then((user) => {
                 if (!user.get('gravatarHash')) {
                   // 第一次登录，从 LeanCloud 初始化用户信息
