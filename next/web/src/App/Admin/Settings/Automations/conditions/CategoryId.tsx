@@ -2,7 +2,7 @@ import { Controller, useFormContext } from 'react-hook-form';
 import { get } from 'lodash-es';
 
 import { Form, Select } from '@/components/antd';
-import { CategorySelect } from '../components/CategorySelect';
+import { CategorySelect } from '@/components/common';
 
 const { Option } = Select;
 
@@ -32,7 +32,7 @@ export function CategoryId({ path }: { path: string }) {
           control={control}
           name={`${path}.value`}
           rules={{ required: true }}
-          render={({ field }) => <CategorySelect {...field} initValue={field.value} />}
+          render={({ field }) => <CategorySelect {...field} style={{ width: 260 }} />}
         />
       </Form.Item>
     </>
