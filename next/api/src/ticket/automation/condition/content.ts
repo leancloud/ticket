@@ -7,7 +7,7 @@ const getContent = (ctx: Context) => ctx.getContent();
 
 const is = string.eq(getContent, 'content');
 const includes = string.includes(getContent, 'content');
-const includesAny = string.includesAll(getContent, 'content');
+const includesAny = string.includesAny(getContent, 'content');
 const includesAll = string.includesAll(getContent, 'content');
 const startsWith = string.startsWith(getContent, 'content');
 const endsWith = string.endsWith(getContent, 'content');
