@@ -1,6 +1,7 @@
 import { createQueue } from '@/queue';
 import events from '@/events';
 import mem from '@/utils/mem-promise';
+import { Reply } from '@/model/Reply';
 import { Ticket } from '@/model/Ticket';
 import { Trigger as TriggerModel } from '@/model/Trigger';
 
@@ -159,10 +160,12 @@ async function processTicketReplied(job: TicketRepliedJob) {
   if (!ticket || isClosed(ticket.status)) {
     return;
   }
+  const reply = await Reply.find(job.replyId, { useMasterKey: true });
   const ctx = new TriggerContext({
     event: 'replied',
     ticket,
     currentUserId: job.currentUserId,
+    reply,
   });
   await runTriggers(ctx);
 }

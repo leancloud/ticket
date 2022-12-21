@@ -14,6 +14,7 @@ import ticket from './ticket';
 import authorId from './authorId';
 import assigneeId from './assigneeId';
 import currentUserId from './currentUserId';
+import replyContent from './replyContent';
 
 const factories: Record<string, ConditionFactory<unknown, TriggerContext>> = {
   ticket,
@@ -27,6 +28,7 @@ const factories: Record<string, ConditionFactory<unknown, TriggerContext>> = {
   metaData,
   tags,
   currentUserId,
+  replyContent,
   any: any(condition),
   all: all(condition),
 };

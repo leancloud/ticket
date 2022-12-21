@@ -55,4 +55,8 @@ export default {
     label: '标签',
     component: Tags,
   },
+  replyContent: {
+    label: '回复内容',
+    component: StringValue,
+  },
 };
