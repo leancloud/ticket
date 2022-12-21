@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { categoryService } from '@/category';
 import { Condition, ConditionFactory } from '.';
 import { not } from './common';
 
@@ -12,9 +13,22 @@ const is: ConditionFactory<string> = (value) => {
   };
 };
 
+const isIncluded: ConditionFactory<string> = (value) => {
+  return {
+    name: `category belongs to ${value}`,
+    test: async (ctx) => {
+      const categoryId = ctx.getCategoryId();
+      const subCategories = await categoryService.getSubCategories(value);
+      const idx = subCategories.findIndex((c) => c.id === categoryId);
+      return idx >= 0;
+    },
+  };
+};
+
 const factories: Record<string, ConditionFactory<string>> = {
   is,
   isNot: not(is),
+  isIncluded,
 };
 
 const schema = z.object({

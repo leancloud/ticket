@@ -1,5 +1,4 @@
-import { Controller, useFormContext } from 'react-hook-form';
-import { get } from 'lodash-es';
+import { Controller } from 'react-hook-form';
 
 import { Form, Select } from '@/components/antd';
 
@@ -15,35 +14,32 @@ const options = [
 ];
 
 export function Status({ path }: { path: string }) {
-  const { control, formState } = useFormContext();
-  const errors = get(formState.errors, path);
-
   return (
     <>
-      <Form.Item>
-        <Controller
-          control={control}
-          name={`${path}.op`}
-          rules={{ required: true }}
-          defaultValue="is"
-          render={({ field }) => (
+      <Controller
+        name={`${path}.op`}
+        rules={{ required: true }}
+        defaultValue="is"
+        render={({ field }) => (
+          <Form.Item>
             <Select {...field} style={{ width: 160 }}>
               <Option value="is">是</Option>
               <Option value="isNot">不是</Option>
             </Select>
-          )}
-        />
-      </Form.Item>
+          </Form.Item>
+        )}
+      />
 
-      <Form.Item validateStatus={errors?.value ? 'error' : undefined}>
-        <Controller
-          control={control}
-          name={`${path}.value`}
-          rules={{ required: true }}
-          defaultValue={50}
-          render={({ field }) => <Select {...field} options={options} style={{ width: 160 }} />}
-        />
-      </Form.Item>
+      <Controller
+        name={`${path}.value`}
+        rules={{ required: true }}
+        defaultValue={50}
+        render={({ field, fieldState: { error } }) => (
+          <Form.Item validateStatus={error ? 'error' : undefined}>
+            <Select {...field} options={options} style={{ width: 160 }} />
+          </Form.Item>
+        )}
+      />
     </>
   );
 }

@@ -1,5 +1,4 @@
 import { Controller, useFormContext } from 'react-hook-form';
-import { get } from 'lodash-es';
 
 import { Form, InputNumber, Select } from '@/components/antd';
 
@@ -12,13 +11,11 @@ const OPS = [
 ];
 
 export function NumberValue({ path }: { path: string }) {
-  const { control, formState, setValue } = useFormContext();
-  const errors = get(formState.errors, path);
+  const { setValue } = useFormContext();
 
   return (
     <>
       <Controller
-        control={control}
         name={`${path}.op`}
         defaultValue="is"
         render={({ field }) => (
@@ -34,14 +31,15 @@ export function NumberValue({ path }: { path: string }) {
         )}
       />
 
-      <Form.Item validateStatus={errors?.value ? 'error' : undefined}>
-        <Controller
-          control={control}
-          name={`${path}.value`}
-          rules={{ required: true }}
-          render={({ field }) => <InputNumber {...field} style={{ width: 200 }} />}
-        />
-      </Form.Item>
+      <Controller
+        name={`${path}.value`}
+        rules={{ required: true }}
+        render={({ field, fieldState: { error } }) => (
+          <Form.Item validateStatus={error ? 'error' : undefined}>
+            <InputNumber {...field} style={{ width: 200 }} />
+          </Form.Item>
+        )}
+      />
     </>
   );
 }
