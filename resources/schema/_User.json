@@ -60,7 +60,7 @@
     "salt": {
       "type": "String"
     },
-    "tags":{
+    "tags": {
       "type": "Array"
     }
   },
@@ -89,9 +89,8 @@
       "users": ""
     },
     "create": {
-      "roles": [],
-      "users": [],
-      "*": true
+      "roles": "",
+      "users": ""
     }
   },
   "indexes": []
