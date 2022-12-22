@@ -240,10 +240,30 @@ async function getConfig() {
   }
 }
 
+export class CreateSlack {
+  private static slackInstance: SlackIntegration | undefined;
+  private static installFailed = false;
+
+  static async get(config?: SlackConfig) {
+    if (this.slackInstance) {
+      return this.slackInstance;
+    }
+
+    if (this.installFailed) {
+      return undefined;
+    }
+
+    const _config = config ?? (await getConfig());
+
+    return _config
+      ? (this.slackInstance = new SlackIntegration(_config))
+      : ((this.installFailed = true), undefined);
+  }
+}
+
 export default async function (install: Function) {
-  const config = await getConfig();
-  if (config) {
-    new SlackIntegration(config);
+  const slack = await CreateSlack.get();
+  if (slack) {
     install('Slack', {});
   }
 }
