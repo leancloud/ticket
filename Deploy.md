@@ -331,3 +331,6 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 - `ENABLE_TDS_USER_LOGIN`: 控制是否开启 TDS 内建用户登录
 
 导入 `TicketStats`（增加 `likeCount` 和 `dislikeCount` 列）
+## 2022-12-22
+
+重新导入 `_User` （默认关闭 `create` 权限）
