@@ -309,8 +309,8 @@ export function ViewList() {
         />
         <Column
           title="更新时间"
-          dataIndex="createdAt"
-          render={(createdAt) => moment(createdAt).format('YYYY-MM-DD')}
+          dataIndex="updatedAt"
+          render={(updatedAt) => moment(updatedAt).format('YYYY-MM-DD HH:mm:ss')}
         />
         <Column
           key="actions"
@@ -360,7 +360,16 @@ export function NewView() {
 
   return (
     <div className="p-10">
-      <EditView submitting={isLoading} onSubmit={mutate} />
+      <EditView
+        submitting={isLoading}
+        onSubmit={(data) =>
+          mutate({
+            ...data,
+            userIds: data.userIds || undefined,
+            groupIds: data.groupIds || undefined,
+          })
+        }
+      />
     </div>
   );
 }
@@ -374,6 +383,7 @@ export function ViewDetail() {
   const { mutate, isLoading: isUpdating } = useMutation({
     mutationFn: (data: UpdateViewData) => updateView(id!, data),
     onSuccess: (_, { groupIds }) => {
+      queryClient.invalidateQueries(['view', id]);
       queryClient.invalidateQueries('views');
       if (groupIds) {
         queryClient.invalidateQueries('viewGroups');

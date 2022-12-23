@@ -24,18 +24,16 @@ import style from './index.module.css';
 const { Option } = Select;
 
 function ViewPrivilege() {
-  const { control } = useFormContext<ViewData>();
+  const { field: userIdsField } = useController<ViewData>({ name: 'userIds' });
 
-  const { field: userIdsField } = useController({ control, name: 'userIds' });
   const {
     field: groupIdsField,
     fieldState: { error: groupIdsError },
-  } = useController({
-    control,
+  } = useController<ViewData>({
     name: 'groupIds',
     rules: {
       validate: (ids?: string[]) => {
-        if (visibility === 'group' && (!ids || ids.length === 0)) {
+        if (ids && ids.length === 0) {
           return '请填写此字段';
         }
         return true;
@@ -43,8 +41,7 @@ function ViewPrivilege() {
     },
   });
 
-  const userIds = userIdsField.value;
-  const groupIds = groupIdsField.value;
+  const [userIds, groupIds] = useWatch<ViewData>({ name: ['userIds', 'groupIds'] });
 
   const visibility = useMemo(() => {
     if (userIds) {
@@ -59,14 +56,14 @@ function ViewPrivilege() {
 
   const handleChangeVisibility = (visibility: string) => {
     if (visibility === 'all') {
-      userIdsField.onChange(undefined);
-      groupIdsField.onChange(undefined);
+      userIdsField.onChange(null);
+      groupIdsField.onChange(null);
     } else if (visibility === 'group') {
-      userIdsField.onChange(undefined);
+      userIdsField.onChange(null);
       groupIdsField.onChange([]);
     } else if (visibility === 'user') {
       userIdsField.onChange([currentUser!.id]);
-      groupIdsField.onChange(undefined);
+      groupIdsField.onChange(null);
     }
   };
 
@@ -199,8 +196,7 @@ function Condition({ name, deleteable, onDelete }: ConditionProps) {
 }
 
 function Conditions({ name }: { name: string }) {
-  const { control } = useFormContext();
-  const { fields, append, remove } = useFieldArray({ control, name });
+  const { fields, append, remove } = useFieldArray({ name });
 
   return (
     <div>
@@ -358,8 +354,8 @@ function Columns({ value, onChange }: ColumnsProps) {
 
 export interface ViewData {
   title: string;
-  userIds?: string[];
-  groupIds?: string[];
+  userIds?: string[] | null;
+  groupIds?: string[] | null;
   conditions: any;
   fields: string[];
   sortBy?: string;
@@ -444,7 +440,7 @@ export function EditView({ initData, submitting, onSubmit }: EditViewProps) {
       </FormProvider>
 
       <div className="flex flex-row-reverse">
-        <Button type="primary" disabled={submitting} onClick={() => $antForm.current.submit()}>
+        <Button type="primary" loading={submitting} onClick={() => $antForm.current.submit()}>
           保存
         </Button>
         <Link to="..">

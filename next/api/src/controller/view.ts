@@ -60,8 +60,8 @@ const createDataSchema = z.object({
 
 const updateDataSchema = z.object({
   title: z.string().optional(),
-  userIds: z.array(z.string()).optional(),
-  groupIds: z.array(z.string()).optional(),
+  userIds: z.array(z.string()).nullable().optional(),
+  groupIds: z.array(z.string()).nullable().optional(),
   conditions: conditionsSchema.optional(),
   fields: z.array(z.string()).optional(),
   sortBy: z.string().optional(),
@@ -153,6 +153,9 @@ export class ViewController {
 
   @Post()
   async create(@Body(new ZodValidationPipe(createDataSchema)) data: CreateData) {
+    if (data.userIds && data.groupIds) {
+      throw new HttpError(400, 'cannot set both userIds and groupIds');
+    }
     if (data.userIds) {
       await this.assertUserExist(data.userIds);
     }
@@ -187,6 +190,9 @@ export class ViewController {
     @Param('id', new FindModelPipe(View, { useMasterKey: true })) view: View,
     @Body(new ZodValidationPipe(updateDataSchema)) data: UpdateData
   ) {
+    if (data.userIds && data.groupIds) {
+      throw new HttpError(400, 'cannot set both userIds and groupIds');
+    }
     if (data.userIds) {
       await this.assertUserExist(data.userIds);
     }
@@ -200,8 +206,8 @@ export class ViewController {
     await view.update(
       {
         title: data.title,
-        userIds: data.userIds,
-        groupIds: data.groupIds,
+        userIds: data.groupIds ? null : data.userIds,
+        groupIds: data.userIds ? null : data.groupIds,
         conditions: data.conditions,
         fields: data.fields,
         sortBy: data.sortBy,

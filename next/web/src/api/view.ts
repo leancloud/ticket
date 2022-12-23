@@ -44,7 +44,10 @@ export async function createView(data: CreateViewData) {
   await http.post('/api/2/views', data);
 }
 
-export type UpdateViewData = Partial<CreateViewData>;
+export interface UpdateViewData extends Partial<Omit<CreateViewData, 'userIds' | 'groupIds'>> {
+  userIds?: string[] | null;
+  groupIds?: string[] | null;
+}
 
 export async function updateView(id: string, data: UpdateViewData) {
   await http.patch(`/api/2/views/${id}`, data);
