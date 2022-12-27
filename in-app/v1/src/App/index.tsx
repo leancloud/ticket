@@ -70,7 +70,12 @@ export default function App() {
 
   useEffect(() => {
     setAuth({ loading: true });
-    if (params['anonymous-id'] || params['xd-access-token'] || params['tds-credential']) {
+    if (
+      params['anonymous-id'] ||
+      params['xd-access-token'] ||
+      params['tds-credential'] ||
+      params['credential']
+    ) {
       http
         .post(
           '/api/2/users',
@@ -78,10 +83,15 @@ export default function App() {
             ? { type: 'anonymous', anonymousId: params['anonymous-id'] }
             : params['xd-access-token']
             ? { XDAccessToken: params['xd-access-token'] }
-            : {
+            : params['tds-credential']
+            ? {
                 type: 'tds-user',
                 token: params['tds-credential'],
                 associateAnonymousId: params['associate-anonymous-id'],
+              }
+            : {
+                type: 'jwt',
+                jwt: params['credential'],
               }
         )
         .catch((error) => {
@@ -178,6 +188,7 @@ function useHashConfiguration() {
           'anonymous-id': StringParam,
           'xd-access-token': StringParam,
           'tds-credential': StringParam,
+          credential: StringParam,
           'associate-anonymous-id': StringParam,
         },
         parse(window.location.hash)
