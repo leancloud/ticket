@@ -2,6 +2,9 @@ import type { Middleware } from 'koa';
 
 import { User } from '@/model/User';
 import { withAsyncSpan, withSpan } from '@/utils/trace';
+import { getVerifiedPayload } from '@/utils/jwt';
+
+const { ENABLE_TDS_USER_LOGIN } = process.env;
 
 export const auth: Middleware = withSpan(async (ctx, next) => {
   const sessionToken = ctx.get('X-LC-Session');
@@ -47,7 +50,7 @@ export const auth: Middleware = withSpan(async (ctx, next) => {
   }
 
   const tdsUserToken = ctx.get('X-TDS-Credential');
-  if (tdsUserToken && process.env.ENABLE_TDS_USER_LOGIN) {
+  if (tdsUserToken && ENABLE_TDS_USER_LOGIN) {
     const user = await withAsyncSpan(
       () => User.findByTDSUserToken(tdsUserToken),
       ctx,
@@ -57,6 +60,27 @@ export const auth: Middleware = withSpan(async (ctx, next) => {
 
     if (!user) {
       ctx.throw(401, '未找到该 TDS Token 对应的用户，该用户可能从未使用过客服功能。', {
+        code: 'USER_NOT_REGISTERED',
+      });
+    }
+
+    ctx.state.currentUser = user;
+    return next();
+  }
+
+  const token = ctx.get('X-Credential');
+  if (token) {
+    const { sub } = getVerifiedPayload(token);
+    if (sub === undefined) {
+      return ctx.throw(401, 'sub field is required', {
+        code: 'INVALID_TOKEN',
+      });
+    }
+
+    const user = await User.findByUsername(sub);
+
+    if (!user) {
+      ctx.throw(401, '未找到该 Token 对应的用户，该用户可能从未使用过客服功能。', {
         code: 'USER_NOT_REGISTERED',
       });
     }
