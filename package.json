@@ -30,7 +30,7 @@
     "@leancloud/use-resource": "^1.1.0",
     "@slack/web-api": "^6.0.0",
     "axios": "^0.21.1",
-    "babel-loader": "^8.2.2",
+    "babel-loader": "^8.3.0",
     "bluebird": "^3.4.7",
     "blueimp-md5": "^2.18.0",
     "bootstrap": "^4.6.0",
