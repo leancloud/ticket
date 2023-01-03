@@ -19,7 +19,11 @@ export const getVerifiedPayload = (
     try {
       return jwt.verify(token, key, options) as JwtPayload;
     } catch (error) {
-      if (error instanceof JsonWebTokenError && error.message !== 'invalid signature') {
+      if (
+        error instanceof JsonWebTokenError &&
+        error.message !== 'invalid signature' &&
+        error.message !== 'invalid algorithm'
+      ) {
         throw error;
       }
     }
