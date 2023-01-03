@@ -149,9 +149,19 @@ export class UserController {
         'User.loginWithTDSUserJWT'
       );
     } else if (authData.type === 'password') {
-      return User.loginWithPassword(authData.username, authData.password);
+      return withAsyncSpan(
+        () => User.loginWithPassword(authData.username, authData.password),
+        ctx,
+        'model',
+        'User.loginWithPassword'
+      );
     }
-    return User.loginWithAnonymousId(authData.anonymousId, authData.name);
+    return withAsyncSpan(
+      () => User.loginWithAnonymousId(authData.anonymousId, authData.name),
+      ctx,
+      'model',
+      'User.loginWithAnonymousId'
+    );
   }
 
   @Post('pre-create')
