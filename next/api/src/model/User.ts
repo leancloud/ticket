@@ -289,8 +289,15 @@ export class User extends Model {
   }
 
   static async loginWithPassword(username: string, password: string) {
-    const user = await AV.User.logIn(username, password);
-    return { sessionToken: user.getSessionToken() };
+    try {
+      const user = await AV.User.logIn(username, password);
+      return { sessionToken: user.getSessionToken() };
+    } catch (err: any) {
+      if (err.code === 210) {
+        throw new InvalidLoginCredentialError(err.message, err);
+      }
+      throw err;
+    }
   }
 
   static generateTDSUserAuthData(token: string) {
