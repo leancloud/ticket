@@ -334,3 +334,9 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 ## 2022-12-22
 
 重新导入 `_User` （默认关闭 `create` 权限）
+
+## 2023-01-06
+
+重新导入 `_User` （增加 `active` 列）
+
+如果需要启用 Slack 统计推送请将云函数里的 `dailyPushStatsToSlack`、`weeklyPushStatsToSlack` 和 `monthlyPushStatsToSlack` 设置为定时任务
