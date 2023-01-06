@@ -11,7 +11,7 @@ export function usePage() {
     return 1;
   }, [_page]);
 
-  const setPage = useCallback((page) => _setPage(page), [_setPage]);
+  const setPage = useCallback((page: number) => _setPage(page), [_setPage]);
 
   return [page, { set: setPage }] as const;
 }
@@ -25,7 +25,7 @@ export function usePageSize() {
     }
   }, [_pageSize]);
 
-  const setPageSize = useCallback((size) => _setPageSize(size), [_setPageSize]);
+  const setPageSize = useCallback((size: number) => _setPageSize(size), [_setPageSize]);
 
   return [pageSize, setPageSize] as const;
 }

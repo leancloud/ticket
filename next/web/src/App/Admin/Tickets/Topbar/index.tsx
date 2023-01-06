@@ -11,8 +11,7 @@ import {
 import { useQueryClient } from 'react-query';
 import cx from 'classnames';
 
-import { Badge, Checkbox, InputNumber, Tooltip } from '@/components/antd';
-import { usePage } from '@/utils/usePage';
+import { Badge, Checkbox, InputNumber, Select, Tooltip } from '@/components/antd';
 import { useOrderBy as _useOrderBy } from '@/utils/useOrderBy';
 import styles from './index.module.css';
 import { BatchUpdateDialog } from './BatchUpdateDialog';
@@ -114,14 +113,25 @@ function BatchOperations({ checkedTicketIds, disabled, onSuccess }: BatchOperati
 
 interface PaginationProps {
   className?: string;
+  page: number;
   pageSize: number;
+  onChangePage: (page: number) => void;
+  onChangePageSize: (pageSize: number) => void;
   count?: number;
   totalCount?: number;
   isLoading?: boolean;
 }
 
-function Pagination({ className, pageSize, count, totalCount, isLoading }: PaginationProps) {
-  const [page, { set: setPage }] = usePage();
+function Pagination({
+  className,
+  page,
+  pageSize,
+  onChangePage,
+  onChangePageSize,
+  count,
+  totalCount,
+  isLoading,
+}: PaginationProps) {
   const [text, setText] = useState('');
   const [noMorePages, setNoMorePages] = useState(false);
   const [overflow, setOverflow] = useState(false);
@@ -146,7 +156,7 @@ function Pagination({ className, pageSize, count, totalCount, isLoading }: Pagin
       <NavButton
         className="ml-2.5 px-[7px] py-[7px] rounded-r-none"
         disabled={isLoading || page === 1}
-        onClick={() => (overflow ? setPage(1) : setPage(page - 1))}
+        onClick={() => (overflow ? onChangePage(1) : onChangePage(page - 1))}
       >
         <HiChevronLeft className="w-4 h-4" />
       </NavButton>
@@ -157,15 +167,35 @@ function Pagination({ className, pageSize, count, totalCount, isLoading }: Pagin
         min={1}
         max={Math.ceil((totalCount ?? Number.MAX_SAFE_INTEGER) / pageSize)}
         value={page}
-        onChange={setPage}
+        onChange={onChangePage}
       />
       <NavButton
         className="px-[7px] py-[7px] rounded-l-none"
         disabled={isLoading || noMorePages || overflow}
-        onClick={() => setPage(page + 1)}
+        onClick={() => onChangePage(page + 1)}
       >
         <HiChevronRight className="w-4 h-4" />
       </NavButton>
+      <Select
+        size="small"
+        options={[
+          {
+            label: '20 条/页',
+            value: 20,
+          },
+          {
+            label: '50 条/页',
+            value: 50,
+          },
+          {
+            label: '100 条/页',
+            value: 100,
+          },
+        ]}
+        value={pageSize}
+        onChange={onChangePageSize}
+        style={{ width: 100, marginLeft: 8 }}
+      />
     </div>
   );
 }
@@ -175,7 +205,10 @@ export interface TopbarProps extends ComponentPropsWithoutRef<'div'> {
   onChangeShowFilter?: (value: boolean) => void;
   showStatsPanel?: boolean;
   onChangeShowStatsPanel?: (value: boolean) => void;
+  page: number;
   pageSize: number;
+  onChangePage: (page: number) => void;
+  onChangePageSize: (pageSize: number) => void;
   count?: number;
   totalCount?: number;
   isLoading?: boolean;
@@ -188,7 +221,10 @@ export interface TopbarProps extends ComponentPropsWithoutRef<'div'> {
 export function Topbar({
   showFilter,
   onChangeShowFilter,
+  page,
   pageSize,
+  onChangePage,
+  onChangePageSize,
   count,
   totalCount,
   isLoading,
@@ -244,7 +280,10 @@ export function Topbar({
 
       <Pagination
         className="ml-4"
+        page={page}
         pageSize={pageSize}
+        onChangePage={onChangePage}
+        onChangePageSize={onChangePageSize}
         count={count}
         totalCount={totalCount}
         isLoading={isLoading}

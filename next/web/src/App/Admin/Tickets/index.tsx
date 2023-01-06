@@ -3,14 +3,14 @@ import { Route, Routes } from 'react-router-dom';
 import { useLocalStorage } from 'react-use';
 
 import { useSearchTickets, useTickets, UseTicketsOptions } from '@/api/ticket';
-import { usePage } from '@/utils/usePage';
+import { usePage, usePageSize } from '@/utils/usePage';
 import { Topbar, useOrderBy } from './Topbar';
 import { FilterForm, LocalFiltersProvider, useLocalFilters } from './Filter';
 import { TicketView } from './TicketView';
 import { TicketDetail } from './Ticket/TicketDetail';
 import { StatsPanel } from './TicketStats';
 
-const pageSize = 20;
+const DEFAULT_PAGE_SIZE = 20;
 
 function useLayout() {
   const [layout = 'table', ...rest] = useLocalStorage<'card' | 'table'>(
@@ -48,7 +48,8 @@ function useSmartSearchTickets({ keyword, queryOptions, ...options }: UseSmartFe
 }
 
 function TicketListView() {
-  const [page] = usePage();
+  const [page, { set: setPage }] = usePage();
+  const [pageSize = DEFAULT_PAGE_SIZE, setPageSize] = usePageSize();
   const { orderKey, orderType } = useOrderBy();
   const [showFilterForm, setShowFilterForm] = useState(false);
   const [showStatsPanel, setShowStatsPanel] = useState(false);
@@ -105,7 +106,10 @@ function TicketListView() {
         onChangeShowFilter={setShowFilterForm}
         showStatsPanel={showStatsPanel}
         onChangeShowStatsPanel={setShowStatsPanel}
+        page={page}
         pageSize={pageSize}
+        onChangePage={setPage}
+        onChangePageSize={setPageSize}
         count={tickets?.length}
         totalCount={totalCount}
         isLoading={isFetching}
