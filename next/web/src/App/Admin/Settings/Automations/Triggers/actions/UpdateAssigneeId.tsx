@@ -1,14 +1,10 @@
 import { useMemo } from 'react';
-import { Controller, useFormContext } from 'react-hook-form';
-import { get } from 'lodash-es';
+import { Controller } from 'react-hook-form';
 
 import { Form, NULL_STRING, Select } from '@/components/antd';
 import { useCustomerServices } from '@/api/user';
 
 export function UpdateAssigneeId({ path }: { path: string }) {
-  const { control, formState } = useFormContext();
-  const errors = get(formState.errors, path);
-
   const { data: assignees } = useCustomerServices();
   const options = useMemo(() => {
     return [
@@ -19,12 +15,11 @@ export function UpdateAssigneeId({ path }: { path: string }) {
   }, [assignees]);
 
   return (
-    <Form.Item validateStatus={errors?.value ? 'error' : undefined}>
-      <Controller
-        control={control}
-        name={`${path}.value`}
-        rules={{ validate: (value) => value !== undefined }}
-        render={({ field }) => (
+    <Controller
+      name={`${path}.value`}
+      rules={{ validate: (value) => value !== undefined }}
+      render={({ field, fieldState: { error } }) => (
+        <Form.Item validateStatus={error ? 'error' : undefined}>
           <Select
             {...field}
             showSearch
@@ -35,8 +30,8 @@ export function UpdateAssigneeId({ path }: { path: string }) {
             optionFilterProp="label"
             style={{ width: 200 }}
           />
-        )}
-      />
-    </Form.Item>
+        </Form.Item>
+      )}
+    />
   );
 }
