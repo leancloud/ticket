@@ -1,5 +1,6 @@
 import { UseQueryOptions, useQuery, UseMutationOptions, useMutation } from 'react-query';
 import { http } from '@/leancloud';
+import { TicketFieldType } from './ticket-field';
 
 export interface TicketFormSchema {
   id: string;
@@ -65,7 +66,7 @@ interface FieldItem {
   type: 'field';
   data: {
     id: string;
-    type: 'text' | 'multi-line' | 'dropdown' | 'multi-select' | 'radios' | 'file';
+    type: TicketFieldType;
     title: string;
     description: string;
     required: boolean;
