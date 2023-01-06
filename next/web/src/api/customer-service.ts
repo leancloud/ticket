@@ -27,6 +27,16 @@ async function addCustomerService(id: string) {
   await http.post('/api/2/customer-services', { userId: id });
 }
 
+export interface UpdateCustomerServiceData {
+  active?: boolean;
+  id: string;
+}
+
+async function updateCustomerService({ id, ...data }: UpdateCustomerServiceData) {
+  const { data: res } = await http.patch<UserSchema>(`/api/2/customer-services/${id}`, data);
+  return res;
+}
+
 async function deleteCustomerService(id: string) {
   await http.delete(`/api/2/customer-services/${id}`);
 }
@@ -75,6 +85,15 @@ export function useCustomerServiceGroups(
 export function useAddCustomerService(options?: UseMutationOptions<void, Error, string>) {
   return useMutation({
     mutationFn: addCustomerService,
+    ...options,
+  });
+}
+
+export function useUpdateCustomerService(
+  options?: UseMutationOptions<UserSchema, Error, UpdateCustomerServiceData>
+) {
+  return useMutation({
+    mutationFn: updateCustomerService,
     ...options,
   });
 }
