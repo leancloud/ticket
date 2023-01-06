@@ -12,6 +12,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   ResponseBody,
   StatusCode,
   UseMiddlewares,
@@ -52,13 +53,23 @@ const updateCustomerServiceSchema = z.object({
 });
 type UpdateCustomerServiceData = z.infer<typeof updateCustomerServiceSchema>;
 
+const findAllCustomerServicesSchema = z.object({
+  active: z.preprocess(
+    (val) => (val === 'true' ? true : val === 'false' ? false : val),
+    z.boolean().optional()
+  ),
+});
+type FindAllCustomerServicesData = z.infer<typeof findAllCustomerServicesSchema>;
+
 @Controller('customer-services')
 @UseMiddlewares(auth, customerServiceOnly)
 export class CustomerServiceController {
   @Get()
   @ResponseBody(CustomerServiceResponse)
-  findAll() {
-    return User.getCustomerServices();
+  findAll(
+    @Query(new ZodValidationPipe(findAllCustomerServicesSchema)) data: FindAllCustomerServicesData
+  ) {
+    return User.getCustomerServices(data.active);
   }
 
   @Get(':id')

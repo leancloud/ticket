@@ -94,7 +94,7 @@ function AssigneeSection({ ticket }) {
   const [editingAssignee, setEditingAssignee] = useState(false)
   const { data: customerServices, isLoading } = useQuery({
     queryKey: 'customerServices',
-    queryFn: () => fetch('/api/1/customer-services'),
+    queryFn: () => fetch('/api/2/customer-services?active=true'),
     enabled: editingAssignee,
   })
   const queryClient = useQueryClient()
