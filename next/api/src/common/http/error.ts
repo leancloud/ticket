@@ -30,3 +30,9 @@ export class InternalServerError extends HttpError {
     super(500, target, 'INTERNAL_SERVER_ERROR');
   }
 }
+
+export class UnauthorizedError extends HttpError {
+  constructor(target: string) {
+    super(401, target, 'UNAUTHORIZED');
+  }
+}

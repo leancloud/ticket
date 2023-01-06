@@ -30,6 +30,7 @@ export class UserResponse {
       id: this.user.id,
       username: this.user.username,
       nickname: this.user.name ?? this.user.username,
+      active: this.user.active,
       avatarUrl: GravatarUrlManager.getUrl(this.user.email ?? this.user.username),
     };
   }

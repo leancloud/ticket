@@ -10,6 +10,7 @@ import {
   Get,
   HttpError,
   Param,
+  Patch,
   Post,
   ResponseBody,
   StatusCode,
@@ -46,6 +47,11 @@ type CreateCustomerServiceData = z.infer<typeof createCustomerServiceSchema>;
 
 type AddCategoryData = z.infer<typeof addCategorySchema>;
 
+const updateCustomerServiceSchema = z.object({
+  active: z.boolean().optional(),
+});
+type UpdateCustomerServiceData = z.infer<typeof updateCustomerServiceSchema>;
+
 @Controller('customer-services')
 @UseMiddlewares(auth, customerServiceOnly)
 export class CustomerServiceController {
@@ -80,6 +86,18 @@ export class CustomerServiceController {
     await avRole.save(null, currentUser.getAuthOptions());
 
     return {};
+  }
+
+  @Patch(':id')
+  async update(
+    @Body(new ZodValidationPipe(updateCustomerServiceSchema)) data: UpdateCustomerServiceData,
+    @Param('id', FindCustomerServicePipe) user: User
+  ) {
+    if (data.active !== undefined) {
+      await user.update(data, { useMasterKey: true });
+    }
+
+    return User.findById(user.id);
   }
 
   @Delete(':id')

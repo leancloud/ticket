@@ -3,7 +3,7 @@ import axios from 'axios';
 import _ from 'lodash';
 
 import { regions } from '@/leancloud';
-import { HttpError } from '@/common/http';
+import { HttpError, UnauthorizedError } from '@/common/http';
 import { RedisCache } from '@/cache';
 import { AuthOptions, Model, field } from '@/orm';
 import { getVerifiedPayload, JsonWebTokenError } from '@/utils/jwt';
@@ -106,6 +106,17 @@ export class MissingFieldError extends Error {
   }
 }
 
+export class InactiveUserLoginError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'InactiveUserLoginError';
+  }
+
+  toJSON() {
+    return { name: this.name, message: this.message };
+  }
+}
+
 export class User extends Model {
   protected static className = '_User';
 
@@ -128,6 +139,9 @@ export class User extends Model {
 
   @field()
   email?: string;
+
+  @field()
+  active!: boolean;
 
   @field()
   password?: string;
@@ -296,6 +310,13 @@ export class User extends Model {
       if (err.code === 210) {
         throw new InvalidLoginCredentialError(err.message, err);
       }
+
+      const error = this.hookErrorProcessor(err);
+
+      if (error?.name === 'InactiveUserLoginError') {
+        throw new UnauthorizedError(error.message);
+      }
+
       throw err;
     }
   }
@@ -325,24 +346,12 @@ export class User extends Model {
         }
       );
     } catch (err: any) {
-      if (err.code === 142) {
-        const error = (() => {
-          try {
-            return JSON.parse(
-              err.rawMessage.replace(
-                /^Cloud Code validation failed. Error detail : "?({.+})"?$/,
-                '$1'
-              )
-            );
-          } catch (jsonErr) {
-            throw err;
-          }
-        })();
+      const error = this.hookErrorProcessor(err);
 
-        if (error.name === 'JsonWebTokenError' || error.name === 'MissingFieldError') {
-          throw new InvalidLoginCredentialError(error.message, err);
-        }
+      if (error && (error.name === 'JsonWebTokenError' || error.name === 'MissingFieldError')) {
+        throw new InvalidLoginCredentialError(error.message, err);
       }
+
       throw err;
     }
   }
@@ -375,23 +384,47 @@ export class User extends Model {
     }
   }
 
-  static async getCustomerServices(): Promise<User[]> {
-    const csRole = await Role.getCustomerServiceRole();
-    return User.queryBuilder()
-      .relatedTo(csRole, 'users')
-      .orderBy('email,username')
-      .find({ useMasterKey: true });
+  static hookErrorProcessor(err: any): Error | undefined {
+    if (err.code === 142) {
+      const error = (() => {
+        try {
+          return JSON.parse(
+            err.rawMessage.replace(/^Cloud Code validation failed. Error detail : ({.+})$/, '$1')
+          );
+        } catch (jsonErr) {
+          throw err;
+        }
+      })();
+
+      return error;
+    }
   }
 
-  static async getCustomerServicesOnDuty(): Promise<User[]> {
+  static async getCustomerServices(active?: boolean): Promise<User[]> {
+    const csRole = await Role.getCustomerServiceRole();
+    const qb = User.queryBuilder().relatedTo(csRole, 'users').orderBy('email,username');
+
+    if (active !== undefined) {
+      qb.where('active', '==', active);
+    }
+
+    return qb.find({ useMasterKey: true });
+  }
+
+  static async getCustomerServicesOnDuty(active?: boolean): Promise<User[]> {
     const [csRole, vacationerIds] = await Promise.all([
       Role.getCustomerServiceRole(),
       Vacation.getVacationerIds(),
     ]);
-    return User.queryBuilder()
+    const qb = User.queryBuilder()
       .relatedTo(csRole, 'users')
-      .where('objectId', 'not-in', vacationerIds)
-      .find({ useMasterKey: true });
+      .where('objectId', 'not-in', vacationerIds);
+
+    if (active !== undefined) {
+      qb.where('active', '==', active);
+    }
+
+    return qb.find({ useMasterKey: true });
   }
 
   static async isCustomerService(user: string | { id: string }): Promise<boolean> {

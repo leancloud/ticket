@@ -11,7 +11,7 @@ const {
   weeklyPushStatsToSlack,
   monthlyPushStatsToSlack,
 } = require('../next/api/dist/cloud/index.js')
-const { User } = require('../next/api/dist/model/User.js')
+const { User, InactiveUserLoginError } = require('../next/api/dist/model/User.js')
 
 const events = require('../next/api/dist/events').default
 
@@ -52,5 +52,11 @@ if (process.env.ENABLE_TDS_USER_LOGIN) {
     return request.authData
   })
 }
+
+AV.Cloud.onLogin((request) => {
+  if (request.object.get('active') !== true) {
+    throw new AV.Cloud.Error(JSON.stringify(new InactiveUserLoginError('this user is inactive')))
+  }
+})
 
 module.exports = { events }
