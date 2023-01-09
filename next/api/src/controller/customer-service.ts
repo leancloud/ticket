@@ -106,6 +106,10 @@ export class CustomerServiceController {
   ) {
     if (data.active !== undefined) {
       await user.update(data, { useMasterKey: true });
+
+      if (data.active === false) {
+        await user.refreshSessionToken();
+      }
     }
 
     return User.findById(user.id);

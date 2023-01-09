@@ -515,6 +515,11 @@ export class User extends Model {
     return this.sessionToken;
   }
 
+  async refreshSessionToken(): Promise<void> {
+    const avUser = AV.User.createWithoutData('_User', this.id) as AV.User;
+    await avUser.refreshSessionToken({ useMasterKey: true });
+  }
+
   async getGroups(): Promise<Group[]> {
     const roles = await Role.queryBuilder()
       .where('name', 'starts-with', 'group_')
