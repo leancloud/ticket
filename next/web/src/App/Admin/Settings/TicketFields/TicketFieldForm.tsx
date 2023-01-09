@@ -314,7 +314,12 @@ function FieldVariants({ activeLocale, onChangeActiveLocale }: FieldVariantsProp
         show={showModal}
         options={localeOptions}
         onOk={(locale) => {
-          append({ locale });
+          append({
+            locale,
+            title: '',
+            titleForCustomerService: '',
+            description: '',
+          });
           onChangeActiveLocale(locale);
           setShowModal(false);
         }}
@@ -381,7 +386,7 @@ export function TicketFieldForm({
 
   const handleSubmitError = (errors: FieldErrors<TicketFieldData>) => {
     if (errors.variants?.length) {
-      const index = errors.variants.findIndex((v) => v !== undefined);
+      const index = errors.variants!.findIndex!((v) => v !== undefined);
       setActiveLocale(getValues('variants')![index].locale);
     }
   };

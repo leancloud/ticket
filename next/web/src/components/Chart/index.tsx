@@ -293,6 +293,7 @@ export const MultiPie: FunctionComponent<MultiPieProps> = ({
       innerRadius={innerRadius || 0.3}
       drilldown={{
         breadCrumb: {
+          position: 'top-left',
           textStyle: {
             fill: '#15c5ce',
           },

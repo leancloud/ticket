@@ -2,7 +2,7 @@ import { UseQueryOptions, useQuery } from 'react-query';
 
 import { http } from '@/leancloud';
 
-type TicketFieldType =
+export type TicketFieldType =
   | 'text'
   | 'multi-line'
   | 'dropdown'
@@ -117,7 +117,7 @@ export async function updateTicketField(fieldId: string, data: UpdateTicketField
 export interface TicketFieldCountSchema {
   title: string;
   id: string;
-  type: TicketFieldSchema['type'];
+  type: TicketFieldType;
   options: {
     title: string;
     displayLocale: string;
