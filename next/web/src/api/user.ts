@@ -7,6 +7,7 @@ export * from './customer-service';
 export interface UserSchema {
   id: string;
   username: string;
+  active: boolean;
   nickname: string;
   avatarUrl: string;
 }

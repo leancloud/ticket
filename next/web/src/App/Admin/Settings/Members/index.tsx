@@ -6,13 +6,24 @@ import {
   useAddCustomerService,
   useCustomerServices,
   useDeleteCustomerService,
+  useUpdateCustomerService,
 } from '@/api/customer-service';
 import { Button, Modal, Table, TableProps, message } from '@/components/antd';
-import { Category, CategoryProvider, Retry, UserSelect } from '@/components/common';
+import { Category, Retry, UserSelect } from '@/components/common';
 import { UserLabel } from '@/App/Admin/components';
 
-function MemberActions({ id, nickname }: CustomerServiceSchema) {
+function MemberActions({ id, nickname, active }: CustomerServiceSchema) {
   const queryClient = useQueryClient();
+
+  const { mutate: update, isLoading: isUpdating } = useUpdateCustomerService({
+    onSuccess: () => {
+      message.success(`${active ? '禁用' : '启用'}成功`);
+      queryClient.invalidateQueries('customerServices');
+    },
+    onError: (error) => {
+      message.error(error.message);
+    },
+  });
 
   const { mutate, isLoading } = useDeleteCustomerService({
     onSuccess: () => {
@@ -24,17 +35,29 @@ function MemberActions({ id, nickname }: CustomerServiceSchema) {
     },
   });
 
+  const handleToggleActive = useCallback(() => {
+    Modal.confirm({
+      title: `${active ? '禁用' : '启用'}客服`,
+      content: `是否将 ${nickname} ${active ? '禁用' : '启用'}`,
+      okType: 'danger',
+      onOk: () => update({ id, active: !active }),
+    });
+  }, [update, id, active, nickname]);
+
   const handleDelete = useCallback(() => {
     Modal.confirm({
       title: '移除客服',
-      content: `是否将 ${nickname} 从客服中移除？`,
+      content: `是否将 ${nickname} 从客服中移除？移除可能会导致用户相关数据丢失`,
       okType: 'danger',
       onOk: () => mutate(id),
     });
-  }, [id, mutate]);
+  }, [id, mutate, nickname]);
 
   return (
     <div>
+      <Button type="link" size="small" disabled={isUpdating} onClick={handleToggleActive}>
+        {active ? '禁用' : '启用'}
+      </Button>
       <Button danger type="link" size="small" disabled={isLoading} onClick={handleDelete}>
         移除
       </Button>
@@ -102,6 +125,11 @@ const columns: TableProps<CustomerServiceSchema>['columns'] = [
         ))}
       </div>
     ),
+  },
+  {
+    dataIndex: 'active',
+    title: '状态',
+    render: (active: boolean) => (active ? '启用中' : '禁用中'),
   },
   {
     key: 'actions',

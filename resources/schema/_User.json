@@ -12,6 +12,14 @@
     "email": {
       "type": "String"
     },
+    "active": {
+      "type": "Boolean",
+      "v": 2,
+      "required": false,
+      "default": true,
+      "hidden": false,
+      "read_only": false
+    },
     "emailVerified": {
       "type": "Boolean"
     },

@@ -125,7 +125,7 @@ export class TicketCreator {
       throw new Error('The category is required for select assignee');
     }
 
-    const customerServices = await User.getCustomerServicesOnDuty();
+    const customerServices = await User.getCustomerServicesOnDuty(true);
     if (customerServices.length === 0) {
       return;
     }

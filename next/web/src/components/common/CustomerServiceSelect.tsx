@@ -20,7 +20,10 @@ export const BaseCustomerServiceSelect = forwardRef<RefSelectProps, BaseCustomer
     const options = useMemo(() => {
       return [
         ...(extraOptions ?? []),
-        ...(data?.map((u) => ({ label: u.nickname, value: u.id })) ?? []),
+        ...(data?.map((u) => ({
+          label: u.nickname + (!u.active ? '（禁用中）' : ''),
+          value: u.id,
+        })) ?? []),
       ];
     }, [data, extraOptions]);
 

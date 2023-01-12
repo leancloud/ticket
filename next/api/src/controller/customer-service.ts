@@ -10,7 +10,9 @@ import {
   Get,
   HttpError,
   Param,
+  Patch,
   Post,
+  Query,
   ResponseBody,
   StatusCode,
   UseMiddlewares,
@@ -46,13 +48,28 @@ type CreateCustomerServiceData = z.infer<typeof createCustomerServiceSchema>;
 
 type AddCategoryData = z.infer<typeof addCategorySchema>;
 
+const updateCustomerServiceSchema = z.object({
+  active: z.boolean().optional(),
+});
+type UpdateCustomerServiceData = z.infer<typeof updateCustomerServiceSchema>;
+
+const findAllCustomerServicesSchema = z.object({
+  active: z.preprocess(
+    (val) => (val === 'true' ? true : val === 'false' ? false : val),
+    z.boolean().optional()
+  ),
+});
+type FindAllCustomerServicesData = z.infer<typeof findAllCustomerServicesSchema>;
+
 @Controller('customer-services')
 @UseMiddlewares(auth, customerServiceOnly)
 export class CustomerServiceController {
   @Get()
   @ResponseBody(CustomerServiceResponse)
-  findAll() {
-    return User.getCustomerServices();
+  findAll(
+    @Query(new ZodValidationPipe(findAllCustomerServicesSchema)) data: FindAllCustomerServicesData
+  ) {
+    return User.getCustomerServices(data.active);
   }
 
   @Get(':id')
@@ -80,6 +97,22 @@ export class CustomerServiceController {
     await avRole.save(null, currentUser.getAuthOptions());
 
     return {};
+  }
+
+  @Patch(':id')
+  async update(
+    @Body(new ZodValidationPipe(updateCustomerServiceSchema)) data: UpdateCustomerServiceData,
+    @Param('id', FindCustomerServicePipe) user: User
+  ) {
+    if (data.active !== undefined) {
+      await user.update(data, { useMasterKey: true });
+
+      if (data.active === false) {
+        await user.refreshSessionToken();
+      }
+    }
+
+    return User.findById(user.id);
   }
 
   @Delete(':id')
