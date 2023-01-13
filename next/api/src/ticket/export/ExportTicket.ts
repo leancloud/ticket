@@ -257,7 +257,7 @@ export default async function exportTicket({ params, sortItems, date }: JobData)
       const author = ticket.author;
       const category = categoryMap[ticket.categoryId];
       const group = ticket.groupId ? groupMap[ticket.groupId] : undefined;
-      let customFrom: {
+      let customForm: {
         title?: string;
         fields?: Array<{ id: string; title?: string; value: string | string[] }>;
       } = {
@@ -266,11 +266,8 @@ export default async function exportTicket({ params, sortItems, date }: JobData)
       };
       if (category && category.formId) {
         const form = formCacheMap.get(category.formId);
-        const formValues =
-          formValuesMap[ticket.id] && formValuesMap[ticket.id].values
-            ? _.keyBy(formValuesMap[ticket.id].values, 'field')
-            : {};
-        customFrom = {
+        const formValues = _.keyBy(formValuesMap[ticket.id]?.values, (v) => v.field);
+        customForm = {
           title: form?.title,
           fields: form?.fieldIds?.map((id) => {
             return {
@@ -319,7 +316,7 @@ export default async function exportTicket({ params, sortItems, date }: JobData)
         metaData:
           ticket.metaData && fileType === 'csv' ? JSON.stringify(ticket.metaData) : ticket.metaData,
         privateTags: ticket.privateTags,
-        customFrom,
+        customForm,
         replies: (replyMap[ticket.id] || []).map((v) => _.omit(v, 'ticketId')),
         createdAt: formatDate(ticket.createdAt),
         updatedAt: formatDate(ticket.updatedAt),

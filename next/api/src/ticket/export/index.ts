@@ -56,7 +56,7 @@ queue.on('failed', (job, err) => {
 });
 
 export const createTicketExportJob = (jobData: Omit<JobData, 'date' | 'retryCount'>) => {
-  queue.add({
+  return queue.add({
     ...jobData,
     retryCount: 0,
     date: new Date(),

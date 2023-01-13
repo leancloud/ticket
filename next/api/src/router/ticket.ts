@@ -339,7 +339,7 @@ router.get(
     }
     const { page, pageSize, ...rest } = exportTicketParamsSchema.validateSync(ctx.query);
     const sortItems = sort.get(ctx);
-    createTicketExportJob({
+    await createTicketExportJob({
       userId: currentUser.id,
       params: rest,
       sortItems,
