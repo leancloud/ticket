@@ -2,13 +2,14 @@ import {
   format,
   startOfDay,
   subDays,
-  startOfWeek,
   subWeeks,
   startOfMonth,
   subMonths,
   endOfDay,
-  endOfWeek,
   endOfMonth,
+  previousFriday,
+  previousThursday,
+  isFriday,
 } from 'date-fns';
 import _ from 'lodash';
 
@@ -230,26 +231,35 @@ const generateStatsReport = (
   ),
 ];
 
-const startOfPeriod = (type: PushType, date?: Date) =>
-  type === 'daily'
-    ? startOfDay(subDays(date ?? new Date(), 1))
+const startOfPeriod = (type: PushType, date?: Date) => {
+  const date_ = date ?? new Date();
+  return type === 'daily'
+    ? startOfDay(subDays(date_, 1))
     : type === 'weekly'
-    ? startOfWeek(subWeeks(date ?? new Date(), 1))
-    : startOfMonth(subMonths(date ?? new Date(), 1));
+    // if today is Saturday then we need Friday last week instead of previous Friday
+    ? startOfDay(isFriday(date_) ? previousFriday(date_) : previousFriday(previousFriday(date_)))
+    : startOfMonth(subMonths(date_, 1));
+}
 
 const endOfPeriod = (type: PushType, date?: Date) =>
   type === 'daily'
     ? endOfDay(subDays(date ?? new Date(), 1))
     : type === 'weekly'
-    ? endOfWeek(subWeeks(date ?? new Date(), 1))
+    ? endOfDay(previousThursday(date ?? new Date()))
     : endOfMonth(subMonths(date ?? new Date(), 1));
 
-const startOfLastPeriod = (type: PushType, date?: Date) =>
-  type === 'daily'
-    ? startOfDay(subDays(date ?? new Date(), 2))
-    : type === 'weekly'
-    ? startOfWeek(subWeeks(date ?? new Date(), 2))
-    : startOfMonth(subMonths(date ?? new Date(), 2));
+const startOfLastPeriod = (type: PushType, date?: Date) => {
+  const date_ = startOfPeriod(type, date);
+
+  return type === 'daily' ? subDays(date_, 1) : type === 'weekly' ? subWeeks(date_, 1) : subMonths(date_, 1);
+}
+
+const endOfLastPeriod = (type: PushType, date?: Date) => {
+  const date_ = endOfPeriod(type, date);
+
+  return type === 'daily' ? subDays(date_, 1) : type === 'weekly' ? subWeeks(date_, 1) : subMonths(date_, 1);
+}
+
 
 export const pushStatsToSlackFactory = (type: PushType) => async (date?: Date) => {
   const fromDate = startOfPeriod(type, date);
@@ -266,7 +276,7 @@ export const pushStatsToSlackFactory = (type: PushType) => async (date?: Date) =
           const lastStats = await processProductStats(
             info,
             startOfLastPeriod(type, date),
-            startOfPeriod(type, date)
+            endOfLastPeriod(type, date)
           );
 
           stats.stats.lastPeriodCreated = lastStats.stats.created;
