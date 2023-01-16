@@ -17,11 +17,15 @@ export default function Notices() {
     return null;
   }
   return (
-    <PageContent shadow className="mb-2">
+    <PageContent shadow className="mb-2 px-0 py-0">
       <div className="overflow-hidden " ref={emblaRef}>
-        <div className="flex flex-col h-[21px] items-stretch">
+        <div className="flex flex-col h-[45px] items-stretch">
           {notices.map((notice) => (
-            <NoticeLink article={notice} key={notice.id} className="flex items-center text-tapBlue">
+            <NoticeLink
+              article={notice}
+              key={notice.id}
+              className="flex items-center text-tapBlue px-4 py-3"
+            >
               <SpeakerIcon className="text-tapBlue shrink-0" />
               <span className="grow truncate ml-2 mr-1">{notice.title}</span>
               <ChevronRightIcon className="shrink-0 h-4 w-4 text-tapBlue" />
