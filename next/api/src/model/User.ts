@@ -268,13 +268,11 @@ export class User extends Model {
       });
     } catch (error) {
       if (error instanceof Error && 'response' in error) {
-        if ('data' in error['response']) {
-          throw new HttpError(
-            error['response']['status'],
-            error['response']['data']['error_description'] ??
-              error['response']['data']['error'] ??
-              'Unknown xd.com error'
-          );
+        const response = error.response as any;
+        if ('data' in response) {
+          const message =
+            response.data.error_description ?? response.data.error ?? 'Unknown xd.com error';
+          throw new HttpError(response.status, message);
         }
       }
       throw error;

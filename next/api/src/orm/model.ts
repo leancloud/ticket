@@ -85,10 +85,6 @@ export type UpdateData<M extends typeof Model | Model> = M extends typeof Model
   ? _UpdateData<InstanceType<M>>
   : _UpdateData<M>;
 
-export type InstanceData<M extends typeof Model> = Partial<
-  Omit<InstanceType<M>, KeysOfType<InstanceType<M>, Function>>
->;
-
 interface IgnoreHookOptions {
   ignoreBeforeHook?: boolean;
   ignoreAfterHook?: boolean;
@@ -192,7 +188,10 @@ export abstract class Model {
     this.afterUpdateHooks.push(hook);
   }
 
-  static newInstance<M extends typeof Model>(this: M, data?: InstanceData<M>): InstanceType<M> {
+  private static newInstance<M extends typeof Model>(
+    this: M,
+    data?: Record<string, any>
+  ): InstanceType<M> {
     // @ts-ignore
     const instance = new this();
     if (data) {
@@ -474,7 +473,7 @@ export abstract class Model {
 
     const instances = objects.map((object, i) => {
       const data = datas[i];
-      const instance = this.newInstance(_.omitBy(data as any, _.isNull));
+      const instance = this.newInstance(_.omitBy(data, _.isNull));
       instance.applyAVObject(object);
       const preInstance = pairs[i][0];
       Object.getOwnPropertyNames(preInstance).forEach((name) => {
