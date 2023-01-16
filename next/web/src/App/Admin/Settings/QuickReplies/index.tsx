@@ -1,4 +1,6 @@
 import { useCallback, useMemo } from 'react';
+import { useQueryClient } from 'react-query';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { useCurrentUser } from '@/leancloud';
 import {
@@ -11,43 +13,44 @@ import {
 } from '@/api/quick-reply';
 import { Button, Divider, Modal, Select, Spin, Table, message } from '@/components/antd';
 import { useSearchParam } from '@/utils/useSearchParams';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { usePage, usePageSize } from '@/utils/usePage';
 import { QuickReplyForm, QuickReplyFormData } from './QuickReplyForm';
-import { useQueryClient } from 'react-query';
 
 const { Option } = Select;
 const { Column } = Table;
 
 export function QuickReplyList() {
   const [visiblity = 'all', setVisiblity] = useSearchParam('visiblity');
+  const [page, { set: setPage }] = usePage();
+  const [pageSize = 20, setPageSize] = usePageSize();
 
   const currentUser = useCurrentUser();
 
   const userId = useMemo(() => {
-    if (currentUser) {
-      return [currentUser.id, 'null'];
+    if (!currentUser) {
+      return null;
     }
-    return 'null';
-  }, [currentUser]);
+    if (visiblity === 'all') {
+      return [currentUser.id, null];
+    }
+    if (visiblity === 'public') {
+      return null;
+    }
+    return currentUser.id;
+  }, [visiblity, currentUser]);
 
-  const { data, isFetching } = useQuickReplies(userId, {
-    keepPreviousData: true,
-    onError: (error) => {
-      message.error(error.message);
+  const { data, totalCount, isFetching } = useQuickReplies({
+    userId,
+    page,
+    pageSize,
+    count: true,
+    queryOptions: {
+      keepPreviousData: true,
+      onError: (error) => {
+        message.error(error.message);
+      },
     },
   });
-
-  const filteredData = useMemo(() => {
-    if (data) {
-      if (visiblity === 'private') {
-        return data.filter((t) => t.userId !== undefined);
-      }
-      if (visiblity === 'public') {
-        return data.filter((t) => t.userId === undefined);
-      }
-      return data;
-    }
-  }, [data, visiblity]);
 
   const queryClient = useQueryClient();
 
@@ -88,7 +91,21 @@ export function QuickReplyList() {
         </Select>
       </div>
 
-      <Table loading={isFetching} dataSource={filteredData} rowKey="id" pagination={false}>
+      <Table
+        loading={isFetching}
+        dataSource={data}
+        rowKey="id"
+        pagination={{
+          current: page,
+          total: totalCount,
+          pageSize,
+          showSizeChanger: true,
+          onChange: (page, size) => {
+            setPage(page);
+            setPageSize(size);
+          },
+        }}
+      >
         <Column dataIndex="name" title="名称" />
         <Column
           dataIndex="userId"
