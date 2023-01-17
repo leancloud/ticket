@@ -415,7 +415,7 @@ export class User extends Model {
     return qb.find({ useMasterKey: true });
   }
 
-  static async getCustomerServicesOnDuty(active?: boolean): Promise<User[]> {
+  static async getCustomerServicesOnDuty(): Promise<User[]> {
     const [csRole, vacationerIds] = await Promise.all([
       Role.getCustomerServiceRole(),
       Vacation.getVacationerIds(),
