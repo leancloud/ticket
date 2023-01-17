@@ -345,6 +345,8 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 
 ### `21d4b8f2ee65f91a6d9db694f7a24c273b069a92`
 
-删除 `_User` class 中的 `active` 列。删除前请检查其中是否有值为 `false` 的 object，如果有的话需要先记录下来。
+导入 `_User`（增加 `inactive` 列）
 
-导入 `_User`（增加 `inactive` 列）然后将上一步中记录的 object 对应的值改为 `true`。
+将 `_User` 中 `active` 为 false 的 object 的 `inactive` 设置为 true
+
+删除 `_User` 中的 `active` 列
