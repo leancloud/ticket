@@ -6,7 +6,8 @@ import * as Icon from 'react-bootstrap-icons'
 import PropTypes from 'prop-types'
 import { useToggle } from 'react-use'
 
-import { http } from '../../../lib/leancloud'
+import { http } from 'lib/leancloud'
+import { useAppContext } from 'modules/context'
 import styles from './index.module.scss'
 
 const useFilterQuickReplies = (keyword, quickReplies) => {
@@ -32,12 +33,15 @@ const useFilterQuickReplies = (keyword, quickReplies) => {
 
 const QuickReplyContent = React.memo(({ onSelected }) => {
   const { t } = useTranslation()
+
+  const { currentUser } = useAppContext()
   const { data: quickReplies, isLoading } = useQuery({
     queryKey: 'quickReplies',
     staleTime: 5 * 60 * 1000,
     queryFn: () =>
-      http.get('/api/1/quick-replies', {
+      http.get('/api/2/quick-replies', {
         params: {
+          userId: [currentUser.id, 'null'].join(','),
           pageSize: 1000,
         },
       }),
@@ -62,23 +66,19 @@ const QuickReplyContent = React.memo(({ onSelected }) => {
       </div>
       {filteredQuickReplies.length === 0 && <div className="p-4">No data</div>}
       <ListGroup className={styles.quickReplyList} variant="flush">
-        {filteredQuickReplies.map(({ id, name, content, file_ids }) => (
+        {filteredQuickReplies.map(({ id, name, content, fileIds }) => (
           <ListGroup.Item className="d-flex" key={id}>
             <div className="mr-auto">
               <OverlayTrigger placement="right" overlay={<Tooltip>{content}</Tooltip>}>
-                <Button
-                  variant="link"
-                  size="sm"
-                  onClick={() => onSelected({ content, fileIds: file_ids })}
-                >
+                <Button variant="link" size="sm" onClick={() => onSelected({ content, fileIds })}>
                   {name}
                 </Button>
               </OverlayTrigger>
             </div>
-            {file_ids.length > 0 && (
+            {fileIds?.length > 0 && (
               <div className="d-flex align-items-center">
                 <Icon.FileEarmark className="mr-1" />
-                {file_ids.length}
+                {fileIds.length}
               </div>
             )}
           </ListGroup.Item>
