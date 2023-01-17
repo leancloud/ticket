@@ -105,9 +105,10 @@ export class CustomerServiceController {
     @Param('id', FindCustomerServicePipe) user: User
   ) {
     if (data.active !== undefined) {
-      await user.update(data, { useMasterKey: true });
-
-      if (data.active === false) {
+      if (data.active) {
+        await user.update({ inactive: null }, { useMasterKey: true });
+      } else {
+        await user.update({ inactive: true }, { useMasterKey: true });
         await user.refreshSessionToken();
       }
     }
