@@ -141,7 +141,7 @@ export class User extends Model {
   email?: string;
 
   @field()
-  active!: boolean;
+  inactive?: true;
 
   @field()
   password?: string;
@@ -405,24 +405,25 @@ export class User extends Model {
     const qb = User.queryBuilder().relatedTo(csRole, 'users').orderBy('email,username');
 
     if (active !== undefined) {
-      qb.where('active', '==', active);
+      if (active) {
+        qb.where('inactive', 'not-exists');
+      } else {
+        qb.where('inactive', '==', true);
+      }
     }
 
     return qb.find({ useMasterKey: true });
   }
 
-  static async getCustomerServicesOnDuty(active?: boolean): Promise<User[]> {
+  static async getCustomerServicesOnDuty(): Promise<User[]> {
     const [csRole, vacationerIds] = await Promise.all([
       Role.getCustomerServiceRole(),
       Vacation.getVacationerIds(),
     ]);
     const qb = User.queryBuilder()
       .relatedTo(csRole, 'users')
-      .where('objectId', 'not-in', vacationerIds);
-
-    if (active !== undefined) {
-      qb.where('active', '==', active);
-    }
+      .where('objectId', 'not-in', vacationerIds)
+      .where('inactive', 'not-exists');
 
     return qb.find({ useMasterKey: true });
   }

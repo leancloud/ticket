@@ -54,7 +54,7 @@ if (process.env.ENABLE_TDS_USER_LOGIN) {
 }
 
 AV.Cloud.onLogin((request) => {
-  if (request.object.get('active') !== true) {
+  if (request.object.get('inactive')) {
     throw new AV.Cloud.Error(
       JSON.stringify(new InactiveUserLoginError('Your account is inactive.'))
     )

@@ -12,11 +12,10 @@
     "email": {
       "type": "String"
     },
-    "active": {
+    "inactive": {
       "type": "Boolean",
       "v": 2,
       "required": false,
-      "default": true,
       "hidden": false,
       "read_only": false
     },

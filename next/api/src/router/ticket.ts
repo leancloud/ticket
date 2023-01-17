@@ -669,8 +669,8 @@ router.patch('/:id', async (ctx) => {
       if (!assignee) {
         return ctx.throw(400, `User ${data.assigneeId} is not exists`);
       }
-      if (!assignee.active) {
-        return ctx.throw(400, `User ${data.assigneeId} is not active`);
+      if (assignee.inactive) {
+        return ctx.throw(400, `User ${data.assigneeId} is inactive`);
       }
       updater.setAssignee(assignee);
     } else {
