@@ -94,8 +94,14 @@ function AssigneeSection({ ticket }) {
   const [editingAssignee, setEditingAssignee] = useState(false)
   const { data: customerServices, isLoading } = useQuery({
     queryKey: 'customerServices',
-    queryFn: () => fetch('/api/2/customer-services?active=true'),
+    queryFn: () =>
+      http.get('/api/2/customer-services', {
+        params: {
+          active: true,
+        },
+      }),
     enabled: editingAssignee,
+    staleTime: 1000 * 60 * 5,
   })
   const queryClient = useQueryClient()
 
@@ -157,14 +163,14 @@ function AssigneeSection({ ticket }) {
           <optgroup label={group?.name}>
             {members?.map((cs) => (
               <option key={cs.id} value={cs.id}>
-                {cs.name || cs.username} {currentUser.id === cs.id && ' (you)'}
+                {cs.nickname} {currentUser.id === cs.id && ' (you)'}
               </option>
             ))}
           </optgroup>
           <optgroup label="其他客服">
             {others?.map((cs) => (
               <option key={cs.id} value={cs.id}>
-                {cs.name || cs.username} {currentUser.id === cs.id && ' (you)'}
+                {cs.nickname} {currentUser.id === cs.id && ' (you)'}
               </option>
             ))}
           </optgroup>
