@@ -191,7 +191,7 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 
 ## 2022-02-09
 
-### `TBD`
+### `b8f0edbc703ef76a543b792f5a3a6ef9669d7e52`
 
 重新导入 FAQ.json，FAQRevision.json。
 
@@ -202,7 +202,7 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 
 ## 2022-02-15
 
-### `TBD`
+### `6e960b96482ca416b4e70e7388380542b7106699`
 
 创建定时任务 analyzeArticles `58 * * * *`
 
@@ -306,13 +306,13 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 
 ## 2022-11-25
 
-### 54b52f4af0ed99dfc7b8a08e93e847542101a502
+### `54b52f4af0ed99dfc7b8a08e93e847542101a502`
 
 导入 `Ticket` (增加 reporter 列)
 
 ## 2022-11-30
 
-### TBD
+### `ec3b0b58c8d51b94ab6f8ecb166ccb197047ebdc`
 
 导入 data
 
@@ -345,6 +345,6 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 
 ### `21d4b8f2ee65f91a6d9db694f7a24c273b069a92`
 
-删除 `_User` class 中的 `active` 列，删除前请检查其中是否有值为 `false` 的 object，如果有的话需要先记录下来。
+删除 `_User` class 中的 `active` 列。删除前请检查其中是否有值为 `false` 的 object，如果有的话需要先记录下来。
 
-导入 `_User`，增加 `inactive` 列，然后将上一步中记录的 object 对应的值改为 `true`。
+导入 `_User`（增加 `inactive` 列）然后将上一步中记录的 object 对应的值改为 `true`。
