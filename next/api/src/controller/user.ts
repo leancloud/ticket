@@ -173,12 +173,15 @@ export class UserController {
       throw new HttpError(400, 'You must provide an email or a username');
     }
     try {
-      return await User.create({
-        // username might be `""`
-        username: username ? username : email,
-        email,
-        password: Math.random().toString(),
-      });
+      return await User.create(
+        {
+          // username might be `""`
+          username: username ? username : email,
+          email,
+          password: Math.random().toString(),
+        },
+        { useMasterKey: true }
+      );
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       throw new HttpError(400, message);
