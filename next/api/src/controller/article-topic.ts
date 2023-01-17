@@ -15,7 +15,6 @@ import {
   Pagination,
   Query,
   Ctx,
-  NotFoundError,
 } from '@/common/http';
 import { FindModelWithoutDeleteFlagPipe, ParseBoolPipe, ZodValidationPipe } from '@/common/pipe';
 import { auth, customerServiceOnly } from '@/middleware';

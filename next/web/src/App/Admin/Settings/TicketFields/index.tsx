@@ -88,7 +88,7 @@ export function TicketFieldList() {
     pageSize,
     active: active === 'true',
     orderBy: 'updatedAt-desc',
-    count: 1,
+    count: true,
     queryOptions: {
       keepPreviousData: true,
       staleTime: 1000 * 60,

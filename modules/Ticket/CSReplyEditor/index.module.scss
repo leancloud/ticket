@@ -33,6 +33,23 @@
   min-width: 74px;
 }
 
-.quickReplyList {
-  border-radius: 0.25rem;
+.quickReplyModal {
+  max-height: calc(100vh - 56px);
+  overflow: hidden;
+
+  :global(.modal-body) {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+  }
+
+  .searchQuickReply {
+    padding: 8px;
+    border-bottom:  1px rgba(0, 0, 0, 0.13) solid;
+  }
+
+  .quickReplyList {
+    overflow-y: auto;
+  }
 }

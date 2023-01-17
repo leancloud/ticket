@@ -1,11 +1,14 @@
+import { Context } from 'koa';
 import { z } from 'zod';
 
 import {
   Body,
   Controller,
+  Ctx,
   CurrentUser,
   Delete,
   Get,
+  Pagination,
   Param,
   Patch,
   Post,
@@ -14,7 +17,7 @@ import {
   StatusCode,
   UseMiddlewares,
 } from '@/common/http';
-import { FindModelPipe, ParseCsvPipe, ZodValidationPipe } from '@/common/pipe';
+import { FindModelPipe, ParseBoolPipe, ParseCsvPipe, ZodValidationPipe } from '@/common/pipe';
 import { auth, customerServiceOnly } from '@/middleware';
 import { ACLBuilder } from '@/orm';
 import { User } from '@/model/User';
@@ -62,8 +65,15 @@ export class QuickReplyController {
 
   @Get()
   @ResponseBody(QuickReplyResponse)
-  findSome(@CurrentUser() currentUser: User, @Query('userId', ParseCsvPipe) userIds?: string[]) {
-    const query = QuickReply.queryBuilder();
+  async find(
+    @Ctx() ctx: Context,
+    @CurrentUser() currentUser: User,
+    @Pagination() [page, pageSize]: [number, number],
+    @Query('userId', ParseCsvPipe) userIds?: string[],
+    @Query('count', ParseBoolPipe) count?: boolean
+  ) {
+    const query = QuickReply.queryBuilder().paginate(page, pageSize);
+
     if (userIds) {
       if (userIds.includes('null')) {
         query.orWhere('owner', 'not-exists');
@@ -74,7 +84,18 @@ export class QuickReplyController {
         query.orWhere('owner', 'in', pointers);
       }
     }
-    return query.limit(1000).find(currentUser.getAuthOptions());
+
+    let quickReplies: QuickReply[];
+    let totalCount: number | undefined;
+
+    if (count) {
+      [quickReplies, totalCount] = await query.findAndCount(currentUser.getAuthOptions());
+      ctx.set('X-Total-Count', totalCount.toString());
+    } else {
+      quickReplies = await query.find(currentUser.getAuthOptions());
+    }
+
+    return quickReplies;
   }
 
   @Get(':id')

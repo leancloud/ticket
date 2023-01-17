@@ -39,7 +39,7 @@ export interface FetchTicketFieldsOptions {
   pageSize?: number;
   active?: boolean;
   orderBy?: string;
-  count?: number | boolean | string;
+  count?: boolean;
   includeVariants?: boolean;
 }
 

@@ -11,13 +11,39 @@ export interface QuickReplySchema {
   fileIds?: string[];
 }
 
-async function fetchQuickReplies(userId?: string | string[]): Promise<QuickReplySchema[]> {
-  const { data } = await http.get('/api/2/quick-replies', {
+interface FetchQuickRepliesOptions {
+  userId?: string | null | (string | null)[];
+  page?: number;
+  pageSize?: number;
+  count?: boolean;
+}
+
+interface FetchQuickRepliesResult {
+  data: QuickReplySchema[];
+  totalCount?: number;
+}
+
+async function fetchQuickReplies(
+  options: FetchQuickRepliesOptions
+): Promise<FetchQuickRepliesResult> {
+  let userId: string | undefined;
+  if (options.userId) {
+    userId = castArray(options.userId)
+      .map((value) => (value === null ? 'null' : value))
+      .join(',');
+  }
+
+  const { data, headers } = await http.get('/api/2/quick-replies', {
     params: {
-      userId: userId !== undefined ? castArray(userId).join(',') : undefined,
+      ...options,
+      userId,
     },
   });
-  return data;
+  const totalCount = headers['x-total-count'];
+  return {
+    data,
+    totalCount: totalCount ? parseInt(totalCount) : undefined,
+  };
 }
 
 async function fetchQuickReply(id: string): Promise<QuickReplySchema> {
@@ -41,16 +67,19 @@ async function deleteQuickReply(id: string) {
   await http.delete(`/api/2/quick-replies/${id}`);
 }
 
-export const useQuickReplies = (
-  userId?: string | string[],
-  options?: UseQueryOptions<QuickReplySchema[], Error>
-) =>
-  useQuery({
-    queryKey: ['quickReplies', userId],
-    queryFn: () => fetchQuickReplies(userId),
+interface UseQuickRepliesOptions extends FetchQuickRepliesOptions {
+  queryOptions?: UseQueryOptions<FetchQuickRepliesResult, Error>;
+}
+
+export const useQuickReplies = ({ queryOptions, ...options }: UseQuickRepliesOptions = {}) => {
+  const { data, ...result } = useQuery({
+    queryKey: ['quickReplies', options],
+    queryFn: () => fetchQuickReplies(options),
     staleTime: Infinity,
-    ...options,
+    ...queryOptions,
   });
+  return { ...data, ...result };
+};
 
 export const useQuickReply = (id: string, options?: UseQueryOptions<QuickReplySchema, Error>) =>
   useQuery({
