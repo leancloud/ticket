@@ -21,9 +21,10 @@ const options = [
 export interface CreatedAtSelectProps {
   value?: string;
   onChange: (value: string | undefined) => void;
+  disabled?: boolean;
 }
 
-export function CreatedAtSelect({ value, onChange }: CreatedAtSelectProps) {
+export function CreatedAtSelect({ value, onChange, disabled }: CreatedAtSelectProps) {
   const rangeValue = useMemo(() => {
     if (value?.includes('..')) {
       return value.split('..').map((str) => moment(str));
@@ -64,6 +65,7 @@ export function CreatedAtSelect({ value, onChange }: CreatedAtSelectProps) {
         options={options}
         value={showRangePicker ? RANGE_VALUE : value ?? EMPTY_VALUE}
         onChange={handleChange}
+        disabled={disabled}
       />
       {showRangePicker && (
         <div className="pl-2 border-l border-gray-300 border-dashed">

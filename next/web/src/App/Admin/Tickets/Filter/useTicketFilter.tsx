@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useCallback, useContext, useMemo } from 'react';
-import _, { filter } from 'lodash';
+import _ from 'lodash';
 import { useSearchParams } from '@/utils/useSearchParams';
 
 export interface Filters {
@@ -17,6 +17,8 @@ export interface Filters {
   rootCategoryId?: string;
   status?: number[];
   star?: number;
+  fieldName?: string;
+  fieldValue?: string;
 }
 const FiltersContext = createContext<[Filters, (filters: Filters) => void]>([{}, _.noop]);
 
@@ -24,15 +26,6 @@ export function LocalFiltersProvider({ children }: { children: ReactNode }) {
   const [params, { merge }] = useSearchParams();
 
   const filters = useMemo(() => {
-    const filters: Filters = _.pick(params, [
-      'keyword',
-      'authorId',
-      'tagKey',
-      'tagValue',
-      'privateTagKey',
-      'privateTagValue',
-    ]);
-
     const {
       assigneeId,
       groupId,
@@ -43,6 +36,17 @@ export function LocalFiltersProvider({ children }: { children: ReactNode }) {
       status,
       star,
     } = params;
+
+    const filters: Filters = _.pick(params, [
+      'keyword',
+      'authorId',
+      'tagKey',
+      'tagValue',
+      'privateTagKey',
+      'privateTagValue',
+      'fieldName',
+      'fieldValue',
+    ]);
 
     if (assigneeId) {
       filters.assigneeId = assigneeId.split(',');

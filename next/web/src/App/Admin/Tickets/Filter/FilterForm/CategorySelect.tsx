@@ -19,9 +19,10 @@ const CategorySelectContext = createContext<{
 interface SubCategorySelectProps {
   parentId?: string;
   depth: number;
+  disabled?: boolean;
 }
 
-function SubCategorySelect({ parentId, depth }: SubCategorySelectProps) {
+function SubCategorySelect({ parentId, depth, disabled }: SubCategorySelectProps) {
   const { categories, getValue, setValue } = useContext(CategorySelectContext);
   const value = getValue(depth);
 
@@ -50,8 +51,9 @@ function SubCategorySelect({ parentId, depth }: SubCategorySelectProps) {
         options={options}
         value={value ?? anyCategoryOption.value}
         onChange={(key) => setValue(depth, key || undefined)}
+        disabled={disabled}
       />
-      {value && <SubCategorySelect parentId={value} depth={depth + 1} />}
+      {value && <SubCategorySelect parentId={value} depth={depth + 1} disabled={disabled} />}
     </>
   );
 }
@@ -59,9 +61,10 @@ function SubCategorySelect({ parentId, depth }: SubCategorySelectProps) {
 export interface CategorySelectProps {
   value?: string;
   onChange: (value: string | undefined) => void;
+  disabled?: boolean;
 }
 
-export function CategorySelect({ value, onChange }: CategorySelectProps) {
+export function CategorySelect({ value, onChange, disabled }: CategorySelectProps) {
   const { data: categories } = useCategories();
   const categoryById = useMemo(() => keyBy(categories, (c) => c.id), [categories]);
   const [values, setValues] = useState<string[]>([]);
@@ -99,12 +102,12 @@ export function CategorySelect({ value, onChange }: CategorySelectProps) {
   };
 
   if (!categories) {
-    return <Select loading placeholder="Loading..." />;
+    return <Select loading placeholder="Loading..." disabled={disabled} />;
   }
   return (
     <CategorySelectContext.Provider value={{ categories, getValue, setValue }}>
       <div className="flex flex-col gap-1.5">
-        <SubCategorySelect depth={0} />
+        <SubCategorySelect depth={0} disabled={disabled} />
       </div>
     </CategorySelectContext.Provider>
   );

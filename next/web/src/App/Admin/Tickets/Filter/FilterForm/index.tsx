@@ -1,9 +1,8 @@
-import React, { PropsWithChildren, useCallback, useEffect, useState } from 'react';
+import React, { FC, PropsWithChildren, useCallback, useEffect, useMemo, useState } from 'react';
 import cx from 'classnames';
 
-import { Button, Input, Tooltip } from '@/components/antd';
+import { Button, Divider, Input } from '@/components/antd';
 import { UserSelect } from '@/components/common';
-import { QuestionCircleOutlined } from '@ant-design/icons';
 import { Filters } from '../useTicketFilter';
 import { AssigneeSelect } from './AssigneeSelect';
 import { GroupSelect } from './GroupSelect';
@@ -12,6 +11,8 @@ import { CreatedAtSelect } from './CreatedAtSelect';
 import { CategorySelect } from './CategorySelect';
 import { StatusSelect } from './StatusSelect';
 import { EvaluationStarSelect } from './EvaluationStarSelect';
+import { FieldSelect } from './FieldSelect';
+import { useSorterLimited } from '../useSorterLimited';
 
 function Field({ title, children }: PropsWithChildren<{ title: React.ReactNode }>) {
   return (
@@ -28,7 +29,7 @@ export interface FilterFormProps {
   onChange: (filters: Filters) => void;
 }
 
-export function FilterForm({ className, filters, onChange }: FilterFormProps) {
+export const FilterForm: FC<FilterFormProps> = ({ className, filters, onChange }) => {
   const [tempFilters, setTempFilters] = useState(filters);
   const [isDirty, setIsDirty] = useState(false);
 
@@ -36,15 +37,6 @@ export function FilterForm({ className, filters, onChange }: FilterFormProps) {
     setTempFilters(filters);
     setIsDirty(false);
   }, [filters]);
-
-  const merge = useCallback((filters: Filters) => {
-    setTempFilters((prev) => ({ ...prev, ...filters }));
-    setIsDirty(true);
-  }, []);
-
-  const handleChange = () => {
-    onChange(tempFilters);
-  };
 
   const {
     keyword,
@@ -61,7 +53,28 @@ export function FilterForm({ className, filters, onChange }: FilterFormProps) {
     rootCategoryId,
     status,
     star,
+    fieldName,
+    fieldValue,
   } = tempFilters;
+
+  const merge = useCallback((filters: Filters) => {
+    setTempFilters((prev) => ({ ...prev, ...filters }));
+    setIsDirty(true);
+  }, []);
+
+  const handleChange = () => {
+    onChange(tempFilters);
+  };
+
+  const { setLimitedSorter } = useSorterLimited();
+
+  const [keywordDisabled, fieldDisabled] = useMemo(() => {
+    const keywordDisabled = !!fieldName && !!fieldValue;
+
+    setLimitedSorter(keywordDisabled);
+
+    return [keywordDisabled, !!keyword && !(fieldName && fieldValue)];
+  }, [keyword, fieldName, fieldValue, setLimitedSorter]);
 
   return (
     <div
@@ -77,6 +90,7 @@ export function FilterForm({ className, filters, onChange }: FilterFormProps) {
             value={keyword}
             onChange={(e) => merge({ keyword: e.target.value || undefined })}
             onKeyDown={(e) => e.key === 'Enter' && handleChange()}
+            disabled={keywordDisabled}
           />
         </Field>
 
@@ -133,6 +147,16 @@ export function FilterForm({ className, filters, onChange }: FilterFormProps) {
             onChange={merge}
           />
         </Field>
+
+        <Divider />
+
+        <Field title="字段">
+          <FieldSelect
+            value={fieldName && fieldValue ? { name: fieldName, value: fieldValue } : undefined}
+            onChange={({ name, value }) => merge({ fieldName: name, fieldValue: value })}
+            disabled={fieldDisabled}
+          />
+        </Field>
       </div>
 
       <div className="sticky bottom-0 px-4 pb-2 bg-[#f5f7f9]">
@@ -144,4 +168,4 @@ export function FilterForm({ className, filters, onChange }: FilterFormProps) {
       </div>
     </div>
   );
-}
+};

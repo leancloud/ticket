@@ -6,9 +6,10 @@ import { Select } from '@/components/antd';
 export interface AssigneeSelectProps {
   value?: string[];
   onChange: (value: string[] | undefined) => void;
+  disabled?: boolean;
 }
 
-export function AssigneeSelect({ value, onChange }: AssigneeSelectProps) {
+export function AssigneeSelect({ value, onChange, disabled }: AssigneeSelectProps) {
   const { data: assignees, isLoading } = useCustomerServices();
 
   const options = useMemo(() => {
@@ -29,6 +30,7 @@ export function AssigneeSelect({ value, onChange }: AssigneeSelectProps) {
       optionFilterProp="label"
       value={value}
       onChange={(v) => onChange(v.length ? v : undefined)}
+      disabled={disabled}
     />
   );
 }

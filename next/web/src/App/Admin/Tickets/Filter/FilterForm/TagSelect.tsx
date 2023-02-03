@@ -14,9 +14,10 @@ export interface TagSelectValue {
 export interface TagSelectProps {
   value?: TagSelectValue;
   onChange: (value: TagSelectValue) => void;
+  disabled?: boolean;
 }
 
-export function TagSelect({ value, onChange }: TagSelectProps) {
+export function TagSelect({ value, onChange, disabled }: TagSelectProps) {
   const { data, isLoading } = useTagMetadatas();
 
   const options = useMemo(
@@ -68,6 +69,7 @@ export function TagSelect({ value, onChange }: TagSelectProps) {
           const tag = data?.find((t) => t.key === key);
           handleChange(key === EMPTY_VALUE ? undefined : key, undefined, tag?.private);
         }}
+        disabled={disabled}
       />
       {tag && (
         <div className="pl-2 border-l border-gray-300 border-dashed">

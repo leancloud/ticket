@@ -12,9 +12,10 @@ const options = [
 export interface StatusSelectProps {
   value?: number[];
   onChange: (value: number[] | undefined) => void;
+  disabled?: boolean;
 }
 
-export function StatusSelect({ value, onChange }: StatusSelectProps) {
+export function StatusSelect({ value, onChange, disabled }: StatusSelectProps) {
   return (
     <Select
       className="w-full"
@@ -25,6 +26,7 @@ export function StatusSelect({ value, onChange }: StatusSelectProps) {
       optionFilterProp="label"
       value={value ?? undefined}
       onChange={(value) => onChange(value.length ? value : undefined)}
+      disabled={disabled}
     />
   );
 }

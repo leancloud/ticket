@@ -9,6 +9,7 @@ import { FilterForm, LocalFiltersProvider, useLocalFilters } from './Filter';
 import { TicketView } from './TicketView';
 import { TicketDetail } from './Ticket/TicketDetail';
 import { StatsPanel } from './TicketStats';
+import { SortLimited } from './Filter/useSorterLimited';
 
 const DEFAULT_PAGE_SIZE = 20;
 
@@ -25,9 +26,15 @@ function useLayout() {
 
 interface UseSmartFetchTicketsOptions extends UseTicketsOptions {
   keyword?: string;
+  field?: boolean;
 }
 
-function useSmartSearchTickets({ keyword, queryOptions, ...options }: UseSmartFetchTicketsOptions) {
+function useSmartSearchTickets({
+  keyword,
+  field,
+  queryOptions,
+  ...options
+}: UseSmartFetchTicketsOptions) {
   const useTicketResult = useTickets({
     ...options,
     queryOptions: {
@@ -44,7 +51,7 @@ function useSmartSearchTickets({ keyword, queryOptions, ...options }: UseSmartFe
     },
   });
 
-  return keyword ? useSearchTicketsResult : useTicketResult;
+  return keyword && !field ? useSearchTicketsResult : useTicketResult;
 }
 
 function TicketListView() {
@@ -63,6 +70,7 @@ function TicketListView() {
     orderType,
     filters: localFilters,
     keyword: localFilters.keyword,
+    field: !!(localFilters.fieldName && localFilters.fieldValue),
     queryOptions: {
       keepPreviousData: true,
     },
@@ -100,40 +108,42 @@ function TicketListView() {
 
   return (
     <div className="flex flex-col h-full">
-      <Topbar
-        className="shrink-0 z-10"
-        showFilter={showFilterForm}
-        onChangeShowFilter={setShowFilterForm}
-        showStatsPanel={showStatsPanel}
-        onChangeShowStatsPanel={setShowStatsPanel}
-        page={page}
-        pageSize={pageSize}
-        onChangePage={setPage}
-        onChangePageSize={setPageSize}
-        count={tickets?.length}
-        totalCount={totalCount}
-        isLoading={isFetching}
-        checkedTicketIds={checkedIds}
-        onCheckedChange={handleCheckAll}
-        layout={layout}
-        onChangeLayout={setLayout}
-      />
+      <SortLimited>
+        <Topbar
+          className="shrink-0 z-10"
+          showFilter={showFilterForm}
+          onChangeShowFilter={setShowFilterForm}
+          showStatsPanel={showStatsPanel}
+          onChangeShowStatsPanel={setShowStatsPanel}
+          page={page}
+          pageSize={pageSize}
+          onChangePage={setPage}
+          onChangePageSize={setPageSize}
+          count={tickets?.length}
+          totalCount={totalCount}
+          isLoading={isFetching}
+          checkedTicketIds={checkedIds}
+          onCheckedChange={handleCheckAll}
+          layout={layout}
+          onChangeLayout={setLayout}
+        />
 
-      <div className="flex grow overflow-hidden">
-        <div className="flex grow flex-col p-[10px] overflow-auto">
-          {showStatsPanel && <StatsPanel />}
-          <TicketView
-            layout={layout}
-            loading={isFetching}
-            tickets={tickets}
-            checkedIds={checkedIds}
-            onChangeChecked={handleCheckTicket}
-          />
+        <div className="flex grow overflow-hidden">
+          <div className="flex grow flex-col p-[10px] overflow-auto">
+            {showStatsPanel && <StatsPanel />}
+            <TicketView
+              layout={layout}
+              loading={isFetching}
+              tickets={tickets}
+              checkedIds={checkedIds}
+              onChangeChecked={handleCheckTicket}
+            />
+          </div>
+          {showFilterForm && (
+            <FilterForm className="shrink-0" filters={localFilters} onChange={setLocalFilters} />
+          )}
         </div>
-        {showFilterForm && (
-          <FilterForm className="shrink-0" filters={localFilters} onChange={setLocalFilters} />
-        )}
-      </div>
+      </SortLimited>
     </div>
   );
 }
