@@ -68,6 +68,11 @@ const findTicketsSchema = includeSchema.concat(ticketFiltersSchema).shape({
   where: yup.object(),
   count: yup.bool().default(false),
   includeMetaKeys: yup.csv(yup.string().required()),
+
+  // fields
+  // TODO: use enum
+  fieldName: yup.string(),
+  fieldValue: yup.string(),
 });
 
 function addPointersCondition(
@@ -98,6 +103,7 @@ router.get(
   async (ctx) => {
     const currentUser = ctx.state.currentUser as User;
     const params = findTicketsSchema.validateSync(ctx.query);
+
     const sortItems = sort.get(ctx);
 
     const categoryIds = new Set(params.categoryId);
@@ -160,42 +166,65 @@ router.get(
       }
       query.where('privateTags.value', '==', params.privateTagValue);
     }
+
+    const finalQuery = await (async () => {
+      if (params.fieldName && params.fieldValue) {
+        const ticketFieldQuery = TicketFieldValue.queryBuilder()
+          .where('values', '==', {
+            field: params.fieldName,
+            value: params.fieldValue,
+          })
+          .where('ticket', 'matches', query.buildAVQuery())
+          .skip((params.page - 1) * params.pageSize)
+          .limit(params.pageSize)
+          .orderBy('createdAt', 'desc');
+
+        return Ticket.queryBuilder().where(
+          'objectId',
+          'in',
+          (await ticketFieldQuery.find({ useMasterKey: true })).map(({ ticketId }) => ticketId)
+        );
+      } else {
+        query.skip((params.page - 1) * params.pageSize).limit(params.pageSize);
+        sortItems?.forEach(({ key, order }) => query.orderBy(key, order));
+
+        return query;
+      }
+    })();
+
     if (params.includeAuthor) {
-      query.preload('author');
+      finalQuery.preload('author');
     }
     if (params.includeReporter) {
-      query.preload('reporter');
+      finalQuery.preload('reporter');
     }
     if (params.includeAssignee) {
-      query.preload('assignee');
+      finalQuery.preload('assignee');
     }
     if (params.includeGroup) {
       if (!(await currentUser.isStaff())) {
         ctx.throw(403);
       }
-      query.preload('group');
+      finalQuery.preload('group');
     }
     if (params.includeFiles) {
-      query.preload('files');
+      finalQuery.preload('files');
     }
     if (params.includeUnreadCount) {
-      query.preload('notifications', {
+      finalQuery.preload('notifications', {
         onQuery: (query) => {
           return query.where('user', '==', currentUser.toPointer());
         },
       });
     }
 
-    query.skip((params.page - 1) * params.pageSize).limit(params.pageSize);
-    sortItems?.forEach(({ key, order }) => query.orderBy(key, order));
-
     let tickets: Ticket[];
     if (params.count) {
-      const result = await query.findAndCount(currentUser.getAuthOptions());
+      const result = await finalQuery.findAndCount(currentUser.getAuthOptions());
       tickets = result[0];
       ctx.set('X-Total-Count', result[1].toString());
     } else {
-      tickets = await query.find(currentUser.getAuthOptions());
+      tickets = await finalQuery.find(currentUser.getAuthOptions());
     }
 
     if (params.includeCategoryPath) {
@@ -221,6 +250,7 @@ router.get(
   async (ctx) => {
     const currentUser = ctx.state.currentUser as User;
     const params = searchTicketParamsSchema.validateSync(ctx.query);
+
     const sortFields = sort.get(ctx);
 
     const categoryIds = new Set(params.categoryId);
