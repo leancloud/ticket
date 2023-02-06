@@ -106,85 +106,87 @@ router.get(
 
     const sortItems = sort.get(ctx);
 
-    const categoryIds = new Set(params.categoryId);
-    const rootId = params.product || params.rootCategoryId;
-    if (rootId) {
-      categoryIds.add(rootId);
-      const subCategories = await categoryService.getSubCategories(rootId);
-      subCategories.forEach((c) => categoryIds.add(c.id));
-    }
-
-    const query = Ticket.queryBuilder();
-    if (params.where) {
-      query.setRawCondition(params.where);
-    }
-    if (params.authorId) {
-      query.where('author', '==', User.ptr(params.authorId));
-    }
-    if (params.assigneeId) {
-      addPointersCondition(query, 'assignee', params.assigneeId, User);
-    }
-    if (params.groupId) {
-      addPointersCondition(query, 'group', params.groupId, Group);
-    }
-    if (params.reporterId) {
-      addPointersCondition(query, 'reporter', params.reporterId, User);
-    }
-    if (params.participantId) {
-      query.where('joinedCustomerServices.objectId', 'in', params.participantId);
-    }
-    if (categoryIds.size) {
-      query.where('category.objectId', 'in', Array.from(categoryIds));
-    }
-    if (params.status) {
-      query.where('status', 'in', params.status);
-    }
-    if (params['evaluation.star'] !== undefined) {
-      query.where('evaluation.star', '==', params['evaluation.star']);
-    }
-    if (params.createdAtFrom) {
-      query.where('createdAt', '>=', params.createdAtFrom);
-    }
-    if (params.createdAtTo) {
-      query.where('createdAt', '<=', params.createdAtTo);
-    }
-    if (params.tagKey) {
-      query.where('tags.key', '==', params.tagKey);
-    }
-    if (params.tagValue) {
-      query.where('tags.value', '==', params.tagValue);
-    }
-    if (params.privateTagKey) {
-      if (!(await currentUser.isCustomerService())) {
-        ctx.throw(403);
-      }
-      query.where('privateTags.key', '==', params.privateTagKey);
-    }
-    if (params.privateTagValue) {
-      if (!(await currentUser.isCustomerService())) {
-        ctx.throw(403);
-      }
-      query.where('privateTags.value', '==', params.privateTagValue);
-    }
-
     const finalQuery = await (async () => {
       if (params.fieldName && params.fieldValue) {
-        const ticketFieldQuery = TicketFieldValue.queryBuilder()
-          .where('values', '==', {
-            field: params.fieldName,
-            value: params.fieldValue,
-          })
-          .where('ticket', 'matches', query.buildAVQuery())
-          .skip((params.page - 1) * params.pageSize)
-          .limit(params.pageSize)
-          .orderBy('createdAt', 'desc');
+        const ticketIds = (
+          await TicketFieldValue.queryBuilder()
+            .where('values', '==', {
+              field: params.fieldName,
+              value: params.fieldValue,
+            })
+            .skip((params.page - 1) * params.pageSize)
+            .limit(params.pageSize)
+            .orderBy('createdAt', 'desc')
+            .find({ useMasterKey: true })
+        ).map(({ ticketId }) => ticketId);
 
-        return Ticket.queryBuilder().where(
-          'objectId',
-          'in',
-          (await ticketFieldQuery.find({ useMasterKey: true })).map(({ ticketId }) => ticketId)
-        );
+        return Ticket.queryBuilder()
+          .where('objectId', 'in', ticketIds)
+          .orderBy('createdAt', 'desc');
       } else {
+        const categoryIds = new Set(params.categoryId);
+        const rootId = params.product || params.rootCategoryId;
+
+        if (rootId) {
+          categoryIds.add(rootId);
+          const subCategories = await categoryService.getSubCategories(rootId);
+          subCategories.forEach((c) => categoryIds.add(c.id));
+        }
+
+        const query = Ticket.queryBuilder();
+
+        if (params.where) {
+          query.setRawCondition(params.where);
+        }
+        if (params.authorId) {
+          query.where('author', '==', User.ptr(params.authorId));
+        }
+        if (params.assigneeId) {
+          addPointersCondition(query, 'assignee', params.assigneeId, User);
+        }
+        if (params.groupId) {
+          addPointersCondition(query, 'group', params.groupId, Group);
+        }
+        if (params.reporterId) {
+          addPointersCondition(query, 'reporter', params.reporterId, User);
+        }
+        if (params.participantId) {
+          query.where('joinedCustomerServices.objectId', 'in', params.participantId);
+        }
+        if (categoryIds.size) {
+          query.where('category.objectId', 'in', Array.from(categoryIds));
+        }
+        if (params.status) {
+          query.where('status', 'in', params.status);
+        }
+        if (params['evaluation.star'] !== undefined) {
+          query.where('evaluation.star', '==', params['evaluation.star']);
+        }
+        if (params.createdAtFrom) {
+          query.where('createdAt', '>=', params.createdAtFrom);
+        }
+        if (params.createdAtTo) {
+          query.where('createdAt', '<=', params.createdAtTo);
+        }
+        if (params.tagKey) {
+          query.where('tags.key', '==', params.tagKey);
+        }
+        if (params.tagValue) {
+          query.where('tags.value', '==', params.tagValue);
+        }
+        if (params.privateTagKey) {
+          if (!(await currentUser.isCustomerService())) {
+            ctx.throw(403);
+          }
+          query.where('privateTags.key', '==', params.privateTagKey);
+        }
+        if (params.privateTagValue) {
+          if (!(await currentUser.isCustomerService())) {
+            ctx.throw(403);
+          }
+          query.where('privateTags.value', '==', params.privateTagValue);
+        }
+
         query.skip((params.page - 1) * params.pageSize).limit(params.pageSize);
         sortItems?.forEach(({ key, order }) => query.orderBy(key, order));
 

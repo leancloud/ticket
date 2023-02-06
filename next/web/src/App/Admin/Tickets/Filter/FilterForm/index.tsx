@@ -68,13 +68,19 @@ export const FilterForm: FC<FilterFormProps> = ({ className, filters, onChange }
 
   const { setLimitedSorter } = useSorterLimited();
 
-  const [keywordDisabled, fieldDisabled] = useMemo(() => {
-    const keywordDisabled = !!fieldName && !!fieldValue;
+  const [normalDisabled, fieldDisabled] = useMemo(() => {
+    const { fieldName, fieldValue, ...normalFields } = tempFilters;
 
-    setLimitedSorter(keywordDisabled);
+    const normalDisabled = !!fieldName && !!fieldValue;
 
-    return [keywordDisabled, !!keyword && !(fieldName && fieldValue)];
-  }, [keyword, fieldName, fieldValue, setLimitedSorter]);
+    setLimitedSorter(normalDisabled);
+
+    return [
+      normalDisabled,
+      Object.values(normalFields).some((v) => (Array.isArray(v) ? v.length : !!v)) &&
+        !(fieldName && fieldValue),
+    ];
+  }, [tempFilters, setLimitedSorter]);
 
   return (
     <div
@@ -90,7 +96,7 @@ export const FilterForm: FC<FilterFormProps> = ({ className, filters, onChange }
             value={keyword}
             onChange={(e) => merge({ keyword: e.target.value || undefined })}
             onKeyDown={(e) => e.key === 'Enter' && handleChange()}
-            disabled={keywordDisabled}
+            disabled={normalDisabled}
           />
         </Field>
 
@@ -98,21 +104,31 @@ export const FilterForm: FC<FilterFormProps> = ({ className, filters, onChange }
           <CategorySelect
             value={rootCategoryId}
             onChange={(rootCategoryId) => merge({ rootCategoryId })}
+            disabled={normalDisabled}
           />
         </Field>
 
         <Field title="客服组">
-          <GroupSelect value={groupId} onChange={(groupId) => merge({ groupId })} />
+          <GroupSelect
+            value={groupId}
+            onChange={(groupId) => merge({ groupId })}
+            disabled={normalDisabled}
+          />
         </Field>
 
         <Field title="负责客服">
-          <AssigneeSelect value={assigneeId} onChange={(assigneeId) => merge({ assigneeId })} />
+          <AssigneeSelect
+            value={assigneeId}
+            onChange={(assigneeId) => merge({ assigneeId })}
+            disabled={normalDisabled}
+          />
         </Field>
 
         <Field title="参与的客服">
           <AssigneeSelect
             value={participantId}
             onChange={(participantId) => merge({ participantId })}
+            disabled={normalDisabled}
           />
         </Field>
 
@@ -122,29 +138,47 @@ export const FilterForm: FC<FilterFormProps> = ({ className, filters, onChange }
             className="w-full"
             value={authorId}
             onChange={(authorId) => merge({ authorId: authorId as string })}
+            disabled={normalDisabled}
           />
         </Field>
 
         <Field title="代提单客服">
-          <AssigneeSelect value={reporterId} onChange={(reporterId) => merge({ reporterId })} />
+          <AssigneeSelect
+            value={reporterId}
+            onChange={(reporterId) => merge({ reporterId })}
+            disabled={normalDisabled}
+          />
         </Field>
 
         <Field title="创建时间">
-          <CreatedAtSelect value={createdAt} onChange={(createdAt) => merge({ createdAt })} />
+          <CreatedAtSelect
+            value={createdAt}
+            onChange={(createdAt) => merge({ createdAt })}
+            disabled={normalDisabled}
+          />
         </Field>
 
         <Field title="状态">
-          <StatusSelect value={status} onChange={(status) => merge({ status })} />
+          <StatusSelect
+            value={status}
+            onChange={(status) => merge({ status })}
+            disabled={normalDisabled}
+          />
         </Field>
 
         <Field title="评价">
-          <EvaluationStarSelect value={star} onChange={(star) => merge({ star })} />
+          <EvaluationStarSelect
+            value={star}
+            onChange={(star) => merge({ star })}
+            disabled={normalDisabled}
+          />
         </Field>
 
         <Field title="标签">
           <TagSelect
             value={{ tagKey, tagValue, privateTagKey, privateTagValue }}
             onChange={merge}
+            disabled={normalDisabled}
           />
         </Field>
 
