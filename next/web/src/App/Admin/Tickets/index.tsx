@@ -35,11 +35,13 @@ function useSmartSearchTickets({
   queryOptions,
   ...options
 }: UseSmartFetchTicketsOptions) {
+  const isSearch = !!keyword && !field;
+
   const useTicketResult = useTickets({
     ...options,
     queryOptions: {
       ...queryOptions,
-      enabled: !keyword,
+      enabled: !isSearch,
     },
   });
 
@@ -47,11 +49,11 @@ function useSmartSearchTickets({
     ...options,
     queryOptions: {
       ...queryOptions,
-      enabled: !!keyword,
+      enabled: isSearch,
     },
   });
 
-  return keyword && !field ? useSearchTicketsResult : useTicketResult;
+  return isSearch ? useSearchTicketsResult : useTicketResult;
 }
 
 function TicketListView() {
