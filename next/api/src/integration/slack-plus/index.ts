@@ -81,9 +81,9 @@ class SlackIntegration {
       .first({ useMasterKey: true });
   }
 
-  async postMessage(message: (KnownBlock | Block)[], thread_ts?: string) {
+  async postMessage(message: (KnownBlock | Block)[], thread_ts?: string, channel?: string) {
     const { ts } = await this.client.chat.postMessage({
-      channel: this.channel,
+      channel: channel ?? this.channel,
       blocks: message,
       thread_ts,
     });
