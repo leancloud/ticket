@@ -69,7 +69,7 @@ export const FilterForm: FC<FilterFormProps> = ({ className, filters, onChange }
   const { setLimitedSorter } = useSorterLimited();
 
   const [normalDisabled, fieldDisabled] = useMemo(() => {
-    const { fieldName, fieldValue, ...normalFields } = tempFilters;
+    const { fieldName, fieldValue, createdAt, ...normalFields } = tempFilters;
 
     const normalDisabled = !!fieldName && !!fieldValue;
 
@@ -90,6 +90,17 @@ export const FilterForm: FC<FilterFormProps> = ({ className, filters, onChange }
       )}
     >
       <div className="grow p-4">
+        <Divider plain>通用字段</Divider>
+
+        <Field title="创建时间">
+          <CreatedAtSelect value={createdAt} onChange={(createdAt) => merge({ createdAt })} />
+        </Field>
+
+        <Divider plain>
+          普通筛选
+          {normalDisabled && <p className="text-[#ffae4a]">不能与工单字段值筛选同时使用</p>}
+        </Divider>
+
         <Field title="关键词">
           <Input
             autoFocus
@@ -150,14 +161,6 @@ export const FilterForm: FC<FilterFormProps> = ({ className, filters, onChange }
           />
         </Field>
 
-        <Field title="创建时间">
-          <CreatedAtSelect
-            value={createdAt}
-            onChange={(createdAt) => merge({ createdAt })}
-            disabled={normalDisabled}
-          />
-        </Field>
-
         <Field title="状态">
           <StatusSelect
             value={status}
@@ -182,9 +185,12 @@ export const FilterForm: FC<FilterFormProps> = ({ className, filters, onChange }
           />
         </Field>
 
-        <Divider />
+        <Divider plain>
+          工单选项字段值筛选
+          {fieldDisabled && <p className="text-[#ffae4a]">不能与普通筛选同时使用</p>}
+        </Divider>
 
-        <Field title="字段">
+        <Field title="工单选项字段">
           <FieldSelect
             value={fieldName && fieldValue ? { name: fieldName, value: fieldValue } : undefined}
             onChange={({ name, value }) => merge({ fieldName: name, fieldValue: value })}

@@ -59,6 +59,11 @@ export const ticketFiltersSchema = yup.object({
   privateTagKey: yup.string(),
   privateTagValue: yup.string(),
 
+  // fields
+  // TODO: use enum
+  fieldName: yup.string(),
+  fieldValue: yup.string(),
+
   // pagination
   page: yup.number().integer().min(1).default(1),
   pageSize: yup.number().integer().min(0).max(100).default(10),
@@ -68,11 +73,6 @@ const findTicketsSchema = includeSchema.concat(ticketFiltersSchema).shape({
   where: yup.object(),
   count: yup.bool().default(false),
   includeMetaKeys: yup.csv(yup.string().required()),
-
-  // fields
-  // TODO: use enum
-  fieldName: yup.string(),
-  fieldValue: yup.string(),
 });
 
 function addPointersCondition(
@@ -108,20 +108,28 @@ router.get(
 
     const finalQuery = await (async () => {
       if (params.fieldName && params.fieldValue) {
-        const ticketIds = (
-          await TicketFieldValue.queryBuilder()
-            .where('values', '==', {
-              field: params.fieldName,
-              value: params.fieldValue,
-            })
-            .skip((params.page - 1) * params.pageSize)
-            .limit(params.pageSize)
-            .orderBy('createdAt', 'desc')
-            .find({ useMasterKey: true })
-        ).map(({ ticketId }) => ticketId);
+        const ticketFieldQuery = TicketFieldValue.queryBuilder()
+          .where('values', '==', {
+            field: params.fieldName,
+            value: params.fieldValue,
+          })
+          .skip((params.page - 1) * params.pageSize)
+          .limit(params.pageSize)
+          .orderBy('createdAt', 'desc');
+
+        if (params.createdAtFrom) {
+          ticketFieldQuery.where('createdAt', '>=', params.createdAtFrom);
+        }
+        if (params.createdAtTo) {
+          ticketFieldQuery.where('createdAt', '<=', params.createdAtTo);
+        }
 
         return Ticket.queryBuilder()
-          .where('objectId', 'in', ticketIds)
+          .where(
+            'objectId',
+            'in',
+            (await ticketFieldQuery.find({ useMasterKey: true })).map(({ ticketId }) => ticketId)
+          )
           .orderBy('createdAt', 'desc');
       } else {
         const categoryIds = new Set(params.categoryId);
