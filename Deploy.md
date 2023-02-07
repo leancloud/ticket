@@ -350,3 +350,7 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 将 `_User` 中 `active` 为 false 的 object 的 `inactive` 设置为 true
 
 删除 `_User` 中的 `active` 列
+
+## 2023-2-7
+
+如需配置 Slack 周报等，请在 `Config` 下新增 `key` 为 `slack-stats`，`value` 为 `{ "startDayOfPeriod": 周报从星期几开始统计（0-6 数字）, "channel": "slack channel id" }`
