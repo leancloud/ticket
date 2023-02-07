@@ -10,7 +10,7 @@ import { Ticket } from '@/model/Ticket';
 import { TicketForm } from '@/model/TicketForm';
 import { TicketFieldValue } from '@/model/TicketFieldValue';
 import { TicketField } from '@/model/TicketField';
-import { AuthOptions, Model, QueryBuilder } from '@/orm';
+import { AuthOptions, Model, Query, QueryBuilder } from '@/orm';
 import { categoryService } from '@/category';
 import { ExportFileManager } from './ExportFileManager';
 import { JobData } from '.';
@@ -31,6 +31,8 @@ export interface FilterOptions {
   tagValue?: string;
   privateTagKey?: string;
   privateTagValue?: string;
+  fieldName?: string;
+  fieldValue?: string;
   type?: string;
 }
 // copy ticket filter
@@ -54,53 +56,102 @@ function addPointersCondition(
   });
 }
 
-const createTicketQuery = async (params: FilterOptions, sortItems?: SortItem[]) => {
-  const categoryIds = new Set(params.categoryId);
-  const rootId = params.product || params.rootCategoryId;
-  if (rootId) {
-    categoryIds.add(rootId);
-    const subCategories = await categoryService.getSubCategories(rootId);
-    subCategories.forEach((c) => categoryIds.add(c.id));
+const createBaseTicketQuery = async (params: FilterOptions, sortItems?: SortItem[]) => {
+  if (params.fieldName && params.fieldValue) {
+    const ticketFieldQuery = TicketFieldValue.queryBuilder()
+      .where('values', '==', {
+        field: params.fieldName,
+        value: params.fieldValue,
+      })
+      .orderBy('createdAt', 'desc');
+
+    if (params.createdAtFrom) {
+      ticketFieldQuery.where('createdAt', '>=', new Date(params.createdAtFrom));
+    }
+
+    if (params.createdAtTo) {
+      ticketFieldQuery.where('createdAt', '<=', new Date(params.createdAtTo));
+    }
+
+    return [ticketFieldQuery, true] as const;
+  } else {
+    const categoryIds = new Set(params.categoryId);
+    const rootId = params.product || params.rootCategoryId;
+
+    if (rootId) {
+      categoryIds.add(rootId);
+      const subCategories = await categoryService.getSubCategories(rootId);
+      subCategories.forEach((c) => categoryIds.add(c.id));
+    }
+
+    const query = Ticket.queryBuilder();
+
+    if (params.authorId) {
+      query.where('author', '==', User.ptr(params.authorId));
+    }
+    if (params.assigneeId) {
+      addPointersCondition(query, 'assignee', params.assigneeId, User);
+    }
+    if (params.groupId) {
+      addPointersCondition(query, 'group', params.groupId, Group);
+    }
+    if (categoryIds.size) {
+      query.where('category.objectId', 'in', Array.from(categoryIds));
+    }
+    if (params.status) {
+      query.where('status', 'in', params.status);
+    }
+    if (params['evaluation.star'] !== undefined) {
+      query.where('evaluation.star', '==', params['evaluation.star']);
+    }
+    if (params.createdAtFrom) {
+      query.where('createdAt', '>=', new Date(params.createdAtFrom));
+    }
+    if (params.createdAtTo) {
+      query.where('createdAt', '<=', new Date(params.createdAtTo));
+    }
+    if (params.tagKey) {
+      query.where('tags.key', '==', params.tagKey);
+    }
+    if (params.tagValue) {
+      query.where('tags.value', '==', params.tagValue);
+    }
+    if (params.privateTagKey) {
+      query.where('privateTags.key', '==', params.privateTagKey);
+    }
+    if (params.privateTagValue) {
+      query.where('privateTags.value', '==', params.privateTagValue);
+    }
+
+    sortItems?.forEach(({ key, order }) => query.orderBy(key, order));
+
+    return [query, false] as const;
   }
-  const query = Ticket.queryBuilder();
-  if (params.authorId) {
-    query.where('author', '==', User.ptr(params.authorId));
+};
+
+const createTicketQuery = async (
+  containField: boolean,
+  query: Awaited<ReturnType<typeof createBaseTicketQuery>>[0],
+  skip?: number,
+  limit?: number
+) => {
+  if (skip !== undefined) {
+    query.skip(skip);
   }
-  if (params.assigneeId) {
-    addPointersCondition(query, 'assignee', params.assigneeId, User);
+
+  if (limit !== undefined) {
+    query.limit(limit);
   }
-  if (params.groupId) {
-    addPointersCondition(query, 'group', params.groupId, Group);
+
+  if (containField) {
+    const ticketIds = (
+      await (query as Query<typeof TicketFieldValue>).find({ useMasterKey: true })
+    ).map(({ ticketId }) => ticketId);
+
+    return Ticket.queryBuilder().where('objectId', 'in', ticketIds).orderBy('createdAt', 'desc');
   }
-  if (categoryIds.size) {
-    query.where('category.objectId', 'in', Array.from(categoryIds));
-  }
-  if (params.status) {
-    query.where('status', 'in', params.status);
-  }
-  if (params['evaluation.star'] !== undefined) {
-    query.where('evaluation.star', '==', params['evaluation.star']);
-  }
-  if (params.createdAtFrom) {
-    query.where('createdAt', '>=', new Date(params.createdAtFrom));
-  }
-  if (params.createdAtTo) {
-    query.where('createdAt', '<=', new Date(params.createdAtTo));
-  }
-  if (params.tagKey) {
-    query.where('tags.key', '==', params.tagKey);
-  }
-  if (params.tagValue) {
-    query.where('tags.value', '==', params.tagValue);
-  }
-  if (params.privateTagKey) {
-    query.where('privateTags.key', '==', params.privateTagKey);
-  }
-  if (params.privateTagValue) {
-    query.where('privateTags.value', '==', params.privateTagValue);
-  }
-  sortItems?.forEach(({ key, order }) => query.orderBy(key, order));
-  return query;
+
+  return query as Query<typeof Ticket>;
 };
 
 const formatDate = (date?: Date) => {
@@ -229,7 +280,7 @@ export default async function exportTicket({ params, sortItems, date }: JobData)
   const { type: fileType, ...rest } = params;
   const fileName = `ticket_${format(new Date(date), 'yyMMdd_HHmmss')}.${fileType || 'json'}`;
   const exportFileManager = new ExportFileManager(fileName);
-  const query = await createTicketQuery(rest, sortItems);
+  const [query, containFields] = await createBaseTicketQuery(rest, sortItems);
   const count = await query.count(authOptions);
   const categoryMap = await getCategories();
   const customerServiceMap = await getCustomerServices();
@@ -237,10 +288,8 @@ export default async function exportTicket({ params, sortItems, date }: JobData)
   const getCustomFormFields = getCustomFormFieldsFunc(authOptions);
 
   for (let index = 0; index < count; index += limit) {
-    const tickets = await query
+    const tickets = await (await createTicketQuery(containFields, query, index, limit))
       .preload('author', { authOptions })
-      .limit(limit)
-      .skip(index)
       .find(authOptions);
     const ticketIds = tickets.map((ticket) => ticket.id);
     const replyMap = await getReplies(ticketIds, authOptions);
@@ -321,6 +370,7 @@ export default async function exportTicket({ params, sortItems, date }: JobData)
         createdAt: formatDate(ticket.createdAt),
         updatedAt: formatDate(ticket.updatedAt),
       };
+
       await exportFileManager.append(data);
     }
   }
