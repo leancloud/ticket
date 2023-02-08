@@ -320,7 +320,7 @@ export const pushStatsToSlackFactory = (type: PushType) => async (date?: Date) =
       })
     );
 
-    const ts = await slackInstance?.postMessage(
+    const ts = await slackInstance.postMessage(
       [
         {
           type: 'header',
@@ -333,7 +333,7 @@ export const pushStatsToSlackFactory = (type: PushType) => async (date?: Date) =
 
     await Promise.all(
       reports.map(async (msg) => {
-        await slackInstance?.postMessage(msg as any, ts, channel);
+        await slackInstance.postMessage(msg, ts, channel);
       })
     );
   }
