@@ -178,6 +178,7 @@ interface SlackPlusConfig {
   token: string;
   channel: string;
   signingSecret: string;
+  disabled?: boolean;
 }
 
 async function getConfig(): Promise<SlackPlusConfig | undefined> {
@@ -243,7 +244,7 @@ export class CreateSlackPlus {
 
 export default async function (install: Function) {
   const config = await getConfig();
-  if (!config) {
+  if (!config || config.disabled) {
     return;
   }
 
