@@ -7,9 +7,8 @@ import {
   subMonths,
   endOfDay,
   endOfMonth,
-  previousFriday,
-  previousThursday,
-  isFriday,
+  previousDay,
+  getDay,
 } from 'date-fns';
 import _ from 'lodash';
 
@@ -19,6 +18,17 @@ import { Category } from '@/model/Category';
 import { Status, Ticket } from '@/model/Ticket';
 import { type SumTicketStat, TicketStats } from '@/model/TicketStats';
 import type { ExtractArrayType } from '@/utils/types';
+import { Config } from '@/config';
+
+interface SlackStatsSetting {
+  startDayOfPeriod?: number;
+  channel?: string;
+}
+
+const getConfig = async () => {
+  const config = await Config.get('slack-stats');
+  return (config ?? {}) as SlackStatsSetting;
+};
 
 interface ISimplifiedCategory {
   id: string;
@@ -148,14 +158,14 @@ const processProductStats = async (
 };
 
 const generateRate = (oldValue: number, newValue: number | undefined) =>
-  (newValue !== undefined && oldValue)
+  newValue !== undefined && oldValue
     ? `${oldValue < newValue ? '↑ ' : oldValue > newValue ? '↓ ' : ''}${(
         Math.abs((newValue - oldValue) / oldValue) * 100
       ).toFixed(1)}`
     : '--';
 
 const fieldValueWrapper = (value: number | undefined, formatter: (value: number) => string) =>
-  (value !== undefined && !Number.isNaN(value)) ? formatter(value) : '--';
+  value !== undefined && !Number.isNaN(value) ? formatter(value) : '--';
 
 const StatsFieldText: {
   key: keyof StatsForSlack;
@@ -231,39 +241,54 @@ const generateStatsReport = (
   ),
 ];
 
-const startOfPeriod = (type: PushType, date?: Date) => {
+const startOfPeriod = (type: PushType, date?: Date, startDayOfPeriod = 1) => {
   const date_ = date ?? new Date();
   return type === 'daily'
     ? startOfDay(subDays(date_, 1))
     : type === 'weekly'
-    // if today is Saturday then we need Friday last week instead of previous Friday
-    ? startOfDay(isFriday(date_) ? previousFriday(date_) : previousFriday(previousFriday(date_)))
+    ? // if today is Saturday then we need Friday last week instead of previous Friday
+      startOfDay(
+        getDay(date_) === startDayOfPeriod
+          ? previousDay(date_, startDayOfPeriod)
+          : previousDay(previousDay(date_, startDayOfPeriod), startDayOfPeriod)
+      )
     : startOfMonth(subMonths(date_, 1));
-}
+};
 
-const endOfPeriod = (type: PushType, date?: Date) =>
-  type === 'daily'
-    ? endOfDay(subDays(date ?? new Date(), 1))
+const endOfPeriod = (type: PushType, date?: Date, startDayOfPeriod = 1) => {
+  const date_ = date ?? new Date();
+
+  return type === 'daily'
+    ? endOfDay(subDays(date_, 1))
     : type === 'weekly'
-    ? endOfDay(previousThursday(date ?? new Date()))
+    ? endOfDay(previousDay(date_, startDayOfPeriod === 0 ? 6 : startDayOfPeriod - 1))
     : endOfMonth(subMonths(date ?? new Date(), 1));
+};
 
-const startOfLastPeriod = (type: PushType, date?: Date) => {
-  const date_ = startOfPeriod(type, date);
+const startOfLastPeriod = (type: PushType, date?: Date, startDayOfPeriod = 1) => {
+  const date_ = startOfPeriod(type, date, startDayOfPeriod);
 
-  return type === 'daily' ? subDays(date_, 1) : type === 'weekly' ? subWeeks(date_, 1) : subMonths(date_, 1);
-}
+  return type === 'daily'
+    ? subDays(date_, 1)
+    : type === 'weekly'
+    ? subWeeks(date_, 1)
+    : subMonths(date_, 1);
+};
 
-const endOfLastPeriod = (type: PushType, date?: Date) => {
-  const date_ = endOfPeriod(type, date);
+const endOfLastPeriod = (type: PushType, date?: Date, startDayOfPeriod = 1) => {
+  const date_ = endOfPeriod(type, date, startDayOfPeriod);
 
-  return type === 'daily' ? subDays(date_, 1) : type === 'weekly' ? subWeeks(date_, 1) : subMonths(date_, 1);
-}
-
+  return type === 'daily'
+    ? subDays(date_, 1)
+    : type === 'weekly'
+    ? subWeeks(date_, 1)
+    : subMonths(date_, 1);
+};
 
 export const pushStatsToSlackFactory = (type: PushType) => async (date?: Date) => {
-  const fromDate = startOfPeriod(type, date);
-  const toDate = endOfPeriod(type, date);
+  const { startDayOfPeriod, channel } = await getConfig();
+  const fromDate = startOfPeriod(type, date, startDayOfPeriod);
+  const toDate = endOfPeriod(type, date, startDayOfPeriod);
 
   const slackInstance = await CreateSlackPlus.get();
 
@@ -275,8 +300,8 @@ export const pushStatsToSlackFactory = (type: PushType) => async (date?: Date) =
         if (type !== 'daily') {
           const lastStats = await processProductStats(
             info,
-            startOfLastPeriod(type, date),
-            endOfLastPeriod(type, date)
+            startOfLastPeriod(type, date, startDayOfPeriod),
+            endOfLastPeriod(type, date, startDayOfPeriod)
           );
 
           stats.stats.lastPeriodCreated = lastStats.stats.created;
@@ -295,16 +320,20 @@ export const pushStatsToSlackFactory = (type: PushType) => async (date?: Date) =
       })
     );
 
-    const ts = await slackInstance.postMessage([
-      {
-        type: 'header',
-        text: { type: 'plain_text', text: generateTitle(fromDate, toDate, type), emoji: true },
-      },
-    ]);
+    const ts = await slackInstance.postMessage(
+      [
+        {
+          type: 'header',
+          text: { type: 'plain_text', text: generateTitle(fromDate, toDate, type), emoji: true },
+        },
+      ],
+      undefined,
+      channel
+    );
 
     await Promise.all(
       reports.map(async (msg) => {
-        await slackInstance.postMessage(msg, ts);
+        await slackInstance.postMessage(msg, ts, channel);
       })
     );
   }

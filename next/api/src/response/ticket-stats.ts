@@ -34,6 +34,8 @@ export class TicketStatsResponse {
       internalReplyCount: this.ticketStats.internalReplyCount || 0,
       naturalReplyTime: this.ticketStats.naturalReplyTime || 0,
       naturalReplyCount: this.ticketStats.naturalReplyCount || 0,
+      likeCount: this.ticketStats.likeCount || 0,
+      dislikeCount: this.ticketStats.dislikeCount || 0,
     };
   }
 }
