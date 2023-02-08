@@ -64,6 +64,9 @@ const queryModifiers = {
   'starts-with': (where: any, key: string, value: string) => {
     merge(where, (q) => q.startsWith(key, value));
   },
+  matches: (where: any, key: string, query: AVQuery) => {
+    merge(where, (q) => q.matchesQuery(key, query));
+  },
 };
 
 export type QueryCommand = keyof typeof queryModifiers;
@@ -267,7 +270,7 @@ export class Query<M extends typeof Model> {
     return query;
   }
 
-  private buildAVQuery(): AVQuery {
+  buildAVQuery(): AVQuery {
     const avQuery = new AV.Query<AV.Object>(this.model.getClassName());
     (avQuery as any)._where = this.getRawCondition();
     if (this.skipCount !== undefined) {

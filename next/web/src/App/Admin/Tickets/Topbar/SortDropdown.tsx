@@ -4,6 +4,8 @@ import { HiChevronDown } from 'react-icons/hi';
 
 import { useOrderBy as _useOrderBy } from '@/utils/useOrderBy';
 import _Menu from '@/components/Menu';
+import { useSorterLimited } from '../Filter/useSorterLimited';
+import classNames from 'classnames';
 
 const orderKeys: Record<string, string> = {
   createdAt: '创建日期',
@@ -32,13 +34,20 @@ export function SortDropdown({ disabled }: { disabled?: boolean }) {
     [setOrderKey, setOrderType]
   );
 
+  const { limitedSorter } = useSorterLimited();
+
   return (
     <Menu as="span" className="relative">
-      <Menu.Button disabled={disabled}>
+      <Menu.Button disabled={disabled || limitedSorter}>
         <span className="text-[#6f7c87]">排序方式:</span>
-        <span className="ml-2 text-[13px] font-medium">
+        <span
+          className={classNames('ml-2 text-[13px] font-medium', {
+            'text-[#6f7c87]': limitedSorter,
+          })}
+        >
           {orderKeys[orderKey]} <HiChevronDown className="inline relative top-0.5" />
         </span>
+        {limitedSorter && <span> 排序方式在筛选字段值时不可用</span>}
       </Menu.Button>
 
       <Transition
@@ -55,10 +64,20 @@ export function SortDropdown({ disabled }: { disabled?: boolean }) {
           <Menu.Item as={_Menu.Item} eventKey="createdAt" active={orderKey === 'createdAt'}>
             {orderKeys.createdAt}
           </Menu.Item>
-          <Menu.Item as={_Menu.Item} eventKey="updatedAt" active={orderKey === 'updatedAt'}>
+          <Menu.Item
+            as={_Menu.Item}
+            eventKey="updatedAt"
+            active={orderKey === 'updatedAt'}
+            disabled={limitedSorter}
+          >
             {orderKeys.updatedAt}
           </Menu.Item>
-          <Menu.Item as={_Menu.Item} eventKey="status" active={orderKey === 'status'}>
+          <Menu.Item
+            as={_Menu.Item}
+            eventKey="status"
+            active={orderKey === 'status'}
+            disabled={limitedSorter}
+          >
             {orderKeys.status}
           </Menu.Item>
           <_Menu.Divider />

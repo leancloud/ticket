@@ -53,6 +53,8 @@ export interface FetchTicketFilters {
   tagValue?: string;
   privateTagKey?: string;
   privateTagValue?: string;
+  fieldName?: string;
+  fieldValue?: string;
 }
 
 export function encodeTicketFilters(filters: FetchTicketFilters) {
@@ -64,6 +66,8 @@ export function encodeTicketFilters(filters: FetchTicketFilters) {
     tagValue: filters.tagValue,
     privateTagKey: filters.privateTagKey,
     privateTagValue: filters.privateTagValue,
+    fieldName: filters.fieldName,
+    fieldValue: filters.fieldValue,
   };
   if (filters.assigneeId) {
     params.assigneeId = castArray(filters.assigneeId).join(',');

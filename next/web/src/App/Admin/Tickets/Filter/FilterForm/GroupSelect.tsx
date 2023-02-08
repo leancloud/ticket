@@ -6,9 +6,10 @@ import { Select } from '@/components/antd';
 export interface GroupSelectProps {
   value?: string[];
   onChange: (value: string[] | undefined) => void;
+  disabled?: boolean;
 }
 
-export function GroupSelect({ value, onChange }: GroupSelectProps) {
+export function GroupSelect({ value, onChange, disabled }: GroupSelectProps) {
   const { data: groups, isLoading } = useGroups();
 
   const options = useMemo(() => {
@@ -29,6 +30,7 @@ export function GroupSelect({ value, onChange }: GroupSelectProps) {
       optionFilterProp="label"
       value={value ?? undefined}
       onChange={(value) => onChange(value.length ? value : undefined)}
+      disabled={disabled}
     />
   );
 }

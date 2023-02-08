@@ -6,12 +6,7 @@ import { TicketFieldType } from '../TicketFields/TicketFieldType';
 import { LOCALES } from '@/i18n/locales';
 import { useRangePicker } from '../../Stats/utils';
 import { useTicketFieldCount, TicketFieldCountSchema } from '@/api/ticket-field';
-
-type ArrayType<T extends unknown[] | ReadonlyArray<unknown>> = T extends
-  | Array<infer R>
-  | ReadonlyArray<infer R>
-  ? R
-  : never;
+import { ArrayType } from '@/utils/types';
 
 export const CategoryFieldCount = () => {
   const { id } = useParams<'id'>();
