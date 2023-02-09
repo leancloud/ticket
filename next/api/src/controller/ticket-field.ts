@@ -99,7 +99,7 @@ export class TicketFieldController {
     @Ctx() ctx: Context,
     @Query('includeVariants', ParseBoolPipe) includeVariants: boolean,
     @Query('active', new ParseBoolPipe({ keepUndefined: true })) active?: boolean,
-    @Query('used', ParseBoolPipe) used?: boolean,
+    @Query('unused', ParseBoolPipe) unused?: boolean,
     @Query('orderBy', new ParseOrderPipe(['createdAt', 'updatedAt'])) orderBy?: Order[],
     @Query('page', new ParseIntPipe({ min: 1 })) page = 1,
     @Query('pageSize', new ParseIntPipe({ min: 0, max: 1000 })) pageSize = 10,
@@ -123,30 +123,25 @@ export class TicketFieldController {
 
     orderBy?.forEach(({ key, order }) => query.orderBy(key, order));
 
-    const fields =
-      count && !used
-        ? await query.findAndCount({ useMasterKey: true }).then(([fields, count]) => {
-            ctx.set('X-Total-Count', count.toString());
-            return fields;
-          })
-        : await query.find({ useMasterKey: true });
+    const fields = count
+      ? await query.findAndCount({ useMasterKey: true }).then(([fields, count]) => {
+          ctx.set('X-Total-Count', count.toString());
+          return fields;
+        })
+      : await query.find({ useMasterKey: true });
 
-    if (used) {
-      return (
-        await Promise.all(
-          fields.map(
-            async (field) =>
-              [
-                field,
-                await TicketForm.queryBuilder()
-                  .where('fieldIds', '==', field.id)
-                  .first({ useMasterKey: true }),
-              ] as const
-          )
-        )
-      )
-        .filter(([, first]) => !!first)
-        .map(([field]) => field);
+    if (unused) {
+      return await Promise.all(
+        fields.map(async (field) => {
+          const isUnused = !(await TicketForm.queryBuilder()
+            .where('fieldIds', '==', field.id)
+            .first({ useMasterKey: true }));
+
+          field.unused = isUnused;
+
+          return field;
+        })
+      );
     }
 
     return fields;

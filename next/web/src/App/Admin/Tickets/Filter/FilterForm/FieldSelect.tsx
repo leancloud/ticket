@@ -16,15 +16,15 @@ export interface FieldSelectProps {
 }
 
 export const FieldSelect: FC<FieldSelectProps> = ({ value, onChange, disabled }) => {
-  const { data: fields } = useTicketFields({ includeVariants: true, used: true, pageSize: 1000 });
+  const { data: fields } = useTicketFields({ includeVariants: true, unused: true, pageSize: 1000 });
 
   const treeData = useMemo(
     () =>
       fields
         ?.filter(({ type }) => OptionTypes.includes(type))
-        .map(({ id, title, variants, defaultLocale, active }) => ({
+        .map(({ id, title, variants, defaultLocale, active, unused }) => ({
           selectable: false,
-          title: active ? title : `${title} (停用)`,
+          title: active ? (unused ? `${title}（未使用）` : title) : `${title} (停用)`,
           value: id,
           children: variants
             ?.find(({ locale }) => locale === defaultLocale)
