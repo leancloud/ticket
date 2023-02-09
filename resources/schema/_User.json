@@ -86,8 +86,7 @@
       "users": []
     },
     "create": {
-      "roles": [],
-      "users": []
+      "*": true
     }
   },
   "indexes": []
