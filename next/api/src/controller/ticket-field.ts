@@ -37,6 +37,7 @@ import {
 import { LOCALES } from '@/i18n/locales';
 import { Status } from '@/model/Ticket';
 import { Category } from '@/model/Category';
+import { TicketForm } from '@/model/TicketForm';
 
 const localeSchema = z
   .string()
@@ -98,6 +99,7 @@ export class TicketFieldController {
     @Ctx() ctx: Context,
     @Query('includeVariants', ParseBoolPipe) includeVariants: boolean,
     @Query('active', new ParseBoolPipe({ keepUndefined: true })) active?: boolean,
+    @Query('unused', ParseBoolPipe) unused?: boolean,
     @Query('orderBy', new ParseOrderPipe(['createdAt', 'updatedAt'])) orderBy?: Order[],
     @Query('page', new ParseIntPipe({ min: 1 })) page = 1,
     @Query('pageSize', new ParseIntPipe({ min: 0, max: 1000 })) pageSize = 10,
@@ -127,6 +129,20 @@ export class TicketFieldController {
           return fields;
         })
       : await query.find({ useMasterKey: true });
+
+    if (unused) {
+      return await Promise.all(
+        fields.map(async (field) => {
+          const isUnused = !(await TicketForm.queryBuilder()
+            .where('fieldIds', '==', field.id)
+            .first({ useMasterKey: true }));
+
+          field.unused = isUnused;
+
+          return field;
+        })
+      );
+    }
 
     return fields;
   }

@@ -26,6 +26,7 @@ export interface TicketFieldSchema {
   title: string;
   defaultLocale: string;
   meta?: Record<string, any>;
+  unused?: boolean;
   active: boolean;
   visible: boolean;
   required: boolean;
@@ -40,6 +41,7 @@ export interface FetchTicketFieldsOptions {
   active?: boolean;
   orderBy?: string;
   count?: boolean;
+  unused?: boolean;
   includeVariants?: boolean;
 }
 
