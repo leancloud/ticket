@@ -6,7 +6,7 @@ import { regions } from '@/leancloud';
 import { HttpError, UnauthorizedError } from '@/common/http';
 import { RedisCache } from '@/cache';
 import { AuthOptions, Model, field } from '@/orm';
-import { getVerifiedPayload, JsonWebTokenError } from '@/utils/jwt';
+import { getVerifiedPayload, JsonWebTokenError, processKeys } from '@/utils/jwt';
 import mem from '@/utils/mem-promise';
 import { Role } from './Role';
 import { Vacation } from './Vacation';
@@ -116,6 +116,8 @@ export class InactiveUserLoginError extends Error {
     return { name: this.name, message: this.message };
   }
 }
+
+const TDSUserSigningKey = processKeys(process.env.TDS_USER_SIGNING_KEY);
 
 export class User extends Model {
   protected static className = '_User';
@@ -320,7 +322,7 @@ export class User extends Model {
   }
 
   static generateTDSUserAuthData(token: string) {
-    const { sub } = getVerifiedPayload(token, { issuer: 'tap-support' });
+    const { sub } = getVerifiedPayload(token, { issuer: 'tap-support' }, TDSUserSigningKey);
 
     if (!sub) {
       throw new MissingFieldError('sub field is required');
