@@ -1,8 +1,8 @@
 import type { Middleware } from 'koa';
 
-import { User } from '@/model/User';
+import { InvalidLoginCredentialError, User, UserNotRegisteredError } from '@/model/User';
 import { withAsyncSpan, withSpan } from '@/utils/trace';
-import { getVerifiedPayload } from '@/utils/jwt';
+import { getVerifiedPayload, JsonWebTokenError } from '@/utils/jwt';
 
 const { ENABLE_TDS_USER_LOGIN } = process.env;
 
@@ -32,6 +32,7 @@ export const auth: Middleware = withSpan(async (ctx, next) => {
     if (anonymousId.length < 32) {
       ctx.throw(401, 'Anonymous ID 长度不足', {
         code: 'WEAK_ANONYMOUS_ID',
+        numCode: 9005,
       });
     }
     const user = await withAsyncSpan(
@@ -41,9 +42,9 @@ export const auth: Middleware = withSpan(async (ctx, next) => {
       `User.findByAnonymousId(${anonymousId})`
     );
     if (!user) {
-      ctx.throw(401, '未找到该 Anonymous ID 对应的用户，该用户可能从未使用过客服功能。', {
-        code: 'USER_NOT_REGISTERED',
-      });
+      throw new UserNotRegisteredError(
+        '未找到该 Anonymous ID 对应的用户，该用户可能从未使用过客服功能。'
+      );
     }
     ctx.state.currentUser = user;
     return next();
@@ -59,9 +60,9 @@ export const auth: Middleware = withSpan(async (ctx, next) => {
     );
 
     if (!user) {
-      ctx.throw(401, '未找到该 TDS Token 对应的用户，该用户可能从未使用过客服功能。', {
-        code: 'USER_NOT_REGISTERED',
-      });
+      throw new UserNotRegisteredError(
+        '未找到该 TDS Token 对应的用户，该用户可能从未使用过客服功能。'
+      );
     }
 
     ctx.state.currentUser = user;
@@ -70,26 +71,31 @@ export const auth: Middleware = withSpan(async (ctx, next) => {
 
   const token = ctx.get('X-Credential');
   if (token) {
-    const { sub } = getVerifiedPayload(token);
+    let payload;
+    try {
+      payload = getVerifiedPayload(token);
+    } catch (error) {
+      if (error instanceof JsonWebTokenError) {
+        throw new InvalidLoginCredentialError(error.message, error);
+      }
+      throw error;
+    }
+    const { sub } = payload;
     if (sub === undefined) {
-      return ctx.throw(401, 'sub field is required', {
-        code: 'INVALID_TOKEN',
-      });
+      throw new InvalidLoginCredentialError('sub field is required');
     }
 
     const user = await User.findByUsername(sub);
 
     if (!user) {
-      ctx.throw(401, '未找到该 Token 对应的用户，该用户可能从未使用过客服功能。', {
-        code: 'USER_NOT_REGISTERED',
-      });
+      throw new UserNotRegisteredError('未找到该 Token 对应的用户，该用户可能从未使用过客服功能。');
     }
 
     ctx.state.currentUser = user;
     return next();
   }
 
-  ctx.throw(401, '缺少用户凭证。', { code: 'CREDENTIAL_REQUIRED' });
+  ctx.throw(401, '缺少用户凭证。', { code: 'CREDENTIAL_REQUIRED', numCode: 9004 });
 }, 'auth');
 
 export const customerServiceOnly: Middleware = withSpan(async (ctx, next) => {
