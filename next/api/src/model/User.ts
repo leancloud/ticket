@@ -321,6 +321,7 @@ export class User extends Model {
 
   static async loginWithAnonymousId(id: string, name?: string) {
     const user = await AV.User.loginWithAuthData({ id }, 'anonymous', { useMasterKey: true });
+    await anonymousUserCache.del(id);
     return { sessionToken: user.getSessionToken() };
   }
 
