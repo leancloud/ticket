@@ -16,7 +16,7 @@ import { categoryService } from '@/category';
 import { CreateSlackPlus } from '@/integration/slack-plus';
 import { Category } from '@/model/Category';
 import { Status, Ticket } from '@/model/Ticket';
-import { type SumTicketStat, TicketStats } from '@/model/TicketStats';
+import { SumTicketStat, TicketStats } from '@/model/TicketStats';
 import type { ExtractArrayType } from '@/utils/types';
 import { Config } from '@/config';
 
@@ -45,7 +45,7 @@ const getProductsWithSubCategories = async (): Promise<ProductsWithSubCategories
 
   return Promise.all(
     products.map(async ({ id, name }) => {
-      const subCategories = await categoryService.getSubCategories(id);
+      const subCategories = await categoryService.getSubCategories(id, true);
 
       return {
         id,
@@ -103,7 +103,7 @@ const processProductStats = async (
         (await TicketStats.fetchTicketStats({
           from,
           to,
-          categoryIds: subCategories.map(({ id }) => id),
+          categoryIds: [...subCategories.map(({ id }) => id), rest.id],
         })) ?? {};
 
       const active = await Ticket.queryBuilder()
@@ -136,9 +136,13 @@ const processProductStats = async (
     })
   );
 
-  const tempTotalCategoryStats = childCategoryStats.reduce<StatsForSlack>(
-    (acc, cur) => _.mergeWith(acc, cur.stats, (a = 0, b = 0) => a + b),
-    {} as StatsForSlack
+  const tempTotalCategoryStats = _.mergeWith(
+    childCategoryStats.reduce<StatsForSlack>(
+      (acc, cur) => _.mergeWith(acc, cur.stats, (a = 0, b = 0) => a + b),
+      {} as StatsForSlack
+    ),
+    (await TicketStats.fetchTicketStats({ from, to, categoryIds: [info.id] })) ?? {},
+    (a = 0, b = 0) => a + b
   );
 
   return {
