@@ -1,38 +1,30 @@
 import { Context, Next } from 'koa';
 
 export class HttpError extends Error {
-  constructor(readonly status: number, message: string, readonly code?: string) {
+  constructor(
+    readonly status: number,
+    message: string,
+    readonly code?: string,
+    readonly numCode?: number
+  ) {
     super(message);
-  }
-
-  static async catchHttpError(ctx: Context, next: Next) {
-    try {
-      await next();
-    } catch (error) {
-      if (error instanceof HttpError) {
-        ctx.throw(error.status, error.message, {
-          code: error.code,
-        });
-      }
-      throw error;
-    }
   }
 }
 
 export class NotFoundError extends HttpError {
   constructor(target: string) {
-    super(404, `${target} does not exist`, 'NOT_FOUND');
+    super(404, `${target} does not exist`, 'NOT_FOUND', 9001);
   }
 }
 
 export class InternalServerError extends HttpError {
-  constructor(target: string) {
-    super(500, target, 'INTERNAL_SERVER_ERROR');
+  constructor(message: string) {
+    super(500, message, 'INTERNAL_SERVER_ERROR', 9500);
   }
 }
 
 export class UnauthorizedError extends HttpError {
-  constructor(target: string) {
-    super(401, target, 'UNAUTHORIZED');
+  constructor(message: string) {
+    super(401, message, 'UNAUTHORIZED', 9000);
   }
 }

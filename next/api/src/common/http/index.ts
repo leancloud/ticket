@@ -4,7 +4,6 @@ import Router from '@koa/router';
 import _ from 'lodash';
 
 import { createKoaHandler, getHandlers } from './handler';
-import { HttpError } from './error';
 
 export * from './handler';
 export * from './error';
@@ -12,7 +11,7 @@ export * from './error';
 const KEY_PATH = Symbol('path');
 const KEY_MIDDLEWARES = Symbol('middlewares');
 
-const globalMiddlewares: Middleware[] = [HttpError.catchHttpError];
+const globalMiddlewares: Middleware[] = [];
 const controllers: any[] = [];
 
 export interface ControllerConstructor {

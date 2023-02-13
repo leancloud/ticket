@@ -88,9 +88,31 @@ const getRoles = mem(
 export class InvalidLoginCredentialError extends HttpError {
   static httpCode = 401;
   static code = 'INVALID_LOGIN_CREDENTIAL';
+  static numCode = 9002;
   public inner?: Error;
   constructor(message: string, innerError?: Error) {
-    super(InvalidLoginCredentialError.httpCode, message, InvalidLoginCredentialError.code);
+    super(
+      InvalidLoginCredentialError.httpCode,
+      message,
+      InvalidLoginCredentialError.code,
+      InvalidLoginCredentialError.numCode
+    );
+    this.inner = innerError;
+  }
+}
+
+export class UserNotRegisteredError extends HttpError {
+  static httpCode = 401;
+  static code = 'USER_NOT_REGISTERED';
+  public inner?: Error;
+  static numCode = 9003;
+  constructor(message: string, innerError?: Error) {
+    super(
+      UserNotRegisteredError.httpCode,
+      message,
+      UserNotRegisteredError.code,
+      UserNotRegisteredError.numCode
+    );
     this.inner = innerError;
   }
 }
