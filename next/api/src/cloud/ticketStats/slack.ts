@@ -40,6 +40,24 @@ type ProductsWithSubCategories = (ISimplifiedCategory & {
   childCategories: ISimplifiedCategory[];
 })[];
 
+const processCategorySubTree = (categories: Category[], rootCategoryId: string) => {
+  const categoriesByParentId = _.groupBy(categories, 'parentId');
+
+  const queue = [rootCategoryId];
+  const res = [];
+
+  while (queue.length) {
+    const rootCategory = queue.shift();
+
+    const children = categoriesByParentId[rootCategory!] ?? [];
+
+    res.push(...children);
+    queue.push(...children.map(({ id }) => id));
+  }
+
+  return res;
+};
+
 const getProductsWithSubCategories = async (): Promise<ProductsWithSubCategories> => {
   const products = await Category.queryBuilder().where('alias', 'exists').find();
 
@@ -47,18 +65,16 @@ const getProductsWithSubCategories = async (): Promise<ProductsWithSubCategories
     products.map(async ({ id, name }) => {
       const subCategories = await categoryService.getSubCategories(id, true);
 
+      const childCategories = subCategories.filter(({ parentId }) => parentId === id);
+
       return {
         id,
         name,
-        childCategories: subCategories
-          .filter(({ parentId }) => parentId === id)
-          .map(({ id, name }) => ({
-            id,
-            name,
-            subCategories: subCategories
-              .filter(({ parentId }) => parentId === id)
-              .map(({ id, name }) => ({ id, name })),
-          })),
+        childCategories: childCategories.map(({ id, name }) => ({
+          id,
+          name,
+          subCategories: processCategorySubTree(subCategories, id),
+        })),
         subCategories: subCategories.map(({ id, name }) => ({ id, name })),
       };
     })
