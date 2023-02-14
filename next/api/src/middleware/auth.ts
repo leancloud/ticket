@@ -1,8 +1,8 @@
 import type { Middleware } from 'koa';
 
-import { InvalidLoginCredentialError, User, UserNotRegisteredError } from '@/model/User';
+import { transformToHttpError, User, UserNotRegisteredError } from '@/model/User';
 import { withAsyncSpan, withSpan } from '@/utils/trace';
-import { getVerifiedPayload, JsonWebTokenError } from '@/utils/jwt';
+import { getVerifiedPayloadWithSubRequired } from '@/utils/jwt';
 
 const { ENABLE_TDS_USER_LOGIN } = process.env;
 
@@ -71,21 +71,9 @@ export const auth: Middleware = withSpan(async (ctx, next) => {
 
   const token = ctx.get('X-Credential');
   if (token) {
-    let payload;
-    try {
-      payload = getVerifiedPayload(token);
-    } catch (error) {
-      if (error instanceof JsonWebTokenError) {
-        throw new InvalidLoginCredentialError(error.message, error);
-      }
-      throw error;
-    }
-    const { sub } = payload;
-    if (sub === undefined) {
-      throw new InvalidLoginCredentialError('sub field is required');
-    }
+    const payload = transformToHttpError(() => getVerifiedPayloadWithSubRequired(token));
 
-    const user = await User.findByUsername(sub);
+    const user = await User.findByUsername(payload.sub);
 
     if (!user) {
       throw new UserNotRegisteredError('未找到该 Token 对应的用户，该用户可能从未使用过客服功能。');

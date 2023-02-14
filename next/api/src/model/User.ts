@@ -6,7 +6,7 @@ import { regions } from '@/leancloud';
 import { HttpError, UnauthorizedError } from '@/common/http';
 import { RedisCache } from '@/cache';
 import { AuthOptions, Model, field } from '@/orm';
-import { getVerifiedPayload, JsonWebTokenError, processKeys } from '@/utils/jwt';
+import { getVerifiedPayloadWithSubRequired, JsonWebTokenError, processKeys } from '@/utils/jwt';
 import mem from '@/utils/mem-promise';
 import { Role } from './Role';
 import { Vacation } from './Vacation';
@@ -85,19 +85,30 @@ const getRoles = mem(
   { max: 10_000, ttl: 10_000 }
 );
 
-export class InvalidLoginCredentialError extends HttpError {
+export class InvalidCredentialError extends HttpError {
   static httpCode = 401;
   static code = 'INVALID_CREDENTIAL';
   static numCode = 9002;
   public inner?: Error;
   constructor(message: string, innerError?: Error) {
     super(
-      InvalidLoginCredentialError.httpCode,
+      InvalidCredentialError.httpCode,
       message,
-      InvalidLoginCredentialError.code,
-      InvalidLoginCredentialError.numCode
+      InvalidCredentialError.code,
+      InvalidCredentialError.numCode
     );
     this.inner = innerError;
+  }
+}
+
+export function transformToHttpError<R>(fn: () => R) {
+  try {
+    return fn();
+  } catch (error) {
+    if (error instanceof JsonWebTokenError) {
+      throw new InvalidCredentialError(error.message, error);
+    }
+    throw error;
   }
 }
 
@@ -114,17 +125,6 @@ export class UserNotRegisteredError extends HttpError {
       UserNotRegisteredError.numCode
     );
     this.inner = innerError;
-  }
-}
-
-export class MissingFieldError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'MissingFieldError';
-  }
-
-  toJSON() {
-    return { name: this.name, message: this.message };
   }
 }
 
@@ -256,19 +256,8 @@ export class User extends Model {
   }
 
   static async loginWithJWT(token: string): Promise<{ sessionToken: string }> {
-    let payload;
-    try {
-      payload = getVerifiedPayload(token);
-    } catch (error) {
-      if (error instanceof JsonWebTokenError) {
-        throw new InvalidLoginCredentialError(error.message, error);
-      }
-      throw error;
-    }
+    const payload = transformToHttpError(() => getVerifiedPayloadWithSubRequired(token));
     const { sub, name } = payload;
-    if (sub === undefined) {
-      throw new InvalidLoginCredentialError('sub field is required');
-    }
     return this.upsertByUsername(sub, name);
   }
 
@@ -331,7 +320,7 @@ export class User extends Model {
       return { sessionToken: user.getSessionToken() };
     } catch (err: any) {
       if (err.code === 210) {
-        throw new InvalidLoginCredentialError(err.message, err);
+        throw new InvalidCredentialError(err.message, err);
       }
 
       const error = this.hookErrorProcessor(err);
@@ -345,11 +334,11 @@ export class User extends Model {
   }
 
   static generateTDSUserAuthData(token: string) {
-    const { sub } = getVerifiedPayload(token, { issuer: 'tap-support' }, TDSUserSigningKey);
-
-    if (!sub) {
-      throw new MissingFieldError('sub field is required');
-    }
+    const { sub } = getVerifiedPayloadWithSubRequired(
+      token,
+      { issuer: 'tap-support' },
+      TDSUserSigningKey
+    );
 
     return {
       uid: sub,
@@ -371,8 +360,8 @@ export class User extends Model {
     } catch (err: any) {
       const error = this.hookErrorProcessor(err);
 
-      if (error && (error.name === 'JsonWebTokenError' || error.name === 'MissingFieldError')) {
-        throw new InvalidLoginCredentialError(error.message, err);
+      if (error && error.name === 'JsonWebTokenError') {
+        throw new InvalidCredentialError(error.message, err);
       }
 
       throw err;
@@ -391,19 +380,13 @@ export class User extends Model {
     const anonymousUser = await this.findByAnonymousId(aid);
 
     if (anonymousUser) {
-      try {
-        return anonymousUser.update(
-          {
-            authData: { 'tds-user': this.generateTDSUserAuthData(token) },
-          },
-          { sessionToken: await anonymousUser.loadSessionToken() }
-        );
-      } catch (err) {
-        if (err instanceof JsonWebTokenError || err instanceof MissingFieldError) {
-          throw new InvalidLoginCredentialError(err.message, err);
-        }
-        throw err;
-      }
+      const authData = transformToHttpError(() => this.generateTDSUserAuthData(token));
+      return anonymousUser.update(
+        {
+          authData: { 'tds-user': authData },
+        },
+        { sessionToken: await anonymousUser.loadSessionToken() }
+      );
     }
   }
 

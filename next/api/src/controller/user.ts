@@ -14,9 +14,9 @@ import {
 } from '@/common/http';
 import { FindModelPipe, ParseCsvPipe, TrimPipe, ZodValidationPipe } from '@/common/pipe';
 import { auth, customerServiceOnly, staffOnly } from '@/middleware';
-import { InvalidLoginCredentialError, User } from '@/model/User';
+import { transformToHttpError, User } from '@/model/User';
 import { UserSearchResult } from '@/response/user';
-import { getVerifiedPayload, JsonWebTokenError, processKeys, signPayload } from '@/utils/jwt';
+import { getVerifiedPayloadWithSubRequired, processKeys, signPayload } from '@/utils/jwt';
 import { withAsyncSpan } from '@/utils/trace';
 import { Context } from 'koa';
 import { z } from 'zod';
@@ -191,8 +191,8 @@ export class UserController {
   @Post('tds/token')
   async exchangeJwt(@Body(new ZodValidationPipe(exchangeSchema)) data: ExchangeData) {
     const { jwt } = data;
-    try {
-      const { appId, sub } = getVerifiedPayload(
+    const { appId, sub } = transformToHttpError(() =>
+      getVerifiedPayloadWithSubRequired(
         jwt,
         {
           algorithms: ['RS256'],
@@ -200,20 +200,15 @@ export class UserController {
           audience: 'tap-support',
         },
         TDSUserPublicKey
-      );
+      )
+    );
 
-      return {
-        jwt: signPayload({ sub: `${appId}:${sub}` }, TDSUserSigningKey, {
-          algorithm: 'HS256',
-          expiresIn: '7d',
-          issuer: 'tap-support',
-        }),
-      };
-    } catch (err) {
-      if (err instanceof JsonWebTokenError) {
-        throw new InvalidLoginCredentialError(err.message, err);
-      }
-      throw err;
-    }
+    return {
+      jwt: signPayload({ sub: `${appId}:${sub}` }, TDSUserSigningKey, {
+        algorithm: 'HS256',
+        expiresIn: '7d',
+        issuer: 'tap-support',
+      }),
+    };
   }
 }

@@ -31,6 +31,20 @@ export const getVerifiedPayload = (
   throw new JsonWebTokenError('signature not matched');
 };
 
+export const getVerifiedPayloadWithSubRequired = (
+  ...args: Parameters<typeof getVerifiedPayload>
+) => {
+  const payload = getVerifiedPayload(...args);
+  const { sub } = payload;
+  if (!sub) {
+    throw new JsonWebTokenError('sub field is required');
+  }
+  return {
+    ...payload,
+    sub,
+  } as JwtPayload & { sub: string };
+};
+
 export const signPayload = (
   payload: JwtPayload,
   key: Secret | undefined,
