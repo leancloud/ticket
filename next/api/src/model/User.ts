@@ -11,6 +11,7 @@ import mem from '@/utils/mem-promise';
 import { Role } from './Role';
 import { Vacation } from './Vacation';
 import { Group } from './Group';
+import { TokenExpiredError } from 'jsonwebtoken';
 
 function encodeAVUser(user: AV.User): string {
   const json = user.toFullJSON();
@@ -100,11 +101,30 @@ export class InvalidCredentialError extends HttpError {
     this.inner = innerError;
   }
 }
+export class ExpiredCredentialError extends HttpError {
+  static httpCode = 401;
+  static code = 'EXPIRED_CREDENTIAL';
+  static numCode = 9006;
+  public inner?: Error;
+  constructor(message: string, innerError?: Error) {
+    super(
+      ExpiredCredentialError.httpCode,
+      message,
+      ExpiredCredentialError.code,
+      ExpiredCredentialError.numCode
+    );
+    this.inner = innerError;
+  }
+}
 
 export function transformToHttpError<R>(fn: () => R) {
   try {
     return fn();
   } catch (error) {
+    // TokenExpiredError extends JsonWebTokenError
+    if (error instanceof TokenExpiredError) {
+      throw new ExpiredCredentialError(error.message, error);
+    }
     if (error instanceof JsonWebTokenError) {
       throw new InvalidCredentialError(error.message, error);
     }
