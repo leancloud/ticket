@@ -87,7 +87,7 @@ const getRoles = mem(
 
 export class InvalidLoginCredentialError extends HttpError {
   static httpCode = 401;
-  static code = 'INVALID_LOGIN_CREDENTIAL';
+  static code = 'INVALID_CREDENTIAL';
   static numCode = 9002;
   public inner?: Error;
   constructor(message: string, innerError?: Error) {
