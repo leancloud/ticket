@@ -482,10 +482,10 @@ export abstract class Model {
       return instance;
     });
 
-    if (this.afterCreateHooks) {
+    if (this.afterUpdateHooks) {
       instances.forEach((instance, i) => {
         const ctx = { instance, data: datas[i], options: options! };
-        this.afterCreateHooks.forEach((h) => {
+        this.afterUpdateHooks.forEach((h) => {
           try {
             h(ctx);
           } catch {}
