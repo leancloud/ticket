@@ -91,11 +91,11 @@ export class Query<M extends typeof Model> {
   private orConditions: any[] = [];
   private andConditions: any[] = [];
   private condition: any = {};
-  private selectList: string[] = [];
 
   private skipCount?: number;
   private limitCount?: number;
   private orderKeys: Record<string, OrderType> = {};
+  private selectList: string[] = [];
 
   private preloaders: Record<string, QueryPreloader> = {};
 
@@ -162,6 +162,7 @@ export class Query<M extends typeof Model> {
     query.skipCount = this.skipCount;
     query.limitCount = this.limitCount;
     query.orderKeys = { ...this.orderKeys };
+    query.selectList = [...this.selectList];
 
     query.preloaders = { ...this.preloaders };
 
