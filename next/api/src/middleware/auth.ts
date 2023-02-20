@@ -102,11 +102,8 @@ export const staffOnly: Middleware = withSpan(async (ctx, next) => {
   if (!currentUser) {
     ctx.throw(401);
   }
-  if (await currentUser.isCustomerService()) {
-    return next();
+  if (!(await currentUser.isStaff())) {
+    ctx.throw(403);
   }
-  if (await currentUser.isStaff()) {
-    return next();
-  }
-  return ctx.throw(403);
+  return next();
 }, 'staffOnly');
