@@ -559,6 +559,14 @@ export abstract class Model {
     await object.destroy(getAuthOptions(options));
   }
 
+  static async deleteSome(ids: string[], options?: AuthOptions) {
+    if (ids.length === 0) {
+      return;
+    }
+    const objects = ids.map((id) => AV.Object.createWithoutData(this.getClassName(), id));
+    await AV.Object.destroyAll(objects, options);
+  }
+
   toPointer() {
     const model = this.constructor as typeof Model;
     return model.ptr(this.id);
