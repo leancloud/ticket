@@ -542,6 +542,13 @@ export class User extends Model {
     return this.sessionToken;
   }
 
+  async ensureSessionToken(): Promise<User> {
+    if (this.sessionToken) return this;
+    const sessionToken = await this.loadSessionToken();
+    this.sessionToken = sessionToken;
+    return this;
+  }
+
   async refreshSessionToken(): Promise<void> {
     const avUser = AV.User.createWithoutData('_User', this.id) as AV.User;
     await avUser.refreshSessionToken({ useMasterKey: true });
