@@ -740,7 +740,7 @@ router.patch('/:id', async (ctx) => {
     updater.setCategory(category);
   }
 
-  if (data.organizationId) {
+  if (data.organizationId !== undefined) {
     if (data.organizationId) {
       const organization = await Organization.find(data.organizationId, {
         ...currentUser.getAuthOptions(),
