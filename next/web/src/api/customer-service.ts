@@ -33,8 +33,8 @@ export interface UpdateCustomerServiceData {
 }
 
 async function updateCustomerService({ id, ...data }: UpdateCustomerServiceData) {
-  const { data: res } = await http.patch<UserSchema>(`/api/2/customer-services/${id}`, data);
-  return res;
+  const res = await http.patch(`/api/2/customer-services/${id}`, data);
+  return res.data;
 }
 
 async function deleteCustomerService(id: string) {
@@ -90,7 +90,7 @@ export function useAddCustomerService(options?: UseMutationOptions<void, Error, 
 }
 
 export function useUpdateCustomerService(
-  options?: UseMutationOptions<UserSchema, Error, UpdateCustomerServiceData>
+  options?: UseMutationOptions<void, Error, UpdateCustomerServiceData>
 ) {
   return useMutation({
     mutationFn: updateCustomerService,
