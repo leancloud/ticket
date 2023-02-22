@@ -122,7 +122,7 @@ export class Ticket extends Model {
 
   @pointerId(() => User)
   @serialize()
-  reporterId!: string;
+  reporterId?: string;
 
   @pointTo(() => User)
   reporter?: User;
