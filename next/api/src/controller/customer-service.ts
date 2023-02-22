@@ -112,8 +112,6 @@ export class CustomerServiceController {
         await user.refreshSessionToken();
       }
     }
-
-    return User.findById(user.id);
   }
 
   @Delete(':id')
