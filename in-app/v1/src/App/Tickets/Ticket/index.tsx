@@ -198,6 +198,10 @@ function useWatchReply(
   }, [ticketId]);
 }
 
+async function commitEvaluation(ticketId: string, data: Ticket['evaluation']) {
+  await http.patch(`/api/2/tickets/${ticketId}`, { evaluation: data });
+}
+
 export default function TicketDetail() {
   const params = useParams();
   const id = params.id!;
@@ -256,6 +260,22 @@ export default function TicketDetail() {
     }
   });
 
+  const [editEval, setEditEval] = useState(false);
+
+  const { mutate: evaluate, isLoading: isEvaluating } = useMutation({
+    mutationFn: (data: Ticket['evaluation']) => commitEvaluation(id, data),
+    onSuccess: (_, evaluation) => {
+      setEditEval(false);
+      queryClient.setQueryData<Ticket | undefined>(['ticket', id], (data) => {
+        if (data) {
+          return produce(data, (draft) => {
+            draft.evaluation = evaluation;
+          });
+        }
+      });
+    },
+  });
+
   return (
     <>
       <Helmet>{ticket?.title && <title>{ticket.title}</title>}</Helmet>
@@ -268,10 +288,14 @@ export default function TicketDetail() {
             <div className="-mb-3">
               {ticket &&
                 (ticketIsClosed ? (
-                  ticket.evaluation ? (
-                    <Evaluated />
+                  editEval || !ticket.evaluation ? (
+                    <NewEvaluation
+                      initData={ticket.evaluation}
+                      loading={isEvaluating}
+                      onSubmit={evaluate}
+                    />
                   ) : (
-                    <NewEvaluation ticketId={id} />
+                    <Evaluated onClickChangeButton={() => setEditEval(true)} />
                   )
                 ) : (
                   <ReplyInput onCommit={reply} />

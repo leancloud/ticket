@@ -1,50 +1,62 @@
-import { useState } from 'react';
-import { useMutation, useQueryClient } from 'react-query';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { http } from '@/leancloud';
-import { Ticket } from '@/types';
 import { Radio } from '@/components/Form';
 import { Button } from '@/components/Button';
 import CheckIcon from '@/icons/Check';
 import ThumbDownIcon from '@/icons/ThumbDown';
 import ThumbUpIcon from '@/icons/ThumbUp';
 
-export function Evaluated() {
+interface EvaluatedProps {
+  onClickChangeButton: () => void;
+}
+
+export function Evaluated({ onClickChangeButton }: EvaluatedProps) {
   const { t } = useTranslation();
+  const allowMutateEval = import.meta.env.VITE_ALLOW_MUTATE_EVALUATION;
+
   return (
     <div className="p-6 border-t border-dashed border-gray-300 text-gray-600 flex items-center text-sm">
       <div className="flex w-4 h-4 bg-tapBlue rounded-full mr-2">
         <CheckIcon className="w-1.5 h-1.5 m-auto text-white" />
       </div>
       {t('evaluation.created_text')}
+      {allowMutateEval && (
+        <button className="text-tapBlue" onClick={onClickChangeButton}>
+          ({t('evaluation.change')})
+        </button>
+      )}
     </div>
   );
 }
 
-async function commitEvaluation(ticketId: string, data: Ticket['evaluation']) {
-  await http.patch(`/api/2/tickets/${ticketId}`, { evaluation: data });
+interface EvaluationData {
+  star: 0 | 1;
+  content: string;
 }
 
 export interface NewEvaluationProps {
-  ticketId: string;
+  initData?: EvaluationData | null;
+  loading?: boolean;
+  onSubmit: (data: EvaluationData) => void;
 }
 
-export function NewEvaluation({ ticketId }: NewEvaluationProps) {
+export function NewEvaluation({ initData, loading, onSubmit }: NewEvaluationProps) {
   const { t } = useTranslation();
   const [star, setStar] = useState<0 | 1>();
   const [content, setContent] = useState('');
 
-  const queryClient = useQueryClient();
-  const { mutate, isLoading } = useMutation({
-    mutationFn: (data: Ticket['evaluation']) => commitEvaluation(ticketId, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['ticket', ticketId]);
-    },
-  });
+  useEffect(() => {
+    if (initData) {
+      setStar(initData.star);
+      setContent(initData.content);
+    }
+  }, [initData]);
 
   const handleCommit = () => {
-    mutate({ star: star!, content });
+    if (star !== undefined && content) {
+      onSubmit({ star, content });
+    }
   };
 
   return (
@@ -79,7 +91,7 @@ export function NewEvaluation({ ticketId }: NewEvaluationProps) {
         />
         <Button
           className="ml-2 w-16 text-[13px] leading-[30px]"
-          disabled={star === undefined || isLoading}
+          disabled={star === undefined || loading}
           onClick={handleCommit}
         >
           {t('general.commit')}
