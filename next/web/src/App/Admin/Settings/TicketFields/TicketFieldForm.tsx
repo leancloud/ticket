@@ -32,6 +32,7 @@ import { TicketFieldType } from './TicketFieldType';
 import { TicketFieldIcon } from './TicketFieldIcon';
 import style from './index.module.css';
 import { JSONTextarea } from '@/App/Admin/components/JSONTextarea';
+import { LocaleModal } from '../../components/LocaleModal';
 
 const fieldTypes: TicketFieldSchema['type'][] = [
   'text',
@@ -70,32 +71,6 @@ function FieldType({ value, onChange, readonly }: FieldTypeProps) {
         </button>
       ))}
     </div>
-  );
-}
-
-interface LocaleModalProps {
-  show: boolean;
-  options: { label: string; value: string }[];
-  onOk: (locale: string) => void;
-  onCancel: () => void;
-}
-
-function LocaleModal({ show, options, onOk, onCancel }: LocaleModalProps) {
-  const [value, setValue] = useState<string>();
-  useEffect(() => {
-    setValue(undefined);
-  }, [show]);
-
-  return (
-    <Modal
-      title="请选择要添加的语言"
-      visible={show}
-      okButtonProps={{ disabled: !value }}
-      onOk={() => onOk(value!)}
-      onCancel={onCancel}
-    >
-      <Select className="w-full" options={options} value={value} onChange={setValue} />
-    </Modal>
   );
 }
 
@@ -196,11 +171,7 @@ function FieldVariants({ activeLocale, onChangeActiveLocale }: FieldVariantsProp
 
   const [showModal, setShowModal] = useState(false);
 
-  const localeOptions = useMemo(() => {
-    return Object.entries(LOCALES)
-      .filter(([locale]) => !fields.some((f) => f.locale === locale))
-      .map(([value, label]) => ({ value, label }));
-  }, [fields]);
+  const existLocales = useMemo(() => fields.map(({ locale }) => locale), [fields]);
 
   const handleEditTabs = (key: any, action: 'add' | 'remove') => {
     if (action === 'add') {
@@ -312,7 +283,7 @@ function FieldVariants({ activeLocale, onChangeActiveLocale }: FieldVariantsProp
 
       <LocaleModal
         show={showModal}
-        options={localeOptions}
+        hiddenLocales={existLocales}
         onOk={(locale) => {
           append({
             locale,

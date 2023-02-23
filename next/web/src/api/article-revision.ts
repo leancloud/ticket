@@ -32,10 +32,11 @@ export interface FetchArticleRevisionsResult {
 
 export async function fetchArticleRevisions(
   articleId: string,
+  language: string,
   options: FetchArticleRevisionsOptions
 ): Promise<FetchArticleRevisionsResult> {
   const { data, headers } = await http.get<ArticleRevisionListItem[]>(
-    `/api/2/articles/${articleId}/revisions`,
+    `/api/2/articles/${articleId}/${language}/revisions`,
     {
       params: options,
     }
@@ -53,11 +54,12 @@ export interface UseArticleRevisionsOptions extends FetchArticleRevisionsOptions
 
 export function useArticleRevisions(
   id: string,
+  language: string,
   { queryOptions, ...options }: UseArticleRevisionsOptions = {}
 ) {
   const { data, ...results } = useQuery({
     queryKey: ['articles', id, 'revisions', options],
-    queryFn: () => fetchArticleRevisions(id, options),
+    queryFn: () => fetchArticleRevisions(id, language, options),
     ...queryOptions,
   });
 
@@ -73,21 +75,26 @@ export interface ArticleRevision extends ArticleRevisionListItem {
   contentSafeHTML?: string;
 }
 
-export async function fetchArticleRevision(articleId: string, revisionId: string) {
+export async function fetchArticleRevision(
+  articleId: string,
+  language: string,
+  revisionId: string
+) {
   const { data } = await http.get<ArticleRevision>(
-    `/api/2/articles/${articleId}/revisions/${revisionId}`
+    `/api/2/articles/${articleId}/${language}/revisions/${revisionId}`
   );
   return data;
 }
 
 export function useArticleRevision(
   articleId: string,
+  language: string,
   revisionId: string,
   options?: UseQueryOptions<ArticleRevision, Error>
 ) {
   return useQuery({
     queryKey: ['articles', articleId, 'revisions', revisionId],
-    queryFn: () => fetchArticleRevision(articleId, revisionId),
+    queryFn: () => fetchArticleRevision(articleId, language, revisionId),
     ...options,
   });
 }

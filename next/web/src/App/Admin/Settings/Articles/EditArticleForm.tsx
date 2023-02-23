@@ -1,39 +1,35 @@
-import { useRef, useState } from 'react';
+import { FC, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
-import { UpsertArticleData } from '@/api/article';
-import { Button, Checkbox, Form, FormInstance, Input } from '@/components/antd';
-import { useMarkdownEditor } from '@/components/MarkdownEditor';
+import { CreateArticleData, UpdateArticleData } from '@/api/article';
+import { Button, Checkbox, Divider, Form, FormInstance } from '@/components/antd';
+import { LocaleSelect } from '../../components/LocaleSelect';
+import { TranslationForm, TranslationFormRef } from './components/TranslationForm';
+import { ArticleForm } from './components/ArticleForm';
 
-export interface EditArticleProps {
-  initData?: UpsertArticleData;
-  submitting?: boolean;
-  onSubmit: (data: UpsertArticleData) => void;
-  onCancel?: () => void;
-  acceptComment?: boolean;
-}
-
-interface FormData extends Omit<UpsertArticleData, 'private'> {
+interface NewArticleFormData extends Omit<CreateArticleData, 'private'> {
   public: boolean;
 }
 
-export function EditArticleForm({
+export interface NewArticleFormProps {
+  initData?: CreateArticleData;
+  submitting?: boolean;
+  onSubmit: (data: CreateArticleData) => void;
+  onCancel?: () => void;
+}
+
+export const NewArticleForm: FC<NewArticleFormProps> = ({
   initData,
   submitting,
   onSubmit,
   onCancel,
-  acceptComment = true,
-}: EditArticleProps) {
-  const { control, handleSubmit } = useForm<FormData>({
+}) => {
+  const { control, handleSubmit } = useForm<NewArticleFormData>({
     defaultValues: { ...initData, public: !initData?.private },
   });
 
   const $antForm = useRef<FormInstance>(null!);
-  const [comment, setComment] = useState('');
-
-  const [editor, getValue] = useMarkdownEditor(initData?.content ?? '', {
-    height: 'calc(100vh - 220px)',
-  });
+  const translationFormRef = useRef<TranslationFormRef>(null);
 
   return (
     <div className="flex flex-col h-full">
@@ -44,28 +40,35 @@ export function EditArticleForm({
           onFinish={handleSubmit(({ ['public']: pblc, ...data }) =>
             onSubmit({
               ...data,
-              content: getValue() ?? '',
+              content: translationFormRef.current?.getValue() ?? '',
               private: !pblc,
-              comment,
             })
           )}
         >
+          <ArticleForm control={control} />
+
+          <Divider type="horizontal" plain>
+            默认语言
+          </Divider>
+
           <Controller
             control={control}
-            name="title"
-            rules={{ required: '请填写此字段' }}
-            defaultValue=""
+            name="language"
+            rules={{ required: '语言不能为空' }}
+            defaultValue="zh-cn"
             render={({ field, fieldState: { error } }) => (
               <Form.Item
                 validateStatus={error ? 'error' : undefined}
                 help={error?.message}
                 style={{ marginBottom: 16 }}
               >
-                <Input {...field} id="title" autoFocus placeholder="标题" />
+                <LocaleSelect {...field} className="w-full" />
               </Form.Item>
             )}
           />
-          <Form.Item style={{ marginBottom: 16 }}>{editor}</Form.Item>
+
+          <TranslationForm control={control} ref={translationFormRef} />
+
           <Form.Item style={{ marginBottom: 0 }}>
             <Controller
               control={control}
@@ -85,15 +88,72 @@ export function EditArticleForm({
         <Button className="mr-4" disabled={submitting} type="link" onClick={onCancel}>
           取消
         </Button>
-        {acceptComment && (
-          <Input
-            className="!mr-6"
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="为此次改动添加注释"
-          />
-        )}
       </div>
     </div>
   );
+};
+
+export interface EditArticleFormProps {
+  initData?: UpdateArticleData;
+  submitting?: boolean;
+  onSubmit: (data: UpdateArticleData) => void;
+  onCancel?: () => void;
 }
+
+export interface EditArticleFormData extends Omit<UpdateArticleData, 'private'> {
+  public: boolean;
+}
+
+export const EditArticleForm: FC<EditArticleFormProps> = ({
+  initData,
+  submitting,
+  onSubmit,
+  onCancel,
+  children,
+}) => {
+  const { control, handleSubmit } = useForm<NewArticleFormData>({
+    defaultValues: { ...initData, public: !initData?.private },
+  });
+
+  const $antForm = useRef<FormInstance>(null!);
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="grow overflow-y-auto">
+        <Form
+          ref={$antForm}
+          layout="vertical"
+          onFinish={handleSubmit(({ ['public']: pblc, ...data }) =>
+            onSubmit({
+              ...data,
+              private: !pblc,
+            })
+          )}
+        >
+          <ArticleForm control={control} />
+
+          <Form.Item style={{ marginBottom: 0 }}>
+            <Controller
+              control={control}
+              name="public"
+              render={({ field: { value, onChange } }) => (
+                <Checkbox checked={value} onChange={onChange} children="发布" />
+              )}
+            />
+          </Form.Item>
+        </Form>
+
+        {children}
+      </div>
+
+      <div className="flex flex-row-reverse px-10 py-4 border-t border-[#D8DCDE]">
+        <Button type="primary" loading={submitting} onClick={() => $antForm.current.submit()}>
+          保存
+        </Button>
+        <Button className="mr-4" disabled={submitting} type="link" onClick={onCancel}>
+          取消
+        </Button>
+      </div>
+    </div>
+  );
+};

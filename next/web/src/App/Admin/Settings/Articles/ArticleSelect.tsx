@@ -1,16 +1,13 @@
 import { forwardRef, useMemo } from 'react';
 import { RefSelectProps } from 'antd/lib/select';
 import { useArticles } from '@/api/article';
-import {
-  Select,
-  SelectProps
-} from '@/components/antd';
+import { Select, SelectProps } from '@/components/antd';
 
 export const ArticleSelect = forwardRef<RefSelectProps, SelectProps<string[]>>((props, ref) => {
   const { data, isLoading } = useArticles();
   const options = useMemo(() => {
     return data?.map((article) => ({
-      label: (article.private ? '[未发布] ' : '') + article.title,
+      label: (article.private ? '[未发布] ' : '') + article.name,
       value: article.id,
     }));
   }, [data]);
@@ -26,6 +23,7 @@ export const ArticleSelect = forwardRef<RefSelectProps, SelectProps<string[]>>((
       showArrow
       options={options}
       optionFilterProp="label"
-      maxTagTextLength={12} />
+      maxTagTextLength={12}
+    />
   );
 });

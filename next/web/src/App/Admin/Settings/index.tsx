@@ -15,7 +15,7 @@ import { TicketFieldList, NewTicketField, TicketFieldDetail } from './TicketFiel
 import { TicketFormList, NewTicketForm, TicketFormDetail } from './TicketForms';
 import { TicketFormNoteList, NewTicketFormNote, TicketFormNoteDetail } from './TicketFormNotes';
 import { DynamicContentList, NewDynamicContent, DynamicContentDetail } from './DynamicContents';
-import { ArticleDetail, Articles, EditArticle, NewArticle } from './Articles';
+import { Articles } from './Articles';
 
 import Triggers from './Automations/Triggers';
 import NewTrigger from './Automations/Triggers/New';
@@ -27,6 +27,11 @@ import { ArticleRevisionDetail, ArticleRevisions } from './Articles/Revision';
 import { Weekday } from './Others';
 import { NewTopic, TopicDetail, TopicList } from './Topics';
 import { CategoryFieldCount } from './Categories/CategoryFieldStats';
+import { NewArticle } from './Articles/NewArticle';
+import { ArticleDetail } from './Articles/ArticleDetail';
+import { ArticleTranslationDetail } from './Articles/TranslationDetail';
+import { EditArticleTranslation } from './Articles/EditTranslation';
+import { NewArticleTranslation } from './Articles/NewTranslation';
 
 const SettingRoutes = () => (
   <Routes>
@@ -99,10 +104,14 @@ const SettingRoutes = () => (
       <Route path="new" element={<NewArticle />} />
       <Route path=":id">
         <Route index element={<ArticleDetail />} />
-        <Route path="edit" element={<EditArticle />} />
-        <Route path="revisions">
-          <Route index element={<ArticleRevisions />} />
-          <Route path=":rid" element={<ArticleRevisionDetail />} />
+        <Route path=":language">
+          <Route index element={<ArticleTranslationDetail />} />
+          <Route path="edit" element={<EditArticleTranslation />} />
+          <Route path="new" element={<NewArticleTranslation />} />
+          <Route path="revisions">
+            <Route index element={<ArticleRevisions />} />
+            <Route path=":rid" element={<ArticleRevisionDetail />} />
+          </Route>
         </Route>
       </Route>
     </Route>

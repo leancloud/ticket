@@ -10,6 +10,7 @@ import { usePage, usePageSize } from '@/utils/usePage';
 import { useSearchParam } from '@/utils/useSearchParams';
 import { QueryResult } from '@/components/common';
 import { FeedbackSummary } from './FeedbackSummary';
+import { LOCALES } from '@/i18n/locales';
 
 const { Column } = Table;
 const { Title } = Typography;
@@ -21,12 +22,12 @@ const MetaQueryValue: { [key: string]: boolean | undefined } = {
 };
 
 export function ArticleRevisions() {
-  const { id: articleId } = useParams();
+  const { id: articleId, language } = useParams();
   const [page, { set: setPage }] = usePage();
   const [pageSize = 20, setPageSize] = usePageSize();
   const [metaFilter = 'unset', setMetaFilter] = useSearchParam('meta');
 
-  const { data: revisions, totalCount, isLoading } = useArticleRevisions(articleId!, {
+  const { data: revisions, totalCount, isLoading } = useArticleRevisions(articleId!, language!, {
     page,
     pageSize,
     count: 1,
@@ -41,10 +42,13 @@ export function ArticleRevisions() {
       <div className="flex justify-center mb-1">
         <Breadcrumb className="grow">
           <Breadcrumb.Item>
-            <Link to="../../..">文章</Link>
+            <Link to="../../../..">文章</Link>
           </Breadcrumb.Item>
           <Breadcrumb.Item>
-            <Link to="../..">{articleId}</Link>
+            <Link to="../../..">{articleId}</Link>
+          </Breadcrumb.Item>
+          <Breadcrumb.Item>
+            <Link to="../..">{LOCALES[language!]}</Link>
           </Breadcrumb.Item>
           <Breadcrumb.Item className="text-gray-300">历史</Breadcrumb.Item>
         </Breadcrumb>
@@ -138,9 +142,9 @@ export function ArticleRevisions() {
 }
 
 export function ArticleRevisionDetail() {
-  const { id: articleId, rid: revisionId } = useParams();
+  const { id: articleId, rid: revisionId, language } = useParams();
 
-  const result = useArticleRevision(articleId!, revisionId!);
+  const result = useArticleRevision(articleId!, language!, revisionId!);
 
   return (
     <QueryResult className="p-10" result={result}>
@@ -149,10 +153,13 @@ export function ArticleRevisionDetail() {
           <div className="flex justify-center mb-1">
             <Breadcrumb className="grow">
               <Breadcrumb.Item>
-                <Link to="../../..">文章</Link>
+                <Link to="../../../..">文章</Link>
               </Breadcrumb.Item>
               <Breadcrumb.Item>
-                <Link to="../..">{articleId}</Link>
+                <Link to="../../..">{articleId}</Link>
+              </Breadcrumb.Item>
+              <Breadcrumb.Item>
+                <Link to="../..">{LOCALES[language!]}</Link>
               </Breadcrumb.Item>
               <Breadcrumb.Item>
                 <Link to="..">历史</Link>
