@@ -1,11 +1,11 @@
 import { field, Model, pointerId, pointTo, serialize } from '@/orm';
-import { Article } from './Article';
 import { ArticleRevision } from './ArticleRevision';
 import { User } from './User';
+import { ArticleTranslation } from './ArticleTranslation';
 
 export enum FeedbackType {
-  Upvote =  1,
-  Downvote = -1
+  Upvote = 1,
+  Downvote = -1,
 }
 
 export class ArticleFeedback extends Model {
@@ -22,7 +22,7 @@ export class ArticleFeedback extends Model {
   @pointTo(() => User)
   author?: User;
 
-  @pointerId(() => Article, 'FAQ')
+  @pointerId(() => ArticleTranslation, 'FAQTranslation')
   @serialize()
   articleId!: string;
 

@@ -34,22 +34,10 @@ import {
   TicketFieldStatsOptions,
   TicketFieldStatsResponse,
 } from '@/response/ticket-field';
-import { LOCALES } from '@/i18n/locales';
 import { Status } from '@/model/Ticket';
 import { Category } from '@/model/Category';
 import { TicketForm } from '@/model/TicketForm';
-
-const localeSchema = z
-  .string()
-  .transform((s) => s.toLowerCase())
-  .superRefine((s, ctx) => {
-    if (!LOCALES.includes(s)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.invalid_enum_value,
-        options: LOCALES,
-      });
-    }
-  });
+import { localeSchema } from '@/utils/locale';
 
 const variantOptionSchema = z.object({
   title: z.string(),

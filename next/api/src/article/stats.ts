@@ -5,11 +5,13 @@ import { ArticleRevision } from '@/model/ArticleRevision';
 export const analyzeArticles = async () => {
   const articlesIterator = {
     [Symbol.asyncIterator]() {
-      return new Query('FAQ').notEqualTo('archived', true).scan(undefined, { useMasterKey: true });
+      return new Query('FAQTranslation')
+        .notEqualTo('private', true)
+        .scan(undefined, { useMasterKey: true });
     },
   };
   for await (const article of articlesIterator) {
-    console.log('Start process', article.id, article.get('question'));
+    console.log('Start process', article.get('article').id, article.get('title'));
     if (article.get('revision')) {
       const revision = ArticleRevision.fromAVObject(article.get('revision'));
       const [upvote, downvote] = await Promise.all(
