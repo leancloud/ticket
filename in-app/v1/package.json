@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "vite",
-    "build": "node ./script/generate_env.js && vite build",
+    "build": "node ./script/generateEnv.js && vite build",
     "typecheck": "tsc --noEmit"
   },
   "author": "",

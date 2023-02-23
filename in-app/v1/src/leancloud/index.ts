@@ -45,9 +45,9 @@ use({
 });
 
 export const app = init({
-  appId: import.meta.env.VITE_LC_APP_ID,
-  appKey: import.meta.env.VITE_LC_APP_KEY,
-  serverURL: import.meta.env.VITE_LC_API_SERVER,
+  appId: import.meta.env.VITE_LEANCLOUD_APP_ID,
+  appKey: import.meta.env.VITE_LEANCLOUD_APP_KEY,
+  serverURL: import.meta.env.VITE_LEANCLOUD_API_HOST,
 });
 
 export const auth = app.auth();

@@ -76,7 +76,8 @@
     "useful": "有用",
     "useless": "没用",
     "content_hint": "补充说明（非必填）",
-    "created_text": "您的评价已收到，感谢您的反馈！"
+    "created_text": "您的评价已收到，感谢您的反馈！",
+    "change": "修改评价"
   },
   "validation": {
     "required": "该内容不能为空",
