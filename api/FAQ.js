@@ -3,16 +3,16 @@ const LRUCache = require('lru-cache')
 const sortKeys = require('sort-keys')
 const { htmlify } = require('./common')
 
-AV.Cloud.beforeSave('FAQ', async (req) => {
+AV.Cloud.beforeSave('FAQTranslate', async (req) => {
   const FAQ = req.object
-  FAQ.set('answer_HTML', htmlify(FAQ.get('answer')))
+  FAQ.set('content_HTML', htmlify(FAQ.get('content')))
 })
-AV.Cloud.afterUpdate('FAQ', async (req) => {
+AV.Cloud.afterUpdate('FAQTranslate', async (req) => {
   const FAQ = req.object
-  if (req.object.updatedKeys.indexOf('answer') === -1) {
+  if (req.object.updatedKeys.indexOf('content') === -1) {
     return
   }
-  FAQ.set('answer_HTML', htmlify(FAQ.get('answer')))
+  FAQ.set('content_HTML', htmlify(FAQ.get('content')))
   return FAQ.save(null, {
     useMasterKey: true,
   })
