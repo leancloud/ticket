@@ -54,7 +54,7 @@ export function NewEvaluation({ initData, loading, onSubmit }: NewEvaluationProp
   }, [initData]);
 
   const handleCommit = () => {
-    if (star !== undefined && content) {
+    if (star !== undefined) {
       onSubmit({ star, content });
     }
   };
