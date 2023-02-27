@@ -25,6 +25,7 @@ import { categoryService } from '@/category';
 import { FilterOptions, textFilterService } from '@/utils/textFilter';
 import { OpsLogResponse } from '@/response/ops-log';
 import { getIP } from '@/utils';
+import { organizationService } from '@/service/organization';
 
 const router = new Router().use(auth);
 
@@ -840,16 +841,34 @@ router.post('/:id/replies', async (ctx) => {
   const ticket = ctx.state.ticket as Ticket;
 
   const data = replyDataSchema.validateSync(ctx.request.body);
+
   const isCustomerService = await currentUser.isCustomerService();
   const isStaff = await currentUser.isStaff();
-  const isUser = !isCustomerService && !isStaff;
+  const isCollaborator = await currentUser.isCollaborator();
 
-  if (data.internal && isUser) {
-    ctx.throw(403, 'Not internal');
+  const canCreatePublicReply = async () => {
+    if (currentUser.id === ticket.authorId) {
+      return true;
+    }
+    if (isCustomerService) {
+      return true;
+    }
+    if (ticket.organizationId) {
+      return organizationService.isOrganizationMember(ticket.organizationId, currentUser.id);
+    }
+    return false;
+  };
+
+  if (data.internal) {
+    if (!isStaff && !isCollaborator) {
+      ctx.throw(403, 'Internal reply not allowed');
+    }
+  } else {
+    if (!(await canCreatePublicReply())) {
+      ctx.throw(403, 'Public reply not allowed');
+    }
   }
-  if (!data.internal && isStaff && !isCustomerService) {
-    ctx.throw(403, 'Public reply not allowed');
-  }
+
   if (!data.content && (!data.fileIds || data.fileIds.length === 0)) {
     ctx.throw(400, 'Content and fileIds cannot be empty at the same time');
   }

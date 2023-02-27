@@ -3,7 +3,7 @@ import LRUCache from 'lru-cache';
 import { Role } from '@/model/Role';
 import { User } from '@/model/User';
 
-const SYSTEM_ROLE_NAMES = ['admin', 'customerService', 'staff'];
+const SYSTEM_ROLE_NAMES = ['admin', 'customerService', 'staff', 'collaborator'];
 
 export class RoleService {
   private systemRolesCache = new LRUCache<string, string[]>({
@@ -51,6 +51,15 @@ export class RoleService {
 
     this.systemRolesCache.set(userId, names);
     return names;
+  }
+
+  async isRoleMember(roleId: string, userId: string) {
+    const user = await User.queryBuilder()
+      .select('objectId')
+      .relatedTo(Role, 'users', roleId)
+      .where('objectId', '==', userId)
+      .first({ useMasterKey: true });
+    return user !== undefined;
   }
 }
 

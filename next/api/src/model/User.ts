@@ -466,9 +466,14 @@ export class User extends Model {
     return ['customerService', 'admin'].some((role) => roles.includes(role));
   }
 
-  async isStaff(): Promise<boolean> {
+  async isStaff() {
     const roles = await roleService.getSystemRolesForUser(this.id);
-    return ['staff', 'customerService', 'admin'].some((role) => roles.includes(role));
+    return ['customerService', 'staff', 'admin'].some((role) => roles.includes(role));
+  }
+
+  async isCollaborator() {
+    const roles = await roleService.getSystemRolesForUser(this.id);
+    return roles.includes('collaborator');
   }
 
   getAuthOptions(): AuthOptions {
