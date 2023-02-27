@@ -1,0 +1,70 @@
+{
+  "schema": {
+    "contentHTML": { "type": "String" },
+    "updatedAt": { "type": "Date" },
+    "content_HTML": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "revision": {
+      "type": "Pointer",
+      "v": 2,
+      "className": "FAQRevision",
+      "required": false,
+      "hidden": false,
+      "read_only": false,
+      "comment": ""
+    },
+    "private": {
+      "type": "Boolean",
+      "v": 2,
+      "required": false,
+      "default": false,
+      "hidden": false,
+      "read_only": false,
+      "comment": ""
+    },
+    "ACL": { "type": "ACL" },
+    "content": { "type": "String", "v": 2, "required": false, "hidden": false, "read_only": false },
+    "objectId": { "type": "String" },
+    "article": {
+      "type": "Pointer",
+      "v": 2,
+      "className": "FAQ",
+      "required": true,
+      "hidden": false,
+      "read_only": false
+    },
+    "createdAt": { "type": "Date" },
+    "title": { "type": "String", "v": 2, "required": true, "hidden": false, "read_only": false },
+    "deletedAt": { "type": "Date", "v": 2, "required": false, "hidden": false, "read_only": false },
+    "language": { "type": "String", "v": 2, "required": true, "hidden": false, "read_only": false }
+  },
+  "permissions": {
+    "create": { "roles": [], "users": [] },
+    "find": { "*": true },
+    "get": { "*": true },
+    "update": { "roles": [], "users": [] },
+    "delete": { "roles": [], "users": [] },
+    "add_fields": { "roles": [], "users": [] }
+  },
+  "indexes": [
+    {
+      "v": 2,
+      "key": { "article.$id": 1 },
+      "name": "-user-article.$id_1",
+      "ns": "-.FAQTranslation",
+      "background": true
+    },
+    {
+      "v": 2,
+      "key": { "article.$id": 1, "language": 1 },
+      "name": "-user-article.$id_1_language_1",
+      "ns": "-.FAQTranslation",
+      "background": true
+    }
+  ]
+}

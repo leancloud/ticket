@@ -1,34 +1,18 @@
 {
   "schema": {
-    "archived": {
-      "type": "Boolean"
-    },
-    "updatedAt": {
-      "type": "Date"
-    },
-    "meta": {
-      "type": "Boolean"
-    },
-    "ACL": {
-      "type": "ACL",
-      "default": {
-        "*": {
-          "read": true,
-          "write": true
-        }
-      }
-    },
-    "FAQ": {
+    "archived": { "type": "Boolean" },
+    "updatedAt": { "type": "Date" },
+    "meta": { "type": "Boolean" },
+    "FAQTranslation": {
       "type": "Pointer",
       "v": 2,
-      "className": "FAQ",
+      "className": "FAQTranslation",
       "required": true,
       "hidden": false,
       "read_only": false
     },
-    "objectId": {
-      "type": "String"
-    },
+    "ACL": { "type": "ACL", "default": { "*": { "read": true, "write": true } } },
+    "objectId": { "type": "String" },
     "question": {
       "type": "String",
       "v": 2,
@@ -37,8 +21,13 @@
       "read_only": false,
       "comment": ""
     },
-    "createdAt": {
-      "type": "Date"
+    "createdAt": { "type": "Date" },
+    "downvote": {
+      "type": "Number",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
     },
     "author": {
       "type": "Pointer",
@@ -49,78 +38,30 @@
       "read_only": false,
       "comment": ""
     },
-    "answer": {
-      "type": "String",
-      "v": 2,
-      "required": false,
-      "hidden": false,
-      "read_only": false
-    },
-    "upvote": {
-      "type": "Number",
-      "v": 2,
-      "required": false,
-      "hidden": false,
-      "read_only": false
-    },
-    "downvote": {
-      "type": "Number",
-      "v": 2,
-      "required": false,
-      "hidden": false,
-      "read_only": false
-    },
-    "comment": {
-      "type": "String",
-      "v": 2,
-      "required": false,
-      "hidden": false,
-      "read_only": false
-    }
+    "answer": { "type": "String", "v": 2, "required": false, "hidden": false, "read_only": false },
+    "comment": { "type": "String", "v": 2, "required": false, "hidden": false, "read_only": false },
+    "upvote": { "type": "Number", "v": 2, "required": false, "hidden": false, "read_only": false }
   },
   "permissions": {
-    "create": {
-      "roles": [],
-      "users": []
-    },
-    "find": {
-      "*": true
-    },
-    "get": {
-      "*": true
-    },
-    "update": {
-      "roles": [],
-      "users": []
-    },
-    "delete": {
-      "roles": [],
-      "users": []
-    },
-    "add_fields": {
-      "roles": [],
-      "users": []
-    }
+    "create": { "roles": [], "users": [] },
+    "find": { "*": true },
+    "get": { "*": true },
+    "update": { "roles": [], "users": [] },
+    "delete": { "roles": [], "users": [] },
+    "add_fields": { "roles": [], "users": [] }
   },
   "indexes": [
     {
       "v": 2,
-      "key": {
-        "FAQ.$id": -1,
-        "createdAt": -1
-      },
-      "name": "-user-FAQ.$id_-1_createdAt_-1",
+      "key": { "FAQTranslation.$id": -1, "createdAt": -1 },
+      "name": "-user-FAQTranslation.$id_-1_createdAt_-1",
       "ns": "-.FAQRevision",
       "background": true
     },
     {
       "v": 2,
-      "key": {
-        "FAQ.$id": -1,
-        "meta": -1,
-        "createdAt": -1
-      },
-      "name": "-user-FAQ.$id_-1_meta_-1_createdAt_-1",
+      "key": { "FAQTranslation.$id": -1, "meta": -1, "createdAt": -1 },
+      "name": "-user-FAQTranslation.$id_-1_meta_-1_createdAt_-1",
       "ns": "-.FAQRevision",
       "background": true
     }
