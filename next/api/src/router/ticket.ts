@@ -799,7 +799,6 @@ const fetchRepliesParamsSchema = yup.object({
 });
 
 router.get('/:id/replies', sort('orderBy', ['createdAt']), async (ctx) => {
-  const currentUser = ctx.state.currentUser as User;
   const ticket = ctx.state.ticket as Ticket;
   const { cursor, page, pageSize, count } = fetchRepliesParamsSchema.validateSync(ctx.query);
   const sortItems = sort.get(ctx);
@@ -808,6 +807,7 @@ router.get('/:id/replies', sort('orderBy', ['createdAt']), async (ctx) => {
 
   const query = Reply.queryBuilder()
     .where('ticket', '==', ticket.toPointer())
+    .where('deletedAt', 'not-exists')
     .preload('author')
     .preload('files');
   if (cursor) {
@@ -820,11 +820,11 @@ router.get('/:id/replies', sort('orderBy', ['createdAt']), async (ctx) => {
 
   let replies: Reply[];
   if (count) {
-    const result = await query.findAndCount(currentUser.getAuthOptions());
+    const result = await query.findAndCount({ useMasterKey: true });
     replies = result[0];
     ctx.set('X-Total-Count', result[1].toString());
   } else {
-    replies = await query.find(currentUser.getAuthOptions());
+    replies = await query.find({ useMasterKey: true });
   }
   ctx.body = replies.map((reply) => new ReplyResponse(reply));
 });

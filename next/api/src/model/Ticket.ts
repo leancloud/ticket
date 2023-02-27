@@ -238,6 +238,7 @@ export class Ticket extends Model {
   async reply(this: Ticket, data: CreateReplyData): Promise<Reply> {
     const isCustomerService = await data.author.isCustomerService();
 
+    // XXX: /api/2/tickets/:id/replies 已使用 masterKey 获取回复
     const ACL = new ACLBuilder();
     if (data.internal) {
       ACL.allowCustomerService('read', 'write').allowStaff('read');
