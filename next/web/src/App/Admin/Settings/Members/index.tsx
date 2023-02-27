@@ -20,18 +20,12 @@ function MemberActions({ id, nickname, active }: CustomerServiceSchema) {
       message.success(`${active ? '禁用' : '启用'}成功`);
       queryClient.invalidateQueries('customerServices');
     },
-    onError: (error) => {
-      message.error(error.message);
-    },
   });
 
   const { mutate, isLoading } = useDeleteCustomerService({
     onSuccess: () => {
       message.success('移除成功');
       queryClient.invalidateQueries('customerServices');
-    },
-    onError: (error) => {
-      message.error(error.message);
     },
   });
 
@@ -145,7 +139,7 @@ export function Members() {
 
   return (
     <div className="p-10">
-      <h1 className="text-[#2f3941] text-[26px] font-normal">成员</h1>
+      <h1 className="text-[#2f3941] text-[26px] font-normal">客服</h1>
 
       <div className="flex flex-row-reverse">
         <Button type="primary" onClick={() => setAddUserModalVisible(true)}>
