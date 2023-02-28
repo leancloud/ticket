@@ -1,9 +1,7 @@
-import { ComponentPropsWithoutRef } from 'react';
+import { useUser } from '@/api/user';
 
-import { useCustomerService } from '@/api/user';
-
-export function CurrentUserSection(props: ComponentPropsWithoutRef<'section'>) {
-  const { data, isLoading } = useCustomerService('me', {
+export function CurrentUserSection() {
+  const { data, isLoading } = useUser('me', {
     staleTime: Infinity,
   });
 
