@@ -101,6 +101,13 @@ export class UserController {
     return user.thirdPartyData;
   }
 
+  @Get('me')
+  @UseMiddlewares(auth)
+  @ResponseBody(UserSearchResult)
+  getMe(@CurrentUser() currentUser: User) {
+    return currentUser;
+  }
+
   @Get(':id')
   @UseMiddlewares(auth, staffOnly)
   @ResponseBody(UserSearchResult)
