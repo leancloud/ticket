@@ -13,6 +13,7 @@ import cx from 'classnames';
 
 import { Badge, Checkbox, InputNumber, Select, Tooltip } from '@/components/antd';
 import { useOrderBy as _useOrderBy } from '@/utils/useOrderBy';
+import { useCurrentUserIsCustomerService } from '@/leancloud';
 import styles from './index.module.css';
 import { BatchUpdateDialog } from './BatchUpdateDialog';
 import { BatchOperationMenu } from './BatchOperateMenu';
@@ -246,6 +247,8 @@ export function Topbar({
     return false;
   }, [checkedTicketIds, count]);
 
+  const isCustomerService = useCurrentUserIsCustomerService();
+
   return (
     <div
       {...props}
@@ -289,27 +292,31 @@ export function Topbar({
         isLoading={isLoading}
       />
 
-      <Tooltip title="分析">
-        <NavButton
-          className="ml-2 px-[7px] py-[7px]"
-          disabled={count === 0 || !!localFilters.keyword}
-          active={showStatsPanel}
-          onClick={() => onChangeShowStatsPanel?.(!showStatsPanel)}
-        >
-          <HiOutlineChartPie className="w-4 h-4" />
-        </NavButton>
-      </Tooltip>
-
-      <Exporter
-        trigger={
+      {isCustomerService && (
+        <Tooltip title="分析">
           <NavButton
             className="ml-2 px-[7px] py-[7px]"
-            disabled={totalCount === 0 || !!localFilters.keyword}
+            disabled={count === 0 || !!localFilters.keyword}
+            active={showStatsPanel}
+            onClick={() => onChangeShowStatsPanel?.(!showStatsPanel)}
           >
-            <HiOutlineDownload className="w-4 h-4" />
+            <HiOutlineChartPie className="w-4 h-4" />
           </NavButton>
-        }
-      />
+        </Tooltip>
+      )}
+
+      {isCustomerService && (
+        <Exporter
+          trigger={
+            <NavButton
+              className="ml-2 px-[7px] py-[7px]"
+              disabled={totalCount === 0 || !!localFilters.keyword}
+            >
+              <HiOutlineDownload className="w-4 h-4" />
+            </NavButton>
+          }
+        />
+      )}
 
       <Badge dot={!isEmpty(localFilters)}>
         <NavButton

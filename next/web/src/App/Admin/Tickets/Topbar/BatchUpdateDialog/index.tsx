@@ -3,6 +3,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import cx from 'classnames';
 
 import { Button, Input } from '@/components/antd';
+import { useCurrentUserIsCustomerService } from '@/leancloud';
 import { BatchUpdateData } from '../batchUpdate';
 import { AssigneeSelect } from './AssigneeSelect';
 import { GroupSelect } from './GroupSelect';
@@ -55,16 +56,20 @@ function BatchUpdateForm({ className, onCancel, onSubmit }: BatchUpdateFormProps
     }
   };
 
+  const isCustomerService = useCurrentUserIsCustomerService();
+
   return (
     <div id="batchUpdateForm" className={cx('flex flex-col', className)}>
       <div className="grow px-8 py-4 overflow-x-auto">
-        <Field title="批量回复">
-          <Input.TextArea
-            rows={5}
-            value={replyContent}
-            onChange={(e) => setReplyContent(e.target.value)}
-          />
-        </Field>
+        {isCustomerService && (
+          <Field title="批量回复">
+            <Input.TextArea
+              rows={5}
+              value={replyContent}
+              onChange={(e) => setReplyContent(e.target.value)}
+            />
+          </Field>
+        )}
 
         <Field title="客服">
           <AssigneeSelect value={assigneeId} onChange={setAssigneeId} />
