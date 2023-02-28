@@ -2,10 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { SiMarkdown } from 'react-icons/si';
 import { compact, keyBy, last, uniq } from 'lodash-es';
-import { useRecoilValue } from 'recoil';
 import { useToggle } from 'react-use';
 
-import { currentUserIsCustomerSerivceState, ENABLE_LEANCLOUD_INTEGRATION } from '@/leancloud';
+import { useCurrentUserIsCustomerService, ENABLE_LEANCLOUD_INTEGRATION } from '@/leancloud';
 import { useArticles } from '@/api/article';
 import { CategorySchema, useCategories } from '@/api/category';
 import { useOrganizations } from '@/api/organization';
@@ -100,7 +99,7 @@ export interface TicketFormProps {
 export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
   const methods = useForm<RawTicketData>({ shouldUnregister: true });
   const { control, getValues, setValue } = methods;
-  const isCustomerSerivce = useRecoilValue(currentUserIsCustomerSerivceState);
+  const isCustomerSerivce = useCurrentUserIsCustomerService();
   const [asAttorney, setAsAttorney] = useState(isCustomerSerivce);
 
   const orgs = useOrganizations();
