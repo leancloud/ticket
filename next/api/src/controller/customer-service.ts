@@ -18,7 +18,7 @@ import {
   UseMiddlewares,
 } from '@/common/http';
 import { ZodValidationPipe } from '@/common/pipe';
-import { auth, customerServiceOnly } from '@/middleware';
+import { auth, customerServiceOnly, systemRoleMemberGuard } from '@/middleware';
 import { Category } from '@/model/Category';
 import { Role } from '@/model/Role';
 import { User } from '@/model/User';
@@ -62,7 +62,7 @@ const findAllCustomerServicesSchema = z.object({
 type FindAllCustomerServicesData = z.infer<typeof findAllCustomerServicesSchema>;
 
 @Controller('customer-services')
-@UseMiddlewares(auth, customerServiceOnly)
+@UseMiddlewares(auth, systemRoleMemberGuard)
 export class CustomerServiceController {
   @Get()
   @ResponseBody(CustomerServiceResponse)
@@ -85,6 +85,7 @@ export class CustomerServiceController {
   }
 
   @Post()
+  @UseMiddlewares(customerServiceOnly)
   @StatusCode(201)
   async create(
     @CurrentUser() currentUser: User,
@@ -100,6 +101,7 @@ export class CustomerServiceController {
   }
 
   @Patch(':id')
+  @UseMiddlewares(customerServiceOnly)
   async update(
     @Body(new ZodValidationPipe(updateCustomerServiceSchema)) data: UpdateCustomerServiceData,
     @Param('id', FindCustomerServicePipe) user: User
@@ -115,6 +117,7 @@ export class CustomerServiceController {
   }
 
   @Delete(':id')
+  @UseMiddlewares(customerServiceOnly)
   async delete(@CurrentUser() currentUser: User, @Param('id', FindCustomerServicePipe) user: User) {
     const csRole = await Role.getCustomerServiceRole();
     const avRole = AV.Role.createWithoutData('_Role', csRole.id);
@@ -126,6 +129,7 @@ export class CustomerServiceController {
   }
 
   @Post(':id/categories')
+  @UseMiddlewares(customerServiceOnly)
   async addCategory(
     @CurrentUser() currentUser: User,
     @Param('id', FindCustomerServicePipe) customerService: User,
@@ -156,6 +160,7 @@ export class CustomerServiceController {
   }
 
   @Delete(':id/categories/:categoryId')
+  @UseMiddlewares(customerServiceOnly)
   async deleteCategory(
     @CurrentUser() currentUser: User,
     @Param('id', FindCustomerServicePipe) customerService: User,

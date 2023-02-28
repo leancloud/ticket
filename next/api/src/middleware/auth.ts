@@ -3,6 +3,7 @@ import type { Middleware } from 'koa';
 import { transformToHttpError, User, UserNotRegisteredError } from '@/model/User';
 import { withAsyncSpan, withSpan } from '@/utils/trace';
 import { getVerifiedPayloadWithSubRequired } from '@/utils/jwt';
+import { roleService } from '@/service/role';
 
 const { ENABLE_TDS_USER_LOGIN } = process.env;
 
@@ -108,3 +109,15 @@ export const staffOnly: Middleware = withSpan(async (ctx, next) => {
   }
   return next();
 }, 'staffOnly');
+
+export const systemRoleMemberGuard: Middleware = withSpan(async (ctx, next) => {
+  const currentUser = ctx.state.currentUser as User;
+  if (!currentUser) {
+    ctx.throw(401);
+  }
+  const systemRoles = await roleService.getSystemRolesForUser(currentUser.id);
+  if (systemRoles.length === 0) {
+    ctx.throw(403);
+  }
+  return next();
+}, 'systemRoleMemberGuard');
