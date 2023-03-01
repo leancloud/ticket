@@ -1,7 +1,8 @@
 exposeEnvironmentsOnBuild: true
-install: 
+install:
   - use: default
   - require:
+    - ./.npmrc
     - ./package.json
     - ./package-lock.json
     - ./in-app/v1/package.json
