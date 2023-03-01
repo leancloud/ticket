@@ -102,7 +102,7 @@ function AssigneeSection({ ticket }) {
         },
       }),
     enabled: editingAssignee,
-    staleTime: 1000 * 60 * 5,
+    staleTime: Infinity,
   })
   const queryClient = useQueryClient()
 
@@ -135,6 +135,13 @@ function AssigneeSection({ ticket }) {
     return [prioritize(members, isCurrentUser), prioritize(others, isCurrentUser)]
   }, [currentUser.id, customerServices, groupMembers])
 
+  const { data: collaborators, isLoading: loadingCollaborators } = useQuery({
+    queryKey: ['collaborators'],
+    queryFn: () => http.get('/api/2/collaborators'),
+    enabled: editingAssignee,
+    staleTime: Infinity,
+  })
+
   const options = useMemo(() => {
     const options = []
     const getOptions = (users) => {
@@ -153,8 +160,14 @@ function AssigneeSection({ ticket }) {
       label: '其他客服',
       options: getOptions(others),
     })
+    if (collaborators) {
+      options.push({
+        label: '协作者',
+        options: getOptions(collaborators),
+      })
+    }
     return options
-  }, [group, members, others])
+  }, [group, members, others, collaborators])
 
   const value = useMemo(() => {
     if (ticket.assignee) {
@@ -180,7 +193,7 @@ function AssigneeSection({ ticket }) {
       {editingAssignee ? (
         <Select
           isClearable
-          isLoading={isLoading || loadingGroupMembers}
+          isLoading={isLoading || loadingGroupMembers || loadingCollaborators}
           isDisabled={updating}
           options={options}
           value={value}
