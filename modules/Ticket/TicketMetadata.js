@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
+import Select from 'react-select'
 
 import { auth, fetch, http } from '../../lib/leancloud'
 import { UserLabel } from '../UserLabel'
@@ -115,7 +116,7 @@ function AssigneeSection({ ticket }) {
   })
 
   const { group } = ticket
-  const { data: groupMembers } = useQuery({
+  const { data: groupMembers, isLoading: loadingGroupMembers } = useQuery({
     queryKey: ['groups', group?.id],
     queryFn: () => fetch(`/api/2/groups/${group?.id}`).then((group) => group.userIds),
     enabled: group !== undefined,
@@ -124,15 +125,44 @@ function AssigneeSection({ ticket }) {
 
   const { currentUser } = useContext(AppContext)
   const [members, others] = useMemo(() => {
-    const members = customerServices?.filter((customerService) =>
-      groupMembers?.includes(customerService.id)
+    if (!customerServices || !groupMembers) {
+      return [[], []]
+    }
+    const [members, others] = _.partition(customerServices, (user) =>
+      groupMembers.includes(user.id)
     )
     const isCurrentUser = (user) => user.id === currentUser.id
-    return [
-      prioritize(members, isCurrentUser),
-      prioritize(_.difference(customerServices, members), isCurrentUser),
-    ]
+    return [prioritize(members, isCurrentUser), prioritize(others, isCurrentUser)]
   }, [currentUser.id, customerServices, groupMembers])
+
+  const options = useMemo(() => {
+    const options = []
+    const getOptions = (users) => {
+      return users.map((user) => ({
+        label: user.id === currentUser.id ? user.nickname + ' (you)' : user.nickname,
+        value: user.id,
+      }))
+    }
+    if (group && members.length) {
+      options.push({
+        label: group.name,
+        options: getOptions(members),
+      })
+    }
+    options.push({
+      label: '其他客服',
+      options: getOptions(others),
+    })
+    return options
+  }, [group, members, others])
+
+  const value = useMemo(() => {
+    if (ticket.assignee) {
+      return options
+        .flatMap((option) => option.options)
+        .find((option) => option.value === ticket.assignee.id)
+    }
+  }, [ticket.assignee, options])
 
   return (
     <Form.Group>
@@ -148,33 +178,15 @@ function AssigneeSection({ ticket }) {
         </Button>
       )}
       {editingAssignee ? (
-        <Form.Control
-          as="select"
-          value={ticket.assignee?.id}
-          disabled={isLoading || updating}
-          onChange={(e) => updateAssignee(e.target.value)}
+        <Select
+          isClearable
+          isLoading={isLoading || loadingGroupMembers}
+          isDisabled={updating}
+          options={options}
+          value={value}
+          onChange={(option) => updateAssignee(option ? option.value : null)}
           onBlur={() => setEditingAssignee(false)}
-        >
-          {isLoading ? (
-            <option value={ticket.assignee?.id}>{t('loading') + '...'}</option>
-          ) : (
-            <option key="" value="" />
-          )}
-          <optgroup label={group?.name}>
-            {members?.map((cs) => (
-              <option key={cs.id} value={cs.id}>
-                {cs.nickname} {currentUser.id === cs.id && ' (you)'}
-              </option>
-            ))}
-          </optgroup>
-          <optgroup label="其他客服">
-            {others?.map((cs) => (
-              <option key={cs.id} value={cs.id}>
-                {cs.nickname} {currentUser.id === cs.id && ' (you)'}
-              </option>
-            ))}
-          </optgroup>
-        </Form.Control>
+        />
       ) : (
         <div className="d-flex align-items-center">
           {ticket.assignee ? <UserLabel user={ticket.assignee} /> : '<unset>'}
