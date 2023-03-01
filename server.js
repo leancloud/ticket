@@ -101,7 +101,6 @@ if (process.env.MAINTENANCE_MODE) {
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>LeanTicket</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/github.min.css">
-<link rel="stylesheet" href="/css/react-datepicker.css">
 <link rel="stylesheet" href="/index.css">
 <link rel="stylesheet" href="/css/docsearch.min.css" />
 <link rel="stylesheet" href="/css/docsearch-override.css">

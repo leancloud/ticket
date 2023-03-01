@@ -1,6 +1,5 @@
 import React, { memo, useMemo } from 'react'
 import { Button, Form, Breadcrumb } from 'react-bootstrap'
-import SelectSearch, { fuzzySearch } from 'react-select-search'
 import { withTranslation } from 'react-i18next'
 import { withRouter, Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
@@ -267,7 +266,7 @@ class Category extends React.Component {
               公告
               {t('optional')}
             </Form.Label>
-            <SelectSearch
+            {/* <SelectSearch
               className={classnames('select-search', styles.formSelect)}
               closeOnSelect={false}
               printOptions="on-focus"
@@ -278,7 +277,7 @@ class Category extends React.Component {
               options={articleOptions}
               renderOption={renderArticle}
               filterOptions={fuzzySearch}
-            />
+            /> */}
             {this.state.notices.length > 3 && (
               <Form.Text className="text-danger">超过最大数量限制</Form.Text>
             )}
@@ -295,7 +294,7 @@ class Category extends React.Component {
               {t('FAQ')}
               {t('optional')}
             </Form.Label>
-            <SelectSearch
+            {/* <SelectSearch
               className={classnames('select-search', styles.formSelect)}
               closeOnSelect={false}
               printOptions="on-focus"
@@ -306,7 +305,7 @@ class Category extends React.Component {
               options={articleOptions}
               renderOption={renderArticle}
               filterOptions={fuzzySearch}
-            />
+            /> */}
 
             {isLeafNode ? (
               <Form.Text className="text-muted">{t('FAQInfo')}</Form.Text>

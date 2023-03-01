@@ -3,7 +3,6 @@ import { Button, Form, Table } from 'react-bootstrap'
 import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import moment from 'moment'
-import DatePicker from 'react-datepicker'
 
 import { auth, db } from '../../lib/leancloud'
 import { getCustomerServices } from '../common'
@@ -141,24 +140,24 @@ class Vacation extends Component {
           </Form.Group>
           <Form.Group>
             <Form.Label>{t('vacationStart')}</Form.Label>{' '}
-            <DatePicker
+            {/* <DatePicker
               selected={this.state.startDate}
               selectsStart
               startDate={this.state.startDate}
               endDate={this.state.endDate}
               onChange={this.handleChangeStart.bind(this)}
-            />{' '}
+            /> */}{' '}
             <Form.Check inline label={t('pm')} onClick={this.handleStartHalfDayClick.bind(this)} />
           </Form.Group>
           <Form.Group>
             <Form.Label>{t('backToWork')}</Form.Label>{' '}
-            <DatePicker
+            {/* <DatePicker
               selected={this.state.endDate}
               selectsEnd
               startDate={this.state.startDate}
               endDate={this.state.endDate}
               onChange={this.handleChangeEnd.bind(this)}
-            />{' '}
+            /> */}{' '}
             <Form.Check inline label={t('pm')} onClick={this.handleEndHalfDayClick.bind(this)} />
           </Form.Group>
           <Button type="submit" variant="light">
