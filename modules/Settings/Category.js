@@ -3,7 +3,6 @@ import { Button, Form, Breadcrumb } from 'react-bootstrap'
 import { withTranslation } from 'react-i18next'
 import { withRouter, Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import classnames from 'classnames'
 
 import { db } from '../../lib/leancloud'
 import { depthFirstSearchFind } from '../../lib/common'
@@ -13,8 +12,6 @@ import { GroupSelect } from '../components/Group'
 import Select from 'modules/components/Select'
 import { useTicketFormList } from './TicketForm'
 import { useAppContext } from 'modules/context'
-
-import styles from './Category.module.scss'
 
 // 应该用 seaach select 这里不搞这个了
 const FormSelect = memo(({ value, onChange }) => {
