@@ -5,7 +5,6 @@ import { withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import moment from 'moment'
 import _ from 'lodash'
-import DatePicker from 'react-datepicker'
 import randomColor from 'randomcolor'
 import Color from 'color'
 
@@ -265,23 +264,23 @@ class StatsChart extends React.Component {
         <Form inline onSubmit={this.handleSubmit.bind(this, t)}>
           <Form.Group>
             <Form.Label className="mx-1">startDate</Form.Label>
-            <DatePicker
+            {/* <DatePicker
               selected={this.state.startDate}
               selectsStart
               startDate={this.state.startDate}
               endDate={this.state.endDate}
               onChange={this.handleChangeStart.bind(this)}
-            />
+            /> */}
           </Form.Group>
           <Form.Group>
             <Form.Label className="mx-1">endDate</Form.Label>
-            <DatePicker
+            {/* <DatePicker
               selected={this.state.endDate}
               selectsEnd
               startDate={this.state.startDate}
               endDate={this.state.endDate}
               onChange={this.handleChangeEnd.bind(this)}
-            />
+            /> */}
           </Form.Group>
           <Button className="ml-1" variant="light" type="submit">
             {t('submit')}

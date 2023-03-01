@@ -1,10 +1,8 @@
 import React, { memo, useMemo } from 'react'
 import { Button, Form, Breadcrumb } from 'react-bootstrap'
-import SelectSearch, { fuzzySearch } from 'react-select-search'
 import { withTranslation } from 'react-i18next'
 import { withRouter, Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import classnames from 'classnames'
 
 import { db } from '../../lib/leancloud'
 import { depthFirstSearchFind } from '../../lib/common'
@@ -14,8 +12,6 @@ import { GroupSelect } from '../components/Group'
 import Select from 'modules/components/Select'
 import { useTicketFormList } from './TicketForm'
 import { useAppContext } from 'modules/context'
-
-import styles from './Category.module.scss'
 
 // 应该用 seaach select 这里不搞这个了
 const FormSelect = memo(({ value, onChange }) => {
@@ -267,7 +263,7 @@ class Category extends React.Component {
               公告
               {t('optional')}
             </Form.Label>
-            <SelectSearch
+            {/* <SelectSearch
               className={classnames('select-search', styles.formSelect)}
               closeOnSelect={false}
               printOptions="on-focus"
@@ -278,7 +274,7 @@ class Category extends React.Component {
               options={articleOptions}
               renderOption={renderArticle}
               filterOptions={fuzzySearch}
-            />
+            /> */}
             {this.state.notices.length > 3 && (
               <Form.Text className="text-danger">超过最大数量限制</Form.Text>
             )}
@@ -295,7 +291,7 @@ class Category extends React.Component {
               {t('FAQ')}
               {t('optional')}
             </Form.Label>
-            <SelectSearch
+            {/* <SelectSearch
               className={classnames('select-search', styles.formSelect)}
               closeOnSelect={false}
               printOptions="on-focus"
@@ -306,7 +302,7 @@ class Category extends React.Component {
               options={articleOptions}
               renderOption={renderArticle}
               filterOptions={fuzzySearch}
-            />
+            /> */}
 
             {isLeafNode ? (
               <Form.Text className="text-muted">{t('FAQInfo')}</Form.Text>
