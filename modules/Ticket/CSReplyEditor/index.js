@@ -87,9 +87,11 @@ export function CSReplyEditor({ ticketId, onReply, onOperate }) {
 
   return (
     <div>
-      <div className="mx-3">
-        <ReplyType value={replyType} onChange={setReplyType} />
-      </div>
+      {isCustomerService && (
+        <div className="mx-3">
+          <ReplyType value={replyType} onChange={setReplyType} />
+        </div>
+      )}
 
       <div
         className={classNames(styles.editorContainer, {

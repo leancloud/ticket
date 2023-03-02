@@ -13,7 +13,7 @@ import './style/index.scss'
 import './i18n'
 import { auth, db } from '../lib/leancloud'
 import { AppContext } from './context'
-import { isCustomerService, isStaff } from './common'
+import { getRoles, isCustomerService, isStaff } from './common'
 import GlobalNav from './GlobalNav'
 import css from './App.css'
 
@@ -43,6 +43,7 @@ class App extends Component {
       currentUser: auth.currentUser,
       isStaff: false,
       isCustomerService: false,
+      isUser: true,
       organizations: [],
       selectedOrgId: '',
       tagMetadatas: [],
@@ -98,6 +99,7 @@ class App extends Component {
         currentUser: null,
         isStaff: false,
         isCustomerService: false,
+        isUser: true,
         organizations: [],
         tagMetadatas: [],
       })
@@ -107,9 +109,8 @@ class App extends Component {
 
     this.setState({ loading: true })
     try {
-      const [staff, isCS, organizations, tagMetadatas] = await Promise.all([
-        isStaff(currentUser),
-        isCustomerService(currentUser),
+      const [roles, organizations, tagMetadatas] = await Promise.all([
+        getRoles(currentUser),
         db.class('Organization').include('memberRole').find(),
         this.fetchTagMetadatas(),
       ])
@@ -117,8 +118,9 @@ class App extends Component {
         currentUser,
         organizations,
         tagMetadatas,
-        isStaff: staff,
-        isCustomerService: isCS,
+        isStaff: isStaff(roles),
+        isCustomerService: isCustomerService(roles),
+        isUser: roles.length === 0,
       })
       Raven.setUserContext({
         username: currentUser.get('username'),
@@ -179,6 +181,7 @@ class App extends Component {
       currentUser: this.state.currentUser,
       isStaff: this.state.isStaff,
       isCustomerService: this.state.isCustomerService,
+      isUser: this.state.isUser,
       updateCurrentUser: this.updateCurrentUser.bind(this),
       organizations: this.state.organizations,
       joinOrganization: this.joinOrganization.bind(this),
@@ -196,7 +199,7 @@ class App extends Component {
               currentUser: this.state.currentUser,
               isStaff: props.isStaff,
               isCustomerService: props.isCustomerService,
-              isUser: !props.isStaff && !props.isCustomerService,
+              isUser: props.isUser,
               tagMetadatas: props.tagMetadatas,
               addNotification: this.getChildContext().addNotification,
               setCurrentUser: this.setCurrentUser.bind(this),

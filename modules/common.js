@@ -21,14 +21,14 @@ export const getCustomerServices = () => {
     .then((role) => role.queryUser().orderBy('username').find())
 }
 
-const getRoles = mem(
+export const getRoles = mem(
   (user) => {
     if (!user) {
       return Promise.resolve([])
     }
     return auth
       .queryRole()
-      .where('name', 'in', ['customerService', 'staff', 'admin'])
+      .where('name', 'in', ['customerService', 'staff', 'admin', 'collaborator'])
       .where('users', '==', user)
       .find()
       .then((roles) => roles.map((role) => role.name))
@@ -36,14 +36,10 @@ const getRoles = mem(
   { maxAge: 10_000 }
 )
 
-export const isCustomerService = (user) =>
-  getRoles(user).then((roles) => roles.includes('customerService') || roles.includes('admin'))
+export const isCustomerService = (roles) =>
+  roles.includes('customerService') || roles.includes('admin')
 
-export const isStaff = (user) =>
-  getRoles(user).then(
-    (roles) =>
-      roles.includes('staff') || roles.includes('customerService') || roles.includes('admin')
-  )
+export const isStaff = (roles) => isCustomerService(roles) || roles.includes('staff')
 
 /**
  * @param {Array<File>} files

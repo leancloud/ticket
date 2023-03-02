@@ -5,18 +5,18 @@ import { AppContext } from './context'
 
 export default function Home() {
   const history = useHistory()
-  const { isStaff, isCustomerService } = useContext(AppContext)
+  const { isUser } = useContext(AppContext)
 
   useEffect(() => {
     if (!auth.currentUser) {
       history.replace('/login')
       return
     }
-    if (isCustomerService || isStaff) {
+    if (!isUser) {
       return window.location.replace(`/next/admin/tickets`)
     }
     history.replace('/tickets')
-  }, [history, isCustomerService, isStaff])
+  }, [history, isUser])
 
   return <div>Home</div>
 }
