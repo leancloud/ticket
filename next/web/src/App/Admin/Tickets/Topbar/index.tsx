@@ -273,7 +273,7 @@ export function Topbar({
         ) : (
           <BatchOperations
             checkedTicketIds={checkedTicketIds}
-            disabled={isLoading}
+            disabled={isLoading || !isCustomerService}
             onSuccess={() => onCheckedChange(false)}
           />
         )}
