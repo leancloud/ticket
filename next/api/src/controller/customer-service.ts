@@ -27,9 +27,6 @@ import { GroupResponse } from '@/response/group';
 
 class FindCustomerServicePipe {
   static async transform(id: string, ctx: Context): Promise<User> {
-    if (id === 'me') {
-      return ctx.state.currentUser;
-    }
     const user = await User.findOrFail(id);
     ctx.assert(await user.isCustomerService(), 404, `Customer service ${id} does not exist`);
     return user;
