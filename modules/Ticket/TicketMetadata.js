@@ -119,7 +119,7 @@ function AssigneeSection({ ticket }) {
   const { data: groupMembers, isLoading: loadingGroupMembers } = useQuery({
     queryKey: ['groups', group?.id],
     queryFn: () => fetch(`/api/2/groups/${group?.id}`).then((group) => group.userIds),
-    enabled: group !== undefined,
+    enabled: !!group,
   })
   const groupIncludesAssignee = groupMembers?.includes(ticket.assignee?.id)
 
