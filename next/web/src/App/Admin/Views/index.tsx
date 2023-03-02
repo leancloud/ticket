@@ -4,6 +4,7 @@ import { Link, Outlet, useNavigate, useParams } from 'react-router-dom';
 import { AiOutlineLeft, AiOutlineReload } from 'react-icons/ai';
 import cx from 'classnames';
 import { produce } from 'immer';
+import moment from 'moment';
 
 import { useCurrentUser } from '@/leancloud';
 import { CategorySchema, useCategories } from '@/api/category';
@@ -202,10 +203,10 @@ const columnConfigs: Record<string, ColumnConfig> = {
     },
   },
   createdAt: {
-    render: (t: string) => <div title={t}>{t.slice(0, 10)}</div>,
+    render: (t: string) => <div>{moment(t).format('YYYY-MM-DD HH:mm:ss')}</div>,
   },
   updatedAt: {
-    render: (t: string) => <div title={t}>{t.slice(0, 10)}</div>,
+    render: (t: string) => <div>{moment(t).format('YYYY-MM-DD HH:mm:ss')}</div>,
   },
   status: {
     render: (status: number) => <TicketStatus status={status} />,
