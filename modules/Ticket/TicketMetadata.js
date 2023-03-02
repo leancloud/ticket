@@ -91,7 +91,7 @@ const prioritize = (items, check) =>
 
 function AssigneeSection({ ticket }) {
   const { t } = useTranslation()
-  const { addNotification, isCustomerService } = useContext(AppContext)
+  const { addNotification, isCustomerService, isCollaborator } = useContext(AppContext)
   const [editingAssignee, setEditingAssignee] = useState(false)
   const { data: customerServices, isLoading } = useQuery({
     queryKey: 'customerServices',
@@ -203,7 +203,7 @@ function AssigneeSection({ ticket }) {
       ) : (
         <div className="d-flex align-items-center">
           {ticket.assignee ? <UserLabel user={ticket.assignee} /> : '<unset>'}
-          {isCustomerService && (
+          {(isCustomerService || isCollaborator) && (
             <Button
               variant="link"
               className="align-baseline"

@@ -41,6 +41,8 @@ export const isCustomerService = (roles) =>
 
 export const isStaff = (roles) => isCustomerService(roles) || roles.includes('staff')
 
+export const isCollaborator = (roles) => roles.includes('collaborator')
+
 /**
  * @param {Array<File>} files
  */

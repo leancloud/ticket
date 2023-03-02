@@ -13,7 +13,7 @@ import './style/index.scss'
 import './i18n'
 import { auth, db } from '../lib/leancloud'
 import { AppContext } from './context'
-import { getRoles, isCustomerService, isStaff } from './common'
+import { getRoles, isCustomerService, isStaff, isCollaborator } from './common'
 import GlobalNav from './GlobalNav'
 import css from './App.css'
 
@@ -43,6 +43,7 @@ class App extends Component {
       currentUser: auth.currentUser,
       isStaff: false,
       isCustomerService: false,
+      isCollaborator: false,
       isUser: true,
       organizations: [],
       selectedOrgId: '',
@@ -99,6 +100,7 @@ class App extends Component {
         currentUser: null,
         isStaff: false,
         isCustomerService: false,
+        isCollaborator: false,
         isUser: true,
         organizations: [],
         tagMetadatas: [],
@@ -120,6 +122,7 @@ class App extends Component {
         tagMetadatas,
         isStaff: isStaff(roles),
         isCustomerService: isCustomerService(roles),
+        isCollaborator: isCollaborator(roles),
         isUser: roles.length === 0,
       })
       Raven.setUserContext({
@@ -181,6 +184,7 @@ class App extends Component {
       currentUser: this.state.currentUser,
       isStaff: this.state.isStaff,
       isCustomerService: this.state.isCustomerService,
+      isCollaborator: this.state.isCollaborator,
       isUser: this.state.isUser,
       updateCurrentUser: this.updateCurrentUser.bind(this),
       organizations: this.state.organizations,
@@ -199,6 +203,7 @@ class App extends Component {
               currentUser: this.state.currentUser,
               isStaff: props.isStaff,
               isCustomerService: props.isCustomerService,
+              isCollaborator: props.isCollaborator,
               isUser: props.isUser,
               tagMetadatas: props.tagMetadatas,
               addNotification: this.getChildContext().addNotification,
