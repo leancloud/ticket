@@ -47,9 +47,7 @@ export function ArticleRevisions() {
           <Breadcrumb.Item>
             <Link to="../../..">{articleId}</Link>
           </Breadcrumb.Item>
-          <Breadcrumb.Item>
-            <Link to="../..">{LOCALES[language!]}</Link>
-          </Breadcrumb.Item>
+          <Breadcrumb.Item>{LOCALES[language!]}</Breadcrumb.Item>
           <Breadcrumb.Item className="text-gray-300">历史</Breadcrumb.Item>
         </Breadcrumb>
       </div>
@@ -158,9 +156,7 @@ export function ArticleRevisionDetail() {
               <Breadcrumb.Item>
                 <Link to="../../..">{articleId}</Link>
               </Breadcrumb.Item>
-              <Breadcrumb.Item>
-                <Link to="../..">{LOCALES[language!]}</Link>
-              </Breadcrumb.Item>
+              <Breadcrumb.Item>{LOCALES[language!]}</Breadcrumb.Item>
               <Breadcrumb.Item>
                 <Link to="..">历史</Link>
               </Breadcrumb.Item>

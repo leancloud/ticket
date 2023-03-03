@@ -74,7 +74,7 @@ export const ToggleTranslationPrivateButton: FC<ToggleTranslationPrivateButtonPr
         })
       }
     >
-      {translation.private ? '发布' : '撤销发布'}
+      {translation.private ? '启用' : '禁用'}
     </Button>
   );
 };

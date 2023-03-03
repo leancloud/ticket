@@ -23,10 +23,10 @@ export class CategoryService {
     this.categoryCache = new Cache([memStore, redisStore]);
   }
 
-  async find({ active }: FindCategoriesOptions = {}) {
+  async find({ active, productOnly }: FindCategoriesOptions = {}) {
     let categories: Category[];
 
-    const cacheValue = await this.categoryCache.get({ active });
+    const cacheValue = await this.categoryCache.get({ active, productOnly });
 
     if (cacheValue) {
       categories = (cacheValue as any[]).map((v) => Category.fromJSON(v));
@@ -40,9 +40,13 @@ export class CategoryService {
         query.where('deletedAt', 'exists');
       }
 
+      if (productOnly) {
+        query.where('alias', 'exists');
+      }
+
       categories = await query.limit(1000).find();
 
-      await this.categoryCache.set({ active }, categories);
+      await this.categoryCache.set({ active, productOnly }, categories);
     }
 
     return categories;

@@ -17,8 +17,9 @@ export const ArticleForm: FC<ArticleFormProps> = ({ control }) => (
         validateStatus={error ? 'error' : undefined}
         help={error?.message}
         style={{ marginBottom: 16 }}
+        label="名称"
       >
-        <Input {...field} id="title" autoFocus placeholder="标题" />
+        <Input {...field} id="name" autoFocus placeholder="名称" />
       </Form.Item>
     )}
   />

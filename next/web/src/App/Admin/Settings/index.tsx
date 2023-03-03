@@ -105,7 +105,6 @@ const SettingRoutes = () => (
       <Route path=":id">
         <Route index element={<ArticleDetail />} />
         <Route path=":language">
-          <Route index element={<ArticleTranslationDetail />} />
           <Route path="edit" element={<EditArticleTranslation />} />
           <Route path="new" element={<NewArticleTranslation />} />
           <Route path="revisions">

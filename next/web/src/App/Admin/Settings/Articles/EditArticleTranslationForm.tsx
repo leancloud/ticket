@@ -55,7 +55,7 @@ export function EditArticleTranslationForm({
               control={control}
               name="public"
               render={({ field: { value, onChange } }) => (
-                <Checkbox checked={value} onChange={onChange} children="发布" />
+                <Checkbox checked={value} onChange={onChange} children="启用" />
               )}
             />
           </Form.Item>

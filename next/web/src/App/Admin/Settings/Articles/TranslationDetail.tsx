@@ -1,35 +1,19 @@
-import {
-  useArticleTranslation,
-  useRelatedCategories,
-  useDeleteArticleTranslation,
-} from '@/api/article';
-import { message, Spin, Empty, Breadcrumb, Dropdown, Menu, Typography } from 'antd';
+import { useArticleTranslation, useDeleteArticleTranslation } from '@/api/article';
+import { message, Spin, Empty, Breadcrumb, Dropdown, Menu, Typography, Divider } from 'antd';
 import { FC } from 'react';
 import { useQueryClient } from 'react-query';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { ToggleTranslationPrivateButton } from './components/TogglePrivateButton';
-import { CategoryPath, useGetCategoryPath } from '../../components/CategoryPath';
-import { CategorySchema } from '@/api/category';
 import { LOCALES } from '@/i18n/locales';
-
-const CategoryList: FC<{ categories: CategorySchema[] }> = ({ categories }) => {
-  const getCategoryPath = useGetCategoryPath();
-  return (
-    <>
-      {categories.map((category) => (
-        <CategoryPath
-          key={category.id}
-          className="mr-1 inline-block"
-          path={getCategoryPath(category.id)}
-        />
-      ))}
-    </>
-  );
-};
+import { useState } from 'react';
+import { ProductSelect } from '../../components/ProductSelect';
 
 export const ArticleTranslationDetail: FC = () => {
   const navigate = useNavigate();
   const { id, language } = useParams();
+
+  const [productId, setProductId] = useState<string | undefined>();
+
   const { data: translation, isLoading } = useArticleTranslation(id!, language!, {
     staleTime: 1000 * 60,
   });
@@ -48,8 +32,6 @@ export const ArticleTranslationDetail: FC = () => {
     },
   });
 
-  const { data: relatedCategories } = useRelatedCategories(id!);
-
   if (isLoading) {
     return <div className="h-80 my-40 text-center" children={<Spin />} />;
   }
@@ -57,8 +39,6 @@ export const ArticleTranslationDetail: FC = () => {
   if (!translation) {
     return <Empty description="没有找到该文章" />;
   }
-
-  const articleURL = `/in-app/v1/products/-/articles/${translation.slug}?nav=0`;
 
   return (
     <div className="p-10">
@@ -104,18 +84,7 @@ export const ArticleTranslationDetail: FC = () => {
         </div>
       </div>
       <Typography.Title level={2}>{translation.title}</Typography.Title>
-      <div className="mb-4 text-gray-400">
-        URL:{' '}
-        <a href={articleURL}>
-          {document.location.origin}
-          {articleURL}
-        </a>
-      </div>
-      {!!relatedCategories?.length && (
-        <div className="mb-4 p-4 bg-gray-50">
-          正在使用该文章的分类： <CategoryList categories={relatedCategories} />
-        </div>
-      )}
+
       {translation && (
         <div
           className="markdown-body"
