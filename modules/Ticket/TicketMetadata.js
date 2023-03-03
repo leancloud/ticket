@@ -156,11 +156,13 @@ function AssigneeSection({ ticket }) {
         options: getOptions(members),
       })
     }
-    options.push({
-      label: '其他客服',
-      options: getOptions(others),
-    })
-    if (collaborators) {
+    if (others.length) {
+      options.push({
+        label: '其他客服',
+        options: getOptions(others),
+      })
+    }
+    if (collaborators && collaborators.length) {
       options.push({
         label: '协作者',
         options: getOptions(collaborators),
