@@ -13,7 +13,7 @@ import {
   UseMiddlewares,
 } from '@/common/http';
 import { FindModelPipe, ParseCsvPipe, TrimPipe, ZodValidationPipe } from '@/common/pipe';
-import { auth, customerServiceOnly, staffOnly } from '@/middleware';
+import { auth, customerServiceOnly, staffOnly, systemRoleMemberGuard } from '@/middleware';
 import { transformToHttpError, User } from '@/model/User';
 import { UserSearchResult } from '@/response/user';
 import { getVerifiedPayloadWithSubRequired, processKeys, signPayload } from '@/utils/jwt';
@@ -70,10 +70,9 @@ const TDSUserSigningKey = process.env.TDS_USER_SIGNING_KEY;
 @Controller('users')
 export class UserController {
   @Get()
-  @UseMiddlewares(auth, staffOnly)
+  @UseMiddlewares(auth, systemRoleMemberGuard)
   @ResponseBody(UserSearchResult)
   find(
-    @CurrentUser() currentUser: User,
     @Pagination() [page, pageSize]: [number, number],
     @Query('id', ParseCsvPipe) ids: string[] | undefined,
     @Query('q', TrimPipe) q: string | undefined
@@ -92,13 +91,20 @@ export class UserController {
       });
     }
 
-    return query.find(currentUser.getAuthOptions());
+    return query.find({ useMasterKey: true });
   }
 
   @Get(':id/third-party-data')
   @UseMiddlewares(auth, staffOnly)
   getThirdPartyData(@Param('id', new FindModelPipe(User, { useMasterKey: true })) user: User) {
     return user.thirdPartyData;
+  }
+
+  @Get('me')
+  @UseMiddlewares(auth)
+  @ResponseBody(UserSearchResult)
+  getMe(@CurrentUser() currentUser: User) {
+    return currentUser;
   }
 
   @Get(':id')

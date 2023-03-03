@@ -5,6 +5,7 @@ export const AppContext = React.createContext({
   currentUser: null,
   isStaff: false,
   isCustomerService: false,
+  isCollaborator: false,
   isUser: false,
   tagMetadatas: [],
   addNotification: _.noop,

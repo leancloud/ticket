@@ -76,7 +76,7 @@ export const useRefreshCurrentUser = () => {
   return () => setCurrentUser(auth.currentUser);
 };
 
-export const currentUserRolesState = selector({
+const currentUserRolesState = selector({
   key: 'currentUserRoles',
   get: async ({ get }) => {
     const currentUser = get(currentLCUserState);
@@ -92,7 +92,7 @@ export const currentUserRolesState = selector({
   },
 });
 
-export const currentUserIsCustomerSerivceState = selector({
+const currentUserIsCustomerSerivceState = selector({
   key: 'currentUserIsCS',
   get: ({ get }) => {
     const roles = get(currentUserRolesState);
@@ -100,13 +100,8 @@ export const currentUserIsCustomerSerivceState = selector({
   },
 });
 
-export const currentUserIsStaffState = selector({
-  key: 'currentUserIsStaff',
-  get: ({ get }) => {
-    const roles = get(currentUserRolesState);
-    return roles.includes('staff') || roles.includes('customerService') || roles.includes('admin');
-  },
-});
+export const useCurrentUserIsCustomerService = () =>
+  useRecoilValue(currentUserIsCustomerSerivceState);
 
 export type LeanCloudRegion = 'cn-n1' | 'cn-e1' | 'us-w1';
 

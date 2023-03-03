@@ -25,6 +25,7 @@ import { categoryService } from '@/category';
 import { FilterOptions, textFilterService } from '@/utils/textFilter';
 import { OpsLogResponse } from '@/response/ops-log';
 import { getIP } from '@/utils';
+import { organizationService } from '@/service/organization';
 
 const router = new Router().use(auth);
 
@@ -740,7 +741,7 @@ router.patch('/:id', async (ctx) => {
     updater.setCategory(category);
   }
 
-  if (data.organizationId) {
+  if (data.organizationId !== undefined) {
     if (data.organizationId) {
       const organization = await Organization.find(data.organizationId, {
         ...currentUser.getAuthOptions(),
@@ -799,7 +800,6 @@ const fetchRepliesParamsSchema = yup.object({
 });
 
 router.get('/:id/replies', sort('orderBy', ['createdAt']), async (ctx) => {
-  const currentUser = ctx.state.currentUser as User;
   const ticket = ctx.state.ticket as Ticket;
   const { cursor, page, pageSize, count } = fetchRepliesParamsSchema.validateSync(ctx.query);
   const sortItems = sort.get(ctx);
@@ -808,6 +808,7 @@ router.get('/:id/replies', sort('orderBy', ['createdAt']), async (ctx) => {
 
   const query = Reply.queryBuilder()
     .where('ticket', '==', ticket.toPointer())
+    .where('deletedAt', 'not-exists')
     .preload('author')
     .preload('files');
   if (cursor) {
@@ -820,11 +821,11 @@ router.get('/:id/replies', sort('orderBy', ['createdAt']), async (ctx) => {
 
   let replies: Reply[];
   if (count) {
-    const result = await query.findAndCount(currentUser.getAuthOptions());
+    const result = await query.findAndCount({ useMasterKey: true });
     replies = result[0];
     ctx.set('X-Total-Count', result[1].toString());
   } else {
-    replies = await query.find(currentUser.getAuthOptions());
+    replies = await query.find({ useMasterKey: true });
   }
   ctx.body = replies.map((reply) => new ReplyResponse(reply));
 });
@@ -840,16 +841,34 @@ router.post('/:id/replies', async (ctx) => {
   const ticket = ctx.state.ticket as Ticket;
 
   const data = replyDataSchema.validateSync(ctx.request.body);
+
   const isCustomerService = await currentUser.isCustomerService();
   const isStaff = await currentUser.isStaff();
-  const isUser = !isCustomerService && !isStaff;
+  const isCollaborator = await currentUser.isCollaborator();
 
-  if (data.internal && isUser) {
-    ctx.throw(403, 'Not internal');
+  const canCreatePublicReply = async () => {
+    if (currentUser.id === ticket.authorId) {
+      return true;
+    }
+    if (isCustomerService) {
+      return true;
+    }
+    if (ticket.organizationId) {
+      return organizationService.isOrganizationMember(ticket.organizationId, currentUser.id);
+    }
+    return false;
+  };
+
+  if (data.internal) {
+    if (!isStaff && !isCollaborator) {
+      ctx.throw(403, 'Internal reply not allowed');
+    }
+  } else {
+    if (!(await canCreatePublicReply())) {
+      ctx.throw(403, 'Public reply not allowed');
+    }
   }
-  if (!data.internal && isStaff && !isCustomerService) {
-    ctx.throw(403, 'Public reply not allowed');
-  }
+
   if (!data.content && (!data.fileIds || data.fileIds.length === 0)) {
     ctx.throw(400, 'Content and fileIds cannot be empty at the same time');
   }

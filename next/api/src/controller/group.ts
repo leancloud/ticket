@@ -16,7 +16,7 @@ import {
   StatusCode,
   UseMiddlewares,
 } from '@/common/http';
-import { auth, customerServiceOnly } from '@/middleware';
+import { auth, customerServiceOnly, systemRoleMemberGuard } from '@/middleware';
 import { ACLBuilder } from '@/orm';
 import { Group } from '@/model/Group';
 import { User } from '@/model/User';
@@ -40,25 +40,21 @@ type CreateGroupData = z.infer<typeof createGroupSchema>;
 type UpdateGroupData = z.infer<typeof updateGroupSchema>;
 
 @Controller('groups')
-@UseMiddlewares(auth, customerServiceOnly)
+@UseMiddlewares(auth, systemRoleMemberGuard)
 export class GroupController {
   @Get()
   @ResponseBody(GroupResponse)
-  findAll(@CurrentUser() currentUser: User) {
-    return Group.queryBuilder().find(currentUser.getAuthOptions());
+  findAll() {
+    return Group.queryBuilder().find({ useMasterKey: true });
   }
 
   @Post()
+  @UseMiddlewares(customerServiceOnly)
   @StatusCode(201)
-  async create(
-    @CurrentUser() currentUser: User,
-    @Body(new ZodValidationPipe(createGroupSchema)) data: CreateGroupData
-  ) {
+  async create(@Body(new ZodValidationPipe(createGroupSchema)) data: CreateGroupData) {
     if (data.userIds?.length) {
       await this.assertUsersIsCustomerService(data.userIds);
     }
-
-    const authOptions = currentUser.getAuthOptions();
 
     const groupACL = new ACLBuilder().allowCustomerService('read', 'write').allowStaff('read');
     const group = await Group.create(
@@ -67,11 +63,13 @@ export class GroupController {
         name: data.name,
         description: data.description,
       },
-      authOptions
+      {
+        useMasterKey: true,
+      }
     );
 
     const role = await this.createGroupRole(group.id, data.userIds);
-    await group.update({ roleId: role.id }, authOptions);
+    await group.update({ roleId: role.id }, { useMasterKey: true });
 
     return {
       id: group.id,
@@ -79,20 +77,16 @@ export class GroupController {
   }
 
   @Get(':id')
-  async findOne(
-    @CurrentUser() currentUser: User,
-    @Param('id', new FindModelPipe(Group)) group: Group
-  ) {
-    const authOptions = currentUser.getAuthOptions();
-    const role = await this.findGroupRole(group, authOptions);
-    const users = await role.getUsers().query().find(authOptions);
+  async findOne(@Param('id', new FindModelPipe(Group)) group: Group) {
+    const role = await this.findGroupRole(group, { useMasterKey: true });
+    const users = await role.getUsers().query().find({ useMasterKey: true });
     const userIds = users.map((u) => u.id!);
     return new GroupDetailResponse(group, userIds);
   }
 
   @Patch(':id')
+  @UseMiddlewares(customerServiceOnly)
   async update(
-    @CurrentUser() currentUser: User,
     @Param('id', new FindModelPipe(Group)) group: Group,
     @Body(new ZodValidationPipe(updateGroupSchema)) data: UpdateGroupData
   ) {
@@ -100,7 +94,7 @@ export class GroupController {
       await this.assertUsersIsCustomerService(data.userIds);
     }
 
-    const authOptions = currentUser.getAuthOptions();
+    const authOptions = { useMasterKey: true };
 
     if (data.name || data.description) {
       await group.update(
@@ -142,15 +136,12 @@ export class GroupController {
   }
 
   @Delete(':id')
-  async delete(
-    @CurrentUser() currentUser: User,
-    @Param('id', new FindModelPipe(Group)) group: Group
-  ) {
-    const authOptions = currentUser.getAuthOptions();
-    await group.delete(authOptions);
+  @UseMiddlewares(customerServiceOnly)
+  async delete(@Param('id', new FindModelPipe(Group)) group: Group) {
+    await group.delete({ useMasterKey: true });
 
     const role = AV.Role.createWithoutData('_Role', group.roleId);
-    await role.destroy(authOptions);
+    await role.destroy({ useMasterKey: true });
 
     return {};
   }

@@ -4,6 +4,7 @@ import { SubMenu, MenuDataItem } from '@/components/Page';
 
 import { NewUser } from './Users';
 import { Members } from './Members';
+import { Collaborators } from './Collaborators';
 import { GroupList, NewGroup, GroupDetail } from './Groups';
 import { Vacations } from './Vacations';
 import { CategoryList, NewCategory, CategoryDetail } from './Categories';
@@ -40,6 +41,7 @@ const SettingRoutes = () => (
       <Route path="new" element={<NewGroup />} />
       <Route path=":id" element={<GroupDetail />} />
     </Route>
+    <Route path="/collaborators" element={<Collaborators />} />
     <Route path="/vacations" element={<Vacations />} />
     <Route path="/categories">
       <Route index element={<CategoryList />} />
@@ -125,6 +127,10 @@ const routeGroups: MenuDataItem[] = [
       {
         name: '客服',
         path: 'members',
+      },
+      {
+        name: '协作者',
+        path: 'collaborators',
       },
       {
         name: '客服组',

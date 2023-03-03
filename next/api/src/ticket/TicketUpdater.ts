@@ -2,7 +2,7 @@ import AV from 'leanengine';
 import _ from 'lodash';
 
 import events from '@/events';
-import { ModifyOptions, UpdateData, commands } from '@/orm';
+import { ModifyOptions, UpdateData, commands, ACLBuilder } from '@/orm';
 import { Category } from '@/model/Category';
 import { Group } from '@/model/Group';
 import { OperateAction, OpsLogCreator } from '@/model/OpsLog';
@@ -28,11 +28,35 @@ export class TicketUpdater {
   private unreadCountIncrement = 0;
   private joinedCustomerServices: TinyUserInfo[] = [];
   private operateAction?: OperateAction;
+  private shouldUpdateACL = false;
 
   private opsLogCreator: OpsLogCreator;
 
   constructor(private ticket: Ticket) {
     this.opsLogCreator = new OpsLogCreator(ticket);
+  }
+
+  getCurrentACL() {
+    const organizationId =
+      this.data.organizationId === null
+        ? undefined
+        : this.data.organizationId ?? this.ticket.organizationId;
+
+    const assigneeId =
+      this.data.assigneeId === null ? undefined : this.data.assigneeId ?? this.ticket.assigneeId;
+
+    const builder = new ACLBuilder();
+    builder.allowCustomerService('read', 'write');
+    builder.allowStaff('read');
+    builder.allow(this.ticket.authorId, 'read', 'write');
+    if (organizationId) {
+      builder.allowOrgMember(organizationId, 'read', 'write');
+    }
+    if (assigneeId) {
+      builder.allow(assigneeId, 'read', 'write');
+    }
+
+    return builder.toJSON();
   }
 
   setOrganization(organization: Organization | null): this {
@@ -43,6 +67,7 @@ export class TicketUpdater {
       this.organization = null;
       this.data.organizationId = null;
     }
+    this.shouldUpdateACL = true;
     return this;
   }
 
@@ -59,6 +84,7 @@ export class TicketUpdater {
       this.assignee = null;
       this.data.assigneeId = null;
     }
+    this.shouldUpdateACL = true;
     return this;
   }
 
@@ -269,6 +295,9 @@ export class TicketUpdater {
     }
     if (this.joinedCustomerServices.length) {
       this.data.joinedCustomerServices = commands.pushUniq(...this.joinedCustomerServices);
+    }
+    if (this.shouldUpdateACL) {
+      this.data.ACL = this.getCurrentACL();
     }
 
     const ticket = await this.ticket.update(

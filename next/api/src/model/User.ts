@@ -1,17 +1,17 @@
 import AV from 'leancloud-storage';
 import axios from 'axios';
 import _ from 'lodash';
+import { TokenExpiredError } from 'jsonwebtoken';
 
 import { regions } from '@/leancloud';
 import { HttpError, UnauthorizedError } from '@/common/http';
 import { RedisCache } from '@/cache';
 import { AuthOptions, Model, field } from '@/orm';
 import { getVerifiedPayloadWithSubRequired, JsonWebTokenError, processKeys } from '@/utils/jwt';
-import mem from '@/utils/mem-promise';
+import { roleService } from '@/service/role';
 import { Role } from './Role';
 import { Vacation } from './Vacation';
 import { Group } from './Group';
-import { TokenExpiredError } from 'jsonwebtoken';
 
 function encodeAVUser(user: AV.User): string {
   const json = user.toFullJSON();
@@ -74,17 +74,6 @@ export interface TinyUserInfo {
   name?: string;
   email?: string;
 }
-
-const getRoles = mem(
-  async (userId: string) => {
-    const roles = await Role.queryBuilder()
-      .where('users', '==', User.ptr(userId))
-      .where('name', 'in', ['staff', 'customerService', 'admin'])
-      .find();
-    return roles.map((role) => role.name);
-  },
-  { max: 10_000, ttl: 10_000 }
-);
 
 export class InvalidCredentialError extends HttpError {
   static httpCode = 401;
@@ -472,14 +461,19 @@ export class User extends Model {
     return !!(await query.first({ useMasterKey: true }));
   }
 
-  async isCustomerService(): Promise<boolean> {
-    const roles = await getRoles(this.id);
-    return roles.includes('customerService') || roles.includes('admin');
+  async isCustomerService() {
+    const roles = await roleService.getSystemRolesForUser(this.id);
+    return ['customerService', 'admin'].some((role) => roles.includes(role));
   }
 
-  async isStaff(): Promise<boolean> {
-    const roles = await getRoles(this.id);
-    return roles.includes('staff') || roles.includes('customerService') || roles.includes('admin');
+  async isStaff() {
+    const roles = await roleService.getSystemRolesForUser(this.id);
+    return ['customerService', 'staff', 'admin'].some((role) => roles.includes(role));
+  }
+
+  async isCollaborator() {
+    const roles = await roleService.getSystemRolesForUser(this.id);
+    return roles.includes('collaborator');
   }
 
   getAuthOptions(): AuthOptions {

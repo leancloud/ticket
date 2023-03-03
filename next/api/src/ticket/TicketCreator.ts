@@ -44,7 +44,6 @@ export class TicketCreator {
 
   setReporter(reporter: User): this {
     this.reporter = reporter;
-    this.aclBuilder.allow(reporter, 'read', 'write');
     return this;
   }
 
@@ -99,6 +98,7 @@ export class TicketCreator {
 
   setAssignee(assignee: User): this {
     this.assignee = assignee;
+    this.aclBuilder.allow(assignee, 'read', 'write');
     return this;
   }
 

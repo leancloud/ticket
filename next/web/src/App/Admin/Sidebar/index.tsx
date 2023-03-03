@@ -4,9 +4,11 @@ import { AiOutlineContainer, AiOutlineSetting, AiOutlineSearch } from 'react-ico
 import { HiOutlinePlus, HiOutlineTicket } from 'react-icons/hi';
 import { MdOutlineAnalytics } from 'react-icons/md';
 import cx from 'classnames';
+
+import { Tooltip } from '@/components/antd';
+import { useCurrentUserIsCustomerService } from '@/leancloud';
 import { Feedback } from '../Feedback';
 import { CurrentUserSection } from '../CurrentUserSection';
-import { Tooltip } from '@/components/antd';
 
 function Path({ to, children, title }: { to: string; children: ReactNode; title?: string }) {
   return (
@@ -31,6 +33,8 @@ function Path({ to, children, title }: { to: string; children: ReactNode; title?
 }
 
 export function Sidebar(props: ComponentPropsWithoutRef<'aside'>) {
+  const isCustomerService = useCurrentUserIsCustomerService();
+
   return (
     <aside
       {...props}
@@ -40,24 +44,34 @@ export function Sidebar(props: ComponentPropsWithoutRef<'aside'>) {
         <Path to="/admin/tickets" title="工单">
           <HiOutlineTicket className="m-auto w-5 h-5" />
         </Path>
-        <Path to="/admin/views" title="视图">
-          <AiOutlineContainer className="m-auto w-5 h-5" />
-        </Path>
-        <Path to="/admin/search" title="搜索">
-          <AiOutlineSearch className="m-auto w-5 h-5" />
-        </Path>
-        <Path to="/admin/stats" title="统计">
-          <MdOutlineAnalytics className="m-auto w-5 h-5" />
-        </Path>
-        <Path to="/admin/settings" title="设置">
-          <AiOutlineSetting className="m-auto w-5 h-5" />
-        </Path>
+        {isCustomerService && (
+          <Path to="/admin/views" title="视图">
+            <AiOutlineContainer className="m-auto w-5 h-5" />
+          </Path>
+        )}
+        {isCustomerService && (
+          <Path to="/admin/search" title="搜索">
+            <AiOutlineSearch className="m-auto w-5 h-5" />
+          </Path>
+        )}
+        {isCustomerService && (
+          <Path to="/admin/stats" title="统计">
+            <MdOutlineAnalytics className="m-auto w-5 h-5" />
+          </Path>
+        )}
+        {isCustomerService && (
+          <Path to="/admin/settings" title="设置">
+            <AiOutlineSetting className="m-auto w-5 h-5" />
+          </Path>
+        )}
       </section>
       <section />
       <section className="p-3">
-        <Path to="/admin/tickets/new" title="新建工单">
-          <HiOutlinePlus className="m-auto w-5 h-5" />
-        </Path>
+        {isCustomerService && (
+          <Path to="/admin/tickets/new" title="新建工单">
+            <HiOutlinePlus className="m-auto w-5 h-5" />
+          </Path>
+        )}
         <Feedback />
         <CurrentUserSection />
       </section>
