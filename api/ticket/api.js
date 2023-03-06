@@ -16,7 +16,7 @@ const { encodeUserObject, makeTinyUserInfo } = require('../user/utils')
 const { isCustomerService } = require('../customerService/utils')
 const config = require('../../config')
 const Ticket = require('./model')
-const { isStaff } = require('../common')
+const { getRoles } = require('../common')
 
 const TICKET_SORT_KEY_MAP = {
   created_at: 'createdAt',
@@ -57,9 +57,6 @@ function encodeLatestReply(latestReply) {
 async function isCSInTicket(user) {
   const userId = typeof user === 'string' ? user : user.id
   return await isCustomerService(userId)
-}
-async function isStaffInTicket(user) {
-  return await isStaff(user)
 }
 
 /**
@@ -397,9 +394,8 @@ router.get(
   query('created_at_gt').isISO8601().optional(),
   catchError(async (req, res) => {
     const { created_at_gt } = req.query
-    const isCS = await isCSInTicket(req.user, req.ticket.get('author'))
-    const isStaff = await isStaffInTicket(req.user, req.ticket.get('author'))
-    const isUser = !isCS && !isStaff
+    const roles = await getRoles(req.user)
+    const isUser = roles.length === 0
 
     let query = new AV.Query('Reply').equalTo('ticket', req.ticket)
     query.doesNotExist('deletedAt')

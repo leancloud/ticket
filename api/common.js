@@ -47,11 +47,13 @@ const getRoles = mem(
   (user) =>
     new AV.Query(AV.Role)
       .equalTo('users', user)
-      .containedIn('name', ['staff', 'customerService', 'admin'])
+      .containedIn('name', ['staff', 'customerService', 'admin', 'collaborator'])
       .find()
       .then((roles) => roles.map((role) => role.get('name'))),
   { maxAge: 10_000 }
 )
+
+exports.getRoles = getRoles
 
 exports.isCustomerService = async (user, ticketAuthor) => {
   if (!user) {
