@@ -26,6 +26,7 @@ import { FilterOptions, textFilterService } from '@/utils/textFilter';
 import { OpsLogResponse } from '@/response/ops-log';
 import { getIP } from '@/utils';
 import { organizationService } from '@/service/organization';
+import { roleService } from '@/service/role';
 
 const router = new Router().use(auth);
 
@@ -801,6 +802,7 @@ const fetchRepliesParamsSchema = yup.object({
 
 router.get('/:id/replies', sort('orderBy', ['createdAt']), async (ctx) => {
   const ticket = ctx.state.ticket as Ticket;
+  const currentUser = ctx.state.currentUser as User;
   const { cursor, page, pageSize, count } = fetchRepliesParamsSchema.validateSync(ctx.query);
   const sortItems = sort.get(ctx);
   const createdAtOrder = sortItems?.[0];
@@ -811,6 +813,14 @@ router.get('/:id/replies', sort('orderBy', ['createdAt']), async (ctx) => {
     .where('deletedAt', 'not-exists')
     .preload('author')
     .preload('files');
+
+  const systemRoles = await roleService.getSystemRolesForUser(currentUser.id);
+  if (systemRoles.length === 0) {
+    query.where((query) => {
+      query.where('internal', 'not-exists').orWhere('internal', '==', false);
+    });
+  }
+
   if (cursor) {
     query.where('createdAt', asc ? '>' : '<', cursor);
   } else {
