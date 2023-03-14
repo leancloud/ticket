@@ -13,6 +13,7 @@ import {
   hasManyThroughPointer,
   hasManyThroughPointerArray,
   serialize,
+  AuthOptions,
 } from '@/orm';
 import { TicketUpdater, UpdateOptions } from '@/ticket/TicketUpdater';
 import htmlify from '@/utils/htmlify';
@@ -200,6 +201,16 @@ export class Ticket extends Model {
   @hasManyThroughPointer(() => Notification)
   notifications?: Notification[];
 
+  @pointerId(() => Ticket)
+  parentId?: string;
+
+  @pointTo(() => Ticket)
+  parent?: Ticket;
+
+  associateTickets?: Ticket[];
+
+  subscribed?: boolean;
+
   getUrl(): string {
     return `${config.host}/tickets/${this.nid}`;
   }
@@ -331,13 +342,45 @@ export class Ticket extends Model {
     }
   }
 
-  operate(action: OperateAction, operator: User, options?: UpdateOptions): Promise<Ticket> {
-    const updater = new TicketUpdater(this);
-    updater.operate(action);
-    return updater.update(operator, options);
+  async operate(
+    action: OperateAction,
+    operator: User,
+    options?: UpdateOptions & { cascade?: boolean }
+  ): Promise<Ticket> {
+    await this.loadAssociateTickets(options);
+
+    await Promise.all(
+      (options?.cascade ? [...(this.associateTickets ?? []), this] : [this])?.map((ticket) => {
+        const updater = new TicketUpdater(ticket);
+        updater.operate(action);
+        return updater.update(operator, options);
+      })
+    );
+
+    return this;
   }
 
   isClosed(): boolean {
     return Status.isClosed(this.status);
+  }
+
+  async loadAssociateTickets(options?: AuthOptions) {
+    this.associateTickets = this.parentId
+      ? await Ticket.queryBuilder()
+          .where('parent', '==', Ticket.ptr(this.parentId))
+          .where('objectId', '!=', this.id)
+          .find(options)
+      : undefined;
+
+    return this;
+  }
+
+  async loadSubscribed(user: User) {
+    this.subscribed = !!(await Watch.queryBuilder()
+      .where('ticket', '==', this.toPointer())
+      .where('user', '==', user.toPointer())
+      .first({ useMasterKey: true }));
+
+    return this;
   }
 }
