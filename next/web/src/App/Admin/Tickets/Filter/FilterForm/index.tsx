@@ -127,8 +127,9 @@ export const FilterForm: FC<FilterFormProps> = ({ className, filters, onChange }
           />
         </Field>
 
-        <Field title="负责客服">
+        <Field title="负责人">
           <AssigneeSelect
+            includeCollaborators
             value={assigneeId}
             onChange={(assigneeId) => merge({ assigneeId })}
             disabled={normalDisabled}

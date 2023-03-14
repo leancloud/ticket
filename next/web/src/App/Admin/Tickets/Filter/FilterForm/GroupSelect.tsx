@@ -14,7 +14,7 @@ export function GroupSelect({ value, onChange, disabled }: GroupSelectProps) {
 
   const options = useMemo(() => {
     return [
-      { label: '（未分配）', value: 'null' },
+      { label: '(未分配)', value: 'null' },
       ...(groups ?? []).map((g) => ({ label: g.name, value: g.id })),
     ];
   }, [groups]);
