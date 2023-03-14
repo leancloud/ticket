@@ -67,13 +67,16 @@ function useTicket(nid) {
     refetch: refetchTicket,
   } = useQuery({
     queryKey: ['ticket', ticketId],
-    queryFn: () => fetch(`/api/1/tickets/${ticketId}`),
+    queryFn: () =>
+      fetch(`/api/2/tickets/${ticketId}`, {
+        query: { includeAuthor: true, includeAssociateTicket: true },
+      }),
     enabled: !!ticketId,
   })
 
   const $onUpdate = useRef()
   $onUpdate.current = (obj) => {
-    if (obj.updatedAt.toISOString() !== ticket?.updated_at) {
+    if (obj.updatedAt.toISOString() !== ticket?.updatedAt) {
       refetchTicket()
     }
   }
@@ -261,8 +264,8 @@ function useOpsLogs(ticketId) {
 function TicketInfo({ ticket }) {
   const { t } = useTranslation()
   const { addNotification, isUser, isCustomerService } = useContext(AppContext)
-  const createdAt = useMemo(() => moment(ticket.created_at), [ticket.created_at])
-  const updatedAt = useMemo(() => moment(ticket.updated_at), [ticket.updated_at])
+  const createdAt = useMemo(() => moment(ticket.createdAt), [ticket.createdAt])
+  const updatedAt = useMemo(() => moment(ticket.updatedAt), [ticket.updatedAt])
   const queryClient = useQueryClient()
 
   const { mutate: updateSubscribed, isLoading: updatingSubscribed } = useMutation(
@@ -323,8 +326,8 @@ TicketInfo.propTypes = {
     author: PropTypes.object.isRequired,
     reporter: PropTypes.object.isRequired,
     subscribed: PropTypes.bool.isRequired,
-    created_at: PropTypes.string.isRequired,
-    updated_at: PropTypes.string.isRequired,
+    createdAt: PropTypes.string.isRequired,
+    updatedAt: PropTypes.string.isRequired,
   }),
 }
 
@@ -407,7 +410,7 @@ export default function Ticket() {
 
   const editModalRef = useRef(null)
 
-  const isUserInThisTicket = isUser || ticket?.author_id === currentUser.id
+  const isUserInThisTicket = isUser || ticket?.authorId === currentUser.id
   if (loadingTicket) {
     return <div>{t('loading') + '...'}</div>
   }
@@ -435,6 +438,7 @@ export default function Ticket() {
         </Col>
         <Col md={6}>
           <div className="tickets">
+            {/* TODO: ticket in reply card ? */}
             <ReplyCard data={ticket} ticketId={ticket.id} />
             {timeline.map((data) => (
               <Timeline
@@ -449,7 +453,7 @@ export default function Ticket() {
           {showRecentTickets && (
             <>
               <hr />
-              <RecentTickets authorId={ticket.author_id} excludeNid={ticket.nid} />
+              <RecentTickets ticket={ticket} />
             </>
           )}
           <hr />

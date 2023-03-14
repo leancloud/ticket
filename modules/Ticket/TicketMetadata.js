@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from 'react-query'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 import Select from 'react-select'
+import { Link } from 'react-router-dom'
 
 import { auth, fetch, http } from '../../lib/leancloud'
 import { UserLabel } from '../UserLabel'
@@ -265,14 +266,14 @@ function CategorySection({ ticket }) {
       {editingCategory ? (
         <CategorySelect
           categories={categories || []}
-          value={ticket.category_id}
+          value={ticket.categoryId}
           onChange={updateCategory}
           onBlur={() => setEditingCategory(false)}
           disabled={isLoading || updating}
         />
       ) : (
         <div className="d-flex align-items-center">
-          <Category block categoryId={ticket.category_id} />
+          <Category block categoryId={ticket.categoryId} />
           {isCustomerService && (
             <Button variant="link" onClick={() => setEditingCategory(true)}>
               <Icon.PencilFill />
@@ -286,7 +287,7 @@ function CategorySection({ ticket }) {
 CategorySection.propTypes = {
   ticket: PropTypes.shape({
     id: PropTypes.string.isRequired,
-    category_id: PropTypes.string.isRequired,
+    categoryId: PropTypes.string.isRequired,
   }),
 }
 
@@ -355,7 +356,7 @@ function TagSection({ ticket }) {
   )
 
   return tagMetadatas.map((tagMetadata) => {
-    const tags = tagMetadata.data.isPrivate ? ticket.private_tags : ticket.tags
+    const tags = tagMetadata.data.isPrivate ? ticket.privateTags : ticket.tags
     const tag = tags?.find((tag) => tag.key === tagMetadata.data.key)
     return (
       <TagForm
@@ -440,6 +441,7 @@ const TicketFormModal = memo(({ fields, values, onUpdated, close, ticketId }) =>
     </>
   )
 })
+// eslint-disable-next-line react/display-name
 const TicketFormValues = memo(({ ticket, loadMoreOpsLogs }) => {
   const { t, i18n } = useTranslation()
   const { addNotification } = useAppContext()
@@ -448,11 +450,11 @@ const TicketFormValues = memo(({ ticket, loadMoreOpsLogs }) => {
   const close = useCallback(() => setEdit(false), [])
 
   const { data: formId } = useQuery({
-    queryKey: ['meta/category', ticket ? ticket.category_id : ''],
+    queryKey: ['meta/category', ticket ? ticket.categoryId : ''],
     queryFn: () =>
       http.get('/api/1/categories', {
         params: {
-          id: ticket.category_id,
+          id: ticket.categoryId,
           active: true,
         },
       }),
@@ -594,6 +596,52 @@ const TicketFormValues = memo(({ ticket, loadMoreOpsLogs }) => {
   )
 })
 
+// eslint-disable-next-line react/display-name
+const AssociateTickets = memo(({ ticket }) => {
+  const queryClient = useQueryClient()
+  const { t } = useTranslation()
+
+  const { mutate: disassociate } = useMutation({
+    mutationFn: async (id) => {
+      await http.patch(`/api/2/tickets/${id}`, { associateTicketId: null })
+    },
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries(['ticket', id])
+      queryClient.invalidateQueries(['ticket', ticket.id])
+      queryClient.invalidateQueries(['tickets', ticket.authorId])
+    },
+  })
+
+  return (
+    <Form.Group>
+      <Form.Label>{t('ticket.associateTicket')}</Form.Label>
+      <div>
+        {ticket.associateTickets?.map(({ id, title, nid }) => (
+          <div key={id} className="d-flex justify-content-between">
+            <Link to={`/tickets/${nid}`} title={title} className={styles.link}>
+              <span className={styles.nid}>#{nid}</span>
+              {title}
+            </Link>
+            <Button
+              onClick={() => {
+                disassociate(id)
+              }}
+              variant="light"
+              size="sm"
+            >
+              {t('ticket.disassociate')}
+            </Button>
+          </div>
+        )) ?? t('ticket.noAssociation')}
+      </div>
+    </Form.Group>
+  )
+})
+
+AssociateTickets.propTypes = {
+  ticket: PropTypes.object.isRequired,
+}
+
 export function Fields({ ticket, loadMoreOpsLogs }) {
   const { isUser } = useContext(AppContext)
   return (
@@ -606,10 +654,6 @@ export function Fields({ ticket, loadMoreOpsLogs }) {
     </>
   )
 }
-TicketMetadata.propTypes = {
-  ticket: PropTypes.object.isRequired,
-  loadMoreOpsLogs: PropTypes.func,
-}
 
 export function TicketMetadata({ ticket }) {
   const { isStaff, isCustomerService } = useContext(AppContext)
@@ -619,12 +663,16 @@ export function TicketMetadata({ ticket }) {
 
       <AssigneeSection ticket={ticket} />
 
+      <AssociateTickets ticket={ticket} />
+
       <MountCustomElement point="ticket.metadata" props={{ ticket, isCustomerService }} />
 
       <TagSection ticket={ticket} />
     </>
   )
 }
+
 TicketMetadata.propTypes = {
   ticket: PropTypes.object.isRequired,
+  loadMoreOpsLogs: PropTypes.func,
 }

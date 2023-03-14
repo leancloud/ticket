@@ -48,7 +48,7 @@ export function Evaluation({ ticket }) {
     onError: (error) => addNotification(error),
   })
 
-  const commitable = auth.currentUser?.id === ticket.author_id
+  const commitable = auth.currentUser?.id === ticket.authorId
   const readonly = !editing || isLoading
 
   if (!ticket.evaluation && !commitable) {
@@ -121,5 +121,6 @@ Evaluation.propTypes = {
   ticket: PropTypes.shape({
     id: PropTypes.string.isRequired,
     evaluation: PropTypes.object,
+    authorId: PropTypes.string,
   }).isRequired,
 }
