@@ -109,6 +109,10 @@ function AssigneeSection({ ticket }) {
   const { mutate: updateAssignee, isLoading: updating } = useMutation({
     mutationFn: (assigneeId) => updateTicket(ticket.id, { assigneeId }),
     onSuccess: () => {
+      if (isCollaborator) {
+        alert('Window is about to close')
+        close()
+      }
       queryClient.invalidateQueries(['ticket', ticket.id])
       setEditingAssignee(false)
     },

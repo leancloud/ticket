@@ -701,7 +701,10 @@ router.patch('/:id', async (ctx) => {
   const updater = new TicketUpdater(ticket);
 
   if (data.assigneeId !== undefined) {
-    if (!isCustomerService) return ctx.throw(403);
+    const isCollaborator = await currentUser.isCollaborator();
+    if (!isCustomerService && !isCollaborator) {
+      return ctx.throw(403);
+    }
     if (data.assigneeId) {
       const vacationerIds = await Vacation.getVacationerIds();
       if (vacationerIds.includes(data.assigneeId)) {
