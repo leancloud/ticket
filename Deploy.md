@@ -364,8 +364,14 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 
 ## 2023-03-22
 
+### `a5a312d6b8c9bbe748e49b1b43746b2b7f73c0df`
+
 导入 `FAQ` `FAQTranslation` `FAQFeedback` `FAQRevision` （富文本多语言）
 
 运行 `eval $(lean env) && cd next/api && npm install && node scripts/article-i18n.mjs` 进行数据迁移
 
 如果是迁移过来的，将 `FAQ` 的 `question`, `FAQFeedback` `FAQRevision` 的 `FAQ` 这两个字段设置为非必须
+
+## 2023-03-23
+
+重新导入 `Ticket` (增加 `parent` 列)
