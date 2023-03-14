@@ -10,7 +10,7 @@ import {
   ResponseBody,
   UseMiddlewares,
 } from '@/common/http';
-import { auth, customerServiceOnly } from '@/middleware';
+import { auth, customerServiceOnly, systemRoleMemberGuard } from '@/middleware';
 import { ZodValidationPipe } from '@/common/pipe';
 import { User } from '@/model/User';
 import { collaboratorService } from '@/service/collaborator';
@@ -21,9 +21,10 @@ const createCollaboratorSchema = z.object({
 });
 
 @Controller('collaborators')
-@UseMiddlewares(auth, customerServiceOnly)
+@UseMiddlewares(auth, systemRoleMemberGuard)
 export class CollaboratorController {
   @Post()
+  @UseMiddlewares(customerServiceOnly)
   async create(
     @Body(new ZodValidationPipe(createCollaboratorSchema))
     data: z.infer<typeof createCollaboratorSchema>
@@ -41,6 +42,7 @@ export class CollaboratorController {
     return collaboratorService.getCollaborators();
   }
 
+  @UseMiddlewares(customerServiceOnly)
   @Delete(':id')
   async delete(@Param('id') id: string) {
     await collaboratorService.deleteCollaborator(id);

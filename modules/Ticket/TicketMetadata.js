@@ -125,12 +125,13 @@ function AssigneeSection({ ticket }) {
 
   const { currentUser } = useContext(AppContext)
   const [members, others] = useMemo(() => {
-    if (!customerServices || !groupMembers) {
+    if (!customerServices) {
       return [[], []]
     }
-    const [members, others] = _.partition(customerServices, (user) =>
-      groupMembers.includes(user.id)
-    )
+    // XXX: /api/1/ticket/:id 不向协作者返回 ticket.group
+    // 所以协作者视角下候选负责人列表始终是全部客服和协作者, 没有组员
+    const memberIdSet = new Set(groupMembers)
+    const [members, others] = _.partition(customerServices, (user) => memberIdSet.has(user.id))
     const isCurrentUser = (user) => user.id === currentUser.id
     return [prioritize(members, isCurrentUser), prioritize(others, isCurrentUser)]
   }, [currentUser.id, customerServices, groupMembers])
@@ -158,7 +159,7 @@ function AssigneeSection({ ticket }) {
     }
     if (others.length) {
       options.push({
-        label: '其他客服',
+        label: members.length ? '其他客服' : '客服',
         options: getOptions(others),
       })
     }
