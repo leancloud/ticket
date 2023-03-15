@@ -354,10 +354,12 @@ class Ticket {
     const rawACL = {
       [this.author_id]: { read: true, write: true },
       'role:customerService': { read: true, write: true },
-      'role:staff': { read: !this.isPrivate },
     }
     if (this.organization_id) {
       rawACL[this.organization_id + '_member'] = { read: true, write: true }
+    }
+    if (!this.isPrivate) {
+      rawACL['role:staff'] = { read: true }
     }
     return new AV.ACL(rawACL)
   }
