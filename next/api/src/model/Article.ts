@@ -1,34 +1,22 @@
 import mem from '@/utils/mem-promise';
-import { ACLBuilder, field, Model, ModifyOptions, pointerId, pointTo, serialize } from '@/orm';
-import { User } from './User';
-import { ArticleRevision } from './ArticleRevision';
-import { ArticleFeedback, FeedbackType } from './ArticleFeedback';
+import { AuthOptions, field, Model, ModifyOptions, serialize } from '@/orm';
+import { ArticleTranslation } from './ArticleTranslation';
 
 export class Article extends Model {
   static readonly className = 'FAQ';
 
-  @field('question')
+  @field()
   @serialize()
-  title!: string;
+  name!: string;
 
-  @field('answer')
-  content?: string;
-
-  @field('answer_HTML')
-  contentHTML!: string;
-
-  @field('archived')
+  @field()
   private?: boolean;
 
   @field()
+  defaultLanguage!: string;
+
+  @field()
   deletedAt?: Date;
-
-  @pointerId(() => ArticleRevision)
-  @serialize()
-  revisionId?: string;
-
-  @pointTo(() => ArticleRevision)
-  revision?: ArticleRevision;
 
   async delete(this: Article, options?: ModifyOptions) {
     await this.update(
@@ -41,77 +29,29 @@ export class Article extends Model {
     );
   }
 
-  async createRevision(
-    this: Article,
-    author: User,
-    updatedArticle: Article,
-    previousArticle?: Article,
-    comment?: string
-  ) {
-    const doCreateRevision = async (data: Partial<ArticleRevision>) => {
-      return ArticleRevision.create(
-        {
-          ...data,
-          authorId: author.id,
-          articleId: this.id,
-          comment,
-          ACL: new ACLBuilder().allowStaff('read'),
-        },
-        {
-          useMasterKey: true,
-        }
-      );
-    };
+  async getTranslation(this: Article, language?: string, options?: AuthOptions) {
+    const translation = await ArticleTranslation.queryBuilder()
+      .where('article', '==', this.toPointer())
+      .where('language', '==', language || this.defaultLanguage)
+      .preload('revision')
+      .first(options);
 
-    const contentChanged =
-      updatedArticle.content !== previousArticle?.content ||
-      updatedArticle.title !== previousArticle?.title;
-    if (contentChanged) {
-      const revision = await doCreateRevision({
-        content: updatedArticle.content,
-        title: updatedArticle.title,
-      });
-      this.update(
-        {
-          revisionId: revision.id,
-        },
-        {
-          useMasterKey: true,
-        }
-      );
-    }
+    translation && (translation.article = this);
 
-    const metaChanged =
-      updatedArticle.private !== previousArticle?.private ||
-      (previousArticle === undefined && updatedArticle.private);
-    if (metaChanged) {
-      await doCreateRevision({
-        meta: true,
-        private: updatedArticle.private,
-      });
-    }
+    return translation;
   }
 
-  async feedback(type: FeedbackType, author: User) {
-    const { revisionId } = this;
-    if (!revisionId) {
-      throw new Error('Revision not found');
+  async getTranslations(this: Article, isPublic?: boolean) {
+    const translationQb = ArticleTranslation.queryBuilder()
+      .where('article', '==', this.toPointer())
+      .preload('revision');
+
+    if (isPublic) {
+      translationQb.where('private', '==', false);
     }
-    await ArticleFeedback.upsert(
-      {
-        type,
-        revisionId,
-        articleId: this.id,
-        authorId: author.id,
-      },
-      (queryBuilder) =>
-        queryBuilder
-          .where('revision', '==', ArticleRevision.ptr(revisionId))
-          .where('author', '==', author.toPointer()),
-      {
-        type,
-      },
-      { useMasterKey: true }
+
+    return (await translationQb.find({ useMasterKey: true })).map(
+      (translation) => ((translation.article = this), translation)
     );
   }
 }

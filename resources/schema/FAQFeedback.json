@@ -1,98 +1,66 @@
 {
-    "schema": {
-        "updatedAt": {
-            "type": "Date"
-        },
-        "revision": {
-            "type": "Pointer",
-            "v": 2,
-            "className": "FAQRevision",
-            "required": true,
-            "hidden": false,
-            "read_only": false
-        },
-        "ACL": {
-            "type": "ACL"
-        },
-        "FAQ": {
-            "type": "Pointer",
-            "v": 2,
-            "className": "FAQ",
-            "required": true,
-            "hidden": false,
-            "read_only": false
-        },
-        "objectId": {
-            "type": "String"
-        },
-        "createdAt": {
-            "type": "Date"
-        },
-        "type": {
-            "type": "Number",
-            "v": 2,
-            "required": true,
-            "auto_increment": false,
-            "comment": "1: up / -1: down",
-            "hidden": false,
-            "read_only": false
-        },
-        "author": {
-            "type": "Pointer",
-            "v": 2,
-            "className": "_User",
-            "required": true,
-            "hidden": false,
-            "read_only": false
-        }
+  "schema": {
+    "objectId": { "type": "String" },
+    "ACL": { "type": "ACL" },
+    "createdAt": { "type": "Date" },
+    "updatedAt": { "type": "Date" },
+    "revision": {
+      "type": "Pointer",
+      "v": 2,
+      "className": "FAQRevision",
+      "required": true,
+      "hidden": false,
+      "read_only": false
     },
-    "permissions": {
-        "create": {
-            "roles": [],
-            "users": []
-        },
-        "find": {
-            "roles": [],
-            "users": []
-        },
-        "get": {
-            "roles": [],
-            "users": []
-        },
-        "update": {
-            "roles": [],
-            "users": []
-        },
-        "delete": {
-            "roles": [],
-            "users": []
-        },
-        "add_fields": {
-            "roles": [],
-            "users": []
-        }
+    "type": {
+      "type": "Number",
+      "v": 2,
+      "required": true,
+      "auto_increment": false,
+      "comment": "1: up / -1: down",
+      "hidden": false,
+      "read_only": false
     },
-    "indexes": [
-        {
-            "v": 2,
-            "unique": true,
-            "key": {
-                "revision.$id": -1,
-                "author.$id": -1
-            },
-            "name": "-user-revision.$id_-1_author.$id_-1",
-            "ns": "-.FAQFeedback",
-            "background": true
-        },
-        {
-            "v": 2,
-            "key": {
-                "FAQ.$id": -1,
-                "updatedAt": -1
-            },
-            "name": "-user-FAQ.$id_-1_updatedAt_-1",
-            "ns": "-.FAQFeedback",
-            "background": true
-        }
-    ]
+    "author": {
+      "type": "Pointer",
+      "v": 2,
+      "className": "_User",
+      "required": true,
+      "hidden": false,
+      "read_only": false
+    },
+    "FAQTranslation": {
+      "type": "Pointer",
+      "v": 2,
+      "className": "FAQTranslation",
+      "required": true,
+      "hidden": false,
+      "read_only": false
+    }
+  },
+  "permissions": {
+    "create": { "roles": [], "users": [] },
+    "find": { "roles": [], "users": [] },
+    "get": { "roles": [], "users": [] },
+    "update": { "roles": [], "users": [] },
+    "delete": { "roles": [], "users": [] },
+    "add_fields": { "roles": [], "users": [] }
+  },
+  "indexes": [
+    {
+      "v": 2,
+      "unique": true,
+      "key": { "revision.$id": -1, "author.$id": -1 },
+      "name": "-user-revision.$id_-1_author.$id_-1",
+      "ns": "-.FAQFeedback",
+      "background": true
+    },
+    {
+      "v": 2,
+      "key": { "FAQTranslation.$id": -1, "updatedAt": -1 },
+      "name": "-user-FAQTranslation.$id_-1_updatedAt_-1",
+      "ns": "-.FAQFeedback",
+      "background": true
+    }
+  ]
 }

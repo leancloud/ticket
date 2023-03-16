@@ -17,17 +17,18 @@ import {
 import { ParseBoolPipe, ZodValidationPipe } from '@/common/pipe';
 import { UpdateData } from '@/orm';
 import { auth, customerServiceOnly } from '@/middleware';
-import { getPublicArticle } from '@/model/Article';
 import { Category } from '@/model/Category';
 import { TicketForm } from '@/model/TicketForm';
 import { User } from '@/model/User';
-import { ArticleAbstractResponse } from '@/response/article';
+import { ArticleTranslationAbstractResponse } from '@/response/article';
 import { CategoryResponse } from '@/response/category';
 import { TicketFieldVariantResponse } from '@/response/ticket-field';
 import { ArticleTopicFullResponse } from '@/response/article-topic';
 import { getTopic } from '@/model/ArticleTopic';
 import _ from 'lodash';
 import { FindCategoryPipe, categoryService } from '@/category';
+import { Locales } from '@/common/http/handler/param/locale';
+import { getPublicTranslationWithLocales } from '@/model/ArticleTranslation';
 
 const createCategorySchema = z.object({
   name: z.string(),
@@ -71,9 +72,10 @@ export class CategoryController {
   @ResponseBody(CategoryResponse)
   async findAll(
     @Ctx() ctx: Context,
-    @Query('active', new ParseBoolPipe({ keepUndefined: true })) active: boolean | undefined
+    @Query('active', new ParseBoolPipe({ keepUndefined: true })) active: boolean | undefined,
+    @Query('product', ParseBoolPipe) productOnly: boolean
   ) {
-    const categories = await categoryService.find({ active });
+    const categories = await categoryService.find({ active, productOnly });
     await categoryService.renderCategories(categories, ctx.locales);
     return categories;
   }
@@ -158,35 +160,56 @@ export class CategoryController {
   }
 
   @Get(':id/faqs')
-  @ResponseBody(ArticleAbstractResponse)
-  async getFAQs(@Param('id', FindCategoryPipe) category: Category) {
+  @ResponseBody(ArticleTranslationAbstractResponse)
+  async getFAQs(@Param('id', FindCategoryPipe) category: Category, @Locales() locales?: string[]) {
     if (!category.FAQIds) {
       return [];
     }
 
-    const articles = _.compact(await Promise.all(category.FAQIds.map(getPublicArticle)));
+    const articles = _.compact(
+      await Promise.all(
+        category.FAQIds.map((articleId) =>
+          getPublicTranslationWithLocales(articleId, locales ?? [])
+        )
+      )
+    );
     return articles;
   }
 
   @Get(':id/notices')
-  @ResponseBody(ArticleAbstractResponse)
-  async getNotices(@Param('id', FindCategoryPipe) category: Category) {
+  @ResponseBody(ArticleTranslationAbstractResponse)
+  async getNotices(
+    @Param('id', FindCategoryPipe) category: Category,
+    @Locales() locales?: string[]
+  ) {
     if (!category.noticeIds) {
       return [];
     }
 
-    const articles = _.compact(await Promise.all(category.noticeIds.map(getPublicArticle)));
+    const articles = _.compact(
+      await Promise.all(
+        category.noticeIds.map((noticeId) =>
+          getPublicTranslationWithLocales(noticeId, locales ?? [])
+        )
+      )
+    );
+
     return articles;
   }
 
   @Get(':id/topics')
   @ResponseBody(ArticleTopicFullResponse)
-  async getTopics(@Param('id', FindCategoryPipe) category: Category) {
+  async getTopics(
+    @Param('id', FindCategoryPipe) category: Category,
+    @Locales() locales?: string[]
+  ) {
     if (!category.topicIds) {
       return [];
     }
 
-    const topics = await Promise.all(category.topicIds.map(getTopic));
+    const topics = await Promise.all(
+      category.topicIds.map((topicId) => getTopic(topicId, locales ?? []))
+    );
     return topics;
   }
 

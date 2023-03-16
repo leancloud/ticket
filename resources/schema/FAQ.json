@@ -1,48 +1,6 @@
 {
   "schema": {
-    "archived": {
-      "type": "Boolean",
-      "v": 2,
-      "required": false,
-      "hidden": false
-    },
-    "updatedAt": {
-      "type": "Date"
-    },
-    "ACL": {
-      "type": "ACL",
-      "default": {
-        "*": {
-          "read": true,
-          "write": true
-        }
-      }
-    },
-    "answer_HTML": {
-      "type": "String",
-      "v": 2,
-      "required": false,
-      "hidden": false
-    },
-    "objectId": {
-      "type": "String"
-    },
-    "question": {
-      "type": "String",
-      "v": 2,
-      "required": true,
-      "hidden": false
-    },
-    "createdAt": {
-      "type": "Date"
-    },
-    "deletedAt": {
-      "type": "Date",
-      "v": 2,
-      "required": false,
-      "hidden": false,
-      "read_only": false
-    },
+    "updatedAt": { "type": "Date" },
     "revision": {
       "type": "Pointer",
       "v": 2,
@@ -52,32 +10,36 @@
       "read_only": false,
       "comment": "最近一次有内容的修改记录"
     },
-    "answer": {
+    "private": {
+      "type": "Boolean",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "default": false,
+      "comment": "",
+      "read_only": false
+    },
+    "ACL": { "type": "ACL", "default": { "*": { "read": true, "write": true } } },
+    "name": { "type": "String", "v": 2, "required": true, "hidden": false, "read_only": false },
+    "objectId": { "type": "String" },
+    "createdAt": { "type": "Date" },
+    "deletedAt": { "type": "Date", "v": 2, "required": false, "hidden": false, "read_only": false },
+    "defaultLanguage": {
       "type": "String",
       "v": 2,
       "required": false,
-      "hidden": false
+      "hidden": false,
+      "read_only": false,
+      "comment": ""
     }
   },
   "permissions": {
-    "create": {
-      "*": true
-    },
-    "find": {
-      "*": true
-    },
-    "get": {
-      "*": true
-    },
-    "update": {
-      "*": true
-    },
-    "delete": {
-      "*": true
-    },
-    "add_fields": {
-      "*": true
-    }
+    "create": { "*": true },
+    "find": { "*": true },
+    "get": { "*": true },
+    "update": { "*": true },
+    "delete": { "*": true },
+    "add_fields": { "*": true }
   },
   "indexes": []
 }

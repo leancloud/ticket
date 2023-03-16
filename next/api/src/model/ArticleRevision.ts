@@ -1,6 +1,6 @@
 import { field, Model, pointerId, pointTo, serialize } from '@/orm';
-import { Article } from './Article';
 import { TinyUserInfo, User } from './User';
+import { ArticleTranslation } from './ArticleTranslation';
 
 export interface TinyArticleRevision {
   objectId: string;
@@ -49,7 +49,7 @@ export class ArticleRevision extends Model {
   @pointTo(() => User)
   author?: User;
 
-  @pointerId(() => Article, 'FAQ')
+  @pointerId(() => ArticleTranslation, 'FAQTranslation')
   @serialize()
   articleId!: string;
 }

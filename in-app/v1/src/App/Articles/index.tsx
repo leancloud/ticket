@@ -17,14 +17,14 @@ import { Helmet } from 'react-helmet-async';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 
-async function getArticle(id: string) {
-  return (await http.get<Article>(`/api/2/articles/${id}`)).data;
+async function getArticle(id: string, locale?: string) {
+  return (await http.get<Article>(`/api/2/articles/${id}`, { params: { locale } })).data;
 }
 
-function useArticle(id: string) {
+function useArticle(id: string, locale?: string) {
   return useQuery({
     queryKey: ['article', id],
-    queryFn: () => getArticle(id),
+    queryFn: () => getArticle(id, locale),
     staleTime: 60_000,
   });
 }
@@ -102,13 +102,15 @@ function Feedback({ articleId }: { articleId: string }) {
 function ArticleDetail() {
   const [t] = useTranslation();
   const { id } = useParams();
-  const articleId = id?.split('-').shift();
-  const result = useArticle(articleId!);
-  const { data: article } = result;
 
   const [search] = useSearchParams();
   const categoryId = search.get('from-category');
   const isNotice = !!search.get('from-notice');
+  const locale = search.get('locale');
+
+  const articleId = id?.split('-').shift();
+  const result = useArticle(articleId!, locale ?? undefined);
+  const { data: article } = result;
 
   const { user } = useAuth();
   const title = !!isNotice ? t('notice.title') : <span>&nbsp;</span>;
