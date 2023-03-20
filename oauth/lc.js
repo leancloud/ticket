@@ -189,13 +189,23 @@ if (config.enableLeanCloudIntegration) {
   AV.Cloud.define('getLeanCloudAppUrl', (req) => {
     return isStaff(req.currentUser).then((isStaff) => {
       if (!isStaff) {
-        throw new AV.Cloud.Error('unauthorized', { status: 401 })
+        throw new AV.Cloud.Error('Unauthorized', { status: 401 })
       }
-      if (!config.leancloudAppUrl) {
-        return null
+      const { region, appId } = req.params
+      if (region === 'cn-e1') {
+        if (config.leancloudAppUrl) {
+          return format(config.leancloudAppUrl, 'admin-e1', 'cn', appId)
+        }
+      } else if (region === 'us-w1') {
+        if (config.leancloudAppUrl) {
+          return format(config.leancloudAppUrl, 'admin', 'app', appId)
+        }
+      } else {
+        if (config.leancloudAppUrl_v3) {
+          return format(config.leancloudAppUrl_v3, region, appId)
+        }
       }
-      const { appId, region } = req.params
-      return format(config.leancloudAppUrl, region, appId)
+      return null
     })
   })
 }
