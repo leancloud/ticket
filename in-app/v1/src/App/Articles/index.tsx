@@ -21,15 +21,17 @@ async function getArticle(id: string, locale?: string) {
   return (await http.get<Article>(`/api/2/articles/${id}`, { params: { locale } })).data;
 }
 
-function useArticle(id: string, locale?: string) {
+function useArticle(id: string) {
+  const { i18n } = useTranslation();
   return useQuery({
     queryKey: ['article', id],
-    queryFn: () => getArticle(id, locale),
+    queryFn: () => getArticle(id, i18n.language),
     staleTime: 60_000,
   });
 }
 
 function RelatedFAQs({ categoryId, articleId }: { categoryId: string; articleId: string }) {
+  const { t } = useTranslation();
   const { data: FAQs, isLoading: FAQsIsLoading, isSuccess: FAQsIsReady } = useFAQs(categoryId);
   if (!FAQs) {
     return null;
@@ -40,7 +42,7 @@ function RelatedFAQs({ categoryId, articleId }: { categoryId: string; articleId:
   }
   return (
     <div className="pt-6 pb-2">
-      <h2 className="px-4 py-3 font-bold">类似问题</h2>
+      <h2 className="px-4 py-3 font-bold">{t('faqs.similar')}</h2>
       {relatedFAQs.map((FAQ) => (
         <ArticleListItem article={FAQ} fromCategory={categoryId} key={FAQ.id} />
       ))}
@@ -100,16 +102,15 @@ function Feedback({ articleId }: { articleId: string }) {
 }
 
 function ArticleDetail() {
-  const [t] = useTranslation();
+  const [t, i18n] = useTranslation();
   const { id } = useParams();
 
   const [search] = useSearchParams();
   const categoryId = search.get('from-category');
   const isNotice = !!search.get('from-notice');
-  const locale = search.get('locale');
 
   const articleId = id?.split('-').shift();
-  const result = useArticle(articleId!, locale ?? undefined);
+  const result = useArticle(articleId!);
   const { data: article } = result;
 
   const { user } = useAuth();
@@ -137,7 +138,9 @@ function ArticleDetail() {
           />
           {article && (
             <p className="text-sm text-gray-400">
-              更新日期：{format(new Date(article.updatedAt), 'PPP', { locale: zhCN })}
+              {`${t('general.update_date')}: ${format(new Date(article.updatedAt), 'PPP', {
+                locale: zhCN,
+              })}`}
             </p>
           )}
           {article && user && <Feedback articleId={article.id} />}
