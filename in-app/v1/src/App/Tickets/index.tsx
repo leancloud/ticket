@@ -81,7 +81,7 @@ function TicketItem({ ticket }: TicketItemProps) {
         <div className="text-sm">
           <TicketStatus className="mr-3" status={ticket.status} />
           <span className="text-[#BFBFBF] whitespace-nowrap">
-            {t('ticket.updated_at')}: <Time value={new Date(ticket.updatedAt)} />
+            {t('general.update_time')}: <Time value={new Date(ticket.updatedAt)} />
           </span>
         </div>
         <div className="mt-1.5 truncate text-[13px]">{ticket.title}</div>

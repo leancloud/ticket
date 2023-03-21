@@ -1,0 +1,95 @@
+{
+  "general": {
+    "commit": "送信",
+    "loading": "読み込み中",
+    "select_hint": "選択してください",
+    "collapse": "折りたたむ",
+    "expand": "展開する",
+    "number": "番号",
+    "status": "ステータス",
+    "title": "タイトル",
+    "description": "説明",
+    "attachment": "添付ファイル",
+    "send": "送信",
+    "confirm": "確認",
+    "no_data": "データなし",
+    "call_center": "カスタマーサポートセンター",
+    "click_to_upload": "アップロードするをクリック",
+    "content_deleted": "このコンテンツは削除されました",
+    "not_found": "このコンテンツは存在しません",
+    "cancel": "キャンセル",
+    "update_time": "更新時間",
+    "update_date": "更新日"
+  },
+  "home": {
+    "empty": "このカテゴリに表示するコンテンツがありません"
+  },
+  "feedback": {
+    "suffix": "フィードバック",
+    "action": "フィードバックを送信",
+    "record": "フィードバック履歴",
+    "submit": "フィードバックを送信"
+  },
+  "faqs": {
+    "showAll": "すべて表示",
+    "similar": "同様の問題"
+  },
+  "notice": {
+    "title": "お知らせ",
+    "hint": "上記の情報が役立たない場合"
+  },
+  "auth": {
+    "not_logged_in_text": "アカウントにログインしていないことが検出されました。ログインしてから再試行してください"
+  },
+  "category": {
+    "select_hint": "遭遇する問題を選択してください",
+    "select_hint_home": "問題の種類を選択",
+    "faqs": "関連する問題の解決策",
+    "title": "問題のカテゴリー"
+  },
+  "topic": {
+    "title": "よくある質問",
+    "hint": "上記の情報が役立たない場合は、"
+  },
+  "ticket": {
+    "record": "問題の記録",
+    "no_record": "問題のレコードなし",
+    "no_more_record": "記録がありません",
+    "create": {
+      "success": "送信完了",
+      "success_text": "$t(ticket.create.success)、すぐに対応いたします"
+    },
+    "detail": "問題の詳細",
+    "resolved": "解決済み",
+    "unResolved": "未解決",
+    "contact": "カスタマーサポートに連絡"
+  },
+  "reply": {
+    "staff_title": "公式カスタマーサポート",
+    "my_title": "自分自身",
+    "input_content_hint": "内容を入力してください"
+  },
+  "status": {
+    "new": "未処理",
+    "waiting_on_staff": "カスタマーサポートからの回答待ち",
+    "waiting_on_customer": "顧客の回答待ち",
+    "resolved": "解決済み"
+  },
+  "evaluation": {
+    "title": "サービス評価とフィードバック",
+    "useful": "役に立った",
+    "useless": "役に立たなかった",
+    "content_hint": "追加のコメント（任意）",
+    "created_text": "フィードバックが送信されました。ご協力ありがとうございました！",
+    "change": "評価を変更"
+  },
+  "validation": {
+    "required": "この項目は必須です",
+    "attachment_too_big": "アップロードに失敗しました",
+    "attachment_too_big_text": "添付ファイルのサイズは{{size}} {{unit}}を超えることはできません",
+    "attachment_not_uploaded": "添付ファイルのアップロードが完了するまでお待ちください",
+    "number_required": "数字以外は入力できません"
+  },
+  "network_error": "ネットワークエラーが発生しました。再接続してください",
+  "network_error.retry": "再接続を試みる"
+}

@@ -5,6 +5,7 @@ import { initReactI18next } from 'react-i18next';
 import zh from './locales/zh.json';
 import en from './locales/en.json';
 import ko from './locales/ko.json';
+import jp from './locales/jp.json';
 
 const resources = {
   zh: {
@@ -16,6 +17,9 @@ const resources = {
   ko: {
     translation: ko,
   },
+  jp: {
+    translation: jp,
+  },
 };
 
 i18n
@@ -26,6 +30,9 @@ i18n
     fallbackLng: ['en', 'zh'],
     interpolation: {
       escapeValue: false,
+    },
+    detection: {
+      lookupQuerystring: 'lang',
     },
   });
 

@@ -5,31 +5,42 @@ import classNames from 'classnames';
 import { Article } from '@/types';
 import { http } from '@/leancloud';
 import { ListItem } from '../Categories';
+import { useTranslation } from 'react-i18next';
 
-async function fetchFAQs(categoryId?: string): Promise<Article[]> {
+async function fetchFAQs(categoryId?: string, locale?: string): Promise<Article[]> {
   if (!categoryId) return [];
-  const { data } = await http.get<Article[]>(`/api/2/categories/${categoryId}/faqs`);
+  const { data } = await http.get<Article[]>(`/api/2/categories/${categoryId}/faqs`, {
+    params: {
+      locale,
+    },
+  });
   return data;
 }
 
 export function useFAQs(categoryId?: string) {
+  const { i18n } = useTranslation();
   return useQuery({
     queryKey: ['category-faqs', categoryId],
-    queryFn: () => fetchFAQs(categoryId),
+    queryFn: () => fetchFAQs(categoryId, i18n.language),
     staleTime: 1000 * 60,
   });
 }
 
-async function fetchNotices(categoryId?: string): Promise<Article[]> {
+async function fetchNotices(categoryId?: string, locale?: string): Promise<Article[]> {
   if (!categoryId) return [];
-  const { data } = await http.get<Article[]>(`/api/2/categories/${categoryId}/notices`);
+  const { data } = await http.get<Article[]>(`/api/2/categories/${categoryId}/notices`, {
+    params: {
+      locale,
+    },
+  });
   return data;
 }
 
 export function useNotices(categoryId?: string) {
+  const { i18n } = useTranslation();
   return useQuery({
     queryKey: ['category-notices', categoryId],
-    queryFn: () => fetchNotices(categoryId),
+    queryFn: () => fetchNotices(categoryId, i18n.language),
     staleTime: 1000 * 60,
   });
 }

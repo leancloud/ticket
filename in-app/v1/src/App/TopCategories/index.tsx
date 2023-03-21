@@ -34,7 +34,7 @@ export default function TopCategories() {
   const { t } = useTranslation();
 
   const result = useCategories();
-  const title = result.isLoading ? t('general.loading') + '...' : '问题分类';
+  const title = result.isLoading ? t('general.loading') + '...' : t('category.title');
 
   return (
     <>

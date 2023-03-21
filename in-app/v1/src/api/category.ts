@@ -2,6 +2,7 @@ import { UseQueryOptions, useQuery } from 'react-query';
 import { useRootCategory } from '@/states/root-category';
 import { http } from '@/leancloud';
 import { Article } from '@/types';
+import { useTranslation } from 'react-i18next';
 
 export interface Category {
   id: string;
@@ -34,8 +35,12 @@ export interface CategoryTopics {
   articles: Article[];
 }
 
-async function fetchCategoryTopic(categoryId: string): Promise<CategoryTopics[]> {
-  const { data } = await http.get(`/api/2/categories/${categoryId}/topics`);
+async function fetchCategoryTopic(categoryId: string, locale?: string): Promise<CategoryTopics[]> {
+  const { data } = await http.get(`/api/2/categories/${categoryId}/topics`, {
+    params: {
+      locale,
+    },
+  });
   return data;
 }
 
@@ -59,9 +64,10 @@ export function useCategory(id: string, options?: UseQueryOptions<Category>) {
 
 export function useCategoryTopics(options?: UseQueryOptions<CategoryTopics[]>) {
   const rootCategory = useRootCategory();
+  const { i18n } = useTranslation();
   return useQuery({
     queryKey: ['categoryTopic', rootCategory.id],
-    queryFn: () => fetchCategoryTopic(rootCategory.id),
+    queryFn: () => fetchCategoryTopic(rootCategory.id, i18n.language),
     staleTime: Infinity,
     ...options,
   });

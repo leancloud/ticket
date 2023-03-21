@@ -17,7 +17,9 @@
     "click_to_upload": "点击上传",
     "content_deleted": "该内容已被删除",
     "not_found": "该内容不存在",
-    "cancel": "取消"
+    "cancel": "取消",
+    "update_time": "更新时间",
+    "update_date": "更新日期"
   },
   "home": {
     "empty": "当前分类下未配置展示内容"
@@ -29,7 +31,8 @@
     "submit": "提交反馈"
   },
   "faqs": {
-    "showAll": "查看全部"
+    "showAll": "查看全部",
+    "similar": "类似问题"
   },
   "notice": {
     "title": "公告",
@@ -41,7 +44,8 @@
   "category": {
     "select_hint": "选择你遇到的问题",
     "select_hint_home": "选择问题类型",
-    "faqs": "相关问题解答"
+    "faqs": "相关问题解答",
+    "title": "问题分类"
   },
   "topic": {
     "title": "常见问题",
@@ -56,9 +60,9 @@
       "success_text": "$t(ticket.create.success)，我们将尽快为您处理"
     },
     "detail": "问题详情",
-    "updated_at": "更新时间",
     "resolved": "已处理",
-    "unResolved": "处理中"
+    "unResolved": "处理中",
+    "contact": "联系客服"
   },
   "reply": {
     "staff_title": "官方客服",

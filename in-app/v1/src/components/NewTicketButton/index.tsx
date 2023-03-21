@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom';
 import { Button } from '../Button';
+import { useTranslation } from 'react-i18next';
 
 export function NewTicketButton({ categoryId }: { categoryId: string }) {
+  const { t } = useTranslation();
   return (
     <Button
       as={Link}
@@ -9,7 +11,7 @@ export function NewTicketButton({ categoryId }: { categoryId: string }) {
       to={`/tickets/new?category_id=${categoryId}`}
       className="inline-block px-8 text-tapBlue"
     >
-      联系客服
+      {t('ticket.contact')}
     </Button>
   );
 }
