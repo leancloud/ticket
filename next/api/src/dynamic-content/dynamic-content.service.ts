@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import throat from 'throat';
 import { Cache, LRUCacheStore, RedisStore } from '@/cache';
 import { AsyncDeepRenderer, StringTemplate } from '@/common/template';
 import { DynamicContent } from '@/model/DynamicContent';
@@ -71,15 +72,8 @@ class DynamicContentService {
   }
 
   private async getFullContentsFromDB(names: string[]) {
-    const contents = await DynamicContent.queryBuilder()
-      .where('name', 'in', names)
-      .find({ useMasterKey: true });
-
-    const contentPointers = contents.map((c) => c.toPointer());
-    const variants = await DynamicContentVariant.queryBuilder()
-      .where('dynamicContent', 'in', contentPointers)
-      .where('active', '==', true)
-      .find({ useMasterKey: true });
+    const contents = await this.getDynamicContentsByName(names);
+    const variants = await this.getDynamicContentVariantsByContents(contents);
 
     const contentByName = _.keyBy(contents, (c) => c.name);
     const variantsByContentId = _.groupBy(variants, (v) => v.dynamicContentId);
@@ -88,21 +82,81 @@ class DynamicContentService {
 
     names.forEach((name) => {
       const content = contentByName[name];
-      if (content) {
-        const variants = variantsByContentId[content.id];
-        const contentByLocale = variants.reduce<Record<string, string>>((map, variant) => {
-          map[variant.locale] = variant.content;
-          return map;
-        }, {});
-        fullContents.push({
-          name,
-          defaultLocale: content.defaultLocale,
-          contentByLocale,
-        });
+      if (!content) {
+        return;
       }
+      const variants = variantsByContentId[content.id];
+      if (!variants) {
+        return;
+      }
+      const contentByLocale = variants.reduce<Record<string, string>>((map, variant) => {
+        map[variant.locale] = variant.content;
+        return map;
+      }, {});
+      fullContents.push({
+        name,
+        defaultLocale: content.defaultLocale,
+        contentByLocale,
+      });
     });
 
     return fullContents;
+  }
+
+  private async getDynamicContentsByName(names: string[]) {
+    const chunkSize = 100;
+    const concurrency = 2;
+
+    const fetchData = async (names: string[]) => {
+      const contents = await DynamicContent.queryBuilder()
+        .where('name', 'in', names)
+        .find({ useMasterKey: true });
+      return contents;
+    };
+
+    const nameChunks = _.chunk(names, chunkSize);
+    const runTask = throat(concurrency, fetchData);
+    const contentChunks = await Promise.all(nameChunks.map(runTask));
+
+    return contentChunks.flat();
+  }
+
+  private async getDynamicContentVariantsByContents(contents: DynamicContent[]) {
+    const chunkSize = 50; // Pointer 序列化后比较长, 一次不能用太多
+    const concurrency = 2;
+    const limit = 1000;
+
+    const fetchData = async (contents: DynamicContent[]) => {
+      const contentPointers = contents.map((c) => c.toPointer());
+      const variantChunks: DynamicContentVariant[][] = [];
+
+      let finish = false;
+      let cursor: string | undefined;
+      while (!finish) {
+        const qb = DynamicContentVariant.queryBuilder()
+          .where('dynamicContent', 'in', contentPointers)
+          .where('active', '==', true)
+          .orderBy('objectId', 'asc')
+          .limit(limit);
+
+        if (cursor) {
+          qb.where('objectId', '>', cursor);
+        }
+
+        const variants = await qb.find({ useMasterKey: true });
+        variantChunks.push(variants);
+
+        finish = variants.length < limit;
+        cursor = _.last(variants)?.id;
+      }
+      return variantChunks.flat();
+    };
+
+    const contentChunks = _.chunk(contents, chunkSize);
+    const runTask = throat(concurrency, fetchData);
+    const variantChunks = await Promise.all(contentChunks.map(runTask));
+
+    return variantChunks.flat();
   }
 }
 

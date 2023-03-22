@@ -82,7 +82,11 @@ export class CategoryService {
       return new ObjectTemplate(
         category,
         (category) => category.name,
-        (category, name) => (category.name = name)
+        (category, name) => {
+          if (name) {
+            category.name = name;
+          }
+        }
       );
     });
 
