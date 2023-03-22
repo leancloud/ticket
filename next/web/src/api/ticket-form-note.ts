@@ -4,7 +4,7 @@ import { http } from '@/leancloud';
 export interface TicketFormNoteSchema {
   id: string;
   name: string;
-  content: string;
+  defaultLanguage: string;
   active: boolean;
   createdAt: string;
   updatedAt: string;
@@ -26,14 +26,17 @@ async function fetchTicketFormNotes(options: FetchTicketFormNotesOptions = {}) {
   };
 }
 
-async function fetchTicketFormNote(id: string) {
-  const res = await http.get<TicketFormNoteSchema>(`/api/2/ticket-form-notes/${id}`);
+async function fetchTicketFormNoteDetail(id: string) {
+  const res = await http.get<TicketFormNoteSchema & { languages: string[] }>(
+    `/api/2/ticket-form-notes/${id}/detail`
+  );
   return res.data;
 }
 
 interface CreateTicketFormNoteData {
   name: string;
   content: string;
+  language: string;
 }
 
 async function createTicketFormNote(data: CreateTicketFormNoteData) {
@@ -43,7 +46,7 @@ async function createTicketFormNote(data: CreateTicketFormNoteData) {
 
 interface UpdateTicketFormNoteData {
   name?: string;
-  content?: string;
+  defaultLanguage?: string;
   active?: boolean;
 }
 
@@ -64,13 +67,13 @@ export function useTicketFormNotes({ queryOptions, ...options }: UseTicketFormNo
   });
 }
 
-export function useTicketFormNote(
+export function useTicketFormNoteDetail(
   id: string,
-  options?: UseQueryOptions<TicketFormNoteSchema, Error>
+  options?: UseQueryOptions<TicketFormNoteSchema & { languages: string[] }, Error>
 ) {
   return useQuery({
     queryKey: ['ticketFormNote', id],
-    queryFn: () => fetchTicketFormNote(id),
+    queryFn: () => fetchTicketFormNoteDetail(id),
     ...options,
   });
 }
@@ -92,3 +95,92 @@ export function useUpdateTicketFormNote(
     ...options,
   });
 }
+
+export interface TicketFormNoteTranslationSchema {
+  content: string;
+  language: string;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+const fetchTicketFormNoteTranslation = async (id: string, language: string) => {
+  const res = await http.get<TicketFormNoteTranslationSchema>(
+    `/api/2/ticket-form-notes/${id}/${language}`
+  );
+
+  return res.data;
+};
+
+export const UseTicketFormNoteTranslationKey = 'ticketFormNoteTranslation';
+
+export const useTicketFormNoteTranslation = (
+  id: string,
+  language: string,
+  options?: UseQueryOptions<TicketFormNoteTranslationSchema, Error>
+) =>
+  useQuery({
+    queryFn: () => fetchTicketFormNoteTranslation(id, language),
+    queryKey: [UseTicketFormNoteTranslationKey, id, language],
+    ...options,
+  });
+
+export interface CreateTicketFormNoteTranslationData {
+  language: string;
+  content: string;
+}
+
+const createTicketFormNoteTranslation = async (
+  id: string,
+  data: CreateTicketFormNoteTranslationData
+) => {
+  const res = await http.post<TicketFormNoteTranslationSchema>(
+    `/api/2/ticket-form-notes/${id}`,
+    data
+  );
+  return res.data;
+};
+
+export const useCreateTicketFormNoteTranslation = (
+  id: string,
+  options?: UseMutationOptions<
+    TicketFormNoteTranslationSchema,
+    Error,
+    CreateTicketFormNoteTranslationData
+  >
+) =>
+  useMutation({
+    mutationFn: (data) => createTicketFormNoteTranslation(id, data),
+    ...options,
+  });
+
+export interface UpdateTicketFormNoteTranslationData
+  extends Partial<Omit<CreateTicketFormNoteTranslationData, 'language'>> {
+  active?: boolean;
+}
+
+const updateTicketFormNoteTranslation = async (
+  id: string,
+  language: string,
+  data: UpdateTicketFormNoteTranslationData
+) => {
+  const res = await http.patch<TicketFormNoteTranslationSchema>(
+    `/api/2/ticket-form-notes/${id}/${language}`,
+    data
+  );
+  return res.data;
+};
+
+export const useUpdateTicketFormNoteTranslation = (
+  id: string,
+  language: string,
+  options?: UseMutationOptions<
+    TicketFormNoteTranslationSchema,
+    Error,
+    UpdateTicketFormNoteTranslationData
+  >
+) =>
+  useMutation({
+    mutationFn: (data) => updateTicketFormNoteTranslation(id, language, data),
+    ...options,
+  });

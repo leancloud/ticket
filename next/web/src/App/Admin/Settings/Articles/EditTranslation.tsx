@@ -19,7 +19,7 @@ export const EditArticleTranslation: FC = () => {
       message.success('更新成功');
       queryClient.invalidateQueries('ArticleTranslations');
       queryClient.invalidateQueries(['ArticleTranslation', id]);
-      navigate('../..');
+      navigate('..');
     },
     onError: (error: Error) => {
       console.error(error);
@@ -35,7 +35,7 @@ export const EditArticleTranslation: FC = () => {
     <EditArticleTranslationForm
       initData={translation}
       onSubmit={(data) => update({ id: id!, language: language!, ...data })}
-      onCancel={() => navigate('../..')}
+      onCancel={() => navigate('..')}
       submitting={isLoading || isUpdating}
     />
   );
