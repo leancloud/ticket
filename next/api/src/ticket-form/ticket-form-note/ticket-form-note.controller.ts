@@ -8,14 +8,27 @@ import {
   Patch,
   Post,
   Query,
+  ResponseBody,
   StatusCode,
   UseMiddlewares,
 } from '@/common/http';
 import { ParseBoolPipe, ParseIntPipe, ZodValidationPipe } from '@/common/pipe';
 import { auth, customerServiceOnly } from '@/middleware';
 import service from './ticket-form-note.service';
-import { createTicketFormNoteSchema, updateTicketFormNoteSchema } from './schemas';
-import { CreateTicketFormNoteData, UpdateTicketFormNoteData } from './types';
+import {
+  createTicketFormNoteSchema,
+  createTicketFormNoteTranslationSchema,
+  updateTicketFormNoteSchema,
+  updateTicketFormNoteTranslationSchema,
+} from './schemas';
+import {
+  CreateTicketFormNoteData,
+  CreateTicketFormNoteTranslationData,
+  UpdateTicketFormNoteData,
+  UpdateTicketFormNoteTranslationData,
+} from './types';
+import { Locales } from '@/common/http/handler/param/locale';
+import { TicketFormNoteTranslationResponse } from './responses';
 
 @Controller('ticket-form-notes')
 @UseMiddlewares(auth)
@@ -40,6 +53,18 @@ export class TicketFormNoteController {
     return service.create(data);
   }
 
+  @Get(':id')
+  @ResponseBody(TicketFormNoteTranslationResponse)
+  get(@Param('id') id: string, @Locales() locales: string[]) {
+    return service.mustGetByPreferredLanguage(id, locales);
+  }
+
+  @Get(':id/detail')
+  @UseMiddlewares(customerServiceOnly)
+  getDetail(@Param('id') id: string) {
+    return service.mustGetWithLanguages(id);
+  }
+
   @Patch(':id')
   @UseMiddlewares(customerServiceOnly)
   async update(
@@ -47,11 +72,34 @@ export class TicketFormNoteController {
     @Body(new ZodValidationPipe(updateTicketFormNoteSchema)) data: UpdateTicketFormNoteData
   ) {
     await service.update(id, data);
-    return service.get(id);
+    return service.mustGetWithLanguages(id);
   }
 
-  @Get(':id')
-  get(@Param('id') id: string) {
-    return service.mustGet(id);
+  @Post(':id')
+  @UseMiddlewares(customerServiceOnly)
+  createTranslation(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(createTicketFormNoteTranslationSchema))
+    data: CreateTicketFormNoteTranslationData
+  ) {
+    return service.createTranslation(id, data);
+  }
+
+  @Get(':id/:language')
+  @UseMiddlewares(customerServiceOnly)
+  getTranslation(@Param('id') id: string, @Param('language') language: string) {
+    return service.mustGetTranslation(id, language);
+  }
+
+  @Patch(':id/:language')
+  @UseMiddlewares(customerServiceOnly)
+  async updateTranslation(
+    @Param('id') id: string,
+    @Param('language') language: string,
+    @Body(new ZodValidationPipe(updateTicketFormNoteTranslationSchema))
+    data: UpdateTicketFormNoteTranslationData
+  ) {
+    await service.updateTranslation(id, language, data);
+    return service.getTranslation(id, language);
   }
 }
