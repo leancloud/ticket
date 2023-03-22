@@ -356,14 +356,16 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 
 如需配置 Slack 周报等，请在 `Config` 下新增 `key` 为 `slack-stats`，`value` 为 `{ "startDayOfPeriod": 周报从星期几开始统计（0-6 数字）, "channel": "slack channel id" }`
 
-## 2023-02-27
-
-导入 `FAQ` `FAQTranslation` `FAQFeedback` `FAQRevision` （富文本多语言）
-
-运行 `eval $(lean env) && cd next/api && npm install && node scripts/article-i18n.mjs` 进行数据迁移
-
 ## 2023-03-03
 
 ### `21466f8169ccb0c526001297926f2a6f5d5ab177`
 
 创建 name 为 `collaborator` 的 \_Role，ACL 为所有用户可读，`role:customerService` 可写。
+
+## 2023-03-22
+
+导入 `FAQ` `FAQTranslation` `FAQFeedback` `FAQRevision` （富文本多语言）
+
+运行 `eval $(lean env) && cd next/api && npm install && node scripts/article-i18n.mjs` 进行数据迁移
+
+如果是迁移过来的，将 `FAQ` 的 `question`, `FAQFeedback` `FAQRevision` 的 `FAQ` 这两个字段设置为非必须
