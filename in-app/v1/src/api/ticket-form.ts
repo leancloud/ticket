@@ -1,5 +1,6 @@
 import { useQuery, UseQueryOptions } from 'react-query';
 import { http } from '@/leancloud';
+import { useTranslation } from 'react-i18next';
 
 export interface FieldItem {
   type: 'field';
@@ -23,15 +24,18 @@ interface NoteItem {
 
 export type TicketFormItem = FieldItem | NoteItem;
 
-async function fetchTicketFormItems(id: string) {
-  const res = await http.get<TicketFormItem[]>(`/api/2/ticket-forms/${id}/items`);
+async function fetchTicketFormItems(id: string, locale?: string) {
+  const res = await http.get<TicketFormItem[]>(`/api/2/ticket-forms/${id}/items`, {
+    params: { locale },
+  });
   return res.data;
 }
 
 export function useTicketFormItems(id: string, options?: UseQueryOptions<TicketFormItem[], Error>) {
+  const { i18n } = useTranslation();
   return useQuery({
     queryKey: ['ticketFormItems', id],
-    queryFn: () => fetchTicketFormItems(id),
+    queryFn: () => fetchTicketFormItems(id, i18n.language),
     ...options,
   });
 }
