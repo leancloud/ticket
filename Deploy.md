@@ -374,4 +374,6 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 
 ## 2023-03-23
 
+### 03eeadcd5d7325e64ae88eebf532dfa36cb1a2c1
+
 重新导入 `Ticket` (增加 `parent` 列)
