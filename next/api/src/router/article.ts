@@ -27,11 +27,21 @@ import { Middleware } from '@koa/router';
 
 const router = new Router();
 
-const fetchPreferTranslation: Middleware = async (ctx, next) => {
+interface ArticleState {
+  article: Article;
+  translation: ArticleTranslation;
+}
+
+const fetchPreferTranslation: Middleware<ArticleState> = async (ctx, next) => {
+  if (!ctx.state.article) {
+    ctx.throw(404, 'Article not found');
+    return;
+  }
+
   const translationQb = ArticleTranslation.queryBuilder().where(
     'article',
     '==',
-    (ctx.state.article as Article).toPointer()
+    ctx.state.article.toPointer()
   );
 
   const sessionToken = ctx.get('X-LC-Session');
@@ -43,12 +53,13 @@ const fetchPreferTranslation: Middleware = async (ctx, next) => {
   const translation = matchLocale(
     await translationQb.find(sessionToken ? { sessionToken } : undefined),
     (translation) => translation.language,
-    ctx.locales ?? [],
-    ctx.state.article?.defaultLanguage
+    ctx.locales.matcher,
+    ctx.state.article.defaultLanguage
   );
 
   if (!translation) {
     ctx.throw(404, 'Article not found');
+    return;
   }
 
   translation && (translation.article = ctx.state.article);
@@ -163,7 +174,7 @@ router.param('id', async (id, ctx, next) => {
 
 // get translation of article :id based on use prefer
 router.get('/:id', fetchPreferTranslation, async (ctx) => {
-  const translation = ctx.state.translation as ArticleTranslation;
+  const translation = ctx.state.translation;
 
   ctx.body = new ArticleTranslationResponse(translation);
 });
@@ -243,7 +254,7 @@ const feedbackSchema = yup.object({
 // add feedback for translation of user preferred language of article :id
 router.post('/:id/feedback', auth, fetchPreferTranslation, async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
-  const translation = ctx.state.translation as ArticleTranslation;
+  const translation = ctx.state.translation;
 
   const { type } = feedbackSchema.validateSync(ctx.request.body);
 

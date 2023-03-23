@@ -1,16 +1,20 @@
 import { Context, Middleware } from 'koa';
+import { LocaleMatcher, localeMatcherFactory } from '@/utils/locale';
 
-declare module 'koa' {
-  interface Context {
-    locales?: string[];
-  }
+export interface ILocale {
+  locales: string[];
+  matcher: LocaleMatcher;
 }
 
 export const localeMiddleware: Middleware = (ctx, next) => {
-  const locales = getLocalesFromQuery(ctx) || getLocalesFromHeader(ctx);
-  if (locales) {
-    ctx.locales = withFallbackLocale(locales).map((locale) => locale.toLowerCase());
-  }
+  const locales = (getLocalesFromQuery(ctx) || getLocalesFromHeader(ctx)) ?? [];
+  const localeWithFallback = withFallbackLocale(locales).map((locale) => locale.toLowerCase());
+
+  ctx.locales = {
+    locales: localeWithFallback,
+    matcher: localeMatcherFactory(localeWithFallback),
+  };
+
   return next();
 };
 

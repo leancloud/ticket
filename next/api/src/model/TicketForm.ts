@@ -5,6 +5,7 @@ import { TicketFormItem } from '@/ticket-form/types';
 import { TicketField } from './TicketField';
 import { TicketFieldVariant } from './TicketFieldVariant';
 import { User } from './User';
+import { LocaleMatcher, matchLocale } from '@/utils/locale';
 
 export class TicketForm extends Model {
   @field()
@@ -41,70 +42,47 @@ export class TicketForm extends Model {
 
   async getFieldVariants(
     this: TicketForm,
-    locale: string,
+    matcher: LocaleMatcher,
     currentUser?: User
   ): Promise<TicketFieldVariant[]> {
     const isCS = currentUser ? await currentUser.isCustomerService() : false;
     const fields = await this.getFields(!isCS);
-    const locales = fields.map((f) => f.defaultLocale).concat(getAvailableLocales(locale));
+
+    const fieldsById = _.keyBy(fields, 'id');
+
     const variants = await TicketFieldVariant.queryBuilder()
       .where(
         'field',
         'in',
         fields.map((f) => f.toPointer())
       )
-      .where('locale', 'in', _.uniq(locales))
       .find({ useMasterKey: true });
-    const variantsByFieldId = _.groupBy(variants, 'fieldId');
 
-    const result: TicketFieldVariant[] = [];
+    return _(variants)
+      .groupBy('fieldId')
+      .mapValues((variantGroup, fieldId) => {
+        const match = matchLocale(
+          variantGroup,
+          (v) => v.locale,
+          matcher,
+          fieldsById[fieldId].defaultLocale
+        );
 
-    for (const field of fields) {
-      const variants = variantsByFieldId[field.id];
-      if (!variants) continue;
-
-      let preferedVariant: TicketFieldVariant | undefined;
-      let defaultVariant: TicketFieldVariant | undefined;
-      let fallbackVariant: TicketFieldVariant | undefined;
-
-      for (const variant of variants) {
-        variant.field = field;
-        if (variant.locale === locale) {
-          preferedVariant = variant;
-          break;
-        } else if (variant.locale === field.defaultLocale) {
-          defaultVariant = variant;
-        } else if (locale.startsWith(variant.locale)) {
-          fallbackVariant = variant;
-        }
-      }
-
-      if (preferedVariant) {
-        result.push(preferedVariant);
-      } else if (fallbackVariant) {
-        result.push(fallbackVariant);
-      } else {
-        if (!defaultVariant) {
+        if (!match) {
           throw new Error(
-            `Ticket field has no variant of default locale(${field.defaultLocale}), id=${field.id}`
+            `Ticket field has no variant of default locale(${fieldsById[fieldId].defaultLocale}), id=${fieldId}`
           );
         }
-        result.push(defaultVariant);
-      }
-    }
 
-    return result;
+        match.field = fieldsById[fieldId];
+
+        return match;
+      })
+      .values()
+      .value();
   }
 
   getItems(): TicketFormItem[] {
     return this.items ?? this.fieldIds.map((id) => ({ type: 'field', id }));
   }
-}
-
-function getAvailableLocales(locale: string): string[] {
-  const index = locale.indexOf('-');
-  if (index > 0) {
-    return [locale, locale.slice(0, index)];
-  }
-  return [locale];
 }

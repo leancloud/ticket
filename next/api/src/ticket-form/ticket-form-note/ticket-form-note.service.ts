@@ -8,7 +8,7 @@ import {
   UpdateTicketFormNoteData,
   UpdateTicketFormNoteTranslationData,
 } from './types';
-import { matchLocale } from '@/utils/locale';
+import { LocaleMatcher, matchLocale } from '@/utils/locale';
 import _ from 'lodash';
 
 const totalCountCache = new Cache([
@@ -119,17 +119,17 @@ class TicketFormNoteService {
       .first({ useMasterKey: true });
   }
 
-  async getByPreferredLanguage(id: string, locales: string[]) {
+  async getByPreferredLanguage(id: string, matcher: LocaleMatcher) {
     const note = await this.get(id);
 
     if (note) {
       const translations = await this.getTranslations(id, true);
 
-      return matchLocale(translations, (t) => t.language, locales, note.defaultLanguage);
+      return matchLocale(translations, (t) => t.language, matcher, note.defaultLanguage);
     }
   }
 
-  async getSomeByPreferredLanguage(ids: string[], locales: string[]) {
+  async getSomeByPreferredLanguage(ids: string[], matcher: LocaleMatcher) {
     const notes = await this.getSome(ids, true);
     const translations = await TicketFormNoteTranslation.queryBuilder()
       .where(
@@ -145,7 +145,7 @@ class TicketFormNoteService {
     return _(translations)
       .groupBy((t) => t.noteId)
       .mapValues((translations, id) =>
-        matchLocale(translations, (t) => t.language, locales, notesById[id].defaultLanguage)
+        matchLocale(translations, (t) => t.language, matcher, notesById[id].defaultLanguage)
       )
       .values()
       .compact()
@@ -178,8 +178,8 @@ class TicketFormNoteService {
     return translation;
   }
 
-  async mustGetByPreferredLanguage(id: string, locales: string[]) {
-    const translation = await this.getByPreferredLanguage(id, locales);
+  async mustGetByPreferredLanguage(id: string, matcher: LocaleMatcher) {
+    const translation = await this.getByPreferredLanguage(id, matcher);
     if (!translation) {
       throw new NotFoundError(`ticket form note ${id} does not exist`);
     }

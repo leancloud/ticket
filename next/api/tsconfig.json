@@ -13,7 +13,8 @@
     "paths": {
       "@/*": ["src/*"]
     },
+    "typeRoots": ["./types.d.ts", "./node_modules/@types"],
     "types": ["reflect-metadata"]
   },
-  "include": ["src"]
+  "include": ["src", "./types.d.ts"]
 }

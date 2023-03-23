@@ -27,7 +27,7 @@ import {
   UpdateTicketFormNoteData,
   UpdateTicketFormNoteTranslationData,
 } from './types';
-import { Locales } from '@/common/http/handler/param/locale';
+import { ILocale, Locales } from '@/common/http/handler/param/locale';
 import { TicketFormNoteTranslationResponse } from './responses';
 
 @Controller('ticket-form-notes')
@@ -55,8 +55,8 @@ export class TicketFormNoteController {
 
   @Get(':id')
   @ResponseBody(TicketFormNoteTranslationResponse)
-  get(@Param('id') id: string, @Locales() locales: string[]) {
-    return service.mustGetByPreferredLanguage(id, locales);
+  get(@Param('id') id: string, @Locales() locales: ILocale) {
+    return service.mustGetByPreferredLanguage(id, locales.matcher);
   }
 
   @Get(':id/detail')

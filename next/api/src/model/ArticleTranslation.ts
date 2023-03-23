@@ -4,7 +4,7 @@ import { ArticleRevision } from './ArticleRevision';
 import { User } from './User';
 import { FeedbackType, ArticleFeedback } from './ArticleFeedback';
 import mem from '../utils/mem-promise';
-import { matchLocale } from '@/utils/locale';
+import { LocaleMatcher, matchLocale } from '@/utils/locale';
 
 export class ArticleTranslation extends Model {
   static readonly className = 'FAQTranslation';
@@ -140,13 +140,16 @@ export const getPublicTranslations = mem(
   { max: 500, ttl: 60_000 }
 );
 
-export const getPublicTranslationWithLocales = async (articleId: string, locales: string[]) => {
+export const getPublicTranslationWithLocales = async (
+  articleId: string,
+  matcher: LocaleMatcher
+) => {
   const translations = await getPublicTranslations(articleId);
 
   return matchLocale(
     translations,
     (translation) => translation.language,
-    locales,
+    matcher,
     translations[0]?.article?.defaultLanguage ?? ''
   );
 };

@@ -27,7 +27,7 @@ import { ArticleTopicFullResponse } from '@/response/article-topic';
 import { getTopic } from '@/model/ArticleTopic';
 import _ from 'lodash';
 import { FindCategoryPipe, categoryService } from '@/category';
-import { Locales } from '@/common/http/handler/param/locale';
+import { ILocale, Locales } from '@/common/http/handler/param/locale';
 import { getPublicTranslationWithLocales } from '@/model/ArticleTranslation';
 
 const createCategorySchema = z.object({
@@ -76,7 +76,7 @@ export class CategoryController {
     @Query('product', ParseBoolPipe) productOnly: boolean
   ) {
     const categories = await categoryService.find({ active, productOnly });
-    await categoryService.renderCategories(categories, ctx.locales);
+    await categoryService.renderCategories(categories, ctx.locales.locales);
     return categories;
   }
 
@@ -125,7 +125,7 @@ export class CategoryController {
   @Get(':id')
   @ResponseBody(CategoryResponse)
   async findOne(@Ctx() ctx: Context, @Param('id', FindCategoryPipe) category: Category) {
-    await categoryService.renderCategories([category], ctx.locales);
+    await categoryService.renderCategories([category], ctx.locales.locales);
     return category;
   }
 
@@ -145,7 +145,7 @@ export class CategoryController {
 
   @Get(':id/fields')
   @ResponseBody(TicketFieldVariantResponse)
-  async getFields(@Ctx() ctx: Context, @Param('id', FindCategoryPipe) category: Category) {
+  async getFields(@Param('id', FindCategoryPipe) category: Category, @Locales() locales: ILocale) {
     if (!category.formId) {
       return [];
     }
@@ -155,13 +155,12 @@ export class CategoryController {
       return [];
     }
 
-    const locale = ctx.locales?.[0] ?? 'en';
-    return form.getFieldVariants(locale);
+    return form.getFieldVariants(locales.matcher);
   }
 
   @Get(':id/faqs')
   @ResponseBody(ArticleTranslationAbstractResponse)
-  async getFAQs(@Param('id', FindCategoryPipe) category: Category, @Locales() locales?: string[]) {
+  async getFAQs(@Param('id', FindCategoryPipe) category: Category, @Locales() locales: ILocale) {
     if (!category.FAQIds) {
       return [];
     }
@@ -169,7 +168,7 @@ export class CategoryController {
     const articles = _.compact(
       await Promise.all(
         category.FAQIds.map((articleId) =>
-          getPublicTranslationWithLocales(articleId, locales ?? [])
+          getPublicTranslationWithLocales(articleId, locales.matcher)
         )
       )
     );
@@ -178,10 +177,7 @@ export class CategoryController {
 
   @Get(':id/notices')
   @ResponseBody(ArticleTranslationAbstractResponse)
-  async getNotices(
-    @Param('id', FindCategoryPipe) category: Category,
-    @Locales() locales?: string[]
-  ) {
+  async getNotices(@Param('id', FindCategoryPipe) category: Category, @Locales() locales: ILocale) {
     if (!category.noticeIds) {
       return [];
     }
@@ -189,7 +185,7 @@ export class CategoryController {
     const articles = _.compact(
       await Promise.all(
         category.noticeIds.map((noticeId) =>
-          getPublicTranslationWithLocales(noticeId, locales ?? [])
+          getPublicTranslationWithLocales(noticeId, locales.matcher)
         )
       )
     );
@@ -199,16 +195,13 @@ export class CategoryController {
 
   @Get(':id/topics')
   @ResponseBody(ArticleTopicFullResponse)
-  async getTopics(
-    @Param('id', FindCategoryPipe) category: Category,
-    @Locales() locales?: string[]
-  ) {
+  async getTopics(@Param('id', FindCategoryPipe) category: Category, @Locales() locales: ILocale) {
     if (!category.topicIds) {
       return [];
     }
 
     const topics = await Promise.all(
-      category.topicIds.map((topicId) => getTopic(topicId, locales ?? []))
+      category.topicIds.map((topicId) => getTopic(topicId, locales.matcher))
     );
     return topics;
   }
@@ -221,7 +214,7 @@ export class CategoryController {
     @Query('active', new ParseBoolPipe({ keepUndefined: true })) active?: boolean
   ) {
     const categories = await categoryService.getSubCategories(category.id, active);
-    await categoryService.renderCategories(categories, ctx.locales);
+    await categoryService.renderCategories(categories, ctx.locales.locales);
     return categories;
   }
 

@@ -1,38 +1,24 @@
 import { LOCALES } from '@/i18n/locales';
 import { z } from 'zod';
 import * as yup from 'yup';
+import { match } from '@formatjs/intl-localematcher';
+
+export const localeMatcherFactory = (requestedLocales: string[]) => (
+  availableLocales: string[],
+  defaultLocale: string
+) => match(requestedLocales, availableLocales, defaultLocale, { algorithm: 'best fit' });
+
+export type LocaleMatcher = ReturnType<typeof localeMatcherFactory>;
 
 export const matchLocale = <T>(
   elements: T[],
   localeGetter: (elem: T) => string,
-  locales: string[],
+  matcher: LocaleMatcher,
   defaultLocale: string
 ) => {
-  const localesMap = new Map(locales.map((locale, index) => [locale, index + 1]));
+  const res = matcher(elements.map(localeGetter), defaultLocale);
 
-  return elements.reduce<T | undefined>((prev, cur) => {
-    if (!prev) {
-      return cur;
-    }
-
-    const storedLocale = localeGetter(prev);
-    const curLocale = localeGetter(cur);
-    const curOptionPriority = localesMap.get(curLocale);
-    const optionInStorePriority = localesMap.get(storedLocale);
-
-    if (
-      // override if cur option has priority but stored is not
-      (!optionInStorePriority && curOptionPriority) ||
-      // override if cur option has higher priority
-      (curOptionPriority && optionInStorePriority && curOptionPriority < optionInStorePriority) ||
-      // override if stored option has no priority and cur option's locale is default
-      (!optionInStorePriority && curLocale === defaultLocale)
-    ) {
-      return cur;
-    }
-
-    return prev;
-  }, undefined);
+  return elements.find((t) => localeGetter(t) === res);
 };
 
 export const localeSchema = z
