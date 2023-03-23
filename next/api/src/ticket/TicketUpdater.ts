@@ -21,7 +21,11 @@ export interface UpdateOptions {
 export class TicketUpdater {
   private organization?: Organization | null;
   private assignee?: User | null;
+  private associateTicket?: Ticket | null;
+  private mainTicket?: Ticket;
   private group?: Group | null;
+
+  private isMain?: boolean;
 
   private data: UpdateData<Ticket> = {};
   private replyCountIncrement = 0;
@@ -85,6 +89,27 @@ export class TicketUpdater {
       this.data.assigneeId = null;
     }
     this.shouldUpdateACL = true;
+    return this;
+  }
+
+  setAssociateTicket(ticket: Ticket | null, mainTicket?: Ticket): this {
+    this.isMain = this.ticket.parentId === this.ticket.id;
+
+    if (ticket) {
+      this.associateTicket = ticket;
+
+      if (!ticket.parentId && !this.ticket.parentId) {
+        this.data.parentId = this.ticket.id;
+      } else if (!this.ticket.parentId) {
+        this.data.parentId = ticket.id;
+      } else if (this.ticket.parentId && ticket.parentId) {
+        this.mainTicket = mainTicket;
+      }
+    } else {
+      this.associateTicket = null;
+      this.data.parentId = null;
+    }
+
     return this;
   }
 
@@ -194,6 +219,48 @@ export class TicketUpdater {
     return this;
   }
 
+  private async processAssociation(options?: ModifyOptions) {
+    if (this.associateTicket === undefined) return;
+
+    if (this.associateTicket === null) {
+      const tickets = await Ticket.queryBuilder()
+        .where('parent', '==', this.ticket.toPointer())
+        .where('objectId', '!=', this.ticket.id)
+        .find({ useMasterKey: true });
+
+      if (tickets.length === 1) {
+        await tickets[0].update({ parentId: null });
+      } else if (this.isMain) {
+        const newMainTicket = tickets[0];
+        await Ticket.updateSome(
+          tickets.map((t) => [t, { parentId: newMainTicket.id }]),
+          options
+        );
+      }
+
+      return;
+    }
+
+    if (!this.associateTicket.parentId) {
+      await Ticket.updateSome(
+        [[this.associateTicket, { parentId: this.data.parentId || this.ticket.parentId }]],
+        options
+      );
+    } else if (this.associateTicket.parentId && this.ticket.parentId) {
+      await Ticket.updateSome(
+        (
+          await Ticket.queryBuilder()
+            .where('parent', 'in', [
+              Ticket.ptr(this.ticket.parentId),
+              Ticket.ptr(this.associateTicket.parentId),
+            ])
+            .find({ useMasterKey: true })
+        ).map((t) => [t, { parentId: this.mainTicket?.id }]),
+        options
+      );
+    }
+  }
+
   private async applyOperation(action: OperateAction, operator: User) {
     const isCustomerService = await operator.isCustomerService();
     switch (action) {
@@ -234,7 +301,8 @@ export class TicketUpdater {
       this.replyCountIncrement > 0 ||
       this.unreadCountIncrement > 0 ||
       this.joinedCustomerServices.length > 0 ||
-      this.operateAction !== undefined
+      this.operateAction !== undefined ||
+      this.mainTicket !== undefined
     );
   }
 
@@ -304,6 +372,7 @@ export class TicketUpdater {
       this.data,
       this.getModifyOptions(operator, options?.useMasterKey)
     );
+    await this.processAssociation(this.getModifyOptions(operator, options?.useMasterKey));
     this.assignRelatedInstance(ticket);
 
     this.saveOpsLogs(operator).catch((error) => {

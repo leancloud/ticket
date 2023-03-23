@@ -162,7 +162,7 @@
 .recentList li > span {
   flex-shrink: 0;
 }
-.recentList li > span:nth-last-child(2) {
+.recentList li > span:nth-last-child(3) {
   flex-grow: 1;
 }
 .recentList .link {
