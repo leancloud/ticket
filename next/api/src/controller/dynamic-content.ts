@@ -124,6 +124,9 @@ export class DynamicContentController {
       authOptions
     );
 
+    // 因为会往缓存里种空值, 所以创建完也要清理缓存
+    await dynamicContentService.clearContentCache(dc.name);
+
     return {
       id: dc.id,
     };
@@ -135,9 +138,11 @@ export class DynamicContentController {
     @Param('id', new FindModelPipe(DynamicContent)) dc: DynamicContent,
     @Body(new ZodValidationPipe(updateDynamicContentSchema)) data: UpdateDynamicContentData
   ) {
+    const contentNames = [dc.name];
     const authOptions = currentUser.getAuthOptions();
     if (data.name && data.name !== dc.name) {
       await this.assertNoNameConflict(data.name, authOptions);
+      contentNames.push(data.name);
     }
     if (data.defaultLocale) {
       const dcv = await DynamicContentVariant.queryBuilder()
@@ -152,6 +157,7 @@ export class DynamicContentController {
       }
     }
     await dc.update(data, authOptions);
+    await dynamicContentService.clearContentCache(contentNames);
     return {};
   }
 
@@ -193,6 +199,7 @@ export class DynamicContentController {
       ...variants.map(({ id }) => AV.Object.createWithoutData('DynamicContentVariant', id)),
     ];
     await AV.Object.destroyAll(objects, authOptions);
+    await dynamicContentService.clearContentCache(dc.name);
     return {};
   }
 
@@ -218,6 +225,8 @@ export class DynamicContentController {
       dynamicContentId: dc.id,
       active: data.active ?? true,
     });
+
+    await dynamicContentService.clearContentCache(dc.name);
 
     return {
       id: variant.id,
@@ -258,6 +267,7 @@ export class DynamicContentController {
       throw new HttpError(400, 'cannot inactive default variant');
     }
     await variant.update(data, authOptions);
+    await dynamicContentService.clearContentCache(dc.name);
     return {};
   }
 
@@ -273,6 +283,7 @@ export class DynamicContentController {
       throw new HttpError(400, 'cannot delete default variant');
     }
     await variant.delete(authOptions);
+    await dynamicContentService.clearContentCache(dc.name);
     return {};
   }
 

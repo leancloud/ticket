@@ -11,8 +11,8 @@ class DynamicContentService {
 
   constructor() {
     this.fullContentCache = new Cache([
-      new LRUCacheStore({ max: 1000, ttl: 1000 * 60 }),
-      new RedisStore({ prefix: 'cache:dc', ttl: 60 * 5 }),
+      new LRUCacheStore({ max: 1000, ttl: 1000 * 60 * 10 }),
+      new RedisStore({ prefix: 'cache:dc', ttl: 60 * 60 }),
     ]);
   }
 
@@ -23,6 +23,10 @@ class DynamicContentService {
     });
     await renderer.render();
     return template.source;
+  }
+
+  async clearContentCache(name: string | string[]) {
+    await this.fullContentCache.del(name);
   }
 
   async getContentMap(names: string[], locales?: string[]) {
@@ -72,7 +76,7 @@ class DynamicContentService {
   }
 
   private async getFullContentsFromDB(names: string[]) {
-    const contents = await this.getDynamicContentsByName(names);
+    const contents = await this.getDynamicContentsByNames(names);
     const variants = await this.getDynamicContentVariantsByContents(contents);
 
     const contentByName = _.keyBy(contents, (c) => c.name);
@@ -103,7 +107,7 @@ class DynamicContentService {
     return fullContents;
   }
 
-  private async getDynamicContentsByName(names: string[]) {
+  private async getDynamicContentsByNames(names: string[]) {
     const chunkSize = 100;
     const concurrency = 2;
 

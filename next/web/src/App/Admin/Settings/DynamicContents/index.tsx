@@ -161,14 +161,13 @@ function EditDynamicContentModal({ visible, onHide, dc, locales }: EditDynamicCo
 
   const { control, handleSubmit, reset } = useForm();
 
-  useEffect(() => {
-    if (!visible) {
-      reset({
-        name: dc.name,
-        defaultLocale: dc.defaultLocale,
-      });
-    }
-  }, [visible]);
+  const resetData = () => {
+    reset({
+      name: dc.name,
+      defaultLocale: dc.defaultLocale,
+    });
+  };
+  useEffect(resetData, [dc]);
 
   const $form = useRef<FormInstance>(null!);
 
@@ -187,13 +186,13 @@ function EditDynamicContentModal({ visible, onHide, dc, locales }: EditDynamicCo
 
   return (
     <Modal
-      destroyOnClose
       title="编辑动态内容"
       visible={visible}
       onCancel={() => !isLoading && onHide()}
       cancelButtonProps={{ disabled: isLoading }}
       onOk={() => $form.current.submit()}
       okButtonProps={{ loading: isLoading }}
+      afterClose={resetData}
     >
       <Form ref={$form} layout="vertical" onFinish={handleSubmit((data) => mutate([dc.id, data]))}>
         <Controller
