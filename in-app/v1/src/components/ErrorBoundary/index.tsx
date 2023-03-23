@@ -1,10 +1,15 @@
 import { Component } from 'react';
+import * as Sentry from '@sentry/react';
 
 export class ErrorBoundary extends Component {
   state: { error?: Error } = {};
 
   static getDerivedStateFromError(error: Error) {
     return { error };
+  }
+
+  componentDidCatch(error: Error) {
+    Sentry.captureException(error);
   }
 
   render() {
