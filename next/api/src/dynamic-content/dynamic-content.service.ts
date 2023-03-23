@@ -72,7 +72,7 @@ class DynamicContentService {
   }
 
   private async getFullContentsFromDB(names: string[]) {
-    const contents = await this.getDynamicContentsByName(names);
+    const contents = await this.getDynamicContentsByNames(names);
     const variants = await this.getDynamicContentVariantsByContents(contents);
 
     const contentByName = _.keyBy(contents, (c) => c.name);
@@ -103,7 +103,7 @@ class DynamicContentService {
     return fullContents;
   }
 
-  private async getDynamicContentsByName(names: string[]) {
+  private async getDynamicContentsByNames(names: string[]) {
     const chunkSize = 100;
     const concurrency = 2;
 
