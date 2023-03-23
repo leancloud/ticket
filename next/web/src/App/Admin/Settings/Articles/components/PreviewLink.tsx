@@ -15,7 +15,7 @@ export const PreviewLink = ({ slug, language }: PreviewLinkProps) => {
   return productId ? (
     <a
       href={`/in-app/v1/products/${productId}/articles/${slug}?nav=0${
-        language ? `&locale=${language}` : ''
+        language ? `&lang=${language}` : ''
       }`}
       target="_blank"
       rel="noreferrer noopener"
