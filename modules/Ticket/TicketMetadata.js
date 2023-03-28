@@ -650,7 +650,7 @@ export function Fields({ ticket, loadMoreOpsLogs }) {
 
       <TicketFormValues ticket={ticket} loadMoreOpsLogs={loadMoreOpsLogs} />
 
-      {!isUser && <CustomMetadata metadata={ticket.metadata} />}
+      {!isUser && <CustomMetadata metadata={ticket.metaData} />}
     </>
   )
 }
