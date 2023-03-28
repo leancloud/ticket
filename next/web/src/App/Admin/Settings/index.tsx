@@ -32,6 +32,8 @@ import { ArticleDetail } from './Articles/ArticleDetail';
 import { ArticleTranslationDetail } from './Articles/TranslationDetail';
 import { EditArticleTranslation } from './Articles/EditTranslation';
 import { NewArticleTranslation } from './Articles/NewTranslation';
+import { NewTicketFormNoteTranslation } from './TicketFormNotes/NewTicketFormNoteTranslation';
+import { EditTicketFormNoteTranslation } from './TicketFormNotes/EditTranslation';
 
 const SettingRoutes = () => (
   <Routes>
@@ -82,7 +84,13 @@ const SettingRoutes = () => (
     <Route path="/ticket-form-notes">
       <Route index element={<TicketFormNoteList />} />
       <Route path="new" element={<NewTicketFormNote />} />
-      <Route path=":id" element={<TicketFormNoteDetail />} />
+      <Route path=":id">
+        <Route index element={<TicketFormNoteDetail />} />
+        <Route path=":language">
+          <Route index element={<EditTicketFormNoteTranslation />} />
+          <Route path="new" element={<NewTicketFormNoteTranslation />} />
+        </Route>
+      </Route>
     </Route>
     <Route path="/dynamic-contents">
       <Route index element={<DynamicContentList />} />
@@ -105,7 +113,7 @@ const SettingRoutes = () => (
       <Route path=":id">
         <Route index element={<ArticleDetail />} />
         <Route path=":language">
-          <Route path="edit" element={<EditArticleTranslation />} />
+          <Route index element={<EditArticleTranslation />} />
           <Route path="new" element={<NewArticleTranslation />} />
           <Route path="revisions">
             <Route index element={<ArticleRevisions />} />

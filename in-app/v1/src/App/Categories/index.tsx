@@ -5,13 +5,13 @@ import { Helmet } from 'react-helmet-async';
 import { ChevronRightIcon, ChevronDownIcon } from '@heroicons/react/solid';
 import classNames from 'classnames';
 
-import { Category, useCategories } from '@/api/category';
+import { Category, useCategories, useFAQs } from '@/api/category';
 import { Article } from '@/types';
 import { PageContent, PageHeader } from '@/components/Page';
 import { QueryWrapper } from '@/components/QueryWrapper';
 import { APIError } from '@/components/APIError';
 import { Loading } from '@/components/Loading';
-import { ArticleListItem, useFAQs } from '@/App/Articles/utils';
+import { ArticleListItem } from '@/App/Articles/utils';
 import styles from './index.module.css';
 import { NotFoundContent } from '../NotFound';
 

@@ -37,7 +37,8 @@ import {
 import { Status } from '@/model/Ticket';
 import { Category } from '@/model/Category';
 import { TicketForm } from '@/model/TicketForm';
-import { localeSchema } from '@/utils/locale';
+import { localeSchema, matchLocale } from '@/utils/locale';
+import { ILocale, Locales } from '@/common/http/handler/param/locale';
 
 const variantOptionSchema = z.object({
   title: z.string(),
@@ -172,7 +173,7 @@ export class TicketFieldController {
   @Get('count')
   @UseMiddlewares(staffOnly)
   async count(
-    @Ctx() ctx: Context,
+    @Locales() locales: ILocale,
     @Query('categoryId', new FindModelOptionalPipe(Category, { useMasterKey: true }))
     category?: Category,
     @Query('fieldId', new FindModelOptionalPipe(TicketField, { useMasterKey: true }))
@@ -199,8 +200,6 @@ export class TicketFieldController {
       return [];
     }
 
-    const localesMap = new Map(ctx.locales?.map((locale, index) => [locale, index + 1]));
-
     const optionIdMap = new Map(
       (
         await Promise.all(
@@ -209,34 +208,18 @@ export class TicketFieldController {
 
             if (!variants || !OPTION_TYPES.includes(field.type)) return undefined;
 
-            const valueTitleMap = variants.reduce<Map<string, [string, string]>>((pre, variant) => {
-              variant.options?.forEach((option) => {
-                const optionInStore = pre.get(option.value);
-
-                if (!optionInStore) {
-                  pre.set(option.value, [option.title, variant.locale]);
-                  return;
-                }
-
-                const [, locale] = optionInStore;
-                const curOptionPriority = localesMap.get(variant.locale);
-                const optionInStorePriority = localesMap.get(locale);
-
-                if (
-                  // override if cur option has priority but stored is not
-                  (!optionInStorePriority && curOptionPriority) ||
-                  // override if cur option has higher priority
-                  (curOptionPriority &&
-                    optionInStorePriority &&
-                    curOptionPriority < optionInStorePriority) ||
-                  // override if stored option has no priority and cur option's locale is default
-                  (!optionInStorePriority && variant.locale === field.defaultLocale)
-                ) {
-                  pre.set(option.value, [option.title, variant.locale]);
-                }
-              });
-              return pre;
-            }, new Map());
+            const valueTitleMap = new Map(
+              _(variants)
+                .flatMap((v) => v.options?.map((o) => [o, v] as const) ?? [])
+                .groupBy(([o]) => o.value)
+                .mapValues((ovPairs) =>
+                  matchLocale(ovPairs, ([, v]) => v.locale, locales.matcher, field.defaultLocale)
+                )
+                .values()
+                .compact()
+                .map(([o, v]) => [o.value, [o.title, v.locale] as const] as const)
+                .value()
+            );
 
             return [
               field.id,

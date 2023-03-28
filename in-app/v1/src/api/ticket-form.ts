@@ -23,8 +23,10 @@ interface NoteItem {
 
 export type TicketFormItem = FieldItem | NoteItem;
 
-async function fetchTicketFormItems(id: string) {
-  const res = await http.get<TicketFormItem[]>(`/api/2/ticket-forms/${id}/items`);
+async function fetchTicketFormItems(id: string, locale?: string) {
+  const res = await http.get<TicketFormItem[]>(`/api/2/ticket-forms/${id}/items`, {
+    params: { locale },
+  });
   return res.data;
 }
 

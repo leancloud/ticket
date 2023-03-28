@@ -89,7 +89,7 @@ export class DynamicContentController {
     @Ctx() ctx: Context,
     @Body(new ZodValidationPipe(renderSchema)) { content }: RenderData
   ) {
-    const result = await dynamicContentService.render(content, ctx.locales);
+    const result = await dynamicContentService.render(content, ctx.locales.locales);
     return {
       content: result,
     };

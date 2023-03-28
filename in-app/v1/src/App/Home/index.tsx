@@ -1,8 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { PageContent, PageHeader } from '@/components/Page';
 import { useRootCategory } from '@/states/root-category';
-import { useCategories, useCategoryTopics } from '@/api/category';
-import { useNotices } from '@/App/Articles/utils';
+import { useCategories, useCategoryTopics, useNotices } from '@/api/category';
 import { Loading } from '@/components/Loading';
 import { NotFoundContent } from '@/App/NotFound';
 import Topics from './Topics';

@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { InfiniteData, UseQueryOptions, useMutation, useQuery, useQueryClient } from 'react-query';
+import { InfiniteData, useMutation, useQueryClient } from 'react-query';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import cx from 'classnames';
@@ -24,19 +24,7 @@ import styles from './index.module.css';
 import { Replies, useReplies } from './Replies';
 import { Evaluated, NewEvaluation } from './Evaluation';
 import { ReplyData, ReplyInput } from './ReplyInput';
-
-async function fetchTicket(id: string): Promise<Ticket> {
-  const { data } = await http.get('/api/2/tickets/' + id);
-  return data;
-}
-
-export function useTicket(id: string, options?: UseQueryOptions<Ticket>) {
-  return useQuery({
-    queryKey: ['ticket', id],
-    queryFn: () => fetchTicket(id),
-    ...options,
-  });
-}
+import { useTicket } from '@/api/ticket';
 
 const STATUS_CLASS: Record<number, string> = {
   50: styles.new,

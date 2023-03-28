@@ -3,6 +3,7 @@ import mem from '@/utils/mem-promise';
 import { field, hasManyThroughIdArray, Model, ModifyOptions, serialize } from '@/orm';
 import { Article } from './Article';
 import { ArticleTranslation, getPublicTranslationWithLocales } from './ArticleTranslation';
+import { LocaleMatcher } from '@/utils/locale';
 
 export class ArticleTopic extends Model {
   protected static className = 'FAQTopic';
@@ -39,12 +40,12 @@ export class ArticleTopic extends Model {
 
 const getRawTopic = mem((id: string) => ArticleTopic.find(id), { max: 500, ttl: 60_000 });
 
-export const getTopic = async (id: string, locales: string[]) => {
+export const getTopic = async (id: string, matcher: LocaleMatcher) => {
   const topic = await getRawTopic(id);
   if (topic) {
     topic.translations = _.compact(
       await Promise.all(
-        topic.articleIds.map((articleId) => getPublicTranslationWithLocales(articleId, locales))
+        topic.articleIds.map((articleId) => getPublicTranslationWithLocales(articleId, matcher))
       )
     );
   }

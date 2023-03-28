@@ -25,6 +25,7 @@ import ticketFormNoteService from './ticket-form-note/ticket-form-note.service';
 import { createTicketFormSchema, updateTicketFormSchema } from './schemas';
 import { CreateTicketFormData, UpdateTicketFormData } from './types';
 import { User } from '@/model/User';
+import { ILocale, Locales } from '@/common/http/handler/param/locale';
 
 @Controller('ticket-forms')
 @UseMiddlewares(auth)
@@ -83,15 +84,19 @@ export class TicketFormController {
   }
 
   @Get(':id/items')
-  async getItems(@Ctx() ctx: Context, @Param('id') id: string, @CurrentUser() currentUser: User) {
+  async getItems(
+    @Param('id') id: string,
+    @CurrentUser() currentUser: User,
+    @Locales() locales: ILocale
+  ) {
     const form = await service.mustGet(id);
     const items = form.getItems();
 
     const noteIds = items.filter((item) => item.type === 'note').map((item) => item.id);
-    const notes = await ticketFormNoteService.getSome(noteIds);
-    const noteById = _.keyBy(notes, (note) => note.id);
+    const notes = await ticketFormNoteService.getSomeByPreferredLanguage(noteIds, locales.matcher);
+    const noteById = _.keyBy(notes, (note) => note.noteId);
 
-    const fieldVariants = await form.getFieldVariants(ctx.locales?.[0] ?? 'en', currentUser);
+    const fieldVariants = await form.getFieldVariants(locales.matcher, currentUser);
     const fieldVariantByFieldId = _.keyBy(fieldVariants, (v) => v.fieldId);
 
     const result: any[] = [];

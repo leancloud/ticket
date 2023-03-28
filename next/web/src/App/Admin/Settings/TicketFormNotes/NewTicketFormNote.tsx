@@ -1,7 +1,7 @@
 import { useQueryClient } from 'react-query';
 import { useNavigate } from 'react-router-dom';
 import { useCreateTicketFormNote } from '@/api/ticket-form-note';
-import { TicketFormNoteForm } from './TicketFormNoteForm';
+import { NewTicketFormNoteForm } from './TicketFormNoteForm';
 
 export function NewTicketFormNote() {
   const navigate = useNavigate();
@@ -16,7 +16,7 @@ export function NewTicketFormNote() {
 
   return (
     <div className="p-10">
-      <TicketFormNoteForm onSubmit={mutate} submitting={isLoading} />
+      <NewTicketFormNoteForm onSubmit={mutate} submitting={isLoading} />
     </div>
   );
 }

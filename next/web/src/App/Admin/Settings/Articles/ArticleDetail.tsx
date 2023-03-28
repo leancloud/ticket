@@ -18,13 +18,17 @@ import { SetDefaultButton } from './components/SetDefaultButton';
 import { CategorySchema } from '@/api/category';
 import { useGetCategoryPath, CategoryPath } from '../../components/CategoryPath';
 import { PreviewLink } from './components/PreviewLink';
+import { TranslationList } from '@/App/Admin/components/TranslationList';
 
-interface TranslationListProps {
+interface ArticleTranslationListProps {
   articleId: string;
   defaultLanguage?: string;
 }
 
-const TranslationList: FC<TranslationListProps> = ({ articleId, defaultLanguage }) => {
+const ArticleTranslationList: FC<ArticleTranslationListProps> = ({
+  articleId,
+  defaultLanguage,
+}) => {
   const { data: translations, isLoading } = useArticleTranslations(articleId);
   const navigate = useNavigate();
 
@@ -36,39 +40,27 @@ const TranslationList: FC<TranslationListProps> = ({ articleId, defaultLanguage 
 
   return (
     <>
-      <List
+      <TranslationList
+        data={translations}
         header="文章翻译"
-        dataSource={translations}
         loading={isLoading}
-        footer={
-          existLanguages.length < Object.keys(LOCALES).length ? (
-            <Button type="text" onClick={() => setShow(true)} block>
-              添加翻译
-            </Button>
-          ) : null
-        }
-        renderItem={(item) => (
-          <List.Item className="flex flex-row justify-between items-center w-full">
-            <Link to={`${item.language}/edit`} className="grow-0 shrink">
-              {item.title} - {LOCALES[item.language]}
-            </Link>
-
-            <div className="flex flex-row items-center justify-end space-x-4 basis-4/6 shrink-0">
-              <FeedbackSummary revision={item.revision!} />
-              <PreviewLink slug={item.slug} language={item.language} />
-              <Link to={`${item.language}/revisions`}>查看历史</Link>
-              <ArticleStatus article={item} privateText="禁用中" publicText="启用中" />
-              <ToggleTranslationPrivateButton
-                translation={item}
-                disabled={item.language === defaultLanguage}
-              />
-              <SetDefaultButton
-                articleId={articleId}
-                language={item.language}
-                defaultLanguage={defaultLanguage}
-              />
-            </div>
-          </List.Item>
+        title={(item) => `${item.title} - ${LOCALES[item.language]}`}
+        action={(item) => (
+          <>
+            <FeedbackSummary revision={item.revision!} />
+            <PreviewLink slug={item.slug} language={item.language} />
+            <Link to={`${item.language}/revisions`}>查看历史</Link>
+            <ArticleStatus article={item} privateText="禁用中" publicText="启用中" />
+            <ToggleTranslationPrivateButton
+              translation={item}
+              disabled={item.language === defaultLanguage}
+            />
+            <SetDefaultButton
+              articleId={articleId}
+              language={item.language}
+              defaultLanguage={defaultLanguage}
+            />
+          </>
         )}
       />
       <LocaleModal
@@ -144,7 +136,7 @@ export const ArticleDetail: FC = () => {
             正在使用该文章的分类： <CategoryList categories={relatedCategories} />
           </div>
         )}
-        <TranslationList articleId={id!} defaultLanguage={article?.defaultLanguage} />
+        <ArticleTranslationList articleId={id!} defaultLanguage={article?.defaultLanguage} />
       </EditArticleForm>
     </div>
   );

@@ -11,3 +11,5 @@ export function Locales(): ParameterDecorator {
     });
   };
 }
+
+export { ILocale } from '@/middleware/locale';
