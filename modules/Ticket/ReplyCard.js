@@ -215,7 +215,7 @@ export function ReplyCard({ data, onDeleted, ticketId, onEdit }) {
       <Card.Header className={classNames(css.heading, 'd-flex', 'justify-content-between')}>
         <div>
           <UserLabel user={data.author} /> {t('submittedAt')}{' '}
-          <Time value={data.created_at} href={'#' + data.id} />
+          <Time value={data.createdAt ?? data.created_at} href={'#' + data.id} />
         </div>
         <div className="d-flex align-items-center">
           {data.is_customer_service && <Badge className={css.badge}>{t('customerService')}</Badge>}
@@ -254,7 +254,7 @@ export function ReplyCard({ data, onDeleted, ticketId, onEdit }) {
       <Card.Body ref={containerRef} className={css.content}>
         <BaiduTranslate enabled={translationEnabled}>
           <ReplyContent>
-            {DOMPurify.sanitize(data.content_HTML, {
+            {DOMPurify.sanitize(data.contentSafeHTML ?? data.content_HTML, {
               FORBID_TAGS: ['style'],
               FORBID_ATTR: ['style'],
             })}
