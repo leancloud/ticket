@@ -305,10 +305,10 @@ function CustomMetadata({ metadata }) {
   const valueRenderers = getConfig('ticket.metadata.customMetadata.valueRenderers', {})
 
   return (
-    Object.entries(metadata).length > 0 && (
+    Object.entries(metadata ?? {}).length > 0 && (
       <Form.Group>
         <hr />
-        {Object.entries(metadata).map(([key, value]) => (
+        {Object.entries(metadata ?? {}).map(([key, value]) => (
           <div className={css.customMetadata} key={key}>
             <span className={css.key}>{comments[key] || key}: </span>
             {typeof valueRenderers[key] === 'function'
