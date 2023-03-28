@@ -79,7 +79,7 @@ function FeedbackForm() {
       {!isFetching && token && (
         <iframe
           className={iframeLoading ? 'invisible' : undefined}
-          src={`https://leancloud.support.tdspowered.cn/in-app/v1/${hash}`}
+          src={`https://leancloud.support.tdspowered.cn/in-app/v1/products/1${hash}`}
           width="100%"
           height="100%"
           onLoad={() => setIframeLoading(false)}
