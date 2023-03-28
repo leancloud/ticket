@@ -2,7 +2,6 @@ import { UseQueryOptions, useQuery } from 'react-query';
 import { useRootCategory } from '@/states/root-category';
 import { http } from '@/leancloud';
 import { Article } from '@/types';
-import { useTranslation } from 'react-i18next';
 
 export interface Category {
   id: string;
@@ -64,11 +63,46 @@ export function useCategory(id: string, options?: UseQueryOptions<Category>) {
 
 export function useCategoryTopics(options?: UseQueryOptions<CategoryTopics[]>) {
   const rootCategory = useRootCategory();
-  const { i18n } = useTranslation();
   return useQuery({
     queryKey: ['categoryTopic', rootCategory.id],
-    queryFn: () => fetchCategoryTopic(rootCategory.id, i18n.language),
+    queryFn: () => fetchCategoryTopic(rootCategory.id),
     staleTime: Infinity,
     ...options,
+  });
+}
+
+async function fetchFAQs(categoryId?: string, locale?: string): Promise<Article[]> {
+  if (!categoryId) return [];
+  const { data } = await http.get<Article[]>(`/api/2/categories/${categoryId}/faqs`, {
+    params: {
+      locale,
+    },
+  });
+  return data;
+}
+
+export function useFAQs(categoryId?: string) {
+  return useQuery({
+    queryKey: ['category-faqs', categoryId],
+    queryFn: () => fetchFAQs(categoryId),
+    staleTime: 1000 * 60,
+  });
+}
+
+async function fetchNotices(categoryId?: string, locale?: string): Promise<Article[]> {
+  if (!categoryId) return [];
+  const { data } = await http.get<Article[]>(`/api/2/categories/${categoryId}/notices`, {
+    params: {
+      locale,
+    },
+  });
+  return data;
+}
+
+export function useNotices(categoryId?: string) {
+  return useQuery({
+    queryKey: ['category-notices', categoryId],
+    queryFn: () => fetchNotices(categoryId),
+    staleTime: 1000 * 60,
   });
 }

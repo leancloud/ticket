@@ -1,29 +1,12 @@
 import { FC, useState, Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Link } from 'react-router-dom';
-import { useQuery } from 'react-query';
 import { useRootCategory } from '@/states/root-category';
-import { http } from '@/leancloud';
 import { useTranslation } from 'react-i18next';
 import HelpIcon from '@/icons/Help';
 import Bell from '@/icons/Bell';
 import Feedback from '@/icons/Feedback';
-
-async function fetchUnread(categoryId?: string) {
-  const { data } = await http.get<boolean>(`/api/2/unread`, {
-    params: {
-      product: categoryId,
-    },
-  });
-  return data;
-}
-
-function useHasUnreadTickets(categoryId?: string) {
-  return useQuery({
-    queryKey: ['unread', categoryId],
-    queryFn: () => fetchUnread(categoryId),
-  });
-}
+import { useHasUnreadTickets } from '@/api/ticket';
 
 const Modal: FC<{
   open: boolean;

@@ -1,10 +1,11 @@
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import { useRootCategory } from '@/states/root-category';
-import { useNotices, NoticeLink } from '@/App/Articles/utils';
+import { NoticeLink } from '@/App/Articles/utils';
 import { PageContent } from '@/components/Page';
 import SpeakerIcon from '@/icons/Speaker';
 import { ChevronRightIcon } from '@heroicons/react/solid';
+import { useNotices } from '@/api/category';
 
 export default function Notices() {
   const rootCategory = useRootCategory();

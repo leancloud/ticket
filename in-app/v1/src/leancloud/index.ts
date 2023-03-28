@@ -2,6 +2,7 @@ import { init, use, setAdapters } from 'open-leancloud-storage/core';
 import { authModule } from 'open-leancloud-storage/auth';
 import { storageModule } from 'open-leancloud-storage/storage';
 import { liveQueryModule } from 'open-leancloud-storage/live-query';
+import i18n from '../i18n';
 import axios from 'axios';
 import { localStorage } from '@/env';
 
@@ -64,6 +65,7 @@ http.interceptors.request.use((config) => {
       config.headers = {};
     }
     config.headers['X-LC-Session'] = auth.currentUser.sessionToken;
+    config.headers['Accept-Language'] = i18n.language;
   }
   return config;
 });

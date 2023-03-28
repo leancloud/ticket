@@ -6,7 +6,7 @@ import { Helmet } from 'react-helmet-async';
 import { pick, cloneDeep } from 'lodash-es';
 
 import { http } from '@/leancloud';
-import { Category, useCategories } from '@/api/category';
+import { Category, useCategories, useFAQs } from '@/api/category';
 import { FieldItem, useTicketFormItems } from '@/api/ticket-form';
 import { useTicketInfo } from '@/states/ticket-info';
 import { useSearchParams } from '@/utils/url';
@@ -18,7 +18,6 @@ import CheckIcon from '@/icons/Check';
 import NotFound from '../../NotFound';
 import { CustomForm, CustomFieldConfig, CustomFormItem } from './CustomForm';
 import { usePersistFormData } from './usePersistFormData';
-import { useFAQs } from '@/App/Articles/utils';
 import { FAQs } from '@/App/Categories';
 
 const DEFAULT_FIELDS: CustomFieldConfig[] = [

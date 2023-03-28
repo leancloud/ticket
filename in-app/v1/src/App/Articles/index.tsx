@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { useMutation, useQuery } from 'react-query';
+import { useMutation } from 'react-query';
 import { useTranslation } from 'react-i18next';
 import { Route, Routes, useParams, useSearchParams, Link } from 'react-router-dom';
-import { Article } from '@/types';
 import { http } from '@/leancloud';
 import { PageContent, PageHeader } from '@/components/Page';
 import { QueryWrapper } from '@/components/QueryWrapper';
@@ -12,23 +11,12 @@ import CheckIcon from '@/icons/Check';
 import ThumbDownIcon from '@/icons/ThumbDown';
 import ThumbUpIcon from '@/icons/ThumbUp';
 import { useAuth } from '@/states/auth';
-import { ArticleListItem, useFAQs } from './utils';
+import { ArticleListItem } from './utils';
 import { Helmet } from 'react-helmet-async';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
-
-async function getArticle(id: string, locale?: string) {
-  return (await http.get<Article>(`/api/2/articles/${id}`, { params: { locale } })).data;
-}
-
-function useArticle(id: string) {
-  const { i18n } = useTranslation();
-  return useQuery({
-    queryKey: ['article', id],
-    queryFn: () => getArticle(id, i18n.language),
-    staleTime: 60_000,
-  });
-}
+import { useFAQs } from '@/api/category';
+import { useArticle } from '@/api/article';
 
 function RelatedFAQs({ categoryId, articleId }: { categoryId: string; articleId: string }) {
   const { t } = useTranslation();
