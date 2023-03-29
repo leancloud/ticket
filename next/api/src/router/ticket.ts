@@ -671,6 +671,12 @@ router.get('/:ticketId', include, async (ctx) => {
     await ticket.loadAssociateTickets(currentUser.getAuthOptions());
   }
 
+  if (params.includeTag && (await currentUser.isCustomerService())) {
+    ticket.privateTags = (
+      await query.select('privateTags').first({ useMasterKey: true })
+    )?.privateTags;
+  }
+
   // TODO: Sentry
   ticket.resetUnreadCount(currentUser).catch(console.error);
 
