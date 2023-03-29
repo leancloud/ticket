@@ -649,10 +649,7 @@ router.get('/:ticketId', include, async (ctx) => {
   if (params.includeAssignee) {
     query.preload('assignee');
   }
-  if (params.includeGroup) {
-    if (!(await currentUser.isCustomerService())) {
-      ctx.throw(403);
-    }
+  if (params.includeGroup && (await currentUser.isCustomerService())) {
     query.preload('group');
   }
   if (params.includeFiles) {
