@@ -69,7 +69,7 @@ function useTicket(nid) {
     queryKey: ['ticket', ticketId],
     queryFn: () =>
       fetch(`/api/2/tickets/${ticketId}`, {
-        query: { includeAuthor: true, includeAssociateTicket: true },
+        query: { includeAuthor: true, includeAssociateTicket: true, includeFiles: true },
       }),
     enabled: !!ticketId,
   })
