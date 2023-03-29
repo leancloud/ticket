@@ -17,7 +17,7 @@ export class Group extends Model {
   roleId!: string;
 
   @pointTo(() => Role)
-  role!: Role;
+  role?: Role;
 
   getTinyInfo(): TinyGroupInfo {
     return {

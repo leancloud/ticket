@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { User } from '@/model/User';
+import { groupService } from '@/service/group';
 import { Condition, ConditionFactory, not } from '../../condition';
 import { TriggerContext } from '../context';
 
@@ -23,9 +24,19 @@ const is: ConditionFactory<string, TriggerContext> = (value) => {
   };
 };
 
+const belongsToGroup: ConditionFactory<string, TriggerContext> = (groupId) => {
+  return {
+    name: `current user belongs to group ${groupId}`,
+    test: async (ctx) => {
+      return groupService.isGroupMember(groupId, ctx.currentUserId);
+    },
+  };
+};
+
 const factories: Record<string, ConditionFactory<string, TriggerContext>> = {
   is,
   isNot: not(is),
+  belongsToGroup,
 };
 
 const schema = z.object({
