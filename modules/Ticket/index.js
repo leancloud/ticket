@@ -401,12 +401,7 @@ export default function Ticket() {
     if (!ticket || replyLoading || isUser) {
       return false
     }
-    if (ticketStatus.isClosed(ticket.status)) {
-      return false
-    }
-    const staffReplies = replies.filter((reply) => reply.is_customer_service)
-    return staffReplies.length === 0
-  }, [ticket, replyLoading, replies, isUser])
+  }, [ticket, replyLoading, isUser])
 
   const editModalRef = useRef(null)
 
