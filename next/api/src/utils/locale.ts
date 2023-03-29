@@ -2,6 +2,7 @@ import { LOCALES } from '@/i18n/locales';
 import { z } from 'zod';
 import * as yup from 'yup';
 import { match } from '@formatjs/intl-localematcher';
+import { LangCodeISO6391 } from '@notevenaneko/whatlang-node';
 
 export const localeMatcherFactory = (requestedLocales: string[]) => (
   availableLocales: string[],
@@ -37,3 +38,10 @@ export const localeSchemaForYup = yup
   .string()
   .transform((s: string) => s.toLowerCase())
   .test((s) => !!(s && LOCALES.includes(s)));
+
+export const localeName: Partial<Record<LangCodeISO6391, string>> = {
+  [LangCodeISO6391.Zh]: '中文',
+  [LangCodeISO6391.En]: '英文',
+  [LangCodeISO6391.Ja]: '日文',
+  [LangCodeISO6391.Ko]: '韩文',
+};

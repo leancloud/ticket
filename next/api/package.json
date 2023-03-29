@@ -18,6 +18,7 @@
     "@formatjs/intl-localematcher": "^0.2.32",
     "@koa/cors": "^3.1.0",
     "@koa/router": "^10.1.1",
+    "@notevenaneko/whatlang-node": "^1.0.0",
     "@sentry/node": "^7.14.0",
     "@sentry/tracing": "^7.14.0",
     "@slack/web-api": "^6.5.1",
