@@ -43,6 +43,7 @@ const includeSchema = yup.object({
   includeUnreadCount: yup.bool(),
   includeAssociateTicket: yup.bool(),
   includeSubscribed: yup.bool(),
+  includeTag: yup.bool(),
 });
 
 export const ticketFiltersSchema = yup.object({
@@ -674,7 +675,10 @@ router.get('/:ticketId', include, async (ctx) => {
   // TODO: Sentry
   ticket.resetUnreadCount(currentUser).catch(console.error);
 
-  ctx.body = new TicketResponse(ticket);
+  ctx.body = new TicketResponse(ticket).toJSON({
+    includeTags: params.includeTag,
+    includePrivateTags: params.includeTag && (await currentUser.isCustomerService()),
+  });
 });
 
 const ticketTagSchema = yup

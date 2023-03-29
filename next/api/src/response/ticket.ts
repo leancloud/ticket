@@ -7,12 +7,14 @@ import { UserResponse } from './user';
 
 export interface TicketResponseOptions {
   includeMetaKeys?: string[];
+  includeTags?: boolean;
+  includePrivateTags?: boolean;
 }
 
 class BaseTicketResponse {
   constructor(readonly ticket: Ticket) {}
 
-  toJSON({ includeMetaKeys = [] }: TicketResponseOptions = {}) {
+  toJSON({ includeMetaKeys = [], includePrivateTags, includeTags }: TicketResponseOptions = {}) {
     return {
       id: this.ticket.id,
       nid: this.ticket.nid,
@@ -37,6 +39,8 @@ class BaseTicketResponse {
       latestCustomerServiceReplyAt: this.ticket.latestCustomerServiceReplyAt,
       subscribed: this.ticket.subscribed,
       associated: !!this.ticket.parentId,
+      tags: includeTags ? this.ticket.tags : undefined,
+      privateTags: includePrivateTags ? this.ticket.privateTags : undefined,
       createdAt: this.ticket.createdAt.toISOString(),
       updatedAt: this.ticket.updatedAt.toISOString(),
     };
@@ -54,9 +58,9 @@ export class TicketListItemResponse extends BaseTicketResponse {
 }
 
 export class TicketResponse extends BaseTicketResponse {
-  toJSON() {
+  toJSON(options?: TicketResponseOptions) {
     return {
-      ...super.toJSON(),
+      ...super.toJSON(options),
       metaData: this.ticket.metaData,
       contentSafeHTML: sanitize(this.ticket.contentHTML),
     };
