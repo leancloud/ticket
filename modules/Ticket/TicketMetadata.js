@@ -336,7 +336,7 @@ function TagSection({ ticket }) {
 
   const handleSaveTag = useCallback(
     (key, value, isPrivate) => {
-      const tags = [...ticket[isPrivate ? 'private_tags' : 'tags']]
+      const tags = [...(ticket[isPrivate ? 'privateTags' : 'tags'] ?? [])]
       const index = tags.findIndex((tag) => tag.key === key)
       if (index === -1) {
         if (!value) {
