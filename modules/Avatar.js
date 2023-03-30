@@ -7,16 +7,16 @@ import { getGravatarHash } from '../lib/common'
 const GRAVATAR_URL = window.GRAVATAR_URL || 'https://gravatar.tapglb.com/avatar'
 
 export function Avatar({ user, height = 16, width = 16 }) {
-  const userInfo = user.toJSON ? user.toJSON() : user
-  const hash = userInfo.gravatarHash || getGravatarHash(userInfo.email || userInfo.username)
-  return (
-    <Image
-      height={height}
-      width={width}
-      src={`${GRAVATAR_URL}/${hash}?s=${height * 2}&r=pg&d=identicon`}
-      rounded
-    />
-  )
+  const url = React.useMemo(() => {
+    const userInfo = user.toJSON ? user.toJSON() : user
+    if (userInfo.avatarUrl) {
+      return userInfo.avatarUrl
+    }
+    const hash = userInfo.gravatarHash || getGravatarHash(userInfo.email || userInfo.username)
+    return `${GRAVATAR_URL}/${hash}?s=${height * 2}&r=pg&d=identicon`
+  }, [user])
+
+  return <Image height={height} width={width} src={url} rounded />
 }
 Avatar.displayName = 'Avatar'
 Avatar.propTypes = {

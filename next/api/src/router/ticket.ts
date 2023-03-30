@@ -656,6 +656,8 @@ router.get('/:ticketId', include, async (ctx) => {
     query.preload('files');
   }
 
+  query.preload('reporter');
+
   const ticket = await query.first(currentUser.getAuthOptions());
   if (!ticket) {
     ctx.throw(404, `ticket ${ticketId} does not exist`);

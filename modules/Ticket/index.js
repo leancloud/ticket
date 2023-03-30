@@ -409,6 +409,7 @@ export default function Ticket() {
     if (!ticket || replyLoading || isUser) {
       return false
     }
+    return true
   }, [ticket, replyLoading, isUser])
 
   const editModalRef = useRef(null)

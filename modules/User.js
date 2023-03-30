@@ -2,12 +2,11 @@
 import React, { Component } from 'react'
 import { useTranslation, withTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
-import { Link, withRouter } from 'react-router-dom'
+import { withRouter } from 'react-router-dom'
 import { cloud } from '../lib/leancloud'
 import { Avatar } from './Avatar'
 import css from './User.css'
 import { UserTags } from './UserLabel'
-import { RecentTickets } from 'modules/Ticket/RecentTickets'
 
 class User extends Component {
   constructor(props) {
@@ -92,8 +91,6 @@ class User extends Component {
             )}
           </div>
         </div>
-
-        <RecentTickets authorId={this.state.user.objectId} />
 
         <LeanCloudApps leancloudApps={this.state.leancloudApps} />
       </div>
