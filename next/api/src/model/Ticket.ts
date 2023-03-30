@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import { LangCodeISO6391 } from '@notevenaneko/whatlang-node';
 
 import { config } from '@/config';
 import events from '@/events';
@@ -206,6 +207,9 @@ export class Ticket extends Model {
 
   @pointTo(() => Ticket)
   parent?: Ticket;
+
+  @field()
+  language?: LangCodeISO6391;
 
   associateTickets?: Ticket[];
 

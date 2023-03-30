@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { detect } from '@notevenaneko/whatlang-node';
+import { Detector, LangCodeISO6391 } from '@notevenaneko/whatlang-node';
 
 import events from '@/events';
 import { ACLBuilder } from '@/orm';
@@ -12,9 +12,9 @@ import { Ticket } from '@/model/Ticket';
 import { FieldValue, TicketFieldValue } from '@/model/TicketFieldValue';
 import { User, systemUser } from '@/model/User';
 import { TicketLog } from '@/model/TicketLog';
-import { Tag } from '@/model/Tag';
-import { TagMetadata } from '@/model/TagMetadata';
-import { localeName } from '@/utils/locale';
+import { allowedTicketLanguages } from '@/utils/locale';
+
+const detector = Detector.withAllowlist(allowedTicketLanguages);
 
 export class TicketCreator {
   private author?: User;
@@ -29,7 +29,7 @@ export class TicketCreator {
   private customFields?: FieldValue[];
   private assignee?: User;
   private group?: Group;
-  private languageTag?: Pick<Tag, 'key' | 'value'>;
+  private language?: LangCodeISO6391;
 
   private aclBuilder: ACLBuilder;
 
@@ -205,43 +205,11 @@ export class TicketCreator {
   }
 
   private async detectLanguage() {
-    const lang = this.content && detect(this.content);
+    const lang = this.content && detector.detect(this.content);
 
-    if (lang && lang.isReliable) {
-      const code = lang.lang.codeISO6391;
-
-      const name = localeName[code];
-
-      if (!name) {
-        return;
-      }
-
-      const tag = await (async () => {
-        const tagMetadata = await TagMetadata.queryBuilder()
-          .where('key', '==', '语言')
-          .first({ useMasterKey: true });
-
-        if (!tagMetadata) {
-          // tag doesn't exist -> create tag
-          return await TagMetadata.create({
-            isPrivate: true,
-            key: '语言',
-            type: 'select',
-            values: Object.entries(localeName).map(([, v]) => v),
-          });
-        } else if (!tagMetadata.values?.includes(name)) {
-          // language doesn't exist -> update tag
-          return (
-            await TagMetadata.updateSome([
-              [tagMetadata, { values: [...(tagMetadata.values ?? []), name] }],
-            ])
-          )[0];
-        }
-
-        return tagMetadata;
-      })();
-
-      this.languageTag = { key: tag.key, value: name };
+    // sometimes output lang code does not exist in allowlist
+    if (lang && lang.isReliable && allowedTicketLanguages.includes(lang.lang.codeISO6391)) {
+      this.language = lang.lang.codeISO6391;
     }
   }
 
@@ -284,7 +252,7 @@ export class TicketCreator {
         assigneeId: this.assignee?.id,
         groupId: this.group?.id,
         status: Ticket.Status.NEW,
-        privateTags: this.languageTag && [this.languageTag],
+        language: this.language,
       },
       {
         ...operator.getAuthOptions(),

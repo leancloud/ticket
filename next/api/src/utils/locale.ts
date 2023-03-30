@@ -39,9 +39,17 @@ export const localeSchemaForYup = yup
   .transform((s: string) => s.toLowerCase())
   .test((s) => !!(s && LOCALES.includes(s)));
 
-export const localeName: Partial<Record<LangCodeISO6391, string>> = {
-  [LangCodeISO6391.Zh]: '中文',
-  [LangCodeISO6391.En]: '英文',
-  [LangCodeISO6391.Ja]: '日文',
-  [LangCodeISO6391.Ko]: '韩文',
-};
+export const allowedTicketLanguages = [
+  LangCodeISO6391.Zh,
+  LangCodeISO6391.En,
+  LangCodeISO6391.Ja,
+  LangCodeISO6391.Ko,
+  LangCodeISO6391.Id,
+  LangCodeISO6391.Th,
+  LangCodeISO6391.De,
+  LangCodeISO6391.Fr,
+  LangCodeISO6391.Ru,
+  LangCodeISO6391.Es,
+  LangCodeISO6391.Pt,
+  LangCodeISO6391.Tr,
+];
