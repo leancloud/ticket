@@ -642,6 +642,74 @@ AssociateTickets.propTypes = {
   ticket: PropTypes.object.isRequired,
 }
 
+// eslint-disable-next-line react/display-name
+const LanguageSection = memo(({ ticket }) => {
+  const queryClient = useQueryClient()
+  const { t } = useTranslation()
+  const { isCustomerService } = useContext(AppContext)
+
+  const [editingLanguage, setEditingLanguage] = useState(false)
+
+  const { mutate: update, isLoading } = useMutation({
+    mutationFn: (language) => http.patch(`/api/2/tickets/${ticket.id}`, { language }),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['ticket', ticket.id])
+      setEditingLanguage(false)
+    },
+  })
+
+  const options = useMemo(
+    () =>
+      // TODO: configurable
+      ['zh', 'en', 'ja', 'ko', 'id', 'th', 'de', 'fr', 'ru', 'es', 'pt', 'tr']
+        .map((lang) => ({
+          label: t(`locale.${lang}`),
+          value: lang,
+        }))
+        .concat({ label: t('none'), value: null }),
+    [t]
+  )
+
+  const handleUpdateLanguage = useCallback(
+    (option) => {
+      update(option?.value ?? null)
+    },
+    [update]
+  )
+
+  return (
+    <Form.Group>
+      <Form.Label>
+        {t('ticket.language')} <InternalBadge />
+      </Form.Label>
+      {editingLanguage ? (
+        <Select
+          isClearable
+          isLoading={isLoading}
+          isDisabled={isLoading}
+          options={options}
+          value={ticket.language}
+          onChange={handleUpdateLanguage}
+          onBlur={() => setEditingLanguage(false)}
+        />
+      ) : (
+        <div className="d-flex align-items-center">
+          {t(`locale.${ticket.language}`)}
+          {isCustomerService && (
+            <Button variant="link" onClick={() => setEditingLanguage(true)}>
+              <Icon.PencilFill />
+            </Button>
+          )}
+        </div>
+      )}
+    </Form.Group>
+  )
+})
+
+LanguageSection.propTypes = {
+  ticket: PropTypes.object.isRequired,
+}
+
 export function Fields({ ticket, loadMoreOpsLogs }) {
   const { isUser } = useContext(AppContext)
   return (
@@ -662,6 +730,8 @@ export function TicketMetadata({ ticket }) {
       {isStaff && <GroupSection ticket={ticket} />}
 
       <AssigneeSection ticket={ticket} />
+
+      {isStaff && <LanguageSection ticket={ticket} />}
 
       <AssociateTickets ticket={ticket} />
 
