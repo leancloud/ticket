@@ -6,6 +6,14 @@ import { DynamicContent } from '@/model/DynamicContent';
 import { DynamicContentVariant } from '@/model/DynamicContentVariant';
 import { FullContent } from './types';
 
+type StringKey<T> = { [K in keyof T]: T[K] extends string ? K : never }[keyof T];
+
+interface RenderObjectConfig {
+  object: any;
+  field: string;
+  template: StringTemplate;
+}
+
 class DynamicContentService {
   private fullContentCache: Cache;
 
@@ -23,6 +31,36 @@ class DynamicContentService {
     });
     await renderer.render();
     return template.source;
+  }
+
+  async renderObjects<T>(objects: T[], fields: StringKey<T>[], locales?: string[]) {
+    if (objects.length === 0 || fields.length === 0) {
+      return;
+    }
+
+    const configs: RenderObjectConfig[] = [];
+    for (const object of objects) {
+      for (const field of fields) {
+        configs.push({
+          object,
+          field: field as string,
+          template: new StringTemplate(object[field] as string),
+        });
+      }
+    }
+
+    const templates = configs.map((config) => config.template);
+    const renderer = new AsyncDeepRenderer(templates, {
+      dc: (names) => this.getContentMap(names, locales),
+    });
+
+    await renderer.render();
+
+    for (const config of configs) {
+      if (config.template.source) {
+        config.object[config.field] = config.template.source;
+      }
+    }
   }
 
   async clearContentCache(name: string | string[]) {

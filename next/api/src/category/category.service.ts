@@ -1,7 +1,6 @@
 import _ from 'lodash';
 import mem from 'mem';
 import { Cache, LRUCacheStore, RedisStore } from '@/cache';
-import { AsyncDeepRenderer, ObjectTemplate } from '@/common/template';
 import { dynamicContentService } from '@/dynamic-content/dynamic-content.service';
 import { Category } from '@/model/Category';
 import { FindCategoriesOptions } from './types';
@@ -78,23 +77,7 @@ export class CategoryService {
       category.rawName = category.name;
     });
 
-    const templates = categories.map((category) => {
-      return new ObjectTemplate(
-        category,
-        (category) => category.name,
-        (category, name) => {
-          if (name) {
-            category.name = name;
-          }
-        }
-      );
-    });
-
-    const renderer = new AsyncDeepRenderer(templates, {
-      dc: (names) => dynamicContentService.getContentMap(names, locales),
-    });
-
-    await renderer.render();
+    await dynamicContentService.renderObjects(categories, ['name'], locales);
   }
 
   async getSubCategories(id: string | string[], active?: boolean) {
