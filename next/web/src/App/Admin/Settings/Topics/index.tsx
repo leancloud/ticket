@@ -144,7 +144,7 @@ function EditTopic({ initData, loading, onSave }: EditTopicProps) {
                     .map((id) => (
                       <li key={id}>
                         <a href={`../articles/${id}`} target="_blank">
-                          {articleMap[id].title}
+                          {articleMap[id].name}
                         </a>
                       </li>
                     ))}
