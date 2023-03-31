@@ -1,3 +1,4 @@
+import { Context } from 'koa';
 import { z } from 'zod';
 
 import {
@@ -21,7 +22,7 @@ import { auth, customerServiceOnly } from '@/middleware';
 import { ArticleTopic } from '@/model/ArticleTopic';
 import { ArticleTopicResponse } from '@/response/article-topic';
 import { Category } from '@/model/Category';
-import { Context } from 'koa';
+import { dynamicContentService } from '@/dynamic-content';
 
 const createArticleTopicSchema = z.object({
   name: z.string(),
@@ -55,7 +56,8 @@ export class ArticleTopicController {
   async findSome(
     @Ctx() ctx: Context,
     @Pagination() [page, pageSize]: [number, number],
-    @Query('count', ParseBoolPipe) count?: boolean
+    @Query('count', ParseBoolPipe) count: boolean,
+    @Query('raw', ParseBoolPipe) raw: boolean
   ) {
     const query = ArticleTopic.queryBuilder()
       .where('deletedAt', 'not-exists')
@@ -67,12 +69,23 @@ export class ArticleTopicController {
         })
       : await query.find({ useMasterKey: true });
 
+    if (!raw) {
+      await dynamicContentService.renderObjects(topics, ['name']);
+    }
+
     return topics;
   }
 
   @Get(':id')
   @ResponseBody(ArticleTopicResponse)
-  findOne(@Param('id', new FindModelWithoutDeleteFlagPipe(ArticleTopic)) topic: ArticleTopic) {
+  async findOne(
+    @Ctx() ctx: Context,
+    @Param('id', new FindModelWithoutDeleteFlagPipe(ArticleTopic)) topic: ArticleTopic,
+    @Query('raw', ParseBoolPipe) raw: boolean
+  ) {
+    if (!raw) {
+      await dynamicContentService.renderObjects([topic], ['name']);
+    }
     return topic;
   }
 
