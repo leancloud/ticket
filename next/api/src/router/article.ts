@@ -77,7 +77,8 @@ router.get('/', pagination(20), auth, customerServiceOnly, async (ctx) => {
   const { page, pageSize } = pagination.get(ctx);
   const { private: isPrivate, id } = findArticlesOptionSchema.validateSync(ctx.request.query);
 
-  const sessionToken = ctx.get('X-LC-Session');
+  const currentUser = ctx.state.currentUser as User;
+
   const query = Article.queryBuilder()
     .orderBy('createdAt', 'desc')
     .skip((page - 1) * pageSize)
@@ -91,7 +92,7 @@ router.get('/', pagination(20), auth, customerServiceOnly, async (ctx) => {
     query.where('objectId', 'in', id);
   }
 
-  const articles = await query.find({ sessionToken });
+  const articles = await query.find(currentUser.getAuthOptions());
 
   if (ctx.query.count) {
     ctx.set('X-Total-Count', articles.length.toString());
@@ -104,7 +105,8 @@ router.get('/detail', pagination(20), auth, customerServiceOnly, async (ctx) => 
   const { page, pageSize } = pagination.get(ctx);
   const { private: isPrivate, id } = findArticlesOptionSchema.validateSync(ctx.request.query);
 
-  const sessionToken = ctx.get('X-LC-Session');
+  const currentUser = ctx.state.currentUser as User;
+
   const articleQb = Article.queryBuilder()
     .orderBy('createdAt', 'desc')
     .skip((page - 1) * pageSize)
@@ -122,7 +124,7 @@ router.get('/detail', pagination(20), auth, customerServiceOnly, async (ctx) => 
     translationQb.where('article', 'in', id.map(Article.ptr));
   }
 
-  const articles = await articleQb.find({ sessionToken });
+  const articles = await articleQb.find(currentUser.getAuthOptions());
   const translations = await translationQb.find({ useMasterKey: true });
 
   const articleById = _.keyBy(articles, (a) => a.id);
