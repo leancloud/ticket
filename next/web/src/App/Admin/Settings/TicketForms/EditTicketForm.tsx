@@ -8,7 +8,11 @@ import { keyBy } from 'lodash-es';
 
 import { TicketFormItem } from '@/api/ticket-form';
 import { TicketFieldSchema, useTicketFields } from '@/api/ticket-field';
-import { TicketFormNoteSchema, useTicketFormNotes } from '@/api/ticket-form-note';
+import {
+  TicketFormNoteSchema,
+  useTicketFormNotes,
+  useTicketFormNotesWithDetail,
+} from '@/api/ticket-form-note';
 import { Alert, Button, Form, FormInstance, Input, Modal, Tabs } from '@/components/antd';
 import DragIcon from '@/icons/DragIcon';
 import { FormItems } from '@/App/Tickets/New/TicketForm/FormItems';
@@ -108,12 +112,11 @@ interface SelectedNoteItemProps {
   index: number;
   id: string;
   name: string;
-  content: string;
   active: boolean;
   onRemove: () => void;
 }
 
-function SelectedNoteItem({ index, id, name, content, active, onRemove }: SelectedNoteItemProps) {
+function SelectedNoteItem({ index, id, name, active, onRemove }: SelectedNoteItemProps) {
   return (
     <SelectedItem id={id} index={index} active={active} onRemove={onRemove}>
       <div className="h-full  grid grid-cols-[32px_1fr]">
@@ -124,9 +127,6 @@ function SelectedNoteItem({ index, id, name, content, active, onRemove }: Select
             title={name}
           >
             {name}
-          </div>
-          <div className="max-w-full truncate" title={content}>
-            {content}
           </div>
         </div>
       </div>
@@ -419,7 +419,7 @@ export function EditTicketForm({ data, submitting, onSubmit, onCancel }: EditTic
     },
   });
 
-  const notes = useTicketFormNotes({
+  const notes = useTicketFormNotesWithDetail({
     pageSize: 1000,
     queryOptions: {
       staleTime: 1000 * 60,

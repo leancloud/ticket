@@ -26,6 +26,18 @@ async function fetchTicketFormNotes(options: FetchTicketFormNotesOptions = {}) {
   };
 }
 
+async function fetchTicketFormNotesWithDetail(options: FetchTicketFormNotesOptions = {}) {
+  const res = await http.get<
+    (TicketFormNoteSchema & Pick<TicketFormNoteTranslationSchema, 'content'>)[]
+  >('/api/2/ticket-form-notes/detail', {
+    params: options,
+  });
+  return {
+    totalCount: parseInt(res.headers['x-total-count']),
+    data: res.data,
+  };
+}
+
 async function fetchTicketFormNoteDetail(id: string) {
   const res = await http.get<TicketFormNoteSchema & { languages: string[] }>(
     `/api/2/ticket-form-notes/${id}/detail`
@@ -63,6 +75,27 @@ export function useTicketFormNotes({ queryOptions, ...options }: UseTicketFormNo
   return useQuery({
     queryKey: ['ticketFormNotes', options],
     queryFn: () => fetchTicketFormNotes(options),
+    ...queryOptions,
+  });
+}
+
+interface UseTicketFormNotesWithDetailOptions extends FetchTicketFormNotesOptions {
+  queryOptions?: UseQueryOptions<
+    {
+      totalCount: number;
+      data: (TicketFormNoteSchema & Pick<TicketFormNoteTranslationSchema, 'content'>)[];
+    },
+    Error
+  >;
+}
+
+export function useTicketFormNotesWithDetail({
+  queryOptions,
+  ...options
+}: UseTicketFormNotesWithDetailOptions) {
+  return useQuery({
+    queryKey: ['ticketFormNotesWithDetail', options],
+    queryFn: () => fetchTicketFormNotesWithDetail(options),
     ...queryOptions,
   });
 }
