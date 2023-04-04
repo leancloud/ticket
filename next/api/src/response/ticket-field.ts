@@ -27,6 +27,7 @@ export class TicketFieldResponse {
       active: this.field.active,
       visible: this.field.visible,
       required: this.field.required,
+      regex: this.field.regex,
       createdAt: this.field.createdAt,
       updatedAt: this.field.updatedAt,
     };
