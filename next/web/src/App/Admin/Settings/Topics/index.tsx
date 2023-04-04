@@ -197,7 +197,7 @@ export function NewTopic() {
 
 export function TopicDetail() {
   const { id } = useParams<'id'>();
-  const topicResult = useTopic(id!);
+  const topicResult = useTopic(id!, { raw: true });
 
   const queryClient = useQueryClient();
   const navigate = useNavigate();

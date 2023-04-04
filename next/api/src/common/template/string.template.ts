@@ -9,35 +9,29 @@ export interface Variable {
 const VARIABLE_PATTERN = /{{\s*((?:[a-zA-Z]+\.)?[a-zA-Z_][a-zA-Z0-9_]*)\s*}}/g;
 
 export class StringTemplate implements Template<string> {
-  private variables?: Variable[];
+  private variables: Variable[] = [];
 
   constructor(public source: string) {}
 
   parse() {
+    this.variables = [];
     const matchResults = this.source.matchAll(VARIABLE_PATTERN);
-    const variables: Variable[] = [];
     for (const result of matchResults) {
-      variables.push({
+      this.variables.push({
         name: result[1],
         start: result.index!,
         end: result.index! + result[0].length,
       });
     }
-    if (variables.length) {
-      this.variables = variables;
-    }
-    return variables.length > 0;
+    return this.variables.length > 0;
   }
 
   getVariableNames() {
-    if (!this.variables) {
-      return [];
-    }
     return this.variables.map((v) => v.name);
   }
 
   render(values: Record<string, string | undefined>) {
-    if (!this.variables || this.variables.length === 0) {
+    if (this.variables.length === 0) {
       return this.source;
     }
 
@@ -56,7 +50,6 @@ export class StringTemplate implements Template<string> {
     s += this.source.slice(lastVar.end);
 
     this.source = s;
-    delete this.variables;
 
     return s;
   }

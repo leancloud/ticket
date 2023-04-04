@@ -50,16 +50,23 @@ export function useTopics({ queryOptions, ...options }: UseTopicsOptions = {}) {
   return { ...results, ...data };
 }
 
-export async function fetchTopic(id: string) {
-  const { data } = await http.get<Topic>(`/api/2/topics/${id}`);
+async function fetchTopic(id: string, raw?: boolean) {
+  const { data } = await http.get<Topic>(`/api/2/topics/${id}`, {
+    params: { raw },
+  });
   return data;
 }
 
-export function useTopic(id: string, options?: UseQueryOptions<Topic, Error>) {
+interface UseTopicOptions {
+  raw?: boolean;
+  queryOptions?: UseQueryOptions<Topic, Error>;
+}
+
+export function useTopic(id: string, { raw, queryOptions }: UseTopicOptions = {}) {
   return useQuery({
-    queryKey: ['topic', id],
-    queryFn: () => fetchTopic(id),
-    ...options,
+    queryKey: ['topic', id, raw],
+    queryFn: () => fetchTopic(id, raw),
+    ...queryOptions,
   });
 }
 
