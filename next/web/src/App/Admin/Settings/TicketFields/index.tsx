@@ -176,6 +176,7 @@ export function NewTicketField() {
           required: data.required,
           defaultLocale: data.defaultLocale,
           meta: data.meta,
+          regex: data.regex,
           variants: data.variants,
         });
       }}
@@ -220,6 +221,7 @@ export function TicketFieldDetail() {
           required: data.required,
           defaultLocale: data.defaultLocale,
           meta: data.meta ?? null,
+          regex: data.regex,
           variants: data.variants!,
         });
       }}

@@ -22,10 +22,8 @@ import {
   Form,
   FormInstance,
   Input,
-  Modal,
   Radio,
   Row,
-  Select,
   Tabs,
 } from '@/components/antd';
 import { TicketFieldType } from './TicketFieldType';
@@ -54,7 +52,7 @@ interface FieldTypeProps {
 
 function FieldType({ value, onChange, readonly }: FieldTypeProps) {
   return (
-    <div className="flex gap-2">
+    <div className="flex flex-wrap gap-2">
       {fieldTypes.map((type) => (
         <button
           key={type}
@@ -306,7 +304,8 @@ interface TicketFieldData {
   visible: boolean;
   required: boolean;
   defaultLocale: string;
-  meta: Record<string, any>;
+  meta?: Record<string, any>;
+  regex?: string;
   variants: {
     locale: string;
     title: string;
@@ -332,11 +331,9 @@ export function TicketFieldForm({
   disableType,
 }: TicketFieldFormProps) {
   const [activeLocale, setActiveLocale] = useState<string>();
-  const methods = useForm<TicketFieldData>();
-  const { control, handleSubmit, getValues, reset } = methods;
+  const methods = useForm<TicketFieldData>({ defaultValues: initData });
+  const { control, handleSubmit, getValues, setValue } = methods;
   const type = useWatch({ control, name: 'type' });
-
-  useEffect(() => reset(initData), [initData]);
 
   const _handleSubmit = (data: TicketFieldData) => {
     const hasOptions = optionsFieldTypes.includes(data.type);
@@ -403,6 +400,17 @@ export function TicketFieldForm({
               />
             </Form.Item>
 
+            {type === 'text' && (
+              <Controller
+                name="regex"
+                render={({ field }) => (
+                  <Form.Item label="正则表达式">
+                    <Input {...field} />
+                  </Form.Item>
+                )}
+              />
+            )}
+
             <Form.Item>
               <Controller
                 name="required"
@@ -418,7 +426,14 @@ export function TicketFieldForm({
               name="type"
               render={({ field: { value, onChange } }) => (
                 <Form.Item label="字段类型">
-                  <FieldType value={value} onChange={onChange} readonly={disableType} />
+                  <FieldType
+                    value={value}
+                    onChange={(type) => {
+                      onChange(type);
+                      setValue('regex', undefined);
+                    }}
+                    readonly={disableType}
+                  />
                 </Form.Item>
               )}
             />
