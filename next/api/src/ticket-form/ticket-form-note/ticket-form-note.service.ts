@@ -125,12 +125,25 @@ class TicketFormNoteService {
     if (note) {
       const translations = await this.getTranslations(id, true);
 
-      return matchLocale(translations, (t) => t.language, matcher, note.defaultLanguage);
+      const matched = matchLocale(translations, (t) => t.language, matcher, note.defaultLanguage);
+
+      if (matched) {
+        matched.note = note;
+      }
+
+      return matched;
     }
   }
 
-  async getSomeByPreferredLanguage(ids: string[], matcher: LocaleMatcher) {
-    const notes = await this.getSome(ids, true);
+  async getSomeByPreferredLanguage(
+    ids: string[] | TicketFormNote[],
+    matcher: LocaleMatcher
+  ): Promise<TicketFormNoteTranslation[]> {
+    if (ids.length === 0) return [];
+    const notes =
+      typeof ids[0] === 'string'
+        ? await this.getSome(ids as string[], true)
+        : (ids as TicketFormNote[]);
     const translations = await TicketFormNoteTranslation.queryBuilder()
       .where(
         'note',
@@ -149,7 +162,11 @@ class TicketFormNoteService {
       )
       .values()
       .compact()
-      .value();
+      .value()
+      .map((t) => {
+        t.note = notesById[t.noteId];
+        return t;
+      });
   }
 
   getSome(ids: string[], active?: boolean) {

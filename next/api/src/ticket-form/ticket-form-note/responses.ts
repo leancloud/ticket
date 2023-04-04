@@ -11,6 +11,7 @@ export class TicketFormNoteTranslationResponse {
     return {
       id: this.note.id,
       name: this.note.name,
+      defaultLanguage: this.note.defaultLanguage,
       content: this.translation.content,
       active: this.translation.active,
       createdAt: this.note.createdAt,

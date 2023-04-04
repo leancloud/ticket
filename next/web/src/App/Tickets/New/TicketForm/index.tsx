@@ -5,7 +5,7 @@ import { compact, keyBy, last, uniq } from 'lodash-es';
 import { useToggle } from 'react-use';
 
 import { useCurrentUserIsCustomerService, ENABLE_LEANCLOUD_INTEGRATION } from '@/leancloud';
-import { useArticles } from '@/api/article';
+import { useArticlesWithDetail } from '@/api/article';
 import { CategorySchema, useCategories } from '@/api/category';
 import { useOrganizations } from '@/api/organization';
 import { useTicketFormItems } from '@/api/ticket-form';
@@ -28,7 +28,7 @@ function openLinkInNewTab(el: HTMLElement | null) {
 }
 
 function FaqsItem({ ids }: { ids: string[] }) {
-  const { data: articles, error, refetch } = useArticles({
+  const { data: articles, error, refetch } = useArticlesWithDetail({
     id: ids,
     private: false,
     pageSize: ids.length,
