@@ -1,0 +1,42 @@
+name: typecheck-in-app
+
+on:
+  push:
+    branches:
+      - master
+      - dc
+      - tap
+      - xd
+    paths-ignore:
+      - '**/*.md'
+      - '**/*.gitignore'
+      - docs/**
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: npm
+          cache-dependency-path: 'in-app/v1/package-lock.json'
+
+      - name: Install dependencies
+        run: |
+          cd in-app/v1
+          npm ci
+
+      - name: Typecheck
+        uses: fersilva16/ts-report-action@1.2.1
+        with:
+          project: in-app/v1/tsconfig.json
