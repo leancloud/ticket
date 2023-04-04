@@ -88,7 +88,8 @@
     "attachment_too_big": "上传失败",
     "attachment_too_big_text": "附件大小不能超过 {{size}} {{unit}}",
     "attachment_not_uploaded": "请等待附件上传完毕",
-    "number_required": "不能含有非数字字符"
+    "number_required": "不能含有非数字字符",
+    "invalid": "输入不合法"
   },
   "network_error": "网络异常，请尝试重连",
   "network_error.retry": "尝试重连"
