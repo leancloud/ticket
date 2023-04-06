@@ -26,7 +26,10 @@ export function Input({ id, description, required, htmlId, pattern }: CustomFiel
             message: t('validation.required'),
           },
           validate: (value) => {
-            if (regexp && !regexp.test(value)) {
+            if (!value || !regexp) {
+              return true;
+            }
+            if (!regexp.test(value)) {
               return t('validation.invalid') as string;
             }
             return true;
