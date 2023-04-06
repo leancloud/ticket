@@ -88,7 +88,8 @@
     "attachment_too_big": "アップロードに失敗しました",
     "attachment_too_big_text": "添付ファイルのサイズは{{size}} {{unit}}を超えることはできません",
     "attachment_not_uploaded": "添付ファイルのアップロードが完了するまでお待ちください",
-    "number_required": "数字以外は入力できません"
+    "number_required": "数字以外は入力できません",
+    "invalid": "入力が無効です"
   },
   "network_error": "ネットワークエラーが発生しました。再接続してください",
   "network_error.retry": "再接続を試みる"

@@ -63,6 +63,7 @@ const createDataSchema = z.object({
   visible: z.boolean().optional(),
   required: z.boolean().optional(),
   variants: variantsSchema,
+  pattern: z.string().optional(),
 });
 
 const updateDataSchema = z.object({
@@ -73,6 +74,7 @@ const updateDataSchema = z.object({
   required: z.boolean().optional(),
   active: z.boolean().optional(),
   variants: variantsSchema.optional(),
+  pattern: z.string().optional(),
 });
 
 type CreateData = z.infer<typeof createDataSchema>;
@@ -158,6 +160,7 @@ export class TicketFieldController {
         title: data.title,
         defaultLocale: data.defaultLocale,
         meta: data.meta,
+        pattern: data.type === 'text' ? data.pattern : undefined,
         visible: data.visible ?? true,
         required: data.required ?? false,
       },
@@ -443,6 +446,7 @@ export class TicketFieldController {
         visible: data.visible,
         required: data.required,
         active: data.active,
+        pattern: field.type === 'text' ? data.pattern : undefined,
       },
       { useMasterKey: true }
     );

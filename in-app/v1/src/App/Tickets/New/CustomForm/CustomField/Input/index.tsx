@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFormContext } from 'react-hook-form';
 import cx from 'classnames';
@@ -5,10 +6,16 @@ import cx from 'classnames';
 import { CustomFieldProps } from '..';
 import { Description } from '../Description';
 
-export function Input({ id, description, required, htmlId }: CustomFieldProps) {
+export function Input({ id, description, required, htmlId, pattern }: CustomFieldProps) {
   const { t } = useTranslation();
   const { register, formState } = useFormContext();
   const error = formState.errors[id];
+
+  const regexp = useMemo(() => {
+    if (pattern) {
+      return new RegExp(pattern);
+    }
+  }, [pattern]);
 
   return (
     <>
@@ -17,6 +24,15 @@ export function Input({ id, description, required, htmlId }: CustomFieldProps) {
           required: {
             value: required,
             message: t('validation.required'),
+          },
+          validate: (value) => {
+            if (!value || !regexp) {
+              return true;
+            }
+            if (!regexp.test(value)) {
+              return t('validation.invalid') as string;
+            }
+            return true;
           },
         })}
         id={htmlId}

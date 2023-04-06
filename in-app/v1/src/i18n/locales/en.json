@@ -88,7 +88,8 @@
     "attachment_too_big": "Upload failed",
     "attachment_too_big_text": "Attachment size cannot exceed {{size}} {{unit}}",
     "attachment_not_uploaded": "Please wait for the attachment to upload",
-    "number_required": "Cannot contain non-numeric characters"
+    "number_required": "Cannot contain non-numeric characters",
+    "invalid": "Invalid input"
   },
   "network_error": "Network abnormality, please try again",
   "network_error.retry": "Retry"

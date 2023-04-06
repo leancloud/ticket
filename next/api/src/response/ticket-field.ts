@@ -27,6 +27,7 @@ export class TicketFieldResponse {
       active: this.field.active,
       visible: this.field.visible,
       required: this.field.required,
+      pattern: this.field.pattern,
       createdAt: this.field.createdAt,
       updatedAt: this.field.updatedAt,
     };
@@ -51,7 +52,8 @@ export class TicketFieldVariantResponse {
       type: this.variant.field!.type,
       required: this.variant.field!.required,
       options: this.variant.options,
-      meta: this.variant.field?.meta,
+      meta: this.variant.field!.meta,
+      pattern: this.variant.field!.pattern,
     };
   }
 }

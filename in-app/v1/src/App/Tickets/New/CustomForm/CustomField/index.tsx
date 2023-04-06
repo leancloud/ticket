@@ -22,8 +22,6 @@ export type FieldType =
   | 'number'
   | 'date';
 
-const TOP_LABEL_TYPES: FieldType[] = ['multi-select', 'radios'];
-
 const I18N_KEY_BY_ID: Record<string, string | undefined> = {
   title: 'general.title',
   description: 'general.description',
@@ -36,6 +34,7 @@ export interface CustomFieldConfig {
   description?: string;
   required: boolean;
   options?: { title: string; value: string }[];
+  pattern?: string;
 }
 
 export interface CustomFieldProps extends CustomFieldConfig {
@@ -60,8 +59,6 @@ function Unknown({ type }: { type: string }) {
 export function CustomField(props: CustomFieldProps) {
   const { id, type, title, required } = props;
   const { t } = useTranslation();
-
-  const alignTop = useMemo(() => TOP_LABEL_TYPES.includes(type), [type]);
 
   const displayTitle = useMemo(() => {
     const i18nKey = I18N_KEY_BY_ID[id];

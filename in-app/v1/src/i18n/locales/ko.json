@@ -88,7 +88,8 @@
     "attachment_too_big": "업로드 실패",
     "attachment_too_big_text": "첨부 파일 크기는 {{size}} {{unit}}를 초과할 수 없습니다",
     "attachment_not_uploaded": "첨부 파일 업로드를 기다려주세요",
-    "number_required": "숫자를 제외한 문자를 포함할 수 없습니다"
+    "number_required": "숫자를 제외한 문자를 포함할 수 없습니다",
+    "invalid": "입력이 유효하지 않습니다"
   },
   "network_error": "네트워크 오류, 다시 시도하세요",
   "network_error.retry": "재시도"

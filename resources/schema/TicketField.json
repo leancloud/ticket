@@ -43,6 +43,13 @@
       "read_only": false,
       "comment": ""
     },
+    "pattern": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
     "active": {
       "type": "Boolean",
       "v": 2,
