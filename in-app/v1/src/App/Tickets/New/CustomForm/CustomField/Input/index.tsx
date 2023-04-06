@@ -6,6 +6,12 @@ import cx from 'classnames';
 import { CustomFieldProps } from '..';
 import { Description } from '../Description';
 
+function safeCreateRegExp(pattern: string) {
+  try {
+    return new RegExp(pattern);
+  } catch {} // ignore
+}
+
 export function Input({ id, description, required, htmlId, pattern }: CustomFieldProps) {
   const { t } = useTranslation();
   const { register, formState } = useFormContext();
@@ -13,7 +19,7 @@ export function Input({ id, description, required, htmlId, pattern }: CustomFiel
 
   const regexp = useMemo(() => {
     if (pattern) {
-      return new RegExp(pattern);
+      return safeCreateRegExp(pattern);
     }
   }, [pattern]);
 
