@@ -47,7 +47,7 @@ export class TicketField extends Model {
   meta?: Record<string, any>;
 
   @field()
-  regex?: string;
+  pattern?: string;
 
   unused?: boolean;
 

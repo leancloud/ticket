@@ -43,7 +43,7 @@
       "read_only": false,
       "comment": ""
     },
-    "regex": {
+    "pattern": {
       "type": "String",
       "v": 2,
       "required": false,
