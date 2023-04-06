@@ -385,3 +385,9 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 导入 `TicketFormNote` `TicketFormNoteTranslation`
 
 运行 `eval $(lean env) && cd next/api && npm install && node scripts/ticket-form-note-i18n.mjs` 进行数据迁移
+
+## 2023-04-06
+
+### `5244d8434abc477d96dd8f454296571e2bc66721`
+
+导入 TicketField.json，添加 pattern 列。
