@@ -6,4 +6,4 @@
 {"ACL":{},"objectId":"device_vendor","defaultLocale":"zh-cn","type":"text","title":"设备厂商","active":true,"visible":false,"required":false,"meta":{"disableFilter": true}}
 {"ACL":{},"objectId":"os","defaultLocale":"zh-cn","type":"text","title":"操作系统","active":true,"visible":false,"required":false,"meta":{"disableFilter": true}}
 {"ACL":{},"objectId":"os_name","defaultLocale":"zh-cn","type":"text","title":"操作系统名称","active":true,"visible":false,"required":false,"meta":{"disableFilter": true}}
-{"ACL":{},"objectId":"ip","defaultLocale":"zh-cn","type":"text","title":"IP","active":true,"visible":false,"required":false,"meta":{"disableFilter": true},"previewTemplate":"<a href=\"https://freeapi.ipip.net/{{ value }}\">{{ value }}</a>"}
+{"ACL":{},"objectId":"ip","defaultLocale":"zh-cn","type":"text","title":"IP","active":true,"visible":false,"required":false,"meta":{"disableFilter": true},"previewTemplate":"<a href=\"https://www.geolocation.com/zh_cn?ip={{ value }}#ipresult\">{{ value }}</a>"}
