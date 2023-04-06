@@ -34,7 +34,7 @@ export interface CustomFieldConfig {
   description?: string;
   required: boolean;
   options?: { title: string; value: string }[];
-  regex?: string;
+  pattern?: string;
 }
 
 export interface CustomFieldProps extends CustomFieldConfig {

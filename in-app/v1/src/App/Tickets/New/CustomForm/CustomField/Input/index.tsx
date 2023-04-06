@@ -6,16 +6,16 @@ import cx from 'classnames';
 import { CustomFieldProps } from '..';
 import { Description } from '../Description';
 
-export function Input({ id, description, required, htmlId, regex }: CustomFieldProps) {
+export function Input({ id, description, required, htmlId, pattern }: CustomFieldProps) {
   const { t } = useTranslation();
   const { register, formState } = useFormContext();
   const error = formState.errors[id];
 
-  const compiledRe = useMemo(() => {
-    if (regex) {
-      return new RegExp(regex);
+  const regexp = useMemo(() => {
+    if (pattern) {
+      return new RegExp(pattern);
     }
-  }, [regex]);
+  }, [pattern]);
 
   return (
     <>
@@ -26,7 +26,7 @@ export function Input({ id, description, required, htmlId, regex }: CustomFieldP
             message: t('validation.required'),
           },
           validate: (value) => {
-            if (compiledRe && !compiledRe.test(value)) {
+            if (regexp && !regexp.test(value)) {
               return t('validation.invalid') as string;
             }
             return true;

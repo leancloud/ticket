@@ -10,6 +10,7 @@ export interface FieldItem {
     description: string;
     required: boolean;
     options?: { title: string; value: string }[];
+    pattern?: string;
   };
 }
 
