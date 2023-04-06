@@ -305,7 +305,7 @@ interface TicketFieldData {
   required: boolean;
   defaultLocale: string;
   meta?: Record<string, any>;
-  regex?: string;
+  pattern?: string;
   variants: {
     locale: string;
     title: string;
@@ -402,7 +402,7 @@ export function TicketFieldForm({
 
             {type === 'text' && (
               <Controller
-                name="regex"
+                name="pattern"
                 render={({ field }) => (
                   <Form.Item label="正则表达式">
                     <Input {...field} />
@@ -430,7 +430,7 @@ export function TicketFieldForm({
                     value={value}
                     onChange={(type) => {
                       onChange(type);
-                      setValue('regex', undefined);
+                      setValue('pattern', undefined);
                     }}
                     readonly={disableType}
                   />

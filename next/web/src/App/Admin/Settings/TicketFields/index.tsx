@@ -176,7 +176,7 @@ export function NewTicketField() {
           required: data.required,
           defaultLocale: data.defaultLocale,
           meta: data.meta,
-          regex: data.regex,
+          pattern: data.pattern,
           variants: data.variants,
         });
       }}
@@ -194,6 +194,7 @@ export function TicketFieldDetail() {
     mutationFn: (data: UpdateTicketFieldData) => updateTicketField(id!, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['ticketFields']);
+      queryClient.invalidateQueries(['ticketField', id]);
       message.success('保存成功');
     },
     onError: (error: Error) => {
@@ -221,7 +222,7 @@ export function TicketFieldDetail() {
           required: data.required,
           defaultLocale: data.defaultLocale,
           meta: data.meta ?? null,
-          regex: data.regex,
+          pattern: data.pattern,
           variants: data.variants!,
         });
       }}
