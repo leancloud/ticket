@@ -391,3 +391,9 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 ### `5244d8434abc477d96dd8f454296571e2bc66721`
 
 导入 TicketField.json，添加 pattern 列。
+
+## 2023-04-07
+
+### `b77b57a0196eca81b68fb1233ce54e8e6989fa98`
+
+导入 Ticket.json，添加 language 列
