@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import { Detector, LangCodeISO6391 } from '@notevenaneko/whatlang-node';
 
 import events from '@/events';
 import { ACLBuilder } from '@/orm';
@@ -11,6 +12,9 @@ import { Ticket } from '@/model/Ticket';
 import { FieldValue, TicketFieldValue } from '@/model/TicketFieldValue';
 import { User, systemUser } from '@/model/User';
 import { TicketLog } from '@/model/TicketLog';
+import { allowedTicketLanguages } from '@/utils/locale';
+
+const detector = Detector.withAllowlist(allowedTicketLanguages);
 
 export class TicketCreator {
   private author?: User;
@@ -25,6 +29,7 @@ export class TicketCreator {
   private customFields?: FieldValue[];
   private assignee?: User;
   private group?: Group;
+  private language?: LangCodeISO6391;
 
   private aclBuilder: ACLBuilder;
 
@@ -199,6 +204,15 @@ export class TicketCreator {
     await olc.create();
   }
 
+  private async detectLanguage() {
+    const lang = this.content && detector.detect(this.content);
+
+    // sometimes output lang code does not exist in allowlist
+    if (lang && lang.isReliable && allowedTicketLanguages.includes(lang.lang.codeISO6391)) {
+      this.language = lang.lang.codeISO6391;
+    }
+  }
+
   async create(operator: User): Promise<Ticket> {
     if (!this.check()) {
       throw new Error('Missing some required attributes');
@@ -217,6 +231,12 @@ export class TicketCreator {
       console.error('[ERROR] Select group failed:', error);
     }
 
+    try {
+      await this.detectLanguage();
+    } catch (error) {
+      console.log('[ERROR] Language detect failed', error);
+    }
+
     const ticket = await Ticket.create(
       {
         ACL: this.getRawACL(),
@@ -232,6 +252,7 @@ export class TicketCreator {
         assigneeId: this.assignee?.id,
         groupId: this.group?.id,
         status: Ticket.Status.NEW,
+        language: this.language,
       },
       {
         ...operator.getAuthOptions(),

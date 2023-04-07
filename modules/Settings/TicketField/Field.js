@@ -296,7 +296,7 @@ const FieldForm = memo(({ onSubmit, initData, submitting }) => {
           <div className={styles.localeSelect}>
             <Dropdown className="mr-2">
               <Dropdown.Toggle id="dropdown-basic" className={styles.select} variant="default">
-                {t(`ticketField.locale.${activeLocale}`)}
+                {t(`locale.${activeLocale}`)}
               </Dropdown.Toggle>
               <Dropdown.Menu>
                 {locales.map((locale) => {
@@ -312,7 +312,7 @@ const FieldForm = memo(({ onSubmit, initData, submitting }) => {
                       <span className={styles.content}>
                         {hasError && <Icon.ExclamationCircle className={'text-warning mr-1'} />}
                         {!hasError && <Icon.Check className={'text-success mr-1'} />}
-                        {t(`ticketField.locale.${locale}`)}
+                        {t(`locale.${locale}`)}
                       </span>
 
                       {isDefault && (

@@ -89,7 +89,7 @@ const LocaleManage = memo(({ close, locales, onUpdated }) => {
                     [locale]: !selected[locale],
                   }))
                 }}
-                label={t(`ticketField.locale.${locale}`)}
+                label={t(`locale.${locale}`)}
               />
             )
           })}

@@ -88,6 +88,13 @@
     "status": {
       "type": "Number"
     },
+    "language": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
     "files": {
       "type": "Array"
     },
