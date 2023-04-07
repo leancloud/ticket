@@ -73,31 +73,27 @@
   },
   "permissions": {
     "add_fields": {
-      "roles": [],
-      "users": [],
       "*": true
     },
     "delete": {
-      "roles": "",
-      "users": ""
+      "roles": [],
+      "users": []
     },
     "update": {
-      "*": true,
-      "users": [],
-      "roles": []
+      "*": true
     },
     "get": {
-      "roles": [],
-      "users": [],
       "*": true
     },
     "find": {
-      "roles": "customerService",
-      "users": ""
+      "roles": [
+        "customerService"
+      ],
+      "users": []
     },
     "create": {
-      "roles": "",
-      "users": ""
+      "roles": [],
+      "users": []
     }
   },
   "indexes": []
