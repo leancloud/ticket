@@ -32,6 +32,7 @@ i18n
       escapeValue: false,
     },
     detection: {
+      order: ['querystring', 'navigator', 'htmlTag', 'cookie', 'sessionStorage', 'localStorage'],
       lookupQuerystring: 'lang',
     },
   });
