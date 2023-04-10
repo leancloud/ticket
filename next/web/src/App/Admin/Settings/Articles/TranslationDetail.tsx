@@ -6,7 +6,6 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import { ToggleTranslationPrivateButton } from './components/TogglePrivateButton';
 import { LOCALES } from '@/i18n/locales';
 import { useState } from 'react';
-import { ProductSelect } from '../../components/ProductSelect';
 
 export const ArticleTranslationDetail: FC = () => {
   const navigate = useNavigate();
