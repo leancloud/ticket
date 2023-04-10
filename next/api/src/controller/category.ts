@@ -72,10 +72,9 @@ export class CategoryController {
   @ResponseBody(CategoryResponse)
   async findAll(
     @Ctx() ctx: Context,
-    @Query('active', new ParseBoolPipe({ keepUndefined: true })) active: boolean | undefined,
-    @Query('product', ParseBoolPipe) productOnly: boolean
+    @Query('active', new ParseBoolPipe({ keepUndefined: true })) active: boolean | undefined
   ) {
-    const categories = await categoryService.find({ active, productOnly });
+    const categories = await categoryService.find({ active });
     await categoryService.renderCategories(categories, ctx.locales.locales);
     return categories;
   }
