@@ -1,4 +1,4 @@
-import { useProducts } from '@/api/category';
+import { useCategories } from '@/api/category';
 import { Tooltip } from 'antd';
 import { useMemo } from 'react';
 
@@ -8,9 +8,9 @@ export interface PreviewLinkProps {
 }
 
 export const PreviewLink = ({ slug, language }: PreviewLinkProps) => {
-  const { data: product, isLoading } = useProducts({ active: true });
+  const { data: categories, isLoading } = useCategories({ active: true });
 
-  const productId = useMemo(() => product?.[0].alias ?? product?.[0].id, [product]);
+  const productId = useMemo(() => categories?.[0]?.id, [categories]);
 
   return productId ? (
     <a

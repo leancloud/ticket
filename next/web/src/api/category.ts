@@ -44,16 +44,6 @@ export function useCategories({ active, queryOptions }: UseCategoriesOptions = {
   });
 }
 
-export type UseProductsOptions = UseCategoriesOptions;
-
-export const useProducts = ({ active, queryOptions }: UseCategoriesOptions) =>
-  useQuery({
-    queryKey: ['products', active],
-    queryFn: () => fetchCategories(true, active),
-    staleTime: Infinity,
-    ...queryOptions,
-  });
-
 export type CategoryTreeNode<T = {}> = {
   parent?: CategoryTreeNode<T>;
   children?: CategoryTreeNode<T>[];
