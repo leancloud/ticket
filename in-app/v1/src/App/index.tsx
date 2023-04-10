@@ -13,6 +13,7 @@ import {
   loginByLocalAnonymousId,
   loginByTDSCredential,
   loginByXDAccessToken,
+  loginByXdUserId,
   useAutoLogin,
 } from '@/auth';
 import { useAuth } from '@/states/auth';
@@ -84,6 +85,7 @@ export default function App() {
   useAutoLogin({
     strategies: [
       loginByAnonymousId,
+      loginByXdUserId,
       loginByXDAccessToken,
       loginByTDSCredential,
       loginByJWT,
