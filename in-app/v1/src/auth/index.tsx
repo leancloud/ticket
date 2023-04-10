@@ -81,6 +81,17 @@ export const loginByLocalAnonymousId: Strategy = async ({ query }) => {
   return login({ type: 'anonymous', anonymousId });
 };
 
+export const loginByXdUserId: Strategy = async ({ hash }) => {
+  const xdUserId = hash['xd-user-id'];
+  if (xdUserId) {
+    return login({
+      type: 'xd-user',
+      id: xdUserId,
+      accessToken: hash['access-token'],
+    });
+  }
+};
+
 const { hash: hashSnapshot, search: searchSnapshot } = window.location;
 
 let loginPromise: Promise<User | undefined> | undefined;
