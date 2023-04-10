@@ -25,6 +25,11 @@ const LegacyXDAuthSchema = z.object({
   type: z.literal('legacy-xd').default('legacy-xd'),
   XDAccessToken: z.string(),
 });
+const XDUserSchema = z.object({
+  type: z.literal('xd-user'),
+  id: z.string(),
+  accessToken: z.string().optional(),
+});
 const JWTAuthSchema = z.object({
   type: z.literal('jwt').default('jwt'),
   jwt: z.string(),
@@ -48,6 +53,7 @@ const authSchema = z.union([
   JWTAuthSchema,
   anonymouseAuthSchema,
   LegacyXDAuthSchema,
+  XDUserSchema,
   PasswordSchema,
   ...(process.env.ENABLE_TDS_USER_LOGIN ? [TDSUserSchema] : []),
 ]);
@@ -66,6 +72,8 @@ type ExchangeData = z.infer<typeof exchangeSchema>;
 
 const TDSUserPublicKey = processKeys(process.env.TDS_USER_PUBLIC_KEY);
 const TDSUserSigningKey = process.env.TDS_USER_SIGNING_KEY;
+
+const ENABLE_XD_USER_LOGIN = !!process.env.ENABLE_XD_USER_LOGIN;
 
 @Controller('users')
 export class UserController {
@@ -130,6 +138,16 @@ export class UserController {
         ctx,
         'model',
         'User.loginWithLegacyXDAccessToken'
+      );
+    } else if (authData.type === 'xd-user') {
+      if (!ENABLE_XD_USER_LOGIN) {
+        throw new HttpError(403, 'This log method is not allowed');
+      }
+      return withAsyncSpan(
+        () => User.loginWithXDUser(authData.id, authData.accessToken),
+        ctx,
+        'model',
+        'User.loginWithXDUser'
       );
     } else if (authData.type === 'tds-user') {
       return withAsyncSpan(
