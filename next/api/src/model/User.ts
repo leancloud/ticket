@@ -264,6 +264,10 @@ export class User extends Model {
     return this.upsertByUsername(sub, name);
   }
 
+  static async loginWithXDUser(id: string, accessToken?: string) {
+    return this.upsertByUsername(`XD.${id}`);
+  }
+
   static async loginWithLegacyXDAccessToken(
     XDAccessToken: string
   ): Promise<{ sessionToken: string }> {
@@ -342,7 +346,8 @@ export class User extends Model {
       { issuer: 'tap-support' },
       TDSUserSigningKey
     );
-    return { id: payload.sub };
+    const [clientId, XDID] = payload.sub.split(':');
+    return { id: XDID ? `XD.${XDID}` : payload.sub, clientId };
   }
 
   static async loginTDSUser(token: string): Promise<User | undefined> {
@@ -351,8 +356,10 @@ export class User extends Model {
   }
 
   static async loginOrSignUpTDSUser(token: string): Promise<{ sessionToken: string }> {
-    const { id } = User.getVerifiedTDSUserIdentity(token);
-    return this.upsertByUsername(id);
+    const { id, clientId } = User.getVerifiedTDSUserIdentity(token);
+    return this.upsertByUsername(id, undefined, {
+      clientId,
+    });
   }
 
   static async loginWithTDSUserToken(token: string): Promise<{ sessionToken: string }> {
@@ -364,13 +371,17 @@ export class User extends Model {
   }
 
   static async associateAnonymousWithTDSUser(token: string, aid: string) {
-    const { id } = this.getVerifiedTDSUserIdentity(token);
+    const { id, clientId } = this.getVerifiedTDSUserIdentity(token);
     const anonymousUser = await this.findByAnonymousId(aid);
 
     if (anonymousUser) {
       return anonymousUser.update(
         {
           username: id,
+          thirdPartyData: {
+            ...anonymousUser.thirdPartyData,
+            clientId,
+          },
         },
         { sessionToken: await anonymousUser.loadSessionToken() }
       );

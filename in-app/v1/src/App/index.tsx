@@ -72,6 +72,7 @@ export default function App() {
     setAuth({ loading: true });
     if (
       params['anonymous-id'] ||
+      params['xd-user-id'] ||
       params['xd-access-token'] ||
       params['tds-credential'] ||
       params['credential']
@@ -81,6 +82,8 @@ export default function App() {
           '/api/2/users',
           params['anonymous-id']
             ? { type: 'anonymous', anonymousId: params['anonymous-id'] }
+            : params['xd-user-id']
+            ? { type: 'xd-user', id: params['xd-user-id'], accessToken: params['access-token'] }
             : params['xd-access-token']
             ? { XDAccessToken: params['xd-access-token'] }
             : params['tds-credential']
@@ -174,6 +177,8 @@ function useHashConfiguration() {
           fields: JsonParam,
           'anonymous-id': StringParam,
           'xd-access-token': StringParam,
+          'xd-user-id': StringParam,
+          'access-token': StringParam,
           'tds-credential': StringParam,
           credential: StringParam,
           'associate-anonymous-id': StringParam,
