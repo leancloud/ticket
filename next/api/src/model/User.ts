@@ -270,6 +270,10 @@ export class User extends Model {
     return this.upsertByUsername(sub, name);
   }
 
+  static async loginWithXDUser(id: string, accessToken?: string) {
+    return this.upsertByUsername(`XD.${id}`);
+  }
+
   static async loginWithLegacyXDAccessToken(
     XDAccessToken: string
   ): Promise<{ sessionToken: string }> {
