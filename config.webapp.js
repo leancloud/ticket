@@ -55,6 +55,7 @@ const XD_USER_DATA_RENDERER = [
   ['authoriz_state', '实名认证', (value) => (value > 0 ? '已实名' : '未实名')],
   ['adult_type', '年龄', (value) => ['未实名', '0-8', '8-16', '16-18', '18+'][value]],
   ['phone', '手机号', (value) => value],
+  ['clientId', '来源游戏（Client ID）', (value) => value],
 ]
 
 setConfig('ticket.metadata.customMetadata.userLabelOverlay', {
