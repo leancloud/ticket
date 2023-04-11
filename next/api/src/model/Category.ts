@@ -60,7 +60,7 @@ export class Category extends AliasModel {
 
   @field()
   @serialize()
-  topicIds!: string[];
+  topicIds?: string[];
 
   @hasManyThroughIdArray(() => ArticleTopic)
   topics!: ArticleTopic[];
