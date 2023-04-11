@@ -3,7 +3,13 @@ import { User } from '@/model/User';
 import { TicketCreator } from '../TicketCreator';
 
 export class TicketService {
-  async createTicketFromEmail(author: User, categoryId: string, title?: string, content?: string) {
+  async createTicketFromEmail(
+    author: User,
+    categoryId: string,
+    title?: string,
+    content?: string,
+    fileIds?: string[]
+  ) {
     const category = await categoryService.findOne(categoryId);
     if (!category) {
       // TODO: 搞个 MissingEntityError
@@ -16,6 +22,9 @@ export class TicketService {
     creator.setTitle(title ?? category.name);
     creator.setContent(content ?? '');
     creator.setChannel('email');
+    if (fileIds) {
+      creator.setFileIds(fileIds);
+    }
 
     const ticket = await creator.create(author);
     return ticket;

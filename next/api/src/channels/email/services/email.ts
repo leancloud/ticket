@@ -1,3 +1,4 @@
+import AV from 'leancloud-storage';
 import { Job, Queue } from 'bull';
 import { FetchMessageObject, ImapFlow } from 'imapflow';
 import { ParsedMail, simpleParser } from 'mailparser';
@@ -41,8 +42,6 @@ export class EmailService {
     let uids = await this.getMessageUids(client, range);
 
     await client.logout();
-
-    console.log({ uids, range });
 
     if (uids.length) {
       uids = uids.slice(0, count);
@@ -157,11 +156,13 @@ export class EmailService {
     }
 
     const author = await userService.getOrCreateUserByEmailAndName(from.email, from.name);
+    const fileIds = await this.uploadAttachments(message);
     const ticket = await ticketService.createTicketFromEmail(
       author,
       data.categoryId,
       message.subject,
-      message.text
+      message.text,
+      fileIds
     );
     await this.createSupportEmailTicket(data.email, message.messageId, ticket.id);
   }
@@ -194,9 +195,11 @@ export class EmailService {
       return;
     }
 
-    const reply = await ticket.reply({
+    const fileIds = await this.uploadAttachments(message);
+    await ticket.reply({
       author,
       content: message.text ?? '',
+      fileIds,
     });
   }
 
@@ -227,6 +230,23 @@ export class EmailService {
     return SupportEmailTicket.queryBuilder()
       .where('messageId', '==', messageId)
       .first({ useMasterKey: true });
+  }
+
+  async uploadAttachments(message: ParsedMail) {
+    if (message.attachments.length === 0) {
+      return;
+    }
+
+    const files = message.attachments.map((attachment, i) => {
+      const filename = attachment.filename ?? `attachment${i}`;
+      return new AV.File(filename, attachment.content);
+    });
+
+    for (const file of files) {
+      await file.save();
+    }
+
+    return files.map((file) => file.id!);
   }
 }
 
