@@ -164,12 +164,6 @@ export class EmailService {
       message.text
     );
     await this.createSupportEmailTicket(data.email, message.messageId, ticket.id);
-
-    console.log('create ticket', ticket.id, {
-      messageId: message.messageId,
-      title: message.subject,
-      content: message.text,
-    });
   }
 
   async createReplyByMessage(message: ParsedMail) {
@@ -203,11 +197,6 @@ export class EmailService {
     const reply = await ticket.reply({
       author,
       content: message.text ?? '',
-    });
-
-    console.log('create reply', reply.id, {
-      messageId,
-      content: message.text,
     });
   }
 
