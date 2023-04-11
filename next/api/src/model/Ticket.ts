@@ -18,6 +18,7 @@ import {
 } from '@/orm';
 import { TicketUpdater, UpdateOptions } from '@/ticket/TicketUpdater';
 import htmlify from '@/utils/htmlify';
+import { emailService } from '@/channels/email/services/email';
 import { categoryService } from '@/category';
 import { Category } from './Category';
 import { File } from './File';
@@ -323,6 +324,11 @@ export class Ticket extends Model {
       reply: reply.toJSON(),
       currentUserId: data.author.id,
     });
+
+    if (this.channel === 'email' && data.author.id !== this.authorId) {
+      // 向创建者发送邮件
+      emailService.sendReplyToTicketCreator(this, data.content, data.fileIds);
+    }
 
     return reply;
   }

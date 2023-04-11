@@ -2,13 +2,13 @@ import AV from 'leancloud-storage';
 import { Job, Queue } from 'bull';
 import { FetchMessageObject, ImapFlow } from 'imapflow';
 import { ParsedMail, simpleParser } from 'mailparser';
+import nodemailer from 'nodemailer';
 import { createQueue } from '@/queue';
 import { userService } from '@/user/services/user';
 import { SupportEmail } from '../entities/SupportEmail';
 import { JobData, ProcessMessageJobData } from '../types';
 import { supportEmailService } from './support-email';
 import { ticketService } from '@/ticket/services/ticket';
-import { SupportEmailTicket } from '../entities/SupportEmailTicket';
 import { Ticket } from '@/model/Ticket';
 
 export class EmailService {
@@ -164,7 +164,7 @@ export class EmailService {
       message.text,
       fileIds
     );
-    await this.createSupportEmailTicket(data.email, message.messageId, ticket.id);
+    await supportEmailService.createSupportEmailTicket(data.email, message.messageId, ticket.id);
   }
 
   async createReplyByMessage(message: ParsedMail) {
@@ -180,7 +180,9 @@ export class EmailService {
 
     const messageId = Array.isArray(references) ? references[0] : references;
 
-    const supportEmailTicket = await this.getSupportEmailTicketByMessageId(messageId);
+    const supportEmailTicket = await supportEmailService.getSupportEmailTicketByMessageId(
+      messageId
+    );
     if (!supportEmailTicket) {
       throw new Error(`SupportEmailTicket(messageId=${messageId}) does not exist`);
     }
@@ -214,24 +216,6 @@ export class EmailService {
     return { name, email: address };
   }
 
-  createSupportEmailTicket(email: string, messageId: string, ticketId: string) {
-    return SupportEmailTicket.create(
-      {
-        ACL: {},
-        email,
-        messageId,
-        ticketId,
-      },
-      { useMasterKey: true }
-    );
-  }
-
-  getSupportEmailTicketByMessageId(messageId: string) {
-    return SupportEmailTicket.queryBuilder()
-      .where('messageId', '==', messageId)
-      .first({ useMasterKey: true });
-  }
-
   async uploadAttachments(message: ParsedMail) {
     if (message.attachments.length === 0) {
       return;
@@ -247,6 +231,46 @@ export class EmailService {
     }
 
     return files.map((file) => file.id!);
+  }
+
+  async sendReplyToTicketCreator(ticket: Ticket, content: string, fileIds?: string[]) {
+    const supportEmailTicket = await supportEmailService.getSupportEmailTicketByTicketId(ticket.id);
+    if (!supportEmailTicket) {
+      return;
+    }
+
+    const supportEmail = await supportEmailService.getSupportEmailByEmail(supportEmailTicket.email);
+    if (!supportEmail) {
+      return;
+    }
+
+    const user = await userService.getUser(ticket.authorId);
+    if (!user || !user.email) {
+      return;
+    }
+
+    const client = this.createSmtpClient(supportEmail);
+    await client.sendMail({
+      from: {
+        name: supportEmail.name,
+        address: supportEmail.email,
+      },
+      to: user.email,
+      subject: `RE: ${ticket.title}`,
+      text: content,
+    });
+  }
+
+  createSmtpClient(supportEmail: SupportEmail) {
+    return nodemailer.createTransport({
+      host: supportEmail.smtp.host,
+      port: supportEmail.smtp.port,
+      secure: supportEmail.smtp.secure,
+      auth: {
+        user: supportEmail.auth.username,
+        pass: supportEmail.auth.password,
+      },
+    });
   }
 }
 

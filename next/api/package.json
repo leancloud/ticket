@@ -70,6 +70,7 @@
     "@types/lodash": "^4.14.178",
     "@types/mailparser": "^3.4.0",
     "@types/node": "^17.0.8",
+    "@types/nodemailer": "^6.4.7",
     "@types/remarkable": "^2.0.3",
     "@types/sqlstring": "^2.3.0",
     "@types/ua-parser-js": "^0.7.36",

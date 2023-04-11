@@ -2,6 +2,10 @@ import { User } from '@/model/User';
 import { CreateUserData } from '../types';
 
 export class UserService {
+  getUser(id: string) {
+    return User.find(id, { useMasterKey: true });
+  }
+
   getUserByEmail(email: string) {
     return User.queryBuilder().where('email', '==', email).first({ useMasterKey: true });
   }
