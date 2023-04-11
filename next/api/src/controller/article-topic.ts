@@ -70,7 +70,7 @@ export class ArticleTopicController {
       : await query.find({ useMasterKey: true });
 
     if (!raw) {
-      await dynamicContentService.renderObjects(topics, ['name']);
+      await dynamicContentService.renderObjects(topics, ['name'], ctx.locales.locales);
     }
 
     return topics;
@@ -84,7 +84,7 @@ export class ArticleTopicController {
     @Query('raw', ParseBoolPipe) raw: boolean
   ) {
     if (!raw) {
-      await dynamicContentService.renderObjects([topic], ['name']);
+      await dynamicContentService.renderObjects([topic], ['name'], ctx.locales.locales);
     }
     return topic;
   }

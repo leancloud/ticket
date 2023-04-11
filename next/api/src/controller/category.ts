@@ -1,5 +1,6 @@
 import { Context } from 'koa';
 import { z } from 'zod';
+import _ from 'lodash';
 
 import {
   Body,
@@ -25,10 +26,10 @@ import { CategoryResponse } from '@/response/category';
 import { TicketFieldVariantResponse } from '@/response/ticket-field';
 import { ArticleTopicFullResponse } from '@/response/article-topic';
 import { getTopic } from '@/model/ArticleTopic';
-import _ from 'lodash';
 import { FindCategoryPipe, categoryService } from '@/category';
 import { ILocale, Locales } from '@/common/http/handler/param/locale';
 import { getPublicTranslationWithLocales } from '@/model/ArticleTranslation';
+import { dynamicContentService } from '@/dynamic-content';
 
 const createCategorySchema = z.object({
   name: z.string(),
@@ -196,13 +197,14 @@ export class CategoryController {
   @Get(':id/topics')
   @ResponseBody(ArticleTopicFullResponse)
   async getTopics(@Param('id', FindCategoryPipe) category: Category, @Locales() locales: ILocale) {
-    if (!category.topicIds) {
+    if (!category.topicIds || category.topicIds.length === 0) {
       return [];
     }
 
-    const topics = await Promise.all(
-      category.topicIds.map((topicId) => getTopic(topicId, locales.matcher))
+    const topics = _.compact(
+      await Promise.all(category.topicIds.map((topicId) => getTopic(topicId, locales.matcher)))
     );
+    await dynamicContentService.renderObjects(topics, ['name'], locales.locales);
     return topics;
   }
 
