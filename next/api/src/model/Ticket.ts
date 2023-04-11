@@ -211,6 +211,9 @@ export class Ticket extends Model {
   @field()
   language?: LangCodeISO6391;
 
+  @field()
+  channel?: string;
+
   associateTickets?: Ticket[];
 
   subscribed?: boolean;
@@ -281,7 +284,7 @@ export class Ticket extends Model {
         internal: data.internal || undefined,
       },
       {
-        ...data.author.getAuthOptions(),
+        useMasterKey: true,
         ignoreBeforeHook: true,
         ignoreAfterHook: true,
       }
@@ -314,7 +317,7 @@ export class Ticket extends Model {
         }
       }
     }
-    await updater.update(data.author);
+    await updater.update(data.author, { useMasterKey: true });
 
     events.emit('reply:created', {
       reply: reply.toJSON(),
