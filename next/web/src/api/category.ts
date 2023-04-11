@@ -23,9 +23,9 @@ export interface CategorySchema {
   groupId?: string;
 }
 
-async function fetchCategories(productOnly?: boolean, active?: boolean): Promise<CategorySchema[]> {
+async function fetchCategories(active?: boolean): Promise<CategorySchema[]> {
   const { data } = await http.get('/api/2/categories', {
-    params: { active, product: productOnly },
+    params: { active },
   });
   return data;
 }
@@ -38,21 +38,11 @@ export interface UseCategoriesOptions {
 export function useCategories({ active, queryOptions }: UseCategoriesOptions = {}) {
   return useQuery({
     queryKey: ['categories', active],
-    queryFn: () => fetchCategories(false, active),
+    queryFn: () => fetchCategories(active),
     staleTime: Infinity,
     ...queryOptions,
   });
 }
-
-export type UseProductsOptions = UseCategoriesOptions;
-
-export const useProducts = ({ active, queryOptions }: UseCategoriesOptions) =>
-  useQuery({
-    queryKey: ['products', active],
-    queryFn: () => fetchCategories(true, active),
-    staleTime: Infinity,
-    ...queryOptions,
-  });
 
 export type CategoryTreeNode<T = {}> = {
   parent?: CategoryTreeNode<T>;
