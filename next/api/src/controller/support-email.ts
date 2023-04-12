@@ -65,7 +65,19 @@ export class SupportEmailController {
     if (emailConfilct) {
       throw new HttpError(409, `Email ${data.email} already exist`);
     }
-    const supportEmail = await SupportEmail.create(data, { useMasterKey: true });
+    const supportEmail = await SupportEmail.create(
+      {
+        ACL: {},
+        name: data.name,
+        email: data.email,
+        auth: data.auth,
+        smtp: data.smtp,
+        imap: data.imap,
+        categoryId: data.categoryId,
+        receipt: data.receipt,
+      },
+      { useMasterKey: true }
+    );
     return supportEmail;
   }
 
