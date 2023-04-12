@@ -25,11 +25,12 @@ export class EmailService {
       defaultJobOptions: {
         removeOnComplete: true,
         removeOnFail: true,
-        attempts: 3,
       },
     });
     this.queue.process((job) => this.processJob(job));
-    this.queue.on('error', console.error);
+    this.queue.on('failed', (job, error) => {
+      console.error('[EmailService] job failed', job.data, error);
+    });
   }
 
   async checkNewMessages() {
@@ -116,9 +117,17 @@ export class EmailService {
   }
 
   async processJob(job: Job<JobData>) {
-    switch (job.data.type) {
-      case 'processMessage':
-        await this.processMessage(job.data);
+    try {
+      switch (job.data.type) {
+        case 'processMessage':
+          await this.processMessage(job.data);
+      }
+    } catch (e) {
+      if ((e as Error).message === 'retry') {
+        await this.queue.add(job.data, { delay: 1000 * 10 });
+      } else {
+        throw e;
+      }
     }
   }
 
