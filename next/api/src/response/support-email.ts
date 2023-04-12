@@ -10,7 +10,6 @@ export class SupportEmailResponse {
       email: this.supportEmail.email,
       auth: {
         username: this.supportEmail.auth.username,
-        password: '**********',
       },
       smtp: this.supportEmail.smtp,
       imap: this.supportEmail.imap,
