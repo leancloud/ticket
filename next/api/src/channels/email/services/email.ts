@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import AV from 'leancloud-storage';
 import axios from 'axios';
 import { Job, Queue } from 'bull';
@@ -13,6 +14,7 @@ import { userService } from '@/user/services/user';
 import { SupportEmail } from '../entities/SupportEmail';
 import { JobData, ProcessMessageJobData } from '../types';
 import { supportEmailService } from './support-email';
+import { supportEmailMessageService } from './support-email-message';
 
 export class EmailService {
   private queue: Queue<JobData>;
@@ -131,8 +133,8 @@ export class EmailService {
     await client.logout();
 
     const message = await simpleParser(source);
-    if (message.headers.has('in-reply-to')) {
-      await this.createReplyByMessage(message);
+    if (message.inReplyTo) {
+      await this.createReplyByMessage(message, data);
     } else {
       await this.createTicketByMessage(message, data);
     }
@@ -150,47 +152,47 @@ export class EmailService {
 
   async createTicketByMessage(message: ParsedMail, data: ProcessMessageJobData) {
     const from = this.getMessageFrom(message);
-    if (!from) {
-      return;
-    }
-
-    if (!message.messageId) {
+    if (!from || !message.messageId) {
       return;
     }
 
     const author = await userService.getOrCreateUserByEmailAndName(from.email, from.name);
-    const fileIds = await this.uploadAttachments(message);
+    const attachments = await this.uploadAttachments(message);
     const ticket = await ticketService.createTicketFromEmail(
       author,
       data.categoryId,
       message.subject,
       message.text,
-      fileIds
+      attachments.map((a) => a.objectId)
     );
-    await supportEmailService.createSupportEmailTicket(data.email, message.messageId, ticket.id);
+    await supportEmailMessageService.create({
+      from: from.email,
+      to: data.email,
+      messageId: message.messageId,
+      inReplyTo: message.inReplyTo,
+      references: message.references ? _.castArray(message.references) : undefined,
+      subject: message.subject || '',
+      html: message.html || '',
+      text: message.text || '',
+      date: message.date,
+      attachments,
+      ticketId: ticket.id,
+    });
   }
 
-  async createReplyByMessage(message: ParsedMail) {
+  async createReplyByMessage(message: ParsedMail, data: ProcessMessageJobData) {
     const from = this.getMessageFrom(message);
-    if (!from) {
+    if (!from || !message.messageId || !message.inReplyTo) {
       return;
     }
 
-    const references = message.headers.get('references') as string | string[] | undefined;
-    if (!references) {
-      return;
+    const supportEmailMessage = await supportEmailMessageService.getByMessageId(message.inReplyTo);
+    if (!supportEmailMessage) {
+      // 可能回复的邮件还没处理完成, 稍后重试
+      throw new Error('retry');
     }
 
-    const messageId = Array.isArray(references) ? references[0] : references;
-
-    const supportEmailTicket = await supportEmailService.getSupportEmailTicketByMessageId(
-      messageId
-    );
-    if (!supportEmailTicket) {
-      throw new Error(`SupportEmailTicket(messageId=${messageId}) does not exist`);
-    }
-
-    const ticket = await Ticket.find(supportEmailTicket.ticketId, { useMasterKey: true });
+    const ticket = await Ticket.find(supportEmailMessage.ticketId, { useMasterKey: true });
     if (!ticket) {
       return;
     }
@@ -200,11 +202,25 @@ export class EmailService {
       return;
     }
 
-    const fileIds = await this.uploadAttachments(message);
-    await ticket.reply({
+    const attachments = await this.uploadAttachments(message);
+    const reply = await ticket.reply({
       author,
       content: message.text ?? '',
-      fileIds,
+      fileIds: attachments.map((a) => a.objectId),
+    });
+    await supportEmailMessageService.create({
+      from: from.email,
+      to: data.email,
+      messageId: message.messageId,
+      inReplyTo: message.inReplyTo,
+      references: message.references ? _.castArray(message.references) : undefined,
+      subject: message.subject || '',
+      html: message.html || '',
+      text: message.text || '',
+      date: message.date,
+      attachments,
+      ticketId: ticket.id,
+      replyId: reply.id,
     });
   }
 
@@ -221,28 +237,33 @@ export class EmailService {
 
   async uploadAttachments(message: ParsedMail) {
     if (message.attachments.length === 0) {
-      return;
+      return [];
     }
 
     const files = message.attachments.map((attachment, i) => {
       const filename = attachment.filename ?? `attachment${i}`;
-      return new AV.File(filename, attachment.content);
+      return {
+        file: new AV.File(filename, attachment.content),
+        cid: attachment.cid,
+      };
     });
 
-    for (const file of files) {
+    for (const { file } of files) {
       await file.save();
     }
 
-    return files.map((file) => file.id!);
+    return files.map(({ file, cid }) => ({ objectId: file.id!, cid }));
   }
 
   async sendReplyToTicketCreator(ticket: Ticket, content: string, fileIds?: string[]) {
-    const supportEmailTicket = await supportEmailService.getSupportEmailTicketByTicketId(ticket.id);
-    if (!supportEmailTicket) {
+    const supportEmailMessage = await supportEmailMessageService.getLatestMessageByTicketId(
+      ticket.id
+    );
+    if (!supportEmailMessage) {
       return;
     }
 
-    const supportEmail = await supportEmailService.getSupportEmailByEmail(supportEmailTicket.email);
+    const supportEmail = await supportEmailService.getSupportEmailByEmail(supportEmailMessage.to);
     if (!supportEmail) {
       return;
     }
@@ -256,6 +277,8 @@ export class EmailService {
 
     const client = this.createSmtpClient(supportEmail);
     await client.sendMail({
+      inReplyTo: supportEmailMessage.messageId,
+      references: _.castArray(supportEmailMessage.references).concat(supportEmailMessage.messageId),
       from: {
         name: supportEmail.name,
         address: supportEmail.email,
