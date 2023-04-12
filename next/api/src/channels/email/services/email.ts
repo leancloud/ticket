@@ -7,6 +7,7 @@ import { ParsedMail, simpleParser } from 'mailparser';
 import nodemailer from 'nodemailer';
 import { Attachment } from 'nodemailer/lib/mailer';
 import { convert as html2text } from 'html-to-text';
+import Mustache from 'mustache';
 import { Ticket } from '@/model/Ticket';
 import { createQueue } from '@/queue';
 import { fileService } from '@/file/services/file';
@@ -195,7 +196,7 @@ export class EmailService {
     });
 
     if (supportEmail.receipt.enabled) {
-      await this.sendReceipt(from.email, message.messageId, supportEmail);
+      await this.sendReceipt(from.email, message.messageId, supportEmail, ticket);
     }
   }
 
@@ -364,7 +365,21 @@ export class EmailService {
     return '';
   }
 
-  async sendReceipt(to: string, ticketMessageId: string, supportEmail: SupportEmail) {
+  async sendReceipt(
+    to: string,
+    ticketMessageId: string,
+    supportEmail: SupportEmail,
+    ticket: Ticket
+  ) {
+    const view = {
+      ticket: {
+        title: ticket.title,
+        content: ticket.content,
+      },
+    };
+    const subject = Mustache.render(supportEmail.receipt.subject, view);
+    const text = Mustache.render(supportEmail.receipt.text, view);
+
     const client = this.createSmtpClient(supportEmail);
     await client.sendMail({
       inReplyTo: ticketMessageId,
@@ -374,8 +389,8 @@ export class EmailService {
         address: supportEmail.email,
       },
       to,
-      subject: supportEmail.receipt.subject,
-      text: supportEmail.receipt.text,
+      subject,
+      text,
     });
     client.close();
   }
