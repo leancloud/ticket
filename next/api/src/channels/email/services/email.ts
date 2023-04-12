@@ -6,6 +6,7 @@ import { FetchMessageObject, ImapFlow } from 'imapflow';
 import { ParsedMail, simpleParser } from 'mailparser';
 import nodemailer from 'nodemailer';
 import { Attachment } from 'nodemailer/lib/mailer';
+import { convert as html2text } from 'html-to-text';
 import { Ticket } from '@/model/Ticket';
 import { createQueue } from '@/queue';
 import { fileService } from '@/file/services/file';
@@ -162,7 +163,7 @@ export class EmailService {
       author,
       data.categoryId,
       message.subject,
-      message.text,
+      this.getPlainTextFromMessage(message),
       attachments.map((a) => a.objectId)
     );
     await supportEmailMessageService.create({
@@ -171,9 +172,8 @@ export class EmailService {
       messageId: message.messageId,
       inReplyTo: message.inReplyTo,
       references: message.references ? _.castArray(message.references) : undefined,
-      subject: message.subject || '',
-      html: message.html || '',
-      text: message.text || '',
+      subject: message.subject,
+      html: message.html || undefined,
       date: message.date,
       attachments,
       ticketId: ticket.id,
@@ -210,7 +210,7 @@ export class EmailService {
     const attachments = await this.uploadAttachments(message);
     const reply = await ticket.reply({
       author,
-      content: message.text ?? '',
+      content: this.getPlainTextFromMessage(message),
       fileIds: attachments.map((a) => a.objectId),
     });
     await supportEmailMessageService.create({
@@ -219,9 +219,8 @@ export class EmailService {
       messageId: message.messageId,
       inReplyTo: message.inReplyTo,
       references: message.references ? _.castArray(message.references) : undefined,
-      subject: message.subject || '',
-      html: message.html || '',
-      text: message.text || '',
+      subject: message.subject,
+      html: message.html || undefined,
       date: message.date,
       attachments,
       ticketId: ticket.id,
@@ -333,6 +332,16 @@ export class EmailService {
         pass: supportEmail.auth.password,
       },
     });
+  }
+
+  getPlainTextFromMessage(message: ParsedMail) {
+    if (message.text) {
+      return message.text;
+    }
+    if (message.html) {
+      return html2text(message.html);
+    }
+    return '';
   }
 }
 

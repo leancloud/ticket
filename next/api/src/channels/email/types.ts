@@ -17,9 +17,8 @@ export interface CreateSupportEmailMessageData {
   messageId: string;
   inReplyTo?: string;
   references?: string[];
-  subject: string;
-  html: string;
-  text: string;
+  subject?: string;
+  html?: string;
   date?: Date;
   attachments?: { objectId: string; cid?: string }[];
   ticketId: string;

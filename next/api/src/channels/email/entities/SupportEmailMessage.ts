@@ -19,13 +19,10 @@ export class SupportEmailMessage extends Model {
   references?: string[];
 
   @field()
-  subject!: string;
+  subject?: string;
 
   @field()
-  html!: string;
-
-  @field()
-  text!: string;
+  html?: string;
 
   @field()
   date?: Date;
