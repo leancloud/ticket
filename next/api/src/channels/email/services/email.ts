@@ -141,7 +141,10 @@ export class EmailService {
     const source = await this.getMessageSource(client, data.messageUid);
     await client.logout();
 
-    const message = await simpleParser(source);
+    const message = await simpleParser(source, {
+      // 内嵌图片会转换成 base64 字符串，但现在只显示纯文本，所以关闭此选项以节约存储空间
+      skipImageLinks: true,
+    });
     if (message.inReplyTo) {
       await this.createReplyByMessage(message, data);
     } else {
@@ -190,6 +193,10 @@ export class EmailService {
       attachments,
       ticketId: ticket.id,
     });
+
+    if (supportEmail.receipt.enabled) {
+      await this.sendReceipt(from.email, message.messageId, supportEmail);
+    }
   }
 
   async createReplyByMessage(message: ParsedMail, jobData: ProcessMessageJobData) {
@@ -310,10 +317,11 @@ export class EmailService {
         address: supportEmail.email,
       },
       to: user.email,
-      subject: `RE: ${ticket.title}`,
+      subject: `Re: ${ticket.title}`,
       text: content,
       attachments,
     });
+    client.close();
   }
 
   async getAttachments(fileIds: string[]) {
@@ -354,6 +362,22 @@ export class EmailService {
       return html2text(message.html);
     }
     return '';
+  }
+
+  async sendReceipt(to: string, ticketMessageId: string, supportEmail: SupportEmail) {
+    const client = this.createSmtpClient(supportEmail);
+    await client.sendMail({
+      inReplyTo: ticketMessageId,
+      references: ticketMessageId,
+      from: {
+        name: supportEmail.name,
+        address: supportEmail.email,
+      },
+      to,
+      subject: supportEmail.receipt.subject,
+      text: supportEmail.receipt.text,
+    });
+    client.close();
   }
 }
 

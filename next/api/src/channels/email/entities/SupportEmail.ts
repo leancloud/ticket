@@ -33,4 +33,11 @@ export class SupportEmail extends Model {
 
   @pointerId(() => Category)
   categoryId!: string;
+
+  @field()
+  receipt!: {
+    enabled: boolean;
+    subject: string;
+    text: string;
+  };
 }
