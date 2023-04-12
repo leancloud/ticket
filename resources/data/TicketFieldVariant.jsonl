@@ -9,3 +9,19 @@
 {"description":"","titleForCustomerService":"IP","ACL":{},"locale":"zh-cn","field":{"__type":"Pointer","className":"TicketField","objectId":"ip"},"title":"IP"}
 {"description":"","titleForCustomerService":"地区","ACL":{},"locale":"zh-cn","field":{"__type":"Pointer","className":"TicketField","objectId":"location"},"title":"地区"}
 {"description":"","titleForCustomerService":"运营商","ACL":{},"locale":"zh-cn","field":{"__type":"Pointer","className":"TicketField","objectId":"isp"},"title":"运营商"}
+{"description":"","titleForCustomerService":"Role ID","ACL":{},"locale":"en","field":{"__type":"Pointer","className":"TicketField","objectId":"role_id"},"title":"Role ID"}
+{"description":"","titleForCustomerService":"Role name","ACL":{},"locale":"en","field":{"__type":"Pointer","className":"TicketField","objectId":"role_name"},"title":"Role name"}
+{"description":"","titleForCustomerService":"Region","ACL":{},"locale":"en","field":{"__type":"Pointer","className":"TicketField","objectId":"region"},"title":"Region"}
+{"description":"","titleForCustomerService":"Server ID","ACL":{},"locale":"en","field":{"__type":"Pointer","className":"TicketField","objectId":"server_id"},"title":"Server ID"}
+{"description":"","titleForCustomerService":"SDK version","ACL":{},"locale":"en","field":{"__type":"Pointer","className":"TicketField","objectId":"sdk_ver"},"title":"SDK version"}
+{"description":"","titleForCustomerService":"SDK language","ACL":{},"locale":"en","field":{"__type":"Pointer","className":"TicketField","objectId":"sdk_lang"},"title":"SDK language"}
+{"description":"","titleForCustomerService":"App version","ACL":{},"locale":"en","field":{"__type":"Pointer","className":"TicketField","objectId":"app_ver"},"title":"App version"}
+{"description":"","titleForCustomerService":"App version code","ACL":{},"locale":"en","field":{"__type":"Pointer","className":"TicketField","objectId":"app_ver_code"},"title":"App version code"}
+{"description":"","titleForCustomerService":"Resolution","ACL":{},"locale":"en","field":{"__type":"Pointer","className":"TicketField","objectId":"res"},"title":"Resolution"}
+{"description":"","titleForCustomerService":"CPU","ACL":{},"locale":"en","field":{"__type":"Pointer","className":"TicketField","objectId":"cpu"},"title":"CPU"}
+{"description":"","titleForCustomerService":"Memory","ACL":{},"locale":"en","field":{"__type":"Pointer","className":"TicketField","objectId":"mem"},"title":"Memory"}
+{"description":"","titleForCustomerService":"Platform","ACL":{},"locale":"en","field":{"__type":"Pointer","className":"TicketField","objectId":"pt"},"title":"Platform"}
+{"description":"","titleForCustomerService":"Brand","ACL":{},"locale":"en","field":{"__type":"Pointer","className":"TicketField","objectId":"brand"},"title":"Brand"}
+{"description":"","titleForCustomerService":"Model","ACL":{},"locale":"en","field":{"__type":"Pointer","className":"TicketField","objectId":"mod"},"title":"Model"}
+{"description":"","titleForCustomerService":"Game name","ACL":{},"locale":"en","field":{"__type":"Pointer","className":"TicketField","objectId":"game_name"},"title":"Game name"}
+{"description":"","titleForCustomerService":"Channel","ACL":{},"locale":"en","field":{"__type":"Pointer","className":"TicketField","objectId":"channel"},"title":"Channel"}
