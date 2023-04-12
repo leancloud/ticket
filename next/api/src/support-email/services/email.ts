@@ -2,7 +2,7 @@ import _ from 'lodash';
 import AV from 'leancloud-storage';
 import axios from 'axios';
 import { Job, Queue } from 'bull';
-import { FetchMessageObject, ImapFlow } from 'imapflow';
+import { FetchMessageObject, ImapFlow, MailboxObject } from 'imapflow';
 import { ParsedMail, simpleParser } from 'mailparser';
 import nodemailer from 'nodemailer';
 import { Attachment } from 'nodemailer/lib/mailer';
@@ -46,7 +46,12 @@ export class EmailService {
     const client = this.createImapClient(supportEmail);
     await client.connect();
 
-    const range = this.getMessageUidRange(supportEmail.lastUid);
+    const nextUid =
+      supportEmail.lastUid === undefined
+        ? (client.mailbox as MailboxObject).uidNext
+        : supportEmail.lastUid + 1;
+    const range = `${nextUid}:*`;
+
     let uids = await this.getMessageUids(client, range);
 
     await client.logout();
@@ -69,13 +74,6 @@ export class EmailService {
       },
       logger: false,
     });
-  }
-
-  getMessageUidRange(lastUid: number | undefined) {
-    if (lastUid === undefined) {
-      return '*';
-    }
-    return `${lastUid + 1}:*`;
   }
 
   async getMessageUids(client: ImapFlow, range: string) {
