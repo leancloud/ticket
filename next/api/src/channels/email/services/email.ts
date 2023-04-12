@@ -1,15 +1,18 @@
 import AV from 'leancloud-storage';
+import axios from 'axios';
 import { Job, Queue } from 'bull';
 import { FetchMessageObject, ImapFlow } from 'imapflow';
 import { ParsedMail, simpleParser } from 'mailparser';
 import nodemailer from 'nodemailer';
+import { Attachment } from 'nodemailer/lib/mailer';
+import { Ticket } from '@/model/Ticket';
 import { createQueue } from '@/queue';
+import { fileService } from '@/file/services/file';
+import { ticketService } from '@/ticket/services/ticket';
 import { userService } from '@/user/services/user';
 import { SupportEmail } from '../entities/SupportEmail';
 import { JobData, ProcessMessageJobData } from '../types';
 import { supportEmailService } from './support-email';
-import { ticketService } from '@/ticket/services/ticket';
-import { Ticket } from '@/model/Ticket';
 
 export class EmailService {
   private queue: Queue<JobData>;
@@ -249,6 +252,8 @@ export class EmailService {
       return;
     }
 
+    const attachments = fileIds ? await this.getAttachments(fileIds) : undefined;
+
     const client = this.createSmtpClient(supportEmail);
     await client.sendMail({
       from: {
@@ -258,7 +263,26 @@ export class EmailService {
       to: user.email,
       subject: `RE: ${ticket.title}`,
       text: content,
+      attachments,
     });
+  }
+
+  async getAttachments(fileIds: string[]) {
+    if (fileIds.length === 0) {
+      return [];
+    }
+    const files = await fileService.getFiles(fileIds);
+    const attachments: Attachment[] = [];
+    for (const file of files) {
+      try {
+        const res = await axios.get(file.url, { responseType: 'stream' });
+        attachments.push({
+          filename: file.name,
+          content: res.data,
+        });
+      } catch {} // ignore
+    }
+    return attachments;
   }
 
   createSmtpClient(supportEmail: SupportEmail) {
