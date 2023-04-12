@@ -182,11 +182,16 @@ export class EmailService {
 
   async createReplyByMessage(message: ParsedMail, data: ProcessMessageJobData) {
     const from = this.getMessageFrom(message);
-    if (!from || !message.messageId || !message.inReplyTo) {
+    if (!from || !message.messageId) {
       return;
     }
 
-    const supportEmailMessage = await supportEmailMessageService.getByMessageId(message.inReplyTo);
+    const ticketMessageId = this.getTicketMessageId(message);
+    if (!ticketMessageId) {
+      return;
+    }
+
+    const supportEmailMessage = await supportEmailMessageService.getByMessageId(ticketMessageId);
     if (!supportEmailMessage) {
       // 可能回复的邮件还没处理完成, 稍后重试
       throw new Error('retry');
@@ -222,6 +227,16 @@ export class EmailService {
       ticketId: ticket.id,
       replyId: reply.id,
     });
+  }
+
+  getTicketMessageId(message: ParsedMail) {
+    if (message.references) {
+      if (typeof message.references === 'string') {
+        return message.references;
+      }
+      return message.references[0];
+    }
+    return message.inReplyTo;
   }
 
   getMessageFrom(message: ParsedMail) {
