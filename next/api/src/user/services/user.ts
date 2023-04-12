@@ -12,12 +12,15 @@ export class UserService {
   }
 
   createUser(data: CreateUserData) {
-    return User.create({
-      username: data.username,
-      password: data.password,
-      name: data.name,
-      email: data.email,
-    });
+    return User.create(
+      {
+        username: data.username,
+        password: data.password,
+        name: data.name,
+        email: data.email,
+      },
+      { useMasterKey: true }
+    );
   }
 
   async getOrCreateUserByEmailAndName(email: string, name: string) {
