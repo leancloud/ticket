@@ -7,3 +7,19 @@
 {"ACL":{},"objectId":"os","defaultLocale":"zh-cn","type":"text","title":"操作系统","active":true,"visible":false,"required":false,"meta":{"disableFilter": true}}
 {"ACL":{},"objectId":"os_name","defaultLocale":"zh-cn","type":"text","title":"操作系统名称","active":true,"visible":false,"required":false,"meta":{"disableFilter": true}}
 {"ACL":{},"objectId":"ip","defaultLocale":"zh-cn","type":"text","title":"IP","active":true,"visible":false,"required":false,"meta":{"disableFilter": true},"previewTemplate":"<a href=\"https://www.geolocation.com/zh_cn?ip={{ value }}#ipresult\">{{ value }}</a>"}
+{"ACL":{},"objectId":"role_id","defaultLocale":"en","type":"text","title":"(Pre-fill) Role ID","active":true,"visible":false,"required":false,"meta":{"disableFilter": true}}
+{"ACL":{},"objectId":"role_name","defaultLocale":"en","type":"text","title":"(Pre-fill) Role name","active":true,"visible":false,"required":false,"meta":{"disableFilter": true}}
+{"ACL":{},"objectId":"region","defaultLocale":"en","type":"text","title":"(Pre-fill) Region","active":true,"visible":false,"required":false,"meta":{"disableFilter": true}}
+{"ACL":{},"objectId":"server_id","defaultLocale":"en","type":"text","title":"(Pre-fill) Server ID","active":true,"visible":false,"required":false,"meta":{"disableFilter": true}}
+{"ACL":{},"objectId":"sdk_ver","defaultLocale":"en","type":"text","title":"(Pre-fill) SDK version","active":true,"visible":false,"required":false,"meta":{"disableFilter": true}}
+{"ACL":{},"objectId":"sdk_lang","defaultLocale":"en","type":"text","title":"(Pre-fill) SDK language","active":true,"visible":false,"required":false,"meta":{"disableFilter": true}}
+{"ACL":{},"objectId":"app_ver","defaultLocale":"en","type":"text","title":"(Pre-fill) App version","active":true,"visible":false,"required":false,"meta":{"disableFilter": true}}
+{"ACL":{},"objectId":"app_ver_code","defaultLocale":"en","type":"text","title":"(Pre-fill) App version code","active":true,"visible":false,"required":false,"meta":{"disableFilter": true}}
+{"ACL":{},"objectId":"res","defaultLocale":"en","type":"text","title":"(Pre-fill) Resolution","active":true,"visible":false,"required":false,"meta":{"disableFilter": true}}
+{"ACL":{},"objectId":"cpu","defaultLocale":"en","type":"text","title":"(Pre-fill) CPU","active":true,"visible":false,"required":false,"meta":{"disableFilter": true}}
+{"ACL":{},"objectId":"mem","defaultLocale":"en","type":"text","title":"(Pre-fill) Memory","active":true,"visible":false,"required":false,"meta":{"disableFilter": true}}
+{"ACL":{},"objectId":"pt","defaultLocale":"en","type":"text","title":"(Pre-fill) Platform","active":true,"visible":false,"required":false,"meta":{"disableFilter": true}}
+{"ACL":{},"objectId":"brand","defaultLocale":"en","type":"text","title":"(Pre-fill) Brand","active":true,"visible":false,"required":false,"meta":{"disableFilter": true}}
+{"ACL":{},"objectId":"mod","defaultLocale":"en","type":"text","title":"(Pre-fill) Model","active":true,"visible":false,"required":false,"meta":{"disableFilter": true}}
+{"ACL":{},"objectId":"game_name","defaultLocale":"en","type":"text","title":"(Pre-fill) Game name","active":true,"visible":false,"required":false,"meta":{"disableFilter": true}}
+{"ACL":{},"objectId":"channel","defaultLocale":"en","type":"text","title":"(Pre-fill) Channel","active":true,"visible":false,"required":false,"meta":{"disableFilter": true}}
