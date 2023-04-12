@@ -99,9 +99,8 @@ export class EmailService {
       return {
         data: {
           type: 'processMessage',
-          email,
-          uid,
-          categoryId,
+          supportEmail: email,
+          messageUid: uid,
         },
       };
     });
@@ -132,21 +131,21 @@ export class EmailService {
   }
 
   async processMessage(data: ProcessMessageJobData) {
-    const supportEmail = await supportEmailService.getSupportEmailByEmail(data.email);
+    const supportEmail = await supportEmailService.getSupportEmailByEmail(data.supportEmail);
     if (!supportEmail) {
       return;
     }
 
     const client = this.createImapClient(supportEmail);
     await client.connect();
-    const source = await this.getMessageSource(client, data.uid);
+    const source = await this.getMessageSource(client, data.messageUid);
     await client.logout();
 
     const message = await simpleParser(source);
     if (message.inReplyTo) {
       await this.createReplyByMessage(message, data);
     } else {
-      await this.createTicketByMessage(message, data);
+      await this.createTicketByMessage(message, data, supportEmail);
     }
   }
 
@@ -160,7 +159,11 @@ export class EmailService {
     }
   }
 
-  async createTicketByMessage(message: ParsedMail, data: ProcessMessageJobData) {
+  async createTicketByMessage(
+    message: ParsedMail,
+    jobData: ProcessMessageJobData,
+    supportEmail: SupportEmail
+  ) {
     const from = this.getMessageFrom(message);
     if (!from || !message.messageId) {
       return;
@@ -170,14 +173,14 @@ export class EmailService {
     const attachments = await this.uploadAttachments(message);
     const ticket = await ticketService.createTicketFromEmail(
       author,
-      data.categoryId,
+      supportEmail.categoryId,
       message.subject,
       this.getPlainTextFromMessage(message),
       attachments.map((a) => a.objectId)
     );
     await supportEmailMessageService.create({
       from: from.email,
-      to: data.email,
+      to: jobData.supportEmail,
       messageId: message.messageId,
       inReplyTo: message.inReplyTo,
       references: message.references ? _.castArray(message.references) : undefined,
@@ -189,7 +192,7 @@ export class EmailService {
     });
   }
 
-  async createReplyByMessage(message: ParsedMail, data: ProcessMessageJobData) {
+  async createReplyByMessage(message: ParsedMail, jobData: ProcessMessageJobData) {
     const from = this.getMessageFrom(message);
     if (!from || !message.messageId) {
       return;
@@ -224,7 +227,7 @@ export class EmailService {
     });
     await supportEmailMessageService.create({
       from: from.email,
-      to: data.email,
+      to: jobData.supportEmail,
       messageId: message.messageId,
       inReplyTo: message.inReplyTo,
       references: message.references ? _.castArray(message.references) : undefined,

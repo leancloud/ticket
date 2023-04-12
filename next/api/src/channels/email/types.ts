@@ -4,9 +4,8 @@ export interface CheckNewMessageJobData {
 
 export interface ProcessMessageJobData {
   type: 'processMessage';
-  email: string;
-  uid: number;
-  categoryId: string;
+  supportEmail: string;
+  messageUid: number;
 }
 
 export type JobData = CheckNewMessageJobData | ProcessMessageJobData;
