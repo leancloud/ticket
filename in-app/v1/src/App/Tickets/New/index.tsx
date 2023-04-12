@@ -142,7 +142,7 @@ function Success({ ticketId }: SuccessProps) {
           <CheckIcon className="w-4 h-4 m-auto text-white" />
         </div>
         <div className="text-[#666] mt-10">{t('ticket.create.success_text')}</div>
-        <Button className="inline-block w-32 mt-4" as={Link} to={`/tickets/${ticketId}`}>
+        <Button className="inline-block min-w-32 mt-4" as={Link} to={`/tickets/${ticketId}`}>
           {t('ticket.detail')}
         </Button>
       </div>
