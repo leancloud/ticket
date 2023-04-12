@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Layout } from '@/components/antd';
 import { SiderMenu } from './SiderMenu';
-import './index.less'
+import './index.less';
 
 export type MenuDataItem = {
   children?: MenuDataItem[];
@@ -23,7 +23,7 @@ const SubMenu: React.FunctionComponent<{
       }}
     >
       <SiderMenu {...rest} collapsed={collapsed} onCollapse={setCollapsed} />
-      <Layout.Content className="h-full relative overflow-auto p-4">{children}</Layout.Content>
+      <Layout.Content className="h-full relative overflow-auto">{children}</Layout.Content>
     </Layout>
   );
 };
