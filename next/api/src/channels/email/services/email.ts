@@ -22,7 +22,7 @@ export class EmailService {
   private queue: Queue<JobData>;
 
   constructor() {
-    this.queue = createQueue('support_address', {
+    this.queue = createQueue('support_email', {
       defaultJobOptions: {
         removeOnComplete: true,
         removeOnFail: true,
