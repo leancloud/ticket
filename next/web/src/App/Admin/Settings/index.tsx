@@ -34,6 +34,7 @@ import { EditArticleTranslation } from './Articles/EditTranslation';
 import { NewArticleTranslation } from './Articles/NewTranslation';
 import { NewTicketFormNoteTranslation } from './TicketFormNotes/NewTicketFormNoteTranslation';
 import { EditTicketFormNoteTranslation } from './TicketFormNotes/EditTranslation';
+import { NewSupportEmail, SupportEmailList } from './SupportEmails';
 
 const SettingRoutes = () => (
   <Routes>
@@ -128,6 +129,10 @@ const SettingRoutes = () => (
       <Route path=":id" element={<TopicDetail />} />
     </Route>
     <Route path="/weekday" element={<Weekday />} />
+    <Route path="/support-emails">
+      <Route index element={<SupportEmailList />} />
+      <Route path="new" element={<NewSupportEmail />} />
+    </Route>
   </Routes>
 );
 
@@ -193,6 +198,10 @@ const routeGroups: MenuDataItem[] = [
       {
         name: '标签',
         path: 'tags',
+      },
+      {
+        name: '支持邮箱',
+        path: 'support-emails',
       },
     ],
   },
