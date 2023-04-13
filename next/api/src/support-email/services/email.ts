@@ -50,7 +50,7 @@ export class EmailService {
       supportEmail.lastUid === undefined
         ? (client.mailbox as MailboxObject).uidNext
         : supportEmail.lastUid + 1;
-    const range = `${nextUid}:*`;
+    const range = `${nextUid ?? 0}:*`;
 
     let uids = await this.getMessageUids(client, range);
 
