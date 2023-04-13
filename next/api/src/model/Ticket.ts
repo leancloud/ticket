@@ -327,7 +327,7 @@ export class Ticket extends Model {
 
     if (this.channel === 'email' && data.author.id !== this.authorId) {
       // 向创建者发送邮件
-      emailService.sendReplyToTicketCreator(this, data.content, data.fileIds);
+      emailService.sendReplyToTicketCreator(this, reply.contentHTML, data.fileIds);
     }
 
     return reply;
