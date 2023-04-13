@@ -33,10 +33,23 @@ async function fetchSupportEmails() {
   return res.data;
 }
 
+async function fetchSupportEmail(id: string) {
+  const res = await http.get<SupportEmailSchema>(`/api/2/support-emails/${id}`);
+  return res.data;
+}
+
 export function useSupportEmails(options?: UseQueryOptions<SupportEmailSchema[], Error>) {
   return useQuery({
     queryKey: ['supportEmails'],
     queryFn: fetchSupportEmails,
+    ...options,
+  });
+}
+
+export function useSupportEmail(id: string, options?: UseQueryOptions<SupportEmailSchema, Error>) {
+  return useQuery({
+    queryKey: ['supportEmail', id],
+    queryFn: () => fetchSupportEmail(id),
     ...options,
   });
 }
@@ -71,11 +84,27 @@ async function createSupportEmail(data: CreateSupportEmailData) {
   return res.data;
 }
 
+type UpdateSupportEmailData = Partial<CreateSupportEmailData>;
+
+async function updateSupportEmail(id: string, data: UpdateSupportEmailData) {
+  const res = await http.patch<SupportEmailSchema>(`/api/2/support-emails/${id}`, data);
+  return res.data;
+}
+
 export function useCreateSupportEmail(
   options?: UseMutationOptions<SupportEmailSchema, Error, CreateSupportEmailData>
 ) {
   return useMutation({
     mutationFn: createSupportEmail,
+    ...options,
+  });
+}
+
+export function useUpdateSupportEmail(
+  options?: UseMutationOptions<SupportEmailSchema, Error, Parameters<typeof updateSupportEmail>>
+) {
+  return useMutation({
+    mutationFn: (args) => updateSupportEmail(...args),
     ...options,
   });
 }

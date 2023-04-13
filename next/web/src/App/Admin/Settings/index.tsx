@@ -34,7 +34,7 @@ import { EditArticleTranslation } from './Articles/EditTranslation';
 import { NewArticleTranslation } from './Articles/NewTranslation';
 import { NewTicketFormNoteTranslation } from './TicketFormNotes/NewTicketFormNoteTranslation';
 import { EditTicketFormNoteTranslation } from './TicketFormNotes/EditTranslation';
-import { NewSupportEmail, SupportEmailList } from './SupportEmails';
+import { EditSupportEmail, NewSupportEmail, SupportEmailList } from './SupportEmails';
 
 const SettingRoutes = () => (
   <Routes>
@@ -132,6 +132,7 @@ const SettingRoutes = () => (
     <Route path="/support-emails">
       <Route index element={<SupportEmailList />} />
       <Route path="new" element={<NewSupportEmail />} />
+      <Route path=":id" element={<EditSupportEmail />} />
     </Route>
   </Routes>
 );
