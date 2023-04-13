@@ -17,26 +17,28 @@ import { SupportEmailResponse } from '@/response/support-email';
 import { SupportEmail } from '@/support-email/entities/SupportEmail';
 import { supportEmailService } from '@/support-email/services/support-email';
 
+const noEmptyStringSchema = z.string().nonempty();
+
 const emailServerSchema = z.object({
-  host: z.string(),
+  host: noEmptyStringSchema,
   port: z.number().int().min(0).max(65535),
   secure: z.boolean(),
 });
 
 const createSchema = z.object({
-  name: z.string(),
-  email: z.string(),
+  name: noEmptyStringSchema,
+  email: noEmptyStringSchema,
   auth: z.object({
-    username: z.string(),
-    password: z.string(),
+    username: noEmptyStringSchema,
+    password: noEmptyStringSchema,
   }),
   smtp: emailServerSchema,
   imap: emailServerSchema,
-  categoryId: z.string(),
+  categoryId: noEmptyStringSchema,
   receipt: z.object({
     enabled: z.boolean(),
-    subject: z.string(),
-    text: z.string(),
+    subject: noEmptyStringSchema,
+    text: noEmptyStringSchema,
   }),
 });
 
@@ -61,10 +63,7 @@ export class SupportEmailController {
   @Post()
   @ResponseBody(SupportEmailResponse)
   async create(@Body(new ZodValidationPipe(createSchema)) data: CreateData) {
-    const emailConfilct = await supportEmailService.getSupportEmailByEmail(data.email);
-    if (emailConfilct) {
-      throw new HttpError(409, `Email ${data.email} already exist`);
-    }
+    await this.checkEmailConflict(data.email);
     const supportEmail = await SupportEmail.create(
       {
         ACL: {},
@@ -100,6 +99,9 @@ export class SupportEmailController {
     @Param('id', FindSupportEmailPipe) supportEmail: SupportEmail,
     @Body(new ZodValidationPipe(updateSchema)) data: UpdateData
   ) {
+    if (data.email && data.email !== supportEmail.email) {
+      await this.checkEmailConflict(data.email);
+    }
     const updated = await supportEmail.update(data, { useMasterKey: true });
     return updated;
   }
@@ -107,5 +109,12 @@ export class SupportEmailController {
   @Delete(':id')
   async delete(@Param('id', FindSupportEmailPipe) supportEmail: SupportEmail) {
     await supportEmail.delete({ useMasterKey: true });
+  }
+
+  async checkEmailConflict(email: string) {
+    const emailConfilct = await supportEmailService.getSupportEmailByEmail(email);
+    if (emailConfilct) {
+      throw new HttpError(409, `Email ${email} already exist`);
+    }
   }
 }
