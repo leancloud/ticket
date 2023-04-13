@@ -114,7 +114,7 @@ export class SupportEmailController {
   async checkEmailConflict(email: string) {
     const emailConfilct = await supportEmailService.getSupportEmailByEmail(email);
     if (emailConfilct) {
-      throw new HttpError(409, `Email ${email} already exist`);
+      throw new HttpError(409, `Email ${email} already exists`);
     }
   }
 }
