@@ -52,4 +52,5 @@ export const allowedTicketLanguages = [
   LangCodeISO6391.Es,
   LangCodeISO6391.Pt,
   LangCodeISO6391.Tr,
+  LangCodeISO6391.Vi,
 ];

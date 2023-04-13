@@ -661,7 +661,7 @@ const LanguageSection = memo(({ ticket }) => {
   const options = useMemo(
     () =>
       // TODO: configurable
-      ['zh', 'en', 'ja', 'ko', 'id', 'th', 'de', 'fr', 'ru', 'es', 'pt', 'tr']
+      ['zh', 'en', 'ja', 'ko', 'id', 'th', 'de', 'fr', 'ru', 'es', 'pt', 'tr', 'vi']
         .map((lang) => ({
           label: t(`locale.${lang}`),
           value: lang,
