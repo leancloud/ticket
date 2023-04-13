@@ -317,7 +317,7 @@ export class EmailService {
       },
       to: user.email,
       subject: `Re: ${ticket.title}`,
-      text: content,
+      html: content,
       attachments,
     });
     client.close();
