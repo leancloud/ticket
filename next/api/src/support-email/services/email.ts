@@ -36,7 +36,7 @@ export class EmailService {
 
   async checkNewMessages() {
     const supportAddresses = await supportEmailService.getSupportEmails();
-    const count = 1;
+    const count = 100;
     supportAddresses.forEach((addr) => {
       this.dispatchCreateEmailTicketJob(addr, count);
     });
