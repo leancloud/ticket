@@ -1,1 +1,96 @@
-{}
+{
+  "general": {
+    "commit": "Soumettre",
+    "loading": "Chargement en cours",
+    "select_hint": "Veuillez sélectionner",
+    "collapse": "Réduire",
+    "expand": "Agrandir",
+    "number": "Numéro",
+    "status": "Statut",
+    "title": "Titre",
+    "description": "Description",
+    "attachment": "Pièce jointe",
+    "send": "Envoyer",
+    "confirm": "Confirmer",
+    "no_data": "Pas de données disponibles",
+    "call_center": "Centre d'appel",
+    "click_to_upload": "Cliquer pour téléverser",
+    "content_deleted": "Le contenu a été supprimé",
+    "not_found": "Le contenu est introuvable",
+    "cancel": "Annuler",
+    "update_time": "Heure de mise à jour",
+    "update_date": "Date de mise à jour"
+  },
+  "home": {
+    "empty": "Aucun contenu n'a été configuré pour cette catégorie"
+  },
+  "feedback": {
+    "suffix": "de retour",
+    "action": "Je veux donner un retour",
+    "record": "Historique de retour",
+    "submit": "Envoyer un retour"
+  },
+  "faqs": {
+    "showAll": "Voir tout",
+    "similar": "Questions similaires"
+  },
+  "notice": {
+    "title": "Avis",
+    "hint": "Si les informations ci-dessus ne vous aident pas"
+  },
+  "auth": {
+    "not_logged_in_text": "Nous avons détecté que vous n'êtes pas connecté. Veuillez vous connecter et réessayer"
+  },
+  "category": {
+    "select_hint": "Sélectionnez le type de problème rencontré",
+    "select_hint_home": "Sélectionnez le type de problème",
+    "faqs": "Réponses aux questions fréquentes",
+    "title": "Classification des problèmes"
+  },
+  "topic": {
+    "title": "Questions fréquentes",
+    "hint": "Si les informations ci-dessus ne vous aident pas, vous pouvez"
+  },
+  "ticket": {
+    "record": "Historique des problèmes",
+    "no_record": "Aucun problème enregistré",
+    "no_more_record": "Aucun autre enregistrement",
+    "create": {
+      "success": "Envoyé avec succès",
+      "success_text": "$t(ticket.create.success)，nous allons le traiter dès que possible"
+    },
+    "detail": "Détails du problème",
+    "resolved": "Résolu",
+    "unResolved": "En cours de traitement",
+    "contact": "Contacter le service client"
+  },
+  "reply": {
+    "staff_title": "Service client officiel",
+    "my_title": "Moi-même",
+    "input_content_hint": "Saisissez votre message"
+  },
+  "status": {
+    "new": "En attente de traitement",
+    "waiting_on_staff": "En attente de réponse du service client",
+    "waiting_on_customer": "En attente de réponse du client",
+    "resolved": "Résolu"
+  },
+  "evaluation": {
+    "title": "Évaluation de service et retours",
+    "useful": "Utile",
+    "useless": "Inutile",
+    "content_hint": "Information complémentaire (non obligatoire)",
+    "created_text": "Votre évaluation a été reçue, merci pour votre retour !",
+    "change": "Modifier l'évaluation"
+  },
+  "validation": {
+    "required": "Ce champ ne peut pas être vide",
+    "attachment_too_big": "Échec de l'envoi",
+    "attachment_too_big_text": "La taille de la pièce jointe ne peut pas dépasser {{size}} {{unit}}",
+    "attachment_not_uploaded": "Veuillez patienter jusqu'à la fin du téléchargement de la pièce jointe",
+    "number_required": "Ce champ ne peut contenir que des chiffres",
+    "invalid": "Entrée non valide"
+  },
+  "network_error": "Erreur de réseau, veuillez réessayer",
+  "network_error.retry": "Réessayer"
+}

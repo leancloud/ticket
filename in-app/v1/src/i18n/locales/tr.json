@@ -1,1 +1,96 @@
-{}
+{
+  "general": {
+    "commit": "Gönder",
+    "loading": "Yükleniyor",
+    "select_hint": "Lütfen seçin",
+    "collapse": "Kapat",
+    "expand": "Genişlet",
+    "number": "Numara",
+    "status": "Durum",
+    "title": "Başlık",
+    "description": "Açıklama",
+    "attachment": "Ek",
+    "send": "Gönder",
+    "confirm": "Onayla",
+    "no_data": "Veri yok",
+    "call_center": "Müşteri Hizmetleri Merkezi",
+    "click_to_upload": "Yükleme için tıklayın",
+    "content_deleted": "Bu içerik silindi",
+    "not_found": "İçerik bulunamadı",
+    "cancel": "İptal",
+    "update_time": "Güncelleme zamanı",
+    "update_date": "Güncelleme tarihi"
+  },
+  "home": {
+    "empty": "Bu kategori altında gösterilecek içerik bulunmamaktadır"
+  },
+  "feedback": {
+    "suffix": "Geribildirim",
+    "action": "Geribildirim ver",
+    "record": "Geribildirim kayıtları",
+    "submit": "Geribildirim gönder"
+  },
+  "faqs": {
+    "showAll": "Tümünü görüntüle",
+    "similar": "Benzer sorular"
+  },
+  "notice": {
+    "title": "Duyuru",
+    "hint": "Yukarıdaki içerikler size yardımcı olmadıysa"
+  },
+  "auth": {
+    "not_logged_in_text": "Hesabınızla giriş yapmadığınız tespit edildi, lütfen giriş yapın ve tekrar deneyin"
+  },
+  "category": {
+    "select_hint": "Karşılaştığınız sorunu seçin",
+    "select_hint_home": "Sorun tipi seçin",
+    "faqs": "İlgili soruların cevapları",
+    "title": "Soru kategorisi"
+  },
+  "topic": {
+    "title": "Sıkça Sorulan Sorular",
+    "hint": "Yukarıdaki içerikler size yardımcı olmadıysa"
+  },
+  "ticket": {
+    "record": "Sorun kaydı",
+    "no_record": "Sorun kaydı bulunamadı",
+    "no_more_record": "Daha fazla kayıt yok",
+    "create": {
+      "success": "Başarıyla gönderildi",
+      "success_text": "$t(ticket.create.success), en kısa zamanda sizin için işleme koyacağız"
+    },
+    "detail": "Sorun ayrıntıları",
+    "resolved": "Çözüldü",
+    "unResolved": "Çözüm bekliyor",
+    "contact": "Müşteri hizmetleri ile iletişime geçin"
+  },
+  "reply": {
+    "staff_title": "Resmi Müşteri Hizmetleri",
+    "my_title": "Ben",
+    "input_content_hint": "İçerik giriniz"
+  },
+  "status": {
+    "new": "Çözülmemiş",
+    "waiting_on_staff": "Müşteri hizmetlerinden yanıt bekleniyor",
+    "waiting_on_customer": "Müşteriden yanıt bekleniyor",
+    "resolved": "Çözülmüş"
+  },
+  "evaluation": {
+    "title": "Hizmet Değerlendirme ve Geri Bildirim",
+    "useful": "Faydalı",
+    "useless": "Faydasız",
+    "content_hint": "Açıklama ekle (zorunlu değil)",
+    "created_text": "Değerlendirmeniz alınmıştır, geri bildiriminiz için teşekkürler!",
+    "change": "Değerlendirmeyi Değiştir"
+  },
+  "validation": {
+    "required": "Bu alan boş bırakılamaz",
+    "attachment_too_big": "Yükleme başarısız oldu",
+    "attachment_too_big_text": "Dosya boyutu {{size}} {{unit}}'dan fazla olamaz",
+    "attachment_not_uploaded": "Lütfen dosya yüklenene kadar bekleyin",
+    "number_required": "Bu alana sadece sayı girilebilir",
+    "invalid": "Geçersiz giriş"
+  },
+  "network_error": "Ağ hatası, lütfen yeniden bağlanmayı deneyin",
+  "network_error.retry": "Yeniden dene"
+}
