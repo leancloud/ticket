@@ -58,7 +58,7 @@ export class EmailService {
 
     if (uids.length) {
       uids = uids.slice(0, count);
-      await this.createProcessMessageJobs(supportEmail.email, uids, supportEmail.categoryId);
+      await this.createProcessMessageJobs(supportEmail.email, uids);
       await supportEmailService.updateLastUid(supportEmail, uids[uids.length - 1]);
     }
   }
@@ -93,7 +93,7 @@ export class EmailService {
     }
   }
 
-  async createProcessMessageJobs(email: string, uids: number[], categoryId: string) {
+  async createProcessMessageJobs(email: string, uids: number[]) {
     const jobDatas = uids.map<{ data: JobData }>((uid) => {
       return {
         data: {
