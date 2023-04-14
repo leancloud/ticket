@@ -397,3 +397,9 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 ### `b77b57a0196eca81b68fb1233ce54e8e6989fa98`
 
 导入 Ticket.json，添加 language 列
+
+## 2023-04-14
+
+### `7ff5060d436841a42ff8aa67bc1dd5e448bd11ea`
+
+导入 _User.json，将字符串格式的 permissions 改为数组格式。
