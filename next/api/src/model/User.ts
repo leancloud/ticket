@@ -335,27 +335,24 @@ export class User extends Model {
       throw err;
     }
   }
-  static getVerifiedTDSUserPayload(token: string) {
-    return getVerifiedPayloadWithSubRequired(token, { issuer: 'tap-support' }, TDSUserSigningKey);
-  }
 
-  static generateTDSUserAuthData(token: string) {
-    const { sub } = this.getVerifiedTDSUserPayload(token);
-
-    return {
-      uid: sub,
-      access_token: token,
-    };
+  static getVerifiedTDSUserIdentity(token: string) {
+    const payload = getVerifiedPayloadWithSubRequired(
+      token,
+      { issuer: 'tap-support' },
+      TDSUserSigningKey
+    );
+    return { id: payload.sub };
   }
 
   static async loginTDSUser(token: string): Promise<User | undefined> {
-    const { sub } = User.getVerifiedTDSUserPayload(token);
-    return this.findByUsername(sub);
+    const { id } = User.getVerifiedTDSUserIdentity(token);
+    return this.findByUsername(id);
   }
 
   static async loginOrSignUpTDSUser(token: string): Promise<{ sessionToken: string }> {
-    const { sub } = User.getVerifiedTDSUserPayload(token);
-    return this.upsertByUsername(sub);
+    const { id } = User.getVerifiedTDSUserIdentity(token);
+    return this.upsertByUsername(id);
   }
 
   static async loginWithTDSUserToken(token: string): Promise<{ sessionToken: string }> {
@@ -367,13 +364,13 @@ export class User extends Model {
   }
 
   static async associateAnonymousWithTDSUser(token: string, aid: string) {
-    const { sub } = this.getVerifiedTDSUserPayload(token);
+    const { id } = this.getVerifiedTDSUserIdentity(token);
     const anonymousUser = await this.findByAnonymousId(aid);
 
     if (anonymousUser) {
       return anonymousUser.update(
         {
-          username: sub,
+          username: id,
         },
         { sessionToken: await anonymousUser.loadSessionToken() }
       );
