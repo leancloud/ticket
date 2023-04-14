@@ -52,13 +52,7 @@ const anonymousUserCache = new RedisCache<AV.User | null | undefined>(
 const tdsUserCache = new RedisCache<AV.User | null | undefined>(
   'user:tds',
   async (token: string) => {
-    try {
-      return await User.loginOrSignUpTDSUser(token, true);
-    } catch (error: any) {
-      if (error.code === 211) return undefined;
-
-      throw error;
-    }
+    return (await User.loginTDSUser(token))?.sourceAVObject as AV.User;
   },
   (user) => (user ? encodeAVUser(user) : 'null'),
   (data) => (data === 'null' ? null : decodeAVUser(data))
@@ -342,57 +336,41 @@ export class User extends Model {
     }
   }
 
-  static generateTDSUserAuthData(token: string) {
-    const { sub } = getVerifiedPayloadWithSubRequired(
+  static getVerifiedTDSUserIdentity(token: string) {
+    const payload = getVerifiedPayloadWithSubRequired(
       token,
       { issuer: 'tap-support' },
       TDSUserSigningKey
     );
-
-    return {
-      uid: sub,
-      access_token: token,
-    };
+    return { id: payload.sub };
   }
 
-  static async loginOrSignUpTDSUser(token: string, failOnNotExist = false): Promise<AV.User> {
-    try {
-      // FIXME: uid is placeholder
-      return await AV.User.loginWithAuthData(
-        { uid: 'placeholder', access_token: token },
-        'tds-user',
-        {
-          failOnNotExist,
-          useMasterKey: true,
-        }
-      );
-    } catch (err: any) {
-      const error = this.hookErrorProcessor(err);
+  static async loginTDSUser(token: string): Promise<User | undefined> {
+    const { id } = User.getVerifiedTDSUserIdentity(token);
+    return this.findByUsername(id);
+  }
 
-      if (error && error.name === 'JsonWebTokenError') {
-        throw new InvalidCredentialError(error.message, err);
-      }
-
-      throw err;
-    }
+  static async loginOrSignUpTDSUser(token: string): Promise<{ sessionToken: string }> {
+    const { id } = User.getVerifiedTDSUserIdentity(token);
+    return this.upsertByUsername(id);
   }
 
   static async loginWithTDSUserToken(token: string): Promise<{ sessionToken: string }> {
-    const user = await User.loginOrSignUpTDSUser(token);
+    const sessionToken = await User.loginOrSignUpTDSUser(token);
 
     await tdsUserCache.del(token);
 
-    return { sessionToken: user.getSessionToken() };
+    return sessionToken;
   }
 
   static async associateAnonymousWithTDSUser(token: string, aid: string) {
+    const { id } = this.getVerifiedTDSUserIdentity(token);
     const anonymousUser = await this.findByAnonymousId(aid);
 
     if (anonymousUser) {
-      const authData = transformToHttpError(() => this.generateTDSUserAuthData(token));
       return anonymousUser.update(
         {
-          authData: { 'tds-user': authData },
+          username: id,
         },
         { sessionToken: await anonymousUser.loadSessionToken() }
       );

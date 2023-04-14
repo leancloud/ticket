@@ -125,6 +125,8 @@ export abstract class Model {
 
   updatedAt!: Date;
 
+  sourceAVObject?: AV.Object;
+
   private reloadTasks: Record<string, Promise<any>> = {};
 
   get className() {
@@ -265,6 +267,7 @@ export abstract class Model {
     }
     const instance = this.newInstance();
     instance.applyAVObject(object);
+    instance.sourceAVObject = object;
     return instance;
   }
 
