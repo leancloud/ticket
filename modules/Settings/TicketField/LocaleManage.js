@@ -17,6 +17,7 @@ export const AllLocales = [
   'es',
   'pt',
   'tr',
+  'vi',
 ]
 
 const defaultSelected = AllLocales.reduce((pre, current) => {

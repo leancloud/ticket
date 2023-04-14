@@ -13,4 +13,5 @@ export const LOCALES: Record<string, string> = {
   es: '西班牙文',
   pt: '葡萄牙文',
   tr: '土耳其文',
+  vi: '越南文',
 };

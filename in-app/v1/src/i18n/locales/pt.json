@@ -1,0 +1,96 @@
+{
+  "general": {
+    "commit": "Enviar",
+    "loading": "Carregando",
+    "select_hint": "Por favor selecione",
+    "collapse": "Recolher",
+    "expand": "Expandir",
+    "number": "Número",
+    "status": "Estado",
+    "title": "Título",
+    "description": "Descrição",
+    "attachment": "Anexo",
+    "send": "Enviar",
+    "confirm": "Confirmar",
+    "no_data": "Sem dados disponíveis",
+    "call_center": "Centro de Atendimento",
+    "click_to_upload": "Clique para enviar",
+    "content_deleted": "Este conteúdo foi removido",
+    "not_found": "Conteúdo não encontrado",
+    "cancel": "Cancelar",
+    "update_time": "Última atualização",
+    "update_date": "Data da última atualização"
+  },
+  "home": {
+    "empty": "Nenhum conteúdo disponível nesta categoria"
+  },
+  "feedback": {
+    "suffix": "Feedback",
+    "action": "Enviar Feedback",
+    "record": "Histórico de Feedback",
+    "submit": "Enviar Feedback"
+  },
+  "faqs": {
+    "showAll": "Mostrar Todos",
+    "similar": "Perguntas Semelhantes"
+  },
+  "notice": {
+    "title": "Aviso",
+    "hint": "Se o conteúdo acima não for útil para você,"
+  },
+  "auth": {
+    "not_logged_in_text": "Detectamos que você não está logado em sua conta. Por favor, faça o login e tente novamente"
+  },
+  "category": {
+    "select_hint": "Por favor selecione a categoria da sua pergunta",
+    "select_hint_home": "Selecione o tipo de pergunta",
+    "faqs": "Perguntas Frequentes",
+    "title": "Categoria de Perguntas"
+  },
+  "topic": {
+    "title": "Perguntas Frequentes",
+    "hint": "Se o conteúdo acima não for útil para você, você pode"
+  },
+  "ticket": {
+    "record": "Histórico de Problemas",
+    "no_record": "Nenhum registro encontrado",
+    "no_more_record": "Não há mais registros",
+    "create": {
+      "success": "Enviado com sucesso",
+      "success_text": "$t(ticket.create.success), entraremos em contato o mais breve possível"
+    },
+    "detail": "Detalhes do Problema",
+    "resolved": "Resolvido",
+    "unResolved": "Não resolvido",
+    "contact": "Contate o Atendimento ao Cliente"
+  },
+  "reply": {
+    "staff_title": "Atendimento ao Cliente Oficial",
+    "my_title": "Eu",
+    "input_content_hint": "Por favor, digite aqui"
+  },
+  "status": {
+    "new": "Aguardando Atendimento",
+    "waiting_on_staff": "Aguardando resposta do Atendimento",
+    "waiting_on_customer": "Aguardando resposta do Cliente",
+    "resolved": "Resolvido"
+  },
+  "evaluation": {
+    "title": "Avaliação do Serviço e Feedback",
+    "useful": "Útil",
+    "useless": "Não útil",
+    "content_hint": "Comentários adicionais (opcional)",
+    "created_text": "Seu feedback foi recebido. Obrigado!",
+    "change": "Alterar Avaliação"
+  },
+  "validation": {
+    "required": "Este campo é obrigatório",
+    "attachment_too_big": "Falha ao fazer upload",
+    "attachment_too_big_text": "O tamanho do anexo não pode ser superior a {{size}} {{unit}}",
+    "attachment_not_uploaded": "Aguarde o upload do anexo ser concluído",
+    "number_required": "Não pode conter caracteres não numéricos",
+    "invalid": "Entrada inválida"
+  },
+  "network_error": "Erro de rede, tente novamente",
+  "network_error.retry": "Tentar Novamente"
+}

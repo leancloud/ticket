@@ -1,0 +1,96 @@
+{
+  "general": {
+    "commit": "Kirim",
+    "loading": "Memuat",
+    "select_hint": "Silakan Pilih",
+    "collapse": "Tutup",
+    "expand": "Buka",
+    "number": "Nomor",
+    "status": "Status",
+    "title": "Judul",
+    "description": "Deskripsi",
+    "attachment": "Lampiran",
+    "send": "Kirim",
+    "confirm": "Konfirmasi",
+    "no_data": "Tidak Ada Data",
+    "call_center": "Pusat Panggilan",
+    "click_to_upload": "Klik untuk mengunggah",
+    "content_deleted": "Konten ini telah dihapus",
+    "not_found": "Konten tidak ditemukan",
+    "cancel": "Batal",
+    "update_time": "Waktu Perbarui",
+    "update_date": "Tanggal Perbarui"
+  },
+  "home": {
+    "empty": "Tidak ada konten yang ditampilkan dalam kategori ini"
+  },
+  "feedback": {
+    "suffix": "Umpan Balik",
+    "action": "Saya ingin memberikan umpan balik",
+    "record": "Catatan Umpan Balik",
+    "submit": "Kirim Umpan Balik"
+  },
+  "faqs": {
+    "showAll": "Lihat Semua",
+    "similar": "Pertanyaan yang Sama"
+  },
+  "notice": {
+    "title": "Pemberitahuan",
+    "hint": "Jika konten di atas tidak membantu Anda"
+  },
+  "auth": {
+    "not_logged_in_text": "Anda belum masuk ke akun, silakan masuk dan coba lagi"
+  },
+  "category": {
+    "select_hint": "Pilih masalah yang Anda hadapi",
+    "select_hint_home": "Pilih jenis masalah",
+    "faqs": "Jawaban Masalah Terkait",
+    "title": "Kategori Masalah"
+  },
+  "topic": {
+    "title": "Masalah Umum",
+    "hint": "Jika konten di atas tidak membantu Anda, Anda dapat"
+  },
+  "ticket": {
+    "record": "Catatan Masalah",
+    "no_record": "Tidak ada catatan masalah",
+    "no_more_record": "Tidak ada catatan lain",
+    "create": {
+      "success": "Berhasil Dikirim",
+      "success_text": "$t(ticket.create.success)，Kami akan segera menangani masalah Anda"
+    },
+    "detail": "Detail Masalah",
+    "resolved": "Telah Diresolusi",
+    "unResolved": "Sedang Diolah",
+    "contact": "Hubungi Layanan Pelanggan"
+  },
+  "reply": {
+    "staff_title": "Layanan Pelanggan Resmi",
+    "my_title": "Saya Sendiri",
+    "input_content_hint": "Masukkan Konten"
+  },
+  "status": {
+    "new": "Menunggu Penanganan",
+    "waiting_on_staff": "Menunggu Balasan Layanan Pelanggan",
+    "waiting_on_customer": "Menunggu Balasan Anda",
+    "resolved": "Telah Diresolusi"
+  },
+  "evaluation": {
+    "title": "Penilaian dan Umpan Balik Layanan",
+    "useful": "Berguna",
+    "useless": "Tidak Berguna",
+    "content_hint": "Tambahan keterangan (tidak wajib diisi)",
+    "created_text": "Penilaian Anda telah diterima. Terima kasih atas masukan Anda!",
+    "change": "Ubah penilaian"
+  },
+  "validation": {
+    "required": "Konten ini tidak boleh kosong",
+    "attachment_too_big": "Gagal mengunggah",
+    "attachment_too_big_text": "Ukuran lampiran tidak boleh lebih besar dari {{size}} {{unit}}",
+    "attachment_not_uploaded": "Harap tunggu hingga lampiran terunggah sepenuhnya",
+    "number_required": "Tidak boleh mengandung karakter selain angka",
+    "invalid": "Input tidak valid"
+  },
+  "network_error": "Kesalahan jaringan, silakan coba lagi",
+  "network_error.retry": "Coba lagi"
+}

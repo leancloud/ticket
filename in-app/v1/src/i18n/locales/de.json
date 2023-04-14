@@ -1,0 +1,96 @@
+{
+  "general": {
+    "commit": "Bestätigen",
+    "loading": "Wird geladen",
+    "select_hint": "Bitte auswählen",
+    "collapse": "Einklappen",
+    "expand": "Ausklappen",
+    "number": "Nummer",
+    "status": "Status",
+    "title": "Titel",
+    "description": "Beschreibung",
+    "attachment": "Anhang",
+    "send": "Senden",
+    "confirm": "Bestätigen",
+    "no_data": "Keine Daten vorhanden",
+    "call_center": "Call Center",
+    "click_to_upload": "Klicken zum Hochladen",
+    "content_deleted": "Dieser Inhalt wurde gelöscht",
+    "not_found": "Dieser Inhalt wurde nicht gefunden",
+    "cancel": "Abbrechen",
+    "update_time": "Aktualisierungszeit",
+    "update_date": "Aktualisierungsdatum"
+  },
+  "home": {
+    "empty": "Keine Anzeigeinhalte für diese Kategorie konfiguriert"
+  },
+  "feedback": {
+    "suffix": "Feedback",
+    "action": "Feedback geben",
+    "record": "Feedback-Verlauf",
+    "submit": "Feedback senden"
+  },
+  "faqs": {
+    "showAll": "Alle anzeigen",
+    "similar": "Ähnliche Fragen"
+  },
+  "notice": {
+    "title": "Ankündigung",
+    "hint": "Wenn Ihnen die obigen Inhalte nicht geholfen haben"
+  },
+  "auth": {
+    "not_logged_in_text": "Es wurde erkannt, dass Sie nicht angemeldet sind. Bitte melden Sie sich an und versuchen Sie es erneut."
+  },
+  "category": {
+    "select_hint": "Wählen Sie das Problem, das Sie haben",
+    "select_hint_home": "Wählen Sie den Fragetyp",
+    "faqs": "Antworten auf ähnliche Fragen",
+    "title": "Problemkategorie"
+  },
+  "topic": {
+    "title": "Häufig gestellte Fragen",
+    "hint": "Wenn Ihnen die oben genannten Inhalte nicht geholfen haben, können Sie"
+  },
+  "ticket": {
+    "record": "Problemverlauf",
+    "no_record": "Keine Problemverläufe",
+    "no_more_record": "Keine weiteren Einträge vorhanden",
+    "create": {
+      "success": "Erfolgreich gesendet",
+      "success_text": "$t(ticket.create.success)，Wir werden uns so schnell wie möglich um Ihr Anliegen kümmern"
+    },
+    "detail": "Details zum Problem",
+    "resolved": "Gelöst",
+    "unResolved": "In Bearbeitung",
+    "contact": "Kontaktieren Sie den Kundenservice"
+  },
+  "reply": {
+    "staff_title": "Offizieller Kundenservice",
+    "my_title": "Ich",
+    "input_content_hint": "Bitte geben Sie einen Inhalt ein"
+  },
+  "status": {
+    "new": "Wartet auf Bearbeitung",
+    "waiting_on_staff": "Wartet auf Antwort des Kundenservice",
+    "waiting_on_customer": "Wartet auf Antwort des Benutzers",
+    "resolved": "Gelöst"
+  },
+  "evaluation": {
+    "title": "Servicebewertung und Feedback",
+    "useful": "Nützlich",
+    "useless": "Nicht nützlich",
+    "content_hint": "Zusätzliche Informationen (optional)",
+    "created_text": "Vielen Dank für Ihr Feedback! Ihre Bewertung wurde erhalten.",
+    "change": "Bewertung ändern"
+  },
+  "validation": {
+    "required": "Dieses Feld darf nicht leer sein",
+    "attachment_too_big": "Fehler beim Hochladen",
+    "attachment_too_big_text": "Anhang darf die Größe von {{size}} {{unit}} nicht überschreiten",
+    "attachment_not_uploaded": "Bitte warten Sie, bis der Anhang hochgeladen wurde",
+    "number_required": "Darf keine Nichtzahlzeichen enthalten",
+    "invalid": "Eingabe ungültig"
+  },
+  "network_error": "Netzwerkfehler, bitte versuchen Sie es erneut",
+  "network_error.retry": "Erneut versuchen"
+}

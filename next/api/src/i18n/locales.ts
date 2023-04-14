@@ -13,4 +13,5 @@ export const LOCALES = [
   'es',
   'pt',
   'tr',
+  'vi',
 ];
