@@ -32,27 +32,6 @@ AV.Cloud.define('dailyPushStatsToSlack', () => dailyPushStatsToSlack())
 AV.Cloud.define('weeklyPushStatsToSlack', () => weeklyPushStatsToSlack())
 AV.Cloud.define('monthlyPushStatsToSlack', () => monthlyPushStatsToSlack())
 
-// TDS User Login
-if (process.env.ENABLE_TDS_USER_LOGIN) {
-  AV.Cloud.onAuthData((request) => {
-    const tdsUserData = request.authData['tds-user']
-
-    if (tdsUserData) {
-      const { access_token } = tdsUserData
-      try {
-        return {
-          ...request.authData,
-          'tds-user': User.generateTDSUserAuthData(access_token),
-        }
-      } catch (err) {
-        throw new AV.Cloud.Error(JSON.stringify(err))
-      }
-    }
-
-    return request.authData
-  })
-}
-
 AV.Cloud.onLogin((request) => {
   if (request.object.get('inactive')) {
     throw new AV.Cloud.Error(
