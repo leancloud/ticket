@@ -18,6 +18,7 @@ import {
 } from '@/orm';
 import { TicketUpdater, UpdateOptions } from '@/ticket/TicketUpdater';
 import htmlify from '@/utils/htmlify';
+import { emailService } from '@/support-email/services/email';
 import { categoryService } from '@/category';
 import { Category } from './Category';
 import { File } from './File';
@@ -211,6 +212,9 @@ export class Ticket extends Model {
   @field()
   language?: LangCodeISO6391;
 
+  @field()
+  channel?: string;
+
   associateTickets?: Ticket[];
 
   subscribed?: boolean;
@@ -281,7 +285,7 @@ export class Ticket extends Model {
         internal: data.internal || undefined,
       },
       {
-        ...data.author.getAuthOptions(),
+        useMasterKey: true,
         ignoreBeforeHook: true,
         ignoreAfterHook: true,
       }
@@ -314,12 +318,17 @@ export class Ticket extends Model {
         }
       }
     }
-    await updater.update(data.author);
+    await updater.update(data.author, { useMasterKey: true });
 
     events.emit('reply:created', {
       reply: reply.toJSON(),
       currentUserId: data.author.id,
     });
+
+    if (this.channel === 'email' && data.author.id !== this.authorId) {
+      // 向创建者发送邮件
+      emailService.sendReplyToTicketCreator(this, reply.contentHTML, data.fileIds);
+    }
 
     return reply;
   }

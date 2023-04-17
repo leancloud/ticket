@@ -92,6 +92,10 @@ class MailgunClient {
     if (!to?.email) {
       return;
     }
+    if (ticket.channel === 'email' && to.id === ticket.authorId) {
+      // 邮件渠道创建的工单会单独通知创建者, 不使用 mailgun
+      return;
+    }
     this.send({
       from: `${from.getDisplayName()} <ticket@leancloud.cn>`,
       to: to.email,

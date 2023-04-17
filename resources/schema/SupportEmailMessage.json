@@ -1,0 +1,142 @@
+{
+  "schema": {
+    "date": {
+      "type": "Date",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "updatedAt": {
+      "type": "Date"
+    },
+    "inReplyTo": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "ACL": {
+      "type": "ACL"
+    },
+    "messageId": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "objectId": {
+      "type": "String"
+    },
+    "attachments": {
+      "type": "Array",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "createdAt": {
+      "type": "Date"
+    },
+    "references": {
+      "type": "Array",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "from": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "ticket": {
+      "type": "Pointer",
+      "v": 2,
+      "className": "Ticket",
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "subject": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "html": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "reply": {
+      "type": "Pointer",
+      "v": 2,
+      "className": "Reply",
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "to": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    }
+  },
+  "permissions": {
+    "create": {
+      "roles": [],
+      "users": []
+    },
+    "find": {
+      "roles": [],
+      "users": []
+    },
+    "get": {
+      "roles": [],
+      "users": []
+    },
+    "update": {
+      "roles": [],
+      "users": []
+    },
+    "delete": {
+      "roles": [],
+      "users": []
+    },
+    "add_fields": {
+      "roles": [],
+      "users": []
+    }
+  },
+  "indexes": [
+    {
+      "v": 2,
+      "unique": true,
+      "key": {
+        "messageId": 1
+      },
+      "name": "-user-messageId_1",
+      "ns": "02AXSPNhJaEqgBfHftLpIsj2-gzGzoHsz.SupportEmailMessage",
+      "background": true
+    },
+    {
+      "v": 2,
+      "key": {
+        "ticket.$id": 1
+      },
+      "name": "-user-ticket.$id_1",
+      "ns": "02AXSPNhJaEqgBfHftLpIsj2-gzGzoHsz.SupportEmailMessage",
+      "background": true
+    }
+  ]
+}

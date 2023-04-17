@@ -1,0 +1,113 @@
+{
+  "schema": {
+    "category": {
+      "type": "Pointer",
+      "v": 2,
+      "className": "Category",
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "receipt": {
+      "type": "Object",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "email": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "updatedAt": {
+      "type": "Date"
+    },
+    "ACL": {
+      "type": "ACL"
+    },
+    "name": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "objectId": {
+      "type": "String"
+    },
+    "createdAt": {
+      "type": "Date"
+    },
+    "lastUid": {
+      "type": "Number",
+      "v": 2,
+      "required": false,
+      "auto_increment": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "auth": {
+      "type": "Object",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "smtp": {
+      "type": "Object",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false,
+      "comment": ""
+    },
+    "imap": {
+      "type": "Object",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    }
+  },
+  "permissions": {
+    "create": {
+      "roles": [],
+      "users": []
+    },
+    "find": {
+      "roles": [],
+      "users": []
+    },
+    "get": {
+      "roles": [],
+      "users": []
+    },
+    "update": {
+      "roles": [],
+      "users": []
+    },
+    "delete": {
+      "roles": [],
+      "users": []
+    },
+    "add_fields": {
+      "roles": [],
+      "users": []
+    }
+  },
+  "indexes": [
+    {
+      "v": 2,
+      "unique": true,
+      "key": {
+        "email": 1
+      },
+      "name": "-user-email_1",
+      "ns": "_.SupportEmail",
+      "background": true
+    }
+  ]
+}

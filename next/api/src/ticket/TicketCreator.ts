@@ -30,6 +30,7 @@ export class TicketCreator {
   private assignee?: User;
   private group?: Group;
   private language?: LangCodeISO6391;
+  private channel?: string;
 
   private aclBuilder: ACLBuilder;
 
@@ -109,6 +110,11 @@ export class TicketCreator {
 
   setGroup(group: Group): this {
     this.group = group;
+    return this;
+  }
+
+  setChannel(channel: string) {
+    this.channel = channel;
     return this;
   }
 
@@ -253,9 +259,10 @@ export class TicketCreator {
         groupId: this.group?.id,
         status: Ticket.Status.NEW,
         language: this.language,
+        channel: this.channel,
       },
       {
-        ...operator.getAuthOptions(),
+        useMasterKey: true,
         ignoreBeforeHook: true,
         ignoreAfterHook: true,
       }
