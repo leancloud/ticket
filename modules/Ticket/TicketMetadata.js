@@ -688,13 +688,13 @@ const LanguageSection = memo(({ ticket }) => {
           isLoading={isLoading}
           isDisabled={isLoading}
           options={options}
-          value={ticket.language}
+          value={ticket.language ?? null}
           onChange={handleUpdateLanguage}
           onBlur={() => setEditingLanguage(false)}
         />
       ) : (
         <div className="d-flex align-items-center">
-          {t(`locale.${ticket.language}`)}
+          {ticket.language ? t(`locale.${ticket.language}`) : t('none')}
           {isCustomerService && (
             <Button variant="link" onClick={() => setEditingLanguage(true)}>
               <Icon.PencilFill />
