@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from 'react-query';
 
 import {
   CustomerServiceSchema,
   useAddCustomerService,
+  useAdmins,
   useCustomerServices,
   useDeleteCustomerService,
   useUpdateCustomerService,
@@ -11,6 +12,7 @@ import {
 import { Button, Modal, Table, TableProps, message } from '@/components/antd';
 import { Category, Retry, UserSelect } from '@/components/common';
 import { UserLabel } from '@/App/Admin/components';
+import { groupBy, sortBy } from 'lodash-es';
 
 function MemberActions({ id, nickname, active }: CustomerServiceSchema) {
   const queryClient = useQueryClient();
@@ -99,11 +101,23 @@ function AddUserModal({ visible, onHide }: AddUserModalProps) {
   );
 }
 
-const columns: TableProps<CustomerServiceSchema>['columns'] = [
+const ADMIN = 'Admin';
+const AGENT = 'Agent';
+type Role = typeof ADMIN | typeof AGENT;
+interface CustomerService extends CustomerServiceSchema {
+  roles: Role[];
+}
+
+const columns: TableProps<CustomerService>['columns'] = [
   {
     key: 'customerService',
     title: '客服',
     render: (user) => <UserLabel user={user} />,
+  },
+  {
+    dataIndex: 'roles',
+    title: '角色',
+    render: (roles: Role[]) => roles.join(', '),
   },
   {
     dataIndex: 'categoryIds',
@@ -129,8 +143,29 @@ const columns: TableProps<CustomerServiceSchema>['columns'] = [
   },
 ];
 
+const appendRoles = (roles: Role[]) => (user: CustomerServiceSchema): CustomerService => ({
+  ...user,
+  roles: roles,
+});
+
 export function Members() {
   const customerServiceResult = useCustomerServices();
+  const adminsResult = useAdmins();
+
+  const customerServices = useMemo(() => {
+    if (!(customerServiceResult.data && adminsResult.data)) {
+      return [];
+    }
+    const customerServices = groupBy(customerServiceResult.data, (cs) =>
+      adminsResult.data.find((admin) => admin.id === cs.id) === undefined ? 'agent' : 'mixed'
+    );
+    const agents = customerServices['agent']?.map(appendRoles([AGENT])) ?? [];
+    const mixed = customerServices['mixed']?.map(appendRoles([ADMIN, AGENT])) ?? [];
+    const admins = adminsResult.data
+      .filter((admin) => mixed.find((user) => user.id === admin.id) === undefined)
+      .map(appendRoles([ADMIN]));
+    return sortBy([...agents, ...mixed, ...admins], 'email');
+  }, [adminsResult.data, customerServiceResult.data]);
 
   const [addUserModalVisible, setAddUserModalVisible] = useState(false);
 
@@ -160,7 +195,7 @@ export function Members() {
         pagination={false}
         columns={columns}
         loading={customerServiceResult.isLoading}
-        dataSource={customerServiceResult.data}
+        dataSource={customerServices}
       />
     </div>
   );

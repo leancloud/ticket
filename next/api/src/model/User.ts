@@ -393,6 +393,21 @@ export class User extends Model {
     }
   }
 
+  static async getAdmins(active?: boolean): Promise<User[]> {
+    const adminRole = await Role.getAdminRole();
+    const qb = User.queryBuilder().relatedTo(adminRole, 'users').orderBy('email,username');
+
+    if (active !== undefined) {
+      if (active) {
+        qb.where('inactive', 'not-exists');
+      } else {
+        qb.where('inactive', '==', true);
+      }
+    }
+
+    return qb.find({ useMasterKey: true });
+  }
+
   static async getCustomerServices(active?: boolean): Promise<User[]> {
     const csRole = await Role.getCustomerServiceRole();
     const qb = User.queryBuilder().relatedTo(csRole, 'users').orderBy('email,username');

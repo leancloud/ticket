@@ -56,6 +56,10 @@ const findAllCustomerServicesSchema = z.object({
     (val) => (val === 'true' ? true : val === 'false' ? false : val),
     z.boolean().optional()
   ),
+  admin: z.preprocess(
+    (val) => (val === 'true' ? true : val === 'false' ? false : val),
+    z.boolean().optional()
+  ),
 });
 type FindAllCustomerServicesData = z.infer<typeof findAllCustomerServicesSchema>;
 
@@ -67,7 +71,7 @@ export class CustomerServiceController {
   findAll(
     @Query(new ZodValidationPipe(findAllCustomerServicesSchema)) data: FindAllCustomerServicesData
   ) {
-    return User.getCustomerServices(data.active);
+    return data.admin ? User.getAdmins(data.active) : User.getCustomerServices(data.active);
   }
 
   @Get(':id')

@@ -8,6 +8,11 @@ export interface CustomerServiceSchema extends UserSchema {
   categoryIds: string[];
 }
 
+async function fetchAdmins(): Promise<CustomerServiceSchema[]> {
+  const { data } = await http.get('/api/2/customer-services?admin=true');
+  return data;
+}
+
 async function fetchCustomerServices(): Promise<CustomerServiceSchema[]> {
   const { data } = await http.get('/api/2/customer-services');
   return data;
@@ -55,7 +60,16 @@ export function useCustomerServices(options?: UseQueryOptions<CustomerServiceSch
   return useQuery({
     queryKey: ['customerServices'],
     queryFn: fetchCustomerServices,
-    staleTime: Infinity,
+    staleTime: 1800_000,
+    ...options,
+  });
+}
+
+export function useAdmins(options?: UseQueryOptions<CustomerServiceSchema[], Error>) {
+  return useQuery({
+    queryKey: ['admins'],
+    queryFn: fetchAdmins,
+    staleTime: 7200_000,
     ...options,
   });
 }
