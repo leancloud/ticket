@@ -39,6 +39,7 @@ class BaseTicketResponse {
       latestCustomerServiceReplyAt: this.ticket.latestCustomerServiceReplyAt,
       subscribed: this.ticket.subscribed,
       associated: !!this.ticket.parentId,
+      language: this.ticket.language,
       tags: includeTags ? this.ticket.tags : undefined,
       privateTags: includePrivateTags ? this.ticket.privateTags : undefined,
       createdAt: this.ticket.createdAt.toISOString(),
