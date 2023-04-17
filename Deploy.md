@@ -404,6 +404,8 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 
 导入 _User.json，将字符串格式的 permissions 改为数组格式。
 
+**注意！_User schema 各部署之间存在差异，请使用对应分支下的 _User.json！**
+
 ## 2023-04-17
 
 ### `e5af1ce4ef529caf38f55b140837755fc266d3d5`
