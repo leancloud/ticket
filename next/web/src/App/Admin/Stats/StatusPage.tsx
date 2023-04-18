@@ -92,13 +92,13 @@ const StatusStats = () => {
 export function StatusPage() {
   const [, rangePickerOptions] = useRangePicker();
   return (
-    <>
+    <div className="p-10">
       <div className="mb-4">
         <DatePicker.RangePicker {...rangePickerOptions} />
       </div>
       <div className="w-full relative">
         <StatusStats />
       </div>
-    </>
+    </div>
   );
 }

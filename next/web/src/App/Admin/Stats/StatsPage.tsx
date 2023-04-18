@@ -218,11 +218,11 @@ const StatCards = () => {
 
 export default function StatsPage() {
   return (
-    <>
+    <div className="p-10">
       <ToolBar className="mb-4" />
       <StatCards />
       <Divider />
       <StatsDetails />
-    </>
+    </div>
   );
 }
