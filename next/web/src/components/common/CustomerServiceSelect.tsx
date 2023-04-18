@@ -16,7 +16,7 @@ export const BaseCustomerServiceSelect = forwardRef<RefSelectProps, BaseCustomer
       return [
         ...(extraOptions ?? []),
         ...(data?.map((u) => ({
-          label: u.nickname + (!u.active ? '（禁用中）' : ''),
+          label: u.nickname + (!u.active ? '（已禁用）' : ''),
           value: u.id,
         })) ?? []),
       ];
