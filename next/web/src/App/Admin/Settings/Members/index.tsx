@@ -9,7 +9,7 @@ import {
   useDeleteCustomerService,
   useUpdateCustomerService,
 } from '@/api/customer-service';
-import { Button, Modal, Table, TableProps, message } from '@/components/antd';
+import { Button, Modal, Popover, Table, TableProps, message } from '@/components/antd';
 import { Category, Retry, UserSelect } from '@/components/common';
 import { UserLabel } from '@/App/Admin/components';
 import { groupBy, sortBy } from 'lodash-es';
@@ -123,18 +123,30 @@ const columns: TableProps<CustomerService>['columns'] = [
     dataIndex: 'categoryIds',
     title: '负责分类',
     render: (categoryIds: string[]) => (
-      <div className="flex flex-wrap gap-1.5">
-        {categoryIds.length === 0 && '-'}
-        {categoryIds.map((categoryId) => (
-          <Category key={categoryId} className="text-sm py-0.5" categoryId={categoryId} path />
-        ))}
-      </div>
+      <Popover
+        content={
+          categoryIds.length === 0
+            ? '无'
+            : categoryIds.map((categoryId) => (
+                <Category
+                  key={categoryId}
+                  className="text-sm py-0.5 mr-0.5 mb-1"
+                  categoryId={categoryId}
+                  path
+                />
+              ))
+        }
+      >
+        <div className="flex flex-wrap gap-1.5">
+          {categoryIds.length === 0 ? '-' : categoryIds.length}
+        </div>
+      </Popover>
     ),
   },
   {
     dataIndex: 'active',
     title: '状态',
-    render: (active: boolean) => (active ? '启用中' : '禁用中'),
+    render: (active: boolean) => (active ? '🟢 正常' : '⚪️ 已禁用'),
   },
   {
     key: 'actions',
