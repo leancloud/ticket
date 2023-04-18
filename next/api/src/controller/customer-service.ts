@@ -57,7 +57,7 @@ export class CustomerServiceController {
   @Get()
   @ResponseBody(CustomerServiceResponse)
   findAll(
-    @Query('active', ParseBoolPipe) active: boolean,
+    @Query('active', new ParseBoolPipe({ keepUndefined: true })) active: boolean | undefined,
     @Query('admin', ParseBoolPipe) admin: boolean
   ) {
     return admin ? User.getAdmins(active) : User.getCustomerServices(active);
