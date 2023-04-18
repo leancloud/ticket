@@ -1,5 +1,3 @@
-const AV = require('leancloud-storage')
-
 const { Conditions } = require('../condition')
 const { Actions } = require('../action')
 const conditions = require('./conditions')
@@ -30,43 +28,4 @@ class Automation {
   }
 }
 
-class Automations {
-  /**
-   * @param {array} automations
-   */
-  constructor(automations) {
-    if (!Array.isArray(automations)) {
-      throw new Error('Automations must be an array')
-    }
-    this.automations = automations.map((a) => new Automation(a))
-  }
-
-  /**
-   * @param {boolean} [includeInactive]
-   */
-  static fetchRaw(includeInactive) {
-    const query = new AV.Query('Automation').addAscending('position').addAscending('createdAt')
-    if (!includeInactive) {
-      query.equalTo('active', true)
-    }
-    return query.find({ useMasterKey: true })
-  }
-
-  /**
-   * @param {boolean} [includeInactive]
-   */
-  static async get(includeInactive) {
-    const objects = await this.fetchRaw(includeInactive)
-    return new Automations(objects.map((o) => o.toJSON()))
-  }
-
-  async exec(ctx) {
-    for (const automation of this.automations) {
-      if (await automation.test(ctx)) {
-        await automation.exec(ctx)
-      }
-    }
-  }
-}
-
-module.exports = { Automation, Automations }
+module.exports = { Automation }
