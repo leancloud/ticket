@@ -24,7 +24,7 @@ export class Role extends Model {
           const query = this.queryBuilder().where('name', '==', 'admin');
           const role = await query.first({ useMasterKey: true });
           if (!role) {
-            throw new Error('The customer service role does not exist');
+            throw new Error('The admin role does not exist');
           }
           return role;
         } catch (error) {
