@@ -7,8 +7,6 @@ const { parseSearchingQ } = require('./middleware')
 
 // 加载云函数定义
 require('./cloud')
-require('./Ticket')
-require('./Reply')
 require('./OpsLog')
 require('./User')
 require('./Organization')
