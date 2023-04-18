@@ -18,7 +18,7 @@ import {
   StatusCode,
   UseMiddlewares,
 } from '@/common/http';
-import { ZodValidationPipe } from '@/common/pipe';
+import { ParseBoolPipe, ZodValidationPipe } from '@/common/pipe';
 import { auth, customerServiceOnly, systemRoleMemberGuard } from '@/middleware';
 import { Category } from '@/model/Category';
 import { Role } from '@/model/Role';
@@ -51,27 +51,16 @@ const updateCustomerServiceSchema = z.object({
 });
 type UpdateCustomerServiceData = z.infer<typeof updateCustomerServiceSchema>;
 
-const findAllCustomerServicesSchema = z.object({
-  active: z.preprocess(
-    (val) => (val === 'true' ? true : val === 'false' ? false : val),
-    z.boolean().optional()
-  ),
-  admin: z.preprocess(
-    (val) => (val === 'true' ? true : val === 'false' ? false : val),
-    z.boolean().optional()
-  ),
-});
-type FindAllCustomerServicesData = z.infer<typeof findAllCustomerServicesSchema>;
-
 @Controller('customer-services')
 @UseMiddlewares(auth, systemRoleMemberGuard)
 export class CustomerServiceController {
   @Get()
   @ResponseBody(CustomerServiceResponse)
   findAll(
-    @Query(new ZodValidationPipe(findAllCustomerServicesSchema)) data: FindAllCustomerServicesData
+    @Query('active', ParseBoolPipe) active: boolean,
+    @Query('admin', ParseBoolPipe) admin: boolean
   ) {
-    return data.admin ? User.getAdmins(data.active) : User.getCustomerServices(data.active);
+    return admin ? User.getAdmins(active) : User.getCustomerServices(active);
   }
 
   @Get(':id')
