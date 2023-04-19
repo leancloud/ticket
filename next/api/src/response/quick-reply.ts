@@ -10,6 +10,7 @@ export class QuickReplyResponse {
       content: this.quickReply.content,
       userId: this.quickReply.userId,
       fileIds: this.quickReply.fileIds,
+      tags: this.quickReply.tags,
     };
   }
 }

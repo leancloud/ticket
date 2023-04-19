@@ -1,5 +1,12 @@
 {
   "schema": {
+    "tags": {
+      "type": "Array",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
     "updatedAt": {
       "type": "Date"
     },

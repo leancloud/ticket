@@ -29,6 +29,7 @@ const createQuickReplySchema = z.object({
   content: z.string(),
   fileIds: z.array(z.string()).optional(),
   userId: z.string().optional(),
+  tags: z.array(z.string()).optional(),
 });
 
 const updateQuickReplySchema = createQuickReplySchema
@@ -53,8 +54,12 @@ export class QuickReplyController {
     const ACL = new ACLBuilder().allowCustomerService('read', 'write');
     const quickReply = await QuickReply.create(
       {
-        ...data,
         ACL,
+        name: data.name,
+        content: data.content,
+        fileIds: data.fileIds,
+        userId: data.userId,
+        tags: data.tags,
       },
       currentUser.getAuthOptions()
     );
