@@ -1,14 +1,11 @@
-import { Context } from 'koa';
 import { z } from 'zod';
 
 import {
   Body,
   Controller,
-  Ctx,
   CurrentUser,
   Delete,
   Get,
-  Pagination,
   Param,
   Patch,
   Post,
@@ -17,7 +14,7 @@ import {
   StatusCode,
   UseMiddlewares,
 } from '@/common/http';
-import { FindModelPipe, ParseBoolPipe, ParseCsvPipe, ZodValidationPipe } from '@/common/pipe';
+import { FindModelPipe, ParseCsvPipe, ZodValidationPipe } from '@/common/pipe';
 import { auth, customerServiceOnly } from '@/middleware';
 import { ACLBuilder } from '@/orm';
 import { User } from '@/model/User';
@@ -29,6 +26,7 @@ const createQuickReplySchema = z.object({
   content: z.string(),
   fileIds: z.array(z.string()).optional(),
   userId: z.string().optional(),
+  tags: z.array(z.string()).optional(),
 });
 
 const updateQuickReplySchema = createQuickReplySchema
@@ -53,8 +51,12 @@ export class QuickReplyController {
     const ACL = new ACLBuilder().allowCustomerService('read', 'write');
     const quickReply = await QuickReply.create(
       {
-        ...data,
         ACL,
+        name: data.name,
+        content: data.content,
+        fileIds: data.fileIds,
+        userId: data.userId,
+        tags: data.tags,
       },
       currentUser.getAuthOptions()
     );
@@ -65,14 +67,8 @@ export class QuickReplyController {
 
   @Get()
   @ResponseBody(QuickReplyResponse)
-  async find(
-    @Ctx() ctx: Context,
-    @CurrentUser() currentUser: User,
-    @Pagination() [page, pageSize]: [number, number],
-    @Query('userId', ParseCsvPipe) userIds?: string[],
-    @Query('count', ParseBoolPipe) count?: boolean
-  ) {
-    const query = QuickReply.queryBuilder().paginate(page, pageSize);
+  async find(@CurrentUser() currentUser: User, @Query('userId', ParseCsvPipe) userIds?: string[]) {
+    const query = QuickReply.queryBuilder().limit(1000);
 
     if (userIds) {
       if (userIds.includes('null')) {
@@ -85,17 +81,7 @@ export class QuickReplyController {
       }
     }
 
-    let quickReplies: QuickReply[];
-    let totalCount: number | undefined;
-
-    if (count) {
-      [quickReplies, totalCount] = await query.findAndCount(currentUser.getAuthOptions());
-      ctx.set('X-Total-Count', totalCount.toString());
-    } else {
-      quickReplies = await query.find(currentUser.getAuthOptions());
-    }
-
-    return quickReplies;
+    return query.find(currentUser.getAuthOptions());
   }
 
   @Get(':id')

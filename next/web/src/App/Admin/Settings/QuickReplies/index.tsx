@@ -1,6 +1,7 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useQueryClient } from 'react-query';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { uniq } from 'lodash-es';
 
 import { useCurrentUser } from '@/leancloud';
 import {
@@ -12,45 +13,30 @@ import {
   useUpdateQuickReply,
 } from '@/api/quick-reply';
 import { Button, Divider, Modal, Select, Spin, Table, message } from '@/components/antd';
-import { useSearchParam } from '@/utils/useSearchParams';
-import { usePage, usePageSize } from '@/utils/usePage';
 import { QuickReplyForm, QuickReplyFormData } from './QuickReplyForm';
 
 const { Option } = Select;
 const { Column } = Table;
 
 export function QuickReplyList() {
-  const [visiblity = 'all', setVisiblity] = useSearchParam('visiblity');
-  const [page, { set: setPage }] = usePage();
-  const [pageSize = 20, setPageSize] = usePageSize();
+  const [visiblity, setVisiblity] = useState('all');
 
   const currentUser = useCurrentUser();
 
   const userId = useMemo(() => {
     if (!currentUser) {
-      return null;
+      return 'null';
     }
     if (visiblity === 'all') {
-      return [currentUser.id, null];
+      return [currentUser.id, 'null'];
     }
     if (visiblity === 'public') {
-      return null;
+      return 'null';
     }
     return currentUser.id;
   }, [visiblity, currentUser]);
 
-  const { data, totalCount, isFetching } = useQuickReplies({
-    userId,
-    page,
-    pageSize,
-    count: true,
-    queryOptions: {
-      keepPreviousData: true,
-      onError: (error) => {
-        message.error(error.message);
-      },
-    },
-  });
+  const { data, isFetching } = useQuickReplies({ userId });
 
   const queryClient = useQueryClient();
 
@@ -58,9 +44,6 @@ export function QuickReplyList() {
     onSuccess: () => {
       message.success('删除成功');
       queryClient.invalidateQueries('quickReplies');
-    },
-    onError: (error) => {
-      message.error(error.message);
     },
   });
 
@@ -96,14 +79,8 @@ export function QuickReplyList() {
         dataSource={data}
         rowKey="id"
         pagination={{
-          current: page,
-          total: totalCount,
-          pageSize,
+          defaultPageSize: 20,
           showSizeChanger: true,
-          onChange: (page, size) => {
-            setPage(page);
-            setPageSize(size);
-          },
         }}
       >
         <Column dataIndex="name" title="名称" />
@@ -136,12 +113,37 @@ export function QuickReplyList() {
   );
 }
 
+function useAvailableTags() {
+  const currentUser = useCurrentUser();
+
+  const userId = useMemo(() => {
+    if (currentUser) {
+      return [currentUser.id, 'null'].join(',');
+    }
+  }, [currentUser]);
+
+  const { data: quickReplies } = useQuickReplies({
+    userId,
+    queryOptions: {
+      enabled: userId !== undefined,
+    },
+  });
+
+  return useMemo(() => {
+    if (!quickReplies) {
+      return [];
+    }
+    const tags = quickReplies.flatMap((quickReply) => quickReply.tags ?? []);
+    return uniq(tags);
+  }, [quickReplies]);
+}
+
 export function NewQuickReply() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { mutate, isLoading } = useCreateQuickReply({
     onSuccess: () => {
-      queryClient.invalidateQueries('quickReplies');
+      queryClient.invalidateQueries(['quickReplies']);
       message.success('创建成功');
       navigate('..');
     },
@@ -159,14 +161,17 @@ export function NewQuickReply() {
         content: data.content,
         userId: data.visibility === 'private' ? currentUser?.id : undefined,
         fileIds: data.fileIds,
+        tags: data.tags,
       });
     },
     [mutate, currentUser]
   );
 
+  const availableTags = useAvailableTags();
+
   return (
     <div className="p-10">
-      <QuickReplyForm loading={isLoading} onSubmit={handleCreate} />
+      <QuickReplyForm availableTags={availableTags} loading={isLoading} onSubmit={handleCreate} />
     </div>
   );
 }
@@ -182,7 +187,8 @@ export function QuickReplyDetail() {
   const queryClient = useQueryClient();
   const { mutate, isLoading: updating } = useUpdateQuickReply({
     onSuccess: () => {
-      queryClient.invalidateQueries('quickReplies');
+      queryClient.invalidateQueries(['quickReplies']);
+      queryClient.invalidateQueries(['quickReply', id]);
       message.success('已保存');
     },
     onError: (error) => {
@@ -200,6 +206,7 @@ export function QuickReplyDetail() {
         content: data.content,
         userId: data.visibility === 'private' ? currentUser?.id : undefined,
         fileIds: data.fileIds,
+        tags: data.tags,
       });
     },
     [id, mutate, currentUser]
@@ -214,6 +221,8 @@ export function QuickReplyDetail() {
     }
   }, [data]);
 
+  const availableTags = useAvailableTags();
+
   if (isLoading) {
     return (
       <div className="min-h-[400px] flex justify-center items-center">
@@ -224,7 +233,12 @@ export function QuickReplyDetail() {
 
   return (
     <div className="p-10">
-      <QuickReplyForm initData={initData!} loading={updating} onSubmit={handleUpdate} />
+      <QuickReplyForm
+        availableTags={availableTags}
+        initData={initData!}
+        loading={updating}
+        onSubmit={handleUpdate}
+      />
     </div>
   );
 }

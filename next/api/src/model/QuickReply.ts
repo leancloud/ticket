@@ -14,4 +14,7 @@ export class QuickReply extends Model {
 
   @pointerId(() => User, 'owner')
   userId?: string;
+
+  @field()
+  tags?: string[];
 }
