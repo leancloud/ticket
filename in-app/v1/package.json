@@ -26,7 +26,7 @@
     "immer": "^9.0.12",
     "intersection-observer": "^0.12.0",
     "lodash-es": "^4.17.21",
-    "open-leancloud-storage": "0.0.38",
+    "open-leancloud-storage": "0.0.40",
     "query-string": "^7.1.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
