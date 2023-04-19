@@ -179,7 +179,7 @@ export function QuickReplyForm({
         render={({ field }) => (
           <Form.Item
             label="标签"
-            extra="可以用任意字符串创建（输入并按下回车键）或从已有标签中选择，含有相同标签的快捷回复将被分为一组。"
+            extra="可以用任意字符串创建（输入并按下回车键）或从已有标签中选择。"
           >
             <Select {...field} mode="tags" options={tagOptions} />
           </Form.Item>
