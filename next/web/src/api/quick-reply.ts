@@ -9,23 +9,14 @@ export interface QuickReplySchema {
   content: string;
   userId?: string;
   fileIds?: string[];
+  tags?: string[];
 }
 
 interface FetchQuickRepliesOptions {
-  userId?: string | null | (string | null)[];
-  page?: number;
-  pageSize?: number;
-  count?: boolean;
+  userId?: string | string[];
 }
 
-interface FetchQuickRepliesResult {
-  data: QuickReplySchema[];
-  totalCount?: number;
-}
-
-async function fetchQuickReplies(
-  options: FetchQuickRepliesOptions
-): Promise<FetchQuickRepliesResult> {
+async function fetchQuickReplies(options: FetchQuickRepliesOptions) {
   let userId: string | undefined;
   if (options.userId) {
     userId = castArray(options.userId)
@@ -33,17 +24,14 @@ async function fetchQuickReplies(
       .join(',');
   }
 
-  const { data, headers } = await http.get('/api/2/quick-replies', {
+  const { data } = await http.get('/api/2/quick-replies', {
     params: {
       ...options,
       userId,
     },
   });
-  const totalCount = headers['x-total-count'];
-  return {
-    data,
-    totalCount: totalCount ? parseInt(totalCount) : undefined,
-  };
+
+  return data;
 }
 
 async function fetchQuickReply(id: string): Promise<QuickReplySchema> {
@@ -68,17 +56,16 @@ async function deleteQuickReply(id: string) {
 }
 
 interface UseQuickRepliesOptions extends FetchQuickRepliesOptions {
-  queryOptions?: UseQueryOptions<FetchQuickRepliesResult, Error>;
+  queryOptions?: UseQueryOptions<QuickReplySchema[], Error>;
 }
 
 export const useQuickReplies = ({ queryOptions, ...options }: UseQuickRepliesOptions = {}) => {
-  const { data, ...result } = useQuery({
+  return useQuery({
     queryKey: ['quickReplies', options],
     queryFn: () => fetchQuickReplies(options),
     staleTime: Infinity,
     ...queryOptions,
   });
-  return { ...data, ...result };
 };
 
 export const useQuickReply = (id: string, options?: UseQueryOptions<QuickReplySchema, Error>) =>
