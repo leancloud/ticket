@@ -670,6 +670,11 @@ const LanguageSection = memo(({ ticket }) => {
     [t]
   )
 
+  const value = useMemo(() => options.find(({ value }) => value === (ticket.language ?? null)), [
+    ticket,
+    options,
+  ])
+
   const handleUpdateLanguage = useCallback(
     (option) => {
       update(option?.value ?? null)
@@ -688,7 +693,7 @@ const LanguageSection = memo(({ ticket }) => {
           isLoading={isLoading}
           isDisabled={isLoading}
           options={options}
-          value={ticket.language ?? null}
+          value={value}
           onChange={handleUpdateLanguage}
           onBlur={() => setEditingLanguage(false)}
         />
