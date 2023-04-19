@@ -35,6 +35,7 @@
 
 .quickReplyModal {
   max-height: calc(100vh - 56px);
+  min-height: 600px;
   overflow: hidden;
 
   :global(.modal-body) {
@@ -45,6 +46,9 @@
   }
 
   .searchQuickReply {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
     padding: 8px;
     border-bottom:  1px rgba(0, 0, 0, 0.13) solid;
   }
