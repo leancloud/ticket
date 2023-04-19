@@ -413,3 +413,9 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 - 导入 SupportEmail.json 和 SupportEmailMessage.json 创建两个新的 Class。
 - 导入 Ticket.json 添加 clannel 列。
 - 在控制台创建定时任务，名称可设为「检查客服邮箱」，云函数选择 `checkSupportEmailMessage`，时间间隔设为 1 分钟。
+
+## 2023-04-17
+
+### `15afe237b1fd4ed9d40239fe0d144343a3aae398`
+
+导入 QuickReply.json，添加 tags 列。
