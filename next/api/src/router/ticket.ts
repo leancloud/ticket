@@ -27,6 +27,8 @@ import { OpsLogResponse } from '@/response/ops-log';
 import { getIP } from '@/utils';
 import { organizationService } from '@/service/organization';
 import { roleService } from '@/service/role';
+import { allowedTicketLanguages } from '@/utils/locale';
+import { LangCodeISO6391 } from '@notevenaneko/whatlang-node';
 
 const router = new Router().use(auth);
 
@@ -680,6 +682,9 @@ router.get('/:ticketId', include, async (ctx) => {
   });
 });
 
+// https://github.com/jquense/yup/issues/104
+const ticketLanguageSchema = yup.string().oneOf([...allowedTicketLanguages, null]);
+
 const ticketTagSchema = yup
   .object({
     key: yup.string().required(),
@@ -705,6 +710,7 @@ const updateTicketSchema = yup.object({
   evaluation: ticketEvaluationSchema.default(undefined),
   associateTicketId: yup.string().nullable(),
   mainTicketId: yup.string(),
+  language: ticketLanguageSchema,
 });
 
 router.patch('/:id', async (ctx) => {
@@ -840,6 +846,10 @@ router.patch('/:id', async (ctx) => {
     }
   } else if (data.associateTicketId === null) {
     updater.setAssociateTicket(null);
+  }
+
+  if (data.language !== undefined) {
+    updater.setLanguage(data.language as LangCodeISO6391 | null);
   }
 
   await updater.update(currentUser);
