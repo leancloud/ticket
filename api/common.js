@@ -30,19 +30,6 @@ exports.getTinyUserInfo = async (user) => {
   }
 }
 
-exports.getTinyReplyInfo = (reply) => {
-  return exports.getTinyUserInfo(reply.get('author')).then((author) => {
-    return {
-      objectId: reply.id,
-      author,
-      content: reply.get('content'),
-      isCustomerService: reply.get('isCustomerService'),
-      createdAt: reply.get('createdAt'),
-      updatedAt: reply.get('updatedAt'),
-    }
-  })
-}
-
 const getRoles = mem(
   (user) =>
     new AV.Query(AV.Role)
