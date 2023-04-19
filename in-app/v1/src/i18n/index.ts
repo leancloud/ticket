@@ -66,8 +66,26 @@ const resources = {
   },
 };
 
+const languageDetector = new LanguageDetector();
+
+const querystringOrNavigator = {
+  name: 'querystring-or-navigator',
+
+  lookup(options: ConstructorParameters<typeof LanguageDetector>['1']) {
+    const querystring = languageDetector.detectors['querystring'].lookup(options) as
+      | string[]
+      | undefined;
+
+    return querystring?.length
+      ? querystring
+      : languageDetector.detectors['navigator'].lookup(options);
+  },
+};
+
+languageDetector.addDetector(querystringOrNavigator);
+
 i18n
-  .use(LanguageDetector)
+  .use(languageDetector)
   .use(initReactI18next)
   .init({
     resources,
@@ -77,7 +95,7 @@ i18n
       escapeValue: false,
     },
     detection: {
-      order: ['querystring', 'navigator'],
+      order: ['querystring-or-navigator'],
       lookupQuerystring: 'lang',
       caches: [],
     },
