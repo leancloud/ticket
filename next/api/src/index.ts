@@ -3,6 +3,7 @@ import bodyParser from 'koa-bodyparser';
 import cors from '@koa/cors';
 import throat from 'throat';
 import domain from 'domain';
+import { Minimatch } from 'minimatch';
 import { Sentry } from './sentry';
 import { extractTraceparentData, stripUrlQueryAndFragment } from '@sentry/tracing';
 
@@ -122,16 +123,16 @@ if (process.env.ENABLE_API_LOG) {
 
 // The CORS middleware must be applied to the app
 // See https://github.com/firefox-devtools/profiler-server/pull/40
-const allowedOrigins = process.env.CORS_ORIGIN?.split(',');
+const allowedOrigins = process.env.CORS_ORIGIN?.split(',').map(
+  (pattern) => new Minimatch(pattern)
+);
 app.use(
   cors({
     origin: allowedOrigins
       ? (ctx) => {
-          if (
-            ctx.request.header.origin &&
-            allowedOrigins.indexOf(ctx.request.header.origin) !== -1
-          ) {
-            return ctx.request.header.origin;
+          const { origin } = ctx.request.header;
+          if (origin && allowedOrigins.some((allowedOrigin) => allowedOrigin.match(origin))) {
+            return origin;
           }
           return '';
         }
