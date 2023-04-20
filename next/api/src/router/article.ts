@@ -77,8 +77,6 @@ router.get('/', pagination(20), auth, customerServiceOnly, async (ctx) => {
   const { page, pageSize } = pagination.get(ctx);
   const { private: isPrivate, id } = findArticlesOptionSchema.validateSync(ctx.request.query);
 
-  const currentUser = ctx.state.currentUser as User;
-
   const query = Article.queryBuilder()
     .orderBy('createdAt', 'desc')
     .skip((page - 1) * pageSize)
@@ -92,10 +90,13 @@ router.get('/', pagination(20), auth, customerServiceOnly, async (ctx) => {
     query.where('objectId', 'in', id);
   }
 
-  const articles = await query.find(currentUser.getAuthOptions());
-
+  let articles: Article[] = [];
+  let totalCount = 0;
   if (ctx.query.count) {
-    ctx.set('X-Total-Count', articles.length.toString());
+    [articles, totalCount] = await query.findAndCount({ useMasterKey: true });
+    ctx.set('X-Total-Count', totalCount.toString());
+  } else {
+    articles = await query.find({ useMasterKey: true });
   }
 
   ctx.body = articles.map((article) => new ArticleResponse(article));
