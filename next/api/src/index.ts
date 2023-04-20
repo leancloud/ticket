@@ -123,7 +123,7 @@ if (process.env.ENABLE_API_LOG) {
 
 // The CORS middleware must be applied to the app
 // See https://github.com/firefox-devtools/profiler-server/pull/40
-const allowedOrigins = process.env.CORS_ORIGIN?.split(',')?.map(
+const allowedOrigins = process.env.CORS_ORIGIN?.split(',').map(
   (pattern) => new Minimatch(pattern)
 );
 app.use(
