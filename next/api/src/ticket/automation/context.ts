@@ -159,7 +159,7 @@ export class Context {
   }
 
   getLanguage() {
-    return this.ticket.language;
+    return this.ticket.language ?? null;
   }
 
   async finish() {
