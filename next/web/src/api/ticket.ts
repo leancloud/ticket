@@ -45,6 +45,7 @@ export interface FetchTicketFilters {
   groupId?: string | string[];
   reporterId?: string | string[];
   participantId?: string | string[];
+  language?: string[];
   rootCategoryId?: string;
   star?: number;
   createdAt?: string;
@@ -80,6 +81,9 @@ export function encodeTicketFilters(filters: FetchTicketFilters) {
   }
   if (filters.participantId) {
     params.participantId = castArray(filters.participantId).join(',');
+  }
+  if (filters.language) {
+    params.language = castArray(filters.language).join(',');
   }
   if (filters.createdAt) {
     const dateRange = decodeDateRange(filters.createdAt);
