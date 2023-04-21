@@ -113,6 +113,7 @@ export class ExportFileManager {
       return;
     }
     try {
+      console.log('start to upload');
       let filename: string;
       let fileData: any;
 
@@ -128,10 +129,12 @@ export class ExportFileManager {
 
       const file = new AV.File(filename, fileData);
       await file.save({ useMasterKey: true });
+      console.log('file uploaded', file.id, file.url());
       return file.get('url');
     } catch (error) {
       console.error('[export ticket]: upload', error);
     } finally {
+      console.log('remove exported ticket file');
       fs.unlinkSync(this.file);
     }
   }

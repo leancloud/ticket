@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import { debug as d } from 'debug';
 import { format } from 'date-fns';
 import { Category } from '@/model/Category';
 import { User } from '@/model/User';
@@ -16,6 +17,8 @@ import { ExportFileManager } from './ExportFileManager';
 import { JobData } from '.';
 import { SortItem } from '@/middleware';
 import { addInOrNotExistCondition } from '@/utils/conditions';
+
+const debug = d('export');
 
 export interface FilterOptions {
   authorId?: string;
@@ -286,26 +289,34 @@ export default async function exportTicket({ params, sortItems, date }: JobData)
   const { type: fileType, ...rest } = params;
   const fileName = `ticket_${format(new Date(date), 'yyMMdd_HHmmss')}.${fileType || 'json'}`;
   const exportFileManager = new ExportFileManager(fileName);
+  debug('count tickets');
   const [query, containFields] = await createBaseTicketQuery(rest, sortItems);
   const count = await query.count(authOptions);
+  debug('count: ', count);
   const categoryMap = await getCategories();
   const customerServiceMap = await getCustomerServices();
   const groupMap = await getGroups(authOptions);
   const getCustomFormFields = getCustomFormFieldsFunc(authOptions);
+
+  debug('query tickets');
 
   for (let index = 0; index < count; index += limit) {
     const tickets = await (await createTicketQuery(containFields, query, index, limit))
       .preload('author', { authOptions })
       .find(authOptions);
     const ticketIds = tickets.map((ticket) => ticket.id);
+    debug('fetch ticket details', ticketIds);
     const replyMap = await getReplies(ticketIds, authOptions);
+    debug('replies fetched');
     const formIds = tickets
       .map((ticket) =>
         categoryMap[ticket.categoryId] ? categoryMap[ticket.categoryId].formId : undefined
       )
       .filter((id) => id !== undefined);
     const { formCacheMap, formFieldCacheMap } = await getCustomFormFields(formIds as string[]);
+    debug('forms fetched');
     const formValuesMap = await getCustomFormValues(ticketIds, authOptions);
+    debug('form values fetched');
     for (let ticketIndex = 0; ticketIndex < tickets.length; ticketIndex++) {
       const ticket = tickets[ticketIndex];
       const assignee = ticket.assigneeId ? customerServiceMap[ticket.assigneeId] : undefined;
@@ -378,8 +389,11 @@ export default async function exportTicket({ params, sortItems, date }: JobData)
         updatedAt: formatDate(ticket.updatedAt),
       };
 
+      debug('data assembled, writing to the file');
       await exportFileManager.append(data);
+      debug('done writing', ticket.id);
     }
   }
+  debug('all tickets processed');
   return exportFileManager.done();
 }

@@ -1,7 +1,10 @@
+import { debug as d } from 'debug';
 import { createQueue } from '@/queue';
 import { SortItem } from '@/middleware';
 import exportTicket, { FilterOptions } from './ExportTicket';
 import notification from '@/notification';
+
+const debug = d('export:queue');
 
 export interface JobData {
   params: FilterOptions;
@@ -24,6 +27,7 @@ const queue = createQueue<JobData>('ticket:exported', {
 
 queue.process(async (jobData, done) => {
   try {
+    debug('process exporting', jobData.data);
     const result = await exportTicket(jobData.data);
     done(null, result);
   } catch (error) {
@@ -32,7 +36,9 @@ queue.process(async (jobData, done) => {
 });
 
 queue.on('completed', async (jobData, result) => {
+  debug('export completed', jobData.data);
   if (result && result.url) {
+    debug('notify', jobData.data.userId);
     notification.notifyTicketExported({
       downloadUrl: result.url,
       userId: jobData.data.userId,
