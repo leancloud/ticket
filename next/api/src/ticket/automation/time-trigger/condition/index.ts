@@ -8,6 +8,7 @@ import authorId from '../../condition/authorId';
 import assigneeId from '../../condition/assigneeId';
 import groupId from '../../condition/groupId';
 import status from '../../condition/status';
+import language from '../../condition/language';
 import metaData from '../../condition/metaData';
 import tags from '../../condition/tags';
 
@@ -24,6 +25,7 @@ const factories: Record<string, ConditionFactory<unknown, TimeTriggerContext>> =
   assigneeId,
   groupId,
   status,
+  language,
   metaData,
   tags,
   sinceCreated,

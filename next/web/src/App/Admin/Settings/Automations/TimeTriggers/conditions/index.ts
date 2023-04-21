@@ -5,7 +5,8 @@ import { AssigneeId } from '../../conditions/AssigneeId';
 import { GroupId } from '../../conditions/GroupId';
 import { Status } from '../../conditions/Status';
 import { NumberValue } from '../../conditions/NumberValue';
-import { MetaData } from '../../conditions/MetaData'
+import { MetaData } from '../../conditions/MetaData';
+import { Language } from '../../conditions/Language';
 
 export default {
   title: {
@@ -51,5 +52,9 @@ export default {
   metaData: {
     label: 'metaData',
     component: MetaData,
+  },
+  language: {
+    label: '工单语言',
+    component: Language,
   },
 };

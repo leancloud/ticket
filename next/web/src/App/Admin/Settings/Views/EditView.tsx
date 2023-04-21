@@ -254,6 +254,7 @@ const columns = [
   { label: '客服组', value: 'group' },
   { label: '分类', value: 'category' },
   { label: '状态', value: 'status' },
+  { label: '工单语言', value: 'language' },
   { label: '创建时间', value: 'createdAt' },
   { label: '更新时间', value: 'updatedAt' },
 ];

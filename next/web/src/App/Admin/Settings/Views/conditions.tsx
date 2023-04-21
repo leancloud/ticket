@@ -8,6 +8,7 @@ import {
   StatusSelect,
 } from '@/components/common';
 import { TagSelect } from './components/TagSelect';
+import { LanguageSelect } from './components/LanguageSelect';
 
 interface ValueComponentProps {
   value: any;
@@ -153,6 +154,22 @@ export const conditions: Condition[] = [
         label: '包含',
         value: 'contains',
         hookComponent: TagSelect,
+      },
+    ],
+  },
+  {
+    label: '工单语言',
+    value: 'language',
+    ops: [
+      {
+        label: '是',
+        value: 'is',
+        component: LanguageSelect,
+      },
+      {
+        label: '不是',
+        value: 'isNot',
+        component: LanguageSelect,
       },
     ],
   },
