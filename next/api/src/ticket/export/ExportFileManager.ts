@@ -107,12 +107,15 @@ export class ExportFileManager {
     }
     try {
       const readStream = fs.createReadStream(this.file);
+      const stats = fs.statSync(this.file);
       const file = new AV.File(path.parse(this.file).base, readStream);
+      file.metaData('size', stats.size);
       const res = await file.save({ useMasterKey: true });
-      fs.unlink(this.file, (err) => {});
       return res.get('url');
     } catch (error) {
       console.error('[export ticket]: upload', error);
+    } finally {
+      fs.unlinkSync(this.file);
     }
   }
 
