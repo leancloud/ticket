@@ -29,10 +29,14 @@ import { organizationService } from '@/service/organization';
 import { roleService } from '@/service/role';
 import { allowedTicketLanguages } from '@/utils/locale';
 import { LangCodeISO6391 } from '@notevenaneko/whatlang-node';
+import { addInOrNotExistCondition } from '@/utils/conditions';
 
 const router = new Router().use(auth);
 
 const statuses = [50, 120, 160, 220, 250, 280];
+
+// https://github.com/jquense/yup/issues/104
+const ticketLanguageSchema = yup.string().oneOf([...allowedTicketLanguages, null]);
 
 const includeSchema = yup.object({
   includeAuthor: yup.bool(),
@@ -65,6 +69,7 @@ export const ticketFiltersSchema = yup.object({
   tagValue: yup.string(),
   privateTagKey: yup.string(),
   privateTagValue: yup.string(),
+  language: yup.csv(yup.string().required()),
 
   // fields
   // TODO: use enum
@@ -200,6 +205,10 @@ router.get(
             ctx.throw(403);
           }
           query.where('privateTags.value', '==', params.privateTagValue);
+        }
+
+        if (params.language) {
+          addInOrNotExistCondition(query, params.language, 'language');
         }
 
         query.skip((params.page - 1) * params.pageSize).limit(params.pageSize);
@@ -352,6 +361,10 @@ router.get(
     }
     if (params.privateTagValue) {
       addEqCondition('privateTags.value', params.privateTagValue);
+    }
+
+    if (params.language) {
+      addEqCondition('language', params.language);
     }
 
     const queryString = conditions.join(' AND ');
@@ -681,9 +694,6 @@ router.get('/:ticketId', include, async (ctx) => {
     includePrivateTags: params.includeTag && (await currentUser.isCustomerService()),
   });
 });
-
-// https://github.com/jquense/yup/issues/104
-const ticketLanguageSchema = yup.string().oneOf([...allowedTicketLanguages, null]);
 
 const ticketTagSchema = yup
   .object({

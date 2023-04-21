@@ -6,6 +6,7 @@ import content from '../../condition/content';
 import categoryId from '../../condition/categoryId';
 import groupId from '../../condition/groupId';
 import status from '../../condition/status';
+import language from '../../condition/language';
 import metaData from '../../condition/metaData';
 import tags from '../../condition/tags';
 
@@ -25,6 +26,7 @@ const factories: Record<string, ConditionFactory<unknown, TriggerContext>> = {
   assigneeId,
   groupId,
   status,
+  language,
   metaData,
   tags,
   currentUserId,

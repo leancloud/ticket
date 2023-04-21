@@ -23,6 +23,7 @@ import { columnLabels } from '@/App/Admin/Settings/Views/EditView';
 import { TicketStatus } from '@/App/Admin/components/TicketStatus';
 import { useGetCategoryPath } from '@/utils/useGetCategoryPath';
 import { usePage } from '@/utils/usePage';
+import { TicketLanguages } from '@/i18n/locales';
 
 const CategoryPathContext = createContext<{
   getCategoryPath: (id: string) => CategorySchema[];
@@ -210,6 +211,11 @@ const columnConfigs: Record<string, ColumnConfig> = {
   },
   status: {
     render: (status: number) => <TicketStatus status={status} />,
+  },
+  language: {
+    render: (language: string | null) => (
+      <div>{language ? TicketLanguages[language] : '(未知)'}</div>
+    ),
   },
 };
 

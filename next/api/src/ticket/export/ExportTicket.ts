@@ -15,6 +15,7 @@ import { categoryService } from '@/category';
 import { ExportFileManager } from './ExportFileManager';
 import { JobData } from '.';
 import { SortItem } from '@/middleware';
+import { addInOrNotExistCondition } from '@/utils/conditions';
 
 export interface FilterOptions {
   authorId?: string;
@@ -34,6 +35,7 @@ export interface FilterOptions {
   fieldName?: string;
   fieldValue?: string;
   type?: string;
+  language?: string[];
 }
 // copy ticket filter
 function addPointersCondition(
@@ -121,6 +123,10 @@ const createBaseTicketQuery = async (params: FilterOptions, sortItems?: SortItem
     }
     if (params.privateTagValue) {
       query.where('privateTags.value', '==', params.privateTagValue);
+    }
+
+    if (params.language) {
+      addInOrNotExistCondition(query, params.language, 'language');
     }
 
     sortItems?.forEach(({ key, order }) => query.orderBy(key, order));
@@ -367,6 +373,7 @@ export default async function exportTicket({ params, sortItems, date }: JobData)
         privateTags: ticket.privateTags,
         customForm,
         replies: (replyMap[ticket.id] || []).map((v) => _.omit(v, 'ticketId')),
+        language: ticket.language,
         createdAt: formatDate(ticket.createdAt),
         updatedAt: formatDate(ticket.updatedAt),
       };

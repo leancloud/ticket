@@ -9,6 +9,7 @@ import { Ticket } from './Ticket';
 import { AuthorId } from './AuthorId';
 import { AssigneeId } from './AssigneeId';
 import { CurrentUserId } from './CurrentUserId';
+import { Language } from '../../conditions/Language';
 
 export default {
   ticket: {
@@ -58,5 +59,9 @@ export default {
   replyContent: {
     label: '回复内容',
     component: StringValue,
+  },
+  language: {
+    label: '工单语言',
+    component: Language,
   },
 };

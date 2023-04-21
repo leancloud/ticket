@@ -158,6 +158,10 @@ export class Context {
     return this.ticket.metaData;
   }
 
+  getLanguage() {
+    return this.ticket.language ?? null;
+  }
+
   async finish() {
     await this.updater.update(systemUser, { ignoreTrigger: true });
   }

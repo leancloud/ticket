@@ -17,6 +17,7 @@ export interface Filters {
   rootCategoryId?: string;
   status?: number[];
   star?: number;
+  language?: string[];
   fieldName?: string;
   fieldValue?: string;
 }
@@ -35,6 +36,7 @@ export function LocalFiltersProvider({ children }: { children: ReactNode }) {
       rootCategoryId,
       status,
       star,
+      language,
     } = params;
 
     const filters: Filters = _.pick(params, [
@@ -62,6 +64,10 @@ export function LocalFiltersProvider({ children }: { children: ReactNode }) {
 
     if (participantId) {
       filters.participantId = participantId.split(',');
+    }
+
+    if (language) {
+      filters.language = language.split(',');
     }
 
     if (createdAt) {
@@ -97,6 +103,7 @@ export function LocalFiltersProvider({ children }: { children: ReactNode }) {
         groupId: filters.groupId?.map((id) => (id === null ? 'null' : id)).join(','),
         reporterId: filters.reporterId?.map((id) => (id === null ? 'null' : id)).join(','),
         participantId: filters.participantId?.map((id) => (id === null ? 'null' : id)).join(','),
+        language: filters.language?.map((id) => (id === null ? 'null' : id)).join(','),
         createdAt: filters.createdAt,
         rootCategoryId: filters.rootCategoryId,
         status: filters.status?.join(','),

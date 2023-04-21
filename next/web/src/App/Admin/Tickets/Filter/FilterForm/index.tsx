@@ -13,6 +13,8 @@ import { StatusSelect } from './StatusSelect';
 import { EvaluationStarSelect } from './EvaluationStarSelect';
 import { FieldSelect } from './FieldSelect';
 import { useSorterLimited } from '../useSorterLimited';
+import { LocaleSelect } from '@/App/Admin/components/LocaleSelect';
+import { TicketLanguages } from '@/i18n/locales';
 
 function Field({ title, children }: PropsWithChildren<{ title: React.ReactNode }>) {
   return (
@@ -53,6 +55,7 @@ export const FilterForm: FC<FilterFormProps> = ({ className, filters, onChange }
     rootCategoryId,
     status,
     star,
+    language,
     fieldName,
     fieldValue,
   } = tempFilters;
@@ -182,6 +185,20 @@ export const FilterForm: FC<FilterFormProps> = ({ className, filters, onChange }
           <TagSelect
             value={{ tagKey, tagValue, privateTagKey, privateTagValue }}
             onChange={merge}
+            disabled={normalDisabled}
+          />
+        </Field>
+
+        <Field title="语言">
+          <LocaleSelect
+            className="w-full"
+            locales={TicketLanguages}
+            value={language}
+            hasUnknown
+            mode="multiple"
+            onChange={(language) => {
+              merge({ language });
+            }}
             disabled={normalDisabled}
           />
         </Field>

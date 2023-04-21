@@ -9,6 +9,7 @@ import { TicketStatus } from '../../../components/TicketStatus';
 import { CategoryPath, useGetCategoryPath } from '@/App/Admin/components/CategoryPath';
 import { DateTime } from '@/components/DateTime';
 import { TicketLink } from '../../../components/TicketLink';
+import { TicketLanguages } from '@/i18n/locales';
 
 const { Column } = Table;
 
@@ -121,6 +122,12 @@ export function TicketTable({ loading, tickets, checkedIds, onChangeChecked }: T
             </>
           )
         }
+      />
+
+      <Column
+        title="工单语言"
+        dataIndex="language"
+        render={(data: string) => <div>{data ? TicketLanguages[data] : '(未知)'}</div>}
       />
 
       <Column

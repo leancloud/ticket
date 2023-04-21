@@ -1,3 +1,5 @@
+import { omit } from 'lodash-es';
+
 export const LOCALES: Record<string, string> = {
   'zh-cn': '简体中文',
   'zh-tw': '繁体中文（台湾）',
@@ -14,4 +16,9 @@ export const LOCALES: Record<string, string> = {
   pt: '葡萄牙文',
   tr: '土耳其文',
   vi: '越南文',
+};
+
+export const TicketLanguages: Record<string, string> = {
+  ...omit(LOCALES, ['zh-cn', 'zh-hk', 'zh-tw']),
+  zh: '中文',
 };
