@@ -1,96 +1,96 @@
 {
   "general": {
-    "commit": "Kirim",
+    "commit": "Menyerahkan",
     "loading": "Memuat",
-    "select_hint": "Silakan Pilih",
-    "collapse": "Tutup",
-    "expand": "Buka",
-    "number": "Nomor",
+    "select_hint": "Silahkan pilih",
+    "collapse": "Runtuh",
+    "expand": "Perluas",
+    "number": "Nomor Ref.",
     "status": "Status",
     "title": "Judul",
     "description": "Deskripsi",
     "attachment": "Lampiran",
     "send": "Kirim",
-    "confirm": "Konfirmasi",
-    "no_data": "Tidak Ada Data",
-    "call_center": "Pusat Panggilan",
+    "confirm": "Tentu saja",
+    "no_data": "Tidak ada data",
+    "call_center": "Pusat Layanan Pelanggan",
     "click_to_upload": "Klik untuk mengunggah",
     "content_deleted": "Konten ini telah dihapus",
-    "not_found": "Konten tidak ditemukan",
+    "not_found": "Konten ini tidak ada",
     "cancel": "Batal",
-    "update_time": "Waktu Perbarui",
-    "update_date": "Tanggal Perbarui"
+    "update_time": "Waktu Pembaruan",
+    "update_date": "Tanggal Pembaruan"
   },
   "home": {
-    "empty": "Tidak ada konten yang ditampilkan dalam kategori ini"
+    "empty": "Tidak ada konten tampilan yang dikonfigurasi dalam kategori ini"
   },
   "feedback": {
-    "suffix": "Umpan Balik",
-    "action": "Saya ingin memberikan umpan balik",
+    "suffix": "Tanggapan",
+    "action": "Kirim Masukan",
     "record": "Catatan Umpan Balik",
-    "submit": "Kirim Umpan Balik"
+    "submit": "Kirim Masukan"
   },
   "faqs": {
-    "showAll": "Lihat Semua",
-    "similar": "Pertanyaan yang Sama"
+    "showAll": "Lihat semua",
+    "similar": "Serupa Pertanyaan"
   },
   "notice": {
-    "title": "Pemberitahuan",
+    "title": "Pengumuman,",
     "hint": "Jika konten di atas tidak membantu Anda"
   },
   "auth": {
-    "not_logged_in_text": "Anda belum masuk ke akun, silakan masuk dan coba lagi"
+    "not_logged_in_text": "Ditemukan bahwa Anda belum masuk ke akun, silahkan masuk dan coba lagi"
   },
   "category": {
-    "select_hint": "Pilih masalah yang Anda hadapi",
-    "select_hint_home": "Pilih jenis masalah",
-    "faqs": "Jawaban Masalah Terkait",
-    "title": "Kategori Masalah"
+    "select_hint": "Pilih masalah yang Anda alami",
+    "select_hint_home": "Pilih Jenis Masalah",
+    "faqs": "Jawaban Pertanyaan Terkait",
+    "title": "Klasifikasi Pertanyaan"
   },
   "topic": {
-    "title": "Masalah Umum",
+    "title": "Tanya Jawab Umum",
     "hint": "Jika konten di atas tidak membantu Anda, Anda dapat"
   },
   "ticket": {
     "record": "Catatan Masalah",
     "no_record": "Tidak ada catatan masalah",
-    "no_more_record": "Tidak ada catatan lain",
+    "no_more_record": "Tidak ada catatan lebih lanjut",
     "create": {
-      "success": "Berhasil Dikirim",
-      "success_text": "$t(ticket.create.success)，Kami akan segera menangani masalah Anda"
+      "success": "Pengiriman berhasil",
+      "success_text": "$t(ticket.create.success), kami akan segera memprosesnya untuk Anda"
     },
-    "detail": "Detail Masalah",
-    "resolved": "Telah Diresolusi",
-    "unResolved": "Sedang Diolah",
+    "detail": "Detail Pertanyaan",
+    "resolved": "Sudah diproses",
+    "unResolved": "Sedang diproses",
     "contact": "Hubungi Layanan Pelanggan"
   },
   "reply": {
     "staff_title": "Layanan Pelanggan Resmi",
-    "my_title": "Saya Sendiri",
-    "input_content_hint": "Masukkan Konten"
+    "my_title": "Saya sendiri,",
+    "input_content_hint": "Masukkan konten"
   },
   "status": {
-    "new": "Menunggu Penanganan",
-    "waiting_on_staff": "Menunggu Balasan Layanan Pelanggan",
-    "waiting_on_customer": "Menunggu Balasan Anda",
-    "resolved": "Telah Diresolusi"
+    "new": "Menunggu diproses",
+    "waiting_on_staff": "Menunggu balasan dari layanan pelanggan",
+    "waiting_on_customer": "Menunggu balasan pengguna",
+    "resolved": "Telah Diselesaikan"
   },
   "evaluation": {
-    "title": "Penilaian dan Umpan Balik Layanan",
+    "title": "Layanan Penilaian dan Umpan Balik",
     "useful": "Berguna",
-    "useless": "Tidak Berguna",
-    "content_hint": "Tambahan keterangan (tidak wajib diisi)",
-    "created_text": "Penilaian Anda telah diterima. Terima kasih atas masukan Anda!",
-    "change": "Ubah penilaian"
+    "useless": "Tidak berguna",
+    "content_hint": "Tambahan Keterangan (tidak wajib diisi)",
+    "created_text": "Terima kasih atas masukan Anda, terima kasih atas umpan balik Anda!",
+    "change": "Ubah Ulasan"
   },
   "validation": {
     "required": "Konten ini tidak boleh kosong",
     "attachment_too_big": "Gagal mengunggah",
-    "attachment_too_big_text": "Ukuran lampiran tidak boleh lebih besar dari {{size}} {{unit}}",
-    "attachment_not_uploaded": "Harap tunggu hingga lampiran terunggah sepenuhnya",
-    "number_required": "Tidak boleh mengandung karakter selain angka",
-    "invalid": "Input tidak valid"
+    "attachment_too_big_text": "Ukuran lampiran tidak boleh melebihi {{size}} {{unit}}",
+    "attachment_not_uploaded": "Harap tunggu hingga unggahan lampiran selesai",
+    "number_required": "Tidak boleh mengandung karakter non-angka",
+    "invalid": "Masukan tidak valid"
   },
-  "network_error": "Kesalahan jaringan, silakan coba lagi",
-  "network_error.retry": "Coba lagi"
+  "network_error": "Koneksi internet bermasalah, silakan coba menyambungkan kembali",
+  "network_error.retry": "Mencoba menyambung kembali"
 }

@@ -1,96 +1,96 @@
 {
   "general": {
-    "commit": "Commit",
+    "commit": "Submit",
     "loading": "Loading",
     "select_hint": "Please select",
     "collapse": "Collapse",
     "expand": "Expand",
-    "number": "Number",
+    "number": "Ref. Number",
     "status": "Status",
     "title": "Title",
     "description": "Description",
     "attachment": "Attachment",
     "send": "Send",
     "confirm": "Confirm",
-    "no_data": "No data",
-    "call_center": "Customer service center",
-    "click_to_upload": "Click to upload",
-    "content_deleted": "This content has been deleted",
-    "not_found": "Content not found",
+    "no_data": "No data available",
+    "call_center": "Support Center",
+    "click_to_upload": "Click to Upload",
+    "content_deleted": "This content has been removed.",
+    "not_found": "This content does not exist",
     "cancel": "Cancel",
-    "update_time": "Update time",
-    "update_date": "Update date"
+    "update_time": "Update Time",
+    "update_date": "Update Date"
   },
   "home": {
-    "empty": "No display content configured for this category"
+    "empty": "No display content configured in the current category"
   },
   "feedback": {
     "suffix": "Feedback",
-    "action": "I want to give feedback",
-    "record": "Feedback record",
-    "submit": "Submit feedback"
+    "action": "Send Feedback",
+    "record": "Feedback Record",
+    "submit": "Submit Feedback"
   },
   "faqs": {
-    "showAll": "Show all",
-    "similar": "Similar questions"
+    "showAll": "View All",
+    "similar": "Similar Questions"
   },
   "notice": {
-    "title": "Announcement",
-    "hint": "If the above content did not help you"
+    "title": "Announcement,",
+    "hint": "If the above information was not helpful to you"
   },
   "auth": {
-    "not_logged_in_text": "You are not logged in. Please log in and try again"
+    "not_logged_in_text": "Account not detected, please log in and try again"
   },
   "category": {
-    "select_hint": "Select the issue you are experiencing",
-    "select_hint_home": "Select issue type",
-    "faqs": "Related problem solving",
-    "title": "Issue categories"
+    "select_hint": "Select the issue you're experiencing",
+    "select_hint_home": "Select Problem Type",
+    "faqs": "Related Issues",
+    "title": "Issue Categories"
   },
   "topic": {
-    "title": "Common questions",
-    "hint": "If the above content did not help you, you can"
+    "title": "FAQs",
+    "hint": "If the information above did not help you, you can"
   },
   "ticket": {
-    "record": "Problem record",
-    "no_record": "No problem record",
+    "record": "Issue Log",
+    "no_record": "No issues recorded",
     "no_more_record": "No more records",
     "create": {
-      "success": "Submitted successfully",
-      "success_text": "$t(ticket.create.success), we will process it as soon as possible"
+      "success": "Submission successful.",
+      "success_text": "$t(ticket.create.success), we will process it as soon as possible."
     },
-    "detail": "Problem details",
+    "detail": "Issue Details",
     "resolved": "Resolved",
-    "unResolved": "Unresolved",
-    "contact": "Contact customer service"
+    "unResolved": "In Progress",
+    "contact": "Contact Customer Support"
   },
   "reply": {
-    "staff_title": "Official customer service",
-    "my_title": "Myself",
-    "input_content_hint": "Enter content"
+    "staff_title": "Official Customer Support",
+    "my_title": "I, myself,",
+    "input_content_hint": "Please enter content"
   },
   "status": {
-    "new": "New",
-    "waiting_on_staff": "Awaiting response from customer service",
-    "waiting_on_customer": "Awaiting response from customer",
+    "new": "Pending,",
+    "waiting_on_staff": "Waiting for customer support response",
+    "waiting_on_customer": "Awaiting user response",
     "resolved": "Resolved"
   },
   "evaluation": {
-    "title": "Service evaluation and feedback",
+    "title": "Service Quality Feedback",
     "useful": "Useful",
-    "useless": "Not useful",
-    "content_hint": "Supplementary explanation (optional)",
-    "created_text": "Your evaluation has been received. Thank you for your feedback!",
-    "change": "Change evaluation"
+    "useless": "Useless",
+    "content_hint": "Additional Information (Optional)",
+    "created_text": "Your feedback has been received, thank you for your feedback!",
+    "change": "Edit Review"
   },
   "validation": {
-    "required": "This content cannot be empty",
-    "attachment_too_big": "Upload failed",
+    "required": "The content cannot be empty",
+    "attachment_too_big": "Upload Failed",
     "attachment_too_big_text": "Attachment size cannot exceed {{size}} {{unit}}",
-    "attachment_not_uploaded": "Please wait for the attachment to upload",
+    "attachment_not_uploaded": "Please wait for the attachment to finish uploading.",
     "number_required": "Cannot contain non-numeric characters",
     "invalid": "Invalid input"
   },
-  "network_error": "Network abnormality, please try again",
-  "network_error.retry": "Retry"
+  "network_error": "Network error, please try reconnecting",
+  "network_error.retry": "Attempting to reconnect"
 }

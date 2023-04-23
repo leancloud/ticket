@@ -1,96 +1,96 @@
 {
   "general": {
-    "commit": "Gửi đi",
+    "commit": "nộp",
     "loading": "Đang tải",
     "select_hint": "Vui lòng chọn",
-    "collapse": "Thu gọn",
+    "collapse": "Sụp đổ",
     "expand": "Mở rộng",
-    "number": "Số",
+    "number": "Số tham chiếu",
     "status": "Trạng thái",
     "title": "Tiêu đề",
     "description": "Mô tả",
-    "attachment": "Đính kèm",
+    "attachment": "Tệp đính kèm",
     "send": "Gửi",
     "confirm": "Xác nhận",
-    "no_data": "Không có dữ liệu",
-    "call_center": "Trung tâm hỗ trợ khách hàng",
-    "click_to_upload": "Nhấp để tải lên",
-    "content_deleted": "Nội dung này đã bị xóa",
-    "not_found": "Không tìm thấy nội dung này",
-    "cancel": "Hủy",
+    "no_data": "Tạm không có dữ liệu",
+    "call_center": "Trung tâm dịch vụ khách hàng",
+    "click_to_upload": "Nhấp vào tải lên",
+    "content_deleted": "Nội dung đã bị xóa",
+    "not_found": "Nội dung này không tồn tại",
+    "cancel": "Huỷ bỏ",
     "update_time": "Thời gian cập nhật",
     "update_date": "Ngày cập nhật"
   },
   "home": {
-    "empty": "Chưa cấu hình nội dung hiển thị trong phân loại hiện tại"
+    "empty": "Hiện tại chưa cấu hình nội dung hiển thị trong danh mục này"
   },
   "feedback": {
     "suffix": "Phản hồi",
-    "action": "Tôi muốn phản hồi",
-    "record": "Lịch sử phản hồi",
+    "action": "Gửi Phản Hồi",
+    "record": "Ghi nhận phản hồi",
     "submit": "Gửi phản hồi"
   },
   "faqs": {
     "showAll": "Xem tất cả",
-    "similar": "Câu hỏi tương tự"
+    "similar": "Tương tự câu hỏi"
   },
   "notice": {
-    "title": "Thông báo",
-    "hint": "Nếu như nội dung trên không giúp bạn được"
+    "title": "Thông báo,",
+    "hint": "Nếu nội dung trên không giúp ích cho bạn"
   },
   "auth": {
-    "not_logged_in_text": "Phát hiện bạn chưa đăng nhập vào tài khoản, vui lòng đăng nhập và thử lại"
+    "not_logged_in_text": "Phát hiện bạn chưa đăng nhập tài khoản, vui lòng đăng nhập và thử lại"
   },
   "category": {
-    "select_hint": "Chọn vấn đề mà bạn gặp phải",
-    "select_hint_home": "Chọn loại vấn đề",
-    "faqs": "Câu hỏi liên quan",
-    "title": "Phân loại vấn đề"
+    "select_hint": "Chọn vấn đề bạn gặp phải",
+    "select_hint_home": "Chọn loại câu hỏi",
+    "faqs": "Câu hỏi liên quan và trả lời",
+    "title": "Phân loại câu hỏi"
   },
   "topic": {
     "title": "Câu hỏi thường gặp",
-    "hint": "Nếu như nội dung trên không giúp bạn được, bạn có thể"
+    "hint": "Nếu nội dung trên không giúp ích cho bạn, bạn có thể"
   },
   "ticket": {
-    "record": "Lịch sử yêu cầu hỗ trợ",
-    "no_record": "Không có lịch sử yêu cầu hỗ trợ",
-    "no_more_record": "Không có thêm dữ liệu",
+    "record": "Hồ sơ vấn đề",
+    "no_record": "Không có câu hỏi nào được ghi lại",
+    "no_more_record": "Không có thêm bản ghi nào",
     "create": {
-      "success": "Yêu cầu hỗ trợ đã được gửi thành công",
-      "success_text": "$t(ticket.create.success)，chúng tôi sẽ xử lý yêu cầu của bạn sớm nhất có thể"
+      "success": "Thành công khi nộp,",
+      "success_text": "$t(ticket.create.success), chúng tôi sẽ xử lý cho bạn sớm nhất có thể"
     },
-    "detail": "Chi tiết yêu cầu hỗ trợ",
+    "detail": "Chi tiết vấn đề",
     "resolved": "Đã xử lý",
     "unResolved": "Đang xử lý",
     "contact": "Liên hệ dịch vụ khách hàng"
   },
   "reply": {
-    "staff_title": "Đội ngũ hỗ trợ khách hàng",
-    "my_title": "Tôi",
-    "input_content_hint": "Nhập nội dung"
+    "staff_title": "Dịch vụ chăm sóc khách hàng chính thức",
+    "my_title": "Tôi tự mình,",
+    "input_content_hint": "Vui lòng nhập nội dung"
   },
   "status": {
-    "new": "Chờ xử lý",
-    "waiting_on_staff": "Chờ phản hồi từ đội ngũ hỗ trợ khách hàng",
-    "waiting_on_customer": "Chờ phản hồi từ khách hàng",
+    "new": "Chờ xử lý,",
+    "waiting_on_staff": "Chờ phản hồi từ dịch vụ khách hàng",
+    "waiting_on_customer": "Chờ người dùng trả lời",
     "resolved": "Đã giải quyết"
   },
   "evaluation": {
-    "title": "Đánh giá và phản hồi dịch vụ",
-    "useful": "Hữu ích",
-    "useless": "Không hữu ích",
-    "content_hint": "Thông tin bổ sung (không bắt buộc)",
-    "created_text": "Chúng tôi đã nhận được đánh giá của bạn, cảm ơn bạn đã phản hồi!",
-    "change": "Thay đổi đánh giá"
+    "title": "Đánh giá dịch vụ và phản hồi",
+    "useful": "Có ích",
+    "useless": "vô ích",
+    "content_hint": "Bổ sung thông tin (không bắt buộc)",
+    "created_text": "Phản hồi của bạn đã được nhận, cảm ơn bạn đã gửi phản hồi!",
+    "change": "Chỉnh sửa đánh giá"
   },
   "validation": {
-    "required": "Nội dung này không được để trống",
-    "attachment_too_big": "Tập tin quá lớn",
-    "attachment_too_big_text": "Dung lượng tập tin không được vượt quá {{size}} {{unit}}",
-    "attachment_not_uploaded": "Vui lòng đợi tập tin được tải lên",
-    "number_required": "Không được chứa các ký tự không phải số",
-    "invalid": "Nội dung không hợp lệ"
+    "required": "Nội dung không được để trống",
+    "attachment_too_big": "Tải lên thất bại",
+    "attachment_too_big_text": "Kích thước tệp đính kèm không được vượt quá {{size}} {{unit}}",
+    "attachment_not_uploaded": "Vui lòng đợi tệp đính kèm tải lên xong",
+    "number_required": "Không được chứa ký tự không phải số",
+    "invalid": "Nhập không hợp lệ"
   },
-  "network_error": "Lỗi mạng, vui lòng thử lại",
-  "network_error.retry": "Thử lại"
+  "network_error": "Lỗi mạng, vui lòng thử kết nối lại",
+  "network_error.retry": "Thử kết nối lại"
 }

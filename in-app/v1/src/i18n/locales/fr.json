@@ -2,95 +2,95 @@
   "general": {
     "commit": "Soumettre",
     "loading": "Chargement en cours",
-    "select_hint": "Veuillez sélectionner",
-    "collapse": "Réduire",
-    "expand": "Agrandir",
-    "number": "Numéro",
-    "status": "Statut",
+    "select_hint": "Veuillez choisir",
+    "collapse": "Effondrement",
+    "expand": "Développer",
+    "number": "Numéro de Réf.",
+    "status": "État",
     "title": "Titre",
     "description": "Description",
     "attachment": "Pièce jointe",
     "send": "Envoyer",
     "confirm": "Confirmer",
-    "no_data": "Pas de données disponibles",
-    "call_center": "Centre d'appel",
-    "click_to_upload": "Cliquer pour téléverser",
+    "no_data": "Aucune donnée pour le moment",
+    "call_center": "Centre de support",
+    "click_to_upload": "Cliquez pour télécharger",
     "content_deleted": "Le contenu a été supprimé",
-    "not_found": "Le contenu est introuvable",
+    "not_found": "Ce contenu n'existe pas",
     "cancel": "Annuler",
-    "update_time": "Heure de mise à jour",
+    "update_time": "Temps de mise à jour",
     "update_date": "Date de mise à jour"
   },
   "home": {
-    "empty": "Aucun contenu n'a été configuré pour cette catégorie"
+    "empty": "Aucun contenu d'affichage configuré dans la catégorie actuelle"
   },
   "feedback": {
-    "suffix": "de retour",
-    "action": "Je veux donner un retour",
-    "record": "Historique de retour",
-    "submit": "Envoyer un retour"
+    "suffix": "Retour d'information",
+    "action": "Envoyer des commentaires",
+    "record": "Enregistrement des commentaires",
+    "submit": "Soumettre des commentaires"
   },
   "faqs": {
     "showAll": "Voir tout",
     "similar": "Questions similaires"
   },
   "notice": {
-    "title": "Avis",
-    "hint": "Si les informations ci-dessus ne vous aident pas"
+    "title": "Annonce,",
+    "hint": "Si le contenu ci-dessus ne vous a pas aidé"
   },
   "auth": {
-    "not_logged_in_text": "Nous avons détecté que vous n'êtes pas connecté. Veuillez vous connecter et réessayer"
+    "not_logged_in_text": "Détecté que vous n'êtes pas connecté à votre compte, veuillez vous connecter et réessayer"
   },
   "category": {
-    "select_hint": "Sélectionnez le type de problème rencontré",
-    "select_hint_home": "Sélectionnez le type de problème",
-    "faqs": "Réponses aux questions fréquentes",
-    "title": "Classification des problèmes"
+    "select_hint": "Sélectionnez le problème que vous rencontrez",
+    "select_hint_home": "Choisissez le type de problème",
+    "faqs": "Questions relatives et réponses",
+    "title": "Catégories de problèmes"
   },
   "topic": {
-    "title": "Questions fréquentes",
-    "hint": "Si les informations ci-dessus ne vous aident pas, vous pouvez"
+    "title": "FAQs",
+    "hint": "Si le contenu ci-dessus ne vous a pas aidé, vous pouvez"
   },
   "ticket": {
-    "record": "Historique des problèmes",
-    "no_record": "Aucun problème enregistré",
-    "no_more_record": "Aucun autre enregistrement",
+    "record": "Problèmes enregistrés",
+    "no_record": "Aucun problème enregistré pour le moment",
+    "no_more_record": "Aucun enregistrement supplémentaire",
     "create": {
-      "success": "Envoyé avec succès",
-      "success_text": "$t(ticket.create.success)，nous allons le traiter dès que possible"
+      "success": "Soumission réussie,",
+      "success_text": "$t(ticket.create.success), nous traiterons votre demande dans les plus brefs délais"
     },
     "detail": "Détails du problème",
-    "resolved": "Résolu",
+    "resolved": "Traité",
     "unResolved": "En cours de traitement",
     "contact": "Contacter le service client"
   },
   "reply": {
     "staff_title": "Service client officiel",
-    "my_title": "Moi-même",
-    "input_content_hint": "Saisissez votre message"
+    "my_title": "Moi-même,",
+    "input_content_hint": "Veuillez entrer le contenu"
   },
   "status": {
-    "new": "En attente de traitement",
-    "waiting_on_staff": "En attente de réponse du service client",
-    "waiting_on_customer": "En attente de réponse du client",
+    "new": "En attente de traitement,",
+    "waiting_on_staff": "En attente de réponse du service clientèle",
+    "waiting_on_customer": "En attente de la réponse de l'utilisateur",
     "resolved": "Résolu"
   },
   "evaluation": {
-    "title": "Évaluation de service et retours",
+    "title": "Évaluation du service et commentaires",
     "useful": "Utile",
     "useless": "Inutile",
-    "content_hint": "Information complémentaire (non obligatoire)",
-    "created_text": "Votre évaluation a été reçue, merci pour votre retour !",
+    "content_hint": "Instructions supplémentaires (facultatif)",
+    "created_text": "Votre retour a été reçu, merci pour vos commentaires!",
     "change": "Modifier l'évaluation"
   },
   "validation": {
-    "required": "Ce champ ne peut pas être vide",
-    "attachment_too_big": "Échec de l'envoi",
-    "attachment_too_big_text": "La taille de la pièce jointe ne peut pas dépasser {{size}} {{unit}}",
-    "attachment_not_uploaded": "Veuillez patienter jusqu'à la fin du téléchargement de la pièce jointe",
-    "number_required": "Ce champ ne peut contenir que des chiffres",
+    "required": "Le contenu ne peut pas être vide",
+    "attachment_too_big": "Échec de l'upload",
+    "attachment_too_big_text": "La taille des pièces jointes ne doit pas dépasser {{size}} {{unit}}",
+    "attachment_not_uploaded": "Veuillez attendre la fin du téléchargement de la pièce jointe",
+    "number_required": "Ne peut contenir que des caractères numériques",
     "invalid": "Entrée non valide"
   },
-  "network_error": "Erreur de réseau, veuillez réessayer",
-  "network_error.retry": "Réessayer"
+  "network_error": "Erreur de connexion, veuillez essayer de vous reconnecter",
+  "network_error.retry": "Tentative de reconnexion"
 }

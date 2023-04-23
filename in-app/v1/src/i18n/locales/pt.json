@@ -2,10 +2,10 @@
   "general": {
     "commit": "Enviar",
     "loading": "Carregando",
-    "select_hint": "Por favor selecione",
-    "collapse": "Recolher",
-    "expand": "Expandir",
-    "number": "Número",
+    "select_hint": "Por favor, escolha",
+    "collapse": "Colapso",
+    "expand": "Expanda",
+    "number": "Número de Referência",
     "status": "Estado",
     "title": "Título",
     "description": "Descrição",
@@ -13,84 +13,84 @@
     "send": "Enviar",
     "confirm": "Confirmar",
     "no_data": "Sem dados disponíveis",
-    "call_center": "Centro de Atendimento",
-    "click_to_upload": "Clique para enviar",
-    "content_deleted": "Este conteúdo foi removido",
-    "not_found": "Conteúdo não encontrado",
+    "call_center": "Centro de Atendimento ao Cliente",
+    "click_to_upload": "Clique para fazer upload",
+    "content_deleted": "O conteúdo foi excluído",
+    "not_found": "O conteúdo não existe",
     "cancel": "Cancelar",
-    "update_time": "Última atualização",
-    "update_date": "Data da última atualização"
+    "update_time": "Tempo de atualização",
+    "update_date": "Data de atualização"
   },
   "home": {
-    "empty": "Nenhum conteúdo disponível nesta categoria"
+    "empty": "Nenhum conteúdo de exibição configurado na categoria atual"
   },
   "feedback": {
     "suffix": "Feedback",
     "action": "Enviar Feedback",
-    "record": "Histórico de Feedback",
-    "submit": "Enviar Feedback"
+    "record": "Registo de feedback",
+    "submit": "Enviar feedback"
   },
   "faqs": {
-    "showAll": "Mostrar Todos",
-    "similar": "Perguntas Semelhantes"
+    "showAll": "Visualizar tudo",
+    "similar": "Questões semelhantes"
   },
   "notice": {
-    "title": "Aviso",
-    "hint": "Se o conteúdo acima não for útil para você,"
+    "title": "Aviso,",
+    "hint": "Se o conteúdo acima não te ajudou"
   },
   "auth": {
-    "not_logged_in_text": "Detectamos que você não está logado em sua conta. Por favor, faça o login e tente novamente"
+    "not_logged_in_text": "Detetamos que você não está logado na sua conta. Por favor, faça login e tente novamente."
   },
   "category": {
-    "select_hint": "Por favor selecione a categoria da sua pergunta",
-    "select_hint_home": "Selecione o tipo de pergunta",
-    "faqs": "Perguntas Frequentes",
-    "title": "Categoria de Perguntas"
+    "select_hint": "Escolha o problema que você está enfrentando",
+    "select_hint_home": "Selecione o tipo de problema",
+    "faqs": "Respostas às perguntas relacionadas",
+    "title": "Classificação de Problemas"
   },
   "topic": {
     "title": "Perguntas Frequentes",
-    "hint": "Se o conteúdo acima não for útil para você, você pode"
+    "hint": "Se o conteúdo acima não te ajudou, você pode"
   },
   "ticket": {
-    "record": "Histórico de Problemas",
-    "no_record": "Nenhum registro encontrado",
-    "no_more_record": "Não há mais registros",
+    "record": "Registro de problemas",
+    "no_record": "Sem registros de problemas",
+    "no_more_record": "Sem mais registros",
     "create": {
-      "success": "Enviado com sucesso",
-      "success_text": "$t(ticket.create.success), entraremos em contato o mais breve possível"
+      "success": "Submissão bem-sucedida",
+      "success_text": "$t(ticket.create.success), iremos tratar o seu pedido o mais breve possível"
     },
-    "detail": "Detalhes do Problema",
-    "resolved": "Resolvido",
-    "unResolved": "Não resolvido",
-    "contact": "Contate o Atendimento ao Cliente"
+    "detail": "Detalhes do problema",
+    "resolved": "Processado",
+    "unResolved": "Em processamento",
+    "contact": "Entre em contato com o suporte ao cliente"
   },
   "reply": {
-    "staff_title": "Atendimento ao Cliente Oficial",
-    "my_title": "Eu",
-    "input_content_hint": "Por favor, digite aqui"
+    "staff_title": "Suporte oficial",
+    "my_title": "Eu mesmo,",
+    "input_content_hint": "Por favor, insira o conteúdo"
   },
   "status": {
-    "new": "Aguardando Atendimento",
-    "waiting_on_staff": "Aguardando resposta do Atendimento",
-    "waiting_on_customer": "Aguardando resposta do Cliente",
+    "new": "Aguardando processamento,",
+    "waiting_on_staff": "Aguardando resposta do suporte",
+    "waiting_on_customer": "Aguardando resposta do usuário",
     "resolved": "Resolvido"
   },
   "evaluation": {
-    "title": "Avaliação do Serviço e Feedback",
+    "title": "Avaliação de serviço e feedback",
     "useful": "Útil",
-    "useless": "Não útil",
-    "content_hint": "Comentários adicionais (opcional)",
-    "created_text": "Seu feedback foi recebido. Obrigado!",
+    "useless": "Sem utilidade",
+    "content_hint": "Adendo (opcional)",
+    "created_text": "O seu feedback foi recebido, obrigado pela sua contribuição!",
     "change": "Alterar Avaliação"
   },
   "validation": {
-    "required": "Este campo é obrigatório",
-    "attachment_too_big": "Falha ao fazer upload",
-    "attachment_too_big_text": "O tamanho do anexo não pode ser superior a {{size}} {{unit}}",
-    "attachment_not_uploaded": "Aguarde o upload do anexo ser concluído",
+    "required": "O conteúdo não pode estar vazio",
+    "attachment_too_big": "Falha no envio",
+    "attachment_too_big_text": "O tamanho do anexo não pode exceder {{size}} {{unit}}",
+    "attachment_not_uploaded": "Por favor, aguarde o envio do anexo ser concluído",
     "number_required": "Não pode conter caracteres não numéricos",
     "invalid": "Entrada inválida"
   },
-  "network_error": "Erro de rede, tente novamente",
-  "network_error.retry": "Tentar Novamente"
+  "network_error": "Conexão instável, por favor tente reconectar",
+  "network_error.retry": "Tentando reconectar"
 }
