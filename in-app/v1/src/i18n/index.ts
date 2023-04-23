@@ -18,7 +18,6 @@ import pt from './locales/pt.json';
 import tr from './locales/tr.json';
 import vi from './locales/vi.json';
 import it from './locales/it.json';
-import ar from './locales/ar.json';
 
 const resources = {
   'zh-CN': {
@@ -68,9 +67,6 @@ const resources = {
   },
   it: {
     translation: it,
-  },
-  ar: {
-    translation: ar,
   },
 };
 
