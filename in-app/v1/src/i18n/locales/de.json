@@ -1,11 +1,11 @@
 {
   "general": {
-    "commit": "Bestätigen",
-    "loading": "Wird geladen",
-    "select_hint": "Bitte auswählen",
-    "collapse": "Einklappen",
-    "expand": "Ausklappen",
-    "number": "Nummer",
+    "commit": "Absenden",
+    "loading": "Ladevorgang",
+    "select_hint": "Bitte wählen",
+    "collapse": "Einsturz",
+    "expand": "Erweitern",
+    "number": "Ref. Nummer",
     "status": "Status",
     "title": "Titel",
     "description": "Beschreibung",
@@ -13,84 +13,84 @@
     "send": "Senden",
     "confirm": "Bestätigen",
     "no_data": "Keine Daten vorhanden",
-    "call_center": "Call Center",
-    "click_to_upload": "Klicken zum Hochladen",
-    "content_deleted": "Dieser Inhalt wurde gelöscht",
-    "not_found": "Dieser Inhalt wurde nicht gefunden",
+    "call_center": "Kundenservicezentrum",
+    "click_to_upload": "Klicken Sie zum Hochladen",
+    "content_deleted": "Der Inhalt wurde gelöscht.",
+    "not_found": "Der Inhalt existiert nicht",
     "cancel": "Abbrechen",
     "update_time": "Aktualisierungszeit",
     "update_date": "Aktualisierungsdatum"
   },
   "home": {
-    "empty": "Keine Anzeigeinhalte für diese Kategorie konfiguriert"
+    "empty": "In der aktuellen Kategorie sind keine Inhalte zur Anzeige konfiguriert."
   },
   "feedback": {
     "suffix": "Feedback",
-    "action": "Feedback geben",
-    "record": "Feedback-Verlauf",
-    "submit": "Feedback senden"
+    "action": "Gib Feedback",
+    "record": "Feedback-Aufzeichnung",
+    "submit": "Geben Sie Feedback ein"
   },
   "faqs": {
     "showAll": "Alle anzeigen",
     "similar": "Ähnliche Fragen"
   },
   "notice": {
-    "title": "Ankündigung",
-    "hint": "Wenn Ihnen die obigen Inhalte nicht geholfen haben"
+    "title": "Bekanntmachung,",
+    "hint": "Falls die obigen Informationen Ihnen nicht weitergeholfen haben"
   },
   "auth": {
-    "not_logged_in_text": "Es wurde erkannt, dass Sie nicht angemeldet sind. Bitte melden Sie sich an und versuchen Sie es erneut."
+    "not_logged_in_text": "Es wurde festgestellt, dass Sie nicht angemeldet sind. Bitte melden Sie sich an und versuchen Sie es erneut."
   },
   "category": {
-    "select_hint": "Wählen Sie das Problem, das Sie haben",
-    "select_hint_home": "Wählen Sie den Fragetyp",
-    "faqs": "Antworten auf ähnliche Fragen",
-    "title": "Problemkategorie"
+    "select_hint": "Wählen Sie das Problem, auf das Sie stoßen",
+    "select_hint_home": "Wählen Sie den Problem-Typ",
+    "faqs": "Antworten auf häufig gestellte Fragen",
+    "title": "Fragenkategorien"
   },
   "topic": {
     "title": "Häufig gestellte Fragen",
-    "hint": "Wenn Ihnen die oben genannten Inhalte nicht geholfen haben, können Sie"
+    "hint": "Falls die obigen Informationen nicht hilfreich für dich waren, kannst du"
   },
   "ticket": {
-    "record": "Problemverlauf",
-    "no_record": "Keine Problemverläufe",
-    "no_more_record": "Keine weiteren Einträge vorhanden",
+    "record": "Fragenprotokoll",
+    "no_record": "Keine Probleme bisher",
+    "no_more_record": "Keine weiteren Aufzeichnungen",
     "create": {
-      "success": "Erfolgreich gesendet",
-      "success_text": "$t(ticket.create.success)，Wir werden uns so schnell wie möglich um Ihr Anliegen kümmern"
+      "success": "Erfolgreich abgeschickt",
+      "success_text": "$t(ticket.create.success), wir werden uns so schnell wie möglich darum kümmern"
     },
-    "detail": "Details zum Problem",
-    "resolved": "Gelöst",
+    "detail": "Fragendetails",
+    "resolved": "Bearbeitet",
     "unResolved": "In Bearbeitung",
-    "contact": "Kontaktieren Sie den Kundenservice"
+    "contact": "Kundenservice kontaktieren"
   },
   "reply": {
     "staff_title": "Offizieller Kundenservice",
-    "my_title": "Ich",
-    "input_content_hint": "Bitte geben Sie einen Inhalt ein"
+    "my_title": "Ich selbst,",
+    "input_content_hint": "Bitte Inhalt eingeben"
   },
   "status": {
-    "new": "Wartet auf Bearbeitung",
-    "waiting_on_staff": "Wartet auf Antwort des Kundenservice",
-    "waiting_on_customer": "Wartet auf Antwort des Benutzers",
+    "new": "In Bearbeitung,",
+    "waiting_on_staff": "Warten auf Antwort vom Kundenservice",
+    "waiting_on_customer": "Warten auf Benutzerantwort",
     "resolved": "Gelöst"
   },
   "evaluation": {
     "title": "Servicebewertung und Feedback",
     "useful": "Nützlich",
-    "useless": "Nicht nützlich",
-    "content_hint": "Zusätzliche Informationen (optional)",
-    "created_text": "Vielen Dank für Ihr Feedback! Ihre Bewertung wurde erhalten.",
+    "useless": "Nutzlos",
+    "content_hint": "Ergänzende Informationen (optional)",
+    "created_text": "Ihr Feedback wurde erhalten, vielen Dank für Ihr Feedback!",
     "change": "Bewertung ändern"
   },
   "validation": {
-    "required": "Dieses Feld darf nicht leer sein",
-    "attachment_too_big": "Fehler beim Hochladen",
-    "attachment_too_big_text": "Anhang darf die Größe von {{size}} {{unit}} nicht überschreiten",
-    "attachment_not_uploaded": "Bitte warten Sie, bis der Anhang hochgeladen wurde",
-    "number_required": "Darf keine Nichtzahlzeichen enthalten",
+    "required": "Der Inhalt darf nicht leer sein",
+    "attachment_too_big": "Hochladen fehlgeschlagen",
+    "attachment_too_big_text": "Anhanggröße darf nicht größer als {{size}} {{unit}} sein",
+    "attachment_not_uploaded": "Bitte warten Sie, bis der Anhang vollständig hochgeladen ist",
+    "number_required": "Darf keine Nicht-Ziffern-Zeichen enthalten",
     "invalid": "Eingabe ungültig"
   },
-  "network_error": "Netzwerkfehler, bitte versuchen Sie es erneut",
-  "network_error.retry": "Erneut versuchen"
+  "network_error": "Netzwerkfehler, bitte versuchen Sie erneut zu verbinden.",
+  "network_error.retry": "Versuch erneut zu verbinden"
 }
