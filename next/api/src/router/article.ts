@@ -122,7 +122,7 @@ router.get('/detail', pagination(20), auth, customerServiceOnly, async (ctx) => 
 
   if (id) {
     articleQb.where('objectId', 'in', id);
-    translationQb.where('article', 'in', id.map(Article.ptr));
+    translationQb.where('article', 'in', id.map(Article.ptr.bind(Article)));
   }
 
   const articles = await articleQb.find(currentUser.getAuthOptions());
