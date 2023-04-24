@@ -152,15 +152,7 @@ export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
         if (category.template) {
           overwriteContent(category.template);
         }
-        setArticleIds(
-          uniq(
-            categoryPath
-              .slice()
-              .reverse()
-              .map((c) => c.articleIds || [])
-              .flat()
-          )
-        );
+        setArticleIds(category.articleIds);
       }
     },
     [overwriteContent]

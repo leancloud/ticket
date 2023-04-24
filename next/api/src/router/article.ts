@@ -102,7 +102,7 @@ router.get('/', pagination(20), auth, customerServiceOnly, async (ctx) => {
   ctx.body = articles.map((article) => new ArticleResponse(article));
 });
 
-router.get('/detail', pagination(20), auth, customerServiceOnly, async (ctx) => {
+router.get('/detail', pagination(20), auth, async (ctx) => {
   const { page, pageSize } = pagination.get(ctx);
   const { private: isPrivate, id } = findArticlesOptionSchema.validateSync(ctx.request.query);
 
@@ -130,8 +130,9 @@ router.get('/detail', pagination(20), auth, customerServiceOnly, async (ctx) => 
 
   const articleById = _.keyBy(articles, (a) => a.id);
 
-  return _(translations)
+  const response = _(translations)
     .groupBy((t) => t.articleId)
+    .pickBy((v, articleId) => articleById[articleId] !== undefined)
     .mapValues((translations, id) =>
       matchLocale(
         translations,
@@ -147,6 +148,8 @@ router.get('/detail', pagination(20), auth, customerServiceOnly, async (ctx) => 
       t.article = articleById[t.articleId!];
       return new ArticleTranslationResponse(t);
     });
+
+  ctx.body = response;
 });
 
 const createBaseArticleSchema = yup.object({
