@@ -102,53 +102,6 @@ router.get('/', pagination(20), auth, customerServiceOnly, async (ctx) => {
   ctx.body = articles.map((article) => new ArticleResponse(article));
 });
 
-router.get('/detail', pagination(20), auth, customerServiceOnly, async (ctx) => {
-  const { page, pageSize } = pagination.get(ctx);
-  const { private: isPrivate, id } = findArticlesOptionSchema.validateSync(ctx.request.query);
-
-  const currentUser = ctx.state.currentUser as User;
-
-  const articleQb = Article.queryBuilder()
-    .orderBy('createdAt', 'desc')
-    .skip((page - 1) * pageSize)
-    .limit(pageSize);
-
-  const translationQb = ArticleTranslation.queryBuilder();
-
-  if (isPrivate !== undefined) {
-    articleQb.where('private', '==', isPrivate);
-    translationQb.where('private', '==', isPrivate);
-  }
-
-  if (id) {
-    articleQb.where('objectId', 'in', id);
-    translationQb.where('article', 'in', id.map(Article.ptr.bind(Article)));
-  }
-
-  const articles = await articleQb.find(currentUser.getAuthOptions());
-  const translations = await translationQb.find({ useMasterKey: true });
-
-  const articleById = _.keyBy(articles, (a) => a.id);
-
-  return _(translations)
-    .groupBy((t) => t.articleId)
-    .mapValues((translations, id) =>
-      matchLocale(
-        translations,
-        (t) => t.language,
-        ctx.locales.matcher,
-        articleById[id].defaultLanguage
-      )
-    )
-    .values()
-    .compact()
-    .value()
-    .map((t) => {
-      t.article = articleById[t.articleId!];
-      return new ArticleTranslationResponse(t);
-    });
-});
-
 const createBaseArticleSchema = yup.object({
   name: yup.string().required(),
   private: yup.boolean(),

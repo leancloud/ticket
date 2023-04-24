@@ -73,45 +73,6 @@ export function useArticles({ queryOptions, ...options }: UseArticlesOptions = {
   return { ...results, ...data };
 }
 
-export interface FetchArticlesWithDetailResult {
-  data: ArticleTranslation[];
-  totalCount?: number;
-}
-
-export const fetchArticlesWithDetail = async (
-  options: FetchArticlesOptions
-): Promise<FetchArticlesWithDetailResult> => {
-  const { data, headers } = await http.get<ArticleTranslation[]>('/api/2/articles/detail', {
-    params: {
-      pageSize: 1000,
-      ...options,
-      id: options.id?.join(','),
-    },
-  });
-  const totalCount = headers['x-total-count'];
-  return {
-    data,
-    totalCount: totalCount ? parseInt(totalCount) : undefined,
-  };
-};
-
-export interface UseArticlesWithDetailOptions extends FetchArticlesOptions {
-  queryOptions?: UseQueryOptions<FetchArticlesWithDetailResult, Error>;
-}
-
-export function useArticlesWithDetail({
-  queryOptions,
-  ...options
-}: UseArticlesWithDetailOptions = {}) {
-  const { data, ...results } = useQuery({
-    queryKey: ['articlesWithDetail', options],
-    queryFn: () => fetchArticlesWithDetail(options),
-    ...queryOptions,
-  });
-
-  return { ...results, ...data };
-}
-
 export async function fetchArticle(id: string) {
   const { data } = await http.get<Article>(`/api/2/articles/${id}/info`);
   return data;
