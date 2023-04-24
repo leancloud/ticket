@@ -14,6 +14,8 @@ import reply from './reply';
 import ticketStats from './ticket-stats';
 import config from './config';
 
+import xd from './xd';
+
 const router = new Router({ prefix: '/api/2' }).use(catchYupError, catchLCError, catchZodError);
 
 router.use('/tickets', ticket.routes());
@@ -26,6 +28,8 @@ router.use('/time-triggers', timeTrigger.routes());
 router.use('/replies', reply.routes());
 router.use('/ticket-stats', ticketStats.routes());
 router.use('/config', config.routes());
+
+router.use('/xd', xd.routes());
 
 getControllers().forEach((controller) => {
   applyController(router, controller);
