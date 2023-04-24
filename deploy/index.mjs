@@ -171,7 +171,7 @@ try {
 
   step('Enable search')
   await task('Add Ticket index', () =>
-    http.post(`/data/apps/${appId}/Ticket/search`, {
+    http.post(`/search/apps/${appId}/Ticket/search`, {
       template: '<div></div>',
       enable: true,
       fields: [
@@ -189,14 +189,14 @@ try {
     })
   )
   await task('Add Reply index', () =>
-    http.post(`/data/apps/${appId}/Reply/search`, {
+    http.post(`/search/apps/${appId}/Reply/search`, {
       template: '<div></div>',
       enable: true,
       fields: ['content'],
     })
   )
   await task('Add TicketFieldValue index', () =>
-    http.post(`/data/apps/${appId}/TicketFieldValue/search`, {
+    http.post(`/search/apps/${appId}/TicketFieldValue/search`, {
       template: '<div></div>',
       enable: true,
       fields: ['values'],
