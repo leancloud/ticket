@@ -12,7 +12,9 @@ const useTicketForm = (formId) => {
       const { fieldIds, ...rest } = data
       return {
         ...rest,
-        fieldIds: fieldIds.filter((id) => id !== 'title' && id !== 'description'),
+        fieldIds: fieldIds.filter(
+          (id) => id !== 'title' && id !== 'details' && id !== 'attachments'
+        ),
       }
     },
     queryFn: () => http.get(`/api/1/ticket-forms/${formId}`),

@@ -478,7 +478,8 @@ const TicketFormValues = memo(({ ticket, loadMoreOpsLogs }) => {
   const { data: fieldIds } = useQuery({
     queryKey: ['meta/form', formId],
     queryFn: () => http.get(`/api/1/ticket-forms/${formId}`),
-    select: (data) => data.fieldIds.filter((id) => id !== 'title' && id !== 'description'),
+    select: (data) =>
+      data.fieldIds.filter((id) => id !== 'title' && id !== 'details' && id !== 'attachments'),
     enabled: !!formId,
     onError: (err) => addNotification(err),
   })
@@ -549,23 +550,32 @@ const TicketFormValues = memo(({ ticket, loadMoreOpsLogs }) => {
 
   return (
     <Form>
-      <hr />
-      {formFields.map((field) => {
-        return (
-          <CustomFieldDisplay
-            key={field.id}
-            field={field}
-            value={matchFormValues[field.id]}
-            user={ticket.author}
-            className={styles.field}
-          />
-        )
-      })}
-      <Form.Label>
-        <Button variant="light" size="sm" onClick={() => setEdit(true)} className="align-baseline">
-          {t('edit')}
-        </Button>
-      </Form.Label>
+      {formFields.length > 0 && (
+        <>
+          <hr />
+          {formFields.map((field) => {
+            return (
+              <CustomFieldDisplay
+                key={field.id}
+                field={field}
+                value={matchFormValues[field.id]}
+                user={ticket.author}
+                className={styles.field}
+              />
+            )
+          })}
+          <Form.Label>
+            <Button
+              variant="light"
+              size="sm"
+              onClick={() => setEdit(true)}
+              className="align-baseline"
+            >
+              {t('edit')}
+            </Button>
+          </Form.Label>
+        </>
+      )}
       {otherFields.length > 0 && (
         <>
           <hr />
