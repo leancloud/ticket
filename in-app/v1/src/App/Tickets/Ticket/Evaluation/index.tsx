@@ -60,7 +60,7 @@ export function NewEvaluation({ initData, loading, onSubmit }: NewEvaluationProp
   };
 
   return (
-    <div className="p-5 border-t border-dashed border-gray-300 text-sm">
+    <div className="py-5 px-4 border-t border-dashed border-gray-300 text-sm">
       <div className="text-gray-600">{t('evaluation.title')}</div>
 
       <div className="py-6">
@@ -90,7 +90,7 @@ export function NewEvaluation({ initData, loading, onSubmit }: NewEvaluationProp
           onChange={(e) => setContent(e.target.value)}
         />
         <Button
-          className="ml-2 w-16 text-[13px] leading-[30px]"
+          className="ml-2 text-[13px] leading-[30px]"
           disabled={star === undefined || loading}
           onClick={handleCommit}
         >

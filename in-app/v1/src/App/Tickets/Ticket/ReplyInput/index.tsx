@@ -64,7 +64,7 @@ export function ReplyInput({ onCommit }: ReplyInputProps) {
           onClick={() => setShow(true)}
         />
         <Button
-          className="shrink-0 ml-2 w-16 leading-[30px] text-[13px]"
+          className="shrink-0 ml-2 leading-[30px] text-[13px]"
           disabled={!commitable}
           onClick={handleCommit}
         >
@@ -114,7 +114,7 @@ function AdvancedReplyInput({
   return (
     <div className="bg-[#FAFAFA] border-t border-gray-100 pb-[env(safe-area-inset-bottom)]">
       <div className="relative flex px-3 py-2">
-        <div className="bg-white grow rounded-2xl border pl-3 pr-[34px] max-h-[200px] sm:max-h-[140px] overflow-y-auto text-sm">
+        <div className="bg-white grow rounded-2xl border pl-3 pr-[34px] max-h-[200px] sm:max-h-[140px] overflow-y-auto text-sm relative">
           <Editor
             autoFocus
             placeholder={t('reply.input_content_hint')}
@@ -122,7 +122,7 @@ function AdvancedReplyInput({
             onChange={onChange}
           />
           <MiniUploader
-            className="absolute right-[85px] bottom-[9px] w-[34px] h-[30px]"
+            className="absolute right-1 top-0 w-[34px] h-[30px]"
             onUpload={(files) => onUpload(files[0])}
           />
           {files && files.length > 0 && (
@@ -130,7 +130,7 @@ function AdvancedReplyInput({
           )}
         </div>
         <Button
-          className="shrink-0 w-16 mt-auto ml-2 leading-[30px] text-[13px]"
+          className="shrink-0 mt-auto ml-2 leading-[30px] text-[13px]"
           disabled={disabled}
           onClick={onCommit}
         >

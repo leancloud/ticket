@@ -14,7 +14,7 @@ export function Button({ as = 'button', secondary, className, ...props }: Button
     ...props,
     className: classNames(
       styles.button,
-      'leading-9 px-4 rounded-full text-center font-bold select-none',
+      'leading-9 px-2 min-w-[4rem] rounded-full text-center font-bold select-none',
       secondary? styles.secondary : styles.primary,
       secondary ? 'border border-gray-200 hover:text-tapBlue hover:border-tapBlue focus:text-tapBlue focus:border-tapBlue' : 'bg-tapBlue text-white',
       className

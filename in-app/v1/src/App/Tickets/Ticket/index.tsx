@@ -92,7 +92,7 @@ function ExpandButton({ expand, onClick }: ExpandButtonProps) {
 function TicketAttribute({ title, children }: PropsWithChildren<{ title: string }>) {
   return (
     <>
-      <label className="min-w-[2em] max-w-[5em] text-[#BFBFBF]">{title}</label>
+      <label className="min-w-[2em] max-w-[8em] text-[#BFBFBF]">{title}</label>
       <div className="text-[#666] overflow-hidden">{children}</div>
     </>
   );
