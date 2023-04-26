@@ -13,7 +13,7 @@
     "send": "送信",
     "confirm": "確認",
     "no_data": "一時的にデータがありません",
-    "call_center": "カスタマーサポートセンター",
+    "call_center": "客様サポートセンター",
     "click_to_upload": "クリックしてアップロード",
     "content_deleted": "このコンテンツは削除されました",
     "not_found": "このコンテンツは存在しません",
@@ -35,7 +35,7 @@
     "similar": "類似の問題"
   },
   "notice": {
-    "title": "公告,",
+    "title": "公告",
     "hint": "もし、この情報が役に立たなかった場合"
   },
   "auth": {
@@ -44,12 +44,12 @@
   "category": {
     "select_hint": "選択してください、問題に遭遇した",
     "select_hint_home": "選択問題タイプ",
-    "faqs": "関連する質問と回答",
+    "faqs": "関連記事",
     "title": "問題の分類"
   },
   "topic": {
     "title": "FAQ（よくある質問）",
-    "hint": "もし上記の内容が役に立たなかった場合、次のステップを試してみてください。"
+    "hint": "もし上記の内容が役に立たなかった場合、"
   },
   "ticket": {
     "record": "問題の記録",
@@ -65,14 +65,14 @@
     "contact": "お客様サポートに連絡"
   },
   "reply": {
-    "staff_title": "公式カスタマーサポート",
-    "my_title": "私自身,",
+    "staff_title": "公式客様サポート",
+    "my_title": "ご自身",
     "input_content_hint": "内容を入力してください"
   },
   "status": {
-    "new": "待機中",
-    "waiting_on_staff": "お客様サポートの返信をお待ちください。",
-    "waiting_on_customer": "待ち受けるユーザーの返信",
+    "new": "未処理",
+    "waiting_on_staff": "客様サポートからの回答待ち",
+    "waiting_on_customer": "顧客の回答待ち",
     "resolved": "解決済み"
   },
   "evaluation": {
@@ -92,5 +92,5 @@
     "invalid": "入力が無効です"
   },
   "network_error": "ネットワーク異常が発生しました。再接続をお試しください。",
-  "network_error.retry": "試みに再接続"
+  "network_error.retry": "再接続"
 }

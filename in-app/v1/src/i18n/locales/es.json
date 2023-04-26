@@ -35,7 +35,7 @@
     "similar": "Preguntas similares"
   },
   "notice": {
-    "title": "Aviso,",
+    "title": "Aviso",
     "hint": "Si el contenido anterior no te ha sido de ayuda"
   },
   "auth": {
@@ -44,7 +44,7 @@
   "category": {
     "select_hint": "Seleccione el problema que enfrenta",
     "select_hint_home": "Seleccione el tipo de problema",
-    "faqs": "Respuestas a preguntas relacionadas",
+    "faqs": "Artículos relacionados",
     "title": "Categoría de preguntas"
   },
   "topic": {
@@ -66,11 +66,11 @@
   },
   "reply": {
     "staff_title": "Servicio al cliente oficial",
-    "my_title": "Yo mismo,",
+    "my_title": "Usted",
     "input_content_hint": "Por favor, ingrese el contenido"
   },
   "status": {
-    "new": "Pendiente de procesar,",
+    "new": "Pendiente de procesar",
     "waiting_on_staff": "Esperando respuesta del servicio al cliente",
     "waiting_on_customer": "Esperando respuesta del usuario",
     "resolved": "Resuelto"
@@ -92,5 +92,5 @@
     "invalid": "Entrada no válida"
   },
   "network_error": "Error de conexión, por favor intente reconectar",
-  "network_error.retry": "Intentando reconectar"
+  "network_error.retry": "Reconectar"
 }

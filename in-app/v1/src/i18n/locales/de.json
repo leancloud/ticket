@@ -35,7 +35,7 @@
     "similar": "Ähnliche Fragen"
   },
   "notice": {
-    "title": "Bekanntmachung,",
+    "title": "Bekanntmachung",
     "hint": "Falls die obigen Informationen Ihnen nicht weitergeholfen haben"
   },
   "auth": {
@@ -44,7 +44,7 @@
   "category": {
     "select_hint": "Wählen Sie das Problem, auf das Sie stoßen",
     "select_hint_home": "Wählen Sie den Problem-Typ",
-    "faqs": "Antworten auf häufig gestellte Fragen",
+    "faqs": "Verwandte Artikel",
     "title": "Fragenkategorien"
   },
   "topic": {
@@ -66,11 +66,11 @@
   },
   "reply": {
     "staff_title": "Offizieller Kundenservice",
-    "my_title": "Ich selbst,",
+    "my_title": "Sie",
     "input_content_hint": "Bitte Inhalt eingeben"
   },
   "status": {
-    "new": "In Bearbeitung,",
+    "new": "In Bearbeitung",
     "waiting_on_staff": "Warten auf Antwort vom Kundenservice",
     "waiting_on_customer": "Warten auf Benutzerantwort",
     "resolved": "Gelöst"
@@ -92,5 +92,5 @@
     "invalid": "Eingabe ungültig"
   },
   "network_error": "Netzwerkfehler, bitte versuchen Sie erneut zu verbinden.",
-  "network_error.retry": "Versuch erneut zu verbinden"
+  "network_error.retry": "Wiederverbinden"
 }

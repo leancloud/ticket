@@ -35,7 +35,7 @@
     "similar": "유사한 질문"
   },
   "notice": {
-    "title": "공지사항,",
+    "title": "공지사항",
     "hint": "만약 이 내용이 도움이 되지 않았다면"
   },
   "auth": {
@@ -44,7 +44,7 @@
   "category": {
     "select_hint": "선택하신 문제를 알려주세요",
     "select_hint_home": "선택할 문제 유형",
-    "faqs": "관련 질문 답변",
+    "faqs": "관련 기사",
     "title": "문제 분류"
   },
   "topic": {
@@ -66,11 +66,11 @@
   },
   "reply": {
     "staff_title": "공식 고객지원",
-    "my_title": "나 자신,",
+    "my_title": "당신",
     "input_content_hint": "내용을 입력하십시오"
   },
   "status": {
-    "new": "대기 중,",
+    "new": "대기 중",
     "waiting_on_staff": "고객 서비스 답변 대기중",
     "waiting_on_customer": "대기 중인 사용자 답변",
     "resolved": "해결됨"
@@ -92,5 +92,5 @@
     "invalid": "입력이 유효하지 않습니다"
   },
   "network_error": "네트워크 이상, 다시 연결 시도해 주세요",
-  "network_error.retry": "재연결 시도 중"
+  "network_error.retry": "재연결"
 }

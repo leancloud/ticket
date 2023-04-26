@@ -35,7 +35,7 @@
     "similar": "Similar Questions"
   },
   "notice": {
-    "title": "Announcement,",
+    "title": "Announcement",
     "hint": "If the above information was not helpful to you"
   },
   "auth": {
@@ -44,7 +44,7 @@
   "category": {
     "select_hint": "Select the issue you're experiencing",
     "select_hint_home": "Select Problem Type",
-    "faqs": "Related Issues",
+    "faqs": "Related Articles",
     "title": "Issue Categories"
   },
   "topic": {
@@ -66,11 +66,11 @@
   },
   "reply": {
     "staff_title": "Official Customer Support",
-    "my_title": "I, myself,",
+    "my_title": "You",
     "input_content_hint": "Please enter content"
   },
   "status": {
-    "new": "Pending,",
+    "new": "Pending",
     "waiting_on_staff": "Waiting for customer support response",
     "waiting_on_customer": "Awaiting user response",
     "resolved": "Resolved"
@@ -92,5 +92,5 @@
     "invalid": "Invalid input"
   },
   "network_error": "Network error, please try reconnecting",
-  "network_error.retry": "Attempting to reconnect"
+  "network_error.retry": "Reconnect"
 }

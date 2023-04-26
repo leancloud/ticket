@@ -35,7 +35,7 @@
     "similar": "Domande simili"
   },
   "notice": {
-    "title": "Annuncio,",
+    "title": "Annuncio",
     "hint": "Se il contenuto sopra non ti è stato d'aiuto"
   },
   "auth": {
@@ -44,7 +44,7 @@
   "category": {
     "select_hint": "Scegli il problema che hai riscontrato",
     "select_hint_home": "Seleziona il tipo di problema",
-    "faqs": "Domande correlate risposte",
+    "faqs": "Articoli correlati",
     "title": "Categorie di problemi"
   },
   "topic": {
@@ -66,11 +66,11 @@
   },
   "reply": {
     "staff_title": "Ufficio assistenza ufficiale",
-    "my_title": "Io stesso,",
+    "my_title": "Lei",
     "input_content_hint": "Inserisci il contenuto"
   },
   "status": {
-    "new": "In attesa di elaborazione,",
+    "new": "In attesa di elaborazione",
     "waiting_on_staff": "In attesa di risposta dal servizio clienti",
     "waiting_on_customer": "In attesa della risposta dell'utente",
     "resolved": "Risolto"
@@ -92,5 +92,5 @@
     "invalid": "Inserimento non valido"
   },
   "network_error": "Errore di connessione, si prega di tentare la riconnessione",
-  "network_error.retry": "Tentativo di riconnessione"
+  "network_error.retry": "Riconnetti"
 }

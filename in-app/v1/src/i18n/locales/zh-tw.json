@@ -44,7 +44,7 @@
   "category": {
     "select_hint": "選擇您所遇到的問題",
     "select_hint_home": "選擇問題類型",
-    "faqs": "相關問題解答",
+    "faqs": "相關文章",
     "title": "问题分类"
   },
   "topic": {
@@ -66,11 +66,11 @@
   },
   "reply": {
     "staff_title": "官方客服",
-    "my_title": "我自己",
+    "my_title": "您",
     "input_content_hint": "請輸入內容"
   },
   "status": {
-    "new": "待處理,",
+    "new": "待處理",
     "waiting_on_staff": "等待客服回覆",
     "waiting_on_customer": "等待使用者回覆",
     "resolved": "已解決"
@@ -92,5 +92,5 @@
     "invalid": "輸入不合法"
   },
   "network_error": "網路異常，請嘗試重新連線",
-  "network_error.retry": "嘗試重新連線"
+  "network_error.retry": "重新連線"
 }

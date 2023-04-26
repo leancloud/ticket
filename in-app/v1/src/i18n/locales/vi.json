@@ -35,7 +35,7 @@
     "similar": "Tương tự câu hỏi"
   },
   "notice": {
-    "title": "Thông báo,",
+    "title": "Thông báo",
     "hint": "Nếu nội dung trên không giúp ích cho bạn"
   },
   "auth": {
@@ -44,7 +44,7 @@
   "category": {
     "select_hint": "Chọn vấn đề bạn gặp phải",
     "select_hint_home": "Chọn loại câu hỏi",
-    "faqs": "Câu hỏi liên quan và trả lời",
+    "faqs": "Bài viết liên quan",
     "title": "Phân loại câu hỏi"
   },
   "topic": {
@@ -56,7 +56,7 @@
     "no_record": "Không có câu hỏi nào được ghi lại",
     "no_more_record": "Không có thêm bản ghi nào",
     "create": {
-      "success": "Thành công khi nộp,",
+      "success": "Thành công khi nộp",
       "success_text": "$t(ticket.create.success), chúng tôi sẽ xử lý cho bạn sớm nhất có thể"
     },
     "detail": "Chi tiết vấn đề",
@@ -66,11 +66,11 @@
   },
   "reply": {
     "staff_title": "Dịch vụ chăm sóc khách hàng chính thức",
-    "my_title": "Tôi tự mình,",
+    "my_title": "Bạn",
     "input_content_hint": "Vui lòng nhập nội dung"
   },
   "status": {
-    "new": "Chờ xử lý,",
+    "new": "Chờ xử lý",
     "waiting_on_staff": "Chờ phản hồi từ dịch vụ khách hàng",
     "waiting_on_customer": "Chờ người dùng trả lời",
     "resolved": "Đã giải quyết"
@@ -92,5 +92,5 @@
     "invalid": "Nhập không hợp lệ"
   },
   "network_error": "Lỗi mạng, vui lòng thử kết nối lại",
-  "network_error.retry": "Thử kết nối lại"
+  "network_error.retry": "Kết nối lại"
 }

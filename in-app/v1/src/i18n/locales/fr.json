@@ -35,7 +35,7 @@
     "similar": "Questions similaires"
   },
   "notice": {
-    "title": "Annonce,",
+    "title": "Annonce",
     "hint": "Si le contenu ci-dessus ne vous a pas aidé"
   },
   "auth": {
@@ -44,7 +44,7 @@
   "category": {
     "select_hint": "Sélectionnez le problème que vous rencontrez",
     "select_hint_home": "Choisissez le type de problème",
-    "faqs": "Questions relatives et réponses",
+    "faqs": "Articles associés",
     "title": "Catégories de problèmes"
   },
   "topic": {
@@ -56,7 +56,7 @@
     "no_record": "Aucun problème enregistré pour le moment",
     "no_more_record": "Aucun enregistrement supplémentaire",
     "create": {
-      "success": "Soumission réussie,",
+      "success": "Soumission réussie",
       "success_text": "$t(ticket.create.success), nous traiterons votre demande dans les plus brefs délais"
     },
     "detail": "Détails du problème",
@@ -66,11 +66,11 @@
   },
   "reply": {
     "staff_title": "Service client officiel",
-    "my_title": "Moi-même,",
+    "my_title": "Vous",
     "input_content_hint": "Veuillez entrer le contenu"
   },
   "status": {
-    "new": "En attente de traitement,",
+    "new": "En attente de traitement",
     "waiting_on_staff": "En attente de réponse du service clientèle",
     "waiting_on_customer": "En attente de la réponse de l'utilisateur",
     "resolved": "Résolu"
@@ -92,5 +92,5 @@
     "invalid": "Entrée non valide"
   },
   "network_error": "Erreur de connexion, veuillez essayer de vous reconnecter",
-  "network_error.retry": "Tentative de reconnexion"
+  "network_error.retry": "Se reconnecter"
 }

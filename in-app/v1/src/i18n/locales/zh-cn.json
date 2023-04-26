@@ -44,7 +44,7 @@
   "category": {
     "select_hint": "选择你遇到的问题",
     "select_hint_home": "选择问题类型",
-    "faqs": "相关问题解答",
+    "faqs": "相关文章",
     "title": "问题分类"
   },
   "topic": {
@@ -66,7 +66,7 @@
   },
   "reply": {
     "staff_title": "官方客服",
-    "my_title": "我自己",
+    "my_title": "您",
     "input_content_hint": "请输入内容"
   },
   "status": {
@@ -92,5 +92,5 @@
     "invalid": "输入不合法"
   },
   "network_error": "网络异常，请尝试重连",
-  "network_error.retry": "尝试重连"
+  "network_error.retry": "重新连接"
 }

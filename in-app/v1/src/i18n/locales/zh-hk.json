@@ -44,7 +44,7 @@
   "category": {
     "select_hint": "選擇您遇到的問題",
     "select_hint_home": "選擇問題類型",
-    "faqs": "相關問題解答",
+    "faqs": "相關文章",
     "title": "問題分類"
   },
   "topic": {
@@ -56,7 +56,7 @@
     "no_record": "暫無問題記錄",
     "no_more_record": "無更多記錄",
     "create": {
-      "success": "提交成功,",
+      "success": "提交成功",
       "success_text": "$t(ticket.create.success)，我們將儘快為您處理。"
     },
     "detail": "問題詳情",
@@ -66,11 +66,11 @@
   },
   "reply": {
     "staff_title": "官方客戶服務",
-    "my_title": "我自己",
+    "my_title": "您",
     "input_content_hint": "請輸入內容"
   },
   "status": {
-    "new": "待處理,",
+    "new": "待處理",
     "waiting_on_staff": "等候客服回覆",
     "waiting_on_customer": "等待用戶回覆",
     "resolved": "已解決"
@@ -92,5 +92,5 @@
     "invalid": "輸入不合法"
   },
   "network_error": "網絡異常，請嘗試重新連接",
-  "network_error.retry": "嘗試重新連接"
+  "network_error.retry": "重新連接"
 }

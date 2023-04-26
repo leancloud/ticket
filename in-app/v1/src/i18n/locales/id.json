@@ -35,7 +35,7 @@
     "similar": "Serupa Pertanyaan"
   },
   "notice": {
-    "title": "Pengumuman,",
+    "title": "Pengumuman",
     "hint": "Jika konten di atas tidak membantu Anda"
   },
   "auth": {
@@ -44,7 +44,7 @@
   "category": {
     "select_hint": "Pilih masalah yang Anda alami",
     "select_hint_home": "Pilih Jenis Masalah",
-    "faqs": "Jawaban Pertanyaan Terkait",
+    "faqs": "Artikel terkait",
     "title": "Klasifikasi Pertanyaan"
   },
   "topic": {
@@ -66,7 +66,7 @@
   },
   "reply": {
     "staff_title": "Layanan Pelanggan Resmi",
-    "my_title": "Saya sendiri,",
+    "my_title": "Anda",
     "input_content_hint": "Masukkan konten"
   },
   "status": {
@@ -92,5 +92,5 @@
     "invalid": "Masukan tidak valid"
   },
   "network_error": "Koneksi internet bermasalah, silakan coba menyambungkan kembali",
-  "network_error.retry": "Mencoba menyambung kembali"
+  "network_error.retry": "Sambungkan kembali"
 }
