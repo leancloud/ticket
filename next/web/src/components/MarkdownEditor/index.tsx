@@ -30,7 +30,7 @@ const hooks: EditorProps['hooks'] = {
 export function useMarkdownEditor(initialValue: string, props: MarkdownEditorProps = {}) {
   const $editorRef = useRef<{ TUIEditor: ToastuiEditor | null }>({ TUIEditor: null });
   const getValue = useCallback(() => $editorRef.current.TUIEditor?.getMarkdown(), []);
-  const [editorMode = 'markdown', setEditorMode] = useLocalStorage<'markdown' | 'wysiwyg'>(
+  const [editorMode = 'wysiwyg', setEditorMode] = useLocalStorage<'markdown' | 'wysiwyg'>(
     'TapDesk:editorMode'
   );
 
