@@ -25,6 +25,7 @@
     "immer": "^9.0.12",
     "lodash-es": "^4.17.21",
     "moment": "^2.29.4",
+    "open-leancloud-storage": "^0.0.40",
     "query-string": "^7.1.1",
     "react": "^17.0.2",
     "react-beautiful-dnd": "^13.1.0",
