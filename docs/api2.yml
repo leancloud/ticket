@@ -491,7 +491,7 @@ paths:
         required: true
     get:
       tags: ['Category', 'Knowladge base']
-      summary: 获取与某个分类关联的常见问题
+      summary: 获取与某个分类关联的相关文章
       responses:
         '200':
           description: OK
@@ -1370,7 +1370,7 @@ paths:
         required: true
     get:
       tags: ['Knowladge base']
-      summary: 获取关联了该文章为常见问题或公告的分类
+      summary: 获取关联了该文章为相关文章或公告的分类
       responses:
         '200':
           description: OK

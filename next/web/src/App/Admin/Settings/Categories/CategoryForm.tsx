@@ -290,9 +290,9 @@ export function CategoryForm({
         name="articleIds"
         render={({ field }) => (
           <Form.Item
-            label="常见问题"
+            label="相关文章"
             htmlFor="category_form_article_ids"
-            help="新建工单时，选中该分类将展示的常见问题。"
+            help="提单时，选中该分类将展示的相关文章。"
             style={FORM_ITEM_STYLE}
           >
             <ArticleSelect {...field} id="category_form_article_ids" />

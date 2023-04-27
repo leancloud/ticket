@@ -48,7 +48,7 @@
             "type": "Array",
             "v": 2,
             "required": false,
-            "comment": "常见问题，关联 FAQ 表",
+            "comment": "相关文章，关联 FAQ 表",
             "hidden": false
         },
         "notices": {
