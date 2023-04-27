@@ -1,5 +1,14 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useQueryClient } from 'react-query';
+import { useDebounce } from 'react-use';
 import { Link, Outlet, useNavigate, useParams } from 'react-router-dom';
 import { AiOutlineLeft, AiOutlineReload } from 'react-icons/ai';
 import cx from 'classnames';
@@ -9,6 +18,7 @@ import moment from 'moment';
 import { useCurrentUser } from '@/leancloud';
 import { CategorySchema, useCategories } from '@/api/category';
 import { GroupSchema } from '@/api/group';
+import { useTicketOverview } from '@/api/ticket';
 import { useCustomerServiceGroups, UserSchema } from '@/api/user';
 import {
   ViewSchema,
@@ -19,11 +29,13 @@ import {
   useViewTicketCounts,
 } from '@/api/view';
 import { Empty, Spin, Table } from '@/components/antd';
+import { LoadingCover } from '@/components/common';
 import { columnLabels } from '@/App/Admin/Settings/Views/EditView';
 import { TicketStatus } from '@/App/Admin/components/TicketStatus';
 import { useGetCategoryPath } from '@/utils/useGetCategoryPath';
 import { usePage } from '@/utils/usePage';
 import { TicketLanguages } from '@/i18n/locales';
+import { createPortal } from 'react-dom';
 
 const CategoryPathContext = createContext<{
   getCategoryPath: (id: string) => CategorySchema[];
@@ -179,7 +191,7 @@ interface ColumnConfig {
 const columnConfigs: Record<string, ColumnConfig> = {
   title: {
     className: 'max-w-[250px]',
-    render: (title: string) => <div className="truncate" title={title} children={title} />,
+    render: (title: string) => <div className="truncate" children={title} />,
   },
   author: {
     render: (u: UserSchema) => <div>{u.nickname}</div>,
@@ -280,6 +292,8 @@ export function ViewTickets() {
   const { data: categories } = useCategories();
   const getCategoryPath = useGetCategoryPath(categories);
 
+  const { record: hoverTicketId, onMouseEnter, onMouseLeave, position } = useHoverRow<string>();
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -299,6 +313,8 @@ export function ViewTickets() {
           rowClassName="cursor-pointer"
           onRow={(record) => ({
             onClick: () => window.open(`/tickets/${record.nid}`),
+            onMouseEnter: () => onMouseEnter(record.id),
+            onMouseLeave,
           })}
           loading={isLoadingTickets}
           pagination={{
@@ -308,8 +324,13 @@ export function ViewTickets() {
             total: totalCount,
             showSizeChanger: false,
           }}
+          scroll={{ x: 'max-content' }}
         />
       </CategoryPathContext.Provider>
+
+      {hoverTicketId && (
+        <TicketOverviewMenu ticketId={hoverTicketId} left={position.x} top={position.y} />
+      )}
     </div>
   );
 }
@@ -423,6 +444,118 @@ export function Views() {
       <div className="grow overflow-y-auto">
         <Outlet />
       </div>
+    </div>
+  );
+}
+
+interface MousePosition {
+  x: number;
+  y: number;
+}
+
+function useMousePosition() {
+  const pos = useRef<MousePosition>({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const onMouseMove = (e: MouseEvent) => {
+      pos.current = { x: e.clientX, y: e.clientY };
+    };
+    document.addEventListener('mousemove', onMouseMove);
+    return () => {
+      document.removeEventListener('mousemove', onMouseMove);
+    };
+  }, []);
+
+  return () => pos.current;
+}
+
+function useHoverRow<T>() {
+  const getMousePosition = useMousePosition();
+  const [position, setPosition] = useState<MousePosition>({ x: 0, y: 0 });
+
+  const [record, setRecord] = useState<T>();
+  const [debouncedRecord, setDebouncedRecord] = useState<T>();
+
+  useDebounce(
+    () => {
+      setDebouncedRecord(record);
+      setPosition(getMousePosition());
+    },
+    1500,
+    [record]
+  );
+
+  const onMouseLeave = () => {
+    setRecord(undefined);
+    setDebouncedRecord(undefined);
+  };
+
+  return {
+    record: debouncedRecord,
+    onMouseEnter: setRecord,
+    onMouseLeave,
+    position,
+  };
+}
+
+function truncate(content: string, maxLength: number) {
+  if (content.length <= maxLength - 3) {
+    return content;
+  }
+  return content.slice(0, maxLength) + '...';
+}
+
+interface TicketOverviewMenuProps {
+  ticketId: string;
+  left: number;
+  top: number;
+}
+
+function TicketOverviewMenu({ ticketId, left, top }: TicketOverviewMenuProps) {
+  const { data: ticket, isLoading } = useTicketOverview(ticketId!, {
+    enabled: ticketId !== undefined,
+    staleTime: Infinity,
+    cacheTime: 1000 * 60,
+  });
+
+  const ref = useRef<HTMLDivElement>(null);
+
+  return (
+    <div
+      ref={ref}
+      className="w-[500px] min-h-[160px] bg-white rounded border shadow-xl absolute p-4 z-10 pointer-events-none"
+      style={{
+        left: ref.current
+          ? Math.min(left, document.body.clientWidth - ref.current.offsetWidth - 20)
+          : 0,
+        top: ref.current
+          ? Math.min(top, document.body.clientHeight - ref.current.offsetHeight - 20)
+          : 0,
+      }}
+    >
+      {isLoading && <LoadingCover />}
+      {ticket && (
+        <>
+          <div className="flex items-center">
+            <TicketStatus status={ticket.status} />
+            <div className="ml-4">工单 #{ticket.nid}</div>
+          </div>
+
+          <div className="font-semibold text-lg mt-4">{ticket.title}</div>
+          <div className="break-words mt-2">{truncate(ticket.content, 300)}</div>
+
+          {ticket.latestReply && (
+            <>
+              <div className="border-b mt-4 pb-2">最新评论</div>
+              <div className="flex items-center mt-2">
+                <div className="font-semibold grow">{ticket.latestReply.author.nickname}</div>
+                <div>{moment(ticket.latestReply.createdAt).fromNow()}</div>
+              </div>
+              <div className="break-words mt-2">{truncate(ticket.latestReply.content, 300)}</div>
+            </>
+          )}
+        </>
+      )}
     </div>
   );
 }
