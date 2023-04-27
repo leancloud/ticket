@@ -867,6 +867,54 @@ router.patch('/:id', async (ctx) => {
   ctx.body = {};
 });
 
+interface TicketOverview {
+  nid: number;
+  title: string;
+  content: string;
+  status: number;
+  latestReply?: {
+    content: string;
+    author: {
+      id: string;
+      nickname: string;
+    };
+    createdAt: Date;
+  };
+}
+
+router.get('/:id/overview', async (ctx) => {
+  const ticket = ctx.state.ticket as Ticket;
+
+  const latestReply = await Reply.queryBuilder()
+    .where('ticket', '==', ticket.toPointer())
+    .where('internal', 'not-exists')
+    .where('deletedAt', 'not-exists')
+    .preload('author')
+    .orderBy('createdAt', 'desc')
+    .limit(1)
+    .first({ useMasterKey: true });
+
+  const data: TicketOverview = {
+    nid: ticket.nid,
+    title: ticket.title,
+    content: ticket.content,
+    status: ticket.status,
+  };
+
+  if (latestReply) {
+    data.latestReply = {
+      content: latestReply.content,
+      author: {
+        id: latestReply.author!.id,
+        nickname: latestReply.author!.name || latestReply.author!.username,
+      },
+      createdAt: latestReply.createdAt,
+    };
+  }
+
+  ctx.body = data;
+});
+
 const fetchRepliesParamsSchema = yup.object({
   cursor: yup.date(),
   // pagination
