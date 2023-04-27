@@ -330,3 +330,34 @@ export function useExportTickets(options?: UseMutationOptions<void, Error, Expor
     ...options,
   });
 }
+
+interface TicketOverview {
+  nid: number;
+  title: string;
+  content: string;
+  status: number;
+  latestReply?: {
+    content: string;
+    author: {
+      id: string;
+      nickname: string;
+    };
+    createdAt: Date;
+  };
+}
+
+async function fetchTicketOverview(ticketId: string) {
+  const res = await http.get<TicketOverview>(`/api/2/tickets/${ticketId}/overview`);
+  return res.data;
+}
+
+export function useTicketOverview(
+  ticketId: string,
+  options?: UseQueryOptions<TicketOverview, Error>
+) {
+  return useQuery({
+    queryKey: ['ticketOverview', ticketId],
+    queryFn: () => fetchTicketOverview(ticketId),
+    ...options,
+  });
+}
