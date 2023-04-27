@@ -541,7 +541,7 @@ function TicketOverviewMenu({ ticketId, left, top }: TicketOverviewMenuProps) {
             <div className="ml-4">工单 #{ticket.nid}</div>
           </div>
 
-          <div className="font-semibold text-lg mt-4">{ticket.title}</div>
+          <div className="font-semibold mt-4">{ticket.title}</div>
           <div className="break-words mt-2">{truncate(ticket.content, 300)}</div>
 
           {ticket.latestReply && (
