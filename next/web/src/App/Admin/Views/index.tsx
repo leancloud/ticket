@@ -1,14 +1,5 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from 'react-query';
-import { useDebounce } from 'react-use';
 import { Link, Outlet, useNavigate, useParams } from 'react-router-dom';
 import { AiOutlineLeft, AiOutlineReload } from 'react-icons/ai';
 import cx from 'classnames';
@@ -35,7 +26,7 @@ import { TicketStatus } from '@/App/Admin/components/TicketStatus';
 import { useGetCategoryPath } from '@/utils/useGetCategoryPath';
 import { usePage } from '@/utils/usePage';
 import { TicketLanguages } from '@/i18n/locales';
-import { createPortal } from 'react-dom';
+import { HoverMenu, useHover } from './HoverMenu';
 
 const CategoryPathContext = createContext<{
   getCategoryPath: (id: string) => CategorySchema[];
@@ -292,7 +283,7 @@ export function ViewTickets() {
   const { data: categories } = useCategories();
   const getCategoryPath = useGetCategoryPath(categories);
 
-  const { record: hoverTicketId, onMouseEnter, onMouseLeave, position } = useHoverRow<string>();
+  const { hover, context } = useHover<string>();
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -312,9 +303,8 @@ export function ViewTickets() {
           rowKey="id"
           rowClassName="cursor-pointer"
           onRow={(record) => ({
+            ...hover(record.id),
             onClick: () => window.open(`/tickets/${record.nid}`),
-            onMouseEnter: () => onMouseEnter(record.id),
-            onMouseLeave,
           })}
           loading={isLoadingTickets}
           pagination={{
@@ -328,9 +318,9 @@ export function ViewTickets() {
         />
       </CategoryPathContext.Provider>
 
-      {hoverTicketId && (
-        <TicketOverviewMenu ticketId={hoverTicketId} left={position.x} top={position.y} />
-      )}
+      <HoverMenu context={context} className="bg-white rounded border shadow-xl">
+        {(ticketId) => <TicketOverviewMenu ticketId={ticketId} />}
+      </HoverMenu>
     </div>
   );
 }
@@ -448,56 +438,6 @@ export function Views() {
   );
 }
 
-interface MousePosition {
-  x: number;
-  y: number;
-}
-
-function useMousePosition() {
-  const pos = useRef<MousePosition>({ x: 0, y: 0 });
-
-  useEffect(() => {
-    const onMouseMove = (e: MouseEvent) => {
-      pos.current = { x: e.clientX, y: e.clientY };
-    };
-    document.addEventListener('mousemove', onMouseMove);
-    return () => {
-      document.removeEventListener('mousemove', onMouseMove);
-    };
-  }, []);
-
-  return () => pos.current;
-}
-
-function useHoverRow<T>() {
-  const getMousePosition = useMousePosition();
-  const [position, setPosition] = useState<MousePosition>({ x: 0, y: 0 });
-
-  const [record, setRecord] = useState<T>();
-  const [debouncedRecord, setDebouncedRecord] = useState<T>();
-
-  useDebounce(
-    () => {
-      setDebouncedRecord(record);
-      setPosition(getMousePosition());
-    },
-    1500,
-    [record]
-  );
-
-  const onMouseLeave = () => {
-    setRecord(undefined);
-    setDebouncedRecord(undefined);
-  };
-
-  return {
-    record: debouncedRecord,
-    onMouseEnter: setRecord,
-    onMouseLeave,
-    position,
-  };
-}
-
 function truncate(content: string, maxLength: number) {
   if (content.length <= maxLength - 3) {
     return content;
@@ -507,32 +447,17 @@ function truncate(content: string, maxLength: number) {
 
 interface TicketOverviewMenuProps {
   ticketId: string;
-  left: number;
-  top: number;
 }
 
-function TicketOverviewMenu({ ticketId, left, top }: TicketOverviewMenuProps) {
+function TicketOverviewMenu({ ticketId }: TicketOverviewMenuProps) {
   const { data: ticket, isLoading } = useTicketOverview(ticketId!, {
     enabled: ticketId !== undefined,
     staleTime: Infinity,
     cacheTime: 1000 * 60,
   });
 
-  const ref = useRef<HTMLDivElement>(null);
-
   return (
-    <div
-      ref={ref}
-      className="w-[500px] min-h-[160px] bg-white rounded border shadow-xl absolute p-4 z-10 pointer-events-none"
-      style={{
-        left: ref.current
-          ? Math.min(left, document.body.clientWidth - ref.current.offsetWidth - 20)
-          : 0,
-        top: ref.current
-          ? Math.min(top, document.body.clientHeight - ref.current.offsetHeight - 20)
-          : 0,
-      }}
-    >
+    <div className="w-[500px] min-h-[160px] p-4">
       {isLoading && <LoadingCover />}
       {ticket && (
         <>
