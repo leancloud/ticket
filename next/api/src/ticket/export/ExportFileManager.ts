@@ -1,7 +1,14 @@
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import p_fs from 'node:fs/promises';
+import path from 'node:path';
+import { exec } from 'node:child_process';
+import { promisify } from 'node:util';
 import AV from 'leancloud-storage';
 import { json2csvAsync } from 'json-2-csv';
+
+const p_exec = promisify(exec);
+
+const IN_MEMORY = process.env.TICKET_EXPORT_IN_MEMORY;
 
 type fileExtension = '.json' | '.csv';
 
@@ -106,12 +113,22 @@ export class ExportFileManager {
       return;
     }
     try {
-      const readStream = fs.createReadStream(this.file);
-      const stats = fs.statSync(this.file);
-      const file = new AV.File(path.parse(this.file).base, readStream);
-      file.metaData('size', stats.size);
-      const res = await file.save({ useMasterKey: true });
-      return res.get('url');
+      let filename: string;
+      let fileData: any;
+
+      if (IN_MEMORY) {
+        const archivePath = this.file + '.tar.gz';
+        await p_exec(`tar -czf ${archivePath} ${this.file}`);
+        filename = path.parse(archivePath).base;
+        fileData = await p_fs.readFile(archivePath);
+      } else {
+        filename = path.parse(this.file).base;
+        fileData = fs.createReadStream(this.file);
+      }
+
+      const file = new AV.File(filename, fileData);
+      await file.save({ useMasterKey: true });
+      return file.get('url');
     } catch (error) {
       console.error('[export ticket]: upload', error);
     } finally {
