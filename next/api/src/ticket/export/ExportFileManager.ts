@@ -118,10 +118,12 @@ export class ExportFileManager {
       let fileData: any;
 
       if (IN_MEMORY) {
-        const archivePath = this.file + '.tar.gz';
-        await p_exec(`tar -czf ${archivePath} ${this.file}`);
-        filename = path.parse(archivePath).base;
-        fileData = await p_fs.readFile(archivePath);
+        filename = path.parse(this.file).base;
+        await p_exec(`tar -czf ${filename + '.tar.gz'} ${filename}`, {
+          cwd: this.tmpDir,
+        });
+        filename += '.tar.gz';
+        fileData = await p_fs.readFile(path.join(this.tmpDir, filename));
       } else {
         filename = path.parse(this.file).base;
         fileData = fs.createReadStream(this.file);
