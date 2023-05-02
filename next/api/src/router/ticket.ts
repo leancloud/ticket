@@ -624,7 +624,7 @@ router.post('/', async (ctx) => {
   ctx.body = { id: ticket.id };
 });
 
-const NUMBERS_PATTERN = /^\d+$/;
+const NUMBERS_PATTERN = /^\d{1,20}$/;
 
 router.param('id', async (id, ctx, next) => {
   const currentUser = ctx.state.currentUser as User;
