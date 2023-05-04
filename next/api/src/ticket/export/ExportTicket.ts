@@ -355,6 +355,7 @@ export default async function exportTicket({ params, sortItems, date }: JobData)
           nickname: assignee?.nickname,
           email: assignee?.email,
         },
+        joinedCustomerServices: ticket.joinedCustomerServices,
         author: {
           id: author?.id,
           username: author?.username,
