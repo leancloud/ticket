@@ -27,15 +27,11 @@ export function Input({ id, description, required, htmlId, pattern }: CustomFiel
     <>
       <input
         {...register(id, {
-          required: {
-            value: required,
-            message: t('validation.required'),
-          },
           validate: (value) => {
-            if (!value || !regexp) {
-              return true;
+            if (required && (!value || !value.trim())) {
+              return t('validation.required') as string;
             }
-            if (!regexp.test(value)) {
+            if (regexp && value && !regexp.test(value)) {
               return t('validation.invalid') as string;
             }
             return true;
