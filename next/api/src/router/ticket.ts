@@ -30,6 +30,7 @@ import { roleService } from '@/service/role';
 import { allowedTicketLanguages } from '@/utils/locale';
 import { LangCodeISO6391 } from '@notevenaneko/whatlang-node';
 import { addInOrNotExistCondition } from '@/utils/conditions';
+import { dynamicContentService } from '@/dynamic-content';
 
 const router = new Router().use(auth);
 
@@ -523,7 +524,9 @@ router.post('/', async (ctx) => {
   );
   const title =
     (await textFilterService.filter(data.title || fieldTitle || '', filterOptions)).unescape ||
-    (contentWithoutEscape ? contentWithoutEscape.split('\n')[0].slice(0, 100) : category.name);
+    (contentWithoutEscape
+      ? contentWithoutEscape.split('\n')[0].slice(0, 100)
+      : await dynamicContentService.render(category.name, ctx.locales.locales));
   const fileIds = data.fileIds ?? attachments;
 
   const creator = new TicketCreator().setAuthor(author).setTitle(title).setContent(content);

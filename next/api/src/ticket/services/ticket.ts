@@ -1,6 +1,7 @@
 import { categoryService } from '@/category';
 import { User } from '@/model/User';
 import { TicketCreator } from '../TicketCreator';
+import { dynamicContentService } from '@/dynamic-content';
 
 export class TicketService {
   async createTicketFromEmail(
@@ -19,7 +20,7 @@ export class TicketService {
     const creator = new TicketCreator();
     creator.setAuthor(author);
     creator.setCategory(category);
-    creator.setTitle(title ?? category.name);
+    creator.setTitle(title ?? (await dynamicContentService.render(category.name)));
     creator.setContent(content ?? '');
     creator.setChannel('email');
     if (fileIds) {
