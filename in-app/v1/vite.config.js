@@ -11,6 +11,7 @@ export default defineConfig({
     reactJSX(),
     legacy({
       polyfills: ['es.global-this'],
+      modernPolyfills: ['es.global-this'],
       additionalLegacyPolyfills: ['intersection-observer'],
     }),
   ],
