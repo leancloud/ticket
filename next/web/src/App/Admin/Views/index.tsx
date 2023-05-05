@@ -20,7 +20,7 @@ import {
 } from '@/api/view';
 import { Empty, Spin, Table } from '@/components/antd';
 import { columnLabels } from '@/App/Admin/Settings/Views/EditView';
-import { HoverMenu, useHover } from '@/App/Admin/components/HoverMenu';
+import { useHoverMenu } from '@/App/Admin/components/HoverMenu';
 import { TicketOverview } from '@/App/Admin/components/TicketOverview';
 import { TicketStatus } from '@/App/Admin/components/TicketStatus';
 import { useGetCategoryPath } from '@/utils/useGetCategoryPath';
@@ -282,7 +282,9 @@ export function ViewTickets() {
   const { data: categories } = useCategories();
   const getCategoryPath = useGetCategoryPath(categories);
 
-  const { hover, context } = useHover<string>();
+  const { hover, menu } = useHoverMenu({
+    render: (ticketId: string) => <TicketOverview ticketId={ticketId} />,
+  });
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -317,9 +319,7 @@ export function ViewTickets() {
         />
       </CategoryPathContext.Provider>
 
-      <HoverMenu context={context}>
-        {(ticketId) => <TicketOverview ticketId={ticketId} />}
-      </HoverMenu>
+      {menu}
     </div>
   );
 }
