@@ -226,7 +226,7 @@ const getCustomFormFieldsFunc = (authOptions?: AuthOptions) => {
       fieldIds?: string[];
     }
   >();
-  const formFieldCacheMap = new Map<string, string | undefined>();
+  const fieldCacheMap = new Map<string, string | undefined>();
   return async (fromIds: string[]) => {
     const filterFromIds = fromIds.filter((id) => !formCacheMap.has(id));
     if (filterFromIds.length > 0) {
@@ -248,23 +248,23 @@ const getCustomFormFieldsFunc = (authOptions?: AuthOptions) => {
       .flatten()
       .uniq()
       .valueOf();
-    const filterFieldIds = (fieldIds as string[]).filter((id) => !formFieldCacheMap.has(id));
+    const filterFieldIds = (fieldIds as string[]).filter((id) => !fieldCacheMap.has(id));
     if (filterFieldIds.length > 0) {
       const fields = await TicketField.queryBuilder()
         .where('objectId', 'in', filterFieldIds)
         .find({ useMasterKey: true });
       fields.forEach((field) => {
-        formFieldCacheMap.set(field.id, field.title);
+        fieldCacheMap.set(field.id, field.title);
       });
     }
     return {
       formCacheMap,
-      formFieldCacheMap,
+      fieldCacheMap,
     };
   };
 };
 
-const getCustomFormValues = async (ticketIds: string[], authOptions?: AuthOptions) => {
+const getFieldValues = async (ticketIds: string[], authOptions?: AuthOptions) => {
   const results = await TicketFieldValue.queryBuilder()
     .where(
       'ticket',
@@ -313,9 +313,9 @@ export default async function exportTicket({ params, sortItems, date }: JobData)
         categoryMap[ticket.categoryId] ? categoryMap[ticket.categoryId].formId : undefined
       )
       .filter((id) => id !== undefined);
-    const { formCacheMap, formFieldCacheMap } = await getCustomFormFields(formIds as string[]);
+    const { formCacheMap, fieldCacheMap } = await getCustomFormFields(formIds as string[]);
     debug('forms fetched');
-    const formValuesMap = await getCustomFormValues(ticketIds, authOptions);
+    const fieldValuesMap = await getFieldValues(ticketIds, authOptions);
     debug('form values fetched');
     for (let ticketIndex = 0; ticketIndex < tickets.length; ticketIndex++) {
       const ticket = tickets[ticketIndex];
@@ -323,25 +323,20 @@ export default async function exportTicket({ params, sortItems, date }: JobData)
       const author = ticket.author;
       const category = categoryMap[ticket.categoryId];
       const group = ticket.groupId ? groupMap[ticket.groupId] : undefined;
+      const fields = fieldValuesMap[ticket.id]?.values.map(({ field, value }) => ({
+        id: field,
+        title: fieldCacheMap.get(field),
+        value: value,
+      }));
       let customForm: {
         title?: string;
-        fields?: Array<{ id: string; title?: string; value: string | string[] }>;
       } = {
         title: undefined,
-        fields: undefined,
       };
       if (category && category.formId) {
         const form = formCacheMap.get(category.formId);
-        const formValues = _.keyBy(formValuesMap[ticket.id]?.values, (v) => v.field);
         customForm = {
           title: form?.title,
-          fields: form?.fieldIds?.map((id) => {
-            return {
-              id,
-              title: formFieldCacheMap.get(id),
-              value: formValues[id]?.value,
-            };
-          }),
         };
       }
       const data = {
@@ -384,6 +379,7 @@ export default async function exportTicket({ params, sortItems, date }: JobData)
           ticket.metaData && fileType === 'csv' ? JSON.stringify(ticket.metaData) : ticket.metaData,
         privateTags: ticket.privateTags,
         customForm,
+        fields,
         replies: (replyMap[ticket.id] || []).map((v) => _.omit(v, 'ticketId')),
         language: ticket.language,
         createdAt: formatDate(ticket.createdAt),
