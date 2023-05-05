@@ -19,7 +19,6 @@ import { BatchUpdateDialog } from './BatchUpdateDialog';
 import { BatchOperationMenu } from './BatchOperateMenu';
 import { BatchUpdateData, BatchUpdateError, batchUpdate } from './batchUpdate';
 import { SortDropdown } from './SortDropdown';
-import { Layout, LayoutDropdown } from './LayoutDropdown';
 import { useLocalFilters } from '../Filter';
 import { Exporter } from './Exporter';
 import { isEmpty } from 'lodash-es';
@@ -215,8 +214,6 @@ export interface TopbarProps extends ComponentPropsWithoutRef<'div'> {
   isLoading?: boolean;
   checkedTicketIds?: string[];
   onCheckedChange: (checked: boolean) => void;
-  layout: Layout;
-  onChangeLayout: (value: Layout) => void;
 }
 
 export function Topbar({
@@ -231,8 +228,6 @@ export function Topbar({
   isLoading,
   checkedTicketIds,
   onCheckedChange,
-  layout,
-  onChangeLayout,
   showStatsPanel,
   onChangeShowStatsPanel,
   ...props
@@ -278,8 +273,6 @@ export function Topbar({
           />
         )}
       </div>
-
-      <LayoutDropdown value={layout} onChange={onChangeLayout} />
 
       <Pagination
         className="ml-4"

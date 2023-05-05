@@ -1,14 +1,15 @@
 import { useMemo } from 'react';
 import { keyBy, uniq } from 'lodash-es';
+
 import { useCustomerServices } from '@/api/customer-service';
 import { useGroups } from '@/api/group';
 import { TicketSchema } from '@/api/ticket';
 import { useUsers } from '@/api/user';
 import { Checkbox, Table } from '@/components/antd';
-import { TicketStatus } from '../../../components/TicketStatus';
+import { TicketLink } from '@/App/Admin/components/TicketLink';
+import { TicketStatus } from '@/App/Admin/components/TicketStatus';
 import { CategoryPath, useGetCategoryPath } from '@/App/Admin/components/CategoryPath';
 import { DateTime } from '@/components/DateTime';
-import { TicketLink } from '../../../components/TicketLink';
 import { TicketLanguages } from '@/i18n/locales';
 
 const { Column } = Table;

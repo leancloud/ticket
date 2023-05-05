@@ -1,28 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import { useLocalStorage } from 'react-use';
 
 import { useSearchTickets, useTickets, UseTicketsOptions } from '@/api/ticket';
 import { usePage, usePageSize } from '@/utils/usePage';
 import { Topbar, useOrderBy } from './Topbar';
 import { FilterForm, LocalFiltersProvider, useLocalFilters } from './Filter';
-import { TicketView } from './TicketView';
+import { TicketTable } from './TicketTable';
 import { TicketDetail } from './Ticket/TicketDetail';
 import { StatsPanel } from './TicketStats';
 import { SortLimited } from './Filter/useSorterLimited';
 
 const DEFAULT_PAGE_SIZE = 20;
-
-function useLayout() {
-  const [layout = 'table', ...rest] = useLocalStorage<'card' | 'table'>(
-    'TapDesk:ticketLayout',
-    undefined,
-    {
-      raw: true,
-    }
-  );
-  return [layout, ...rest] as const;
-}
 
 interface UseSmartFetchTicketsOptions extends UseTicketsOptions {
   keyword?: string;
@@ -62,7 +50,6 @@ function TicketListView() {
   const { orderKey, orderType } = useOrderBy();
   const [showFilterForm, setShowFilterForm] = useState(false);
   const [showStatsPanel, setShowStatsPanel] = useState(false);
-  const [layout, setLayout] = useLayout();
   const [localFilters, setLocalFilters] = useLocalFilters();
 
   const { data: tickets, totalCount, isFetching } = useSmartSearchTickets({
@@ -126,15 +113,12 @@ function TicketListView() {
           isLoading={isFetching}
           checkedTicketIds={checkedIds}
           onCheckedChange={handleCheckAll}
-          layout={layout}
-          onChangeLayout={setLayout}
         />
 
         <div className="flex grow overflow-hidden">
           <div className="flex grow flex-col p-[10px] overflow-auto">
             {showStatsPanel && <StatsPanel />}
-            <TicketView
-              layout={layout}
+            <TicketTable
               loading={isFetching}
               tickets={tickets}
               checkedIds={checkedIds}
