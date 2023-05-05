@@ -15,7 +15,7 @@ export function TicketOverview({ ticketId }: TicketOverviewProps) {
   });
 
   return (
-    <div className="w-[500px] min-h-[160px] p-4">
+    <div className="w-[500px] min-h-[160px] p-4 bg-white rounded border shadow-xl">
       {isLoading && <LoadingCover />}
       {ticket && (
         <>

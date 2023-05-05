@@ -51,10 +51,9 @@ function useGetMousePosition() {
 interface HoverMenuProps<T> {
   context: T | undefined;
   children: ReactNode | ((context: T) => ReactNode);
-  className?: string;
 }
 
-export function HoverMenu<T>({ context, children, className }: HoverMenuProps<T>) {
+export function HoverMenu<T>({ context, children }: HoverMenuProps<T>) {
   const getMousePosition = useGetMousePosition();
 
   const observer = useRef<ResizeObserver>(null!);
@@ -115,11 +114,22 @@ export function HoverMenu<T>({ context, children, className }: HoverMenuProps<T>
         entered.current = false;
         setDelayedContext(undefined);
       }}
-      className={className}
     >
       {typeof children === 'function' ? children(delayedContext) : children}
     </div>
   );
 
   return createPortal(menu, document.body);
+}
+
+interface UseHoverMenuProps<T> {
+  render: (context: T) => ReactNode;
+}
+
+export function useHoverMenu<T>({ render }: UseHoverMenuProps<T>) {
+  const { hover, context } = useHover<T>();
+
+  const menu = <HoverMenu context={context} children={render} />;
+
+  return { hover, menu };
 }

@@ -317,7 +317,7 @@ export function ViewTickets() {
         />
       </CategoryPathContext.Provider>
 
-      <HoverMenu context={context} className="bg-white rounded border shadow-xl">
+      <HoverMenu context={context}>
         {(ticketId) => <TicketOverview ticketId={ticketId} />}
       </HoverMenu>
     </div>
