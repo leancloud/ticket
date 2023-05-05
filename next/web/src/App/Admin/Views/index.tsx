@@ -9,7 +9,6 @@ import moment from 'moment';
 import { useCurrentUser } from '@/leancloud';
 import { CategorySchema, useCategories } from '@/api/category';
 import { GroupSchema } from '@/api/group';
-import { useTicketOverview } from '@/api/ticket';
 import { useCustomerServiceGroups, UserSchema } from '@/api/user';
 import {
   ViewSchema,
@@ -20,13 +19,13 @@ import {
   useViewTicketCounts,
 } from '@/api/view';
 import { Empty, Spin, Table } from '@/components/antd';
-import { LoadingCover } from '@/components/common';
 import { columnLabels } from '@/App/Admin/Settings/Views/EditView';
+import { useHoverMenu } from '@/App/Admin/components/HoverMenu';
+import { TicketOverview } from '@/App/Admin/components/TicketOverview';
 import { TicketStatus } from '@/App/Admin/components/TicketStatus';
 import { useGetCategoryPath } from '@/utils/useGetCategoryPath';
 import { usePage } from '@/utils/usePage';
 import { TicketLanguages } from '@/i18n/locales';
-import { HoverMenu, useHover } from './HoverMenu';
 
 const CategoryPathContext = createContext<{
   getCategoryPath: (id: string) => CategorySchema[];
@@ -283,7 +282,9 @@ export function ViewTickets() {
   const { data: categories } = useCategories();
   const getCategoryPath = useGetCategoryPath(categories);
 
-  const { hover, context } = useHover<string>();
+  const { hover, menu } = useHoverMenu({
+    render: (ticketId: string) => <TicketOverview ticketId={ticketId} />,
+  });
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -318,9 +319,7 @@ export function ViewTickets() {
         />
       </CategoryPathContext.Provider>
 
-      <HoverMenu context={context} className="bg-white rounded border shadow-xl">
-        {(ticketId) => <TicketOverviewMenu ticketId={ticketId} />}
-      </HoverMenu>
+      {menu}
     </div>
   );
 }
@@ -434,53 +433,6 @@ export function Views() {
       <div className="grow overflow-y-auto">
         <Outlet />
       </div>
-    </div>
-  );
-}
-
-function truncate(content: string, maxLength: number) {
-  if (content.length <= maxLength - 3) {
-    return content;
-  }
-  return content.slice(0, maxLength) + '...';
-}
-
-interface TicketOverviewMenuProps {
-  ticketId: string;
-}
-
-function TicketOverviewMenu({ ticketId }: TicketOverviewMenuProps) {
-  const { data: ticket, isLoading } = useTicketOverview(ticketId!, {
-    enabled: ticketId !== undefined,
-    staleTime: Infinity,
-    cacheTime: 1000 * 60,
-  });
-
-  return (
-    <div className="w-[500px] min-h-[160px] p-4">
-      {isLoading && <LoadingCover />}
-      {ticket && (
-        <>
-          <div className="flex items-center">
-            <TicketStatus status={ticket.status} />
-            <div className="ml-4">工单 #{ticket.nid}</div>
-          </div>
-
-          <div className="font-semibold mt-4">{ticket.title}</div>
-          <div className="break-words mt-2">{truncate(ticket.content, 300)}</div>
-
-          {ticket.latestReply && (
-            <>
-              <div className="border-b mt-4 pb-2">最新评论</div>
-              <div className="flex items-center mt-2">
-                <div className="font-semibold grow">{ticket.latestReply.author.nickname}</div>
-                <div>{moment(ticket.latestReply.createdAt).fromNow()}</div>
-              </div>
-              <div className="break-words mt-2">{truncate(ticket.latestReply.content, 300)}</div>
-            </>
-          )}
-        </>
-      )}
     </div>
   );
 }
