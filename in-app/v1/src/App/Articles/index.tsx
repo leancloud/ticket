@@ -70,7 +70,7 @@ function Feedback({ articleId }: { articleId: string }) {
           <Button
             onClick={() => vote(1)}
             secondary
-            className="flex flex-row items-center min-w-[32px] h-[22px] bg-white text-[#888]"
+            className="flex flex-row items-center justify-center h-[22px] bg-white text-[#888]"
             disabled={isLoading}
           >
             <ThumbUpIcon className="w-[14px] h-[14px] inline-block align-middle" />
@@ -78,7 +78,7 @@ function Feedback({ articleId }: { articleId: string }) {
           <Button
             onClick={() => vote(-1)}
             secondary
-            className="flex items-center min-w-[32px] h-[22px] bg-white ml-4 text-[#888] hover:!text-red hover:!border-red focus:!text-red focus:!border-red"
+            className="flex items-center justify-center h-[22px] bg-white ml-3 text-[#888] hover:!text-red hover:!border-red focus:!text-red focus:!border-red"
             disabled={isLoading}
           >
             <ThumbDownIcon className="w-[14px] h-[14px] inline-block align-middle" />
@@ -137,7 +137,7 @@ function ArticleDetail() {
           <div className="px-4 py-5 text-[12px] leading-[1.5] text-[#666] text-center">
             <p>{t('notice.hint')}</p>
             <Link to="/categories">
-              <Button secondary className="px-8 text-base mt-2 text-tapBlue font-bold">
+              <Button secondary className="!px-8 text-base mt-2 text-tapBlue font-bold">
                 {t('feedback.submit')}
               </Button>
             </Link>
