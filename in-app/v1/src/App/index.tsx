@@ -40,7 +40,7 @@ function RequireAuth({ children }: { children: JSX.Element }) {
 const ROOT_URLS = ['/in-app/v1/categories', '/in-app/v1/products'];
 
 export default function App() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     const isRND =
@@ -127,6 +127,7 @@ export default function App() {
   return (
     <HelmetProvider>
       <Helmet>
+        <html lang={i18n.language} />
         <title>{t('general.call_center')}</title>
       </Helmet>
       <BrowserRouter basename={`${rootURL}/${rootCategoryId}`}>
