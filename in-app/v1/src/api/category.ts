@@ -2,7 +2,6 @@ import { UseQueryOptions, useQuery } from 'react-query';
 import { useRootCategory } from '@/states/root-category';
 import { http } from '@/leancloud';
 import { Article } from '@/types';
-import { Dictionary } from 'lodash';
 
 export interface Category {
   id: string;
@@ -12,7 +11,7 @@ export interface Category {
   position: number;
   formId?: string;
   hidden?: boolean;
-  meta?: Dictionary<any>;
+  meta?: Record<string, any>;
 }
 
 async function fetchCategories(rootCategoryId: string): Promise<Category[]> {
