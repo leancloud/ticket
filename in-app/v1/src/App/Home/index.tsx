@@ -13,14 +13,16 @@ import { Link } from 'react-router-dom';
 export default function Home() {
   const { t } = useTranslation();
   const category = useRootCategory();
+  const enableFeedback = !category.meta?.disableFeedback
   const { isLoading: isNoticesLoading, data: notices } = useNotices(category.id);
   const { data: topics, isLoading: isTopicsLoading } = useCategoryTopics();
-  const enableCategories = !isTopicsLoading && topics && !topics?.length;
+  const showTopics = isTopicsLoading || !!topics?.length;
+  const showCategories = enableFeedback && !showTopics;
   const { isLoading: isCategoriesLoading, data: categories } = useCategories({
-    enabled: enableCategories,
+    enabled: showCategories,
   });
   const isLoading = isNoticesLoading && isTopicsLoading && isCategoriesLoading;
-  const title = !isLoading ? t(enableCategories ? 'category.select_hint_home' : 'topic.title') : '';
+  const title = !isLoading ? t(showCategories ? 'category.select_hint_home' : 'topic.title') : '';
   const isNoData =
     notices && !notices.length && topics && !topics.length && categories && !categories.length;
 
@@ -36,8 +38,8 @@ export default function Home() {
     <>
       <Notices />
       <PageContent shadow title={title}>
-        {!enableCategories && <Topics />}
-        {enableCategories && !!categories?.length && <TopCategoryList />}
+        {showTopics && <Topics />}
+        {showCategories && !!categories?.length && <TopCategoryList />}
       </PageContent>
     </>
   );
@@ -46,7 +48,7 @@ export default function Home() {
     <>
       <PageHeader />
       {content}
-      {!enableCategories && (
+      {showTopics && enableFeedback && (
         <div className="text-center text-gray-400 opacity-80 mt-6 mb-3">
           {t('topic.hint')}{' '}
           <Link to="/categories" className="text-tapBlue">
@@ -54,7 +56,7 @@ export default function Home() {
           </Link>
         </div>
       )}
-      <Help feedback={!enableCategories} />
+      {enableFeedback && <Help feedback={!showCategories} />}
     </>
   );
 }
