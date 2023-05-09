@@ -9,6 +9,7 @@ export class DurationMetricService {
     return DurationMetric.create(
       {
         ticketId: ticket.id,
+        ticketCreatedAt: ticket.createdAt,
       },
       {
         useMasterKey: true,

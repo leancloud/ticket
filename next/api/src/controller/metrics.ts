@@ -33,8 +33,8 @@ export class MetricsController {
     }
 
     const qb = DurationMetric.queryBuilder()
-      .where('createdAt', '>=', from)
-      .where('createdAt', '<', to)
+      .where('ticketCreatedAt', '>=', from)
+      .where('ticketCreatedAt', '<', to)
       .paginate(page, pageSize)
       .preload('ticket');
 
@@ -52,7 +52,6 @@ export class MetricsController {
       fullResolutionTime: dm.fullResolutionTime,
       requesterWaitTime: dm.requesterWaitTime,
       agentWaitTime: dm.agentWaitTime,
-      createdAt: dm.createdAt,
     }));
   }
 }

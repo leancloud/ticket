@@ -1,9 +1,15 @@
-import { field, Model, pointerId } from '@/orm';
+import { field, Model, pointerId, pointTo } from '@/orm';
 import { Ticket } from './Ticket';
 
 export class DurationMetric extends Model {
   @pointerId(() => Ticket)
   ticketId!: string;
+
+  @pointTo(() => Ticket)
+  ticket?: Ticket;
+
+  @field()
+  ticketCreatedAt!: Date;
 
   @field()
   firstReplyTime?: number;
