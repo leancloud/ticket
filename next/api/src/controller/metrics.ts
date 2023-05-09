@@ -38,7 +38,11 @@ export class MetricsController {
       .paginate(page, pageSize)
       .preload('ticket');
 
-    orderBy?.forEach(({ key, order }) => qb.orderBy(key, order));
+    if (orderBy && orderBy.length) {
+      orderBy.forEach(({ key, order }) => qb.orderBy(key, order));
+    } else {
+      qb.orderBy('ticketCreatedAt', 'desc');
+    }
 
     const [durationMetrics, totalCount] = await qb.findAndCount({ useMasterKey: true });
 
