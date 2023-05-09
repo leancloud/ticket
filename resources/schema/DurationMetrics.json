@@ -117,7 +117,7 @@
         "ticketCreatedAt": 1
       },
       "name": "-user-ticketCreatedAt_1",
-      "ns": "_.DurationMetric",
+      "ns": "_.DurationMetrics",
       "background": true
     }
   ]

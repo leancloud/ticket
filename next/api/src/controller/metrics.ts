@@ -1,7 +1,7 @@
 import { Context } from 'koa';
 import { Controller, Ctx, Get, HttpError, Query, UseMiddlewares } from '@/common/http';
 import { Order, ParseDatePipe, ParseIntPipe, ParseOrderPipe } from '@/common/pipe';
-import { DurationMetric } from '@/model/DurationMetric';
+import { DurationMetrics } from '@/model/DurationMetrics';
 import { auth, customerServiceOnly } from '@/middleware';
 import { TicketResponse } from '@/response/ticket';
 
@@ -32,7 +32,7 @@ export class MetricsController {
       throw new HttpError(400, 'to is required');
     }
 
-    const qb = DurationMetric.queryBuilder()
+    const qb = DurationMetrics.queryBuilder()
       .where('ticketCreatedAt', '>=', from)
       .where('ticketCreatedAt', '<', to)
       .paginate(page, pageSize)

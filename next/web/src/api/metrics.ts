@@ -3,7 +3,7 @@ import { useQuery, UseQueryOptions } from 'react-query';
 import { http } from '@/leancloud';
 import { TicketSchema } from './ticket';
 
-interface DurationMetric {
+interface DurationMetrics {
   id: string;
   ticket: TicketSchema;
   firstReplyTime?: number;
@@ -22,12 +22,12 @@ export interface FetchDurationMetricsOptions {
 }
 
 interface FetchDurationMetricsResult {
-  data: DurationMetric[];
+  data: DurationMetrics[];
   totalCount: number;
 }
 
 async function fetchDurationMetrics(options: FetchDurationMetricsOptions) {
-  const res = await http.get<DurationMetric[]>('/api/2/metrics/duration', {
+  const res = await http.get<DurationMetrics[]>('/api/2/metrics/duration', {
     params: {
       from: options.from.toISOString(),
       to: options.to.toISOString(),

@@ -1,7 +1,7 @@
 import { field, Model, pointerId, pointTo } from '@/orm';
 import { Ticket } from './Ticket';
 
-export class DurationMetric extends Model {
+export class DurationMetrics extends Model {
   @pointerId(() => Ticket)
   ticketId!: string;
 

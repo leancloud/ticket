@@ -1,12 +1,12 @@
 import { UpdateData } from '@/orm';
-import { DurationMetric } from '@/model/DurationMetric';
+import { DurationMetrics } from '@/model/DurationMetrics';
 import { Reply } from '@/model/Reply';
 import { Ticket } from '@/model/Ticket';
 import { OperateAction } from '@/model/OpsLog';
 
 export class DurationMetricService {
   createMetric(ticket: Ticket) {
-    return DurationMetric.create(
+    return DurationMetrics.create(
       {
         ticketId: ticket.id,
         ticketCreatedAt: ticket.createdAt,
@@ -18,7 +18,7 @@ export class DurationMetricService {
   }
 
   async getMetricForTicket(ticket: Ticket) {
-    const durationMetric = await DurationMetric.queryBuilder()
+    const durationMetric = await DurationMetrics.queryBuilder()
       .where('ticket', '==', ticket.toPointer())
       .first({ useMasterKey: true });
     if (!durationMetric) {
@@ -42,7 +42,7 @@ export class DurationMetricService {
     }
 
     const durationMetric = await this.getMetricForTicket(ticket);
-    const data: UpdateData<DurationMetric> = {};
+    const data: UpdateData<DurationMetrics> = {};
 
     if (isAgent) {
       if (durationMetric.requesterWaitAt) {
@@ -76,7 +76,7 @@ export class DurationMetricService {
   async recordResolveTicket(ticket: Ticket) {
     const now = Date.now();
     const durationMetric = await this.getMetricForTicket(ticket);
-    const data: UpdateData<DurationMetric> = {};
+    const data: UpdateData<DurationMetrics> = {};
 
     if (!durationMetric.firstResolutionTime) {
       data.firstResolutionTime = now - ticket.createdAt.getTime();
