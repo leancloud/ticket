@@ -7,6 +7,8 @@ const AV = require('leanengine')
 const swaggerUi = require('swagger-ui-express')
 const YAML = require('yamljs')
 
+const HOST = process.env.TICKET_HOST
+
 AV.init({
   appId: process.env.LEANCLOUD_APP_ID,
   appKey: process.env.LEANCLOUD_APP_KEY,
@@ -25,7 +27,7 @@ if (config.sentryDSN) {
   Sentry.init({
     enabled: process.env.NODE_ENV === 'production',
     dsn: config.sentryDSN,
-    environment: process.env.TICKET_HOST?.replace('https://', '')?.replace('/', ''),
+    environment: HOST?.replace('https://', '')?.replace('/', ''),
     initialScope: {
       tags: {
         type: 'api',
@@ -91,6 +93,17 @@ if (process.env.MAINTENANCE_MODE) {
   // legacy api
   app.use(Sentry.Handlers.tracingHandler())
   app.use(apiRouter)
+
+  // https://xindong.slack.com/archives/C02KYBFQ34N/p1683616063521139?thread_ts=1683613543.262319&cid=C02KYBFQ34N
+  app.get('/', (req, res, next) => {
+    if (req.query.client_id) {
+      const url = new URL(req.url, HOST)
+      url.pathname = '/api/2/xd/in-app'
+      res.redirect(url.toString())
+      return
+    }
+    next()
+  })
 
   const { orgName } = require('./oauth/lc')
 
