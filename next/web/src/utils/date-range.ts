@@ -19,8 +19,8 @@ export const relativeDateGetters: Record<string, () => DateRange> = {
     to: moment().endOf('week').subtract(1, 'week').toDate(),
   }),
   week: () => ({
-    from: moment().weekday(1).startOf('day').toDate(),
-    to: moment().weekday(7).endOf('day').toDate(),
+    from: moment().startOf('week').toDate(),
+    to: moment().endOf('week').endOf('day').toDate(),
   }),
   month: () => ({
     from: moment().startOf('month').toDate(),
