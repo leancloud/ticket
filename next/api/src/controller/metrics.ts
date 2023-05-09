@@ -3,8 +3,10 @@ import { Controller, Ctx, Get, HttpError, Query, UseMiddlewares } from '@/common
 import { Order, ParseDatePipe, ParseIntPipe, ParseOrderPipe } from '@/common/pipe';
 import { DurationMetric } from '@/model/DurationMetric';
 import { auth, customerServiceOnly } from '@/middleware';
+import { TicketResponse } from '@/response/ticket';
 
 const PARSE_ORDER_PIPE = new ParseOrderPipe([
+  'firstReplyTime',
   'agentWaitTime',
   'requesterWaitTime',
   'firstResolutionTime',
@@ -33,7 +35,8 @@ export class MetricsController {
     const qb = DurationMetric.queryBuilder()
       .where('createdAt', '>=', from)
       .where('createdAt', '<', to)
-      .paginate(page, pageSize);
+      .paginate(page, pageSize)
+      .preload('ticket');
 
     orderBy?.forEach(({ key, order }) => qb.orderBy(key, order));
 
@@ -42,7 +45,8 @@ export class MetricsController {
     ctx.set('X-Total-Count', totalCount.toString());
 
     return durationMetrics.map((dm) => ({
-      ticketId: dm.ticketId,
+      id: dm.id,
+      ticket: dm.ticket ? new TicketResponse(dm.ticket) : undefined,
       firstReplyTime: dm.firstReplyTime,
       firstResolutionTime: dm.firstResolutionTime,
       fullResolutionTime: dm.fullResolutionTime,
