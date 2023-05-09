@@ -16,8 +16,8 @@ export default function Home() {
   const enableFeedback = !category.meta?.disableFeedback
   const { isLoading: isNoticesLoading, data: notices } = useNotices(category.id);
   const { data: topics, isLoading: isTopicsLoading } = useCategoryTopics();
-  const showTopics = isTopicsLoading || !!topics?.length;
-  const showCategories = enableFeedback && !showTopics;
+  const showTopics = topics && topics.length > 0;
+  const showCategories = enableFeedback && !isTopicsLoading && !showTopics;
   const { isLoading: isCategoriesLoading, data: categories } = useCategories({
     enabled: showCategories,
   });
