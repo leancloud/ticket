@@ -11,6 +11,7 @@ export interface Category {
   position: number;
   formId?: string;
   hidden?: boolean;
+  meta?: Record<string, any>;
 }
 
 async function fetchCategories(rootCategoryId: string): Promise<Category[]> {
