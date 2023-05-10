@@ -206,11 +206,12 @@ export async function hourlyTicketStats(date?: Date) {
         };
       })
     );
+    const batchSize = 10;
     if (statDataList.length > 0) {
-      const batchNumber = Math.ceil(statDataList.length / 50);
+      const batchNumber = Math.ceil(statDataList.length / batchSize);
       for (let index = 0; index < batchNumber; index++) {
         await TicketStats.createSome(
-          statDataList.slice(index * 50, (index + 1) * 50),
+          statDataList.slice(index * batchSize, (index + 1) * batchSize),
           AUTH_OPTIONS
         );
       }
