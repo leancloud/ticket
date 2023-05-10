@@ -17,6 +17,7 @@ import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { useFAQs } from '@/api/category';
 import { useArticle } from '@/api/article';
+import { useRootCategory } from '@/states/root-category';
 
 function RelatedFAQs({ categoryId, articleId }: { categoryId: string; articleId: string }) {
   const { t } = useTranslation();
@@ -104,6 +105,9 @@ function ArticleDetail() {
   const { user } = useAuth();
   const title = !!isNotice ? t('notice.title') : <span>&nbsp;</span>;
 
+  const product = useRootCategory();
+  const feedbackEnabled = !product.meta?.disableFeedback;
+
   return (
     <QueryWrapper result={result}>
       {article && (
@@ -133,7 +137,7 @@ function ArticleDetail() {
           )}
           {article && user && <Feedback articleId={article.id} />}
         </div>
-        {isNotice && (
+        {feedbackEnabled && isNotice && (
           <div className="px-4 py-5 text-[12px] leading-[1.5] text-[#666] text-center">
             <p>{t('notice.hint')}</p>
             <Link to="/categories">
