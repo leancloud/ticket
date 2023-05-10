@@ -192,18 +192,8 @@ if (config.enableLeanCloudIntegration) {
         throw new AV.Cloud.Error('Unauthorized', { status: 401 })
       }
       const { region, appId } = req.params
-      if (region === 'cn-e1') {
-        if (config.leancloudAppUrl) {
-          return format(config.leancloudAppUrl, 'admin-e1', 'cn', appId)
-        }
-      } else if (region === 'us-w1') {
-        if (config.leancloudAppUrl) {
-          return format(config.leancloudAppUrl, 'admin', 'app', appId)
-        }
-      } else {
-        if (config.leancloudAppUrl_v3) {
-          return format(config.leancloudAppUrl_v3, region, appId)
-        }
+      if (config.leancloudAppUrl) {
+        return format(config.leancloudAppUrl, region, appId)
       }
       return null
     })
