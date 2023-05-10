@@ -29,8 +29,9 @@ export default function Home() {
 
   const isLoading = isNoticesLoading && isTopicsLoading && isCategoriesLoading;
 
-  const isNoData =
-    notices && !notices.length && topics && !topics.length && categories && !categories.length;
+  const hasCategories = categories !== undefined && categories.length > 0;
+
+  const isNoData = notices && !notices.length && topics && !topics.length && !hasCategories;
 
   if (isLoading) {
     return <Loading />;
@@ -48,7 +49,7 @@ export default function Home() {
         title={showCategories ? t('category.select_hint_home') : t('topic.title')}
       >
         {showTopics && <Topics data={topics} />}
-        {showCategories && !!categories?.length && <TopCategoryList />}
+        {showCategories && hasCategories && <TopCategoryList categories={categories} />}
       </PageContent>
     </>
   );
