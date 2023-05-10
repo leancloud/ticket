@@ -35,7 +35,7 @@ router.patch('/:id', async (ctx) => {
   }
 
   if (!(await canUpdateReply(currentUser, reply))) {
-    ctx.throw(403, `you have no previlege to update reply ${reply.id}`);
+    ctx.throw(403, `you have no privilege to update reply ${reply.id}`);
   }
 
   const updateData: UpdateData<Reply> = {};
@@ -52,6 +52,19 @@ router.patch('/:id', async (ctx) => {
   }
 
   ctx.body = {};
+});
+
+router.delete('/:id', async (ctx) => {
+  const currentUser = ctx.state.currentUser as User;
+  const reply = ctx.state.reply as Reply;
+
+  if (!(await canUpdateReply(currentUser, reply))) {
+    ctx.throw(403, `you have no privilege to delete reply ${reply.id}`);
+  }
+
+  await reply.update({ deletedAt: new Date() }, { useMasterKey: true });
+  // 同时修改 ACL 会导致 LiveQuery 无法收到更新
+  await reply.update({ ACL: {} }, { useMasterKey: true });
 });
 
 async function canUpdateReply(user: User, reply: Reply) {
