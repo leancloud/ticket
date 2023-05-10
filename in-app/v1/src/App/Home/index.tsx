@@ -23,7 +23,7 @@ export default function Home() {
     enabled: showCategories,
   });
   const isLoading = isNoticesLoading && isTopicsLoading && isCategoriesLoading;
-  const title = !isLoading ? t(showCategories ? 'category.select_hint_home' : 'topic.title') : '';
+
   const isNoData =
     notices && !notices.length && topics && !topics.length && categories && !categories.length;
 
@@ -38,7 +38,10 @@ export default function Home() {
   ) : (
     <>
       <Notices />
-      <PageContent shadow title={title}>
+      <PageContent
+        shadow
+        title={showCategories ? t('category.select_hint_home') : t('topic.title')}
+      >
         {showTopics && <Topics data={topics} />}
         {showCategories && !!categories?.length && <TopCategoryList />}
       </PageContent>
