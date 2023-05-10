@@ -173,9 +173,13 @@ export function LoadingHint(props: ComponentPropsWithoutRef<'div'>) {
   );
 }
 
-export function Loading() {
+interface LoadingProps {
+  className?: string;
+}
+
+export function Loading({ className }: LoadingProps) {
   return (
-    <div className="mx-auto my-12">
+    <div className={className || 'mx-auto my-12'}>
       <StarIcon />
       <LoadingHint className="mt-2" />
     </div>
