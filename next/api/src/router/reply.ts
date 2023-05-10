@@ -2,13 +2,13 @@ import Router from '@koa/router';
 import { z } from 'zod';
 import _ from 'lodash';
 
-import { auth } from '@/middleware';
+import { auth, customerServiceOnly } from '@/middleware';
 import htmlify from '@/utils/htmlify';
 import { UpdateData } from '@/orm';
 import { Reply } from '@/model/Reply';
 import { User } from '@/model/User';
 
-const router = new Router().use(auth);
+const router = new Router().use(auth, customerServiceOnly);
 
 router.param('id', async (id, ctx, next) => {
   const currentUser = ctx.state.currentUser as User;
@@ -71,8 +71,8 @@ async function canUpdateReply(user: User, reply: Reply) {
   if (user.id === reply.authorId) {
     return true;
   }
-  if ((await user.isAdmin()) && (await User.isCustomerService(reply.authorId))) {
-    // 允许管理员修改客服回复
+  if (await User.isCustomerService(reply.authorId)) {
+    // 允许客服之间互相修改回复
     return true;
   }
   return false;

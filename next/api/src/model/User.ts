@@ -439,11 +439,6 @@ export class User extends Model {
     return !!(await query.first({ useMasterKey: true }));
   }
 
-  async isAdmin() {
-    const roles = await roleService.getSystemRolesForUser(this.id);
-    return roles.includes('admin');
-  }
-
   async isCustomerService() {
     const roles = await roleService.getSystemRolesForUser(this.id);
     return ['customerService', 'admin'].some((role) => roles.includes(role));
