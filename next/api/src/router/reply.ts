@@ -2,7 +2,7 @@ import Router from '@koa/router';
 import { z } from 'zod';
 import _ from 'lodash';
 
-import { auth, customerServiceOnly } from '@/middleware';
+import { auth } from '@/middleware';
 import htmlify from '@/utils/htmlify';
 import { UpdateData } from '@/orm';
 import { Reply } from '@/model/Reply';
@@ -25,13 +25,17 @@ const updateReplyDataSchema = z.object({
   fileIds: z.array(z.string()).optional(),
 });
 
-router.patch('/:id', customerServiceOnly, async (ctx) => {
+router.patch('/:id', async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   const reply = ctx.state.reply as Reply;
   const { content, fileIds } = updateReplyDataSchema.parse(ctx.request.body);
 
   if (!content && (!fileIds || fileIds.length === 0)) {
     ctx.throw(400, 'content and fileIds cannot be empty at the same time');
+  }
+
+  if (!(await canUpdateReply(currentUser, reply))) {
+    ctx.throw(403, `you have no previlege to update reply ${reply.id}`);
   }
 
   const updateData: UpdateData<Reply> = {};
@@ -44,10 +48,21 @@ router.patch('/:id', customerServiceOnly, async (ctx) => {
   }
 
   if (!_.isEmpty(updateData)) {
-    await reply.update(updateData, currentUser.getAuthOptions());
+    await reply.update(updateData, { useMasterKey: true });
   }
 
   ctx.body = {};
 });
+
+async function canUpdateReply(user: User, reply: Reply) {
+  if (user.id === reply.authorId) {
+    return true;
+  }
+  if ((await user.isAdmin()) && (await User.isCustomerService(reply.authorId))) {
+    // 允许管理员修改客服回复
+    return true;
+  }
+  return false;
+}
 
 export default router;
