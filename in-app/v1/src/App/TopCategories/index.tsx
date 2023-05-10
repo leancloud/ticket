@@ -1,4 +1,4 @@
-import { FC, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Helmet } from 'react-helmet-async';
 import { keyBy } from 'lodash-es';
@@ -7,7 +7,7 @@ import { QueryWrapper } from '@/components/QueryWrapper';
 import { PageContent, PageHeader } from '@/components/Page';
 import { CategoryList } from '@/App/Categories';
 
-export const TopCategoryList: FC = () => {
+export function TopCategoryList() {
   const result = useCategories();
   const categories = result.data;
 
@@ -21,6 +21,7 @@ export const TopCategoryList: FC = () => {
       .filter((c) => c.parentId && !map[c.parentId])
       .sort((a, b) => a.position - b.position);
   }, [categories]);
+
   return (
     <QueryWrapper result={result}>
       <div className="-mb-3">
@@ -28,7 +29,7 @@ export const TopCategoryList: FC = () => {
       </div>
     </QueryWrapper>
   );
-};
+}
 
 export default function TopCategories() {
   const { t } = useTranslation();
