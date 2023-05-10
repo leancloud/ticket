@@ -22,6 +22,7 @@
     "update_date": "Güncelleme Tarihi"
   },
   "home": {
+    "tap_email": "TapTap Müşteri Hizmetleri E-postası:",
     "empty": "Bu kategoride gösterilecek içerik yapılandırılmamış."
   },
   "feedback": {

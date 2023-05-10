@@ -22,6 +22,7 @@
     "update_date": "Data de atualização"
   },
   "home": {
+    "tap_email": "E-mail de Atendimento ao Cliente da TapTap:",
     "empty": "Nenhum conteúdo de exibição configurado na categoria atual"
   },
   "feedback": {

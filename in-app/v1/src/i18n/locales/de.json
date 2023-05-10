@@ -22,6 +22,7 @@
     "update_date": "Aktualisierungsdatum"
   },
   "home": {
+    "tap_email": "TapTap Kundenservice E-Mail:",
     "empty": "In der aktuellen Kategorie sind keine Inhalte zur Anzeige konfiguriert."
   },
   "feedback": {

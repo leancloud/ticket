@@ -23,6 +23,7 @@
     "next_step": "Next step"
   },
   "home": {
+    "tap_email": "TapTap Customer Service Email:",
     "empty": "No display content configured in the current category"
   },
   "feedback": {

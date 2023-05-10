@@ -22,6 +22,7 @@
     "update_date": "Tanggal Pembaruan"
   },
   "home": {
+    "tap_email": "Email Layanan Pelanggan TapTap:",
     "empty": "Tidak ada konten tampilan yang dikonfigurasi dalam kategori ini"
   },
   "feedback": {

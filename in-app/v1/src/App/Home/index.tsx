@@ -79,6 +79,12 @@ export default function Home() {
         ) : (
           <AiClassify className="mt-3" />
         ))}
+      <div className="text-center text-gray-400 opacity-80 mt-6 mb-3">
+        {t('home.tap_email')}{' '}
+        <a href="mailto:feedback@taptap.com" className="text-tapBlue">
+          feedback@taptap.com
+        </a>
+      </div>
       {enableFeedback && <Help feedback={!showCategories} />}
     </>
   );

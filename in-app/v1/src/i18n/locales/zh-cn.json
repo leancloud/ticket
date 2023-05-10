@@ -23,6 +23,7 @@
     "next_step": "下一步"
   },
   "home": {
+    "tap_email": "TapTap 客服邮箱：",
     "empty": "当前分类下未配置展示内容"
   },
   "feedback": {
