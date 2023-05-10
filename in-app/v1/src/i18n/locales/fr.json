@@ -22,6 +22,7 @@
     "update_date": "Date de mise à jour"
   },
   "home": {
+    "tap_email": "Email du service client TapTap:",
     "empty": "Aucun contenu d'affichage configuré dans la catégorie actuelle"
   },
   "feedback": {
