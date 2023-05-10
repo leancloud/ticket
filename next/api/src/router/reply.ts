@@ -65,6 +65,8 @@ router.delete('/:id', async (ctx) => {
   await reply.update({ deletedAt: new Date() }, { useMasterKey: true });
   // 同时修改 ACL 会导致 LiveQuery 无法收到更新
   await reply.update({ ACL: {} }, { useMasterKey: true });
+
+  ctx.body = {};
 });
 
 async function canUpdateReply(user: User, reply: Reply) {
