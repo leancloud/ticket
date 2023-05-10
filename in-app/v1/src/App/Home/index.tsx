@@ -15,11 +15,11 @@ export default function Home() {
   const { t } = useTranslation();
   const category = useRootCategory();
   const enableFeedback = !category.meta?.disableFeedback;
-  const { isLoading: isNoticesLoading, data: notices } = useNotices(category.id);
+  const { data: notices, isLoading: isNoticesLoading } = useNotices(category.id);
   const { data: topics, isLoading: isTopicsLoading } = useCategoryTopics();
   const showTopics = topics && topics.length > 0;
   const showCategories = enableFeedback && !isTopicsLoading && !showTopics;
-  const { isLoading: isCategoriesLoading, data: categories } = useCategories({
+  const { data: categories, isLoading: isCategoriesLoading } = useCategories({
     enabled: showCategories,
   });
   const isLoading = isNoticesLoading && isTopicsLoading && isCategoriesLoading;
