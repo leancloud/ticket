@@ -396,15 +396,28 @@ const CategoryStats: React.FunctionComponent<{ displayMode: displayMode }> = ({ 
   const { data: categories } = useCategories();
   const { data, isFetching, isLoading } = useTicketFieldStats({
     ...params,
+    category: params.category ?? '*',
     fields: avgFieldMap[field] || [field],
-    category: '*',
     bySelection: false,
   });
+  const rootCategoryId = params.category;
+  const categoryMap = useMemo(() => _.keyBy(categories || [], 'id'), [categories]);
+  const categoryNameMap = useMemo(() => _.mapValues(categoryMap, 'name'), [categoryMap]);
   const categoryFormat = useMemo(() => {
-    const categoryMap = _.mapValues(_.keyBy(categories || [], 'id'), 'name');
-    return (value?: string) => (value ? categoryMap[value] : 'none');
-  }, [categories]);
-  const total = useMemo(() => (data ? _.sumBy(data, field) : 1), [data]);
+    const getFullPath = (id?: string): string[] => {
+      if (!id) return [];
+      const category = categoryMap[id];
+      if (!category) return [];
+      return [
+        ...(category.parentId && category.parentId !== rootCategoryId
+          ? getFullPath(category.parentId)
+          : []),
+        categoryNameMap[id],
+      ];
+    };
+    return (id?: string) => getFullPath(id).join(' / ');
+  }, [categoryMap, categoryNameMap, rootCategoryId]);
+  const total = useMemo(() => (data ? _.sumBy(data, field) : 1), [data, field]);
   const chartData = usePieChartData('categoryId', data);
   if (displayMode === 'table') {
     return (
@@ -477,7 +490,6 @@ const CustomerServiceStats: React.FunctionComponent<{ displayMode: displayMode }
 
 const Details = () => {
   const [field] = useActiveField();
-  const { category } = useStatsParams();
   const [displayMode, setDisplayMode] = useState<displayMode>('pieChart');
   const onlyTable = useMemo(() => timeField.includes(field), [field]);
   useEffect(() => {
@@ -510,11 +522,9 @@ const Details = () => {
             <CustomerServiceStats displayMode={displayMode} />
           </div>
         )}
-        {!category && (
-          <div className="w-1/2 min-w-[300px] flex-grow ">
-            <CategoryStats displayMode={displayMode} />
-          </div>
-        )}
+        <div className="w-1/2 min-w-[300px] flex-grow ">
+          <CategoryStats displayMode={displayMode} />
+        </div>
       </div>
     </div>
   );
