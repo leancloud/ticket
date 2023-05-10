@@ -1,19 +1,20 @@
 import { useTranslation } from 'react-i18next';
-import { PageContent, PageHeader } from '@/components/Page';
-import { useRootCategory } from '@/states/root-category';
+import { Link } from 'react-router-dom';
+
 import { useCategories, useCategoryTopics, useNotices } from '@/api/category';
+import { useRootCategory } from '@/states/root-category';
 import { Loading } from '@/components/Loading';
+import { PageContent, PageHeader } from '@/components/Page';
 import { NotFoundContent } from '@/App/NotFound';
-import Topics from './Topics';
 import { TopCategoryList } from '../TopCategories';
+import Topics from './Topics';
 import Help from './Help';
 import Notices from './Notices';
-import { Link } from 'react-router-dom';
 
 export default function Home() {
   const { t } = useTranslation();
   const category = useRootCategory();
-  const enableFeedback = !category.meta?.disableFeedback
+  const enableFeedback = !category.meta?.disableFeedback;
   const { isLoading: isNoticesLoading, data: notices } = useNotices(category.id);
   const { data: topics, isLoading: isTopicsLoading } = useCategoryTopics();
   const showTopics = topics && topics.length > 0;
@@ -38,7 +39,7 @@ export default function Home() {
     <>
       <Notices />
       <PageContent shadow title={title}>
-        {showTopics && <Topics />}
+        {showTopics && <Topics data={topics} />}
         {showCategories && !!categories?.length && <TopCategoryList />}
       </PageContent>
     </>
