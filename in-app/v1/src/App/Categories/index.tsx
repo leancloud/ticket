@@ -154,10 +154,7 @@ export default function Categories() {
       <Helmet>
         <title>{title}</title>
       </Helmet>
-      <PageHeader>
-        {title}
-        {t('feedback.suffix')}
-      </PageHeader>
+      <PageHeader>{title}</PageHeader>
       <QueryWrapper result={result} noData={noData}>
         {content}
         <FAQs faqs={faqs} className="mt-6" />
