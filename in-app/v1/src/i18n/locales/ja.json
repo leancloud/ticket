@@ -22,6 +22,7 @@
     "update_date": "アップデート日"
   },
   "home": {
+    "tap_email": "TapTapカスタマーサービス連絡先：",
     "empty": "現在のカテゴリには表示内容が設定されていません"
   },
   "feedback": {
