@@ -1,15 +1,18 @@
-import { FC, Fragment } from 'react';
-import { NoData } from '@/components/NoData';
+import { Fragment } from 'react';
 import { Tab } from '@headlessui/react';
-import { useCategoryTopics } from '@/api/category';
-import { ArticleListItem } from '@/App/Articles/utils';
-import { useAppState } from '@/states/app';
 import classNames from 'classnames';
+
+import { CategoryTopics } from '@/api/category';
+import { useAppState } from '@/states/app';
+import { NoData } from '@/components/NoData';
+import { ArticleListItem } from '@/App/Articles/utils';
 import styles from './index.module.css';
 
-const Topics: FC<{}> = () => {
-  const result = useCategoryTopics();
-  const { data } = result;
+interface TopicsProps {
+  data?: CategoryTopics[];
+}
+
+export default function Topics({ data }: TopicsProps) {
   const [{ topicIndex }, setAppState] = useAppState();
 
   return (
@@ -54,6 +57,4 @@ const Topics: FC<{}> = () => {
       </Tab.Group>
     </div>
   );
-};
-
-export default Topics;
+}

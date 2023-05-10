@@ -114,7 +114,7 @@ export const NotFoundContent = ({ message }: { message?: string }) => {
   const { t } = useTranslation();
 
   return (
-    <div className="mt-24 sm:m-auto text-center">
+    <div className="my-12 text-center">
       <PaperPlaneIcon className="mx-auto" />
       <div className="mt-2 text-[#BFBFBF]">{message || t('general.not_found')}</div>
     </div>
