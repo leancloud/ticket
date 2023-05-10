@@ -175,11 +175,9 @@ export function LoadingHint(props: ComponentPropsWithoutRef<'div'>) {
 
 export function Loading() {
   return (
-    <div className="h-full flex grow flex-col">
-      <div className="mx-auto mt-24 sm:my-auto">
-        <StarIcon />
-        <LoadingHint className="mt-2" />
-      </div>
+    <div className="mx-auto my-12">
+      <StarIcon />
+      <LoadingHint className="mt-2" />
     </div>
   );
 }
