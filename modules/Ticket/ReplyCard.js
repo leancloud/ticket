@@ -178,7 +178,7 @@ ReplyContent.propTypes = {
   children: PropTypes.string,
 }
 
-export function ReplyCard({ data, onDeleted, ticketId, onEdit }) {
+export function ReplyCard({ data, onDeleted, onEdit }) {
   const { t } = useTranslation()
   const { isCustomerService, currentUser, addNotification } = useContext(AppContext)
   const [imageFiles, otherFiles] = useMemo(() => {
@@ -188,16 +188,16 @@ export function ReplyCard({ data, onDeleted, ticketId, onEdit }) {
 
   const actions = useMemo(() => {
     const isReply = data.type === 'reply'
-    const isAuthor = currentUser && currentUser.id === data.author.id
     const tmpActions = {
       translation: isCustomerService,
-      edit: isCustomerService && isReply && isAuthor,
-      delete: isCustomerService && isReply && isAuthor,
+      edit: isCustomerService && isReply,
+      delete: isCustomerService && isReply,
     }
     return Object.values(tmpActions).some((v) => v) ? tmpActions : undefined
   }, [isCustomerService, data, currentUser])
+
   const { mutateAsync: deleteReply, isLoading: deleting } = useMutation({
-    mutationFn: () => http.delete(`/api/1/tickets/${ticketId}/replies/${data.id}`),
+    mutationFn: () => http.delete(`/api/2/replies/${data.id}`),
     onSuccess: () => onDeleted(data.id),
     onError: (error) => addNotification(error),
   })
@@ -219,7 +219,7 @@ export function ReplyCard({ data, onDeleted, ticketId, onEdit }) {
         </div>
         <div className="d-flex align-items-center">
           {data.is_customer_service && <Badge className={css.badge}>{t('customerService')}</Badge>}
-          {data.internal && <InternalBadge className={css.badge} />}
+          {data.internal && <InternalBadge className={`${css.badge} ml-1`} />}
           {actions && (
             <Dropdown className="ml-2">
               <Dropdown.Toggle className="d-flex" as={MenuIcon} />
@@ -295,6 +295,5 @@ ReplyCard.propTypes = {
     files: PropTypes.array.isRequired,
   }),
   onDeleted: PropTypes.func,
-  ticketId: PropTypes.string.isRequired,
   onEdit: PropTypes.func,
 }

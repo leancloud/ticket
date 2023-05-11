@@ -339,25 +339,17 @@ TicketInfo.propTypes = {
   }),
 }
 
-function Timeline({ data, onReplyDeleted, ticketId, onEditReply }) {
+function Timeline({ data, onReplyDeleted, onEditReply }) {
   switch (data.type) {
     case 'opsLog':
       return <OpsLog data={data} />
     case 'reply':
-      return (
-        <ReplyCard
-          data={data}
-          ticketId={ticketId}
-          onDeleted={onReplyDeleted}
-          onEdit={onEditReply}
-        />
-      )
+      return <ReplyCard data={data} onDeleted={onReplyDeleted} onEdit={onEditReply} />
   }
 }
 Timeline.propTypes = {
   data: PropTypes.object.isRequired,
   onReplyDeleted: PropTypes.func,
-  ticketId: PropTypes.string.isRequired,
   onEditReply: PropTypes.func,
 }
 
@@ -442,13 +434,11 @@ export default function Ticket() {
         </Col>
         <Col md={6}>
           <div className="tickets">
-            {/* TODO: ticket in reply card ? */}
-            <ReplyCard data={ticket} ticketId={ticket.id} />
+            <ReplyCard data={ticket} />
             {timeline.map((data) => (
               <Timeline
                 key={data.id}
                 data={data}
-                ticketId={ticket.id}
                 onReplyDeleted={deleteReply}
                 onEditReply={editModalRef.current?.show}
               />
