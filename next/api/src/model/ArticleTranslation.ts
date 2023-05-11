@@ -30,7 +30,7 @@ export class ArticleTranslation extends Model {
 
   @pointerId(() => Article)
   @serialize()
-  articleId?: string;
+  articleId!: string;
 
   @pointTo(() => Article)
   article?: Article;
