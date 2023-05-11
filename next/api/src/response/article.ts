@@ -5,16 +5,13 @@ import { config } from '@/config';
 import { ArticleTranslation } from '@/model/ArticleTranslation';
 
 export class ArticleTranslationAbstractResponse {
-  private article: Article;
-
-  constructor(readonly articleTranslation: ArticleTranslation) {
-    this.article = articleTranslation.article!;
-  }
+  constructor(readonly articleTranslation: ArticleTranslation) {}
 
   toJSON() {
-    const slug = `${this.article.id}-${sluggo(this.articleTranslation.title)}`;
+    const articleId = this.articleTranslation.articleId;
+    const slug = `${articleId}-${sluggo(this.articleTranslation.title)}`;
     return {
-      id: this.article.id,
+      id: articleId,
       title: this.articleTranslation.title,
       language: this.articleTranslation.language,
       slug,
