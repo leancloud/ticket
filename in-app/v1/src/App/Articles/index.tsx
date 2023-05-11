@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMutation } from 'react-query';
 import { useTranslation } from 'react-i18next';
-import { Route, Routes, useParams, useSearchParams, Link } from 'react-router-dom';
+import { useParams, useSearchParams, Link } from 'react-router-dom';
 import { http } from '@/leancloud';
 import { PageContent, PageHeader } from '@/components/Page';
 import { QueryWrapper } from '@/components/QueryWrapper';
@@ -11,36 +11,16 @@ import CheckIcon from '@/icons/Check';
 import ThumbDownIcon from '@/icons/ThumbDown';
 import ThumbUpIcon from '@/icons/ThumbUp';
 import { useAuth } from '@/states/auth';
-import { ArticleListItem } from './utils';
 import { Helmet } from 'react-helmet-async';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
-import { useFAQs } from '@/api/category';
 import { useArticle } from '@/api/article';
 
-function RelatedFAQs({ categoryId, articleId }: { categoryId: string; articleId: string }) {
-  const { t } = useTranslation();
-  const { data: FAQs, isLoading: FAQsIsLoading, isSuccess: FAQsIsReady } = useFAQs(categoryId);
-  if (!FAQs) {
-    return null;
-  }
-  const relatedFAQs = FAQs.filter((faq) => faq.id !== articleId);
-  if (relatedFAQs.length === 0) {
-    return null;
-  }
-  return (
-    <div className="pt-6 pb-2">
-      <h2 className="px-4 py-3 font-bold">{t('faqs.similar')}</h2>
-      {relatedFAQs.map((FAQ) => (
-        <ArticleListItem article={FAQ} fromCategory={categoryId} key={FAQ.id} />
-      ))}
-    </div>
-  );
-}
 enum FeedbackType {
   Upvote = 1,
   Downvote = -1,
 }
+
 async function feedback(articleId: string, type: FeedbackType) {
   return await http.post(`/api/2/articles/${articleId}/feedback`, {
     type,
@@ -90,11 +70,10 @@ function Feedback({ articleId }: { articleId: string }) {
 }
 
 export function ArticleDetail() {
-  const [t, i18n] = useTranslation();
+  const { t } = useTranslation();
   const { id } = useParams();
 
   const [search] = useSearchParams();
-  const categoryId = search.get('from-category');
   const isNotice = !!search.get('from-notice');
 
   const articleId = id?.split('-').shift();
@@ -143,13 +122,6 @@ export function ArticleDetail() {
             </Link>
           </div>
         )}
-        {/* {categoryId && auth && (
-          <p className="my-6 px-4 text-center">
-            <span className="block mb-2 text-sm">若以上内容没有帮助到你</span>
-            <NewTicketButton categoryId={categoryId} />
-          </p>
-        )} */}
-        {/* {categoryId && id && <RelatedFAQs categoryId={categoryId} articleId={id} />} */}
       </PageContent>
     </QueryWrapper>
   );
