@@ -2,7 +2,9 @@ import { useCallback } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Controller, useForm } from 'react-hook-form';
 import { useQueryClient } from 'react-query';
+import _ from 'lodash';
 
+import { useCustomerServices } from '@/api/customer-service';
 import {
   CreateGroupData,
   GroupSchema,
@@ -13,8 +15,17 @@ import {
   useGroups,
   useUpdateGroup,
 } from '@/api/group';
-import { Button, Form, Input, Modal, Table, TableProps, message } from '@/components/antd';
-import { CustomerServiceSelect, QueryResult } from '@/components/common';
+import {
+  Button,
+  Form,
+  Input,
+  Modal,
+  Table,
+  TableProps,
+  message,
+  Transfer,
+} from '@/components/antd';
+import { QueryResult } from '@/components/common';
 
 function GroupActions({ id, name }: GroupSchema) {
   const queryClient = useQueryClient();
@@ -100,6 +111,8 @@ function EditGroup({ initData, loading, onSave }: EditGroupProps) {
     defaultValues: initData,
   });
 
+  const { data: customerServices } = useCustomerServices();
+
   return (
     <Form layout="vertical" onFinish={handleSubmit(onSave)}>
       <Controller
@@ -132,12 +145,26 @@ function EditGroup({ initData, loading, onSave }: EditGroupProps) {
         name="userIds"
         render={({ field }) => (
           <Form.Item label="成员">
-            <CustomerServiceSelect {...field} mode="multiple" />
+            <Transfer
+              dataSource={customerServices}
+              titles={['客服', '成员']}
+              rowKey={(user) => user.id}
+              render={(user) => user.nickname}
+              targetKeys={field.value}
+              onChange={(targetKeys, direction, moveKeys) => {
+                if (direction === 'left') {
+                  field.onChange(targetKeys);
+                } else {
+                  field.onChange(_.difference(targetKeys, moveKeys).concat(moveKeys));
+                }
+              }}
+              listStyle={{ width: 300, height: 400 }}
+            />
           </Form.Item>
         )}
       />
 
-      <Button type="primary" htmlType="submit" disabled={loading}>
+      <Button type="primary" htmlType="submit" loading={loading}>
         保存
       </Button>
     </Form>
@@ -171,13 +198,11 @@ export function GroupDetail() {
   const groupResult = useGroup(id!);
 
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
 
   const { mutate, isLoading } = useUpdateGroup({
     onSuccess: () => {
       message.success('保存成功');
       queryClient.invalidateQueries('groups');
-      navigate('..');
     },
     onError: (error) => {
       message.error(error.message);
