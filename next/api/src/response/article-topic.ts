@@ -1,5 +1,5 @@
 import { ArticleTopic } from '@/model/ArticleTopic';
-import { ArticleTranslationAbstractResponse } from './article';
+import { ArticleTranslationResponse } from './article';
 
 export class ArticleTopicResponse {
   constructor(readonly topic: ArticleTopic) {}
@@ -25,7 +25,7 @@ export class ArticleTopicFullResponse extends ArticleTopicResponse {
     return {
       ...super.toJSON(),
       articles: this.topic.translations?.map(
-        (translation) => new ArticleTranslationAbstractResponse(translation)
+        (translation) => new ArticleTranslationResponse(translation)
       ),
     };
   }
