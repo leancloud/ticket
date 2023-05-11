@@ -132,7 +132,6 @@ export const getPublicTranslations = mem(
   (articleId: string) =>
     ArticleTranslation.queryBuilder()
       .where('article', '==', Article.ptr(articleId))
-      // .where('article.private', '==', false)
       .where('private', '==', false)
       .preload('article')
       .preload('revision')
