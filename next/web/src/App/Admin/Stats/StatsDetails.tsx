@@ -61,53 +61,49 @@ const TicketStatsDateColumn = () => {
   );
 
   const chartData = useMemo(() => {
-    if (rollup === 'day') {
-      return _(filteredData)
-        .groupBy((v) => {
-          return moment(v.date).format('YYYY-MM-DD');
-        })
-        .mapValues((value) => {
-          return Object.keys(value[0]).reduce((pre, curr) => {
-            if (curr !== 'date') {
-              pre[curr] = _.sumBy(value, curr);
-            }
-            return pre;
-          }, {} as Record<string, number>);
-        })
-        .toPairs()
-        .map((value) => valueTransform(value, field))
-        .valueOf();
-    }
-    return filteredData
-      .map((v) => {
-        const { date, categoryId, customerServiceId, ...rest } = v;
-        return valueTransform([date, rest as Record<string, number>], field);
+    const aggregatedData = _(filteredData)
+      .groupBy((v) => {
+        return rollup === 'day' ? moment(v.date).format('YYYY-MM-DD') : v.date;
       })
-      .reduce((pre, curr, index) => {
-        if (index === 0) {
-          pre.push(curr);
-        } else {
-          const lastDate = moment(_.last(pre)![0]);
-          const hours = moment(curr[0]).diff(lastDate, 'hour');
-          if (hours > 1) {
-            pre = [
-              ...pre,
-              ...new Array(hours - 1).fill(0).map((v, index) => {
-                return [
-                  moment(lastDate)
-                    .add(index + 1, 'hour')
-                    .toISOString(),
-                  {
-                    [field]: 0,
-                  },
-                ] as [string, Record<string, number>];
-              }),
-            ];
+      .mapValues((value) => {
+        return Object.keys(value[0]).reduce((pre, curr) => {
+          if (curr !== 'date') {
+            pre[curr] = _.sumBy(value, curr);
           }
-          pre.push(curr);
+          return pre;
+        }, {} as Record<string, number>);
+      })
+      .toPairs()
+      .map((value) => valueTransform(value, field))
+      .valueOf();
+    if (rollup === 'day') {
+      return aggregatedData;
+    }
+    return aggregatedData.reduce((pre, curr, index) => {
+      if (index === 0) {
+        pre.push(curr);
+      } else {
+        const lastDate = moment(_.last(pre)![0]);
+        const hours = moment(curr[0]).diff(lastDate, 'hour');
+        if (hours > 1) {
+          pre = [
+            ...pre,
+            ...new Array(hours - 1).fill(0).map((v, index) => {
+              return [
+                moment(lastDate)
+                  .add(index + 1, 'hour')
+                  .toISOString(),
+                {
+                  [field]: 0,
+                },
+              ] as [string, Record<string, number>];
+            }),
+          ];
         }
-        return pre;
-      }, [] as Array<[string, Record<string, number>]>);
+        pre.push(curr);
+      }
+      return pre;
+    }, [] as Array<[string, Record<string, number>]>);
   }, [filteredData, rollup]);
 
   const isTimeField = timeField.includes(field);
