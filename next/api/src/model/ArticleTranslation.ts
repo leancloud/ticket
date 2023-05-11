@@ -14,18 +14,23 @@ export class ArticleTranslation extends Model {
   title!: string;
 
   @field()
+  @serialize()
   content?: string;
 
   @field()
+  @serialize()
   contentHTML!: string;
 
   @field()
+  @serialize()
   language!: string;
 
   @field()
+  @serialize()
   private!: boolean;
 
   @field()
+  @serialize()
   deletedAt?: Date;
 
   @pointerId(() => Article)

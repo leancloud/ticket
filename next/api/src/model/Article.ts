@@ -10,12 +10,15 @@ export class Article extends Model {
   name!: string;
 
   @field()
+  @serialize()
   private?: boolean;
 
   @field()
+  @serialize()
   defaultLanguage!: string;
 
   @field()
+  @serialize()
   deletedAt?: Date;
 
   async delete(this: Article, options?: ModifyOptions) {
