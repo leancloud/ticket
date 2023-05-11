@@ -1,6 +1,9 @@
+import _ from 'lodash';
+
 import { Cache, RedisStore } from '@/cache';
 import { Article } from '@/model/Article';
 import { ArticleTranslation } from '@/model/ArticleTranslation';
+import { ArticleLanguages } from './types';
 
 export class ArticleService {
   private cache: Cache;
@@ -36,9 +39,9 @@ export class ArticleService {
     return article;
   }
 
-  async getArticlePublishedLanguages(articleId: string) {
+  async getArticleLanguages(articleId: string) {
     const cacheKey = `${articleId}:langs`;
-    const cacheValue = await this.cache.get(cacheKey);
+    const cacheValue = await this.cache.get<ArticleLanguages>(cacheKey);
     if (cacheValue) {
       return cacheValue;
     }
@@ -46,11 +49,15 @@ export class ArticleService {
     const translations = await ArticleTranslation.queryBuilder()
       .where('article', '==', Article.ptr(articleId))
       .where('deletedAt', 'not-exists')
-      .where('private', '==', false)
       .find({ useMasterKey: true });
 
-    const languages = translations.map((t) => t.language);
-    // 空数组就是一种空值，不需要再回种 null
+    const [unpublished, published] = _.partition(translations, (t) => t.private);
+
+    const languages: ArticleLanguages = {
+      published: published.map((t) => t.language),
+      unpublished: unpublished.map((t) => t.language),
+    };
+
     await this.cache.set(cacheKey, languages);
 
     return languages;
@@ -87,12 +94,20 @@ export class ArticleService {
   }
 
   async clearArticleTranslationsCache(articleId: string) {
-    const cacheKey = `${articleId}:langs`;
-    const languages = await this.cache.get<string[]>(cacheKey);
-    if (languages) {
-      const cacheKeys = [cacheKey].concat(languages.map((lang) => `${articleId}:lang:${lang}`));
-      await this.cache.del(cacheKeys);
+    const { published, unpublished } = await this.getArticleLanguages(articleId);
+    const langs = published.concat(unpublished);
+    if (langs.length) {
+      await this.cache.del([
+        `${articleId}:langs`,
+        ...langs.map((lang) => `${articleId}:lang:${lang}`),
+      ]);
+    } else {
+      await this.cache.del(`${articleId}:langs`);
     }
+  }
+
+  async clearArticleTranslationCache(articleId: string, language: string) {
+    await this.cache.del([`${articleId}:langs`, `${articleId}:lang:${language}`]);
   }
 }
 
