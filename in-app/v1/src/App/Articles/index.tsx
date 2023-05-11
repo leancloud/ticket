@@ -89,7 +89,7 @@ function Feedback({ articleId }: { articleId: string }) {
   );
 }
 
-function ArticleDetail() {
+export function ArticleDetail() {
   const [t, i18n] = useTranslation();
   const { id } = useParams();
 
@@ -152,13 +152,5 @@ function ArticleDetail() {
         {/* {categoryId && id && <RelatedFAQs categoryId={categoryId} articleId={id} />} */}
       </PageContent>
     </QueryWrapper>
-  );
-}
-
-export default function Articles() {
-  return (
-    <Routes>
-      <Route path=":id" element={<ArticleDetail />} />
-    </Routes>
   );
 }

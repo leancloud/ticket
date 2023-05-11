@@ -19,7 +19,7 @@ import Home from './Home';
 import Categories from './Categories';
 import Tickets from './Tickets';
 import NotFound from './NotFound';
-import Articles from './Articles';
+import { ArticleDetail } from './Articles';
 import TopCategories from './TopCategories';
 import Test from './Test';
 
@@ -173,7 +173,9 @@ const AppRoutes = () => {
         }
       />
       <Route path="/categories" element={<TopCategories />} />
-      <Route path="/articles/*" element={<Articles />} />
+      <Route path="/articles">
+        <Route path=":id" element={<ArticleDetail />} />
+      </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
