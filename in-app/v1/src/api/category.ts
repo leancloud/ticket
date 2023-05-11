@@ -1,7 +1,11 @@
+import { useMemo } from 'react';
 import { UseQueryOptions, useQuery } from 'react-query';
+import { uniqBy } from 'lodash-es';
+
 import { useRootCategory } from '@/states/root-category';
 import { http } from '@/leancloud';
 import { Article } from '@/types';
+import { usePresetArticles } from './article';
 
 export interface Category {
   id: string;
@@ -64,12 +68,24 @@ export function useCategory(id: string, options?: UseQueryOptions<Category>) {
 
 export function useCategoryTopics(options?: UseQueryOptions<CategoryTopics[]>) {
   const rootCategory = useRootCategory();
-  return useQuery({
+
+  const result = useQuery({
     queryKey: ['categoryTopic', rootCategory.id],
     queryFn: () => fetchCategoryTopic(rootCategory.id),
     staleTime: Infinity,
     ...options,
   });
+
+  usePresetArticles(
+    useMemo(() => {
+      if (result.data) {
+        const articles = result.data.flatMap((topic) => topic.articles);
+        return uniqBy(articles, (article) => article.id);
+      }
+    }, [result.data])
+  );
+
+  return result;
 }
 
 async function fetchFAQs(categoryId?: string, locale?: string): Promise<Article[]> {
@@ -83,11 +99,15 @@ async function fetchFAQs(categoryId?: string, locale?: string): Promise<Article[
 }
 
 export function useFAQs(categoryId?: string) {
-  return useQuery({
+  const result = useQuery({
     queryKey: ['category-faqs', categoryId],
     queryFn: () => fetchFAQs(categoryId),
     staleTime: 1000 * 60,
   });
+
+  usePresetArticles(result.data);
+
+  return result;
 }
 
 async function fetchNotices(categoryId?: string, locale?: string): Promise<Article[]> {
@@ -101,9 +121,13 @@ async function fetchNotices(categoryId?: string, locale?: string): Promise<Artic
 }
 
 export function useNotices(categoryId?: string) {
-  return useQuery({
+  const result = useQuery({
     queryKey: ['category-notices', categoryId],
     queryFn: () => fetchNotices(categoryId),
     staleTime: 1000 * 60,
   });
+
+  usePresetArticles(result.data);
+
+  return result;
 }

@@ -1,21 +1,17 @@
-import { Link } from 'react-router-dom';
+import { Link, LinkProps } from 'react-router-dom';
 import classNames from 'classnames';
 
 import { Article } from '@/types';
 import { ListItem } from '../Categories';
 
-export const NoticeLink = ({
-  article,
-  className,
-  children = article.title,
-}: {
+interface NoticeLinkProps extends Omit<LinkProps, 'to'> {
   article: Article;
-  className?: string;
-  children?: React.ReactNode;
-}) => {
+}
+
+export const NoticeLink = ({ article, children, ...props }: NoticeLinkProps) => {
   return (
-    <Link to={`/articles/${article.slug}?from-notice=true`} className={className}>
-      {children}
+    <Link {...props} to={`/articles/${article.slug}?from-notice=true`}>
+      {children ?? article.title}
     </Link>
   );
 };

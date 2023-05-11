@@ -77,7 +77,10 @@ export function ArticleDetail() {
   const isNotice = !!search.get('from-notice');
 
   const articleId = id!.split('-').shift();
-  const result = useArticle(articleId || id!);
+  const result = useArticle(articleId || id!, {
+    staleTime: Infinity,
+    cacheTime: Infinity,
+  });
   const { data: article } = result;
 
   const { user } = useAuth();
