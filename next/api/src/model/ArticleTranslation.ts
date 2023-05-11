@@ -1,10 +1,12 @@
+import throat from 'throat';
+import _ from 'lodash';
 import { ACLBuilder, Model, ModifyOptions, field, pointTo, pointerId, serialize } from '@/orm';
 import { Article } from './Article';
 import { ArticleRevision } from './ArticleRevision';
 import { User } from './User';
 import { FeedbackType, ArticleFeedback } from './ArticleFeedback';
-import mem from '../utils/mem-promise';
-import { LocaleMatcher, matchLocale } from '@/utils/locale';
+import { LocaleMatcher } from '@/utils/locale';
+import { articleService } from '@/article/article.service';
 
 export class ArticleTranslation extends Model {
   static readonly className = 'FAQTranslation';
@@ -133,28 +135,43 @@ export class ArticleTranslation extends Model {
   }
 }
 
-export const getPublicTranslations = mem(
-  (articleId: string) =>
-    ArticleTranslation.queryBuilder()
-      .where('article', '==', Article.ptr(articleId))
-      // .where('article.private', '==', false)
-      .where('private', '==', false)
-      .preload('article')
-      .preload('revision')
-      .find({ useMasterKey: true }),
-  { max: 500, ttl: 60_000 }
-);
+/**
+ * @deprecated
+ */
+export async function getPublishedArticleTranslation(articleId: string, matcher: LocaleMatcher) {
+  const article = await articleService.getArticle(articleId);
+  if (!article || article.private) {
+    return;
+  }
 
-export const getPublicTranslationWithLocales = async (
-  articleId: string,
-  matcher: LocaleMatcher
-) => {
-  const translations = await getPublicTranslations(articleId);
+  const languages = await articleService.getArticlePublishedLanguages(articleId);
+  if (languages.length === 0) {
+    return;
+  }
 
-  return matchLocale(
-    translations,
-    (translation) => translation.language,
-    matcher,
-    translations[0]?.article?.defaultLanguage ?? ''
-  );
-};
+  const language = matcher(languages, article.defaultLanguage);
+  const translation = await articleService.getArticleTranslation(article.id, language);
+  if (!translation) {
+    return;
+  }
+
+  return translation;
+}
+
+/**
+ * @deprecated
+ */
+export async function getPublishedArticleTranslations(
+  articleIds: string[],
+  matcher: LocaleMatcher,
+  concurrency = 3
+) {
+  if (articleIds.length === 0) {
+    return [];
+  }
+  const createTask = throat(concurrency, (id: string) => {
+    return getPublishedArticleTranslation(id, matcher);
+  });
+  const translations = await Promise.all(articleIds.map(createTask));
+  return _.compact(translations);
+}
