@@ -29,7 +29,6 @@ import { NewTopic, TopicDetail, TopicList } from './Topics';
 import { CategoryFieldCount } from './Categories/CategoryFieldStats';
 import { NewArticle } from './Articles/NewArticle';
 import { ArticleDetail } from './Articles/ArticleDetail';
-import { ArticleTranslationDetail } from './Articles/TranslationDetail';
 import { EditArticleTranslation } from './Articles/EditTranslation';
 import { NewArticleTranslation } from './Articles/NewTranslation';
 import { NewTicketFormNoteTranslation } from './TicketFormNotes/NewTicketFormNoteTranslation';
