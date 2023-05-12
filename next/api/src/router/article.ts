@@ -86,7 +86,10 @@ router.get('/detail', pagination(20), auth, async (ctx) => {
 
   const currentUser = ctx.state.currentUser as User;
 
-  const articleQb = Article.queryBuilder().orderBy('createdAt', 'desc').paginate(page, pageSize);
+  const articleQb = Article.queryBuilder()
+    .where('deletedAt', 'not-exists')
+    .orderBy('createdAt', 'desc')
+    .paginate(page, pageSize);
   if (isPrivate !== undefined) {
     articleQb.where('private', '==', isPrivate);
   }
@@ -100,11 +103,13 @@ router.get('/detail', pagination(20), auth, async (ctx) => {
     return;
   }
 
-  const translationQb = ArticleTranslation.queryBuilder().where(
-    'article',
-    'in',
-    articles.map((a) => a.toPointer())
-  );
+  const translationQb = ArticleTranslation.queryBuilder()
+    .where('deletedAt', 'not-exists')
+    .where(
+      'article',
+      'in',
+      articles.map((a) => a.toPointer())
+    );
   if (isPrivate !== undefined) {
     translationQb.where('private', '==', isPrivate);
   }
