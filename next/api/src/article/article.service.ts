@@ -89,21 +89,16 @@ export class ArticleService {
   }
 
   async clearArticleCache(articleId: string) {
-    await this.clearArticleTranslationsCache(articleId);
     await this.cache.del(articleId);
   }
 
-  async clearArticleTranslationsCache(articleId: string) {
+  async clearAllArticleCache(articleId: string) {
+    const cacheKeys = [articleId, `${articleId}:langs`];
     const { published, unpublished } = await this.getArticleLanguages(articleId);
-    const langs = published.concat(unpublished);
-    if (langs.length) {
-      await this.cache.del([
-        `${articleId}:langs`,
-        ...langs.map((lang) => `${articleId}:lang:${lang}`),
-      ]);
-    } else {
-      await this.cache.del(`${articleId}:langs`);
-    }
+    published.concat(unpublished).forEach((lang) => {
+      cacheKeys.push(`${articleId}:lang:${lang}`);
+    });
+    await this.cache.del(cacheKeys);
   }
 
   async clearArticleTranslationCache(articleId: string, language: string) {

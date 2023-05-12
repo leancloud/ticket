@@ -19,8 +19,8 @@ export class ArticleTranslationAbstractResponse {
       private: !!this.articleTranslation.private,
       revision: this.articleTranslation.revision
         ? {
-            upvote: this.articleTranslation.revision?.upvote,
-            downvote: this.articleTranslation.revision?.downvote,
+            upvote: this.articleTranslation.revision.upvote,
+            downvote: this.articleTranslation.revision.downvote,
           }
         : undefined,
       createdAt: this.articleTranslation.createdAt.toISOString(),
@@ -30,10 +30,6 @@ export class ArticleTranslationAbstractResponse {
 }
 
 export class ArticleTranslationResponse extends ArticleTranslationAbstractResponse {
-  constructor(readonly articleTranslation: ArticleTranslation) {
-    super(articleTranslation);
-  }
-
   toJSON() {
     return {
       ...super.toJSON(),
