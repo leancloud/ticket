@@ -13,8 +13,7 @@ import ThumbUpIcon from '@/icons/ThumbUp';
 import { useAuth } from '@/states/auth';
 import { ArticleListItem } from './utils';
 import { Helmet } from 'react-helmet-async';
-import { format } from 'date-fns';
-import { zhCN } from 'date-fns/locale';
+import { intlFormat } from 'date-fns';
 import { useFAQs } from '@/api/category';
 import { useArticle } from '@/api/article';
 import { useRootCategory } from '@/states/root-category';
@@ -130,8 +129,9 @@ function ArticleDetail() {
           />
           {article && (
             <p className="text-sm text-gray-400">
-              {`${t('general.update_date')}: ${format(new Date(article.updatedAt), 'PPP', {
-                locale: zhCN,
+              {`${t('general.update_date')}: ${intlFormat(new Date(article.updatedAt), {
+                // @ts-ignore https://github.com/date-fns/date-fns/issues/3424
+                locale: i18n.language,
               })}`}
             </p>
           )}
