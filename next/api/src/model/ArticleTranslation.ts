@@ -90,7 +90,7 @@ export class ArticleTranslation extends Model {
         content: updatedArticle.content,
         title: updatedArticle.title,
       });
-      this.update(
+      await this.update(
         {
           revisionId: revision.id,
         },
