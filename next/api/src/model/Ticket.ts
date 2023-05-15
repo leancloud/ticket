@@ -326,12 +326,14 @@ export class Ticket extends Model {
       currentUserId: data.author.id,
     });
 
-    if (this.channel === 'email' && data.author.id !== this.authorId) {
-      // 向创建者发送邮件
-      emailService.sendReplyToTicketCreator(this, reply.contentHTML, data.fileIds);
-    }
+    if (!data.internal) {
+      if (this.channel === 'email' && data.author.id !== this.authorId) {
+        // 向创建者发送邮件
+        emailService.sendReplyToTicketCreator(this, reply.contentHTML, data.fileIds);
+      }
 
-    await durationMetricService.recordReplyTicket(this, reply, isCustomerService);
+      await durationMetricService.recordReplyTicket(this, reply, isCustomerService);
+    }
 
     return reply;
   }
