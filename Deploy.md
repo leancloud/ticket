@@ -419,3 +419,9 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 ### `15afe237b1fd4ed9d40239fe0d144343a3aae398`
 
 导入 QuickReply.json，添加 tags 列。
+
+## 2023-05-15
+
+### `4a47f1cdb5e77c4b78c7c07588abbd9a58169c89`
+
+导入 DurationMetrics.json，创建 DurationMetrics class。
