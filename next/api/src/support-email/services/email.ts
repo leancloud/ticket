@@ -38,7 +38,9 @@ export class EmailService {
     const supportAddresses = await supportEmailService.getSupportEmails();
     const count = 100;
     supportAddresses.forEach((addr) => {
-      this.dispatchCreateEmailTicketJob(addr, count);
+      this.dispatchCreateEmailTicketJob(addr, count).catch((e) => {
+        console.error('[EmailService] check new message failed', addr, e);
+      });
     });
   }
 
@@ -124,7 +126,7 @@ export class EmailService {
       if ((e as Error).message === 'retry') {
         await this.queue.add(job.data, { delay: 1000 * 10 });
       } else {
-        console.error('[Support email]', e);
+        throw e;
       }
     }
   }
