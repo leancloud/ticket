@@ -65,21 +65,27 @@ export class SupportEmailController {
   @ResponseBody(SupportEmailResponse)
   async create(@Body(new ZodValidationPipe(createSchema)) data: CreateData) {
     await this.checkEmailConflict(data.email);
-    await this.validateEmailAccount(data);
-    const supportEmail = await SupportEmail.create(
-      {
-        ACL: {},
-        name: data.name,
-        email: data.email,
-        auth: data.auth,
-        smtp: data.smtp,
-        imap: data.imap,
-        categoryId: data.categoryId,
-        receipt: data.receipt,
-      },
-      { useMasterKey: true }
-    );
-    return supportEmail;
+    const client = await this.validateEmailAccount(data);
+    try {
+      const uidNext = await emailService.getUidNext(client);
+      const supportEmail = await SupportEmail.create(
+        {
+          ACL: {},
+          name: data.name,
+          email: data.email,
+          auth: data.auth,
+          smtp: data.smtp,
+          imap: data.imap,
+          categoryId: data.categoryId,
+          receipt: data.receipt,
+          lastUid: uidNext - 1,
+        },
+        { useMasterKey: true }
+      );
+      return supportEmail;
+    } finally {
+      await client.logout();
+    }
   }
 
   @Get()
@@ -124,11 +130,10 @@ export class SupportEmailController {
     const client = emailService.createImapClient(data);
     try {
       await client.connect();
+      return client;
     } catch (e: any) {
       const message = e.responseText || e.message;
       throw new HttpError(400, `Validate email account failed: ${message}`);
-    } finally {
-      await client.logout();
     }
   }
 }
