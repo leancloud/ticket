@@ -16,6 +16,7 @@ import { ZodValidationPipe } from '@/common/pipe';
 import { SupportEmailResponse } from '@/response/support-email';
 import { SupportEmail } from '@/support-email/entities/SupportEmail';
 import { supportEmailService } from '@/support-email/services/support-email';
+import { emailService } from '@/support-email/services/email';
 
 const noEmptyStringSchema = z.string().nonempty();
 
@@ -64,6 +65,7 @@ export class SupportEmailController {
   @ResponseBody(SupportEmailResponse)
   async create(@Body(new ZodValidationPipe(createSchema)) data: CreateData) {
     await this.checkEmailConflict(data.email);
+    await this.validateEmailAccount(data);
     const supportEmail = await SupportEmail.create(
       {
         ACL: {},
@@ -115,6 +117,18 @@ export class SupportEmailController {
     const emailConfilct = await supportEmailService.getSupportEmailByEmail(email);
     if (emailConfilct) {
       throw new HttpError(409, `Email ${email} already exists`);
+    }
+  }
+
+  async validateEmailAccount(data: CreateData) {
+    const client = emailService.createImapClient(data);
+    try {
+      await client.connect();
+    } catch (e: any) {
+      const message = e.responseText || e.message;
+      throw new HttpError(400, `Validate email account failed: ${message}`);
+    } finally {
+      client.close();
     }
   }
 }

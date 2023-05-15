@@ -63,7 +63,7 @@ export class EmailService {
     }
   }
 
-  createImapClient(supportEmail: SupportEmail) {
+  createImapClient(supportEmail: Pick<SupportEmail, 'imap' | 'auth'>) {
     return new ImapFlow({
       host: supportEmail.imap.host,
       port: supportEmail.imap.port,
@@ -124,7 +124,7 @@ export class EmailService {
       if ((e as Error).message === 'retry') {
         await this.queue.add(job.data, { delay: 1000 * 10 });
       } else {
-        throw e;
+        console.error('[Support email]', e);
       }
     }
   }
