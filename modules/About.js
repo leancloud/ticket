@@ -1,3 +1,4 @@
+/*global BRAND_NAME */
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -9,7 +10,7 @@ export default function About() {
 
   return (
     <div>
-      <h1 className="font-logo">LeanTicket</h1>
+      <h1 className="font-logo">{BRAND_NAME}</h1>
       <hr />
       <p>
         {t('lightweight')} <a href="https://github.com/leancloud/ticket">{t('oss')}</a> {t('intro')}

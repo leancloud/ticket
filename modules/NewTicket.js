@@ -328,7 +328,7 @@ const NewTicket = memo((props) => {
 
   return (
     <div>
-      <DocumentTitle title={`${t('newTicket')} - LeanTicket`} />
+      <DocumentTitle title={`${t('newTicket')}`} />
       <WeekendWarning />
       <Form
         onSubmit={(e) => {

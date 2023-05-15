@@ -17,7 +17,7 @@ export default function CustomerServiceStats(props, context) {
 
   return (
     <div>
-      <DocumentTitle title={`${t('statistics')} - LeanTicket`} />
+      <DocumentTitle title={`${t('statistics')}`} />
       <StatsSummary categories={categories} />
       <StatsChart categories={categories} />
     </div>

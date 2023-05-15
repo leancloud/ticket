@@ -1,3 +1,4 @@
+/*global BRAND_NAME */
 import React, { useContext } from 'react'
 import { Button, Container, Nav, Navbar, NavDropdown } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
@@ -32,7 +33,7 @@ export default function GlobalNav({ user, onLogout }) {
     <Navbar bg="light" expand="md" fixed="top">
       <Container fluid="xl">
         <Navbar.Brand className="font-logo" as={Link} to="/">
-          {getConfig('nav.home.title', 'LeanTicket')}
+          {getConfig('nav.home.title', BRAND_NAME)}
         </Navbar.Brand>
 
         <Navbar.Toggle />

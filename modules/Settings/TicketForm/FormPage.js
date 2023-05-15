@@ -402,7 +402,7 @@ const AddForm = memo(() => {
   })
   return (
     <>
-      <DocumentTitle title={`${t('ticketTemplate.add')} - LeanTicket`} />
+      <DocumentTitle title={`${t('ticketTemplate.add')}`} />
       <Breadcrumb>
         <Breadcrumb.Item linkProps={{ to: '/settings/ticketTemplate' }} linkAs={Link}>
           {t('ticketTemplate.list')}
@@ -437,7 +437,7 @@ const EditorForm = () => {
 
   return (
     <>
-      <DocumentTitle title={`${t('ticketField.edit')} - LeanTicket`} />
+      <DocumentTitle title={`${t('ticketField.edit')}`} />
       <Breadcrumb>
         <Breadcrumb.Item linkProps={{ to: '/settings/ticketTemplate' }} linkAs={Link}>
           {t('ticketTemplate.list')}

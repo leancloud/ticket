@@ -1,3 +1,4 @@
+/*global BRAND_NAME */
 import { useMemo, useCallback } from 'react'
 import { useHistory, useLocation } from 'react-router-dom'
 import * as ReactUse from 'react-use'
@@ -7,7 +8,7 @@ import _ from 'lodash'
  * @param {string} [title]
  */
 export function useTitle(title) {
-  ReactUse.useTitle(title === undefined ? 'LeanTicket' : `${title} - LeanTicket`, {
+  ReactUse.useTitle(title === undefined ? BRAND_NAME : `${title} - ${BRAND_NAME}`, {
     restoreOnUnmount: true,
   })
 }

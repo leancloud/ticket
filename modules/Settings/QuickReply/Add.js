@@ -124,7 +124,7 @@ export function AddQuickReply() {
 
   return (
     <>
-      <DocumentTitle title={`${t('quickReply')} - LeanTicket`} />
+      <DocumentTitle title={`${t('quickReply')}`} />
       <Breadcrumb>
         <Breadcrumb.Item linkProps={{ to: '/settings/quick-replies' }} linkAs={Link}>
           {t('quickReply.list')}

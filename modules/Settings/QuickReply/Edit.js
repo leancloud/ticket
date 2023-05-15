@@ -33,7 +33,7 @@ export function EditQuickReply() {
 
   return (
     <>
-      <DocumentTitle title={`${t('quickReply.edit')} - LeanTicket`} />
+      <DocumentTitle title={`${t('quickReply.edit')}`} />
       <Breadcrumb>
         <Breadcrumb.Item linkProps={{ to: '/settings/quick-replies' }} linkAs={Link}>
           {t('quickReply.list')}

@@ -82,7 +82,7 @@ function QuickReplyList() {
 
   return (
     <>
-      <DocumentTitle title={`${t('quickReply')} - LeanTicket`} />
+      <DocumentTitle title={`${t('quickReply')}`} />
       <div className="mt-3 d-flex align-items-center">
         <Button as={Link} to={`${path}/new`} variant="light">
           {t('newQuickReply')}

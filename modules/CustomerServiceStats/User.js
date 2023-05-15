@@ -68,7 +68,7 @@ class CSStatsUser extends React.Component {
     }
     return (
       <div>
-        <DocumentTitle title={`${t('statistics')} - LeanTicket`} />
+        <DocumentTitle title={`${t('statistics')}`} />
         <Table>
           <thead>
             <td>{t('ticket')} ID</td>

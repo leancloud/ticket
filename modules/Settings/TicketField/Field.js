@@ -441,7 +441,7 @@ const AddField = memo(() => {
 
   return (
     <>
-      <DocumentTitle title={`${t('ticketField.add')} - LeanTicket`} />
+      <DocumentTitle title={`${t('ticketField.add')}`} />
       <Breadcrumb>
         <Breadcrumb.Item linkProps={{ to: '/settings/ticketField' }} linkAs={Link}>
           {t('ticketField.list')}
@@ -475,7 +475,7 @@ const EditorField = memo(() => {
 
   return (
     <>
-      <DocumentTitle title={`${t('ticketField.edit')} - LeanTicket`} />
+      <DocumentTitle title={`${t('ticketField.edit')}`} />
       <Breadcrumb>
         <Breadcrumb.Item linkProps={{ to: '/settings/ticketField' }} linkAs={Link}>
           {t('ticketField.list')}

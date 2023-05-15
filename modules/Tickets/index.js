@@ -135,7 +135,7 @@ function Tickets({ organizations, selectedOrgId, handleOrgChange }) {
 
   return (
     <div>
-      <DocumentTitle title={`${t('ticketList')} - LeanTicket`} />
+      <DocumentTitle title={`${t('ticketList')}`} />
       {organizations.length > 0 && (
         <Form inline>
           {(batchOpsEnable && (

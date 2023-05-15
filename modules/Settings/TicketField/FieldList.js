@@ -109,7 +109,7 @@ const FieldList = memo(() => {
     <div>
       <div>
         <div className="mb-3">
-          <DocumentTitle title={`${t('ticketField')} - LeanTicket`} />
+          <DocumentTitle title={`${t('ticketField')}`} />
           <Link to={`${match.path}/new`}>
             <Button variant="light">{t('ticketField.add')}</Button>
           </Link>

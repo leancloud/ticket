@@ -94,12 +94,14 @@ if (process.env.MAINTENANCE_MODE) {
 
   const { orgName } = require('./oauth/lc')
 
+  const BRAND_NAME = process.env.BRAND_NAME || 'TapSupport'
+
   const getIndexPage = () => {
     return `<!doctype html>
 <html>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>LeanTicket</title>
+<title>${BRAND_NAME}</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/github.min.css">
 <link rel="stylesheet" href="/index.css">
 <link rel="stylesheet" href="/css/docsearch.min.css" />
@@ -116,6 +118,7 @@ if (process.env.MAINTENANCE_MODE) {
   USE_LC_OAUTH = ${!!process.env.OAUTH_KEY}
   ALGOLIA_API_KEY = '${process.env.ALGOLIA_API_KEY || ''}'
   FAQ_VIEWS = '${process.env.FAQ_VIEWS || ''}'
+  BRAND_NAME = '${BRAND_NAME}'
 </script>
 <script src='${process.env.WEBPACK_DEV_SERVER || ''}/bundle.js'></script>
 <script>
