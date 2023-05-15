@@ -39,7 +39,7 @@ export class EmailService {
     const count = 100;
     supportAddresses.forEach((addr) => {
       this.dispatchCreateEmailTicketJob(addr, count).catch((e) => {
-        console.error('[EmailService] check new message failed', addr, e);
+        console.error('[EmailService] check new message failed', addr.email, e);
       });
     });
   }
