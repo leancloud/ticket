@@ -1,13 +1,13 @@
-import Router from '@koa/router';
+import Router, { Middleware } from '@koa/router';
+import _ from 'lodash';
 
-import { Article, getPublicArticle } from '@/model/Article';
+import { Article } from '@/model/Article';
 import {
   ArticleResponse,
   ArticleTranslationAbstractResponse,
   ArticleTranslationResponse,
 } from '@/response/article';
 import * as yup from '@/utils/yup';
-import _ from 'lodash';
 import { auth, customerServiceOnly, pagination } from '@/middleware';
 import { ACLBuilder, CreateData, UpdateData } from '@/orm';
 import htmlify from '@/utils/htmlify';
@@ -15,15 +15,14 @@ import { User } from '@/model/User';
 import { Category } from '@/model/Category';
 import { CategoryResponse } from '@/response/category';
 import { ArticleRevision } from '@/model/ArticleRevision';
-
 import {
   ArticleRevisionListItemResponse,
   ArticleRevisionResponse,
 } from '@/response/article-revision';
 import { FeedbackType } from '@/model/ArticleFeedback';
-import { ArticleTranslation } from '@/model/ArticleTranslation';
+import { ArticleTranslation, getArticleTranslation } from '@/model/ArticleTranslation';
 import { localeSchemaForYup, matchLocale } from '@/utils/locale';
-import { Middleware } from '@koa/router';
+import { articleService } from '@/article/article.service';
 
 const router = new Router();
 
@@ -32,37 +31,16 @@ interface ArticleState {
   translation: ArticleTranslation;
 }
 
-const fetchPreferTranslation: Middleware<ArticleState> = async (ctx, next) => {
-  if (!ctx.state.article) {
-    ctx.throw(404, 'Article not found');
-    return;
-  }
+const fetchPreferredTranslation: Middleware<ArticleState> = async (ctx, next) => {
+  const article = ctx.state.article;
 
-  const translationQb = ArticleTranslation.queryBuilder().where(
-    'article',
-    '==',
-    ctx.state.article.toPointer()
-  );
-
-  const sessionToken = ctx.get('X-LC-Session');
-
-  if (!sessionToken) {
-    translationQb.where('private', '==', false);
-  }
-
-  const translation = matchLocale(
-    await translationQb.find(sessionToken ? { sessionToken } : undefined),
-    (translation) => translation.language,
-    ctx.locales.matcher,
-    ctx.state.article.defaultLanguage
-  );
-
+  // TODO: read cache only once (now twice 👀)
+  const translation = await getArticleTranslation(article.id, ctx.locales.matcher);
   if (!translation) {
     ctx.throw(404, 'Article not found');
     return;
   }
 
-  translation && (translation.article = ctx.state.article);
   ctx.state.translation = translation;
   return next();
 };
@@ -78,9 +56,9 @@ router.get('/', pagination(20), auth, customerServiceOnly, async (ctx) => {
   const { private: isPrivate, id } = findArticlesOptionSchema.validateSync(ctx.request.query);
 
   const query = Article.queryBuilder()
+    .where('deletedAt', 'not-exists')
     .orderBy('createdAt', 'desc')
-    .skip((page - 1) * pageSize)
-    .limit(pageSize);
+    .paginate(page, pageSize);
 
   if (isPrivate !== undefined) {
     query.where('private', '==', isPrivate);
@@ -109,23 +87,33 @@ router.get('/detail', pagination(20), auth, async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
 
   const articleQb = Article.queryBuilder()
+    .where('deletedAt', 'not-exists')
     .orderBy('createdAt', 'desc')
-    .skip((page - 1) * pageSize)
-    .limit(pageSize);
-
-  const translationQb = ArticleTranslation.queryBuilder();
-
+    .paginate(page, pageSize);
   if (isPrivate !== undefined) {
     articleQb.where('private', '==', isPrivate);
-    translationQb.where('private', '==', isPrivate);
   }
-
   if (id) {
     articleQb.where('objectId', 'in', id);
-    translationQb.where('article', 'in', id.map(Article.ptr.bind(Article)));
   }
 
   const articles = await articleQb.find(currentUser.getAuthOptions());
+  if (articles.length === 0) {
+    ctx.body = [];
+    return;
+  }
+
+  const translationQb = ArticleTranslation.queryBuilder()
+    .where('deletedAt', 'not-exists')
+    .where(
+      'article',
+      'in',
+      articles.map((a) => a.toPointer())
+    );
+  if (isPrivate !== undefined) {
+    translationQb.where('private', '==', isPrivate);
+  }
+
   const translations = await translationQb.find({ useMasterKey: true });
 
   const articleById = _.keyBy(articles, (a) => a.id);
@@ -144,10 +132,7 @@ router.get('/detail', pagination(20), auth, async (ctx) => {
     .values()
     .compact()
     .value()
-    .map((t) => {
-      t.article = articleById[t.articleId!];
-      return new ArticleTranslationResponse(t);
-    });
+    .map((t) => new ArticleTranslationResponse(t));
 
   ctx.body = response;
 });
@@ -197,54 +182,35 @@ router.post('/', auth, customerServiceOnly, async (ctx) => {
 });
 
 router.param('id', async (id, ctx, next) => {
-  let article;
-  // Use cached result only for GET request.
-  // This is a temporary workaround before we replace the memery cache with redis.
-  // if (ctx.request.method !== 'GET') {
-  //   article = await getPublicArticle(id);
-  // }
-  // if (!article) {
-  //   const sessionToken = ctx.get('X-LC-Session');
-  //   if (sessionToken) {
-  //     article = await Article.find(id, { sessionToken });
-  //   }
-  // }
-  const sessionToken = ctx.get('X-LC-Session');
-  if (sessionToken) {
-    article = await Article.find(id, { sessionToken });
-  } else {
-    article = await getPublicArticle(id);
-  }
-
+  const article = await articleService.getArticle(id);
   if (!article) {
     ctx.throw(404, 'Article not found');
   }
-
   ctx.state.article = article;
   return next();
 });
 
 // get translation of article :id based on use prefer
-router.get('/:id', fetchPreferTranslation, async (ctx) => {
-  const translation = ctx.state.translation;
-
-  ctx.body = new ArticleTranslationResponse(translation);
+router.get('/:id', fetchPreferredTranslation, (ctx) => {
+  ctx.body = new ArticleTranslationResponse(ctx.state.translation);
 });
 
 // get article :id
-router.get('/:id/info', auth, customerServiceOnly, async (ctx) => {
-  const article = ctx.state.article as Article;
-
-  ctx.body = new ArticleResponse(article);
+router.get('/:id/info', auth, customerServiceOnly, (ctx) => {
+  ctx.body = new ArticleResponse(ctx.state.article);
 });
 
 // get translations of article :id
 router.get('/:id/translations', auth, customerServiceOnly, async (ctx) => {
   const article = ctx.state.article as Article;
 
-  ctx.body = (await article.getTranslations()).map(
-    (translations) => new ArticleTranslationAbstractResponse(translations)
-  );
+  const translations = await ArticleTranslation.queryBuilder()
+    .where('article', '==', article.toPointer())
+    .where('deletedAt', 'not-exists')
+    .preload('revision')
+    .find({ useMasterKey: true });
+
+  ctx.body = translations.map((translation) => new ArticleTranslationAbstractResponse(translation));
 });
 
 // get a list of category which uses article :id
@@ -266,6 +232,7 @@ const createArticleTranslationSchema = yup.object({
 });
 
 // create translation for article :id
+// TODO: prefer /:id/translations
 router.post('/:id', auth, customerServiceOnly, async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   const article = ctx.state.article as Article;
@@ -294,7 +261,7 @@ router.post('/:id', auth, customerServiceOnly, async (ctx) => {
   const translation = await ArticleTranslation.create(data, { useMasterKey: true });
   await translation.createRevision(currentUser, translation);
 
-  translation.article = article;
+  await articleService.clearArticleTranslationCache(article.id, language);
 
   ctx.body = new ArticleTranslationResponse(translation);
 });
@@ -304,9 +271,9 @@ const feedbackSchema = yup.object({
 });
 
 // add feedback for translation of user preferred language of article :id
-router.post('/:id/feedback', auth, fetchPreferTranslation, async (ctx) => {
+router.post('/:id/feedback', auth, fetchPreferredTranslation, async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
-  const translation = ctx.state.translation;
+  const translation = ctx.state.translation as ArticleTranslation;
 
   const { type } = feedbackSchema.validateSync(ctx.request.body);
 
@@ -335,6 +302,8 @@ router.patch('/:id', auth, customerServiceOnly, async (ctx) => {
   }
 
   const updatedArticle = await article.update(data, { useMasterKey: true });
+
+  await articleService.clearArticleCache(article.id);
 
   ctx.body = new ArticleResponse(updatedArticle);
 });
@@ -366,29 +335,31 @@ router.delete('/:id', auth, customerServiceOnly, async (ctx) => {
   }
 
   await article.delete(currentUser.getAuthOptions());
+
+  await articleService.clearAllArticleCache(article.id);
+
   ctx.body = {};
 });
 
 router.param('language', async (language, ctx, next) => {
-  if (ctx.params.id) {
-    const translation = await ArticleTranslation.queryBuilder()
-      .where('language', '==', language)
-      .where('article', '==', Article.ptr(ctx.params.id))
-      .first({ useMasterKey: true });
+  const article = ctx.state.article as Article;
 
-    translation && (translation.article = ctx.state.article);
-
-    ctx.state.translation = translation;
+  const translation = await articleService.getArticleTranslation(
+    article.id,
+    language.toLowerCase()
+  );
+  if (!translation) {
+    ctx.throw(404, `language ${language} does not exist`);
   }
+
+  ctx.state.translation = translation;
 
   return next();
 });
 
 // get :language translation of article :id
-router.get('/:id/:language', async (ctx) => {
-  const translation = ctx.state.translation as ArticleTranslation;
-
-  ctx.body = new ArticleTranslationResponse(translation);
+router.get('/:id/:language', (ctx) => {
+  ctx.body = new ArticleTranslationResponse(ctx.state.translation);
 });
 
 const updateArticleTranslationSchema = yup.object({
@@ -436,6 +407,7 @@ router.patch('/:id/:language', auth, customerServiceOnly, async (ctx) => {
 
   if (updated) {
     await translation.createRevision(currentUser, updatedTranslation, translation, comment);
+    await articleService.clearArticleTranslationCache(article.id, translation.language);
   }
 
   ctx.body = new ArticleTranslationResponse(updatedTranslation);
@@ -450,6 +422,9 @@ router.delete('/:id/:language', auth, customerServiceOnly, async (ctx) => {
   }
 
   await translation.delete({ useMasterKey: true });
+
+  await articleService.clearArticleTranslationCache(translation.articleId, translation.language);
+
   ctx.body = {};
 });
 
@@ -469,7 +444,6 @@ router.get('/:id/:language/revisions', auth, customerServiceOnly, pagination(100
     .where('FAQTranslation', '==', translation.toPointer())
     .orderBy('createdAt', 'desc')
     .paginate(page, pageSize)
-    .limit(pageSize)
     .preload('author');
 
   if (meta !== undefined) {
@@ -488,23 +462,18 @@ router.get('/:id/:language/revisions', auth, customerServiceOnly, pagination(100
 });
 
 router.param('rid', async (rid, ctx, next) => {
-  ctx.state.revision = await ArticleRevision.find(rid, {
-    useMasterKey: true,
-  });
+  const revision = await ArticleRevision.find(rid, { useMasterKey: true });
+  if (!revision) {
+    ctx.throw(404, `Revision ${rid} does not exist`);
+  }
+  ctx.state.revision = revision;
   return next();
 });
 
 // get revision :rid
-router.get(
-  '/:id/:language/revisions/:rid',
-  auth,
-  customerServiceOnly,
-  pagination(100),
-  async (ctx) => {
-    const revision = ctx.state.revision as ArticleRevision;
-    ctx.body = new ArticleRevisionResponse(revision);
-  }
-);
+router.get('/:id/:language/revisions/:rid', auth, customerServiceOnly, pagination(100), (ctx) => {
+  ctx.body = new ArticleRevisionResponse(ctx.state.revision);
+});
 
 const getACL = (isPrivate: boolean) => {
   const ACL = new ACLBuilder();

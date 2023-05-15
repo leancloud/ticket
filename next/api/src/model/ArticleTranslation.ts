@@ -1,10 +1,12 @@
+import throat from 'throat';
+import _ from 'lodash';
 import { ACLBuilder, Model, ModifyOptions, field, pointTo, pointerId, serialize } from '@/orm';
 import { Article } from './Article';
 import { ArticleRevision } from './ArticleRevision';
 import { User } from './User';
 import { FeedbackType, ArticleFeedback } from './ArticleFeedback';
-import mem from '../utils/mem-promise';
-import { LocaleMatcher, matchLocale } from '@/utils/locale';
+import { LocaleMatcher } from '@/utils/locale';
+import { articleService } from '@/article/article.service';
 
 export class ArticleTranslation extends Model {
   static readonly className = 'FAQTranslation';
@@ -14,23 +16,28 @@ export class ArticleTranslation extends Model {
   title!: string;
 
   @field()
+  @serialize()
   content?: string;
 
   @field()
+  @serialize()
   contentHTML!: string;
 
   @field()
+  @serialize()
   language!: string;
 
   @field()
+  @serialize()
   private!: boolean;
 
   @field()
+  @serialize()
   deletedAt?: Date;
 
   @pointerId(() => Article)
   @serialize()
-  articleId?: string;
+  articleId!: string;
 
   @pointTo(() => Article)
   article?: Article;
@@ -83,7 +90,7 @@ export class ArticleTranslation extends Model {
         content: updatedArticle.content,
         title: updatedArticle.title,
       });
-      this.update(
+      await this.update(
         {
           revisionId: revision.id,
         },
@@ -128,28 +135,48 @@ export class ArticleTranslation extends Model {
   }
 }
 
-export const getPublicTranslations = mem(
-  (articleId: string) =>
-    ArticleTranslation.queryBuilder()
-      .where('article', '==', Article.ptr(articleId))
-      // .where('article.private', '==', false)
-      .where('private', '==', false)
-      .preload('article')
-      .preload('revision')
-      .find({ useMasterKey: true }),
-  { max: 500, ttl: 60_000 }
-);
-
-export const getPublicTranslationWithLocales = async (
+/**
+ * @deprecated
+ */
+export async function getArticleTranslation(
   articleId: string,
-  matcher: LocaleMatcher
-) => {
-  const translations = await getPublicTranslations(articleId);
+  matcher: LocaleMatcher,
+  publishedOnly?: boolean
+) {
+  const article = await articleService.getArticle(articleId);
+  if (!article || article.private) {
+    return;
+  }
 
-  return matchLocale(
-    translations,
-    (translation) => translation.language,
-    matcher,
-    translations[0]?.article?.defaultLanguage ?? ''
-  );
-};
+  const { published, unpublished } = await articleService.getArticleLanguages(articleId);
+  const languages = publishedOnly ? published : published.concat(unpublished);
+  if (languages.length === 0) {
+    return;
+  }
+
+  const language = matcher(languages, article.defaultLanguage);
+  const translation = await articleService.getArticleTranslation(article.id, language);
+  if (!translation) {
+    return;
+  }
+
+  return translation;
+}
+
+/**
+ * @deprecated
+ */
+export async function getPublishedArticleTranslations(
+  articleIds: string[],
+  matcher: LocaleMatcher,
+  concurrency = 3
+) {
+  if (articleIds.length === 0) {
+    return [];
+  }
+  const createTask = throat(concurrency, (id: string) => {
+    return getArticleTranslation(id, matcher, true);
+  });
+  const translations = await Promise.all(articleIds.map(createTask));
+  return _.compact(translations);
+}

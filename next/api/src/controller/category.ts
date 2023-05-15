@@ -28,7 +28,7 @@ import { ArticleTopicFullResponse } from '@/response/article-topic';
 import { getTopic } from '@/model/ArticleTopic';
 import { FindCategoryPipe, categoryService } from '@/category';
 import { ILocale, Locales } from '@/common/http/handler/param/locale';
-import { getPublicTranslationWithLocales } from '@/model/ArticleTranslation';
+import { getPublishedArticleTranslations } from '@/model/ArticleTranslation';
 import { dynamicContentService } from '@/dynamic-content';
 
 const createCategorySchema = z.object({
@@ -160,37 +160,20 @@ export class CategoryController {
 
   @Get(':id/faqs')
   @ResponseBody(ArticleTranslationAbstractResponse)
-  async getFAQs(@Param('id', FindCategoryPipe) category: Category, @Locales() locales: ILocale) {
+  getFAQs(@Param('id', FindCategoryPipe) category: Category, @Locales() locales: ILocale) {
     if (!category.FAQIds) {
       return [];
     }
-
-    const articles = _.compact(
-      await Promise.all(
-        category.FAQIds.map((articleId) =>
-          getPublicTranslationWithLocales(articleId, locales.matcher)
-        )
-      )
-    );
-    return articles;
+    return getPublishedArticleTranslations(category.FAQIds, locales.matcher);
   }
 
   @Get(':id/notices')
   @ResponseBody(ArticleTranslationAbstractResponse)
-  async getNotices(@Param('id', FindCategoryPipe) category: Category, @Locales() locales: ILocale) {
+  getNotices(@Param('id', FindCategoryPipe) category: Category, @Locales() locales: ILocale) {
     if (!category.noticeIds) {
       return [];
     }
-
-    const articles = _.compact(
-      await Promise.all(
-        category.noticeIds.map((noticeId) =>
-          getPublicTranslationWithLocales(noticeId, locales.matcher)
-        )
-      )
-    );
-
-    return articles;
+    return getPublishedArticleTranslations(category.noticeIds, locales.matcher);
   }
 
   @Get(':id/topics')

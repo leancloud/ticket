@@ -2,7 +2,7 @@ import _ from 'lodash';
 import mem from '@/utils/mem-promise';
 import { field, hasManyThroughIdArray, Model, ModifyOptions, serialize } from '@/orm';
 import { Article } from './Article';
-import { ArticleTranslation, getPublicTranslationWithLocales } from './ArticleTranslation';
+import { ArticleTranslation, getPublishedArticleTranslations } from './ArticleTranslation';
 import { LocaleMatcher } from '@/utils/locale';
 
 export class ArticleTopic extends Model {
@@ -43,11 +43,7 @@ const getRawTopic = mem((id: string) => ArticleTopic.find(id), { max: 500, ttl: 
 export const getTopic = async (id: string, matcher: LocaleMatcher) => {
   const topic = await getRawTopic(id);
   if (topic) {
-    topic.translations = _.compact(
-      await Promise.all(
-        topic.articleIds.map((articleId) => getPublicTranslationWithLocales(articleId, matcher))
-      )
-    );
+    topic.translations = await getPublishedArticleTranslations(topic.articleIds, matcher);
   }
   return topic;
 };
