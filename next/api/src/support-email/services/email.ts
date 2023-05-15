@@ -49,9 +49,7 @@ export class EmailService {
     await client.connect();
 
     const nextUid =
-      supportEmail.lastUid === undefined
-        ? (client.mailbox as MailboxObject).uidNext
-        : supportEmail.lastUid + 1;
+      supportEmail.lastUid === undefined ? await this.getUidNext(client) : supportEmail.lastUid + 1;
     const range = `${nextUid ?? 0}:*`;
 
     let uids = await this.getMessageUids(client, range);
@@ -76,6 +74,15 @@ export class EmailService {
       },
       logger: false,
     });
+  }
+
+  async getUidNext(client: ImapFlow) {
+    const lock = await client.getMailboxLock('INBOX');
+    try {
+      return (client.mailbox as MailboxObject).uidNext;
+    } finally {
+      lock.release();
+    }
   }
 
   async getMessageUids(client: ImapFlow, range: string) {

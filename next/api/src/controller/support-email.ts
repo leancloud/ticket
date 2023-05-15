@@ -128,7 +128,7 @@ export class SupportEmailController {
       const message = e.responseText || e.message;
       throw new HttpError(400, `Validate email account failed: ${message}`);
     } finally {
-      client.close();
+      await client.logout();
     }
   }
 }
