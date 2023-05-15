@@ -13,6 +13,7 @@ import { FieldValue, TicketFieldValue } from '@/model/TicketFieldValue';
 import { User, systemUser } from '@/model/User';
 import { TicketLog } from '@/model/TicketLog';
 import { allowedTicketLanguages } from '@/utils/locale';
+import { durationMetricService } from './services/duration-metric';
 
 const detector = Detector.withAllowlist(allowedTicketLanguages);
 
@@ -290,6 +291,8 @@ export class TicketCreator {
       ticket: ticket.toJSON(),
       currentUserId: operator.id,
     });
+
+    await durationMetricService.createMetric(ticket);
 
     return ticket;
   }

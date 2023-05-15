@@ -20,6 +20,7 @@ import { TicketUpdater, UpdateOptions } from '@/ticket/TicketUpdater';
 import htmlify from '@/utils/htmlify';
 import { emailService } from '@/support-email/services/email';
 import { categoryService } from '@/category';
+import { durationMetricService } from '@/ticket/services/duration-metric';
 import { Category } from './Category';
 import { File } from './File';
 import { Group } from './Group';
@@ -330,6 +331,8 @@ export class Ticket extends Model {
       emailService.sendReplyToTicketCreator(this, reply.contentHTML, data.fileIds);
     }
 
+    await durationMetricService.recordReplyTicket(this, reply, isCustomerService);
+
     return reply;
   }
 
@@ -369,6 +372,8 @@ export class Ticket extends Model {
         return updater.update(operator, options);
       })
     );
+
+    await durationMetricService.recordOperateTicket(this, action);
 
     return this;
   }
