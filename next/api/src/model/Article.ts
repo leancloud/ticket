@@ -17,6 +17,14 @@ export class Article extends Model {
 
   @field()
   @serialize()
+  publishedFrom?: Date;
+
+  @field()
+  @serialize()
+  publishedTo?: Date;
+
+  @field()
+  @serialize()
   deletedAt?: Date;
 
   async delete(this: Article, options?: ModifyOptions) {

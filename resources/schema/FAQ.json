@@ -30,6 +30,20 @@
         }
       }
     },
+    "publishedFrom": {
+      "type": "Date",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "publishedTo": {
+      "type": "Date",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
     "name": {
       "type": "String",
       "v": 2,
