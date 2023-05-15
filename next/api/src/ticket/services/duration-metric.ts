@@ -17,14 +17,10 @@ export class DurationMetricService {
     );
   }
 
-  async getMetricForTicket(ticket: Ticket) {
-    const durationMetric = await DurationMetrics.queryBuilder()
+  getMetricForTicket(ticket: Ticket) {
+    return DurationMetrics.queryBuilder()
       .where('ticket', '==', ticket.toPointer())
       .first({ useMasterKey: true });
-    if (!durationMetric) {
-      throw new Error(`Duration metric of ticket ${ticket.id} does not exist`);
-    }
-    return durationMetric;
   }
 
   async recordReplyTicket(ticket: Ticket, reply: Reply, isAgent: boolean) {
@@ -42,6 +38,10 @@ export class DurationMetricService {
     }
 
     const durationMetric = await this.getMetricForTicket(ticket);
+    if (!durationMetric) {
+      return;
+    }
+
     const data: UpdateData<DurationMetrics> = {};
 
     if (isAgent) {
@@ -74,8 +74,12 @@ export class DurationMetricService {
   }
 
   async recordResolveTicket(ticket: Ticket) {
-    const now = Date.now();
     const durationMetric = await this.getMetricForTicket(ticket);
+    if (!durationMetric) {
+      return;
+    }
+
+    const now = Date.now();
     const data: UpdateData<DurationMetrics> = {};
 
     if (!durationMetric.firstResolutionTime) {
@@ -89,6 +93,9 @@ export class DurationMetricService {
 
   async recordReopenTicket(ticket: Ticket) {
     const durationMetric = await this.getMetricForTicket(ticket);
+    if (!durationMetric) {
+      return;
+    }
     await durationMetric.update(
       {
         agentWaitAt: new Date(),
