@@ -1,6 +1,8 @@
 {
   "schema": {
-    "updatedAt": { "type": "Date" },
+    "updatedAt": {
+      "type": "Date"
+    },
     "revision": {
       "type": "Pointer",
       "v": 2,
@@ -19,11 +21,35 @@
       "comment": "",
       "read_only": false
     },
-    "ACL": { "type": "ACL", "default": { "*": { "read": true, "write": true } } },
-    "name": { "type": "String", "v": 2, "required": true, "hidden": false, "read_only": false },
-    "objectId": { "type": "String" },
-    "createdAt": { "type": "Date" },
-    "deletedAt": { "type": "Date", "v": 2, "required": false, "hidden": false, "read_only": false },
+    "ACL": {
+      "type": "ACL",
+      "default": {
+        "*": {
+          "read": true,
+          "write": true
+        }
+      }
+    },
+    "name": {
+      "type": "String",
+      "v": 2,
+      "required": true,
+      "hidden": false,
+      "read_only": false
+    },
+    "objectId": {
+      "type": "String"
+    },
+    "createdAt": {
+      "type": "Date"
+    },
+    "deletedAt": {
+      "type": "Date",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
     "defaultLanguage": {
       "type": "String",
       "v": 2,
@@ -34,12 +60,24 @@
     }
   },
   "permissions": {
-    "create": { "*": true },
-    "find": { "*": true },
-    "get": { "*": true },
-    "update": { "*": true },
-    "delete": { "*": true },
-    "add_fields": { "*": true }
+    "create": {
+      "*": true
+    },
+    "find": {
+      "*": true
+    },
+    "get": {
+      "*": true
+    },
+    "update": {
+      "*": true
+    },
+    "delete": {
+      "*": true
+    },
+    "add_fields": {
+      "*": true
+    }
   },
   "indexes": []
 }
