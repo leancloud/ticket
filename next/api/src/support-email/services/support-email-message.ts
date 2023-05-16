@@ -13,6 +13,12 @@ export class SupportEmailMessageService {
       .first({ useMasterKey: true });
   }
 
+  getByInReplyTo(inReplyTo: string) {
+    return SupportEmailMessage.queryBuilder()
+      .where('inReplyTo', '==', inReplyTo)
+      .first({ useMasterKey: true });
+  }
+
   getLatestMessageByTicketId(ticketId: string) {
     return SupportEmailMessage.queryBuilder()
       .where('ticket', '==', Ticket.ptr(ticketId))

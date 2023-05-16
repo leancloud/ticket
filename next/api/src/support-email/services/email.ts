@@ -135,6 +135,7 @@ export class EmailService {
     switch (job.data.type) {
       case 'processMessage':
         await this.processMessage(job.data);
+        return;
       default:
         console.warn(`[Support Email] unknown job type "${job.data.type}"`);
     }
@@ -156,7 +157,7 @@ export class EmailService {
       skipImageLinks: true,
     });
     if (message.inReplyTo) {
-      await this.createReplyByMessage(message, data);
+      await this.createReplyByMessage(message, data, message.inReplyTo);
     } else {
       await this.createTicketByMessage(message, data, supportEmail);
     }
@@ -209,18 +210,17 @@ export class EmailService {
     }
   }
 
-  async createReplyByMessage(message: ParsedMail, jobData: ProcessMessageJobData) {
+  async createReplyByMessage(
+    message: ParsedMail,
+    jobData: ProcessMessageJobData,
+    inReplyTo: string
+  ) {
     const from = this.getMessageFrom(message);
     if (!from || !message.messageId) {
       return;
     }
 
-    const ticketMessageId = this.getTicketMessageId(message);
-    if (!ticketMessageId) {
-      return;
-    }
-
-    const supportEmailMessage = await supportEmailMessageService.getByMessageId(ticketMessageId);
+    const supportEmailMessage = await supportEmailMessageService.getByInReplyTo(inReplyTo);
     if (!supportEmailMessage) {
       // TODO: 可能回复的邮件还没处理完成，添加重试逻辑
       return;
@@ -255,18 +255,6 @@ export class EmailService {
       ticketId: ticket.id,
       replyId: reply.id,
     });
-  }
-
-  getTicketMessageId(message: ParsedMail) {
-    if (message.inReplyTo) {
-      return message.inReplyTo;
-    }
-    if (message.references) {
-      if (typeof message.references === 'string') {
-        return message.references;
-      }
-      return message.references[0];
-    }
   }
 
   getMessageFrom(message: ParsedMail) {
