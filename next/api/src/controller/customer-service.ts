@@ -89,19 +89,12 @@ export class CustomerServiceController {
     @CurrentUser() currentUser: User,
     @Body(new ZodValidationPipe(createCustomerServiceSchema)) data: CreateCustomerServiceData
   ) {
-    const csRole = await Role.getCustomerServiceRole();
-    const avRole = AV.Role.createWithoutData('_Role', csRole.id);
-
-    if (
-      await avRole
-        .relation('users')
-        .query()
-        .equalTo('objectId', data.userId)
-        .first({ useMasterKey: true })
-    ) {
+    if (await User.isCustomerService({ id: data.userId })) {
       throw new BadRequestError('This user is already customer service');
     }
 
+    const csRole = await Role.getCustomerServiceRole();
+    const avRole = AV.Role.createWithoutData('_Role', csRole.id);
     const avUser = AV.User.createWithoutData('_User', data.userId);
     avRole.relation('users').add(avUser);
     await avRole.save(null, currentUser.getAuthOptions());
