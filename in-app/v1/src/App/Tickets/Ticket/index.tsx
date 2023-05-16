@@ -186,6 +186,34 @@ function useWatchReply(
   }, [ticketId]);
 }
 
+function useWatchStatus(ticketId: string, callback: (status: number) => void) {
+  const $cb = useRef(callback);
+  $cb.current = callback;
+
+  useEffect(() => {
+    let unsubscribe: (() => any) | undefined;
+    let unmounted = false;
+
+    db.class('Ticket')
+      .where('objectId', '==', ticketId)
+      .subscribe()
+      .then((subscription) => {
+        if (unmounted) {
+          return subscription.unsubscribe();
+        }
+        unsubscribe = () => subscription.unsubscribe();
+        subscription.on('update', (ticket) => {
+          callback(ticket.data.status);
+        });
+      });
+
+    return () => {
+      unsubscribe?.();
+      unmounted = true;
+    };
+  }, [ticketId]);
+}
+
 async function commitEvaluation(ticketId: string, data: Ticket['evaluation']) {
   await http.patch(`/api/2/tickets/${ticketId}`, { evaluation: data });
 }
@@ -246,6 +274,17 @@ export default function TicketDetail() {
         );
         break;
     }
+  });
+
+  useWatchStatus(id, (status) => {
+    queryClient.setQueryData<Ticket | undefined>(['ticket', id], (data) => {
+      if (data) {
+        return {
+          ...data,
+          status,
+        };
+      }
+    });
   });
 
   const [editEval, setEditEval] = useState(false);
