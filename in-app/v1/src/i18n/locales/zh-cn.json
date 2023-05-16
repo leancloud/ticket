@@ -73,6 +73,7 @@
     "record": "问题记录",
     "no_record": "暂无问题记录",
     "no_more_record": "没有更多记录",
+    "view_earlier_records": "查看更早的记录",
     "create": {
       "success": "提交成功",
       "success_text": "$t(ticket.create.success)，我们将尽快为您处理"

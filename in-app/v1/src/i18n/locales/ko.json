@@ -60,6 +60,7 @@
     "record": "문제 기록",
     "no_record": "문제 기록이 없음",
     "no_more_record": "기록이 더 이상 없습니다",
+    "view_earlier_records": "이전 기록 보기",
     "create": {
       "success": "제출 성공",
       "success_text": "$t(ticket.create.success), 우리는 빠른 시일 내에 처리해 드리겠습니다"

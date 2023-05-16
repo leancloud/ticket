@@ -1,5 +1,5 @@
 import { useMemo, Fragment } from 'react';
-import { Link, Route, Routes } from 'react-router-dom';
+import { Link, Route, Routes, useLocation } from 'react-router-dom';
 import { useInfiniteQuery } from 'react-query';
 import { useTranslation } from 'react-i18next';
 import { InView } from 'react-intersection-observer';
@@ -15,6 +15,7 @@ import { PageContent, PageHeader } from '@/components/Page';
 import { Time } from '@/components/Time';
 import { LoadingHint } from '@/components/Loading';
 import { useAppState } from '@/states/app';
+import { useAuth } from '@/states/auth';
 import TicketDetail, { TicketStatus, TicketResolvedStatus } from './Ticket';
 import { NewTicket } from './New';
 import styles from './index.module.css';
@@ -120,10 +121,43 @@ const TicketResults = ({ status }: { status: TicketResolvedStatus }) => {
   );
 };
 
+function ZendeskLink() {
+  const { t, i18n } = useTranslation();
+  const { user } = useAuth();
+  const category = useRootCategory();
+
+  const href = useMemo(() => {
+    const url = new URL('https://tds.d1ds4p8wk7q4rf.amplifyapp.com/');
+    const searchParams = new URLSearchParams();
+    if (category.alias) {
+      searchParams.append('client_id', category.alias);
+    }
+    searchParams.append('sdk_lang', i18n.language);
+    if (user?.username) {
+      searchParams.append('user_id', user.username.slice(3));
+    }
+    url.search = searchParams.toString();
+    return url.toString();
+  }, [category, user]);
+
+  return (
+    <div className="text-center text-gray-400 opacity-80 mt-6 mb-3">
+      <a href={href} className="text-tapBlue">
+        {t('ticket.view_earlier_records')}
+      </a>
+    </div>
+  );
+}
+
 export function TicketList() {
   const { t } = useTranslation();
   const [{ historyIndex }, setAppState] = useAppState();
-
+  const category = useRootCategory();
+  const { user } = useAuth();
+  const showZendeskLink = useMemo(
+    () => user?.username.startsWith('XD.') && category.meta?.['enableZendeskHistory'],
+    [user, category]
+  );
   return (
     <>
       <Helmet>
@@ -160,6 +194,7 @@ export function TicketList() {
           </div>
         </Tab.Group>
       </PageContent>
+      {showZendeskLink && <ZendeskLink />}
     </>
   );
 }

@@ -60,6 +60,7 @@
     "record": "Problèmes enregistrés",
     "no_record": "Aucun problème enregistré",
     "no_more_record": "Aucun enregistrement supplémentaire",
+    "view_earlier_records": "Voir les enregistrements précédents",
     "create": {
       "success": "Soumission réussie",
       "success_text": "$t(ticket.create.success), nous traiterons votre demande dans les plus brefs délais"
