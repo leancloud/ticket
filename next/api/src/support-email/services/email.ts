@@ -444,8 +444,3 @@ export class EmailService {
 }
 
 export const emailService = new EmailService();
-
-setInterval(() => {
-  emailService.checkNewMessages();
-  console.log('tick');
-}, 10000);
