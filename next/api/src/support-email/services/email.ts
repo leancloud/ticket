@@ -56,10 +56,7 @@ export class EmailService {
     const client = this.createImapClient(supportEmail);
     await client.connect();
 
-    const nextUid =
-      supportEmail.lastUid === undefined ? await this.getUidNext(client) : supportEmail.lastUid + 1;
-    const range = `${nextUid ?? 0}:*`;
-
+    const range = `${supportEmail.lastUid + 1}:*`;
     let uids = await this.getMessageUids(client, range);
 
     await client.logout();
@@ -67,7 +64,7 @@ export class EmailService {
     if (uids.length) {
       uids = uids.slice(0, count);
       await this.createProcessMessageJobs(supportEmail.email, uids);
-      await supportEmailService.updateLastUid(supportEmail, uids[uids.length - 1]);
+      await supportEmail.update({ lastUid: _.last(uids) }, { useMasterKey: true });
     }
 
     return uids.length;
