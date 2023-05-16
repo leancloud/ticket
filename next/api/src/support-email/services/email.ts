@@ -326,33 +326,35 @@ export class EmailService {
     const attachments = reply.fileIds ? await this.getAttachments(reply.fileIds) : [];
 
     const client = this.createSmtpClient(supportEmail);
-    const sendResult = await client.sendMail({
-      inReplyTo,
-      references,
-      from: {
-        name: supportEmail.name,
-        address: supportEmail.email,
-      },
-      to: user.email,
-      subject,
-      html: reply.contentHTML,
-      attachments,
-    });
-    client.close();
-
-    await supportEmailMessageService.create({
-      from: supportEmail.email,
-      to: user.email,
-      messageId: sendResult.messageId,
-      inReplyTo,
-      references,
-      subject,
-      html: reply.contentHTML,
-      date: new Date(),
-      attachments: reply.fileIds ? reply.fileIds.map((fileId) => ({ objectId: fileId })) : [],
-      ticketId: ticket.id,
-      replyId: reply.id,
-    });
+    try {
+      const sendResult = await client.sendMail({
+        inReplyTo,
+        references,
+        from: {
+          name: supportEmail.name,
+          address: supportEmail.email,
+        },
+        to: user.email,
+        subject,
+        html: reply.contentHTML,
+        attachments,
+      });
+      await supportEmailMessageService.create({
+        from: supportEmail.email,
+        to: user.email,
+        messageId: sendResult.messageId,
+        inReplyTo,
+        references,
+        subject,
+        html: reply.contentHTML,
+        date: new Date(),
+        attachments: reply.fileIds ? reply.fileIds.map((fileId) => ({ objectId: fileId })) : [],
+        ticketId: ticket.id,
+        replyId: reply.id,
+      });
+    } finally {
+      client.close();
+    }
   }
 
   async getAttachments(fileIds: string[]) {
@@ -411,31 +413,33 @@ export class EmailService {
     const text = Mustache.render(supportEmail.receipt.text, view);
 
     const client = this.createSmtpClient(supportEmail);
-    const sendResult = await client.sendMail({
-      inReplyTo: ticketMessageId,
-      references: ticketMessageId,
-      from: {
-        name: supportEmail.name,
-        address: supportEmail.email,
-      },
-      to,
-      subject,
-      text,
-    });
-    client.close();
-
-    await supportEmailMessageService.create({
-      from: supportEmail.email,
-      to,
-      messageId: sendResult.messageId,
-      inReplyTo: ticketMessageId,
-      references: [ticketMessageId],
-      subject,
-      html: text,
-      date: new Date(),
-      attachments: [],
-      ticketId: ticket.id,
-    });
+    try {
+      const sendResult = await client.sendMail({
+        inReplyTo: ticketMessageId,
+        references: ticketMessageId,
+        from: {
+          name: supportEmail.name,
+          address: supportEmail.email,
+        },
+        to,
+        subject,
+        text,
+      });
+      await supportEmailMessageService.create({
+        from: supportEmail.email,
+        to,
+        messageId: sendResult.messageId,
+        inReplyTo: ticketMessageId,
+        references: [ticketMessageId],
+        subject,
+        html: text,
+        date: new Date(),
+        attachments: [],
+        ticketId: ticket.id,
+      });
+    } finally {
+      client.close();
+    }
   }
 }
 
