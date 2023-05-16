@@ -42,7 +42,7 @@ AV.Cloud.onLogin((request) => {
 
 const { emailService } = require('../next/api/dist/support-email/services/email')
 AV.Cloud.define('checkSupportEmailMessage', { fetchUser: false, internal: true }, () => {
-  emailService.checkNewMessages()
+  return emailService.checkNewMessages()
 })
 
 module.exports = { events }

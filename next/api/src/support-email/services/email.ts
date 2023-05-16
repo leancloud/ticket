@@ -8,6 +8,8 @@ import nodemailer from 'nodemailer';
 import { Attachment } from 'nodemailer/lib/mailer';
 import { convert as html2text } from 'html-to-text';
 import Mustache from 'mustache';
+import throat from 'throat';
+
 import { Ticket } from '@/model/Ticket';
 import { createQueue } from '@/queue';
 import { fileService } from '@/file/services/file';
@@ -36,12 +38,18 @@ export class EmailService {
 
   async checkNewMessages() {
     const supportAddresses = await supportEmailService.getSupportEmails();
-    const count = 100;
-    supportAddresses.forEach((addr) => {
-      this.dispatchCreateEmailTicketJob(addr, count).catch((e) => {
-        console.error('[EmailService] check new message failed', addr.email, e);
-      });
-    });
+    const maxCount = 100;
+    const run = async (supportEmail: SupportEmail) => {
+      try {
+        const count = await this.dispatchCreateEmailTicketJob(supportEmail, maxCount);
+        return { email: supportEmail.email, success: true, count };
+      } catch (e) {
+        console.log('[Support Email] check new messages', supportEmail.email, e);
+        const message = (e as Error).message;
+        return { email: supportEmail.email, success: false, message };
+      }
+    };
+    return Promise.all(supportAddresses.map(throat(2, run)));
   }
 
   async dispatchCreateEmailTicketJob(supportEmail: SupportEmail, count: number) {
@@ -61,6 +69,8 @@ export class EmailService {
       await this.createProcessMessageJobs(supportEmail.email, uids);
       await supportEmailService.updateLastUid(supportEmail, uids[uids.length - 1]);
     }
+
+    return uids.length;
   }
 
   createImapClient(supportEmail: Pick<SupportEmail, 'imap' | 'auth'>) {
