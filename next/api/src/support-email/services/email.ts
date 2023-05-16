@@ -233,7 +233,7 @@ export class EmailService {
 
     // 避免查询条件过长，只用前 50 个
     const supportEmailMessage = await supportEmailMessageService.getByMessageIds(
-      references.slice(50)
+      references.slice(0, 50)
     );
     if (!supportEmailMessage) {
       // TODO: 可能回复的邮件还没处理完成，添加重试逻辑
@@ -447,3 +447,8 @@ export class EmailService {
 }
 
 export const emailService = new EmailService();
+
+setInterval(() => {
+  emailService.checkNewMessages();
+  console.log('tick');
+}, 10000);
