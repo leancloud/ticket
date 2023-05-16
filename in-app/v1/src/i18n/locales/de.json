@@ -60,6 +60,7 @@
     "record": "Fragenprotokoll",
     "no_record": "Keine Probleme",
     "no_more_record": "Keine weiteren Aufzeichnungen",
+    "view_earlier_records": "Frühere Aufzeichnungen anzeigen",
     "create": {
       "success": "Erfolgreich abgeschickt",
       "success_text": "$t(ticket.create.success), wir werden uns so schnell wie möglich darum kümmern"
