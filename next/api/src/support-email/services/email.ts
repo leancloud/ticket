@@ -10,6 +10,7 @@ import { convert as html2text } from 'html-to-text';
 import Mustache from 'mustache';
 import throat from 'throat';
 
+import { Reply } from '@/model/Reply';
 import { Ticket } from '@/model/Ticket';
 import { createQueue } from '@/queue';
 import { fileService } from '@/file/services/file';
@@ -44,7 +45,7 @@ export class EmailService {
         const count = await this.dispatchCreateEmailTicketJob(supportEmail, maxCount);
         return { email: supportEmail.email, success: true, count };
       } catch (e) {
-        console.log('[Support Email] check new messages', supportEmail.email, e);
+        console.error('[Support Email] check new messages', supportEmail.email, e);
         const message = (e as Error).message;
         return { email: supportEmail.email, success: false, message };
       }
@@ -297,7 +298,7 @@ export class EmailService {
     return files.map(({ file, cid }) => ({ objectId: file.id!, cid }));
   }
 
-  async sendReplyToTicketCreator(ticket: Ticket, content: string, fileIds?: string[]) {
+  async sendReplyToTicketCreator(ticket: Ticket, reply: Reply) {
     const supportEmailMessage = await supportEmailMessageService.getLatestMessageByTicketId(
       ticket.id
     );
@@ -315,22 +316,41 @@ export class EmailService {
       return;
     }
 
-    const attachments = fileIds ? await this.getAttachments(fileIds) : undefined;
+    const inReplyTo = supportEmailMessage.messageId;
+    const references = _.castArray(supportEmailMessage.references).concat(
+      supportEmailMessage.messageId
+    );
+    const subject = `Re: ${ticket.title}`;
+    const attachments = reply.fileIds ? await this.getAttachments(reply.fileIds) : [];
 
     const client = this.createSmtpClient(supportEmail);
-    await client.sendMail({
-      inReplyTo: supportEmailMessage.messageId,
-      references: _.castArray(supportEmailMessage.references).concat(supportEmailMessage.messageId),
+    const sendResult = await client.sendMail({
+      inReplyTo,
+      references,
       from: {
         name: supportEmail.name,
         address: supportEmail.email,
       },
       to: user.email,
-      subject: `Re: ${ticket.title}`,
-      html: content,
+      subject,
+      html: reply.contentHTML,
       attachments,
     });
     client.close();
+
+    await supportEmailMessageService.create({
+      from: supportEmail.email,
+      to: user.email,
+      messageId: sendResult.messageId,
+      inReplyTo,
+      references,
+      subject,
+      html: reply.contentHTML,
+      date: new Date(),
+      attachments: reply.fileIds ? reply.fileIds.map((fileId) => ({ objectId: fileId })) : [],
+      ticketId: ticket.id,
+      replyId: reply.id,
+    });
   }
 
   async getAttachments(fileIds: string[]) {
