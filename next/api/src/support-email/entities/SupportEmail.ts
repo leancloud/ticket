@@ -29,7 +29,7 @@ export class SupportEmail extends Model {
   };
 
   @field()
-  lastUid?: number;
+  lastUid!: number;
 
   @pointerId(() => Category)
   categoryId!: string;

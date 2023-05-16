@@ -8,6 +8,9 @@ import nodemailer from 'nodemailer';
 import { Attachment } from 'nodemailer/lib/mailer';
 import { convert as html2text } from 'html-to-text';
 import Mustache from 'mustache';
+import throat from 'throat';
+
+import { Reply } from '@/model/Reply';
 import { Ticket } from '@/model/Ticket';
 import { createQueue } from '@/queue';
 import { fileService } from '@/file/services/file';
@@ -36,22 +39,25 @@ export class EmailService {
 
   async checkNewMessages() {
     const supportAddresses = await supportEmailService.getSupportEmails();
-    const count = 100;
-    supportAddresses.forEach((addr) => {
-      this.dispatchCreateEmailTicketJob(addr, count).catch((e) => {
-        console.error('[EmailService] check new message failed', addr.email, e);
-      });
-    });
+    const maxCount = 100;
+    const run = async (supportEmail: SupportEmail) => {
+      try {
+        const count = await this.dispatchCreateEmailTicketJob(supportEmail, maxCount);
+        return { email: supportEmail.email, success: true, count };
+      } catch (e) {
+        console.error('[Support Email] check new messages', supportEmail.email, e);
+        const message = (e as Error).message;
+        return { email: supportEmail.email, success: false, message };
+      }
+    };
+    return Promise.all(supportAddresses.map(throat(2, run)));
   }
 
   async dispatchCreateEmailTicketJob(supportEmail: SupportEmail, count: number) {
     const client = this.createImapClient(supportEmail);
     await client.connect();
 
-    const nextUid =
-      supportEmail.lastUid === undefined ? await this.getUidNext(client) : supportEmail.lastUid + 1;
-    const range = `${nextUid ?? 0}:*`;
-
+    const range = `${supportEmail.lastUid + 1}:*`;
     let uids = await this.getMessageUids(client, range);
 
     await client.logout();
@@ -59,8 +65,10 @@ export class EmailService {
     if (uids.length) {
       uids = uids.slice(0, count);
       await this.createProcessMessageJobs(supportEmail.email, uids);
-      await supportEmailService.updateLastUid(supportEmail, uids[uids.length - 1]);
+      await supportEmail.update({ lastUid: _.last(uids) }, { useMasterKey: true });
     }
+
+    return uids.length;
   }
 
   createImapClient(supportEmail: Pick<SupportEmail, 'imap' | 'auth'>) {
@@ -124,17 +132,12 @@ export class EmailService {
   }
 
   async processJob(job: Job<JobData>) {
-    try {
-      switch (job.data.type) {
-        case 'processMessage':
-          await this.processMessage(job.data);
-      }
-    } catch (e) {
-      if ((e as Error).message === 'retry') {
-        await this.queue.add(job.data, { delay: 1000 * 10 });
-      } else {
-        throw e;
-      }
+    switch (job.data.type) {
+      case 'processMessage':
+        await this.processMessage(job.data);
+        return;
+      default:
+        console.warn(`[Support Email] unknown job type "${job.data.type}"`);
     }
   }
 
@@ -175,8 +178,13 @@ export class EmailService {
     jobData: ProcessMessageJobData,
     supportEmail: SupportEmail
   ) {
+    const messageId = this.getMessageHeaderFirstLine(message, 'Message-ID');
+    if (!messageId) {
+      return;
+    }
+
     const from = this.getMessageFrom(message);
-    if (!from || !message.messageId) {
+    if (!from) {
       return;
     }
 
@@ -192,7 +200,7 @@ export class EmailService {
     await supportEmailMessageService.create({
       from: from.email,
       to: jobData.supportEmail,
-      messageId: message.messageId,
+      messageId,
       inReplyTo: message.inReplyTo,
       references: message.references ? _.castArray(message.references) : undefined,
       subject: message.subject,
@@ -203,25 +211,33 @@ export class EmailService {
     });
 
     if (supportEmail.receipt.enabled) {
-      await this.sendReceipt(from.email, message.messageId, supportEmail, ticket);
+      await this.sendReceipt(from.email, messageId, supportEmail, ticket);
     }
   }
 
   async createReplyByMessage(message: ParsedMail, jobData: ProcessMessageJobData) {
+    const messageId = this.getMessageHeaderFirstLine(message, 'Message-ID');
+    if (!messageId) {
+      return;
+    }
+
     const from = this.getMessageFrom(message);
-    if (!from || !message.messageId) {
+    if (!from) {
       return;
     }
 
-    const ticketMessageId = this.getTicketMessageId(message);
-    if (!ticketMessageId) {
+    const references = this.getMessageReferences(message);
+    if (references.length === 0) {
       return;
     }
 
-    const supportEmailMessage = await supportEmailMessageService.getByMessageId(ticketMessageId);
+    // 避免查询条件过长，只用前 50 个
+    const supportEmailMessage = await supportEmailMessageService.getByMessageIds(
+      references.slice(0, 50)
+    );
     if (!supportEmailMessage) {
-      // 可能回复的邮件还没处理完成, 稍后重试
-      throw new Error('retry');
+      // TODO: 可能回复的邮件还没处理完成，添加重试逻辑
+      return;
     }
 
     const ticket = await Ticket.find(supportEmailMessage.ticketId, { useMasterKey: true });
@@ -243,7 +259,7 @@ export class EmailService {
     await supportEmailMessageService.create({
       from: from.email,
       to: jobData.supportEmail,
-      messageId: message.messageId,
+      messageId,
       inReplyTo: message.inReplyTo,
       references: message.references ? _.castArray(message.references) : undefined,
       subject: message.subject,
@@ -255,14 +271,20 @@ export class EmailService {
     });
   }
 
-  getTicketMessageId(message: ParsedMail) {
-    if (message.references) {
-      if (typeof message.references === 'string') {
-        return message.references;
+  /**
+   * mailparser 解析单行 header 的行为有问题，单独实现一个方法来解析只有一行的 header
+   */
+  getMessageHeaderFirstLine(message: ParsedMail, key: string) {
+    const prefix = `${key}:`;
+    const CRLF = '\r\n';
+    const line = message.headerLines.find((line) => line.line.startsWith(prefix));
+    if (line) {
+      const endIndex = line.line.indexOf(CRLF);
+      if (endIndex === -1) {
+        return line.line.slice(prefix.length).trim();
       }
-      return message.references[0];
+      return line.line.slice(prefix.length, endIndex).trim();
     }
-    return message.inReplyTo;
   }
 
   getMessageFrom(message: ParsedMail) {
@@ -274,6 +296,16 @@ export class EmailService {
       return undefined;
     }
     return { name, email: address };
+  }
+
+  getMessageReferences(message: ParsedMail) {
+    if (!message.references) {
+      return [];
+    }
+    if (typeof message.references === 'string') {
+      return [message.references];
+    }
+    return message.references;
   }
 
   async uploadAttachments(message: ParsedMail) {
@@ -296,7 +328,7 @@ export class EmailService {
     return files.map(({ file, cid }) => ({ objectId: file.id!, cid }));
   }
 
-  async sendReplyToTicketCreator(ticket: Ticket, content: string, fileIds?: string[]) {
+  async sendReplyToTicketCreator(ticket: Ticket, reply: Reply) {
     const supportEmailMessage = await supportEmailMessageService.getLatestMessageByTicketId(
       ticket.id
     );
@@ -314,22 +346,27 @@ export class EmailService {
       return;
     }
 
-    const attachments = fileIds ? await this.getAttachments(fileIds) : undefined;
+    const attachments = reply.fileIds ? await this.getAttachments(reply.fileIds) : [];
 
     const client = this.createSmtpClient(supportEmail);
-    await client.sendMail({
-      inReplyTo: supportEmailMessage.messageId,
-      references: _.castArray(supportEmailMessage.references).concat(supportEmailMessage.messageId),
-      from: {
-        name: supportEmail.name,
-        address: supportEmail.email,
-      },
-      to: user.email,
-      subject: `Re: ${ticket.title}`,
-      html: content,
-      attachments,
-    });
-    client.close();
+    try {
+      await client.sendMail({
+        inReplyTo: supportEmailMessage.messageId,
+        references: _.castArray(supportEmailMessage.references).concat(
+          supportEmailMessage.messageId
+        ),
+        from: {
+          name: supportEmail.name,
+          address: supportEmail.email,
+        },
+        to: user.email,
+        subject: `Re: ${ticket.title}`,
+        html: reply.contentHTML,
+        attachments,
+      });
+    } finally {
+      client.close();
+    }
   }
 
   async getAttachments(fileIds: string[]) {
@@ -388,18 +425,21 @@ export class EmailService {
     const text = Mustache.render(supportEmail.receipt.text, view);
 
     const client = this.createSmtpClient(supportEmail);
-    await client.sendMail({
-      inReplyTo: ticketMessageId,
-      references: ticketMessageId,
-      from: {
-        name: supportEmail.name,
-        address: supportEmail.email,
-      },
-      to,
-      subject,
-      text,
-    });
-    client.close();
+    try {
+      await client.sendMail({
+        inReplyTo: ticketMessageId,
+        references: ticketMessageId,
+        from: {
+          name: supportEmail.name,
+          address: supportEmail.email,
+        },
+        to,
+        subject,
+        text,
+      });
+    } finally {
+      client.close();
+    }
   }
 }
 

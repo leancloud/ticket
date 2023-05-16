@@ -7,9 +7,9 @@ export class SupportEmailMessageService {
     return SupportEmailMessage.create(data, { useMasterKey: true });
   }
 
-  getByMessageId(messageId: string) {
+  getByMessageIds(messageIds: string[]) {
     return SupportEmailMessage.queryBuilder()
-      .where('messageId', '==', messageId)
+      .where('messageId', 'in', messageIds)
       .first({ useMasterKey: true });
   }
 

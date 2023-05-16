@@ -329,7 +329,9 @@ export class Ticket extends Model {
     if (!data.internal) {
       if (this.channel === 'email' && data.author.id !== this.authorId) {
         // 向创建者发送邮件
-        emailService.sendReplyToTicketCreator(this, reply.contentHTML, data.fileIds);
+        emailService.sendReplyToTicketCreator(this, reply).catch((error) => {
+          console.error(`[Ticket] send email to requester`, error);
+        });
       }
 
       await durationMetricService.recordReplyTicket(this, reply, isCustomerService);
