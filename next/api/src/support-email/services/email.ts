@@ -258,13 +258,15 @@ export class EmailService {
   }
 
   getTicketMessageId(message: ParsedMail) {
+    if (message.inReplyTo) {
+      return message.inReplyTo;
+    }
     if (message.references) {
       if (typeof message.references === 'string') {
         return message.references;
       }
       return message.references[0];
     }
-    return message.inReplyTo;
   }
 
   getMessageFrom(message: ParsedMail) {
