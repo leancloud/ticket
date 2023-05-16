@@ -55,6 +55,7 @@
     "record": "Catatan Masalah",
     "no_record": "Tidak ada catatan masalah",
     "no_more_record": "Tidak ada catatan lebih lanjut",
+    "view_earlier_records": "Lihat catatan sebelumnya",
     "create": {
       "success": "Pengiriman berhasil",
       "success_text": "$t(ticket.create.success), kami akan segera memprosesnya untuk Anda"

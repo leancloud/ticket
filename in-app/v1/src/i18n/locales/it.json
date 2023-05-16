@@ -55,6 +55,7 @@
     "record": "Registro dei problemi",
     "no_record": "Nessun problema registrato",
     "no_more_record": "Non ci sono ulteriori registrazioni",
+    "view_earlier_records": "it: Visualizza record precedenti",
     "create": {
       "success": "Invio avvenuto con successo.",
       "success_text": "$t(ticket.create.success), ci occuperemo della tua richiesta al più presto"

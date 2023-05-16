@@ -55,6 +55,7 @@
     "record": "Registro de problemas",
     "no_record": "Sem registros de problemas",
     "no_more_record": "Sem mais registros",
+    "view_earlier_records": "Ver registros anteriores",
     "create": {
       "success": "Submissão bem-sucedida",
       "success_text": "$t(ticket.create.success), iremos tratar o seu pedido o mais breve possível"

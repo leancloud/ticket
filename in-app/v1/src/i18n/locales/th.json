@@ -55,6 +55,7 @@
     "record": "ปัญหาที่บันทึกไว้",
     "no_record": "ไม่มีปัญหาที่บันทึกไว้",
     "no_more_record": "ไม่มีประวัติเพิ่มเติม",
+    "view_earlier_records": "ดูบันทึกเก่ากว่า",
     "create": {
       "success": "ส่งสำเร็จ",
       "success_text": "$t(ticket.create.success), เราจะดำเนินการให้เร็วที่สุด"

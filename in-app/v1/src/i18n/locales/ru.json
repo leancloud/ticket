@@ -55,6 +55,7 @@
     "record": "Запись проблемы",
     "no_record": "нет записей о проблемах",
     "no_more_record": "Нет больше записей",
+    "view_earlier_records": "Посмотреть предыдущие записи",
     "create": {
       "success": "Подтверждение отправки",
       "success_text": "$t(ticket.create.success), мы обработаем ваш запрос как можно скорее"
