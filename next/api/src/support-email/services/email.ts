@@ -124,17 +124,11 @@ export class EmailService {
   }
 
   async processJob(job: Job<JobData>) {
-    try {
-      switch (job.data.type) {
-        case 'processMessage':
-          await this.processMessage(job.data);
-      }
-    } catch (e) {
-      if ((e as Error).message === 'retry') {
-        await this.queue.add(job.data, { delay: 1000 * 10 });
-      } else {
-        throw e;
-      }
+    switch (job.data.type) {
+      case 'processMessage':
+        await this.processMessage(job.data);
+      default:
+        console.warn(`[Support Email] unknown job type "${job.data.type}"`);
     }
   }
 
@@ -220,8 +214,8 @@ export class EmailService {
 
     const supportEmailMessage = await supportEmailMessageService.getByMessageId(ticketMessageId);
     if (!supportEmailMessage) {
-      // 可能回复的邮件还没处理完成, 稍后重试
-      throw new Error('retry');
+      // TODO: 可能回复的邮件还没处理完成，添加重试逻辑
+      return;
     }
 
     const ticket = await Ticket.find(supportEmailMessage.ticketId, { useMasterKey: true });
