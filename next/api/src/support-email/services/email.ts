@@ -409,7 +409,7 @@ export class EmailService {
     const text = Mustache.render(supportEmail.receipt.text, view);
 
     const client = this.createSmtpClient(supportEmail);
-    await client.sendMail({
+    const sendResult = await client.sendMail({
       inReplyTo: ticketMessageId,
       references: ticketMessageId,
       from: {
@@ -421,6 +421,19 @@ export class EmailService {
       text,
     });
     client.close();
+
+    await supportEmailMessageService.create({
+      from: supportEmail.email,
+      to,
+      messageId: sendResult.messageId,
+      inReplyTo: ticketMessageId,
+      references: [ticketMessageId],
+      subject,
+      html: text,
+      date: new Date(),
+      attachments: [],
+      ticketId: ticket.id,
+    });
   }
 }
 
