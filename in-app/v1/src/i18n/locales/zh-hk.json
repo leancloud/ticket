@@ -74,6 +74,7 @@
     "record": "問題紀錄",
     "no_record": "暫無問題記錄",
     "no_more_record": "無更多記錄",
+    "view_earlier_records": "查看更早嘅記錄",
     "create": {
       "success": "提交成功",
       "success_text": "$t(ticket.create.success)，我們將儘快為您處理。"

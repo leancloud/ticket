@@ -60,6 +60,7 @@
     "record": "Soru Kaydı",
     "no_record": "sorun kaydı bulunmamaktadır",
     "no_more_record": "Hiçbir kayıt kalmadı",
+    "view_earlier_records": "Daha önceki kayıtlara bakın",
     "create": {
       "success": "Gönderim başarılı",
       "success_text": "$t(ticket.create.success), en kısa sürede sizin için işleme alacağız."

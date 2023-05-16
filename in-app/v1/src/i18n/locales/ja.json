@@ -60,6 +60,7 @@
     "record": "問題の記録",
     "no_record": "問題の記録はありません",
     "no_more_record": "もう記録はありません",
+    "view_earlier_records": "以前の記録を見る",
     "create": {
       "success": "提出が成功しました。",
       "success_text": "$t(ticket.create.success)、お客様のご要望をできるだけ早く対応いたします"
