@@ -74,6 +74,7 @@
     "record": "제출된 피드백 확인",
     "no_record": "내용 없음",
     "no_more_record": "더 이상 제출된 내용이 없습니다.",
+    "view_earlier_records": "이전 기록 보기",
     "create": {
       "success": "제출 성공!",
       "success_text": "$t(ticket.create.success), 빠른 시일내에 처리를 도와드릴 수 있도록 최선을 다하겠습니다."

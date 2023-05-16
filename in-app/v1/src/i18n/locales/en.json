@@ -74,6 +74,7 @@
     "record": "Issue Records",
     "no_record": "No issue records",
     "no_more_record": "No more records",
+    "view_earlier_records": "View earlier records",
     "create": {
       "success": "Submission successful.",
       "success_text": "$t(ticket.create.success), we will process it as soon as possible."
