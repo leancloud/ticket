@@ -1,4 +1,5 @@
 import { http } from '@/leancloud';
+import { useAuth } from '@/states/auth';
 import { Ticket } from '@/types';
 import { UseQueryOptions, useQuery } from 'react-query';
 
@@ -24,8 +25,10 @@ async function fetchUnread(categoryId?: string) {
 }
 
 export function useHasUnreadTickets(categoryId?: string) {
+  const { user } = useAuth();
   return useQuery({
     queryKey: ['unread', categoryId],
     queryFn: () => fetchUnread(categoryId),
+    enabled: user !== undefined,
   });
 }

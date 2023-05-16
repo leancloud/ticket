@@ -148,14 +148,7 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/test" element={<Test />} />
       <Route path="/login" element={<LogIn />} />
-      <Route
-        path="/"
-        element={
-          <RequireAuth>
-            <Home />
-          </RequireAuth>
-        }
-      />
+      <Route path="/" element={<Home />} />
       <Route
         path="/tickets/*"
         element={
@@ -164,14 +157,7 @@ const AppRoutes = () => {
           </RequireAuth>
         }
       />
-      <Route
-        path="/categories/:id"
-        element={
-          <RequireAuth>
-            <Categories />
-          </RequireAuth>
-        }
-      />
+      <Route path="/categories/:id" element={<Categories />} />
       <Route path="/categories" element={<TopCategories />} />
       <Route path="/articles/*" element={<Articles />} />
       <Route path="*" element={<NotFound />} />
