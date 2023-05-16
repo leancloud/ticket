@@ -3,6 +3,7 @@ import { z } from 'zod';
 import AV from 'leancloud-storage';
 
 import {
+  BadRequestError,
   Body,
   Controller,
   CurrentUser,
@@ -90,6 +91,17 @@ export class CustomerServiceController {
   ) {
     const csRole = await Role.getCustomerServiceRole();
     const avRole = AV.Role.createWithoutData('_Role', csRole.id);
+
+    if (
+      await avRole
+        .relation('users')
+        .query()
+        .equalTo('objectId', data.userId)
+        .first({ useMasterKey: true })
+    ) {
+      throw new BadRequestError('This user is already customer service');
+    }
+
     const avUser = AV.User.createWithoutData('_User', data.userId);
     avRole.relation('users').add(avUser);
     await avRole.save(null, currentUser.getAuthOptions());
