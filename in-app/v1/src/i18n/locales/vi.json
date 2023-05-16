@@ -60,6 +60,7 @@
     "record": "Hồ sơ vấn đề",
     "no_record": "Không có câu hỏi nào được ghi lại",
     "no_more_record": "Không có thêm bản ghi nào",
+    "view_earlier_records": "Xem hồ sơ trước đó",
     "create": {
       "success": "Thành công khi nộp",
       "success_text": "$t(ticket.create.success), chúng tôi sẽ xử lý cho bạn sớm nhất có thể"
