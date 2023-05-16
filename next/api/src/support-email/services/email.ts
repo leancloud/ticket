@@ -346,24 +346,21 @@ export class EmailService {
       return;
     }
 
-    const inReplyTo = supportEmailMessage.messageId;
-    const references = _.castArray(supportEmailMessage.references).concat(
-      supportEmailMessage.messageId
-    );
-    const subject = `Re: ${ticket.title}`;
     const attachments = reply.fileIds ? await this.getAttachments(reply.fileIds) : [];
 
     const client = this.createSmtpClient(supportEmail);
     try {
       await client.sendMail({
-        inReplyTo,
-        references,
+        inReplyTo: supportEmailMessage.messageId,
+        references: _.castArray(supportEmailMessage.references).concat(
+          supportEmailMessage.messageId
+        ),
         from: {
           name: supportEmail.name,
           address: supportEmail.email,
         },
         to: user.email,
-        subject,
+        subject: `Re: ${ticket.title}`,
         html: reply.contentHTML,
         attachments,
       });
