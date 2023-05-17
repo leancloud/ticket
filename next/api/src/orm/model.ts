@@ -601,6 +601,10 @@ export abstract class AliasModel extends Model {
   @serialize()
   alias?: string;
 
+  @field()
+  @serialize()
+  aliases?: string[];
+
   static async find<M extends typeof AliasModel>(
     this: M,
     id: string,
@@ -610,7 +614,11 @@ export abstract class AliasModel extends Model {
     if (idMatch) {
       return idMatch;
     }
-    return await this.query().where('alias', '==', id).first(options);
+    const aliasMatch = await this.query().where('alias', '==', id).first(options);
+    if (aliasMatch) {
+      return aliasMatch
+    }
+    return await this.query().where('aliases', '==', id).first(options);
   }
 }
 
