@@ -34,6 +34,10 @@
             "type": "String",
             "comment": "用于 URL 的 ID"
         },
+        "aliases": {
+            "type": "Array",
+            "comment": "用于 ID 的其他别名"
+        },
         "createdAt": {
             "type": "Date"
         },
@@ -112,6 +116,17 @@
                 "alias": 1
             },
             "name": "-user-alias_1",
+            "ns": "-.Category",
+            "background": true,
+            "sparse": true
+        },
+        {
+            "v": 2,
+            "unique": true,
+            "key": {
+                "aliases": 1
+            },
+            "name": "-user-aliases_1",
             "ns": "-.Category",
             "background": true,
             "sparse": true
