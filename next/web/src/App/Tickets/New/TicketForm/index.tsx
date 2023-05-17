@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { SiMarkdown } from 'react-icons/si';
-import { compact, keyBy, last, uniq } from 'lodash-es';
+import { last } from 'lodash-es';
 import { useToggle } from 'react-use';
 
 import { useCurrentUserIsCustomerService, ENABLE_LEANCLOUD_INTEGRATION } from '@/leancloud';
-import { useArticlesWithDetail } from '@/api/article';
-import { CategorySchema, useCategories } from '@/api/category';
+import { CategorySchema, useCategories, useCategoryFaqs } from '@/api/category';
 import { useOrganizations } from '@/api/organization';
 import { useTicketFormItems } from '@/api/ticket-form';
 import { Button, Collapse, Form, Input, Radio, RadioChangeEvent } from '@/components/antd';
@@ -27,43 +26,32 @@ function openLinkInNewTab(el: HTMLElement | null) {
   el?.querySelectorAll('a').forEach((a) => (a.target = '_blank'));
 }
 
-function FaqsItem({ ids }: { ids: string[] }) {
-  const { data: articles, error, refetch } = useArticlesWithDetail({
-    id: ids,
-    private: false,
-    pageSize: ids.length,
-    queryOptions: {
-      staleTime: Infinity,
-    },
+interface FaqsItemProps {
+  categoryId: string;
+}
+
+function FaqsItem({ categoryId }: FaqsItemProps) {
+  const { data: faqs } = useCategoryFaqs(categoryId, {
+    staleTime: 1000 * 60,
   });
 
-  const articleMap = useMemo(() => keyBy(articles, 'id'), [articles]);
-
-  const sortedArticles = useMemo(() => {
-    return compact(ids.map((id) => articleMap[id]));
-  }, [ids, articleMap]);
-
-  if (!articles || articles.length === 0) {
+  if (!faqs || faqs.length === 0) {
     return null;
   }
 
   return (
     <Form.Item label="常见问题">
-      {error ? (
-        <Retry error={error} onRetry={refetch} />
-      ) : (
-        <Collapse>
-          {sortedArticles.map(({ id, title, contentSafeHTML }) => (
-            <Panel key={id} header={title}>
-              <div
-                ref={openLinkInNewTab}
-                className="markdown-body"
-                dangerouslySetInnerHTML={{ __html: contentSafeHTML }}
-              />
-            </Panel>
-          ))}
-        </Collapse>
-      )}
+      <Collapse>
+        {faqs.map(({ id, title, contentSafeHTML }) => (
+          <Panel key={id} header={title}>
+            <div
+              ref={openLinkInNewTab}
+              className="markdown-body"
+              dangerouslySetInnerHTML={{ __html: contentSafeHTML }}
+            />
+          </Panel>
+        ))}
+      </Collapse>
     </Form.Item>
   );
 }
@@ -142,17 +130,13 @@ export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
     [getValues, setValue]
   );
 
-  const [articleIds, setArticleIds] = useState<string[]>();
-
   const handleChangeCategory = useCallback(
     (categoryPath?: CategorySchema[]) => {
-      setArticleIds(undefined);
       if (categoryPath?.length) {
         const category = last(categoryPath)!;
         if (category.template) {
           overwriteContent(category.template);
         }
-        setArticleIds(category.articleIds);
       }
     },
     [overwriteContent]
@@ -315,7 +299,7 @@ export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
               </Form.Item>
             )}
           />
-          {articleIds && articleIds.length > 0 && <FaqsItem ids={articleIds} />}
+          {categoryId && <FaqsItem categoryId={categoryId} />}
           {filteredFormItems && filteredFormItems.length > 0 && (
             <FormItems items={filteredFormItems} />
           )}
