@@ -52,8 +52,8 @@
     "hint": "If the information above did not help you, you can"
   },
   "ticket": {
-    "record": "Issue Log",
-    "no_record": "No issues recorded",
+    "record": "Issue Records",
+    "no_record": "No issue records",
     "no_more_record": "No more records",
     "create": {
       "success": "Submission successful.",

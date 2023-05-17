@@ -53,7 +53,7 @@
   },
   "ticket": {
     "record": "Problèmes enregistrés",
-    "no_record": "Aucun problème enregistré pour le moment",
+    "no_record": "Aucun problème enregistré",
     "no_more_record": "Aucun enregistrement supplémentaire",
     "create": {
       "success": "Soumission réussie",

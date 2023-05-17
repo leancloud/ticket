@@ -53,7 +53,7 @@
   },
   "ticket": {
     "record": "Soru Kaydı",
-    "no_record": "Henüz sorun kaydı bulunmamaktadır.",
+    "no_record": "sorun kaydı bulunmamaktadır",
     "no_more_record": "Hiçbir kayıt kalmadı",
     "create": {
       "success": "Gönderim başarılı",

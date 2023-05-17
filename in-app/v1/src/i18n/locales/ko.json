@@ -53,7 +53,7 @@
   },
   "ticket": {
     "record": "문제 기록",
-    "no_record": "임시로 문제 기록이 없음",
+    "no_record": "문제 기록이 없음",
     "no_more_record": "기록이 더 이상 없습니다",
     "create": {
       "success": "제출 성공",

@@ -53,7 +53,7 @@
   },
   "ticket": {
     "record": "Registro de problemas",
-    "no_record": "No hay registros de problemas por el momento",
+    "no_record": "No hay registros de problemas",
     "no_more_record": "No hay más registros",
     "create": {
       "success": "Éxito en el envío",

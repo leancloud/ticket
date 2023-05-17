@@ -53,7 +53,7 @@
   },
   "ticket": {
     "record": "Fragenprotokoll",
-    "no_record": "Keine Probleme bisher",
+    "no_record": "Keine Probleme",
     "no_more_record": "Keine weiteren Aufzeichnungen",
     "create": {
       "success": "Erfolgreich abgeschickt",

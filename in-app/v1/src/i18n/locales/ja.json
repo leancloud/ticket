@@ -53,7 +53,7 @@
   },
   "ticket": {
     "record": "問題の記録",
-    "no_record": "一時的に問題の記録はありません",
+    "no_record": "問題の記録はありません",
     "no_more_record": "もう記録はありません",
     "create": {
       "success": "提出が成功しました。",
