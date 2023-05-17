@@ -425,3 +425,9 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 ### `4a47f1cdb5e77c4b78c7c07588abbd9a58169c89`
 
 导入 DurationMetrics.json，创建 DurationMetrics class。
+
+## 2023-05-17
+
+### `31d8bf3857f1c8b28cce1c2b224a7f6f4ac7dcc3`
+
+导入 Category.json，添加 aliases 列。
