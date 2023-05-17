@@ -21,7 +21,7 @@ import {
 } from '@/response/article-revision';
 import { FeedbackType } from '@/model/ArticleFeedback';
 import { ArticleTranslation, getArticleTranslation } from '@/model/ArticleTranslation';
-import { localeSchemaForYup, matchLocale } from '@/utils/locale';
+import { localeSchemaForYup } from '@/utils/locale';
 import { articleService } from '@/article/article.service';
 
 const router = new Router();
@@ -78,63 +78,6 @@ router.get('/', pagination(20), auth, customerServiceOnly, async (ctx) => {
   }
 
   ctx.body = articles.map((article) => new ArticleResponse(article));
-});
-
-router.get('/detail', pagination(20), auth, async (ctx) => {
-  const { page, pageSize } = pagination.get(ctx);
-  const { private: isPrivate, id } = findArticlesOptionSchema.validateSync(ctx.request.query);
-
-  const currentUser = ctx.state.currentUser as User;
-
-  const articleQb = Article.queryBuilder()
-    .where('deletedAt', 'not-exists')
-    .orderBy('createdAt', 'desc')
-    .paginate(page, pageSize);
-  if (isPrivate !== undefined) {
-    articleQb.where('private', '==', isPrivate);
-  }
-  if (id) {
-    articleQb.where('objectId', 'in', id);
-  }
-
-  const articles = await articleQb.find(currentUser.getAuthOptions());
-  if (articles.length === 0) {
-    ctx.body = [];
-    return;
-  }
-
-  const translationQb = ArticleTranslation.queryBuilder()
-    .where('deletedAt', 'not-exists')
-    .where(
-      'article',
-      'in',
-      articles.map((a) => a.toPointer())
-    );
-  if (isPrivate !== undefined) {
-    translationQb.where('private', '==', isPrivate);
-  }
-
-  const translations = await translationQb.find({ useMasterKey: true });
-
-  const articleById = _.keyBy(articles, (a) => a.id);
-
-  const response = _(translations)
-    .groupBy((t) => t.articleId)
-    .pickBy((v, articleId) => articleById[articleId] !== undefined)
-    .mapValues((translations, id) =>
-      matchLocale(
-        translations,
-        (t) => t.language,
-        ctx.locales.matcher,
-        articleById[id].defaultLanguage
-      )
-    )
-    .values()
-    .compact()
-    .value()
-    .map((t) => new ArticleTranslationResponse(t));
-
-  ctx.body = response;
 });
 
 const createBaseArticleSchema = yup.object({

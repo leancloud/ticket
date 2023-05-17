@@ -21,7 +21,7 @@ import { auth, customerServiceOnly } from '@/middleware';
 import { Category } from '@/model/Category';
 import { TicketForm } from '@/model/TicketForm';
 import { User } from '@/model/User';
-import { ArticleTranslationAbstractResponse } from '@/response/article';
+import { ArticleTranslationResponse } from '@/response/article';
 import { CategoryResponse } from '@/response/category';
 import { TicketFieldVariantResponse } from '@/response/ticket-field';
 import { ArticleTopicFullResponse } from '@/response/article-topic';
@@ -159,7 +159,7 @@ export class CategoryController {
   }
 
   @Get(':id/faqs')
-  @ResponseBody(ArticleTranslationAbstractResponse)
+  @ResponseBody(ArticleTranslationResponse)
   getFAQs(@Param('id', FindCategoryPipe) category: Category, @Locales() locales: ILocale) {
     if (!category.FAQIds) {
       return [];
@@ -168,7 +168,7 @@ export class CategoryController {
   }
 
   @Get(':id/notices')
-  @ResponseBody(ArticleTranslationAbstractResponse)
+  @ResponseBody(ArticleTranslationResponse)
   getNotices(@Param('id', FindCategoryPipe) category: Category, @Locales() locales: ILocale) {
     if (!category.noticeIds) {
       return [];
