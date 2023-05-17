@@ -369,8 +369,8 @@ export class Ticket extends Model {
   ): Promise<Ticket> {
     await this.loadAssociateTickets(options);
 
-    await Promise.all(
-      (options?.cascade ? [...(this.associateTickets ?? []), this] : [this])?.map((ticket) => {
+    const result = await Promise.all(
+      (options?.cascade ? [...(this.associateTickets ?? []), this] : [this]).map((ticket) => {
         const updater = new TicketUpdater(ticket);
         updater.operate(action);
         return updater.update(operator, options);
@@ -379,7 +379,7 @@ export class Ticket extends Model {
 
     await durationMetricService.recordOperateTicket(this, action);
 
-    return this;
+    return result.find((ticket) => ticket.id === this.id)!;
   }
 
   isClosed(): boolean {

@@ -1076,7 +1076,6 @@ router.post('/:id/operate', async (ctx) => {
   const { action } = operateSchema.validateSync(ctx.request.body);
   await ticket.operate(action as any, currentUser, {
     cascade: true,
-    ...currentUser.getAuthOptions(),
   });
   ctx.body = {};
 });

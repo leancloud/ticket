@@ -246,7 +246,7 @@ export class EmailService {
       return;
     }
 
-    const ticket = await Ticket.find(supportEmailMessage.ticketId, { useMasterKey: true });
+    let ticket = await Ticket.find(supportEmailMessage.ticketId, { useMasterKey: true });
     if (!ticket) {
       return;
     }
@@ -254,6 +254,15 @@ export class EmailService {
     const author = await userService.getUserByEmail(from.email);
     if (!author || author.id !== ticket.authorId) {
       return;
+    }
+
+    if (ticket.isClosed()) {
+      ticket = await ticket.operate('reopen', author, {
+        cascade: true,
+        // 这里的 author 是没有 sessionToken 的，而且上面已经判断过 author 是否为 ticket author 了
+        // 所以使用 masterKey 操作
+        useMasterKey: true,
+      });
     }
 
     const attachments = await this.uploadAttachments(message);
