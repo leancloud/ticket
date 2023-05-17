@@ -42,30 +42,36 @@ export class EmailService {
     const maxCount = 100;
     const run = async (supportEmail: SupportEmail) => {
       try {
-        const count = await this.dispatchCreateEmailTicketJob(supportEmail, maxCount);
-        return { email: supportEmail.email, success: true, count };
+        await this.dispatchCreateEmailTicketJob(supportEmail, maxCount);
       } catch (e) {
         console.error('[Support Email] check new messages', supportEmail.email, e);
-        const message = (e as Error).message;
-        return { email: supportEmail.email, success: false, message };
       }
     };
-    return Promise.all(supportAddresses.map(throat(2, run)));
+    await Promise.all(supportAddresses.map(throat(2, run)));
   }
 
   async dispatchCreateEmailTicketJob(supportEmail: SupportEmail, count: number) {
     const client = this.createImapClient(supportEmail);
     await client.connect();
 
-    const range = `${supportEmail.lastUid + 1}:*`;
+    const startUid = supportEmail.lastUid + 1;
+    const range = `${startUid}:*`;
     let uids = await this.getMessageUids(client, range);
 
     await client.logout();
 
+    // 过滤掉小于起始位置的 UID
+    // See: RFC3501 6.4.8 UID Command
+    uids = uids.filter((uid) => uid >= startUid);
+    uids = uids.slice(0, count);
+
     if (uids.length) {
-      uids = uids.slice(0, count);
       await this.createProcessMessageJobs(supportEmail.email, uids);
-      await supportEmail.update({ lastUid: _.last(uids) }, { useMasterKey: true });
+      await supportEmail.update({ lastUid: _.max(uids) }, { useMasterKey: true });
+      console.log('[Support Email] new messages received', {
+        email: supportEmail.email,
+        uids,
+      });
     }
 
     return uids.length;
