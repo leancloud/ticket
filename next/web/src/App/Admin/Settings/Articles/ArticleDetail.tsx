@@ -1,22 +1,23 @@
+import { FC, useMemo, useState } from 'react';
+import { useQueryClient } from 'react-query';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+
 import {
   useArticle,
   useArticleTranslations,
   useRelatedCategories,
   useUpdateArticle,
 } from '@/api/article';
+import { CategorySchema } from '@/api/category';
+import { LOCALES } from '@/i18n/locales';
 import { Breadcrumb, Spin, message } from '@/components/antd';
-import { FC, useMemo, useState } from 'react';
-import { useQueryClient } from 'react-query';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { TranslationList } from '@/App/Admin/components/TranslationList';
+import { useGetCategoryPath, CategoryPath } from '../../components/CategoryPath';
+import { LocaleModal } from '../../components/LocaleModal';
 import { FeedbackSummary } from './FeedbackSummary';
 import { EditArticleForm } from './EditArticleForm';
-import { LOCALES } from '@/i18n/locales';
-import { LocaleModal } from '../../components/LocaleModal';
 import { SetDefaultButton } from './components/SetDefaultButton';
-import { CategorySchema } from '@/api/category';
-import { useGetCategoryPath, CategoryPath } from '../../components/CategoryPath';
 import { PreviewLink } from './components/PreviewLink';
-import { TranslationList } from '@/App/Admin/components/TranslationList';
 
 interface ArticleTranslationListProps {
   articleId: string;

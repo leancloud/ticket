@@ -132,7 +132,7 @@ export const EditArticleForm: FC<EditArticleFormProps> = ({
         >
           <ArticleForm control={control} />
 
-          <Form.Item style={{ marginBottom: 0 }}>
+          <Form.Item style={{ marginBottom: 8 }}>
             <Controller
               control={control}
               name="public"

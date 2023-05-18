@@ -193,8 +193,9 @@ export const useCreateArticle = (
     ...mutationOptions,
   });
 
-export interface UpdateArticleData
-  extends Omit<Partial<CreateArticleData>, 'language' | 'title' | 'content'> {
+export interface UpdateArticleData {
+  name?: string;
+  private?: boolean;
   defaultLanguage?: string;
 }
 
