@@ -29,6 +29,7 @@ import { RecentTickets } from './RecentTickets'
 import { EditReplyModal } from './EditReplyModal'
 import { AccessControl } from './AccessControl'
 import { Time } from './Time'
+import { NextTicketSection } from './NextTicket'
 
 export function updateTicket(id, data) {
   return fetch(`/api/1/tickets/${id}`, {
@@ -482,6 +483,8 @@ export default function Ticket() {
             {(isUserInThisTicket || isCustomerService) && (
               <TicketOperation ticket={ticket} onOperate={operateTicket} />
             )}
+
+            {isCustomerService && <NextTicketSection id={ticket.id} />}
           </div>
         </Col>
       </Row>
