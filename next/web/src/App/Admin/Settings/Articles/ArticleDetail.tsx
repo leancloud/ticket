@@ -4,16 +4,14 @@ import {
   useRelatedCategories,
   useUpdateArticle,
 } from '@/api/article';
-import { Breadcrumb, Button, List, Spin, message } from '@/components/antd';
+import { Breadcrumb, Spin, message } from '@/components/antd';
 import { FC, useMemo, useState } from 'react';
 import { useQueryClient } from 'react-query';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { FeedbackSummary } from './FeedbackSummary';
 import { EditArticleForm } from './EditArticleForm';
 import { LOCALES } from '@/i18n/locales';
-import { ArticleStatus } from './components/ArticleStatus';
 import { LocaleModal } from '../../components/LocaleModal';
-import { ToggleTranslationPrivateButton } from './components/TogglePrivateButton';
 import { SetDefaultButton } from './components/SetDefaultButton';
 import { CategorySchema } from '@/api/category';
 import { useGetCategoryPath, CategoryPath } from '../../components/CategoryPath';
@@ -50,11 +48,6 @@ const ArticleTranslationList: FC<ArticleTranslationListProps> = ({
             <FeedbackSummary revision={item.revision!} />
             <PreviewLink slug={item.slug} language={item.language} />
             <Link to={`${item.language}/revisions`}>查看历史</Link>
-            <ArticleStatus article={item} privateText="禁用中" publicText="启用中" />
-            <ToggleTranslationPrivateButton
-              translation={item}
-              disabled={item.language === defaultLanguage}
-            />
             <SetDefaultButton
               articleId={articleId}
               language={item.language}

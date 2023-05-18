@@ -41,9 +41,7 @@ export function Articles() {
           </Radio.Group>
         </div>
         <Link to="new">
-          <Button type="primary" ghost>
-            创建文章
-          </Button>
+          <Button type="primary">创建文章</Button>
         </Link>
       </div>
 

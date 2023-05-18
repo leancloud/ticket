@@ -17,7 +17,6 @@ export interface ArticleTranslationAbstract {
   title: string;
   language: string;
   slug: string;
-  private: boolean;
   revision?: {
     upvote?: number;
     downvote?: number;
