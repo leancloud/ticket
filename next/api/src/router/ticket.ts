@@ -1199,7 +1199,7 @@ router.get('/:id/next', auth, customerServiceOnly, async (ctx) => {
       'in',
       groups.map((g) => g.toPointer())
     )
-    .where('status', 'in', [Status.NEW, Status.WAITING_CUSTOMER])
+    .where('status', 'in', [Status.NEW, Status.WAITING_CUSTOMER_SERVICE])
     .where('objectId', '!=', ticket.id)
     .orderBy('updatedAt', 'desc');
 
