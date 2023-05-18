@@ -91,33 +91,30 @@ const createBaseArticleSchema = yup.object({
 // create new article
 router.post('/', auth, customerServiceOnly, async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
-  const {
-    name,
-    private: isPrivate,
-    language,
-    title,
-    content,
-  } = createBaseArticleSchema.validateSync(ctx.request.body);
+  const data = createBaseArticleSchema.validateSync(ctx.request.body);
 
-  const data: CreateData<Article> = {
-    ACL: {},
-    name,
-    defaultLanguage: language,
-    private: isPrivate ?? false,
-  };
+  const article = await Article.create(
+    {
+      ACL: {},
+      name: data.name,
+      defaultLanguage: data.language,
+      private: data.private ?? false,
+    },
+    { useMasterKey: true }
+  );
 
-  const article = await Article.create(data, { useMasterKey: true });
+  const translation = await ArticleTranslation.create(
+    {
+      ACL: {},
+      title: data.title,
+      language: data.language,
+      content: data.content,
+      contentHTML: htmlify(data.content),
+      articleId: article.id,
+    },
+    { useMasterKey: true }
+  );
 
-  const translationData: CreateData<ArticleTranslation> = {
-    ACL: {},
-    title,
-    language,
-    content,
-    contentHTML: htmlify(content),
-    articleId: article.id,
-  };
-
-  const translation = await ArticleTranslation.create(translationData, { useMasterKey: true });
   await translation.createRevision(currentUser, translation);
 
   ctx.body = new ArticleResponse(article);
