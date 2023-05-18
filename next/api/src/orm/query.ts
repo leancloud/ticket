@@ -112,44 +112,50 @@ export class Query<M extends typeof Model> {
   }
 
   private getAndCondition() {
+    if (_.isEmpty(this.condition)) {
+      switch (this.andConditions.length) {
+        case 0:
+          return this.condition;
+        case 1:
+          return this.andConditions[0];
+        default:
+          return { $and: this.andConditions };
+      }
+    }
     if (this.andConditions.length === 0) {
-      return {};
+      return this.condition;
     }
-    if (this.andConditions.length === 1) {
-      return this.andConditions[0];
-    }
-    return {
-      $and: this.andConditions,
-    };
+    return { $and: this.andConditions.concat(this.condition) };
   }
 
   private appendOrCondition(condition?: any) {
-    this.appendAndCondition();
     const andCondition = this.getAndCondition();
     if (!_.isEmpty(andCondition)) {
       this.orConditions.push(andCondition);
       this.andConditions = [];
+      this.condition = {};
     }
     if (!_.isEmpty(condition)) {
       this.orConditions.push(condition);
     }
   }
 
-  private getOrCondition() {
-    if (this.orConditions.length === 0) {
-      return {};
-    }
-    if (this.orConditions.length === 1) {
-      return this.orConditions[0];
-    }
-    return {
-      $or: this.orConditions,
-    };
-  }
-
   getRawCondition() {
-    this.appendOrCondition();
-    return this.getOrCondition();
+    const andCondition = this.getAndCondition();
+    if (_.isEmpty(andCondition)) {
+      switch (this.orConditions.length) {
+        case 0:
+          return andCondition;
+        case 1:
+          return this.orConditions[0];
+        default:
+          return { $or: this.orConditions };
+      }
+    }
+    if (this.orConditions.length === 0) {
+      return andCondition;
+    }
+    return { $or: this.orConditions.concat(andCondition) };
   }
 
   clone(): Query<M> {
@@ -202,14 +208,14 @@ export class Query<M extends typeof Model> {
   orWhere(bunch: QueryBunch<M>): Query<M>;
   orWhere(key: any, command?: any, ...values: any[]) {
     const query = this.clone();
-    query.appendOrCondition();
     if (typeof key === 'string') {
+      query.appendOrCondition();
       const modifier = queryModifiers[command as QueryCommand];
       modifier(query.condition, key, values[0]);
     } else {
       const queryBuilder = new QueryBuilder(this.model);
       key(queryBuilder);
-      query.appendAndCondition(queryBuilder.getRawCondition());
+      query.appendOrCondition(queryBuilder.getRawCondition());
     }
     return query;
   }
