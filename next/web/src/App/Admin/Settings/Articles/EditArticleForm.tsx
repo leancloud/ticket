@@ -2,14 +2,10 @@ import { FC, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 import { CreateArticleData, UpdateArticleData } from '@/api/article';
-import { Button, Checkbox, Divider, Form, FormInstance } from '@/components/antd';
+import { Button, Form, FormInstance } from '@/components/antd';
 import { LocaleSelect } from '../../components/LocaleSelect';
 import { TranslationForm, TranslationFormRef } from './components/TranslationForm';
 import { ArticleForm } from './components/ArticleForm';
-
-interface NewArticleFormData extends Omit<CreateArticleData, 'private'> {
-  public: boolean;
-}
 
 export interface NewArticleFormProps {
   initData?: CreateArticleData;
@@ -24,8 +20,8 @@ export const NewArticleForm: FC<NewArticleFormProps> = ({
   onSubmit,
   onCancel,
 }) => {
-  const { control, handleSubmit } = useForm<NewArticleFormData>({
-    defaultValues: { ...initData, public: !initData?.private },
+  const { control, handleSubmit } = useForm<CreateArticleData>({
+    defaultValues: initData,
   });
 
   const $antForm = useRef<FormInstance>(null!);
@@ -37,19 +33,14 @@ export const NewArticleForm: FC<NewArticleFormProps> = ({
         <Form
           ref={$antForm}
           layout="vertical"
-          onFinish={handleSubmit(({ ['public']: pblc, ...data }) =>
+          onFinish={handleSubmit((data) => {
             onSubmit({
               ...data,
               content: translationFormRef.current?.getValue() ?? '',
-              private: !pblc,
-            })
-          )}
+            });
+          })}
         >
           <ArticleForm control={control} />
-
-          <Divider type="horizontal" plain>
-            默认语言
-          </Divider>
 
           <Controller
             control={control}
@@ -58,6 +49,7 @@ export const NewArticleForm: FC<NewArticleFormProps> = ({
             defaultValue="zh-cn"
             render={({ field, fieldState: { error } }) => (
               <Form.Item
+                label="默认语言"
                 validateStatus={error ? 'error' : undefined}
                 help={error?.message}
                 style={{ marginBottom: 16 }}
@@ -68,16 +60,6 @@ export const NewArticleForm: FC<NewArticleFormProps> = ({
           />
 
           <TranslationForm control={control} ref={translationFormRef} />
-
-          <Form.Item style={{ marginBottom: 0 }}>
-            <Controller
-              control={control}
-              name="public"
-              render={({ field: { value, onChange } }) => (
-                <Checkbox checked={value} onChange={onChange} children="发布" />
-              )}
-            />
-          </Form.Item>
         </Form>
       </div>
 
@@ -100,10 +82,6 @@ export interface EditArticleFormProps {
   onCancel?: () => void;
 }
 
-export interface EditArticleFormData extends Omit<UpdateArticleData, 'private'> {
-  public: boolean;
-}
-
 export const EditArticleForm: FC<EditArticleFormProps> = ({
   initData,
   submitting,
@@ -111,8 +89,8 @@ export const EditArticleForm: FC<EditArticleFormProps> = ({
   onCancel,
   children,
 }) => {
-  const { control, handleSubmit } = useForm<NewArticleFormData>({
-    defaultValues: { ...initData, public: !initData?.private },
+  const { control, handleSubmit } = useForm<UpdateArticleData>({
+    defaultValues: initData,
   });
 
   const $antForm = useRef<FormInstance>(null!);
@@ -120,27 +98,8 @@ export const EditArticleForm: FC<EditArticleFormProps> = ({
   return (
     <div className="flex flex-col h-full">
       <div className="grow overflow-y-auto">
-        <Form
-          ref={$antForm}
-          layout="vertical"
-          onFinish={handleSubmit(({ ['public']: pblc, ...data }) =>
-            onSubmit({
-              ...data,
-              private: !pblc,
-            })
-          )}
-        >
+        <Form ref={$antForm} layout="vertical" onFinish={handleSubmit(onSubmit)}>
           <ArticleForm control={control} />
-
-          <Form.Item style={{ marginBottom: 8 }}>
-            <Controller
-              control={control}
-              name="public"
-              render={({ field: { value, onChange } }) => (
-                <Checkbox checked={value} onChange={onChange} children="发布" />
-              )}
-            />
-          </Form.Item>
         </Form>
 
         {children}

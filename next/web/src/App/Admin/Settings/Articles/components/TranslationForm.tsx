@@ -35,11 +35,12 @@ export const TranslationForm = forwardRef<TranslationFormRef, TranslationFormPro
           defaultValue=""
           render={({ field, fieldState: { error } }) => (
             <Form.Item
+              label="标题"
               validateStatus={error ? 'error' : undefined}
               help={error?.message}
               style={{ marginBottom: 16 }}
             >
-              <Input {...field} id="title" autoFocus placeholder="标题" />
+              <Input {...field} id="title" autoFocus />
             </Form.Item>
           )}
         />
