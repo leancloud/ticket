@@ -16,7 +16,6 @@ export class ArticleTranslationAbstractResponse {
       language: this.articleTranslation.language,
       slug,
       url: `${config.host}/in-app/v1/products/-/articles/${slug}?nav=0`,
-      private: !!this.articleTranslation.private,
       revision: this.articleTranslation.revision
         ? {
             upvote: this.articleTranslation.revision.upvote,

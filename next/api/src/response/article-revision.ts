@@ -4,7 +4,7 @@ import { sanitize } from '@/utils/xss';
 import { UserResponse } from './user';
 
 export class ArticleRevisionListItemResponse {
-  constructor(readonly revision: ArticleRevision, readonly includeRating = false) {}
+  constructor(readonly revision: ArticleRevision) {}
 
   toJSON() {
     return {
@@ -14,8 +14,8 @@ export class ArticleRevisionListItemResponse {
       title: this.revision.title,
       author: this.revision.author ? new UserResponse(this.revision.author) : undefined,
       comment: this.revision.comment,
-      upvote: this.includeRating ? this.revision.upvote : undefined,
-      downvote: this.includeRating ? this.revision.downvote : undefined,
+      upvote: this.revision.upvote,
+      downvote: this.revision.downvote,
       createdAt: this.revision.createdAt.toISOString(),
       updatedAt: this.revision.updatedAt.toISOString(),
     };

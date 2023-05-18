@@ -51,11 +51,10 @@ export class ArticleService {
       .where('deletedAt', 'not-exists')
       .find({ useMasterKey: true });
 
-    const [unpublished, published] = _.partition(translations, (t) => t.private);
-
+    // TODO: no unpublished translations anymore
     const languages: ArticleLanguages = {
-      published: published.map((t) => t.language),
-      unpublished: unpublished.map((t) => t.language),
+      published: translations.map((t) => t.language),
+      unpublished: [],
     };
 
     await this.cache.set(cacheKey, languages);

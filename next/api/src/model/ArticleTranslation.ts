@@ -29,10 +29,6 @@ export class ArticleTranslation extends Model {
 
   @field()
   @serialize()
-  private!: boolean;
-
-  @field()
-  @serialize()
   deletedAt?: Date;
 
   @pointerId(() => Article)
@@ -99,16 +95,6 @@ export class ArticleTranslation extends Model {
         }
       );
     }
-
-    const metaChanged =
-      updatedArticle.private !== previousArticle?.private ||
-      (previousArticle === undefined && updatedArticle.private);
-    if (metaChanged) {
-      await doCreateRevision({
-        meta: true,
-        private: updatedArticle.private,
-      });
-    }
   }
 
   async feedback(type: FeedbackType, author: User) {
@@ -138,18 +124,14 @@ export class ArticleTranslation extends Model {
 /**
  * @deprecated
  */
-export async function getArticleTranslation(
-  articleId: string,
-  matcher: LocaleMatcher,
-  publishedOnly?: boolean
-) {
+export async function getArticleTranslation(articleId: string, matcher: LocaleMatcher) {
   const article = await articleService.getArticle(articleId);
   if (!article || article.private) {
     return;
   }
 
   const { published, unpublished } = await articleService.getArticleLanguages(articleId);
-  const languages = publishedOnly ? published : published.concat(unpublished);
+  const languages = published.concat(unpublished);
   if (languages.length === 0) {
     return;
   }
@@ -175,7 +157,7 @@ export async function getPublishedArticleTranslations(
     return [];
   }
   const createTask = throat(concurrency, (id: string) => {
-    return getArticleTranslation(id, matcher, true);
+    return getArticleTranslation(id, matcher);
   });
   const translations = await Promise.all(articleIds.map(createTask));
   return _.compact(translations);
