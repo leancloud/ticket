@@ -12,7 +12,6 @@ require('./User')
 require('./Organization')
 require('./Role')
 require('./stats')
-require('./FAQ')
 
 // 加载 next shim
 // TODO(sdjdd): 之后移除
