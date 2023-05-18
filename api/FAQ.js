@@ -1,22 +1,6 @@
 const AV = require('leanengine')
 const LRUCache = require('lru-cache')
 const sortKeys = require('sort-keys')
-const { htmlify } = require('./common')
-
-AV.Cloud.beforeSave('FAQTranslation', async (req) => {
-  const FAQ = req.object
-  FAQ.set('content_HTML', htmlify(FAQ.get('content')))
-})
-AV.Cloud.afterUpdate('FAQTranslation', async (req) => {
-  const FAQ = req.object
-  if (req.object.updatedKeys.indexOf('content') === -1) {
-    return
-  }
-  FAQ.set('content_HTML', htmlify(FAQ.get('content')))
-  return FAQ.save(null, {
-    useMasterKey: true,
-  })
-})
 
 const MAX_FAQ_CACHE_SIZE = Number(process.env.MAX_FAQ_CACHE_SIZE || 20)
 const MAX_FAQ_CACHE_AGE = Number(process.env.MAX_FAQ_CACHE_AGE || 600 * 1000)
