@@ -35,7 +35,7 @@ const createSchema = z.object({
   }),
   smtp: emailServerSchema,
   imap: emailServerSchema,
-  mailbox: z.string().optional().default('INBOX'),
+  mailbox: z.string().optional(),
   categoryId: noEmptyStringSchema,
   receipt: z.object({
     enabled: z.boolean(),
@@ -70,9 +70,10 @@ export class SupportEmailController {
   @ResponseBody(SupportEmailResponse)
   async create(@Body(new ZodValidationPipe(createSchema)) data: CreateData) {
     await this.checkEmailConflict(data.email);
+    const mailbox = data.mailbox || 'INBOX';
     const client = await this.validateEmailAccount(data);
     try {
-      const uidNext = await emailService.getUidNext(client, data.mailbox);
+      const uidNext = await emailService.getUidNext(client, mailbox);
       const supportEmail = await SupportEmail.create(
         {
           ACL: {},
@@ -81,7 +82,7 @@ export class SupportEmailController {
           auth: data.auth,
           smtp: data.smtp,
           imap: data.imap,
-          mailbox: data.mailbox,
+          mailbox: mailbox,
           categoryId: data.categoryId,
           receipt: data.receipt,
           lastUid: uidNext - 1,
