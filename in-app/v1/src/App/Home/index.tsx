@@ -34,11 +34,7 @@ export default function Home() {
   const isNoData = !hasNotices && !hasTopics && !hasCategories;
 
   if (isLoading) {
-    return (
-      <div className="flex h-screen">
-        <Loading className="m-auto" />
-      </div>
-    );
+    return <Loading fullScreen />;
   }
 
   const content = isNoData ? (
