@@ -462,9 +462,3 @@ export class EmailService {
 }
 
 export const emailService = new EmailService();
-
-setInterval(() => {
-  emailService.checkNewMessages().then(() => {
-    console.log('done');
-  });
-}, 1000 * 5);
