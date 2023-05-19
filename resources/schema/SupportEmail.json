@@ -64,6 +64,13 @@
       "read_only": false,
       "comment": ""
     },
+    "mailbox": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
     "imap": {
       "type": "Object",
       "v": 2,

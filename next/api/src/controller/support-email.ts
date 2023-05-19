@@ -35,6 +35,7 @@ const createSchema = z.object({
   }),
   smtp: emailServerSchema,
   imap: emailServerSchema,
+  mailbox: z.string().optional().default('INBOX'),
   categoryId: noEmptyStringSchema,
   receipt: z.object({
     enabled: z.boolean(),
@@ -43,7 +44,11 @@ const createSchema = z.object({
   }),
 });
 
-const updateSchema = createSchema.partial();
+const updateSchema = createSchema
+  .omit({
+    mailbox: true,
+  })
+  .partial();
 
 type CreateData = z.infer<typeof createSchema>;
 type UpdateData = z.infer<typeof updateSchema>;
@@ -67,7 +72,7 @@ export class SupportEmailController {
     await this.checkEmailConflict(data.email);
     const client = await this.validateEmailAccount(data);
     try {
-      const uidNext = await emailService.getUidNext(client);
+      const uidNext = await emailService.getUidNext(client, data.mailbox);
       const supportEmail = await SupportEmail.create(
         {
           ACL: {},
@@ -76,6 +81,7 @@ export class SupportEmailController {
           auth: data.auth,
           smtp: data.smtp,
           imap: data.imap,
+          mailbox: data.mailbox,
           categoryId: data.categoryId,
           receipt: data.receipt,
           lastUid: uidNext - 1,
@@ -110,7 +116,18 @@ export class SupportEmailController {
     if (data.email && data.email !== supportEmail.email) {
       await this.checkEmailConflict(data.email);
     }
-    const updated = await supportEmail.update(data, { useMasterKey: true });
+    const updated = await supportEmail.update(
+      {
+        name: data.name,
+        email: data.email,
+        auth: data.auth,
+        smtp: data.smtp,
+        imap: data.imap,
+        categoryId: data.categoryId,
+        receipt: data.receipt,
+      },
+      { useMasterKey: true }
+    );
     return updated;
   }
 

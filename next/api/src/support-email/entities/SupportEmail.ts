@@ -29,6 +29,9 @@ export class SupportEmail extends Model {
   };
 
   @field()
+  mailbox?: string;
+
+  @field()
   lastUid!: number;
 
   @pointerId(() => Category)
