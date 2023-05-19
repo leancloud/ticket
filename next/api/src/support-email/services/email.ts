@@ -71,6 +71,7 @@ export class EmailService {
       await supportEmail.update({ lastUid: _.max(uids) }, { useMasterKey: true });
       console.log('[Support Email] new messages received', {
         email: supportEmail.email,
+        mailbox,
         uids,
       });
     }
@@ -461,3 +462,9 @@ export class EmailService {
 }
 
 export const emailService = new EmailService();
+
+setInterval(() => {
+  emailService.checkNewMessages().then(() => {
+    console.log('done');
+  });
+}, 1000 * 5);
