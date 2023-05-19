@@ -56,7 +56,8 @@ export class EmailService {
 
     const startUid = supportEmail.lastUid + 1;
     const range = `${startUid}:*`;
-    let uids = await this.getMessageUids(client, range);
+    const mailbox = supportEmail.mailbox || 'INBOX';
+    let uids = await this.getMessageUids(client, mailbox, range);
 
     await client.logout();
 
@@ -66,10 +67,11 @@ export class EmailService {
     uids = uids.slice(0, count);
 
     if (uids.length) {
-      await this.createProcessMessageJobs(supportEmail.email, uids);
+      await this.createProcessMessageJobs(supportEmail.email, mailbox, uids);
       await supportEmail.update({ lastUid: _.max(uids) }, { useMasterKey: true });
       console.log('[Support Email] new messages received', {
         email: supportEmail.email,
+        mailbox,
         uids,
       });
     }
@@ -90,8 +92,8 @@ export class EmailService {
     });
   }
 
-  async getUidNext(client: ImapFlow) {
-    const lock = await client.getMailboxLock('INBOX');
+  async getUidNext(client: ImapFlow, mailbox: string) {
+    const lock = await client.getMailboxLock(mailbox);
     try {
       return (client.mailbox as MailboxObject).uidNext;
     } finally {
@@ -99,8 +101,8 @@ export class EmailService {
     }
   }
 
-  async getMessageUids(client: ImapFlow, range: string) {
-    const lock = await client.getMailboxLock('INBOX');
+  async getMessageUids(client: ImapFlow, mailbox: string, range: string) {
+    const lock = await client.getMailboxLock(mailbox);
     try {
       const generator = client.fetch(
         range,
@@ -116,12 +118,13 @@ export class EmailService {
     }
   }
 
-  async createProcessMessageJobs(email: string, uids: number[]) {
+  async createProcessMessageJobs(email: string, mailbox: string, uids: number[]) {
     const jobDatas = uids.map<{ data: JobData }>((uid) => {
       return {
         data: {
           type: 'processMessage',
           supportEmail: email,
+          mailbox,
           messageUid: uid,
         },
       };
@@ -155,7 +158,7 @@ export class EmailService {
 
     const client = this.createImapClient(supportEmail);
     await client.connect();
-    const source = await this.getMessageSource(client, data.messageUid);
+    const source = await this.getMessageSource(client, data.mailbox, data.messageUid);
     await client.logout();
 
     const message = await simpleParser(source, {
@@ -169,8 +172,8 @@ export class EmailService {
     }
   }
 
-  async getMessageSource(client: ImapFlow, uid: number) {
-    const lock = await client.getMailboxLock('INBOX');
+  async getMessageSource(client: ImapFlow, mailbox: string, uid: number) {
+    const lock = await client.getMailboxLock(mailbox);
     try {
       const message = await client.fetchOne(uid.toString(), { source: true }, { uid: true });
       return message.source;
@@ -459,3 +462,9 @@ export class EmailService {
 }
 
 export const emailService = new EmailService();
+
+setInterval(() => {
+  emailService.checkNewMessages().then(() => {
+    console.log('done');
+  });
+}, 1000 * 5);
