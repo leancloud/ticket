@@ -456,7 +456,14 @@ export function TicketFieldForm({
                 <Form.Item
                   label="Meta"
                   htmlFor="meta"
-                  help="面向开发者的扩展属性, 将 disableFilter 字段设为 true 来取消对输入的过滤"
+                  help={
+                    <>
+                      面向开发者的扩展属性。示例： {'{ "disableFilter": true, "priority": 999 }'}
+                      <br /> 将 disableFilter 字段设为 true 来取消对输入的过滤。
+                      <br />
+                      priority 字段用来控制客服后台字段的展现顺序，数字越大越靠前。
+                    </>
+                  }
                 >
                   <JSONTextarea value={value} onChange={onChange} id="meta" />
                 </Form.Item>
