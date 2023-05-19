@@ -431,3 +431,9 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 ### `31d8bf3857f1c8b28cce1c2b224a7f6f4ac7dcc3`
 
 导入 Category.json，添加 aliases 列。
+
+## 2023-05-19
+
+### `102ab2fc38b6da73076490394b2c9676824d6e6a`
+
+导入 SupportEmail.json，添加 mailbox 列。
