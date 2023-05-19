@@ -32,6 +32,7 @@ interface SupportEmailFormData {
     username: string;
     password: string;
   };
+  mailbox?: string;
   categoryId: string;
   receipt: {
     enabled: boolean;
@@ -118,6 +119,16 @@ function SupportEmailFormWithoutRef(
           render={({ field, fieldState }) => (
             <Form.Item label="地址" {...getValidateState(fieldState)}>
               <Input {...field} placeholder="support@example.com" />
+            </Form.Item>
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="mailbox"
+          render={({ field }) => (
+            <Form.Item label="邮箱" extra="请填写完整邮箱路径">
+              <Input {...field} placeholder="INBOX" />
             </Form.Item>
           )}
         />

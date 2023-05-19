@@ -71,6 +71,7 @@ interface CreateSupportEmailData {
     port: number;
     secure: boolean;
   };
+  mailbox?: string;
   categoryId: string;
   receipt: {
     enabled: boolean;
