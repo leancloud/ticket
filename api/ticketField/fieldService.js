@@ -77,6 +77,7 @@ class FieldService {
       required: !!obj.get('required'),
       updatedAt: obj.get('updatedAt'),
       createAt: obj.get('createAt'),
+      meta: obj.get('meta'),
       preview_template: asStaff ? obj.get('previewTemplate') : undefined,
     }
   }

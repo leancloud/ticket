@@ -527,9 +527,13 @@ const TicketFormValues = memo(({ ticket, loadMoreOpsLogs }) => {
       return pre
     }, {})
     const formFields = fieldIds.map((id) => map[id]).filter((v) => !!v)
-    const otherFields = _.filter(ids, (id) => !fieldIds.includes(id))
+    const otherFields = _(ids)
+      .filter((id) => !fieldIds.includes(id))
       .map((id) => map[id])
       .filter((v) => !!v)
+      .sortBy((field) => field.meta?.['priority'] ?? 0)
+      .reverse()
+      .value()
     return {
       formFields,
       otherFields,
