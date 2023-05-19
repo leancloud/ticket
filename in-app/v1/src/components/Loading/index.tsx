@@ -175,13 +175,20 @@ export function LoadingHint(props: ComponentPropsWithoutRef<'div'>) {
 
 interface LoadingProps {
   className?: string;
+  fullScreen?: boolean;
 }
 
-export function Loading({ className }: LoadingProps) {
+export function Loading({ className, fullScreen }: LoadingProps) {
   return (
-    <div className={className || 'mx-auto my-12'}>
+    <div
+      className={cx(
+        className,
+        'mx-auto min-h-[10em] flex flex-col items-center justify-center',
+        fullScreen ? 'h-screen' : 'min-h-[10em]'
+      )}
+    >
       <StarIcon />
-      <LoadingHint className="mt-2" />
+      <LoadingHint className="mt-1" />
     </div>
   );
 }

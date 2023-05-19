@@ -26,7 +26,7 @@ import Test from './Test';
 function RequireAuth({ children }: { children: JSX.Element }) {
   const { user, loading, error } = useAuth();
   if (loading) {
-    return <Loading />;
+    return <Loading fullScreen />;
   }
   if (error) {
     return <APIError error={error} onRetry={() => location.reload()} />;
@@ -132,7 +132,7 @@ export default function App() {
       </Helmet>
       <BrowserRouter basename={`${rootURL}/${rootCategoryId}`}>
         <ErrorBoundary>
-          <Suspense fallback={<Loading />}>
+          <Suspense fallback={<Loading fullScreen />}>
             <SDKProvider>
               <AppRoutes />
             </SDKProvider>
