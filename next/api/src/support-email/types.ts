@@ -5,6 +5,7 @@ export interface CheckNewMessageJobData {
 export interface ProcessMessageJobData {
   type: 'processMessage';
   supportEmail: string;
+  mailbox: string;
   messageUid: number;
 }
 
