@@ -7,7 +7,7 @@ export const ArticleSelect = forwardRef<RefSelectProps, SelectProps<string[]>>((
   const { data, isLoading } = useArticles();
   const options = useMemo(() => {
     return data?.map((article) => ({
-      label: (article.private ? '[未发布] ' : '') + article.name,
+      label: article.name,
       value: article.id,
     }));
   }, [data]);

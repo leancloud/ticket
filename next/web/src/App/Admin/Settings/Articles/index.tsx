@@ -1,11 +1,10 @@
 import { Link } from 'react-router-dom';
 
-import { Button, Radio, Spin, Table, Typography } from '@/components/antd';
+import { Button, Radio, Spin, Table } from '@/components/antd';
 import { usePage, usePageSize } from '@/utils/usePage';
 import { Article, useArticles } from '@/api/article';
 import { useSearchParam } from '@/utils/useSearchParams';
 import { ArticleStatus } from './components/ArticleStatus';
-import { ToggleArticlePrivateButton } from './components/TogglePrivateButton';
 
 const { Column } = Table;
 
@@ -68,29 +67,24 @@ export function Articles() {
           />
           <Column
             title="状态"
-            dataIndex="private"
-            render={(_, article: Article) => <ArticleStatus article={article} />}
+            key="status"
+            render={(article: Article) => <ArticleStatus article={article} />}
           />
-          <Column
-            title="开始时间"
-            dataIndex="publishedFrom"
-            render={(value) => (value ? new Date(value).toLocaleString() : '-')}
-          />
-          <Column
-            title="结束时间"
-            dataIndex="publishedTo"
-            render={(value) => (value ? new Date(value).toLocaleString() : '-')}
-          />
-          <Column
-            title="操作"
-            render={(_, article: Article) => (
-              <div className="flex flex-row space-x-1">
-                <ToggleArticlePrivateButton article={article} />
-              </div>
-            )}
-          />
+          <Column title="开始时间" dataIndex="publishedFrom" render={renderPublishedDate} />
+          <Column title="结束时间" dataIndex="publishedTo" render={renderPublishedDate} />
         </Table>
       )}
     </div>
   );
+}
+
+function renderPublishedDate(value: string) {
+  if (!value) {
+    return '-';
+  }
+  const date = new Date(value);
+  if (date.getTime() === 0) {
+    return '-';
+  }
+  return date.toLocaleString();
 }

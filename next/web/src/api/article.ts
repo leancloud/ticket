@@ -6,7 +6,6 @@ import { CategorySchema } from './category';
 export interface Article {
   id: string;
   name: string;
-  private: boolean;
   defaultLanguage: string;
   createdAt: string;
   updatedAt: string;
@@ -124,7 +123,6 @@ export interface CreateArticleTranslationData {
   language: string;
   title: string;
   content: string;
-  private?: boolean;
 }
 
 export async function createArticleTranslation(id: string, data: CreateArticleTranslationData) {
@@ -177,7 +175,6 @@ export const useDeleteArticleTranslation = (
 
 export interface CreateArticleData {
   name: string;
-  private: boolean;
   language: string;
   title: string;
   content: string;
@@ -199,7 +196,6 @@ export const useCreateArticle = (
 
 export interface UpdateArticleData {
   name?: string;
-  private?: boolean;
   defaultLanguage?: string;
   publishedFrom?: string;
   publishedTo?: string;

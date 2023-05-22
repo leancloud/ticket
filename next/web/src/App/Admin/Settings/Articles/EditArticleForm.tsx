@@ -8,20 +8,17 @@ import { TranslationForm, TranslationFormRef } from './components/TranslationFor
 import { ArticleForm } from './components/ArticleForm';
 
 export interface NewArticleFormProps {
-  initData?: CreateArticleData;
   submitting?: boolean;
   onSubmit: (data: CreateArticleData) => void;
   onCancel?: () => void;
 }
 
-export const NewArticleForm: FC<NewArticleFormProps> = ({
-  initData,
-  submitting,
-  onSubmit,
-  onCancel,
-}) => {
+export const NewArticleForm: FC<NewArticleFormProps> = ({ submitting, onSubmit, onCancel }) => {
   const { control, handleSubmit } = useForm<CreateArticleData>({
-    defaultValues: initData,
+    defaultValues: {
+      publishedFrom: new Date(0).toISOString(),
+      publishedTo: new Date(0).toISOString(),
+    },
   });
 
   const $antForm = useRef<FormInstance>(null!);

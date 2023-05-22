@@ -1,4 +1,5 @@
-import { Controller, Control, useWatch, useController } from 'react-hook-form';
+import { useMemo } from 'react';
+import { Controller, Control, useController } from 'react-hook-form';
 import moment from 'moment';
 
 import { Checkbox, DatePicker, Form, Input } from '@/components/antd';
@@ -8,10 +9,17 @@ export interface ArticleFormProps {
 }
 
 export function ArticleForm({ control }: ArticleFormProps) {
-  const isPrivate = useWatch({ control, name: 'private' });
-
   const publishedFrom = useController({ control, name: 'publishedFrom' });
   const publishedTo = useController({ control, name: 'publishedTo' });
+
+  const isDummyUnpublished = useMemo(() => {
+    return (
+      publishedFrom.field.value &&
+      publishedTo.field.value &&
+      new Date(publishedFrom.field.value).getTime() === 0 &&
+      new Date(publishedTo.field.value).getTime() === 0
+    );
+  }, [publishedFrom.field.value, publishedTo.field.value]);
 
   return (
     <>
@@ -32,27 +40,23 @@ export function ArticleForm({ control }: ArticleFormProps) {
         )}
       />
 
-      <Controller
-        control={control}
-        name="private"
-        render={({ field: { value, onChange } }) => (
-          <Form.Item style={{ marginBottom: 16 }}>
-            <Checkbox
-              checked={!value}
-              onChange={(e) => {
-                onChange(!e.target.checked);
-                if (!e.target.checked) {
-                  publishedFrom.field.onChange(null);
-                  publishedTo.field.onChange(null);
-                }
-              }}
-              children="发布"
-            />
-          </Form.Item>
-        )}
-      />
+      <Form.Item style={{ marginBottom: 16 }}>
+        <Checkbox
+          checked={!isDummyUnpublished}
+          onChange={(e) => {
+            if (e.target.checked) {
+              publishedFrom.field.onChange(null);
+              publishedTo.field.onChange(null);
+            } else {
+              publishedFrom.field.onChange(new Date(0).toISOString());
+              publishedTo.field.onChange(new Date(0).toISOString());
+            }
+          }}
+          children="发布"
+        />
+      </Form.Item>
 
-      {!isPrivate && (
+      {!isDummyUnpublished && (
         <Form.Item label="发布时间">
           <DatePicker.RangePicker
             allowClear
