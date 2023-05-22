@@ -38,20 +38,6 @@ export interface OnDecodeContext<M extends typeof Model> {
 
 export type OnDecodeHook<M extends typeof Model> = (ctx: OnDecodeContext<M>) => void;
 
-export interface BeforeUpdateContext<M extends typeof Model> {
-  instance: InstanceType<M>;
-  data: UpdateData<M>;
-  options: ModifyOptions;
-}
-
-export type BeforeUpdateHook<M extends typeof Model> = (
-  ctx: BeforeUpdateContext<M>
-) => void | Promise<void>;
-
-export interface AfterUpdateContext<M extends typeof Model> extends BeforeUpdateContext<M> {}
-
-export type AfterUpdateHook<M extends typeof Model> = (ctx: AfterUpdateContext<M>) => void;
-
 type _CreateData<T> = Partial<
   Omit<T, 'id' | 'createdAt' | 'updatedAt' | KeysOfType<T, Function | Model | Model[]>>
 >;
@@ -91,10 +77,6 @@ export abstract class Model {
   private static relations: Record<string, Relation>;
 
   private static onDecodeHooks: OnDecodeHook<any>[];
-
-  private static beforeUpdateHooks: BeforeUpdateHook<any>[];
-
-  private static afterUpdateHooks: AfterUpdateHook<any>[];
 
   id!: string;
 
@@ -147,16 +129,6 @@ export abstract class Model {
   static onDecode<M extends typeof Model>(this: M, hook: OnDecodeHook<M>) {
     this.onDecodeHooks ??= [];
     this.onDecodeHooks.push(hook);
-  }
-
-  static beforeUpdate<M extends typeof Model>(this: M, hook: BeforeUpdateHook<M>) {
-    this.beforeUpdateHooks ??= [];
-    this.beforeUpdateHooks.push(hook);
-  }
-
-  static afterUpdate<M extends typeof Model>(this: M, hook: AfterUpdateHook<M>) {
-    this.afterUpdateHooks ??= [];
-    this.afterUpdateHooks.push(hook);
   }
 
   private static newInstance<M extends typeof Model>(
@@ -388,23 +360,11 @@ export abstract class Model {
       return [await instance.update(data as any, options)];
     }
 
-    const datas = pairs.map(([, data]) => ({ ...data }));
-    options = { ...options };
-
-    if (this.beforeUpdateHooks) {
-      await Promise.all(
-        datas.map((data, i) => {
-          const ctx = { instance: pairs[i][0], data, options: options! };
-          return Promise.all(this.beforeUpdateHooks.map((h) => h(ctx)));
-        })
-      );
-    }
-
-    const objects = datas.map((data, i) => this.newAVObject(data, pairs[i][0].id));
+    const objects = pairs.map((pair) => this.newAVObject(pair[1], pair[0].id));
     await saveAVObjects(objects, options);
 
     const instances = objects.map((object, i) => {
-      const data = datas[i];
+      const data = pairs[i][1];
       const instance = this.newInstance(_.omitBy(data, _.isNull));
       instance.applyAVObject(object);
       const preInstance = pairs[i][0];
@@ -414,30 +374,11 @@ export abstract class Model {
       return instance;
     });
 
-    if (this.afterUpdateHooks) {
-      instances.forEach((instance, i) => {
-        const ctx = { instance, data: datas[i], options: options! };
-        this.afterUpdateHooks.forEach((h) => {
-          try {
-            h(ctx);
-          } catch {}
-        });
-      });
-    }
-
     return instances;
   }
 
   async update<M extends Model>(this: M, data: UpdateData<M>, options?: ModifyOptions): Promise<M> {
-    data = { ...data };
-    options = { ...options };
-
     const model = this.constructor as typeof Model;
-
-    if (model.beforeUpdateHooks) {
-      const ctx = { instance: this, data, options: options! };
-      await Promise.all(model.beforeUpdateHooks.map((h) => h(ctx)));
-    }
 
     const object = model.newAVObject(data, this.id);
     await saveAVObject(object, options);
@@ -450,15 +391,6 @@ export abstract class Model {
       }
       (instance as any)[name] ??= (this as any)[name];
     });
-
-    if (model.afterUpdateHooks) {
-      const ctx = { instance, data, options };
-      model.afterUpdateHooks.forEach((hook) => {
-        try {
-          hook(ctx);
-        } catch {}
-      });
-    }
 
     return instance as M;
   }
