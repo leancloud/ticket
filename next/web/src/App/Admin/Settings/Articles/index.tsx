@@ -72,14 +72,14 @@ export function Articles() {
             render={(_, article: Article) => <ArticleStatus article={article} />}
           />
           <Column
-            title="创建日期"
-            dataIndex="createdAt"
-            render={(value) => new Date(value).toLocaleString()}
+            title="开始时间"
+            dataIndex="publishedFrom"
+            render={(value) => (value ? new Date(value).toLocaleString() : '-')}
           />
           <Column
-            title="修改日期"
-            dataIndex="updatedAt"
-            render={(value) => new Date(value).toLocaleString()}
+            title="结束时间"
+            dataIndex="publishedTo"
+            render={(value) => (value ? new Date(value).toLocaleString() : '-')}
           />
           <Column
             title="操作"

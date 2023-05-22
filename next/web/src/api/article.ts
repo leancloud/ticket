@@ -10,6 +10,8 @@ export interface Article {
   defaultLanguage: string;
   createdAt: string;
   updatedAt: string;
+  publishedFrom?: string;
+  publishedTo?: string;
 }
 
 export interface ArticleTranslationAbstract {
