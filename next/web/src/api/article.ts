@@ -179,6 +179,8 @@ export interface CreateArticleData {
   language: string;
   title: string;
   content: string;
+  publishedFrom?: string;
+  publishedTo?: string;
 }
 
 export const createArticle = async (data: CreateArticleData) => {
@@ -197,6 +199,8 @@ export interface UpdateArticleData {
   name?: string;
   private?: boolean;
   defaultLanguage?: string;
+  publishedFrom?: string;
+  publishedTo?: string;
 }
 
 export const updateArticle = async (id: string, data: UpdateArticleData) => {

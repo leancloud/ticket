@@ -36,6 +36,8 @@ export const NewArticleForm: FC<NewArticleFormProps> = ({
           onFinish={handleSubmit((data) => {
             onSubmit({
               ...data,
+              publishedFrom: data.publishedFrom ?? undefined,
+              publishedTo: data.publishedTo ?? undefined,
               content: translationFormRef.current?.getValue() ?? '',
             });
           })}

@@ -1,11 +1,11 @@
-import { useCreateArticle } from '@/api/article';
-import { FC } from 'react';
-import { NewArticleForm } from './EditArticleForm';
 import { useQueryClient } from 'react-query';
 import { useNavigate } from 'react-router-dom';
-import { message } from '@/components/antd';
 
-export const NewArticle: FC = () => {
+import { useCreateArticle } from '@/api/article';
+import { message } from '@/components/antd';
+import { NewArticleForm } from './EditArticleForm';
+
+export function NewArticle() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -24,4 +24,4 @@ export const NewArticle: FC = () => {
   return (
     <NewArticleForm onSubmit={create} submitting={isLoading} onCancel={() => navigate('..')} />
   );
-};
+}
