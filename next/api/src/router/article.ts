@@ -64,17 +64,17 @@ router.get('/', pagination(20), auth, customerServiceOnly, async (ctx) => {
     const now = new Date();
     if (isPrivate) {
       query.where((query) => {
-        query.where('publishedFrom', '>=', now);
-        query.orWhere('publishedTo', '<=', now);
+        query.where('publishedFrom', '>', now);
+        query.orWhere('publishedTo', '<', now);
       });
     } else {
       query.where((query) => {
         query.where('publishedFrom', 'not-exists');
-        query.orWhere('publishedFrom', '<', now);
+        query.orWhere('publishedFrom', '<=', now);
       });
       query.where((query) => {
         query.where('publishedTo', 'not-exists');
-        query.orWhere('publishedTo', '>', now);
+        query.orWhere('publishedTo', '>=', now);
       });
     }
   }
