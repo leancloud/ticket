@@ -10,6 +10,7 @@ import {
   Delete,
   Get,
   HttpError,
+  NotFoundError,
   Param,
   Patch,
   Post,
@@ -70,6 +71,8 @@ type UpdateData = z.infer<typeof updateDataSchema>;
 
 const idsSchema = z.array(z.string()).min(1);
 
+const InternalIds = ['incoming'];
+
 @Controller('views')
 @UseMiddlewares(auth, customerServiceOnly)
 export class ViewController {
@@ -102,6 +105,8 @@ export class ViewController {
       applyIdsCondition('groupIds', groupIds);
     }
 
+    query.where('objectId', 'not-in', InternalIds);
+
     const views = await query.limit(1000).find({ useMasterKey: true });
 
     return views.map((v) => new ViewResponse(v));
@@ -120,12 +125,13 @@ export class ViewController {
 
   @Get('count')
   async getTicketCount(@Ctx() ctx: Context, @Query('ids', ParseCsvPipe) ids?: string[]) {
-    if (!ids || ids.length === 0) {
+    const filteredIds = ids?.filter((id) => !InternalIds.includes(id));
+    if (!filteredIds || filteredIds.length === 0) {
       throw new HttpError(400, 'invalid ids');
     }
 
     const views = await View.queryBuilder()
-      .where('objectId', 'in', ids)
+      .where('objectId', 'in', filteredIds)
       .find({ useMasterKey: true });
 
     const currentUser = ctx.state.currentUser as User;
@@ -144,6 +150,7 @@ export class ViewController {
 
   @Get(':id')
   async find(@Param('id', new FindModelPipe(View, { useMasterKey: true })) view: View) {
+    ViewController.assertOperationOnInternal(view.id);
     return new ViewResponse(view);
   }
 
@@ -186,6 +193,7 @@ export class ViewController {
     @Param('id', new FindModelPipe(View, { useMasterKey: true })) view: View,
     @Body(new ZodValidationPipe(updateDataSchema)) data: UpdateData
   ) {
+    ViewController.assertOperationOnInternal(view.id);
     if (data.userIds && data.groupIds) {
       throw new HttpError(400, 'cannot set both userIds and groupIds');
     }
@@ -217,6 +225,7 @@ export class ViewController {
 
   @Delete(':id')
   async delete(@Param('id', new FindModelPipe(View, { useMasterKey: true })) view: View) {
+    ViewController.assertOperationOnInternal(view.id);
     await view.delete({ useMasterKey: true });
     return {};
   }
@@ -367,5 +376,11 @@ export class ViewController {
     };
 
     View.assertConditionsValid(conditions, 'conditions', validate);
+  }
+
+  static assertOperationOnInternal(id: string) {
+    if (InternalIds.includes(id)) {
+      throw new NotFoundError(`View "${id}"`);
+    }
   }
 }
