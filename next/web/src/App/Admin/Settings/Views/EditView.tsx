@@ -219,6 +219,13 @@ function Columns({ value, onChange }: ColumnsProps) {
   );
 }
 
+const DEFAULT_VALUES: Partial<ViewData> = {
+  conditions: {
+    type: 'any',
+    conditions: [{ type: 'any', conditions: [{}] }],
+  },
+};
+
 export interface ViewData {
   title: string;
   userIds?: string[] | null;
@@ -235,7 +242,7 @@ export interface EditViewProps {
   onSubmit: (data: ViewData) => void;
 }
 
-export function EditView({ initData, submitting, onSubmit }: EditViewProps) {
+export function EditView({ initData = DEFAULT_VALUES, submitting, onSubmit }: EditViewProps) {
   const methods = useForm<ViewData>({ defaultValues: initData });
   const { handleSubmit } = methods;
 
