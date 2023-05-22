@@ -516,6 +516,9 @@ export abstract class Model {
     const instance = model.newInstance(_.omitBy(data, _.isNull));
     instance.applyAVObject(object);
     Object.getOwnPropertyNames(this).forEach((name) => {
+      if (name in data) {
+        return;
+      }
       (instance as any)[name] ??= (this as any)[name];
     });
 
@@ -616,7 +619,7 @@ export abstract class AliasModel extends Model {
     }
     const aliasMatch = await this.query().where('alias', '==', id).first(options);
     if (aliasMatch) {
-      return aliasMatch
+      return aliasMatch;
     }
     return await this.query().where('aliases', '==', id).first(options);
   }
