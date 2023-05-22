@@ -56,9 +56,6 @@ export function DynamicContentList() {
       message.success('已删除');
       queryClient.invalidateQueries('dynamicContents');
     },
-    onError: (error) => {
-      message.error(error.message);
-    },
   });
 
   const handleRemove = (id: string) => {
@@ -130,9 +127,6 @@ export function NewDynamicContent() {
       message.success('创建成功');
       navigate('..');
     },
-    onError: (error) => {
-      message.error(error.message);
-    },
   });
 
   return (
@@ -178,9 +172,6 @@ function EditDynamicContentModal({ visible, onHide, dc, locales }: EditDynamicCo
       message.success('保存成功');
       queryClient.invalidateQueries(['dynamicContent', dc.id]);
       onHide();
-    },
-    onError: (error) => {
-      message.error(error.message);
     },
   });
 
@@ -276,9 +267,6 @@ function AddVariantModal({
       message.success('添加成功');
       onHide();
       queryClient.invalidateQueries(['dynamicContentVariants', dynamicContentId]);
-    },
-    onError: (error) => {
-      message.error(error.message);
     },
   });
 
@@ -378,11 +366,8 @@ function EditVariantModal({ onHide, dc, variant }: EditVariantModalProps) {
   const { mutate, isLoading } = useUpdateDynamicContentVariant({
     onSuccess: () => {
       message.success('已保存');
-      onHide();
       queryClient.invalidateQueries(['dynamicContentVariants', dc.id]);
-    },
-    onError: (error) => {
-      message.error(error.message);
+      onHide();
     },
   });
 
@@ -461,9 +446,6 @@ export function DynamicContentDetail() {
     onSuccess: () => {
       message.success('已删除');
       queryClient.invalidateQueries(['dynamicContentVariants', id]);
-    },
-    onError: (error) => {
-      message.error(error.message);
     },
   });
 

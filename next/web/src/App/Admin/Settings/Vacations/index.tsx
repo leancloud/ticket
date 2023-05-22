@@ -28,9 +28,6 @@ function VacationModal({ visible, onHide }: VacationModalProps) {
       setVacatonerId(undefined);
       setDateRange(undefined);
     },
-    onError: (error) => {
-      message.error(error.message);
-    },
   });
 
   const handleOk = () =>
@@ -75,9 +72,6 @@ function VacationActions({ id, vacationer, operator }: VacationSchema) {
     onSuccess: () => {
       message.success('删除假期成功');
       queryClient.invalidateQueries('vacations');
-    },
-    onError: (error) => {
-      message.error(error.message);
     },
   });
 

@@ -36,11 +36,11 @@ function ExporterContent({ close }: ContentProps) {
   const { mutate, isLoading } = useExportTickets({
     onSuccess: () => {
       message.success('导出任务进行中，导出成功后将发送邮件进行通知，请注意查收邮件进行下载。', 5);
-      close && close();
+      close?.();
     },
     onError: (error) => {
       message.success(`导出失败：${error.message}`);
-      close && close();
+      close?.();
     },
   });
 

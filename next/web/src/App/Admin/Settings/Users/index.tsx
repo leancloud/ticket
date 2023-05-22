@@ -13,9 +13,6 @@ export function NewUser() {
       message.success('保存成功');
       reset();
     },
-    onError: (error: Error) => {
-      message.error(error.message);
-    },
   });
 
   const submit = (data: CreateUserData) => {

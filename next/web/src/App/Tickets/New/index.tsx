@@ -10,9 +10,6 @@ export function NewTicket() {
       message.success('创建成功');
       window.postMessage('ticketCreated');
     },
-    onError: (error) => {
-      message.error(error.message);
-    },
   });
 
   const handleSubmit = useCallback(

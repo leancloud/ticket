@@ -148,9 +148,6 @@ export function NewTicketField() {
       queryClient.invalidateQueries(['ticketFields']);
       navigate('..');
     },
-    onError: (error: Error) => {
-      message.error(error.message);
-    },
   });
 
   return (
@@ -196,9 +193,6 @@ export function TicketFieldDetail() {
       queryClient.invalidateQueries(['ticketFields']);
       queryClient.invalidateQueries(['ticketField', id]);
       message.success('保存成功');
-    },
-    onError: (error: Error) => {
-      message.error(error.message);
     },
   });
 

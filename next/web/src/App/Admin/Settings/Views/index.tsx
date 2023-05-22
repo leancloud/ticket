@@ -88,9 +88,6 @@ function ListMenu({ view, sortable, onMove, onMoveToTop, onMoveToBottom }: ListM
       }
       message.success('删除成功');
     },
-    onError: (error: Error) => {
-      message.error(error.message);
-    },
   });
 
   const handleDelete = useCallback(() => {
@@ -232,9 +229,6 @@ export function ViewList() {
       queryClient.invalidateQueries('views');
       message.success('移动视图成功');
     },
-    onError: (error: Error) => {
-      message.error(error.message);
-    },
   });
 
   const handleMoveToTop = useCallback(
@@ -353,9 +347,6 @@ export function NewView() {
       message.success('创建成功');
       navigate('..');
     },
-    onError: (error: Error) => {
-      message.error(error.message);
-    },
   });
 
   return (
@@ -390,9 +381,6 @@ export function ViewDetail() {
       }
       message.success('更新成功');
       navigate('..');
-    },
-    onError: (error: Error) => {
-      message.error(error.message);
     },
   });
 

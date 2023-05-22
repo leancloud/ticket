@@ -174,9 +174,6 @@ function CategoryTable({
         }
       );
     },
-    onError: (error) => {
-      message.error(error.message);
-    },
   });
 
   const { mutate: delCSCategory, isLoading: deletingCSCategory } = useDeleteCustomerServiceCategory(
@@ -196,9 +193,6 @@ function CategoryTable({
             }
           }
         );
-      },
-      onError: (error) => {
-        message.error(error.message);
       },
     }
   );
@@ -395,9 +389,6 @@ export function CategoryList() {
       queryClient.invalidateQueries('categories');
       setSorting(false);
     },
-    onError: (error) => {
-      message.error(error.message);
-    },
   });
 
   return (
@@ -457,9 +448,6 @@ export function NewCategory() {
       message.success('创建成功');
       navigate('..');
     },
-    onError: (error) => {
-      message.error(error.message);
-    },
   });
 
   return (
@@ -509,9 +497,6 @@ export function CategoryDetail() {
     onSuccess: () => {
       queryClient.invalidateQueries('categories');
       message.success('更新成功');
-    },
-    onError: (error) => {
-      message.error(error.message);
     },
   });
 

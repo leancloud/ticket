@@ -147,9 +147,6 @@ export function NewQuickReply() {
       message.success('创建成功');
       navigate('..');
     },
-    onError: (error) => {
-      message.error(error.message);
-    },
   });
 
   const currentUser = useCurrentUser();
@@ -178,11 +175,7 @@ export function NewQuickReply() {
 
 export function QuickReplyDetail() {
   const { id } = useParams<'id'>();
-  const { data, isLoading } = useQuickReply(id!, {
-    onError: (error) => {
-      message.error(error.message);
-    },
-  });
+  const { data, isLoading } = useQuickReply(id!);
 
   const queryClient = useQueryClient();
   const { mutate, isLoading: updating } = useUpdateQuickReply({
@@ -190,9 +183,6 @@ export function QuickReplyDetail() {
       queryClient.invalidateQueries(['quickReplies']);
       queryClient.invalidateQueries(['quickReply', id]);
       message.success('已保存');
-    },
-    onError: (error) => {
-      message.error(error.message);
     },
   });
 

@@ -34,9 +34,6 @@ function GroupActions({ id, name }: GroupSchema) {
       message.success('删除成功');
       queryClient.invalidateQueries('groups');
     },
-    onError: (error) => {
-      message.error(error.message);
-    },
   });
 
   const handleDelete = useCallback(() => {
@@ -181,9 +178,6 @@ export function NewGroup() {
       queryClient.invalidateQueries('groups');
       navigate('..');
     },
-    onError: (error) => {
-      message.error(error.message);
-    },
   });
 
   return (
@@ -203,9 +197,6 @@ export function GroupDetail() {
     onSuccess: () => {
       message.success('保存成功');
       queryClient.invalidateQueries('groups');
-    },
-    onError: (error) => {
-      message.error(error.message);
     },
   });
 

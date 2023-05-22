@@ -15,20 +15,13 @@ import { useCallback, useMemo } from 'react';
 const { Column } = Table;
 
 export function TagList() {
-  const { data, isFetching } = useTagMetadatas({
-    onError: (error) => {
-      message.error(error.message);
-    },
-  });
+  const { data, isFetching } = useTagMetadatas();
 
   const queryClient = useQueryClient();
   const { mutate: remove, isLoading: removing } = useDeleteTagMatadata({
     onSuccess: () => {
       message.success('标签已删除');
       queryClient.invalidateQueries('tagMetadatas');
-    },
-    onError: (error) => {
-      message.error(error.message);
     },
   });
 
@@ -97,9 +90,6 @@ export function NewTag() {
       queryClient.invalidateQueries('tagMetadatas');
       navigate('..');
     },
-    onError: (error) => {
-      message.error(error.message);
-    },
   });
 
   return (
@@ -121,9 +111,6 @@ export function TagDetail() {
     onSuccess: () => {
       message.success('已成功');
       queryClient.invalidateQueries('tagMetadatas');
-    },
-    onError: (error) => {
-      message.error(error.message);
     },
   });
 

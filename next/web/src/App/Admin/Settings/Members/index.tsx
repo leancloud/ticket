@@ -78,9 +78,6 @@ function AddUserModal({ visible, onHide }: AddUserModalProps) {
       queryClient.invalidateQueries('customerServices');
       onHide();
     },
-    onError: (error) => {
-      message.error(error.message);
-    },
   });
 
   const handleAdd = useCallback(() => {
