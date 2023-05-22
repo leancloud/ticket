@@ -126,7 +126,7 @@ export class ArticleTranslation extends Model {
  */
 export async function getArticleTranslation(articleId: string, matcher: LocaleMatcher) {
   const article = await articleService.getArticle(articleId);
-  if (!article || article.private) {
+  if (!article || !article.isPublished()) {
     return;
   }
 
