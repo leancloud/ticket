@@ -1187,33 +1187,6 @@ router.get('/:id/custom-fields', async (ctx) => {
   ctx.body = values;
 });
 
-router.get('/:id/next', auth, customerServiceOnly, async (ctx) => {
-  const currentUser = ctx.state.currentUser as User;
-  const ticket = ctx.state.ticket as Ticket;
-
-  const groups = await currentUser.getGroups();
-
-  const query = Ticket.queryBuilder()
-    .where(
-      'group',
-      'in',
-      groups.map((g) => g.toPointer())
-    )
-    .where('status', 'in', [Status.NEW, Status.WAITING_CUSTOMER_SERVICE])
-    .where('objectId', '!=', ticket.id)
-    .orderBy('updatedAt', 'desc');
-
-  const nextTicket =
-    (await _.cloneDeep(query) // change `QueryBuilder.clone()` to deep clone cause error elsewhere:(
-      .where('updatedAt', '<', ticket.updatedAt)
-      .first(currentUser.getAuthOptions())) ?? (await query.first(currentUser.getAuthOptions()));
-
-  ctx.body = {
-    id: nextTicket?.id,
-    nid: nextTicket?.nid,
-  };
-});
-
 const searchCustomFieldSchema = yup.object({
   q: yup.string().trim().required(),
 });

@@ -6,6 +6,7 @@ import {
   Body,
   Controller,
   Ctx,
+  CurrentUser,
   Delete,
   Get,
   HttpError,
@@ -16,6 +17,7 @@ import {
   UseMiddlewares,
 } from '@/common/http';
 import {
+  FindModelOptionalPipe,
   FindModelPipe,
   ParseBoolPipe,
   ParseCsvPipe,
@@ -283,6 +285,43 @@ export class ViewController {
       : await query.find(authOptions);
 
     return tickets.map((t) => new TicketListItemResponse(t));
+  }
+
+  @Get(':id/next')
+  async getNextTicket(
+    @CurrentUser() user: User,
+    @Param('id', new FindModelPipe(View, { useMasterKey: true })) view: View,
+    @Query('ticketId', new FindModelOptionalPipe(Ticket, { useMasterKey: true })) ticket?: Ticket
+  ) {
+    const context = new ViewConditionContext(user);
+    const qb = Ticket.queryBuilder().setRawCondition(await view.getRawCondition(context));
+
+    if (view.sortBy) {
+      qb.orderBy(view.sortBy, view.sortOrder === 'desc' ? 'desc' : 'asc');
+    }
+
+    if (!ticket) {
+      const next = await qb.first(user.getAuthOptions());
+
+      return next ? new TicketListItemResponse(next) : {};
+    }
+
+    const firstQb = _.cloneDeep(qb);
+
+    if (view.sortBy) {
+      qb.where(
+        view.sortBy,
+        view.sortOrder === 'desc' ? '<' : '>',
+        ticket[view.sortBy as keyof Ticket]
+      );
+    } else {
+      qb.where('objectId', '<', ticket.id);
+    }
+
+    const next =
+      (await qb.first(user.getAuthOptions())) ?? (await firstQb.first(user.getAuthOptions()));
+
+    return next ? new TicketListItemResponse(next) : {};
   }
 
   async assertUserExist(userIds: string[]) {

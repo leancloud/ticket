@@ -13,8 +13,13 @@ import { useTranslation } from 'react-i18next'
  */
 const useNextTicketId = (id) =>
   useQuery({
-    queryFn: () => fetch(`/api/2/tickets/${id}/next`),
-    queryKey: ['tickets', 'next', id],
+    queryFn: () =>
+      fetch(`/api/2/views/incoming/next`, {
+        query: {
+          ticketId: id,
+        },
+      }),
+    queryKey: ['view', 'next', 'incoming', id],
   })
 
 export const NextTicketButton = ({ id }) => {
