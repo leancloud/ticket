@@ -130,8 +130,7 @@ export async function getArticleTranslation(articleId: string, matcher: LocaleMa
     return;
   }
 
-  const { published, unpublished } = await articleService.getArticleLanguages(articleId);
-  const languages = published.concat(unpublished);
+  const languages = await articleService.getArticleLanguages(articleId);
   if (languages.length === 0) {
     return;
   }
