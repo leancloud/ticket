@@ -192,12 +192,12 @@ export class EmailService {
       return;
     }
 
-    const from = this.getMessageFrom(message);
-    if (!from) {
+    const from = this.getMessageCreator(message);
+    if (!from || !from.address) {
       return;
     }
 
-    const author = await userService.getOrCreateUserByEmailAndName(from.email, from.name);
+    const author = await userService.getOrCreateUserByEmailAndName(from.address, from.name);
     const attachments = await this.uploadAttachments(message);
     const ticket = await ticketService.createTicketFromEmail(
       author,
@@ -207,7 +207,7 @@ export class EmailService {
       attachments.map((a) => a.objectId)
     );
     await supportEmailMessageService.create({
-      from: from.email,
+      from: from.address,
       to: jobData.supportEmail,
       messageId,
       inReplyTo: message.inReplyTo,
@@ -220,7 +220,7 @@ export class EmailService {
     });
 
     if (supportEmail.receipt.enabled) {
-      await this.sendReceipt(from.email, messageId, supportEmail, ticket);
+      await this.sendReceipt(from.address, messageId, supportEmail, ticket);
     }
   }
 
@@ -230,8 +230,8 @@ export class EmailService {
       return;
     }
 
-    const from = this.getMessageFrom(message);
-    if (!from) {
+    const from = this.getMessageCreator(message);
+    if (!from || !from.address) {
       return;
     }
 
@@ -254,7 +254,7 @@ export class EmailService {
       return;
     }
 
-    const author = await userService.getUserByEmail(from.email);
+    const author = await userService.getUserByEmail(from.address);
     if (!author || author.id !== ticket.authorId) {
       return;
     }
@@ -275,7 +275,7 @@ export class EmailService {
       fileIds: attachments.map((a) => a.objectId),
     });
     await supportEmailMessageService.create({
-      from: from.email,
+      from: from.address,
       to: jobData.supportEmail,
       messageId,
       inReplyTo: message.inReplyTo,
@@ -305,15 +305,14 @@ export class EmailService {
     }
   }
 
-  getMessageFrom(message: ParsedMail) {
-    if (!message.from || message.from.value.length === 0) {
-      return undefined;
+  getMessageCreator(message: ParsedMail) {
+    if (message.replyTo && message.replyTo.value.length) {
+      // 优先从 Reply-To 获取，以适配代发邮件的情况
+      return message.replyTo.value[0];
     }
-    const { name, address } = message.from.value[0];
-    if (!address) {
-      return undefined;
+    if (message.from && message.from.value.length) {
+      return message.from.value[0];
     }
-    return { name, email: address };
   }
 
   getMessageReferences(message: ParsedMail) {
