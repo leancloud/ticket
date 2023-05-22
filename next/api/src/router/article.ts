@@ -83,6 +83,8 @@ router.get('/', pagination(20), auth, customerServiceOnly, async (ctx) => {
 const createBaseArticleSchema = yup.object({
   name: yup.string().required(),
   private: yup.boolean(),
+  publishedFrom: yup.date(),
+  publishedTo: yup.date(),
   language: localeSchemaForYup.required(),
   title: yup.string().required(),
   content: yup.string().required(),
@@ -99,6 +101,8 @@ router.post('/', auth, customerServiceOnly, async (ctx) => {
       name: data.name,
       defaultLanguage: data.language,
       private: data.private ?? false,
+      publishedFrom: data.publishedFrom,
+      publishedTo: data.publishedTo,
     },
     { useMasterKey: true }
   );
@@ -215,6 +219,8 @@ const updateBaseArticleSchema = yup.object({
   name: yup.string(),
   private: yup.boolean(),
   defaultLanguage: yup.string(),
+  publishedFrom: yup.date().nullable(),
+  publishedTo: yup.date().nullable(),
 });
 
 // update article :id
@@ -226,6 +232,8 @@ router.patch('/:id', auth, customerServiceOnly, async (ctx) => {
     {
       name: data.name,
       private: data.private,
+      publishedFrom: data.publishedFrom,
+      publishedTo: data.publishedTo,
       defaultLanguage: data.defaultLanguage,
     },
     { useMasterKey: true }

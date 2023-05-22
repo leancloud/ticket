@@ -46,6 +46,8 @@ export class ArticleResponse {
       id: this.article.id,
       name: this.article.name,
       private: !!this.article.private,
+      publishedFrom: this.article.publishedFrom,
+      publishedTo: this.article.publishedTo,
       defaultLanguage: this.article.defaultLanguage,
       createdAt: this.article.createdAt.toISOString(),
       updatedAt: this.article.updatedAt.toISOString(),
