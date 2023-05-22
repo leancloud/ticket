@@ -1,7 +1,7 @@
-import { ArticleTranslationAbstract, useUpdateArticle } from '@/api/article';
-import { Button, ButtonProps, message } from 'antd';
-import { FC } from 'react';
 import { useQueryClient } from 'react-query';
+
+import { useUpdateArticle } from '@/api/article';
+import { Button, ButtonProps, message } from '@/components/antd';
 
 export interface SetDefaultButtonProps extends ButtonProps {
   articleId: string;
@@ -9,12 +9,12 @@ export interface SetDefaultButtonProps extends ButtonProps {
   language: string;
 }
 
-export const SetDefaultButton: FC<SetDefaultButtonProps> = ({
+export function SetDefaultButton({
   articleId,
   language,
   defaultLanguage,
   ...props
-}) => {
+}: SetDefaultButtonProps) {
   const queryClient = useQueryClient();
 
   const { mutate: update, isLoading } = useUpdateArticle({
@@ -41,4 +41,4 @@ export const SetDefaultButton: FC<SetDefaultButtonProps> = ({
       {defaultLanguage === language ? '已是默认' : '设为默认'}
     </Button>
   );
-};
+}
