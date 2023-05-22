@@ -20,10 +20,12 @@ import {
   UpdateViewData,
   deleteView,
   reorderViews,
+  CreateViewData,
 } from '@/api/view';
 import { Button, Input, Modal, Select, Spin, Table, message } from '@/components/antd';
 
 import { EditView } from './EditView';
+import { decodeCondition, encodeCondition } from '../Automations/utils';
 
 const { Option } = Select;
 const { Column } = Table;
@@ -344,7 +346,11 @@ export function NewView() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { mutate, isLoading } = useMutation({
-    mutationFn: createView,
+    mutationFn: (data: CreateViewData) =>
+      createView({
+        ...data,
+        conditions: encodeCondition(data.conditions),
+      }),
     onSuccess: (_, { groupIds }) => {
       queryClient.invalidateQueries('views');
       if (groupIds) {
@@ -378,6 +384,15 @@ export function ViewDetail() {
   const { id } = useParams();
   const { data, isLoading, isFetching } = useView(id!);
 
+  const view = useMemo(
+    () =>
+      data && {
+        ...data,
+        conditions: decodeCondition(data.conditions),
+      },
+    [data]
+  );
+
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { mutate, isLoading: isUpdating } = useMutation({
@@ -406,7 +421,7 @@ export function ViewDetail() {
 
   return (
     <div className="p-10">
-      <EditView initData={data} submitting={isUpdating} onSubmit={mutate} />
+      <EditView initData={view} submitting={isUpdating} onSubmit={mutate} />
     </div>
   );
 }

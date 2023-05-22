@@ -14,8 +14,8 @@ export class View extends Model {
 
   @field()
   conditions!: {
-    all: any[];
-    any: any[];
+    [key: string]: any;
+    type: string;
   };
 
   @field()
@@ -30,22 +30,43 @@ export class View extends Model {
   @field()
   position?: number;
 
+  static assertConditionsValid(
+    conditions: any,
+    stack = 'conditions',
+    cb?: (path: string, cond: any) => any
+  ) {
+    if (conditions.type === 'all') {
+      conditions.conditions.map((cond: any, i: number) =>
+        this.assertConditionsValid(cond, `${stack}.all.${i}`, cb)
+      );
+    } else if (conditions.type === 'any') {
+      conditions.conditions.map((cond: any, i: number) =>
+        this.assertConditionsValid(cond, `${stack}.any.${i}`, cb)
+      );
+    } else {
+      cb?.(stack, conditions);
+    }
+  }
+
+  static async encodeCondition(conditions: any, context: ViewConditionContext): Promise<any> {
+    if (conditions.type === 'all') {
+      return {
+        $and: await Promise.all(
+          conditions.conditions.map((cond: any) => this.encodeCondition(cond, context))
+        ),
+      };
+    } else if (conditions.type === 'any') {
+      return {
+        $or: await Promise.all(
+          conditions.conditions.map((cond: any) => this.encodeCondition(cond, context))
+        ),
+      };
+    } else {
+      return createViewCondition(conditions).getCondition(context);
+    }
+  }
+
   async getRawCondition(context: ViewConditionContext): Promise<any> {
-    const condition: any = {};
-    if (this.conditions.all.length) {
-      condition.$and = await Promise.all(
-        this.conditions.all.map((cond) => {
-          return createViewCondition(cond).getCondition(context);
-        })
-      );
-    }
-    if (this.conditions.any.length) {
-      condition.$or = await Promise.all(
-        this.conditions.any.map((cond) => {
-          return createViewCondition(cond).getCondition(context);
-        })
-      );
-    }
-    return condition;
+    return View.encodeCondition(this.conditions, context);
   }
 }

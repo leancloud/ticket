@@ -34,17 +34,11 @@ import { TicketListItemResponse } from '@/response/ticket';
 import { createViewCondition } from '@/ticket/view';
 import { ViewConditionContext } from '@/ticket/view/conditions/ViewCondition';
 
-const conditionSchema = z
+const conditionsSchema = z
   .object({
     type: z.string(),
-    op: z.string(),
   })
   .passthrough();
-
-const conditionsSchema = z.object({
-  all: z.array(conditionSchema),
-  any: z.array(conditionSchema),
-});
 
 const sortOrderSchema = z.enum(['asc', 'desc']);
 
@@ -260,6 +254,7 @@ export class ViewController {
     const currentUser = ctx.state.currentUser as User;
 
     const context = new ViewConditionContext(currentUser);
+    console.log(await view.getRawCondition(context));
     const query = Ticket.queryBuilder()
       .setRawCondition(await view.getRawCondition(context))
       .skip((page - 1) * pageSize)
@@ -332,7 +327,6 @@ export class ViewController {
       }
     };
 
-    conditions.all = conditions.all.map((cond, i) => validate(`conditions.all.${i}`, cond));
-    conditions.any = conditions.any.map((cond, i) => validate(`conditions.any.${i}`, cond));
+    View.assertConditionsValid(conditions, 'conditions', validate);
   }
 }
