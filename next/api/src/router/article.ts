@@ -61,7 +61,22 @@ router.get('/', pagination(20), auth, customerServiceOnly, async (ctx) => {
     .paginate(page, pageSize);
 
   if (isPrivate !== undefined) {
-    query.where('private', '==', isPrivate);
+    const now = new Date();
+    if (isPrivate) {
+      query.where((query) => {
+        query.where('publishedFrom', '>=', now);
+        query.orWhere('publishedTo', '<=', now);
+      });
+    } else {
+      query.where((query) => {
+        query.where('publishedFrom', 'not-exists');
+        query.orWhere('publishedFrom', '<', now);
+      });
+      query.where((query) => {
+        query.where('publishedTo', 'not-exists');
+        query.orWhere('publishedTo', '>', now);
+      });
+    }
   }
 
   if (id !== undefined) {
@@ -82,7 +97,6 @@ router.get('/', pagination(20), auth, customerServiceOnly, async (ctx) => {
 
 const createBaseArticleSchema = yup.object({
   name: yup.string().required(),
-  private: yup.boolean(),
   publishedFrom: yup.date(),
   publishedTo: yup.date(),
   language: localeSchemaForYup.required(),
@@ -100,7 +114,6 @@ router.post('/', auth, customerServiceOnly, async (ctx) => {
       ACL: {},
       name: data.name,
       defaultLanguage: data.language,
-      private: data.private ?? false,
       publishedFrom: data.publishedFrom,
       publishedTo: data.publishedTo,
     },
@@ -217,7 +230,6 @@ router.post('/:id/feedback', auth, fetchPreferredTranslation, async (ctx) => {
 
 const updateBaseArticleSchema = yup.object({
   name: yup.string(),
-  private: yup.boolean(),
   defaultLanguage: yup.string(),
   publishedFrom: yup.date().nullable(),
   publishedTo: yup.date().nullable(),
@@ -231,7 +243,6 @@ router.patch('/:id', auth, customerServiceOnly, async (ctx) => {
   const updatedArticle = await article.update(
     {
       name: data.name,
-      private: data.private,
       publishedFrom: data.publishedFrom,
       publishedTo: data.publishedTo,
       defaultLanguage: data.defaultLanguage,

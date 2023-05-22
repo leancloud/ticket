@@ -45,7 +45,6 @@ export class ArticleResponse {
     return {
       id: this.article.id,
       name: this.article.name,
-      private: !!this.article.private,
       publishedFrom: this.article.publishedFrom,
       publishedTo: this.article.publishedTo,
       defaultLanguage: this.article.defaultLanguage,

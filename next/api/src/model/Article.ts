@@ -9,10 +9,6 @@ export class Article extends Model {
 
   @field()
   @serialize()
-  private?: boolean;
-
-  @field()
-  @serialize()
   defaultLanguage!: string;
 
   @field()
@@ -39,9 +35,6 @@ export class Article extends Model {
   }
 
   isPublished() {
-    if (this.private) {
-      return false;
-    }
     const now = Date.now();
     if (this.publishedFrom && this.publishedFrom.getTime() > now) {
       return false;
