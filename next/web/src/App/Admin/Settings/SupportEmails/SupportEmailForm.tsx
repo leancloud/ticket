@@ -47,7 +47,7 @@ const DEFAULT_VALUES: DefaultValues<SupportEmailFormData> = {
     secure: true,
   },
   smtp: {
-    port: 587,
+    port: 465,
     secure: true,
   },
   receipt: {
