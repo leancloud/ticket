@@ -12,15 +12,6 @@
       "read_only": false,
       "comment": "最近一次有内容的修改记录"
     },
-    "private": {
-      "type": "Boolean",
-      "v": 2,
-      "required": false,
-      "hidden": false,
-      "default": false,
-      "comment": "",
-      "read_only": false
-    },
     "ACL": {
       "type": "ACL",
       "default": {
