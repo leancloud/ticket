@@ -9,14 +9,18 @@ export class Article extends Model {
 
   @field()
   @serialize()
-  private?: boolean;
-
-  @field()
-  @serialize()
   defaultLanguage!: string;
 
   @field()
-  @serialize()
+  @serialize.Date()
+  publishedFrom?: Date;
+
+  @field()
+  @serialize.Date()
+  publishedTo?: Date;
+
+  @field()
+  @serialize.Date()
   deletedAt?: Date;
 
   async delete(this: Article, options?: ModifyOptions) {
@@ -28,5 +32,16 @@ export class Article extends Model {
       },
       { ...options, ignoreAfterHook: true, ignoreBeforeHook: true }
     );
+  }
+
+  isPublished() {
+    const now = Date.now();
+    if (this.publishedFrom && this.publishedFrom.getTime() > now) {
+      return false;
+    }
+    if (this.publishedTo && this.publishedTo.getTime() < now) {
+      return false;
+    }
+    return true;
   }
 }

@@ -3,7 +3,6 @@ import _ from 'lodash';
 import { Cache, RedisStore } from '@/cache';
 import { Article } from '@/model/Article';
 import { ArticleTranslation } from '@/model/ArticleTranslation';
-import { ArticleLanguages } from './types';
 
 export class ArticleService {
   private cache: Cache;
@@ -41,8 +40,9 @@ export class ArticleService {
 
   async getArticleLanguages(articleId: string) {
     const cacheKey = `${articleId}:langs`;
-    const cacheValue = await this.cache.get<ArticleLanguages>(cacheKey);
-    if (cacheValue) {
+    const cacheValue = await this.cache.get<string[]>(cacheKey);
+    // TODO: remove array check
+    if (cacheValue && Array.isArray(cacheValue)) {
       return cacheValue;
     }
 
@@ -51,12 +51,7 @@ export class ArticleService {
       .where('deletedAt', 'not-exists')
       .find({ useMasterKey: true });
 
-    const [unpublished, published] = _.partition(translations, (t) => t.private);
-
-    const languages: ArticleLanguages = {
-      published: published.map((t) => t.language),
-      unpublished: unpublished.map((t) => t.language),
-    };
+    const languages = translations.map((t) => t.language);
 
     await this.cache.set(cacheKey, languages);
 
@@ -94,8 +89,8 @@ export class ArticleService {
 
   async clearAllArticleCache(articleId: string) {
     const cacheKeys = [articleId, `${articleId}:langs`];
-    const { published, unpublished } = await this.getArticleLanguages(articleId);
-    published.concat(unpublished).forEach((lang) => {
+    const languages = await this.getArticleLanguages(articleId);
+    languages.forEach((lang) => {
       cacheKeys.push(`${articleId}:lang:${lang}`);
     });
     await this.cache.del(cacheKeys);

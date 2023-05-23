@@ -6,10 +6,11 @@ import { CategorySchema } from './category';
 export interface Article {
   id: string;
   name: string;
-  private: boolean;
   defaultLanguage: string;
   createdAt: string;
   updatedAt: string;
+  publishedFrom?: string;
+  publishedTo?: string;
 }
 
 export interface ArticleTranslationAbstract {
@@ -17,7 +18,6 @@ export interface ArticleTranslationAbstract {
   title: string;
   language: string;
   slug: string;
-  private: boolean;
   revision?: {
     upvote?: number;
     downvote?: number;
@@ -123,7 +123,6 @@ export interface CreateArticleTranslationData {
   language: string;
   title: string;
   content: string;
-  private?: boolean;
 }
 
 export async function createArticleTranslation(id: string, data: CreateArticleTranslationData) {
@@ -176,10 +175,11 @@ export const useDeleteArticleTranslation = (
 
 export interface CreateArticleData {
   name: string;
-  private: boolean;
   language: string;
   title: string;
   content: string;
+  publishedFrom?: string;
+  publishedTo?: string;
 }
 
 export const createArticle = async (data: CreateArticleData) => {
@@ -194,9 +194,11 @@ export const useCreateArticle = (
     ...mutationOptions,
   });
 
-export interface UpdateArticleData
-  extends Omit<Partial<CreateArticleData>, 'language' | 'title' | 'content'> {
+export interface UpdateArticleData {
+  name?: string;
   defaultLanguage?: string;
+  publishedFrom?: string;
+  publishedTo?: string;
 }
 
 export const updateArticle = async (id: string, data: UpdateArticleData) => {

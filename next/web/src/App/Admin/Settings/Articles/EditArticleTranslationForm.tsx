@@ -1,20 +1,21 @@
 import { useRef, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 
-import { UpdateArticleTranslationData } from '@/api/article';
-import { Button, Checkbox, Form, FormInstance, Input } from '@/components/antd';
+import { Button, Form, FormInstance, Input } from '@/components/antd';
 import { TranslationForm, TranslationFormRef } from './components/TranslationForm';
 
-export interface EditArticleTranslationProps {
-  initData?: UpdateArticleTranslationData;
-  submitting?: boolean;
-  onSubmit: (data: Omit<Required<UpdateArticleTranslationData>, 'language'>) => void;
-  onCancel?: () => void;
-  acceptComment?: boolean;
+interface FormData {
+  title: string;
+  content: string;
+  comment?: string;
 }
 
-interface FormData extends Omit<Required<UpdateArticleTranslationData>, 'private' | 'language'> {
-  public: boolean;
+export interface EditArticleTranslationProps {
+  initData?: Partial<FormData>;
+  submitting?: boolean;
+  onSubmit: (data: FormData) => void;
+  onCancel?: () => void;
+  acceptComment?: boolean;
 }
 
 export function EditArticleTranslationForm({
@@ -25,7 +26,7 @@ export function EditArticleTranslationForm({
   acceptComment = true,
 }: EditArticleTranslationProps) {
   const { control, handleSubmit } = useForm<FormData>({
-    defaultValues: { ...initData, public: !initData?.private },
+    defaultValues: initData,
   });
 
   const $antForm = useRef<FormInstance>(null!);
@@ -39,26 +40,15 @@ export function EditArticleTranslationForm({
         <Form
           ref={$antForm}
           layout="vertical"
-          onFinish={handleSubmit(({ ['public']: pblc, ...data }) =>
+          onFinish={handleSubmit((data) =>
             onSubmit({
               ...data,
               content: ref.current?.getValue() ?? '',
-              private: !pblc,
-              comment,
+              comment: acceptComment ? comment : undefined,
             })
           )}
         >
           <TranslationForm control={control} content={initData?.content} ref={ref} />
-
-          <Form.Item style={{ marginBottom: 0 }}>
-            <Controller
-              control={control}
-              name="public"
-              render={({ field: { value, onChange } }) => (
-                <Checkbox checked={value} onChange={onChange} children="启用" />
-              )}
-            />
-          </Form.Item>
         </Form>
       </div>
 

@@ -1,6 +1,8 @@
+import { forwardRef, useMemo } from 'react';
+import { RefSelectProps } from 'antd/lib/select';
+
 import { LOCALES } from '@/i18n/locales';
-import { Select, SelectProps } from 'antd';
-import { FC, useMemo } from 'react';
+import { Select, SelectProps } from '@/components/antd';
 
 export interface LocaleSelectProps extends SelectProps {
   hiddenLocales?: string[];
@@ -9,22 +11,18 @@ export interface LocaleSelectProps extends SelectProps {
   unknownValue?: string;
 }
 
-export const LocaleSelect: FC<LocaleSelectProps> = ({
-  hiddenLocales,
-  locales,
-  hasUnknown,
-  unknownValue,
-  ...props
-}) => {
-  const showLocales = useMemo(
-    () => [
-      ...Object.entries(locales ?? LOCALES)
-        .filter(([locale]) => !hiddenLocales?.some((hiddenLocale) => hiddenLocale === locale))
-        .map(([locale, label]) => ({ label, value: locale })),
-      ...(hasUnknown ? [{ label: '(未知)', value: unknownValue ?? 'null' }] : []),
-    ],
-    [hiddenLocales, locales, hasUnknown, unknownValue]
-  );
+export const LocaleSelect = forwardRef<RefSelectProps, LocaleSelectProps>(
+  ({ hiddenLocales, locales, hasUnknown, unknownValue, ...props }, ref) => {
+    const showLocales = useMemo(
+      () => [
+        ...Object.entries(locales ?? LOCALES)
+          .filter(([locale]) => !hiddenLocales?.some((hiddenLocale) => hiddenLocale === locale))
+          .map(([locale, label]) => ({ label, value: locale })),
+        ...(hasUnknown ? [{ label: '(未知)', value: unknownValue ?? 'null' }] : []),
+      ],
+      [hiddenLocales, locales, hasUnknown, unknownValue]
+    );
 
-  return <Select {...props} options={showLocales} />;
-};
+    return <Select {...props} ref={ref} options={showLocales} />;
+  }
+);

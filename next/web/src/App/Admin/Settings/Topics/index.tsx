@@ -139,15 +139,13 @@ function EditTopic({ initData, loading, onSave }: EditTopicProps) {
               <div className="mt-2">
                 <div>预览：</div>
                 <ul>
-                  {field.value
-                    .filter((id) => !articleMap[id].private)
-                    .map((id) => (
-                      <li key={id}>
-                        <a href={`../articles/${id}`} target="_blank">
-                          {articleMap[id].name}
-                        </a>
-                      </li>
-                    ))}
+                  {field.value.map((id) => (
+                    <li key={id}>
+                      <a href={`../articles/${id}`} target="_blank">
+                        {articleMap[id].name}
+                      </a>
+                    </li>
+                  ))}
                 </ul>
               </div>
             )}

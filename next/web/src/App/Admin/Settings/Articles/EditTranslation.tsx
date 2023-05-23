@@ -1,8 +1,10 @@
-import { useArticleTranslation, useUpdateArticleTranslation } from '@/api/article';
-import { Spin, message } from '@/components/antd';
 import { FC } from 'react';
 import { useQueryClient } from 'react-query';
 import { useNavigate, useParams } from 'react-router-dom';
+import { pick } from 'lodash-es';
+
+import { useArticleTranslation, useUpdateArticleTranslation } from '@/api/article';
+import { Spin, message } from '@/components/antd';
 import { EditArticleTranslationForm } from './EditArticleTranslationForm';
 
 export const EditArticleTranslation: FC = () => {
@@ -32,7 +34,7 @@ export const EditArticleTranslation: FC = () => {
 
   return (
     <EditArticleTranslationForm
-      initData={translation}
+      initData={pick(translation, ['title', 'content'])}
       onSubmit={(data) => update({ id: id!, language: language!, ...data })}
       onCancel={() => navigate('../..')}
       submitting={isLoading || isUpdating}

@@ -9,7 +9,7 @@ import {
 } from '@/response/article';
 import * as yup from '@/utils/yup';
 import { auth, customerServiceOnly, pagination } from '@/middleware';
-import { ACLBuilder, CreateData, UpdateData } from '@/orm';
+import { CreateData, UpdateData } from '@/orm';
 import htmlify from '@/utils/htmlify';
 import { User } from '@/model/User';
 import { Category } from '@/model/Category';
@@ -61,7 +61,22 @@ router.get('/', pagination(20), auth, customerServiceOnly, async (ctx) => {
     .paginate(page, pageSize);
 
   if (isPrivate !== undefined) {
-    query.where('private', '==', isPrivate);
+    const now = new Date();
+    if (isPrivate) {
+      query.where((query) => {
+        query.where('publishedFrom', '>', now);
+        query.orWhere('publishedTo', '<', now);
+      });
+    } else {
+      query.where((query) => {
+        query.where('publishedFrom', 'not-exists');
+        query.orWhere('publishedFrom', '<=', now);
+      });
+      query.where((query) => {
+        query.where('publishedTo', 'not-exists');
+        query.orWhere('publishedTo', '>=', now);
+      });
+    }
   }
 
   if (id !== undefined) {
@@ -82,7 +97,8 @@ router.get('/', pagination(20), auth, customerServiceOnly, async (ctx) => {
 
 const createBaseArticleSchema = yup.object({
   name: yup.string().required(),
-  private: yup.boolean(),
+  publishedFrom: yup.date(),
+  publishedTo: yup.date(),
   language: localeSchemaForYup.required(),
   title: yup.string().required(),
   content: yup.string().required(),
@@ -91,34 +107,31 @@ const createBaseArticleSchema = yup.object({
 // create new article
 router.post('/', auth, customerServiceOnly, async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
-  const {
-    name,
-    private: isPrivate,
-    language,
-    title,
-    content,
-  } = createBaseArticleSchema.validateSync(ctx.request.body);
+  const data = createBaseArticleSchema.validateSync(ctx.request.body);
 
-  const data: CreateData<Article> = { name, defaultLanguage: language };
-  const translationData: CreateData<ArticleTranslation> = { title, language };
+  const article = await Article.create(
+    {
+      ACL: {},
+      name: data.name,
+      defaultLanguage: data.language,
+      publishedFrom: data.publishedFrom,
+      publishedTo: data.publishedTo,
+    },
+    { useMasterKey: true }
+  );
 
-  if (content) {
-    translationData.content = content;
-    translationData.contentHTML = htmlify(content);
-  }
+  const translation = await ArticleTranslation.create(
+    {
+      ACL: {},
+      title: data.title,
+      language: data.language,
+      content: data.content,
+      contentHTML: htmlify(data.content),
+      articleId: article.id,
+    },
+    { useMasterKey: true }
+  );
 
-  if (isPrivate !== undefined) {
-    data.private = isPrivate;
-    data.ACL = getACL(isPrivate);
-    translationData.private = isPrivate;
-    translationData.ACL = getACL(isPrivate);
-  }
-
-  const article = await Article.create(data, currentUser.getAuthOptions());
-
-  translationData.articleId = article.id;
-
-  const translation = await ArticleTranslation.create(translationData, { useMasterKey: true });
   await translation.createRevision(currentUser, translation);
 
   ctx.body = new ArticleResponse(article);
@@ -171,7 +184,6 @@ const createArticleTranslationSchema = yup.object({
   language: localeSchemaForYup.required(),
   title: yup.string().required(),
   content: yup.string().required(),
-  private: yup.boolean(),
 });
 
 // create translation for article :id
@@ -180,26 +192,18 @@ router.post('/:id', auth, customerServiceOnly, async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   const article = ctx.state.article as Article;
 
-  const {
-    language,
+  const { language, title, content } = createArticleTranslationSchema.validateSync(
+    ctx.request.body
+  );
+
+  const data: CreateData<ArticleTranslation> = {
+    ACL: {},
     title,
+    language,
     content,
-    private: isPrivate,
-  } = createArticleTranslationSchema.validateSync(ctx.request.body);
-
-  const data: CreateData<ArticleTranslation> = { title, language };
-
-  if (content) {
-    data.content = content;
-    data.contentHTML = htmlify(content);
-  }
-
-  if (isPrivate !== undefined) {
-    data.private = isPrivate;
-    data.ACL = getACL(isPrivate);
-  }
-
-  data.articleId = article.id;
+    contentHTML: htmlify(content),
+    articleId: article.id,
+  };
 
   const translation = await ArticleTranslation.create(data, { useMasterKey: true });
   await translation.createRevision(currentUser, translation);
@@ -226,25 +230,25 @@ router.post('/:id/feedback', auth, fetchPreferredTranslation, async (ctx) => {
 
 const updateBaseArticleSchema = yup.object({
   name: yup.string(),
-  private: yup.boolean(),
   defaultLanguage: yup.string(),
+  publishedFrom: yup.date().nullable(),
+  publishedTo: yup.date().nullable(),
 });
 
 // update article :id
 router.patch('/:id', auth, customerServiceOnly, async (ctx) => {
   const article = ctx.state.article as Article;
-  const { name, private: isPrivate, defaultLanguage } = updateBaseArticleSchema.validateSync(
-    ctx.request.body
+  const data = updateBaseArticleSchema.validateSync(ctx.request.body);
+
+  const updatedArticle = await article.update(
+    {
+      name: data.name,
+      publishedFrom: data.publishedFrom,
+      publishedTo: data.publishedTo,
+      defaultLanguage: data.defaultLanguage,
+    },
+    { useMasterKey: true }
   );
-
-  const data: UpdateData<Article> = { name, defaultLanguage };
-
-  if (isPrivate !== undefined) {
-    data.private = isPrivate;
-    data.ACL = getACL(isPrivate);
-  }
-
-  const updatedArticle = await article.update(data, { useMasterKey: true });
 
   await articleService.clearArticleCache(article.id);
 
@@ -253,31 +257,23 @@ router.patch('/:id', auth, customerServiceOnly, async (ctx) => {
 
 // delete article :id
 router.delete('/:id', auth, customerServiceOnly, async (ctx) => {
-  const currentUser = ctx.state.currentUser as User;
   const article = ctx.state.article as Article;
-
-  if (article.private !== true) {
-    ctx.throw(400, 'Article is not private');
-  }
-
-  const associatedCategoryCount = await Category.query()
-    .where('FAQs', '==', article.toPointer())
-    .count({ useMasterKey: true });
-
-  if (associatedCategoryCount > 0) {
-    ctx.throw(400, 'Article is in use');
-  }
 
   const translations = await ArticleTranslation.queryBuilder()
     .where('article', '==', article.toPointer())
     .where('deletedAt', 'not-exists')
-    .count({ useMasterKey: true });
+    .limit(1000)
+    .find({ useMasterKey: true });
 
-  if (translations) {
-    ctx.throw(400, 'Article has undeleted translations');
+  if (translations.length) {
+    const deletedAt = new Date();
+    await ArticleTranslation.updateSome(
+      translations.map((t) => [t, { deletedAt }]),
+      { useMasterKey: true }
+    );
   }
 
-  await article.delete(currentUser.getAuthOptions());
+  await article.delete({ useMasterKey: true });
 
   await articleService.clearAllArticleCache(article.id);
 
@@ -308,7 +304,6 @@ router.get('/:id/:language', (ctx) => {
 const updateArticleTranslationSchema = yup.object({
   title: yup.string(),
   content: yup.string(),
-  private: yup.boolean(),
   comment: yup.string(),
 });
 
@@ -318,12 +313,7 @@ router.patch('/:id/:language', auth, customerServiceOnly, async (ctx) => {
   const article = ctx.state.article as Article;
   const translation = ctx.state.translation as ArticleTranslation;
 
-  const {
-    title,
-    content,
-    private: isPrivate,
-    comment,
-  } = updateArticleTranslationSchema.validateSync(ctx.request.body);
+  const { title, content, comment } = updateArticleTranslationSchema.validateSync(ctx.request.body);
 
   const updateData: UpdateData<ArticleTranslation> = { title };
 
@@ -332,42 +322,21 @@ router.patch('/:id/:language', auth, customerServiceOnly, async (ctx) => {
     updateData.contentHTML = htmlify(content);
   }
 
-  if (isPrivate !== undefined) {
-    updateData.private = isPrivate;
-    updateData.ACL = getACL(isPrivate);
-  }
-
-  if (updateData.private && translation.language === article.defaultLanguage) {
-    ctx.throw(400, 'Can not set default language to private');
-    return;
-  }
-
-  const updated = !_.isEmpty(updateData);
-
-  const updatedTranslation = updated
-    ? await translation.update(updateData, { useMasterKey: true })
-    : translation;
-
-  if (updated) {
+  let updatedTranslation: ArticleTranslation | undefined;
+  if (!_.isEmpty(updateData)) {
+    updatedTranslation = await translation.update(updateData, { useMasterKey: true });
     await translation.createRevision(currentUser, updatedTranslation, translation, comment);
     await articleService.clearArticleTranslationCache(article.id, translation.language);
   }
 
-  ctx.body = new ArticleTranslationResponse(updatedTranslation);
+  ctx.body = new ArticleTranslationResponse(updatedTranslation || translation);
 });
 
 // delete :language translation of article :id
 router.delete('/:id/:language', auth, customerServiceOnly, async (ctx) => {
   const translation = ctx.state.translation as ArticleTranslation;
-
-  if (!translation.private) {
-    ctx.throw(400, 'Translation is not private');
-  }
-
   await translation.delete({ useMasterKey: true });
-
   await articleService.clearArticleTranslationCache(translation.articleId, translation.language);
-
   ctx.body = {};
 });
 
@@ -377,10 +346,8 @@ const getRevisionsSchema = yup.object({
 
 // get revision list of :language translation of article :id
 router.get('/:id/:language/revisions', auth, customerServiceOnly, pagination(100), async (ctx) => {
-  const currentUser = ctx.state.currentUser as User;
   const translation = ctx.state.translation as ArticleTranslation;
   const { meta } = getRevisionsSchema.validateSync(ctx.query);
-
   const { page, pageSize } = pagination.get(ctx);
 
   const query = ArticleRevision.queryBuilder()
@@ -393,15 +360,10 @@ router.get('/:id/:language/revisions', auth, customerServiceOnly, pagination(100
     query.where('meta', meta ? '==' : '!=', true);
   }
 
-  const revisions = await query.findAndCount({ useMasterKey: true }).then(([data, count]) => {
-    ctx.set('x-total-count', count.toString());
-    return data;
-  });
+  const [revisions, totalCount] = await query.findAndCount({ useMasterKey: true });
 
-  const includeRating = await currentUser.isCustomerService();
-  ctx.body = revisions.map(
-    (revision) => new ArticleRevisionListItemResponse(revision, includeRating)
-  );
+  ctx.set('x-total-count', totalCount.toString());
+  ctx.body = revisions.map((revision) => new ArticleRevisionListItemResponse(revision));
 });
 
 router.param('rid', async (rid, ctx, next) => {
@@ -417,14 +379,5 @@ router.param('rid', async (rid, ctx, next) => {
 router.get('/:id/:language/revisions/:rid', auth, customerServiceOnly, pagination(100), (ctx) => {
   ctx.body = new ArticleRevisionResponse(ctx.state.revision);
 });
-
-const getACL = (isPrivate: boolean) => {
-  const ACL = new ACLBuilder();
-  ACL.allowCustomerService('read', 'write').allowStaff('read');
-  if (!isPrivate) {
-    ACL.allow('*', 'read');
-  }
-  return ACL;
-};
 
 export default router;
