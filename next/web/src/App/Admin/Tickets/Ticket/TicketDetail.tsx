@@ -11,7 +11,6 @@ import {
   NULL_STRING,
   PageHeader,
   Row,
-  Select,
   Skeleton,
   Tooltip,
 } from '@/components/antd';
@@ -31,11 +30,13 @@ import {
   SingleGroupSelect,
 } from '@/components/common';
 import { TicketStatus } from '../../components/TicketStatus';
+import { UpdateTicket_v1Data, useTicket_v1, useUpdateTicket_v1, V1_Ticket } from './api1';
 import { Timeline } from './Timeline';
 import { TagForm } from './TagForm';
 import { FormLabel } from './components/FormLabel';
 import { ReplyEditor } from './components/ReplyEditor';
-import { UpdateTicket_v1Data, useTicket_v1, useUpdateTicket_v1, V1_Ticket } from './api1';
+import { SubscribeButton } from './components/SubscribeButton';
+import { PrivateSelect } from './components/PrivateSelect';
 
 export function TicketDetail() {
   const { id } = useParams() as { id: string };
@@ -91,6 +92,7 @@ export function TicketDetail() {
           ticket_v1={ticket_v1}
           updating={updating || updating_v1}
           onChangePrivate={(v) => handleUpdate_v1({ private: v })}
+          onChangeSubscribed={(v) => handleUpdate_v1({ subscribed: v })}
         />
 
         <Row>
@@ -124,9 +126,17 @@ interface TicketInfoProps {
   updating?: boolean;
   onBack: () => void;
   onChangePrivate: (_private: boolean) => void;
+  onChangeSubscribed: (subscribed: boolean) => void;
 }
 
-function TicketInfo({ ticket, ticket_v1, updating, onBack, onChangePrivate }: TicketInfoProps) {
+function TicketInfo({
+  ticket,
+  ticket_v1,
+  updating,
+  onBack,
+  onChangePrivate,
+  onChangeSubscribed,
+}: TicketInfoProps) {
   if (!ticket) {
     return (
       <PageHeader className="border-b">
@@ -146,18 +156,28 @@ function TicketInfo({ ticket, ticket_v1, updating, onBack, onChangePrivate }: Ti
       }
       onBack={onBack}
       extra={[
-        <Select
-          key="acl"
-          options={[
-            { label: '员工可见', value: 'internal' },
-            { label: '仅客服可见', value: 'private' },
-          ]}
-          loading={!ticket_v1 || updating}
-          disabled={!ticket_v1 || updating}
-          value={ticket_v1?.private ? 'private' : 'internal'}
-          onChange={(v) => onChangePrivate(v === 'private')}
-        />,
-        <Button key="legacy">旧版详情页</Button>,
+        ticket_v1 && (
+          <PrivateSelect
+            key="private"
+            loading={updating}
+            disabled={updating}
+            value={ticket_v1.private}
+            onChange={onChangePrivate}
+          />
+        ),
+        ticket_v1 && (
+          <SubscribeButton
+            key="subscribe"
+            subscribed={ticket_v1.subscribed}
+            onClick={() => onChangeSubscribed(!ticket_v1.subscribed)}
+            loading={updating}
+          />
+        ),
+        ticket && (
+          <Button key="legacy" onClick={() => (window.location.href = `/tickets/${ticket.nid}`)}>
+            旧版详情页
+          </Button>
+        ),
       ]}
     >
       <Descriptions size="small">
