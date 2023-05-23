@@ -78,7 +78,7 @@ function ZendeskLink() {
   const category = useRootCategory();
 
   const href = useMemo(() => {
-    const url = new URL('https://tds.d1ds4p8wk7q4rf.amplifyapp.com/');
+    const url = new URL('https://prodtds.d344btw0ugajh4.amplifyapp.com/');
     const searchParams = new URLSearchParams();
     if (category.alias) {
       searchParams.append('client_id', category.alias);
@@ -87,6 +87,8 @@ function ZendeskLink() {
     if (user?.username) {
       searchParams.append('user_id', user.username.slice(3));
     }
+    searchParams.append('allow_redirect', '0');
+    searchParams.append('allow_ticket_creation', '0');
     url.search = searchParams.toString();
     return url.toString();
   }, [category, user]);
