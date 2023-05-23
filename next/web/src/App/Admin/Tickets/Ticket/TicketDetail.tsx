@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AiFillExclamationCircle } from 'react-icons/ai';
 import moment from 'moment';
+
 import {
   Button,
   Col,
@@ -10,7 +11,6 @@ import {
   NULL_STRING,
   PageHeader,
   Row,
-  Select,
   Skeleton,
   Tooltip,
 } from '@/components/antd';
@@ -30,11 +30,13 @@ import {
   SingleGroupSelect,
 } from '@/components/common';
 import { TicketStatus } from '../../components/TicketStatus';
+import { UpdateTicket_v1Data, useTicket_v1, useUpdateTicket_v1, V1_Ticket } from './api1';
 import { Timeline } from './Timeline';
 import { TagForm } from './TagForm';
 import { FormLabel } from './components/FormLabel';
 import { ReplyEditor } from './components/ReplyEditor';
-import { useTicket_v1, useUpdateTicket_v1 } from './api1';
+import { SubscribeButton } from './components/SubscribeButton';
+import { PrivateSelect } from './components/PrivateSelect';
 
 export function TicketDetail() {
   const { id } = useParams() as { id: string };
@@ -43,16 +45,29 @@ export function TicketDetail() {
   const { data: ticket, refetch } = useTicket(id, {
     include: ['author', 'files'],
   });
+  const { data: ticket_v1, refetch: refetch_v1 } = useTicket_v1(ticket ? ticket.id : '', {
+    enabled: ticket !== undefined,
+  });
 
   const { mutate: update, isLoading: updating } = useUpdateTicket({
     onSuccess: () => {
       refetch();
     },
   });
+  const { mutate: update_v1, isLoading: updating_v1 } = useUpdateTicket_v1({
+    onSuccess: () => {
+      refetch_v1();
+    },
+  });
 
   const handleUpdate = (data: UpdateTicketData) => {
     if (ticket) {
       update([ticket.id, data]);
+    }
+  };
+  const handleUpdate_v1 = (data: UpdateTicket_v1Data) => {
+    if (ticket) {
+      update_v1([ticket.id, data]);
     }
   };
 
@@ -70,60 +85,26 @@ export function TicketDetail() {
 
   return (
     <div className="h-full bg-white overflow-auto">
-      <PageHeader
-        className="border-b"
-        title={
-          ticket ? (
-            <TicketTitle status={ticket.status} title={ticket.title} />
-          ) : (
-            <Skeleton.Input active size="small" style={{ width: 400 }} />
-          )
-        }
-        onBack={() => navigate('..')}
-        extra={ticket && <HeaderExtra ticketId={ticket.id} />}
-      >
-        {ticket ? (
-          <Descriptions size="small">
-            <Descriptions.Item label="编号">
-              <span className="text-[#AFAFAF]">#{ticket.nid}</span>
-            </Descriptions.Item>
-            <Descriptions.Item label="创建者">
-              <UserLabel user={ticket.author!} />
-            </Descriptions.Item>
-            <Descriptions.Item label="创建时间">
-              <span title={ticket.createdAt}>{moment(ticket.createdAt).fromNow()}</span>
-            </Descriptions.Item>
-          </Descriptions>
-        ) : (
-          <Skeleton active title={false} style={{ maxWidth: 600 }} />
-        )}
-      </PageHeader>
+      <div className="max-w-[1360px] mx-auto">
+        <TicketInfo
+          onBack={() => navigate('..')}
+          ticket={ticket}
+          ticket_v1={ticket_v1}
+          updating={updating || updating_v1}
+          onChangePrivate={(v) => handleUpdate_v1({ private: v })}
+          onChangeSubscribed={(v) => handleUpdate_v1({ subscribed: v })}
+        />
 
-      <Row className="mt-4">
-        <Col className="px-[15px] pb-4" span={24} md={6}>
-          {ticket ? (
-            <>
-              <div className="pb-2">分类</div>
-              <CategorySelect
-                categoryActive
-                allowClear={false}
-                value={ticket.categoryId}
-                disabled={updating}
-                onChange={(categoryId) => handleUpdate({ categoryId })}
-                style={{ width: '100%' }}
-              />
-            </>
-          ) : (
-            <Skeleton active />
-          )}
-        </Col>
-        <Col className="px-[15px] pb-4" span={24} md={12}>
-          {ticket ? <Timeline ticket={ticket} /> : <Skeleton active paragraph={{ rows: 10 }} />}
-          <ReplyEditor onOperate={handleOperate} operating={operating} />
-        </Col>
-        <Col className="px-[15px]" span={24} md={6}>
-          <div className="sticky top-4 pb-4">
-            {ticket ? (
+        <Row>
+          <Col className="p-4" span={24} md={6}>
+            <LeftSider ticket={ticket} />
+          </Col>
+          <Col className="p-4" span={24} md={12}>
+            {ticket ? <Timeline ticket={ticket} /> : <Skeleton active paragraph={{ rows: 10 }} />}
+            <ReplyEditor onOperate={handleOperate} operating={operating} />
+          </Col>
+          <Col className="p-4" span={24} md={6}>
+            {ticket && (
               <RightSider
                 ticket={ticket}
                 onUpdate={handleUpdate}
@@ -131,51 +112,112 @@ export function TicketDetail() {
                 onOperate={handleOperate}
                 operating={operating}
               />
-            ) : (
-              <Skeleton active />
             )}
-          </div>
-        </Col>
-      </Row>
-    </div>
-  );
-}
-
-function TicketTitle({ title, status }: { title: string; status: number }) {
-  return (
-    <div className="flex items-center">
-      <TicketStatus status={status} />
-      <div className="ml-2 truncate" title={title}>
-        {title}
+          </Col>
+        </Row>
       </div>
     </div>
   );
 }
 
-function HeaderExtra({ ticketId }: { ticketId: string }) {
-  const { data, isLoading } = useTicket_v1(ticketId);
+interface TicketInfoProps {
+  ticket?: TicketDetailSchema;
+  ticket_v1?: V1_Ticket;
+  updating?: boolean;
+  onBack: () => void;
+  onChangePrivate: (_private: boolean) => void;
+  onChangeSubscribed: (subscribed: boolean) => void;
+}
 
-  const { mutate, isLoading: updating } = useUpdateTicket_v1(ticketId);
+function TicketInfo({
+  ticket,
+  ticket_v1,
+  updating,
+  onBack,
+  onChangePrivate,
+  onChangeSubscribed,
+}: TicketInfoProps) {
+  if (!ticket) {
+    return (
+      <PageHeader className="border-b">
+        <Skeleton active paragraph={{ rows: 2 }} />
+      </PageHeader>
+    );
+  }
+
+  return (
+    <PageHeader
+      className="border-b"
+      title={ticket.title}
+      tags={
+        <span className="mr-4">
+          <TicketStatus status={ticket.status} />
+        </span>
+      }
+      onBack={onBack}
+      extra={[
+        ticket_v1 && (
+          <PrivateSelect
+            key="private"
+            loading={updating}
+            disabled={updating}
+            value={ticket_v1.private}
+            onChange={onChangePrivate}
+          />
+        ),
+        ticket_v1 && (
+          <SubscribeButton
+            key="subscribe"
+            subscribed={ticket_v1.subscribed}
+            onClick={() => onChangeSubscribed(!ticket_v1.subscribed)}
+            loading={updating}
+          />
+        ),
+        ticket && (
+          <Button key="legacy" onClick={() => (window.location.href = `/tickets/${ticket.nid}`)}>
+            旧版详情页
+          </Button>
+        ),
+      ]}
+    >
+      <Descriptions size="small">
+        <Descriptions.Item label="编号">
+          <span className="text-[#AFAFAF]">#{ticket.nid}</span>
+        </Descriptions.Item>
+        {ticket.author && (
+          <Descriptions.Item label="创建者">
+            <UserLabel user={ticket.author} />
+          </Descriptions.Item>
+        )}
+        <Descriptions.Item label="创建时间">
+          <span title={ticket.createdAt}>{moment(ticket.createdAt).fromNow()}</span>
+        </Descriptions.Item>
+        <Descriptions.Item label="更新时间">
+          <span title={ticket.updatedAt}>{moment(ticket.updatedAt).fromNow()}</span>
+        </Descriptions.Item>
+      </Descriptions>
+    </PageHeader>
+  );
+}
+
+interface LeftSiderProps {
+  ticket?: TicketDetailSchema;
+}
+
+function LeftSider({ ticket }: LeftSiderProps) {
+  if (!ticket) {
+    return <Skeleton active />;
+  }
 
   return (
     <>
-      <Select
-        loading={isLoading}
-        disabled={updating}
-        options={[
-          { label: '员工可见', value: 'internal' },
-          { label: '仅客服可见', value: 'private' },
-        ]}
-        value={data?.private ? 'private' : 'internal'}
-        onChange={(value) => mutate({ private: value === 'private' })}
+      <div className="pb-2">分类</div>
+      <CategorySelect
+        categoryActive
+        allowClear={false}
+        value={ticket.categoryId}
+        style={{ width: '100%' }}
       />
-      <Button
-        loading={isLoading}
-        disabled={updating}
-        onClick={() => mutate({ subscribed: !data!.subscribed })}
-      >
-        {data?.subscribed ? '取消关注' : '关注'}
-      </Button>
     </>
   );
 }
@@ -206,7 +248,7 @@ function RightSider({ ticket, onUpdate, updating, onOperate, operating }: RightS
   }, [ticket.assigneeId, group]);
 
   return (
-    <>
+    <div className="sticky top-4">
       <TicketOperations ticketStatus={ticket.status} onOperate={onOperate} operating={operating} />
 
       <Divider />
@@ -253,7 +295,7 @@ function RightSider({ ticket, onUpdate, updating, onOperate, operating }: RightS
 
       <Divider />
       <TagForm ticketId={ticket.id} />
-    </>
+    </div>
   );
 }
 

@@ -1,10 +1,5 @@
-import {
-  useMutation,
-  UseMutationOptions,
-  useQuery,
-  useQueryClient,
-  UseQueryOptions,
-} from 'react-query';
+import { useMutation, UseMutationOptions, useQuery, UseQueryOptions } from 'react-query';
+
 import { http } from '@/leancloud';
 
 export interface V1_Ticket {
@@ -25,21 +20,18 @@ export function useTicket_v1(ticketId: string, options?: UseQueryOptions<V1_Tick
   });
 }
 
+export interface UpdateTicket_v1Data {
+  private?: boolean;
+  subscribed?: boolean;
+}
+
 export function useUpdateTicket_v1(
-  ticketId: string,
-  options?: UseMutationOptions<{}, Error, Partial<V1_Ticket>>
+  options?: UseMutationOptions<{}, Error, [string, UpdateTicket_v1Data]>
 ) {
-  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data) => {
-      return http.patch(`/api/1/tickets/${ticketId}`, data);
-    },
-    onSuccess: (_, vars) => {
-      queryClient.setQueryData<V1_Ticket | undefined>(['v1_ticket', ticketId], (prev) => {
-        if (prev) {
-          return { ...prev, ...vars };
-        }
-      });
+    mutationFn: async ([ticketId, data]) => {
+      const res = await http.patch(`/api/1/tickets/${ticketId}`, data);
+      return res.data;
     },
     ...options,
   });
