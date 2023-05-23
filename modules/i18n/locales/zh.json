@@ -339,7 +339,7 @@
   "locale.pt": "葡萄牙文",
   "locale.tr": "土耳其文",
   "locale.vi": "越南文",
-  "nextProcessableTicket": "下一个待处理工单",
-  "noProcessableTicket": "没有待处理工单了",
+  "nextProcessableTicket": "下一个工单",
+  "noProcessableTicket": "列表里没有工单了",
   "otherOperations": "其他操作"
 }
