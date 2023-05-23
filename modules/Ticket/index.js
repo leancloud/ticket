@@ -30,6 +30,7 @@ import { EditReplyModal } from './EditReplyModal'
 import { AccessControl } from './AccessControl'
 import { Time } from './Time'
 import { NextTicketSection } from './NextTicket'
+import { useSearchParam } from 'react-use'
 
 export function updateTicket(id, data) {
   return fetch(`/api/1/tickets/${id}`, {
@@ -359,6 +360,7 @@ export default function Ticket() {
     params: { nid },
   } = useRouteMatch()
   const { t } = useTranslation()
+  const viewId = useSearchParam('view')
   const appContextValue = useContext(AppContext)
   const { addNotification, currentUser, isCustomerService, isUser } = appContextValue
   const { ticket, isLoading: loadingTicket, refetchTicket, error } = useTicket(nid)
@@ -484,7 +486,7 @@ export default function Ticket() {
               <TicketOperation ticket={ticket} onOperate={operateTicket} />
             )}
 
-            {isCustomerService && <NextTicketSection id={ticket.id} />}
+            {isCustomerService && viewId && <NextTicketSection id={ticket.id} viewId={viewId} />}
           </div>
         </Col>
       </Row>

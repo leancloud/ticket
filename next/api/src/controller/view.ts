@@ -265,7 +265,6 @@ export class ViewController {
     const currentUser = ctx.state.currentUser as User;
 
     const context = new ViewConditionContext(currentUser);
-    console.log(await view.getRawCondition(context));
     const query = Ticket.queryBuilder()
       .setRawCondition(await view.getRawCondition(context))
       .skip((page - 1) * pageSize)
@@ -315,6 +314,8 @@ export class ViewController {
       return next ? new TicketListItemResponse(next) : {};
     }
 
+    qb.where('objectId', '!=', ticket.id);
+
     const firstQb = _.cloneDeep(qb);
 
     if (view.sortBy) {
@@ -324,7 +325,7 @@ export class ViewController {
         ticket[view.sortBy as keyof Ticket]
       );
     } else {
-      qb.where('objectId', '<', ticket.id);
+      qb.where('nid', '<', ticket.nid);
     }
 
     const next =
