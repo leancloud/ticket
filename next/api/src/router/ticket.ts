@@ -254,12 +254,16 @@ router.get(
     }
 
     let tickets: Ticket[];
-    if (params.count) {
+    if (params.count && !count) {
       const result = await finalQuery.findAndCount(currentUser.getAuthOptions());
       tickets = result[0];
-      ctx.set('X-Total-Count', (count ?? result[1]).toString());
+      ctx.set('X-Total-Count', result[1].toString());
     } else {
       tickets = await finalQuery.find(currentUser.getAuthOptions());
+
+      if (params.count && count) {
+        ctx.set('X-Total-Count', count.toString());
+      }
     }
 
     if (params.includeCategoryPath) {
