@@ -295,7 +295,9 @@ export function Topbar({
         className="!ml-2 px-[7px] py-[7px]"
         size="small"
       >
-        <Radio.Button value="processable">待处理工单</Radio.Button>
+        <Tooltip title="待处理工单为状态为新工单或者等待客服处理的，被分配到用户或者被分配到用户所在客服组内且无人负责的工单">
+          <Radio.Button value="processable">待处理工单</Radio.Button>
+        </Tooltip>
         <Radio.Button value="all">全部工单</Radio.Button>
       </Radio.Group>
 
