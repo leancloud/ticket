@@ -49,7 +49,7 @@ queue.on('completed', async (jobData, result) => {
 });
 
 queue.on('failed', (job, err) => {
-  console.error('[export ticket]:', job.data, err.message);
+  console.error('[export ticket]:', job.data, err);
   if (job.data.retryCount < 2) {
     queue.add({
       ...job.data,
@@ -57,7 +57,7 @@ queue.on('failed', (job, err) => {
     });
   } else {
     //TODO  send email ?
-    console.error(`[export ticket]: after retry`, job.data, err.message);
+    console.error(`[export ticket]: after retry`, job.data, err);
   }
 });
 

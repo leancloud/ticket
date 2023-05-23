@@ -283,6 +283,41 @@ const getFieldValues = async (ticketIds: string[], authOptions?: AuthOptions) =>
     .valueOf();
 };
 
+const FIXED_KEYS = [
+  'id',
+  'nid',
+  'title',
+  'status',
+  'assignee.id',
+  'assignee.username',
+  'assignee.nickname',
+  'assignee.email',
+  'joinedCustomerServices',
+  'author.id',
+  'author.username',
+  'author.nickname',
+  'category.id',
+  'category.name',
+  'category.description',
+  'category.meta',
+  'category.path',
+  'content',
+  'evaluation.star',
+  'evaluation.content',
+  'firstCustomerServiceReplyAt',
+  'latestCustomerServiceReplyAt',
+  'group.id',
+  'group.name',
+  'group.description',
+  'metaData',
+  'privateTags',
+  'customForm',
+  'replies',
+  'language',
+  'createdAt',
+  'updatedAt',
+];
+
 const authOptions = { useMasterKey: true };
 const limit = 20;
 export default async function exportTicket({ params, sortItems, date }: JobData) {
@@ -297,6 +332,7 @@ export default async function exportTicket({ params, sortItems, date }: JobData)
   const customerServiceMap = await getCustomerServices();
   const groupMap = await getGroups(authOptions);
   const getCustomFormFields = getCustomFormFieldsFunc(authOptions);
+  let fieldKeys: string[] = [];
 
   debug('query tickets');
 
@@ -320,7 +356,6 @@ export default async function exportTicket({ params, sortItems, date }: JobData)
     for (let ticketIndex = 0; ticketIndex < tickets.length; ticketIndex++) {
       const ticket = tickets[ticketIndex];
       const assignee = ticket.assigneeId ? customerServiceMap[ticket.assigneeId] : undefined;
-      const author = ticket.author;
       const category = categoryMap[ticket.categoryId];
       const group = ticket.groupId ? groupMap[ticket.groupId] : undefined;
       const fields = fieldValuesMap[ticket.id]?.values.map(({ field, value }) => ({
@@ -328,6 +363,8 @@ export default async function exportTicket({ params, sortItems, date }: JobData)
         title: fieldCacheMap.get(field),
         value: value,
       }));
+      const keys = fields?.map((field) => `field-${field.id}-${field.title}`) ?? [];
+      fieldKeys = _.uniq([...fieldKeys, ...keys]);
       let customForm: {
         title?: string;
       } = {
@@ -340,22 +377,9 @@ export default async function exportTicket({ params, sortItems, date }: JobData)
         };
       }
       const data = {
-        id: ticket.id,
-        nid: ticket.nid,
-        title: ticket.title,
-        status: ticket.status,
-        assignee: {
-          id: assignee?.id,
-          username: assignee?.username,
-          nickname: assignee?.nickname,
-          email: assignee?.email,
-        },
-        joinedCustomerServices: ticket.joinedCustomerServices,
-        author: {
-          id: author?.id,
-          username: author?.username,
-          nickname: author?.name,
-        },
+        ..._.pick(ticket, FIXED_KEYS),
+        assignee,
+        group,
         category: {
           id: category?.id,
           name: category?.name,
@@ -363,34 +387,24 @@ export default async function exportTicket({ params, sortItems, date }: JobData)
           meta: category?.meta,
           path: category ? await getCategoryPath(category) : undefined,
         },
-        content: ticket.content,
-        evaluation: {
-          star: ticket.evaluation?.star,
-          content: ticket.evaluation?.content,
-        },
         firstCustomerServiceReplyAt: formatDate(ticket.firstCustomerServiceReplyAt),
         latestCustomerServiceReplyAt: formatDate(ticket.latestCustomerServiceReplyAt),
-        group: {
-          id: group?.id,
-          name: group?.name,
-          description: group?.description,
-        },
         metaData:
           ticket.metaData && fileType === 'csv' ? JSON.stringify(ticket.metaData) : ticket.metaData,
-        privateTags: ticket.privateTags,
-        customForm,
-        fields,
         replies: (replyMap[ticket.id] || []).map((v) => _.omit(v, 'ticketId')),
-        language: ticket.language,
         createdAt: formatDate(ticket.createdAt),
         updatedAt: formatDate(ticket.updatedAt),
+        ..._.zipObject(keys, fields?.map((field) => field.value) ?? []),
       };
 
       debug('data assembled, writing to the file');
-      await exportFileManager.append(data);
+      await exportFileManager.append(data, [...FIXED_KEYS, ...fieldKeys]);
       debug('done writing', ticket.id);
     }
   }
   debug('all tickets processed');
+  if (fileType === 'csv') {
+    await exportFileManager.prepend([...FIXED_KEYS, ...fieldKeys].join(','));
+  }
   return exportFileManager.done();
 }

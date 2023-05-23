@@ -65,7 +65,32 @@ export class ExportFileManager {
     });
   }
 
-  private prepend() {
+  /**
+   * CAUTION: Very expansive
+   */
+  async prepend(data: string) {
+    return new Promise((resolve, reject) => {
+      const filePath = this.file;
+      if (!filePath) {
+        throw Error('export file not exists');
+      }
+      const tempFilePath = path.join(__dirname, `/tmp/temp_for_prepend_${Date.now().toString()}`);
+      const readStream = fs.createReadStream(filePath, { encoding: 'utf8' });
+      const writeStream = fs.createWriteStream(tempFilePath, { encoding: 'utf8' });
+      writeStream.write(data + '\n');
+      readStream.on('data', (chunk) => {
+        writeStream.write(chunk);
+      });
+      readStream.on('end', () => {
+        fs.renameSync(tempFilePath, filePath);
+        resolve(undefined);
+      });
+      readStream.on('error', reject);
+      writeStream.on('error', reject);
+    });
+  }
+
+  private prepare() {
     if (!this.file || !this.ext) {
       return;
     }
@@ -83,14 +108,12 @@ export class ExportFileManager {
     }
   }
 
-  async append(data: Record<string, any>) {
-    let prependHeader = false;
+  async append(data: Record<string, any>, keys: string[]) {
     let jsonSep = ',';
     if (this.isFirst) {
-      this.prepend();
+      this.prepare();
       this.isFirst = false;
       jsonSep = '';
-      prependHeader = true;
     }
     try {
       if (this.ext === '.json') {
@@ -98,7 +121,8 @@ export class ExportFileManager {
       }
       if (this.ext === '.csv') {
         const csvData = await json2csvAsync([data], {
-          prependHeader,
+          keys,
+          prependHeader: false,
           emptyFieldValue: '',
         });
         this.appendData(csvData + '\n');
