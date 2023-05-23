@@ -11,6 +11,7 @@ import { TicketStatus } from '@/App/Admin/components/TicketStatus';
 import { CategoryPath, useGetCategoryPath } from '@/App/Admin/components/CategoryPath';
 import { DateTime } from '@/components/DateTime';
 import { TicketLanguages } from '@/i18n/locales';
+import { useTicketSwitchType } from './useTicketSwitchType';
 
 const { Column } = Table;
 
@@ -23,6 +24,7 @@ export interface TicketTableProps {
 
 export function TicketTable({ loading, tickets, checkedIds, onChangeChecked }: TicketTableProps) {
   const checkedIdSet = useMemo(() => new Set(checkedIds), [checkedIds]);
+  const [type] = useTicketSwitchType();
 
   const userIds = useMemo(() => (tickets ? uniq(tickets.map((t) => t.authorId)) : []), [tickets]);
   const { data: users, isLoading: loadingUsers } = useUsers({
@@ -71,7 +73,11 @@ export function TicketTable({ loading, tickets, checkedIds, onChangeChecked }: T
         key="title"
         title="标题"
         render={(ticket: TicketSchema) => (
-          <TicketLink ticket={ticket} className="inline-block max-w-lg" />
+          <TicketLink
+            ticket={ticket}
+            className="inline-block max-w-lg"
+            viewId={type === 'processable' ? 'incoming' : undefined}
+          />
         )}
       />
 
