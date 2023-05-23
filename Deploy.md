@@ -437,3 +437,13 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 ### `102ab2fc38b6da73076490394b2c9676824d6e6a`
 
 导入 SupportEmail.json，添加 mailbox 列。
+
+## 2023-05-23
+
+### `fbba431f19f242fabde54e55683da2885d0c2821`
+
+运行 /next/api/scripts/migrate-private-article.js，根据提示输入应用信息，完成对未发布文章的迁移。
+
+导入 FAQ.json，添加 publishedFrom 和 publishedTo 列。
+
+部署完成后删除 FAQTransilation 的 private 列，FAQ 的 private 列。
