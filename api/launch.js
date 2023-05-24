@@ -1,17 +1,17 @@
+const { ready: nextReady } = require('./next-shim')
+
 const tasks = []
 
 function addTask(task) {
-  if (typeof task !== 'function') {
-    throw new TypeError('The task must be a function')
+  if (task && typeof task.then === 'function') {
+    tasks.push(task)
   }
-  tasks.push(task)
 }
 
 async function ready() {
+  await nextReady()
   Object.freeze(tasks)
-  if (tasks.length) {
-    await Promise.all(tasks.map((task) => task()))
-  }
+  await Promise.all(tasks)
 }
 
 module.exports = {

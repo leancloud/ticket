@@ -42,3 +42,6 @@ const { emailService } = require('../next/api/dist/support-email/services/email'
 AV.Cloud.define('checkSupportEmailMessage', { fetchUser: false, internal: true }, () => {
   emailService.checkNewMessages()
 })
+
+const { ready } = require('../next/api/dist/launch')
+exports.ready = ready
