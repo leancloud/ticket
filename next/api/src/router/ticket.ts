@@ -119,7 +119,7 @@ router.get(
 
     const sortItems = sort.get(ctx);
 
-    const finalQuery = await (async () => {
+    const [finalQuery, count] = await (async () => {
       if (params.fieldName && params.fieldValue) {
         const ticketFieldQuery = TicketFieldValue.queryBuilder()
           .where('values', '==', {
@@ -137,13 +137,23 @@ router.get(
           ticketFieldQuery.where('createdAt', '<=', params.createdAtTo);
         }
 
-        return Ticket.queryBuilder()
-          .where(
-            'objectId',
-            'in',
-            (await ticketFieldQuery.find({ useMasterKey: true })).map(({ ticketId }) => ticketId)
-          )
-          .orderBy('createdAt', 'desc');
+        // we can't get the count in the second query, but we can in the first query
+        const [ticketFieldValues, count] = params.count
+          ? await ticketFieldQuery.findAndCount({
+              useMasterKey: true,
+            })
+          : [await ticketFieldQuery.find({ useMasterKey: true }), undefined];
+
+        return [
+          Ticket.queryBuilder()
+            .where(
+              'objectId',
+              'in',
+              ticketFieldValues.map(({ ticketId }) => ticketId)
+            )
+            .orderBy('createdAt', 'desc'),
+          count,
+        ];
       } else {
         const categoryIds = new Set(params.categoryId);
         const rootId = params.product || params.rootCategoryId;
@@ -215,7 +225,7 @@ router.get(
         query.skip((params.page - 1) * params.pageSize).limit(params.pageSize);
         sortItems?.forEach(({ key, order }) => query.orderBy(key, order));
 
-        return query;
+        return [query, undefined];
       }
     })();
 
@@ -246,12 +256,16 @@ router.get(
     }
 
     let tickets: Ticket[];
-    if (params.count) {
+    if (params.count && !count) {
       const result = await finalQuery.findAndCount(currentUser.getAuthOptions());
       tickets = result[0];
       ctx.set('X-Total-Count', result[1].toString());
     } else {
       tickets = await finalQuery.find(currentUser.getAuthOptions());
+
+      if (params.count && count) {
+        ctx.set('X-Total-Count', count.toString());
+      }
     }
 
     if (params.includeCategoryPath) {
