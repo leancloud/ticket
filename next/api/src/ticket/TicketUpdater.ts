@@ -391,7 +391,7 @@ export class TicketUpdater {
     });
 
     events.emit('ticket:updated', {
-      originalTicket: this.ticket.toJSON(),
+      originalTicket: this.ticket,
       data: {
         categoryId: this.data.category?.id ?? undefined,
         organizationId: this.data.organizationId,
@@ -400,6 +400,7 @@ export class TicketUpdater {
         evaluation: this.data.evaluation ?? undefined,
         status: this.data.status as number | undefined,
       },
+      updatedTicket: ticket,
       currentUserId: operator.id,
       ignoreTrigger: options?.ignoreTrigger,
     });

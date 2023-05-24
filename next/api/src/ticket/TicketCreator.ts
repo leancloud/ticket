@@ -288,7 +288,7 @@ export class TicketCreator {
     });
 
     events.emit('ticket:created', {
-      ticket: ticket.toJSON(),
+      ticket,
       currentUserId: operator.id,
     });
 
