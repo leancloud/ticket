@@ -290,6 +290,7 @@ export class TicketCreator {
     events.emit('ticket:created', {
       ticket,
       currentUserId: operator.id,
+      customFields: this.customFields,
     });
 
     await durationMetricService.createMetric(ticket);

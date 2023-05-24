@@ -1,5 +1,6 @@
 import EventEmitter from 'eventemitter3';
 import { Ticket } from '@/model/Ticket';
+import { FieldValue } from '@/model/TicketFieldValue';
 
 export interface UpdateData {
   categoryId?: string;
@@ -24,6 +25,7 @@ export interface Reply {
 export interface TicketCreatedCtx {
   ticket: Ticket;
   currentUserId: string;
+  customFields?: FieldValue[];
 }
 
 export interface TicketUpdatedCtx {
