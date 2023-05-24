@@ -269,6 +269,23 @@ export abstract class Model {
     }
   }
 
+  clone<M extends Model>(this: M): M {
+    const model = this.constructor as typeof Model;
+    const instance = model.newInstance();
+    instance.id = this.id;
+    if (model.fields) {
+      Object.values(model.fields).forEach(({ localKey }) => {
+        const value = Reflect.get(this, localKey);
+        if (value !== undefined) {
+          Reflect.set(instance, localKey, value);
+        }
+      });
+    }
+    instance.createdAt = this.createdAt;
+    instance.updatedAt = this.updatedAt;
+    return instance as M;
+  }
+
   reload<M extends Model, K extends RelationKey<M>>(
     this: M,
     key: K,
@@ -364,13 +381,12 @@ export abstract class Model {
     await saveAVObjects(objects, options);
 
     const instances = objects.map((object, i) => {
-      const data = pairs[i][1];
-      const instance = this.newInstance(_.omitBy(data, _.isNull));
+      const [preInstance, data] = pairs[i];
+      const instance = preInstance.clone();
       instance.applyAVObject(object);
-      const preInstance = pairs[i][0];
-      Object.getOwnPropertyNames(preInstance).forEach((name) => {
-        (instance as any)[name] ??= (preInstance as any)[name];
-      });
+      Object.entries(data)
+        .filter(([, value]) => value === null)
+        .forEach(([key]) => Reflect.deleteProperty(instance, key));
       return instance;
     });
 
@@ -383,16 +399,14 @@ export abstract class Model {
     const object = model.newAVObject(data, this.id);
     await saveAVObject(object, options);
 
-    const instance = model.newInstance(_.omitBy(data, _.isNull));
+    const instance = this.clone();
     instance.applyAVObject(object);
-    Object.getOwnPropertyNames(this).forEach((name) => {
-      if (name in data) {
-        return;
-      }
-      (instance as any)[name] ??= (this as any)[name];
-    });
 
-    return instance as M;
+    Object.entries(data)
+      .filter(([, value]) => value === null)
+      .forEach(([key]) => Reflect.deleteProperty(instance, key));
+
+    return instance;
   }
 
   static async upsert<M extends typeof Model>(
@@ -400,7 +414,7 @@ export abstract class Model {
     data: CreateData<M>,
     queryModifier: (query: Query<M>) => any,
     updateData: UpdateData<InstanceType<M>>,
-    options: ModifyOptions & {} = {}
+    options: ModifyOptions = {}
   ) {
     try {
       return await this.create(data, options);
