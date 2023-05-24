@@ -138,9 +138,11 @@ router.get(
         }
 
         // we can't get the count in the second query, but we can in the first query
-        const [ticketFieldValues, count] = await ticketFieldQuery.findAndCount({
-          useMasterKey: true,
-        });
+        const [ticketFieldValues, count] = params.count
+          ? await ticketFieldQuery.findAndCount({
+              useMasterKey: true,
+            })
+          : [await ticketFieldQuery.find({ useMasterKey: true }), undefined];
 
         return [
           Ticket.queryBuilder()
