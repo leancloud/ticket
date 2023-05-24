@@ -9,8 +9,8 @@ function addTask(task) {
 }
 
 async function ready() {
-  await nextReady()
   Object.freeze(tasks)
+  await nextReady()
   await Promise.all(tasks)
 }
 
