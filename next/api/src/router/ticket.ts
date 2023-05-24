@@ -405,6 +405,7 @@ router.get(
 
 const exportTicketParamsSchema = ticketFiltersSchema.shape({
   type: yup.string().oneOf(['json', 'csv']).required(),
+  timezoneOffset: yup.number(),
 });
 router.get(
   '/export',
@@ -416,12 +417,15 @@ router.get(
     if (!currentUser.email) {
       ctx.throw(400, '邮箱未设置，请前往个人设置页面进行设置');
     }
-    const { page, pageSize, ...rest } = exportTicketParamsSchema.validateSync(ctx.query);
+    const { page, pageSize, timezoneOffset, ...rest } = exportTicketParamsSchema.validateSync(
+      ctx.query
+    );
     const sortItems = sort.get(ctx);
     await createTicketExportJob({
       userId: currentUser.id,
       params: rest,
       sortItems,
+      timezoneOffset,
     });
     ctx.body = {};
   }

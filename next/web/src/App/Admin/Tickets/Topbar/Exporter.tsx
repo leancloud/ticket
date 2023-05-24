@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Button, message, Popover, Tooltip } from '@/components/antd';
+import { Button, Form, message, Popover, Radio, Tooltip } from '@/components/antd';
 import { useExportTickets } from '@/api/ticket';
 
 import { useLocalFilters } from '../Filter';
 import { useOrderBy } from './SortDropdown';
+import { useLocalStorage } from 'react-use';
 
 interface Props {
   trigger: React.ReactNode;
@@ -13,7 +14,6 @@ export function Exporter({ trigger }: Props) {
   return (
     <Tooltip title="导出工单">
       <Popover
-        title="工单保存为"
         destroyTooltipOnHide={true}
         onVisibleChange={(nextStatus) => setVisible(nextStatus)}
         content={<ExporterContent close={() => setVisible(false)} />}
@@ -27,12 +27,22 @@ export function Exporter({ trigger }: Props) {
   );
 }
 
+const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
 interface ContentProps {
   close?: () => void;
 }
 function ExporterContent({ close }: ContentProps) {
   const [localFilters] = useLocalFilters();
   const { orderKey, orderType } = useOrderBy();
+
+  const [exportType = 'csv', setExportType] = useLocalStorage<'csv' | 'json' | undefined>(
+    'TS:exportType'
+  );
+  const [timeFormat = 'locale', setTimeFormat] = useLocalStorage<'locale' | 'utc' | undefined>(
+    'TS:timeFormat'
+  );
+
   const { mutate, isLoading } = useExportTickets({
     onSuccess: () => {
       message.success('导出任务进行中，导出成功后将发送邮件进行通知，请注意查收邮件进行下载。', 5);
@@ -45,34 +55,46 @@ function ExporterContent({ close }: ContentProps) {
   });
 
   return (
-    <div>
+    <Form layout="vertical">
+      <Form.Item label="文件格式">
+        <Radio.Group
+          options={[
+            { label: 'CSV', value: 'csv' },
+            { label: 'JSON', value: 'json' },
+          ]}
+          onChange={(e) => setExportType(e.target.value)}
+          value={exportType}
+          optionType="button"
+          size="large"
+        />
+      </Form.Item>
+      <Form.Item label="时间格式">
+        <Radio.Group
+          options={[
+            { label: `本地 (${timeZone})`, value: 'locale' },
+            { label: 'UTC', value: 'utc' },
+          ]}
+          onChange={(e) => setTimeFormat(e.target.value)}
+          value={timeFormat}
+          optionType="button"
+          size="small"
+        />
+      </Form.Item>
       <Button
+        type='primary'
         disabled={isLoading}
         onClick={() => {
           mutate({
-            type: 'json',
+            type: exportType,
+            timezoneOffset: timeFormat === 'locale' ? new Date().getTimezoneOffset() : undefined,
             orderKey,
             orderType,
             filters: localFilters,
           });
         }}
       >
-        JSON
+        Export
       </Button>
-      <Button
-        disabled={isLoading}
-        onClick={() => {
-          mutate({
-            type: 'csv',
-            orderKey,
-            orderType,
-            filters: localFilters,
-          });
-        }}
-        className="ml-2"
-      >
-        CSV
-      </Button>
-    </div>
+    </Form>
   );
 }
