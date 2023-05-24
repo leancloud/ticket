@@ -60,12 +60,14 @@ export const storage = app.storage();
 export const http = axios.create();
 
 http.interceptors.request.use((config) => {
+  if (!config.headers) {
+    config.headers = {};
+  }
+
+  config.headers['Accept-Language'] = i18n.language;
+
   if (auth.currentUser) {
-    if (!config.headers) {
-      config.headers = {};
-    }
     config.headers['X-LC-Session'] = auth.currentUser.sessionToken;
-    config.headers['Accept-Language'] = i18n.language;
   }
   return config;
 });
