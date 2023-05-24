@@ -11,9 +11,7 @@ const {
   weeklyPushStatsToSlack,
   monthlyPushStatsToSlack,
 } = require('../next/api/dist/cloud/index.js')
-const { User, InactiveUserLoginError } = require('../next/api/dist/model/User.js')
-
-const events = require('../next/api/dist/events').default
+const { InactiveUserLoginError } = require('../next/api/dist/model/User.js')
 
 AV.Cloud.define('delayNotify', () => {
   // XXX: 由于还不能在 next 里定义云函数，先通过 legacy 的云函数调用 next 里的方法来发送 delay notification
@@ -44,5 +42,3 @@ const { emailService } = require('../next/api/dist/support-email/services/email'
 AV.Cloud.define('checkSupportEmailMessage', { fetchUser: false, internal: true }, () => {
   emailService.checkNewMessages()
 })
-
-module.exports = { events }

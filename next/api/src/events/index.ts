@@ -1,19 +1,5 @@
 import EventEmitter from 'eventemitter3';
-
-export interface Ticket {
-  id: string;
-  nid: number;
-  categoryId: string;
-  authorId: string;
-  organizationId?: string;
-  assigneeId?: string;
-  groupId?: string;
-  title: string;
-  content: string;
-  status: number;
-  createdAt: string;
-  updatedAt: string;
-}
+import { Ticket } from '@/model/Ticket';
 
 export interface UpdateData {
   categoryId?: string;
@@ -43,6 +29,7 @@ export interface TicketCreatedCtx {
 export interface TicketUpdatedCtx {
   originalTicket: Ticket;
   data: UpdateData;
+  updatedTicket: Ticket;
   currentUserId: string;
   ignoreTrigger?: boolean;
 }
