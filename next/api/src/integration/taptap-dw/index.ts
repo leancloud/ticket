@@ -1,6 +1,8 @@
 import _ from 'lodash';
 import LRUCache from 'lru-cache';
+import { Kafka, logLevel, KafkaConfig } from 'kafkajs';
 import events from '@/events';
+import { Config } from '@/model/Config';
 import { Ticket } from '@/model/Ticket';
 import { TicketField } from '@/model/TicketField';
 import { FieldValue, TicketFieldValue } from '@/model/TicketFieldValue';
@@ -142,28 +144,52 @@ class TicketSnapshotManager {
   }
 }
 
+interface TapTapDWConfig {
+  enabled?: boolean;
+  topic: string;
+  kafka: KafkaConfig;
+}
+
 export default async function (install: Function) {
+  const config: TapTapDWConfig = await Config.get('taptap_dw');
+  if (!config || config.enabled === false) {
+    return;
+  }
+
+  const kafka = new Kafka({
+    ...config.kafka,
+    logLevel: logLevel.ERROR,
+  });
+
+  const producer = kafka.producer();
+  await producer.connect();
+
   const snapshotManager = new TicketSnapshotManager();
+
+  const sendSnapshot = async (snapshot: TicketSnapshot) => {
+    await producer.send({
+      topic: config.topic,
+      messages: [
+        {
+          value: JSON.stringify(snapshot),
+        },
+      ],
+    });
+  };
 
   events.on('ticket:created', ({ ticket, customFields }) => {
     snapshotManager
       .createCreatedTicketSnapshot(ticket, customFields)
-      .then((snapshot) => {
-        console.log('[TapTap Data Warehouse] create');
-        console.dir(snapshot, { depth: 100 });
-      })
+      .then(sendSnapshot)
       .catch((error) => console.error('[TapTap Data Warehouse]', error));
   });
 
   events.on('ticket:updated', ({ updatedTicket }) => {
     snapshotManager
       .createUpdatedTicketSnapshot(updatedTicket)
-      .then((snapshot) => {
-        console.log('[TapTap Data Warehouse] update');
-        console.dir(snapshot, { depth: 100 });
-      })
+      .then(sendSnapshot)
       .catch((error) => console.error('[TapTap Data Warehouse]', error));
   });
 
-  install('TapTap DW', {});
+  install('TapTap Data Warehouse', {});
 }
