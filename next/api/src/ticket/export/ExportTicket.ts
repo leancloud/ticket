@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import { debug as d } from 'debug';
-import { format } from 'date-fns';
+import { sub, format as dateFnsFormat } from 'date-fns';
 import { Category } from '@/model/Category';
 import { User } from '@/model/User';
 import { UserSearchResult } from '@/response/user';
@@ -163,11 +163,19 @@ const createTicketQuery = async (
   return query as Query<typeof Ticket>;
 };
 
-const formatDate = (date?: Date) => {
+const currentTimezoneOffset = new Date().getTimezoneOffset();
+
+const format = (date?: Date, timezoneOffset?: number) => {
   if (!date) {
     return '';
   }
-  return date.toISOString();
+  if (timezoneOffset === undefined) {
+    return date.toISOString();
+  }
+  return dateFnsFormat(
+    sub(date, { minutes: timezoneOffset - currentTimezoneOffset }),
+    'yyyy-MM-dd HH:mm:ss'
+  );
 };
 
 const getCategories = async (authOptions?: AuthOptions) => {
@@ -196,7 +204,11 @@ const getGroups = async (authOptions?: AuthOptions) => {
     .valueOf();
 };
 
-const getReplies = async (ticketIds: string[], authOptions?: AuthOptions) => {
+const getReplies = async (
+  ticketIds: string[],
+  authOptions?: AuthOptions,
+  timezoneOffset?: number
+) => {
   const query = Reply.queryBuilder().where(
     'ticket',
     'in',
@@ -211,7 +223,7 @@ const getReplies = async (ticketIds: string[], authOptions?: AuthOptions) => {
         content: reply.content,
         authorId: reply.authorId,
         isCustomerService: reply.isCustomerService,
-        createdAt: formatDate(reply.createdAt),
+        createdAt: format(reply.createdAt, timezoneOffset),
       };
     })
     .groupBy('ticketId')
@@ -320,9 +332,10 @@ const FIXED_KEYS = [
 
 const authOptions = { useMasterKey: true };
 const limit = 20;
-export default async function exportTicket({ params, sortItems, date }: JobData) {
+export default async function exportTicket({ params, sortItems, timezoneOffset, date }: JobData) {
+  const formatDate = _.partial(format, _, timezoneOffset);
   const { type: fileType, ...rest } = params;
-  const fileName = `ticket_${format(new Date(date), 'yyMMdd_HHmmss')}.${fileType || 'json'}`;
+  const fileName = `ticket_${dateFnsFormat(new Date(date), 'yyMMdd_HHmmss')}.${fileType || 'json'}`;
   const exportFileManager = new ExportFileManager(fileName);
   debug('count tickets');
   const [query, containFields] = await createBaseTicketQuery(rest, sortItems);
