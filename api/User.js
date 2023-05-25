@@ -40,12 +40,14 @@ async function isNewApp() {
   return users.length === 0
 }
 
-addTask(async () => {
-  if (await isNewApp()) {
-    console.log('新应用启动，注册的第一个用户将成为管理员。')
-    defineUserHook()
-  }
-})
+addTask(
+  (async () => {
+    if (await isNewApp()) {
+      console.log('新应用启动，注册的第一个用户将成为管理员。')
+      defineUserHook()
+    }
+  })()
+)
 
 AV.Cloud.define('getUserInfo', async (req) => {
   const username = req.params.username

@@ -3,6 +3,7 @@ import path from 'path';
 import Router from '@koa/router';
 
 import { catchLCError, catchZodError } from '@/middleware';
+import { addTask } from '@/launch';
 
 export const router = new Router().use(catchLCError, catchZodError);
 
@@ -22,5 +23,5 @@ fs.readdirSync(__dirname).forEach((file) => {
     return;
   }
   const integration = require(path.join(__dirname, file));
-  integration.default(install);
+  addTask(integration.default(install));
 });
