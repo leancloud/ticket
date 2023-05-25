@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { HiChevronDown } from 'react-icons/hi';
 
@@ -6,6 +6,7 @@ import { useOrderBy as _useOrderBy } from '@/utils/useOrderBy';
 import _Menu from '@/components/Menu';
 import { useSorterLimited } from '../Filter/useSorterLimited';
 import classNames from 'classnames';
+import { useTicketSwitchType } from '../useTicketSwitchType';
 
 const orderKeys: Record<string, string> = {
   createdAt: '创建日期',
@@ -35,14 +36,21 @@ export function SortDropdown({ disabled }: { disabled?: boolean }) {
   );
 
   const { limitedSorter } = useSorterLimited();
+  const [type] = useTicketSwitchType();
+
+  const disabled_ = useMemo(() => disabled || limitedSorter || type === 'processable', [
+    limitedSorter,
+    type,
+    disabled,
+  ]);
 
   return (
     <Menu as="span" className="relative">
-      <Menu.Button disabled={disabled || limitedSorter}>
+      <Menu.Button disabled={disabled_}>
         <span className="text-[#6f7c87]">排序方式:</span>
         <span
           className={classNames('ml-2 text-[13px] font-medium', {
-            'text-[#6f7c87]': limitedSorter,
+            'text-[#6f7c87]': disabled_,
           })}
         >
           {orderKeys[orderKey]} <HiChevronDown className="inline relative top-0.5" />

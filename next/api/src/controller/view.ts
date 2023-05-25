@@ -6,9 +6,11 @@ import {
   Body,
   Controller,
   Ctx,
+  CurrentUser,
   Delete,
   Get,
   HttpError,
+  NotFoundError,
   Param,
   Patch,
   Post,
@@ -16,6 +18,7 @@ import {
   UseMiddlewares,
 } from '@/common/http';
 import {
+  FindModelOptionalPipe,
   FindModelPipe,
   ParseBoolPipe,
   ParseCsvPipe,
@@ -34,17 +37,11 @@ import { TicketListItemResponse } from '@/response/ticket';
 import { createViewCondition } from '@/ticket/view';
 import { ViewConditionContext } from '@/ticket/view/conditions/ViewCondition';
 
-const conditionSchema = z
+const conditionsSchema = z
   .object({
     type: z.string(),
-    op: z.string(),
   })
   .passthrough();
-
-const conditionsSchema = z.object({
-  all: z.array(conditionSchema),
-  any: z.array(conditionSchema),
-});
 
 const sortOrderSchema = z.enum(['asc', 'desc']);
 
@@ -73,6 +70,8 @@ type CreateData = z.infer<typeof createDataSchema>;
 type UpdateData = z.infer<typeof updateDataSchema>;
 
 const idsSchema = z.array(z.string()).min(1);
+
+const InternalIds = ['incoming'];
 
 @Controller('views')
 @UseMiddlewares(auth, customerServiceOnly)
@@ -106,6 +105,8 @@ export class ViewController {
       applyIdsCondition('groupIds', groupIds);
     }
 
+    query.where('objectId', 'not-in', InternalIds);
+
     const views = await query.limit(1000).find({ useMasterKey: true });
 
     return views.map((v) => new ViewResponse(v));
@@ -124,12 +125,13 @@ export class ViewController {
 
   @Get('count')
   async getTicketCount(@Ctx() ctx: Context, @Query('ids', ParseCsvPipe) ids?: string[]) {
-    if (!ids || ids.length === 0) {
+    const filteredIds = ids?.filter((id) => !InternalIds.includes(id));
+    if (!filteredIds || filteredIds.length === 0) {
       throw new HttpError(400, 'invalid ids');
     }
 
     const views = await View.queryBuilder()
-      .where('objectId', 'in', ids)
+      .where('objectId', 'in', filteredIds)
       .find({ useMasterKey: true });
 
     const currentUser = ctx.state.currentUser as User;
@@ -148,6 +150,7 @@ export class ViewController {
 
   @Get(':id')
   async find(@Param('id', new FindModelPipe(View, { useMasterKey: true })) view: View) {
+    ViewController.assertOperationOnInternal(view.id);
     return new ViewResponse(view);
   }
 
@@ -190,6 +193,7 @@ export class ViewController {
     @Param('id', new FindModelPipe(View, { useMasterKey: true })) view: View,
     @Body(new ZodValidationPipe(updateDataSchema)) data: UpdateData
   ) {
+    ViewController.assertOperationOnInternal(view.id);
     if (data.userIds && data.groupIds) {
       throw new HttpError(400, 'cannot set both userIds and groupIds');
     }
@@ -221,6 +225,7 @@ export class ViewController {
 
   @Delete(':id')
   async delete(@Param('id', new FindModelPipe(View, { useMasterKey: true })) view: View) {
+    ViewController.assertOperationOnInternal(view.id);
     await view.delete({ useMasterKey: true });
     return {};
   }
@@ -290,6 +295,45 @@ export class ViewController {
     return tickets.map((t) => new TicketListItemResponse(t));
   }
 
+  @Get(':id/next')
+  async getNextTicket(
+    @CurrentUser() user: User,
+    @Param('id', new FindModelPipe(View, { useMasterKey: true })) view: View,
+    @Query('ticketId', new FindModelOptionalPipe(Ticket, { useMasterKey: true })) ticket?: Ticket
+  ) {
+    const context = new ViewConditionContext(user);
+    const qb = Ticket.queryBuilder().setRawCondition(await view.getRawCondition(context));
+
+    if (view.sortBy) {
+      qb.orderBy(view.sortBy, view.sortOrder === 'desc' ? 'desc' : 'asc');
+    }
+
+    if (!ticket) {
+      const next = await qb.first(user.getAuthOptions());
+
+      return next ? new TicketListItemResponse(next) : {};
+    }
+
+    qb.where('objectId', '!=', ticket.id);
+
+    const firstQb = _.cloneDeep(qb);
+
+    if (view.sortBy) {
+      qb.where(
+        view.sortBy,
+        view.sortOrder === 'desc' ? '<' : '>',
+        ticket[view.sortBy as keyof Ticket]
+      );
+    } else {
+      qb.where('nid', '<', ticket.nid);
+    }
+
+    const next =
+      (await qb.first(user.getAuthOptions())) ?? (await firstQb.first(user.getAuthOptions()));
+
+    return next ? new TicketListItemResponse(next) : {};
+  }
+
   async assertUserExist(userIds: string[]) {
     const users = await User.queryBuilder()
       .where('objectId', 'in', userIds)
@@ -332,7 +376,12 @@ export class ViewController {
       }
     };
 
-    conditions.all = conditions.all.map((cond, i) => validate(`conditions.all.${i}`, cond));
-    conditions.any = conditions.any.map((cond, i) => validate(`conditions.any.${i}`, cond));
+    View.assertConditionsValid(conditions, 'conditions', validate);
+  }
+
+  static assertOperationOnInternal(id: string) {
+    if (InternalIds.includes(id)) {
+      throw new NotFoundError(`View "${id}"`);
+    }
   }
 }

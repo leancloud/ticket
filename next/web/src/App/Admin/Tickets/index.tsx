@@ -9,17 +9,26 @@ import { TicketTable } from './TicketTable';
 import { TicketDetail } from './Ticket/TicketDetail';
 import { StatsPanel } from './TicketStats';
 import { SortLimited } from './Filter/useSorterLimited';
+import {
+  TicketSwitchType,
+  TicketSwitchTypeProvider,
+  useTicketSwitchType,
+} from './useTicketSwitchType';
+import { useViewTickets } from '@/api/view';
+import _ from 'lodash';
 
 const DEFAULT_PAGE_SIZE = 20;
 
 interface UseSmartFetchTicketsOptions extends UseTicketsOptions {
   keyword?: string;
   field?: boolean;
+  type: TicketSwitchType;
 }
 
 function useSmartSearchTickets({
   keyword,
   field,
+  type,
   queryOptions,
   ...options
 }: UseSmartFetchTicketsOptions) {
@@ -41,7 +50,20 @@ function useSmartSearchTickets({
     },
   });
 
-  return isSearch ? useSearchTicketsResult : useTicketResult;
+  const useProcessableTicketsResult = useViewTickets('incoming', {
+    ..._.pick(options, ['page', 'pageSize']),
+    count: true,
+    queryOptions: {
+      ...queryOptions,
+      enabled: type === 'processable',
+    },
+  });
+
+  return type === 'processable'
+    ? useProcessableTicketsResult
+    : isSearch
+    ? useSearchTicketsResult
+    : useTicketResult;
 }
 
 function TicketListView() {
@@ -51,6 +73,7 @@ function TicketListView() {
   const [showFilterForm, setShowFilterForm] = useState(false);
   const [showStatsPanel, setShowStatsPanel] = useState(false);
   const [localFilters, setLocalFilters] = useLocalFilters();
+  const [type] = useTicketSwitchType();
 
   const { data: tickets, totalCount, isFetching } = useSmartSearchTickets({
     page,
@@ -60,6 +83,7 @@ function TicketListView() {
     filters: localFilters,
     keyword: localFilters.keyword,
     field: !!(localFilters.fieldName && localFilters.fieldValue),
+    type,
     queryOptions: {
       keepPreviousData: true,
     },
@@ -141,7 +165,9 @@ export default function TicketRoutes() {
         index
         element={
           <LocalFiltersProvider>
-            <TicketListView />
+            <TicketSwitchTypeProvider>
+              <TicketListView />
+            </TicketSwitchTypeProvider>
           </LocalFiltersProvider>
         }
       />

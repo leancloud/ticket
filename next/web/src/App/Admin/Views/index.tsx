@@ -18,7 +18,7 @@ import {
   useViewTickets,
   useViewTicketCounts,
 } from '@/api/view';
-import { Empty, Spin, Table } from '@/components/antd';
+import { Button, Empty, Spin, Table } from '@/components/antd';
 import { columnLabels } from '@/App/Admin/Settings/Views/EditView';
 import { useHoverMenu } from '@/App/Admin/components/HoverMenu';
 import { TicketOverview } from '@/App/Admin/components/TicketOverview';
@@ -292,9 +292,20 @@ export function ViewTickets() {
 
   return (
     <div className="p-10">
-      <div className="mb-5">
-        <div className="text-[26px] text-[#2F3941]">{view!.title}</div>
-        {totalCount !== undefined && <div>{totalCount} 张工单</div>}
+      <div className="mb-5 flex flex-row justify-between">
+        <div>
+          <div className="text-[26px] text-[#2F3941]">{view!.title}</div>
+          {totalCount !== undefined && <div>{totalCount} 张工单</div>}
+        </div>
+        <Button
+          href={`/tickets/${tickets?.[0]?.nid}?view=${id}`}
+          disabled={!tickets?.[0] || !id}
+          target="_blank"
+          rel="noreferrer noopener"
+          type="primary"
+        >
+          Play
+        </Button>
       </div>
 
       <CategoryPathContext.Provider value={{ getCategoryPath }}>

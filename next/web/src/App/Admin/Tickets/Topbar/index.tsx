@@ -11,7 +11,7 @@ import {
 import { useQueryClient } from 'react-query';
 import cx from 'classnames';
 
-import { Badge, Checkbox, InputNumber, Select, Tooltip } from '@/components/antd';
+import { Badge, Checkbox, InputNumber, Radio, Select, Tooltip } from '@/components/antd';
 import { useOrderBy as _useOrderBy } from '@/utils/useOrderBy';
 import { useCurrentUserIsCustomerService } from '@/leancloud';
 import styles from './index.module.css';
@@ -22,6 +22,7 @@ import { SortDropdown } from './SortDropdown';
 import { useLocalFilters } from '../Filter';
 import { Exporter } from './Exporter';
 import { isEmpty } from 'lodash-es';
+import { useTicketSwitchType } from '../useTicketSwitchType';
 
 export { useOrderBy } from './SortDropdown';
 
@@ -233,6 +234,7 @@ export function Topbar({
   ...props
 }: TopbarProps) {
   const [localFilters] = useLocalFilters();
+  const [type, setType] = useTicketSwitchType();
   const indeterminate = useMemo(() => {
     if (checkedTicketIds !== undefined && count !== undefined) {
       if (checkedTicketIds.length > 0 && checkedTicketIds.length !== count) {
@@ -285,11 +287,25 @@ export function Topbar({
         isLoading={isLoading}
       />
 
+      <Radio.Group
+        onChange={(e) => {
+          setType(e.target.value);
+        }}
+        value={type}
+        className="!ml-2 px-[7px] py-[7px]"
+        size="small"
+      >
+        <Tooltip title="待处理工单为状态为新工单或者等待客服处理的，被分配到用户或者被分配到用户所在客服组内且无人负责的工单">
+          <Radio.Button value="processable">待处理工单</Radio.Button>
+        </Tooltip>
+        <Radio.Button value="all">全部工单</Radio.Button>
+      </Radio.Group>
+
       {isCustomerService && (
         <Tooltip title="分析">
           <NavButton
             className="ml-2 px-[7px] py-[7px]"
-            disabled={count === 0 || !!localFilters.keyword}
+            disabled={count === 0 || !!localFilters.keyword || type === 'processable'}
             active={showStatsPanel}
             onClick={() => onChangeShowStatsPanel?.(!showStatsPanel)}
           >
@@ -303,7 +319,7 @@ export function Topbar({
           trigger={
             <NavButton
               className="ml-2 px-[7px] py-[7px]"
-              disabled={totalCount === 0 || !!localFilters.keyword}
+              disabled={totalCount === 0 || !!localFilters.keyword || type === 'processable'}
             >
               <HiOutlineDownload className="w-4 h-4" />
             </NavButton>
@@ -316,6 +332,7 @@ export function Topbar({
           className="ml-2 px-[7px] py-[7px]"
           active={showFilter}
           onClick={() => onChangeShowFilter?.(!showFilter)}
+          disabled={type === 'processable'}
         >
           <BsFunnel className="w-4 h-4" />
         </NavButton>

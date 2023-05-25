@@ -357,4 +357,8 @@ export class QueryBuilder<M extends typeof Model> extends Query<M> {
   first(options?: AuthOptions) {
     return super.clone().first(options);
   }
+
+  find(options?: AuthOptions) {
+    return super.clone().find(options);
+  }
 }

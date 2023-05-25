@@ -8,9 +8,10 @@ interface TicketLinkProps {
   ticket: TicketSchema;
   className?: string;
   showId?: boolean;
+  viewId?: string;
 }
 
-export function TicketLink({ ticket, className, showId = true }: TicketLinkProps) {
+export function TicketLink({ ticket, className, showId = true, viewId }: TicketLinkProps) {
   const { hover, menu } = useHoverMenu<string>({
     render: (ticketId) => <TicketOverview ticketId={ticketId} />,
   });
@@ -18,7 +19,7 @@ export function TicketLink({ ticket, className, showId = true }: TicketLinkProps
   return (
     <a
       className={classNames(className, 'mt-1.5 font-bold')}
-      href={`/tickets/${ticket.nid}`}
+      href={`/tickets/${ticket.nid}${viewId ? `?view=${viewId}` : ''}`}
       target="_blank"
       {...hover(ticket.id)}
     >

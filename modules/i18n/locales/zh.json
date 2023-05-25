@@ -338,5 +338,8 @@
   "locale.es": "西班牙文",
   "locale.pt": "葡萄牙文",
   "locale.tr": "土耳其文",
-  "locale.vi": "越南文"
+  "locale.vi": "越南文",
+  "nextProcessableTicket": "下一个工单",
+  "noProcessableTicket": "列表里没有工单了",
+  "otherOperations": "其他操作"
 }

@@ -107,11 +107,12 @@ interface FetchTicketsOptions {
   orderKey?: string;
   orderType?: 'asc' | 'desc';
   filters?: FetchTicketFilters;
+  count?: boolean;
 }
 
 interface FetchTicketsResult {
   tickets: TicketSchema[];
-  totalCount: number;
+  totalCount?: number;
 }
 
 async function fetchTickets({
@@ -120,12 +121,13 @@ async function fetchTickets({
   orderKey = 'createdAt',
   orderType = 'desc',
   filters = {},
+  count = true,
 }: FetchTicketsOptions = {}): Promise<FetchTicketsResult> {
   const params: any = {
     ...encodeTicketFilters(filters),
     page,
     pageSize,
-    count: 1,
+    count,
     orderBy: `${orderKey}-${orderType}`,
   };
 

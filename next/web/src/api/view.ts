@@ -4,21 +4,21 @@ import { http } from '@/leancloud';
 import { GroupSchema } from './group';
 import { TicketSchema } from './ticket';
 
-interface ConditionSchema {
-  type: string;
-  op: string;
-  value: any;
-}
+export type Condition =
+  | {
+      type: 'all' | 'any';
+      conditions: Condition[];
+    }
+  | {
+      type: 'unknown';
+    };
 
 export interface ViewSchema {
   id: string;
   title: string;
   userIds?: string[];
   groupIds?: string[];
-  conditions: {
-    all: ConditionSchema[];
-    any: ConditionSchema[];
-  };
+  conditions: Condition;
   fields: string[];
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
@@ -31,10 +31,7 @@ export interface CreateViewData {
   title: string;
   userIds?: string[];
   groupIds?: string[];
-  conditions: {
-    all: ConditionSchema[];
-    any: ConditionSchema[];
-  };
+  conditions: Condition;
   fields: string[];
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';

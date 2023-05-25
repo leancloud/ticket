@@ -1,25 +1,16 @@
 import { ComponentPropsWithoutRef, forwardRef, useMemo, useRef, useState } from 'react';
-import {
-  Controller,
-  FormProvider,
-  useController,
-  useFieldArray,
-  useForm,
-  useFormContext,
-  useWatch,
-} from 'react-hook-form';
+import { Controller, FormProvider, useController, useForm, useWatch } from 'react-hook-form';
 import { BsX } from 'react-icons/bs';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { Link } from 'react-router-dom';
 import cx from 'classnames';
-import { pick, set } from 'lodash-es';
 
 import { useCurrentUser } from '@/leancloud';
 import { Button, Form, FormInstance, Input, Radio, Select } from '@/components/antd';
 import { GroupSelect } from '@/components/common';
 import DragIcon from '@/icons/DragIcon';
 import { conditions } from './conditions';
-import style from './index.module.css';
+import { ConditionsGroup } from '../Automations/components/TriggerForm/Conditions';
 
 const { Option } = Select;
 
@@ -86,131 +77,6 @@ function ViewPrivilege() {
           <GroupSelect {...groupIdsField} mode="multiple" />
         </Form.Item>
       )}
-    </div>
-  );
-}
-
-const typeOptions = conditions.map((c) => pick(c, ['label', 'value']));
-
-interface ConditionProps {
-  name: string;
-  deleteable?: boolean;
-  onDelete: () => void;
-}
-
-function Condition({ name, deleteable, onDelete }: ConditionProps) {
-  const { getValues, reset } = useFormContext();
-  const [type, op] = useWatch({ name: [`${name}.type`, `${name}.op`] });
-
-  const ops = useMemo(() => {
-    if (type) {
-      return conditions.find((c) => c.value === type)?.ops;
-    }
-  }, [type]);
-
-  const opOptions = useMemo(() => {
-    return ops?.map((o) => pick(o, ['label', 'value']));
-  }, [ops]);
-
-  const [ValueComponent, valueComponentProps] = useMemo(() => {
-    if (ops && op) {
-      const opConfig = ops.find((t) => t.value === op);
-      if (opConfig) {
-        return [opConfig.component, opConfig.componentProps] as const;
-      }
-    }
-    return [undefined, undefined];
-  }, [ops, op]);
-
-  const HookComponent = useMemo(() => {
-    if (ops && op) {
-      return ops.find((t) => t.value === op)?.hookComponent;
-    }
-  }, [ops, op]);
-
-  return (
-    <div
-      className={cx('flex mb-4', {
-        'pr-8': !deleteable,
-      })}
-    >
-      <div className={cx(style.conditionGroup, 'grow grid grid-cols-4 gap-2')}>
-        <Controller
-          name={`${name}.type`}
-          rules={{ required: '请填写此字段' }}
-          render={({ field, fieldState: { error } }) => (
-            <Form.Item validateStatus={error ? 'error' : undefined} help={error?.message}>
-              <Select
-                {...field}
-                placeholder="请选择字段"
-                options={typeOptions}
-                onChange={(type) => {
-                  const values = getValues();
-                  const nextValues = set(values, name, { type });
-                  reset(nextValues);
-                }}
-              />
-            </Form.Item>
-          )}
-        />
-        {type && (
-          <Controller
-            name={`${name}.op`}
-            rules={{ required: '请填写此字段' }}
-            render={({ field, fieldState: { error } }) => (
-              <Form.Item validateStatus={error ? 'error' : undefined} help={error?.message}>
-                <Select
-                  {...field}
-                  options={opOptions}
-                  onChange={(op) => {
-                    const values = getValues();
-                    const nextValues = set(values, name, { type, op });
-                    reset(nextValues);
-                  }}
-                />
-              </Form.Item>
-            )}
-          />
-        )}
-        {ValueComponent && (
-          <Controller
-            name={`${name}.value`}
-            // might be null
-            rules={{ validate: (value) => value !== undefined }}
-            render={({ field, fieldState: { error } }) => (
-              <Form.Item validateStatus={error ? 'error' : undefined} help={error?.message}>
-                <ValueComponent {...field} {...valueComponentProps} />
-              </Form.Item>
-            )}
-          />
-        )}
-        {HookComponent && <HookComponent name={name} />}
-      </div>
-      {deleteable && (
-        <button className="ml-2 mt-2 w-5 h-5" type="button" onClick={onDelete}>
-          <BsX className="w-5 h-5" />
-        </button>
-      )}
-    </div>
-  );
-}
-
-function Conditions({ name }: { name: string }) {
-  const { fields, append, remove } = useFieldArray({ name });
-
-  return (
-    <div>
-      {fields.map((field, index) => (
-        <Condition
-          key={field.id}
-          name={`${name}.${index}`}
-          deleteable
-          onDelete={() => remove(index)}
-        />
-      ))}
-      <Button type="primary" ghost onClick={() => append({})}>
-        添加条件
-      </Button>
     </div>
   );
 }
@@ -353,6 +219,13 @@ function Columns({ value, onChange }: ColumnsProps) {
   );
 }
 
+const DEFAULT_VALUES: Partial<ViewData> = {
+  conditions: {
+    type: 'any',
+    conditions: [{ type: 'any', conditions: [{}] }],
+  },
+};
+
 export interface ViewData {
   title: string;
   userIds?: string[] | null;
@@ -369,7 +242,7 @@ export interface EditViewProps {
   onSubmit: (data: ViewData) => void;
 }
 
-export function EditView({ initData, submitting, onSubmit }: EditViewProps) {
+export function EditView({ initData = DEFAULT_VALUES, submitting, onSubmit }: EditViewProps) {
   const methods = useForm<ViewData>({ defaultValues: initData });
   const { handleSubmit } = methods;
 
@@ -397,11 +270,7 @@ export function EditView({ initData, submitting, onSubmit }: EditViewProps) {
           <ViewPrivilege />
 
           <Form.Item label="条件">
-            <div className="mb-2 font-semibold">工单必须满足所有这些条件以在视图中显示</div>
-            <Conditions name="conditions.all" />
-
-            <div className="mt-4 mb-2 font-semibold">工单可以满足任意这些条件以在视图中显示</div>
-            <Conditions name="conditions.any" />
+            <ConditionsGroup config={conditions} name="conditions" />
           </Form.Item>
 
           <Controller

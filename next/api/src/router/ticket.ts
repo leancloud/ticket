@@ -13,7 +13,7 @@ import { OpsLog, OpsLogCreator } from '@/model/OpsLog';
 import { Organization } from '@/model/Organization';
 import { Reply } from '@/model/Reply';
 import { Tag } from '@/model/Tag';
-import { Ticket } from '@/model/Ticket';
+import { Status, Ticket } from '@/model/Ticket';
 import { TicketField } from '@/model/TicketField';
 import { TicketFieldValue } from '@/model/TicketFieldValue';
 import { User } from '@/model/User';
