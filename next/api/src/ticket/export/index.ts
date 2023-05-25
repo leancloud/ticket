@@ -9,7 +9,7 @@ const debug = d('export:queue');
 export interface JobData {
   params: FilterOptions;
   sortItems?: SortItem[];
-  timezoneOffset?: number;
+  utcOffset?: number;
   userId: string;
   date: Date;
   retryCount: number;

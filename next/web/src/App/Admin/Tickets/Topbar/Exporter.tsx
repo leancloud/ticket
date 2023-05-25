@@ -86,7 +86,7 @@ function ExporterContent({ close }: ContentProps) {
         onClick={() => {
           mutate({
             type: exportType,
-            timezoneOffset: timeFormat === 'locale' ? new Date().getTimezoneOffset() : undefined,
+            utcOffset: timeFormat === 'locale' ? new Date().getTimezoneOffset() : undefined,
             orderKey,
             orderType,
             filters: localFilters,

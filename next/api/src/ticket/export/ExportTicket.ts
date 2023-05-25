@@ -165,15 +165,15 @@ const createTicketQuery = async (
 
 const currentTimezoneOffset = new Date().getTimezoneOffset();
 
-const format = (date?: Date, timezoneOffset?: number) => {
+const format = (date?: Date, utcOffset?: number) => {
   if (!date) {
     return '';
   }
-  if (timezoneOffset === undefined) {
+  if (utcOffset === undefined) {
     return date.toISOString();
   }
   return dateFnsFormat(
-    sub(date, { minutes: timezoneOffset - currentTimezoneOffset }),
+    sub(date, { minutes: utcOffset - currentTimezoneOffset }),
     'yyyy-MM-dd HH:mm:ss'
   );
 };
@@ -207,7 +207,7 @@ const getGroups = async (authOptions?: AuthOptions) => {
 const getReplies = async (
   ticketIds: string[],
   authOptions?: AuthOptions,
-  timezoneOffset?: number
+  utcOffset?: number
 ) => {
   const query = Reply.queryBuilder().where(
     'ticket',
@@ -223,7 +223,7 @@ const getReplies = async (
         content: reply.content,
         authorId: reply.authorId,
         isCustomerService: reply.isCustomerService,
-        createdAt: format(reply.createdAt, timezoneOffset),
+        createdAt: format(reply.createdAt, utcOffset),
       };
     })
     .groupBy('ticketId')
@@ -332,8 +332,8 @@ const FIXED_KEYS = [
 
 const authOptions = { useMasterKey: true };
 const limit = 20;
-export default async function exportTicket({ params, sortItems, timezoneOffset, date }: JobData) {
-  const formatDate = _.partial(format, _, timezoneOffset);
+export default async function exportTicket({ params, sortItems, utcOffset, date }: JobData) {
+  const formatDate = _.partial(format, _, utcOffset);
   const { type: fileType, ...rest } = params;
   const fileName = `ticket_${dateFnsFormat(new Date(date), 'yyMMdd_HHmmss')}.${fileType || 'json'}`;
   const exportFileManager = new ExportFileManager(fileName);

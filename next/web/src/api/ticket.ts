@@ -313,20 +313,20 @@ export function useSearchTicketCustomField(
 type exportType = 'json' | 'csv';
 interface ExportParams extends FetchTicketsOptions {
   type: exportType;
-  timezoneOffset?: number;
+  utcOffset?: number;
 }
 async function exportTickets({
   type,
   orderKey,
   orderType,
   filters = {},
-  timezoneOffset,
+  utcOffset,
 }: ExportParams) {
   const params = {
     ...encodeTicketFilters(filters),
     orderBy: `${orderKey}-${orderType}`,
     type,
-    timezoneOffset,
+    utcOffset,
   };
   await http.get('/api/2/tickets/export', { params });
   return;
