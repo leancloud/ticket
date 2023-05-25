@@ -27,7 +27,7 @@ interface TicketSnapshot {
   timestamp: string;
 }
 
-class TapTapDataWarehouse {
+class TicketSnapshotManager {
   private ticketFieldCache: LRUCache<string, TicketField | 0>;
 
   constructor() {
@@ -132,22 +132,36 @@ class TapTapDataWarehouse {
 
     return snapshot;
   }
+
+  createCreatedTicketSnapshot(ticket: Ticket, customFields?: FieldValue[]) {
+    return this.createTicketSnapshot(ticket, ticket.createdAt.toISOString(), customFields || []);
+  }
+
+  createUpdatedTicketSnapshot(ticket: Ticket) {
+    return this.createTicketSnapshot(ticket, ticket.updatedAt.toISOString());
+  }
 }
 
 export default async function (install: Function) {
-  const taptapDW = new TapTapDataWarehouse();
+  const snapshotManager = new TicketSnapshotManager();
 
   events.on('ticket:created', ({ ticket, customFields }) => {
-    taptapDW
-      .createTicketSnapshot(ticket, ticket.createdAt.toISOString(), customFields || [])
-      .then((snapshot) => console.log('[TapTap Data Warehouse] create', { snapshot }))
+    snapshotManager
+      .createCreatedTicketSnapshot(ticket, customFields)
+      .then((snapshot) => {
+        console.log('[TapTap Data Warehouse] create');
+        console.dir(snapshot, { depth: 100 });
+      })
       .catch((error) => console.error('[TapTap Data Warehouse]', error));
   });
 
   events.on('ticket:updated', ({ updatedTicket }) => {
-    taptapDW
-      .createTicketSnapshot(updatedTicket, updatedTicket.updatedAt.toISOString())
-      .then((snapshot) => console.log('[TapTap Data Warehouse] update', { snapshot }))
+    snapshotManager
+      .createUpdatedTicketSnapshot(updatedTicket)
+      .then((snapshot) => {
+        console.log('[TapTap Data Warehouse] update');
+        console.dir(snapshot, { depth: 100 });
+      })
       .catch((error) => console.error('[TapTap Data Warehouse]', error));
   });
 
