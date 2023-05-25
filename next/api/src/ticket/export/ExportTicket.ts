@@ -204,11 +204,7 @@ const getGroups = async (authOptions?: AuthOptions) => {
     .valueOf();
 };
 
-const getReplies = async (
-  ticketIds: string[],
-  authOptions?: AuthOptions,
-  utcOffset?: number
-) => {
+const getReplies = async (ticketIds: string[], authOptions?: AuthOptions, utcOffset?: number) => {
   const query = Reply.queryBuilder().where(
     'ticket',
     'in',
@@ -355,7 +351,7 @@ export default async function exportTicket({ params, sortItems, utcOffset, date 
       .find(authOptions);
     const ticketIds = tickets.map((ticket) => ticket.id);
     debug('fetch ticket details', ticketIds);
-    const replyMap = await getReplies(ticketIds, authOptions);
+    const replyMap = await getReplies(ticketIds, authOptions, utcOffset);
     debug('replies fetched');
     const formIds = tickets
       .map((ticket) =>
