@@ -45,14 +45,12 @@ export class DurationMetricService {
     const data: UpdateData<DurationMetrics> = {};
 
     if (isAgent) {
-      if (durationMetric.requesterWaitAt) {
-        const duration = reply.createdAt.getTime() - durationMetric.requesterWaitAt.getTime();
-        data.requesterWaitTime = (durationMetric.requesterWaitTime || 0) + duration;
-      } else {
-        const duration = reply.createdAt.getTime() - ticket.createdAt.getTime();
-        data.requesterWaitTime = (durationMetric.requesterWaitTime || 0) + duration;
-        data.firstReplyTime = duration;
+      if (durationMetric.firstReplyTime === undefined) {
+        data.firstReplyTime = reply.createdAt.getTime() - ticket.createdAt.getTime();
       }
+      const requesterWaitAt = durationMetric.requesterWaitAt ?? ticket.createdAt;
+      const duration = reply.createdAt.getTime() - requesterWaitAt.getTime();
+      data.requesterWaitTime = (durationMetric.requesterWaitTime || 0) + duration;
       data.agentWaitAt = reply.createdAt;
     } else {
       if (durationMetric.agentWaitAt) {
