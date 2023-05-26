@@ -1,17 +1,31 @@
 import { Context } from 'koa';
+import { z } from 'zod';
 import { Controller, Ctx, Get, HttpError, Query, UseMiddlewares } from '@/common/http';
-import { Order, ParseDatePipe, ParseIntPipe, ParseOrderPipe } from '@/common/pipe';
+import {
+  Order,
+  ParseDatePipe,
+  ParseIntPipe,
+  ParseOrderPipe,
+  ZodValidationPipe,
+} from '@/common/pipe';
 import { DurationMetrics } from '@/model/DurationMetrics';
 import { auth, customerServiceOnly } from '@/middleware';
 import { TicketResponse } from '@/response/ticket';
 
-const PARSE_ORDER_PIPE = new ParseOrderPipe([
+const parseOrderByPipe = new ParseOrderPipe([
   'firstReplyTime',
   'agentWaitTime',
   'requesterWaitTime',
   'firstResolutionTime',
   'fullResolutionTime',
 ]);
+
+const validateRangePipe = new ZodValidationPipe(
+  z
+    .string()
+    .regex(/^(\d+|\*)\.\.(\d+|\*)$/)
+    .optional()
+);
 
 @Controller('metrics')
 @UseMiddlewares(auth, customerServiceOnly)
@@ -21,9 +35,14 @@ export class MetricsController {
     @Ctx() ctx: Context,
     @Query('from', ParseDatePipe) from: Date | undefined,
     @Query('to', ParseDatePipe) to: Date | undefined,
-    @Query('orderBy', PARSE_ORDER_PIPE) orderBy: Order[] | undefined,
+    @Query('orderBy', parseOrderByPipe) orderBy: Order[] | undefined,
     @Query('page', new ParseIntPipe({ min: 1 })) page = 1,
-    @Query('pageSize', new ParseIntPipe({ min: 0, max: 100 })) pageSize = 10
+    @Query('pageSize', new ParseIntPipe({ min: 0, max: 100 })) pageSize = 10,
+    @Query('firstReplyTime', validateRangePipe) firstReplyTime: string | undefined,
+    @Query('agentWaitTime', validateRangePipe) agentWaitTime: string | undefined,
+    @Query('requesterWaitTime', validateRangePipe) requesterWaitTime: string | undefined,
+    @Query('firstResolutionTime', validateRangePipe) firstResolutionTime: string | undefined,
+    @Query('fullResolutionTime', validateRangePipe) fullResolutionTime: string | undefined
   ) {
     if (!from) {
       throw new HttpError(400, 'from is required');
@@ -32,14 +51,38 @@ export class MetricsController {
       throw new HttpError(400, 'to is required');
     }
 
+    const ranges = {
+      firstReplyTime,
+      agentWaitTime,
+      requesterWaitTime,
+      firstResolutionTime,
+      fullResolutionTime,
+    };
+
     const qb = DurationMetrics.queryBuilder()
       .where('ticketCreatedAt', '>=', from)
       .where('ticketCreatedAt', '<', to)
       .paginate(page, pageSize)
       .preload('ticket');
 
+    Object.entries(ranges).forEach(([key, range]) => {
+      if (!range) {
+        return;
+      }
+      const [min, max] = range.split('..');
+      if (min !== '*') {
+        qb.where(key, '>=', parseInt(min));
+      }
+      if (max !== '*') {
+        qb.where(key, '<=', parseInt(max));
+      }
+    });
+
     if (orderBy && orderBy.length) {
-      orderBy.forEach(({ key, order }) => qb.orderBy(key, order));
+      orderBy.forEach(({ key, order }) => {
+        qb.orderBy(key, order);
+        qb.where(key, 'exists');
+      });
     } else {
       qb.orderBy('ticketCreatedAt', 'desc');
     }

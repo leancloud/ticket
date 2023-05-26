@@ -6,19 +6,28 @@ import { TicketSchema } from './ticket';
 interface DurationMetrics {
   id: string;
   ticket: TicketSchema;
+  agentWaitTime?: number;
   firstReplyTime?: number;
   firstResolutionTime?: number;
   fullResolutionTime?: number;
   requesterWaitTime?: number;
-  agentWaitTime?: number;
 }
 
-export interface FetchDurationMetricsOptions {
+export interface DurationMetricsFilters {
+  agentWaitTime?: string;
+  firstReplyTime?: string;
+  firstResolutionTime?: string;
+  fullResolutionTime?: string;
+  requesterWaitTime?: string;
+}
+
+interface FetchDurationMetricsOptions {
   from: Date;
   to: Date;
   orderBy?: string;
   page?: number;
   pageSize?: number;
+  filters?: DurationMetricsFilters;
 }
 
 interface FetchDurationMetricsResult {
@@ -34,6 +43,7 @@ async function fetchDurationMetrics(options: FetchDurationMetricsOptions) {
       orderBy: options.orderBy,
       page: options.page,
       pageSize: options.pageSize,
+      ...options.filters,
     },
   });
 
