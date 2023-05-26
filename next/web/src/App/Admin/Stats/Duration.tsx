@@ -152,7 +152,7 @@ function FilterDropdown({ value, onChange, onConfirm }: FilterDropdownProps) {
   };
 
   return (
-    <div className="p-1.5">
+    <div className="p-2">
       <Input.Group compact>
         <InputNumber
           size="small"
@@ -169,12 +169,12 @@ function FilterDropdown({ value, onChange, onConfirm }: FilterDropdownProps) {
           onChange={(v) => handleChange(min, v)}
         />
       </Input.Group>
-      <div className="mt-1 space-x-1">
-        <Button type="primary" size="small" onClick={() => onConfirm()}>
-          搜索
-        </Button>
+      <div className="mt-2 space-x-1 text-right">
         <Button type="link" size="small" onClick={() => onChange(undefined)}>
           重置
+        </Button>
+        <Button type="primary" size="small" onClick={() => onConfirm()}>
+          确定
         </Button>
       </div>
     </div>
