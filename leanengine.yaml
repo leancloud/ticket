@@ -10,17 +10,11 @@ install:
     - ./next/api/package-lock.json
     - ./next/web/package.json
     - ./next/web/package-lock.json
-  - cd in-app/v1/
-  - npm ci
-  - cd ../../next/api
-  - npm ci
-  - cd ../web
-  - npm ci
+  - (cd in-app/v1/ && npm ci)
+  - (cd next/api && npm ci)
+  - (cd next/web && npm ci)
 build:
   - npm run build
-  - cd in-app/v1/
-  - npm run build
-  - cd ../../next/api
-  - npm run build
-  - cd ../web
-  - npm run build
+  - (cd in-app/v1/ && npm run build)
+  - (cd next/api && npm run build)
+  - (cd next/web && npm run build)
