@@ -116,7 +116,10 @@ export class OpsLogCreator {
   }
 
   changeFields(from: FieldValue[], to: FieldValue[], operator: User) {
-    const prevValueByFieldId = _.keyBy(from, (v) => v.field);
+    const prevValueByFieldId = _.mapValues(
+      _.keyBy(from, (v) => v.field),
+      ({ value }) => value
+    );
     const changes: { fieldId: string; from: unknown; to: unknown }[] = [];
 
     to.forEach(({ field, value }) => {

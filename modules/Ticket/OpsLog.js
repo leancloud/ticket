@@ -128,6 +128,10 @@ const getDisplayTextByOptions = (value, options) => {
   if (value === undefined) {
     return ''
   }
+  // Dirty data https://xindong.slack.com/archives/C01UB1M7BBK/p1685079682194859
+  if (value.field && value.value) {
+    value = value.value
+  }
   if (!options || !Array.isArray(options)) {
     return Array.isArray(value) ? value.join(' , ') : value
   }
