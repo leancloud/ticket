@@ -417,9 +417,7 @@ router.get(
     if (!currentUser.email) {
       ctx.throw(400, '邮箱未设置，请前往个人设置页面进行设置');
     }
-    const { page, pageSize, utcOffset, ...rest } = exportTicketParamsSchema.validateSync(
-      ctx.query
-    );
+    const { page, pageSize, utcOffset, ...rest } = exportTicketParamsSchema.validateSync(ctx.query);
     const sortItems = sort.get(ctx);
     await createTicketExportJob({
       userId: currentUser.id,
@@ -1139,8 +1137,15 @@ router.put('/:id/custom-fields', async (ctx) => {
     .first({ useMasterKey: true });
 
   if (ticketFieldValue) {
-    opsLogCreator.changeFields(ticketFieldValue.values, values, currentUser);
-    await ticketFieldValue.update({ values }, { useMasterKey: true });
+    const from = _.intersectionWith(ticketFieldValue.values, values, (oldValue, newValue) => {
+      return oldValue.field === newValue.field;
+    });
+    opsLogCreator.changeFields(from, values, currentUser);
+    const newValues = Object.values({
+      ..._.keyBy(ticketFieldValue.values, (v) => v.field),
+      ..._.keyBy(values, (v) => v.field),
+    });
+    await ticketFieldValue.update({ values: newValues }, { useMasterKey: true });
     await opsLogCreator.create();
   } else {
     opsLogCreator.changeFields([], values, currentUser);
