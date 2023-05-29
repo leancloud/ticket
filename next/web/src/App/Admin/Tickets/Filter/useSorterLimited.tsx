@@ -1,18 +1,10 @@
-import { FC, createContext, useContext, useState } from 'react';
+import { useMemo } from 'react';
+import { useLocalFilters } from './useTicketFilter';
 
-export const SortLimitedContext = createContext<{
-  limitedSorter: boolean;
-  setLimitedSorter: (limited: boolean) => void;
-}>({ limitedSorter: false, setLimitedSorter: () => {} });
+export const useSorterLimited = () => {
+  const [filters] = useLocalFilters();
 
-export const SortLimited: FC = ({ children }) => {
-  const [limited, setLimited] = useState(false);
+  const res = useMemo(() => filters.type !== 'normal', [filters.type]);
 
-  return (
-    <SortLimitedContext.Provider value={{ limitedSorter: limited, setLimitedSorter: setLimited }}>
-      {children}
-    </SortLimitedContext.Provider>
-  );
+  return res;
 };
-
-export const useSorterLimited = () => useContext(SortLimitedContext);

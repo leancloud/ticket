@@ -305,7 +305,12 @@ export function Topbar({
         <Tooltip title="分析">
           <NavButton
             className="ml-2 px-[7px] py-[7px]"
-            disabled={count === 0 || !!localFilters.keyword || type === 'processable'}
+            disabled={
+              count === 0 ||
+              !!(localFilters.type === 'normal' && localFilters.keyword) ||
+              localFilters.type === 'field' ||
+              type === 'processable'
+            }
             active={showStatsPanel}
             onClick={() => onChangeShowStatsPanel?.(!showStatsPanel)}
           >
@@ -319,7 +324,12 @@ export function Topbar({
           trigger={
             <NavButton
               className="ml-2 px-[7px] py-[7px]"
-              disabled={totalCount === 0 || !!localFilters.keyword || type === 'processable'}
+              disabled={
+                totalCount === 0 ||
+                !!(localFilters.type === 'normal' && localFilters.keyword) ||
+                localFilters.type === 'field' ||
+                type === 'processable'
+              }
             >
               <HiOutlineDownload className="w-4 h-4" />
             </NavButton>
