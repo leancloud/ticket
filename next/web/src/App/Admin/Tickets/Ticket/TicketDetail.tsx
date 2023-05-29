@@ -2,6 +2,8 @@ import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AiFillExclamationCircle } from 'react-icons/ai';
 import moment from 'moment';
+import { partition } from 'lodash-es';
+import { DefaultOptionType } from 'antd/lib/select';
 
 import {
   Button,
@@ -24,6 +26,8 @@ import {
   useUpdateTicket,
 } from '@/api/ticket';
 import { useGroup, useGroups } from '@/api/group';
+import { useCustomerServices } from '@/api/customer-service';
+import { useCollaborators } from '@/api/collaborator';
 import { useCurrentUser } from '@/leancloud';
 import {
   CategorySelect,
@@ -191,10 +195,14 @@ function TicketInfo({
           </Descriptions.Item>
         )}
         <Descriptions.Item label="创建时间">
-          <span title={ticket.createdAt}>{moment(ticket.createdAt).fromNow()}</span>
+          <span title={moment(ticket.createdAt).toLocaleString()}>
+            {moment(ticket.createdAt).fromNow()}
+          </span>
         </Descriptions.Item>
         <Descriptions.Item label="更新时间">
-          <span title={ticket.updatedAt}>{moment(ticket.updatedAt).fromNow()}</span>
+          <span title={moment(ticket.updatedAt).toLocaleString()}>
+            {moment(ticket.updatedAt).fromNow()}
+          </span>
         </Descriptions.Item>
       </Descriptions>
     </PageHeader>
@@ -258,37 +266,12 @@ function RightSider({ ticket, onUpdate, updating, onOperate, operating }: RightS
         updating={updating}
       />
 
-      <FormField
-        label={
-          <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <div>负责人</div>
-              {assigneeInGroup === false && (
-                <Tooltip title="负责人不是当前客服组的成员">
-                  <AiFillExclamationCircle className="inline-block text-red-500 w-4 h-4" />
-                </Tooltip>
-              )}
-            </div>
-            {assigneeIsCurrentUser === false && (
-              <button
-                className="text-primary disabled:text-gray-400"
-                disabled={updating}
-                onClick={() => onUpdate({ assigneeId: currentUser!.id })}
-              >
-                分配给我
-              </button>
-            )}
-          </div>
-        }
-      >
-        <SingleCustomerServiceSelect
-          includeNull
-          value={ticket?.assigneeId ?? NULL_STRING}
-          disabled={updating}
-          onChange={(assigneeId) => onUpdate({ assigneeId })}
-          style={{ width: '100%' }}
-        />
-      </FormField>
+      <AssigneeSection
+        groupId={ticket.groupId}
+        assigneeId={ticket.assigneeId}
+        onChangeAssignee={(assigneeId) => onUpdate({ assigneeId: assigneeId ?? null })}
+        disabled={updating}
+      />
 
       <Divider />
       <TagForm ticketId={ticket.id} />
@@ -313,6 +296,8 @@ function GroupSection({ groupId, onChange, updating }: GroupSectionProps) {
       <Select
         className="w-full"
         allowClear
+        showSearch
+        optionFilterProp="name"
         loading={isLoading}
         options={groups}
         fieldNames={{ label: 'name', value: 'id' }}
@@ -323,6 +308,110 @@ function GroupSection({ groupId, onChange, updating }: GroupSectionProps) {
       />
     </FormField>
   );
+}
+
+export interface AssigneeSectionProps {
+  groupId?: string;
+  assigneeId?: string;
+  onChangeAssignee: (assigneeId: string | undefined) => void;
+  disabled?: boolean;
+}
+
+function AssigneeSection({
+  groupId,
+  assigneeId,
+  onChangeAssignee,
+  disabled,
+}: AssigneeSectionProps) {
+  const { data: customerServices, isLoading: loadingCustomerServices } = useCustomerServices();
+  const { data: group } = useGroup(groupId || '', {
+    enabled: groupId !== undefined,
+  });
+  const { data: collaborators } = useCollaborators();
+
+  const [groupMembers, otherCustomerServices] = useMemo(() => {
+    if (customerServices && group) {
+      return partition(customerServices, (user) => group.userIds.includes(user.id));
+    }
+    return [[], []];
+  }, [customerServices, group]);
+
+  const assigneeIsGroupMember = useMemo(() => {
+    if (groupMembers && assigneeId) {
+      return groupMembers.findIndex((user) => user.id === assigneeId) !== -1;
+    }
+  }, [groupMembers, assigneeId]);
+
+  const options = useMemo(() => {
+    const options: DefaultOptionType[] = [];
+    if (group && groupMembers.length) {
+      options.push({
+        label: group.name,
+        options: createOptions(groupMembers),
+      });
+    }
+    if (otherCustomerServices.length) {
+      options.push({
+        label: groupMembers.length ? '其他客服' : '客服',
+        options: createOptions(otherCustomerServices),
+      });
+    }
+    if (collaborators && collaborators.length) {
+      options.push({
+        label: '协作者',
+        options: createOptions(collaborators),
+      });
+    }
+    return options;
+  }, [customerServices, group, groupMembers, collaborators]);
+
+  const currentUser = useCurrentUser();
+
+  return (
+    <FormField
+      label={
+        <div className="flex justify-between items-center">
+          <div className="flex items-center">
+            <div>负责人</div>
+            {assigneeIsGroupMember === false && (
+              <Tooltip title="负责人不是当前客服组的成员">
+                <AiFillExclamationCircle className="inline-block text-red-500 w-4 h-4" />
+              </Tooltip>
+            )}
+          </div>
+          {currentUser && currentUser.id !== assigneeId && (
+            <button
+              className="text-primary disabled:text-gray-400"
+              disabled={disabled}
+              onClick={() => onChangeAssignee(currentUser.id)}
+            >
+              分配给我
+            </button>
+          )}
+        </div>
+      }
+    >
+      <Select
+        className="w-full"
+        allowClear
+        showSearch
+        optionFilterProp="label"
+        loading={loadingCustomerServices}
+        options={options}
+        placeholder="未分配"
+        value={assigneeId}
+        onChange={onChangeAssignee}
+        disabled={disabled}
+      />
+    </FormField>
+  );
+}
+
+function createOptions(users: { id: string; nickname: string }[]) {
+  return users.map((user) => ({
+    label: user.nickname,
+    value: user.id,
+  }));
 }
 
 interface TicketOperationsProps {
