@@ -23,7 +23,7 @@ interface TicketSnapshot {
       // 客服后台设置的字段名称
       name: string;
       type: string;
-      value: string[];
+      values: string[];
     };
   };
   timestamp: string;
@@ -99,7 +99,7 @@ class TicketSnapshotManager {
       custom_fields[fieldId] = {
         name: field.title,
         type: field.type,
-        value: _.castArray(value),
+        values: _.castArray(value),
       };
     }
     return custom_fields;
