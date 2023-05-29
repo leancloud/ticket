@@ -417,9 +417,7 @@ router.get(
     if (!currentUser.email) {
       ctx.throw(400, '邮箱未设置，请前往个人设置页面进行设置');
     }
-    const { page, pageSize, utcOffset, ...rest } = exportTicketParamsSchema.validateSync(
-      ctx.query
-    );
+    const { page, pageSize, utcOffset, ...rest } = exportTicketParamsSchema.validateSync(ctx.query);
     const sortItems = sort.get(ctx);
     await createTicketExportJob({
       userId: currentUser.id,
@@ -1222,10 +1220,14 @@ router.post('/search-custom-field', customerServiceOnly, async (ctx) => {
   const ticketIds: string[] = results.map((t) => t.get('ticket').id);
   const tickets = await Ticket.queryBuilder()
     .where('objectId', 'in', ticketIds)
+    .preload('assignee')
+    .preload('author')
+    .preload('group')
     .orderBy('createdAt', 'desc')
     .limit(results.length)
     .find({ useMasterKey: true });
 
+  ctx.set('X-Total-Count', searchQuery.hits().toString());
   ctx.body = tickets.map((t) => new TicketListItemResponse(t));
 });
 
