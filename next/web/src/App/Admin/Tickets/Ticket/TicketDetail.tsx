@@ -10,7 +10,6 @@ import {
   Col,
   Descriptions,
   Divider,
-  NULL_STRING,
   PageHeader,
   Row,
   Select,
@@ -29,11 +28,7 @@ import { useGroup, useGroups } from '@/api/group';
 import { useCustomerServices } from '@/api/customer-service';
 import { useCollaborators } from '@/api/collaborator';
 import { useCurrentUser } from '@/leancloud';
-import {
-  CategorySelect,
-  SingleCustomerServiceSelect,
-  SingleGroupSelect,
-} from '@/components/common';
+import { CategorySelect } from '@/components/common';
 import { TicketStatus } from '../../components/TicketStatus';
 import { UpdateTicket_v1Data, useTicket_v1, useUpdateTicket_v1, V1_Ticket } from './api1';
 import { Timeline } from './Timeline';
@@ -240,24 +235,6 @@ interface RightSiderProps {
 }
 
 function RightSider({ ticket, onUpdate, updating, onOperate, operating }: RightSiderProps) {
-  const currentUser = useCurrentUser();
-
-  const { data: group } = useGroup(ticket.groupId!, {
-    enabled: ticket.groupId !== undefined,
-  });
-
-  const assigneeInGroup = useMemo(() => {
-    if (!group || !ticket.assigneeId) {
-      return;
-    }
-    if (!group.userIds) {
-      return false;
-    }
-    return group.userIds.includes(ticket.assigneeId);
-  }, [ticket.assigneeId, group]);
-
-  const assigneeIsCurrentUser = ticket && currentUser && ticket.assigneeId === currentUser.id;
-
   return (
     <div className="sticky top-4">
       <GroupSection
