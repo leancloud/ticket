@@ -29,7 +29,7 @@ export class CrmService {
       this.kafkaProducer = kafka.producer();
       this.kafkaProducer.connect();
     } catch (error) {
-      console.error(`[CrmService]: ${(error as Error).message}`);
+      console.error(`[CRM Service]: ${(error as Error).message}`);
       process.exit(1);
     }
     this.startTimer();
@@ -85,7 +85,6 @@ export class CrmService {
       topic: this.kafkaTopic,
       messages,
     });
-    console.log(`[CrmService]: ${messages.length} logs sended`);
   }
 }
 
