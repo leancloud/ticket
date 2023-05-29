@@ -251,9 +251,6 @@ function RightSider({ ticket, onUpdate, updating, onOperate, operating }: RightS
 
   return (
     <div className="sticky top-4">
-      <TicketOperations ticketStatus={ticket.status} onOperate={onOperate} operating={operating} />
-
-      <Divider />
       <FormField label="客服组">
         <SingleGroupSelect
           includeNull
@@ -298,6 +295,9 @@ function RightSider({ ticket, onUpdate, updating, onOperate, operating }: RightS
 
       <Divider />
       <TagForm ticketId={ticket.id} />
+
+      <Divider />
+      <TicketOperations ticketStatus={ticket.status} onOperate={onOperate} operating={operating} />
     </div>
   );
 }
