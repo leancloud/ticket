@@ -41,6 +41,7 @@ export const FieldSelect = ({
     () =>
       fields
         ?.filter(({ type }) => (availableTypes ?? AvailableTypes).includes(type))
+        .filter(({ meta }) => !meta?.hideFromSelect)
         .map(({ id, title, active, unused }) => ({
           label: active ? (unused ? `${title}（未使用）` : title) : `${title} (停用)`,
           value: id,
