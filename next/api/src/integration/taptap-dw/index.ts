@@ -27,16 +27,20 @@ interface TicketSnapshot {
     };
   };
   timestamp: string;
+  leancloud_app_id: string;
 }
 
 class TicketSnapshotManager {
   private ticketFieldCache: LRUCache<string, TicketField | 0>;
+
+  private leancloudAppId: string;
 
   constructor() {
     this.ticketFieldCache = new LRUCache({
       max: 1000, // 1000 items
       ttl: 1000 * 60 * 5, // 5 mins
     });
+    this.leancloudAppId = process.env.LEANCLOUD_APP_ID ?? 'unknown';
   }
 
   getTicketFieldValue(ticketId: string) {
@@ -115,6 +119,7 @@ class TicketSnapshotManager {
       status: ticket.status,
       custom_fields: {},
       timestamp,
+      leancloud_app_id: this.leancloudAppId,
     };
 
     if (!customFields) {
