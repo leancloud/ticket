@@ -4,7 +4,6 @@ import { useCategories } from '@/api/category';
 import { Sidebar } from './Sidebar';
 import Tickets from './Tickets';
 import { Views, ViewTickets } from './Views';
-import { SearchTicket } from './Search';
 import Settings from './Settings';
 import Stats from './Stats';
 import { NewTicket } from '../Tickets/New';
@@ -36,7 +35,6 @@ export default function AdminPage() {
                 <Route index element={null} />
                 <Route path=":id" element={<ViewTickets />} />
               </Route>
-              <Route path="/search" element={<SearchTicket />} />
               <Route path="/settings/*" element={<Settings />} />
               <Route path="/stats/*" element={<Stats />} />
               <Route path="*" element={<Navigate to="tickets" replace />} />
