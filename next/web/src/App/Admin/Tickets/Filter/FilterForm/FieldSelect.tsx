@@ -1,55 +1,69 @@
-import { TicketFieldType, useTicketFields } from '@/api/ticket-field';
-import { TreeSelect } from 'antd';
-import { FC, useCallback, useMemo } from 'react';
+import { TicketFieldSchema, TicketFieldType, useTicketFields } from '@/api/ticket-field';
+import { Select, SelectProps } from 'antd';
+import { DefaultOptionType } from 'antd/lib/select';
+import _ from 'lodash';
+import { useCallback, useMemo } from 'react';
 
-const OptionTypes: TicketFieldType[] = ['dropdown', /* 'multi-select', */ 'radios'];
+const AvailableTypes: TicketFieldType[] = [
+  'dropdown',
+  /* 'multi-select', */
+  'radios',
+  'number',
+  'text',
+  'multi-line',
+  /* 'date', */
+];
 
-export interface FieldOption {
-  name?: string;
-  value?: string;
+export const OptionTypes: TicketFieldType[] = [
+  'dropdown',
+  'radios',
+  /* 'multi-select', */
+];
+
+export const TextTypes: TicketFieldType[] = ['text', 'multi-line'];
+
+export interface FieldSelectProps extends SelectProps<string> {
+  onChangeWithData?: (field: TicketFieldSchema | undefined) => void;
+  availableTypes?: TicketFieldType[];
 }
 
-export interface FieldSelectProps {
-  value?: FieldOption;
-  onChange?: (value: FieldOption) => void;
-  disabled?: boolean;
-}
+export const FieldSelect = ({
+  onChangeWithData,
+  availableTypes,
+  onChange,
+  ...props
+}: FieldSelectProps) => {
+  const { data: fields } = useTicketFields({ unused: true, pageSize: 1000 });
 
-export const FieldSelect: FC<FieldSelectProps> = ({ value, onChange, disabled }) => {
-  const { data: fields } = useTicketFields({ includeVariants: true, unused: true, pageSize: 1000 });
+  const fieldsIdMap = useMemo(() => _.keyBy(fields, (field) => field.id), [fields]);
 
-  const treeData = useMemo(
+  const options = useMemo(
     () =>
       fields
-        ?.filter(({ type }) => OptionTypes.includes(type))
-        .map(({ id, title, variants, defaultLocale, active, unused }) => ({
-          selectable: false,
-          title: active ? (unused ? `${title}（未使用）` : title) : `${title} (停用)`,
+        ?.filter(({ type }) => (availableTypes ?? AvailableTypes).includes(type))
+        .map(({ id, title, active, unused }) => ({
+          label: active ? (unused ? `${title}（未使用）` : title) : `${title} (停用)`,
           value: id,
-          children: variants
-            ?.find(({ locale }) => locale === defaultLocale)
-            ?.options?.map(({ value, title }) => ({ title, value: `${id}:${value}` })),
         })),
-    [fields]
+    [availableTypes, fields]
   );
 
   const handleChange = useCallback(
-    (v?: string) => {
-      const field = v?.split(':');
-      onChange?.({ name: field?.[0], value: field?.[1] });
+    (id: string, option: DefaultOptionType | DefaultOptionType[]) => {
+      onChange?.(id, option);
+      onChangeWithData?.(fieldsIdMap[id]);
     },
-    [onChange]
+    [fieldsIdMap, onChange, onChangeWithData]
   );
 
   return (
-    <TreeSelect
+    <Select
       className="w-full"
-      value={value && `${value.name}:${value.value}`}
-      onChange={handleChange}
-      treeData={treeData}
-      disabled={disabled}
+      options={options}
       allowClear
       placeholder="任何"
+      onChange={handleChange}
+      {...props}
     />
   );
 };

@@ -1,9 +1,9 @@
-import React, { FC, PropsWithChildren, useCallback, useEffect, useState } from 'react';
+import React, { FC, PropsWithChildren, useCallback, useEffect, useMemo, useState } from 'react';
 import cx from 'classnames';
 
 import { Button, Input, Tabs } from '@/components/antd';
 import { UserSelect } from '@/components/common';
-import { FieldFilters, Filters, NormalFilters, OptionFieldFilters } from '../useTicketFilter';
+import { FieldFilters, Filters, NormalFilters } from '../useTicketFilter';
 import { AssigneeSelect } from './AssigneeSelect';
 import { GroupSelect } from './GroupSelect';
 import { TagSelect } from './TagSelect';
@@ -11,9 +11,11 @@ import { CreatedAtSelect } from './CreatedAtSelect';
 import { CategorySelect } from './CategorySelect';
 import { StatusSelect } from './StatusSelect';
 import { EvaluationStarSelect } from './EvaluationStarSelect';
-import { FieldSelect } from './FieldSelect';
+import { OptionFieldValueSelect } from './OptionFieldValueSelect';
 import { LocaleSelect } from '@/App/Admin/components/LocaleSelect';
 import { TicketLanguages } from '@/i18n/locales';
+import { TicketFieldSchema } from '@/api/ticket-field';
+import { FieldSelect, OptionTypes, TextTypes } from './FieldSelect';
 
 function Field({ title, children }: PropsWithChildren<{ title: React.ReactNode }>) {
   return (
@@ -136,35 +138,52 @@ const NormalFieldForm = ({ filters, merge, onSubmit }: FilterFormItemProps<Norma
   );
 };
 
-const FieldSearchForm = ({ filters, merge, onSubmit }: FilterFormItemProps<FieldFilters>) => {
-  const { q } = filters;
+const CustomFieldForm = ({ filters, merge, onSubmit }: FilterFormItemProps<FieldFilters>) => {
+  const { fieldId: paramFieldId, optionValue, createdAt, textValue } = filters;
 
-  return (
-    <Field title="根据自定义字段搜索工单">
-      <Input.Search
-        placeholder="根据自定义字段搜索工单"
-        value={q}
-        onSearch={(value) => merge({ q: value.trim() })}
-        onKeyDown={(e) => e.key === 'Enter' && onSubmit?.()}
-      />
-    </Field>
+  const [field, setField] = useState<TicketFieldSchema | undefined>();
+
+  const [fieldId, isOptionType, isTextType] = useMemo(
+    () => [
+      field?.id ?? paramFieldId,
+      field ? OptionTypes.includes(field.type) : !!optionValue,
+      field ? TextTypes.includes(field.type) : !!textValue,
+    ],
+    [field, optionValue, paramFieldId, textValue]
   );
-};
-
-const OptionFieldForm = ({ filters, merge }: FilterFormItemProps<OptionFieldFilters>) => {
-  const { fieldName, fieldValue, createdAt } = filters;
 
   return (
     <>
       <Field title="创建时间">
         <CreatedAtSelect value={createdAt} onChange={(createdAt) => merge({ createdAt })} />
       </Field>
-      <Field title="工单选项字段">
-        <FieldSelect
-          value={fieldName && fieldValue ? { name: fieldName, value: fieldValue } : undefined}
-          onChange={({ name, value }) => merge({ fieldName: name, fieldValue: value })}
-        />
+      <Field title="工单选项">
+        <FieldSelect value={fieldId} onChangeWithData={setField} />
       </Field>
+
+      {fieldId && (
+        <Field title="字段值">
+          {isOptionType ? (
+            <OptionFieldValueSelect
+              fieldId={fieldId}
+              value={field?.id !== paramFieldId ? undefined : optionValue}
+              onChange={(v) => {
+                merge({ fieldId: fieldId, optionValue: v });
+              }}
+            />
+          ) : isTextType ? (
+            <Input
+              value={field?.id !== paramFieldId ? undefined : textValue}
+              onChange={(e) => {
+                merge({ fieldId: fieldId, textValue: e.target.value });
+              }}
+              onKeyDown={(e) => e.key === 'Enter' && onSubmit?.()}
+            />
+          ) : (
+            'Unsupported!'
+          )}
+        </Field>
+      )}
     </>
   );
 };
@@ -172,7 +191,7 @@ const OptionFieldForm = ({ filters, merge }: FilterFormItemProps<OptionFieldFilt
 export const FilterForm: FC<FilterFormProps> = ({ className, filters, onChange }) => {
   const [tempFilters, setTempFilters] = useState(filters);
   const [isDirty, setIsDirty] = useState(false);
-  const [active, setActive] = useState<Filters['type']>('normal');
+  const [active, setActive] = useState<Filters['type']>(filters.type);
 
   useEffect(() => {
     setTempFilters(filters);
@@ -199,17 +218,14 @@ export const FilterForm: FC<FilterFormProps> = ({ className, filters, onChange }
         <Tabs activeKey={active} centered onChange={(key) => setActive(key as Filters['type'])}>
           <Tabs.TabPane tab="标准" key="normal">
             <NormalFieldForm
-              filters={filters as NormalFilters}
+              filters={tempFilters as NormalFilters}
               merge={merge}
               onSubmit={handleChange}
             />
           </Tabs.TabPane>
-          <Tabs.TabPane tab="选项" key="option">
-            <OptionFieldForm filters={filters as OptionFieldFilters} merge={merge} />
-          </Tabs.TabPane>
           <Tabs.TabPane tab="自定义字段" key="field">
-            <FieldSearchForm
-              filters={filters as FieldFilters}
+            <CustomFieldForm
+              filters={tempFilters as FieldFilters}
               merge={merge}
               onSubmit={handleChange}
             />

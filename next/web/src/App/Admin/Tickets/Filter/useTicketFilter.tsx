@@ -24,24 +24,21 @@ export interface NormalFilters extends CommonFilters {
   language?: string[];
 }
 
-export interface OptionFieldFilters extends CommonFilters {
-  type: 'option';
-  fieldName?: string;
-  fieldValue?: string;
-}
-
-export interface FieldFilters {
+export interface FieldFilters extends CommonFilters {
   type: 'field';
-  q?: string;
+  fieldId?: string;
+  optionValue?: string;
+  textValue?: string;
 }
 
-export type Filters = NormalFilters | OptionFieldFilters | FieldFilters;
+export type Filters = NormalFilters | FieldFilters;
 
 const serializeFilters = (filter: Filters): Record<string, string | undefined> => {
   if (filter.type === 'field') {
-    return { filterType: 'field', ..._.pick(filter, ['q']) };
-  } else if (filter.type === 'option') {
-    return { filterType: 'option', ..._.pick(filter, ['fieldName', 'fieldValue', 'createdAt']) };
+    return {
+      filterType: 'field',
+      ..._.pick(filter, ['fieldId', 'optionValue', 'createdAt', 'textValue']),
+    };
   } else {
     return {
       ..._.omit(filter, ['type']),
@@ -57,50 +54,45 @@ const serializeFilters = (filter: Filters): Record<string, string | undefined> =
   }
 };
 
-const deserializeFilters = (
-  params: Record<string, string | undefined>,
-  passthrough = false
-): Filters => {
-  if (params.filterType === 'normal') {
-    const starNum = Number(params.star);
-    return {
-      type: 'normal',
-      ...(passthrough
-        ? params
-        : _.pick(params, [
-            'keyword',
-            'authorId',
-            'tagKey',
-            'tagValue',
-            'privateTagKey',
-            'privateTagValue',
-            'createdAt',
-            'rootCategoryId',
-          ])),
-      assigneeId: params.assigneeId?.split(','),
-      groupId: params.groupId?.split(','),
-      reporterId: params.reporterId?.split(','),
-      participantId: params.participantId?.split(','),
-      language: params.language?.split(','),
-      status: params.status
-        ?.split(',')
-        .map((s) => parseInt(s))
-        .filter((n) => !Number.isNaN(n)),
-      star: Number.isNaN(starNum) ? undefined : starNum,
-    };
-  } else if (params.filterType === 'field') {
-    return {
-      type: 'field',
-      ...(passthrough ? params : _.pick(params, ['q'])),
-    };
-  } else if (params.filterType === 'option') {
-    return {
-      type: 'option',
-      ...(passthrough ? params : _.pick(params, ['fieldName', 'fieldValue', 'createdAt'])),
-    };
-  } else {
-    return { type: 'normal', ...(passthrough && params) };
-  }
+const deserializeFilters = (params: Record<string, string | undefined>): Filters => {
+  const starNum = Number(params.star);
+
+  return {
+    type:
+      params.filterType === 'normal'
+        ? 'normal'
+        : params.filterType === 'field'
+        ? 'field'
+        : 'normal',
+    ..._.pick(params, [
+      // common
+      'createdAt',
+
+      // normal
+      'keyword',
+      'authorId',
+      'tagKey',
+      'tagValue',
+      'privateTagKey',
+      'privateTagValue',
+      'rootCategoryId',
+
+      // field
+      'fieldId',
+      'optionValue',
+      'textValue',
+    ]),
+    assigneeId: params.assigneeId?.split(','),
+    groupId: params.groupId?.split(','),
+    reporterId: params.reporterId?.split(','),
+    participantId: params.participantId?.split(','),
+    language: params.language?.split(','),
+    status: params.status
+      ?.split(',')
+      .map((s) => parseInt(s))
+      .filter((n) => !Number.isNaN(n)),
+    star: Number.isNaN(starNum) ? undefined : starNum,
+  };
 };
 
 const FiltersContext = createContext<[Filters, (filters: Filters) => void]>([
@@ -111,7 +103,7 @@ const FiltersContext = createContext<[Filters, (filters: Filters) => void]>([
 export function LocalFiltersProvider({ children }: { children: ReactNode }) {
   const [params, { merge }] = useSearchParams();
 
-  const filters = useMemo(() => deserializeFilters(params, true), [params]);
+  const filters = useMemo(() => deserializeFilters(params), [params]);
 
   const set = useCallback(
     (filters: Filters) => {
