@@ -5,7 +5,7 @@ import { TagMetadataSchema, useTagMetadatas } from '@/api/tag-metadata';
 import { useUpdateTicket } from '@/api/ticket';
 import { Button, Input, Select, Skeleton } from '@/components/antd';
 import { useTicket_v1, V1_Ticket } from './api1';
-import { FormLabel } from './components/FormLabel';
+import { FormField } from './components/FormField';
 
 interface TagFormProps {
   ticketId: string;
@@ -107,8 +107,7 @@ function TagField({ tagMetadata, tag, loading, onChange }: TagFieldProps) {
   const dirty = useMemo(() => (tag ? textValue !== tag.value : !!textValue), [tag, textValue]);
 
   return (
-    <div className="mt-4">
-      <FormLabel>{tagMetadata.key}</FormLabel>
+    <FormField label={tagMetadata.key}>
       {tagMetadata.type === 'text' && (
         <Input.Group compact style={{ display: 'flex' }}>
           <Input
@@ -138,6 +137,6 @@ function TagField({ tagMetadata, tag, loading, onChange }: TagFieldProps) {
           style={{ width: '100%' }}
         />
       )}
-    </div>
+    </FormField>
   );
 }

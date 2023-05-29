@@ -33,7 +33,7 @@ import { TicketStatus } from '../../components/TicketStatus';
 import { UpdateTicket_v1Data, useTicket_v1, useUpdateTicket_v1, V1_Ticket } from './api1';
 import { Timeline } from './Timeline';
 import { TagForm } from './TagForm';
-import { FormLabel } from './components/FormLabel';
+import { FormField } from './components/FormField';
 import { ReplyEditor } from './components/ReplyEditor';
 import { SubscribeButton } from './components/SubscribeButton';
 import { PrivateSelect } from './components/PrivateSelect';
@@ -247,13 +247,14 @@ function RightSider({ ticket, onUpdate, updating, onOperate, operating }: RightS
     return group.userIds.includes(ticket.assigneeId);
   }, [ticket.assigneeId, group]);
 
+  const assigneeIsCurrentUser = ticket && currentUser && ticket.assigneeId === currentUser.id;
+
   return (
     <div className="sticky top-4">
       <TicketOperations ticketStatus={ticket.status} onOperate={onOperate} operating={operating} />
 
       <Divider />
-      <div>
-        <FormLabel>客服组</FormLabel>
+      <FormField label="客服组">
         <SingleGroupSelect
           includeNull
           value={ticket?.groupId ?? NULL_STRING}
@@ -261,19 +262,20 @@ function RightSider({ ticket, onUpdate, updating, onOperate, operating }: RightS
           onChange={(groupId) => onUpdate({ groupId })}
           style={{ width: '100%' }}
         />
-      </div>
+      </FormField>
 
-      <div className="mt-4">
-        <FormLabel className="flex items-center">
-          <div>负责人</div>
-          {assigneeInGroup === false && (
-            <Tooltip title={`负责人不是客服组 ${group!.name} 的成员`}>
-              <AiFillExclamationCircle className="inline-block text-red-500 w-4 h-4" />
-            </Tooltip>
-          )}
-          {ticket && ticket.assigneeId !== currentUser!.id && (
-            <>
-              <div className="grow" />
+      <FormField
+        label={
+          <div className="flex justify-between items-center">
+            <div className="flex items-center">
+              <div>负责人</div>
+              {assigneeInGroup === false && (
+                <Tooltip title="负责人不是当前客服组的成员">
+                  <AiFillExclamationCircle className="inline-block text-red-500 w-4 h-4" />
+                </Tooltip>
+              )}
+            </div>
+            {assigneeIsCurrentUser === false && (
               <button
                 className="text-primary disabled:text-gray-400"
                 disabled={updating}
@@ -281,9 +283,10 @@ function RightSider({ ticket, onUpdate, updating, onOperate, operating }: RightS
               >
                 分配给我
               </button>
-            </>
-          )}
-        </FormLabel>
+            )}
+          </div>
+        }
+      >
         <SingleCustomerServiceSelect
           includeNull
           value={ticket?.assigneeId ?? NULL_STRING}
@@ -291,7 +294,7 @@ function RightSider({ ticket, onUpdate, updating, onOperate, operating }: RightS
           onChange={(assigneeId) => onUpdate({ assigneeId })}
           style={{ width: '100%' }}
         />
-      </div>
+      </FormField>
 
       <Divider />
       <TagForm ticketId={ticket.id} />
@@ -307,9 +310,8 @@ interface TicketOperationsProps {
 
 function TicketOperations({ ticketStatus, operating, onOperate }: TicketOperationsProps) {
   return (
-    <div>
-      <FormLabel>工单操作</FormLabel>
-      <div>
+    <FormField label="工单操作">
+      <div className="space-x-2">
         {ticketStatus < 200 && (
           <>
             {import.meta.env.VITE_ENABLE_USER_CONFIRMATION && (
@@ -328,6 +330,6 @@ function TicketOperations({ ticketStatus, operating, onOperate }: TicketOperatio
           </Button>
         )}
       </div>
-    </div>
+    </FormField>
   );
 }
