@@ -6,6 +6,7 @@ import { Config } from '@/model/Config';
 import { Ticket } from '@/model/Ticket';
 import { TicketField } from '@/model/TicketField';
 import { FieldValue, TicketFieldValue } from '@/model/TicketFieldValue';
+import { File } from '@/model/File';
 
 interface TicketSnapshot {
   id: string;
@@ -24,6 +25,8 @@ interface TicketSnapshot {
       name: string;
       type: string;
       values: string[];
+      // 文件字段的 URL
+      urls?: string[];
     };
   };
   timestamp: string;
@@ -88,6 +91,10 @@ class TicketSnapshotManager {
     return cachedFields.concat(fields);
   }
 
+  getFiles(fileIds: string[]) {
+    return File.queryBuilder().where('objectId', 'in', fileIds).find({ useMasterKey: true });
+  }
+
   createCustomFieldsSnapshot(fields: TicketField[], values: FieldValue[]) {
     const custom_fields: TicketSnapshot['custom_fields'] = {};
     const fieldById = _.keyBy(fields, (field) => field.id);
@@ -134,10 +141,35 @@ class TicketSnapshotManager {
       if (fieldIds.length) {
         const fields = await this.getTicketFields(fieldIds);
         snapshot.custom_fields = this.createCustomFieldsSnapshot(fields, customFields);
+        await this.fillFileFieldUrls(snapshot.custom_fields);
       }
     }
 
     return snapshot;
+  }
+
+  async fillFileFieldUrls(customFields: TicketSnapshot['custom_fields']) {
+    const customFieldList = Object.values(customFields);
+    const fileIds = customFieldList
+      .filter((field) => field.type === 'file')
+      .flatMap((field) => field.values);
+
+    if (fileIds.length === 0) {
+      return;
+    }
+
+    const files = await this.getFiles(fileIds);
+    const fileById = _.keyBy(files, (file) => file.id);
+
+    for (const customField of customFieldList) {
+      if (customField.type !== 'file') {
+        continue;
+      }
+      customField.urls = customField.values
+        .map((fileId) => fileById[fileId])
+        .filter(Boolean)
+        .map((file) => file.url);
+    }
   }
 
   createCreatedTicketSnapshot(ticket: Ticket, customFields?: FieldValue[]) {
