@@ -299,7 +299,7 @@ async function searchTicketCustomField(q: string) {
   const { data, headers } = await http.post<TicketSchema[]>('/api/2/tickets/search-custom-field', {
     q,
   });
-  return { tickets: data, totalCount: Number(headers['X-Total-Count']) };
+  return { tickets: data, totalCount: Number(headers['x-total-count']) };
 }
 
 export function useSearchTicketCustomField(
