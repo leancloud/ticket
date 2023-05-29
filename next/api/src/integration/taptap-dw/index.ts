@@ -9,6 +9,7 @@ import { FieldValue, TicketFieldValue } from '@/model/TicketFieldValue';
 import { File } from '@/model/File';
 
 interface TicketSnapshot {
+  service: string;
   id: string;
   author: {
     id: string;
@@ -36,14 +37,11 @@ interface TicketSnapshot {
 class TicketSnapshotManager {
   private ticketFieldCache: LRUCache<string, TicketField | 0>;
 
-  private leancloudAppId: string;
-
-  constructor() {
+  constructor(readonly leancloudAppId: string, readonly serviceName: string) {
     this.ticketFieldCache = new LRUCache({
       max: 1000, // 1000 items
       ttl: 1000 * 60 * 5, // 5 mins
     });
-    this.leancloudAppId = process.env.LEANCLOUD_APP_ID ?? 'unknown';
   }
 
   getTicketFieldValue(ticketId: string) {
@@ -114,6 +112,7 @@ class TicketSnapshotManager {
 
   async createTicketSnapshot(ticket: Ticket, timestamp: string, customFields?: FieldValue[]) {
     const snapshot: TicketSnapshot = {
+      service: this.serviceName,
       id: ticket.id,
       author: {
         id: ticket.authorId,
@@ -185,6 +184,7 @@ interface TapTapDWConfig {
   enabled?: boolean;
   topic: string;
   kafka: KafkaConfig;
+  service: string;
 }
 
 export default async function (install: Function) {
@@ -201,7 +201,10 @@ export default async function (install: Function) {
   const producer = kafka.producer();
   await producer.connect();
 
-  const snapshotManager = new TicketSnapshotManager();
+  const snapshotManager = new TicketSnapshotManager(
+    process.env.LEANCLOUD_APP_ID ?? 'unknown',
+    config.service
+  );
 
   let sendedCount = 0;
   const sendSnapshot = async (snapshot: TicketSnapshot) => {
