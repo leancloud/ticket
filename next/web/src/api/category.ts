@@ -21,6 +21,9 @@ export interface CategorySchema {
   topicIds?: string[];
   formId?: string;
   groupId?: string;
+  articleId?: string | null;
+  isTicketEnabled: boolean;
+  ticketDescription?: string;
 }
 
 async function fetchCategories(active?: boolean): Promise<CategorySchema[]> {

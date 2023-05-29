@@ -15,10 +15,12 @@ import {
 } from '@/api/topic';
 import { Button, Form, Input, Modal, Table, TableProps, message } from '@/components/antd';
 import { QueryResult } from '@/components/common';
-import { ArticleSelect } from '../Articles/ArticleSelect';
+import { ArticleListFormItem } from '@/App/Admin/components/ArticleListFormItem';
 import { JSONTextarea } from '../../components/JSONTextarea';
 import { useArticles } from '@/api/article';
 import _ from 'lodash';
+
+const { Column } = Table;
 
 function TopicActions({ id, name }: Topic) {
   const navigate = useNavigate();
@@ -53,25 +55,6 @@ function TopicActions({ id, name }: Topic) {
   );
 }
 
-const columns: TableProps<Topic>['columns'] = [
-  {
-    dataIndex: 'name',
-    title: '名称',
-    className: 'whitespace-nowrap',
-    render: (name: string, topic: Topic) => <Link to={topic.id} children={name} />,
-  },
-  {
-    dataIndex: 'articleIds',
-    title: '数量',
-    render: (articleIds: string[]) => articleIds.length,
-  },
-  {
-    key: 'actions',
-    title: '操作',
-    render: TopicActions,
-  },
-];
-
 export function TopicList() {
   const { data: topics, isLoading } = useTopics();
 
@@ -87,12 +70,29 @@ export function TopicList() {
 
       <Table
         className="mt-5"
-        columns={columns}
         loading={isLoading}
         dataSource={topics}
         rowKey="id"
         pagination={false}
-      />
+      >
+        <Column<Topic>
+          className="whitespace-nowrap"
+          dataIndex="name"
+          title="名称"
+          render={(name, topic) => <Link to={`${topic.id}`}>{name}</Link>}
+        />
+        <Column<Topic>
+          dataIndex="articleIds"
+          title="数量"
+          render={(articleIds) => articleIds.length}
+        />
+        <Column<Topic>
+          dataIndex="id"
+          key="actions"
+          title="操作"
+          render={(id, topic) => <TopicActions {...topic} />}
+        />
+      </Table>
     </div>
   );
 }
@@ -108,7 +108,7 @@ function EditTopic({ initData, loading, onSave }: EditTopicProps) {
     defaultValues: initData,
   });
 
-  const { data: articles } = useArticles();
+  const { data: articles, isLoading: loadingArticles } = useArticles();
   const articleMap = useMemo(() => _.keyBy(articles, 'id'), [articles]);
 
   return (
@@ -134,21 +134,13 @@ function EditTopic({ initData, loading, onSave }: EditTopicProps) {
         name="articleIds"
         render={({ field }) => (
           <Form.Item label="文章" htmlFor="articles">
-            <ArticleSelect {...field} id="articles" />
-            {articles && field.value && (
-              <div className="mt-2">
-                <div>预览：</div>
-                <ul>
-                  {field.value.map((id) => (
-                    <li key={id}>
-                      <a href={`../articles/${id}`} target="_blank">
-                        {articleMap[id].name}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            <ArticleListFormItem
+              articles={articles}
+              value={field.value}
+              onChange={field.onChange}
+              modalTitle="编辑文章"
+              loading={loadingArticles}
+            />
           </Form.Item>
         )}
       />

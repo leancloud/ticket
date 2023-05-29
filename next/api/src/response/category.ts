@@ -21,6 +21,9 @@ export class CategoryResponse {
       topicIds: this.category.topicIds,
       formId: this.category.formId,
       groupId: this.category.groupId,
+      articleId: this.category.articleId,
+      isTicketEnabled: this.category.isTicketEnabled,
+      ticketDescription: this.category.ticketDescription,
     };
   }
 }

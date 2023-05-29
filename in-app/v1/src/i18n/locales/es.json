@@ -28,7 +28,12 @@
     "suffix": "Retroalimentación",
     "action": "Enviar comentarios",
     "record": "Registro de comentarios",
-    "submit": "Enviar comentarios"
+    "submit": "Enviar comentarios",
+    "title": "Contactar con servicio al cliente",
+    "submit_ticket": "Enviar ticket",
+    "wait_time": "Tiempo de espera estimado:",
+    "hours": "{{value}} horas",
+    "minutes": "{{value}} minutos"
   },
   "faqs": {
     "showAll": "Ver todo",
@@ -42,7 +47,7 @@
     "not_logged_in_text": "Se ha detectado que no has iniciado sesión, por favor inicia sesión y vuelve a intentarlo."
   },
   "category": {
-    "select_hint": "Seleccione el problema que enfrenta",
+    "select_hint": "Seleccionar tema",
     "select_hint_home": "Seleccione el tipo de problema",
     "faqs": "Artículos relacionados",
     "title": "Categoría de preguntas"

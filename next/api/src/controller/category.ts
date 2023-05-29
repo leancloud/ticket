@@ -44,6 +44,9 @@ const createCategorySchema = z.object({
   meta: z.record(z.any()).optional(),
   template: z.string().optional(),
   hidden: z.boolean().optional(),
+  articleId: z.string().optional(),
+  isTicketEnabled: z.boolean(),
+  ticketDescription: z.string().optional(),
 });
 
 const updateCategorySchema = createCategorySchema.partial().extend({
@@ -53,6 +56,8 @@ const updateCategorySchema = createCategorySchema.partial().extend({
   groupId: z.string().nullable().optional(),
   formId: z.string().nullable().optional(),
   meta: z.record(z.any()).optional().nullable(),
+  articleId: z.string().nullable().optional(),
+  ticketDescription: z.string().nullable().optional(),
 });
 
 const batchUpdateSchema = z.array(
@@ -77,6 +82,7 @@ export class CategoryController {
   ) {
     const categories = await categoryService.find({ active });
     await categoryService.renderCategories(categories, ctx.locales.locales);
+
     return categories;
   }
 
@@ -227,6 +233,9 @@ export class CategoryController {
       order: data.position ?? deletedAt?.getTime(),
       deletedAt,
       hidden: data.hidden,
+      articleId: data.articleId,
+      isTicketEnabled: data.isTicketEnabled,
+      ticketDescription: data.ticketDescription,
     };
   }
 }

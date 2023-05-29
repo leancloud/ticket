@@ -6,7 +6,7 @@ import { Helmet } from 'react-helmet-async';
 import { pick, cloneDeep } from 'lodash-es';
 
 import { http } from '@/leancloud';
-import { Category, useCategories, useFAQs } from '@/api/category';
+import { Category, useCategories } from '@/api/category';
 import { FieldItem, useTicketFormItems } from '@/api/ticket-form';
 import { useTicketInfo } from '@/states/ticket-info';
 import { useSearchParams } from '@/utils/url';
@@ -18,7 +18,6 @@ import CheckIcon from '@/icons/Check';
 import NotFound from '../../NotFound';
 import { CustomForm, CustomFieldConfig, CustomFormItem } from './CustomForm';
 import { usePersistFormData } from './usePersistFormData';
-import { FAQs } from '@/App/Categories';
 
 const DEFAULT_FIELDS: CustomFieldConfig[] = [
   {
@@ -173,8 +172,6 @@ export function NewTicket() {
     }
   }, [categories, category_id]);
 
-  const { data: faqs, isLoading: FAQsIsLoading, isSuccess: FAQsIsReady } = useFAQs(category?.id);
-
   const { mutateAsync: submit, isLoading: submitting } = useMutation({
     mutationFn: createTicket,
     onSuccess: (ticketId: string) => {
@@ -197,13 +194,7 @@ export function NewTicket() {
         <Success ticketId={ticketId as string} />
       ) : (
         <QueryWrapper result={result}>
-          <FAQs className="mb-6" faqs={faqs} />
-          <TicketForm
-            category={category!}
-            onSubmit={submit}
-            submitting={submitting}
-            showTitle={!!faqs?.length}
-          />
+          <TicketForm category={category!} onSubmit={submit} submitting={submitting} />
         </QueryWrapper>
       )}
     </>

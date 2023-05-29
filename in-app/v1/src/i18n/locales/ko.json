@@ -28,7 +28,12 @@
     "suffix": "피드백",
     "action": "피드백 보내기",
     "record": "피드백 기록",
-    "submit": "제출 피드백"
+    "submit": "제출 피드백",
+    "title": "고객 지원팀 연락처",
+    "submit_ticket": "티켓 제출",
+    "wait_time": "예상 대기 시간:",
+    "hours": "{{value}} 시간",
+    "minutes": "{{value}} 분"
   },
   "faqs": {
     "showAll": "전체보기",
@@ -42,7 +47,7 @@
     "not_logged_in_text": "계정에 로그인하지 않았습니다. 로그인 후 다시 시도하십시오."
   },
   "category": {
-    "select_hint": "선택하신 문제를 알려주세요",
+    "select_hint": "주제 선택",
     "select_hint_home": "선택할 문제 유형",
     "faqs": "관련 기사",
     "title": "문제 분류"
