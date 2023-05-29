@@ -337,7 +337,7 @@ export function Topbar({
         />
       )}
 
-      <Badge dot={!isEmpty(localFilters)}>
+      <Badge dot={!isEmpty(localFilters) && type !== 'processable'}>
         <NavButton
           className="ml-2 px-[7px] py-[7px]"
           active={showFilter}
