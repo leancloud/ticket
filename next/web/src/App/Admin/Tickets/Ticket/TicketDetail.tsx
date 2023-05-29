@@ -250,10 +250,10 @@ function RightSider({ ticket, onUpdate, updating, onOperate, operating }: RightS
         disabled={updating}
       />
 
-      <Divider />
+      <Divider>标签</Divider>
       <TagForm ticketId={ticket.id} />
 
-      <Divider />
+      <Divider>工单操作</Divider>
       <TicketOperations ticketStatus={ticket.status} onOperate={onOperate} operating={operating} />
     </div>
   );
@@ -399,26 +399,24 @@ interface TicketOperationsProps {
 
 function TicketOperations({ ticketStatus, operating, onOperate }: TicketOperationsProps) {
   return (
-    <FormField label="工单操作">
-      <div className="space-x-2">
-        {ticketStatus < 200 && (
-          <>
-            {import.meta.env.VITE_ENABLE_USER_CONFIRMATION && (
-              <Button disabled={operating} onClick={() => onOperate('resolve')}>
-                已解决
-              </Button>
-            )}
-            <Button disabled={operating} onClick={() => onOperate('close')}>
-              关闭
+    <div className="space-x-2">
+      {ticketStatus < 200 && (
+        <>
+          {import.meta.env.VITE_ENABLE_USER_CONFIRMATION && (
+            <Button disabled={operating} onClick={() => onOperate('resolve')}>
+              已解决
             </Button>
-          </>
-        )}
-        {ticketStatus > 200 && (
-          <Button disabled={operating} onClick={() => onOperate('reopen')}>
-            重新打开
+          )}
+          <Button disabled={operating} onClick={() => onOperate('close')}>
+            关闭
           </Button>
-        )}
-      </div>
-    </FormField>
+        </>
+      )}
+      {ticketStatus > 200 && (
+        <Button disabled={operating} onClick={() => onOperate('reopen')}>
+          重新打开
+        </Button>
+      )}
+    </div>
   );
 }
