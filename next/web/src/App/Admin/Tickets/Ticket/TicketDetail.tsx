@@ -11,6 +11,7 @@ import {
   NULL_STRING,
   PageHeader,
   Row,
+  Select,
   Skeleton,
   Tooltip,
 } from '@/components/antd';
@@ -22,7 +23,7 @@ import {
   useTicket,
   useUpdateTicket,
 } from '@/api/ticket';
-import { useGroup } from '@/api/group';
+import { useGroup, useGroups } from '@/api/group';
 import { useCurrentUser } from '@/leancloud';
 import {
   CategorySelect,
@@ -251,15 +252,11 @@ function RightSider({ ticket, onUpdate, updating, onOperate, operating }: RightS
 
   return (
     <div className="sticky top-4">
-      <FormField label="客服组">
-        <SingleGroupSelect
-          includeNull
-          value={ticket?.groupId ?? NULL_STRING}
-          disabled={updating}
-          onChange={(groupId) => onUpdate({ groupId })}
-          style={{ width: '100%' }}
-        />
-      </FormField>
+      <GroupSection
+        groupId={ticket.groupId}
+        onChange={(groupId) => onUpdate({ groupId: groupId ?? null })}
+        updating={updating}
+      />
 
       <FormField
         label={
@@ -299,6 +296,32 @@ function RightSider({ ticket, onUpdate, updating, onOperate, operating }: RightS
       <Divider />
       <TicketOperations ticketStatus={ticket.status} onOperate={onOperate} operating={operating} />
     </div>
+  );
+}
+
+interface GroupSectionProps {
+  groupId?: string;
+  onChange: (groupId: string | undefined) => void;
+  updating?: boolean;
+}
+
+function GroupSection({ groupId, onChange, updating }: GroupSectionProps) {
+  const { data: groups, isLoading } = useGroups();
+
+  return (
+    <FormField label="客服组">
+      <Select
+        className="w-full"
+        allowClear
+        loading={isLoading}
+        options={groups}
+        fieldNames={{ label: 'name', value: 'id' }}
+        placeholder="未分配"
+        value={groupId}
+        onChange={onChange}
+        disabled={updating}
+      />
+    </FormField>
   );
 }
 
