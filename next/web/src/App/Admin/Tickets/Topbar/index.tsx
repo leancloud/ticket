@@ -21,7 +21,7 @@ import { BatchUpdateData, BatchUpdateError, batchUpdate } from './batchUpdate';
 import { SortDropdown } from './SortDropdown';
 import { useLocalFilters } from '../Filter';
 import { Exporter } from './Exporter';
-import { isEmpty } from 'lodash-es';
+import { some, omit } from 'lodash-es';
 import { useTicketSwitchType } from '../useTicketSwitchType';
 
 export { useOrderBy } from './SortDropdown';
@@ -337,7 +337,7 @@ export function Topbar({
         />
       )}
 
-      <Badge dot={!isEmpty(localFilters) && type !== 'processable'}>
+      <Badge dot={some(omit(localFilters, ['type']), (v) => !!v) && type !== 'processable'}>
         <NavButton
           className="ml-2 px-[7px] py-[7px]"
           active={showFilter}
