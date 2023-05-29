@@ -203,6 +203,7 @@ export default async function (install: Function) {
 
   const snapshotManager = new TicketSnapshotManager();
 
+  let sendedCount = 0;
   const sendSnapshot = async (snapshot: TicketSnapshot) => {
     await producer.send({
       topic: config.topic,
@@ -212,7 +213,15 @@ export default async function (install: Function) {
         },
       ],
     });
+    sendedCount += 1;
   };
+
+  setInterval(() => {
+    if (sendedCount) {
+      console.log(`[TapTap Data Warehouse] ${sendedCount} log(s) sended`);
+      sendedCount = 0;
+    }
+  }, 1000 * 10);
 
   events.on('ticket:created', ({ ticket, customFields }) => {
     snapshotManager
