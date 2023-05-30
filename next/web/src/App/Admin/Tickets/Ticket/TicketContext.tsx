@@ -81,7 +81,11 @@ export function TicketContextProvider({ ticketId, children }: TicketContextProvi
     },
   });
 
-  const { mutate: operateTicket, isLoading: operating } = useOperateTicket();
+  const { mutate: operateTicket, isLoading: operating } = useOperateTicket({
+    onSuccess: () => {
+      refetch();
+    },
+  });
 
   const ticketData = useMemo<TicketData | undefined>(() => {
     if (ticket && ticket_v1) {
