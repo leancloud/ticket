@@ -1,9 +1,9 @@
 import React, { FC, PropsWithChildren, useCallback, useEffect, useMemo, useState } from 'react';
 import cx from 'classnames';
 
-import { Button, Divider, Input } from '@/components/antd';
+import { Button, Input, Tabs } from '@/components/antd';
 import { UserSelect } from '@/components/common';
-import { Filters } from '../useTicketFilter';
+import { FieldFilters, Filters, NormalFilters } from '../useTicketFilter';
 import { AssigneeSelect } from './AssigneeSelect';
 import { GroupSelect } from './GroupSelect';
 import { TagSelect } from './TagSelect';
@@ -11,10 +11,11 @@ import { CreatedAtSelect } from './CreatedAtSelect';
 import { CategorySelect } from './CategorySelect';
 import { StatusSelect } from './StatusSelect';
 import { EvaluationStarSelect } from './EvaluationStarSelect';
-import { FieldSelect } from './FieldSelect';
-import { useSorterLimited } from '../useSorterLimited';
+import { OptionFieldValueSelect } from './OptionFieldValueSelect';
 import { LocaleSelect } from '@/App/Admin/components/LocaleSelect';
 import { TicketLanguages } from '@/i18n/locales';
+import { TicketFieldSchema } from '@/api/ticket-field';
+import { FieldSelect, OptionTypes, TextTypes } from './FieldSelect';
 
 function Field({ title, children }: PropsWithChildren<{ title: React.ReactNode }>) {
   return (
@@ -31,59 +32,180 @@ export interface FilterFormProps {
   onChange: (filters: Filters) => void;
 }
 
+interface FilterFormItemProps<Filter extends Filters> {
+  filters: Filter;
+  merge: (filters: Omit<Filter, 'type'>) => void;
+  onSubmit?: () => void;
+}
+
+const NormalFieldForm = ({ filters, merge, onSubmit }: FilterFormItemProps<NormalFilters>) => {
+  const {
+    keyword,
+    rootCategoryId,
+    groupId,
+    assigneeId,
+    reporterId,
+    authorId,
+    participantId,
+    privateTagKey,
+    privateTagValue,
+    language,
+    star,
+    status,
+    tagKey,
+    tagValue,
+    createdAt,
+  } = filters;
+
+  return (
+    <>
+      <Field title="创建时间">
+        <CreatedAtSelect value={createdAt} onChange={(createdAt) => merge({ createdAt })} />
+      </Field>
+      <Field title="关键词">
+        <Input
+          autoFocus
+          value={keyword}
+          onChange={(e) => merge({ keyword: e.target.value || undefined })}
+          onKeyDown={(e) => e.key === 'Enter' && onSubmit?.()}
+        />
+      </Field>
+
+      <Field title="分类">
+        <CategorySelect
+          value={rootCategoryId}
+          onChange={(rootCategoryId) => merge({ rootCategoryId })}
+        />
+      </Field>
+
+      <Field title="客服组">
+        <GroupSelect value={groupId} onChange={(groupId) => merge({ groupId })} />
+      </Field>
+
+      <Field title="负责人">
+        <AssigneeSelect
+          includeCollaborators
+          value={assigneeId}
+          onChange={(assigneeId) => merge({ assigneeId })}
+        />
+      </Field>
+
+      <Field title="参与的客服">
+        <AssigneeSelect
+          value={participantId}
+          onChange={(participantId) => merge({ participantId })}
+        />
+      </Field>
+
+      <Field title="用户">
+        <UserSelect
+          allowClear
+          className="w-full"
+          value={authorId}
+          onChange={(authorId) => merge({ authorId: authorId as string })}
+        />
+      </Field>
+
+      <Field title="代提单客服">
+        <AssigneeSelect value={reporterId} onChange={(reporterId) => merge({ reporterId })} />
+      </Field>
+
+      <Field title="状态">
+        <StatusSelect value={status} onChange={(status) => merge({ status })} />
+      </Field>
+
+      <Field title="评价">
+        <EvaluationStarSelect value={star} onChange={(star) => merge({ star })} />
+      </Field>
+
+      <Field title="标签">
+        <TagSelect value={{ tagKey, tagValue, privateTagKey, privateTagValue }} onChange={merge} />
+      </Field>
+
+      <Field title="语言">
+        <LocaleSelect
+          className="w-full"
+          locales={TicketLanguages}
+          value={language}
+          hasUnknown
+          mode="multiple"
+          onChange={(language) => {
+            merge({ language });
+          }}
+        />
+      </Field>
+    </>
+  );
+};
+
+const CustomFieldForm = ({ filters, merge, onSubmit }: FilterFormItemProps<FieldFilters>) => {
+  const { fieldId: paramFieldId, optionValue, createdAt, textValue } = filters;
+
+  const [field, setField] = useState<TicketFieldSchema | undefined>();
+
+  const [fieldId, isOptionType, isTextType] = useMemo(
+    () => [
+      field?.id ?? paramFieldId,
+      field ? OptionTypes.includes(field.type) : !!optionValue,
+      field ? TextTypes.includes(field.type) : !!textValue,
+    ],
+    [field, optionValue, paramFieldId, textValue]
+  );
+
+  return (
+    <>
+      <Field title="创建时间">
+        <CreatedAtSelect value={createdAt} onChange={(createdAt) => merge({ createdAt })} />
+      </Field>
+      <Field title="工单选项">
+        <FieldSelect value={fieldId} onChangeWithData={setField} />
+      </Field>
+
+      {fieldId && (
+        <Field title="字段值">
+          {isOptionType ? (
+            <OptionFieldValueSelect
+              fieldId={fieldId}
+              value={field?.id !== paramFieldId ? undefined : optionValue}
+              onChange={(v) => {
+                merge({ fieldId: fieldId, optionValue: v });
+              }}
+            />
+          ) : isTextType ? (
+            <Input
+              value={field?.id !== paramFieldId ? undefined : textValue}
+              onChange={(e) => {
+                merge({ fieldId: fieldId, textValue: e.target.value });
+              }}
+              onKeyDown={(e) => e.key === 'Enter' && onSubmit?.()}
+            />
+          ) : (
+            'Unsupported!'
+          )}
+        </Field>
+      )}
+    </>
+  );
+};
+
 export const FilterForm: FC<FilterFormProps> = ({ className, filters, onChange }) => {
   const [tempFilters, setTempFilters] = useState(filters);
   const [isDirty, setIsDirty] = useState(false);
+  const [active, setActive] = useState<Filters['type']>(filters.type);
 
   useEffect(() => {
     setTempFilters(filters);
     setIsDirty(false);
   }, [filters]);
 
-  const {
-    keyword,
-    authorId,
-    assigneeId,
-    groupId,
-    reporterId,
-    participantId,
-    tagKey,
-    tagValue,
-    privateTagKey,
-    privateTagValue,
-    createdAt,
-    rootCategoryId,
-    status,
-    star,
-    language,
-    fieldName,
-    fieldValue,
-  } = tempFilters;
-
-  const merge = useCallback((filters: Filters) => {
+  const merge = useCallback((filters: Omit<Filters, 'type'>) => {
     setTempFilters((prev) => ({ ...prev, ...filters }));
     setIsDirty(true);
   }, []);
 
   const handleChange = () => {
-    onChange(tempFilters);
+    onChange({ ...tempFilters, type: active });
   };
-
-  const { setLimitedSorter } = useSorterLimited();
-
-  const [normalDisabled, fieldDisabled] = useMemo(() => {
-    const { fieldName, fieldValue, createdAt, ...normalFields } = tempFilters;
-
-    const normalDisabled = !!fieldName && !!fieldValue;
-
-    setLimitedSorter(normalDisabled);
-
-    return [
-      normalDisabled,
-      Object.values(normalFields).some((v) => (Array.isArray(v) ? v.length : !!v)) &&
-        !(fieldName && fieldValue),
-    ];
-  }, [tempFilters, setLimitedSorter]);
 
   return (
     <div
@@ -93,133 +215,32 @@ export const FilterForm: FC<FilterFormProps> = ({ className, filters, onChange }
       )}
     >
       <div className="grow p-4">
-        <Divider plain>通用字段</Divider>
-
-        <Field title="创建时间">
-          <CreatedAtSelect value={createdAt} onChange={(createdAt) => merge({ createdAt })} />
-        </Field>
-
-        <Divider plain>
-          普通筛选
-          {normalDisabled && <p className="text-[#ffae4a]">不能与工单字段值筛选同时使用</p>}
-        </Divider>
-
-        <Field title="关键词">
-          <Input
-            autoFocus
-            value={keyword}
-            onChange={(e) => merge({ keyword: e.target.value || undefined })}
-            onKeyDown={(e) => e.key === 'Enter' && handleChange()}
-            disabled={normalDisabled}
-          />
-        </Field>
-
-        <Field title="分类">
-          <CategorySelect
-            value={rootCategoryId}
-            onChange={(rootCategoryId) => merge({ rootCategoryId })}
-            disabled={normalDisabled}
-          />
-        </Field>
-
-        <Field title="客服组">
-          <GroupSelect
-            value={groupId}
-            onChange={(groupId) => merge({ groupId })}
-            disabled={normalDisabled}
-          />
-        </Field>
-
-        <Field title="负责人">
-          <AssigneeSelect
-            includeCollaborators
-            value={assigneeId}
-            onChange={(assigneeId) => merge({ assigneeId })}
-            disabled={normalDisabled}
-          />
-        </Field>
-
-        <Field title="参与的客服">
-          <AssigneeSelect
-            value={participantId}
-            onChange={(participantId) => merge({ participantId })}
-            disabled={normalDisabled}
-          />
-        </Field>
-
-        <Field title="用户">
-          <UserSelect
-            allowClear
-            className="w-full"
-            value={authorId}
-            onChange={(authorId) => merge({ authorId: authorId as string })}
-            disabled={normalDisabled}
-          />
-        </Field>
-
-        <Field title="代提单客服">
-          <AssigneeSelect
-            value={reporterId}
-            onChange={(reporterId) => merge({ reporterId })}
-            disabled={normalDisabled}
-          />
-        </Field>
-
-        <Field title="状态">
-          <StatusSelect
-            value={status}
-            onChange={(status) => merge({ status })}
-            disabled={normalDisabled}
-          />
-        </Field>
-
-        <Field title="评价">
-          <EvaluationStarSelect
-            value={star}
-            onChange={(star) => merge({ star })}
-            disabled={normalDisabled}
-          />
-        </Field>
-
-        <Field title="标签">
-          <TagSelect
-            value={{ tagKey, tagValue, privateTagKey, privateTagValue }}
-            onChange={merge}
-            disabled={normalDisabled}
-          />
-        </Field>
-
-        <Field title="语言">
-          <LocaleSelect
-            className="w-full"
-            locales={TicketLanguages}
-            value={language}
-            hasUnknown
-            mode="multiple"
-            onChange={(language) => {
-              merge({ language });
-            }}
-            disabled={normalDisabled}
-          />
-        </Field>
-
-        <Divider plain>
-          工单选项字段值筛选
-          {fieldDisabled && <p className="text-[#ffae4a]">不能与普通筛选同时使用</p>}
-        </Divider>
-
-        <Field title="工单选项字段">
-          <FieldSelect
-            value={fieldName && fieldValue ? { name: fieldName, value: fieldValue } : undefined}
-            onChange={({ name, value }) => merge({ fieldName: name, fieldValue: value })}
-            disabled={fieldDisabled}
-          />
-        </Field>
+        <Tabs activeKey={active} centered onChange={(key) => setActive(key as Filters['type'])}>
+          <Tabs.TabPane tab="标准" key="normal">
+            <NormalFieldForm
+              filters={tempFilters as NormalFilters}
+              merge={merge}
+              onSubmit={handleChange}
+            />
+          </Tabs.TabPane>
+          <Tabs.TabPane tab="自定义字段" key="field">
+            <CustomFieldForm
+              filters={tempFilters as FieldFilters}
+              merge={merge}
+              onSubmit={handleChange}
+            />
+          </Tabs.TabPane>
+        </Tabs>
       </div>
 
       <div className="sticky bottom-0 px-4 pb-2 bg-[#f5f7f9]">
         <div className="pt-4 border-t border-[#ebeff3]">
-          <Button className="w-full" type="primary" disabled={!isDirty} onClick={handleChange}>
+          <Button
+            className="w-full"
+            type="primary"
+            disabled={!(tempFilters.type !== active) && !isDirty}
+            onClick={handleChange}
+          >
             应用
           </Button>
         </div>

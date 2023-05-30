@@ -35,7 +35,7 @@ export function SortDropdown({ disabled }: { disabled?: boolean }) {
     [setOrderKey, setOrderType]
   );
 
-  const { limitedSorter } = useSorterLimited();
+  const limitedSorter = useSorterLimited();
   const [type] = useTicketSwitchType();
 
   const disabled_ = useMemo(() => disabled || limitedSorter || type === 'processable', [

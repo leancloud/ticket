@@ -295,35 +295,35 @@ export function useOperateTicket(
   });
 }
 
-export type SearchTicketResult = Omit<TicketSchema, 'author' | 'assignee' | 'group'>;
-
-async function searchTicketCustomField(q: string): Promise<SearchTicketResult[]> {
-  const { data } = await http.post('/api/2/tickets/search-custom-field', { q });
-  return data;
+async function searchTicketCustomField(q: string) {
+  const { data, headers } = await http.post<TicketSchema[]>('/api/2/tickets/search-custom-field', {
+    q,
+  });
+  return { tickets: data, totalCount: Number(headers['x-total-count']) };
 }
 
 export function useSearchTicketCustomField(
   q: string,
-  options?: UseQueryOptions<SearchTicketResult[], Error>
+  options?: UseQueryOptions<FetchTicketsResult, Error>
 ) {
-  return useQuery({
+  const { data, ...rest } = useQuery({
     queryKey: ['searchTicketCustomField', q],
     queryFn: () => searchTicketCustomField(q),
     ...options,
   });
+
+  return {
+    ...rest,
+    data: data?.tickets,
+    totalCount: data?.totalCount,
+  };
 }
 type exportType = 'json' | 'csv';
 interface ExportParams extends FetchTicketsOptions {
   type: exportType;
   utcOffset?: number;
 }
-async function exportTickets({
-  type,
-  orderKey,
-  orderType,
-  filters = {},
-  utcOffset,
-}: ExportParams) {
+async function exportTickets({ type, orderKey, orderType, filters = {}, utcOffset }: ExportParams) {
   const params = {
     ...encodeTicketFilters(filters),
     orderBy: `${orderKey}-${orderType}`,

@@ -2,7 +2,12 @@ import { createContext, ReactNode, useCallback, useContext, useMemo } from 'reac
 import _ from 'lodash';
 import { useSearchParams } from '@/utils/useSearchParams';
 
-export interface Filters {
+export interface CommonFilters {
+  createdAt?: string;
+}
+
+export interface NormalFilters extends CommonFilters {
+  type: 'normal';
   keyword?: string;
   authorId?: string;
   assigneeId?: string[];
@@ -13,104 +18,96 @@ export interface Filters {
   tagValue?: string;
   privateTagKey?: string;
   privateTagValue?: string;
-  createdAt?: string;
   rootCategoryId?: string;
   status?: number[];
   star?: number;
   language?: string[];
-  fieldName?: string;
-  fieldValue?: string;
 }
-const FiltersContext = createContext<[Filters, (filters: Filters) => void]>([{}, _.noop]);
 
-export function LocalFiltersProvider({ children }: { children: ReactNode }) {
-  const [params, { merge }] = useSearchParams();
+export interface FieldFilters extends CommonFilters {
+  type: 'field';
+  fieldId?: string;
+  optionValue?: string;
+  textValue?: string;
+}
 
-  const filters = useMemo(() => {
-    const {
-      assigneeId,
-      groupId,
-      reporterId,
-      participantId,
-      createdAt,
-      rootCategoryId,
-      status,
-      star,
-      language,
-    } = params;
+export type Filters = NormalFilters | FieldFilters;
 
-    const filters: Filters = _.pick(params, [
+const serializeFilters = (filter: Filters): Record<string, string | undefined> => {
+  if (filter.type === 'field') {
+    return {
+      filterType: 'field',
+      ..._.pick(filter, ['fieldId', 'optionValue', 'createdAt', 'textValue']),
+    };
+  } else {
+    return {
+      ..._.omit(filter, ['type']),
+      filterType: 'normal',
+      assigneeId: filter.assigneeId?.map((id) => (id === null ? 'null' : id)).join(','),
+      groupId: filter.groupId?.map((id) => (id === null ? 'null' : id)).join(','),
+      reporterId: filter.reporterId?.map((id) => (id === null ? 'null' : id)).join(','),
+      participantId: filter.participantId?.map((id) => (id === null ? 'null' : id)).join(','),
+      language: filter.language?.map((id) => (id === null ? 'null' : id)).join(','),
+      status: filter.status?.join(','),
+      star: filter.star?.toString(),
+    };
+  }
+};
+
+const deserializeFilters = (params: Record<string, string | undefined>): Filters => {
+  const starNum = Number(params.star);
+
+  return {
+    type:
+      params.filterType === 'normal'
+        ? 'normal'
+        : params.filterType === 'field'
+        ? 'field'
+        : 'normal',
+    ..._.pick(params, [
+      // common
+      'createdAt',
+
+      // normal
       'keyword',
       'authorId',
       'tagKey',
       'tagValue',
       'privateTagKey',
       'privateTagValue',
-      'fieldName',
-      'fieldValue',
-    ]);
+      'rootCategoryId',
 
-    if (assigneeId) {
-      filters.assigneeId = assigneeId.split(',');
-    }
+      // field
+      'fieldId',
+      'optionValue',
+      'textValue',
+    ]),
+    assigneeId: params.assigneeId?.split(','),
+    groupId: params.groupId?.split(','),
+    reporterId: params.reporterId?.split(','),
+    participantId: params.participantId?.split(','),
+    language: params.language?.split(','),
+    status: params.status
+      ?.split(',')
+      .map((s) => parseInt(s))
+      .filter((n) => !Number.isNaN(n)),
+    star: Number.isNaN(starNum) ? undefined : starNum,
+  };
+};
 
-    if (groupId) {
-      filters.groupId = groupId.split(',');
-    }
+const FiltersContext = createContext<[Filters, (filters: Filters) => void]>([
+  { type: 'normal' },
+  _.noop,
+]);
 
-    if (reporterId) {
-      filters.reporterId = reporterId.split(',');
-    }
+export function LocalFiltersProvider({ children }: { children: ReactNode }) {
+  const [params, { merge }] = useSearchParams();
 
-    if (participantId) {
-      filters.participantId = participantId.split(',');
-    }
-
-    if (language) {
-      filters.language = language.split(',');
-    }
-
-    if (createdAt) {
-      filters.createdAt = createdAt;
-    }
-
-    if (rootCategoryId) {
-      filters.rootCategoryId = rootCategoryId;
-    }
-
-    if (status) {
-      filters.status = status
-        .split(',')
-        .map((s) => parseInt(s))
-        .filter((n) => !Number.isNaN(n));
-    }
-
-    if (star) {
-      const starNum = parseInt(star);
-      if (!Number.isNaN(starNum)) {
-        filters.star = starNum;
-      }
-    }
-
-    return filters;
-  }, [params]);
+  const filters = useMemo(() => deserializeFilters(params), [params]);
 
   const set = useCallback(
     (filters: Filters) => {
-      const params: Record<string, string | undefined> = {
-        ...filters,
-        assigneeId: filters.assigneeId?.map((id) => (id === null ? 'null' : id)).join(','),
-        groupId: filters.groupId?.map((id) => (id === null ? 'null' : id)).join(','),
-        reporterId: filters.reporterId?.map((id) => (id === null ? 'null' : id)).join(','),
-        participantId: filters.participantId?.map((id) => (id === null ? 'null' : id)).join(','),
-        language: filters.language?.map((id) => (id === null ? 'null' : id)).join(','),
-        createdAt: filters.createdAt,
-        rootCategoryId: filters.rootCategoryId,
-        status: filters.status?.join(','),
-        star: filters.star?.toString(),
-        page: undefined,
-      };
-      merge(params);
+      merge(serializeFilters(filters));
     },
     [merge]
   );

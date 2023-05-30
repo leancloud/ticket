@@ -1,14 +1,25 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
-import { useSearchTickets, useTickets, UseTicketsOptions } from '@/api/ticket';
+import {
+  useSearchTicketCustomField,
+  useSearchTickets,
+  useTickets,
+  UseTicketsOptions,
+} from '@/api/ticket';
 import { usePage, usePageSize } from '@/utils/usePage';
 import { Topbar, useOrderBy } from './Topbar';
-import { FilterForm, LocalFiltersProvider, useLocalFilters } from './Filter';
+import {
+  FieldFilters,
+  FilterForm,
+  Filters,
+  LocalFiltersProvider,
+  NormalFilters,
+  useLocalFilters,
+} from './Filter';
 import { TicketTable } from './TicketTable';
 import { TicketDetail } from './Ticket/TicketDetail';
 import { StatsPanel } from './TicketStats';
-import { SortLimited } from './Filter/useSorterLimited';
 import {
   TicketSwitchType,
   TicketSwitchTypeProvider,
@@ -16,37 +27,52 @@ import {
 } from './useTicketSwitchType';
 import { useViewTickets } from '@/api/view';
 import _ from 'lodash';
+import { decodeDateRange } from '@/utils/date-range';
 
 const DEFAULT_PAGE_SIZE = 20;
 
-interface UseSmartFetchTicketsOptions extends UseTicketsOptions {
-  keyword?: string;
-  field?: boolean;
+interface UseSmartFetchTicketsOptions extends Omit<UseTicketsOptions, 'filters'> {
+  filters: Filters;
   type: TicketSwitchType;
 }
 
 function useSmartSearchTickets({
-  keyword,
-  field,
   type,
+  filters,
   queryOptions,
   ...options
 }: UseSmartFetchTicketsOptions) {
-  const isSearch = !!keyword && !field;
+  const isProcessableSearch = type === 'processable';
+  const isRegularTicket =
+    ((filters.type === 'normal' && !filters.keyword) ||
+      (filters.type === 'field' && !!filters.optionValue)) &&
+    !isProcessableSearch;
+  const isFieldSearch = filters.type === 'field' && !filters.optionValue && !isProcessableSearch;
+  const isKeywordSearch = filters.type === 'normal' && !!filters.keyword && !isProcessableSearch;
+
+  const dateRange = filters.createdAt && decodeDateRange(filters.createdAt);
 
   const useTicketResult = useTickets({
+    filters:
+      filters.type === 'normal'
+        ? _.omit(filters, ['type', 'fieldId', 'optionValue'])
+        : {
+            fieldName: (filters as FieldFilters).fieldId,
+            fieldValue: (filters as FieldFilters).optionValue,
+          },
     ...options,
     queryOptions: {
       ...queryOptions,
-      enabled: !isSearch,
+      enabled: isRegularTicket,
     },
   });
 
-  const useSearchTicketsResult = useSearchTickets(keyword!, {
+  const useSearchTicketsResult = useSearchTickets((filters as NormalFilters).keyword!, {
+    filters: _.omit(filters, ['keyword', 'type', 'fieldId', 'optionValue']) as NormalFilters,
     ...options,
     queryOptions: {
       ...queryOptions,
-      enabled: isSearch,
+      enabled: isKeywordSearch,
     },
   });
 
@@ -55,14 +81,33 @@ function useSmartSearchTickets({
     count: true,
     queryOptions: {
       ...queryOptions,
-      enabled: type === 'processable',
+      enabled: isProcessableSearch,
     },
   });
 
-  return type === 'processable'
+  const { fieldId, textValue } = filters as FieldFilters;
+
+  const useFieldSearchResult = useSearchTicketCustomField(
+    `values.field:${fieldId ? encodeURIComponent(fieldId) : '*'} AND values.value:${
+      textValue ? encodeURIComponent(textValue) : '*'
+    }${
+      dateRange
+        ? ` AND createdAt:[${dateRange.from ? `"${dateRange.from.toISOString()}"` : '*'} TO ${
+            dateRange.to ? `"${dateRange.to.toISOString()}"` : '*'
+          }]`
+        : ''
+    }`,
+    {
+      enabled: isFieldSearch,
+    }
+  );
+
+  return isProcessableSearch
     ? useProcessableTicketsResult
-    : isSearch
+    : isKeywordSearch
     ? useSearchTicketsResult
+    : isFieldSearch
+    ? useFieldSearchResult
     : useTicketResult;
 }
 
@@ -81,8 +126,6 @@ function TicketListView() {
     orderKey,
     orderType,
     filters: localFilters,
-    keyword: localFilters.keyword,
-    field: !!(localFilters.fieldName && localFilters.fieldValue),
     type,
     queryOptions: {
       keepPreviousData: true,
@@ -114,46 +157,45 @@ function TicketListView() {
   );
 
   useEffect(() => {
-    if (localFilters.keyword) {
+    if (localFilters.type === 'normal' && localFilters.keyword) {
       setShowStatsPanel(false);
     }
-  }, [localFilters.keyword]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [(localFilters as NormalFilters).keyword, localFilters.type]);
 
   return (
     <div className="flex flex-col h-full">
-      <SortLimited>
-        <Topbar
-          className="shrink-0 z-10"
-          showFilter={showFilterForm}
-          onChangeShowFilter={setShowFilterForm}
-          showStatsPanel={showStatsPanel}
-          onChangeShowStatsPanel={setShowStatsPanel}
-          page={page}
-          pageSize={pageSize}
-          onChangePage={setPage}
-          onChangePageSize={setPageSize}
-          count={tickets?.length}
-          totalCount={totalCount}
-          isLoading={isFetching}
-          checkedTicketIds={checkedIds}
-          onCheckedChange={handleCheckAll}
-        />
+      <Topbar
+        className="shrink-0 z-10"
+        showFilter={showFilterForm}
+        onChangeShowFilter={setShowFilterForm}
+        showStatsPanel={showStatsPanel}
+        onChangeShowStatsPanel={setShowStatsPanel}
+        page={page}
+        pageSize={pageSize}
+        onChangePage={setPage}
+        onChangePageSize={setPageSize}
+        count={tickets?.length}
+        totalCount={totalCount}
+        isLoading={isFetching}
+        checkedTicketIds={checkedIds}
+        onCheckedChange={handleCheckAll}
+      />
 
-        <div className="flex grow overflow-hidden">
-          <div className="flex grow flex-col p-[10px] overflow-auto">
-            {showStatsPanel && <StatsPanel />}
-            <TicketTable
-              loading={isFetching}
-              tickets={tickets}
-              checkedIds={checkedIds}
-              onChangeChecked={handleCheckTicket}
-            />
-          </div>
-          {showFilterForm && (
-            <FilterForm className="shrink-0" filters={localFilters} onChange={setLocalFilters} />
-          )}
+      <div className="flex grow overflow-hidden">
+        <div className="flex grow flex-col p-[10px] overflow-auto">
+          {showStatsPanel && <StatsPanel />}
+          <TicketTable
+            loading={isFetching}
+            tickets={tickets}
+            checkedIds={checkedIds}
+            onChangeChecked={handleCheckTicket}
+          />
         </div>
-      </SortLimited>
+        {showFilterForm && (
+          <FilterForm className="shrink-0" filters={localFilters} onChange={setLocalFilters} />
+        )}
+      </div>
     </div>
   );
 }

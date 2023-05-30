@@ -21,7 +21,7 @@ import { BatchUpdateData, BatchUpdateError, batchUpdate } from './batchUpdate';
 import { SortDropdown } from './SortDropdown';
 import { useLocalFilters } from '../Filter';
 import { Exporter } from './Exporter';
-import { isEmpty } from 'lodash-es';
+import { some, omit } from 'lodash-es';
 import { useTicketSwitchType } from '../useTicketSwitchType';
 
 export { useOrderBy } from './SortDropdown';
@@ -307,7 +307,12 @@ export function Topbar({
         <Tooltip title="分析">
           <NavButton
             className="ml-2 px-[7px] py-[7px]"
-            disabled={count === 0 || !!localFilters.keyword || type === 'processable'}
+            disabled={
+              count === 0 ||
+              !!(localFilters.type === 'normal' && localFilters.keyword) ||
+              localFilters.type === 'field' ||
+              type === 'processable'
+            }
             active={showStatsPanel}
             onClick={() => onChangeShowStatsPanel?.(!showStatsPanel)}
           >
@@ -321,7 +326,12 @@ export function Topbar({
           trigger={
             <NavButton
               className="ml-2 px-[7px] py-[7px]"
-              disabled={totalCount === 0 || !!localFilters.keyword || type === 'processable'}
+              disabled={
+                totalCount === 0 ||
+                !!(localFilters.type === 'normal' && localFilters.keyword) ||
+                localFilters.type === 'field' ||
+                type === 'processable'
+              }
             >
               <HiOutlineDownload className="w-4 h-4" />
             </NavButton>
@@ -329,7 +339,7 @@ export function Topbar({
         />
       )}
 
-      <Badge dot={!isEmpty(localFilters)}>
+      <Badge dot={some(omit(localFilters, ['type']), (v) => !!v) && type !== 'processable'}>
         <NavButton
           className="ml-2 px-[7px] py-[7px]"
           active={showFilter}
