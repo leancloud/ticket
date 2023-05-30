@@ -1,12 +1,10 @@
 import { useState } from 'react';
 import { Button, Divider, Input } from '@/components/antd';
+import { useTicketContext } from '../TicketContext';
 
-interface ReplyEditorProps {
-  onOperate: (action: string) => void;
-  operating: boolean;
-}
+export function ReplyEditor() {
+  const { operate, operating } = useTicketContext();
 
-export function ReplyEditor({ onOperate, operating }: ReplyEditorProps) {
   const [content, setContent] = useState('');
 
   return (
@@ -22,10 +20,10 @@ export function ReplyEditor({ onOperate, operating }: ReplyEditorProps) {
       <div className="flex mt-4 gap-2">
         <Button disabled>插入快捷回复</Button>
         <div className="grow" />
-        <Button disabled={operating} onClick={() => onOperate('replyWithNoContent')}>
+        <Button disabled={operating} onClick={() => operate('replyWithNoContent')}>
           无需回复
         </Button>
-        <Button disabled={operating} onClick={() => onOperate('replySoon')}>
+        <Button disabled={operating} onClick={() => operate('replySoon')}>
           稍后回复
         </Button>
         <Button type="primary" disabled={!content}>

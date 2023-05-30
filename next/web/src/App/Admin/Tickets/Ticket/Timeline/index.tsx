@@ -3,19 +3,21 @@ import { AiOutlinePaperClip } from 'react-icons/ai';
 import moment from 'moment';
 import { partition } from 'lodash-es';
 import cx from 'classnames';
-import { TicketDetailSchema, useTicketReplies } from '@/api/ticket';
+
+import { useTicketReplies } from '@/api/ticket';
 import { Image, Skeleton } from '@/components/antd';
 import { UserLabel } from '@/App/Admin/components';
+import { useTicketContext } from '../TicketContext';
 import styles from './index.module.css';
 
 const IMAGE_FILE_MIMES = ['image/png', 'image/jpeg', 'image/gif'];
 
-interface TimelineProps {
-  ticket: TicketDetailSchema;
-}
+export function Timeline() {
+  const { ticket } = useTicketContext();
 
-export function Timeline({ ticket }: TimelineProps) {
-  const { data: replies, isLoading: loadingReplies } = useTicketReplies(ticket.id);
+  const { data: replies, isLoading: loadingReplies } = useTicketReplies(ticket ? ticket.id : '', {
+    enabled: !!ticket,
+  });
   const replyItems = useMemo(() => {
     if (!replies) {
       return [];
@@ -25,12 +27,15 @@ export function Timeline({ ticket }: TimelineProps) {
 
   return (
     <div className={replies ? styles.timeline : undefined}>
-      <ReplyCard
-        author={<UserLabel user={ticket.author!} />}
-        createTime={ticket.createdAt}
-        content={ticket.contentSafeHTML}
-        files={ticket.files}
-      />
+      {!ticket && <Skeleton active paragraph={{ rows: 4 }} />}
+      {ticket && (
+        <ReplyCard
+          author={<UserLabel user={ticket.author!} />}
+          createTime={ticket.createdAt}
+          content={ticket.contentSafeHTML}
+          files={ticket.files}
+        />
+      )}
       {loadingReplies && <Skeleton active paragraph={{ rows: 4 }} />}
       {replyItems.map((reply) => (
         <ReplyCard

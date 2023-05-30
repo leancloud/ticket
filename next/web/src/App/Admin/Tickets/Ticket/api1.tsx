@@ -3,6 +3,7 @@ import { useMutation, UseMutationOptions, useQuery, UseQueryOptions } from 'reac
 import { http } from '@/leancloud';
 
 export interface Ticket_v1 {
+  id: string;
   private?: boolean;
   subscribed: boolean;
   tags: TagData[];
