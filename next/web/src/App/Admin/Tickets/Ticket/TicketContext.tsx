@@ -29,6 +29,7 @@ export interface TicketData {
   title: TicketDetailSchema['title'];
   contentSafeHTML: TicketDetailSchema['contentSafeHTML'];
   files: TicketDetailSchema['files'];
+  language: TicketDetailSchema['language'];
   createdAt: TicketDetailSchema['createdAt'];
   updatedAt: TicketDetailSchema['updatedAt'];
 
@@ -42,6 +43,7 @@ export interface TicketData {
 interface MixedUpdateData {
   groupId?: UpdateTicketData['groupId'];
   assigneeId?: UpdateTicketData['assigneeId'];
+  language?: UpdateTicketData['language'];
   tags?: UpdateTicketData['tags'];
   privateTags?: UpdateTicketData['privateTags'];
 
@@ -94,6 +96,7 @@ export function TicketContextProvider({ ticketId, children }: TicketContextProvi
         title: ticket.title,
         contentSafeHTML: ticket.contentSafeHTML,
         files: ticket.files,
+        language: ticket.language,
         createdAt: ticket.createdAt,
         updatedAt: ticket.updatedAt,
 
@@ -106,7 +109,7 @@ export function TicketContextProvider({ ticketId, children }: TicketContextProvi
   }, [ticket, ticket_v1]);
 
   const update = (data: MixedUpdateData) => {
-    const updateData = pick(data, ['groupId', 'assigneeId', 'tags', 'privateTags']);
+    const updateData = pick(data, ['groupId', 'assigneeId', 'language', 'tags', 'privateTags']);
     const updateData_v1 = pick(data, ['private', 'subscribed']);
     if (!isEmpty(updateData)) {
       updateTicket([ticketId, data]);

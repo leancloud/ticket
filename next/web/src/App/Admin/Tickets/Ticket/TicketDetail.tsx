@@ -31,6 +31,7 @@ import { ReplyEditor } from './components/ReplyEditor';
 import { SubscribeButton } from './components/SubscribeButton';
 import { PrivateSelect } from './components/PrivateSelect';
 import { TicketContextProvider, useTicketContext } from './TicketContext';
+import { langs } from './lang';
 
 export function TicketDetail() {
   const { id } = useParams() as { id: string };
@@ -194,6 +195,19 @@ function TicketBasicInfoSection() {
         onChangeAssignee={(assigneeId) => update({ assigneeId: assigneeId ?? null })}
         disabled={updating}
       />
+
+      <FormField label="语言">
+        <Select
+          className="w-full"
+          allowClear
+          placeholder="未设置"
+          options={langs}
+          fieldNames={{ label: 'name', value: 'code' }}
+          value={ticket.language}
+          onChange={(language) => update({ language: language ?? null })}
+          disabled={updating}
+        />
+      </FormField>
     </>
   );
 }

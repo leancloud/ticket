@@ -27,6 +27,7 @@ export interface TicketSchema {
   status: number;
   evaluation?: { star: number; content: string };
   metaData?: Record<string, any>;
+  language?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -201,6 +202,7 @@ export interface UpdateTicketData {
   categoryId?: string;
   groupId?: string | null;
   assigneeId?: string | null;
+  language?: string | null;
   tags?: { key: string; value: string }[];
   privateTags?: { key: string; value: string }[];
 }
