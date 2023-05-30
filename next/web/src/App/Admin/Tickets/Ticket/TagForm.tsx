@@ -4,7 +4,7 @@ import { keyBy } from 'lodash-es';
 import { TagMetadataSchema, useTagMetadatas } from '@/api/tag-metadata';
 import { useUpdateTicket } from '@/api/ticket';
 import { Button, Input, Select, Skeleton } from '@/components/antd';
-import { useTicket_v1, V1_Ticket } from './api1';
+import { useTicket_v1, Ticket_v1 } from './api1';
 import { FormField } from './components/FormField';
 
 interface TagFormProps {
@@ -28,7 +28,7 @@ export function TagForm({ ticketId }: TagFormProps) {
 
   const { mutate, isLoading: updating } = useUpdateTicket({
     onSuccess: (_, [, { tags, privateTags }]) => {
-      queryClient.setQueryData<V1_Ticket | undefined>(['v1_ticket', ticketId], (prev) => {
+      queryClient.setQueryData<Ticket_v1 | undefined>(['v1_ticket', ticketId], (prev) => {
         if (prev) {
           return {
             ...prev,

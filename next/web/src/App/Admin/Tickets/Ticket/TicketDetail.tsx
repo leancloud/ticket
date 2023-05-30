@@ -30,7 +30,7 @@ import { useCollaborators } from '@/api/collaborator';
 import { useCurrentUser } from '@/leancloud';
 import { CategorySelect } from '@/components/common';
 import { TicketStatus } from '../../components/TicketStatus';
-import { UpdateTicket_v1Data, useTicket_v1, useUpdateTicket_v1, V1_Ticket } from './api1';
+import { UpdateTicket_v1Data, useTicket_v1, useUpdateTicket_v1, Ticket_v1 } from './api1';
 import { Timeline } from './Timeline';
 import { TagForm } from './TagForm';
 import { FormField } from './components/FormField';
@@ -122,7 +122,7 @@ export function TicketDetail() {
 
 interface TicketInfoProps {
   ticket?: TicketDetailSchema;
-  ticket_v1?: V1_Ticket;
+  ticket_v1?: Ticket_v1;
   updating?: boolean;
   onBack: () => void;
   onChangePrivate: (_private: boolean) => void;
