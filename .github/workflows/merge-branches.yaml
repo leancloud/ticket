@@ -1,0 +1,50 @@
+name: merge-customize-branches
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  merge-branches:
+    strategy:
+      matrix:
+        # if a new branch needs to be rebased onto, add its name here
+        branch: [tap, xd, dc, tap-intl]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Rebase and push
+        run: |
+          git switch "${{ matrix.branch }}"
+          git rebase master
+          git push --force-with-lease
+
+      - name: Report failure
+        uses: slackapi/slack-github-action@v1.24.0
+        if: ${{ failure() }}
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        with:
+          channel-id: ${{ vars.SLACK_NOTIFY_CHANNEL }}
+          payload: |
+            {
+              "text": "Github Action failed when rebasing master to branch ${{ matrix.branch }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "Github Action failed when rebasing <https://github.com/leancloud/ticket/commit/${{ github.sha }}|master> to branch <https://github.com/leancloud/ticket/tree/${{ matrix.branch }}|${{ matrix.branch }}>"
+                  }
+                }
+              ]
+            }
