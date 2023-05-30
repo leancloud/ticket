@@ -20,18 +20,19 @@ interface TicketSnapshot {
   title: string;
   content: string;
   status: number;
-  custom_fields: {
-    [field_id: string]: {
-      // 客服后台设置的字段名称
-      name: string;
-      type: string;
-      values: string[];
-      // 文件字段的 URL
-      urls?: string[];
-    };
-  };
+  custom_fields: CustomFieldData[];
   timestamp: string;
   leancloud_app_id: string;
+}
+
+interface CustomFieldData {
+  id: string;
+  // 客服后台设置的字段名称
+  name: string;
+  type: string;
+  value: string | string[];
+  // 文件字段的 URL
+  urls?: string[];
 }
 
 class TicketSnapshotManager {
@@ -94,20 +95,20 @@ class TicketSnapshotManager {
   }
 
   createCustomFieldsSnapshot(fields: TicketField[], values: FieldValue[]) {
-    const custom_fields: TicketSnapshot['custom_fields'] = {};
+    const customFields: CustomFieldData[] = [];
     const fieldById = _.keyBy(fields, (field) => field.id);
     for (const { field: fieldId, value } of values) {
       const field = fieldById[fieldId];
-      if (!field) {
-        continue;
+      if (field) {
+        customFields.push({
+          id: field.id,
+          name: field.title,
+          type: field.type,
+          value,
+        });
       }
-      custom_fields[fieldId] = {
-        name: field.title,
-        type: field.type,
-        values: _.castArray(value),
-      };
     }
-    return custom_fields;
+    return customFields;
   }
 
   async createTicketSnapshot(ticket: Ticket, timestamp: string, customFields?: FieldValue[]) {
@@ -123,7 +124,7 @@ class TicketSnapshotManager {
       title: ticket.title,
       content: ticket.content,
       status: ticket.status,
-      custom_fields: {},
+      custom_fields: [],
       timestamp,
       leancloud_app_id: this.leancloudAppId,
     };
@@ -147,11 +148,9 @@ class TicketSnapshotManager {
     return snapshot;
   }
 
-  async fillFileFieldUrls(customFields: TicketSnapshot['custom_fields']) {
-    const customFieldList = Object.values(customFields);
-    const fileIds = customFieldList
-      .filter((field) => field.type === 'file')
-      .flatMap((field) => field.values);
+  async fillFileFieldUrls(customFields: CustomFieldData[]) {
+    const fileFields = customFields.filter((field) => field.type === 'file');
+    const fileIds = fileFields.flatMap((field) => field.value);
 
     if (fileIds.length === 0) {
       return;
@@ -160,11 +159,8 @@ class TicketSnapshotManager {
     const files = await this.getFiles(fileIds);
     const fileById = _.keyBy(files, (file) => file.id);
 
-    for (const customField of customFieldList) {
-      if (customField.type !== 'file') {
-        continue;
-      }
-      customField.urls = customField.values
+    for (const customField of fileFields) {
+      customField.urls = _.castArray(customField.value)
         .map((fileId) => fileById[fileId])
         .filter(Boolean)
         .map((file) => file.url);
