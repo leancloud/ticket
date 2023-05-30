@@ -36,9 +36,6 @@ const router = new Router().use(auth);
 
 const statuses = [50, 120, 160, 220, 250, 280];
 
-// https://github.com/jquense/yup/issues/104
-const ticketLanguageSchema = yup.string().oneOf([...allowedTicketLanguages, null]);
-
 const includeSchema = yup.object({
   includeAuthor: yup.bool(),
   includeReporter: yup.bool(),
@@ -739,7 +736,7 @@ const updateTicketSchema = yup.object({
   evaluation: ticketEvaluationSchema.default(undefined),
   associateTicketId: yup.string().nullable(),
   mainTicketId: yup.string(),
-  language: ticketLanguageSchema,
+  language: yup.mixed().oneOf([...allowedTicketLanguages, null]),
 });
 
 router.patch('/:id', async (ctx) => {
