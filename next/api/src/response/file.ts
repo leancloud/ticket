@@ -40,10 +40,10 @@ const getVideoThumbnailURL = (originalURL: string) => `${originalURL}?vframe/jpg
 
 const getThumbnailURL = (file: File) => {
   const { mime, url } = file;
-  if (mime.startsWith('image/')) {
+  if (mime?.startsWith('image/')) {
     return getImageThumbnailURL(url);
   }
-  if (mime.startsWith('video/')) {
+  if (mime?.startsWith('video/')) {
     return getVideoThumbnailURL(url);
   }
   return url;
