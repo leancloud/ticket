@@ -1,5 +1,5 @@
 import * as LC from 'open-leancloud-storage/core';
-import { authModule, User } from 'open-leancloud-storage/auth';
+import { authModule } from 'open-leancloud-storage/auth';
 import { cloudModule } from 'open-leancloud-storage/cloud';
 import { storageModule } from 'open-leancloud-storage/storage';
 import axios, { AxiosError } from 'axios';
@@ -111,14 +111,25 @@ export interface LeanCloudApp {
   region: LeanCloudRegion;
 }
 
-export async function fetchLeanCloudApps(): Promise<LeanCloudApp[]> {
+async function getLeanCloudApps(): Promise<LeanCloudApp[]> {
   return cloud.run('getLeanCloudApps');
+}
+
+export async function getLeanCloudApp(
+  appId: string,
+  username: string
+): Promise<LeanCloudApp | null> {
+  return cloud.run('getLeanCloudApp', { appId, username });
+}
+
+export async function getLeanCloudAppUrl(appId: string, region: string): Promise<string | null> {
+  return cloud.run('getLeanCloudAppUrl', { appId, region });
 }
 
 export function useLeanCloudApps() {
   return useQuery({
     queryKey: 'leanCloudApps',
-    queryFn: fetchLeanCloudApps,
+    queryFn: getLeanCloudApps,
     staleTime: Infinity,
   });
 }
