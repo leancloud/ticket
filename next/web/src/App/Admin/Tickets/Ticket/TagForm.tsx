@@ -40,19 +40,15 @@ export function TagForm({ tagMetadatas, tags, privateTags, onUpdate, updating }:
     onUpdate(newValues, tag.private);
   };
 
-  return (
-    <>
-      {tagMetadatas.map((tag) => (
-        <TagField
-          key={tag.id}
-          tag={tag}
-          value={tag.private ? privateValueMap[tag.key] : valueMap[tag.key]}
-          loading={updating}
-          onChange={(value) => handleChange(tag, value)}
-        />
-      ))}
-    </>
-  );
+  return (tagMetadatas.map((tag) => (
+    <TagField
+      key={tag.id}
+      tag={tag}
+      value={tag.private ? privateValueMap[tag.key] : valueMap[tag.key]}
+      loading={updating}
+      onChange={(value) => handleChange(tag, value)}
+    />
+  )) as any) as JSX.Element;
 }
 
 interface TagFieldProps {
