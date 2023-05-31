@@ -22,6 +22,8 @@ export const app = LC.init({
 
 export const auth = app.auth();
 
+export const db = app.database();
+
 export const cloud = app.cloud();
 
 export const storage = app.storage();

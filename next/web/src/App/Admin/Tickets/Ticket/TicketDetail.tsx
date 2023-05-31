@@ -22,7 +22,7 @@ import { useGroup, useGroups } from '@/api/group';
 import { useCustomerServices } from '@/api/customer-service';
 import { useCollaborators } from '@/api/collaborator';
 import { useTagMetadatas } from '@/api/tag-metadata';
-import { useCurrentUser } from '@/leancloud';
+import { ENABLE_LEANCLOUD_INTEGRATION, useCurrentUser } from '@/leancloud';
 import { TicketStatus } from '../../components/TicketStatus';
 import { Timeline } from './Timeline';
 import { TagForm } from './TagForm';
@@ -31,6 +31,7 @@ import { ReplyEditor } from './components/ReplyEditor';
 import { SubscribeButton } from './components/SubscribeButton';
 import { PrivateSelect } from './components/PrivateSelect';
 import { CategoryCascader } from './components/CategoryCascader';
+import { LeanCloudApp } from './components/LeanCloudApp';
 import { TicketContextProvider, useTicketContext } from './TicketContext';
 import { langs } from './lang';
 
@@ -52,6 +53,7 @@ export function TicketDetail() {
           <TicketInfo onBack={() => navigate('..')} />
           <Row>
             <Col className="p-4" span={24} md={6}>
+              <LeanCloudSection />
               <CategorySection />
             </Col>
             <Col className="p-4" span={24} md={12}>
@@ -132,6 +134,24 @@ function TicketInfo({ onBack }: TicketInfoProps) {
         </Descriptions.Item>
       </Descriptions>
     </PageHeader>
+  );
+}
+
+function LeanCloudSection() {
+  const { ticket } = useTicketContext();
+
+  if (!ENABLE_LEANCLOUD_INTEGRATION) {
+    return null;
+  }
+
+  if (!ticket.author) {
+    return null;
+  }
+
+  return (
+    <FormField label="应用">
+      <LeanCloudApp ticketId={ticket.id} username={ticket.author.username} />
+    </FormField>
   );
 }
 
