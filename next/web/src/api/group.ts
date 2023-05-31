@@ -14,7 +14,7 @@ async function fetchGroups(): Promise<GroupSchema[]> {
 }
 
 export interface GroupDetailSchema extends GroupSchema {
-  userIds?: string[];
+  userIds: string[];
 }
 
 async function fetchGroup(id: string): Promise<GroupDetailSchema> {

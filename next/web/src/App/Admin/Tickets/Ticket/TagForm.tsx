@@ -1,143 +1,150 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useQueryClient } from 'react-query';
-import { keyBy } from 'lodash-es';
-import { TagMetadataSchema, useTagMetadatas } from '@/api/tag-metadata';
-import { useUpdateTicket } from '@/api/ticket';
-import { Button, Input, Select, Skeleton } from '@/components/antd';
-import { useTicket_v1, V1_Ticket } from './api1';
-import { FormLabel } from './components/FormLabel';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
+import { AiFillEyeInvisible } from 'react-icons/ai';
+import { fromPairs, keyBy } from 'lodash-es';
 
-interface TagFormProps {
-  ticketId: string;
+import { TagMetadataSchema } from '@/api/tag-metadata';
+import { Input, Select, Tooltip } from '@/components/antd';
+import { FormField } from './components/FormField';
+
+interface TagData {
+  key: string;
+  value: string;
 }
 
-export function TagForm({ ticketId }: TagFormProps) {
-  const { data: tagMetadatas } = useTagMetadatas();
-  const { data: ticket } = useTicket_v1(ticketId);
+interface TagFormProps {
+  tagMetadatas: TagMetadataSchema[];
+  tags: TagData[];
+  privateTags: TagData[];
+  onUpdate: (data: TagData[], isPrivate: boolean) => void;
+  updating?: boolean;
+}
 
-  const [values, privateValues] = useMemo(() => {
-    if (!ticket) {
-      return [{}, {}];
+export function TagForm({ tagMetadatas, tags, privateTags, onUpdate, updating }: TagFormProps) {
+  const valueMap = useMemo(() => {
+    return fromPairs(tags.map((tag) => [tag.key, tag.value]));
+  }, [tags]);
+
+  const privateValueMap = useMemo(() => {
+    return fromPairs(privateTags.map((tag) => [tag.key, tag.value]));
+  }, [privateTags]);
+
+  const handleChange = (tag: TagMetadataSchema, value: string | undefined) => {
+    const oldValues = tag.private ? privateTags : tags;
+    const newValueMap = keyBy(oldValues, (v) => v.key);
+    if (value === undefined) {
+      delete newValueMap[tag.key];
+    } else {
+      newValueMap[tag.key] = { key: tag.key, value };
     }
-    const values = keyBy(ticket.tags, (tag) => tag.key);
-    const privateValues = keyBy(ticket.private_tags, (tag) => tag.key);
-    return [values, privateValues];
-  }, [ticket]);
-
-  const queryClient = useQueryClient();
-
-  const { mutate, isLoading: updating } = useUpdateTicket({
-    onSuccess: (_, [, { tags, privateTags }]) => {
-      queryClient.setQueryData<V1_Ticket | undefined>(['v1_ticket', ticketId], (prev) => {
-        if (prev) {
-          return {
-            ...prev,
-            tags: tags ?? prev.tags,
-            private_tags: privateTags ?? prev.private_tags,
-          };
-        }
-      });
-    },
-  });
-
-  const handleChange = (key: string, value: string | undefined, isPrivate: boolean) => {
-    if (!ticket) {
-      return;
-    }
-    const oldTags = isPrivate ? ticket.private_tags : ticket.tags;
-    const newTags: typeof oldTags = [];
-    let inOldTags = false;
-    oldTags.forEach((tag) => {
-      if (tag.key === key) {
-        inOldTags = true;
-        if (value !== undefined) {
-          newTags.push({ key, value });
-        }
-      } else {
-        newTags.push(tag);
-      }
-    });
-    if (!inOldTags && value !== undefined) {
-      newTags.push({ key, value });
-    }
-    mutate([ticketId, { [isPrivate ? 'privateTags' : 'tags']: newTags }]);
+    const newValues = Object.values(newValueMap);
+    onUpdate(newValues, tag.private);
   };
 
-  if (!tagMetadatas) {
-    return <Skeleton active />;
-  }
-
-  if (tagMetadatas.length === 0) {
-    return null;
-  }
-
   return (
-    <div>
-      {tagMetadatas.map((tagMetadata) => (
+    <>
+      {tagMetadatas.map((tag) => (
         <TagField
-          key={tagMetadata.id}
-          tagMetadata={tagMetadata}
-          tag={tagMetadata.private ? privateValues[tagMetadata.key] : values[tagMetadata.key]}
+          key={tag.id}
+          tag={tag}
+          value={tag.private ? privateValueMap[tag.key] : valueMap[tag.key]}
           loading={updating}
-          onChange={handleChange}
+          onChange={(value) => handleChange(tag, value)}
         />
       ))}
-    </div>
+    </>
   );
 }
 
 interface TagFieldProps {
-  tagMetadata: TagMetadataSchema;
-  tag?: {
-    key: string;
-    value: string;
-  };
+  tag: TagMetadataSchema;
+  value?: string;
   loading?: boolean;
-  onChange: (key: string, value: string | undefined, isPrivate: boolean) => void;
+  onChange: (value: string) => void;
 }
 
-function TagField({ tagMetadata, tag, loading, onChange }: TagFieldProps) {
-  const [textValue, setTextValue] = useState('');
-  useEffect(() => setTextValue(tag ? tag.value : ''), [tag]);
+function TagField(props: TagFieldProps) {
+  if (props.tag.type === 'text') {
+    return <TextTag {...props} />;
+  }
 
-  const options = useMemo(() => {
-    return tagMetadata.values?.map((value) => ({ label: value, value }));
-  }, [tagMetadata.values]);
+  if (props.tag.type === 'select') {
+    return <SelectTag {...props} />;
+  }
 
-  const dirty = useMemo(() => (tag ? textValue !== tag.value : !!textValue), [tag, textValue]);
+  return <div className="text-red-500">unknown tag type {props.tag.type}</div>;
+}
+
+function TextTag({ tag, value, loading, onChange }: TagFieldProps) {
+  const [tempValue, setTempValue] = useState('');
+  useEffect(() => setTempValue(value || ''), [value]);
+
+  const dirty = value ? tempValue !== value : !!tempValue;
 
   return (
-    <div className="mt-4">
-      <FormLabel>{tagMetadata.key}</FormLabel>
-      {tagMetadata.type === 'text' && (
-        <Input.Group compact style={{ display: 'flex' }}>
-          <Input
-            placeholder="未设置"
-            value={textValue}
-            disabled={loading}
-            onChange={(e) => setTextValue(e.target.value)}
-          />
+    <FormField
+      label={
+        <FieldLabel label={tag.key} userInvisible={tag.private}>
           {dirty && (
-            <Button
-              loading={loading}
-              onClick={() => onChange(tagMetadata.key, textValue, tagMetadata.private)}
+            <button
+              className="text-primary disabled:text-gray-400 shrink-0 ml-2"
+              disabled={loading}
+              onClick={() => onChange(tempValue)}
             >
               保存
-            </Button>
+            </button>
           )}
-        </Input.Group>
+        </FieldLabel>
+      }
+    >
+      <Input
+        placeholder="未设置"
+        value={tempValue}
+        disabled={loading}
+        onChange={(e) => setTempValue(e.target.value)}
+      />
+    </FormField>
+  );
+}
+
+function SelectTag({ tag, value, loading, onChange }: TagFieldProps) {
+  const options = useMemo(() => {
+    return tag.values?.map((value) => ({ label: value, value }));
+  }, [tag.values]);
+
+  return (
+    <FormField label={<FieldLabel label={tag.key} userInvisible={tag.private} />}>
+      <Select
+        className="w-full"
+        allowClear
+        placeholder="未设置"
+        options={options}
+        value={value}
+        disabled={loading}
+        onChange={onChange}
+      />
+    </FormField>
+  );
+}
+
+interface FieldLabelProps {
+  label: string;
+  userInvisible?: boolean;
+  children?: ReactNode;
+}
+
+function FieldLabel({ label, userInvisible, children }: FieldLabelProps) {
+  return (
+    <div className="flex items-center">
+      <div className="truncate" title={label}>
+        {label}
+      </div>
+      {userInvisible && (
+        <Tooltip title="用户不可见">
+          <AiFillEyeInvisible className="inline-block w-4 h-4 shrink-0" />
+        </Tooltip>
       )}
-      {tagMetadata.type === 'select' && (
-        <Select
-          allowClear
-          placeholder="未设置"
-          options={options}
-          value={tag?.value}
-          disabled={loading}
-          onChange={(value) => onChange(tagMetadata.key, value, tagMetadata.private)}
-          style={{ width: '100%' }}
-        />
-      )}
+      <div className="grow" />
+      {children}
     </div>
   );
 }

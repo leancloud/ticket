@@ -2,18 +2,24 @@ import { useMutation, UseMutationOptions, useQuery, UseQueryOptions } from 'reac
 
 import { http } from '@/leancloud';
 
-export interface V1_Ticket {
+export interface Ticket_v1 {
+  id: string;
   private?: boolean;
   subscribed: boolean;
-  tags: { key: string; value: string }[];
-  private_tags: { key: string; value: string }[];
+  tags: TagData[];
+  private_tags: TagData[];
 }
 
-export function useTicket_v1(ticketId: string, options?: UseQueryOptions<V1_Ticket, Error>) {
+interface TagData {
+  key: string;
+  value: string;
+}
+
+export function useTicket_v1(ticketId: string, options?: UseQueryOptions<Ticket_v1, Error>) {
   return useQuery({
-    queryKey: ['v1_ticket', ticketId],
+    queryKey: ['ticket_v1', ticketId],
     queryFn: async () => {
-      const res = await http.get<V1_Ticket>(`/api/1/tickets/${ticketId}`);
+      const res = await http.get<Ticket_v1>(`/api/1/tickets/${ticketId}`);
       return res.data;
     },
     ...options,
