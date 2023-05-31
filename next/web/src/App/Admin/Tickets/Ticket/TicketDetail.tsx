@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AiFillExclamationCircle } from 'react-icons/ai';
 import moment from 'moment';
-import { partition } from 'lodash-es';
+import { last, partition } from 'lodash-es';
 import { DefaultOptionType } from 'antd/lib/select';
 
 import {
@@ -23,7 +23,6 @@ import { useCustomerServices } from '@/api/customer-service';
 import { useCollaborators } from '@/api/collaborator';
 import { useTagMetadatas } from '@/api/tag-metadata';
 import { useCurrentUser } from '@/leancloud';
-import { CategorySelect } from '@/components/common';
 import { TicketStatus } from '../../components/TicketStatus';
 import { Timeline } from './Timeline';
 import { TagForm } from './TagForm';
@@ -31,6 +30,7 @@ import { FormField } from './components/FormField';
 import { ReplyEditor } from './components/ReplyEditor';
 import { SubscribeButton } from './components/SubscribeButton';
 import { PrivateSelect } from './components/PrivateSelect';
+import { CategoryCascader } from './components/CategoryCascader';
 import { TicketContextProvider, useTicketContext } from './TicketContext';
 import { langs } from './lang';
 
@@ -52,7 +52,7 @@ export function TicketDetail() {
           <TicketInfo onBack={() => navigate('..')} />
           <Row>
             <Col className="p-4" span={24} md={6}>
-              <LeftSider />
+              <CategorySection />
             </Col>
             <Col className="p-4" span={24} md={12}>
               <Timeline />
@@ -128,23 +128,19 @@ function TicketInfo({ onBack }: TicketInfoProps) {
   );
 }
 
-function LeftSider() {
-  return (
-    <>
-      <CategorySection />
-    </>
-  );
-}
-
 function CategorySection() {
-  const { ticket } = useTicketContext();
+  const { ticket, update, updating } = useTicketContext();
 
   return (
     <FormField label="分类">
-      <CategorySelect
-        categoryActive
+      <CategoryCascader
         allowClear={false}
-        value={ticket.categoryId}
+        categoryId={ticket.categoryId}
+        onChange={(value: unknown) => {
+          const categoryId = last(value as string[]);
+          update({ categoryId });
+        }}
+        disabled={updating}
         style={{ width: '100%' }}
       />
     </FormField>

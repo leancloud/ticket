@@ -41,6 +41,7 @@ interface MixedTicket {
 }
 
 interface MixedUpdateData {
+  categoryId?: UpdateTicketData['categoryId'];
   groupId?: UpdateTicketData['groupId'];
   assigneeId?: UpdateTicketData['assigneeId'];
   language?: UpdateTicketData['language'];
@@ -118,7 +119,14 @@ export function TicketContextProvider({
   }, [ticket, ticket_v1]);
 
   const update = (data: MixedUpdateData) => {
-    const updateData = pick(data, ['groupId', 'assigneeId', 'language', 'tags', 'privateTags']);
+    const updateData = pick(data, [
+      'categoryId',
+      'groupId',
+      'assigneeId',
+      'language',
+      'tags',
+      'privateTags',
+    ]);
     const updateData_v1 = pick(data, ['private', 'subscribed']);
     if (!isEmpty(updateData)) {
       updateTicket([ticketId, data]);
