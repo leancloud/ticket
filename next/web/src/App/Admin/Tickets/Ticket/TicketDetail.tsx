@@ -59,7 +59,14 @@ export function TicketDetail() {
               <ReplyEditor />
             </Col>
             <Col className="p-4" span={24} md={6}>
-              <RightSider />
+              <div className="sticky top-4">
+                <TicketBasicInfoSection />
+
+                <TagsSection />
+
+                <Divider>工单操作</Divider>
+                <TicketOperations />
+              </div>
             </Col>
           </Row>
         </TicketContextProvider>
@@ -144,19 +151,6 @@ function CategorySection() {
         style={{ width: '100%' }}
       />
     </FormField>
-  );
-}
-
-function RightSider() {
-  return (
-    <div className="sticky top-4">
-      <TicketBasicInfoSection />
-
-      <TagsSection />
-
-      <Divider>工单操作</Divider>
-      <TicketOperations />
-    </div>
   );
 }
 
