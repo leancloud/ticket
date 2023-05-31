@@ -19,12 +19,13 @@ import {
   UseMiddlewares,
 } from '@/common/http';
 import { ParseBoolPipe, ZodValidationPipe } from '@/common/pipe';
-import { auth, customerServiceOnly, systemRoleMemberGuard } from '@/middleware';
+import { adminOnly, auth, customerServiceOnly, systemRoleMemberGuard } from '@/middleware';
 import { Category } from '@/model/Category';
 import { Role } from '@/model/Role';
 import { User } from '@/model/User';
 import { CustomerServiceResponse } from '@/response/customer-service';
 import { GroupResponse } from '@/response/group';
+import { roleService } from '@/service/role';
 
 class FindCustomerServicePipe {
   static async transform(id: string, ctx: Context): Promise<User> {
@@ -34,8 +35,12 @@ class FindCustomerServicePipe {
   }
 }
 
+const roleSchema = z.union([z.literal('admin'), z.literal('customerService')]);
+const rolesSchema = z.array(roleSchema).nonempty();
+
 const createCustomerServiceSchema = z.object({
   userId: z.string(),
+  roles: rolesSchema,
 });
 
 const addCategorySchema = z.object({
@@ -48,6 +53,7 @@ type AddCategoryData = z.infer<typeof addCategorySchema>;
 
 const updateCustomerServiceSchema = z.object({
   active: z.boolean().optional(),
+  roles: rolesSchema.optional(),
 });
 type UpdateCustomerServiceData = z.infer<typeof updateCustomerServiceSchema>;
 
@@ -76,55 +82,83 @@ export class CustomerServiceController {
   }
 
   @Post()
-  @UseMiddlewares(customerServiceOnly)
+  @UseMiddlewares(adminOnly)
   @StatusCode(201)
   async create(
-    @CurrentUser() currentUser: User,
     @Body(new ZodValidationPipe(createCustomerServiceSchema)) data: CreateCustomerServiceData
   ) {
-    if (await User.isCustomerService({ id: data.userId })) {
-      throw new BadRequestError('This user is already customer service');
+    if (
+      (await User.isCustomerService({ id: data.userId })) ||
+      (await User.isAdmin({ id: data.userId }))
+    ) {
+      throw new BadRequestError('This user is already customer service or admin');
     }
 
-    const csRole = await Role.getCustomerServiceRole();
-    const avRole = AV.Role.createWithoutData('_Role', csRole.id);
-    const avUser = AV.User.createWithoutData('_User', data.userId);
-    avRole.relation('users').add(avUser);
-    await avRole.save(null, currentUser.getAuthOptions());
+    await Promise.all([
+      data.roles.map(async (v) => {
+        if (v === 'admin') {
+          const adminRole = await Role.getAdminRole();
+          return roleService.addUserToRole(adminRole.id, data.userId);
+        } else if (v === 'customerService') {
+          const csRole = await Role.getCustomerServiceRole();
+          return roleService.addUserToRole(csRole.id, data.userId);
+        }
+      }),
+    ]);
 
     return {};
   }
 
   @Patch(':id')
-  @UseMiddlewares(customerServiceOnly)
+  @UseMiddlewares(adminOnly)
   async update(
     @Body(new ZodValidationPipe(updateCustomerServiceSchema)) data: UpdateCustomerServiceData,
     @Param('id', FindCustomerServicePipe) user: User
   ) {
+    const processQueue: Promise<any>[] = [];
+
     if (data.active !== undefined) {
       if (data.active) {
-        await user.update({ inactive: null }, { useMasterKey: true });
+        processQueue.push(user.update({ inactive: null }, { useMasterKey: true }));
       } else {
-        await user.update({ inactive: true }, { useMasterKey: true });
-        await user.refreshSessionToken();
+        processQueue.push(
+          user
+            .update({ inactive: true }, { useMasterKey: true })
+            .then(() => user.refreshSessionToken())
+        );
       }
     }
+
+    if (data.roles !== undefined) {
+      processQueue.push(roleService.updateUserCSRoleTo(data.roles, user.id));
+    }
+
+    await Promise.all(processQueue);
+
+    return {};
   }
 
   @Delete(':id')
-  @UseMiddlewares(customerServiceOnly)
-  async delete(@CurrentUser() currentUser: User, @Param('id', FindCustomerServicePipe) user: User) {
-    const csRole = await Role.getCustomerServiceRole();
-    const avRole = AV.Role.createWithoutData('_Role', csRole.id);
-    const avUser = AV.User.createWithoutData('_User', user.id);
-    avRole.relation('users').remove(avUser);
-    await avRole.save(null, currentUser.getAuthOptions());
+  @UseMiddlewares(adminOnly)
+  async delete(@Param('id', FindCustomerServicePipe) user: User) {
+    await Promise.all([
+      Role.getAdminRole()
+        .then(({ id }) => AV.Role.createWithoutData('_Role', id))
+        .then(({ id }) => {
+          if (id) return roleService.removeUserFromRole(id, user.id);
+        }),
+      Role.getCustomerServiceRole()
+        .then(({ id }) => AV.Role.createWithoutData('_Role', id))
+        .then(({ id }) => {
+          if (id) return roleService.removeUserFromRole(id, user.id);
+        }),
+    ]);
 
     return {};
   }
 
   @Post(':id/categories')
-  @UseMiddlewares(customerServiceOnly)
+  @UseMiddlewares(adminOnly)
   async addCategory(
     @CurrentUser() currentUser: User,
     @Param('id', FindCustomerServicePipe) customerService: User,
@@ -155,7 +189,7 @@ export class CustomerServiceController {
   }
 
   @Delete(':id/categories/:categoryId')
-  @UseMiddlewares(customerServiceOnly)
+  @UseMiddlewares(adminOnly)
   async deleteCategory(
     @CurrentUser() currentUser: User,
     @Param('id', FindCustomerServicePipe) customerService: User,
