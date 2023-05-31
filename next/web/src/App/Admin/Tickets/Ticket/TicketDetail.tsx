@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AiFillExclamationCircle } from 'react-icons/ai';
 import moment from 'moment';
-import { partition } from 'lodash-es';
+import { last, partition } from 'lodash-es';
 import { DefaultOptionType } from 'antd/lib/select';
 
 import {
@@ -14,6 +14,7 @@ import {
   Row,
   Select,
   Skeleton,
+  Spin,
   Tooltip,
 } from '@/components/antd';
 import { UserLabel } from '@/App/Admin/components';
@@ -21,8 +22,7 @@ import { useGroup, useGroups } from '@/api/group';
 import { useCustomerServices } from '@/api/customer-service';
 import { useCollaborators } from '@/api/collaborator';
 import { useTagMetadatas } from '@/api/tag-metadata';
-import { useCurrentUser } from '@/leancloud';
-import { CategorySelect } from '@/components/common';
+import { ENABLE_LEANCLOUD_INTEGRATION, useCurrentUser } from '@/leancloud';
 import { TicketStatus } from '../../components/TicketStatus';
 import { Timeline } from './Timeline';
 import { TagForm } from './TagForm';
@@ -30,6 +30,8 @@ import { FormField } from './components/FormField';
 import { ReplyEditor } from './components/ReplyEditor';
 import { SubscribeButton } from './components/SubscribeButton';
 import { PrivateSelect } from './components/PrivateSelect';
+import { CategoryCascader } from './components/CategoryCascader';
+import { LeanCloudApp } from './components/LeanCloudApp';
 import { TicketContextProvider, useTicketContext } from './TicketContext';
 import { langs } from './lang';
 
@@ -38,26 +40,40 @@ export function TicketDetail() {
   const navigate = useNavigate();
 
   return (
-    <TicketContextProvider ticketId={id}>
-      <div className="h-full bg-white overflow-auto">
-        <div className="max-w-[1360px] mx-auto">
+    <div className="h-full bg-white overflow-auto">
+      <div className="max-w-[1360px] mx-auto">
+        <TicketContextProvider
+          ticketId={id}
+          fallback={
+            <div className="h-screen flex">
+              <Spin style={{ margin: 'auto' }} />
+            </div>
+          }
+        >
           <TicketInfo onBack={() => navigate('..')} />
-
           <Row>
             <Col className="p-4" span={24} md={6}>
-              <LeftSider />
+              <LeanCloudSection />
+              <CategorySection />
             </Col>
             <Col className="p-4" span={24} md={12}>
               <Timeline />
               <ReplyEditor />
             </Col>
             <Col className="p-4" span={24} md={6}>
-              <RightSider />
+              <div className="sticky top-4">
+                <TicketBasicInfoSection />
+
+                <TagsSection />
+
+                <Divider>工单操作</Divider>
+                <TicketOperations />
+              </div>
             </Col>
           </Row>
-        </div>
+        </TicketContextProvider>
       </div>
-    </TicketContextProvider>
+    </div>
   );
 }
 
@@ -67,14 +83,6 @@ interface TicketInfoProps {
 
 function TicketInfo({ onBack }: TicketInfoProps) {
   const { ticket, update, updating } = useTicketContext();
-
-  if (!ticket) {
-    return (
-      <PageHeader className="border-b">
-        <Skeleton active paragraph={{ rows: 2 }} />
-      </PageHeader>
-    );
-  }
 
   return (
     <PageHeader
@@ -129,47 +137,46 @@ function TicketInfo({ onBack }: TicketInfoProps) {
   );
 }
 
-function LeftSider() {
+function LeanCloudSection() {
   const { ticket } = useTicketContext();
 
-  if (!ticket) {
-    return <Skeleton active />;
+  if (!ENABLE_LEANCLOUD_INTEGRATION) {
+    return null;
+  }
+
+  if (!ticket.author) {
+    return null;
   }
 
   return (
-    <>
-      <FormField label="分类">
-        <CategorySelect
-          categoryActive
-          allowClear={false}
-          value={ticket.categoryId}
-          style={{ width: '100%' }}
-        />
-      </FormField>
-    </>
+    <FormField label="应用">
+      <LeanCloudApp ticketId={ticket.id} username={ticket.author.username} />
+    </FormField>
   );
 }
 
-function RightSider() {
+function CategorySection() {
+  const { ticket, update, updating } = useTicketContext();
+
   return (
-    <div className="sticky top-4">
-      <TicketBasicInfoSection />
-
-      <TagsSection />
-
-      <Divider>工单操作</Divider>
-      <TicketOperations />
-    </div>
+    <FormField label="分类">
+      <CategoryCascader
+        allowClear={false}
+        categoryId={ticket.categoryId}
+        onChange={(value: unknown) => {
+          const categoryId = last(value as string[]);
+          update({ categoryId });
+        }}
+        disabled={updating}
+        style={{ width: '100%' }}
+      />
+    </FormField>
   );
 }
 
 function TicketBasicInfoSection() {
   const { ticket, update, updating } = useTicketContext();
   const groups = useGroups();
-
-  if (!ticket) {
-    return <Skeleton active />;
-  }
 
   return (
     <>
@@ -320,7 +327,7 @@ function TagsSection() {
   const { ticket, update, updating } = useTicketContext();
   const { data: tagMetadatas } = useTagMetadatas();
 
-  if (!ticket || !tagMetadatas) {
+  if (!tagMetadatas) {
     return <Skeleton active />;
   }
 
@@ -350,10 +357,6 @@ function TagsSection() {
 
 function TicketOperations() {
   const { ticket, operate, operating } = useTicketContext();
-
-  if (!ticket) {
-    return <Skeleton active title={false} />;
-  }
 
   return (
     <div className="space-x-2">
