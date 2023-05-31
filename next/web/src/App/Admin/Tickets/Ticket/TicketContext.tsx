@@ -10,15 +10,15 @@ import {
 } from '@/api/ticket';
 import { Ticket_v1, UpdateTicket_v1Data, useTicket_v1, useUpdateTicket_v1 } from './api1';
 
-export interface TicketContextValue {
-  ticket?: TicketData;
+interface TicketContextValue {
+  ticket: MixedTicket;
   update: (data: MixedUpdateData) => void;
   updating: boolean;
   operate: (action: string) => void;
   operating: boolean;
 }
 
-export interface TicketData {
+interface MixedTicket {
   id: TicketDetailSchema['id'];
   nid: TicketDetailSchema['nid'];
   categoryId: TicketDetailSchema['categoryId'];
@@ -57,9 +57,14 @@ const TicketContext = createContext<TicketContextValue>({} as any);
 interface TicketContextProviderProps {
   ticketId: string;
   children?: ReactNode;
+  fallback?: ReactNode;
 }
 
-export function TicketContextProvider({ ticketId, children }: TicketContextProviderProps) {
+export function TicketContextProvider({
+  ticketId,
+  children,
+  fallback,
+}: TicketContextProviderProps) {
   const { data: ticket, refetch } = useTicket(ticketId, {
     include: ['author', 'files'],
   });
@@ -87,7 +92,7 @@ export function TicketContextProvider({ ticketId, children }: TicketContextProvi
     },
   });
 
-  const ticketData = useMemo<TicketData | undefined>(() => {
+  const mixedTicket = useMemo<MixedTicket | undefined>(() => {
     if (ticket && ticket_v1) {
       return {
         id: ticket.id,
@@ -123,10 +128,14 @@ export function TicketContextProvider({ ticketId, children }: TicketContextProvi
     }
   };
 
+  if (!mixedTicket) {
+    return fallback as JSX.Element;
+  }
+
   return (
     <TicketContext.Provider
       value={{
-        ticket: ticketData,
+        ticket: mixedTicket,
         update,
         updating: ticketUpdating || ticketUpdating_v1,
         operate: (action) => operateTicket([ticketId, action]),

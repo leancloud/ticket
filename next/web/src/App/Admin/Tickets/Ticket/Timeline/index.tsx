@@ -27,15 +27,12 @@ export function Timeline() {
 
   return (
     <div className={replies ? styles.timeline : undefined}>
-      {!ticket && <Skeleton active paragraph={{ rows: 4 }} />}
-      {ticket && (
-        <ReplyCard
-          author={<UserLabel user={ticket.author!} />}
-          createTime={ticket.createdAt}
-          content={ticket.contentSafeHTML}
-          files={ticket.files}
-        />
-      )}
+      <ReplyCard
+        author={<UserLabel user={ticket.author!} />}
+        createTime={ticket.createdAt}
+        content={ticket.contentSafeHTML}
+        files={ticket.files}
+      />
       {loadingReplies && <Skeleton active paragraph={{ rows: 4 }} />}
       {replyItems.map((reply) => (
         <ReplyCard

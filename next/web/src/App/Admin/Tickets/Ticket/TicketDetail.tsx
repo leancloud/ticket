@@ -14,6 +14,7 @@ import {
   Row,
   Select,
   Skeleton,
+  Spin,
   Tooltip,
 } from '@/components/antd';
 import { UserLabel } from '@/App/Admin/components';
@@ -38,11 +39,17 @@ export function TicketDetail() {
   const navigate = useNavigate();
 
   return (
-    <TicketContextProvider ticketId={id}>
-      <div className="h-full bg-white overflow-auto">
-        <div className="max-w-[1360px] mx-auto">
+    <div className="h-full bg-white overflow-auto">
+      <div className="max-w-[1360px] mx-auto">
+        <TicketContextProvider
+          ticketId={id}
+          fallback={
+            <div className="h-screen flex">
+              <Spin style={{ margin: 'auto' }} />
+            </div>
+          }
+        >
           <TicketInfo onBack={() => navigate('..')} />
-
           <Row>
             <Col className="p-4" span={24} md={6}>
               <LeftSider />
@@ -55,9 +62,9 @@ export function TicketDetail() {
               <RightSider />
             </Col>
           </Row>
-        </div>
+        </TicketContextProvider>
       </div>
-    </TicketContextProvider>
+    </div>
   );
 }
 
@@ -67,14 +74,6 @@ interface TicketInfoProps {
 
 function TicketInfo({ onBack }: TicketInfoProps) {
   const { ticket, update, updating } = useTicketContext();
-
-  if (!ticket) {
-    return (
-      <PageHeader className="border-b">
-        <Skeleton active paragraph={{ rows: 2 }} />
-      </PageHeader>
-    );
-  }
 
   return (
     <PageHeader
@@ -130,23 +129,25 @@ function TicketInfo({ onBack }: TicketInfoProps) {
 }
 
 function LeftSider() {
-  const { ticket } = useTicketContext();
-
-  if (!ticket) {
-    return <Skeleton active />;
-  }
-
   return (
     <>
-      <FormField label="分类">
-        <CategorySelect
-          categoryActive
-          allowClear={false}
-          value={ticket.categoryId}
-          style={{ width: '100%' }}
-        />
-      </FormField>
+      <CategorySection />
     </>
+  );
+}
+
+function CategorySection() {
+  const { ticket } = useTicketContext();
+
+  return (
+    <FormField label="分类">
+      <CategorySelect
+        categoryActive
+        allowClear={false}
+        value={ticket.categoryId}
+        style={{ width: '100%' }}
+      />
+    </FormField>
   );
 }
 
@@ -166,10 +167,6 @@ function RightSider() {
 function TicketBasicInfoSection() {
   const { ticket, update, updating } = useTicketContext();
   const groups = useGroups();
-
-  if (!ticket) {
-    return <Skeleton active />;
-  }
 
   return (
     <>
@@ -320,7 +317,7 @@ function TagsSection() {
   const { ticket, update, updating } = useTicketContext();
   const { data: tagMetadatas } = useTagMetadatas();
 
-  if (!ticket || !tagMetadatas) {
+  if (!tagMetadatas) {
     return <Skeleton active />;
   }
 
@@ -350,10 +347,6 @@ function TagsSection() {
 
 function TicketOperations() {
   const { ticket, operate, operating } = useTicketContext();
-
-  if (!ticket) {
-    return <Skeleton active title={false} />;
-  }
 
   return (
     <div className="space-x-2">
