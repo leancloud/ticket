@@ -99,10 +99,17 @@ function ReplyCard({ author, createTime, content, files, isAgent }: ReplyCardPro
         {imageFiles.length > 0 && (
           <>
             <hr className="my-4" />
-            <div className={styles.imageGroup}>
+            <div className="flex flex-wrap gap-2">
               <Image.PreviewGroup>
                 {imageFiles.map(({ id, name, url }) => (
-                  <Image key={id} src={url} title={name} />
+                  <Image
+                    key={id}
+                    className="object-contain"
+                    src={url}
+                    title={name}
+                    width={80}
+                    height={80}
+                  />
                 ))}
               </Image.PreviewGroup>
             </div>
