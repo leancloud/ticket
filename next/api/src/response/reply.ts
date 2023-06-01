@@ -14,6 +14,7 @@ export class ReplyResponse {
       author: this.reply.author ? new UserResponse(this.reply.author) : undefined,
       isCustomerService: this.reply.isCustomerService,
       files: this.reply.files?.map((file) => new FileResponse(file)),
+      internal: this.reply.internal,
       createdAt: this.reply.createdAt.toISOString(),
       updatedAt: this.reply.updatedAt.toISOString(),
     };
