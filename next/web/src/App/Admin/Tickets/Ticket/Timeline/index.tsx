@@ -15,9 +15,8 @@ const IMAGE_FILE_MIMES = ['image/png', 'image/jpeg', 'image/gif'];
 export function Timeline() {
   const { ticket } = useTicketContext();
 
-  const { data: replies, isLoading: loadingReplies } = useTicketReplies(ticket ? ticket.id : '', {
-    enabled: !!ticket,
-  });
+  const { data: replies, isLoading: loadingReplies } = useTicketReplies(ticket.id);
+
   const replyItems = useMemo(() => {
     if (!replies) {
       return [];
