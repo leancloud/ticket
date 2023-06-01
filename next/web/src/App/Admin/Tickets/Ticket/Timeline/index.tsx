@@ -28,7 +28,7 @@ export function Timeline() {
   return (
     <div className={replies ? styles.timeline : undefined}>
       <ReplyCard
-        author={<UserLabel user={ticket.author!} />}
+        author={ticket.author ? <UserLabel user={ticket.author} /> : 'unknown'}
         createTime={ticket.createdAt}
         content={ticket.contentSafeHTML}
         files={ticket.files}
