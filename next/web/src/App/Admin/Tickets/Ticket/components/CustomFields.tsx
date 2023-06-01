@@ -126,9 +126,16 @@ function FileField({ files }: CustomFieldProps<string[]>) {
   );
 }
 
-function withProps<P extends Record<string, any>>(
+type PartialSome<T, K extends keyof T> = Omit<T, K> &
+  {
+    [key in K]?: T[K];
+  };
+
+function withProps<P extends Record<string, any>, K extends keyof P>(
   Component: JSXElementConstructor<P>,
-  presetProps: Partial<P>
-) {
-  return (props: P) => <Component {...presetProps} {...props} />;
+  presetProps: {
+    [key in K]: P[K];
+  }
+): JSXElementConstructor<PartialSome<P, K>> {
+  return (props: any) => <Component {...presetProps} {...props} />;
 }
