@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AiFillExclamationCircle } from 'react-icons/ai';
 import moment from 'moment';
-import { last, partition } from 'lodash-es';
+import { difference, keyBy, last, partition } from 'lodash-es';
 import { DefaultOptionType } from 'antd/lib/select';
 
 import {
@@ -22,6 +22,9 @@ import { useGroup, useGroups } from '@/api/group';
 import { useCustomerServices } from '@/api/customer-service';
 import { useCollaborators } from '@/api/collaborator';
 import { useTagMetadatas } from '@/api/tag-metadata';
+import { useTicketFieldValues, useUpdateTicketFieldValues } from '@/api/ticket';
+import { useCategory } from '@/api/category';
+import { useTicketForm } from '@/api/ticket-form';
 import { ENABLE_LEANCLOUD_INTEGRATION, useCurrentUser } from '@/leancloud';
 import { TicketStatus } from '../../components/TicketStatus';
 import { Timeline } from './Timeline';
@@ -34,6 +37,8 @@ import { CategoryCascader } from './components/CategoryCascader';
 import { LeanCloudApp } from './components/LeanCloudApp';
 import { TicketContextProvider, useTicketContext } from './TicketContext';
 import { langs } from './lang';
+import { TicketField_v1, useTicketFields_v1 } from './api1';
+import { CustomFields } from './components/CustomFields';
 
 export function TicketDetail() {
   const { id } = useParams() as { id: string };
@@ -55,6 +60,7 @@ export function TicketDetail() {
             <Col className="p-4" span={24} md={6}>
               <LeanCloudSection />
               <CategorySection />
+              <CustomFieldsSection />
             </Col>
             <Col className="p-4" span={24} md={12}>
               <Timeline />
@@ -171,6 +177,111 @@ function CategorySection() {
         style={{ width: '100%' }}
       />
     </FormField>
+  );
+}
+
+function useFormFieldIds(categoryId: string) {
+  const { data: category, isLoading: loadingCategory } = useCategory(categoryId);
+
+  const formId = category?.formId;
+  const { data: form, isLoading: loadingForm } = useTicketForm(formId || '', {
+    enabled: !!formId,
+  });
+
+  const fieldIds = useMemo(() => {
+    if (form) {
+      return form.items.filter((item) => item.type === 'field').map((item) => item.id);
+    }
+    return [];
+  }, [form]);
+
+  return { data: fieldIds, isLoading: loadingCategory || loadingForm };
+}
+
+function transformField(field: TicketField_v1) {
+  return {
+    id: field.id,
+    type: field.type,
+    label: field.variants[0]?.title || 'unknown',
+    options: field.variants[0]?.options?.map(([value, label]) => ({ label, value })),
+  };
+}
+
+function CustomFieldsSection() {
+  const { ticket } = useTicketContext();
+
+  const { data: formFieldIds, isLoading: loadingFormFieldIds } = useFormFieldIds(ticket.categoryId);
+
+  const { data: fieldValues, isLoading: loadingFieldValues } = useTicketFieldValues(ticket.id);
+
+  const otherFieldIds = useMemo(() => {
+    if (!fieldValues) {
+      return [];
+    }
+    const valueFieldIds = fieldValues.map((v) => v.field);
+    return difference(valueFieldIds, formFieldIds);
+  }, [formFieldIds, fieldValues]);
+
+  const fieldValueMap = useMemo(() => keyBy(fieldValues, (v) => v.field), [fieldValues]);
+
+  const fieldIds = useMemo(() => formFieldIds.concat(otherFieldIds), [formFieldIds, otherFieldIds]);
+
+  const { data: fields, isLoading: loadingFields } = useTicketFields_v1(fieldIds, {
+    enabled: !loadingFormFieldIds && !loadingFieldValues,
+  });
+
+  const fieldById = useMemo(() => keyBy(fields, (field) => field.id), [fields]);
+
+  const formFields = useMemo(() => {
+    return formFieldIds
+      .map((id) => fieldById[id])
+      .filter(Boolean)
+      .map(transformField);
+  }, [formFieldIds, fieldById]);
+
+  const otherFields = useMemo(() => {
+    return otherFieldIds
+      .map((id) => fieldById[id])
+      .filter(Boolean)
+      .map(transformField);
+  }, [otherFieldIds, fieldById]);
+
+  const { mutate, isLoading: updating } = useUpdateTicketFieldValues();
+
+  const handleUpdate = (values: Record<string, any>) => {
+    const valueList = Object.entries(values).map(([field, value]) => ({ field, value }));
+    mutate([ticket.id, valueList]);
+  };
+
+  if (loadingFormFieldIds || loadingFieldValues || loadingFields) {
+    return <Skeleton active />;
+  }
+
+  return (
+    <>
+      {formFields.length > 0 && (
+        <>
+          <Divider>分类表单</Divider>
+          <CustomFields
+            fields={formFields}
+            values={fieldValueMap}
+            updating={updating}
+            onChange={handleUpdate}
+          />
+        </>
+      )}
+      {otherFields.length > 0 && (
+        <>
+          <Divider>其他字段</Divider>
+          <CustomFields
+            fields={otherFields}
+            values={fieldValueMap}
+            updating={updating}
+            onChange={handleUpdate}
+          />
+        </>
+      )}
+    </>
   );
 }
 

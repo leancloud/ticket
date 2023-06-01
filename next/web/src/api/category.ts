@@ -166,3 +166,16 @@ export const useBatchUpdateCategory = (
     mutationFn: batchUpdateCategory,
     ...options,
   });
+
+async function fetchCategory(id: string) {
+  const res = await http.get<CategorySchema>(`/api/2/categories/${id}`);
+  return res.data;
+}
+
+export function useCategory(id: string, options?: UseQueryOptions<CategorySchema>) {
+  return useQuery({
+    queryKey: ['category', id],
+    queryFn: () => fetchCategory(id),
+    ...options,
+  });
+}

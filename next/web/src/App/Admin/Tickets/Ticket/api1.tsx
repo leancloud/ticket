@@ -42,3 +42,31 @@ export function useUpdateTicket_v1(
     ...options,
   });
 }
+
+export interface TicketField_v1 {
+  id: string;
+  type: string;
+  variants: {
+    title: string;
+    options?: [string, string][];
+  }[];
+}
+
+export function useTicketFields_v1(
+  fieldIds: string[],
+  options?: UseQueryOptions<TicketField_v1[], Error>
+) {
+  return useQuery({
+    queryKey: ['ticketFields_v1', fieldIds],
+    queryFn: async () => {
+      const res = await http.get<TicketField_v1[]>(`/api/1/ticket-fields`, {
+        params: {
+          ids: fieldIds.join(','),
+          includeVariant: true,
+        },
+      });
+      return res.data;
+    },
+    ...options,
+  });
+}

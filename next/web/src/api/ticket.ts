@@ -373,3 +373,48 @@ export function useTicketOverview(
     ...options,
   });
 }
+
+export interface TicketFieldValue {
+  field: string;
+  value: any;
+  files?: {
+    id: string;
+    name: string;
+    mime: string;
+    url: string;
+  }[];
+}
+
+async function fetchTicketFieldValues(ticketId: string) {
+  const res = await http.get<TicketFieldValue[]>(`/api/2/tickets/${ticketId}/custom-fields`);
+  return res.data;
+}
+
+export function useTicketFieldValues(
+  ticketId: string,
+  options?: UseQueryOptions<TicketFieldValue[]>
+) {
+  return useQuery({
+    queryKey: ['ticketFieldValues', ticketId],
+    queryFn: () => fetchTicketFieldValues(ticketId),
+    ...options,
+  });
+}
+
+type UpdateTicketFieldValuesData = {
+  field: string;
+  value: any;
+}[];
+
+async function updateTicketFieldValues(ticketId: string, data: UpdateTicketFieldValuesData) {
+  await http.put(`/api/2/tickets/${ticketId}/custom-fields`, data);
+}
+
+export function useUpdateTicketFieldValues(
+  options?: UseMutationOptions<void, Error, Parameters<typeof updateTicketFieldValues>>
+) {
+  return useMutation({
+    mutationFn: (vars) => updateTicketFieldValues(...vars),
+    ...options,
+  });
+}
