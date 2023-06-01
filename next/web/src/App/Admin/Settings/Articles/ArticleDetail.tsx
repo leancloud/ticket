@@ -1,16 +1,17 @@
-import { FC, useMemo, useState } from 'react';
+import { FC, useCallback, useMemo, useState } from 'react';
 import { useQueryClient } from 'react-query';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import {
   useArticle,
   useArticleTranslations,
+  useDeleteArticleTranslation,
   useRelatedCategories,
   useUpdateArticle,
 } from '@/api/article';
 import { CategorySchema } from '@/api/category';
 import { LOCALES } from '@/i18n/locales';
-import { Breadcrumb, Spin, message } from '@/components/antd';
+import { Breadcrumb, Button, Modal, Spin, message } from '@/components/antd';
 import { TranslationList } from '@/App/Admin/components/TranslationList';
 import { useGetCategoryPath, CategoryPath } from '../../components/CategoryPath';
 import { LocaleModal } from '../../components/LocaleModal';
@@ -28,14 +29,33 @@ const ArticleTranslationList: FC<ArticleTranslationListProps> = ({
   articleId,
   defaultLanguage,
 }) => {
-  const { data: translations, isLoading } = useArticleTranslations(articleId);
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
+
+  const { data: translations, isLoading } = useArticleTranslations(articleId);
+  const { mutateAsync: deleteArticle } = useDeleteArticleTranslation({
+    onSuccess: () => {
+      queryClient.invalidateQueries(['ArticleTranslations', articleId]);
+    },
+  });
 
   const [show, setShow] = useState(false);
 
   const existLanguages = useMemo(() => translations?.map(({ language }) => language) ?? [], [
     translations,
   ]);
+
+  const handleDelete = useCallback(
+    (language: string) => {
+      Modal.confirm({
+        title: '删除翻译',
+        content: `是否删除 ${LOCALES[language]} 翻译？`,
+        okType: 'danger',
+        onOk: () => deleteArticle({ id: articleId, language }),
+      });
+    },
+    [articleId, deleteArticle]
+  );
 
   return (
     <>
@@ -49,6 +69,14 @@ const ArticleTranslationList: FC<ArticleTranslationListProps> = ({
             <FeedbackSummary revision={item.revision!} />
             <PreviewLink slug={item.slug} language={item.language} />
             <Link to={`${item.language}/revisions`}>查看历史</Link>
+            <Button
+              type="link"
+              danger
+              onClick={() => handleDelete(item.language)}
+              disabled={defaultLanguage === item.language}
+            >
+              删除
+            </Button>
             <SetDefaultButton
               articleId={articleId}
               language={item.language}
