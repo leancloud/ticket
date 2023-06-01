@@ -335,6 +335,13 @@ router.patch('/:id/:language', auth, customerServiceOnly, async (ctx) => {
 // delete :language translation of article :id
 router.delete('/:id/:language', auth, customerServiceOnly, async (ctx) => {
   const translation = ctx.state.translation as ArticleTranslation;
+  const article = ctx.state.article as Article;
+
+  if (article.defaultLanguage === translation.language) {
+    ctx.throw(400, "can't delete default language");
+    return;
+  }
+
   await translation.delete({ useMasterKey: true });
   await articleService.clearArticleTranslationCache(translation.articleId, translation.language);
   ctx.body = {};
