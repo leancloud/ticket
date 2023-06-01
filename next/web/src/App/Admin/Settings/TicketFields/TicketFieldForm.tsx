@@ -22,6 +22,7 @@ import {
   Form,
   FormInstance,
   Input,
+  InputNumber,
   Radio,
   Row,
   Tabs,
@@ -315,6 +316,87 @@ interface TicketFieldData {
   }[];
 }
 
+const MetaExtraOptions: { key: string; type: 'boolean' | 'number'; label: string }[] = [
+  {
+    key: 'disableFilter',
+    type: 'boolean',
+    label: '关闭敏感词过滤',
+  },
+  {
+    key: 'hideFromSelect',
+    type: 'boolean',
+    label: '在筛选器内隐藏此字段',
+  },
+  {
+    key: 'priority',
+    type: 'number',
+    label: '优先度',
+  },
+];
+
+interface MetaFieldProps {
+  value?: Record<string, any>;
+  onChange?: (value: Record<string, any> | undefined) => void;
+}
+
+const MetaField = ({ value, onChange }: MetaFieldProps) => {
+  const handleMetaChange = (v: Record<string, any>) => {
+    onChange?.({ ...value, ...v });
+  };
+
+  const handleFieldChangeFactory = <E,>(
+    field: string,
+    getter: (e: E) => boolean | string | number
+  ) => (e: E) => {
+    const v = getter(e);
+
+    onChange?.({ ...value, [field]: v });
+  };
+
+  const jsonValue = useMemo(
+    () =>
+      omit(
+        value,
+        MetaExtraOptions.map(({ key }) => key)
+      ),
+    [value]
+  );
+
+  return (
+    <>
+      <Form.Item label="额外属性" htmlFor="extra">
+        <div id="extra" className="flex flex-col">
+          <div className="mb-2 space-x-1">
+            {MetaExtraOptions.filter(({ type }) => type === 'boolean').map(({ key, label }) => (
+              <Checkbox
+                key={key}
+                checked={!!value?.[key]}
+                onChange={handleFieldChangeFactory(key, (e) => e.target.checked)}
+              >
+                {label}
+              </Checkbox>
+            ))}
+          </div>
+          <div>
+            {MetaExtraOptions.filter(({ type }) => type === 'number').map(({ key, label }) => (
+              <InputNumber
+                key={key}
+                value={value?.[key]}
+                onChange={handleFieldChangeFactory(key, Number)}
+                controls={false}
+                addonBefore={label}
+              />
+            ))}
+          </div>
+        </div>
+      </Form.Item>
+      <Form.Item label="Meta" htmlFor="meta" help="面向开发者的扩展属性。">
+        <JSONTextarea value={jsonValue} onChange={handleMetaChange} id="meta" />
+      </Form.Item>
+    </>
+  );
+};
+
 export interface TicketFieldFormProps {
   initData?: Partial<TicketFieldData>;
   submitting?: boolean;
@@ -453,20 +535,7 @@ export function TicketFieldForm({
             <Controller
               name="meta"
               render={({ field: { value, onChange } }) => (
-                <Form.Item
-                  label="Meta"
-                  htmlFor="meta"
-                  help={
-                    <>
-                      面向开发者的扩展属性。示例： {'{ "disableFilter": true, "priority": 999 }'}
-                      <br /> 将 disableFilter 字段设为 true 来取消对输入的过滤。
-                      <br />
-                      priority 字段用来控制客服后台字段的展现顺序，数字越大越靠前。
-                    </>
-                  }
-                >
-                  <JSONTextarea value={value} onChange={onChange} id="meta" />
-                </Form.Item>
+                <MetaField value={value} onChange={onChange} />
               )}
             />
           </Form>
