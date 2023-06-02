@@ -518,19 +518,21 @@ export function CategoryForm({
                 </Form.Item>
               )}
             />
-            <Controller
-              control={control}
-              name="template"
-              render={({ field }) => (
-                <Form.Item
-                  label="问题描述模板"
-                  htmlFor="category_form_template"
-                  style={FORM_ITEM_STYLE}
-                >
-                  <TextArea {...field} id="category_form_template" rows={5} />
-                </Form.Item>
-              )}
-            />
+            {initData?.template && (
+              <Controller
+                control={control}
+                name="template"
+                render={({ field }) => (
+                  <Form.Item
+                    label="问题描述模板"
+                    htmlFor="category_form_template"
+                    style={FORM_ITEM_STYLE}
+                  >
+                    <TextArea {...field} id="category_form_template" rows={5} />
+                  </Form.Item>
+                )}
+              />
+            )}
           </FormGroup>
         </div>
       )}
@@ -552,7 +554,7 @@ export function CategoryForm({
         )}
       />
 
-      <div className="mt-6 flex">
+      <div className="pt-4 flex sticky bg-white bottom-0 pb-10 mb-[-2.5rem]">
         <div className="grow space-x-2">
           <Button type="primary" htmlType="submit" disabled={loadingCategories} loading={loading}>
             保存
