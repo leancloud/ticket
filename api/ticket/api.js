@@ -358,6 +358,7 @@ function encodeReplyObject(reply) {
     file_ids: reply.get('files')?.map((file) => file.id) || [],
     is_customer_service: !!reply.get('isCustomerService'),
     created_at: reply.createdAt,
+    updated_at: reply.updatedAt,
   }
 }
 
