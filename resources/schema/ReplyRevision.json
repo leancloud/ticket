@@ -1,0 +1,100 @@
+{
+  "schema": {
+    "contentHTML": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "updatedAt": {
+      "type": "Date"
+    },
+    "actionTime": {
+      "type": "Date",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "ACL": {
+      "type": "ACL"
+    },
+    "content": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "objectId": {
+      "type": "String"
+    },
+    "createdAt": {
+      "type": "Date"
+    },
+    "files": {
+      "type": "Array"
+    },
+    "operator": {
+      "type": "Pointer",
+      "v": 2,
+      "className": "_User",
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "action": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "reply": {
+      "type": "Pointer",
+      "v": 2,
+      "className": "Reply",
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    }
+  },
+  "permissions": {
+    "create": {
+      "roles": [],
+      "users": []
+    },
+    "find": {
+      "roles": [],
+      "users": []
+    },
+    "get": {
+      "roles": [],
+      "users": []
+    },
+    "update": {
+      "roles": [],
+      "users": []
+    },
+    "delete": {
+      "roles": [],
+      "users": []
+    },
+    "add_fields": {
+      "roles": [],
+      "users": []
+    }
+  },
+  "indexes": [
+    {
+      "v": 2,
+      "key": {
+        "reply.$id": 1
+      },
+      "name": "-user-reply.$id_1",
+      "ns": "_.ReplyRevision",
+      "background": true
+    }
+  ]
+}

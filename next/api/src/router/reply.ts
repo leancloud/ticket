@@ -4,15 +4,16 @@ import _ from 'lodash';
 
 import { auth, customerServiceOnly } from '@/middleware';
 import htmlify from '@/utils/htmlify';
-import { UpdateData } from '@/orm';
+import { CreateData, UpdateData } from '@/orm';
 import { Reply } from '@/model/Reply';
 import { User } from '@/model/User';
+import { ReplyRevision } from '@/model/ReplyRevision';
+import { ReplyRevisionResponse } from '@/response/reply-revision';
 
 const router = new Router().use(auth, customerServiceOnly);
 
 router.param('id', async (id, ctx, next) => {
-  const currentUser = ctx.state.currentUser as User;
-  const reply = await Reply.find(id, currentUser.getAuthOptions());
+  const reply = await Reply.find(id, { useMasterKey: true });
   if (!reply) {
     ctx.throw(404);
   }
@@ -48,7 +49,35 @@ router.patch('/:id', async (ctx) => {
   }
 
   if (!_.isEmpty(updateData)) {
-    await reply.update(updateData, { useMasterKey: true });
+    const newReply = await reply.update(updateData, { useMasterKey: true });
+
+    const revisionDatas: CreateData<ReplyRevision>[] = [];
+
+    if (reply.createdAt.getTime() === reply.updatedAt.getTime()) {
+      revisionDatas.push({
+        ACL: {},
+        replyId: reply.id,
+        content: reply.content,
+        contentHTML: reply.contentHTML,
+        fileIds: reply.fileIds,
+        operatorId: reply.authorId,
+        action: 'create',
+        actionTime: reply.createdAt,
+      });
+    }
+
+    revisionDatas.push({
+      ACL: {},
+      replyId: reply.id,
+      content: newReply.content,
+      contentHTML: newReply.contentHTML,
+      fileIds: newReply.fileIds,
+      operatorId: currentUser.id,
+      action: 'update',
+      actionTime: newReply.updatedAt,
+    });
+
+    await ReplyRevision.createSome(revisionDatas, { useMasterKey: true });
   }
 
   ctx.body = {};
@@ -74,10 +103,21 @@ async function canUpdateReply(user: User, reply: Reply) {
     return true;
   }
   if (await User.isCustomerService(reply.authorId)) {
-    // 允许客服之间互相修改回复
+    // 允许客服修改其他客服的回复
     return true;
   }
   return false;
 }
+
+router.get('/:id/revisions', async (ctx) => {
+  const reply = ctx.state.reply as Reply;
+  const revisions = await ReplyRevision.queryBuilder()
+    .preload('operator')
+    .preload('files')
+    .where('reply', '==', reply.toPointer())
+    .orderBy('createdAt')
+    .find({ useMasterKey: true });
+  ctx.body = revisions.map((revision) => new ReplyRevisionResponse(revision));
+});
 
 export default router;

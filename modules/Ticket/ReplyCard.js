@@ -164,7 +164,7 @@ function useTruncateReply() {
   }
 }
 
-function ReplyContent({ children }) {
+export function ReplyContent({ children }) {
   if (!children) {
     return (
       <p className="text-muted">
@@ -178,7 +178,7 @@ ReplyContent.propTypes = {
   children: PropTypes.string,
 }
 
-export function ReplyCard({ data, onDeleted, onEdit }) {
+export function ReplyCard({ data, onDeleted, onEdit, onLoadRevisions }) {
   const { t } = useTranslation()
   const { isCustomerService, currentUser, addNotification } = useContext(AppContext)
   const [imageFiles, otherFiles] = useMemo(() => {
@@ -190,8 +190,9 @@ export function ReplyCard({ data, onDeleted, onEdit }) {
     const isReply = data.type === 'reply'
     const tmpActions = {
       translation: isCustomerService,
-      edit: isCustomerService && isReply,
-      delete: isCustomerService && isReply,
+      revisions: isCustomerService && isReply && data.created_at !== data.updated_at,
+      edit: data.is_customer_service && isReply,
+      delete: data.is_customer_service && isReply,
     }
     return Object.values(tmpActions).some((v) => v) ? tmpActions : undefined
   }, [isCustomerService, data, currentUser])
@@ -203,6 +204,8 @@ export function ReplyCard({ data, onDeleted, onEdit }) {
   })
 
   const { containerRef, cover } = useTruncateReply()
+
+  const edited = data.created_at !== data.updated_at
 
   return (
     <Card
@@ -216,6 +219,7 @@ export function ReplyCard({ data, onDeleted, onEdit }) {
         <div>
           <UserLabel user={data.author} /> {t('submittedAt')}{' '}
           <Time value={data.createdAt ?? data.created_at} href={'#' + data.id} />
+          {isCustomerService && edited && <span className="ml-2">(edited)</span>}
         </div>
         <div className="d-flex align-items-center">
           {data.is_customer_service && <Badge className={css.badge}>{t('customerService')}</Badge>}
@@ -231,6 +235,9 @@ export function ReplyCard({ data, onDeleted, onEdit }) {
                   >
                     Translate
                   </Dropdown.Item>
+                )}
+                {actions.revisions && (
+                  <Dropdown.Item onClick={() => onLoadRevisions(data.id)}>Revisions</Dropdown.Item>
                 )}
                 {actions.edit && <Dropdown.Item onClick={() => onEdit(data)}>Edit</Dropdown.Item>}
                 {actions.delete && (
@@ -296,4 +303,5 @@ ReplyCard.propTypes = {
   }),
   onDeleted: PropTypes.func,
   onEdit: PropTypes.func,
+  onLoadRevisions: PropTypes.func,
 }

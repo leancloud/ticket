@@ -27,6 +27,7 @@ import { LeanCloudApp } from './LeanCloudApp'
 import { CSReplyEditor } from './CSReplyEditor'
 import { RecentTickets } from './RecentTickets'
 import { EditReplyModal } from './EditReplyModal'
+import { ReplyRevisionsModal } from './ReplyRevisionsModal'
 import { AccessControl } from './AccessControl'
 import { Time } from './Time'
 import { NextTicketSection } from './NextTicket'
@@ -341,18 +342,26 @@ TicketInfo.propTypes = {
   }),
 }
 
-function Timeline({ data, onReplyDeleted, onEditReply }) {
+function Timeline({ data, onReplyDeleted, onEditReply, onLoadReplyRevisions }) {
   switch (data.type) {
     case 'opsLog':
       return <OpsLog data={data} />
     case 'reply':
-      return <ReplyCard data={data} onDeleted={onReplyDeleted} onEdit={onEditReply} />
+      return (
+        <ReplyCard
+          data={data}
+          onDeleted={onReplyDeleted}
+          onEdit={onEditReply}
+          onLoadRevisions={onLoadReplyRevisions}
+        />
+      )
   }
 }
 Timeline.propTypes = {
   data: PropTypes.object.isRequired,
   onReplyDeleted: PropTypes.func,
   onEditReply: PropTypes.func,
+  onLoadReplyRevisions: PropTypes.func,
 }
 
 export default function Ticket() {
@@ -408,6 +417,7 @@ export default function Ticket() {
   }, [ticket, replyLoading, isUser])
 
   const editModalRef = useRef(null)
+  const revisionsModalRef = useRef(null)
 
   const isUserInThisTicket = isUser || ticket?.authorId === currentUser.id
   if (loadingTicket) {
@@ -420,6 +430,7 @@ export default function Ticket() {
   return (
     <AppContext.Provider value={{ ...appContextValue, isUser: isUserInThisTicket }}>
       <EditReplyModal ref={editModalRef} isSaving={updatingReply} onSave={updateReply} />
+      <ReplyRevisionsModal ref={revisionsModalRef} />
 
       <div className="mt-3">
         {isUser && <WeekendWarning />}
@@ -444,6 +455,7 @@ export default function Ticket() {
                 data={data}
                 onReplyDeleted={deleteReply}
                 onEditReply={editModalRef.current?.show}
+                onLoadReplyRevisions={revisionsModalRef.current?.show}
               />
             ))}
           </div>
