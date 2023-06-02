@@ -51,13 +51,6 @@
       "hidden": false,
       "read_only": false
     },
-    "fileIds": {
-      "type": "Array",
-      "v": 2,
-      "required": false,
-      "hidden": false,
-      "read_only": false
-    },
     "reply": {
       "type": "Pointer",
       "v": 2,
