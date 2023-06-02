@@ -455,3 +455,9 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 运行 `eval $(lean env) && cd next/api && npm install && node scripts/view-conditions-migration.mjs` 进行数据迁移
 
 导入 `View.jsonl`，新增 `objectId` 为 `incoming` 的内置视图
+
+## 2023-06-02
+
+### `cf6e4505c0f66141923ea7ed8deb6ccb69cf1c3b`
+
+导入 ReplyRevision.json，创建 ReplyRevision class。
