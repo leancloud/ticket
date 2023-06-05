@@ -7,6 +7,7 @@ export interface ReplySchema {
   contentSafeHTML: string;
   author: UserSchema;
   isCustomerService: boolean;
+  internal?: boolean;
   files?: FileSchema[];
   createdAt: string;
   updatedAt: string;

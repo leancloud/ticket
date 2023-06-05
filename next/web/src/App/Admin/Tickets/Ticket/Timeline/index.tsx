@@ -41,6 +41,7 @@ export function Timeline() {
           content={reply.contentSafeHTML}
           files={reply.files}
           isAgent={reply.isCustomerService}
+          isInternal={reply.internal}
         />
       ))}
     </div>
@@ -60,9 +61,10 @@ interface ReplyCardProps {
   content: string;
   files?: FileInfo[];
   isAgent?: boolean;
+  isInternal?: boolean;
 }
 
-function ReplyCard({ author, createTime, content, files, isAgent }: ReplyCardProps) {
+function ReplyCard({ author, createTime, content, files, isAgent, isInternal }: ReplyCardProps) {
   const [imageFiles, otherFiles] = useMemo(() => {
     if (!files) {
       return [[], []];
@@ -72,26 +74,25 @@ function ReplyCard({ author, createTime, content, files, isAgent }: ReplyCardPro
 
   return (
     <div
-      className={cx('border rounded-[3px] mb-5 bg-white', {
+      className={cx('border rounded mb-5 bg-white overflow-hidden', {
         'border-[#00000020]': !isAgent,
         'border-primary-600': isAgent,
+        'border-[#ff9800bf]': isInternal,
       })}
     >
       <div
         className={cx('flex items-center gap-1 leading-6 px-[15px] py-[10px] border-b', {
           'bg-[#00000008] border-[#00000020]': !isAgent,
           'bg-primary-400 border-primary-600': isAgent,
+          'bg-[#ffc10733] border-[#ff9800bf]': isInternal,
         })}
       >
         {author}
         <span>提交于</span>
         <span title={createTime}>{moment(createTime).fromNow()}</span>
-        {isAgent && (
-          <>
-            <div className="grow" />
-            <span className="border border-primary rounded px-1 text-sm text-primary">客服</span>
-          </>
-        )}
+        <div className="grow" />
+        {isAgent && <ReplyTag content="客服" isInternal={isInternal} />}
+        {isInternal && <ReplyTag content="内部" isInternal />}
       </div>
       <div className="p-[15px]">
         <ReplyContent htmlContent={content} />
@@ -125,6 +126,24 @@ function ReplyCard({ author, createTime, content, files, isAgent }: ReplyCardPro
         </div>
       )}
     </div>
+  );
+}
+
+interface ReplyTagProps {
+  content: string;
+  isInternal?: boolean;
+}
+
+function ReplyTag({ content, isInternal }: ReplyTagProps) {
+  return (
+    <span
+      className={cx('border rounded leading-3 px-1.5 py-1 text-sm text-primary', {
+        'border-primary': !isInternal,
+        'border-[#ff9800bf] text-[#ff9800bf]': isInternal,
+      })}
+    >
+      {content}
+    </span>
   );
 }
 
