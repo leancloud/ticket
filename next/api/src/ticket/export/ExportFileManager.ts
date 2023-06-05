@@ -111,7 +111,9 @@ export class ExportFileManager {
     if (this.ext === '.json') {
       this.appendData(']');
     }
-    await this.prepend(bomHeader, false);
+    if (this.ext === '.csv') {
+      await this.prepend(bomHeader, false);
+    }
   }
 
   async append(data: Record<string, any>, keys: string[]) {
