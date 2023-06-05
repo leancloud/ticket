@@ -94,7 +94,7 @@ function ReplyCard({ author, createTime, content, files, isAgent }: ReplyCardPro
         )}
       </div>
       <div className="p-[15px]">
-        <div className="markdown-body" dangerouslySetInnerHTML={{ __html: content }} />
+        <ReplyContent htmlContent={content} />
         {imageFiles.length > 0 && (
           <>
             <hr className="my-4" />
@@ -126,4 +126,19 @@ function ReplyCard({ author, createTime, content, files, isAgent }: ReplyCardPro
       )}
     </div>
   );
+}
+
+interface ReplyContentProps {
+  htmlContent?: string;
+}
+
+function ReplyContent({ htmlContent }: ReplyContentProps) {
+  if (!htmlContent) {
+    return (
+      <div className="text-gray-500">
+        <em>未提供描述。</em>
+      </div>
+    );
+  }
+  return <div className="markdown-body" dangerouslySetInnerHTML={{ __html: htmlContent }} />;
 }
