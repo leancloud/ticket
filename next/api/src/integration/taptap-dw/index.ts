@@ -7,15 +7,19 @@ import { Ticket } from '@/model/Ticket';
 import { TicketField } from '@/model/TicketField';
 import { FieldValue, TicketFieldValue } from '@/model/TicketFieldValue';
 import { File } from '@/model/File';
+import { categoryService } from '@/category';
 
 interface TicketSnapshot {
   service: string;
   id: string;
+  nid: number;
   author: {
     id: string;
+    username?: string;
   };
   category: {
     id: string;
+    name?: string;
   };
   title: string;
   content: string;
@@ -112,14 +116,20 @@ class TicketSnapshotManager {
   }
 
   async createTicketSnapshot(ticket: Ticket, timestamp: string, customFields?: FieldValue[]) {
+    const author = await ticket.load('author', { useMasterKey: true });
+    const category = await categoryService.findOne(ticket.categoryId);
+
     const snapshot: TicketSnapshot = {
       service: this.serviceName,
       id: ticket.id,
+      nid: ticket.nid,
       author: {
         id: ticket.authorId,
+        username: author?.username,
       },
       category: {
         id: ticket.categoryId,
+        name: category?.name,
       },
       title: ticket.title,
       content: ticket.content,
