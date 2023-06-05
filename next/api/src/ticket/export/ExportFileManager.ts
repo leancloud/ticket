@@ -12,6 +12,8 @@ const IN_MEMORY = process.env.TICKET_EXPORT_IN_MEMORY;
 
 type fileExtension = '.json' | '.csv';
 
+const bomHeader = Buffer.from([0xef, 0xbb, 0xbf]);
+
 export class ExportFileManager {
   tmpDir = `${__dirname}/tmp`;
   private file: string | undefined;
@@ -68,7 +70,7 @@ export class ExportFileManager {
   /**
    * CAUTION: Very expansive
    */
-  async prepend(data: string) {
+  async prepend(data: string | Buffer, linebreak = true) {
     return new Promise((resolve, reject) => {
       const filePath = this.file;
       if (!filePath) {
@@ -77,7 +79,10 @@ export class ExportFileManager {
       const tempFilePath = path.join(__dirname, `/tmp/temp_for_prepend_${Date.now().toString()}`);
       const readStream = fs.createReadStream(filePath, { encoding: 'utf8' });
       const writeStream = fs.createWriteStream(tempFilePath, { encoding: 'utf8' });
-      writeStream.write(data + '\n');
+      writeStream.write(data);
+      if (linebreak) {
+        writeStream.write('\n');
+      }
       readStream.on('data', (chunk) => {
         writeStream.write(chunk);
       });
@@ -99,13 +104,14 @@ export class ExportFileManager {
     }
   }
 
-  private complete() {
+  private async complete() {
     if (!this.file || !this.ext) {
       return;
     }
     if (this.ext === '.json') {
       this.appendData(']');
     }
+    await this.prepend(bomHeader, false);
   }
 
   async append(data: Record<string, any>, keys: string[]) {
@@ -166,7 +172,7 @@ export class ExportFileManager {
   }
 
   async done() {
-    this.complete();
+    await this.complete();
     const url = await this.upload();
     return { url };
   }
