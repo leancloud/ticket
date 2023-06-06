@@ -61,6 +61,25 @@ export class RoleService {
       .first({ useMasterKey: true });
     return user !== undefined;
   }
+
+  async updateUserCSRoleTo(roleNames: string[], userId: string) {
+    const roles = await Promise.all([Role.getCustomerServiceRole(), Role.getAdminRole()]);
+
+    const roleSet = new Set(
+      roleNames.map((v) => roles.find(({ name }) => name === v)?.id).filter((r): r is string => !!r)
+    );
+
+    await Promise.all(
+      roles.map(async ({ id }) => {
+        const isUserInRole = await this.isRoleMember(id, userId);
+        if (isUserInRole && !roleSet.has(id)) {
+          return this.removeUserFromRole(id, userId);
+        } else if (!isUserInRole && roleSet.has(id)) {
+          return this.addUserToRole(id, userId);
+        }
+      })
+    );
+  }
 }
 
 export const roleService = new RoleService();

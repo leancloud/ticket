@@ -88,6 +88,17 @@ export const auth: Middleware = withSpan(async (ctx, next) => {
   ctx.throw(401, '缺少用户凭证。', { code: 'CREDENTIAL_REQUIRED', numCode: 9004 });
 }, 'auth');
 
+export const adminOnly: Middleware = withSpan(async (ctx, next) => {
+  const currentUser = ctx.state.currentUser as User;
+  if (!currentUser) {
+    ctx.throw(401);
+  }
+  if (!(await currentUser.isAdmin())) {
+    ctx.throw(403);
+  }
+  return next();
+}, 'adminOnly');
+
 export const customerServiceOnly: Middleware = withSpan(async (ctx, next) => {
   const currentUser = ctx.state.currentUser as User;
   if (!currentUser) {

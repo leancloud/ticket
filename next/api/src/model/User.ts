@@ -393,6 +393,21 @@ export class User extends Model {
     }
   }
 
+  static async getAdmins(active?: boolean): Promise<User[]> {
+    const adminRole = await Role.getAdminRole();
+    const qb = User.queryBuilder().relatedTo(adminRole, 'users').orderBy('email,username');
+
+    if (active !== undefined) {
+      if (active) {
+        qb.where('inactive', 'not-exists');
+      } else {
+        qb.where('inactive', '==', true);
+      }
+    }
+
+    return qb.find({ useMasterKey: true });
+  }
+
   static async getCustomerServices(active?: boolean): Promise<User[]> {
     const csRole = await Role.getCustomerServiceRole();
     const qb = User.queryBuilder().relatedTo(csRole, 'users').orderBy('email,username');
@@ -421,6 +436,15 @@ export class User extends Model {
     return qb.find({ useMasterKey: true });
   }
 
+  static async isAdmin(user: string | { id: string }): Promise<boolean> {
+    const userId = typeof user === 'string' ? user : user.id;
+    const adminRole = await Role.getAdminRole();
+    const query = User.queryBuilder()
+      .relatedTo(Role, 'users', adminRole.id)
+      .where('objectId', '==', userId);
+    return !!(await query.first({ useMasterKey: true }));
+  }
+
   static async isCustomerService(user: string | { id: string }): Promise<boolean> {
     const userId = typeof user === 'string' ? user : user.id;
     const csRole = await Role.getCustomerServiceRole();
@@ -437,6 +461,11 @@ export class User extends Model {
       .relatedTo(Role, 'users', csRole.id)
       .where('objectId', '==', userId);
     return !!(await query.first({ useMasterKey: true }));
+  }
+
+  async isAdmin() {
+    const roles = await roleService.getSystemRolesForUser(this.id);
+    return roles.includes('admin');
   }
 
   async isCustomerService() {

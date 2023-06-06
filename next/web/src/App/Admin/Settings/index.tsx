@@ -34,6 +34,8 @@ import { NewArticleTranslation } from './Articles/NewTranslation';
 import { NewTicketFormNoteTranslation } from './TicketFormNotes/NewTicketFormNoteTranslation';
 import { EditTicketFormNoteTranslation } from './TicketFormNotes/EditTranslation';
 import { EditSupportEmail, NewSupportEmail, SupportEmailList } from './SupportEmails';
+import { useCurrentUserIsAdmin } from '@/leancloud';
+import { Result } from '@/components/antd';
 
 const SettingRoutes = () => (
   <Routes>
@@ -245,17 +247,13 @@ const routeGroups: MenuDataItem[] = [
   },
 ];
 
-const OldSettingLink = () => {
-  return (
-    <a className="block text-center leading-8 hover:bg-[#f0f0f0]" href="/settings">
-      前往旧版配置页
-    </a>
-  );
-};
-
 export default function Setting() {
+  const isAdmin = useCurrentUserIsAdmin();
+  if (!isAdmin) {
+    return <Result status="403" title="403" subTitle="该页面需要管理员角色" />;
+  }
   return (
-    <SubMenu menus={routeGroups} footer={<OldSettingLink />}>
+    <SubMenu menus={routeGroups}>
       <SettingRoutes />
     </SubMenu>
   );

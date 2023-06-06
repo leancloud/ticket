@@ -3,6 +3,7 @@ import _ from 'lodash'
 
 export const AppContext = React.createContext({
   currentUser: null,
+  isAdmin: false,
   isStaff: false,
   isCustomerService: false,
   isCollaborator: false,

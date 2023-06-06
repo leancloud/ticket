@@ -34,7 +34,7 @@ export default function Settings(props) {
             </ListGroup.Item>
           </ListGroup>
         </section>
-        {props.isCustomerService && (
+        {props.isAdmin && (
           <section className="mb-4">
             <h6>{t('staffSettings')}</h6>
             <ListGroup>
@@ -100,7 +100,7 @@ Settings.propTypes = {
   children: PropTypes.object,
   currentUser: PropTypes.object,
   updateCurrentUser: PropTypes.func,
-  isCustomerService: PropTypes.bool,
+  isAdmin: PropTypes.bool,
   organizations: PropTypes.array,
   joinOrganization: PropTypes.func,
   leaveOrganization: PropTypes.func,

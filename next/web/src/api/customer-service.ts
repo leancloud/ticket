@@ -4,8 +4,23 @@ import { http } from '@/leancloud';
 import { GroupSchema } from './group';
 import { UserSchema } from './user';
 
+export enum CSRole {
+  Admin = 'admin',
+  CustomerService = 'customerService',
+}
+
+export const RoleNameMap: Record<CSRole, string> = {
+  [CSRole.Admin]: '管理员',
+  [CSRole.CustomerService]: '客服',
+};
+
 export interface CustomerServiceSchema extends UserSchema {
   categoryIds: string[];
+}
+
+async function fetchAdmins(): Promise<CustomerServiceSchema[]> {
+  const { data } = await http.get('/api/2/customer-services?admin=true');
+  return data;
 }
 
 async function fetchCustomerServices(): Promise<CustomerServiceSchema[]> {
@@ -23,12 +38,18 @@ async function fetchCustomerServiceGroups(id: string): Promise<GroupSchema[]> {
   return data;
 }
 
-async function addCustomerService(id: string) {
-  await http.post('/api/2/customer-services', { userId: id });
+export interface AddCustomerServiceData {
+  userId: string;
+  roles: CSRole[];
+}
+
+async function addCustomerService(data: AddCustomerServiceData) {
+  await http.post('/api/2/customer-services', data);
 }
 
 export interface UpdateCustomerServiceData {
   active?: boolean;
+  roles?: CSRole[];
   id: string;
 }
 
@@ -55,7 +76,16 @@ export function useCustomerServices(options?: UseQueryOptions<CustomerServiceSch
   return useQuery({
     queryKey: ['customerServices'],
     queryFn: fetchCustomerServices,
-    staleTime: Infinity,
+    staleTime: 1800_000,
+    ...options,
+  });
+}
+
+export function useAdmins(options?: UseQueryOptions<CustomerServiceSchema[], Error>) {
+  return useQuery({
+    queryKey: ['admins'],
+    queryFn: fetchAdmins,
+    staleTime: 7200_000,
     ...options,
   });
 }
@@ -82,7 +112,9 @@ export function useCustomerServiceGroups(
   });
 }
 
-export function useAddCustomerService(options?: UseMutationOptions<void, Error, string>) {
+export function useAddCustomerService(
+  options?: UseMutationOptions<void, Error, AddCustomerServiceData>
+) {
   return useMutation({
     mutationFn: addCustomerService,
     ...options,

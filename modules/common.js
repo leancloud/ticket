@@ -36,8 +36,9 @@ export const getRoles = mem(
   { maxAge: 10_000 }
 )
 
-export const isCustomerService = (roles) =>
-  roles.includes('customerService') || roles.includes('admin')
+export const isAdmin = (roles) => roles.includes('admin')
+
+export const isCustomerService = (roles) => isAdmin(roles) || roles.includes('customerService')
 
 export const isStaff = (roles) => isCustomerService(roles) || roles.includes('staff')
 

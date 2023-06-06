@@ -6,7 +6,7 @@ import { MdOutlineAnalytics } from 'react-icons/md';
 import cx from 'classnames';
 
 import { Tooltip } from '@/components/antd';
-import { useCurrentUserIsCustomerService } from '@/leancloud';
+import { useCurrentUserIsAdmin, useCurrentUserIsCustomerService } from '@/leancloud';
 import { Feedback } from '../Feedback';
 import { CurrentUserSection } from '../CurrentUserSection';
 
@@ -34,7 +34,7 @@ function Path({ to, children, title }: { to: string; children: ReactNode; title?
 
 export function Sidebar(props: ComponentPropsWithoutRef<'aside'>) {
   const isCustomerService = useCurrentUserIsCustomerService();
-
+  const isAdmin = useCurrentUserIsAdmin();
   return (
     <aside
       {...props}
@@ -54,7 +54,7 @@ export function Sidebar(props: ComponentPropsWithoutRef<'aside'>) {
             <MdOutlineAnalytics className="m-auto w-5 h-5" />
           </Path>
         )}
-        {isCustomerService && (
+        {isAdmin && (
           <Path to="/admin/settings" title="设置">
             <AiOutlineSetting className="m-auto w-5 h-5" />
           </Path>

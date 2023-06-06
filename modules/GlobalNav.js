@@ -16,7 +16,9 @@ import { Avatar } from './Avatar'
 
 export default function GlobalNav({ user, onLogout }) {
   const { t } = useTranslation()
-  const { currentUser, isUser, isStaff, isCustomerService } = useContext(AppContext)
+  const { currentUser, isUser, isStaff, isCustomerService, isAdmin, isCollaborator } = useContext(
+    AppContext
+  )
 
   const handleChangeLanguage = (lang) => {
     i18next.changeLanguage(lang)
@@ -86,10 +88,14 @@ export default function GlobalNav({ user, onLogout }) {
                   <span>
                     <Avatar user={user} width={20} height={20} />
                     <span className="ml-1">{getUserDisplayName(user)}</span>
-                    {isCustomerService ? (
-                      <Icon.Headset title="Customer Service" className="ml-1" />
+                    {isAdmin ? (
+                      <Icon.PersonFillGear title="Admin" className="ml-1" />
+                    ) : isCustomerService ? (
+                      <Icon.Headset title="Agent" className="ml-1" />
                     ) : isStaff ? (
-                      <Icon.PersonBadgeFill title="Staff" className="ml-1" />
+                      <Icon.PersonBadge title="Staff" className="ml-1" />
+                    ) : isCollaborator ? (
+                      <Icon.WrenchAdjustable title="Staff" className="ml-1" />
                     ) : null}
                   </span>
                 }

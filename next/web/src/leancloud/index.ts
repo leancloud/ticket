@@ -94,7 +94,17 @@ const currentUserRolesState = selector({
   },
 });
 
-const currentUserIsCustomerSerivceState = selector({
+const currentUserIsAdminState = selector({
+  key: 'currentUserIsAdmin',
+  get: ({ get }) => {
+    const roles = get(currentUserRolesState);
+    return roles.includes('admin');
+  },
+});
+
+export const useCurrentUserIsAdmin = () => useRecoilValue(currentUserIsAdminState);
+
+const currentUserIsCustomerServiceState = selector({
   key: 'currentUserIsCS',
   get: ({ get }) => {
     const roles = get(currentUserRolesState);
@@ -103,7 +113,7 @@ const currentUserIsCustomerSerivceState = selector({
 });
 
 export const useCurrentUserIsCustomerService = () =>
-  useRecoilValue(currentUserIsCustomerSerivceState);
+  useRecoilValue(currentUserIsCustomerServiceState);
 
 export type LeanCloudRegion = 'cn-n1' | 'cn-e1' | 'us-w1';
 

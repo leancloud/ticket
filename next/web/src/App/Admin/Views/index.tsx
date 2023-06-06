@@ -6,7 +6,7 @@ import cx from 'classnames';
 import { produce } from 'immer';
 import moment from 'moment';
 
-import { useCurrentUser } from '@/leancloud';
+import { useCurrentUser, useCurrentUserIsAdmin } from '@/leancloud';
 import { CategorySchema, useCategories } from '@/api/category';
 import { GroupSchema } from '@/api/group';
 import { useCustomerServiceGroups, UserSchema } from '@/api/user';
@@ -93,6 +93,7 @@ function ViewMenu({
   currentViewId,
   onChange,
 }: ViewMenu) {
+  const isAdmin = useCurrentUserIsAdmin();
   return (
     <div className={cx(className, 'w-[330px] flex flex-col')}>
       <div className="flex shrink-0 items-center mx-4 mt-10 h-10 border-b border-[#d8dcde]">
@@ -164,9 +165,11 @@ function ViewMenu({
           )}
         </div>
 
-        <div className="px-8 pt-3 pb-6">
-          <Link to="/admin/settings/views">管理视图</Link>
-        </div>
+        {isAdmin && (
+          <div className="px-8 pt-3 pb-6">
+            <Link to="/admin/settings/views">管理视图</Link>
+          </div>
+        )}
       </div>
     </div>
   );

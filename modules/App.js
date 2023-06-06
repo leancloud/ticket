@@ -13,7 +13,7 @@ import './style/index.scss'
 import './i18n'
 import { auth, db } from '../lib/leancloud'
 import { AppContext } from './context'
-import { getRoles, isCustomerService, isStaff, isCollaborator } from './common'
+import { getRoles, isCustomerService, isStaff, isCollaborator, isAdmin } from './common'
 import GlobalNav from './GlobalNav'
 import css from './App.css'
 
@@ -41,6 +41,7 @@ class App extends Component {
     this.state = {
       loading: true,
       currentUser: auth.currentUser,
+      isAdmin: false,
       isStaff: false,
       isCustomerService: false,
       isCollaborator: false,
@@ -98,6 +99,7 @@ class App extends Component {
       this.setState({
         loading: false,
         currentUser: null,
+        isAdmin: false,
         isStaff: false,
         isCustomerService: false,
         isCollaborator: false,
@@ -120,6 +122,7 @@ class App extends Component {
         currentUser,
         organizations,
         tagMetadatas,
+        isAdmin: isAdmin(roles),
         isStaff: isStaff(roles),
         isCustomerService: isCustomerService(roles),
         isCollaborator: isCollaborator(roles),
@@ -182,6 +185,7 @@ class App extends Component {
   render() {
     const props = {
       currentUser: this.state.currentUser,
+      isAdmin: this.state.isAdmin,
       isStaff: this.state.isStaff,
       isCustomerService: this.state.isCustomerService,
       isCollaborator: this.state.isCollaborator,
@@ -201,6 +205,7 @@ class App extends Component {
           <AppContext.Provider
             value={{
               currentUser: this.state.currentUser,
+              isAdmin: props.isAdmin,
               isStaff: props.isStaff,
               isCustomerService: props.isCustomerService,
               isCollaborator: props.isCollaborator,
