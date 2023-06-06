@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import LRUCache from 'lru-cache';
 import { Kafka, logLevel, KafkaConfig } from 'kafkajs';
+import throat from 'throat';
 import events from '@/events';
 import { Config } from '@/model/Config';
 import { Ticket } from '@/model/Ticket';
@@ -8,6 +9,7 @@ import { TicketField } from '@/model/TicketField';
 import { FieldValue, TicketFieldValue } from '@/model/TicketFieldValue';
 import { File } from '@/model/File';
 import { categoryService } from '@/category';
+import { createQueue } from '@/queue';
 
 interface TicketSnapshot {
   service: string;
@@ -195,11 +197,51 @@ class TicketSnapshotManager {
   }
 }
 
+class SyncManager {
+  constructor(private manager: TicketSnapshotManager) {}
+
+  private getTickets(startTime: Date, endTime: Date, maxCount: number) {
+    return Ticket.queryBuilder()
+      .where('createdAt', '>', startTime)
+      .where('createdAt', '<', endTime)
+      .orderBy('createdAt', 'asc')
+      .limit(maxCount)
+      .find({ useMasterKey: true });
+  }
+
+  private createSnapshots(tickets: Ticket[], concurrency: number) {
+    const tasks = tickets.map(
+      throat(concurrency, (ticket) =>
+        this.manager.createTicketSnapshot(ticket, ticket.createdAt.toISOString())
+      )
+    );
+    return Promise.all(tasks);
+  }
+
+  async getSnapshots(startTime: Date, endTime: Date, maxCount: number, concurrency: number) {
+    const tickets = await this.getTickets(startTime, endTime, maxCount);
+    if (tickets.length === 0) {
+      return [];
+    }
+    return this.createSnapshots(tickets, concurrency);
+  }
+}
+
 interface TapTapDWConfig {
   enabled?: boolean;
   topic: string;
   kafka: KafkaConfig;
   service: string;
+}
+
+interface JobData {
+  type: 'syncSnapshots';
+  startTime: string;
+  endTime: string;
+  perCount?: number;
+  concurrency?: number;
+  delay?: number;
+  alreadySyncedCount?: number;
 }
 
 export default async function (install: Function) {
@@ -239,7 +281,7 @@ export default async function (install: Function) {
       console.log(`[TapTap Data Warehouse] ${sendedCount} log(s) sended`);
       sendedCount = 0;
     }
-  }, 1000 * 10);
+  }, 1000 * 60);
 
   events.on('ticket:created', ({ ticket, customFields }) => {
     snapshotManager
@@ -253,6 +295,77 @@ export default async function (install: Function) {
       .createUpdatedTicketSnapshot(updatedTicket)
       .then(sendSnapshot)
       .catch((error) => console.error('[TapTap Data Warehouse]', error));
+  });
+
+  const queue = createQueue<JobData>('ticket_snapshot', {
+    defaultJobOptions: {
+      removeOnComplete: true,
+    },
+  });
+
+  queue.process(async (job) => {
+    const {
+      startTime,
+      endTime,
+      perCount = 500,
+      concurrency = 5,
+      delay = 200,
+      alreadySyncedCount = 0,
+    } = job.data;
+
+    const syncManager = new SyncManager(snapshotManager);
+    const snapshots = await syncManager.getSnapshots(
+      new Date(startTime),
+      new Date(endTime),
+      perCount,
+      concurrency
+    );
+
+    if (snapshots.length === 0) {
+      console.log('[TapTap Data Warehouse] sync finished', {
+        startTime,
+        endTime,
+        totalCount: alreadySyncedCount,
+      });
+      return;
+    }
+
+    snapshots.forEach((snapshot) => {
+      snapshot.is_historical = true;
+    });
+    const lastCreatedAt = snapshots[snapshots.length - 1].created_at;
+
+    const messages = snapshots.map((snapshot) => {
+      return {
+        value: JSON.stringify(snapshot),
+      };
+    });
+    await producer.send({ topic: config.topic, messages });
+
+    console.log(`[TapTap Data Warehouse] snapshots synced`, {
+      currentRange: [snapshots[0].created_at, lastCreatedAt],
+      currentCount: snapshots.length,
+      startTime,
+      endTime,
+      perCount,
+      concurrency,
+      alreadySyncedCount,
+    });
+
+    await queue.add(
+      {
+        type: 'syncSnapshots',
+        startTime: lastCreatedAt,
+        endTime: endTime,
+        perCount,
+        concurrency,
+        delay,
+        alreadySyncedCount: alreadySyncedCount + snapshots.length,
+      },
+      {
+        delay,
+      }
+    );
   });
 
   install('TapTap Data Warehouse', {});
