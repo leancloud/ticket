@@ -25,8 +25,13 @@ interface TicketSnapshot {
   content: string;
   status: number;
   custom_fields: CustomFieldData[];
+  first_customer_service_reply_at?: string;
+  latest_customer_service_reply_at?: string;
+  created_at: string;
+  updated_at: string;
   timestamp: string;
   leancloud_app_id: string;
+  is_historical?: true;
 }
 
 interface CustomFieldData {
@@ -135,6 +140,10 @@ class TicketSnapshotManager {
       content: ticket.content,
       status: ticket.status,
       custom_fields: [],
+      first_customer_service_reply_at: ticket.firstCustomerServiceReplyAt?.toISOString(),
+      latest_customer_service_reply_at: ticket.latestCustomerServiceReplyAt?.toISOString(),
+      created_at: ticket.createdAt.toISOString(),
+      updated_at: ticket.updatedAt.toISOString(),
       timestamp,
       leancloud_app_id: this.leancloudAppId,
     };
