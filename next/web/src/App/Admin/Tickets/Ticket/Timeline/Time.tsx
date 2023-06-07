@@ -16,7 +16,7 @@ export function Time({ value, href }: TimeProps) {
   }, [value]);
 
   return href ? (
-    <a href={href} title={title}>
+    <a className="text-inherit" href={href} title={title}>
       {content}
     </a>
   ) : (
