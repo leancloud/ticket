@@ -49,7 +49,7 @@ export function Sidebar(props: ComponentPropsWithoutRef<'aside'>) {
             <AiOutlineContainer className="m-auto w-5 h-5" />
           </Path>
         )}
-        {isCustomerService && (
+        {isAdmin && (
           <Path to="/admin/stats" title="统计">
             <MdOutlineAnalytics className="m-auto w-5 h-5" />
           </Path>
