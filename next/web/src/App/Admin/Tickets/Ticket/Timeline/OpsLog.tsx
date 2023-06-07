@@ -23,49 +23,33 @@ import { useModal } from '../components/useModal';
 import { useTicketFields_v1 } from '../api1';
 import { Time } from './Time';
 
-interface OpsLogProps {
-  data: OpsLogSchema;
+interface OpsLogProps<Action extends OpsLogSchema['action'] = any> {
+  data: Extract<OpsLogSchema, { action: Action }>;
 }
 
 export function OpsLog({ data }: OpsLogProps) {
   switch (data.action) {
     case 'selectAssignee':
-      return <SelectAssignee assigneeId={data.assigneeId} time={data.createdAt} />;
+      return <SelectAssignee data={data} />;
     case 'changeAssignee':
-      return (
-        <ChangeAssignee
-          assigneeId={data.assigneeId}
-          operatorId={data.operatorId}
-          time={data.createdAt}
-        />
-      );
+      return <ChangeAssignee data={data} />;
     case 'changeGroup':
-      return (
-        <ChangeGroup operatorId={data.operatorId} groupId={data.groupId} time={data.createdAt} />
-      );
+      return <ChangeGroup data={data} />;
     case 'changeCategory':
-      return (
-        <ChangeCategory
-          operatorId={data.operatorId}
-          categoryId={data.categoryId}
-          time={data.createdAt}
-        />
-      );
+      return <ChangeCategory data={data} />;
     case 'changeFields':
-      return (
-        <ChangeFields operatorId={data.operatorId} changes={data.changes} time={data.createdAt} />
-      );
+      return <ChangeFields data={data} />;
     case 'replyWithNoContent':
-      return <ReplyWithNoContent operatorId={data.operatorId} time={data.createdAt} />;
+      return <ReplyWithNoContent data={data} />;
     case 'replySoon':
-      return <ReplySoon operatorId={data.operatorId} time={data.createdAt} />;
+      return <ReplySoon data={data} />;
     case 'resolve':
-      return <Resolve operatorId={data.operatorId} time={data.createdAt} />;
+      return <Resolve data={data} />;
     case 'reject':
     case 'close':
-      return <Close operatorId={data.operatorId} time={data.createdAt} />;
+      return <Close data={data} />;
     case 'reopen':
-      return <Reopen operatorId={data.operatorId} time={data.createdAt} />;
+      return <Reopen data={data} />;
   }
 }
 
@@ -120,12 +104,7 @@ function Circle(props: ComponentProps<'div'>) {
   );
 }
 
-interface SelectAssigneeProps {
-  assigneeId: string;
-  time: string;
-}
-
-function SelectAssignee({ assigneeId, time }: SelectAssigneeProps) {
+function SelectAssignee({ data }: OpsLogProps<'selectAssignee'>) {
   return (
     <BaseOpsLog
       icon={
@@ -133,21 +112,15 @@ function SelectAssignee({ assigneeId, time }: SelectAssigneeProps) {
           <AiOutlineSwap className="w-4 h-4" />
         </Circle>
       }
-      time={time}
+      time={data.createdAt}
     >
       <span>系统将工单分配给</span>
-      <AsyncUserLabel userId={assigneeId} />
+      <AsyncUserLabel userId={data.assigneeId} />
     </BaseOpsLog>
   );
 }
 
-interface ChangeAssigneeProps {
-  operatorId: string;
-  assigneeId?: string;
-  time: string;
-}
-
-function ChangeAssignee({ assigneeId, operatorId, time }: ChangeAssigneeProps) {
+function ChangeAssignee({ data }: OpsLogProps<'changeAssignee'>) {
   return (
     <BaseOpsLog
       icon={
@@ -155,22 +128,16 @@ function ChangeAssignee({ assigneeId, operatorId, time }: ChangeAssigneeProps) {
           <AiOutlineSwap className="w-4 h-4" />
         </Circle>
       }
-      time={time}
+      time={data.createdAt}
     >
-      <AsyncUserLabel userId={operatorId} />
+      <AsyncUserLabel userId={data.operatorId} />
       <span>将负责人修改为</span>
-      {assigneeId ? <AsyncUserLabel userId={assigneeId} /> : <span>(未分配)</span>}
+      {data.assigneeId ? <AsyncUserLabel userId={data.assigneeId} /> : <span>(未分配)</span>}
     </BaseOpsLog>
   );
 }
 
-interface ChangeGroupProps {
-  operatorId: string;
-  groupId?: string;
-  time: string;
-}
-
-function ChangeGroup({ operatorId, groupId, time }: ChangeGroupProps) {
+function ChangeGroup({ data }: OpsLogProps<'changeGroup'>) {
   return (
     <BaseOpsLog
       icon={
@@ -178,11 +145,11 @@ function ChangeGroup({ operatorId, groupId, time }: ChangeGroupProps) {
           <AiOutlineTeam className="w-4 h-4" />
         </Circle>
       }
-      time={time}
+      time={data.createdAt}
     >
-      <AsyncUserLabel userId={operatorId} />
+      <AsyncUserLabel userId={data.operatorId} />
       <span>将客服组修改为</span>
-      {groupId ? <GroupLabel groupId={groupId} /> : <span>(未分配)</span>}
+      {data.groupId ? <GroupLabel groupId={data.groupId} /> : <span>(未分配)</span>}
     </BaseOpsLog>
   );
 }
@@ -200,19 +167,13 @@ function GroupLabel({ groupId }: GroupLabelProps) {
   return <div>{group.name}</div>;
 }
 
-interface ChangeCategoryProps {
-  operatorId: string;
-  categoryId: string;
-  time: string;
-}
-
-function ChangeCategory({ operatorId, categoryId, time }: ChangeCategoryProps) {
+function ChangeCategory({ data }: OpsLogProps<'changeCategory'>) {
   const { data: categories, isLoading } = useCategories();
 
   const categoryById = useMemo(() => keyBy(categories, (c) => c.id), [categories]);
 
   const fullname = useMemo(() => {
-    let current = categoryById[categoryId];
+    let current = categoryById[data.categoryId];
     const path: string[] = [];
     while (current) {
       path.push(current.name);
@@ -223,7 +184,7 @@ function ChangeCategory({ operatorId, categoryId, time }: ChangeCategoryProps) {
       }
     }
     return path.reverse().join(' / ');
-  }, [categoryById, categoryId]);
+  }, [categoryById, data.categoryId]);
 
   return (
     <BaseOpsLog
@@ -232,27 +193,21 @@ function ChangeCategory({ operatorId, categoryId, time }: ChangeCategoryProps) {
           <AiOutlineSwap className="w-4 h-4" />
         </Circle>
       }
-      time={time}
+      time={data.createdAt}
     >
-      <AsyncUserLabel userId={operatorId} />
+      <AsyncUserLabel userId={data.operatorId} />
       <span>将分类修改为</span>
       <Tag>{isLoading ? 'Loading...' : fullname}</Tag>
     </BaseOpsLog>
   );
 }
 
-interface ChangeFieldsProps {
-  operatorId: string;
-  changes: { fieldId: string; from: any; to: any }[];
-  time: string;
-}
-
-function ChangeFields({ operatorId, changes, time }: ChangeFieldsProps) {
+function ChangeFields({ data }: OpsLogProps<'changeFields'>) {
   const { modal, toggle } = useModal({
     props: {
       title: '字段修改记录',
     },
-    render: () => <DiffFields changes={changes} />,
+    render: () => <DiffFields changes={data.changes} />,
   });
 
   return (
@@ -262,9 +217,9 @@ function ChangeFields({ operatorId, changes, time }: ChangeFieldsProps) {
           <AiOutlineEdit className="w-4 h-4" />
         </Circle>
       }
-      time={time}
+      time={data.createdAt}
     >
-      <AsyncUserLabel userId={operatorId} />
+      <AsyncUserLabel userId={data.operatorId} />
       <span>修改字段</span>
       <Button size="small" onClick={toggle}>
         查看
@@ -299,6 +254,7 @@ function DiffFields({ changes }: DiffFieldsProps) {
 
     return (
       <DiffField
+        key={fieldId}
         fieldName={field.variants[0]?.title}
         options={field.variants[0]?.options}
         from={from}
@@ -308,9 +264,12 @@ function DiffFields({ changes }: DiffFieldsProps) {
   }) as any) as JSX.Element;
 }
 
+type OptionValue = string;
+type OptionLabel = string;
+
 interface DiffFieldProps {
   fieldName?: string;
-  options?: [string, string][];
+  options?: [OptionValue, OptionLabel][];
   from: any;
   to: any;
 }
@@ -332,7 +291,7 @@ function DiffField({ fieldName, from, to, options }: DiffFieldProps) {
 
 interface FieldValueProps {
   value: any;
-  options?: [string, string][];
+  options?: [OptionValue, OptionLabel][];
 }
 
 function FieldValue({ value, options }: FieldValueProps) {
@@ -356,12 +315,7 @@ function FieldValue({ value, options }: FieldValueProps) {
   return <div className="text-primary">{displayValue}</div>;
 }
 
-interface ActionOpsLogProps {
-  operatorId: string;
-  time: string;
-}
-
-function ReplyWithNoContent({ operatorId, time }: ActionOpsLogProps) {
+function ReplyWithNoContent({ data }: OpsLogProps<'replyWithNoContent'>) {
   return (
     <BaseOpsLog
       icon={
@@ -369,15 +323,15 @@ function ReplyWithNoContent({ operatorId, time }: ActionOpsLogProps) {
           <AiOutlineSmile className="w-4 h-4" />
         </Circle>
       }
-      time={time}
+      time={data.createdAt}
     >
-      <AsyncUserLabel userId={operatorId} />
+      <AsyncUserLabel userId={data.operatorId} />
       <span>认为该工单暂时无需回复，如有问题可以回复该工单</span>
     </BaseOpsLog>
   );
 }
 
-function ReplySoon({ operatorId, time }: ActionOpsLogProps) {
+function ReplySoon({ data }: OpsLogProps<'replySoon'>) {
   return (
     <BaseOpsLog
       icon={
@@ -385,15 +339,15 @@ function ReplySoon({ operatorId, time }: ActionOpsLogProps) {
           <AiOutlineClockCircle className="w-4 h-4 text-white" />
         </Circle>
       }
-      time={time}
+      time={data.createdAt}
     >
-      <AsyncUserLabel userId={operatorId} />
+      <AsyncUserLabel userId={data.operatorId} />
       <span>认为该工单处理需要一些时间，稍后会回复该工单</span>
     </BaseOpsLog>
   );
 }
 
-function Close({ operatorId, time }: ActionOpsLogProps) {
+function Close({ data }: OpsLogProps<'close' | 'reject'>) {
   return (
     <BaseOpsLog
       icon={
@@ -401,15 +355,15 @@ function Close({ operatorId, time }: ActionOpsLogProps) {
           <AiOutlineStop className="w-4 h-4 text-white" />
         </Circle>
       }
-      time={time}
+      time={data.createdAt}
     >
-      <AsyncUserLabel userId={operatorId} />
+      <AsyncUserLabel userId={data.operatorId} />
       <span>关闭了该工单</span>
     </BaseOpsLog>
   );
 }
 
-function Resolve({ operatorId, time }: ActionOpsLogProps) {
+function Resolve({ data }: OpsLogProps<'resolve'>) {
   return (
     <BaseOpsLog
       icon={
@@ -417,15 +371,15 @@ function Resolve({ operatorId, time }: ActionOpsLogProps) {
           <AiOutlineCheckCircle className="w-4 h-4 text-white" />
         </Circle>
       }
-      time={time}
+      time={data.createdAt}
     >
-      <AsyncUserLabel userId={operatorId} />
+      <AsyncUserLabel userId={data.operatorId} />
       <span>认为该工单已经解决</span>
     </BaseOpsLog>
   );
 }
 
-function Reopen({ operatorId, time }: ActionOpsLogProps) {
+function Reopen({ data }: OpsLogProps<'reopen'>) {
   return (
     <BaseOpsLog
       icon={
@@ -433,9 +387,9 @@ function Reopen({ operatorId, time }: ActionOpsLogProps) {
           <AiOutlineReload className="w-4 h-4 text-white" />
         </Circle>
       }
-      time={time}
+      time={data.createdAt}
     >
-      <AsyncUserLabel userId={operatorId} />
+      <AsyncUserLabel userId={data.operatorId} />
       <span>重新打开该工单</span>
     </BaseOpsLog>
   );
