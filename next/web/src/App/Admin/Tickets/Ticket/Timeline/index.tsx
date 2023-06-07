@@ -19,7 +19,7 @@ export function Timeline() {
   const { data: timeline, isLoading } = useTimeline(ticket.id);
 
   return (
-    <div className={styles.timeline}>
+    <div className={isLoading ? undefined : styles.timeline}>
       <ReplyCard
         author={ticket.author ? <UserLabel user={ticket.author} /> : 'unknown'}
         createTime={ticket.createdAt}
