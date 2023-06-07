@@ -9,7 +9,7 @@ import {
   ZodValidationPipe,
 } from '@/common/pipe';
 import { DurationMetrics } from '@/model/DurationMetrics';
-import { auth, customerServiceOnly } from '@/middleware';
+import { auth, adminOnly } from '@/middleware';
 import { TicketResponse } from '@/response/ticket';
 
 const parseOrderByPipe = new ParseOrderPipe([
@@ -28,7 +28,7 @@ const validateRangePipe = new ZodValidationPipe(
 );
 
 @Controller('metrics')
-@UseMiddlewares(auth, customerServiceOnly)
+@UseMiddlewares(auth, adminOnly)
 export class MetricsController {
   @Get('duration')
   async getDurationMetrics(

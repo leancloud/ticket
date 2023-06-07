@@ -18,7 +18,7 @@ import {
   Ctx,
 } from '@/common/http';
 import { FindModelWithoutDeleteFlagPipe, ParseBoolPipe, ZodValidationPipe } from '@/common/pipe';
-import { auth, customerServiceOnly } from '@/middleware';
+import { auth, adminOnly } from '@/middleware';
 import { ArticleTopic } from '@/model/ArticleTopic';
 import { ArticleTopicResponse } from '@/response/article-topic';
 import { Category } from '@/model/Category';
@@ -38,7 +38,7 @@ type UpdateArticleTopicData = z.infer<typeof updateArticleTopicSchema>;
 
 @Controller('topics')
 // /topics are restricted to CS-only. End users should access topics via related resouce APIs.
-@UseMiddlewares(auth, customerServiceOnly)
+@UseMiddlewares(auth, adminOnly)
 export class ArticleTopicController {
   @Post()
   @StatusCode(201)

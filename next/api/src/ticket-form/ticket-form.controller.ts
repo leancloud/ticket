@@ -17,7 +17,7 @@ import {
   UseMiddlewares,
 } from '@/common/http';
 import { Order, ParseIntPipe, ParseOrderPipe, ZodValidationPipe } from '@/common/pipe';
-import { auth, customerServiceOnly } from '@/middleware';
+import { auth, adminOnly } from '@/middleware';
 import { TicketFormResponse } from '@/response/ticket-form';
 import { TicketFieldVariantResponse } from '@/response/ticket-field';
 import service from './ticket-form.service';
@@ -51,7 +51,7 @@ export class TicketFormController {
   }
 
   @Post()
-  @UseMiddlewares(customerServiceOnly)
+  @UseMiddlewares(adminOnly)
   @ResponseBody(TicketFormResponse)
   @StatusCode(201)
   create(@Body(new ZodValidationPipe(createTicketFormSchema)) data: CreateTicketFormData) {
@@ -69,6 +69,7 @@ export class TicketFormController {
 
   @Patch(':id')
   @ResponseBody(TicketFormResponse)
+  @UseMiddlewares(adminOnly)
   async update(
     @Param('id') id: string,
     @Body(new ZodValidationPipe(updateTicketFormSchema)) data: UpdateTicketFormData
@@ -79,6 +80,7 @@ export class TicketFormController {
 
   @Delete(':id')
   @StatusCode(204)
+  @UseMiddlewares(adminOnly)
   async delete(@Param('id') id: string) {
     await service.delete(id);
   }

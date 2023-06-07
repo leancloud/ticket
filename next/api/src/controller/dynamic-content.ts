@@ -21,7 +21,7 @@ import {
 import { LOCALES } from '@/i18n/locales';
 import { FindModelPipe, ParseIntPipe, ZodValidationPipe } from '@/common/pipe';
 import { User } from '@/model/User';
-import { auth, customerServiceOnly } from '@/middleware';
+import { auth, adminOnly } from '@/middleware';
 import { ACLBuilder, AuthOptions } from '@/orm';
 import { DynamicContent } from '@/model/DynamicContent';
 import { DynamicContentVariant } from '@/model/DynamicContentVariant';
@@ -82,7 +82,7 @@ type UpdateVariantData = z.infer<typeof updateVariantSchema>;
 type RenderData = z.infer<typeof renderSchema>;
 
 @Controller('dynamic-contents')
-@UseMiddlewares(auth, customerServiceOnly)
+@UseMiddlewares(auth, adminOnly)
 export class DynamicContentController {
   @Post('/render')
   async render(

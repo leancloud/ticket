@@ -8,7 +8,7 @@ import {
   ArticleTranslationResponse,
 } from '@/response/article';
 import * as yup from '@/utils/yup';
-import { auth, customerServiceOnly, pagination } from '@/middleware';
+import { adminOnly, auth, pagination } from '@/middleware';
 import { CreateData, UpdateData } from '@/orm';
 import htmlify from '@/utils/htmlify';
 import { User } from '@/model/User';
@@ -51,7 +51,7 @@ const findArticlesOptionSchema = yup.object({
 });
 
 // get article list
-router.get('/', pagination(20), auth, customerServiceOnly, async (ctx) => {
+router.get('/', pagination(20), auth, adminOnly, async (ctx) => {
   const { page, pageSize } = pagination.get(ctx);
   const { private: isPrivate, id } = findArticlesOptionSchema.validateSync(ctx.request.query);
 
@@ -105,7 +105,7 @@ const createBaseArticleSchema = yup.object({
 });
 
 // create new article
-router.post('/', auth, customerServiceOnly, async (ctx) => {
+router.post('/', auth, adminOnly, async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   const data = createBaseArticleSchema.validateSync(ctx.request.body);
 
@@ -152,12 +152,12 @@ router.get('/:id', fetchPreferredTranslation, (ctx) => {
 });
 
 // get article :id
-router.get('/:id/info', auth, customerServiceOnly, (ctx) => {
+router.get('/:id/info', auth, adminOnly, (ctx) => {
   ctx.body = new ArticleResponse(ctx.state.article);
 });
 
 // get translations of article :id
-router.get('/:id/translations', auth, customerServiceOnly, async (ctx) => {
+router.get('/:id/translations', auth, adminOnly, async (ctx) => {
   const article = ctx.state.article as Article;
 
   const translations = await ArticleTranslation.queryBuilder()
@@ -170,7 +170,7 @@ router.get('/:id/translations', auth, customerServiceOnly, async (ctx) => {
 });
 
 // get a list of category which uses article :id
-router.get('/:id/categories', auth, customerServiceOnly, async (ctx) => {
+router.get('/:id/categories', auth, adminOnly, async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   const article = ctx.state.article as Article;
   const associatedCategories = await Category.query()
@@ -188,7 +188,7 @@ const createArticleTranslationSchema = yup.object({
 
 // create translation for article :id
 // TODO: prefer /:id/translations
-router.post('/:id', auth, customerServiceOnly, async (ctx) => {
+router.post('/:id', auth, adminOnly, async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   const article = ctx.state.article as Article;
 
@@ -236,7 +236,7 @@ const updateBaseArticleSchema = yup.object({
 });
 
 // update article :id
-router.patch('/:id', auth, customerServiceOnly, async (ctx) => {
+router.patch('/:id', auth, adminOnly, async (ctx) => {
   const article = ctx.state.article as Article;
   const data = updateBaseArticleSchema.validateSync(ctx.request.body);
 
@@ -256,7 +256,7 @@ router.patch('/:id', auth, customerServiceOnly, async (ctx) => {
 });
 
 // delete article :id
-router.delete('/:id', auth, customerServiceOnly, async (ctx) => {
+router.delete('/:id', auth, adminOnly, async (ctx) => {
   const article = ctx.state.article as Article;
 
   const translations = await ArticleTranslation.queryBuilder()
@@ -308,7 +308,7 @@ const updateArticleTranslationSchema = yup.object({
 });
 
 // update :language translation of article :id
-router.patch('/:id/:language', auth, customerServiceOnly, async (ctx) => {
+router.patch('/:id/:language', auth, adminOnly, async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   const article = ctx.state.article as Article;
   const translation = ctx.state.translation as ArticleTranslation;
@@ -333,7 +333,7 @@ router.patch('/:id/:language', auth, customerServiceOnly, async (ctx) => {
 });
 
 // delete :language translation of article :id
-router.delete('/:id/:language', auth, customerServiceOnly, async (ctx) => {
+router.delete('/:id/:language', auth, adminOnly, async (ctx) => {
   const translation = ctx.state.translation as ArticleTranslation;
   const article = ctx.state.article as Article;
 
@@ -352,7 +352,7 @@ const getRevisionsSchema = yup.object({
 });
 
 // get revision list of :language translation of article :id
-router.get('/:id/:language/revisions', auth, customerServiceOnly, pagination(100), async (ctx) => {
+router.get('/:id/:language/revisions', auth, adminOnly, pagination(100), async (ctx) => {
   const translation = ctx.state.translation as ArticleTranslation;
   const { meta } = getRevisionsSchema.validateSync(ctx.query);
   const { page, pageSize } = pagination.get(ctx);
@@ -383,7 +383,7 @@ router.param('rid', async (rid, ctx, next) => {
 });
 
 // get revision :rid
-router.get('/:id/:language/revisions/:rid', auth, customerServiceOnly, pagination(100), (ctx) => {
+router.get('/:id/:language/revisions/:rid', auth, adminOnly, pagination(100), (ctx) => {
   ctx.body = new ArticleRevisionResponse(ctx.state.revision);
 });
 

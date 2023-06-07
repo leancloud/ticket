@@ -19,7 +19,7 @@ import {
   UseMiddlewares,
 } from '@/common/http';
 import { ParseBoolPipe, ZodValidationPipe } from '@/common/pipe';
-import { adminOnly, auth, customerServiceOnly, systemRoleMemberGuard } from '@/middleware';
+import { adminOnly, auth, systemRoleMemberGuard } from '@/middleware';
 import { Category } from '@/model/Category';
 import { Role } from '@/model/Role';
 import { User } from '@/model/User';

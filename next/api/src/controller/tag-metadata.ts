@@ -15,7 +15,7 @@ import {
 } from '@/common/http';
 import { FindModelPipe, ZodValidationPipe } from '@/common/pipe';
 import { ACLBuilder } from '@/orm';
-import { auth, customerServiceOnly } from '@/middleware';
+import { auth, adminOnly } from '@/middleware';
 import { TagMetadata } from '@/model/TagMetadata';
 import { User } from '@/model/User';
 import { TagMetadtaResponse } from '@/response/tag-metadata';
@@ -43,7 +43,7 @@ export class TagMetadataController {
   }
 
   @Post()
-  @UseMiddlewares(customerServiceOnly)
+  @UseMiddlewares(adminOnly)
   async create(
     @CurrentUser() currentUser: User,
     @Body(new ZodValidationPipe(createTagMetadataSchema)) data: CreateTagMetadataData
@@ -70,7 +70,7 @@ export class TagMetadataController {
   }
 
   @Patch(':id')
-  @UseMiddlewares(customerServiceOnly)
+  @UseMiddlewares(adminOnly)
   async update(
     @CurrentUser() currentUser: User,
     @Param('id', new FindModelPipe(TagMetadata)) tagMetadata: TagMetadata,
@@ -99,7 +99,7 @@ export class TagMetadataController {
   }
 
   @Delete(':id')
-  @UseMiddlewares(customerServiceOnly)
+  @UseMiddlewares(adminOnly)
   async delete(
     @CurrentUser() currentUser: User,
     @Param('id', new FindModelPipe(TagMetadata)) tagMetadata: TagMetadata

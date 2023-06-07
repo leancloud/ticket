@@ -27,7 +27,7 @@ import {
   FindModelPipe,
   FindModelOptionalPipe,
 } from '@/common/pipe';
-import { auth, customerServiceOnly, staffOnly } from '@/middleware';
+import { auth, adminOnly, staffOnly } from '@/middleware';
 import { FIELD_TYPES, OPTION_TYPES, TicketField } from '@/model/TicketField';
 import {
   TicketFieldResponse,
@@ -139,7 +139,7 @@ export class TicketFieldController {
   }
 
   @Post()
-  @UseMiddlewares(customerServiceOnly)
+  @UseMiddlewares(adminOnly)
   @StatusCode(201)
   async create(@Body(new ZodValidationPipe(createDataSchema)) data: CreateData) {
     if (OPTION_TYPES.includes(data.type)) {
@@ -415,7 +415,7 @@ export class TicketFieldController {
   }
 
   @Patch(':id')
-  @UseMiddlewares(customerServiceOnly)
+  @UseMiddlewares(adminOnly)
   async update(
     @Param('id', new FindModelPipe(TicketField, { useMasterKey: true })) field: TicketField,
     @Body(new ZodValidationPipe(updateDataSchema)) data: UpdateData

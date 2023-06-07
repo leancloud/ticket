@@ -11,7 +11,7 @@ import {
   ResponseBody,
   UseMiddlewares,
 } from '@/common/http';
-import { auth, customerServiceOnly } from '@/middleware';
+import { auth, adminOnly } from '@/middleware';
 import { ZodValidationPipe } from '@/common/pipe';
 import { SupportEmailResponse } from '@/response/support-email';
 import { SupportEmail } from '@/support-email/entities/SupportEmail';
@@ -64,7 +64,7 @@ class FindSupportEmailPipe {
 }
 
 @Controller('support-emails')
-@UseMiddlewares(auth, customerServiceOnly)
+@UseMiddlewares(auth, adminOnly)
 export class SupportEmailController {
   @Post()
   @ResponseBody(SupportEmailResponse)
