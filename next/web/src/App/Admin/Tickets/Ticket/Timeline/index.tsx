@@ -4,10 +4,11 @@ import moment from 'moment';
 import { partition } from 'lodash-es';
 import cx from 'classnames';
 
-import { useTicketReplies } from '@/api/ticket';
 import { Image, Skeleton } from '@/components/antd';
 import { UserLabel } from '@/App/Admin/components';
 import { useTicketContext } from '../TicketContext';
+import { useTimeline } from './useTimeline';
+import { OpsLog } from './OpsLog';
 import styles from './index.module.css';
 
 const IMAGE_FILE_MIMES = ['image/png', 'image/jpeg', 'image/gif'];
@@ -15,35 +16,34 @@ const IMAGE_FILE_MIMES = ['image/png', 'image/jpeg', 'image/gif'];
 export function Timeline() {
   const { ticket } = useTicketContext();
 
-  const { data: replies, isLoading: loadingReplies } = useTicketReplies(ticket.id);
-
-  const replyItems = useMemo(() => {
-    if (!replies) {
-      return [];
-    }
-    return replies.pages.flat();
-  }, [replies]);
+  const { data: timeline, isLoading } = useTimeline(ticket.id);
 
   return (
-    <div className={replies ? styles.timeline : undefined}>
+    <div className={styles.timeline}>
       <ReplyCard
         author={ticket.author ? <UserLabel user={ticket.author} /> : 'unknown'}
         createTime={ticket.createdAt}
         content={ticket.contentSafeHTML}
         files={ticket.files}
       />
-      {loadingReplies && <Skeleton active paragraph={{ rows: 4 }} />}
-      {replyItems.map((reply) => (
-        <ReplyCard
-          key={reply.id}
-          author={<UserLabel user={reply.author} />}
-          createTime={reply.createdAt}
-          content={reply.contentSafeHTML}
-          files={reply.files}
-          isAgent={reply.isCustomerService}
-          isInternal={reply.internal}
-        />
-      ))}
+      {isLoading && <Skeleton active paragraph={{ rows: 4 }} />}
+      {timeline.map((timeline) => {
+        if (timeline.type === 'reply') {
+          return (
+            <ReplyCard
+              key={timeline.data.id}
+              author={<UserLabel user={timeline.data.author} />}
+              createTime={timeline.data.createdAt}
+              content={timeline.data.contentSafeHTML}
+              files={timeline.data.files}
+              isAgent={timeline.data.isCustomerService}
+              isInternal={timeline.data.internal}
+            />
+          );
+        } else {
+          return <OpsLog key={timeline.data.id} data={timeline.data} />;
+        }
+      })}
     </div>
   );
 }
