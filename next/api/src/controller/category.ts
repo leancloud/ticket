@@ -17,7 +17,7 @@ import {
 } from '@/common/http';
 import { ParseBoolPipe, ZodValidationPipe } from '@/common/pipe';
 import { UpdateData } from '@/orm';
-import { auth, customerServiceOnly } from '@/middleware';
+import { auth, adminOnly } from '@/middleware';
 import { Category } from '@/model/Category';
 import { TicketForm } from '@/model/TicketForm';
 import { User } from '@/model/User';
@@ -87,7 +87,7 @@ export class CategoryController {
   }
 
   @Post('batch-update')
-  @UseMiddlewares(auth, customerServiceOnly)
+  @UseMiddlewares(auth, adminOnly)
   async batchUpdate(
     @CurrentUser() currentUser: User,
     @Body(new ZodValidationPipe(batchUpdateSchema)) datas: BatchUpdateData
@@ -100,7 +100,7 @@ export class CategoryController {
   }
 
   @Post()
-  @UseMiddlewares(auth, customerServiceOnly)
+  @UseMiddlewares(auth, adminOnly)
   async create(
     @CurrentUser() currentUser: User,
     @Body(new ZodValidationPipe(createCategorySchema)) data: CreateCategoryData
@@ -136,7 +136,7 @@ export class CategoryController {
   }
 
   @Patch(':id')
-  @UseMiddlewares(auth, customerServiceOnly)
+  @UseMiddlewares(auth, adminOnly)
   async update(
     @CurrentUser() currentUser: User,
     @Param('id') id: string,

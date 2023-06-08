@@ -25,7 +25,7 @@ import {
   ParseIntPipe,
   ZodValidationPipe,
 } from '@/common/pipe';
-import { auth, customerServiceOnly, include } from '@/middleware';
+import { adminOnly, auth, customerServiceOnly, include } from '@/middleware';
 import { ACLBuilder } from '@/orm';
 import { User } from '@/model/User';
 import { View } from '@/model/View';
@@ -155,6 +155,7 @@ export class ViewController {
   }
 
   @Post()
+  @UseMiddlewares(adminOnly)
   async create(@Body(new ZodValidationPipe(createDataSchema)) data: CreateData) {
     if (data.userIds && data.groupIds) {
       throw new HttpError(400, 'cannot set both userIds and groupIds');
@@ -189,6 +190,7 @@ export class ViewController {
   }
 
   @Patch(':id')
+  @UseMiddlewares(adminOnly)
   async update(
     @Param('id', new FindModelPipe(View, { useMasterKey: true })) view: View,
     @Body(new ZodValidationPipe(updateDataSchema)) data: UpdateData
@@ -224,6 +226,7 @@ export class ViewController {
   }
 
   @Delete(':id')
+  @UseMiddlewares(adminOnly)
   async delete(@Param('id', new FindModelPipe(View, { useMasterKey: true })) view: View) {
     ViewController.assertOperationOnInternal(view.id);
     await view.delete({ useMasterKey: true });
@@ -231,6 +234,7 @@ export class ViewController {
   }
 
   @Post('reorder')
+  @UseMiddlewares(adminOnly)
   async reorder(@Body('ids', new ZodValidationPipe(idsSchema)) ids: string[]) {
     const views = await View.queryBuilder()
       .where('objectId', 'in', ids)

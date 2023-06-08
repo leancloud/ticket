@@ -4,13 +4,13 @@ import { ZodError, z } from 'zod';
 import _ from 'lodash';
 
 import { getZodErrorMessage } from '@/utils/zod';
-import { auth, customerServiceOnly } from '@/middleware/auth';
+import { auth, adminOnly } from '@/middleware/auth';
 import { TimeTrigger } from '@/model/TimeTrigger';
 import { TimeTriggerResponse } from '@/response/time-trigger';
 import { condition } from '@/ticket/automation/time-trigger/condition';
 import { action } from '@/ticket/automation/time-trigger/action';
 
-const router = new Router().use(auth, customerServiceOnly);
+const router = new Router().use(auth, adminOnly);
 
 function getErrorMessage(error: Error) {
   if (error instanceof ZodError) {

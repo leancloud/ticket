@@ -13,7 +13,7 @@ import {
   UseMiddlewares,
 } from '@/common/http';
 import { ParseBoolPipe, ParseIntPipe, ZodValidationPipe } from '@/common/pipe';
-import { auth, customerServiceOnly } from '@/middleware';
+import { auth, adminOnly } from '@/middleware';
 import service from './ticket-form-note.service';
 import {
   createTicketFormNoteSchema,
@@ -48,7 +48,7 @@ export class TicketFormNoteController {
   }
 
   @Get('detail')
-  @UseMiddlewares(customerServiceOnly)
+  @UseMiddlewares(adminOnly)
   @ResponseBody(TicketFormNoteTranslationResponse)
   async listDetail(
     @Query('active', new ParseBoolPipe({ keepUndefined: true })) active: boolean | undefined,
@@ -63,7 +63,7 @@ export class TicketFormNoteController {
 
   @StatusCode(201)
   @Post()
-  @UseMiddlewares(customerServiceOnly)
+  @UseMiddlewares(adminOnly)
   create(@Body(new ZodValidationPipe(createTicketFormNoteSchema)) data: CreateTicketFormNoteData) {
     return service.create(data);
   }
@@ -75,13 +75,13 @@ export class TicketFormNoteController {
   }
 
   @Get(':id/detail')
-  @UseMiddlewares(customerServiceOnly)
+  @UseMiddlewares(adminOnly)
   getDetail(@Param('id') id: string) {
     return service.mustGetWithLanguages(id);
   }
 
   @Patch(':id')
-  @UseMiddlewares(customerServiceOnly)
+  @UseMiddlewares(adminOnly)
   async update(
     @Param('id') id: string,
     @Body(new ZodValidationPipe(updateTicketFormNoteSchema)) data: UpdateTicketFormNoteData
@@ -91,7 +91,7 @@ export class TicketFormNoteController {
   }
 
   @Post(':id')
-  @UseMiddlewares(customerServiceOnly)
+  @UseMiddlewares(adminOnly)
   createTranslation(
     @Param('id') id: string,
     @Body(new ZodValidationPipe(createTicketFormNoteTranslationSchema))
@@ -101,13 +101,13 @@ export class TicketFormNoteController {
   }
 
   @Get(':id/:language')
-  @UseMiddlewares(customerServiceOnly)
+  @UseMiddlewares(adminOnly)
   getTranslation(@Param('id') id: string, @Param('language') language: string) {
     return service.mustGetTranslation(id, language);
   }
 
   @Patch(':id/:language')
-  @UseMiddlewares(customerServiceOnly)
+  @UseMiddlewares(adminOnly)
   async updateTranslation(
     @Param('id') id: string,
     @Param('language') language: string,

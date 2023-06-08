@@ -16,7 +16,7 @@ import {
   StatusCode,
   UseMiddlewares,
 } from '@/common/http';
-import { auth, customerServiceOnly, systemRoleMemberGuard } from '@/middleware';
+import { auth, adminOnly, systemRoleMemberGuard } from '@/middleware';
 import { ACLBuilder } from '@/orm';
 import { Group } from '@/model/Group';
 import { User } from '@/model/User';
@@ -49,7 +49,7 @@ export class GroupController {
   }
 
   @Post()
-  @UseMiddlewares(customerServiceOnly)
+  @UseMiddlewares(adminOnly)
   @StatusCode(201)
   async create(@Body(new ZodValidationPipe(createGroupSchema)) data: CreateGroupData) {
     if (data.userIds?.length) {
@@ -85,7 +85,7 @@ export class GroupController {
   }
 
   @Patch(':id')
-  @UseMiddlewares(customerServiceOnly)
+  @UseMiddlewares(adminOnly)
   async update(
     @Param('id', new FindModelPipe(Group)) group: Group,
     @Body(new ZodValidationPipe(updateGroupSchema)) data: UpdateGroupData
@@ -136,7 +136,7 @@ export class GroupController {
   }
 
   @Delete(':id')
-  @UseMiddlewares(customerServiceOnly)
+  @UseMiddlewares(adminOnly)
   async delete(@Param('id', new FindModelPipe(Group)) group: Group) {
     await group.delete({ useMasterKey: true });
 
