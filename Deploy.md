@@ -461,3 +461,9 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 ### `cf6e4505c0f66141923ea7ed8deb6ccb69cf1c3b`
 
 导入 ReplyRevision.json，创建 ReplyRevision class。
+
+## 2023-06-08
+
+### `97bd0d4e31c7b470a187ca037b07765cc7bac709`
+
+导入 Category.json，添加 `article`、`isTicketEnabled`、`ticketDescription` 列

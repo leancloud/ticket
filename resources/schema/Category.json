@@ -1,135 +1,158 @@
 {
-    "schema": {
-        "description": {
-            "type": "String"
-        },
-        "path": {
-            "type": "Array"
-        },
-        "updatedAt": {
-            "type": "Date"
-        },
-        "parent": {
-            "type": "Pointer",
-            "className": "Category"
-        },
-        "group": {
-            "type": "Pointer",
-            "className": "Group"
-        },
-        "form": {
-            "type": "Pointer",
-            "className": "TicketForm"
-        },
-        "ACL": {
-            "type": "ACL"
-        },
-        "name": {
-            "type": "String"
-        },
-        "objectId": {
-            "type": "String"
-        },
-        "alias": {
-            "type": "String",
-            "comment": "用于 URL 的 ID"
-        },
-        "aliases": {
-            "type": "Array",
-            "comment": "用于 ID 的其他别名"
-        },
-        "createdAt": {
-            "type": "Date"
-        },
-        "deletedAt": {
-            "type": "Date"
-        },
-        "hidden": {
-            "type": "Boolean",
-            "comment": "对用户隐藏"
-        },
-        "FAQs": {
-            "type": "Array",
-            "v": 2,
-            "required": false,
-            "comment": "相关文章，关联 FAQ 表",
-            "hidden": false
-        },
-        "notices": {
-            "type": "Array",
-            "v": 2,
-            "required": false,
-            "comment": "公告，关联 FAQ 表",
-            "hidden": false
-        },
-        "topicIds": {
-            "type": "Array"
-        },
-        "qTemplate": {
-            "type": "String"
-        },
-        "meta": {
-            "type": "Object",
-            "v": 2,
-            "read_only": false,
-            "comment": ""
-        },
-        "order": {
-            "type": "Number"
-        }
+  "schema": {
+    "description": {
+      "type": "String"
     },
-    "permissions": {
-        "create": {
-            "*": true,
-            "users": [],
-            "roles": []
-        },
-        "find": {
-            "*": true,
-            "users": [],
-            "roles": []
-        },
-        "get": {
-            "*": true
-        },
-        "update": {
-            "*": true,
-            "users": [],
-            "roles": []
-        },
-        "delete": {
-            "*": true,
-            "users": [],
-            "roles": []
-        },
-        "add_fields": {
-            "*": true,
-            "users": [],
-            "roles": []
-        }
+    "path": {
+      "type": "Array"
     },
-    "indexes": [
-        {
-            "v": 2,
-            "unique": true,
-            "key": {
-                "alias": 1
-            },
-            "name": "-user-alias_1",
-            "ns": "-.Category",
-            "background": true,
-            "sparse": true
-        },
-        {
-            "v": 2,
-            "unique": true,
-            "key": {
-                "aliases": 1
-            },
-            "name": "-user-aliases_1",
-            "ns": "-.Category",
-            "background": true,
-            "sparse": true
-        }
-    ]
+    "updatedAt": {
+      "type": "Date"
+    },
+    "parent": {
+      "type": "Pointer",
+      "className": "Category"
+    },
+    "group": {
+      "type": "Pointer",
+      "className": "Group"
+    },
+    "form": {
+      "type": "Pointer",
+      "className": "TicketForm"
+    },
+    "ACL": {
+      "type": "ACL"
+    },
+    "name": {
+      "type": "String"
+    },
+    "objectId": {
+      "type": "String"
+    },
+    "alias": {
+      "type": "String",
+      "comment": "用于 URL 的 ID"
+    },
+    "aliases": {
+      "type": "Array",
+      "comment": "用于 ID 的其他别名"
+    },
+    "createdAt": {
+      "type": "Date"
+    },
+    "deletedAt": {
+      "type": "Date"
+    },
+    "hidden": {
+      "type": "Boolean",
+      "comment": "对用户隐藏"
+    },
+    "FAQs": {
+      "type": "Array",
+      "v": 2,
+      "required": false,
+      "comment": "相关文章，关联 FAQ 表",
+      "hidden": false
+    },
+    "notices": {
+      "type": "Array",
+      "v": 2,
+      "required": false,
+      "comment": "公告，关联 FAQ 表",
+      "hidden": false
+    },
+    "topicIds": {
+      "type": "Array"
+    },
+    "qTemplate": {
+      "type": "String"
+    },
+    "article": {
+      "type": "Pointer",
+      "v": 2,
+      "className": "FAQ",
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "isTicketEnabled": {
+      "type": "Boolean",
+      "v": 2,
+      "required": false,
+      "default": true,
+      "hidden": false,
+      "read_only": false
+    },
+    "ticketDescription": {
+      "type": "String",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
+    "meta": {
+      "type": "Object",
+      "v": 2,
+      "read_only": false,
+      "comment": ""
+    },
+    "order": {
+      "type": "Number"
+    }
+  },
+  "permissions": {
+    "create": {
+      "*": true,
+      "users": [],
+      "roles": []
+    },
+    "find": {
+      "*": true,
+      "users": [],
+      "roles": []
+    },
+    "get": {
+      "*": true
+    },
+    "update": {
+      "*": true,
+      "users": [],
+      "roles": []
+    },
+    "delete": {
+      "*": true,
+      "users": [],
+      "roles": []
+    },
+    "add_fields": {
+      "*": true,
+      "users": [],
+      "roles": []
+    }
+  },
+  "indexes": [
+    {
+      "v": 2,
+      "unique": true,
+      "key": {
+        "alias": 1
+      },
+      "name": "-user-alias_1",
+      "ns": "-.Category",
+      "background": true,
+      "sparse": true
+    },
+    {
+      "v": 2,
+      "unique": true,
+      "key": {
+        "aliases": 1
+      },
+      "name": "-user-aliases_1",
+      "ns": "-.Category",
+      "background": true,
+      "sparse": true
+    }
+  ]
 }
