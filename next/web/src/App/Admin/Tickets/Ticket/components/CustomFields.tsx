@@ -61,9 +61,8 @@ export function CustomFields({ fields, values, disabled, updating, onChange }: C
           return null;
         }
         return (
-          <FormField label={field.label}>
+          <FormField key={field.id} label={field.label}>
             <Component
-              key={field.id}
               options={field.options}
               value={tempValues[field.id] ?? values[field.id]?.value}
               files={values[field.id]?.files}
@@ -118,7 +117,7 @@ function FileField({ files }: CustomFieldProps<string[]>) {
   return (
     <div className="flex flex-col items-start gap-0.5">
       {files.map((file) => (
-        <a className="truncate" href={file.url} target="_blank" title={file.name}>
+        <a key={file.id} className="truncate" href={file.url} target="_blank" title={file.name}>
           {file.name}
         </a>
       ))}

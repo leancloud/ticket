@@ -1,12 +1,5 @@
-import {
-  UseMutationOptions,
-  UseQueryOptions,
-  useMutation,
-  useQuery,
-  useInfiniteQuery,
-  UseInfiniteQueryOptions,
-} from 'react-query';
-import { castArray, last } from 'lodash-es';
+import { UseMutationOptions, UseQueryOptions, useMutation, useQuery } from 'react-query';
+import { castArray } from 'lodash-es';
 
 import { http } from '@/leancloud';
 import { decodeDateRange } from '@/utils/date-range';
@@ -261,16 +254,17 @@ export const useTicket = (id: string, { queryOptions, ...options }: UseTicketOpt
     ...queryOptions,
   });
 
-export const useTicketReplies = (
-  id: string,
-  options?: UseInfiniteQueryOptions<ReplySchema[], Error>
-) =>
-  useInfiniteQuery({
-    queryKey: ['ticketReplies', id],
-    queryFn: ({ pageParam }) => fetchTicketReplies(id, pageParam),
-    getNextPageParam: (lastPage) => last(lastPage)?.createdAt,
+export function useTicketReplies(
+  ticketId: string,
+  cursor?: string,
+  options?: UseQueryOptions<ReplySchema[]>
+) {
+  return useQuery({
+    queryKey: ['ticketReplies', ticketId, cursor],
+    queryFn: () => fetchTicketReplies(ticketId, cursor),
     ...options,
   });
+}
 
 export function useCreateTicket(options?: UseMutationOptions<void, Error, CreateTicketData>) {
   return useMutation({
@@ -415,6 +409,76 @@ export function useUpdateTicketFieldValues(
 ) {
   return useMutation({
     mutationFn: (vars) => updateTicketFieldValues(...vars),
+    ...options,
+  });
+}
+
+interface BaseOpsLog {
+  id: string;
+  operatorId: string;
+  createdAt: string;
+}
+
+export type OpsLog = BaseOpsLog &
+  (
+    | {
+        action: 'selectAssignee';
+        assigneeId: string;
+      }
+    | {
+        action: 'changeAssignee';
+        assigneeId?: string;
+      }
+    | {
+        action: 'changeGroup';
+        groupId?: string;
+      }
+    | {
+        action: 'changeCategory';
+        categoryId: string;
+      }
+    | {
+        action: 'changeFields';
+        changes: {
+          fieldId: string;
+          from: any;
+          to: any;
+        }[];
+      }
+    | {
+        action: 'replyWithNoContent';
+      }
+    | {
+        action: 'replySoon';
+      }
+    | {
+        action: 'resolve';
+      }
+    | {
+        action: 'close' | 'reject';
+      }
+    | {
+        action: 'reopen';
+      }
+  );
+
+async function fetchTicketOpsLogs(ticketId: string, cursor?: string) {
+  const res = await http.get<OpsLog[]>(`/api/2/tickets/${ticketId}/ops-logs`, {
+    params: {
+      cursor,
+    },
+  });
+  return res.data;
+}
+
+export function useTicketOpsLogs(
+  ticketId: string,
+  cursor?: string,
+  options?: UseQueryOptions<OpsLog[]>
+) {
+  return useQuery({
+    queryKey: ['ticketOpsLogs', ticketId, cursor],
+    queryFn: () => fetchTicketOpsLogs(ticketId, cursor),
     ...options,
   });
 }
