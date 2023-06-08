@@ -28,12 +28,7 @@
     "suffix": "Phản hồi",
     "action": "Gửi Phản Hồi",
     "record": "Ghi nhận phản hồi",
-    "submit": "Gửi phản hồi",
-    "title": "Liên hệ Dịch vụ Khách hàng",
-    "submit_ticket": "Gửi Tính năng",
-    "wait_time": "Thời gian chờ ước tính:",
-    "hours": "{{value}} giờ",
-    "minutes": "{{value}} phút"
+    "submit": "Gửi phản hồi"
   },
   "faqs": {
     "showAll": "Xem tất cả",
@@ -47,7 +42,7 @@
     "not_logged_in_text": "Phát hiện bạn chưa đăng nhập tài khoản, vui lòng đăng nhập và thử lại"
   },
   "category": {
-    "select_hint": "Chọn Chủ đề",
+    "select_hint": "Chọn vấn đề bạn gặp phải",
     "select_hint_home": "Chọn loại câu hỏi",
     "faqs": "Bài viết liên quan",
     "title": "Phân loại câu hỏi"

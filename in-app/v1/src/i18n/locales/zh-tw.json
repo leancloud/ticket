@@ -28,12 +28,7 @@
     "suffix": "回饋",
     "action": "我要回饋",
     "record": "回饋記錄",
-    "submit": "提交回饋",
-    "title": "聯絡客戶服務",
-    "submit_ticket": "提交工單",
-    "wait_time": "預計等待時間：",
-    "hours": "{{value}} 小時",
-    "minutes": "{{value}} 分鐘"
+    "submit": "提交回饋"
   },
   "faqs": {
     "showAll": "瀏覽全部",
@@ -47,7 +42,7 @@
     "not_logged_in_text": "偵測到您尚未登入帳號，請登入後再試"
   },
   "category": {
-    "select_hint": "選擇主題",
+    "select_hint": "選擇您所遇到的問題",
     "select_hint_home": "選擇問題類型",
     "faqs": "相關文章",
     "title": "问题分类"

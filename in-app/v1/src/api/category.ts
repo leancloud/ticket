@@ -12,11 +12,6 @@ export interface Category {
   formId?: string;
   hidden?: boolean;
   meta?: Record<string, any>;
-  articleId: string;
-  noticeIds: string[];
-  topicIds: string[];
-  isTicketEnabled: boolean;
-  ticketDescription: string;
 }
 
 async function fetchCategories(rootCategoryId: string): Promise<Category[]> {
@@ -87,12 +82,11 @@ async function fetchFAQs(categoryId?: string, locale?: string): Promise<Article[
   return data;
 }
 
-export function useFAQs(categoryId?: string, options?: UseQueryOptions<Article[]>) {
+export function useFAQs(categoryId?: string) {
   return useQuery({
     queryKey: ['category-faqs', categoryId],
     queryFn: () => fetchFAQs(categoryId),
     staleTime: 1000 * 60,
-    ...options,
   });
 }
 
@@ -106,11 +100,10 @@ async function fetchNotices(categoryId?: string, locale?: string): Promise<Artic
   return data;
 }
 
-export function useNotices(categoryId?: string, options?: UseQueryOptions<Article[], Error>) {
+export function useNotices(categoryId?: string) {
   return useQuery({
     queryKey: ['category-notices', categoryId],
     queryFn: () => fetchNotices(categoryId),
     staleTime: 1000 * 60,
-    ...options,
   });
 }

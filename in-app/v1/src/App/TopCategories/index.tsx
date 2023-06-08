@@ -41,7 +41,7 @@ export default function TopCategories() {
       <Helmet>
         <title>{title}</title>
       </Helmet>
-      <PageHeader>{t('feedback.title')}</PageHeader>
+      <PageHeader>{t('feedback.submit')}</PageHeader>
       <PageContent shadow title={t('category.select_hint_home')}>
         {isLoading && <Loading />}
         {data && <TopCategoryList categories={data} />}

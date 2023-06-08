@@ -2,7 +2,6 @@ import { useMemo } from 'react';
 
 import { Article } from '@/api/article';
 import { Tag } from '@/components/antd';
-import { checkArticlePublished } from '../utils';
 
 export interface ArticleStatusProps {
   article: Article;
@@ -10,7 +9,14 @@ export interface ArticleStatusProps {
 
 export const ArticleStatus = ({ article }: ArticleStatusProps) => {
   const published = useMemo(() => {
-    return checkArticlePublished(article);
+    const now = new Date();
+    if (article.publishedFrom && new Date(article.publishedFrom) > now) {
+      return false;
+    }
+    if (article.publishedTo && new Date(article.publishedTo) < now) {
+      return false;
+    }
+    return true;
   }, [article]);
 
   return (

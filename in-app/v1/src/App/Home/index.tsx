@@ -15,15 +15,8 @@ export default function Home() {
   const { t } = useTranslation();
   const category = useRootCategory();
 
-  const noticesEnabled = category.noticeIds.length > 0;
-  const topicsEnabled = category.noticeIds.length > 0;
-
-  const { data: notices, isLoading: isNoticesLoading } = useNotices(category.id, {
-    enabled: noticesEnabled,
-  });
-  const { data: topics, isLoading: isTopicsLoading } = useCategoryTopics({
-    enabled: topicsEnabled,
-  });
+  const { data: notices, isLoading: isNoticesLoading } = useNotices(category.id);
+  const { data: topics, isLoading: isTopicsLoading } = useCategoryTopics();
 
   const hasNotices = notices !== undefined && notices.length > 0;
   const hasTopics = topics !== undefined && topics.length > 0;
@@ -69,7 +62,7 @@ export default function Home() {
         <div className="text-center text-gray-400 opacity-80 mt-6 mb-3">
           {t('topic.hint')}{' '}
           <Link to="/categories" className="text-tapBlue">
-            {t('feedback.title')}
+            {t('feedback.submit')}
           </Link>
         </div>
       )}

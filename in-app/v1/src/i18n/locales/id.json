@@ -28,12 +28,7 @@
     "suffix": "Tanggapan",
     "action": "Kirim Masukan",
     "record": "Catatan Umpan Balik",
-    "submit": "Kirim Masukan",
-    "title": "Hubungi Layanan Pelanggan",
-    "submit_ticket": "Kirim Tiket",
-    "wait_time": "Perkiraan Waktu Tunggu:",
-    "hours": "{{value}} jam",
-    "minutes": "{{value}} menit"
+    "submit": "Kirim Masukan"
   },
   "faqs": {
     "showAll": "Lihat semua",
@@ -47,7 +42,7 @@
     "not_logged_in_text": "Ditemukan bahwa Anda belum masuk ke akun, silahkan masuk dan coba lagi"
   },
   "category": {
-    "select_hint": "Pilih Topik",
+    "select_hint": "Pilih masalah yang Anda alami",
     "select_hint_home": "Pilih Jenis Masalah",
     "faqs": "Artikel terkait",
     "title": "Klasifikasi Pertanyaan"

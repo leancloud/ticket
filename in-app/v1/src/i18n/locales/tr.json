@@ -28,12 +28,7 @@
     "suffix": "Geri bildirim",
     "action": "Geri Bildirim Gönder",
     "record": "Geri Bildirim Kaydı",
-    "submit": "Geri Bildirim Gönder",
-    "title": "Müşteri Hizmetleriyle İletişim",
-    "submit_ticket": "Bilet Gönder",
-    "wait_time": "Tahmini Bekleme Süresi:",
-    "hours": "{{value}} saat",
-    "minutes": "{{value}} dakika"
+    "submit": "Geri Bildirim Gönder"
   },
   "faqs": {
     "showAll": "Tümünü Gör",
@@ -47,7 +42,7 @@
     "not_logged_in_text": "Hesabınıza giriş yapmadığınız tespit edildi, lütfen giriş yaparak tekrar deneyin."
   },
   "category": {
-    "select_hint": "Konu Seçin",
+    "select_hint": "Seçtiğiniz sorunu belirtin",
     "select_hint_home": "Soru Türü Seçimi",
     "faqs": "İlgili makaleler",
     "title": "Soru Kategorisi"

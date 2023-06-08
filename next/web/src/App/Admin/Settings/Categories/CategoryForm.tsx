@@ -1,22 +1,16 @@
-import { forwardRef, useEffect, useMemo, ReactNode, useState } from 'react';
+import { forwardRef, useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { RefSelectProps } from 'antd/lib/select';
-import { useArticles, Article } from '@/api/article';
+
 import { useTopics } from '@/api/topic';
-import { useCategories, useCategoryTree, CategorySchema } from '@/api/category';
+import { useCategories, useCategoryTree } from '@/api/category';
 import { useTicketForms } from '@/api/ticket-form';
 import { GroupSelect } from '@/components/common';
-import { ArticleListFormItem } from '@/App/Admin/components/ArticleListFormItem';
-import { SortableListFormItem } from '@/App/Admin/components/SortableListFormItem';
-import { checkArticlePublished } from '@/App/Admin/Settings/Articles/utils';
 import {
   Button,
   Checkbox,
   Divider,
-  Tag,
-  Empty,
-  Alert,
   Form,
   Input,
   Select,
@@ -25,18 +19,8 @@ import {
   TreeSelectProps,
 } from '@/components/antd';
 import { JSONTextarea } from '@/App/Admin/components/JSONTextarea';
+import { ArticleSelect } from '../Articles/ArticleSelect';
 import { findTreeNode } from './utils';
-
-type PreviewFAQ = Omit<Article, 'name'> & { title: string };
-interface PreviewConfig {
-  category: {
-    name: string;
-    isTicketEnabled: boolean;
-    ticketDescription?: string;
-  };
-  articleId?: string;
-  faqs?: PreviewFAQ[];
-}
 
 const { TextArea } = Input;
 
@@ -118,9 +102,6 @@ export interface CategoryFormData {
   template?: string;
   meta?: Record<string, any>;
   hidden?: boolean;
-  articleId?: string | null;
-  isTicketEnabled: boolean;
-  ticketDescription?: string;
 }
 
 export interface CategoryFormProps {
@@ -140,12 +121,7 @@ export function CategoryForm({
   loading,
   onSubmit,
 }: CategoryFormProps) {
-  const { control, handleSubmit, setValue, getValues } = useForm({
-    defaultValues: initData,
-  });
-  const [solutionExpanded, setSolutionExpanded] = useState(false);
-  const [relatedArticlesExpanded, setRelatedArticlesExpanded] = useState(false);
-  const [ticketExpanded, setTicketExpanded] = useState(false);
+  const { control, handleSubmit } = useForm({ defaultValues: initData });
 
   const { data: categories, isLoading: loadingCategories } = useCategories();
 
@@ -154,34 +130,6 @@ export function CategoryForm({
   }, [categories]);
 
   const categoryTree = useCategoryTree(activeCategories);
-
-  const isRootCategory = !initData?.parentId;
-
-  const hasSubCategory = useMemo(() => {
-    if (!currentCategoryId) {
-      return false;
-    }
-    return !!activeCategories?.find((item) => item.parentId === currentCategoryId);
-  }, [currentCategoryId, activeCategories]);
-
-  const { data: articles, isLoading: loadingArticles } = useArticles();
-  const { data: topics, isLoading: loadingTopics } = useTopics();
-  const articlesOptions = useMemo(() => {
-    return articles?.map((article) => ({
-      label: article.name,
-      value: article.id,
-    }));
-  }, [articles]);
-
-  useEffect(() => {
-    if (initData?.articleId) {
-      setSolutionExpanded(true);
-    }
-    if (initData?.articleIds?.length) {
-      setRelatedArticlesExpanded(true);
-    }
-    setTicketExpanded(!!initData?.isTicketEnabled);
-  }, [initData]);
 
   useEffect(() => {
     if (categoryTree && currentCategoryId) {
@@ -195,41 +143,8 @@ export function CategoryForm({
     }
   }, [categoryTree, currentCategoryId]);
 
-  const preview = () => {
-    if (!articles) {
-      return;
-    }
-    const { articleId, articleIds, isTicketEnabled, name, ticketDescription } = getValues();
-
-    const config: PreviewConfig = {
-      category: {
-        name: name || '',
-        isTicketEnabled: isTicketEnabled || false,
-        ticketDescription: ticketDescription,
-      },
-      articleId: articleId || undefined,
-    };
-
-    if (articleIds?.length) {
-      config.faqs = articles
-        .filter((article) => articleIds.includes(article.id))
-        .filter((article) => checkArticlePublished(article))
-        .map((article) => ({ ...article, title: article.name }));
-    }
-
-    const configString = JSON.stringify(config);
-    const id = getCategoryRootId(currentCategoryId, categories);
-
-    window.open(
-      `/in-app/v1/products/${id}/categories/preview?nav=0&configs=${configString}`,
-      'self',
-      'width=500,height=600'
-    );
-  };
-
   return (
     <Form layout="vertical" onFinish={handleSubmit(onSubmit as any)}>
-      <div className="text-[16px] mb-4 font-semibold">展示配置</div>
       <Controller
         control={control}
         name="name"
@@ -301,269 +216,138 @@ export function CategoryForm({
         />
       </Form.Item>
 
-      <Divider />
+      <Divider orientation="left" orientationMargin={0}>
+        表单 / 模板
+      </Divider>
+      <Controller
+        control={control}
+        name="formId"
+        render={({ field, field: { onChange } }) => (
+          <Form.Item label="关联工单表单" htmlFor="category_form_form_id" style={FORM_ITEM_STYLE}>
+            <TicketFormSelect
+              {...field}
+              onChange={(value, ...params) => onChange(value ?? null, ...params)}
+              id="category_form_form_id"
+            />
+          </Form.Item>
+        )}
+      />
 
-      {isRootCategory && (
-        <div>
-          <div className="text-[18px] mb-4 font-semibold">内容</div>
-          <Controller
-            control={control}
-            name="noticeIds"
-            render={({ field }) => (
-              <Form.Item htmlFor="category_form_notice_ids" style={FORM_ITEM_STYLE}>
-                <div className="font-semibold mb-2">公告</div>
-                <div className="text-[rgba(0,0,0,0.45)] mb-4">
-                  <div>公告会在游戏落地页顶部轮播展示，数量最大为三条。未发布的文章不会展示。</div>
-                </div>
-                <ArticleListFormItem
-                  articles={articles}
-                  value={field.value}
-                  onChange={field.onChange}
-                  loading={loadingArticles}
-                  maxCount={3}
-                  modalTitle="编辑公告"
-                />
-              </Form.Item>
-            )}
-          />
-          <Controller
-            control={control}
-            name="topicIds"
-            render={({ field }) => (
-              <Form.Item htmlFor="category_form_topic_ids" style={FORM_ITEM_STYLE}>
-                <div className="font-semibold mb-2">精选主题</div>
-                <div className="text-[rgba(0,0,0,0.45)] mb-4">
-                  <div>选择的主题会以 Tab 形式展示在游戏落地页。可以用来承载常见问题等需求。</div>
-                  <div>精选主题是可选的。如果不设置精选主题，游戏落地页会展示分类列表。</div>
-                </div>
-                <SortableListFormItem
-                  items={topics}
-                  itemKey={(topic) => topic.id}
-                  value={field.value}
-                  onChange={field.onChange}
-                  loading={loadingTopics}
-                  modalTitle="编辑精选主题"
-                  renderListItem={(topic) => <Tag className="truncate">{topic.name}</Tag>}
-                  renderTransferItem={(topic) => topic.name}
-                  emptyElement={
-                    <Empty description="暂无主题">
-                      <Link to="/admin/knowledge-base/topics/new">
-                        <Button type="primary">创建</Button>
-                      </Link>
-                    </Empty>
-                  }
-                />
-              </Form.Item>
-            )}
-          />
-        </div>
-      )}
+      <Controller
+        control={control}
+        name="template"
+        render={({ field }) => (
+          <Form.Item label="问题描述模板" htmlFor="category_form_template" style={FORM_ITEM_STYLE}>
+            <TextArea {...field} id="category_form_template" rows={5} />
+          </Form.Item>
+        )}
+      />
 
-      {isRootCategory && (
-        <>
-          <Divider />
-          <div className="text-[18px] mb-4 font-semibold">其他</div>
-          <Controller
-            control={control}
-            name="ticketDescription"
-            render={({ field }) => (
-              <Form.Item
-                label="提交说明"
-                htmlFor="category_form_ticket_description"
-                style={FORM_ITEM_STYLE}
-                extra={
-                  <>
-                    <div>用户提交工单操作的提示信息，如可以配置为：「预计回复时间：4小时」。</div>
-                    <div>对当前产品下所有的分类生效。</div>
-                  </>
-                }
-              >
-                <Input id={'category_form_ticket_description'} {...field} disabled={loading} />
-              </Form.Item>
-            )}
-          />
-        </>
-      )}
-
-      {!isRootCategory && hasSubCategory && (
-        <div>
-          <div className="text-[16px] mb-4 font-semibold">支持选项</div>
-          <Alert message="仅在无子分类时展示" type="info" showIcon style={{ marginBottom: 24 }} />
-        </div>
-      )}
-
-      {!hasSubCategory && (
-        <div>
-          <div className="text-[16px] mb-4 font-semibold">支持选项</div>
-          <FormGroup
-            title="解决方案"
-            description="展示一篇知识库文章的内容"
-            disabled={loading}
-            expanded={solutionExpanded}
-            onChange={(expanded) => {
-              setSolutionExpanded(expanded);
-              if (!expanded) {
-                setValue('articleId', undefined);
-              }
-            }}
+      <Divider orientation="left" orientationMargin={0}>
+        知识库
+      </Divider>
+      <Controller
+        control={control}
+        name="noticeIds"
+        render={({ field }) => (
+          <Form.Item
+            label="公告"
+            htmlFor="category_form_notice_ids"
+            help={
+              <>
+                <div>公告会在用户落地到该分类时展示在页面顶部，数量最大为三条。</div>
+                <div>未发布的文章不会展示。</div>
+              </>
+            }
+            style={FORM_ITEM_STYLE}
           >
-            <Controller
-              control={control}
-              name="articleId"
-              rules={{ required: '请选择文章' }}
-              render={({ field }) => (
-                <Form.Item
-                  required
-                  label="文章"
-                  htmlFor="category_form_article_id"
-                  style={FORM_ITEM_STYLE}
-                >
-                  <Select {...field} options={articlesOptions} id="category_form_article_id" />
-                </Form.Item>
-              )}
+            <ArticleSelect
+              {...field}
+              id="category_form_notice_ids"
+              onChange={(value) => field.onChange(value.slice(0, 3))}
             />
-          </FormGroup>
+          </Form.Item>
+        )}
+      />
 
-          <FormGroup
-            title="相关文章"
-            description="展示多篇相关知识库文章的链接"
-            expanded={relatedArticlesExpanded}
-            onChange={(expanded) => {
-              setRelatedArticlesExpanded(expanded);
-              if (!expanded) {
-                setValue('articleIds', []);
-              }
-            }}
+      <Controller
+        control={control}
+        name="topicIds"
+        render={({ field }) => (
+          <Form.Item
+            label="Topics"
+            htmlFor="category_form_topic_ids"
+            help="Topics 会在用户落地到该分类时展示"
+            style={FORM_ITEM_STYLE}
           >
-            <Controller
-              control={control}
-              name="articleIds"
-              render={({ field }) => (
-                <Form.Item htmlFor="category_form_article_ids" style={FORM_ITEM_STYLE}>
-                  <ArticleListFormItem
-                    articles={articles}
-                    value={field.value}
-                    onChange={field.onChange}
-                    modalTitle="编辑相关文章"
-                    loading={loadingArticles}
-                  />
-                </Form.Item>
-              )}
-            />
-          </FormGroup>
+            <TopicSelect {...field} id="category_form_topic_ids" />
+          </Form.Item>
+        )}
+      />
 
-          <FormGroup
-            title="提交工单"
-            description="展示提交工单的入口"
-            expanded={ticketExpanded}
-            onChange={(expanded) => {
-              setTicketExpanded(expanded);
-              setValue('isTicketEnabled', expanded);
-            }}
+      <Controller
+        control={control}
+        name="articleIds"
+        render={({ field }) => (
+          <Form.Item
+            label="相关文章"
+            htmlFor="category_form_article_ids"
+            help="提单时，选中该分类将展示的相关文章。"
+            style={FORM_ITEM_STYLE}
           >
-            <Controller
-              control={control}
-              name="formId"
-              rules={{ required: '请选择表单' }}
-              render={({ field, field: { onChange } }) => (
-                <Form.Item
-                  required
-                  label={'表单'}
-                  htmlFor="category_form_form_id"
-                  style={FORM_ITEM_STYLE}
-                >
-                  <TicketFormSelect
-                    {...field}
-                    onChange={(value, ...params) => onChange(value ?? null, ...params)}
-                    id="category_form_form_id"
-                  />
-                </Form.Item>
-              )}
-            />
+            <ArticleSelect {...field} id="category_form_article_ids" />
+          </Form.Item>
+        )}
+      />
 
-            <Controller
-              control={control}
-              name="ticketDescription"
-              render={({ field }) => (
-                <Form.Item
-                  label="提交说明"
-                  htmlFor="category_form_ticket_description"
-                  style={FORM_ITEM_STYLE}
-                  extra={
-                    <>
-                      <div>用户提交工单操作的提示信息，如可以配置为：「预计回复时间：4小时」。</div>
-                      <div>会覆盖产品层级的设置。</div>
-                    </>
-                  }
-                >
-                  <Input id={'category_form_ticket_description'} {...field} disabled={loading} />
-                </Form.Item>
-              )}
+      <Divider orientation="left" orientationMargin={0}>
+        自动化
+      </Divider>
+      <Controller
+        control={control}
+        name="groupId"
+        render={({ field, field: { onChange } }) => (
+          <Form.Item
+            label="自动关联客服组"
+            htmlFor="category_form_group_id"
+            style={FORM_ITEM_STYLE}
+          >
+            <GroupSelect
+              {...field}
+              onChange={(value, ...params) => onChange(value ?? null, ...params)}
+              allowClear
+              id="category_form_group_id"
             />
-            <Controller
-              control={control}
-              name="groupId"
-              render={({ field, field: { onChange } }) => (
-                <Form.Item
-                  label="自动分配给客服组"
-                  htmlFor="category_form_group_id"
-                  style={FORM_ITEM_STYLE}
-                >
-                  <GroupSelect
-                    {...field}
-                    onChange={(value, ...params) => onChange(value ?? null, ...params)}
-                    allowClear
-                    id="category_form_group_id"
-                  />
-                </Form.Item>
-              )}
-            />
-            {initData?.template && (
-              <Controller
-                control={control}
-                name="template"
-                render={({ field }) => (
-                  <Form.Item
-                    label="问题描述模板"
-                    htmlFor="category_form_template"
-                    style={FORM_ITEM_STYLE}
-                  >
-                    <TextArea {...field} id="category_form_template" rows={5} />
-                  </Form.Item>
-                )}
-              />
-            )}
-          </FormGroup>
-        </div>
-      )}
+          </Form.Item>
+        )}
+      />
 
-      <Divider />
-      <div className="text-[16px] mb-4 font-semibold">开发者选项</div>
+      <Divider orientation="left" orientationMargin={0}>
+        开发者选项
+      </Divider>
       <Controller
         control={control}
         name="meta"
-        render={({ field: { ref, ...rest } }) => (
+        render={({ field }) => (
           <Form.Item
             label="Meta"
             htmlFor="meta"
             help="面向开发者的扩展属性"
             style={FORM_ITEM_STYLE}
           >
-            <JSONTextarea {...rest} id="meta" />
+            <JSONTextarea {...field} id="meta" />
           </Form.Item>
         )}
       />
 
-      <div className="pt-4 flex sticky bg-white bottom-0 pb-10 mb-[-2.5rem]">
-        <div className="grow space-x-2">
+      <div className="mt-6 flex">
+        <div className="grow">
           <Button type="primary" htmlType="submit" disabled={loadingCategories} loading={loading}>
             保存
           </Button>
-          {!hasSubCategory && (
-            <Button disabled={loading} onClick={preview}>
-              预览
-            </Button>
-          )}
+          <Link className="ml-2" to="..">
+            <Button disabled={loading}>返回</Button>
+          </Link>
         </div>
         {categoryActive === true && (
           <Button danger disabled={loading} onClick={() => onChangeCategoryActive?.(false)}>
@@ -578,52 +362,4 @@ export function CategoryForm({
       </div>
     </Form>
   );
-}
-
-interface FormGroupProps {
-  disabled?: boolean;
-  readonly?: boolean;
-  expanded: boolean;
-  onChange: (expand: boolean) => void;
-  title: string;
-  description: string;
-  children?: ReactNode;
-}
-
-function FormGroup({
-  disabled,
-  readonly,
-  expanded,
-  onChange,
-  title,
-  description,
-  children,
-}: FormGroupProps) {
-  return (
-    <div className="mb-6">
-      <Checkbox
-        disabled={disabled || readonly}
-        checked={disabled ? false : expanded}
-        onChange={(e) => onChange(e.target.checked)}
-      >
-        {title}
-      </Checkbox>
-      <div className="ml-6 mt-1">
-        <p className="text-[rgba(0,0,0,0.45)]">{description}</p>
-        {!disabled && expanded && children}
-      </div>
-    </div>
-  );
-}
-
-function getCategoryRootId(id?: string, categories?: CategorySchema[]) {
-  if (!categories?.length || !id) {
-    return;
-  }
-  let current = categories.find((item) => item.id === id);
-  while (current && current.parentId) {
-    current = categories.find((item) => item.id === current?.parentId);
-  }
-
-  return current?.id;
 }
