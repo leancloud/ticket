@@ -28,7 +28,12 @@
     "suffix": "Riscontro",
     "action": "Invia Feedback",
     "record": "Registro dei feedback",
-    "submit": "Inviare feedback"
+    "submit": "Inviare feedback",
+    "title": "Contattare il Servizio Clienti",
+    "submit_ticket": "Invia Ticket",
+    "wait_time": "Tempo di attesa stimato:",
+    "hours": "{{value}} ore",
+    "minutes": "{{value}} minuti"
   },
   "faqs": {
     "showAll": "Visualizza tutto",
@@ -42,7 +47,7 @@
     "not_logged_in_text": "Rilevato che non hai effettuato l'accesso, per favore accedi e riprova"
   },
   "category": {
-    "select_hint": "Scegli il problema che hai riscontrato",
+    "select_hint": "Seleziona Argomento",
     "select_hint_home": "Seleziona il tipo di problema",
     "faqs": "Articoli correlati",
     "title": "Categorie di problemi"

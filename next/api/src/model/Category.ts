@@ -65,6 +65,21 @@ export class Category extends AliasModel {
   @hasManyThroughIdArray(() => ArticleTopic)
   topics!: ArticleTopic[];
 
+  @pointerId(() => Article)
+  @serialize()
+  articleId?: string;
+
+  @pointTo(() => Article)
+  article?: Article;
+
+  @field()
+  @serialize()
+  isTicketEnabled?: boolean;
+
+  @field()
+  @serialize()
+  ticketDescription?: string;
+
   @pointerId(() => Group)
   @serialize()
   groupId?: string;

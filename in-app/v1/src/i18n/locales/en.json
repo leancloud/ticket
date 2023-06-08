@@ -28,7 +28,12 @@
     "suffix": "Feedback",
     "action": "Send Feedback",
     "record": "Feedback Record",
-    "submit": "Submit Feedback"
+    "submit": "Submit Feedback",
+    "title": "Contact Customer Service",
+    "submit_ticket": "Submit Ticket",
+    "wait_time": "Estimated Wait Time:",
+    "hours": "{{value}} Hours",
+    "minutes": "{{value}} Minutes"
   },
   "faqs": {
     "showAll": "View All",
@@ -42,7 +47,7 @@
     "not_logged_in_text": "Account not detected, please log in and try again"
   },
   "category": {
-    "select_hint": "Select the issue you're experiencing",
+    "select_hint": "Select Topic",
     "select_hint_home": "Select Problem Type",
     "faqs": "Related Articles",
     "title": "Issue Categories"

@@ -28,7 +28,12 @@
     "suffix": "Retour d'information",
     "action": "Envoyer des commentaires",
     "record": "Enregistrement des commentaires",
-    "submit": "Soumettre des commentaires"
+    "submit": "Soumettre des commentaires",
+    "title": "Contacter le service client",
+    "submit_ticket": "Soumettre un ticket",
+    "wait_time": "Temps d'attente estimé :",
+    "hours": "{{value}} heures",
+    "minutes": "{{value}} minutes"
   },
   "faqs": {
     "showAll": "Voir tout",
@@ -42,7 +47,7 @@
     "not_logged_in_text": "Détecté que vous n'êtes pas connecté à votre compte, veuillez vous connecter et réessayer"
   },
   "category": {
-    "select_hint": "Sélectionnez le problème que vous rencontrez",
+    "select_hint": "Sélectionner un sujet",
     "select_hint_home": "Choisissez le type de problème",
     "faqs": "Articles associés",
     "title": "Catégories de problèmes"

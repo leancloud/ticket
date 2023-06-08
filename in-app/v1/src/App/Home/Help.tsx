@@ -5,7 +5,6 @@ import { useRootCategory } from '@/states/root-category';
 import { useTranslation } from 'react-i18next';
 import HelpIcon from '@/icons/Help';
 import Bell from '@/icons/Bell';
-import Feedback from '@/icons/Feedback';
 import { useHasUnreadTickets } from '@/api/ticket';
 
 const Modal: FC<{
@@ -43,8 +42,8 @@ const Modal: FC<{
           <div className="fixed text-[#222222] flex flex-col bg-white w-[100%] sm:w-[375px] py-2 rounded-t-lg">
             {feedback && (
               <Link className="text-left px-3 py-4 flex focus:outline-none" to="/categories">
-                <Feedback className="mr-2" />
-                {t('feedback.action')}
+                <HelpIcon className="mr-2 w-[22px] h-[22px]" />
+                {t('feedback.title')}
               </Link>
             )}
             <Link className="text-left px-3 py-4 flex relative focus:outline-none" to="/tickets">
@@ -80,7 +79,7 @@ const Help: FC<{ feedback: boolean }> = ({ feedback }) => {
           onClick={() => setIsOpen(true)}
           className="relative mr-6 sm:mr-0 flex items-center justify-center w-[48px] h-[48px] rounded-full bg-tapBlue "
         >
-          <HelpIcon />
+          <HelpIcon className="w-[24px] h-[24px] fill-white" />
           {hasUnreadTickets && (
             <div className="w-[10px] h-[10px] rounded-full absolute top-1 right-0 bg-red border border-white" />
           )}
