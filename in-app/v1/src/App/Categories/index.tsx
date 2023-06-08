@@ -109,7 +109,7 @@ export default function Categories() {
   );
 
   const id = currentCategory?.id;
-  const articleId = currentCategory?.articleId;
+  const articleId = currentCategory?.articleId || '641136b5ae5e17663110ad9b';
 
   const subCategories = useMemo(
     () =>

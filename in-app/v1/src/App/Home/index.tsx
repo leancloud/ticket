@@ -15,8 +15,8 @@ export default function Home() {
   const { t } = useTranslation();
   const category = useRootCategory();
 
-  const noticesEnabled = !!category.noticeIds?.length;
-  const topicsEnabled = !!category.noticeIds?.length;
+  const noticesEnabled = category.noticeIds.length > 0;
+  const topicsEnabled = category.noticeIds.length > 0;
 
   const { data: notices, isLoading: isNoticesLoading } = useNotices(category.id, {
     enabled: noticesEnabled,

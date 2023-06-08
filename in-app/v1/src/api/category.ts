@@ -12,11 +12,11 @@ export interface Category {
   formId?: string;
   hidden?: boolean;
   meta?: Record<string, any>;
-  articleId?: string;
-  noticeIds?: string[];
-  topicIds?: string[];
-  isTicketEnabled?: boolean;
-  ticketDescription?: string;
+  articleId: string;
+  noticeIds: string[];
+  topicIds: string[];
+  isTicketEnabled: boolean;
+  ticketDescription: string;
 }
 
 async function fetchCategories(rootCategoryId: string): Promise<Category[]> {
