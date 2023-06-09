@@ -1,8 +1,6 @@
 name: Deploy to LeanEngine
 
 on:
-  schedule:
-    - cron: '0 10 * * *'
   workflow_dispatch:
     inputs:
       environment:
@@ -33,12 +31,10 @@ jobs:
           script: |
             const fs = require('node:fs');
 
-            const isCron = context.eventName === 'schedule';
-
             const matrixJson = JSON.parse(fs.readFileSync('./.github/workflows/matrix_includes.json', 'utf-8'));
 
-            const env = isCron ? 'rnd' : ('${{ inputs.environment }}' || 'rnd');
-            const targets = isCron ? undefined : '${{ inputs.targets }}'.split(',').filter(Boolean).map((s) => s.trim());
+            const env = '${{ inputs.environment }}' || 'rnd';
+            const targets = '${{ inputs.targets }}'.split(',').filter(Boolean).map((s) => s.trim());
 
             if (env !== 'rnd' && env !== 'prod') {
               core.setFailed(`environment: expect 'rnd' or 'prod', found ${env}`);
