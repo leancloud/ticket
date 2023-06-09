@@ -12,7 +12,7 @@ export default defineConfig({
     legacy({
       polyfills: ['es.global-this'],
       modernPolyfills: ['es.global-this'],
-      additionalLegacyPolyfills: ['intersection-observer'],
+      additionalLegacyPolyfills: ['intersection-observer', 'regenerator-runtime/runtime'],
     }),
   ],
   server: {
