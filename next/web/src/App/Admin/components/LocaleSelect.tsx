@@ -1,18 +1,20 @@
 import { forwardRef, useMemo } from 'react';
-import { RefSelectProps } from 'antd/lib/select';
+import { DefaultOptionType, RefSelectProps } from 'antd/lib/select';
 
 import { LOCALES } from '@/i18n/locales';
 import { Select, SelectProps } from '@/components/antd';
 
-export interface LocaleSelectProps extends SelectProps {
+export interface LocaleSelectProps
+  extends Omit<SelectProps<string[], DefaultOptionType>, 'onChange'> {
   hiddenLocales?: string[];
   locales?: Record<string, string>;
   hasUnknown?: boolean;
   unknownValue?: string;
+  onChange?: (value: string[] | undefined, option: DefaultOptionType | DefaultOptionType[]) => void;
 }
 
 export const LocaleSelect = forwardRef<RefSelectProps, LocaleSelectProps>(
-  ({ hiddenLocales, locales, hasUnknown, unknownValue, ...props }, ref) => {
+  ({ hiddenLocales, locales, hasUnknown, unknownValue, onChange, ...props }, ref) => {
     const showLocales = useMemo(
       () => [
         ...Object.entries(locales ?? LOCALES)
@@ -23,6 +25,13 @@ export const LocaleSelect = forwardRef<RefSelectProps, LocaleSelectProps>(
       [hiddenLocales, locales, hasUnknown, unknownValue]
     );
 
-    return <Select {...props} ref={ref} options={showLocales} />;
+    return (
+      <Select
+        {...props}
+        ref={ref}
+        options={showLocales}
+        onChange={(v, o) => onChange?.(v?.length ? v : undefined, o)}
+      />
+    );
   }
 );
