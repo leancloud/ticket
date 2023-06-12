@@ -66,40 +66,43 @@ export function ReplyEditor({ onSubmit }: ReplyEditorProps) {
 }
 
 interface MarkdownEditorProps {
+  className?: string;
   value: string;
   onChange: (value: string) => void;
   internal?: boolean;
 }
 
-function MarkdownEditor({ value, onChange, internal }: MarkdownEditorProps) {
+function MarkdownEditor({ className, value, onChange, internal }: MarkdownEditorProps) {
   const editorHeight = useRef(0);
 
   return (
-    <Tabs type="card">
-      <Tabs.TabPane tab="编辑" key="edit">
-        <Input.TextArea
-          autoSize
-          ref={(ref) => {
-            const el = ref?.resizableTextArea?.textArea;
-            if (el) {
-              editorHeight.current = el.offsetHeight;
-            }
-          }}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          style={{
-            minHeight: 100,
-            backgroundColor: internal ? '#ffc10733' : '#fff',
-          }}
-        />
-      </Tabs.TabPane>
-      <Tabs.TabPane tab="预览" key="preview">
-        <div style={{ minHeight: editorHeight.current || 100 }}>
-          <ReactMarkdown className="markdown-body">
-            {value.trim() || '没有什么可以预览的'}
-          </ReactMarkdown>
-        </div>
-      </Tabs.TabPane>
-    </Tabs>
+    <div className={className}>
+      <Tabs type="card">
+        <Tabs.TabPane tab="编辑" key="edit">
+          <Input.TextArea
+            autoSize
+            ref={(ref) => {
+              const el = ref?.resizableTextArea?.textArea;
+              if (el) {
+                editorHeight.current = el.offsetHeight;
+              }
+            }}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            style={{
+              minHeight: 100,
+              backgroundColor: internal ? '#ffc10733' : '#fff',
+            }}
+          />
+        </Tabs.TabPane>
+        <Tabs.TabPane tab="预览" key="preview">
+          <div style={{ minHeight: editorHeight.current || 100 }}>
+            <ReactMarkdown className="markdown-body">
+              {value.trim() || '没有什么可以预览的'}
+            </ReactMarkdown>
+          </div>
+        </Tabs.TabPane>
+      </Tabs>
+    </div>
   );
 }
