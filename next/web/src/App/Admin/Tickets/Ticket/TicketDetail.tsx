@@ -64,7 +64,7 @@ export function TicketDetail() {
             </Col>
             <Col className="p-4" span={24} md={12}>
               <Timeline />
-              <ReplyEditor />
+              <ReplyEditor onSubmit={(reply) => console.log(reply)} />
             </Col>
             <Col className="p-4" span={24} md={6}>
               <div className="sticky top-4">
