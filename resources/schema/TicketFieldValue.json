@@ -51,5 +51,15 @@
       "users": []
     }
   },
-  "indexes": []
+  "indexes": [
+    {
+      "v": 2,
+      "key": {
+        "ticket.$id": 1
+      },
+      "name": "-user-ticket.$id_1",
+      "ns": "_.TicketFieldValue",
+      "background": true
+    }
+  ]
 }

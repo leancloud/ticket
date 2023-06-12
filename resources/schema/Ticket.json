@@ -156,11 +156,37 @@
     },
     {
       "v": 2,
-      "unique": false,
       "key": {
         "latestCustomerServiceReplyAt": -1
       },
       "name": "-user-latestCustomerServiceReplyAt_-1",
+      "ns": "_.Ticket",
+      "background": true
+    },
+    {
+      "v": 2,
+      "key": {
+        "category.objectId": 1
+      },
+      "name": "-user-category.objectId_1",
+      "ns": "_.Ticket",
+      "background": true
+    },
+    {
+      "v": 2,
+      "key": {
+        "author.$id": 1
+      },
+      "name": "-user-author.$id_1",
+      "ns": "_.Ticket",
+      "background": true
+    },
+    {
+      "v": 2,
+      "key": {
+        "assignee.$id": 1
+      },
+      "name": "-user-assignee.$id_1",
       "ns": "_.Ticket",
       "background": true
     }
