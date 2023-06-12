@@ -96,7 +96,7 @@ function MarkdownEditor({ className, value, onChange, internal }: MarkdownEditor
           />
         </Tabs.TabPane>
         <Tabs.TabPane tab="预览" key="preview">
-          <div style={{ minHeight: editorHeight.current || 100 }}>
+          <div className="p-2" style={{ minHeight: editorHeight.current || 100 }}>
             <ReactMarkdown className="markdown-body">
               {value.trim() || '没有什么可以预览的'}
             </ReactMarkdown>
