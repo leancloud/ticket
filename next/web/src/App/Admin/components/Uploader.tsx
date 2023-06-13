@@ -29,6 +29,7 @@ interface UploaderProps {
 
 export interface UploaderRef {
   getStatus: () => UploaderStatus;
+  reset: () => void;
 }
 
 export const Uploader = forwardRef(
@@ -88,6 +89,9 @@ export const Uploader = forwardRef(
           }
         }
         return status;
+      },
+      reset: () => {
+        setFileInfos([]);
       },
     }));
 
