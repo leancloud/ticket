@@ -35,7 +35,7 @@ import { SubscribeButton } from './components/SubscribeButton';
 import { PrivateSelect } from './components/PrivateSelect';
 import { CategoryCascader } from './components/CategoryCascader';
 import { LeanCloudApp } from './components/LeanCloudApp';
-import { TicketContextProvider, useTicketContext } from './TicketContext';
+import { TicketContext, useMixedTicket, useTicketContext } from './TicketContext';
 import { langs } from './lang';
 import { TicketField_v1, useTicketFields_v1 } from './api1';
 import { CustomFields } from './components/CustomFields';
@@ -45,17 +45,20 @@ export function TicketDetail() {
   const { id } = useParams() as { id: string };
   const navigate = useNavigate();
 
+  const { ticket, update, updating, operate, operating } = useMixedTicket(id);
+
+  if (!ticket) {
+    return (
+      <div className="h-screen flex">
+        <Spin style={{ margin: 'auto' }} />
+      </div>
+    );
+  }
+
   return (
     <div className="h-full bg-white overflow-auto">
       <div className="max-w-[1360px] mx-auto">
-        <TicketContextProvider
-          ticketId={id}
-          fallback={
-            <div className="h-screen flex">
-              <Spin style={{ margin: 'auto' }} />
-            </div>
-          }
-        >
+        <TicketContext.Provider value={{ ticket, update, updating, operate, operating }}>
           <TicketInfo onBack={() => navigate('..')} />
           <Row>
             <Col className="p-4" span={24} md={6}>
@@ -77,7 +80,7 @@ export function TicketDetail() {
               </div>
             </Col>
           </Row>
-        </TicketContextProvider>
+        </TicketContext.Provider>
       </div>
     </div>
   );

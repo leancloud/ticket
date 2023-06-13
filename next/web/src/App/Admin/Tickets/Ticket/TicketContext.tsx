@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useMemo } from 'react';
+import { createContext, useContext, useMemo } from 'react';
 import { isEmpty, pick } from 'lodash-es';
 
 import {
@@ -53,19 +53,13 @@ interface MixedUpdateData {
   subscribed?: UpdateTicket_v1Data['subscribed'];
 }
 
-const TicketContext = createContext<TicketContextValue>({} as any);
+export const TicketContext = createContext<TicketContextValue>({} as any);
 
-interface TicketContextProviderProps {
-  ticketId: string;
-  children?: ReactNode;
-  fallback?: ReactNode;
+interface UseMixedTicketResult extends Omit<TicketContextValue, 'ticket'> {
+  ticket?: TicketContextValue['ticket'];
 }
 
-export function TicketContextProvider({
-  ticketId,
-  children,
-  fallback,
-}: TicketContextProviderProps) {
+export function useMixedTicket(ticketId: string): UseMixedTicketResult {
   const { data: ticket, refetch } = useTicket(ticketId, {
     include: ['author', 'files'],
   });
@@ -136,23 +130,13 @@ export function TicketContextProvider({
     }
   };
 
-  if (!mixedTicket) {
-    return fallback as JSX.Element;
-  }
-
-  return (
-    <TicketContext.Provider
-      value={{
-        ticket: mixedTicket,
-        update,
-        updating: ticketUpdating || ticketUpdating_v1,
-        operate: (action) => operateTicket([ticketId, action]),
-        operating,
-      }}
-    >
-      {children}
-    </TicketContext.Provider>
-  );
+  return {
+    ticket: mixedTicket,
+    update,
+    updating: ticketUpdating || ticketUpdating_v1,
+    operate: (action) => operateTicket([ticketId, action]),
+    operating,
+  };
 }
 
 export function useTicketContext() {
