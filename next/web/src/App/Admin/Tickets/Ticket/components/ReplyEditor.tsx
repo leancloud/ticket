@@ -43,7 +43,7 @@ export function ReplyEditor({ onSubmit, onOperate, operating }: ReplyEditorProps
 
     try {
       setSubmitting(true);
-      onSubmit({
+      await onSubmit({
         internal: mode === 'internal',
         content: trimedContent,
         fileIds,
@@ -74,6 +74,7 @@ export function ReplyEditor({ onSubmit, onOperate, operating }: ReplyEditorProps
         onChange={setContent}
         internal={internal}
         onSubmit={handleSubmit}
+        disabled={submitting}
       />
 
       <Uploader ref={uploaderRef} disabled={submitting} />
@@ -101,9 +102,17 @@ interface MarkdownEditorProps {
   onChange: (value: string) => void;
   internal?: boolean;
   onSubmit: () => void;
+  disabled?: boolean;
 }
 
-function MarkdownEditor({ className, value, onChange, internal, onSubmit }: MarkdownEditorProps) {
+function MarkdownEditor({
+  className,
+  value,
+  onChange,
+  internal,
+  onSubmit,
+  disabled,
+}: MarkdownEditorProps) {
   const editorHeight = useRef(0);
 
   return (
@@ -125,6 +134,7 @@ function MarkdownEditor({ className, value, onChange, internal, onSubmit }: Mark
                 onSubmit();
               }
             }}
+            disabled={disabled}
             style={{
               minHeight: 124,
               backgroundColor: internal ? '#ffc10733' : '#fff',
