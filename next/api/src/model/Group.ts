@@ -32,7 +32,7 @@ export class Group extends Model {
   role?: Role;
 
   @field()
-  permissions!: GroupPermission;
+  permissions?: GroupPermission;
 
   getTinyInfo(): TinyGroupInfo {
     return {
