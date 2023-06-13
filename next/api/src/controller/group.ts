@@ -25,8 +25,8 @@ import { FindModelPipe, ZodValidationPipe } from '@/common/pipe';
 const groupPermissionSchema = z
   .object({
     view: z.boolean(),
-    list: z.boolean(),
-    statistic: z.boolean(),
+    ticketList: z.boolean(),
+    statistics: z.boolean(),
   })
   .partial();
 

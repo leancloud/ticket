@@ -91,6 +91,12 @@ export const DefaultGroupPermission: CustomerServicePermissions = {
   statistics: false,
 };
 
+export const GroupPermissionDescriptions: Record<keyof CustomerServicePermissions, string> = {
+  view: '视图',
+  ticketList: '工单列表',
+  statistics: '工单统计',
+};
+
 const currentUserGroupsState = selector({
   key: 'currentUserGroups',
   get: async ({ get }) => {

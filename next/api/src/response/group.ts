@@ -21,6 +21,7 @@ export class GroupDetailResponse extends GroupResponse {
     return {
       ...super.toJSON(),
       userIds: this.userIds,
+      permissions: this.group.permissions,
     };
   }
 }
