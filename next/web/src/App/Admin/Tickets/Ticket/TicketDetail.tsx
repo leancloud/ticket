@@ -85,7 +85,7 @@ export function TicketDetail() {
             </Col>
             <Col className="p-4" span={24} md={6}>
               <div className="sticky top-4">
-                <TicketBasicInfoSection />
+                <TicketBasicInfoSection ticket={ticket} onChange={update} disabled={updating} />
 
                 <TagsSection />
 
@@ -318,8 +318,21 @@ function CustomFieldsSection({ ticketId, categoryId }: CustomFieldsSectionProps)
   );
 }
 
-function TicketBasicInfoSection() {
-  const { ticket, update, updating } = useTicketContext();
+interface TicketBasicInfoSectionProps {
+  ticket: {
+    groupId?: string;
+    assigneeId?: string;
+    language?: string;
+  };
+  onChange: (data: {
+    groupId?: string | null;
+    assigneeId?: string | null;
+    language?: string | null;
+  }) => void;
+  disabled?: boolean;
+}
+
+function TicketBasicInfoSection({ ticket, onChange, disabled }: TicketBasicInfoSectionProps) {
   const groups = useGroups();
 
   return (
@@ -335,16 +348,16 @@ function TicketBasicInfoSection() {
           fieldNames={{ label: 'name', value: 'id' }}
           placeholder="未分配"
           value={ticket.groupId}
-          onChange={(groupId) => update({ groupId: groupId ?? null })}
-          disabled={updating}
+          onChange={(groupId) => onChange({ groupId: groupId ?? null })}
+          disabled={disabled}
         />
       </FormField>
 
       <AssigneeSection
         groupId={ticket.groupId}
         assigneeId={ticket.assigneeId}
-        onChangeAssignee={(assigneeId) => update({ assigneeId: assigneeId ?? null })}
-        disabled={updating}
+        onChangeAssignee={(assigneeId) => onChange({ assigneeId: assigneeId ?? null })}
+        disabled={disabled}
       />
 
       <FormField label="语言">
@@ -355,8 +368,8 @@ function TicketBasicInfoSection() {
           options={langs}
           fieldNames={{ label: 'name', value: 'code' }}
           value={ticket.language}
-          onChange={(language) => update({ language: language ?? null })}
-          disabled={updating}
+          onChange={(language) => onChange({ language: language ?? null })}
+          disabled={disabled}
         />
       </FormField>
     </>
