@@ -8,14 +8,14 @@ export interface TinyGroupInfo {
 
 export interface GroupPermission {
   view: boolean;
-  list: boolean;
-  statistic: boolean;
+  ticketList: boolean;
+  statistics: boolean;
 }
 
 export const DefaultGroupPermission: GroupPermission = {
   view: true,
-  list: false,
-  statistic: false,
+  ticketList: false,
+  statistics: false,
 };
 
 export class Group extends Model {

@@ -81,14 +81,14 @@ export const useRefreshCurrentUser = () => {
 
 export interface CustomerServicePermissions {
   view: boolean;
-  list: boolean;
-  statistic: boolean;
+  ticketList: boolean;
+  statistics: boolean;
 }
 
 export const DefaultGroupPermission: CustomerServicePermissions = {
   view: true,
-  list: false,
-  statistic: false,
+  ticketList: false,
+  statistics: false,
 };
 
 const currentUserGroupsState = selector({

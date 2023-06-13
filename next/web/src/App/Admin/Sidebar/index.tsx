@@ -46,7 +46,7 @@ export function Sidebar(props: ComponentPropsWithoutRef<'aside'>) {
       className={cx('grid grid-rows-[auto_1fr_auto] w-16 bg-gray-900', props.className)}
     >
       <section className="p-3 text-[rgba(255,255,255,0.72)]">
-        {(!isCustomerService || isAdmin || permissions.list) && (
+        {(!isCustomerService || isAdmin || permissions.ticketList) && (
           <Path to="/admin/tickets" title="工单">
             <HiOutlineTicket className="m-auto w-5 h-5" />
           </Path>
@@ -56,7 +56,7 @@ export function Sidebar(props: ComponentPropsWithoutRef<'aside'>) {
             <AiOutlineContainer className="m-auto w-5 h-5" />
           </Path>
         )}
-        {(isAdmin || (isCustomerService && permissions.statistic)) && (
+        {(isAdmin || (isCustomerService && permissions.statistics)) && (
           <Path to="/admin/stats" title="统计">
             <MdOutlineAnalytics className="m-auto w-5 h-5" />
           </Path>
