@@ -39,7 +39,7 @@ export function ReplyEditor({ onSubmit }: ReplyEditorProps) {
 
     onSubmit({
       internal: mode === 'internal',
-      content: content.trim(),
+      content: trimedContent,
       fileIds,
     });
   };
