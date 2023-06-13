@@ -11,7 +11,7 @@ interface ReplyInfo {
 }
 
 interface ReplyEditorProps {
-  onSubmit: (replyInfo: ReplyInfo) => void;
+  onSubmit: (replyInfo: ReplyInfo) => Promise<void>;
   onOperate: (action: string) => void;
   operating?: boolean;
 }
@@ -22,7 +22,12 @@ export function ReplyEditor({ onSubmit, onOperate, operating }: ReplyEditorProps
 
   const uploaderRef = useRef<UploaderRef>(null!);
 
-  const handleSubmit = () => {
+  const [submitting, setSubmitting] = useState(false);
+  const handleSubmit = async () => {
+    if (submitting) {
+      return;
+    }
+
     const { fileIds, uploading, hasError } = uploaderRef.current.getStatus();
     if (uploading) {
       return alert('请等待全部文件上传完毕');
@@ -36,11 +41,18 @@ export function ReplyEditor({ onSubmit, onOperate, operating }: ReplyEditorProps
       return alert('回复内容不能为空');
     }
 
-    onSubmit({
-      internal: mode === 'internal',
-      content: trimedContent,
-      fileIds,
-    });
+    try {
+      setSubmitting(true);
+      onSubmit({
+        internal: mode === 'internal',
+        content: trimedContent,
+        fileIds,
+      });
+      setContent('');
+      uploaderRef.current.reset();
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const internal = mode === 'internal';
@@ -56,9 +68,15 @@ export function ReplyEditor({ onSubmit, onOperate, operating }: ReplyEditorProps
         </Radio.Group>
       </div>
 
-      <MarkdownEditor className="mb-2" value={content} onChange={setContent} internal={internal} />
+      <MarkdownEditor
+        className="mb-2"
+        value={content}
+        onChange={setContent}
+        internal={internal}
+        onSubmit={handleSubmit}
+      />
 
-      <Uploader ref={uploaderRef} />
+      <Uploader ref={uploaderRef} disabled={submitting} />
 
       <div className="flex mt-4 gap-2">
         <Button disabled>插入快捷回复</Button>
@@ -69,7 +87,7 @@ export function ReplyEditor({ onSubmit, onOperate, operating }: ReplyEditorProps
         <Button disabled={operating} onClick={() => onOperate('replySoon')}>
           稍后回复
         </Button>
-        <Button type="primary" onClick={handleSubmit}>
+        <Button type="primary" onClick={handleSubmit} disabled={submitting}>
           {internal ? '提交内部留言' : '回复用户'}
         </Button>
       </div>
@@ -82,9 +100,10 @@ interface MarkdownEditorProps {
   value: string;
   onChange: (value: string) => void;
   internal?: boolean;
+  onSubmit: () => void;
 }
 
-function MarkdownEditor({ className, value, onChange, internal }: MarkdownEditorProps) {
+function MarkdownEditor({ className, value, onChange, internal, onSubmit }: MarkdownEditorProps) {
   const editorHeight = useRef(0);
 
   return (
@@ -101,6 +120,11 @@ function MarkdownEditor({ className, value, onChange, internal }: MarkdownEditor
             }}
             value={value}
             onChange={(e) => onChange(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.metaKey && e.key === 'Enter') {
+                onSubmit();
+              }
+            }}
             style={{
               minHeight: 124,
               backgroundColor: internal ? '#ffc10733' : '#fff',
