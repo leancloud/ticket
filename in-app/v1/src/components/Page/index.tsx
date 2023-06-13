@@ -49,6 +49,7 @@ export function PageHeader(props: ComponentPropsWithoutRef<'div'>) {
 interface PageContentProps<T extends ElementType> {
   title?: ReactNode;
   shadow?: boolean;
+  padding?: boolean;
   as?: T;
   color?: number;
 }
@@ -57,6 +58,7 @@ export function PageContent<T extends ElementType>({
   children,
   className,
   shadow,
+  padding = true,
   title,
   as,
   color,
@@ -67,7 +69,8 @@ export function PageContent<T extends ElementType>({
     <Component
       {...props}
       className={cx(
-        'page flex flex-col shrink-0  overflow-hidden bg-white rounded-lg mx-[10px] sm:mx-[119px] last:mb-4 px-4 py-3',
+        'page flex flex-col shrink-0  overflow-hidden bg-white rounded-lg mx-[10px] sm:mx-[119px] last:mb-4',
+        padding && 'px-4 py-3',
         shadow && styles.contentShadow,
         className
       )}

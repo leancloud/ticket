@@ -18,7 +18,7 @@ export default function Notices() {
     return null;
   }
   return (
-    <PageContent shadow className="mb-2 px-0 py-0">
+    <PageContent shadow padding={false} className="mb-2">
       <div className="overflow-hidden " ref={emblaRef}>
         <div className="flex flex-col h-[45px] items-stretch">
           {notices.map((notice) => (
