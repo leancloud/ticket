@@ -18,7 +18,7 @@ interface TicketContextValue {
   operating: boolean;
 }
 
-interface MixedTicket {
+export interface MixedTicket {
   id: TicketDetailSchema['id'];
   nid: TicketDetailSchema['nid'];
   categoryId: TicketDetailSchema['categoryId'];

@@ -1,19 +1,21 @@
 import { Skeleton } from 'antd';
 
 import { UserLabel } from '@/App/Admin/components';
-import { useTicketContext } from '../TicketContext';
-import { useTimeline } from './useTimeline';
+import { MixedTicket } from '../TicketContext';
+import { TimelineData } from './useTimeline';
 import { ReplyCard } from './ReplyCard';
 import { OpsLog } from './OpsLog';
 import styles from './index.module.css';
 
-export function Timeline() {
-  const { ticket } = useTicketContext();
+interface TimelineProps {
+  ticket: MixedTicket;
+  timeline?: TimelineData[];
+  loading?: boolean;
+}
 
-  const { data: timeline, isLoading } = useTimeline(ticket.id);
-
+export function Timeline({ ticket, timeline, loading }: TimelineProps) {
   return (
-    <div className={isLoading ? undefined : styles.timeline}>
+    <div className={loading ? undefined : styles.timeline}>
       <ReplyCard
         id={ticket.id}
         author={ticket.author ? <UserLabel user={ticket.author} /> : 'unknown'}
@@ -21,8 +23,8 @@ export function Timeline() {
         content={ticket.contentSafeHTML}
         files={ticket.files}
       />
-      {isLoading && <Skeleton active paragraph={{ rows: 4 }} />}
-      {timeline.map((timeline) => {
+      {loading && <Skeleton active paragraph={{ rows: 4 }} />}
+      {timeline?.map((timeline) => {
         if (timeline.type === 'reply') {
           return (
             <ReplyCard

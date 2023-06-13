@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import { ReplySchema } from '@/api/reply';
 import { OpsLog, useTicketOpsLogs, useTicketReplies } from '@/api/ticket';
 
-type TimelineData =
+export type TimelineData =
   | {
       type: 'reply';
       data: ReplySchema;
