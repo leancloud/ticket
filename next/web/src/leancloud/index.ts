@@ -87,7 +87,7 @@ export interface CustomerServicePermissions {
 
 export const DefaultGroupPermission: CustomerServicePermissions = {
   view: true,
-  ticketList: false,
+  ticketList: true,
   statistics: false,
 };
 

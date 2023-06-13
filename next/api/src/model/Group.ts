@@ -14,7 +14,7 @@ export interface GroupPermission {
 
 export const DefaultGroupPermission: GroupPermission = {
   view: true,
-  ticketList: false,
+  ticketList: true,
   statistics: false,
 };
 
