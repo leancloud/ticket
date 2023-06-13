@@ -22,7 +22,7 @@ import { useGroup, useGroups } from '@/api/group';
 import { useCustomerServices } from '@/api/customer-service';
 import { useCollaborators } from '@/api/collaborator';
 import { useTagMetadatas } from '@/api/tag-metadata';
-import { useTicketFieldValues, useUpdateTicketFieldValues } from '@/api/ticket';
+import { useCreateReply, useTicketFieldValues, useUpdateTicketFieldValues } from '@/api/ticket';
 import { useCategory } from '@/api/category';
 import { useTicketForm } from '@/api/ticket-form';
 import { ENABLE_LEANCLOUD_INTEGRATION, useCurrentUser } from '@/leancloud';
@@ -39,7 +39,7 @@ import { useMixedTicket } from './mixed-ticket';
 import { langs } from './lang';
 import { TicketField_v1, useTicketFields_v1 } from './api1';
 import { CustomFields } from './components/CustomFields';
-import { useTimeline } from './Timeline/useTimeline';
+import { useTicketOpsLogs, useTicketReplies } from './timeline-data';
 
 export function TicketDetail() {
   const { id } = useParams() as { id: string };
@@ -47,7 +47,14 @@ export function TicketDetail() {
 
   const { ticket, update, updating, operate, operating } = useMixedTicket(id);
 
-  const { data: timeline, isLoading: loadingTimeline } = useTimeline(id);
+  const { replies, fetchMoreReplies } = useTicketReplies(ticket?.id);
+  const { opsLogs } = useTicketOpsLogs(ticket?.id);
+
+  const { mutateAsync: createReply } = useCreateReply({
+    onSuccess: () => {
+      fetchMoreReplies();
+    },
+  });
 
   if (!ticket) {
     return (
@@ -82,9 +89,17 @@ export function TicketDetail() {
             <CustomFieldsSection ticketId={ticket.id} categoryId={ticket.categoryId} />
           </Col>
           <Col className="p-4" span={24} md={12}>
-            <Timeline ticket={ticket} timeline={timeline} loading={loadingTimeline} />
+            <Timeline ticket={ticket} replies={replies} opsLogs={opsLogs} />
+
             <ReplyEditor
-              onSubmit={(reply) => console.log(reply)}
+              onSubmit={(reply) =>
+                createReply({
+                  ticketId: ticket.id,
+                  content: reply.content,
+                  fileIds: reply.fileIds,
+                  internal: reply.internal,
+                })
+              }
               onOperate={operate}
               operating={operating}
             />

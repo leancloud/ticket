@@ -1,19 +1,46 @@
+import { useMemo } from 'react';
 import { Skeleton } from 'antd';
 
+import { ReplySchema } from '@/api/reply';
+import { OpsLog as OpsLogSchema } from '@/api/ticket';
 import { UserLabel } from '@/App/Admin/components';
 import { MixedTicket } from '../mixed-ticket';
-import { TimelineData } from './useTimeline';
 import { ReplyCard } from './ReplyCard';
 import { OpsLog } from './OpsLog';
 import styles from './index.module.css';
 
+type TimelineData =
+  | {
+      type: 'reply';
+      data: ReplySchema;
+      createTime: number;
+    }
+  | {
+      type: 'opsLog';
+      data: OpsLogSchema;
+      createTime: number;
+    };
+
 interface TimelineProps {
   ticket: MixedTicket;
-  timeline?: TimelineData[];
-  loading?: boolean;
+  replies?: ReplySchema[];
+  opsLogs?: OpsLogSchema[];
 }
 
-export function Timeline({ ticket, timeline, loading }: TimelineProps) {
+export function Timeline({ ticket, replies, opsLogs }: TimelineProps) {
+  const timeline = useMemo(() => {
+    const timeline: TimelineData[] = [];
+    replies?.forEach((data) =>
+      timeline.push({ type: 'reply', data, createTime: new Date(data.createdAt).getTime() })
+    );
+    opsLogs?.forEach((data) =>
+      timeline.push({ type: 'opsLog', data, createTime: new Date(data.createdAt).getTime() })
+    );
+    return timeline.sort((a, b) => a.createTime - b.createTime);
+  }, [replies, opsLogs]);
+
+  const loading = !replies && !opsLogs;
+
   return (
     <div className={loading ? undefined : styles.timeline}>
       <ReplyCard
@@ -24,7 +51,7 @@ export function Timeline({ ticket, timeline, loading }: TimelineProps) {
         files={ticket.files}
       />
       {loading && <Skeleton active paragraph={{ rows: 4 }} />}
-      {timeline?.map((timeline) => {
+      {timeline.map((timeline) => {
         if (timeline.type === 'reply') {
           return (
             <ReplyCard
