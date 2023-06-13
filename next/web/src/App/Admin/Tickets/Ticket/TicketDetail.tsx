@@ -22,7 +22,12 @@ import { useGroup, useGroups } from '@/api/group';
 import { useCustomerServices } from '@/api/customer-service';
 import { useCollaborators } from '@/api/collaborator';
 import { useTagMetadatas } from '@/api/tag-metadata';
-import { useCreateReply, useTicketFieldValues, useUpdateTicketFieldValues } from '@/api/ticket';
+import {
+  useCreateReply,
+  useOperateTicket,
+  useTicketFieldValues,
+  useUpdateTicketFieldValues,
+} from '@/api/ticket';
 import { useCategory } from '@/api/category';
 import { useTicketForm } from '@/api/ticket-form';
 import { ENABLE_LEANCLOUD_INTEGRATION, useCurrentUser } from '@/leancloud';
@@ -45,16 +50,30 @@ export function TicketDetail() {
   const { id } = useParams() as { id: string };
   const navigate = useNavigate();
 
-  const { ticket, update, updating, operate, operating } = useMixedTicket(id);
+  const { ticket, update, updating, refetch } = useMixedTicket(id);
 
   const { replies, fetchMoreReplies } = useTicketReplies(ticket?.id);
-  const { opsLogs } = useTicketOpsLogs(ticket?.id);
+  const { opsLogs, fetchMoreOpsLogs } = useTicketOpsLogs(ticket?.id);
 
   const { mutateAsync: createReply } = useCreateReply({
     onSuccess: () => {
+      refetch();
       fetchMoreReplies();
     },
   });
+
+  const { mutate: operate, isLoading: operating } = useOperateTicket({
+    onSuccess: () => {
+      refetch();
+      fetchMoreOpsLogs();
+    },
+  });
+
+  const handleOperate = (action: string) => {
+    if (ticket) {
+      operate([ticket.id, action]);
+    }
+  };
 
   if (!ticket) {
     return (
@@ -100,7 +119,7 @@ export function TicketDetail() {
                   internal: reply.internal,
                 })
               }
-              onOperate={operate}
+              onOperate={handleOperate}
               operating={operating}
             />
           </Col>
@@ -116,7 +135,11 @@ export function TicketDetail() {
               />
 
               <Divider>工单操作</Divider>
-              <TicketOperations status={ticket.status} onOperate={operate} disabled={operating} />
+              <TicketOperations
+                status={ticket.status}
+                onOperate={handleOperate}
+                disabled={operating}
+              />
             </div>
           </Col>
         </Row>
