@@ -23,94 +23,103 @@ interface UploaderStatus {
   hasError: boolean;
 }
 
+interface UploaderProps {
+  disabled?: boolean;
+}
+
 export interface UploaderRef {
   getStatus: () => UploaderStatus;
 }
 
-export const Uploader = forwardRef((props: {}, ref: ForwardedRef<UploaderRef>) => {
-  const nextUid = useRef(0);
-  const [fileInfos, setFileInfos] = useState<FileInfo[]>([]);
+export const Uploader = forwardRef(
+  ({ disabled }: UploaderProps, ref: ForwardedRef<UploaderRef>) => {
+    const nextUid = useRef(0);
+    const [fileInfos, setFileInfos] = useState<FileInfo[]>([]);
 
-  const updateFileInfo = (uid: number, info: Partial<FileInfo>) => {
-    setFileInfos((prev) => {
-      return prev.map((prevInfo) => {
-        if (prevInfo.uid === uid) {
-          return { ...prevInfo, ...info };
-        }
-        return prevInfo;
+    const updateFileInfo = (uid: number, info: Partial<FileInfo>) => {
+      setFileInfos((prev) => {
+        return prev.map((prevInfo) => {
+          if (prevInfo.uid === uid) {
+            return { ...prevInfo, ...info };
+          }
+          return prevInfo;
+        });
       });
-    });
-  };
+    };
 
-  const removeFileInfo = (uid: number) => {
-    setFileInfos((prev) => prev.filter((info) => info.uid !== uid));
-  };
+    const removeFileInfo = (uid: number) => {
+      setFileInfos((prev) => prev.filter((info) => info.uid !== uid));
+    };
 
-  const handleUpload = (files: FileList) => {
-    for (const file of files) {
-      const uid = nextUid.current++;
-      setFileInfos((prev) => [
-        ...prev,
-        {
-          uid,
-          name: file.name,
-          percent: 0,
-        },
-      ]);
-      upload({
-        file,
-        onProgress: (percent) => updateFileInfo(uid, { percent }),
-        onSuccess: (fileInfo) => updateFileInfo(uid, fileInfo),
-        onError: (error) => updateFileInfo(uid, { error }),
-      });
-    }
-  };
-
-  useImperativeHandle(ref, () => ({
-    getStatus: () => {
-      const status: UploaderStatus = {
-        fileIds: [],
-        uploading: false,
-        hasError: false,
-      };
-      for (const file of fileInfos) {
-        if (file.error) {
-          status.hasError = true;
-        } else if (!file.id) {
-          status.uploading = true;
-        } else {
-          status.fileIds.push(file.id);
-        }
+    const handleUpload = (files: FileList) => {
+      for (const file of files) {
+        const uid = nextUid.current++;
+        setFileInfos((prev) => [
+          ...prev,
+          {
+            uid,
+            name: file.name,
+            percent: 0,
+          },
+        ]);
+        upload({
+          file,
+          onProgress: (percent) => updateFileInfo(uid, { percent }),
+          onSuccess: (fileInfo) => updateFileInfo(uid, fileInfo),
+          onError: (error) => updateFileInfo(uid, { error }),
+        });
       }
-      return status;
-    },
-  }));
+    };
 
-  return (
-    <div className="flex flex-wrap gap-2">
-      {fileInfos.map((fileInfo) => (
-        <FileItem
-          key={fileInfo.uid}
-          file={fileInfo}
-          onRemove={() => removeFileInfo(fileInfo.uid)}
-        />
-      ))}
-      <UploadButton onUpload={handleUpload} />
-    </div>
-  );
-});
+    useImperativeHandle(ref, () => ({
+      getStatus: () => {
+        const status: UploaderStatus = {
+          fileIds: [],
+          uploading: false,
+          hasError: false,
+        };
+        for (const file of fileInfos) {
+          if (file.error) {
+            status.hasError = true;
+          } else if (!file.id) {
+            status.uploading = true;
+          } else {
+            status.fileIds.push(file.id);
+          }
+        }
+        return status;
+      },
+    }));
+
+    return (
+      <div className="flex flex-wrap gap-2">
+        {fileInfos.map((fileInfo) => (
+          <FileItem
+            key={fileInfo.uid}
+            file={fileInfo}
+            onRemove={() => removeFileInfo(fileInfo.uid)}
+            disabled={disabled}
+          />
+        ))}
+        <UploadButton onUpload={handleUpload} disabled={disabled} />
+      </div>
+    );
+  }
+);
 
 interface UploadButtonProps {
   onUpload: (fileList: FileList) => void;
+  disabled?: boolean;
 }
 
-function UploadButton({ onUpload }: UploadButtonProps) {
+function UploadButton({ onUpload, disabled }: UploadButtonProps) {
   const inputRef = useRef<HTMLInputElement>(null!);
 
   return (
     <button
-      className="flex w-[90px] h-[90px] border rounded border-dashed hover:border-primary-600 transition-colors duration-200"
+      className="flex w-[90px] h-[90px] border rounded border-dashed bg-white disabled:bg-gray-200 enabled:hover:border-primary-600 transition-colors duration-200"
       onClick={() => inputRef.current.click()}
+      disabled={disabled}
     >
       <input
         className="hidden"
@@ -136,9 +145,10 @@ function UploadButton({ onUpload }: UploadButtonProps) {
 interface FileItemProps {
   file: FileInfo;
   onRemove?: () => void;
+  disabled?: boolean;
 }
 
-function FileItem({ file, onRemove }: FileItemProps) {
+function FileItem({ file, onRemove, disabled }: FileItemProps) {
   return (
     <div
       className={cx(
@@ -168,7 +178,7 @@ function FileItem({ file, onRemove }: FileItemProps) {
               <div className="truncate">{file.name ?? 'Loading...'}</div>
             </div>
           )}
-          <FileCover url={file.url} onRemove={onRemove} />
+          {!disabled && <FileCover url={file.url} onRemove={onRemove} />}
         </>
       )}
     </div>
