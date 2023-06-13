@@ -35,7 +35,7 @@ import { SubscribeButton } from './components/SubscribeButton';
 import { PrivateSelect } from './components/PrivateSelect';
 import { CategoryCascader } from './components/CategoryCascader';
 import { LeanCloudApp } from './components/LeanCloudApp';
-import { TicketContext, useMixedTicket, useTicketContext } from './TicketContext';
+import { TicketContext, useMixedTicket } from './TicketContext';
 import { langs } from './lang';
 import { TicketField_v1, useTicketFields_v1 } from './api1';
 import { CustomFields } from './components/CustomFields';
@@ -46,6 +46,8 @@ export function TicketDetail() {
   const navigate = useNavigate();
 
   const { ticket, update, updating, operate, operating } = useMixedTicket(id);
+
+  const { data: timeline, isLoading: loadingTimeline } = useTimeline(id);
 
   if (!ticket) {
     return (
@@ -81,7 +83,8 @@ export function TicketDetail() {
               <CustomFieldsSection ticketId={ticket.id} categoryId={ticket.categoryId} />
             </Col>
             <Col className="p-4" span={24} md={12}>
-              <TimelineSection />
+              <Timeline ticket={ticket} timeline={timeline} loading={loadingTimeline} />
+              <ReplyEditor onSubmit={(reply) => console.log(reply)} />
             </Col>
             <Col className="p-4" span={24} md={6}>
               <div className="sticky top-4">
@@ -550,17 +553,5 @@ function TicketOperations({ status, onOperate, disabled }: TicketOperationsProps
         </Button>
       )}
     </div>
-  );
-}
-
-function TimelineSection() {
-  const { ticket } = useTicketContext();
-  const { data: timeline, isLoading } = useTimeline(ticket.id);
-
-  return (
-    <>
-      <Timeline ticket={ticket} timeline={timeline} loading={isLoading} />
-      <ReplyEditor onSubmit={(reply) => console.log(reply)} />
-    </>
   );
 }
