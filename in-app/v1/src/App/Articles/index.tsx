@@ -118,7 +118,7 @@ function ArticleDetail() {
         </Helmet>
       )}
       <PageHeader>{title}</PageHeader>
-      <PageContent className="py-0 px-0">
+      <PageContent padding={false}>
         <div className="px-4 py-3 border-b border-gray-100 text-center font-bold">
           {article?.title}
         </div>

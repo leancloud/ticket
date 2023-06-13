@@ -115,7 +115,7 @@ function TicketForm({
   return (
     <>
       {showTitle && (
-        <PageContent className="bg-transparent mb-3 py-0 px-2" title={t('feedback.submit')} />
+        <PageContent className="!bg-transparent !mb-3 !py-0 !px-2" title={t('feedback.submit')} />
       )}
       <CustomForm
         items={items}

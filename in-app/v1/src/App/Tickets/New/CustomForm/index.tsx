@@ -62,7 +62,7 @@ export function CustomForm({
           );
         })}
 
-        <PageContent className="bg-transparent px-0">
+        <PageContent padding={false} className="!bg-transparent mt-4">
           <Button
             className={classNames('w-full text-white', !isValid && 'opacity-50')}
             type="submit"

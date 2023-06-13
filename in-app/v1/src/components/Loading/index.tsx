@@ -183,7 +183,7 @@ export function Loading({ className, fullScreen }: LoadingProps) {
     <div
       className={cx(
         className,
-        'mx-auto min-h-[10em] flex flex-col items-center justify-center',
+        'mx-auto min-h-[10em] flex flex-col items-center justify-center py-4',
         fullScreen ? 'h-screen' : 'min-h-[10em]'
       )}
     >

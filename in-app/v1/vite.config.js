@@ -1,18 +1,14 @@
 import { defineConfig } from 'vite';
-import reactRefresh from '@vitejs/plugin-react-refresh';
-import reactJSX from 'vite-react-jsx';
+import react from '@vitejs/plugin-react';
 import legacy from '@vitejs/plugin-legacy';
 import path from 'path';
 
 export default defineConfig({
   base: '/in-app/v1/',
   plugins: [
-    reactRefresh(),
-    reactJSX(),
+    react(),
     legacy({
-      polyfills: ['es.global-this'],
-      modernPolyfills: ['es.global-this'],
-      additionalLegacyPolyfills: ['intersection-observer', 'regenerator-runtime/runtime'],
+      targets: ['defaults', 'not IE 11', 'Android 56', 'iOS 10'],
     }),
   ],
   server: {

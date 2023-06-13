@@ -307,12 +307,12 @@ export default function TicketDetail() {
     <>
       <Helmet>{ticket?.title && <title>{ticket.title}</title>}</Helmet>
       <PageHeader>{t('ticket.record')}</PageHeader>
-      <PageContent shadow className={cx('px-0 pt-0 mb-0')}>
+      <PageContent shadow padding={false}>
         <QueryWrapper result={result}>
           <QueryWrapper result={repliesResult}>
             {ticket && <TicketAttributes ticket={ticket} />}
             {ticket && <Replies className="grow px-4 pt-3" replies={replies} ticket={ticket} />}
-            <div className="-mb-3">
+            <div>
               {ticket &&
                 (ticketIsClosed ? (
                   editEval || !ticket.evaluation ? (
