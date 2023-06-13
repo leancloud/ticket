@@ -24,8 +24,10 @@ import {
   TableProps,
   message,
   Transfer,
+  Checkbox,
 } from '@/components/antd';
 import { QueryResult } from '@/components/common';
+import { DefaultGroupPermission } from '@/leancloud';
 
 function GroupActions({ id, name }: GroupSchema) {
   const queryClient = useQueryClient();
@@ -156,6 +158,31 @@ function EditGroup({ initData, loading, onSave }: EditGroupProps) {
                 }
               }}
               listStyle={{ width: 300, height: 400 }}
+            />
+          </Form.Item>
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="permissions"
+        render={({ field: { value, onChange, ...field } }) => (
+          <Form.Item label="权限">
+            <Checkbox.Group
+              options={Object.entries(DefaultGroupPermission).map(([k]) => ({
+                label: k,
+                value: k,
+              }))}
+              value={Object.entries(value ?? {})
+                .filter(([, v]) => v)
+                .map(([k]) => k)}
+              onChange={(checked) =>
+                onChange({
+                  ...DefaultGroupPermission,
+                  ..._.fromPairs(checked.map((v) => [v, true])),
+                })
+              }
+              {...field}
             />
           </Form.Item>
         )}

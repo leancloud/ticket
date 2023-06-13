@@ -1,6 +1,6 @@
 import { UseMutationOptions, UseQueryOptions, useMutation, useQuery } from 'react-query';
 
-import { http } from '@/leancloud';
+import { CustomerServicePermissions, http } from '@/leancloud';
 
 export interface GroupSchema {
   id: string;
@@ -26,6 +26,7 @@ export interface CreateGroupData {
   name: string;
   description?: string;
   userIds?: string[];
+  permissions?: CustomerServicePermissions;
 }
 
 async function createGroup(data: CreateGroupData) {

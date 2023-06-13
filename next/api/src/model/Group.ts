@@ -6,6 +6,18 @@ export interface TinyGroupInfo {
   name: string;
 }
 
+export interface GroupPermission {
+  view: boolean;
+  list: boolean;
+  statistic: boolean;
+}
+
+export const DefaultGroupPermission: GroupPermission = {
+  view: true,
+  list: false,
+  statistic: false,
+};
+
 export class Group extends Model {
   @field()
   name!: string;
@@ -18,6 +30,9 @@ export class Group extends Model {
 
   @pointTo(() => Role)
   role?: Role;
+
+  @field()
+  permissions!: GroupPermission;
 
   getTinyInfo(): TinyGroupInfo {
     return {
