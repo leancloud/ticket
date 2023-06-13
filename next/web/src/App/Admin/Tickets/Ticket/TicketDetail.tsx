@@ -17,7 +17,7 @@ import {
   Spin,
   Tooltip,
 } from '@/components/antd';
-import { UserLabel } from '@/App/Admin/components';
+import { UserLabel, UserLabelProps } from '@/App/Admin/components';
 import { useGroup, useGroups } from '@/api/group';
 import { useCustomerServices } from '@/api/customer-service';
 import { useCollaborators } from '@/api/collaborator';
@@ -59,10 +59,20 @@ export function TicketDetail() {
     <div className="h-full bg-white overflow-auto">
       <div className="max-w-[1360px] mx-auto">
         <TicketContext.Provider value={{ ticket, update, updating, operate, operating }}>
-          <TicketInfo onBack={() => navigate('..')} />
+          <TicketInfo
+            ticket={ticket}
+            author={ticket.author}
+            onBack={() => navigate('..')}
+            onChangePrivate={(value) => update({ private: value })}
+            onChangeSubscribed={(value) => update({ subscribed: value })}
+            disabled={updating}
+          />
           <Row>
             <Col className="p-4" span={24} md={6}>
-              <LeanCloudSection />
+              {ENABLE_LEANCLOUD_INTEGRATION && ticket.author && (
+                <LeanCloudSection ticketId={ticket.id} username={ticket.author.username} />
+              )}
+
               <CategorySection />
               <CustomFieldsSection />
             </Col>
@@ -87,12 +97,30 @@ export function TicketDetail() {
 }
 
 interface TicketInfoProps {
+  ticket: {
+    nid: number;
+    title: string;
+    status: number;
+    private?: boolean;
+    subscribed?: boolean;
+    createdAt: string;
+    updatedAt: string;
+  };
+  author?: UserLabelProps['user'];
   onBack: () => void;
+  onChangePrivate: (value: boolean) => void;
+  onChangeSubscribed: (value: boolean) => void;
+  disabled?: boolean;
 }
 
-function TicketInfo({ onBack }: TicketInfoProps) {
-  const { ticket, update, updating } = useTicketContext();
-
+function TicketInfo({
+  ticket,
+  author,
+  onBack,
+  onChangePrivate,
+  onChangeSubscribed,
+  disabled,
+}: TicketInfoProps) {
   return (
     <PageHeader
       className="border-b"
@@ -106,16 +134,15 @@ function TicketInfo({ onBack }: TicketInfoProps) {
       extra={[
         <PrivateSelect
           key="private"
-          loading={updating}
-          disabled={updating}
           value={ticket.private}
-          onChange={(isPrivate) => update({ private: isPrivate })}
+          onChange={onChangePrivate}
+          disabled={disabled}
         />,
         <SubscribeButton
           key="subscribe"
           subscribed={ticket.subscribed}
-          onClick={() => update({ subscribed: !ticket.subscribed })}
-          loading={updating}
+          onClick={() => onChangeSubscribed(!ticket.subscribed)}
+          disabled={disabled}
         />,
         <Button key="legacy" onClick={() => (window.location.href = `/tickets/${ticket.nid}`)}>
           旧版详情页
@@ -126,9 +153,9 @@ function TicketInfo({ onBack }: TicketInfoProps) {
         <Descriptions.Item label="编号">
           <span className="text-[#AFAFAF]">#{ticket.nid}</span>
         </Descriptions.Item>
-        {ticket.author && (
+        {author && (
           <Descriptions.Item label="创建者">
-            <UserLabel user={ticket.author} />
+            <UserLabel user={author} />
           </Descriptions.Item>
         )}
         <Descriptions.Item label="创建时间">
@@ -146,20 +173,15 @@ function TicketInfo({ onBack }: TicketInfoProps) {
   );
 }
 
-function LeanCloudSection() {
-  const { ticket } = useTicketContext();
+interface LeanCloudSectionProps {
+  ticketId: string;
+  username: string;
+}
 
-  if (!ENABLE_LEANCLOUD_INTEGRATION) {
-    return null;
-  }
-
-  if (!ticket.author) {
-    return null;
-  }
-
+function LeanCloudSection({ ticketId, username }: LeanCloudSectionProps) {
   return (
     <FormField label="应用">
-      <LeanCloudApp ticketId={ticket.id} username={ticket.author.username} />
+      <LeanCloudApp ticketId={ticketId} username={username} />
     </FormField>
   );
 }
