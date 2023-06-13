@@ -95,7 +95,7 @@ export function TicketDetail() {
                 />
 
                 <Divider>工单操作</Divider>
-                <TicketOperations />
+                <TicketOperations status={ticket.status} onOperate={operate} disabled={operating} />
               </div>
             </Col>
           </Row>
@@ -523,25 +523,29 @@ function TagsSection({ tags, privateTags, onUpdate, disabled }: TagsSectionProps
   );
 }
 
-function TicketOperations() {
-  const { ticket, operate, operating } = useTicketContext();
+interface TicketOperationsProps {
+  status: number;
+  onOperate: (action: string) => void;
+  disabled?: boolean;
+}
 
+function TicketOperations({ status, onOperate, disabled }: TicketOperationsProps) {
   return (
     <div className="space-x-2">
-      {ticket.status < 200 && (
+      {status < 200 && (
         <>
           {import.meta.env.VITE_ENABLE_USER_CONFIRMATION && (
-            <Button disabled={operating} onClick={() => operate('resolve')}>
+            <Button disabled={disabled} onClick={() => onOperate('resolve')}>
               已解决
             </Button>
           )}
-          <Button disabled={operating} onClick={() => operate('close')}>
+          <Button disabled={disabled} onClick={() => onOperate('close')}>
             关闭
           </Button>
         </>
       )}
-      {ticket.status > 200 && (
-        <Button disabled={operating} onClick={() => operate('reopen')}>
+      {status > 200 && (
+        <Button disabled={disabled} onClick={() => onOperate('reopen')}>
           重新打开
         </Button>
       )}
