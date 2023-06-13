@@ -35,7 +35,7 @@ import { SubscribeButton } from './components/SubscribeButton';
 import { PrivateSelect } from './components/PrivateSelect';
 import { CategoryCascader } from './components/CategoryCascader';
 import { LeanCloudApp } from './components/LeanCloudApp';
-import { TicketContext, useMixedTicket } from './TicketContext';
+import { useMixedTicket } from './TicketContext';
 import { langs } from './lang';
 import { TicketField_v1, useTicketFields_v1 } from './api1';
 import { CustomFields } from './components/CustomFields';
@@ -60,49 +60,51 @@ export function TicketDetail() {
   return (
     <div className="h-full bg-white overflow-auto">
       <div className="max-w-[1360px] mx-auto">
-        <TicketContext.Provider value={{ ticket, update, updating, operate, operating }}>
-          <TicketInfo
-            ticket={ticket}
-            author={ticket.author}
-            onBack={() => navigate('..')}
-            onChangePrivate={(value) => update({ private: value })}
-            onChangeSubscribed={(subscribed) => update({ subscribed })}
-            disabled={updating}
-          />
-          <Row>
-            <Col className="p-4" span={24} md={6}>
-              {ENABLE_LEANCLOUD_INTEGRATION && ticket.author && (
-                <LeanCloudSection ticketId={ticket.id} username={ticket.author.username} />
-              )}
+        <TicketInfo
+          ticket={ticket}
+          author={ticket.author}
+          onBack={() => navigate('..')}
+          onChangePrivate={(value) => update({ private: value })}
+          onChangeSubscribed={(subscribed) => update({ subscribed })}
+          disabled={updating}
+        />
+        <Row>
+          <Col className="p-4" span={24} md={6}>
+            {ENABLE_LEANCLOUD_INTEGRATION && ticket.author && (
+              <LeanCloudSection ticketId={ticket.id} username={ticket.author.username} />
+            )}
 
-              <CategorySection
-                categoryId={ticket.categoryId}
-                onChange={(categoryId) => update({ categoryId })}
+            <CategorySection
+              categoryId={ticket.categoryId}
+              onChange={(categoryId) => update({ categoryId })}
+              disabled={updating}
+            />
+            <CustomFieldsSection ticketId={ticket.id} categoryId={ticket.categoryId} />
+          </Col>
+          <Col className="p-4" span={24} md={12}>
+            <Timeline ticket={ticket} timeline={timeline} loading={loadingTimeline} />
+            <ReplyEditor
+              onSubmit={(reply) => console.log(reply)}
+              onOperate={operate}
+              operating={operating}
+            />
+          </Col>
+          <Col className="p-4" span={24} md={6}>
+            <div className="sticky top-4">
+              <TicketBasicInfoSection ticket={ticket} onChange={update} disabled={updating} />
+
+              <TagsSection
+                tags={ticket.tags}
+                privateTags={ticket.privateTags}
+                onUpdate={update}
                 disabled={updating}
               />
-              <CustomFieldsSection ticketId={ticket.id} categoryId={ticket.categoryId} />
-            </Col>
-            <Col className="p-4" span={24} md={12}>
-              <Timeline ticket={ticket} timeline={timeline} loading={loadingTimeline} />
-              <ReplyEditor onSubmit={(reply) => console.log(reply)} />
-            </Col>
-            <Col className="p-4" span={24} md={6}>
-              <div className="sticky top-4">
-                <TicketBasicInfoSection ticket={ticket} onChange={update} disabled={updating} />
 
-                <TagsSection
-                  tags={ticket.tags}
-                  privateTags={ticket.privateTags}
-                  onUpdate={update}
-                  disabled={updating}
-                />
-
-                <Divider>工单操作</Divider>
-                <TicketOperations status={ticket.status} onOperate={operate} disabled={operating} />
-              </div>
-            </Col>
-          </Row>
-        </TicketContext.Provider>
+              <Divider>工单操作</Divider>
+              <TicketOperations status={ticket.status} onOperate={operate} disabled={operating} />
+            </div>
+          </Col>
+        </Row>
       </div>
     </div>
   );

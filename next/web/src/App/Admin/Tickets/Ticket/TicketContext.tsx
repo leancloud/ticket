@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo } from 'react';
+import { useMemo } from 'react';
 import { isEmpty, pick } from 'lodash-es';
 
 import {
@@ -9,14 +9,6 @@ import {
   useUpdateTicket,
 } from '@/api/ticket';
 import { Ticket_v1, UpdateTicket_v1Data, useTicket_v1, useUpdateTicket_v1 } from './api1';
-
-interface TicketContextValue {
-  ticket: MixedTicket;
-  update: (data: MixedUpdateData) => void;
-  updating: boolean;
-  operate: (action: string) => void;
-  operating: boolean;
-}
 
 export interface MixedTicket {
   id: TicketDetailSchema['id'];
@@ -53,10 +45,12 @@ interface MixedUpdateData {
   subscribed?: UpdateTicket_v1Data['subscribed'];
 }
 
-export const TicketContext = createContext<TicketContextValue>({} as any);
-
-interface UseMixedTicketResult extends Omit<TicketContextValue, 'ticket'> {
-  ticket?: TicketContextValue['ticket'];
+interface UseMixedTicketResult {
+  ticket?: MixedTicket;
+  update: (data: MixedUpdateData) => void;
+  updating: boolean;
+  operate: (action: string) => void;
+  operating: boolean;
 }
 
 export function useMixedTicket(ticketId: string): UseMixedTicketResult {
@@ -137,8 +131,4 @@ export function useMixedTicket(ticketId: string): UseMixedTicketResult {
     operate: (action) => operateTicket([ticketId, action]),
     operating,
   };
-}
-
-export function useTicketContext() {
-  return useContext(TicketContext);
 }

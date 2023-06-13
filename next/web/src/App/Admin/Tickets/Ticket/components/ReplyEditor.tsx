@@ -3,7 +3,6 @@ import ReactMarkdown from 'react-markdown';
 import { Button, Divider, Input, Radio, Tabs } from 'antd';
 
 import { Uploader, UploaderRef } from '@/App/Admin/components/Uploader';
-import { useTicketContext } from '../TicketContext';
 
 interface ReplyInfo {
   internal: boolean;
@@ -13,11 +12,11 @@ interface ReplyInfo {
 
 interface ReplyEditorProps {
   onSubmit: (replyInfo: ReplyInfo) => void;
+  onOperate: (action: string) => void;
+  operating?: boolean;
 }
 
-export function ReplyEditor({ onSubmit }: ReplyEditorProps) {
-  const { operate, operating } = useTicketContext();
-
+export function ReplyEditor({ onSubmit, onOperate, operating }: ReplyEditorProps) {
   const [mode, setType] = useState('public');
   const [content, setContent] = useState('');
 
@@ -64,10 +63,10 @@ export function ReplyEditor({ onSubmit }: ReplyEditorProps) {
       <div className="flex mt-4 gap-2">
         <Button disabled>插入快捷回复</Button>
         <div className="grow" />
-        <Button disabled={operating} onClick={() => operate('replyWithNoContent')}>
+        <Button disabled={operating} onClick={() => onOperate('replyWithNoContent')}>
           无需回复
         </Button>
-        <Button disabled={operating} onClick={() => operate('replySoon')}>
+        <Button disabled={operating} onClick={() => onOperate('replySoon')}>
           稍后回复
         </Button>
         <Button type="primary" onClick={handleSubmit}>
