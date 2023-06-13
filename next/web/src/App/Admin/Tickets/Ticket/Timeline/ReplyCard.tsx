@@ -174,7 +174,7 @@ function useAutoScrollIntoView(id: string) {
     }
 
     const el = ref.current;
-    el.scrollIntoView();
+    el.scrollIntoView({ block: 'center' });
 
     const onClick = (e: MouseEvent) => {
       if (e.target instanceof Node && !el.contains(e.target)) {
