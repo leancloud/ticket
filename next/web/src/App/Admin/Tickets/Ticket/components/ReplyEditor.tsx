@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Button, Divider, Input, Radio, Tabs } from 'antd';
 
+import { Uploader, UploaderRef } from '@/App/Admin/components/Uploader';
 import { useTicketContext } from '../TicketContext';
 
 interface ReplyInfo {
@@ -20,16 +21,26 @@ export function ReplyEditor({ onSubmit }: ReplyEditorProps) {
   const [mode, setType] = useState('public');
   const [content, setContent] = useState('');
 
+  const uploaderRef = useRef<UploaderRef>(null!);
+
   const handleSubmit = () => {
+    const { fileIds, uploading, hasError } = uploaderRef.current.getStatus();
+    if (uploading) {
+      return alert('请等待全部文件上传完毕');
+    }
+    if (hasError) {
+      return alert('请移除上传失败的文件');
+    }
+
     const trimedContent = content.trim();
-    if (!trimedContent) {
+    if (!trimedContent && fileIds.length === 0) {
       return alert('回复内容不能为空');
     }
 
     onSubmit({
       internal: mode === 'internal',
       content: content.trim(),
-      fileIds: [],
+      fileIds,
     });
   };
 
@@ -46,7 +57,9 @@ export function ReplyEditor({ onSubmit }: ReplyEditorProps) {
         </Radio.Group>
       </div>
 
-      <MarkdownEditor value={content} onChange={setContent} internal={internal} />
+      <MarkdownEditor className="mb-2" value={content} onChange={setContent} internal={internal} />
+
+      <Uploader ref={uploaderRef} />
 
       <div className="flex mt-4 gap-2">
         <Button disabled>插入快捷回复</Button>
@@ -90,13 +103,13 @@ function MarkdownEditor({ className, value, onChange, internal }: MarkdownEditor
             value={value}
             onChange={(e) => onChange(e.target.value)}
             style={{
-              minHeight: 100,
+              minHeight: 124,
               backgroundColor: internal ? '#ffc10733' : '#fff',
             }}
           />
         </Tabs.TabPane>
         <Tabs.TabPane tab="预览" key="preview">
-          <div className="p-2" style={{ minHeight: editorHeight.current || 100 }}>
+          <div className="p-2" style={{ minHeight: editorHeight.current || 124 }}>
             <ReactMarkdown className="markdown-body">
               {value.trim() || '没有什么可以预览的'}
             </ReactMarkdown>
