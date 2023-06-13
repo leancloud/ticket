@@ -143,7 +143,7 @@ function MarkdownEditor({
         </Tabs.TabPane>
         <Tabs.TabPane tab="预览" key="preview">
           <div className="p-2" style={{ minHeight: editorHeight.current || 124 }}>
-            <ReactMarkdown className="markdown-body">
+            <ReactMarkdown className="markdown-body" linkTarget="_blank">
               {value.trim() || '没有什么可以预览的'}
             </ReactMarkdown>
           </div>
