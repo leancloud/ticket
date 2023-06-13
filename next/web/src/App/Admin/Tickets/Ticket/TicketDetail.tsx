@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AiFillExclamationCircle } from 'react-icons/ai';
 import moment from 'moment';
-import { difference, keyBy, last, partition } from 'lodash-es';
+import { difference, keyBy, partition } from 'lodash-es';
 import { DefaultOptionType } from 'antd/lib/select';
 
 import {
@@ -64,7 +64,7 @@ export function TicketDetail() {
             author={ticket.author}
             onBack={() => navigate('..')}
             onChangePrivate={(value) => update({ private: value })}
-            onChangeSubscribed={(value) => update({ subscribed: value })}
+            onChangeSubscribed={(subscribed) => update({ subscribed })}
             disabled={updating}
           />
           <Row>
@@ -73,7 +73,11 @@ export function TicketDetail() {
                 <LeanCloudSection ticketId={ticket.id} username={ticket.author.username} />
               )}
 
-              <CategorySection />
+              <CategorySection
+                categoryId={ticket.categoryId}
+                onChange={(categoryId) => update({ categoryId })}
+                disabled={updating}
+              />
               <CustomFieldsSection />
             </Col>
             <Col className="p-4" span={24} md={12}>
@@ -186,19 +190,20 @@ function LeanCloudSection({ ticketId, username }: LeanCloudSectionProps) {
   );
 }
 
-function CategorySection() {
-  const { ticket, update, updating } = useTicketContext();
+interface CategorySectionProps {
+  categoryId: string;
+  onChange: (categoryId: string) => void;
+  disabled?: boolean;
+}
 
+function CategorySection({ categoryId, onChange, disabled }: CategorySectionProps) {
   return (
     <FormField label="分类">
       <CategoryCascader
         allowClear={false}
-        categoryId={ticket.categoryId}
-        onChange={(value: unknown) => {
-          const categoryId = last(value as string[]);
-          update({ categoryId });
-        }}
-        disabled={updating}
+        categoryId={categoryId}
+        onChange={(value: any[]) => onChange(value[value.length - 1])}
+        disabled={disabled}
         style={{ width: '100%' }}
       />
     </FormField>
