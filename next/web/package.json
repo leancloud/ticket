@@ -35,6 +35,7 @@
     "react-markdown": "^8.0.0",
     "react-query": "^3.34.7",
     "react-router-dom": "^6.2.1",
+    "react-syntax-highlighter": "^15.5.0",
     "react-use": "^17.3.2",
     "recoil": "^0.7.6",
     "throat": "^6.0.1",
