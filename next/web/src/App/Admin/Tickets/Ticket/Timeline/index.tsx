@@ -1,7 +1,7 @@
 import { Skeleton } from 'antd';
 
 import { UserLabel } from '@/App/Admin/components';
-import { MixedTicket } from '../TicketContext';
+import { MixedTicket } from '../mixed-ticket';
 import { TimelineData } from './useTimeline';
 import { ReplyCard } from './ReplyCard';
 import { OpsLog } from './OpsLog';

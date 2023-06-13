@@ -35,7 +35,7 @@ import { SubscribeButton } from './components/SubscribeButton';
 import { PrivateSelect } from './components/PrivateSelect';
 import { CategoryCascader } from './components/CategoryCascader';
 import { LeanCloudApp } from './components/LeanCloudApp';
-import { useMixedTicket } from './TicketContext';
+import { useMixedTicket } from './mixed-ticket';
 import { langs } from './lang';
 import { TicketField_v1, useTicketFields_v1 } from './api1';
 import { CustomFields } from './components/CustomFields';
