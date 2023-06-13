@@ -78,7 +78,7 @@ export function TicketDetail() {
                 onChange={(categoryId) => update({ categoryId })}
                 disabled={updating}
               />
-              <CustomFieldsSection />
+              <CustomFieldsSection ticketId={ticket.id} categoryId={ticket.categoryId} />
             </Col>
             <Col className="p-4" span={24} md={12}>
               <TimelineSection />
@@ -237,12 +237,15 @@ function transformField(field: TicketField_v1) {
   };
 }
 
-function CustomFieldsSection() {
-  const { ticket } = useTicketContext();
+interface CustomFieldsSectionProps {
+  ticketId: string;
+  categoryId: string;
+}
 
-  const { data: formFieldIds, isLoading: loadingFormFieldIds } = useFormFieldIds(ticket.categoryId);
+function CustomFieldsSection({ ticketId, categoryId }: CustomFieldsSectionProps) {
+  const { data: formFieldIds, isLoading: loadingFormFieldIds } = useFormFieldIds(categoryId);
 
-  const { data: fieldValues, isLoading: loadingFieldValues } = useTicketFieldValues(ticket.id);
+  const { data: fieldValues, isLoading: loadingFieldValues } = useTicketFieldValues(ticketId);
 
   const otherFieldIds = useMemo(() => {
     if (!fieldValues) {
@@ -280,7 +283,7 @@ function CustomFieldsSection() {
 
   const handleUpdate = (values: Record<string, any>) => {
     const valueList = Object.entries(values).map(([field, value]) => ({ field, value }));
-    mutate([ticket.id, valueList]);
+    mutate([ticketId, valueList]);
   };
 
   if (loadingFormFieldIds || loadingFieldValues || loadingFields) {
