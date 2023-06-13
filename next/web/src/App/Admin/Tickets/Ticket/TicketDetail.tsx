@@ -28,7 +28,7 @@ import { useTicketForm } from '@/api/ticket-form';
 import { ENABLE_LEANCLOUD_INTEGRATION, useCurrentUser } from '@/leancloud';
 import { TicketStatus } from '../../components/TicketStatus';
 import { Timeline } from './Timeline';
-import { TagForm } from './TagForm';
+import { TagData, TagForm } from './TagForm';
 import { FormField } from './components/FormField';
 import { ReplyEditor } from './components/ReplyEditor';
 import { SubscribeButton } from './components/SubscribeButton';
@@ -87,7 +87,12 @@ export function TicketDetail() {
               <div className="sticky top-4">
                 <TicketBasicInfoSection ticket={ticket} onChange={update} disabled={updating} />
 
-                <TagsSection />
+                <TagsSection
+                  tags={ticket.tags}
+                  privateTags={ticket.privateTags}
+                  onUpdate={update}
+                  disabled={updating}
+                />
 
                 <Divider>工单操作</Divider>
                 <TicketOperations />
@@ -480,8 +485,14 @@ function createOptions(users: { id: string; nickname: string }[]) {
   }));
 }
 
-function TagsSection() {
-  const { ticket, update, updating } = useTicketContext();
+interface TagsSectionProps {
+  tags: TagData[];
+  privateTags: TagData[];
+  onUpdate: (data: { tags?: TagData[]; privateTags?: TagData[] }) => void;
+  disabled?: boolean;
+}
+
+function TagsSection({ tags, privateTags, onUpdate, disabled }: TagsSectionProps) {
   const { data: tagMetadatas } = useTagMetadatas();
 
   if (!tagMetadatas) {
@@ -497,16 +508,16 @@ function TagsSection() {
       <Divider>标签</Divider>
       <TagForm
         tagMetadatas={tagMetadatas}
-        tags={ticket.tags}
-        privateTags={ticket.privateTags}
+        tags={tags}
+        privateTags={privateTags}
         onUpdate={(tags, isPrivate) => {
           if (isPrivate) {
-            update({ privateTags: tags });
+            onUpdate({ privateTags: tags });
           } else {
-            update({ tags });
+            onUpdate({ tags });
           }
         }}
-        updating={updating}
+        updating={disabled}
       />
     </>
   );
