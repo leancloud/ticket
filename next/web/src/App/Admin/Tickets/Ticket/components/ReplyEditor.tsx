@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Button, Divider, Input, Radio, Tabs } from 'antd';
 
 import { Uploader, UploaderRef } from '@/App/Admin/components/Uploader';
@@ -143,7 +144,11 @@ function MarkdownEditor({
         </Tabs.TabPane>
         <Tabs.TabPane tab="预览" key="preview">
           <div className="p-2" style={{ minHeight: editorHeight.current || 124 }}>
-            <ReactMarkdown className="markdown-body" linkTarget="_blank">
+            <ReactMarkdown
+              className="markdown-body"
+              linkTarget="_blank"
+              remarkPlugins={[remarkGfm]}
+            >
               {value.trim() || '没有什么可以预览的'}
             </ReactMarkdown>
           </div>
