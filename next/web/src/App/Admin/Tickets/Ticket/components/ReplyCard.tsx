@@ -5,7 +5,7 @@ import { Image } from 'antd';
 import { partition } from 'lodash-es';
 import cx from 'classnames';
 
-import { Time } from './Time';
+import { Time } from '../Timeline/Time';
 
 const IMAGE_FILE_MIMES = ['image/png', 'image/jpeg', 'image/gif'];
 

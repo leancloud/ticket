@@ -5,7 +5,7 @@ import { ReplySchema } from '@/api/reply';
 import { OpsLog as OpsLogSchema } from '@/api/ticket';
 import { UserLabel } from '@/App/Admin/components';
 import { MixedTicket } from '../mixed-ticket';
-import { ReplyCard } from './ReplyCard';
+import { ReplyCard } from '../components/ReplyCard';
 import { OpsLog } from './OpsLog';
 import styles from './index.module.css';
 
