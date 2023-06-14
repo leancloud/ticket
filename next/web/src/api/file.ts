@@ -7,7 +7,16 @@ export interface FileSchema {
   url: string;
 }
 
-export async function fetchFile(id: string): Promise<FileSchema> {
-  const { data } = await http.get(`/api/2/files/${id}`);
+export async function fetchFile(id: string) {
+  const { data } = await http.get<FileSchema>(`/api/2/files/${id}`);
+  return data;
+}
+
+export async function fetchFiles(ids: string[]) {
+  const { data } = await http.get<FileSchema[]>('/api/2/files', {
+    params: {
+      id: ids.join(','),
+    },
+  });
   return data;
 }
