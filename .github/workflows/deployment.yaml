@@ -1,0 +1,74 @@
+name: Deploy to LeanEngine
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment'
+        required: false
+        default: 'rnd'
+        type: 'choice'
+        options:
+          - rnd
+          - prod
+      targets:
+        description: 'Targets, e.g `tap,tap-intl,xd,lc`'
+        required: false
+        type: 'string'
+
+jobs:
+  matrix_prep:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - id: set-matrix
+        uses: actions/github-script@v6
+        with:
+          result-encoding: string
+          script: |
+            const fs = require('node:fs');
+
+            const matrixJson = JSON.parse(fs.readFileSync('./.github/workflows/matrix_includes.json', 'utf-8'));
+
+            const env = '${{ inputs.environment }}' || 'rnd';
+            const targets = '${{ inputs.targets }}'.split(',').filter(Boolean).map((s) => s.trim());
+
+            if (env !== 'rnd' && env !== 'prod') {
+              core.setFailed(`environment: expect 'rnd' or 'prod', found ${env}`);
+              return;
+            }
+
+            const matrix = (targets?.length
+              ? matrixJson.filter(({ name }) => targets.includes(name))
+              : matrixJson)
+                .filter(({ only }) => !only || only === env)
+                .map((v) => ({ ...v, region: v.region.replace('-', '_'), name: v.name.replace('-', '_') }));
+
+            if (!matrix.length) {
+              core.setFailed('no jobs to do');
+              return;
+            }
+
+            core.info(`Deploy to ${matrix.map(({ name }) => name).join(', ')} in ${env}`);
+
+            core.setOutput(
+              'matrix',
+              matrix
+            );
+
+  deployment:
+    runs-on: ubuntu-latest
+    needs: matrix_prep
+    environment: ${{ inputs.environment }}
+    continue-on-error: true
+    strategy:
+      matrix:
+        include: ${{ fromJson(needs.matrix_prep.outputs.matrix) }}
+    steps:
+      - name: trigger webhook
+        run: |
+          curl -sS -X POST \
+            '${{ format('{0}/1.1/engine/groups/{1}/production/version?gitTag={2}&token={3}', vars[format('LEANCLOUD_ENDPOINT_{0}', matrix.region)], matrix.group, matrix.branch, secrets[format('{0}_TOKEN', matrix.name)]) }}' > /dev/null

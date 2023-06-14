@@ -1,0 +1,10 @@
+[
+  { "name": "lc", "branch": "master", "region": "cn-n1", "group": "web" },
+  { "name": "lc-intl", "branch": "master", "region": "us-w1", "group": "web", "only": "prod" },
+  { "name": "dc", "branch": "dc", "region": "cn-n1", "group": "app" },
+  { "name": "dc-intl", "branch": "dc", "region": "us-w1", "group": "web" },
+  { "name": "xd", "branch": "xd", "region": "cn-n1", "group": "web" },
+  { "name": "xd-intl", "branch": "xd", "region": "ap-sg", "group": "web", "only": "prod" },
+  { "name": "tap", "branch": "tap", "region": "cn-n1", "group": "web" },
+  { "name": "tap-intl", "branch": "tap-intl", "region": "us-w1", "group": "web", "only": "prod" }
+]
