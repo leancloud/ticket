@@ -1,10 +1,9 @@
-import { useMemo } from 'react';
+import { ReactNode, useMemo } from 'react';
 import { Skeleton } from 'antd';
 
 import { ReplySchema } from '@/api/reply';
 import { OpsLog as OpsLogSchema } from '@/api/ticket';
 import { UserLabel } from '@/App/Admin/components';
-import { MixedTicket } from '../mixed-ticket';
 import { ReplyCard } from '../components/ReplyCard';
 import { OpsLog } from '../components/OpsLog';
 import styles from './index.module.css';
@@ -22,12 +21,12 @@ type TimelineData =
     };
 
 interface TimelineProps {
-  ticket: MixedTicket;
+  header?: ReactNode;
   replies?: ReplySchema[];
   opsLogs?: OpsLogSchema[];
 }
 
-export function Timeline({ ticket, replies, opsLogs }: TimelineProps) {
+export function Timeline({ header, replies, opsLogs }: TimelineProps) {
   const timeline = useMemo(() => {
     const timeline: TimelineData[] = [];
     replies?.forEach((data) =>
@@ -43,13 +42,7 @@ export function Timeline({ ticket, replies, opsLogs }: TimelineProps) {
 
   return (
     <div className={loading ? undefined : styles.timeline}>
-      <ReplyCard
-        id={ticket.id}
-        author={ticket.author ? <UserLabel user={ticket.author} /> : 'unknown'}
-        createTime={ticket.createdAt}
-        content={ticket.contentSafeHTML}
-        files={ticket.files}
-      />
+      {header}
       {loading && <Skeleton active paragraph={{ rows: 4 }} />}
       {timeline.map((timeline) => {
         if (timeline.type === 'reply') {

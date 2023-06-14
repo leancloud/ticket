@@ -4,7 +4,7 @@ import { isEmpty, pick } from 'lodash-es';
 import { TicketDetailSchema, UpdateTicketData, useTicket, useUpdateTicket } from '@/api/ticket';
 import { Ticket_v1, UpdateTicket_v1Data, useTicket_v1, useUpdateTicket_v1 } from './api1';
 
-export interface MixedTicket {
+interface MixedTicket {
   id: TicketDetailSchema['id'];
   nid: TicketDetailSchema['nid'];
   categoryId: TicketDetailSchema['categoryId'];

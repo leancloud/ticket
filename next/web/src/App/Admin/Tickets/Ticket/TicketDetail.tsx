@@ -40,6 +40,7 @@ import { SubscribeButton } from './components/SubscribeButton';
 import { PrivateSelect } from './components/PrivateSelect';
 import { CategoryCascader } from './components/CategoryCascader';
 import { LeanCloudApp } from './components/LeanCloudApp';
+import { ReplyCard } from './components/ReplyCard';
 import { useMixedTicket } from './mixed-ticket';
 import { langs } from './lang';
 import { TicketField_v1, useTicketFields_v1 } from './api1';
@@ -108,7 +109,19 @@ export function TicketDetail() {
             <CustomFieldsSection ticketId={ticket.id} categoryId={ticket.categoryId} />
           </Col>
           <Col className="p-4" span={24} md={12}>
-            <Timeline ticket={ticket} replies={replies} opsLogs={opsLogs} />
+            <Timeline
+              header={
+                <ReplyCard
+                  id={ticket.id}
+                  author={ticket.author ? <UserLabel user={ticket.author} /> : 'unknown'}
+                  createTime={ticket.createdAt}
+                  content={ticket.contentSafeHTML}
+                  files={ticket.files}
+                />
+              }
+              replies={replies}
+              opsLogs={opsLogs}
+            />
 
             <ReplyEditor
               onSubmit={(reply) =>
