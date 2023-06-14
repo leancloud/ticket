@@ -111,7 +111,7 @@ export const Uploader = forwardRef(
       },
       reset: (defaultFileIds) => {
         setFileInfos([]);
-        if (defaultFileIds) {
+        if (defaultFileIds?.length) {
           fetchDefaultFiles(defaultFileIds);
         }
       },
