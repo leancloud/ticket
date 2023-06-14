@@ -6,7 +6,7 @@ import { OpsLog as OpsLogSchema } from '@/api/ticket';
 import { UserLabel } from '@/App/Admin/components';
 import { MixedTicket } from '../mixed-ticket';
 import { ReplyCard } from '../components/ReplyCard';
-import { OpsLog } from './OpsLog';
+import { OpsLog } from '../components/OpsLog';
 import styles from './index.module.css';
 
 type TimelineData =

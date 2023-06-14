@@ -19,9 +19,9 @@ import { useGroup } from '@/api/group';
 import { useCategories } from '@/api/category';
 import { Button, Spin, Tag } from '@/components/antd';
 import { UserLabel } from '@/App/Admin/components';
-import { useModal } from '../components/useModal';
 import { useTicketFields_v1 } from '../api1';
-import { Time } from '../components/Time';
+import { useModal } from './useModal';
+import { Time } from './Time';
 
 interface OpsLogProps<Action extends OpsLogSchema['action'] = any> {
   data: Extract<OpsLogSchema, { action: Action }>;
