@@ -1,9 +1,16 @@
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import { useDebounce } from 'react-use';
+import { Button, Divider, Empty, Input, Radio, Select, Tabs, Tooltip } from 'antd';
+import { AiOutlineFile } from 'react-icons/ai';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Button, Divider, Input, Radio, Tabs } from 'antd';
+import { uniq } from 'lodash-es';
 
+import { useQuickReplies } from '@/api/quick-reply';
+import { useCurrentUser } from '@/leancloud';
+import { LoadingCover } from '@/components/common';
 import { Uploader, UploaderRef } from '@/App/Admin/components/Uploader';
+import { useModal } from './useModal';
 
 interface ReplyInfo {
   internal: boolean;
@@ -56,6 +63,24 @@ export function ReplyEditor({ onSubmit, onOperate, operating }: ReplyEditorProps
     }
   };
 
+  const [quickReplyModal, toggleQuickReplyModal] = useModal({
+    render: () => (
+      <QuickReplyMenu
+        onSelect={(content, fileIds) => {
+          setContent(content);
+          uploaderRef.current.reset(fileIds);
+          toggleQuickReplyModal();
+        }}
+      />
+    ),
+    props: {
+      title: '选择快捷回复',
+      footer: null,
+      destroyOnClose: true,
+      bodyStyle: { padding: 0 },
+    },
+  });
+
   const internal = mode === 'internal';
 
   return (
@@ -81,7 +106,7 @@ export function ReplyEditor({ onSubmit, onOperate, operating }: ReplyEditorProps
       <Uploader ref={uploaderRef} disabled={submitting} />
 
       <div className="flex mt-4 gap-2">
-        <Button disabled>插入快捷回复</Button>
+        <Button onClick={toggleQuickReplyModal}>插入快捷回复</Button>
         <div className="grow" />
         <Button disabled={operating} onClick={() => onOperate('replyWithNoContent')}>
           无需回复
@@ -93,6 +118,8 @@ export function ReplyEditor({ onSubmit, onOperate, operating }: ReplyEditorProps
           {internal ? '提交内部留言' : '回复用户'}
         </Button>
       </div>
+
+      {quickReplyModal}
     </div>
   );
 }
@@ -154,6 +181,89 @@ function MarkdownEditor({
           </div>
         </Tabs.TabPane>
       </Tabs>
+    </div>
+  );
+}
+
+interface QuickReplyMenuProps {
+  onSelect: (content: string, fileIds?: string[]) => void;
+}
+
+function QuickReplyMenu({ onSelect }: QuickReplyMenuProps) {
+  const currentUser = useCurrentUser();
+  const { data, isLoading } = useQuickReplies({
+    userId: [currentUser?.id, 'null'].join(','),
+  });
+
+  const [tag, setTag] = useState<string>();
+  const [keyword, setKeyword] = useState('');
+  const [debouncedKeyword, setDebouncedKeyword] = useState('');
+  useDebounce(() => setDebouncedKeyword(keyword), 200, [keyword]);
+
+  const filteredQuickReplies = useMemo(() => {
+    if (!data) {
+      return [];
+    }
+    let filteredQuickReplies = data;
+    if (tag) {
+      filteredQuickReplies = filteredQuickReplies.filter((qr) => qr.tags?.includes(tag));
+    }
+    if (debouncedKeyword) {
+      filteredQuickReplies = filteredQuickReplies.filter((qr) => {
+        return qr.name.includes(debouncedKeyword) || qr.content.includes(debouncedKeyword);
+      });
+    }
+    return filteredQuickReplies;
+  }, [data, tag, debouncedKeyword]);
+
+  const tagOptions = useMemo(() => {
+    if (!data) {
+      return [];
+    }
+    const tags = data.flatMap((qr) => qr.tags || []);
+    return uniq(tags).map((tag) => ({ label: tag, value: tag }));
+  }, [data]);
+
+  return (
+    <div className="flex flex-col min-h-[400px] max-h-[calc(100vh-255px)] relative">
+      <div className="grid grid-cols-2 gap-1.5 p-2 border-b">
+        <Select
+          allowClear
+          showSearch
+          placeholder="标签"
+          options={tagOptions}
+          value={tag}
+          onChange={setTag}
+        />
+        <Input
+          allowClear
+          placeholder="关键词"
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
+        />
+      </div>
+      {isLoading && <LoadingCover />}
+      {filteredQuickReplies.length ? (
+        <div className="divide-y overflow-y-auto">
+          {filteredQuickReplies.map((qr) => (
+            <div key={qr.id} className="flex px-4 py-3">
+              <Tooltip title={qr.content}>
+                <a className="block" onClick={() => onSelect(qr.content, qr.fileIds)}>
+                  {qr.name}
+                </a>
+              </Tooltip>
+              {qr.fileIds && qr.fileIds.length > 0 && (
+                <div className="flex items-center ml-auto">
+                  <AiOutlineFile className="w-4 h-4 mx-1" />
+                  <div className="font-mono">{qr.fileIds.length}</div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <Empty style={{ margin: 'auto' }} />
+      )}
     </div>
   );
 }
