@@ -167,7 +167,7 @@ async function fetchTicket(
   return data;
 }
 
-async function fetchTicketReplies(id: string, cursor?: string): Promise<ReplySchema[]> {
+export async function fetchTicketReplies(id: string, cursor?: string): Promise<ReplySchema[]> {
   const { data } = await http.get(`/api/2/tickets/${id}/replies`, {
     params: {
       cursor,
@@ -253,18 +253,6 @@ export const useTicket = (id: string, { queryOptions, ...options }: UseTicketOpt
     queryFn: () => fetchTicket(id, options),
     ...queryOptions,
   });
-
-export function useTicketReplies(
-  ticketId: string,
-  cursor?: string,
-  options?: UseQueryOptions<ReplySchema[]>
-) {
-  return useQuery({
-    queryKey: ['ticketReplies', ticketId, cursor],
-    queryFn: () => fetchTicketReplies(ticketId, cursor),
-    ...options,
-  });
-}
 
 export function useCreateTicket(options?: UseMutationOptions<void, Error, CreateTicketData>) {
   return useMutation({
@@ -462,7 +450,7 @@ export type OpsLog = BaseOpsLog &
       }
   );
 
-async function fetchTicketOpsLogs(ticketId: string, cursor?: string) {
+export async function fetchTicketOpsLogs(ticketId: string, cursor?: string) {
   const res = await http.get<OpsLog[]>(`/api/2/tickets/${ticketId}/ops-logs`, {
     params: {
       cursor,
@@ -471,14 +459,24 @@ async function fetchTicketOpsLogs(ticketId: string, cursor?: string) {
   return res.data;
 }
 
-export function useTicketOpsLogs(
-  ticketId: string,
-  cursor?: string,
-  options?: UseQueryOptions<OpsLog[]>
-) {
-  return useQuery({
-    queryKey: ['ticketOpsLogs', ticketId, cursor],
-    queryFn: () => fetchTicketOpsLogs(ticketId, cursor),
+interface CreateTicketReplyData {
+  ticketId: string;
+  content: string;
+  fileIds?: string[];
+  internal?: boolean;
+}
+
+async function createReply({ ticketId, content, fileIds, internal }: CreateTicketReplyData) {
+  await http.post(`/api/2/tickets/${ticketId}/replies`, {
+    content,
+    fileIds,
+    internal,
+  });
+}
+
+export function useCreateReply(options?: UseMutationOptions<void, Error, CreateTicketReplyData>) {
+  return useMutation({
+    mutationFn: createReply,
     ...options,
   });
 }

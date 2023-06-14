@@ -19,8 +19,8 @@ import { useGroup } from '@/api/group';
 import { useCategories } from '@/api/category';
 import { Button, Spin, Tag } from '@/components/antd';
 import { UserLabel } from '@/App/Admin/components';
-import { useModal } from '../components/useModal';
 import { useTicketFields_v1 } from '../api1';
+import { useModal } from './useModal';
 import { Time } from './Time';
 
 interface OpsLogProps<Action extends OpsLogSchema['action'] = any> {
@@ -246,7 +246,7 @@ function DiffFields({ changes }: DiffFieldsProps) {
     );
   }
 
-  return (changes.map(({ fieldId, from, to }) => {
+  return changes.map(({ fieldId, from, to }) => {
     const field = fieldById[fieldId];
     if (!field) {
       return null;
@@ -261,7 +261,7 @@ function DiffFields({ changes }: DiffFieldsProps) {
         to={to}
       />
     );
-  }) as any) as JSX.Element;
+  }) as any as JSX.Element;
 }
 
 type OptionValue = string;

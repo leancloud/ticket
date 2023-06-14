@@ -1,27 +1,49 @@
+import { ReactNode, useMemo } from 'react';
 import { Skeleton } from 'antd';
 
+import { ReplySchema } from '@/api/reply';
+import { OpsLog as OpsLogSchema } from '@/api/ticket';
 import { UserLabel } from '@/App/Admin/components';
-import { useTicketContext } from '../TicketContext';
-import { useTimeline } from './useTimeline';
-import { ReplyCard } from './ReplyCard';
-import { OpsLog } from './OpsLog';
+import { ReplyCard } from '../components/ReplyCard';
+import { OpsLog } from '../components/OpsLog';
 import styles from './index.module.css';
 
-export function Timeline() {
-  const { ticket } = useTicketContext();
+type TimelineData =
+  | {
+      type: 'reply';
+      data: ReplySchema;
+      createTime: number;
+    }
+  | {
+      type: 'opsLog';
+      data: OpsLogSchema;
+      createTime: number;
+    };
 
-  const { data: timeline, isLoading } = useTimeline(ticket.id);
+interface TimelineProps {
+  header?: ReactNode;
+  replies?: ReplySchema[];
+  opsLogs?: OpsLogSchema[];
+}
+
+export function Timeline({ header, replies, opsLogs }: TimelineProps) {
+  const timeline = useMemo(() => {
+    const timeline: TimelineData[] = [];
+    replies?.forEach((data) =>
+      timeline.push({ type: 'reply', data, createTime: new Date(data.createdAt).getTime() })
+    );
+    opsLogs?.forEach((data) =>
+      timeline.push({ type: 'opsLog', data, createTime: new Date(data.createdAt).getTime() })
+    );
+    return timeline.sort((a, b) => a.createTime - b.createTime);
+  }, [replies, opsLogs]);
+
+  const loading = !replies && !opsLogs;
 
   return (
-    <div className={isLoading ? undefined : styles.timeline}>
-      <ReplyCard
-        id={ticket.id}
-        author={ticket.author ? <UserLabel user={ticket.author} /> : 'unknown'}
-        createTime={ticket.createdAt}
-        content={ticket.contentSafeHTML}
-        files={ticket.files}
-      />
-      {isLoading && <Skeleton active paragraph={{ rows: 4 }} />}
+    <div className={loading ? undefined : styles.timeline}>
+      {header}
+      {loading && <Skeleton active paragraph={{ rows: 4 }} />}
       {timeline.map((timeline) => {
         if (timeline.type === 'reply') {
           return (

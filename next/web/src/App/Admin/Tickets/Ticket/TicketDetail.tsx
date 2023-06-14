@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AiFillExclamationCircle } from 'react-icons/ai';
 import moment from 'moment';
-import { difference, keyBy, last, partition } from 'lodash-es';
+import { difference, keyBy, partition } from 'lodash-es';
 import { DefaultOptionType } from 'antd/lib/select';
 
 import {
@@ -17,79 +17,175 @@ import {
   Spin,
   Tooltip,
 } from '@/components/antd';
-import { UserLabel } from '@/App/Admin/components';
+import { UserLabel, UserLabelProps } from '@/App/Admin/components';
 import { useGroup, useGroups } from '@/api/group';
 import { useCustomerServices } from '@/api/customer-service';
 import { useCollaborators } from '@/api/collaborator';
 import { useTagMetadatas } from '@/api/tag-metadata';
-import { useTicketFieldValues, useUpdateTicketFieldValues } from '@/api/ticket';
+import {
+  useCreateReply,
+  useOperateTicket,
+  useTicketFieldValues,
+  useUpdateTicketFieldValues,
+} from '@/api/ticket';
 import { useCategory } from '@/api/category';
 import { useTicketForm } from '@/api/ticket-form';
 import { ENABLE_LEANCLOUD_INTEGRATION, useCurrentUser } from '@/leancloud';
 import { TicketStatus } from '../../components/TicketStatus';
 import { Timeline } from './Timeline';
-import { TagForm } from './TagForm';
+import { TagData, TagForm } from './TagForm';
 import { FormField } from './components/FormField';
 import { ReplyEditor } from './components/ReplyEditor';
 import { SubscribeButton } from './components/SubscribeButton';
 import { PrivateSelect } from './components/PrivateSelect';
 import { CategoryCascader } from './components/CategoryCascader';
 import { LeanCloudApp } from './components/LeanCloudApp';
-import { TicketContextProvider, useTicketContext } from './TicketContext';
+import { ReplyCard } from './components/ReplyCard';
+import { useMixedTicket } from './mixed-ticket';
 import { langs } from './lang';
 import { TicketField_v1, useTicketFields_v1 } from './api1';
 import { CustomFields } from './components/CustomFields';
+import { useTicketOpsLogs, useTicketReplies } from './timeline-data';
 
 export function TicketDetail() {
   const { id } = useParams() as { id: string };
   const navigate = useNavigate();
 
+  const { ticket, update, updating, refetch } = useMixedTicket(id);
+
+  const { replies, fetchMoreReplies } = useTicketReplies(ticket?.id);
+  const { opsLogs, fetchMoreOpsLogs } = useTicketOpsLogs(ticket?.id);
+
+  const { mutateAsync: createReply } = useCreateReply({
+    onSuccess: () => {
+      refetch();
+      fetchMoreReplies();
+    },
+  });
+
+  const { mutate: operate, isLoading: operating } = useOperateTicket({
+    onSuccess: () => {
+      refetch();
+      fetchMoreOpsLogs();
+    },
+  });
+
+  const handleOperate = (action: string) => {
+    if (ticket) {
+      operate([ticket.id, action]);
+    }
+  };
+
+  if (!ticket) {
+    return (
+      <div className="h-screen flex">
+        <Spin style={{ margin: 'auto' }} />
+      </div>
+    );
+  }
+
   return (
     <div className="h-full bg-white overflow-auto">
       <div className="max-w-[1360px] mx-auto">
-        <TicketContextProvider
-          ticketId={id}
-          fallback={
-            <div className="h-screen flex">
-              <Spin style={{ margin: 'auto' }} />
+        <TicketInfo
+          ticket={ticket}
+          author={ticket.author}
+          onBack={() => navigate('..')}
+          onChangePrivate={(value) => update({ private: value })}
+          onChangeSubscribed={(subscribed) => update({ subscribed })}
+          disabled={updating}
+        />
+        <Row>
+          <Col className="p-4" span={24} md={6}>
+            {ENABLE_LEANCLOUD_INTEGRATION && ticket.author && (
+              <LeanCloudSection ticketId={ticket.id} username={ticket.author.username} />
+            )}
+
+            <CategorySection
+              categoryId={ticket.categoryId}
+              onChange={(categoryId) => update({ categoryId })}
+              disabled={updating}
+            />
+            <CustomFieldsSection ticketId={ticket.id} categoryId={ticket.categoryId} />
+          </Col>
+          <Col className="p-4" span={24} md={12}>
+            <Timeline
+              header={
+                <ReplyCard
+                  id={ticket.id}
+                  author={ticket.author ? <UserLabel user={ticket.author} /> : 'unknown'}
+                  createTime={ticket.createdAt}
+                  content={ticket.contentSafeHTML}
+                  files={ticket.files}
+                />
+              }
+              replies={replies}
+              opsLogs={opsLogs}
+            />
+
+            <ReplyEditor
+              onSubmit={(reply) =>
+                createReply({
+                  ticketId: ticket.id,
+                  content: reply.content,
+                  fileIds: reply.fileIds,
+                  internal: reply.internal,
+                })
+              }
+              onOperate={handleOperate}
+              operating={operating}
+            />
+          </Col>
+          <Col className="p-4" span={24} md={6}>
+            <div className="sticky top-4">
+              <TicketBasicInfoSection ticket={ticket} onChange={update} disabled={updating} />
+
+              <TagsSection
+                tags={ticket.tags}
+                privateTags={ticket.privateTags}
+                onUpdate={update}
+                disabled={updating}
+              />
+
+              <Divider>工单操作</Divider>
+              <TicketOperations
+                status={ticket.status}
+                onOperate={handleOperate}
+                disabled={operating}
+              />
             </div>
-          }
-        >
-          <TicketInfo onBack={() => navigate('..')} />
-          <Row>
-            <Col className="p-4" span={24} md={6}>
-              <LeanCloudSection />
-              <CategorySection />
-              <CustomFieldsSection />
-            </Col>
-            <Col className="p-4" span={24} md={12}>
-              <Timeline />
-              <ReplyEditor />
-            </Col>
-            <Col className="p-4" span={24} md={6}>
-              <div className="sticky top-4">
-                <TicketBasicInfoSection />
-
-                <TagsSection />
-
-                <Divider>工单操作</Divider>
-                <TicketOperations />
-              </div>
-            </Col>
-          </Row>
-        </TicketContextProvider>
+          </Col>
+        </Row>
       </div>
     </div>
   );
 }
 
 interface TicketInfoProps {
+  ticket: {
+    nid: number;
+    title: string;
+    status: number;
+    private?: boolean;
+    subscribed?: boolean;
+    createdAt: string;
+    updatedAt: string;
+  };
+  author?: UserLabelProps['user'];
   onBack: () => void;
+  onChangePrivate: (value: boolean) => void;
+  onChangeSubscribed: (value: boolean) => void;
+  disabled?: boolean;
 }
 
-function TicketInfo({ onBack }: TicketInfoProps) {
-  const { ticket, update, updating } = useTicketContext();
-
+function TicketInfo({
+  ticket,
+  author,
+  onBack,
+  onChangePrivate,
+  onChangeSubscribed,
+  disabled,
+}: TicketInfoProps) {
   return (
     <PageHeader
       className="border-b"
@@ -103,16 +199,15 @@ function TicketInfo({ onBack }: TicketInfoProps) {
       extra={[
         <PrivateSelect
           key="private"
-          loading={updating}
-          disabled={updating}
           value={ticket.private}
-          onChange={(isPrivate) => update({ private: isPrivate })}
+          onChange={onChangePrivate}
+          disabled={disabled}
         />,
         <SubscribeButton
           key="subscribe"
           subscribed={ticket.subscribed}
-          onClick={() => update({ subscribed: !ticket.subscribed })}
-          loading={updating}
+          onClick={() => onChangeSubscribed(!ticket.subscribed)}
+          disabled={disabled}
         />,
         <Button key="legacy" onClick={() => (window.location.href = `/tickets/${ticket.nid}`)}>
           旧版详情页
@@ -123,9 +218,9 @@ function TicketInfo({ onBack }: TicketInfoProps) {
         <Descriptions.Item label="编号">
           <span className="text-[#AFAFAF]">#{ticket.nid}</span>
         </Descriptions.Item>
-        {ticket.author && (
+        {author && (
           <Descriptions.Item label="创建者">
-            <UserLabel user={ticket.author} />
+            <UserLabel user={author} />
           </Descriptions.Item>
         )}
         <Descriptions.Item label="创建时间">
@@ -143,37 +238,33 @@ function TicketInfo({ onBack }: TicketInfoProps) {
   );
 }
 
-function LeanCloudSection() {
-  const { ticket } = useTicketContext();
+interface LeanCloudSectionProps {
+  ticketId: string;
+  username: string;
+}
 
-  if (!ENABLE_LEANCLOUD_INTEGRATION) {
-    return null;
-  }
-
-  if (!ticket.author) {
-    return null;
-  }
-
+function LeanCloudSection({ ticketId, username }: LeanCloudSectionProps) {
   return (
     <FormField label="应用">
-      <LeanCloudApp ticketId={ticket.id} username={ticket.author.username} />
+      <LeanCloudApp ticketId={ticketId} username={username} />
     </FormField>
   );
 }
 
-function CategorySection() {
-  const { ticket, update, updating } = useTicketContext();
+interface CategorySectionProps {
+  categoryId: string;
+  onChange: (categoryId: string) => void;
+  disabled?: boolean;
+}
 
+function CategorySection({ categoryId, onChange, disabled }: CategorySectionProps) {
   return (
     <FormField label="分类">
       <CategoryCascader
         allowClear={false}
-        categoryId={ticket.categoryId}
-        onChange={(value: unknown) => {
-          const categoryId = last(value as string[]);
-          update({ categoryId });
-        }}
-        disabled={updating}
+        categoryId={categoryId}
+        onChange={(value: any[]) => onChange(value[value.length - 1])}
+        disabled={disabled}
         style={{ width: '100%' }}
       />
     </FormField>
@@ -207,12 +298,15 @@ function transformField(field: TicketField_v1) {
   };
 }
 
-function CustomFieldsSection() {
-  const { ticket } = useTicketContext();
+interface CustomFieldsSectionProps {
+  ticketId: string;
+  categoryId: string;
+}
 
-  const { data: formFieldIds, isLoading: loadingFormFieldIds } = useFormFieldIds(ticket.categoryId);
+function CustomFieldsSection({ ticketId, categoryId }: CustomFieldsSectionProps) {
+  const { data: formFieldIds, isLoading: loadingFormFieldIds } = useFormFieldIds(categoryId);
 
-  const { data: fieldValues, isLoading: loadingFieldValues } = useTicketFieldValues(ticket.id);
+  const { data: fieldValues, isLoading: loadingFieldValues } = useTicketFieldValues(ticketId);
 
   const otherFieldIds = useMemo(() => {
     if (!fieldValues) {
@@ -250,7 +344,7 @@ function CustomFieldsSection() {
 
   const handleUpdate = (values: Record<string, any>) => {
     const valueList = Object.entries(values).map(([field, value]) => ({ field, value }));
-    mutate([ticket.id, valueList]);
+    mutate([ticketId, valueList]);
   };
 
   if (loadingFormFieldIds || loadingFieldValues || loadingFields) {
@@ -285,8 +379,21 @@ function CustomFieldsSection() {
   );
 }
 
-function TicketBasicInfoSection() {
-  const { ticket, update, updating } = useTicketContext();
+interface TicketBasicInfoSectionProps {
+  ticket: {
+    groupId?: string;
+    assigneeId?: string;
+    language?: string;
+  };
+  onChange: (data: {
+    groupId?: string | null;
+    assigneeId?: string | null;
+    language?: string | null;
+  }) => void;
+  disabled?: boolean;
+}
+
+function TicketBasicInfoSection({ ticket, onChange, disabled }: TicketBasicInfoSectionProps) {
   const groups = useGroups();
 
   return (
@@ -302,16 +409,16 @@ function TicketBasicInfoSection() {
           fieldNames={{ label: 'name', value: 'id' }}
           placeholder="未分配"
           value={ticket.groupId}
-          onChange={(groupId) => update({ groupId: groupId ?? null })}
-          disabled={updating}
+          onChange={(groupId) => onChange({ groupId: groupId ?? null })}
+          disabled={disabled}
         />
       </FormField>
 
       <AssigneeSection
         groupId={ticket.groupId}
         assigneeId={ticket.assigneeId}
-        onChangeAssignee={(assigneeId) => update({ assigneeId: assigneeId ?? null })}
-        disabled={updating}
+        onChangeAssignee={(assigneeId) => onChange({ assigneeId: assigneeId ?? null })}
+        disabled={disabled}
       />
 
       <FormField label="语言">
@@ -322,8 +429,8 @@ function TicketBasicInfoSection() {
           options={langs}
           fieldNames={{ label: 'name', value: 'code' }}
           value={ticket.language}
-          onChange={(language) => update({ language: language ?? null })}
-          disabled={updating}
+          onChange={(language) => onChange({ language: language ?? null })}
+          disabled={disabled}
         />
       </FormField>
     </>
@@ -434,8 +541,14 @@ function createOptions(users: { id: string; nickname: string }[]) {
   }));
 }
 
-function TagsSection() {
-  const { ticket, update, updating } = useTicketContext();
+interface TagsSectionProps {
+  tags: TagData[];
+  privateTags: TagData[];
+  onUpdate: (data: { tags?: TagData[]; privateTags?: TagData[] }) => void;
+  disabled?: boolean;
+}
+
+function TagsSection({ tags, privateTags, onUpdate, disabled }: TagsSectionProps) {
   const { data: tagMetadatas } = useTagMetadatas();
 
   if (!tagMetadatas) {
@@ -451,40 +564,44 @@ function TagsSection() {
       <Divider>标签</Divider>
       <TagForm
         tagMetadatas={tagMetadatas}
-        tags={ticket.tags}
-        privateTags={ticket.privateTags}
+        tags={tags}
+        privateTags={privateTags}
         onUpdate={(tags, isPrivate) => {
           if (isPrivate) {
-            update({ privateTags: tags });
+            onUpdate({ privateTags: tags });
           } else {
-            update({ tags });
+            onUpdate({ tags });
           }
         }}
-        updating={updating}
+        updating={disabled}
       />
     </>
   );
 }
 
-function TicketOperations() {
-  const { ticket, operate, operating } = useTicketContext();
+interface TicketOperationsProps {
+  status: number;
+  onOperate: (action: string) => void;
+  disabled?: boolean;
+}
 
+function TicketOperations({ status, onOperate, disabled }: TicketOperationsProps) {
   return (
     <div className="space-x-2">
-      {ticket.status < 200 && (
+      {status < 200 && (
         <>
           {import.meta.env.VITE_ENABLE_USER_CONFIRMATION && (
-            <Button disabled={operating} onClick={() => operate('resolve')}>
+            <Button disabled={disabled} onClick={() => onOperate('resolve')}>
               已解决
             </Button>
           )}
-          <Button disabled={operating} onClick={() => operate('close')}>
+          <Button disabled={disabled} onClick={() => onOperate('close')}>
             关闭
           </Button>
         </>
       )}
-      {ticket.status > 200 && (
-        <Button disabled={operating} onClick={() => operate('reopen')}>
+      {status > 200 && (
+        <Button disabled={disabled} onClick={() => onOperate('reopen')}>
           重新打开
         </Button>
       )}

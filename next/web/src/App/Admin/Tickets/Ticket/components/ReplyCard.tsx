@@ -108,6 +108,14 @@ interface ReplyContentProps {
 }
 
 function ReplyContent({ htmlContent }: ReplyContentProps) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    ref.current?.querySelectorAll('a').forEach((a) => {
+      a.target = '_blank';
+    });
+  }, [htmlContent]);
+
   if (!htmlContent) {
     return (
       <div className="text-gray-500">
@@ -115,7 +123,9 @@ function ReplyContent({ htmlContent }: ReplyContentProps) {
       </div>
     );
   }
-  return <div className="markdown-body" dangerouslySetInnerHTML={{ __html: htmlContent }} />;
+  return (
+    <div ref={ref} className="markdown-body" dangerouslySetInnerHTML={{ __html: htmlContent }} />
+  );
 }
 
 interface ImageFilesProps {
@@ -174,7 +184,7 @@ function useAutoScrollIntoView(id: string) {
     }
 
     const el = ref.current;
-    el.scrollIntoView();
+    el.scrollIntoView({ block: 'center' });
 
     const onClick = (e: MouseEvent) => {
       if (e.target instanceof Node && !el.contains(e.target)) {

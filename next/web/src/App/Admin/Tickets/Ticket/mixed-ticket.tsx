@@ -1,22 +1,8 @@
-import { createContext, ReactNode, useContext, useMemo } from 'react';
+import { useMemo } from 'react';
 import { isEmpty, pick } from 'lodash-es';
 
-import {
-  TicketDetailSchema,
-  UpdateTicketData,
-  useOperateTicket,
-  useTicket,
-  useUpdateTicket,
-} from '@/api/ticket';
+import { TicketDetailSchema, UpdateTicketData, useTicket, useUpdateTicket } from '@/api/ticket';
 import { Ticket_v1, UpdateTicket_v1Data, useTicket_v1, useUpdateTicket_v1 } from './api1';
-
-interface TicketContextValue {
-  ticket: MixedTicket;
-  update: (data: MixedUpdateData) => void;
-  updating: boolean;
-  operate: (action: string) => void;
-  operating: boolean;
-}
 
 interface MixedTicket {
   id: TicketDetailSchema['id'];
@@ -53,19 +39,14 @@ interface MixedUpdateData {
   subscribed?: UpdateTicket_v1Data['subscribed'];
 }
 
-const TicketContext = createContext<TicketContextValue>({} as any);
-
-interface TicketContextProviderProps {
-  ticketId: string;
-  children?: ReactNode;
-  fallback?: ReactNode;
+interface UseMixedTicketResult {
+  ticket?: MixedTicket;
+  update: (data: MixedUpdateData) => void;
+  updating: boolean;
+  refetch: () => void;
 }
 
-export function TicketContextProvider({
-  ticketId,
-  children,
-  fallback,
-}: TicketContextProviderProps) {
+export function useMixedTicket(ticketId: string): UseMixedTicketResult {
   const { data: ticket, refetch } = useTicket(ticketId, {
     include: ['author', 'files'],
   });
@@ -84,12 +65,6 @@ export function TicketContextProvider({
   const { mutate: updateTicket_v1, isLoading: ticketUpdating_v1 } = useUpdateTicket_v1({
     onSuccess: () => {
       refetch_v1();
-    },
-  });
-
-  const { mutate: operateTicket, isLoading: operating } = useOperateTicket({
-    onSuccess: () => {
-      refetch();
     },
   });
 
@@ -119,6 +94,9 @@ export function TicketContextProvider({
   }, [ticket, ticket_v1]);
 
   const update = (data: MixedUpdateData) => {
+    if (!ticket) {
+      return;
+    }
     const updateData = pick(data, [
       'categoryId',
       'groupId',
@@ -129,32 +107,17 @@ export function TicketContextProvider({
     ]);
     const updateData_v1 = pick(data, ['private', 'subscribed']);
     if (!isEmpty(updateData)) {
-      updateTicket([ticketId, data]);
+      updateTicket([ticket.id, updateData]);
     }
-    if (ticket && !isEmpty(updateData_v1)) {
+    if (!isEmpty(updateData_v1)) {
       updateTicket_v1([ticket.id, updateData_v1]);
     }
   };
 
-  if (!mixedTicket) {
-    return fallback as JSX.Element;
-  }
-
-  return (
-    <TicketContext.Provider
-      value={{
-        ticket: mixedTicket,
-        update,
-        updating: ticketUpdating || ticketUpdating_v1,
-        operate: (action) => operateTicket([ticketId, action]),
-        operating,
-      }}
-    >
-      {children}
-    </TicketContext.Provider>
-  );
-}
-
-export function useTicketContext() {
-  return useContext(TicketContext);
+  return {
+    ticket: mixedTicket,
+    update,
+    updating: ticketUpdating || ticketUpdating_v1,
+    refetch,
+  };
 }

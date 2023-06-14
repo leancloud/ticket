@@ -6,7 +6,7 @@ import { TagMetadataSchema } from '@/api/tag-metadata';
 import { Input, Select, Tooltip } from '@/components/antd';
 import { FormField } from './components/FormField';
 
-interface TagData {
+export interface TagData {
   key: string;
   value: string;
 }
@@ -40,7 +40,7 @@ export function TagForm({ tagMetadatas, tags, privateTags, onUpdate, updating }:
     onUpdate(newValues, tag.private);
   };
 
-  return (tagMetadatas.map((tag) => (
+  return tagMetadatas.map((tag) => (
     <TagField
       key={tag.id}
       tag={tag}
@@ -48,7 +48,7 @@ export function TagForm({ tagMetadatas, tags, privateTags, onUpdate, updating }:
       loading={updating}
       onChange={(value) => handleChange(tag, value)}
     />
-  )) as any) as JSX.Element;
+  )) as any as JSX.Element;
 }
 
 interface TagFieldProps {
