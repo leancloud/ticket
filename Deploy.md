@@ -467,3 +467,9 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 ### `97bd0d4e31c7b470a187ca037b07765cc7bac709`
 
 导入 Category.json，添加 `article`、`isTicketEnabled`、`ticketDescription` 列
+
+## 2023-06-15
+
+### `decb9cb6c70deb89004daa4cd52120706dbb48ad`
+
+导入 Group.json，添加 `permissions` 列
