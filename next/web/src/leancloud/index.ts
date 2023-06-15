@@ -2,6 +2,7 @@ import * as LC from 'open-leancloud-storage/core';
 import { authModule } from 'open-leancloud-storage/auth';
 import { cloudModule } from 'open-leancloud-storage/cloud';
 import { storageModule } from 'open-leancloud-storage/storage';
+import { liveQueryModule } from 'open-leancloud-storage/live-query';
 import axios, { AxiosError } from 'axios';
 import { useQuery } from 'react-query';
 import { atom, selector, useRecoilValue, useSetRecoilState } from 'recoil';
@@ -10,6 +11,7 @@ import { mergeWith } from 'lodash-es';
 LC.use(authModule);
 LC.use(cloudModule);
 LC.use(storageModule);
+LC.use(liveQueryModule);
 
 export const ENABLE_LEANCLOUD_INTEGRATION = import.meta.env.VITE_ENABLE_LEANCLOUD_INTEGRATION;
 
