@@ -129,7 +129,7 @@ const NormalFieldForm = ({ filters, merge, onSubmit }: FilterFormItemProps<Norma
           value={language}
           hasUnknown
           mode="multiple"
-          onChange={(language) => {
+          onChange={(language: string[] | undefined) => {
             merge({ language });
           }}
         />

@@ -4,13 +4,12 @@ import { DefaultOptionType, RefSelectProps } from 'antd/lib/select';
 import { LOCALES } from '@/i18n/locales';
 import { Select, SelectProps } from '@/components/antd';
 
-export interface LocaleSelectProps
-  extends Omit<SelectProps<string[], DefaultOptionType>, 'onChange'> {
+export interface LocaleSelectProps extends Omit<SelectProps<any, DefaultOptionType>, 'onChange'> {
   hiddenLocales?: string[];
   locales?: Record<string, string>;
   hasUnknown?: boolean;
   unknownValue?: string;
-  onChange?: (value: string[] | undefined, option: DefaultOptionType | DefaultOptionType[]) => void;
+  onChange?: (value: any, option: DefaultOptionType | DefaultOptionType[]) => void;
 }
 
 export const LocaleSelect = forwardRef<RefSelectProps, LocaleSelectProps>(
