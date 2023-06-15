@@ -97,8 +97,7 @@ export const GroupPermissionDescriptions: Record<keyof CustomerServicePermission
 const currentUserGroupsState = selector({
   key: 'currentUserGroups',
   get: async ({ get }) => {
-    const currentUser = get(currentLCUserState);
-
+    const currentUser = get(currentUserState);
     if (!currentUser) {
       return [];
     }
