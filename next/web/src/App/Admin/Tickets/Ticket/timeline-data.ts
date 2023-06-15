@@ -102,7 +102,7 @@ export function useTicketOpsLogs(ticketId?: string) {
     }
     let mounted = true;
     const subscription = db
-      .class('OpsLog')
+      .query('OpsLog')
       .where('ticket', '==', db.class('Ticket').object(ticketId))
       .subscribe();
     subscription.then((s) => {

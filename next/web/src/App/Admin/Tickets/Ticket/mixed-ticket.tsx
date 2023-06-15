@@ -132,7 +132,7 @@ export function useMixedTicket(ticketId: string): UseMixedTicketResult {
       return;
     }
     let mounted = true;
-    const subscription = db.class('Ticket').where('objectId', '==', ticket.id).subscribe();
+    const subscription = db.query('Ticket').where('objectId', '==', ticket.id).subscribe();
     subscription.then((s) => {
       if (mounted) {
         s.on('update', (o) => onUpdate.current(o));
