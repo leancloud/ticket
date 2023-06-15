@@ -54,29 +54,26 @@ export interface CurrentUser {
   displayName: string;
 }
 
-const currentLCUserState = atom({
-  key: 'currentLCUser',
-  default: auth.currentUser,
-});
+function getCurrentUser(): CurrentUser | undefined {
+  if (auth.currentUser) {
+    const { id, data } = auth.currentUser;
+    return {
+      id,
+      displayName: data.name || data.username,
+    };
+  }
+}
 
-const currentUserState = selector({
+const currentUserState = atom({
   key: 'currentUser',
-  get: ({ get }): CurrentUser | undefined => {
-    const user = get(currentLCUserState);
-    if (user) {
-      return {
-        id: user.id,
-        displayName: user.data.name || user.data.username,
-      };
-    }
-  },
+  default: getCurrentUser(),
 });
 
 export const useCurrentUser = () => useRecoilValue(currentUserState);
 
 export const useRefreshCurrentUser = () => {
-  const setCurrentUser = useSetRecoilState(currentLCUserState);
-  return () => setCurrentUser(auth.currentUser);
+  const setCurrentUser = useSetRecoilState(currentUserState);
+  return () => setCurrentUser(getCurrentUser());
 };
 
 export interface CustomerServicePermissions {
@@ -140,14 +137,14 @@ export const useCurrentUserPermissions = () => useRecoilValue(currentUserPermiss
 const currentUserRolesState = selector({
   key: 'currentUserRoles',
   get: async ({ get }) => {
-    const currentUser = get(currentLCUserState);
+    const currentUser = get(currentUserState);
     if (!currentUser) {
       return [];
     }
     return auth
       .queryRole()
       .where('name', 'in', ['customerService', 'staff', 'admin'])
-      .where('users', '==', currentUser)
+      .where('users', '==', db.class('_User').object(currentUser.id))
       .find()
       .then((roles) => roles.map((role) => role.name));
   },
