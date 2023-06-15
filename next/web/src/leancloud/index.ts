@@ -123,7 +123,7 @@ const currentUserGroupsState = selector<GroupData[]>({
         )
         .find();
 
-      return groups.map((group) => group.data);
+      return groups.map((group) => group.toJSON());
     } catch {
       return [];
     }
