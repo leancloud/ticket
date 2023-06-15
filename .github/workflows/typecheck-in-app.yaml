@@ -37,6 +37,6 @@ jobs:
           npm ci
 
       - name: Typecheck
-        uses: fersilva16/ts-report-action@1.2.1
-        with:
-          project: in-app/v1/tsconfig.json
+        run: |
+          cd in-app/v1
+          npm run typecheck
