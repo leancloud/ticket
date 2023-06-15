@@ -1,9 +1,11 @@
 import { ForwardedRef, forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import { useMutation } from 'react-query';
 import { AiOutlinePlus, AiOutlineFile, AiOutlineEye, AiOutlineDelete } from 'react-icons/ai';
 import { Progress } from 'antd';
 import cx from 'classnames';
 
 import { storage } from '@/leancloud';
+import { fetchFiles } from '@/api/file';
 
 const IMAGE_SUFFIX = ['.jpg', '.jpeg', '.png', '.gif'];
 
@@ -29,12 +31,14 @@ interface UploaderProps {
 
 export interface UploaderRef {
   getStatus: () => UploaderStatus;
-  reset: () => void;
+  reset: (defaultFileIds?: string[]) => void;
 }
 
 export const Uploader = forwardRef(
   ({ disabled }: UploaderProps, ref: ForwardedRef<UploaderRef>) => {
     const nextUid = useRef(0);
+    const generateUid = () => nextUid.current++;
+
     const [fileInfos, setFileInfos] = useState<FileInfo[]>([]);
 
     const updateFileInfo = (uid: number, info: Partial<FileInfo>) => {
@@ -54,7 +58,7 @@ export const Uploader = forwardRef(
 
     const handleUpload = (files: FileList) => {
       for (const file of files) {
-        const uid = nextUid.current++;
+        const uid = generateUid();
         setFileInfos((prev) => [
           ...prev,
           {
@@ -72,11 +76,26 @@ export const Uploader = forwardRef(
       }
     };
 
+    const { mutate: fetchDefaultFiles, isLoading } = useMutation({
+      mutationFn: fetchFiles,
+      onSuccess: (files) => {
+        setFileInfos(
+          files.map((file) => ({
+            uid: generateUid(),
+            id: file.id,
+            name: file.name,
+            thumbnailUrl: file.url,
+            url: file.url,
+          }))
+        );
+      },
+    });
+
     useImperativeHandle(ref, () => ({
       getStatus: () => {
         const status: UploaderStatus = {
           fileIds: [],
-          uploading: false,
+          uploading: isLoading,
           hasError: false,
         };
         for (const file of fileInfos) {
@@ -90,8 +109,11 @@ export const Uploader = forwardRef(
         }
         return status;
       },
-      reset: () => {
+      reset: (defaultFileIds) => {
         setFileInfos([]);
+        if (defaultFileIds?.length) {
+          fetchDefaultFiles(defaultFileIds);
+        }
       },
     }));
 
@@ -105,7 +127,7 @@ export const Uploader = forwardRef(
             disabled={disabled}
           />
         ))}
-        <UploadButton onUpload={handleUpload} disabled={disabled} />
+        <UploadButton onUpload={handleUpload} disabled={disabled || isLoading} />
       </div>
     );
   }

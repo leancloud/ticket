@@ -1,7 +1,6 @@
 import { ReactNode } from 'react';
 import { useToggle } from 'react-use';
-
-import { Modal, ModalProps } from '@/components/antd';
+import { Modal, ModalProps } from 'antd';
 
 interface UseModalOptions {
   props?: ModalProps;
@@ -17,5 +16,5 @@ export function useModal({ props, render }: UseModalOptions) {
     </Modal>
   );
 
-  return { modal, toggle };
+  return Object.assign([modal, toggle] as const, { modal, toggle });
 }
