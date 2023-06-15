@@ -94,7 +94,11 @@ export const GroupPermissionDescriptions: Record<keyof CustomerServicePermission
   statistics: '工单统计',
 };
 
-const currentUserGroupsState = selector({
+interface GroupData {
+  permissions?: CustomerServicePermissions;
+}
+
+const currentUserGroupsState = selector<GroupData[]>({
   key: 'currentUserGroups',
   get: async ({ get }) => {
     const currentUser = get(currentUserState);
@@ -107,7 +111,7 @@ const currentUserGroupsState = selector({
       .where('name', 'not-in', ['customerService', 'staff', 'admin', 'collaborator'])
       .find();
 
-    return db
+    const groups = await db
       .query('Group')
       .where(
         'role',
@@ -115,6 +119,8 @@ const currentUserGroupsState = selector({
         groupRoles.map((role) => db.class('_Role').object(role.id))
       )
       .find();
+
+    return groups.map((group) => group.data);
   },
 });
 
@@ -125,8 +131,8 @@ const currentUserPermissions = selector({
 
     return mergeWith(
       DefaultGroupPermission,
-      ...groups.map((gru) => gru.data.permissions),
-      (obj: boolean, src: boolean) => obj || src
+      ...groups.map((g) => g.permissions),
+      (v1: boolean, v2: boolean) => v1 || v2
     ) as CustomerServicePermissions;
   },
 });
