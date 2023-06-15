@@ -3,7 +3,7 @@ import _ from 'lodash';
 import { escape } from 'sqlstring';
 
 import * as yup from '@/utils/yup';
-import { adminOnly, auth, parseRange } from '@/middleware';
+import { auth, customerServiceOnly, parseRange } from '@/middleware';
 import { TicketStats } from '@/model/TicketStats';
 import { categoryService } from '@/category';
 import { TicketStatusStats } from '@/model/TicketStatusStats';
@@ -20,7 +20,7 @@ import { ClickHouse, FunctionColumn, quoteValue } from '@/orm/clickhouse';
 
 const EvaluationFields = ['dislikeCount', 'likeCount'] as const;
 
-const router = new Router().use(auth, adminOnly);
+const router = new Router().use(auth, customerServiceOnly);
 
 const BaseSchema = {
   from: yup.date().required(),
