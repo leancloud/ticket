@@ -5,7 +5,6 @@ import _ from 'lodash';
 import {
   Body,
   Controller,
-  CurrentUser,
   Delete,
   Get,
   HttpError,
@@ -18,21 +17,31 @@ import {
 } from '@/common/http';
 import { auth, adminOnly, systemRoleMemberGuard } from '@/middleware';
 import { ACLBuilder } from '@/orm';
-import { Group } from '@/model/Group';
+import { DefaultGroupPermission, Group } from '@/model/Group';
 import { User } from '@/model/User';
 import { GroupDetailResponse, GroupResponse } from '@/response/group';
 import { FindModelPipe, ZodValidationPipe } from '@/common/pipe';
+
+const groupPermissionSchema = z
+  .object({
+    view: z.boolean(),
+    ticketList: z.boolean(),
+    statistics: z.boolean(),
+  })
+  .partial();
 
 const createGroupSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
   userIds: z.array(z.string()).optional(),
+  permissions: groupPermissionSchema.optional(),
 });
 
 const updateGroupSchema = z.object({
   name: z.string().optional(),
   description: z.string().optional(),
   userIds: z.array(z.string()).optional(),
+  permissions: groupPermissionSchema.optional(),
 });
 
 type CreateGroupData = z.infer<typeof createGroupSchema>;
@@ -62,6 +71,7 @@ export class GroupController {
         ACL: groupACL,
         name: data.name,
         description: data.description,
+        permissions: { ...DefaultGroupPermission, ...data.permissions },
       },
       {
         useMasterKey: true,
@@ -96,11 +106,12 @@ export class GroupController {
 
     const authOptions = { useMasterKey: true };
 
-    if (data.name || data.description) {
+    if (data.name || data.description || data.permissions) {
       await group.update(
         {
           name: data.name,
           description: data.description,
+          permissions: { ...DefaultGroupPermission, ...data.permissions },
         },
         authOptions
       );

@@ -38,6 +38,13 @@
       "hidden": false,
       "read_only": false
     },
+    "permissions": {
+      "type": "Object",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
     "objectId": {
       "type": "String"
     },
@@ -47,33 +54,23 @@
   },
   "permissions": {
     "create": {
-      "roles": [
-        "customerService"
-      ],
+      "roles": ["customerService"],
       "users": []
     },
     "find": {
-      "roles": [
-        "staff"
-      ],
+      "roles": ["staff"],
       "users": []
     },
     "get": {
-      "roles": [
-        "staff"
-      ],
+      "roles": ["staff"],
       "users": []
     },
     "update": {
-      "roles": [
-        "customerService"
-      ],
+      "roles": ["customerService"],
       "users": []
     },
     "delete": {
-      "roles": [
-        "customerService"
-      ],
+      "roles": ["customerService"],
       "users": []
     },
     "add_fields": {

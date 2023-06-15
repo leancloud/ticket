@@ -5,6 +5,7 @@ import { storageModule } from 'open-leancloud-storage/storage';
 import axios, { AxiosError } from 'axios';
 import { useQuery } from 'react-query';
 import { atom, selector, useRecoilValue, useSetRecoilState } from 'recoil';
+import { mergeWith } from 'lodash-es';
 
 LC.use(authModule);
 LC.use(cloudModule);
@@ -77,6 +78,64 @@ export const useRefreshCurrentUser = () => {
   const setCurrentUser = useSetRecoilState(currentLCUserState);
   return () => setCurrentUser(auth.currentUser);
 };
+
+export interface CustomerServicePermissions {
+  view: boolean;
+  ticketList: boolean;
+  statistics: boolean;
+}
+
+export const DefaultGroupPermission: CustomerServicePermissions = {
+  view: true,
+  ticketList: true,
+  statistics: false,
+};
+
+export const GroupPermissionDescriptions: Record<keyof CustomerServicePermissions, string> = {
+  view: '视图',
+  ticketList: '工单列表',
+  statistics: '工单统计',
+};
+
+const currentUserGroupsState = selector({
+  key: 'currentUserGroups',
+  get: async ({ get }) => {
+    const currentUser = get(currentLCUserState);
+
+    if (!currentUser) {
+      return [];
+    }
+
+    const groupRoles = await auth
+      .queryRole()
+      .where('name', 'not-in', ['customerService', 'staff', 'admin', 'collaborator'])
+      .find();
+
+    return db
+      .query('Group')
+      .where(
+        'role',
+        'in',
+        groupRoles.map((role) => db.class('_Role').object(role.id))
+      )
+      .find();
+  },
+});
+
+const currentUserPermissions = selector({
+  key: 'currentUserPermissions',
+  get: async ({ get }) => {
+    const groups = get(currentUserGroupsState);
+
+    return mergeWith(
+      DefaultGroupPermission,
+      ...groups.map((gru) => gru.data.permissions),
+      (obj: boolean, src: boolean) => obj || src
+    ) as CustomerServicePermissions;
+  },
+});
+
+export const useCurrentUserPermissions = () => useRecoilValue(currentUserPermissions);
 
 const currentUserRolesState = selector({
   key: 'currentUserRoles',
