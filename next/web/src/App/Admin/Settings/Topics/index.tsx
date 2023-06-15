@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Controller, useForm } from 'react-hook-form';
 import { useMutation, useQueryClient } from 'react-query';
@@ -36,13 +36,13 @@ function TopicActions({ id, name }: Topic) {
     },
   });
 
-  const handleDelete = useCallback(() => {
+  const handleDelete = () => {
     Modal.confirm({
       title: '删除客服组',
       content: `确定删除客服组 ${name} ？`,
       onOk: () => mutate(id),
     });
-  }, [id, mutate]);
+  };
 
   return (
     <div>

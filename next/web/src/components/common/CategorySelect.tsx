@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useMemo } from 'react';
+import { forwardRef, useMemo } from 'react';
 import { CascaderRef } from 'antd/lib/cascader';
 
 import { CategoryTreeNode, useCategories, useCategoryTree } from '@/api/category';
@@ -46,14 +46,19 @@ export const CategorySelect = forwardRef<CascaderRef, CategorySelectProps>(
     },
     ref
   ) => {
-    const { data: categories, isLoading, error, refetch } = useCategories({
+    const {
+      data: categories,
+      isLoading,
+      error,
+      refetch,
+    } = useCategories({
       active: categoryActive,
     });
     const categoryTree = useCategoryTree(
-      useMemo(() => categories?.filter((category) => !(followHidden && category.hidden)), [
-        categories,
-        followHidden,
-      ])
+      useMemo(
+        () => categories?.filter((category) => !(followHidden && category.hidden)),
+        [categories, followHidden]
+      )
     );
 
     const path = useMemo(() => {
@@ -67,15 +72,12 @@ export const CategorySelect = forwardRef<CascaderRef, CategorySelectProps>(
       return getCategoryIdPath(category);
     }, [categoryTree, value]);
 
-    const handleChange = useCallback(
-      (ids?: string[], categoryPath?: CategoryTreeNode[]) => {
-        if (onChange) {
-          const id = ids?.length ? ids[ids.length - 1] : undefined;
-          onChange(id, categoryPath);
-        }
-      },
-      [onChange]
-    );
+    const handleChange = (ids?: string[], categoryPath?: CategoryTreeNode[]) => {
+      if (onChange) {
+        const id = ids?.length ? ids[ids.length - 1] : undefined;
+        onChange(id, categoryPath);
+      }
+    };
 
     if (error) {
       return <Retry error={error} message={errorMessage} onRetry={refetch} />;

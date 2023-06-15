@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { useQueryClient } from 'react-query';
 
@@ -10,7 +11,6 @@ import {
 } from '@/api/tag-metadata';
 import { Button, Modal, Spin, Table, message } from '@/components/antd';
 import { TagMetadataForm } from './TagMetadataForm';
-import { useCallback, useMemo } from 'react';
 
 const { Column } = Table;
 
@@ -25,18 +25,15 @@ export function TagList() {
     },
   });
 
-  const handleRemoveTag = useCallback(
-    (id: string) => {
-      Modal.confirm({
-        title: '删除标签',
-        content: '该操作不可恢复',
-        okButtonProps: { danger: true },
-        okText: 'Delete',
-        onOk: () => remove(id),
-      });
-    },
-    [remove]
-  );
+  const handleRemoveTag = (id: string) => {
+    Modal.confirm({
+      title: '删除标签',
+      content: '该操作不可恢复',
+      okButtonProps: { danger: true },
+      okText: 'Delete',
+      onOk: () => remove(id),
+    });
+  };
 
   return (
     <div className="p-10">

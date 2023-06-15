@@ -1,4 +1,4 @@
-import { memo, useCallback, useState } from 'react';
+import { memo, useState } from 'react';
 import { useController } from 'react-hook-form';
 import { UploadChangeParam } from 'antd/lib/upload';
 
@@ -67,14 +67,11 @@ export const Upload = memo(({ name, label, description, required, multiple }: Up
   const id = `ticket_${name}`;
   const { ref, onChange } = field;
 
-  const handleChange = useCallback(
-    (info: any) => {
-      const state = getStateFromAntUploadInfo(info);
-      setUploadState(state);
-      onChange(state.fileIds.length ? state.fileIds : undefined);
-    },
-    [onChange]
-  );
+  const handleChange = (info: any) => {
+    const state = getStateFromAntUploadInfo(info);
+    setUploadState(state);
+    onChange(state.fileIds.length ? state.fileIds : undefined);
+  };
 
   return (
     <Form.Item

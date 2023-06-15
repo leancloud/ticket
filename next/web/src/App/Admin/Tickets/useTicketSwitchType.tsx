@@ -1,7 +1,8 @@
+import { ReactNode, createContext, useContext } from 'react';
+import _ from 'lodash';
+
 import { useCurrentUserIsCustomerService } from '@/leancloud';
 import { useSearchParams } from '@/utils/useSearchParams';
-import _ from 'lodash';
-import { ReactNode, createContext, useCallback, useContext } from 'react';
 
 export type TicketSwitchType = 'all' | 'processable';
 
@@ -13,15 +14,12 @@ export const TicketSwitchTypeProvider = ({ children }: { children: ReactNode }) 
   const [params, { merge }] = useSearchParams();
   const isCustomerService = useCurrentUserIsCustomerService();
 
-  const set = useCallback(
-    (type: TicketSwitchType) => {
-      merge({
-        ...params,
-        tableType: type,
-      });
-    },
-    [merge, params]
-  );
+  const set = (type: TicketSwitchType) => {
+    merge({
+      ...params,
+      tableType: type,
+    });
+  };
 
   return (
     <TicketSwitchTypeContext.Provider

@@ -1,4 +1,4 @@
-import { useState, useImperativeHandle, forwardRef, useMemo, useCallback } from 'react';
+import { useState, useImperativeHandle, forwardRef, useMemo } from 'react';
 import { Button, Modal, Table } from '@/components/antd';
 
 import { useReplyDetails } from '@/api/ticket-stats';
@@ -35,10 +35,10 @@ const ReplyDetails = forwardRef<ModalRef>((props, ref) => {
       enabled: open && fieldMap[field] !== undefined,
     },
   });
-  const close = useCallback(() => {
+  const close = () => {
     setQueryParams({});
     setOpen(false);
-  }, []);
+  };
   useImperativeHandle(
     ref,
     () => {

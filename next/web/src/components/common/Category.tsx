@@ -2,7 +2,6 @@ import {
   ComponentPropsWithoutRef,
   createContext,
   PropsWithChildren,
-  useCallback,
   useContext,
   useMemo,
 } from 'react';
@@ -75,7 +74,7 @@ export function CategoryProvider({
 }: PropsWithChildren<{ categories?: CategorySchema[] }>) {
   const categoryMap = useMemo(() => keyBy(categories, 'id'), [categories]);
 
-  const getCategory = useCallback((id: string) => categoryMap[id], [categoryMap]);
+  const getCategory = (id: string) => categoryMap[id];
 
   const getCategoryPath = useMemo(() => createCategoryPathGetter(categoryMap), [categoryMap]);
 

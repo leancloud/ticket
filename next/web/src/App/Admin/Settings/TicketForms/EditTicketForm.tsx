@@ -1,4 +1,4 @@
-import { PropsWithChildren, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { PropsWithChildren, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { AiOutlinePlus, AiOutlineSearch, AiOutlineFileText } from 'react-icons/ai';
 import { BsX } from 'react-icons/bs';
@@ -431,7 +431,7 @@ export function EditTicketForm({ data, submitting, onSubmit, onCancel }: EditTic
 
   const [currentItems, setCurrentItems] = useState<TicketFormItem[]>([]);
 
-  const handlePreview = useCallback(() => {
+  const handlePreview = () => {
     const items = getValues('items');
     const currentItems: TicketFormItem[] = [];
     items.forEach((item) => {
@@ -461,7 +461,7 @@ export function EditTicketForm({ data, submitting, onSubmit, onCancel }: EditTic
     });
     setCurrentItems(currentItems);
     setInPreview(true);
-  }, [getValues, fieldById, noteById]);
+  };
 
   return (
     <div className="flex flex-col h-full">

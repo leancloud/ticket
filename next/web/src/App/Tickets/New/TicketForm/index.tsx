@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { SiMarkdown } from 'react-icons/si';
 import { last } from 'lodash-es';
@@ -119,28 +119,22 @@ export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
     });
   }, [formItems]);
 
-  const overwriteContent = useCallback(
-    (newContent: string) => {
-      const { content } = getValues();
-      if (content && !confirm('是否使用所选分类的模板覆盖当前描述')) {
-        return;
-      }
-      setValue('content', newContent);
-    },
-    [getValues, setValue]
-  );
+  const overwriteContent = (newContent: string) => {
+    const { content } = getValues();
+    if (content && !confirm('是否使用所选分类的模板覆盖当前描述')) {
+      return;
+    }
+    setValue('content', newContent);
+  };
 
-  const handleChangeCategory = useCallback(
-    (categoryPath?: CategorySchema[]) => {
-      if (categoryPath?.length) {
-        const category = last(categoryPath)!;
-        if (category.template) {
-          overwriteContent(category.template);
-        }
+  const handleChangeCategory = (categoryPath?: CategorySchema[]) => {
+    if (categoryPath?.length) {
+      const category = last(categoryPath)!;
+      if (category.template) {
+        overwriteContent(category.template);
       }
-    },
-    [overwriteContent]
-  );
+    }
+  };
 
   const handleSubmit = methods.handleSubmit((data) => {
     const {

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
 import {
@@ -120,7 +120,11 @@ function TicketListView() {
   const [localFilters, setLocalFilters] = useLocalFilters();
   const [type] = useTicketSwitchType();
 
-  const { data: tickets, totalCount, isFetching } = useSmartSearchTickets({
+  const {
+    data: tickets,
+    totalCount,
+    isFetching,
+  } = useSmartSearchTickets({
     page,
     pageSize,
     orderKey,
@@ -135,26 +139,23 @@ function TicketListView() {
   const [checkedIds, setCheckedIds] = useState<string[]>([]);
   useEffect(() => setCheckedIds([]), [tickets]);
 
-  const handleCheckTicket = useCallback((id: string, checked: boolean) => {
+  const handleCheckTicket = (id: string, checked: boolean) => {
     if (checked) {
       setCheckedIds((prev) => [...prev, id]);
     } else {
       setCheckedIds((prev) => prev.filter((_id) => _id !== id));
     }
-  }, []);
+  };
 
-  const handleCheckAll = useCallback(
-    (checked: boolean) => {
-      if (tickets) {
-        if (checked) {
-          setCheckedIds(tickets.map((t) => t.id));
-        } else {
-          setCheckedIds([]);
-        }
+  const handleCheckAll = (checked: boolean) => {
+    if (tickets) {
+      if (checked) {
+        setCheckedIds(tickets.map((t) => t.id));
+      } else {
+        setCheckedIds([]);
       }
-    },
-    [tickets]
-  );
+    }
+  };
 
   useEffect(() => {
     if (localFilters.type === 'normal' && localFilters.keyword) {

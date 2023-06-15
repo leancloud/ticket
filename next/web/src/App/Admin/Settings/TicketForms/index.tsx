@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQueryClient } from 'react-query';
 import cx from 'classnames';
@@ -31,7 +31,7 @@ function TicketFormActions({ form }: { form: TicketFormSchema }) {
     },
   });
 
-  const handleDelete = useCallback(() => {
+  const handleDelete = () => {
     Modal.confirm({
       title: '该操作不可恢复',
       okText: '删除',
@@ -39,7 +39,7 @@ function TicketFormActions({ form }: { form: TicketFormSchema }) {
       maskClosable: true,
       onOk: () => mutate(form.id),
     });
-  }, [form.id, mutate]);
+  };
 
   return (
     <button

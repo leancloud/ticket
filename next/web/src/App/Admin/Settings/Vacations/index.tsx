@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { useQueryClient } from 'react-query';
 import moment, { Moment } from 'moment';
 
@@ -75,13 +75,13 @@ function VacationActions({ id, vacationer, operator }: VacationSchema) {
     },
   });
 
-  const handleDelete = useCallback(() => {
+  const handleDelete = () => {
     Modal.confirm({
       title: '删除假期',
       content: '此操作不可恢复',
       onOk: () => mutate(id),
     });
-  }, [mutate, id]);
+  };
 
   return (
     <div>
@@ -130,7 +130,11 @@ export function Vacations() {
   const [page, { set: setPage }] = usePage();
   const [showModal, setShowModal] = useState(false);
 
-  const { data: vacations, totalCount, isLoading } = useVacations({
+  const {
+    data: vacations,
+    totalCount,
+    isLoading,
+  } = useVacations({
     vacationerId: currentUser?.id,
     operatorId: currentUser?.id,
     page,

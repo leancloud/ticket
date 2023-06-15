@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from 'react-query';
 import { Link, Outlet, useNavigate, useParams } from 'react-router-dom';
 import { AiOutlineLeft, AiOutlineReload } from 'react-icons/ai';
@@ -243,7 +243,11 @@ export function ViewTickets() {
   }, [view]);
 
   const queryClient = useQueryClient();
-  const { data: tickets, totalCount, isLoading: isLoadingTickets } = useViewTickets(id!, {
+  const {
+    data: tickets,
+    totalCount,
+    isLoading: isLoadingTickets,
+  } = useViewTickets(id!, {
     page,
     pageSize: PAGE_SIZE,
     include,
@@ -387,23 +391,20 @@ export function Views() {
     }, {} as Record<string, number>);
   }, [viewTicketCounts]);
 
-  const findView = useCallback(
-    (id: string) => {
-      if (sharedViews) {
-        const target = sharedViews.find((v) => v.id === id);
-        if (target) {
-          return target;
-        }
+  const findView = (id: string) => {
+    if (sharedViews) {
+      const target = sharedViews.find((v) => v.id === id);
+      if (target) {
+        return target;
       }
-      if (personalViews) {
-        const target = personalViews.find((v) => v.id === id);
-        if (target) {
-          return target;
-        }
+    }
+    if (personalViews) {
+      const target = personalViews.find((v) => v.id === id);
+      if (target) {
+        return target;
       }
-    },
-    [sharedViews, personalViews]
-  );
+    }
+  };
 
   const queryClient = useQueryClient();
 
@@ -415,10 +416,10 @@ export function Views() {
     }
   };
 
-  const handleRefresh = useCallback(() => {
+  const handleRefresh = () => {
     queryClient.invalidateQueries('views');
     queryClient.invalidateQueries('viewTicketCounts');
-  }, [queryClient]);
+  };
 
   return (
     <div className="flex h-full bg-white">

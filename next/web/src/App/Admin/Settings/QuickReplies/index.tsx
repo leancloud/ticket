@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQueryClient } from 'react-query';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { uniq } from 'lodash-es';
@@ -47,18 +47,15 @@ export function QuickReplyList() {
     },
   });
 
-  const handleDelete = useCallback(
-    (id: string) => {
-      Modal.confirm({
-        title: '删除快捷回复',
-        content: '该操作不可恢复',
-        okButtonProps: { danger: true },
-        okText: 'Delete',
-        onOk: () => remove(id),
-      });
-    },
-    [remove]
-  );
+  const handleDelete = (id: string) => {
+    Modal.confirm({
+      title: '删除快捷回复',
+      content: '该操作不可恢复',
+      okButtonProps: { danger: true },
+      okText: 'Delete',
+      onOk: () => remove(id),
+    });
+  };
 
   return (
     <div className="p-10">
@@ -151,18 +148,15 @@ export function NewQuickReply() {
 
   const currentUser = useCurrentUser();
 
-  const handleCreate = useCallback(
-    (data: QuickReplyFormData) => {
-      mutate({
-        name: data.name,
-        content: data.content,
-        userId: data.visibility === 'private' ? currentUser?.id : undefined,
-        fileIds: data.fileIds,
-        tags: data.tags,
-      });
-    },
-    [mutate, currentUser]
-  );
+  const handleCreate = (data: QuickReplyFormData) => {
+    mutate({
+      name: data.name,
+      content: data.content,
+      userId: data.visibility === 'private' ? currentUser?.id : undefined,
+      fileIds: data.fileIds,
+      tags: data.tags,
+    });
+  };
 
   const availableTags = useAvailableTags();
 
@@ -188,19 +182,16 @@ export function QuickReplyDetail() {
 
   const currentUser = useCurrentUser();
 
-  const handleUpdate = useCallback(
-    (data: QuickReplyFormData) => {
-      mutate({
-        id: id!,
-        name: data.name,
-        content: data.content,
-        userId: data.visibility === 'private' ? currentUser?.id : undefined,
-        fileIds: data.fileIds,
-        tags: data.tags,
-      });
-    },
-    [id, mutate, currentUser]
-  );
+  const handleUpdate = (data: QuickReplyFormData) => {
+    mutate({
+      id: id!,
+      name: data.name,
+      content: data.content,
+      userId: data.visibility === 'private' ? currentUser?.id : undefined,
+      fileIds: data.fileIds,
+      tags: data.tags,
+    });
+  };
 
   const initData = useMemo<QuickReplyFormData | undefined>(() => {
     if (data) {

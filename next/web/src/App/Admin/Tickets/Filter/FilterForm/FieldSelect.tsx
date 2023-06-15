@@ -1,8 +1,9 @@
-import { TicketFieldSchema, TicketFieldType, useTicketFields } from '@/api/ticket-field';
+import { useMemo } from 'react';
 import { Select, SelectProps } from 'antd';
 import { DefaultOptionType } from 'antd/lib/select';
 import _ from 'lodash';
-import { useCallback, useMemo } from 'react';
+
+import { TicketFieldSchema, TicketFieldType, useTicketFields } from '@/api/ticket-field';
 
 const AvailableTypes: TicketFieldType[] = [
   'dropdown',
@@ -49,13 +50,10 @@ export const FieldSelect = ({
     [availableTypes, fields]
   );
 
-  const handleChange = useCallback(
-    (id: string, option: DefaultOptionType | DefaultOptionType[]) => {
-      onChange?.(id, option);
-      onChangeWithData?.(fieldsIdMap[id]);
-    },
-    [fieldsIdMap, onChange, onChangeWithData]
-  );
+  const handleChange = (id: string, option: DefaultOptionType | DefaultOptionType[]) => {
+    onChange?.(id, option);
+    onChangeWithData?.(fieldsIdMap[id]);
+  };
 
   return (
     <Select
