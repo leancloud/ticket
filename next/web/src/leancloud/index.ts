@@ -109,6 +109,7 @@ const currentUserGroupsState = selector<GroupData[]>({
     const groupRoles = await auth
       .queryRole()
       .where('name', 'not-in', ['customerService', 'staff', 'admin', 'collaborator'])
+      .where('users', '==', db.class('_User').object(currentUser.id))
       .find();
 
     const groups = await db
