@@ -129,11 +129,9 @@ const currentUserPermissions = selector({
   get: async ({ get }) => {
     const groups = get(currentUserGroupsState);
 
-    return mergeWith(
-      DefaultGroupPermission,
-      ...groups.map((g) => g.permissions),
-      (v1: boolean, v2: boolean) => v1 || v2
-    ) as CustomerServicePermissions;
+    return groups
+      .map((g) => ({ ...DefaultGroupPermission, ...g.permissions }))
+      .reduce((acc, cur) => mergeWith(acc, cur, (v1: boolean, v2: boolean) => v1 || v2), {});
   },
 });
 
