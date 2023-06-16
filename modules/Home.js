@@ -13,7 +13,7 @@ export default function Home() {
       return
     }
     if (!isUser) {
-      return window.location.replace(`/next/admin/tickets`)
+      return window.location.replace(`/next/admin/`)
     }
     history.replace('/tickets')
   }, [history, isUser])
