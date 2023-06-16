@@ -131,7 +131,10 @@ const currentUserPermissions = selector({
 
     return groups
       .map((g) => ({ ...DefaultGroupPermission, ...g.permissions }))
-      .reduce((acc, cur) => mergeWith(acc, cur, (v1: boolean, v2: boolean) => v1 || v2), {});
+      .reduce<CustomerServicePermissions>(
+        (acc, cur) => mergeWith(acc, cur, (v1: boolean, v2: boolean) => v1 || v2),
+        {} as CustomerServicePermissions
+      );
   },
 });
 
