@@ -6,13 +6,10 @@ import { MdOutlineAnalytics } from 'react-icons/md';
 import cx from 'classnames';
 
 import { Tooltip } from '@/components/antd';
-import {
-  useCurrentUserIsAdmin,
-  useCurrentUserIsCustomerService,
-  useCurrentUserPermissions,
-} from '@/leancloud';
+import { useCurrentUserIsAdmin, useCurrentUserIsCustomerService } from '@/leancloud';
 import { Feedback } from '../Feedback';
 import { CurrentUserSection } from '../CurrentUserSection';
+import { RequirePermission } from '@/components/RequirePermission';
 
 function Path({ to, children, title }: { to: string; children: ReactNode; title?: string }) {
   return (
@@ -39,28 +36,34 @@ function Path({ to, children, title }: { to: string; children: ReactNode; title?
 export function Sidebar(props: ComponentPropsWithoutRef<'aside'>) {
   const isCustomerService = useCurrentUserIsCustomerService();
   const isAdmin = useCurrentUserIsAdmin();
-  const permissions = useCurrentUserPermissions();
+
   return (
     <aside
       {...props}
       className={cx('grid grid-rows-[auto_1fr_auto] w-16 bg-gray-900', props.className)}
     >
       <section className="p-3 text-[rgba(255,255,255,0.72)]">
-        {(!isCustomerService || isAdmin || permissions.ticketList) && (
-          <Path to="/admin/tickets" title="工单">
-            <HiOutlineTicket className="m-auto w-5 h-5" />
-          </Path>
-        )}
-        {(isAdmin || (isCustomerService && permissions.view)) && (
-          <Path to="/admin/views" title="视图">
-            <AiOutlineContainer className="m-auto w-5 h-5" />
-          </Path>
-        )}
-        {(isAdmin || (isCustomerService && permissions.statistics)) && (
-          <Path to="/admin/stats" title="统计">
-            <MdOutlineAnalytics className="m-auto w-5 h-5" />
-          </Path>
-        )}
+        {
+          <RequirePermission permission="ticketList" limitCSOnly content={null}>
+            <Path to="/admin/tickets" title="工单">
+              <HiOutlineTicket className="m-auto w-5 h-5" />
+            </Path>
+          </RequirePermission>
+        }
+        {
+          <RequirePermission permission="view" content={null}>
+            <Path to="/admin/views" title="视图">
+              <AiOutlineContainer className="m-auto w-5 h-5" />
+            </Path>
+          </RequirePermission>
+        }
+        {
+          <RequirePermission permission="statistics" content={null}>
+            <Path to="/admin/stats" title="统计">
+              <MdOutlineAnalytics className="m-auto w-5 h-5" />
+            </Path>
+          </RequirePermission>
+        }
         {isAdmin && (
           <Path to="/admin/settings" title="设置">
             <AiOutlineSetting className="m-auto w-5 h-5" />

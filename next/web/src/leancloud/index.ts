@@ -105,23 +105,26 @@ const currentUserGroupsState = selector<GroupData[]>({
     if (!currentUser) {
       return [];
     }
+    try {
+      const groupRoles = await auth
+        .queryRole()
+        .where('name', 'not-in', ['customerService', 'staff', 'admin', 'collaborator'])
+        .where('users', '==', db.class('_User').object(currentUser.id))
+        .find();
 
-    const groupRoles = await auth
-      .queryRole()
-      .where('name', 'not-in', ['customerService', 'staff', 'admin', 'collaborator'])
-      .where('users', '==', db.class('_User').object(currentUser.id))
-      .find();
+      const groups = await db
+        .query('Group')
+        .where(
+          'role',
+          'in',
+          groupRoles.map((role) => db.class('_Role').object(role.id))
+        )
+        .find();
 
-    const groups = await db
-      .query('Group')
-      .where(
-        'role',
-        'in',
-        groupRoles.map((role) => db.class('_Role').object(role.id))
-      )
-      .find();
-
-    return groups.map((group) => group.data);
+      return groups.map((group) => group.data);
+    } catch {
+      return [];
+    }
   },
 });
 
