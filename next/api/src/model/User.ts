@@ -268,7 +268,7 @@ export class User extends Model {
   }
 
   static async loginWithJWT(token: string): Promise<{ sessionToken: string }> {
-    const payload = transformToHttpError(() => getVerifiedPayloadWithSubRequired(token));
+    const payload = getVerifiedPayloadWithSubRequired(token);
     const { sub, name } = payload;
     return this.upsertByUsername(sub, name);
   }

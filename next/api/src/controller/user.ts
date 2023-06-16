@@ -116,58 +116,60 @@ export class UserController {
 
   @Post()
   async login(@Ctx() ctx: Context, @Body(new ZodValidationPipe(authSchema)) authData: AuthData) {
-    if (authData.type === 'jwt') {
+    return transformToHttpError(() => {
+      if (authData.type === 'jwt') {
+        return withAsyncSpan(
+          () => User.loginWithJWT(authData.jwt),
+          ctx,
+          'model',
+          'User.loginWithJWT'
+        );
+      } else if (authData.type === 'legacy-xd') {
+        return withAsyncSpan(
+          () => User.loginWithLegacyXDAccessToken(authData.XDAccessToken),
+          ctx,
+          'model',
+          'User.loginWithLegacyXDAccessToken'
+        );
+      } else if (authData.type === 'tds-user') {
+        return withAsyncSpan(
+          async () => {
+            const { token, associateAnonymousId } = authData;
+
+            if (!associateAnonymousId) {
+              return User.loginWithTDSUserToken(token);
+            }
+
+            const tdsUser = await User.findByTDSUserToken(token);
+            if (tdsUser) return { sessionToken: await tdsUser.loadSessionToken() };
+
+            const user = await User.associateAnonymousWithTDSUser(token, associateAnonymousId);
+
+            if (!user) {
+              return User.loginWithTDSUserToken(token);
+            }
+
+            return { sessionToken: await user.loadSessionToken() };
+          },
+          ctx,
+          'model',
+          'User.loginWithTDSUserJWT'
+        );
+      } else if (authData.type === 'password') {
+        return withAsyncSpan(
+          () => User.loginWithPassword(authData.username, authData.password),
+          ctx,
+          'model',
+          'User.loginWithPassword'
+        );
+      }
       return withAsyncSpan(
-        () => User.loginWithJWT(authData.jwt),
+        () => User.loginWithAnonymousId(authData.anonymousId, authData.name),
         ctx,
         'model',
-        'User.loginWithJWT'
+        'User.loginWithAnonymousId'
       );
-    } else if (authData.type === 'legacy-xd') {
-      return withAsyncSpan(
-        () => User.loginWithLegacyXDAccessToken(authData.XDAccessToken),
-        ctx,
-        'model',
-        'User.loginWithLegacyXDAccessToken'
-      );
-    } else if (authData.type === 'tds-user') {
-      return withAsyncSpan(
-        async () => {
-          const { token, associateAnonymousId } = authData;
-
-          if (!associateAnonymousId) {
-            return User.loginWithTDSUserToken(token);
-          }
-
-          const tdsUser = await User.findByTDSUserToken(token);
-          if (tdsUser) return { sessionToken: await tdsUser.loadSessionToken() };
-
-          const user = await User.associateAnonymousWithTDSUser(token, associateAnonymousId);
-
-          if (!user) {
-            return User.loginWithTDSUserToken(token);
-          }
-
-          return { sessionToken: await user.loadSessionToken() };
-        },
-        ctx,
-        'model',
-        'User.loginWithTDSUserJWT'
-      );
-    } else if (authData.type === 'password') {
-      return withAsyncSpan(
-        () => User.loginWithPassword(authData.username, authData.password),
-        ctx,
-        'model',
-        'User.loginWithPassword'
-      );
-    }
-    return withAsyncSpan(
-      () => User.loginWithAnonymousId(authData.anonymousId, authData.name),
-      ctx,
-      'model',
-      'User.loginWithAnonymousId'
-    );
+    });
   }
 
   @Post('pre-create')
