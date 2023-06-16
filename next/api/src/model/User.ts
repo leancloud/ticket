@@ -100,18 +100,27 @@ export class ExpiredCredentialError extends HttpError {
   }
 }
 
-export function transformToHttpError<R>(fn: () => R) {
+const transform = (error: unknown) => {
+  // TokenExpiredError extends JsonWebTokenError
+  if (error instanceof TokenExpiredError) {
+    return new ExpiredCredentialError(error.message, error);
+  }
+  if (error instanceof JsonWebTokenError) {
+    return new InvalidCredentialError(error.message, error);
+  }
+  return error;
+};
+export function transformToHttpError<R>(fn: () => R): R {
   try {
-    return fn();
+    const result = fn();
+    if (result instanceof Promise) {
+      return result.catch((e) => {
+        throw transform(e);
+      }) as R;
+    }
+    return result;
   } catch (error) {
-    // TokenExpiredError extends JsonWebTokenError
-    if (error instanceof TokenExpiredError) {
-      throw new ExpiredCredentialError(error.message, error);
-    }
-    if (error instanceof JsonWebTokenError) {
-      throw new InvalidCredentialError(error.message, error);
-    }
-    throw error;
+    throw transform(error);
   }
 }
 
