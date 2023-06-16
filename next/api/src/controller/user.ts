@@ -115,6 +115,7 @@ export class UserController {
   }
 
   @Post()
+  @UseMiddlewares((ctx, next) => transformToHttpError(next))
   async login(@Ctx() ctx: Context, @Body(new ZodValidationPipe(authSchema)) authData: AuthData) {
     if (authData.type === 'jwt') {
       return withAsyncSpan(
