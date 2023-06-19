@@ -486,6 +486,9 @@ export function CategoryDetail() {
         'template',
         'meta',
         'hidden',
+        'articleId',
+        'isTicketEnabled',
+        'ticketDescription',
       ]);
       initData.name = category.rawName;
       return initData;

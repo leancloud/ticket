@@ -17,6 +17,7 @@ import { intlFormat } from 'date-fns';
 import { useFAQs } from '@/api/category';
 import { useArticle } from '@/api/article';
 import { useRootCategory } from '@/states/root-category';
+import { Article } from '@/types';
 
 function RelatedFAQs({ categoryId, articleId }: { categoryId: string; articleId: string }) {
   const { t } = useTranslation();
@@ -94,14 +95,12 @@ function ArticleDetail() {
   const { id } = useParams();
 
   const [search] = useSearchParams();
-  const categoryId = search.get('from-category');
   const isNotice = !!search.get('from-notice');
 
   const articleId = id?.split('-').shift();
   const result = useArticle(articleId!);
   const { data: article } = result;
 
-  const { user } = useAuth();
   const title = !!isNotice ? t('notice.title') : <span>&nbsp;</span>;
 
   const product = useRootCategory();
@@ -118,44 +117,65 @@ function ArticleDetail() {
         </Helmet>
       )}
       <PageHeader>{title}</PageHeader>
-      <PageContent padding={false}>
-        <div className="px-4 py-3 border-b border-gray-100 text-center font-bold">
-          {article?.title}
-        </div>
-        <div className="p-4 border-b border-gray-100">
-          <OpenInBrowser.Content
-            className="text-[13px] mb-6 markdown-body"
-            dangerouslySetInnerHTML={{ __html: article?.contentSafeHTML ?? '' }}
-          />
-          {article && (
-            <p className="text-sm text-gray-400">
-              {`${t('general.update_date')}: ${intlFormat(new Date(article.updatedAt), {
-                // @ts-ignore https://github.com/date-fns/date-fns/issues/3424
-                locale: i18n.language,
-              })}`}
-            </p>
-          )}
-          {article && user && <Feedback articleId={article.id} />}
-        </div>
-        {feedbackEnabled && isNotice && (
-          <div className="px-4 py-5 text-[12px] leading-[1.5] text-[#666] text-center">
-            <p>{t('notice.hint')}</p>
-            <Link to="/categories">
-              <Button secondary className="!px-8 text-base mt-2 text-tapBlue font-bold">
-                {t('feedback.submit')}
-              </Button>
-            </Link>
-          </div>
+      {article && (
+        <PageContent className="py-0 px-0">
+          <ArticleContent article={article} showTicketSubmit={isNotice && feedbackEnabled} />
+        </PageContent>
+      )}
+    </QueryWrapper>
+  );
+}
+
+export function ArticleContent({
+  article,
+  showTicketSubmit = false,
+  showTitle = true,
+}: {
+  article: Article;
+  showTicketSubmit?: boolean;
+  showTitle?: boolean;
+}) {
+  const [t, i18n] = useTranslation();
+  const { user } = useAuth();
+
+  return (
+    <div>
+      {showTitle && (
+        <div className="py-3 border-b border-gray-100 text-center font-bold">{article?.title}</div>
+      )}
+      <div className="pb-4 border-b border-gray-100">
+        <OpenInBrowser.Content
+          className="text-[13px] mb-6 markdown-body"
+          dangerouslySetInnerHTML={{ __html: article?.contentSafeHTML ?? '' }}
+        />
+        {article && (
+          <p className="text-sm text-gray-400">
+            {`${t('general.update_date')}: ${intlFormat(new Date(article.updatedAt), {
+              // @ts-ignore https://github.com/date-fns/date-fns/issues/3424
+              locale: i18n.language,
+            })}`}
+          </p>
         )}
-        {/* {categoryId && auth && (
+        {article && user && <Feedback articleId={article.id} />}
+      </div>
+      {showTicketSubmit && (
+        <div className="px-4 py-5 text-[12px] leading-[1.5] text-[#666] text-center">
+          <p>{t('notice.hint')}</p>
+          <Link to="/categories">
+            <Button secondary className="!px-8 text-base mt-2 text-tapBlue font-bold">
+              {t('feedback.title')}
+            </Button>
+          </Link>
+        </div>
+      )}
+      {/* {categoryId && auth && (
           <p className="my-6 px-4 text-center">
             <span className="block mb-2 text-sm">若以上内容没有帮助到你</span>
             <NewTicketButton categoryId={categoryId} />
           </p>
         )} */}
-        {/* {categoryId && id && <RelatedFAQs categoryId={categoryId} articleId={id} />} */}
-      </PageContent>
-    </QueryWrapper>
+      {/* {categoryId && id && <RelatedFAQs categoryId={categoryId} articleId={id} />} */}
+    </div>
   );
 }
 

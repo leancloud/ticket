@@ -15,11 +15,18 @@ export default function Home() {
   const { t } = useTranslation();
   const category = useRootCategory();
 
-  const { data: notices, isLoading: isNoticesLoading } = useNotices(category.id);
-  const { data: topics, isLoading: isTopicsLoading } = useCategoryTopics();
+  const noticesEnabled = !!category.noticeIds?.length;
+  const topicsEnabled = !!category.topicIds?.length;
 
-  const hasNotices = notices !== undefined && notices.length > 0;
-  const hasTopics = topics !== undefined && topics.length > 0;
+  const { data: notices, isLoading: isNoticesLoading } = useNotices(category.id, {
+    enabled: noticesEnabled,
+  });
+  const { data: topics, isLoading: isTopicsLoading } = useCategoryTopics({
+    enabled: topicsEnabled,
+  });
+
+  const hasNotices = !!notices?.length;
+  const hasTopics = !!topics?.length;
 
   const enableFeedback = !category.meta?.disableFeedback;
   const showCategories = enableFeedback && !isTopicsLoading && !hasTopics;
@@ -62,7 +69,7 @@ export default function Home() {
         <div className="text-center text-gray-400 opacity-80 mt-6 mb-3">
           {t('topic.hint')}{' '}
           <Link to="/categories" className="text-tapBlue">
-            {t('feedback.submit')}
+            {t('feedback.title')}
           </Link>
         </div>
       )}

@@ -28,7 +28,12 @@
     "suffix": "フィードバック",
     "action": "フィードバックを送信",
     "record": "フィードバック記録",
-    "submit": "送信フィードバック"
+    "submit": "送信フィードバック",
+    "title": "カスタマーサポートに連絡する",
+    "submit_ticket": "チケットを送信する",
+    "wait_time": "推定待ち時間：",
+    "hours": "{{value}}時間",
+    "minutes": "{{value}}分"
   },
   "faqs": {
     "showAll": "すべて表示",
@@ -42,7 +47,7 @@
     "not_logged_in_text": "アカウントにログインしていないことが検出されました。ログインしてからもう一度お試しください。"
   },
   "category": {
-    "select_hint": "選択してください、問題に遭遇した",
+    "select_hint": "トピックを選択する",
     "select_hint_home": "選択問題タイプ",
     "faqs": "関連記事",
     "title": "問題の分類"

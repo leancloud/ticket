@@ -28,7 +28,12 @@
     "suffix": "Feedback",
     "action": "Enviar Feedback",
     "record": "Registo de feedback",
-    "submit": "Enviar feedback"
+    "submit": "Enviar feedback",
+    "title": "Contato com o Atendimento ao Cliente",
+    "submit_ticket": "Enviar Ticket",
+    "wait_time": "Tempo de Espera Estimado:",
+    "hours": "{{value}} horas",
+    "minutes": "{{value}} minutos"
   },
   "faqs": {
     "showAll": "Visualizar tudo",
@@ -42,7 +47,7 @@
     "not_logged_in_text": "Detetamos que você não está logado na sua conta. Por favor, faça login e tente novamente."
   },
   "category": {
-    "select_hint": "Escolha o problema que você está enfrentando",
+    "select_hint": "Selecionar Tópico",
     "select_hint_home": "Selecione o tipo de problema",
     "faqs": "Artigos relacionados",
     "title": "Classificação de Problemas"

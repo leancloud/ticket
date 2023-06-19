@@ -16,7 +16,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Loading } from '@/components/Loading';
 import LogIn from './LogIn';
 import Home from './Home';
-import Categories from './Categories';
+import Categories, { Preview } from './Categories';
 import Tickets from './Tickets';
 import NotFound from './NotFound';
 import Articles from './Articles';
@@ -158,6 +158,7 @@ const AppRoutes = () => {
         }
       />
       <Route path="/categories/:id" element={<Categories />} />
+      <Route path="/categories/preview" element={<Preview />} />
       <Route path="/categories" element={<TopCategories />} />
       <Route path="/articles/*" element={<Articles />} />
       <Route path="*" element={<NotFound />} />
