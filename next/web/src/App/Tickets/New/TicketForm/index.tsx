@@ -179,11 +179,32 @@ export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
 
   const [recentTicketCollapsed, toggleRecentTickets] = useToggle(false);
 
+  const organizationSelect =
+    orgs.data && orgs.data.length > 0 ? (
+      <Form.Item label="所属" htmlFor="ticket_org">
+        {orgs.error ? (
+          <Retry message="获取组织失败" error={orgs.error} onRetry={orgs.refetch} />
+        ) : (
+          <Controller
+            name="organizationId"
+            render={({ field }) => (
+              <OrganizationSelect
+                {...field}
+                id="ticket_org"
+                options={orgs.data}
+                loading={orgs.isLoading}
+              />
+            )}
+          />
+        )}
+      </Form.Item>
+    ) : null;
+
   return (
     <div className="p-2">
       <FormProvider {...methods}>
         <Form className={style.ticketForm} layout="vertical" onSubmitCapture={handleSubmit}>
-          {isCustomerSerivce && (
+          {isCustomerSerivce ? (
             <div className="px-4 pt-4 pb-[0.1px] mb-4 bg-gray-100">
               <Form.Item>
                 <Radio.Group
@@ -234,29 +255,11 @@ export function TicketForm({ loading, disabled, onSubmit }: TicketFormProps) {
                   )}
                 />
               ) : (
-                <>
-                  {orgs.data && orgs.data.length > 0 && (
-                    <Form.Item label="所属" htmlFor="ticket_org">
-                      {orgs.error ? (
-                        <Retry message="获取组织失败" error={orgs.error} onRetry={orgs.refetch} />
-                      ) : (
-                        <Controller
-                          name="organizationId"
-                          render={({ field }) => (
-                            <OrganizationSelect
-                              {...field}
-                              id="ticket_org"
-                              options={orgs.data}
-                              loading={orgs.isLoading}
-                            />
-                          )}
-                        />
-                      )}
-                    </Form.Item>
-                  )}
-                </>
+                organizationSelect
               )}
             </div>
+          ) : (
+            organizationSelect
           )}
 
           <MyInput name="title" label="标题" required />
