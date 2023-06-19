@@ -5,7 +5,7 @@ import { groupBy, keyBy, mapValues } from 'lodash-es';
 import { useCategories } from '@/api/category';
 import { Cascader, CascaderProps } from '@/components/antd';
 
-interface CategoryCascaderProps extends CascaderProps<DefaultOptionType> {
+type CategoryCascaderProps =  CascaderProps<DefaultOptionType> & {
   categoryId?: string;
 }
 

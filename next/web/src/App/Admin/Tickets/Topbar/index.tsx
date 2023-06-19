@@ -168,7 +168,11 @@ function Pagination({
         min={1}
         max={Math.ceil((totalCount ?? Number.MAX_SAFE_INTEGER) / pageSize)}
         value={page}
-        onChange={onChangePage}
+        onChange={(v) => {
+          if (v !== null) {
+            onChangePage(v)
+          }
+        }}
       />
       <NavButton
         className="px-[7px] py-[7px] rounded-l-none"
