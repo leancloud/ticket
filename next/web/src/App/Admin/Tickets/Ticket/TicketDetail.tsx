@@ -117,6 +117,7 @@ export function TicketDetail() {
                   createTime={ticket.createdAt}
                   content={ticket.contentSafeHTML}
                   files={ticket.files}
+                  isTicket
                 />
               }
               replies={replies}

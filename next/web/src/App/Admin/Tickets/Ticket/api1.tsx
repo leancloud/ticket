@@ -1,4 +1,5 @@
 import { useMutation, UseMutationOptions, useQuery, UseQueryOptions } from 'react-query';
+import { compact, uniq } from 'lodash-es';
 
 import { http } from '@/leancloud';
 
@@ -68,5 +69,30 @@ export function useTicketFields_v1(
       return res.data;
     },
     ...options,
+  });
+}
+
+async function translate(texts: string[]) {
+  const filteredTexts = uniq(compact(texts.map((t) => t.trim())));
+  if (filteredTexts.length === 0) {
+    return texts;
+  }
+  const { data } = await http.post<{ result: string[] }>('/api/1/translate', {
+    text: filteredTexts.join('\n'),
+  });
+  const resultMap = filteredTexts.reduce<Record<string, string>>((map, text, i) => {
+    if (i < data.result.length) {
+      map[text] = data.result[i];
+    }
+    return map;
+  }, {});
+  return texts.map((text) => resultMap[text] ?? text);
+}
+
+export function useTranslation_v1(texts: string[]) {
+  return useQuery({
+    queryKey: ['Translation', texts],
+    queryFn: () => translate(texts),
+    enabled: texts.length > 0,
   });
 }

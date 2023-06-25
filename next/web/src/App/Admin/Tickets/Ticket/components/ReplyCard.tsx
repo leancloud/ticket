@@ -1,11 +1,15 @@
-import { ReactNode, useEffect, useMemo, useRef } from 'react';
+import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AiOutlinePaperClip } from 'react-icons/ai';
-import { Image } from 'antd';
+import { BsThreeDots } from 'react-icons/bs';
+import { useToggle } from 'react-use';
+import { Dropdown, Image } from 'antd';
+import { ItemType } from 'antd/lib/menu/hooks/useItems';
 import { partition } from 'lodash-es';
 import cx from 'classnames';
 
 import { Time } from './Time';
+import { useTranslation_v1 } from '../api1';
 
 const IMAGE_FILE_MIMES = ['image/png', 'image/jpeg', 'image/gif'];
 
@@ -24,6 +28,7 @@ interface ReplyCardProps {
   files?: FileInfo[];
   isAgent?: boolean;
   isInternal?: boolean;
+  isTicket?: boolean;
 }
 
 export function ReplyCard({
@@ -34,6 +39,7 @@ export function ReplyCard({
   files,
   isAgent,
   isInternal,
+  isTicket,
 }: ReplyCardProps) {
   const [imageFiles, otherFiles] = useMemo(() => {
     if (!files) {
@@ -43,6 +49,33 @@ export function ReplyCard({
   }, [files]);
 
   const { ref, isActive } = useAutoScrollIntoView(id);
+
+  const [translation, toggleTranslation] = useToggle(false);
+
+  const menuItems = useMemo(() => {
+    const items: ItemType[] = [
+      { label: '复制链接', key: 'copyLink', disabled: true },
+      { label: '翻译', key: 'translate' },
+    ];
+    if (!isTicket) {
+      items.push(
+        { type: 'divider' },
+        { label: '编辑', key: 'edit', disabled: true },
+        { label: '历史', key: 'revision', disabled: true },
+        { type: 'divider' },
+        { label: '删除', key: 'delete', danger: true, disabled: true }
+      );
+    }
+    return items;
+  }, [isTicket]);
+
+  const handleClickMenu = ({ key }: { key: string }) => {
+    switch (key) {
+      case 'translate':
+        toggleTranslation();
+        break;
+    }
+  };
 
   return (
     <div
@@ -70,9 +103,21 @@ export function ReplyCard({
         <div className="grow" />
         {isAgent && <ReplyTag content="客服" isInternal={isInternal} />}
         {isInternal && <ReplyTag content="内部" isInternal />}
+        <Dropdown
+          trigger={['click']}
+          placement="bottomRight"
+          menu={{ items: menuItems, onClick: handleClickMenu }}
+          getPopupContainer={() => ref.current!}
+        >
+          <button className="ml-2">
+            <BsThreeDots className="w-4 h-4" />
+          </button>
+        </Dropdown>
       </div>
       <div className="p-[15px]">
-        <ReplyContent htmlContent={content} />
+        <Translation enabled={translation}>
+          <ReplyContent htmlContent={content} />
+        </Translation>
         {imageFiles.length > 0 && (
           <>
             <hr className="my-4" />
@@ -201,4 +246,62 @@ function useAutoScrollIntoView(id: string) {
   });
 
   return { ref, isActive };
+}
+
+interface TranslationNode {
+  node: Node;
+  text: string;
+}
+
+function getTranslationNodes(root: Node) {
+  const queue = [root];
+  const nodes: TranslationNode[] = [];
+  while (queue.length) {
+    const node = queue.shift()!;
+    if (node instanceof Element && node.tagName === 'CODE') {
+      continue;
+    }
+    if (node.nodeType === Node.TEXT_NODE && node.textContent) {
+      const trimedContent = node.textContent.trim();
+      if (trimedContent) {
+        nodes.push({ node, text: trimedContent });
+      }
+    }
+    node.childNodes.forEach((child) => queue.push(child));
+  }
+  return nodes;
+}
+
+interface TranslationProps {
+  children: ReactNode;
+  enabled: boolean;
+}
+
+function Translation({ children, enabled }: TranslationProps) {
+  const container = useRef<HTMLDivElement>(null!);
+  const nodes = useRef<TranslationNode[]>([]);
+  const [texts, setTexts] = useState<string[]>([]);
+
+  const { data: translation } = useTranslation_v1(texts);
+
+  useEffect(() => {
+    if (enabled) {
+      nodes.current = getTranslationNodes(container.current);
+      setTexts(nodes.current.map((node) => node.text));
+    } else {
+      nodes.current.forEach(({ node, text }) => (node.textContent = text));
+    }
+  }, [enabled]);
+
+  useEffect(() => {
+    if (enabled && translation) {
+      translation.forEach((text, i) => {
+        if (i < nodes.current.length) {
+          nodes.current[i].node.textContent = text;
+        }
+      });
+    }
+  }, [enabled, translation]);
+
+  return <div ref={container}>{children}</div>;
 }
