@@ -70,7 +70,7 @@ const columns: TableProps<GroupSchema>['columns'] = [
   {
     key: 'actions',
     title: '操作',
-    render: GroupActions,
+    render: (group: GroupSchema) => <GroupActions {...group} />,
   },
 ];
 
