@@ -1,12 +1,13 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { Link } from 'react-router-dom';
 import { useQueries, useQueryClient } from 'react-query';
 import { AiOutlinePlus } from 'react-icons/ai';
+import { RcFile } from 'antd/lib/upload';
 
 import { storage } from '@/leancloud';
 import { fetchFile, FileSchema } from '@/api/file';
 import { Button, Divider, Form, Input, Select, Upload } from '@/components/antd';
-import { Link } from 'react-router-dom';
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -47,7 +48,7 @@ function Files({ value: fileIds = [], onChange }: FilesProps) {
     return uploadingFiles;
   }, [uploadedFiles, uploadingFiles]);
 
-  const updateUploadingStatus = useCallback((uid: string, data: any) => {
+  const updateUploadingStatus = (uid: string, data: any) => {
     setUploadingFiles((prev) => {
       const index = prev.findIndex((f) => f.uid === uid);
       if (index === -1) {
@@ -55,43 +56,37 @@ function Files({ value: fileIds = [], onChange }: FilesProps) {
       }
       return [...prev.slice(0, index), { ...prev[index], ...data }, ...prev.slice(index + 1)];
     });
-  }, []);
+  };
 
   const queryClient = useQueryClient();
 
-  const handleUpload = useCallback(
-    async (file) => {
-      setUploadingFiles((prev) => [
-        ...prev,
-        { uid: file.uid, name: file.name, status: 'uploading' },
-      ]);
+  const handleUpload = async (file: RcFile) => {
+    setUploadingFiles((prev) => [...prev, { uid: file.uid, name: file.name, status: 'uploading' }]);
 
-      try {
-        const uploadedFile = await storage.upload(file.name, file, {
-          onProgress: ({ percent }) => {
-            if (percent) {
-              updateUploadingStatus(file.uid, { percent });
-            }
-          },
-        });
+    try {
+      const uploadedFile = await storage.upload(file.name, file, {
+        onProgress: ({ percent }) => {
+          if (percent) {
+            updateUploadingStatus(file.uid, { percent });
+          }
+        },
+      });
 
-        queryClient.setQueryData<FileSchema>(['file', uploadedFile.id], {
-          id: uploadedFile.id,
-          name: uploadedFile.name,
-          mime: uploadedFile.mime,
-          url: uploadedFile.url,
-        });
+      queryClient.setQueryData<FileSchema>(['file', uploadedFile.id], {
+        id: uploadedFile.id,
+        name: uploadedFile.name,
+        mime: uploadedFile.mime,
+        url: uploadedFile.url,
+      });
 
-        setUploadingFiles((prev) => prev.filter((f) => f.uid !== file.uid));
-        onChange([...fileIds, uploadedFile.id]);
-      } catch {
-        updateUploadingStatus(file.uid, { status: 'error' });
-      }
+      setUploadingFiles((prev) => prev.filter((f) => f.uid !== file.uid));
+      onChange([...fileIds, uploadedFile.id]);
+    } catch {
+      updateUploadingStatus(file.uid, { status: 'error' });
+    }
 
-      return false;
-    },
-    [onChange]
-  );
+    return false;
+  };
 
   return (
     <Upload

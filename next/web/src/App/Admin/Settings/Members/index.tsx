@@ -1,26 +1,17 @@
-import {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { useQueryClient } from 'react-query';
 
 import {
   CSRole,
   CustomerServiceSchema,
   RoleNameMap,
-  UpdateCustomerServiceData,
   useAddCustomerService,
   useAdmins,
   useCustomerServices,
   useDeleteCustomerService,
   useUpdateCustomerService,
 } from '@/api/customer-service';
-import { Button, Modal, Popover, Table, TableProps, message } from '@/components/antd';
+import { Button, Modal, Popover, Table, message } from '@/components/antd';
 import { Category, Retry, UserSelect } from '@/components/common';
 import { UserLabel } from '@/App/Admin/components';
 import { groupBy, sortBy } from 'lodash-es';
@@ -50,23 +41,23 @@ function MemberActions({
     },
   });
 
-  const handleToggleActive = useCallback(() => {
+  const handleToggleActive = () => {
     Modal.confirm({
       title: `${active ? '禁用' : '启用'}客服`,
       content: `是否将 ${nickname} ${active ? '禁用' : '启用'}`,
       okType: 'danger',
       onOk: () => update({ id, active: !active }),
     });
-  }, [update, id, active, nickname]);
+  };
 
-  const handleDelete = useCallback(() => {
+  const handleDelete = () => {
     Modal.confirm({
       title: '移除客服',
       content: `是否将 ${nickname} 从客服中移除？移除可能会导致用户相关数据丢失`,
       okType: 'danger',
       onOk: () => mutate(id),
     });
-  }, [id, mutate, nickname]);
+  };
 
   return (
     <div>
@@ -119,15 +110,11 @@ function AddUserModal({ visible, onHide }: AddUserModalProps) {
     },
   });
 
-  const handleAdd = useCallback(() => {
-    mutate({ userId: userId!, roles });
-  }, [mutate, userId, roles]);
-
   return (
     <Modal
       visible={visible}
       title="添加客服"
-      onOk={handleAdd}
+      onOk={() => mutate({ userId: userId!, roles })}
       confirmLoading={isLoading}
       okButtonProps={{ disabled: isLoading || !userId || !roles.length }}
       onCancel={() => onHide()}
@@ -156,13 +143,13 @@ const EditUserModal = forwardRef<EditUserModalRef>((_, ref) => {
 
   const queryClient = useQueryClient();
 
-  const handleOpen = useCallback<EditUserModalRef['open']>((id, roles) => {
-    setUserId(id);
-    setRoles(roles);
-    setVisible(true);
-  }, []);
-
-  useImperativeHandle(ref, () => ({ open: handleOpen }), [handleOpen]);
+  useImperativeHandle(ref, () => ({
+    open: (id, roles) => {
+      setUserId(id);
+      setRoles(roles);
+      setVisible(true);
+    },
+  }));
 
   const { mutate: update, isLoading: isUpdating } = useUpdateCustomerService({
     onSuccess: () => {
@@ -173,20 +160,14 @@ const EditUserModal = forwardRef<EditUserModalRef>((_, ref) => {
     },
   });
 
-  const handleUpdate = useCallback(() => {
-    update({ id: userId!, roles });
-  }, [roles, update, userId]);
-
-  const handleCancel = useCallback(() => setVisible(false), []);
-
   return (
     <Modal
       visible={visible}
       title="更新客服"
-      onOk={handleUpdate}
+      onOk={() => update({ id: userId!, roles })}
       confirmLoading={isUpdating}
       okButtonProps={{ disabled: isUpdating || !userId || roles?.length === 0 }}
-      onCancel={handleCancel}
+      onCancel={() => setVisible(false)}
       cancelButtonProps={{ disabled: isUpdating }}
     >
       <RoleCheckboxGroup value={roles} onChange={(v) => setRoles(v as CSRole[])} />
@@ -198,10 +179,12 @@ interface CustomerService extends CustomerServiceSchema {
   roles: CSRole[];
 }
 
-const appendRoles = (roles: CSRole[]) => (user: CustomerServiceSchema): CustomerService => ({
-  ...user,
-  roles: roles,
-});
+const appendRoles =
+  (roles: CSRole[]) =>
+  (user: CustomerServiceSchema): CustomerService => ({
+    ...user,
+    roles: roles,
+  });
 
 export function Members() {
   const customerServiceResult = useCustomerServices();

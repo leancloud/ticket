@@ -1,4 +1,4 @@
-import React, { FC, PropsWithChildren, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { FC, PropsWithChildren, useEffect, useMemo, useState } from 'react';
 import cx from 'classnames';
 
 import { Button, Input, Tabs } from '@/components/antd';
@@ -198,10 +198,10 @@ export const FilterForm: FC<FilterFormProps> = ({ className, filters, onChange }
     setIsDirty(false);
   }, [filters]);
 
-  const merge = useCallback((filters: Omit<Filters, 'type'>) => {
+  const merge = (filters: Omit<Filters, 'type'>) => {
     setTempFilters((prev) => ({ ...prev, ...filters }));
     setIsDirty(true);
-  }, []);
+  };
 
   const handleChange = () => {
     onChange({ ...tempFilters, type: active });

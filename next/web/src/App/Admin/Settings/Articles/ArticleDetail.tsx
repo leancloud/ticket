@@ -1,4 +1,4 @@
-import { FC, useCallback, useMemo, useState } from 'react';
+import { FC, useMemo, useState } from 'react';
 import { useQueryClient } from 'react-query';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
@@ -41,21 +41,19 @@ const ArticleTranslationList: FC<ArticleTranslationListProps> = ({
 
   const [show, setShow] = useState(false);
 
-  const existLanguages = useMemo(() => translations?.map(({ language }) => language) ?? [], [
-    translations,
-  ]);
-
-  const handleDelete = useCallback(
-    (language: string) => {
-      Modal.confirm({
-        title: '删除翻译',
-        content: `是否删除 ${LOCALES[language]} 翻译？`,
-        okType: 'danger',
-        onOk: () => deleteArticle({ id: articleId, language }),
-      });
-    },
-    [articleId, deleteArticle]
+  const existLanguages = useMemo(
+    () => translations?.map(({ language }) => language) ?? [],
+    [translations]
   );
+
+  const handleDelete = (language: string) => {
+    Modal.confirm({
+      title: '删除翻译',
+      content: `是否删除 ${LOCALES[language]} 翻译？`,
+      okType: 'danger',
+      onOk: () => deleteArticle({ id: articleId, language }),
+    });
+  };
 
   return (
     <>

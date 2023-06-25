@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQueryClient, useMutation } from 'react-query';
 import { AiOutlineSetting } from 'react-icons/ai';
@@ -43,21 +43,18 @@ interface TriggerItemProps {
 function TriggerItem({ trigger, number, onDelete }: TriggerItemProps) {
   const queryClient = useQueryClient();
 
-  const updateActive = useCallback(
-    (triggerId: string, active: boolean) => {
-      queryClient.setQueryData<TriggerData[] | undefined>('triggers', (data) => {
-        if (data) {
-          return produce(data, (draft) => {
-            const target = draft.find((t) => t.id === triggerId);
-            if (target) {
-              target.active = active;
-            }
-          });
-        }
-      });
-    },
-    [queryClient]
-  );
+  const updateActive = (triggerId: string, active: boolean) => {
+    queryClient.setQueryData<TriggerData[] | undefined>('triggers', (data) => {
+      if (data) {
+        return produce(data, (draft) => {
+          const target = draft.find((t) => t.id === triggerId);
+          if (target) {
+            target.active = active;
+          }
+        });
+      }
+    });
+  };
 
   const { mutate, isLoading } = useMutation({
     mutationFn: (active: boolean) => updateTrigger(trigger.id, { active }),
@@ -117,17 +114,14 @@ function TriggerList({ triggers }: { triggers: TriggerData[] }) {
     },
   });
 
-  const handleDelete = useCallback(
-    ({ id }: TriggerData) => {
-      Modal.confirm({
-        title: '删除触发器',
-        content: `确定要删除触发器吗？`,
-        okType: 'danger',
-        onOk: () => remove(id),
-      });
-    },
-    [remove]
-  );
+  const handleDelete = ({ id }: TriggerData) => {
+    Modal.confirm({
+      title: '删除触发器',
+      content: `确定要删除触发器吗？`,
+      okType: 'danger',
+      onOk: () => remove(id),
+    });
+  };
 
   return (
     <div>

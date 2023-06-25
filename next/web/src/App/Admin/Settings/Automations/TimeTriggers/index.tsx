@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQueryClient } from 'react-query';
 import { AiOutlineSetting } from 'react-icons/ai';
@@ -44,21 +44,18 @@ interface TimeTriggerItemProps {
 function TimeTriggerItem({ data, number, onDelete }: TimeTriggerItemProps) {
   const queryClient = useQueryClient();
 
-  const updateActive = useCallback(
-    (triggerId: string, active: boolean) => {
-      queryClient.setQueryData<TimeTriggerSchema[] | undefined>('time-triggers', (data) => {
-        if (data) {
-          return produce(data, (draft) => {
-            const target = draft.find((t) => t.id === triggerId);
-            if (target) {
-              target.active = active;
-            }
-          });
-        }
-      });
-    },
-    [queryClient]
-  );
+  const updateActive = (triggerId: string, active: boolean) => {
+    queryClient.setQueryData<TimeTriggerSchema[] | undefined>('time-triggers', (data) => {
+      if (data) {
+        return produce(data, (draft) => {
+          const target = draft.find((t) => t.id === triggerId);
+          if (target) {
+            target.active = active;
+          }
+        });
+      }
+    });
+  };
 
   const { mutate, isLoading } = useMutation({
     mutationFn: (active: boolean) => updateTimeTrigger(data.id, { active }),
@@ -118,17 +115,14 @@ function TimeTriggerList({ data }: { data: TimeTriggerSchema[] }) {
     },
   });
 
-  const handleDelete = useCallback(
-    (id: string) => {
-      Modal.confirm({
-        title: '删除触发器',
-        content: `确定要删除触发器吗？`,
-        okType: 'danger',
-        onOk: () => remove(id),
-      });
-    },
-    [remove]
-  );
+  const handleDelete = (id: string) => {
+    Modal.confirm({
+      title: '删除触发器',
+      content: `确定要删除触发器吗？`,
+      okType: 'danger',
+      onOk: () => remove(id),
+    });
+  };
 
   return (
     <div>

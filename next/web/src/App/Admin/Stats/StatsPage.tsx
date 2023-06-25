@@ -1,4 +1,4 @@
-import { FunctionComponent, useCallback, useMemo, useRef, useState } from 'react';
+import { FunctionComponent, useMemo, useRef, useState } from 'react';
 import classnames from 'classnames';
 import { Statistic, Card, Divider, Radio, DatePicker } from '@/components/antd';
 import { CategorySelect } from '@/components/common';
@@ -23,9 +23,9 @@ export const STATS_FIELD = [
   'dislikeCount',
 ] as const;
 export const NO_DETAIL_STATS_FIELD = ['likeRate', 'dislikeRate'] as const;
-export type StatsField = typeof STATS_FIELD[number];
+export type StatsField = (typeof STATS_FIELD)[number];
 export const STATS_FIELD_LOCALE: Record<
-  StatsField | typeof NO_DETAIL_STATS_FIELD[number],
+  StatsField | (typeof NO_DETAIL_STATS_FIELD)[number],
   string
 > = {
   created: '新建工单',
@@ -139,7 +139,11 @@ const StatCards = () => {
   const params = useStatsParams();
   const [active, setActive] = useActiveField();
   const { data, isFetching, isLoading } = useTicketStats(params);
-  const { data: count, isFetching: countFetching, isLoading: countLoading } = useTicketCount({
+  const {
+    data: count,
+    isFetching: countFetching,
+    isLoading: countLoading,
+  } = useTicketCount({
     from: params.from,
     to: params.to,
   });
@@ -163,7 +167,7 @@ const StatCards = () => {
     };
   }, [data]);
 
-  const getExtraProps = useCallback((field: StatsField | typeof NO_DETAIL_STATS_FIELD[number]) => {
+  const getExtraProps = (field: StatsField | (typeof NO_DETAIL_STATS_FIELD)[number]) => {
     if (['replyTimeAVG', 'firstReplyTimeAVG', 'naturalReplyTimeAVG'].includes(field)) {
       return {
         formatter: (value: number | string) => (Number(value) / 3600).toFixed(2),
@@ -177,7 +181,7 @@ const StatCards = () => {
       };
     }
     return {};
-  }, []);
+  };
 
   return (
     <div className="flex flex-wrap -m-1">

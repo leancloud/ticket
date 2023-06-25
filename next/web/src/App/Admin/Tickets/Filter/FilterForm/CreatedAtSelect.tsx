@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import moment, { Moment } from 'moment';
 
 import { DatePicker, Select } from '@/components/antd';
@@ -33,29 +33,23 @@ export function CreatedAtSelect({ value, onChange, disabled }: CreatedAtSelectPr
 
   const [rangeMode, setRangeMode] = useState(rangeValue !== undefined);
 
-  const handleChange = useCallback(
-    (value: string) => {
-      if (value === RANGE_VALUE) {
-        setRangeMode(true);
-        return;
-      }
-      setRangeMode(false);
-      onChange(value === EMPTY_VALUE ? undefined : value);
-    },
-    [onChange]
-  );
+  const handleChange = (value: string) => {
+    if (value === RANGE_VALUE) {
+      setRangeMode(true);
+      return;
+    }
+    setRangeMode(false);
+    onChange(value === EMPTY_VALUE ? undefined : value);
+  };
 
-  const handleChangeRange = useCallback(
-    (range: [Moment, Moment] | null) => {
-      if (!range) {
-        onChange(undefined);
-        return;
-      }
-      const [starts, ends] = range;
-      onChange(`${starts.toISOString()}..${ends.toISOString()}`);
-    },
-    [onChange]
-  );
+  const handleChangeRange = (range: [Moment, Moment] | null) => {
+    if (!range) {
+      onChange(undefined);
+      return;
+    }
+    const [starts, ends] = range;
+    onChange(`${starts.toISOString()}..${ends.toISOString()}`);
+  };
 
   const showRangePicker = rangeMode || rangeValue !== undefined;
   return (

@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { HiChevronDown } from 'react-icons/hi';
 
@@ -24,25 +24,21 @@ export function useOrderBy() {
 export function SortDropdown({ disabled }: { disabled?: boolean }) {
   const { orderKey, orderType, setOrderKey, setOrderType } = useOrderBy();
 
-  const handleSelect = useCallback(
-    (eventKey: string) => {
-      if (eventKey === 'asc' || eventKey === 'desc') {
-        setOrderType(eventKey);
-      } else {
-        setOrderKey(eventKey);
-      }
-    },
-    [setOrderKey, setOrderType]
-  );
+  const handleSelect = (eventKey: string) => {
+    if (eventKey === 'asc' || eventKey === 'desc') {
+      setOrderType(eventKey);
+    } else {
+      setOrderKey(eventKey);
+    }
+  };
 
   const limitedSorter = useSorterLimited();
   const [type] = useTicketSwitchType();
 
-  const disabled_ = useMemo(() => disabled || limitedSorter || type === 'processable', [
-    limitedSorter,
-    type,
-    disabled,
-  ]);
+  const disabled_ = useMemo(
+    () => disabled || limitedSorter || type === 'processable',
+    [limitedSorter, type, disabled]
+  );
 
   return (
     <Menu as="span" className="relative">

@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useCallback, useContext, useMemo } from 'react';
+import { createContext, ReactNode, useContext, useMemo } from 'react';
 import _ from 'lodash';
 import { useSearchParams } from '@/utils/useSearchParams';
 
@@ -105,12 +105,9 @@ export function LocalFiltersProvider({ children }: { children: ReactNode }) {
 
   const filters = useMemo(() => deserializeFilters(params), [params]);
 
-  const set = useCallback(
-    (filters: Filters) => {
-      merge(serializeFilters(filters));
-    },
-    [merge]
-  );
+  const set = (filters: Filters) => {
+    merge(serializeFilters(filters));
+  };
 
   return <FiltersContext.Provider value={[filters, set]}>{children}</FiltersContext.Provider>;
 }

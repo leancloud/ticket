@@ -1,13 +1,4 @@
-import {
-  FC,
-  forwardRef,
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { FC, forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { useQueryClient } from 'react-query';
 import {
@@ -363,17 +354,17 @@ export function CategoryList() {
 
   const { data: categories, isFetching } = useCategories();
 
-  const expandAll = useCallback(() => {
+  const expandAll = () => {
     if (categories) {
       setExpendedRowKeys(categories.map((c) => c.id));
     }
-  }, [categories]);
+  };
 
   useEffect(() => {
     if (categories && !expendedRowKeys) {
-      expandAll();
+      setExpendedRowKeys(categories.map((c) => c.id));
     }
-  }, [categories, expendedRowKeys, expandAll]);
+  }, [categories, expendedRowKeys]);
 
   const filteredCategories = useMemo(() => {
     if (categories) {

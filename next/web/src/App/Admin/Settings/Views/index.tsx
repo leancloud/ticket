@@ -1,4 +1,4 @@
-import { ComponentPropsWithoutRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ComponentPropsWithoutRef, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQueryClient, useMutation } from 'react-query';
 import { AiOutlineCheck, AiOutlineSearch } from 'react-icons/ai';
@@ -92,14 +92,14 @@ function ListMenu({ view, sortable, onMove, onMoveToTop, onMoveToBottom }: ListM
     },
   });
 
-  const handleDelete = useCallback(() => {
+  const handleDelete = () => {
     Modal.confirm({
       title: `删除视图「${view.title}」`,
       content: '该操作不可恢复',
       okType: 'danger',
       onOk: () => remove(),
     });
-  }, [view, remove]);
+  };
 
   return (
     <Menu>
@@ -209,7 +209,11 @@ export function ViewList() {
   const currentUser = useCurrentUser();
   const [visibility, setVisibility] = useState('shared');
 
-  const { data: views, isLoading, isFetching } = useViews({
+  const {
+    data: views,
+    isLoading,
+    isFetching,
+  } = useViews({
     userIds: visibility === 'personal' ? [currentUser!.id] : ['null'],
     groupIds: visibility !== 'shared' && visibility !== 'personal' ? [visibility] : undefined,
   });
@@ -233,38 +237,29 @@ export function ViewList() {
     },
   });
 
-  const handleMoveToTop = useCallback(
-    (view: ViewSchema) => {
-      reorder([view.id, ...views!.filter((v) => v.id !== view.id).map((v) => v.id)]);
-    },
-    [views]
-  );
+  const handleMoveToTop = (view: ViewSchema) => {
+    reorder([view.id, ...views!.filter((v) => v.id !== view.id).map((v) => v.id)]);
+  };
 
-  const handleMoveToBottom = useCallback(
-    (view: ViewSchema) => {
-      reorder([...views!.filter((v) => v.id !== view.id).map((v) => v.id), view.id]);
-    },
-    [views]
-  );
+  const handleMoveToBottom = (view: ViewSchema) => {
+    reorder([...views!.filter((v) => v.id !== view.id).map((v) => v.id), view.id]);
+  };
 
   const [movingViewId, setMovingViewId] = useState<string>();
-  const handleMove = useCallback(
-    (nextViewId: string) => {
-      const ids: string[] = [];
-      views!.forEach((v) => {
-        if (v.id === movingViewId) {
-          return;
-        }
-        if (v.id === nextViewId) {
-          ids.push(movingViewId!);
-        }
-        ids.push(v.id);
-      });
-      reorder(ids);
-      setMovingViewId(undefined);
-    },
-    [views, movingViewId]
-  );
+  const handleMove = (nextViewId: string) => {
+    const ids: string[] = [];
+    views!.forEach((v) => {
+      if (v.id === movingViewId) {
+        return;
+      }
+      if (v.id === nextViewId) {
+        ids.push(movingViewId!);
+      }
+      ids.push(v.id);
+    });
+    reorder(ids);
+    setMovingViewId(undefined);
+  };
 
   const sortable =
     views !== undefined &&

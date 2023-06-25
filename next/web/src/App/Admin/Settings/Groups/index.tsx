@@ -1,4 +1,3 @@
-import { useCallback } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Controller, useForm } from 'react-hook-form';
 import { useQueryClient } from 'react-query';
@@ -8,7 +7,6 @@ import { useCustomerServices } from '@/api/customer-service';
 import {
   CreateGroupData,
   GroupSchema,
-  UpdateGroupData,
   useCreateGroup,
   useDeleteGroup,
   useGroup,
@@ -38,13 +36,13 @@ function GroupActions({ id, name }: GroupSchema) {
     },
   });
 
-  const handleDelete = useCallback(() => {
+  const handleDelete = () => {
     Modal.confirm({
       title: '删除客服组',
       content: `确定删除客服组 ${name} ？`,
       onOk: () => mutate(id),
     });
-  }, [id, mutate]);
+  };
 
   return (
     <div>
@@ -227,16 +225,11 @@ export function GroupDetail() {
     },
   });
 
-  const handleUpdate = useCallback(
-    (data: UpdateGroupData) => {
-      mutate([id!, data]);
-    },
-    [id, mutate]
-  );
-
   return (
     <QueryResult className="p-10" result={groupResult}>
-      {({ data }) => <EditGroup initData={data} loading={isLoading} onSave={handleUpdate} />}
+      {({ data }) => (
+        <EditGroup initData={data} loading={isLoading} onSave={(data) => mutate([id!, data])} />
+      )}
     </QueryResult>
   );
 }
