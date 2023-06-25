@@ -1,7 +1,10 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { isEmpty, pick } from 'lodash-es';
+import { LCObject } from 'open-leancloud-storage/core';
 
+import { db } from '@/leancloud';
 import { TicketDetailSchema, UpdateTicketData, useTicket, useUpdateTicket } from '@/api/ticket';
+import { useCurrentRef } from '@/utils/useCurrentRef';
 import { Ticket_v1, UpdateTicket_v1Data, useTicket_v1, useUpdateTicket_v1 } from './api1';
 
 interface MixedTicket {
@@ -113,6 +116,34 @@ export function useMixedTicket(ticketId: string): UseMixedTicketResult {
       updateTicket_v1([ticket.id, updateData_v1]);
     }
   };
+
+  const onUpdate = useCurrentRef((ticketObj: LCObject) => {
+    if (!ticket) {
+      return;
+    }
+    if (new Date(ticketObj.updatedAt) > new Date(ticket.updatedAt)) {
+      refetch();
+      refetch_v1();
+    }
+  });
+
+  useEffect(() => {
+    if (!ticket) {
+      return;
+    }
+    let mounted = true;
+    const subscription = db.query('Ticket').where('objectId', '==', ticket.id).subscribe();
+    subscription.then((s) => {
+      if (mounted) {
+        s.on('update', (o) => onUpdate.current(o));
+      }
+    });
+
+    return () => {
+      subscription.then((s) => s.unsubscribe());
+      mounted = false;
+    };
+  }, [ticket?.id]);
 
   return {
     ticket: mixedTicket,
