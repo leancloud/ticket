@@ -11,7 +11,7 @@ export function useModal({ props, render }: UseModalOptions) {
   const [open, toggle] = useToggle(false);
 
   const modal = (
-    <Modal visible={open} onOk={toggle} onCancel={toggle} {...props}>
+    <Modal open={open} onOk={toggle} onCancel={toggle} {...props}>
       {open && render()}
     </Modal>
   );
