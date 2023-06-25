@@ -121,7 +121,7 @@ const columns: TableProps<VacationSchema>['columns'] = [
   {
     key: 'actions',
     title: '操作',
-    render: VacationActions,
+    render: (vacation: VacationSchema) => <VacationActions {...vacation} />,
   },
 ];
 
