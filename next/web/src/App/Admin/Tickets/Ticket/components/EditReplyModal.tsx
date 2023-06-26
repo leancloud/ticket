@@ -26,7 +26,9 @@ export const EditReplyModal = forwardRef<EditReplyModalRef, EditReplyModalProps>
         setOpen(true);
         setReplyId(reply.id);
         setContent(reply.content);
-        uploaderRef.current?.reset(reply.files);
+        setTimeout(() => {
+          uploaderRef.current.reset(reply.files);
+        }, 100);
       } else {
         setOpen(false);
       }
