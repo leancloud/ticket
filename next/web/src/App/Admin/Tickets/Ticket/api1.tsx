@@ -75,18 +75,17 @@ export function useTicketFields_v1(
 async function translate(texts: string[]) {
   const filteredTexts = uniq(compact(texts.map((t) => t.trim())));
   if (filteredTexts.length === 0) {
-    return texts;
+    return {};
   }
   const { data } = await http.post<{ result: string[] }>('/api/1/translate', {
     text: filteredTexts.join('\n'),
   });
-  const resultMap = filteredTexts.reduce<Record<string, string>>((map, text, i) => {
+  return filteredTexts.reduce<Record<string, string>>((map, text, i) => {
     if (i < data.result.length) {
       map[text] = data.result[i];
     }
     return map;
   }, {});
-  return texts.map((text) => resultMap[text] ?? text);
 }
 
 export function useTranslation_v1(texts: string[]) {

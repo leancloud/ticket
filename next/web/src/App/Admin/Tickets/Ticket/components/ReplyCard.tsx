@@ -259,13 +259,11 @@ function getTranslationNodes(root: Node) {
   while (queue.length) {
     const node = queue.shift()!;
     if (node instanceof Element && node.tagName === 'CODE') {
+      // 不翻译 code 中的文本
       continue;
     }
     if (node.nodeType === Node.TEXT_NODE && node.textContent) {
-      const trimedContent = node.textContent.trim();
-      if (trimedContent) {
-        nodes.push({ node, text: trimedContent });
-      }
+      nodes.push({ node, text: node.textContent });
     }
     node.childNodes.forEach((child) => queue.push(child));
   }
@@ -282,7 +280,7 @@ function Translation({ children, enabled }: TranslationProps) {
   const nodes = useRef<TranslationNode[]>([]);
   const [texts, setTexts] = useState<string[]>([]);
 
-  const { data: translation } = useTranslation_v1(texts);
+  const { data: translations } = useTranslation_v1(texts);
 
   useEffect(() => {
     if (enabled) {
@@ -294,14 +292,15 @@ function Translation({ children, enabled }: TranslationProps) {
   }, [enabled]);
 
   useEffect(() => {
-    if (enabled && translation) {
-      translation.forEach((text, i) => {
-        if (i < nodes.current.length) {
-          nodes.current[i].node.textContent = text;
+    if (enabled && translations) {
+      for (const node of nodes.current) {
+        const translation = translations[node.text.trim()];
+        if (translation) {
+          node.node.textContent = translation;
         }
-      });
+      }
     }
-  }, [enabled, translation]);
+  }, [enabled, translations]);
 
   return <div ref={container}>{children}</div>;
 }
