@@ -145,42 +145,53 @@ function MarkdownEditor({
 
   return (
     <div className={className}>
-      <Tabs type="card">
-        <Tabs.TabPane tab="编辑" key="edit">
-          <Input.TextArea
-            autoSize
-            ref={(ref) => {
-              const el = ref?.resizableTextArea?.textArea;
-              if (el) {
-                editorHeight.current = el.offsetHeight;
-              }
-            }}
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.metaKey && e.key === 'Enter') {
-                onSubmit();
-              }
-            }}
-            disabled={disabled}
-            style={{
-              minHeight: 124,
-              backgroundColor: internal ? '#ffc10733' : '#fff',
-            }}
-          />
-        </Tabs.TabPane>
-        <Tabs.TabPane tab="预览" key="preview">
-          <div className="p-2" style={{ minHeight: editorHeight.current || 124 }}>
-            <ReactMarkdown
-              className="markdown-body"
-              linkTarget="_blank"
-              remarkPlugins={[remarkGfm]}
-            >
-              {value.trim() || '没有什么可以预览的'}
-            </ReactMarkdown>
-          </div>
-        </Tabs.TabPane>
-      </Tabs>
+      <Tabs
+        type="card"
+        items={[
+          {
+            key: 'edit',
+            label: '编辑',
+            children: (
+              <Input.TextArea
+                autoSize
+                ref={(ref) => {
+                  const el = ref?.resizableTextArea?.textArea;
+                  if (el) {
+                    editorHeight.current = el.offsetHeight;
+                  }
+                }}
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.metaKey && e.key === 'Enter') {
+                    onSubmit();
+                  }
+                }}
+                disabled={disabled}
+                style={{
+                  minHeight: 124,
+                  backgroundColor: internal ? '#ffc10733' : '#fff',
+                }}
+              />
+            ),
+          },
+          {
+            key: 'preview',
+            label: '预览',
+            children: (
+              <div className="p-2" style={{ minHeight: editorHeight.current || 124 }}>
+                <ReactMarkdown
+                  className="markdown-body"
+                  linkTarget="_blank"
+                  remarkPlugins={[remarkGfm]}
+                >
+                  {value.trim() || '没有什么可以预览的'}
+                </ReactMarkdown>
+              </div>
+            ),
+          },
+        ]}
+      />
     </div>
   );
 }
