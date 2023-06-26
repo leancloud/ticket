@@ -3,10 +3,9 @@ import { useMemo } from 'react';
 
 interface TimeProps {
   value: string;
-  href?: string;
 }
 
-export function Time({ value, href }: TimeProps) {
+export function Time({ value }: TimeProps) {
   const { content, title } = useMemo(() => {
     const v = moment(value);
     return {
@@ -15,13 +14,7 @@ export function Time({ value, href }: TimeProps) {
     };
   }, [value]);
 
-  return href ? (
-    <a className="text-inherit" href={href} title={title}>
-      {content}
-    </a>
-  ) : (
-    <span title={title}>{content}</span>
-  );
+  return <span title={title}>{content}</span>;
 }
 
 function getTimeContent(value: moment.Moment) {
