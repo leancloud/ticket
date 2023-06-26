@@ -148,7 +148,7 @@ export function ReplyCard({
 
   const menuItems = useMemo(() => {
     const items: ItemType[] = [
-      { label: '复制链接', key: 'copyLink', disabled: true },
+      { label: '复制链接', key: 'copyLink' },
       { label: '翻译', key: 'translate' },
     ];
     if (editable) {
@@ -164,6 +164,8 @@ export function ReplyCard({
   const handleClickMenu = ({ key }: { key: string }) => {
     if (key === 'translate') {
       toggleTranslation();
+    } else if (key === 'copyLink') {
+      navigator.clipboard.writeText(createLink(id));
     } else {
       onClickMenu?.(key);
     }
@@ -191,7 +193,7 @@ export function ReplyCard({
         <div className="flex flex-wrap items-center gap-1">
           {author}
           <span>提交于</span>
-          <Time value={createTime} href={`#${id}`} />
+          <Time value={createTime} />
           {edited && <EditedLabel onClick={() => onClickMenu?.('revisions')} />}
         </div>
       }
@@ -358,4 +360,11 @@ function Translation({ children, enabled }: TranslationProps) {
   }, [enabled, translations]);
 
   return <div ref={container}>{children}</div>;
+}
+
+function createLink(hash: string) {
+  const url = new URL(location.origin);
+  url.pathname = location.pathname;
+  url.hash = hash;
+  return url.toString();
 }
