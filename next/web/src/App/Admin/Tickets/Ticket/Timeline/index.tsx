@@ -1,7 +1,7 @@
 import { ReactNode, useMemo, useRef } from 'react';
-import { Skeleton } from 'antd';
+import { Modal, Skeleton } from 'antd';
 
-import { ReplySchema, useUpdateReply } from '@/api/reply';
+import { ReplySchema, useDeleteReply, useUpdateReply } from '@/api/reply';
 import { OpsLog as OpsLogSchema } from '@/api/ticket';
 import { UserLabel } from '@/App/Admin/components';
 import { ReplyCard } from '../components/ReplyCard';
@@ -27,9 +27,16 @@ interface TimelineProps {
   replies?: ReplySchema[];
   opsLogs?: OpsLogSchema[];
   onRefetchReplies: () => void;
+  onDeleteReply: (id: string) => void;
 }
 
-export function Timeline({ header, replies, opsLogs }: TimelineProps) {
+export function Timeline({
+  header,
+  replies,
+  opsLogs,
+  onRefetchReplies,
+  onDeleteReply,
+}: TimelineProps) {
   const timeline = useMemo(() => {
     const timeline: TimelineData[] = [];
     replies?.forEach((data) =>
@@ -49,6 +56,13 @@ export function Timeline({ header, replies, opsLogs }: TimelineProps) {
   const updateReply = useUpdateReply({
     onSuccess: () => {
       editReplyModalRef.current.toggle(undefined);
+      onRefetchReplies();
+    },
+  });
+
+  const deleteReply = useDeleteReply({
+    onSuccess: (data, id) => {
+      onDeleteReply(id);
     },
   });
 
@@ -59,6 +73,14 @@ export function Timeline({ header, replies, opsLogs }: TimelineProps) {
         break;
       case 'revisions':
         replyRevisionsModalRef.current.toggle(reply);
+        break;
+      case 'delete':
+        Modal.confirm({
+          title: '回复将被删除',
+          content: '已发送给用户的通知不会被撤回，用户可能已经阅读了该回复。',
+          okType: 'danger',
+          onOk: () => deleteReply.mutateAsync(reply.id),
+        });
         break;
     }
   };

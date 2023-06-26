@@ -57,3 +57,14 @@ export function useReplyRevisions(id: string, options?: UseQueryOptions<ReplyRev
     ...options,
   });
 }
+
+async function deleteReply(id: string) {
+  await http.delete(`/api/2/replies/${id}`);
+}
+
+export function useDeleteReply(options?: UseMutationOptions<void, Error, string>) {
+  return useMutation({
+    mutationFn: deleteReply,
+    ...options,
+  });
+}
