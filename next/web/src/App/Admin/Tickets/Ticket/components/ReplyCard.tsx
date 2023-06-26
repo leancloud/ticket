@@ -29,6 +29,7 @@ interface ReplyCardProps {
   isAgent?: boolean;
   isInternal?: boolean;
   editable?: boolean;
+  edited?: boolean;
   onClickMenu?: (key: string) => void;
 }
 
@@ -41,6 +42,7 @@ export function ReplyCard({
   isAgent,
   isInternal,
   editable,
+  edited,
   onClickMenu,
 }: ReplyCardProps) {
   const [imageFiles, otherFiles] = useMemo(() => {
@@ -60,16 +62,14 @@ export function ReplyCard({
       { label: '翻译', key: 'translate' },
     ];
     if (editable) {
-      items.push(
-        { type: 'divider' },
-        { label: '编辑', key: 'edit' },
-        { label: '历史', key: 'showRevisions' },
-        { type: 'divider' },
-        { label: '删除', key: 'delete', danger: true }
-      );
+      items.push({ type: 'divider' }, { label: '编辑', key: 'edit' });
+      if (edited) {
+        items.push({ label: '历史', key: 'showRevisions' });
+      }
+      items.push({ type: 'divider' }, { label: '删除', key: 'delete', danger: true });
     }
     return items;
-  }, [editable]);
+  }, [editable, edited]);
 
   const handleClickMenu = ({ key }: { key: string }) => {
     switch (key) {
@@ -107,6 +107,8 @@ export function ReplyCard({
         {author}
         <span>提交于</span>
         <Time value={createTime} href={`#${id}`} />
+        {edited && <span>(编辑过)</span>}
+
         <div className="grow" />
         {isAgent && <ReplyTag content="客服" isInternal={isInternal} />}
         {isInternal && <ReplyTag content="内部" isInternal />}
