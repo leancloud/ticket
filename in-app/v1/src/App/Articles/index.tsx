@@ -118,7 +118,7 @@ function ArticleDetail() {
       )}
       <PageHeader>{title}</PageHeader>
       {article && (
-        <PageContent className="py-0 px-0">
+        <PageContent padding={false}>
           <ArticleContent article={article} showTicketSubmit={isNotice && feedbackEnabled} />
         </PageContent>
       )}
@@ -143,7 +143,7 @@ export function ArticleContent({
       {showTitle && (
         <div className="py-3 border-b border-gray-100 text-center font-bold">{article?.title}</div>
       )}
-      <div className="pb-4 border-b border-gray-100">
+      <div className="p-4 border-b border-gray-100">
         <OpenInBrowser.Content
           className="text-[13px] mb-6 markdown-body"
           dangerouslySetInnerHTML={{ __html: article?.contentSafeHTML ?? '' }}
