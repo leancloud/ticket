@@ -7,6 +7,7 @@ import { UserLabel } from '@/App/Admin/components';
 import { ReplyCard } from '../components/ReplyCard';
 import { OpsLog } from '../components/OpsLog';
 import { EditReplyModal, EditReplyModalRef } from '../components/EditReplyModal';
+import { ReplyRevisionsModal, ReplyRevisionsModalRef } from '../components/ReplyRevisionsModal';
 import styles from './index.module.css';
 
 type TimelineData =
@@ -43,6 +44,7 @@ export function Timeline({ header, replies, opsLogs }: TimelineProps) {
   const loading = !replies && !opsLogs;
 
   const editReplyModalRef = useRef<EditReplyModalRef>(null!);
+  const replyRevisionsModalRef = useRef<ReplyRevisionsModalRef>(null!);
 
   const updateReply = useUpdateReply({
     onSuccess: () => {
@@ -54,6 +56,9 @@ export function Timeline({ header, replies, opsLogs }: TimelineProps) {
     switch (key) {
       case 'edit':
         editReplyModalRef.current.toggle(reply);
+        break;
+      case 'revisions':
+        replyRevisionsModalRef.current.toggle(reply);
         break;
     }
   };
@@ -89,6 +94,8 @@ export function Timeline({ header, replies, opsLogs }: TimelineProps) {
         loading={updateReply.isLoading}
         onSave={(id, content, fileIds) => updateReply.mutate([id, { content, fileIds }])}
       />
+
+      <ReplyRevisionsModal ref={replyRevisionsModalRef} />
     </div>
   );
 }

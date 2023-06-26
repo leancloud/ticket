@@ -20,7 +20,7 @@ interface FileInfo {
   url: string;
 }
 
-interface BasicReplyCardProps {
+export interface BasicReplyCardProps {
   id?: string;
   type?: 'primary' | 'internal';
   title?: ReactNode;
@@ -192,7 +192,7 @@ export function ReplyCard({
           {author}
           <span>提交于</span>
           <Time value={createTime} href={`#${id}`} />
-          {edited && <span>(编辑过)</span>}
+          {edited && <EditedLabel onClick={() => onClickMenu?.('revisions')} />}
         </div>
       }
       tags={tags}
@@ -207,11 +207,27 @@ export function ReplyCard({
   );
 }
 
+interface EditedLabelProps {
+  onClick?: () => void;
+}
+
+function EditedLabel({ onClick }: EditedLabelProps) {
+  return (
+    <span>
+      (
+      <a className="text-inherit" onClick={onClick}>
+        编辑过
+      </a>
+      )
+    </span>
+  );
+}
+
 interface ReplyContentProps {
   htmlContent?: string;
 }
 
-function ReplyContent({ htmlContent }: ReplyContentProps) {
+export function ReplyContent({ htmlContent }: ReplyContentProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
