@@ -5,7 +5,7 @@ import { Progress } from 'antd';
 import cx from 'classnames';
 
 import { storage } from '@/leancloud';
-import { fetchFiles } from '@/api/file';
+import { FileSchema, fetchFiles } from '@/api/file';
 
 const IMAGE_SUFFIX = ['.jpg', '.jpeg', '.png', '.gif'];
 
@@ -31,7 +31,7 @@ interface UploaderProps {
 
 export interface UploaderRef {
   getStatus: () => UploaderStatus;
-  reset: (defaultFileIds?: string[]) => void;
+  reset: (defaultFiles?: string[] | FileSchema[]) => void;
 }
 
 export const Uploader = forwardRef(
@@ -109,10 +109,21 @@ export const Uploader = forwardRef(
         }
         return status;
       },
-      reset: (defaultFileIds) => {
+      reset: (defaultFiles) => {
         setFileInfos([]);
-        if (defaultFileIds?.length) {
-          fetchDefaultFiles(defaultFileIds);
+        if (defaultFiles?.length) {
+          if (typeof defaultFiles[0] === 'string') {
+            fetchDefaultFiles(defaultFiles as string[]);
+          } else {
+            const fileInfos = (defaultFiles as FileSchema[]).map((file) => ({
+              uid: generateUid(),
+              id: file.id,
+              name: file.name,
+              thumbnailUrl: file.url,
+              url: file.url,
+            }));
+            setFileInfos(fileInfos);
+          }
         }
       },
     }));

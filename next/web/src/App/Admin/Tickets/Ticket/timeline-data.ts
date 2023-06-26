@@ -71,7 +71,12 @@ export function useTicketReplies(ticketId?: string) {
     };
   }, [ticketId]);
 
-  return { replies, fetchMoreReplies: fetchNextPage };
+  return {
+    replies,
+    fetchMoreReplies: fetchNextPage,
+    refetchReples: refetch,
+    deleteReply,
+  };
 }
 
 export function useTicketOpsLogs(ticketId?: string) {

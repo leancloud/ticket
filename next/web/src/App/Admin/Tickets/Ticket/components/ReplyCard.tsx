@@ -28,7 +28,8 @@ interface ReplyCardProps {
   files?: FileInfo[];
   isAgent?: boolean;
   isInternal?: boolean;
-  isTicket?: boolean;
+  editable?: boolean;
+  onClickMenu?: (key: string) => void;
 }
 
 export function ReplyCard({
@@ -39,7 +40,8 @@ export function ReplyCard({
   files,
   isAgent,
   isInternal,
-  isTicket,
+  editable,
+  onClickMenu,
 }: ReplyCardProps) {
   const [imageFiles, otherFiles] = useMemo(() => {
     if (!files) {
@@ -57,22 +59,27 @@ export function ReplyCard({
       { label: '复制链接', key: 'copyLink', disabled: true },
       { label: '翻译', key: 'translate' },
     ];
-    if (!isTicket) {
+    if (editable) {
       items.push(
         { type: 'divider' },
-        { label: '编辑', key: 'edit', disabled: true },
-        { label: '历史', key: 'revision', disabled: true },
+        { label: '编辑', key: 'edit' },
+        { label: '历史', key: 'showRevisions' },
         { type: 'divider' },
-        { label: '删除', key: 'delete', danger: true, disabled: true }
+        { label: '删除', key: 'delete', danger: true }
       );
     }
     return items;
-  }, [isTicket]);
+  }, [editable]);
 
   const handleClickMenu = ({ key }: { key: string }) => {
     switch (key) {
       case 'translate':
         toggleTranslation();
+        break;
+      case 'edit':
+      case 'showRevisions':
+      case 'delete':
+        onClickMenu?.(key);
         break;
     }
   };
