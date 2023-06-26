@@ -76,18 +76,22 @@ export const Uploader = forwardRef(
       }
     };
 
+    const setFiles = (files: FileSchema[]) => {
+      setFileInfos(
+        files.map((file) => ({
+          uid: generateUid(),
+          id: file.id,
+          name: file.name,
+          thumbnailUrl: isImage(file.name) ? file.url : undefined,
+          url: file.url,
+        }))
+      );
+    };
+
     const { mutate: fetchDefaultFiles, isLoading } = useMutation({
       mutationFn: fetchFiles,
       onSuccess: (files) => {
-        setFileInfos(
-          files.map((file) => ({
-            uid: generateUid(),
-            id: file.id,
-            name: file.name,
-            thumbnailUrl: file.url,
-            url: file.url,
-          }))
-        );
+        setFiles(files);
       },
     });
 
@@ -115,14 +119,7 @@ export const Uploader = forwardRef(
           if (typeof defaultFiles[0] === 'string') {
             fetchDefaultFiles(defaultFiles as string[]);
           } else {
-            const fileInfos = (defaultFiles as FileSchema[]).map((file) => ({
-              uid: generateUid(),
-              id: file.id,
-              name: file.name,
-              thumbnailUrl: file.url,
-              url: file.url,
-            }));
-            setFileInfos(fileInfos);
+            setFiles(defaultFiles as FileSchema[]);
           }
         }
       },
@@ -210,7 +207,7 @@ function FileItem({ file, onRemove, disabled }: FileItemProps) {
           {file.thumbnailUrl ? (
             <img className="w-full h-full object-contain" src={file.thumbnailUrl} />
           ) : (
-            <div className={cx('overflow-hidden', { 'text-red-500': file.error })}>
+            <div className={cx('mx-1 overflow-hidden', { 'text-red-500': file.error })}>
               <AiOutlineFile className="mx-auto mb-2 w-4 h-4" />
               <div className="truncate">{file.name ?? 'Loading...'}</div>
             </div>
