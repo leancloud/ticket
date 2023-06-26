@@ -133,7 +133,7 @@ interface MarkdownEditorProps {
   disabled?: boolean;
 }
 
-function MarkdownEditor({
+export function MarkdownEditor({
   className,
   value,
   onChange,
@@ -153,7 +153,7 @@ function MarkdownEditor({
             label: '编辑',
             children: (
               <Input.TextArea
-                autoSize
+                autoSize={{ minRows: 5, maxRows: 15 }}
                 ref={(ref) => {
                   const el = ref?.resizableTextArea?.textArea;
                   if (el) {

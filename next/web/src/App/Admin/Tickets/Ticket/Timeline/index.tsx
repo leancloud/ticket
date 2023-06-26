@@ -1,11 +1,13 @@
-import { ReactNode, useMemo } from 'react';
-import { Skeleton } from 'antd';
+import { ReactNode, useMemo, useRef } from 'react';
+import { Modal, Skeleton } from 'antd';
 
-import { ReplySchema } from '@/api/reply';
+import { ReplySchema, useDeleteReply, useUpdateReply } from '@/api/reply';
 import { OpsLog as OpsLogSchema } from '@/api/ticket';
 import { UserLabel } from '@/App/Admin/components';
 import { ReplyCard } from '../components/ReplyCard';
 import { OpsLog } from '../components/OpsLog';
+import { EditReplyModal, EditReplyModalRef } from '../components/EditReplyModal';
+import { ReplyRevisionsModal, ReplyRevisionsModalRef } from '../components/ReplyRevisionsModal';
 import styles from './index.module.css';
 
 type TimelineData =
@@ -24,9 +26,17 @@ interface TimelineProps {
   header?: ReactNode;
   replies?: ReplySchema[];
   opsLogs?: OpsLogSchema[];
+  onRefetchReplies: () => void;
+  onDeleteReply: (id: string) => void;
 }
 
-export function Timeline({ header, replies, opsLogs }: TimelineProps) {
+export function Timeline({
+  header,
+  replies,
+  opsLogs,
+  onRefetchReplies,
+  onDeleteReply,
+}: TimelineProps) {
   const timeline = useMemo(() => {
     const timeline: TimelineData[] = [];
     replies?.forEach((data) =>
@@ -39,6 +49,41 @@ export function Timeline({ header, replies, opsLogs }: TimelineProps) {
   }, [replies, opsLogs]);
 
   const loading = !replies && !opsLogs;
+
+  const editReplyModalRef = useRef<EditReplyModalRef>(null!);
+  const replyRevisionsModalRef = useRef<ReplyRevisionsModalRef>(null!);
+
+  const updateReply = useUpdateReply({
+    onSuccess: () => {
+      editReplyModalRef.current.toggle(undefined);
+      onRefetchReplies();
+    },
+  });
+
+  const deleteReply = useDeleteReply({
+    onSuccess: (data, id) => {
+      onDeleteReply(id);
+    },
+  });
+
+  const handleClickMenu = (reply: ReplySchema, key: string) => {
+    switch (key) {
+      case 'edit':
+        editReplyModalRef.current.toggle(reply);
+        break;
+      case 'revisions':
+        replyRevisionsModalRef.current.toggle(reply);
+        break;
+      case 'delete':
+        Modal.confirm({
+          title: '回复将被删除',
+          content: '已发送给用户的通知不会被撤回，用户可能已经阅读了该回复。',
+          okType: 'danger',
+          onOk: () => deleteReply.mutateAsync(reply.id),
+        });
+        break;
+    }
+  };
 
   return (
     <div className={loading ? undefined : styles.timeline}>
@@ -56,12 +101,23 @@ export function Timeline({ header, replies, opsLogs }: TimelineProps) {
               files={timeline.data.files}
               isAgent={timeline.data.isCustomerService}
               isInternal={timeline.data.internal}
+              editable
+              edited={timeline.data.createdAt !== timeline.data.updatedAt}
+              onClickMenu={(key) => handleClickMenu(timeline.data, key)}
             />
           );
         } else {
           return <OpsLog key={timeline.data.id} data={timeline.data} />;
         }
       })}
+
+      <EditReplyModal
+        ref={editReplyModalRef}
+        loading={updateReply.isLoading}
+        onSave={(id, content, fileIds) => updateReply.mutate([id, { content, fileIds }])}
+      />
+
+      <ReplyRevisionsModal ref={replyRevisionsModalRef} />
     </div>
   );
 }

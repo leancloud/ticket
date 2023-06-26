@@ -8,7 +8,7 @@ import { fetchTicketReplies, fetchTicketOpsLogs } from '@/api/ticket';
 import { useCurrentRef } from '@/utils/useCurrentRef';
 
 export function useTicketReplies(ticketId?: string) {
-  const { data, fetchNextPage, refetch } = useInfiniteQuery({
+  const { data, isFetchingNextPage, fetchNextPage, refetch } = useInfiniteQuery({
     queryKey: ['TicketReplies', ticketId],
     queryFn: ({ pageParam }) => fetchTicketReplies(ticketId || '', pageParam || undefined),
     enabled: !!ticketId,
@@ -42,11 +42,13 @@ export function useTicketReplies(ticketId?: string) {
   });
 
   const onUpdate = useCurrentRef((obj: LCObject) => {
-    if (obj.data.daletedAt) {
+    if (obj.data.deletedAt) {
       // soft delete
       deleteReply(obj.id);
     } else {
-      refetch();
+      if (!isFetchingNextPage) {
+        refetch();
+      }
     }
   });
 
@@ -71,7 +73,12 @@ export function useTicketReplies(ticketId?: string) {
     };
   }, [ticketId]);
 
-  return { replies, fetchMoreReplies: fetchNextPage };
+  return {
+    replies,
+    fetchMoreReplies: fetchNextPage,
+    refetchReples: refetch,
+    deleteReply,
+  };
 }
 
 export function useTicketOpsLogs(ticketId?: string) {

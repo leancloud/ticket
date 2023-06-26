@@ -53,7 +53,7 @@ export function TicketDetail() {
 
   const { ticket, update, updating, refetch } = useMixedTicket(id);
 
-  const { replies, fetchMoreReplies } = useTicketReplies(ticket?.id);
+  const { replies, fetchMoreReplies, refetchReples, deleteReply } = useTicketReplies(ticket?.id);
   const { opsLogs, fetchMoreOpsLogs } = useTicketOpsLogs(ticket?.id);
 
   const { mutateAsync: createReply } = useCreateReply({
@@ -117,11 +117,12 @@ export function TicketDetail() {
                   createTime={ticket.createdAt}
                   content={ticket.contentSafeHTML}
                   files={ticket.files}
-                  isTicket
                 />
               }
               replies={replies}
               opsLogs={opsLogs}
+              onRefetchReplies={refetchReples}
+              onDeleteReply={deleteReply}
             />
 
             <ReplyEditor
