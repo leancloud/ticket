@@ -37,11 +37,12 @@ const NavigateToAvailablePage = () => {
 };
 
 export default function AdminPage() {
-  const { data: categories, isLoading } = useCategories();
+  const { data: categories } = useCategories({
+    queryOptions: {
+      suspense: true,
+    },
+  });
 
-  if (isLoading) {
-    return <>Loading...</>;
-  }
   return (
     <CategoryProvider categories={categories}>
       <div className="h-full grid grid-cols-[64px_1fr] bg-[#ebeff3]">
