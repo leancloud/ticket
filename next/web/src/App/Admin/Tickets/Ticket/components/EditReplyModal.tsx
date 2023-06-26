@@ -50,12 +50,13 @@ export const EditReplyModal = forwardRef<EditReplyModalRef, EditReplyModalProps>
     return (
       <Modal
         open={open}
-        width={600}
+        width={650}
         title="编辑回复"
         onOk={handleSubmit}
         onCancel={() => !loading && setOpen(false)}
         confirmLoading={loading}
         cancelButtonProps={{ disabled: loading }}
+        bodyStyle={{ padding: 16 }}
       >
         <MarkdownEditor
           className="mb-2"
