@@ -46,6 +46,7 @@ import { langs } from './lang';
 import { TicketField_v1, useTicketFields_v1 } from './api1';
 import { CustomFields } from './components/CustomFields';
 import { useTicketOpsLogs, useTicketReplies } from './timeline-data';
+import { RecentTickets } from './components/RecentTickets';
 
 export function TicketDetail() {
   const { id } = useParams() as { id: string };
@@ -124,6 +125,8 @@ export function TicketDetail() {
               onRefetchReplies={refetchReples}
               onDeleteReply={deleteReply}
             />
+
+            {ticket.author && <RecentTickets userId={ticket.author.id} />}
 
             <ReplyEditor
               onSubmit={(reply) =>
