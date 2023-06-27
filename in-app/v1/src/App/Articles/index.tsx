@@ -17,7 +17,6 @@ import { intlFormat } from 'date-fns';
 import { useFAQs } from '@/api/category';
 import { useArticle } from '@/api/article';
 import { useRootCategory } from '@/states/root-category';
-import { Article } from '@/types';
 
 function RelatedFAQs({ categoryId, articleId }: { categoryId: string; articleId: string }) {
   const { t } = useTranslation();
@@ -91,17 +90,17 @@ function Feedback({ articleId }: { articleId: string }) {
 }
 
 function ArticleDetail() {
-  const [t, i18n] = useTranslation();
+  const { t } = useTranslation();
   const { id } = useParams();
 
   const [search] = useSearchParams();
-  const isNotice = !!search.get('from-notice');
+  const isNotice = search.has('from-notice');
 
   const articleId = id?.split('-').shift();
   const result = useArticle(articleId!);
   const { data: article } = result;
 
-  const title = !!isNotice ? t('notice.title') : <span>&nbsp;</span>;
+  const title = isNotice ? t('notice.title') : <span>&nbsp;</span>;
 
   const product = useRootCategory();
   const feedbackEnabled = !product.meta?.disableFeedback;
@@ -126,37 +125,42 @@ function ArticleDetail() {
   );
 }
 
+interface ArticleContentProps {
+  article: {
+    id?: string;
+    title: string;
+    contentSafeHTML: string;
+    updatedAt: string;
+  };
+  showTicketSubmit?: boolean;
+  showTitle?: boolean;
+}
+
 export function ArticleContent({
   article,
   showTicketSubmit = false,
   showTitle = true,
-}: {
-  article: Article;
-  showTicketSubmit?: boolean;
-  showTitle?: boolean;
-}) {
+}: ArticleContentProps) {
   const [t, i18n] = useTranslation();
   const { user } = useAuth();
 
   return (
     <div>
       {showTitle && (
-        <div className="py-3 border-b border-gray-100 text-center font-bold">{article?.title}</div>
+        <div className="py-3 border-b border-gray-100 text-center font-bold">{article.title}</div>
       )}
       <div className="p-4 border-b border-gray-100">
         <OpenInBrowser.Content
           className="text-[13px] mb-6 markdown-body"
-          dangerouslySetInnerHTML={{ __html: article?.contentSafeHTML ?? '' }}
+          dangerouslySetInnerHTML={{ __html: article.contentSafeHTML }}
         />
-        {article && (
-          <p className="text-sm text-gray-400">
-            {`${t('general.update_date')}: ${intlFormat(new Date(article.updatedAt), {
-              // @ts-ignore https://github.com/date-fns/date-fns/issues/3424
-              locale: i18n.language,
-            })}`}
-          </p>
-        )}
-        {article && user && <Feedback articleId={article.id} />}
+        <p className="text-sm text-gray-400">
+          {`${t('general.update_date')}: ${intlFormat(new Date(article.updatedAt), {
+            // @ts-ignore https://github.com/date-fns/date-fns/issues/3424
+            locale: i18n.language,
+          })}`}
+        </p>
+        {article.id && user && <Feedback articleId={article.id} />}
       </div>
       {showTicketSubmit && (
         <div className="px-4 py-5 text-[12px] leading-[1.5] text-[#666] text-center">
@@ -179,9 +183,30 @@ export function ArticleContent({
   );
 }
 
+function ArticlePreview() {
+  const articleData = localStorage.getItem('TapDesk/articlePreview');
+  const article: ArticleContentProps['article'] = articleData
+    ? JSON.parse(articleData)
+    : {
+        title: 'Article title',
+        contentSafeHTML: '<p>Article content.</p>'.repeat(5),
+        updatedAt: new Date(0).toISOString(),
+      };
+
+  return (
+    <>
+      <PageHeader>Preview</PageHeader>
+      <PageContent padding={false}>
+        <ArticleContent article={article} />
+      </PageContent>
+    </>
+  );
+}
+
 export default function Articles() {
   return (
     <Routes>
+      <Route path="preview" element={<ArticlePreview />} />
       <Route path=":id" element={<ArticleDetail />} />
     </Routes>
   );
