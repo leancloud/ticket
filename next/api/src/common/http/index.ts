@@ -81,7 +81,7 @@ function joinPaths(paths: string[]) {
   return '/' + paths.map((path) => _.trim(path, '/')).join('/');
 }
 
-export function applyController(router: Router, controller: any) {
+export function applyController(rootRouter: Router, controller: any) {
   const basePaths = Reflect.getMetadata(KEY_PATH, controller.constructor) as string[];
 
   const middlewares = getMiddlewares(controller);
@@ -92,7 +92,7 @@ export function applyController(router: Router, controller: any) {
 
   const handlers = getHandlers(controller);
 
-  basePaths.map((basePath) =>
+  basePaths.forEach((basePath) => {
     handlers.forEach((handler) => {
       const path = handler.path ? joinPaths([basePath, handler.path]) : joinPaths([basePath]);
 
@@ -103,13 +103,13 @@ export function applyController(router: Router, controller: any) {
       const h = createKoaHandler(controller, handler);
 
       // @ts-ignore
-      router[handler.httpMethod].apply(router, [
+      rootRouter[handler.httpMethod].apply(rootRouter, [
         path,
         ...globalMiddlewares,
         ...controllerMiddlewares,
         ...handlerMiddlewares,
         h,
       ]);
-    })
-  );
+    });
+  });
 }
