@@ -19,6 +19,7 @@ interface MixedTicket {
   contentSafeHTML: TicketDetailSchema['contentSafeHTML'];
   files: TicketDetailSchema['files'];
   language: TicketDetailSchema['language'];
+  evaluation: TicketDetailSchema['evaluation'];
   createdAt: TicketDetailSchema['createdAt'];
   updatedAt: TicketDetailSchema['updatedAt'];
 
@@ -85,6 +86,7 @@ export function useMixedTicket(ticketId: string): UseMixedTicketResult {
         contentSafeHTML: ticket.contentSafeHTML,
         files: ticket.files,
         language: ticket.language,
+        evaluation: ticket.evaluation,
         createdAt: ticket.createdAt,
         updatedAt: ticket.updatedAt,
 

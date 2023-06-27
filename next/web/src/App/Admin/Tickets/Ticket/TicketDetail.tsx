@@ -47,6 +47,7 @@ import { TicketField_v1, useTicketFields_v1 } from './api1';
 import { CustomFields } from './components/CustomFields';
 import { useTicketOpsLogs, useTicketReplies } from './timeline-data';
 import { RecentTickets } from './components/RecentTickets';
+import { Evaluation } from './components/Evaluation';
 
 export function TicketDetail() {
   const { id } = useParams() as { id: string };
@@ -126,7 +127,8 @@ export function TicketDetail() {
               onDeleteReply={deleteReply}
             />
 
-            {ticket.author && <RecentTickets userId={ticket.author.id} />}
+            {ticket.author && <RecentTickets className="mb-5" userId={ticket.author.id} />}
+            {ticket.evaluation && <Evaluation className="mb-5" evaluation={ticket.evaluation} />}
 
             <ReplyEditor
               onSubmit={(reply) =>

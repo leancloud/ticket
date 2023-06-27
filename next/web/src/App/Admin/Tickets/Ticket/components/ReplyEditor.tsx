@@ -85,7 +85,7 @@ export function ReplyEditor({ onSubmit, onOperate, operating }: ReplyEditorProps
 
   return (
     <div>
-      <div className="my-4">
+      <div className="mb-4">
         <Radio.Group value={mode} onChange={(e) => setType(e.target.value)}>
           <Radio value="public">公开</Radio>
           <Radio value="internal">内部</Radio>

@@ -7,10 +7,11 @@ import { TicketStatus } from '@/App/Admin/components/TicketStatus';
 import { TicketLink } from '@/App/Admin/components/TicketLink';
 
 interface RecentTicketsProps {
+  className?: string;
   userId: string;
 }
 
-export function RecentTickets({ userId }: RecentTicketsProps) {
+export function RecentTickets({ className, userId }: RecentTicketsProps) {
   const { data, isLoading } = useTickets({
     pageSize: 10,
     filters: {
@@ -25,7 +26,7 @@ export function RecentTickets({ userId }: RecentTicketsProps) {
   }
 
   return (
-    <div>
+    <div className={className}>
       <div className="mb-2">
         <div>
           最近工单 (
