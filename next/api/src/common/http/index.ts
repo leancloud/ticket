@@ -8,25 +8,34 @@ import { createKoaHandler, getHandlers } from './handler';
 export * from './handler';
 export * from './error';
 
-const KEY_PATH = Symbol('path');
-const KEY_MIDDLEWARES = Symbol('middlewares');
+const KEY_CONTROLLER_CONFIG = Symbol('CONTROLLER_CONFIG');
+const KEY_MIDDLEWARES = Symbol('MIDDLEWARES');
 
-const globalMiddlewares: Middleware[] = [];
-const controllers: any[] = [];
+const controllers: Function[] = [];
 
-export interface ControllerConstructor {
-  new (): any;
+interface ControllerConfig {
+  path: string | string[];
+  router?: Router;
 }
 
-export function Controller(path: string | string[]) {
-  return (target: ControllerConstructor) => {
-    Reflect.defineMetadata(KEY_PATH, [path].flat(), target);
-    controllers.push(Reflect.construct(target, []));
+export function Controller(...paths: string[]): ClassDecorator;
+export function Controller(paths: string[]): ClassDecorator;
+export function Controller(config: ControllerConfig): ClassDecorator;
+export function Controller(
+  arg1: string | string[] | ControllerConfig,
+  ...paths: string[]
+): ClassDecorator {
+  const config: ControllerConfig =
+    typeof arg1 === 'string'
+      ? { path: [arg1, ...paths] }
+      : Array.isArray(arg1)
+      ? { path: arg1 }
+      : arg1;
+
+  return (target) => {
+    Reflect.defineMetadata(KEY_CONTROLLER_CONFIG, config, target);
+    controllers.push(target);
   };
-}
-
-export function getControllers() {
-  return controllers.slice();
 }
 
 interface MiddlewareConfig {
@@ -81,8 +90,11 @@ function joinPaths(paths: string[]) {
   return '/' + paths.map((path) => _.trim(path, '/')).join('/');
 }
 
-export function applyController(rootRouter: Router, controller: any) {
-  const basePaths = Reflect.getMetadata(KEY_PATH, controller.constructor) as string[];
+function applyController(rootRouter: Router, controller: any) {
+  const config: ControllerConfig = Reflect.getMetadata(
+    KEY_CONTROLLER_CONFIG,
+    controller.constructor
+  );
 
   const middlewares = getMiddlewares(controller);
 
@@ -90,26 +102,34 @@ export function applyController(rootRouter: Router, controller: any) {
     .filter((c) => c.controllerMethod === undefined)
     .map((c) => c.middleware);
 
-  const handlers = getHandlers(controller);
+  if (config.router && controllerMiddlewares.length) {
+    throw new Error(
+      `Controller ${controller.constructor.name} has router config, controller level middlewares are not allowed`
+    );
+  }
 
-  basePaths.forEach((basePath) => {
-    handlers.forEach((handler) => {
-      const path = handler.path ? joinPaths([basePath, handler.path]) : joinPaths([basePath]);
+  const router = config.router ?? new Router().use(...controllerMiddlewares);
 
-      const handlerMiddlewares = middlewares
-        .filter((c) => c.controllerMethod === handler.controllerMethod)
-        .map((c) => c.middleware);
+  getHandlers(controller).forEach((handler) => {
+    const path = handler.path ? joinPaths([handler.path]) : '/';
 
-      const h = createKoaHandler(controller, handler);
+    const handlerMiddlewares = middlewares
+      .filter((c) => c.controllerMethod === handler.controllerMethod)
+      .map((c) => c.middleware);
 
-      // @ts-ignore
-      rootRouter[handler.httpMethod].apply(rootRouter, [
-        path,
-        ...globalMiddlewares,
-        ...controllerMiddlewares,
-        ...handlerMiddlewares,
-        h,
-      ]);
-    });
+    const h = createKoaHandler(controller, handler);
+
+    router[handler.httpMethod](path, ...handlerMiddlewares, h);
   });
+
+  const routes = router.routes();
+  _.castArray(config.path).forEach((path) => {
+    rootRouter.use(joinPaths([path]), routes);
+  });
+}
+
+export function initControllers(rootRouter: Router) {
+  controllers
+    .map((controller) => Reflect.construct(controller, []))
+    .forEach((controller) => applyController(rootRouter, controller));
 }
