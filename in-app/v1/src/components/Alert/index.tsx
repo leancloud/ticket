@@ -1,4 +1,4 @@
-import { Fragment, ReactNode, createContext, useContext, useState } from 'react';
+import { Fragment, ReactNode, createContext, useContext, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Dialog, Transition } from '@headlessui/react';
 import { XIcon } from '@heroicons/react/solid';
@@ -78,16 +78,19 @@ export function AlertProvider({ children }: AlertProviderProps) {
     onClose: () => setAlertProps((prev) => ({ ...prev, show: false })),
   });
 
+  const alert = useRef<(options: AlertOptions) => void>();
+  if (!alert.current) {
+    alert.current = (options) => {
+      setAlertProps((prev) => ({
+        ...prev,
+        ...options,
+        show: true,
+      }));
+    };
+  }
+
   return (
-    <AlertContext.Provider
-      value={(options) =>
-        setAlertProps((prev) => ({
-          ...prev,
-          ...options,
-          show: true,
-        }))
-      }
-    >
+    <AlertContext.Provider value={alert.current}>
       {children}
       <Alert {...alertProps} />
     </AlertContext.Provider>

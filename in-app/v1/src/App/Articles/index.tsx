@@ -54,7 +54,6 @@ function Feedback({ articleId }: { articleId: string }) {
   const { mutateAsync: vote, isLoading } = useMutation({
     mutationFn: (type: FeedbackType) => feedback(articleId, type),
     onSuccess: () => setVoted(true),
-    onError: (error: Error) => alert(error.message),
   });
 
   return (

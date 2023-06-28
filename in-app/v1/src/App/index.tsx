@@ -10,7 +10,6 @@ import { useAuth, useSetAuth } from '@/states/auth';
 import { useSetRootCategory } from '@/states/root-category';
 import { useSetTicketInfo } from '@/states/ticket-info';
 import { useCategory } from '@/api/category';
-import { AlertProvider } from '@/components/Alert';
 import { SDKProvider } from '@/components/SDK';
 import { APIError } from '@/components/APIError';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -135,9 +134,7 @@ export default function App() {
         <ErrorBoundary>
           <Suspense fallback={<Loading fullScreen />}>
             <SDKProvider>
-              <AlertProvider>
-                <AppRoutes />
-              </AlertProvider>
+              <AppRoutes />
             </SDKProvider>
           </Suspense>
         </ErrorBoundary>
