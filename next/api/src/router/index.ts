@@ -1,6 +1,6 @@
 import Router from '@koa/router';
 
-import { getControllers, applyController } from '@/common/http';
+import { initControllers } from '@/common/http';
 import '@/controller';
 import { catchLCError, catchYupError, catchZodError } from '@/middleware/error';
 import ticket from './ticket';
@@ -27,8 +27,6 @@ router.use('/replies', reply.routes());
 router.use('/ticket-stats', ticketStats.routes());
 router.use('/config', config.routes());
 
-getControllers().forEach((controller) => {
-  applyController(router, controller);
-});
+initControllers(router);
 
 export default router;
