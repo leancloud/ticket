@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import { useDebounce } from 'react-use';
-import { Button, Divider, Empty, Input, Radio, Select, Tabs, Tooltip } from 'antd';
+import { Button, Empty, Input, Radio, Select, Tabs, Tooltip } from 'antd';
 import { AiOutlineFile } from 'react-icons/ai';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -85,9 +85,7 @@ export function ReplyEditor({ onSubmit, onOperate, operating }: ReplyEditorProps
 
   return (
     <div>
-      <Divider />
-
-      <div className="my-5">
+      <div className="mb-4">
         <Radio.Group value={mode} onChange={(e) => setType(e.target.value)}>
           <Radio value="public">公开</Radio>
           <Radio value="internal">内部</Radio>
