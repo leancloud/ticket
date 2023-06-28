@@ -2,15 +2,15 @@ import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useController, useFormContext } from 'react-hook-form';
 
+import { useAlert } from '@/components/Alert';
 import { Uploader as _Uploader } from '@/components/Uploader';
-import { useAlert } from '@/utils/useAlert';
 import { useUpload } from '@/utils/useUpload';
 import { CustomFieldProps } from '..';
 import { Description } from '../Description';
 
 export function Uploader({ id, description, required, htmlId }: CustomFieldProps) {
   const { t } = useTranslation();
-  const { element: alertElement, alert } = useAlert();
+  const alert = useAlert();
 
   const { control } = useFormContext();
   const {
@@ -53,7 +53,6 @@ export function Uploader({ id, description, required, htmlId }: CustomFieldProps
 
   return (
     <div ref={$container}>
-      {alertElement}
       <_Uploader
         id={htmlId}
         files={files}

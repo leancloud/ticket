@@ -1,8 +1,8 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { useAlert } from '@/components/Alert';
 import { Uploader as Uploader_ } from '@/components/Uploader';
-import { useAlert } from '@/utils/useAlert';
 import { useUpload } from '@/utils/useUpload';
 import { ControlRef } from '..';
 import { ErrorMessage } from '../ErrorMessage';
@@ -15,7 +15,7 @@ export interface UploaderProps {
 export const Uploader = forwardRef<ControlRef, UploaderProps>(({ onChange, error }, ref) => {
   const { t } = useTranslation();
   const $container = useRef<HTMLDivElement>(null!);
-  const { element: alertElement, alert } = useAlert();
+  const alert = useAlert();
   const { files, upload, remove } = useUpload({
     onError: (e) =>
       alert({
@@ -39,7 +39,6 @@ export const Uploader = forwardRef<ControlRef, UploaderProps>(({ onChange, error
 
   return (
     <div>
-      {alertElement}
       <Uploader_
         files={files}
         onUpload={(files) => upload(files[0])}

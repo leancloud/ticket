@@ -3,9 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { Dialog } from '@headlessui/react';
 import cx from 'classnames';
 
+import { useAlert } from '@/components/Alert';
 import { Button } from '@/components/Button';
 import { FileInfoWithKey, FileItems } from '@/components/FileItem';
-import { useAlert } from '@/utils/useAlert';
 import { useUpload } from '@/utils/useUpload';
 import ClipIcon from '@/icons/Clip';
 
@@ -22,7 +22,7 @@ export function ReplyInput({ onCommit }: ReplyInputProps) {
   const { t } = useTranslation();
   const [show, setShow] = useState(false);
   const [content, setContent] = useState('');
-  const { element: alertElement, alert } = useAlert();
+  const alert = useAlert();
   const { files, isUploading, upload, remove, removeAll } = useUpload({
     onError: (e) =>
       alert({
@@ -54,7 +54,6 @@ export function ReplyInput({ onCommit }: ReplyInputProps) {
         { invisible: show }
       )}
     >
-      {alertElement}
       <div className="flex items-center px-3 py-2">
         <input
           className="grow leading-8 px-3 border rounded-full placeholder-[#BFBFBF] text-sm"
