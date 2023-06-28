@@ -70,13 +70,13 @@ export abstract class Model {
     return id ? AV.Object.createWithoutData(className, id) : new AV.Object(className);
   };
 
-  private static fields: Record<string, Field>;
+  private static fields: Record<string, Field> = {};
 
-  private static serializedFields: Record<string, SerializedField>;
+  private static serializedFields: Record<string, SerializedField> = {};
 
-  private static relations: Record<string, Relation>;
+  private static relations: Record<string, Relation> = {};
 
-  private static onDecodeHooks: OnDecodeHook<any>[];
+  private static onDecodeHooks: OnDecodeHook<any>[] = [];
 
   id!: string;
 
@@ -98,8 +98,15 @@ export abstract class Model {
     return this.className ?? this.name;
   }
 
+  private static inheritObjectProperty(key: string) {
+    if (!this.hasOwnProperty(key)) {
+      const prototype = Object.getPrototypeOf(this);
+      Reflect.set(this, key, { ...prototype[key] });
+    }
+  }
+
   static setField(localKey: string, options?: Partial<Omit<Field, 'localKey'>>) {
-    this.fields ??= {};
+    this.inheritObjectProperty('fields');
     this.fields[localKey] = {
       localKey,
       avObjectKey: options?.avObjectKey ?? localKey,
@@ -109,7 +116,7 @@ export abstract class Model {
   }
 
   static setSerializedField(key: string, options?: Partial<Omit<SerializedField, 'key'>>) {
-    this.serializedFields ??= {};
+    this.inheritObjectProperty('serializedFields');
     this.serializedFields[key] = {
       key,
       encode: options?.encode ?? _.identity,
@@ -118,16 +125,18 @@ export abstract class Model {
   }
 
   static setRelation(relation: Relation) {
-    this.relations ??= {};
+    this.inheritObjectProperty('relations');
     this.relations[relation.field] = relation;
   }
 
   static getRelation(name: string): Relation | undefined {
-    return this.relations?.[name];
+    return this.relations[name];
   }
 
   static onDecode<M extends typeof Model>(this: M, hook: OnDecodeHook<M>) {
-    this.onDecodeHooks ??= [];
+    if (!this.hasOwnProperty('onDecodeHooks')) {
+      this.onDecodeHooks = [];
+    }
     this.onDecodeHooks.push(hook);
   }
 
@@ -156,47 +165,47 @@ export abstract class Model {
         object.set('ACL', data.ACL);
       }
     }
-    if (this.fields) {
-      Object.values(this.fields).forEach(({ localKey, avObjectKey, encode }) => {
-        if (!encode) {
-          return;
+
+    Object.values(this.fields).forEach(({ localKey, avObjectKey, encode }) => {
+      if (!encode) {
+        return;
+      }
+      const value = (data as any)[localKey];
+      if (value === undefined) {
+        return;
+      }
+      if (value === null) {
+        if (object.id) {
+          object.unset(avObjectKey);
         }
-        const value = (data as any)[localKey];
-        if (value === undefined) {
-          return;
+        return;
+      }
+      if (value.__op) {
+        if (object.id) {
+          object.set(avObjectKey, value);
         }
-        if (value === null) {
-          if (object.id) {
-            object.unset(avObjectKey);
-          }
-          return;
-        }
-        if (value.__op) {
-          if (object.id) {
-            object.set(avObjectKey, value);
-          }
-          return;
-        }
-        const encodedValue = encode(value);
-        if (encodedValue !== undefined) {
-          object.set(avObjectKey, encodedValue);
-        }
-      });
-    }
+        return;
+      }
+      const encodedValue = encode(value);
+      if (encodedValue !== undefined) {
+        object.set(avObjectKey, encodedValue);
+      }
+    });
+
     return object;
   }
 
   static fromJSON<M extends typeof Model>(this: M, data: any): InstanceType<M> {
     const instance = this.newInstance();
     instance.id = data.id;
-    if (this.serializedFields) {
-      Object.entries(this.serializedFields).forEach(([key, { decode }]) => {
-        const value = decode(data[key]);
-        if (value !== undefined) {
-          instance[key as keyof InstanceType<M>] = value;
-        }
-      });
-    }
+
+    Object.entries(this.serializedFields).forEach(([key, { decode }]) => {
+      const value = decode(data[key]);
+      if (value !== undefined) {
+        instance[key as keyof InstanceType<M>] = value;
+      }
+    });
+
     instance.createdAt = new Date(data.createdAt);
     instance.updatedAt = new Date(data.updatedAt);
     return instance;
@@ -243,27 +252,27 @@ export abstract class Model {
     if (object.id) {
       this.id = object.id;
     }
-    if (model.fields) {
-      Object.values(model.fields).forEach(({ localKey, avObjectKey, decode }) => {
-        if (decode) {
-          const value = object.get(avObjectKey);
-          if (value === null) {
-            fixNullValue(object.className, object.id!, avObjectKey);
-            return;
-          }
-          if (value !== undefined) {
-            (this as any)[localKey] = decode(value);
-          }
+
+    Object.values(model.fields).forEach(({ localKey, avObjectKey, decode }) => {
+      if (decode) {
+        const value = object.get(avObjectKey);
+        if (value === null) {
+          fixNullValue(object.className, object.id!, avObjectKey);
+          return;
         }
-      });
-    }
+        if (value !== undefined) {
+          (this as any)[localKey] = decode(value);
+        }
+      }
+    });
+
     if (object.createdAt) {
       this.createdAt = object.createdAt;
     }
     if (object.updatedAt) {
       this.updatedAt = object.updatedAt;
     }
-    if (model.onDecodeHooks) {
+    if (model.onDecodeHooks.length) {
       const ctx = { avObject: object, instance: this };
       model.onDecodeHooks.forEach((h) => h(ctx));
     }
@@ -273,14 +282,14 @@ export abstract class Model {
     const model = this.constructor as typeof Model;
     const instance = model.newInstance();
     instance.id = this.id;
-    if (model.fields) {
-      Object.values(model.fields).forEach(({ localKey }) => {
-        const value = Reflect.get(this, localKey);
-        if (value !== undefined) {
-          Reflect.set(instance, localKey, value);
-        }
-      });
-    }
+
+    Object.values(model.fields).forEach(({ localKey }) => {
+      const value = Reflect.get(this, localKey);
+      if (value !== undefined) {
+        Reflect.set(instance, localKey, value);
+      }
+    });
+
     instance.createdAt = this.createdAt;
     instance.updatedAt = this.updatedAt;
     return instance as M;
@@ -461,14 +470,13 @@ export abstract class Model {
     };
 
     const model = this.constructor as typeof Model;
-    if (model.serializedFields) {
-      Object.entries(model.serializedFields).forEach(([key, { encode }]) => {
-        const value = encode(this[key as keyof this]);
-        if (value !== undefined) {
-          data[key] = value;
-        }
-      });
-    }
+
+    Object.entries(model.serializedFields).forEach(([key, { encode }]) => {
+      const value = encode(this[key as keyof this]);
+      if (value !== undefined) {
+        data[key] = value;
+      }
+    });
 
     return data;
   }
