@@ -240,7 +240,6 @@ export default function TicketDetail() {
   const { mutateAsync: reply } = useMutation({
     mutationFn: (data: ReplyData) => commitReply(id, data),
     onSuccess: () => fetchMoreReplies(),
-    onError: (error: Error) => alert(error.message),
   });
 
   const queryClient = useQueryClient();

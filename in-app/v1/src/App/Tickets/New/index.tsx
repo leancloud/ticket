@@ -177,7 +177,6 @@ export function NewTicket() {
     onSuccess: (ticketId: string) => {
       navigate({ pathname: '', search }, { replace: false, state: ticketId });
     },
-    onError: (error: Error) => alert(error.message),
   });
 
   if (categories && !category) {
