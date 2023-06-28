@@ -1,4 +1,4 @@
-import { Fragment } from 'react';
+import { Fragment, ReactNode, createContext, useContext, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Dialog, Transition } from '@headlessui/react';
 import { XIcon } from '@heroicons/react/solid';
@@ -56,4 +56,48 @@ export function Alert({ title, content, buttonTitle, show, onClose }: AlertProps
       </Dialog>
     </Transition>
   );
+}
+
+interface AlertOptions {
+  title: string;
+  content: string;
+  buttonTitle?: string;
+}
+
+const AlertContext = createContext<((options: AlertOptions) => void) | undefined>(undefined);
+
+interface AlertProviderProps {
+  children?: ReactNode;
+}
+
+export function AlertProvider({ children }: AlertProviderProps) {
+  const [alertProps, setAlertProps] = useState<AlertProps>({
+    show: false,
+    title: '',
+    content: '',
+    onClose: () => setAlertProps((prev) => ({ ...prev, show: false })),
+  });
+
+  return (
+    <AlertContext.Provider
+      value={(options) =>
+        setAlertProps((prev) => ({
+          ...prev,
+          ...options,
+          show: true,
+        }))
+      }
+    >
+      {children}
+      <Alert {...alertProps} />
+    </AlertContext.Provider>
+  );
+}
+
+export function useAlert() {
+  const alert = useContext(AlertContext);
+  if (!alert) {
+    throw new Error('useAlert: alert is undefined');
+  }
+  return alert;
 }
