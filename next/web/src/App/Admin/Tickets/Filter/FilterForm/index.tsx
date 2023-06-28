@@ -16,6 +16,7 @@ import { LocaleSelect } from '@/App/Admin/components/LocaleSelect';
 import { TicketLanguages } from '@/i18n/locales';
 import { TicketFieldSchema } from '@/api/ticket-field';
 import { FieldSelect, OptionTypes, TextTypes } from './FieldSelect';
+import { MetadataList } from './MetadataList';
 
 function Field({ title, children }: PropsWithChildren<{ title: React.ReactNode }>) {
   return (
@@ -55,6 +56,7 @@ const NormalFieldForm = ({ filters, merge, onSubmit }: FilterFormItemProps<Norma
     tagKey,
     tagValue,
     createdAt,
+    where,
   } = filters;
 
   return (
@@ -133,6 +135,10 @@ const NormalFieldForm = ({ filters, merge, onSubmit }: FilterFormItemProps<Norma
             merge({ language });
           }}
         />
+      </Field>
+
+      <Field title="Metadata">
+        <MetadataList value={where} onChange={(where) => merge({ where })} />
       </Field>
     </>
   );

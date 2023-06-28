@@ -22,6 +22,7 @@ export interface NormalFilters extends CommonFilters {
   status?: number[];
   star?: number;
   language?: string[];
+  where?: Record<string, any>;
 }
 
 export interface FieldFilters extends CommonFilters {
@@ -50,6 +51,7 @@ const serializeFilters = (filter: Filters): Record<string, string | undefined> =
       language: filter.language?.map((id) => (id === null ? 'null' : id)).join(','),
       status: filter.status?.join(','),
       star: filter.star?.toString(),
+      where: _.isEmpty(filter.where) ? undefined : JSON.stringify(filter.where),
     };
   }
 };
@@ -92,6 +94,7 @@ const deserializeFilters = (params: Record<string, string | undefined>): Filters
       .map((s) => parseInt(s))
       .filter((n) => !Number.isNaN(n)),
     star: Number.isNaN(starNum) ? undefined : starNum,
+    where: params.where ? JSON.parse(params.where) : undefined,
   };
 };
 
