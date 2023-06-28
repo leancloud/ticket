@@ -41,10 +41,9 @@ const ArticleTranslationList: FC<ArticleTranslationListProps> = ({
 
   const [show, setShow] = useState(false);
 
-  const existLanguages = useMemo(
-    () => translations?.map(({ language }) => language) ?? [],
-    [translations]
-  );
+  const existLanguages = useMemo(() => {
+    return translations?.map(({ language }) => language);
+  }, [translations]);
 
   const handleDelete = (language: string) => {
     Modal.confirm({
@@ -65,7 +64,7 @@ const ArticleTranslationList: FC<ArticleTranslationListProps> = ({
         action={(item) => (
           <>
             <FeedbackSummary revision={item.revision!} />
-            <PreviewLink slug={item.slug} language={item.language} />
+            <PreviewLink articleId={item.id} language={item.language} />
             <Link to={`${item.language}/revisions`}>查看历史</Link>
             <Button
               type="link"

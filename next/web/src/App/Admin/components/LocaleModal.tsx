@@ -1,4 +1,4 @@
-import { Modal, Select } from 'antd';
+import { Modal } from 'antd';
 import { FC, useEffect, useState } from 'react';
 import { LocaleSelect } from './LocaleSelect';
 
@@ -18,7 +18,7 @@ export const LocaleModal: FC<LocaleModalProps> = ({ show, hiddenLocales, onOk, o
   return (
     <Modal
       title="请选择要添加的语言"
-      visible={show}
+      open={show}
       okButtonProps={{ disabled: !value }}
       onOk={() => onOk?.(value!)}
       onCancel={onCancel}
