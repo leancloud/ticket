@@ -235,7 +235,7 @@ export class TicketUpdater {
         .find({ useMasterKey: true });
 
       if (tickets.length === 1) {
-        await tickets[0].update({ parentId: null });
+        await tickets[0].update({ parentId: null }, options);
       } else if (this.isMain) {
         const newMainTicket = tickets[0];
         await Ticket.updateSome(
