@@ -47,7 +47,7 @@ export function RecentTickets({ className, userId }: RecentTicketsProps) {
           {
             title: '标题',
             key: 'title',
-            render: (ticket) => <TicketLink ticket={ticket} />,
+            render: (ticket) => <TicketLink className="max-w-sm" ticket={ticket} />,
           },
           {
             title: '状态',

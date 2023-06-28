@@ -94,6 +94,7 @@ export function DurationStatistics() {
             setPageSize(pageSize);
           },
         }}
+        scroll={{ x: 'max-content' }}
         onChange={(pagination, filters, sorter) => {
           if (Array.isArray(sorter)) {
             return;
@@ -109,7 +110,7 @@ export function DurationStatistics() {
           {
             title: '工单',
             dataIndex: 'ticket',
-            render: (ticket: TicketSchema) => <TicketLink ticket={ticket} />,
+            render: (ticket: TicketSchema) => <TicketLink className="max-w-lg" ticket={ticket} />,
           },
           getColumn('首次回复时间', 'firstReplyTime'),
           getColumn('请求者等待时间', 'requesterWaitTime'),

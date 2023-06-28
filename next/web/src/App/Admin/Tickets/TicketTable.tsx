@@ -74,8 +74,8 @@ export function TicketTable({ loading, tickets, checkedIds, onChangeChecked }: T
         title="标题"
         render={(ticket: TicketSchema) => (
           <TicketLink
+            className="max-w-lg"
             ticket={ticket}
-            className="inline-block max-w-lg"
             viewId={type === 'processable' ? 'incoming' : undefined}
           />
         )}
