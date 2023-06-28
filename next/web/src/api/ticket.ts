@@ -1,5 +1,5 @@
 import { UseMutationOptions, UseQueryOptions, useMutation, useQuery } from 'react-query';
-import { castArray } from 'lodash-es';
+import { castArray, isEmpty } from 'lodash-es';
 
 import { http } from '@/leancloud';
 import { decodeDateRange } from '@/utils/date-range';
@@ -50,6 +50,7 @@ export interface FetchTicketFilters {
   privateTagValue?: string;
   fieldName?: string;
   fieldValue?: string;
+  where?: Record<string, any>;
 }
 
 export function encodeTicketFilters(filters: FetchTicketFilters) {
@@ -91,6 +92,9 @@ export function encodeTicketFilters(filters: FetchTicketFilters) {
   }
   if (filters.status) {
     params.status = castArray(filters.status).join(',');
+  }
+  if (!isEmpty(filters.where)) {
+    params.where = JSON.stringify(filters.where);
   }
   return params;
 }
