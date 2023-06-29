@@ -69,6 +69,7 @@ export class TicketController {
   }
 
   @Delete(':id/associated-tickets/:associatedTicketId')
+  @UseMiddlewares(customerServiceOnly)
   async deleteAssociatedTicket(
     @Ctx() ctx: Context,
     @Param('associatedTicketId') associatedTicketId: string
