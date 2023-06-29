@@ -45,8 +45,6 @@ const includeSchema = yup.object({
   includeFiles: yup.bool(),
   includeCategoryPath: yup.bool(),
   includeUnreadCount: yup.bool(),
-  includeAssociateTicket: yup.bool(),
-  includeSubscribed: yup.bool(),
   includeTag: yup.bool(),
 });
 
@@ -267,10 +265,6 @@ router.get(
 
     if (params.includeCategoryPath) {
       await Ticket.fillCategoryPath(tickets);
-    }
-
-    if (params.includeSubscribed) {
-      await Promise.all(tickets.map((ticket) => ticket.loadSubscribed(currentUser)));
     }
 
     ctx.body = tickets.map((ticket) =>
@@ -698,10 +692,6 @@ router.get('/:ticketId', include, async (ctx) => {
     await ticket.loadCategoryPath();
   }
 
-  if (params.includeAssociateTicket) {
-    await ticket.loadAssociateTickets(currentUser.getAuthOptions());
-  }
-
   // TODO: Sentry
   ticket.resetUnreadCount(currentUser).catch(console.error);
 
@@ -734,8 +724,6 @@ const updateTicketSchema = yup.object({
   tags: yup.array(ticketTagSchema.required()),
   privateTags: yup.array(ticketTagSchema.required()),
   evaluation: ticketEvaluationSchema.default(undefined),
-  associateTicketId: yup.string().nullable(),
-  mainTicketId: yup.string(),
   language: yup.mixed().oneOf([...allowedTicketLanguages, null]),
 });
 
@@ -835,43 +823,6 @@ router.patch('/:id', async (ctx) => {
         })
       ).unescape,
     });
-  }
-
-  if (data.associateTicketId) {
-    if (!isCustomerService) return ctx.throw(403);
-
-    const associateTicket = await Ticket.find(data.associateTicketId, { useMasterKey: true });
-
-    if (!associateTicket) {
-      return ctx.throw(400, `Ticket ${data.associateTicketId} does not exist`);
-    }
-
-    if (ticket.authorId !== associateTicket.authorId) {
-      return ctx.throw(400, "Can't associate tickets which have different author");
-    }
-
-    if (ticket.parentId && associateTicket.parentId) {
-      const mainTicket =
-        data.mainTicketId && (await Ticket.find(data.mainTicketId, { useMasterKey: true }));
-
-      if (!mainTicket) {
-        return ctx.throw(400, 'Main ticket is required when associate two groups of tickets');
-      }
-
-      if (
-        !mainTicket.parentId ||
-        (mainTicket.parentId !== ticket.parentId &&
-          mainTicket.parentId !== associateTicket.parentId)
-      ) {
-        return ctx.throw(400, 'Main ticket should belong to one of these two groups');
-      }
-
-      updater.setAssociateTicket(associateTicket, mainTicket);
-    } else {
-      updater.setAssociateTicket(associateTicket);
-    }
-  } else if (data.associateTicketId === null) {
-    updater.setAssociateTicket(null);
   }
 
   if (data.language !== undefined) {

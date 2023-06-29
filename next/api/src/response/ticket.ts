@@ -23,7 +23,6 @@ class BaseTicketResponse {
       categoryPath: this.ticket.categoryPath?.map(({ id, name }) => ({ id, name })),
       authorId: this.ticket.authorId,
       author: this.ticket.author ? new UserResponse(this.ticket.author) : undefined,
-      associateTickets: this.ticket.associateTickets?.map((t) => new BaseTicketResponse(t)),
       reporterId: this.ticket.reporterId,
       reporter: this.ticket.reporter ? new UserResponse(this.ticket.reporter) : undefined,
       assigneeId: this.ticket.assigneeId,
