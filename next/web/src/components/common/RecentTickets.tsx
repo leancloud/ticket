@@ -22,6 +22,7 @@ export const RecentTickets = ({ userId, size = 8 }: { userId: string; size?: num
       pagination={false}
       size="middle"
       showHeader={false}
+      scroll={{ x: 'max-content' }}
     >
       <Column
         dataIndex="status"
@@ -29,7 +30,11 @@ export const RecentTickets = ({ userId, size = 8 }: { userId: string; size?: num
         render={(status: number) => <TicketStatus status={status} />}
       />
 
-      <Column key="title" title="标题" render={(ticket) => <TicketLink ticket={ticket} />} />
+      <Column
+        key="title"
+        title="标题"
+        render={(ticket) => <TicketLink className="max-w-lg" ticket={ticket} />}
+      />
 
       <Column
         dataIndex="categoryId"
