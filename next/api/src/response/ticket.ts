@@ -36,7 +36,6 @@ class BaseTicketResponse {
       metaData: this.ticket.metaData ? _.pick(this.ticket.metaData, includeMetaKeys) : undefined,
       firstCustomerServiceReplyAt: this.ticket.firstCustomerServiceReplyAt,
       latestCustomerServiceReplyAt: this.ticket.latestCustomerServiceReplyAt,
-      subscribed: this.ticket.subscribed,
       associated: !!this.ticket.parentId,
       language: this.ticket.language,
       tags: includeTags ? this.ticket.tags : undefined,

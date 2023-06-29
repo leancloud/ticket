@@ -216,8 +216,6 @@ export class Ticket extends Model {
   @field()
   channel?: string;
 
-  subscribed?: boolean;
-
   getUrl(): string {
     return `${config.host}/tickets/${this.nid}`;
   }
@@ -392,14 +390,5 @@ export class Ticket extends Model {
       .where('parent', '==', Ticket.ptr(this.parentId))
       .where('objectId', '!=', this.id)
       .find(options);
-  }
-
-  async loadSubscribed(user: User) {
-    this.subscribed = !!(await Watch.queryBuilder()
-      .where('ticket', '==', this.toPointer())
-      .where('user', '==', user.toPointer())
-      .first({ useMasterKey: true }));
-
-    return this;
   }
 }
