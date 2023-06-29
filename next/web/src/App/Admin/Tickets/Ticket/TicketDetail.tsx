@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
+import { useQueryClient } from 'react-query';
 import { useNavigate, useParams } from 'react-router-dom';
-import { AiFillExclamationCircle } from 'react-icons/ai';
+import { AiFillExclamationCircle, AiOutlineApi } from 'react-icons/ai';
 import moment from 'moment';
 import { difference, keyBy, partition } from 'lodash-es';
 import { DefaultOptionType } from 'antd/lib/select';
@@ -23,7 +24,9 @@ import { useCustomerServices } from '@/api/customer-service';
 import { useCollaborators } from '@/api/collaborator';
 import { useTagMetadatas } from '@/api/tag-metadata';
 import {
+  useAssociatedTickets,
   useCreateReply,
+  useDisassociateTickets,
   useOperateTicket,
   useTicketFieldValues,
   useUpdateTicketFieldValues,
@@ -31,7 +34,8 @@ import {
 import { useCategory } from '@/api/category';
 import { useTicketForm } from '@/api/ticket-form';
 import { ENABLE_LEANCLOUD_INTEGRATION, useCurrentUser } from '@/leancloud';
-import { TicketStatus } from '../../components/TicketStatus';
+import { TicketLink } from '@/App/Admin/components/TicketLink';
+import { TicketStatus } from '@/App/Admin/components/TicketStatus';
 import { Timeline } from './Timeline';
 import { TagData, TagForm } from './TagForm';
 import { FormField } from './components/FormField';
@@ -127,7 +131,9 @@ export function TicketDetail() {
               onDeleteReply={deleteReply}
             />
 
-            {ticket.author && <RecentTickets className="mb-5" userId={ticket.author.id} />}
+            {ticket.author && (
+              <RecentTickets className="mb-5" ticketId={ticket.id} userId={ticket.author.id} />
+            )}
             {ticket.evaluation && <Evaluation className="mb-5" evaluation={ticket.evaluation} />}
 
             <ReplyEditor
@@ -388,6 +394,7 @@ function CustomFieldsSection({ ticketId, categoryId }: CustomFieldsSectionProps)
 
 interface TicketBasicInfoSectionProps {
   ticket: {
+    id: string;
     groupId?: string;
     assigneeId?: string;
     language?: string;
@@ -440,11 +447,51 @@ function TicketBasicInfoSection({ ticket, onChange, disabled }: TicketBasicInfoS
           disabled={disabled}
         />
       </FormField>
+
+      <AssociatedTickets ticketId={ticket.id} />
     </>
   );
 }
 
-export interface AssigneeSectionProps {
+interface AssociatedTicketsProps {
+  ticketId: string;
+}
+
+function AssociatedTickets({ ticketId }: AssociatedTicketsProps) {
+  const queryClient = useQueryClient();
+
+  const { data: associatedTickets } = useAssociatedTickets(ticketId);
+
+  const disassociate = useDisassociateTickets({
+    onSuccess: () => {
+      queryClient.invalidateQueries(['AssociatedTickets', ticketId]);
+    },
+  });
+
+  if (!associatedTickets || associatedTickets.length === 0) {
+    return null;
+  }
+
+  return (
+    <FormField label="关联工单">
+      {associatedTickets.map((ticket) => (
+        <div className="flex items-center">
+          <TicketLink className="flex-1 min-w-0" ticket={ticket} />
+          <Button
+            type="text"
+            size="small"
+            title="解除关联"
+            icon={<AiOutlineApi className="w-4 h-4 m-auto" />}
+            loading={disassociate.isLoading}
+            onClick={() => disassociate.mutate([ticketId, ticket.id])}
+          />
+        </div>
+      ))}
+    </FormField>
+  );
+}
+
+interface AssigneeSectionProps {
   groupId?: string;
   assigneeId?: string;
   onChangeAssignee: (assigneeId: string | undefined) => void;

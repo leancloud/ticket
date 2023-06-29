@@ -1,33 +1,62 @@
+import { useState } from 'react';
+import { useQueryClient } from 'react-query';
 import { Link } from 'react-router-dom';
-import { Table } from 'antd';
+import { AiFillCaretLeft, AiFillCaretRight } from 'react-icons/ai';
+import { Button, Table } from 'antd';
 import moment from 'moment';
 
-import { useTickets } from '@/api/ticket';
+import { useAssociatedTickets, useAssociateTickets, useTickets } from '@/api/ticket';
 import { TicketStatus } from '@/App/Admin/components/TicketStatus';
 import { TicketLink } from '@/App/Admin/components/TicketLink';
 
 interface RecentTicketsProps {
   className?: string;
+  ticketId: string;
   userId: string;
 }
 
-export function RecentTickets({ className, userId }: RecentTicketsProps) {
-  const { data, isLoading } = useTickets({
-    pageSize: 10,
+export function RecentTickets({ className, ticketId, userId }: RecentTicketsProps) {
+  const [page, setPage] = useState(1);
+  const pageSize = 5;
+
+  const { data, isFetching } = useTickets({
+    page,
+    pageSize,
     filters: {
       authorId: userId,
     },
+    queryOptions: {
+      keepPreviousData: true,
+      staleTime: 1000 * 60,
+    },
   });
 
-  const hide = data?.length === 0;
+  const queryClient = useQueryClient();
 
-  if (hide) {
+  const { data: associatedTickets } = useAssociatedTickets(ticketId);
+  const canAssicoate = (id: string) => {
+    if (!associatedTickets) {
+      return false;
+    }
+    return associatedTickets.findIndex((ticket) => ticket.id === id) === -1;
+  };
+
+  const associate = useAssociateTickets({
+    onSuccess: () => {
+      queryClient.invalidateQueries(['AssociatedTickets', ticketId]);
+    },
+  });
+
+  const noData = data && data.length === 0;
+  const noMoreData = data && data.length < pageSize;
+
+  if (noData && page === 1) {
     return null;
   }
 
   return (
     <div className={className}>
-      <div className="mb-2">
+      <div className="mb-2 flex items-center">
         <div>
           最近工单 (
           <Link to={`/admin/tickets?authorId=${userId}&filterType=normal&tableType=all`}>
@@ -35,12 +64,30 @@ export function RecentTickets({ className, userId }: RecentTicketsProps) {
           </Link>
           )
         </div>
+        <div className="ml-auto">
+          <Button
+            type="text"
+            size="small"
+            disabled={isFetching || page === 1}
+            onClick={() => setPage(page - 1)}
+          >
+            <AiFillCaretLeft />
+          </Button>
+          <Button
+            type="text"
+            size="small"
+            disabled={isFetching || noMoreData}
+            onClick={() => setPage(page + 1)}
+          >
+            <AiFillCaretRight />
+          </Button>
+        </div>
       </div>
       <Table
-        loading={isLoading}
+        loading={isFetching}
         dataSource={data}
         rowKey="id"
-        size="small"
+        size="middle"
         pagination={false}
         scroll={{ x: 'max-content' }}
         columns={[
@@ -61,6 +108,23 @@ export function RecentTickets({ className, userId }: RecentTicketsProps) {
               const date = moment(createdAt);
               return <span title={date.format('YYYY-MM-DD HH:MM')}>{date.fromNow()}</span>;
             },
+          },
+          {
+            title: '操作',
+            key: 'actions',
+            render: (ticket) => (
+              <div className="-my-1">
+                <Button
+                  size="small"
+                  disabled={
+                    ticketId === ticket.id || !canAssicoate(ticket.id) || associate.isLoading
+                  }
+                  onClick={() => associate.mutate([ticketId, ticket.id])}
+                >
+                  关联
+                </Button>
+              </div>
+            ),
           },
         ]}
       />

@@ -484,3 +484,40 @@ export function useCreateReply(options?: UseMutationOptions<void, Error, CreateT
     ...options,
   });
 }
+
+async function getAssociatedTickets(ticketId: string) {
+  const res = await http.get<TicketSchema[]>(`/api/2/tickets/${ticketId}/associated-tickets`);
+  return res.data;
+}
+
+export function useAssociatedTickets(ticketId: string, options?: UseQueryOptions<TicketSchema[]>) {
+  return useQuery({
+    queryKey: ['AssociatedTickets', ticketId],
+    queryFn: () => getAssociatedTickets(ticketId),
+    ...options,
+  });
+}
+
+async function associatedTickets(ticket1: string, ticket2: string) {
+  await http.post(`/api/2/tickets/${ticket1}/associated-tickets`, { ticketId: ticket2 });
+}
+
+export function useAssociateTickets(options?: UseMutationOptions<void, Error, [string, string]>) {
+  return useMutation({
+    mutationFn: (ticketIds) => associatedTickets(...ticketIds),
+    ...options,
+  });
+}
+
+async function disassociateTickets(ticket1: string, ticket2: string) {
+  await http.delete(`/api/2/tickets/${ticket1}/associated-tickets/${ticket2}`);
+}
+
+export function useDisassociateTickets(
+  options?: UseMutationOptions<void, Error, [string, string]>
+) {
+  return useMutation({
+    mutationFn: (ticketIds) => disassociateTickets(...ticketIds),
+    ...options,
+  });
+}
