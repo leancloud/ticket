@@ -216,10 +216,6 @@ export class Ticket extends Model {
   @field()
   channel?: string;
 
-  associateTickets?: Ticket[];
-
-  subscribed?: boolean;
-
   getUrl(): string {
     return `${config.host}/tickets/${this.nid}`;
   }
@@ -367,10 +363,10 @@ export class Ticket extends Model {
     operator: User,
     options?: UpdateOptions & { cascade?: boolean }
   ): Promise<Ticket> {
-    await this.loadAssociateTickets(options);
+    const associateTickets = await this.getAssociatedTickets(options);
 
     const result = await Promise.all(
-      (options?.cascade ? [...(this.associateTickets ?? []), this] : [this]).map((ticket) => {
+      (options?.cascade ? [...associateTickets, this] : [this]).map((ticket) => {
         const updater = new TicketUpdater(ticket);
         updater.operate(action);
         return updater.update(operator, options);
@@ -386,23 +382,13 @@ export class Ticket extends Model {
     return Status.isClosed(this.status);
   }
 
-  async loadAssociateTickets(options?: AuthOptions) {
-    this.associateTickets = this.parentId
-      ? await Ticket.queryBuilder()
-          .where('parent', '==', Ticket.ptr(this.parentId))
-          .where('objectId', '!=', this.id)
-          .find(options)
-      : undefined;
-
-    return this;
-  }
-
-  async loadSubscribed(user: User) {
-    this.subscribed = !!(await Watch.queryBuilder()
-      .where('ticket', '==', this.toPointer())
-      .where('user', '==', user.toPointer())
-      .first({ useMasterKey: true }));
-
-    return this;
+  async getAssociatedTickets(options?: AuthOptions) {
+    if (!this.parentId) {
+      return [];
+    }
+    return Ticket.queryBuilder()
+      .where('parent', '==', Ticket.ptr(this.parentId))
+      .where('objectId', '!=', this.id)
+      .find(options);
   }
 }
