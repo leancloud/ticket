@@ -76,7 +76,7 @@ export class TicketController {
     }
 
     const tickets = await Ticket.queryBuilder()
-      .where('parent', '==', ticket.toPointer())
+      .where('parent', '==', Ticket.ptr(ticket.parentId))
       .find({ useMasterKey: true });
 
     const [[disassociateTicket], restTickets] = _.partition(
