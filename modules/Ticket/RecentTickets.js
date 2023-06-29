@@ -1,11 +1,4 @@
-import React, {
-  forwardRef,
-  useCallback,
-  useImperativeHandle,
-  useMemo,
-  useState,
-  useRef,
-} from 'react'
+import React, { useMemo } from 'react'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import { Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
@@ -16,130 +9,21 @@ import styles from './index.css'
 import { UserLabel } from '../UserLabel'
 import { useTranslation } from 'react-i18next'
 import { TicketStatusLabel } from '../components/TicketStatusLabel'
-import { Button, Form, Modal } from 'react-bootstrap'
-
-// eslint-disable-next-line react/display-name
-const MainTicketModal = forwardRef(({ ticket }, ref) => {
-  const [show, setShow] = useState(false)
-  const [targetId, setTargetId] = useState()
-  const [selectedId, setSelectedId] = useState()
-
-  const { t } = useTranslation()
-  const queryClient = useQueryClient()
-
-  const { data: target } = useQuery({
-    queryFn: () =>
-      http.get(`/api/2/tickets/${targetId}`, {
-        params: {
-          includeAssociateTicket: true,
-        },
-      }),
-    queryKey: ['ticket', targetId, { includeAssociateTicket: true }],
-    enabled: !!targetId,
-  })
-
-  const { mutate: associate, isLoading } = useMutation({
-    mutationFn: async (mainId) => {
-      await http.patch(`/api/2/tickets/${targetId}`, {
-        associateTicketId: ticket.id,
-        mainTicketId: mainId,
-      })
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['ticket', ticket.id])
-      queryClient.invalidateQueries(['ticket', targetId])
-      queryClient.invalidateQueries(['tickets', ticket.authorId])
-    },
-  })
-
-  const handleOpen = useCallback((id) => {
-    setTargetId(id)
-    setShow(true)
-  }, [])
-
-  const handleClose = useCallback(() => {
-    setShow(false)
-  }, [])
-
-  const handleSubmit = useCallback(
-    (e) => {
-      associate(selectedId, {
-        onSuccess: () => {
-          setShow(false)
-        },
-      })
-      e.preventDefault()
-    },
-    [selectedId, associate]
-  )
-
-  useImperativeHandle(
-    ref,
-    () => ({
-      open: handleOpen,
-    }),
-    [handleOpen]
-  )
-
-  const tickets = useMemo(
-    () =>
-      target && [
-        ticket,
-        ...(ticket.associateTickets ?? []),
-        target,
-        ...(target.associateTickets ?? []),
-      ],
-    [ticket, target]
-  )
-
-  return (
-    <Modal show={show}>
-      <Modal.Header closeButton>
-        <Modal.Title>{t('ticket.selectMainTicket')}</Modal.Title>
-      </Modal.Header>
-      <Form onSubmit={handleSubmit}>
-        <Modal.Body
-          onChange={(e) => {
-            setSelectedId(e.target.value)
-          }}
-        >
-          {tickets?.map(({ id, title, nid }) => (
-            <Form.Check
-              key={id}
-              type="radio"
-              label={`#${nid} ${title}`}
-              name="main-ticket"
-              value={id}
-            />
-          ))}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose} disabled={isLoading}>
-            {t('close')}
-          </Button>
-          <Button variant="primary" type="submit" disabled={isLoading || !selectedId}>
-            {t('submit')}
-          </Button>
-        </Modal.Footer>
-      </Form>
-    </Modal>
-  )
-})
-
-MainTicketModal.propTypes = {
-  ticket: PropTypes.object.isRequired,
-}
+import { Button } from 'react-bootstrap'
 
 function RecentTickets({ ticket }) {
   const { t } = useTranslation()
   const { addNotification } = useAppContext()
   const queryClient = useQueryClient()
 
-  const modalRef = useRef(null)
+  const { data: associatedTickets } = useQuery({
+    queryKey: ['associatedTickets', ticket.id],
+    queryFn: () => http.get(`/api/2/tickets/${ticket.id}/associated-tickets`),
+  })
 
   const excludeNids = useMemo(
-    () => [ticket.nid, ...(ticket.associateTickets?.map(({ nid }) => nid) ?? [])],
-    [ticket]
+    () => [ticket.nid, ...(associatedTickets?.map(({ nid }) => nid) ?? [])],
+    [ticket, associatedTickets]
   )
 
   const { data } = useQuery({
@@ -159,18 +43,14 @@ function RecentTickets({ ticket }) {
 
   const { mutate: associate } = useMutation({
     mutationFn: async (id) => {
-      await http.patch(`/api/2/tickets/${id}`, { associateTicketId: ticket.id })
+      await http.post(`/api/2/tickets/${ticket.id}/associated-tickets`, { ticketId: id })
     },
     onSuccess: (_, id) => {
-      queryClient.invalidateQueries(['ticket', id])
-      queryClient.invalidateQueries(['ticket', ticket.id])
-      queryClient.invalidateQueries(['tickets', ticket.authorId])
+      queryClient.invalidateQueries(['ticket'])
+      queryClient.invalidateQueries(['tickets'])
+      queryClient.invalidateQueries(['associatedTickets'])
     },
   })
-
-  const handleAssociate = (id) => {
-    modalRef.current?.open(id)
-  }
 
   const tickets = useMemo(() => {
     if (!data) {
@@ -221,13 +101,7 @@ function RecentTickets({ ticket }) {
             </span>
 
             <span>
-              <Button
-                onClick={() => {
-                  ticketItem.associated ? handleAssociate(ticketItem.id) : associate(ticketItem.id)
-                }}
-                variant="light"
-                size="sm"
-              >
+              <Button onClick={() => associate(ticketItem.id)} variant="light" size="sm">
                 {t('ticket.associate')}
               </Button>
             </span>
@@ -242,7 +116,6 @@ function RecentTickets({ ticket }) {
           </li>
         ))}
       </ul>
-      <MainTicketModal ref={modalRef} ticket={ticket} />
     </>
   )
 }

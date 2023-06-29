@@ -615,14 +615,19 @@ const AssociateTickets = memo(({ ticket }) => {
   const queryClient = useQueryClient()
   const { t } = useTranslation()
 
+  const { data: associatedTickets } = useQuery({
+    queryKey: ['associatedTickets', ticket.id],
+    queryFn: () => http.get(`/api/2/tickets/${ticket.id}/associated-tickets`),
+  })
+
   const { mutate: disassociate } = useMutation({
     mutationFn: async (id) => {
-      await http.patch(`/api/2/tickets/${id}`, { associateTicketId: null })
+      await http.delete(`/api/2/tickets/${ticket.id}/associated-tickets/${id}`)
     },
     onSuccess: (_, id) => {
-      queryClient.invalidateQueries(['ticket', id])
-      queryClient.invalidateQueries(['ticket', ticket.id])
-      queryClient.invalidateQueries(['tickets', ticket.authorId])
+      queryClient.invalidateQueries(['ticket'])
+      queryClient.invalidateQueries(['tickets'])
+      queryClient.invalidateQueries(['associatedTickets'])
     },
   })
 
@@ -630,19 +635,13 @@ const AssociateTickets = memo(({ ticket }) => {
     <Form.Group>
       <Form.Label>{t('ticket.associateTicket')}</Form.Label>
       <div>
-        {ticket.associateTickets?.map(({ id, title, nid }) => (
+        {associatedTickets?.map(({ id, title, nid }) => (
           <div key={id} className="d-flex justify-content-between">
             <Link to={`/tickets/${nid}`} title={title} className={styles.link}>
               <span className={styles.nid}>#{nid}</span>
               {title}
             </Link>
-            <Button
-              onClick={() => {
-                disassociate(id)
-              }}
-              variant="light"
-              size="sm"
-            >
+            <Button onClick={() => disassociate(id)} variant="light" size="sm">
               {t('ticket.disassociate')}
             </Button>
           </div>
