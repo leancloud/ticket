@@ -171,10 +171,19 @@ async function fetchTicket(
   return data;
 }
 
-export async function fetchTicketReplies(id: string, cursor?: string): Promise<ReplySchema[]> {
+interface FetchTicketRepliesOptions {
+  cursor?: string;
+  deleted?: boolean;
+}
+
+export async function fetchTicketReplies(
+  id: string,
+  { cursor, deleted }: FetchTicketRepliesOptions = {}
+): Promise<ReplySchema[]> {
   const { data } = await http.get(`/api/2/tickets/${id}/replies`, {
     params: {
       cursor,
+      deleted: deleted ? 1 : undefined,
     },
   });
   return data;

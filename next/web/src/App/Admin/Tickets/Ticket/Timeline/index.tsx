@@ -28,16 +28,9 @@ interface TimelineProps {
   replies?: ReplySchema[];
   opsLogs?: OpsLogSchema[];
   onRefetchReplies: () => void;
-  onDeleteReply: (id: string) => void;
 }
 
-export function Timeline({
-  header,
-  replies,
-  opsLogs,
-  onRefetchReplies,
-  onDeleteReply,
-}: TimelineProps) {
+export function Timeline({ header, replies, opsLogs, onRefetchReplies }: TimelineProps) {
   const timeline = useMemo(() => {
     const timeline: TimelineData[] = [];
     replies?.forEach((data) =>
@@ -62,8 +55,8 @@ export function Timeline({
   });
 
   const deleteReply = useDeleteReply({
-    onSuccess: (data, id) => {
-      onDeleteReply(id);
+    onSuccess: () => {
+      onRefetchReplies();
     },
   });
 
@@ -107,6 +100,7 @@ export function Timeline({
               isAgent={timeline.data.isCustomerService}
               isInternal={timeline.data.internal}
               edited={timeline.data.createdAt !== timeline.data.updatedAt}
+              deleted={!!timeline.data.deletedAt}
               onClickMenu={(key) => handleClickMenu(timeline.data, key)}
             />
           );

@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { useInfiniteQuery, useQueryClient } from 'react-query';
+import { useInfiniteQuery } from 'react-query';
 import { LCObject } from 'open-leancloud-storage/core';
 import { last } from 'lodash-es';
 
@@ -10,7 +10,12 @@ import { useCurrentRef } from '@/utils/useCurrentRef';
 export function useTicketReplies(ticketId?: string) {
   const { data, isFetchingNextPage, fetchNextPage, refetch } = useInfiniteQuery({
     queryKey: ['TicketReplies', ticketId],
-    queryFn: ({ pageParam }) => fetchTicketReplies(ticketId || '', pageParam || undefined),
+    queryFn: ({ pageParam }) => {
+      return fetchTicketReplies(ticketId || '', {
+        cursor: pageParam || undefined,
+        deleted: true,
+      });
+    },
     enabled: !!ticketId,
     getNextPageParam: (lastPage) => {
       if (lastPage.length) {
@@ -19,18 +24,6 @@ export function useTicketReplies(ticketId?: string) {
       return null;
     },
   });
-
-  const queryClient = useQueryClient();
-  const deleteReply = (id: string) => {
-    queryClient.setQueryData<typeof data>(['TicketReplies', ticketId], (data) => {
-      if (data) {
-        return {
-          pageParams: data.pageParams,
-          pages: data.pages.map((replies) => replies.filter((r) => r.id !== id)),
-        };
-      }
-    });
-  };
 
   const replies = useMemo(() => data?.pages.flat(), [data]);
 
@@ -42,13 +35,8 @@ export function useTicketReplies(ticketId?: string) {
   });
 
   const onUpdate = useCurrentRef((obj: LCObject) => {
-    if (obj.data.deletedAt) {
-      // soft delete
-      deleteReply(obj.id);
-    } else {
-      if (!isFetchingNextPage) {
-        refetch();
-      }
+    if (!isFetchingNextPage) {
+      refetch();
     }
   });
 
@@ -77,7 +65,6 @@ export function useTicketReplies(ticketId?: string) {
     replies,
     fetchMoreReplies: fetchNextPage,
     refetchReples: refetch,
-    deleteReply,
   };
 }
 
