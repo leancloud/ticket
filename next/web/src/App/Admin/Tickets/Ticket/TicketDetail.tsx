@@ -34,6 +34,7 @@ import {
 } from '@/api/ticket';
 import { useCategory } from '@/api/category';
 import { useTicketForm } from '@/api/ticket-form';
+import { UserSchema } from '@/api/user';
 import { getMetadataRenderer } from '@/config/config';
 import { ENABLE_LEANCLOUD_INTEGRATION, useCurrentUser } from '@/leancloud';
 import { TicketLink } from '@/App/Admin/components/TicketLink';
@@ -576,6 +577,14 @@ function AssigneeSection({
     }
   }, [groupMembers, assigneeId]);
 
+  const createOptions = (users: UserSchema[]) => {
+    return users.map((user) => ({
+      name: user.nickname,
+      label: <UserLabel user={user} />,
+      value: user.id,
+    }));
+  };
+
   const options = useMemo(() => {
     const options: DefaultOptionType[] = [];
     if (group && groupMembers?.length) {
@@ -609,7 +618,7 @@ function AssigneeSection({
             <div>负责人</div>
             {assigneeIsGroupMember === false && (
               <Tooltip title="负责人不是当前客服组的成员">
-                <AiFillExclamationCircle className="inline-block text-red-500 w-4 h-4" />
+                <AiFillExclamationCircle className="ml-1 inline-block w-4 h-4 text-[#ff4d4f]" />
               </Tooltip>
             )}
           </div>
@@ -629,7 +638,7 @@ function AssigneeSection({
         className="w-full"
         allowClear
         showSearch
-        optionFilterProp="label"
+        optionFilterProp="name"
         loading={loadingCustomerServices}
         options={options}
         placeholder="未分配"
@@ -639,13 +648,6 @@ function AssigneeSection({
       />
     </FormField>
   );
-}
-
-function createOptions(users: { id: string; nickname: string }[]) {
-  return users.map((user) => ({
-    label: user.nickname,
-    value: user.id,
-  }));
 }
 
 interface TagsSectionProps {

@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import { useDebounce } from 'react-use';
-import { Button, Empty, Input, Radio, Select, Tabs, Tooltip } from 'antd';
+import { Button, Empty, Input, Radio, Select, Tabs } from 'antd';
 import { AiOutlineFile } from 'react-icons/ai';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -9,6 +9,7 @@ import { uniq } from 'lodash-es';
 import { useQuickReplies } from '@/api/quick-reply';
 import { useCurrentUser } from '@/leancloud';
 import { LoadingCover } from '@/components/common';
+import { useHoverMenu } from '@/App/Admin/components/HoverMenu';
 import { Uploader, UploaderRef } from '@/App/Admin/components/Uploader';
 import { useModal } from './useModal';
 
@@ -103,7 +104,7 @@ export function ReplyEditor({ onSubmit, onOperate, operating }: ReplyEditorProps
 
       <Uploader ref={uploaderRef} disabled={submitting} />
 
-      <div className="flex mt-4 gap-2">
+      <div className="mt-4 flex flex-wrap gap-2">
         <Button onClick={toggleQuickReplyModal}>插入快捷回复</Button>
         <div className="grow" />
         <Button disabled={operating} onClick={() => onOperate('replyWithNoContent')}>
@@ -233,6 +234,12 @@ function QuickReplyMenu({ onSelect }: QuickReplyMenuProps) {
     return uniq(tags).map((tag) => ({ label: tag, value: tag }));
   }, [data]);
 
+  const { hover, menu } = useHoverMenu<string>({
+    render: (content) => (
+      <div className="max-w-[400px] bg-white p-2 shadow border rounded">{content}</div>
+    ),
+  });
+
   return (
     <div className="flex flex-col min-h-[400px] max-h-[calc(100vh-255px)] relative">
       <div className="grid grid-cols-2 gap-1.5 p-2 border-b">
@@ -255,12 +262,10 @@ function QuickReplyMenu({ onSelect }: QuickReplyMenuProps) {
       {filteredQuickReplies.length ? (
         <div className="divide-y overflow-y-auto">
           {filteredQuickReplies.map((qr) => (
-            <div key={qr.id} className="flex px-4 py-3">
-              <Tooltip title={qr.content}>
-                <a className="block" onClick={() => onSelect(qr.content, qr.fileIds)}>
-                  {qr.name}
-                </a>
-              </Tooltip>
+            <div key={qr.id} className="flex px-4 py-3" {...hover(qr.content)}>
+              <a className="block" onClick={() => onSelect(qr.content, qr.fileIds)}>
+                {qr.name}
+              </a>
               {qr.fileIds && qr.fileIds.length > 0 && (
                 <div className="flex items-center ml-auto">
                   <AiOutlineFile className="w-4 h-4 mx-1" />
@@ -273,6 +278,7 @@ function QuickReplyMenu({ onSelect }: QuickReplyMenuProps) {
       ) : (
         <Empty style={{ margin: 'auto' }} />
       )}
+      {menu}
     </div>
   );
 }
