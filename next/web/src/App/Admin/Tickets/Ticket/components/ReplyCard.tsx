@@ -22,6 +22,7 @@ interface FileInfo {
 
 export interface BasicReplyCardProps {
   id?: string;
+  className?: string;
   type?: 'primary' | 'internal';
   title?: ReactNode;
   tags?: string[];
@@ -32,7 +33,7 @@ export interface BasicReplyCardProps {
 }
 
 export const BasicReplyCard = forwardRef<HTMLDivElement, BasicReplyCardProps>(
-  ({ id, type, title, tags, menu, children, files, active }, ref) => {
+  ({ id, className, type, title, tags, menu, children, files, active }, ref) => {
     const [imageFiles, otherFiles] = useMemo(() => {
       if (!files) {
         return [[], []];
@@ -44,7 +45,7 @@ export const BasicReplyCard = forwardRef<HTMLDivElement, BasicReplyCardProps>(
       <div
         ref={ref}
         id={id}
-        className={cx('mb-5 bg-white border border-[#00000020] rounded overflow-hidden', {
+        className={cx('bg-white border border-[#00000020] rounded overflow-hidden', className, {
           'border-primary-600': type === 'primary',
           'border-[#ff9800bf]': type === 'internal',
           'outline outline-blue-500 border-blue-500': active,

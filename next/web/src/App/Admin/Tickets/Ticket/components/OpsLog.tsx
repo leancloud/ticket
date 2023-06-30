@@ -80,7 +80,7 @@ interface BaseOpsLogProps {
 
 function BaseOpsLog({ icon, children, time }: BaseOpsLogProps) {
   return (
-    <div className="grid grid-cols-[30px_1fr] items-center ml-[26px] mb-5">
+    <div className="grid grid-cols-[30px_1fr] items-center ml-[26px]">
       {icon}
       <div className="ml-2 flex flex-wrap items-center gap-1">
         {children}
@@ -246,7 +246,7 @@ function DiffFields({ changes }: DiffFieldsProps) {
     );
   }
 
-  return changes.map(({ fieldId, from, to }) => {
+  return (changes.map(({ fieldId, from, to }) => {
     const field = fieldById[fieldId];
     if (!field) {
       return null;
@@ -261,7 +261,7 @@ function DiffFields({ changes }: DiffFieldsProps) {
         to={to}
       />
     );
-  }) as any as JSX.Element;
+  }) as any) as JSX.Element;
 }
 
 type OptionValue = string;
