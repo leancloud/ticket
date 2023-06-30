@@ -9,6 +9,7 @@ import { Integrations } from '@sentry/tracing';
 
 import 'github-markdown-css/github-markdown-light.css';
 import './index.css';
+import './config';
 import App from './App';
 
 moment.locale('zh-cn');

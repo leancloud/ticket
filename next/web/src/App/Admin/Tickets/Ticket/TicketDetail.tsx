@@ -3,8 +3,9 @@ import { useQueryClient } from 'react-query';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AiFillExclamationCircle, AiOutlineApi } from 'react-icons/ai';
 import moment from 'moment';
-import { difference, keyBy, partition } from 'lodash-es';
+import { difference, isEmpty, keyBy, partition } from 'lodash-es';
 import { DefaultOptionType } from 'antd/lib/select';
+import { ErrorBoundary } from 'react-error-boundary';
 
 import {
   Button,
@@ -33,6 +34,7 @@ import {
 } from '@/api/ticket';
 import { useCategory } from '@/api/category';
 import { useTicketForm } from '@/api/ticket-form';
+import { getMetadataRenderer } from '@/config/config';
 import { ENABLE_LEANCLOUD_INTEGRATION, useCurrentUser } from '@/leancloud';
 import { TicketLink } from '@/App/Admin/components/TicketLink';
 import { TicketStatus } from '@/App/Admin/components/TicketStatus';
@@ -112,7 +114,10 @@ export function TicketDetail() {
               onChange={(categoryId) => update({ categoryId })}
               disabled={updating}
             />
+
             <CustomFieldsSection ticketId={ticket.id} categoryId={ticket.categoryId} />
+
+            <MetadataSection metadata={ticket.metaData} />
           </Col>
           <Col className="p-4" span={24} md={12}>
             <Timeline
@@ -389,6 +394,53 @@ function CustomFieldsSection({ ticketId, categoryId }: CustomFieldsSectionProps)
         </>
       )}
     </>
+  );
+}
+
+interface MetadataSectionProps {
+  metadata?: Record<string, any>;
+}
+
+function MetadataSection({ metadata }: MetadataSectionProps) {
+  if (!metadata || isEmpty(metadata)) {
+    return null;
+  }
+
+  return (
+    <>
+      <Divider>Metadata</Divider>
+      <ErrorBoundary
+        fallbackRender={({ error }) => <div className="text-red-500">Error: {error.message}</div>}
+      >
+        <div className="space-y-1">
+          {Object.entries(metadata).map(([key, value]) => (
+            <MetadataItem key={key} data={{ key, value }} />
+          ))}
+        </div>
+      </ErrorBoundary>
+    </>
+  );
+}
+
+interface MetadataItemProps {
+  data: { key: string; value: any };
+}
+
+function MetadataItem({ data }: MetadataItemProps) {
+  const { label, content } = useMemo(() => {
+    const renderer = getMetadataRenderer(data.key);
+    if (renderer) {
+      return renderer(data.value, data.key);
+    }
+    const content = typeof data.value === 'string' ? data.value : JSON.stringify(data.value);
+    return { label: data.key, content };
+  }, [data]);
+
+  return (
+    <div className="flex flex-wrap gap-1">
+      <div className="font-semibold">{label}:</div>
+      <div className="break-all">{content}</div>
+    </div>
   );
 }
 
