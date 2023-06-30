@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
 
 import { useCategories, useCategoryTopics, useNotices } from '@/api/category';
 import { useRootCategory } from '@/states/root-category';
@@ -10,6 +9,7 @@ import { TopCategoryList } from '../TopCategories';
 import Topics from './Topics';
 import Help from './Help';
 import Notices from './Notices';
+import { AiClassify } from './AiClassify';
 
 export default function Home() {
   const { t } = useTranslation();
@@ -65,14 +65,7 @@ export default function Home() {
     <>
       <PageHeader />
       {content}
-      {hasTopics && enableFeedback && (
-        <div className="text-center text-gray-400 opacity-80 mt-6 mb-3">
-          {t('topic.hint')}{' '}
-          <Link to="/categories" className="text-tapBlue">
-            {t('feedback.title')}
-          </Link>
-        </div>
-      )}
+      {hasTopics && enableFeedback && <AiClassify className="mt-3" />}
       {enableFeedback && <Help feedback={!showCategories} />}
     </>
   );

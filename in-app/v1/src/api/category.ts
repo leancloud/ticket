@@ -1,4 +1,4 @@
-import { UseQueryOptions, useQuery } from 'react-query';
+import { UseMutationOptions, UseQueryOptions, useMutation, useQuery } from 'react-query';
 import { useRootCategory } from '@/states/root-category';
 import { http } from '@/leancloud';
 import { Article } from '@/types';
@@ -114,3 +114,29 @@ export function useNotices(categoryId?: string, options?: UseQueryOptions<Articl
     ...options,
   });
 }
+
+export type ClassifyResult =
+  | {
+      status: 'success';
+      data: {
+        name: string;
+        id: string;
+      };
+    }
+  | { status: 'failed' };
+
+export const classifyTicket = async (categoryId: string, content: string) => {
+  const { data } = await http.post<ClassifyResult>('/api/2/categories/classify', {
+    productId: categoryId,
+    content,
+  });
+  return data;
+};
+
+export const useClassifyTicket = (
+  options?: UseMutationOptions<ClassifyResult, Error, { categoryId: string; content: string }>
+) =>
+  useMutation({
+    mutationFn: ({ categoryId, content }) => classifyTicket(categoryId, content),
+    ...options,
+  });
