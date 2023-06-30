@@ -20,6 +20,7 @@ interface MixedTicket {
   files: TicketDetailSchema['files'];
   language: TicketDetailSchema['language'];
   evaluation: TicketDetailSchema['evaluation'];
+  metaData: TicketDetailSchema['metaData'];
   createdAt: TicketDetailSchema['createdAt'];
   updatedAt: TicketDetailSchema['updatedAt'];
 
@@ -87,6 +88,7 @@ export function useMixedTicket(ticketId: string): UseMixedTicketResult {
         files: ticket.files,
         language: ticket.language,
         evaluation: ticket.evaluation,
+        metaData: ticket.metaData,
         createdAt: ticket.createdAt,
         updatedAt: ticket.updatedAt,
 
