@@ -30,10 +30,15 @@ export interface BasicReplyCardProps {
   children?: ReactNode;
   files?: FileInfo[];
   active?: boolean;
+  deleted?: boolean;
+  collapsed?: boolean;
 }
 
 export const BasicReplyCard = forwardRef<HTMLDivElement, BasicReplyCardProps>(
-  ({ id, className, type, title, tags, menu, children, files, active }, ref) => {
+  (
+    { id, className, type, title, tags, menu, children, files, active, deleted, collapsed },
+    ref
+  ) => {
     const [imageFiles, otherFiles] = useMemo(() => {
       if (!files) {
         return [[], []];
@@ -46,6 +51,7 @@ export const BasicReplyCard = forwardRef<HTMLDivElement, BasicReplyCardProps>(
         ref={ref}
         id={id}
         className={cx('bg-white border border-[#00000020] rounded overflow-hidden', className, {
+          'border-dashed': deleted,
           'border-primary-600': type === 'primary',
           'border-[#ff9800bf]': type === 'internal',
           'outline outline-blue-500 border-blue-500': active,
@@ -53,9 +59,11 @@ export const BasicReplyCard = forwardRef<HTMLDivElement, BasicReplyCardProps>(
       >
         <div
           className={cx(
-            'flex items-center leading-6 px-[15px] py-[10px] border-b',
+            'flex items-center leading-6 px-[15px] py-[10px]',
             'bg-[#00000008] border-[#00000020]',
             {
+              'border-b': !collapsed,
+              'border-dashed': deleted,
               'bg-primary-400 border-primary-600': type === 'primary',
               'bg-[#ffc10733] border-[#ff9800bf]': type === 'internal',
             }
@@ -86,16 +94,18 @@ export const BasicReplyCard = forwardRef<HTMLDivElement, BasicReplyCardProps>(
             </Dropdown>
           )}
         </div>
-        <div className="p-[15px]">
-          {children}
-          {imageFiles.length > 0 && (
-            <>
-              <hr className="my-4" />
-              <ImageFiles files={imageFiles} />
-            </>
-          )}
-        </div>
-        {otherFiles.length > 0 && (
+        {!collapsed && (
+          <div className="p-[15px]">
+            {children}
+            {imageFiles.length > 0 && (
+              <>
+                <hr className="my-4" />
+                <ImageFiles files={imageFiles} />
+              </>
+            )}
+          </div>
+        )}
+        {!collapsed && otherFiles.length > 0 && (
           <div className="flex flex-col items-start gap-1 bg-[#00000008] p-[10px] border-t border-[#00000020]">
             {otherFiles.map(({ id, name, url }) => (
               <a
@@ -126,6 +136,7 @@ interface ReplyCardProps {
   isAgent?: boolean;
   isInternal?: boolean;
   edited?: boolean;
+  deleted?: boolean;
   onClickMenu?: (key: string) => void;
 }
 
@@ -138,6 +149,7 @@ export function ReplyCard({
   isAgent,
   isInternal,
   edited,
+  deleted,
   onClickMenu,
 }: ReplyCardProps) {
   const [translation, toggleTranslation] = useToggle(false);
@@ -148,14 +160,18 @@ export function ReplyCard({
       { label: '翻译', key: 'translate' },
     ];
     if (isAgent) {
-      items.push({ type: 'divider' }, { label: '编辑', key: 'edit' });
-      if (edited) {
+      if (!deleted) {
+        items.push({ type: 'divider' }, { label: '编辑', key: 'edit' });
+        if (edited) {
+          items.push({ label: '修改记录', key: 'revisions' });
+        }
+        items.push({ type: 'divider' }, { label: '删除', key: 'delete', danger: true });
+      } else if (edited) {
         items.push({ label: '修改记录', key: 'revisions' });
       }
-      items.push({ type: 'divider' }, { label: '删除', key: 'delete', danger: true });
     }
     return items;
-  }, [isAgent, edited]);
+  }, [isAgent, edited, deleted]);
 
   const handleClickMenu = ({ key }: { key: string }) => {
     if (key === 'translate') {
@@ -180,6 +196,8 @@ export function ReplyCard({
 
   const { ref, active } = useAutoScrollIntoView(id);
 
+  const [collapsed, setCollapsed] = useState(active ? false : deleted);
+
   return (
     <BasicReplyCard
       ref={ref}
@@ -187,16 +205,28 @@ export function ReplyCard({
       type={isInternal ? 'internal' : isAgent ? 'primary' : undefined}
       title={
         <div className="flex flex-wrap items-center gap-1">
-          {author}
-          <span>提交于</span>
-          <Time value={createTime} />
-          {edited && <EditedLabel onClick={() => onClickMenu?.('revisions')} />}
+          {collapsed ? (
+            <>
+              <span>已删除</span>
+              <TextButton text="展开" onClick={() => setCollapsed(false)} />
+            </>
+          ) : (
+            <>
+              {author}
+              <span>提交于</span>
+              <Time value={createTime} />
+              {edited && <TextButton text="编辑过" onClick={() => onClickMenu?.('revisions')} />}
+              {deleted && <TextButton text="收起" onClick={() => setCollapsed(true)} />}
+            </>
+          )}
         </div>
       }
       tags={tags}
-      menu={{ items: menuItems, onClick: handleClickMenu }}
+      menu={collapsed ? undefined : { items: menuItems, onClick: handleClickMenu }}
       files={files}
       active={active}
+      deleted={deleted}
+      collapsed={collapsed}
     >
       <Translation enabled={translation}>
         <ReplyContent htmlContent={content} />
@@ -205,16 +235,17 @@ export function ReplyCard({
   );
 }
 
-interface EditedLabelProps {
+interface TextButtonProps {
+  text: string;
   onClick?: () => void;
 }
 
-function EditedLabel({ onClick }: EditedLabelProps) {
+function TextButton({ text, onClick }: TextButtonProps) {
   return (
     <span>
       (
       <a className="text-inherit" onClick={onClick}>
-        编辑过
+        {text}
       </a>
       )
     </span>

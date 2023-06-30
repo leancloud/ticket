@@ -14,6 +14,7 @@ export interface ReplySchema {
   files?: FileSchema[];
   createdAt: string;
   updatedAt: string;
+  deletedAt?: string;
 }
 
 interface UpdateReplyData {

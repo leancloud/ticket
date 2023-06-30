@@ -1,5 +1,5 @@
 import { forwardRef, useImperativeHandle, useMemo, useState } from 'react';
-import { Modal, Spin } from 'antd';
+import { Empty, Modal, Spin } from 'antd';
 
 import { ReplySchema, useReplyRevisions } from '@/api/reply';
 import { BasicReplyCard, BasicReplyCardProps, ReplyContent } from './ReplyCard';
@@ -48,6 +48,7 @@ export const ReplyRevisionsModal = forwardRef<ReplyRevisionsModalRef>((props, re
   return (
     <Modal open={open} width={700} title="修改记录" onCancel={() => setOpen(false)} footer={false}>
       {isLoading && <Spin />}
+      {revisions && revisions.length === 0 && <Empty />}
       {revisions?.map((revision) => (
         <BasicReplyCard
           className="mb-5 last:mb-0"

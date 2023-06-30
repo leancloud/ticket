@@ -17,6 +17,7 @@ export class ReplyResponse {
       internal: this.reply.internal,
       createdAt: this.reply.createdAt.toISOString(),
       updatedAt: this.reply.updatedAt.toISOString(),
+      deletedAt: this.reply.deletedAt?.toISOString(),
     };
   }
 }

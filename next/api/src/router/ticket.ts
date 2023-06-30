@@ -13,7 +13,7 @@ import { OpsLog, OpsLogCreator } from '@/model/OpsLog';
 import { Organization } from '@/model/Organization';
 import { Reply } from '@/model/Reply';
 import { Tag } from '@/model/Tag';
-import { Status, Ticket } from '@/model/Ticket';
+import { Ticket } from '@/model/Ticket';
 import { TicketField } from '@/model/TicketField';
 import { TicketFieldValue } from '@/model/TicketFieldValue';
 import { User } from '@/model/User';
@@ -898,17 +898,21 @@ router.get('/:id/replies', sort('orderBy', ['createdAt']), async (ctx) => {
   const createdAtOrder = sortItems?.[0];
   const asc = createdAtOrder?.order !== 'desc';
 
+  const systemRoles = await roleService.getSystemRolesForUser(currentUser.id);
+  const isEndUser = systemRoles.length === 0;
+
   const query = Reply.queryBuilder()
     .where('ticket', '==', ticket.toPointer())
-    .where('deletedAt', 'not-exists')
     .preload('author')
     .preload('files');
 
-  const systemRoles = await roleService.getSystemRolesForUser(currentUser.id);
-  if (systemRoles.length === 0) {
+  if (isEndUser) {
     query.where((query) => {
       query.where('internal', 'not-exists').orWhere('internal', '==', false);
     });
+  }
+  if (isEndUser || !ctx.query.deleted) {
+    query.where('deletedAt', 'not-exists');
   }
 
   if (cursor) {
