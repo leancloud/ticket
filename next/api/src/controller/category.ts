@@ -66,11 +66,18 @@ const batchUpdateSchema = z.array(
   })
 );
 
+const classifySchema = z.object({
+  productId: z.string(),
+  content: z.string(),
+});
+
 type CreateCategoryData = z.infer<typeof createCategorySchema>;
 
 type UpdateCategoryData = z.infer<typeof updateCategorySchema>;
 
 type BatchUpdateData = z.infer<typeof batchUpdateSchema>;
+
+type ClassifyData = z.infer<typeof classifySchema>;
 
 @Controller(['categories', 'products'])
 export class CategoryController {
@@ -84,6 +91,15 @@ export class CategoryController {
     await categoryService.renderCategories(categories, ctx.locales.locales);
 
     return categories;
+  }
+
+  @Post('classify')
+  async classify(@Body(new ZodValidationPipe(classifySchema)) data: ClassifyData) {
+    const category = await categoryService.classifyTicketWithAI(data.productId, data.content);
+
+    return category
+      ? { status: 'success', data: { name: category.name, id: category.id } }
+      : { status: 'failed' };
   }
 
   @Post('batch-update')

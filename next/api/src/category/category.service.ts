@@ -6,6 +6,7 @@ import { Category } from '@/model/Category';
 import { FindCategoriesOptions } from './types';
 import { ACLBuilder, AuthOptions, CreateData, UpdateData } from '@/orm';
 import { HttpError } from '@/common/http';
+import { openAIService } from '@/service/openai';
 
 export class CategoryService {
   private categoryCache: Cache;
@@ -170,6 +171,12 @@ export class CategoryService {
       { active: false },
       ...datas.map((data) => ({ id: data.id })),
     ]);
+  }
+
+  async classifyTicketWithAI(id: string, content: string) {
+    const categories = await this.getSubCategories(id, true);
+
+    return openAIService.classify(content, categories);
   }
 }
 
