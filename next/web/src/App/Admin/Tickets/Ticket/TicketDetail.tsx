@@ -94,7 +94,8 @@ export function TicketDetail() {
 
   return (
     <div className="h-full bg-white overflow-auto">
-      <div className="max-w-[1360px] mx-auto">
+      {/* className="relative" for antd dropdown menu position */}
+      <div id="ticket_container" className="max-w-[1360px] mx-auto relative">
         <TicketInfo
           ticket={ticket}
           author={ticket.author}

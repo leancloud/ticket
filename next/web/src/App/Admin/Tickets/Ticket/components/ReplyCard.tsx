@@ -40,8 +40,6 @@ export const BasicReplyCard = forwardRef<HTMLDivElement, BasicReplyCardProps>(
       return partition(files, (file) => IMAGE_FILE_MIMES.includes(file.mime));
     }, [files]);
 
-    const menuContainer = useRef<HTMLDivElement>(null!);
-
     return (
       <div
         ref={ref}
@@ -53,7 +51,6 @@ export const BasicReplyCard = forwardRef<HTMLDivElement, BasicReplyCardProps>(
         })}
       >
         <div
-          ref={menuContainer}
           className={cx(
             'flex items-center leading-6 px-[15px] py-[10px] border-b',
             'bg-[#00000008] border-[#00000020]',
@@ -80,7 +77,7 @@ export const BasicReplyCard = forwardRef<HTMLDivElement, BasicReplyCardProps>(
               trigger={['click']}
               placement="bottomRight"
               menu={menu}
-              getPopupContainer={() => menuContainer.current}
+              getPopupContainer={() => document.getElementById('ticket_container')!}
             >
               <button className="ml-2">
                 <BsThreeDots className="w-4 h-4" />
