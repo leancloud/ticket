@@ -1,5 +1,6 @@
 import { ReactNode, useMemo, useRef } from 'react';
 import { Modal, Skeleton } from 'antd';
+import cx from 'classnames';
 
 import { ReplySchema, useDeleteReply, useUpdateReply } from '@/api/reply';
 import { OpsLog as OpsLogSchema } from '@/api/ticket';
@@ -86,7 +87,11 @@ export function Timeline({
   };
 
   return (
-    <div className={loading ? undefined : styles.timeline}>
+    <div
+      className={cx('space-y-5 mb-5', {
+        [styles.timeline]: !loading,
+      })}
+    >
       {header}
       {loading && <Skeleton active paragraph={{ rows: 4 }} />}
       {timeline.map((timeline) => {
@@ -101,7 +106,6 @@ export function Timeline({
               files={timeline.data.files}
               isAgent={timeline.data.isCustomerService}
               isInternal={timeline.data.internal}
-              editable
               edited={timeline.data.createdAt !== timeline.data.updatedAt}
               onClickMenu={(key) => handleClickMenu(timeline.data, key)}
             />

@@ -22,6 +22,7 @@ interface FileInfo {
 
 export interface BasicReplyCardProps {
   id?: string;
+  className?: string;
   type?: 'primary' | 'internal';
   title?: ReactNode;
   tags?: string[];
@@ -32,7 +33,7 @@ export interface BasicReplyCardProps {
 }
 
 export const BasicReplyCard = forwardRef<HTMLDivElement, BasicReplyCardProps>(
-  ({ id, type, title, tags, menu, children, files, active }, ref) => {
+  ({ id, className, type, title, tags, menu, children, files, active }, ref) => {
     const [imageFiles, otherFiles] = useMemo(() => {
       if (!files) {
         return [[], []];
@@ -40,20 +41,17 @@ export const BasicReplyCard = forwardRef<HTMLDivElement, BasicReplyCardProps>(
       return partition(files, (file) => IMAGE_FILE_MIMES.includes(file.mime));
     }, [files]);
 
-    const menuContainer = useRef<HTMLDivElement>(null!);
-
     return (
       <div
         ref={ref}
         id={id}
-        className={cx('mb-5 bg-white border border-[#00000020] rounded overflow-hidden', {
+        className={cx('bg-white border border-[#00000020] rounded overflow-hidden', className, {
           'border-primary-600': type === 'primary',
           'border-[#ff9800bf]': type === 'internal',
           'outline outline-blue-500 border-blue-500': active,
         })}
       >
         <div
-          ref={menuContainer}
           className={cx(
             'flex items-center leading-6 px-[15px] py-[10px] border-b',
             'bg-[#00000008] border-[#00000020]',
@@ -80,7 +78,7 @@ export const BasicReplyCard = forwardRef<HTMLDivElement, BasicReplyCardProps>(
               trigger={['click']}
               placement="bottomRight"
               menu={menu}
-              getPopupContainer={() => menuContainer.current}
+              getPopupContainer={() => document.getElementById('ticket_container')!}
             >
               <button className="ml-2">
                 <BsThreeDots className="w-4 h-4" />
@@ -127,7 +125,6 @@ interface ReplyCardProps {
   files?: FileInfo[];
   isAgent?: boolean;
   isInternal?: boolean;
-  editable?: boolean;
   edited?: boolean;
   onClickMenu?: (key: string) => void;
 }
@@ -140,7 +137,6 @@ export function ReplyCard({
   files,
   isAgent,
   isInternal,
-  editable,
   edited,
   onClickMenu,
 }: ReplyCardProps) {
@@ -151,7 +147,7 @@ export function ReplyCard({
       { label: '复制链接', key: 'copyLink' },
       { label: '翻译', key: 'translate' },
     ];
-    if (editable) {
+    if (isAgent) {
       items.push({ type: 'divider' }, { label: '编辑', key: 'edit' });
       if (edited) {
         items.push({ label: '修改记录', key: 'revisions' });
@@ -159,7 +155,7 @@ export function ReplyCard({
       items.push({ type: 'divider' }, { label: '删除', key: 'delete', danger: true });
     }
     return items;
-  }, [editable, edited]);
+  }, [isAgent, edited]);
 
   const handleClickMenu = ({ key }: { key: string }) => {
     if (key === 'translate') {
