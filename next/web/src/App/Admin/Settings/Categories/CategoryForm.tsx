@@ -252,7 +252,12 @@ export function CategoryForm({
         control={control}
         name="description"
         render={({ field }) => (
-          <Form.Item label="描述" htmlFor="category_form_desc" style={FORM_ITEM_STYLE}>
+          <Form.Item
+            label="描述"
+            htmlFor="category_form_desc"
+            style={FORM_ITEM_STYLE}
+            extra="描述的详细与否会影响 AI 帮助用户进行分类的准确度，为空时代表此分类不参与 AI 分类"
+          >
             <TextArea {...field} id="category_form_desc" />
           </Form.Item>
         )}
