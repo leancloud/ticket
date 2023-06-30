@@ -101,7 +101,6 @@ export function Timeline({
               files={timeline.data.files}
               isAgent={timeline.data.isCustomerService}
               isInternal={timeline.data.internal}
-              editable
               edited={timeline.data.createdAt !== timeline.data.updatedAt}
               onClickMenu={(key) => handleClickMenu(timeline.data, key)}
             />

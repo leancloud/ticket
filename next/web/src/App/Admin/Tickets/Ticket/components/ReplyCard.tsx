@@ -124,7 +124,6 @@ interface ReplyCardProps {
   files?: FileInfo[];
   isAgent?: boolean;
   isInternal?: boolean;
-  editable?: boolean;
   edited?: boolean;
   onClickMenu?: (key: string) => void;
 }
@@ -137,7 +136,6 @@ export function ReplyCard({
   files,
   isAgent,
   isInternal,
-  editable,
   edited,
   onClickMenu,
 }: ReplyCardProps) {
@@ -148,7 +146,7 @@ export function ReplyCard({
       { label: '复制链接', key: 'copyLink' },
       { label: '翻译', key: 'translate' },
     ];
-    if (editable) {
+    if (isAgent) {
       items.push({ type: 'divider' }, { label: '编辑', key: 'edit' });
       if (edited) {
         items.push({ label: '修改记录', key: 'revisions' });
@@ -156,7 +154,7 @@ export function ReplyCard({
       items.push({ type: 'divider' }, { label: '删除', key: 'delete', danger: true });
     }
     return items;
-  }, [editable, edited]);
+  }, [isAgent, edited]);
 
   const handleClickMenu = ({ key }: { key: string }) => {
     if (key === 'translate') {
