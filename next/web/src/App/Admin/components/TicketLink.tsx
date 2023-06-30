@@ -20,7 +20,7 @@ export function TicketLink({ ticket, className, viewId }: TicketLinkProps) {
     <div className={classNames('flex font-bold', className)} {...hover(ticket.id)}>
       <Link
         className="!text-[#6f7c87]"
-        to={`${ticket.nid}${viewId ? `?view=${viewId}` : ''}`}
+        to={`/admin/tickets/${ticket.nid}${viewId ? `?view=${viewId}` : ''}`}
         target="_blank"
       >
         #{ticket.nid}

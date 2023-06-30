@@ -42,6 +42,9 @@ export class TicketController {
     data: z.infer<typeof createAssociatedTicketSchema>
   ) {
     const ticket = ctx.state.ticket as Ticket;
+    if (data.ticketId === ticket.id) {
+      throw new BadRequestError('Cannot associate ticket itself');
+    }
 
     const associatedTicket = await Ticket.find(data.ticketId, { useMasterKey: true });
     if (!associatedTicket) {
@@ -69,6 +72,7 @@ export class TicketController {
   }
 
   @Delete(':id/associated-tickets/:associatedTicketId')
+  @UseMiddlewares(customerServiceOnly)
   async deleteAssociatedTicket(
     @Ctx() ctx: Context,
     @Param('associatedTicketId') associatedTicketId: string
