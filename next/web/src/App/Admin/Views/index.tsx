@@ -243,11 +243,7 @@ export function ViewTickets() {
   }, [view]);
 
   const queryClient = useQueryClient();
-  const {
-    data: tickets,
-    totalCount,
-    isLoading: isLoadingTickets,
-  } = useViewTickets(id!, {
+  const { data: tickets, totalCount, isLoading: isLoadingTickets } = useViewTickets(id!, {
     page,
     pageSize: PAGE_SIZE,
     include,
@@ -323,7 +319,7 @@ export function ViewTickets() {
           rowClassName="cursor-pointer"
           onRow={(record) => ({
             ...hover(record.id),
-            onClick: () => window.open(`/tickets/${record.nid}`),
+            onClick: () => window.open(`/next/admin/tickets/${record.nid}`),
           })}
           loading={isLoadingTickets}
           pagination={{
