@@ -24,8 +24,8 @@ import {
   TreeSelect,
   TreeSelectProps,
 } from '@/components/antd';
-import { JSONTextarea } from '@/App/Admin/components/JSONTextarea';
 import { findTreeNode } from './utils';
+import { MetaField, MetaOptions } from '../../components/MetaField';
 
 type PreviewFAQ = Omit<Article, 'name'> & { title: string };
 interface PreviewConfig {
@@ -41,6 +41,14 @@ interface PreviewConfig {
 const { TextArea } = Input;
 
 const FORM_ITEM_STYLE = { marginBottom: 16 };
+
+const CategoryMetaOptions: MetaOptions[] = [
+  {
+    key: 'disableAIClassify',
+    label: '禁用 AI 分类',
+    type: 'boolean',
+  },
+];
 
 const CategoryTreeSelect = forwardRef<RefSelectProps, TreeSelectProps<string | undefined>>(
   (props, ref) => {
@@ -548,14 +556,7 @@ export function CategoryForm({
         control={control}
         name="meta"
         render={({ field: { ref, ...rest } }) => (
-          <Form.Item
-            label="Meta"
-            htmlFor="meta"
-            help="面向开发者的扩展属性"
-            style={FORM_ITEM_STYLE}
-          >
-            <JSONTextarea {...rest} id="meta" />
-          </Form.Item>
+          <MetaField {...rest} options={CategoryMetaOptions} />
         )}
       />
 
