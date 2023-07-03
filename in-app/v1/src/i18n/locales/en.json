@@ -50,7 +50,18 @@
     "select_hint": "Select Topic",
     "select_hint_home": "Select Problem Type",
     "faqs": "Related Articles",
-    "title": "Issue Categories"
+    "title": "Issue Categories",
+    "classify": {
+      "placeholder": "For example: Forgot password",
+      "title": "Please briefly describe your issue",
+      "loading": "Retrieving question categories...",
+      "result": {
+        "title": "Guess your question belongs to",
+        "no_help": "If the above content does not help you",
+        "select": "manually select the question category",
+        "failed": "No relevant results found"
+      }
+    }
   },
   "topic": {
     "title": "FAQs",
