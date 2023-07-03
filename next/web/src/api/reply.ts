@@ -11,6 +11,7 @@ export interface ReplySchema {
   author: UserSchema;
   isCustomerService: boolean;
   internal?: boolean;
+  edited?: boolean;
   files?: FileSchema[];
   createdAt: string;
   updatedAt: string;
