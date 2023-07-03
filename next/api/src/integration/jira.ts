@@ -85,7 +85,7 @@ class JiraIntegration {
         desc += `\n|${key}|${value || '-'}|`;
       });
     }
-    const url = `${config.host}/tickets/${ticket.nid}`;
+    const url = ticket.getUrl();
     desc += `\n\nh3. *工单链接:*\n${url}`;
     return desc;
   }
