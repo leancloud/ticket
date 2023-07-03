@@ -473,3 +473,11 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 ### `decb9cb6c70deb89004daa4cd52120706dbb48ad`
 
 导入 Group.json，添加 `permissions` 列
+
+### 2023-07-03
+
+### `a94dacc4abcd15539ed4daf13ac3c020569a6f33`
+
+导入 Reply.json，创建 edited 列。
+
+部署完成后运行 next/api/scripts/set-reply-edited-flag.js，根据提示完成对存量数据的迁移。
