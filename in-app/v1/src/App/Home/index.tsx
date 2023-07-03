@@ -68,7 +68,7 @@ export default function Home() {
       {content}
       {hasTopics &&
         enableFeedback &&
-        (category.meta?.disableAIClassify ? (
+        (!category.meta?.enableAIClassify ? (
           <div className="text-center text-gray-400 opacity-80 mt-6 mb-3">
             {t('topic.hint')}{' '}
             <Link to="/categories" className="text-tapBlue">

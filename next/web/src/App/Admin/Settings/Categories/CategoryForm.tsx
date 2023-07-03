@@ -44,8 +44,8 @@ const FORM_ITEM_STYLE = { marginBottom: 16 };
 
 const CategoryMetaOptions: MetaOptions[] = [
   {
-    key: 'disableAIClassify',
-    label: '禁用 AI 分类',
+    key: 'enableAIClassify',
+    label: '启用 AI 分类',
     type: 'boolean',
   },
 ];
