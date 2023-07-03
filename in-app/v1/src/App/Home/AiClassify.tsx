@@ -6,7 +6,7 @@ import { useRootCategory } from '@/states/root-category';
 import { useState, useCallback, ChangeEventHandler, ComponentPropsWithoutRef, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import cx from 'classnames';
-import { LoadingIcon } from '@/icons/Loading';
+import LoadingIcon from '@/icons/LoadingIcon.png';
 import { DoneIcon } from '@/icons/Done';
 import { Link } from 'react-router-dom';
 import { FailedIcon } from '@/icons/FailedIcon';
@@ -109,7 +109,7 @@ const Loading = memo(() => {
   return (
     <div className="flex flex-row items-center">
       <span className="mr-2 animate-spin">
-        <LoadingIcon />
+        <img src={LoadingIcon} />
       </span>
       <span className="text-[#666666]">{t('category.classify.loading')}</span>
     </div>
