@@ -99,7 +99,7 @@ export function Timeline({ header, replies, opsLogs, onRefetchReplies }: Timelin
               files={timeline.data.files}
               isAgent={timeline.data.isCustomerService}
               isInternal={timeline.data.internal}
-              edited={timeline.data.createdAt !== timeline.data.updatedAt}
+              edited={timeline.data.edited}
               deleted={!!timeline.data.deletedAt}
               onClickMenu={(key) => handleClickMenu(timeline.data, key)}
             />
