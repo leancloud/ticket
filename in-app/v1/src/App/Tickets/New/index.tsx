@@ -18,6 +18,7 @@ import CheckIcon from '@/icons/Check';
 import NotFound from '../../NotFound';
 import { CustomForm, CustomFieldConfig, CustomFormItem } from './CustomForm';
 import { usePersistFormData } from './usePersistFormData';
+import { useContent } from '@/states/content';
 
 const DEFAULT_FIELDS: CustomFieldConfig[] = [
   {
@@ -86,15 +87,22 @@ function TicketForm({
 
   const { initData, onChange, clear } = usePersistFormData(category.id);
 
+  const contentValueFromClassify = useContent();
+
   const defaultValues = useMemo(() => {
-    const defaultValues = cloneDeep(presetFieldValues ?? {});
+    const defaultValues = {
+      ...cloneDeep(presetFieldValues ?? {}),
+      description: contentValueFromClassify,
+      title: contentValueFromClassify,
+    };
+
     if (initData && fields) {
       // 目前无法根据文件 id 恢复文件字段的状态, 所以排除文件字段
       const ids = fields.filter((f) => f.type !== 'file').map((f) => f.id);
       Object.assign(defaultValues, pick(initData, ids));
     }
     return defaultValues;
-  }, [presetFieldValues, initData, fields]);
+  }, [presetFieldValues, initData, fields, contentValueFromClassify]);
 
   const handleSubmit = (data: Record<string, any>) => {
     const { title, description, ...fieldValues } = data;

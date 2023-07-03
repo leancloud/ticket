@@ -10,6 +10,7 @@ import LoadingIcon from '@/icons/LoadingIcon.png';
 import { DoneIcon } from '@/icons/Done';
 import { Link } from 'react-router-dom';
 import { FailedIcon } from '@/icons/FailedIcon';
+import { useSetContent } from '@/states/content';
 
 const MaxLength = 100;
 
@@ -156,14 +157,16 @@ const Result = memo(({ data }: { data?: ClassifyResult }) => {
 
 export const AiClassify = ({ className }: { className?: string }) => {
   const category = useRootCategory();
+  const setContent = useSetContent();
 
   const { data, mutate: classify, isLoading, isError } = useClassifyTicket();
 
   const handleSubmit = useCallback(
     (content: string) => {
       classify({ categoryId: category.id, content });
+      setContent(content);
     },
-    [classify, category]
+    [classify, category, setContent]
   );
 
   return (
