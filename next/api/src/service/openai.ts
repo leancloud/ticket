@@ -1,4 +1,5 @@
 import { Category } from '@/model/Category';
+import { AxiosProxyConfig } from 'axios';
 import _ from 'lodash';
 import { Configuration, OpenAIApi } from 'openai';
 
@@ -25,15 +26,30 @@ export interface TicketClassifyResult {
 export class OpenAIService {
   active: boolean;
   instance: InstanceType<typeof OpenAIApi>;
+  proxy?: AxiosProxyConfig;
 
   constructor() {
     const apiKey = process.env.OPENAI_API_KEY;
+    const httpProxy = process.env.http_proxy;
     this.instance = new OpenAIApi(new Configuration({ apiKey }));
 
     if (!apiKey) {
       console.warn('OPENAI_API_KEY not provided, disabling openAIService...');
       this.active = false;
       return;
+    }
+
+    if (httpProxy) {
+      const proxy = new URL(httpProxy);
+      const port = Number(proxy.port);
+
+      this.proxy = port
+        ? {
+            protocol: proxy.protocol.replace(':', ''),
+            host: proxy.hostname,
+            port: Number(proxy.port),
+          }
+        : undefined;
     }
 
     this.active = true;
@@ -53,20 +69,23 @@ export class OpenAIService {
     const res = await (async () => {
       try {
         const res = (
-          await this.instance.createChatCompletion({
-            model: 'gpt-3.5-turbo',
-            messages: [
-              {
-                role: 'system',
-                content: SystemPrompt,
-              },
-              {
-                role: 'user',
-                content: UserPrompt,
-              },
-            ],
-            temperature: 0.6,
-          })
+          await this.instance.createChatCompletion(
+            {
+              model: 'gpt-3.5-turbo',
+              messages: [
+                {
+                  role: 'system',
+                  content: SystemPrompt,
+                },
+                {
+                  role: 'user',
+                  content: UserPrompt,
+                },
+              ],
+              temperature: 0.6,
+            },
+            { timeout: 20 * 1000, proxy: this.proxy }
+          )
         ).data.choices[0].message?.content;
 
         if (res) {
@@ -74,6 +93,7 @@ export class OpenAIService {
         }
       } catch (err) {
         console.error(err);
+        return;
       }
     })();
 
