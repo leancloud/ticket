@@ -9,6 +9,7 @@ import { Reply } from '@/model/Reply';
 import { User } from '@/model/User';
 import { ReplyRevision } from '@/model/ReplyRevision';
 import { ReplyRevisionResponse } from '@/response/reply-revision';
+import { ReplyResponse } from '@/response/reply';
 
 const router = new Router().use(auth, customerServiceOnly);
 
@@ -22,7 +23,10 @@ router.param('id', async (id, ctx, next) => {
 });
 
 const updateReplyDataSchema = z.object({
-  content: z.string().optional(),
+  content: z
+    .string()
+    .transform((content) => content.trim())
+    .optional(),
   fileIds: z.array(z.string()).optional(),
 });
 
@@ -31,15 +35,22 @@ router.patch('/:id', async (ctx) => {
   const reply = ctx.state.reply as Reply;
   const { content, fileIds } = updateReplyDataSchema.parse(ctx.request.body);
 
-  if (!content && (!fileIds || fileIds.length === 0)) {
-    ctx.throw(400, 'content and fileIds cannot be empty at the same time');
-  }
-
   if (!(await canUpdateReply(currentUser, reply))) {
     ctx.throw(403, `you have no privilege to update reply ${reply.id}`);
   }
 
-  const updateData: UpdateData<Reply> = {};
+  if (content === '' && fileIds?.length === 0) {
+    ctx.throw(400, 'content and fileIds cannot be empty at the same time');
+  }
+
+  if (content === undefined && !fileIds) {
+    ctx.body = new ReplyResponse(reply);
+    return;
+  }
+
+  const updateData: UpdateData<Reply> = {
+    edited: true,
+  };
   if (content !== undefined) {
     updateData.content = content;
     updateData.contentHTML = htmlify(content);
@@ -48,39 +59,38 @@ router.patch('/:id', async (ctx) => {
     updateData.fileIds = fileIds.length ? fileIds : null;
   }
 
-  if (!_.isEmpty(updateData)) {
-    const newReply = await reply.update(updateData, { useMasterKey: true });
+  const newReply = await reply.update(updateData, { useMasterKey: true });
 
-    const revisionDatas: CreateData<ReplyRevision>[] = [];
+  const revisionDatas: CreateData<ReplyRevision>[] = [];
 
-    if (reply.createdAt.getTime() === reply.updatedAt.getTime()) {
-      revisionDatas.push({
-        ACL: {},
-        replyId: reply.id,
-        content: reply.content,
-        contentHTML: reply.contentHTML,
-        fileIds: reply.fileIds,
-        operatorId: reply.authorId,
-        action: 'create',
-        actionTime: reply.createdAt,
-      });
-    }
-
+  // TODO: test reply.edited
+  if (reply.createdAt.getTime() === reply.updatedAt.getTime()) {
     revisionDatas.push({
       ACL: {},
       replyId: reply.id,
-      content: newReply.content,
-      contentHTML: newReply.contentHTML,
-      fileIds: newReply.fileIds,
-      operatorId: currentUser.id,
-      action: 'update',
-      actionTime: newReply.updatedAt,
+      content: reply.content,
+      contentHTML: reply.contentHTML,
+      fileIds: reply.fileIds,
+      operatorId: reply.authorId,
+      action: 'create',
+      actionTime: reply.createdAt,
     });
-
-    await ReplyRevision.createSome(revisionDatas, { useMasterKey: true });
   }
 
-  ctx.body = {};
+  revisionDatas.push({
+    ACL: {},
+    replyId: reply.id,
+    content: newReply.content,
+    contentHTML: newReply.contentHTML,
+    fileIds: newReply.fileIds,
+    operatorId: currentUser.id,
+    action: 'update',
+    actionTime: newReply.updatedAt,
+  });
+
+  await ReplyRevision.createSome(revisionDatas, { useMasterKey: true });
+
+  ctx.body = new ReplyResponse(newReply);
 });
 
 router.delete('/:id', async (ctx) => {

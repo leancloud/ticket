@@ -15,6 +15,7 @@ export class ReplyResponse {
       isCustomerService: this.reply.isCustomerService,
       files: this.reply.files?.map((file) => new FileResponse(file)),
       internal: this.reply.internal,
+      edited: this.reply.edited,
       createdAt: this.reply.createdAt.toISOString(),
       updatedAt: this.reply.updatedAt.toISOString(),
       deletedAt: this.reply.deletedAt?.toISOString(),
