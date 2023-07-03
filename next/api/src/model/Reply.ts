@@ -61,6 +61,9 @@ export class Reply extends Model {
   @field()
   deletedAt?: Date;
 
+  @field()
+  edited?: boolean;
+
   getTinyInfo(): TinyReplyInfo {
     if (!this.author) {
       throw new Error('missing reply author');
