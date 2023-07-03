@@ -94,12 +94,15 @@ export class CategoryController {
   }
 
   @Post('classify')
-  async classify(@Body(new ZodValidationPipe(classifySchema)) data: ClassifyData) {
+  async classify(
+    @Body(new ZodValidationPipe(classifySchema)) data: ClassifyData,
+    @Locales() locale: ILocale
+  ) {
     const category = await categoryService.classifyTicketWithAI(data.productId, data.content);
 
-    return category
-      ? { status: 'success', data: { name: category.name, id: category.id } }
-      : { status: 'failed' };
+    category && (await categoryService.renderCategories([category], locale.locales));
+
+    return category ? { status: 'success', data: category } : { status: 'failed' };
   }
 
   @Post('batch-update')

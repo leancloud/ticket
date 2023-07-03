@@ -4,16 +4,17 @@ import _ from 'lodash';
 import { Configuration, OpenAIApi } from 'openai';
 
 export const TicketClassifyPrompt = (categories: Category[]) => `
-你是我的工单内容分类助手，我会为你提供各种分类以及它们的描述，以及一个工单的内容，我需要你帮助我将下面的这一个工单分到某一个分类中，并给出你认为的置信度。只按照我给出的格式输出，如果遇到问题可以输出 null。下面的输出 JSON 格式中，category 表示分类的名字，confidence 表示你给出的置信度，你可以给出对这个工单所有待选的分类，无需额外解释说明。
+你是我的工单内容分类助手，我会为你提供各种分类以及它们的描述，以及一个工单的内容，我需要你帮助我将下面的这一个工单分到某一个分类中，并给出你认为的置信度。只按照我给出的格式输出，如果你觉得这个工单不属于我给出的任何分类，输出 null。下面的输出 JSON 格式中，category 表示分类的名字，confidence 表示你给出的置信度，你可以给出对这个工单所有待选的分类，无需额外解释说明。
+
 输出使用的 JSON 格式："""
 [
   { "category": "..", "confidence": 0.123456789 }
   { "category": "..", "confidence": 0.12345678 }
 ]
 """
-以下是各种分类的名字以及他们的含义，由 '-' 开头，每个占一行：
+以下是各种分类的 ID 以及他们的含义，由 '-' 开头，每个占一行：
 ${categories
-  .map(({ name, description }) => description && `- ${name}：${description}`)
+  .map(({ id, description }) => description && `- ${id}：${description}`)
   .filter(Boolean)
   .join('\n')}
 `;
@@ -60,7 +61,7 @@ export class OpenAIService {
       return undefined;
     }
 
-    const categoryByName = _.keyBy(categories, (c) => c.name);
+    const categoryById = _.keyBy(categories, (c) => c.id);
 
     const SystemPrompt = TicketClassifyPrompt(categories);
 
@@ -98,7 +99,7 @@ export class OpenAIService {
     })();
 
     if (res) {
-      return categoryByName[res[0].category];
+      return categoryById[res[0].category];
     }
   }
 }
