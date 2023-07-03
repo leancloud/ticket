@@ -63,8 +63,7 @@ router.patch('/:id', async (ctx) => {
 
   const revisionDatas: CreateData<ReplyRevision>[] = [];
 
-  // TODO: test reply.edited
-  if (reply.createdAt.getTime() === reply.updatedAt.getTime()) {
+  if (!reply.edited) {
     revisionDatas.push({
       ACL: {},
       replyId: reply.id,
