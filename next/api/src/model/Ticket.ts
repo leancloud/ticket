@@ -217,7 +217,7 @@ export class Ticket extends Model {
   channel?: string;
 
   getUrl(): string {
-    return `${config.host}/tickets/${this.nid}`;
+    return `${config.host}/next/admin/tickets/${this.nid}`;
   }
 
   static async fillCategoryPath(tickets: Ticket[]) {

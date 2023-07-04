@@ -17,22 +17,15 @@ export function TicketLink({ ticket, className, viewId }: TicketLinkProps) {
   });
 
   return (
-    <div className={classNames('flex font-bold', className)} {...hover(ticket.id)}>
-      <Link
-        className="!text-[#6f7c87]"
-        to={`/admin/tickets/${ticket.nid}${viewId ? `?view=${viewId}` : ''}`}
-        target="_blank"
-      >
-        #{ticket.nid}
-      </Link>
-      <a
-        className="ml-1 truncate"
-        href={`/tickets/${ticket.nid}${viewId ? `?view=${viewId}` : ''}`}
-        target="_blank"
-      >
-        {ticket.title}
-      </a>
+    <Link
+      className={classNames('flex font-bold', className)}
+      to={`/admin/tickets/${ticket.nid}${viewId ? `?view=${viewId}` : ''}`}
+      target="_blank"
+      {...hover(ticket.id)}
+    >
+      <span className="!text-[#6f7c87]">#{ticket.nid}</span>
+      <span className="ml-1 truncate">{ticket.title}</span>
       {menu}
-    </div>
+    </Link>
   );
 }
