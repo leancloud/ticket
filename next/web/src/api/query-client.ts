@@ -1,12 +1,21 @@
 import { QueryClient } from 'react-query';
+import axios from 'axios';
 import { message } from '@/components/antd';
 
 const onError = (error: unknown) => {
+  let errorMessage = '未知错误';
   if (error instanceof Error) {
-    message.error(error.message);
-  } else {
-    message.error('未知错误');
+    errorMessage = error.message;
   }
+  if (axios.isAxiosError(error) && error.response) {
+    if (typeof error.response.data?.message === 'string') {
+      errorMessage = error.response.data.message;
+    }
+    if (error.response.status === 401) {
+      window.location.href = '/login';
+    }
+  }
+  message.error(errorMessage);
 };
 
 export const queryClient = new QueryClient({
