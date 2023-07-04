@@ -84,7 +84,7 @@ class MailgunClient {
       subject: `[LeanTicket] ${ticket.title} (#${ticket.nid})`,
       replyTo: `ticket-${to.id}@leancloud.cn`,
       text: ticket.content,
-      ticketUrl: ticket.getUrl(),
+      ticketUrl: ticket.getUrlForEndUser(),
     });
   };
 
@@ -102,7 +102,7 @@ class MailgunClient {
       subject: `[LeanTicket] ${ticket.title} (#${ticket.nid})`,
       replyTo: `ticket-${to.id}@leancloud.cn`,
       text: reply.content,
-      ticketUrl: ticket.getUrl(),
+      ticketUrl: ticket.getUrlForEndUser(),
     });
   };
 
@@ -123,7 +123,7 @@ ${ticket.content}
 该工单最后一条回复：
 
 ${ticket.latestReply?.content || '<暂无>'}`,
-      ticketUrl: ticket.getUrl(),
+      ticketUrl: ticket.getUrlForEndUser(),
     });
   };
 
@@ -142,7 +142,7 @@ ${ticket.content}
 该工单最后一条回复：
 
 ${ticket.latestReply?.content || '<暂无>'}`,
-      ticketUrl: ticket.getUrl(),
+      ticketUrl: ticket.getUrlForEndUser(),
     });
   };
 

@@ -216,7 +216,11 @@ export class Ticket extends Model {
   @field()
   channel?: string;
 
-  getUrl(): string {
+  getUrlForEndUser() {
+    return `${config.host}/tickets/${this.nid}`;
+  }
+
+  getUrl() {
     return `${config.host}/next/admin/tickets/${this.nid}`;
   }
 
