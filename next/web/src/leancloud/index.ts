@@ -3,7 +3,7 @@ import { authModule } from 'open-leancloud-storage/auth';
 import { cloudModule } from 'open-leancloud-storage/cloud';
 import { storageModule } from 'open-leancloud-storage/storage';
 import { liveQueryModule } from 'open-leancloud-storage/live-query';
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import { useQuery } from 'react-query';
 import { atom, selector, useRecoilValue, useSetRecoilState } from 'recoil';
 import { mergeWith } from 'lodash-es';
@@ -39,17 +39,6 @@ http.interceptors.request.use((config) => ({
     'X-LC-Session': auth.currentUser?.sessionToken,
   },
 }));
-
-interface APIError {
-  message: string;
-}
-
-http.interceptors.response.use(undefined, async (error: AxiosError<APIError>) => {
-  if (error.response) {
-    throw new Error(error.response.data.message);
-  }
-  throw error;
-});
 
 export interface CurrentUser {
   id: string;
