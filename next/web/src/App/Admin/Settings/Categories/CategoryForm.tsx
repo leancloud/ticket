@@ -25,7 +25,8 @@ import {
   TreeSelectProps,
 } from '@/components/antd';
 import { findTreeNode } from './utils';
-import { MetaField, MetaOptions } from '../../components/MetaField';
+import { MetaField, MetaOptionsGroup } from '../../components/MetaField';
+import { AiClassifyTest } from './AiClassifyTest';
 
 type PreviewFAQ = Omit<Article, 'name'> & { title: string };
 interface PreviewConfig {
@@ -42,11 +43,22 @@ const { TextArea } = Input;
 
 const FORM_ITEM_STYLE = { marginBottom: 16 };
 
-const CategoryMetaOptions: MetaOptions[] = [
+const CategoryMetaOptions: MetaOptionsGroup[] = [
   {
-    key: 'enableAIClassify',
-    label: '启用 AI 分类',
-    type: 'boolean',
+    label: 'AI 分类',
+    key: 'classify',
+    children: [
+      {
+        key: 'enableAIClassify',
+        label: '启用 AI 分类',
+        type: 'boolean',
+      },
+      {
+        key: 'previewAIClassify',
+        type: 'component',
+        component: <AiClassifyTest />,
+      },
+    ],
   },
 ];
 
