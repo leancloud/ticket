@@ -1,6 +1,5 @@
 import { ClassifyResult, useClassifyTicket } from '@/api/category';
 import { PageContent } from '@/components/Page';
-import { ClassifyIcon } from '@/icons/ClassifyIcon';
 import { EditableIcon } from '@/icons/EditableIcon';
 import { useRootCategory } from '@/states/root-category';
 import { useState, useCallback, ChangeEventHandler, ComponentPropsWithoutRef, memo } from 'react';
@@ -11,6 +10,7 @@ import { DoneIcon } from '@/icons/Done';
 import { Link } from 'react-router-dom';
 import { FailedIcon } from '@/icons/FailedIcon';
 import { useSetContent } from '@/states/content';
+import { Button } from '@/components/Button';
 
 const MaxLength = 100;
 
@@ -62,6 +62,7 @@ const Input = memo(
             'flex',
             'flex-row',
             'justify-between',
+            'items-center',
             !editable && 'w-fit',
             className
           )}
@@ -75,7 +76,7 @@ const Input = memo(
                 value={value}
                 placeholder={t('category.classify.placeholder')}
               />
-              <button
+              <Button
                 onClick={handleSubmit}
                 disabled={!value.length || value.length > MaxLength}
                 className={cx(
@@ -84,16 +85,20 @@ const Input = memo(
                     : value.length
                     ? 'text-tapBlue'
                     : 'text-[#888888]',
-                  'transition-colors'
+                  'transition-colors',
+                  'rounded-[15px]',
+                  'h-[1.875rem]',
+                  'flex',
+                  'items-center'
                 )}
               >
-                <ClassifyIcon />
-              </button>
+                下一步
+              </Button>
             </>
           ) : (
             <>
               <span>{value}</span>
-              <button className="text-tapBlue ml-2" onClick={handleEdit}>
+              <button className="text-tapBlue ml-2 h-[1.875rem]" onClick={handleEdit}>
                 <EditableIcon />
               </button>
             </>
@@ -127,12 +132,14 @@ const Result = memo(({ data }: { data?: ClassifyResult }) => {
           {data?.status === 'success' ? <DoneIcon /> : <FailedIcon />}
         </span>
         <span className="text-[#222222]">
-          {t(`category.classify.result.${data?.status === 'success' ? 'title' : 'failed'}`)}
+          {data?.status === 'success'
+            ? `${t('category.classify.result.title')}「${data.data.name}」`
+            : t('category.classify.result.failed')}
         </span>
       </div>
       {data?.status === 'success' && (
         <Link
-          className="border-[0.5px] border-solid border-transparent rounded-2xl w-full text-tapBlue font-bold py-2 mt-3 block text-center before:content-['•'] before:mr-2"
+          className="border-[0.5px] border-solid border-transparent rounded-2xl w-full text-tapBlue font-bold py-2 mt-3 block text-center before:mr-2"
           style={{
             backgroundImage:
               'linear-gradient(#fff, #fff), linear-gradient(to left, #15CCCE, #004BBC)',
@@ -141,7 +148,7 @@ const Result = memo(({ data }: { data?: ClassifyResult }) => {
           }}
           to={`categories/${data.data.id}`}
         >
-          {data.data.name}
+          {t('category.classify.result.solution')}
         </Link>
       )}
 
@@ -159,7 +166,9 @@ export const AiClassify = ({ className }: { className?: string }) => {
   const category = useRootCategory();
   const setContent = useSetContent();
 
-  const { data, mutate: classify, isLoading, isError } = useClassifyTicket();
+  const { data, mutate: classify, isLoading, isError } = useClassifyTicket({
+    onError: console.error,
+  });
 
   const handleSubmit = useCallback(
     (content: string) => {

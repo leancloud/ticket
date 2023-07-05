@@ -59,7 +59,8 @@
         "title": "Guess your question belongs to",
         "no_help": "If the above content does not help you",
         "select": "manually select the question category",
-        "failed": "No relevant results found"
+        "failed": "No relevant results found",
+        "solution": "View solutions"
       }
     }
   },
