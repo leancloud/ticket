@@ -31,7 +31,7 @@ import { TicketFieldType } from './TicketFieldType';
 import { TicketFieldIcon } from './TicketFieldIcon';
 import style from './index.module.css';
 import { LocaleModal } from '../../components/LocaleModal';
-import { MetaField, MetaOptions } from '../../components/MetaField';
+import { MetaField, MetaOption } from '../../components/MetaField';
 
 const fieldTypes: TicketFieldSchema['type'][] = [
   'text',
@@ -316,7 +316,7 @@ interface TicketFieldData {
   }[];
 }
 
-const MetaExtraOptions: MetaOptions[] = [
+const MetaExtraOptions: MetaOption[] = [
   {
     key: 'disableFilter',
     type: 'boolean',
