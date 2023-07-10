@@ -100,9 +100,43 @@ router.delete('/:id', async (ctx) => {
     ctx.throw(403, `you have no privilege to delete reply ${reply.id}`);
   }
 
-  await reply.update({ deletedAt: new Date() }, { useMasterKey: true });
+  const newReply = await reply.update(
+    {
+      edited: true,
+      deletedAt: new Date(),
+    },
+    { useMasterKey: true }
+  );
   // 同时修改 ACL 会导致 LiveQuery 无法收到更新
   await reply.update({ ACL: {} }, { useMasterKey: true });
+
+  const revisionDatas: CreateData<ReplyRevision>[] = [];
+
+  if (!reply.edited) {
+    revisionDatas.push({
+      ACL: {},
+      replyId: reply.id,
+      content: reply.content,
+      contentHTML: reply.contentHTML,
+      fileIds: reply.fileIds,
+      operatorId: reply.authorId,
+      action: 'create',
+      actionTime: reply.createdAt,
+    });
+  }
+
+  revisionDatas.push({
+    ACL: {},
+    replyId: reply.id,
+    content: reply.content,
+    contentHTML: reply.contentHTML,
+    fileIds: reply.fileIds,
+    operatorId: currentUser.id,
+    action: 'delete',
+    actionTime: newReply.deletedAt,
+  });
+
+  await ReplyRevision.createSome(revisionDatas, { useMasterKey: true });
 
   ctx.body = {};
 });
