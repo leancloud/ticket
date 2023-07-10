@@ -53,7 +53,7 @@
     "faqs": "相關文章",
     "title": "問題分類",
     "classify": {
-      "placeholder": "例如：忘記密碼",
+      "placeholder": "例如：我忘記了密碼",
       "title": "請簡要描述你的問題",
       "loading": "正在檢索問題類別…",
       "result": {

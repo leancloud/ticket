@@ -53,7 +53,7 @@
     "faqs": "Related Articles",
     "title": "Issue Categories",
     "classify": {
-      "placeholder": "For example: Forgot password",
+      "placeholder": "e.g. I forgot my password",
       "title": "Please briefly describe your issue",
       "loading": "Retrieving question categories...",
       "result": {
