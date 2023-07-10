@@ -43,7 +43,7 @@ const { TextArea } = Input;
 
 const FORM_ITEM_STYLE = { marginBottom: 16 };
 
-const CategoryMetaOptions: MetaOptionsGroup[] = [
+const CategoryMetaOptions: MetaOptionsGroup<CategorySchema>[] = [
   {
     label: 'AI 分类',
     key: 'classify',
@@ -52,6 +52,13 @@ const CategoryMetaOptions: MetaOptionsGroup[] = [
         key: 'enableAIClassify',
         label: '启用 AI 分类',
         type: 'boolean',
+        predicate: (v) => !!v.alias,
+      },
+      {
+        key: 'aiDescription',
+        label: 'AI 分类描述',
+        type: 'text',
+        predicate: (v) => !v.alias,
       },
       {
         key: 'previewAIClassify',
@@ -568,7 +575,8 @@ export function CategoryForm({
         control={control}
         name="meta"
         render={({ field: { ref, ...rest } }) => (
-          <MetaField {...rest} options={CategoryMetaOptions} />
+          console.log(getValues()),
+          (<MetaField {...rest} options={CategoryMetaOptions} record={getValues()} />)
         )}
       />
 

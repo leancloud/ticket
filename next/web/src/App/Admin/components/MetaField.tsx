@@ -1,40 +1,43 @@
-import { Form, Checkbox, InputNumber } from 'antd';
+import { Form, Checkbox, InputNumber, Input } from 'antd';
 import { omit } from 'lodash-es';
 import { Fragment, ReactNode, useMemo } from 'react';
 import { JSONTextarea } from './JSONTextarea';
 
-export type MetaOption =
+export type MetaOption<T = any> = (
   | {
-      key: string;
-      type: 'boolean' | 'number';
+      type: 'boolean' | 'number' | 'text';
       label: string;
     }
   | {
-      key: string;
       type: 'component';
       component: ReactNode;
-    };
+    }
+) & { key: string; predicate?: (data: T) => boolean };
 
-export interface MetaOptionsGroup {
+export interface MetaOptionsGroup<T = any> {
   label: string;
   key: string;
-  children: MetaOption[];
+  children: MetaOption<T>[];
 }
+
+type SchemaWithMeta = { meta?: Record<string, any> };
 
 const isMetaOptionArray = (options: MetaOption[] | MetaOptionsGroup[]): options is MetaOption[] =>
   'type' in options[0];
 
-export interface MetaFieldProps {
-  value?: Record<string, any>;
+export interface MetaFieldProps<T extends SchemaWithMeta> {
+  value?: T['meta'];
+  record?: T;
   onChange?: (value: Record<string, any> | undefined) => void;
   options?: MetaOption[] | MetaOptionsGroup[];
 }
 
-const MetaOptionsForm = ({
+const MetaOptionsForm = <T extends SchemaWithMeta>({
   options,
   value,
+  record,
   onChange,
-}: Omit<MetaFieldProps, 'options'> & { options: MetaOption[] }) => {
+}: Omit<MetaFieldProps<T>, 'options'> & { options: MetaOption<T>[] }) => {
   const handleFieldChangeFactory = <E,>(
     field: string,
     getter: (e: E) => boolean | string | number
@@ -46,35 +49,49 @@ const MetaOptionsForm = ({
 
   return (
     <Fragment>
-      {options.map((option) =>
-        option.type === 'component' ? (
-          <Fragment key={option.key}>{option.component}</Fragment>
-        ) : (
-          <div key={option.key}>
-            {option.type === 'boolean' ? (
-              <Checkbox
-                checked={!!value?.[option.key]}
-                onChange={handleFieldChangeFactory(option.key, (e) => e.target.checked)}
-              >
-                {option.label}
-              </Checkbox>
-            ) : (
-              <InputNumber
-                key={option.key}
-                value={value?.[option.key]}
-                onChange={handleFieldChangeFactory(option.key, Number)}
-                controls={false}
-                addonBefore={option.label}
-              />
-            )}
-          </div>
-        )
-      )}
+      {options
+        .filter(({ predicate }) => !record || !predicate || predicate(record))
+        .map((option) =>
+          option.type === 'component' ? (
+            <Fragment key={option.key}>{option.component}</Fragment>
+          ) : (
+            <div key={option.key}>
+              {option.type === 'boolean' ? (
+                <Checkbox
+                  checked={!!value?.[option.key]}
+                  onChange={handleFieldChangeFactory(option.key, (e) => e.target.checked)}
+                >
+                  {option.label}
+                </Checkbox>
+              ) : option.type === 'number' ? (
+                <InputNumber
+                  key={option.key}
+                  value={value?.[option.key]}
+                  onChange={handleFieldChangeFactory(option.key, Number)}
+                  controls={false}
+                  addonBefore={option.label}
+                />
+              ) : (
+                <Input
+                  key={option.key}
+                  value={value?.[option.key]}
+                  onChange={handleFieldChangeFactory(option.key, (e) => e.target.value)}
+                  addonBefore={option.label}
+                />
+              )}
+            </div>
+          )
+        )}
     </Fragment>
   );
 };
 
-export const MetaField = ({ value, onChange, options }: MetaFieldProps) => {
+export const MetaField = <T extends SchemaWithMeta>({
+  value,
+  onChange,
+  options,
+  record,
+}: MetaFieldProps<T>) => {
   const handleMetaChange = (v: Record<string, any>) => {
     onChange?.({ ...value, ...v });
   };
@@ -98,14 +115,24 @@ export const MetaField = ({ value, onChange, options }: MetaFieldProps) => {
         (isMetaOptionArray(options) ? (
           <Form.Item label="额外属性" htmlFor="meta-extra">
             <div id="meta-extra" className="flex flex-col space-y-3">
-              <MetaOptionsForm value={value} onChange={onChange} options={options} />
+              <MetaOptionsForm
+                value={value}
+                onChange={onChange}
+                options={options}
+                record={record}
+              />
             </div>
           </Form.Item>
         ) : (
           options.map(({ children, label, key }) => (
             <Form.Item label={label} key={key} htmlFor={`meta-extra-${key}`}>
               <div className="flex flex-col space-y-3" id={`meta-extra-${key}`}>
-                <MetaOptionsForm value={value} onChange={onChange} options={children} />
+                <MetaOptionsForm
+                  value={value}
+                  onChange={onChange}
+                  options={children}
+                  record={record}
+                />
               </div>
             </Form.Item>
           ))

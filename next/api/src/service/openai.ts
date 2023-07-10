@@ -14,7 +14,7 @@ export const TicketClassifyPrompt = (categories: Category[]) => `
 """
 以下是各种分类的 ID 以及他们的含义，由 '-' 开头，每个占一行：
 ${categories
-  .map(({ id, description }) => description && `- ${id}：${description}`)
+  .map(({ id, meta }) => meta?.aiDescription && `- ${id}：${meta.aiDescription}`)
   .filter(Boolean)
   .join('\n')}
 `;
