@@ -59,11 +59,14 @@ const CategoryMetaOptions: MetaOptionsGroup<CategorySchema>[] = [
         label: 'AI 分类描述',
         type: 'text',
         predicate: (v) => !v.alias,
+        description:
+          '描述的详细与否会影响 AI 帮助用户进行分类的准确度，为空时代表此分类不参与 AI 分类',
       },
       {
         key: 'previewAIClassify',
         type: 'component',
         component: <AiClassifyTest />,
+        predicate: (v) => !!v.alias,
       },
     ],
   },
@@ -271,21 +274,6 @@ export function CategoryForm({
             style={FORM_ITEM_STYLE}
           >
             <Input {...field} autoFocus id="category_form_name" />
-          </Form.Item>
-        )}
-      />
-
-      <Controller
-        control={control}
-        name="description"
-        render={({ field }) => (
-          <Form.Item
-            label="描述"
-            htmlFor="category_form_desc"
-            style={FORM_ITEM_STYLE}
-            extra="描述的详细与否会影响 AI 帮助用户进行分类的准确度，为空时代表此分类不参与 AI 分类"
-          >
-            <TextArea {...field} id="category_form_desc" />
           </Form.Item>
         )}
       />

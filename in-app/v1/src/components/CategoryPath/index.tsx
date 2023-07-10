@@ -7,11 +7,7 @@ export interface CategoryPathProps extends ComponentPropsWithoutRef<'span'> {
 }
 
 function CategoryPathImpl({ path, ...props }: CategoryPathProps) {
-  return (
-    <span {...props} className={cx('p-1 border rounded border-[#6f7c87]', props.className)}>
-      {path.join(' / ')}
-    </span>
-  );
+  return <span {...props}>{path.join(' / ')}</span>;
 }
 
 function makeCategoryPathGetter(categories: Category[]) {

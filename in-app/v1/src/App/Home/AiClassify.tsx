@@ -151,8 +151,7 @@ const Result = memo(({ categoryId }: { categoryId: string }) => {
         <span className="text-[#222222]">
           {data?.status === 'success' ? (
             <>
-              {t('category.classify.result.title')}「
-              <CategoryPath categoryId={data.data.id} className="border-none p-0" />」
+              {t('category.classify.result.title')} <CategoryPath categoryId={data.data.id} />
             </>
           ) : (
             t('category.classify.result.failed')
