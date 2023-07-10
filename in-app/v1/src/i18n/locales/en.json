@@ -19,7 +19,8 @@
     "not_found": "This content does not exist",
     "cancel": "Cancel",
     "update_time": "Update Time",
-    "update_date": "Update Date"
+    "update_date": "Update Date",
+    "next_step": "Next step"
   },
   "home": {
     "empty": "No display content configured in the current category"

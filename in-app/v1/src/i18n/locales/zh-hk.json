@@ -19,7 +19,8 @@
     "not_found": "呢啲內容唔喺度",
     "cancel": "取消",
     "update_time": "更新時間",
-    "update_date": "更新日期"
+    "update_date": "更新日期",
+    "next_step": "下一步"
   },
   "home": {
     "empty": "此分類下尚未設置展示內容"

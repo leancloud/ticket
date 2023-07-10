@@ -19,7 +19,8 @@
     "not_found": "该内容不存在",
     "cancel": "取消",
     "update_time": "更新时间",
-    "update_date": "更新日期"
+    "update_date": "更新日期",
+    "next_step": "下一步"
   },
   "home": {
     "empty": "当前分类下未配置展示内容"

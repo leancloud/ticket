@@ -92,7 +92,7 @@ const Input = memo(
                   'items-center'
                 )}
               >
-                下一步
+                {t('general.next_step')}
               </Button>
             </>
           ) : (
