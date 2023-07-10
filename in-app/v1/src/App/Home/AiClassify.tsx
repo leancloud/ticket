@@ -1,4 +1,3 @@
-import { ClassifyResult, useClassifyTicket } from '@/api/category';
 import { PageContent } from '@/components/Page';
 import { EditableIcon } from '@/icons/EditableIcon';
 import { useRootCategory } from '@/states/root-category';
@@ -23,6 +22,7 @@ import {
   useClassifyCategory,
 } from '@/states/content';
 import { Button } from '@/components/Button';
+import { CategoryPath } from '@/components/CategoryPath';
 
 const MaxLength = 150;
 
@@ -149,9 +149,14 @@ const Result = memo(({ categoryId }: { categoryId: string }) => {
           {data?.status === 'success' ? <DoneIcon /> : <FailedIcon />}
         </span>
         <span className="text-[#222222]">
-          {data?.status === 'success'
-            ? `${t('category.classify.result.title')}「${data.data.name}」`
-            : t('category.classify.result.failed')}
+          {data?.status === 'success' ? (
+            <>
+              {t('category.classify.result.title')}「
+              <CategoryPath categoryId={data.data.id} className="border-none p-0" />」
+            </>
+          ) : (
+            t('category.classify.result.failed')
+          )}
         </span>
       </div>
       {data?.status === 'success' && (
