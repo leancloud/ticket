@@ -43,7 +43,7 @@ interface ReplyRevision {
   contentSafeHTML: string;
   files?: FileSchema[];
   operator?: UserSchema;
-  action: 'create' | 'update';
+  action: 'create' | 'update' | 'delete';
   actionTime: string;
 }
 
