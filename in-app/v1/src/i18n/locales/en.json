@@ -19,7 +19,8 @@
     "not_found": "This content does not exist",
     "cancel": "Cancel",
     "update_time": "Update Time",
-    "update_date": "Update Date"
+    "update_date": "Update Date",
+    "next_step": "Next step"
   },
   "home": {
     "empty": "No display content configured in the current category"
@@ -50,7 +51,19 @@
     "select_hint": "Select Topic",
     "select_hint_home": "Select Problem Type",
     "faqs": "Related Articles",
-    "title": "Issue Categories"
+    "title": "Issue Categories",
+    "classify": {
+      "placeholder": "e.g. I forgot my password",
+      "title": "Please briefly describe your issue",
+      "loading": "Retrieving question categories...",
+      "result": {
+        "title": "Guess your question belongs to",
+        "no_help": "If the above content does not help you",
+        "select": "manually select the question category",
+        "failed": "No relevant results found",
+        "solution": "View solutions"
+      }
+    }
   },
   "topic": {
     "title": "FAQs",

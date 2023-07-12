@@ -182,3 +182,29 @@ export function useCategory(id: string, options?: UseQueryOptions<CategorySchema
     ...options,
   });
 }
+
+export type ClassifyResult =
+  | {
+      status: 'success';
+      data: {
+        name: string;
+        id: string;
+      };
+    }
+  | { status: 'failed' };
+
+export const classifyTicket = async (categoryId: string, content: string) => {
+  const { data } = await http.post<ClassifyResult>('/api/2/categories/classify', {
+    productId: categoryId,
+    content,
+  });
+  return data;
+};
+
+export const useClassifyTicket = (
+  options?: UseMutationOptions<ClassifyResult, Error, { categoryId: string; content: string }>
+) =>
+  useMutation({
+    mutationFn: ({ categoryId, content }) => classifyTicket(categoryId, content),
+    ...options,
+  });

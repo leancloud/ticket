@@ -30,8 +30,8 @@ import {
 import { TicketFieldType } from './TicketFieldType';
 import { TicketFieldIcon } from './TicketFieldIcon';
 import style from './index.module.css';
-import { JSONTextarea } from '@/App/Admin/components/JSONTextarea';
 import { LocaleModal } from '../../components/LocaleModal';
+import { MetaField, MetaOption } from '../../components/MetaField';
 
 const fieldTypes: TicketFieldSchema['type'][] = [
   'text',
@@ -316,7 +316,7 @@ interface TicketFieldData {
   }[];
 }
 
-const MetaExtraOptions: { key: string; type: 'boolean' | 'number'; label: string }[] = [
+const MetaExtraOptions: MetaOption[] = [
   {
     key: 'disableFilter',
     type: 'boolean',
@@ -333,69 +333,6 @@ const MetaExtraOptions: { key: string; type: 'boolean' | 'number'; label: string
     label: '优先度',
   },
 ];
-
-interface MetaFieldProps {
-  value?: Record<string, any>;
-  onChange?: (value: Record<string, any> | undefined) => void;
-}
-
-const MetaField = ({ value, onChange }: MetaFieldProps) => {
-  const handleMetaChange = (v: Record<string, any>) => {
-    onChange?.({ ...value, ...v });
-  };
-
-  const handleFieldChangeFactory = <E,>(
-    field: string,
-    getter: (e: E) => boolean | string | number
-  ) => (e: E) => {
-    const v = getter(e);
-
-    onChange?.({ ...value, [field]: v });
-  };
-
-  const jsonValue = useMemo(
-    () =>
-      omit(
-        value,
-        MetaExtraOptions.map(({ key }) => key)
-      ),
-    [value]
-  );
-
-  return (
-    <>
-      <Form.Item label="额外属性" htmlFor="extra">
-        <div id="extra" className="flex flex-col">
-          <div className="mb-2 space-x-1">
-            {MetaExtraOptions.filter(({ type }) => type === 'boolean').map(({ key, label }) => (
-              <Checkbox
-                key={key}
-                checked={!!value?.[key]}
-                onChange={handleFieldChangeFactory(key, (e) => e.target.checked)}
-              >
-                {label}
-              </Checkbox>
-            ))}
-          </div>
-          <div>
-            {MetaExtraOptions.filter(({ type }) => type === 'number').map(({ key, label }) => (
-              <InputNumber
-                key={key}
-                value={value?.[key]}
-                onChange={handleFieldChangeFactory(key, Number)}
-                controls={false}
-                addonBefore={label}
-              />
-            ))}
-          </div>
-        </div>
-      </Form.Item>
-      <Form.Item label="Meta" htmlFor="meta" help="面向开发者的扩展属性。">
-        <JSONTextarea value={jsonValue} onChange={handleMetaChange} id="meta" />
-      </Form.Item>
-    </>
-  );
-};
 
 export interface TicketFieldFormProps {
   initData?: Partial<TicketFieldData>;
@@ -535,7 +472,7 @@ export function TicketFieldForm({
             <Controller
               name="meta"
               render={({ field: { value, onChange } }) => (
-                <MetaField value={value} onChange={onChange} />
+                <MetaField value={value} onChange={onChange} options={MetaExtraOptions} />
               )}
             />
           </Form>

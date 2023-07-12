@@ -19,7 +19,8 @@
     "not_found": "该内容不存在",
     "cancel": "取消",
     "update_time": "更新时间",
-    "update_date": "更新日期"
+    "update_date": "更新日期",
+    "next_step": "下一步"
   },
   "home": {
     "empty": "当前分类下未配置展示内容"
@@ -50,7 +51,19 @@
     "select_hint": "选择主题",
     "select_hint_home": "选择问题类型",
     "faqs": "相关文章",
-    "title": "问题分类"
+    "title": "问题分类",
+    "classify": {
+      "placeholder": "例如：我忘记了密码",
+      "title": "请简要描述你的问题",
+      "loading": "正在检索问题类别…",
+      "result": {
+        "title": "猜您的问题属于",
+        "no_help": "若以上内容没有帮助到您",
+        "select": "手动选择问题类别",
+        "failed": "未匹配到相关结果",
+        "solution": "查看解决方案"
+      }
+    }
   },
   "topic": {
     "title": "常见问题",

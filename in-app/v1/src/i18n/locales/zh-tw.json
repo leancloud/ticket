@@ -19,7 +19,8 @@
     "not_found": "此內容不存在",
     "cancel": "取消",
     "update_time": "更新時間",
-    "update_date": "更新日期"
+    "update_date": "更新日期",
+    "next_step": "下一步"
   },
   "home": {
     "empty": "目前分類尚未設置展示內容"
@@ -50,7 +51,19 @@
     "select_hint": "選擇主題",
     "select_hint_home": "選擇問題類型",
     "faqs": "相關文章",
-    "title": "问题分类"
+    "title": "问题分类",
+    "classify": {
+      "placeholder": "例如：我忘記了密碼",
+      "title": "請簡要描述您的問題",
+      "loading": "正在檢索問題類別...",
+      "result": {
+        "title": "猜您的問題屬於",
+        "no_help": "若以上內容沒有幫助到您",
+        "select": "手動選擇問題類別",
+        "failed": "未匹配到相關結果",
+        "solution": "查看解決方案"
+      }
+    }
   },
   "topic": {
     "title": "常見問題",

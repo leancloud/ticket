@@ -24,8 +24,9 @@ import {
   TreeSelect,
   TreeSelectProps,
 } from '@/components/antd';
-import { JSONTextarea } from '@/App/Admin/components/JSONTextarea';
 import { findTreeNode } from './utils';
+import { MetaField, MetaOptionsGroup } from '../../components/MetaField';
+import { AiClassifyTest } from './AiClassifyTest';
 
 type PreviewFAQ = Omit<Article, 'name'> & { title: string };
 interface PreviewConfig {
@@ -41,6 +42,35 @@ interface PreviewConfig {
 const { TextArea } = Input;
 
 const FORM_ITEM_STYLE = { marginBottom: 16 };
+
+const CategoryMetaOptions: MetaOptionsGroup<CategorySchema>[] = [
+  {
+    label: 'AI 分类',
+    key: 'classify',
+    children: [
+      {
+        key: 'enableAIClassify',
+        label: '启用 AI 分类',
+        type: 'boolean',
+        predicate: (v) => !!v.alias,
+      },
+      {
+        key: 'aiDescription',
+        label: 'AI 分类描述',
+        type: 'text',
+        predicate: (v) => !v.alias,
+        description:
+          '描述的详细与否会影响 AI 帮助用户进行分类的准确度，为空时代表此分类不参与 AI 分类',
+      },
+      {
+        key: 'previewAIClassify',
+        type: 'component',
+        component: <AiClassifyTest />,
+        predicate: (v) => !!v.alias,
+      },
+    ],
+  },
+];
 
 const CategoryTreeSelect = forwardRef<RefSelectProps, TreeSelectProps<string | undefined>>(
   (props, ref) => {
@@ -244,16 +274,6 @@ export function CategoryForm({
             style={FORM_ITEM_STYLE}
           >
             <Input {...field} autoFocus id="category_form_name" />
-          </Form.Item>
-        )}
-      />
-
-      <Controller
-        control={control}
-        name="description"
-        render={({ field }) => (
-          <Form.Item label="描述" htmlFor="category_form_desc" style={FORM_ITEM_STYLE}>
-            <TextArea {...field} id="category_form_desc" />
           </Form.Item>
         )}
       />
@@ -543,14 +563,8 @@ export function CategoryForm({
         control={control}
         name="meta"
         render={({ field: { ref, ...rest } }) => (
-          <Form.Item
-            label="Meta"
-            htmlFor="meta"
-            help="面向开发者的扩展属性"
-            style={FORM_ITEM_STYLE}
-          >
-            <JSONTextarea {...rest} id="meta" />
-          </Form.Item>
+          console.log(getValues()),
+          (<MetaField {...rest} options={CategoryMetaOptions} record={getValues()} />)
         )}
       />
 
