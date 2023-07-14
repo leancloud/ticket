@@ -185,7 +185,7 @@ export function CategoryForm({
 
   const categoryTree = useCategoryTree(activeCategories);
 
-  const isProduct = !initData?.alias;
+  const isProduct = !!initData?.alias;
 
   const hasSubCategory = useMemo(() => {
     if (!currentCategoryId) {
