@@ -66,15 +66,16 @@ export default function Home() {
     <>
       <PageHeader />
       {content}
-      {hasTopics &&
-        enableFeedback &&
+      {enableFeedback &&
         (!category.meta?.enableAIClassify ? (
-          <div className="text-center text-gray-400 opacity-80 mt-6 mb-3">
-            {t('topic.hint')}{' '}
-            <Link to="/categories" className="text-tapBlue">
-              {t('feedback.title')}
-            </Link>
-          </div>
+          !!hasTopics && (
+            <div className="text-center text-gray-400 opacity-80 mt-6 mb-3">
+              {t('topic.hint')}{' '}
+              <Link to="/categories" className="text-tapBlue">
+                {t('feedback.title')}
+              </Link>
+            </div>
+          )
         ) : (
           <AiClassify className="mt-3" />
         ))}
