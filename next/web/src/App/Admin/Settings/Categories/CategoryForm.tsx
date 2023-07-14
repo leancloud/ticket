@@ -185,7 +185,7 @@ export function CategoryForm({
 
   const categoryTree = useCategoryTree(activeCategories);
 
-  const isRootCategory = !initData?.parentId;
+  const isProduct = !initData?.alias;
 
   const hasSubCategory = useMemo(() => {
     if (!currentCategoryId) {
@@ -323,7 +323,7 @@ export function CategoryForm({
 
       <Divider />
 
-      {isRootCategory && (
+      {isProduct && (
         <div>
           <div className="text-[18px] mb-4 font-semibold">内容</div>
           <Controller
@@ -379,7 +379,7 @@ export function CategoryForm({
         </div>
       )}
 
-      {isRootCategory && (
+      {isProduct && (
         <>
           <Divider />
           <div className="text-[18px] mb-4 font-semibold">其他</div>
@@ -405,7 +405,7 @@ export function CategoryForm({
         </>
       )}
 
-      {!isRootCategory && hasSubCategory && (
+      {!isProduct && hasSubCategory && (
         <div>
           <div className="text-[16px] mb-4 font-semibold">支持选项</div>
           <Alert message="仅在无子分类时展示" type="info" showIcon style={{ marginBottom: 24 }} />
