@@ -62,7 +62,7 @@ export class GroupController {
   @StatusCode(201)
   async create(@Body(new ZodValidationPipe(createGroupSchema)) data: CreateGroupData) {
     if (data.userIds?.length) {
-      await this.assertUsersIsCustomerService(data.userIds);
+      data.userIds = await this.stripNonCustomerServiceUser(data.userIds);
     }
 
     const groupACL = new ACLBuilder().allowCustomerService('read', 'write').allowStaff('read');
@@ -101,7 +101,7 @@ export class GroupController {
     @Body(new ZodValidationPipe(updateGroupSchema)) data: UpdateGroupData
   ) {
     if (data.userIds?.length) {
-      await this.assertUsersIsCustomerService(data.userIds);
+      data.userIds = await this.stripNonCustomerServiceUser(data.userIds);
     }
 
     const authOptions = { useMasterKey: true };
@@ -182,13 +182,9 @@ export class GroupController {
     return role;
   }
 
-  private async assertUsersIsCustomerService(userIds: string[]) {
+  private async stripNonCustomerServiceUser(userIds: string[]) {
     const customerServices = await User.getCustomerServices();
     const csIds = new Set(customerServices.map((c) => c.id));
-    userIds.forEach((userId) => {
-      if (!csIds.has(userId)) {
-        throw new HttpError(400, `User ${userId} is not a customer service`);
-      }
-    });
+    return userIds.filter((userId) => csIds.has(userId));
   }
 }
