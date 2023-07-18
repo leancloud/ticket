@@ -20,7 +20,8 @@ export const auth: Middleware = withSpan(async (ctx, next) => {
     } catch (error: any) {
       if (error.code === 211) {
         ctx.throw(401, '无效的用户凭证，请重新登录。', {
-          code: 'INVALID_SESSION_TOKEN',
+          code: 'INVALID_CREDENTIAL',
+          numCode: 9002,
         });
       }
       throw error;
@@ -57,7 +58,7 @@ export const auth: Middleware = withSpan(async (ctx, next) => {
       () => transformToHttpError(() => User.findByTDSUserToken(tdsUserToken)),
       ctx,
       'model',
-      `User.findByTDSUserJWT(${tdsUserToken})`
+      `User.findByTDSUserToken(${tdsUserToken})`
     );
 
     if (!user) {
