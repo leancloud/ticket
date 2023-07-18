@@ -356,7 +356,8 @@ export class User extends Model {
 
   static async loginTDSUser(token: string): Promise<User | undefined> {
     const { id } = User.getVerifiedTDSUserIdentity(token);
-    return this.findByUsername(id);
+    const user = await this.findByUsername(id);
+    return user?.ensureSessionToken();
   }
 
   static async loginOrSignUpTDSUser(token: string): Promise<{ sessionToken: string }> {
