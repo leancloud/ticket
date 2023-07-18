@@ -8,36 +8,41 @@ import { fetchTicketReplies, fetchTicketOpsLogs } from '@/api/ticket';
 import { useCurrentRef } from '@/utils/useCurrentRef';
 
 export function useTicketReplies(ticketId?: string) {
-  const { data, isFetchingNextPage, fetchNextPage, refetch } = useInfiniteQuery({
+  const { data, fetchNextPage, refetch } = useInfiniteQuery({
     queryKey: ['TicketReplies', ticketId],
     queryFn: ({ pageParam }) => {
       return fetchTicketReplies(ticketId || '', {
-        cursor: pageParam || undefined,
+        cursor: pageParam,
         deleted: true,
       });
     },
     enabled: !!ticketId,
-    getNextPageParam: (lastPage) => {
-      if (lastPage.length) {
-        return lastPage[lastPage.length - 1].createdAt;
-      }
-      return null;
-    },
+    getNextPageParam: (lastPage) => last(lastPage)?.createdAt,
   });
 
   const replies = useMemo(() => data?.pages.flat(), [data]);
 
+  const fetchMoreReplies = () => {
+    const lastReply = last(replies);
+    if (lastReply) {
+      fetchNextPage({
+        pageParam: lastReply.createdAt,
+        cancelRefetch: false,
+      });
+    } else {
+      refetch();
+    }
+  };
+
   const onCreate = useCurrentRef((obj: LCObject) => {
     const lastReply = last(replies);
     if (!lastReply || new Date(lastReply.createdAt) < new Date(obj.createdAt)) {
-      fetchNextPage();
+      fetchMoreReplies();
     }
   });
 
   const onUpdate = useCurrentRef((obj: LCObject) => {
-    if (!isFetchingNextPage) {
-      refetch();
-    }
+    refetch();
   });
 
   useEffect(() => {
@@ -63,30 +68,37 @@ export function useTicketReplies(ticketId?: string) {
 
   return {
     replies,
-    fetchMoreReplies: fetchNextPage,
+    fetchMoreReplies,
     refetchReples: refetch,
   };
 }
 
 export function useTicketOpsLogs(ticketId?: string) {
-  const { data, fetchNextPage } = useInfiniteQuery({
+  const { data, fetchNextPage, refetch } = useInfiniteQuery({
     queryKey: ['TicketOpsLogs', ticketId],
-    queryFn: ({ pageParam }) => fetchTicketOpsLogs(ticketId || '', pageParam || undefined),
+    queryFn: ({ pageParam }) => fetchTicketOpsLogs(ticketId || '', pageParam),
     enabled: !!ticketId,
-    getNextPageParam: (lastPage) => {
-      if (lastPage.length) {
-        return lastPage[lastPage.length - 1].createdAt;
-      }
-      return null;
-    },
+    getNextPageParam: (lastPage) => last(lastPage)?.createdAt,
   });
 
   const opsLogs = useMemo(() => data?.pages.flat(), [data]);
 
+  const fetchMoreOpsLogs = () => {
+    const lastOpsLog = last(opsLogs);
+    if (lastOpsLog) {
+      fetchNextPage({
+        pageParam: lastOpsLog.createdAt,
+        cancelRefetch: false,
+      });
+    } else {
+      refetch();
+    }
+  };
+
   const onCreate = useCurrentRef((obj: LCObject) => {
     const lastOpsLog = last(opsLogs);
     if (!lastOpsLog || new Date(lastOpsLog.createdAt) < new Date(obj.createdAt)) {
-      fetchNextPage();
+      fetchMoreOpsLogs();
     }
   });
 
@@ -110,5 +122,5 @@ export function useTicketOpsLogs(ticketId?: string) {
     };
   }, [ticketId]);
 
-  return { opsLogs, fetchMoreOpsLogs: fetchNextPage };
+  return { opsLogs, fetchMoreOpsLogs };
 }
