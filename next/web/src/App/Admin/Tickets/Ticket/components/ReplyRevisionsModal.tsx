@@ -58,6 +58,7 @@ export const ReplyRevisionsModal = forwardRef<ReplyRevisionsModalRef>((props, re
               {revision.operator ? <UserLabel user={revision.operator} /> : <span>unknown</span>}
               {revision.action === 'create' && <span>创建于</span>}
               {revision.action === 'update' && <span>修改于</span>}
+              {revision.action === 'delete' && <span>删除于</span>}
               <Time value={revision.actionTime} />
             </div>
           }

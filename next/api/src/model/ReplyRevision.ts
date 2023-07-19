@@ -26,7 +26,7 @@ export class ReplyRevision extends Model {
   operator?: User;
 
   @field()
-  action!: 'create' | 'update';
+  action!: 'create' | 'update' | 'delete';
 
   @field()
   actionTime!: Date;

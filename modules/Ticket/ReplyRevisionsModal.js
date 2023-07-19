@@ -37,7 +37,9 @@ export const ReplyRevisionsModal = forwardRef((props, ref) => {
             <div className="d-flex mb-2">
               <UserLabel user={revision.operator} />
               <div className="mx-2">
-                {revision.action === 'create' ? 'created at' : 'updated at'}
+                {revision.action === 'create' && 'created at'}
+                {revision.action === 'update' && 'updated at'}
+                {revision.action === 'delete' && 'deleted at'}
               </div>
               <Time value={revision.actionTime} />
             </div>
