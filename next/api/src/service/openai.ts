@@ -1,7 +1,7 @@
 import { Category } from '@/model/Category';
-import { AxiosProxyConfig } from 'axios';
 import _ from 'lodash';
 import { Configuration, OpenAIApi } from 'openai';
+import { HttpsProxyAgent } from 'https-proxy-agent';
 
 export const TicketClassifyPrompt = (categories: Category[]) => `
 你是我的工单内容分类助手，我会为你提供各种分类以及它们的描述，以及一个工单的内容，我需要你帮助我将下面的这一个工单分到某一个分类中，并给出你认为的置信度。只按照我给出的格式输出，如果你觉得这个工单不属于我给出的任何分类，输出 null。下面的输出 JSON 格式中，category 表示分类的名字，confidence 表示你给出的置信度，你可以给出对这个工单所有待选的分类，无需额外解释说明。
@@ -27,7 +27,7 @@ export interface TicketClassifyResult {
 export class OpenAIService {
   active: boolean;
   instance: InstanceType<typeof OpenAIApi>;
-  proxy?: AxiosProxyConfig;
+  agent?: InstanceType<typeof HttpsProxyAgent>;
 
   constructor() {
     const apiKey = process.env.OPENAI_API_KEY;
@@ -41,16 +41,7 @@ export class OpenAIService {
     }
 
     if (httpProxy) {
-      const proxy = new URL(httpProxy);
-      const port = Number(proxy.port);
-
-      this.proxy = port
-        ? {
-            protocol: proxy.protocol.replace(':', ''),
-            host: proxy.hostname,
-            port: Number(proxy.port),
-          }
-        : undefined;
+      this.agent = new HttpsProxyAgent(httpProxy);
     }
 
     this.active = true;
@@ -85,7 +76,7 @@ export class OpenAIService {
               ],
               temperature: 0.6,
             },
-            { timeout: 20 * 1000, proxy: this.proxy }
+            { timeout: 20 * 1000, httpsAgent: this.agent }
           )
         ).data.choices[0].message?.content;
 
