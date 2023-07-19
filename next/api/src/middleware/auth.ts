@@ -81,7 +81,7 @@ export const auth: Middleware = withSpan(async (ctx, next) => {
       throw new UserNotRegisteredError('未找到该 Token 对应的用户，该用户可能从未使用过客服功能。');
     }
 
-    await user.ensureSessionToken();
+    await user.loadSessionToken();
     ctx.state.currentUser = user;
     return next();
   }

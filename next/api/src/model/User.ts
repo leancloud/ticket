@@ -6,7 +6,7 @@ import { TokenExpiredError } from 'jsonwebtoken';
 import { regions } from '@/leancloud';
 import { HttpError, UnauthorizedError } from '@/common/http';
 import { RedisCache } from '@/cache';
-import { AuthOptions, Model, field } from '@/orm';
+import { AuthOptions, Model, field, serialize } from '@/orm';
 import { getVerifiedPayloadWithSubRequired, JsonWebTokenError, processKeys } from '@/utils/jwt';
 import { roleService } from '@/service/role';
 import { Role } from './Role';
@@ -49,13 +49,11 @@ const anonymousUserCache = new RedisCache<AV.User | null | undefined>(
   (data) => (data === 'null' ? null : decodeAVUser(data))
 );
 
-const tdsUserCache = new RedisCache<AV.User | null | undefined>(
-  'user:tds',
-  async (token: string) => {
-    return (await User.loginTDSUser(token))?.sourceAVObject as AV.User;
-  },
-  (user) => (user ? encodeAVUser(user) : 'null'),
-  (data) => (data === 'null' ? null : decodeAVUser(data))
+const tdsUserCache = new RedisCache<User | null | undefined>(
+  'user:tds_v2',
+  (token) => User.loginTDSUser(token),
+  (user) => (user ? JSON.stringify(user) : '0'),
+  (data) => (data === '0' ? null : User.fromJSON(JSON.parse(data)))
 );
 
 export interface LeanCloudAccount {
@@ -162,29 +160,38 @@ export class User extends Model {
 
   // XXX: authData 在 class schema 里设置成了客户端不可见，需要使用 masterKey 获取
   @field()
+  @serialize()
   authData?: Record<string, any>;
 
   @field()
+  @serialize()
   thirdPartyData?: Record<string, any>;
 
   @field()
+  @serialize()
   username!: string;
 
   @field()
+  @serialize()
   name?: string;
 
   @field()
+  @serialize()
   email?: string;
 
   @field()
+  @serialize()
   inactive?: true;
 
   @field()
+  @serialize()
   password?: string;
 
+  @serialize()
   sessionToken?: string;
 
   @field()
+  @serialize()
   categories?: {
     objectId: string;
     name: string;
@@ -217,10 +224,8 @@ export class User extends Model {
   }
 
   static async findByTDSUserToken(token: string): Promise<User | undefined> {
-    const avUser = await tdsUserCache.get(token);
-    if (avUser) {
-      return this.fromAVObject(avUser);
-    }
+    const user = await tdsUserCache.get(token);
+    return user || undefined;
   }
 
   static async findWithSessionToken(id: string): Promise<User | undefined> {
@@ -357,7 +362,10 @@ export class User extends Model {
   static async loginTDSUser(token: string): Promise<User | undefined> {
     const { id } = User.getVerifiedTDSUserIdentity(token);
     const user = await this.findByUsername(id);
-    return user?.ensureSessionToken();
+    if (user) {
+      await user.loadSessionToken();
+    }
+    return user;
   }
 
   static async loginOrSignUpTDSUser(token: string): Promise<{ sessionToken: string }> {
@@ -551,13 +559,6 @@ export class User extends Model {
       this.sessionToken = avUser.getSessionToken();
     }
     return this.sessionToken;
-  }
-
-  async ensureSessionToken(): Promise<User> {
-    if (this.sessionToken) return this;
-    const sessionToken = await this.loadSessionToken();
-    this.sessionToken = sessionToken;
-    return this;
   }
 
   async refreshSessionToken(): Promise<void> {
