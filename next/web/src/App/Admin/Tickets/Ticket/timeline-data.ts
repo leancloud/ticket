@@ -1,10 +1,10 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useInfiniteQuery } from 'react-query';
-import { LCObject } from 'open-leancloud-storage/core';
 import { last } from 'lodash-es';
 
 import { db } from '@/leancloud';
-import { fetchTicketReplies, fetchTicketOpsLogs } from '@/api/ticket';
+import { ReplySchema } from '@/api/reply';
+import { fetchTicketReplies, fetchTicketOpsLogs, OpsLog } from '@/api/ticket';
 import { useCurrentRef } from '@/utils/useCurrentRef';
 
 export function useTicketReplies(ticketId?: string) {
@@ -21,12 +21,13 @@ export function useTicketReplies(ticketId?: string) {
   });
 
   const replies = useMemo(() => data?.pages.flat(), [data]);
+  const lastReply = useRef<ReplySchema>();
+  lastReply.current = last(replies);
 
   const fetchMoreReplies = () => {
-    const lastReply = last(replies);
-    if (lastReply) {
+    if (lastReply.current) {
       fetchNextPage({
-        pageParam: lastReply.createdAt,
+        pageParam: lastReply.current.createdAt,
         cancelRefetch: false,
       });
     } else {
@@ -34,14 +35,11 @@ export function useTicketReplies(ticketId?: string) {
     }
   };
 
-  const onCreate = useCurrentRef((obj: LCObject) => {
-    const lastReply = last(replies);
-    if (!lastReply || new Date(lastReply.createdAt) < new Date(obj.createdAt)) {
-      fetchMoreReplies();
-    }
+  const onCreate = useCurrentRef(() => {
+    fetchMoreReplies();
   });
 
-  const onUpdate = useCurrentRef((obj: LCObject) => {
+  const onUpdate = useCurrentRef(() => {
     refetch();
   });
 
@@ -56,8 +54,8 @@ export function useTicketReplies(ticketId?: string) {
       .subscribe();
     subscription.then((s) => {
       if (mounted) {
-        s.on('create', (obj) => onCreate.current(obj));
-        s.on('update', (obj) => onUpdate.current(obj));
+        s.on('create', () => onCreate.current());
+        s.on('update', () => onUpdate.current());
       }
     });
     return () => {
@@ -82,12 +80,13 @@ export function useTicketOpsLogs(ticketId?: string) {
   });
 
   const opsLogs = useMemo(() => data?.pages.flat(), [data]);
+  const lastOpsLog = useRef<OpsLog>();
+  lastOpsLog.current = last(opsLogs);
 
   const fetchMoreOpsLogs = () => {
-    const lastOpsLog = last(opsLogs);
-    if (lastOpsLog) {
+    if (lastOpsLog.current) {
       fetchNextPage({
-        pageParam: lastOpsLog.createdAt,
+        pageParam: lastOpsLog.current.createdAt,
         cancelRefetch: false,
       });
     } else {
@@ -95,11 +94,8 @@ export function useTicketOpsLogs(ticketId?: string) {
     }
   };
 
-  const onCreate = useCurrentRef((obj: LCObject) => {
-    const lastOpsLog = last(opsLogs);
-    if (!lastOpsLog || new Date(lastOpsLog.createdAt) < new Date(obj.createdAt)) {
-      fetchMoreOpsLogs();
-    }
+  const onCreate = useCurrentRef(() => {
+    fetchMoreOpsLogs();
   });
 
   useEffect(() => {
@@ -113,7 +109,7 @@ export function useTicketOpsLogs(ticketId?: string) {
       .subscribe();
     subscription.then((s) => {
       if (mounted) {
-        s.on('create', (obj) => onCreate.current(obj));
+        s.on('create', () => onCreate.current());
       }
     });
     return () => {
