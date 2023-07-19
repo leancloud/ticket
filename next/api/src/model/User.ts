@@ -362,7 +362,10 @@ export class User extends Model {
   static async loginTDSUser(token: string): Promise<User | undefined> {
     const { id } = User.getVerifiedTDSUserIdentity(token);
     const user = await this.findByUsername(id);
-    return user?.ensureSessionToken();
+    if (user) {
+      await user.loadSessionToken();
+    }
+    return user;
   }
 
   static async loginOrSignUpTDSUser(token: string): Promise<{ sessionToken: string }> {
@@ -556,13 +559,6 @@ export class User extends Model {
       this.sessionToken = avUser.getSessionToken();
     }
     return this.sessionToken;
-  }
-
-  async ensureSessionToken(): Promise<User> {
-    if (this.sessionToken) return this;
-    const sessionToken = await this.loadSessionToken();
-    this.sessionToken = sessionToken;
-    return this;
   }
 
   async refreshSessionToken(): Promise<void> {
