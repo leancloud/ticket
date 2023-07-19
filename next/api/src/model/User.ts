@@ -53,7 +53,7 @@ const tdsUserCache = new RedisCache<User | null | undefined>(
   'user:tds_v2',
   (token) => User.loginTDSUser(token),
   (user) => (user ? JSON.stringify(user) : '0'),
-  (data) => (data === '0' ? null : User.fromJSON(data))
+  (data) => (data === '0' ? null : User.fromJSON(JSON.parse(data)))
 );
 
 export interface LeanCloudAccount {
