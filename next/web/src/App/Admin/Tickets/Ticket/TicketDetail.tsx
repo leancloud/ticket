@@ -19,7 +19,7 @@ import {
   Spin,
   Tooltip,
 } from '@/components/antd';
-import { UserLabel, UserLabelProps } from '@/App/Admin/components';
+import { UserLabel } from '@/App/Admin/components';
 import { useGroup, useGroups } from '@/api/group';
 import { useCustomerServices } from '@/api/customer-service';
 import { useCollaborators } from '@/api/collaborator';
@@ -190,7 +190,7 @@ interface TicketInfoProps {
     createdAt: string;
     updatedAt: string;
   };
-  author?: UserLabelProps['user'];
+  author?: UserSchema;
   onBack: () => void;
   onChangePrivate: (value: boolean) => void;
   onChangeSubscribed: (value: boolean) => void;
@@ -239,7 +239,7 @@ function TicketInfo({
         </Descriptions.Item>
         {author && (
           <Descriptions.Item label="创建者">
-            <UserLabel user={author} />
+            <UserLabel user={author} displayUsername />
           </Descriptions.Item>
         )}
         <Descriptions.Item label="创建时间">
