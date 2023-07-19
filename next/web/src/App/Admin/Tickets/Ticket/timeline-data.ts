@@ -14,6 +14,7 @@ export function useTicketReplies(ticketId?: string) {
       return fetchTicketReplies(ticketId || '', {
         cursor: pageParam,
         deleted: true,
+        pageSize: 1000,
       });
     },
     enabled: !!ticketId,
@@ -74,7 +75,12 @@ export function useTicketReplies(ticketId?: string) {
 export function useTicketOpsLogs(ticketId?: string) {
   const { data, fetchNextPage, refetch } = useInfiniteQuery({
     queryKey: ['TicketOpsLogs', ticketId],
-    queryFn: ({ pageParam }) => fetchTicketOpsLogs(ticketId || '', pageParam),
+    queryFn: ({ pageParam }) => {
+      return fetchTicketOpsLogs(ticketId || '', {
+        cursor: pageParam,
+        pageSize: 1000,
+      });
+    },
     enabled: !!ticketId,
     getNextPageParam: (lastPage) => last(lastPage)?.createdAt,
   });
