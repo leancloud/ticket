@@ -346,7 +346,9 @@ function CustomFieldsSection({ ticketId, categoryId }: CustomFieldsSectionProps)
   const fieldById = useMemo(() => keyBy(fields, (field) => field.id), [fields]);
 
   const formFields = useMemo(() => {
+    const basicFieldIds = ['title', 'details', 'attachments'];
     return formFieldIds
+      .filter((id) => !basicFieldIds.includes(id))
       .map((id) => fieldById[id])
       .filter(Boolean)
       .map(transformField);
