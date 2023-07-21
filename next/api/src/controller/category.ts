@@ -45,7 +45,7 @@ const createCategorySchema = z.object({
   template: z.string().optional(),
   hidden: z.boolean().optional(),
   articleId: z.string().optional(),
-  isTicketEnabled: z.boolean(),
+  isTicketEnabled: z.boolean().optional(),
   ticketDescription: z.string().optional(),
 });
 
@@ -136,6 +136,7 @@ export class CategoryController {
         groupId: data.groupId,
         formId: data.formId,
         qTemplate: data.template,
+        isTicketEnabled: data.isTicketEnabled,
         meta: data.meta,
         hidden: data.hidden,
       },
