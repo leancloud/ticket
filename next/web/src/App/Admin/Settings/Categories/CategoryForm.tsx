@@ -58,7 +58,7 @@ const CategoryMetaOptions: MetaOptionsGroup<CategorySchema>[] = [
         key: 'aiDescription',
         label: 'AI 分类描述',
         type: 'text',
-        predicate: (v) => !v.alias,
+        predicate: (v) => !v.alias || !!v.parentId,
         description:
           '描述的详细与否会影响 AI 帮助用户进行分类的准确度，为空时代表此分类不参与 AI 分类',
       },
