@@ -117,7 +117,13 @@ function FileField({ files }: CustomFieldProps<string[]>) {
   return (
     <div className="flex flex-col items-start gap-0.5">
       {files.map((file) => (
-        <a key={file.id} className="truncate" href={file.url} target="_blank" title={file.name}>
+        <a
+          key={file.id}
+          className="max-w-full truncate"
+          href={file.url}
+          target="_blank"
+          title={file.name}
+        >
           {file.name}
         </a>
       ))}
