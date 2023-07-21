@@ -15,7 +15,7 @@ import { Reply } from '@/model/Reply';
 import { Tag } from '@/model/Tag';
 import { Ticket } from '@/model/Ticket';
 import { TicketField } from '@/model/TicketField';
-import { TicketFieldValue } from '@/model/TicketFieldValue';
+import { FieldValue, TicketFieldValue } from '@/model/TicketFieldValue';
 import { User } from '@/model/User';
 import { TicketResponse, TicketListItemResponse } from '@/response/ticket';
 import { ReplyResponse } from '@/response/reply';
@@ -31,6 +31,8 @@ import { allowedTicketLanguages } from '@/utils/locale';
 import { LangCodeISO6391 } from '@notevenaneko/whatlang-node';
 import { addInOrNotExistCondition } from '@/utils/conditions';
 import { dynamicContentService } from '@/dynamic-content';
+import { FileResponse } from '@/response/file';
+import { File } from '@/model/File';
 
 const router = new Router().use(auth);
 
@@ -1126,7 +1128,7 @@ router.get('/:id/custom-fields', async (ctx) => {
     return;
   }
 
-  const values = ticketFieldValue.values;
+  const values: (FieldValue & { files?: any[] })[] = ticketFieldValue.values;
 
   const fieldIds = values.map((v) => v.field);
   const fileFields = await TicketField.queryBuilder()
@@ -1139,8 +1141,8 @@ router.get('/:id/custom-fields', async (ctx) => {
     .map((field) => fieldValueByFieldId[field.id])
     .map((v) => v.value as string[])
     .flat();
-  const files = await new AV.Query('_File')
-    .containedIn('objectId', fileIds)
+  const files = await File.queryBuilder()
+    .where('objectId', 'in', fileIds)
     .find({ useMasterKey: true });
   const fileById = _.keyBy(files, (f) => f.id!);
 
@@ -1149,14 +1151,9 @@ router.get('/:id/custom-fields', async (ctx) => {
     if (!fieldValue) return;
     const files = _.castArray(fieldValue.value)
       .map((id) => fileById[id])
-      .filter((file) => file !== undefined)
-      .map((file) => ({
-        id: file.id,
-        name: file.get('name'),
-        mime: file.get('mime_type'),
-        url: file.get('url'),
-      }));
-    (fieldValue as any).files = files;
+      .filter(Boolean)
+      .map((file) => new FileResponse(file));
+    fieldValue.files = files;
   });
 
   ctx.body = values;
