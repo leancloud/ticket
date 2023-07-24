@@ -32,7 +32,7 @@ interface CustomFieldProps<T> {
 }
 
 const ComponentByFieldType: Record<string, JSXElementConstructor<CustomFieldProps<any>>> = {
-  text: InputField,
+  text: TextareaField,
   date: InputField,
   number: InputField,
   'multi-line': TextareaField,
@@ -87,7 +87,12 @@ function InputField({ value, disabled, onChange }: CustomFieldProps<string>) {
 
 function TextareaField({ value, disabled, onChange }: CustomFieldProps<string>) {
   return (
-    <Input.TextArea value={value} onChange={(e) => onChange(e.target.value)} disabled={disabled} />
+    <Input.TextArea
+      autoSize
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      disabled={disabled}
+    />
   );
 }
 
