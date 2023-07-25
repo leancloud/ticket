@@ -19,7 +19,8 @@ const Login = lazy(() => import('./Login'));
 function RequireAuth({ children }: { children: JSX.Element }) {
   const currentUser = useCurrentUser();
   if (!currentUser) {
-    return <Navigate to="/login" />;
+    window.location.href = '/login';
+    return null;
   }
   return children;
 }
