@@ -106,7 +106,7 @@ export function RecentTickets({ className, ticketId, userId }: RecentTicketsProp
             dataIndex: 'createdAt',
             render: (createdAt) => {
               const date = moment(createdAt);
-              return <span title={date.format('YYYY-MM-DD HH:MM')}>{date.fromNow()}</span>;
+              return <span title={date.format('YYYY-MM-DD HH:mm')}>{date.fromNow()}</span>;
             },
           },
           {

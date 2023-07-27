@@ -1,12 +1,15 @@
 import { Link } from 'react-router-dom';
 import classNames from 'classnames';
 
-import { TicketSchema } from '@/api/ticket';
 import { useHoverMenu } from './HoverMenu';
 import { TicketOverview } from './TicketOverview';
 
 interface TicketLinkProps {
-  ticket: TicketSchema;
+  ticket: {
+    id: string;
+    nid: number;
+    title: string;
+  };
   className?: string;
   viewId?: string;
 }

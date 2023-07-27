@@ -1,19 +1,20 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 
+import {
+  useCurrentUserIsAdmin,
+  useCurrentUserIsCustomerService,
+  useCurrentUserPermissions,
+} from '@/leancloud';
 import { useCategories } from '@/api/category';
+import { CategoryProvider } from '@/components/common';
+import { RequirePermission } from '@/components/RequirePermission';
 import { Sidebar } from './Sidebar';
 import Tickets from './Tickets';
 import { ViewTickets, Views } from './Views';
 import Settings from './Settings';
 import Stats from './Stats';
 import { NewTicket } from '../Tickets/New';
-import { CategoryProvider } from '@/components/common';
-import { RequirePermission } from '@/components/RequirePermission';
-import {
-  useCurrentUserIsAdmin,
-  useCurrentUserIsCustomerService,
-  useCurrentUserPermissions,
-} from '@/leancloud';
+import { Verification } from './Verification';
 
 const NavigateToAvailablePage = () => {
   const isCustomerService = useCurrentUserIsCustomerService();
@@ -86,6 +87,7 @@ export default function AdminPage() {
                   </RequirePermission>
                 }
               />
+              <Route path="/verification/*" element={<Verification />} />
               <Route path="*" element={<NavigateToAvailablePage />} />
             </Routes>
           </div>
