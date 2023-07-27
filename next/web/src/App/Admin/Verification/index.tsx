@@ -74,11 +74,10 @@ function SearchForm({ value, onChange }: SearchFormProps) {
   );
 }
 
-function renderContent(content: string) {
+function renderContent(content?: string) {
   if (!content) {
     return '-';
   }
-
   return (
     <Popover
       placement="bottom"
@@ -89,7 +88,10 @@ function renderContent(content: string) {
   );
 }
 
-function renderDate(date: string) {
+function renderDate(date?: string) {
+  if (!date) {
+    return '-';
+  }
   return moment(date).format('YYYY-MM-DD HH:mm:ss');
 }
 
@@ -102,11 +104,11 @@ interface ReplyVerificationSchema {
   id: string;
   content: string;
   createdAt: string;
-  ticket: {
-    id?: string;
-    title?: string;
-    content?: string;
-    createdAt?: string;
+  ticket?: {
+    id: string;
+    title: string;
+    content: string;
+    createdAt: string;
   };
 }
 
@@ -151,7 +153,8 @@ function ReplyVerification({ params, active }: VerificationProps) {
         {
           key: 'ticket',
           title: '工单',
-          render: ({ ticket }) => <TicketLink className="max-w-[300px]" ticket={ticket} />,
+          render: ({ ticket }) =>
+            ticket ? <TicketLink className="max-w-[300px]" ticket={ticket} /> : '-',
         },
         {
           dataIndex: ['ticket', 'content'],
@@ -182,11 +185,11 @@ interface OperationVerificationSchema {
   id: string;
   action: string;
   createdAt: string;
-  ticket: {
-    id?: string;
-    title?: string;
-    content?: string;
-    createdAt?: string;
+  ticket?: {
+    id: string;
+    title: string;
+    content: string;
+    createdAt: string;
   };
 }
 

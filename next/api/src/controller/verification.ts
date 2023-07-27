@@ -50,7 +50,7 @@ export class VerificationController {
       id: reply.id,
       content: reply.content,
       createdAt: reply.createdAt,
-      ticket: _.pick(reply.ticket, ['id', 'nid', 'title', 'content', 'createdAt']),
+      ticket: reply.ticket && _.pick(reply.ticket, ['id', 'nid', 'title', 'content', 'createdAt']),
     }));
   }
 
@@ -85,7 +85,8 @@ export class VerificationController {
       id: opsLog.id,
       action: opsLog.action,
       createdAt: opsLog.createdAt,
-      ticket: _.pick(opsLog.ticket, ['id', 'nid', 'title', 'content', 'createdAt']),
+      ticket:
+        opsLog.ticket && _.pick(opsLog.ticket, ['id', 'nid', 'title', 'content', 'createdAt']),
     }));
   }
 }
