@@ -246,7 +246,8 @@ function OperationVerification({ params, active }: VerificationProps) {
         {
           key: 'ticket',
           title: '工单',
-          render: ({ ticket }) => <TicketLink className="max-w-[300px]" ticket={ticket} />,
+          render: ({ ticket }) =>
+            ticket ? <TicketLink className="max-w-[300px]" ticket={ticket} /> : '-',
         },
         {
           dataIndex: ['ticket', 'content'],
