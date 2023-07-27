@@ -82,7 +82,7 @@ function renderContent(content: string) {
   return (
     <Popover
       placement="bottom"
-      content={<div className="max-w-[300px] whitespace-pre-wrap">{content}</div>}
+      content={<div className="max-w-[300px] whitespace-pre-wrap break-all">{content}</div>}
     >
       <div className="max-w-[300px] truncate">{content}</div>
     </Popover>
