@@ -192,8 +192,11 @@ export function NewTicket() {
   });
 
   const category = useMemo(() => {
+    // compatible with `?category_id=x?lang=zh-CN`
+    // https://xindong.slack.com/archives/C01HZ8BS7PT/p1690448100642789?thread_ts=1690447701.411379&cid=C01HZ8BS7PT
+    const id = category_id.split('?')[0];
     if (categories) {
-      return categories.find((c) => c.id === category_id || c.alias === category_id);
+      return categories.find((c) => c.id === id || c.alias === id);
     }
   }, [categories, category_id]);
 
