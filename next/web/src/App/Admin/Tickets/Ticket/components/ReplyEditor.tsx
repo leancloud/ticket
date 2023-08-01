@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { ClipboardEvent, Dispatch, SetStateAction, useMemo, useRef, useState } from 'react';
 import { useDebounce } from 'react-use';
 import { Button, Empty, Input, Radio, Select, Tabs } from 'antd';
 import { AiOutlineFile } from 'react-icons/ai';
@@ -7,7 +7,7 @@ import remarkGfm from 'remark-gfm';
 import { uniq } from 'lodash-es';
 
 import { useQuickReplies } from '@/api/quick-reply';
-import { useCurrentUser } from '@/leancloud';
+import { storage, useCurrentUser } from '@/leancloud';
 import { LoadingCover } from '@/components/common';
 import { useHoverMenu } from '@/App/Admin/components/HoverMenu';
 import { Uploader, UploaderRef } from '@/App/Admin/components/Uploader';
@@ -126,7 +126,7 @@ export function ReplyEditor({ onSubmit, onOperate, operating }: ReplyEditorProps
 interface MarkdownEditorProps {
   className?: string;
   value: string;
-  onChange: (value: string) => void;
+  onChange: Dispatch<SetStateAction<string>>;
   internal?: boolean;
   onSubmit: () => void;
   disabled?: boolean;
@@ -141,6 +141,25 @@ export function MarkdownEditor({
   disabled,
 }: MarkdownEditorProps) {
   const editorHeight = useRef(0);
+
+  const handlePasteFile = (e: ClipboardEvent<HTMLTextAreaElement>) => {
+    const files = e.clipboardData.files;
+    if (!files.length) return;
+    const file = files[0];
+    const placeholder = `![${file.name}](uploading)`;
+    const { selectionStart, selectionEnd } = e.currentTarget;
+    const nextValue = value.slice(0, selectionStart) + placeholder + value.slice(selectionEnd);
+    onChange(nextValue);
+    storage
+      .upload(file.name, file)
+      .then((lcFile) => {
+        const fileUrl = `![${file.name}](${lcFile.url})`;
+        onChange((value) => value.replace(placeholder, fileUrl));
+      })
+      .catch(() => {
+        onChange((value) => value.replace(placeholder, '[上传失败]'));
+      });
+  };
 
   return (
     <div className={className}>
@@ -166,6 +185,7 @@ export function MarkdownEditor({
                     onSubmit();
                   }
                 }}
+                onPaste={handlePasteFile}
                 disabled={disabled}
                 style={{
                   minHeight: 124,
