@@ -83,6 +83,7 @@ const queue = createQueue<JobData>('trigger:v2', {
   },
   defaultJobOptions: {
     removeOnComplete: true,
+    removeOnFail: true,
   },
 });
 

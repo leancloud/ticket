@@ -322,6 +322,7 @@ const queue = createQueue<JobData>('notification', {
   },
   defaultJobOptions: {
     removeOnComplete: true,
+    removeOnFail: true,
   },
 });
 
