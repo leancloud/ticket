@@ -300,6 +300,7 @@ export default async function (install: Function) {
   const queue = createQueue<JobData>('ticket_snapshot', {
     defaultJobOptions: {
       removeOnComplete: true,
+      removeOnFail: true,
     },
   });
 
