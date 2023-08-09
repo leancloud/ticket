@@ -367,7 +367,7 @@ export class Ticket extends Model {
     operator: User,
     options?: UpdateOptions & { cascade?: boolean }
   ): Promise<Ticket> {
-    const associateTickets = await this.getAssociatedTickets(options);
+    const associateTickets = await this.getAssociatedTickets();
 
     const result = await Promise.all(
       (options?.cascade ? [...associateTickets, this] : [this]).map((ticket) => {
@@ -386,13 +386,13 @@ export class Ticket extends Model {
     return Status.isClosed(this.status);
   }
 
-  async getAssociatedTickets(options?: AuthOptions) {
+  async getAssociatedTickets() {
     if (!this.parentId) {
       return [];
     }
     return Ticket.queryBuilder()
       .where('parent', '==', Ticket.ptr(this.parentId))
       .where('objectId', '!=', this.id)
-      .find(options);
+      .find({ useMasterKey: true });
   }
 }
