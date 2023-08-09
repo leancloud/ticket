@@ -370,14 +370,13 @@ export class Ticket extends Model {
     const associateTickets = await this.getAssociatedTickets();
 
     const result = await Promise.all(
-      (options?.cascade ? [...associateTickets, this] : [this]).map((ticket) => {
+      (options?.cascade ? [...associateTickets, this] : [this]).map(async (ticket) => {
         const updater = new TicketUpdater(ticket);
-        updater.operate(action);
-        return updater.update(operator, options);
+        const updatedTicket = await updater.operate(action).update(operator, options);
+        await durationMetricService.recordOperateTicket(ticket, action);
+        return updatedTicket;
       })
     );
-
-    await durationMetricService.recordOperateTicket(this, action);
 
     return result.find((ticket) => ticket.id === this.id)!;
   }

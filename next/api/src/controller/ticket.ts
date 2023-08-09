@@ -31,7 +31,7 @@ export class TicketController {
   @ResponseBody(TicketListItemResponse)
   getAssociatedTickets(@Ctx() ctx: Context) {
     const ticket = ctx.state.ticket as Ticket;
-    return ticket.getAssociatedTickets({ useMasterKey: true });
+    return ticket.getAssociatedTickets();
   }
 
   @Post(':id/associated-tickets')
