@@ -25,6 +25,15 @@ function RequireAuth({ children }: { children: JSX.Element }) {
   return children;
 }
 
+function RequireEmbeddedAuth({ children }: { children: JSX.Element }) {
+  const currentUser = useCurrentUser();
+  if (!currentUser) {
+    window.postMessage('requireAuth');
+    return null;
+  }
+  return children;
+}
+
 function AppRoutes() {
   return (
     <Suspense
@@ -35,7 +44,7 @@ function AppRoutes() {
       }
     >
       <Routes>
-        <Route path="/tickets/*" element={<RequireAuth children={<Tickets />} />} />
+        <Route path="/tickets/*" element={<RequireEmbeddedAuth children={<Tickets />} />} />
         <Route path="/admin/*" element={<RequireAuth children={<Admin />} />} />
         <Route path="/login" element={<Login />} />
         <Route path="*" element={<Navigate to="/admin" replace />} />

@@ -3,7 +3,6 @@ import React, { useCallback, useContext, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button, Form } from 'react-bootstrap'
 import { useHistory, useLocation } from 'react-router'
-import PropTypes from 'prop-types'
 import qs from 'query-string'
 import { auth, http } from '../lib/leancloud'
 import { isCN } from './common'
@@ -16,7 +15,6 @@ export default function Login() {
   const { t } = useTranslation()
   const history = useHistory()
   const location = useLocation()
-  const [loading, setLoading] = useState(true)
   const { addNotification, setCurrentUser } = useContext(AppContext)
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -33,10 +31,6 @@ export default function Login() {
   }, [history])
 
   useEffect(() => {
-    if (auth.currentUser) {
-      history.push('/')
-      return
-    }
     const { token } = qs.parse(location.search)
     if (token) {
       ;(async () => {
@@ -49,7 +43,6 @@ export default function Login() {
         }
       })()
     }
-    setLoading(false)
   }, [])
 
   const handleLogin = async (e) => {

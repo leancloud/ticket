@@ -4,13 +4,15 @@ import { useHistory } from 'react-router-dom'
 import './NewTicket.next.css'
 
 export default function NewTicket() {
-  const history = useRef(useHistory())
+  const history = useHistory()
   const frame = useRef(null)
 
   useEffect(() => {
     const h = ({ data }) => {
       if (data === 'ticketCreated') {
-        setTimeout(() => history.current.push('/tickets'), 1000)
+        setTimeout(() => history.push('/tickets'), 1000)
+      } else if (data === 'requireAuth') {
+        history.push('/login')
       }
     }
     frame.current.contentWindow.addEventListener('message', h)
