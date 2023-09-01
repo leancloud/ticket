@@ -27,8 +27,8 @@ export const relativeDateGetters: Record<string, () => DateRange> = {
     to: moment().endOf('month').toDate(),
   }),
   lastMonth: () => ({
-    from: moment().startOf('month').subtract(1, 'month').toDate(),
-    to: moment().endOf('month').subtract(1, 'month').toDate(),
+    from: moment().subtract(1, 'month').startOf('month').toDate(),
+    to: moment().subtract(1, 'month').endOf('month').toDate(),
   }),
   lastSevenDays: () => ({
     from: moment().subtract(6, 'day').startOf('day').toDate(),
