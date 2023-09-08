@@ -91,6 +91,7 @@ export function Collaborators() {
 
       <Table dataSource={data} rowKey="id" pagination={false} loading={isFetching}>
         <Column key="id" title="协作者" render={(user) => <UserLabel user={user} />} />
+        <Table.Column key="email" title="邮箱" render={(user) => user.email || '-'} />
         <Column
           key="actions"
           title="操作"

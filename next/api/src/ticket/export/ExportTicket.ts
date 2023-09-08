@@ -3,7 +3,7 @@ import { debug as d } from 'debug';
 import { sub, format as dateFnsFormat } from 'date-fns';
 import { Category } from '@/model/Category';
 import { User } from '@/model/User';
-import { UserSearchResult } from '@/response/user';
+import { UserResponse } from '@/response/user';
 import { Group } from '@/model/Group';
 import { GroupResponse } from '@/response/group';
 import { Reply } from '@/model/Reply';
@@ -191,7 +191,7 @@ const getCategoryPath = async (category: Category) => {
 const getCustomerServices = async () => {
   const customerServices = await User.getCustomerServices();
   return _(customerServices)
-    .map((user) => new UserSearchResult(user).toJSON())
+    .map((user) => new UserResponse(user).toJSON())
     .keyBy('id')
     .valueOf();
 };

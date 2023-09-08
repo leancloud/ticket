@@ -32,14 +32,6 @@ export class UserResponse {
       nickname: this.user.name ?? this.user.username,
       active: !this.user.inactive,
       avatarUrl: GravatarUrlManager.getUrl(this.user.email ?? this.user.username),
-    };
-  }
-}
-
-export class UserSearchResult extends UserResponse {
-  toJSON() {
-    return {
-      ...super.toJSON(),
       email: this.user.email,
     };
   }

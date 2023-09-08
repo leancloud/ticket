@@ -15,7 +15,7 @@ import {
 import { FindModelPipe, ParseCsvPipe, TrimPipe, ZodValidationPipe } from '@/common/pipe';
 import { auth, customerServiceOnly, staffOnly, systemRoleMemberGuard } from '@/middleware';
 import { transformToHttpError, User } from '@/model/User';
-import { UserSearchResult } from '@/response/user';
+import { UserResponse } from '@/response/user';
 import { getVerifiedPayloadWithSubRequired, processKeys, signPayload } from '@/utils/jwt';
 import { withAsyncSpan } from '@/utils/trace';
 import { Context } from 'koa';
@@ -71,7 +71,7 @@ const TDSUserSigningKey = process.env.TDS_USER_SIGNING_KEY;
 export class UserController {
   @Get()
   @UseMiddlewares(auth, systemRoleMemberGuard)
-  @ResponseBody(UserSearchResult)
+  @ResponseBody(UserResponse)
   find(
     @Pagination() [page, pageSize]: [number, number],
     @Query('id', ParseCsvPipe) ids: string[] | undefined,
@@ -102,14 +102,14 @@ export class UserController {
 
   @Get('me')
   @UseMiddlewares(auth)
-  @ResponseBody(UserSearchResult)
+  @ResponseBody(UserResponse)
   getMe(@CurrentUser() currentUser: User) {
     return currentUser;
   }
 
   @Get(':id')
   @UseMiddlewares(auth, staffOnly)
-  @ResponseBody(UserSearchResult)
+  @ResponseBody(UserResponse)
   findOne(@Param('id', new FindModelPipe(User)) user: User) {
     return user;
   }
@@ -173,7 +173,7 @@ export class UserController {
 
   @Post('pre-create')
   @UseMiddlewares(auth, customerServiceOnly)
-  @ResponseBody(UserSearchResult)
+  @ResponseBody(UserResponse)
   async preCreate(@Body(new ZodValidationPipe(preCraeteSchema)) data: PreCreateUserData) {
     const { email, username } = data;
     if (!email && !username) {

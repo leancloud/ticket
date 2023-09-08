@@ -179,12 +179,10 @@ interface CustomerService extends CustomerServiceSchema {
   roles: CSRole[];
 }
 
-const appendRoles =
-  (roles: CSRole[]) =>
-  (user: CustomerServiceSchema): CustomerService => ({
-    ...user,
-    roles: roles,
-  });
+const appendRoles = (roles: CSRole[]) => (user: CustomerServiceSchema): CustomerService => ({
+  ...user,
+  roles: roles,
+});
 
 export function Members() {
   const customerServiceResult = useCustomerServices();
@@ -244,6 +242,7 @@ export function Members() {
           title="客服"
           render={(user) => <UserLabel user={user} />}
         />
+        <Table.Column key="email" title="邮箱" render={(user) => user.email || '-'} />
         <Table.Column
           dataIndex="roles"
           title="角色"
