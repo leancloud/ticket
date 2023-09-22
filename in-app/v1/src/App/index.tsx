@@ -85,8 +85,8 @@ export default function App() {
   useAutoLogin({
     strategies: [
       loginByAnonymousId,
-      loginByXdUserId,
       loginByXDAccessToken,
+      loginByXdUserId,
       loginByTDSCredential,
       loginByJWT,
       loginByCurrentUser,
