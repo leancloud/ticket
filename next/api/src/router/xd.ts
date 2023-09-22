@@ -26,7 +26,7 @@ const pickFirst = (query: string | string[]) => (Array.isArray(query) ? query[0]
 const router = new Router();
 
 router.get('/in-app', async (ctx) => {
-  const { client_id, user_id, access_token, sdk_lang, ...rest } = ctx.query;
+  const { client_id, user_id, access_token, xd_access_token, sdk_lang, ...rest } = ctx.query;
   if (!client_id) {
     throw new HttpError('client_id is required.');
   }
@@ -36,6 +36,7 @@ router.get('/in-app', async (ctx) => {
     url.searchParams.append('lang', lang);
   }
   const hash = new URLSearchParams();
+  if (xd_access_token) hash.append('xd-access-token', pickFirst(xd_access_token));
   if (access_token) hash.append('access-token', pickFirst(access_token));
   if (user_id) hash.append('xd-user-id', pickFirst(user_id));
   hash.append('fields', JSON.stringify({ ...rest, sdk_lang: lang }));
