@@ -24,6 +24,8 @@ import { supportEmailMessageService } from './support-email-message';
 export class EmailService {
   private queue: Queue<JobData>;
 
+  private proxy?: string;
+
   constructor() {
     this.queue = createQueue('support_email', {
       defaultJobOptions: {
@@ -35,6 +37,7 @@ export class EmailService {
     this.queue.on('failed', (job, error) => {
       console.error('[EmailService] job failed', job.data, error);
     });
+    this.proxy = process.env.http_proxy;
   }
 
   async checkNewMessages() {
@@ -81,6 +84,10 @@ export class EmailService {
 
   createImapClient(supportEmail: Pick<SupportEmail, 'imap' | 'auth'>) {
     return new ImapFlow({
+      // https://imapflow.com/module-imapflow-ImapFlow.html#ImapFlow
+      // @ts-ignore
+      proxy: this.proxy,
+
       host: supportEmail.imap.host,
       port: supportEmail.imap.port,
       secure: supportEmail.imap.secure,
@@ -406,6 +413,10 @@ export class EmailService {
 
   createSmtpClient(supportEmail: SupportEmail) {
     return nodemailer.createTransport({
+      // https://nodemailer.com/smtp/proxies/
+      // @ts-ignore
+      proxy: this.proxy,
+
       host: supportEmail.smtp.host,
       port: supportEmail.smtp.port,
       secure: supportEmail.smtp.secure,
