@@ -10,7 +10,7 @@ setConfig('weekendWarning.enabled', true)
 
 setConfig('ticket.metadata.customMetadata.userLabelOverlay', {
   overlay: ({ user }) => (
-    <a href={`https://www.taptap.com/admin/user/edit/${user.username}`} target="__blank">
+    <a href={`https://www.taptap.cn/admin/user/edit/${user.username}`} target="__blank">
       TapTap 用户信息
     </a>
   ),
