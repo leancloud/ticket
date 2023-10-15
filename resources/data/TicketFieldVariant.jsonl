@@ -7,3 +7,5 @@
 {"description":"","titleForCustomerService":"操作系统","ACL":{},"locale":"zh-cn","field":{"__type":"Pointer","className":"TicketField","objectId":"os"},"title":"操作系统"}
 {"description":"","titleForCustomerService":"操作系统名称","ACL":{},"locale":"zh-cn","field":{"__type":"Pointer","className":"TicketField","objectId":"os_name"},"title":"操作系统名称"}
 {"description":"","titleForCustomerService":"IP","ACL":{},"locale":"zh-cn","field":{"__type":"Pointer","className":"TicketField","objectId":"ip"},"title":"IP"}
+{"description":"","titleForCustomerService":"地区","ACL":{},"locale":"zh-cn","field":{"__type":"Pointer","className":"TicketField","objectId":"location"},"title":"地区"}
+{"description":"","titleForCustomerService":"运营商","ACL":{},"locale":"zh-cn","field":{"__type":"Pointer","className":"TicketField","objectId":"isp"},"title":"运营商"}
