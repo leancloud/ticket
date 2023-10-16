@@ -33,6 +33,7 @@ import { addInOrNotExistCondition } from '@/utils/conditions';
 import { dynamicContentService } from '@/dynamic-content';
 import { FileResponse } from '@/response/file';
 import { File } from '@/model/File';
+import { lookupIp } from '@/utils/ip';
 
 const router = new Router().use(auth);
 
@@ -489,7 +490,7 @@ const extractSystemFields = (
   };
 };
 
-const { PERSIST_USERAGENT_INFO } = process.env;
+const { PERSIST_USERAGENT_INFO, IP_LOOKUP_ENABLED } = process.env;
 
 router.post('/', async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
@@ -585,6 +586,26 @@ router.post('/', async (ctx) => {
     [...(customFields ?? []), ...builtInFields],
     'field'
   );
+  if (IP_LOOKUP_ENABLED) {
+    const ipField = fields.find(({ field }) => field === 'ip');
+    const locationField = fields.find(({ field }) => field === 'location');
+    const ispField = fields.find(({ field }) => field === 'isp');
+    if (ipField && (!locationField || !ispField)) {
+      const { region, city, isp } = await lookupIp(ipField.value);
+      if (!locationField && region) {
+        fields.push({
+          field: 'location',
+          value: `${region}${city ?? ''}`,
+        });
+      }
+      if (!ispField && isp) {
+        fields.push({
+          field: 'isp',
+          value: isp,
+        });
+      }
+    }
+  }
   if (fields.length) {
     const ticketFieldIds = fields.map((field) => field.field);
     // TODO(sdjdd): Cache result
