@@ -87,7 +87,7 @@ export class GroupController {
   }
 
   @Get(':id')
-  async findOne(@Param('id', new FindModelPipe(Group)) group: Group) {
+  async findOne(@Param('id', new FindModelPipe(Group, { useMasterKey: true })) group: Group) {
     const role = await this.findGroupRole(group, { useMasterKey: true });
     const users = await role.getUsers().query().find({ useMasterKey: true });
     const userIds = users.map((u) => u.id!);

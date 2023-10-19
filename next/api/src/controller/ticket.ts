@@ -14,7 +14,7 @@ import {
   UseMiddlewares,
 } from '@/common/http';
 import { ZodValidationPipe } from '@/common/pipe';
-import { customerServiceOnly } from '@/middleware';
+import { customerServiceOnly, staffOnly } from '@/middleware';
 import { UpdateData } from '@/orm';
 import router from '@/router/ticket';
 import { Ticket } from '@/model/Ticket';
@@ -27,7 +27,7 @@ const createAssociatedTicketSchema = z.object({
 @Controller({ router, path: 'tickets' })
 export class TicketController {
   @Get(':id/associated-tickets')
-  @UseMiddlewares(customerServiceOnly)
+  @UseMiddlewares(staffOnly)
   @ResponseBody(TicketListItemResponse)
   getAssociatedTickets(@Ctx() ctx: Context) {
     const ticket = ctx.state.ticket as Ticket;
