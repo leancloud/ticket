@@ -51,6 +51,7 @@ export const ReplyRevisionsModal = forwardRef<ReplyRevisionsModalRef>((props, re
       {revisions && revisions.length === 0 && <Empty />}
       {revisions?.map((revision) => (
         <BasicReplyCard
+          key={revision.id}
           className="mb-5 last:mb-0"
           type={type}
           title={
