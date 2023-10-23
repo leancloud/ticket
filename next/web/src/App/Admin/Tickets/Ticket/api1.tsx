@@ -51,6 +51,7 @@ export interface TicketField_v1 {
     title: string;
     options?: [string, string][];
   }[];
+  preview_template?: string;
 }
 
 export function useTicketFields_v1(

@@ -24,7 +24,9 @@
     "antd": "^4.24.8",
     "axios": "^0.24.0",
     "classnames": "^2.3.1",
+    "dompurify": "^3.0.6",
     "github-markdown-css": "^5.1.0",
+    "handlebars": "^4.7.8",
     "highlight.js": "^11.6.0",
     "immer": "^9.0.12",
     "lodash-es": "^4.17.21",
@@ -48,6 +50,7 @@
   },
   "devDependencies": {
     "@hookform/devtools": "^4.0.2",
+    "@types/dompurify": "^3.0.4",
     "@types/lodash-es": "^4.17.5",
     "@types/react": "^17.0.38",
     "@types/react-beautiful-dnd": "^13.1.2",

@@ -1,14 +1,19 @@
-import { JSXElementConstructor, useState } from 'react';
+import { JSXElementConstructor, useMemo, useState } from 'react';
 import { isEmpty } from 'lodash-es';
+import Handlebars from 'handlebars';
+import DOMPurify from 'dompurify';
 
 import { Button, Input, Select } from '@/components/antd';
 import { FormField } from './FormField';
+import { ErrorBoundary } from 'react-error-boundary';
+import { UserSchema } from '@/api/user';
 
 interface CustomField {
   id: string;
   type: string;
   label: string;
   options?: { label: string; value: string }[];
+  previewTemplate?: string;
 }
 
 interface FileFieldValue {
@@ -48,9 +53,17 @@ interface CustomFieldsProps {
   disabled?: boolean;
   updating?: boolean;
   onChange: (values: Record<string, any>) => void;
+  user?: UserSchema;
 }
 
-export function CustomFields({ fields, values, disabled, updating, onChange }: CustomFieldsProps) {
+export function CustomFields({
+  fields,
+  values,
+  disabled,
+  updating,
+  onChange,
+  user,
+}: CustomFieldsProps) {
   const [tempValues, setTempValues] = useState<Record<string, any>>({});
 
   return (
@@ -60,15 +73,58 @@ export function CustomFields({ fields, values, disabled, updating, onChange }: C
         if (!Component) {
           return null;
         }
+
+        const contentNode = (
+          <Component
+            options={field.options}
+            value={tempValues[field.id] ?? values[field.id]?.value}
+            files={values[field.id]?.files}
+            disabled={disabled}
+            onChange={(value) => setTempValues({ ...tempValues, [field.id]: value })}
+          />
+        );
+
+        let previewNode;
+        const { previewTemplate, id } = field;
+        const value = values[id]?.value;
+        const DEFAULT_CONTENT_PLACEHOLDER = '#DEFAULT#';
+        if (previewTemplate) {
+          const showPreviewAnyway = previewTemplate.startsWith('!');
+          if (showPreviewAnyway || value !== undefined) {
+            const template = showPreviewAnyway ? previewTemplate.slice(1) : previewTemplate;
+            previewNode = (
+              <ErrorBoundary
+                fallbackRender={({ error }) => (
+                  <div className="text-red-500">Render preview template error: {error.message}</div>
+                )}
+              >
+                {/* {template.startsWith(DEFAULT_CONTENT_PLACEHOLDER) && defaultContent} */}
+                <CustomFieldPreview
+                  template={template
+                    .replace(RegExp(`^${DEFAULT_CONTENT_PLACEHOLDER}`), '')
+                    .replace(RegExp(`${DEFAULT_CONTENT_PLACEHOLDER}$`), '')}
+                  value={value}
+                  user={user}
+                />
+                {/* {template.endsWith(DEFAULT_CONTENT_PLACEHOLDER) && defaultContent} */}
+              </ErrorBoundary>
+            );
+          }
+        }
+
         return (
           <FormField key={field.id} label={field.label}>
-            <Component
-              options={field.options}
-              value={tempValues[field.id] ?? values[field.id]?.value}
-              files={values[field.id]?.files}
-              disabled={disabled}
-              onChange={(value) => setTempValues({ ...tempValues, [field.id]: value })}
-            />
+            {previewNode ? (
+              <>
+                {previewNode}
+                <details className='text-sm'>
+                  <summary>编辑</summary>
+                  {contentNode}
+                </details>
+              </>
+            ) : (
+              contentNode
+            )}
           </FormField>
         );
       })}
@@ -148,4 +204,28 @@ function withProps<P extends Record<string, any>, K extends keyof P>(
   }
 ): JSXElementConstructor<PartialSome<P, K>> {
   return (props: any) => <Component {...presetProps} {...props} />;
+}
+
+function CustomFieldPreview({
+  template,
+  value,
+  user,
+}: {
+  template: string;
+  value: string;
+  user?: UserSchema;
+}) {
+  const tpl = useMemo(() => (template ? Handlebars.compile(template) : undefined), [template]);
+  const previewHTML = useMemo(() => {
+    let parsedValue = value;
+    try {
+      parsedValue = JSON.parse(value);
+    } catch (error) {
+      // ignore the error
+    }
+    return tpl
+      ? DOMPurify.sanitize(tpl({ value: parsedValue, user }), { ADD_TAGS: ['iframe'] })
+      : undefined;
+  }, [tpl, value, user]);
+  return <p dangerouslySetInnerHTML={{ __html: previewHTML ?? '' }} />;
 }
