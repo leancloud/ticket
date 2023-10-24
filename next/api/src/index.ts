@@ -142,6 +142,20 @@ app.use(
   })
 );
 
+app.use(async (ctx, next) => {
+  if (
+    ctx.hostname !== 'support.xd.com' &&
+    (ctx.query.product === 'soc' )
+  ) {
+    const url = new URL(ctx.url, 'https://support.xd.com')
+    ctx.response.status = 307; 
+    ctx.response.set('Location', url.toString());
+    ctx.response.body = '';
+    return
+  }
+  await next()
+})
+
 app.use(api.routes());
 app.use(integrationRouter.routes());
 
