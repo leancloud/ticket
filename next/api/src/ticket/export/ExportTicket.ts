@@ -345,6 +345,7 @@ export default async function exportTicket({ params, sortItems, utcOffset, date 
   const exportFileManager = new ExportFileManager(fileName);
   debug('count tickets');
   const [query, containFields] = await createBaseTicketQuery(rest, sortItems);
+  console.log('export query condition', query.getRawCondition());
   const count = await query.count(authOptions);
   debug('count: ', count);
   const categoryMap = await getCategories();
