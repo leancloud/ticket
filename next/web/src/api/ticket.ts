@@ -42,6 +42,7 @@ export interface FetchTicketFilters {
   language?: string[];
   rootCategoryId?: string;
   star?: number;
+  'evaluation.ts'?: string;
   createdAt?: string;
   status?: number | number[];
   tagKey?: string;
@@ -95,6 +96,16 @@ export function encodeTicketFilters(filters: FetchTicketFilters) {
   }
   if (!isEmpty(filters.where)) {
     params.where = JSON.stringify(filters.where);
+  }
+  if (filters['evaluation.ts']) {
+    const dateRange = decodeDateRange(filters['evaluation.ts']);
+    if (dateRange && (dateRange.from || dateRange.to)) {
+      // "2021-08-01..2021-08-31", "2021-08-01..*", etc.
+      params['evaluation.ts'] = [
+        dateRange.from?.toISOString() ?? '*',
+        dateRange.to?.toISOString() ?? '*',
+      ].join('..');
+    }
   }
   return params;
 }

@@ -21,6 +21,7 @@ export interface NormalFilters extends CommonFilters {
   rootCategoryId?: string;
   status?: number[];
   star?: number;
+  'evaluation.ts'?: string;
   language?: string[];
   where?: Record<string, any>;
 }
@@ -78,6 +79,7 @@ const deserializeFilters = (params: Record<string, string | undefined>): Filters
       'privateTagKey',
       'privateTagValue',
       'rootCategoryId',
+      'evaluation.star',
 
       // field
       'fieldId',

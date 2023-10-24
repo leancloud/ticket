@@ -7,7 +7,6 @@ import { FieldFilters, Filters, NormalFilters } from '../useTicketFilter';
 import { AssigneeSelect } from './AssigneeSelect';
 import { GroupSelect } from './GroupSelect';
 import { TagSelect } from './TagSelect';
-import { CreatedAtSelect } from './CreatedAtSelect';
 import { CategorySelect } from './CategorySelect';
 import { StatusSelect } from './StatusSelect';
 import { EvaluationStarSelect } from './EvaluationStarSelect';
@@ -17,6 +16,7 @@ import { TicketLanguages } from '@/i18n/locales';
 import { TicketFieldSchema } from '@/api/ticket-field';
 import { FieldSelect, OptionTypes, TextTypes } from './FieldSelect';
 import { MetadataList } from './MetadataList';
+import { PresetRangePicker } from './PresetRangePicker';
 
 function Field({ title, children }: PropsWithChildren<{ title: React.ReactNode }>) {
   return (
@@ -52,6 +52,7 @@ const NormalFieldForm = ({ filters, merge, onSubmit }: FilterFormItemProps<Norma
     privateTagValue,
     language,
     star,
+    'evaluation.ts': evaluation_ts,
     status,
     tagKey,
     tagValue,
@@ -62,7 +63,7 @@ const NormalFieldForm = ({ filters, merge, onSubmit }: FilterFormItemProps<Norma
   return (
     <>
       <Field title="创建时间">
-        <CreatedAtSelect value={createdAt} onChange={(createdAt) => merge({ createdAt })} />
+        <PresetRangePicker value={createdAt} onChange={(createdAt) => merge({ createdAt })} />
       </Field>
       <Field title="关键词">
         <Input
@@ -120,6 +121,13 @@ const NormalFieldForm = ({ filters, merge, onSubmit }: FilterFormItemProps<Norma
         <EvaluationStarSelect value={star} onChange={(star) => merge({ star })} />
       </Field>
 
+      <Field title="评价时间">
+        <PresetRangePicker
+          value={evaluation_ts}
+          onChange={(value) => merge({ 'evaluation.ts': value })}
+        />
+      </Field>
+
       <Field title="标签">
         <TagSelect value={{ tagKey, tagValue, privateTagKey, privateTagValue }} onChange={merge} />
       </Field>
@@ -161,7 +169,7 @@ const CustomFieldForm = ({ filters, merge, onSubmit }: FilterFormItemProps<Field
   return (
     <>
       <Field title="创建时间">
-        <CreatedAtSelect value={createdAt} onChange={(createdAt) => merge({ createdAt })} />
+        <PresetRangePicker value={createdAt} onChange={(createdAt) => merge({ createdAt })} />
       </Field>
       <Field title="工单选项">
         <FieldSelect value={fieldId} onChangeWithData={setField} />
