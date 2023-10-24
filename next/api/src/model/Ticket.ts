@@ -14,7 +14,6 @@ import {
   hasManyThroughPointer,
   hasManyThroughPointerArray,
   serialize,
-  AuthOptions,
 } from '@/orm';
 import { TicketUpdater, UpdateOptions } from '@/ticket/TicketUpdater';
 import htmlify from '@/utils/htmlify';
@@ -62,6 +61,14 @@ export class Status {
 export interface Evaluation {
   star: number;
   content: string;
+  selections?: string[];
+  /**
+   * 评价时间
+   *
+   * 不用 `createdAt` 是因为 API 对于名为 `createdAt` 的字段始终返回 string 类型的值
+   * 这会导致获取的值与最初设置的值类型不一致, 且 JS SDK 并未兼容这一行为
+   */
+  ts?: Date;
 }
 
 export interface LatestReply extends Omit<TinyReplyInfo, 'objectId'> {
