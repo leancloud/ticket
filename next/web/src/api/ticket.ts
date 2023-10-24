@@ -1,4 +1,10 @@
-import { UseMutationOptions, UseQueryOptions, useMutation, useQuery } from 'react-query';
+import {
+  UseMutationOptions,
+  UseQueryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from 'react-query';
 import { castArray, isEmpty } from 'lodash-es';
 
 import { http } from '@/leancloud';
@@ -410,8 +416,12 @@ async function updateTicketFieldValues(ticketId: string, data: UpdateTicketField
 export function useUpdateTicketFieldValues(
   options?: UseMutationOptions<void, Error, Parameters<typeof updateTicketFieldValues>>
 ) {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (vars) => updateTicketFieldValues(...vars),
+    onSuccess: (_, [ticketId, data]) => {
+      queryClient.invalidateQueries(['ticketFieldValues', ticketId]);
+    },
     ...options,
   });
 }

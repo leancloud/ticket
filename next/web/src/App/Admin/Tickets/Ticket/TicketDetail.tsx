@@ -117,7 +117,11 @@ export function TicketDetail() {
               disabled={updating}
             />
 
-            <CustomFieldsSection ticketId={ticket.id} categoryId={ticket.categoryId} />
+            <CustomFieldsSection
+              ticketId={ticket.id}
+              categoryId={ticket.categoryId}
+              author={ticket.author}
+            />
 
             <MetadataSection metadata={ticket.metaData} />
           </Col>
@@ -314,15 +318,17 @@ function transformField(field: TicketField_v1) {
     type: field.type,
     label: field.variants[0]?.title || 'unknown',
     options: field.variants[0]?.options?.map(([value, label]) => ({ label, value })),
+    previewTemplate: field.preview_template,
   };
 }
 
 interface CustomFieldsSectionProps {
   ticketId: string;
   categoryId: string;
+  author?: UserSchema;
 }
 
-function CustomFieldsSection({ ticketId, categoryId }: CustomFieldsSectionProps) {
+function CustomFieldsSection({ ticketId, categoryId, author }: CustomFieldsSectionProps) {
   const { data: formFieldIds, isLoading: loadingFormFieldIds } = useFormFieldIds(categoryId);
 
   const { data: fieldValues, isLoading: loadingFieldValues } = useTicketFieldValues(ticketId);
@@ -382,6 +388,7 @@ function CustomFieldsSection({ ticketId, categoryId }: CustomFieldsSectionProps)
             values={fieldValueMap}
             updating={updating}
             onChange={handleUpdate}
+            user={author}
           />
         </>
       )}
@@ -393,6 +400,7 @@ function CustomFieldsSection({ ticketId, categoryId }: CustomFieldsSectionProps)
             values={fieldValueMap}
             updating={updating}
             onChange={handleUpdate}
+            user={author}
           />
         </>
       )}
