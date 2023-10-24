@@ -29,6 +29,7 @@ export interface FilterOptions {
   groupId?: string[];
   status?: number[];
   'evaluation.star'?: number;
+  'evaluation.ts'?: (Date | string | undefined | null)[];
   createdAtFrom?: string | Date;
   createdAtTo?: string | Date;
   tagKey?: string;
@@ -108,6 +109,15 @@ const createBaseTicketQuery = async (params: FilterOptions, sortItems?: SortItem
     }
     if (params['evaluation.star'] !== undefined) {
       query.where('evaluation.star', '==', params['evaluation.star']);
+    }
+    if (params['evaluation.ts']) {
+      const [from, to] = params['evaluation.ts'];
+      if (from) {
+        query.where('evaluation.ts', '>=', new Date(from));
+      }
+      if (to) {
+        query.where('evaluation.ts', '<=', new Date(to));
+      }
     }
     if (params.createdAtFrom) {
       query.where('createdAt', '>=', new Date(params.createdAtFrom));

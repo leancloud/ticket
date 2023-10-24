@@ -62,6 +62,7 @@ export const ticketFiltersSchema = yup.object({
   participantId: yup.csv(yup.string().required()),
   status: yup.csv(yup.number().oneOf(statuses).required()),
   'evaluation.star': yup.number().oneOf([0, 1]),
+  'evaluation.ts': yup.dateRange(),
   createdAtFrom: yup.date(),
   createdAtTo: yup.date(),
   tagKey: yup.string(),
@@ -190,6 +191,15 @@ router.get(
         }
         if (params['evaluation.star'] !== undefined) {
           query.where('evaluation.star', '==', params['evaluation.star']);
+        }
+        if (params['evaluation.ts']) {
+          const [from, to] = params['evaluation.ts'];
+          if (from) {
+            query.where('evaluation.ts', '>=', from);
+          }
+          if (to) {
+            query.where('evaluation.ts', '<=', to);
+          }
         }
         if (params.createdAtFrom) {
           query.where('createdAt', '>=', params.createdAtFrom);
@@ -353,6 +363,11 @@ router.get(
     }
     if (params['evaluation.star'] !== undefined) {
       addEqCondition('evaluation.star', params['evaluation.star']);
+    }
+    if (params['evaluation.ts']) {
+      const from = params['evaluation.ts'][0]?.toISOString() ?? '*';
+      const to = params['evaluation.ts'][1]?.toISOString() ?? '*';
+      conditions.push(`evaluation.ts:[${from} TO ${to}]`);
     }
     if (params.createdAtFrom || params.createdAtTo) {
       const from = params.createdAtFrom?.toISOString() ?? '*';
@@ -845,6 +860,7 @@ router.patch('/:id', async (ctx) => {
           nickname: currentUser.name,
         })
       ).unescape,
+      ts: new Date(),
     });
   }
 

@@ -190,9 +190,19 @@ router.get('/realtime', parseRange('createdAt'), async (ctx) => {
     .where('groupId', params['groupId'], 'in')
     .where('status', params['status'], 'in')
     .where('categoryId', categoryIds, 'in')
-    .where('ticketCreatedAt', params.createdAtFrom, '>')
-    .where('ticketCreatedAt', params.createdAtTo, '<')
+    .where('ticketCreatedAt', params.createdAtFrom, '>=')
+    .where('ticketCreatedAt', params.createdAtTo, '<=')
     .where(new FunctionColumn(`JSONExtractInt(evaluation,'star')`), params['evaluation.star'])
+    .where(
+      new FunctionColumn(`JSONExtractString(evaluation,'ts')`),
+      params['evaluation.ts']?.[0],
+      '>='
+    )
+    .where(
+      new FunctionColumn(`JSONExtractString(evaluation,'ts')`),
+      params['evaluation.ts']?.[1],
+      '<='
+    )
     .where(
       new FunctionColumn(
         `arrayExists( v ->${privateTagCondition
