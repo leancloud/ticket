@@ -20,6 +20,16 @@ const config = require('./config')
 const { clientGlobalVars } = require('./clientGlobalVar')
 
 const app = express()
+
+app.all('*', (req, res, next) => {
+  if (req.hostname !== 'support.xd.com' && req.path.startsWith('/in-app/v1/products/soc')) {
+    const url = new URL(req.url, 'https://support.xd.com')
+    res.redirect(307, url.toString())
+    return
+  }
+  next()
+})
+
 const apiRouter = require('./api')
 
 const { Sentry, Tracing } = require('./next/api/dist/sentry')
