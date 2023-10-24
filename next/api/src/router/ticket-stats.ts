@@ -194,12 +194,12 @@ router.get('/realtime', parseRange('createdAt'), async (ctx) => {
     .where('ticketCreatedAt', params.createdAtTo, '<=')
     .where(new FunctionColumn(`JSONExtractInt(evaluation,'star')`), params['evaluation.star'])
     .where(
-      new FunctionColumn(`JSONExtractString(evaluation,'ts')`),
+      new FunctionColumn(`JSONExtractString(evaluation,'ts','iso')`),
       params['evaluation.ts']?.[0],
       '>='
     )
     .where(
-      new FunctionColumn(`JSONExtractString(evaluation,'ts')`),
+      new FunctionColumn(`JSONExtractString(evaluation,'ts','iso')`),
       params['evaluation.ts']?.[1],
       '<='
     )
