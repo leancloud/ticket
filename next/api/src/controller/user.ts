@@ -236,7 +236,7 @@ export class UserController {
   }
 
   @Post('tds/token')
-  async exchangeJwt(@Body(new ZodValidationPipe(exchangeSchema)) data: ExchangeData) {
+  async exchangeJwt(@Ctx() ctx: Context, @Body(new ZodValidationPipe(exchangeSchema)) data: ExchangeData) {
     const { jwt } = data;
     const { appId, sub } = transformToHttpError(() =>
       getVerifiedPayloadWithSubRequired(
@@ -249,6 +249,15 @@ export class UserController {
         TDSUserPublicKey
       )
     );
+
+    if (appId === 'nxfahljt0g0tzsjwrw') {
+      const url = new URL(ctx.url, 'https://support.xd.com')
+      ctx.response.status = 307; 
+      ctx.response.set('Location', url.toString());
+      ctx.response.body = '';
+      ctx.res.end();
+      return;
+    }
 
     return {
       jwt: signPayload({ sub: `${appId}:${sub}` }, TDSUserSigningKey, {
