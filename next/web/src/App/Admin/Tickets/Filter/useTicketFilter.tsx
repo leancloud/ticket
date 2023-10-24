@@ -79,7 +79,7 @@ const deserializeFilters = (params: Record<string, string | undefined>): Filters
       'privateTagKey',
       'privateTagValue',
       'rootCategoryId',
-      'evaluation.star',
+      'evaluation.ts',
 
       // field
       'fieldId',
