@@ -205,7 +205,6 @@ export class ClickHouse {
 
   async find() {
     const sql = this.toSqlString();
-    console.log('clickhouse sql', sql);
     return await ClickHouse.findWithSqlStr<QueryData>(sql);
   }
 

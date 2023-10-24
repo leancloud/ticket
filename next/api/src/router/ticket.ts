@@ -263,8 +263,6 @@ router.get(
       });
     }
 
-    console.log('find ticket query', finalQuery.getRawCondition());
-
     let tickets: Ticket[];
     if (params.count && !count) {
       const result = await finalQuery.findAndCount(currentUser.getAuthOptions());
@@ -394,8 +392,6 @@ router.get(
     }
 
     const queryString = conditions.join(' AND ');
-
-    console.log({ queryString });
 
     const searchQuery = new AV.SearchQuery('Ticket');
     searchQuery.queryString(queryString);
