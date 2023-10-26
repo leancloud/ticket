@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useMemo } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { decodeQueryParams, JsonParam } from 'serialize-query-params';
+import { decodeQueryParams, JsonParam, StringParam } from 'serialize-query-params';
 import { parse } from 'query-string';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 
@@ -75,10 +75,28 @@ export default function App() {
 
   const params = useHashConfiguration();
 
+  const queries = useMemo(
+    () =>
+      decodeQueryParams(
+        {
+          fields: StringParam,
+        },
+        parse(window.location.search)
+      ),
+    []
+  );
+
   useEffect(() => {
+    let fields;
+    try {
+      // double decode because of double encode
+      // https://git.gametaptap.com/tds/client-sdk/tds-sdk-all/tapsdk2/tapsdk2-unity/-/commit/f3dcce46f296e6e96da90f47c3bcb613a9f1b193#cd51e796096a3fe2f7189047d5073c1778c795a6_142_142
+      fields = params['fields'] ?? JSON.parse(decodeURIComponent(queries['fields'] ?? ''));
+    } catch (error) {}
+
     setTicketInfo({
       meta: params.meta,
-      fields: params.fields,
+      fields,
     });
   }, []);
 
