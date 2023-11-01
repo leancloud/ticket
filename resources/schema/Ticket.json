@@ -16,6 +16,13 @@
       "hidden": false,
       "read_only": false
     },
+    "closedAt": {
+      "type": "Date",
+      "v": 2,
+      "required": false,
+      "hidden": false,
+      "read_only": false
+    },
     "tags": {
       "type": "Array"
     },

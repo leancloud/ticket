@@ -5,7 +5,7 @@ import { getArguments, getParams } from '.';
 
 const METADATA_KEY = Symbol('handlers');
 
-export type HttpMethod = 'get' | 'post' | 'patch' | 'delete';
+export type HttpMethod = 'get' | 'put' | 'post' | 'patch' | 'delete';
 
 export interface Handler {
   controllerMethod: string | symbol;
@@ -27,6 +27,7 @@ export function Handler(httpMethod: HttpMethod, path?: string) {
 }
 
 export const Get = (path?: string) => Handler('get', path);
+export const Put = (path?: string) => Handler('put', path);
 export const Post = (path?: string) => Handler('post', path);
 export const Patch = (path?: string) => Handler('patch', path);
 export const Delete = (path?: string) => Handler('delete', path);

@@ -36,6 +36,7 @@ import { EditTicketFormNoteTranslation } from './TicketFormNotes/EditTranslation
 import { EditSupportEmail, NewSupportEmail, SupportEmailList } from './SupportEmails';
 import { useCurrentUserIsAdmin } from '@/leancloud';
 import { Result } from '@/components/antd';
+import { EvaluationConfig } from './Evaluation';
 
 const SettingRoutes = () => (
   <Routes>
@@ -135,6 +136,7 @@ const SettingRoutes = () => (
       <Route path="new" element={<NewSupportEmail />} />
       <Route path=":id" element={<EditSupportEmail />} />
     </Route>
+    <Route path="/evaluation" element={<EvaluationConfig />} />
   </Routes>
 );
 
@@ -242,6 +244,10 @@ const routeGroups: MenuDataItem[] = [
       {
         name: '工作时间',
         path: 'weekday',
+      },
+      {
+        name: '评价',
+        path: 'evaluation',
       },
     ],
   },

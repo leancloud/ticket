@@ -223,6 +223,9 @@ export class Ticket extends Model {
   @field()
   channel?: string;
 
+  @field()
+  closedAt?: Date;
+
   getUrlForEndUser() {
     return `${config.host}/tickets/${this.nid}`;
   }

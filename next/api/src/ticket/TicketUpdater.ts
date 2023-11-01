@@ -214,9 +214,11 @@ export class TicketUpdater {
         break;
       case 'close':
         this.data.status = Status.CLOSED;
+        this.data.closedAt = new Date();
         break;
       case 'reopen':
         this.data.status = Status.WAITING_CUSTOMER;
+        this.data.closedAt = null;
         break;
     }
 
