@@ -489,3 +489,9 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 导入 data
 
 - `TicketField.jsonl`, `TicketFieldVariant.jsonl` ：增加内置字段 `location`, `isp`。
+
+## 2023-11-01
+
+### `b0c23869ff3e3d9db3cd3c14d963fb034078505a`
+
+- 导入 Ticket.json，添加 `closedAt` 列。
