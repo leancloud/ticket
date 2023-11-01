@@ -3,7 +3,7 @@ import AV from 'leancloud-storage';
 import _ from 'lodash';
 import UAParser from 'ua-parser-js';
 
-import { config } from '@/config';
+import { Config, config } from '@/config';
 import * as yup from '@/utils/yup';
 import { auth, customerServiceOnly, include, parseRange, sort } from '@/middleware';
 import { Model, QueryBuilder } from '@/orm';
@@ -34,6 +34,7 @@ import { dynamicContentService } from '@/dynamic-content';
 import { FileResponse } from '@/response/file';
 import { File } from '@/model/File';
 import { lookupIp } from '@/utils/ip';
+import { ticketService } from '@/service/ticket';
 
 const router = new Router().use(auth);
 
@@ -850,6 +851,9 @@ router.patch('/:id', async (ctx) => {
     }
     if (!config.allowModifyEvaluation && ticket.evaluation) {
       return ctx.throw(409, 'Ticket is already evaluated');
+    }
+    if (!(await ticketService.isTicketEvaluable(ticket))) {
+      return ctx.throw(400, 'Sorry, you cannot create an evaluation in an expired ticket');
     }
     updater.setEvaluation({
       ...data.evaluation,

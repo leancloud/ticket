@@ -111,9 +111,9 @@ const WeekdayTime = () => {
 
 export function Weekday() {
   return (
-    <>
+    <div className="p-10">
       <Weekdays />
       <WeekdayTime />
-    </>
+    </div>
   );
 }
