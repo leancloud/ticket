@@ -36,6 +36,8 @@ export interface TriggerData {
   actions: any[];
   position: number;
   active: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export async function fetchTriggers() {

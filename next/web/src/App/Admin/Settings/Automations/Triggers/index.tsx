@@ -11,6 +11,7 @@ import {
 } from 'react-icons/bi';
 import { FiMoreVertical } from 'react-icons/fi';
 import { produce } from 'immer';
+import moment from 'moment';
 
 import {
   Button,
@@ -64,12 +65,22 @@ function TriggerItem({ trigger, number, onDelete }: TriggerItemProps) {
   return (
     <div className={`${style.triggerItem} rounded mb-5`}>
       <div className="flex pr-5 py-[18px] h-20">
-        <div className="relative grow overflow-hidden">
-          <div className="absolute w-9 text-right font-medium">{number}.</div>
-          <div className="pl-10 font-medium">
-            <Link to={trigger.id}>{trigger.title}</Link>
+        <div className="w-9 text-right font-medium mr-1 shrink-0">{number}.</div>
+        <div className="grow overflow-hidden grid grid-cols-3">
+          <div className="col-span-2">
+            <Link className="block font-medium truncate" to={trigger.id}>
+              {trigger.title}
+            </Link>
+            <div className="mt-1 text-sm text-[#475867] truncate">{trigger.description}</div>
           </div>
-          <div className="mt-1 pl-10 text-sm text-[#475867]">{trigger.description}</div>
+          <div className="text-sm text-[#475867] p-1">
+            <div className="truncate">
+              创建时间: {moment(trigger.createdAt).format('YYYY-MM-DD HH:mm:ss')}
+            </div>
+            <div className="mt-1 truncate">
+              更新时间: {moment(trigger.updatedAt).format('YYYY-MM-DD HH:mm:ss')}
+            </div>
+          </div>
         </div>
         <div className="flex shrink-0 items-center">
           <Switch

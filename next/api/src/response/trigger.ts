@@ -12,6 +12,8 @@ export class TriggerResponse {
       actions: this.trigger.actions,
       position: this.trigger.getPosition(),
       active: this.trigger.active,
+      createdAt: this.trigger.createdAt.toISOString(),
+      updatedAt: this.trigger.updatedAt.toISOString(),
     };
   }
 }
