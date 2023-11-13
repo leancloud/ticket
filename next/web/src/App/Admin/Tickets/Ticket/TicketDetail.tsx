@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useQueryClient } from 'react-query';
+import { useTitle } from 'react-use';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AiFillExclamationCircle, AiOutlineApi } from 'react-icons/ai';
 import moment from 'moment';
@@ -61,6 +62,9 @@ export function TicketDetail() {
   const navigate = useNavigate();
 
   const { ticket, update, updating, refetch } = useMixedTicket(id);
+  useTitle(ticket ? ticket.title : 'Loading', {
+    restoreOnUnmount: true,
+  });
 
   const { replies, fetchMoreReplies, refetchReples } = useTicketReplies(ticket?.id);
   const { opsLogs, fetchMoreOpsLogs } = useTicketOpsLogs(ticket?.id);
