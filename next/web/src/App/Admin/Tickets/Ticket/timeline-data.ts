@@ -7,16 +7,6 @@ import { ReplySchema } from '@/api/reply';
 import { fetchTicketReplies, fetchTicketOpsLogs, OpsLog } from '@/api/ticket';
 import { useCurrentRef } from '@/utils/useCurrentRef';
 
-function patchQueryDecoder(query: any) {
-  const decoder = query._decoder;
-  query._decoder = (app: any, data: any, className: string) => {
-    if (!data.objectId) {
-      data.objectId = '__objectId__';
-    }
-    return decoder(app, data, className);
-  };
-}
-
 export function useTicketReplies(ticketId?: string) {
   const { data, fetchNextPage, refetch } = useInfiniteQuery({
     queryKey: ['TicketReplies', ticketId],
@@ -59,9 +49,8 @@ export function useTicketReplies(ticketId?: string) {
       return;
     }
     let mounted = true;
-    const query = db.query('Reply');
-    patchQueryDecoder(query);
-    const subscription = query
+    const subscription = db
+      .query('Reply')
       .where('ticket', '==', db.class('Ticket').object(ticketId))
       .subscribe();
     subscription.then((s) => {
@@ -120,9 +109,8 @@ export function useTicketOpsLogs(ticketId?: string) {
       return;
     }
     let mounted = true;
-    const query = db.query('OpsLog');
-    patchQueryDecoder(query);
-    const subscription = query
+    const subscription = db
+      .query('OpsLog')
       .where('ticket', '==', db.class('Ticket').object(ticketId))
       .subscribe();
     subscription.then((s) => {
