@@ -78,12 +78,13 @@ async function translate(texts: string[]) {
   if (filteredTexts.length === 0) {
     return {};
   }
-  const { data } = await http.post<{ result: string[] }>('/api/1/translate', {
+  const { data } = await http.post<{ text: string }>('/api/2/translate', {
     text: filteredTexts.join('\n'),
   });
+  const result = data.text.split('\n');
   return filteredTexts.reduce<Record<string, string>>((map, text, i) => {
-    if (i < data.result.length) {
-      map[text] = data.result[i];
+    if (i < result.length) {
+      map[text] = result[i];
     }
     return map;
   }, {});
