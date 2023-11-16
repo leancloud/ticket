@@ -1,7 +1,7 @@
 .required {
   &::after {
     content: '*';
-    color: #F64C4C;
+    @apply text-red;
     position: absolute;
     line-height: 18px;
     padding-left: 2px;

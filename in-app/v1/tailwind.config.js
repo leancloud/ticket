@@ -4,20 +4,16 @@ module.exports = {
     extend: {
       colors: {
         tapBlue: {
-          DEFAULT: '#15C5CE',
-          50: '#CEF8FA',
-          100: '#B7F5F8',
-          200: '#89EEF3',
-          300: '#5BE7EE',
-          400: '#2CE0EA',
-          500: '#15C5CE',
-          600: '#13AFB7',
-          700: '#1099A0',
-          800: '#0E8389',
-          900: '#0C6C71',
+          DEFAULT: '#00d9c5',
         },
         red: {
           DEFAULT: '#F64C4C',
+        },
+        green: {
+          DEFAULT: '#47b881',
+        },
+        amber: {
+          DEFAULT: '#ff7f4f',
         },
       },
       fontSize: {

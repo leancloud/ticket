@@ -58,7 +58,7 @@ export function CheckboxGroup({ id, description, options, required }: CustomFiel
                 <div
                   className={classNames(
                     'flex w-4 h-4 rounded-full',
-                    checked ? 'bg-tapBlue' : 'border border-color-[#B9BEC1]'
+                    checked ? 'bg-tapBlue' : 'border border-[#B9BEC1]'
                   )}
                 >
                   <CheckIcon className="w-2 h-2 m-auto text-white" />

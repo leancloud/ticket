@@ -66,7 +66,7 @@ export function NewEvaluation({ initData, loading, onSubmit }: NewEvaluationProp
       <div className="py-6">
         <span>
           <Radio checked={star === 1} onChange={() => setStar(1)}>
-            <span className="inline-flex items-center text-[#FF8156]">
+            <span className="inline-flex items-center text-amber">
               <ThumbUpIcon className="w-[14px] h-[14px] inline-block mr-1" />
               {t('evaluation.useful')}
             </span>

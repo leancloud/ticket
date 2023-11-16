@@ -146,7 +146,7 @@ const Result = memo(({ categoryId }: { categoryId: string }) => {
     <div>
       <div className="flex flex-row items-center">
         <span className="mr-[0.375rem]">
-          {data?.status === 'success' ? <DoneIcon /> : <FailedIcon />}
+          {data?.status === 'success' ? <DoneIcon className="text-tapBlue" /> : <FailedIcon />}
         </span>
         <span className="text-[#222222]">
           {data?.status === 'success' ? (
