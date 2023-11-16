@@ -1,12 +1,12 @@
 .status {
   &.new, &.waitForStaff {
-    color: #15C5CE;
+    @apply text-tapBlue;
   }
   &.waitForCustomer {
-    color: #FF8156;
+    @apply text-amber;
   }
   &.resolved {
-    color: #47b881;
+    @apply text-green;
   }
 }
 
