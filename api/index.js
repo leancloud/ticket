@@ -30,7 +30,6 @@ apiRouter.use('/customer-services', require('./customerService/api'))
 apiRouter.get('/debug/search', parseSearchingQ, (req, res) => {
   res.json({ q: req.q, query: req.query })
 })
-apiRouter.use('/translate', require('./translate/api'))
 apiRouter.use('/quick-replies', require('./quick-reply/api'))
 
 const router = Router()
