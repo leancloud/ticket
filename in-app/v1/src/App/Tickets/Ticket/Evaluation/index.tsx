@@ -87,7 +87,7 @@ export function NewEvaluation({ initData, loading, onSubmit }: NewEvaluationProp
             checked={evaluation.star === 1}
             onChange={() => setEvaluation({ ...evaluation, star: 1, selections: [] })}
           >
-            <span className="inline-flex items-center text-[#FF8156]">
+            <span className="inline-flex items-center text-amber">
               <ThumbUpIcon className="w-[14px] h-[14px] inline-block mr-1" />
               {t('evaluation.useful')}
             </span>

@@ -196,7 +196,7 @@ function FileItem({ file, onRemove, disabled }: FileItemProps) {
         <Progress
           className="absolute"
           type="circle"
-          strokeColor="#15c5ce"
+          strokeColor="#00d9c5"
           showInfo={false}
           width={42}
           strokeWidth={10}

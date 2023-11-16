@@ -9,7 +9,7 @@ export const DoneIcon = (props: SVGProps<SVGSVGElement>) => (
     xmlns="http://www.w3.org/2000/svg"
     {...props}
   >
-    <circle cx="8.0001" cy="8.0001" r="6.4" fill="#15C5CE" />
+    <circle cx="8.0001" cy="8.0001" r="6.4" fill="currentColor" />
     <path
       d="M5.3335 7.66667L7.3335 9.66667L10.6668 6"
       stroke="white"
