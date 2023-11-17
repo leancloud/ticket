@@ -45,7 +45,7 @@ function TicketFieldActions({ field }: TicketFieldActionsProps) {
   return (
     <button
       className={cx('text-primary', {
-        'text-[#ff4d4f]': field.active,
+        'text-danger': field.active,
         'text-gray-300': isLoading,
       })}
       disabled={isLoading}
