@@ -639,7 +639,7 @@ function AssigneeSection({
             <div>负责人</div>
             {assigneeIsGroupMember === false && (
               <Tooltip title="负责人不是当前客服组的成员">
-                <AiFillExclamationCircle className="ml-1 inline-block w-4 h-4 text-[#ff4d4f]" />
+                <AiFillExclamationCircle className="ml-1 inline-block w-4 h-4 text-danger" />
               </Tooltip>
             )}
           </div>

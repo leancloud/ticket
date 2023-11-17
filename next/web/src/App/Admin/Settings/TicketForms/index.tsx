@@ -43,7 +43,7 @@ function TicketFormActions({ form }: { form: TicketFormSchema }) {
 
   return (
     <button
-      className={cx('text-[#ff4d4f]', {
+      className={cx('text-danger', {
         'text-gray-300': isLoading,
       })}
       disabled={isLoading}
