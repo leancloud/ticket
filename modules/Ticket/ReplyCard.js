@@ -39,76 +39,11 @@ function getTextNodes(root) {
   return result
 }
 
-/**
- * @param {string[]} texts
- */
-async function translate(texts) {
-  if (texts.length === 0) {
-    return []
-  }
-  const idByText = {}
-  const dstBySrc = {}
-  const srcs = []
-  texts.forEach((text) => {
-    if (text.trim() === '') {
-      dstBySrc[text] = text
-      return
-    }
-    if (text in idByText) {
-      return
-    }
-    idByText[text] = srcs.length
-    srcs.push(text)
-  })
-  const { result: dsts } = await fetch(`/api/1/translate`, {
-    method: 'POST',
-    body: { text: srcs.join('\n') },
-  })
-  dsts.forEach((dst, id) => (dstBySrc[srcs[id]] = dst))
-  return texts.map((text) => dstBySrc[text])
-}
-
 export function BaiduTranslate({ enabled, children }) {
-  const { addNotification } = useContext(AppContext)
-  const $container = useRef()
-  const $texts = useRef()
-  const $task = useRef()
-
-  useEffect(() => {
-    if (enabled) {
-      if (!$texts.current) {
-        $texts.current = getTextNodes($container.current).map((node) => ({
-          node,
-          src: _.trim(node.nodeValue, '\n'),
-          dst: '',
-        }))
-      }
-      if (!$task.current) {
-        $task.current = translate($texts.current.map((text) => text.src)).then((results) => {
-          results.forEach((dst, index) => ($texts.current[index].dst = dst))
-          return
-        })
-      }
-      $task.current
-        .then(() => {
-          $texts.current.forEach(({ node, dst }) => {
-            node.replaceData(0, node.length, dst)
-          })
-          return
-        })
-        .catch((error) => {
-          $task.current = undefined
-          addNotification(error)
-        })
-    } else {
-      if ($texts.current) {
-        $texts.current.forEach(({ node, src }) => node.replaceData(0, node.length, src))
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled])
-
-  return <div ref={$container}>{children}</div>
+  if (enabled) {
+    return <div>Translation not available</div>
+  }
+  return children
 }
 BaiduTranslate.propTypes = {
   enabled: PropTypes.bool,
