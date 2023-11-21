@@ -1,4 +1,4 @@
-import { Suspense, lazy } from 'react';
+import { Suspense } from 'react';
 import { QueryClientProvider } from 'react-query';
 import { RecoilRoot } from 'recoil';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
@@ -11,6 +11,7 @@ import zhCN from 'antd/lib/locale/zh_CN';
 import { useCurrentUser } from '@/leancloud';
 import { queryClient } from '@/api/query-client';
 import { Spin } from '@/components/antd';
+import { lazy } from './helpers/lazy';
 
 const Tickets = lazy(() => import('./Tickets'));
 const Admin = lazy(() => import('./Admin'));
