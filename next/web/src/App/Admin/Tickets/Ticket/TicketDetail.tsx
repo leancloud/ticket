@@ -214,8 +214,6 @@ function TicketInfo({
   onChangeSubscribed,
   disabled,
 }: TicketInfoProps) {
-  const userLabelOverlay = getConfig('ticketDetail.userLabelOverlay');
-
   return (
     <PageHeader
       className="border-b"
@@ -250,7 +248,10 @@ function TicketInfo({
         </Descriptions.Item>
         {author && (
           <Descriptions.Item label="创建者">
-            <Popover placement="bottom" content={userLabelOverlay?.(author)}>
+            <Popover
+              placement="bottom"
+              content={() => getConfig('ticketDetail.userLabelOverlay')?.(author)}
+            >
               <UserLabel user={author} displayUsername />
             </Popover>
           </Descriptions.Item>
