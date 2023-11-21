@@ -14,6 +14,7 @@ import {
   Descriptions,
   Divider,
   PageHeader,
+  Popover,
   Row,
   Select,
   Skeleton,
@@ -36,7 +37,7 @@ import {
 import { useCategory } from '@/api/category';
 import { useTicketForm } from '@/api/ticket-form';
 import { UserSchema } from '@/api/user';
-import { getMetadataRenderer } from '@/config/config';
+import { getConfig, getMetadataRenderer } from '@/config/config';
 import { ENABLE_LEANCLOUD_INTEGRATION, useCurrentUser } from '@/leancloud';
 import { TicketLink } from '@/App/Admin/components/TicketLink';
 import { TicketStatus } from '@/App/Admin/components/TicketStatus';
@@ -213,6 +214,8 @@ function TicketInfo({
   onChangeSubscribed,
   disabled,
 }: TicketInfoProps) {
+  const userLabelOverlay = getConfig('ticketDetail.userLabelOverlay');
+
   return (
     <PageHeader
       className="border-b"
@@ -247,7 +250,9 @@ function TicketInfo({
         </Descriptions.Item>
         {author && (
           <Descriptions.Item label="创建者">
-            <UserLabel user={author} displayUsername />
+            <Popover placement="bottom" content={userLabelOverlay?.(author)}>
+              <UserLabel user={author} displayUsername />
+            </Popover>
           </Descriptions.Item>
         )}
         <Descriptions.Item label="创建时间">
