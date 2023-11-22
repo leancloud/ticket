@@ -120,9 +120,9 @@ export class TicketController {
     const results = await redis
       .pipeline()
       .zadd(key, now, user.id) // add current user to viewer set
-      .expire(key, 100) // set ttl to 100 secs
-      .zremrangebyrank(key, 100, -1) // keep viewer set size
-      .zremrangebyscore(key, '-inf', now - 1000 * 60) // remove viewers active 60 secs ago
+      .expire(key, 100) // set ttl to 100 seconds
+      .zremrangebyrank(key, 100, -1) // keep viewer set small
+      .zremrangebyscore(key, '-inf', now - 1000 * 60) // remove viewers active 60 seconds ago
       .zrevrange(key, 0, -1) // get all viewers
       .exec();
     const result = _.last(results);
