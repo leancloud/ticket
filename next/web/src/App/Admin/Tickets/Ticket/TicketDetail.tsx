@@ -57,6 +57,7 @@ import { CustomFields } from './components/CustomFields';
 import { useTicketOpsLogs, useTicketReplies } from './timeline-data';
 import { RecentTickets } from './components/RecentTickets';
 import { Evaluation } from './components/Evaluation';
+import { TicketViewers } from './components/TicketViewers';
 
 export function TicketDetail() {
   const { id } = useParams() as { id: string };
@@ -191,6 +192,7 @@ export function TicketDetail() {
 
 interface TicketInfoProps {
   ticket: {
+    id: string;
     nid: number;
     title: string;
     status: number;
@@ -225,6 +227,7 @@ function TicketInfo({
       }
       onBack={onBack}
       extra={[
+        <TicketViewers key="viewers" ticket={ticket} />,
         <PrivateSelect
           key="private"
           value={ticket.private}
