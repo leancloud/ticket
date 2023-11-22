@@ -28,18 +28,15 @@ const OpenAIOutputSchema = z.object({
 export type TicketClassifyResult = z.infer<typeof OpenAIOutputSchema>;
 
 export class OpenAIService {
-  active: boolean;
-  instance: InstanceType<typeof OpenAI>;
+  instance?: InstanceType<typeof OpenAI>;
   agent?: InstanceType<typeof HttpsProxyAgent>;
 
   constructor() {
     const apiKey = process.env.OPENAI_API_KEY;
     const httpProxy = process.env.http_proxy;
-    this.instance = new OpenAI({ apiKey });
 
     if (!apiKey) {
       console.warn('OPENAI_API_KEY not provided, disabling openAIService...');
-      this.active = false;
       return;
     }
 
@@ -47,11 +44,11 @@ export class OpenAIService {
       this.agent = new HttpsProxyAgent(httpProxy);
     }
 
-    this.active = true;
+    this.instance = new OpenAI({ apiKey });
   }
 
   async classify(content: string, categories: Category[]) {
-    if (!this.active) {
+    if (!this.instance) {
       return undefined;
     }
 
@@ -64,7 +61,7 @@ export class OpenAIService {
     const res = await (async () => {
       try {
         const res = (
-          await this.instance.chat.completions.create(
+          await this.instance!.chat.completions.create(
             {
               response_format: {
                 type: 'json_object',
