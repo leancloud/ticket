@@ -1,11 +1,12 @@
 import { lazy as _lazy } from 'react';
 
-function shouldReload() {
-  const reloadedAt = sessionStorage.getItem('TapDesk/reloadedAt');
-  if (reloadedAt && Date.now() - parseInt(reloadedAt) < 10000) {
+function reload() {
+  const url = new URL(location.href);
+  if (url.searchParams.get('reload') === '0') {
     return false;
   }
-  sessionStorage.setItem('TapDesk/reloadedAt', Date.now().toString());
+  url.searchParams.set('reload', '0');
+  location.replace(url);
   return true;
 }
 
@@ -16,8 +17,7 @@ function Reloading() {
 export const lazy: typeof _lazy = (factory) => {
   return _lazy(() =>
     factory().catch((err) => {
-      if (shouldReload()) {
-        location.reload();
+      if (reload()) {
         return { default: Reloading as any };
       }
       throw err;
