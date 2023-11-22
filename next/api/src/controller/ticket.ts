@@ -6,6 +6,7 @@ import {
   Body,
   Controller,
   Ctx,
+  CurrentUser,
   Delete,
   Get,
   Param,
@@ -19,6 +20,8 @@ import { UpdateData } from '@/orm';
 import router from '@/router/ticket';
 import { Ticket } from '@/model/Ticket';
 import { TicketListItemResponse } from '@/response/ticket';
+import { User } from '@/model/User';
+import { redis } from '@/cache';
 
 const createAssociatedTicketSchema = z.object({
   ticketId: z.string(),
@@ -105,5 +108,24 @@ export class TicketController {
     }
 
     await Ticket.updateSome(updatePairs, { useMasterKey: true });
+  }
+
+  // The :id is not used to avoid fetch ticket data by router.param
+  // This API may be called frequently, and we do not care if the ticket exists
+  @Get(':roomId/viewers')
+  @UseMiddlewares(staffOnly)
+  async getTicketViewers(@Param('roomId') id: string, @CurrentUser() user: User) {
+    const key = `ticket_viewers:${id}`;
+    const now = Date.now();
+    const results = await redis
+      .pipeline()
+      .zadd(key, now, user.id) // add current user to viewer set
+      .expire(key, 100) // set ttl to 100 secs
+      .zremrangebyrank(key, 100, -1) // keep viewer set size
+      .zremrangebyscore(key, '-inf', now - 1000 * 60) // remove viewers active 60 secs ago
+      .zrevrange(key, 0, -1) // get all viewers
+      .exec();
+    const result = _.last(results);
+    return result?.[1] || [];
   }
 }
