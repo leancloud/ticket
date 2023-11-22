@@ -33,7 +33,7 @@ export class OpenAIService {
 
   constructor() {
     const apiKey = process.env.OPENAI_API_KEY;
-    const httpProxy = process.env.http_proxy;
+    const httpProxy = process.env.OPENAI_PROXY;
 
     if (!apiKey) {
       console.warn('OPENAI_API_KEY not provided, disabling openAIService...');
