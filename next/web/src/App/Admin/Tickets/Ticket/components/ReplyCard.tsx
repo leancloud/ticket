@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { AiOutlinePaperClip } from 'react-icons/ai';
 import { BsThreeDots } from 'react-icons/bs';
 import { useToggle } from 'react-use';
-import { Dropdown, Image, MenuProps } from 'antd';
+import { Dropdown, MenuProps } from 'antd';
 import { ItemType } from 'antd/lib/menu/hooks/useItems';
 import { partition } from 'lodash-es';
 import cx from 'classnames';
@@ -283,19 +283,12 @@ interface ImageFilesProps {
 
 function ImageFiles({ files }: ImageFilesProps) {
   return (
-    <div className="flex flex-wrap gap-2">
-      <Image.PreviewGroup>
-        {files.map(({ id, name, url }) => (
-          <Image
-            key={id}
-            className="object-contain"
-            src={url}
-            title={name}
-            width={80}
-            height={80}
-          />
-        ))}
-      </Image.PreviewGroup>
+    <div>
+      {files.map(({ id, name, url }) => (
+        <a key={id} href={url} target="_blank">
+          <img src={url} alt={name} />
+        </a>
+      ))}
     </div>
   );
 }
