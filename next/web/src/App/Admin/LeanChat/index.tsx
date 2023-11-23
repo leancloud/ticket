@@ -15,6 +15,7 @@ export default function LeanChat() {
     onSuccess: (token) => {
       if (leanchatUrl) {
         const url = new URL(leanchatUrl);
+        url.pathname = '/login';
         url.searchParams.set('token', token);
         window.open(url, '_blank');
       }
