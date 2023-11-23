@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { AiOutlineContainer, AiOutlineSetting } from 'react-icons/ai';
 import { HiOutlinePlus, HiOutlineTicket } from 'react-icons/hi';
 import { MdOutlineAnalytics } from 'react-icons/md';
+import { BsChatSquareDots } from 'react-icons/bs';
 import cx from 'classnames';
 
 import { Tooltip } from '@/components/antd';
@@ -64,6 +65,9 @@ export function Sidebar(props: ComponentPropsWithoutRef<'aside'>) {
             </Path>
           </RequirePermission>
         }
+        <Path to="/admin/leanchat" title="在线客服">
+          <BsChatSquareDots className="m-auto w-4 h-4" />
+        </Path>
         {isAdmin && (
           <Path to="/admin/settings" title="设置">
             <AiOutlineSetting className="m-auto w-5 h-5" />
