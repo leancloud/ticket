@@ -16,7 +16,10 @@ const RANGE_DATE_LOCALE = {
   month: '本月',
   lastMonth: '上个月',
 };
-export const useRangePicker = (defaultDateRange = relativeDateGetters['lastSevenDays']()) => {
+export const useRangePicker = (
+  showTime?: boolean,
+  defaultDateRange = relativeDateGetters['lastSevenDays']()
+) => {
   const [{ from, to }, { merge }] = useSearchParams();
 
   const rangeDates = useMemo(() => {
@@ -35,8 +38,8 @@ export const useRangePicker = (defaultDateRange = relativeDateGetters['lastSeven
 
   const values = useMemo(() => {
     return {
-      from: from ? moment(from).startOf('day').toDate() : moment(defaultDateRange.from).toDate(),
-      to: to ? moment(to).endOf('day').toDate() : moment(defaultDateRange.to).toDate(),
+      from: moment(from ?? defaultDateRange.from).toDate(),
+      to: moment(to ?? defaultDateRange.to).toDate(),
     };
   }, [from, to]);
 
@@ -45,14 +48,22 @@ export const useRangePicker = (defaultDateRange = relativeDateGetters['lastSeven
       value: [moment(values.from), moment(values.to)] as [moment.Moment, moment.Moment],
       ranges: rangeDates,
       allowClear: true,
+      showTime,
       onChange: (dates: [moment.Moment | null, moment.Moment | null] | null) => {
-        merge({
-          from: moment(dates?.[0]).toISOString(),
-          to: moment(dates?.[1]).toISOString(),
-        });
+        if (showTime) {
+          merge({
+            from: moment(dates?.[0]).toISOString(),
+            to: moment(dates?.[1]).toISOString(),
+          });
+        } else {
+          merge({
+            from: moment(dates?.[0]).startOf('day').toISOString(),
+            to: moment(dates?.[1]).endOf('day').toISOString(),
+          });
+        }
       },
     };
-  }, [values, rangeDates, merge]);
+  }, [values, rangeDates, merge, showTime]);
   return [values, options] as const;
 };
 

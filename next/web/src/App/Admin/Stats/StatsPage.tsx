@@ -56,7 +56,7 @@ const ToolBar: FunctionComponent<{
   className?: string;
 }> = ({ className }) => {
   const $categoryRef = useRef<string>();
-  const [, rangePickerOptions] = useRangePicker();
+  const [, rangePickerOptions] = useRangePicker(true);
   const [{ customerService, category, group, ...rest }, { set }] = useSearchParams();
   const [tmpCategory, setTmpCategory] = useState(category);
   const [filterType, setFilterType] = useState<FILTER_TYPE>(() => {
@@ -124,7 +124,7 @@ const ToolBar: FunctionComponent<{
         />
       )}
       <Divider type="vertical" style={{ margin: 0 }} />
-      <DatePicker.RangePicker {...rangePickerOptions} showTime allowClear={false} />
+      <DatePicker.RangePicker {...rangePickerOptions} allowClear={false} />
     </div>
   );
 };
