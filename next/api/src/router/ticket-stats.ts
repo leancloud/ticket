@@ -48,7 +48,15 @@ router.get('/', async (ctx) => {
     ...rest,
   });
 
-  ctx.body = { ...(data || {}), ...evaluationStats };
+  const created = data?.created || 0;
+
+  ctx.body = {
+    ...data,
+    ...evaluationStats,
+    // overwrite likeRate and dislikeRate with new formula: evaluationCount / ticketCount
+    likeRate: created ? evaluationStats.likeCount / created : 0,
+    dislikeRate: created ? evaluationStats.dislikeCount / created : 0,
+  };
 });
 
 const fieldStatsSchema = yup.object(BaseSchema).shape({
