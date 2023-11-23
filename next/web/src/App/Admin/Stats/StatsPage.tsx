@@ -23,9 +23,9 @@ export const STATS_FIELD = [
   'dislikeCount',
 ] as const;
 export const NO_DETAIL_STATS_FIELD = ['likeRate', 'dislikeRate'] as const;
-export type StatsField = (typeof STATS_FIELD)[number];
+export type StatsField = typeof STATS_FIELD[number];
 export const STATS_FIELD_LOCALE: Record<
-  StatsField | (typeof NO_DETAIL_STATS_FIELD)[number],
+  StatsField | typeof NO_DETAIL_STATS_FIELD[number],
   string
 > = {
   created: '新建工单',
@@ -77,7 +77,7 @@ const ToolBar: FunctionComponent<{
   }, []);
 
   return (
-    <div className={className}>
+    <div className={classnames('flex items-center flex-wrap gap-2', className)}>
       <Radio.Group
         options={radioOptions}
         onChange={(e) => {
@@ -88,13 +88,11 @@ const ToolBar: FunctionComponent<{
         }}
         value={filterType}
         optionType="button"
-        className="!mr-2"
       />
       {filterType === FILTER_TYPE.customerService && (
         <CustomerServiceSelect
           allowClear
           placeholder="请选择客服"
-          className="min-w-[184px]"
           value={customerService || group}
           onClear={() => {
             set({ customerService: undefined, group: undefined, ...rest });
@@ -105,6 +103,7 @@ const ToolBar: FunctionComponent<{
           onGroupChange={(value) => {
             set({ group: value, ...rest, customerService: undefined });
           }}
+          style={{ minWidth: 180 }}
         />
       )}
       {filterType === FILTER_TYPE.category && (
@@ -124,8 +123,8 @@ const ToolBar: FunctionComponent<{
           }}
         />
       )}
-      <Divider type="vertical" />
-      <DatePicker.RangePicker {...rangePickerOptions} />
+      <Divider type="vertical" style={{ margin: 0 }} />
+      <DatePicker.RangePicker {...rangePickerOptions} showTime allowClear={false} />
     </div>
   );
 };
@@ -139,11 +138,7 @@ const StatCards = () => {
   const params = useStatsParams();
   const [active, setActive] = useActiveField();
   const { data, isFetching, isLoading } = useTicketStats(params);
-  const {
-    data: count,
-    isFetching: countFetching,
-    isLoading: countLoading,
-  } = useTicketCount({
+  const { data: count, isFetching: countFetching, isLoading: countLoading } = useTicketCount({
     from: params.from,
     to: params.to,
   });
@@ -167,7 +162,7 @@ const StatCards = () => {
     };
   }, [data]);
 
-  const getExtraProps = (field: StatsField | (typeof NO_DETAIL_STATS_FIELD)[number]) => {
+  const getExtraProps = (field: StatsField | typeof NO_DETAIL_STATS_FIELD[number]) => {
     if (['replyTimeAVG', 'firstReplyTimeAVG', 'naturalReplyTimeAVG'].includes(field)) {
       return {
         formatter: (value: number | string) => (Number(value) / 3600).toFixed(2),

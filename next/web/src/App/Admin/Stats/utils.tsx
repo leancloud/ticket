@@ -16,10 +16,7 @@ const RANGE_DATE_LOCALE = {
   month: '本月',
   lastMonth: '上个月',
 };
-export const useRangePicker = (
-  fmt = 'YYYY-MM-DD',
-  defaultDateRange = relativeDateGetters['lastSevenDays']()
-) => {
+export const useRangePicker = (defaultDateRange = relativeDateGetters['lastSevenDays']()) => {
   const [{ from, to }, { merge }] = useSearchParams();
 
   const rangeDates = useMemo(() => {
@@ -48,15 +45,14 @@ export const useRangePicker = (
       value: [moment(values.from), moment(values.to)] as [moment.Moment, moment.Moment],
       ranges: rangeDates,
       allowClear: true,
-      format: fmt,
       onChange: (dates: [moment.Moment | null, moment.Moment | null] | null) => {
         merge({
-          from: moment(dates ? dates[0] : undefined).format(fmt),
-          to: moment(dates ? dates[1] : undefined).format(fmt),
+          from: moment(dates?.[0]).toISOString(),
+          to: moment(dates?.[1]).toISOString(),
         });
       },
     };
-  }, [values, rangeDates, fmt, merge]);
+  }, [values, rangeDates, merge]);
   return [values, options] as const;
 };
 
