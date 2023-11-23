@@ -25,7 +25,9 @@ export function useTicketViewers(ticket: UseTicketViewersOptions) {
   const { data: viewerIds } = useQuery({
     queryKey: ['TicketViewers', ticket.id],
     queryFn: async () => {
-      const res = await http.get<string[]>(`/api/2/tickets/${ticket.id}/viewers`);
+      const res = await http.get<string[]>(`/api/2/tickets/${ticket.id}/viewers`, {
+        params: { excludeSelf: 1 },
+      });
       return res.data;
     },
     cacheTime: 0,

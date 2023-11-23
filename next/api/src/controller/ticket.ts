@@ -11,10 +11,11 @@ import {
   Get,
   Param,
   Post,
+  Query,
   ResponseBody,
   UseMiddlewares,
 } from '@/common/http';
-import { ZodValidationPipe } from '@/common/pipe';
+import { ParseBoolPipe, ZodValidationPipe } from '@/common/pipe';
 import { customerServiceOnly, staffOnly } from '@/middleware';
 import { UpdateData } from '@/orm';
 import router from '@/router/ticket';
@@ -114,7 +115,11 @@ export class TicketController {
   // This API may be called frequently, and we do not care if the ticket exists
   @Get(':roomId/viewers')
   @UseMiddlewares(staffOnly)
-  async getTicketViewers(@Param('roomId') id: string, @CurrentUser() user: User) {
+  async getTicketViewers(
+    @Param('roomId') id: string,
+    @Query('excludeSelf', ParseBoolPipe) excludeSelf: boolean,
+    @CurrentUser() user: User
+  ) {
     const key = `ticket_viewers:${id}`;
     const now = Date.now();
     const results = await redis
@@ -125,7 +130,7 @@ export class TicketController {
       .zremrangebyscore(key, '-inf', now - 1000 * 60) // remove viewers active 60 seconds ago
       .zrevrange(key, 0, -1) // get all viewers
       .exec();
-    const result = _.last(results);
-    return result?.[1] || [];
+    const viewers: string[] = _.last(results)?.[1] || [];
+    return excludeSelf ? viewers.filter((id) => id !== user.id) : viewers;
   }
 }
