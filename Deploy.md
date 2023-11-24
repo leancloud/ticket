@@ -495,3 +495,9 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 ### `b0c23869ff3e3d9db3cd3c14d963fb034078505a`
 
 - 导入 Ticket.json，添加 `closedAt` 列。
+
+## 2023-11-24
+
+### `598c0fc00d17ad503a385f44bf2b1f9b3345bd9f`
+
+- 导入 FAQTopic.json，添加 comment 列。
