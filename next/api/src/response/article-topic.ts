@@ -9,6 +9,7 @@ export class ArticleTopicResponse {
       id: this.topic.id,
       meta: this.topic.meta,
       name: this.topic.name,
+      comment: this.topic.comment,
       articleIds: this.topic.articleIds,
       createdAt: this.topic.createdAt.toISOString(),
       updatedAt: this.topic.updatedAt.toISOString(),

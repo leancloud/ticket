@@ -12,6 +12,10 @@ export class ArticleTopic extends Model {
   @serialize()
   name!: string;
 
+  @field()
+  @serialize()
+  comment?: string;
+
   @field('FAQIds')
   @serialize()
   articleIds!: string[];
