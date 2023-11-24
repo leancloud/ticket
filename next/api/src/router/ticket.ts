@@ -555,11 +555,6 @@ router.post('/', async (ctx) => {
       : await dynamicContentService.render(category.name, ctx.locales.locales));
   const fileIds = data.fileIds ?? attachments;
 
-  // TODO: remove this after no content issue resolved
-  if (!title || !content) {
-    console.warn('[Create Ticket], title or content is empty, data:', data);
-  }
-
   const creator = new TicketCreator().setAuthor(author).setTitle(title).setContent(content);
 
   if (reporter) {
