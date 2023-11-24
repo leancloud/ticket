@@ -28,6 +28,11 @@ export function RecentTickets({ className, ticketId, userId }: RecentTicketsProp
     queryOptions: {
       keepPreviousData: true,
       staleTime: 1000 * 60,
+      select: (data) => ({
+        ...data,
+        // 排除当前工单
+        tickets: data.tickets.filter((ticket) => ticket.id !== ticketId),
+      }),
     },
   });
 
