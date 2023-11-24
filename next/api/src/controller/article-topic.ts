@@ -26,7 +26,8 @@ import { dynamicContentService } from '@/dynamic-content';
 
 const createArticleTopicSchema = z.object({
   name: z.string(),
-  articleIds: z.array(z.string()),
+  comment: z.string().optional(),
+  articleIds: z.array(z.string()).default([]),
   meta: z.record(z.any()).optional(),
 });
 
@@ -90,12 +91,12 @@ export class ArticleTopicController {
   }
 
   @Patch(':id')
-  async update(
+  @ResponseBody(ArticleTopicResponse)
+  update(
     @Param('id', new FindModelWithoutDeleteFlagPipe(ArticleTopic)) topic: ArticleTopic,
     @Body(new ZodValidationPipe(updateArticleTopicSchema)) data: UpdateArticleTopicData
   ) {
-    await topic.update(data, { useMasterKey: true });
-    return {};
+    return topic.update(data, { useMasterKey: true });
   }
 
   @Delete(':id')
