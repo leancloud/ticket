@@ -5,8 +5,9 @@ import { http } from '@/leancloud';
 export interface Topic {
   id: string;
   name: string;
+  comment?: string;
   articleIds: string[];
-  meta?: object;
+  meta?: Record<string, any>;
   createdAt: string;
   updatedAt: string;
 }
@@ -72,17 +73,16 @@ export function useTopic(id: string, { raw, queryOptions }: UseTopicOptions = {}
 
 export interface UpsertTopicData {
   name: string;
+  comment?: string;
   articleIds: string[];
-  meta?: object;
+  meta?: Record<string, any>;
 }
 
 export async function createTopic(data: UpsertTopicData) {
   await http.post('/api/2/topics', data);
 }
 
-export interface UpdateTopicData extends Partial<UpsertTopicData> {
-  comment?: string;
-}
+export interface UpdateTopicData extends Partial<UpsertTopicData> {}
 
 export async function updateTopic(id: string, data: UpdateTopicData) {
   await http.patch(`/api/2/topics/${id}`, data);

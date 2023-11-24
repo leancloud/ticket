@@ -81,9 +81,10 @@ export function TopicList() {
           title="名称"
           render={(name, topic) => <Link to={`${topic.id}`}>{name}</Link>}
         />
+        <Column dataIndex="comment" title="备注" />
         <Column<Topic>
           dataIndex="articleIds"
-          title="数量"
+          title="文章数量"
           render={(articleIds) => articleIds.length}
         />
         <Column<Topic>
@@ -109,7 +110,6 @@ function EditTopic({ initData, loading, onSave }: EditTopicProps) {
   });
 
   const { data: articles, isLoading: loadingArticles } = useArticles();
-  const articleMap = useMemo(() => _.keyBy(articles, 'id'), [articles]);
 
   return (
     <Form layout="vertical" onFinish={handleSubmit(onSave)}>
@@ -125,6 +125,16 @@ function EditTopic({ initData, loading, onSave }: EditTopicProps) {
             help={error?.message}
           >
             <Input {...field} autoFocus id="name" />
+          </Form.Item>
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="comment"
+        render={({ field }) => (
+          <Form.Item label="备注" htmlFor="comment">
+            <Input {...field} id="comment" />
           </Form.Item>
         )}
       />
