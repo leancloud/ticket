@@ -52,8 +52,8 @@ export const useRangePicker = (
       onChange: (dates: [moment.Moment | null, moment.Moment | null] | null) => {
         if (showTime) {
           merge({
-            from: moment(dates?.[0]).toISOString(),
-            to: moment(dates?.[1]).toISOString(),
+            from: moment(dates?.[0]).startOf('second').toISOString(),
+            to: moment(dates?.[1]).endOf('second').toISOString(),
           });
         } else {
           merge({
