@@ -53,9 +53,8 @@ router.get('/', async (ctx) => {
   ctx.body = {
     ...data,
     ...evaluationStats,
-    // overwrite likeRate and dislikeRate with new formula: evaluationCount / ticketCount
-    likeRate: created ? evaluationStats.likeCount / created : 0,
-    dislikeRate: created ? evaluationStats.dislikeCount / created : 0,
+    likeRate: created && (created - evaluationStats.dislikeCount) / created, // 用户未评价记为系统默认好评
+    dislikeRate: created && evaluationStats.dislikeCount / created,
   };
 });
 
@@ -338,19 +337,13 @@ async function getEvaluationStats(
   }>(sql);
 
   if (count) {
-    const processed = {
+    return {
       likeCount: 0,
       dislikeCount: 0,
       ..._(res)
         .groupBy(({ star }) => EvaluationFields[Number(star)])
         .mapValues((counts) => counts.reduce((acc, { count }) => acc + (Number(count) || 0), 0))
         .value(),
-    };
-
-    return {
-      ...processed,
-      likeRate: processed.likeCount / (processed.dislikeCount + processed.likeCount) || 0,
-      dislikeRate: processed.dislikeCount / (processed.dislikeCount + processed.likeCount) || 0,
     };
   }
 

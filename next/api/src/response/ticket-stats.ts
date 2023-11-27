@@ -4,11 +4,9 @@ import { TicketStatusStats } from '@/model/TicketStatusStats';
 export interface EvaluationCounts {
   likeCount: number;
   dislikeCount: number;
-  likeRate: number;
-  dislikeRate: number;
 }
 
-export interface EvaluationStats extends Omit<EvaluationCounts, 'likeRate' | 'dislikeRate'> {
+export interface EvaluationStats extends EvaluationCounts {
   categoryId?: string;
   customerServiceId?: string;
   selection?: string;

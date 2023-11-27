@@ -1,6 +1,8 @@
 import { FunctionComponent, useMemo, useRef, useState } from 'react';
 import classnames from 'classnames';
-import { Statistic, Card, Divider, Radio, DatePicker } from '@/components/antd';
+import { AiOutlineQuestionCircle } from 'react-icons/ai';
+import { Statistic, Card, Divider, Radio, DatePicker, Tooltip } from 'antd';
+
 import { CategorySelect } from '@/components/common';
 import { useSearchParams, useSearchParam } from '@/utils/useSearchParams';
 import { useTicketCount, useTicketStats } from '@/api/ticket-stats';
@@ -46,6 +48,11 @@ export const STATS_FIELD_LOCALE: Record<
 };
 export const EvaluationFields = ['dislikeCount', 'likeCount'];
 export const EvaluationRateFields = ['dislikeRate', 'likeRate'];
+
+const STATS_TIP: { [key in keyof typeof STATS_FIELD_LOCALE]?: string } = {
+  likeRate: '(好评数 + 默认好评数) ÷ 新建工单',
+  dislikeRate: '差评数 ÷ 新建工单',
+};
 
 enum FILTER_TYPE {
   all = 'all',
@@ -197,7 +204,16 @@ const StatCards = () => {
           >
             <Statistic
               loading={isFetching || isLoading}
-              title={STATS_FIELD_LOCALE[type]}
+              title={
+                <div className="flex items-center gap-1">
+                  {STATS_FIELD_LOCALE[type]}
+                  {STATS_TIP[type] && (
+                    <Tooltip title={STATS_TIP[type]}>
+                      <AiOutlineQuestionCircle className="cursor-default" />
+                    </Tooltip>
+                  )}
+                </div>
+              }
               value={averageData ? averageData[type] || 0 : 0}
               {...getExtraProps(type)}
             />
