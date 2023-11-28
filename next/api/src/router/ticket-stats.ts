@@ -50,7 +50,7 @@ router.get('/', async (ctx) => {
 
   const created = data?.created || 0;
   // 用户未评价记为系统默认好评
-  evaluationStats.likeCount += created - evaluationStats.dislikeCount;
+  evaluationStats.likeCount = created - evaluationStats.dislikeCount;
 
   ctx.body = {
     ...data,
