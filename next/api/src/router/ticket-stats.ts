@@ -49,11 +49,13 @@ router.get('/', async (ctx) => {
   });
 
   const created = data?.created || 0;
+  // 用户未评价记为系统默认好评
+  evaluationStats.likeCount += created - evaluationStats.dislikeCount;
 
   ctx.body = {
     ...data,
     ...evaluationStats,
-    likeRate: created && (created - evaluationStats.dislikeCount) / created, // 用户未评价记为系统默认好评
+    likeRate: created && evaluationStats.likeCount / created,
     dislikeRate: created && evaluationStats.dislikeCount / created,
   };
 });
