@@ -14,10 +14,7 @@ export class Config extends Model {
   static async get(key: string): Promise<any> {
     try {
       const config = await this.findOneByKey(key);
-      if (config) {
-        console.log(`[Config] ${key} = ${JSON.stringify(config.value)}`);
-        return config.value;
-      }
+      return config?.value;
     } catch (error) {
       // TODO: Sentry
       console.error('[Config] Get config failed', error);
