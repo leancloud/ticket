@@ -11,7 +11,7 @@ export interface Integration {
   router?: Router;
 }
 
-export function install(name: string, integration: Integration) {
+export function install(name: string, integration: Integration = {}) {
   if (integration.router) {
     router.use(integration.router.routes());
   }
