@@ -42,7 +42,7 @@ export class TicketForm extends Model {
 
   async getFieldVariants(
     this: TicketForm,
-    matcher: LocaleMatcher,
+    matcher?: LocaleMatcher,
     currentUser?: User
   ): Promise<TicketFieldVariant[]> {
     const isCS = currentUser ? await currentUser.isCustomerService() : false;
@@ -61,21 +61,16 @@ export class TicketForm extends Model {
     return _(variants)
       .groupBy('fieldId')
       .mapValues((variantGroup, fieldId) => {
-        const match = matchLocale(
-          variantGroup,
-          (v) => v.locale,
-          matcher,
-          fieldsById[fieldId].defaultLocale
-        );
+        const field = fieldsById[fieldId];
 
-        if (!match) {
-          throw new Error(
-            `Ticket field has no variant of default locale(${fieldsById[fieldId].defaultLocale}), id=${fieldId}`
-          );
-        }
+        let match = matcher
+          ? matchLocale(variantGroup, (v) => v.locale, matcher, field.defaultLocale)
+          : variantGroup.find((v) => v.locale === field.defaultLocale);
 
-        match.field = fieldsById[fieldId];
+        // fallback to first variant
+        match ||= variantGroup[0];
 
+        match.field = field;
         return match;
       })
       .values()
