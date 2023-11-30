@@ -52,14 +52,11 @@ async function createTicketLogs(tickets: Ticket[]) {
     const categoryPath = await firstTicket.loadCategoryPath();
     const category = _.last(categoryPath);
 
-    const fieldVariantMap: Record<string, TicketFieldVariant> = {};
+    let fieldVariants: TicketFieldVariant[] = [];
     if (category && category.formId) {
       const form = await TicketForm.find(category.formId, { useMasterKey: true });
       if (form) {
-        const fieldVariants = await form.getFieldVariants();
-        for (const variant of fieldVariants) {
-          fieldVariantMap[variant.fieldId] = variant;
-        }
+        fieldVariants = await form.getFieldVariants();
       }
     }
 
@@ -78,8 +75,8 @@ async function createTicketLogs(tickets: Ticket[]) {
       };
 
       const fieldValue = ticketFieldValueByTicketId[ticket.id];
-      if (fieldValue) {
-        await fillFields(log, fieldVariantMap, fieldValue);
+      if (fieldVariants.length && fieldValue) {
+        await fillFields(log, fieldVariants, fieldValue);
       }
 
       await fillReplies(log, ticket);
@@ -117,18 +114,19 @@ function getHumanReadableFieldValue(
 
 async function fillFields(
   log: TicketLog,
-  fieldVariants: Record<string, TicketFieldVariant>,
+  fieldVariants: TicketFieldVariant[],
   fieldValue: TicketFieldValue
 ) {
-  fieldValue.values.forEach((value) => {
-    const variant = fieldVariants[value.field];
-    if (variant && variant.field) {
-      const humanReadableValue = getHumanReadableFieldValue(variant.field, variant, value);
+  const fieldValueMap = _.keyBy(fieldValue.values, (v) => v.field);
+  fieldVariants.forEach((variant) => {
+    const fieldValue = fieldValueMap[variant.fieldId];
+    if (fieldValue !== undefined && variant.field) {
+      const humanReadableValue = getHumanReadableFieldValue(variant.field, variant, fieldValue);
       if (humanReadableValue !== undefined) {
         log.fields.push({
-          id: value.field,
+          id: fieldValue.field,
           title: variant.title,
-          value: value.value,
+          value: fieldValue.value,
         });
       }
     }
@@ -149,13 +147,13 @@ async function fillReplies(log: TicketLog, ticket: Ticket) {
   });
 }
 
-let writeLogs: (logs: TicketLog[]) => Promise<any> = async () => {
+let writeLogs: (logs: TicketLog[], dryRun?: boolean) => Promise<any> = async () => {
   throw new Error('writeLogs is undefined');
 };
 
-async function processTickets(tickets: Ticket[]) {
+async function processTickets(tickets: Ticket[], dryRun = false) {
   const logs = await createTicketLogs(tickets);
-  await writeLogs(logs);
+  await writeLogs(logs, dryRun);
 }
 
 type JobData = {
@@ -164,11 +162,12 @@ type JobData = {
   endTime?: string;
   size?: number;
   delay?: number;
+  dryRun?: boolean;
 };
 
 async function processJob(job: Job<JobData>) {
   const {
-    data: { startTime, endTime, size = 50, delay = 1000 },
+    data: { startTime, endTime, size = 50, delay = 1000, dryRun },
   } = job;
 
   const query = Ticket.queryBuilder();
@@ -186,11 +185,11 @@ async function processJob(job: Job<JobData>) {
     return;
   }
 
-  await processTickets(tickets);
+  await processTickets(tickets, dryRun);
 
   const firstTicket = tickets[0];
   const lastTicket = tickets[tickets.length - 1];
-  console.log(`[Intelligent Operation] ${tickets.length} tickets synced, `, {
+  console.log(`[Intelligent Operation] ${tickets.length} tickets synced,`, {
     startTime: firstTicket.createdAt,
     endTime: lastTicket.createdAt,
   });
@@ -230,7 +229,7 @@ export default async function (install: Function) {
     apiVersion: '2015-06-01',
   });
 
-  writeLogs = async (ticketLogs) => {
+  writeLogs = async (ticketLogs, dryRun) => {
     const time = Math.floor(Date.now() / 1000);
     const logs = ticketLogs.map((ticketLog) => {
       const contents = Object.entries(ticketLog).map(([key, value]) => ({
@@ -245,6 +244,12 @@ export default async function (install: Function) {
       logStoreName: logstoreName,
       logGroup: { logs },
     };
+
+    if (dryRun) {
+      console.log('[Intelligent Operation] Put logs param:');
+      console.dir(param, { depth: 5 });
+      return;
+    }
 
     return new Promise((resolve, reject) => {
       sls.putLogs(param, (err: any, data: any) => {
