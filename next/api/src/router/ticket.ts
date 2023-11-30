@@ -934,6 +934,8 @@ const fetchRepliesParamsSchema = yup.object({
 });
 
 router.get('/:id/replies', sort('orderBy', ['createdAt']), async (ctx) => {
+  // TODO: 不要再添加逻辑了, 使用 TicketService.getReplies
+
   const ticket = ctx.state.ticket as Ticket;
   const currentUser = ctx.state.currentUser as User;
   const { cursor, page, pageSize, count } = fetchRepliesParamsSchema.validateSync(ctx.query);
