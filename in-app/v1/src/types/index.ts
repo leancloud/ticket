@@ -20,6 +20,17 @@ export interface Evaluation {
   content: string;
 }
 
+export interface EvaluationTag {
+  positive: {
+    options: string[];
+    required: boolean;
+  };
+  negative: {
+    options: string[];
+    required: boolean;
+  };
+}
+
 export interface TicketListItem {
   id: string;
   nid: number;

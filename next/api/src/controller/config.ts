@@ -4,6 +4,11 @@ import { BadRequestError, Body, Controller, Get, Param, Put, UseMiddlewares } fr
 import { Config } from '@/config';
 import { auth, customerServiceOnly } from '@/middleware';
 
+const evaluationTagSchema = z.object({
+  options: z.array(z.string()),
+  required: z.boolean(),
+});
+
 const CONFIG_SCHEMAS: Record<string, z.Schema<any>> = {
   weekday: z.array(z.number()),
   work_time: z.object({
@@ -20,6 +25,13 @@ const CONFIG_SCHEMAS: Record<string, z.Schema<any>> = {
   }),
   evaluation: z.object({
     timeLimit: z.number().int().min(0),
+    tag: z
+      .object({
+        positive: evaluationTagSchema,
+        negative: evaluationTagSchema,
+      })
+      .partial()
+      .optional(),
   }),
 };
 
