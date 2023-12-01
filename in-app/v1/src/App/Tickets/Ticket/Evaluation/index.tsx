@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import cx from 'classnames';
 
+import { useEvaluationTag } from '@/api/evaluation';
 import { Radio } from '@/components/Form';
 import { Button } from '@/components/Button';
 import CheckIcon from '@/icons/Check';
@@ -32,7 +34,8 @@ export function Evaluated({ onClickChangeButton }: EvaluatedProps) {
 
 interface EvaluationData {
   star: 0 | 1;
-  content: string;
+  content?: string;
+  selections?: string[];
 }
 
 export interface NewEvaluationProps {
@@ -43,29 +46,47 @@ export interface NewEvaluationProps {
 
 export function NewEvaluation({ initData, loading, onSubmit }: NewEvaluationProps) {
   const { t } = useTranslation();
-  const [star, setStar] = useState<0 | 1>();
-  const [content, setContent] = useState('');
+  const [evaluation, setEvaluation] = useState<Partial<EvaluationData>>({});
 
   useEffect(() => {
     if (initData) {
-      setStar(initData.star);
-      setContent(initData.content);
+      setEvaluation(initData);
     }
   }, [initData]);
 
+  const { data: tag, isLoading: isLoadingTag } = useEvaluationTag();
+
   const handleCommit = () => {
-    if (star !== undefined) {
-      onSubmit({ star, content });
+    if (evaluation.star !== undefined) {
+      onSubmit(evaluation as EvaluationData);
     }
   };
+
+  if (isLoadingTag) {
+    return null;
+  }
+
+  const currentTag =
+    tag && evaluation.star !== undefined
+      ? evaluation.star
+        ? tag.positive
+        : tag.negative
+      : undefined;
+
+  const displayInput = currentTag?.required
+    ? !!evaluation.selections?.length
+    : evaluation.star !== undefined;
 
   return (
     <div className="py-5 px-4 border-t border-dashed border-gray-300 text-sm">
       <div className="text-gray-600">{t('evaluation.title')}</div>
 
-      <div className="py-6">
+      <div className="my-6">
         <span>
-          <Radio checked={star === 1} onChange={() => setStar(1)}>
+          <Radio
+            checked={evaluation.star === 1}
+            onChange={() => setEvaluation({ ...evaluation, star: 1, selections: [] })}
+          >
             <span className="inline-flex items-center text-[#FF8156]">
               <ThumbUpIcon className="w-[14px] h-[14px] inline-block mr-1" />
               {t('evaluation.useful')}
@@ -73,7 +94,10 @@ export function NewEvaluation({ initData, loading, onSubmit }: NewEvaluationProp
           </Radio>
         </span>
         <span className="ml-14">
-          <Radio checked={star === 0} onChange={() => setStar(0)}>
+          <Radio
+            checked={evaluation.star === 0}
+            onChange={() => setEvaluation({ ...evaluation, star: 0, selections: [] })}
+          >
             <span className="inline-flex items-center text-[#3AB1F3]">
               <ThumbDownIcon className="w-[14px] h-[14px] inline-block mr-1" />
               {t('evaluation.useless')}
@@ -82,21 +106,54 @@ export function NewEvaluation({ initData, loading, onSubmit }: NewEvaluationProp
         </span>
       </div>
 
-      <div className="flex items-center">
-        <input
-          className="grow leading-[16px] border rounded-full placeholder-[#BFBFBF] px-3 py-[7px]"
-          placeholder={t('evaluation.content_hint')}
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-        />
-        <Button
-          className="ml-2 text-[13px] leading-[30px]"
-          disabled={star === undefined || loading}
-          onClick={handleCommit}
-        >
-          {t('general.commit')}
-        </Button>
-      </div>
+      {currentTag && currentTag.options.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {currentTag.options.map((option) => {
+            const active = evaluation.selections?.includes(option);
+            return (
+              <button
+                className={cx(
+                  'px-2 py-1 rounded',
+                  active ? 'bg-tapBlue text-white font-bold' : 'bg-[#F5F7F8] text-[#868C92]'
+                )}
+                onClick={() => {
+                  if (active) {
+                    setEvaluation({
+                      ...evaluation,
+                      selections: evaluation.selections?.filter((t) => t !== option),
+                    });
+                  } else {
+                    setEvaluation({
+                      ...evaluation,
+                      selections: [option],
+                    });
+                  }
+                }}
+              >
+                {option}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {displayInput && (
+        <div className="flex items-center mt-6">
+          <input
+            className="grow leading-[16px] border rounded-full placeholder-[#BFBFBF] px-3 py-[7px]"
+            placeholder={t('evaluation.content_hint')}
+            value={evaluation.content}
+            onChange={(e) => setEvaluation({ ...evaluation, content: e.target.value })}
+          />
+          <Button
+            className="ml-2 text-[13px] leading-[30px]"
+            disabled={loading}
+            onClick={handleCommit}
+          >
+            {t('general.commit')}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
