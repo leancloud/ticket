@@ -14,6 +14,11 @@ interface RenderObjectConfig {
   template: StringTemplate;
 }
 
+interface RenderTask {
+  getText: () => string;
+  setText: (text: string) => void;
+}
+
 class DynamicContentService {
   private fullContentCache: Cache;
 
@@ -60,6 +65,25 @@ class DynamicContentService {
       if (config.template.source) {
         config.object[config.field] = config.template.source;
       }
+    }
+  }
+
+  async renderTasks(tasks: RenderTask[], locales?: string[]) {
+    const extendedTasks = tasks.map((task) => ({
+      ...task,
+      tmpl: new StringTemplate(task.getText()),
+    }));
+
+    const templates = extendedTasks.map((task) => task.tmpl);
+    if (templates.length) {
+      const renderer = new AsyncDeepRenderer(templates, {
+        dc: (names) => this.getContentMap(names, locales),
+      });
+      await renderer.render();
+    }
+
+    for (const task of extendedTasks) {
+      task.setText(task.tmpl.source);
     }
   }
 
