@@ -125,7 +125,7 @@ export function NewEvaluation({ initData, loading, onSubmit }: NewEvaluationProp
                   } else {
                     setEvaluation({
                       ...evaluation,
-                      selections: [...(evaluation.selections || []), option],
+                      selections: [option],
                     });
                   }
                 }}
