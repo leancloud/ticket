@@ -330,10 +330,10 @@ const FIXED_KEYS = [
   'metaData',
   'privateTags',
   'customForm',
-  'replies',
   'language',
   'createdAt',
   'updatedAt',
+  'replies',
 ];
 
 const authOptions = { useMasterKey: true };
