@@ -2,6 +2,7 @@ import ALY from 'aliyun-sdk';
 import { Job } from 'bull';
 import _ from 'lodash';
 
+import events from '@/events';
 import { Config } from '@/config';
 import { createQueue } from '@/queue';
 import { Ticket } from '@/model/Ticket';
@@ -10,6 +11,7 @@ import { ticketService } from '@/service/ticket';
 import { TicketForm } from '@/model/TicketForm';
 import { TicketField } from '@/model/TicketField';
 import { FieldValue, TicketFieldValue } from '@/model/TicketFieldValue';
+import { desensitize } from './desensitize';
 
 interface TicketLog {
   id: string;
@@ -63,8 +65,8 @@ async function createTicketLogs(tickets: Ticket[]) {
     for (const ticket of tickets) {
       const log: TicketLog = {
         id: ticket.id,
-        title: ticket.title,
-        content: ticket.content,
+        title: desensitize(ticket.title),
+        content: desensitize(ticket.content),
         category: {
           id: ticket.categoryId,
           path: categoryPath.map((c) => c.name),
@@ -126,7 +128,9 @@ async function fillFields(
         log.fields.push({
           id: fieldValue.field,
           title: variant.title,
-          value: fieldValue.value,
+          value: Array.isArray(fieldValue.value)
+            ? fieldValue.value.map(desensitize)
+            : desensitize(fieldValue.value),
         });
       }
     }
@@ -141,7 +145,7 @@ async function fillReplies(log: TicketLog, ticket: Ticket) {
     log.replies.push({
       id: reply.id,
       isCustomerService: reply.isCustomerService,
-      content: reply.content,
+      content: desensitize(reply.content),
       createdAt: reply.createdAt.toISOString(),
     });
   });
@@ -212,6 +216,7 @@ interface IntelligentOperationConfig {
   endpoint: string;
   projectName: string;
   logstoreName: string;
+  dryRun?: boolean;
 }
 
 export default async function (install: Function) {
@@ -220,7 +225,7 @@ export default async function (install: Function) {
     return;
   }
 
-  const { accessKeyId, accessKeySecret, endpoint, projectName, logstoreName } = config;
+  const { accessKeyId, accessKeySecret, endpoint, projectName, logstoreName, dryRun } = config;
 
   const sls = new ALY.SLS({
     accessKeyId,
@@ -270,6 +275,12 @@ export default async function (install: Function) {
   });
 
   queue.process(processJob);
+
+  events.on('ticket:updated', ({ updatedTicket }) => {
+    if (updatedTicket.isClosed()) {
+      processTickets([updatedTicket], dryRun);
+    }
+  });
 
   install('Intelligent Operation');
 }
