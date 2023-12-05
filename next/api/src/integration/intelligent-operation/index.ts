@@ -167,14 +167,18 @@ type JobData = {
   size?: number;
   delay?: number;
   dryRun?: boolean;
+  where?: any;
 };
 
 async function processJob(job: Job<JobData>) {
   const {
-    data: { startTime, endTime, size = 50, delay = 1000, dryRun },
+    data: { startTime, endTime, size = 50, delay = 1000, dryRun, where },
   } = job;
 
   const query = Ticket.queryBuilder();
+  if (where) {
+    query.setRawCondition(where);
+  }
   query.where('createdAt', '>', new Date(startTime));
   if (endTime) {
     query.where('createdAt', '<', new Date(endTime));
