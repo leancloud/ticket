@@ -165,7 +165,6 @@ export function useView(id: string, options?: UseQueryOptions<ViewSchema>) {
   return useQuery({
     queryKey: ['view', id],
     queryFn: () => fetchView(id),
-    staleTime: Infinity,
     ...options,
   });
 }
@@ -197,7 +196,6 @@ export function useViewTicketCounts(
   return useQuery({
     queryKey: ['viewTicketCounts', viewIds],
     queryFn: () => fetchViewTicketCounts(viewIds),
-    staleTime: Infinity,
     ...options,
   });
 }

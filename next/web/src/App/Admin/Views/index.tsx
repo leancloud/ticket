@@ -26,6 +26,7 @@ import { TicketStatus } from '@/App/Admin/components/TicketStatus';
 import { useGetCategoryPath } from '@/utils/useGetCategoryPath';
 import { usePage } from '@/utils/usePage';
 import { TicketLanguages } from '@/i18n/locales';
+import { Count } from './components/Count';
 
 const CategoryPathContext = createContext<{
   getCategoryPath: (id: string) => CategorySchema[];
@@ -60,7 +61,7 @@ function ViewMenuItems({ items, viewTicketCounts, currentViewId, onChange }: Vie
             onClick={() => onChange(id)}
           >
             <div className="grow truncate">{title}</div>
-            {count !== undefined && <div>{count}</div>}
+            {count !== undefined && <Count value={count} />}
           </button>
         );
       })}
@@ -175,6 +176,17 @@ function ViewMenu({
   );
 }
 
+function CategoryPath({ categoryId }: { categoryId: string }) {
+  const { getCategoryPath } = useContext(CategoryPathContext);
+  return (
+    <div className="whitespace-nowrap">
+      {getCategoryPath(categoryId)
+        .map((c) => c.name)
+        .join(' / ')}
+    </div>
+  );
+}
+
 interface ColumnConfig {
   className?: string;
   dataIndex?: string;
@@ -197,16 +209,7 @@ const columnConfigs: Record<string, ColumnConfig> = {
   },
   category: {
     dataIndex: 'categoryId',
-    render: (id: string) => {
-      const { getCategoryPath } = useContext(CategoryPathContext);
-      return (
-        <div className="whitespace-nowrap">
-          {getCategoryPath(id)
-            .map((c) => c.name)
-            .join(' / ')}
-        </div>
-      );
-    },
+    render: (id: string) => <CategoryPath categoryId={id} />,
   },
   createdAt: {
     render: (t: string) => <div>{moment(t).format('YYYY-MM-DD HH:mm:ss')}</div>,
@@ -228,7 +231,9 @@ export function ViewTickets() {
   const { id } = useParams();
   const [page, { set: setPage }] = usePage();
 
-  const { data: view, isLoading } = useView(id!);
+  const { data: view, isLoading } = useView(id!, {
+    staleTime: 1000 * 60,
+  });
 
   const include = useMemo(() => {
     if (view) {
@@ -243,29 +248,35 @@ export function ViewTickets() {
   }, [view]);
 
   const queryClient = useQueryClient();
-  const { data: tickets, totalCount, isLoading: isLoadingTickets } = useViewTickets(id!, {
+  const {
+    data: tickets,
+    totalCount,
+    isLoading: isLoadingTickets,
+    isFetching: isFetchingTickets,
+    refetch: refetchTickets,
+  } = useViewTickets(id!, {
     page,
     pageSize: PAGE_SIZE,
     include,
     count: true,
     queryOptions: {
       enabled: view !== undefined,
+      refetchInterval: 1000 * 60,
       onSuccess: ({ totalCount }) => {
         if (totalCount !== undefined) {
-          queryClient
-            .getQueriesData<ViewTicketCountResult[] | undefined>('viewTicketCounts')
-            ?.forEach(([key, data]) => {
+          queryClient.setQueriesData<ViewTicketCountResult[] | undefined>(
+            ['viewTicketCounts'],
+            (data) => {
               if (data) {
                 const index = data.findIndex((t) => t.viewId === id);
                 if (index >= 0) {
-                  queryClient.setQueryData(key, (data) => {
-                    return produce(data as ViewTicketCountResult[], (draft) => {
-                      draft[index].ticketCount = totalCount;
-                    });
+                  return produce(data, (data) => {
+                    data[index].ticketCount = totalCount;
                   });
                 }
               }
-            });
+            }
+          );
         }
       },
     },
@@ -295,11 +306,14 @@ export function ViewTickets() {
 
   return (
     <div className="p-10">
-      <div className="mb-5 flex flex-row justify-between">
-        <div>
+      <div className="mb-5 flex flex-row">
+        <div className="mr-auto">
           <div className="text-[26px] text-[#2F3941]">{view!.title}</div>
           {totalCount !== undefined && <div>{totalCount} 张工单</div>}
         </div>
+        <Button className="mr-2" loading={isFetchingTickets} onClick={() => refetchTickets()}>
+          刷新
+        </Button>
         <Button
           href={`/tickets/${tickets?.[0]?.nid}?view=${id}`}
           disabled={!tickets?.[0] || !id}
@@ -378,6 +392,7 @@ export function Views() {
   const { data: viewTicketCounts } = useViewTicketCounts(viewIds!, {
     enabled: viewIds !== undefined && viewIds.length > 0,
     keepPreviousData: true,
+    refetchInterval: 1000 * 60 * 5,
   });
 
   const viewTicketCountMap = useMemo(() => {
