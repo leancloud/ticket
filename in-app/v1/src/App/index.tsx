@@ -1,9 +1,10 @@
 import { Suspense, useEffect, useMemo } from 'react';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Route, Routes, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { decodeQueryParams, JsonParam, StringParam } from 'serialize-query-params';
 import { parse } from 'query-string';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
+import { customAlphabet } from 'nanoid';
 
 import { auth as lcAuth, http } from '@/leancloud';
 import { useAuth, useSetAuth } from '@/states/auth';
@@ -69,31 +70,11 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    const searchParams = parse(location.search);
     setAuth({ loading: true });
-    if (
-      params['anonymous-id'] ||
-      params['xd-access-token'] ||
-      params['tds-credential'] ||
-      params['credential']
-    ) {
-      http
-        .post(
-          '/api/2/users',
-          params['anonymous-id']
-            ? { type: 'anonymous', anonymousId: params['anonymous-id'] }
-            : params['xd-access-token']
-            ? { XDAccessToken: params['xd-access-token'] }
-            : params['tds-credential']
-            ? {
-                type: 'tds-user',
-                token: params['tds-credential'],
-                associateAnonymousId: params['associate-anonymous-id'],
-              }
-            : {
-                type: 'jwt',
-                jwt: params['credential'],
-              }
-        )
+    const login = (body: any) => {
+      return http
+        .post('/api/2/users', body)
         .catch((error) => {
           if (error?.['response']?.['data']?.['message']) {
             throw new Error(error['response']['data']['message']);
@@ -103,6 +84,41 @@ export default function App() {
         .then((response) => lcAuth.loginWithSessionToken(response.data.sessionToken))
         .then((user) => setAuth({ user }))
         .catch((error) => setAuth({ error }));
+    };
+    if (
+      params['anonymous-id'] ||
+      params['xd-access-token'] ||
+      params['tds-credential'] ||
+      params['credential']
+    ) {
+      login(
+        params['anonymous-id']
+          ? { type: 'anonymous', anonymousId: params['anonymous-id'] }
+          : params['xd-access-token']
+          ? { XDAccessToken: params['xd-access-token'] }
+          : params['tds-credential']
+          ? {
+              type: 'tds-user',
+              token: params['tds-credential'],
+              associateAnonymousId: params['associate-anonymous-id'],
+            }
+          : {
+              type: 'jwt',
+              jwt: params['credential'],
+            }
+      );
+    } else if (typeof searchParams.from === 'string') {
+      const source = searchParams.from;
+      let anonymousId = localStorage.getItem('TapDesk/anonymousId');
+      if (!anonymousId || !anonymousId.endsWith(source)) {
+        const genAnonymousId = customAlphabet(
+          '1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+          48
+        );
+        anonymousId = genAnonymousId() + '-' + source;
+      }
+      localStorage.setItem('TapDesk/anonymousId', anonymousId);
+      login({ type: 'anonymous', anonymousId });
     } else if (lcAuth.currentUser) {
       setAuth({ user: lcAuth.currentUser });
     } else {
