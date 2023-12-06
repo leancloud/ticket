@@ -48,15 +48,13 @@ router.get('/', async (ctx) => {
     ...rest,
   });
 
-  const created = data?.created || 0;
-  // 用户未评价记为系统默认好评
-  evaluationStats.likeCount = created - evaluationStats.dislikeCount;
+  const evaluationSum = evaluationStats.likeCount + evaluationStats.dislikeCount;
 
   ctx.body = {
     ...data,
     ...evaluationStats,
-    likeRate: created && evaluationStats.likeCount / created,
-    dislikeRate: created && evaluationStats.dislikeCount / created,
+    likeRate: evaluationSum && evaluationStats.likeCount / evaluationSum,
+    dislikeRate: evaluationSum && evaluationStats.dislikeCount / evaluationSum,
   };
 });
 
@@ -290,13 +288,18 @@ async function getEvaluationStats(
 ): Promise<EvaluationCounts | EvaluationStats[]> {
   const { categoryIds, count, customerServiceIds, from, to, bySelection } = options;
 
+  const where = (...clauses: string[]) => {
+    const clause = clauses.filter(Boolean).join(' AND ');
+    return clause ? `WHERE ${clause}` : '';
+  };
+
   const sql = `
     SELECT
       count(DISTINCT t.objectId) AS count,
       ${!count && bySelection ? 'selection,' : ''}
       ${categoryIds ? 'categoryId,' : ''}
       ${customerServiceIds ? 'customerServiceId,' : ''}
-      visitParamExtractUInt(t.evaluation, 'star') AS star
+      if(t.evaluation != '', JSONExtractUInt(t.evaluation, 'star'), 1) AS star
     FROM Ticket AS t
     ${
       !count && bySelection
@@ -304,23 +307,21 @@ async function getEvaluationStats(
       JSONExtract(t.evaluation, 'selections', 'Array(String)') AS selection`
         : ''
     }
-    WHERE t.evaluation != ''
-    ${
+    ${where(
+      count ? '' : `t.evaluation != ''`,
       categoryIds && Array.isArray(categoryIds)
-        ? `AND arrayExists(x -> x = visitParamExtractString(t.category, 'objectId'), [${categoryIds
+        ? `arrayExists(x -> x = visitParamExtractString(t.category, 'objectId'), [${categoryIds
             .map((id) => escape(id))
             .join(',')}])`
-        : ''
-    }
-    ${
+        : '',
       customerServiceIds && Array.isArray(customerServiceIds)
-        ? `AND arrayExists(x -> x = t.\`assignee.objectId\`, [${customerServiceIds
+        ? `arrayExists(x -> x = t.\`assignee.objectId\`, [${customerServiceIds
             .map((id) => escape(id))
             .join(',')}])`
-        : ''
-    }
-    ${from ? `AND t.createdAt >= parseDateTimeBestEffortOrNull(${escape(from)})` : ''}
-    ${to ? `AND t.createdAt <= parseDateTimeBestEffortOrNull(${escape(to)})` : ''}
+        : '',
+      from ? `t.createdAt >= parseDateTimeBestEffortOrNull(${escape(from)})` : '',
+      to ? `t.createdAt <= parseDateTimeBestEffortOrNull(${escape(to)})` : ''
+    )}
     GROUP BY
       ${!count && bySelection ? 'selection,' : ''}
       ${categoryIds ? "visitParamExtractString(t.category, 'objectId') AS categoryId," : ''}
