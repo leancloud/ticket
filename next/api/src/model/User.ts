@@ -423,7 +423,7 @@ export class User extends Model {
       }
     }
 
-    return qb.find({ useMasterKey: true });
+    return qb.limit(1000).find({ useMasterKey: true });
   }
 
   static async getCustomerServices(active?: boolean): Promise<User[]> {
