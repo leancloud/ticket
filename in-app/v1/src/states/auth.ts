@@ -1,5 +1,5 @@
 import { User } from 'open-leancloud-storage/auth';
-import { atom, useRecoilValue, useSetRecoilState } from 'recoil';
+import { atom, useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 
 interface AuthState {
   user?: User;
@@ -9,7 +9,14 @@ interface AuthState {
 
 const authState = atom<AuthState>({
   key: 'auth',
+  default: {
+    loading: true,
+  },
 });
+
+export function useAuthState() {
+  return useRecoilState(authState);
+}
 
 export function useSetAuth() {
   return useSetRecoilState(authState);

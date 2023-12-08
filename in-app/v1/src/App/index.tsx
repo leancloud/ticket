@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useMemo } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { decodeQueryParams, JsonParam, StringParam } from 'serialize-query-params';
+import { decodeQueryParams, JsonParam } from 'serialize-query-params';
 import { parse } from 'query-string';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 
@@ -34,6 +34,11 @@ import Test from './Test';
 
 function RequireAuth({ children }: { children: JSX.Element }) {
   const { user, loading, error } = useAuth();
+
+  useAutoLogin({
+    strategies: [loginByLocalAnonymousId],
+  });
+
   if (loading) {
     return <Loading fullScreen />;
   }
@@ -77,13 +82,11 @@ export default function App() {
   }, []);
 
   useAutoLogin({
-    hash: params,
     strategies: [
       loginByAnonymousId,
       loginByXDAccessToken,
       loginByTDSCredential,
       loginByJWT,
-      loginByLocalAnonymousId,
       loginByCurrentUser,
     ],
   });
@@ -151,11 +154,6 @@ function useHashConfiguration() {
         {
           meta: JsonParam,
           fields: JsonParam,
-          'anonymous-id': StringParam,
-          'xd-access-token': StringParam,
-          'tds-credential': StringParam,
-          credential: StringParam,
-          'associate-anonymous-id': StringParam,
         },
         parse(window.location.hash)
       ),

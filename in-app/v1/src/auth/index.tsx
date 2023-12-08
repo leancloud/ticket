@@ -4,7 +4,7 @@ import { User } from 'open-leancloud-storage/auth';
 import { customAlphabet } from 'nanoid';
 
 import { auth, http } from '@/leancloud';
-import { useSetAuth } from '@/states/auth';
+import { useAuthState } from '@/states/auth';
 
 async function login(data: any) {
   let sessionToken: string;
@@ -81,17 +81,20 @@ export const loginByLocalAnonymousId: Strategy = async ({ query }) => {
   return login({ type: 'anonymous', anonymousId });
 };
 
+const { hash: hashSnapshot, search: searchSnapshot } = window.location;
+
 interface UseAuthLoginOptions {
   strategies: Strategy[];
-  hash: Record<string, any>;
 }
 
-export function useAutoLogin({ strategies, hash }: UseAuthLoginOptions) {
-  const setAuth = useSetAuth();
+export function useAutoLogin({ strategies }: UseAuthLoginOptions) {
+  const [auth, setAuth] = useAuthState();
   useEffect(() => {
+    if (auth.user) return;
     const autoLogin = async () => {
       setAuth({ loading: true });
-      const query = parse(window.location.search);
+      const query = parse(searchSnapshot);
+      const hash = parse(hashSnapshot);
       for (const strategy of strategies) {
         try {
           const user = await strategy({ hash, query });
