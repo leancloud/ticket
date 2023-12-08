@@ -5,8 +5,17 @@ import { decodeQueryParams, JsonParam, StringParam } from 'serialize-query-param
 import { parse } from 'query-string';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 
-import { auth as lcAuth, http } from '@/leancloud';
-import { useAuth, useSetAuth } from '@/states/auth';
+import { http } from '@/leancloud';
+import {
+  loginByAnonymousId,
+  loginByCurrentUser,
+  loginByJWT,
+  loginByLocalAnonymousId,
+  loginByTDSCredential,
+  loginByXDAccessToken,
+  useAutoLogin,
+} from '@/auth';
+import { useAuth } from '@/states/auth';
 import { useSetRootCategory } from '@/states/root-category';
 import { useSetTicketInfo } from '@/states/ticket-info';
 import { useCategory } from '@/api/category';
@@ -55,7 +64,6 @@ export default function App() {
   const paths = pathname.split('/');
   const rootCategoryId = paths[4];
 
-  const setAuth = useSetAuth();
   const setRootCategory = useSetRootCategory();
   const setTicketInfo = useSetTicketInfo();
 
@@ -68,47 +76,17 @@ export default function App() {
     });
   }, []);
 
-  useEffect(() => {
-    setAuth({ loading: true });
-    if (
-      params['anonymous-id'] ||
-      params['xd-access-token'] ||
-      params['tds-credential'] ||
-      params['credential']
-    ) {
-      http
-        .post(
-          '/api/2/users',
-          params['anonymous-id']
-            ? { type: 'anonymous', anonymousId: params['anonymous-id'] }
-            : params['xd-access-token']
-            ? { XDAccessToken: params['xd-access-token'] }
-            : params['tds-credential']
-            ? {
-                type: 'tds-user',
-                token: params['tds-credential'],
-                associateAnonymousId: params['associate-anonymous-id'],
-              }
-            : {
-                type: 'jwt',
-                jwt: params['credential'],
-              }
-        )
-        .catch((error) => {
-          if (error?.['response']?.['data']?.['message']) {
-            throw new Error(error['response']['data']['message']);
-          }
-          throw error;
-        })
-        .then((response) => lcAuth.loginWithSessionToken(response.data.sessionToken))
-        .then((user) => setAuth({ user }))
-        .catch((error) => setAuth({ error }));
-    } else if (lcAuth.currentUser) {
-      setAuth({ user: lcAuth.currentUser });
-    } else {
-      setAuth({});
-    }
-  }, []);
+  useAutoLogin({
+    hash: params,
+    strategies: [
+      loginByAnonymousId,
+      loginByXDAccessToken,
+      loginByTDSCredential,
+      loginByJWT,
+      loginByLocalAnonymousId,
+      loginByCurrentUser,
+    ],
+  });
 
   const { data: rootCategory, isLoading: loadingRootCategory } = useCategory(rootCategoryId, {
     enabled: rootCategoryId !== undefined,
