@@ -1,13 +1,21 @@
 import { Suspense, useEffect, useMemo } from 'react';
-import { BrowserRouter, Route, Routes, useSearchParams } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { decodeQueryParams, JsonParam, StringParam } from 'serialize-query-params';
 import { parse } from 'query-string';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
-import { customAlphabet } from 'nanoid';
 
-import { auth as lcAuth, http } from '@/leancloud';
-import { useAuth, useSetAuth } from '@/states/auth';
+import { http } from '@/leancloud';
+import {
+  loginByAnonymousId,
+  loginByCurrentUser,
+  loginByJWT,
+  loginByLocalAnonymousId,
+  loginByTDSCredential,
+  loginByXDAccessToken,
+  useAutoLogin,
+} from '@/auth';
+import { useAuth } from '@/states/auth';
 import { useSetRootCategory } from '@/states/root-category';
 import { useSetTicketInfo } from '@/states/ticket-info';
 import { useCategory } from '@/api/category';
@@ -56,7 +64,6 @@ export default function App() {
   const paths = pathname.split('/');
   const rootCategoryId = paths[4];
 
-  const setAuth = useSetAuth();
   const setRootCategory = useSetRootCategory();
   const setTicketInfo = useSetTicketInfo();
 
@@ -69,62 +76,17 @@ export default function App() {
     });
   }, []);
 
-  useEffect(() => {
-    const searchParams = parse(location.search);
-    setAuth({ loading: true });
-    const login = (body: any) => {
-      return http
-        .post('/api/2/users', body)
-        .catch((error) => {
-          if (error?.['response']?.['data']?.['message']) {
-            throw new Error(error['response']['data']['message']);
-          }
-          throw error;
-        })
-        .then((response) => lcAuth.loginWithSessionToken(response.data.sessionToken))
-        .then((user) => setAuth({ user }))
-        .catch((error) => setAuth({ error }));
-    };
-    if (
-      params['anonymous-id'] ||
-      params['xd-access-token'] ||
-      params['tds-credential'] ||
-      params['credential']
-    ) {
-      login(
-        params['anonymous-id']
-          ? { type: 'anonymous', anonymousId: params['anonymous-id'] }
-          : params['xd-access-token']
-          ? { XDAccessToken: params['xd-access-token'] }
-          : params['tds-credential']
-          ? {
-              type: 'tds-user',
-              token: params['tds-credential'],
-              associateAnonymousId: params['associate-anonymous-id'],
-            }
-          : {
-              type: 'jwt',
-              jwt: params['credential'],
-            }
-      );
-    } else if (typeof searchParams.from === 'string') {
-      const source = searchParams.from;
-      let anonymousId = localStorage.getItem('TapDesk/anonymousId');
-      if (!anonymousId || !anonymousId.endsWith(source)) {
-        const genAnonymousId = customAlphabet(
-          '1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
-          48
-        );
-        anonymousId = genAnonymousId() + '-' + source;
-      }
-      localStorage.setItem('TapDesk/anonymousId', anonymousId);
-      login({ type: 'anonymous', anonymousId });
-    } else if (lcAuth.currentUser) {
-      setAuth({ user: lcAuth.currentUser });
-    } else {
-      setAuth({});
-    }
-  }, []);
+  useAutoLogin({
+    hash: params,
+    strategies: [
+      loginByAnonymousId,
+      loginByXDAccessToken,
+      loginByTDSCredential,
+      loginByJWT,
+      loginByLocalAnonymousId,
+      loginByCurrentUser,
+    ],
+  });
 
   const { data: rootCategory, isLoading: loadingRootCategory } = useCategory(rootCategoryId, {
     enabled: rootCategoryId !== undefined,
