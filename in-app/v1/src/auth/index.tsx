@@ -73,10 +73,9 @@ export const loginByLocalAnonymousId: Strategy = async ({ query }) => {
   let anonymousId = localStorage.getItem(storageKey);
   if (!anonymousId) {
     const genAnonymousId = customAlphabet(
-      '1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
-      48
+      '1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
     );
-    anonymousId = `${from}-${genAnonymousId()}`;
+    anonymousId = `${from}-${genAnonymousId(32)}`;
     localStorage.setItem(storageKey, anonymousId);
   }
   return login({ type: 'anonymous', anonymousId });
