@@ -97,8 +97,8 @@ export function useAutoLogin({ strategies }: UseAuthLoginOptions) {
     if (loginPromise) {
       return;
     }
+    setAuth({ loading: true });
     loginPromise = (async () => {
-      setAuth({ loading: true });
       const query = parse(searchSnapshot);
       const hash = parse(hashSnapshot);
       while (loginStrategies.length) {
