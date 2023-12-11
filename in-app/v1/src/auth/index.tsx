@@ -81,31 +81,39 @@ export const loginByLocalAnonymousId: Strategy = async ({ query }) => {
   return login({ type: 'anonymous', anonymousId });
 };
 
+const { hash: hashSnapshot, search: searchSnapshot } = window.location;
+
+let loginPromise: Promise<User | undefined> | undefined;
+const loginStrategies: Strategy[] = [];
+
 interface UseAuthLoginOptions {
   strategies: Strategy[];
-  hash: Record<string, any>;
 }
 
-export function useAutoLogin({ strategies, hash }: UseAuthLoginOptions) {
+export function useAutoLogin({ strategies }: UseAuthLoginOptions) {
   const setAuth = useSetAuth();
   useEffect(() => {
-    const autoLogin = async () => {
-      setAuth({ loading: true });
-      const query = parse(window.location.search);
-      for (const strategy of strategies) {
-        try {
-          const user = await strategy({ hash, query });
-          if (user) {
-            setAuth({ user });
-            return;
-          }
-        } catch (error: any) {
-          setAuth({ error });
-          return;
+    strategies.forEach((strategy) => loginStrategies.push(strategy));
+    if (loginPromise) {
+      return;
+    }
+    setAuth({ loading: true });
+    loginPromise = (async () => {
+      const query = parse(searchSnapshot);
+      const hash = parse(hashSnapshot);
+      while (loginStrategies.length) {
+        const strategy = loginStrategies.shift()!;
+        const user = await strategy({ hash, query });
+        if (user) {
+          return user;
         }
       }
-      setAuth({});
-    };
-    autoLogin();
+    })();
+    loginPromise
+      .then((user) => {
+        setAuth({ user });
+        loginPromise = undefined;
+      })
+      .catch((error) => setAuth({ error }));
   }, []);
 }
