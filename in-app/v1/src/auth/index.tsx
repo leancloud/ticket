@@ -4,7 +4,7 @@ import { User } from 'open-leancloud-storage/auth';
 import { customAlphabet } from 'nanoid';
 
 import { auth, http } from '@/leancloud';
-import { useAuthState } from '@/states/auth';
+import { useSetAuth } from '@/states/auth';
 
 async function login(data: any) {
   let sessionToken: string;
@@ -83,32 +83,37 @@ export const loginByLocalAnonymousId: Strategy = async ({ query }) => {
 
 const { hash: hashSnapshot, search: searchSnapshot } = window.location;
 
+let loginPromise: Promise<User | undefined> | undefined;
+const loginStrategies: Strategy[] = [];
+
 interface UseAuthLoginOptions {
   strategies: Strategy[];
 }
 
 export function useAutoLogin({ strategies }: UseAuthLoginOptions) {
-  const [auth, setAuth] = useAuthState();
+  const setAuth = useSetAuth();
   useEffect(() => {
-    if (auth.user) return;
-    const autoLogin = async () => {
+    strategies.forEach((strategy) => loginStrategies.push(strategy));
+    if (loginPromise) {
+      return;
+    }
+    loginPromise = (async () => {
       setAuth({ loading: true });
       const query = parse(searchSnapshot);
       const hash = parse(hashSnapshot);
-      for (const strategy of strategies) {
-        try {
-          const user = await strategy({ hash, query });
-          if (user) {
-            setAuth({ user });
-            return;
-          }
-        } catch (error: any) {
-          setAuth({ error });
-          return;
+      while (loginStrategies.length) {
+        const strategy = loginStrategies.shift()!;
+        const user = await strategy({ hash, query });
+        if (user) {
+          return user;
         }
       }
-      setAuth({});
-    };
-    autoLogin();
+    })();
+    loginPromise
+      .then((user) => {
+        setAuth({ user });
+        loginPromise = undefined;
+      })
+      .catch((error) => setAuth({ error }));
   }, []);
 }
