@@ -28,7 +28,6 @@ import { getIP } from '@/utils';
 import { organizationService } from '@/service/organization';
 import { roleService } from '@/service/role';
 import { allowedTicketLanguages } from '@/utils/locale';
-import { LangCodeISO6391 } from '@notevenaneko/whatlang-node';
 import { addInOrNotExistCondition } from '@/utils/conditions';
 import { dynamicContentService } from '@/dynamic-content';
 import { FileResponse } from '@/response/file';
@@ -763,7 +762,7 @@ const updateTicketSchema = yup.object({
   tags: yup.array(ticketTagSchema.required()),
   privateTags: yup.array(ticketTagSchema.required()),
   evaluation: ticketEvaluationSchema.default(undefined),
-  language: yup.mixed().oneOf([...allowedTicketLanguages, null]),
+  language: yup.string().oneOf(allowedTicketLanguages).nullable(),
 });
 
 router.patch('/:id', async (ctx) => {
@@ -869,7 +868,7 @@ router.patch('/:id', async (ctx) => {
   }
 
   if (data.language !== undefined) {
-    updater.setLanguage(data.language as LangCodeISO6391 | null);
+    updater.setLanguage(data.language);
   }
 
   await updater.update(currentUser);

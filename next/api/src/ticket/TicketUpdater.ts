@@ -12,7 +12,6 @@ import { systemUser, TinyUserInfo, User } from '@/model/User';
 
 import { TinyReplyInfo } from '@/model/Reply';
 import { TicketLog } from '@/model/TicketLog';
-import { LangCodeISO6391 } from '@notevenaneko/whatlang-node';
 
 export interface UpdateOptions {
   useMasterKey?: boolean;
@@ -89,7 +88,7 @@ export class TicketUpdater {
     return this;
   }
 
-  setLanguage(lang: LangCodeISO6391 | null): this {
+  setLanguage(lang: string | null): this {
     this.data.language = lang;
     return this;
   }

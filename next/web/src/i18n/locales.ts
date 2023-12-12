@@ -21,4 +21,6 @@ export const LOCALES: Record<string, string> = {
 export const TicketLanguages: Record<string, string> = {
   ...omit(LOCALES, ['zh-cn', 'zh-hk', 'zh-tw']),
   zh: '中文',
+  'zh-Hans': '简体中文',
+  'zh-Hant': '繁体中文',
 };

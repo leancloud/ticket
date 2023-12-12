@@ -1,5 +1,6 @@
 import _ from 'lodash';
-import { Detector, LangCodeISO6391 } from '@notevenaneko/whatlang-node';
+import { detect } from 'tinyld/heavy';
+import { traditionToSimple } from 'chinese-simple2traditional';
 
 import events from '@/events';
 import { ACLBuilder } from '@/orm';
@@ -15,8 +16,6 @@ import { TicketLog } from '@/model/TicketLog';
 import { allowedTicketLanguages } from '@/utils/locale';
 import { durationMetricService } from './services/duration-metric';
 
-const detector = Detector.withAllowlist(allowedTicketLanguages);
-
 export class TicketCreator {
   private author?: User;
   private reporter?: User;
@@ -30,7 +29,7 @@ export class TicketCreator {
   private customFields?: FieldValue[];
   private assignee?: User;
   private group?: Group;
-  private language?: LangCodeISO6391;
+  private language?: string;
   private channel?: string;
 
   private aclBuilder: ACLBuilder;
@@ -212,11 +211,24 @@ export class TicketCreator {
   }
 
   private async detectLanguage() {
-    const lang = this.content && detector.detect(this.content);
+    const content = _([this.title, this.content])
+      .compact()
+      .map((s) => s.trim().slice(0, 1000))
+      .join('\n');
 
-    // sometimes output lang code does not exist in allowlist
-    if (lang && lang.isReliable && allowedTicketLanguages.includes(lang.lang.codeISO6391)) {
-      this.language = lang.lang.codeISO6391;
+    if (!content) return;
+
+    let lang = detect(content);
+
+    if (lang && allowedTicketLanguages.includes(lang)) {
+      if (lang === 'zh') {
+        if (traditionToSimple(content) === content) {
+          lang = 'zh-Hans';
+        } else {
+          lang = 'zh-Hant';
+        }
+      }
+      this.language = lang;
     }
   }
 

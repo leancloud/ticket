@@ -41,6 +41,7 @@ import { getConfig, getMetadataRenderer } from '@/config/config';
 import { ENABLE_LEANCLOUD_INTEGRATION, useCurrentUser } from '@/leancloud';
 import { TicketLink } from '@/App/Admin/components/TicketLink';
 import { TicketStatus } from '@/App/Admin/components/TicketStatus';
+import { TicketLanguages } from '@/i18n/locales';
 import { Timeline } from './Timeline';
 import { TagData, TagForm } from './TagForm';
 import { FormField } from './components/FormField';
@@ -51,7 +52,6 @@ import { CategoryCascader } from './components/CategoryCascader';
 import { LeanCloudApp } from './components/LeanCloudApp';
 import { ReplyCard } from './components/ReplyCard';
 import { useMixedTicket } from './mixed-ticket';
-import { langs } from './lang';
 import { TicketField_v1, useTicketFields_v1 } from './api1';
 import { CustomFields } from './components/CustomFields';
 import { useTicketOpsLogs, useTicketReplies } from './timeline-data';
@@ -516,8 +516,7 @@ function TicketBasicInfoSection({ ticket, onChange, disabled }: TicketBasicInfoS
           className="w-full"
           allowClear
           placeholder="未设置"
-          options={langs}
-          fieldNames={{ label: 'name', value: 'code' }}
+          options={Object.entries(TicketLanguages).map(([value, label]) => ({ label, value }))}
           value={ticket.language}
           onChange={(language) => onChange({ language: language ?? null })}
           disabled={disabled}
