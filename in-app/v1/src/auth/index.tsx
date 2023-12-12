@@ -112,7 +112,9 @@ export function useAutoLogin({ strategies }: UseAuthLoginOptions) {
     loginPromise
       .then((user) => {
         setAuth({ user });
-        loginPromise = undefined;
+        if (!user) {
+          loginPromise = undefined;
+        }
       })
       .catch((error) => setAuth({ error }));
   }, []);
