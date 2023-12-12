@@ -48,7 +48,7 @@ function ReplyItem({ data, isLast }: ReplyItemProps) {
         </div>
         <div
           className={cx('inline-block rounded-2xl rounded-tl-none mt-2 p-1 text-sm', {
-            'bg-[#F2FDFE]': data.isCustomerService,
+            'bg-tapBlue-200': data.isCustomerService,
             'bg-[rgba(0,0,0,0.02)]': !data.isCustomerService,
           })}
         >
