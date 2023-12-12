@@ -17,7 +17,7 @@ import { produce } from 'immer';
 import { Helmet } from 'react-helmet-async';
 
 import { auth, db, http } from '@/leancloud';
-import { Reply, Ticket } from '@/types';
+import { Evaluation, Reply, Ticket } from '@/types';
 import { PageContent, PageHeader } from '@/components/Page';
 import { QueryWrapper } from '@/components/QueryWrapper';
 import styles from './index.module.css';
@@ -214,7 +214,7 @@ function useWatchStatus(ticketId: string, callback: (status: number) => void) {
   }, [ticketId]);
 }
 
-async function commitEvaluation(ticketId: string, data: Ticket['evaluation']) {
+async function commitEvaluation(ticketId: string, data: Evaluation) {
   await http.patch(`/api/2/tickets/${ticketId}`, { evaluation: data });
 }
 
@@ -289,7 +289,7 @@ export default function TicketDetail() {
   const [editEval, setEditEval] = useState(false);
 
   const { mutate: evaluate, isLoading: isEvaluating } = useMutation({
-    mutationFn: (data: Ticket['evaluation']) => commitEvaluation(id, data),
+    mutationFn: (data: Evaluation) => commitEvaluation(id, data),
     onSuccess: (_, evaluation) => {
       setEditEval(false);
       queryClient.setQueryData<Ticket | undefined>(['ticket', id], (data) => {

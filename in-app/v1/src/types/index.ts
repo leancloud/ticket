@@ -17,7 +17,8 @@ export interface File {
 
 export interface Evaluation {
   star: 0 | 1;
-  content: string;
+  content?: string;
+  selections?: string[];
 }
 
 export interface EvaluationTag {
@@ -37,7 +38,7 @@ export interface TicketListItem {
   title: string;
   status: number;
   files?: File[];
-  evaluation: Evaluation | null;
+  evaluation?: Evaluation;
   unreadCount: number;
   createdAt: string;
   updatedAt: string;
