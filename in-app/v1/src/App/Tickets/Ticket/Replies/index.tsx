@@ -37,7 +37,11 @@ function ReplyItem({ data, isLast }: ReplyItemProps) {
 
       <div className="grow ml-2 pb-8 text-[#666]">
         <div className="text-xs leading-[12px]">
-          <span className="mr-2">
+          <span
+            className={cx('mr-2', {
+              'text-tapBlue': data.isCustomerService,
+            })}
+          >
             {data.isCustomerService ? t('reply.staff_title') : t('reply.my_title')}
           </span>
           <Time className="text-[#BFBFBF] whitespace-nowrap" value={new Date(data.createdAt)} />
