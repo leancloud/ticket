@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useMutation } from 'react-query';
+import { useMutation, useQueryClient } from 'react-query';
 import { Helmet } from 'react-helmet-async';
 import { pick, cloneDeep } from 'lodash-es';
 
@@ -180,9 +180,16 @@ export function NewTicket() {
     }
   }, [categories, category_id]);
 
+  const queryClient = useQueryClient();
+
   const { mutateAsync: submit, isLoading: submitting } = useMutation({
     mutationFn: createTicket,
     onSuccess: (ticketId: string) => {
+      // In react-query@3, useInfiniteQuery always returns stale data
+      // Clear tickets query cache manaully to prevent this
+      const cache = queryClient.getQueryCache();
+      cache.findAll(['tickets']).forEach((query) => cache.remove(query));
+
       navigate({ pathname: '', search }, { replace: false, state: ticketId });
     },
   });
