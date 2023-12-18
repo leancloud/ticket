@@ -322,6 +322,7 @@ const FIXED_KEYS = [
   'content',
   'evaluation.star',
   'evaluation.content',
+  'evaluation.selections',
   'firstCustomerServiceReplyAt',
   'latestCustomerServiceReplyAt',
   'group.id',
