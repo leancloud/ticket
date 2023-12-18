@@ -34,7 +34,8 @@
     "submit_ticket": "Submit Ticket",
     "wait_time": "Estimated Wait Time:",
     "hours": "{{value}} Hours",
-    "minutes": "{{value}} Minutes"
+    "minutes": "{{value}} Minutes",
+    "cannot_create_more": "There are still many unfinished tickets. If you have any further questions, please directly add them to the original ticket."
   },
   "faqs": {
     "showAll": "View All",

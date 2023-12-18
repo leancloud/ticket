@@ -7,4 +7,5 @@ interface ImportMetaEnv {
   VITE_LC_TICKET_HOST?: string;
   VITE_ALLOW_MUTATE_EVALUATION: string;
   VITE_SENTRY_WEB_DSN?: string;
+  VITE_MAX_OPEN_COUNT?: string;
 }

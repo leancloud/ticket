@@ -69,7 +69,7 @@ export function PageContent<T extends ElementType>({
     <Component
       {...props}
       className={cx(
-        'page flex flex-col shrink-0  overflow-hidden bg-white rounded-lg mx-[10px] sm:mx-[119px] last:mb-4',
+        'page flex flex-col shrink-0 overflow-hidden bg-white rounded-lg mx-[10px] sm:mx-[119px] last:mb-4',
         padding && 'px-4 py-3',
         shadow && styles.contentShadow,
         className

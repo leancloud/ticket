@@ -12,13 +12,13 @@ import { useTicketInfo } from '@/states/ticket-info';
 import { useSearchParams } from '@/utils/url';
 import { PageContent, PageHeader } from '@/components/Page';
 import { Button } from '@/components/Button';
-import { QueryWrapper } from '@/components/QueryWrapper';
 import { Loading } from '@/components/Loading';
 import CheckIcon from '@/icons/Check';
 import NotFound from '../../NotFound';
 import { CustomForm, CustomFieldConfig, CustomFormItem } from './CustomForm';
 import { usePersistFormData } from './usePersistFormData';
 import { useContent } from '@/states/content';
+import { useCannotCreateMore } from './hooks/useCannotCreateMore';
 
 const DEFAULT_FIELDS: CustomFieldConfig[] = [
   {
@@ -157,6 +157,21 @@ function Success({ ticketId }: SuccessProps) {
   );
 }
 
+function CannotCreateMore() {
+  const { t } = useTranslation();
+
+  return (
+    <PageContent className="grow" shadow>
+      <div className="mt-5 text-center">
+        <div className="text-[#666] mb-5">{t('feedback.cannot_create_more')}</div>
+        <Button className="inline-block min-w-32" as={Link} to="/tickets">
+          {t('feedback.record')}
+        </Button>
+      </div>
+    </PageContent>
+  );
+}
+
 async function createTicket(data: NewTicketData): Promise<string> {
   const res = await http.post<{ id: string }>('/api/2/tickets', data, {
     params: {
@@ -172,8 +187,10 @@ export function NewTicket() {
   const { state: ticketId, search } = useLocation();
   const navigate = useNavigate();
 
-  const result = useCategories();
-  const { data: categories } = result;
+  const { data: categories } = useCategories({
+    suspense: true,
+  });
+
   const category = useMemo(() => {
     if (categories) {
       return categories.find((c) => c.id === category_id || c.alias === category_id);
@@ -194,6 +211,8 @@ export function NewTicket() {
     },
   });
 
+  const cannotCreateMore = useCannotCreateMore();
+
   if (categories && !category) {
     // Category is not exists :badbad:
     return <NotFound />;
@@ -206,10 +225,10 @@ export function NewTicket() {
 
       {ticketId ? (
         <Success ticketId={ticketId as string} />
+      ) : cannotCreateMore ? (
+        <CannotCreateMore />
       ) : (
-        <QueryWrapper result={result}>
-          <TicketForm category={category!} onSubmit={submit} submitting={submitting} />
-        </QueryWrapper>
+        <TicketForm category={category!} onSubmit={submit} submitting={submitting} />
       )}
     </>
   );

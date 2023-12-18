@@ -34,7 +34,8 @@
     "submit_ticket": "提交工单",
     "wait_time": "预计等待：",
     "hours": "{{value}} 小时",
-    "minutes": "{{value}} 分钟"
+    "minutes": "{{value}} 分钟",
+    "cannot_create_more": "未处理完毕的工单较多，如有追问请直接在原工单中补充"
   },
   "faqs": {
     "showAll": "查看全部",

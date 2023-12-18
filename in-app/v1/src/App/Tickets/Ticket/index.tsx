@@ -44,8 +44,6 @@ const STATUS_TEXT: Record<number, string> = {
   280: 'status.resolved',
 };
 
-export const RESOLVED_STATUS = [220, 250, 280];
-export const UNRESOLVED_STATUS = [50, 120, 160];
 export enum TicketResolvedStatus {
   resolved = '220,250,280',
   unResolved = '50,120,160',

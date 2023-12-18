@@ -1,14 +1,12 @@
 import { useMemo, Fragment } from 'react';
 import { Link, Route, Routes } from 'react-router-dom';
-import { useInfiniteQuery } from 'react-query';
 import { useTranslation } from 'react-i18next';
 import { InView } from 'react-intersection-observer';
 import { flatten } from 'lodash-es';
 import { Helmet } from 'react-helmet-async';
 import { Tab } from '@headlessui/react';
 import classNames from 'classnames';
-import { auth, http } from '@/leancloud';
-import { useRootCategory } from '@/states/root-category';
+
 import { TicketListItem } from '@/types';
 import { QueryWrapper } from '@/components/QueryWrapper';
 import { PageContent, PageHeader } from '@/components/Page';
@@ -18,55 +16,7 @@ import { useAppState } from '@/states/app';
 import TicketDetail, { TicketStatus, TicketResolvedStatus } from './Ticket';
 import { NewTicket } from './New';
 import styles from './index.module.css';
-
-const TICKETS_PAGE_SIZE = 20;
-
-async function fetchTickets({
-  categoryId,
-  page,
-  status,
-}: {
-  categoryId?: string;
-  page?: number;
-  status?: TicketResolvedStatus;
-}): Promise<TicketListItem[]> {
-  const { data } = await http.get<any[]>('/api/2/tickets', {
-    params: {
-      authorId: auth.currentUser?.id,
-      product: categoryId,
-      page,
-      pageSize: TICKETS_PAGE_SIZE,
-      orderBy: 'latestCustomerServiceReplyAt-desc',
-      include: 'unreadCount',
-      status,
-    },
-  });
-  return data.map((ticket) => ({
-    id: ticket.id,
-    nid: ticket.nid,
-    title: ticket.title,
-    status: ticket.status,
-    unreadCount: ticket.unreadCount,
-    files: ticket.files,
-    evaluation: ticket.evaluation,
-    createdAt: ticket.createdAt,
-    updatedAt: ticket.updatedAt,
-  }));
-}
-
-export function useTickets(status: TicketResolvedStatus) {
-  const category = useRootCategory();
-  return useInfiniteQuery<TicketListItem[], Error>({
-    queryKey: ['tickets', { status }],
-    queryFn: ({ pageParam = 1 }) =>
-      fetchTickets({ categoryId: category.id, page: pageParam, status }),
-    getNextPageParam: (lastPage, allPages) => {
-      if (lastPage.length === TICKETS_PAGE_SIZE) {
-        return allPages.length + 1;
-      }
-    },
-  });
-}
+import { useTickets } from './hooks/useTickets';
 
 interface TicketItemProps {
   ticket: TicketListItem;
@@ -97,7 +47,7 @@ function TicketItem({ ticket }: TicketItemProps) {
 
 const TicketResults = ({ status }: { status: TicketResolvedStatus }) => {
   const { t } = useTranslation();
-  const result = useTickets(status);
+  const result = useTickets({ status });
   const { data, hasNextPage, fetchNextPage } = result;
   const noData = useMemo(() => !data?.pages[0]?.length, [data]);
   const tickets = useMemo(() => flatten(data?.pages), [data]);

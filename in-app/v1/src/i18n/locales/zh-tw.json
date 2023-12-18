@@ -34,7 +34,8 @@
     "submit_ticket": "提交工單",
     "wait_time": "預計等待時間：",
     "hours": "{{value}} 小時",
-    "minutes": "{{value}} 分鐘"
+    "minutes": "{{value}} 分鐘",
+    "cannot_create_more": "未處理完畢的工單較多，如有追問請直接在原工單中補充"
   },
   "faqs": {
     "showAll": "瀏覽全部",
