@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+html {
+  @apply h-full;
+}
+
+body {
+  @apply flex flex-col min-h-full font-sans text-base bg-background text-neutral h-full;
+}
+
+#root {
+  @apply flex flex-col flex-1;
+}
+
+button:focus,
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+}
+
+input,
+textarea,
+select {
+  @apply appearance-none;
+}
+
+textarea {
+  @apply resize-none;
+}
+
+input,
+textarea,
+button,
+select,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.page {
+  .block:last-child {
+    border-bottom: 0;
+    margin-bottom: 2px;
+  }
+}
+
+.markdown-body {
+  @apply text-[#666] bg-transparent;
+}
+.markdown-body ul {
+  @apply list-disc;
+}
+.markdown-body ol {
+  @apply list-decimal;
+}
+.markdown-body a {
+  @apply text-xdOrange underline;
+}
+
+input[type='date']::-webkit-date-and-time-value {
+  min-height: 22px;
+}
+
+.content {
+  @apply w-full px-[24px] py-[16px] md:py-[24px] mx-[auto] max-w-[1280px];
+}
+
+.content-inner {
+  @apply bg-white rounded p-4;
+}
+

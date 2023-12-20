@@ -1,0 +1,107 @@
+{
+  "general": {
+    "help_center": "帮助中心",
+    "update_at": "更新于",
+    "not_found": "该内容不存在",
+    "loading": "加载中",
+    "no_data": "暂无数据",
+    "topics": "精选主题",
+    "commit": "提交",
+    "select_hint": "请选择",
+    "collapse": "收起",
+    "expand": "展开",
+    "number": "编号",
+    "status": "状态",
+    "title": "标题",
+    "description": "描述",
+    "attachment": "附件",
+    "send": "发送",
+    "confirm": "确定",
+    "close": "关闭",
+    "call_center": "客服中心",
+    "click_to_upload": "点击上传",
+    "content_deleted": "该内容已被删除",
+    "cancel": "取消",
+    "create_time": "创建时间",
+    "update_time": "更新时间",
+    "update_date": "更新日期",
+    "next_step": "下一步"
+  },
+  "categories": {
+    "AI": "AI 推荐分类",
+    "empty": "未匹配到相关分类",
+    "relative": "相关分类"
+  },
+  "help": {
+    "title": "未能解决你的问题？",
+    "submit_ticket": "提交工单",
+    "chat": "在线客服",
+    "contact": "联系我们",
+    "agent": "请联系我们的客服团队。",
+    "search": "查询你遇到的问题"
+  },
+  "article": {
+    "not_found": "文章不存在"
+  },
+  "auth": {
+    "login": "登陆"
+  },
+  "ticket": {
+    "select": "请选择你遇到的问题类型",
+    "solutions": "解决方案",
+    "no_solutions": "该问题暂无解决方案",
+    "faqs": "相关问题",
+    "contact": "联系客服",
+    "fill": "请填写{{value}}",
+    "record": "问题记录",
+    "no_record": "暂无问题记录",
+    "no_more_record": "没有更多记录",
+    "create": {
+      "success": "提交成功",
+      "success_text": "$t(ticket.create.success)，我们将尽快为您处理"
+    },
+    "detail": "问题详情",
+    "resolved": "已处理",
+    "unResolved": "处理中"
+  },
+  "feedback": {
+    "suffix": "反馈",
+    "action": "我要反馈",
+    "record": "反馈记录",
+    "submit": "提交反馈",
+    "title": "联系客服",
+    "submit_ticket": "提交工单",
+    "wait_time": "预计等待：",
+    "hours": "{{value}} 小时",
+    "minutes": "{{value}} 分钟"
+  },
+  "status": {
+    "new": "待处理",
+    "waiting_on_staff": "待客服回复",
+    "waiting_on_customer": "待用户回复",
+    "resolved": "已解决"
+  },
+  "reply": {
+    "staff_title": "官方客服",
+    "my_title": "您",
+    "input_content_hint": "请输入内容"
+  },
+  "evaluation": {
+    "title": "服务评价与反馈",
+    "useful": "有用",
+    "useless": "没用",
+    "content_hint": "补充说明（非必填）",
+    "created_text": "您的评价已收到，感谢您的反馈！",
+    "change": "修改评价"
+  },
+  "validation": {
+    "required": "该内容不能为空",
+    "attachment_too_big": "上传失败",
+    "attachment_too_big_text": "附件大小不能超过 {{size}} {{unit}}",
+    "attachment_not_uploaded": "请等待附件上传完毕",
+    "number_required": "不能含有非数字字符",
+    "invalid": "输入不合法"
+  },
+  "network_error": "网络异常，请尝试重连",
+  "network_error.retry": "重新连接"
+}

@@ -1,0 +1,11 @@
+.content {
+  @apply m-2 bg-transparent break-all;
+
+  /* overwrite markdown-body changes */
+  font-size: unset;
+  line-height: unset;
+  color: unset;
+  p {
+    margin-bottom: 1em;
+  }
+}

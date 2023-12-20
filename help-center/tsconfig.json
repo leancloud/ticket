@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "strictNullChecks": true,
+    "esModuleInterop": true,
+    "module": "ES2020",
+    "target": "ES2020",
+    "moduleResolution": "Node",
+    "jsx": "react-jsx",
+    "isolatedModules": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+    },
+    "typeRoots": ["./node_modules/@types"],
+    "skipLibCheck": true,
+    "resolveJsonModule": true
+  },
+  "include": ["src/**/*"]
+}

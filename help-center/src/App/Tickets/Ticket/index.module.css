@@ -1,0 +1,16 @@
+.status {
+  &.new, &.waitForStaff {
+    color: #15C5CE;
+  }
+  &.waitForCustomer {
+    color: #FF8156;
+  }
+  &.resolved {
+    color: #47b881;
+  }
+}
+
+.dataGrid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+}

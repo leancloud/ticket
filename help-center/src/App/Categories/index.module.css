@@ -1,0 +1,7 @@
+.collapse {
+  :global{
+    .ant-collapse-expand-icon {
+      line-height: 16px !important;
+    }
+  }
+}

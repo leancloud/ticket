@@ -59,6 +59,11 @@ if (process.env.MAINTENANCE_MODE) {
   const inAppIndexPage = path.join(__dirname, 'in-app/v1/dist/index.html')
   app.get('/in-app/v1/*', (req, res) => res.sendFile(inAppIndexPage))
 
+  // help-center pages
+  app.use('/help-center', express.static(path.join(__dirname, 'help-center/dist')))
+  const helpCenterIndexPage = path.join(__dirname, '/help-center/dist/index.html')
+  app.get('/help-center/*', (req, res) => res.sendFile(helpCenterIndexPage))
+
   // next pages
   app.use('/next', express.static(path.join(__dirname, 'next/web/dist')))
   const nextWebIndexPage = path.join(__dirname, 'next/web/dist/index.html')

@@ -1,0 +1,114 @@
+{
+  "general": {
+    "commit": "Submit",
+    "loading": "Loading",
+    "select_hint": "Please select",
+    "collapse": "Collapse",
+    "expand": "Expand",
+    "number": "Ref. Number",
+    "status": "Status",
+    "title": "Title",
+    "description": "Description",
+    "attachment": "Attachment",
+    "send": "Send",
+    "confirm": "Confirm",
+    "no_data": "No data available",
+    "call_center": "Support Center",
+    "click_to_upload": "Click to Upload",
+    "content_deleted": "This content has been removed.",
+    "not_found": "This content does not exist",
+    "cancel": "Cancel",
+    "update_time": "Update Time",
+    "update_date": "Update Date",
+    "next_step": "Next step"
+  },
+  "home": {
+    "empty": "No display content configured in the current category"
+  },
+  "feedback": {
+    "suffix": "Feedback",
+    "action": "Send Feedback",
+    "record": "Feedback Record",
+    "submit": "Submit Feedback",
+    "title": "Contact Customer Service",
+    "submit_ticket": "Submit Ticket",
+    "wait_time": "Estimated Wait Time:",
+    "hours": "{{value}} Hours",
+    "minutes": "{{value}} Minutes"
+  },
+  "faqs": {
+    "showAll": "View All",
+    "similar": "Similar Questions"
+  },
+  "notice": {
+    "title": "Announcement",
+    "hint": "If the above information was not helpful to you"
+  },
+  "auth": {
+    "not_logged_in_text": "Account not detected, please log in and try again"
+  },
+  "category": {
+    "select_hint": "Select Topic",
+    "select_hint_home": "Select Problem Type",
+    "faqs": "Related Articles",
+    "title": "Issue Categories",
+    "classify": {
+      "placeholder": "e.g. I forgot my password",
+      "title": "Please briefly describe your issue",
+      "loading": "Retrieving question categories...",
+      "result": {
+        "title": "Guess your question belongs to",
+        "no_help": "If the above content does not help you",
+        "select": "manually select the question category",
+        "failed": "No relevant results found",
+        "solution": "View solutions"
+      }
+    }
+  },
+  "topic": {
+    "title": "FAQs",
+    "hint": "If the information above did not help you, you can"
+  },
+  "ticket": {
+    "record": "Issue Records",
+    "no_record": "No issue records",
+    "no_more_record": "No more records",
+    "create": {
+      "success": "Submission successful.",
+      "success_text": "$t(ticket.create.success), we will process it as soon as possible."
+    },
+    "detail": "Issue Details",
+    "resolved": "Resolved",
+    "unResolved": "In Progress",
+    "contact": "Contact Customer Support"
+  },
+  "reply": {
+    "staff_title": "Official Customer Support",
+    "my_title": "You",
+    "input_content_hint": "Please enter content"
+  },
+  "status": {
+    "new": "Pending",
+    "waiting_on_staff": "Waiting for customer support response",
+    "waiting_on_customer": "Awaiting user response",
+    "resolved": "Resolved"
+  },
+  "evaluation": {
+    "title": "Service Quality Feedback",
+    "useful": "Useful",
+    "useless": "Useless",
+    "content_hint": "Additional Information (Optional)",
+    "created_text": "Your feedback has been received, thank you for your feedback!",
+    "change": "Edit Review"
+  },
+  "validation": {
+    "required": "The content cannot be empty",
+    "attachment_too_big": "Upload Failed",
+    "attachment_too_big_text": "Attachment size cannot exceed {{size}} {{unit}}",
+    "attachment_not_uploaded": "Please wait for the attachment to finish uploading.",
+    "number_required": "Cannot contain non-numeric characters",
+    "invalid": "Invalid input"
+  },
+  "network_error": "Network error, please try reconnecting",
+  "network_error.retry": "Reconnect"
+}
