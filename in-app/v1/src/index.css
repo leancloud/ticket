@@ -7,7 +7,7 @@ html {
 }
 
 body {
-  @apply flex flex-col min-h-full text-base bg-[#E5E5E5] text-[#222];
+  @apply flex flex-col min-h-full text-base bg-[#E5E5E5] text-[#222] h-[100%] overflow-hidden;
 
   &.rnd {
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='100px' width='100px'><text transform='translate(20, 60) rotate(-45)' fill='rgba(0,0,0,.08)' font-size='16' font-family='sans-serif'>测试版</text></svg>");
@@ -15,7 +15,11 @@ body {
 }
 
 #root {
-  @apply flex flex-col grow w-full max-w-3xl mx-auto;
+  @apply flex flex-col w-full h-[100%] mb-2 overflow-y-auto;
+}
+
+.main{
+  @apply flex flex-col mx-auto max-w-3xl w-full min-h-full;
 }
 
 button:focus,

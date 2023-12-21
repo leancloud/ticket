@@ -126,24 +126,26 @@ export default function App() {
 
 const AppRoutes = () => {
   return (
-    <Routes>
-      <Route path="/test" element={<Test />} />
-      <Route path="/login" element={<LogIn />} />
-      <Route path="/" element={<Home />} />
-      <Route
-        path="/tickets/*"
-        element={
-          <RequireAuth>
-            <Tickets />
-          </RequireAuth>
-        }
-      />
-      <Route path="/categories/:id" element={<Categories />} />
-      <Route path="/categories/preview" element={<Preview />} />
-      <Route path="/categories" element={<TopCategories />} />
-      <Route path="/articles/*" element={<Articles />} />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <div className="main">
+      <Routes>
+        <Route path="/test" element={<Test />} />
+        <Route path="/login" element={<LogIn />} />
+        <Route path="/" element={<Home />} />
+        <Route
+          path="/tickets/*"
+          element={
+            <RequireAuth>
+              <Tickets />
+            </RequireAuth>
+          }
+        />
+        <Route path="/categories/:id" element={<Categories />} />
+        <Route path="/categories/preview" element={<Preview />} />
+        <Route path="/categories" element={<TopCategories />} />
+        <Route path="/articles/*" element={<Articles />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </div>
   );
 };
 
