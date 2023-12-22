@@ -103,7 +103,7 @@ const Input = memo(({ className, ...props }: ComponentPropsWithoutRef<'div'>) =>
                   : 'text-[#888888]',
                 'transition-colors',
                 'rounded-[15px]',
-                'h-[1.875rem]',
+                'leading-[30px]',
                 'flex',
                 'items-center'
               )}

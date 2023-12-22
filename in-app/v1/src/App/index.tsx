@@ -115,7 +115,9 @@ export default function App() {
         <ErrorBoundary>
           <Suspense fallback={<Loading fullScreen />}>
             <SDKProvider>
-              <AppRoutes />
+              <div className="main">
+                <AppRoutes />
+              </div>
             </SDKProvider>
           </Suspense>
         </ErrorBoundary>
