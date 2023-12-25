@@ -245,7 +245,7 @@ interface JobData {
 }
 
 export default async function (install: Function) {
-  const config: TapTapDWConfig = await Config.get('taptap_dw');
+  const config = await Config.get<TapTapDWConfig>('taptap_dw');
   if (!config || config.enabled === false) {
     return;
   }

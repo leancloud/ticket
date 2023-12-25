@@ -1,4 +1,9 @@
+import { Config } from '@/config';
 import { roleService } from './role';
+
+interface CollaboratorPrivileges {
+  createPublicReply?: boolean;
+}
 
 export class CollaboratorService {
   async getCollaboratorRole() {
@@ -22,6 +27,14 @@ export class CollaboratorService {
   async getCollaborators() {
     const collaboratorRole = await this.getCollaboratorRole();
     return roleService.getRoleUsers(collaboratorRole.id);
+  }
+
+  setPrivileges(value: CollaboratorPrivileges) {
+    return Config.set('collaborator.privileges', value);
+  }
+
+  getPrivileges(cache?: boolean) {
+    return Config.get<CollaboratorPrivileges>('collaborator.privileges', { cache });
   }
 }
 

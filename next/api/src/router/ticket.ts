@@ -34,6 +34,7 @@ import { FileResponse } from '@/response/file';
 import { File } from '@/model/File';
 import { lookupIp } from '@/utils/ip';
 import { ticketService } from '@/service/ticket';
+import { collaboratorService } from '@/service/collaborator';
 
 const router = new Router().use(auth);
 
@@ -1001,6 +1002,12 @@ router.post('/:id/replies', async (ctx) => {
     if (isCustomerService) {
       return true;
     }
+    if (isCollaborator) {
+      const privileges = await collaboratorService.getPrivileges();
+      if (privileges?.createPublicReply) {
+        return true;
+      }
+    }
     if (ticket.organizationId) {
       return organizationService.isOrganizationMember(ticket.organizationId, currentUser.id);
     }
@@ -1009,7 +1016,7 @@ router.post('/:id/replies', async (ctx) => {
 
   if (data.internal) {
     if (!isStaff && !isCollaborator) {
-      ctx.throw(403, 'Internal reply not allowed');
+      delete data.internal;
     }
   } else {
     if (!(await canCreatePublicReply())) {

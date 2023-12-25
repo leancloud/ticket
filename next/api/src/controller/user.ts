@@ -110,7 +110,7 @@ export class UserController {
   @Get(':id')
   @UseMiddlewares(auth, staffOnly)
   @ResponseBody(UserResponse)
-  findOne(@Param('id', new FindModelPipe(User, {useMasterKey: true})) user: User) {
+  findOne(@Param('id', new FindModelPipe(User, { useMasterKey: true })) user: User) {
     return user;
   }
 

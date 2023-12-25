@@ -224,7 +224,7 @@ interface IntelligentOperationConfig {
 }
 
 export default async function (install: Function) {
-  const config: IntelligentOperationConfig = await Config.get('intelligent_operation');
+  const config = await Config.get<IntelligentOperationConfig>('intelligent_operation');
   if (!config || !config.enabled) {
     return;
   }
