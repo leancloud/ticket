@@ -6,6 +6,7 @@ import { useCollaborators, useCreateCollaborator, useDeleteCollaborator } from '
 import { Button, Modal, Table, Typography } from '@/components/antd';
 import { UserSelect } from '@/components/common';
 import { UserLabel } from '@/App/Admin/components';
+import { Privileges } from './Privileges';
 
 const { Column } = Table;
 const { Title, Paragraph } = Typography;
@@ -77,10 +78,7 @@ export function Collaborators() {
       <Typography>
         <Title level={2}>协作者</Title>
         <Paragraph>协作者可以：</Paragraph>
-        <ul>
-          <li>查看分配给其的工单</li>
-          <li>创建内部回复</li>
-        </ul>
+        <Privileges />
       </Typography>
 
       <div className="flex justify-end mb-5">
