@@ -16,7 +16,7 @@ import {
   UseMiddlewares,
 } from '@/common/http';
 import { ParseBoolPipe, ZodValidationPipe } from '@/common/pipe';
-import { customerServiceOnly, staffOnly } from '@/middleware';
+import { customerServiceOnly, systemRoleMemberGuard } from '@/middleware';
 import { UpdateData } from '@/orm';
 import router from '@/router/ticket';
 import { Ticket } from '@/model/Ticket';
@@ -31,7 +31,7 @@ const createAssociatedTicketSchema = z.object({
 @Controller({ router, path: 'tickets' })
 export class TicketController {
   @Get(':id/associated-tickets')
-  @UseMiddlewares(staffOnly)
+  @UseMiddlewares(systemRoleMemberGuard)
   @ResponseBody(TicketListItemResponse)
   getAssociatedTickets(@Ctx() ctx: Context) {
     const ticket = ctx.state.ticket as Ticket;
@@ -114,7 +114,7 @@ export class TicketController {
   // The :id is not used to avoid fetch ticket data by router.param
   // This API may be called frequently, and we do not care if the ticket exists
   @Get(':roomId/viewers')
-  @UseMiddlewares(staffOnly)
+  @UseMiddlewares(systemRoleMemberGuard)
   async getTicketViewers(
     @Param('roomId') id: string,
     @Query('excludeSelf', ParseBoolPipe) excludeSelf: boolean,
