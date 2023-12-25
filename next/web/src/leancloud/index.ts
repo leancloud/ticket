@@ -6,7 +6,6 @@ import { liveQueryModule } from 'open-leancloud-storage/live-query';
 import axios from 'axios';
 import { useQuery } from 'react-query';
 import { atom, selector, useRecoilValue, useSetRecoilState } from 'recoil';
-import { mergeWith } from 'lodash-es';
 
 LC.use(authModule);
 LC.use(cloudModule);
@@ -85,51 +84,11 @@ export const GroupPermissionDescriptions: Record<keyof CustomerServicePermission
   statistics: '工单统计',
 };
 
-interface GroupData {
-  permissions?: CustomerServicePermissions;
-}
-
-const currentUserGroupsState = selector<GroupData[]>({
-  key: 'currentUserGroups',
-  get: async ({ get }) => {
-    const currentUser = get(currentUserState);
-    if (!currentUser) {
-      return [];
-    }
-    try {
-      const groupRoles = await auth
-        .queryRole()
-        .where('name', 'not-in', ['customerService', 'staff', 'admin', 'collaborator'])
-        .where('users', '==', db.class('_User').object(currentUser.id))
-        .find();
-
-      const groups = await db
-        .query('Group')
-        .where(
-          'role',
-          'in',
-          groupRoles.map((role) => db.class('_Role').object(role.id))
-        )
-        .find();
-
-      return groups.map((group) => group.toJSON());
-    } catch {
-      return [];
-    }
-  },
-});
-
 const currentUserPermissions = selector({
   key: 'currentUserPermissions',
-  get: async ({ get }) => {
-    const groups = get(currentUserGroupsState);
-
-    return groups
-      .map((g) => ({ ...DefaultGroupPermission, ...g.permissions }))
-      .reduce<CustomerServicePermissions>(
-        (acc, cur) => mergeWith(acc, cur, (v1: boolean, v2: boolean) => v1 || v2),
-        {} as CustomerServicePermissions
-      );
+  get: async () => {
+    const res = await http.get<CustomerServicePermissions>('/api/2/users/me/permissions');
+    return res.data;
   },
 });
 
@@ -137,17 +96,9 @@ export const useCurrentUserPermissions = () => useRecoilValue(currentUserPermiss
 
 const currentUserRolesState = selector({
   key: 'currentUserRoles',
-  get: async ({ get }) => {
-    const currentUser = get(currentUserState);
-    if (!currentUser) {
-      return [];
-    }
-    return auth
-      .queryRole()
-      .where('name', 'in', ['customerService', 'staff', 'admin'])
-      .where('users', '==', db.class('_User').object(currentUser.id))
-      .find()
-      .then((roles) => roles.map((role) => role.name));
+  get: async () => {
+    const res = await http.get<string[]>('/api/2/users/me/system-roles');
+    return res.data;
   },
 });
 
