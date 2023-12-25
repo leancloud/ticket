@@ -15,7 +15,6 @@ import Settings from './Settings';
 import Stats from './Stats';
 import { NewTicket } from '../Tickets/New';
 import { Verification } from './Verification';
-import LeanChat from './LeanChat';
 
 const NavigateToAvailablePage = () => {
   const isCustomerService = useCurrentUserIsCustomerService();
@@ -89,7 +88,6 @@ export default function AdminPage() {
                 }
               />
               <Route path="/verification/*" element={<Verification />} />
-              <Route path="/leanchat" element={<LeanChat />} />
               <Route path="*" element={<NavigateToAvailablePage />} />
             </Routes>
           </div>

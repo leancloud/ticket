@@ -65,9 +65,6 @@ export function Sidebar(props: ComponentPropsWithoutRef<'aside'>) {
             </Path>
           </RequirePermission>
         }
-        <Path to="/admin/leanchat" title="在线客服">
-          <BsChatSquareDots className="m-auto w-4 h-4" />
-        </Path>
         {isAdmin && (
           <Path to="/admin/settings" title="设置">
             <AiOutlineSetting className="m-auto w-5 h-5" />
