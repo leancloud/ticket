@@ -59,11 +59,16 @@ module.exports = (router) => {
                   useMasterKey: true,
                 })
                 console.log('new user created', user.id)
-                const role = await new AV.Query(AV.Role)
-                  .equalTo('name', process.env.AUTO_ASSIGN_XD_STAFF_ROLE ? 'staff' : 'collaborator')
-                  .first()
-                role.getUsers().add(user)
-                await role.save(undefined, { useMasterKey: true })
+                if (email.endsWith('@xd.com')) {
+                  const role = await new AV.Query(AV.Role)
+                    .equalTo(
+                      'name',
+                      process.env.AUTO_ASSIGN_XD_STAFF_ROLE ? 'staff' : 'collaborator'
+                    )
+                    .first()
+                  role.getUsers().add(user)
+                  await role.save(undefined, { useMasterKey: true })
+                }
                 return done(undefined, user)
               }
               return done(error)
