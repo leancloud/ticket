@@ -1,3 +1,7 @@
+import { Context } from 'koa';
+import { z } from 'zod';
+import _ from 'lodash';
+
 import {
   Body,
   Controller,
@@ -14,12 +18,12 @@ import {
 } from '@/common/http';
 import { FindModelPipe, ParseCsvPipe, TrimPipe, ZodValidationPipe } from '@/common/pipe';
 import { auth, customerServiceOnly, staffOnly, systemRoleMemberGuard } from '@/middleware';
+import { DefaultGroupPermission } from '@/model/Group';
 import { transformToHttpError, User } from '@/model/User';
 import { UserResponse } from '@/response/user';
+import { roleService } from '@/service/role';
 import { getVerifiedPayloadWithSubRequired, processKeys, signPayload } from '@/utils/jwt';
 import { withAsyncSpan } from '@/utils/trace';
-import { Context } from 'koa';
-import { z } from 'zod';
 
 const LegacyXDAuthSchema = z.object({
   type: z.literal('legacy-xd').default('legacy-xd'),
@@ -103,8 +107,24 @@ export class UserController {
   @Get('me')
   @UseMiddlewares(auth)
   @ResponseBody(UserResponse)
-  getMe(@CurrentUser() currentUser: User) {
+  getMyself(@CurrentUser() currentUser: User) {
     return currentUser;
+  }
+
+  @Get('me/permissions')
+  @UseMiddlewares(auth)
+  async getMyPermissions(@CurrentUser() currentUser: User) {
+    const groups = await currentUser.getGroups();
+    return groups.reduce(
+      (permissions, group) => _.mergeWith(permissions, group.permissions, (v1, v2) => v1 || v2),
+      DefaultGroupPermission
+    );
+  }
+
+  @Get('me/system-roles')
+  @UseMiddlewares(auth)
+  getMySystemRoles(@CurrentUser() currentUser: User) {
+    return roleService.getSystemRolesForUser(currentUser.id);
   }
 
   @Get(':id')
