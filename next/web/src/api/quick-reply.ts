@@ -7,7 +7,7 @@ export interface QuickReplySchema {
   id: string;
   name: string;
   content: string;
-  userId?: string;
+  userId?: string | null;
   fileIds?: string[];
   tags?: string[];
 }

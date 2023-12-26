@@ -187,7 +187,7 @@ export function QuickReplyDetail() {
       id: id!,
       name: data.name,
       content: data.content,
-      userId: data.visibility === 'private' ? currentUser?.id : undefined,
+      userId: data.visibility === 'private' ? currentUser?.id : null,
       fileIds: data.fileIds,
       tags: data.tags,
     });
