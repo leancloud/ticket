@@ -15,39 +15,39 @@ import { createQueue } from '@/queue';
 export class SearchTicketService {
   private esClient?: Client;
   private indexName: string;
-  private syncQueue: Queue<SyncTicketSearchDocumentJobData>;
+  private syncQueue?: Queue<SyncTicketSearchDocumentJobData>;
 
   constructor() {
-    const { ELASTICSEARCH_URL_SEARCH, LEANCLOUD_APP_ID } = process.env;
-    if (ELASTICSEARCH_URL_SEARCH) {
+    const { ELASTICSEARCH_URL_SEARCH, ELASTICSEARCH_ENABLED, LEANCLOUD_APP_ID } = process.env;
+    if (ELASTICSEARCH_URL_SEARCH && ELASTICSEARCH_ENABLED) {
       this.esClient = new Client({
         node: ELASTICSEARCH_URL_SEARCH,
+      });
+
+      this.syncQueue = createQueue('ticket_search', {
+        defaultJobOptions: {
+          removeOnComplete: true,
+          removeOnFail: true,
+        },
+        limiter: {
+          max: 10,
+          duration: 1000,
+        },
+      });
+
+      this.syncQueue.process(async (job) => {
+        switch (job.data.type) {
+          case 'syncById':
+            await this.syncTicketsById(job.data.ids);
+            break;
+          case 'syncByRange':
+            await this.processSyncByRangeJob(job.data);
+            break;
+        }
       });
     }
 
     this.indexName = `ticket-${LEANCLOUD_APP_ID!.slice(0, 8).toLowerCase()}`;
-
-    this.syncQueue = createQueue('ticket_search', {
-      defaultJobOptions: {
-        removeOnComplete: true,
-        removeOnFail: true,
-      },
-      limiter: {
-        max: 10,
-        duration: 1000,
-      },
-    });
-
-    this.syncQueue.process(async (job) => {
-      switch (job.data.type) {
-        case 'syncById':
-          await this.syncTicketsById(job.data.ids);
-          break;
-        case 'syncByRange':
-          await this.processSyncByRangeJob(job.data);
-          break;
-      }
-    });
   }
 
   createSearchDocument(ticket: Ticket, fieldValue?: TicketFieldValue) {
@@ -132,7 +132,7 @@ export class SearchTicketService {
   }
 
   async addSyncJob(ids: string[]) {
-    await this.syncQueue.add({ type: 'syncById', ids });
+    await this.syncQueue?.add({ type: 'syncById', ids });
   }
 
   private async processSyncByRangeJob(
@@ -158,7 +158,7 @@ export class SearchTicketService {
         tickets.length
       } tickets, (${tickets[0].createdAt.toISOString()},${lastCreatedAt})`
     );
-    await this.syncQueue.add(
+    await this.syncQueue?.add(
       {
         ...data,
         start: lastCreatedAt,
