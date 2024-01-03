@@ -3,7 +3,7 @@ import AV from 'leancloud-storage';
 import _ from 'lodash';
 import UAParser from 'ua-parser-js';
 
-import { Config, config } from '@/config';
+import { config } from '@/config';
 import * as yup from '@/utils/yup';
 import { auth, customerServiceOnly, include, parseRange, sort } from '@/middleware';
 import { Model, QueryBuilder } from '@/orm';
@@ -35,6 +35,7 @@ import { File } from '@/model/File';
 import { lookupIp } from '@/utils/ip';
 import { ticketService } from '@/service/ticket';
 import { collaboratorService } from '@/service/collaborator';
+import { searchTicketService } from '@/service/search-ticket';
 
 const router = new Router().use(auth);
 
@@ -1162,6 +1163,8 @@ router.put('/:id/custom-fields', async (ctx) => {
     );
     await opsLogCreator.create();
   }
+
+  searchTicketService.addSyncJob([ticket.id]);
 
   ctx.body = {};
 });
