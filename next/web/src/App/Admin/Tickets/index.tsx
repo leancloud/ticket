@@ -88,15 +88,11 @@ function useSmartSearchTickets({
   const { fieldId, textValue } = filters as FieldFilters;
 
   const useFieldSearchResult = useSearchTicketCustomField(
-    `values.field:${fieldId ? encodeURIComponent(fieldId) : '*'} AND values.value:${
-      textValue ? encodeURIComponent(textValue) : '*'
-    }${
-      dateRange
-        ? ` AND createdAt:[${dateRange.from ? `"${dateRange.from.toISOString()}"` : '*'} TO ${
-            dateRange.to ? `"${dateRange.to.toISOString()}"` : '*'
-          }]`
-        : ''
-    }`,
+    {
+      fieldId,
+      fieldValue: textValue,
+      createdAt: dateRange ? [dateRange.from, dateRange.to] : undefined,
+    },
     {
       enabled: isFieldSearch,
     }
@@ -120,11 +116,7 @@ function TicketListView() {
   const [localFilters, setLocalFilters] = useLocalFilters();
   const [type] = useTicketSwitchType();
 
-  const {
-    data: tickets,
-    totalCount,
-    isFetching,
-  } = useSmartSearchTickets({
+  const { data: tickets, totalCount, isFetching } = useSmartSearchTickets({
     page,
     pageSize,
     orderKey,
