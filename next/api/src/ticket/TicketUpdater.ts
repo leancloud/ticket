@@ -9,9 +9,9 @@ import { OperateAction, OpsLogCreator } from '@/model/OpsLog';
 import { Organization } from '@/model/Organization';
 import { Evaluation, Status, Tag, Ticket } from '@/model/Ticket';
 import { systemUser, TinyUserInfo, User } from '@/model/User';
-
 import { TinyReplyInfo } from '@/model/Reply';
 import { TicketLog } from '@/model/TicketLog';
+import { searchTicketService } from '@/service/search-ticket';
 
 export interface UpdateOptions {
   useMasterKey?: boolean;
@@ -356,6 +356,8 @@ export class TicketUpdater {
       // TODO: next 支持定义云函数后改回本地调用
       AV.Cloud.run('statsTicket', { ticketId: ticket.id }, { remote: true });
     }
+
+    await searchTicketService.addSyncJob([ticket.id]);
 
     return ticket;
   }

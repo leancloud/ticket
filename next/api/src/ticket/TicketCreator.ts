@@ -14,6 +14,7 @@ import { FieldValue, TicketFieldValue } from '@/model/TicketFieldValue';
 import { User, systemUser } from '@/model/User';
 import { TicketLog } from '@/model/TicketLog';
 import { allowedTicketLanguages } from '@/utils/locale';
+import { searchTicketService } from '@/service/search-ticket';
 import { durationMetricService } from './services/duration-metric';
 
 export class TicketCreator {
@@ -306,6 +307,7 @@ export class TicketCreator {
     });
 
     await durationMetricService.createMetric(ticket);
+    await searchTicketService.addSyncJob([ticket.id]);
 
     return ticket;
   }

@@ -23,10 +23,57 @@ import { Ticket } from '@/model/Ticket';
 import { TicketListItemResponse } from '@/response/ticket';
 import { User } from '@/model/User';
 import { redis } from '@/cache';
+import { searchTicketService } from '@/service/search-ticket';
+import { SearchTicketFilters, SearchTicketOptions } from '@/interfaces/ticket';
+import { categoryService } from '@/category';
 
 const createAssociatedTicketSchema = z.object({
   ticketId: z.string(),
 });
+
+const csvSchema = <T>(schema: z.Schema<T>) =>
+  z.preprocess((value) => (typeof value === 'string' ? value.split(',') : value), z.array(schema));
+
+const nullableStringSchema = z.string().transform((value) => (value === 'null' ? null : value));
+
+const dateRangeSchema = z.preprocess((value) => {
+  if (typeof value === 'string') {
+    return value
+      .split('..')
+      .slice(0, 2)
+      .map((v) => (v && v !== '*' ? new Date(v) : undefined));
+  }
+  return value;
+}, z.tuple([z.date().optional(), z.date().optional()]));
+
+const searchTicketSchema = z
+  .object({
+    authorId: z.string(),
+    assigneeId: csvSchema(nullableStringSchema),
+    categoryId: csvSchema(z.string()),
+    rootCategoryId: z.string(),
+    product: z.string(),
+    groupId: csvSchema(nullableStringSchema),
+    reporterId: csvSchema(nullableStringSchema),
+    participantId: csvSchema(z.string()),
+    status: csvSchema(z.enum(['50', '120', '160', '220', '250', '280'])),
+    'evaluation.star': z.enum(['0', '1']),
+    'evaluation.ts': dateRangeSchema,
+    createdAt: dateRangeSchema,
+    tagKey: z.string(),
+    tagValue: z.string(),
+    privateTagKey: z.string(),
+    privateTagValue: z.string(),
+    language: csvSchema(z.string()),
+    fieldId: z.string(),
+    fieldValue: z.string(),
+    keyword: z.string(),
+    where: z.string(), // Only for metaData
+    orderBy: z.string(),
+    page: z.preprocess(Number, z.number().int().min(1)),
+    pageSize: z.preprocess(Number, z.number().int().min(0).max(100)),
+  })
+  .partial();
 
 @Controller({ router, path: 'tickets' })
 export class TicketController {
@@ -132,5 +179,132 @@ export class TicketController {
       .exec();
     const viewers: string[] = _.last(results)?.[1] || [];
     return excludeSelf ? viewers.filter((id) => id !== user.id) : viewers;
+  }
+
+  @Get('search/v2')
+  @UseMiddlewares(customerServiceOnly)
+  @ResponseBody(TicketListItemResponse)
+  async searchTickets(
+    @Ctx() ctx: Context,
+    @Query(new ZodValidationPipe(searchTicketSchema)) query: z.infer<typeof searchTicketSchema>
+  ) {
+    const searchOptions: SearchTicketOptions = {
+      filters: {
+        authorId: query.authorId,
+        assigneeId: query.assigneeId,
+        groupId: query.groupId,
+        reporterId: query.reporterId,
+        joinedCustomerServiceId: query.participantId,
+        status: query.status?.map(Number),
+        language: query.language,
+        keyword: query.keyword,
+      },
+    };
+
+    if (query.rootCategoryId) {
+      const categories = await categoryService.getSubCategories(query.rootCategoryId);
+      let categoryIds = categories.map((c) => c.id);
+      categoryIds.push(query.rootCategoryId);
+      if (query.categoryId) {
+        categoryIds.push(...query.categoryId);
+      }
+      categoryIds = _.uniq(categoryIds);
+      if (categoryIds.length) {
+        searchOptions.filters.categoryId = categoryIds;
+      }
+    }
+
+    if (query['evaluation.star']) {
+      searchOptions.filters.evaluationStar = Number(query['evaluation.star']);
+    }
+    if (query['evaluation.ts']) {
+      const [from, to] = query['evaluation.ts'];
+      searchOptions.filters.evaluationTs = {
+        from: from?.toISOString(),
+        to: to?.toISOString(),
+      };
+    }
+
+    if (query.createdAt) {
+      const [from, to] = query.createdAt;
+      searchOptions.filters.createdAt = {
+        from: from?.toISOString(),
+        to: to?.toISOString(),
+      };
+    }
+
+    if (query.tagKey && query.tagValue) {
+      searchOptions.filters.tags = [
+        {
+          key: query.tagKey,
+          value: query.tagValue,
+        },
+      ];
+    }
+    if (query.privateTagKey && query.privateTagValue) {
+      searchOptions.filters.privateTags = [
+        {
+          key: query.privateTagKey,
+          value: query.privateTagValue,
+        },
+      ];
+    }
+
+    if (query.orderBy) {
+      const [sortField, order] = query.orderBy.endsWith('-asc')
+        ? ([query.orderBy.slice(0, -4), 'asc'] as const)
+        : query.orderBy.endsWith('-desc')
+        ? ([query.orderBy.slice(0, -5), 'desc'] as const)
+        : ([query.orderBy, 'asc'] as const);
+      searchOptions.sortField = sortField;
+      searchOptions.order = order;
+    }
+
+    if (query.where) {
+      // 兼容旧版 where.metaData 的用法
+      try {
+        const where = JSON.parse(query.where);
+        if (_.isPlainObject(where)) {
+          const metaData: SearchTicketFilters['metaData'] = [];
+          Object.entries(where).forEach(([key, value]) => {
+            if (key.startsWith('metaData.')) {
+              switch (typeof value) {
+                case 'string':
+                  metaData.push({ key: key.slice(9), value });
+                  break;
+                case 'number':
+                  metaData.push({ key: key.slice(9), value: value.toString() });
+                  break;
+              }
+            }
+          });
+          if (metaData.length) {
+            searchOptions.filters.metaData = metaData;
+          }
+        }
+      } catch {} // ignore
+    }
+
+    const { page = 1, pageSize = 10 } = query;
+    searchOptions.skip = (page - 1) * pageSize;
+    searchOptions.limit = pageSize;
+
+    const result = await searchTicketService.search(searchOptions);
+    if (!result) {
+      throw new BadRequestError('New search not enabled');
+    }
+
+    ctx.set('X-Total-Count', result.totalCount.toString());
+
+    if (!result.ids.length) {
+      return [];
+    }
+
+    const tickets = await Ticket.queryBuilder()
+      .where('objectId', 'in', result.ids)
+      .find({ useMasterKey: true });
+
+    const ticketById = _.keyBy(tickets, (t) => t.id);
+    return result.ids.map((id) => ticketById[id]).filter(Boolean);
   }
 }
