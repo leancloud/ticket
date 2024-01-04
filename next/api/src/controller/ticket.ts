@@ -201,10 +201,11 @@ export class TicketController {
       },
     };
 
-    if (query.rootCategoryId) {
-      const categories = await categoryService.getSubCategories(query.rootCategoryId);
+    const rootCategoryId = query.product ?? query.rootCategoryId;
+    if (rootCategoryId) {
+      const categories = await categoryService.getSubCategories(rootCategoryId);
       let categoryIds = categories.map((c) => c.id);
-      categoryIds.push(query.rootCategoryId);
+      categoryIds.push(rootCategoryId);
       if (query.categoryId) {
         categoryIds.push(...query.categoryId);
       }
@@ -246,6 +247,15 @@ export class TicketController {
         {
           key: query.privateTagKey,
           value: query.privateTagValue,
+        },
+      ];
+    }
+
+    if (query.fieldId && query.fieldValue) {
+      searchOptions.filters.fields = [
+        {
+          id: query.fieldId,
+          value: query.fieldValue,
         },
       ];
     }
