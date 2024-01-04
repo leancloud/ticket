@@ -18,8 +18,8 @@ export class SearchTicketService {
   private syncQueue?: Queue<SyncTicketSearchDocumentJobData>;
 
   constructor() {
-    const { ELASTICSEARCH_URL_SEARCH, ENABLE_SEARCH_V2, LEANCLOUD_APP_ID } = process.env;
-    if (ELASTICSEARCH_URL_SEARCH && ENABLE_SEARCH_V2) {
+    const { ELASTICSEARCH_URL_SEARCH, LEANCLOUD_APP_ID } = process.env;
+    if (ELASTICSEARCH_URL_SEARCH) {
       this.esClient = new Client({
         node: ELASTICSEARCH_URL_SEARCH,
       });
