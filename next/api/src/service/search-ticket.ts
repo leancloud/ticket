@@ -19,6 +19,9 @@ export class SearchTicketService {
 
   constructor() {
     const { ELASTICSEARCH_URL_SEARCH, ENABLE_SEARCH_V2, LEANCLOUD_APP_ID } = process.env;
+
+    console.log({ ELASTICSEARCH_URL_SEARCH, ENABLE_SEARCH_V2, LEANCLOUD_APP_ID });
+
     if (ELASTICSEARCH_URL_SEARCH && ENABLE_SEARCH_V2) {
       this.esClient = new Client({
         node: ELASTICSEARCH_URL_SEARCH,
