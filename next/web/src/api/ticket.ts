@@ -168,11 +168,7 @@ async function searchTickets(
     orderBy: `${orderKey}-${orderType}`,
   };
 
-  const url = import.meta.env.VITE_ENABLE_SEARCH_V2
-    ? '/api/2/tickets/search/v2'
-    : '/api/2/tickets/search';
-
-  const { headers, data } = await http.get(url, { params });
+  const { headers, data } = await http.get('/api/2/tickets/search/v2', { params });
   return { tickets: data, totalCount: parseInt(headers['x-total-count']) };
 }
 
@@ -326,30 +322,14 @@ async function searchTicketCustomField({
   fieldValue,
   createdAt,
 }: SearchTicketCustomFieldOptions) {
-  if (import.meta.env.VITE_ENABLE_SEARCH_V2) {
-    const res = await http.get<TicketSchema[]>('/api/2/tickets/search/v2', {
-      params: {
-        fieldId,
-        fieldValue,
-        createdAt: createdAt?.map((d) => (d ? d.toISOString() : '*')).join('..'),
-      },
-    });
-    return { tickets: res.data, totalCount: Number(res.headers['x-total-count']) };
-  }
-
-  const q = `values.field:${fieldId ? encodeURIComponent(fieldId) : '*'} AND values.value:${
-    fieldValue ? encodeURIComponent(fieldValue) : '*'
-  }${
-    createdAt
-      ? ` AND createdAt:[${createdAt[0] ? `"${createdAt[0].toISOString()}"` : '*'} TO ${
-          createdAt[1] ? `"${createdAt[1].toISOString()}"` : '*'
-        }]`
-      : ''
-  }`;
-  const { data, headers } = await http.post<TicketSchema[]>('/api/2/tickets/search-custom-field', {
-    q,
+  const res = await http.get<TicketSchema[]>('/api/2/tickets/search/v2', {
+    params: {
+      fieldId,
+      fieldValue,
+      createdAt: createdAt?.map((d) => (d ? d.toISOString() : '*')).join('..'),
+    },
   });
-  return { tickets: data, totalCount: Number(headers['x-total-count']) };
+  return { tickets: res.data, totalCount: Number(res.headers['x-total-count']) };
 }
 
 export function useSearchTicketCustomField(

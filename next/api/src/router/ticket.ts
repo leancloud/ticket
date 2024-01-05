@@ -1,5 +1,4 @@
 import Router from '@koa/router';
-import AV from 'leancloud-storage';
 import _ from 'lodash';
 import UAParser from 'ua-parser-js';
 
@@ -287,130 +286,6 @@ router.get(
         includeMetaKeys: params.includeMetaKeys,
       })
     );
-  }
-);
-
-const searchTicketParamsSchema = ticketFiltersSchema.shape({
-  keyword: yup.string().required(),
-});
-
-router.get(
-  '/search',
-  sort('orderBy', ['status', 'createdAt', 'updatedAt']),
-  parseRange('createdAt'),
-  async (ctx) => {
-    const currentUser = ctx.state.currentUser as User;
-    const params = searchTicketParamsSchema.validateSync(ctx.query);
-
-    const sortFields = sort.get(ctx);
-
-    const categoryIds = new Set(params.categoryId);
-    if (params.rootCategoryId) {
-      categoryIds.add(params.rootCategoryId);
-      const subCategories = await categoryService.getSubCategories(params.rootCategoryId);
-      subCategories.forEach((c) => categoryIds.add(c.id));
-    }
-
-    const conditions = [`(title:${params.keyword} OR content:${params.keyword})`];
-
-    const addEqCondition = (field: string, value: string | number | (string | number)[]) => {
-      if (Array.isArray(value)) {
-        if (value.includes('null')) {
-          const nonNullValue = value.filter((v) => v !== 'null');
-          if (nonNullValue.length) {
-            if (nonNullValue.length === 1) {
-              conditions.push(`(_missing_:${field} OR ${field}:${nonNullValue[0]})`);
-            } else {
-              conditions.push(`(_missing_:${field} OR ${field}:(${nonNullValue.join(' OR ')}))`);
-            }
-          } else {
-            conditions.push(`_missing_:${field}`);
-          }
-        } else {
-          if (value.length === 1) {
-            conditions.push(`${field}:${value[0]}`);
-          } else {
-            conditions.push(`${field}:(${value.join(' OR ')})`);
-          }
-        }
-      } else {
-        if (value === 'null') {
-          conditions.push(`_missing_:${field}`);
-        } else {
-          conditions.push(`${field}:${value}`);
-        }
-      }
-    };
-
-    if (params.authorId) {
-      addEqCondition('author.objectId', params.authorId);
-    }
-    if (params.assigneeId) {
-      addEqCondition('assignee.objectId', params.assigneeId);
-    }
-    if (params.groupId) {
-      addEqCondition('group.objectId', params.groupId);
-    }
-    if (params.reporterId) {
-      addEqCondition('reporter.objectId', params.reporterId);
-    }
-    if (params.participantId) {
-      addEqCondition('joinedCustomerServices.objectId', params.participantId);
-    }
-    if (categoryIds.size) {
-      addEqCondition('category.objectId', Array.from(categoryIds));
-    }
-    if (params.status) {
-      addEqCondition('status', params.status);
-    }
-    if (params['evaluation.star'] !== undefined) {
-      addEqCondition('evaluation.star', params['evaluation.star']);
-    }
-    if (params['evaluation.ts']) {
-      const from = params['evaluation.ts'][0]?.toISOString() ?? '*';
-      const to = params['evaluation.ts'][1]?.toISOString() ?? '*';
-      conditions.push(`evaluation.ts:[${from} TO ${to}]`);
-    }
-    if (params.createdAtFrom || params.createdAtTo) {
-      const from = params.createdAtFrom?.toISOString() ?? '*';
-      const to = params.createdAtTo?.toISOString() ?? '*';
-      conditions.push(`createdAt:[${from} TO ${to}]`);
-    }
-    if (params.tagKey) {
-      addEqCondition('tags.key', params.tagKey);
-    }
-    if (params.tagValue) {
-      addEqCondition('tags.value', params.tagValue);
-    }
-    if (params.privateTagKey) {
-      addEqCondition('privateTags.key', params.privateTagKey);
-    }
-    if (params.privateTagValue) {
-      addEqCondition('privateTags.value', params.privateTagValue);
-    }
-
-    if (params.language) {
-      addEqCondition('language', params.language);
-    }
-
-    const queryString = conditions.join(' AND ');
-
-    const searchQuery = new AV.SearchQuery('Ticket');
-    searchQuery.queryString(queryString);
-    sortFields?.forEach(({ key, order }) => {
-      if (order === 'asc') {
-        searchQuery.addAscending(key);
-      } else {
-        searchQuery.addDescending(key);
-      }
-    });
-    searchQuery.skip((params.page - 1) * params.pageSize).limit(params.pageSize);
-
-    const ticketObjects = await searchQuery.find(currentUser.getAuthOptions());
-    const tickets = ticketObjects.map((o) => Ticket.fromAVObject(o as AV.Object));
-
-    ctx.set('X-Total-Count', searchQuery.hits().toString());
-    ctx.body = tickets.map((t) => new TicketListItemResponse(t));
   }
 );
 
@@ -1209,34 +1084,6 @@ router.get('/:id/custom-fields', async (ctx) => {
   });
 
   ctx.body = values;
-});
-
-const searchCustomFieldSchema = yup.object({
-  q: yup.string().trim().required(),
-});
-
-router.post('/search-custom-field', customerServiceOnly, async (ctx) => {
-  const { q } = searchCustomFieldSchema.validateSync(ctx.request.body);
-  const searchQuery = new AV.SearchQuery('TicketFieldValue');
-  searchQuery.queryString(q);
-  const results = await searchQuery.limit(1000).find({ useMasterKey: true });
-  if (results.length === 0) {
-    ctx.body = [];
-    return;
-  }
-
-  const ticketIds: string[] = results.map((t) => t.get('ticket').id);
-  const tickets = await Ticket.queryBuilder()
-    .where('objectId', 'in', ticketIds)
-    .preload('assignee')
-    .preload('author')
-    .preload('group')
-    .orderBy('createdAt', 'desc')
-    .limit(results.length)
-    .find({ useMasterKey: true });
-
-  ctx.set('X-Total-Count', searchQuery.hits().toString());
-  ctx.body = tickets.map((t) => new TicketListItemResponse(t));
 });
 
 export default router;
