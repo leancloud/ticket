@@ -305,6 +305,7 @@ export class SearchTicketService {
     const body = esb
       .requestBodySearch()
       .query(boolQuery)
+      .trackTotalHits(100000)
       .sort(esb.sort(sortField, order))
       .from(skip)
       .size(limit)
