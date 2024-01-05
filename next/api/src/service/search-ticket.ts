@@ -12,6 +12,11 @@ import { Ticket } from '@/model/Ticket';
 import { TicketFieldValue } from '@/model/TicketFieldValue';
 import { createQueue } from '@/queue';
 
+interface Term {
+  value: string;
+  isPhrase?: true;
+}
+
 export class SearchTicketService {
   private esClient?: Client;
   private indexName: string;
@@ -285,9 +290,16 @@ export class SearchTicketService {
       );
     }
     if (filters.keyword) {
-      boolQuery.filter(
-        esb.multiMatchQuery(['title', 'content', 'fields.value'], filters.keyword).operator('and')
-      );
+      const terms = this.parseTerms(filters.keyword);
+      terms.forEach((term) => {
+        const matchQuery = esb
+          .multiMatchQuery(['title', 'content', 'fields.value'], term.value)
+          .operator('and');
+        if (term.isPhrase) {
+          matchQuery.type('phrase');
+        }
+        boolQuery.filter(matchQuery);
+      });
     }
 
     const body = esb
@@ -307,6 +319,24 @@ export class SearchTicketService {
     const ids = res.body.hits.hits.map((t: any) => t._id) as string[];
     const totalCount = res.body.hits.total.value as number;
     return { ids, totalCount };
+  }
+
+  parseTerms(input: string) {
+    const regex = /"((?:\\.|[^"\\])*)"|(\S+)/g;
+    const terms: Term[] = [];
+
+    for (const [, phrase, term] of input.matchAll(regex)) {
+      if (phrase) {
+        const value = phrase.trim().replace(/\\(.)/g, '$1');
+        if (value) {
+          terms.push({ value, isPhrase: true });
+        }
+      } else if (term) {
+        terms.push({ value: term });
+      }
+    }
+
+    return terms;
   }
 }
 
