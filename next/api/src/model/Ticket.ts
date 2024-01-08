@@ -174,6 +174,10 @@ export class Ticket extends Model {
   @field()
   replyCount?: number;
 
+  /**
+   * @deprecated
+   * Use Notification#unreadCount
+   */
   @field()
   unreadCount?: number;
 
@@ -315,8 +319,6 @@ export class Ticket extends Model {
             updater.setfirstCustomerServiceReplyAt(reply.createdAt);
           }
         }
-        // XXX: 适配加速器的使用场景
-        updater.ONLY_FOR_TGB_increaseUnreadCount();
       }
       if (this.status < Status.FULFILLED) {
         if (isCustomerService) {

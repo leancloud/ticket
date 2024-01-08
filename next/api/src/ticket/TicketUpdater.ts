@@ -25,7 +25,6 @@ export class TicketUpdater {
 
   private data: UpdateData<Ticket> = {};
   private replyCountIncrement = 0;
-  private unreadCountIncrement = 0;
   private joinedCustomerServices: TinyUserInfo[] = [];
   private operateAction?: OperateAction;
   private shouldUpdateACL = false;
@@ -175,11 +174,6 @@ export class TicketUpdater {
     return this;
   }
 
-  ONLY_FOR_TGB_increaseUnreadCount(amount = 1) {
-    this.unreadCountIncrement += amount;
-    return this;
-  }
-
   addJoinedCustomerService(user: TinyUserInfo) {
     this.joinedCustomerServices.push(user);
     return this;
@@ -225,10 +219,6 @@ export class TicketUpdater {
       if (operator !== systemUser) {
         this.data.joinedCustomerServices = commands.pushUniq(operator.getTinyInfo());
       }
-      if (this.ticket.isClosed() !== Ticket.Status.isClosed(this.data.status)) {
-        // XXX: 适配加速器的使用场景
-        this.ONLY_FOR_TGB_increaseUnreadCount();
-      }
     }
     this.opsLogCreator.operate(action, operator);
 
@@ -239,7 +229,6 @@ export class TicketUpdater {
     return (
       !_.isEmpty(this.data) ||
       this.replyCountIncrement > 0 ||
-      this.unreadCountIncrement > 0 ||
       this.joinedCustomerServices.length > 0 ||
       this.operateAction !== undefined
     );
@@ -296,9 +285,6 @@ export class TicketUpdater {
     }
     if (this.replyCountIncrement) {
       this.data.replyCount = commands.inc(this.replyCountIncrement);
-    }
-    if (this.unreadCountIncrement) {
-      this.data.unreadCount = commands.inc(this.unreadCountIncrement);
     }
     if (this.joinedCustomerServices.length) {
       this.data.joinedCustomerServices = commands.pushUniq(...this.joinedCustomerServices);
