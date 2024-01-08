@@ -9,8 +9,8 @@ export type MetaOption<T = any> = (
       label: string;
     }
   | {
-      type: 'component';
-      component: ReactNode;
+      type: 'custom';
+      render: (options: { value: any; onChange: (value: any) => void }) => ReactNode;
     }
 ) & { key: string; predicate?: (data: T) => boolean; description?: string };
 
@@ -53,8 +53,11 @@ const MetaOptionsForm = <T extends SchemaWithMeta>({
         .filter(({ predicate }) => !record || !predicate || predicate(record))
         .map((option) => (
           <Form.Item key={option.key} help={option.description} className="!mb-0">
-            {option.type === 'component' ? (
-              option.component
+            {option.type === 'custom' ? (
+              option.render({
+                value: value?.[option.key],
+                onChange: handleFieldChangeFactory(option.key, (v) => v),
+              })
             ) : (
               <div>
                 {option.type === 'boolean' ? (
