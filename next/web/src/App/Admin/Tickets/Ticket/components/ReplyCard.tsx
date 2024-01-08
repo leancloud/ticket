@@ -127,7 +127,7 @@ export const BasicReplyCard = forwardRef<HTMLDivElement, BasicReplyCardProps>(
   }
 );
 
-interface ReplyCardProps {
+export interface ReplyCardProps {
   id: string;
   author: ReactNode;
   createTime: string;
@@ -137,6 +137,7 @@ interface ReplyCardProps {
   isInternal?: boolean;
   edited?: boolean;
   deleted?: boolean;
+  menuItems?: ItemType[];
   onClickMenu?: (key: string) => void;
 }
 
@@ -150,28 +151,10 @@ export function ReplyCard({
   isInternal,
   edited,
   deleted,
+  menuItems,
   onClickMenu,
 }: ReplyCardProps) {
   const [translation, toggleTranslation] = useToggle(false);
-
-  const menuItems = useMemo(() => {
-    const items: ItemType[] = [
-      { label: '复制链接', key: 'copyLink' },
-      { label: '翻译', key: 'translate' },
-    ];
-    if (isAgent) {
-      if (!deleted) {
-        items.push({ type: 'divider' }, { label: '编辑', key: 'edit' });
-        if (edited) {
-          items.push({ label: '修改记录', key: 'revisions' });
-        }
-        items.push({ type: 'divider' }, { label: '删除', key: 'delete', danger: true });
-      } else if (edited) {
-        items.push({ label: '修改记录', key: 'revisions' });
-      }
-    }
-    return items;
-  }, [isAgent, edited, deleted]);
 
   const handleClickMenu = ({ key }: { key: string }) => {
     if (key === 'translate') {
@@ -222,7 +205,18 @@ export function ReplyCard({
         </div>
       }
       tags={tags}
-      menu={collapsed ? undefined : { items: menuItems, onClick: handleClickMenu }}
+      menu={
+        collapsed
+          ? undefined
+          : {
+              items: [
+                { label: '复制链接', key: 'copyLink' },
+                { label: '翻译', key: 'translate' },
+                ...(menuItems?.length ? [{ type: 'divider' } as const, ...menuItems] : []),
+              ],
+              onClick: handleClickMenu,
+            }
+      }
       files={files}
       active={active}
       deleted={deleted}

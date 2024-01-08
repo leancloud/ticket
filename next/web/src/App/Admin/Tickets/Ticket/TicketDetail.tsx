@@ -50,7 +50,7 @@ import { SubscribeButton } from './components/SubscribeButton';
 import { PrivateSelect } from './components/PrivateSelect';
 import { CategoryCascader } from './components/CategoryCascader';
 import { LeanCloudApp } from './components/LeanCloudApp';
-import { ReplyCard } from './components/ReplyCard';
+import { TicketCard } from './components/TicketCard';
 import { useMixedTicket } from './mixed-ticket';
 import { TicketField_v1, useTicketFields_v1 } from './api1';
 import { CustomFields } from './components/CustomFields';
@@ -62,6 +62,8 @@ import { TicketViewers } from './components/TicketViewers';
 export function TicketDetail() {
   const { id } = useParams() as { id: string };
   const navigate = useNavigate();
+
+  const user = useCurrentUser();
 
   const { ticket, update, updating, refetch } = useMixedTicket(id);
   useTitle(ticket ? ticket.title : 'Loading', {
@@ -134,12 +136,10 @@ export function TicketDetail() {
           <Col className="p-4" span={24} md={12}>
             <Timeline
               header={
-                <ReplyCard
-                  id={ticket.id}
-                  author={ticket.author ? <UserLabel user={ticket.author} /> : 'unknown'}
-                  createTime={ticket.createdAt}
-                  content={ticket.contentSafeHTML}
-                  files={ticket.files}
+                <TicketCard
+                  ticket={ticket}
+                  updateable={user?.id === ticket.authorId}
+                  onUpdate={update}
                 />
               }
               replies={replies}

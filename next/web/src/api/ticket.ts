@@ -32,6 +32,7 @@ export interface TicketSchema {
 }
 
 export interface TicketDetailSchema extends TicketSchema {
+  content: string;
   contentSafeHTML: string;
   author?: UserSchema;
   assignee?: UserSchema;
@@ -224,6 +225,8 @@ async function createTicket(data: CreateTicketData) {
 }
 
 export interface UpdateTicketData {
+  title?: string;
+  content?: string;
   categoryId?: string;
   groupId?: string | null;
   assigneeId?: string | null;
