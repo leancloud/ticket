@@ -12,10 +12,12 @@ interface MixedTicket {
   nid: TicketDetailSchema['nid'];
   categoryId: TicketDetailSchema['categoryId'];
   author: TicketDetailSchema['author'];
+  authorId: TicketDetailSchema['authorId'];
   groupId: TicketDetailSchema['groupId'];
   assigneeId: TicketDetailSchema['assigneeId'];
   status: TicketDetailSchema['status'];
   title: TicketDetailSchema['title'];
+  content: TicketDetailSchema['content'];
   contentSafeHTML: TicketDetailSchema['contentSafeHTML'];
   files: TicketDetailSchema['files'];
   language: TicketDetailSchema['language'];
@@ -32,6 +34,8 @@ interface MixedTicket {
 }
 
 interface MixedUpdateData {
+  title?: UpdateTicketData['title'];
+  content?: UpdateTicketData['content'];
   categoryId?: UpdateTicketData['categoryId'];
   groupId?: UpdateTicketData['groupId'];
   assigneeId?: UpdateTicketData['assigneeId'];
@@ -46,7 +50,7 @@ interface MixedUpdateData {
 
 interface UseMixedTicketResult {
   ticket?: MixedTicket;
-  update: (data: MixedUpdateData) => void;
+  update: (data: MixedUpdateData) => Promise<void>;
   updating: boolean;
   refetch: () => void;
 }
@@ -59,7 +63,7 @@ export function useMixedTicket(ticketId: string): UseMixedTicketResult {
     enabled: !!ticket,
   });
 
-  const { mutate: updateTicket, isLoading: ticketUpdating } = useUpdateTicket({
+  const { mutateAsync: updateTicket, isLoading: ticketUpdating } = useUpdateTicket({
     onSuccess: (_, [_id, data]) => {
       refetch();
       if (data.tags || data.privateTags) {
@@ -67,7 +71,7 @@ export function useMixedTicket(ticketId: string): UseMixedTicketResult {
       }
     },
   });
-  const { mutate: updateTicket_v1, isLoading: ticketUpdating_v1 } = useUpdateTicket_v1({
+  const { mutateAsync: updateTicket_v1, isLoading: ticketUpdating_v1 } = useUpdateTicket_v1({
     onSuccess: () => {
       refetch_v1();
     },
@@ -80,10 +84,12 @@ export function useMixedTicket(ticketId: string): UseMixedTicketResult {
         nid: ticket.nid,
         categoryId: ticket.categoryId,
         author: ticket.author,
+        authorId: ticket.authorId,
         groupId: ticket.groupId,
         assigneeId: ticket.assigneeId,
         status: ticket.status,
         title: ticket.title,
+        content: ticket.content,
         contentSafeHTML: ticket.contentSafeHTML,
         files: ticket.files,
         language: ticket.language,
@@ -100,11 +106,13 @@ export function useMixedTicket(ticketId: string): UseMixedTicketResult {
     }
   }, [ticket, ticket_v1]);
 
-  const update = (data: MixedUpdateData) => {
+  const update = async (data: MixedUpdateData) => {
     if (!ticket) {
       return;
     }
     const updateData = pick(data, [
+      'title',
+      'content',
       'categoryId',
       'groupId',
       'assigneeId',
@@ -114,10 +122,10 @@ export function useMixedTicket(ticketId: string): UseMixedTicketResult {
     ]);
     const updateData_v1 = pick(data, ['private', 'subscribed']);
     if (!isEmpty(updateData)) {
-      updateTicket([ticket.id, updateData]);
+      await updateTicket([ticket.id, updateData]);
     }
     if (!isEmpty(updateData_v1)) {
-      updateTicket_v1([ticket.id, updateData_v1]);
+      await updateTicket_v1([ticket.id, updateData_v1]);
     }
   };
 

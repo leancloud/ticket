@@ -5,7 +5,7 @@ import cx from 'classnames';
 import { ReplySchema, useDeleteReply, useUpdateReply } from '@/api/reply';
 import { OpsLog as OpsLogSchema } from '@/api/ticket';
 import { UserLabel } from '@/App/Admin/components';
-import { ReplyCard } from '../components/ReplyCard';
+import { ReplyCard, ReplyCardProps } from '../components/ReplyCard';
 import { OpsLog } from '../components/OpsLog';
 import { EditReplyModal, EditReplyModalRef } from '../components/EditReplyModal';
 import { ReplyRevisionsModal, ReplyRevisionsModalRef } from '../components/ReplyRevisionsModal';
@@ -60,6 +60,21 @@ export function Timeline({ header, replies, opsLogs, onRefetchReplies }: Timelin
     },
   });
 
+  const createMenuItems = (reply: ReplySchema) => {
+    if (!reply.isCustomerService) return;
+    const menuItems: ReplyCardProps['menuItems'] = [];
+    if (reply.deletedAt) {
+      menuItems.push({ label: '修改记录', key: 'revisions' });
+    } else {
+      menuItems.push({ label: '编辑', key: 'edit' });
+      if (reply.edited) {
+        menuItems.push({ label: '修改记录', key: 'revisions' });
+      }
+      menuItems.push({ type: 'divider' }, { label: '删除', key: 'delete', danger: true });
+    }
+    return menuItems;
+  };
+
   const handleClickMenu = (reply: ReplySchema, key: string) => {
     switch (key) {
       case 'edit':
@@ -101,6 +116,7 @@ export function Timeline({ header, replies, opsLogs, onRefetchReplies }: Timelin
               isInternal={timeline.data.internal}
               edited={timeline.data.edited}
               deleted={!!timeline.data.deletedAt}
+              menuItems={createMenuItems(timeline.data)}
               onClickMenu={(key) => handleClickMenu(timeline.data, key)}
             />
           );
