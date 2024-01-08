@@ -75,18 +75,24 @@ class SlackIntegration {
     });
   }
 
-  async getUserId(email: string): Promise<string> {
+  async getUserId(email: string) {
     const id = this.userIdMap.get(email);
     if (id) {
       return id;
     }
 
-    const { user } = await this.client.users.lookupByEmail({ email });
-    if (!user || !user.id) {
-      throw new Error('Slack API returns an invalid user');
+    try {
+      const { user } = await this.client.users.lookupByEmail({ email });
+      if (!user || !user.id) {
+        throw new Error('Slack API returns an invalid user');
+      }
+      this.userIdMap.set(email, user.id);
+      return user.id;
+    } catch (error: any) {
+      if (error.data.error !== 'users_not_found') {
+        throw error;
+      }
     }
-    this.userIdMap.set(email, user.id);
-    return user.id;
   }
 
   async getChannelId(userId: string): Promise<string> {
@@ -117,16 +123,10 @@ class SlackIntegration {
   }
 
   async sendToUser(email: string, message: Message) {
-    let userId: string;
-    try {
-      userId = await this.getUserId(email);
-    } catch (error: any) {
-      if (error.data.error === 'users_not_found') {
-        return;
-      }
-      throw error;
+    const userId = await this.getUserId(email);
+    if (!userId) {
+      return;
     }
-
     const channelId = await this.getChannelId(userId);
     return this.send(channelId, message);
   }
@@ -146,10 +146,35 @@ class SlackIntegration {
     });
   }
 
-  sendNewTicket = ({ ticket, from, to }: NewTicketContext) => {
+  async getCategoryMentionUserIds(categoryId: string) {
+    const category = await categoryService.findOne(categoryId);
+    if (!category || !category.meta) {
+      return;
+    }
+
+    const emails = category.meta.slackNewTicketMentionUserEmails as string[];
+    if (!emails) {
+      return;
+    }
+
+    const userIds: string[] = [];
+    for (const email of emails) {
+      const id = await this.getUserId(email);
+      if (id) {
+        userIds.push(id);
+      }
+    }
+    return userIds;
+  }
+
+  sendNewTicket = async ({ ticket, from, to }: NewTicketContext) => {
     const message = new NewTicketMessage(ticket, from, to);
     if (to?.email) {
       this.sendToUser(to.email, message);
+    }
+    const userIds = await this.getCategoryMentionUserIds(ticket.categoryId);
+    if (userIds?.length) {
+      message.setMentions(userIds);
     }
     this.broadcast(message, ticket.categoryId);
   };

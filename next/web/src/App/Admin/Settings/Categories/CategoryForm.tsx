@@ -45,8 +45,31 @@ const FORM_ITEM_STYLE = { marginBottom: 16 };
 
 const CategoryMetaOptions: MetaOptionsGroup<CategorySchema>[] = [
   {
-    label: 'AI 分类',
+    key: 'slack',
+    label: 'Slack 新工单通知用户邮箱',
+    children: [
+      {
+        key: 'slackNewTicketMentionUserEmails',
+        type: 'custom',
+        render: ({ value, onChange }) => (
+          <Form.Item
+            extra="当前分类的工单被创建时，将在指定频道 @ 上述用户"
+            style={{ marginBottom: 0 }}
+          >
+            <TextArea
+              placeholder="每行一个"
+              autoSize={{ minRows: 2 }}
+              value={value?.join('\n')}
+              onChange={(e) => onChange(e.target.value.split('\n'))}
+            />
+          </Form.Item>
+        ),
+      },
+    ],
+  },
+  {
     key: 'classify',
+    label: 'AI 分类',
     children: [
       {
         key: 'enableAIClassify',
@@ -64,8 +87,8 @@ const CategoryMetaOptions: MetaOptionsGroup<CategorySchema>[] = [
       },
       {
         key: 'previewAIClassify',
-        type: 'component',
-        component: <AiClassifyTest />,
+        type: 'custom',
+        render: () => <AiClassifyTest />,
         predicate: (v) => !!v.alias,
       },
     ],
@@ -563,8 +586,7 @@ export function CategoryForm({
         control={control}
         name="meta"
         render={({ field: { ref, ...rest } }) => (
-          console.log(getValues()),
-          (<MetaField {...rest} options={CategoryMetaOptions} record={getValues()} />)
+          <MetaField {...rest} options={CategoryMetaOptions} record={getValues()} />
         )}
       />
 

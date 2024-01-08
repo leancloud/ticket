@@ -7,6 +7,8 @@ export class Message {
 
   protected color?: string;
 
+  protected mentions?: string[];
+
   constructor(readonly summary: string, content: string) {
     if (content.length > 1000) {
       content = content.slice(0, 1000) + '...';
@@ -14,7 +16,15 @@ export class Message {
     this.content = content;
   }
 
+  setMentions(mentions: string[]) {
+    this.mentions = mentions;
+  }
+
   toJSON() {
+    let text = this.summary;
+    if (this.mentions?.length) {
+      text += '\n' + this.mentions.map((id) => `<@${id}>`).join(' ');
+    }
     const blocks = [
       {
         type: 'section',
@@ -25,7 +35,7 @@ export class Message {
       },
     ];
     return {
-      text: this.summary,
+      text,
       attachments: [{ color: this.color, blocks }],
     };
   }
