@@ -640,6 +640,8 @@ const updateTicketSchema = yup.object({
   privateTags: yup.array(ticketTagSchema.required()),
   evaluation: ticketEvaluationSchema.default(undefined),
   language: yup.string().oneOf(allowedTicketLanguages).nullable(),
+  title: yup.string(),
+  content: yup.string(),
 });
 
 router.patch('/:id', async (ctx) => {
@@ -746,6 +748,18 @@ router.patch('/:id', async (ctx) => {
 
   if (data.language !== undefined) {
     updater.setLanguage(data.language);
+  }
+
+  if (data.title || data.content) {
+    if (!isCustomerService || currentUser.id !== ticket.authorId ) {
+      ctx.throw(403, 'Update title or content is not allowed');
+    }
+    if (data.title) {
+      updater.setTitle(data.title);
+    }
+    if (data.content) {
+      updater.setContent(data.content);
+    }
   }
 
   await updater.update(currentUser);

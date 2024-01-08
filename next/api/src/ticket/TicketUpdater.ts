@@ -12,6 +12,7 @@ import { systemUser, TinyUserInfo, User } from '@/model/User';
 import { TinyReplyInfo } from '@/model/Reply';
 import { TicketLog } from '@/model/TicketLog';
 import { searchTicketService } from '@/service/search-ticket';
+import htmlify from '@/utils/htmlify';
 
 export interface UpdateOptions {
   useMasterKey?: boolean;
@@ -183,6 +184,15 @@ export class TicketUpdater {
     if (this.ticket.status !== status) {
       this.data.status = status;
     }
+  }
+
+  setTitle(title: string) {
+    this.data.title = title;
+  }
+
+  setContent(content: string) {
+    this.data.content = content;
+    this.data.contentHTML = htmlify(content);
   }
 
   operate(action: OperateAction): this {
