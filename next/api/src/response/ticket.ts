@@ -61,6 +61,7 @@ export class TicketResponse extends BaseTicketResponse {
     return {
       ...super.toJSON(options),
       metaData: this.ticket.metaData,
+      content: this.ticket.content,
       contentSafeHTML: sanitize(this.ticket.contentHTML),
     };
   }
