@@ -1,6 +1,4 @@
 import _ from 'lodash';
-import { detect } from 'tinyld/heavy';
-import { traditionToSimple } from 'chinese-simple2traditional';
 
 import events from '@/events';
 import { ACLBuilder } from '@/orm';
@@ -13,8 +11,8 @@ import { Ticket } from '@/model/Ticket';
 import { FieldValue, TicketFieldValue } from '@/model/TicketFieldValue';
 import { User, systemUser } from '@/model/User';
 import { TicketLog } from '@/model/TicketLog';
-import { allowedTicketLanguages } from '@/utils/locale';
 import { searchTicketService } from '@/service/search-ticket';
+import { ticketService } from '@/service/ticket';
 import { durationMetricService } from './services/duration-metric';
 
 export class TicketCreator {
@@ -30,7 +28,6 @@ export class TicketCreator {
   private customFields?: FieldValue[];
   private assignee?: User;
   private group?: Group;
-  private language?: string;
   private channel?: string;
 
   private aclBuilder: ACLBuilder;
@@ -211,28 +208,6 @@ export class TicketCreator {
     await olc.create();
   }
 
-  private async detectLanguage() {
-    const content = _([this.title, this.content])
-      .compact()
-      .map((s) => s.trim().slice(0, 1000))
-      .join('\n');
-
-    if (!content) return;
-
-    let lang = detect(content);
-
-    if (lang && allowedTicketLanguages.includes(lang)) {
-      if (lang === 'zh') {
-        if (traditionToSimple(content) === content) {
-          lang = 'zh-Hans';
-        } else {
-          lang = 'zh-Hant';
-        }
-      }
-      this.language = lang;
-    }
-  }
-
   async create(operator: User): Promise<Ticket> {
     if (!this.check()) {
       throw new Error('Missing some required attributes');
@@ -251,12 +226,6 @@ export class TicketCreator {
       console.error('[ERROR] Select group failed:', error);
     }
 
-    try {
-      await this.detectLanguage();
-    } catch (error) {
-      console.log('[ERROR] Language detect failed', error);
-    }
-
     const ticket = await Ticket.create(
       {
         ACL: this.getRawACL(),
@@ -272,7 +241,6 @@ export class TicketCreator {
         assigneeId: this.assignee?.id,
         groupId: this.group?.id,
         status: Ticket.Status.NEW,
-        language: this.language,
         channel: this.channel,
       },
       {
@@ -308,6 +276,7 @@ export class TicketCreator {
 
     await durationMetricService.createMetric(ticket);
     await searchTicketService.addSyncJob([ticket.id]);
+    await ticketService.addDetectTicketLanguageJob(ticket.id);
 
     return ticket;
   }

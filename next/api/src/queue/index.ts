@@ -33,3 +33,5 @@ export function createQueue<T>(name: string, options?: Bull.QueueOptions): Bull.
     },
   });
 }
+
+export type { Queue } from 'bull';

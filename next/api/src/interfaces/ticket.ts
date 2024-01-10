@@ -91,3 +91,7 @@ export interface SearchTicketOptions {
   skip?: number;
   limit?: number;
 }
+
+export interface DetectTicketLanguageJobData {
+  ticketId: string;
+}

@@ -1,8 +1,13 @@
 import { differenceInMilliseconds } from 'date-fns';
+import { simpleToTradition } from 'chinese-simple2traditional';
 
 import { Config } from '@/config';
 import { Ticket } from '@/model/Ticket';
 import { Reply } from '@/model/Reply';
+import { createQueue, Queue } from '@/queue';
+import { DetectTicketLanguageJobData } from '@/interfaces/ticket';
+import { allowedTicketLanguages } from '@/utils/locale';
+import { translateService } from './translate';
 
 interface GetRepliesOptions {
   author?: boolean;
@@ -17,6 +22,23 @@ interface GetRepliesOptions {
 }
 
 export class TicketService {
+  private detectLangQueue?: Queue<DetectTicketLanguageJobData>;
+
+  constructor() {
+    if (process.env.ENABLE_TICKET_LANGUAGE_DETECT) {
+      console.log(`[TicketService] Ticket language detect enabled`);
+      this.detectLangQueue = createQueue('ticket_language_detect', {
+        defaultJobOptions: {
+          removeOnComplete: true,
+          removeOnFail: true,
+        },
+      });
+      this.detectLangQueue.process((job) => {
+        return this.detectTicketLanguage(job.data.ticketId);
+      });
+    }
+  }
+
   async getReplies(
     ticketId: string,
     options: GetRepliesOptions & { count: true }
@@ -67,6 +89,44 @@ export class TicketService {
       return true;
     }
     return differenceInMilliseconds(new Date(), ticket.closedAt) <= evaluationConfig.timeLimit;
+  }
+
+  async detectTicketLanguage(ticketId: string) {
+    const ticket = await Ticket.find(ticketId, { useMasterKey: true });
+    if (!ticket) {
+      return;
+    }
+
+    const text = ticket.content.trim() || ticket.title.trim();
+    if (!text) {
+      return;
+    }
+
+    const translateResult = await translateService.translate(text);
+    if (!translateResult) {
+      return;
+    }
+
+    let language = translateResult.from;
+    if (!allowedTicketLanguages.includes(language)) {
+      return;
+    }
+
+    if (language === 'zh') {
+      if (simpleToTradition(text) === text) {
+        language = 'zh-Hant';
+      } else {
+        language = 'zh-Hans';
+      }
+    }
+
+    await ticket.update({ language }, { useMasterKey: true });
+  }
+
+  async addDetectTicketLanguageJob(ticketId: string) {
+    if (this.detectLangQueue) {
+      await this.detectLangQueue.add({ ticketId });
+    }
   }
 }
 
