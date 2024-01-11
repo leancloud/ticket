@@ -1,4 +1,5 @@
 import { WebClient } from '@slack/web-api';
+import LRUCache from 'lru-cache';
 import _ from 'lodash';
 
 import notification, {
@@ -41,11 +42,18 @@ class SlackIntegration {
   private broadcastChannel?: string;
   private categoryChannels: Record<string, string[]>;
 
+  private channelMembers: LRUCache<string, string[]>;
+
   constructor(config: SlackConfig) {
     this.client = new WebClient(config.token);
     this.broadcastChannel = config.channel;
     this.categoryChannels = _.mapValues(config.categoryChannels, (channels) => {
       return channels.filter((channel) => channel !== this.broadcastChannel);
+    });
+
+    this.channelMembers = new LRUCache({
+      max: 100,
+      ttl: 1000 * 60 * 60, // 1 hour
     });
 
     config.events.forEach((event) => {
@@ -109,16 +117,59 @@ class SlackIntegration {
     return channel.id;
   }
 
+  async getChannelMembers(channelId: string) {
+    const cacheValue = this.channelMembers.get(channelId);
+    if (cacheValue) {
+      return cacheValue;
+    }
+
+    const members: string[] = [];
+    let cursor: string | undefined;
+    // take 10 times at most
+    for (let c = 0; c <= 10; c += 1) {
+      const res = await this.client.conversations.members({
+        channel: channelId,
+        limit: 200,
+        cursor,
+      });
+      res.members?.forEach((member) => members.push(member));
+      if (!res.response_metadata?.next_cursor) {
+        break;
+      }
+      cursor = res.response_metadata.next_cursor;
+    }
+
+    this.channelMembers.set(channelId, members);
+    return members;
+  }
+
+  async inviteToChannel(channelId: string, userIds: string[]) {
+    try {
+      const members = await this.getChannelMembers(channelId);
+      const inviteUsers = _.difference(userIds, members);
+      if (inviteUsers.length) {
+        await this.client.conversations.invite({
+          users: inviteUsers.join(','),
+          channel: channelId,
+        });
+        this.channelMembers.delete(channelId);
+      }
+    } catch {} // ignore
+  }
+
   send(channel: string, message: Message) {
     return this.client.chat.postMessage({ ...message.toJSON(), channel });
   }
 
-  broadcast(message: Message, categoryId?: string) {
+  async broadcast(message: Message, categoryId?: string) {
     if (this.broadcastChannel) {
-      this.send(this.broadcastChannel, message);
+      if (message.mentions) {
+        await this.inviteToChannel(this.broadcastChannel, message.mentions);
+      }
+      await this.send(this.broadcastChannel, message);
     }
     if (categoryId) {
-      this.sendToCategoryChannel(categoryId, message);
+      await this.sendToCategoryChannel(categoryId, message);
     }
   }
 
@@ -135,15 +186,18 @@ class SlackIntegration {
     const parents = await categoryService.getParentCategories(categoryId);
     const categoryIds = [...parents.map((c) => c.id), categoryId];
     const sended = new Set<string>();
-    categoryIds.forEach((cid) => {
-      this.categoryChannels[cid]?.forEach((channel) => {
-        if (sended.has(channel)) {
-          return;
+    for (const cid of categoryIds) {
+      const channels = this.categoryChannels[cid];
+      if (!channels) continue;
+      for (const channel of channels) {
+        if (sended.has(channel)) continue;
+        if (message.mentions) {
+          await this.inviteToChannel(channel, message.mentions);
         }
-        this.send(channel, message);
+        await this.send(channel, message);
         sended.add(channel);
-      });
-    });
+      }
+    }
   }
 
   async getCategoryMentionUserIds(categoryId: string) {

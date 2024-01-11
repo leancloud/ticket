@@ -7,7 +7,7 @@ export class Message {
 
   protected color?: string;
 
-  protected mentions?: string[];
+  mentions?: string[];
 
   constructor(readonly summary: string, content: string) {
     if (content.length > 1000) {
