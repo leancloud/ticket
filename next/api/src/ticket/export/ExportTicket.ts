@@ -188,9 +188,9 @@ const format = (date?: Date, utcOffset?: number) => {
   );
 };
 
-const getCategories = async (authOptions?: AuthOptions) => {
+const getCategories = async () => {
   const categories = await categoryService.find();
-  return _(categories).keyBy('id').valueOf();
+  return _.keyBy(categories, (c) => c.id);
 };
 
 const getCategoryPath = async (category: Category) => {
@@ -198,20 +198,21 @@ const getCategoryPath = async (category: Category) => {
   return [...parents.map((c) => c.name).reverse(), category.name].join('/');
 };
 
-const getCustomerServices = async () => {
-  const customerServices = await User.getCustomerServices();
-  return _(customerServices)
-    .map((user) => new UserResponse(user).toJSON())
-    .keyBy('id')
-    .valueOf();
+const encodeUser = (user: User) => {
+  return {
+    id: user.id,
+    username: user.username,
+    nickname: user.name,
+    email: user.email,
+  };
 };
 
-const getGroups = async (authOptions?: AuthOptions) => {
-  const groups = await Group.query().find(authOptions);
-  return _(groups)
-    .map((group) => new GroupResponse(group).toJSON())
-    .keyBy('id')
-    .valueOf();
+const encodeGroup = (group: Group) => {
+  return {
+    id: group.id,
+    name: group.name,
+    description: group.description,
+  };
 };
 
 const getReplies = async (ticketIds: string[], authOptions?: AuthOptions, utcOffset?: number) => {
@@ -349,8 +350,6 @@ export default async function exportTicket({ params, sortItems, utcOffset, date 
   const count = await query.count(authOptions);
   debug('count: ', count);
   const categoryMap = await getCategories();
-  const customerServiceMap = await getCustomerServices();
-  const groupMap = await getGroups(authOptions);
   const getCustomFormFields = getCustomFormFieldsFunc(authOptions);
   let fieldKeys: string[] = [];
 
@@ -359,6 +358,8 @@ export default async function exportTicket({ params, sortItems, utcOffset, date 
   for (let index = 0; index < count; index += limit) {
     const tickets = await (await createTicketQuery(containFields, query, index, limit))
       .preload('author', { authOptions })
+      .preload('assignee', { authOptions })
+      .preload('group', { authOptions })
       .find(authOptions);
     const ticketIds = tickets.map((ticket) => ticket.id);
     debug('fetch ticket details', ticketIds);
@@ -375,9 +376,7 @@ export default async function exportTicket({ params, sortItems, utcOffset, date 
     debug('form values fetched');
     for (let ticketIndex = 0; ticketIndex < tickets.length; ticketIndex++) {
       const ticket = tickets[ticketIndex];
-      const assignee = ticket.assigneeId ? customerServiceMap[ticket.assigneeId] : undefined;
       const category = categoryMap[ticket.categoryId];
-      const group = ticket.groupId ? groupMap[ticket.groupId] : undefined;
       const fields = fieldValuesMap[ticket.id]?.values.map(({ field, value }) => ({
         id: field,
         title: fieldCacheMap.get(field),
@@ -398,8 +397,9 @@ export default async function exportTicket({ params, sortItems, utcOffset, date 
       }
       const data = {
         ..._.pick(ticket, FIXED_KEYS),
-        assignee,
-        group,
+        author: ticket.author && encodeUser(ticket.author),
+        assignee: ticket.assignee && encodeUser(ticket.assignee),
+        group: ticket.group && encodeGroup(ticket.group),
         category: {
           id: category?.id,
           name: category?.name,
