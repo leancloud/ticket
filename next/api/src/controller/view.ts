@@ -261,13 +261,12 @@ export class ViewController {
   @UseMiddlewares(include)
   async getTickets(
     @Ctx() ctx: Context,
+    @CurrentUser() currentUser: User,
     @Param('id', new FindModelPipe(View, { useMasterKey: true })) view: View,
     @Query('page', new ParseIntPipe({ min: 1 })) page = 1,
     @Query('pageSize', new ParseIntPipe({ min: 0, max: 1000 })) pageSize = 10,
     @Query('count', ParseBoolPipe) count?: boolean
   ) {
-    const currentUser = ctx.state.currentUser as User;
-
     const context = new ViewConditionContext(currentUser);
     const query = Ticket.queryBuilder()
       .setRawCondition(await view.getRawCondition(context))
@@ -278,13 +277,13 @@ export class ViewController {
       query.orderBy(view.sortBy, view.sortOrder === 'desc' ? 'desc' : 'asc');
     }
 
-    if (ctx.query.includeAuthor) {
+    if (view.fields.includes('author')) {
       query.preload('author');
     }
-    if (ctx.query.includeAssignee) {
+    if (view.fields.includes('assignee')) {
       query.preload('assignee');
     }
-    if (ctx.query.includeGroup) {
+    if (view.fields.includes('group')) {
       query.preload('group');
     }
 
