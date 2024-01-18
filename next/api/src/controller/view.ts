@@ -20,7 +20,6 @@ import {
 import {
   FindModelOptionalPipe,
   FindModelPipe,
-  ParseBoolPipe,
   ParseCsvPipe,
   ParseIntPipe,
   ZodValidationPipe,
@@ -43,6 +42,8 @@ const conditionsSchema = z
   })
   .passthrough();
 
+const sortBySchema = z.enum(['status', 'createdAt', 'updatedAt']);
+
 const sortOrderSchema = z.enum(['asc', 'desc']);
 
 const createDataSchema = z.object({
@@ -51,7 +52,7 @@ const createDataSchema = z.object({
   groupIds: z.array(z.string()).optional(),
   conditions: conditionsSchema,
   fields: z.array(z.string()),
-  sortBy: z.string().optional(),
+  sortBy: sortBySchema.optional(),
   sortOrder: sortOrderSchema.optional(),
 });
 
@@ -61,8 +62,17 @@ const updateDataSchema = z.object({
   groupIds: z.array(z.string()).nullable().optional(),
   conditions: conditionsSchema.optional(),
   fields: z.array(z.string()).optional(),
-  sortBy: z.string().optional(),
+  sortBy: sortBySchema.optional(),
   sortOrder: sortOrderSchema.optional(),
+});
+
+const testViewSchema = z.object({
+  conditions: conditionsSchema,
+  fields: z.array(z.string()).optional(),
+  sortBy: sortBySchema.optional(),
+  sortOrder: sortOrderSchema.optional(),
+  page: z.number().int().min(1).optional(),
+  pageSize: z.number().int().min(1).optional(),
 });
 
 type CreateData = z.infer<typeof createDataSchema>;
@@ -255,14 +265,51 @@ export class ViewController {
     return {};
   }
 
+  @Post('test')
+  async testView(
+    @Ctx() ctx: Context,
+    @CurrentUser() currentUser: User,
+    @Body(new ZodValidationPipe(testViewSchema)) data: z.infer<typeof testViewSchema>
+  ) {
+    const { conditions, fields, sortBy, sortOrder, page = 1, pageSize = 10 } = data;
+
+    this.assertConditionIsValid(conditions);
+
+    const context = new ViewConditionContext(currentUser);
+    const rawCondition = await View.encodeCondition(conditions, context);
+
+    const query = Ticket.queryBuilder()
+      .setRawCondition(rawCondition)
+      .skip((page - 1) * pageSize)
+      .limit(pageSize);
+
+    if (fields) {
+      if (fields.includes('author')) {
+        query.preload('author');
+      }
+      if (fields.includes('assignee')) {
+        query.preload('assignee');
+      }
+      if (fields.includes('group')) {
+        query.preload('group');
+      }
+    }
+    if (sortBy) {
+      query.orderBy(sortBy, sortOrder ?? 'asc');
+    }
+
+    const [tickets, totalCount] = await query.findAndCount(currentUser.getAuthOptions());
+    ctx.set('X-Total-Count', totalCount.toString());
+    return tickets.map((ticket) => new TicketListItemResponse(ticket));
+  }
+
   @Get(':id/tickets')
   async getTickets(
     @Ctx() ctx: Context,
     @CurrentUser() currentUser: User,
     @Param('id', new FindModelPipe(View, { useMasterKey: true })) view: View,
     @Query('page', new ParseIntPipe({ min: 1 })) page = 1,
-    @Query('pageSize', new ParseIntPipe({ min: 0, max: 1000 })) pageSize = 10,
-    @Query('count', ParseBoolPipe) count?: boolean
+    @Query('pageSize', new ParseIntPipe({ min: 0, max: 1000 })) pageSize = 10
   ) {
     const context = new ViewConditionContext(currentUser);
     const query = Ticket.queryBuilder()
@@ -284,14 +331,8 @@ export class ViewController {
       query.preload('group');
     }
 
-    const authOptions = currentUser.getAuthOptions();
-    const tickets = count
-      ? await query.findAndCount(authOptions).then(([tickets, count]) => {
-          ctx.set('X-Total-Count', count.toString());
-          return tickets;
-        })
-      : await query.find(authOptions);
-
+    const [tickets, totalCount] = await query.findAndCount(currentUser.getAuthOptions());
+    ctx.set('X-Total-Count', totalCount.toString());
     return tickets.map((t) => new TicketListItemResponse(t));
   }
 
