@@ -184,9 +184,7 @@ export class ViewController {
       { useMasterKey: true }
     );
 
-    return {
-      id: view.id,
-    };
+    return new ViewResponse(view);
   }
 
   @Patch(':id')
@@ -209,7 +207,7 @@ export class ViewController {
       this.assertConditionIsValid(data.conditions);
     }
 
-    await view.update(
+    const newView = await view.update(
       {
         title: data.title,
         userIds: data.groupIds ? null : data.userIds,
@@ -222,7 +220,7 @@ export class ViewController {
       { useMasterKey: true }
     );
 
-    return {};
+    return new ViewResponse(newView);
   }
 
   @Delete(':id')
