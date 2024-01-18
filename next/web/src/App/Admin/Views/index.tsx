@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { ReactNode, createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from 'react-query';
 import { Link, Outlet, useNavigate, useParams } from 'react-router-dom';
 import { AiOutlineLeft, AiOutlineReload } from 'react-icons/ai';
@@ -190,7 +190,7 @@ function CategoryPath({ categoryId }: { categoryId: string }) {
 interface ColumnConfig {
   className?: string;
   dataIndex?: string;
-  render?: (...args: any[]) => JSX.Element;
+  render?: (...args: any[]) => ReactNode;
 }
 
 const columnConfigs: Record<string, ColumnConfig> = {
@@ -199,31 +199,29 @@ const columnConfigs: Record<string, ColumnConfig> = {
     render: (title: string) => <div className="truncate" children={title} />,
   },
   author: {
-    render: (u: UserSchema) => <div>{u.nickname}</div>,
+    render: (u: UserSchema) => u?.nickname ?? '<未知>',
   },
   assignee: {
-    render: (u: UserSchema) => <div>{u?.nickname ?? '-'}</div>,
+    render: (u: UserSchema) => u?.nickname ?? '-',
   },
   group: {
-    render: (g: GroupSchema) => <div>{g?.name ?? '-'}</div>,
+    render: (g: GroupSchema) => g?.name ?? '-',
   },
   category: {
     dataIndex: 'categoryId',
     render: (id: string) => <CategoryPath categoryId={id} />,
   },
   createdAt: {
-    render: (t: string) => <div>{moment(t).format('YYYY-MM-DD HH:mm:ss')}</div>,
+    render: (t: string) => moment(t).format('YYYY-MM-DD HH:mm:ss'),
   },
   updatedAt: {
-    render: (t: string) => <div>{moment(t).format('YYYY-MM-DD HH:mm:ss')}</div>,
+    render: (t: string) => moment(t).format('YYYY-MM-DD HH:mm:ss'),
   },
   status: {
     render: (status: number) => <TicketStatus status={status} />,
   },
   language: {
-    render: (language: string | null) => (
-      <div>{language ? TicketLanguages[language] : '(未知)'}</div>
-    ),
+    render: (language: string | null) => (language ? TicketLanguages[language] : '(未知)'),
   },
 };
 
@@ -235,18 +233,6 @@ export function ViewTickets() {
     staleTime: 1000 * 60,
   });
 
-  const include = useMemo(() => {
-    if (view) {
-      const include: string[] = [];
-      ['author', 'assignee', 'group'].forEach((field) => {
-        if (view.fields.includes(field)) {
-          include.push(field);
-        }
-      });
-      return include.length ? include.join(',') : undefined;
-    }
-  }, [view]);
-
   const queryClient = useQueryClient();
   const {
     data: tickets,
@@ -257,7 +243,6 @@ export function ViewTickets() {
   } = useViewTickets(id!, {
     page,
     pageSize: PAGE_SIZE,
-    include,
     count: true,
     queryOptions: {
       enabled: view !== undefined,

@@ -87,7 +87,6 @@ interface FetchViewTicketsOptions {
   page?: number;
   pageSize?: number;
   count?: string | boolean | number;
-  include?: string;
 }
 
 interface FetchViewTicketsResult {
