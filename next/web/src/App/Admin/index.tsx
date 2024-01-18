@@ -10,7 +10,7 @@ import { CategoryProvider } from '@/components/common';
 import { RequirePermission } from '@/components/RequirePermission';
 import { Sidebar } from './Sidebar';
 import Tickets from './Tickets';
-import { ViewTickets, Views } from './Views';
+import { Views } from './Views';
 import Settings from './Settings';
 import Stats from './Stats';
 import { NewTicket } from '../Tickets/New';
@@ -75,8 +75,7 @@ export default function AdminPage() {
                   </RequirePermission>
                 }
               >
-                <Route index element={null} />
-                <Route path=":id" element={<ViewTickets />} />
+                <Route path=":id" element={<Views />} />
               </Route>
               <Route path="/settings/*" element={<Settings />} />
               <Route

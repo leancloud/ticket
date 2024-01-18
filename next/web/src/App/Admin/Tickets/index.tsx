@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
+import _ from 'lodash';
 
 import {
   useSearchTicketCustomField,
@@ -26,14 +27,16 @@ import {
   useTicketSwitchType,
 } from './useTicketSwitchType';
 import { useViewTickets } from '@/api/view';
-import _ from 'lodash';
 import { decodeDateRange } from '@/utils/date-range';
 
 const DEFAULT_PAGE_SIZE = 20;
 
-interface UseSmartFetchTicketsOptions extends Omit<UseTicketsOptions, 'filters'> {
+interface UseSmartFetchTicketsOptions extends UseTicketsOptions {
   filters: Filters;
   type: TicketSwitchType;
+  queryOptions?: {
+    keepPreviousData?: boolean;
+  };
 }
 
 function useSmartSearchTickets({
@@ -78,7 +81,6 @@ function useSmartSearchTickets({
 
   const useProcessableTicketsResult = useViewTickets('incoming', {
     ..._.pick(options, ['page', 'pageSize']),
-    count: true,
     queryOptions: {
       ...queryOptions,
       enabled: isProcessableSearch,

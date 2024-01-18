@@ -6,11 +6,11 @@ import { Link } from 'react-router-dom';
 import cx from 'classnames';
 
 import { useCurrentUser } from '@/leancloud';
-import { Button, Form, FormInstance, Input, Radio, Select } from '@/components/antd';
+import { Button, Form, FormInstance, Input, Select } from '@/components/antd';
 import { GroupSelect } from '@/components/common';
 import DragIcon from '@/icons/DragIcon';
-import { conditions } from './conditions';
-import { ConditionsGroup } from '../Automations/components/TriggerForm/Conditions';
+import { ViewConditions } from './components/ViewConditions';
+import { ViewSort } from './components/ViewSort';
 
 const { Option } = Select;
 
@@ -129,12 +129,6 @@ export const columnLabels = columns.reduce((map, col) => {
   map[col.value] = col.label;
   return map;
 }, {} as Record<string, string>);
-
-const sortableColumns = [
-  { label: '状态', value: 'status' },
-  { label: '创建时间', value: 'createdAt' },
-  { label: '更新时间', value: 'updatedAt' },
-];
 
 interface ColumnsProps {
   value?: string[];
@@ -269,9 +263,7 @@ export function EditView({ initData = DEFAULT_VALUES, submitting, onSubmit }: Ed
 
           <ViewPrivilege />
 
-          <Form.Item label="条件">
-            <ConditionsGroup config={conditions} name="conditions" />
-          </Form.Item>
+          <ViewConditions />
 
           <Controller
             name="fields"
@@ -283,29 +275,7 @@ export function EditView({ initData = DEFAULT_VALUES, submitting, onSubmit }: Ed
             )}
           />
 
-          <Form.Item label="排序依据">
-            <div className="mb-3">
-              <Controller
-                name="sortBy"
-                defaultValue="createdAt"
-                render={({ field }) => (
-                  <Select {...field} options={sortableColumns} style={{ width: 200 }} />
-                )}
-              />
-            </div>
-            <Controller
-              name="sortOrder"
-              defaultValue="desc"
-              render={({ field: { value, onChange } }) => (
-                <Radio.Group value={value} onChange={onChange}>
-                  <div className="flex flex-col gap-1">
-                    <Radio value="asc">正序</Radio>
-                    <Radio value="desc">倒序</Radio>
-                  </div>
-                </Radio.Group>
-              )}
-            />
-          </Form.Item>
+          <ViewSort />
         </Form>
       </FormProvider>
 
