@@ -217,7 +217,7 @@ export function ConditionsGroup({ config, name, typeSelectWidth }: ConditionsGro
             type="button"
             onClick={() => append({ type: 'any', conditions: [{}] })}
           >
-            添加新的过滤条件
+            添加新的条件
           </AddButton>
         </div>
       )}

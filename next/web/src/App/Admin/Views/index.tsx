@@ -1,40 +1,33 @@
-import { ReactNode, createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { ReactNode, createContext, useContext, useEffect, useMemo, useState, useRef } from 'react';
 import { useQueryClient } from 'react-query';
-import { Link, Outlet, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { AiOutlineLeft, AiOutlineReload } from 'react-icons/ai';
 import cx from 'classnames';
-import { produce } from 'immer';
 import moment from 'moment';
+import { useToggle } from 'react-use';
 
 import { useCurrentUser, useCurrentUserIsAdmin } from '@/leancloud';
 import { CategorySchema, useCategories } from '@/api/category';
 import { GroupSchema } from '@/api/group';
 import { useCustomerServiceGroups, UserSchema } from '@/api/user';
-import {
-  ViewSchema,
-  ViewTicketCountResult,
-  useView,
-  useViews,
-  useViewTickets,
-  useViewTicketCounts,
-} from '@/api/view';
-import { Button, Empty, Spin, Table } from '@/components/antd';
+import { ViewSchema, useView, useViews, useViewTicketCounts } from '@/api/view';
+import { Badge, Button, Empty, FormInstance, Modal, Spin, Table } from '@/components/antd';
 import { columnLabels } from '@/App/Admin/Settings/Views/EditView';
 import { useHoverMenu } from '@/App/Admin/components/HoverMenu';
 import { TicketOverview } from '@/App/Admin/components/TicketOverview';
 import { TicketStatus } from '@/App/Admin/components/TicketStatus';
 import { useGetCategoryPath } from '@/utils/useGetCategoryPath';
-import { usePage } from '@/utils/usePage';
+import { usePage, usePageSize } from '@/utils/usePage';
 import { TicketLanguages } from '@/i18n/locales';
 import { Count } from './components/Count';
+import { ViewForm, ViewFormData } from './components/ViewForm';
+import { useViewTickets } from './hooks/useViewTickets';
 
 const CategoryPathContext = createContext<{
   getCategoryPath: (id: string) => CategorySchema[];
 }>({
   getCategoryPath: () => [],
 });
-
-const PAGE_SIZE = 20;
 
 interface ViewMenuItemsProps {
   items: ViewSchema[];
@@ -225,47 +218,25 @@ const columnConfigs: Record<string, ColumnConfig> = {
   },
 };
 
-export function ViewTickets() {
-  const { id } = useParams();
+function ViewTickets({ id }: { id: string }) {
   const [page, { set: setPage }] = usePage();
+  const [pageSize = 20, setPageSize] = usePageSize();
 
-  const { data: view, isLoading } = useView(id!, {
+  const { data: view, isLoading: isLoadingView } = useView(id, {
     staleTime: 1000 * 60,
   });
 
-  const queryClient = useQueryClient();
+  const [tempViewModalOpen, toggleTempViewModal] = useToggle(false);
+  const tempViewFormRef = useRef<FormInstance>(null);
+  const [tempView, setTempView] = useState<ViewFormData>();
+
   const {
     data: tickets,
     totalCount,
     isLoading: isLoadingTickets,
     isFetching: isFetchingTickets,
     refetch: refetchTickets,
-  } = useViewTickets(id!, {
-    page,
-    pageSize: PAGE_SIZE,
-    count: true,
-    queryOptions: {
-      enabled: view !== undefined,
-      refetchInterval: 1000 * 60,
-      onSuccess: ({ totalCount }) => {
-        if (totalCount !== undefined) {
-          queryClient.setQueriesData<ViewTicketCountResult[] | undefined>(
-            ['viewTicketCounts'],
-            (data) => {
-              if (data) {
-                const index = data.findIndex((t) => t.viewId === id);
-                if (index >= 0) {
-                  return produce(data, (data) => {
-                    data[index].ticketCount = totalCount;
-                  });
-                }
-              }
-            }
-          );
-        }
-      },
-    },
-  });
+  } = useViewTickets({ view, tempView, page, pageSize });
 
   const columns = useMemo(() => {
     return view?.fields.map((field) => {
@@ -285,29 +256,32 @@ export function ViewTickets() {
     render: (ticketId: string) => <TicketOverview ticketId={ticketId} />,
   });
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+  const firstTicket = tickets?.[0];
 
   return (
     <div className="p-10">
       <div className="mb-5 flex flex-row">
         <div className="mr-auto">
-          <div className="text-[26px] text-[#2F3941]">{view!.title}</div>
+          <div className="text-[26px] text-[#2F3941]">{view?.title ?? '加载中...'}</div>
           {totalCount !== undefined && <div>{totalCount} 张工单</div>}
         </div>
-        <Button className="mr-2" loading={isFetchingTickets} onClick={() => refetchTickets()}>
-          刷新
-        </Button>
-        <Button
-          href={`/tickets/${tickets?.[0]?.nid}?view=${id}`}
-          disabled={!tickets?.[0] || !id}
-          target="_blank"
-          rel="noreferrer noopener"
-          type="primary"
-        >
-          Play
-        </Button>
+        <div className="space-x-2">
+          <Button loading={isFetchingTickets} onClick={() => refetchTickets()}>
+            刷新
+          </Button>
+          <Badge dot={!!tempView}>
+            <Button onClick={toggleTempViewModal}>编辑条件</Button>
+          </Badge>
+          <Button
+            href={`/tickets/${firstTicket?.nid}?view=${id}`}
+            disabled={!firstTicket || !!tempView}
+            target="_blank"
+            rel="noreferrer noopener"
+            type="primary"
+          >
+            Play
+          </Button>
+        </div>
       </div>
 
       <CategoryPathContext.Provider value={{ getCategoryPath }}>
@@ -320,19 +294,41 @@ export function ViewTickets() {
             ...hover(record.id),
             onClick: () => window.open(`/next/admin/tickets/${record.nid}`),
           })}
-          loading={isLoadingTickets}
+          loading={isLoadingTickets || isLoadingView}
           pagination={{
             current: page,
-            pageSize: PAGE_SIZE,
-            onChange: setPage,
+            pageSize,
+            onChange: (page, pageSize) => {
+              setPage(page);
+              setPageSize(pageSize);
+            },
             total: totalCount,
-            showSizeChanger: false,
+            showSizeChanger: true,
           }}
           scroll={{ x: 'max-content' }}
         />
       </CategoryPathContext.Provider>
 
       {menu}
+
+      <Modal
+        destroyOnClose
+        title="编辑条件"
+        width={800}
+        open={tempViewModalOpen}
+        cancelText="重置"
+        okText="应用"
+        onCancel={() => {
+          setTempView(undefined);
+          toggleTempViewModal(false);
+        }}
+        onOk={() => {
+          tempViewFormRef.current?.submit();
+          toggleTempViewModal(false);
+        }}
+      >
+        <ViewForm ref={tempViewFormRef} initData={tempView || view} onSubmit={setTempView} />
+      </Modal>
     </div>
   );
 }
@@ -441,9 +437,7 @@ export function Views() {
         />
       </div>
 
-      <div className="grow overflow-y-auto">
-        <Outlet />
-      </div>
+      <div className="grow overflow-y-auto">{id && <ViewTickets key={id} id={id} />}</div>
     </div>
   );
 }

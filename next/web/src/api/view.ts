@@ -86,12 +86,11 @@ async function fetchView(id: string): Promise<ViewSchema> {
 interface FetchViewTicketsOptions {
   page?: number;
   pageSize?: number;
-  count?: string | boolean | number;
 }
 
 interface FetchViewTicketsResult {
   tickets: TicketSchema[];
-  totalCount?: number;
+  totalCount: number;
 }
 
 async function fetchViewTickets(
@@ -101,13 +100,27 @@ async function fetchViewTickets(
   const { data, headers } = await http.get(`/api/2/views/${id}/tickets`, {
     params: options,
   });
+  return {
+    tickets: data,
+    totalCount: parseInt(headers['x-total-count']),
+  };
+}
 
-  let totalCount: number | undefined;
-  if (headers['x-total-count']) {
-    totalCount = parseInt(headers['x-total-count']);
-  }
+interface TestViewOptions {
+  conditions: Condition;
+  fields?: string[];
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  page?: number;
+  pageSize?: number;
+}
 
-  return { tickets: data, totalCount };
+export async function testView(options: TestViewOptions): Promise<FetchViewTicketsResult> {
+  const res = await http.post<TicketSchema[]>('/api/2/views/test', options);
+  return {
+    tickets: res.data,
+    totalCount: parseInt(res.headers['x-total-count']),
+  };
 }
 
 export interface ViewTicketCountResult {
