@@ -25,7 +25,7 @@ import {
   ParseIntPipe,
   ZodValidationPipe,
 } from '@/common/pipe';
-import { adminOnly, auth, customerServiceOnly, include } from '@/middleware';
+import { adminOnly, auth, customerServiceOnly } from '@/middleware';
 import { ACLBuilder } from '@/orm';
 import { User } from '@/model/User';
 import { View } from '@/model/View';
@@ -256,7 +256,6 @@ export class ViewController {
   }
 
   @Get(':id/tickets')
-  @UseMiddlewares(include)
   async getTickets(
     @Ctx() ctx: Context,
     @CurrentUser() currentUser: User,
