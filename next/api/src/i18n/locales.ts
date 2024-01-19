@@ -15,4 +15,6 @@ export const LOCALES = [
   'tr',
   'vi',
   'ar',
+  'ms',
+  'tl',
 ];

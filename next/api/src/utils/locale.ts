@@ -55,4 +55,6 @@ export const allowedTicketLanguages = [
   'tr',
   'vi',
   'ar',
+  'ms',
+  'tl',
 ];
