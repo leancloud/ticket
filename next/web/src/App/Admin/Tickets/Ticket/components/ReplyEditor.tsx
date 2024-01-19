@@ -74,10 +74,13 @@ export function ReplyEditor({ onSubmit, onOperate, operating, ticketLanguage }: 
     ) {
       const { detect } = await import('tinyld/light');
       const language = detect(trimedContent);
+      // Use startsWith to ignore script part (zh matchs zh-Hans)
       if (!ticketLanguage.startsWith(language)) {
+        const ticketLangName = TicketLanguages[ticketLanguage] || ticketLanguage;
+        const replyLangName = TicketLanguages[language] || language;
         Modal.confirm({
           title: '回复语言和工单语言不匹配',
-          content: `工单语言：${TicketLanguages[ticketLanguage]}，回复语言：${TicketLanguages[language]}`,
+          content: `工单语言：${ticketLangName}，回复语言：${replyLangName}`,
           okText: '继续回复',
           cancelText: '返回',
           onOk: () => doSubmit(trimedContent, fileIds),
