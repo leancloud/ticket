@@ -72,7 +72,7 @@ export function ReplyEditor({ onSubmit, onOperate, operating, ticketLanguage }: 
       mode === 'public' &&
       trimedContent
     ) {
-      const { detect } = await import('tinyld/light');
+      const { detect } = await import('tinyld');
       const language = detect(trimedContent);
       // Use startsWith to ignore script part (zh matchs zh-Hans)
       if (!ticketLanguage.startsWith(language)) {
