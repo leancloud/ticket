@@ -1,11 +1,12 @@
 import { ClipboardEvent, Dispatch, SetStateAction, useMemo, useRef, useState } from 'react';
 import { useDebounce } from 'react-use';
-import { Button, Empty, Input, Radio, Select, Tabs } from 'antd';
+import { Button, Empty, Input, Modal, Radio, Select, Tabs } from 'antd';
 import { AiOutlineFile } from 'react-icons/ai';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { uniq } from 'lodash-es';
 
+import { TicketLanguages } from '@/i18n/locales';
 import { useQuickReplies } from '@/api/quick-reply';
 import { storage, useCurrentUser } from '@/leancloud';
 import { LoadingCover } from '@/components/common';
@@ -13,25 +14,40 @@ import { useHoverMenu } from '@/App/Admin/components/HoverMenu';
 import { Uploader, UploaderRef } from '@/App/Admin/components/Uploader';
 import { useModal } from './useModal';
 
-interface ReplyInfo {
+interface ReplyData {
   internal: boolean;
   content: string;
   fileIds: string[];
 }
 
 interface ReplyEditorProps {
-  onSubmit: (replyInfo: ReplyInfo) => Promise<void>;
+  onSubmit: (replyData: ReplyData) => Promise<void>;
   onOperate: (action: string) => void;
   operating?: boolean;
+  ticketLanguage?: string;
 }
 
-export function ReplyEditor({ onSubmit, onOperate, operating }: ReplyEditorProps) {
+export function ReplyEditor({ onSubmit, onOperate, operating, ticketLanguage }: ReplyEditorProps) {
   const [mode, setType] = useState('public');
   const [content, setContent] = useState('');
 
   const uploaderRef = useRef<UploaderRef>(null!);
 
   const [submitting, setSubmitting] = useState(false);
+  const doSubmit = async (content: string, fileIds: string[]) => {
+    try {
+      setSubmitting(true);
+      await onSubmit({
+        internal: mode === 'internal',
+        content,
+        fileIds,
+      });
+      setContent('');
+      uploaderRef.current.reset();
+    } finally {
+      setSubmitting(false);
+    }
+  };
   const handleSubmit = async () => {
     if (submitting) {
       return;
@@ -50,18 +66,22 @@ export function ReplyEditor({ onSubmit, onOperate, operating }: ReplyEditorProps
       return alert('回复内容不能为空');
     }
 
-    try {
-      setSubmitting(true);
-      await onSubmit({
-        internal: mode === 'internal',
-        content: trimedContent,
-        fileIds,
-      });
-      setContent('');
-      uploaderRef.current.reset();
-    } finally {
-      setSubmitting(false);
+    if (import.meta.env.VITE_ENABLE_REPLY_LANGUAGE_CHECK && trimedContent && ticketLanguage) {
+      const { detect } = await import('tinyld/light');
+      const language = detect(trimedContent);
+      if (!ticketLanguage.startsWith(language)) {
+        Modal.confirm({
+          title: '回复语言和工单语言不匹配',
+          content: `工单语言：${TicketLanguages[ticketLanguage]}，回复语言：${TicketLanguages[language]}`,
+          okText: '继续回复',
+          cancelText: '返回',
+          onOk: () => doSubmit(trimedContent, fileIds),
+        });
+        return;
+      }
     }
+
+    doSubmit(trimedContent, fileIds);
   };
 
   const [quickReplyModal, toggleQuickReplyModal] = useModal({

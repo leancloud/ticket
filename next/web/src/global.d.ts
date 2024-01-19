@@ -9,6 +9,7 @@ interface ImportMetaEnv {
   VITE_ALGOLIA_API_KEY?: string;
   VITE_ENABLE_TAP_SUPPORT?: string;
   VITE_ENABLE_USER_CONFIRMATION?: string;
+  VITE_ENABLE_REPLY_LANGUAGE_CHECK?: string;
 }
 
 declare function docsearch(...args: any[]);

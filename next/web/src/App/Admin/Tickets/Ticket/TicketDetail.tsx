@@ -163,6 +163,7 @@ export function TicketDetail() {
               }
               onOperate={handleOperate}
               operating={operating}
+              ticketLanguage={ticket.language}
             />
           </Col>
           <Col className="p-4" span={24} md={6}>
