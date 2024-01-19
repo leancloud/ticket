@@ -66,7 +66,12 @@ export function ReplyEditor({ onSubmit, onOperate, operating, ticketLanguage }: 
       return alert('回复内容不能为空');
     }
 
-    if (import.meta.env.VITE_ENABLE_REPLY_LANGUAGE_CHECK && trimedContent && ticketLanguage) {
+    if (
+      import.meta.env.VITE_ENABLE_REPLY_LANGUAGE_CHECK &&
+      ticketLanguage &&
+      mode === 'public' &&
+      trimedContent
+    ) {
       const { detect } = await import('tinyld/light');
       const language = detect(trimedContent);
       if (!ticketLanguage.startsWith(language)) {
