@@ -59,7 +59,6 @@ module.exports = {
 const integrations = []
 
 const zulip = require('./integrations/zulip/server')
-const wechat = require('./integrations/wechat/server')
 
 if (process.env.ZULIP_API_KEY) {
   const zulipConfig = {
@@ -70,16 +69,6 @@ if (process.env.ZULIP_API_KEY) {
     topic: process.env.ZULIP_TOPIC,
   }
   integrations.push(zulip(zulipConfig))
-}
-if (process.env.WECHAT_TOKEN) {
-  const wechatConfig = {
-    corpId: process.env.WECHAT_CORP_ID,
-    secret: process.env.WECHAT_SECRET,
-    agentId: process.env.WECHAT_AGENT_ID,
-    token: process.env.WECHAT_TOKEN,
-    encodingAESKey: process.env.WECHAT_ENCODING_AES_KEY,
-  }
-  integrations.push(wechat(wechatConfig))
 }
 
 module.exports.integrations = integrations

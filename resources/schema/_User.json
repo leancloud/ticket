@@ -26,13 +26,7 @@
       "v": 2,
       "type": "Array"
     },
-    "weixinHookUrl": {
-      "type": "String"
-    },
     "mobilePhoneNumber": {
-      "type": "String"
-    },
-    "wechatEnterpriseUserId": {
       "type": "String"
     },
     "authData": {

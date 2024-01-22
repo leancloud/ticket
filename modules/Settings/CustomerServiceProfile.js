@@ -34,12 +34,7 @@ class CustomerServiceProfile extends Component {
   }
 
   handleSubmit(e) {
-    e.preventDefault()
-    auth.currentUser
-      .update({
-        wechatEnterpriseUserId: this.state.wechatUserId,
-      })
-      .catch(this.context.addNotification)
+    // Legacy code removed
   }
 
   render() {
