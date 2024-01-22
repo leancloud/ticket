@@ -35,7 +35,7 @@ class FindCustomerServicePipe {
   }
 }
 
-const roleSchema = z.union([z.literal('admin'), z.literal('customerService')]);
+const roleSchema = z.enum(['admin', 'customerService']);
 const rolesSchema = z.array(roleSchema).nonempty();
 
 const createCustomerServiceSchema = z.object({
@@ -54,6 +54,8 @@ type AddCategoryData = z.infer<typeof addCategorySchema>;
 const updateCustomerServiceSchema = z.object({
   active: z.boolean().optional(),
   roles: rolesSchema.optional(),
+  nickname: z.string().optional(),
+  email: z.string().optional(),
 });
 type UpdateCustomerServiceData = z.infer<typeof updateCustomerServiceSchema>;
 
@@ -131,6 +133,18 @@ export class CustomerServiceController {
 
     if (data.roles !== undefined) {
       processQueue.push(roleService.updateUserCSRoleTo(data.roles, user.id));
+    }
+
+    if (data.nickname || data.email) {
+      processQueue.push(
+        user.update(
+          {
+            name: data.nickname,
+            email: data.email,
+          },
+          { useMasterKey: true }
+        )
+      );
     }
 
     await Promise.all(processQueue);

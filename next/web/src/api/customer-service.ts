@@ -48,9 +48,11 @@ async function addCustomerService(data: AddCustomerServiceData) {
 }
 
 export interface UpdateCustomerServiceData {
+  id: string;
   active?: boolean;
   roles?: CSRole[];
-  id: string;
+  nickname?: string;
+  email?: string;
 }
 
 async function updateCustomerService({ id, ...data }: UpdateCustomerServiceData) {

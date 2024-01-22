@@ -60,6 +60,7 @@ type AuthData = z.infer<typeof authSchema>;
 const preCraeteSchema = z.object({
   email: z.string().email().optional(),
   username: z.string().optional(),
+  nickname: z.string().optional(),
 });
 type PreCreateUserData = z.infer<typeof preCraeteSchema>;
 
@@ -204,6 +205,7 @@ export class UserController {
         {
           // username might be `""`
           username: username ? username : email,
+          name: data.nickname,
           email,
           password: Math.random().toString(),
         },

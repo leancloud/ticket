@@ -57,6 +57,7 @@ export const useUser = (id: string, options?: UseQueryOptions<UserSchema, Error>
 
 export interface CreateUserData {
   username?: string;
+  nickname?: string;
   email?: string;
 }
 

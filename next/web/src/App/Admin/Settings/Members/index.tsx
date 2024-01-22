@@ -11,18 +11,19 @@ import {
   useDeleteCustomerService,
   useUpdateCustomerService,
 } from '@/api/customer-service';
-import { Button, Modal, Popover, Table, message } from '@/components/antd';
+import { Button, Modal, Popover, Table, message, FormInstance } from '@/components/antd';
 import { Category, Retry, UserSelect } from '@/components/common';
 import { UserLabel } from '@/App/Admin/components';
 import { groupBy, sortBy } from 'lodash-es';
 import { RoleCheckboxGroup } from '../../components/RoleCheckboxGroup';
+import { CustomerServiceForm, CustomerServiceFormData } from './components/CustomerServiceForm';
 
 function MemberActions({
   id,
   nickname,
   active,
   onEdit,
-}: CustomerServiceSchema & { onEdit?: () => void }) {
+}: Pick<CustomerServiceSchema, 'id' | 'nickname' | 'active'> & { onEdit?: () => void }) {
   const queryClient = useQueryClient();
 
   const { mutate: update, isLoading: isUpdating } = useUpdateCustomerService({
@@ -133,20 +134,20 @@ function AddUserModal({ visible, onHide }: AddUserModalProps) {
 }
 
 interface EditUserModalRef {
-  open: (id: string, roles: CSRole[]) => void;
+  open: (id: string, data: CustomerServiceFormData) => void;
 }
 
 const EditUserModal = forwardRef<EditUserModalRef>((_, ref) => {
   const [userId, setUserId] = useState<string | undefined>();
-  const [roles, setRoles] = useState<CSRole[] | undefined>();
+  const [data, setData] = useState<CustomerServiceFormData>();
   const [visible, setVisible] = useState(false);
 
   const queryClient = useQueryClient();
 
   useImperativeHandle(ref, () => ({
-    open: (id, roles) => {
+    open: (id, data) => {
       setUserId(id);
-      setRoles(roles);
+      setData(data);
       setVisible(true);
     },
   }));
@@ -160,17 +161,24 @@ const EditUserModal = forwardRef<EditUserModalRef>((_, ref) => {
     },
   });
 
+  const formRef = useRef<FormInstance>(null);
+
   return (
     <Modal
-      visible={visible}
+      destroyOnClose
+      open={visible}
       title="更新客服"
-      onOk={() => update({ id: userId!, roles })}
+      onOk={() => formRef.current?.submit()}
       confirmLoading={isUpdating}
-      okButtonProps={{ disabled: isUpdating || !userId || roles?.length === 0 }}
+      okButtonProps={{ disabled: isUpdating || !userId }}
       onCancel={() => setVisible(false)}
       cancelButtonProps={{ disabled: isUpdating }}
     >
-      <RoleCheckboxGroup value={roles} onChange={(v) => setRoles(v as CSRole[])} />
+      <CustomerServiceForm
+        ref={formRef}
+        initData={data}
+        onSubmit={(data) => update({ ...data, id: userId! })}
+      />
     </Modal>
   );
 });
@@ -280,11 +288,17 @@ export function Members() {
         <Table.Column
           key="actions"
           title="操作"
-          render={(_, v: CustomerService) => (
+          render={(u: CustomerService) => (
             <MemberActions
-              {...v}
+              id={u.id}
+              nickname={u.nickname}
+              active={u.active}
               onEdit={() => {
-                editUserModalRef.current?.open(v.id, v.roles);
+                editUserModalRef.current?.open(u.id, {
+                  nickname: u.nickname,
+                  email: u.email,
+                  roles: u.roles,
+                });
               }}
             />
           )}

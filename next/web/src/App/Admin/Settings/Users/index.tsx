@@ -32,8 +32,18 @@ export function NewUser() {
           control={control}
           name="username"
           render={({ field }) => (
-            <Form.Item label="Username" htmlFor="username">
+            <Form.Item label="用户名" htmlFor="username">
               <Input {...field} autoFocus id="username" />
+            </Form.Item>
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="nickname"
+          render={({ field }) => (
+            <Form.Item label="昵称" htmlFor="nickname">
+              <Input {...field} autoFocus id="nickname" />
             </Form.Item>
           )}
         />
@@ -42,7 +52,7 @@ export function NewUser() {
           control={control}
           name="email"
           render={({ field }) => (
-            <Form.Item label="Email" htmlFor="email">
+            <Form.Item label="邮箱" htmlFor="email">
               <Input type="email" {...field} id="email" />
             </Form.Item>
           )}
