@@ -43,7 +43,7 @@ export function NewUser() {
           name="nickname"
           render={({ field }) => (
             <Form.Item label="昵称" htmlFor="nickname">
-              <Input {...field} autoFocus id="nickname" />
+              <Input {...field} id="nickname" />
             </Form.Item>
           )}
         />
