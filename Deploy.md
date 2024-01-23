@@ -501,3 +501,9 @@ Jira 插件内置到主分支了，需要导入 JiraIssue.json，并将 HS_Confi
 ### `598c0fc00d17ad503a385f44bf2b1f9b3345bd9f`
 
 - 导入 FAQTopic.json，添加 comment 列。
+
+## 2024-01-23
+
+### `0b0b2c2fbf7da8bee6b280dd98902673862003c3`
+
+- 导入 MergeUserTask.json，创建新 Class。
