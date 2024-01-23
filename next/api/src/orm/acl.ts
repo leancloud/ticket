@@ -20,7 +20,14 @@ export class ACLBuilder {
 
   disallow(user: string | { id: string }, ...privileges: Privilege[]): this {
     const id = typeof user === 'string' ? user : user.id;
-    privileges.forEach((p) => delete this.data[id][p]);
+    privileges.forEach((p) => {
+      if (this.data[id]) {
+        delete this.data[id][p];
+        if (Object.keys(this.data[id]).length === 0) {
+          delete this.data[id];
+        }
+      }
+    });
     return this;
   }
 

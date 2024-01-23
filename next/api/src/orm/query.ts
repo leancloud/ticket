@@ -96,6 +96,7 @@ export class Query<M extends typeof Model> {
   private limitCount?: number;
   private orderKeys: Record<string, OrderType> = {};
   private selectList: string[] = [];
+  private _includeACL?: boolean;
 
   private preloaders: Record<string, QueryPreloader> = {};
 
@@ -169,6 +170,7 @@ export class Query<M extends typeof Model> {
     query.limitCount = this.limitCount;
     query.orderKeys = { ...this.orderKeys };
     query.selectList = [...this.selectList];
+    query._includeACL = this._includeACL;
 
     query.preloaders = { ...this.preloaders };
 
@@ -277,6 +279,12 @@ export class Query<M extends typeof Model> {
     return query;
   }
 
+  includeACL(value: boolean) {
+    const query = this.clone();
+    query._includeACL = value;
+    return query;
+  }
+
   buildAVQuery(): AVQuery {
     const avQuery = new AV.Query<AV.Object>(this.model.getClassName());
     (avQuery as any)._where = this.getRawCondition();
@@ -288,6 +296,9 @@ export class Query<M extends typeof Model> {
     }
     if (this.selectList.length > 0) {
       avQuery.select(...this.selectList);
+    }
+    if (this._includeACL) {
+      avQuery.includeACL(true);
     }
     Object.entries(this.orderKeys).forEach(([key, type]) => {
       if (type === 'asc') {

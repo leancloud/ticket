@@ -249,6 +249,10 @@ export abstract class Model {
     if (object.id) {
       this.id = object.id;
     }
+    const ACL = object.getACL();
+    if (ACL) {
+      this.ACL = ACL.toJSON();
+    }
 
     Object.values(model.fields).forEach(({ localKey, avObjectKey, decode }) => {
       if (decode) {
@@ -272,6 +276,15 @@ export abstract class Model {
     if (model.onDecodeHooks.length) {
       const ctx = { avObject: object, instance: this };
       model.onDecodeHooks.forEach((h) => h(ctx));
+    }
+  }
+
+  getRawACL() {
+    if (this.ACL) {
+      if (this.ACL instanceof ACLBuilder) {
+        return this.ACL.toJSON();
+      }
+      return this.ACL;
     }
   }
 
