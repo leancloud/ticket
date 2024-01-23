@@ -37,6 +37,7 @@ import { EditSupportEmail, NewSupportEmail, SupportEmailList } from './SupportEm
 import { useCurrentUserIsAdmin } from '@/leancloud';
 import { Result } from '@/components/antd';
 import { EvaluationConfig } from './Evaluation';
+import { MergeUser } from './Users/MergeUser';
 
 const SettingRoutes = () => (
   <Routes>
@@ -44,6 +45,7 @@ const SettingRoutes = () => (
       <Route index element="Under Construction" />
       <Route path="new" element={<NewUser />} />
       <Route path=":id" element="Under Construction" />
+      <Route path="merge" element={<MergeUser />} />
     </Route>
     <Route path="/members" element={<Members />} />
     <Route path="/groups">
@@ -148,6 +150,10 @@ const routeGroups: MenuDataItem[] = [
       {
         name: '创建用户',
         path: 'users/new',
+      },
+      {
+        name: '合并用户',
+        path: 'users/merge',
       },
       {
         name: '客服',
