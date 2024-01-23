@@ -26,6 +26,7 @@ import { User } from '@/model/User';
 import { CustomerServiceResponse } from '@/response/customer-service';
 import { GroupResponse } from '@/response/group';
 import { roleService } from '@/service/role';
+import { userService } from '@/user/services/user';
 
 class FindCustomerServicePipe {
   static async transform(id: string, ctx: Context): Promise<User> {
@@ -123,11 +124,7 @@ export class CustomerServiceController {
       if (data.active) {
         processQueue.push(user.update({ inactive: null }, { useMasterKey: true }));
       } else {
-        processQueue.push(
-          user
-            .update({ inactive: true }, { useMasterKey: true })
-            .then(() => user.refreshSessionToken())
-        );
+        processQueue.push(userService.inactiveUser(user));
       }
     }
 

@@ -12,6 +12,11 @@ export function createQueue<T>(name: string, options?: Bull.QueueOptions): Bull.
   }
   return new Bull<T>(name, {
     ...options,
+    defaultJobOptions: {
+      removeOnComplete: true,
+      removeOnFail: true,
+      ...options?.defaultJobOptions,
+    },
     // https://github.com/OptimalBits/bull/blob/develop/PATTERNS.md#reusing-redis-connections
     createClient: (type, redisOptions) => {
       switch (type) {
@@ -34,4 +39,4 @@ export function createQueue<T>(name: string, options?: Bull.QueueOptions): Bull.
   });
 }
 
-export type { Queue } from 'bull';
+export type { Queue, Job } from 'bull';
