@@ -1,0 +1,77 @@
+{
+  "schema": {
+    "mergingData": {
+      "hidden": false,
+      "read_only": false,
+      "required": false,
+      "type": "Object"
+    },
+    "sourceUser": {
+      "className": "_User",
+      "hidden": false,
+      "read_only": false,
+      "required": false,
+      "type": "Pointer"
+    },
+    "updatedAt": {
+      "type": "Date"
+    },
+    "ACL": {
+      "type": "ACL",
+      "default": {}
+    },
+    "objectId": {
+      "type": "String"
+    },
+    "completedAt": {
+      "hidden": false,
+      "read_only": false,
+      "required": false,
+      "type": "Date"
+    },
+    "createdAt": {
+      "type": "Date"
+    },
+    "targetUser": {
+      "className": "_User",
+      "hidden": false,
+      "read_only": false,
+      "required": false,
+      "type": "Pointer"
+    },
+    "status": {
+      "hidden": false,
+      "read_only": false,
+      "required": false,
+      "type": "String"
+    }
+  },
+  "permissions": {
+    "add_fields": {},
+    "get": {},
+    "find": {},
+    "create": {},
+    "update": {},
+    "delete": {}
+  },
+  "indexes": [
+    {
+      "v": 2,
+      "key": {
+        "sourceUser.$id": 1.0
+      },
+      "name": "-user-sourceUser.$id_1",
+      "ns": "_.MergeUserTask",
+      "background": true
+    },
+    {
+      "v": 2,
+      "key": {
+        "targetUser.$id": 1.0
+      },
+      "name": "-user-targetUser.$id_1",
+      "ns": "_.MergeUserTask",
+      "background": true
+    }
+  ]
+}

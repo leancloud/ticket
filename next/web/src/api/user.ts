@@ -64,3 +64,37 @@ export interface CreateUserData {
 export const createUser = async (data: CreateUserData) => {
   await http.post('/api/2/users/pre-create', data);
 };
+
+export interface MergeUserTaskSchema {
+  id: string;
+  sourceUserId: string;
+  sourceUser: UserSchema;
+  targetUserId: string;
+  targetUser: UserSchema;
+  status: string;
+  completedAt: string;
+  createdAt: string;
+}
+
+export interface MergeUserRequestData {
+  sourceUserId: string;
+  targetUserId: string;
+}
+
+export async function mergeUser(data: MergeUserRequestData) {
+  const res = await http.post<MergeUserTaskSchema>('/api/2/merge-user-tasks', data);
+  return res.data;
+}
+
+export interface GetMergeUserTasksOptions {
+  page?: number;
+  pageSize?: number;
+}
+
+export async function getMergeUserTasks(options?: GetMergeUserTasksOptions) {
+  const res = await http.get<MergeUserTaskSchema[]>('/api/2/merge-user-tasks', { params: options });
+  return {
+    data: res.data,
+    totalCount: parseInt(res.headers['x-total-count']),
+  };
+}
