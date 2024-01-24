@@ -330,7 +330,7 @@ export class Ticket extends Model {
         }
       }
     }
-    await updater.update(data.author, { useMasterKey: true });
+    const newTicket = await updater.update(data.author, { useMasterKey: true });
 
     events.emit('reply:created', {
       reply: reply.toJSON(),
@@ -345,7 +345,7 @@ export class Ticket extends Model {
         });
       }
 
-      await durationMetricService.recordReplyTicket(this, reply, isCustomerService);
+      await durationMetricService.recordReplyTicket(newTicket, reply, isCustomerService);
     }
 
     return reply;
