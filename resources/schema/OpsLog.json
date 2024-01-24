@@ -59,6 +59,16 @@
       "name": "-user-ticket.$id_1",
       "ns": "-.OpsLog",
       "background": true
+    },
+    {
+      "v": 2,
+      "key": {
+        "createdAt": 1.0,
+        "data.operator.objectId": 1.0
+      },
+      "name": "-user-createdAt_1_data.operator.objectId_1",
+      "ns": "_.OpsLog",
+      "background": true
     }
   ]
 }

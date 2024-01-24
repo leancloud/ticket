@@ -95,6 +95,16 @@
       "name": "-user-reply.$id_1",
       "ns": "_.ReplyRevision",
       "background": true
+    },
+    {
+      "v": 2,
+      "key": {
+        "actionTime": 1.0,
+        "operator.$id": 1.0
+      },
+      "name": "-user-actionTime_1_operator.$id_1",
+      "ns": "_.ReplyRevision",
+      "background": true
     }
   ]
 }

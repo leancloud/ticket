@@ -98,6 +98,16 @@
       "name": "-user-ticket.$id_-1",
       "ns": "-.Reply",
       "background": true
+    },
+    {
+      "v": 2,
+      "key": {
+        "createdAt": 1.0,
+        "author.$id": 1.0
+      },
+      "name": "-user-createdAt_1_author.$id_1",
+      "ns": "_.Reply",
+      "background": true
     }
   ]
 }
