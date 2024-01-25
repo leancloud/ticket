@@ -3,6 +3,8 @@ import { UseMutationOptions, UseQueryOptions, useMutation, useQuery } from 'reac
 import { http } from '@/leancloud';
 import { GroupSchema } from './group';
 import { UserSchema } from './user';
+import { ReplyRevision, ReplySchema } from './reply';
+import { TicketSchema, OpsLog } from './ticket';
 
 export enum CSRole {
   Admin = 'admin',
@@ -164,4 +166,48 @@ export function useDeleteCustomerServiceCategory(
     },
     ...options,
   });
+}
+
+export type CustomerServiceActionLog =
+  | {
+      type: 'reply';
+      ticket?: TicketSchema;
+      reply?: ReplySchema;
+      revision: ReplyRevision;
+      ts: string;
+    }
+  | {
+      type: 'opsLog';
+      ticket?: TicketSchema;
+      opsLog: OpsLog;
+      ts: string;
+    };
+
+export interface GetCustomerServiceActionLogsOptions {
+  customerServiceId: string;
+  from: string;
+  to: string;
+  pageSize?: number;
+  desc?: boolean;
+}
+
+export async function getCustomerServiceActionLogs({
+  customerServiceId,
+  from,
+  to,
+  pageSize,
+  desc,
+}: GetCustomerServiceActionLogsOptions) {
+  const res = await http.get<CustomerServiceActionLog[]>(
+    `/api/2/customer-services/${customerServiceId}/action-logs`,
+    {
+      params: {
+        from,
+        to,
+        pageSize,
+        desc,
+      },
+    }
+  );
+  return res.data;
 }

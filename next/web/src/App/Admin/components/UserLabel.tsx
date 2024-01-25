@@ -1,5 +1,7 @@
-import cx from 'classnames';
 import { ComponentPropsWithoutRef, forwardRef } from 'react';
+import cx from 'classnames';
+
+import { useUser } from '@/api/user';
 
 export interface UserLabelProps extends ComponentPropsWithoutRef<'div'> {
   user: {
@@ -23,3 +25,22 @@ export const UserLabel = forwardRef<HTMLDivElement, UserLabelProps>(
     );
   }
 );
+
+interface AsyncUserLabelProps {
+  userId: string;
+}
+
+export function AsyncUserLabel({ userId }: AsyncUserLabelProps) {
+  const { data: user } = useUser(userId, {
+    enabled: userId !== 'system',
+    staleTime: 1000 * 60 * 5,
+  });
+
+  if (userId === 'system') {
+    return <div>系统</div>;
+  }
+  if (!user) {
+    return <div>Loading...</div>;
+  }
+  return <UserLabel user={user} />;
+}

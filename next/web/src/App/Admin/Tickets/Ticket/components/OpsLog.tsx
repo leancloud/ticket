@@ -14,11 +14,10 @@ import { keyBy } from 'lodash-es';
 import cx from 'classnames';
 
 import { OpsLog as OpsLogSchema } from '@/api/ticket';
-import { useUser } from '@/api/user';
 import { useGroup } from '@/api/group';
 import { useCategories } from '@/api/category';
 import { Button, Spin, Tag } from '@/components/antd';
-import { UserLabel } from '@/App/Admin/components';
+import { AsyncUserLabel } from '@/App/Admin/components';
 import { useTicketFields_v1 } from '../api1';
 import { useModal } from './useModal';
 import { Time } from './Time';
@@ -51,25 +50,6 @@ export function OpsLog({ data }: OpsLogProps) {
     case 'reopen':
       return <Reopen data={data} />;
   }
-}
-
-interface AsyncUserLabelProps {
-  userId: string;
-}
-
-function AsyncUserLabel({ userId }: AsyncUserLabelProps) {
-  const { data: user } = useUser(userId, {
-    enabled: userId !== 'system',
-    staleTime: Infinity,
-  });
-
-  if (userId === 'system') {
-    return <div>系统</div>;
-  }
-  if (!user) {
-    return <div>Loading...</div>;
-  }
-  return <UserLabel user={user} />;
 }
 
 interface BaseOpsLogProps {
@@ -158,7 +138,7 @@ interface GroupLabelProps {
   groupId: string;
 }
 
-function GroupLabel({ groupId }: GroupLabelProps) {
+export function GroupLabel({ groupId }: GroupLabelProps) {
   const { data: group } = useGroup(groupId);
 
   if (!group) {
@@ -167,13 +147,13 @@ function GroupLabel({ groupId }: GroupLabelProps) {
   return <div>{group.name}</div>;
 }
 
-function ChangeCategory({ data }: OpsLogProps<'changeCategory'>) {
+export function CategoryTag({ categoryId }: { categoryId: string }) {
   const { data: categories, isLoading } = useCategories();
 
   const categoryById = useMemo(() => keyBy(categories, (c) => c.id), [categories]);
 
   const fullname = useMemo(() => {
-    let current = categoryById[data.categoryId];
+    let current = categoryById[categoryId];
     const path: string[] = [];
     while (current) {
       path.push(current.name);
@@ -184,8 +164,12 @@ function ChangeCategory({ data }: OpsLogProps<'changeCategory'>) {
       }
     }
     return path.reverse().join(' / ');
-  }, [categoryById, data.categoryId]);
+  }, [categoryById, categoryId]);
 
+  return <Tag>{isLoading ? 'Loading...' : fullname}</Tag>;
+}
+
+function ChangeCategory({ data }: OpsLogProps<'changeCategory'>) {
   return (
     <BaseOpsLog
       icon={
@@ -197,7 +181,7 @@ function ChangeCategory({ data }: OpsLogProps<'changeCategory'>) {
     >
       <AsyncUserLabel userId={data.operatorId} />
       <span>将分类修改为</span>
-      <Tag>{isLoading ? 'Loading...' : fullname}</Tag>
+      <CategoryTag categoryId={data.categoryId} />
     </BaseOpsLog>
   );
 }
@@ -233,7 +217,7 @@ interface DiffFieldsProps {
   changes: { fieldId: string; from: any; to: any }[];
 }
 
-function DiffFields({ changes }: DiffFieldsProps) {
+export function DiffFields({ changes }: DiffFieldsProps) {
   const fileIds = useMemo(() => changes.map((c) => c.fieldId), [changes]);
   const { data: fields } = useTicketFields_v1(fileIds);
   const fieldById = useMemo(() => keyBy(fields, (f) => f.id), [fields]);

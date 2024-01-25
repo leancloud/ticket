@@ -36,7 +36,7 @@ export function useUpdateReply(
   });
 }
 
-interface ReplyRevision {
+export interface ReplyRevision {
   id: string;
   replyId: string;
   content: string;

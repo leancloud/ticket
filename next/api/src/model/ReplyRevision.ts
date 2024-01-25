@@ -7,6 +7,9 @@ export class ReplyRevision extends Model {
   @pointerId(() => Reply)
   replyId!: string;
 
+  @pointTo(() => Reply)
+  reply?: Reply;
+
   @field()
   content?: string;
 
