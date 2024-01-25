@@ -19,10 +19,10 @@ export const FilterForm = forwardRef<FormInstance, FilterFormProps>(
   ({ initData, onSubmit, loading }, ref) => {
     const handleSubmit = (data: FilterFormData) => {
       if (onSubmit) {
-        if (data.operatorIds && data.operatorIds.length === 0) {
-          delete data.operatorIds;
-        }
-        onSubmit(data);
+        onSubmit({
+          dateRange: [data.dateRange[0].startOf('day'), data.dateRange[1].endOf('day')],
+          operatorIds: data.operatorIds && (data.operatorIds.length ? data.operatorIds : undefined),
+        });
       }
     };
 
