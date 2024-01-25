@@ -3,15 +3,14 @@ import { RefSelectProps } from 'antd/lib/select';
 
 import { useCustomerServices } from '@/api/user';
 import { Select, SelectProps } from '@/components/antd';
-import { Retry } from './Retry';
 
-export interface BaseCustomerServiceSelectProps<T = any> extends SelectProps<T> {
+interface BaseCustomerServiceSelectProps<T = any> extends SelectProps<T> {
   errorMessage?: string;
 }
 
-export const BaseCustomerServiceSelect = forwardRef<RefSelectProps, BaseCustomerServiceSelectProps>(
+const BaseCustomerServiceSelect = forwardRef<RefSelectProps, BaseCustomerServiceSelectProps>(
   ({ options: extraOptions, errorMessage = '获取客服失败', ...props }, ref) => {
-    const { data, isLoading, error, refetch } = useCustomerServices();
+    const { data, isLoading } = useCustomerServices();
     const options = useMemo(() => {
       return [
         ...(extraOptions ?? []),
@@ -22,18 +21,14 @@ export const BaseCustomerServiceSelect = forwardRef<RefSelectProps, BaseCustomer
       ];
     }, [data, extraOptions]);
 
-    if (error) {
-      return <Retry error={error} message={errorMessage} onRetry={refetch} />;
-    }
-
     return (
       <Select
         showSearch
-        optionFilterProp="label"
-        {...props}
         ref={ref}
+        optionFilterProp="label"
         loading={isLoading}
         options={options}
+        {...props}
       />
     );
   }

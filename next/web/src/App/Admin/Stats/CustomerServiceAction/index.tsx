@@ -1,107 +1,80 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from 'react-query';
-import { Button, DatePicker, Table, TableProps, Tooltip } from 'antd';
+import { Button, Table, Tooltip } from 'antd';
 import moment, { Moment } from 'moment';
+import { keyBy } from 'lodash-es';
 
-import { CustomerServiceSelect } from '@/components/common';
 import {
   CustomerServiceActionLog as Log,
-  getCustomerServiceActionLogs,
   GetCustomerServiceActionLogsOptions,
-} from '@/api/customer-service';
-import { TicketSchema } from '@/api/ticket';
+  getCustomerServiceActionLogs,
+} from '@/api/customer-service-action-log';
 import { TicketLink } from '@/App/Admin/components/TicketLink';
-import { AsyncUserLabel } from '@/App/Admin/components/UserLabel';
 import { CategoryTag, DiffFields, GroupLabel } from '@/App/Admin/Tickets/Ticket/components/OpsLog';
 import { SimpleModal } from './components/SimpleModal';
+import { FilterForm } from './components/FilterForm';
 
-const { RangePicker } = DatePicker;
+function renderAction(log: Log) {
+  if (log.type === 'reply') {
+    const replyType = log.reply ? (log.reply.internal ? '内部回复' : '公开回复') : '回复';
+    switch (log.revision.action) {
+      case 'create':
+        return '创建' + replyType;
+      case 'update':
+        return '修改' + replyType;
+      case 'delete':
+        return '删除' + replyType;
+    }
+  }
+  switch (log.opsLog.action) {
+    case 'changeAssignee':
+      return '修改负责人';
+    case 'changeCategory':
+      return '修改分类';
+    case 'changeFields':
+      return '修改自定义字段值';
+    case 'changeGroup':
+      return '修改客服组';
+    case 'close':
+    case 'reject':
+    case 'resolve':
+      return '关闭工单';
+    case 'reopen':
+      return '重新打开工单';
+    case 'replySoon':
+      return '稍后回复工单';
+    case 'replyWithNoContent':
+      return '认为工单无需回复';
+    default:
+      return log.opsLog.action;
+  }
+}
 
-const columns: TableProps<Log>['columns'] = [
-  {
-    dataIndex: 'ticket',
-    title: '工单',
-    render: (ticket?: TicketSchema) => {
-      return <div className="flex">{ticket ? <TicketLink ticket={ticket} /> : '已删除'}</div>;
-    },
-  },
-  {
-    dataIndex: 'ts',
-    title: '操作时间',
-    render: (ts: string) => moment(ts).format('YYYY-MM-DD HH:mm:ss'),
-  },
-  {
-    key: 'action',
-    title: '操作',
-    render: (log: Log) => {
-      if (log.type === 'reply') {
-        const replyType = log.reply ? (log.reply.internal ? '内部回复' : '公开回复') : '回复';
-        switch (log.revision.action) {
-          case 'create':
-            return '创建' + replyType;
-          case 'update':
-            return '修改' + replyType;
-          case 'delete':
-            return '删除' + replyType;
-        }
-      }
-      switch (log.opsLog.action) {
-        case 'changeAssignee':
-          return '修改负责人';
-        case 'changeCategory':
-          return '修改分类';
-        case 'changeFields':
-          return '修改自定义字段值';
-        case 'changeGroup':
-          return '修改客服组';
-        case 'close':
-        case 'reject':
-        case 'resolve':
-          return '关闭工单';
-        case 'reopen':
-          return '重新打开工单';
-        case 'replySoon':
-          return '稍后回复工单';
-        case 'replyWithNoContent':
-          return '认为工单无需回复';
-        default:
-          return log.opsLog.action;
-      }
-    },
-  },
-  {
-    key: 'detail',
-    title: '详情',
-    render: (log: Log) => {
-      if (log.type === 'reply') {
+function renderDetail(getUserName: (id: string) => string) {
+  return (log: Log) => {
+    if (log.type === 'reply') {
+      return (
+        <Tooltip title={log.revision.content} placement="left">
+          <div className="max-w-[400px] truncate">{log.revision.content}</div>
+        </Tooltip>
+      );
+    }
+    switch (log.opsLog.action) {
+      case 'changeAssignee':
+        return log.opsLog.assigneeId ? getUserName(log.opsLog.assigneeId) : '<空>';
+      case 'changeCategory':
+        return <CategoryTag categoryId={log.opsLog.categoryId} />;
+      case 'changeFields':
         return (
-          <Tooltip title={log.revision.content} placement="left">
-            <div className="max-w-[400px] truncate">{log.revision.content}</div>
-          </Tooltip>
+          <SimpleModal title="字段修改记录" trigger={<a>查看</a>} footer={null}>
+            <DiffFields changes={log.opsLog.changes} />
+          </SimpleModal>
         );
-      }
-      switch (log.opsLog.action) {
-        case 'changeAssignee':
-          return log.opsLog.assigneeId ? (
-            <AsyncUserLabel userId={log.opsLog.assigneeId} />
-          ) : (
-            '<未分配>'
-          );
-        case 'changeCategory':
-          return <CategoryTag categoryId={log.opsLog.categoryId} />;
-        case 'changeFields':
-          return (
-            <SimpleModal title="字段修改记录" trigger={<a>查看</a>} footer={null}>
-              <DiffFields changes={log.opsLog.changes} />
-            </SimpleModal>
-          );
-        case 'changeGroup':
-          return log.opsLog.groupId ? <GroupLabel groupId={log.opsLog.groupId} /> : '<未分配>';
-      }
-      return '-';
-    },
-  },
-];
+      case 'changeGroup':
+        return log.opsLog.groupId ? <GroupLabel groupId={log.opsLog.groupId} /> : '<空>';
+    }
+  };
+}
 
 const pageSize = 20;
 
@@ -117,7 +90,7 @@ function getLogId(log: Log) {
 export function CustomerServiceAction() {
   const [filters, setFilters] = useState<{
     dateRange: [Moment, Moment];
-    customerServiceId?: string;
+    operatorIds?: string[];
   }>(() => ({
     dateRange: [moment().startOf('day'), moment().endOf('day')],
   }));
@@ -130,23 +103,20 @@ export function CustomerServiceAction() {
   }>({});
 
   const options = useMemo<GetCustomerServiceActionLogsOptions | undefined>(() => {
-    if (!filters.customerServiceId) {
-      return;
-    }
     const window = pagination.desc
       ? [filters.dateRange[0], pagination.cursor || filters.dateRange[1]]
       : [pagination.cursor || filters.dateRange[0], filters.dateRange[1]];
     return {
-      customerServiceId: filters.customerServiceId,
       from: window[0].toISOString(),
       to: window[1].toISOString(),
+      operatorIds: filters.operatorIds,
       // 多拿一个用来判断是否还有下一页
       pageSize: pageSize + 1,
       desc: pagination.desc || undefined,
     };
   }, [filters, pagination.cursor, pagination.desc]);
 
-  const { data, isLoading } = useQuery({
+  const { data, isFetching } = useQuery({
     enabled: !!options,
     queryKey: ['CustomerServiceActionLogs', options],
     queryFn: () => getCustomerServiceActionLogs(options!),
@@ -155,14 +125,14 @@ export function CustomerServiceAction() {
 
   const logs = useMemo(() => {
     if (pagination.desc) {
-      return data?.slice(0, pageSize).reverse();
+      return data?.logs.slice(0, pageSize).reverse();
     } else {
-      return data?.slice(0, pageSize);
+      return data?.logs.slice(0, pageSize);
     }
   }, [data, pagination.desc]);
 
-  const handleChangeFilters = (next: Partial<typeof filters>) => {
-    setFilters((prev) => ({ ...prev, ...next }));
+  const handleChangeFilters = (newFilters: typeof filters) => {
+    setFilters(newFilters);
     setPagination({});
   };
 
@@ -187,55 +157,83 @@ export function CustomerServiceAction() {
   useEffect(() => {
     if (data) {
       if (pagination.desc) {
-        setPagination((prev) => ({ ...prev, hasPrevPage: data.length > pageSize }));
+        setPagination((prev) => ({ ...prev, hasPrevPage: data.logs.length > pageSize }));
       } else {
-        setPagination((prev) => ({ ...prev, hasNextPage: data.length > pageSize }));
+        setPagination((prev) => ({ ...prev, hasNextPage: data.logs.length > pageSize }));
       }
     }
   }, [data, pagination.desc]);
 
+  const ticketById = useMemo(() => keyBy(data?.tickets, (t) => t.id), [data]);
+  const userById = useMemo(() => keyBy(data?.users, (u) => u.id), [data]);
+
+  const renderUserName = (id: string) => {
+    return userById[id]?.nickname ?? '未知';
+  };
+
   return (
     <div className="p-10">
-      <div className="space-x-2 mb-5">
-        <RangePicker
-          allowClear={false}
-          value={filters.dateRange}
-          onChange={(value) => {
-            if (value && value[0] && value[1]) {
-              handleChangeFilters({
-                dateRange: [value[0], value[1]],
-              });
-            }
-          }}
-        />
-
-        <CustomerServiceSelect
-          placeholder="请选择客服"
-          value={filters.customerServiceId}
-          onChange={(id) => handleChangeFilters({ customerServiceId: id as string })}
-          style={{ minWidth: 160 }}
-        />
+      <div className="mb-5">
+        <FilterForm initData={filters} onSubmit={handleChangeFilters} />
       </div>
 
       <Table
         dataSource={logs}
         rowKey={getLogId}
-        columns={columns}
         pagination={false}
-        loading={isLoading}
+        loading={isFetching}
         scroll={{ x: 'max-content' }}
+        columns={[
+          {
+            dataIndex: 'ticketId',
+            title: '工单',
+            render: (ticketId?: string) => {
+              if (ticketId) {
+                const ticket = ticketById[ticketId];
+                if (ticket) {
+                  return (
+                    <div className="flex">
+                      <TicketLink ticket={ticket} />
+                    </div>
+                  );
+                }
+              }
+              return '已删除';
+            },
+          },
+          {
+            dataIndex: 'ts',
+            title: '操作时间',
+            render: (ts: string) => moment(ts).format('YYYY-MM-DD HH:mm:ss'),
+          },
+          {
+            dataIndex: 'operatorId',
+            title: '客服',
+            render: renderUserName,
+          },
+          {
+            key: 'action',
+            title: '操作',
+            render: renderAction,
+          },
+          {
+            key: 'detail',
+            title: '详情',
+            render: renderDetail(renderUserName),
+          },
+        ]}
       />
 
       <div className="mt-5 text-center">
         <Button.Group>
           <Button
-            disabled={!pagination.hasPrevPage || isLoading}
+            disabled={!pagination.hasPrevPage || isFetching}
             onClick={() => changePage('prev')}
           >
             上一页
           </Button>
           <Button
-            disabled={!pagination.hasNextPage || isLoading}
+            disabled={!pagination.hasNextPage || isFetching}
             onClick={() => changePage('next')}
           >
             下一页

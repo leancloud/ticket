@@ -3,13 +3,12 @@ import _ from 'lodash';
 import { OpsLog } from '@/model/OpsLog';
 import { Reply } from '@/model/Reply';
 import { ReplyRevision } from '@/model/ReplyRevision';
-import { Ticket } from '@/model/Ticket';
 import { User } from '@/model/User';
 
 export interface GetCustomerServiceActionLogsOptions {
   from: Date;
   to: Date;
-  customerServiceId: string;
+  operatorIds?: string[];
   limit?: number;
   desc?: boolean;
 }
@@ -23,15 +22,15 @@ export type CustomerServiceActionLog =
   | {
       type: CustomerServiceActionLogType.Reply;
       ticketId?: string;
-      ticket?: Ticket;
+      operatorId: string;
       reply?: Reply;
       revision: ReplyRevision;
       ts: Date;
     }
   | {
       type: CustomerServiceActionLogType.OpsLog;
-      ticket?: Ticket;
-      ticketId?: string;
+      ticketId: string;
+      operatorId: string;
       opsLog: OpsLog;
       ts: Date;
     };
@@ -75,33 +74,40 @@ export class CustomerServiceActionLogService {
   private getReplyRevisions({
     from,
     to,
-    customerServiceId,
+    operatorIds,
     limit = 10,
     desc,
   }: GetCustomerServiceActionLogsOptions) {
     const query = ReplyRevision.queryBuilder()
       .where('actionTime', '>=', from)
       .where('actionTime', '<=', to)
-      .where('operator', '==', User.ptr(customerServiceId))
       .preload('reply')
       .limit(limit)
       .orderBy('actionTime', desc ? 'desc' : 'asc');
+    if (operatorIds) {
+      query.where('operator', 'in', operatorIds.map(User.ptr.bind(User)));
+    }
     return query.find({ useMasterKey: true });
   }
 
   private getOpsLogs({
     from,
     to,
-    customerServiceId,
+    operatorIds,
     limit = 10,
     desc,
   }: GetCustomerServiceActionLogsOptions) {
     const query = OpsLog.queryBuilder()
       .where('createdAt', '>=', from)
       .where('createdAt', '<=', to)
-      .where('data.operator.objectId', '==', customerServiceId)
       .limit(limit)
       .orderBy('createdAt', desc ? 'desc' : 'asc');
+    if (operatorIds) {
+      query.where('data.operator.objectId', 'in', operatorIds);
+    } else {
+      query.where('data.operator.objectId', 'exists');
+      query.where('data.operator.objectId', '!=', 'system');
+    }
     return query.find({ useMasterKey: true });
   }
 
@@ -116,6 +122,7 @@ export class CustomerServiceActionLogService {
       ticketId: rv.reply?.ticketId,
       reply: rv.reply,
       revision: rv,
+      operatorId: rv.operatorId,
       ts: rv.actionTime,
     }));
 
@@ -123,30 +130,17 @@ export class CustomerServiceActionLogService {
       type: CustomerServiceActionLogType.OpsLog,
       ticketId: opsLog.ticketId,
       opsLog,
+      operatorId: opsLog.data.operator.objectId,
       ts: opsLog.createdAt,
     }));
 
-    const logs = topN([replyLogs, opsLogLogs], limit, (a, b) => {
+    return topN([replyLogs, opsLogLogs], limit, (a, b) => {
       if (desc) {
         return b.ts.getTime() - a.ts.getTime();
       } else {
         return a.ts.getTime() - b.ts.getTime();
       }
     });
-
-    const ticketIds = _.compact(logs.map((log) => log.ticketId));
-    const tickets = await Ticket.queryBuilder()
-      .where('objectId', 'in', ticketIds)
-      .find({ useMasterKey: true });
-    const ticketById = _.keyBy(tickets, (t) => t.id);
-
-    logs.forEach((log) => {
-      if (log.ticketId) {
-        log.ticket = ticketById[log.ticketId];
-      }
-    });
-
-    return logs;
   }
 }
 

@@ -18,7 +18,7 @@ import {
   StatusCode,
   UseMiddlewares,
 } from '@/common/http';
-import { ParseBoolPipe, ParseDatePipe, ParseIntPipe, ZodValidationPipe } from '@/common/pipe';
+import { ParseBoolPipe, ZodValidationPipe } from '@/common/pipe';
 import { adminOnly, auth, systemRoleMemberGuard } from '@/middleware';
 import { Category } from '@/model/Category';
 import { Role } from '@/model/Role';
@@ -27,14 +27,6 @@ import { CustomerServiceResponse } from '@/response/customer-service';
 import { GroupResponse } from '@/response/group';
 import { roleService } from '@/service/role';
 import { userService } from '@/user/services/user';
-import { ReplyResponse } from '@/response/reply';
-import { OpsLogResponse } from '@/response/ops-log';
-import {
-  customerServiceActionLogService,
-  CustomerServiceActionLogType,
-} from '@/service/customer-service-action-log';
-import { TicketListItemResponse } from '@/response/ticket';
-import { ReplyRevisionResponse } from '@/response/reply-revision';
 
 class FindCustomerServicePipe {
   static async transform(id: string, ctx: Context): Promise<User> {
@@ -228,47 +220,5 @@ export class CustomerServiceController {
     }
 
     return {};
-  }
-
-  @Get(':id/action-logs')
-  @UseMiddlewares(adminOnly)
-  async getActionLogs(
-    @Param('id') id: string,
-    @Query('from', ParseDatePipe) from: Date | undefined,
-    @Query('to', ParseDatePipe) to: Date | undefined,
-    @Query('pageSize', new ParseIntPipe({ min: 1, max: 100 })) pageSize = 10,
-    @Query('desc', ParseBoolPipe) desc: boolean
-  ) {
-    if (!from || !to) {
-      throw new BadRequestError('"from" and "to" param is required');
-    }
-
-    const logs = await customerServiceActionLogService.getLogs({
-      from,
-      to,
-      customerServiceId: id,
-      limit: pageSize,
-      desc,
-    });
-
-    return logs.map((log) => {
-      switch (log.type) {
-        case CustomerServiceActionLogType.Reply:
-          return {
-            type: 'reply',
-            ticket: log.ticket && new TicketListItemResponse(log.ticket),
-            reply: log.reply && new ReplyResponse(log.reply),
-            revision: new ReplyRevisionResponse(log.revision),
-            ts: log.ts.toISOString(),
-          };
-        case CustomerServiceActionLogType.OpsLog:
-          return {
-            type: 'opsLog',
-            ticket: log.ticket && new TicketListItemResponse(log.ticket),
-            opsLog: new OpsLogResponse(log.opsLog),
-            ts: log.ts.toISOString(),
-          };
-      }
-    });
   }
 }
