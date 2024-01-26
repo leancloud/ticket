@@ -202,7 +202,7 @@ const encodeUser = (user: User) => {
   return {
     id: user.id,
     username: user.username,
-    nickname: user.name,
+    nickname: user.name ?? user.username,
     email: user.email,
   };
 };
