@@ -4,6 +4,7 @@ import { Button, Table, Tooltip } from 'antd';
 import moment, { Moment } from 'moment';
 import { keyBy } from 'lodash-es';
 
+import { ReplySchema } from '@/api/reply';
 import {
   CustomerServiceActionLog as Log,
   GetCustomerServiceActionLogsOptions,
@@ -14,40 +15,43 @@ import { CategoryTag, DiffFields, GroupLabel } from '@/App/Admin/Tickets/Ticket/
 import { SimpleModal } from './components/SimpleModal';
 import { FilterForm } from './components/FilterForm';
 
-function renderAction(log: Log) {
-  if (log.type === 'reply') {
-    const replyType = log.reply ? (log.reply.internal ? '内部回复' : '公开回复') : '回复';
-    switch (log.revision.action) {
-      case 'create':
-        return '创建' + replyType;
-      case 'update':
-        return '修改' + replyType;
-      case 'delete':
-        return '删除' + replyType;
+function renderAction(getReply: (id: string) => ReplySchema) {
+  return (log: Log) => {
+    if (log.type === 'reply') {
+      const reply = getReply(log.revision.replyId);
+      const replyType = reply ? (reply.internal ? '内部回复' : '公开回复') : '回复';
+      switch (log.revision.action) {
+        case 'create':
+          return '创建' + replyType;
+        case 'update':
+          return '修改' + replyType;
+        case 'delete':
+          return '删除' + replyType;
+      }
     }
-  }
-  switch (log.opsLog.action) {
-    case 'changeAssignee':
-      return '修改负责人';
-    case 'changeCategory':
-      return '修改分类';
-    case 'changeFields':
-      return '修改自定义字段值';
-    case 'changeGroup':
-      return '修改客服组';
-    case 'close':
-    case 'reject':
-    case 'resolve':
-      return '关闭工单';
-    case 'reopen':
-      return '重新打开工单';
-    case 'replySoon':
-      return '稍后回复工单';
-    case 'replyWithNoContent':
-      return '认为工单无需回复';
-    default:
-      return log.opsLog.action;
-  }
+    switch (log.opsLog.action) {
+      case 'changeAssignee':
+        return '修改负责人';
+      case 'changeCategory':
+        return '修改分类';
+      case 'changeFields':
+        return '修改自定义字段值';
+      case 'changeGroup':
+        return '修改客服组';
+      case 'close':
+      case 'reject':
+      case 'resolve':
+        return '关闭工单';
+      case 'reopen':
+        return '重新打开工单';
+      case 'replySoon':
+        return '稍后回复工单';
+      case 'replyWithNoContent':
+        return '认为工单无需回复';
+      default:
+        return log.opsLog.action;
+    }
+  };
 }
 
 function renderDetail(getUserName: (id: string) => string) {
@@ -77,15 +81,6 @@ function renderDetail(getUserName: (id: string) => string) {
 }
 
 const pageSize = 20;
-
-function getLogId(log: Log) {
-  switch (log.type) {
-    case 'reply':
-      return log.revision.id;
-    case 'opsLog':
-      return log.opsLog.id;
-  }
-}
 
 export function CustomerServiceAction() {
   const [filters, setFilters] = useState<{
@@ -164,8 +159,15 @@ export function CustomerServiceAction() {
     }
   }, [data, pagination.desc]);
 
-  const ticketById = useMemo(() => keyBy(data?.tickets, (t) => t.id), [data]);
-  const userById = useMemo(() => keyBy(data?.users, (u) => u.id), [data]);
+  const [ticketById, replyById, userById] = useMemo(() => {
+    return [
+      keyBy(data?.tickets, (t) => t.id),
+      keyBy(data?.replies, (t) => t.id),
+      keyBy(data?.users, (t) => t.id),
+    ];
+  }, [data]);
+
+  const getReply = (id: string) => replyById[id];
 
   const renderUserName = (id: string) => {
     return userById[id]?.nickname ?? '未知';
@@ -179,7 +181,7 @@ export function CustomerServiceAction() {
 
       <Table
         dataSource={logs}
-        rowKey={getLogId}
+        rowKey={(log) => log.id}
         pagination={false}
         loading={isFetching}
         scroll={{ x: 'max-content' }}
@@ -188,17 +190,10 @@ export function CustomerServiceAction() {
             dataIndex: 'ticketId',
             title: '工单',
             render: (ticketId?: string) => {
-              if (ticketId) {
-                const ticket = ticketById[ticketId];
-                if (ticket) {
-                  return (
-                    <div className="flex">
-                      <TicketLink ticket={ticket} />
-                    </div>
-                  );
-                }
+              const ticket = ticketId && ticketById[ticketId];
+              if (ticket) {
+                return <TicketLink className="max-w-[400px]" ticket={ticket} />;
               }
-              return '已删除';
             },
           },
           {
@@ -214,7 +209,7 @@ export function CustomerServiceAction() {
           {
             key: 'action',
             title: '操作',
-            render: renderAction,
+            render: renderAction(getReply),
           },
           {
             key: 'detail',

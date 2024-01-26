@@ -1,7 +1,7 @@
+import { addMilliseconds, subMilliseconds } from 'date-fns';
 import _ from 'lodash';
 
 import { OpsLog } from '@/model/OpsLog';
-import { Reply } from '@/model/Reply';
 import { ReplyRevision } from '@/model/ReplyRevision';
 import { User } from '@/model/User';
 
@@ -20,127 +20,211 @@ export enum CustomerServiceActionLogType {
 
 export type CustomerServiceActionLog =
   | {
+      id: string;
       type: CustomerServiceActionLogType.Reply;
-      ticketId?: string;
       operatorId: string;
-      reply?: Reply;
       revision: ReplyRevision;
       ts: Date;
     }
   | {
+      id: string;
       type: CustomerServiceActionLogType.OpsLog;
-      ticketId: string;
       operatorId: string;
       opsLog: OpsLog;
       ts: Date;
     };
 
-function topN<T>(arrays: T[][], N: number, cmp: (v1: T, v2: T) => number): T[] {
-  const totalCount = _.sum(arrays.map((array) => array.length));
-  const result: T[] = new Array(Math.min(N, totalCount));
-  const indices: number[] = new Array(arrays.length).fill(0);
+interface Reader<T = any> {
+  peek: () => Promise<T | undefined>;
+  read: () => Promise<T | undefined>;
+}
 
-  let resultIndex = 0;
+interface BufferReaderValue<T> {
+  value: T;
+  done: boolean;
+}
 
-  while (resultIndex < result.length) {
-    let minValue: T | null = null;
-    let minIndex = -1;
+interface BufferReaderOptions<TState, TData> {
+  state: TState;
+  read: (state: TState) => Promise<BufferReaderValue<TData[]>>;
+}
 
-    for (let i = 0; i < arrays.length; i += 1) {
-      const array = arrays[i];
-      const currentIndex = indices[i];
-      if (currentIndex < array.length) {
-        const currentValue = array[currentIndex];
-        if (!minValue || cmp(currentValue, minValue) <= 0) {
-          minValue = currentValue;
-          minIndex = i;
-        }
-      }
+class BufferReader<TData, TState> implements Reader<TData> {
+  private buffer: TData[] = [];
+  private pos = 0;
+  private done = false;
+
+  constructor(private options: BufferReaderOptions<TState, TData>) {}
+
+  private async load() {
+    if (this.done) {
+      return;
     }
+    const value = await this.options.read(this.options.state);
+    this.buffer = [...this.buffer.slice(this.pos), ...value.value];
+    this.pos = 0;
+    this.done = value.done;
+  }
 
-    if (minIndex !== -1 && minValue) {
-      result[resultIndex] = minValue;
-      indices[minIndex] += 1;
-      resultIndex += 1;
-    } else {
-      break; // No more elements to consider
+  async peek() {
+    if (this.pos === this.buffer.length) {
+      await this.load();
+    }
+    if (this.pos < this.buffer.length) {
+      return this.buffer[this.pos];
     }
   }
 
+  async read() {
+    if (this.pos === this.buffer.length) {
+      await this.load();
+    }
+    if (this.pos < this.buffer.length) {
+      return this.buffer[this.pos++];
+    }
+  }
+}
+
+class SortReader<T> implements Reader<T> {
+  constructor(private readers: Reader<T>[], private compare: (v1: T, v2: T) => number) {}
+
+  async peek(): Promise<T> {
+    throw new Error('peek not supported');
+  }
+
+  async read() {
+    let minValue: T | undefined;
+    let minReader: Reader<T> | undefined;
+
+    for (const reader of this.readers) {
+      const currentValue = await reader.peek();
+      if (!currentValue) {
+        continue;
+      }
+      if (minValue === undefined || this.compare(currentValue, minValue) <= 0) {
+        minValue = currentValue;
+        minReader = reader;
+      }
+    }
+
+    if (minValue !== undefined && minReader) {
+      return minReader.read();
+    }
+  }
+}
+
+async function take<T>(reader: Reader<T>, count: number) {
+  const result: T[] = [];
+  for (let i = 0; i < count; i += 1) {
+    const value = await reader.read();
+    if (!value) {
+      break;
+    }
+    result.push(value);
+  }
   return result;
 }
 
 export class CustomerServiceActionLogService {
-  private getReplyRevisions({
-    from,
-    to,
-    operatorIds,
-    limit = 10,
-    desc,
-  }: GetCustomerServiceActionLogsOptions) {
-    const query = ReplyRevision.queryBuilder()
-      .where('actionTime', '>=', from)
-      .where('actionTime', '<=', to)
-      .preload('reply')
-      .limit(limit)
-      .orderBy('actionTime', desc ? 'desc' : 'asc');
-    if (operatorIds) {
-      query.where('operator', 'in', operatorIds.map(User.ptr.bind(User)));
-    }
-    return query.find({ useMasterKey: true });
-  }
-
-  private getOpsLogs({
-    from,
-    to,
-    operatorIds,
-    limit = 10,
-    desc,
-  }: GetCustomerServiceActionLogsOptions) {
-    const query = OpsLog.queryBuilder()
-      .where('createdAt', '>=', from)
-      .where('createdAt', '<=', to)
-      .limit(limit)
-      .orderBy('createdAt', desc ? 'desc' : 'asc');
-    if (operatorIds) {
-      query.where('data.operator.objectId', 'in', operatorIds);
-    } else {
-      query.where('data.operator.objectId', 'exists');
-      query.where('data.operator.objectId', '!=', 'system');
-    }
-    return query.find({ useMasterKey: true });
-  }
-
   async getLogs(options: GetCustomerServiceActionLogsOptions) {
     const { limit = 10, desc } = options;
 
-    const replyRevisions = await this.getReplyRevisions(options);
-    const opsLogs = await this.getOpsLogs(options);
+    const replyRevisionReader = new BufferReader({
+      state: {
+        window: [options.from, options.to],
+        operatorIds: options.operatorIds,
+        desc: options.desc,
+        perCount: Math.min(200, limit),
+      },
+      read: async (state) => {
+        const query = ReplyRevision.queryBuilder()
+          .where('actionTime', '>=', state.window[0])
+          .where('actionTime', '<=', state.window[1])
+          .limit(state.perCount)
+          .orderBy('actionTime', state.desc ? 'desc' : 'asc');
+        if (state.operatorIds) {
+          const pointers = state.operatorIds.map(User.ptr.bind(User));
+          query.where('operator', 'in', pointers);
+        }
 
-    const replyLogs = replyRevisions.map<CustomerServiceActionLog>((rv) => ({
-      type: CustomerServiceActionLogType.Reply,
-      ticketId: rv.reply?.ticketId,
-      reply: rv.reply,
-      revision: rv,
-      operatorId: rv.operatorId,
-      ts: rv.actionTime,
-    }));
+        const revisions = await query.find({ useMasterKey: true });
 
-    const opsLogLogs = opsLogs.map<CustomerServiceActionLog>((opsLog) => ({
-      type: CustomerServiceActionLogType.OpsLog,
-      ticketId: opsLog.ticketId,
-      opsLog,
-      operatorId: opsLog.data.operator.objectId,
-      ts: opsLog.createdAt,
-    }));
+        if (revisions.length) {
+          const last = revisions[revisions.length - 1];
+          if (state.desc) {
+            state.window[1] = subMilliseconds(last.actionTime, 1);
+          } else {
+            state.window[0] = addMilliseconds(last.actionTime, 1);
+          }
+        }
 
-    return topN([replyLogs, opsLogLogs], limit, (a, b) => {
-      if (desc) {
-        return b.ts.getTime() - a.ts.getTime();
-      } else {
-        return a.ts.getTime() - b.ts.getTime();
-      }
+        const value = revisions.map<CustomerServiceActionLog>((rv) => ({
+          id: rv.id,
+          type: CustomerServiceActionLogType.Reply,
+          operatorId: rv.operatorId,
+          revision: rv,
+          ts: rv.actionTime,
+        }));
+
+        return {
+          value,
+          done: revisions.length < state.perCount,
+        };
+      },
     });
+
+    const opsLogReader = new BufferReader({
+      state: {
+        window: [options.from, options.to],
+        operatorIds: options.operatorIds,
+        desc: options.desc,
+        perCount: Math.min(200, limit),
+      },
+      read: async (state) => {
+        const query = OpsLog.queryBuilder()
+          .where('createdAt', '>=', state.window[0])
+          .where('createdAt', '<=', state.window[1])
+          .limit(state.perCount)
+          .orderBy('createdAt', state.desc ? 'desc' : 'asc');
+        if (state.operatorIds) {
+          query.where('data.operator.objectId', 'in', state.operatorIds);
+        } else {
+          query.where('data.operator.objectId', 'exists');
+          query.where('data.operator.objectId', '!=', 'system');
+        }
+
+        const opsLogs = await query.find({ useMasterKey: true });
+
+        if (opsLogs.length) {
+          const last = opsLogs[opsLogs.length - 1];
+          if (state.desc) {
+            state.window[1] = subMilliseconds(last.createdAt, 1);
+          } else {
+            state.window[0] = addMilliseconds(last.createdAt, 1);
+          }
+        }
+
+        const value = opsLogs.map<CustomerServiceActionLog>((opsLog) => ({
+          id: opsLog.id,
+          type: CustomerServiceActionLogType.OpsLog,
+          operatorId: opsLog.data.operator.objectId,
+          opsLog,
+          ts: opsLog.createdAt,
+        }));
+
+        return {
+          value,
+          done: opsLogs.length < state.perCount,
+        };
+      },
+    });
+
+    const sortReader = new SortReader(
+      [opsLogReader, replyRevisionReader],
+      desc ? (a, b) => b.ts.getTime() - a.ts.getTime() : (a, b) => a.ts.getTime() - b.ts.getTime()
+    );
+
+    return take(sortReader, limit);
   }
 }
 

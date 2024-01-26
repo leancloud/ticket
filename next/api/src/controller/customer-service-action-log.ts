@@ -1,11 +1,14 @@
+import _ from 'lodash';
+
 import { BadRequestError, Controller, Get, Query, UseMiddlewares } from '@/common/http';
 import { ParseBoolPipe, ParseCsvPipe, ParseDatePipe, ParseIntPipe } from '@/common/pipe';
 import { adminOnly, auth } from '@/middleware';
 import {
-  customerServiceActionLogService,
   CustomerServiceActionLogType,
+  customerServiceActionLogService,
 } from '@/service/customer-service-action-log';
 import { Ticket } from '@/model/Ticket';
+import { Reply } from '@/model/Reply';
 import { User } from '@/model/User';
 import { OpsLogResponse } from '@/response/ops-log';
 import { ReplyResponse } from '@/response/reply';
@@ -21,7 +24,7 @@ export class CustomerServiceActionLogController {
     @Query('from', ParseDatePipe) from: Date | undefined,
     @Query('to', ParseDatePipe) to: Date | undefined,
     @Query('operatorIds', ParseCsvPipe) operatorIds: string[] | undefined,
-    @Query('pageSize', new ParseIntPipe({ min: 1, max: 100 })) pageSize = 10,
+    @Query('pageSize', new ParseIntPipe({ min: 1, max: 1000 })) pageSize = 10,
     @Query('desc', ParseBoolPipe) desc: boolean | undefined
   ) {
     if (!from || !to) {
@@ -40,32 +43,55 @@ export class CustomerServiceActionLogController {
     });
 
     const ticketIds = new Set<string>();
+    const replyIds = new Set<string>();
     const userIds = new Set<string>();
+
+    for (const log of logs) {
+      switch (log.type) {
+        case CustomerServiceActionLogType.Reply:
+          replyIds.add(log.revision.replyId);
+          userIds.add(log.operatorId);
+          break;
+        case CustomerServiceActionLogType.OpsLog:
+          ticketIds.add(log.opsLog.ticketId);
+          userIds.add(log.operatorId);
+          if (log.opsLog.data.assignee) {
+            userIds.add(log.opsLog.data.assignee);
+          }
+          break;
+      }
+    }
+
+    const replies = await Reply.getMany(Array.from(replyIds), { useMasterKey: true });
+
+    for (const reply of replies) {
+      ticketIds.add(reply.ticketId);
+    }
+
+    const tickets = await Ticket.getMany(Array.from(ticketIds), { useMasterKey: true });
+    const users = await User.getMany(Array.from(userIds), { useMasterKey: true });
+
+    const replyById = _.keyBy(replies, (r) => r.id);
+    const ticketById = _.keyBy(tickets, (t) => t.id);
 
     const logResult = logs.map((log) => {
       switch (log.type) {
         case CustomerServiceActionLogType.Reply:
-          if (log.ticketId) {
-            ticketIds.add(log.ticketId);
-          }
-          userIds.add(log.operatorId);
+          const reply = replyById[log.revision.replyId];
+          const ticket = reply && ticketById[reply.ticketId];
           return {
+            id: log.id,
             type: 'reply',
-            ticketId: log.ticketId,
+            ticketId: ticket?.id,
             operatorId: log.operatorId,
-            reply: log.reply && new ReplyResponse(log.reply),
             revision: new ReplyRevisionResponse(log.revision),
             ts: log.ts.toISOString(),
           };
         case CustomerServiceActionLogType.OpsLog:
-          ticketIds.add(log.ticketId);
-          userIds.add(log.operatorId);
-          if (log.opsLog.data.assignee) {
-            userIds.add(log.opsLog.data.assignee.objectId);
-          }
           return {
+            id: log.id,
             type: 'opsLog',
-            ticketId: log.ticketId,
+            ticketId: log.opsLog.ticketId,
             operatorId: log.operatorId,
             opsLog: new OpsLogResponse(log.opsLog),
             ts: log.ts.toISOString(),
@@ -73,21 +99,10 @@ export class CustomerServiceActionLogController {
       }
     });
 
-    const tickets = ticketIds.size
-      ? await Ticket.queryBuilder()
-          .where('objectId', 'in', Array.from(ticketIds))
-          .find({ useMasterKey: true })
-      : [];
-
-    const users = userIds.size
-      ? await User.queryBuilder()
-          .where('objectId', 'in', Array.from(userIds))
-          .find({ useMasterKey: true })
-      : [];
-
     return {
       logs: logResult,
       tickets: tickets.map((ticket) => new TicketListItemResponse(ticket)),
+      replies: replies.map((reply) => new ReplyResponse(reply)),
       users: users.map((user) => new UserResponse(user)),
     };
   }

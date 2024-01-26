@@ -5,14 +5,15 @@ import { UserSchema } from './user';
 
 export type CustomerServiceActionLog =
   | {
+      id: string;
       type: 'reply';
       ticketId?: string;
       operatorId: string;
-      reply?: ReplySchema;
       revision: ReplyRevision;
       ts: string;
     }
   | {
+      id: string;
       type: 'opsLog';
       ticketId: string;
       operatorId: string;
@@ -31,6 +32,7 @@ export interface GetCustomerServiceActionLogsOptions {
 export interface GetCustomerServiceActionLogsResult {
   logs: CustomerServiceActionLog[];
   tickets: TicketSchema[];
+  replies: ReplySchema[];
   users: UserSchema[];
 }
 

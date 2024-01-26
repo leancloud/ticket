@@ -244,6 +244,17 @@ export abstract class Model {
     return this.fromAVObject(object);
   }
 
+  static async getMany<M extends typeof Model>(this: M, ids: string[], options?: AuthOptions) {
+    ids = _.uniq(ids);
+    const idChunks = _.chunk(ids, 50);
+    const instanceChunks: InstanceType<M>[][] = [];
+    for (const ids of idChunks) {
+      const instances = await this.queryBuilder().where('objectId', 'in', ids).find(options);
+      instanceChunks.push(instances);
+    }
+    return instanceChunks.flat();
+  }
+
   private applyAVObject(object: AV.Object) {
     const model = this.constructor as typeof Model;
     if (object.id) {
