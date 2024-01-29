@@ -84,3 +84,7 @@ export function CategoryProvider({
     </CategoryContext.Provider>
   );
 }
+
+export function useCategoryContext() {
+  return useContext(CategoryContext);
+}

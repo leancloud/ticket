@@ -1,4 +1,4 @@
-import { ComponentProps, ReactNode, useMemo } from 'react';
+import { ComponentProps, ReactNode, memo, useMemo } from 'react';
 import {
   AiOutlineSwap,
   AiOutlineTeam,
@@ -15,8 +15,8 @@ import cx from 'classnames';
 
 import { OpsLog as OpsLogSchema } from '@/api/ticket';
 import { useGroup } from '@/api/group';
-import { useCategories } from '@/api/category';
 import { Button, Spin, Tag } from '@/components/antd';
+import { useCategoryContext } from '@/components/common';
 import { AsyncUserLabel } from '@/App/Admin/components';
 import { useTicketFields_v1 } from '../api1';
 import { useModal } from './useModal';
@@ -138,7 +138,7 @@ interface GroupLabelProps {
   groupId: string;
 }
 
-export function GroupLabel({ groupId }: GroupLabelProps) {
+function GroupLabel({ groupId }: GroupLabelProps) {
   const { data: group } = useGroup(groupId);
 
   if (!group) {
@@ -147,27 +147,16 @@ export function GroupLabel({ groupId }: GroupLabelProps) {
   return <div>{group.name}</div>;
 }
 
-export function CategoryTag({ categoryId }: { categoryId: string }) {
-  const { data: categories, isLoading } = useCategories();
-
-  const categoryById = useMemo(() => keyBy(categories, (c) => c.id), [categories]);
-
-  const fullname = useMemo(() => {
-    let current = categoryById[categoryId];
-    const path: string[] = [];
-    while (current) {
-      path.push(current.name);
-      if (current.parentId) {
-        current = categoryById[current.parentId];
-      } else {
-        break;
-      }
-    }
-    return path.reverse().join(' / ');
-  }, [categoryById, categoryId]);
-
-  return <Tag>{isLoading ? 'Loading...' : fullname}</Tag>;
-}
+const CategoryTag = memo(({ categoryId }: { categoryId: string }) => {
+  const { getCategoryPath } = useCategoryContext();
+  return (
+    <Tag>
+      {getCategoryPath(categoryId)
+        .map((c) => c.name)
+        .join(' / ')}
+    </Tag>
+  );
+});
 
 function ChangeCategory({ data }: OpsLogProps<'changeCategory'>) {
   return (

@@ -1,60 +1,30 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from 'react-query';
+import { useToggle } from 'react-use';
 import { Button, Table, Tooltip } from 'antd';
 import moment, { Moment } from 'moment';
 import { keyBy } from 'lodash-es';
 
-import { ReplySchema } from '@/api/reply';
+import { TicketLanguages } from '@/i18n/locales';
+import { useGroups } from '@/api/group';
 import {
   CustomerServiceActionLog as Log,
   GetCustomerServiceActionLogsOptions,
   getCustomerServiceActionLogs,
 } from '@/api/customer-service-action-log';
 import { TicketLink } from '@/App/Admin/components/TicketLink';
-import { CategoryTag, DiffFields, GroupLabel } from '@/App/Admin/Tickets/Ticket/components/OpsLog';
+import { DiffFields } from '@/App/Admin/Tickets/Ticket/components/OpsLog';
 import { SimpleModal } from './components/SimpleModal';
-import { FilterForm } from './components/FilterForm';
+import { FilterForm, FilterFormData } from './components/FilterForm';
+import { useCategoryContext } from '@/components/common';
+import { Exporter } from './components/Exporter';
+import { renderAction } from './render';
 
-function renderAction(getReply: (id: string) => ReplySchema) {
-  return (log: Log) => {
-    if (log.type === 'reply') {
-      const reply = getReply(log.revision.replyId);
-      const replyType = reply ? (reply.internal ? '内部回复' : '公开回复') : '回复';
-      switch (log.revision.action) {
-        case 'create':
-          return '创建' + replyType;
-        case 'update':
-          return '修改' + replyType;
-        case 'delete':
-          return '删除' + replyType;
-      }
-    }
-    switch (log.opsLog.action) {
-      case 'changeAssignee':
-        return '修改负责人';
-      case 'changeCategory':
-        return '修改分类';
-      case 'changeFields':
-        return '修改自定义字段值';
-      case 'changeGroup':
-        return '修改客服组';
-      case 'close':
-      case 'reject':
-      case 'resolve':
-        return '关闭工单';
-      case 'reopen':
-        return '重新打开工单';
-      case 'replySoon':
-        return '稍后回复工单';
-      case 'replyWithNoContent':
-        return '认为工单无需回复';
-      default:
-        return log.opsLog.action;
-    }
-  };
-}
-
-function renderDetail(getUserName: (id: string) => string) {
+function renderDetail(
+  getUserName: (id: string) => string,
+  getGroupName: (id: string) => string,
+  getCategoryName: (id: string) => string
+) {
   return (log: Log) => {
     if (log.type === 'reply') {
       return (
@@ -67,7 +37,7 @@ function renderDetail(getUserName: (id: string) => string) {
       case 'changeAssignee':
         return log.opsLog.assigneeId ? getUserName(log.opsLog.assigneeId) : '<空>';
       case 'changeCategory':
-        return <CategoryTag categoryId={log.opsLog.categoryId} />;
+        return getCategoryName(log.opsLog.categoryId);
       case 'changeFields':
         return (
           <SimpleModal title="字段修改记录" trigger={<a>查看</a>} footer={null}>
@@ -75,7 +45,7 @@ function renderDetail(getUserName: (id: string) => string) {
           </SimpleModal>
         );
       case 'changeGroup':
-        return log.opsLog.groupId ? <GroupLabel groupId={log.opsLog.groupId} /> : '<空>';
+        return log.opsLog.groupId ? getGroupName(log.opsLog.groupId) : '<空>';
     }
   };
 }
@@ -83,10 +53,7 @@ function renderDetail(getUserName: (id: string) => string) {
 const pageSize = 20;
 
 export function CustomerServiceAction() {
-  const [filters, setFilters] = useState<{
-    dateRange: [Moment, Moment];
-    operatorIds?: string[];
-  }>(() => ({
+  const [filters, setFilters] = useState<FilterFormData>(() => ({
     dateRange: [moment().startOf('day'), moment().endOf('day')],
   }));
 
@@ -169,14 +136,32 @@ export function CustomerServiceAction() {
 
   const getReply = (id: string) => replyById[id];
 
-  const renderUserName = (id: string) => {
+  const getUserName = (id: string) => {
     return userById[id]?.nickname ?? '未知';
   };
 
+  const { data: groups } = useGroups();
+  const getGroupName = useMemo(() => {
+    const groupById = keyBy(groups, (g) => g.id);
+    return (id: string) => groupById[id]?.name ?? '未知';
+  }, [groups]);
+
+  const { getCategoryPath } = useCategoryContext();
+  const getCategoryName = (id: string) => {
+    return getCategoryPath(id)
+      .map((c) => c.name)
+      .join(' / ');
+  };
+
+  const [exporterOpen, toggleExporter] = useToggle(false);
+
   return (
     <div className="p-10">
-      <div className="mb-5">
+      <div className="mb-5 flex items-end gap-2">
         <FilterForm initData={filters} onSubmit={handleChangeFilters} />
+        <Button disabled={!logs?.length} onClick={toggleExporter}>
+          导出
+        </Button>
       </div>
 
       <Table
@@ -197,6 +182,42 @@ export function CustomerServiceAction() {
             },
           },
           {
+            key: 'userId',
+            title: '用户ID',
+            render: (log: Log) => {
+              if (log.ticketId) {
+                const ticket = ticketById[log.ticketId];
+                if (ticket) {
+                  return ticket.authorId;
+                }
+              }
+            },
+          },
+          {
+            key: 'language',
+            title: '工单语言',
+            render: (log: Log) => {
+              if (log.ticketId) {
+                const ticket = ticketById[log.ticketId];
+                if (ticket && ticket.language) {
+                  return TicketLanguages[ticket.language];
+                }
+              }
+            },
+          },
+          {
+            key: 'category',
+            title: '工单分类',
+            render: (log: Log) => {
+              if (log.ticketId) {
+                const ticket = ticketById[log.ticketId];
+                if (ticket && ticket.categoryId) {
+                  return getCategoryName(ticket.categoryId);
+                }
+              }
+            },
+          },
+          {
             dataIndex: 'ts',
             title: '操作时间',
             render: (ts: string) => moment(ts).format('YYYY-MM-DD HH:mm:ss'),
@@ -204,7 +225,7 @@ export function CustomerServiceAction() {
           {
             dataIndex: 'operatorId',
             title: '客服',
-            render: renderUserName,
+            render: getUserName,
           },
           {
             key: 'action',
@@ -214,7 +235,7 @@ export function CustomerServiceAction() {
           {
             key: 'detail',
             title: '详情',
-            render: renderDetail(renderUserName),
+            render: renderDetail(getUserName, getGroupName, getCategoryName),
           },
         ]}
       />
@@ -235,6 +256,8 @@ export function CustomerServiceAction() {
           </Button>
         </Button.Group>
       </div>
+
+      <Exporter open={exporterOpen} onCancel={toggleExporter} filters={filters} />
     </div>
   );
 }
