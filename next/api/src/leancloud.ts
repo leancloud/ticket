@@ -16,14 +16,8 @@ export const regions = [
     oauthPlatform: 'leancloud',
   },
   {
-    region: 'cn-e1',
-    regionText: '华东',
-    serverDomain: 'https://cn-e1-console-api.leancloud.cn',
-    oauthPlatform: 'leancloud_cn_e1',
-  },
-  {
     region: 'us-w1',
-    regionText: '北美',
+    regionText: '国际',
     serverDomain: 'https://us-w1-console-api.leancloud.app',
     oauthPlatform: 'leancloud_us_w1',
   },

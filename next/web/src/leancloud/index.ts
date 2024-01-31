@@ -123,7 +123,7 @@ const currentUserIsCustomerServiceState = selector({
 export const useCurrentUserIsCustomerService = () =>
   useRecoilValue(currentUserIsCustomerServiceState);
 
-export type LeanCloudRegion = 'cn-n1' | 'cn-e1' | 'us-w1';
+export type LeanCloudRegion = 'cn-n1' | 'us-w1';
 
 export interface LeanCloudApp {
   appId: string;

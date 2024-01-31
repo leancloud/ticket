@@ -9,7 +9,6 @@ const { OptGroup, Option } = Select;
 
 const regionName: Record<LeanCloudRegion, string> = {
   'cn-n1': '华北',
-  'cn-e1': '华东',
   'us-w1': '国际',
 };
 
