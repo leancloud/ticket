@@ -142,6 +142,7 @@ export class CustomerServiceActionLogService {
         const query = Reply.queryBuilder()
           .where('createdAt', '>=', state.window[0])
           .where('createdAt', '<=', state.window[1])
+          .where('isCustomerService', '==', true)
           .limit(state.perCount)
           .orderBy('createdAt', state.desc ? 'desc' : 'asc');
         if (state.operatorIds) {
