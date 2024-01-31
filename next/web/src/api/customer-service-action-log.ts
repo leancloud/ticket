@@ -9,7 +9,8 @@ export type CustomerServiceActionLog =
       type: 'reply';
       ticketId?: string;
       operatorId: string;
-      revision: ReplyRevision;
+      reply?: ReplySchema;
+      revision?: ReplyRevision;
       ts: string;
     }
   | {
@@ -32,7 +33,6 @@ export interface GetCustomerServiceActionLogsOptions {
 export interface GetCustomerServiceActionLogsResult {
   logs: CustomerServiceActionLog[];
   tickets: TicketSchema[];
-  replies: ReplySchema[];
   users: UserSchema[];
 }
 

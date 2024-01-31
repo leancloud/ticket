@@ -93,20 +93,15 @@ export function Exporter({ filters, open, onCancel }: ExporterProps) {
 
     const collector = new ActionLogCollector<ExportRow>({
       filters,
-      transform: ({ logs, tickets, replies, users }) => {
+      transform: ({ logs, tickets, users }) => {
         const ticketById = keyBy(tickets, (t) => t.id);
-        const replyById = keyBy(replies, (r) => r.id);
         const userById = keyBy(users, (u) => u.id);
-
-        const getReply = (id: string) => replyById[id];
-        const getAction = renderAction(getReply);
-        const getUser = (id: string) => userById[id];
 
         return logs.map((log) => {
           const row: ExportRow = {
             ts: log.ts,
-            operatorName: getUser(log.operatorId)?.nickname,
-            action: getAction(log),
+            operatorName: userById[log.operatorId]?.nickname,
+            action: renderAction(log),
           };
           if (log.ticketId) {
             const ticket = ticketById[log.ticketId];

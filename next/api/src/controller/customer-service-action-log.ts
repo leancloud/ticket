@@ -8,7 +8,6 @@ import {
   customerServiceActionLogService,
 } from '@/service/customer-service-action-log';
 import { Ticket } from '@/model/Ticket';
-import { Reply } from '@/model/Reply';
 import { User } from '@/model/User';
 import { OpsLogResponse } from '@/response/ops-log';
 import { ReplyResponse } from '@/response/reply';
@@ -43,13 +42,14 @@ export class CustomerServiceActionLogController {
     });
 
     const ticketIds = new Set<string>();
-    const replyIds = new Set<string>();
     const userIds = new Set<string>();
 
     for (const log of logs) {
       switch (log.type) {
         case CustomerServiceActionLogType.Reply:
-          replyIds.add(log.revision.replyId);
+          if (log.reply) {
+            ticketIds.add(log.reply.ticketId);
+          }
           userIds.add(log.operatorId);
           break;
         case CustomerServiceActionLogType.OpsLog:
@@ -62,29 +62,22 @@ export class CustomerServiceActionLogController {
       }
     }
 
-    const replies = await Reply.getMany(Array.from(replyIds), { useMasterKey: true });
-
-    for (const reply of replies) {
-      ticketIds.add(reply.ticketId);
-    }
-
     const tickets = await Ticket.getMany(Array.from(ticketIds), { useMasterKey: true });
     const users = await User.getMany(Array.from(userIds), { useMasterKey: true });
 
-    const replyById = _.keyBy(replies, (r) => r.id);
     const ticketById = _.keyBy(tickets, (t) => t.id);
 
     const logResult = logs.map((log) => {
       switch (log.type) {
         case CustomerServiceActionLogType.Reply:
-          const reply = replyById[log.revision.replyId];
-          const ticket = reply && ticketById[reply.ticketId];
+          const ticket = log.reply && ticketById[log.reply.ticketId];
           return {
             id: log.id,
             type: 'reply',
             ticketId: ticket?.id,
             operatorId: log.operatorId,
-            revision: new ReplyRevisionResponse(log.revision),
+            reply: log.reply && new ReplyResponse(log.reply),
+            revision: log.revision && new ReplyRevisionResponse(log.revision),
             ts: log.ts.toISOString(),
           };
         case CustomerServiceActionLogType.OpsLog:
@@ -102,7 +95,6 @@ export class CustomerServiceActionLogController {
     return {
       logs: logResult,
       tickets: tickets.map((ticket) => new TicketListItemResponse(ticket)),
-      replies: replies.map((reply) => new ReplyResponse(reply)),
       users: users.map((user) => new UserResponse(user)),
     };
   }

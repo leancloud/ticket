@@ -27,9 +27,10 @@ function renderDetail(
 ) {
   return (log: Log) => {
     if (log.type === 'reply') {
+      const content = log.reply?.content ?? log.revision?.content;
       return (
-        <Tooltip title={log.revision.content} placement="left">
-          <div className="max-w-[400px] truncate">{log.revision.content}</div>
+        <Tooltip title={content} placement="left">
+          <div className="max-w-[400px] truncate">{content}</div>
         </Tooltip>
       );
     }
@@ -126,15 +127,9 @@ export function CustomerServiceAction() {
     }
   }, [data, pagination.desc]);
 
-  const [ticketById, replyById, userById] = useMemo(() => {
-    return [
-      keyBy(data?.tickets, (t) => t.id),
-      keyBy(data?.replies, (t) => t.id),
-      keyBy(data?.users, (t) => t.id),
-    ];
+  const [ticketById, userById] = useMemo(() => {
+    return [keyBy(data?.tickets, (t) => t.id), keyBy(data?.users, (t) => t.id)];
   }, [data]);
-
-  const getReply = (id: string) => replyById[id];
 
   const getUserName = (id: string) => {
     return userById[id]?.nickname ?? '未知';
@@ -230,7 +225,7 @@ export function CustomerServiceAction() {
           {
             key: 'action',
             title: '操作',
-            render: renderAction(getReply),
+            render: renderAction,
           },
           {
             key: 'detail',

@@ -4,6 +4,7 @@ import _ from 'lodash';
 import { OpsLog } from '@/model/OpsLog';
 import { ReplyRevision } from '@/model/ReplyRevision';
 import { User } from '@/model/User';
+import { Reply } from '@/model/Reply';
 
 export interface GetCustomerServiceActionLogsOptions {
   from: Date;
@@ -23,7 +24,8 @@ export type CustomerServiceActionLog =
       id: string;
       type: CustomerServiceActionLogType.Reply;
       operatorId: string;
-      revision: ReplyRevision;
+      reply?: Reply;
+      revision?: ReplyRevision;
       ts: Date;
     }
   | {
@@ -129,6 +131,50 @@ export class CustomerServiceActionLogService {
   async getLogs(options: GetCustomerServiceActionLogsOptions) {
     const { limit = 10, desc } = options;
 
+    const replyReader = new BufferReader({
+      state: {
+        window: [options.from, options.to],
+        operatorIds: options.operatorIds,
+        desc: options.desc,
+        perCount: Math.min(200, limit),
+      },
+      read: async (state) => {
+        const query = Reply.queryBuilder()
+          .where('createdAt', '>=', state.window[0])
+          .where('createdAt', '<=', state.window[1])
+          .limit(state.perCount)
+          .orderBy('createdAt', state.desc ? 'desc' : 'asc');
+        if (state.operatorIds) {
+          const pointers = state.operatorIds.map(User.ptr.bind(User));
+          query.where('author', 'in', pointers);
+        }
+
+        const replies = await query.find({ useMasterKey: true });
+
+        if (replies.length) {
+          const last = replies[replies.length - 1];
+          if (state.desc) {
+            state.window[1] = subMilliseconds(last.createdAt, 1);
+          } else {
+            state.window[0] = addMilliseconds(last.createdAt, 1);
+          }
+        }
+
+        const value = replies.map<CustomerServiceActionLog>((reply) => ({
+          id: reply.id,
+          type: CustomerServiceActionLogType.Reply,
+          operatorId: reply.authorId,
+          reply,
+          ts: reply.createdAt,
+        }));
+
+        return {
+          value,
+          done: replies.length < state.perCount,
+        };
+      },
+    });
+
     const replyRevisionReader = new BufferReader({
       state: {
         window: [options.from, options.to],
@@ -140,6 +186,8 @@ export class CustomerServiceActionLogService {
         const query = ReplyRevision.queryBuilder()
           .where('actionTime', '>=', state.window[0])
           .where('actionTime', '<=', state.window[1])
+          .where('action', 'in', ['update', 'delete'])
+          .preload('reply')
           .limit(state.perCount)
           .orderBy('actionTime', state.desc ? 'desc' : 'asc');
         if (state.operatorIds) {
@@ -162,6 +210,7 @@ export class CustomerServiceActionLogService {
           id: rv.id,
           type: CustomerServiceActionLogType.Reply,
           operatorId: rv.operatorId,
+          reply: rv.reply,
           revision: rv,
           ts: rv.actionTime,
         }));
@@ -220,7 +269,7 @@ export class CustomerServiceActionLogService {
     });
 
     const sortReader = new SortReader(
-      [opsLogReader, replyRevisionReader],
+      [replyReader, replyRevisionReader, opsLogReader],
       desc ? (a, b) => b.ts.getTime() - a.ts.getTime() : (a, b) => a.ts.getTime() - b.ts.getTime()
     );
 
