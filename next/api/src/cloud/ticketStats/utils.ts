@@ -140,8 +140,11 @@ export const getTicketDataById = async (id: string, endDate: Date) => {
     cursor?: typeof cursor;
   }> = [];
   timeLine.forEach((replyOrOpsLog) => {
+    const lastLifeLog = _.last(lifeLogs);
+    const ticketClosed =
+      !!lastLifeLog && (lastLifeLog.action === 'close' || lastLifeLog.action === 'resolve');
+
     if (_isOpsLog(replyOrOpsLog)) {
-      const lastTimeLog = _.last(lifeLogs);
       switch (replyOrOpsLog.action) {
         case 'selectAssignee':
         case 'changeAssignee':
@@ -157,7 +160,7 @@ export const getTicketDataById = async (id: string, endDate: Date) => {
             authorId: replyOrOpsLog.data?.operator?.objectId,
             createdAt: replyOrOpsLog.createdAt,
             cursor:
-              !!replyOrOpsLog.internal || cursor.lastReplyType === 'customerService'
+              !!replyOrOpsLog.internal || cursor.lastReplyType === 'customerService' || ticketClosed
                 ? undefined
                 : {
                     ...cursor,
@@ -167,12 +170,12 @@ export const getTicketDataById = async (id: string, endDate: Date) => {
           break;
         case 'resolve':
         case 'close':
-          if (!lastTimeLog || lastTimeLog.action === 'reopen') {
+          if (!ticketClosed) {
             lifeLogs.push(replyOrOpsLog);
           }
           break;
         case 'reopen':
-          if (lastTimeLog && (lastTimeLog.action === 'close' || lastTimeLog.action === 'resolve')) {
+          if (ticketClosed) {
             lifeLogs.push(replyOrOpsLog);
           }
           if (_getReplyOrOpsLogType(replyOrOpsLog, ticket.authorId) === 'staff') {
@@ -196,7 +199,7 @@ export const getTicketDataById = async (id: string, endDate: Date) => {
           authorId: replyOrOpsLog.authorId,
           createdAt: replyOrOpsLog.createdAt,
           cursor:
-            !!replyOrOpsLog.internal || cursor.lastReplyType === 'customerService'
+            !!replyOrOpsLog.internal || cursor.lastReplyType === 'customerService' || ticketClosed
               ? undefined
               : {
                   ...cursor,
