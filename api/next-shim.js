@@ -24,7 +24,18 @@ AV.Cloud.define('tickAutomation', { fetchUser: false, internal: true }, () => {
 
 AV.Cloud.define('analyzeArticles', { fetchUser: false, internal: true }, analyzeArticles)
 AV.Cloud.define('migrateNotifications', { fetchUser: false, internal: true }, migrateNotifications)
-AV.Cloud.define('statsHour', () => hourlyTicketStats())
+AV.Cloud.define('statsHour', (req) => {
+  if (req.params.date) {
+    const date = new Date(req.params.date)
+    if (isNaN(date.getTime())) {
+      console.error('Cloud Function - statsHour: invalid date')
+      return
+    }
+    hourlyTicketStats(date)
+  } else {
+    hourlyTicketStats()
+  }
+})
 AV.Cloud.define('syncTicketLog', () => syncTicketLog())
 AV.Cloud.define('dailyPushStatsToSlack', () => dailyPushStatsToSlack())
 AV.Cloud.define('weeklyPushStatsToSlack', () => weeklyPushStatsToSlack())
