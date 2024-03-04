@@ -787,7 +787,7 @@ router.get('/:id/overview', async (ctx) => {
 
   const latestReply = await Reply.queryBuilder()
     .where('ticket', '==', ticket.toPointer())
-    .where('internal', 'not-exists')
+    .where('internal', '!=', true)
     .where('deletedAt', 'not-exists')
     .preload('author')
     .orderBy('createdAt', 'desc')
