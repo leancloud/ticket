@@ -23,7 +23,7 @@ export class CustomerServiceActionLogController {
     @Query('from', ParseDatePipe) from: Date | undefined,
     @Query('to', ParseDatePipe) to: Date | undefined,
     @Query('operatorIds', ParseCsvPipe) operatorIds: string[] | undefined,
-    @Query('pageSize', new ParseIntPipe({ min: 1, max: 10000 })) pageSize = 10,
+    @Query('pageSize', new ParseIntPipe({ min: 1, max: 1000 })) pageSize = 10,
     @Query('desc', ParseBoolPipe) desc: boolean | undefined
   ) {
     if (!from || !to) {

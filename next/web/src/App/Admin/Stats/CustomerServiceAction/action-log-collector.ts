@@ -34,7 +34,7 @@ export class ActionLogCollector<T> {
       return;
     }
 
-    const pageSize = 5000;
+    const pageSize = 1000;
 
     try {
       const data = await getCustomerServiceActionLogs({
