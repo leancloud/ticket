@@ -130,13 +130,14 @@ async function take<T>(reader: Reader<T>, count: number) {
 export class CustomerServiceActionLogService {
   async getLogs(options: GetCustomerServiceActionLogsOptions) {
     const { limit = 10, desc } = options;
+    const perCount = limit <= 100 ? limit : Math.min(Math.floor(limit / 2), 1000);
 
     const replyReader = new BufferReader({
       state: {
         window: [options.from, options.to],
         operatorIds: options.operatorIds,
         desc: options.desc,
-        perCount: Math.min(200, limit),
+        perCount,
       },
       read: async (state) => {
         const query = Reply.queryBuilder()
@@ -181,7 +182,7 @@ export class CustomerServiceActionLogService {
         window: [options.from, options.to],
         operatorIds: options.operatorIds,
         desc: options.desc,
-        perCount: Math.min(200, limit),
+        perCount,
       },
       read: async (state) => {
         const query = ReplyRevision.queryBuilder()
@@ -228,7 +229,7 @@ export class CustomerServiceActionLogService {
         window: [options.from, options.to],
         operatorIds: options.operatorIds,
         desc: options.desc,
-        perCount: Math.min(200, limit),
+        perCount,
       },
       read: async (state) => {
         const query = OpsLog.queryBuilder()

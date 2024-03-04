@@ -18,7 +18,6 @@ export class ActionLogCollector<T> {
   private logChunks: T[][] = [];
   private transform: (data: GetCustomerServiceActionLogsResult) => T[];
 
-  private count = 0;
   private started = false;
   private aborted = false;
 
@@ -35,7 +34,7 @@ export class ActionLogCollector<T> {
       return;
     }
 
-    const pageSize = 1000;
+    const pageSize = 5000;
 
     try {
       const data = await getCustomerServiceActionLogs({
@@ -45,14 +44,12 @@ export class ActionLogCollector<T> {
         pageSize,
       });
 
-      this.count += 1;
-
       const logs = this.transform(data);
       if (logs.length) {
         this.logChunks.push(logs);
       }
 
-      if (data.logs.length < pageSize || this.count === 10) {
+      if (data.logs.length < pageSize) {
         if (this.onSuccess) {
           this.onSuccess(this.logChunks.flat());
         }

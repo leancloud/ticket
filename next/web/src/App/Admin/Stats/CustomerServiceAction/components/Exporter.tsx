@@ -153,7 +153,6 @@ export function Exporter({ filters, open, onCancel }: ExporterProps) {
       onOk={handleExport}
       onCancel={handleCancel}
     >
-      <input type="hidden" />
       <Alert showIcon type="info" message="一次最多导出 10000 条记录" />
       <Divider>导出字段</Divider>
       <Checkbox.Group
