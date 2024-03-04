@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Alert, Checkbox, Divider, Modal } from 'antd';
+import { Checkbox, Divider, Modal } from 'antd';
 import { intersectionWith, keyBy } from 'lodash-es';
 import Papa from 'papaparse';
 import moment from 'moment';
@@ -153,7 +153,6 @@ export function Exporter({ filters, open, onCancel }: ExporterProps) {
       onOk={handleExport}
       onCancel={handleCancel}
     >
-      <Alert showIcon type="info" message="一次最多导出 10000 条记录" />
       <Divider>导出字段</Divider>
       <Checkbox.Group
         className="!grid grid-cols-4 gap-2"
