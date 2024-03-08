@@ -1,8 +1,7 @@
 import { useRef, useState } from 'react';
 import { Checkbox, Divider, Modal } from 'antd';
 import { intersectionWith, keyBy } from 'lodash-es';
-import Papa from 'papaparse';
-import moment from 'moment';
+import writeXlsxFile from 'write-excel-file';
 
 import { TicketLanguages } from '@/i18n/locales';
 import { TicketSchema } from '@/api/ticket';
@@ -28,6 +27,7 @@ interface ExportRow {
 interface ExportColumn {
   title: string;
   render: (row: ExportRow) => string | undefined;
+  xlsxCellRender?: (value: string) => any;
 }
 
 const exportColumns: ExportColumn[] = [
@@ -53,7 +53,8 @@ const exportColumns: ExportColumn[] = [
   },
   {
     title: '操作时间',
-    render: (row) => moment(row.ts).format('YYYY-MM-DD HH:mm:ss'),
+    render: (row) => row.ts,
+    xlsxCellRender: (ts) => ({ value: new Date(ts), format: 'yyyy/mm/dd hh:mm:ss' }),
   },
   {
     title: '客服',
@@ -64,14 +65,6 @@ const exportColumns: ExportColumn[] = [
     render: (row) => row.action,
   },
 ];
-
-function downloadCSV(content: string, filename: string) {
-  const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = filename;
-  a.click();
-}
 
 export function Exporter({ filters, open, onCancel }: ExporterProps) {
   const { getCategoryPath } = useCategoryContext();
@@ -89,7 +82,7 @@ export function Exporter({ filters, open, onCancel }: ExporterProps) {
       return column.title === field;
     });
     const dateRangeString = filters.dateRange.map((date) => date.format('YYYYMMDD')).join('-');
-    const filename = `客服操作记录${dateRangeString}.csv`;
+    const filename = `客服操作记录${dateRangeString}`;
 
     const collector = new ActionLogCollector<ExportRow>({
       filters,
@@ -117,13 +110,22 @@ export function Exporter({ filters, open, onCancel }: ExporterProps) {
       },
     });
 
-    collector.onSuccess = (rows) => {
+    collector.onSuccess = (data) => {
       setIsLoading(false);
-      const content = Papa.unparse({
-        fields: selectedColumns.map((col) => col.title),
-        data: rows.map((row) => selectedColumns.map((col) => col.render(row))),
+      const cols = selectedColumns.map((col) => ({ value: col.title }));
+      const rows = data.map((item) =>
+        selectedColumns.map((col) => {
+          const value = col.render(item);
+          if (col.xlsxCellRender && value !== undefined) {
+            return col.xlsxCellRender(value);
+          } else {
+            return { value };
+          }
+        })
+      );
+      writeXlsxFile([cols, ...rows], {
+        fileName: filename + '.xlsx',
       });
-      downloadCSV(content, filename);
     };
 
     collector.onError = () => {
