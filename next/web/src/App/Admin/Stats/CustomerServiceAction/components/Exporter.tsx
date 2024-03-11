@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { Checkbox, Divider, Modal } from 'antd';
 import { intersectionWith, keyBy } from 'lodash-es';
 import writeXlsxFile from 'write-excel-file';
+import moment from 'moment';
 
 import { TicketLanguages } from '@/i18n/locales';
 import { TicketSchema } from '@/api/ticket';
@@ -27,7 +28,6 @@ interface ExportRow {
 interface ExportColumn {
   title: string;
   render: (row: ExportRow) => string | undefined;
-  xlsxCellRender?: (value: string) => any;
 }
 
 const exportColumns: ExportColumn[] = [
@@ -53,8 +53,7 @@ const exportColumns: ExportColumn[] = [
   },
   {
     title: '操作时间',
-    render: (row) => row.ts,
-    xlsxCellRender: (ts) => ({ value: new Date(ts), format: 'yyyy/mm/dd hh:mm:ss' }),
+    render: (row) => moment(row.ts).format('YYYY-MM-DD HH:mm:ss'),
   },
   {
     title: '客服',
@@ -113,16 +112,7 @@ export function Exporter({ filters, open, onCancel }: ExporterProps) {
     collector.onSuccess = (data) => {
       setIsLoading(false);
       const cols = selectedColumns.map((col) => ({ value: col.title }));
-      const rows = data.map((item) =>
-        selectedColumns.map((col) => {
-          const value = col.render(item);
-          if (col.xlsxCellRender && value !== undefined) {
-            return col.xlsxCellRender(value);
-          } else {
-            return { value };
-          }
-        })
-      );
+      const rows = data.map((item) => selectedColumns.map((col) => ({ value: col.render(item) })));
       writeXlsxFile([cols, ...rows], {
         fileName: filename + '.xlsx',
       });
