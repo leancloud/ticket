@@ -7,12 +7,17 @@ import { ReplySchema } from '@/api/reply';
 import { fetchTicketReplies, fetchTicketOpsLogs, OpsLog } from '@/api/ticket';
 import { useCurrentRef } from '@/utils/useCurrentRef';
 
+function getCursor() {
+  const search = new URLSearchParams(window.location.search);
+  return search.get('timelineAfter') || undefined;
+}
+
 export function useTicketReplies(ticketId?: string) {
   const { data, fetchNextPage, refetch } = useInfiniteQuery({
     queryKey: ['TicketReplies', ticketId],
     queryFn: ({ pageParam }) => {
       return fetchTicketReplies(ticketId || '', {
-        cursor: pageParam,
+        cursor: pageParam || getCursor(),
         deleted: true,
         pageSize: 1000,
       });
@@ -77,7 +82,7 @@ export function useTicketOpsLogs(ticketId?: string) {
     queryKey: ['TicketOpsLogs', ticketId],
     queryFn: ({ pageParam }) => {
       return fetchTicketOpsLogs(ticketId || '', {
-        cursor: pageParam,
+        cursor: pageParam || getCursor(),
         pageSize: 1000,
       });
     },
