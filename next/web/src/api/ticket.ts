@@ -193,17 +193,19 @@ interface FetchTicketRepliesOptions {
   cursor?: string;
   deleted?: boolean;
   pageSize?: number;
+  desc?: boolean;
 }
 
 export async function fetchTicketReplies(
   id: string,
-  { cursor, deleted, pageSize }: FetchTicketRepliesOptions = {}
+  { cursor, deleted, pageSize, desc }: FetchTicketRepliesOptions = {}
 ): Promise<ReplySchema[]> {
   const { data } = await http.get(`/api/2/tickets/${id}/replies`, {
     params: {
       cursor,
       deleted: deleted ? 1 : undefined,
       pageSize,
+      orderBy: `createdAt-${desc ? 'desc' : 'asc'}`,
     },
   });
   return data;
@@ -506,16 +508,18 @@ export type OpsLog = BaseOpsLog &
 interface FetchOpsLogsOptions {
   cursor?: string;
   pageSize?: number;
+  desc?: boolean;
 }
 
 export async function fetchTicketOpsLogs(
   ticketId: string,
-  { cursor, pageSize }: FetchOpsLogsOptions = {}
+  { cursor, pageSize, desc }: FetchOpsLogsOptions = {}
 ) {
   const res = await http.get<OpsLog[]>(`/api/2/tickets/${ticketId}/ops-logs`, {
     params: {
       cursor,
       pageSize,
+      orderBy: `createdAt-${desc ? 'desc' : 'asc'}`,
     },
   });
   return res.data;

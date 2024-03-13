@@ -54,7 +54,7 @@ import { TicketCard } from './components/TicketCard';
 import { useMixedTicket } from './mixed-ticket';
 import { TicketField_v1, useTicketFields_v1 } from './api1';
 import { CustomFields } from './components/CustomFields';
-import { useTicketOpsLogs, useTicketReplies } from './timeline-data';
+import { useTimeline } from './timeline-data';
 import { RecentTickets } from './components/RecentTickets';
 import { Evaluation } from './components/Evaluation';
 import { TicketViewers } from './components/TicketViewers';
@@ -70,20 +70,26 @@ export function TicketDetail() {
     restoreOnUnmount: true,
   });
 
-  const { replies, fetchMoreReplies, refetchReples } = useTicketReplies(ticket?.id);
-  const { opsLogs, fetchMoreOpsLogs } = useTicketOpsLogs(ticket?.id);
+  const {
+    data: timeline,
+    isLoading: isLoadingTimeline,
+    isLoadingGap,
+    loadGap,
+    refetch: refetchTimeline,
+    loadMore: loadMoreTimeline,
+  } = useTimeline(ticket?.id);
 
   const { mutateAsync: createReply } = useCreateReply({
     onSuccess: () => {
       refetch();
-      fetchMoreReplies();
+      loadMoreTimeline();
     },
   });
 
   const { mutate: operate, isLoading: operating } = useOperateTicket({
     onSuccess: () => {
       refetch();
-      fetchMoreOpsLogs();
+      loadMoreTimeline();
     },
   });
 
@@ -142,9 +148,11 @@ export function TicketDetail() {
                   onUpdate={update}
                 />
               }
-              replies={replies}
-              opsLogs={opsLogs}
-              onRefetchReplies={refetchReples}
+              loading={isLoadingTimeline}
+              loadingMore={isLoadingGap}
+              timeline={timeline}
+              onRefetchReplies={refetchTimeline}
+              onLoadMore={loadGap}
             />
 
             {ticket.author && (

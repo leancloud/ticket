@@ -1,5 +1,5 @@
-import { ReactNode, useMemo, useRef } from 'react';
-import { Modal, Skeleton } from 'antd';
+import { ReactNode, useRef } from 'react';
+import { Button, Divider, Modal, Skeleton } from 'antd';
 import cx from 'classnames';
 
 import { ReplySchema, useDeleteReply, useUpdateReply } from '@/api/reply';
@@ -15,35 +15,32 @@ type TimelineData =
   | {
       type: 'reply';
       data: ReplySchema;
-      createTime: number;
     }
   | {
       type: 'opsLog';
       data: OpsLogSchema;
-      createTime: number;
+    }
+  | {
+      type: 'gap';
     };
 
 interface TimelineProps {
   header?: ReactNode;
-  replies?: ReplySchema[];
-  opsLogs?: OpsLogSchema[];
+  timeline?: TimelineData[];
+  loading?: boolean;
   onRefetchReplies: () => void;
+  onLoadMore?: () => void;
+  loadingMore?: boolean;
 }
 
-export function Timeline({ header, replies, opsLogs, onRefetchReplies }: TimelineProps) {
-  const timeline = useMemo(() => {
-    const timeline: TimelineData[] = [];
-    replies?.forEach((data) =>
-      timeline.push({ type: 'reply', data, createTime: new Date(data.createdAt).getTime() })
-    );
-    opsLogs?.forEach((data) =>
-      timeline.push({ type: 'opsLog', data, createTime: new Date(data.createdAt).getTime() })
-    );
-    return timeline.sort((a, b) => a.createTime - b.createTime);
-  }, [replies, opsLogs]);
-
-  const loading = !replies && !opsLogs;
-
+export function Timeline({
+  header,
+  timeline,
+  loading,
+  onRefetchReplies,
+  onLoadMore,
+  loadingMore,
+}: TimelineProps) {
   const editReplyModalRef = useRef<EditReplyModalRef>(null!);
   const replyRevisionsModalRef = useRef<ReplyRevisionsModalRef>(null!);
 
@@ -102,26 +99,37 @@ export function Timeline({ header, replies, opsLogs, onRefetchReplies }: Timelin
     >
       {header}
       {loading && <Skeleton active paragraph={{ rows: 4 }} />}
-      {timeline.map((timeline) => {
-        if (timeline.type === 'reply') {
-          return (
-            <ReplyCard
-              key={timeline.data.id}
-              id={timeline.data.id}
-              author={<UserLabel user={timeline.data.author} />}
-              createTime={timeline.data.createdAt}
-              content={timeline.data.contentSafeHTML}
-              files={timeline.data.files}
-              isAgent={timeline.data.isCustomerService}
-              isInternal={timeline.data.internal}
-              edited={timeline.data.edited}
-              deleted={!!timeline.data.deletedAt}
-              menuItems={createMenuItems(timeline.data)}
-              onClickMenu={(key) => handleClickMenu(timeline.data, key)}
-            />
-          );
-        } else {
-          return <OpsLog key={timeline.data.id} data={timeline.data} />;
+      {timeline?.map((timeline) => {
+        switch (timeline.type) {
+          case 'reply':
+            return (
+              <ReplyCard
+                key={timeline.data.id}
+                id={timeline.data.id}
+                author={<UserLabel user={timeline.data.author} />}
+                createTime={timeline.data.createdAt}
+                content={timeline.data.contentSafeHTML}
+                files={timeline.data.files}
+                isAgent={timeline.data.isCustomerService}
+                isInternal={timeline.data.internal}
+                edited={timeline.data.edited}
+                deleted={!!timeline.data.deletedAt}
+                menuItems={createMenuItems(timeline.data)}
+                onClickMenu={(key) => handleClickMenu(timeline.data, key)}
+              />
+            );
+          case 'opsLog':
+            return <OpsLog key={timeline.data.id} data={timeline.data} />;
+          case 'gap':
+            return (
+              <div key="gap" className="bg-white py-5">
+                <Divider>
+                  <Button loading={loadingMore} onClick={() => onLoadMore?.()}>
+                    加载更多...
+                  </Button>
+                </Divider>
+              </div>
+            );
         }
       })}
 
