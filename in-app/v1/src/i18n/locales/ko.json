@@ -3,99 +3,113 @@
     "commit": "제출",
     "loading": "로딩 중",
     "select_hint": "선택해 주세요",
-    "collapse": "붕괴",
-    "expand": "확장",
-    "number": "참조 번호",
+    "collapse": "닫기",
+    "expand": "더보기",
+    "number": "번호",
     "status": "상태",
     "title": "제목",
     "description": "설명",
     "attachment": "첨부",
     "send": "보내기",
     "confirm": "확인",
-    "no_data": "일시적으로 데이터 없음",
-    "call_center": "고객 서비스 센터",
-    "click_to_upload": "클릭하여 업로드",
-    "content_deleted": "해당 콘텐츠가 삭제되었습니다",
-    "not_found": "이 내용은 존재하지 않습니다",
+    "no_data": "내용이 없습니다.",
+    "call_center": "고객 지원 서비스",
+    "click_to_upload": "업로드하기",
+    "content_deleted": "해당 콘텐츠는 이미 삭제되었습니다.",
+    "not_found": "존재하지 않는 내용입니다.",
     "cancel": "취소",
     "update_time": "업데이트 시간",
-    "update_date": "업데이트 날짜"
+    "update_date": "업데이트 날짜",
+    "next_step": "다음"
   },
   "home": {
-    "empty": "현재 카테고리에 설정된 표시 내용이 없습니다"
+    "empty": "현재 항목에 표시된 내용이 없습니다"
   },
   "feedback": {
     "suffix": "피드백",
-    "action": "피드백 보내기",
-    "record": "피드백 기록",
-    "submit": "제출 피드백",
-    "title": "고객 지원팀 연락처",
-    "submit_ticket": "티켓 제출",
+    "action": "피드백 남기기",
+    "record": "이전 피드백",
+    "submit": "피드백 제출",
+    "title": "지원팀에 연락하기",
+    "submit_ticket": "피드백 제출",
     "wait_time": "예상 대기 시간:",
     "hours": "{{value}} 시간",
-    "minutes": "{{value}} 분"
+    "minutes": "{{value}} 분",
+    "cannot_create_more": "현재 처리 되지 않은 피드백이 많아, 이미 제출된 피드백을 통해 내용을 추가해 주시기 바랍니다."
   },
   "faqs": {
     "showAll": "전체보기",
     "similar": "유사한 질문"
   },
   "notice": {
-    "title": "공지사항",
-    "hint": "만약 이 내용이 도움이 되지 않았다면"
+    "title": "서비스 안내",
+    "hint": "다른 도움이 필요할 경우, 지원팀에게 연락해 주세요."
   },
   "auth": {
-    "not_logged_in_text": "계정에 로그인하지 않았습니다. 로그인 후 다시 시도하십시오."
+    "not_logged_in_text": "먼저 계정 로그인 후, 다시 시도해 주시기 바랍니다."
   },
   "category": {
-    "select_hint": "주제 선택",
-    "select_hint_home": "선택할 문제 유형",
-    "faqs": "관련 기사",
-    "title": "문제 분류"
+    "select_hint": "문제 유형 선택",
+    "select_hint_home": "문제 유형 선택",
+    "faqs": "관련 공지안내",
+    "title": "문제 유형 선택",
+    "classify": {
+      "placeholder": "예: 비밀번호가 생각나지 않습니다. 어떻게 해야 하나요?",
+      "title": "도움이 필요하신 문제를 서술해 주세요.",
+      "loading": "문제 유형을 검색 중입니다...",
+      "result": {
+        "title": "문의 주신 문제에 해당되시나요?",
+        "no_help": "혹시 도움이 되지 못하셨나요?",
+        "select": "직접 문제 유형을 선택해 주세요",
+        "failed": "해당되는 내용이 없습니다",
+        "solution": "다른 해결 방법 찾기"
+      }
+    }
   },
   "topic": {
     "title": "자주 묻는 질문",
-    "hint": "만약 위의 내용이 도움이 되지 않았다면, 다음을 시도해보세요."
+    "hint": "만일 다른 도움이 필요하실 경우, 다음을 시도해 보세요."
   },
   "ticket": {
-    "record": "문제 기록",
-    "no_record": "문제 기록이 없음",
-    "no_more_record": "기록이 더 이상 없습니다",
+    "record": "제출된 피드백 확인",
+    "no_record": "내용 없음",
+    "no_more_record": "더 이상 제출된 내용이 없습니다.",
     "create": {
-      "success": "제출 성공",
-      "success_text": "$t(ticket.create.success), 우리는 빠른 시일 내에 처리해 드리겠습니다"
+      "success": "제출 성공!",
+      "success_text": "$t(ticket.create.success), 빠른 시일내에 처리를 도와드릴 수 있도록 최선을 다하겠습니다."
     },
-    "detail": "문제 상세",
+    "detail": "제출된 내용 확인하기",
     "resolved": "처리 완료",
     "unResolved": "처리 중",
-    "contact": "고객 서비스 연락하기"
+    "contact": "지원팀에 연락하기"
   },
   "reply": {
     "staff_title": "공식 고객지원",
-    "my_title": "당신",
-    "input_content_hint": "내용을 입력하십시오"
+    "my_title": "나",
+    "input_content_hint": "내용을 입력해 주세요."
   },
   "status": {
-    "new": "대기 중",
-    "waiting_on_staff": "고객 서비스 답변 대기중",
-    "waiting_on_customer": "대기 중인 사용자 답변",
-    "resolved": "해결됨"
+    "new": "처리 대기 중",
+    "waiting_on_staff": "지원팀 답변 대기 중",
+    "waiting_on_customer": "질문자 답변 대기 중",
+    "resolved": "처리 완료"
   },
   "evaluation": {
     "title": "서비스 평가 및 피드백",
-    "useful": "유용",
-    "useless": "무용",
-    "content_hint": "보충 설명 (선택 사항)",
-    "created_text": "귀하의 피드백이 접수되었습니다. 피드백을 주셔서 감사합니다!",
-    "change": "수정 평가"
+    "useful": "도움됨",
+    "useless": "도움 되지 않음",
+    "content_hint": "더보기(선택 사항)",
+    "created_text": "정상적으로 접수되었습니다. 감사합니다!",
+    "change": "수정하기"
   },
   "validation": {
-    "required": "이 내용은 비워둘 수 없습니다",
+    "required": "필수 입력 항목입니다.",
     "attachment_too_big": "업로드 실패",
     "attachment_too_big_text": "첨부 파일 크기는 {{size}} {{unit}}를 초과할 수 없습니다",
     "attachment_not_uploaded": "제출된 첨부 파일이 완료될 때까지 기다려 주세요.",
-    "number_required": "숫자 이외의 문자를 포함할 수 없습니다",
-    "invalid": "입력이 유효하지 않습니다"
+    "number_required": "숫자 이외의 문자는 포함할 수 없습니다.",
+    "invalid": "유효한 값이 아닙니다."
   },
-  "network_error": "네트워크 이상, 다시 연결 시도해 주세요",
-  "network_error.retry": "재연결"
+  "network_error": "네트워크 연결이 원할하지 않습니다. 네트워크 상태를 확인해 주세요.",
+  "network_error.retry": "다시 연결하기"
 }
