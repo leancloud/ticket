@@ -5,8 +5,8 @@ import { last } from 'lodash-es';
 import { db } from '@/leancloud';
 import { ReplySchema } from '@/api/reply';
 import { fetchTicketReplies, fetchTicketOpsLogs, OpsLog } from '@/api/ticket';
-import { useCurrentRef } from '@/utils/useCurrentRef';
 import { useEffectEvent } from '@/utils/useEffectEvent';
+import { useFreshState } from '@/utils/useFreshState';
 
 interface Reader<T> {
   read: () => Promise<T | undefined>;
@@ -165,7 +165,7 @@ const reverseDataPageSize = 50;
 export function useTimeline(ticketId?: string) {
   const [timelineReader, setTimelineReader] = useState<Reader<TimelineData>>();
 
-  const ticketIdRef = useCurrentRef(ticketId);
+  const isFresh = useFreshState([ticketId]);
   const isMounted = useMountedState();
 
   const [data, setData] = useState<TimelineData[]>();
@@ -177,7 +177,6 @@ export function useTimeline(ticketId?: string) {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const refetch = useEffectEvent(async () => {
-    const ticketId = ticketIdRef.current;
     if (!ticketId) return;
 
     const timelineReader = createTimelineReader({
@@ -199,13 +198,13 @@ export function useTimeline(ticketId?: string) {
         data.length === dataPageSize
           ? await take(reverseTimelineReader, reverseDataPageSize)
           : undefined;
-      if (ticketId === ticketIdRef.current && isMounted()) {
+      if (isMounted() && isFresh()) {
         setMoreData(undefined);
         setData(data);
         setReverseData(reverseData);
       }
     } finally {
-      if (ticketId === ticketIdRef.current && isMounted()) {
+      if (isMounted() && isFresh()) {
         setIsLoading(false);
       }
     }
@@ -220,15 +219,14 @@ export function useTimeline(ticketId?: string) {
     if (!data?.length || !reverseData?.length) return;
     if (last(data)!.ts >= last(reverseData)!.ts) return;
     if (!timelineReader) return;
-    const ticketId = ticketIdRef.current;
     try {
       setIsLoadingGap(true);
       const newData = await take(timelineReader, dataPageSize);
-      if (ticketId === ticketIdRef.current && isMounted()) {
+      if (isMounted() && isFresh()) {
         setData((data) => [...(data || []), ...newData]);
       }
     } finally {
-      if (ticketId === ticketIdRef.current && isMounted()) {
+      if (isMounted() && isFresh()) {
         setIsLoadingGap(false);
       }
     }
@@ -241,18 +239,17 @@ export function useTimeline(ticketId?: string) {
       refetch();
       return;
     }
-    const ticketId = ticketIdRef.current;
     if (!ticketId) return;
     try {
       setIsLoadingMore(true);
       const cursor = lastItem.data.createdAt;
       const reader = createTimelineReader({ ticketId, cursor, pageSize: 10 });
       const data = await take(reader, 10);
-      if (ticketId === ticketIdRef.current && isMounted()) {
+      if (isMounted() && isFresh()) {
         setMoreData((prev) => [...(prev || []), ...data]);
       }
     } finally {
-      if (ticketId === ticketIdRef.current && isMounted()) {
+      if (isMounted() && isFresh()) {
         setIsLoadingMore(false);
       }
     }

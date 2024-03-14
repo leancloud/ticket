@@ -4,8 +4,8 @@ import { LCObject } from 'open-leancloud-storage/core';
 
 import { db } from '@/leancloud';
 import { TicketDetailSchema, UpdateTicketData, useTicket, useUpdateTicket } from '@/api/ticket';
-import { useCurrentRef } from '@/utils/useCurrentRef';
 import { Ticket_v1, UpdateTicket_v1Data, useTicket_v1, useUpdateTicket_v1 } from './api1';
+import { useEffectEvent } from '@/utils/useEffectEvent';
 
 interface MixedTicket {
   id: TicketDetailSchema['id'];
@@ -129,7 +129,7 @@ export function useMixedTicket(ticketId: string): UseMixedTicketResult {
     }
   };
 
-  const onUpdate = useCurrentRef((ticketObj: LCObject) => {
+  const onUpdate = useEffectEvent((ticketObj: LCObject) => {
     if (!ticket) {
       return;
     }
@@ -147,7 +147,7 @@ export function useMixedTicket(ticketId: string): UseMixedTicketResult {
     const subscription = db.query('Ticket').where('objectId', '==', ticket.id).subscribe();
     subscription.then((s) => {
       if (mounted) {
-        s.on('update', (o) => onUpdate.current(o));
+        s.on('update', onUpdate);
       }
     });
 
