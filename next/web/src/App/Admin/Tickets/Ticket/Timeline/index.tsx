@@ -122,7 +122,7 @@ export function Timeline({
             return <OpsLog key={timeline.data.id} data={timeline.data} />;
           case 'gap':
             return (
-              <div key="gap" className="bg-white py-5">
+              <div key="gap" className="bg-white py-2">
                 <Divider>
                   <Button loading={loadingMore} onClick={() => onLoadMore?.()}>
                     加载更多...

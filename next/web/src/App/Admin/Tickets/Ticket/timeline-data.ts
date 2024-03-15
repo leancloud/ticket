@@ -1,12 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useMountedState } from 'react-use';
+import { useEffect, useState } from 'react';
+import { useGetSet, useLatest, useMountedState } from 'react-use';
 import { last } from 'lodash-es';
 
 import { db } from '@/leancloud';
 import { ReplySchema } from '@/api/reply';
 import { fetchTicketReplies, fetchTicketOpsLogs, OpsLog } from '@/api/ticket';
 import { useEffectEvent } from '@/utils/useEffectEvent';
-import { useFreshState } from '@/utils/useFreshState';
 
 interface Reader<T> {
   read: () => Promise<T | undefined>;
@@ -157,24 +156,24 @@ function createTimelineReader(state: TimelineReaderState) {
     : new SortReader([replyReader, opsLogReader], (a, b) => a.ts - b.ts);
 }
 
-type UseTimelineData = TimelineData | { type: 'gap' };
+type TimelineGap = { type: 'gap'; ts: number };
 
-const dataPageSize = 50;
-const reverseDataPageSize = 50;
+type UseTimelineData = TimelineData | TimelineGap;
+
+const dataPageSize = 25;
+const reverseDataPageSize = 25;
 
 export function useTimeline(ticketId?: string) {
   const [timelineReader, setTimelineReader] = useState<Reader<TimelineData>>();
 
-  const isFresh = useFreshState([ticketId]);
   const isMounted = useMountedState();
+  const currentTicketId = useLatest(ticketId);
 
-  const [data, setData] = useState<TimelineData[]>();
-  const [reverseData, setReverseData] = useState<TimelineData[]>();
-  const [moreData, setMoreData] = useState<TimelineData[]>();
+  const [data, setData] = useState<UseTimelineData[]>();
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingGap, setIsLoadingGap] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isLoading, setIsLoading] = useGetSet(false);
+  const [isLoadingGap, setIsLoadingGap] = useGetSet(false);
+  const [isLoadingMore, setIsLoadingMore] = useGetSet(false);
 
   const refetch = useEffectEvent(async () => {
     if (!ticketId) return;
@@ -190,21 +189,25 @@ export function useTimeline(ticketId?: string) {
     });
 
     setTimelineReader(timelineReader);
+    setIsLoading(true);
 
     try {
-      setIsLoading(true);
-      const data = await take(timelineReader, dataPageSize);
-      const reverseData =
-        data.length === dataPageSize
-          ? await take(reverseTimelineReader, reverseDataPageSize)
-          : undefined;
-      if (isMounted() && isFresh()) {
-        setMoreData(undefined);
+      let data: UseTimelineData[] = await take(timelineReader, dataPageSize);
+      if (data.length === dataPageSize) {
+        const lastItemTs = last(data)!.ts;
+        let reverseData = await take(reverseTimelineReader, reverseDataPageSize);
+        reverseData = reverseData.filter((item) => item.ts > lastItemTs);
+        if (reverseData.length === reverseDataPageSize) {
+          data = [...data, { type: 'gap', ts: lastItemTs }, ...reverseData.reverse()];
+        } else {
+          data = [...data, ...reverseData.reverse()];
+        }
+      }
+      if (isMounted() && ticketId === currentTicketId.current) {
         setData(data);
-        setReverseData(reverseData);
       }
     } finally {
-      if (isMounted() && isFresh()) {
+      if (isMounted() && ticketId === currentTicketId.current) {
         setIsLoading(false);
       }
     }
@@ -215,62 +218,71 @@ export function useTimeline(ticketId?: string) {
   }, [ticketId]);
 
   const loadGap = useEffectEvent(async () => {
-    if (isLoadingGap) return;
-    if (!data?.length || !reverseData?.length) return;
-    if (last(data)!.ts >= last(reverseData)!.ts) return;
-    if (!timelineReader) return;
+    if (!data || !timelineReader) return;
+
+    const gapIndex = data.findIndex((item) => item.type === 'gap');
+    if (gapIndex === -1) return;
+    const gap = data[gapIndex] as TimelineGap;
+
+    setIsLoadingGap(true);
+
     try {
-      setIsLoadingGap(true);
-      const newData = await take(timelineReader, dataPageSize);
-      if (isMounted() && isFresh()) {
-        setData((data) => [...(data || []), ...newData]);
+      let newData = await take(timelineReader, dataPageSize);
+      if (isMounted() && newData.length) {
+        setData((_data) => {
+          if (!_data) {
+            return _data;
+          }
+          const _gapIndex = _data.findIndex((item) => item.type === 'gap');
+          if (_gapIndex !== gapIndex || gap.ts !== _data[gapIndex].ts) {
+            return _data;
+          }
+          if (gapIndex < _data.length - 1) {
+            const gapNextItem = _data[gapIndex + 1];
+            newData = newData.filter((item) => item.ts < gapNextItem.ts);
+          }
+          if (newData.length > 0 && newData.length === dataPageSize) {
+            return [
+              ..._data.slice(0, gapIndex),
+              ...newData,
+              { type: 'gap', ts: last(newData)!.ts },
+              ..._data.slice(gapIndex + 1),
+            ];
+          } else {
+            return [..._data.slice(0, gapIndex), ...newData, ..._data.slice(gapIndex + 1)];
+          }
+        });
       }
     } finally {
-      if (isMounted() && isFresh()) {
+      if (isMounted()) {
         setIsLoadingGap(false);
       }
     }
   });
 
   const loadMore = useEffectEvent(async () => {
-    if (isLoading || isLoadingMore) return;
-    const lastItem = last(moreData) || reverseData?.[0] || last(data);
-    if (!lastItem) {
+    if (!ticketId) return;
+
+    if (!data || data.length === 0) {
       refetch();
       return;
     }
-    if (!ticketId) return;
+
+    setIsLoadingMore(true);
+
     try {
-      setIsLoadingMore(true);
-      const cursor = lastItem.data.createdAt;
+      const cursor = (last(data) as TimelineData).data.createdAt;
       const reader = createTimelineReader({ ticketId, cursor, pageSize: 10 });
-      const data = await take(reader, 10);
-      if (isMounted() && isFresh()) {
-        setMoreData((prev) => [...(prev || []), ...data]);
+      const newData = await take(reader, 10);
+      if (isMounted()) {
+        setData((prev) => (prev === data ? [...prev, ...newData] : prev));
       }
     } finally {
-      if (isMounted() && isFresh()) {
+      if (isMounted()) {
         setIsLoadingMore(false);
       }
     }
   });
-
-  const combinedData = useMemo(() => {
-    let combinedData: UseTimelineData[] | undefined = data;
-    if (data?.length && reverseData?.length) {
-      const lastDataTs = last(data)!.ts;
-      const overlapIdx = reverseData.findIndex((v) => v.ts <= lastDataTs);
-      if (overlapIdx === -1) {
-        combinedData = [...data, { type: 'gap' }, ...reverseData.slice().reverse()];
-      } else {
-        combinedData = [...data, ...reverseData.slice(0, overlapIdx).reverse()];
-      }
-    }
-    if (moreData?.length) {
-      combinedData = [...(combinedData || []), ...moreData];
-    }
-    return combinedData;
-  }, [data, reverseData, moreData]);
 
   // Reply subscription
   useEffect(() => {
@@ -312,10 +324,10 @@ export function useTimeline(ticketId?: string) {
   }, [ticketId]);
 
   return {
-    data: combinedData,
-    isLoading: !data && isLoading,
-    isLoadingGap,
-    isLoadingMore,
+    data,
+    isLoading: !data && isLoading(),
+    isLoadingGap: isLoadingGap(),
+    isLoadingMore: isLoadingMore(),
     refetch,
     loadGap,
     loadMore,
