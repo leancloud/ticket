@@ -1,6 +1,7 @@
+import AV from 'leancloud-storage';
 import _ from 'lodash';
 
-import { Model, pointTo, pointerId, field, Query } from '@/orm';
+import { Model, pointTo, pointerId, field } from '@/orm';
 import { TicketStatsResponse } from '@/response/ticket-stats';
 import { User } from './User';
 import { Category } from './Category';
@@ -86,99 +87,43 @@ export class TicketStats extends Model {
   @field()
   replyDetails?: ReplyDetail[];
 
-  static async fetchTicketStats(
-    params: {
-      from: Date;
-      to: Date;
-      customerServiceIds?: string[] | '*';
-      categoryIds?: string[] | '*';
-    },
-    limit = 1000,
-    createdAtAfter?: Date
-  ): Promise<SumTicketStat | undefined> {
-    const query = TicketStats.queryBuilder()
-      .where('date', '>=', params.from)
-      .where('date', '<=', params.to)
-      .limit(1000)
-      .orderBy('createdAt', 'asc');
-    if (createdAtAfter) {
-      query.where('createdAt', '>', createdAtAfter);
-    }
-    applyCategoryCondition(query, params.categoryIds);
-    applyCustomerServiceCondition(query, params.customerServiceIds);
-    const data = await query.find({ useMasterKey: true });
-    const sum = sumTicketStats(data);
-    if (data.length && data.length === limit) {
-      const lastCreatedAt = _.last(data)!.createdAt;
-      const nextData = await TicketStats.fetchTicketStats(params, limit, lastCreatedAt);
-      if (!nextData) {
-        return sum;
-      }
-      return _.mergeWith(sum, nextData, (obj = 0, src = 0) => obj + src);
-    }
-    return sum;
+  static async fetchTicketStats(params: {
+    from: Date;
+    to: Date;
+    customerServiceIds?: string[] | '*';
+    categoryIds?: string[] | '*';
+  }): Promise<SumTicketStat | undefined> {
+    const data = await fetchTicketStats(params);
+    return sumTicketStats(data);
   }
 
-  static async fetchTicketFieldStats(
-    params: {
-      fields: string[];
-      from: Date;
-      to: Date;
-      customerServiceIds?: string[] | '*';
-      categoryIds?: string[] | '*';
-    },
-    limit = 1000,
-    createdAtAfter?: Date
-  ): Promise<Partial<TicketStats>[]> {
-    const query = TicketStats.queryBuilder()
-      .where('date', '>=', params.from)
-      .where('date', '<=', params.to)
-      .limit(limit)
-      .orderBy('createdAt', 'asc');
-    if (createdAtAfter) {
-      query.where('createdAt', '>', createdAtAfter);
-    }
-
-    applyCategoryCondition(query, params.categoryIds);
-    applyCustomerServiceCondition(query, params.customerServiceIds);
-    const data = await query.find({ useMasterKey: true });
-    const pickData = data
+  static async fetchTicketFieldStats(params: {
+    fields: string[];
+    from: Date;
+    to: Date;
+    customerServiceIds?: string[] | '*';
+    categoryIds?: string[] | '*';
+  }): Promise<Partial<TicketStats>[]> {
+    const data = await fetchTicketStats(params);
+    return data
       .map((v) => _.pick(v, [...params.fields, 'date', 'customerServiceId', 'categoryId']))
       .filter((v) => {
         return params.fields.some((field) => v[field as keyof TicketStats]);
       });
-    if (data.length && data.length === limit) {
-      const lastCreatedAt = _.last(data)!.createdAt;
-      const nextData = await TicketStats.fetchTicketFieldStats(params, limit, lastCreatedAt);
-      return [...pickData, ...nextData];
-    }
-    return pickData;
   }
 
-  static async fetchReplyDetails(
-    params: {
-      from: Date;
-      to: Date;
-      field: string;
-      customerServiceIds?: string[] | '*';
-      categoryIds?: string[] | '*';
-    },
-    limit = 1000,
-    createdAtAfter?: Date
-  ): Promise<Pick<ReplyDetail, 'id' | 'nid' | 'replyTime'>[]> {
-    const query = TicketStats.queryBuilder()
-      .select('replyDetails')
-      .where('date', '>=', params.from)
-      .where('date', '<=', params.to)
-      .limit(limit)
-      .orderBy('createdAt', 'asc');
-    if (createdAtAfter) {
-      query.where('createdAt', '>', createdAtAfter);
-    }
-    applyCategoryCondition(query, params.categoryIds);
-    applyCustomerServiceCondition(query, params.customerServiceIds);
-    const data = await query.find({ useMasterKey: true });
-    const details = _(data)
+  static async fetchReplyDetails(params: {
+    from: Date;
+    to: Date;
+    field: string;
+    customerServiceIds?: string[] | '*';
+    categoryIds?: string[] | '*';
+  }): Promise<Pick<ReplyDetail, 'id' | 'nid' | 'replyTime'>[]> {
+    const data = await fetchTicketStats({
+      ...params,
+      keys: ['replyDetails'],
+    });
+    return _(data)
       .map((v) => {
         let replyDetails: ReplyDetail[] = v.replyDetails || [];
         if (params.field === 'firstReplyTime') {
@@ -200,15 +145,6 @@ export class TicketStats extends Model {
       })
       .flatMap()
       .valueOf();
-    if (data.length && data.length === limit) {
-      const lastCreatedAt = _.last(data)!.createdAt;
-      const nextData = await TicketStats.fetchReplyDetails(params, limit, lastCreatedAt);
-      if (!nextData) {
-        return details;
-      }
-      return [...details, ...nextData];
-    }
-    return details;
   }
 }
 
@@ -225,37 +161,67 @@ function sumTicketStats(data: TicketStats[]) {
   return result;
 }
 
-function applyCategoryCondition(query: Query<typeof TicketStats>, categoryIds?: '*' | string[]) {
+function applyCategoryCondition(query: AV.Query<any>, categoryIds?: '*' | string[]) {
   if (!categoryIds) {
-    query.where('category', 'not-exists');
+    query.doesNotExist('category');
     return;
   }
   if (categoryIds === '*') {
-    query.where('category', 'exists');
+    query.exists('category');
     return;
   }
-  query.where(
+  query.containedIn(
     'category',
-    'in',
     categoryIds.map((id) => Category.ptr(id))
   );
 }
 
-function applyCustomerServiceCondition(
-  query: Query<typeof TicketStats>,
-  customerServiceIds?: '*' | string[]
-) {
+function applyCustomerServiceCondition(query: AV.Query<any>, customerServiceIds?: '*' | string[]) {
   if (!customerServiceIds) {
-    query.where('customerService', 'not-exists');
+    query.doesNotExist('customerService');
     return;
   }
   if (customerServiceIds === '*') {
-    query.where('customerService', 'exists');
+    query.exists('customerService');
     return;
   }
-  query.where(
+  query.containedIn(
     'customerService',
-    'in',
     customerServiceIds.map((id) => User.ptr(id))
   );
+}
+
+interface FetchTicketStatsOptions {
+  from: Date;
+  to: Date;
+  categoryIds?: '*' | string[];
+  customerServiceIds?: '*' | string[];
+  keys?: string[];
+}
+
+async function fetchTicketStats({
+  from,
+  to,
+  categoryIds,
+  customerServiceIds,
+  keys,
+}: FetchTicketStatsOptions) {
+  const query = new AV.Query('TicketStats')
+    .greaterThanOrEqualTo('date', from)
+    .lessThanOrEqualTo('date', to);
+  if (keys?.length) {
+    query.select(keys);
+  }
+  applyCategoryCondition(query, categoryIds);
+  applyCustomerServiceCondition(query, customerServiceIds);
+  const iterator = {
+    [Symbol.asyncIterator]: () => {
+      return query.scan({ batchSize: 1000 }, { useMasterKey: true });
+    },
+  };
+  const result: TicketStats[] = [];
+  for await (const object of iterator) {
+    result.push(TicketStats.fromAVObject(object as AV.Object));
+  }
+  return result;
 }
