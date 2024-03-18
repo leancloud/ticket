@@ -93,20 +93,24 @@ export class TicketStats extends Model {
       customerServiceIds?: string[] | '*';
       categoryIds?: string[] | '*';
     },
-    limit = 100,
-    skip = 0
+    limit = 1000,
+    createdAtAfter?: Date
   ): Promise<SumTicketStat | undefined> {
     const query = TicketStats.queryBuilder()
       .where('date', '>=', params.from)
       .where('date', '<=', params.to)
-      .limit(limit)
-      .skip(skip);
+      .limit(1000)
+      .orderBy('createdAt', 'asc');
+    if (createdAtAfter) {
+      query.where('createdAt', '>', createdAtAfter);
+    }
     applyCategoryCondition(query, params.categoryIds);
     applyCustomerServiceCondition(query, params.customerServiceIds);
     const data = await query.find({ useMasterKey: true });
     const sum = sumTicketStats(data);
-    if (data.length === limit) {
-      const nextData = await TicketStats.fetchTicketStats(params, limit, limit + skip);
+    if (data.length && data.length === limit) {
+      const lastCreatedAt = _.last(data)!.createdAt;
+      const nextData = await TicketStats.fetchTicketStats(params, limit, lastCreatedAt);
       if (!nextData) {
         return sum;
       }
@@ -123,14 +127,17 @@ export class TicketStats extends Model {
       customerServiceIds?: string[] | '*';
       categoryIds?: string[] | '*';
     },
-    limit = 100,
-    skip = 0
+    limit = 1000,
+    createdAtAfter?: Date
   ): Promise<Partial<TicketStats>[]> {
     const query = TicketStats.queryBuilder()
       .where('date', '>=', params.from)
       .where('date', '<=', params.to)
       .limit(limit)
-      .skip(skip);
+      .orderBy('createdAt', 'asc');
+    if (createdAtAfter) {
+      query.where('createdAt', '>', createdAtAfter);
+    }
 
     applyCategoryCondition(query, params.categoryIds);
     applyCustomerServiceCondition(query, params.customerServiceIds);
@@ -140,8 +147,9 @@ export class TicketStats extends Model {
       .filter((v) => {
         return params.fields.some((field) => v[field as keyof TicketStats]);
       });
-    if (data.length === limit) {
-      const nextData = await TicketStats.fetchTicketFieldStats(params, limit, limit + skip);
+    if (data.length && data.length === limit) {
+      const lastCreatedAt = _.last(data)!.createdAt;
+      const nextData = await TicketStats.fetchTicketFieldStats(params, limit, lastCreatedAt);
       return [...pickData, ...nextData];
     }
     return pickData;
@@ -155,15 +163,18 @@ export class TicketStats extends Model {
       customerServiceIds?: string[] | '*';
       categoryIds?: string[] | '*';
     },
-    limit = 100,
-    skip = 0
+    limit = 1000,
+    createdAtAfter?: Date
   ): Promise<Pick<ReplyDetail, 'id' | 'nid' | 'replyTime'>[]> {
     const query = TicketStats.queryBuilder()
       .select('replyDetails')
       .where('date', '>=', params.from)
       .where('date', '<=', params.to)
       .limit(limit)
-      .skip(skip);
+      .orderBy('createdAt', 'asc');
+    if (createdAtAfter) {
+      query.where('createdAt', '>', createdAtAfter);
+    }
     applyCategoryCondition(query, params.categoryIds);
     applyCustomerServiceCondition(query, params.customerServiceIds);
     const data = await query.find({ useMasterKey: true });
@@ -189,8 +200,9 @@ export class TicketStats extends Model {
       })
       .flatMap()
       .valueOf();
-    if (data.length === limit) {
-      const nextData = await TicketStats.fetchReplyDetails(params, limit, limit + skip);
+    if (data.length && data.length === limit) {
+      const lastCreatedAt = _.last(data)!.createdAt;
+      const nextData = await TicketStats.fetchReplyDetails(params, limit, lastCreatedAt);
       if (!nextData) {
         return details;
       }
