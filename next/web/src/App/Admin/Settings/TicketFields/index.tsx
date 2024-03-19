@@ -59,8 +59,9 @@ function TicketFieldActions({ field }: TicketFieldActionsProps) {
 function TicketFieldTable(props: TableProps<TicketFieldSchema>) {
   return (
     <Table {...props} rowKey="id">
+      <Column title="ID" dataIndex="id" />
       <Column
-        title="标题"
+        title="字段名称"
         dataIndex="title"
         render={(title, field: TicketFieldSchema) => <Link to={field.id}>{title}</Link>}
       />
