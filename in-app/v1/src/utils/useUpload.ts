@@ -44,7 +44,7 @@ export function useUpload({ onError }: UseUploadOptions = {}): UseUploadResult {
       const fileInfo: FileInfo<number> = {
         key,
         name: file.name,
-        url: URL.createObjectURL(file),
+        url: createObjectURL(file),
         progress: 0,
       };
 
@@ -80,7 +80,7 @@ export function useUpload({ onError }: UseUploadOptions = {}): UseUploadResult {
         .then((file) => {
           update({
             id: file.id,
-            // url: file.url,
+            url: fileInfo.url ?? file.url,
             mime: file.mime,
             progress: undefined,
           });
@@ -101,4 +101,10 @@ export function useUpload({ onError }: UseUploadOptions = {}): UseUploadResult {
   const removeAll = useCallback(() => setFiles([]), []);
 
   return { files, isUploading: uploadingCount > 0, upload, remove, removeAll };
+}
+
+function createObjectURL(obj: Blob) {
+  if (typeof URL === 'function' && typeof URL.createObjectURL === 'function') {
+    return URL.createObjectURL(obj);
+  }
 }
