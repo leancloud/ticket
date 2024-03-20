@@ -24,7 +24,6 @@
     "i18next": "^21.6.7",
     "i18next-browser-languagedetector": "^6.1.2",
     "immer": "^9.0.12",
-    "intersection-observer": "^0.12.0",
     "lodash-es": "^4.17.21",
     "nanoid": "^5.0.4",
     "open-leancloud-storage": "0.0.40",
