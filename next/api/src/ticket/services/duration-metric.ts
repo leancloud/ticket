@@ -8,6 +8,7 @@ export class DurationMetricService {
   createMetric(ticket: Ticket) {
     return DurationMetrics.create(
       {
+        ACL: {},
         ticketId: ticket.id,
         ticketCreatedAt: ticket.createdAt,
       },

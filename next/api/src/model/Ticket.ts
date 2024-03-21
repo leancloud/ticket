@@ -18,7 +18,6 @@ import { TicketUpdater, UpdateOptions } from '@/ticket/TicketUpdater';
 import htmlify from '@/utils/htmlify';
 import { emailService } from '@/support-email/services/email';
 import { categoryService } from '@/category';
-import { durationMetricService } from '@/ticket/services/duration-metric';
 import { Category } from './Category';
 import { File } from './File';
 import { Group } from './Group';
@@ -330,7 +329,7 @@ export class Ticket extends Model {
         }
       }
     }
-    const newTicket = await updater.update(data.author, { useMasterKey: true });
+    await updater.update(data.author, { useMasterKey: true });
 
     events.emit('reply:created', {
       reply: reply.toJSON(),
@@ -344,8 +343,6 @@ export class Ticket extends Model {
           console.error(`[Ticket] send email to requester`, error);
         });
       }
-
-      await durationMetricService.recordReplyTicket(newTicket, reply, isCustomerService);
     }
 
     return reply;
@@ -384,7 +381,6 @@ export class Ticket extends Model {
       (options?.cascade ? [...associateTickets, this] : [this]).map(async (ticket) => {
         const updater = new TicketUpdater(ticket);
         const updatedTicket = await updater.operate(action).update(operator, options);
-        await durationMetricService.recordOperateTicket(ticket, action);
         return updatedTicket;
       })
     );

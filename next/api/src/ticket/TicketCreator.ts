@@ -13,7 +13,6 @@ import { User, systemUser } from '@/model/User';
 import { TicketLog } from '@/model/TicketLog';
 import { searchTicketService } from '@/service/search-ticket';
 import { ticketService } from '@/service/ticket';
-import { durationMetricService } from './services/duration-metric';
 
 export class TicketCreator {
   private author?: User;
@@ -274,7 +273,6 @@ export class TicketCreator {
       customFields: this.customFields,
     });
 
-    await durationMetricService.createMetric(ticket);
     await searchTicketService.addSyncJob([ticket.id]);
     await ticketService.addDetectTicketLanguageJob(ticket.id);
 
