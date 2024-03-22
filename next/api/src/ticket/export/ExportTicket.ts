@@ -338,6 +338,7 @@ const FIXED_KEYS = [
   'language',
   'createdAt',
   'updatedAt',
+  'firstReplyTime(seconds)',
   'replies',
 ];
 
