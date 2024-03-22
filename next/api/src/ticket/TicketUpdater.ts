@@ -13,6 +13,7 @@ import { TinyReplyInfo } from '@/model/Reply';
 import { TicketLog } from '@/model/TicketLog';
 import { searchTicketService } from '@/service/search-ticket';
 import htmlify from '@/utils/htmlify';
+import { durationMetricsService } from './services/duration-metrics';
 
 export interface UpdateOptions {
   useMasterKey?: boolean;
@@ -354,6 +355,9 @@ export class TicketUpdater {
     }
 
     await searchTicketService.addSyncJob([ticket.id]);
+    if (this.data.status && ticket.isClosed()) {
+      durationMetricsService.createCreateMetricsJob({ ticketId: ticket.id });
+    }
 
     return ticket;
   }

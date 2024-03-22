@@ -6,6 +6,7 @@ import { ACLBuilder } from '@/orm';
 import { User } from '@/model/User';
 import { Ticket } from '@/model/Ticket';
 import { Reply } from '@/model/Reply';
+import { Action, OpsLog } from '@/model/OpsLog';
 import { userService } from '@/user/services/user';
 import { createQueue, Job, Queue } from '@/queue';
 import { DetectTicketLanguageJobData } from '@/interfaces/ticket';
@@ -15,13 +16,30 @@ import { translateService } from './translate';
 interface GetRepliesOptions {
   author?: boolean;
   files?: boolean;
+
+  /**
+   * Should include internal replies
+   */
   internal?: boolean;
+
+  /**
+   * Should include deleted replies
+   */
   deleted?: boolean;
+
   skip?: number;
   limit?: number;
   cursor?: Date;
   desc?: boolean;
   count?: boolean;
+}
+
+interface GetOpsLogsOptions {
+  actions?: Action[];
+  skip?: number;
+  limit?: number;
+  cursor?: Date;
+  desc?: boolean;
 }
 
 interface TransferTicketJobData {
@@ -88,6 +106,26 @@ export class TicketService {
     query.orderBy('createdAt', options.desc ? 'desc' : 'asc');
     if (options.count) {
       return query.findAndCount({ useMasterKey: true });
+    }
+    return query.find({ useMasterKey: true });
+  }
+
+  async getOpsLogs(ticketId: string, options: GetOpsLogsOptions = {}) {
+    const query = OpsLog.queryBuilder()
+      .where('ticket', '==', Ticket.ptr(ticketId))
+      .limit(options.limit || 10)
+      .orderBy('createdAt', options.desc ? 'desc' : 'asc');
+    if (options.actions?.length) {
+      query.where('action', 'in', options.actions);
+    }
+    if (options.cursor) {
+      if (options.desc) {
+        query.where('createdAt', '<', options.cursor);
+      } else {
+        query.where('createdAt', '>', options.cursor);
+      }
+    } else if (options.skip) {
+      query.skip(options.skip);
     }
     return query.find({ useMasterKey: true });
   }

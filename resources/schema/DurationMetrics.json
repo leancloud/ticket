@@ -12,7 +12,8 @@
       "type": "Date"
     },
     "ACL": {
-      "type": "ACL"
+      "type": "ACL",
+      "default": {}
     },
     "objectId": {
       "type": "String"
@@ -117,6 +118,16 @@
         "ticketCreatedAt": 1
       },
       "name": "-user-ticketCreatedAt_1",
+      "ns": "_.DurationMetrics",
+      "background": true
+    },
+    {
+      "v": 2,
+      "unique": true,
+      "key": {
+        "ticket.$id": 1.0
+      },
+      "name": "-user-ticket.$id_1",
       "ns": "_.DurationMetrics",
       "background": true
     }
