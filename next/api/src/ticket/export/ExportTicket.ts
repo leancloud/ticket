@@ -1,11 +1,8 @@
 import _ from 'lodash';
-import { debug as d } from 'debug';
 import { sub, format as dateFnsFormat } from 'date-fns';
 import { Category } from '@/model/Category';
 import { User } from '@/model/User';
-import { UserResponse } from '@/response/user';
 import { Group } from '@/model/Group';
-import { GroupResponse } from '@/response/group';
 import { Reply } from '@/model/Reply';
 import { Ticket } from '@/model/Ticket';
 import { TicketForm } from '@/model/TicketForm';
@@ -17,8 +14,7 @@ import { ExportFileManager } from './ExportFileManager';
 import { JobData } from '.';
 import { SortItem } from '@/middleware';
 import { addInOrNotExistCondition } from '@/utils/conditions';
-
-const debug = d('export');
+import { DurationMetrics } from '@/model/DurationMetrics';
 
 export interface FilterOptions {
   authorId?: string;
@@ -302,6 +298,13 @@ const getFieldValues = async (ticketIds: string[], authOptions?: AuthOptions) =>
     .valueOf();
 };
 
+async function getDurationMetrics(ticketIds: string[]) {
+  const metrics = await DurationMetrics.queryBuilder()
+    .where('ticket', 'in', ticketIds.map(Ticket.ptr.bind(Ticket)))
+    .find({ useMasterKey: true });
+  return _.keyBy(metrics, (item) => item.ticketId);
+}
+
 const FIXED_KEYS = [
   'id',
   'nid',
@@ -345,15 +348,11 @@ export default async function exportTicket({ params, sortItems, utcOffset, date 
   const { type: fileType, ...rest } = params;
   const fileName = `ticket_${dateFnsFormat(new Date(date), 'yyMMdd_HHmmss')}.${fileType || 'json'}`;
   const exportFileManager = new ExportFileManager(fileName);
-  debug('count tickets');
   const [query, containFields] = await createBaseTicketQuery(rest, sortItems);
   const count = await query.count(authOptions);
-  debug('count: ', count);
   const categoryMap = await getCategories();
   const getCustomFormFields = getCustomFormFieldsFunc(authOptions);
   let fieldKeys: string[] = [];
-
-  debug('query tickets');
 
   for (let index = 0; index < count; index += limit) {
     const tickets = await (await createTicketQuery(containFields, query, index, limit))
@@ -362,18 +361,15 @@ export default async function exportTicket({ params, sortItems, utcOffset, date 
       .preload('group', { authOptions })
       .find(authOptions);
     const ticketIds = tickets.map((ticket) => ticket.id);
-    debug('fetch ticket details', ticketIds);
     const replyMap = await getReplies(ticketIds, authOptions, utcOffset);
-    debug('replies fetched');
     const formIds = tickets
       .map((ticket) =>
         categoryMap[ticket.categoryId] ? categoryMap[ticket.categoryId].formId : undefined
       )
       .filter((id) => id !== undefined);
     const { formCacheMap, fieldCacheMap } = await getCustomFormFields(formIds as string[]);
-    debug('forms fetched');
     const fieldValuesMap = await getFieldValues(ticketIds, authOptions);
-    debug('form values fetched');
+    const durationMetricsMap = await getDurationMetrics(ticketIds);
     for (let ticketIndex = 0; ticketIndex < tickets.length; ticketIndex++) {
       const ticket = tickets[ticketIndex];
       const category = categoryMap[ticket.categoryId];
@@ -395,6 +391,9 @@ export default async function exportTicket({ params, sortItems, utcOffset, date 
           title: form?.title,
         };
       }
+
+      const firstReplyTime = durationMetricsMap[ticket.id]?.firstReplyTime;
+
       const data = {
         ..._.pick(ticket, FIXED_KEYS),
         author: ticket.author && encodeUser(ticket.author),
@@ -414,15 +413,13 @@ export default async function exportTicket({ params, sortItems, utcOffset, date 
         replies: (replyMap[ticket.id] || []).map((v) => _.omit(v, 'ticketId')),
         createdAt: formatDate(ticket.createdAt),
         updatedAt: formatDate(ticket.updatedAt),
+        'firstReplyTime(seconds)': firstReplyTime && Math.floor(firstReplyTime / 1000),
         ..._.zipObject(keys, fields?.map((field) => field.value) ?? []),
       };
 
-      debug('data assembled, writing to the file');
       await exportFileManager.append(data, [...FIXED_KEYS, ...fieldKeys]);
-      debug('done writing', ticket.id);
     }
   }
-  debug('all tickets processed');
   if (fileType === 'csv') {
     await exportFileManager.prepend([...FIXED_KEYS, ...fieldKeys].join(','));
   }
