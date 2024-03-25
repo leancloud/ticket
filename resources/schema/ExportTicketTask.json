@@ -1,0 +1,57 @@
+{
+  "schema": {
+    "updatedAt": {
+      "type": "Date"
+    },
+    "ticketCount": {
+      "auto_increment": false,
+      "hidden": false,
+      "read_only": false,
+      "required": false,
+      "type": "Number"
+    },
+    "ACL": {
+      "type": "ACL"
+    },
+    "objectId": {
+      "type": "String"
+    },
+    "completedAt": {
+      "hidden": false,
+      "read_only": false,
+      "required": false,
+      "type": "Date"
+    },
+    "createdAt": {
+      "type": "Date"
+    },
+    "status": {
+      "hidden": false,
+      "read_only": false,
+      "required": false,
+      "type": "String"
+    },
+    "operator": {
+      "className": "_User",
+      "hidden": false,
+      "read_only": false,
+      "required": false,
+      "type": "Pointer"
+    },
+    "downloadUrl": {
+      "hidden": false,
+      "read_only": false,
+      "required": false,
+      "type": "String"
+    }
+  },
+  "permissions": {
+    "create": {},
+    "update": {},
+    "delete": {},
+    "add_fields": {},
+    "get": {},
+    "find": {}
+  },
+  "indexes": []
+}
