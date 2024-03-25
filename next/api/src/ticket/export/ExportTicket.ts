@@ -1,5 +1,6 @@
+import throat from 'throat';
 import _ from 'lodash';
-import { sub, format as dateFnsFormat } from 'date-fns';
+import { sub, format as dateFnsFormat, differenceInSeconds } from 'date-fns';
 import { Category } from '@/model/Category';
 import { User } from '@/model/User';
 import { Group } from '@/model/Group';
@@ -14,7 +15,6 @@ import { ExportFileManager } from './ExportFileManager';
 import { JobData } from '.';
 import { SortItem } from '@/middleware';
 import { addInOrNotExistCondition } from '@/utils/conditions';
-import { DurationMetrics } from '@/model/DurationMetrics';
 
 export interface FilterOptions {
   authorId?: string;
@@ -211,26 +211,58 @@ const encodeGroup = (group: Group) => {
   };
 };
 
-const getReplies = async (ticketIds: string[], authOptions?: AuthOptions, utcOffset?: number) => {
-  const query = Reply.queryBuilder().where(
-    'ticket',
-    'in',
-    ticketIds.map((id) => Ticket.ptr(id))
-  );
-  const replies = await query.find(authOptions);
-  return _(replies)
-    .map((reply) => {
-      return {
-        id: reply.id,
-        ticketId: reply.ticketId,
-        content: reply.content,
-        authorId: reply.authorId,
-        isCustomerService: reply.isCustomerService,
-        createdAt: format(reply.createdAt, utcOffset),
-      };
-    })
-    .groupBy('ticketId')
-    .valueOf();
+const getReplies = async (ticketIds: string[]) => {
+  const getOneTicketReplies = (ticketId: string) => {
+    return Reply.queryBuilder()
+      .where('ticket', '==', Ticket.ptr(ticketId))
+      .limit(100)
+      .find({ useMasterKey: true });
+  };
+  const tasks = ticketIds.map(throat(3, getOneTicketReplies));
+  const repliesList = await Promise.all(tasks);
+  return _.zipObject(ticketIds, repliesList);
+};
+
+interface FirstReplyInfo {
+  firstReplyTime?: {
+    seconds: number;
+  };
+  firstReplyCustomerService?: ReturnType<typeof encodeUser>;
+}
+
+const getFirstReplyInfo = async (tickets: Ticket[], replyMap: Record<string, Reply[]>) => {
+  const customerServiceIds = _(replyMap)
+    .values()
+    .flatten()
+    .filter((r) => r.isCustomerService && !r.internal)
+    .map((r) => r.authorId)
+    .uniq()
+    .value();
+
+  const users = await User.queryBuilder()
+    .where('objectId', 'in', customerServiceIds)
+    .find({ useMasterKey: true });
+
+  const userById = _.keyBy(users, (u) => u.id);
+
+  return tickets.reduce<Record<string, FirstReplyInfo>>((map, ticket) => {
+    const info: FirstReplyInfo = {};
+    const replies = replyMap[ticket.id];
+    if (replies) {
+      const firstReply = replies.find((r) => r.isCustomerService && !r.internal);
+      if (firstReply) {
+        info.firstReplyTime = {
+          seconds: differenceInSeconds(firstReply.createdAt, ticket.createdAt),
+        };
+        const firstReplyCustomerService = userById[firstReply.authorId];
+        if (firstReplyCustomerService) {
+          info.firstReplyCustomerService = encodeUser(firstReplyCustomerService);
+        }
+      }
+    }
+    map[ticket.id] = info;
+    return map;
+  }, {});
 };
 
 const getCustomFormFieldsFunc = (authOptions?: AuthOptions) => {
@@ -298,13 +330,6 @@ const getFieldValues = async (ticketIds: string[], authOptions?: AuthOptions) =>
     .valueOf();
 };
 
-async function getDurationMetrics(ticketIds: string[]) {
-  const metrics = await DurationMetrics.queryBuilder()
-    .where('ticket', 'in', ticketIds.map(Ticket.ptr.bind(Ticket)))
-    .find({ useMasterKey: true });
-  return _.keyBy(metrics, (item) => item.ticketId);
-}
-
 const FIXED_KEYS = [
   'id',
   'nid',
@@ -338,7 +363,8 @@ const FIXED_KEYS = [
   'language',
   'createdAt',
   'updatedAt',
-  'firstReplyTime(seconds)',
+  'firstReplyTime.seconds',
+  'firstReplyCustomerService.nickname',
   'replies',
 ];
 
@@ -365,7 +391,7 @@ export default async function exportTicket({ params, sortItems, utcOffset, date 
       .find(authOptions);
     ticketCount += tickets.length;
     const ticketIds = tickets.map((ticket) => ticket.id);
-    const replyMap = await getReplies(ticketIds, authOptions, utcOffset);
+    const replyMap = await getReplies(ticketIds);
     const formIds = tickets
       .map((ticket) =>
         categoryMap[ticket.categoryId] ? categoryMap[ticket.categoryId].formId : undefined
@@ -373,7 +399,6 @@ export default async function exportTicket({ params, sortItems, utcOffset, date 
       .filter((id) => id !== undefined);
     const { formCacheMap, fieldCacheMap } = await getCustomFormFields(formIds as string[]);
     const fieldValuesMap = await getFieldValues(ticketIds, authOptions);
-    const durationMetricsMap = await getDurationMetrics(ticketIds);
     for (let ticketIndex = 0; ticketIndex < tickets.length; ticketIndex++) {
       const ticket = tickets[ticketIndex];
       const category = categoryMap[ticket.categoryId];
@@ -396,7 +421,18 @@ export default async function exportTicket({ params, sortItems, utcOffset, date 
         };
       }
 
-      const firstReplyTime = durationMetricsMap[ticket.id]?.firstReplyTime;
+      const replies = replyMap[ticket.id].map((reply) => {
+        return {
+          id: reply.id,
+          ticketId: reply.ticketId,
+          content: reply.content,
+          authorId: reply.authorId,
+          isCustomerService: reply.isCustomerService,
+          createdAt: format(reply.createdAt, utcOffset),
+        };
+      });
+
+      const firstReplyInfo = await getFirstReplyInfo(tickets, replyMap);
 
       const data = {
         ..._.pick(ticket, FIXED_KEYS),
@@ -414,10 +450,10 @@ export default async function exportTicket({ params, sortItems, utcOffset, date 
         latestCustomerServiceReplyAt: formatDate(ticket.latestCustomerServiceReplyAt),
         metaData:
           ticket.metaData && fileType === 'csv' ? JSON.stringify(ticket.metaData) : ticket.metaData,
-        replies: (replyMap[ticket.id] || []).map((v) => _.omit(v, 'ticketId')),
+        replies,
         createdAt: formatDate(ticket.createdAt),
         updatedAt: formatDate(ticket.updatedAt),
-        'firstReplyTime(seconds)': firstReplyTime && Math.floor(firstReplyTime / 1000),
+        ...firstReplyInfo[ticket.id],
         ..._.zipObject(keys, fields?.map((field) => field.value) ?? []),
       };
 
