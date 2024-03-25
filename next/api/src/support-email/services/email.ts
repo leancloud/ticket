@@ -23,6 +23,7 @@ import { supportEmailMessageService } from './support-email-message';
 
 export class EmailService {
   private queue: Queue<JobData>;
+  private proxy?: string;
 
   constructor() {
     this.queue = createQueue('support_email', {
@@ -35,6 +36,7 @@ export class EmailService {
     this.queue.on('failed', (job, error) => {
       console.error('[EmailService] job failed', job.data, error);
     });
+    this.proxy = process.env.SUPPORT_EMAIL_PROXY;
   }
 
   async checkNewMessages() {
@@ -89,6 +91,7 @@ export class EmailService {
         pass: supportEmail.auth.password,
       },
       logger: false,
+      proxy: this.proxy,
     });
   }
 
@@ -413,6 +416,7 @@ export class EmailService {
         user: supportEmail.auth.username,
         pass: supportEmail.auth.password,
       },
+      ...{ proxy: this.proxy }, // make tsc happy
     });
   }
 
