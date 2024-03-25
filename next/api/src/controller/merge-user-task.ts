@@ -37,17 +37,15 @@ export class MergeUserTaskController {
   @Get()
   @ResponseBody(MergeUserTaskResponse)
   async getTasks(
-    @Ctx()
-    ctx: Context,
-    @Query('page', new ParseIntPipe({ min: 1 }))
-    page: number,
-    @Query('pageSize', new ParseIntPipe({ min: 1, max: 100 }))
-    pageSize: number
+    @Ctx() ctx: Context,
+    @Query('page', new ParseIntPipe({ min: 1 })) page = 1,
+    @Query('pageSize', new ParseIntPipe({ min: 1, max: 100 })) pageSize = 10
   ) {
     const [tasks, totalCount] = await MergeUserTask.queryBuilder()
       .preload('sourceUser')
       .preload('targetUser')
       .paginate(page, pageSize)
+      .orderBy('createdAt', 'desc')
       .findAndCount({ useMasterKey: true });
     ctx.set('X-Total-Count', totalCount.toString());
     return tasks;

@@ -38,7 +38,7 @@ export class ExportFileManager {
       stats = fs.statSync(file);
     } catch (error) {
       if (stats && stats.isFile()) {
-        console.log(`${res.name} is exists`);
+        console.error(`${res.name} is exists`);
       } else {
         try {
           if (!fs.statSync(this.tmpDir).isDirectory()) {
@@ -145,7 +145,6 @@ export class ExportFileManager {
       return;
     }
     try {
-      console.log('start to upload');
       let filename: string;
       let fileData: any;
 
@@ -163,12 +162,10 @@ export class ExportFileManager {
 
       const file = new AV.File(filename, fileData);
       await file.save({ useMasterKey: true });
-      console.log('file uploaded', file.id, file.url());
-      return file.get('url');
+      return file.get('url') as string;
     } catch (error) {
       console.error('[export ticket]: upload', error);
     } finally {
-      console.log('remove exported ticket file');
       fs.unlinkSync(this.file);
     }
   }

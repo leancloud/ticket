@@ -355,12 +355,15 @@ export default async function exportTicket({ params, sortItems, utcOffset, date 
   const getCustomFormFields = getCustomFormFieldsFunc(authOptions);
   let fieldKeys: string[] = [];
 
+  let ticketCount = 0;
+
   for (let index = 0; index < count; index += limit) {
     const tickets = await (await createTicketQuery(containFields, query, index, limit))
       .preload('author', { authOptions })
       .preload('assignee', { authOptions })
       .preload('group', { authOptions })
       .find(authOptions);
+    ticketCount += tickets.length;
     const ticketIds = tickets.map((ticket) => ticket.id);
     const replyMap = await getReplies(ticketIds, authOptions, utcOffset);
     const formIds = tickets
@@ -424,5 +427,8 @@ export default async function exportTicket({ params, sortItems, utcOffset, date 
   if (fileType === 'csv') {
     await exportFileManager.prepend([...FIXED_KEYS, ...fieldKeys].join(','));
   }
-  return exportFileManager.done();
+  return {
+    ...(await exportFileManager.done()),
+    ticketCount,
+  };
 }

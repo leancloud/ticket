@@ -1,10 +1,7 @@
-import { debug as d } from 'debug';
 import { createQueue } from '@/queue';
 import { SortItem } from '@/middleware';
+import { ExportTicketTask } from '@/model/ExportTicketTask';
 import exportTicket, { FilterOptions } from './ExportTicket';
-import notification from '@/notification';
-
-const debug = d('export:queue');
 
 export interface JobData {
   params: FilterOptions;
@@ -12,7 +9,7 @@ export interface JobData {
   utcOffset?: number;
   userId: string;
   date: Date;
-  retryCount: number;
+  taskId: string;
 }
 
 const queue = createQueue<JobData>('ticket:exported', {
@@ -26,24 +23,29 @@ const queue = createQueue<JobData>('ticket:exported', {
   },
 });
 
-queue.process(async (jobData, done) => {
+queue.process(async (job, done) => {
   try {
-    debug('process exporting', jobData.data);
-    const result = await exportTicket(jobData.data);
+    const result = await exportTicket(job.data);
     done(null, result);
   } catch (error) {
     done(error as Error);
   }
 });
 
-queue.on('completed', async (jobData, result) => {
-  debug('export completed', jobData.data);
+queue.on('completed', async (job, result) => {
   if (result && result.url) {
-    debug('notify', jobData.data.userId);
-    notification.notifyTicketExported({
-      downloadUrl: result.url,
-      userId: jobData.data.userId,
-    });
+    const task = await ExportTicketTask.find(job.data.taskId, { useMasterKey: true });
+    if (task) {
+      await task.update(
+        {
+          downloadUrl: result.url,
+          ticketCount: result.ticketCount,
+          status: 'complete',
+          completedAt: new Date(),
+        },
+        { useMasterKey: true }
+      );
+    }
   } else {
     console.error('[export ticket]: download url is required', result);
   }
@@ -51,21 +53,20 @@ queue.on('completed', async (jobData, result) => {
 
 queue.on('failed', (job, err) => {
   console.error('[export ticket]:', job.data, err);
-  if (job.data.retryCount < 2) {
-    queue.add({
-      ...job.data,
-      retryCount: job.data.retryCount + 1,
-    });
-  } else {
-    //TODO  send email ?
-    console.error(`[export ticket]: after retry`, job.data, err);
-  }
 });
 
-export const createTicketExportJob = (jobData: Omit<JobData, 'date' | 'retryCount'>) => {
-  return queue.add({
+export async function createTicketExportJob(jobData: Omit<JobData, 'date' | 'taskId'>) {
+  const task = await ExportTicketTask.create(
+    {
+      ACL: {},
+      operatorId: jobData.userId,
+      status: 'processing',
+    },
+    { useMasterKey: true }
+  );
+  await queue.add({
     ...jobData,
-    retryCount: 0,
     date: new Date(),
+    taskId: task.id,
   });
-};
+}

@@ -30,11 +30,6 @@ export interface ChangeStatusContext extends NewTicketContext {
   status: number;
 }
 
-export interface TicketExportedContext {
-  to: User;
-  downloadUrl: string;
-}
-
 export interface EventHandler {
   newTicket: (ctx: NewTicketContext) => void;
   replyTicket: (ctx: ReplyTicketContext) => void;
@@ -43,7 +38,6 @@ export interface EventHandler {
   delayNotify: (ctx: DelayNotifyContext) => void;
   ticketEvaluation: (ctx: TicketEvaluationContext) => void;
   changeStatus: (ctx: ChangeStatusContext) => void;
-  ticketExported: (ctx: TicketExportedContext) => void;
 }
 
 export interface NewTicketJobData {
@@ -90,12 +84,6 @@ export interface ChangeStatusJobData {
   status: number;
 }
 
-export interface TicketExportedJobData {
-  type: 'ticketExported';
-  downloadUrl: string;
-  userId: string;
-}
-
 type JobData =
   | NewTicketJobData
   | ReplyTicketJobData
@@ -103,8 +91,7 @@ type JobData =
   | ChangeAssigneeJobData
   | DelayNotifyJobData
   | TicketEvaluationJobData
-  | ChangeStatusJobData
-  | TicketExportedJobData;
+  | ChangeStatusJobData;
 
 class NotificationEE extends EventEmitter<EventHandler> {
   register(channel: Partial<EventHandler>) {
@@ -137,10 +124,6 @@ class NotificationEE extends EventEmitter<EventHandler> {
 
   notifyChangeStatus(data: Omit<ChangeStatusJobData, 'type'>) {
     queue.add({ type: 'changeStatus', ...data });
-  }
-
-  notifyTicketExported(data: Omit<TicketExportedJobData, 'type'>) {
-    queue.add({ type: 'ticketExported', ...data });
   }
 
   async processNewTicket({ ticketId, assigneeId }: NewTicketJobData) {
@@ -253,15 +236,6 @@ class NotificationEE extends EventEmitter<EventHandler> {
 
     this.emit('changeStatus', { ticket, from: operator, to: assignee, originalStatus, status });
   }
-
-  async processTicketExported(data: TicketExportedJobData) {
-    const user = await User.findById(data.userId);
-    if (!user) return;
-    this.emit('ticketExported', {
-      downloadUrl: data.downloadUrl,
-      to: user,
-    });
-  }
 }
 
 const notification = new NotificationEE();
@@ -342,8 +316,6 @@ queue.process((job) => {
       return notification.processTicketEvaluation(job.data);
     case 'changeStatus':
       return notification.processChangeStatus(job.data);
-    case 'ticketExported':
-      return notification.processTicketExported(job.data);
   }
 });
 

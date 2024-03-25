@@ -9,7 +9,6 @@ import notification, {
   DelayNotifyContext,
   NewTicketContext,
   ReplyTicketContext,
-  TicketExportedContext,
 } from '@/notification';
 import { Ticket } from '@/model/Ticket';
 import { User } from '@/model/User';
@@ -38,7 +37,6 @@ class MailgunClient {
       notification.on('changeAssignee', this.sendChangeAssignee);
       notification.on('delayNotify', this.sendDelayNotify);
     }
-    notification.on('ticketExported', this.sendTicketExported);
   }
 
   verifyWebhook = (ctx: Koa.Context, next: Koa.Next) => {
@@ -143,20 +141,6 @@ ${ticket.content}
 
 ${ticket.latestReply?.content || '<暂无>'}`,
       ticketUrl: ticket.getUrlForEndUser(),
-    });
-  };
-
-  sendTicketExported = ({ downloadUrl, to }: TicketExportedContext) => {
-    if (!to.email) {
-      return;
-    }
-    this.client.messages.create(this.domain, {
-      from: 'support<ticket@leancloud.cn>',
-      to: to.email,
-      'h:Reply-To': `ticket-${to.id}@leancloud.cn`,
-      subject: '导出工单数据准备就绪',
-      text: `Hi,${to.getDisplayName()}
-      你导出工单数据，我们已经准备就绪，请点击下列链接下载 ${downloadUrl}`,
     });
   };
 }

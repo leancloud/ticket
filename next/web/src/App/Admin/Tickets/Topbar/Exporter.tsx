@@ -45,7 +45,7 @@ function ExporterContent({ close }: ContentProps) {
 
   const { mutate, isLoading } = useExportTickets({
     onSuccess: () => {
-      message.success('导出任务进行中，导出成功后将发送邮件进行通知，请注意查收邮件进行下载。', 5);
+      message.success('导出任务进行中，请在「设置」>「工单」>「导出记录」中查看', 5);
       close?.();
     },
     onError: (error) => {
@@ -81,7 +81,7 @@ function ExporterContent({ close }: ContentProps) {
         />
       </Form.Item>
       <Button
-        type='primary'
+        type="primary"
         disabled={isLoading}
         onClick={() => {
           mutate({

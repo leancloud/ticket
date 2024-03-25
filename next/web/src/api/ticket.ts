@@ -376,6 +376,29 @@ export function useExportTickets(options?: UseMutationOptions<void, Error, Expor
   });
 }
 
+export interface ExportTicketTask {
+  id: string;
+  operator?: UserSchema;
+  status?: string;
+  ticketCount?: number;
+  downloadUrl?: string;
+  completedAt?: string;
+  createdAt?: string;
+}
+
+export interface GetExportTicketTasksOptions {
+  page?: number;
+  pageSize?: number;
+}
+
+export async function getExportTicketTasks(options?: GetExportTicketTasksOptions) {
+  const res = await http.get<ExportTicketTask[]>('/api/2/export-ticket-tasks', { params: options });
+  return {
+    data: res.data,
+    totalCount: parseInt(res.headers['x-total-count']),
+  };
+}
+
 interface TicketOverview {
   nid: number;
   title: string;
