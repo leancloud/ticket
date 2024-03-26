@@ -27,6 +27,7 @@ export class ActionLogCollector<T> {
 
   constructor(public options: ActionLogCollectorOptions<T>) {
     this.window = [options.filters.dateRange[0].toDate(), options.filters.dateRange[1].toDate()];
+    this.operatorIds = options.filters.operatorIds;
     this.transform = options.transform;
   }
 
