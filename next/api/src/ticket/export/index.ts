@@ -51,8 +51,17 @@ queue.on('completed', async (job, result) => {
   }
 });
 
-queue.on('failed', (job, err) => {
+queue.on('failed', async (job, err) => {
   console.error('[export ticket]:', job.data, err);
+  const task = await ExportTicketTask.find(job.data.taskId, { useMasterKey: true });
+  if (task) {
+    await task.update(
+      {
+        status: 'failed',
+      },
+      { useMasterKey: true }
+    );
+  }
 });
 
 export async function createTicketExportJob(jobData: Omit<JobData, 'date' | 'taskId'>) {
