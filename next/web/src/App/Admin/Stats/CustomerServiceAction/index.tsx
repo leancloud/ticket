@@ -63,6 +63,7 @@ export function CustomerServiceAction() {
     desc?: boolean;
     hasPrevPage?: boolean;
     hasNextPage?: boolean;
+    exclude?: string[];
   }>({});
 
   const options = useMemo<GetCustomerServiceActionLogsOptions | undefined>(() => {
@@ -76,8 +77,9 @@ export function CustomerServiceAction() {
       // 多拿一个用来判断是否还有下一页
       pageSize: pageSize + 1,
       desc: pagination.desc || undefined,
+      exclude: pagination.exclude,
     };
-  }, [filters, pagination.cursor, pagination.desc]);
+  }, [filters, pagination.cursor, pagination.desc, pagination.exclude]);
 
   const { data, isFetching } = useQuery({
     enabled: !!options,
@@ -102,17 +104,19 @@ export function CustomerServiceAction() {
   const changePage = (direction: 'prev' | 'next') => {
     if (!logs || !logs.length) return;
     if (direction === 'prev') {
-      const firstLog = logs[0];
+      const cursor = moment(logs[0].ts);
       setPagination({
-        cursor: moment(firstLog.ts).subtract(1, 'ms'),
+        cursor,
         desc: true,
         hasNextPage: true,
+        exclude: logs.filter((log) => moment(log.ts).isSame(cursor)).map((log) => log.id),
       });
     } else {
-      const lastLog = logs[logs.length - 1];
+      const cursor = moment(logs[logs.length - 1].ts);
       setPagination({
-        cursor: moment(lastLog.ts).add(1, 'ms'),
+        cursor,
         hasPrevPage: true,
+        exclude: logs.filter((log) => moment(log.ts).isSame(cursor)).map((log) => log.id),
       });
     }
   };

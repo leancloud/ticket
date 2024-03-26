@@ -28,6 +28,7 @@ export interface GetCustomerServiceActionLogsOptions {
   operatorIds?: string[];
   pageSize?: number;
   desc?: boolean;
+  exclude?: string[];
 }
 
 export interface GetCustomerServiceActionLogsResult {
@@ -42,6 +43,7 @@ export async function getCustomerServiceActionLogs({
   operatorIds,
   pageSize,
   desc,
+  exclude,
 }: GetCustomerServiceActionLogsOptions) {
   const res = await http.get<GetCustomerServiceActionLogsResult>(
     '/api/2/customer-service-action-logs',
@@ -52,6 +54,7 @@ export async function getCustomerServiceActionLogs({
         operatorIds: operatorIds?.join(','),
         pageSize,
         desc,
+        exclude: exclude?.join(','),
       },
     }
   );

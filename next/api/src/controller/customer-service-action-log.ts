@@ -24,7 +24,8 @@ export class CustomerServiceActionLogController {
     @Query('to', ParseDatePipe) to: Date | undefined,
     @Query('operatorIds', ParseCsvPipe) operatorIds: string[] | undefined,
     @Query('pageSize', new ParseIntPipe({ min: 1, max: 1000 })) pageSize = 10,
-    @Query('desc', ParseBoolPipe) desc: boolean | undefined
+    @Query('desc', ParseBoolPipe) desc: boolean | undefined,
+    @Query('exclude', ParseCsvPipe) exclude: string[] | undefined
   ) {
     if (!from || !to) {
       throw new BadRequestError('Date range params "from" and "to" are required');
@@ -39,6 +40,7 @@ export class CustomerServiceActionLogController {
       operatorIds,
       limit: pageSize,
       desc,
+      exclude,
     });
 
     const ticketIds = new Set<string>();

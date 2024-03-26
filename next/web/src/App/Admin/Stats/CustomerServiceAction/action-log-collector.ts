@@ -14,6 +14,7 @@ export interface ActionLogCollectorOptions<T> {
 export class ActionLogCollector<T> {
   private window: [Date, Date];
   private operatorIds?: string[];
+  private exclude?: string[];
 
   private logChunks: T[][] = [];
   private transform: (data: GetCustomerServiceActionLogsResult) => T[];
@@ -42,6 +43,7 @@ export class ActionLogCollector<T> {
         to: this.window[1].toISOString(),
         operatorIds: this.operatorIds,
         pageSize,
+        exclude: this.exclude,
       });
 
       const logs = this.transform(data);
@@ -56,9 +58,9 @@ export class ActionLogCollector<T> {
         return;
       }
 
-      this.window[0] = moment(data.logs[data.logs.length - 1].ts)
-        .add(1, 'ms')
-        .toDate();
+      const cursor = new Date(data.logs[data.logs.length - 1].ts);
+      this.window[0] = cursor;
+      this.exclude = data.logs.filter((log) => moment(log.ts).isSame(cursor)).map((log) => log.id);
 
       setTimeout(() => this._collect(), 100);
     } catch (error) {
