@@ -300,9 +300,6 @@ router.get(
   parseRange('createdAt'),
   async (ctx) => {
     const currentUser = ctx.state.currentUser as User;
-    if (!currentUser.email) {
-      ctx.throw(400, '邮箱未设置，请前往个人设置页面进行设置');
-    }
     const { page, pageSize, utcOffset, ...rest } = exportTicketParamsSchema.validateSync(ctx.query);
     const sortItems = sort.get(ctx);
     await createTicketExportJob({
@@ -751,7 +748,7 @@ router.patch('/:id', async (ctx) => {
   }
 
   if (data.title || data.content) {
-    if (!isCustomerService || currentUser.id !== ticket.authorId ) {
+    if (!isCustomerService || currentUser.id !== ticket.authorId) {
       ctx.throw(403, 'Update title or content is not allowed');
     }
     if (data.title) {
