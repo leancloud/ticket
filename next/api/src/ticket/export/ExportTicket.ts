@@ -1,3 +1,7 @@
+import fs from 'node:fs/promises';
+import { pipeline, finished } from 'node:stream/promises';
+import { WritableStreamBuffer } from 'stream-buffers';
+import AV from 'leancloud-storage';
 import throat from 'throat';
 import _ from 'lodash';
 import { sub, format as dateFnsFormat, differenceInSeconds } from 'date-fns';
@@ -11,10 +15,10 @@ import { TicketFieldValue } from '@/model/TicketFieldValue';
 import { TicketField } from '@/model/TicketField';
 import { AuthOptions, Model, Query, QueryBuilder } from '@/orm';
 import { categoryService } from '@/category';
-import { ExportFileManager } from './ExportFileManager';
 import { JobData } from '.';
 import { SortItem } from '@/middleware';
 import { addInOrNotExistCondition } from '@/utils/conditions';
+import { CsvTransform, JsonTransform, createCompressStream } from './ExportStream';
 
 export interface FilterOptions {
   authorId?: string;
@@ -37,6 +41,7 @@ export interface FilterOptions {
   type?: string;
   language?: string[];
 }
+
 // copy ticket filter
 function addPointersCondition(
   query: QueryBuilder<any>,
@@ -330,6 +335,13 @@ const getFieldValues = async (ticketIds: string[], authOptions?: AuthOptions) =>
     .valueOf();
 };
 
+function encodeFieldName(field: { id: string; title?: string }) {
+  if (field.title) {
+    return `field-${field.id}-${field.title}`;
+  }
+  return `field-${field.id}`;
+}
+
 const FIXED_KEYS = [
   'id',
   'nid',
@@ -370,26 +382,31 @@ const FIXED_KEYS = [
 
 const authOptions = { useMasterKey: true };
 const limit = 20;
-export default async function exportTicket({ params, sortItems, utcOffset, date }: JobData) {
+
+export interface ExportTicketData {
+  keys: string[];
+  data: Record<string, any>;
+}
+
+async function* createExportGenerator({
+  params,
+  sortItems,
+  utcOffset,
+}: JobData): AsyncGenerator<ExportTicketData> {
   const formatDate = _.partial(format, _, utcOffset);
   const { type: fileType, ...rest } = params;
-  const fileName = `ticket_${dateFnsFormat(new Date(date), 'yyMMdd_HHmmss')}.${fileType || 'json'}`;
-  const exportFileManager = new ExportFileManager(fileName);
   const [query, containFields] = await createBaseTicketQuery(rest, sortItems);
   const count = await query.count(authOptions);
   const categoryMap = await getCategories();
   const getCustomFormFields = getCustomFormFieldsFunc(authOptions);
-  let fieldKeys: string[] = [];
-
-  let ticketCount = 0;
+  const fieldKeys = new Set<string>();
 
   for (let index = 0; index < count; index += limit) {
     const tickets = await (await createTicketQuery(containFields, query, index, limit))
-      .preload('author', { authOptions })
-      .preload('assignee', { authOptions })
-      .preload('group', { authOptions })
+      .preload('author')
+      .preload('assignee')
+      .preload('group')
       .find(authOptions);
-    ticketCount += tickets.length;
     const ticketIds = tickets.map((ticket) => ticket.id);
     const replyMap = await getReplies(ticketIds);
     const formIds = tickets
@@ -407,8 +424,8 @@ export default async function exportTicket({ params, sortItems, utcOffset, date 
         title: fieldCacheMap.get(field),
         value: value,
       }));
-      const keys = fields?.map((field) => `field-${field.id}-${field.title}`) ?? [];
-      fieldKeys = _.uniq([...fieldKeys, ...keys]);
+      const keys = fields?.map(encodeFieldName) ?? [];
+      keys.forEach((key) => fieldKeys.add(key));
       let customForm: {
         title?: string;
       } = {
@@ -457,14 +474,58 @@ export default async function exportTicket({ params, sortItems, utcOffset, date 
         ..._.zipObject(keys, fields?.map((field) => field.value) ?? []),
       };
 
-      await exportFileManager.append(data, [...FIXED_KEYS, ...fieldKeys]);
+      yield {
+        keys: [...FIXED_KEYS, ...fieldKeys],
+        data,
+      };
     }
   }
-  if (fileType === 'csv') {
-    await exportFileManager.prepend([...FIXED_KEYS, ...fieldKeys].join(','));
+}
+
+export default async function exportTicket(jobData: JobData) {
+  const { params, date } = jobData;
+  const { type: fileType = 'json' } = params;
+  const exportFileName = `ticket_${dateFnsFormat(new Date(date), 'yyMMdd_HHmmss')}`;
+
+  const bufferPath = `/tmp/export_ticket_buffer_${Date.now()}`;
+  const bufferFile = await fs.open(bufferPath, 'w+');
+
+  try {
+    const transform = fileType === 'json' ? new JsonTransform() : new CsvTransform();
+
+    await pipeline(createExportGenerator(jobData), transform, bufferFile.createWriteStream(), {
+      end: false,
+    });
+
+    const buffer = new WritableStreamBuffer();
+    const archive = createCompressStream(buffer, exportFileName + '.' + fileType);
+
+    if (fileType === 'csv') {
+      // BOM
+      archive.write(Buffer.from([0xef, 0xbb, 0xbf]));
+      if (transform.lastChunk) {
+        // Last chunk has complete keys, we use it as the csv header row.
+        archive.write(transform.lastChunk.keys.join(',') + '\n');
+      }
+    }
+
+    bufferFile.createReadStream({ start: 0 }).pipe(archive);
+    await finished(buffer);
+
+    const contents = buffer.getContents();
+    if (!contents) {
+      throw new Error('Read contents failed');
+    }
+
+    const avFile = new AV.File(exportFileName + '.zip', contents);
+    await avFile.save({ useMasterKey: true });
+
+    return {
+      url: avFile.url(),
+      ticketCount: transform.count,
+    };
+  } finally {
+    await bufferFile.close();
+    await fs.rm(bufferPath);
   }
-  return {
-    ...(await exportFileManager.done()),
-    ticketCount,
-  };
 }

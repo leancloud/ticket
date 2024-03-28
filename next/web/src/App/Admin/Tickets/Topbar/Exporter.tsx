@@ -49,7 +49,7 @@ function ExporterContent({ close }: ContentProps) {
       close?.();
     },
     onError: (error) => {
-      message.success(`导出失败：${error.message}`);
+      message.error(`导出失败：${error.message}`);
       close?.();
     },
   });

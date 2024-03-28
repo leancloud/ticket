@@ -8,7 +8,7 @@ export interface JobData {
   sortItems?: SortItem[];
   utcOffset?: number;
   userId: string;
-  date: Date;
+  date: string;
   taskId: string;
 }
 
@@ -33,21 +33,17 @@ queue.process(async (job, done) => {
 });
 
 queue.on('completed', async (job, result) => {
-  if (result && result.url) {
-    const task = await ExportTicketTask.find(job.data.taskId, { useMasterKey: true });
-    if (task) {
-      await task.update(
-        {
-          downloadUrl: result.url,
-          ticketCount: result.ticketCount,
-          status: 'complete',
-          completedAt: new Date(),
-        },
-        { useMasterKey: true }
-      );
-    }
-  } else {
-    console.error('[export ticket]: download url is required', result);
+  const task = await ExportTicketTask.find(job.data.taskId, { useMasterKey: true });
+  if (task) {
+    await task.update(
+      {
+        downloadUrl: result.url,
+        ticketCount: result.ticketCount,
+        status: 'complete',
+        completedAt: new Date(),
+      },
+      { useMasterKey: true }
+    );
   }
 });
 
@@ -75,7 +71,7 @@ export async function createTicketExportJob(jobData: Omit<JobData, 'date' | 'tas
   );
   await queue.add({
     ...jobData,
-    date: new Date(),
+    date: new Date().toISOString(),
     taskId: task.id,
   });
 }
