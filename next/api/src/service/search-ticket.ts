@@ -124,7 +124,15 @@ export class SearchTicketService {
     );
 
     await this.esClient.bulk({
-      body: docs.flatMap((doc) => [{ index: { _index: this.indexName, _id: doc.objectId } }, doc]),
+      body: docs.flatMap((doc) => [
+        {
+          index: {
+            _index: this.indexName + '-tmp',
+            _id: doc.objectId,
+          },
+        },
+        doc,
+      ]),
     });
   }
 
@@ -292,7 +300,7 @@ export class SearchTicketService {
       .toJSON();
 
     const res = await this.esClient.search({
-      index: this.indexName,
+      index: [this.indexName, this.indexName + '-tmp'],
       body,
     });
 
