@@ -11,7 +11,6 @@ export const analyzeArticles = async () => {
     },
   };
   for await (const article of articlesIterator) {
-    console.log('Start process', article.get('article').id, article.get('title'));
     if (article.get('revision')) {
       const revision = ArticleRevision.fromAVObject(article.get('revision'));
       const [upvote, downvote] = await Promise.all(
@@ -22,7 +21,6 @@ export const analyzeArticles = async () => {
             .count({ useMasterKey: true })
         )
       );
-      console.log('up/down:', upvote, downvote);
       if (upvote + downvote !== 0) {
         await revision.update(
           {
