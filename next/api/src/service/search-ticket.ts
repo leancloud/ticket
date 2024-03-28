@@ -208,6 +208,21 @@ export class SearchTicketService {
       boolQuery.filter(rangeQuery);
     };
 
+    const addNestedQuery = (path: string, match: Record<string, string>) => {
+      boolQuery.filter(
+        esb.nestedQuery(
+          esb
+            .boolQuery()
+            .must(
+              Object.entries(match).flatMap(([key, value]) =>
+                esb.termQuery(`${path}.${key}`, value)
+              )
+            ),
+          path
+        )
+      );
+    };
+
     if (filters.authorId) {
       boolQuery.filter(esb.termQuery('authorId', filters.authorId));
     }
@@ -239,55 +254,19 @@ export class SearchTicketService {
       addRangeQuery('createdAt', filters.createdAt.from, filters.createdAt.to);
     }
     if (filters.tags) {
-      boolQuery.filter(
-        esb
-          .boolQuery()
-          .must(
-            filters.tags.flatMap(({ key, value }) => [
-              esb.termQuery('tags.key', key),
-              esb.termQuery('tags.value', value),
-            ])
-          )
-      );
+      filters.tags.forEach((match) => addNestedQuery('tags', match));
     }
     if (filters.privateTags) {
-      boolQuery.filter(
-        esb
-          .boolQuery()
-          .must(
-            filters.privateTags.flatMap(({ key, value }) => [
-              esb.termQuery('privateTags.key', key),
-              esb.termQuery('privateTags.value', value),
-            ])
-          )
-      );
+      filters.privateTags.forEach((match) => addNestedQuery('privateTags', match));
     }
     if (filters.metaData) {
-      boolQuery.filter(
-        esb
-          .boolQuery()
-          .must(
-            filters.metaData.flatMap(({ key, value }) => [
-              esb.termQuery('metaData.key', key),
-              esb.termQuery('metaData.value', value),
-            ])
-          )
-      );
+      filters.metaData.forEach((match) => addNestedQuery('metaData', match));
     }
     if (filters.language) {
       boolQuery.filter(esb.termsQuery('language', filters.language));
     }
     if (filters.fields) {
-      boolQuery.filter(
-        esb
-          .boolQuery()
-          .must(
-            filters.fields.flatMap(({ id, value }) => [
-              esb.termQuery('fields.id', id),
-              esb.termQuery('fields.value', value),
-            ])
-          )
-      );
+      filters.fields.forEach((match) => addNestedQuery('fields', match));
     }
     if (filters.keyword) {
       const terms = this.parseTerms(filters.keyword);
