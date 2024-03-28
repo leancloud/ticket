@@ -127,7 +127,7 @@ export class SearchTicketService {
       body: docs.flatMap((doc) => [
         {
           index: {
-            _index: this.indexName + '-tmp',
+            _index: this.indexName,
             _id: doc.objectId,
           },
         },
