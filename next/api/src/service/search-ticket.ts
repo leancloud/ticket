@@ -151,30 +151,38 @@ export class SearchTicketService {
   private async processSyncByRangeJob(
     data: Extract<SyncTicketSearchDocumentJobData, { type: 'syncByRange' }>
   ) {
-    const { start, end, limit = 100, delay = 1000 } = data;
+    const { start, end, exclude, limit = 100, delay = 1000 } = data;
+
     const query = Ticket.queryBuilder();
     if (start) {
-      query.where('createdAt', '>', new Date(start));
+      query.where('createdAt', '>=', new Date(start));
     }
     if (end) {
-      query.where('createdAt', '<', new Date(end));
+      query.where('createdAt', '<=', new Date(end));
     }
+    if (exclude?.length) {
+      query.where('objectId', 'not-in', exclude);
+    }
+
     const tickets = await query.orderBy('createdAt').limit(limit).find({ useMasterKey: true });
     if (tickets.length === 0) {
       console.log('[SearchTicketService] Sync job is done');
       return;
     }
     await this.syncTickets(tickets);
-    const lastCreatedAt = tickets[tickets.length - 1].createdAt.toISOString();
-    console.log(
-      `[SearchTicketService] Sync ${
-        tickets.length
-      } tickets, (${tickets[0].createdAt.toISOString()},${lastCreatedAt})`
-    );
+
+    const lastCreatedAt = tickets[tickets.length - 1].createdAt;
+
+    // prettier-ignore
+    console.log(`[SearchTicketService] Sync ${tickets.length} tickets, (${tickets[0].createdAt.toISOString()},${lastCreatedAt.toISOString()})`);
+
     await this.syncQueue?.add(
       {
         ...data,
-        start: lastCreatedAt,
+        start: lastCreatedAt.toISOString(),
+        exclude: tickets
+          .filter((ticket) => ticket.createdAt.getTime() === lastCreatedAt.getTime())
+          .map((ticket) => ticket.id),
       },
       {
         delay,
@@ -300,7 +308,7 @@ export class SearchTicketService {
       .toJSON();
 
     const res = await this.esClient.search({
-      index: [this.indexName, this.indexName + '-tmp'],
+      index: this.indexName,
       body,
     });
 

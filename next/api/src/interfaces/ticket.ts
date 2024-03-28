@@ -43,6 +43,7 @@ export type SyncTicketSearchDocumentJobData =
       type: 'syncByRange';
       start?: string;
       end?: string;
+      exclude?: string[];
       limit?: number;
       delay?: number;
     };
