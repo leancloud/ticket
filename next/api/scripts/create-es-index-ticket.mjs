@@ -48,24 +48,28 @@ async function main() {
         language: { type: 'keyword' },
         joinedCustomerServiceIds: { type: 'keyword' },
         metaData: {
+          type: 'nested',
           properties: {
             key: { type: 'keyword' },
             value: { type: 'keyword' },
           },
         },
         tags: {
+          type: 'nested',
           properties: {
             key: { type: 'keyword' },
             value: { type: 'keyword' },
           },
         },
         privateTags: {
+          type: 'nested',
           properties: {
             key: { type: 'keyword' },
             value: { type: 'keyword' },
           },
         },
         fields: {
+          type: 'nested',
           properties: {
             id: { type: 'keyword' },
             value: {
