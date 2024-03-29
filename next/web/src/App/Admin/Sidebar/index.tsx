@@ -3,11 +3,10 @@ import { NavLink } from 'react-router-dom';
 import { AiOutlineContainer, AiOutlineSetting } from 'react-icons/ai';
 import { HiOutlinePlus, HiOutlineTicket } from 'react-icons/hi';
 import { MdOutlineAnalytics } from 'react-icons/md';
-import { BsChatSquareDots } from 'react-icons/bs';
 import cx from 'classnames';
 
 import { Tooltip } from '@/components/antd';
-import { useCurrentUserIsAdmin, useCurrentUserIsCustomerService } from '@/leancloud';
+import { useCurrentUserIsCustomerService } from '@/leancloud';
 import { Feedback } from '../Feedback';
 import { CurrentUserSection } from '../CurrentUserSection';
 import { RequirePermission } from '@/components/RequirePermission';
@@ -36,7 +35,6 @@ function Path({ to, children, title }: { to: string; children: ReactNode; title?
 
 export function Sidebar(props: ComponentPropsWithoutRef<'aside'>) {
   const isCustomerService = useCurrentUserIsCustomerService();
-  const isAdmin = useCurrentUserIsAdmin();
 
   return (
     <aside
@@ -65,11 +63,9 @@ export function Sidebar(props: ComponentPropsWithoutRef<'aside'>) {
             </Path>
           </RequirePermission>
         }
-        {isAdmin && (
-          <Path to="/admin/settings" title="设置">
-            <AiOutlineSetting className="m-auto w-5 h-5" />
-          </Path>
-        )}
+        <Path to="/admin/settings" title="设置">
+          <AiOutlineSetting className="m-auto w-5 h-5" />
+        </Path>
       </section>
       <section />
       <section className="p-3">

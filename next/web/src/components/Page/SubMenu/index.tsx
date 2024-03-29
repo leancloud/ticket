@@ -7,7 +7,7 @@ export type MenuDataItem = {
   name: ReactNode;
   path?: string;
   key?: string;
-  children?: MenuDataItem[];
+  children?: Omit<MenuDataItem, 'children'>[];
 };
 
 interface SubMenuProps {

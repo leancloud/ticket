@@ -1,6 +1,7 @@
+import { useMemo } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
-import { SubMenu, MenuDataItem } from '@/components/Page';
+import { SubMenu } from '@/components/Page';
 
 import { NewUser } from './Users';
 import { Members } from './Members';
@@ -35,12 +36,19 @@ import { NewTicketFormNoteTranslation } from './TicketFormNotes/NewTicketFormNot
 import { EditTicketFormNoteTranslation } from './TicketFormNotes/EditTranslation';
 import { EditSupportEmail, NewSupportEmail, SupportEmailList } from './SupportEmails';
 import { useCurrentUserIsAdmin } from '@/leancloud';
-import { Result } from '@/components/antd';
 import { EvaluationConfig } from './Evaluation';
 import { MergeUser } from './Users/MergeUser';
 import { ExportTicketTask } from './ExportTicket/Tasks';
 
 const SettingRoutes = () => (
+  <Routes>
+    <Route path="/users">
+      <Route path="new" element={<NewUser />} />
+    </Route>
+  </Routes>
+);
+
+const AdminSettingRoutes = () => (
   <Routes>
     <Route path="/users">
       <Route index element="Under Construction" />
@@ -146,14 +154,24 @@ const SettingRoutes = () => (
   </Routes>
 );
 
-const routeGroups: MenuDataItem[] = [
+interface MenuItem {
+  name: string;
+  path?: string;
+  key?: string;
+  children?: Omit<MenuItem, 'children'>[];
+  adminOnly?: boolean;
+}
+
+const routeGroups: MenuItem[] = [
   {
     name: '用户',
     key: 'users',
+    adminOnly: false,
     children: [
       {
         name: '创建用户',
         path: 'users/new',
+        adminOnly: false,
       },
       {
         name: '合并用户',
@@ -267,14 +285,29 @@ const routeGroups: MenuDataItem[] = [
   },
 ];
 
+function filterDeep<T extends { children?: T[] }>(
+  items: T[],
+  predicate: (item: T) => boolean
+): T[] {
+  return items
+    .map((item) => {
+      if (item.children) {
+        return {
+          ...item,
+          children: filterDeep(item.children, predicate),
+        };
+      }
+      return item;
+    })
+    .filter(predicate);
+}
+
 export default function Setting() {
   const isAdmin = useCurrentUserIsAdmin();
-  if (!isAdmin) {
-    return <Result status="403" title="403" subTitle="该页面需要管理员角色" />;
-  }
-  return (
-    <SubMenu menus={routeGroups}>
-      <SettingRoutes />
-    </SubMenu>
-  );
+  const menus = useMemo(() => {
+    if (isAdmin) return routeGroups;
+    return filterDeep(routeGroups, (menu) => menu.adminOnly === false);
+  }, [isAdmin]);
+
+  return <SubMenu menus={menus}>{isAdmin ? <AdminSettingRoutes /> : <SettingRoutes />}</SubMenu>;
 }
