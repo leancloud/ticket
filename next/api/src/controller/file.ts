@@ -1,6 +1,11 @@
+import { z } from 'zod';
+import axios from 'axios';
+import { Context } from 'koa';
+
 import {
   Body,
   Controller,
+  Ctx,
   CurrentUser,
   Get,
   Param,
@@ -14,7 +19,6 @@ import { auth, staffOnly } from '@/middleware';
 import { File } from '@/model/File';
 import { User } from '@/model/User';
 import { FileResponse } from '@/response/file';
-import { z } from 'zod';
 
 @Controller('files')
 export class FileController {
@@ -34,6 +38,19 @@ export class FileController {
   @ResponseBody(FileResponse)
   async findOne(@Param('id', new FindModelPipe(File, { useMasterKey: true })) file: File) {
     return file;
+  }
+
+  @Get(':id/content')
+  @UseMiddlewares(auth, staffOnly)
+  async getFileContent(
+    @Ctx() ctx: Context,
+    @Param('id', new FindModelPipe(File, { useMasterKey: true })) file: File
+  ) {
+    const res = await axios.get(file.url, {
+      responseType: 'stream',
+    });
+    ctx.set('Content-Type', res.headers['content-type']);
+    return res.data;
   }
 }
 

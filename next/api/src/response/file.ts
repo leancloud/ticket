@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { File } from '@/model/File';
+import { config } from '@/config';
 
 const SIGNATURE_TTL = 3600;
 
@@ -49,6 +50,8 @@ const getThumbnailURL = (file: File) => {
   return url;
 };
 
+const ENABLE_FILE_TRANSFER = process.env.ENABLE_FILE_TRANSFER;
+
 export class FileResponse {
   constructor(readonly file: File) {}
 
@@ -61,7 +64,11 @@ export class FileResponse {
       name,
       mime,
       metaData,
-      url: needSignature ? sign(url) : url,
+      url: needSignature
+        ? sign(url)
+        : ENABLE_FILE_TRANSFER
+        ? `${config.host}/api/2/files/${id}/content`
+        : url,
       thumbnailUrl: needSignature ? sign(thumbnailURL) : thumbnailURL,
     };
   }
