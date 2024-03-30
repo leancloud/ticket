@@ -4,7 +4,7 @@ import { FileResponse } from './file';
 import { UserResponse } from './user';
 
 export class ReplyResponse {
-  constructor(readonly reply: Reply) {}
+  constructor(readonly reply: Reply, private transferFile = false) {}
 
   toJSON() {
     return {
@@ -13,7 +13,7 @@ export class ReplyResponse {
       contentSafeHTML: sanitize(this.reply.contentHTML),
       author: this.reply.author && new UserResponse(this.reply.author).toJSON(),
       isCustomerService: this.reply.isCustomerService,
-      files: this.reply.files?.map((file) => new FileResponse(file).toJSON()),
+      files: this.reply.files?.map((file) => new FileResponse(file, this.transferFile).toJSON()),
       internal: this.reply.internal,
       edited: this.reply.edited,
       createdAt: this.reply.createdAt.toISOString(),

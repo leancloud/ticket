@@ -12,7 +12,7 @@ export interface TicketResponseOptions {
 }
 
 class BaseTicketResponse {
-  constructor(readonly ticket: Ticket) {}
+  constructor(readonly ticket: Ticket, private transferFile = false) {}
 
   toJSON({ includeMetaKeys = [], includePrivateTags, includeTags }: TicketResponseOptions = {}) {
     return {
@@ -29,7 +29,7 @@ class BaseTicketResponse {
       assignee: this.ticket.assignee ? new UserResponse(this.ticket.assignee) : undefined,
       groupId: this.ticket.groupId,
       group: this.ticket.group ? new GroupResponse(this.ticket.group) : undefined,
-      files: this.ticket.files?.map((file) => new FileResponse(file)),
+      files: this.ticket.files?.map((file) => new FileResponse(file, this.transferFile)),
       status: this.ticket.status,
       evaluation: this.ticket.evaluation,
       replyCount: this.ticket.replyCount,

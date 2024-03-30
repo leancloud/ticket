@@ -50,10 +50,8 @@ const getThumbnailURL = (file: File) => {
   return url;
 };
 
-const ENABLE_FILE_TRANSFER = process.env.ENABLE_FILE_TRANSFER;
-
 export class FileResponse {
-  constructor(readonly file: File) {}
+  constructor(readonly file: File, private transfer = false) {}
 
   toJSON() {
     const { id, name, mime, url, metaData } = this.file;
@@ -66,7 +64,7 @@ export class FileResponse {
       metaData,
       url: needSignature
         ? sign(url)
-        : ENABLE_FILE_TRANSFER
+        : this.transfer
         ? `${config.host}/api/2/files/${id}/content`
         : url,
       thumbnailUrl: needSignature ? sign(thumbnailURL) : thumbnailURL,
