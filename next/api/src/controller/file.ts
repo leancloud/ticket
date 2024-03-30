@@ -41,7 +41,6 @@ export class FileController {
   }
 
   @Get(':id/content')
-  @UseMiddlewares(auth, staffOnly)
   async getFileContent(
     @Ctx() ctx: Context,
     @Param('id', new FindModelPipe(File, { useMasterKey: true })) file: File
