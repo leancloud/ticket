@@ -15,8 +15,8 @@ import { createQueue } from '@/queue';
 import { fileService } from '@/file/services/file';
 import { ticketService } from '@/ticket/services/ticket';
 import { userService } from '@/user/services/user';
-import { SupportEmail } from '../entities/SupportEmail';
-import { JobData, ProcessMessageJobData } from '../types';
+import { SupportEmail } from '@/model/SupportEmail';
+import { JobData, ProcessMessageJobData } from '@/interfaces/support-email';
 import { supportEmailService } from './support-email';
 import { supportEmailMessageService } from './support-email-message';
 

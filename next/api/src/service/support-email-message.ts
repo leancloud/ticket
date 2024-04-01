@@ -1,6 +1,6 @@
 import { Ticket } from '@/model/Ticket';
-import { SupportEmailMessage } from '../entities/SupportEmailMessage';
-import { CreateSupportEmailMessageData } from '../types';
+import { SupportEmailMessage } from '@/model/SupportEmailMessage';
+import { CreateSupportEmailMessageData } from '@/interfaces/support-email';
 
 export class SupportEmailMessageService {
   create(data: CreateSupportEmailMessageData) {

@@ -1,4 +1,4 @@
-import { SupportEmail } from '../entities/SupportEmail';
+import { SupportEmail } from '@/model/SupportEmail';
 
 export class SupportEmailService {
   getSupportEmails() {

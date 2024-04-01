@@ -14,9 +14,9 @@ import {
 import { auth, adminOnly } from '@/middleware';
 import { ZodValidationPipe } from '@/common/pipe';
 import { SupportEmailResponse } from '@/response/support-email';
-import { SupportEmail } from '@/support-email/entities/SupportEmail';
-import { supportEmailService } from '@/support-email/services/support-email';
-import { emailService } from '@/support-email/services/email';
+import { SupportEmail } from '@/model/SupportEmail';
+import { supportEmailService } from '@/service/support-email';
+import { emailService } from '@/service/email';
 
 const noEmptyStringSchema = z.string().nonempty();
 

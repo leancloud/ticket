@@ -1,4 +1,4 @@
-import { SupportEmail } from '@/support-email/entities/SupportEmail';
+import { SupportEmail } from '@/model/SupportEmail';
 
 export class SupportEmailResponse {
   constructor(private supportEmail: SupportEmail) {}

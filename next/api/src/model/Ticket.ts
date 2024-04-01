@@ -16,7 +16,7 @@ import {
 } from '@/orm';
 import { TicketUpdater, UpdateOptions } from '@/ticket/TicketUpdater';
 import htmlify from '@/utils/htmlify';
-import { emailService } from '@/support-email/services/email';
+import { emailService } from '@/service/email';
 import { categoryService } from '@/category';
 import { Category } from './Category';
 import { File } from './File';
