@@ -45,6 +45,9 @@ const SettingRoutes = () => (
     <Route path="/users">
       <Route path="new" element={<NewUser />} />
     </Route>
+    <Route path="/export-ticket">
+      <Route path="tasks" element={<ExportTicketTask />} />
+    </Route>
   </Routes>
 );
 
@@ -198,6 +201,7 @@ const routeGroups: MenuItem[] = [
   {
     name: '工单',
     key: 'ticket',
+    adminOnly: false,
     children: [
       {
         name: '分类',
@@ -238,6 +242,7 @@ const routeGroups: MenuItem[] = [
       {
         name: '导出记录',
         path: 'export-ticket/tasks',
+        adminOnly: false,
       },
     ],
   },
