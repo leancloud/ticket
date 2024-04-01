@@ -15,7 +15,6 @@ export class SupportEmailResponse {
       imap: this.supportEmail.imap,
       mailbox: this.supportEmail.mailbox,
       categoryId: this.supportEmail.categoryId,
-      receipt: this.supportEmail.receipt,
     };
   }
 }

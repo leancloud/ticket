@@ -7,7 +7,6 @@ import { ParsedMail, simpleParser } from 'mailparser';
 import nodemailer from 'nodemailer';
 import { Attachment } from 'nodemailer/lib/mailer';
 import { convert as html2text } from 'html-to-text';
-import Mustache from 'mustache';
 import throat from 'throat';
 
 import { Reply } from '@/model/Reply';
@@ -221,10 +220,6 @@ export class EmailService {
       attachments,
       ticketId: ticket.id,
     });
-
-    if (supportEmail.receipt.enabled) {
-      await this.sendReceipt(from.address, messageId, supportEmail, ticket);
-    }
   }
 
   async createReplyByMessage(message: ParsedMail, jobData: ProcessMessageJobData) {
@@ -428,39 +423,6 @@ export class EmailService {
       return html2text(message.html);
     }
     return '';
-  }
-
-  async sendReceipt(
-    to: string,
-    ticketMessageId: string,
-    supportEmail: SupportEmail,
-    ticket: Ticket
-  ) {
-    const view = {
-      ticket: {
-        title: ticket.title,
-        content: ticket.content,
-      },
-    };
-    const subject = Mustache.render(supportEmail.receipt.subject, view);
-    const text = Mustache.render(supportEmail.receipt.text, view);
-
-    const client = this.createSmtpClient(supportEmail);
-    try {
-      await client.sendMail({
-        inReplyTo: ticketMessageId,
-        references: ticketMessageId,
-        from: {
-          name: supportEmail.name,
-          address: supportEmail.email,
-        },
-        to,
-        subject,
-        text,
-      });
-    } finally {
-      client.close();
-    }
   }
 }
 

@@ -8,13 +8,6 @@
       "hidden": false,
       "read_only": false
     },
-    "receipt": {
-      "type": "Object",
-      "v": 2,
-      "required": false,
-      "hidden": false,
-      "read_only": false
-    },
     "email": {
       "type": "String",
       "v": 2,

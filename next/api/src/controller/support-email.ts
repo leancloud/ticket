@@ -37,11 +37,6 @@ const createSchema = z.object({
   imap: emailServerSchema,
   mailbox: z.string().optional(),
   categoryId: noEmptyStringSchema,
-  receipt: z.object({
-    enabled: z.boolean(),
-    subject: noEmptyStringSchema,
-    text: noEmptyStringSchema,
-  }),
 });
 
 const updateSchema = createSchema
@@ -84,7 +79,6 @@ export class SupportEmailController {
           imap: data.imap,
           mailbox: mailbox,
           categoryId: data.categoryId,
-          receipt: data.receipt,
           lastUid: uidNext - 1,
         },
         { useMasterKey: true }
@@ -125,7 +119,6 @@ export class SupportEmailController {
         smtp: data.smtp,
         imap: data.imap,
         categoryId: data.categoryId,
-        receipt: data.receipt,
       },
       { useMasterKey: true }
     );

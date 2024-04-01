@@ -1,18 +1,9 @@
 import { ForwardedRef, forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Controller, DefaultValues, UseFormReturn, useForm, useWatch } from 'react-hook-form';
+import { Controller, DefaultValues, UseFormReturn, useForm } from 'react-hook-form';
 import { omit } from 'lodash-es';
+import { Button, Checkbox, Divider, Form, FormInstance, Input, InputNumber } from 'antd';
 
-import {
-  Alert,
-  Button,
-  Checkbox,
-  Divider,
-  Form,
-  FormInstance,
-  Input,
-  InputNumber,
-} from '@/components/antd';
 import { CategorySelect } from '@/components/common';
 
 interface SupportEmailFormData {
@@ -34,11 +25,6 @@ interface SupportEmailFormData {
   };
   mailbox?: string;
   categoryId: string;
-  receipt: {
-    enabled: boolean;
-    subject: string;
-    text: string;
-  };
 }
 
 const DEFAULT_VALUES: DefaultValues<SupportEmailFormData> = {
@@ -49,11 +35,6 @@ const DEFAULT_VALUES: DefaultValues<SupportEmailFormData> = {
   smtp: {
     port: 465,
     secure: true,
-  },
-  receipt: {
-    enabled: false,
-    subject: `Fwd: {{ ticket.title }}`,
-    text: `您的请求已被受理。\n\n原始信息：\n-----\n{{ ticket.content }}\n-----\n`,
   },
 };
 
@@ -74,8 +55,6 @@ function SupportEmailFormWithoutRef(
     defaultValues: DEFAULT_VALUES,
   });
   const { control } = methods;
-
-  const receiptEnabled = useWatch({ control, name: 'receipt.enabled' });
 
   const formRef = useRef<FormInstance>(null!);
 
@@ -251,52 +230,6 @@ function SupportEmailFormWithoutRef(
             )}
           />
         </div>
-
-        <Divider>回执</Divider>
-
-        <Alert
-          type="info"
-          message={
-            <div>
-              <div>工单创建完成后立即向用户发送一封邮件。可在回执中使用以下占位符：</div>
-              <div>{'{{ ticket.title }} {{ ticket.content }}'}</div>
-            </div>
-          }
-        />
-
-        <div className="my-6">
-          <Controller
-            control={control}
-            name="receipt.enabled"
-            render={({ field }) => (
-              <Checkbox checked={field.value} onChange={field.onChange}>
-                启用回执
-              </Checkbox>
-            )}
-          />
-        </div>
-
-        <Controller
-          control={control}
-          name="receipt.subject"
-          rules={{ required: receiptEnabled }}
-          render={({ field, fieldState }) => (
-            <Form.Item label="主题" {...getValidateState(fieldState)}>
-              <Input {...field} />
-            </Form.Item>
-          )}
-        />
-
-        <Controller
-          control={control}
-          name="receipt.text"
-          rules={{ required: receiptEnabled }}
-          render={({ field, fieldState }) => (
-            <Form.Item label="正文" {...getValidateState(fieldState)}>
-              <Input.TextArea {...field} autoSize />
-            </Form.Item>
-          )}
-        />
 
         <div className="space-x-2">
           <Button type="primary" htmlType="submit" loading={submitting}>

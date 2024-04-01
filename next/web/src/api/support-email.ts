@@ -21,11 +21,6 @@ export interface SupportEmailSchema {
     secure: boolean;
   };
   categoryId: string;
-  receipt: {
-    enabled: boolean;
-    subject: string;
-    text: string;
-  };
 }
 
 async function fetchSupportEmails() {
@@ -73,11 +68,6 @@ interface CreateSupportEmailData {
   };
   mailbox?: string;
   categoryId: string;
-  receipt: {
-    enabled: boolean;
-    subject: string;
-    text: string;
-  };
 }
 
 async function createSupportEmail(data: CreateSupportEmailData) {
