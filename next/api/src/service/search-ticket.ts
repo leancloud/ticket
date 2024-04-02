@@ -1,6 +1,6 @@
 import { Client } from '@elastic/elasticsearch';
 import { Queue } from 'bull';
-import esb from 'elastic-builder';
+import esb, { Query as ESQuery } from 'elastic-builder';
 import _ from 'lodash';
 
 import {
@@ -285,15 +285,23 @@ export class SearchTicketService {
       filters.fields.forEach((match) => addNestedQuery('fields', match));
     }
     if (filters.keyword) {
-      const terms = this.parseTerms(filters.keyword);
-      terms.forEach((term) => {
-        const matchQuery = esb
-          .multiMatchQuery(['title', 'content', 'fields.value'], term.value)
-          .operator('and');
+      this.parseTerms(filters.keyword).forEach((term) => {
+        let normalMatchQuery: ESQuery;
+        let nestedMatchQuery: ESQuery;
         if (term.isPhrase) {
-          matchQuery.type('phrase');
+          normalMatchQuery = esb.multiMatchQuery(['title', 'content'], term.value).type('phrase');
+          nestedMatchQuery = esb.nestedQuery(
+            esb.matchPhraseQuery('fields.value', term.value),
+            'fields'
+          );
+        } else {
+          normalMatchQuery = esb.multiMatchQuery(['title', 'content'], term.value).operator('and');
+          nestedMatchQuery = esb.nestedQuery(
+            esb.matchQuery('fields.value', term.value).operator('and'),
+            'fields'
+          );
         }
-        boolQuery.filter(matchQuery);
+        boolQuery.filter(esb.boolQuery().should([normalMatchQuery, nestedMatchQuery]));
       });
     }
 
@@ -306,6 +314,9 @@ export class SearchTicketService {
       .size(limit)
       .source(false)
       .toJSON();
+
+    console.log('[Search Ticket]: Query:');
+    console.dir(body, { depth: 10 });
 
     const res = await this.esClient.search({
       index: this.indexName,
