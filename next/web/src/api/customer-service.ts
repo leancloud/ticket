@@ -60,6 +60,12 @@ async function updateCustomerService({ id, ...data }: UpdateCustomerServiceData)
   return res.data;
 }
 
+async function batchUpdateCustomerService(datas: UpdateCustomerServiceData[]) {
+  for (const data of datas) {
+    await updateCustomerService(data);
+  }
+}
+
 async function deleteCustomerService(id: string) {
   await http.delete(`/api/2/customer-services/${id}`);
 }
@@ -128,6 +134,15 @@ export function useUpdateCustomerService(
 ) {
   return useMutation({
     mutationFn: updateCustomerService,
+    ...options,
+  });
+}
+
+export function useBatchUpdateCustomerService(
+  options?: UseMutationOptions<void, Error, UpdateCustomerServiceData[]>
+) {
+  return useMutation({
+    mutationFn: batchUpdateCustomerService,
     ...options,
   });
 }

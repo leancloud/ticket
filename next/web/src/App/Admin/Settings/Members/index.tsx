@@ -1,21 +1,32 @@
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryClient } from 'react-query';
+import { groupBy, sortBy } from 'lodash-es';
 
 import {
   CSRole,
   CustomerServiceSchema,
   RoleNameMap,
+  UpdateCustomerServiceData,
   useAddCustomerService,
   useAdmins,
+  useBatchUpdateCustomerService,
   useCustomerServices,
   useDeleteCustomerService,
   useUpdateCustomerService,
 } from '@/api/customer-service';
-import { Button, Modal, Popover, Table, message, FormInstance } from '@/components/antd';
+import {
+  Button,
+  Modal,
+  Popover,
+  Table,
+  message,
+  FormInstance,
+  Radio,
+  Dropdown,
+} from '@/components/antd';
 import { Category, Retry, UserSelect } from '@/components/common';
 import { UserLabel } from '@/App/Admin/components';
-import { groupBy, sortBy } from 'lodash-es';
-import { RoleCheckboxGroup } from '../../components/RoleCheckboxGroup';
+import { RoleCheckboxGroup } from '@/App/Admin/components/RoleCheckboxGroup';
 import { CustomerServiceForm, CustomerServiceFormData } from './components/CustomerServiceForm';
 
 function MemberActions({
@@ -43,12 +54,7 @@ function MemberActions({
   });
 
   const handleToggleActive = () => {
-    Modal.confirm({
-      title: `${active ? '禁用' : '启用'}客服`,
-      content: `是否将 ${nickname} ${active ? '禁用' : '启用'}`,
-      okType: 'danger',
-      onOk: () => update({ id, active: !active }),
-    });
+    update({ id, active: !active });
   };
 
   const handleDelete = () => {
@@ -133,55 +139,46 @@ function AddUserModal({ visible, onHide }: AddUserModalProps) {
   );
 }
 
-interface EditUserModalRef {
-  open: (id: string, data: CustomerServiceFormData) => void;
+interface EditUserModalProps {
+  open?: boolean;
+  title?: string;
+  isLoading?: boolean;
+  initData?: CustomerServiceFormData;
+  onSave?: (data: CustomerServiceFormData) => void;
+  onClose?: () => void;
+  batch?: boolean;
 }
 
-const EditUserModal = forwardRef<EditUserModalRef>((_, ref) => {
-  const [userId, setUserId] = useState<string | undefined>();
-  const [data, setData] = useState<CustomerServiceFormData>();
-  const [visible, setVisible] = useState(false);
-
-  const queryClient = useQueryClient();
-
-  useImperativeHandle(ref, () => ({
-    open: (id, data) => {
-      setUserId(id);
-      setData(data);
-      setVisible(true);
-    },
-  }));
-
-  const { mutate: update, isLoading: isUpdating } = useUpdateCustomerService({
-    onSuccess: () => {
-      message.success('更新成功');
-      queryClient.invalidateQueries('customerServices');
-      queryClient.invalidateQueries('admins');
-      setVisible(false);
-    },
-  });
-
+const EditUserModal = ({
+  open,
+  title,
+  isLoading,
+  initData,
+  onSave,
+  onClose,
+  batch,
+}: EditUserModalProps) => {
   const formRef = useRef<FormInstance>(null);
 
   return (
     <Modal
       destroyOnClose
-      open={visible}
-      title="更新客服"
+      open={open}
+      title={title}
       onOk={() => formRef.current?.submit()}
-      confirmLoading={isUpdating}
-      okButtonProps={{ disabled: isUpdating || !userId }}
-      onCancel={() => setVisible(false)}
-      cancelButtonProps={{ disabled: isUpdating }}
+      confirmLoading={isLoading}
+      onCancel={onClose}
+      cancelButtonProps={{ disabled: isLoading }}
     >
       <CustomerServiceForm
         ref={formRef}
-        initData={data}
-        onSubmit={(data) => update({ ...data, id: userId! })}
+        initData={initData}
+        onSubmit={onSave}
+        fields={batch ? { roles: true } : undefined}
       />
     </Modal>
   );
-});
+};
 
 interface CustomerService extends CustomerServiceSchema {
   roles: CSRole[];
@@ -214,13 +211,95 @@ export function Members() {
 
   const [addUserModalVisible, setAddUserModalVisible] = useState(false);
 
-  const editUserModalRef = useRef<EditUserModalRef | null>(null);
+  const [active, setActive] = useState(true);
+  const filteredCustomerServices = useMemo(() => {
+    return customerServices.filter((c) => c.active === active);
+  }, [customerServices, active]);
+
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [editingIds, setEditingIds] = useState<string[]>([]);
+  const [editFormData, setEditFormData] = useState<CustomerServiceFormData>();
+
+  const queryClient = useQueryClient();
+
+  const { mutate: update, isLoading: isUpdating } = useBatchUpdateCustomerService({
+    onSuccess: () => {
+      message.success('更新成功');
+      queryClient.invalidateQueries('customerServices');
+      queryClient.invalidateQueries('admins');
+      setSelectedIds([]);
+      setEditingIds([]);
+      setEditFormData(undefined);
+    },
+  });
+
+  const handleEdit = (user: CustomerService) => {
+    setEditingIds([user.id]);
+    setEditFormData({
+      nickname: user.nickname,
+      email: user.email,
+      roles: user.roles,
+    });
+  };
+
+  const handleBatchEdit = () => {
+    if (selectedIds.length === 1) {
+      const id = selectedIds[0];
+      const user = customerServices.find((u) => u.id === id);
+      if (user) {
+        handleEdit(user);
+      }
+    } else if (selectedIds.length > 1) {
+      setEditingIds(selectedIds);
+      setEditFormData({
+        roles: [],
+      });
+    }
+  };
+
+  const handleUpdate = (ids: string[], data: Omit<UpdateCustomerServiceData, 'id'>) => {
+    update(ids.map((id) => ({ ...data, id })));
+  };
 
   return (
     <div className="p-10">
       <h1 className="text-[#2f3941] text-[26px] font-normal">客服</h1>
 
-      <div className="flex flex-row-reverse">
+      <div className="flex items-center gap-2">
+        <Radio.Group
+          optionType="button"
+          options={[
+            { label: '启用中', value: true },
+            { label: '禁用中', value: false },
+          ]}
+          value={active}
+          onChange={(e) => setActive(e.target.value)}
+        />
+        <div className="grow" />
+        {selectedIds.length > 0 && (
+          <Dropdown
+            disabled={isUpdating}
+            trigger={['click']}
+            menu={{
+              items: [
+                { key: 'edit', label: '编辑' },
+                { key: 'changeActive', label: active ? '禁用' : '启用' },
+              ],
+              onClick: ({ key }) => {
+                switch (key) {
+                  case 'edit':
+                    handleBatchEdit();
+                    break;
+                  case 'changeActive':
+                    handleUpdate(selectedIds, { active: !active });
+                    break;
+                }
+              },
+            }}
+          >
+            <Button>批量操作</Button>
+          </Dropdown>
+        )}
         <Button type="primary" onClick={() => setAddUserModalVisible(true)}>
           添加
         </Button>
@@ -228,7 +307,15 @@ export function Members() {
 
       <AddUserModal visible={addUserModalVisible} onHide={() => setAddUserModalVisible(false)} />
 
-      <EditUserModal ref={editUserModalRef} />
+      <EditUserModal
+        title={editingIds.length === 1 ? '编辑客服' : `批量编辑 ${selectedIds.length} 个客服`}
+        open={!!editFormData}
+        initData={editFormData}
+        batch={editingIds.length > 1}
+        onClose={() => setEditFormData(undefined)}
+        onSave={(data) => handleUpdate(editingIds, data)}
+        isLoading={isUpdating}
+      />
 
       {customerServiceResult.error && (
         <Retry
@@ -240,10 +327,15 @@ export function Members() {
 
       <Table
         className="mt-5"
-        rowKey="id"
+        rowKey={(c) => c.id}
         pagination={false}
         loading={customerServiceResult.isLoading}
-        dataSource={customerServices}
+        dataSource={filteredCustomerServices}
+        rowSelection={{
+          selectedRowKeys: selectedIds,
+          onChange: (selectedRowKeys) => setSelectedIds(selectedRowKeys as string[]),
+        }}
+        scroll={{ x: 'max-content' }}
       >
         <Table.Column
           key="customerService"
@@ -262,28 +354,25 @@ export function Members() {
           render={(categoryIds: string[]) => (
             <Popover
               content={
-                categoryIds.length === 0
-                  ? '无'
-                  : categoryIds.map((categoryId) => (
+                categoryIds.length === 0 ? (
+                  '无'
+                ) : (
+                  <div className="flex flex-wrap gap-1 max-w-[400px]">
+                    {categoryIds.map((categoryId) => (
                       <Category
                         key={categoryId}
                         className="text-sm py-0.5 mr-0.5 mb-1"
                         categoryId={categoryId}
                         path
                       />
-                    ))
+                    ))}
+                  </div>
+                )
               }
             >
-              <div className="flex flex-wrap gap-1.5">
-                {categoryIds.length === 0 ? '-' : categoryIds.length}
-              </div>
+              {categoryIds.length === 0 ? '-' : categoryIds.length}
             </Popover>
           )}
-        />
-        <Table.Column
-          dataIndex="active"
-          title="状态"
-          render={(active: boolean) => (active ? '🟢 正常' : '⚪️ 已禁用')}
         />
         <Table.Column
           key="actions"
@@ -293,13 +382,7 @@ export function Members() {
               id={u.id}
               nickname={u.nickname}
               active={u.active}
-              onEdit={() => {
-                editUserModalRef.current?.open(u.id, {
-                  nickname: u.nickname,
-                  email: u.email,
-                  roles: u.roles,
-                });
-              }}
+              onEdit={() => handleEdit(u)}
             />
           )}
         />
