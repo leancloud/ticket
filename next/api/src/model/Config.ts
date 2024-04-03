@@ -45,4 +45,12 @@ export class Config extends Model {
     configCache.delete(key);
     return newConfig;
   }
+
+  static async remove(key: string) {
+    const config = await this.findOneByKey(key);
+    if (config) {
+      await config.delete({ useMasterKey: true });
+    }
+    configCache.delete(key);
+  }
 }

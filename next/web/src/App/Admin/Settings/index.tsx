@@ -39,6 +39,7 @@ import { useCurrentUserIsAdmin } from '@/leancloud';
 import { EvaluationConfig } from './Evaluation';
 import { MergeUser } from './Users/MergeUser';
 import { ExportTicketTask } from './ExportTicket/Tasks';
+import { EmailNotification } from './EmailNotification';
 
 const SettingRoutes = () => (
   <Routes>
@@ -150,6 +151,7 @@ const AdminSettingRoutes = () => (
       <Route path="new" element={<NewSupportEmail />} />
       <Route path=":id" element={<EditSupportEmail />} />
     </Route>
+    <Route path="email-notification" element={<EmailNotification />} />
     <Route path="/export-ticket">
       <Route path="tasks" element={<ExportTicketTask />} />
     </Route>
@@ -238,6 +240,10 @@ const routeGroups: MenuItem[] = [
       {
         name: '支持邮箱',
         path: 'support-emails',
+      },
+      {
+        name: '邮件通知',
+        path: 'email-notification',
       },
       {
         name: '导出记录',
