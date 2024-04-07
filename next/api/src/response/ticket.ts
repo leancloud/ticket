@@ -14,6 +14,13 @@ export interface TicketResponseOptions {
 class BaseTicketResponse {
   constructor(readonly ticket: Ticket, private transferFile = false) {}
 
+  encodeFields() {
+    return this.ticket.fieldValue?.values.map((v) => ({
+      id: v.field,
+      value: v.value,
+    }));
+  }
+
   toJSON({ includeMetaKeys = [], includePrivateTags, includeTags }: TicketResponseOptions = {}) {
     return {
       id: this.ticket.id,
@@ -40,6 +47,7 @@ class BaseTicketResponse {
       language: this.ticket.language,
       tags: includeTags ? this.ticket.tags : undefined,
       privateTags: includePrivateTags ? this.ticket.privateTags : undefined,
+      fields: this.encodeFields(),
       createdAt: this.ticket.createdAt.toISOString(),
       updatedAt: this.ticket.updatedAt.toISOString(),
     };

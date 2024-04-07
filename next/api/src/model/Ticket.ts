@@ -27,6 +27,7 @@ import { Organization } from './Organization';
 import { Reply, TinyReplyInfo } from './Reply';
 import { TinyUserInfo, User, systemUser } from './User';
 import { Watch } from './Watch';
+import { TicketFieldValue } from './TicketFieldValue';
 
 export class Status {
   // 0~99 未开始处理
@@ -227,6 +228,9 @@ export class Ticket extends Model {
 
   @field()
   closedAt?: Date;
+
+  @hasOneThroughPointer(() => TicketFieldValue)
+  fieldValue?: TicketFieldValue;
 
   getUrlForEndUser() {
     return `${config.host}/tickets/${this.nid}`;

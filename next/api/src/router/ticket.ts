@@ -49,6 +49,7 @@ const includeSchema = yup.object({
   includeCategoryPath: yup.bool(),
   includeUnreadCount: yup.bool(),
   includeTag: yup.bool(),
+  includeFields: yup.bool(),
 });
 
 export const ticketFiltersSchema = yup.object({
@@ -260,6 +261,11 @@ router.get(
         onQuery: (query) => {
           return query.where('user', '==', currentUser.toPointer());
         },
+      });
+    }
+    if (params.includeFields) {
+      finalQuery.preload('fieldValue', {
+        authOptions: { useMasterKey: true },
       });
     }
 
