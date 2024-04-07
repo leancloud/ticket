@@ -46,6 +46,11 @@ const SettingRoutes = () => (
     <Route path="/users">
       <Route path="new" element={<NewUser />} />
     </Route>
+    <Route path="/quick-replies">
+      <Route index element={<QuickReplyList />} />
+      <Route path="new" element={<NewQuickReply />} />
+      <Route path=":id" element={<QuickReplyDetail />} />
+    </Route>
     <Route path="/export-ticket">
       <Route path="tasks" element={<ExportTicketTask />} />
     </Route>
@@ -228,6 +233,7 @@ const routeGroups: MenuItem[] = [
       {
         name: '快捷回复',
         path: 'quick-replies',
+        adminOnly: false,
       },
       {
         name: '视图',
