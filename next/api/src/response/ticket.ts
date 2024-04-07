@@ -50,8 +50,7 @@ export class TicketListItemResponse extends BaseTicketResponse {
   toJSON(options?: TicketResponseOptions) {
     return {
       ...super.toJSON(options),
-      // 因为限定 notification.user 为当前用户，所以 notifications 最多只有一个元素
-      unreadCount: this.ticket.notifications?.[0]?.unreadCount,
+      unreadCount: this.ticket.notification?.unreadCount,
     };
   }
 }

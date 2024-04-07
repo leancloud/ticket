@@ -17,6 +17,7 @@ export enum RelationType {
   HasManyThroughIdArray,
   HasManyThroughPointerArray,
   HasManyThroughRelation,
+  HasOneThroughPointer,
 }
 
 export interface BelongsTo {
@@ -79,6 +80,15 @@ export interface HasManyThroughRelation {
   relatedKey: string;
 }
 
+export interface HasOneThroughPointer {
+  type: RelationType.HasOneThroughPointer;
+  model: typeof Model;
+  field: string;
+  getRelatedModel: ModelGetter;
+  foreignPointerKey: string;
+  foreignKeyField: string;
+}
+
 export type Relation =
   | BelongsTo
   | BelongsToThroughPointer
@@ -86,4 +96,5 @@ export type Relation =
   | HasManyThroughPointer
   | HasManyThroughIdArray
   | HasManyThroughPointerArray
-  | HasManyThroughRelation;
+  | HasManyThroughRelation
+  | HasOneThroughPointer;

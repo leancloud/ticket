@@ -10,8 +10,8 @@ import {
   pointerId,
   pointerIds,
   pointTo,
-  hasManyThroughPointer,
   hasManyThroughPointerArray,
+  hasOneThroughPointer,
   serialize,
 } from '@/orm';
 import { TicketUpdater, UpdateOptions } from '@/ticket/TicketUpdater';
@@ -210,8 +210,8 @@ export class Ticket extends Model {
   @field()
   privateTags?: Tag[];
 
-  @hasManyThroughPointer(() => Notification)
-  notifications?: Notification[];
+  @hasOneThroughPointer(() => Notification)
+  notification?: Notification;
 
   @pointerId(() => Ticket)
   parentId?: string;

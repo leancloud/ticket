@@ -168,6 +168,25 @@ export function hasManyThroughRelation(getRelatedModel: ModelGetter, relatedKey?
   };
 }
 
+export function hasOneThroughPointer(
+  getRelatedModel: ModelGetter,
+  foreignPointerKey?: string,
+  foreignKeyField?: string
+) {
+  return (target: Model, field: string) => {
+    const model = target.constructor as typeof Model;
+    foreignPointerKey ??= lowercaseFirstChar(model.getClassName());
+    model.setRelation({
+      type: RelationType.HasOneThroughPointer,
+      model,
+      field,
+      getRelatedModel,
+      foreignPointerKey,
+      foreignKeyField: foreignKeyField ?? foreignPointerKey + 'Id',
+    });
+  };
+}
+
 function serializeDecoratorFactory(config?: Partial<Omit<SerializedField, 'key'>>) {
   return (target: Model, key: string) => {
     const model = target.constructor as typeof Model;

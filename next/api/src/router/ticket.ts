@@ -256,7 +256,7 @@ router.get(
       finalQuery.preload('files');
     }
     if (params.includeUnreadCount) {
-      finalQuery.preload('notifications', {
+      finalQuery.preload('notification', {
         onQuery: (query) => {
           return query.where('user', '==', currentUser.toPointer());
         },
