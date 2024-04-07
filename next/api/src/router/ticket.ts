@@ -44,7 +44,6 @@ const includeSchema = yup.object({
   includeAuthor: yup.bool(),
   includeReporter: yup.bool(),
   includeAssignee: yup.bool(),
-  includeCategory: yup.bool(), // TODO
   includeGroup: yup.bool(),
   includeFiles: yup.bool(),
   includeCategoryPath: yup.bool(),
