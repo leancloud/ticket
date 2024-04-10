@@ -46,23 +46,14 @@ function useSmartSearchTickets({
   ...options
 }: UseSmartFetchTicketsOptions) {
   const isProcessableSearch = type === 'processable';
-  const isRegularTicket =
-    ((filters.type === 'normal' && !filters.keyword) ||
-      (filters.type === 'field' && !!filters.optionValue)) &&
-    !isProcessableSearch;
-  const isFieldSearch = filters.type === 'field' && !filters.optionValue && !isProcessableSearch;
+  const isRegularTicket = filters.type === 'normal' && !filters.keyword && !isProcessableSearch;
+  const isFieldSearch = filters.type === 'field' && !isProcessableSearch;
   const isKeywordSearch = filters.type === 'normal' && !!filters.keyword && !isProcessableSearch;
 
   const dateRange = filters.createdAt && decodeDateRange(filters.createdAt);
 
   const useTicketResult = useTickets({
-    filters:
-      filters.type === 'normal'
-        ? _.omit(filters, ['type', 'fieldId', 'optionValue'])
-        : {
-            fieldName: (filters as FieldFilters).fieldId,
-            fieldValue: (filters as FieldFilters).optionValue,
-          },
+    filters: _.omit(filters, ['type', 'fieldId', 'fieldValue']),
     ...options,
     queryOptions: {
       ...queryOptions,
@@ -71,7 +62,7 @@ function useSmartSearchTickets({
   });
 
   const useSearchTicketsResult = useSearchTickets((filters as NormalFilters).keyword!, {
-    filters: _.omit(filters, ['keyword', 'type', 'fieldId', 'optionValue']) as NormalFilters,
+    filters: _.omit(filters, ['keyword', 'type', 'fieldId', 'fieldValue']) as NormalFilters,
     ...options,
     queryOptions: {
       ...queryOptions,
@@ -87,12 +78,12 @@ function useSmartSearchTickets({
     },
   });
 
-  const { fieldId, textValue } = filters as FieldFilters;
+  const { fieldId, fieldValue } = filters as FieldFilters;
 
   const useFieldSearchResult = useSearchTicketCustomField(
     {
       fieldId,
-      fieldValue: textValue,
+      fieldValue,
       createdAt: dateRange ? [dateRange.from, dateRange.to] : undefined,
     },
     {

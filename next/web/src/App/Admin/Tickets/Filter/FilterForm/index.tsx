@@ -153,17 +153,17 @@ const NormalFieldForm = ({ filters, merge, onSubmit }: FilterFormItemProps<Norma
 };
 
 const CustomFieldForm = ({ filters, merge, onSubmit }: FilterFormItemProps<FieldFilters>) => {
-  const { fieldId: paramFieldId, optionValue, createdAt, textValue } = filters;
+  const { fieldId: paramFieldId, fieldValue, createdAt } = filters;
 
   const [field, setField] = useState<TicketFieldSchema | undefined>();
 
   const [fieldId, isOptionType, isTextType] = useMemo(
     () => [
       field?.id ?? paramFieldId,
-      field ? OptionTypes.includes(field.type) : !!optionValue,
-      field ? TextTypes.includes(field.type) : !!textValue,
+      field ? OptionTypes.includes(field.type) : false,
+      field ? TextTypes.includes(field.type) : false,
     ],
-    [field, optionValue, paramFieldId, textValue]
+    [field, paramFieldId]
   );
 
   return (
@@ -180,16 +180,16 @@ const CustomFieldForm = ({ filters, merge, onSubmit }: FilterFormItemProps<Field
           {isOptionType ? (
             <OptionFieldValueSelect
               fieldId={fieldId}
-              value={field?.id !== paramFieldId ? undefined : optionValue}
+              value={field?.id !== paramFieldId ? undefined : fieldValue}
               onChange={(v) => {
-                merge({ fieldId: fieldId, optionValue: v });
+                merge({ fieldId: fieldId, fieldValue: v });
               }}
             />
           ) : isTextType ? (
             <Input
-              value={field?.id !== paramFieldId ? undefined : textValue}
+              value={field?.id !== paramFieldId ? undefined : fieldValue}
               onChange={(e) => {
-                merge({ fieldId: fieldId, textValue: e.target.value });
+                merge({ fieldId: fieldId, fieldValue: e.target.value });
               }}
               onKeyDown={(e) => e.key === 'Enter' && onSubmit?.()}
             />

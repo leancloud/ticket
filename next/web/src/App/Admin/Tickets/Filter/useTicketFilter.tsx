@@ -29,8 +29,7 @@ export interface NormalFilters extends CommonFilters {
 export interface FieldFilters extends CommonFilters {
   type: 'field';
   fieldId?: string;
-  optionValue?: string;
-  textValue?: string;
+  fieldValue?: string;
 }
 
 export type Filters = NormalFilters | FieldFilters;
@@ -39,7 +38,7 @@ const serializeFilters = (filter: Filters): Record<string, string | undefined> =
   if (filter.type === 'field') {
     return {
       filterType: 'field',
-      ..._.pick(filter, ['fieldId', 'optionValue', 'createdAt', 'textValue']),
+      ..._.pick(filter, ['fieldId', 'fieldValue', 'createdAt']),
     };
   } else {
     return {
@@ -83,8 +82,7 @@ const deserializeFilters = (params: Record<string, string | undefined>): Filters
 
       // field
       'fieldId',
-      'optionValue',
-      'textValue',
+      'fieldValue',
     ]),
     assigneeId: params.assigneeId?.split(','),
     groupId: params.groupId?.split(','),

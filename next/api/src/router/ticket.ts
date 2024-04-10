@@ -72,11 +72,6 @@ export const ticketFiltersSchema = yup.object({
   privateTagValue: yup.string(),
   language: yup.csv(yup.string().required()),
 
-  // fields
-  // TODO: use enum
-  fieldName: yup.string(),
-  fieldValue: yup.string(),
-
   // pagination
   page: yup.number().integer().min(1).default(1),
   pageSize: yup.number().integer().min(0).max(100).default(10),
@@ -119,167 +114,123 @@ router.get(
 
     const sortItems = sort.get(ctx);
 
-    const [finalQuery, count] = await (async () => {
-      if (params.fieldName && params.fieldValue) {
-        const ticketFieldQuery = TicketFieldValue.queryBuilder()
-          .where('values', '==', {
-            field: params.fieldName,
-            value: params.fieldValue,
-          })
-          .skip((params.page - 1) * params.pageSize)
-          .limit(params.pageSize)
-          .orderBy('createdAt', 'desc');
+    const categoryIds = new Set(params.categoryId);
+    const rootId = params.product || params.rootCategoryId;
 
-        if (params.createdAtFrom) {
-          ticketFieldQuery.where('createdAt', '>=', params.createdAtFrom);
-        }
-        if (params.createdAtTo) {
-          ticketFieldQuery.where('createdAt', '<=', params.createdAtTo);
-        }
+    if (rootId) {
+      categoryIds.add(rootId);
+      const subCategories = await categoryService.getSubCategories(rootId);
+      subCategories.forEach((c) => categoryIds.add(c.id));
+    }
 
-        // we can't get the count in the second query, but we can in the first query
-        const [ticketFieldValues, count] = params.count
-          ? await ticketFieldQuery.findAndCount({
-              useMasterKey: true,
-            })
-          : [await ticketFieldQuery.find({ useMasterKey: true }), undefined];
+    const query = Ticket.queryBuilder();
 
-        return [
-          Ticket.queryBuilder()
-            .where(
-              'objectId',
-              'in',
-              ticketFieldValues.map(({ ticketId }) => ticketId)
-            )
-            .orderBy('createdAt', 'desc'),
-          count,
-        ];
-      } else {
-        const categoryIds = new Set(params.categoryId);
-        const rootId = params.product || params.rootCategoryId;
-
-        if (rootId) {
-          categoryIds.add(rootId);
-          const subCategories = await categoryService.getSubCategories(rootId);
-          subCategories.forEach((c) => categoryIds.add(c.id));
-        }
-
-        const query = Ticket.queryBuilder();
-
-        if (params.where) {
-          query.setRawCondition(params.where);
-        }
-        if (params.authorId) {
-          query.where('author', '==', User.ptr(params.authorId));
-        }
-        if (params.assigneeId) {
-          addPointersCondition(query, 'assignee', params.assigneeId, User);
-        }
-        if (params.groupId) {
-          addPointersCondition(query, 'group', params.groupId, Group);
-        }
-        if (params.reporterId) {
-          addPointersCondition(query, 'reporter', params.reporterId, User);
-        }
-        if (params.participantId) {
-          query.where('joinedCustomerServices.objectId', 'in', params.participantId);
-        }
-        if (categoryIds.size) {
-          query.where('category.objectId', 'in', Array.from(categoryIds));
-        }
-        if (params.status) {
-          query.where('status', 'in', params.status);
-        }
-        if (params['evaluation.star'] !== undefined) {
-          query.where('evaluation.star', '==', params['evaluation.star']);
-        }
-        if (params['evaluation.ts']) {
-          const [from, to] = params['evaluation.ts'];
-          if (from) {
-            query.where('evaluation.ts', '>=', from);
-          }
-          if (to) {
-            query.where('evaluation.ts', '<=', to);
-          }
-        }
-        if (params.createdAtFrom) {
-          query.where('createdAt', '>=', params.createdAtFrom);
-        }
-        if (params.createdAtTo) {
-          query.where('createdAt', '<=', params.createdAtTo);
-        }
-        if (params.tagKey) {
-          query.where('tags.key', '==', params.tagKey);
-        }
-        if (params.tagValue) {
-          query.where('tags.value', '==', params.tagValue);
-        }
-        if (params.privateTagKey) {
-          if (!(await currentUser.isCustomerService())) {
-            ctx.throw(403);
-          }
-          query.where('privateTags.key', '==', params.privateTagKey);
-        }
-        if (params.privateTagValue) {
-          if (!(await currentUser.isCustomerService())) {
-            ctx.throw(403);
-          }
-          query.where('privateTags.value', '==', params.privateTagValue);
-        }
-
-        if (params.language) {
-          addInOrNotExistCondition(query, params.language, 'language');
-        }
-
-        query.skip((params.page - 1) * params.pageSize).limit(params.pageSize);
-        sortItems?.forEach(({ key, order }) => query.orderBy(key, order));
-
-        return [query, undefined];
+    if (params.where) {
+      query.setRawCondition(params.where);
+    }
+    if (params.authorId) {
+      query.where('author', '==', User.ptr(params.authorId));
+    }
+    if (params.assigneeId) {
+      addPointersCondition(query, 'assignee', params.assigneeId, User);
+    }
+    if (params.groupId) {
+      addPointersCondition(query, 'group', params.groupId, Group);
+    }
+    if (params.reporterId) {
+      addPointersCondition(query, 'reporter', params.reporterId, User);
+    }
+    if (params.participantId) {
+      query.where('joinedCustomerServices.objectId', 'in', params.participantId);
+    }
+    if (categoryIds.size) {
+      query.where('category.objectId', 'in', Array.from(categoryIds));
+    }
+    if (params.status) {
+      query.where('status', 'in', params.status);
+    }
+    if (params['evaluation.star'] !== undefined) {
+      query.where('evaluation.star', '==', params['evaluation.star']);
+    }
+    if (params['evaluation.ts']) {
+      const [from, to] = params['evaluation.ts'];
+      if (from) {
+        query.where('evaluation.ts', '>=', from);
       }
-    })();
+      if (to) {
+        query.where('evaluation.ts', '<=', to);
+      }
+    }
+    if (params.createdAtFrom) {
+      query.where('createdAt', '>=', params.createdAtFrom);
+    }
+    if (params.createdAtTo) {
+      query.where('createdAt', '<=', params.createdAtTo);
+    }
+    if (params.tagKey) {
+      query.where('tags.key', '==', params.tagKey);
+    }
+    if (params.tagValue) {
+      query.where('tags.value', '==', params.tagValue);
+    }
+    if (params.privateTagKey) {
+      if (!(await currentUser.isCustomerService())) {
+        ctx.throw(403);
+      }
+      query.where('privateTags.key', '==', params.privateTagKey);
+    }
+    if (params.privateTagValue) {
+      if (!(await currentUser.isCustomerService())) {
+        ctx.throw(403);
+      }
+      query.where('privateTags.value', '==', params.privateTagValue);
+    }
+
+    if (params.language) {
+      addInOrNotExistCondition(query, params.language, 'language');
+    }
+
+    query.skip((params.page - 1) * params.pageSize).limit(params.pageSize);
+    sortItems?.forEach(({ key, order }) => query.orderBy(key, order));
 
     if (params.includeAuthor) {
-      finalQuery.preload('author');
+      query.preload('author');
     }
     if (params.includeReporter) {
-      finalQuery.preload('reporter');
+      query.preload('reporter');
     }
     if (params.includeAssignee) {
-      finalQuery.preload('assignee');
+      query.preload('assignee');
     }
     if (params.includeGroup) {
       if (!(await currentUser.isStaff())) {
         ctx.throw(403);
       }
-      finalQuery.preload('group');
+      query.preload('group');
     }
     if (params.includeFiles) {
-      finalQuery.preload('files');
+      query.preload('files');
     }
     if (params.includeUnreadCount) {
-      finalQuery.preload('notification', {
+      query.preload('notification', {
         onQuery: (query) => {
           return query.where('user', '==', currentUser.toPointer());
         },
       });
     }
     if (params.includeFields) {
-      finalQuery.preload('fieldValue', {
+      query.preload('fieldValue', {
         authOptions: { useMasterKey: true },
       });
     }
 
     let tickets: Ticket[];
-    if (params.count && !count) {
-      const result = await finalQuery.findAndCount(currentUser.getAuthOptions());
+    if (params.count) {
+      const result = await query.findAndCount(currentUser.getAuthOptions());
       tickets = result[0];
       ctx.set('X-Total-Count', result[1].toString());
     } else {
-      tickets = await finalQuery.find(currentUser.getAuthOptions());
-
-      if (params.count && count) {
-        ctx.set('X-Total-Count', count.toString());
-      }
+      tickets = await query.find(currentUser.getAuthOptions());
     }
 
     if (params.includeCategoryPath) {
