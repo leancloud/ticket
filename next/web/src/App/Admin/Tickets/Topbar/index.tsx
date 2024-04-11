@@ -4,11 +4,13 @@ import {
   HiAdjustments,
   HiChevronLeft,
   HiChevronRight,
+  HiOutlineCollection,
   HiOutlineChartPie,
   HiOutlineRefresh,
   HiOutlineDownload,
 } from 'react-icons/hi';
 import { useQueryClient } from 'react-query';
+import { useToggle } from 'react-use';
 import cx from 'classnames';
 
 import { Badge, Checkbox, InputNumber, Radio, Select, Tooltip } from '@/components/antd';
@@ -23,6 +25,7 @@ import { useLocalFilters } from '../Filter';
 import { Exporter } from './Exporter';
 import { some, omit } from 'lodash-es';
 import { useTicketSwitchType } from '../useTicketSwitchType';
+import { TicketTableColumnsModal } from './TicketTableColumnsModal';
 
 export { useOrderBy } from './SortDropdown';
 
@@ -96,7 +99,7 @@ function BatchOperations({ checkedTicketIds, disabled, onSuccess }: BatchOperati
             className="inline-flex items-center px-2 py-1"
             disabled={disabled || isLoading}
           >
-            <HiAdjustments className="inline w-[14px] h-[14px] mr-1" />
+            <HiOutlineCollection className="inline w-[14px] h-[14px] mr-1" />
             批量操作
           </NavButton>
         }
@@ -170,7 +173,7 @@ function Pagination({
         value={page}
         onChange={(v) => {
           if (v !== null) {
-            onChangePage(v)
+            onChangePage(v);
           }
         }}
       />
@@ -219,6 +222,13 @@ export interface TopbarProps extends ComponentPropsWithoutRef<'div'> {
   isLoading?: boolean;
   checkedTicketIds?: string[];
   onCheckedChange: (checked: boolean) => void;
+  ticketTable?: {
+    columns?: string[];
+    onChangeColumns?: (columns: string[]) => void;
+  };
+  disableExport?: boolean;
+  disableStats?: boolean;
+  disableFieldsSelect?: boolean;
 }
 
 export function Topbar({
@@ -235,6 +245,10 @@ export function Topbar({
   onCheckedChange,
   showStatsPanel,
   onChangeShowStatsPanel,
+  ticketTable,
+  disableExport,
+  disableFieldsSelect,
+  disableStats,
   ...props
 }: TopbarProps) {
   const [localFilters] = useLocalFilters();
@@ -249,6 +263,8 @@ export function Topbar({
   }, [checkedTicketIds, count]);
 
   const isCustomerService = useCurrentUserIsCustomerService();
+
+  const [columnsModalOpen, toggleColumnsModal] = useToggle(false);
 
   return (
     <div
@@ -307,16 +323,21 @@ export function Topbar({
         </Radio.Group>
       )}
 
+      <Tooltip title="展示字段">
+        <NavButton
+          className="ml-2 px-[7px] py-[7px]"
+          onClick={() => toggleColumnsModal()}
+          disabled={disableFieldsSelect}
+        >
+          <HiAdjustments className="w-4 h-4" />
+        </NavButton>
+      </Tooltip>
+
       {isCustomerService && (
         <Tooltip title="分析">
           <NavButton
             className="ml-2 px-[7px] py-[7px]"
-            disabled={
-              count === 0 ||
-              !!(localFilters.type === 'normal' && localFilters.keyword) ||
-              localFilters.type === 'field' ||
-              type === 'processable'
-            }
+            disabled={disableStats}
             active={showStatsPanel}
             onClick={() => onChangeShowStatsPanel?.(!showStatsPanel)}
           >
@@ -328,15 +349,7 @@ export function Topbar({
       {isCustomerService && (
         <Exporter
           trigger={
-            <NavButton
-              className="ml-2 px-[7px] py-[7px]"
-              disabled={
-                totalCount === 0 ||
-                !!(localFilters.type === 'normal' && localFilters.keyword) ||
-                localFilters.type === 'field' ||
-                type === 'processable'
-              }
-            >
+            <NavButton className="ml-2 px-[7px] py-[7px]" disabled={disableExport}>
               <HiOutlineDownload className="w-4 h-4" />
             </NavButton>
           }
@@ -353,6 +366,12 @@ export function Topbar({
           <BsFunnel className="w-4 h-4" />
         </NavButton>
       </Badge>
+
+      <TicketTableColumnsModal
+        {...ticketTable}
+        open={columnsModalOpen}
+        onCancel={() => toggleColumnsModal()}
+      />
     </div>
   );
 }

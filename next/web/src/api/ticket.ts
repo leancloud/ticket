@@ -27,6 +27,10 @@ export interface TicketSchema {
   evaluation?: { star: number; content: string };
   metaData?: Record<string, any>;
   language?: string;
+  fields?: {
+    id: string;
+    value: string | string[];
+  }[];
   createdAt: string;
   updatedAt: string;
 }
@@ -124,6 +128,7 @@ interface FetchTicketsOptions {
   orderType?: 'asc' | 'desc';
   filters?: FetchTicketFilters;
   count?: boolean;
+  include?: string[];
 }
 
 interface FetchTicketsResult {
@@ -138,6 +143,7 @@ async function fetchTickets({
   orderType = 'desc',
   filters = {},
   count = true,
+  include,
 }: FetchTicketsOptions = {}): Promise<FetchTicketsResult> {
   const params: any = {
     ...encodeTicketFilters(filters),
@@ -145,6 +151,7 @@ async function fetchTickets({
     pageSize,
     count,
     orderBy: `${orderKey}-${orderType}`,
+    include: include?.join(',') || undefined,
   };
 
   const { headers, data } = await http.get('/api/2/tickets', { params });

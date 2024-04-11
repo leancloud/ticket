@@ -28,6 +28,7 @@ import {
 } from './useTicketSwitchType';
 import { useViewTickets } from '@/api/view';
 import { decodeDateRange } from '@/utils/date-range';
+import { useTicketTableColumn } from './hooks/useTicketTableColumns';
 
 const DEFAULT_PAGE_SIZE = 20;
 
@@ -91,13 +92,16 @@ function useSmartSearchTickets({
     }
   );
 
-  return isProcessableSearch
-    ? useProcessableTicketsResult
-    : isKeywordSearch
-    ? useSearchTicketsResult
-    : isFieldSearch
-    ? useFieldSearchResult
-    : useTicketResult;
+  return {
+    ...(isProcessableSearch
+      ? useProcessableTicketsResult
+      : isKeywordSearch
+      ? useSearchTicketsResult
+      : isFieldSearch
+      ? useFieldSearchResult
+      : useTicketResult),
+    mode: isProcessableSearch ? 'view' : isKeywordSearch || isFieldSearch ? 'search' : 'normal',
+  };
 }
 
 function TicketListView() {
@@ -109,13 +113,16 @@ function TicketListView() {
   const [localFilters, setLocalFilters] = useLocalFilters();
   const [type] = useTicketSwitchType();
 
-  const { data: tickets, totalCount, isFetching } = useSmartSearchTickets({
+  const { columns, setColumns, hasCustomField } = useTicketTableColumn();
+
+  const { data: tickets, totalCount, isFetching, mode } = useSmartSearchTickets({
     page,
     pageSize,
     orderKey,
     orderType,
     filters: localFilters,
     type,
+    include: hasCustomField ? ['fields'] : [],
     queryOptions: {
       keepPreviousData: true,
     },
@@ -149,6 +156,11 @@ function TicketListView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [(localFilters as NormalFilters).keyword, localFilters.type]);
 
+  const isAdvanceMode =
+    !!(localFilters.type === 'normal' && localFilters.keyword) ||
+    localFilters.type === 'field' ||
+    type === 'processable';
+
   return (
     <div className="flex flex-col h-full">
       <Topbar
@@ -166,6 +178,13 @@ function TicketListView() {
         isLoading={isFetching}
         checkedTicketIds={checkedIds}
         onCheckedChange={handleCheckAll}
+        ticketTable={{
+          columns,
+          onChangeColumns: setColumns,
+        }}
+        disableStats={!tickets?.length || isAdvanceMode}
+        disableExport={!totalCount || isAdvanceMode}
+        disableFieldsSelect={isAdvanceMode}
       />
 
       <div className="flex grow overflow-hidden">
@@ -176,6 +195,7 @@ function TicketListView() {
             tickets={tickets}
             checkedIds={checkedIds}
             onChangeChecked={handleCheckTicket}
+            columns={mode === 'normal' ? columns : undefined}
           />
         </div>
         {showFilterForm && (
