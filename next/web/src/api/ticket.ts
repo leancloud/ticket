@@ -60,8 +60,9 @@ export interface FetchTicketFilters {
   tagValue?: string;
   privateTagKey?: string;
   privateTagValue?: string;
-  fieldName?: string;
+  fieldId?: string;
   fieldValue?: string;
+  keyword?: string;
   where?: Record<string, any>;
 }
 
@@ -74,8 +75,9 @@ export function encodeTicketFilters(filters: FetchTicketFilters) {
     tagValue: filters.tagValue,
     privateTagKey: filters.privateTagKey,
     privateTagValue: filters.privateTagValue,
-    fieldName: filters.fieldName,
+    fieldId: filters.fieldId,
     fieldValue: filters.fieldValue,
+    keyword: filters.keyword,
   };
   if (filters.assigneeId) {
     params.assigneeId = castArray(filters.assigneeId).join(',');
@@ -158,19 +160,15 @@ async function fetchTickets({
   return { tickets: data, totalCount: parseInt(headers['x-total-count']) };
 }
 
-async function searchTickets(
-  keyword: string,
-  {
-    page = 1,
-    pageSize = 10,
-    orderKey = 'createdAt',
-    orderType = 'desc',
-    filters = {},
-  }: FetchTicketsOptions = {}
-) {
+async function searchTickets({
+  page = 1,
+  pageSize = 10,
+  orderKey = 'createdAt',
+  orderType = 'desc',
+  filters = {},
+}: FetchTicketsOptions = {}) {
   const params: any = {
     ...encodeTicketFilters(filters),
-    keyword,
     page,
     pageSize,
     orderBy: `${orderKey}-${orderType}`,
@@ -270,13 +268,10 @@ export function useTickets({ queryOptions, ...options }: UseTicketsOptions = {})
   };
 }
 
-export function useSearchTickets(
-  keyword: string,
-  { queryOptions, ...options }: UseTicketsOptions = {}
-) {
+export function useSearchTickets({ queryOptions, ...options }: UseTicketsOptions = {}) {
   const { data, ...rest } = useQuery({
-    queryKey: ['searchTicketsResult', keyword, options],
-    queryFn: () => searchTickets(keyword, options),
+    queryKey: ['searchTicketsResult', options],
+    queryFn: () => searchTickets(options),
     ...queryOptions,
   });
 
@@ -323,48 +318,6 @@ export function useOperateTicket(
   });
 }
 
-interface SearchTicketCustomFieldOptions {
-  fieldId?: string;
-  fieldValue?: string;
-  createdAt?: [Date | undefined, Date | undefined];
-  orderKey?: string;
-  orderType?: string;
-}
-
-async function searchTicketCustomField({
-  fieldId,
-  fieldValue,
-  createdAt,
-  orderKey = 'createdAt',
-  orderType = 'desc',
-}: SearchTicketCustomFieldOptions) {
-  const res = await http.get<TicketSchema[]>('/api/2/tickets/search/v2', {
-    params: {
-      fieldId,
-      fieldValue,
-      createdAt: createdAt?.map((d) => (d ? d.toISOString() : '*')).join('..'),
-      orderBy: `${orderKey}-${orderType}`,
-    },
-  });
-  return { tickets: res.data, totalCount: Number(res.headers['x-total-count']) };
-}
-
-export function useSearchTicketCustomField(
-  searchOptions: SearchTicketCustomFieldOptions,
-  options?: UseQueryOptions<FetchTicketsResult, Error>
-) {
-  const { data, ...rest } = useQuery({
-    queryKey: ['searchTicketCustomField', searchOptions],
-    queryFn: () => searchTicketCustomField(searchOptions),
-    ...options,
-  });
-
-  return {
-    ...rest,
-    data: data?.tickets,
-    totalCount: data?.totalCount,
-  };
-}
 type exportType = 'json' | 'csv';
 interface ExportParams extends FetchTicketsOptions {
   type: exportType;

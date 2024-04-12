@@ -2,16 +2,10 @@ import { useEffect, useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import _ from 'lodash';
 
-import {
-  useSearchTicketCustomField,
-  useSearchTickets,
-  useTickets,
-  UseTicketsOptions,
-} from '@/api/ticket';
+import { useSearchTickets, useTickets, UseTicketsOptions } from '@/api/ticket';
 import { usePage, usePageSize } from '@/utils/usePage';
 import { Topbar, useOrderBy } from './Topbar';
 import {
-  FieldFilters,
   FilterForm,
   Filters,
   LocalFiltersProvider,
@@ -27,7 +21,6 @@ import {
   useTicketSwitchType,
 } from './useTicketSwitchType';
 import { useViewTickets } from '@/api/view';
-import { decodeDateRange } from '@/utils/date-range';
 import { useTicketTableColumn } from './hooks/useTicketTableColumns';
 
 const DEFAULT_PAGE_SIZE = 20;
@@ -51,8 +44,6 @@ function useSmartSearchTickets({
   const isFieldSearch = filters.type === 'field' && !isProcessableSearch;
   const isKeywordSearch = filters.type === 'normal' && !!filters.keyword && !isProcessableSearch;
 
-  const dateRange = filters.createdAt && decodeDateRange(filters.createdAt);
-
   const useTicketResult = useTickets({
     filters: _.omit(filters, ['type', 'fieldId', 'fieldValue']),
     ...options,
@@ -62,12 +53,14 @@ function useSmartSearchTickets({
     },
   });
 
-  const useSearchTicketsResult = useSearchTickets((filters as NormalFilters).keyword!, {
-    filters: _.omit(filters, ['keyword', 'type', 'fieldId', 'fieldValue']) as NormalFilters,
+  const useSearchTicketsResult = useSearchTickets({
+    filters: (isKeywordSearch
+      ? _.omit(filters, ['type', 'fieldId', 'fieldValue'])
+      : _.pick(filters, ['createdAt', 'fieldId', 'fieldValue'])) as NormalFilters,
     ...options,
     queryOptions: {
       ...queryOptions,
-      enabled: isKeywordSearch,
+      enabled: isKeywordSearch || isFieldSearch,
     },
   });
 
@@ -79,28 +72,11 @@ function useSmartSearchTickets({
     },
   });
 
-  const { fieldId, fieldValue } = filters as FieldFilters;
-
-  const useFieldSearchResult = useSearchTicketCustomField(
-    {
-      fieldId,
-      fieldValue,
-      createdAt: dateRange ? [dateRange.from, dateRange.to] : undefined,
-      orderKey: options.orderKey,
-      orderType: options.orderType,
-    },
-    {
-      enabled: isFieldSearch,
-    }
-  );
-
   return {
     ...(isProcessableSearch
       ? useProcessableTicketsResult
-      : isKeywordSearch
+      : isKeywordSearch || isFieldSearch
       ? useSearchTicketsResult
-      : isFieldSearch
-      ? useFieldSearchResult
       : useTicketResult),
     mode: isProcessableSearch ? 'view' : isKeywordSearch || isFieldSearch ? 'search' : 'normal',
   };
