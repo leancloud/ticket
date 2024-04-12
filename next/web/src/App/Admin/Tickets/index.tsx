@@ -86,6 +86,8 @@ function useSmartSearchTickets({
       fieldId,
       fieldValue,
       createdAt: dateRange ? [dateRange.from, dateRange.to] : undefined,
+      orderKey: options.orderKey,
+      orderType: options.orderType,
     },
     {
       enabled: isFieldSearch,

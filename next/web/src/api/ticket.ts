@@ -327,18 +327,23 @@ interface SearchTicketCustomFieldOptions {
   fieldId?: string;
   fieldValue?: string;
   createdAt?: [Date | undefined, Date | undefined];
+  orderKey?: string;
+  orderType?: string;
 }
 
 async function searchTicketCustomField({
   fieldId,
   fieldValue,
   createdAt,
+  orderKey = 'createdAt',
+  orderType = 'desc',
 }: SearchTicketCustomFieldOptions) {
   const res = await http.get<TicketSchema[]>('/api/2/tickets/search/v2', {
     params: {
       fieldId,
       fieldValue,
       createdAt: createdAt?.map((d) => (d ? d.toISOString() : '*')).join('..'),
+      orderBy: `${orderKey}-${orderType}`,
     },
   });
   return { tickets: res.data, totalCount: Number(res.headers['x-total-count']) };

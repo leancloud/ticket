@@ -1,11 +1,9 @@
-import { useMemo } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { HiChevronDown } from 'react-icons/hi';
+import classNames from 'classnames';
 
 import { useOrderBy as _useOrderBy } from '@/utils/useOrderBy';
 import _Menu from '@/components/Menu';
-import { useSorterLimited } from '../Filter/useSorterLimited';
-import classNames from 'classnames';
 import { useTicketSwitchType } from '../useTicketSwitchType';
 
 const orderKeys: Record<string, string> = {
@@ -32,13 +30,9 @@ export function SortDropdown({ disabled }: { disabled?: boolean }) {
     }
   };
 
-  const limitedSorter = useSorterLimited();
   const [type] = useTicketSwitchType();
 
-  const disabled_ = useMemo(
-    () => disabled || limitedSorter || type === 'processable',
-    [limitedSorter, type, disabled]
-  );
+  const disabled_ = disabled || type === 'processable';
 
   return (
     <Menu as="span" className="relative">
@@ -51,7 +45,6 @@ export function SortDropdown({ disabled }: { disabled?: boolean }) {
         >
           {orderKeys[orderKey]} <HiChevronDown className="inline relative top-0.5" />
         </span>
-        {limitedSorter && <span> 排序方式在筛选字段值时不可用</span>}
       </Menu.Button>
 
       <Transition
@@ -68,20 +61,10 @@ export function SortDropdown({ disabled }: { disabled?: boolean }) {
           <Menu.Item as={_Menu.Item} eventKey="createdAt" active={orderKey === 'createdAt'}>
             {orderKeys.createdAt}
           </Menu.Item>
-          <Menu.Item
-            as={_Menu.Item}
-            eventKey="updatedAt"
-            active={orderKey === 'updatedAt'}
-            disabled={limitedSorter}
-          >
+          <Menu.Item as={_Menu.Item} eventKey="updatedAt" active={orderKey === 'updatedAt'}>
             {orderKeys.updatedAt}
           </Menu.Item>
-          <Menu.Item
-            as={_Menu.Item}
-            eventKey="status"
-            active={orderKey === 'status'}
-            disabled={limitedSorter}
-          >
+          <Menu.Item as={_Menu.Item} eventKey="status" active={orderKey === 'status'}>
             {orderKeys.status}
           </Menu.Item>
           <_Menu.Divider />
