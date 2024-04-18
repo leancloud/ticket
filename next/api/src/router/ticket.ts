@@ -362,6 +362,15 @@ router.post('/', async (ctx) => {
   if (!category) {
     return ctx.throw(400, `Category ${data.categoryId} is not exists`);
   }
+  if (category.meta) {
+    const { allow } = category.meta;
+    if (typeof allow === 'string') {
+      const systemRoles = await roleService.getSystemRolesForUser(currentUser.id);
+      if (!systemRoles.includes(allow)) {
+        return ctx.throw(403, `You cannot create ticket with category ${category.id}`);
+      }
+    }
+  }
 
   const { title: fieldTitle, details, attachments, customFields } = extractSystemFields(
     data.customFields
