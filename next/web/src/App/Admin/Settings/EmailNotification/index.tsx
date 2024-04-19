@@ -172,7 +172,7 @@ export function EmailNotification() {
   const handleRemove = () => {
     Modal.confirm({
       title: '移除邮件通知',
-      content: '已设置的数据将会丢失，该操作不课恢复。',
+      content: '已设置的数据将会丢失，该操作不可恢复。',
       okButtonProps: { danger: true },
       onOk: remove,
     });
