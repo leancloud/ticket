@@ -7,6 +7,18 @@ import { roleService } from '@/service/role';
 
 const { ENABLE_TDS_USER_LOGIN } = process.env;
 
+let authStats: Record<string, number> = {};
+
+function recordAuthStats(type: string) {
+  authStats[type] ??= 0;
+  authStats[type] += 1;
+}
+
+setInterval(() => {
+  console.log('[TapTap Inspect] Auth', authStats);
+  authStats = {};
+}, 1000 * 60);
+
 export const auth: Middleware = withSpan(async (ctx, next) => {
   const sessionToken = ctx.get('X-LC-Session');
   if (sessionToken) {
@@ -26,6 +38,7 @@ export const auth: Middleware = withSpan(async (ctx, next) => {
       }
       throw error;
     }
+    recordAuthStats('X-LC-Session');
     return next();
   }
 
@@ -49,6 +62,7 @@ export const auth: Middleware = withSpan(async (ctx, next) => {
       );
     }
     ctx.state.currentUser = user;
+    recordAuthStats('X-Anonymous-ID');
     return next();
   }
 
@@ -68,6 +82,7 @@ export const auth: Middleware = withSpan(async (ctx, next) => {
     }
 
     ctx.state.currentUser = user;
+    recordAuthStats('X-TDS-Credential');
     return next();
   }
 
@@ -83,6 +98,7 @@ export const auth: Middleware = withSpan(async (ctx, next) => {
 
     await user.loadSessionToken();
     ctx.state.currentUser = user;
+    recordAuthStats('X-Credential');
     return next();
   }
 

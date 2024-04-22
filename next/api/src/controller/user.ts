@@ -74,6 +74,15 @@ const TDSUserSigningKey = process.env.TDS_USER_SIGNING_KEY;
 
 @Controller('users')
 export class UserController {
+  private loginTypeStats: Record<string, number> = {};
+
+  constructor() {
+    setInterval(() => {
+      console.log('[TapTap Inspect] Login', this.loginTypeStats);
+      this.loginTypeStats = {};
+    }, 1000 * 60);
+  }
+
   @Get()
   @UseMiddlewares(auth, systemRoleMemberGuard)
   @ResponseBody(UserResponse)
@@ -138,6 +147,9 @@ export class UserController {
   @Post()
   @UseMiddlewares((ctx, next) => transformToHttpError(next))
   async login(@Ctx() ctx: Context, @Body(new ZodValidationPipe(authSchema)) authData: AuthData) {
+    this.loginTypeStats[authData.type] ??= 0;
+    this.loginTypeStats[authData.type] += 1;
+
     if (authData.type === 'jwt') {
       return withAsyncSpan(
         () => User.loginWithJWT(authData.jwt),
