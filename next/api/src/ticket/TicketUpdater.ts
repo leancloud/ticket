@@ -1,4 +1,3 @@
-import AV from 'leanengine';
 import _ from 'lodash';
 
 import events from '@/events';
@@ -347,11 +346,6 @@ export class TicketUpdater {
           // TODO: Sentry
           console.error('[ERROR] increase unread count failed:', error);
         });
-    }
-
-    if (this.data.status && ticket.isClosed()) {
-      // TODO: next 支持定义云函数后改回本地调用
-      AV.Cloud.run('statsTicket', { ticketId: ticket.id }, { remote: true });
     }
 
     await searchTicketService.addSyncJob([ticket.id]);

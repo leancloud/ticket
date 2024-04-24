@@ -559,10 +559,6 @@ class Ticket {
       })
     }
 
-    if (this.isUpdated('status') && ticketStatus.isClosed(this.status)) {
-      AV.Cloud.run('statsTicket', { ticketId: this.id })
-    }
-
     this.saveOpsLogs().catch(captureException)
 
     this._replyCountIncrement = 0

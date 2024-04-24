@@ -53,9 +53,6 @@ export default function GlobalNav({ user, onLogout }) {
                 >
                   {t('customerServiceTickets')}
                 </Nav.Link>
-                <Nav.Link as={Link} to={getConfig('nav.stats.href', '/customerService/stats')}>
-                  {t('statistics')}
-                </Nav.Link>
               </>
             ) : (
               <Nav.Link as={Link} to={getConfig('nav.tickets.href', '/tickets')}>
