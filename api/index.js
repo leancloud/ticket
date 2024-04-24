@@ -11,7 +11,6 @@ require('./OpsLog')
 require('./User')
 require('./Organization')
 require('./Role')
-require('./stats')
 
 // 加载 next shim
 // TODO(sdjdd): 之后移除
