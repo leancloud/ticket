@@ -9,6 +9,7 @@ import {
   TicketSearchDocument,
 } from '@/interfaces/ticket';
 import { Ticket } from '@/model/Ticket';
+import { TicketField } from '@/model/TicketField';
 import { TicketFieldValue } from '@/model/TicketFieldValue';
 import { createQueue } from '@/queue';
 
@@ -281,8 +282,47 @@ export class SearchTicketService {
     if (filters.language) {
       boolQuery.filter(esb.termsQuery('language', filters.language));
     }
-    if (filters.fields) {
-      filters.fields.forEach((match) => addNestedQuery('fields', match));
+    if (filters.fields?.length) {
+      const fieldIds = filters.fields.map((field) => field.id);
+      const fields = await TicketField.queryBuilder()
+        .where('objectId', 'in', fieldIds)
+        .find({ useMasterKey: true });
+      const nestedQueries = filters.fields.flatMap(({ id, value }) => {
+        const field = fields.find((field) => field.id === id);
+        if (field && (field.type === 'text' || field.type === 'multi-line')) {
+          return this.parseTerms(value).map((term) => {
+            if (term.isPhrase) {
+              return esb.nestedQuery(
+                esb
+                  .boolQuery()
+                  .must([
+                    esb.termQuery('fields.id', id),
+                    esb.matchPhraseQuery('fields.value', term.value),
+                  ]),
+                'fields'
+              );
+            } else {
+              return esb.nestedQuery(
+                esb
+                  .boolQuery()
+                  .must([
+                    esb.termQuery('fields.id', id),
+                    esb.matchQuery('fields.value', term.value).operator('and'),
+                  ]),
+                'fields'
+              );
+            }
+          });
+        } else {
+          return esb.nestedQuery(
+            esb
+              .boolQuery()
+              .must([esb.termQuery('fields.id', id), esb.termQuery('fields.value.keyword', value)]),
+            'fields'
+          );
+        }
+      });
+      boolQuery.filter(nestedQueries);
     }
     if (filters.keyword) {
       this.parseTerms(filters.keyword).forEach((term) => {
