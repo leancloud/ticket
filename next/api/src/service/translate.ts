@@ -1,6 +1,8 @@
 import axios from 'axios';
 
 export class TranslateService {
+  private fanyiURL = process.env.FANYI_URL || 'https://fanyi.leanapp.cn/';
+
   private fanyiToken = process.env.FANYI_TOKEN;
 
   async translate(text: string) {
@@ -9,7 +11,7 @@ export class TranslateService {
     }
 
     const res = await axios.post(
-      'https://fanyi.leanapp.cn/',
+      this.fanyiURL,
       { text },
       {
         headers: {
