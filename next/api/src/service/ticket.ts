@@ -68,9 +68,6 @@ export class TicketService {
         },
       });
       this.detectLangQueue.process((job) => {
-        if (job.attemptsMade > 1) {
-          console.log(`[TicketService] ticket ${job.data.ticketId} detect language job failed ${job.attemptsMade} times`);
-        }
         return this.detectTicketLanguage(job.data.ticketId);
       });
     }
@@ -165,6 +162,8 @@ export class TicketService {
     }
 
     const translateResult = await translateService.translate(text);
+    console.log(`[TicketService] detecting language for ticket ${ticket.id}: ${text}, result: ${JSON.stringify(translateResult)}`);
+
     if (!translateResult) {
       return;
     }
