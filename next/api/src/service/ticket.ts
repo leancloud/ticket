@@ -59,7 +59,12 @@ export class TicketService {
       this.detectLangQueue = createQueue('ticket_language_detect', {
         defaultJobOptions: {
           removeOnComplete: true,
-          removeOnFail: true,
+          removeOnFail: 1000, // 仅保留 1000 个失败任务
+          attempts: 3,
+          backoff: {
+            type: 'exponential',
+            delay: 1000,
+          },
         },
       });
       this.detectLangQueue.process((job) => {
