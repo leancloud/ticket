@@ -14,7 +14,7 @@ export class TranslateService {
       this.fanyiURL,
       { text },
       {
-        timeout: 5000,
+        timeout: 10000,
         headers: {
           'x-fanyi-token': this.fanyiToken,
         },
