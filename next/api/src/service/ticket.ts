@@ -68,7 +68,7 @@ export class TicketService {
         },
       });
       this.detectLangQueue.process((job) => {
-        return this.detectTicketLanguage(job.data.ticketId);
+        return this.detectTicketLanguage(job);
       });
     }
 
@@ -150,7 +150,8 @@ export class TicketService {
     return differenceInMilliseconds(new Date(), ticket.closedAt) <= evaluationConfig.timeLimit;
   }
 
-  async detectTicketLanguage(ticketId: string) {
+  async detectTicketLanguage(job: Job<DetectTicketLanguageJobData>) {
+    const { ticketId } = job.data;
     const ticket = await Ticket.find(ticketId, { useMasterKey: true });
     if (!ticket) {
       return;
@@ -161,8 +162,14 @@ export class TicketService {
       return;
     }
 
-    const translateResult = await translateService.translate(text);
-    console.log(`[TicketService] detecting language for ticket ${ticket.id}: ${text}, result: ${JSON.stringify(translateResult)}`);
+    const start = performance.now();
+    let translateResult;
+    try{
+      translateResult = await translateService.translate(text);
+    } finally {
+      const end = performance.now();
+      console.log(`[TicketService] detecting language for ticket ${ticket.nid}: ${text}, result: ${translateResult?.from}, attempts: ${job.attemptsMade}, time: ${end - start}ms`);
+    }
 
     if (!translateResult) {
       return;
