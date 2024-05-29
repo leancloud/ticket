@@ -56,8 +56,6 @@ export class OpenAIService {
 
     const SystemPrompt = TicketClassifyPrompt(categories);
 
-    const UserPrompt = `内容："""\n${content}\n"""`;
-
     const res = await (async () => {
       try {
         const res = (
@@ -74,7 +72,7 @@ export class OpenAIService {
                 },
                 {
                   role: 'user',
-                  content: UserPrompt,
+                  content: content,
                 },
               ],
               temperature: 0.6,
@@ -84,15 +82,15 @@ export class OpenAIService {
         ).choices[0].message?.content;
 
         if (res) {
-          console.log(`OpenAI category classify: user=${content}, result=${res}`);
+          console.log(`OpenAI category classify: user=${content}, result=${res}, prompt=${SystemPrompt}`);
           try {
             return OpenAIOutputSchema.parse(JSON.parse(res.trim()));
           } catch {
-            console.log(`parse GPT result error:`, res);
+            console.log(`OpenAI category classify: parse result failed:`, res);
           }
         }
       } catch (err) {
-        console.error(err);
+        console.error(`OpenAI category classify: error:`, err);
         return;
       }
     })();
