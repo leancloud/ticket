@@ -7,7 +7,7 @@ import { z } from 'zod';
 export const TicketClassifyPrompt = (categories: Category[]) => `
 你是我的内容分类助手，我会为你提供各种分类和它们的描述，以及一个内容，我需要你帮助为内容分类，并给出你认为的置信度。
 分类后输出如下 JSON 格式："""
-{ "category": "..", "confidence": 0.123456789 }
+{"category":"..","confidence":0.123456789}
 """
 category 表示分类的 ID，confidence 表示你给出的置信度。 如果你觉得这个工单不属于任何分类，输出 null。
 
@@ -84,6 +84,7 @@ export class OpenAIService {
         ).choices[0].message?.content;
 
         if (res) {
+          console.log(`OpenAI category classify: user=${content}, result=${res}`);
           try {
             return OpenAIOutputSchema.parse(JSON.parse(res.trim()));
           } catch {
