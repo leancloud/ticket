@@ -41,6 +41,16 @@ AV.Cloud.define('dailyPushStatsToSlack', () => dailyPushStatsToSlack())
 AV.Cloud.define('weeklyPushStatsToSlack', () => weeklyPushStatsToSlack())
 AV.Cloud.define('monthlyPushStatsToSlack', () => monthlyPushStatsToSlack())
 
+const { cancelTicketExportJob } = require('../next/api/dist/ticket/export')
+AV.Cloud.define('removeExportJob', (req) => {
+  if (!req.params.jobId) {
+    console.error('Cloud Function - removeExportJob: missing jobId')
+    return
+  }
+
+  cancelTicketExportJob(req.params.jobId)
+})
+
 AV.Cloud.onLogin((request) => {
   if (request.object.get('inactive')) {
     throw new AV.Cloud.Error(

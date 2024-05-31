@@ -75,3 +75,32 @@ export async function createTicketExportJob(jobData: Omit<JobData, 'date' | 'tas
     taskId: task.id,
   });
 }
+
+export async function cancelTicketExportJob(jobId: string) {
+  const job = await queue.getJob(jobId)
+  if (!job) {
+    console.log(`cancelTicketExportJob: job ${jobId} not found`)
+    return
+  }
+
+  console.log(`cancelTicketExportJob: canceling job ${jobId}`)
+
+  await job.remove()
+  const task = await ExportTicketTask.find(job.data.taskId, { useMasterKey: true });
+  if (task) {
+    await task.update(
+      {
+        status: 'canceled',
+      },
+      { useMasterKey: true }
+    );
+  }
+}
+
+export async function getTicketExportJobInfo() {
+  const jobs = await queue.getJobs(['waiting', 'active', 'delayed', 'completed', 'failed'])
+  console.log('getTicketExportJobInfo')
+  jobs.map(job => (
+    console.log(`job ${job.id} ${new Date(job.timestamp)}: ${job.data.taskId} ${job.data.date} ${job.data.userId}`)
+  ))
+}
