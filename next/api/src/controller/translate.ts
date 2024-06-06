@@ -14,10 +14,18 @@ export class TranslateController {
   async translate(
     @Body(new ZodValidationPipe(translateSchema)) { text }: z.infer<typeof translateSchema>
   ) {
-    const result = await translateService.translate(text);
-    if (!result) {
-      throw new HttpError(400, 'translation service is not configured');
+    const start = performance.now();
+    let translateResult;
+    try{
+      translateResult = await translateService.translate(text);
+    } finally {
+      const end = performance.now();
+      console.log(`translate ${text} cost ${end - start}ms, result: ${translateResult?.from}, ${translateResult?.text}`);
     }
-    return result;
+
+    if (!translateResult) {
+      throw new HttpError(400, 'translation service is not available');
+    }
+    return translateResult;
   }
 }
