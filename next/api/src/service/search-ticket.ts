@@ -355,9 +355,6 @@ export class SearchTicketService {
       .source(false)
       .toJSON();
 
-    console.log('[Search Ticket]: Query:');
-    console.dir(body, { depth: 10 });
-
     const res = await this.esClient.search({
       index: this.indexName,
       body,

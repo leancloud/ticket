@@ -348,6 +348,8 @@ export class TicketUpdater {
         });
     }
 
+
+    console.log("addSyncJob", ticket.id)
     await searchTicketService.addSyncJob([ticket.id]);
     if (this.data.status && ticket.isClosed()) {
       durationMetricsService.createCreateMetricsJob({ ticketId: ticket.id });
