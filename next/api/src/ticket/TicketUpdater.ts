@@ -309,6 +309,9 @@ export class TicketUpdater {
     );
     this.assignRelatedInstance(ticket);
 
+    console.log("addSyncJob", ticket.id)
+    await searchTicketService.addSyncJob([ticket.id]);
+
     this.saveOpsLogs(operator).catch((error) => {
       // TODO: Sentry
       console.error('[ERROR] Create OpsLog failed, error:', error);
@@ -349,8 +352,6 @@ export class TicketUpdater {
     }
 
 
-    console.log("addSyncJob", ticket.id)
-    await searchTicketService.addSyncJob([ticket.id]);
     if (this.data.status && ticket.isClosed()) {
       durationMetricsService.createCreateMetricsJob({ ticketId: ticket.id });
     }
