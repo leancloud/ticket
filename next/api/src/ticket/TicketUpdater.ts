@@ -303,6 +303,7 @@ export class TicketUpdater {
       this.data.ACL = this.getCurrentACL();
     }
 
+    console.log("updateTicket", this.ticket.id, this.ticket.status, JSON.stringify(this.data))
     const ticket = await this.ticket.update(
       this.data,
       this.getModifyOptions(operator, options?.useMasterKey)
