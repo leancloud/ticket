@@ -32,9 +32,9 @@ async function replyTicket(ticketId: string, reply: BatchReply) {
 async function updateTicket(ticketId: string, data: Omit<BatchUpdateData, 'reply'>) {
   try {
     await http.patch(`/api/2/tickets/${ticketId}`, {
-      assignee_id: data.assigneeId,
-      group_id: data.groupId,
-      category_id: data.caregoryId,
+      assigneeId: data.assigneeId,
+      groupId: data.groupId,
+      categoryId: data.caregoryId,
     });
   } catch (error) {
     const msg = (error as AxiosError).response?.data;
