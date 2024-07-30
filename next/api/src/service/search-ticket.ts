@@ -124,6 +124,10 @@ export class SearchTicketService {
       this.createSearchDocument(ticket, fieldValueByTicketId[ticket.id])
     );
 
+    tickets.forEach((ticket) => {
+      console.log('syncTickets', ticket.id, ticket.status, ticket.updatedAt)
+    })
+
     await this.esClient.bulk({
       body: docs.flatMap((doc) => [
         {
