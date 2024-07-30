@@ -44,7 +44,7 @@ async function updateTicket(ticketId: string, data: Omit<BatchUpdateData, 'reply
 
 async function operateTicket(ticketId: string, operation: Operation) {
   try {
-    await http.post(`/api/1/tickets/${ticketId}/operate`, { action: operation });
+    await http.post(`/api/2/tickets/${ticketId}/operate`, { action: operation });
   } catch (error) {
     const msg = (error as AxiosError).response?.data;
     throw new Error(`operate ticket ${ticketId} failed: ${JSON.stringify(msg)}`);
