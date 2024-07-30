@@ -20,7 +20,7 @@ export interface BatchUpdateData {
 
 async function replyTicket(ticketId: string, reply: BatchReply) {
   try {
-    await http.post(`/api/1/tickets/${ticketId}/replies`, {
+    await http.post(`/api/2/tickets/${ticketId}/replies`, {
       content: reply.content,
     });
   } catch (error) {
@@ -31,7 +31,7 @@ async function replyTicket(ticketId: string, reply: BatchReply) {
 
 async function updateTicket(ticketId: string, data: Omit<BatchUpdateData, 'reply'>) {
   try {
-    await http.patch(`/api/1/tickets/${ticketId}`, {
+    await http.patch(`/api/2/tickets/${ticketId}`, {
       assignee_id: data.assigneeId,
       group_id: data.groupId,
       category_id: data.caregoryId,
