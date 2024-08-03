@@ -841,6 +841,8 @@ router.post('/:id/replies', async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   const ticket = ctx.state.ticket as Ticket;
 
+  console.log("POST replies", ticket.id, new Date())
+
   const data = replyDataSchema.validateSync(ctx.request.body);
 
   const isCustomerService = await currentUser.isCustomerService();
@@ -880,6 +882,8 @@ router.post('/:id/replies', async (ctx) => {
     ctx.throw(400, 'Content and fileIds cannot be empty at the same time');
   }
 
+  console.log("POST replies (before reply)", ticket.id, new Date())
+
   const reply = await ticket.reply({
     author: currentUser,
     content: isCustomerService
@@ -894,6 +898,8 @@ router.post('/:id/replies', async (ctx) => {
     fileIds: data.fileIds?.length ? data.fileIds : undefined,
     internal: data.internal,
   });
+
+  console.log("POST replies (after reply)", ticket.id, new Date())
 
   ctx.body = new ReplyResponse(reply);
 });
