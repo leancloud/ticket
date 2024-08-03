@@ -841,6 +841,8 @@ router.post('/:id/replies', async (ctx) => {
   const currentUser = ctx.state.currentUser as User;
   const ticket = ctx.state.ticket as Ticket;
 
+  const serveStart = performance.now();
+
   console.log("POST replies", ticket.id, new Date())
 
   const data = replyDataSchema.validateSync(ctx.request.body);
@@ -882,24 +884,32 @@ router.post('/:id/replies', async (ctx) => {
     ctx.throw(400, 'Content and fileIds cannot be empty at the same time');
   }
 
-  console.log("POST replies (before reply)", ticket.id, new Date())
+  const validateEnd = performance.now();
+
+  console.log("POST replies (before reply)", ticket.id, new Date(), validateEnd - serveStart)
+
+  const content = isCustomerService
+    ? data.content
+    : (
+      await textFilterService.filter(data.content, {
+        user_id: currentUser.username,
+        ip: getIP(ctx),
+        nickname: currentUser.name,
+      })
+    ).escape
+
+  const textFilterEnd = performance.now();
+  console.log("POST replies (text-filter)", ticket.id, new Date(), textFilterEnd - validateEnd)
 
   const reply = await ticket.reply({
     author: currentUser,
-    content: isCustomerService
-      ? data.content
-      : (
-          await textFilterService.filter(data.content, {
-            user_id: currentUser.username,
-            ip: getIP(ctx),
-            nickname: currentUser.name,
-          })
-        ).escape,
+    content: content,
     fileIds: data.fileIds?.length ? data.fileIds : undefined,
     internal: data.internal,
   });
 
-  console.log("POST replies (after reply)", ticket.id, new Date())
+  const replyEnd = performance.now();
+  console.log("POST replies (after reply)", ticket.id, new Date(), replyEnd - textFilterEnd)
 
   ctx.body = new ReplyResponse(reply);
 });

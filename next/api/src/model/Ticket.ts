@@ -288,6 +288,9 @@ export class Ticket extends Model {
       }
     }
 
+    const replyCreateStart = performance.now();
+    console.log("ticket.reply (create-start)", this.id, new Date());
+
     const reply = await Reply.create(
       {
         ACL,
@@ -307,6 +310,9 @@ export class Ticket extends Model {
         ignoreAfterHook: true,
       }
     );
+
+    const replyCreateEnd = performance.now()
+    console.log("ticket.reply (create-end)", this.id, new Date(), replyCreateEnd - replyCreateStart);
 
     const updater = new TicketUpdater(this);
     if (isCustomerService && data.author !== systemUser) {
@@ -340,6 +346,9 @@ export class Ticket extends Model {
       currentUserId: data.author.id,
     });
 
+    const emitEventEnd = performance.now()
+    console.log("ticket.reply (emit-event)", this.id, new Date(), emitEventEnd - replyCreateEnd);
+
     if (!data.internal) {
       if (this.channel === 'email' && data.author.id !== this.authorId) {
         // 向创建者发送邮件
@@ -348,6 +357,9 @@ export class Ticket extends Model {
         });
       }
     }
+
+    const sendEmailEnd = performance.now()
+    console.log("ticket.reply (send-email)", this.id, new Date(), sendEmailEnd - emitEventEnd);
 
     return reply;
   }
