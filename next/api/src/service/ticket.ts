@@ -12,6 +12,7 @@ import { createQueue, Job, Queue } from '@/queue';
 import { DetectTicketLanguageJobData } from '@/interfaces/ticket';
 import { allowedTicketLanguages } from '@/utils/locale';
 import { translateService } from './translate';
+import { searchTicketService } from '@/service/search-ticket'
 
 interface GetRepliesOptions {
   author?: boolean;
@@ -189,6 +190,7 @@ export class TicketService {
     }
 
     await ticket.update({ language }, { useMasterKey: true });
+    await searchTicketService.addSyncJob([ticket.id])
   }
 
   async addDetectTicketLanguageJob(ticketId: string) {
