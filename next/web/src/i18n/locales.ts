@@ -19,6 +19,7 @@ export const LOCALES: Record<string, string> = {
   ar: '阿拉伯语',
   ms: '马来语',
   tl: '菲律宾语',
+  it: '意大利语'
 };
 
 export const TicketLanguages: Record<string, string> = {
