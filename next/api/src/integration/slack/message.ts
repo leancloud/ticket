@@ -41,11 +41,21 @@ export class Message {
   }
 }
 
-function getTicketLink(ticket: Ticket): string {
+function escapeSlackCharacters(text:string) {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function getTicketLink(ticket:Ticket) {
   let title = ticket.title;
   if (title.length > 50) {
     title = title.slice(0, 47) + '...';
   }
+  // Escape special characters in the title
+  title = escapeSlackCharacters(title);
+
   return `<${ticket.getUrl()}|*#${ticket.nid}: ${title}*>`;
 }
 
