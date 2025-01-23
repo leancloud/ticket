@@ -135,10 +135,10 @@ export default function Login() {
         /* eslint-disable i18n/no-chinese-character */
         <div>
           <hr />
-          <p>美味书签（北京）信息技术有限公司 版权所有</p>
+          <p>美味书签（上海）信息技术有限公司</p>
           <div>
             <a href="https://beian.miit.gov.cn/" target="_blank">
-              京ICP备12025059号-10
+              沪ICP备2025111189号-1
             </a>
           </div>
         </div>
