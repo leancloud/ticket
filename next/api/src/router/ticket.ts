@@ -359,12 +359,13 @@ const ticketRateLimitMiddleware: Middleware = async (ctx: Context, next) => {
 
   if (!isCS && redis) {
     console.log(`[Rate Limit] Checking rate limit for non-CS user ${currentUser.id}.`);
+    let currentCount = 0;
     try {
       const today = new Date().toISOString().slice(0, 10).replace(/-/g, ''); // YYYYMMDD
       const redisKey = `rate_limit:ticket:create:${currentUser.id}:${today}`;
       console.log(`[Rate Limit] User: ${currentUser.id}, Date: ${today}, Key: ${redisKey}`);
 
-      const currentCount = await redis.incr(redisKey);
+      currentCount = await redis.incr(redisKey);
       console.log(`[Rate Limit] Redis INCR result for key ${redisKey}: ${currentCount}`);
 
       if (currentCount === 1) {
@@ -373,16 +374,16 @@ const ticketRateLimitMiddleware: Middleware = async (ctx: Context, next) => {
         await redis.expire(redisKey, 86400); // 86400 seconds = 24 hours
       }
 
-      if (currentCount > DAILY_TICKET_LIMIT) {
-        console.warn(`[Rate Limit] Limit exceeded for user ${currentUser.id}. Count: ${currentCount}. Denying request.`);
-        ctx.throw(429, `Rate limit exceeded. You can create up to ${DAILY_TICKET_LIMIT} tickets per day.`);
-        return; // Stop processing
-      }
     } catch (error: any) {
       console.error(`[Rate Limit] Redis rate limiting check failed for user ${currentUser.id}:`, error);
       // Log error to Sentry or other monitoring
       // captureException(error, { extra: { component: 'TicketAPIV2', msg: 'Rate limit check failed', userId: currentUser.id } });
       // Fail open: If Redis fails, allow the request to proceed.
+    }
+    if (currentCount > DAILY_TICKET_LIMIT) {
+      console.warn(`[Rate Limit] Limit exceeded for user ${currentUser.id}. Count: ${currentCount}. Denying request.`);
+      ctx.throw(429, `Rate limit exceeded. You can create up to ${DAILY_TICKET_LIMIT} tickets per day.`);
+      return; // Stop processing
     }
   } else if (!redis) {
     console.warn(`[Rate Limit] Redis client is not available. Skipping rate limiting check for user ${currentUser.id}.`);
@@ -495,8 +496,8 @@ const ticketDuplicateCheckMiddleware: Middleware = async (ctx: Context, next) =>
 
 router.post('/',
   // Apply the new middleware BEFORE the main handler
-  ticketRateLimitMiddleware,
   ticketDuplicateCheckMiddleware,
+  ticketRateLimitMiddleware,
   // Original handler starts here
   async (ctx: Context) => {
   const currentUser = ctx.state.currentUser as User;
