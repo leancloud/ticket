@@ -471,7 +471,7 @@ const ticketDuplicateCheckMiddleware: Middleware = async (ctx: Context, next) =>
 
   // ---- After ticket creation ----
   const createdTicketId = (ctx.body as any)?.id;
-  const wasSuccessful = ctx.status === 201 && createdTicketId;
+  const wasSuccessful = ctx.status === 200 && createdTicketId;
 
   // Store in Redis only if:
   // 1. Ticket creation was successful
