@@ -3,6 +3,7 @@ const AV = require('leanengine')
 const { Router } = require('express')
 const { check, query } = require('express-validator')
 const Redis = require('ioredis')
+const crypto = require('crypto')
 
 const { captureException } = require('../errorHandler')
 const { checkPermission } = require('../../oauth/lc')
@@ -127,6 +128,7 @@ router.post(
     }
     // === Rate Limiting End ===
 
+    // === Duplicate Check Start ===
     const {
       title,
       category_id,
@@ -137,6 +139,28 @@ router.post(
       form_values,
     } = req.body
     const author = req.user
+
+    if (redisClient) {
+      try {
+        const titleHash = crypto.createHash('sha1').update(title).digest('hex')
+        const duplicateCheckKey = `duplicate_check:ticket:${author.id}:${titleHash}`
+        const existingTicketId = await redisClient.get(duplicateCheckKey)
+
+        if (existingTicketId) {
+          console.log(
+            `Duplicate ticket creation detected for user ${author.id} with title hash ${titleHash}. Returning existing ticket ID: ${existingTicketId}`
+          )
+          return res.json({ id: existingTicketId })
+        }
+      } catch (error) {
+        console.error(`Redis duplicate check failed for user ${author.id}:`, error)
+        captureException(error, {
+          extra: { component: 'TicketAPI', msg: 'Duplicate check failed', userId: author.id },
+        })
+        // Fail open: If Redis fails, allow creation.
+      }
+    }
+    // === Duplicate Check End ===
 
     const ticket = await Ticket.create({
       title,
@@ -150,6 +174,23 @@ router.post(
     if (form_values) {
       await ticket.saveFormValues(form_values)
     }
+
+    // === Store in Redis After Creation ===
+    if (redisClient) {
+      try {
+        const titleHash = crypto.createHash('sha1').update(title).digest('hex')
+        const duplicateCheckKey = `duplicate_check:ticket:${author.id}:${titleHash}`
+        // Set the key with the new ticket ID and 2-minute expiry
+        await redisClient.set(duplicateCheckKey, ticket.id, 'EX', 120)
+      } catch (error) {
+        console.error(`Redis set after creation failed for ticket ${ticket.id}:`, error)
+        captureException(error, {
+          extra: { component: 'TicketAPI', msg: 'Set duplicate key failed', ticketId: ticket.id },
+        })
+        // Log error but don't block response
+      }
+    }
+    // === Store in Redis End ===
 
     res.json({ id: ticket.id })
   })
