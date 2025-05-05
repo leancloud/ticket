@@ -403,66 +403,93 @@ const ticketDuplicateCheckMiddleware: Middleware = async (ctx: Context, next) =>
     return;
   }
 
-  // We need the title from the request body
-  const title = (ctx.request.body as any)?.title;
-  if (!title || typeof title !== 'string') {
-    // Title is required for the check, proceed if missing (validation should catch this later)
-    console.warn(`[Duplicate Check] Title missing or invalid in request body for user ${currentUser.id}. Skipping check.`);
-    await next();
-    return;
-  }
+  // Get potential identity sources from the body
+  const body = ctx.request.body as any;
+  const title = body?.title;
+  const customFields = body?.customFields;
 
+  let checkType: 'title' | 'customFields' | null = null;
+  let identityPayload: string | null = null;
+  let payloadHash: string | null = null;
   let duplicateCheckKey: string | null = null;
-  let titleHash: string | null = null;
 
-  if (redis) {
-    console.log(`[Duplicate Check] Redis client is available for user ${currentUser.id}. Checking for duplicates...`);
+  // Determine what to base the duplicate check on
+  if (title && typeof title === 'string' && title.trim() !== '') {
+    // Use non-empty title for check
+    checkType = 'title';
+    identityPayload = title; // Use the title directly for hashing
+    console.log(`[Duplicate Check] Using TITLE for check: "${title}"`);
+  } else if (customFields && Array.isArray(customFields) && customFields.length > 0) {
+    // Fallback to custom fields if title is empty/missing and customFields exist
+    checkType = 'customFields';
     try {
-      titleHash = crypto.createHash('sha1').update(title).digest('hex');
-      duplicateCheckKey = `duplicate_check:ticket:${currentUser.id}:${titleHash}`;
-      console.log(`[Duplicate Check] User: ${currentUser.id}, Title: "${title}", Hash: ${titleHash}, Key: ${duplicateCheckKey}`);
-
-      const existingTicketId = await redis.get(duplicateCheckKey);
-      console.log(`[Duplicate Check] Redis GET result for key ${duplicateCheckKey}: ${existingTicketId}`);
-
-      if (existingTicketId) {
-        console.log(`[Duplicate Check] Duplicate ticket creation detected for user ${currentUser.id} with title hash ${titleHash}. Returning existing ticket ID: ${existingTicketId}`);
-        ctx.status = 200; // Or maybe 303 See Other? 200 with flag is likely fine.
-        ctx.body = { id: existingTicketId, duplicated: true };
-        return; // Return early, do not proceed to create ticket
-      }
-    } catch (error: any) {
-      console.error(`[Duplicate Check] Redis duplicate check failed for user ${currentUser.id}:`, error);
-      // captureException(error, { extra: { component: 'TicketAPIV2', msg: 'Duplicate check failed', userId: currentUser.id } });
-      // Fail open: If Redis fails, allow creation.
-      duplicateCheckKey = null; // Ensure we don't try to set later if GET failed
+      // Sort by field ID for consistent hashing regardless of submission order
+      const sortedFields = [...customFields].sort((a, b) => String(a?.field).localeCompare(String(b?.field)));
+      identityPayload = JSON.stringify(sortedFields);
+      console.log(`[Duplicate Check] Title is empty/missing. Using CUSTOM FIELDS for check. Sorted JSON: ${identityPayload}`);
+    } catch (e) {
+      console.error('[Duplicate Check] Error processing custom fields for hashing:', e);
+      // Don't perform check if processing fails
+      identityPayload = null;
+      checkType = null;
     }
   } else {
-    console.warn(`[Duplicate Check] Redis client is not available. Skipping duplicate check for user ${currentUser.id}.`);
+    // Cannot perform check if neither title nor customFields are usable
+    console.warn(`[Duplicate Check] No usable title or custom fields found for user ${currentUser.id}. Skipping check.`);
+  }
+
+  // Proceed with check only if we have a basis (checkType is set)
+  if (checkType && identityPayload) {
+    payloadHash = crypto.createHash('sha1').update(identityPayload).digest('hex');
+    duplicateCheckKey = `duplicate_check:ticket:${currentUser.id}:${checkType}:${payloadHash}`;
+
+    if (redis) {
+      console.log(`[Duplicate Check] Redis client available. Key: ${duplicateCheckKey}, Type: ${checkType}, Hash: ${payloadHash}`);
+      try {
+        const existingTicketId = await redis.get(duplicateCheckKey);
+        console.log(`[Duplicate Check] Redis GET result for key ${duplicateCheckKey}: ${existingTicketId}`);
+
+        if (existingTicketId) {
+          console.log(`[Duplicate Check] Duplicate ticket detected based on ${checkType} for user ${currentUser.id} with hash ${payloadHash}. Returning existing ID: ${existingTicketId}`);
+          ctx.status = 200;
+          ctx.body = { id: existingTicketId, duplicated: true };
+          return; // Return early
+        }
+      } catch (error: any) {
+        console.error(`[Duplicate Check] Redis GET failed for user ${currentUser.id}, key ${duplicateCheckKey}:`, error);
+        // Fail open: If Redis GET fails, allow creation.
+        duplicateCheckKey = null; // Prevent SET attempt later
+      }
+    } else {
+      console.warn(`[Duplicate Check] Redis client not available. Skipping Redis GET/SET for user ${currentUser.id}.`);
+      duplicateCheckKey = null; // Prevent SET attempt later
+    }
   }
 
   // Proceed to the actual ticket creation handler
   await next();
 
   // ---- After ticket creation ----
-  // Check if ticket creation was successful and we have an ID to store
   const createdTicketId = (ctx.body as any)?.id;
-  const wasSuccessful = ctx.status === 201 && createdTicketId; // Assuming 201 Created is success status
+  const wasSuccessful = ctx.status === 201 && createdTicketId;
 
-  if (wasSuccessful && redis && duplicateCheckKey) {
-    console.log(`[Duplicate Set] Ticket creation successful (ID: ${createdTicketId}). Storing duplicate check key after creation. Key: ${duplicateCheckKey}, Ticket ID: ${createdTicketId}, TTL: ${DUPLICATE_CHECK_TTL_SECONDS}s`);
+  // Store in Redis only if:
+  // 1. Ticket creation was successful
+  // 2. We successfully generated a duplicateCheckKey earlier (based on title or customFields)
+  // 3. Redis client is available
+  if (wasSuccessful && duplicateCheckKey && redis) {
+    console.log(`[Duplicate Set] Ticket creation successful (ID: ${createdTicketId}). Storing key based on ${checkType}. Key: ${duplicateCheckKey}, TTL: ${DUPLICATE_CHECK_TTL_SECONDS}s`);
     try {
       const setResult = await redis.set(duplicateCheckKey, createdTicketId, 'EX', DUPLICATE_CHECK_TTL_SECONDS);
       console.log(`[Duplicate Set] Redis SET result for key ${duplicateCheckKey}: ${setResult}`);
     } catch (error: any) {
-      console.error(`[Duplicate Set] Redis set after creation failed for ticket ${createdTicketId}:`, error);
-      // captureException(error, { extra: { component: 'TicketAPIV2', msg: 'Set duplicate key failed', ticketId: createdTicketId } });
+      console.error(`[Duplicate Set] Redis SET failed for ticket ${createdTicketId}, key ${duplicateCheckKey}:`, error);
       // Log error but don't block response
     }
   } else if (wasSuccessful && !redis) {
-     console.warn(`[Duplicate Set] Redis client not available. Cannot store duplicate check key for new ticket ${createdTicketId}.`);
+    console.warn(`[Duplicate Set] Redis client not available. Cannot store duplicate check key for new ticket ${createdTicketId}.`);
   } else if (wasSuccessful && !duplicateCheckKey) {
-     console.warn(`[Duplicate Set] Duplicate check key was not generated (likely due to earlier Redis error). Cannot store for new ticket ${createdTicketId}.`);
+    console.warn(`[Duplicate Set] Duplicate check key was not generated/used. Cannot store for new ticket ${createdTicketId}.`);
   }
 };
 
