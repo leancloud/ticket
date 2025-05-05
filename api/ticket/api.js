@@ -2,6 +2,7 @@ const _ = require('lodash')
 const AV = require('leanengine')
 const { Router } = require('express')
 const { check, query } = require('express-validator')
+const Redis = require('ioredis')
 
 const { captureException } = require('../errorHandler')
 const { checkPermission } = require('../../oauth/lc')
@@ -16,6 +17,27 @@ const { isCustomerService } = require('../customerService/utils')
 const config = require('../../config')
 const Ticket = require('./model')
 const { getRoles } = require('../common')
+
+// Initialize Redis client if URL is configured
+let redisClient = null
+if (process.env.REDIS_URL_CACHE) {
+  try {
+    redisClient = new Redis(process.env.REDIS_URL_CACHE)
+    redisClient.on('error', (err) => {
+      console.error('Redis connection error:', err)
+      // Optionally disable Redis features if connection fails persistently
+      redisClient = null
+      captureException(new Error('Redis connection failed'), { extra: { component: 'TicketAPI' } })
+    })
+    console.log('Redis client initialized for rate limiting.')
+  } catch (error) {
+    console.error('Failed to initialize Redis client:', error)
+    captureException(error, { extra: { component: 'TicketAPI', msg: 'Redis init failed' } })
+    redisClient = null
+  }
+} else {
+  console.warn('REDIS_URL_CACHE not set. Rate limiting is disabled.')
+}
 
 const TICKET_SORT_KEY_MAP = {
   created_at: 'createdAt',
@@ -72,6 +94,38 @@ router.post(
     if (!(await checkPermission(req.user))) {
       res.throw(403, 'Your account is not qualified to create ticket.')
     }
+
+    // === Rate Limiting Start ===
+    const currentUser = req.user
+    const isCS = await isCSInTicket(currentUser)
+
+    if (!isCS && redisClient) {
+      try {
+        const today = new Date().toISOString().slice(0, 10).replace(/-/g, '') // YYYYMMDD
+        const redisKey = `rate_limit:ticket:create:${currentUser.id}:${today}`
+        const currentCount = await redisClient.incr(redisKey)
+
+        if (currentCount === 1) {
+          // Set expiry to 24 hours when the key is first created today
+          await redisClient.expire(redisKey, 86400) // 86400 seconds = 24 hours
+        }
+
+        if (currentCount > 20) {
+          console.warn(`Rate limit exceeded for user ${currentUser.id}. Count: ${currentCount}`)
+          // Optionally log the violation details
+          // LogRateLimitViolation({ userId: currentUser.id, limit: 20, resource: 'ticket_create' })
+          return res.throw(429, 'Rate limit exceeded. You can create up to 20 tickets per day.')
+        }
+      } catch (error) {
+        console.error(`Redis rate limiting check failed for user ${currentUser.id}:`, error)
+        captureException(error, {
+          extra: { component: 'TicketAPI', msg: 'Rate limit check failed', userId: currentUser.id },
+        })
+        // Fail open: If Redis fails, allow the request to proceed.
+        // Alternatively, you could fail closed: return res.throw(500, 'Internal server error during rate check.')
+      }
+    }
+    // === Rate Limiting End ===
 
     const {
       title,
