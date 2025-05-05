@@ -101,10 +101,12 @@ router.post(
     const isCS = await isCSInTicket(currentUser)
 
     if (!isCS && redisClient) {
+      console.log(`[Rate Limit] Checking rate limit for non-CS user ${currentUser.id}.`)
       try {
         const today = new Date().toISOString().slice(0, 10).replace(/-/g, '') // YYYYMMDD
         const redisKey = `rate_limit:ticket:create:${currentUser.id}:${today}`
         const currentCount = await redisClient.incr(redisKey)
+        console.log(`[Rate Limit] Redis INCR result for key ${redisKey}: ${currentCount}`)
 
         if (currentCount === 1) {
           // Set expiry to 24 hours when the key is first created today
@@ -112,7 +114,9 @@ router.post(
         }
 
         if (currentCount > 20) {
-          console.warn(`Rate limit exceeded for user ${currentUser.id}. Count: ${currentCount}`)
+          console.warn(
+            `[Rate Limit] Limit exceeded for user ${currentUser.id}. Count: ${currentCount}. Denying request.`
+          )
           // Optionally log the violation details
           // LogRateLimitViolation({ userId: currentUser.id, limit: 20, resource: 'ticket_create' })
           return res.throw(429, 'Rate limit exceeded. You can create up to 20 tickets per day.')
@@ -125,6 +129,10 @@ router.post(
         // Fail open: If Redis fails, allow the request to proceed.
         // Alternatively, you could fail closed: return res.throw(500, 'Internal server error during rate check.')
       }
+    } else {
+      console.log(
+        `[Rate Limit] Redis client is not available for user ${currentUser.id}. Skipping rate limiting check.`
+      )
     }
     // === Rate Limiting End ===
 
@@ -141,10 +149,19 @@ router.post(
     const author = req.user
 
     if (redisClient) {
+      console.log(
+        `[Duplicate Check] Redis client is available for user ${author.id}. Checking for duplicates...`
+      )
       try {
         const titleHash = crypto.createHash('sha1').update(title).digest('hex')
         const duplicateCheckKey = `duplicate_check:ticket:${author.id}:${titleHash}`
+        console.log(
+          `[Duplicate Check] User: ${author.id}, Title: "${title}", Hash: ${titleHash}, Key: ${duplicateCheckKey}`
+        )
         const existingTicketId = await redisClient.get(duplicateCheckKey)
+        console.log(
+          `[Duplicate Check] Redis GET result for key ${duplicateCheckKey}: ${existingTicketId}`
+        )
 
         if (existingTicketId) {
           console.log(
@@ -162,6 +179,9 @@ router.post(
     }
     // === Duplicate Check End ===
 
+    console.log(
+      `[Ticket Creation] Proceeding to create ticket for user ${author.id}, title: "${title}"`
+    )
     const ticket = await Ticket.create({
       title,
       category_id,
@@ -180,8 +200,12 @@ router.post(
       try {
         const titleHash = crypto.createHash('sha1').update(title).digest('hex')
         const duplicateCheckKey = `duplicate_check:ticket:${author.id}:${titleHash}`
+        console.log(
+          `[Duplicate Set] Storing duplicate check key after creation. Key: ${duplicateCheckKey}, Ticket ID: ${ticket.id}, TTL: 120s`
+        )
         // Set the key with the new ticket ID and 2-minute expiry
-        await redisClient.set(duplicateCheckKey, ticket.id, 'EX', 120)
+        const setResult = await redisClient.set(duplicateCheckKey, ticket.id, 'EX', 120)
+        console.log(`[Duplicate Set] Redis SET result for key ${duplicateCheckKey}: ${setResult}`)
       } catch (error) {
         console.error(`Redis set after creation failed for ticket ${ticket.id}:`, error)
         captureException(error, {
